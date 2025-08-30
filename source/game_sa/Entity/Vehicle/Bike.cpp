@@ -106,7 +106,7 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6BF430);
     RH_ScopedInstall(Destructor, 0x6B57A0);
     RH_ScopedInstall(dmgDrawCarCollidingParticles, 0x6B5A00);
-    RH_ScopedInstall(DamageKnockOffRider, 0x6B5A10, { .reversed = false });
+    RH_ScopedInstall(DamageKnockOffRider, 0x6B5A10);
     RH_ScopedInstall(KnockOffRider, 0x6B5F40);
     RH_ScopedInstall(SetRemoveAnimFlags, 0x6B5F50, { .reversed = false });
     RH_ScopedInstall(ReduceHornCounter, 0x6B5F90);
@@ -263,62 +263,24 @@ void CBike::dmgDrawCarCollidingParticles(const CVector& position, float power, e
 
 // 0x6B5A10
 bool CBike::DamageKnockOffRider(CVehicle* pVehicle, float fImpulse, uint16 nPieceType, CEntity* pDamageEntity, CVector& vecDamagePos, CVector& vecDamageNormal) {
-    /*
-    CPed*                                    m_Driver;       // ecx
-    double                                   v7;             // st7
-    CPed*                                    m_Driver;             // ecx
-    CTaskComplexAvoidOtherPedWhileWandering* ActiveTask;     // eax
-    CMatrixLink*                             m_matrix;       // edx
-    double                                   v11;            // st7
-    double                                   z;              // st7
-    double                                   v13;            // st7
-    CPed*                                    v14;            // ecx
-    CMatrixLink*                             v15;            // ecx
-    double                                   v16;            // st7
-    double                                   v17;            // st6
-    long double                              v18;            // st5
-    double                                   v19;            // st4
-    double                                   x;              // st3
-    CPed*                                    v21;            // ecx
-    CPed*                                    v22;            // ecx
-    CPed*                                    v23;            // eax
-    double                                   v24;            // st7
-    int                                      LocalDirection; // ebx
-    CEventGroup*                             p_m_eventGroup; // ecx
-    CPed*                                    v27;            // ecx
-    CEventGroup*                             v28;            // ecx
-    float                                    a6;             // [esp+0h] [ebp-C8h]
-    float                                    a6a;            // [esp+0h] [ebp-C8h]
-    float                                    v32;            // [esp+2Ch] [ebp-9Ch]
-    float                                    v33;            // [esp+2Ch] [ebp-9Ch]
-    float                                    v34;            // [esp+30h] [ebp-98h]
-    float                                    v35;            // [esp+34h] [ebp-94h]
-    CVector2D                                a2a;            // [esp+38h] [ebp-90h] BYREF
-    float                                    v37;            // [esp+40h] [ebp-88h]
-    struct CEventKnockOffBike                b;              // [esp+44h] [ebp-84h] BYREF
-    struct CEventKnockOffBike                event;          // [esp+80h] [ebp-48h] BYREF
-    int                                      v40;            // [esp+C4h] [ebp-4h]
-
-    m_Driver = pVehicle->m_pDriver;
-    v32 = fImpulse / pVehicle->m_fMass * 800.0f;
+    const auto driver = pVehicle->m_pDriver;
+    auto v32 = fImpulse / pVehicle->m_fMass * 800.0f;
     if (!pVehicle->IsNothing()) {
-        if (m_Driver && (m_Driver->bDoBloodyFootprints == true && m_Driver->bGetUpAnimStarted == false)) {
-            v7 = m_Driver->GetBikeRidingSkill() * 0.6f;
-            v32 = (1.0f - v7) * v32;
+        if (driver && (driver->bDoBloodyFootprints == true && driver->bGetUpAnimStarted == false)) {
+            v32 = (1.0f - driver->GetBikeRidingSkill() * 0.6f) * v32;
         }
     } else {
         v32 = v32 * 0.75f;
-        if (m_Driver) {
-            v7 = m_Driver->GetBikeRidingSkill() * 0.5f;
-            v32 = (1.0f - v7) * v32;
+        if (driver) {
+            v32 = (1.0f - driver->GetBikeRidingSkill() * 0.5f) * v32;
         }
     }
 
-    if (!m_Driver) {
+    if (!driver) {
         return false;
     }
 
-    if (m_Driver->m_nPedState != PEDSTATE_DRIVING) {
+    if (driver->IsStateDriving()) {
         return false;
     }
 
@@ -326,15 +288,17 @@ bool CBike::DamageKnockOffRider(CVehicle* pVehicle, float fImpulse, uint16 nPiec
         return false;
     }
 
-    if (m_Driver->m_pIntelligence->m_TaskMgr.GetActiveTask()) {
-        ActiveTask = pVehicle->m_pDriver->m_pIntelligence->m_TaskMgr.GetActiveTask();
-        if (ActiveTask->GetTaskType(ActiveTask) == TASK_SIMPLE_GANG_DRIVEBY
-            && pVehicle->m_pDriver->m_nPedType != PED_TYPE_COP) {
+    if (driver->m_pIntelligence->m_TaskMgr.GetActiveTask()) {
+        const auto ActiveTask = pVehicle->m_pDriver->m_pIntelligence->m_TaskMgr.GetActiveTask();
+        if (ActiveTask->GetTaskType() == TASK_SIMPLE_GANG_DRIVEBY
+            && pVehicle->m_pDriver->IsCop()) {
             return false;
         }
     }
-    m_matrix = pVehicle->m_matrix;
-    if (fabs(m_matrix->GetForward().Dot(vecDamageNormal)) <= 0.85f) {
+
+    const auto matrix = pVehicle->m_matrix;
+    float v34, v11;
+    if (fabs(matrix->GetForward().Dot(vecDamageNormal)) <= 0.85f) {
         v34 = 0.6f;
     } else {
         v11 = (vecDamageNormal.y + vecDamageNormal.x) * 0.0f + vecDamageNormal.z;
@@ -343,93 +307,87 @@ bool CBike::DamageKnockOffRider(CVehicle* pVehicle, float fImpulse, uint16 nPiec
         }
         v34 = 7.0f * v11 * v11 + 0.6f;
     }
-    z = m_matrix->GetUp().z;
-    a2a.x = 1.5f;
-    if (z < 0.0f) {
+
+    float a2a = 1.5f;
+    if (matrix->GetUp().z < 0.0f) {
         v34 = 5.0f;
     }
-    v35 = 0.05f;
+
+    float v35 = 0.05f;
+    float v13;
+
     if (pVehicle->m_nModelIndex == MODEL_SATCHEL) {
         v34 = 0.65f * v34;
         v13 = 0.75f;
     } else if (!pVehicle->IsSubQuad()) {
-        a2a.x = 2.0f * 1.5f;
+        a2a = 2.0f * 1.5f;
         v34 = 0.65f * v34;
         v13 = 0.75f;
     }
+
     v35 = v13 * 0.05f;
-    v14 = pVehicle->m_pDriver;
-    if (v14) {
-        if (m_matrix->GetForward().Dot(vecDamageNormal) > 0.0f) {
-            v34 = (1.0f - v14->GetBikeRidingSkill() * 0.6f) * v34;
+    if (driver) {
+        if (matrix->GetForward().Dot(vecDamageNormal) > 0.0f) {
+            v34 = (1.0f - driver->GetBikeRidingSkill() * 0.6f) * v34;
         }
     }
-    v15 = pVehicle->m_matrix;
-    if (v15->GetUp().Dot(vecDamageNormal) >= 0.0) {
-        v16 = v15->GetUp().Dot(vecDamageNormal);
+
+    float v16;
+    if (matrix->GetUp().Dot(vecDamageNormal) >= 0.0f) {
+        v16 = matrix->GetUp().Dot(vecDamageNormal);
     } else {
-        v16 = 0.0;
+        v16 = 0.0f;
     }
 
-    if (v15->GetUp().Dot(vecDamageNormal) <= 0.0) {
-        v17 = v15->GetUp().Dot(vecDamageNormal);
+    float v17;
+    if (matrix->GetUp().Dot(vecDamageNormal) <= 0.0f) {
+        v17 = matrix->GetUp().Dot(vecDamageNormal);
     } else {
-        v17 = 0.0;
+        v17 = 0.0f;
     }
 
-    v18 = v15->GetForward().Dot(vecDamageNormal);
-    v19 = v15->GetRight().Dot(vecDamageNormal);
-    v21 = pVehicle->m_pDriver;
-    v37 = fabs(v19);
-    v33 = (fabs(v18) * v34 + v16 * v35 + v37 * 0.45f - v17 * a2a.x) * v32;
+    const auto v18 = matrix->GetForward().Dot(vecDamageNormal);
+    const auto v19 = matrix->GetRight().Dot(vecDamageNormal);
+    const auto v21 = pVehicle->m_pDriver;
+    const auto v37 = fabs(v19);
+    auto v33 = (fabs(v18) * v34 + v16 * v35 + v37 * 0.45f - v17 * a2a) * v32;
     if (v21->IsPlayer() && CCullZones::CamStairsForPlayer()) {
         if (CCullZones::FindZoneWithStairsAttributeForPlayer()) {
             v33 = 0.0f;
         }
     }
-    if (v33 <= 75.0f && (pVehicle->m_pDriver->bCanExitCar || v33 <= 20.0)) {
+    if (v33 <= 75.0f && (pVehicle->m_pDriver->bCanExitCar || v33 <= 20.0f)) {
         return false;
     }
-    v22 = pVehicle->m_pDriver;
-    if (v22) {
-        if (v22->bCanExitCar) {
+    if (driver) {
+        if (driver->bCanExitCar) {
             return false;
         }
     }
-    v23 = pVehicle->m_apPassengers[0];
+
+    const auto v23 = pVehicle->m_apPassengers[0];
     if (v23) {
         if (v23->bCanExitCar) {
             return false;
         }
     }
-    v24 = vecDamageNormal.y * -1.0;
-    LocalDirection = -10;
-    a2a.x = vecDamageNormal.x * -1.0;
-    a2a.y = v24;
-    if (v22) {
-        LocalDirection = v22->GetLocalDirection(a2a);
-        a6 = 0.05f * v33;
-        b = CEventKnockOffBike::CEventKnockOffBike(pVehicle, pVehicle->m_vecMoveSpeed, vecDamageNormal, fImpulse, a6, 49, LocalDirection, 0, nullptr, true, false);
-        p_m_eventGroup = &pVehicle->m_pDriver->m_pIntelligence->m_eventGroup;
-        v40 = 0;
-        p_m_eventGroup->Add(b, false);
-        v40 = -1;
-        b.~CEventKnockOffBike();
+
+    auto LocalDirection = -10;
+    if (driver) {
+        LocalDirection = driver->GetLocalDirection(-vecDamageNormal);
+        const auto a6 = 0.05f * v33;
+        CEventKnockOffBike event(pVehicle, pVehicle->m_vecMoveSpeed, vecDamageNormal, fImpulse, a6, 0x31u, LocalDirection, 0, nullptr, true, false);
+        pVehicle->m_pDriver->GetEventGroup().Add(event, false);
     }
-    v27 = pVehicle->m_apPassengers[0];
-    if (v27) {
+
+    if (v23) {
         if (LocalDirection == -10) {
-            LOBYTE(LocalDirection) = v27->GetLocalDirection(a2a);
+            LocalDirection = v23->GetLocalDirection(-vecDamageNormal);
         }
-        a6a = 0.050000001 * v33;
-        event = CEventKnockOffBike::CEventKnockOffBike(pVehicle, pVehicle->m_vecMoveSpeed, vecDamageNormal, fImpulse, a6a, 0x31u, LocalDirection, 0, nullptr, false, false);
-        v28 = &pVehicle->m_apPassengers[0]->m_pIntelligence->m_eventGroup;
-        v40 = 1;
-        v28->Add(event, false);
-        v40 = -1;
-        event.~CEventKnockOffBike();
+        const auto a6a = 0.05f * v33;
+        CEventKnockOffBike event(pVehicle, pVehicle->m_vecMoveSpeed, vecDamageNormal, fImpulse, a6a, 0x31u, LocalDirection, 0, nullptr, false, false);
+        pVehicle->m_apPassengers[0]->GetEventGroup().Add(event, false);
     }
-    */
     return true;
 }
 
