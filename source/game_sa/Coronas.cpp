@@ -2,48 +2,33 @@
 #include <reversiblebugfixes/Bugs.hpp>
 #include "Coronas.h"
 
-auto& aCoronastar = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT>, 0x8D4950>();
-auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT>, 0x8D4A58>();
+std::array<char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNames = {
+    "coronastar",
+    "coronastar",
+    "coronamoon",
+    "coronareflect",
+    "coronaheadlightline",
+    "",
+    "",
+    "",
+    "",
+    "coronaringb"
+}; // 0x8D4950
 
-struct CFlareDefinition {
-    float Position;
-    float Size;
-    FixedVector<int16, 65535.f> ColorMult;
-    FixedFloat<int16, 256.f> IntensityMult;
-    int16 Sprite; // Only used for array-end checking
-};
+std::array<char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNamesm = {
+    "",
+    "",
+    "",
+    "coronareflectm",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+}; // 0x88E538
 
-constexpr CFlareDefinition HeadLightsFlareDef[]{
-    { 4.00f,  5.0f, { 60, 60, 60 },    200, 4 },
-    { 3.00f,  7.0f, { 40, 40, 40 },    200, 4 },
-    { 2.00f,  5.0f, { 40, 40, 40 },    200, 4 },
-    { 1.50f,  6.0f, { 90, 90, 90 },    200, 4 },
-    { 1.25f,  5.0f, { 40, 40, 40 },    200, 4 },
-    { 0.80f,  14.f, { 60, 60, 60 },    200, 4 },
-    { 0.60f,  4.0f, { 40, 40, 40 },    200, 4 },
-    { 0.25f,  10.f, { 60, 60, 60 },    200, 4 },
-    { 0.10f,  6.0f, { 30, 30, 30 },    200, 4 },
-    { 0.05f,  14.f, { 50, 50, 50 },    200, 4 },
-    { -0.03f, 3.0f, { 30, 30, 30 },    200, 4 },
-    { -0.10f, 6.0f, { 60, 60, 60 },    200, 4 },
-    { -0.30f, 5.0f, { 30, 30, 30 },    200, 4 },
-    { -0.40f, 60.f, { 30, 30, 30 },    200, 4 },
-    { -0.55f, 4.0f, { 40, 40, 40 },    200, 4 },
-    { -0.75f, 14.f, { 50, 50, 50 },    200, 4 },
-    { -0.90f, 5.2f, { 35, 35, 35 },    200, 4 },
-    { -1.00f, 11.f, { 55, 55, 55 },    200, 4 },
-    { -1.20f, 3.5f, { 35, 35, 35 },    200, 4 },
-    { -1.35f, 9.0f, { 50, 50, 50 },    200, 4 },
-    { -1.70f, 54.f, { 35, 35, 35 },    200, 4 },
-    { -2.00f, 5.0f, { 50, 50, 50 },    200, 4 },
-    { -2.50f, 4.5f, { 35, 35, 35 },    200, 4 },
-    { -3.00f, 14.f, { 50, 50, 50 },    200, 4 },
-    { -6.00f, 24.f, { 70, 70, 70 },    200, 4 },
-    { -9.00f, 14.f, { 70, 50, 70 },    200, 4 },
-    { 0.00f,  0.0f, { 255, 255, 255 }, 255, 0 }
-};
-
-constexpr CFlareDefinition SunFlareDef[]{
+constexpr CFlareDefinition SunFlareDef[27]{
     { 4.00f,  8.00f, { 36, 30, 24 },    200, 4 },
     { 3.00f,  11.2f, { 24, 18, 15 },    200, 4 },
     { 2.00f,  8.00f, { 24, 12, 12 },    200, 4 },
@@ -71,7 +56,37 @@ constexpr CFlareDefinition SunFlareDef[]{
     { -6.00f, 38.4f, { 42, 42, 30 },    200, 4 },
     { -9.00f, 22.4f, { 42, 30, 36 },    200, 4 },
     { 0.00f,  0.00f, { 255, 255, 255 }, 255, 0 }
-};
+}; // 0x8D4B68
+
+constexpr CFlareDefinition HeadLightsFlareDef[27]{
+    { 4.00f,  5.0f, { 60, 60, 60 },    200, 4 },
+    { 3.00f,  7.0f, { 40, 40, 40 },    200, 4 },
+    { 2.00f,  5.0f, { 40, 40, 40 },    200, 4 },
+    { 1.50f,  6.0f, { 90, 90, 90 },    200, 4 },
+    { 1.25f,  5.0f, { 40, 40, 40 },    200, 4 },
+    { 0.80f,  14.f, { 60, 60, 60 },    200, 4 },
+    { 0.60f,  4.0f, { 40, 40, 40 },    200, 4 },
+    { 0.25f,  10.f, { 60, 60, 60 },    200, 4 },
+    { 0.10f,  6.0f, { 30, 30, 30 },    200, 4 },
+    { 0.05f,  14.f, { 50, 50, 50 },    200, 4 },
+    { -0.03f, 3.0f, { 30, 30, 30 },    200, 4 },
+    { -0.10f, 6.0f, { 60, 60, 60 },    200, 4 },
+    { -0.30f, 5.0f, { 30, 30, 30 },    200, 4 },
+    { -0.40f, 60.f, { 30, 30, 30 },    200, 4 },
+    { -0.55f, 4.0f, { 40, 40, 40 },    200, 4 },
+    { -0.75f, 14.f, { 50, 50, 50 },    200, 4 },
+    { -0.90f, 5.2f, { 35, 35, 35 },    200, 4 },
+    { -1.00f, 11.f, { 55, 55, 55 },    200, 4 },
+    { -1.20f, 3.5f, { 35, 35, 35 },    200, 4 },
+    { -1.35f, 9.0f, { 50, 50, 50 },    200, 4 },
+    { -1.70f, 54.f, { 35, 35, 35 },    200, 4 },
+    { -2.00f, 5.0f, { 50, 50, 50 },    200, 4 },
+    { -2.50f, 4.5f, { 35, 35, 35 },    200, 4 },
+    { -3.00f, 14.f, { 50, 50, 50 },    200, 4 },
+    { -6.00f, 24.f, { 70, 70, 70 },    200, 4 },
+    { -9.00f, 14.f, { 70, 50, 70 },    200, 4 },
+    { 0.00f,  0.0f, { 255, 255, 255 }, 255, 0 }
+}; // 0x8D4D88
 
 void CCoronas::InjectHooks() {
     RH_ScopedClass(CCoronas);
@@ -96,7 +111,7 @@ void CCoronas::InjectHooks() {
 void CCoronas::Init() {
     {
         CTxdStore::ScopedTXDSlot txd{ "particle" };
-        for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) {
+        for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronaSpriteNames, aCoronaSpriteNamesm }) {
             if (!tex) {
                 tex = RwTextureRead(name, maskName);
             }
@@ -108,6 +123,7 @@ void CCoronas::Init() {
 // Terminates coronas
 // 0x6FAB00
 void CCoronas::Shutdown() {
+    // original used SunScreenX
     for (auto& t : gpCoronaTexture) {
         if (t) {
             RwTextureDestroy(std::exchange(t, nullptr));
@@ -115,34 +131,43 @@ void CCoronas::Shutdown() {
     }
 }
 
+enum CameraLookFlags : int32 {
+    LOOK_LEFT  = 1 << 0,
+    LOOK_RIGHT = 1 << 1,
+    LOOK_BACK  = 1 << 2,
+    LOOK_FRONT = 1 << 3
+};
+
 // Updates coronas
 // 0x6FADF0
 void CCoronas::Update() {
     ZoneScoped;
 
+    static int32 LastCamLook; // 0xC3EF58
+    
     LightsMult = std::min(CTimer::GetTimeStep() * 0.03f + LightsMult, 1.f);
 
-    struct CamLook {
-        bool unused : 4 {}, left : 1 {}, right : 1 {}, behind : 1 {}, forward : 1 {}; // Have to initialize the msb 4 bits too, otherwise it wont compare equal to the original code's value
-        constexpr bool operator==(const CamLook& other) const = default;
-    }& LastCamLook = StaticRef<CamLook>(0xC3EF58); // NOTE/TODO: I'm not sure if foward is really forward
+    const auto& cc = TheCamera.m_aCams[TheCamera.m_nActiveCam];
 
-    const auto c = TheCamera.GetActiveCam();
-    const CamLook currLook{
-        .left = c.m_bLookingLeft,
-        .right = c.m_bLookingRight,
-        .behind = c.m_bLookingBehind,
-        .forward = TheCamera.GetLookDirection() != 0,
-    };
+    int32 CamLook = 0;
+    if (cc.m_bLookingLeft) {
+        CamLook |= LOOK_LEFT;
+    }
+    if (cc.m_bLookingRight) {
+        CamLook |= LOOK_RIGHT;
+    }
+    if (cc.m_bLookingBehind) {
+        CamLook |= LOOK_BACK;
+    }
+    if (!TheCamera.GetLookDirection()) {
+        CamLook |= LOOK_FRONT;
+    }
 
-    if (std::exchange(LastCamLook, currLook) == currLook) {
-        bChangeBrightnessImmediately = bChangeBrightnessImmediately <= 0
-            ? 0
-            : bChangeBrightnessImmediately - 1;
+    if (std::exchange(LastCamLook, CamLook) == CamLook) {
+        bChangeBrightnessImmediately = std::max(bChangeBrightnessImmediately - 1, 0);
     } else {
         bChangeBrightnessImmediately = 3;
     }
-    LastCamLook = currLook;
 
     for (auto& corona : aCoronas) {
         if (corona.IsActive()) {
@@ -450,7 +475,7 @@ void CCoronas::RenderSunReflection() {
     t *= 0.25f;
 
     const auto center2D         = CVector2D{ vecToSun3D } * 40.f + CVector2D{ camPos };
-    const auto vecToSun2D       = CVector2D{ vecToSun3D }.Normalized();
+    const auto vecToSun2D       = Normalized2D(vecToSun3D);
     const auto vecToSunCore2D   = vecToSun2D * (REFLECTION_SIZE / 2.f);
     const auto vecToSunCorona2D = vecToSun2D * REFLECTION_SIZE;
 
@@ -527,7 +552,7 @@ void CCoronas::RegisterCorona(
     RwTexture*       texture,
     eCoronaFlareType flareType,
     uint8            reflType,
-    uint8            LOSCheck,
+    uint8            checkLOS,
     uint8            usesTrails,
     float            normalAngle,
     bool             neonFade,
@@ -594,7 +619,7 @@ void CCoronas::RegisterCorona(
     corona->m_pTexture             = texture;
     corona->m_nFlareType           = flareType;
     corona->m_bUsesReflection      = reflType;
-    corona->m_bCheckObstacles      = LOSCheck;
+    corona->m_bCheckObstacles      = checkLOS;
     corona->m_fFadeSpeed           = fadeSpeed;
 
     // 0x6FC401
@@ -616,8 +641,8 @@ void CCoronas::RegisterCorona(
 // Registers a corona effect using a predefined corona type.
 // Delegates to the main RegisterCorona function with a texture from the type.
 // 0x6FC580
-void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos, float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, uint8 reflType, uint8 LOSCheck, int32 usesTrails, float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore) {
-    RegisterCorona(id, attachTo, red, green, blue, intensity, pos, size, range, gpCoronaTexture[coronaType], flareType, reflType, LOSCheck, usesTrails, normalAngle, neonFade, pullTowardsCam, fullBrightAtStart, fadeSpeed, onlyFromBelow, whiteCore);
+void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos, float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, uint8 reflType, uint8 checkLOS, int32 usesTrails, float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore) {
+    RegisterCorona(id, attachTo, red, green, blue, intensity, pos, size, range, gpCoronaTexture[coronaType], flareType, reflType, checkLOS, usesTrails, normalAngle, neonFade, pullTowardsCam, fullBrightAtStart, fadeSpeed, onlyFromBelow, whiteCore);
 }
 
 // 0x6FC4D0

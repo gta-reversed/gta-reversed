@@ -10,6 +10,14 @@
 
 constexpr auto MAX_NUM_CORONAS = 64;
 
+struct CFlareDefinition {
+    float                       Position;
+    float                       Size;
+    FixedVector<int16, 65535.f> ColorMult;
+    FixedFloat<int16, 256.f>    IntensityMult;
+    int16                       Sprite; // Only used for array-end checking
+};
+
 class CCoronas {
 public:
     static inline float LightsMult = 1.0f; // 0x8D4B5C
@@ -17,7 +25,7 @@ public:
     // are there any obstacles between sun and camera
     static inline bool SunBlockedByClouds; // 0xC3E030
     // change coronas brightness immediately (TODO: Most likely some enum type)
-    static inline uint8 bChangeBrightnessImmediately; // 0xC3E034
+    static inline int32 bChangeBrightnessImmediately; // 0xC3E034
     // coronas intensity multiplier
     // this is used to control moon size when you shooting it with sniper
     static inline uint32 MoonSize = 3; // 0x8D4B60
@@ -44,10 +52,10 @@ public:
     static void Shutdown();
 
     static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos,
-                               float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, uint8 reflType, uint8 LOSCheck, int32 usesTrails,
+                               float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, uint8 reflType, uint8 checkLOS, int32 usesTrails,
                                float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore);
     static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos,
-                               float size, float range, RwTexture* texture, eCoronaFlareType flareType, uint8 reflType, uint8 LOSCheck, uint8 UsesTrails,
+                               float size, float range, RwTexture* texture, eCoronaFlareType flareType, uint8 reflType, uint8 checkLOS, uint8 UsesTrails,
                                float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore);
 
     static void UpdateCoronaCoors(uint32 id, const CVector& pos, float range, float normalAngle);
@@ -63,4 +71,4 @@ public:
     static CRegisteredCorona* GetFree();
 };
 
-inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT>>(0xC3E000);
+inline std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT> gpCoronaTexture; // 0xC3E000, in source file
