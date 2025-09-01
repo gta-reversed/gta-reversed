@@ -9,29 +9,31 @@ void CRegisteredCorona::InjectHooks() {
     RH_ScopedInstall(Update, 0x6FABF0);
 }
 
+// 0x6FABF0
 void CRegisteredCorona::Update() {
     if (!m_bRegisteredThisFrame) {
         m_Color.a = 0;
     }
 
-    // removing a bound crown without an object
     if (m_bAttached && !m_pAttachedTo) {
         m_dwId = 0;
         --CCoronas::NumCoronas;
         return;
     }
 
-    uint8 step = uint8(CTimer::GetTimeStep() * m_fFadeSpeed);
-    if (!m_bCheckObstacles || ((!CCoronas::SunBlockedByClouds || m_dwId != 2) && CWorld::GetIsLineOfSightClear(m_vPosn, TheCamera.GetPosition(), true, false, false, false, false, false, false))) {
-        if (m_bOffScreen || (m_bOnlyFromBelow && TheCamera.GetPosition().z > m_vPosn.z)) {
-            m_FadedIntensity = std::clamp<uint8>(m_FadedIntensity - step, 0, 255);
+    const auto fadeStep = uint8(CTimer::GetTimeStep() * m_fFadeSpeed);
+    const auto& camPos = TheCamera.GetPosition();
+    if (!m_bCheckObstacles || ((!CCoronas::SunBlockedByClouds || m_dwId != 2)
+        && CWorld::GetIsLineOfSightClear(m_vPosn, camPos, true, false, false, false, false, false, false))) {
+        if (m_bOffScreen || (m_bOnlyFromBelow && camPos.z > m_vPosn.z)) {
+            m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - fadeStep);
         } else {
-            auto alpha = m_Color.a;
+            const auto alpha = m_Color.a;
 
-            if (alpha > m_FadedIntensity) {
-                m_FadedIntensity = std::min<uint8>(alpha, m_FadedIntensity + step);
+            if (m_FadedIntensity < alpha) {
+                m_FadedIntensity = std::min<uint8>(alpha, m_FadedIntensity + fadeStep);
             } else {
-                m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - step);
+                m_FadedIntensity = std::max<uint8>(alpha, m_FadedIntensity - fadeStep);
             }
 
             if (CCoronas::bChangeBrightnessImmediately) {
@@ -43,7 +45,7 @@ void CRegisteredCorona::Update() {
             }
         }
     } else {
-        m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - step);
+        m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - fadeStep);
     }
 
     if (!m_FadedIntensity && !m_bJustCreated) {
