@@ -155,7 +155,7 @@ void CAETwinLoopSoundEntity::PlayTwinLoopSound(CVector pos, float volume, float 
     for (int32 i = 0; i < NUM_SOUNDS; i++) {
         assert(!m_Sounds[i]);
         m_Sounds[i] = AESoundManager.PlaySound({
-            .BankSlotID      = m_BankSlot,
+            .BankSlotID    = m_BankSlot,
             .SoundID       = m_SoundIDs[i],
             .AudioEntity   = this,
             .Pos           = pos,
