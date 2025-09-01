@@ -723,8 +723,8 @@ void CBoat::PreRender() {
         m_fMovingHiRotation += CTimer::GetTimeStepInSeconds();
     }
 
-    m_vecBoatMoveForce = m_vecMoveSpeed + m_vecFrictionMoveSpeed;
-    m_vecBoatTurnForce = m_vecTurnSpeed + m_vecFrictionTurnSpeed;
+    m_vecBoatMoveForce = m_vecMoveSpeed + m_vecMoveFriction;
+    m_vecBoatTurnForce = m_vecTurnSpeed + m_vecTurnFriction;
     auto fSpeed = m_vecMoveSpeed.Magnitude();
 
     int32 iCounter = 0;
