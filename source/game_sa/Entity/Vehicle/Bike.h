@@ -150,7 +150,7 @@ public:
     void CalculateLeanMatrix();
     static void ProcessRiderAnims(CPed* rider, CVehicle* vehicle, CRideAnimData* rideData, tBikeHandlingData* handling, int16 a5);
     void FixHandsToBars(CPed* rider);
-    void PlaceOnRoadProperly();
+    float PlaceOnRoadProperly();
     void GetCorrectedWorldDoorPosition(CVector& out, CVector arg1, CVector arg2);
 
 public: // NOTSA
