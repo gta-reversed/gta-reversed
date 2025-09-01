@@ -3103,6 +3103,11 @@ void CVehicle::SetVehicleCreatedBy(eVehicleCreatedBy createdBy) {
     }
 }
 
+// address not available due to optimization ?
+float CVehicle::GetNewSteeringAmt() {
+    return 0.0f;
+}
+
 // 0x6D64F0
 void CVehicle::SetupRender() {
     const auto mi = GetModelInfo()->AsVehicleModelInfoPtr();
@@ -3964,7 +3969,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
 
     *fLastWaterImmersionDepth = fImmersionDepth;
     if (IsSubBoat()) {
-        AsBoat()->m_vecWaterDamping = vecBuoyancyForce;
+        AsBoat()->m_waterDamping = vecBuoyancyForce;
         AsBoat()->m_nBoatFlags.bOnWater = bOnWater;
     }
     else if (IsAutomobile()) {
