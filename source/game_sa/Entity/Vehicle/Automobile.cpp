@@ -387,7 +387,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
 
     m_fDoomVerticalRotation = 0.0f;
     m_fDoomHorizontalRotation = 0.05f;
-    m_fUpDownLightAngle[0] = 0.0f;
+    m_fPropRotate = 0.0f;
     m_fForcedOrientation = -1.0f;
     m_harvesterParticleCounter = 0;
     RightDoorOpenForDriveBys = 0.f;
