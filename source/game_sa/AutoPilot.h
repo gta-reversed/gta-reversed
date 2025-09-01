@@ -108,7 +108,7 @@ public:
     char            field_52[10];
     CVector         m_vecDestinationCoors;
     CNodeAddress    m_aPathFindNodesInfo[8];
-    uint16          m_nPathFindNodesCount;
+    int16          m_nPathFindNodesCount;
     char            field_8A[2];
     CVehicle*       m_TargetEntity;
     CEntity*        m_ObstructingEntity; // Entity to slow down for
