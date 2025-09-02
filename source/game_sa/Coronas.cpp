@@ -55,7 +55,7 @@ constexpr CFlareDefinition HeadLightsFlareDef[27]{
     { -3.00f, 14.f, { 50,  50,  50  }, 200, 4 },
     { -6.00f, 24.f, { 70,  70,  70  }, 200, 4 },
     { -9.00f, 14.f, { 70,  50,  70  }, 200, 4 },
-    { 0.00f,  0.0f, { 255, 255, 255 }, 255, 0 }
+    {  0.00f, 0.0f, { 255, 255, 255 }, 255, 0 }
 }; // 0x8D4D88
 
 constexpr CFlareDefinition SunFlareDef[27]{
@@ -85,7 +85,7 @@ constexpr CFlareDefinition SunFlareDef[27]{
     { -3.00f, 22.4f, { 42,  30,  24  }, 200, 4 },
     { -6.00f, 38.4f, { 42,  42,  30  }, 200, 4 },
     { -9.00f, 22.4f, { 42,  30,  36  }, 200, 4 },
-    { 0.00f,  0.00f, { 255, 255, 255 }, 255, 0 }
+    {  0.00f, 0.00f, { 255, 255, 255 }, 255, 0 }
 }; // 0x8D4B68
 
 void CCoronas::InjectHooks() {
