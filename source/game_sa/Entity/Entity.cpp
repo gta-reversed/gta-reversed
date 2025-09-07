@@ -432,8 +432,7 @@ void CEntity::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
 }
 
 // 0x403EA0
-uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2)
-{
+uint8 CEntity::SpecialEntityCalcCollisionSteps(bool* bDoPreCheckAtFullSpeed, bool* bDoPreCheckAtHalfSpeed) {
     return 1;
 }
 

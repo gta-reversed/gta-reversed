@@ -1883,6 +1883,11 @@ void CCollision::RemoveTrianglePlanes(CColModel* colModel) {
     plugin::Call<0x4185A0, CColModel*>(colModel);
 }
 
+// NOTSA
+int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA, const CMatrix& transformB, CColModel& cmB, CColPoint* sphereCPs, CColPoint* lineCPs, float* maxTouchDistances, bool bReturnAllCollisions) {
+    return ProcessColModels(transformA, cmA, transformB, cmB, *(std::array<CColPoint, 32>*)sphereCPs /*should be okay for now*/, lineCPs, maxTouchDistances, bReturnAllCollisions);
+}
+
 // TODO: This function could be refactored to use ranges instead of these ugly static variables :D
 /*!
  * @brief 0x4185C0 Calculate collisions between \a cmA and \a cmB.
@@ -3198,7 +3203,7 @@ void CCollision::InjectHooks() {
     RH_ScopedInstall(TestSphereTriangle, 0x4165B0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
     RH_ScopedInstall(ProcessSphereTriangle, 0x416BA0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(ProcessColModels, 0x4185C0, { .reversed = false });
+    RH_ScopedOverloadedInstall(ProcessColModels, "", 0x4185C0, int32(*)(const CMatrix&, CColModel&, const CMatrix&, CColModel&, CColPoint*, CColPoint*, float*, bool), { .enabled = false });
 
     RH_ScopedInstall(TestLineOfSight, 0x417730, { .enabled = bEnableHooks, .locked = !bEnableHooks });
     RH_ScopedInstall(ProcessLineOfSight, 0x417950, { .enabled = bEnableHooks, .locked = !bEnableHooks });
