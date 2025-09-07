@@ -17,6 +17,9 @@ public:
     //! Same as ImGui::GetIO(), but won't crash the code if called before ctx is created
     auto GetImIO() const { return m_ImIO; }
 
+    //! Get debug modules manager
+    auto& GetDebugModules() { return m_DebugModules; }
+
     //! Set active
     void SetIsActive(bool active);
 
