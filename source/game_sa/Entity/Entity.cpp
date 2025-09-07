@@ -1780,7 +1780,7 @@ void CEntity::ProcessLightsForEntity()
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
         auto fIntensity = 1.0F;
-        auto uiRand = m_nRandomSeed ^ ms_aEntityLightsOffsets[iFxInd & 0x7];
+        auto uiRand = m_nRandomSeed ^ ms_aEntityLightsOffsets[iFxInd % 8];
 
         if (effect->m_Type == e2dEffectType::EFFECT_SUN_GLARE && CWeather::SunGlare >= 0.0F) {
             auto vecEffPos = TransformFromObjectSpace(effect->m_Pos);

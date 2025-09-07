@@ -2,7 +2,7 @@
 #include <reversiblebugfixes/Bugs.hpp>
 #include "Coronas.h"
 
-std::array<char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNames = {
+constexpr std::array<const char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNames = {
     "coronastar",
     "coronastar",
     "coronamoon",
@@ -15,7 +15,7 @@ std::array<char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNames = {
     "coronaringb"
 }; // 0x8D4950
 
-std::array<char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNamesm = {
+constexpr std::array<const char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNamesm = {
     "",
     "",
     "",
@@ -26,7 +26,7 @@ std::array<char[26], eCoronaType::CORONATYPE_COUNT> aCoronaSpriteNamesm = {
     "",
     "",
     ""
-}; // 0x88E538
+}; // 0x8D4A58
 
 constexpr CFlareDefinition HeadLightsFlareDef[27]{
     {  4.00f, 5.0f, { 60,  60,  60  }, 200, 4 },
@@ -87,6 +87,17 @@ constexpr CFlareDefinition SunFlareDef[27]{
     { -9.00f, 22.4f, { 42,  30,  36  }, 200, 4 },
     {  0.00f, 0.00f, { 255, 255, 255 }, 255, 0 }
 }; // 0x8D4B68
+
+constexpr std::array<uint16, 64> RandomWindowVals = {
+     2984, 38394, 49320,   292, 10295, 29434, 40292, 65304,
+    55555, 30249, 59303, 10234, 13405, 24949, 52045, 49624,
+    22984, 34394,   320, 10292, 20295, 39434, 20292, 63304,
+    46555, 20249,  9303, 50234, 28405, 14949, 59045, 62624,
+    12984, 34394, 55320, 12292, 14295, 39434, 30292, 55304,
+    15555, 60249, 51303, 19234, 19405, 44949, 52045, 59624,
+    42984, 64394, 50320, 30292,   295, 19434, 54292, 43304,
+    56555, 60249, 39303, 10234, 39405, 19949, 19045, 32624
+}; // 0x8D4FA8, unused
 
 void CCoronas::InjectHooks() {
     RH_ScopedClass(CCoronas);
@@ -483,7 +494,7 @@ void CCoronas::RenderSunReflection() {
     (uint8)((float)(CTimeCycle::m_CurrentColours.m_nSunCorona##_color + CTimeCycle::m_CurrentColours.m_nSunCore##_color) * t)
     const auto PushVertex = [
         &,
-                             color = CRGBA{ CalcColorC(Red), CalcColorC(Green), CalcColorC(Blue), 255 },
+        color = CRGBA{ CalcColorC(Red), CalcColorC(Green), CalcColorC(Blue), 255 },
         posZ = CWeather::Wind * 0.5f + 0.1f
     ](CVector2D offsetToCenter, CVector2D uv) {
         RenderBuffer::PushVertex(CVector{ center2D + offsetToCenter, posZ }, uv, color);
