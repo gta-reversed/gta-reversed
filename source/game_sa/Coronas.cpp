@@ -88,7 +88,7 @@ constexpr CFlareDefinition SunFlareDef[27]{
     {  0.00f, 0.00f, { 255, 255, 255 }, 255, 0 }
 }; // 0x8D4B68
 
-constexpr std::array<uint16, 64> RandomWindowVals = {
+constexpr std::array<uint16, MAX_NUM_CORONAS> RandomWindowVals = {
      2984, 38394, 49320,   292, 10295, 29434, 40292, 65304,
     55555, 30249, 59303, 10234, 13405, 24949, 52045, 49624,
     22984, 34394,   320, 10292, 20295, 39434, 20292, 63304,
@@ -110,8 +110,8 @@ void CCoronas::InjectHooks() {
     RH_ScopedInstall(Render, 0x6FAEC0);
     RH_ScopedInstall(RenderReflections, 0x6FB630);
     RH_ScopedInstall(RenderSunReflection, 0x6FBAA0);
-    RH_ScopedOverloadedInstall(RegisterCorona, "type", 0x6FC180, void(*)(uint32, CEntity*, uint8, uint8, uint8, uint8, const CVector&, float, float, RwTexture*, eCoronaFlareType, uint8, uint8, uint8, float, bool, float, bool, float, bool, bool));
-    RH_ScopedOverloadedInstall(RegisterCorona, "texture", 0x6FC580, void(*)(uint32, CEntity*, uint8, uint8, uint8, uint8, const CVector&, float, float, eCoronaType, eCoronaFlareType, uint8, uint8, int32, float, bool, float, bool, float, bool, bool));
+    RH_ScopedOverloadedInstall(RegisterCorona, "type", 0x6FC180, void(*)(uint32, CEntity*, uint8, uint8, uint8, uint8, const CVector&, float, float, RwTexture*, eCoronaFlareType, eCoronaReflType, eCoronaLOSCheck, eCoronaTrail, float, bool, float, bool, float, bool, bool));
+    RH_ScopedOverloadedInstall(RegisterCorona, "texture", 0x6FC580, void(*)(uint32, CEntity*, uint8, uint8, uint8, uint8, const CVector&, float, float, eCoronaType, eCoronaFlareType, eCoronaReflType, eCoronaLOSCheck, eCoronaTrail, float, bool, float, bool, float, bool, bool));
 
     RH_ScopedInstall(UpdateCoronaCoors, 0x6FC4D0);
     RH_ScopedInstall(DoSunAndMoon, 0x6FC5A0);
@@ -134,7 +134,6 @@ void CCoronas::Init() {
 // Terminates coronas
 // 0x6FAB00
 void CCoronas::Shutdown() {
-    // original used SunScreenX
     for (auto& t : gpCoronaTexture) {
         if (t) {
             RwTextureDestroy(std::exchange(t, nullptr));
@@ -143,10 +142,10 @@ void CCoronas::Shutdown() {
 }
 
 enum CameraLookFlags : int32 {
-    LOOK_LEFT  = 1 << 0,
-    LOOK_RIGHT = 1 << 1,
-    LOOK_BACK  = 1 << 2,
-    LOOK_FRONT = 1 << 3
+    LOOK_LEFT      = 1 << 0,
+    LOOK_RIGHT     = 1 << 1,
+    LOOK_BACK      = 1 << 2,
+    LOOK_DIRECTION = 1 << 3
 };
 
 // Updates coronas
@@ -171,7 +170,7 @@ void CCoronas::Update() {
         CamLook |= LOOK_BACK;
     }
     if (!TheCamera.GetLookDirection()) {
-        CamLook |= LOOK_FRONT;
+        CamLook |= LOOK_DIRECTION;
     }
 
     if (std::exchange(LastCamLook, CamLook) == CamLook) {
@@ -456,6 +455,8 @@ void CCoronas::RenderOutGeometryBufferForReflections() {
 void CCoronas::RenderSunReflection() {
     constexpr auto REFLECTION_SIZE   = 60.f;
     constexpr auto REFLECTION_PERIOD = 2'048; // Code is faster if this is a power-of-2
+    constexpr auto ANGLE_STEP = TWO_PI / REFLECTION_PERIOD; // 0x87252C
+    constexpr auto SUN_INTENSITY_SCALE = 1.0f / 0.3f; // 0x872530
 
     const auto vecToSun3D = CTimeCycle::m_VectorToSun[CTimeCycle::m_CurrentStoredValue];
 
@@ -466,7 +467,7 @@ void CCoronas::RenderSunReflection() {
     const auto camPos = TheCamera.GetPosition();
 
     auto t =
-        invLerp(0.3f, 0.f, std::abs(vecToSun3D.z - 0.25f))
+        (0.3f - std::abs(vecToSun3D.z - 0.25f)) * SUN_INTENSITY_SCALE
         * (1.f - CWeather::CloudCoverage)
         * (1.f - CWeather::Foggyness)
         * (1.f - CWeather::Wind);
@@ -562,9 +563,9 @@ void CCoronas::RegisterCorona(
     float            range,
     RwTexture*       texture,
     eCoronaFlareType flareType,
-    uint8            reflType,
-    uint8            checkLOS,
-    uint8            usesTrails,
+    eCoronaReflType  reflType,
+    eCoronaLOSCheck  checkLOS,
+    eCoronaTrail     usesTrails, // unused
     float            normalAngle,
     bool             neonFade,
     float            pullTowardsCam,
@@ -652,7 +653,7 @@ void CCoronas::RegisterCorona(
 // Registers a corona effect using a predefined corona type.
 // Delegates to the main RegisterCorona function with a texture from the type.
 // 0x6FC580
-void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos, float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, uint8 reflType, uint8 checkLOS, int32 usesTrails, float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore) {
+void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos, float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, eCoronaReflType reflType, eCoronaLOSCheck checkLOS, eCoronaTrail usesTrails, float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore) {
     RegisterCorona(id, attachTo, red, green, blue, intensity, pos, size, range, gpCoronaTexture[coronaType], flareType, reflType, checkLOS, usesTrails, normalAngle, neonFade, pullTowardsCam, fullBrightAtStart, fadeSpeed, onlyFromBelow, whiteCore);
 }
 
@@ -675,27 +676,31 @@ void CCoronas::DoSunAndMoon() {
         return;
     }
 
+    // Constants for sun corona parts
+    constexpr float sunGlowSizeMultiplier = 2.7335f; // 0x872534
+    constexpr float sunFlareSizeMultiplier = 6.0f;
+
     const auto vecToSun  = CTimeCycle::GetVectorToSun();
     const auto coronaPos = vecToSun * (CDraw::GetFarClipZ() * 0.95f) + TheCamera.GetPosition();
 
     if (vecToSun.z > -0.1f) {
-        const auto DoRegisterCorona = [coronaPos](uint32 id, eCoronaFlareType ftype, float radius, bool coronaColor) {
+        const auto DoRegisterCorona = [coronaPos](uint32 id, eCoronaFlareType flareType, float size, eCoronaLOSCheck checkLOS) {
             const auto& cc = CTimeCycle::m_CurrentColours;
             RegisterCorona(
                 id,
                 nullptr,
-                coronaColor ? (uint8)cc.m_nSunCoronaRed : (uint8)cc.m_nSunCoreRed,
-                coronaColor ? (uint8)cc.m_nSunCoronaGreen : (uint8)cc.m_nSunCoreGreen,
-                coronaColor ? (uint8)cc.m_nSunCoronaBlue : (uint8)cc.m_nSunCoreBlue,
+                checkLOS ? (uint8)cc.m_nSunCoronaRed : (uint8)cc.m_nSunCoreRed,
+                checkLOS ? (uint8)cc.m_nSunCoronaGreen : (uint8)cc.m_nSunCoreGreen,
+                checkLOS ? (uint8)cc.m_nSunCoronaBlue : (uint8)cc.m_nSunCoreBlue,
                 255u,
                 coronaPos,
-                cc.m_fSunSize * radius,
+                cc.m_fSunSize * size,
                 999999.88f,
                 gpCoronaTexture[CORONATYPE_SHINYSTAR],
-                ftype,
-                false,
-                coronaColor,
-                0,
+                flareType,
+                CORREFL_NONE,
+                checkLOS,
+                TRAIL_OFF,
                 0.f,
                 false,
                 1.5f,
@@ -705,9 +710,10 @@ void CCoronas::DoSunAndMoon() {
                 false
             );
         };
-        DoRegisterCorona(1, FLARETYPE_NONE, 2.7335f, false);
+
+        DoRegisterCorona(1, FLARETYPE_NONE, sunGlowSizeMultiplier, LOSCHECK_OFF);
         if (vecToSun.z > 0.f) { // Removed redudant check
-            DoRegisterCorona(2, FLARETYPE_SUN, 6.f, true);
+            DoRegisterCorona(2, FLARETYPE_SUN, sunFlareSizeMultiplier, LOSCHECK_ON);
         }
     }
 

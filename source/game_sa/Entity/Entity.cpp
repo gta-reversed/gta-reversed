@@ -554,9 +554,9 @@ void CEntity::PreRender() {
                     300.0F,
                     gpCoronaTexture[CORONATYPE_SHINYSTAR],
                     eCoronaFlareType::FLARETYPE_NONE,
-                    true,
-                    false,
-                    0,
+                    eCoronaReflType::CORREFL_SIMPLE,
+                    eCoronaLOSCheck::LOSCHECK_OFF,
+                    eCoronaTrail::TRAIL_OFF,
                     0.0F,
                     false,
                     1.5F,
@@ -614,9 +614,9 @@ void CEntity::PreRender() {
                 300.0F,
                 gpCoronaTexture[CORONATYPE_SHINYSTAR],
                 eCoronaFlareType::FLARETYPE_NONE,
-                true,
-                false,
-                0,
+                eCoronaReflType::CORREFL_SIMPLE,
+                eCoronaLOSCheck::LOSCHECK_OFF,
+                eCoronaTrail::TRAIL_OFF,
                 0.0F,
                 false,
                 1.5F,
@@ -1759,6 +1759,7 @@ void CEntity::RegisterReference(CEntity** entity)
 void CEntity::ProcessLightsForEntity()
 {
     constexpr static std::array<uint16, 8> ms_aEntityLightsOffsets = { 0, 27'034, 43'861, 52'326, 64'495, 38'437, 21'930, 39'117 }; // 0x8D5028
+    constexpr static auto FADE_RATE = 0.0009f; // 0x872538
 
     auto fBalance = GetDayNightBalance();
     if (m_bRenderDamaged || !m_bIsVisible)
@@ -1818,9 +1819,9 @@ void CEntity::ProcessLightsForEntity()
                 120.0F,
                 gpCoronaTexture[CORONATYPE_SHINYSTAR],
                 eCoronaFlareType::FLARETYPE_NONE,
-                false,
-                false,
-                0,
+                eCoronaReflType::CORREFL_NONE,
+                eCoronaLOSCheck::LOSCHECK_OFF,
+                eCoronaTrail::TRAIL_OFF,
                 0.0F,
                 false,
                 1.5F,
@@ -1954,7 +1955,7 @@ void CEntity::ProcessLightsForEntity()
                 uiOffset += static_cast<uint32>(vecPos.y * 10.0F);
 
                 uiMode = 9 * ((uiOffset % 10000) / 10000);
-                fBalance = ((uiOffset % 10000) - (1111 * uiMode)) * 0.0009F;
+                fBalance = ((uiOffset % 10000) - (1111 * uiMode)) * FADE_RATE;
                 switch (uiMode) {
                 case 0:
                     fIntensity = fBalance;
@@ -2001,9 +2002,9 @@ void CEntity::ProcessLightsForEntity()
                     effect->light.m_fCoronaFarClip,
                     effect->light.m_pCoronaTex,
                     static_cast<eCoronaFlareType>(effect->light.m_nCoronaFlareType),
-                    effect->light.m_bCoronaEnableReflection,
-                    effect->light.m_bCheckObstacles,
-                    0,
+                    static_cast<eCoronaReflType>(effect->light.m_bCoronaEnableReflection),
+                    static_cast<eCoronaLOSCheck>(effect->light.m_bCheckObstacles),
+                    eCoronaTrail::TRAIL_OFF,
                     0.0F,
                     effect->light.m_bOnlyLongDistance,
                     1.5F,
@@ -2071,9 +2072,9 @@ void CEntity::ProcessLightsForEntity()
                     effect->light.m_fCoronaFarClip,
                     effect->light.m_pCoronaTex,
                     static_cast<eCoronaFlareType>(effect->light.m_nCoronaFlareType),
-                    effect->light.m_bCoronaEnableReflection,
-                    effect->light.m_bCheckObstacles,
-                    0,
+                    static_cast<eCoronaReflType>(effect->light.m_bCoronaEnableReflection),
+                    static_cast<eCoronaLOSCheck>(effect->light.m_bCheckObstacles),
+                    eCoronaTrail::TRAIL_OFF,
                     0.0F,
                     effect->light.m_bOnlyLongDistance,
                     0.8F,
@@ -2104,9 +2105,9 @@ void CEntity::ProcessLightsForEntity()
                 effect->light.m_fCoronaFarClip,
                 effect->light.m_pCoronaTex,
                 static_cast<eCoronaFlareType>(effect->light.m_nCoronaFlareType),
-                effect->light.m_bCoronaEnableReflection,
-                effect->light.m_bCheckObstacles,
-                0,
+                static_cast<eCoronaReflType>(effect->light.m_bCoronaEnableReflection),
+                static_cast<eCoronaLOSCheck>(effect->light.m_bCheckObstacles),
+                eCoronaTrail::TRAIL_OFF,
                 0.0F,
                 effect->light.m_bOnlyLongDistance,
                 1.5F,

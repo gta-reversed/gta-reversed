@@ -24,13 +24,14 @@ public:
     static inline float SunScreenX, SunScreenY; // 0xC3E028, 0xC3E02C
     // are there any obstacles between sun and camera
     static inline bool SunBlockedByClouds; // 0xC3E030
-    // change coronas brightness immediately (TODO: Most likely some enum type)
+    // frame counter for immediate corona brightness updates after camera turn (3-frame duration).
     static inline int32 bChangeBrightnessImmediately; // 0xC3E034
     // coronas intensity multiplier
     // this is used to control moon size when you shooting it with sniper
     static inline uint32 MoonSize = 3; // 0x8D4B60
     // num of registered coronas in frame
     static inline uint32 NumCoronas; // 0xC3E038
+
     static inline std::array<CRegisteredCorona, MAX_NUM_CORONAS> aCoronas; // 0xC3E058
    
     inline static struct { // NOTSA
@@ -51,12 +52,20 @@ public:
     static void Init();
     static void Shutdown();
 
-    static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos,
-                               float size, float range, eCoronaType coronaType, eCoronaFlareType flareType, uint8 reflType, uint8 checkLOS, int32 usesTrails,
-                               float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore);
-    static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 intensity, const CVector& pos,
-                               float size, float range, RwTexture* texture, eCoronaFlareType flareType, uint8 reflType, uint8 checkLOS, uint8 UsesTrails,
-                               float normalAngle, bool neonFade, float pullTowardsCam, bool fullBrightAtStart, float fadeSpeed, bool onlyFromBelow, bool whiteCore);
+    static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 r, uint8 g, uint8 b, uint8 intensity,
+                               const CVector& pos, float size, float range,
+                               eCoronaType coronaType, eCoronaFlareType flareType, eCoronaReflType reflType, eCoronaLOSCheck checkLOS, eCoronaTrail usesTrails,
+                               float normalAngle, bool neonFade,
+                               float pullTowardsCam, bool fullBrightAtStart,
+                               float fadeSpeed, bool onlyFromBelow, bool whiteCore);
+
+    static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 r, uint8 g, uint8 b, uint8 intensity,
+                               const CVector& pos, float size, float range,
+                               RwTexture* texture, eCoronaFlareType flareType, eCoronaReflType reflType, eCoronaLOSCheck checkLOS, eCoronaTrail usesTrails,
+                               float normalAngle, bool neonFade,
+                               float pullTowardsCam, bool fullBrightAtStart,
+                               float fadeSpeed, bool onlyFromBelow, bool whiteCore);
+
 
     static void UpdateCoronaCoors(uint32 id, const CVector& pos, float range, float normalAngle);
     static void DoSunAndMoon();
