@@ -6,10 +6,6 @@
 // define?
 constexpr float BAGGAGE_TRAILER_TOWED_RATIO = -1000.0f;
 
-
-// TODO: global var? a huge number of definitions of this number have been found
-float TRAILER_TRACTION_COEFF = 0.004f; // 0xC1CB28
-
 float TRAILER_TOWED_MINRATIO = 0.9f; // 0x8D346C
 constexpr float TRAILER_SUPPORT_RETRACTION_RATE = 0.002f; // 0x871C14
 constexpr float TRAILER_SUPPORT_EXTENSION_RATE = 0.002f; // 0x871C18
@@ -83,7 +79,7 @@ void CTrailer::SetupSuspensionLines() {
         colData->m_pLines[i].m_vecEnd = lineEnd;
 
         m_aSuspensionSpringLength[i] = m_pHandlingData->m_fSuspensionUpperLimit - m_pHandlingData->m_fSuspensionLowerLimit;
-        m_aSuspensionLineLength[i]   = colData->m_pLines[i].m_vecStart.z - colData->m_pLines[i].m_vecEnd.z;
+        m_aSuspensionLineLength[i] = colData->m_pLines[i].m_vecStart.z - colData->m_pLines[i].m_vecEnd.z;
     }
 
     cl->m_boundBox.m_vecMin.z = std::min(cl->m_boundBox.m_vecMin.z, colData->m_pLines[0].m_vecEnd.z);
@@ -124,14 +120,14 @@ void CTrailer::SetupSuspensionLines() {
     const float weightRatio = supportLegY / (avgWheelY + supportLegY);
 
     const float suspensionForceFactor = m_pHandlingData->m_fSuspensionForceLevel * 4.0f;
-    const float heightAboveRoad = m_aSuspensionSpringLength[0] * (1.0f - weightRatio / suspensionForceFactor) 
+    const float heightAboveRoad = m_aSuspensionSpringLength[0] * (1.0f - weightRatio / suspensionForceFactor)
                                 + mi->m_fWheelSizeFront / 2 - colData->m_pLines[0].m_vecStart.z;
 
     m_fFrontHeightAboveRoad = heightAboveRoad;
     m_fRearHeightAboveRoad  = heightAboveRoad;
 
     const float supportForce = CTrailer::m_fTrailerSuspensionForce * 2.0f;
-    const float newEndZ = supportLines[0].m_vecStart.z - (supportLines[0].m_vecStart.z + heightAboveRoad) 
+    const float newEndZ = supportLines[0].m_vecStart.z - (supportLines[0].m_vecStart.z + heightAboveRoad)
                         / (1.0f - (1.0f - weightRatio) / supportForce);
 
     for (int i = 0; i < NUM_TRAILER_SUPPORTS; ++i) {
@@ -171,9 +167,7 @@ bool CTrailer::SetTowLink(CVehicle* vehicle, bool setMyPosToTowBar) {
         return true;
     }
 
-    if (m_fTrailerTowedRatio > BAGGAGE_TRAILER_TOWED_RATIO) {
-        m_fTrailerTowedRatio = 0.0f;
-    }
+    m_fTrailerTowedRatio = std::clamp(m_fTrailerTowedRatio, 0.0f, BAGGAGE_TRAILER_TOWED_RATIO);
 
     SetHeading(GetHeading());
 
@@ -260,8 +254,8 @@ void CTrailer::ProcessSuspension() {
 
             contactSpeeds[i] = GetSpeed(contactPoints[i]);
 
-            CVector dampeningDir = m_supportCPs[i].m_vecNormal.z > 0.35f 
-                ? -m_supportCPs[i].m_vecNormal 
+            CVector dampeningDir = m_supportCPs[i].m_vecNormal.z > 0.35f
+                ? -m_supportCPs[i].m_vecNormal
                 : m_matrix->GetDown();
 
             CPhysical::ApplySpringDampening(m_fTrailerDampingForce, impulseMagnitudes[i], dampeningDir, contactPoints[i], contactSpeeds[i]);
@@ -282,7 +276,7 @@ void CTrailer::ProcessSuspension() {
             }
         }
 
-        const float traction = m_pHandlingData->m_fTractionMultiplier * TRAILER_TRACTION_COEFF * 0.25f;
+        const float traction = m_pHandlingData->m_fTractionMultiplier * 0.004f * 0.25f;
         CAutomobile::ProcessCarWheelPair(CAR_WHEEL_FRONT_LEFT, CAR_WHEEL_REAR_LEFT, 0.0f, contactSpeeds, contactPoints, traction, 0.0f, 1000.0f, true);
 
         m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT, originalWheelStatus[0]);
@@ -292,11 +286,11 @@ void CTrailer::ProcessSuspension() {
 
 // 0x6CFFD0
 int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
-    if (m_fTrailerTowedRatio == -1000.f) {
+    if (m_fTrailerTowedRatio == BAGGAGE_TRAILER_TOWED_RATIO) {
         return CAutomobile::ProcessEntityCollision(entity, outColPoints);
     }
 
-    if (m_nStatus != STATUS_SIMPLE) {
+    if (GetStatus() != STATUS_SIMPLE) {
         vehicleFlags.bVehicleColProcessed = true;
     }
 
@@ -433,7 +427,7 @@ void CTrailer::ProcessControl() {
         } else {
             m_fTrailerTowedRatio2 = currentExtension;
         }
-    
+
         rng::fill(m_supportRatios, m_fTrailerTowedRatio2);
     }
 }
@@ -484,7 +478,7 @@ void CTrailer::PreRender() {
             CMatrix mat;
             mat.Attach(&m_aCarNodes[TRAILER_MISC_A]->modelling, false);
 
-            const float avgSupportRatio       = (m_supportRatios[0] + m_supportRatios[1]) * 0.5f;
+            const float avgSupportRatio = (m_supportRatios[0] + m_supportRatios[1]) * 0.5f;
             const float supportExtensionRatio = std::min(avgSupportRatio, m_fTrailerTowedRatio);
 
             const auto& supportLegLine = colData->m_pLines[NUM_TRAILER_WHEELS];
