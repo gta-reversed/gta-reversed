@@ -3182,7 +3182,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
             JustWreckedVehicle();
         } else if (m_IsPlayerDriver) {
             ProcessPlayerHeli(params);
-        } else if (vehicle->m_nStatus == STATUS_PHYSICS) {
+        } else if (vehicle->GetStatus() == STATUS_PHYSICS) {
             ProcessAIHeli(params);
         } else {
             ProcessDummyHeli(params);
@@ -3205,7 +3205,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
         default: {
             if (m_IsPlayerDriver) {
                 ProcessPlayerProp(params);
-            } else if (vehicle->m_nStatus == STATUS_PHYSICS || vehicle->m_autoPilot.m_vehicleRecordingId >= 0) {
+            } else if (vehicle->GetStatus() == STATUS_PHYSICS || vehicle->m_autoPilot.m_vehicleRecordingId >= 0) {
                 ProcessAIProp(params);
             } else {
                 ProcessDummyProp(params);
@@ -4548,7 +4548,7 @@ void CAEVehicleAudioEntity::StopNonEngineSounds() noexcept {
 // 0x501E10
 void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
     auto* const vehicle        = physical->AsVehicle();
-    const auto  isStatusSimple = vehicle->m_nStatus == STATUS_SIMPLE;
+    const auto  isStatusSimple = vehicle->GetStatus() == STATUS_SIMPLE;
 
     tVehicleParams vp{};
     vp.Vehicle               = vehicle;

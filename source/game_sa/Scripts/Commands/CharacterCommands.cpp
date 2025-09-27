@@ -1459,12 +1459,12 @@ bool IsCharTouchingChar(CPed& ped, CPed& other) {
 
 // IS_CHAR_ATTACHED_TO_ANY_CAR
 bool IsCharAttachedToAnyCar(CPed* ped) {
-    return ped && ped->m_nType == ENTITY_TYPE_VEHICLE;
+    return ped && ped->GetType() == ENTITY_TYPE_VEHICLE;
 }
 
 // STORE_CAR_CHAR_IS_ATTACHED_TO_NO_SAVE
 CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
-    if (ped->m_nType != ENTITY_TYPE_VEHICLE) {
+    if (ped->GetType() != ENTITY_TYPE_VEHICLE) {
         return nullptr;
     }
     return ped->m_pAttachedTo->AsVehicle();

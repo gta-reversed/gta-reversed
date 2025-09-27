@@ -237,7 +237,7 @@ void CPhysical::ProcessControl()
     m_bIsInSafePosition = false;
     m_bHasContacted = false;
 
-    if (m_nStatus != STATUS_SIMPLE)
+    if (GetStatus() != STATUS_SIMPLE)
     {
         physicalFlags.b31 = false;
         physicalFlags.bOnSolidSurface = false;
@@ -267,9 +267,9 @@ void CPhysical::ProcessCollision() {
     physicalFlags.bProcessingShift = false;
     physicalFlags.bSkipLineCol = false;
     if (m_bUsesCollision && !physicalFlags.bDisableSimpleCollision) {
-        if (m_nStatus == STATUS_SIMPLE) {
-            if (CheckCollision_SimpleCar() && m_nStatus == STATUS_SIMPLE) {
-                m_nStatus = STATUS_PHYSICS;
+        if (GetStatus() == STATUS_SIMPLE) {
+            if (CheckCollision_SimpleCar() && GetStatus() == STATUS_SIMPLE) {
+                SetStatus(STATUS_PHYSICS);
                 if (IsVehicle())
                     CCarCtrl::SwitchVehicleToRealPhysics(vehicle);
             }
@@ -279,7 +279,7 @@ void CPhysical::ProcessCollision() {
             return;
         }
 
-        if (m_nStatus == STATUS_GHOST) {
+        if (GetStatus() == STATUS_GHOST) {
             CColPoint* wheelsColPoints = nullptr;
             float* pfWheelsSuspensionCompression = nullptr;
             CVector* wheelsCollisionPositions = nullptr;
@@ -440,7 +440,7 @@ void CPhysical::ProcessCollision() {
         if (   m_vecMoveSpeed != 0.0f
             || m_vecTurnSpeed != 0.0f
             || physicalFlags.bProcessCollisionEvenIfStationary
-            || m_nStatus == STATUS_PLAYER
+            || GetStatus() == STATUS_PLAYER
             || IsVehicle() && vehicle->vehicleFlags.bIsCarParkVehicle
             || IsPed() && (ped->IsPlayer() || ped->bTestForBlockedPositions|| !ped->bIsStanding))
         {
@@ -477,7 +477,7 @@ void CPhysical::ProcessShift() {
     m_fMovingSpeed = 0.0f;
 
     bool bPhysicalFlagsSet = m_nPhysicalFlags & (PHYSICAL_DISABLE_MOVE_FORCE | PHYSICAL_INFINITE_MASS | PHYSICAL_DISABLE_Z);
-    if (m_nStatus == STATUS_SIMPLE || bPhysicalFlagsSet)
+    if (GetStatus() == STATUS_SIMPLE || bPhysicalFlagsSet)
     {
         if (bPhysicalFlagsSet)
         {
@@ -909,7 +909,7 @@ void CPhysical::SkipPhysics()
     m_bIsInSafePosition = false;
     m_bHasContacted = false;
 
-    if (m_nStatus != STATUS_SIMPLE)
+    if (GetStatus() != STATUS_SIMPLE)
     {
         physicalFlags.bOnSolidSurface = false;
         m_nNumEntitiesCollided = 0;
@@ -1534,7 +1534,7 @@ bool CPhysical::ApplyCollisionAlt(CPhysical* entity, CColPoint& colPoint, float&
     {
         if (IsVehicle() && !physicalFlags.bSubmergedInWater) {
             float fMoveSpeedLimitMultiplier = 0.0f;
-            if (!vehicle->IsBike() || (m_nStatus != STATUS_ABANDONED) && m_nStatus != STATUS_WRECKED)
+            if (!vehicle->IsBike() || (GetStatus() != STATUS_ABANDONED) && GetStatus() != STATUS_WRECKED)
             {
                 if (vehicle->IsBoat())
                 {
@@ -2031,8 +2031,8 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
                             else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity)
                             {
                                 if (physicalFlags.bDontCollideWithFlyers
-                                    && m_nStatus // todo:  == STATUS_PLAYER_PLAYBACK_FROM_BUFFER
-                                    && m_nStatus != STATUS_REMOTE_CONTROLLED
+                                    && GetStatus() // todo:  == STATUS_PLAYER_PLAYBACK_FROM_BUFFER
+                                    && GetStatus() != STATUS_REMOTE_CONTROLLED
                                     && entity->DoesNotCollideWithFlyers()
                                     ) {
                                     bCollisionDisabled = true;
@@ -2564,7 +2564,7 @@ void CPhysical::ApplyFriction()
 
     auto* vehicle = AsVehicle();
     if (IsVehicle() && vehicle->IsBike()
-        && !physicalFlags.b32 && m_nStatus == STATUS_ABANDONED
+        && !physicalFlags.b32 && GetStatus() == STATUS_ABANDONED
         && fabs(GetUp().z) < 0.707f
         && 0.05f * 0.05f > m_vecMoveSpeed.SquaredMagnitude() && 0.01f * 0.01f > m_vecTurnSpeed.SquaredMagnitude())
     {
@@ -2611,7 +2611,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
     {
         if (IsPed() && thisPed->IsPlayer()
             && entity->IsVehicle()
-            && (entity->m_nStatus == STATUS_ABANDONED || entity->m_nStatus == STATUS_WRECKED || m_bIsStuck))
+            && (entity->GetStatus() == STATUS_ABANDONED || entity->GetStatus() == STATUS_WRECKED || m_bIsStuck))
         {
             float fTheEntityMass = entity->m_fMass - 2000.0f;
             if (fTheEntityMass < 0.0f)
@@ -3247,7 +3247,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                 vecThisMoveForce.z *= 0.3f;
             }
 
-            if (!m_nStatus)
+            if (!GetStatus())
             {
                 vecDistanceToPointFromThis *= 0.8f;
             }
@@ -3266,7 +3266,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                 vecEntityMoveForce.z *= 0.3f;
             }
 
-            if (!entity->m_nStatus)
+            if (!entity->GetStatus())
             {
                 vecDistanceToPoint *= 0.8f;
             }
@@ -3361,7 +3361,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
     {
         if (IsPed() && thisPed->IsPlayer()
             && physical->IsVehicle()
-            && (physical->m_nStatus == STATUS_ABANDONED || physical->m_nStatus == STATUS_WRECKED || m_bIsStuck))
+            && (physical->GetStatus() == STATUS_ABANDONED || physical->GetStatus() == STATUS_WRECKED || m_bIsStuck))
         {
             float fTheEntityMass = physical->m_fMass - 2000.0f;
             if (fTheEntityMass < 0.0f)
@@ -3865,7 +3865,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                             vecThisMoveForce.z *= 0.3f;
                         }
 
-                        if (!m_nStatus)
+                        if (!GetStatus())
                         {
                             vecDistanceToPointFromThis *= 0.8f;
                         }
@@ -3884,7 +3884,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                             vecEntityMoveForce.z *= 0.3f;
                         }
 
-                        if (!physical->m_nStatus)
+                        if (!physical->GetStatus())
                         {
                             vecDistanceToPoint *= 0.8f;
 
@@ -4006,8 +4006,8 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                         bCollisionDisabled = true;
                     } else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity) {
                         if (physicalFlags.bDontCollideWithFlyers) {
-                            if (m_nStatus) {
-                                if (m_nStatus != STATUS_REMOTE_CONTROLLED && entity->DoesNotCollideWithFlyers()) {
+                            if (GetStatus()) {
+                                if (GetStatus() != STATUS_REMOTE_CONTROLLED && entity->DoesNotCollideWithFlyers()) {
                                     bCollisionDisabled = true;
                                 }
                             }
@@ -4123,13 +4123,13 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                     }
 
                                     if (!thisVehicle->IsTrain()) {
-                                        if (m_nStatus == STATUS_WRECKED) {
+                                        if (GetStatus() == STATUS_WRECKED) {
                                             fFriction *= 3.0f;
                                         } else {
                                             if (GetUp().z > 0.3f && m_vecMoveSpeed.SquaredMagnitude() < 0.02f && m_vecTurnSpeed.SquaredMagnitude() < 0.01f) {
                                                 fFriction = 0.0f;
                                             } else {
-                                                if (m_nStatus != STATUS_ABANDONED && DotProduct(&colPoint->m_vecNormal, &GetUp()) >= 0.707f) {
+                                                if (GetStatus() != STATUS_ABANDONED && DotProduct(&colPoint->m_vecNormal, &GetUp()) >= 0.707f) {
                                                 } else {
                                                     fFriction = 150.0f / m_fMass * fFriction * fThisDamageIntensity;
                                                 }
@@ -4154,7 +4154,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                     m_vecMoveSpeed += vecMoveSpeed * fSpeedFactor;
                     m_vecTurnSpeed += vecTurnSpeed * fSpeedFactor;
                     if (!CWorld::bNoMoreCollisionTorque) {
-                        if (!m_nStatus && IsVehicle()) {
+                        if (!GetStatus() && IsVehicle()) {
                             float fThisMoveSpeedX = m_vecMoveSpeed.x;
                             if (m_vecMoveSpeed.x < 0.0f) {
                                 fThisMoveSpeedX = -fThisMoveSpeedX;
@@ -4425,8 +4425,8 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                     }
                 }
 
-                if (entity->m_nStatus == STATUS_SIMPLE) {
-                    entity->m_nStatus = STATUS_PHYSICS;
+                if (entity->GetStatus() == STATUS_SIMPLE) {
+                    entity->SetStatus(STATUS_PHYSICS);
                     if (entity->IsVehicle()) {
                         CCarCtrl::SwitchVehicleToRealPhysics(entityVehicle);
                     }
@@ -4609,9 +4609,9 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
         }
     }
 
-    if (entity->m_nStatus == STATUS_SIMPLE)
+    if (entity->GetStatus() == STATUS_SIMPLE)
     {
-        entity->m_nStatus = STATUS_PHYSICS;
+        entity->SetStatus(STATUS_PHYSICS);
         if (entity->IsVehicle())
         {
             CCarCtrl::SwitchVehicleToRealPhysics(entity->AsVehicle());

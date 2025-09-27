@@ -147,7 +147,7 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     m_autoPilot.SetCarMission(MISSION_NONE, 0);
     m_autoPilot.carCtrlFlags.bAvoidLevelTransitions = false;
 
-    m_nStatus = STATUS_SIMPLE;
+    SetStatus(STATUS_SIMPLE);
     m_nNumPassengers = 0;
     vehicleFlags.bLowVehicle = false;
     vehicleFlags.bIsBig = false;
@@ -283,7 +283,7 @@ bool CBike::ProcessAI(uint32& extraHandlingFlags) {
 
 // 0x6BF400
 void CBike::ProcessDrivingAnims(CPed* driver, bool blend) {
-    if (m_bOffscreen && m_nStatus == STATUS_PLAYER)
+    if (m_bOffscreen && GetStatus() == STATUS_PLAYER)
         return;
 
     ProcessRiderAnims(driver, this, &m_RideAnimData, m_BikeHandling, 0);
@@ -306,7 +306,7 @@ void CBike::ProcessControlInputs(uint8 playerNum) {
 
 // 0x6BDEA0
 int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
-    if (m_nStatus != STATUS_SIMPLE) {
+    if (GetStatus() != STATUS_SIMPLE) {
         vehicleFlags.bVehicleColProcessed = true;
     }
 

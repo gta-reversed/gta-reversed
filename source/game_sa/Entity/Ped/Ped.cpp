@@ -199,7 +199,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     m_fArmour = 0.0f;
 
     m_nPedType = pedType;
-    m_nType = ENTITY_TYPE_PED;
+    SetType(ENTITY_TYPE_PED);
 
     // 0x5E8196
     physicalFlags.bCanBeCollidedWith = true;
@@ -3900,8 +3900,8 @@ void CPed::FlagToDestroyWhenNextProcessed() {
 
     if (m_pVehicle->IsDriver(this)) {
         ClearReference(m_pVehicle->m_pDriver);
-        if (IsPlayer() && m_pVehicle->m_nStatus != STATUS_WRECKED) {
-            m_pVehicle->m_nStatus = STATUS_ABANDONED;
+        if (IsPlayer() && m_pVehicle->GetStatus() != STATUS_WRECKED) {
+            m_pVehicle->SetStatus(STATUS_ABANDONED);
         }
     } else {
         m_pVehicle->RemovePassenger(this);

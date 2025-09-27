@@ -774,7 +774,7 @@ void CObject::LockDoor() {
 
 // 0x59F840
 void CObject::Init() {
-    m_nType = ENTITY_TYPE_OBJECT;
+    SetType(ENTITY_TYPE_OBJECT);
     m_pObjectInfo = &CObjectData::GetDefault();
     m_nColDamageEffect = COL_DAMAGE_EFFECT_NONE;
     m_nSpecialColResponseCase = COL_SPECIAL_RESPONSE_NONE;

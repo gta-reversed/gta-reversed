@@ -84,7 +84,7 @@ void CBmx::ProcessControl() {
 
     CBike::ProcessControl();
 
-    if (m_bWasPostponed || m_nStatus != STATUS_PLAYER || !m_pDriver) {
+    if (m_bWasPostponed || GetStatus() != STATUS_PLAYER || !m_pDriver) {
         return;
     }
 
@@ -117,7 +117,7 @@ void CBmx::LaunchBunnyHopCB(CAnimBlendAssociation* assoc, void* data) {
         (bmx->m_WheelCounts[2] > 0.0f || bmx->m_WheelCounts[3] > 0.0f)
     ) {
         auto power = std::min(bmx->m_fControlJump / 25.0f, 1.0f) + 1.0f;
-        if (bmx->m_nStatus == STATUS_PLAYER) {
+        if (bmx->GetStatus() == STATUS_PLAYER) {
             power *= CStats::GetFatAndMuscleModifier(STAT_MOD_6);
         }
         if (CCheat::IsActive(CHEAT_HUGE_BUNNY_HOP)) {

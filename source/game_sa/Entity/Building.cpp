@@ -15,7 +15,7 @@ void CBuilding::InjectHooks()
 
 CBuilding::CBuilding() : CEntity()
 {
-    m_nType = ENTITY_TYPE_BUILDING;
+    SetType(ENTITY_TYPE_BUILDING);
     m_bUsesCollision = true;
 }
 

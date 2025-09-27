@@ -1044,7 +1044,7 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
             return nullptr;
         }
 
-        ped->m_nStatus = STATUS_PLAYER_PLAYBACK_FROM_BUFFER;
+        ped->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         ped->bUsedForReplay = true;
         ped->GetMatrix().SetUnity();
         ped->SetCharCreatedBy(PED_GAME_MISSION);
@@ -1061,7 +1061,7 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
 // 0x45F380
 bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, float interpolation, uint32* outTimer) {
     const auto SetupVehicle = [](const tReplayVehicleBlock& packet, CVehicle* vehicle) {
-        vehicle->m_nStatus = STATUS_PLAYER_PLAYBACK_FROM_BUFFER;
+        vehicle->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         vehicle->vehicleFlags.bUsedForReplay = true;
         vehicle->m_bUsesCollision = false;
         packet.matrix.DecompressIntoFullMatrix(vehicle->GetMatrix());

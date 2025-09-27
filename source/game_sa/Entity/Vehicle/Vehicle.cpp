@@ -251,7 +251,7 @@ void CVehicle::InjectHooks() {
 // 0x6D5F10
 CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(), m_autoPilot() {
     m_bHasPreRenderEffects = true;
-    m_nType = ENTITY_TYPE_VEHICLE;
+    SetType(ENTITY_TYPE_VEHICLE);
 
     m_fRawSteerAngle = 0.0f;
     m_f2ndSteerAngle = 0.0f;
@@ -493,8 +493,8 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
     }
 
     if (physicalFlags.bSubmergedInWater
-        && m_nStatus != eEntityStatus::STATUS_PLAYER
-        && (m_nStatus != eEntityStatus::STATUS_REMOTE_CONTROLLED && colPhysical->DoesNotCollideWithFlyers())) //Bug? Seems like it should check for it being heli
+        && GetStatus() != STATUS_PLAYER
+        && (GetStatus() != STATUS_REMOTE_CONTROLLED && colPhysical->DoesNotCollideWithFlyers())) // BUG:? Seems like it should check for it being heli
     {
         bCollisionDisabled = true;
         return;
@@ -631,7 +631,7 @@ uint8 CVehicle::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSet
         return 1;
 
     auto fMove = sqrt(fMoveSquared);
-    if (m_nStatus != eEntityStatus::STATUS_PLAYER)
+    if (GetStatus() != STATUS_PLAYER)
     {
         if (fMoveSquared <= 0.32F)
             fMove *= (10.0F / 4.0F);
@@ -1322,7 +1322,7 @@ bool CVehicle::CanVehicleBeDamaged(CEntity* damager, eWeaponType weapon, bool& b
 
     const auto player = FindPlayerPed();
     const auto vehicle = FindPlayerVehicle();
-    if (   m_nStatus != STATUS_PLAYER
+    if (   GetStatus() != STATUS_PLAYER
         && physicalFlags.bInvulnerable
         && damager != player
         && damager != vehicle
@@ -1335,7 +1335,7 @@ bool CVehicle::CanVehicleBeDamaged(CEntity* damager, eWeaponType weapon, bool& b
 
     bDamagedDueToFireOrExplosionOrBullet = false;
     if (CanPhysicalBeDamaged(weapon, &bDamagedDueToFireOrExplosionOrBullet)) {
-        return !bDamagedDueToFireOrExplosionOrBullet || m_nStatus != STATUS_PLAYER || m_fHealth >= 250.0f;
+        return !bDamagedDueToFireOrExplosionOrBullet || GetStatus() != STATUS_PLAYER || m_fHealth >= 250.0f;
     } else {
         return false;
     }
@@ -1486,7 +1486,7 @@ void CVehicle::SetDriver(CPed* driver) {
 
 // 0x6D1950
 void CVehicle::RemoveDriver(bool dontTurnEngineOff) {
-    m_nStatus = STATUS_ABANDONED;
+    SetStatus(STATUS_ABANDONED);
 
     if (!dontTurnEngineOff) {
         if (!m_pDriver || !m_pDriver->IsPlayer()) {
@@ -1756,7 +1756,7 @@ void CVehicle::DestroyVehicleAndDriverAndPassengers(CVehicle* vehicle) {
 bool CVehicle::IsVehicleNormal() {
     if (m_pDriver
         && !m_nNumPassengers
-        && m_nStatus != STATUS_WRECKED
+        && GetStatus() != STATUS_WRECKED
         && GetVehicleModelInfo()->m_nVehicleClass != VEHICLE_CLASS_IGNORE
     ) {
         return true;
@@ -1807,7 +1807,7 @@ bool CVehicle::ShufflePassengersToMakeSpace() {
 
 // 0x6D2460
 void CVehicle::ExtinguishCarFire() {
-    if (m_nStatus != STATUS_WRECKED) {
+    if (GetStatus() != STATUS_WRECKED) {
         if (m_fHealth <= 300.0f)
             m_fHealth = 300.0f;
     }
@@ -2954,7 +2954,7 @@ void CVehicle::FirePlaneGuns() {
 
     // Shake pad (if necessary)
     const auto GetPadIdToShake = [this]() -> std::optional<int32> {
-        if (m_nStatus == STATUS_REMOTE_CONTROLLED) {
+        if (GetStatus() == STATUS_REMOTE_CONTROLLED) {
             return 0;
         }
 
@@ -3186,7 +3186,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
         bAlreadySkidding = true;
         adhesion *= m_pHandlingData->m_fTractionLoss;
         if (*wheelState == WHEEL_STATE_SPINNING) {
-            if (m_nStatus == STATUS_PLAYER || m_nStatus == STATUS_REMOTE_CONTROLLED)
+            if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED)
                 adhesion *= (1.0f - fabs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
         }
     }
@@ -3246,7 +3246,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
         if (bAlreadySkidding) {
             tractionLoss = 1.0f;
         } else if (*wheelState == WHEEL_STATE_SPINNING) {
-            if (m_nStatus == STATUS_PLAYER || m_nStatus == STATUS_REMOTE_CONTROLLED) {
+            if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
                 tractionLoss = tractionLoss * (1.0f - std::fabs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
         }
@@ -3394,7 +3394,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         return;
     }
 
-    const auto padOfPlayerDriver = (m_nStatus == STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) ? m_pDriver->AsPlayer()->GetPadFromPlayer() : nullptr;
+    const auto padOfPlayerDriver = (GetStatus() == STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) ? m_pDriver->AsPlayer()->GetPadFromPlayer() : nullptr;
     const auto windDragForce     = IsMissionVehicle() ? CVector{} : -CWeather::WindDir * m_pFlyingHandlingData->m_fWindMult;
     const auto velocityWithDrag = m_vecMoveSpeed + windDragForce; // Plus because `windDragForce` is opposing to our velocity already
 
@@ -3761,7 +3761,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
     }
 
     CPad* pad = nullptr;
-    if (m_nStatus == eEntityStatus::STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) {
+    if (GetStatus() == STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) {
         pad = m_pDriver->AsPlayer()->GetPadFromPlayer();
     }
 
@@ -3779,7 +3779,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
             }
 
             auto fTraction = 1.0F;
-            if (m_nStatus == eEntityStatus::STATUS_PLAYER) {
+            if (GetStatus() == STATUS_PLAYER) {
                 auto fTractionLoss = DotProduct(m_vecMoveSpeed, GetForward()) * m_pHandlingData->m_fTractionBias;
                 if (pad->GetHandBrake())
                     fTractionLoss *= 0.5F;
@@ -3860,7 +3860,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
 
                     if (fGasState > 0.01F) {
                         fTractionLoss *= (0.55F - fGasState);
-                        if (m_nStatus == eEntityStatus::STATUS_PLAYER)
+                        if (GetStatus() == STATUS_PLAYER)
                             fTractionLoss *= 2.6F;
                         else
                             fTractionLoss *= 5.0F;
@@ -3906,7 +3906,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
         CPhysical::ApplyMoveForce(right * mult);
     }
 
-    if (m_nStatus == eEntityStatus::STATUS_PLAYER && pad->GetHandBrake()) {
+    if (GetStatus() == STATUS_PLAYER && pad->GetHandBrake()) {
         auto fDirDotProd = DotProduct(m_vecMoveSpeed, GetForward());
         if (fDirDotProd > 0.0F) {
             auto fMoveForceMult = fDirDotProd * m_pHandlingData->m_fSuspensionLowerLimit * CTimer::GetTimeStep() * fImmersionDepth * m_fMass * -0.1F;

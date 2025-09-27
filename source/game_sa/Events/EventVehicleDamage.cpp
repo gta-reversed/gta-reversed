@@ -52,7 +52,7 @@ bool CEventVehicleDamage::AffectsPed(CPed* ped)
 bool CEventVehicleDamage::IsCriminalEvent()
 {
     if (m_attacker) {
-        switch (m_attacker->m_nType) {
+        switch (m_attacker->GetType()) {
         case ENTITY_TYPE_PED:
             return m_attacker->AsPed()->IsPlayer();
         case ENTITY_TYPE_VEHICLE:

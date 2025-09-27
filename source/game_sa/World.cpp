@@ -1096,7 +1096,7 @@ void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fir
     };
     for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
         if (CVehicle* vehicle = GetVehiclePool()->GetAt(i - 1)) {
-            if (vehicle->m_nStatus == eEntityStatus::STATUS_WRECKED)
+            if (vehicle->GetStatus() == STATUS_WRECKED)
                 continue;
 
             if (vehicle->m_pFire)
@@ -1423,7 +1423,7 @@ CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
         if (!veh.IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || !veh.IsSubAutomobile())
             continue;
 
-        switch (veh.m_nStatus) {
+        switch (veh.GetStatus()) {
         case eEntityStatus::STATUS_PHYSICS:
         case eEntityStatus::STATUS_SIMPLE:
             break;
@@ -1560,7 +1560,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             }
         };
 
-        switch (entity->m_nType) {
+        switch (entity->GetType()) {
         case ENTITY_TYPE_PED: {
             const auto ped = entity->AsPed();
             if (   ped->m_bUsesCollision
@@ -1751,7 +1751,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
         float impactVelocityFactor = entity->m_fMass / 1400.f * entityRelDistToRadiusEnd_Doubled * visibleDistance;
 
-        switch (entity->m_nType) {
+        switch (entity->GetType()) {
         case ENTITY_TYPE_VEHICLE: {
             const auto veh = entity->AsVehicle();
 
@@ -1769,7 +1769,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                 );
             }
 
-            if (entity->m_nStatus == eEntityStatus::STATUS_SIMPLE)
+            if (entity->GetStatus() == STATUS_SIMPLE)
                 CCarCtrl::SwitchVehicleToRealPhysics(veh);
 
             veh->InflictDamage(creator, WEAPON_EXPLOSION, entityRelDistToRadiusEnd_Doubled * damage * 1100.f, {});
@@ -1828,7 +1828,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             const auto ped = entity->AsPed();
 
             const auto pedLocalDir = ped->GetLocalDirection(impactVelocity);
-            if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->IsVehicle() && attachedTo->m_nStatus == STATUS_WRECKED) {
+            if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->IsVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
                 CPedDamageResponseCalculator pedDamageResponseCalculator{ creator, 1000.f, WEAPON_EXPLOSION, PED_PIECE_TORSO, false};
 
                 CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, pedLocalDir, false, !!ped->bIsTalking };
@@ -2061,7 +2061,7 @@ void CWorld::Process() {
                     if (!entity->m_bIsInSafePosition) {
                         entity->m_bIsStuck = true;
 
-                        if (entity->m_nStatus == STATUS_PLAYER) { // Try to unstuck p
+                        if (entity->GetStatus() == STATUS_PLAYER) { // Try to unstuck p
                             const auto physical = entity->AsPhysical();
                             physical->m_vecMoveSpeed *= (float)std::pow(SQRT_2 / 2.f, CTimer::GetTimeStepInMS());
                             physical->ApplyMoveSpeed();

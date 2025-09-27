@@ -37,6 +37,11 @@ class CBaseModelInfo;
 
 class NOTSA_EXPORT_VTABLE CEntity : public CPlaceable {
 public:
+    struct CEntityInfo {
+        eEntityType   m_nType : 3;   // Mask: & 0x7  = 7
+        eEntityStatus m_nStatus : 5; // Mask: & 0xF8 = 248 (Remember: In the original code unless this was left shifted the value it's compared to has to be left shifted by 3!)
+    };
+
     union {
         struct RwObject* m_pRwObject;
         struct RpClump*  m_pRwClump;
@@ -83,7 +88,7 @@ public:
         };
         uint32 m_nFlags;
     };
-    /* */
+
     union {
         struct {
             uint16 m_nRandomSeedUpperByte : 8;
@@ -91,20 +96,26 @@ public:
         };
         uint16 m_nRandomSeed;
     };
+
     uint16           m_nModelIndex;
+
     CReference*      m_pReferences;
+
     CLink<CEntity*>* m_pStreamingLink;
+
     uint16           m_nScanCode;
     uint8            m_nIplIndex;
     eAreaCodes       m_nAreaCode;
+
     union {
         int32    m_nLodIndex; // -1 - without LOD model
         CEntity* m_pLod;
     };
     int8          m_nNumLodChildren;
+
     uint8         m_nNumLodChildrenRendered;
-    eEntityType   m_nType : 3;          // Mask: & 0x7  = 7
-    eEntityStatus m_nStatus : 5;        // Mask: & 0xF8 = 248 (Remember: In the original code unless this was left shifted the value it's compared to has to be left shifted by 3!)
+
+    CEntityInfo   m_info;
 
 public:
     CEntity();
@@ -265,13 +276,13 @@ public:
     static RpAtomic* SetAtomicAlphaCB(RpAtomic* atomic, void* data);
     static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
 
-    [[nodiscard]] bool IsPhysical() const { return m_nType > ENTITY_TYPE_BUILDING && m_nType < ENTITY_TYPE_DUMMY; }
-    [[nodiscard]] bool IsNothing()  const { return m_nType == ENTITY_TYPE_NOTHING; }
-    [[nodiscard]] bool IsVehicle()  const { return m_nType == ENTITY_TYPE_VEHICLE; }
-    [[nodiscard]] bool IsPed()      const { return m_nType == ENTITY_TYPE_PED; }
-    [[nodiscard]] bool IsObject()   const { return m_nType == ENTITY_TYPE_OBJECT; }
-    [[nodiscard]] bool IsBuilding() const { return m_nType == ENTITY_TYPE_BUILDING; }
-    [[nodiscard]] bool IsDummy()    const { return m_nType == ENTITY_TYPE_DUMMY; }
+    [[nodiscard]] bool IsPhysical() const { return m_info.m_nType > ENTITY_TYPE_BUILDING && m_info.m_nType < ENTITY_TYPE_DUMMY; }
+    [[nodiscard]] bool IsNothing()  const { return m_info.m_nType == ENTITY_TYPE_NOTHING; }
+    [[nodiscard]] bool IsVehicle()  const { return m_info.m_nType == ENTITY_TYPE_VEHICLE; }
+    [[nodiscard]] bool IsPed()      const { return m_info.m_nType == ENTITY_TYPE_PED; }
+    [[nodiscard]] bool IsObject()   const { return m_info.m_nType == ENTITY_TYPE_OBJECT; }
+    [[nodiscard]] bool IsBuilding() const { return m_info.m_nType == ENTITY_TYPE_BUILDING; }
+    [[nodiscard]] bool IsDummy()    const { return m_info.m_nType == ENTITY_TYPE_DUMMY; }
 
     [[nodiscard]] bool IsModelTempCollision() const { return m_nModelIndex >= MODEL_TEMPCOL_DOOR1 && m_nModelIndex <= MODEL_TEMPCOL_BODYPART2; }
     [[nodiscard]] bool IsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
@@ -295,11 +306,11 @@ public:
     auto AsBuilding()         { return reinterpret_cast<CBuilding*>(this); }
     auto AsDummy()            { return reinterpret_cast<CDummy*>(this); }
 
-    [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_nType; }
-    void SetType(eEntityType type) { m_nType = type; }
+    [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_info.m_nType; }
+    void SetType(eEntityType type) { m_info.m_nType = type; }
 
-    [[nodiscard]] auto GetStatus() const noexcept { return m_nStatus; }
-    void SetStatus(eEntityStatus status) { m_nStatus = status; }
+    [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
+    void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
 
     bool IsScanCodeCurrent() const;
     void SetCurrentScanCode();

@@ -885,7 +885,7 @@ void CCamera::SetZoomValueFollowPedScript(int16 zoomMode) {
 void CCamera::SetZoomValueCamStringScript(int16 zoomMode) {
     auto entity = m_aCams[0].m_pCamTargetEntity;
 
-    if (entity->m_nStatus == STATUS_SIMPLE) {
+    if (entity->GetStatus() == STATUS_SIMPLE) {
         int32 arrPos{};
         VERIFY(GetArrPosForVehicleType(static_cast<eVehicleType>(entity->AsVehicle()->GetVehicleAppearance()), arrPos));
         m_fCarZoomValueScript = [zoomMode]{
@@ -1063,7 +1063,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
             return {
                 [&, this] {
                     if (modeToGoTo == MODE_NONE) {
-                        switch (target->m_nType) {
+                        switch (target->GetType()) {
                         case ENTITY_TYPE_PED:
                             return MODE_FOLLOWPED;
                         case ENTITY_TYPE_VEHICLE:

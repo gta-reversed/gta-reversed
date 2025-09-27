@@ -281,7 +281,7 @@ CFire* CFireManager::StartFire(CVector pos, float size, uint8 unused, CEntity* c
 // 0x53A050
 CFire* CFireManager::StartFire(CEntity* target, CEntity* creator, float size, uint8 unused, uint32 lifetime, int8 numGenerations) {
     /* Do few checks, and clear `m_pFire` if `target` */
-    switch (target->m_nType) {
+    switch (target->GetStatus()) {
     case ENTITY_TYPE_PED: {
         auto pedTarget = target->AsPed();
         if (!pedTarget->IsPedInControl())
@@ -327,7 +327,7 @@ int32 CFireManager::StartScriptFire(const CVector& pos, CEntity* target, float _
             fire->Extinguish();
             fire->SetIsScript(false);
         };
-        switch (target->m_nType) {
+        switch (target->GetStatus()) {
         case ENTITY_TYPE_PED: {
             auto pedTarget = target->AsPed();
             if (pedTarget->m_pFire)

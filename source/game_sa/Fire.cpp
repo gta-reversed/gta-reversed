@@ -100,7 +100,7 @@ void CFire::Start(CEntity* creator, CVector pos, uint32 nTimeToBurn, uint8 nGens
 
 // see 0x53A050 CFireManager::StartFire
 void CFire::Start(CEntity* creator, CEntity* target, uint32 nTimeToBurn, uint8 nGens) {
-    switch (target->m_nType) {
+    switch (target->GetType()) {
     case ENTITY_TYPE_PED: {
         auto targetPed = target->AsPed();
         targetPed->m_pFire = this;
@@ -166,7 +166,7 @@ void CFire::Start(CVector pos, float fStrength, CEntity* target, uint8 nGens) {
     m_Position = pos;
 
     if (target) {
-        switch (target->m_nType) { /* Set target's `m_pFire` to `this` */
+        switch (target->GetType()) { /* Set target's `m_pFire` to `this` */
         case ENTITY_TYPE_PED:
             target->AsPed()->m_pFire = this;
             break;
@@ -230,7 +230,7 @@ void CFire::Extinguish() {
     DestroyFx();
 
     if (m_EntityOnFire) {
-        switch (m_EntityOnFire->m_nType) {
+        switch (m_EntityOnFire->GetType()) {
         case ENTITY_TYPE_PED: {
             m_EntityOnFire->AsPed()->m_pFire = nullptr;
             break;
@@ -256,7 +256,7 @@ void CFire::ProcessFire() {
     if (m_EntityOnFire) {
         m_Position = m_EntityOnFire->GetPosition();
 
-        switch (m_EntityOnFire->m_nType) {
+        switch (m_EntityOnFire->GetType()) {
         case ENTITY_TYPE_PED: {
             auto targetPed = m_EntityOnFire->AsPed();
 

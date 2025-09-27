@@ -112,7 +112,7 @@ void CQuadBike::PreRender() {
 
 // 0x6CE460
 bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
-    if (m_nStatus != STATUS_PLAYER) {
+    if (GetStatus() != STATUS_PLAYER) {
         return CAutomobile::ProcessAI(extraHandlingFlags);
     }
 
@@ -210,7 +210,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
 void CQuadBike::ProcessControl() {
     return plugin::CallMethod<0x6CDCC0, CQuadBike*>(this);
 
-    if (m_nStatus != STATUS_PLAYER || !bDoQuadDamping) {
+    if (GetStatus() != STATUS_PLAYER || !bDoQuadDamping) {
         CAutomobile::ProcessControl();
         return;
     }

@@ -60,7 +60,7 @@ void CVehicleRecording::ChangeCarPlaybackToUseAI(CVehicle* vehicle) {
         SetRecordingToPointClosestToCoors(i, vehicle->GetPosition());
         vehicle->physicalFlags.bDisableCollisionForce = false;
         vehicle->ProcessControlCollisionCheck(false);
-        vehicle->m_nStatus = STATUS_PHYSICS;
+        vehicle->SetStatus(STATUS_PHYSICS);
     }
 }
 

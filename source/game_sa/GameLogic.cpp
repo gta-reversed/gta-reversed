@@ -591,8 +591,8 @@ void CGameLogic::Update() {
                     CEntity::CleanUpOldReference(driver);
                     driver = nullptr;
 
-                    if (vehicle->m_nStatus != STATUS_WRECKED) {
-                        vehicle->m_nStatus = STATUS_ABANDONED;
+                    if (vehicle->GetStatus() != STATUS_WRECKED) {
+                        vehicle->SetStatus(STATUS_ABANDONED);
                     }
                 } else {
                     vehicle->RemovePassenger(player1Ped);

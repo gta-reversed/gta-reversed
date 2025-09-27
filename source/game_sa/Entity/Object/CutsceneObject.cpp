@@ -25,7 +25,7 @@ CCutsceneObject::CCutsceneObject() : CObject() {
     m_vWorldPosition.Set(0.0F, 0.0F, 0.0F);
     m_vForce.Set(0.0F, 0.0F, 0.0F);
     m_bUsesCollision = false;
-    m_nStatus = eEntityStatus::STATUS_SIMPLE;
+    SetStatus(STATUS_SIMPLE);
     m_nObjectType = eObjectType::OBJECT_TYPE_CUTSCENE;
     m_nAttachBone = 0;
     m_pAttachmentObject = nullptr;

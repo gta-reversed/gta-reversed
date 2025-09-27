@@ -175,7 +175,7 @@ void CPlayerPed::RemovePlayerPed(int32 playerId) {
         CVehicle* playerVehicle = player->m_pVehicle;
         if (playerVehicle && playerVehicle->m_pDriver == player)
         {
-            playerVehicle->m_nStatus = STATUS_PHYSICS;
+            playerVehicle->SetStatus(STATUS_PHYSICS);
             playerVehicle->m_GasPedal = 0.0f;
             playerVehicle->m_BrakePedal = 0.1f;
         }
@@ -392,7 +392,7 @@ bool CPlayerPed::PedCanBeTargettedVehicleWise(CPed* ped) {
 
 // 0x609DE0
 float CPlayerPed::FindTargetPriority(CEntity* entity) {
-    switch (entity->m_nType) {
+    switch (entity->GetType()) {
     case ENTITY_TYPE_VEHICLE:
         return 0.1f;
 

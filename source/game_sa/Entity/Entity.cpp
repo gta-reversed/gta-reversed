@@ -98,8 +98,8 @@ void CEntity::InjectHooks()
 }
 
 CEntity::CEntity() : CPlaceable() {
-    m_nStatus = STATUS_ABANDONED;
-    m_nType = ENTITY_TYPE_NOTHING;
+    SetStatus(STATUS_ABANDONED);
+    SetType(ENTITY_TYPE_NOTHING);
 
     m_nFlags = 0;
     m_bIsVisible = true;
@@ -169,7 +169,7 @@ void CEntity::Add(const CRect& rect)
                 const auto ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
                     list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
                 };
-                switch (m_nType) {
+                switch (GetType()) {
                 case ENTITY_TYPE_DUMMY:    ProcessAddItem(s->m_dummies);   break;
                 case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs->Vehicles);   break;
                 case ENTITY_TYPE_PED:      ProcessAddItem(rs->Peds);       break;
@@ -221,7 +221,7 @@ void CEntity::Remove()
                 const auto ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
                     list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
                 };
-                switch (m_nType) {
+                switch (GetType()) {
                 case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s->m_dummies);   break;
                 case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs->Vehicles);   break;
                 case ENTITY_TYPE_PED:      ProcessDeleteItem(rs->Peds);       break;
@@ -968,7 +968,7 @@ bool IsEntityPointerValid(CEntity* entity)
     if (!entity)
         return false;
 
-    switch (entity->m_nType) {
+    switch (entity->GetType()) {
     case ENTITY_TYPE_BUILDING:
         return IsBuildingPointerValid(entity->AsBuilding());
     case ENTITY_TYPE_VEHICLE:

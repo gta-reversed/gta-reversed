@@ -34,7 +34,7 @@ CMonsterTruck::CMonsterTruck(int32 modelIndex, eVehicleCreatedBy createdBy) : CA
 
 // 0x6C8AE0
 int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
-    if (m_nStatus != STATUS_SIMPLE) {
+    if (GetStatus() != STATUS_SIMPLE) {
         vehicleFlags.bVehicleColProcessed = true; // OK
     }
 

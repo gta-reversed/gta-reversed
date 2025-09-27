@@ -719,7 +719,7 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
         return;
     }
 
-    if (ped->m_pAttachedTo && ped->m_pAttachedTo->m_nType == ENTITY_TYPE_VEHICLE) {
+    if (ped->m_pAttachedTo && ped->m_pAttachedTo->GetType() == ENTITY_TYPE_VEHICLE) {
         return;
     }
 

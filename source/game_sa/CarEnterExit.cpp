@@ -521,7 +521,7 @@ bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId
 
 // 0x64EEC0
 bool CCarEnterExit::IsVehicleHealthy(const CVehicle* vehicle) {
-    return vehicle->m_nStatus != STATUS_WRECKED;
+    return vehicle->GetStatus() != STATUS_WRECKED;
 }
 
 // 0x6510D0

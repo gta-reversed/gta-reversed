@@ -33,7 +33,7 @@ void CTaskComplexCarDriveMission::SetUpCar() {
     CTaskComplexCarDrive::SetUpCar();
 
     CCarCtrl::JoinCarWithRoadSystem(m_Veh);
-    m_Veh->m_nStatus = STATUS_PHYSICS;
+    m_Veh->SetStatus(STATUS_PHYSICS);
 
     auto& autopilot = m_Veh->m_autoPilot;
     autopilot.m_nCruiseSpeed        = (uint32)m_CruiseSpeed;

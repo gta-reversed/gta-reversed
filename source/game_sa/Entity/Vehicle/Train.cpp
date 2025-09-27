@@ -142,7 +142,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_bTunnelTransition = true;
     m_pPrevCarriage = nullptr;
     m_pNextCarriage = nullptr;
-    m_nStatus = STATUS_TRAIN_MOVING;
+    SetStatus(STATUS_TRAIN_MOVING);
     m_autoPilot.m_speed = 0.0f;
     m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
@@ -497,7 +497,7 @@ void CTrain::ProcessControl() {
                 m_fTrainSpeed = -m_fTrainSpeed;
             }
 
-            if (m_nStatus) {
+            if (GetStatus()) {
                 bool bIsStreakModel = trainFlags.bIsStreakModel;
                 auto fStopAtStationSpeed = static_cast<float>(m_autoPilot.m_nCruiseSpeed);
 
@@ -629,7 +629,7 @@ void CTrain::ProcessControl() {
 
             m_fCurrentRailDistance += CTimer::GetTimeStep() * m_fTrainSpeed;
 
-            if (m_nStatus == STATUS_PLAYER) {
+            if (GetStatus() == STATUS_PLAYER) {
 
                 float fTheTrainSpeed = m_fTrainSpeed;
                 if (fTheTrainSpeed < 0.0f) {
@@ -874,7 +874,7 @@ void CTrain::ProcessControl() {
             float fMaxTorque = 0.0009f;
             float fMaxMovingSpeed = 0.005f;
 
-            if (m_nStatus != STATUS_PLAYER) {
+            if (GetStatus() != STATUS_PLAYER) {
                 fMaxForce = 0.006f;
                 fMaxTorque = 0.0015f;
                 fMaxMovingSpeed = 0.015f;

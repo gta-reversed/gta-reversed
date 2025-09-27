@@ -312,7 +312,7 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         if (obj.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_VEHICLE)
         {
             entity = GetVehiclePool()->GetAtRef(obj.handle);
-            if (!entity || entity->m_nStatus == eEntityStatus::STATUS_WRECKED)
+            if (!entity || entity->GetStatus() == STATUS_WRECKED)
                 continue;
         }
         else if (obj.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_PED)

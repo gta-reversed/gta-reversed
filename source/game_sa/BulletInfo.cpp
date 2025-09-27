@@ -87,7 +87,7 @@ void CBulletInfo::Update() {
         if (CWorld::ProcessLineOfSight(info.m_vecPosition, newPosition, colPoint, hitEntity, true, true, true, true, true, false, false, true)) {
             CWeapon::CheckForShootingVehicleOccupant(&hitEntity, &colPoint, info.m_nWeaponType, info.m_vecPosition, newPosition);
 
-            switch (hitEntity->m_nType) {
+            switch (hitEntity->GetType()) {
             case ENTITY_TYPE_PED: {
                 auto hitPed = hitEntity->AsPed();
 
@@ -167,7 +167,7 @@ void CBulletInfo::Update() {
                     if (info.m_pCreator->AsPed()->m_pAttachedTo == hitEntity)
                         break;
 
-                switch (hitEntity->m_nType) {
+                switch (hitEntity->GetType()) {
                 case ENTITY_TYPE_OBJECT: {
                     // std::cout << "Hit object\n";
                     auto hitObject = hitEntity->AsObject();

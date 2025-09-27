@@ -318,9 +318,9 @@ bool CWeapon::FireSniper(CPed* shooter, CEntity* victim, CVector* target) {
         CamShakeNoPos(&TheCamera, 0.2f);
     }
 
-    if (shooter->m_nType == ENTITY_TYPE_PED) {
+    if (shooter->GetType() == ENTITY_TYPE_PED) {
         CCrime::ReportCrime(CRIME_FIRE_WEAPON, shooter, shooter);
-    } else if (shooter->m_nType == ENTITY_TYPE_VEHICLE && shooter->m_roadRageWith) {
+    } else if (shooter->GetType()  == ENTITY_TYPE_VEHICLE && shooter->m_roadRageWith) {
         CCrime::ReportCrime(CRIME_FIRE_WEAPON, shooter, shooter->m_roadRageWith);
     }
 
@@ -438,7 +438,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
         return 1.0f;
     }
 
-    switch (target->m_nType) {
+    switch (target->GetType()) {
     case ENTITY_TYPE_VEHICLE: {
         if (!target->AsVehicle()->IsBike()) {
             return 3.0f;
