@@ -213,8 +213,7 @@ void CPhysical::Remove()
 }
 
 // 0x5449B0
-CRect CPhysical::GetBoundRect()
-{
+CRect CPhysical::GetBoundRect() const {
     CVector boundCentre;
     CEntity::GetBoundCentre(&boundCentre);
     const float fRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();

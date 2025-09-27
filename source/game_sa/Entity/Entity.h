@@ -191,14 +191,25 @@ public:
     RwMatrix* GetRwMatrix();
     void UpdateRW(); // aka UpdateRwMatrix
 
-    // TODO: const function
-    CVector* GetBoundCentre(CVector* pOutCentre);
-    void GetBoundCentre(CVector& outCentre);
-    CVector GetBoundCentre();
+    CVector* GetBoundCentre(CVector* pOutCentre) const;
+    void GetBoundCentre(CVector& outCentre) const;
+    CVector GetBoundCentre() const;
 
     float GetBoundRadius() const { return GetColModel()->GetBoundingSphere().m_fRadius; };
+    virtual CRect GetBoundRect() const;
 
-    virtual CRect GetBoundRect();
+    CColModel* GetColModel() const;
+
+    // is entity touching entity
+    bool GetIsTouching(CEntity* entity) const;
+    // is entity touching sphere
+    bool GetIsTouching(const CVector& centre, float radius) const;
+
+    bool GetIsOnScreen();
+    bool GetIsBoundingBoxOnScreen();
+    bool IsEntityOccluded();
+
+
     virtual void ProcessControl();
     virtual void ProcessCollision();
     virtual void ProcessShift();
@@ -229,21 +240,14 @@ public:
     void SetRwObjectAlpha(int32 alpha);
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
     C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
-    CVector TransformFromObjectSpace(const CVector& offset);
-    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset);
+    CVector TransformFromObjectSpace(const CVector& offset) const;
+    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
     void CreateEffects();
     void DestroyEffects();
     void RenderEffects();
-    // is entity touching entity
-    bool GetIsTouching(CEntity* entity);
-    // is entity touching sphere
-    bool GetIsTouching(const CVector& centre, float radius);
-    bool GetIsOnScreen();
-    bool GetIsBoundingBoxOnScreen();
     void ModifyMatrixForTreeInWind();
     void ModifyMatrixForBannerInWind();
     RwMatrix* GetModellingMatrix();
-    CColModel* GetColModel() const;
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
     void UpdateAnim();
     bool IsVisible();
@@ -259,7 +263,6 @@ public:
     void RegisterReference(CEntity** entity);
     void ProcessLightsForEntity();
     void RemoveEscalatorsForEntity();
-    bool IsEntityOccluded();
     bool IsInCurrentAreaOrBarberShopInterior() const;
     bool IsInCurrentArea() const;
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA

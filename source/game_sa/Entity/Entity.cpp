@@ -61,17 +61,17 @@ void CEntity::InjectHooks()
     RH_ScopedInstall(SetRwObjectAlpha, 0x5332C0);
     RH_ScopedInstall(FindTriggerPointCoors, 0x533380);
     RH_ScopedInstall(GetRandom2dEffect, 0x533410);
-    RH_ScopedOverloadedInstall(TransformFromObjectSpace, "ref", 0x5334F0, CVector(CEntity::*)(const CVector&));
-    RH_ScopedOverloadedInstall(TransformFromObjectSpace, "ptr", 0x533560, CVector*(CEntity::*)(CVector&, const CVector&));
+    RH_ScopedOverloadedInstall(TransformFromObjectSpace, "ref", 0x5334F0, CVector(CEntity::*)(const CVector&) const);
+    RH_ScopedOverloadedInstall(TransformFromObjectSpace, "ptr", 0x533560, CVector*(CEntity::*)(CVector&, const CVector&) const);
     RH_ScopedInstall(CreateEffects, 0x533790);
     RH_ScopedInstall(DestroyEffects, 0x533BF0);
     RH_ScopedInstall(AttachToRwObject, 0x533ED0);
     RH_ScopedInstall(DetachFromRwObject, 0x533FB0);
-    RH_ScopedOverloadedInstall(GetBoundCentre, "ptr", 0x534250, CVector*(CEntity::*)(CVector*));
-    RH_ScopedOverloadedInstall(GetBoundCentre, "ref", 0x534290, void(CEntity::*)(CVector&));
+    RH_ScopedOverloadedInstall(GetBoundCentre, "ptr", 0x534250, CVector*(CEntity::*)(CVector*) const);
+    RH_ScopedOverloadedInstall(GetBoundCentre, "ref", 0x534290, void(CEntity::*)(CVector&) const);
     RH_ScopedInstall(RenderEffects, 0x5342B0);
-    RH_ScopedOverloadedInstall(GetIsTouching, "ent", 0x5343F0, bool(CEntity::*)(CEntity*));
-    RH_ScopedOverloadedInstall(GetIsTouching, "vec", 0x5344B0, bool(CEntity::*)(const CVector&, float));
+    RH_ScopedOverloadedInstall(GetIsTouching, "ent", 0x5343F0, bool(CEntity::*)(CEntity*) const);
+    RH_ScopedOverloadedInstall(GetIsTouching, "vec", 0x5344B0, bool(CEntity::*)(const CVector&, float) const);
     RH_ScopedInstall(GetIsOnScreen, 0x534540);
     RH_ScopedInstall(GetIsBoundingBoxOnScreen, 0x5345D0);
     RH_ScopedInstall(ModifyMatrixForTreeInWind, 0x534E90);
@@ -369,8 +369,7 @@ void CEntity::DeleteRwObject()
 }
 
 // 0x534120
-CRect CEntity::GetBoundRect()
-{
+CRect CEntity::GetBoundRect() const {
     CColModel* colModel = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel();
     CVector vecMin = colModel->m_boundBox.m_vecMin;
     CVector vecMax = colModel->m_boundBox.m_vecMax;
@@ -1034,8 +1033,7 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
 }
 
 // 0x5334F0
-CVector CEntity::TransformFromObjectSpace(const CVector& offset)
-{
+CVector CEntity::TransformFromObjectSpace(const CVector& offset) const {
     auto result = CVector();
     if (m_matrix) {
         result = m_matrix->TransformPoint(offset);
@@ -1047,8 +1045,7 @@ CVector CEntity::TransformFromObjectSpace(const CVector& offset)
 }
 
 // 0x533560
-CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offset)
-{
+CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offset) const {
     auto result = TransformFromObjectSpace(offset);
     outPos = result;
     return &outPos;
@@ -1261,18 +1258,18 @@ void CEntity::DetachFromRwObject()
 }
 
 // 0x534250
-CVector* CEntity::GetBoundCentre(CVector* pOutCentre) {
+CVector* CEntity::GetBoundCentre(CVector* pOutCentre) const {
     auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
     const auto& colCenter = mi->GetColModel()->GetBoundCenter();
     return TransformFromObjectSpace(*pOutCentre, colCenter);
 }
 
 // 0x534290
-void CEntity::GetBoundCentre(CVector& centre) {
+void CEntity::GetBoundCentre(CVector& centre) const {
     TransformFromObjectSpace(centre, GetColModel()->GetBoundCenter());
 }
 
-CVector CEntity::GetBoundCentre() {
+CVector CEntity::GetBoundCentre() const {
     CVector v;
     GetBoundCentre(v);
     return v;
@@ -1298,8 +1295,7 @@ void CEntity::RenderEffects()
 }
 
 // 0x5343F0
-bool CEntity::GetIsTouching(CEntity* entity)
-{
+bool CEntity::GetIsTouching(CEntity* entity) const {
     CVector thisVec;
     GetBoundCentre(thisVec);
 
@@ -1313,8 +1309,7 @@ bool CEntity::GetIsTouching(CEntity* entity)
 }
 
 // 0x5344B0
-bool CEntity::GetIsTouching(const CVector& centre, float radius)
-{
+bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
     CVector thisVec;
     GetBoundCentre(thisVec);
     auto fThisRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
