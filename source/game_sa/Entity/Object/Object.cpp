@@ -380,15 +380,15 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
             }
             else if (objectFlags.bIsLampPost && (GetUp().z < 0.66F || m_bIsStuck))
             {
-                if (colPhysical->IsVehicle() || colPhysical->IsPed()) {
+                if (colPhysical->GetIsTypeVehicle() || colPhysical->GetIsTypePed()) {
                     bCollidedEntityCollisionIgnored = true;
-                    if (colPhysical->IsVehicle())
+                    if (colPhysical->GetIsTypeVehicle())
                         return;
 
                     m_pEntityIgnoredCollision = colPhysical;
                 }
             }
-            else if ( colPhysical->IsVehicle())
+            else if ( colPhysical->GetIsTypeVehicle())
             {
                 if (IsModelTempCollision())
                     bCollisionDisabled = true;
@@ -425,10 +425,10 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
                 }
             }
             else if (m_nModelIndex != MODEL_GRENADE
-                || !colPhysical->IsPed()
+                || !colPhysical->GetIsTypePed()
                 || m_matrix->GetPosition().z >= colPhysical->m_matrix->GetPosition().z)
             {
-                if (colPhysical->IsObject() && colPhysical->AsObject()->m_pObjectInfo->m_fUprootLimit > 0.0F && !colPhysical->m_pAttachedTo)
+                if (colPhysical->GetIsTypeObject() && colPhysical->AsObject()->m_pObjectInfo->m_fUprootLimit > 0.0F && !colPhysical->m_pAttachedTo)
                 {
                     if ((!colPhysical->physicalFlags.bDisableCollisionForce || colPhysical->physicalFlags.bCollidable)
                         && colPhysical->m_fMass * 10.0F > m_fMass)
@@ -1007,7 +1007,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
     if (!m_bUsesCollision)
         return;
 
-    if (weaponType == eWeaponType::WEAPON_UNIDENTIFIED && damager && damager->IsVehicle())
+    if (weaponType == eWeaponType::WEAPON_UNIDENTIFIED && damager && damager->GetIsTypeVehicle())
         weaponType = eWeaponType::WEAPON_RUNOVERBYCAR;
 
     if (!CPhysical::CanPhysicalBeDamaged(weaponType, nullptr))
@@ -1024,11 +1024,11 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         if (!damager)
             return;
 
-        if (damager->IsPed()) {
+        if (damager->GetIsTypePed()) {
             auto* ped = damager->AsPed();
             if (!ped->bInVehicle || !ped->m_pVehicle || ped->m_pVehicle->m_nModelIndex != MODEL_SWATVAN)
                 return;
-        } else if (damager->IsVehicle()) {
+        } else if (damager->GetIsTypeVehicle()) {
             if (damager->m_nModelIndex != MODEL_SWATVAN)
                 return;
         } else

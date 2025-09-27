@@ -74,7 +74,7 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
             FindWindowSectorList(GetSector(sectorX, sectorY)->m_dummies, maxDist, entity, point);
         }
     }
-    return entity && !entity->IsDummy() && entity->AsObject()->objectFlags.bHasBrokenGlass;
+    return entity && !entity->GetIsTypeDummy() && entity->AsObject()->objectFlags.bHasBrokenGlass;
 }
 
 // 0x71C2B0
@@ -175,7 +175,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
 }
 
 bool IsGlassObjectWithCol(CEntity* entity) {
-    if (entity->IsObject() && entity->m_bUsesCollision) {
+    if (entity->GetIsTypeObject() && entity->m_bUsesCollision) {
         if (const auto ami = entity->GetModelInfo()->AsAtomicModelInfoPtr()) {
             return ami->IsGlass();
         }
@@ -411,7 +411,7 @@ void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*
         if (entity->IsScanCodeCurrent())
             continue;
 
-        if (!entity->IsObject())
+        if (!entity->GetIsTypeObject())
             continue;
 
         const auto object = entity->AsObject();

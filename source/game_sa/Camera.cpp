@@ -940,7 +940,7 @@ void CCamera::StoreValuesDuringInterPol(CVector* sourceDuringInter, CVector* tar
 
 // 0x50C360
 void CCamera::UpdateTargetEntity() {
-    m_bPlayerWasOnBike = m_pTargetEntity && m_pTargetEntity->IsVehicle() && m_pTargetEntity->AsVehicle()->m_vecMoveSpeed.SquaredMagnitude() > 0.3f;
+    m_bPlayerWasOnBike = m_pTargetEntity && m_pTargetEntity->GetIsTypeVehicle() && m_pTargetEntity->AsVehicle()->m_vecMoveSpeed.SquaredMagnitude() > 0.3f;
 
     const auto player = FindPlayerPed();
     assert(player);
@@ -1040,7 +1040,7 @@ void CCamera::UpdateTargetEntity() {
         CEntity::ChangeEntityReference(m_pTargetEntity, player);
     }
 
-    if (m_pTargetEntity->IsVehicle()) {
+    if (m_pTargetEntity->GetIsTypeVehicle()) {
         if (m_nCarZoom == 0) {
             if (player->m_nPedState == PEDSTATE_ARRESTED) {
                 CEntity::ChangeEntityReference(m_pTargetEntity, player);
@@ -1783,7 +1783,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
     m_fFractionInterToStopCatchUp = 0.75f;
 
     // Handle player rotation for weapon modes
-    if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains({ MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT }, activeCamMode)) {
+    if (m_pTargetEntity && m_pTargetEntity->GetIsTypePed() && notsa::contains({ MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT }, activeCamMode)) {
         const float angle                            = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
         m_pTargetEntity->AsPed()->m_fCurrentRotation = angle;
         m_pTargetEntity->AsPed()->m_fAimingRotation  = angle;

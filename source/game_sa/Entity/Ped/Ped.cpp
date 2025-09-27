@@ -1411,7 +1411,7 @@ void CPed::DropEntityThatThisPedIsHolding(bool bDeleteHeldEntity) {
         // Delete held entity (If any)
         if (bDeleteHeldEntity) {
             if (const auto heldEntity = task->m_pEntityToHold) {
-                if (!heldEntity->IsObject() || !heldEntity->AsObject()->IsMissionObject()) {
+                if (!heldEntity->GetIsTypeObject() || !heldEntity->AsObject()->IsMissionObject()) {
                     heldEntity->DeleteRwObject(); // TODO; Are these 3 lines inlined?
                     CWorld::Remove(heldEntity);
                     delete heldEntity;
@@ -1589,7 +1589,7 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
     }
 
     auto target{entity->GetPosition()};
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         target.z += 1.f; // Adjust for head pos?
     }
 
@@ -1664,7 +1664,7 @@ void CPed::ProcessBuoyancy()
 
     if (bIsStanding) {
         auto& standingOnEntity = m_pContactEntity;
-        if (standingOnEntity && standingOnEntity->IsVehicle()) {
+        if (standingOnEntity && standingOnEntity->GetIsTypeVehicle()) {
             auto pStandingOnVehicle = standingOnEntity->AsVehicle();
             if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bRenderScorched) {
                 physicalFlags.bSubmergedInWater = false;
@@ -1684,7 +1684,7 @@ void CPed::ProcessBuoyancy()
         CColPoint lineColPoint;
         CEntity* colEntity;
         if (CWorld::ProcessVerticalLine(vecPedPos, fCheckZ, lineColPoint, colEntity, false, true, false, false, false, false, nullptr)) {
-            if (colEntity->IsVehicle()) {
+            if (colEntity->GetIsTypeVehicle()) {
                 auto colVehicle = colEntity->AsVehicle();
                 if (colVehicle->IsBoat()
                     && !colVehicle->physicalFlags.bRenderScorched
@@ -3088,7 +3088,7 @@ CEntity* CPed::AttachPedToEntity(CEntity* entity, CVector offset, uint16 turretA
 
     // Deal collision with `entity`
     if (!IsPlayer()) {
-        if (entity->IsVehicle()) {
+        if (entity->GetIsTypeVehicle()) {
             m_pEntityIgnoredCollision = entity->AsPhysical();
         }
     } else { // For player just disable collision

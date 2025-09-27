@@ -889,7 +889,7 @@ void CTrain::ProcessControl() {
             if (m_vecForce.SquaredMagnitude() > fMaxForceTimeStep ||
                 m_vecTorque.SquaredMagnitude() > fMaxTorqueTimeStep ||
                 m_fMovingSpeed >= fMaxMovingSpeed ||
-                m_fDamageIntensity > 0.0f && m_pDamageEntity != nullptr && m_pDamageEntity->IsPed()
+                m_fDamageIntensity > 0.0f && m_pDamageEntity != nullptr && m_pDamageEntity->GetIsTypePed()
             ) {
                 m_nFakePhysics = 0;
             } else {

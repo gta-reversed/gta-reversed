@@ -714,7 +714,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
     const auto cdNumLines = std::exchange(ourColData->m_nNumLines, 0);
 
     for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
-        if (!entity || entity == ourEntity || (entity->IsPed() && entity->AsPed()->IsInVehicle())) {
+        if (!entity || entity == ourEntity || (entity->GetIsTypePed() && entity->AsPed()->IsInVehicle())) {
             continue;
         }
 
@@ -734,7 +734,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             continue;
         }
 
-        if (entity->IsVehicle()) {
+        if (entity->GetIsTypeVehicle()) {
             auto* vehicle = entity->AsVehicle();
             if (vehicle->vehicleFlags.bIsLocked || !vehicle->CanBeDeleted()) {
                 continue;
@@ -758,7 +758,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             delete vehicle;
         }
 
-        if (entity->IsPed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
+        if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
         }
     }

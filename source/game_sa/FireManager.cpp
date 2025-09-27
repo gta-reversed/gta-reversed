@@ -100,7 +100,7 @@ CFire* CFireManager::FindNearestFire(const CVector& point, bool bCheckIsBeingExt
         if (bCheckIsBeingExtinguished && fire.IsBeingExtinguished())
             continue;
 
-        if (fire.GetEntityOnFire() && fire.GetEntityOnFire()->IsPed())
+        if (fire.GetEntityOnFire() && fire.GetEntityOnFire()->GetIsTypePed())
             continue;
 
         const float fDist2DSq = (fire.GetPosition() - point).SquaredMagnitude2D();

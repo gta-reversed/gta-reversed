@@ -74,12 +74,12 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
         return true;
     }
 
-    if (!m_ClimbEntity || m_ClimbEntity->IsObject() && !m_ClimbEntity->IsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->IsVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
+    if (!m_ClimbEntity || m_ClimbEntity->GetIsTypeObject() && !m_ClimbEntity->IsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->GetIsTypeVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
         MakeAbortable(ped);
         return true;
     }
 
-    if (m_ClimbEntity->IsVehicle()) {
+    if (m_ClimbEntity->GetIsTypeVehicle()) {
         ped->m_pEntityIgnoredCollision = m_ClimbEntity;
     }
 
@@ -113,7 +113,7 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
 
         CVector vecClimbEntSpeed{};
         CVector delta = targetPt - ped->GetPosition();
-        if (!m_ClimbEntity->IsStatic() && m_ClimbEntity->IsPhysical()) {
+        if (!m_ClimbEntity->IsStatic() && m_ClimbEntity->GetIsTypePhysical()) {
             vecClimbEntSpeed = m_ClimbEntity->AsPhysical()->GetSpeed(targetPt - m_ClimbEntity->GetPosition());
         }
 
@@ -303,12 +303,12 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
             continue;
         }
 
-        if (entity->IsBuilding()
-            || (entity->IsObject()
+        if (entity->GetIsTypeBuilding()
+            || (entity->GetIsTypeObject()
                 && (entity->IsStatic() || entity->AsObject()->physicalFlags.bDisableCollisionForce)
                 && !entity->AsObject()->physicalFlags.bInfiniteMass
             )
-            || (entity->IsVehicle()
+            || (entity->GetIsTypeVehicle()
                 && (hasToTestStandup || hasToTestDropOtherSide || (ped->GetIntelligence()->GetTaskSwim() && entity->AsVehicle()->IsSubBoat()) || (entity->AsVehicle()->IsSubTrain() && entity->AsVehicle()->m_vecMoveSpeed.Magnitude2D() < 0.1F))
             )) {
             if (DistanceBetweenPoints(entity->GetBoundCentre(), ped->GetMatrix().TransformPoint(cm->GetBoundCenter())) >= entity->GetModelInfo()->GetColModel()->GetBoundRadius() + cm->GetBoundRadius()) {
@@ -316,14 +316,14 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
             }
 
             int32 numSpheres = -1;
-            if (entity->IsVehicle() && entity->AsVehicle()->IsSubBoat()) {
+            if (entity->GetIsTypeVehicle() && entity->AsVehicle()->IsSubBoat()) {
                 numSpheres                                       = entity->GetColModel()->m_pColData->m_nNumSpheres;
                 entity->GetColModel()->m_pColData->m_nNumSpheres = 0;
             }
 
             if (CCollision::ProcessColModels(*ped->m_matrix, *cm, entity->GetMatrix(), *entity->GetColModel(), CWorld::m_aTempColPts, nullptr, nullptr, false) > 0) {
                 if (hasToTestStandup || hasToTestDropOtherSide) {
-                    if (entity->IsVehicle() && numSpheres > -1) {
+                    if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
 
@@ -332,7 +332,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                 uint8 nColSphereIndex = CWorld::m_aTempColPts[0].m_nPieceTypeA;
 
                 if (nColSphereIndex == 0 || nColSphereIndex == 1 || nColSphereIndex == 2 || nColSphereIndex == 3 || nColSphereIndex == 4 || nColSphereIndex == 10) {
-                    if (entity->IsVehicle() && numSpheres > -1) {
+                    if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
                     return (CEntity*)(1);
@@ -340,7 +340,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
                 auto relPosn = CWorld::m_aTempColPts[0].m_vecPoint - outTargetPos;
                 if (nColSphereIndex == 16 || CWorld::m_aTempColPts[0].m_vecPoint.z <= outTargetPos.z && DotProduct(relPosn, ped->GetForward()) >= 0.0f || !g_surfaceInfos.CanClimb(CWorld::m_aTempColPts[0].m_nSurfaceTypeB)) {
-                    if (entity->IsVehicle() && numSpheres > -1) {
+                    if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
                     continue;
@@ -350,7 +350,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
                 if (!isLaunch || fatModifier >= 1) {
                     if (nColSphereIndex == 5 || nColSphereIndex == 11 || nColSphereIndex == 17) {
-                        if (entity->IsVehicle() && numSpheres > -1) {
+                        if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                             entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                         }
                         continue;
@@ -358,7 +358,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
                     if (fatModifier >= 1 && (!isLaunch || fatModifier >= 2)) {
                         if (nColSphereIndex == 6 || nColSphereIndex == 12 || nColSphereIndex == 18) {
-                            if (entity->IsVehicle() && numSpheres > -1) {
+                            if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                                 entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                             }
                             continue;
@@ -408,10 +408,10 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                     }
                 }
 
-                if (entity->IsVehicle() && numSpheres > -1) {
+                if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                     entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                 }
-            } else if (entity->IsVehicle() && numSpheres > -1) {
+            } else if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                 entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
             }
         }
@@ -479,7 +479,7 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
     }
 
     if (collidedEntity) {
-        if (collidedEntity->IsPhysical()) {
+        if (collidedEntity->GetIsTypePhysical()) {
             outClimbPos = Invert(collidedEntity->GetMatrix()).TransformPoint(outClimbPos);
             outClimbAngle -= collidedEntity->GetHeading();
         }
@@ -540,7 +540,7 @@ bool CTaskSimpleClimb::TestForVault(CPed* ped, const CVector& point, float fAngl
     float        angle;
     eSurfaceType surfaceType;
     CVector      pedPos = point + GetClimbOffset3D({ ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert }, fAngle);
-    return !m_ClimbEntity->IsVehicle()
+    return !m_ClimbEntity->GetIsTypeVehicle()
         && !ScanToGrab(ped, climbPos, angle, surfaceType, false, false, true, &pedPos);
 }
 
@@ -708,7 +708,7 @@ CVector CTaskSimpleClimb::GetClimbOffset3D(CVector2D offset2D, float angle) {
 }
 
 std::pair<CVector, float> CTaskSimpleClimb::GetHandholdPosAndAngleForEntity(CEntity* entity, const CVector& handPos, float handAngle) {
-    if (entity->IsPhysical()) {
+    if (entity->GetIsTypePhysical()) {
         return { entity->GetMatrix().TransformPoint(handPos), handAngle + entity->GetHeading() };
     }
     return { handPos, handAngle };

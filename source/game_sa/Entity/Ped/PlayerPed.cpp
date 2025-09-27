@@ -755,7 +755,7 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
 // 0x60B550
 bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2) {
     CVector origin{};
-    if (entity1->IsPed()) {
+    if (entity1->GetIsTypePed()) {
         origin = entity1->AsPed()->GetBonePosition(eBoneTag::BONE_NECK, false);
         if (entity1->AsPed()->bIsDucking)
             origin.z += 0.35f;
@@ -763,7 +763,7 @@ bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2) {
         origin = entity1->GetPosition();
     }
 
-    const auto target = entity2->IsPed()
+    const auto target = entity2->GetIsTypePed()
         ? entity1->AsPed()->GetBonePosition(eBoneTag::BONE_NECK, false)
         : entity1->GetPosition();
 
@@ -795,7 +795,7 @@ bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* target, CWeapon* weapon) {
     }
 
     if (weapon->m_Type == eWeaponType::WEAPON_SPRAYCAN) {
-        if (target->IsBuilding()) {
+        if (target->GetIsTypeBuilding()) {
             if (CTagManager::IsTag(target)) {
                 if (CTagManager::GetAlpha(target) == 255) { // they probably used -1
                     return true;
@@ -1048,7 +1048,7 @@ void CPlayerPed::ProcessControl() {
         }
         if (m_pTargetedObject) {
             ClearReference(m_p3rdPersonMouseTarget);
-            if (m_pTargetedObject->IsPed()) {
+            if (m_pTargetedObject->GetIsTypePed()) {
                 CPed* targetPed = m_pTargetedObject->AsPed();
                 auto weaponInfo = CWeaponInfo::GetWeaponInfo(GetActiveWeapon().m_Type, GetWeaponSkill());
                 float targetHeadRange = weaponInfo->GetTargetHeadRange();
@@ -1082,11 +1082,11 @@ void CPlayerPed::ProcessControl() {
                     if (targetVeh)
                         effectPos += (targetVeh->m_vecMoveSpeed + targetVeh->m_vecTurnSpeed) * CTimer::GetTimeStep();
                 }
-            } else if (m_pTargetedObject->IsVehicle()) {
+            } else if (m_pTargetedObject->GetIsTypeVehicle()) {
                 CVehicle* targetVeh = m_pTargetedObject->AsVehicle();
                 effectPos = (targetVeh->m_vecMoveSpeed + targetVeh->m_vecTurnSpeed) * CTimer::GetTimeStep();
                 effectPos += targetVeh->GetPosition();
-            } else if (m_pTargetedObject->IsObject()) {
+            } else if (m_pTargetedObject->GetIsTypeObject()) {
                 CObject* targetObj = m_pTargetedObject->AsObject();
                 effectPos = targetObj->m_vecMoveSpeed * CTimer::GetTimeStep();
                 effectPos += targetObj->GetPosition();

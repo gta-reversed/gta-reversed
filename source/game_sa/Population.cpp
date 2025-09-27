@@ -1592,7 +1592,7 @@ void CPopulation::ConvertToDummyObject(CObject* object) {
         dummy->UpdateFromObject(object);
     }
 
-    if (object->IsObject()) {
+    if (object->GetIsTypeObject()) {
         auto* mi = object->GetModelInfo()->AsAtomicModelInfoPtr();
         if (mi && mi->IsGlassType1()) {
             if (dummy) {
@@ -1668,7 +1668,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
                 continue;
             }
             if (attractor->m_nFlags & 1) {
-                if (!ent->IsObject()) {
+                if (!ent->GetIsTypeObject()) {
                     continue;
                 }
                 if (!ent->AsObject()->objectFlags.bEnableDisabledAttractors) {

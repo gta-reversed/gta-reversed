@@ -178,12 +178,12 @@ void CRope::PickUpObject(CEntity* obj) {
     m_pAttachedEntity->m_bUsesCollision = false;
 
     obj->AsPhysical()->physicalFlags.bAttachedToEntity = true;
-    if (obj->IsVehicle()) {
+    if (obj->GetIsTypeVehicle()) {
         if (obj->GetStatus() == STATUS_SIMPLE)
         {
             obj->SetStatus(STATUS_PHYSICS);
         }
-    } else if (obj->IsObject()) {
+    } else if (obj->GetIsTypeObject()) {
         if (obj->m_bIsStatic || obj->m_bIsStaticWaitingForCollision) {
             obj->AsObject()->SetIsStatic(false);
             obj->AsObject()->AddToMovingList();

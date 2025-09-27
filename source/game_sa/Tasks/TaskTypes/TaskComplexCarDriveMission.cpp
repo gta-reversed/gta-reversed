@@ -17,7 +17,7 @@ void CTaskComplexCarDriveMission::InjectHooks() {
 CTaskComplexCarDriveMission::CTaskComplexCarDriveMission(CVehicle* vehicle, CEntity* targetVehicle, eCarMission carDriveMission, eCarDrivingStyle carDrivingStyle, float fSpeed) :
     CTaskComplexCarDrive{ vehicle, fSpeed, MODEL_INVALID, carDrivingStyle }
 {
-    // assert(targetVehicle->IsVehicle());
+    // assert(targetVehicle->GetIsTypeVehicle());
     m_pTargetVehicle = static_cast<CVehicle*>(targetVehicle);
     m_nCarMission    = carDriveMission;
     CEntity::SafeRegisterRef(m_pTargetVehicle);

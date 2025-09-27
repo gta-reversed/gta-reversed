@@ -137,9 +137,9 @@ void CFire::Start(CEntity* creator, CEntity* target, uint32 nTimeToBurn, uint8 n
     m_Strength = 1.0f;
     m_Position = target->GetPosition();
 
-    if (target->IsPed() && target->AsPed()->IsPlayer())
+    if (target->GetIsTypePed() && target->AsPed()->IsPlayer())
         m_TimeToBurn = CTimer::GetTimeInMS() + 2333;
-    else if (target->IsVehicle())
+    else if (target->GetIsTypeVehicle())
         m_TimeToBurn = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(0, 1000) + 3000;
     else
         m_TimeToBurn = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(0, 1000) + nTimeToBurn;
@@ -309,7 +309,7 @@ void CFire::ProcessFire() {
     }
 
     CPlayerPed* player = FindPlayerPed();
-    if (!m_EntityOnFire || !m_EntityOnFire->IsVehicle()) {
+    if (!m_EntityOnFire || !m_EntityOnFire->GetIsTypeVehicle()) {
         // Check if we can set player's ped on fire
         if (!FindPlayerVehicle()
          && !player->m_pFire /* not already on fire */

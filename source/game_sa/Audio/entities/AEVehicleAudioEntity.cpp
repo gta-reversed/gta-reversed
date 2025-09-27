@@ -68,7 +68,7 @@ CAEVehicleAudioEntity::~CAEVehicleAudioEntity() {
 
 // 0x4F7670
 void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
-    assert(entity && entity->IsVehicle());
+    assert(entity && entity->GetIsTypeVehicle());
 
     m_TimeLastServiced            = 0;
     m_Entity                      = entity;

@@ -506,7 +506,7 @@ void CAutomobile::ProcessControl()
         float torqueLimitRadius = 0.0009f;
         float movingSpeedLimit = 0.005f;
         if (IsSubPlane()) {
-            if (m_fDamageIntensity > 0.0f && m_pDamageEntity && m_pDamageEntity->IsVehicle())
+            if (m_fDamageIntensity > 0.0f && m_pDamageEntity && m_pDamageEntity->GetIsTypeVehicle())
                 forceLimitRadius = 0.003f;
             else
                 forceLimitRadius = 0.009f;
@@ -529,7 +529,7 @@ void CAutomobile::ProcessControl()
         if (forceLimitRadius * forceLimitRadius < m_vecForce.SquaredMagnitude()
             || sq(torqueLimitRadius) < m_vecTorque.SquaredMagnitude()
             || movingSpeedLimit <= m_fMovingSpeed
-            || m_fDamageIntensity > 0.0f && m_pDamageEntity && m_pDamageEntity->IsPed())
+            || m_fDamageIntensity > 0.0f && m_pDamageEntity && m_pDamageEntity->GetIsTypePed())
         {
             resetSpeed = false;
         }
@@ -1775,8 +1775,8 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     const auto tNumLines = tcd->m_nNumLines;
     if (   physicalFlags.bSkipLineCol
         || physicalFlags.bProcessingShift
-        || entity->IsPed()
-        || m_nModelIndex == (uint16)eModelID::UNLOAD_MODEL && entity->IsVehicle()
+        || entity->GetIsTypePed()
+        || m_nModelIndex == (uint16)eModelID::UNLOAD_MODEL && entity->GetIsTypeVehicle()
     ) {
         tcd->m_nNumLines = 0; // Later reset back to original value
     }
@@ -1833,7 +1833,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
                 CEntity::ChangeEntityReference(m_apWheelCollisionEntity[i], entity->AsPhysical());
 
                 m_vWheelCollisionPos[i] = cp.m_vecPoint - entity->GetPosition();
-                if (entity->IsVehicle()) {
+                if (entity->GetIsTypeVehicle()) {
                     m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                 }
                 break;
@@ -1859,7 +1859,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     }
     
     // 0x6AD38A - Remove a few specific cp's for forklifts
-    if (m_nModelIndex == eModelID::MODEL_FORKLIFT && entity->IsObject() && !m_wMiscComponentAngle && !m_wMiscComponentAnglePrev) {
+    if (m_nModelIndex == eModelID::MODEL_FORKLIFT && entity->GetIsTypeObject() && !m_wMiscComponentAngle && !m_wMiscComponentAnglePrev) {
         auto pts = aAutomobileColPoints | rng::views::take(numColPts);
         auto newEndIt = rng::remove_if(pts, [](CColPoint& cp) {
             return cp.m_nSurfaceTypeA == SURFACE_CAR_MOVINGCOMPONENT;
@@ -1872,20 +1872,20 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     }
 
     AddCollisionRecord(entity);
-    if (!entity->IsBuilding()) {
+    if (!entity->GetIsTypeBuilding()) {
         entity->AsPhysical()->AddCollisionRecord(this);
     }
 
     if (numColPts > 0) {
-        if (   entity->IsBuilding()
-            || (entity->IsObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
+        if (   entity->GetIsTypeBuilding()
+            || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
         ) {
             m_bHasHitWall = true;
         }
     }
 
     // 0x6AD482 - Add additional output colpoints for wheels
-    if (numProcessedWheels > 0 && entity->IsBuilding() && m_pHandlingData->m_fSuspensionHighSpdComDamp > 0.f) {
+    if (numProcessedWheels > 0 && entity->GetIsTypeBuilding() && m_pHandlingData->m_fSuspensionHighSpdComDamp > 0.f) {
         for (auto i = 0; i < MAX_CARWHEELS; i++) {
             if (m_damageManager.GetWheelStatus((eCarWheel)i) != eCarWheelStatus::WHEEL_STATUS_OK) { // Move to top
                 continue;
@@ -2947,7 +2947,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
     }
 
     // 0x6A78F0
-    if (   damager && damager->IsBuilding()
+    if (   damager && damager->GetIsTypeBuilding()
         && DotProduct(*vecCollisionDirection, m_matrix->GetUp()) > 0.6f // In front - (-66, 66) deg
     ) {
         return;
@@ -3000,7 +3000,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
         }
 
         // 0x6A7ACF
-        if (damager && damager->IsVehicle()) {
+        if (damager && damager->GetIsTypeVehicle()) {
             m_nLastWeaponDamageType = WEAPON_RAMMEDBYCAR;
             m_pLastDamageEntity = damager;
             damager->RegisterReference(&m_pLastDamageEntity);
@@ -3161,7 +3161,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
         if (calcCollHealthLoss > 0.f) {
             if (calcCollHealthLoss > 5.f) {
                 if (m_pDamageEntity) {
-                    if (m_pDamageEntity->IsVehicle()) {
+                    if (m_pDamageEntity->GetIsTypeVehicle()) {
                         const auto& damagedVeh = *m_pDamageEntity->AsVehicle();
 
                         if (damagedVeh.m_pDriver && m_pDriver) {
@@ -3193,7 +3193,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                     }
                     if (this == FindPlayerVehicle()) {
                         if (const auto p = PickRandomPassenger()) {
-                            p->Say(m_pDamageEntity->IsPed() ? CTX_GLOBAL_CAR_HIT_PED : CTX_GLOBAL_CAR_CRASH);
+                            p->Say(m_pDamageEntity->GetIsTypePed() ? CTX_GLOBAL_CAR_HIT_PED : CTX_GLOBAL_CAR_CRASH);
                         }
                     }
                 }
@@ -5815,7 +5815,7 @@ void CAutomobile::BlowUpCarsInPath() {
     for (auto&& entity : GetCollidingEntities()) {
         if (!entity)
             continue; // I don't think should ever happen? But original code checks...
-        if (!entity->IsVehicle())
+        if (!entity->GetIsTypeVehicle())
             continue;
 
         auto& veh = *entity->AsVehicle();

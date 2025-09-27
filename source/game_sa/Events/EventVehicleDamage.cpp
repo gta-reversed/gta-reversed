@@ -75,7 +75,7 @@ void CEventVehicleDamage::ReportCriminalEvent(CPed* ped)
 // 0x4B1A70
 CEntity* CEventVehicleDamage::GetSourceEntity() const
 {
-    if (m_attacker && m_attacker->IsVehicle()) {
+    if (m_attacker && m_attacker->GetIsTypeVehicle()) {
         CVehicle* vehicle = m_attacker->AsVehicle();
         if (vehicle->m_pDriver)
             return vehicle->m_pDriver;

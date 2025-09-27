@@ -283,7 +283,7 @@ void CEntity::CreateRwObject()
     if (!m_pRwObject)
         return;
 
-    if (IsBuilding())
+    if (GetIsTypeBuilding())
         ++gBuildings;
 
     UpdateRW();
@@ -298,7 +298,7 @@ void CEntity::CreateRwObject()
         if (!mi->bIsRoad)
             break;
 
-        if (IsObject()) {
+        if (GetIsTypeObject()) {
             auto obj = AsObject();
             if (!obj->m_pMovingList) {
                 obj->AddToMovingList();
@@ -362,10 +362,10 @@ void CEntity::DeleteRwObject()
     mi->RemoveRef();
     CStreaming::RemoveEntity(std::exchange(m_pStreamingLink, nullptr));
 
-    if (IsBuilding())
+    if (GetIsTypeBuilding())
         --gBuildings;
 
-    if (mi->GetModelType() == MODEL_INFO_CLUMP && mi->IsRoad() && !IsObject()) {
+    if (mi->GetModelType() == MODEL_INFO_CLUMP && mi->IsRoad() && !GetIsTypeObject()) {
         CWorld::ms_listMovingEntityPtrs.DeleteItem(AsPhysical());
     }
 
@@ -470,13 +470,13 @@ void CEntity::PreRender() {
         return;
     }
 
-    if (ami && ami->SwaysInWind() && (!IsObject() || !AsObject()->objectFlags.bIsExploded)) {
+    if (ami && ami->SwaysInWind() && (!GetIsTypeObject() || !AsObject()->objectFlags.bIsExploded)) {
         auto fDist                  = DistanceBetweenPoints2D(GetPosition(), TheCamera.GetPosition());
         CObject::fDistToNearestTree = std::min(CObject::fDistToNearestTree, fDist);
         ModifyMatrixForTreeInWind();
     }
 
-    if (IsBuilding()) {
+    if (GetIsTypeBuilding()) {
         if (ami && ami->IsCrane()) {
             ModifyMatrixForCrane();
         }
@@ -484,11 +484,11 @@ void CEntity::PreRender() {
         return;
     }
 
-    if (!IsObject() && !IsDummy()) {
+    if (!GetIsTypeObject() && !GetIsTypeDummy()) {
         return;
     }
 
-    if (IsObject()) {
+    if (GetIsTypeObject()) {
         auto obj = AsObject();
         if (m_nModelIndex == ModelIndices::MI_COLLECTABLE1) {
             CPickups::DoCollectableEffects(this);
@@ -838,7 +838,7 @@ bool CEntity::HasPreRenderEffects()
         && m_nModelIndex != ModelIndices::MI_WINDSOCK
         && m_nModelIndex != ModelIndices::MI_FLARE
         && !IsGlassModel(this)
-        && (!IsObject() || !reinterpret_cast<CObject*>(this)->objectFlags.bIsPickup)
+        && (!GetIsTypeObject() || !reinterpret_cast<CObject*>(this)->objectFlags.bIsPickup)
         && !CTrafficLights::IsMITrafficLight(m_nModelIndex)
         && m_nModelIndex != ModelIndices::MI_SINGLESTREETLIGHTS1
         && m_nModelIndex != ModelIndices::MI_SINGLESTREETLIGHTS2
@@ -1228,7 +1228,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateEntityMatrix)
 
     auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
     if (RwObjectGetType(m_pRwObject) == rpCLUMP && mi->IsRoad()) {
-        if (IsObject())
+        if (GetIsTypeObject())
         {
             reinterpret_cast<CObject*>(this)->AddToMovingList();
             SetIsStatic(false);
@@ -1256,7 +1256,7 @@ void CEntity::DetachFromRwObject()
 
     if (mi->GetModelType() == ModelInfoType::MODEL_INFO_CLUMP
         && mi->IsRoad()
-        && !IsObject()
+        && !GetIsTypeObject()
     ) {
         CWorld::ms_listMovingEntityPtrs.DeleteItem(AsPhysical());
     }
@@ -1468,7 +1468,7 @@ RwMatrix* CEntity::GetModellingMatrix() {
 
 // 0x535300
 CColModel* CEntity::GetColModel() const {
-    if (IsVehicle()) {
+    if (GetIsTypeVehicle()) {
         const auto veh = static_cast<const CVehicle*>(this);
         if (veh->m_vehicleSpecialColIndex > -1) {
             return &CVehicle::m_aSpecialColModel[veh->m_vehicleSpecialColIndex];
@@ -1605,7 +1605,7 @@ void CEntity::UpdateAnim()
 
     bool bOnScreen;
     float fStep;
-    if (IsObject() && AsObject()->m_nObjectType == eObjectType::OBJECT_TYPE_CUTSCENE) {
+    if (GetIsTypeObject() && AsObject()->m_nObjectType == eObjectType::OBJECT_TYPE_CUTSCENE) {
         bOnScreen = true;
         fStep = CTimer::GetTimeStepNonClippedInSeconds();
     }
@@ -1708,7 +1708,7 @@ void CEntity::PruneReferences()
 // 0x571B70
 void CEntity::RegisterReference(CEntity** entity)
 {
-    if (IsBuilding() && !m_bIsTempBuilding && !m_bIsProcObject && !m_nIplIndex)
+    if (GetIsTypeBuilding() && !m_bIsTempBuilding && !m_bIsProcObject && !m_nIplIndex)
         return;
 
     auto refs = m_pReferences;
@@ -1765,7 +1765,7 @@ void CEntity::ProcessLightsForEntity()
     if (m_bRenderDamaged || !m_bIsVisible)
         return;
 
-    if (IsVehicle()) {
+    if (GetIsTypeVehicle()) {
         if (AsVehicle()->physicalFlags.bRenderScorched)
             return;
     }
@@ -1918,7 +1918,7 @@ void CEntity::ProcessLightsForEntity()
                 break;
 
             case e2dCoronaFlashType::FLASH_TRAINCROSSING:
-                if (IsObject() && AsObject()->objectFlags.bTrainCrossEnabled) {
+                if (GetIsTypeObject() && AsObject()->objectFlags.bTrainCrossEnabled) {
                     if (CTimer::GetTimeInMS() & 0x400)
                         bDoColorLight = true;
 
@@ -1982,7 +1982,7 @@ void CEntity::ProcessLightsForEntity()
         auto bSkipCoronaChecks = false;
         if (CGameLogic::LaRiotsActiveHere()) {
             bool bLightsOn = bDoColorLight;
-            bLightsOn &= !IsVehicle();
+            bLightsOn &= !GetIsTypeVehicle();
             bLightsOn &= ((uiRand & 3) == 0 || (uiRand & 3) == 1 && (CTimer::GetTimeInMS() ^ (uiRand * 8)) & 0x60);
 
             if (bLightsOn) {
@@ -2470,7 +2470,7 @@ void CEntity::SetCurrentScanCode() {
 
 // 0x46A760
 bool IsGlassModel(CEntity* entity) {
-    if (!entity->IsObject())
+    if (!entity->GetIsTypeObject())
         return false;
 
     auto mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);

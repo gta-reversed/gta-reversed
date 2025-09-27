@@ -366,7 +366,7 @@ void CShadows::StoreShadowForPedObject(CPed* ped, float displacementX, float dis
     // the `GetBonePosition` below *just works* because it doesn't access any
     // `CPed` specific member variables.
     // But we really should fix this in a sensible way in the future.
-    assert(ped->IsPed() || ped->IsObject());
+    assert(ped->GetIsTypePed() || ped->GetIsTypeObject());
 
     const auto  bonePos           = ped->GetBonePosition(BONE_ROOT);
     const auto& camPos            = TheCamera.GetPosition();
@@ -411,7 +411,7 @@ void CShadows::StoreRealTimeShadow(CPhysical* physical, float displacementX, flo
         return;
     }
     const auto& camPos = TheCamera.GetPosition();
-    const auto  shdwPos = physical->IsPed()
+    const auto  shdwPos = physical->GetIsTypePed()
         ? physical->AsPed()->GetBonePosition(BONE_ROOT)
         : physical->GetPosition();
     const auto shdwToCamDist2DSq = (shdwPos - camPos).SquaredMagnitude2D();

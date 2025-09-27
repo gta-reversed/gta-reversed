@@ -303,7 +303,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
     }
 #endif
 
-    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->IsPed() || entity->IsVehicle()) {
+    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->GetIsTypePed() || entity->GetIsTypeVehicle()) {
         tcd->m_nNumLines = 0; // Later reset back to original value
     }
 
@@ -356,7 +356,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
                     CEntity::ChangeEntityReference(m_apWheelCollisionEntity[i], entity->AsPhysical());
 
                     m_vWheelCollisionPos[i] = cp.m_vecPoint - entity->GetPosition();
-                    if (entity->IsVehicle()) {
+                    if (entity->GetIsTypeVehicle()) {
                         m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                     }
                     break;
@@ -390,11 +390,11 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
 
     if (numColPts > 0 || numProcessedLines > 0) {
         AddCollisionRecord(entity);
-        if (!entity->IsBuilding()) {
+        if (!entity->GetIsTypeBuilding()) {
             entity->AsPhysical()->AddCollisionRecord(this);
         }
-        if (numColPts > 0 && entity->IsBuilding()
-            || (entity->IsObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)) {
+        if (numColPts > 0 && entity->GetIsTypeBuilding()
+            || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)) {
             m_bHasHitWall = true;
         }
     }

@@ -121,32 +121,52 @@ public:
     CEntity();
     ~CEntity() override;
 
-    virtual void Add();                                             // VTab: 2, similar to previous, but with entity bound rect
-    virtual void Add(const CRect& rect);                            // VTab: 1
-    virtual void Remove();                                          // VTab: 3
-    virtual void SetIsStatic(bool isStatic);                        // VTab: 4
-    virtual void SetModelIndex(uint32 index);                       // VTab: 5
-    virtual void SetModelIndexNoCreate(uint32 index);               // VTab: 6
-    virtual void CreateRwObject();                                  // VTab: 7
-    virtual void DeleteRwObject();                                  // VTab: 8
-    virtual CRect GetBoundRect();                                   // VTab: 9
-    virtual void ProcessControl();                                  // VTab: 10
-    virtual void ProcessCollision();                                // VTab: 11
-    virtual void ProcessShift();                                    // VTab: 12
-    virtual bool TestCollision(bool bApplySpeed);                   // VTab: 13
-    virtual void Teleport(CVector destination, bool resetRotation); // VTab: 14
+    virtual void Add();
+    virtual void Add(const CRect& rect);
+    virtual void Remove();
+
+    void SetTypeBuilding() { SetType(ENTITY_TYPE_BUILDING); }
+    void SetTypeVehicle()  { SetType(ENTITY_TYPE_VEHICLE); }
+    void SetTypePed()      { SetType(ENTITY_TYPE_PED); }
+    void SetTypeObject()   { SetType(ENTITY_TYPE_OBJECT); }
+    void SetTypeDummy()    { SetType(ENTITY_TYPE_DUMMY); }
+
+    [[nodiscard]] bool GetIsTypeBuilding() const { return GetType() == ENTITY_TYPE_BUILDING; }
+    [[nodiscard]] bool GetIsTypeVehicle()  const { return GetType() == ENTITY_TYPE_VEHICLE; }
+    [[nodiscard]] bool GetIsTypePed()      const { return GetType() == ENTITY_TYPE_PED; }
+    [[nodiscard]] bool GetIsTypeObject()   const { return GetType() == ENTITY_TYPE_OBJECT; }
+    [[nodiscard]] bool GetIsTypeDummy()    const { return GetType() == ENTITY_TYPE_DUMMY; }
+    [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, aka GetIsPhysical
+    [[nodiscard]] bool GetIsTypeNothing()  const { return GetType() == ENTITY_TYPE_NOTHING; } // NOTSA
+    
+    void SetType(eEntityType type) { m_info.m_nType = type; }
+    [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_info.m_nType; }
+
+    void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
+    [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
+    virtual void SetIsStatic(bool isStatic);
+    virtual void SetModelIndex(uint32 index);
+    virtual void SetModelIndexNoCreate(uint32 index);
+    virtual void CreateRwObject();
+    virtual void DeleteRwObject();
+    virtual CRect GetBoundRect();
+    virtual void ProcessControl();
+    virtual void ProcessCollision();
+    virtual void ProcessShift();
+    virtual bool TestCollision(bool bApplySpeed);
+    virtual void Teleport(CVector destination, bool resetRotation);
     virtual void SpecialEntityPreCollisionStuff(CPhysical* colPhysical,
                                                 bool bIgnoreStuckCheck,
                                                 bool& bCollisionDisabled,
                                                 bool& bCollidedEntityCollisionIgnored,
                                                 bool& bCollidedEntityUnableToMove,
-                                                bool& bThisOrCollidedEntityStuck);                                    // VTab: 15
-    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);          // VTab: 16
-    virtual void PreRender();                                                                                         // VTab: 17
-    virtual void Render();                                                                                            // VTab: 18
-    virtual bool SetupLighting();                                                                                     // VTab: 19
-    virtual void RemoveLighting(bool bRemove);                                                                        // VTab: 20
-    virtual void FlagToDestroyWhenNextProcessed();                                                                    // VTab: 21
+                                                bool& bThisOrCollidedEntityStuck);
+    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);
+    virtual void PreRender();
+    virtual void Render();
+    virtual bool SetupLighting();
+    virtual void RemoveLighting(bool bRemove);
+    virtual void FlagToDestroyWhenNextProcessed();
 
     void UpdateRwFrame();
     void UpdateRpHAnim();
@@ -276,14 +296,6 @@ public:
     static RpAtomic* SetAtomicAlphaCB(RpAtomic* atomic, void* data);
     static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
 
-    [[nodiscard]] bool IsPhysical() const { return m_info.m_nType > ENTITY_TYPE_BUILDING && m_info.m_nType < ENTITY_TYPE_DUMMY; }
-    [[nodiscard]] bool IsNothing()  const { return m_info.m_nType == ENTITY_TYPE_NOTHING; }
-    [[nodiscard]] bool IsVehicle()  const { return m_info.m_nType == ENTITY_TYPE_VEHICLE; }
-    [[nodiscard]] bool IsPed()      const { return m_info.m_nType == ENTITY_TYPE_PED; }
-    [[nodiscard]] bool IsObject()   const { return m_info.m_nType == ENTITY_TYPE_OBJECT; }
-    [[nodiscard]] bool IsBuilding() const { return m_info.m_nType == ENTITY_TYPE_BUILDING; }
-    [[nodiscard]] bool IsDummy()    const { return m_info.m_nType == ENTITY_TYPE_DUMMY; }
-
     [[nodiscard]] bool IsModelTempCollision() const { return m_nModelIndex >= MODEL_TEMPCOL_DOOR1 && m_nModelIndex <= MODEL_TEMPCOL_BODYPART2; }
     [[nodiscard]] bool IsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
     [[nodiscard]] bool IsRCCar()  const { return m_nModelIndex == MODEL_RCBANDIT || m_nModelIndex == MODEL_RCTIGER || m_nModelIndex == MODEL_RCCAM; }
@@ -305,12 +317,6 @@ public:
     auto AsObject()           { return reinterpret_cast<CObject*>(this); }
     auto AsBuilding()         { return reinterpret_cast<CBuilding*>(this); }
     auto AsDummy()            { return reinterpret_cast<CDummy*>(this); }
-
-    [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_info.m_nType; }
-    void SetType(eEntityType type) { m_info.m_nType = type; }
-
-    [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
-    void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
 
     bool IsScanCodeCurrent() const;
     void SetCurrentScanCode();

@@ -127,12 +127,12 @@ void CRenderer::RenderOneRoad(CEntity* entity) {
 
 // 0x553260
 void CRenderer::RenderOneNonRoad(CEntity* entity) {
-    if (entity->IsPed() && entity->AsPed()->m_nPedState == PEDSTATE_DRIVING)
+    if (entity->GetIsTypePed() && entity->AsPed()->m_nPedState == PEDSTATE_DRIVING)
         return;
 
     bool bSetupLighting = entity->SetupLighting();
     auto* vehicle = entity->AsVehicle();
-    if (entity->IsVehicle()) {
+    if (entity->GetIsTypeVehicle()) {
         CVisibilityPlugins::SetupVehicleVariables(entity->m_pRwClump);
         CVisibilityPlugins::InitAlphaAtomicList();
         vehicle->RenderDriverAndPassengers();
@@ -153,7 +153,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
         entity->Render();
     }
 
-    if (entity->IsVehicle()) {
+    if (entity->GetIsTypeVehicle()) {
         vehicle->m_bImBeingRendered = true;
         CVisibilityPlugins::RenderAlphaAtomics();
         vehicle->m_bImBeingRendered = false;
@@ -348,7 +348,7 @@ void CRenderer::RenderRoads() {
     SetAmbientColours();
 
     for (auto& entity : GetVisibleEntityPtrs()) {
-        if (entity->IsBuilding() && CModelInfo::GetModelInfo(entity->m_nModelIndex)->IsRoad()) {
+        if (entity->GetIsTypeBuilding() && CModelInfo::GetModelInfo(entity->m_nModelIndex)->IsRoad()) {
             if (CPostEffects::IsVisionFXActive()) {
                 CPostEffects::FilterFX_StoreAndSetDayNightBalance();
                 entity->Render();
@@ -372,13 +372,13 @@ void CRenderer::RenderEverythingBarRoads() {
     assert(ms_nNoOfVisibleEntities <= MAX_VISIBLE_ENTITY_PTRS);
     for (auto& entity : GetVisibleEntityPtrs()) {
         auto* vehicle = entity->AsVehicle();
-        if (entity->IsBuilding() && CModelInfo::GetModelInfo(entity->m_nModelIndex)->IsRoad())
+        if (entity->GetIsTypeBuilding() && CModelInfo::GetModelInfo(entity->m_nModelIndex)->IsRoad())
             continue;
 
         bool bInserted = false;
-        if (entity->IsVehicle() || (entity->IsPed() && CVisibilityPlugins::GetClumpAlpha(entity->m_pRwClump) != 255)) {
+        if (entity->GetIsTypeVehicle() || (entity->GetIsTypePed() && CVisibilityPlugins::GetClumpAlpha(entity->m_pRwClump) != 255)) {
             // todo: R* nice check | or we missed smth here?
-            if (entity->IsVehicle()) {
+            if (entity->GetIsTypeVehicle()) {
                 bool bInsertIntoSortedList = false;
                 if (vehicle->IsBoat()) {
                     const auto& camMode = CCamera::GetActiveCamera().m_nMode;
@@ -551,7 +551,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
     const int32& modelId = entity->m_nModelIndex;
     CBaseModelInfo* baseModelInfo = CModelInfo::GetModelInfo(modelId);
     CBaseModelInfo* baseAtomicModelInfo = baseModelInfo->AsAtomicModelInfoPtr();
-    if (entity->IsVehicle() && !entity->m_bTunnelTransition) {
+    if (entity->GetIsTypeVehicle() && !entity->m_bTunnelTransition) {
         if (!ms_bRenderTunnels && entity->m_bTunnel || !ms_bRenderOutsideTunnels && !entity->m_bTunnel)
             return RENDERER_INVISIBLE;
     }
@@ -592,7 +592,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
 
             if (!entity->m_pRwObject
                 || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex)
-                || !entity->IsInCurrentAreaOrBarberShopInterior() && entity->IsVehicle()
+                || !entity->IsInCurrentAreaOrBarberShopInterior() && entity->GetIsTypeVehicle()
             ) {
                 return RENDERER_INVISIBLE;
             }
@@ -799,7 +799,7 @@ void CRenderer::ScanSectorList(int32 sectorX, int32 sectorY) {
             float fDistance = 0.0f;
             switch (SetupEntityVisibility(entity, fDistance)) {
             case RENDERER_INVISIBLE: {
-                if (entity->IsObject()) {
+                if (entity->GetIsTypeObject()) {
                     auto* atomicModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex)->AsAtomicModelInfoPtr();
                     if (atomicModelInfo && atomicModelInfo->IsGlass()) {
                         bInvisibleEntity = true;
@@ -846,7 +846,7 @@ void CRenderer::ScanSectorList(int32 sectorX, int32 sectorY) {
             if (entity->m_bHasPreRenderEffects) {
                 float fDrawDistance = MAX_INVISIBLE_ENTITY_DISTANCE;
                 CVector2D distance = ms_vecCameraPosition - entity->GetPosition();
-                if (entity->IsVehicle()) {
+                if (entity->GetIsTypeVehicle()) {
                     if (entity->AsVehicle()->vehicleFlags.bAlwaysSkidMarks) {
                         fDrawDistance = MAX_INVISIBLE_VEHICLE_DISTANCE;
                     }

@@ -484,7 +484,7 @@ void CVehicle::DeleteRwObject() {
 // 0x6D6640
 void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled,
     bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck) {
-    if (colPhysical->IsPed()
+    if (colPhysical->GetIsTypePed()
         && colPhysical->AsPed()->bKnockedOffBike
         && colPhysical->AsPed()->m_pVehicle == this)
     {
@@ -523,7 +523,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
     }
 
     if (m_bIsStuck
-        && colPhysical->IsVehicle()
+        && colPhysical->GetIsTypeVehicle()
         && (colPhysical->AsVehicle()->physicalFlags.bDisableCollisionForce && !colPhysical->AsVehicle()->physicalFlags.bCollidable)
     ) {
         bCollidedEntityCollisionIgnored = true;
@@ -540,7 +540,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical->IsObject())
+    if (colPhysical->GetIsTypeObject())
     {
         if (colPhysical->AsObject()->IsFallenLampPost())
         {
@@ -603,7 +603,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (IsRCCar() && (colPhysical->IsVehicle() || colPhysical->IsPed())) {
+    if (IsRCCar() && (colPhysical->GetIsTypeVehicle() || colPhysical->GetIsTypePed())) {
         bCollidedEntityCollisionIgnored = true;
         physicalFlags.bSkipLineCol = true;
         return;
@@ -3468,7 +3468,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
         }
         entity->SetCurrentScanCode();
 
-        auto entityCM = entity->IsPed()
+        auto entityCM = entity->GetIsTypePed()
             ? entity->GetModelInfo()->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->m_pRwClump)
             : entity->GetColModel();
 
@@ -3476,7 +3476,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
             continue;
         }
 
-        if (entity->IsObject() && entity->AsObject()->m_nObjectType == eObjectType::OBJECT_TEMPORARY) {
+        if (entity->GetIsTypeObject() && entity->AsObject()->m_nObjectType == eObjectType::OBJECT_TEMPORARY) {
             continue;
         }
 
@@ -3492,7 +3492,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
             continue;
         }
 
-        if (entity->IsPed()) { // 0x6DB207
+        if (entity->GetIsTypePed()) { // 0x6DB207
             auto& ped = *entity->AsPed();
 
             const auto dirToPed = Normalized(GetPosition() - ped.GetPosition());
@@ -3582,7 +3582,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
             }
 
             if (wasAnyCPValid) {
-                if (entity->IsPed() && !CTimer::IsTimeInRange(planeRotorDmgTimeMS - 2000, planeRotorDmgTimeMS)) {
+                if (entity->GetIsTypePed() && !CTimer::IsTimeInRange(planeRotorDmgTimeMS - 2000, planeRotorDmgTimeMS)) {
                     const auto ReportCollision = [&](CVector pos) {
                         AudioEngine.ReportCollision(
                             this,

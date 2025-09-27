@@ -338,7 +338,7 @@ bool CCam::Using3rdPersonMouseCam() const {
 
 // 0x509DC0
 bool CCam::GetWeaponFirstPersonOn() {
-    return m_pCamTargetEntity && m_pCamTargetEntity->IsPed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
+    return m_pCamTargetEntity && m_pCamTargetEntity->GetIsTypePed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
 }
 
 // inlined -- alpha = vertical angle
@@ -389,7 +389,7 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
         return;
     }
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
         return;
@@ -501,7 +501,7 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
     if (m_bResetStatics) {
         m_fVerticalAngle   = 0.0f;
         m_fHorizontalAngle = [&] {
-            if (m_pCamTargetEntity->IsPed()) {
+            if (m_pCamTargetEntity->GetIsTypePed()) {
                 return m_pCamTargetEntity->AsPed()->m_fCurrentRotation + DegreesToRadians(90.0f);
             } else {
                 return orientation;
@@ -513,7 +513,7 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
         TheCamera.m_fAvoidTheGeometryProbsTimer = 0.0f;
     }
 
-    if (m_pCamTargetEntity->IsPed()) {
+    if (m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         return;
     }
@@ -862,7 +862,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
     static uint32 dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
     static bool   byte_B70000  = StaticRef<bool>(0xB70000);
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         return;
     }
 

@@ -40,7 +40,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
 
     const auto tcm = GetColModel();
 
-    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->IsPed()) {
+    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->GetIsTypePed()) {
         tcm->GetData()->m_nNumLines = 0; // hmm..... (Later reset back to 4)
     }
 
@@ -83,7 +83,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
                 CEntity::ChangeEntityReference(m_apWheelCollisionEntity[i], entity->AsPhysical());
 
                 m_vWheelCollisionPos[i] = thisWheelColPtNow.m_vecPoint - entity->GetPosition();
-                if (entity->IsVehicle()) {
+                if (entity->GetIsTypeVehicle()) {
                     m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                 }
                 break;
@@ -102,12 +102,12 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
 
     if (numColPts > 0 || numProcessedLines > 0) {
         AddCollisionRecord(entity);
-        if (!entity->IsBuilding()) {
+        if (!entity->GetIsTypeBuilding()) {
             entity->AsPhysical()->AddCollisionRecord(this);
         }
         if (numColPts > 0) {
-            if (   entity->IsBuilding()
-                || (entity->IsObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
+            if (   entity->GetIsTypeBuilding()
+                || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
             ) {
                 m_bHasHitWall = true;
             }

@@ -62,7 +62,7 @@ auto CRegisteredCorona::GetPosition() const -> CVector {
     if (!m_pAttachedTo) {
         return m_vPosn;
     }
-    if (m_pAttachedTo->IsVehicle() && m_pAttachedTo->AsVehicle()->IsSubBike()) {
+    if (m_pAttachedTo->GetIsTypeVehicle() && m_pAttachedTo->AsVehicle()->IsSubBike()) {
         return m_pAttachedTo->AsBike()->m_mLeanMatrix.TransformPoint(m_vPosn);
     }
     return m_pAttachedTo->GetMatrix().TransformPoint(m_vPosn);

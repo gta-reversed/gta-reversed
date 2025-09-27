@@ -130,7 +130,7 @@ void CBulletInfo::Update() {
                 // std::cout << "Hit vehicle\n";
                 auto hitVehicle = hitEntity->AsVehicle();
 
-                if (info.m_pCreator && info.m_pCreator->IsPed())
+                if (info.m_pCreator && info.m_pCreator->GetIsTypePed())
                     if (info.m_pCreator->AsPed()->m_pAttachedTo == hitVehicle)
                         break;
 
@@ -163,7 +163,7 @@ void CBulletInfo::Update() {
                 if (TheCamera.IsSphereVisible(colPoint.m_vecNormal, 1.0f))
                     g_fx.AddBulletImpact(colPoint.m_vecPoint, colPoint.m_vecNormal, colPoint.m_nSurfaceTypeB, 8, colPoint.m_nLightingB.GetCurrentLighting());
 
-                if (info.m_pCreator && info.m_pCreator->IsPed())
+                if (info.m_pCreator && info.m_pCreator->GetIsTypePed())
                     if (info.m_pCreator->AsPed()->m_pAttachedTo == hitEntity)
                         break;
 
@@ -205,7 +205,7 @@ void CBulletInfo::Update() {
                 }
                 case ENTITY_TYPE_BUILDING: {
                     // std::cout << "Hit building\n";
-                    if (info.m_pCreator && info.m_pCreator->IsPed()) {
+                    if (info.m_pCreator && info.m_pCreator->GetIsTypePed()) {
                         if (auto playerData = info.m_pCreator->AsPed()->m_pPlayerData) {
                             playerData->m_nModelIndexOfLastBuildingShot = hitEntity->m_nModelIndex;
                         }

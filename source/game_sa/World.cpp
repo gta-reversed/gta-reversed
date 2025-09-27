@@ -171,7 +171,7 @@ void CWorld::Add(CEntity* entity) {
     entity->UpdateRW();
     entity->UpdateRwFrame();
     entity->Add();
-    if (!entity->IsBuilding() && !entity->IsDummy()) {
+    if (!entity->GetIsTypeBuilding() && !entity->GetIsTypeDummy()) {
         if (!entity->IsStatic()) {
             entity->AsPhysical()->AddToMovingList();
         }
@@ -185,7 +185,7 @@ void CWorld::Add(CEntity* entity) {
 */
 void CWorld::Remove(CEntity* entity) {
     entity->Remove();
-    if (entity->IsPhysical())
+    if (entity->GetIsTypePhysical())
         entity->AsPhysical()->RemoveFromMovingList();
 }
 
@@ -254,7 +254,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 
     for (auto* const entity : ms_listMovingEntityPtrs) {
         if (!entity->m_bRemoveFromWorld) {
-            if (entity->IsPed()) {
+            if (entity->GetIsTypePed()) {
                 entity->AsPed()->GetIntelligence()->ProcessAfterPreRender();
             }
         }
@@ -440,7 +440,7 @@ void CWorld::TestForUnusedModels(PtrListType& ptrList, int32* models) {
 
 // 0x563A10
 void CWorld::RemoveEntityInsteadOfProcessingIt(CEntity* entity) {
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         if (FindPlayerPed() == entity) {
             Remove(entity);
         } else {
@@ -1043,7 +1043,7 @@ void CWorld::SetPedsOnFire(float x, float y, float z, float radius, CEntity* fir
             ) {
                 if (   ped->physicalFlags.bInvulnerable
                     || !fireCreator
-                    || fireCreator->IsPed() && fireCreator->AsPed()->IsPlayer()
+                    || fireCreator->GetIsTypePed() && fireCreator->AsPed()->IsPlayer()
                 ) {
                     gFireManager.StartFire(ped, fireCreator, 0.8f, 1, 7000, 2);
                 }
@@ -1209,7 +1209,7 @@ void CWorld::RemoveFallenCars() {
                     continue;
 
             vehicle->Remove();
-            if (vehicle->IsPhysical())
+            if (vehicle->GetIsTypePhysical())
                 vehicle->RemoveFromMovingList();
 
             delete vehicle;
@@ -1491,7 +1491,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             continue;
 
         if (!entity->m_bUsesCollision) {
-            if (!entity->IsPed())
+            if (!entity->GetIsTypePed())
                 continue;
             if (const auto ped = entity->AsPed(); !bIncludeBikers && !bIncludeDeadPeds)
                 continue;
@@ -1691,17 +1691,17 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
         if (entityToPointDist >= radius)
             continue;
 
-        if (entity->IsObject())
+        if (entity->GetIsTypeObject())
             entity->AsObject()->TryToExplode();
 
         if (entity->physicalFlags.bExplosionProof)
             continue;
 
-        if (entity->IsPed() && entity->AsPed()->bInVehicle)
+        if (entity->GetIsTypePed() && entity->AsPed()->bInVehicle)
             continue;
 
         if (entity->IsStatic()) {
-            if (!entity->IsObject()) {
+            if (!entity->GetIsTypeObject()) {
                 if (entity->m_bUsesCollision) {
                     entity->SetIsStatic(false);
                     entity->AddToMovingList();
@@ -1719,7 +1719,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                         if (   object->m_nModelIndex != ModelIndices::MI_FIRE_HYDRANT
                             || object->objectFlags.bIsExploded
                         ) {
-                            if (object->IsObject() && !object->m_pObjectInfo->m_bCausesExplosion) {
+                            if (object->GetIsTypeObject() && !object->m_pObjectInfo->m_bCausesExplosion) {
                                 object->objectFlags.bIsExploded = true;
                             }
                         } else {
@@ -1828,7 +1828,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             const auto ped = entity->AsPed();
 
             const auto pedLocalDir = ped->GetLocalDirection(impactVelocity);
-            if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->IsVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
+            if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->GetIsTypeVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
                 CPedDamageResponseCalculator pedDamageResponseCalculator{ creator, 1000.f, WEAPON_EXPLOSION, PED_PIECE_TORSO, false};
 
                 CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, pedLocalDir, false, !!ped->bIsTalking };
@@ -1870,7 +1870,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
                 ped->GetIntelligence()->m_eventGroup.Add(&eventDamage, false);
 
-                if (creator && creator->IsPed()) {
+                if (creator && creator->GetIsTypePed()) {
                     CCrime::ReportCrime(creator->AsPed()->m_nPedType == PED_TYPE_COP ? CRIME_DAMAGE_COP_CAR : CRIME_DAMAGE_CAR, ped, creator->AsPed());
                 }
             }
@@ -1909,7 +1909,7 @@ void CWorld::Process() {
     };
 
     IterateMovingList([&](CPhysical* entity) {
-        if (entity->IsPed()) {
+        if (entity->GetIsTypePed()) {
             GetEventGlobalGroup()->AddEventsToPed(entity->AsPed());
         }
     });
@@ -1951,7 +1951,7 @@ void CWorld::Process() {
 
         const auto DoProcessMovingEntity = [&](CEntity* entity) {
             if (entity->m_bRemoveFromWorld) {
-                if (entity->IsPed()) {
+                if (entity->GetIsTypePed()) {
                     if (FindPlayerPed() == entity) {
                         Remove(entity);
                     } else {
@@ -2079,7 +2079,7 @@ void CWorld::Process() {
     ProcessAttachedEntities();
 
     IterateMovingList([&](CEntity* entity) {
-        if (entity->IsPed()) {
+        if (entity->GetIsTypePed()) {
             const auto ped = entity->AsPed();
             ped->GetIntelligence()->ProcessAfterProcCol();
             if (const auto attachedTo = ped->m_pAttachedTo) {
