@@ -32,6 +32,7 @@ void CEntity::InjectHooks()
     // clang moment: RH_ScopedVirtualOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
     RH_ScopedVMTInstall(Remove, 0x534AE0);
     RH_ScopedVMTInstall(SetIsStatic, 0x403E20);
+    RH_ScopedVMTInstall(SetModelIndex, 0x532AE0);
     RH_ScopedVMTInstall(SetModelIndexNoCreate, 0x533700);
     RH_ScopedVMTInstall(CreateRwObject, 0x533D30);
     RH_ScopedVMTInstall(DeleteRwObject, 0x534030);
@@ -233,13 +234,7 @@ void CEntity::Remove()
     }
 }
 
-// 0x403E20
-void CEntity::SetIsStatic(bool isStatic)
-{
-    m_bIsStatic = isStatic;
-}
-
-// 0x0
+// 0x532AE0
 void CEntity::SetModelIndex(uint32 index)
 {
     CEntity::SetModelIndexNoCreate(index);
@@ -1211,7 +1206,7 @@ void CEntity::DestroyEffects()
 }
 
 // 0x533ED0
-void CEntity::AttachToRwObject(RwObject* object, bool updateEntityMatrix)
+void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix)
 {
     if (!m_bIsVisible)
         return;
@@ -1220,7 +1215,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateEntityMatrix)
     if (!m_pRwObject)
         return;
 
-    if (updateEntityMatrix) {
+    if (updateMatrix) {
         CMatrix& matrix = GetMatrix();
         auto parentMatrix = GetModellingMatrix();
         matrix.UpdateMatrix(parentMatrix);
@@ -1266,20 +1261,18 @@ void CEntity::DetachFromRwObject()
 }
 
 // 0x534250
-CVector* CEntity::GetBoundCentre(CVector* pOutCentre)
-{
+CVector* CEntity::GetBoundCentre(CVector* pOutCentre) {
     auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
     const auto& colCenter = mi->GetColModel()->GetBoundCenter();
     return TransformFromObjectSpace(*pOutCentre, colCenter);
 }
 
 // 0x534290
-void CEntity::GetBoundCentre(CVector& outCentre) {
-    TransformFromObjectSpace(outCentre, GetColModel()->GetBoundCenter());
+void CEntity::GetBoundCentre(CVector& centre) {
+    TransformFromObjectSpace(centre, GetColModel()->GetBoundCenter());
 }
 
-CVector CEntity::GetBoundCentre()
-{
+CVector CEntity::GetBoundCentre() {
     CVector v;
     GetBoundCentre(v);
     return v;
@@ -2405,6 +2398,10 @@ bool CEntity::IsEntityOccluded() {
     //}
     //
     //return false;
+}
+
+inline RwMatrix* CEntity::GetRwMatrix() {
+    return RwFrameGetMatrix(RwCameraGetFrame(m_pRwObject));
 }
 
 bool CEntity::IsInCurrentAreaOrBarberShopInterior() const

@@ -144,11 +144,60 @@ public:
 
     void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
     [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
-    virtual void SetIsStatic(bool isStatic);
+
+    bool TreatAsPlayerForCollisions() { return GetStatus() == STATUS_PLAYER; } // 0x541F70
+
+    void SetUsesCollision(bool status) { m_bUsesCollision = status; }
+    bool GetUsesCollision() const { return m_bUsesCollision; }
+    void SetCollisionProcessed(bool status) { m_bCollisionProcessed = status; }
+    bool GetCollisionProcessed() const { return m_bCollisionProcessed; }
+    virtual void SetIsStatic(bool status) { m_bIsStatic = status; } // 0x403E20
+    bool GetIsStatic() const { return m_bIsStatic; }
+    void SetHasContacted(bool status) { m_bHasContacted = status; }
+    bool GetHasContacted() const { return m_bHasContacted; }
+    
+    
+    void SetIsStuck(bool status) { m_bIsStuck = status; }
+    bool GetIsStuck() const { return m_bIsStuck; }
+    void SetIsInSafePosition(bool status) { m_bIsInSafePosition = status; }
+    bool GetIsInSafePosition() const { return m_bIsInSafePosition; }
+    void SetWasPostponed(bool status) { m_bWasPostponed = status; }
+    bool GetWasPostponed() const { return m_bWasPostponed; }
+    void SetIsVisible(bool status) { m_bIsVisible = status; }
+    bool GetIsVisible() const { return m_bIsVisible; }
+    void SetHasHitWall(bool status) { m_bHasHitWall = status; }
+    bool GetHasHitWall() const { return m_bHasHitWall; }
+    void SetIsBackfaceCulled(bool status) { m_bBackfaceCulled = status; }
+    bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; }
+    void SetIsUnimportantStream(bool status) { m_bUnimportantStream = status; }
+    bool GetIsUnimportantStream() const { return m_bUnimportantStream; } // NOTSA
+    
+    void SetScanCode(uint16 code) { m_nScanCode = code; }
+    uint16 GetScanCode() const { return m_nScanCode; }
+    void SetAreaCode(eAreaCodes code) { m_nAreaCode = code; }
+    eAreaCodes GetAreaCode() const { return m_nAreaCode; }
+    void SetIplIndex(uint8 index) { m_nIplIndex = index; }
+    uint8 GetIplIndex() { return m_nIplIndex; }
+
     virtual void SetModelIndex(uint32 index);
     virtual void SetModelIndexNoCreate(uint32 index);
+    uint32 GetModelIndex() const { return m_nModelIndex; }
+    RwObject* GetRwObject() const { return m_pRwObject; }
     virtual void CreateRwObject();
+    void AttachToRwObject(RwObject* object, bool updateMatrix);
+    void DetachFromRwObject();
     virtual void DeleteRwObject();
+
+    RwMatrix* GetRwMatrix();
+    void UpdateRW(); // aka UpdateRwMatrix
+
+    // TODO: const function
+    CVector* GetBoundCentre(CVector* pOutCentre);
+    void GetBoundCentre(CVector& outCentre);
+    CVector GetBoundCentre();
+
+    float GetBoundRadius() const { return GetColModel()->GetBoundingSphere().m_fRadius; };
+
     virtual CRect GetBoundRect();
     virtual void ProcessControl();
     virtual void ProcessCollision();
@@ -184,11 +233,6 @@ public:
     CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset);
     void CreateEffects();
     void DestroyEffects();
-    void AttachToRwObject(RwObject* object, bool updateEntityMatrix);
-    void DetachFromRwObject();
-    CVector* GetBoundCentre(CVector* pOutCentre);
-    void GetBoundCentre(CVector& outCentre);
-    CVector GetBoundCentre();
     void RenderEffects();
     // is entity touching entity
     bool GetIsTouching(CEntity* entity);
@@ -218,7 +262,6 @@ public:
     bool IsEntityOccluded();
     bool IsInCurrentAreaOrBarberShopInterior() const;
     bool IsInCurrentArea() const;
-    void UpdateRW();
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
     CEntity* FindLastLOD() noexcept;
 
