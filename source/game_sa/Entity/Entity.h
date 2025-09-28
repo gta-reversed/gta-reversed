@@ -111,9 +111,9 @@ public:
         int32    m_nLodIndex; // -1 - without LOD model
         CEntity* m_pLod;
     };
-    int8          m_nNumLodChildren;
+    uint8         m_nNumLodChildren;
 
-    uint8         m_nNumLodChildrenRendered;
+    int8          m_nNumLodChildrenRendered;
 
     CEntityInfo   m_info;
 
@@ -209,6 +209,10 @@ public:
     bool GetIsBoundingBoxOnScreen();
     bool IsEntityOccluded();
 
+    bool IsInCurrentArea() const;
+    bool IsInArea(int32 area);
+    bool IsVisible();
+    // bool IsVisibleComplex() { return GetRwObject() && m_bIsVisible /* && GetIsOnScreenComplex(); */ } // unused
 
     virtual void ProcessControl();
     virtual void ProcessCollision();
@@ -221,61 +225,81 @@ public:
                                                 bool& bCollidedEntityCollisionIgnored,
                                                 bool& bCollidedEntityUnableToMove,
                                                 bool& bThisOrCollidedEntityStuck);
-    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);
-    virtual void PreRender();
-    virtual void Render();
-    virtual bool SetupLighting();
-    virtual void RemoveLighting(bool bRemove);
-    virtual void FlagToDestroyWhenNextProcessed();
+    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bDoPreCheckAtFullSpeed, bool& bDoPreCheckAtHalfSpeed);
 
     void UpdateRwFrame();
     void UpdateRpHAnim();
+
     bool HasPreRenderEffects();
     bool DoesNotCollideWithFlyers();
-    void ModifyMatrixForPoleInWind();
+    virtual void PreRender();
+    virtual void Render();
+    void UpdateAnim();
+
+    void BuildWindSockMatrix();
     bool LivesInThisNonOverlapSector(int32 sectorX, int32 sectorY);
+    float GetDistanceFromCentreOfMassToBaseOfModel() const;
+
+    void ProcessLightsForEntity();
+
+    void RemoveEscalatorsForEntity();
+
+    virtual bool SetupLighting();
+    virtual void RemoveLighting(bool reset);
+
     void SetupBigBuilding();
+
+    void RegisterReference(CEntity** entity);
+
+    void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
+    void ResolveReferences();
+    void PruneReferences();
+    void ModifyMatrixForTreeInWind();
+    void ModifyMatrixForBannerInWind();
     void ModifyMatrixForCrane();
     void PreRenderForGlassWindow();
+
+    virtual void FlagToDestroyWhenNextProcessed();
+
     void SetRwObjectAlpha(int32 alpha);
-    CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
-    C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
-    CVector TransformFromObjectSpace(const CVector& offset) const;
-    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
+
     void CreateEffects();
     void DestroyEffects();
     void RenderEffects();
-    void ModifyMatrixForTreeInWind();
-    void ModifyMatrixForBannerInWind();
-    RwMatrix* GetModellingMatrix();
-    void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
-    void UpdateAnim();
-    bool IsVisible();
-    float GetDistanceFromCentreOfMassToBaseOfModel() const;
-    void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
 
-    /*!
-     * @addr 0x571A40
-     * @brief Clear (set to null) references to `this`
-    */
-    void ResolveReferences();
-    void PruneReferences();
-    void RegisterReference(CEntity** entity);
-    void ProcessLightsForEntity();
-    void RemoveEscalatorsForEntity();
-    bool IsInCurrentAreaOrBarberShopInterior() const;
-    bool IsInCurrentArea() const;
+    void SetLodIndex(uint32 index) { m_nLodIndex = index; }
+    uint32 GetLodIndex() { return m_nLodIndex; }
+    void SetLod(CEntity* lod) { m_pLod = lod; }
+    CEntity* GetLod() { return m_pLod; }
+
+    void AddLodChild() { m_nNumLodChildren++; }
+    void RemoveLodChild() { m_nNumLodChildren--; }
+
+    int32 GetNumLodChildren() { return m_nNumLodChildren; }
+    void AddLodChildRendered() { m_nNumLodChildrenRendered++; }
+    void ResetLodChildRenderedCounter() { m_nNumLodChildrenRendered = 0; } // aka ResetLodRenderedCounter
+    bool HasLodChildBeenRendered() { return m_nNumLodChildrenRendered > 0; }
+    int32 GetNumLodChildrenRendered() { return m_nNumLodChildrenRendered; }
+    void SetLodChildCannotRender() { m_nNumLodChildrenRendered = 128; }
+    bool CanLodChildRender() { return m_nNumLodChildrenRendered != 128; }
+    CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
+    void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
+
+    C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
+
+    // NOTSA / inline region?
+
+    CVector TransformFromObjectSpace(const CVector& offset) const;
+    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
+    RwMatrix* GetModellingMatrix();
+
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
     CEntity* FindLastLOD() noexcept;
 
-    // NOTSA
     auto GetModelId() const { return (eModelID)m_nModelIndex; }
     CBaseModelInfo* GetModelInfo() const;
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
-
     auto GetModelID() const { return (eModelID)(m_nModelIndex); }
-
-    //! @notsa
     bool ProcessScan();
 
     // Wrapper around the mess called `CleanUpOldReference`
@@ -342,9 +366,9 @@ public:
     static RpAtomic* SetAtomicAlphaCB(RpAtomic* atomic, void* data);
     static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
 
-    [[nodiscard]] bool IsModelTempCollision() const { return m_nModelIndex >= MODEL_TEMPCOL_DOOR1 && m_nModelIndex <= MODEL_TEMPCOL_BODYPART2; }
+    [[nodiscard]] bool IsModelTempCollision() const { return GetModelIndex() >= MODEL_TEMPCOL_DOOR1 && GetModelIndex() <= MODEL_TEMPCOL_BODYPART2; }
     [[nodiscard]] bool IsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
-    [[nodiscard]] bool IsRCCar()  const { return m_nModelIndex == MODEL_RCBANDIT || m_nModelIndex == MODEL_RCTIGER || m_nModelIndex == MODEL_RCCAM; }
+    [[nodiscard]] bool IsRCCar()  const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
 
     auto AsPhysical()         { return reinterpret_cast<CPhysical*>(this); }
     auto AsVehicle()          { return reinterpret_cast<CVehicle*>(this); }

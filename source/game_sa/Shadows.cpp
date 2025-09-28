@@ -692,7 +692,7 @@ void CShadows::CastPlayerShadowSectorList(
             continue;
         }
 
-        if (!entity->IsInCurrentAreaOrBarberShopInterior()) {
+        if (!entity->IsInCurrentArea()) {
             continue;
         }
 

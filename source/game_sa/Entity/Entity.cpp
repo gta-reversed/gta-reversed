@@ -53,7 +53,7 @@ void CEntity::InjectHooks()
     RH_ScopedInstall(UpdateRpHAnim, 0x532B20);
     RH_ScopedInstall(HasPreRenderEffects, 0x532B70);
     RH_ScopedInstall(DoesNotCollideWithFlyers, 0x532D40);
-    RH_ScopedInstall(ModifyMatrixForPoleInWind, 0x532DB0);
+    RH_ScopedInstall(BuildWindSockMatrix, 0x532DB0);
     RH_ScopedInstall(LivesInThisNonOverlapSector, 0x533050);
     RH_ScopedInstall(SetupBigBuilding, 0x533150);
     RH_ScopedInstall(ModifyMatrixForCrane, 0x533170);
@@ -426,8 +426,7 @@ void CEntity::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
 }
 
 // 0x403EA0
-uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2)
-{
+uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& bDoPreCheckAtFullSpeed, bool& bDoPreCheckAtHalfSpeed) {
     return 1;
 }
 
@@ -692,7 +691,7 @@ void CEntity::PreRender() {
                 );
             }
         } else if (m_nModelIndex == ModelIndices::MI_WINDSOCK) {
-            ModifyMatrixForPoleInWind();
+            BuildWindSockMatrix();
         }
     }
 
@@ -775,9 +774,8 @@ bool CEntity::SetupLighting()
 }
 
 // 0x553370
-void CEntity::RemoveLighting(bool bRemove)
-{
-    if (!bRemove)
+void CEntity::RemoveLighting(bool reset) {
+    if (!reset)
         return;
 
     SetAmbientColours();
@@ -872,8 +870,7 @@ RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data)
 }
 
 // 0x532DB0
-void CEntity::ModifyMatrixForPoleInWind()
-{
+void CEntity::BuildWindSockMatrix() {
     auto vecWindDir = CVector(CWeather::WindDir.x + 0.01F, CWeather::WindDir.y + 0.01F, 0.1F);
     auto vecNormalisedDir = vecWindDir;
     vecNormalisedDir.Normalise();
@@ -1451,7 +1448,7 @@ RwMatrix* CEntity::GetModellingMatrix() {
     if (!m_pRwObject)
         return nullptr;
 
-    return RwFrameGetMatrix(RwFrameGetParent(m_pRwObject));
+    return GetRwMatrix();
 }
 
 // 0x535300
@@ -1646,6 +1643,7 @@ void CEntity::CleanUpOldReference(CEntity** entity)
 }
 
 // 0x571A40
+// Clear (set to null) references to `this`
 void CEntity::ResolveReferences()
 {
     auto refs = m_pReferences;
@@ -2396,16 +2394,15 @@ bool CEntity::IsEntityOccluded() {
 }
 
 inline RwMatrix* CEntity::GetRwMatrix() {
-    return RwFrameGetMatrix(RwCameraGetFrame(m_pRwObject));
+    return RwFrameGetMatrix(RwFrameGetParent(m_pRwObject));
 }
 
-bool CEntity::IsInCurrentAreaOrBarberShopInterior() const
-{
+inline bool CEntity::IsInArea(int32 area) {
+    return m_nAreaCode == area || m_nAreaCode == AREA_CODE_13;
+}
+
+inline bool CEntity::IsInCurrentArea() const {
     return m_nAreaCode == CGame::currArea || m_nAreaCode == AREA_CODE_13;
-}
-
-bool CEntity::IsInCurrentArea() const {
-    return m_nAreaCode == CGame::currArea;
 }
 
 // 0x446F90
@@ -2426,10 +2423,12 @@ CEntity* CEntity::FindLastLOD() noexcept {
     return it;
 }
 
+// inline
 CBaseModelInfo* CEntity::GetModelInfo() const {
     return CModelInfo::GetModelInfo(m_nModelIndex);
 }
 
+// NOTSA
 bool CEntity::ProcessScan() {
     if (IsScanCodeCurrent()) {
         return false;
@@ -2452,12 +2451,14 @@ RpMaterial* CEntity::SetMaterialAlphaCB(RpMaterial* material, void* data)
     return material;
 }
 
+// NOTSA
 bool CEntity::IsScanCodeCurrent() const {
-    return m_nScanCode == GetCurrentScanCode();
+    return GetScanCode() == GetCurrentScanCode();
 }
 
+// NOTSA
 void CEntity::SetCurrentScanCode() {
-    m_nScanCode = GetCurrentScanCode();
+    SetScanCode(GetCurrentScanCode());
 }
 
 // 0x46A760

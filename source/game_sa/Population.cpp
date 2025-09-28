@@ -1751,7 +1751,7 @@ void CPopulation::ManageObject(CObject* object, const CVector& posn) {
 
 // 0x616000
 void CPopulation::ManageDummy(CDummy* dummy, const CVector& posn) {
-    if (!dummy->IsInCurrentAreaOrBarberShopInterior() || !dummy->m_bIsVisible) {
+    if (!dummy->IsInCurrentArea() || !dummy->m_bIsVisible) {
         return;
     }
     if ((posn - dummy->GetPosition()).SquaredMagnitude() >= sq(FindDummyDistForModel(dummy->GetModelID()))) {

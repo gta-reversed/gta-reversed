@@ -592,7 +592,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
 
             if (!entity->m_pRwObject
                 || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex)
-                || !entity->IsInCurrentAreaOrBarberShopInterior() && entity->GetIsTypeVehicle()
+                || !entity->IsInCurrentArea() && entity->GetIsTypeVehicle()
             ) {
                 return RENDERER_INVISIBLE;
             }
@@ -657,7 +657,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
         }
     }
 
-    if (entity->IsInCurrentAreaOrBarberShopInterior()) {
+    if (entity->IsInCurrentArea()) {
         CVector position = entity->GetPosition();
         if (entity->m_pLod) {
             position = entity->m_pLod->GetPosition();
@@ -751,7 +751,7 @@ void I_ScanSectorList_ListModels(int32 sectorX, int32 sectorY) {
                 continue;
             }
             entity->SetCurrentScanCode();
-            if (!entity->IsInCurrentAreaOrBarberShopInterior()) {
+            if (!entity->IsInCurrentArea()) {
                 continue;
             }
             if constexpr (CheckIsVisible) {
