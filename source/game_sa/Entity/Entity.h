@@ -212,7 +212,7 @@ public:
     bool IsInCurrentArea() const;
     bool IsInArea(int32 area);
     bool IsVisible();
-    // bool IsVisibleComplex() { return GetRwObject() && m_bIsVisible /* && GetIsOnScreenComplex(); */ } // unused
+    bool IsVisibleComplex() { return IsVisible(); } // unused
 
     virtual void ProcessControl();
     virtual void ProcessCollision();
@@ -272,16 +272,17 @@ public:
     void SetLod(CEntity* lod) { m_pLod = lod; }
     CEntity* GetLod() { return m_pLod; }
 
-    void AddLodChild() { m_nNumLodChildren++; }
-    void RemoveLodChild() { m_nNumLodChildren--; }
+    void AddLodChildren() { m_nNumLodChildren++; } // orig AddLodChild
+    void RemoveLodChildren() { m_nNumLodChildren--; } // orig RemoveLodChild
+    int32 GetLodChildren() { return m_nNumLodChildren; } // orig GetNumLodChildren
 
-    int32 GetNumLodChildren() { return m_nNumLodChildren; }
-    void AddLodChildRendered() { m_nNumLodChildrenRendered++; }
-    void ResetLodChildRenderedCounter() { m_nNumLodChildrenRendered = 0; } // aka ResetLodRenderedCounter
-    bool HasLodChildBeenRendered() { return m_nNumLodChildrenRendered > 0; }
-    int32 GetNumLodChildrenRendered() { return m_nNumLodChildrenRendered; }
-    void SetLodChildCannotRender() { m_nNumLodChildrenRendered = 128; }
-    bool CanLodChildRender() { return m_nNumLodChildrenRendered != 128; }
+    void AddLodChildrenRendered() { m_nNumLodChildrenRendered++; } // orig AddLodChildRendered
+    void ResetLodChildrenRendered() { m_nNumLodChildrenRendered = 0; } // orig ResetLodRenderedCounter
+    int32 GetLodChildrenRendered() { return m_nNumLodChildrenRendered; } // orig GetNumLodChildrenRendered
+    bool HasLodChildrenRendered() { return m_nNumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
+    void SetCannotLodChildrenRender() { m_nNumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
+    bool CanLodChildrenRender() { return m_nNumLodChildrenRendered != 128; } // orig CanLodChildRender
+
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
 
