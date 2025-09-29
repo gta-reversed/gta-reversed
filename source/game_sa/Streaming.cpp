@@ -764,7 +764,7 @@ bool CStreaming::DeleteLeastUsedEntityRwObject(bool bNotOnScreen, int32 streamin
         if (e->m_bIsBIGBuilding)
             drawDistanceRadius *= CRenderer::ms_lowLodDistScale;
 
-        const CVector entityPos = e->m_pLod ? e->m_pLod->GetPosition() : e->GetPosition();
+        const CVector entityPos = e->GetLod() ? e->GetLod()->GetPosition() : e->GetPosition();
         const float fEntityToCamDist = DistanceBetweenPoints(TheCamera.GetPosition(), entityPos);
         CEntity* const pEntityLastLod = e->FindLastLOD();
 

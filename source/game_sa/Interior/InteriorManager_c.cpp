@@ -63,7 +63,7 @@ bool InteriorManager_c::Update() {
     const auto plyr = FindPlayerPed();
 
     InteriorEffectInfo_t visibleIntFxBuf[32];
-    const auto numVisibleIntFx = plyr->m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD && m_IsActive && !plyr->GetTaskManager().GetActiveTaskAs<CTaskSimpleCarDrive>()
+    const auto numVisibleIntFx = plyr->GetAreaCode() != eAreaCodes::AREA_CODE_NORMAL_WORLD && m_IsActive && !plyr->GetTaskManager().GetActiveTaskAs<CTaskSimpleCarDrive>()
         ? GetVisibleEffects(visibleIntFxBuf, std::size(visibleIntFxBuf))
         : 0;
     PruneVisibleEffects(visibleIntFxBuf, numVisibleIntFx, 8, 20.f);
@@ -117,7 +117,7 @@ bool InteriorManager_c::Update() {
 
             i->m_box        = ifx.Effects[k];
             i->m_interiorId = (uint32)(fxPos.x * fxPos.y * fxPos.z) + ifx.FxIds[k];
-            i->m_areaCode   = ifx.Entity->m_nAreaCode;
+            i->m_areaCode   = ifx.Entity->GetAreaCode();
             i->m_pGroup     = grp;
 
             i->Init(ifx.Effects[k]->m_Pos);

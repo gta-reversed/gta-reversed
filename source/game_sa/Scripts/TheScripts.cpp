@@ -399,7 +399,7 @@ uint32 CTheScripts::AddScriptSphere(uint32 id, CVector posn, float radius) {
 
 // 0x481140
 void CTheScripts::AddToBuildingSwapArray(CBuilding* building, int32 oldModelId, int32 newModelId) {
-    if (building->m_nIplIndex)
+    if (building->GetIplIndex())
         return;
 
     for (auto& swap : BuildingSwapArray) {
@@ -423,7 +423,7 @@ void CTheScripts::AddToBuildingSwapArray(CBuilding* building, int32 oldModelId, 
 
 // 0x481200
 void CTheScripts::AddToInvisibilitySwapArray(CEntity* entity, bool visible) {
-    if (entity->m_nIplIndex)
+    if (entity->GetIplIndex())
         return;
 
     const auto is = rng::find(InvisibilitySettingArray, entity);
@@ -2004,8 +2004,8 @@ bool CTheScripts::ScriptAttachAnimGroupToCharModel(int32 modelId, const char* if
 void CTheScripts::ScriptConnectLodsFunction(int32 lodRef1, int32 lodRef2) {
     auto obj1 = GetObjectPool()->GetAtRef(lodRef1), obj2 = GetObjectPool()->GetAtRef(lodRef2);
 
-    obj1->m_pLod = obj2;
-    ++obj2->m_nNumLodChildren;
+    obj1->SetLod(obj2);
+    obj2->AddLodChildren();
     CWorld::Remove(obj2);
     obj2->SetupBigBuilding();
     CWorld::Add(obj2);

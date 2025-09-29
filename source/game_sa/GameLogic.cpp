@@ -398,7 +398,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CTheScripts::ClearSpaceForMissionEntity(posn, player);
     CWorld::ClearExcitingStuffFromArea(posn, 4000.0, 1);
     player->RestoreHeadingRate();
-    player->m_nAreaCode = AREA_CODE_NORMAL_WORLD;
+    player->SetAreaCode(AREA_CODE_NORMAL_WORLD);
     player->m_pEnex = 0;
     CEntryExitManager::ms_entryExitStackPosn = 0;
     CGame::currArea = AREA_CODE_NORMAL_WORLD;

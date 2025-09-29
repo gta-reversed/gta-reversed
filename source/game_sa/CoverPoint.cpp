@@ -13,7 +13,7 @@ CCoverPoint::CCoverPoint(eType type, eUsage usage, Dir dir, CEntity* coverEntity
         m_PointOnMap = *pos;
     }
     if (coverEntity) {
-        if (!coverEntity->GetIsTypeBuilding() || coverEntity->m_nIplIndex != 0) {
+        if (!coverEntity->GetIsTypeBuilding() || coverEntity->GetIplIndex() != 0) {
             m_CoverEntity = coverEntity;
         }
     }

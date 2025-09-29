@@ -289,7 +289,7 @@ int32 CVisibilityPlugins::CalculateFadingAtomicAlpha(CBaseModelInfo* modelInfo, 
     float fFadingDistance = MAX_FADING_DISTANCE;
     float fDrawDistanceRadius = modelInfo->GetColModel()->GetBoundRadius() + CRenderer::ms_fFarClipPlane;
     fDrawDistanceRadius = std::min(fDrawDistanceRadius, TheCamera.m_fLODDistMultiplier * modelInfo->m_fDrawDistance);
-    if (!entity->m_pLod) {
+    if (!entity->GetLod()) {
         const float fDrawDistance = std::min(modelInfo->m_fDrawDistance, fDrawDistanceRadius);
         if (fDrawDistance > MAX_LOWLOD_DISTANCE)
             fFadingDistance = fDrawDistance / 15.0f + 10.0f;

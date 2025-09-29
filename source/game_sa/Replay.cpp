@@ -521,7 +521,7 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
         }
     }
 
-    ped->m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea);
+    ped->SetAreaCode(static_cast<eAreaCodes>(CGame::currArea));
     CWorld::Remove(ped);
     CWorld::Add(ped);
 }

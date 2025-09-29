@@ -37,7 +37,7 @@ bool WaterCreature_c::Init(int32 nType, CVector* vecPos, WaterCreature_c* parent
     if (!m_pObject)
         return false;
 
-    m_pObject->m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea);
+    m_pObject->SetAreaCode(static_cast<eAreaCodes>(CGame::currArea));
     m_pObject->SetIsStatic(true);
     m_pObject->m_bUnderwater = true;
     m_pObject->physicalFlags.bApplyGravity = false;

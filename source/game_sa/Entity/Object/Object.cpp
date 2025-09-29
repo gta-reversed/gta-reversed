@@ -108,8 +108,8 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
     dummyObj->DetachFromRwObject();
     Init();
 
-    m_nIplIndex = dummyObj->m_nIplIndex;
-    m_nAreaCode = dummyObj->m_nAreaCode;
+    m_nIplIndex = dummyObj->GetIplIndex();
+    m_nAreaCode = dummyObj->GetAreaCode();
     m_bRenderDamaged = dummyObj->m_bRenderDamaged;
 
     if (m_pRwObject) {

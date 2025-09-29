@@ -708,7 +708,7 @@ void CCheat::TankerCheat() {
 // 0x43A0B0
 CVehicle* CCheat::VehicleCheat(eModelID modelId) {
     const auto player = FindPlayerPed();
-    if (player->m_nAreaCode != AREA_CODE_NORMAL_WORLD) {
+    if (player->GetAreaCode() != AREA_CODE_NORMAL_WORLD) {
         return nullptr;
     }
 

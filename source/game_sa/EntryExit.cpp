@@ -610,7 +610,7 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
         // Make the member be heading towards the player
         mem->m_fCurrentRotation = mem->m_fAimingRotation = memHeading;
         mem->SetHeading(memHeading);
-        mem->m_nAreaCode = player->m_nAreaCode;
+        mem->SetAreaCode(player->GetAreaCode());
         mem->m_pEnex = player->m_pEnex;
     }
 }
@@ -637,5 +637,5 @@ void CEntryExit::ProcessStealableObjects(CPed* ped) {
         break;
     }
     }
-    heldobj->m_nAreaCode = ms_spawnPoint->GetArea();
+    heldobj->SetAreaCode(ms_spawnPoint->GetArea());
 }

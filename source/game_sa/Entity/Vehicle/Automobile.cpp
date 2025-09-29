@@ -6281,7 +6281,7 @@ bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList
         if (vehicle == this || !vehicle->IsAutomobile())
             continue;
 
-        if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && vehicle->m_nScanCode != GetCurrentScanCode())
+        if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && vehicle->GetScanCode() != GetCurrentScanCode())
             continue;
 
         CVector distance = GetPosition() - vehicle->GetPosition();

@@ -186,7 +186,7 @@ void CRenderer::AddEntityToRenderList(CEntity* entity, float fDistance)
     else if (CVisibilityPlugins::InsertEntityIntoSortedList(entity, fDistance)) {
         return;
     }
-    if (entity->m_nNumLodChildren && !entity->m_bUnderwater) {
+    if (entity->GetLodChildren() && !entity->m_bUnderwater) {
         ms_aVisibleLodPtrs[ms_nNoOfVisibleLods] = entity;
         ms_nNoOfVisibleLods++;
         assert(ms_nNoOfVisibleLods <= MAX_VISIBLE_LOD_PTRS);
@@ -234,35 +234,34 @@ void CRenderer::ProcessLodRenderLists() {
     for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
         CEntity* entity = renderListEntry->entity;
         if (entity && !entity->m_bIsVisible) {
-            entity->m_nNumLodChildrenRendered = 0;
+            entity->ResetLodChildrenRendered();
             renderListEntry->entity = nullptr;
         }
     }
 
-    const uint8 displaySuperLowLodFlag = 0x80u; // yes, this is very hacky. Blame R*
     bool bAllLodsRendered = false;
     while (bAllLodsRendered) {
         for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
             CEntity* entity = renderListEntry->entity;
             if (entity) {
-                if (entity->m_nNumLodChildren > 0 && entity->m_nNumLodChildrenRendered == entity->m_nNumLodChildren) {
-                    entity->m_nNumLodChildrenRendered = 0;
+                if (entity->HasLodChildrenRendered() && entity->GetLodChildrenRendered() == entity->GetLodChildren()) {
+                    entity->ResetLodChildrenRendered();
                     renderListEntry->entity = nullptr;
                     bAllLodsRendered = true;
                 }
-                else if (entity->m_pLod) {
+                else if (entity->GetLod()) {
                     auto modelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
                     if (modelInfo->m_nAlpha < 255u
-                        && entity->m_pLod->m_nNumLodChildrenRendered != displaySuperLowLodFlag
-                        && entity->m_pLod->m_bDisplayedSuperLowLOD
+                        && entity->GetLod()->CanLodChildrenRender()
+                        && entity->GetLod()->m_bDisplayedSuperLowLOD
                     ) {
-                        entity->m_pLod->m_nNumLodChildrenRendered = 0;
+                        entity->GetLod()->ResetLodChildrenRendered();
                     }
                     if (!entity->m_pRwObject) {
-                        if (entity->m_pLod->m_bDisplayedSuperLowLOD)
-                            entity->m_pLod->m_nNumLodChildrenRendered = displaySuperLowLodFlag;
+                        if (entity->GetLod()->m_bDisplayedSuperLowLOD)
+                            entity->GetLod()->SetCannotLodChildrenRender();
                         renderListEntry->entity = nullptr;
-                        entity->m_nNumLodChildrenRendered = 0;
+                        entity->ResetLodChildrenRendered();
                         CStreaming::RequestModel(entity->m_nModelIndex, 0);
                     }
                 }
@@ -271,16 +270,16 @@ void CRenderer::ProcessLodRenderLists() {
     }
     for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
         CEntity* entity = renderListEntry->entity;
-        if (entity && entity->m_nNumLodChildrenRendered > 0) {
+        if (entity && entity->HasLodChildrenRendered()) {
             entity->m_bDisplayedSuperLowLOD = false;
-            entity->m_nNumLodChildrenRendered = 0;
+            entity->ResetLodChildrenRendered();
             renderListEntry->entity = nullptr;
         }
     }
     for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
         CEntity* entity = renderListEntry->entity;
         if (entity) {
-            if (entity->m_nNumLodChildrenRendered == displaySuperLowLodFlag || !entity->m_nNumLodChildrenRendered)
+            if (!entity->CanLodChildrenRender() || !entity->GetLodChildrenRendered())
             {
                 entity->m_bDisplayedSuperLowLOD = true;
                 auto modelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
@@ -288,7 +287,7 @@ void CRenderer::ProcessLodRenderLists() {
                     entity->m_bDistanceFade = true;
                 AddEntityToRenderList(entity, renderListEntry->distance);
             }
-            entity->m_nNumLodChildrenRendered = 0;
+            entity->ResetLodChildrenRendered();
         }
     }
 }
@@ -468,7 +467,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
     const float fFarClipRadius = baseModelInfo->GetColModel()->GetBoundRadius() + ms_fFarClipPlane;
     float fDrawDistanceRadius = std::min(TheCamera.m_fLODDistMultiplier * baseModelInfo->m_fDrawDistance, fFarClipRadius);
     float fFadingDistance = MAX_FADING_DISTANCE;
-    if (!entity->m_pLod) {
+    if (!entity->GetLod()) {
         float fDrawDistance = std::min(baseModelInfo->m_fDrawDistance, fDrawDistanceRadius);
         if (fDrawDistance > MAX_LOWLOD_DISTANCE)
             fFadingDistance = fDrawDistance / 15.0f + 10.0f;
@@ -477,7 +476,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
     }
 
     if (!baseModelInfo->m_pRwObject) {
-        if (entity->m_pLod && entity->m_pLod->m_nNumLodChildren > 1u &&
+        if (entity->GetLod() && entity->GetLod()->GetLodChildren() > 1u &&
             fFadingDistance + fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius)
         {
             AddToLodRenderList(entity, fDistance);
@@ -504,7 +503,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
                 return RENDERER_INVISIBLE;
             }
             entity->m_bDistanceFade = true;
-            if (entity->m_pLod && entity->m_pLod->m_nNumLodChildren > 1u)
+            if (entity->GetLod() && entity->GetLod()->GetLodChildren() > 1u)
                 AddToLodRenderList(entity, fDistance);
             else
                 AddEntityToRenderList(entity, fDistance);
@@ -531,11 +530,11 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
             entity->m_bDistanceFade = false;
         else
             entity->m_bDistanceFade = true;
-        if (!entity->m_pLod)
+        if (!entity->GetLod())
             return RENDERER_VISIBLE;
         if (baseModelInfo->m_nAlpha == 255)
-            entity->m_pLod->m_nNumLodChildrenRendered++;
-        if (entity->m_pLod->m_nNumLodChildren <= 1u)
+            entity->GetLod()->AddLodChildrenRendered();
+        if (entity->GetLod()->GetLodChildren() <= 1u)
             return RENDERER_VISIBLE;
         AddToLodRenderList(entity, fDistance);
         return RENDERER_INVISIBLE;
@@ -659,8 +658,8 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
 
     if (entity->IsInCurrentArea()) {
         CVector position = entity->GetPosition();
-        if (entity->m_pLod) {
-            position = entity->m_pLod->GetPosition();
+        if (entity->GetLod()) {
+            position = entity->GetLod()->GetPosition();
         }
 
         outDistance = DistanceBetweenPoints(ms_vecCameraPosition, position);
@@ -682,7 +681,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
 int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance) {
     CBaseModelInfo* baseModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
     bool bIsTimeInRange = true;
-    if (entity->m_nAreaCode != CGame::currArea && entity->m_nAreaCode != AREA_CODE_13)
+    if (entity->IsInCurrentArea())
         return RENDERER_INVISIBLE;
 
     if (baseModelInfo->GetModelType() == MODEL_INFO_TIME)
@@ -708,28 +707,28 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
     }
 
     CVector entityPos = entity->GetPosition();
-    if (entity->m_pLod) {
-        entityPos = entity->m_pLod->GetPosition();
+    if (entity->GetLod()) {
+        entityPos = entity->GetLod()->GetPosition();
     }
 
     outDistance = DistanceBetweenPoints(ms_vecCameraPosition, entityPos);
-    if (entity->m_nNumLodChildrenRendered <= 0) {
+    if (!entity->HasLodChildrenRendered()) {
         int32 visibility = SetupMapEntityVisibility(entity, baseModelInfo, outDistance, bIsTimeInRange);
-        if (visibility != RENDERER_VISIBLE || entity->m_nNumLodChildren <= 1u) {
+        if (visibility != RENDERER_VISIBLE || entity->GetLodChildren() <= 1u) {
             return visibility;
         }
-        if (entity->m_pLod && baseModelInfo->m_nAlpha == 255) {
-            ++entity->m_pLod->m_nNumLodChildrenRendered;
+        if (entity->GetLod() && baseModelInfo->m_nAlpha == 255) {
+            entity->GetLod()->AddLodChildrenRendered();
         }
         AddToLodRenderList(entity, outDistance);
         return RENDERER_INVISIBLE;
     }
 
-    if (entity->m_pLod)
-        ++entity->m_pLod->m_nNumLodChildrenRendered;
+    if (entity->GetLod())
+        entity->GetLod()->AddLodChildrenRendered();
 
-    if (entity->m_nNumLodChildren <= 1u) {
-        entity->m_nNumLodChildrenRendered = 0;
+    if (entity->GetLodChildren() <= 1u) {
+        entity->ResetLodChildrenRendered();
     } else {
         ms_pLodRenderList->entity = entity;
         ms_pLodRenderList->distance = outDistance;
@@ -908,7 +907,7 @@ void CRenderer::ScanBigBuildingList(int32 sectorX, int32 sectorY) {
 
 // 0x554EB0
 bool CRenderer::ShouldModelBeStreamed(CEntity* entity, const CVector& point, float farClip) {
-    if (entity->m_nAreaCode != CGame::currArea && entity->m_nAreaCode != AREA_CODE_13)
+    if (!entity->IsInCurrentArea())
         return false;
 
     CBaseModelInfo* modelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
@@ -953,7 +952,7 @@ void CRenderer::ConstructRenderList() {
     ms_bInTheSky = false;
 
     CPlayerPed* player = FindPlayerPed();
-    if (player && player->m_nAreaCode == AREA_CODE_NORMAL_WORLD) {
+    if (player && player->GetAreaCode() == AREA_CODE_NORMAL_WORLD) {
         float fGroundHeightZ = TheCamera.CalculateGroundHeight(eGroundHeightType::ENTITY_BB_BOTTOM);
         float fPlayerHeightZ = player->GetPosition().z;
 

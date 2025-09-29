@@ -265,7 +265,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 void CWorld::ClearScanCodes() {
     const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
         for (auto* const entity : list) {
-            entity->m_nScanCode = 0;
+            entity->SetScanCode(0);
         }
     };
 
@@ -379,7 +379,7 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
         if (FilledColPointIndex < std::size(gaTempSphereColPoints)) { // TODO: Perhaps break if it's full?
             if (originalLineGoingUpwards == IsDirectionPointingUpwards(cp.m_vecPoint.z, localColLine.m_vecEnd.z) // Still pointing in the same direction
             ) {
-                entity->m_nScanCode = ms_nCurrentScanCode - 1;
+                entity->SetScanCode(ms_nCurrentScanCode - 1);
                 dontGoToNextNode = true;
                 gaTempSphereColPoints[FilledColPointIndex++] = cp;
             }
@@ -1331,7 +1331,7 @@ void CWorld::TestForUnusedModels() {
     const auto ProcessSectorList = [&]<typename PtrListType>(const PtrListType& list) {
         for (auto node = list.GetNode(); node; node = node->Next) {
             const auto object = static_cast<CEntity*>(node->Item);
-            if (object->m_nScanCode != ms_nCurrentScanCode) {
+            if (object->IsScanCodeCurrent()) {
                 usageCounts[object->m_nModelIndex]++;
             }
         }

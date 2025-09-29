@@ -1212,7 +1212,7 @@ void CShadows::StoreShadowForPole(CEntity* entity, float offsetX, float offsetY,
     const auto right     = CVector2D{ CTimeCycle::GetShadowSide() } * poleWidth;
 
     StoreStaticShadow(
-        reinterpret_cast<uint32>(&entity->m_pLod) + localId + 3,
+        reinterpret_cast<uint32>(entity->GetLod()) + localId + 3,
         SHADOW_DEFAULT,
         gpPostShadowTex,
         mat.GetPosition() + CVector{ front, 0.f } + CVector{

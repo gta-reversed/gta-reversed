@@ -101,6 +101,7 @@ public:
 
     CReference*      m_pReferences;
 
+protected:
     CLink<CEntity*>* m_pStreamingLink;
 
     uint16           m_nScanCode;
@@ -174,8 +175,10 @@ public:
     
     void SetScanCode(uint16 code) { m_nScanCode = code; }
     uint16 GetScanCode() const { return m_nScanCode; }
+
     void SetAreaCode(eAreaCodes code) { m_nAreaCode = code; }
     eAreaCodes GetAreaCode() const { return m_nAreaCode; }
+
     void SetIplIndex(uint8 index) { m_nIplIndex = index; }
     uint8 GetIplIndex() { return m_nIplIndex; }
 
@@ -189,7 +192,7 @@ public:
     virtual void DeleteRwObject();
 
     RwMatrix* GetRwMatrix();
-    void UpdateRW(); // aka UpdateRwMatrix
+    void UpdateRW(); // orig UpdateRwMatrix
 
     CVector* GetBoundCentre(CVector* pOutCentre) const;
     void GetBoundCentre(CVector& outCentre) const;
@@ -282,6 +285,8 @@ public:
     bool HasLodChildrenRendered() { return m_nNumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
     void SetCannotLodChildrenRender() { m_nNumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
     bool CanLodChildrenRender() { return m_nNumLodChildrenRendered != 128; } // orig CanLodChildRender
+
+    // 128 = displaySuperLowLodFlag,  yes, this is very hacky. Blame R*
 
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);

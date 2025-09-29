@@ -149,7 +149,7 @@ auto SetCharAllowedToDuck(CPed& ped, CVector rotdeg) {
 }
 
 auto SetCharAreaVisible(CPed& ped, eAreaCodes area) {
-    ped.m_nAreaCode = area;
+    ped.SetAreaCode(area);
     if (area != AREA_CODE_NORMAL_WORLD) {
         return;
     }
@@ -1431,7 +1431,7 @@ bool IsCharGettingInToACar(CPed& ped) {
 
 // GET_CHAR_AREA_VISIBLE
 uint32 GetCharAreaVisible(CPed& ped) {
-    return ped.m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD;
+    return ped.GetAreaCode() != eAreaCodes::AREA_CODE_NORMAL_WORLD;
 }
 
 // HAS_CHAR_SPOTTED_CHAR_IN_FRONT

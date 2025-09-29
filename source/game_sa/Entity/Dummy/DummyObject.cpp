@@ -23,8 +23,8 @@ CDummyObject::CDummyObject(CObject* obj) : CDummy() {
         CEntity::AttachToRwObject(obj->m_pRwObject, true);
 
     obj->DetachFromRwObject();
-    m_nIplIndex = obj->m_nIplIndex;
-    m_nAreaCode = obj->m_nAreaCode;
+    m_nIplIndex = obj->GetIplIndex();
+    m_nAreaCode = obj->GetAreaCode();
     CIplStore::IncludeEntity(m_nIplIndex, this);
 }
 
@@ -39,7 +39,7 @@ CObject* CDummyObject::CreateObject() {
         m_bIsVisible = false;
         m_bUsesCollision = false;
 
-        obj->m_nLodIndex = m_nLodIndex;
+        obj->SetLodIndex(m_nLodIndex);
         m_nLodIndex = 0;
     }
 
@@ -57,12 +57,12 @@ void CDummyObject::UpdateFromObject(CObject* obj) {
     CEntity::UpdateRW();
     obj->DetachFromRwObject();
 
-    if (obj->m_nIplIndex && CIplStore::HasDynamicStreamingDisabled(obj->m_nIplIndex)) {
+    if (obj->GetIplIndex() && CIplStore::HasDynamicStreamingDisabled(obj->GetIplIndex())) {
         m_bRenderDamaged = obj->m_bRenderDamaged;
         m_bIsVisible = obj->m_bIsVisible;
         m_bUsesCollision = obj->m_bUsesCollision;
     }
 
-    m_nLodIndex = obj->m_nLodIndex;
-    obj->m_nLodIndex = 0;
+    m_nLodIndex = obj->GetLodIndex();
+    obj->SetLodIndex(0);
 }

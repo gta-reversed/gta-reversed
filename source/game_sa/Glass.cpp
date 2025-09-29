@@ -419,7 +419,7 @@ void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*
             switch (ami->nSpecialType) {
             case eModelInfoSpecialType::GLASS_TYPE_1:
             case eModelInfoSpecialType::GLASS_TYPE_2: {
-                object->m_nScanCode = CWorld::ms_nCurrentScanCode;
+                object->SetScanCode(CWorld::ms_nCurrentScanCode);
                 const auto dist = DistanceBetweenPoints(point, object->GetPosition());
                 if (dist < outDist) {
                     outEntity = entity;
