@@ -215,7 +215,7 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
     bool ret = true;
     if (!victim->bInVehicle && (
            (!notsa::IsFixBugs() || CWeaponInfo::TypeIsWeapon(weaponType)) && CWeaponInfo::GetWeaponInfo(weaponType)->m_nWeaponFire == eWeaponFire::WEAPON_FIRE_MELEE
-        || weaponType == WEAPON_FALL && creator && creator->GetType() == ENTITY_TYPE_OBJECT
+        || weaponType == WEAPON_FALL && creator && creator->GetIsTypeObject()
     )) { // 0x73A6F1
         eventDmg.ComputeAnim(victim, true);
         switch (eventDmg.m_nAnimID) {
@@ -318,9 +318,9 @@ bool CWeapon::FireSniper(CPed* shooter, CEntity* victim, CVector* target) {
         CamShakeNoPos(&TheCamera, 0.2f);
     }
 
-    if (shooter->GetType() == ENTITY_TYPE_PED) {
+    if (shooter->GetIsTypePed()) {
         CCrime::ReportCrime(CRIME_FIRE_WEAPON, shooter, shooter);
-    } else if (shooter->GetType()  == ENTITY_TYPE_VEHICLE && shooter->m_roadRageWith) {
+    } else if (shooter->GetIsTypeVehicle() && shooter->m_roadRageWith) {
         CCrime::ReportCrime(CRIME_FIRE_WEAPON, shooter, shooter->m_roadRageWith);
     }
 

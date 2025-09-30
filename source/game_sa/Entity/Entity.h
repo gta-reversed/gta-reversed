@@ -137,7 +137,7 @@ public:
     [[nodiscard]] bool GetIsTypePed()      const { return GetType() == ENTITY_TYPE_PED; }
     [[nodiscard]] bool GetIsTypeObject()   const { return GetType() == ENTITY_TYPE_OBJECT; }
     [[nodiscard]] bool GetIsTypeDummy()    const { return GetType() == ENTITY_TYPE_DUMMY; }
-    [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, aka GetIsPhysical
+    [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, orig GetIsPhysical
     [[nodiscard]] bool GetIsTypeNothing()  const { return GetType() == ENTITY_TYPE_NOTHING; } // NOTSA
     
     void SetType(eEntityType type) { m_info.m_nType = type; }
