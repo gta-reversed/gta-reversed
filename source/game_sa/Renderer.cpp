@@ -681,7 +681,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
 int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance) {
     CBaseModelInfo* baseModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
     bool bIsTimeInRange = true;
-    if (entity->IsInCurrentArea())
+    if (!entity->IsInCurrentArea())
         return RENDERER_INVISIBLE;
 
     if (baseModelInfo->GetModelType() == MODEL_INFO_TIME)
