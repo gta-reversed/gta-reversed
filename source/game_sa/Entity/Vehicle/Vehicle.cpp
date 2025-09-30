@@ -251,7 +251,7 @@ void CVehicle::InjectHooks() {
 // 0x6D5F10
 CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(), m_autoPilot() {
     m_bHasPreRenderEffects = true;
-    SetType(ENTITY_TYPE_VEHICLE);
+    SetTypeVehicle();
 
     m_fRawSteerAngle = 0.0f;
     m_f2ndSteerAngle = 0.0f;

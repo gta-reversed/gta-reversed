@@ -199,7 +199,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     m_fArmour = 0.0f;
 
     m_nPedType = pedType;
-    SetType(ENTITY_TYPE_PED);
+    SetTypePed();
 
     // 0x5E8196
     physicalFlags.bCanBeCollidedWith = true;

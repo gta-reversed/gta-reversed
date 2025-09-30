@@ -21,7 +21,7 @@ void CDummy::operator delete(void* obj) {
 
 // 0x532540
 CDummy::CDummy() : CEntity() {
-    SetType(ENTITY_TYPE_DUMMY);
+    SetTypeDummy();
 }
 
 bool IsDummyPointerValid(CDummy* dummy) {
