@@ -1164,7 +1164,7 @@ void CTheScripts::Load() {
         case ScriptSavedObjectType::INVISIBLE:
             // Not saved by the game, but the logic is still there
             if (is) {
-                is->m_bUsesCollision = false;
+                is->SetUsesCollision(false);
                 is->m_bIsVisible = false;
             }
             break;
@@ -1172,7 +1172,7 @@ void CTheScripts::Load() {
             is = nullptr;
             if (auto* obj = GetBuildingPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
+                is->SetUsesCollision(false);
                 is->m_bIsVisible     = false;
             }
             break;
@@ -1180,7 +1180,7 @@ void CTheScripts::Load() {
             is = nullptr;
             if (auto* obj = GetObjectPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
+                is->SetUsesCollision(false);
                 is->m_bIsVisible     = false;
             }
             break;
@@ -1188,7 +1188,7 @@ void CTheScripts::Load() {
             is = nullptr;
             if (auto* obj = GetDummyPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
+                is->SetUsesCollision(false);
                 is->m_bIsVisible     = false;
             }
             break;
@@ -1582,7 +1582,7 @@ void CTheScripts::UndoEntityInvisibilitySettings() {
         }
 
         is->m_bIsVisible = true;
-        is->m_bUsesCollision = true;
+        is->SetUsesCollision(true);
 
         is = nullptr; // Remove from the array.
     }

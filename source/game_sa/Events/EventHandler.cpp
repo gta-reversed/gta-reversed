@@ -2123,7 +2123,7 @@ void CEventHandler::ComputeReallyLowHealthResponse(CEventHealthReallyLow* e, CTa
 void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTask* tsimplest) {
     std::tie(m_EventResponseTask, m_SayTask) = [&]() -> std::pair<CTask*, CTask*> {
         m_Ped->m_fHealth                = 100.f;
-        m_Ped->m_bUsesCollision         = true;
+        m_Ped->SetUsesCollision(true);
         m_Ped->bKnockedUpIntoAir        = false;
         m_Ped->bKnockedOffBike          = false;
         m_Ped->bKilledByStealth         = false;

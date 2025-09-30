@@ -621,7 +621,7 @@ void CPlayerPed::MakePlayerGroupReappear() {
             if (!member->IsCreatedByMission()) {
                 member->m_bIsVisible = true;
                 if (!member->bInVehicle)
-                    member->m_bUsesCollision = true;
+                    member->SetUsesCollision(true);
                 member->bNeverLeavesGroup = abTempNeverLeavesGroup[i];
             }
         }

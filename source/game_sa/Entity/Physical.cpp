@@ -120,7 +120,7 @@ CPhysical::CPhysical() : CEntity()
     m_vecLastCollisionImpactVelocity.Set(0.0f, 0.0f, 0.0f);
     m_vecLastCollisionPosn.Set(0.0f, 0.0f, 0.0f);
 
-    m_bUsesCollision = true;
+    SetUsesCollision(true);
 
     m_vecCentreOfMass.Set(0.0f, 0.0f, 0.0f);
 
@@ -265,7 +265,7 @@ void CPhysical::ProcessCollision() {
     m_fMovingSpeed = 0.0f;
     physicalFlags.bProcessingShift = false;
     physicalFlags.bSkipLineCol = false;
-    if (m_bUsesCollision && !physicalFlags.bDisableSimpleCollision) {
+    if (GetUsesCollision() && !physicalFlags.bDisableSimpleCollision) {
         if (GetStatus() == STATUS_SIMPLE) {
             if (CheckCollision_SimpleCar() && GetStatus() == STATUS_SIMPLE) {
                 SetStatus(STATUS_PHYSICS);
@@ -366,12 +366,12 @@ void CPhysical::ProcessCollision() {
             physicalFlags.bProcessingShift = false;
             physicalFlags.bSkipLineCol = false;
             physicalFlags.b17 = true;
-            bool bOldUsesCollision = m_bUsesCollision;
-            m_bUsesCollision = false;
+            bool bOldUsesCollision = GetUsesCollision();
+            SetUsesCollision(false);
             if (!CheckCollision())
             {
                 physicalFlags.b17 = false;
-                m_bUsesCollision = bOldUsesCollision;
+                SetUsesCollision(bOldUsesCollision);
                 if (GetIsTypeVehicle())
                     vehicle->vehicleFlags.bVehicleColProcessed = true;
                 m_bIsStuck = false;
@@ -383,7 +383,7 @@ void CPhysical::ProcessCollision() {
                 RemoveAndAdd();
                 return;
             }
-            m_bUsesCollision = bOldUsesCollision;
+            SetUsesCollision(bOldUsesCollision);
             physicalFlags.b17 = false;
             *static_cast<CMatrix*>(m_matrix) = oldEntityMatrix;
             m_vecMoveSpeed = vecOldMoveSpeed;
@@ -568,8 +568,8 @@ bool CPhysical::TestCollision(bool bApplySpeed) {
     CMatrix entityMatrix(*m_matrix);
     physicalFlags.b17 = true;
     physicalFlags.bSkipLineCol = true;
-    bool bOldUsesCollision = m_bUsesCollision;
-    m_bUsesCollision = false;
+    bool bOldUsesCollision = GetUsesCollision();
+    SetUsesCollision(false);
     bool bTestForBlockedPositions = false;
 
     CPed* ped = AsPed();
@@ -582,7 +582,7 @@ bool CPhysical::TestCollision(bool bApplySpeed) {
         ApplySpeed();
 
     bool bCheckCollision = CheckCollision();
-    m_bUsesCollision = bOldUsesCollision;
+    SetUsesCollision(bOldUsesCollision);
     physicalFlags.b17 = false;
     physicalFlags.bSkipLineCol = false;
     *(CMatrix*)m_matrix = entityMatrix;
@@ -834,7 +834,7 @@ void CPhysical::ApplyGravity()
             CVector force (0.0f, 0.0f, fMassTimeStep * -0.008f);
             ApplyForce(force, point, true);
         }
-        else if (m_bUsesCollision) {
+        else if (GetUsesCollision()) {
             m_vecMoveSpeed.z -= CTimer::GetTimeStep() * 0.008f;
         }
     }
@@ -1998,7 +1998,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             }
             if (entity != this
                 && !entity->IsScanCodeCurrent()
-                && entity->m_bUsesCollision && (!m_bHasHitWall || bProcessEntityCollision))
+                && entity->GetUsesCollision() && (!m_bHasHitWall || bProcessEntityCollision))
             {
                 if (entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius))
                 {
@@ -2221,9 +2221,9 @@ void CPhysical::PositionAttachedEntity()
 
     bool bUpdateSpeed = false;
     if (!m_pAttachedTo->GetIsTypeVehicle() || !this->GetIsTypeObject() && !this->GetIsTypeVehicle()) {
-        if (m_nModelIndex == MODEL_SATCHEL && m_pAttachedTo->GetIsTypeObject() && !m_pAttachedTo->m_bUsesCollision) {
+        if (m_nModelIndex == MODEL_SATCHEL && m_pAttachedTo->GetIsTypeObject() && !m_pAttachedTo->GetUsesCollision()) {
             DettachAutoAttachedEntity();
-            m_bUsesCollision = true;
+            SetUsesCollision(true);
             return;
         }
         bUpdateSpeed = true;
@@ -2306,7 +2306,7 @@ void CPhysical::PositionAttachedEntity()
         CVector vecCenterOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
         ApplyForce(vecForce, vecCenterOfMassMultiplied, true);
         if (m_pAttachedTo->GetIsTypeVehicle() || m_pAttachedTo->GetIsTypeObject()) {
-            if (m_pAttachedTo->m_bUsesCollision && !m_pAttachedTo->physicalFlags.bDisableCollisionForce) {
+            if (m_pAttachedTo->GetUsesCollision() && !m_pAttachedTo->physicalFlags.bDisableCollisionForce) {
                 CVector vecDistance = (vecCenterOfMassMultiplied + GetPosition()) - m_pAttachedTo->GetPosition();
                 m_pAttachedTo->ApplyForce(vecForce * -1.0f, vecDistance, true);
             }
@@ -2771,7 +2771,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                         if (fObjectDamage > 20.0f)
                         {
                             entityObject->ObjectDamage(fObjectDamage, &colPoint.m_vecPoint, &colPoint.m_vecNormal, this, WEAPON_UNIDENTIFIED);
-                            if (!entity->m_bUsesCollision)
+                            if (!entity->GetUsesCollision())
                             {
                                 if (!physicalFlags.bDisableCollisionForce)
                                 {
@@ -3446,7 +3446,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
             if (entityObject->m_nColDamageEffect != COL_DAMAGE_EFFECT_NONE && thisDamageIntensity > 20.0f)
             {
                 entityObject->ObjectDamage(thisDamageIntensity, &colPoint.m_vecPoint, &colPoint.m_vecNormal, this, WEAPON_UNIDENTIFIED);
-                if (!physical->m_bUsesCollision)
+                if (!physical->GetUsesCollision())
                 {
                     if (!physicalFlags.bDisableCollisionForce)
                     {
@@ -4026,7 +4026,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                 );
             }
 
-            if (!m_bUsesCollision || bCollidedEntityCollisionIgnored || bCollisionDisabled) {
+            if (!GetUsesCollision() || bCollidedEntityCollisionIgnored || bCollisionDisabled) {
                 entity->SetCurrentScanCode() ;
                 if (!bCollisionDisabled) // if collision is enabled then
                 {
@@ -4398,7 +4398,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                 entityObject->ObjectDamage(50.0f, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_RUNOVERBYCAR);
                         }
                     }
-                } else if (GetIsTypeObject() && entity->GetIsTypeVehicle() && m_bUsesCollision) {
+                } else if (GetIsTypeObject() && entity->GetIsTypeVehicle() && GetUsesCollision()) {
                     if (thisObject->m_nColDamageEffect && fEntityMaxDamageIntensity > 20.0f) {
                         thisObject->ObjectDamage(fEntityMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, entity, WEAPON_RUNOVERBYCAR);
                     } else {
@@ -4458,7 +4458,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
     float fThisDamageIntensity = -1.0f;
     float fEntityDamageIntensity = -1.0f;
 
-    if (!m_bUsesCollision)
+    if (!GetUsesCollision())
     {
         return false;
     }

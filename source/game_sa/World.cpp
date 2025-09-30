@@ -366,7 +366,7 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
         dontGoToNextNode = false;
 
         const auto entity = static_cast<CEntity*>(node->Item);
-        if (entity->IsScanCodeCurrent() || !entity->m_bUsesCollision)
+        if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision())
             continue;
 
         entity->SetCurrentScanCode();

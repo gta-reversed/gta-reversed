@@ -934,10 +934,10 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         if (hsTarget && CTimer::GetTimeInMS() - playerData->m_nLastHSMissileLOSTime > 1'000) {
             playerData->m_nLastHSMissileLOSTime = CTimer::GetTimeInMS();
 
-            const auto targetUsesCollision = hsTarget->m_bUsesCollision;
-            const auto playerUsesCollision = player->m_bUsesCollision;
-            hsTarget->m_bUsesCollision     = false;
-            player->m_bUsesCollision       = false;
+            const auto targetUsesCollision = hsTarget->GetUsesCollision();
+            const auto playerUsesCollision = player->GetUsesCollision();
+            hsTarget->SetUsesCollision(false);
+            player->SetUsesCollision(false);
 
             const auto isClear = CWorld::GetIsLineOfSightClear(
                 player->GetPosition(),
@@ -949,8 +949,8 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
                 false,
                 true
             );
-            player->m_bUsesCollision        = playerUsesCollision;
-            hsTarget->m_bUsesCollision      = targetUsesCollision;
+            player->SetUsesCollision(playerUsesCollision);
+            hsTarget->SetUsesCollision(targetUsesCollision);
             playerData->m_bLastHSMissileLOS = isClear;
         }
 

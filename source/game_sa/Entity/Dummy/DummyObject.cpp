@@ -37,7 +37,7 @@ CObject* CDummyObject::CreateObject() {
     if (obj) {
         CTheScripts::ScriptsForBrains.CheckIfNewEntityNeedsScript(obj, 1, nullptr);
         m_bIsVisible = false;
-        m_bUsesCollision = false;
+        SetUsesCollision(false);
 
         obj->SetLodIndex(m_nLodIndex);
         m_nLodIndex = 0;
@@ -49,7 +49,7 @@ CObject* CDummyObject::CreateObject() {
 // 0x59EB70
 void CDummyObject::UpdateFromObject(CObject* obj) {
     m_bIsVisible = true;
-    m_bUsesCollision = true;
+    SetUsesCollision(true);
 
     obj->m_bImBeingRendered = true;
     CEntity::AttachToRwObject(obj->m_pRwObject, false);
@@ -60,7 +60,7 @@ void CDummyObject::UpdateFromObject(CObject* obj) {
     if (obj->GetIplIndex() && CIplStore::HasDynamicStreamingDisabled(obj->GetIplIndex())) {
         m_bRenderDamaged = obj->m_bRenderDamaged;
         m_bIsVisible = obj->m_bIsVisible;
-        m_bUsesCollision = obj->m_bUsesCollision;
+        SetUsesCollision(obj->GetUsesCollision());
     }
 
     m_nLodIndex = obj->GetLodIndex();

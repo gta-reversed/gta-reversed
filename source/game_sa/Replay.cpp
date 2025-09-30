@@ -183,7 +183,7 @@ void CReplay::StorePedUpdate(CPed* ped, uint8 index) {
         .flags = {
             .isTalking            = (bool)(ped == FindPlayerPed() && gbFirstPersonRunThisFrame && ped->bIsTalking),
             .stillOnValidPoly     = (bool)ped->bStillOnValidPoly,
-            .usesCollision        = (bool)ped->m_bUsesCollision
+            .usesCollision        = ped->GetUsesCollision()
         }
     });
 }
@@ -508,7 +508,7 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
 
     ped->bIsTalking = packet.flags.isTalking;
     ped->bStillOnValidPoly = packet.flags.stillOnValidPoly;
-    ped->m_bUsesCollision = packet.flags.usesCollision;
+    ped->SetUsesCollision(packet.flags.usesCollision);
     ped->m_fContactSurfaceBrightness = static_cast<float>(packet.contactSurfaceBrightness) / 100.0f;
     RetrievePedAnimation(ped, packet.animState);
 
@@ -1063,7 +1063,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
     const auto SetupVehicle = [](const tReplayVehicleBlock& packet, CVehicle* vehicle) {
         vehicle->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         vehicle->vehicleFlags.bUsedForReplay = true;
-        vehicle->m_bUsesCollision = false;
+        vehicle->SetUsesCollision(false);
         packet.matrix.DecompressIntoFullMatrix(vehicle->GetMatrix());
         vehicle->m_nPrimaryColor = packet.primaryColor;
         vehicle->m_nSecondaryColor = packet.secondaryColor;

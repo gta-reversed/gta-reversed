@@ -123,7 +123,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_pTemporaryPassenger = nullptr;
     m_nMaxPassengers = 5;
     physicalFlags.bDisableSimpleCollision = true;
-    m_bUsesCollision = true;
+    SetUsesCollision(true);
     m_nTimeWhenCreated = CTimer::GetTimeInMS();
     field_5C8 = 0;
     m_nTrackId = 0;

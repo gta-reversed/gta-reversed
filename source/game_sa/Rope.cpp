@@ -36,7 +36,7 @@ void CRope::ReleasePickedUpObject() {
         m_pRopeAttachObject->AsPhysical()->physicalFlags.b32 = false;
         m_pRopeAttachObject = nullptr;
     }
-    m_pAttachedEntity->m_bUsesCollision = true;
+    m_pAttachedEntity->SetUsesCollision(true);
     m_nFlags1 = 60; // 6th, 7th bits set
 }
 
@@ -175,7 +175,7 @@ void CRope::PickUpObject(CEntity* obj) {
     // MultiplyMatrixWithVector should be used here
     CVector height = { {}, {}, CRopes::FindPickupHeight(obj) };
     m_pAttachedEntity->SetPosn(obj->GetPosition() + obj->GetMatrix().TransformVector(height));
-    m_pAttachedEntity->m_bUsesCollision = false;
+    m_pAttachedEntity->SetUsesCollision(false);
 
     obj->AsPhysical()->physicalFlags.bAttachedToEntity = true;
     if (obj->GetIsTypeVehicle()) {

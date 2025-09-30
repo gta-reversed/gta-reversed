@@ -3092,7 +3092,7 @@ CEntity* CPed::AttachPedToEntity(CEntity* entity, CVector offset, uint16 turretA
             m_pEntityIgnoredCollision = entity->AsPhysical();
         }
     } else { // For player just disable collision
-        m_bUsesCollision = false;
+        SetUsesCollision(false);
     }
 
     if (m_nSavedWeapon == WEAPON_UNIDENTIFIED) {

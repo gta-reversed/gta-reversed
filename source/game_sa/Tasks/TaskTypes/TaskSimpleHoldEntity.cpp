@@ -209,7 +209,7 @@ bool CTaskSimpleHoldEntity::ProcessPed(CPed* ped) {
             m_bEntityDropped = true;
         }
         else {
-            entityToHold->m_bUsesCollision = false;
+            entityToHold->SetUsesCollision(false);
             if (entityToHold->GetIsTypeObject()) {
                 auto* objectToHold = entityToHold->AsObject();
                 if (objectToHold->IsStatic()) {
@@ -415,7 +415,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
     bool bUpdateEntityPosition = true;
     CObject* objectToHold = nullptr;
     if (m_pEntityToHold) {
-        m_pEntityToHold->m_bUsesCollision = true;
+        m_pEntityToHold->SetUsesCollision(true);
         if (!m_pEntityToHold->GetIsTypeObject()) {
             CEntity::ClearReference(m_pEntityToHold);
             return;
@@ -431,7 +431,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                     }
                     objectToHold->m_nObjectType = OBJECT_TEMPORARY;
                     objectToHold->m_nRemovalTime = 0;
-                    objectToHold->m_bUsesCollision = false;
+                    objectToHold->SetUsesCollision(false);
                     objectToHold->m_bIsVisible = false;
                     bUpdateEntityPosition = false;
                 }

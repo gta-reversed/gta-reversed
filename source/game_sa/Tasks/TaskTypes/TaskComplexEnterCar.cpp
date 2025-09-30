@@ -393,7 +393,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask_AfterSimpleCarAlign(CPed* ped) {
     };
 
     if (m_Car->GetMoveSpeed().SquaredMagnitude2D() > sq(ped->IsPlayer() ? 0.2f : 0.1f)) {
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         return C(ped->IsPlayer() ? TASK_FINISHED : TASK_COMPLEX_FALL_AND_GET_UP);
     }
 
@@ -637,8 +637,8 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
             return nullptr;
         }
 
-        if (!ped->bInVehicle && !ped->m_bUsesCollision) { // 0x63E67A
-            ped->m_bUsesCollision = true;
+        if (!ped->bInVehicle && !ped->GetUsesCollision()) { // 0x63E67A
+            ped->SetUsesCollision(true);
             if (m_Car && m_TargetDoor != 0) { // TODO: Enum
                 CTaskSimpleCarSetPedOut::PositionPedOutOfCollision(ped, m_Car, m_TargetDoor);
             }
@@ -707,7 +707,7 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
             FindPlayerInfo().SetLastTargetVehicle(m_Car);
         }
         if (ped && !ped->bInVehicle) {
-            ped->m_bUsesCollision = true;
+            ped->SetUsesCollision(true);
         }
         if (m_Car) {
             CTaskSimpleCarSetPedOut::PositionPedOutOfCollision(ped, m_Car, m_TargetDoor);
@@ -760,7 +760,7 @@ int32 CTaskComplexEnterCar::ComputeTargetDoorOppositeToFlag() const {
 
 // 0x63AC80
 void CTaskComplexEnterCar::PreparePedForVehicleEnter(CPed* ped) {
-    ped->m_bUsesCollision = false;
+    ped->SetUsesCollision(false);
     if (const auto tDuck = ped->GetIntelligence()->GetTaskDuck()) {
         tDuck->MakeAbortable(ped);
     }

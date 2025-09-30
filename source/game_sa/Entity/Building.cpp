@@ -15,8 +15,8 @@ void CBuilding::InjectHooks()
 
 CBuilding::CBuilding() : CEntity()
 {
-    SetType(ENTITY_TYPE_BUILDING);
-    m_bUsesCollision = true;
+    SetTypeBuilding();
+    SetUsesCollision(true);
 }
 
 void* CBuilding::operator new(unsigned size)

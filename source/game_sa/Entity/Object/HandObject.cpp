@@ -31,7 +31,7 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
         m_pTexture = GetFirstTexture(txd->m_pRwDictionary);
 
     SetStatus(STATUS_SIMPLE);
-    m_bUsesCollision = false;
+    SetUsesCollision(false);
     m_bLightObject = true;
     m_bStreamingDontDelete = true;
     m_nObjectType = eObjectType::OBJECT_TYPE_DECORATION;

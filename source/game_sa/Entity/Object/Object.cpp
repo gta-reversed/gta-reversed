@@ -285,7 +285,7 @@ void CObject::ProcessControl() {
         && m_bIsVisible
         && (CGeneral::GetRandomNumber() % 32) == 10)
     {
-        m_bUsesCollision = false;
+        SetUsesCollision(false);
         m_bIsVisible = false;
         physicalFlags.bExplosionProof = true;
         physicalFlags.bApplyGravity = false;
@@ -648,7 +648,7 @@ void CObject::ProcessGarageDoorBehaviour() {
             m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition / 1.1F;
     }
 
-    m_bUsesCollision = garage.m_bDoorClosed;
+    SetUsesCollision(garage.m_bDoorClosed);
     CEntity::UpdateRW();
     CEntity::UpdateRwFrame();
 }
@@ -1004,7 +1004,7 @@ void CObject::ProcessTrainCrossingBehaviour() {
 
 // 0x5A0D90
 void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector* fxDirection, CEntity* damager, eWeaponType weaponType) {
-    if (!m_bUsesCollision)
+    if (!GetUsesCollision())
         return;
 
     if (weaponType == eWeaponType::WEAPON_UNIDENTIFIED && damager && damager->GetIsTypeVehicle())
@@ -1052,7 +1052,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             break;
 
         case COL_DAMAGE_EFFECT_SMASH_COMPLETELY:
-            m_bUsesCollision = false;
+            SetUsesCollision(false);
             m_bIsVisible = false;
             if (!CEntity::IsStatic())
                 CPhysical::RemoveFromMovingList();
@@ -1067,7 +1067,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
 
         case COL_DAMAGE_EFFECT_CHANGE_THEN_SMASH:
             if (m_bRenderDamaged) {
-                m_bUsesCollision = false;
+                SetUsesCollision(false);
                 m_bIsVisible = false;
                 if (!CEntity::IsStatic()) {
                     CPhysical::RemoveFromMovingList();
@@ -1090,7 +1090,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             const auto bJustFaces = damage * m_pObjectInfo->m_fColDamageMultiplier > m_pObjectInfo->m_fSmashMultiplier * 150.0F;
             g_breakMan.Add(this, &m_pObjectInfo->m_vecBreakVelocity, m_pObjectInfo->m_fBreakVelocityRand, bJustFaces);
 
-            m_bUsesCollision = false;
+            SetUsesCollision(false);
             m_bIsVisible = false;
             if (!CEntity::IsStatic())
                 CPhysical::RemoveFromMovingList();
@@ -1106,7 +1106,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         }
         }
 
-        if (!m_bUsesCollision && !m_bIsVisible) {
+        if (!GetUsesCollision() && !m_bIsVisible) {
             m_fHealth = 0.0F;
         }
     }
@@ -1222,7 +1222,7 @@ void CObject::ObjectFireDamage(float damage, CEntity* damager) {
 
         g_breakMan.Add(this, &m_pObjectInfo->m_vecBreakVelocity, m_pObjectInfo->m_fBreakVelocityRand, true);
 
-        m_bUsesCollision = false;
+        SetUsesCollision(false);
         m_bIsVisible = false;
         if (!CEntity::IsStatic())
             CPhysical::RemoveFromMovingList();
@@ -1310,7 +1310,7 @@ void CObject::GrabObjectToCarryWithRope(CPhysical* attachTo) {
     vecRopePoint *= attachTo->m_matrix->TransformPoint(vecRopePoint);
 
     rope.m_pRopeAttachObject->SetPosn(vecRopePoint);
-    rope.m_pRopeAttachObject->m_bUsesCollision = false;
+    rope.m_pRopeAttachObject->SetUsesCollision(false);
 }
 
 // 0x5A1B60

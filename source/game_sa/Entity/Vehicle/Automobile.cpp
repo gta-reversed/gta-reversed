@@ -1947,10 +1947,10 @@ void CAutomobile::ProcessControlCollisionCheck(bool applySpeed) {
             ApplyTurnSpeed();
         }
     } else {
-        const auto ogUsesCollision = m_bUsesCollision;
-        m_bUsesCollision = false;
+        const auto ogUsesCollision = GetUsesCollision();
+        SetUsesCollision(false);
         (void)CheckCollision();
-        m_bUsesCollision = ogUsesCollision; // restore
+        SetUsesCollision(ogUsesCollision); // restore
     }
 
     m_bIsStuck          = false;

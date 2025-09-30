@@ -99,7 +99,7 @@ void SetObjectScale(CObject& object, float scale) {
 }
 
 void SetObjectCollision(CObject& object, bool enable) {
-    object.m_bUsesCollision = enable;
+    object.SetUsesCollision(enable);
 }
 
 bool DoesObjectHaveThisModel(CObject& object, script::Model model) {

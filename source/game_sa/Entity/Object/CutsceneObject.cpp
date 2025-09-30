@@ -24,7 +24,7 @@ void CCutsceneObject::InjectHooks() {
 CCutsceneObject::CCutsceneObject() : CObject() {
     m_vWorldPosition.Set(0.0F, 0.0F, 0.0F);
     m_vForce.Set(0.0F, 0.0F, 0.0F);
-    m_bUsesCollision = false;
+    SetUsesCollision(false);
     SetStatus(STATUS_SIMPLE);
     m_nObjectType = eObjectType::OBJECT_TYPE_CUTSCENE;
     m_nAttachBone = 0;

@@ -2774,7 +2774,7 @@ bool CCollision::SphereCastVsEntity(
 ) {
     ZoneScoped;
 
-    if (!entity->m_bUsesCollision || TheCamera.IsExtraEntityToIgnore(entity)) {
+    if (!entity->GetUsesCollision() || TheCamera.IsExtraEntityToIgnore(entity)) {
         return false;
     }
 

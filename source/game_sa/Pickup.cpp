@@ -137,7 +137,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     object->UpdateRwFrame();
     object->physicalFlags.bApplyGravity = false;
     object->physicalFlags.bExplosionProof = true;
-    object->m_bUsesCollision = false;
+    object->SetUsesCollision(false);
     object->objectFlags.bIsPickup = true;
     object->objectFlags.b0x02 = object->m_bCollisionProcessed;
     object->objectFlags.bDoNotRender = PickUpShouldBeInvisible();

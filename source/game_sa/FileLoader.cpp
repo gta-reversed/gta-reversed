@@ -1079,7 +1079,7 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
         }
         else
         {
-            newEntity->m_bUsesCollision = false;
+            newEntity->SetUsesCollision(false);
         }
 
         if (cm->GetBoundingBox().m_vecMin.z + newEntity->GetPosition().z < 0.0f)

@@ -372,7 +372,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnterExit(const CEventL
         }
         CTaskSimpleWaitUntilLeaderAreaCodesMatch task{leader};
         if (task.ProcessPed(m)) {
-            m->m_bUsesCollision = true;
+            m->SetUsesCollision(true);
         } else {
             pg->GetIntelligence().SetEventResponseTask(m, task);
         }

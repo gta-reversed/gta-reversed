@@ -64,7 +64,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
                 continue;
             }
 
-            if (!(m_bUsesCollision || !numColPts)) { // TODO: Why is this in the loop body?
+            if (!(GetUsesCollision() || !numColPts)) { // TODO: Why is this in the loop body?
                 continue;
             }
 

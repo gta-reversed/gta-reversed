@@ -111,7 +111,7 @@ auto SetCharNeverTargetted(CPed& ped, bool bNeverEverTargetThisPed) {
 
 // SET_CHAR_COLLISION
 auto SetCharCollision(CPed& ped, bool bUsesCollision) {
-    ped.m_bUsesCollision = bUsesCollision;
+    ped.SetUsesCollision(bUsesCollision);
 }
 
 // IS_CHAR_SHOOTING

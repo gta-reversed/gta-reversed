@@ -651,7 +651,7 @@ void CCarEnterExit::QuitEnteringCar(CPed* ped, CVehicle* vehicle, int32 doorId, 
             break;
         }
     }
-    ped->m_bUsesCollision = false;
+    ped->SetUsesCollision(false);
 }
 
 // 0x64F680

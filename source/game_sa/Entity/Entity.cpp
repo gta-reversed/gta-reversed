@@ -898,7 +898,7 @@ bool CEntity::LivesInThisNonOverlapSector(int32 sectorX, int32 sectorY)
 // 0x533150
 void CEntity::SetupBigBuilding()
 {
-    m_bUsesCollision = false;
+    SetUsesCollision(false);
     m_bIsBIGBuilding = true;
     m_bStreamingDontDelete = true;
 

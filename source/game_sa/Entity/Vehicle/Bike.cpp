@@ -606,10 +606,10 @@ void CBike::ProcessControlCollisionCheck(bool applySpeed) {
             ApplyTurnSpeed();
         }
     } else {
-        const auto usesCollision = m_bUsesCollision;
-        m_bUsesCollision = false;
+        const auto usesCollision = GetUsesCollision();
+        SetUsesCollision(false);
         CheckCollision();
-        m_bUsesCollision = usesCollision;
+        SetUsesCollision(usesCollision);
     }
 
     m_bIsStuck          = false;

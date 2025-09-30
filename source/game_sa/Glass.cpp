@@ -175,7 +175,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
 }
 
 bool IsGlassObjectWithCol(CEntity* entity) {
-    if (entity->GetIsTypeObject() && entity->m_bUsesCollision) {
+    if (entity->GetIsTypeObject() && entity->GetUsesCollision()) {
         if (const auto ami = entity->GetModelInfo()->AsAtomicModelInfoPtr()) {
             return ami->IsGlass();
         }
@@ -243,7 +243,7 @@ void CGlass::WindowRespondsToCollision(CEntity* entity, float fDamageIntensity, 
         );
     }
 
-    object->m_bUsesCollision = false;
+    object->SetUsesCollision(false);
     object->m_bIsVisible = false;
     object->objectFlags.bGlassBrokenAltogether = true;
 }
@@ -519,7 +519,7 @@ CFallingGlassPane* CGlass::FindFreePane() {
 
 // 0x71AF70
 void CGlass::WindowRespondsToSoftCollision(CEntity* entity, float fDamageIntensity) {
-    if (entity->m_bUsesCollision && fDamageIntensity > 50.f && !entity->AsObject()->objectFlags.bHasBrokenGlass) {
+    if (entity->GetUsesCollision() && fDamageIntensity > 50.f && !entity->AsObject()->objectFlags.bHasBrokenGlass) {
         AudioEngine.ReportGlassCollisionEvent(AE_GLASS_HIT, entity->GetPosition());
         entity->AsObject()->objectFlags.bHasBrokenGlass = true;
     }
@@ -603,7 +603,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
             1,
             false
         );
-        object.m_bUsesCollision = false;
+        object.SetUsesCollision(false);
         object.m_bIsVisible = false;
         object.objectFlags.bHasBrokenGlass = true;
     }
@@ -611,7 +611,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
 
 // 0x71C1A0
 void CGlass::WindowRespondsToExplosion(CEntity* entity, CVector pos) {
-    if (!entity->m_bUsesCollision) {
+    if (!entity->GetUsesCollision()) {
         return;
     }
 
