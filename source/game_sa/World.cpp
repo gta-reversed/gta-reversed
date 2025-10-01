@@ -2061,7 +2061,7 @@ void CWorld::Process() {
                     if (!entity->m_bIsInSafePosition) {
                         entity->m_bIsStuck = true;
 
-                        if (entity->GetStatus() == STATUS_PLAYER) { // Try to unstuck p
+                        if (entity->TreatAsPlayerForCollisions()) {
                             const auto physical = entity->AsPhysical();
                             physical->m_vecMoveSpeed *= (float)std::pow(SQRT_2 / 2.f, CTimer::GetTimeStepInMS());
                             physical->ApplyMoveSpeed();

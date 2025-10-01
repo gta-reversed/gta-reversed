@@ -4153,7 +4153,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                     m_vecMoveSpeed += vecMoveSpeed * fSpeedFactor;
                     m_vecTurnSpeed += vecTurnSpeed * fSpeedFactor;
                     if (!CWorld::bNoMoreCollisionTorque) {
-                        if (!GetStatus() && GetIsTypeVehicle()) {
+                        if (TreatAsPlayerForCollisions() && GetIsTypeVehicle()) {
                             float fThisMoveSpeedX = m_vecMoveSpeed.x;
                             if (m_vecMoveSpeed.x < 0.0f) {
                                 fThisMoveSpeedX = -fThisMoveSpeedX;

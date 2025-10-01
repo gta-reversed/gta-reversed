@@ -4671,7 +4671,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             m_wheelColPoint[leftWheel].m_nSurfaceTypeA = SURFACE_WHEELBASE;
             float adhesion = g_surfaceInfos.GetAdhesiveLimit(&m_wheelColPoint[leftWheel]) * traction;
-            if (GetStatus() == STATUS_PLAYER)
+            if (TreatAsPlayerForCollisions())
             {
                 adhesion *= g_surfaceInfos.GetWetMultiplier(m_wheelColPoint[leftWheel].m_nSurfaceTypeB);
                 adhesion *= std::min(suspensionBias * m_pHandlingData->m_fSuspensionForceLevel * 4.0f * (1.0f - m_fWheelsSuspensionCompression[leftWheel]), 2.0f);
@@ -4721,7 +4721,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             m_wheelColPoint[rightWheel].m_nSurfaceTypeA = SURFACE_WHEELBASE;
             float adhesion = g_surfaceInfos.GetAdhesiveLimit(&m_wheelColPoint[rightWheel]) * traction;
-            if (GetStatus() == STATUS_PLAYER)
+            if (TreatAsPlayerForCollisions())
             {
                 adhesion *= g_surfaceInfos.GetWetMultiplier(m_wheelColPoint[rightWheel].m_nSurfaceTypeB);
                 adhesion *= std::min(suspensionBias * m_pHandlingData->m_fSuspensionForceLevel * 4.0f * (1.0f - m_fWheelsSuspensionCompression[rightWheel]), 2.0f);

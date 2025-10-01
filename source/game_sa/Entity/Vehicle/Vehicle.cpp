@@ -631,7 +631,7 @@ uint8 CVehicle::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSet
         return 1;
 
     auto fMove = sqrt(fMoveSquared);
-    if (GetStatus() != STATUS_PLAYER)
+    if (!TreatAsPlayerForCollisions())
     {
         if (fMoveSquared <= 0.32F)
             fMove *= (10.0F / 4.0F);
