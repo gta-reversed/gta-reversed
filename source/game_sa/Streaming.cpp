@@ -172,9 +172,7 @@ void CStreaming::InjectHooks() {
 
 // 0x409650
 CLink<CEntity*>* CStreaming::AddEntity(CEntity* entity) {
-    switch (entity->GetType()) {
-    case ENTITY_TYPE_PED:
-    case ENTITY_TYPE_VEHICLE:
+    if (entity->GetIsTypeVehicle() || entity->GetIsTypePed()) {
         return nullptr;
     }
 

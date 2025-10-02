@@ -264,22 +264,16 @@ bool CIplStore::HaveIplsLoaded(const CVector& coords, int32 /*playerNumber*/) {
 void CIplStore::IncludeEntity(int32 iplSlotIndex, CEntity* entity) {
     const auto ipldef = ms_pPool->GetAt(iplSlotIndex);
 
-    switch (entity->GetType()) {
-    case ENTITY_TYPE_BUILDING: {
+    if (entity->GetIsTypeBuilding()) {
         const auto buildingId = GetBuildingPool()->GetIndex(entity->AsBuilding());
         ipldef->firstBuilding = std::min(ipldef->firstBuilding, (int16)buildingId);
         ipldef->lastBuilding = std::max(ipldef->firstBuilding, (int16)buildingId);
-        break;
-    }
-    case ENTITY_TYPE_DUMMY: {
+    } else if (entity->GetIsTypeDummy()) {
         const auto dummyId = GetDummyPool()->GetIndex(entity->AsDummy());
         ipldef->firstDummy = std::min(ipldef->firstDummy, (int16)dummyId);
         ipldef->lastDummy = std::max(ipldef->lastDummy, (int16)dummyId);
-        break;
-    }
-    default: {
+    } else {
         NOTSA_UNREACHABLE("Incorrect entity type");
-    }
     }
 }
 

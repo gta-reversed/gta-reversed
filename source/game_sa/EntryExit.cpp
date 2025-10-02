@@ -618,9 +618,18 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
 // 0x43E990
 void CEntryExit::ProcessStealableObjects(CPed* ped) {
     const auto helde = ped->GetEntityThatThisPedIsHolding();
-    if (!helde || !helde->GetIsTypeObject() || !helde->AsObject()->objectFlags.bIsLiftable) {
+    if (!helde) {
         return;
     }
+
+    if (!helde->GetIsTypeObject()) {
+        return; 
+    }
+
+    if (!helde->AsObject()->objectFlags.bIsLiftable) {
+        return;
+    }
+
     const auto heldobj = helde->AsObject();
     switch (heldobj->m_nObjectType) {
     case OBJECT_MISSION:
