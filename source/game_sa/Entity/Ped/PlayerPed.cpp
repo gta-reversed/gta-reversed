@@ -604,7 +604,7 @@ void CPlayerPed::MakePlayerGroupDisappear() {
     for (int i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
         if (CPed* member = membership.GetMember(i)) {
             if (!member->IsCreatedByMission()) {
-                member->m_bCollisionProcessed = false;
+                member->SetCollisionProcessed(false);
                 member->m_bIsVisible = false;
                 abTempNeverLeavesGroup[i] = member->bNeverLeavesGroup;
                 member->bNeverLeavesGroup = true;

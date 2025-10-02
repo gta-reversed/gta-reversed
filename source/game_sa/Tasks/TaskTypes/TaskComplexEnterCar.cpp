@@ -199,7 +199,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_CAR_OPEN_DOOR_FROM_OUTSIDE:
     case TASK_SIMPLE_BIKE_PICK_UP: { // 0x63EE0D
         if (m_Car->GetMoveSpeed().SquaredMagnitude2D() > sq(ped->IsPlayer() ? 0.2f : 0.1f)) { // 0x63EDAB
-            ped->m_bUsesCollision = true;
+            ped->SetUsesCollision(true);
             return C(ped->IsPlayer() ? TASK_FINISHED : TASK_COMPLEX_FALL_AND_GET_UP);
         }
 

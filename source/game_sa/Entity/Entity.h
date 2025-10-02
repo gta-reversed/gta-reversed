@@ -151,7 +151,7 @@ public:
     void SetUsesCollision(bool status) { m_bUsesCollision = status; }
     bool GetUsesCollision() const { return m_bUsesCollision; }
     void SetCollisionProcessed(bool status) { m_bCollisionProcessed = status; }
-    bool GetCollisionProcessed() const { return m_bCollisionProcessed; }
+    bool GetCollisionProcessed() const { return m_bCollisionProcessed; } // unused
     virtual void SetIsStatic(bool status) { m_bIsStatic = status; } // 0x403E20
     bool GetIsStatic() const { return m_bIsStatic; }
     void SetHasContacted(bool status) { m_bHasContacted = status; }

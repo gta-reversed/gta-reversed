@@ -4717,7 +4717,7 @@ void CPhysical::AttachEntityToEntity(CPhysical* entityAttachTo, CVector* vecAtta
 // 0x54D920
 bool CPhysical::CheckCollision()
 {
-    m_bCollisionProcessed = false;
+    SetCollisionProcessed(false);
     if (GetIsTypePed())
     {
         CPed* ped = AsPed();
@@ -4761,7 +4761,7 @@ bool CPhysical::CheckCollision()
 // 0x54DAB0
 bool CPhysical::CheckCollision_SimpleCar()
 {
-    m_bCollisionProcessed = false;
+    SetCollisionProcessed(false);   
     CWorld::IncrementCurrentScanCode();
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
     if (!entryInfoNode)

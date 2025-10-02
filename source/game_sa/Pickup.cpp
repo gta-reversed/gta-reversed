@@ -139,7 +139,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     object->physicalFlags.bExplosionProof = true;
     object->SetUsesCollision(false);
     object->objectFlags.bIsPickup = true;
-    object->objectFlags.b0x02 = object->m_bCollisionProcessed;
+    object->objectFlags.b0x02 = object->GetCollisionProcessed();
     object->objectFlags.bDoNotRender = PickUpShouldBeInvisible();
     object->m_bHasPreRenderEffects = true;
     object->m_bTunnelTransition = true;
