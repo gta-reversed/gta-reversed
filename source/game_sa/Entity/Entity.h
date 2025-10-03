@@ -170,8 +170,7 @@ public:
     bool GetHasHitWall() const { return m_bHasHitWall; }
     void SetIsBackfaceCulled(bool status) { m_bBackfaceCulled = status; }
     bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; }
-    void SetIsUnimportantStream(bool status) { m_bUnimportantStream = status; }
-    bool GetIsUnimportantStream() const { return m_bUnimportantStream; } // NOTSA
+    void SetIsUnimportantStream(bool status) { m_bUnimportantStream |= status; }
     
     void SetScanCode(uint16 code) { m_nScanCode = code; }
     uint16 GetScanCode() const { return m_nScanCode; }

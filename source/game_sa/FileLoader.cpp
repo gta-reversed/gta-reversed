@@ -1057,7 +1057,7 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
     newEntity->m_bUnderwater        |= objInstance->m_bUnderwater;
     newEntity->m_bTunnel            |= objInstance->m_bTunnel;
     newEntity->m_bTunnelTransition  |= objInstance->m_bTunnelTransition;
-    newEntity->m_bUnimportantStream |= objInstance->m_bRedundantStream;
+    newEntity->SetIsUnimportantStream(objInstance->m_bRedundantStream);
     newEntity->SetAreaCode(static_cast<eAreaCodes>(objInstance->m_nAreaCode));
     newEntity->SetLodIndex(objInstance->m_nLodInstanceIndex);
 
