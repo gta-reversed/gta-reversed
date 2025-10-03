@@ -522,7 +522,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (m_bIsStuck
+    if (GetIsStuck()
         && colPhysical->GetIsTypeVehicle()
         && (colPhysical->AsVehicle()->physicalFlags.bDisableCollisionForce && !colPhysical->AsVehicle()->physicalFlags.bCollidable)
     ) {
@@ -534,7 +534,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
     if (colPhysical->IsImmovable()) {
         if (bIgnoreStuckCheck)
             bCollidedEntityCollisionIgnored = true;
-        else if (m_bIsStuck || colPhysical->m_bIsStuck)
+        else if (GetIsStuck() || colPhysical->GetIsStuck())
             bThisOrCollidedEntityStuck = true;
 
         return;
@@ -561,7 +561,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
             {
                 if (IsConstructionVehicle())
                 {
-                    if (m_bIsStuck || colPhysical->m_bIsStuck)
+                    if (GetIsStuck() || colPhysical->GetIsStuck())
                         bThisOrCollidedEntityStuck = true;
                 }
                 else if (!colPhysical->AsObject()->CanBeSmashed() && !IsBike())
@@ -589,7 +589,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
             if (!bCollidedEntityCollisionIgnored
                 && !bCollisionDisabled
                 && !bThisOrCollidedEntityStuck
-                && colPhysical->m_bIsStuck)
+                && colPhysical->GetIsStuck())
             {
                 bCollidedEntityUnableToMove = true;
             }
@@ -615,7 +615,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical->m_bIsStuck) {
+    if (colPhysical->GetIsStuck()) {
         bCollidedEntityUnableToMove = true;
         return;
     }

@@ -272,7 +272,7 @@ void CPhysical::ProcessCollision() {
                 if (GetIsTypeVehicle())
                     CCarCtrl::SwitchVehicleToRealPhysics(vehicle);
             }
-            m_bIsStuck = false;
+            SetIsStuck(false);
             m_bIsInSafePosition = true;
             RemoveAndAdd();
             return;
@@ -309,7 +309,7 @@ void CPhysical::ProcessCollision() {
                 if (colData->bUsesDisks)
                     colLinesCount = 0;
                 if (collisionIndex >= colLinesCount) {
-                    m_bIsStuck = false;
+                    SetIsStuck(false);
                     m_bIsInSafePosition = true;
                     m_vecMoveSpeed.z = 0.0f;
                     m_vecTurnSpeed.x = 0.0f;
@@ -374,7 +374,7 @@ void CPhysical::ProcessCollision() {
                 SetUsesCollision(bOldUsesCollision);
                 if (GetIsTypeVehicle())
                     vehicle->vehicleFlags.bVehicleColProcessed = true;
-                m_bIsStuck = false;
+                SetIsStuck(false);
                 m_bIsInSafePosition = true;
                 physicalFlags.bProcessCollisionEvenIfStationary = false;
                 physicalFlags.bSkipLineCol = false;
@@ -454,7 +454,7 @@ void CPhysical::ProcessCollision() {
         else if (GetIsTypePed()) {
             ped->bIsStanding = true;
         }
-        m_bIsStuck = false;
+        SetIsStuck(false);
         m_bIsInSafePosition = true;
         physicalFlags.bProcessCollisionEvenIfStationary = false;
         physicalFlags.bSkipLineCol = false;
@@ -463,7 +463,7 @@ void CPhysical::ProcessCollision() {
         RemoveAndAdd();
         return;
     }
-    m_bIsStuck = false;
+    SetIsStuck(false);
     m_bIsInSafePosition = true;
     RemoveAndAdd();
 }
@@ -482,7 +482,7 @@ void CPhysical::ProcessShift() {
         {
             ResetTurnSpeed();
         }
-        m_bIsStuck = false;
+        SetIsStuck(false);
         m_bIsInSafePosition = true;
         RemoveAndAdd();
     }
@@ -556,7 +556,7 @@ void CPhysical::ProcessShift() {
                 return;
             }
         }
-        m_bIsStuck = false;
+        SetIsStuck(false);
         m_bIsInSafePosition = true;
         m_fMovingSpeed = (GetPosition() - oldEntityMatrix.GetPosition()).Magnitude();
         RemoveAndAdd();
@@ -2610,7 +2610,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
     {
         if (GetIsTypePed() && thisPed->IsPlayer()
             && entity->GetIsTypeVehicle()
-            && (entity->GetStatus() == STATUS_ABANDONED || entity->GetStatus() == STATUS_WRECKED || m_bIsStuck))
+            && (entity->GetStatus() == STATUS_ABANDONED || entity->GetStatus() == STATUS_WRECKED || GetIsStuck()))
         {
             float fTheEntityMass = entity->m_fMass - 2000.0f;
             if (fTheEntityMass < 0.0f)
@@ -2801,7 +2801,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                         }
                     }
                     if (entity->physicalFlags.bDisableCollisionForce || entityObjectInfo->m_fUprootLimit >= 9999.0f
-                        || thisDamageIntensity <= entityObjectInfo->m_fUprootLimit && (!m_bIsStuck || !m_bHasHitWall))
+                        || thisDamageIntensity <= entityObjectInfo->m_fUprootLimit && (!GetIsStuck() || !m_bHasHitWall))
                     {
                         if (IsGlassModel(entity))
                         {
@@ -3360,7 +3360,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
     {
         if (GetIsTypePed() && thisPed->IsPlayer()
             && physical->GetIsTypeVehicle()
-            && (physical->GetStatus() == STATUS_ABANDONED || physical->GetStatus() == STATUS_WRECKED || m_bIsStuck))
+            && (physical->GetStatus() == STATUS_ABANDONED || physical->GetStatus() == STATUS_WRECKED || GetIsStuck()))
         {
             float fTheEntityMass = physical->m_fMass - 2000.0f;
             if (fTheEntityMass < 0.0f)
@@ -3461,7 +3461,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
             }
 
             float fObjectUprootLimit = entityObject->m_pObjectInfo->m_fUprootLimit;
-            if ((thisDamageIntensity > fObjectUprootLimit || m_bIsStuck) && !physical->physicalFlags.bDisableCollisionForce)
+            if ((thisDamageIntensity > fObjectUprootLimit || GetIsStuck()) && !physical->physicalFlags.bDisableCollisionForce)
             {
                 if (IsGlassModel(physical))
                 {
@@ -3991,7 +3991,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 
             if (entity->GetIsTypeBuilding()) {
                 bCollidedEntityCollisionIgnored = false;
-                if (physicalFlags.bInfiniteMass && m_bIsStuck) {
+                if (physicalFlags.bInfiniteMass && GetIsStuck()) {
                     bThisOrCollidedEntityStuck = true;
                 }
 

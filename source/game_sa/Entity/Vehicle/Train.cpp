@@ -850,7 +850,7 @@ void CTrain::ProcessControl() {
         UpdateRwFrame();
         RemoveAndAdd();
 
-        m_bIsStuck = false;
+        SetIsStuck(false);
         m_bWasPostponed = false;
         m_bIsInSafePosition = true;
 
@@ -869,7 +869,7 @@ void CTrain::ProcessControl() {
         }
         return;
     } else {
-        if (!m_bIsStuck) {
+        if (!GetIsStuck()) {
             float fMaxForce = 0.003f;
             float fMaxTorque = 0.0009f;
             float fMaxMovingSpeed = 0.005f;

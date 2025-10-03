@@ -230,7 +230,7 @@ void CObject::ProcessControl() {
     }
 
     objectFlags.bDamaged = false;
-    if (!m_bIsStuck && !GetIsStatic()) {
+    if (!GetIsStuck() && !GetIsStatic()) {
         if (!physicalFlags.bDisableZ && !physicalFlags.bInfiniteMass && !physicalFlags.bDisableMoveForce) {
             m_vecForce += m_vecMoveSpeed;
             m_vecForce /= 2.0F;
@@ -370,15 +370,15 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
         if (!physicalFlags.bDisableZ) {
             if (physicalFlags.bDisableMoveForce || physicalFlags.bInfiniteMass)
             {
-                if (bIgnoreStuckCheck || m_bIsStuck)
+                if (bIgnoreStuckCheck || GetIsStuck())
                     bCollisionDisabled = true;
-                else if (!colPhysical->m_bIsStuck) { /* Do nothing pretty much, and skip further calc */ }
+                else if (!colPhysical->GetIsStuck()) { /* Do nothing pretty much, and skip further calc */ }
                 else if (!colPhysical->m_bHasHitWall)
                     bThisOrCollidedEntityStuck = true;
                 else
                     bCollidedEntityUnableToMove = true;
             }
-            else if (objectFlags.bIsLampPost && (GetUp().z < 0.66F || m_bIsStuck))
+            else if (objectFlags.bIsLampPost && (GetUp().z < 0.66F || GetIsStuck()))
             {
                 if (colPhysical->GetIsTypeVehicle() || colPhysical->GetIsTypePed()) {
                     bCollidedEntityCollisionIgnored = true;
@@ -396,7 +396,7 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
                 {
                     if (colPhysical->AsVehicle()->IsConstructionVehicle())
                     {
-                        if (m_bIsStuck || colPhysical->m_bIsStuck)
+                        if (GetIsStuck() || colPhysical->GetIsStuck())
                             bThisOrCollidedEntityStuck = true;
                     }
                     else if (!CanBeSmashed())
@@ -442,12 +442,12 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
         {
             if (bIgnoreStuckCheck)
                 bCollisionDisabled = true;
-            else if (m_bIsStuck || colPhysical->m_bIsStuck)
+            else if (GetIsStuck() || colPhysical->GetIsStuck())
                 bThisOrCollidedEntityStuck = true;
         }
     }
 
-    if (!bCollidedEntityCollisionIgnored && (bIgnoreStuckCheck || m_bIsStuck))
+    if (!bCollidedEntityCollisionIgnored && (bIgnoreStuckCheck || GetIsStuck()))
         bThisOrCollidedEntityStuck = true;
 
 }

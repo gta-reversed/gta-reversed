@@ -1927,7 +1927,7 @@ rtn:
 
 // 0x6A29C0
 void CAutomobile::ProcessControlCollisionCheck(bool applySpeed) {
-    m_bIsStuck = false;
+    SetIsStuck(false);
 
     const CMatrix ogmat = GetMatrix(); // Save original matrix (We need it later)
 
@@ -1953,7 +1953,7 @@ void CAutomobile::ProcessControlCollisionCheck(bool applySpeed) {
         SetUsesCollision(ogUsesCollision); // restore
     }
 
-    m_bIsStuck          = false;
+    SetIsStuck(false);
     m_bIsInSafePosition = true;
 }
 

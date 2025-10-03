@@ -2021,14 +2021,14 @@ void CWorld::Process() {
             // Mark entities as `stuck` if they're still in unsafe positions
             IterateMovingList([&](CEntity* entity) {
                 if (!entity->m_bIsInSafePosition) {
-                    entity->m_bIsStuck = true;
+                    entity->SetIsStuck(true);
 
                     entity->ProcessCollision();
                     entity->UpdateRW();
                     entity->UpdateRwFrame();
 
                     if (!entity->m_bIsInSafePosition)
-                        entity->m_bIsStuck = true;
+                        entity->SetIsStuck(true);
                 }
             });
         }
@@ -2046,7 +2046,7 @@ void CWorld::Process() {
                     entity->UpdateRwFrame();
 
                     if (!entity->m_bIsInSafePosition)
-                        entity->m_bIsStuck = true;
+                        entity->SetIsStuck(true);
                 }
             });
 
@@ -2059,7 +2059,7 @@ void CWorld::Process() {
                     entity->UpdateRwFrame();
 
                     if (!entity->m_bIsInSafePosition) {
-                        entity->m_bIsStuck = true;
+                        entity->SetIsStuck(true);
 
                         if (entity->TreatAsPlayerForCollisions()) {
                             const auto physical = entity->AsPhysical();
