@@ -1151,7 +1151,7 @@ auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
         DoSetPedIsWaitingForCollision(S, ped);
     } else if (ped.m_bIsStaticWaitingForCollision) {
         ped.m_bIsStaticWaitingForCollision = false;
-        if (!ped.IsStatic()) { // TODO: I think this is inlined
+        if (!ped.GetIsStatic()) {
             ped.AddToMovingList();
         }
     }

@@ -234,7 +234,7 @@ void CPhysical::ProcessControl()
     m_bHasHitWall = false;
     m_bWasPostponed = false;
     m_bIsInSafePosition = false;
-    m_bHasContacted = false;
+    SetHasContacted(false);
 
     if (GetStatus() != STATUS_SIMPLE)
     {
@@ -494,7 +494,7 @@ void CPhysical::ProcessShift() {
             bool bSomeSpecificFlagsSet = false;
             if (GetIsTypePed() && ped->m_standingOnEntity)
             {
-                if (!ped->m_standingOnEntity->m_bIsStatic || ped->m_standingOnEntity->m_bHasContacted)
+                if (!ped->m_standingOnEntity->m_bIsStatic || ped->m_standingOnEntity->GetHasContacted())
                 {
                     bSomeSpecificFlagsSet = true;
                 }
@@ -601,7 +601,7 @@ int32 CPhysical::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
         if (!entity->GetIsTypeBuilding())
             entity->AsPhysical()->AddCollisionRecord(this);
 
-        if (entity->GetIsTypeBuilding() || entity->IsStatic())
+        if (entity->GetIsTypeBuilding() || entity->GetIsStatic())
             m_bHasHitWall = true;
     }
     return totalColPointsToProcess;
@@ -906,7 +906,7 @@ void CPhysical::SkipPhysics()
     m_bHasHitWall = false;
     m_bWasPostponed = false;
     m_bIsInSafePosition = false;
-    m_bHasContacted = false;
+    SetHasContacted(false);
 
     if (GetStatus() != STATUS_SIMPLE)
     {
@@ -1564,7 +1564,7 @@ bool CPhysical::ApplyCollisionAlt(CPhysical* entity, CColPoint& colPoint, float&
     bool bUseElasticity = false;
     if (entityAltCol == ALT_ENITY_COL_OBJECT)
     {
-        if (!m_bHasContacted
+        if (!GetHasContacted()
             && fabs(m_vecMoveSpeed.x) < fMoveSpeedLimit
             && fabs(m_vecMoveSpeed.y) < fMoveSpeedLimit
             && fMoveSpeedLimit + fMoveSpeedLimit > fabs(m_vecMoveSpeed.z))
@@ -1990,7 +1990,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             if (!entity->GetIsTypeBuilding() && (!entity->GetIsTypeObject() || !entity->AsPhysical()->physicalFlags.bDisableCollisionForce))
             {
                 if (!GetIsTypePed() || !entity->GetIsTypeObject()
-                    || !entity->IsStatic()
+                    || !entity->GetIsStatic()
                     || entity->AsObject()->objectFlags.bIsExploded)
                 {
                     bProcessEntityCollision = false;
@@ -2213,7 +2213,7 @@ void CPhysical::PositionAttachedEntity()
     SetMatrix(attachedEntityMatrix);
 
     if (GetIsTypeObject()) {
-        if (IsStatic())
+        if (GetIsStatic())
             SetIsStatic(false);
         physicalFlags.bAttachedToEntity = true;
         m_nFakePhysics = 0;
@@ -2670,7 +2670,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
         colPoint.m_vecNormal.z = 0.0f;
     }
 
-    if (entity->IsStatic() && !bEntityCollisionForceDisabled)
+    if (entity->GetIsStatic() && !bEntityCollisionForceDisabled)
     {
         if (physicalFlags.bDisableTurnForce)
         {
@@ -2848,7 +2848,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             }
         }
 
-        if (entity->IsStatic())
+        if (entity->GetIsStatic())
         {
             return false;
         }
@@ -3398,7 +3398,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
     }
 
     bool bApplyCollisionWithElasticity = false;
-    if (!physical->IsStatic() || bEntityCollisionForceDisabled)
+    if (!physical->GetIsStatic() || bEntityCollisionForceDisabled)
     {
         bApplyCollisionWithElasticity = true;
     }
@@ -3499,7 +3499,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     entityObject->objectFlags.bIsExploded = true;
                 }
 
-                if (physical->IsStatic())
+                if (physical->GetIsStatic())
                 {
                     return false;
                 }
@@ -4051,7 +4051,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 
                 int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
                 if (totalColPointsToProcess > 0) {
-                    if (m_bHasContacted) {
+                    if (GetHasContacted()) {
                         if (totalColPointsToProcess > 0) {
                             for (int32 colPointIndex = 0; colPointIndex < totalColPointsToProcess; colPointIndex++) {
                                 CColPoint* colPoint = &colPoints[colPointIndex];
@@ -4081,7 +4081,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                     (colPoint->m_nSurfaceTypeA != SURFACE_WHEELBASE || colPoint->m_nSurfaceTypeB != SURFACE_WHEELBASE)) {
                                     float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
                                     if (ApplyFriction(fSurfaceFriction, *colPoint)) {
-                                        m_bHasContacted = true;
+                                        SetHasContacted(true);
                                     }
                                     continue;
                                 }
@@ -4097,7 +4097,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                     fFriction *= 150.0f * fThisDamageIntensity;
                                     SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
                                     if (ApplyFriction(fFriction, *colPoint)) {
-                                        m_bHasContacted = true;
+                                        SetHasContacted(true);
                                     }
                                     continue;
                                 }
@@ -4141,7 +4141,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                     fFriction = fFriction + fFriction;
                                 }
                                 if (ApplyFriction(fFriction, *colPoint)) {
-                                    m_bHasContacted = true;
+                                    SetHasContacted(true);
                                 }
                             }
                         }
@@ -4194,7 +4194,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 
                 fThisMaxDamageIntensity = 0.0f;
                 fEntityMaxDamageIntensity = 0.0f;
-                if (m_bHasContacted && entity->m_bHasContacted) {
+                if (GetHasContacted() && entity->GetHasContacted()) {
                     if (totalColPointsToProcess > 0) {
                         for (int32 colPointIndex4 = 0; colPointIndex4 < totalColPointsToProcess; colPointIndex4++) {
                             CColPoint* colPoint2 = &colPoints[colPointIndex4];
@@ -4217,8 +4217,8 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                             }
                         }
                     }
-                } else if (m_bHasContacted) {
-                    m_bHasContacted = false;
+                } else if (GetHasContacted()) {
+                    SetHasContacted(false);
                     CVector vecThisFrictionMoveSpeed = m_vecFrictionMoveSpeed;
                     CVector vecThisFrictionTurnSpeed = m_vecFrictionTurnSpeed;
                     ResetFrictionMoveSpeed();
@@ -4251,26 +4251,26 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                     fFriction3 *= 1.0f * fThisDamageIntensity;
                                 }
 
-                                if (entity->IsStatic()) {
+                                if (entity->GetIsStatic()) {
                                     if (ApplyFriction(fFriction3, *colPoint1)) {
-                                        m_bHasContacted = true;
+                                        SetHasContacted(true);
                                     }
                                 } else if (ApplyFriction(physicalEntity, fFriction3, *colPoint1)) {
-                                    m_bHasContacted = true;
-                                    entity->m_bHasContacted = true;
+                                    SetHasContacted(true);
+                                    entity->SetHasContacted(true);
                                 }
                             }
                         }
                     }
 
-                    if (!m_bHasContacted) {
-                        m_bHasContacted = true;
+                    if (!GetHasContacted()) {
+                        SetHasContacted(true);
                         m_vecFrictionMoveSpeed = vecThisFrictionMoveSpeed;
                         m_vecFrictionTurnSpeed = vecThisFrictionTurnSpeed;
                     }
                 } else {
-                    if (entity->m_bHasContacted) {
-                        entity->m_bHasContacted = false;
+                    if (entity->GetHasContacted()) {
+                        entity->SetHasContacted(false);
                         CVector vecEntityMoveSpeed = physicalEntity->m_vecFrictionMoveSpeed;
                         CVector vecEntityFrictionTurnSpeed = physicalEntity->m_vecFrictionTurnSpeed;
                         physicalEntity->ResetFrictionMoveSpeed();
@@ -4306,20 +4306,20 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                         fFriction2 *= 1.0f * fThisDamageIntensity;
                                     }
 
-                                    if (entity->IsStatic()) {
+                                    if (entity->GetIsStatic()) {
                                         if (ApplyFriction(fFriction2, *colPoint4)) {
-                                            m_bHasContacted = true;
+                                            SetHasContacted(true);
                                         }
                                     } else if (ApplyFriction(physicalEntity, fFriction2, *colPoint4)) {
-                                        m_bHasContacted = true;
-                                        entity->m_bHasContacted = true;
+                                        SetHasContacted(true);
+                                        entity->SetHasContacted(true);
                                     }
                                 }
                             }
                         }
 
-                        if (!entity->m_bHasContacted) {
-                            entity->m_bHasContacted = true;
+                        if (!entity->GetHasContacted()) {
+                            entity->SetHasContacted(true);
                             physicalEntity->m_vecFrictionMoveSpeed = vecEntityMoveSpeed;
                             physicalEntity->m_vecFrictionTurnSpeed = vecEntityFrictionTurnSpeed;
                         }
@@ -4353,13 +4353,13 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                                     fFriction1 *= 1.0f * fThisDamageIntensity;
                                 }
 
-                                if (entity->IsStatic()) {
+                                if (entity->GetIsStatic()) {
                                     if (ApplyFriction(fFriction1, *colPoint3)) {
-                                        m_bHasContacted = true;
+                                        SetHasContacted(true);
                                     }
                                 } else if (ApplyFriction(physicalEntity, fFriction1, *colPoint3)) {
-                                    m_bHasContacted = true;
-                                    entity->m_bHasContacted = true;
+                                    SetHasContacted(true);
+                                    entity->SetHasContacted(true);
                                 }
                             }
                         }
@@ -4500,7 +4500,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
     }
 
     assert(entity);
-    if (m_bHasContacted && entity->m_bHasContacted)
+    if (GetHasContacted() && entity->GetHasContacted())
     {
         if (totalColPointsToProcess > 0)
         {
@@ -4515,13 +4515,13 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
             }
         }
     }
-    else if (m_bHasContacted)
+    else if (GetHasContacted())
     {
         CVector vecOldFrictionMoveSpeed = m_vecFrictionMoveSpeed;
         CVector vecOldFrictionTurnSpeed = m_vecFrictionTurnSpeed;
         ResetFrictionTurnSpeed();
         ResetFrictionMoveSpeed();
-        m_bHasContacted = false;
+        SetHasContacted(false);
 
         if (totalColPointsToProcess > 0)
         {
@@ -4536,30 +4536,30 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                     float fFriction = fSurfaceFriction / totalColPointsToProcess;
                     if (ApplyFriction(entity, fFriction, *colPoint))
                     {
-                        m_bHasContacted = true;
-                        entity->m_bHasContacted = true;
+                        SetHasContacted(true);
+                        entity->SetHasContacted(true);
                     }
                 }
             }
         }
 
-        if (!m_bHasContacted)
+        if (!GetHasContacted())
         {
             m_vecFrictionMoveSpeed = vecOldFrictionMoveSpeed;
             m_vecFrictionTurnSpeed = vecOldFrictionTurnSpeed;
-            m_bHasContacted = true;
+            SetHasContacted(true);
         }
     }
     else
     {
-        if (entity->m_bHasContacted)
+        if (entity->GetHasContacted())
         {
             assert(entity);
             CVector vecOldFrictionMoveSpeed = entity->m_vecFrictionMoveSpeed;
             CVector vecOldFrictionTurnSpeed = entity->m_vecFrictionTurnSpeed;
             entity->ResetFrictionTurnSpeed();
             entity->ResetFrictionMoveSpeed();
-            entity->m_bHasContacted = false;
+            entity->SetHasContacted(false);
 
             if (totalColPointsToProcess > 0)
             {
@@ -4574,17 +4574,17 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                         float fFriction = fSurfaceFriction / totalColPointsToProcess;
                         if (ApplyFriction(entity, fFriction, *colPoint))
                         {
-                            m_bHasContacted = true;
-                            entity->m_bHasContacted = true;
+                            SetHasContacted(true);
+                            entity->SetHasContacted(true);
                         }
                     }
                 }
             }
-            if (!entity->m_bHasContacted)
+            if (!entity->GetHasContacted())
             {
                 entity->m_vecFrictionMoveSpeed = vecOldFrictionMoveSpeed;
                 entity->m_vecFrictionTurnSpeed = vecOldFrictionTurnSpeed;
-                entity->m_bHasContacted = true;
+                entity->SetHasContacted(true);
             }
         }
         else if (totalColPointsToProcess > 0)
@@ -4600,8 +4600,8 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                     float fFriction = fSurfaceFriction / totalColPointsToProcess;
                     if (ApplyFriction(entity, fFriction, *colPoint))
                     {
-                        m_bHasContacted = true;
-                        entity->m_bHasContacted = true;
+                        SetHasContacted(true);
+                        entity->SetHasContacted(true);
                     }
                 }
             }

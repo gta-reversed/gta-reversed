@@ -180,11 +180,11 @@ void CBulletInfo::Update() {
                         if (hitObject->physicalFlags.bDisableCollisionForce || hitObject->m_pObjectInfo->m_fColDamageMultiplier >= 99.9f) {
                             /* empty */
                         } else {
-                            if (hitObject->IsStatic() && hitObject->m_pObjectInfo->m_fUprootLimit <= 0.0f) {
+                            if (hitObject->GetIsStatic() && hitObject->m_pObjectInfo->m_fUprootLimit <= 0.0f) {
                                 hitObject->SetIsStatic(false);
                                 hitObject->AddToMovingList();
                             }
-                            if (!hitObject->IsStatic()) {
+                            if (!hitObject->GetIsStatic()) {
                                 hitObject->ApplyMoveForce(colPoint.m_vecNormal * -7.5f);
                             }
                         }

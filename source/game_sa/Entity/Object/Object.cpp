@@ -180,7 +180,7 @@ void CObject::operator delete(void* obj, int32 poolRef) {
 
 // 0x5A0760
 void CObject::SetIsStatic(bool isStatic) {
-    m_bIsStatic = isStatic;
+    SetIsStatic(isStatic);
     physicalFlags.b31 = false;
     if (!isStatic && (physicalFlags.bDisableMoveForce && m_fDoorStartAngle < -1000.0F)) {
         m_fDoorStartAngle = GetHeading();
@@ -230,7 +230,7 @@ void CObject::ProcessControl() {
     }
 
     objectFlags.bDamaged = false;
-    if (!m_bIsStuck && !IsStatic()) {
+    if (!m_bIsStuck && !GetIsStatic()) {
         if (!physicalFlags.bDisableZ && !physicalFlags.bInfiniteMass && !physicalFlags.bDisableMoveForce) {
             m_vecForce += m_vecMoveSpeed;
             m_vecForce /= 2.0F;
@@ -257,7 +257,7 @@ void CObject::ProcessControl() {
         }
     }
 
-    if (!IsStatic())
+    if (!GetIsStatic())
         CPhysical::ProcessControl();
 
     if (bIsAnimated)
@@ -327,7 +327,7 @@ void CObject::ProcessControl() {
         }
 
         if (!m_bIsBIGBuilding
-            && !IsStatic()
+            && !GetIsStatic()
             && std::fabs(fDiff) < 0.01F
             && (objectFlags.bIsDoorMoving || std::fabs(m_vecTurnSpeed.z) < 0.01F)
         ) {
@@ -392,7 +392,7 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
             {
                 if (IsModelTempCollision())
                     bCollisionDisabled = true;
-                else if (IsTemporary() || IsExploded() || !CEntity::IsStatic())
+                else if (IsTemporary() || IsExploded() || !CEntity::GetIsStatic())
                 {
                     if (colPhysical->AsVehicle()->IsConstructionVehicle())
                     {
@@ -1054,7 +1054,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         case COL_DAMAGE_EFFECT_SMASH_COMPLETELY:
             SetUsesCollision(false);
             m_bIsVisible = false;
-            if (!CEntity::IsStatic())
+            if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
             m_bIsStatic = true;
@@ -1069,7 +1069,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             if (m_bRenderDamaged) {
                 SetUsesCollision(false);
                 m_bIsVisible = false;
-                if (!CEntity::IsStatic()) {
+                if (!CEntity::GetIsStatic()) {
                     CPhysical::RemoveFromMovingList();
                 }
 
@@ -1092,7 +1092,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
 
             SetUsesCollision(false);
             m_bIsVisible = false;
-            if (!CEntity::IsStatic())
+            if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
             m_bIsStatic = true;
@@ -1177,7 +1177,7 @@ void CObject::Explode() {
         m_vecMoveSpeed.y += CGeneral::GetRandomNumberInRange(-0.0256F, 0.0256F);
         m_vecMoveSpeed.z += 0.5F;
 
-        if (IsStatic()) {
+        if (GetIsStatic()) {
             SetIsStatic(false);
             CPhysical::AddToMovingList();
         }
@@ -1224,7 +1224,7 @@ void CObject::ObjectFireDamage(float damage, CEntity* damager) {
 
         SetUsesCollision(false);
         m_bIsVisible = false;
-        if (!CEntity::IsStatic())
+        if (!CEntity::GetIsStatic())
             CPhysical::RemoveFromMovingList();
 
         m_bIsStatic = true;

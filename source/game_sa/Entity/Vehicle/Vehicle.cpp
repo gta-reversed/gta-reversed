@@ -557,7 +557,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
 
             if (colPhysical->AsObject()->IsTemporary()
                 || colPhysical->AsObject()->IsExploded()
-                || !colPhysical->IsStatic())
+                || !colPhysical->GetIsStatic())
             {
                 if (IsConstructionVehicle())
                 {

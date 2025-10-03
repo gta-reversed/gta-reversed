@@ -153,7 +153,7 @@ public:
     void SetCollisionProcessed(bool status) { m_bCollisionProcessed = status; }
     bool GetCollisionProcessed() const { return m_bCollisionProcessed; } // unused
     virtual void SetIsStatic(bool status) { m_bIsStatic = status; } // 0x403E20
-    bool GetIsStatic() const { return m_bIsStatic; }
+    bool GetIsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
     void SetHasContacted(bool status) { m_bHasContacted = status; }
     bool GetHasContacted() const { return m_bHasContacted; }
     
@@ -373,7 +373,6 @@ public:
     static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
 
     [[nodiscard]] bool IsModelTempCollision() const { return GetModelIndex() >= MODEL_TEMPCOL_DOOR1 && GetModelIndex() <= MODEL_TEMPCOL_BODYPART2; }
-    [[nodiscard]] bool IsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
     [[nodiscard]] bool IsRCCar()  const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
 
     auto AsPhysical()         { return reinterpret_cast<CPhysical*>(this); }

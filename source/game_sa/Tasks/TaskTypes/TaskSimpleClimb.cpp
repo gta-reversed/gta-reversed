@@ -74,7 +74,7 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
         return true;
     }
 
-    if (!m_ClimbEntity || m_ClimbEntity->GetIsTypeObject() && !m_ClimbEntity->IsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->GetIsTypeVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
+    if (!m_ClimbEntity || m_ClimbEntity->GetIsTypeObject() && !m_ClimbEntity->GetIsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->GetIsTypeVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
         MakeAbortable(ped);
         return true;
     }
@@ -113,7 +113,7 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
 
         CVector vecClimbEntSpeed{};
         CVector delta = targetPt - ped->GetPosition();
-        if (!m_ClimbEntity->IsStatic() && m_ClimbEntity->GetIsTypePhysical()) {
+        if (!m_ClimbEntity->GetIsStatic() && m_ClimbEntity->GetIsTypePhysical()) {
             vecClimbEntSpeed = m_ClimbEntity->AsPhysical()->GetSpeed(targetPt - m_ClimbEntity->GetPosition());
         }
 
@@ -305,7 +305,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
         if (entity->GetIsTypeBuilding()
             || (entity->GetIsTypeObject()
-                && (entity->IsStatic() || entity->AsObject()->physicalFlags.bDisableCollisionForce)
+                && (entity->GetIsStatic() || entity->AsObject()->physicalFlags.bDisableCollisionForce)
                 && !entity->AsObject()->physicalFlags.bInfiniteMass
             )
             || (entity->GetIsTypeVehicle()

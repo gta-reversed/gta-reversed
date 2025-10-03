@@ -647,11 +647,11 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                 DoBulletImpactFx();
                 if (victimObj->m_nColDamageEffect < 200) {
                     if (!victimObj->physicalFlags.bDisableCollisionForce && oinfo->m_fColDamageMultiplier < 99.9f) {
-                        if (victimObj->IsStatic() && oinfo->m_fUprootLimit <= 0.f) {
+                        if (victimObj->GetIsStatic() && oinfo->m_fUprootLimit <= 0.f) {
                             victimObj->SetIsStatic(false);
                             victimObj->AddToMovingList();
                         }
-                        if (!victimObj->IsStatic()) { // 0x73BC6B - Move the object a little
+                        if (!victimObj->GetIsStatic()) { // 0x73BC6B - Move the object a little
                             float force = -2.f;
                             if (victimObj->physicalFlags.bDisableZ || victimObj->physicalFlags.bDisableMoveForce) {
                                 force *= 0.1f;

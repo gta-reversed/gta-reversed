@@ -172,7 +172,7 @@ void CWorld::Add(CEntity* entity) {
     entity->UpdateRwFrame();
     entity->Add();
     if (!entity->GetIsTypeBuilding() && !entity->GetIsTypeDummy()) {
-        if (!entity->IsStatic()) {
+        if (!entity->GetIsStatic()) {
             entity->AsPhysical()->AddToMovingList();
         }
     }
@@ -1700,7 +1700,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
         if (entity->GetIsTypePed() && entity->AsPed()->bInVehicle)
             continue;
 
-        if (entity->IsStatic()) {
+        if (entity->GetIsStatic()) {
             if (!entity->GetIsTypeObject()) {
                 if (entity->m_bUsesCollision) {
                     entity->SetIsStatic(false);
@@ -1736,12 +1736,12 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                 // entity->AsObject()->m_fHealth -= 2 * radiusProgress2x;
             }
 
-            if (entity->IsStatic()) { // Redudant check
+            if (entity->GetIsStatic()) { // Redudant check
                 entity->AsObject()->ObjectDamage(std::min(1.0f, 2.f * (radius - entityToPointDist) / radius), nullptr, nullptr, creator, WEAPON_EXPLOSION);
             }
         }
 
-        if (entity->IsStatic() || !entity->m_bUsesCollision)
+        if (entity->GetIsStatic() || !entity->m_bUsesCollision)
             continue;
 
         const auto entityRelDistToRadiusEnd_Doubled = std::min(1.f, 2.f * (radius - entityToPointDist) / radius);
@@ -1963,7 +1963,7 @@ void CWorld::Process() {
                 }
             } else {
                 entity->ProcessControl();
-                if (entity->IsStatic()) {
+                if (entity->GetIsStatic()) {
                     entity->AsPhysical()->RemoveFromMovingList();
                 }
             }

@@ -212,7 +212,7 @@ bool CTaskSimpleHoldEntity::ProcessPed(CPed* ped) {
             entityToHold->SetUsesCollision(false);
             if (entityToHold->GetIsTypeObject()) {
                 auto* objectToHold = entityToHold->AsObject();
-                if (objectToHold->IsStatic()) {
+                if (objectToHold->GetIsStatic()) {
                     objectToHold->SetIsStatic(false);
                     objectToHold->AddToMovingList();
                 }
@@ -443,7 +443,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                 bUpdateEntityPosition = false;
             }
             else {
-                if (objectToHold->IsStatic()) {
+                if (objectToHold->GetIsStatic()) {
                     objectToHold->SetIsStatic(false);
                     objectToHold->AddToMovingList();
                 }
