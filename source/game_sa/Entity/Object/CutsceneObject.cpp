@@ -33,7 +33,7 @@ CCutsceneObject::CCutsceneObject() : CObject() {
     m_bStreamingDontDelete = true;
 
     CObject::SetIsStatic(false);
-    m_bBackfaceCulled = false;
+    SetIsBackfaceCulled(false);
     m_fContactSurfaceBrightness = 0.5F;
 }
 

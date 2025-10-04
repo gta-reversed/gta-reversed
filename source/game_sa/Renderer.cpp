@@ -137,7 +137,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
         CVisibilityPlugins::InitAlphaAtomicList();
         vehicle->RenderDriverAndPassengers();
         vehicle->SetupRender();
-    } else if (!entity->m_bBackfaceCulled) {
+    } else if (!entity->GetIsBackfaceCulled()) {
         RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
     }
 
@@ -160,7 +160,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
         vehicle->ResetAfterRender();
         vehicle->RemoveLighting(bSetupLighting);
     } else {
-        if (!entity->m_bBackfaceCulled)
+        if (!entity->GetIsBackfaceCulled())
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
         entity->RemoveLighting(bSetupLighting);
     }

@@ -547,7 +547,7 @@ void CVisibilityPlugins::RenderEntity(CEntity* entity, float distance) {
         RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(0));
         int32 alpha = CalculateFadingAtomicAlpha(mi, entity, distance);
         entity->m_bImBeingRendered = true;
-        if (!entity->m_bBackfaceCulled) {
+        if (!entity->GetIsBackfaceCulled()) {
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
         }
         bool bLightingSetup = entity->SetupLighting();
@@ -558,7 +558,7 @@ void CVisibilityPlugins::RenderEntity(CEntity* entity, float distance) {
         }
         entity->RemoveLighting(bLightingSetup);
         entity->m_bImBeingRendered = false;
-        if (!entity->m_bBackfaceCulled)
+        if (!entity->GetIsBackfaceCulled())
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     }
 

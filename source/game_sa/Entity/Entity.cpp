@@ -104,7 +104,7 @@ CEntity::CEntity() : CPlaceable() {
 
     m_nFlags = 0;
     m_bIsVisible = true;
-    m_bBackfaceCulled = true;
+    SetIsBackfaceCulled(true);
 
     m_nScanCode = 0;
     m_nAreaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD;
@@ -252,7 +252,7 @@ void CEntity::SetModelIndexNoCreate(uint32 index)
         m_bDrawLast = true;
 
     if (!mi->IsBackfaceCulled())
-        m_bBackfaceCulled = false;
+        SetIsBackfaceCulled(false);
 
     auto ami = mi->AsAtomicModelInfoPtr();
     if (ami && !ami->bTagDisabled && ami->IsTagModel())
