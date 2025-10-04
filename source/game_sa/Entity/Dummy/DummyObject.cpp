@@ -23,9 +23,9 @@ CDummyObject::CDummyObject(CObject* obj) : CDummy() {
         CEntity::AttachToRwObject(obj->m_pRwObject, true);
 
     obj->DetachFromRwObject();
-    m_nIplIndex = obj->GetIplIndex();
+    SetIplIndex(obj->GetIplIndex());
     SetAreaCode(obj->GetAreaCode());
-    CIplStore::IncludeEntity(m_nIplIndex, this);
+    CIplStore::IncludeEntity(GetIplIndex(), this);
 }
 
 // 0x59EAC0

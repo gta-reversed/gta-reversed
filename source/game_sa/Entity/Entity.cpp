@@ -110,7 +110,7 @@ CEntity::CEntity() : CPlaceable() {
     SetAreaCode(AREA_CODE_NORMAL_WORLD);
     m_nModelIndex = 0xFFFF;
     m_pRwObject = nullptr;
-    m_nIplIndex = 0;
+    SetIplIndex(0);
     m_nRandomSeed = CGeneral::GetRandomNumber();
     m_pReferences = nullptr;
     m_pStreamingLink = nullptr;
@@ -1694,7 +1694,7 @@ void CEntity::PruneReferences()
 // 0x571B70
 void CEntity::RegisterReference(CEntity** entity)
 {
-    if (GetIsTypeBuilding() && !m_bIsTempBuilding && !m_bIsProcObject && !m_nIplIndex)
+    if (GetIsTypeBuilding() && !m_bIsTempBuilding && !m_bIsProcObject && !GetIplIndex())
         return;
 
     auto refs = m_pReferences;
