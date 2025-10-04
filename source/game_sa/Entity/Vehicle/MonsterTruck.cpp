@@ -109,7 +109,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
             if (   entity->GetIsTypeBuilding()
                 || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
             ) {
-                m_bHasHitWall = true;
+                SetHasHitWall(true);
             }
         }
     }

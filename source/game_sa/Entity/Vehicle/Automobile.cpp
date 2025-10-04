@@ -644,7 +644,7 @@ void CAutomobile::ProcessControl()
         if (m_nModelIndex == MODEL_SKIMMER) {
             auto skimmerModelInfo = CModelInfo::GetModelInfo(MODEL_SKIMMER)->AsVehicleModelInfoPtr();
             auto skimmerHandling = gHandlingDataMgr.GetBoatPointer(static_cast<uint8>(skimmerModelInfo->m_nHandlingId));
-            ProcessBoatControl(skimmerHandling, &m_fDoomVerticalRotation, m_bHasHitWall, postCollision);
+            ProcessBoatControl(skimmerHandling, &m_fDoomVerticalRotation, GetHasHitWall(), postCollision);
             physicalFlags.bTouchingWater = physicalFlags.bSubmergedInWater;
         }
         else {
@@ -1880,7 +1880,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
         if (   entity->GetIsTypeBuilding()
             || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
         ) {
-            m_bHasHitWall = true;
+            SetHasHitWall(true);
         }
     }
 

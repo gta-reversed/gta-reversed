@@ -623,7 +623,7 @@ void CBoat::ProcessControl() {
 
     auto bPostCollision = m_fDamageIntensity > 0.0F && m_vecLastCollisionImpactVelocity.z > 0.1F;
     CPhysical::ProcessControl();
-    ProcessBoatControl(m_pBoatHandling, &m_fLastWaterImmersionDepth, m_bHasHitWall, bPostCollision);
+    ProcessBoatControl(m_pBoatHandling, &m_fLastWaterImmersionDepth, GetHasHitWall(), bPostCollision);
 
     if (m_nModelIndex == MODEL_SKIMMER
         && (m_fPropSpeed > CPlane::PLANE_MIN_PROP_SPEED || m_vecMoveSpeed.SquaredMagnitude() > CPlane::PLANE_MIN_PROP_SPEED)) {

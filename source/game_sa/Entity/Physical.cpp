@@ -231,7 +231,7 @@ void CPhysical::ProcessControl()
     if (!GetIsTypePed())
         physicalFlags.bSubmergedInWater = false;
 
-    m_bHasHitWall = false;
+    SetHasHitWall(false);
     m_bWasPostponed = false;
     m_bIsInSafePosition = false;
     SetHasContacted(false);
@@ -488,7 +488,7 @@ void CPhysical::ProcessShift() {
     }
     else
     {
-        if (m_bHasHitWall)
+        if (GetHasHitWall())
         {
             CPed* ped = AsPed();
             bool bSomeSpecificFlagsSet = false;
@@ -602,7 +602,7 @@ int32 CPhysical::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
             entity->AsPhysical()->AddCollisionRecord(this);
 
         if (entity->GetIsTypeBuilding() || entity->GetIsStatic())
-            m_bHasHitWall = true;
+            SetHasHitWall(true);
     }
     return totalColPointsToProcess;
 }
@@ -903,7 +903,7 @@ void CPhysical::SkipPhysics()
     if (!GetIsTypePed() && !GetIsTypeVehicle())
         physicalFlags.bSubmergedInWater = false;
 
-    m_bHasHitWall = false;
+    SetHasHitWall(false);
     m_bWasPostponed = false;
     m_bIsInSafePosition = false;
     SetHasContacted(false);
@@ -1644,7 +1644,7 @@ bool CPhysical::ApplyCollisionAlt(CPhysical* entity, CColPoint& colPoint, float&
         CVector vecSpeed = vecMoveSpeed / m_fMass;                                                            // todo: shadow var
         if (GetIsTypeVehicle())
         {
-            if (!m_bHasHitWall || m_vecMoveSpeed.SquaredMagnitude() <= 0.1f
+            if (!GetHasHitWall() || m_vecMoveSpeed.SquaredMagnitude() <= 0.1f
                 && (entity->GetIsTypeBuilding() || entity->physicalFlags.bDisableCollisionForce))
             {
                 outVecMoveSpeed += vecSpeed * 1.2f;
@@ -1998,7 +1998,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             }
             if (entity != this
                 && !entity->IsScanCodeCurrent()
-                && entity->GetUsesCollision() && (!m_bHasHitWall || bProcessEntityCollision))
+                && entity->GetUsesCollision() && (!GetHasHitWall() || bProcessEntityCollision))
             {
                 if (entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius))
                 {
@@ -2746,7 +2746,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                     CVector vecThisCrossProduct = CrossProduct(vecThisDifference, colPoint.m_vecNormal);
                     float squaredMagnitude = vecThisCrossProduct.SquaredMagnitude();
                     float fThisCollisionMass = 1.0f / (squaredMagnitude / m_fTurnMass + 1.0f / m_fMass);
-                    if (!m_bHasHitWall)
+                    if (!GetHasHitWall())
                     {
                         thisDamageIntensity = -((m_fElasticity + 1.0f) * fThisCollisionMass * fThisSpeedDotProduct);
                     }
@@ -2801,7 +2801,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                         }
                     }
                     if (entity->physicalFlags.bDisableCollisionForce || entityObjectInfo->m_fUprootLimit >= 9999.0f
-                        || thisDamageIntensity <= entityObjectInfo->m_fUprootLimit && (!GetIsStuck() || !m_bHasHitWall))
+                        || thisDamageIntensity <= entityObjectInfo->m_fUprootLimit && (!GetIsStuck() || !GetHasHitWall()))
                     {
                         if (IsGlassModel(entity))
                         {
@@ -2903,7 +2903,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
 
             float fThisMoveSpeedElasticity = 0.0f;
             float fTheElasticity = (entity->m_fElasticity + m_fElasticity) * 0.5f;
-            if (m_bHasHitWall) {
+            if (GetHasHitWall()) {
                 fThisMoveSpeedElasticity = fMoveSpeed;
             } else {
                 fThisMoveSpeedElasticity = fMoveSpeed - fTheElasticity * fThisMoveSpeedDifference;
@@ -2923,7 +2923,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             if (bApplyEntityCollisionForce)
             {
                 float fEntityMoveSpeedElasticity = 0.0f;
-                if (entity->m_bHasHitWall) {
+                if (entity->GetHasHitWall()) {
                     fEntityMoveSpeedElasticity = fMoveSpeed;
                 } else {
                     fEntityMoveSpeedElasticity = fMoveSpeed - (fEntitySpeedDotProduct - fMoveSpeed) * fTheElasticity;
@@ -3003,13 +3003,13 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             float fEntityMoveSpeedElasticity = 0.0f;
 
             float fTheElasticity = (entity->m_fElasticity + m_fElasticity) * 0.5f;
-            if (m_bHasHitWall) {
+            if (GetHasHitWall()) {
                 fThisMoveSpeedElasticity = fMoveSpeed;
             } else {
                 fThisMoveSpeedElasticity = fMoveSpeed - fTheElasticity * fThisMoveSpeedDifference;
             }
 
-            if (entity->m_bHasHitWall) {
+            if (entity->GetHasHitWall()) {
                 fEntityMoveSpeedElasticity = fMoveSpeed;
             } else {
                 fEntityMoveSpeedElasticity = fMoveSpeed - (fEntitySpeedDotProduct - fMoveSpeed) * fTheElasticity;
@@ -3092,7 +3092,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
         float fEntityMoveSpeedElasticity = 0.0f;
 
         float fTheElasticity = (entity->m_fElasticity + m_fElasticity) * 0.5f;
-        if (m_bHasHitWall)
+        if (GetHasHitWall())
         {
             fThisMoveSpeedElasticity = fMoveSpeed;
         }
@@ -3101,7 +3101,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             fThisMoveSpeedElasticity = fMoveSpeed - fTheElasticity * fThisMoveSpeedDifference;
         }
 
-        if (entity->m_bHasHitWall)
+        if (entity->GetHasHitWall())
         {
             fEntityMoveSpeedElasticity = fMoveSpeed;
         }
@@ -3215,7 +3215,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
         float fThisMoveSpeedElasticity = 0.0f;
         float fEntityMoveSpeedElasticity = 0.0f;
         float fTheElasticity = (entity->m_fElasticity + m_fElasticity) * 0.5f;
-        if (m_bHasHitWall)
+        if (GetHasHitWall())
         {
             fThisMoveSpeedElasticity = fMoveSpeed;
         }
@@ -3224,7 +3224,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             fThisMoveSpeedElasticity = fMoveSpeed - fTheElasticity * fThisMoveSpeedDifference;
         }
 
-        if (entity->m_bHasHitWall)
+        if (entity->GetHasHitWall())
         {
             fEntityMoveSpeedElasticity = fMoveSpeed;
         }
@@ -3239,7 +3239,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
         CVector vecThisMoveForce = colPoint.m_vecNormal * (thisDamageIntensity / fThisMassFactor);
         CVector vecEntityMoveForce = colPoint.m_vecNormal * (entityDamageIntensity / fEntityMassFactor) * -1.0f;
 
-        if (GetIsTypeVehicle() && !m_bHasHitWall && !physicalFlags.bDisableCollisionForce)
+        if (GetIsTypeVehicle() && !GetHasHitWall() && !physicalFlags.bDisableCollisionForce)
         {
             if (colPoint.m_vecNormal.z < 0.7f)
             {
@@ -3258,7 +3258,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             }
         }
 
-        if (entity->GetIsTypeVehicle() && !entity->m_bHasHitWall && !entity->physicalFlags.bDisableCollisionForce)
+        if (entity->GetIsTypeVehicle() && !entity->GetHasHitWall() && !entity->physicalFlags.bDisableCollisionForce)
         {
             if ((colPoint.m_vecNormal.z * -1.0f) < 0.7f)
             {
@@ -3432,7 +3432,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
             float squaredMagnitude = vecThisCrossProduct.SquaredMagnitude();
 
             float fThisCollisionMass = 1.0f / (squaredMagnitude / m_fTurnMass + 1.0f / m_fMass);
-            if (!m_bHasHitWall)
+            if (!GetHasHitWall())
             {
                 thisDamageIntensity = -((m_fElasticity + 1.0f) * fThisCollisionMass * fThisSpeedDotProduct);
             }
@@ -3566,7 +3566,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 
             float fThisMoveSpeedElasticity = 0.0f;
             float fTheElasticity = (physical->m_fElasticity + m_fElasticity) * 0.5f;
-            if (m_bHasHitWall)
+            if (GetHasHitWall())
             {
                 fThisMoveSpeedElasticity = fMoveSpeed;
             }
@@ -3591,7 +3591,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                 if (fEntityMoveSpeedDifference < 0.0f)
                 {
                     float fEntityMoveSpeedElasticity = 0.0f;
-                    if (physical->m_bHasHitWall)
+                    if (physical->GetHasHitWall())
                     {
                         fEntityMoveSpeedElasticity = fMoveSpeed;
                     }
@@ -3656,7 +3656,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                 float fThisMoveSpeedElasticity = 0.0f;
                 float fEntityMoveSpeedElasticity = 0.0f;
                 float fTheElasticity = (physical->m_fElasticity + m_fElasticity) * 0.5f;
-                if (m_bHasHitWall)
+                if (GetHasHitWall())
                 {
                     fThisMoveSpeedElasticity = fMoveSpeed;
                 }
@@ -3665,7 +3665,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     fThisMoveSpeedElasticity = fMoveSpeed - fThisMoveSpeedDifference * fTheElasticity;
                 }
 
-                if (physical->m_bHasHitWall)
+                if (physical->GetHasHitWall())
                 {
                     fEntityMoveSpeedElasticity = fMoveSpeed;
                 }
@@ -3739,7 +3739,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     float fEntityMoveSpeedElasticity = 0.0f;
 
                     float fTheElasticity = (physical->m_fElasticity + m_fElasticity) * 0.5f;
-                    if (m_bHasHitWall)
+                    if (GetHasHitWall())
                     {
                         fThisMoveSpeedElasticity = fMoveSpeed;
                     }
@@ -3747,7 +3747,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     {
                         fThisMoveSpeedElasticity = fMoveSpeed - fThisMoveSpeedDifference * fTheElasticity;
                     }
-                    if (physical->m_bHasHitWall)
+                    if (physical->GetHasHitWall())
                     {
                         fEntityMoveSpeedElasticity = fMoveSpeed;
                     }
@@ -3834,7 +3834,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     float fEntityMoveSpeedElasticity = 0.0f;
 
                     float fTheElasticity = (physical->m_fElasticity + m_fElasticity) * 0.5f;
-                    if (m_bHasHitWall)
+                    if (GetHasHitWall())
                     {
                         fThisMoveSpeedElasticity = fMoveSpeed;
                     }
@@ -3842,7 +3842,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     {
                         fThisMoveSpeedElasticity = fMoveSpeed - fThisMoveSpeedDifference * fTheElasticity;
                     }
-                    if (physical->m_bHasHitWall)
+                    if (physical->GetHasHitWall())
                     {
                         fEntityMoveSpeedElasticity = fMoveSpeed;
                     }
@@ -3857,7 +3857,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     CVector vecThisMoveForce = colPoint.m_vecNormal * (thisDamageIntensity / fThisMassFactor);
                     CVector vecEntityMoveForce = colPoint.m_vecNormal * (entityDamageIntensity / fEntityMassFactor) * -1.0f;
 
-                    if (GetIsTypeVehicle() && !m_bHasHitWall)
+                    if (GetIsTypeVehicle() && !GetHasHitWall())
                     {
                         if (colPoint.m_vecNormal.z < 0.7f)
                         {
@@ -3876,7 +3876,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                         }
                     }
 
-                    if (physical->GetIsTypeVehicle() && !physical->m_bHasHitWall)
+                    if (physical->GetIsTypeVehicle() && !physical->GetHasHitWall())
                     {
                         if ((colPoint.m_vecNormal.z * -1.0f) < 0.7f)
                         {

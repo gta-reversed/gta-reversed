@@ -417,7 +417,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
             if (   entity->GetIsTypeBuilding()
                 || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
             ) {
-                m_bHasHitWall = true;
+                SetHasHitWall(true);
             }
         }
     }

@@ -373,7 +373,7 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
                 if (bIgnoreStuckCheck || GetIsStuck())
                     bCollisionDisabled = true;
                 else if (!colPhysical->GetIsStuck()) { /* Do nothing pretty much, and skip further calc */ }
-                else if (!colPhysical->m_bHasHitWall)
+                else if (!colPhysical->GetHasHitWall())
                     bThisOrCollidedEntityStuck = true;
                 else
                     bCollidedEntityUnableToMove = true;

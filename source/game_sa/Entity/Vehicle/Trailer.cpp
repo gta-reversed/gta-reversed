@@ -395,7 +395,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
         }
         if (numColPts > 0 && entity->GetIsTypeBuilding()
             || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)) {
-            m_bHasHitWall = true;
+            SetHasHitWall(true);
         }
     }
 
