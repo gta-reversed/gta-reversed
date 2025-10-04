@@ -1330,7 +1330,7 @@ float CPhysical::GetLightingFromCol(bool bInteriorLighting)
 float CPhysical::GetLightingTotal()
 {
     bool bInteriorLighting = false;
-    if (m_nAreaCode)
+    if (GetAreaCode())
         bInteriorLighting = true;
 
     if (GetIsTypePed()) {

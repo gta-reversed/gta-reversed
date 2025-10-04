@@ -174,10 +174,8 @@ public:
     
     void SetScanCode(uint16 code) { m_nScanCode = code; }
     uint16 GetScanCode() const { return m_nScanCode; } // unused
-
     void SetAreaCode(eAreaCodes code) { m_nAreaCode = code; }
     eAreaCodes GetAreaCode() const { return m_nAreaCode; }
-
     void SetIplIndex(uint8 index) { m_nIplIndex = index; }
     uint8 GetIplIndex() { return m_nIplIndex; }
 

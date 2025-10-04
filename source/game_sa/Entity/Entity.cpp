@@ -107,7 +107,7 @@ CEntity::CEntity() : CPlaceable() {
     SetIsBackfaceCulled(true);
 
     SetScanCode(0);
-    m_nAreaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD;
+    SetAreaCode(AREA_CODE_NORMAL_WORLD);
     m_nModelIndex = 0xFFFF;
     m_pRwObject = nullptr;
     m_nIplIndex = 0;
@@ -2398,11 +2398,11 @@ inline RwMatrix* CEntity::GetRwMatrix() {
 }
 
 inline bool CEntity::IsInArea(int32 area) {
-    return m_nAreaCode == area || m_nAreaCode == AREA_CODE_13;
+    return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
 }
 
 inline bool CEntity::IsInCurrentArea() const {
-    return m_nAreaCode == CGame::currArea || m_nAreaCode == AREA_CODE_13;
+    return GetAreaCode() == CGame::currArea || GetAreaCode() == AREA_CODE_13;
 }
 
 // 0x446F90

@@ -109,7 +109,7 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
     Init();
 
     m_nIplIndex = dummyObj->GetIplIndex();
-    m_nAreaCode = dummyObj->GetAreaCode();
+    SetAreaCode(dummyObj->GetAreaCode());
     m_bRenderDamaged = dummyObj->m_bRenderDamaged;
 
     if (m_pRwObject) {
@@ -843,7 +843,7 @@ void CObject::Init() {
     objectFlags.bIsTargetable = false;
     physicalFlags.bAttachedToEntity = false;
 
-    m_nAreaCode = eAreaCodes::AREA_CODE_13;
+    SetAreaCode(AREA_CODE_13);
     m_wRemapTxd = -1;
     m_pRemapTexture = nullptr;
     m_pControlCodeList = nullptr;
