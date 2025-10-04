@@ -141,7 +141,7 @@ public:
     [[nodiscard]] bool GetIsTypeNothing()  const { return GetType() == ENTITY_TYPE_NOTHING; } // NOTSA
     
     void SetType(eEntityType type) { m_info.m_nType = type; }
-    [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_info.m_nType; }
+    [[nodiscard]] auto GetType() const noexcept { return m_info.m_nType; }
 
     void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
     [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
@@ -173,7 +173,7 @@ public:
     void SetIsUnimportantStream(bool status) { m_bUnimportantStream |= status; }
     
     void SetScanCode(uint16 code) { m_nScanCode = code; }
-    uint16 GetScanCode() const { return m_nScanCode; }
+    uint16 GetScanCode() const { return m_nScanCode; } // unused
 
     void SetAreaCode(eAreaCodes code) { m_nAreaCode = code; }
     eAreaCodes GetAreaCode() const { return m_nAreaCode; }

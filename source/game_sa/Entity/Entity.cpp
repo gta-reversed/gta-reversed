@@ -106,7 +106,7 @@ CEntity::CEntity() : CPlaceable() {
     m_bIsVisible = true;
     SetIsBackfaceCulled(true);
 
-    m_nScanCode = 0;
+    SetScanCode(0);
     m_nAreaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD;
     m_nModelIndex = 0xFFFF;
     m_pRwObject = nullptr;
