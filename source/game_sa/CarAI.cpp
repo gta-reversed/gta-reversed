@@ -87,7 +87,7 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenge
     }
     vehicle->vehicleFlags.bOccupantsHaveBeenGenerated = true;
 
-    switch (vehicle->m_nModelIndex) {
+    switch (vehicle->GetModelIndex()) {
     case MODEL_ENFORCER:
     case MODEL_FBIRANCH: {
         vehicle->SetUpDriver(PED_TYPE_NONE, false, false);

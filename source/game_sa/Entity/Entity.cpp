@@ -265,7 +265,7 @@ void CEntity::CreateRwObject()
     if (!m_bIsVisible)
         return;
 
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (m_bRenderDamaged) {
         CDamageAtomicModelInfo::ms_bCreateDamagedVersion = true;
         m_pRwObject = mi->CreateInstance();
@@ -353,7 +353,7 @@ void CEntity::DeleteRwObject()
     }
 
     m_pRwObject = nullptr;
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     mi->RemoveRef();
     CStreaming::RemoveEntity(std::exchange(m_pStreamingLink, nullptr));
 
@@ -370,7 +370,7 @@ void CEntity::DeleteRwObject()
 
 // 0x534120
 CRect CEntity::GetBoundRect() const {
-    CColModel* colModel = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel();
+    CColModel* colModel = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
     CVector vecMin = colModel->m_boundBox.m_vecMin;
     CVector vecMax = colModel->m_boundBox.m_vecMax;
     CRect rect;
@@ -432,7 +432,7 @@ uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& bDoPreCheckAtFullSpeed, boo
 
 // 0x535FA0
 void CEntity::PreRender() {
-    auto mi  = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi  = CModelInfo::GetModelInfo(GetModelIndex());
     auto ami = mi->AsAtomicModelInfoPtr();
 
     if (mi->m_n2dfxCount) {
@@ -483,23 +483,23 @@ void CEntity::PreRender() {
 
     if (GetIsTypeObject()) {
         auto obj = AsObject();
-        if (m_nModelIndex == ModelIndices::MI_COLLECTABLE1) {
+        if (GetModelIndex() == ModelIndices::MI_COLLECTABLE1) {
             CPickups::DoCollectableEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (m_nModelIndex == ModelIndices::MI_MONEY) {
+        } else if (GetModelIndex() == ModelIndices::MI_MONEY) {
             CPickups::DoMoneyEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (m_nModelIndex == ModelIndices::MI_CARMINE
-                   || m_nModelIndex == ModelIndices::MI_NAUTICALMINE
-                   || m_nModelIndex == ModelIndices::MI_BRIEFCASE) {
+        } else if (GetModelIndex() == ModelIndices::MI_CARMINE
+                   || GetModelIndex() == ModelIndices::MI_NAUTICALMINE
+                   || GetModelIndex() == ModelIndices::MI_BRIEFCASE) {
             if (obj->objectFlags.bIsPickup) {
                 CPickups::DoMineEffects(this);
                 UpdateRW();
                 UpdateRwFrame();
             }
-        } else if (m_nModelIndex == MODEL_MISSILE) {
+        } else if (GetModelIndex() == MODEL_MISSILE) {
             if (CReplay::Mode != MODE_PLAYBACK) {
                 CVector vecPos = GetPosition();
                 auto    fRand  = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
@@ -559,7 +559,7 @@ void CEntity::PreRender() {
                     false
                 );
             }
-        } else if (m_nModelIndex == ModelIndices::MI_FLARE) {
+        } else if (GetModelIndex() == ModelIndices::MI_FLARE) {
             CVector vecPos = GetPosition();
             auto    fRand  = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
             fRand          = std::max(fRand, 0.5F);
@@ -624,7 +624,7 @@ void CEntity::PreRender() {
             CPickups::DoPickUpEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (m_nModelIndex == MODEL_GRENADE) {
+        } else if (GetModelIndex() == MODEL_GRENADE) {
             const auto& vecPos         = GetPosition();
             auto        vecScaledCam   = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
             auto        vecStreakStart = vecPos - vecScaledCam;
@@ -632,7 +632,7 @@ void CEntity::PreRender() {
             if (CVector2D(obj->m_vecMoveSpeed).Magnitude() > 0.03F) {
                 CMotionBlurStreaks::RegisterStreak(reinterpret_cast<uint32>(this), 100, 100, 100, 255, vecStreakStart, vecStreakEnd);
             }
-        } else if (m_nModelIndex == MODEL_MOLOTOV) {
+        } else if (GetModelIndex() == MODEL_MOLOTOV) {
             const auto& vecPos         = GetPosition();
             auto        vecScaledCam   = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
             auto        vecStreakStart = vecPos - vecScaledCam;
@@ -643,7 +643,7 @@ void CEntity::PreRender() {
                     CMotionBlurStreaks::RegisterStreak(reinterpret_cast<uint32>(this), 255, 160, 100, 255, vecStreakStart, vecStreakEnd);
                 }
             }
-        } else if (m_nModelIndex == ModelIndices::MI_BEACHBALL) {
+        } else if (GetModelIndex() == ModelIndices::MI_BEACHBALL) {
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 50.0F) {
                 auto ucShadowStrength = static_cast<uint8>(CTimeCycle::m_CurrentColours.m_nShadowStrength);
                 CShadows::StoreShadowToBeRendered(
@@ -665,11 +665,11 @@ void CEntity::PreRender() {
                     false
                 );
             }
-        } else if (m_nModelIndex == ModelIndices::MI_MAGNOCRANE_HOOK
-                   || m_nModelIndex == ModelIndices::MI_WRECKING_BALL
-                   || m_nModelIndex == ModelIndices::MI_CRANE_MAGNET
-                   || m_nModelIndex == ModelIndices::MI_MINI_MAGNET
-                   || m_nModelIndex == ModelIndices::MI_CRANE_HARNESS) {
+        } else if (GetModelIndex() == ModelIndices::MI_MAGNOCRANE_HOOK
+                   || GetModelIndex() == ModelIndices::MI_WRECKING_BALL
+                   || GetModelIndex() == ModelIndices::MI_CRANE_MAGNET
+                   || GetModelIndex() == ModelIndices::MI_MINI_MAGNET
+                   || GetModelIndex() == ModelIndices::MI_CRANE_HARNESS) {
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 100.0F) {
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT,
@@ -690,36 +690,36 @@ void CEntity::PreRender() {
                     false
                 );
             }
-        } else if (m_nModelIndex == ModelIndices::MI_WINDSOCK) {
+        } else if (GetModelIndex() == ModelIndices::MI_WINDSOCK) {
             BuildWindSockMatrix();
         }
     }
 
-    if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS) {
+    if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 2.957F, 0.147F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_VERTICAL) {
+    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_VERTICAL) {
         CTrafficLights::DisplayActualLight(this);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_MIAMI) {
+    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_MIAMI) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 4.81F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_TWOVERTICAL) {
+    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_TWOVERTICAL) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 7.503F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_3
-               || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_4
-               || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_5
-               || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_GAY) {
+    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_3
+               || GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_4
+               || GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_5
+               || GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_GAY) {
         CTrafficLights::DisplayActualLight(this);
-    } else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS1) {
+    } else if (GetModelIndex() == ModelIndices::MI_SINGLESTREETLIGHTS1) {
         CShadows::StoreShadowForPole(this, 7.744F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS2) {
+    } else if (GetModelIndex() == ModelIndices::MI_SINGLESTREETLIGHTS2) {
         CShadows::StoreShadowForPole(this, 0.043F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS3) {
+    } else if (GetModelIndex() == ModelIndices::MI_SINGLESTREETLIGHTS3) {
         CShadows::StoreShadowForPole(this, 1.143F, 0.145F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_DOUBLESTREETLIGHTS) {
+    } else if (GetModelIndex() == ModelIndices::MI_DOUBLESTREETLIGHTS) {
         CShadows::StoreShadowForPole(this, 0.0F, -0.048F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_VEGAS) {
+    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_VEGAS) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 7.5F, 0.2F, 0.0F, 16.0F, 0.4F, 0);
     }
@@ -737,7 +737,7 @@ void CEntity::Render()
     }
 
     uint32 savedAlphaRef;
-    if (m_nModelIndex == ModelIndices::MI_JELLYFISH || m_nModelIndex == ModelIndices::MI_JELLYFISH01) {
+    if (GetModelIndex() == ModelIndices::MI_JELLYFISH || GetModelIndex() == ModelIndices::MI_JELLYFISH01) {
         RwRenderStateGet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(&savedAlphaRef));
         RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(0u));
     }
@@ -754,7 +754,7 @@ void CEntity::Render()
 
     m_bImBeingRendered = false;
 
-    if (m_nModelIndex == ModelIndices::MI_JELLYFISH || m_nModelIndex == ModelIndices::MI_JELLYFISH01) {
+    if (GetModelIndex() == ModelIndices::MI_JELLYFISH || GetModelIndex() == ModelIndices::MI_JELLYFISH01) {
         RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(savedAlphaRef));
     }
 }
@@ -810,32 +810,32 @@ void CEntity::UpdateRpHAnim() {
 // 0x532B70
 bool CEntity::HasPreRenderEffects()
 {
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (!mi->SwaysInWind()
         && !mi->IsCrane()
-        && m_nModelIndex != ModelIndices::MI_COLLECTABLE1
-        && m_nModelIndex != ModelIndices::MI_MONEY
-        && m_nModelIndex != ModelIndices::MI_CARMINE
-        && m_nModelIndex != ModelIndices::MI_NAUTICALMINE
-        && m_nModelIndex != ModelIndices::MI_BRIEFCASE
-        && m_nModelIndex != MODEL_MISSILE
-        && m_nModelIndex != MODEL_GRENADE
-        && m_nModelIndex != MODEL_MOLOTOV
-        && m_nModelIndex != ModelIndices::MI_BEACHBALL
-        && m_nModelIndex != ModelIndices::MI_MAGNOCRANE_HOOK
-        && m_nModelIndex != ModelIndices::MI_WRECKING_BALL
-        && m_nModelIndex != ModelIndices::MI_CRANE_MAGNET
-        && m_nModelIndex != ModelIndices::MI_MINI_MAGNET
-        && m_nModelIndex != ModelIndices::MI_CRANE_HARNESS
-        && m_nModelIndex != ModelIndices::MI_WINDSOCK
-        && m_nModelIndex != ModelIndices::MI_FLARE
+        && GetModelIndex() != ModelIndices::MI_COLLECTABLE1
+        && GetModelIndex() != ModelIndices::MI_MONEY
+        && GetModelIndex() != ModelIndices::MI_CARMINE
+        && GetModelIndex() != ModelIndices::MI_NAUTICALMINE
+        && GetModelIndex() != ModelIndices::MI_BRIEFCASE
+        && GetModelIndex() != MODEL_MISSILE
+        && GetModelIndex() != MODEL_GRENADE
+        && GetModelIndex() != MODEL_MOLOTOV
+        && GetModelIndex() != ModelIndices::MI_BEACHBALL
+        && GetModelIndex() != ModelIndices::MI_MAGNOCRANE_HOOK
+        && GetModelIndex() != ModelIndices::MI_WRECKING_BALL
+        && GetModelIndex() != ModelIndices::MI_CRANE_MAGNET
+        && GetModelIndex() != ModelIndices::MI_MINI_MAGNET
+        && GetModelIndex() != ModelIndices::MI_CRANE_HARNESS
+        && GetModelIndex() != ModelIndices::MI_WINDSOCK
+        && GetModelIndex() != ModelIndices::MI_FLARE
         && !IsGlassModel(this)
         && (!GetIsTypeObject() || !reinterpret_cast<CObject*>(this)->objectFlags.bIsPickup)
-        && !CTrafficLights::IsMITrafficLight(m_nModelIndex)
-        && m_nModelIndex != ModelIndices::MI_SINGLESTREETLIGHTS1
-        && m_nModelIndex != ModelIndices::MI_SINGLESTREETLIGHTS2
-        && m_nModelIndex != ModelIndices::MI_SINGLESTREETLIGHTS3
-        && m_nModelIndex != ModelIndices::MI_DOUBLESTREETLIGHTS) {
+        && !CTrafficLights::IsMITrafficLight(GetModelIndex())
+        && GetModelIndex() != ModelIndices::MI_SINGLESTREETLIGHTS1
+        && GetModelIndex() != ModelIndices::MI_SINGLESTREETLIGHTS2
+        && GetModelIndex() != ModelIndices::MI_SINGLESTREETLIGHTS3
+        && GetModelIndex() != ModelIndices::MI_DOUBLESTREETLIGHTS) {
 
         if (!mi->m_n2dfxCount)
             return false;
@@ -853,7 +853,7 @@ bool CEntity::HasPreRenderEffects()
 // 0x532D40
 bool CEntity::DoesNotCollideWithFlyers()
 {
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     return mi->SwaysInWind() || mi->bDontCollideWithFlyer;
 }
 
@@ -902,7 +902,7 @@ void CEntity::SetupBigBuilding()
     m_bIsBIGBuilding = true;
     m_bStreamingDontDelete = true;
 
-    CModelInfo::GetModelInfo(m_nModelIndex)->bDoWeOwnTheColModel = true;
+    CModelInfo::GetModelInfo(GetModelIndex())->bDoWeOwnTheColModel = true;
 }
 
 // 0x533170
@@ -929,7 +929,7 @@ void CEntity::ModifyMatrixForCrane()
 // 0x533240
 void CEntity::PreRenderForGlassWindow()
 {
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (mi->IsGlassType2())
         return;
 
@@ -980,7 +980,7 @@ bool IsEntityPointerValid(CEntity* entity)
 // 0x533380
 CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 triggerIndex)
 {
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
         if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == triggerIndex) {
@@ -1006,7 +1006,7 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 triggerIndex)
 C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
 {
     C2dEffect* apArr[32]{}; // todo: static_vector
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto       mi          = CModelInfo::GetModelInfo(GetModelIndex());
     size_t iFoundCount = 0;
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
@@ -1052,7 +1052,7 @@ CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offse
 void CEntity::CreateEffects()
 {
     m_bHasRoadsignText = false;
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (!mi->m_n2dfxCount)
         return;
 
@@ -1162,7 +1162,7 @@ void CEntity::CreateEffects()
 // 0x533BF0
 void CEntity::DestroyEffects()
 {
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (!mi->m_n2dfxCount)
         return;
 
@@ -1215,7 +1215,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix)
         matrix.UpdateMatrix(parentMatrix);
     }
 
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (RwObjectGetType(m_pRwObject) == rpCLUMP && mi->IsRoad()) {
         if (GetIsTypeObject())
         {
@@ -1238,7 +1238,7 @@ void CEntity::DetachFromRwObject()
     if (!m_pRwObject)
         return;
 
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     mi->RemoveRef();
     CStreaming::RemoveEntity(m_pStreamingLink);
     m_pStreamingLink = nullptr;
@@ -1256,7 +1256,7 @@ void CEntity::DetachFromRwObject()
 
 // 0x534250
 CVector* CEntity::GetBoundCentre(CVector* pOutCentre) const {
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto        mi        = CModelInfo::GetModelInfo(GetModelIndex());
     const auto& colCenter = mi->GetColModel()->GetBoundCenter();
     return TransformFromObjectSpace(*pOutCentre, colCenter);
 }
@@ -1278,7 +1278,7 @@ void CEntity::RenderEffects()
     if (!m_bHasRoadsignText)
         return;
 
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (!mi->m_n2dfxCount)
         return;
 
@@ -1299,8 +1299,8 @@ bool CEntity::GetIsTouching(CEntity* entity) const {
     CVector otherVec;
     entity->GetBoundCentre(otherVec);
 
-    auto fThisRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
-    auto fOtherRadius = CModelInfo::GetModelInfo(entity->m_nModelIndex)->GetColModel()->GetBoundRadius();
+    auto fThisRadius = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius();
+    auto fOtherRadius = CModelInfo::GetModelInfo(entity->GetModelIndex())->GetColModel()->GetBoundRadius();
 
     return (thisVec - otherVec).Magnitude() <= (fThisRadius + fOtherRadius);
 }
@@ -1309,7 +1309,7 @@ bool CEntity::GetIsTouching(CEntity* entity) const {
 bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
     CVector thisVec;
     GetBoundCentre(thisVec);
-    auto fThisRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
+    auto fThisRadius = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius();
 
     return (thisVec - centre).Magnitude() <= (fThisRadius + radius);
 }
@@ -1318,13 +1318,13 @@ bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
 bool CEntity::GetIsOnScreen() {
     CVector thisVec;
     GetBoundCentre(thisVec);
-    return TheCamera.IsSphereVisible(thisVec, CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius());
+    return TheCamera.IsSphereVisible(thisVec, CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius());
 }
 
 // 0x5345D0
 bool CEntity::GetIsBoundingBoxOnScreen()
 {
-    auto cm = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel();
+    auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
 
     RwV3d vecNormals[2];
     if (m_matrix) {
@@ -1392,7 +1392,7 @@ void CEntity::ModifyMatrixForTreeInWind()
     }
 
     at->x = fWindOffset;
-    if (CModelInfo::GetModelInfo(m_nModelIndex)->IsSwayInWind2())
+    if (CModelInfo::GetModelInfo(GetModelIndex())->IsSwayInWind2())
         at->x += CWeather::Wind * 0.03F;
 
     at->y = at->x;
@@ -1460,7 +1460,7 @@ CColModel* CEntity::GetColModel() const {
         }
     }
     
-    return CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel();
+    return CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
 }
 
 // 0x535340
@@ -1473,7 +1473,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
     auto fMagForward = CVector2D(matrix.GetForward()).Magnitude();
     auto fMagUp = CVector2D(matrix.GetUp()).Magnitude();
 
-    auto cm = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel();
+    auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
     auto fMaxX = std::max(-cm->m_boundBox.m_vecMin.x, cm->m_boundBox.m_vecMax.x);
     auto fMaxY = std::max(-cm->m_boundBox.m_vecMin.y, cm->m_boundBox.m_vecMax.y);
     auto fMaxZ = std::max(-cm->m_boundBox.m_vecMin.z, cm->m_boundBox.m_vecMax.z);
@@ -1760,7 +1760,7 @@ void CEntity::ProcessLightsForEntity()
             return;
     }
 
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (!mi->m_n2dfxCount)
         return;
 
@@ -2034,7 +2034,7 @@ void CEntity::ProcessLightsForEntity()
                 }
 
                 auto fSizeMult = 1.0F;
-                if (m_nModelIndex == MODEL_RCBARON) {
+                if (GetModelIndex() == MODEL_RCBARON) {
                     fBrightness *= 1.9F;
                     fSizeMult = 2.0F;
                 }
@@ -2263,7 +2263,7 @@ bool CEntity::IsEntityOccluded() {
         return false;
     }
     
-    auto* const         mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    auto* const         mi = CModelInfo::GetModelInfo(GetModelIndex());
     const CBoundingBox& bb = mi->GetColModel()->GetBoundingBox();
 
     const auto longEdge        = std::max(scaleX, scaleY);
@@ -2425,7 +2425,7 @@ CEntity* CEntity::FindLastLOD() noexcept {
 
 // inline
 CBaseModelInfo* CEntity::GetModelInfo() const {
-    return CModelInfo::GetModelInfo(m_nModelIndex);
+    return CModelInfo::GetModelInfo(GetModelIndex());
 }
 
 // NOTSA
@@ -2466,7 +2466,7 @@ bool IsGlassModel(CEntity* entity) {
     if (!entity->GetIsTypeObject())
         return false;
 
-    auto mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
+    auto mi = CModelInfo::GetModelInfo(entity->GetModelIndex());
     if (!mi->AsAtomicModelInfoPtr())
         return false;
 

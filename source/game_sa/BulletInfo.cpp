@@ -207,7 +207,7 @@ void CBulletInfo::Update() {
                     // std::cout << "Hit building\n";
                     if (info.m_pCreator && info.m_pCreator->GetIsTypePed()) {
                         if (auto playerData = info.m_pCreator->AsPed()->m_pPlayerData) {
-                            playerData->m_nModelIndexOfLastBuildingShot = hitEntity->m_nModelIndex;
+                            playerData->m_nModelIndexOfLastBuildingShot = hitEntity->GetModelIndex();
                         }
                     }
                     break;

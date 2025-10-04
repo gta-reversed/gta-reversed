@@ -114,7 +114,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_MovingPartSmoothedSpeed     = 0.0f;
     m_FadeIn                      = 1.0f;
     m_FadeOut                     = 0.0f;
-    m_AuSettings                  = GetVehicleAudioSettings(entity->m_nModelIndex - MODEL_VEHICLE_FIRST);
+    m_AuSettings                  = GetVehicleAudioSettings(entity->GetModelIndex() - MODEL_VEHICLE_FIRST);
     m_HasSiren                    = entity->AsVehicle()->UsesSiren();
 
     for (uint32 i = 0; auto& es : m_EngineSounds) {
@@ -385,7 +385,7 @@ bool CAEVehicleAudioEntity::DoesBankSlotContainThisBank(eSoundBankSlot bankSlot,
 #pragma region Helpers
 // 0x4F5C40
 bool CAEVehicleAudioEntity::CopHeli() const noexcept {
-    const auto modelIndex = m_Entity->m_nModelIndex;
+    const auto modelIndex = m_Entity->GetModelIndex();
     return modelIndex == MODEL_MAVERICK || modelIndex == MODEL_VCNMAV;
 }
 
@@ -1285,7 +1285,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio)
 
 // 0x4F5310
 float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float ratio, float fadeRatio) const noexcept {
-    if (GetVehicle()->m_nModelIndex == MODEL_CADDY) {
+    if (GetVehicle()->GetModelIndex() == MODEL_CADDY) {
         return 1.0f;
     }
 
@@ -1941,7 +1941,7 @@ void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, 
     if (m_IsWreckedVehicle || !m_HasSiren || !vp.Vehicle->vehicleFlags.bSirenOrAlarm) {
         isSirenOn = false;
     } else if (isSirenOn = (vp.Vehicle->GetStatus() != STATUS_ABANDONED)) {
-        isFastSirenOn = vp.Vehicle->m_HornCounter && vp.Vehicle->m_nModelIndex != MODEL_MRWHOOP;
+        isFastSirenOn = vp.Vehicle->m_HornCounter && vp.Vehicle->GetModelIndex() != MODEL_MRWHOOP;
     }
 }
 
@@ -2273,7 +2273,7 @@ void CAEVehicleAudioEntity::ProcessVehicleFlatTyre(tVehicleParams& vp) {
     const auto spinning = [&]{
         switch (m_AuSettings.VehicleAudioType) {
         case AE_SPECIAL: {
-            if (vp.Vehicle->m_nModelIndex != MODEL_CADDY) {
+            if (vp.Vehicle->GetModelIndex() != MODEL_CADDY) {
                 return false;
             }
             [[fallthrough]];
@@ -2327,7 +2327,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& vp) {
 
     // 0x4F8B47
     bool cancel = false;
-    switch (vp.Vehicle->m_nModelIndex) {
+    switch (vp.Vehicle->GetModelIndex()) {
     case MODEL_ARTICT1:
     case MODEL_ARTICT2:
     case MODEL_PETROTR:
@@ -2519,7 +2519,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
     auto* const a = vp.Vehicle->AsAutomobile();
     const auto* const cfg = &s_Config.MovingParts;
 
-    switch (vp.Vehicle->m_nModelIndex) {
+    switch (vp.Vehicle->GetModelIndex()) {
     case MODEL_PACKER:
     case MODEL_DOZER:
     case MODEL_DUMPER:
@@ -2568,7 +2568,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
         case AE_SOUND_CAR_REV:
             return lerp(cfg.Rev.VolMin, cfg.Rev.VolMax, vp.RealRevsRatio);
         case AE_SOUND_CAR_ID:
-            return vp.Vehicle->m_nModelIndex == MODEL_CADDY
+            return vp.Vehicle->GetModelIndex() == MODEL_CADDY
                 ? cfg.ID.VolMin - 30.f
                 : lerp(cfg.ID.VolMin, cfg.ID.VolMax, vp.RealRevsRatio);
         case AE_SOUND_PLAYER_CRZ:
@@ -3190,7 +3190,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
         break;
     }
     case AE_AIRCRAFT_PLANE: {
-        switch (vehicle->m_nModelIndex) {
+        switch (vehicle->GetModelIndex()) {
         case MODEL_SHAMAL:
         case MODEL_HYDRA:
         case MODEL_AT400:
@@ -4552,7 +4552,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
 
     tVehicleParams vp{};
     vp.Vehicle               = vehicle;
-    vp.ModelIndexMinusOffset = physical->m_nModelIndex - 400;
+    vp.ModelIndexMinusOffset = physical->GetModelIndex() - MODEL_VEHICLE_FIRST;
     vp.BaseVehicleType       = vehicle->m_nVehicleType;
     vp.SpecificVehicleType   = vehicle->m_nVehicleSubType;
     vp.Transmission          = vehicle->m_pHandlingData
@@ -4601,7 +4601,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
 
         ProcessMovingParts(vp);
 
-        if (vp.Vehicle->m_nModelIndex == MODEL_COMBINE) {
+        if (vp.Vehicle->GetModelIndex() == MODEL_COMBINE) {
             ProcessPlayerCombine(vp);
         }
 

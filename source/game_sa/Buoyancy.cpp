@@ -92,7 +92,7 @@ bool cBuoyancy::ProcessBuoyancyBoat(CVehicle* vehicle, float fBuoyancy, CVector*
             vecWaveNormal.z += 2.0F;
             vecWaveNormal *= fThird;
 
-            switch (vehicle->m_nModelIndex) {
+            switch (vehicle->GetModelIndex()) {
             case MODEL_SQUALO:
             case MODEL_SPEEDER:
             case MODEL_JETMAX:
@@ -173,7 +173,7 @@ void cBuoyancy::PreCalcSetup(CPhysical* entity, float fBuoyancy)
     m_vecBoundingMax = cm->m_boundBox.m_vecMax;
 
     if (!m_bProcessingBoat) {
-        switch (entity->m_nModelIndex) {
+        switch (entity->GetModelIndex()) {
         case MODEL_LEVIATHN: //417
             m_vecBoundingMin.y *= 0.4F;
             m_vecBoundingMax.y *= 1.15F;
@@ -195,7 +195,7 @@ void cBuoyancy::PreCalcSetup(CPhysical* entity, float fBuoyancy)
         }
     }
     else {
-        switch (entity->m_nModelIndex) {
+        switch (entity->GetModelIndex()) {
         case MODEL_SQUALO: //446
             m_vecBoundingMax.y *= 0.9F;
             m_vecBoundingMin.y *= 0.9F;

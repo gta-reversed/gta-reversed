@@ -296,13 +296,13 @@ void CCamera::InitialiseCameraForDebugMode() {
 
 // 0x50A480
 void CCamera::ApplyVehicleCameraTweaks(CVehicle* vehicle) {
-    if (vehicle->m_nModelIndex == m_nCurrentTweakModelIndex) {
+    if (vehicle->GetModelIndex() == m_nCurrentTweakModelIndex) {
         return;
     }
 
     InitCameraVehicleTweaks();
     for (auto& camTweak : m_aCamTweak) {
-        if (camTweak.ModelID == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
+        if (camTweak.ModelID == vehicle->GetModelIndex()) {
             m_fCurrentTweakDistance = camTweak.Dist;
             m_fCurrentTweakAltitude = camTweak.Alt;
             m_fCurrentTweakAngle    = camTweak.Angle;

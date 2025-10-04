@@ -32,8 +32,8 @@ void CBuilding::operator delete(void* data)
 void CBuilding::ReplaceWithNewModel(int32 newModelIndex)
 {
     DeleteRwObject();
-    if (!CModelInfo::GetModelInfo(m_nModelIndex)->m_nRefCount)
-        CStreaming::RemoveModel(m_nModelIndex);
+    if (!CModelInfo::GetModelInfo(GetModelIndex())->m_nRefCount)
+        CStreaming::RemoveModel(GetModelIndex());
 
     m_nModelIndex = newModelIndex;
 }

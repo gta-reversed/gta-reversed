@@ -485,7 +485,7 @@ bool CCarEnterExit::IsClearToDriveAway(const CVehicle* vehicle) {
 
 // 0x651210
 bool CCarEnterExit::IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, const CVehicle* vehicle, const CVector& pos) {
-    if (vehicle->m_nModelIndex == eModelID::MODEL_AT400) {
+    if (vehicle->GetModelIndex() == eModelID::MODEL_AT400) {
         return false;
     }
 

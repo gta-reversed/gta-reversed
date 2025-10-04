@@ -269,7 +269,7 @@ void CCarGenerator::DoInternalProcessing()
     tractorDriverPedType = -1;
 
     if (!nightTime &&
-        (vehicle->m_nModelIndex == MODEL_TRACTOR || vehicle->m_nModelIndex == MODEL_COMBINE))
+        (vehicle->GetModelIndex() == MODEL_TRACTOR || vehicle->GetModelIndex() == MODEL_COMBINE))
     {
         // 0x6F3BF4
 

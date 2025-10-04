@@ -218,7 +218,7 @@ void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
         player->m_pPlayerData->m_pPedClothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
     }
 
-    ConstructPedModel(player->m_nModelIndex, *player->m_pPlayerData->m_pPedClothesDesc, &PlayerClothes, 0);
+    ConstructPedModel(player->GetModelIndex(), *player->m_pPlayerData->m_pPedClothesDesc, &PlayerClothes, 0);
     player->Dress();
     RpAnimBlendClumpGiveAssociations(player->m_pRwClump, assoc);
     PlayerClothes = *player->m_pPlayerData->m_pPedClothesDesc;

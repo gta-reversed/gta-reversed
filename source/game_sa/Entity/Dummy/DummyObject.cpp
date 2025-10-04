@@ -18,7 +18,7 @@ CDummyObject::CDummyObject() : CDummy() {
 
 // 0x59EA20
 CDummyObject::CDummyObject(CObject* obj) : CDummy() {
-    CEntity::SetModelIndexNoCreate(m_nModelIndex);
+    CEntity::SetModelIndexNoCreate(GetModelIndex());
     if (obj->m_pRwObject)
         CEntity::AttachToRwObject(obj->m_pRwObject, true);
 
