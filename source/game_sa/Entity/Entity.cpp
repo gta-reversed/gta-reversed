@@ -408,25 +408,22 @@ void CEntity::ProcessShift()
 }
 
 // 0x403E70
-bool CEntity::TestCollision(bool bApplySpeed)
-{
+bool CEntity::TestCollision(bool applySpeed) {
     return false;
 }
 
 // 0x403E80
-void CEntity::Teleport(CVector destination, bool resetRotation)
-{
+void CEntity::Teleport(CVector newCoors, bool clearOrientation) {
     // NOP
 }
 
 // 0x403E90
-void CEntity::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled, bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck)
-{
+void CEntity::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool doingShift, bool& skipTestEntirely, bool& skipCol, bool& forceBuildingCol, bool& forceSoftCol) {
     // NOP
 }
 
 // 0x403EA0
-uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& bDoPreCheckAtFullSpeed, bool& bDoPreCheckAtHalfSpeed) {
+uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& doPreCheckAtFullSpeed, bool& doPreCheckAtHalfSpeed) {
     return 1;
 }
 
@@ -888,11 +885,11 @@ void CEntity::BuildWindSockMatrix() {
 }
 
 // 0x533050
-bool CEntity::LivesInThisNonOverlapSector(int32 sectorX, int32 sectorY)
+bool CEntity::LivesInThisNonOverlapSector(int32 x, int32 y)
 {
     float xCenter, yCenter;
     GetBoundRect().GetCenter(&xCenter, &yCenter);
-    return sectorX == CWorld::GetSectorX(xCenter) && sectorY == CWorld::GetSectorY(yCenter);
+    return x == CWorld::GetSectorX(xCenter) && y == CWorld::GetSectorY(yCenter);
 }
 
 // 0x533150
@@ -978,12 +975,12 @@ bool IsEntityPointerValid(CEntity* entity)
 }
 
 // 0x533380
-CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 triggerIndex)
+CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index)
 {
     auto mi = CModelInfo::GetModelInfo(GetModelIndex());
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == triggerIndex) {
+        if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == index) {
             *outVec = GetMatrix().TransformPoint(effect->m_Pos);
             return outVec;
         }
@@ -999,11 +996,11 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 triggerIndex)
  * Returns a random effect with the given effectType among all the effects of the entity.
  * 
  * @param   effectType Type of effect. See e2dEffectType. (Always EFFECT_ATTRACTOR)
- * @param   bCheckForEmptySlot Should check for empty slot. (Always true)
+ * @param   mustBeFree Should check for empty slot. (Always true)
  * 
  * @return Random effect
  */
-C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
+C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree)
 {
     C2dEffect* apArr[32]{}; // todo: static_vector
     auto       mi          = CModelInfo::GetModelInfo(GetModelIndex());
@@ -1013,7 +1010,7 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
         if (effect->m_Type != effectType)
             continue;
 
-        if (bCheckForEmptySlot && !GetPedAttractorManager()->HasEmptySlot(notsa::cast<C2dEffectPedAttractor>(effect), this))
+        if (mustBeFree && !GetPedAttractorManager()->HasEmptySlot(notsa::cast<C2dEffectPedAttractor>(effect), this))
             continue;
 
         if (iFoundCount < 32) {

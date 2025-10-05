@@ -148,35 +148,35 @@ public:
 
     bool TreatAsPlayerForCollisions() { return GetStatus() == STATUS_PLAYER; } // 0x541F70
 
-    void SetUsesCollision(bool status) { m_bUsesCollision = status; }
+    void SetUsesCollision(bool usesCollision) { m_bUsesCollision = usesCollision; }
     bool GetUsesCollision() const { return m_bUsesCollision; }
-    void SetCollisionProcessed(bool status) { m_bCollisionProcessed = status; }
+    void SetCollisionProcessed(bool collisionProcessed) { m_bCollisionProcessed = collisionProcessed; }
     bool GetCollisionProcessed() const { return m_bCollisionProcessed; } // unused
-    virtual void SetIsStatic(bool status) { m_bIsStatic = status; } // 0x403E20
+    virtual void SetIsStatic(bool isStatic) { m_bIsStatic = isStatic; } // 0x403E20
     bool GetIsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
-    void SetHasContacted(bool status) { m_bHasContacted = status; }
+    void SetHasContacted(bool hasContacted) { m_bHasContacted = hasContacted; }
     bool GetHasContacted() const { return m_bHasContacted; }
     
     
-    void SetIsStuck(bool status) { m_bIsStuck = status; }
+    void SetIsStuck(bool isStuck) { m_bIsStuck = isStuck; }
     bool GetIsStuck() const { return m_bIsStuck; }
-    void SetIsInSafePosition(bool status) { m_bIsInSafePosition = status; }
+    void SetIsInSafePosition(bool isInSafePosition) { m_bIsInSafePosition = isInSafePosition; }
     bool GetIsInSafePosition() const { return m_bIsInSafePosition; }
-    void SetWasPostponed(bool status) { m_bWasPostponed = status; }
+    void SetWasPostponed(bool wasPostponed) { m_bWasPostponed = wasPostponed; }
     bool GetWasPostponed() const { return m_bWasPostponed; }
-    void SetIsVisible(bool status) { m_bIsVisible = status; }
+    void SetIsVisible(bool isVisible) { m_bIsVisible = isVisible; }
     bool GetIsVisible() const { return m_bIsVisible; }
-    void SetHasHitWall(bool status) { m_bHasHitWall = status; }
+    void SetHasHitWall(bool hasHitWall) { m_bHasHitWall = hasHitWall; }
     bool GetHasHitWall() const { return m_bHasHitWall; }
-    void SetIsBackfaceCulled(bool status) { m_bBackfaceCulled = status; }
+    void SetIsBackfaceCulled(bool backfaceCulled) { m_bBackfaceCulled = backfaceCulled; }
     bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; }
-    void SetIsUnimportantStream(bool status) { m_bUnimportantStream |= status; }
+    void SetIsUnimportantStream(bool unimportantStream) { m_bUnimportantStream |= unimportantStream; }
     
-    void SetScanCode(uint16 code) { m_nScanCode = code; }
+    void SetScanCode(uint16 scanCode) { m_nScanCode = scanCode; }
     uint16 GetScanCode() const { return m_nScanCode; } // unused
-    void SetAreaCode(eAreaCodes code) { m_nAreaCode = code; }
+    void SetAreaCode(eAreaCodes areaCode) { m_nAreaCode = areaCode; }
     eAreaCodes GetAreaCode() const { return m_nAreaCode; }
-    void SetIplIndex(uint8 index) { m_nIplIndex = index; }
+    void SetIplIndex(uint8 iplIndex) { m_nIplIndex = iplIndex; }
     uint8 GetIplIndex() { return m_nIplIndex; }
 
     virtual void SetModelIndex(uint32 index);
@@ -217,15 +217,15 @@ public:
     virtual void ProcessControl();
     virtual void ProcessCollision();
     virtual void ProcessShift();
-    virtual bool TestCollision(bool bApplySpeed);
-    virtual void Teleport(CVector destination, bool resetRotation);
+    virtual bool TestCollision(bool applySpeed);
+    virtual void Teleport(CVector newCoors, bool clearOrientation);
     virtual void SpecialEntityPreCollisionStuff(CPhysical* colPhysical,
-                                                bool bIgnoreStuckCheck,
-                                                bool& bCollisionDisabled,
-                                                bool& bCollidedEntityCollisionIgnored,
-                                                bool& bCollidedEntityUnableToMove,
-                                                bool& bThisOrCollidedEntityStuck);
-    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bDoPreCheckAtFullSpeed, bool& bDoPreCheckAtHalfSpeed);
+                                                bool doingShift,
+                                                bool& skipTestEntirely,
+                                                bool& skipCol,
+                                                bool& forceBuildingCol,
+                                                bool& forceSoftCol);
+    virtual uint8 SpecialEntityCalcCollisionSteps(bool& doPreCheckAtFullSpeed, bool& doPreCheckAtHalfSpeed);
 
     void UpdateRwFrame();
     void UpdateRpHAnim();
@@ -237,7 +237,7 @@ public:
     void UpdateAnim();
 
     void BuildWindSockMatrix();
-    bool LivesInThisNonOverlapSector(int32 sectorX, int32 sectorY);
+    bool LivesInThisNonOverlapSector(int32 x, int32 y);
     float GetDistanceFromCentreOfMassToBaseOfModel() const;
 
     void ProcessLightsForEntity();
@@ -267,7 +267,7 @@ public:
     void DestroyEffects();
     void RenderEffects();
 
-    void SetLodIndex(uint32 index) { m_nLodIndex = index; }
+    void SetLodIndex(uint32 lodIndex) { m_nLodIndex = lodIndex; }
     uint32 GetLodIndex() { return m_nLodIndex; }
     void SetLod(CEntity* lod) { m_pLod = lod; }
     CEntity* GetLod() { return m_pLod; }
@@ -285,10 +285,10 @@ public:
 
     // 128 = displaySuperLowLodFlag,  yes, this is very hacky. Blame R*
 
-    CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
+    CVector* FindTriggerPointCoors(CVector* pOutVec, int32 index);
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
 
-    C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
+    C2dEffect* GetRandom2dEffect(int32 effectType, bool mustBeFree);
 
     // NOTSA / inline region?
 
