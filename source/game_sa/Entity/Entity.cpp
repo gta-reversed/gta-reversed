@@ -664,11 +664,9 @@ void CEntity::RemoveLighting(bool reset) {
 
 // 0x532B00
 void CEntity::UpdateRwFrame() {
-    if (!GetRwObject()) {
-        return;
+    if (GetRwObject()) {
+        RwFrameUpdateObjects(RwFrameGetParent(rwObjectGetParent(GetRwObject())));
     }
-
-    RwFrameUpdateObjects(static_cast<RwFrame*>(rwObjectGetParent(GetRwObject())));
 }
 
 // 0x532B20
