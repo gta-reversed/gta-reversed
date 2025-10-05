@@ -762,17 +762,20 @@ RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data) {
 // 0x532DB0
 void CEntity::BuildWindSockMatrix() {
     auto vecWindDir = CVector(CWeather::WindDir.x + 0.01F, CWeather::WindDir.y + 0.01F, 0.1F);
-    auto vecNormalisedDir = vecWindDir;
-    vecNormalisedDir.Normalise();
 
-    auto vecCross = CrossProduct(CVector(0.0F, 0.0F, 1.0F), vecNormalisedDir);
-    vecCross.Normalise();
-    auto vecCross2 = CrossProduct(vecNormalisedDir, vecCross);
+    auto forward = vecWindDir;
+    forward.Normalise();
 
-    CMatrix& matrix = GetMatrix();
-    matrix.GetRight() = vecCross;
-    matrix.GetForward() = vecNormalisedDir;
-    matrix.GetUp() = vecCross2;
+    constexpr CVector side{ 0.0F, 0.0F, 1.0F };
+    auto right = side.Cross(forward);
+    right.Normalise();
+
+    const auto up = forward.Cross(right);
+    auto& matrix = GetMatrix();
+    matrix.GetRight() = right;
+    matrix.GetForward() = forward;
+    matrix.GetUp() = up;
+
     UpdateRW();
     UpdateRwFrame();
 }
