@@ -315,31 +315,29 @@ void CEntity::DeleteRwObject() {
         return;
     }
 
-    switch (RwObjectGetType(GetRwObject())) {
-    case rpATOMIC: {
-        auto frame = RpAtomicGetFrame(m_pRwAtomic);
-        RpAtomicDestroy(m_pRwAtomic);
-        RwFrameDestroy(frame);
-        break;
-    }
-    case rpCLUMP: {
+    const auto rwObjectType = RwObjectGetType(GetRwObject());
+
+    if (rwObjectType == rpATOMIC) {
+        if (auto* frame = RpAtomicGetFrame(m_pRwAtomic)) {
+            RpAtomicDestroy(m_pRwAtomic);
+            RwFrameDestroy(frame);
+        }
+    } else if (rwObjectType == rpCLUMP) {
 #ifdef SA_SKINNED_PEDS
         if (IsClumpSkinned(m_pRwClump)) {
             RpClumpForAllAtomics(m_pRwClump, AtomicRemoveAnimFromSkinCB, nullptr);
         }
 #endif
         RpClumpDestroy(m_pRwClump);
-        break;
-    }
     }
 
     m_pRwObject = nullptr;
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
     mi->RemoveRef();
     CStreaming::RemoveEntity(std::exchange(m_pStreamingLink, nullptr));
 
     if (GetIsTypeBuilding()) {
-        --gBuildings;
+        gBuildings--;
     }
 
     if (mi->GetModelType() == MODEL_INFO_CLUMP && mi->IsRoad() && !GetIsTypeObject()) {
