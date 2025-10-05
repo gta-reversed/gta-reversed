@@ -377,8 +377,8 @@ CRect CEntity::GetBoundRect() const {
 
 // 0x535FA0
 void CEntity::PreRender() {
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
-    auto ami = mi->AsAtomicModelInfoPtr();
+    const auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    const auto ami = mi->AsAtomicModelInfoPtr();
 
     if (mi->m_n2dfxCount) {
         ProcessLightsForEntity();
@@ -409,7 +409,7 @@ void CEntity::PreRender() {
     }
 
     if (ami && ami->SwaysInWind() && (!GetIsTypeObject() || !AsObject()->objectFlags.bIsExploded)) {
-        auto fDist = DistanceBetweenPoints2D(GetPosition(), TheCamera.GetPosition());
+        const auto fDist = DistanceBetweenPoints2D(GetPosition(), TheCamera.GetPosition());
         CObject::fDistToNearestTree = std::min(CObject::fDistToNearestTree, fDist);
         ModifyMatrixForTreeInWind();
     }
@@ -418,7 +418,6 @@ void CEntity::PreRender() {
         if (ami && ami->IsCrane()) {
             ModifyMatrixForCrane();
         }
-
         return;
     }
 
@@ -427,141 +426,84 @@ void CEntity::PreRender() {
     }
 
     if (GetIsTypeObject()) {
-        auto obj = AsObject();
-        if (GetModelIndex() == ModelIndices::MI_COLLECTABLE1) {
+        const auto obj = AsObject();
+        const auto modelIndex = GetModelIndex();
+        
+        if (modelIndex == ModelIndices::MI_COLLECTABLE1) {
             CPickups::DoCollectableEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (GetModelIndex() == ModelIndices::MI_MONEY) {
+        } else if (modelIndex == ModelIndices::MI_MONEY) {
             CPickups::DoMoneyEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (GetModelIndex() == ModelIndices::MI_CARMINE
-                   || GetModelIndex() == ModelIndices::MI_NAUTICALMINE
-                   || GetModelIndex() == ModelIndices::MI_BRIEFCASE) {
+        } else if (modelIndex == ModelIndices::MI_CARMINE || 
+                   modelIndex == ModelIndices::MI_NAUTICALMINE || 
+                   modelIndex == ModelIndices::MI_BRIEFCASE) {
             if (obj->objectFlags.bIsPickup) {
                 CPickups::DoMineEffects(this);
                 UpdateRW();
                 UpdateRwFrame();
             }
-        } else if (GetModelIndex() == MODEL_MISSILE) {
+        } else if (modelIndex == MODEL_MISSILE) {
             if (CReplay::Mode != MODE_PLAYBACK) {
-                CVector vecPos = GetPosition();
-                auto    fRand = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
+                const auto& vecPos = GetPosition();
+                const auto fRand = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
+                
                 CShadows::StoreShadowToBeRendered(
-                    eShadowTextureType::SHADOW_TEX_PED,
-                    gpShadowExplosionTex,
-                    vecPos,
-                    8.0F,
-                    0.0F,
-                    0.0F,
-                    -8.0F,
-                    255,
+                    eShadowTextureType::SHADOW_TEX_PED, gpShadowExplosionTex, vecPos,
+                    8.0F, 0.0F, 0.0F, -8.0F, 255,
                     static_cast<uint8>(fRand * 200.0F),
                     static_cast<uint8>(fRand * 160.0F),
                     static_cast<uint8>(fRand * 120.0F),
-                    20.0F,
-                    false,
-                    1.0F,
-                    nullptr,
-                    false
+                    20.0F, false, 1.0F, nullptr, false
                 );
 
                 CPointLights::AddLight(
-                    ePointLightType::PLTYPE_POINTLIGHT,
-                    vecPos,
-                    CVector(0.0F, 0.0F, 0.0F),
-                    8.0F,
-                    fRand,
-                    fRand * 0.8F,
-                    fRand * 0.6F,
-                    RwFogType::rwFOGTYPENAFOGTYPE,
-                    true,
-                    nullptr
+                    ePointLightType::PLTYPE_POINTLIGHT, vecPos, CVector(0.0F, 0.0F, 0.0F),
+                    8.0F, fRand, fRand * 0.8F, fRand * 0.6F,
+                    RwFogType::rwFOGTYPENAFOGTYPE, true, nullptr
                 );
 
                 CCoronas::RegisterCorona(
-                    reinterpret_cast<uint32>(this),
-                    nullptr,
+                    reinterpret_cast<uint32>(this), nullptr,
                     static_cast<uint8>(fRand * 255.0F),
                     static_cast<uint8>(fRand * 220.0F),
-                    static_cast<uint8>(fRand * 190.0F),
-                    255,
-                    vecPos,
-                    fRand * 6.0F,
-                    300.0F,
-                    gpCoronaTexture[CORONATYPE_SHINYSTAR],
-                    eCoronaFlareType::FLARETYPE_NONE,
-                    eCoronaReflType::CORREFL_SIMPLE,
-                    eCoronaLOSCheck::LOSCHECK_OFF,
-                    eCoronaTrail::TRAIL_OFF,
-                    0.0F,
-                    false,
-                    1.5F,
-                    0,
-                    15.0F,
-                    false,
-                    false
+                    static_cast<uint8>(fRand * 190.0F), 255, vecPos,
+                    fRand * 6.0F, 300.0F, gpCoronaTexture[CORONATYPE_SHINYSTAR],
+                    eCoronaFlareType::FLARETYPE_NONE, eCoronaReflType::CORREFL_SIMPLE,
+                    eCoronaLOSCheck::LOSCHECK_OFF, eCoronaTrail::TRAIL_OFF,
+                    0.0F, false, 1.5F, 0, 15.0F, false, false
                 );
             }
-        } else if (GetModelIndex() == ModelIndices::MI_FLARE) {
-            CVector vecPos = GetPosition();
-            auto    fRand = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
-            fRand = std::max(fRand, 0.5F);
+        } else if (modelIndex == ModelIndices::MI_FLARE) {
+            const auto& vecPos = GetPosition();
+            const auto fRand = std::max(static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F, 0.5F);
+            
             CShadows::StoreShadowToBeRendered(
-                eShadowTextureType::SHADOW_TEX_PED,
-                gpShadowExplosionTex,
-                vecPos,
-                8.0F,
-                0.0F,
-                0.0F,
-                -8.0F,
-                255,
+                eShadowTextureType::SHADOW_TEX_PED, gpShadowExplosionTex, vecPos,
+                8.0F, 0.0F, 0.0F, -8.0F, 255,
                 static_cast<uint8>(fRand * 200.0F),
                 static_cast<uint8>(fRand * 200.0F),
                 static_cast<uint8>(fRand * 200.0F),
-                20.0F,
-                false,
-                1.0F,
-                nullptr,
-                false
+                20.0F, false, 1.0F, nullptr, false
             );
 
             CPointLights::AddLight(
-                ePointLightType::PLTYPE_POINTLIGHT,
-                vecPos,
-                CVector(0.0F, 0.0F, 0.0F),
-                32.0F,
-                fRand,
-                fRand,
-                fRand,
-                RwFogType::rwFOGTYPENAFOGTYPE,
-                true,
-                nullptr
+                ePointLightType::PLTYPE_POINTLIGHT, vecPos, CVector(0.0F, 0.0F, 0.0F),
+                32.0F, fRand, fRand, fRand,
+                RwFogType::rwFOGTYPENAFOGTYPE, true, nullptr
             );
 
             CCoronas::RegisterCorona(
-                reinterpret_cast<uint32>(this),
-                nullptr,
+                reinterpret_cast<uint32>(this), nullptr,
                 static_cast<uint8>(fRand * 255.0F),
                 static_cast<uint8>(fRand * 255.0F),
-                static_cast<uint8>(fRand * 255.0F),
-                255,
-                vecPos,
-                fRand * 6.0F,
-                300.0F,
-                gpCoronaTexture[CORONATYPE_SHINYSTAR],
-                eCoronaFlareType::FLARETYPE_NONE,
-                eCoronaReflType::CORREFL_SIMPLE,
-                eCoronaLOSCheck::LOSCHECK_OFF,
-                eCoronaTrail::TRAIL_OFF,
-                0.0F,
-                false,
-                1.5F,
-                0,
-                15.0F,
-                false,
-                false
+                static_cast<uint8>(fRand * 255.0F), 255, vecPos,
+                fRand * 6.0F, 300.0F, gpCoronaTexture[CORONATYPE_SHINYSTAR],
+                eCoronaFlareType::FLARETYPE_NONE, eCoronaReflType::CORREFL_SIMPLE,
+                eCoronaLOSCheck::LOSCHECK_OFF, eCoronaTrail::TRAIL_OFF,
+                0.0F, false, 1.5F, 0, 15.0F, false, false
             );
         } else if (IsGlassModel(this)) {
             PreRenderForGlassWindow();
@@ -569,104 +511,93 @@ void CEntity::PreRender() {
             CPickups::DoPickUpEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (GetModelIndex() == MODEL_GRENADE) {
+        } else if (modelIndex == MODEL_GRENADE) {
             const auto& vecPos = GetPosition();
-            auto        vecScaledCam = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
-            auto        vecStreakStart = vecPos - vecScaledCam;
-            auto        vecStreakEnd = vecPos + vecScaledCam;
+            const auto vecScaledCam = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
+            const auto vecStreakStart = vecPos - vecScaledCam;
+            const auto vecStreakEnd = vecPos + vecScaledCam;
+            
             if (CVector2D(obj->m_vecMoveSpeed).Magnitude() > 0.03F) {
-                CMotionBlurStreaks::RegisterStreak(reinterpret_cast<uint32>(this), 100, 100, 100, 255, vecStreakStart, vecStreakEnd);
+                CMotionBlurStreaks::RegisterStreak(
+                    reinterpret_cast<uint32>(this), 100, 100, 100, 255, 
+                    vecStreakStart, vecStreakEnd
+                );
             }
-        } else if (GetModelIndex() == MODEL_MOLOTOV) {
+        } else if (modelIndex == MODEL_MOLOTOV) {
             const auto& vecPos = GetPosition();
-            auto        vecScaledCam = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
-            auto        vecStreakStart = vecPos - vecScaledCam;
-            auto        vecStreakEnd = vecPos + vecScaledCam;
+            const auto vecScaledCam = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
+            const auto vecStreakStart = vecPos - vecScaledCam;
+            const auto vecStreakEnd = vecPos + vecScaledCam;
+            
             if (CVector2D(obj->m_vecMoveSpeed).Magnitude() > 0.03F) {
                 float fWaterLevel;
-                if (!CWaterLevel::GetWaterLevelNoWaves(vecPos, &fWaterLevel, nullptr, nullptr) || vecPos.z > fWaterLevel) {
-                    CMotionBlurStreaks::RegisterStreak(reinterpret_cast<uint32>(this), 255, 160, 100, 255, vecStreakStart, vecStreakEnd);
+                if (!CWaterLevel::GetWaterLevelNoWaves(vecPos, &fWaterLevel, nullptr, nullptr) || 
+                    vecPos.z > fWaterLevel) {
+                    CMotionBlurStreaks::RegisterStreak(
+                        reinterpret_cast<uint32>(this), 255, 160, 100, 255, 
+                        vecStreakStart, vecStreakEnd
+                    );
                 }
             }
-        } else if (GetModelIndex() == ModelIndices::MI_BEACHBALL) {
+        } else if (modelIndex == ModelIndices::MI_BEACHBALL) {
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 50.0F) {
-                auto ucShadowStrength = static_cast<uint8>(CTimeCycle::m_CurrentColours.m_nShadowStrength);
+                const auto ucShadowStrength = static_cast<uint8>(CTimeCycle::m_CurrentColours.m_nShadowStrength);
                 CShadows::StoreShadowToBeRendered(
-                    eShadowType::SHADOW_DEFAULT,
-                    gpShadowPedTex,
-                    GetPosition(),
-                    0.4F,
-                    0.0F,
-                    0.0F,
-                    -0.4F,
-                    ucShadowStrength,
-                    ucShadowStrength,
-                    ucShadowStrength,
-                    ucShadowStrength,
-                    20.0F,
-                    false,
-                    1.0F,
-                    nullptr,
-                    false
+                    eShadowType::SHADOW_DEFAULT, gpShadowPedTex, GetPosition(),
+                    0.4F, 0.0F, 0.0F, -0.4F,
+                    ucShadowStrength, ucShadowStrength, ucShadowStrength, ucShadowStrength,
+                    20.0F, false, 1.0F, nullptr, false
                 );
             }
-        } else if (GetModelIndex() == ModelIndices::MI_MAGNOCRANE_HOOK
-                   || GetModelIndex() == ModelIndices::MI_WRECKING_BALL
-                   || GetModelIndex() == ModelIndices::MI_CRANE_MAGNET
-                   || GetModelIndex() == ModelIndices::MI_MINI_MAGNET
-                   || GetModelIndex() == ModelIndices::MI_CRANE_HARNESS) {
+        } else if (modelIndex == ModelIndices::MI_MAGNOCRANE_HOOK || 
+                   modelIndex == ModelIndices::MI_WRECKING_BALL || 
+                   modelIndex == ModelIndices::MI_CRANE_MAGNET || 
+                   modelIndex == ModelIndices::MI_MINI_MAGNET || 
+                   modelIndex == ModelIndices::MI_CRANE_HARNESS) {
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 100.0F) {
                 CShadows::StoreShadowToBeRendered(
-                    eShadowType::SHADOW_DEFAULT,
-                    gpShadowPedTex,
-                    GetPosition(),
-                    2.0F,
-                    0.0F,
-                    0.0F,
-                    -2.0F,
-                    128,
-                    128,
-                    128,
-                    128,
-                    50.0F,
-                    false,
-                    1.0F,
-                    nullptr,
-                    false
+                    eShadowType::SHADOW_DEFAULT, gpShadowPedTex, GetPosition(),
+                    2.0F, 0.0F, 0.0F, -2.0F, 128, 128, 128, 128,
+                    50.0F, false, 1.0F, nullptr, false
                 );
             }
-        } else if (GetModelIndex() == ModelIndices::MI_WINDSOCK) {
+        } else if (modelIndex == ModelIndices::MI_WINDSOCK) {
             BuildWindSockMatrix();
         }
     }
 
-    if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS) {
+    const auto modelIndex = GetModelIndex();
+    constexpr auto storeShadowForPole = [](auto* entity, float x, float y, float z) {
+        CShadows::StoreShadowForPole(entity, x, y, z, 16.0F, 0.4F, 0);
+    };
+
+    if (modelIndex == ModelIndices::MI_TRAFFICLIGHTS) {
         CTrafficLights::DisplayActualLight(this);
-        CShadows::StoreShadowForPole(this, 2.957F, 0.147F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_VERTICAL) {
+        storeShadowForPole(this, 2.957F, 0.147F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_TRAFFICLIGHTS_VERTICAL) {
         CTrafficLights::DisplayActualLight(this);
-    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_MIAMI) {
+    } else if (modelIndex == ModelIndices::MI_TRAFFICLIGHTS_MIAMI) {
         CTrafficLights::DisplayActualLight(this);
-        CShadows::StoreShadowForPole(this, 4.81F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_TWOVERTICAL) {
+        storeShadowForPole(this, 4.81F, 0.0F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_TRAFFICLIGHTS_TWOVERTICAL) {
         CTrafficLights::DisplayActualLight(this);
-        CShadows::StoreShadowForPole(this, 7.503F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_3
-               || GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_4
-               || GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_5
-               || GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_GAY) {
+        storeShadowForPole(this, 7.503F, 0.0F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_TRAFFICLIGHTS_3 || 
+               modelIndex == ModelIndices::MI_TRAFFICLIGHTS_4 || 
+               modelIndex == ModelIndices::MI_TRAFFICLIGHTS_5 || 
+               modelIndex == ModelIndices::MI_TRAFFICLIGHTS_GAY) {
         CTrafficLights::DisplayActualLight(this);
-    } else if (GetModelIndex() == ModelIndices::MI_SINGLESTREETLIGHTS1) {
-        CShadows::StoreShadowForPole(this, 7.744F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_SINGLESTREETLIGHTS2) {
-        CShadows::StoreShadowForPole(this, 0.043F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_SINGLESTREETLIGHTS3) {
-        CShadows::StoreShadowForPole(this, 1.143F, 0.145F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_DOUBLESTREETLIGHTS) {
-        CShadows::StoreShadowForPole(this, 0.0F, -0.048F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (GetModelIndex() == ModelIndices::MI_TRAFFICLIGHTS_VEGAS) {
+    } else if (modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS1) {
+        storeShadowForPole(this, 0.744F, 0.0F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS2) {
+        storeShadowForPole(this, 0.043F, 0.0F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS3) {
+        storeShadowForPole(this, 1.143F, 0.145F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_DOUBLESTREETLIGHTS) {
+        storeShadowForPole(this, 0.0F, -0.048F, 0.0F);
+    } else if (modelIndex == ModelIndices::MI_TRAFFICLIGHTS_VEGAS) {
         CTrafficLights::DisplayActualLight(this);
-        CShadows::StoreShadowForPole(this, 7.5F, 0.2F, 0.0F, 16.0F, 0.4F, 0);
+        storeShadowForPole(this, 7.5F, 0.2F, 0.0F);
     }
 }
 
