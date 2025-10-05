@@ -136,106 +136,79 @@ void CEntity::Add(const CRect& rect) {
     if (usedRect.left < -3000.0F) {
         usedRect.left = -3000.0F;
     }
-
     if (usedRect.right >= 3000.0F) {
         usedRect.right = 2999.0F;
     }
-
     if (usedRect.bottom < -3000.0F) {
         usedRect.bottom = -3000.0F;
     }
-
     if (usedRect.top >= 3000.0F) {
         usedRect.top = 2999.0F;
     }
 
     if (m_bIsBIGBuilding) {
-        int32 startSectorX = CWorld::GetLodSectorX(usedRect.left);
-        int32 startSectorY = CWorld::GetLodSectorY(usedRect.bottom);
-        int32 endSectorX = CWorld::GetLodSectorX(usedRect.right);
-        int32 endSectorY = CWorld::GetLodSectorY(usedRect.top);
-        for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
-            for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-                auto& pLodListEntry = CWorld::GetLodPtrList(sectorX, sectorY);
-                pLodListEntry.AddItem(this);
-            }
-        }
+        CWorld::IterateLodSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
+            auto& pLodListEntry = CWorld::GetLodPtrList(x, y);
+            pLodListEntry.AddItem(this);
+            return true;
+        });
     } else {
-        int32 startSectorX = CWorld::GetSectorX(usedRect.left);
-        int32 startSectorY = CWorld::GetSectorY(usedRect.bottom);
-        int32 endSectorX = CWorld::GetSectorX(usedRect.right);
-        int32 endSectorY = CWorld::GetSectorY(usedRect.top);
-        for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
-            for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-                auto* const s = GetSector(sectorX, sectorY);
-                auto* const rs = GetRepeatSector(sectorX, sectorY);
-                const auto  ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
-                    list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
-                };
-                switch (GetType()) {
-                case ENTITY_TYPE_DUMMY:    ProcessAddItem(s->m_dummies); break;
-                case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs->Vehicles); break;
-                case ENTITY_TYPE_PED:      ProcessAddItem(rs->Peds); break;
-                case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs->Objects); break;
-                case ENTITY_TYPE_BUILDING: ProcessAddItem(s->m_buildings); break;
-                }
+        CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
+            auto* const s = GetSector(x, y);
+            auto* const rs = GetRepeatSector(x, y);
+            const auto  ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
+                list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
+            };
+            switch (GetType()) {
+            case ENTITY_TYPE_DUMMY:    ProcessAddItem(s->m_dummies); break;
+            case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs->Vehicles); break;
+            case ENTITY_TYPE_PED:      ProcessAddItem(rs->Peds); break;
+            case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs->Objects); break;
+            case ENTITY_TYPE_BUILDING: ProcessAddItem(s->m_buildings); break;
             }
-        }
+            return true;
+        });
     }
 }
 
 // 0x534AE0
 void CEntity::Remove() {
     auto usedRect = GetBoundRect();
-
     if (usedRect.left < -3000.0F) {
         usedRect.left = -3000.0F;
     }
-
     if (usedRect.right >= 3000.0F) {
         usedRect.right = 2999.0F;
     }
-
     if (usedRect.bottom < -3000.0F) {
         usedRect.bottom = -3000.0F;
     }
-
     if (usedRect.top >= 3000.0F) {
         usedRect.top = 2999.0F;
     }
 
     if (m_bIsBIGBuilding) {
-        int32 startSectorX = CWorld::GetLodSectorX(usedRect.left);
-        int32 startSectorY = CWorld::GetLodSectorY(usedRect.bottom);
-        int32 endSectorX = CWorld::GetLodSectorX(usedRect.right);
-        int32 endSectorY = CWorld::GetLodSectorY(usedRect.top);
-        for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
-            for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-                auto& list = CWorld::GetLodPtrList(sectorX, sectorY);
-                list.DeleteItem(this);
-            }
-        }
+        CWorld::IterateLodSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
+            auto& list = CWorld::GetLodPtrList(x, y);
+            list.DeleteItem(this);
+            return true;
+        });
     } else {
-        int32 startSectorX = CWorld::GetSectorX(usedRect.left);
-        int32 startSectorY = CWorld::GetSectorY(usedRect.bottom);
-        int32 endSectorX = CWorld::GetSectorX(usedRect.right);
-        int32 endSectorY = CWorld::GetSectorY(usedRect.top);
-        for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
-            for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-                auto* const s = GetSector(sectorX, sectorY);
-                auto* const rs = GetRepeatSector(sectorX, sectorY);
-                const auto  ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
-                    list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
-                };
-                switch (GetType()) {
-                case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s->m_dummies); break;
-                case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs->Vehicles); break;
-                case ENTITY_TYPE_PED:      ProcessDeleteItem(rs->Peds); break;
-                case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs->Objects); break;
-                case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s->m_buildings); break;
-                }
+        CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
+            auto* const s = GetSector(x, y);
+            auto* const rs = GetRepeatSector(x, y);
+            const auto  ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
+                list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
+            };
+            switch (GetType()) {
+            case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s->m_dummies); break;
+            case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs->Vehicles); break;
+            case ENTITY_TYPE_PED:      ProcessDeleteItem(rs->Peds); break;
+            case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs->Objects); break;
+            case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s->m_buildings); break;
             }
-        }
+            return true;
+        });
     }
 }
 
