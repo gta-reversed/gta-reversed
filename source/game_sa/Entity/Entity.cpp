@@ -653,13 +653,11 @@ bool CEntity::SetupLighting() {
 
 // 0x553370
 void CEntity::RemoveLighting(bool reset) {
-    if (!reset) {
-        return;
+    if (reset) {
+        SetAmbientColours();
+        DeActivateDirectional();
+        CPointLights::RemoveLightsAffectingObject();
     }
-
-    SetAmbientColours();
-    DeActivateDirectional();
-    CPointLights::RemoveLightsAffectingObject();
 }
 
 // 0x532B00
