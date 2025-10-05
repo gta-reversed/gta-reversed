@@ -782,9 +782,15 @@ void CEntity::BuildWindSockMatrix() {
 
 // 0x533050
 bool CEntity::LivesInThisNonOverlapSector(int32 x, int32 y) {
-    float xCenter, yCenter;
-    GetBoundRect().GetCenter(&xCenter, &yCenter);
-    return x == CWorld::GetSectorX(xCenter) && y == CWorld::GetSectorY(yCenter);
+    const auto rect = GetBoundRect();
+
+    float centerX, centerY;
+    rect.GetCenter(&centerX, &centerY);
+
+    const auto middleX = CWorld::GetSectorX(centerX);
+    const auto middleY = CWorld::GetSectorY(centerY);
+
+    return x == middleX && y == middleY;
 }
 
 // 0x533150
