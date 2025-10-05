@@ -798,8 +798,7 @@ void CEntity::SetupBigBuilding() {
     SetUsesCollision(false);
     m_bIsBIGBuilding = true;
     m_bStreamingDontDelete = true;
-
-    CModelInfo::GetModelInfo(GetModelIndex())->bDoWeOwnTheColModel = true;
+    CModelInfo::GetModelInfo(GetModelIndex())->SetOwnsColModel(true);
 }
 
 // 0x533170
