@@ -350,58 +350,29 @@ void CEntity::DeleteRwObject() {
 
 // 0x534120
 CRect CEntity::GetBoundRect() const {
-    CColModel* colModel = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
-    CVector    vecMin = colModel->m_boundBox.m_vecMin;
-    CVector    vecMax = colModel->m_boundBox.m_vecMax;
-    CRect      rect;
-    CVector    point;
-    TransformFromObjectSpace(point, vecMin);
-    rect.StretchToPoint(point.x, point.y);
-    TransformFromObjectSpace(point, vecMax);
-    rect.StretchToPoint(point.x, point.y);
-    float maxX = vecMax.x;
-    vecMax.x = vecMin.x;
-    vecMin.x = maxX;
-    TransformFromObjectSpace(point, vecMin);
-    rect.StretchToPoint(point.x, point.y);
-    TransformFromObjectSpace(point, vecMax);
-    rect.StretchToPoint(point.x, point.y);
+    auto* colModel = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
+    auto [boundBoxMin, boundBoxMax] = std::pair{ colModel->GetBoundingBox().m_vecMin, colModel->GetBoundingBox().m_vecMax };
+
+    CRect rect;
+    CVector result;
+
+    // Processing the first two corners
+    TransformFromObjectSpace(result, boundBoxMin);
+    rect.StretchToPoint(result.x, result.y);
+
+    TransformFromObjectSpace(result, boundBoxMax);
+    rect.StretchToPoint(result.x, result.y);
+
+    // Exchange of X coordinates and processing of remaining angles
+    std::ranges::swap(boundBoxMin.x, boundBoxMax.x);
+
+    TransformFromObjectSpace(result, boundBoxMin);
+    rect.StretchToPoint(result.x, result.y);
+
+    TransformFromObjectSpace(result, boundBoxMax);
+    rect.StretchToPoint(result.x, result.y);
+
     return rect;
-}
-
-// 0x403E40
-void CEntity::ProcessControl() {
-    // NOP
-}
-
-// 0x403E50
-void CEntity::ProcessCollision() {
-    // NOP
-}
-
-// 0x403E60
-void CEntity::ProcessShift() {
-    // NOP
-}
-
-// 0x403E70
-bool CEntity::TestCollision(bool applySpeed) {
-    return false;
-}
-
-// 0x403E80
-void CEntity::Teleport(CVector newCoors, bool clearOrientation) {
-    // NOP
-}
-
-// 0x403E90
-void CEntity::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool doingShift, bool& skipTestEntirely, bool& skipCol, bool& forceBuildingCol, bool& forceSoftCol) {
-    // NOP
-}
-
-// 0x403EA0
-uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& doPreCheckAtFullSpeed, bool& doPreCheckAtHalfSpeed) {
-    return 1;
 }
 
 // 0x535FA0
@@ -757,11 +728,6 @@ void CEntity::RemoveLighting(bool reset) {
     SetAmbientColours();
     DeActivateDirectional();
     CPointLights::RemoveLightsAffectingObject();
-}
-
-// 0x403EB0
-void CEntity::FlagToDestroyWhenNextProcessed() {
-    // NOP
 }
 
 // 0x532B00
