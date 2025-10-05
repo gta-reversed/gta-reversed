@@ -437,9 +437,9 @@ void CEntity::PreRender() {
             CPickups::DoMoneyEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (modelIndex == ModelIndices::MI_CARMINE || 
-                   modelIndex == ModelIndices::MI_NAUTICALMINE || 
-                   modelIndex == ModelIndices::MI_BRIEFCASE) {
+        } else if (modelIndex == ModelIndices::MI_CARMINE
+                   || modelIndex == ModelIndices::MI_NAUTICALMINE
+                   || modelIndex == ModelIndices::MI_BRIEFCASE) {
             if (obj->objectFlags.bIsPickup) {
                 CPickups::DoMineEffects(this);
                 UpdateRW();
@@ -549,11 +549,11 @@ void CEntity::PreRender() {
                     20.0F, false, 1.0F, nullptr, false
                 );
             }
-        } else if (modelIndex == ModelIndices::MI_MAGNOCRANE_HOOK || 
-                   modelIndex == ModelIndices::MI_WRECKING_BALL || 
-                   modelIndex == ModelIndices::MI_CRANE_MAGNET || 
-                   modelIndex == ModelIndices::MI_MINI_MAGNET || 
-                   modelIndex == ModelIndices::MI_CRANE_HARNESS) {
+        } else if (modelIndex == ModelIndices::MI_MAGNOCRANE_HOOK
+                   || modelIndex == ModelIndices::MI_WRECKING_BALL
+                   || modelIndex == ModelIndices::MI_CRANE_MAGNET
+                   || modelIndex == ModelIndices::MI_MINI_MAGNET
+                   || modelIndex == ModelIndices::MI_CRANE_HARNESS) {
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 100.0F) {
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT, gpShadowPedTex, GetPosition(),
