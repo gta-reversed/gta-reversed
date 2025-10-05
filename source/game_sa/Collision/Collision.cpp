@@ -2410,7 +2410,7 @@ bool CCollision::CheckCameraCollisionPeds(
 
         ped->SetCurrentScanCode();
 
-        if (!ped->m_bIsVisible || CWorld::pIgnoreEntity == ped || ped->IsPlayer()) {
+        if (!ped->GetIsVisible() || CWorld::pIgnoreEntity == ped || ped->IsPlayer()) {
             continue;
         }
         
@@ -2423,7 +2423,7 @@ bool CCollision::CheckCameraCollisionPeds(
         }
         
         const auto AddInvisibleEntity = [](CEntity* entity) {
-            entity->m_bIsVisible = false;
+            entity->SetIsVisible(false);
 
             auto& ref = gpMadeInvisibleEntities[gNumEntitiesSetInvisible++];
             ref = entity;
@@ -2435,7 +2435,7 @@ bool CCollision::CheckCameraCollisionPeds(
         // Add entity the peds holds too (if any)
         if (const auto task = ped->GetIntelligence()->GetTaskHold()) {
             if (const auto ent = task->m_pEntityToHold) {
-                if (ent->m_bIsVisible) {
+                if (ent->GetIsVisible()) {
                     AddInvisibleEntity(ent);
                 }
             }
@@ -2452,7 +2452,7 @@ void ResetMadeInvisibleObjects() {
         if (!ent) { // Must check, as the reference system might've cleared it
             continue;
         }
-        ent->m_bIsVisible = true;
+        ent->SetIsVisible(true);
         CEntity::CleanUpOldReference(ent);
     }
     gNumEntitiesSetInvisible = 0;

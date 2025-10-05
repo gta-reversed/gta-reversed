@@ -1293,7 +1293,7 @@ bool CObject::IsCraneMovingPart() const {
         ModelIndices::MI_CRANE_HARNESS,
         ModelIndices::MI_MINI_MAGNET,
         ModelIndices::MI_WRECKING_BALL,
-    }, GetModelID());
+    }, GetModelId());
 }
 
 // 0x5A1AB0

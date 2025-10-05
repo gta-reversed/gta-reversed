@@ -137,7 +137,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
         MODEL_MOWER,
         MODEL_SWEEPER,
         MODEL_TUG,
-    }, entity->GetModelID());
+    }, entity->GetModelId());
 
     switch (m_AuSettings.VehicleAudioType) {
     case AE_CAR: {
@@ -1257,7 +1257,7 @@ constexpr float CAEVehicleAudioEntity::GetDummyIdleRatioProgress(float ratio) {
 
 // 0x4F51F0
 float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio) const noexcept {
-    if (GetVehicle()->GetModelID() == MODEL_CADDY) {
+    if (GetVehicle()->GetModelId() == MODEL_CADDY) {
         return s_Config.DummyEngine.ID.VolumeBase - 30.0f;
     }
 
@@ -2055,7 +2055,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
     if (isSirenOn && !isFastSirenOn) {
         if ((!m_IsSirenOn || m_IsFastSirenOn) && !m_SirenSound) {
             if (areHornSoundsLoaded) {
-                const auto isMrWhoop = vp.Vehicle->GetModelID() == MODEL_MRWHOOP;
+                const auto isMrWhoop = vp.Vehicle->GetModelId() == MODEL_MRWHOOP;
                 if (isMrWhoop && !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_ICEVAN_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) { // 0x4F9CCD
                     return;
                 }
@@ -2539,7 +2539,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
         true
     );
 
-    const auto* const props   = &cfg->PropsByModel.at(vp.Vehicle->GetModelID());
+    const auto* const props  = &cfg->PropsByModel.at(vp.Vehicle->GetModelId());
     const auto        slot    = props->Slot.value_or(m_DummySlot);
     const auto* const params = &props->SoundParamsByPartDir[delta <= 0.f ? 0 : 1];
 
@@ -2613,7 +2613,7 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
     auto* const cfg = &s_Config.PlayerEngine;
 
     float f;
-    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelID() == MODEL_CADDY) { // Moved out here to simplify logic...
+    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelId() == MODEL_CADDY) { // Moved out here to simplify logic...
         f = 0.f;
     } else {
         // 0x4F80A6 - Calculate z move speed factor

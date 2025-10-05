@@ -545,7 +545,7 @@ CTask* CTaskComplexEnterCar::CreateFirstSubTask(CPed* ped) {
 
     if (const auto tGoToCarDoor = static_cast<CTaskComplexGoToCarDoorAndStandStill*>(C(TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL))) {
         if (ped->physicalFlags.bSubmergedInWater && !ped->bIsStanding) {
-            if (notsa::contains({ MODEL_SKIMMER, MODEL_VORTEX, MODEL_SEASPAR, MODEL_LEVIATHN }, m_Car->GetModelID())) {
+            if (notsa::contains({ MODEL_SKIMMER, MODEL_VORTEX, MODEL_SEASPAR, MODEL_LEVIATHN }, m_Car->GetModelId())) {
                 if (CCarEnterExit::GetNearestCarDoor(ped, m_Car, m_TargetDoorPos, m_TargetDoor)) {
                     tGoToCarDoor->SetTargetPt(m_TargetDoorPos);
                     tGoToCarDoor->SetTargetDoor(m_TargetDoor);

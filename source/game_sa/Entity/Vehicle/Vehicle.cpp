@@ -4362,7 +4362,7 @@ void CVehicle::DoHeadLightReflectionSingle(CMatrix& lightMat, bool bRight) {
     }
     const auto lightFwd2D = CVector2D(lightMat.GetForward()).Normalized();
     const auto lightRight2D = CVector2D(lightMat.GetRight()).Normalized();
-    const auto lightSize = (IsBike() || GetModelID() == MODEL_QUAD)
+    const auto lightSize = (IsBike() || GetModelId() == MODEL_QUAD)
         ? 1.25f
         : std::fabs(vehOffset.x) * 4.0f;
 

@@ -598,7 +598,7 @@ bool CPopulation::IsSunbather(eModelID modelIndex) {
 }
 
 bool CPopulation::IsSunbather(CPed* ped) {
-    return IsSunbather(ped->GetModelID());
+    return IsSunbather(ped->GetModelId());
 }
 
 // 0x611780
@@ -1274,7 +1274,7 @@ CPed* CPopulation::AddPedInCar(
     // Pick a model and ped type to use (TODO: Could probably just get the model type, and then resolve the ped type from the model)
     const auto pedModel = [&]() -> eModelID {
         if (addAsDriver) {
-            const auto driverModel = FindSpecificDriverModelForCar_ToUse(veh->GetModelID());
+            const auto driverModel = FindSpecificDriverModelForCar_ToUse(veh->GetModelId());
             if (driverModel != MODEL_INVALID && CStreaming::IsModelLoaded(driverModel)) {
                 return driverModel;
             }
@@ -1290,7 +1290,7 @@ CPed* CPopulation::AddPedInCar(
             return CCopPed::GetPedModelForCopType(ctype);
         };
 
-        switch (veh->GetModelID()) {
+        switch (veh->GetModelId()) {
         case MODEL_FIRETRUK:
             return FixIfInvalid(CStreaming::GetDefaultFiremanModel());
         case MODEL_AMBULAN:
@@ -1754,7 +1754,7 @@ void CPopulation::ManageDummy(CDummy* dummy, const CVector& posn) {
     if (!dummy->IsInCurrentArea() || !dummy->m_bIsVisible) {
         return;
     }
-    if ((posn - dummy->GetPosition()).SquaredMagnitude() >= sq(FindDummyDistForModel(dummy->GetModelID()))) {
+    if ((posn - dummy->GetPosition()).SquaredMagnitude() >= sq(FindDummyDistForModel(dummy->GetModelId()))) {
         return;
     }
     ConvertToRealObject(static_cast<CDummyObject*>(dummy));

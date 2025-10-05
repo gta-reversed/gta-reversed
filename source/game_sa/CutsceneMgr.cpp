@@ -1061,8 +1061,8 @@ void CCutsceneMgr::Update_overlay() {
 
         // Update cutscene specific model bounding boxes
         for (const auto csobj : ms_pCutsceneObjects | rngv::take(ms_numCutsceneObjs)) {
-            if (IsModelIDForCutScene(csobj->GetModelID())) {
-                UpdateCutsceneObjectBoundingBox(csobj->m_pRwClump, csobj->GetModelID());
+            if (IsModelIDForCutScene(csobj->GetModelId())) {
+                UpdateCutsceneObjectBoundingBox(csobj->m_pRwClump, csobj->GetModelId());
             }
         }
 

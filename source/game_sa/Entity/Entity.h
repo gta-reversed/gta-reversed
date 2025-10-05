@@ -182,6 +182,7 @@ public:
     virtual void SetModelIndex(uint32 index);
     virtual void SetModelIndexNoCreate(uint32 index);
     uint32 GetModelIndex() const { return m_nModelIndex; }
+    auto GetModelId() const { return (eModelID)m_nModelIndex; } // NOTSA
     RwObject* GetRwObject() const { return m_pRwObject; }
     virtual void CreateRwObject();
     void AttachToRwObject(RwObject* object, bool updateMatrix);
@@ -299,10 +300,8 @@ public:
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
     CEntity* FindLastLOD() noexcept;
 
-    auto GetModelId() const { return (eModelID)m_nModelIndex; }
     CBaseModelInfo* GetModelInfo() const;
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
-    auto GetModelID() const { return (eModelID)(m_nModelIndex); }
     bool ProcessScan();
 
     // Wrapper around the mess called `CleanUpOldReference`
