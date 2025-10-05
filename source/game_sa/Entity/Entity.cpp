@@ -645,8 +645,7 @@ bool CEntity::SetupLighting() {
     }
 
     ActivateDirectional();
-    const auto& vecPos = GetPosition();
-    auto        fLight = CPointLights::GenerateLightsAffectingObject(&vecPos, nullptr, this) * 0.5F;
+    const auto fLight = CPointLights::GenerateLightsAffectingObject(&GetPosition(), nullptr, this) * 0.5F;
     SetLightColoursForPedsCarsAndObjects(fLight);
 
     return true;
