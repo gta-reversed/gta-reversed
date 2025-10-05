@@ -241,11 +241,13 @@ void CEntity::SetModelIndexNoCreate(uint32 index) {
 
 // 0x533D30
 void CEntity::CreateRwObject() {
-    if (!m_bIsVisible) {
+    if (!GetIsVisible()) {
         return;
     }
 
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+
+    // Create instance based on damage state
     if (m_bRenderDamaged) {
         CDamageAtomicModelInfo::ms_bCreateDamagedVersion = true;
         m_pRwObject = mi->CreateInstance();
@@ -258,26 +260,24 @@ void CEntity::CreateRwObject() {
         return;
     }
 
+    // Update building counter and RenderWare state
     if (GetIsTypeBuilding()) {
-        ++gBuildings;
+        gBuildings++;
     }
-
     UpdateRW();
-    switch (RwObjectGetType(GetRwObject())) {
-    case rpATOMIC: {
+
+    // Handle different RenderWare object types
+    const auto objectType = RwObjectGetType(GetRwObject());
+
+    if (objectType == rpATOMIC) {
         if (CTagManager::IsTag(this)) {
             CTagManager::ResetAlpha(this);
         }
         CCustomBuildingDNPipeline::PreRenderUpdate(m_pRwAtomic, true);
-        break;
-    }
-    case rpCLUMP: {
-        if (!mi->bIsRoad) {
-            break;
-        }
-
+    } else if (objectType == rpCLUMP && mi->bIsRoad) {
+        // Add to moving list for road objects
         if (GetIsTypeObject()) {
-            auto obj = AsObject();
+            auto* obj = AsObject();
             if (!obj->m_pMovingList) {
                 obj->AddToMovingList();
             }
@@ -286,27 +286,23 @@ void CEntity::CreateRwObject() {
             CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
         }
 
-        if (m_pLod && m_pLod->GetRwObject() && RwObjectGetType(m_pLod->GetRwObject()) == rpCLUMP) {
-            auto pLodAssoc = RpAnimBlendClumpGetFirstAssociation(m_pLod->m_pRwClump);
-            if (pLodAssoc) {
-                auto pAssoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump);
-                if (pAssoc) {
+        // Synchronize LOD animation timing
+        if (GetLod() && GetLod()->GetRwObject() && RwObjectGetType(GetLod()->GetRwObject()) == rpCLUMP) {
+            if (auto* pLodAssoc = RpAnimBlendClumpGetFirstAssociation(GetLod()->m_pRwClump)) {
+                if (auto* pAssoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump)) {
                     pAssoc->SetCurrentTime(pLodAssoc->m_CurrentTime);
                 }
             }
         }
-        break;
-    }
     }
 
+    // Finalize object setup
     mi->AddRef();
     m_pStreamingLink = CStreaming::AddEntity(this);
     CreateEffects();
 
-    auto usedAtomic = m_pRwAtomic;
-    if (RwObjectGetType(GetRwObject()) != rpATOMIC) {
-        usedAtomic = GetFirstAtomic(m_pRwClump);
-    }
+    // Determine lighting requirement
+    auto* usedAtomic = objectType == rpATOMIC ? m_pRwAtomic : GetFirstAtomic(m_pRwClump);
 
     if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(usedAtomic)) {
         m_bLightObject = true;
