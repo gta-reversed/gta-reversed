@@ -826,12 +826,10 @@ void CEntity::ModifyMatrixForCrane() {
 // 0x533240
 void CEntity::PreRenderForGlassWindow() {
     auto mi = CModelInfo::GetModelInfo(GetModelIndex());
-    if (mi->IsGlassType2()) {
-        return;
+    if (!mi->IsGlassType2()) {
+        CGlass::AskForObjectToBeRenderedInGlass(this);
+        SetIsVisible(false);
     }
-
-    CGlass::AskForObjectToBeRenderedInGlass(this);
-    m_bIsVisible = false;
 }
 
 // 0x5332C0
