@@ -883,7 +883,7 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
         }
     }
 
-    outVec->Set(0.0F, 0.0F, 0.0F);
+    outVec->Reset();
     return outVec;
 }
 
