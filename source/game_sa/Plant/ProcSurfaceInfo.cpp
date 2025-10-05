@@ -148,7 +148,7 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
     CWorld::Add(head->m_Obj);
     m_Objects.AddItem(head);
     if (!isBuilding && (xyScale != 1.0f && zScale != 1.0f)) {
-        auto* rwObject = head->m_Obj->m_pRwObject;
+        auto* rwObject = head->m_Obj->GetRwObject();
         if (rwObject && rwObjectGetParent(rwObject) != (void*)-16) { // I don't understand this if, there must be some missing macro
             auto* modellingMatrix = head->m_Obj->GetModellingMatrix();
 

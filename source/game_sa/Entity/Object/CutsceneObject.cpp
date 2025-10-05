@@ -40,7 +40,7 @@ CCutsceneObject::CCutsceneObject() : CObject() {
 // 0x5B1B20
 void CCutsceneObject::SetModelIndex(unsigned index) {
     CEntity::SetModelIndex(index);
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP) {
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
         RpAnimBlendClumpInit(m_pRwClump);
         auto* animData = RpAnimBlendClumpGetData(m_pRwClump);
         animData->m_PedPosition = &m_vecMoveSpeed;
@@ -98,7 +98,7 @@ void CCutsceneObject::PreRender() {
             *static_cast<CMatrix*>(m_matrix) = attachMat;
         }
 
-        if (RwObjectGetType(m_pRwObject) == rpCLUMP) {
+        if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
             const auto* firstAtomic = GetFirstAtomic(m_pRwClump);
             if (firstAtomic) {
                 if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(firstAtomic))) {
@@ -111,7 +111,7 @@ void CCutsceneObject::PreRender() {
         }
     }
 
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP)
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP)
         CEntity::UpdateRpHAnim();
 
     g_realTimeShadowMan.DoShadowThisFrame(this);

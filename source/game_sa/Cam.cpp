@@ -385,7 +385,7 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
         m_fFOV = 70.0f;
     }
 
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
@@ -494,7 +494,7 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
     gbFirstPersonRunThisFrame = true;
 
     m_fFOV = 70.0f;
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 

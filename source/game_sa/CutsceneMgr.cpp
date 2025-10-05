@@ -943,7 +943,7 @@ void CCutsceneMgr::SetupCutsceneToStart() {
 
         // Add it to the world and update skinning
         CWorld::Add(csobj);
-        if (RwObjectGetType(csobj->m_pRwObject) == rpCLUMP) {
+        if (RwObjectGetType(csobj->GetRwObject()) == rpCLUMP) {
             csobj->UpdateRpHAnim();
         }
     }

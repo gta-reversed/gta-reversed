@@ -291,11 +291,11 @@ public:
 
     C2dEffect* GetRandom2dEffect(int32 effectType, bool mustBeFree);
 
-    // NOTSA / inline region?
-
     CVector TransformFromObjectSpace(const CVector& offset) const;
     CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
     RwMatrix* GetModellingMatrix();
+
+    // NOTSA
 
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
     CEntity* FindLastLOD() noexcept;

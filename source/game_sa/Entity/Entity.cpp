@@ -275,14 +275,14 @@ void CEntity::CreateRwObject()
         m_pRwObject = mi->CreateInstance();
     }
 
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
     if (GetIsTypeBuilding())
         ++gBuildings;
 
     UpdateRW();
-    switch (RwObjectGetType(m_pRwObject)) {
+    switch (RwObjectGetType(GetRwObject())) {
     case rpATOMIC: {
         if (CTagManager::IsTag(this))
             CTagManager::ResetAlpha(this);
@@ -304,7 +304,7 @@ void CEntity::CreateRwObject()
             CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
         }
 
-        if (m_pLod && m_pLod->m_pRwObject && RwObjectGetType(m_pLod->m_pRwObject) == rpCLUMP) {
+        if (m_pLod && m_pLod->GetRwObject() && RwObjectGetType(m_pLod->GetRwObject()) == rpCLUMP) {
             auto pLodAssoc = RpAnimBlendClumpGetFirstAssociation(m_pLod->m_pRwClump);
             if (pLodAssoc) {
                 auto pAssoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump);
@@ -321,7 +321,7 @@ void CEntity::CreateRwObject()
     CreateEffects();
 
     auto usedAtomic = m_pRwAtomic;
-    if (RwObjectGetType(m_pRwObject) != rpATOMIC)
+    if (RwObjectGetType(GetRwObject()) != rpATOMIC)
         usedAtomic = GetFirstAtomic(m_pRwClump);
 
     if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(usedAtomic))
@@ -331,10 +331,10 @@ void CEntity::CreateRwObject()
 // 0x534030
 void CEntity::DeleteRwObject()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    switch (RwObjectGetType(m_pRwObject)) {
+    switch (RwObjectGetType(GetRwObject())) {
     case rpATOMIC: {
         auto frame = RpAtomicGetFrame(m_pRwAtomic);
         RpAtomicDestroy(m_pRwAtomic);
@@ -725,10 +725,10 @@ void CEntity::PreRender() {
 // 0x534310
 void CEntity::Render()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    if (RwObjectGetType(m_pRwObject) == rpATOMIC && CTagManager::IsTag(this)) {
+    if (RwObjectGetType(GetRwObject()) == rpATOMIC && CTagManager::IsTag(this)) {
         CTagManager::RenderTagForPC(m_pRwAtomic);
         return;
     }
@@ -741,7 +741,7 @@ void CEntity::Render()
 
     m_bImBeingRendered = true;
 
-    if (RwObjectGetType(m_pRwObject) == rpATOMIC)
+    if (RwObjectGetType(GetRwObject()) == rpATOMIC)
         RpAtomicRender(m_pRwAtomic);
     else
         RpClumpRender(m_pRwClump);
@@ -789,10 +789,10 @@ void CEntity::FlagToDestroyWhenNextProcessed()
 // 0x532B00
 void CEntity::UpdateRwFrame()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    RwFrameUpdateObjects(static_cast<RwFrame*>(rwObjectGetParent(m_pRwObject)));
+    RwFrameUpdateObjects(static_cast<RwFrame*>(rwObjectGetParent(GetRwObject())));
 }
 
 // 0x532B20
@@ -908,7 +908,7 @@ void CEntity::ModifyMatrixForCrane()
     if (CTimer::GetIsPaused())
         return;
 
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
     auto parentMatrix = GetModellingMatrix();
@@ -937,10 +937,10 @@ void CEntity::PreRenderForGlassWindow()
 // 0x5332C0
 void CEntity::SetRwObjectAlpha(int32 alpha)
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    switch (RwObjectGetType(m_pRwObject)) {
+    switch (RwObjectGetType(GetRwObject())) {
         case rpATOMIC:
             SetAtomicAlphaCB(m_pRwAtomic, (void*)alpha);
             break;
@@ -1203,7 +1203,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix)
         return;
 
     m_pRwObject = object;
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
     if (updateMatrix) {
@@ -1213,7 +1213,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix)
     }
 
     auto mi = CModelInfo::GetModelInfo(GetModelIndex());
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP && mi->IsRoad()) {
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP && mi->IsRoad()) {
         if (GetIsTypeObject())
         {
             reinterpret_cast<CObject*>(this)->AddToMovingList();
@@ -1232,7 +1232,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix)
 // 0x533FB0
 void CEntity::DetachFromRwObject()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
     auto mi = CModelInfo::GetModelInfo(GetModelIndex());
@@ -1442,7 +1442,7 @@ void CEntity::ModifyMatrixForBannerInWind()
 
 // 0x46A2D0
 RwMatrix* CEntity::GetModellingMatrix() {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return nullptr;
 
     return GetRwMatrix();
@@ -1578,7 +1578,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
 void CEntity::UpdateAnim()
 {
     m_bDontUpdateHierarchy = false;
-    if (!m_pRwObject || RwObjectGetType(m_pRwObject) != rpCLUMP)
+    if (!GetRwObject() || RwObjectGetType(GetRwObject()) != rpCLUMP)
         return;
 
     if (!RpAnimBlendClumpGetFirstAssociation(m_pRwClump))
@@ -1605,7 +1605,7 @@ void CEntity::UpdateAnim()
 // 0x536BC0
 bool CEntity::IsVisible()
 {
-    if (!m_pRwObject || !m_bIsVisible)
+    if (!GetRwObject() || !m_bIsVisible)
         return false;
 
     return CEntity::GetIsOnScreen();
@@ -2391,7 +2391,7 @@ bool CEntity::IsEntityOccluded() {
 }
 
 inline RwMatrix* CEntity::GetRwMatrix() {
-    return RwFrameGetMatrix(RwFrameGetParent(m_pRwObject));
+    return RwFrameGetMatrix(RwFrameGetParent(GetRwObject()));
 }
 
 inline bool CEntity::IsInArea(int32 area) {
@@ -2404,7 +2404,7 @@ inline bool CEntity::IsInCurrentArea() const {
 
 // 0x446F90
 void CEntity::UpdateRW() {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
     auto parentMatrix = GetModellingMatrix();
@@ -2420,7 +2420,7 @@ CEntity* CEntity::FindLastLOD() noexcept {
     return it;
 }
 
-// inline
+// define?
 CBaseModelInfo* CEntity::GetModelInfo() const {
     return CModelInfo::GetModelInfo(GetModelIndex());
 }

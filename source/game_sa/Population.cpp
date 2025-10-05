@@ -1198,7 +1198,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
             veh->SetIsStatic(false);
 
             // Now, update the RW matrix too
-            if (veh->m_pRwObject) {
+            if (veh->GetRwObject()) {
                 vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->m_pRwClump)));
             }
 
@@ -1657,7 +1657,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
         for (int16 o{}; o < numEntitiesInRng; o++) {
             const auto ent = entitiesInRng[o];
             assert(ent);
-            if (!ent->m_pRwObject) {
+            if (!ent->GetRwObject()) {
                 continue;
             }
             if (!ent->IsInCurrentArea()) {

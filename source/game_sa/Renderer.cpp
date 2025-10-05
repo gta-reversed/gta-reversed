@@ -257,7 +257,7 @@ void CRenderer::ProcessLodRenderLists() {
                     ) {
                         entity->GetLod()->ResetLodChildrenRendered();
                     }
-                    if (!entity->m_pRwObject) {
+                    if (!entity->GetRwObject()) {
                         if (entity->GetLod()->m_bDisplayedSuperLowLOD)
                             entity->GetLod()->SetCannotLodChildrenRender();
                         renderListEntry->entity = nullptr;
@@ -488,9 +488,9 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
         if (entity->m_bDontStream)
             return RENDERER_INVISIBLE;
         if (baseModelInfo->m_pRwObject && fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius) {
-            if (!entity->m_pRwObject) {
+            if (!entity->GetRwObject()) {
                 entity->CreateRwObject();
-                if (!entity->m_pRwObject)
+                if (!entity->GetRwObject())
                     return RENDERER_INVISIBLE;
             }
             if (!entity->m_bIsVisible)
@@ -511,14 +511,14 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
         }
         if (fDistance - MAX_STREAMING_DISTANCE >= fDrawDistanceRadius || !bIsTimeInRange || !entity->m_bIsVisible)
             return RENDERER_INVISIBLE;
-        if (!entity->m_pRwObject)
+        if (!entity->GetRwObject())
             entity->CreateRwObject();
         return RENDERER_STREAMME;
     }
 
-    if (!entity->m_pRwObject) {
+    if (!entity->GetRwObject()) {
         entity->CreateRwObject();
-        if (!entity->m_pRwObject)
+        if (!entity->GetRwObject())
             return RENDERER_INVISIBLE;
     }
 
@@ -589,7 +589,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
                 }
             }
 
-            if (!entity->m_pRwObject
+            if (!entity->GetRwObject()
                 || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex)
                 || !entity->IsInCurrentArea() && entity->GetIsTypeVehicle()
             ) {
@@ -634,7 +634,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
         {
             if (entity->m_bDontStream)
             {
-                if (!entity->m_pRwObject || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex))
+                if (!entity->GetRwObject() || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex))
                 {
                     return RENDERER_INVISIBLE;
                 }
@@ -735,7 +735,7 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
         ms_pLodRenderList++;
     }
 
-    if (!entity->m_pRwObject)
+    if (!entity->GetRwObject())
         entity->CreateRwObject();
 
     return RENDERER_STREAMME;

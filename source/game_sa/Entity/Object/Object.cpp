@@ -100,8 +100,8 @@ CObject::CObject(int32 modelId, bool bCreate) : CPhysical() {
 // 0x5A1DF0
 CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
     CEntity::SetModelIndexNoCreate(dummyObj->m_nModelIndex);
-    if (dummyObj->m_pRwObject)
-        CEntity::AttachToRwObject(dummyObj->m_pRwObject, true);
+    if (dummyObj->GetRwObject())
+        CEntity::AttachToRwObject(dummyObj->GetRwObject(), true);
     else
         CPlaceable::SetMatrix(dummyObj->GetMatrix());
 
@@ -112,9 +112,9 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
     SetAreaCode(dummyObj->GetAreaCode());
     m_bRenderDamaged = dummyObj->m_bRenderDamaged;
 
-    if (m_pRwObject) {
+    if (GetRwObject()) {
         auto* atomic = m_pRwAtomic;
-        if (RwObjectGetType(m_pRwObject) != rpATOMIC)
+        if (RwObjectGetType(GetRwObject()) != rpATOMIC)
             atomic = GetFirstAtomic(m_pRwClump);
 
         if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(atomic))
@@ -196,7 +196,7 @@ void CObject::CreateRwObject() {
 void CObject::ProcessControl() {
     auto* mi = GetModelInfo();
     auto bIsAnimated = false;
-    if (mi->GetRwModelType() == rpCLUMP && mi->bHasAnimBlend && m_pRwObject)
+    if (mi->GetRwModelType() == rpCLUMP && mi->bHasAnimBlend && GetRwObject())
         bIsAnimated = true;
 
     if (m_fDamageIntensity > 0.0F
@@ -536,7 +536,7 @@ void CObject::PreRender() {
     if (!m_pAttachedTo)
         m_fContactSurfaceBrightness = m_nColLighting.GetCurrentLighting();
 
-    if (m_pRwObject && RwObjectGetType(m_pRwObject) == rpCLUMP && objectFlags.bFadingIn)
+    if (GetRwObject() && RwObjectGetType(GetRwObject()) == rpCLUMP && objectFlags.bFadingIn)
     {
         auto iAlpha = CVisibilityPlugins::GetClumpAlpha(m_pRwClump) - 16;
         iAlpha = std::max(0, iAlpha);
@@ -556,7 +556,7 @@ void CObject::PreRender() {
             objectFlags.bIsScaled = false; //BUG? It's unsetting the flag straight after setting it
     }
 
-    if (m_pRwObject && RwObjectGetType(m_pRwObject) == rpCLUMP)
+    if (GetRwObject() && RwObjectGetType(GetRwObject()) == rpCLUMP)
         CEntity::UpdateRpHAnim();
 }
 

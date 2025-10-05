@@ -833,7 +833,7 @@ void CReplay::RecordThisFrame() {
     // Calculate the frame size beforehand.
     auto framePacketSize = 116u;
     for (const auto& veh : GetVehiclePool()->GetAllValid()) {
-        if (veh.m_pRwObject) {
+        if (veh.GetRwObject()) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
@@ -860,7 +860,7 @@ void CReplay::RecordThisFrame() {
     }
 
     for (const auto& ped : GetPedPool()->GetAllValid()) {
-        if (ped.m_pRwObject) {
+        if (ped.GetRwObject()) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
                 framePacketSize += FindSizeOfPacket(REPLAY_PACKET_PED_HEADER);
@@ -904,7 +904,7 @@ void CReplay::RecordThisFrame() {
     Record.Write<tReplayTimerBlock>({.timeInMS = CTimer::GetTimeInMS()});
 
     for (auto&& [i, veh] : GetVehiclePool()->GetAllValidWithIndex()) {
-        if (veh.m_pRwObject) {
+        if (veh.GetRwObject()) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
@@ -950,7 +950,7 @@ void CReplay::RecordThisFrame() {
     }
 
     for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
-        if (ped.m_pRwObject) {
+        if (ped.GetRwObject()) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
                 const auto modelId = ped.m_nModelIndex;

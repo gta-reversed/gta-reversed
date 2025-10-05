@@ -19,8 +19,8 @@ CDummyObject::CDummyObject() : CDummy() {
 // 0x59EA20
 CDummyObject::CDummyObject(CObject* obj) : CDummy() {
     CEntity::SetModelIndexNoCreate(GetModelIndex());
-    if (obj->m_pRwObject)
-        CEntity::AttachToRwObject(obj->m_pRwObject, true);
+    if (obj->GetRwObject())
+        CEntity::AttachToRwObject(obj->GetRwObject(), true);
 
     obj->DetachFromRwObject();
     SetIplIndex(obj->GetIplIndex());
@@ -52,7 +52,7 @@ void CDummyObject::UpdateFromObject(CObject* obj) {
     SetUsesCollision(true);
 
     obj->m_bImBeingRendered = true;
-    CEntity::AttachToRwObject(obj->m_pRwObject, false);
+    CEntity::AttachToRwObject(obj->GetRwObject(), false);
     obj->m_bImBeingRendered = false;
     CEntity::UpdateRW();
     obj->DetachFromRwObject();

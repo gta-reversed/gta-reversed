@@ -205,7 +205,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
     const auto CreateAndPlayFxWithSound = [&](const char* name, float volume = .0f) {
         FxSystem_c* fx{nullptr};
         if (exp->m_pVictim) {
-            if (exp->m_pVictim->m_pRwObject) {
+            if (exp->m_pVictim->GetRwObject()) {
                 if (RwMatrix* matrix = exp->m_pVictim->GetModellingMatrix()) {
                     CVector expToVictimDir = pos - exp->m_pVictim->GetPosition();
                     fx = g_fxMan.CreateFxSystem(name, expToVictimDir, matrix, false);

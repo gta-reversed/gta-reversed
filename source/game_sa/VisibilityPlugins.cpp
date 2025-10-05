@@ -529,7 +529,7 @@ void CVisibilityPlugins::RenderBoatAlphaAtomics() {
 
 // 0x732B40
 void CVisibilityPlugins::RenderEntity(CEntity* entity, float distance) {
-    if (!entity->m_pRwObject)
+    if (!entity->GetRwObject())
         return;
 
     CBaseModelInfo* mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
@@ -551,7 +551,7 @@ void CVisibilityPlugins::RenderEntity(CEntity* entity, float distance) {
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
         }
         bool bLightingSetup = entity->SetupLighting();
-        if (RwObjectGetType(entity->m_pRwObject) == rpATOMIC) {
+        if (RwObjectGetType(entity->GetRwObject()) == rpATOMIC) {
             RenderFadingAtomic(mi, entity->m_pRwAtomic, alpha);
         } else {
             RenderFadingClump(mi, entity->m_pRwClump, alpha);

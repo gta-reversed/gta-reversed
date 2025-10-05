@@ -2193,7 +2193,7 @@ void CStreaming::RemoveBigBuildings() {
 void CStreaming::RemoveBuildingsNotInArea(eAreaCodes area) {
         for (auto i = GetBuildingPool()->GetSize(); i --> 0;) {
         CBuilding* building = GetBuildingPool()->GetAt(i);
-        if (building && building->m_pRwObject) {
+        if (building && building->GetRwObject()) {
             if (!building->IsInArea(area)) {
                 if (!building->m_bImBeingRendered && !building->m_bIsBIGBuilding)
                     building->DeleteRwObject();
@@ -2202,7 +2202,7 @@ void CStreaming::RemoveBuildingsNotInArea(eAreaCodes area) {
     }
     for (auto i = GetObjectPool()->GetSize(); i --> 0;) {
         CObject* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->m_pRwObject) {
+        if (obj && obj->GetRwObject()) {
             if (obj->IsInArea(area)) {
                 if (!obj->m_bImBeingRendered && obj->m_nObjectType == eObjectType::OBJECT_GAME)
                     obj->DeleteRwObject();
@@ -2211,7 +2211,7 @@ void CStreaming::RemoveBuildingsNotInArea(eAreaCodes area) {
     }
     for (auto i = GetDummyPool()->GetSize(); i --> 0;) {
         CDummy* dummy = GetDummyPool()->GetAt(i);
-        if (dummy && dummy->m_pRwObject) {
+        if (dummy && dummy->GetRwObject()) {
             if (dummy->IsInArea(area)) {
                 if (!dummy->m_bImBeingRendered)
                     dummy->DeleteRwObject();

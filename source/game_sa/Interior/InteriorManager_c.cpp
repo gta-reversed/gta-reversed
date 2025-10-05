@@ -245,7 +245,7 @@ size_t InteriorManager_c::GetVisibleEffects(InteriorEffectInfo_t* intFxInfos, ui
 
     size_t numIntFxInfo{};
     for (auto& e : entitiesInRange | rng::views::take(objCount)) {
-        if (!e->m_pRwObject || !e->IsInCurrentArea()) {
+        if (!e->GetRwObject() || !e->IsInCurrentArea()) {
             continue;
         }
 

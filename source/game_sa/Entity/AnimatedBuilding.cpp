@@ -25,7 +25,7 @@ void CAnimatedBuilding::ProcessCollision()
 // 0x403F00
 void CAnimatedBuilding::PreRender()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
     CEntity::PreRender();
