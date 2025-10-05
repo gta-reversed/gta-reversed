@@ -680,45 +680,67 @@ void CEntity::UpdateRpHAnim() {
 
 // 0x532B70
 bool CEntity::HasPreRenderEffects() {
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
-    if (!mi->SwaysInWind()
-        && !mi->IsCrane()
-        && GetModelIndex() != ModelIndices::MI_COLLECTABLE1
-        && GetModelIndex() != ModelIndices::MI_MONEY
-        && GetModelIndex() != ModelIndices::MI_CARMINE
-        && GetModelIndex() != ModelIndices::MI_NAUTICALMINE
-        && GetModelIndex() != ModelIndices::MI_BRIEFCASE
-        && GetModelIndex() != MODEL_MISSILE
-        && GetModelIndex() != MODEL_GRENADE
-        && GetModelIndex() != MODEL_MOLOTOV
-        && GetModelIndex() != ModelIndices::MI_BEACHBALL
-        && GetModelIndex() != ModelIndices::MI_MAGNOCRANE_HOOK
-        && GetModelIndex() != ModelIndices::MI_WRECKING_BALL
-        && GetModelIndex() != ModelIndices::MI_CRANE_MAGNET
-        && GetModelIndex() != ModelIndices::MI_MINI_MAGNET
-        && GetModelIndex() != ModelIndices::MI_CRANE_HARNESS
-        && GetModelIndex() != ModelIndices::MI_WINDSOCK
-        && GetModelIndex() != ModelIndices::MI_FLARE
-        && !IsGlassModel(this)
-        && (!GetIsTypeObject() || !reinterpret_cast<CObject*>(this)->objectFlags.bIsPickup)
-        && !CTrafficLights::IsMITrafficLight(GetModelIndex())
-        && GetModelIndex() != ModelIndices::MI_SINGLESTREETLIGHTS1
-        && GetModelIndex() != ModelIndices::MI_SINGLESTREETLIGHTS2
-        && GetModelIndex() != ModelIndices::MI_SINGLESTREETLIGHTS3
-        && GetModelIndex() != ModelIndices::MI_DOUBLESTREETLIGHTS) {
-        if (!mi->m_n2dfxCount) {
-            return false;
-        }
+    const auto modelIndex = GetModelIndex();
+    auto mi = CModelInfo::GetModelInfo(modelIndex);
 
-        for (int32 i = 0; i < mi->m_n2dfxCount; ++i) {
-            if (mi->Get2dEffect(i)->m_Type == e2dEffectType::EFFECT_LIGHT) {
-                return true;
-            }
-        }
+    if (mi->SwaysInWind() || mi->IsCrane()) {
+        return true;
+    }
 
+    // Check for special models
+    if (modelIndex == ModelIndices::MI_COLLECTABLE1
+        || modelIndex == ModelIndices::MI_MONEY
+        || modelIndex == ModelIndices::MI_CARMINE
+        || modelIndex == ModelIndices::MI_NAUTICALMINE
+        || modelIndex == ModelIndices::MI_BRIEFCASE
+        || modelIndex == MODEL_MISSILE
+        || modelIndex == MODEL_GRENADE
+        || modelIndex == MODEL_MOLOTOV
+        || modelIndex == ModelIndices::MI_BEACHBALL
+        || modelIndex == ModelIndices::MI_MAGNOCRANE_HOOK
+        || modelIndex == ModelIndices::MI_WRECKING_BALL
+        || modelIndex == ModelIndices::MI_CRANE_MAGNET
+        || modelIndex == ModelIndices::MI_MINI_MAGNET
+        || modelIndex == ModelIndices::MI_CRANE_HARNESS
+        || modelIndex == ModelIndices::MI_WINDSOCK
+        || modelIndex == ModelIndices::MI_FLARE) {
+        return true;
+    }
+
+    if (IsGlassModel(this)) {
+        return true;
+    }
+
+    // Checking for a pickup object
+    if (GetIsTypeObject() && reinterpret_cast<CObject*>(this)->objectFlags.bIsPickup) {
+        return true;
+    }
+
+    // Checking traffic lights
+    if (CTrafficLights::IsMITrafficLight(modelIndex)) {
+        return true;
+    }
+
+    // Checking street lights
+    if (modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS1
+        || modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS2
+        || modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS3
+        || modelIndex == ModelIndices::MI_DOUBLESTREETLIGHTS) {
+        return true;
+    }
+
+    // Checking for 2D light effects
+    if (!mi->m_n2dfxCount) {
         return false;
     }
-    return true;
+
+    for (int32 i = 0; i < mi->m_n2dfxCount; ++i) {
+        if (mi->Get2dEffect(i)->m_Type == e2dEffectType::EFFECT_LIGHT) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // 0x532D40
