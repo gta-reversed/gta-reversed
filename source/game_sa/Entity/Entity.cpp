@@ -97,26 +97,25 @@ void CEntity::InjectHooks() {
     RH_ScopedGlobalInstall(IsGlassModel, 0x46A760);
 }
 
-CEntity::CEntity() :
-    CPlaceable() {
+CEntity::CEntity() : CPlaceable() {
     SetStatus(STATUS_ABANDONED);
     SetType(ENTITY_TYPE_NOTHING);
 
     m_nFlags = 0;
-    m_bIsVisible = true;
+    SetIsVisible(true);
     SetIsBackfaceCulled(true);
 
     SetScanCode(0);
     SetAreaCode(AREA_CODE_NORMAL_WORLD);
-    m_nModelIndex = 0xFFFF;
+    m_nModelIndex = MODEL_INVALID;
     m_pRwObject = nullptr;
     SetIplIndex(0);
     m_nRandomSeed = CGeneral::GetRandomNumber();
     m_pReferences = nullptr;
     m_pStreamingLink = nullptr;
     m_nNumLodChildren = 0;
-    m_nNumLodChildrenRendered = 0;
-    m_pLod = nullptr;
+    ResetLodChildrenRendered();
+    SetLod(nullptr);
 }
 
 CEntity::~CEntity() {
