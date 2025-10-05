@@ -222,6 +222,7 @@ void CEntity::SetModelIndex(uint32 index) {
 void CEntity::SetModelIndexNoCreate(uint32 index) {
     auto mi = CModelInfo::GetModelInfo(index);
     m_nModelIndex = index;
+
     m_bHasPreRenderEffects = HasPreRenderEffects();
 
     if (mi->GetIsDrawLast()) {
