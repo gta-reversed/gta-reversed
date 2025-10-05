@@ -377,7 +377,7 @@ CRect CEntity::GetBoundRect() const {
 
 // 0x535FA0
 void CEntity::PreRender() {
-    const auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    const auto mi  = CModelInfo::GetModelInfo(GetModelIndex());
     const auto ami = mi->AsAtomicModelInfoPtr();
 
     if (mi->m_n2dfxCount) {
