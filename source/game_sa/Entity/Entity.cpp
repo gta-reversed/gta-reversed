@@ -612,8 +612,10 @@ void CEntity::Render() {
         return;
     }
 
+    const bool isJellyfish = GetModelIndex() == ModelIndices::MI_JELLYFISH || GetModelIndex() == ModelIndices::MI_JELLYFISH01;
+
     uint32 savedAlphaRef;
-    if (GetModelIndex() == ModelIndices::MI_JELLYFISH || GetModelIndex() == ModelIndices::MI_JELLYFISH01) {
+    if (isJellyfish) {
         RwRenderStateGet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(&savedAlphaRef));
         RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(0u));
     }
@@ -631,7 +633,7 @@ void CEntity::Render() {
 
     m_bImBeingRendered = false;
 
-    if (GetModelIndex() == ModelIndices::MI_JELLYFISH || GetModelIndex() == ModelIndices::MI_JELLYFISH01) {
+    if (isJellyfish) {
         RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(savedAlphaRef));
     }
 }
