@@ -186,7 +186,7 @@ void CRenderer::AddEntityToRenderList(CEntity* entity, float fDistance)
     else if (CVisibilityPlugins::InsertEntityIntoSortedList(entity, fDistance)) {
         return;
     }
-    if (entity->GetLodChildren() && !entity->m_bUnderwater) {
+    if (entity->GetNumLodChildren() && !entity->m_bUnderwater) {
         ms_aVisibleLodPtrs[ms_nNoOfVisibleLods] = entity;
         ms_nNoOfVisibleLods++;
         assert(ms_nNoOfVisibleLods <= MAX_VISIBLE_LOD_PTRS);
@@ -244,7 +244,7 @@ void CRenderer::ProcessLodRenderLists() {
         for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
             CEntity* entity = renderListEntry->entity;
             if (entity) {
-                if (entity->HasLodChildrenRendered() && entity->GetLodChildrenRendered() == entity->GetLodChildren()) {
+                if (entity->HasLodChildrenRendered() && entity->GetNumLodChildrenRendered() == entity->GetNumLodChildren()) {
                     entity->ResetLodChildrenRendered();
                     renderListEntry->entity = nullptr;
                     bAllLodsRendered = true;
@@ -279,7 +279,7 @@ void CRenderer::ProcessLodRenderLists() {
     for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
         CEntity* entity = renderListEntry->entity;
         if (entity) {
-            if (!entity->CanLodChildrenRender() || !entity->GetLodChildrenRendered())
+            if (!entity->CanLodChildrenRender() || !entity->GetNumLodChildrenRendered())
             {
                 entity->m_bDisplayedSuperLowLOD = true;
                 auto modelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
@@ -476,7 +476,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
     }
 
     if (!baseModelInfo->m_pRwObject) {
-        if (entity->GetLod() && entity->GetLod()->GetLodChildren() > 1u &&
+        if (entity->GetLod() && entity->GetLod()->GetNumLodChildren() > 1u &&
             fFadingDistance + fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius)
         {
             AddToLodRenderList(entity, fDistance);
@@ -503,7 +503,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
                 return RENDERER_INVISIBLE;
             }
             entity->m_bDistanceFade = true;
-            if (entity->GetLod() && entity->GetLod()->GetLodChildren() > 1u)
+            if (entity->GetLod() && entity->GetLod()->GetNumLodChildren() > 1u)
                 AddToLodRenderList(entity, fDistance);
             else
                 AddEntityToRenderList(entity, fDistance);
@@ -534,7 +534,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
             return RENDERER_VISIBLE;
         if (baseModelInfo->m_nAlpha == 255)
             entity->GetLod()->AddLodChildrenRendered();
-        if (entity->GetLod()->GetLodChildren() <= 1u)
+        if (entity->GetLod()->GetNumLodChildren() <= 1u)
             return RENDERER_VISIBLE;
         AddToLodRenderList(entity, fDistance);
         return RENDERER_INVISIBLE;
@@ -714,7 +714,7 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
     outDistance = DistanceBetweenPoints(ms_vecCameraPosition, entityPos);
     if (!entity->HasLodChildrenRendered()) {
         int32 visibility = SetupMapEntityVisibility(entity, baseModelInfo, outDistance, bIsTimeInRange);
-        if (visibility != RENDERER_VISIBLE || entity->GetLodChildren() <= 1u) {
+        if (visibility != RENDERER_VISIBLE || entity->GetNumLodChildren() <= 1u) {
             return visibility;
         }
         if (entity->GetLod() && baseModelInfo->m_nAlpha == 255) {
@@ -727,7 +727,7 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
     if (entity->GetLod())
         entity->GetLod()->AddLodChildrenRendered();
 
-    if (entity->GetLodChildren() <= 1u) {
+    if (entity->GetNumLodChildren() <= 1u) {
         entity->ResetLodChildrenRendered();
     } else {
         ms_pLodRenderList->entity = entity;

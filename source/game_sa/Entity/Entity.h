@@ -270,11 +270,11 @@ public:
 
     void AddLodChildren() { m_nNumLodChildren++; } // orig AddLodChild
     void RemoveLodChildren() { m_nNumLodChildren--; } // orig RemoveLodChild
-    int32 GetLodChildren() { return m_nNumLodChildren; } // orig GetNumLodChildren
+    int32 GetNumLodChildren() { return m_nNumLodChildren; }
 
     void AddLodChildrenRendered() { m_nNumLodChildrenRendered++; } // orig AddLodChildRendered
     void ResetLodChildrenRendered() { m_nNumLodChildrenRendered = 0; } // orig ResetLodRenderedCounter
-    int32 GetLodChildrenRendered() { return m_nNumLodChildrenRendered; } // orig GetNumLodChildrenRendered
+    int32 GetNumLodChildrenRendered() { return m_nNumLodChildrenRendered; }
     bool HasLodChildrenRendered() { return m_nNumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
     void SetCannotLodChildrenRender() { m_nNumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
     bool CanLodChildrenRender() { return m_nNumLodChildrenRendered != 128; } // orig CanLodChildRender

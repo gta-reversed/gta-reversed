@@ -1990,7 +1990,7 @@ void LinkLods(int32 numRelatedIPLs) {
         }
 
         // 0x5B5285
-        if (building->GetLodChildren() || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) {
+        if (building->GetNumLodChildren() || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) {
             building->SetupBigBuilding();
         }
 
@@ -1998,7 +1998,7 @@ void LinkLods(int32 numRelatedIPLs) {
         if (const auto lod = building->GetLod()) {
             const auto mi = building->GetModelInfo(),
                 lodMI = lod->GetModelInfo();
-            if (lod->GetLodChildren() == 1) {
+            if (lod->GetNumLodChildren() == 1) {
                 lod->m_bUnderwater |= building->m_bUnderwater;
                 if (const auto cm = mi->GetColModel()) {
                     if (cm != lodMI->GetColModel()) {
