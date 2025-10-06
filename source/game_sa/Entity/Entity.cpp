@@ -1127,8 +1127,9 @@ void CEntity::DetachFromRwObject() {
         return;
     }
 
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
     mi->RemoveRef();
+
     CStreaming::RemoveEntity(m_pStreamingLink);
     m_pStreamingLink = nullptr;
 
