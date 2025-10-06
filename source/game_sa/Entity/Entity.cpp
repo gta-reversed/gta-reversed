@@ -1092,7 +1092,7 @@ void CEntity::DestroyEffects() {
 
 // 0x533ED0
 void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix) {
-    if (!m_bIsVisible) {
+    if (!GetIsVisible()) {
         return;
     }
 
@@ -1102,15 +1102,14 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix) {
     }
 
     if (updateMatrix) {
-        CMatrix& matrix = GetMatrix();
-        auto     parentMatrix = GetModellingMatrix();
-        matrix.UpdateMatrix(parentMatrix);
+        GetMatrix().UpdateMatrix(GetModellingMatrix());
     }
 
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+
     if (RwObjectGetType(GetRwObject()) == rpCLUMP && mi->IsRoad()) {
         if (GetIsTypeObject()) {
-            reinterpret_cast<CObject*>(this)->AddToMovingList();
+            AsObject()->AddToMovingList();
             SetIsStatic(false);
         } else {
             CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
