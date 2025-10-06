@@ -921,22 +921,19 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     return iFoundCount ? apArr[CGeneral::GetRandomNumberInRange(0u, iFoundCount)] : nullptr;
 }
 
-// 0x5334F0
+// 0x5334F0, PC Only
 CVector CEntity::TransformFromObjectSpace(const CVector& offset) const {
-    auto result = CVector();
     if (m_matrix) {
-        result = m_matrix->TransformPoint(offset);
-        return result;
+        return m_matrix->TransformPoint(offset);
     }
-
+    CVector result;
     TransformPoint(result, m_placement, offset);
     return result;
 }
 
-// 0x533560
+// 0x533560, PC Only
 CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offset) const {
-    auto result = TransformFromObjectSpace(offset);
-    outPos = result;
+    outPos = TransformFromObjectSpace(offset);
     return &outPos;
 }
 
