@@ -1056,6 +1056,7 @@ void CEntity::DestroyEffects() {
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
+
         switch (effect->m_Type) {
         case e2dEffectType::EFFECT_ATTRACTOR: {
             if (effect->pedAttractor.m_nAttractorType == ePedAttractorType::PED_ATTRACTOR_TRIGGER_SCRIPT) {
@@ -1068,13 +1069,13 @@ void CEntity::DestroyEffects() {
             break;
         }
         case e2dEffectType::EFFECT_ROADSIGN: {
-            C2dEffect::DestroyAtomic(effect->roadsign.m_pAtomic);
-            effect->roadsign.m_pAtomic = nullptr;
+            C2dEffect::DestroyAtomic(std::exchange(effect->roadsign.m_pAtomic, nullptr));
             break;
         }
         case e2dEffectType::EFFECT_ENEX: {
-            auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
-            auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
+            const auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
+            const auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
+
             if (iNearestEnex != -1) {
                 auto enex = CEntryExitManager::GetInSlot(iNearestEnex);
                 if (enex->bEnteredWithoutExit) {
