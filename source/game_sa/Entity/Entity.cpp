@@ -1145,7 +1145,7 @@ void CEntity::DetachFromRwObject() {
 
 // 0x534250
 CVector* CEntity::GetBoundCentre(CVector* pOutCentre) const {
-    auto        mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
     const auto& colCenter = mi->GetColModel()->GetBoundCenter();
     return TransformFromObjectSpace(*pOutCentre, colCenter);
 }
@@ -1167,7 +1167,7 @@ void CEntity::RenderEffects() {
         return;
     }
 
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
     if (!mi->m_n2dfxCount) {
         return;
     }
@@ -1184,14 +1184,13 @@ void CEntity::RenderEffects() {
 
 // 0x5343F0
 bool CEntity::GetIsTouching(CEntity* entity) const {
-    CVector thisVec;
-    GetBoundCentre(thisVec);
+    const CVector thisVec = GetBoundCentre();
+    const CVector otherVec = entity->GetBoundCentre();
 
-    CVector otherVec;
-    entity->GetBoundCentre(otherVec);
-
-    auto fThisRadius = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius();
-    auto fOtherRadius = CModelInfo::GetModelInfo(entity->GetModelIndex())->GetColModel()->GetBoundRadius();
+    const auto fThisRadius = CModelInfo::GetModelInfo(GetModelIndex())
+                                ->GetColModel()->GetBoundRadius();
+    const auto fOtherRadius = CModelInfo::GetModelInfo(entity->GetModelIndex())
+                                 ->GetColModel()->GetBoundRadius();
 
     return (thisVec - otherVec).Magnitude() <= (fThisRadius + fOtherRadius);
 }
