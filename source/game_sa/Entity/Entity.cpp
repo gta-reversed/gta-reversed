@@ -940,13 +940,15 @@ CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offse
 // 0x533790
 void CEntity::CreateEffects() {
     m_bHasRoadsignText = false;
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    const auto* const mi = CModelInfo::GetModelInfo(GetModelIndex());
+
     if (!mi->m_n2dfxCount) {
         return;
     }
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
-        auto effect = mi->Get2dEffect(iFxInd);
+        auto* effect = mi->Get2dEffect(iFxInd);
+
         switch (effect->m_Type) {
         case e2dEffectType::EFFECT_LIGHT: {
             m_bHasPreRenderEffects = true;
@@ -963,40 +965,31 @@ void CEntity::CreateEffects() {
             break;
         }
         case e2dEffectType::EFFECT_ENEX: {
-            auto vecExit = effect->m_Pos + effect->enEx.m_vecExitPosn;
-            auto vecWorldEffect = TransformFromObjectSpace(effect->m_Pos);
-            auto vecWorldExit = TransformFromObjectSpace(vecExit);
+            const auto vecExit = effect->m_Pos + effect->enEx.m_vecExitPosn;
+            const auto vecWorldEffect = TransformFromObjectSpace(effect->m_Pos);
+            const auto vecWorldExit = TransformFromObjectSpace(vecExit);
 
             if (effect->enEx.bTimedEffect) {
                 auto ucDays = CClock::GetGameClockDays();
                 if (effect->enEx.m_nTimeOn > effect->enEx.m_nTimeOff && CClock::ms_nGameClockHours < effect->enEx.m_nTimeOff) {
                     ucDays--;
                 }
-
-                srand(reinterpret_cast<uint32>(this) + ucDays);
+                srand(std::bit_cast<uint32>(this) + ucDays);
             }
 
-            auto fHeading = GetHeading();
-            auto fExitRot = effect->enEx.m_fExitAngle + RadiansToDegrees(fHeading);
-            auto fEnterRot = effect->enEx.m_fEnterAngle + RadiansToDegrees(fHeading);
-            auto iEnExId = CEntryExitManager::AddOne(
-                vecWorldEffect.x,
-                vecWorldEffect.y,
-                vecWorldEffect.z,
+            const auto fHeading = GetHeading();
+            const auto fExitRot = effect->enEx.m_fExitAngle + RadiansToDegrees(fHeading);
+            const auto fEnterRot = effect->enEx.m_fEnterAngle + RadiansToDegrees(fHeading);
+            const auto iEnExId = CEntryExitManager::AddOne(
+                vecWorldEffect.x, vecWorldEffect.y, vecWorldEffect.z,
                 fEnterRot,
-                effect->enEx.m_vecRadius.x,
-                effect->enEx.m_vecRadius.y,
+                effect->enEx.m_vecRadius.x, effect->enEx.m_vecRadius.y,
                 0,
-                vecWorldExit.x,
-                vecWorldExit.y,
-                vecWorldExit.z,
+                vecWorldExit.x, vecWorldExit.y, vecWorldExit.z,
                 fExitRot,
                 effect->enEx.m_nInteriorId,
-                (CEntryExit::eFlags)(effect->enEx.m_nFlags1 + (effect->enEx.m_nFlags2 << 8)),
-                effect->enEx.m_nSkyColor,
-                effect->enEx.m_nTimeOn,
-                effect->enEx.m_nTimeOff,
-                0,
+                static_cast<CEntryExit::eFlags>(effect->enEx.m_nFlags1 + (effect->enEx.m_nFlags2 << 8)),
+                effect->enEx.m_nSkyColor, effect->enEx.m_nTimeOn, effect->enEx.m_nTimeOff, 0,
                 effect->enEx.m_szInteriorName
             );
 
@@ -1011,36 +1004,41 @@ void CEntity::CreateEffects() {
         }
         case e2dEffectType::EFFECT_ROADSIGN: {
             m_bHasRoadsignText = true;
-            auto uiPalleteId = C2dEffect::Roadsign_GetPaletteIDFromFlags(effect->roadsign.m_nFlags);
-            auto uiLettersPerLine = C2dEffect::Roadsign_GetNumLettersFromFlags(effect->roadsign.m_nFlags);
-            auto uiNumLines = C2dEffect::Roadsign_GetNumLinesFromFlags(effect->roadsign.m_nFlags);
+            const auto uiPalleteId = C2dEffect::Roadsign_GetPaletteIDFromFlags(effect->roadsign.m_nFlags);
+            const auto uiLettersPerLine = C2dEffect::Roadsign_GetNumLettersFromFlags(effect->roadsign.m_nFlags);
+            const auto uiNumLines = C2dEffect::Roadsign_GetNumLinesFromFlags(effect->roadsign.m_nFlags);
 
-            auto signAtomic = CCustomRoadsignMgr::CreateRoadsignAtomic(effect->roadsign.m_vecSize.x, effect->roadsign.m_vecSize.y, uiNumLines,
-                                                                       &effect->roadsign.m_pText[0], // todo: does it good indexing for sign lines?
-                                                                       &effect->roadsign.m_pText[16],
-                                                                       &effect->roadsign.m_pText[32],
-                                                                       &effect->roadsign.m_pText[48],
-                                                                       uiLettersPerLine,
-                                                                       uiPalleteId);
+            const auto signAtomic = CCustomRoadsignMgr::CreateRoadsignAtomic(
+                effect->roadsign.m_vecSize.x, effect->roadsign.m_vecSize.y, uiNumLines,
+                &effect->roadsign.m_pText[0],
+                &effect->roadsign.m_pText[16],
+                &effect->roadsign.m_pText[32],
+                &effect->roadsign.m_pText[48],
+                uiLettersPerLine, uiPalleteId
+            );
 
-            auto frame = RpAtomicGetFrame(signAtomic);
+            const auto frame = RpAtomicGetFrame(signAtomic);
             RwFrameSetIdentity(frame);
 
-            const CVector axis0{ 1.0F, 0.0F, 0.0F }, axis1{ 0.0F, 1.0F, 0.0F }, axis2{ 0.0F, 0.0F, 1.0F };
-            RwFrameRotate(frame, &axis2, effect->roadsign.m_vecRotation.z, RwOpCombineType::rwCOMBINEREPLACE);
-            RwFrameRotate(frame, &axis0, effect->roadsign.m_vecRotation.x, RwOpCombineType::rwCOMBINEPOSTCONCAT);
-            RwFrameRotate(frame, &axis1, effect->roadsign.m_vecRotation.y, RwOpCombineType::rwCOMBINEPOSTCONCAT);
+            const RwV3d axisX{ 1.0F, 0.0F, 0.0F };
+            const RwV3d axisY{ 0.0F, 1.0F, 0.0F };
+            const RwV3d axisZ{ 0.0F, 0.0F, 1.0F };
+
+            RwFrameRotate(frame, &axisZ, effect->roadsign.m_vecRotation.z, RwOpCombineType::rwCOMBINEREPLACE);
+            RwFrameRotate(frame, &axisX, effect->roadsign.m_vecRotation.x, RwOpCombineType::rwCOMBINEPOSTCONCAT);
+            RwFrameRotate(frame, &axisY, effect->roadsign.m_vecRotation.y, RwOpCombineType::rwCOMBINEPOSTCONCAT);
             RwFrameTranslate(frame, &effect->m_Pos, RwOpCombineType::rwCOMBINEPOSTCONCAT);
             RwFrameUpdateObjects(frame);
+
             effect->roadsign.m_pAtomic = signAtomic;
             break;
         }
         case e2dEffectType::EFFECT_ESCALATOR: {
-            auto vecStart = TransformFromObjectSpace(effect->m_Pos);
-            auto vecBottom = TransformFromObjectSpace(effect->escalator.m_vecBottom);
-            auto vecTop = TransformFromObjectSpace(effect->escalator.m_vecTop);
-            auto vecEnd = TransformFromObjectSpace(effect->escalator.m_vecEnd);
-            auto bMovingDown = effect->escalator.m_nDirection == 0;
+            const auto vecStart = TransformFromObjectSpace(effect->m_Pos);
+            const auto vecBottom = TransformFromObjectSpace(effect->escalator.m_vecBottom);
+            const auto vecTop = TransformFromObjectSpace(effect->escalator.m_vecTop);
+            const auto vecEnd = TransformFromObjectSpace(effect->escalator.m_vecEnd);
+            const auto bMovingDown = effect->escalator.m_nDirection == 0;
 
             CEscalators::AddOne(vecStart, vecBottom, vecTop, vecEnd, bMovingDown, this);
             break;
