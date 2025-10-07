@@ -1206,9 +1206,7 @@ bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
 
 // 0x534540
 bool CEntity::GetIsOnScreen() {
-    CVector thisVec;
-    GetBoundCentre(thisVec);
-    return TheCamera.IsSphereVisible(thisVec, CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius());
+    return TheCamera.IsSphereVisible(GetBoundCentre(), CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius());
 }
 
 // 0x5345D0
