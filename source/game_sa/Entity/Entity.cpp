@@ -1213,30 +1213,42 @@ bool CEntity::GetIsOnScreen() {
 bool CEntity::GetIsBoundingBoxOnScreen() {
     auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
 
-    RwV3d vecNormals[2];
+    std::array<RwV3d, 2> vecNormals;
+
     if (m_matrix) {
         auto tempMat = CMatrix();
         Invert(*m_matrix, tempMat);
-        TransformVectors(&vecNormals[0], 2, tempMat, &TheCamera.m_avecFrustumWorldNormals[0]);
+        TransformVectors(vecNormals.data(), 2, tempMat, &TheCamera.m_avecFrustumWorldNormals[0]);
     } else {
         auto tempTrans = CSimpleTransform();
         tempTrans.Invert(m_placement);
-        TransformVectors(&vecNormals[0], 2, tempTrans, &TheCamera.m_avecFrustumWorldNormals[0]);
+        TransformVectors(vecNormals.data(), 2, tempTrans, &TheCamera.m_avecFrustumWorldNormals[0]);
     }
 
     for (int32 i = 0; i < 2; ++i) {
-#define ChooseComponent(c) vecNormals[i].c < 0 ? cm->m_boundBox.m_vecMax.c : cm->m_boundBox.m_vecMin.c
-        CVector vecWorld = TransformFromObjectSpace(CVector{
-            ChooseComponent(x),
-            ChooseComponent(y),
-            ChooseComponent(z) });
-#undef ChooseComponent
-        if (DotProduct(vecWorld, TheCamera.m_avecFrustumWorldNormals[i]) > TheCamera.m_fFrustumPlaneOffsets[i]) {
-            if (!TheCamera.m_bMirrorActive
-                || DotProduct(vecWorld, TheCamera.m_avecFrustumWorldNormals_Mirror[i]) > TheCamera.m_fFrustumPlaneOffsets_Mirror[i]) {
-                ++numBBFailed;
-                return false;
+        auto chooseComponent = [&](auto selector) {
+            return selector(vecNormals[i]) < 0 
+                ? selector(cm->m_boundBox.m_vecMax) 
+                : selector(cm->m_boundBox.m_vecMin);
+        };
+
+        CVector worldBBPoint = TransformFromObjectSpace(CVector{
+            chooseComponent([](const auto& v) { return v.x; }),
+            chooseComponent([](const auto& v) { return v.y; }),
+            chooseComponent([](const auto& v) { return v.z; })
+        });
+
+        // Check whether the point is outside the main frustum
+        if (worldBBPoint.Dot(TheCamera.m_avecFrustumWorldNormals[i]) > TheCamera.m_fFrustumPlaneOffsets[i]) {
+            // If the mirror is active and the point is inside the mirror frustum, skip.
+            if (TheCamera.m_bMirrorActive) {
+                if (worldBBPoint.Dot(TheCamera.m_avecFrustumWorldNormals_Mirror[i]) <= TheCamera.m_fFrustumPlaneOffsets_Mirror[i]) {
+                    continue;
+                }
             }
+            // Point outside the screen
+            ++numBBFailed;
+            return false;
         }
     }
     return true;
