@@ -1228,16 +1228,16 @@ bool CEntity::GetIsBoundingBoxOnScreen() {
     }
 
     for (int32 i = 0; i < 2; ++i) {
-        auto chooseComponent = [&](auto selector) {
-            return selector(vecNormals[i]) < 0 
-                ? selector(cm->m_boundBox.m_vecMax) 
-                : selector(cm->m_boundBox.m_vecMin);
+        auto chooseComponent = [&](auto member_ptr) {
+            return std::invoke(member_ptr, vecNormals[i]) < 0
+                ? std::invoke(member_ptr, cm->m_boundBox.m_vecMax)
+                : std::invoke(member_ptr, cm->m_boundBox.m_vecMin);
         };
 
         CVector worldBBPoint = TransformFromObjectSpace(CVector{
-            chooseComponent([](const auto& v) { return v.x; }),
-            chooseComponent([](const auto& v) { return v.y; }),
-            chooseComponent([](const auto& v) { return v.z; })
+            chooseComponent(&CVector::x),
+            chooseComponent(&CVector::y),
+            chooseComponent(&CVector::z)
         });
 
         // Check whether the point is outside the main frustum
