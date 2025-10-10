@@ -1367,113 +1367,86 @@ CColModel* CEntity::GetColModel() const {
 }
 
 // 0x535340
-//https://gamedev.stackexchange.com/a/35948
-//https://gamedev.stackexchange.com/questions/153326/how-to-rotate-directional-billboard-particle-sprites-toward-the-direction-the-pa/153814#153814
+// https://gamedev.stackexchange.com/a/35948
+// https://gamedev.stackexchange.com/questions/153326/how-to-rotate-directional-billboard-particle-sprites-toward-the-direction-the-pa/153814#153814
 void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4) {
     CMatrix& matrix = GetMatrix();
-    auto     fMagRight = CVector2D(matrix.GetRight()).Magnitude();
-    auto     fMagForward = CVector2D(matrix.GetForward()).Magnitude();
-    auto     fMagUp = CVector2D(matrix.GetUp()).Magnitude();
 
-    auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
-    auto fMaxX = std::max(-cm->m_boundBox.m_vecMin.x, cm->m_boundBox.m_vecMax.x);
-    auto fMaxY = std::max(-cm->m_boundBox.m_vecMin.y, cm->m_boundBox.m_vecMax.y);
-    auto fMaxZ = std::max(-cm->m_boundBox.m_vecMin.z, cm->m_boundBox.m_vecMax.z);
+    // Calculate magnitudes of axes projections
+    const auto magRight   = CVector2D(matrix.GetRight()).Magnitude();
+    const auto magForward = CVector2D(matrix.GetForward()).Magnitude();
+    const auto magUp      = CVector2D(matrix.GetUp()).Magnitude();
 
-    auto fXSize = fMaxX * fMagRight * 2.0F;
-    auto fYSize = fMaxY * fMagForward * 2.0F;
-    auto fZSize = fMaxZ * fMagUp * 2.0F;
+    // Get bounding box
+    const auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
+    const auto [maxX, maxY, maxZ] = std::make_tuple(
+        std::max(-cm->m_boundBox.m_vecMin.x, cm->m_boundBox.m_vecMax.x),
+        std::max(-cm->m_boundBox.m_vecMin.y, cm->m_boundBox.m_vecMax.y),
+        std::max(-cm->m_boundBox.m_vecMin.z, cm->m_boundBox.m_vecMax.z)
+    );
 
-    CVector vecDir, vecNormalized, vecTransformed;
-    float   fMult1, fMult2, fMult3, fMult4;
-    if (fXSize > fYSize && fXSize > fZSize) {
-        vecDir = matrix.GetRight();
-        vecDir.z = 0.0F;
+    // Calculate sizes
+    const auto [sizeX, sizeY, sizeZ] = std::make_tuple(
+        maxX * magRight * 2.0F,
+        maxY * magForward * 2.0F,
+        maxZ * magUp * 2.0F
+    );
 
-        vecNormalized = vecDir;
-        vecNormalized.Normalise();
+    const auto& pos = GetPosition();
 
-        auto vecScaled = vecDir * fMaxX;
-        vecTransformed = vecScaled + GetPosition();
+    CVector dir, in;
+    float   mult1, mult2, mult3, mult4;
 
-        auto vecTemp = GetPosition() - vecScaled;
-        vecDir = vecTemp;
+    // Determine dominant axis and compute direction vectors
+    if (sizeX > sizeY && sizeX > sizeZ) {
+        in     = CVector(matrix.GetRight().x, matrix.GetRight().y, 0.0F);
+        dir = in * maxX;
 
-        fMult1 = (vecNormalized.x * matrix.GetForward().x + vecNormalized.y * matrix.GetForward().y) * fMaxY;
-        fMult2 = (vecNormalized.x * matrix.GetForward().y - vecNormalized.y * matrix.GetForward().x) * fMaxY;
-        fMult3 = (vecNormalized.x * matrix.GetUp().x + vecNormalized.y * matrix.GetUp().y) * fMaxZ;
-        fMult4 = (vecNormalized.x * matrix.GetUp().y - vecNormalized.y * matrix.GetUp().x) * fMaxZ;
-    } else if (fYSize > fZSize) {
-        vecDir = matrix.GetForward();
-        vecDir.z = 0.0F;
+        in.Normalise();
+        mult1 = (in.x * matrix.GetForward().x + in.y * matrix.GetForward().y) * maxY;
+        mult2 = (in.x * matrix.GetForward().y - in.y * matrix.GetForward().x) * maxY;
+        mult3 = (in.x * matrix.GetUp().x + in.y * matrix.GetUp().y) * maxZ;
+        mult4 = (in.x * matrix.GetUp().y - in.y * matrix.GetUp().x) * maxZ;
+    } else if (sizeY > sizeZ) {
+        in     = CVector(matrix.GetForward().x, matrix.GetForward().y, 0.0F);
+        dir = in * maxY;
 
-        vecNormalized = vecDir;
-        vecNormalized.Normalise();
-
-        auto vecScaled = vecDir * fMaxY;
-        vecTransformed = vecScaled + GetPosition();
-
-        auto vecTemp = GetPosition() - vecScaled;
-        vecDir = vecTemp;
-
-        fMult1 = (vecNormalized.x * matrix.GetRight().x + vecNormalized.y * matrix.GetRight().y) * fMaxX;
-        fMult2 = (vecNormalized.x * matrix.GetRight().y - vecNormalized.y * matrix.GetRight().x) * fMaxX;
-        fMult3 = (vecNormalized.x * matrix.GetUp().x + vecNormalized.y * matrix.GetUp().y) * fMaxZ;
-        fMult4 = (vecNormalized.x * matrix.GetUp().y - vecNormalized.y * matrix.GetUp().x) * fMaxZ;
+        in.Normalise();
+        mult1 = (in.x * matrix.GetRight().x + in.y * matrix.GetRight().y) * maxX;
+        mult2 = (in.x * matrix.GetRight().y - in.y * matrix.GetRight().x) * maxX;
+        mult3 = (in.x * matrix.GetUp().x + in.y * matrix.GetUp().y) * maxZ;
+        mult4 = (in.x * matrix.GetUp().y - in.y * matrix.GetUp().x) * maxZ;
     } else {
-        vecDir = matrix.GetUp();
-        vecDir.z = 0.0F;
+        in     = CVector(matrix.GetUp().x, matrix.GetUp().y, 0.0F);
+        dir = in * maxZ;
 
-        vecNormalized = vecDir;
-        vecNormalized.Normalise();
-
-        auto vecScaled = vecDir * fMaxZ;
-        vecTransformed = vecScaled + GetPosition();
-
-        auto vecTemp = GetPosition() - vecScaled;
-        vecDir = vecTemp;
-
-        fMult1 = (vecNormalized.x * matrix.GetRight().x + vecNormalized.y * matrix.GetRight().y) * fMaxX;
-        fMult2 = (vecNormalized.x * matrix.GetRight().y - vecNormalized.y * matrix.GetRight().x) * fMaxX;
-        fMult3 = (vecNormalized.x * matrix.GetForward().x + vecNormalized.y * matrix.GetForward().y) * fMaxY;
-        fMult4 = (vecNormalized.x * matrix.GetForward().y - vecNormalized.y * matrix.GetForward().x) * fMaxY;
+        in.Normalise();
+        mult1 = (in.x * matrix.GetRight().x + in.y * matrix.GetRight().y) * maxX;
+        mult2 = (in.x * matrix.GetRight().y - in.y * matrix.GetRight().x) * maxX;
+        mult3 = (in.x * matrix.GetForward().x + in.y * matrix.GetForward().y) * maxY;
+        mult4 = (in.x * matrix.GetForward().y - in.y * matrix.GetForward().x) * maxY;
     }
 
-    auto fNegX = -vecNormalized.x;
-    fMult1 = fabs(fMult1);
-    fMult2 = fabs(fMult2);
-    fMult3 = fabs(fMult3);
-    fMult4 = fabs(fMult4);
+    const auto transformed = dir + pos;
+    const auto dirNeg      = pos - dir;
 
-    auto fMult13 = fMult1 + fMult3;
-    auto fMult24 = fMult2 + fMult4;
+    // Compute absolute values and sums
+    const auto mult13 = std::fabs(mult1) + std::fabs(mult3);
+    const auto mult24 = std::fabs(mult2) + std::fabs(mult4);
 
-    *corner1 = CVector{
-        vecTransformed.x + (vecNormalized.x * fMult13) - (vecNormalized.y * fMult24),
-        vecTransformed.y + (vecNormalized.y * fMult13) - (-vecNormalized.x * fMult24),
-        vecTransformed.z + (vecNormalized.z * fMult13) - (vecNormalized.z * fMult24),
-    };
-    *corner2 = CVector{
-        vecTransformed.x + (vecNormalized.x * fMult13) + (vecNormalized.y * fMult24),
-        vecTransformed.y + (vecNormalized.y * fMult13) + (-vecNormalized.x * fMult24),
-        vecTransformed.z + (vecNormalized.z * fMult13) + (vecNormalized.z * fMult24),
-    };
-    *corner3 = CVector{
-        vecDir.x - (vecNormalized.x * fMult13) + (vecNormalized.y * fMult24),
-        vecDir.y - (vecNormalized.y * fMult13) + (-vecNormalized.x * fMult24),
-        vecDir.z - (vecNormalized.z * fMult13) + (vecNormalized.z * fMult24),
-    };
-    *corner4 = CVector{
-        vecDir.x - (vecNormalized.x * fMult13) - (vecNormalized.y * fMult24),
-        vecDir.y - (vecNormalized.y * fMult13) - (-vecNormalized.x * fMult24),
-        vecDir.z - (vecNormalized.z * fMult13) - (vecNormalized.z * fMult24),
+    // Helper lambda for corner calculation
+    const auto calcCorner = [&](const CVector& base, float sign1, float sign2) -> CVector {
+        return {
+            base.x + sign1 * (in.x * mult13) + sign2 * (in.y * mult24),
+            base.y + sign1 * (in.y * mult13) + sign2 * (-in.x * mult24),
+            pos.z
+        };
     };
 
-    const auto& vecPos = GetPosition();
-    corner1->z = vecPos.z;
-    corner2->z = vecPos.z;
-    corner3->z = vecPos.z;
-    corner4->z = vecPos.z;
+    *corner1 = calcCorner(transformed, 1.0F, -1.0F);
+    *corner2 = calcCorner(transformed, 1.0F, 1.0F);
+    *corner3 = calcCorner(dirNeg, -1.0F, 1.0F);
+    *corner4 = calcCorner(dirNeg, -1.0F, -1.0F);
 }
 
 // 0x535F00
