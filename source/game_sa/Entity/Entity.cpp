@@ -686,22 +686,24 @@ bool CEntity::HasPreRenderEffects() {
     }
 
     // Check for special models
-    if (modelIndex == ModelIndices::MI_COLLECTABLE1
-        || modelIndex == ModelIndices::MI_MONEY
-        || modelIndex == ModelIndices::MI_CARMINE
-        || modelIndex == ModelIndices::MI_NAUTICALMINE
-        || modelIndex == ModelIndices::MI_BRIEFCASE
-        || modelIndex == MODEL_MISSILE
-        || modelIndex == MODEL_GRENADE
-        || modelIndex == MODEL_MOLOTOV
-        || modelIndex == ModelIndices::MI_BEACHBALL
-        || modelIndex == ModelIndices::MI_MAGNOCRANE_HOOK
-        || modelIndex == ModelIndices::MI_WRECKING_BALL
-        || modelIndex == ModelIndices::MI_CRANE_MAGNET
-        || modelIndex == ModelIndices::MI_MINI_MAGNET
-        || modelIndex == ModelIndices::MI_CRANE_HARNESS
-        || modelIndex == ModelIndices::MI_WINDSOCK
-        || modelIndex == ModelIndices::MI_FLARE) {
+    if (notsa::contains(std::initializer_list<decltype(modelIndex)>{
+        ModelIndices::MI_COLLECTABLE1,
+        ModelIndices::MI_MONEY,
+        ModelIndices::MI_CARMINE,
+        ModelIndices::MI_NAUTICALMINE,
+        ModelIndices::MI_BRIEFCASE,
+        MODEL_MISSILE,
+        MODEL_GRENADE,
+        MODEL_MOLOTOV,
+        ModelIndices::MI_BEACHBALL,
+        ModelIndices::MI_MAGNOCRANE_HOOK,
+        ModelIndices::MI_WRECKING_BALL,
+        ModelIndices::MI_CRANE_MAGNET,
+        ModelIndices::MI_MINI_MAGNET,
+        ModelIndices::MI_CRANE_HARNESS,
+        ModelIndices::MI_WINDSOCK,
+        ModelIndices::MI_FLARE
+    }, modelIndex)) {
         return true;
     }
 
@@ -710,7 +712,7 @@ bool CEntity::HasPreRenderEffects() {
     }
 
     // Checking for a pickup object
-    if (GetIsTypeObject() && reinterpret_cast<CObject*>(this)->objectFlags.bIsPickup) {
+    if (GetIsTypeObject() && AsObject()->objectFlags.bIsPickup) {
         return true;
     }
 
