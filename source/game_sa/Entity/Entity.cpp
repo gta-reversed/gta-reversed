@@ -1479,17 +1479,16 @@ void CEntity::UpdateAnim() {
 
 // 0x536BC0
 bool CEntity::IsVisible() {
-    if (!GetRwObject() || !m_bIsVisible) {
+    if (!GetRwObject() || !GetIsVisible()) {
         return false;
     }
 
-    return CEntity::GetIsOnScreen();
+    return GetIsOnScreen();
 }
 
 // 0x536BE0
 float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
-    auto cm = GetColModel();
-    return -cm->m_boundBox.m_vecMin.z;
+    return -GetColModel()->GetBoundingBox().m_vecMin.z;
 }
 
 // 0x571A00
