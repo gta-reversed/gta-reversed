@@ -1303,6 +1303,7 @@ void CEntity::ModifyMatrixForTreeInWind() {
     UpdateRwFrame();
 }
 
+// unused
 // 0x535040
 void CEntity::ModifyMatrixForBannerInWind() {
     if (CTimer::GetIsPaused()) {
@@ -1312,13 +1313,13 @@ void CEntity::ModifyMatrixForBannerInWind() {
     auto vecPos = CVector2D(GetPosition());
     auto uiOffset = static_cast<uint16>(16 * (CTimer::GetTimeInMS() + (static_cast<uint16>(vecPos.x + vecPos.y) * 64)));
 
-    auto fWind = 0.2F;
-    if (CWeather::Wind >= 0.1F) {
-        if (CWeather::Wind < 0.8F) {
-            fWind = 0.43F;
-        } else {
-            fWind = 0.66F;
-        }
+    float wind;
+    if (CWeather::Wind < 0.1f) {
+        wind = 0.2f;
+    } else if (CWeather::Wind < 0.8f) {
+        wind = 0.43f;
+    } else {
+        wind = 0.66f;
     }
 
     auto   fContrib = static_cast<float>(uiOffset & 0x7FF) / 2048.0F;
@@ -1330,12 +1331,12 @@ void CEntity::ModifyMatrixForBannerInWind() {
     auto fZPos = sqrt(1.0F - pow(fWindOffset, 2.0F));
 
     CMatrix& matrix = GetMatrix();
-    auto     vecCross = CrossProduct(matrix.GetForward(), matrix.GetUp());
+    auto vecCross = matrix.GetForward().Cross(matrix.GetUp());
     vecCross.z = 0.0F;
     vecCross.Normalise();
 
-    auto vecWind = CVector(vecCross.x * fWindOffset, vecCross.y * fWindOffset, fZPos);
-    auto vecCross2 = CrossProduct(matrix.GetForward(), vecWind);
+    auto vecWind = CVector(vecCross * fWindOffset, fZPos);
+    auto vecCross2 = matrix.GetForward().Cross(vecWind);
 
     matrix.GetRight() = vecCross2;
     matrix.GetUp() = vecWind;
