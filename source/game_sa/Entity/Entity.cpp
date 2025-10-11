@@ -90,7 +90,7 @@ void CEntity::InjectHooks() {
     RH_ScopedInstall(GetModellingMatrix, 0x46A2D0);
     RH_ScopedInstall(UpdateRW, 0x446F90);
     RH_ScopedInstall(SetAtomicAlphaCB, 0x533290);
-    RH_ScopedInstall(SetMaterialAlphaCB, 0x533280);
+    RH_ScopedGlobalInstall(SetCompAlphaCB, 0x533280);
     RH_ScopedGlobalInstall(MaterialUpdateUVAnimCB, 0x532D70);
     RH_ScopedGlobalInstall(IsEntityPointerValid, 0x533310);
 }
@@ -2345,11 +2345,12 @@ bool CEntity::ProcessScan() {
 RpAtomic* CEntity::SetAtomicAlphaCB(RpAtomic* atomic, void* data) {
     auto geometry = RpAtomicGetGeometry(atomic);
     RpGeometrySetFlags(geometry, rpGEOMETRYMODULATEMATERIALCOLOR);
-    RpGeometryForAllMaterials(geometry, SetMaterialAlphaCB, data);
+    RpGeometryForAllMaterials(geometry, SetCompAlphaCB, data);
     return atomic;
 }
 
-RpMaterial* CEntity::SetMaterialAlphaCB(RpMaterial* material, void* data) {
+// 0x533290
+RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
     RpMaterialGetColor(material)->alpha = (RwUInt8)std::bit_cast<uintptr_t>(data);
     return material;
 }

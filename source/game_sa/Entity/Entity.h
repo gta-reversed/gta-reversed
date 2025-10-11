@@ -361,7 +361,6 @@ public:
 public:
     // Rw callbacks
     static RpAtomic* SetAtomicAlphaCB(RpAtomic* atomic, void* data);
-    static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
 
     [[nodiscard]] bool IsModelTempCollision() const { return GetModelIndex() >= MODEL_TEMPCOL_DOOR1 && GetModelIndex() <= MODEL_TEMPCOL_BODYPART2; }
     [[nodiscard]] bool IsRCCar()  const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
@@ -393,6 +392,7 @@ private:
 
 VALIDATE_SIZE(CEntity, 0x38);
 
+static RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data);
 bool IsEntityPointerValid(CEntity* entity);
 RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
 
