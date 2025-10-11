@@ -18,6 +18,7 @@
 #include "PedStats.h"
 #include "LoadingScreen.h"
 #include "Garages.h"
+#include "Glass.h"
 
 #define CHECK_ARG_COUNT(_l, _expected, _n) \
     do { \
