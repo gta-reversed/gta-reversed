@@ -686,24 +686,38 @@ bool CEntity::HasPreRenderEffects() {
     }
 
     // Check for special models
-    if (notsa::contains(std::initializer_list<decltype(modelIndex)>{
-        ModelIndices::MI_COLLECTABLE1,
-        ModelIndices::MI_MONEY,
-        ModelIndices::MI_CARMINE,
-        ModelIndices::MI_NAUTICALMINE,
-        ModelIndices::MI_BRIEFCASE,
-        MODEL_MISSILE,
-        MODEL_GRENADE,
-        MODEL_MOLOTOV,
-        ModelIndices::MI_BEACHBALL,
-        ModelIndices::MI_MAGNOCRANE_HOOK,
-        ModelIndices::MI_WRECKING_BALL,
-        ModelIndices::MI_CRANE_MAGNET,
-        ModelIndices::MI_MINI_MAGNET,
-        ModelIndices::MI_CRANE_HARNESS,
-        ModelIndices::MI_WINDSOCK,
-        ModelIndices::MI_FLARE
-    }, modelIndex)) {
+    if (notsa::contains<eModelID>(
+            { // dynamic.ide
+              ModelIndices::MI_COLLECTABLE1,
+              ModelIndices::MI_MONEY,
+              ModelIndices::MI_CARMINE,
+              ModelIndices::MI_NAUTICALMINE,
+              ModelIndices::MI_BRIEFCASE,
+
+              // multiobj.ide
+              ModelIndices::MI_BEACHBALL,
+
+              ModelIndices::MI_MAGNOCRANE_HOOK,
+
+              // levelxre.ide
+              ModelIndices::MI_WRECKING_BALL,
+              ModelIndices::MI_CRANE_MAGNET,
+              ModelIndices::MI_MINI_MAGNET,
+
+              ModelIndices::MI_CRANE_HARNESS,
+
+              // countn2.ide
+              ModelIndices::MI_WINDSOCK,
+
+              // defauld.ide
+              ModelIndices::MI_FLARE },
+            GetModelId()
+        )) {
+        return true;
+    }
+
+    // fixed model IDs, in defauld.ide
+    if (notsa::contains({MODEL_MISSILE, MODEL_GRENADE, MODEL_MOLOTOV }, GetModelId())) {
         return true;
     }
 
@@ -722,10 +736,13 @@ bool CEntity::HasPreRenderEffects() {
     }
 
     // Checking street lights
-    if (modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS1
-        || modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS2
-        || modelIndex == ModelIndices::MI_SINGLESTREETLIGHTS3
-        || modelIndex == ModelIndices::MI_DOUBLESTREETLIGHTS) {
+    if (notsa::contains<eModelID>(
+            { ModelIndices::MI_SINGLESTREETLIGHTS1,
+              ModelIndices::MI_SINGLESTREETLIGHTS2,
+              ModelIndices::MI_SINGLESTREETLIGHTS3,
+              ModelIndices::MI_DOUBLESTREETLIGHTS },
+            GetModelId()
+        )) {
         return true;
     }
 
