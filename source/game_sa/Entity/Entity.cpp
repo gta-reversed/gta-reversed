@@ -1505,7 +1505,11 @@ bool CEntity::IsVisible() {
 
 // 0x536BE0
 float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
-    return -GetColModel()->GetBoundingBox().m_vecMin.z;
+    float lowestZ;
+
+    CColModel& colMod = *GetColModel();
+    lowestZ = colMod.m_boundBox.m_vecMin.z;
+    return -lowestZ;
 }
 
 // 0x571A00
