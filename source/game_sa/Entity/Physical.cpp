@@ -2702,7 +2702,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                         return ApplyCollision(entity, colPoint, thisDamageIntensity);
                     }
 
-                    if (IsGlassModel(entity))
+                    if (CGlass::IsObjectGlass(entity))
                     {
                         CGlass::WindowRespondsToCollision(entity, thisDamageIntensity, m_vecMoveSpeed, colPoint.m_vecPoint, false);
                     }
@@ -2803,14 +2803,14 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                     if (entity->physicalFlags.bDisableCollisionForce || entityObjectInfo->m_fUprootLimit >= 9999.0f
                         || thisDamageIntensity <= entityObjectInfo->m_fUprootLimit && (!GetIsStuck() || !GetHasHitWall()))
                     {
-                        if (IsGlassModel(entity))
+                        if (CGlass::IsObjectGlass(entity))
                         {
                             CGlass::WindowRespondsToSoftCollision(entityObject, thisDamageIntensity);
                         }
                         return ApplyCollision(entity, colPoint, thisDamageIntensity);
                     }
 
-                    if (IsGlassModel(entity))
+                    if (CGlass::IsObjectGlass(entity))
                     {
                         CGlass::WindowRespondsToCollision(entity, thisDamageIntensity, m_vecMoveSpeed, colPoint.m_vecPoint, false);
                     }
@@ -3463,7 +3463,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
             float fObjectUprootLimit = entityObject->m_pObjectInfo->m_fUprootLimit;
             if ((thisDamageIntensity > fObjectUprootLimit || GetIsStuck()) && !physical->physicalFlags.bDisableCollisionForce)
             {
-                if (IsGlassModel(physical))
+                if (CGlass::IsObjectGlass(physical))
                 {
                     CGlass::WindowRespondsToCollision(physical, thisDamageIntensity, m_vecMoveSpeed, colPoint.m_vecPoint, false);
                 }
@@ -3513,7 +3513,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
             }
             else
             {
-                if (IsGlassModel(physical))
+                if (CGlass::IsObjectGlass(physical))
                 {
                     CGlass::WindowRespondsToSoftCollision(entityObject, thisDamageIntensity);
                 }

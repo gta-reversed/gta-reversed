@@ -9,6 +9,7 @@
 
 #include "Population.h"
 #include <PedPlacement.h>
+#include <Glass.h>
 #include <Attractors/PedAttractorPedPlacer.h>
 
 #include <TaskTypes/TaskComplexWanderCop.h>
@@ -1569,7 +1570,7 @@ void CPopulation::ConvertToRealObject(CDummyObject* dummyObject) {
     obj->SetRelatedDummy(dummyObject);
     CWorld::Add(obj);
 
-    if (!IsGlassModel(obj) || obj->GetModelInfo()->IsGlassType2()) {
+    if (!CGlass::IsObjectGlass(obj) || obj->GetModelInfo()->IsGlassType2()) {
         if (obj->m_nModelIndex == ModelIndices::MI_BUOY || obj->physicalFlags.bAttachedToEntity) {
             obj->SetIsStatic(false);
             obj->m_vecMoveSpeed.Set(0.0F, 0.0F, -0.001F);

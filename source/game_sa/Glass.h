@@ -48,6 +48,7 @@ public:
     static void RenderReflectionPolys();
     static void RenderShatteredPolys();
     static void RenderHiLightPolys();
+    static bool IsObjectGlass(CEntity* entity);
     static uint8 CalcAlphaWithNormal(const CVector& normal);
     static void AskForObjectToBeRenderedInGlass(CEntity* entity);
     static CFallingGlassPane* FindFreePane();

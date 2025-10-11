@@ -93,8 +93,6 @@ void CEntity::InjectHooks() {
     RH_ScopedInstall(SetMaterialAlphaCB, 0x533280);
     RH_ScopedGlobalInstall(MaterialUpdateUVAnimCB, 0x532D70);
     RH_ScopedGlobalInstall(IsEntityPointerValid, 0x533310);
-
-    RH_ScopedGlobalInstall(IsGlassModel, 0x46A760);
 }
 
 CEntity::CEntity() : CPlaceable() {
@@ -505,7 +503,7 @@ void CEntity::PreRender() {
                 eCoronaLOSCheck::LOSCHECK_OFF, eCoronaTrail::TRAIL_OFF,
                 0.0F, false, 1.5F, 0, 15.0F, false, false
             );
-        } else if (IsGlassModel(this)) {
+        } else if (CGlass::IsObjectGlass(this)) {
             PreRenderForGlassWindow();
         } else if (obj->objectFlags.bIsPickup) {
             CPickups::DoPickUpEffects(this);
@@ -721,7 +719,7 @@ bool CEntity::HasPreRenderEffects() {
         return true;
     }
 
-    if (IsGlassModel(this)) {
+    if (CGlass::IsObjectGlass(this)) {
         return true;
     }
 
@@ -2364,18 +2362,4 @@ bool CEntity::IsScanCodeCurrent() const {
 // NOTSA
 void CEntity::SetCurrentScanCode() {
     SetScanCode(GetCurrentScanCode());
-}
-
-// 0x46A760
-bool IsGlassModel(CEntity* entity) {
-    if (!entity->GetIsTypeObject()) {
-        return false;
-    }
-
-    auto mi = CModelInfo::GetModelInfo(entity->GetModelIndex());
-    if (!mi->AsAtomicModelInfoPtr()) {
-        return false;
-    }
-
-    return mi->IsGlass();
 }

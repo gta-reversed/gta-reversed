@@ -40,6 +40,7 @@ void CGlass::InjectHooks() {
     RH_ScopedInstall(WindowRespondsToSoftCollision, 0x71AF70);
     RH_ScopedInstall(BreakGlassPhysically, 0x71CF50);
     RH_ScopedInstall(WindowRespondsToExplosion, 0x71C1A0);
+    RH_ScopedInstall(IsObjectGlass, 0x46A760);
 }
 
 // 0x71A8D0
@@ -625,4 +626,18 @@ void CGlass::WindowRespondsToExplosion(CEntity* entity, CVector pos) {
     } else {
         WindowRespondsToCollision(entity, 10000.f, entityToPosDir * (0.3f / dist), entityPos, true);
     }
+}
+
+// 0x46A760
+bool CGlass::IsObjectGlass(CEntity* entity) {
+    if (!entity->GetIsTypeObject()) {
+        return false;
+    }
+
+    auto mi = CModelInfo::GetModelInfo(entity->GetModelIndex());
+    if (!mi->AsAtomicModelInfoPtr()) {
+        return false;
+    }
+
+    return mi->IsGlass();
 }

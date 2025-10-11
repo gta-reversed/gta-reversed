@@ -396,6 +396,4 @@ VALIDATE_SIZE(CEntity, 0x38);
 bool IsEntityPointerValid(CEntity* entity);
 RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
 
-bool IsGlassModel(CEntity* entity);
-
 static inline float& GAME_GRAVITY = *(float*)0x863984; // default 0.008f

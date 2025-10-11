@@ -1710,7 +1710,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                 const auto object = entity->AsObject();
 
                 if (visibleDistance > object->m_pObjectInfo->m_fUprootLimit || ModelIndices::IsFence1Or2(object->m_nModelIndex)) {
-                    if (IsGlassModel(object)) {
+                    if (CGlass::IsObjectGlass(object)) {
                         CGlass::WindowRespondsToExplosion(object, point);
                     } else {
                         object->SetIsStatic(false);

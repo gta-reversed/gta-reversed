@@ -1029,7 +1029,7 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
     {
         newEntity = new CDummyObject();
         newEntity->SetModelIndexNoCreate(objInstance->m_nModelId);
-        if (IsGlassModel(newEntity) && !CModelInfo::GetModelInfo(newEntity->m_nModelIndex)->IsGlassType2()) {
+        if (CGlass::IsObjectGlass(newEntity) && !CModelInfo::GetModelInfo(newEntity->m_nModelIndex)->IsGlassType2()) {
             newEntity->m_bIsVisible = false;
         }
     }
