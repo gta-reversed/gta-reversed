@@ -389,6 +389,9 @@ public:
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
+
+    CEntity* Constructor() { this->CEntity::CEntity(); return this; }
+    CEntity* Destructor() { this->CEntity::~CEntity(); return this; }
 };
 
 VALIDATE_SIZE(CEntity, 0x38);

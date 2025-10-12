@@ -27,6 +27,9 @@ void CEntity::InjectHooks() {
     RH_ScopedVirtualClass(CEntity, 0x863928, 22);
     RH_ScopedCategory("Entity");
 
+    RH_ScopedInstall(Constructor, 0x532A90);
+    RH_ScopedInstall(Destructor, 0x535E90);
+
     RH_ScopedOverloadedInstall(Add, "void", 0x533020, void(CEntity::*)());
     RH_ScopedOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
     RH_ScopedVMTInstall(Remove, 0x534AE0);
