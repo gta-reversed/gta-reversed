@@ -1805,8 +1805,8 @@ void CEntity::ProcessLightsForEntity() {
                 break;
             case e2dCoronaFlashType::FLASH_5ON_5OFF:
             case e2dCoronaFlashType::FLASH_6ON_4OFF:
-            case e2dCoronaFlashType::FLASH_4ON_6OFF:
-                doColorLight = true;
+            case e2dCoronaFlashType::FLASH_4ON_6OFF: {
+                doColorLight  = true;
 
                 uint32 offset = CTimer::GetTimeInMS() + 3'333 * (flashType - 11);
                 offset += static_cast<uint32>(entityPos.x * 20.0f);
@@ -1831,6 +1831,7 @@ void CEntity::ProcessLightsForEntity() {
                     break;
                 }
                 break;
+            }
             default:
                 break;
             }
