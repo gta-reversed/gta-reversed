@@ -375,7 +375,7 @@ CRect CEntity::GetBoundRect() const {
 
 // 0x535FA0
 void CEntity::PreRender() {
-    const auto mi  = GetModelInfo();
+    const auto mi = GetModelInfo();
     const auto ami = mi->AsAtomicModelInfoPtr();
 
     if (mi->m_n2dfxCount) {
@@ -1379,9 +1379,9 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
     CMatrix& matrix = GetMatrix();
 
     // Calculate magnitudes of axes projections
-    const auto magRight   = CVector2D(matrix.GetRight()).Magnitude();
+    const auto magRight = CVector2D(matrix.GetRight()).Magnitude();
     const auto magForward = CVector2D(matrix.GetForward()).Magnitude();
-    const auto magUp      = CVector2D(matrix.GetUp()).Magnitude();
+    const auto magUp = CVector2D(matrix.GetUp()).Magnitude();
 
     // Get bounding box
     const auto cm = GetModelInfo()->GetColModel();
@@ -1405,7 +1405,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
 
     // Determine dominant axis and compute direction vectors
     if (sizeX > sizeY && sizeX > sizeZ) {
-        in     = CVector(matrix.GetRight().x, matrix.GetRight().y, 0.0F);
+        in = CVector(matrix.GetRight().x, matrix.GetRight().y, 0.0F);
         dir = in * maxX;
 
         in.Normalise();
@@ -1414,7 +1414,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
         mult3 = (in.x * matrix.GetUp().x + in.y * matrix.GetUp().y) * maxZ;
         mult4 = (in.x * matrix.GetUp().y - in.y * matrix.GetUp().x) * maxZ;
     } else if (sizeY > sizeZ) {
-        in     = CVector(matrix.GetForward().x, matrix.GetForward().y, 0.0F);
+        in = CVector(matrix.GetForward().x, matrix.GetForward().y, 0.0F);
         dir = in * maxY;
 
         in.Normalise();
@@ -1423,7 +1423,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
         mult3 = (in.x * matrix.GetUp().x + in.y * matrix.GetUp().y) * maxZ;
         mult4 = (in.x * matrix.GetUp().y - in.y * matrix.GetUp().x) * maxZ;
     } else {
-        in     = CVector(matrix.GetUp().x, matrix.GetUp().y, 0.0F);
+        in = CVector(matrix.GetUp().x, matrix.GetUp().y, 0.0F);
         dir = in * maxZ;
 
         in.Normalise();
@@ -1434,7 +1434,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
     }
 
     const auto transformed = dir + pos;
-    const auto dirNeg      = pos - dir;
+    const auto dirNeg = pos - dir;
 
     // Compute absolute values and sums
     const auto mult13 = std::fabs(mult1) + std::fabs(mult3);
