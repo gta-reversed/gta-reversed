@@ -243,7 +243,7 @@ void CEntity::CreateRwObject() {
         return;
     }
 
-    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = GetModelInfo();
 
     // Create instance based on damage state
     if (m_bRenderDamaged) {
@@ -330,7 +330,7 @@ void CEntity::DeleteRwObject() {
     }
 
     m_pRwObject = nullptr;
-    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = GetModelInfo();
     mi->RemoveRef();
     CStreaming::RemoveEntity(std::exchange(m_pStreamingLink, nullptr));
 
@@ -348,7 +348,7 @@ void CEntity::DeleteRwObject() {
 
 // 0x534120
 CRect CEntity::GetBoundRect() const {
-    auto* colModel = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
+    auto* colModel = GetModelInfo()->GetColModel();
     auto [boundBoxMin, boundBoxMax] = std::pair{ colModel->GetBoundingBox().m_vecMin, colModel->GetBoundingBox().m_vecMax };
 
     CRect rect;
@@ -375,7 +375,7 @@ CRect CEntity::GetBoundRect() const {
 
 // 0x535FA0
 void CEntity::PreRender() {
-    const auto mi  = CModelInfo::GetModelInfo(GetModelIndex());
+    const auto mi  = GetModelInfo();
     const auto ami = mi->AsAtomicModelInfoPtr();
 
     if (mi->m_n2dfxCount) {
@@ -760,7 +760,7 @@ bool CEntity::HasPreRenderEffects() {
 
 // 0x532D40
 bool CEntity::DoesNotCollideWithFlyers() {
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto mi = GetModelInfo();
     return mi->SwaysInWind() || mi->bDontCollideWithFlyer;
 }
 
@@ -815,7 +815,7 @@ void CEntity::SetupBigBuilding() {
     SetUsesCollision(false);
     m_bIsBIGBuilding = true;
     m_bStreamingDontDelete = true;
-    CModelInfo::GetModelInfo(GetModelIndex())->SetOwnsColModel(true);
+    GetModelInfo()->SetOwnsColModel(true);
 }
 
 // 0x533170
@@ -842,8 +842,7 @@ void CEntity::ModifyMatrixForCrane() {
 
 // 0x533240
 void CEntity::PreRenderForGlassWindow() {
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
-    if (!mi->IsGlassType2()) {
+    if (!GetModelInfo()->IsGlassType2()) {
         CGlass::AskForObjectToBeRenderedInGlass(this);
         SetIsVisible(false);
     }
@@ -891,7 +890,7 @@ bool IsEntityPointerValid(CEntity* entity) {
 
 // 0x533380
 CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto mi = GetModelInfo();
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
         if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == index) {
@@ -916,7 +915,7 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
  */
 C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     std::array<C2dEffect*, 32> apArr{};
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto mi = GetModelInfo();
     size_t iFoundCount = 0;
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
@@ -938,7 +937,8 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     return iFoundCount ? apArr[CGeneral::GetRandomNumberInRange(0u, iFoundCount)] : nullptr;
 }
 
-// 0x5334F0, PC Only
+// 0x5334F0
+// PC Only
 CVector CEntity::TransformFromObjectSpace(const CVector& offset) const {
     if (m_matrix) {
         return m_matrix->TransformPoint(offset);
@@ -948,7 +948,8 @@ CVector CEntity::TransformFromObjectSpace(const CVector& offset) const {
     return result;
 }
 
-// 0x533560, PC Only
+// 0x533560
+// PC Only
 CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offset) const {
     outPos = TransformFromObjectSpace(offset);
     return &outPos;
@@ -957,7 +958,7 @@ CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offse
 // 0x533790
 void CEntity::CreateEffects() {
     m_bHasRoadsignText = false;
-    const auto* const mi = CModelInfo::GetModelInfo(GetModelIndex());
+    const auto* const mi = GetModelInfo();
 
     if (!mi->m_n2dfxCount) {
         return;
@@ -1066,7 +1067,7 @@ void CEntity::CreateEffects() {
 
 // 0x533BF0
 void CEntity::DestroyEffects() {
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto mi = GetModelInfo();
     if (!mi->m_n2dfxCount) {
         return;
     }
@@ -1122,7 +1123,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix) {
         GetMatrix().UpdateMatrix(GetModellingMatrix());
     }
 
-    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = GetModelInfo();
 
     if (RwObjectGetType(GetRwObject()) == rpCLUMP && mi->IsRoad()) {
         if (GetIsTypeObject()) {
@@ -1144,15 +1145,13 @@ void CEntity::DetachFromRwObject() {
         return;
     }
 
-    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = GetModelInfo();
     mi->RemoveRef();
 
     CStreaming::RemoveEntity(m_pStreamingLink);
     m_pStreamingLink = nullptr;
 
-    if (mi->GetModelType() == ModelInfoType::MODEL_INFO_CLUMP
-        && mi->IsRoad()
-        && !GetIsTypeObject()) {
+    if (mi->GetModelType() == MODEL_INFO_CLUMP && mi->IsRoad() && !GetIsTypeObject()) {
         CWorld::ms_listMovingEntityPtrs.DeleteItem(AsPhysical());
     }
 
@@ -1169,7 +1168,7 @@ CVector* CEntity::GetBoundCentre(CVector* pOutCentre) const {
 
 // 0x534290
 void CEntity::GetBoundCentre(CVector& centre) const {
-    TransformFromObjectSpace(centre, GetColModel()->GetBoundCenter());
+    TransformFromObjectSpace(centre, GetModelInfo()->GetColModel()->GetBoundCenter());
 }
 
 CVector CEntity::GetBoundCentre() const {
@@ -1184,7 +1183,7 @@ void CEntity::RenderEffects() {
         return;
     }
 
-    auto* mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* mi = GetModelInfo();
     if (!mi->m_n2dfxCount) {
         return;
     }
@@ -1204,10 +1203,8 @@ bool CEntity::GetIsTouching(CEntity* entity) const {
     const CVector thisVec = GetBoundCentre();
     const CVector otherVec = entity->GetBoundCentre();
 
-    const auto fThisRadius = CModelInfo::GetModelInfo(GetModelIndex())
-                                ->GetColModel()->GetBoundRadius();
-    const auto fOtherRadius = CModelInfo::GetModelInfo(entity->GetModelIndex())
-                                 ->GetColModel()->GetBoundRadius();
+    const auto fThisRadius = GetModelInfo()->GetColModel()->GetBoundRadius();
+    const auto fOtherRadius = entity->GetModelInfo()->GetColModel()->GetBoundRadius();
 
     return (thisVec - otherVec).Magnitude() <= (fThisRadius + fOtherRadius);
 }
@@ -1216,19 +1213,19 @@ bool CEntity::GetIsTouching(CEntity* entity) const {
 bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
     CVector thisVec;
     GetBoundCentre(thisVec);
-    auto fThisRadius = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius();
+    auto fThisRadius = GetModelInfo()->GetColModel()->GetBoundRadius();
 
     return (thisVec - centre).Magnitude() <= (fThisRadius + radius);
 }
 
 // 0x534540
 bool CEntity::GetIsOnScreen() {
-    return TheCamera.IsSphereVisible(GetBoundCentre(), CModelInfo::GetModelInfo(GetModelIndex())->GetColModel()->GetBoundRadius());
+    return TheCamera.IsSphereVisible(GetBoundCentre(), GetModelInfo()->GetColModel()->GetBoundRadius());
 }
 
 // 0x5345D0
 bool CEntity::GetIsBoundingBoxOnScreen() {
-    auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
+    auto cm = GetModelInfo()->GetColModel();
 
     std::array<RwV3d, 2> vecNormals;
 
@@ -1306,7 +1303,7 @@ void CEntity::ModifyMatrixForTreeInWind() {
     }
 
     at->x = fWindOffset;
-    if (CModelInfo::GetModelInfo(GetModelIndex())->IsSwayInWind2()) {
+    if (GetModelInfo()->IsSwayInWind2()) {
         at->x += CWeather::Wind * 0.03F;
     }
 
@@ -1378,7 +1375,7 @@ CColModel* CEntity::GetColModel() const {
         }
     }
 
-    return CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
+    return GetModelInfo()->GetColModel();
 }
 
 // 0x535340
@@ -1393,7 +1390,7 @@ void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector*
     const auto magUp      = CVector2D(matrix.GetUp()).Magnitude();
 
     // Get bounding box
-    const auto cm = CModelInfo::GetModelInfo(GetModelIndex())->GetColModel();
+    const auto cm = GetModelInfo()->GetColModel();
     const auto [maxX, maxY, maxZ] = std::make_tuple(
         std::max(-cm->m_boundBox.m_vecMin.x, cm->m_boundBox.m_vecMax.x),
         std::max(-cm->m_boundBox.m_vecMin.y, cm->m_boundBox.m_vecMax.y),
@@ -1652,7 +1649,7 @@ void CEntity::ProcessLightsForEntity() {
         }
     }
 
-    auto mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto mi = GetModelInfo();
     if (!mi->m_n2dfxCount) {
         return;
     }
@@ -2165,7 +2162,7 @@ bool CEntity::IsEntityOccluded() {
         return false;
     }
 
-    auto* const         mi = CModelInfo::GetModelInfo(GetModelIndex());
+    auto* const         mi = GetModelInfo();
     const CBoundingBox& bb = mi->GetColModel()->GetBoundingBox();
 
     const auto longEdge = std::max(scaleX, scaleY);
@@ -2295,14 +2292,17 @@ bool CEntity::IsEntityOccluded() {
     //return false;
 }
 
+// inline
 inline RwMatrix* CEntity::GetRwMatrix() {
     return RwFrameGetMatrix(RwFrameGetParent(GetRwObject()));
 }
 
+// inline
 inline bool CEntity::IsInArea(int32 area) {
     return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
 }
 
+// inline
 inline bool CEntity::IsInCurrentArea() const {
     return GetAreaCode() == CGame::currArea || GetAreaCode() == AREA_CODE_13;
 }
@@ -2321,6 +2321,7 @@ void CEntity::UpdateRW() {
     }
 }
 
+// NOTSA
 CEntity* CEntity::FindLastLOD() noexcept {
     CEntity* it = this;
     for (; it->m_pLod; it = it->m_pLod)
@@ -2328,7 +2329,7 @@ CEntity* CEntity::FindLastLOD() noexcept {
     return it;
 }
 
-// define?
+// NOTSA
 CBaseModelInfo* CEntity::GetModelInfo() const {
     return CModelInfo::GetModelInfo(GetModelIndex());
 }

@@ -146,7 +146,10 @@ public:
     void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
     [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
 
-    bool TreatAsPlayerForCollisions() { return GetStatus() == STATUS_PLAYER; } // 0x541F70
+    // 0x541F70
+    bool TreatAsPlayerForCollisions() {
+        return GetStatus() == STATUS_PLAYER;
+    }
 
     void SetUsesCollision(bool usesCollision) { m_bUsesCollision = usesCollision; }
     bool GetUsesCollision() const { return m_bUsesCollision; }
@@ -169,11 +172,11 @@ public:
     void SetHasHitWall(bool hasHitWall) { m_bHasHitWall = hasHitWall; }
     bool GetHasHitWall() const { return m_bHasHitWall; }
     void SetIsBackfaceCulled(bool backfaceCulled) { m_bBackfaceCulled = backfaceCulled; }
-    bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; }
+    bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; } // unused
     void SetIsUnimportantStream(bool unimportantStream) { m_bUnimportantStream |= unimportantStream; }
     
     void SetScanCode(uint16 scanCode) { m_nScanCode = scanCode; }
-    uint16 GetScanCode() const { return m_nScanCode; } // unused
+    uint16 GetScanCode() const { return m_nScanCode; }
     void SetAreaCode(eAreaCodes areaCode) { m_nAreaCode = areaCode; }
     eAreaCodes GetAreaCode() const { return m_nAreaCode; }
     void SetIplIndex(uint8 iplIndex) { m_nIplIndex = iplIndex; }
@@ -192,9 +195,9 @@ public:
     RwMatrix* GetRwMatrix();
     void UpdateRW(); // orig UpdateRwMatrix
 
-    CVector* GetBoundCentre(CVector* pOutCentre) const;
-    void GetBoundCentre(CVector& outCentre) const;
     CVector GetBoundCentre() const;
+    void GetBoundCentre(CVector& outCentre) const;
+    CVector* GetBoundCentre(CVector* pOutCentre) const;
 
     float GetBoundRadius() const { return GetColModel()->GetBoundingSphere().m_fRadius; };
     virtual CRect GetBoundRect() const;
@@ -359,6 +362,8 @@ public:
     }
 
 public:
+    // NOTSA:
+
     [[nodiscard]] bool IsModelTempCollision() const { return GetModelIndex() >= MODEL_TEMPCOL_DOOR1 && GetModelIndex() <= MODEL_TEMPCOL_BODYPART2; }
     [[nodiscard]] bool IsRCCar()  const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
 
