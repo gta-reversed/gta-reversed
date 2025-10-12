@@ -2123,8 +2123,8 @@ bool CEntity::IsEntityOccluded() {
         return false;
     }
 
-    auto* const         mi = GetModelInfo();
-    const CBoundingBox& bb = mi->GetColModel()->GetBoundingBox();
+    const auto* mi = GetModelInfo();
+    const auto& bb = mi->GetColModel()->GetBoundingBox();
 
     const auto longEdge = std::max(scaleX, scaleY);
     const auto boundingRadius = mi->GetColModel()->GetBoundRadius();
@@ -2137,120 +2137,76 @@ bool CEntity::IsEntityOccluded() {
         }
         return { ws, std::nullopt };
     };
+
     const CVector min = bb.m_vecMin,
                   max = bb.m_vecMax;
-    const std::array points{
-        GetOccluderPt(min),
-        GetOccluderPt(max),
-        GetOccluderPt({ min.x, max.y, max.z }),
-        GetOccluderPt({ max.x, min.y, min.z }),
-        GetOccluderPt({ min.x, min.y, max.z }),
-        GetOccluderPt({ max.x, min.y, max.z }),
+
+    // Первые 4 точки (углы bounding box)
+    const std::array firstFourPoints = {
+        GetOccluderPt(min),                     // Point 1: min
+        GetOccluderPt(max),                     // Point 2: max
+        GetOccluderPt({ min.x, max.y, max.z }), // Point 3
+        GetOccluderPt({ max.x, min.y, min.z })  // Point 4
+    };
+    const std::array lastTwoPoints = {
+        GetOccluderPt({ min.x, min.y, max.z }), // Point 5
+        GetOccluderPt({ max.x, min.y, max.z })  // Point 6
     };
 
     return rng::any_of(COcclusion::GetActiveOccluders(), [&](const auto& o) -> bool {
-        if (o.GetDistToCam() >= centerScrPos.z - boundingRadius) { // Inside the entity?
+        if (o.GetDistToCam() >= centerScrPos.z - boundingRadius) {
             return false;
         }
+
+        // Checking the center with the occlusion radius
         if (o.IsPointWithinOcclusionArea(centerScrPos, occlusionRadius)) {
             if (o.IsPointBehindOccluder(center, boundingRadius)) {
                 return true;
             }
         }
+
+        // Checking the center without radius
         if (!o.IsPointWithinOcclusionArea(centerScrPos)) {
             return false;
         }
-        return rng::all_of(points, [&](const auto& pt) {
-            const auto& [ws, scr] = pt; // World-space and screen-space positions
-            if (!scr.has_value()) {
+
+        // Common lambda for point verification (screen + world, with radius=0.0f)
+        const auto checkPoint = [&](const std::optional<CVector>& scrOpt, const CVector& ws) -> bool {
+            if (!scrOpt.has_value()) {
                 return false;
             }
-            return o.IsPointWithinOcclusionArea(*scr)
-                && o.IsPointBehindOccluder(ws);
-        });
-    });
+            const auto& scr = *scrOpt;
+            return o.IsPointWithinOcclusionArea(scr) && o.IsPointBehindOccluder(ws);
+        };
 
-    // Original code for those interested
-    // I did leave out a little portion, but the new code should be faster anyways
-    //for (auto& o : COcclusion::GetActiveOccluders()) {
-    //    if (o.GetDistToCam() >= scrPos.z - boundingRadius) {
-    //        continue;
-    //    }
-    //
-    //    if (o.IsPointWithinOcclusionArea(scrPos.x, scrPos.y, occlusionRadius)) {
-    //        if (o.IsPointBehindOccluder(center, boundingRadius)) {
-    //            return true;
-    //        }
-    //    }
-    //
-    //    if (!o.IsPointWithinOcclusionArea(scrPos.x, scrPos.y, 0.0F)) {
-    //        continue;
-    //    }
-    //
-    //    auto bInView = false;
-    //    CVector vecScreen;
-    //
-    //    auto vecMin = GetMatrix().TransformPoint(bb.m_vecMin);
-    //    if (!CalcScreenCoors(vecMin, vecScreen)
-    //        || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-    //        || !o.IsPointBehindOccluder(vecMin, 0.0F)
-    //    ) {
-    //        bInView = true;
-    //    }
-    //
-    //    auto vecMax = GetMatrix().TransformPoint(bb.m_vecMax);
-    //    if (bInView
-    //        || !CalcScreenCoors(vecMax, vecScreen)
-    //        || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-    //        || !o.IsPointBehindOccluder(vecMax, 0.0F)
-    //    ) {
-    //        bInView = true;
-    //    }
-    //
-    //    auto vecDiag1 = GetMatrix().TransformPoint(CVector(bb.m_vecMin.x, bb.m_vecMax.y, bb.m_vecMax.z));
-    //    if (bInView
-    //        || !CalcScreenCoors(vecDiag1, vecScreen)
-    //        || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-    //        || !o.IsPointBehindOccluder(vecDiag1, 0.0F)
-    //    ) {
-    //        bInView = true;
-    //    }
-    //
-    //    auto vecDiag2 = GetMatrix().TransformPoint(CVector(bb.m_vecMax.x, bb.m_vecMin.y, bb.m_vecMin.z));
-    //    if (!bInView
-    //        && CalcScreenCoors(vecDiag2, vecScreen)
-    //        && o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-    //        && o.IsPointBehindOccluder(vecDiag2, 0.0F)
-    //    ) {
-    //        if (bb.GetWidth() <= 60.0F)
-    //            return true;
-    //
-    //        if (bb.GetLength() <= 60.0F)
-    //            return true;
-    //
-    //        if (bb.GetHeight() <= 30.0F)
-    //            return true;
-    //
-    //        auto vecDiag3 = GetMatrix().TransformPoint(CVector(bb.m_vecMin.x, bb.m_vecMin.y, bb.m_vecMax.z));
-    //        if (!CalcScreenCoors(vecDiag3, vecScreen)
-    //            || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-    //            || !o.IsPointBehindOccluder(vecDiag3, 0.0F)) {
-    //
-    //            bInView = true;
-    //        }
-    //
-    //        auto vecDiag4 = GetMatrix().TransformPoint(CVector(bb.m_vecMax.x, bb.m_vecMin.y, bb.m_vecMax.z));
-    //        if (!bInView
-    //            && CalcScreenCoors(vecDiag4, vecScreen)
-    //            && o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-    //            && o.IsPointBehindOccluder(vecDiag4, 0.0F)
-    //        ) {
-    //            return true;
-    //        }
-    //    }
-    //}
-    //
-    //return false;
+        // Checking the first 4 points with early exit
+        bool allFirstFourPass = true;
+        for (const auto& [ws, scr] : firstFourPoints) {
+            if (!checkPoint(scr, ws)) {
+                allFirstFourPass = false;
+                break;
+            }
+        }
+        if (!allFirstFourPass) {
+            return false;
+        }
+
+        // Checking bounding box dimensions
+        const auto width = max.x - min.x;
+        const auto length = max.y - min.y;
+        const auto height = max.z - min.z;
+        if ((width <= 60.0f && length <= 60.0f) || height <= 30.0f) {
+            return true;
+        }
+
+        // Check the last 2 points (only for large objects)
+        for (const auto& [ws, scr] : lastTwoPoints) {
+            if (!checkPoint(scr, ws)) {
+                return false;
+            }
+        }
+        return true;
+    });
 }
 
 // inline
