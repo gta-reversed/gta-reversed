@@ -197,7 +197,6 @@ public:
 
     CVector GetBoundCentre() const;
     void GetBoundCentre(CVector& outCentre) const;
-    CVector* GetBoundCentre(CVector* pOutCentre) const;
 
     float GetBoundRadius() const { return GetColModel()->GetBoundingSphere().m_fRadius; };
     virtual CRect GetBoundRect() const;
