@@ -2222,6 +2222,11 @@ bool CEntity::IsEntityOccluded() {
     });
 }
 
+// in header
+inline float CEntity::GetBoundRadius() const {
+    return GetModelInfo()->GetColModel()->GetBoundingSphere().m_fRadius;
+}
+
 // 0x446F90
 void CEntity::UpdateRW() {
     if (!GetRwObject()) {
