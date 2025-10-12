@@ -27,8 +27,8 @@ void CEntity::InjectHooks() {
     RH_ScopedVirtualClass(CEntity, 0x863928, 22);
     RH_ScopedCategory("Entity");
 
-    // clang moment: RH_ScopedVirtualOverloadedInstall(Add, "void", 0x533020, void(CEntity::*)());
-    // clang moment: RH_ScopedVirtualOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
+    RH_ScopedOverloadedInstall(Add, "void", 0x533020, void(CEntity::*)());
+    RH_ScopedOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
     RH_ScopedVMTInstall(Remove, 0x534AE0);
     RH_ScopedVMTInstall(SetIsStatic, 0x403E20);
     RH_ScopedVMTInstall(SetModelIndex, 0x532AE0);
@@ -95,6 +95,7 @@ void CEntity::InjectHooks() {
     RH_ScopedGlobalInstall(IsEntityPointerValid, 0x533310);
 }
 
+// 0x532A90
 CEntity::CEntity() : CPlaceable() {
     SetStatus(STATUS_ABANDONED);
     SetType(ENTITY_TYPE_NOTHING);
@@ -116,6 +117,7 @@ CEntity::CEntity() : CPlaceable() {
     SetLod(nullptr);
 }
 
+// 0x535E90
 CEntity::~CEntity() {
     if (GetLod()) {
         GetLod()->RemoveLodChildren();
@@ -125,10 +127,12 @@ CEntity::~CEntity() {
     CEntity::ResolveReferences();
 }
 
+// 0x533020
 void CEntity::Add() {
     Add(GetBoundRect());
 }
 
+// 0x5347D0
 void CEntity::Add(const CRect& rect) {
     CRect usedRect = rect;
     if (usedRect.left < -3000.0F) {
