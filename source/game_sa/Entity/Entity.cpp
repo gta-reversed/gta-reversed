@@ -92,6 +92,11 @@ void CEntity::InjectHooks() {
     RH_ScopedInstall(IsEntityOccluded, 0x71FAE0);
     RH_ScopedInstall(GetModellingMatrix, 0x46A2D0);
     RH_ScopedInstall(UpdateRW, 0x446F90);
+
+    RH_ScopedInstall(GetIsTypePhysical, 0x4DA030);
+    RH_ScopedInstall(GetIsStatic, 0x4633E0);
+    RH_ScopedInstall(TreatAsPlayerForCollisions, 0x541F70);
+
     RH_ScopedGlobalInstall(SetAtomicAlpha, 0x533290);
     RH_ScopedGlobalInstall(SetCompAlphaCB, 0x533280);
     RH_ScopedGlobalInstall(MaterialUpdateUVAnimCB, 0x532D70);
