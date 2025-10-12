@@ -1503,51 +1503,45 @@ float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
 
 // 0x571A00
 void CEntity::CleanUpOldReference(CEntity** entity) {
-    if (!m_pReferences) {
-        return;
-    }
-
-    auto refs = m_pReferences;
-    auto ppPrev = &m_pReferences;
-    while (refs->m_ppEntity != entity) {
-        ppPrev = &refs->m_pNext;
-        refs = refs->m_pNext;
-        if (!refs) {
-            return;
+    auto lastnextp = &m_pReferences;
+    for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
+        if (ref->m_ppEntity == entity) {
+            *lastnextp = ref->m_pNext;
+            ref->m_pNext = CReferences::pEmptyList;
+            CReferences::pEmptyList = ref;
+            ref->m_ppEntity = nullptr;
+            break;
         }
+        lastnextp = &ref->m_pNext;
     }
-
-    *ppPrev = refs->m_pNext;
-    refs->m_pNext = CReferences::pEmptyList;
-    refs->m_ppEntity = nullptr;
-    CReferences::pEmptyList = refs;
 }
 
 // 0x571A40
 // Clear (set to null) references to `this`
 void CEntity::ResolveReferences() {
-    auto refs = m_pReferences;
-    while (refs) {
-        if (*refs->m_ppEntity == this) {
-            *refs->m_ppEntity = nullptr;
+    for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
+        if (ref->m_ppEntity && *ref->m_ppEntity == this) {
+            *ref->m_ppEntity = nullptr;
+        }
+    }
+
+    if (m_pReferences) {
+        auto head = m_pReferences;
+
+        auto tail = head;
+        while (tail->m_pNext) {
+            tail = tail->m_pNext;
         }
 
-        refs = refs->m_pNext;
-    }
+        for (auto ref = head; ref; ref = ref->m_pNext) {
+            ref->m_ppEntity = nullptr;
+        }
 
-    refs = m_pReferences;
-    if (!refs) {
-        return;
-    }
+        tail->m_pNext = CReferences::pEmptyList;
+        CReferences::pEmptyList = head;
 
-    refs->m_ppEntity = nullptr;
-    while (refs->m_pNext) {
-        refs = refs->m_pNext;
+        m_pReferences = nullptr;
     }
-
-    refs->m_pNext = CReferences::pEmptyList;
-    CReferences::pEmptyList = m_pReferences;
-    m_pReferences = nullptr;
 }
 
 // 0x571A90
@@ -1558,6 +1552,7 @@ void CEntity::PruneReferences() {
 
     auto refs = m_pReferences;
     auto ppPrev = &m_pReferences;
+
     while (refs) {
         if (*refs->m_ppEntity == this) {
             ppPrev = &refs->m_pNext;
@@ -1579,15 +1574,13 @@ void CEntity::RegisterReference(CEntity** entity) {
         return;
     }
 
-    auto refs = m_pReferences;
-    while (refs) {
+    for (auto refs = m_pReferences; refs; refs = refs->m_pNext) {
         if (refs->m_ppEntity == entity) {
             return;
         }
-        refs = refs->m_pNext;
     }
 
-    if (!m_pReferences && !CReferences::pEmptyList) {
+    if (!CReferences::pEmptyList) {
         for (auto& ped : GetPedPool()->GetAllValid()) {
             ped.PruneReferences();
             if (CReferences::pEmptyList) {
