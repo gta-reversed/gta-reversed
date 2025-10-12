@@ -198,7 +198,7 @@ public:
     CVector GetBoundCentre() const;
     void GetBoundCentre(CVector& outCentre) const;
 
-    float GetBoundRadius() const { return GetColModel()->GetBoundingSphere().m_fRadius; };
+    float GetBoundRadius() const;
     virtual CRect GetBoundRect() const;
 
     CColModel* GetColModel() const;
@@ -396,11 +396,29 @@ private:
 
 VALIDATE_SIZE(CEntity, 0x38);
 
-// Rw callbacks
+inline bool CEntity::IsInArea(int32 area) {
+    return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
+}
+
+inline bool CEntity::IsInCurrentArea() const {
+    return GetAreaCode() == CGame::currArea || GetAreaCode() == AREA_CODE_13;
+}
+
+inline float CEntity::GetBoundRadius() const {
+    return GetModelInfo()->GetColModel()->GetBoundingSphere().m_fRadius;
+}
+
+inline RwMatrix* CEntity::GetRwMatrix() {
+    return RwFrameGetMatrix(RwFrameGetParent(GetRwObject()));
+}
+
+
+// Rw callbacks:
+
 static RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data);
 static RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data);
+static RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
 
-bool IsEntityPointerValid(CEntity* entity);
-RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
+static bool IsEntityPointerValid(CEntity* entity);
 
 static inline float& GAME_GRAVITY = *(float*)0x863984; // default 0.008f

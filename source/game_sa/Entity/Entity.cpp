@@ -1206,27 +1206,27 @@ void CEntity::RenderEffects() {
 
 // 0x5343F0
 bool CEntity::GetIsTouching(CEntity* entity) const {
-    const CVector thisVec = GetBoundCentre();
-    const CVector otherVec = entity->GetBoundCentre();
+    CVector centreA;
+    CVector centreB;
 
-    const auto fThisRadius = GetModelInfo()->GetColModel()->GetBoundRadius();
-    const auto fOtherRadius = entity->GetModelInfo()->GetColModel()->GetBoundRadius();
+    GetBoundCentre(centreA);
+    entity->GetBoundCentre(centreB);
 
-    return (thisVec - otherVec).Magnitude() <= (fThisRadius + fOtherRadius);
+    const auto radius = GetBoundRadius() + entity->GetBoundRadius();
+
+    return (centreA - centreB).Magnitude() <= radius;
 }
 
 // 0x5344B0
 bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
-    CVector thisVec;
-    GetBoundCentre(thisVec);
-    auto fThisRadius = GetModelInfo()->GetColModel()->GetBoundRadius();
+    CVector centreB = GetBoundCentre();
 
-    return (thisVec - centre).Magnitude() <= (fThisRadius + radius);
+    return (centreB - centre).Magnitude() <= (GetBoundRadius() + radius);
 }
 
 // 0x534540
 bool CEntity::GetIsOnScreen() {
-    return TheCamera.IsSphereVisible(GetBoundCentre(), GetModelInfo()->GetColModel()->GetBoundRadius());
+    return TheCamera.IsSphereVisible(GetBoundCentre(), GetBoundRadius());
 }
 
 // 0x5345D0
@@ -2220,21 +2220,6 @@ bool CEntity::IsEntityOccluded() {
         }
         return true;
     });
-}
-
-// inline
-inline RwMatrix* CEntity::GetRwMatrix() {
-    return RwFrameGetMatrix(RwFrameGetParent(GetRwObject()));
-}
-
-// inline
-inline bool CEntity::IsInArea(int32 area) {
-    return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
-}
-
-// inline
-inline bool CEntity::IsInCurrentArea() const {
-    return GetAreaCode() == CGame::currArea || GetAreaCode() == AREA_CODE_13;
 }
 
 // 0x446F90
