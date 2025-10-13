@@ -2,8 +2,6 @@
 
 #include "Building.h"
 
-int32& gBuildings = *(int32*)0xB71804;
-
 void CBuilding::InjectHooks()
 {
     RH_ScopedVirtualClass(CBuilding, 0x8585C8, 22);
