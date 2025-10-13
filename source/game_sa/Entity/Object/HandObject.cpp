@@ -50,7 +50,7 @@ void CHandObject::ProcessControl()
     const auto boneMat = CMatrix(&matArr[m_nBoneIndex], false);
     *static_cast<CMatrix*>(m_matrix) = boneMat;
 
-    m_bIsInSafePosition = true;
+    SetIsInSafePosition(true);
     CPhysical::RemoveAndAdd();
 }
 

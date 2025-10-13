@@ -231,8 +231,8 @@ void CPhysical::ProcessControl()
         physicalFlags.bSubmergedInWater = false;
 
     SetHasHitWall(false);
-    m_bWasPostponed = false;
-    m_bIsInSafePosition = false;
+    SetWasPostponed(false);
+    SetIsInSafePosition(false);
     SetHasContacted(false);
 
     if (GetStatus() != STATUS_SIMPLE)
@@ -272,7 +272,7 @@ void CPhysical::ProcessCollision() {
                     CCarCtrl::SwitchVehicleToRealPhysics(vehicle);
             }
             SetIsStuck(false);
-            m_bIsInSafePosition = true;
+            SetIsInSafePosition(true);
             RemoveAndAdd();
             return;
         }
@@ -309,7 +309,7 @@ void CPhysical::ProcessCollision() {
                     colLinesCount = 0;
                 if (collisionIndex >= colLinesCount) {
                     SetIsStuck(false);
-                    m_bIsInSafePosition = true;
+                    SetIsInSafePosition(true);
                     m_vecMoveSpeed.z = 0.0f;
                     m_vecTurnSpeed.x = 0.0f;
                     m_vecTurnSpeed.y = 0.0f;
@@ -374,7 +374,7 @@ void CPhysical::ProcessCollision() {
                 if (GetIsTypeVehicle())
                     vehicle->vehicleFlags.bVehicleColProcessed = true;
                 SetIsStuck(false);
-                m_bIsInSafePosition = true;
+                SetIsInSafePosition(true);
                 physicalFlags.bProcessCollisionEvenIfStationary = false;
                 physicalFlags.bSkipLineCol = false;
                 m_fElasticity = fOldElasticity;
@@ -454,7 +454,7 @@ void CPhysical::ProcessCollision() {
             ped->bIsStanding = true;
         }
         SetIsStuck(false);
-        m_bIsInSafePosition = true;
+        SetIsInSafePosition(true);
         physicalFlags.bProcessCollisionEvenIfStationary = false;
         physicalFlags.bSkipLineCol = false;
         m_fElasticity = fOldElasticity;
@@ -463,7 +463,7 @@ void CPhysical::ProcessCollision() {
         return;
     }
     SetIsStuck(false);
-    m_bIsInSafePosition = true;
+    SetIsInSafePosition(true);
     RemoveAndAdd();
 }
 
@@ -482,7 +482,7 @@ void CPhysical::ProcessShift() {
             ResetTurnSpeed();
         }
         SetIsStuck(false);
-        m_bIsInSafePosition = true;
+        SetIsInSafePosition(true);
         RemoveAndAdd();
     }
     else
@@ -556,7 +556,7 @@ void CPhysical::ProcessShift() {
             }
         }
         SetIsStuck(false);
-        m_bIsInSafePosition = true;
+        SetIsInSafePosition(true);
         m_fMovingSpeed = (GetPosition() - oldEntityMatrix.GetPosition()).Magnitude();
         RemoveAndAdd();
     }
@@ -903,8 +903,8 @@ void CPhysical::SkipPhysics()
         physicalFlags.bSubmergedInWater = false;
 
     SetHasHitWall(false);
-    m_bWasPostponed = false;
-    m_bIsInSafePosition = false;
+    SetWasPostponed(false);
+    SetIsInSafePosition(false);
     SetHasContacted(false);
 
     if (GetStatus() != STATUS_SIMPLE)
@@ -2533,7 +2533,7 @@ void CPhysical::UnsetIsInSafePosition()
     ApplySpeed();
     m_vecMoveSpeed *= -1.0f;
     m_vecTurnSpeed *= -1.0f;
-    m_bIsInSafePosition = false;
+    SetIsInSafePosition(false);
 }
 
 // 0x5483D0
@@ -2932,7 +2932,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                 CVector vecEntityMoveForce = colPoint.m_vecNormal * entityDamageIntensity * -1.0f;
                 if (!entity->physicalFlags.bDisableCollisionForce && !entity->physicalFlags.bDontApplySpeed)
                 {
-                    if (entity->m_bIsInSafePosition)
+                    if (entity->GetIsInSafePosition())
                     {
                         entity->UnsetIsInSafePosition();
                     }
@@ -3034,7 +3034,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             }
             if (!entity->physicalFlags.bDisableCollisionForce && !bThisPedIsStandingOnEntity)
             {
-                if (entity->m_bIsInSafePosition)
+                if (entity->GetIsInSafePosition())
                 {
                     entity->UnsetIsInSafePosition();
                 }
@@ -3139,7 +3139,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
                 vecEntityMoveForce.x += vecEntityMoveForce.x;
                 vecEntityMoveForce.y += vecEntityMoveForce.y;
             }
-            if (entity->m_bIsInSafePosition)
+            if (entity->GetIsInSafePosition())
             {
                 entity->UnsetIsInSafePosition();
             }
@@ -3296,7 +3296,7 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
 
         if (!entity->physicalFlags.bDisableCollisionForce)
         {
-            if (entity->m_bIsInSafePosition)
+            if (entity->GetIsInSafePosition())
             {
                 entity->UnsetIsInSafePosition();
             }
@@ -3902,7 +3902,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
                     }
                     else
                     {
-                        if (physical->m_bIsInSafePosition)
+                        if (physical->GetIsInSafePosition())
                         {
                             physical->m_vecMoveSpeed *= -1.0f;
                             physical->m_vecTurnSpeed *= -1.0f;
@@ -3910,7 +3910,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 
                             physical->m_vecMoveSpeed *= -1.0f;
                             physical->m_vecTurnSpeed *= -1.0f;
-                            physical->m_bIsInSafePosition = false;
+                            physical->SetIsInSafePosition(false);
                         }
 
                         physical->ApplyForce(vecEntityMoveForce, vecDistanceToPoint, true);

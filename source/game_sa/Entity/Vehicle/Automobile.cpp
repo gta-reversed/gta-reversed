@@ -568,8 +568,8 @@ void CAutomobile::ProcessControl()
     for (auto& collisionEntity : m_apWheelCollisionEntity) {
         if (collisionEntity) {
             vehicleFlags.bRestingOnPhysical = true;
-            if (!CWorld::bForceProcessControl && collisionEntity->m_bIsInSafePosition) {
-                m_bWasPostponed = true;
+            if (!CWorld::bForceProcessControl && collisionEntity->GetIsInSafePosition()) {
+                SetWasPostponed(true);
                 return;
             }
         }
@@ -1954,7 +1954,7 @@ void CAutomobile::ProcessControlCollisionCheck(bool applySpeed) {
     }
 
     SetIsStuck(false);
-    m_bIsInSafePosition = true;
+    SetIsInSafePosition(true);
 }
 
 // 0x6AD690

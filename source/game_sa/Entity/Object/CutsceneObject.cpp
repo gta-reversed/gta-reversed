@@ -52,8 +52,8 @@ void CCutsceneObject::SetModelIndex(unsigned index) {
 
 // 0x5B1B90
 void CCutsceneObject::ProcessControl() {
-    if (m_nAttachBone && m_pAttachmentObject && !m_bWasPostponed) {
-        m_bWasPostponed = true;
+    if (m_nAttachBone && m_pAttachmentObject && !GetWasPostponed()) {
+        SetWasPostponed(true);
         return;
     }
 

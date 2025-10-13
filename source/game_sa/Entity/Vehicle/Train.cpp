@@ -851,8 +851,8 @@ void CTrain::ProcessControl() {
         RemoveAndAdd();
 
         SetIsStuck(false);
-        m_bWasPostponed = false;
-        m_bIsInSafePosition = true;
+        SetWasPostponed(false);
+        SetIsInSafePosition(true);
 
         m_fMovingSpeed = DistanceBetweenPoints(GetPosition(), vecOldTrainPosition);
 

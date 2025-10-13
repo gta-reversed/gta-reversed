@@ -84,7 +84,7 @@ void CBmx::ProcessControl() {
 
     CBike::ProcessControl();
 
-    if (m_bWasPostponed || GetStatus() != STATUS_PLAYER || !m_pDriver) {
+    if (GetWasPostponed() || GetStatus() != STATUS_PLAYER || !m_pDriver) {
         return;
     }
 

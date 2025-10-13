@@ -613,7 +613,7 @@ void CBike::ProcessControlCollisionCheck(bool applySpeed) {
     }
 
     SetIsStuck(false);
-    m_bIsInSafePosition = true;
+    SetIsInSafePosition(true);
 }
 
 // 0x6B5990

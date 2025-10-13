@@ -1972,7 +1972,7 @@ void CWorld::Process() {
         IterateMovingList(DoProcessMovingEntity);
         bForceProcessControl = true;
         IterateMovingList([&](CEntity* entity) {
-            if (entity->m_bWasPostponed) {
+            if (entity->GetWasPostponed()) {
                 DoProcessMovingEntity(entity);
             }
         });
@@ -1988,7 +1988,7 @@ void CWorld::Process() {
         ZoneScopedN("Update entity RW");
 
         IterateMovingList([&](CEntity* entity) {
-            entity->m_bIsInSafePosition = true;
+            entity->SetIsInSafePosition(true);
             entity->UpdateRW();
             entity->UpdateRwFrame();
         });
@@ -1998,7 +1998,7 @@ void CWorld::Process() {
             ZoneScopedN("Process collision");
 
             const auto ProcessMovingEntityCollision = [](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->ProcessCollision();
                     entity->UpdateRW();
                     entity->UpdateRwFrame();
@@ -2020,14 +2020,14 @@ void CWorld::Process() {
 
             // Mark entities as `stuck` if they're still in unsafe positions
             IterateMovingList([&](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->SetIsStuck(true);
 
                     entity->ProcessCollision();
                     entity->UpdateRW();
                     entity->UpdateRwFrame();
 
-                    if (!entity->m_bIsInSafePosition)
+                    if (!entity->GetIsInSafePosition())
                         entity->SetIsStuck(true);
                 }
             });
@@ -2040,12 +2040,12 @@ void CWorld::Process() {
             bSecondShift = false;
 
             IterateMovingList([&](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->ProcessShift();
                     entity->UpdateRW();
                     entity->UpdateRwFrame();
 
-                    if (!entity->m_bIsInSafePosition)
+                    if (!entity->GetIsInSafePosition())
                         entity->SetIsStuck(true);
                 }
             });
@@ -2053,12 +2053,12 @@ void CWorld::Process() {
             bSecondShift = true;
 
             IterateMovingList([&](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->ProcessShift();
                     entity->UpdateRW();
                     entity->UpdateRwFrame();
 
-                    if (!entity->m_bIsInSafePosition) {
+                    if (!entity->GetIsInSafePosition()) {
                         entity->SetIsStuck(true);
 
                         if (entity->TreatAsPlayerForCollisions()) {

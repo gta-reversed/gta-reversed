@@ -299,7 +299,7 @@ void CObject::ProcessControl() {
     }
 
     if (m_bIsBIGBuilding)
-        m_bIsInSafePosition = true;
+        SetIsInSafePosition(true);
 
     if (physicalFlags.bDisableMoveForce && m_fDoorStartAngle > -1000.0F) {
         auto fHeading = GetHeading();

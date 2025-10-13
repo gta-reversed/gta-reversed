@@ -600,7 +600,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
                 return RENDERER_CULLED;
             }
 
-            if (entity->m_bWasPostponed) {
+            if (entity->GetWasPostponed()) {
                 entity->m_bDistanceFade = false;
                 AddEntityToRenderList(entity, DistanceBetweenPoints(ms_vecCameraPosition, entity->GetPosition()));
                 return RENDERER_INVISIBLE;
@@ -644,7 +644,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
                     return RENDERER_CULLED;
                 }
 
-                if (!entity->m_bWasPostponed)
+                if (!entity->GetWasPostponed())
                 {
                     return RENDERER_VISIBLE;
                 }
