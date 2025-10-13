@@ -30,7 +30,7 @@ void CEntity::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x532A90);
     RH_ScopedInstall(Destructor, 0x535E90);
 
-    RH_ScopedOverloadedInstall(Add, "void", 0x533020, void(CEntity::*)());
+    //RH_ScopedOverloadedInstall(Add, "void", 0x533020, void(CEntity::*)());
     RH_ScopedOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
     RH_ScopedVMTInstall(Remove, 0x534AE0);
     RH_ScopedVMTInstall(SetIsStatic, 0x403E20);
@@ -673,7 +673,7 @@ void CEntity::RemoveLighting(bool reset) {
 // 0x532B00
 void CEntity::UpdateRwFrame() {
     if (GetRwObject()) {
-        RwFrameUpdateObjects(RwFrameGetParent(rwObjectGetParent(GetRwObject())));
+        RwFrameUpdateObjects(static_cast<RwFrame*>(rwObjectGetParent(GetRwObject())));
     }
 }
 
