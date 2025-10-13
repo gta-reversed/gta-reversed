@@ -168,7 +168,7 @@ void CWorld::Initialise() {
 
 // 0x563220
 void CWorld::Add(CEntity* entity) {
-    entity->UpdateRW();
+    entity->UpdateRwMatrix();
     entity->UpdateRwFrame();
     entity->Add();
     if (!entity->GetIsTypeBuilding() && !entity->GetIsTypeDummy()) {
@@ -240,7 +240,7 @@ void CWorld::ProcessForAnimViewer() {
     for (auto* const entity : ms_listMovingEntityPtrs) {
         if (!entity->m_bRemoveFromWorld) {
             entity->UpdateAnim();
-            entity->UpdateRW();
+            entity->UpdateRwMatrix();
         }
     }
 }
@@ -716,7 +716,7 @@ void CWorld::ProcessAttachedEntities() {
             if (const auto attachedTo = veh->m_pAttachedTo) {
                 veh->m_pEntityIgnoredCollision = attachedTo;
                 veh->PositionAttachedEntity();
-                veh->UpdateRW();
+                veh->UpdateRwMatrix();
                 veh->UpdateRwFrame();
             }
         }
@@ -728,7 +728,7 @@ void CWorld::ProcessAttachedEntities() {
                 Remove(obj);
 
                 obj->PositionAttachedEntity();
-                obj->UpdateRW();
+                obj->UpdateRwMatrix();
                 obj->UpdateRwFrame();
                 Add(obj);
             }
@@ -1932,7 +1932,7 @@ void CWorld::Process() {
                 obj->UpdateAnim();
                 obj->ProcessControl();
                 obj->ProcessCollision();
-                obj->UpdateRW();
+                obj->UpdateRwMatrix();
                 obj->UpdateRwFrame();
             }
         }
@@ -1989,7 +1989,7 @@ void CWorld::Process() {
 
         IterateMovingList([&](CEntity* entity) {
             entity->SetIsInSafePosition(true);
-            entity->UpdateRW();
+            entity->UpdateRwMatrix();
             entity->UpdateRwFrame();
         });
     } else {
@@ -2000,7 +2000,7 @@ void CWorld::Process() {
             const auto ProcessMovingEntityCollision = [](CEntity* entity) {
                 if (!entity->GetIsInSafePosition()) {
                     entity->ProcessCollision();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
                 }
             };
@@ -2024,7 +2024,7 @@ void CWorld::Process() {
                     entity->SetIsStuck(true);
 
                     entity->ProcessCollision();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
 
                     if (!entity->GetIsInSafePosition())
@@ -2042,7 +2042,7 @@ void CWorld::Process() {
             IterateMovingList([&](CEntity* entity) {
                 if (!entity->GetIsInSafePosition()) {
                     entity->ProcessShift();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
 
                     if (!entity->GetIsInSafePosition())
@@ -2055,7 +2055,7 @@ void CWorld::Process() {
             IterateMovingList([&](CEntity* entity) {
                 if (!entity->GetIsInSafePosition()) {
                     entity->ProcessShift();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
 
                     if (!entity->GetIsInSafePosition()) {
@@ -2085,7 +2085,7 @@ void CWorld::Process() {
             if (const auto attachedTo = ped->m_pAttachedTo) {
                 ped->m_pEntityIgnoredCollision = attachedTo;
                 ped->PositionAttachedPed();
-                ped->UpdateRW();
+                ped->UpdateRwMatrix();
                 ped->UpdateRwFrame();
             }
         }
@@ -2356,7 +2356,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
     const auto RecalcZPosAtPoint = [&](const CVector2D& point) {
         auto& pos = object->GetMatrix().GetPosition();
         pos.z = FindGroundZFor3DCoord({point.x, point.y, pos.z + std::max(2.f, colModel->m_boundBox.GetHeight())}, nullptr, nullptr) - colModel->m_boundBox.m_vecMin.z;
-        object->UpdateRW();
+        object->UpdateRwMatrix();
         object->UpdateRwFrame();
     };
 

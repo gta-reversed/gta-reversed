@@ -327,7 +327,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
                 else
                     m_pEntityToHold->SetPosn(ped->m_placement.m_vPosn);
             }
-            m_pEntityToHold->UpdateRW();
+            m_pEntityToHold->UpdateRwMatrix();
             m_pEntityToHold->UpdateRwFrame();
             return true;
         }
@@ -470,7 +470,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
             objectToHoldPosition = ped->GetPosition();
             objectToHoldPosition.z = objectToHoldPosition.z - 1.0f - objectToHold->GetColModel()->m_boundBox.m_vecMin.z;
             objectToHold->SetPosn(objectToHoldPosition);
-            objectToHold->UpdateRW();
+            objectToHold->UpdateRwMatrix();
             objectToHold->UpdateRwFrame();
         }
         CEntity::ClearReference(m_pEntityToHold);

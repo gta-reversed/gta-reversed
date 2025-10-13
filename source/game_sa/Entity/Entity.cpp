@@ -91,7 +91,7 @@ void CEntity::InjectHooks() {
     RH_ScopedInstall(RemoveEscalatorsForEntity, 0x717900);
     RH_ScopedInstall(IsEntityOccluded, 0x71FAE0);
     RH_ScopedInstall(GetModellingMatrix, 0x46A2D0);
-    RH_ScopedInstall(UpdateRW, 0x446F90);
+    RH_ScopedInstall(UpdateRwMatrix, 0x446F90);
 
     RH_ScopedInstall(GetIsTypePhysical, 0x4DA030);
     RH_ScopedInstall(GetIsStatic, 0x4633E0);
@@ -274,7 +274,7 @@ void CEntity::CreateRwObject() {
     if (GetIsTypeBuilding()) {
         gBuildings++;
     }
-    UpdateRW();
+    UpdateRwMatrix();
 
     // Handle different RenderWare object types
     const auto objectType = RwObjectGetType(GetRwObject());
@@ -441,18 +441,18 @@ void CEntity::PreRender() {
         
         if (modelIndex == ModelIndices::MI_COLLECTABLE1) {
             CPickups::DoCollectableEffects(this);
-            UpdateRW();
+            UpdateRwMatrix();
             UpdateRwFrame();
         } else if (modelIndex == ModelIndices::MI_MONEY) {
             CPickups::DoMoneyEffects(this);
-            UpdateRW();
+            UpdateRwMatrix();
             UpdateRwFrame();
         } else if (modelIndex == ModelIndices::MI_CARMINE
                    || modelIndex == ModelIndices::MI_NAUTICALMINE
                    || modelIndex == ModelIndices::MI_BRIEFCASE) {
             if (obj->objectFlags.bIsPickup) {
                 CPickups::DoMineEffects(this);
-                UpdateRW();
+                UpdateRwMatrix();
                 UpdateRwFrame();
             }
         } else if (modelIndex == MODEL_MISSILE) {
@@ -519,7 +519,7 @@ void CEntity::PreRender() {
             PreRenderForGlassWindow();
         } else if (obj->objectFlags.bIsPickup) {
             CPickups::DoPickUpEffects(this);
-            UpdateRW();
+            UpdateRwMatrix();
             UpdateRwFrame();
         } else if (modelIndex == MODEL_GRENADE) {
             const auto& vecPos = GetPosition();
@@ -805,7 +805,7 @@ void CEntity::BuildWindSockMatrix() {
     matrix.GetForward() = forward;
     matrix.GetUp() = up;
 
-    UpdateRW();
+    UpdateRwMatrix();
     UpdateRwFrame();
 }
 
@@ -1359,7 +1359,7 @@ void CEntity::ModifyMatrixForBannerInWind() {
     matrix.GetRight() = vecCross2;
     matrix.GetUp() = vecWind;
 
-    UpdateRW();
+    UpdateRwMatrix();
     UpdateRwFrame();
 }
 
@@ -2228,7 +2228,7 @@ inline float CEntity::GetBoundRadius() const {
 }
 
 // 0x446F90
-void CEntity::UpdateRW() {
+void CEntity::UpdateRwMatrix() {
     if (!GetRwObject()) {
         return;
     }

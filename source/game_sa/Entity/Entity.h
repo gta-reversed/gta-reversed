@@ -159,8 +159,6 @@ public:
     bool GetIsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
     void SetHasContacted(bool hasContacted) { m_bHasContacted = hasContacted; }
     bool GetHasContacted() const { return m_bHasContacted; }
-    
-    
     void SetIsStuck(bool isStuck) { m_bIsStuck = isStuck; }
     bool GetIsStuck() const { return m_bIsStuck; }
     void SetIsInSafePosition(bool isInSafePosition) { m_bIsInSafePosition = isInSafePosition; }
@@ -193,7 +191,7 @@ public:
     virtual void DeleteRwObject();
 
     RwMatrix* GetRwMatrix();
-    void UpdateRW(); // orig UpdateRwMatrix
+    void UpdateRwMatrix();
 
     CVector GetBoundCentre() const;
     void GetBoundCentre(CVector& outCentre) const;
@@ -249,7 +247,7 @@ public:
 
     void RegisterReference(CEntity** entity);
 
-    void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
+    void CleanUpOldReference(CEntity** entity);
     void ResolveReferences();
     void PruneReferences();
     void ModifyMatrixForTreeInWind();
@@ -281,7 +279,7 @@ public:
     void SetCannotLodChildrenRender() { m_nNumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
     bool CanLodChildrenRender() { return m_nNumLodChildrenRendered != 128; } // orig CanLodChildRender
 
-    // 128 = displaySuperLowLodFlag,  yes, this is very hacky. Blame R*
+    // 128 = displaySuperLowLodFlag, yes, this is very hacky. Blame R*
 
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 index);
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
@@ -292,9 +290,9 @@ public:
     CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
     RwMatrix* GetModellingMatrix();
 
-    // NOTSA
+    // NOTSA:
 
-    // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
+    // Always returns a non-null value. In case there's no LOD object `this` is returned
     CEntity* FindLastLOD() noexcept;
 
     CBaseModelInfo* GetModelInfo() const;

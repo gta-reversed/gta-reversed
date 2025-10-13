@@ -583,7 +583,7 @@ auto SetCharHeading(CPed& ped, float deg) {
     const auto rad = DegreesToRadians(FixAngleDegrees(deg));
     ped.m_fAimingRotation = ped.m_fCurrentRotation = rad;
     ped.SetHeading(rad);
-    ped.UpdateRW();
+    ped.UpdateRwMatrix();
 }
 
 // IS_CHAR_TOUCHING_OBJECT

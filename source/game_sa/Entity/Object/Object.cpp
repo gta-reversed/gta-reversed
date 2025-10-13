@@ -347,7 +347,7 @@ void CObject::ProcessControl() {
 void CObject::Teleport(CVector destination, bool resetRotation) {
     CWorld::Remove(this);
     SetPosn(destination);
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
     CWorld::Add(this);
 }
@@ -548,7 +548,7 @@ void CObject::PreRender() {
     if (m_fScale != 1.0F || objectFlags.bIsScaled)
     {
         auto vecScale = CVector(m_fScale, m_fScale, m_fScale);
-        CEntity::UpdateRW();
+        CEntity::UpdateRwMatrix();
         RwMatrixScale(CEntity::GetModellingMatrix(), &vecScale, RwOpCombineType::rwCOMBINEPRECONCAT);
         CEntity::UpdateRwFrame();
         objectFlags.bIsScaled = true;
@@ -649,7 +649,7 @@ void CObject::ProcessGarageDoorBehaviour() {
     }
 
     SetUsesCollision(garage.m_bDoorClosed);
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
@@ -760,7 +760,7 @@ void CObject::ResetDoorAngle() {
     ResetTurnSpeed();
     ResetFrictionMoveSpeed();
     ResetFrictionTurnSpeed();
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
@@ -946,7 +946,7 @@ void CObject::ProcessSamSiteBehaviour() {
                 fNewAngle = fHeading + fTimeStep;
 
             CPlaceable::SetHeading(fNewAngle - HALF_PI);
-            CEntity::UpdateRW();
+            CEntity::UpdateRwMatrix();
             CEntity::UpdateRwFrame();
 
             auto vecShootDir = vecPos - vecTargetPos;
@@ -965,7 +965,7 @@ void CObject::ProcessSamSiteBehaviour() {
 
     fHeading += CTimer::GetTimeStep() / 200.0F;
     CPlaceable::SetHeading(fHeading - HALF_PI);
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
@@ -998,7 +998,7 @@ void CObject::ProcessTrainCrossingBehaviour() {
     else
         SetMatrixForTrainCrossing(m_matrix, std::min(PI * 0.43F, fAngle + fTimeStep));
 
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 

@@ -88,7 +88,7 @@ void CHandObject::PreRender()
     }
 
     m_fContactSurfaceBrightness = m_pPed->m_fContactSurfaceBrightness;
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
     CEntity::UpdateRpHAnim();
 }

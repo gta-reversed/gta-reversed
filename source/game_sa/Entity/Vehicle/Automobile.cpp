@@ -5448,7 +5448,7 @@ void CAutomobile::ProcessHarvester()
             CGeneral::GetRandomNumberInRange(0.12f, -0.04f)
         };
         limb->m_nObjectType = OBJECT_TEMPORARY;
-        limb->UpdateRW();
+        limb->UpdateRwMatrix();
         limb->UpdateRwFrame();
         limb->SetIsStatic(false);
         CObject::nNoTempObjects++;

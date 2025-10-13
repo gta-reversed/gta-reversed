@@ -2150,7 +2150,7 @@ void CPhysical::PlacePhysicalRelativeToOtherPhysical(CPhysical* relativeToPhysic
     *(CMatrix*)physicalToPlace->m_matrix = *relativeToPhysical->m_matrix;
     physicalToPlace->GetPosition() = vecRelativePosition;
     physicalToPlace->m_vecMoveSpeed = relativeToPhysical->m_vecMoveSpeed;
-    physicalToPlace->UpdateRW();
+    physicalToPlace->UpdateRwMatrix();
     physicalToPlace->UpdateRwFrame();
     CWorld::Add(physicalToPlace);
 }

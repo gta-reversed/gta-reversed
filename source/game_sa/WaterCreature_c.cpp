@@ -74,7 +74,7 @@ bool WaterCreature_c::Init(int32 nType, CVector* vecPos, WaterCreature_c* parent
     m_ucTargetSwimSpeed = 0;
     m_bChangedDir = true;
     m_pObject->SetHeading(m_fHeading);
-    m_pObject->UpdateRW();
+    m_pObject->UpdateRwMatrix();
     m_pObject->UpdateRwFrame();
 
     CWorld::Add(m_pObject);
@@ -235,7 +235,7 @@ void WaterCreature_c::Update(float fTimeStep)
             m_pObject->SetPosn(CVector(vecJellyPos.x, vecJellyPos.y, fWaterLevel - 0.2F));
     }
 
-    m_pObject->UpdateRW();
+    m_pObject->UpdateRwMatrix();
     m_pObject->UpdateRwFrame();
     CWorld::Remove(m_pObject); //BUG? Is this remove needed here?
     CWorld::Add(m_pObject);

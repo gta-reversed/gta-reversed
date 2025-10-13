@@ -555,7 +555,7 @@ void CPedIntelligence::ProcessAfterProcCol() {
         }
 
         if (bPositionSet) {
-            m_pPed->UpdateRW();
+            m_pPed->UpdateRwMatrix();
             m_pPed->UpdateRwFrame();
         }
     }

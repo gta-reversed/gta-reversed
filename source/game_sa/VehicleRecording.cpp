@@ -324,7 +324,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
 
             vehicle->ProcessControlCollisionCheck(false);
             vehicle->RemoveAndAdd();
-            vehicle->UpdateRW();
+            vehicle->UpdateRwMatrix();
             vehicle->UpdateRwFrame();
 
             MarkSurroundingEntitiesForCollisionWithTrain(vehicle->GetPosition(), 5.0f, vehicle, true);

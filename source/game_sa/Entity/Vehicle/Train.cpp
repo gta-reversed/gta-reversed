@@ -846,7 +846,7 @@ void CTrain::ProcessControl() {
             m_vecTurnSpeed.z = std::clamp(m_vecTurnSpeed.z, -0.1f, 0.1f);
         }
 
-        UpdateRW();
+        UpdateRwMatrix();
         UpdateRwFrame();
         RemoveAndAdd();
 

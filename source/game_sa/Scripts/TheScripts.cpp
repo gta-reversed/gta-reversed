@@ -1505,7 +1505,7 @@ void CTheScripts::ProcessAllSearchLights() {
             entity->m_matrix->RotateX(rotX);
             entity->m_matrix->RotateZ(rotZ);
             entity->GetPosition() += prevPos;
-            entity->UpdateRW();
+            entity->UpdateRwMatrix();
             entity->UpdateRwFrame();
         };
 

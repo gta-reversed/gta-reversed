@@ -880,7 +880,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         dword_B6FFFC                = 0;
         dword_B6FFF8                = 0;
     }
-    m_pCamTargetEntity->UpdateRW();
+    m_pCamTargetEntity->UpdateRwMatrix();
     m_pCamTargetEntity->UpdateRwFrame();
     CVector headPosition{};
     targetPed->GetTransformedBonePosition(headPosition, eBoneTag::BONE_HEAD, true);

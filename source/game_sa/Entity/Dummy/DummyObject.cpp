@@ -54,7 +54,7 @@ void CDummyObject::UpdateFromObject(CObject* obj) {
     obj->m_bImBeingRendered = true;
     CEntity::AttachToRwObject(obj->GetRwObject(), false);
     obj->m_bImBeingRendered = false;
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     obj->DetachFromRwObject();
 
     if (obj->GetIplIndex() && CIplStore::HasDynamicStreamingDisabled(obj->GetIplIndex())) {
