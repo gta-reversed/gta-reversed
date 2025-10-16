@@ -282,7 +282,7 @@ public:
     // 128 = displaySuperLowLodFlag, yes, this is very hacky. Blame R*
 
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 index);
-    void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
+    void CalculateBBProjection(CVector* point1, CVector* point2, CVector* point3, CVector* point4);
 
     C2dEffect* GetRandom2dEffect(int32 effectType, bool mustBeFree);
 

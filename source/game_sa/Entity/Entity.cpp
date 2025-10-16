@@ -1390,84 +1390,96 @@ CColModel* CEntity::GetColModel() const {
 // 0x535340
 // https://gamedev.stackexchange.com/a/35948
 // https://gamedev.stackexchange.com/questions/153326/how-to-rotate-directional-billboard-particle-sprites-toward-the-direction-the-pa/153814#153814
-void CEntity::CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4) {
+void CEntity::CalculateBBProjection(CVector* point1, CVector* point2, CVector* point3, CVector* point4) {
     CMatrix& matrix = GetMatrix();
 
-    // Calculate magnitudes of axes projections
-    const auto magRight = CVector2D(matrix.GetRight()).Magnitude();
-    const auto magForward = CVector2D(matrix.GetForward()).Magnitude();
-    const auto magUp = CVector2D(matrix.GetUp()).Magnitude();
+    // Extract local axes from the matrix
+    const auto& [right, forward, up] = std::make_tuple(
+        matrix.GetRight(),
+        matrix.GetForward(),
+        matrix.GetUp()
+    );
+
+    // Calculate the lengths of the projections of the object's local axes. This allows for scaling to be taken into account,
+    // since when scaling is present, the lengths of the right, forward, and up vectors will differ from 1
+    const auto [lengthProjX, lengthProjY, lengthProjZ] = std::make_tuple(
+        right.Magnitude(),
+        forward.Magnitude(),
+        up.Magnitude()
+    );
 
     // Get bounding box
     const auto cm = GetModelInfo()->GetColModel();
-    const auto [maxX, maxY, maxZ] = std::make_tuple(
+    const auto [sizeBBX, sizeBBY, sizeBBZ] = std::make_tuple(
         std::max(-cm->m_boundBox.m_vecMin.x, cm->m_boundBox.m_vecMax.x),
         std::max(-cm->m_boundBox.m_vecMin.y, cm->m_boundBox.m_vecMax.y),
         std::max(-cm->m_boundBox.m_vecMin.z, cm->m_boundBox.m_vecMax.z)
     );
 
     // Calculate sizes
-    const auto [sizeX, sizeY, sizeZ] = std::make_tuple(
-        maxX * magRight * 2.0F,
-        maxY * magForward * 2.0F,
-        maxZ * magUp * 2.0F
+    const auto [totalSizeX, totalSizeY, totalSizeZ] = std::make_tuple(
+        sizeBBX * lengthProjX * 2.0F,
+        sizeBBY * lengthProjY * 2.0F,
+        sizeBBZ * lengthProjZ * 2.0F
     );
 
     const auto& pos = GetPosition();
 
-    CVector dir, in;
-    float   mult1, mult2, mult3, mult4;
+    float offsetLength1, offsetWidth1, offsetLength;
+    float offsetLength2, offsetWidth2, offsetWidth;
+    CVector main;
+    CVector higherPoint, lowerPoint;
 
     // Determine dominant axis and compute direction vectors
-    if (sizeX > sizeY && sizeX > sizeZ) {
-        in = CVector(matrix.GetRight().x, matrix.GetRight().y, 0.0F);
-        dir = in * maxX;
+    if (totalSizeX > totalSizeY && totalSizeX > totalSizeZ) {
+        main = CVector(right.x, right.y, 0.0F);
+        higherPoint = pos + main * sizeBBX;
+        lowerPoint = pos - main * sizeBBX;
 
-        in.Normalise();
-        mult1 = (in.x * matrix.GetForward().x + in.y * matrix.GetForward().y) * maxY;
-        mult2 = (in.x * matrix.GetForward().y - in.y * matrix.GetForward().x) * maxY;
-        mult3 = (in.x * matrix.GetUp().x + in.y * matrix.GetUp().y) * maxZ;
-        mult4 = (in.x * matrix.GetUp().y - in.y * matrix.GetUp().x) * maxZ;
-    } else if (sizeY > sizeZ) {
-        in = CVector(matrix.GetForward().x, matrix.GetForward().y, 0.0F);
-        dir = in * maxY;
+        main.Normalise();
+        offsetLength1 = (main.x * forward.x + main.y * forward.y) * sizeBBY;
+        offsetWidth1  = (main.x * forward.y - main.y * forward.x) * sizeBBY;
+        offsetLength2 = (main.x * up.x      + main.y * up.y)      * sizeBBZ;
+        offsetWidth2  = (main.x * up.y      - main.y * up.x)      * sizeBBZ;
+    } else if (totalSizeY > totalSizeZ) {
+        main = CVector(forward.x, forward.y, 0.0F);
+        higherPoint = pos + main * sizeBBY;
+        lowerPoint = pos - main * sizeBBY;
 
-        in.Normalise();
-        mult1 = (in.x * matrix.GetRight().x + in.y * matrix.GetRight().y) * maxX;
-        mult2 = (in.x * matrix.GetRight().y - in.y * matrix.GetRight().x) * maxX;
-        mult3 = (in.x * matrix.GetUp().x + in.y * matrix.GetUp().y) * maxZ;
-        mult4 = (in.x * matrix.GetUp().y - in.y * matrix.GetUp().x) * maxZ;
+        main.Normalise();
+        offsetLength1 = (main.x * right.x + main.y * right.y) * sizeBBX;
+        offsetWidth1  = (main.x * right.y - main.y * right.x) * sizeBBX;
+        offsetLength2 = (main.x * up.x    + main.y * up.y)    * sizeBBZ;
+        offsetWidth2  = (main.x * up.y    - main.y * up.x)    * sizeBBZ;
     } else {
-        in = CVector(matrix.GetUp().x, matrix.GetUp().y, 0.0F);
-        dir = in * maxZ;
+        main = CVector(up.x, up.y, 0.0F);
+        higherPoint = pos + main * sizeBBZ;
+        lowerPoint = pos - main * sizeBBZ;
 
-        in.Normalise();
-        mult1 = (in.x * matrix.GetRight().x + in.y * matrix.GetRight().y) * maxX;
-        mult2 = (in.x * matrix.GetRight().y - in.y * matrix.GetRight().x) * maxX;
-        mult3 = (in.x * matrix.GetForward().x + in.y * matrix.GetForward().y) * maxY;
-        mult4 = (in.x * matrix.GetForward().y - in.y * matrix.GetForward().x) * maxY;
+        main.Normalise();
+        offsetLength1 = (main.x * right.x   + main.y * right.y)   * sizeBBX;
+        offsetWidth1  = (main.x * right.y   - main.y * right.x)   * sizeBBX;
+        offsetLength2 = (main.x * forward.x + main.y * forward.y) * sizeBBY;
+        offsetWidth2  = (main.x * forward.y - main.y * forward.x) * sizeBBY;
     }
 
-    const auto transformed = dir + pos;
-    const auto dirNeg = pos - dir;
-
     // Compute absolute values and sums
-    const auto mult13 = std::fabs(mult1) + std::fabs(mult3);
-    const auto mult24 = std::fabs(mult2) + std::fabs(mult4);
+    offsetLength = std::fabs(offsetLength1) + std::fabs(offsetLength2);
+    offsetWidth  = std::fabs(offsetWidth1)  + std::fabs(offsetWidth2);
 
     // Helper lambda for corner calculation
     const auto calcCorner = [&](const CVector& base, float sign1, float sign2) -> CVector {
         return {
-            base.x + sign1 * (in.x * mult13) + sign2 * (in.y * mult24),
-            base.y + sign1 * (in.y * mult13) + sign2 * (-in.x * mult24),
+            base.x + sign1 * (main.x * offsetLength) + sign2 * (main.y * offsetWidth),
+            base.y + sign1 * (main.y * offsetLength) + sign2 * (-main.x * offsetWidth),
             pos.z
         };
     };
 
-    *corner1 = calcCorner(transformed, 1.0F, -1.0F);
-    *corner2 = calcCorner(transformed, 1.0F, 1.0F);
-    *corner3 = calcCorner(dirNeg, -1.0F, 1.0F);
-    *corner4 = calcCorner(dirNeg, -1.0F, -1.0F);
+    *point1 = calcCorner(higherPoint, 1.0F, -1.0F);
+    *point2 = calcCorner(higherPoint, 1.0F, 1.0F);
+    *point3 = calcCorner(lowerPoint, -1.0F, 1.0F);
+    *point4 = calcCorner(lowerPoint, -1.0F, -1.0F);
 }
 
 // 0x535F00
