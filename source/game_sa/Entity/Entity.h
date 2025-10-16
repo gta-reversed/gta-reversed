@@ -274,8 +274,8 @@ public:
 
     void AddLodChildrenRendered() { m_nNumLodChildrenRendered++; } // orig AddLodChildRendered
     void ResetLodChildrenRendered() { m_nNumLodChildrenRendered = 0; } // orig ResetLodRenderedCounter
-    int32 GetNumLodChildrenRendered() { return m_nNumLodChildrenRendered; }
     bool HasLodChildrenRendered() { return m_nNumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
+    int32 GetNumLodChildrenRendered() { return m_nNumLodChildrenRendered; }
     void SetCannotLodChildrenRender() { m_nNumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
     bool CanLodChildrenRender() { return m_nNumLodChildrenRendered != 128; } // orig CanLodChildRender
 
@@ -366,6 +366,7 @@ public:
 
     auto AsPhysical()         { return reinterpret_cast<CPhysical*>(this); }
     auto AsVehicle()          { return reinterpret_cast<CVehicle*>(this); }
+    auto AsVehicle()    const { return reinterpret_cast<const CVehicle*>(this); }
     auto AsAutomobile()       { return reinterpret_cast<CAutomobile*>(this); }
     auto AsAutomobile() const { return reinterpret_cast<const CAutomobile*>(this); }
     auto AsBike()             { return reinterpret_cast<CBike*>(this); }
@@ -394,12 +395,12 @@ private:
 
 VALIDATE_SIZE(CEntity, 0x38);
 
-inline bool CEntity::IsInArea(int32 area) {
-    return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
-}
-
 inline bool CEntity::IsInCurrentArea() const {
     return GetAreaCode() == CGame::currArea || GetAreaCode() == AREA_CODE_13;
+}
+
+inline bool CEntity::IsInArea(int32 area) {
+    return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
 }
 
 inline RwMatrix* CEntity::GetRwMatrix() {

@@ -1375,7 +1375,7 @@ RwMatrix* CEntity::GetModellingMatrix() {
 // 0x535300
 CColModel* CEntity::GetColModel() const {
     if (GetIsTypeVehicle()) {
-        const auto veh = static_cast<const CVehicle*>(this);
+        const auto veh = AsVehicle();
         if (veh->m_vehicleSpecialColIndex > -1) {
             return &CVehicle::m_aSpecialColModel[veh->m_vehicleSpecialColIndex];
         }
@@ -2127,8 +2127,7 @@ bool CEntity::IsEntityOccluded() {
         return false;
     }
 
-    CVector center;
-    GetBoundCentre(center);
+    CVector center = GetBoundCentre();
 
     CVector centerScrPos;
     float   scaleX, scaleY;
@@ -2271,9 +2270,9 @@ RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data) {
     return atomic;
 }
 
-// 0x533290
+// 0x533280
 RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
-    RpMaterialGetColor(material)->alpha = (RwUInt8)std::bit_cast<uintptr_t>(data);
+    RpMaterialGetColor(material)->alpha = (RwUInt8)data;
     return material;
 }
 
