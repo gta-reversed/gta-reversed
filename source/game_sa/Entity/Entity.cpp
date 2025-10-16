@@ -1214,14 +1214,17 @@ bool CEntity::GetIsTouching(CEntity* entity) const {
 
     const auto radius = GetBoundRadius() + entity->GetBoundRadius();
 
-    return (centreA - centreB).Magnitude() <= radius;
+    return (centreA - centreB).SquaredMagnitude() < sq(radius);
 }
 
 // 0x5344B0
 bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
-    CVector centreB = GetBoundCentre();
+    CVector centreB;
 
-    return (centreB - centre).Magnitude() <= (GetBoundRadius() + radius);
+    GetBoundCentre(centreB);
+    float totalRadius = GetBoundRadius() + radius;
+
+    return (centreB - centre).SquaredMagnitude() < sq(totalRadius);
 }
 
 // 0x534540
