@@ -649,6 +649,7 @@ void CEntity::Render() {
 }
 
 // 0x553DC0
+// in Renderer.cpp
 bool CEntity::SetupLighting() {
     if (!m_bLightObject) {
         return false;
@@ -662,6 +663,7 @@ bool CEntity::SetupLighting() {
 }
 
 // 0x553370
+// in Renderer.cpp
 void CEntity::RemoveLighting(bool reset) {
     if (reset) {
         SetAmbientColours();
@@ -1529,6 +1531,7 @@ float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
 }
 
 // 0x571A00
+// in references.cpp
 void CEntity::CleanUpOldReference(CEntity** entity) {
     auto lastnextp = &m_pReferences;
     for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
@@ -1544,6 +1547,7 @@ void CEntity::CleanUpOldReference(CEntity** entity) {
 }
 
 // 0x571A40
+// in references.cpp
 // Clear (set to null) references to `this`
 void CEntity::ResolveReferences() {
     for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
@@ -1572,6 +1576,7 @@ void CEntity::ResolveReferences() {
 }
 
 // 0x571A90
+// in references.cpp
 void CEntity::PruneReferences() {
     if (!m_pReferences) {
         return;
@@ -1596,6 +1601,7 @@ void CEntity::PruneReferences() {
 }
 
 // 0x571B70
+// in references.cpp
 void CEntity::RegisterReference(CEntity** entity) {
     if (GetIsTypeBuilding() && !m_bIsTempBuilding && !m_bIsProcObject && !GetIplIndex()) {
         return;
@@ -1643,8 +1649,8 @@ void CEntity::RegisterReference(CEntity** entity) {
     }
 }
 
-// orig in Coronas.cpp
 // 0x6FC7A0
+// in Coronas.cpp
 void CEntity::ProcessLightsForEntity() {
     constexpr static const uint16 randomSeedRandomiser[8] = { 0, 27'034, 43'861, 52'326, 64'495, 38'437, 21'930, 39'117 }; // 0x8D5028
     constexpr static const float FADE_RATE = 0.0009f; // 0x872538
@@ -2112,6 +2118,7 @@ void CEntity::ProcessLightsForEntity() {
 }
 
 // 0x717900
+// in fluff.cpp
 void CEntity::RemoveEscalatorsForEntity() {
     for (auto& escalator : CEscalators::GetAllExists()) {
         if (escalator.GetEntity() == this) {
@@ -2122,6 +2129,7 @@ void CEntity::RemoveEscalatorsForEntity() {
 }
 
 // 0x71FAE0
+// in occlusion.cpp
 bool CEntity::IsEntityOccluded() {
     if (COcclusion::GetActiveOccluders().empty()) {
         return false;
