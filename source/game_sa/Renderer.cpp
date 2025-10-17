@@ -882,7 +882,7 @@ void CRenderer::ScanBigBuildingList(int32 sectorX, int32 sectorY) {
         if (entity->IsScanCodeCurrent())
             continue;
 
-        entity->SetCurrentScanCode() ;
+        entity->SetCurrentScanCode();
 
         float fDistance = 0.0f;
         switch (SetupBigBuildingVisibility(entity, fDistance)) {
