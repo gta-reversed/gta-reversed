@@ -325,20 +325,21 @@ void CEntity::DeleteRwObject() {
         return;
     }
 
-    const auto rwObjectType = RwObjectGetType(GetRwObject());
-
-    if (rwObjectType == rpATOMIC) {
+    switch (RwObjectGetType(GetRwObject())) {
+    case rpATOMIC:
         if (auto* frame = RpAtomicGetFrame(m_pRwAtomic)) {
             RpAtomicDestroy(m_pRwAtomic);
             RwFrameDestroy(frame);
         }
-    } else if (rwObjectType == rpCLUMP) {
+        break;
+    case rpCLUMP:
 #ifdef SA_SKINNED_PEDS
         if (IsClumpSkinned(m_pRwClump)) {
             RpClumpForAllAtomics(m_pRwClump, AtomicRemoveAnimFromSkinCB, nullptr);
         }
 #endif
         RpClumpDestroy(m_pRwClump);
+        break;
     }
 
     m_pRwObject = nullptr;
