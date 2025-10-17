@@ -834,24 +834,20 @@ void CEntity::SetupBigBuilding() {
 
 // 0x533170
 void CEntity::ModifyMatrixForCrane() {
-    if (CTimer::GetIsPaused()) {
-        return;
-    }
+    if (!CTimer::GetIsPaused()) {
+        if (GetRwObject()) {
+            auto parentMatrix = GetModellingMatrix();
+            if (!parentMatrix) {
+                return;
+            }
 
-    if (!GetRwObject()) {
-        return;
+            auto tempMat = CMatrix(parentMatrix, false);
+            auto fRot = (CTimer::GetTimeInMS() & 0x3FF) * (PI / 512.26F);
+            tempMat.SetRotateZOnly(fRot);
+            tempMat.UpdateRW();
+            UpdateRwFrame();
+        }
     }
-
-    auto parentMatrix = GetModellingMatrix();
-    if (!parentMatrix) {
-        return;
-    }
-
-    auto tempMat = CMatrix(parentMatrix, false);
-    auto fRot = (CTimer::GetTimeInMS() & 0x3FF) * (PI / 512.26F);
-    tempMat.SetRotateZOnly(fRot);
-    tempMat.UpdateRW();
-    UpdateRwFrame();
 }
 
 // 0x533240
