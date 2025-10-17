@@ -2055,7 +2055,7 @@ void CEntity::ProcessLightsForEntity() {
             }
         }
 
-        // Only PC?
+        // PC Only?
         // SHADOWS
         if (effect->light.m_fShadowSize != 0.0f) {
             float shadowZ = 15.0f;
