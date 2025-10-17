@@ -925,9 +925,10 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
  * @return Random effect
  */
 C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
-    std::array<C2dEffect*, 32> apArr{};
     auto mi = GetModelInfo();
-    size_t iFoundCount = 0;
+
+    std::array<C2dEffect*, 32> candidates{};
+    size_t numCandidates = 0;
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
@@ -940,12 +941,12 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
             continue;
         }
 
-        if (iFoundCount < apArr.size()) {
-            apArr[iFoundCount++] = effect;
+        if (numCandidates < candidates.size()) {
+            candidates[numCandidates++] = effect;
         }
     }
 
-    return iFoundCount ? apArr[CGeneral::GetRandomNumberInRange(0u, iFoundCount)] : nullptr;
+    return numCandidates ? candidates[CGeneral::GetRandomNumberInRange(0u, numCandidates)] : nullptr;
 }
 
 // 0x5334F0
