@@ -935,23 +935,21 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     size_t numCandidates = 0;
 
     const int32 numEffects = mi->m_n2dfxCount;
-    if (!numEffects) {
-        return;
-    }
+    if (numEffects) {
+        for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
+            auto effect = mi->Get2dEffect(iFxInd);
 
-    for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
-        auto effect = mi->Get2dEffect(iFxInd);
+            if (effect->m_Type != effectType) {
+                continue;
+            }
 
-        if (effect->m_Type != effectType) {
-            continue;
-        }
+            if (mustBeFree && !GetPedAttractorManager()->HasEmptySlot(notsa::cast<C2dEffectPedAttractor>(effect), this)) {
+                continue;
+            }
 
-        if (mustBeFree && !GetPedAttractorManager()->HasEmptySlot(notsa::cast<C2dEffectPedAttractor>(effect), this)) {
-            continue;
-        }
-
-        if (numCandidates < candidates.size()) {
-            candidates[numCandidates++] = effect;
+            if (numCandidates < candidates.size()) {
+                candidates[numCandidates++] = effect;
+            }
         }
     }
 
