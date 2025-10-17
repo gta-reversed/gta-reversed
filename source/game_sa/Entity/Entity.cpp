@@ -1060,9 +1060,9 @@ void CEntity::CreateEffects() {
             const auto frame = RpAtomicGetFrame(signAtomic);
             RwFrameSetIdentity(frame);
 
-            const RwV3d axisX{ 1.0F, 0.0F, 0.0F };
-            const RwV3d axisY{ 0.0F, 1.0F, 0.0F };
-            const RwV3d axisZ{ 0.0F, 0.0F, 1.0F };
+            static const RwV3d axisX{ 1.0F, 0.0F, 0.0F };
+            static const RwV3d axisY{ 0.0F, 1.0F, 0.0F };
+            static const RwV3d axisZ{ 0.0F, 0.0F, 1.0F };
 
             RwFrameRotate(frame, &axisZ, effect->roadsign.m_vecRotation.z, RwOpCombineType::rwCOMBINEREPLACE);
             RwFrameRotate(frame, &axisX, effect->roadsign.m_vecRotation.x, RwOpCombineType::rwCOMBINEPOSTCONCAT);
