@@ -760,11 +760,12 @@ bool CEntity::HasPreRenderEffects() {
     }
 
     // Checking for 2D light effects
-    if (!mi->m_n2dfxCount) {
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (!numEffects) {
         return false;
     }
 
-    for (int32 i = 0; i < mi->m_n2dfxCount; ++i) {
+    for (int32 i = 0; i < numEffects; ++i) {
         if (mi->Get2dEffect(i)->m_Type == e2dEffectType::EFFECT_LIGHT) {
             return true;
         }
@@ -902,11 +903,14 @@ bool IsEntityPointerValid(CEntity* entity) {
 // 0x533380
 CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
     auto mi = GetModelInfo();
-    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
-        auto effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == index) {
-            *outVec = GetMatrix().TransformPoint(effect->m_Pos);
-            return outVec;
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (numEffects) {
+        for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
+            auto effect = mi->Get2dEffect(iFxInd);
+            if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == index) {
+                *outVec = GetMatrix().TransformPoint(effect->m_Pos);
+                return outVec;
+            }
         }
     }
 
@@ -930,7 +934,12 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     std::array<C2dEffect*, 32> candidates{};
     size_t numCandidates = 0;
 
-    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (!numEffects) {
+        return;
+    }
+
+    for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
 
         if (effect->m_Type != effectType) {
@@ -972,11 +981,12 @@ void CEntity::CreateEffects() {
     m_bHasRoadsignText = false;
     const auto* const mi = GetModelInfo();
 
-    if (!mi->m_n2dfxCount) {
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (!numEffects) {
         return;
     }
 
-    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
+    for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
         auto* effect = mi->Get2dEffect(iFxInd);
 
         switch (effect->m_Type) {
@@ -1080,11 +1090,12 @@ void CEntity::CreateEffects() {
 // 0x533BF0
 void CEntity::DestroyEffects() {
     auto mi = GetModelInfo();
-    if (!mi->m_n2dfxCount) {
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (!numEffects) {
         return;
     }
 
-    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
+    for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
 
         switch (effect->m_Type) {
@@ -1190,11 +1201,12 @@ void CEntity::RenderEffects() {
     }
 
     auto* mi = GetModelInfo();
-    if (!mi->m_n2dfxCount) {
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (!numEffects) {
         return;
     }
 
-    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
+    for (int32 iFxInd = 0; iFxInd < numEffects; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
         if (effect->m_Type != e2dEffectType::EFFECT_ROADSIGN) {
             continue;
@@ -1667,11 +1679,12 @@ void CEntity::ProcessLightsForEntity() {
     }
 
     CBaseModelInfo* mi = GetModelInfo();
-    if (mi->m_n2dfxCount == 0) {
+    const int32 numEffects = mi->m_n2dfxCount;
+    if (!numEffects) {
         return;
     }
 
-    for (int32 C = 0; C < mi->m_n2dfxCount; ++C) {
+    for (int32 C = 0; C < numEffects; ++C) {
         const auto* effect = mi->Get2dEffect(C);
         float TimeFade = 1.0f;
         const auto randomSeed = m_nRandomSeed ^ randomSeedRandomiser[C % 8];
