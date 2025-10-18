@@ -24,6 +24,6 @@ VALIDATE_SIZE(CBuilding, 0x38);
 
 bool IsBuildingPointerValid(CBuilding* building);
 
-// orig in entity.cpp
+// in entity.cpp
 static int32 gBuildings; // 0xB71804
 

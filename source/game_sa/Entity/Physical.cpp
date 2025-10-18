@@ -4756,7 +4756,7 @@ bool CPhysical::CheckCollision()
 // 0x54DAB0
 bool CPhysical::CheckCollision_SimpleCar()
 {
-    SetCollisionProcessed(false);   
+    SetCollisionProcessed(false);
     CWorld::IncrementCurrentScanCode();
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
     if (!entryInfoNode)

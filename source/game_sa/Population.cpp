@@ -8,8 +8,8 @@
 #include "StdInc.h"
 
 #include "Population.h"
+#include "Glass.h"
 #include <PedPlacement.h>
-#include <Glass.h>
 #include <Attractors/PedAttractorPedPlacer.h>
 
 #include <TaskTypes/TaskComplexWanderCop.h>

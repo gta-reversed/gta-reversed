@@ -901,7 +901,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                     veh->m_nCopsInCarTimer = 0;
                 }
 
-                if ((!plyrVeh || plyrVeh->IsUpsideDown() || veh->m_nCopsInCarTimer >= (veh->GetModelId() == MODEL_COPBIKE ? 2'500 : 20'000)) && veh->vehicleFlags.bIsLawEnforcer && vehToPlyrDist2DSq <= sq(10.f)) {
+                if ((!plyrVeh || plyrVeh->IsUpsideDown() || veh->m_nCopsInCarTimer >= (veh->GetModelId() == MODEL_COPBIKE ? 2500 : 20'000)) && veh->vehicleFlags.bIsLawEnforcer && vehToPlyrDist2DSq <= sq(10.f)) {
                     TellOccupantsToLeaveCar(veh);
                     ap->ClearCarMission();
                     ap->SetCruiseSpeed(0);
