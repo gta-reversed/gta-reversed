@@ -2539,7 +2539,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
         true
     );
 
-    const auto* const props  = &cfg->PropsByModel.at(vp.Vehicle->GetModelId());
+    const auto* const props   = &cfg->PropsByModel.at(vp.Vehicle->GetModelId());
     const auto        slot    = props->Slot.value_or(m_DummySlot);
     const auto* const params = &props->SoundParamsByPartDir[delta <= 0.f ? 0 : 1];
 

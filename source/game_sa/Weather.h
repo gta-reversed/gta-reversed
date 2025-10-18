@@ -61,7 +61,7 @@ public:
     static CAEWeatherAudioEntity &m_WeatherAudioEntity;
     static bool& StreamAfterRainTimer;
 
-    // orig in entity.cpp:
+    // in entity.cpp:
 
     static std::array<float, 16> saTreeWindOffsets; // orig WindTabel
     static std::array<float, 32> saBannerWindOffsets; // orig BannerWindTabel

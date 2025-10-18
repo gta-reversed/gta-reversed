@@ -214,12 +214,12 @@ public:
     bool IsVisible();
     bool IsVisibleComplex() { return IsVisible(); } // unused
 
-    virtual void ProcessControl() {} // 0x403E40
-    virtual void ProcessCollision() {} // 0x403E50
-    virtual void ProcessShift() {} // 0x403E60
+    virtual void ProcessControl() { /* Do nothing */ } // 0x403E40
+    virtual void ProcessCollision() { /* Do nothing */ } // 0x403E50
+    virtual void ProcessShift() { /* Do nothing */ } // 0x403E60
     virtual bool TestCollision(bool applySpeed) { return false; } // 0x403E70
-    virtual void Teleport(CVector newCoors, bool clearOrientation) {} // 0x403E80
-    virtual void SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool doingShift, bool& skipTestEntirely, bool& skipCol, bool& forceBuildingCol, bool& forceSoftCol) {} // 0x403E90
+    virtual void Teleport(CVector newCoors, bool clearOrientation) { /* Do nothing */ } // 0x403E80
+    virtual void SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool doingShift, bool& skipTestEntirely, bool& skipCol, bool& forceBuildingCol, bool& forceSoftCol) { /* Do nothing */ } // 0x403E90
     virtual uint8 SpecialEntityCalcCollisionSteps(bool& doPreCheckAtFullSpeed, bool& doPreCheckAtHalfSpeed) { return 1; } // 0x403EA0
 
     void UpdateRwFrame();
@@ -254,7 +254,7 @@ public:
     void ModifyMatrixForCrane();
     void PreRenderForGlassWindow();
 
-    virtual void FlagToDestroyWhenNextProcessed() {} // 0x403EB0
+    virtual void FlagToDestroyWhenNextProcessed() { /* Do nothing */ } // 0x403EB0
 
     void SetRwObjectAlpha(int32 alpha);
 
