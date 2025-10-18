@@ -21,23 +21,27 @@ void CRegisteredCorona::Update() {
         return;
     }
 
-    const auto fadeStep = uint8(CTimer::GetTimeStep() * m_fFadeSpeed);
+    float currentIntensity = m_FadedIntensity;
+    float fadeStep = CTimer::GetTimeStep() * m_fFadeSpeed;
     const auto& camPos = TheCamera.GetPosition();
     if (!m_bCheckObstacles || ((!CCoronas::SunBlockedByClouds || m_dwId != 2)
         && CWorld::GetIsLineOfSightClear(m_vPosn, camPos, true, false, false, false, false, false, false))) {
         if (m_bOffScreen || (m_bOnlyFromBelow && camPos.z > m_vPosn.z)) {
-            m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - fadeStep);
+            // Fade out when off-screen or camera is above
+            currentIntensity = std::max(0.0f, currentIntensity - fadeStep);
+            m_FadedIntensity = (uint8)currentIntensity;
         } else {
-            const auto alpha = m_Color.a;
-
-            if (m_FadedIntensity < alpha) {
-                m_FadedIntensity = std::min<uint8>(alpha, m_FadedIntensity + fadeStep);
-            } else {
-                m_FadedIntensity = std::max<uint8>(alpha, m_FadedIntensity - fadeStep);
+            // Fade towards target alpha
+            if (m_FadedIntensity < m_Color.a) {
+                currentIntensity = std::min((float)m_Color.a, currentIntensity + fadeStep);
+            } else if (m_FadedIntensity > m_Color.a) {
+                currentIntensity = std::max((float)m_Color.a, currentIntensity - fadeStep);
             }
 
+            m_FadedIntensity = (uint8)currentIntensity;
+
             if (CCoronas::bChangeBrightnessImmediately) {
-                m_FadedIntensity = alpha;
+                m_FadedIntensity = m_Color.a;
             }
 
             if (m_dwId == 2) {
@@ -45,7 +49,9 @@ void CRegisteredCorona::Update() {
             }
         }
     } else {
-        m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - fadeStep);
+        // Fade out when blocked by obstacles
+        currentIntensity = std::max(0.0f, currentIntensity - fadeStep);
+        m_FadedIntensity = (uint8)currentIntensity;
     }
 
     if (!m_FadedIntensity && !m_bJustCreated) {
