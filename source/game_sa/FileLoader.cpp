@@ -1955,6 +1955,7 @@ void CFileLoader::LoadZone(const char* line) {
 }
 
 // 0x5B51E0
+// orig AddBuildingInstancesToWorld ?
 void LinkLods(int32 numRelatedIPLs) {
     // Link LODs
     for (auto& building : GetLoadedBuildings()) {

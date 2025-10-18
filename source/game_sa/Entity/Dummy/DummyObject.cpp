@@ -39,8 +39,8 @@ CObject* CDummyObject::CreateObject() {
         SetIsVisible(false);
         SetUsesCollision(false);
 
-        obj->SetLodIndex(GetLodIndex());
-        SetLodIndex(0);
+        obj->SetLod(GetLod());
+        SetLod(nullptr);
     }
 
     return obj;
@@ -63,6 +63,6 @@ void CDummyObject::UpdateFromObject(CObject* obj) {
         SetUsesCollision(obj->GetUsesCollision());
     }
 
-    SetLodIndex(obj->GetLodIndex());
-    obj->SetLodIndex(0);
+    SetLod(obj->GetLod());
+    obj->SetLod(nullptr);
 }
