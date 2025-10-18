@@ -138,8 +138,7 @@ public:
     [[nodiscard]] bool GetIsTypeObject()   const { return GetType() == ENTITY_TYPE_OBJECT; }
     [[nodiscard]] bool GetIsTypeDummy()    const { return GetType() == ENTITY_TYPE_DUMMY; }
     [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, orig GetIsPhysical
-    [[nodiscard]] bool GetIsTypeNothing()  const { return GetType() == ENTITY_TYPE_NOTHING; } // NOTSA
-    
+
     void SetType(eEntityType type) { m_info.m_nType = type; }
     [[nodiscard]] auto GetType() const noexcept { return m_info.m_nType; }
 
@@ -172,7 +171,7 @@ public:
     void SetIsBackfaceCulled(bool backfaceCulled) { m_bBackfaceCulled = backfaceCulled; }
     bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; } // unused
     void SetIsUnimportantStream(bool unimportantStream) { m_bUnimportantStream |= unimportantStream; }
-    
+
     void SetScanCode(uint16 scanCode) { m_nScanCode = scanCode; }
     uint16 GetScanCode() const { return m_nScanCode; }
     void SetAreaCode(eAreaCodes areaCode) { m_nAreaCode = areaCode; }
@@ -297,7 +296,6 @@ public:
 
     CBaseModelInfo* GetModelInfo() const;
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
-    bool ProcessScan();
 
     // Wrapper around the mess called `CleanUpOldReference`
     // Takes in `ref` (which is usually a member variable),
@@ -383,6 +381,7 @@ public:
     auto AsBuilding()         { return reinterpret_cast<CBuilding*>(this); }
     auto AsDummy()            { return reinterpret_cast<CDummy*>(this); }
 
+    bool ProcessScan();
     bool IsScanCodeCurrent() const;
     void SetCurrentScanCode();
 private:
