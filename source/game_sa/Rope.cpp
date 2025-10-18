@@ -184,7 +184,7 @@ void CRope::PickUpObject(CEntity* obj) {
             obj->SetStatus(STATUS_PHYSICS);
         }
     } else if (obj->GetIsTypeObject()) {
-        if (obj->m_bIsStatic || obj->m_bIsStaticWaitingForCollision) {
+        if (obj->GetIsStatic()) {
             obj->AsObject()->SetIsStatic(false);
             obj->AsObject()->AddToMovingList();
             obj->AsObject()->m_nFakePhysics = 0;

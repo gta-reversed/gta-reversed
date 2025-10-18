@@ -1057,7 +1057,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
-            m_bIsStatic = true;
+            SetIsStatic(true);
             physicalFlags.bExplosionProof = true;
             ResetMoveSpeed();
             ResetTurnSpeed();
@@ -1073,7 +1073,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
                     CPhysical::RemoveFromMovingList();
                 }
 
-                m_bIsStatic = true;
+                SetIsStatic(true);
                 physicalFlags.bExplosionProof = true;
                 ResetMoveSpeed();
                 ResetTurnSpeed();
@@ -1095,7 +1095,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
-            m_bIsStatic = true;
+            SetIsStatic(true);
             physicalFlags.bExplosionProof = true;
             ResetMoveSpeed();
             ResetTurnSpeed();
@@ -1227,7 +1227,7 @@ void CObject::ObjectFireDamage(float damage, CEntity* damager) {
         if (!CEntity::GetIsStatic())
             CPhysical::RemoveFromMovingList();
 
-        m_bIsStatic = true;
+        SetIsStatic(true);
         physicalFlags.bExplosionProof = true;
         ResetMoveSpeed();
         ResetTurnSpeed();

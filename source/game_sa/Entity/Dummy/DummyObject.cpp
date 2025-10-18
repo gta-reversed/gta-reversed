@@ -63,6 +63,6 @@ void CDummyObject::UpdateFromObject(CObject* obj) {
         SetUsesCollision(obj->GetUsesCollision());
     }
 
-    m_nLodIndex = obj->GetLodIndex();
+    SetLodIndex(obj->GetLodIndex());
     obj->SetLodIndex(0);
 }
