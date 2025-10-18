@@ -39,8 +39,8 @@ CObject* CDummyObject::CreateObject() {
         SetIsVisible(false);
         SetUsesCollision(false);
 
-        obj->SetLodIndex(m_nLodIndex);
-        m_nLodIndex = 0;
+        obj->SetLodIndex(GetLodIndex());
+        SetLodIndex(0);
     }
 
     return obj;
