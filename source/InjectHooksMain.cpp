@@ -537,6 +537,7 @@ void InjectHooksMain() {
 #ifdef NOTSA_WINDOWED_MODE
     notsa::InjectWindowedModeHooks();
 #endif
+    CDoor::InjectHooks();
     CControllerConfigManager::InjectHooks();
     CFormation::InjectHooks();
     CHandShaker::InjectHooks();
