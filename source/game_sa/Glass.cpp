@@ -245,7 +245,7 @@ void CGlass::WindowRespondsToCollision(CEntity* entity, float fDamageIntensity, 
     }
 
     object->SetUsesCollision(false);
-    object->m_bIsVisible = false;
+    object->SetIsVisible(false);
     object->objectFlags.bGlassBrokenAltogether = true;
 }
 

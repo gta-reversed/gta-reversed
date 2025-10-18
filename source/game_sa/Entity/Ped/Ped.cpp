@@ -2801,7 +2801,7 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (m_bIsVisible && CTimeCycle::GetShadowStrength()) {
+    if (GetIsVisible() && CTimeCycle::GetShadowStrength()) {
         const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
             if (!bInVehicle) {
                 return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
@@ -3585,7 +3585,7 @@ RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
 void CPed::SetModelIndex(uint32 modelIndex) {
     assert(modelIndex != MODEL_PLAYER || IsPlayer());
 
-    m_bIsVisible = true;
+    SetIsVisible(true);
 
     CEntity::SetModelIndex(modelIndex);
 
@@ -3710,7 +3710,7 @@ void CPed::Render() {
     }
 
     // 0x5E76BE
-    if (bDontRender || !(m_bIsVisible || CMirrors::ShouldRenderPeds())) {
+    if (bDontRender || !(GetIsVisible() || CMirrors::ShouldRenderPeds())) {
         return;
     }
 

@@ -1024,14 +1024,14 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
             newEntity->m_bDontCastShadowsOn = true;
 
         if (mi->m_fDrawDistance < 2.0F)
-            newEntity->m_bIsVisible = false;
+            newEntity->SetIsVisible(false);
     }
     else
     {
         newEntity = new CDummyObject();
         newEntity->SetModelIndexNoCreate(objInstance->m_nModelId);
         if (CGlass::IsObjectGlass(newEntity) && !CModelInfo::GetModelInfo(newEntity->m_nModelIndex)->IsGlassType2()) {
-            newEntity->m_bIsVisible = false;
+            newEntity->SetIsVisible(false);
         }
     }
 

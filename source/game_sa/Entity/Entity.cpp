@@ -1664,7 +1664,7 @@ void CEntity::ProcessLightsForEntity() {
     constexpr static const float FADE_RATE = 0.0009f; // 0x872538
 
     const auto dayNightBalance = GetDayNightBalance();
-    if (m_bRenderDamaged || !m_bIsVisible) {
+    if (m_bRenderDamaged || !GetIsVisible()) {
         return;
     }
 

@@ -363,7 +363,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     player->physicalFlags.bRenderScorched = false;
     player->m_fArmour = 0.0f;
     player->m_fHealth = static_cast<float>(playerInfo->m_nMaxHealth);
-    player->m_bIsVisible = true;
+    player->SetIsVisible(true);
     player->m_nDeathTimeMS = 0;
     player->bDoBloodyFootprints = false;
     playerData->m_nDrunkenness = 0;

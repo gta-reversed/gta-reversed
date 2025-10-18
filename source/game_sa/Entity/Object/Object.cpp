@@ -282,11 +282,11 @@ void CObject::ProcessControl() {
 
     if (m_pObjectInfo->m_bCausesExplosion
         && objectFlags.bIsExploded
-        && m_bIsVisible
+        && GetIsVisible()
         && (CGeneral::GetRandomNumber() % 32) == 10)
     {
         SetUsesCollision(false);
-        m_bIsVisible = false;
+        SetIsVisible(false);
         physicalFlags.bExplosionProof = true;
         physicalFlags.bApplyGravity = false;
         ResetMoveSpeed();
@@ -1053,7 +1053,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
 
         case COL_DAMAGE_EFFECT_SMASH_COMPLETELY:
             SetUsesCollision(false);
-            m_bIsVisible = false;
+            SetIsVisible(false);
             if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
@@ -1068,7 +1068,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         case COL_DAMAGE_EFFECT_CHANGE_THEN_SMASH:
             if (m_bRenderDamaged) {
                 SetUsesCollision(false);
-                m_bIsVisible = false;
+                SetIsVisible(false);
                 if (!CEntity::GetIsStatic()) {
                     CPhysical::RemoveFromMovingList();
                 }
@@ -1091,7 +1091,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             g_breakMan.Add(this, &m_pObjectInfo->m_vecBreakVelocity, m_pObjectInfo->m_fBreakVelocityRand, bJustFaces);
 
             SetUsesCollision(false);
-            m_bIsVisible = false;
+            SetIsVisible(false);
             if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
@@ -1106,7 +1106,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         }
         }
 
-        if (!GetUsesCollision() && !m_bIsVisible) {
+        if (!GetUsesCollision() && !GetIsVisible()) {
             m_fHealth = 0.0F;
         }
     }
@@ -1223,7 +1223,7 @@ void CObject::ObjectFireDamage(float damage, CEntity* damager) {
         g_breakMan.Add(this, &m_pObjectInfo->m_vecBreakVelocity, m_pObjectInfo->m_fBreakVelocityRand, true);
 
         SetUsesCollision(false);
-        m_bIsVisible = false;
+        SetIsVisible(false);
         if (!CEntity::GetIsStatic())
             CPhysical::RemoveFromMovingList();
 

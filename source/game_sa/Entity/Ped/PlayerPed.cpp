@@ -605,7 +605,7 @@ void CPlayerPed::MakePlayerGroupDisappear() {
         if (CPed* member = membership.GetMember(i)) {
             if (!member->IsCreatedByMission()) {
                 member->SetCollisionProcessed(false);
-                member->m_bIsVisible = false;
+                member->SetIsVisible(false);
                 abTempNeverLeavesGroup[i] = member->bNeverLeavesGroup;
                 member->bNeverLeavesGroup = true;
             }
@@ -619,7 +619,7 @@ void CPlayerPed::MakePlayerGroupReappear() {
     for (int i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
         if (CPed* member = membership.GetMember(i)) {
             if (!member->IsCreatedByMission()) {
-                member->m_bIsVisible = true;
+                member->SetIsVisible(true);
                 if (!member->bInVehicle)
                     member->SetUsesCollision(true);
                 member->bNeverLeavesGroup = abTempNeverLeavesGroup[i];
@@ -786,7 +786,7 @@ void CPlayerPed::DrawTriangleForMouseRecruitPed() {
 
 // 0x60C0C0
 bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* target, CWeapon* weapon) {
-    if (!target->m_bIsVisible) {
+    if (!target->GetIsVisible()) {
         return true;
     }
 
@@ -1195,7 +1195,7 @@ void CPlayerPed::ProcessControl() {
     ProcessGroupBehaviour(pad);
     if (bInVehicle)
         CCarCtrl::RegisterVehicleOfInterest(m_pVehicle);
-    if (!m_bIsVisible)
+    if (!GetIsVisible())
         UpdateRpHAnim();
     if (bInVehicle) {
         CPad* pad = CPad::GetPad(0);
