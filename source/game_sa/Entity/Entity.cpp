@@ -277,33 +277,36 @@ void CEntity::CreateRwObject() {
     UpdateRwMatrix();
 
     // Handle different RenderWare object types
-    const auto objectType = RwObjectGetType(GetRwObject());
-
-    if (objectType == rpATOMIC) {
+    switch (RwObjectGetType(GetRwObject())) {
+    case rpATOMIC:
         if (CTagManager::IsTag(this)) {
             CTagManager::ResetAlpha(this);
         }
         CCustomBuildingDNPipeline::PreRenderUpdate(m_pRwAtomic, true);
-    } else if (objectType == rpCLUMP && mi->bIsRoad) {
-        // Add to moving list for road objects
-        if (GetIsTypeObject()) {
-            auto* obj = AsObject();
-            if (!obj->m_pMovingList) {
-                obj->AddToMovingList();
+        break;
+    case rpCLUMP:
+        if (mi->bIsRoad) {
+            // Add to moving list for road objects
+            if (GetIsTypeObject()) {
+                auto* obj = AsObject();
+                if (!obj->m_pMovingList) {
+                    obj->AddToMovingList();
+                }
+                obj->SetIsStatic(false);
+            } else {
+                CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
             }
-            obj->SetIsStatic(false);
-        } else {
-            CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
-        }
 
-        // Synchronize LOD animation timing
-        if (GetLod() && GetLod()->GetRwObject() && RwObjectGetType(GetLod()->GetRwObject()) == rpCLUMP) {
-            if (auto* pLodAssoc = RpAnimBlendClumpGetFirstAssociation(GetLod()->m_pRwClump)) {
-                if (auto* pAssoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump)) {
-                    pAssoc->SetCurrentTime(pLodAssoc->m_CurrentTime);
+            // Synchronize LOD animation timing
+            if (GetLod() && GetLod()->GetRwObject() && RwObjectGetType(GetLod()->GetRwObject()) == rpCLUMP) {
+                if (auto* pLodAssoc = RpAnimBlendClumpGetFirstAssociation(GetLod()->m_pRwClump)) {
+                    if (auto* pAssoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump)) {
+                        pAssoc->SetCurrentTime(pLodAssoc->m_CurrentTime);
+                    }
                 }
             }
         }
+        break;
     }
 
     // Finalize object setup
@@ -312,7 +315,7 @@ void CEntity::CreateRwObject() {
     CreateEffects();
 
     // Determine lighting requirement
-    auto* usedAtomic = objectType == rpATOMIC ? m_pRwAtomic : GetFirstAtomic(m_pRwClump);
+    auto* usedAtomic = RwObjectGetType(GetRwObject()) == rpATOMIC ? m_pRwAtomic : GetFirstAtomic(m_pRwClump);
 
     if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(usedAtomic)) {
         m_bLightObject = true;
