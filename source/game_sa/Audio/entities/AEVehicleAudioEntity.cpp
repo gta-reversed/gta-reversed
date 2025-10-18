@@ -3702,7 +3702,7 @@ void CAEVehicleAudioEntity::ProcessPlayerSeaPlane(tVehicleParams& vp) {
     // 0x4FF5F1
     CalculatePlanePropFreq(vp, GetAircraftAcceleration(vp));
     
-    const auto propSpeed    = veh->m_fPropSpeed / 0.22f;
+    const auto propSpeed    = veh->m_EngineSpeed / 0.22f;
     const auto camPoVFactor = GetAircraftCameraPoVFactor(veh);
     const auto sf           = GetDummyRCRotorSpeedFactor(propSpeed);
     PlayAircraftSound( // 0x4FF74A
@@ -4137,14 +4137,14 @@ void CAEVehicleAudioEntity::ProcessBoatEngine(tVehicleParams& vp) {
     }
 
     // Engine speed factor
-    const auto es = std::clamp(boat->m_fPropSpeed * 3.f, 0.f, 1.f);
+    const auto es = std::clamp(boat->m_EngineSpeed * 3.f, 0.f, 1.f);
 
     // 0x5004C7 - Calculate speed
     {
         const auto roll  = std::min(1.f, 1.f - boat->GetUp().Dot(CVector::ZAxisVector()));
         const auto speed = cfg->FrqEngineBase
             + roll * cfg->FrqEngineRollFactor
-            + es * (boat->m_nBoatFlags.bOnWater ? cfg->FrqEngineOnWaterFactor : cfg->FrqEngineInAirFactor);
+            + es * (boat->m_nBoatFlags.bBoatInWater ? cfg->FrqEngineOnWaterFactor : cfg->FrqEngineInAirFactor);
         m_CurrentDummyEngineFrequency = m_CurrentDummyEngineFrequency >= 0.f
             ? notsa::step_to(m_CurrentDummyEngineFrequency, speed, 0.02f, notsa::bugfixes::GenericFrameRate)
             : speed;
@@ -4176,7 +4176,7 @@ void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(tVehicleParams& vp) {
 
     const auto sf = std::min(0.75f, std::abs(vp.Speed)) / 0.75f;
 
-    auto volume = boat->m_nBoatFlags.bOnWater && sf >= 0.00001f
+    auto volume = boat->m_nBoatFlags.bBoatInWater && sf >= 0.00001f
         ? (m_AuSettings.IsSeaplane() ? cfg->VolBaseOfSeaplane : cfg->VolBase) + CAEAudioUtility::AudioLog10(sf) * 20.f
         : -100.f;
     auto speed = cfg->FrqBase + cfg->FrqSpeedFactor * sf;
