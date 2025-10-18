@@ -58,11 +58,11 @@ public:
     FxSystem_c* m_fxSysProp[2];
     CVector m_fxBuoyancyForce; // { 0.0f, 0.0f, DampingPower }
 
-    uint8 m_CurrentField; // unused, maybe boat handling type (@CBoat::DebugCode)
+    uint8 m_CurrentField; // unused
 
-    uint8 m_PadNum; // 0 - 3
+    uint8 m_PadNum; // essentially unused, 0 - 3
 
-    float m_PrevVolume; // initialised with 7.0f, 0.0f - not in water
+    float m_PrevVolume; // 0.0f - not in water
 
     uint16 m_NumWakeCoords;
     CVector2D m_WakeCoords[32];
@@ -72,7 +72,7 @@ public:
     static constexpr int32 NUM_WAKE_GEN_BOATS = 4;
 
     static inline std::array<CBoat*, NUM_WAKE_GEN_BOATS> apFrameWakeGeneratingBoats{}; // 0xC27994
-    static constexpr float MAX_WAKE_LENGTH = 50.0f; // 0x8D3938
+    static constexpr float MAX_WAKE_LENGTH = 50.0f; // 0x8D3938, unused
     static constexpr float MIN_WAKE_INTERVAL = 2.0f; // 0x8D393C
     static constexpr float WAKE_LIFETIME = 150.0f; // 0x8D3940
 
@@ -84,7 +84,7 @@ public:
 
     void ProcessControl() override;
     void Teleport(CVector newCoors, bool clearOrientation) override;
-    void ProcessControlInputs(uint8 ctrlNum) override;
+    void ProcessControlInputs(uint8 padNum) override;
 
     void PreRender() override;
     void Render() override;

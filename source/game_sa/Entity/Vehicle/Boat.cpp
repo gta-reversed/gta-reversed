@@ -156,8 +156,7 @@ void CBoat::DebugCode() {
         return;
     }
 
-    auto pad = CPad::GetPad();
-    if (!pad->NewState.DPadLeft || pad->OldState.DPadLeft) {
+    if (CPad::GetPad()->IsDPadLeftPressed()) {
         return;
     }
 
@@ -289,7 +288,7 @@ void CBoat::RenderWakePoints() {
 #endif
         }
         alpha *= (float)m_WakeBoatSpeed[ptIdx] / 100.f + 0.15f;
-        if (boatToCamDist2D > 50.f) {
+        if (boatToCamDist2D > 50.f) { // MAX_WAKE_LENGTH ?
             alpha *= (80.f - boatToCamDist2D) / 30.f;
         }
         return alpha;
@@ -953,9 +952,9 @@ void CBoat::Render() {
 }
 
 // 0x6F0A10
-void CBoat::ProcessControlInputs(uint8 ctrlNum) {
-    m_PadNum = std::min<uint8>(ctrlNum, 3);
-    CPad* pad = CPad::GetPad(ctrlNum);
+void CBoat::ProcessControlInputs(uint8 padNum) {
+    m_PadNum = std::min<uint8>(padNum, 3);
+    CPad* pad = CPad::GetPad(padNum);
 
     float newBrake = std::lerp(m_BrakePedal, pad->GetBrake() / 255.0f, 0.1f);
     m_BrakePedal = std::clamp(newBrake, 0.0f, 1.0f);
