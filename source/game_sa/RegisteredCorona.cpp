@@ -21,25 +21,14 @@ void CRegisteredCorona::Update() {
         return;
     }
 
-    float currentIntensity = m_FadedIntensity;
-    float fadeStep = CTimer::GetTimeStep() * m_fFadeSpeed;
+    const auto fadeStep = CTimer::GetTimeStep() * m_fFadeSpeed;
     const auto& camPos = TheCamera.GetPosition();
     if (!m_bCheckObstacles || ((!CCoronas::SunBlockedByClouds || m_dwId != 2)
         && CWorld::GetIsLineOfSightClear(m_vPosn, camPos, true, false, false, false, false, false, false))) {
         if (m_bOffScreen || (m_bOnlyFromBelow && camPos.z > m_vPosn.z)) {
-            // Fade out when off-screen or camera is above
-            currentIntensity = std::max(0.0f, currentIntensity - fadeStep);
-            m_FadedIntensity = (uint8)currentIntensity;
+            m_FadedIntensity = (uint8)(std::max(0.f, (float)(m_FadedIntensity)-fadeStep));
         } else {
-            // Fade towards target alpha
-            if (m_FadedIntensity < m_Color.a) {
-                currentIntensity = std::min((float)m_Color.a, currentIntensity + fadeStep);
-            } else if (m_FadedIntensity > m_Color.a) {
-                currentIntensity = std::max((float)m_Color.a, currentIntensity - fadeStep);
-            }
-
-            m_FadedIntensity = (uint8)currentIntensity;
-
+            m_FadedIntensity = (uint8)(notsa::step_to((float)(m_FadedIntensity), (float)(m_Color.a), fadeStep));
             if (CCoronas::bChangeBrightnessImmediately) {
                 m_FadedIntensity = m_Color.a;
             }
@@ -49,9 +38,7 @@ void CRegisteredCorona::Update() {
             }
         }
     } else {
-        // Fade out when blocked by obstacles
-        currentIntensity = std::max(0.0f, currentIntensity - fadeStep);
-        m_FadedIntensity = (uint8)currentIntensity;
+        m_FadedIntensity = (uint8)(std::max(0.f, (float)(m_FadedIntensity)-fadeStep));
     }
 
     if (!m_FadedIntensity && !m_bJustCreated) {
