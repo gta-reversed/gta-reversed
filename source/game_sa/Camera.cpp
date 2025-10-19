@@ -138,7 +138,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(Process, 0x52B730, { .reversed = false });
     RH_ScopedInstall(DeleteCutSceneCamDataMemory, 0x5B24A0);
     RH_ScopedInstall(LoadPathSplines, 0x5B24D0, { .reversed = false });
-    RH_ScopedInstall(Init, 0x5BC520, { .reversed = false });
+    RH_ScopedInstall(Init, 0x5BC520);
 
     RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "0", 0x50D350, void(CCamera::*)(float), { .reversed = false });
     RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "1", 0x516440, void(CCamera::*)(), {.reversed = false});
@@ -221,7 +221,7 @@ void CCamera::Init() {
 
     if (!FrontEndMenuManager.m_bStartGameLoading) {
         CDraw::FadeValue = 0;
-        m_fMouseAccelVertical = 0.0015f;
+        m_fMouseAccelVertical = notsa::IsFixBugs() ? m_fMouseAccelHorzntl * 0.6f : 0.0015f;
     }
     
     SetMotionBlur(255, 255, 255, 0, eMotionBlurType::NONE);

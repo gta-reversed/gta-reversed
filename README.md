@@ -39,7 +39,6 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 1. To install all the necessary files (after building the project!), run `contrib/install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
 Alternatively, you can install them by yourself:
     * [ASI Loader](https://gtaforums.com/topic/523982-relopensrc-silents-asi-loader/)
-    * [III.VC.SA.WindowedMode.asi](https://github.com/ThirteenAG/III.VC.SA.WindowedMode)
     * Mouse Fix (**dinput8.dll**) [Can be found in the zip in the `contrib` folder]
 
     You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed-modern/blob/master/contrib/plugins.zip).
