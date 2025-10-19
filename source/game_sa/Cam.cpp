@@ -197,6 +197,7 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
     m_vecFront  = (dest - src).Normalized();
     m_vecSource = src;
 
+    // What is this thing?
     {
         auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
         m_vecUp       = rightDir.Cross(m_vecFront);
