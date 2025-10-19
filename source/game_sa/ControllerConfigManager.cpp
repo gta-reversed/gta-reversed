@@ -1324,8 +1324,8 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 // 0x5303D0
 void CControllerConfigManager::GetGxtStringOfCommandKeys(eControllerAction action, GxtChar* pStringToFill, uint16 maximumLength) {
     const auto setString = [pStringToFill, maximumLength](const GxtChar* retString) {
-        const auto bigStringLength = maximumLength - CMessages::GetStringLength(retString);
-        CMessages::StringCopy(pStringToFill, retString, bigStringLength);
+        const auto len = maximumLength - CMessages::GetStringLength(retString);
+        CMessages::StringCopy(pStringToFill, retString, len);
     };
 
     if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
