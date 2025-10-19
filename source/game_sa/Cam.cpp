@@ -194,13 +194,12 @@ void CCam::DoCamBump(float horizontal, float vertical) {
 
 // 0x50DD70
 void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree) {
-    m_vecFront  = (src - dest).Normalized();
+    m_vecFront  = (dest - src).Normalized();
     m_vecSource = src;
 
-    // What is this thing?
     {
-        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp       = CrossProduct(rightDir, m_vecFront);
+        auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = rightDir.Cross(m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
@@ -212,18 +211,19 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
     RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.4f); // meant to use nearClip here?
     CacheLastSettingsDWCineyCam();
     gLastFrameProcessedDWCineyCam = CTimer::GetFrameCounter();
-    gHandShaker[0].Process(shakeDegree);
 
+    gHandShaker[0].Process(shakeDegree);
     m_vecFront = gHandShaker[0].m_resultMat.TransformVector(m_vecFront);
+    m_vecFront.Normalise();
 
     {
-        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp       = CrossProduct(rightDir, m_vecFront);
+        auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = rightDir.Cross(m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
-        rightDir = CrossProduct(m_vecFront, m_vecUp).Normalized();
-        m_vecUp  = CrossProduct(rightDir, m_vecFront);
+        rightDir = m_vecFront.Cross(m_vecUp).Normalized();
+        m_vecUp  = rightDir.Cross(m_vecFront);
     }
 }
 
