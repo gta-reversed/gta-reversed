@@ -38,7 +38,7 @@ void CRegisteredCorona::Update() {
             }
         }
     } else {
-        m_FadedIntensity = (uint8)(std::max(0.f, (float)(m_FadedIntensity)-fadeStep));
+        m_FadedIntensity = (uint8)(std::max(0.f, (float)(m_FadedIntensity) - fadeStep));
     }
 
     if (!m_FadedIntensity && !m_bJustCreated) {
