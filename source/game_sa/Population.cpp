@@ -1785,27 +1785,41 @@ void CPopulation::ManageAllPopulation() {
 // 0x616190
 void CPopulation::ManagePopulation() {
     ZoneScoped;
-
-    // TODO: Implement original `framecounter % 32` pool splitting logic
-    //       It's just a perf optimization, so I didn't bother
-
-    const auto& center = FindPlayerCentreOfWorld();
+    constexpr auto framePopulation = 32;
+    const auto& centre = FindPlayerCentreOfWorld();
+    const uint32 batch = CTimer::m_FrameCounter % framePopulation;
+    
     {
         ZoneScopedN("Manage Objects");
-        for (auto& obj : GetObjectPool()->GetAllValid()) {
-            ManageObject(&obj, center);
+        auto* pool = GetObjectPool();
+        const auto poolSize = pool->GetSize();
+        const auto startIdx = (poolSize * batch) / framePopulation;
+        const auto endIdx   = (poolSize * (batch + 1)) / framePopulation;
+        for (auto i = startIdx; i < endIdx; ++i) {
+            if (auto* obj = pool->GetAt(i)) {
+                ManageObject(obj, centre);
+            }
         }
     }
+    
     {
         ZoneScopedN("Manage Dummies");
-        for (auto& dummy : GetDummyPool()->GetAllValid()) {
-            ManageDummy(&dummy, center);
+        auto* pool = GetDummyPool();
+        const auto poolSize = pool->GetSize();
+        const auto startIdx = (poolSize * batch) / framePopulation;
+        const auto endIdx   = (poolSize * (batch + 1)) / framePopulation;
+        for (auto i = startIdx; i < endIdx; ++i) {
+            if (auto* dummy = pool->GetAt(i)) {
+                ManageDummy(dummy, centre);
+            }
         }
     }
+    
     {
         ZoneScopedN("Manage Peds");
+        auto* pool = GetPedPool();
         for (auto& ped : GetPedPool()->GetAllValid()) {
-            ManagePed(&ped, center);
+            ManagePed(&ped, centre);
         }
     }
 }
