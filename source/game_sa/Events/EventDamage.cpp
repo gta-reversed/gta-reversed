@@ -908,7 +908,7 @@ void CEventDamage::ComputeAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     if (ped->m_fHealth <= 0.f) {
         ComputeDeathAnim(ped, bMakeActiveTaskAbortable);
     } else {
-        ComputeDeathAnim(ped, bMakeActiveTaskAbortable);
+        ComputeDamageAnim(ped, bMakeActiveTaskAbortable);
     }
 }
 

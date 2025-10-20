@@ -12,7 +12,7 @@ void CEventObjectCollision::InjectHooks()
 }
 
 // 0x4ACCF0
-CEventObjectCollision::CEventObjectCollision(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState)
+CEventObjectCollision::CEventObjectCollision(uint16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState)
 {
     m_pieceType = pieceType;
     m_moveState = moveState;
@@ -29,7 +29,7 @@ CEventObjectCollision::~CEventObjectCollision()
 }
 
 // 0x4ACCF0
-CEventObjectCollision* CEventObjectCollision::Constructor(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState)
+CEventObjectCollision* CEventObjectCollision::Constructor(uint16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState)
 {
     this->CEventObjectCollision::CEventObjectCollision(pieceType, damageIntensity, object, collisionImpactVelocity, collisionPos, moveState);
     return this;

@@ -10,7 +10,7 @@
 
 class NOTSA_EXPORT_VTABLE CEventPedCollisionWithPlayer : public CEventPedCollisionWithPed {
 public:
-    CEventPedCollisionWithPlayer(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
+    using CEventPedCollisionWithPed::CEventPedCollisionWithPed;
     ~CEventPedCollisionWithPlayer() override = default;
 
     eEventType GetEventType() const override { return EVENT_PED_COLLISION_WITH_PLAYER; }
@@ -20,6 +20,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CEventPedCollisionWithPlayer* Constructor(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
+    CEventPedCollisionWithPlayer* Constructor(uint16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
 };
 VALIDATE_SIZE(CEventPedCollisionWithPlayer, 0x34);

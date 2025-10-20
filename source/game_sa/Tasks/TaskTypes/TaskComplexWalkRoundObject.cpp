@@ -11,7 +11,7 @@ void CTaskComplexWalkRoundObject::InjectHooks() {
 }
 
 // 0x655020
-CTaskComplexWalkRoundObject::CTaskComplexWalkRoundObject(int32 moveState, const CVector& targetPoint, CEntity* object) : CTaskComplex() {
+CTaskComplexWalkRoundObject::CTaskComplexWalkRoundObject(eMoveState moveState, const CVector& targetPoint, CEntity* object) : CTaskComplex() {
     m_moveState   = moveState;
     m_targetPoint = targetPoint;
     m_object      = object;
@@ -32,7 +32,7 @@ CTaskComplexWalkRoundObject::~CTaskComplexWalkRoundObject() {
     // todo: m_pointRoute = nullptr;
 }
 
-CTaskComplexWalkRoundObject* CTaskComplexWalkRoundObject::Constructor(int32 moveState, const CVector& targetPoint, CEntity* object) {
+CTaskComplexWalkRoundObject* CTaskComplexWalkRoundObject::Constructor(eMoveState moveState, const CVector& targetPoint, CEntity* object) {
     this->CTaskComplexWalkRoundObject::CTaskComplexWalkRoundObject(moveState, targetPoint, object);
     return this;
 }

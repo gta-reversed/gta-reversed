@@ -13,15 +13,22 @@
 
 class NOTSA_EXPORT_VTABLE CEventBuildingCollision : public CEvent {
 public:
-    int16      m_pieceType;
-    int16      m_moveState;
-    float      m_damageIntensity;
-    CBuilding* m_building;
-    CVector    m_impactNormal;
-    CVector    m_impactPos;
+    uint16        m_pieceType{};
+    eMoveStateS16 m_moveState{};
+    float         m_damageIntensity{};
+    CBuilding*    m_building{};
+    CVector       m_impactNormal{};
+    CVector       m_impactPos{};
 
 public:
-    CEventBuildingCollision(int16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState);
+    CEventBuildingCollision(
+        uint16 pieceType,
+        float damageIntensity,
+        CBuilding* building,
+        const CVector& collisionImpactVelocity,
+        const CVector& collisionPos,
+        eMoveState moveState
+    );
     ~CEventBuildingCollision() override;
 
     eEventType GetEventType() const override { return EVENT_BUILDING_COLLISION; }
@@ -38,7 +45,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CEventBuildingCollision* Constructor(int16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState);
+    CEventBuildingCollision* Constructor(uint16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState);
 
 };
 VALIDATE_SIZE(CEventBuildingCollision, 0x30);
