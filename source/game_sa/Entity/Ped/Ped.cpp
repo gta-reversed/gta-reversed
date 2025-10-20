@@ -176,7 +176,7 @@ void CPed::InjectHooks() {
     //RH_ScopedVirtualInstall(ProcessControl, 0x5E8CD0, { .reversed = false });
     RH_ScopedVMTInstall(Teleport, 0x5E4110);
     //RH_ScopedVirtualInstall(SpecialEntityPreCollisionStuff, 0x5E3C30, { .reversed = false });
-    //RH_ScopedVirtualInstall(SpecialEntityCalcCollisionSteps, 0x5E3E90, { .reversed = false });
+    RH_ScopedVMTInstall(SpecialEntityCalcCollisionSteps, 0x5E3E90, { .reversed = false });
     RH_ScopedVMTInstall(PreRender, 0x5E8A20);
     RH_ScopedVMTInstall(Render, 0x5E7680);
     RH_ScopedVMTInstall(SetupLighting, 0x553F00);
@@ -3684,9 +3684,8 @@ void CPed::SpecialEntityPreCollisionStuff(CPhysical* colPhysical,
 /*!
 * @addr 0x5E3E90
 */
-uint8 CPed::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2)
-{
-    return plugin::CallMethodAndReturn<uint8, 0x5E3E90, CPed*, bool&, bool&>(this, bProcessCollisionBeforeSettingTimeStep, unk2);
+uint8 CPed::SpecialEntityCalcCollisionSteps(bool* bDoPreCheckAtFullSpeed, bool* bDoPreCheckAtHalfSpeed) {
+    return plugin::CallMethodAndReturn<uint8, 0x5E3E90, CPed*, bool*, bool*>(this, bDoPreCheckAtFullSpeed, bDoPreCheckAtHalfSpeed);
 }
 
 /*!
