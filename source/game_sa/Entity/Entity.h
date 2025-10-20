@@ -298,6 +298,7 @@ public:
     [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_nType; }
     void SetType(eEntityType type) { m_nType = type; }
 
+    // 0x4043E0
     [[nodiscard]] auto GetStatus() const noexcept { return m_nStatus; }
     void SetStatus(eEntityStatus status) { m_nStatus = status; }
 
