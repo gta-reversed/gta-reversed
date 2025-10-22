@@ -513,7 +513,7 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
         SkipTo((const GxtChar*)pNeedle);
 
         // Get action name....
-        GxtChar* aname{};
+        GxtChar aname[400]{};
         ControlsManager.GetGxtStringOfCommandKeys(actionId, aname, 400);
 
         // ...and insert it into the string.
