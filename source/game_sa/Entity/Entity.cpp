@@ -103,6 +103,7 @@ void CEntity::InjectHooks() {
     RH_ScopedGlobalInstall(IsEntityPointerValid, 0x533310);
 }
 
+// Initializes a new CEntity instance with default values
 // 0x532A90
 CEntity::CEntity() : CPlaceable() {
     SetStatus(STATUS_ABANDONED);
@@ -125,6 +126,8 @@ CEntity::CEntity() : CPlaceable() {
     SetLod(nullptr);
 }
 
+// Destructor for CEntity, handling cleanup of LOD children,
+// RenderWare objects, and resolving any references to this entity
 // 0x535E90
 CEntity::~CEntity() {
     if (GetLod()) {
@@ -135,11 +138,14 @@ CEntity::~CEntity() {
     CEntity::ResolveReferences();
 }
 
+// Adds the entity to the world sectors based on its current bounding rectangle
 // 0x533020
 void CEntity::Add() {
     Add(GetBoundRect());
 }
 
+// Adds the entity to the appropriate world sectors based on a given rectangle
+// The entity is added to LOD sectors if it's a big building, otherwise to regular sectors
 // 0x5347D0
 void CEntity::Add(const CRect& rect) {
     CRect usedRect = rect;
@@ -181,6 +187,7 @@ void CEntity::Add(const CRect& rect) {
     }
 }
 
+// Removes the entity from the world sectors it occupies
 // 0x534AE0
 void CEntity::Remove() {
     auto usedRect = GetBoundRect();
@@ -222,12 +229,15 @@ void CEntity::Remove() {
     }
 }
 
+// Sets the entity's model by index and then creates its RenderWare object
 // 0x532AE0
 void CEntity::SetModelIndex(uint32 index) {
     CEntity::SetModelIndexNoCreate(index);
     CEntity::CreateRwObject();
 }
 
+// Sets the entity's model by index without creating its RenderWare object
+// Also updates entity flags based on the new model's properties
 // 0x533700
 void CEntity::SetModelIndexNoCreate(uint32 index) {
     auto mi = CModelInfo::GetModelInfo(index);
@@ -249,6 +259,8 @@ void CEntity::SetModelIndexNoCreate(uint32 index) {
     }
 }
 
+// Creates the RenderWare object (RpAtomic or RpClump) for the entity
+// This function handles model instantiation, streaming, and effect creation
 // 0x533D30
 void CEntity::CreateRwObject() {
     if (!GetIsVisible()) {
@@ -322,6 +334,8 @@ void CEntity::CreateRwObject() {
     }
 }
 
+// Destroys the entity's RenderWare object, removing it from the world
+// It also cleans up streaming links, model references, and associated effects
 // 0x534030
 void CEntity::DeleteRwObject() {
     if (!GetRwObject()) {
@@ -362,6 +376,8 @@ void CEntity::DeleteRwObject() {
     CEntity::RemoveEscalatorsForEntity();
 }
 
+// Calculates the 2D bounding rectangle of the entity in world space
+// by transforming the corners of its collision model's bounding box
 // 0x534120
 CRect CEntity::GetBoundRect() const {
     auto* colModel = GetModelInfo()->GetColModel();
@@ -389,6 +405,8 @@ CRect CEntity::GetBoundRect() const {
     return rect;
 }
 
+// Performs pre-rendering tasks for the entity, such as processing lights,
+// updating model animations, and applying special effects like wind on trees or pickup effects
 // 0x535FA0
 void CEntity::PreRender() {
     const auto mi = GetModelInfo();
@@ -480,7 +498,7 @@ void CEntity::PreRender() {
                 );
 
                 CCoronas::RegisterCorona(
-                    reinterpret_cast<uint32>(this), nullptr,
+                    (uint32)this, nullptr,
                     static_cast<uint8>(fRand * 255.0F),
                     static_cast<uint8>(fRand * 220.0F),
                     static_cast<uint8>(fRand * 190.0F), 255, vecPos,
@@ -510,7 +528,7 @@ void CEntity::PreRender() {
             );
 
             CCoronas::RegisterCorona(
-                reinterpret_cast<uint32>(this), nullptr,
+                (uint32)this, nullptr,
                 static_cast<uint8>(fRand * 255.0F),
                 static_cast<uint8>(fRand * 255.0F),
                 static_cast<uint8>(fRand * 255.0F), 255, vecPos,
@@ -615,6 +633,7 @@ void CEntity::PreRender() {
     }
 }
 
+// Renders the entity's RenderWare object if it exists and is visible
 // 0x534310
 void CEntity::Render() {
     if (!GetRwObject()) {
@@ -652,8 +671,10 @@ void CEntity::Render() {
     }
 }
 
-// 0x553DC0
+// Sets up lighting for the entity by activating directional lights
+// and calculating the contribution from nearby point lights
 // in Renderer.cpp
+// 0x553DC0
 bool CEntity::SetupLighting() {
     if (!m_bLightObject) {
         return false;
@@ -666,8 +687,9 @@ bool CEntity::SetupLighting() {
     return true;
 }
 
-// 0x553370
+// Resets the entity's lighting to the default ambient and directional colors
 // in Renderer.cpp
+// 0x553370
 void CEntity::RemoveLighting(bool reset) {
     if (reset) {
         SetAmbientColours();
@@ -676,6 +698,7 @@ void CEntity::RemoveLighting(bool reset) {
     }
 }
 
+// Updates the matrices of the RenderWare object's frame hierarchy
 // 0x532B00
 void CEntity::UpdateRwFrame() {
     if (GetRwObject()) {
@@ -683,6 +706,7 @@ void CEntity::UpdateRwFrame() {
     }
 }
 
+// Updates the bone matrices for a skinned (animated) clump
 // 0x532B20
 void CEntity::UpdateRpHAnim() {
     if (const auto atomic = GetFirstAtomic(m_pRwClump)) {
@@ -692,6 +716,8 @@ void CEntity::UpdateRpHAnim() {
     }
 }
 
+// Checks if the entity model has effects that need to be processed
+// during the pre-render stage, such as wind effects, glass, or pickups
 // 0x532B70
 bool CEntity::HasPreRenderEffects() {
     const auto modelIndex = GetModelIndex();
@@ -777,12 +803,14 @@ bool CEntity::HasPreRenderEffects() {
     return false;
 }
 
+// Determines if the entity should be ignored by flying vehicles during collision checks
 // 0x532D40
 bool CEntity::DoesNotCollideWithFlyers() {
     auto mi = GetModelInfo();
     return mi->SwaysInWind() || mi->bDontCollideWithFlyer;
 }
 
+// RenderWare callback to update UV animations for a material
 // 0x532D70
 RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data) {
     if (!RpMaterialUVAnimExists(material)) {
@@ -795,6 +823,8 @@ RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data) {
     return material;
 }
 
+// Calculates and applies a rotation matrix to a windsock entity
+// to make it point in the direction of the current wind
 // 0x532DB0
 void CEntity::BuildWindSockMatrix() {
     auto vecWindDir = CVector(CWeather::WindDir.x + 0.01F, CWeather::WindDir.y + 0.01F, 0.1F);
@@ -816,6 +846,7 @@ void CEntity::BuildWindSockMatrix() {
     UpdateRwFrame();
 }
 
+// Determines if the entity's center point is located within the given world sector
 // 0x533050
 bool CEntity::LivesInThisNonOverlapSector(int32 x, int32 y) {
     const auto rect = GetBoundRect();
@@ -829,6 +860,8 @@ bool CEntity::LivesInThisNonOverlapSector(int32 x, int32 y) {
     return x == middleX && y == middleY;
 }
 
+// Configures the entity as a "big building" for LOD streaming purposes,
+// disabling its collision and making it persistent
 // 0x533150
 void CEntity::SetupBigBuilding() {
     SetUsesCollision(false);
@@ -837,6 +870,8 @@ void CEntity::SetupBigBuilding() {
     GetModelInfo()->SetOwnsColModel(true);
 }
 
+// Rotates the entity's matrix around the Z-axis over time
+// This is used for the spinning part of a crane
 // 0x533170
 void CEntity::ModifyMatrixForCrane() {
     if (!CTimer::GetIsPaused()) {
@@ -855,6 +890,8 @@ void CEntity::ModifyMatrixForCrane() {
     }
 }
 
+// Handles pre-rendering logic for glass objects by registering
+// them with the glass manager and temporarily hiding them
 // 0x533240
 void CEntity::PreRenderForGlassWindow() {
     if (!GetModelInfo()->IsGlassType2()) {
@@ -863,6 +900,7 @@ void CEntity::PreRenderForGlassWindow() {
     }
 }
 
+// Sets the alpha transparency for all materials of the entity's RenderWare object
 // 0x5332C0
 void CEntity::SetRwObjectAlpha(int32 alpha) {
     if (!GetRwObject()) {
@@ -879,6 +917,8 @@ void CEntity::SetRwObjectAlpha(int32 alpha) {
     }
 }
 
+// Checks if an entity pointer is valid by verifying it's within the
+// memory pool for its respective type (e.g., building, ped, vehicle)
 // 0x533310
 bool IsEntityPointerValid(CEntity* entity) {
     if (!entity) {
@@ -903,6 +943,7 @@ bool IsEntityPointerValid(CEntity* entity) {
     return false;
 }
 
+// Finds the world coordinates of a 2dEffect trigger point on the entity's model by its index
 // 0x533380
 CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
     auto mi = GetModelInfo();
@@ -921,16 +962,9 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 index) {
     return outVec;
 }
 
-/**
- * @addr 0x533410
- * 
- * Returns a random effect with the given effectType among all the effects of the entity.
- * 
- * @param   effectType Type of effect. See e2dEffectType. (Always EFFECT_ATTRACTOR)
- * @param   mustBeFree Should check for empty slot. (Always true)
- * 
- * @return Random effect
- */
+// Finds a random 2dEffect of a specific type attached to the entity's model,
+// optionally only considering effects with free slots (for ped attractors)
+// 0x533410
 C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     auto mi = GetModelInfo();
 
@@ -959,8 +993,9 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool mustBeFree) {
     return numCandidates ? candidates[CGeneral::GetRandomNumberInRange(0u, numCandidates)] : nullptr;
 }
 
-// 0x5334F0
+// Transforms a point from the entity's local (object) space to world space
 // PC Only
+// 0x5334F0
 CVector CEntity::TransformFromObjectSpace(const CVector& offset) const {
     if (m_matrix) {
         return m_matrix->TransformPoint(offset);
@@ -970,13 +1005,17 @@ CVector CEntity::TransformFromObjectSpace(const CVector& offset) const {
     return result;
 }
 
-// 0x533560
+// Transforms a point from the entity's local (object) space to world space,
+// storing the result in an output parameter
 // PC Only
+// 0x533560
 CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offset) const {
     outPos = TransformFromObjectSpace(offset);
     return &outPos;
 }
 
+// Creates all 2dEffects (e.g., lights, particles, entry/exits)
+// associated with the entity's model when the entity is created
 // 0x533790
 void CEntity::CreateEffects() {
     m_bHasRoadsignText = false;
@@ -1088,6 +1127,8 @@ void CEntity::CreateEffects() {
     }
 }
 
+// Destroys all 2dEffects associated with the entity,
+// cleaning up particles, entry/exits, and other special effects
 // 0x533BF0
 void CEntity::DestroyEffects() {
     auto mi = GetModelInfo();
@@ -1132,6 +1173,8 @@ void CEntity::DestroyEffects() {
     }
 }
 
+// Attaches an existing RenderWare object to this entity
+// This is used for objects that share a single RwObject, like LODs
 // 0x533ED0
 void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix) {
     if (!GetIsVisible()) {
@@ -1163,6 +1206,8 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateMatrix) {
     CreateEffects();
 }
 
+// Detaches the RenderWare object from the entity, cleaning up references
+// and effects without destroying the RwObject itself
 // 0x533FB0
 void CEntity::DetachFromRwObject() {
     if (!GetRwObject()) {
@@ -1183,11 +1228,13 @@ void CEntity::DetachFromRwObject() {
     m_pRwObject = nullptr;
 }
 
+// Gets the center of the entity's collision bounding sphere in world coordinates
 // 0x534290
 void CEntity::GetBoundCentre(CVector& centre) const {
     TransformFromObjectSpace(centre, GetModelInfo()->GetColModel()->GetBoundCenter());
 }
 
+// Gets the center of the entity's collision bounding sphere in world coordinates
 // 0x534250
 CVector CEntity::GetBoundCentre() const {
     CVector result;
@@ -1195,6 +1242,7 @@ CVector CEntity::GetBoundCentre() const {
     return result;
 }
 
+// Renders special 2dEffects associated with the entity, such as roadsign text
 // 0x5342B0
 void CEntity::RenderEffects() {
     if (!m_bHasRoadsignText) {
@@ -1217,6 +1265,7 @@ void CEntity::RenderEffects() {
     }
 }
 
+// Checks if the bounding sphere of this entity intersects with another entity's bounding sphere
 // 0x5343F0
 bool CEntity::GetIsTouching(CEntity* entity) const {
     CVector centreA;
@@ -1230,6 +1279,7 @@ bool CEntity::GetIsTouching(CEntity* entity) const {
     return (centreA - centreB).SquaredMagnitude() < sq(radius);
 }
 
+// Checks if the bounding sphere of this entity intersects with a given sphere
 // 0x5344B0
 bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
     CVector centreB;
@@ -1240,11 +1290,13 @@ bool CEntity::GetIsTouching(const CVector& centre, float radius) const {
     return (centreB - centre).SquaredMagnitude() < sq(totalRadius);
 }
 
+// Checks if the entity's bounding sphere is visible within the camera's view frustum
 // 0x534540
 bool CEntity::GetIsOnScreen() {
     return TheCamera.IsSphereVisible(GetBoundCentre(), GetBoundRadius());
 }
 
+// Performs a more accurate check to see if the entity's oriented bounding box is on screen
 // 0x5345D0
 bool CEntity::GetIsBoundingBoxOnScreen() {
     auto cm = GetModelInfo()->GetColModel();
@@ -1276,7 +1328,7 @@ bool CEntity::GetIsBoundingBoxOnScreen() {
 
         // Check whether the point is outside the main frustum
         if (worldBBPoint.Dot(TheCamera.m_avecFrustumWorldNormals[i]) > TheCamera.m_fFrustumPlaneOffsets[i]) {
-            // If the mirror is active and the point is inside the mirror frustum, skip.
+            // If the mirror is active and the point is inside the mirror frustum, skip
             if (TheCamera.m_bMirrorActive) {
                 if (worldBBPoint.Dot(TheCamera.m_avecFrustumWorldNormals_Mirror[i]) <= TheCamera.m_fFrustumPlaneOffsets_Mirror[i]) {
                     continue;
@@ -1290,6 +1342,8 @@ bool CEntity::GetIsBoundingBoxOnScreen() {
     return true;
 }
 
+// Modifies the entity's matrix to simulate swaying in the wind,
+// typically used for trees and other vegetation
 // 0x534E90
 void CEntity::ModifyMatrixForTreeInWind() {
     if (CTimer::GetIsPaused()) {
@@ -1337,6 +1391,8 @@ void CEntity::ModifyMatrixForTreeInWind() {
     UpdateRwFrame();
 }
 
+// Modifies the entity's matrix to simulate a banner flapping in the wind
+// This function is unused in the final game
 // unused
 // 0x535040
 void CEntity::ModifyMatrixForBannerInWind() {
@@ -1379,6 +1435,7 @@ void CEntity::ModifyMatrixForBannerInWind() {
     UpdateRwFrame();
 }
 
+// Gets the RenderWare matrix associated with the entity's RwObject frame
 // 0x46A2D0
 RwMatrix* CEntity::GetModellingMatrix() {
     if (!GetRwObject()) {
@@ -1388,6 +1445,8 @@ RwMatrix* CEntity::GetModellingMatrix() {
     return GetRwMatrix();
 }
 
+// Gets the collision model for the entity
+// For vehicles, this can return a special collision model if one is active
 // 0x535300
 CColModel* CEntity::GetColModel() const {
     if (GetIsTypeVehicle()) {
@@ -1400,9 +1459,11 @@ CColModel* CEntity::GetColModel() const {
     return GetModelInfo()->GetColModel();
 }
 
-// 0x535340
+// Calculates the four corner points of the 2D projection of the entity's
+// oriented bounding box onto the XY plane
 // https://gamedev.stackexchange.com/a/35948
 // https://gamedev.stackexchange.com/questions/153326/how-to-rotate-directional-billboard-particle-sprites-toward-the-direction-the-pa/153814#153814
+// 0x535340
 void CEntity::CalculateBBProjection(CVector* point1, CVector* point2, CVector* point3, CVector* point4) {
     CMatrix& matrix = GetMatrix();
 
@@ -1495,6 +1556,8 @@ void CEntity::CalculateBBProjection(CVector* point1, CVector* point2, CVector* p
     *point4 = calcCorner(lowerPoint, -1.0F, -1.0F);
 }
 
+// Updates the animations for the entity's RenderWare clump, if it has any
+// Animations are only updated if the entity is on screen
 // 0x535F00
 void CEntity::UpdateAnim() {
     m_bDontUpdateHierarchy = false;
@@ -1523,6 +1586,7 @@ void CEntity::UpdateAnim() {
     RpAnimBlendClumpUpdateAnimations(m_pRwClump, fStep, bOnScreen);
 }
 
+// Checks if the entity is currently visible on screen
 // 0x536BC0
 bool CEntity::IsVisible() {
     if (!GetRwObject() || !GetIsVisible()) {
@@ -1532,6 +1596,8 @@ bool CEntity::IsVisible() {
     return GetIsOnScreen();
 }
 
+// Calculates the distance from the collision model's center of mass
+// to the base (lowest Z point) of the model
 // 0x536BE0
 float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
     float lowestZ;
@@ -1541,8 +1607,10 @@ float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
     return -lowestZ;
 }
 
-// 0x571A00
+// Removes a specific reference to this entity from its list of references
+// Used when an entity that was pointing to this one is now pointing elsewhere or is being destroyed
 // in references.cpp
+// 0x571A00
 void CEntity::CleanUpOldReference(CEntity** entity) {
     auto lastnextp = &m_pReferences;
     for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
@@ -1557,9 +1625,10 @@ void CEntity::CleanUpOldReference(CEntity** entity) {
     }
 }
 
-// 0x571A40
+// Notifies all entities that reference this one that it's being destroyed
+// It iterates through its list of references and sets their pointers to null
 // in references.cpp
-// Clear (set to null) references to `this`
+// 0x571A40
 void CEntity::ResolveReferences() {
     for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
         if (ref->m_ppEntity && *ref->m_ppEntity == this) {
@@ -1586,8 +1655,10 @@ void CEntity::ResolveReferences() {
     }
 }
 
-// 0x571A90
+// Cleans up the entity's reference list by removing any references
+// from other entities that no longer point to this one
 // in references.cpp
+// 0x571A90
 void CEntity::PruneReferences() {
     if (!m_pReferences) {
         return;
@@ -1611,8 +1682,10 @@ void CEntity::PruneReferences() {
     }
 }
 
-// 0x571B70
+// Registers a new reference to this entity
+// The `entity` parameter is a pointer to a CEntity pointer that now points to `this`
 // in references.cpp
+// 0x571B70
 void CEntity::RegisterReference(CEntity** entity) {
     if (GetIsTypeBuilding() && !m_bIsTempBuilding && !m_bIsProcObject && !GetIplIndex()) {
         return;
@@ -1660,8 +1733,10 @@ void CEntity::RegisterReference(CEntity** entity) {
     }
 }
 
-// 0x6FC7A0
+// Processes all light-type 2dEffects for this entity
+// This creates coronas, point lights, and shadows based on the effect's properties
 // in Coronas.cpp
+// 0x6FC7A0
 void CEntity::ProcessLightsForEntity() {
     constexpr static const uint16 randomSeedRandomiser[8] = { 0, 27'034, 43'861, 52'326, 64'495, 38'437, 21'930, 39'117 }; // 0x8D5028
     constexpr static const float FADE_RATE = 0.0009f; // 0x872538
@@ -2129,8 +2204,9 @@ void CEntity::ProcessLightsForEntity() {
     }
 }
 
-// 0x717900
+// Finds and removes any escalator data associated with this entity
 // in fluff.cpp
+// 0x717900
 void CEntity::RemoveEscalatorsForEntity() {
     for (auto& escalator : CEscalators::GetAllExists()) {
         if (escalator.GetEntity() == this) {
@@ -2140,8 +2216,10 @@ void CEntity::RemoveEscalatorsForEntity() {
     }
 }
 
-// 0x71FAE0
+// Checks if the entity is occluded by any active occluders in the world
+// It tests various points on the entity's bounding box against the occluders
 // in occlusion.cpp
+// 0x71FAE0
 bool CEntity::IsEntityOccluded() {
     if (COcclusion::GetActiveOccluders().empty()) {
         return false;
@@ -2246,6 +2324,8 @@ inline float CEntity::GetBoundRadius() const {
     return GetModelInfo()->GetColModel()->GetBoundingSphere().m_fRadius;
 }
 
+// Updates the entity's RenderWare matrix from its CPlaceable transform data
+// This synchronizes the game's coordinate system with RenderWare's
 // 0x446F90
 void CEntity::UpdateRwMatrix() {
     if (!GetRwObject()) {
@@ -2260,6 +2340,8 @@ void CEntity::UpdateRwMatrix() {
     }
 }
 
+// Traverses the LOD chain to find the last (lowest-detail) LOD entity
+// If the entity has no LOD, it returns itself
 // NOTSA
 CEntity* CEntity::FindLastLOD() noexcept {
     CEntity* it = this;
@@ -2267,11 +2349,15 @@ CEntity* CEntity::FindLastLOD() noexcept {
     return it;
 }
 
+// A helper to get the CBaseModelInfo pointer for the entity's model index
 // NOTSA
 CBaseModelInfo* CEntity::GetModelInfo() const {
     return CModelInfo::GetModelInfo(GetModelIndex());
 }
 
+// Updates the entity's scan code to the current frame's code
+// This is used to prevent processing the same entity multiple times in one frame
+// Returns true if the entity's scan code was updated
 // NOTSA
 bool CEntity::ProcessScan() {
     if (IsScanCodeCurrent()) {
@@ -2281,6 +2367,7 @@ bool CEntity::ProcessScan() {
     return true;
 }
 
+// A RenderWare callback to set the alpha on all materials of an atomic
 // 0x533290
 RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data) {
     auto geometry = RpAtomicGetGeometry(atomic);
@@ -2289,17 +2376,21 @@ RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data) {
     return atomic;
 }
 
+// A RenderWare callback to set the alpha component of a single material's color
 // 0x533280
 RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
     RpMaterialGetColor(material)->alpha = (RwUInt8)(uintptr)data;
     return material;
 }
 
+// Checks if the entity's scan code matches the current global scan code,
+// indicating if it has already been processed in the current frame
 // NOTSA
 bool CEntity::IsScanCodeCurrent() const {
     return GetScanCode() == GetCurrentScanCode();
 }
 
+// Sets the entity's scan code to the current global scan code
 // NOTSA
 void CEntity::SetCurrentScanCode() {
     SetScanCode(GetCurrentScanCode());
