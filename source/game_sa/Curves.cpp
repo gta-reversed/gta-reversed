@@ -14,152 +14,181 @@ void CCurves::InjectHooks() {
 }
 
 // 0x43C610
-float CCurves::DistForLineToCrossOtherLine(CVector2D originA, CVector2D dirA, CVector2D originB, CVector2D dirB) {
-    const auto crossAB = dirA.Cross(dirB);
-    if (crossAB == 0.f) {
-        return -1.f;
+float CCurves::DistForLineToCrossOtherLine(float LineBaseX, float LineBaseY, float LineDirX, float LineDirY, float OtherLineBaseX, float OtherLineBaseY, float OtherLineDirX, float OtherLineDirY) {
+    float Dir = LineDirX * OtherLineDirY - LineDirY * OtherLineDirX;
+
+    if (Dir == 0.0f) {
+        return -1.0f; // Lines are parallel, no intersection
     }
-    return (originA - originB).Cross(dirB) * (-1.f / crossAB);
+
+    float Dist           = (LineBaseX - OtherLineBaseX) * OtherLineDirY - (LineBaseY - OtherLineBaseY) * OtherLineDirX;
+    float DistOfCrossing = -Dist / Dir;
+
+    return DistOfCrossing;
 }
 
 // 0x43C660
-float CCurves::CalcSpeedVariationInBend(const CVector2D& ptA, const CVector2D& ptB, CVector2D dirA, CVector2D dirB) {
-    const auto dot = dirA.Dot(dirB);
-    if (dot <= 0.f) { // Directions point in the opposite direction
-        return 1.f / 3.f;
-    } else if (dot <= 0.7f) { // Directions are more than ~45 degrees apart
-        return (1.f - dot / 0.7f) / 3.f;
-    } else { // Directions are less than ~45 degrees apart
-        return CCollision::DistToMathematicalLine2D(ptB.x, ptB.y, dirB.x, dirB.y, ptA.x, ptA.y) / (ptA - ptB).Magnitude() / 3.f;
+float CCurves::CalcSpeedVariationInBend(
+    const CVector& startCoors,
+    const CVector& endCoors,
+    float            StartDirX,
+    float            StartDirY,
+    float            EndDirX,
+    float            EndDirY
+) {
+    float ReturnVal  = 0.0f;
+    float DotProduct = StartDirX * EndDirX + StartDirY * EndDirY;
+
+    if (DotProduct <= 0.0f) {
+        // If the dot product is <= 0, return a constant value (1/3)
+        ReturnVal = 1.0f / 3.0f;
+        return ReturnVal;
     }
+
+    if (DotProduct > 0.7f) {
+        // Calculate the distance from the start point to the mathematical line defined by the end point and direction
+        float DistToLine =
+            CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, EndDirX, EndDirY, startCoors.x, startCoors.y);
+
+        // Calculate the straight-line distance between the start and end points
+        float StraightDist = (startCoors - endCoors).Magnitude2D();
+
+        // Normalize the distance to the line by the straight-line distance
+        ReturnVal = (DistToLine / StraightDist) * (1.0f / 3.0f);
+        return ReturnVal;
+    }
+
+    // If the dot product is <= 0.7, interpolate the return value
+    ReturnVal = (1.0f - (DotProduct / 0.7f)) * (1.0f / 3.0f);
+
+    return ReturnVal;
 }
 
 // 0x43C710
-float CCurves::CalcSpeedScaleFactor(const CVector2D& ptA, const CVector2D& ptB, CVector2D dirA, CVector2D dirB) {
-    // Find where the ray from start position would intersect with end ray
-    const float distToCrossA = DistForLineToCrossOtherLine(ptA, dirA, ptB, dirB);
+float CCurves::CalcSpeedScaleFactor(
+    const CVector& startCoors,
+    const CVector& endCoors,
+    float            StartDirX,
+    float            StartDirY,
+    float            EndDirX,
+    float            EndDirY
+) {
+    float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, StartDirX, StartDirY, EndDirX, EndDirY);
 
-    // Find where the ray from end position would intersect with start ray (negative because direction is flipped)
-    const float distToCrossB = -DistForLineToCrossOtherLine(ptB, dirB, ptA, dirA);
+    float DistToPoint1   = DistForLineToCrossOtherLine(
+        startCoors.x, startCoors.y, StartDirX, StartDirY, endCoors.x, endCoors.y, EndDirX, EndDirY
+    );
 
-    // If rays don't intersect properly, fall back to a simpler curved path approximation
-    // This happens when the directions would never cross or are almost parallel
-    if (distToCrossA <= 0.f || distToCrossB <= 0.f) {
-        return (ptA - ptB).Magnitude() / (1.f - CalcSpeedVariationInBend(ptA, ptB, dirA, dirB));
+    float DistToPoint2 = DistForLineToCrossOtherLine(
+        endCoors.x, endCoors.y, -EndDirX, -EndDirY, startCoors.x, startCoors.y, StartDirX, StartDirY
+    );
+
+    if (DistToPoint1 <= 0.0f || DistToPoint2 <= 0.0f) {
+        float StraightDist   = (startCoors - endCoors).Magnitude2D();
+        float TotalDist_Time = StraightDist / (1.0f - SpeedVariation);
+        return TotalDist_Time;
     }
 
-    // Otherwise, the total distance is the length of the two straight segments and the bend
-    const auto bendDist = std::min({ distToCrossA, distToCrossB, 5.f });
-    return 2.f * bendDist
-        + (distToCrossA - bendDist)
-        + (distToCrossB - bendDist);
+    float BendDistOneSegment = std::min(5.0f, std::min(DistToPoint1, DistToPoint2));
+
+    float StraightDist1      = DistToPoint1 - BendDistOneSegment;
+    float StraightDist2      = DistToPoint2 - BendDistOneSegment;
+
+    float BendDist           = BendDistOneSegment * 2.0f + StraightDist1 + StraightDist2;
+    float TotalDist_Time     = BendDist;
+
+    return TotalDist_Time;
 }
 
 // 0x43C880
-float CCurves::CalcCorrectedDist(float curr, float total, float variance, float& outT) {
-    if (total >= 0.00001f) {
-        const auto prog = curr / total;
-        outT            = 0.5f - std::cos(PI * prog) * 0.5f;
-        return std::sin(prog * TWO_PI) * (total / TWO_PI) * variance
-            + (1.f - (variance * 2.f) + 1.f) * 0.5f * curr;
-    } else {
-        outT = 0.5f;
-        return 0.f;
+float CCurves::CalcCorrectedDist(float current, float total, float speedVariation, float* outT) {
+    if (total < 0.00001f) // Epsilon to avoid division by zero
+    {
+        *outT = 0.5f;
+        return 0.0f;
     }
+
+    *outT = 0.5f - (std::cos(PI * (current / total)) * 0.5f);
+
+    float AverageSpeed  = std::sin((current / total) * TWO_PI);
+    float CorrectedDist = AverageSpeed * (total * (1.0f / TWO_PI)) * speedVariation + ((1.0f - (speedVariation + speedVariation) + 1.0f) * 0.5f) * current;
+
+    return CorrectedDist;
 }
 
 // 0x43C900
-void CCurves::CalcCurvePoint(
-    const CVector& ptA3D,
-    const CVector& ptB3D,
-    const CVector& dirA3D,
-    const CVector& dirB3D,
-    float          t,
-    int32          traversalTimeMs,
-    
-    CVector&       outPos,
-    CVector&       outSpeed
-) {
-    // This function calculates a point on a smooth curve between two positions with direction vectors.
-    // The curve consists of straight segments and a bend connecting them for natural-looking movement.
+void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float Time, int32 TraverselTimeInMillis, CVector& resultCoor, CVector& resultSpeed) {
+    float     BendDist, BendDist_Time, CurrentDist_Time, Interpol, StraightDist2, StraightDist1, TotalDist_Time, OurTime;
+    float     BendDistOneSegment;
+    CVector CoorsOnLine1, CoorsOnLine2;
 
-    const CVector2D ptA{ ptA3D };
-    const CVector2D dirA{ dirA3D };
+    Time = std::min(std::min(1.0f, Time), 0.0f);
 
-    const CVector2D ptB{ ptB3D };
-    const CVector2D dirB{ dirB3D };
-    
-    // Normalize time parameter to ensure calculations remain within valid range
-    t = std::clamp(t, 0.0f, 1.0f);
-
-    // Get speed adjustment factor needed for realistic bends (slower in curves, faster on straights)
-    float speedVariation = CalcSpeedVariationInBend(ptA3D, ptB3D, dirA, dirB);
+    float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDir.x, startDir.y, endDir.x, endDir.y);
 
     // Find where the ray from start position would intersect with end ray
-    float distToCrossA = DistForLineToCrossOtherLine(ptA, dirA, ptB, dirB);
+    float DistToPoint1 = DistForLineToCrossOtherLine(
+        startCoors.x, startCoors.y, startDir.x, startDir.y, endCoors.x, endCoors.y, endDir.x, endDir.y
+    );
 
     // Find where the ray from end position would intersect with start ray (negative because direction is flipped)
-    float distToCrossB = -DistForLineToCrossOtherLine(ptB, dirB, ptA, dirA);
+    float DistToPoint2 = DistForLineToCrossOtherLine(
+        endCoors.x, endCoors.y, -endDir.x, -endDir.y, startCoors.x, startCoors.y, startDir.x, startDir.y
+    );
 
-    const auto CalculateSpeed = [&](float totalDist) {
-        outSpeed = CVector{ lerp(dirA, dirB, t) * (totalDist / (traversalTimeMs / 1000.f)) };
-    };
+    if (DistToPoint1 <= 0.0f || DistToPoint2 <= 0.0f) {
+        CVector diff     = startCoors - endCoors;
+        StraightDist1    = diff.Magnitude2D();
 
-    // If rays don't intersect properly, fall back to a simpler curved path approximation
-    // This happens when the directions would never cross or are almost parallel
-    if (distToCrossA <= 0.0f || distToCrossB <= 0.0f)
-    {
-        const float straightDist = (ptA3D - ptB3D).Magnitude2D();
+        Interpol         = StraightDist1 / (1.0f - SpeedVariation);
 
-        // Calculate path distances adjusted for speed variation
-        const float dist = straightDist / (1.0f - speedVariation);
-        const float currDist = CalcCorrectedDist(dist * t, dist, speedVariation, speedVariation);
+        CurrentDist_Time = CalcCorrectedDist(Time * Interpol, Interpol, SpeedVariation, &OurTime);
 
-        // Blend between the two projected positions based on speed variation
-        outPos = lerp(ptA3D + (dirA3D * currDist), ptB3D + (dirB3D * (currDist - straightDist)), speedVariation);
+        CoorsOnLine1     = startCoors + startDir * CurrentDist_Time;
+        CoorsOnLine2     = endCoors + endDir * (CurrentDist_Time - StraightDist1);
 
-        // Zero speed for this special case (likely a placeholder as this value isn't used)
-        CalculateSpeed(0.f);
+        resultCoor       = CoorsOnLine1 * (1.0f - OurTime) + CoorsOnLine2 * OurTime;
 
-        return;
-    }
-
-    // For properly intersecting rays, create a three-segment path:
-    // 1. Straight segment from start
-    // 2. Curved bend in the middle
-    // 3. Straight segment to end
-
-    // Limit how sharp the bend can be for natural movement
-    const float bendDistOneSegment = std::min({ distToCrossA, distToCrossB, 5.f });
-
-    // Calculate the three segment lengths
-    const float straightDistA = distToCrossA - bendDistOneSegment;
-    const float straightDistB = distToCrossB - bendDistOneSegment;
-    const float bendDist      = bendDistOneSegment * 2.0f;
-    const float totalDist     = straightDistA + bendDist + straightDistB;
-    const float currDist      = totalDist * t;
-
-    if (currDist < straightDistA) {
-        // 1. Position is on the first straight segment (linear interpolation from start)
-        outPos = ptA3D + (dirA3D * currDist);
-    } else if (currDist > (straightDistA + bendDist)) {
-        // 2. Position is on the final straight segment (linear interpolation to end)
-        outPos = ptB3D + (dirB3D * (currDist - (straightDistA + bendDist)));
+        TotalDist_Time   = StraightDist1 + 0.0f + 0.0f;
     } else {
-        // 3. Position is in the curved bend section - requires double interpolation
-        //    First interpolate through the bend progress, then between the influenced points
-        const float bendT = (currDist - straightDistA) / bendDist;
+        StraightDist2 = (DistToPoint1 < DistToPoint2) ? DistToPoint1 : DistToPoint2;
 
-        // Blend between influence points that extendoutward
-        // from the bend endpoints to create a curved path
-        outPos = lerp(
-            ptA3D + (dirA3D * straightDistA) + (dirA3D * (bendDistOneSegment * bendT)),
-            ptB3D - (dirB3D * straightDistB) - (dirB3D * (bendDistOneSegment * (1.0f - bendT))),
-            bendT
-        );
+        if (StraightDist2 > 5.0f) {
+            StraightDist2 = 5.0f;
+        }
+
+        BendDist           = DistToPoint1 - StraightDist2;
+        BendDistOneSegment = DistToPoint2 - StraightDist2;
+        TotalDist_Time     = BendDist + (StraightDist2 + StraightDist2) + BendDistOneSegment;
+        BendDist_Time      = Time * TotalDist_Time;
+
+        if (BendDist > BendDist_Time) {
+            resultCoor.x = startCoors.x + BendDist_Time * startDir.x;
+            resultCoor.y = startCoors.y + BendDist_Time * startDir.y;
+            resultCoor.z = startCoors.z + BendDist_Time * startDir.z;
+        } else if (BendDist + (StraightDist2 + StraightDist2) <= BendDist_Time) {
+            BendDist_Time = BendDist_Time - TotalDist_Time;
+            resultCoor.x  = endCoors.x + BendDist_Time * endDir.x;
+            resultCoor.y  = endCoors.y + BendDist_Time * endDir.y;
+            resultCoor.z  = endCoors.z + BendDist_Time * endDir.z;
+        } else {
+            float BendInter          = (BendDist_Time - BendDist) / (StraightDist2 + StraightDist2);
+
+            CVector BendStartCoors = startCoors + startDir * BendDist + startDir * (StraightDist2 * BendInter);
+
+            CVector BendEndCoors =
+                endCoors - endDir * BendDistOneSegment - endDir * (StraightDist2 * (1.0f - BendInter));
+
+            resultCoor = BendStartCoors * (1.0f - BendInter) + BendEndCoors * BendInter;
+        }
     }
 
-    CalculateSpeed(totalDist);
+    float SpeedFactor       = (1.0f - Time) * TotalDist_Time;
+    float SpeedMillisFactor = static_cast<float>(TraverselTimeInMillis) / 1000.0f;
+
+    resultSpeed.x = ((Time * endDir.x) + ((1.0f - Time) * startDir.x)) * SpeedFactor / SpeedMillisFactor;
+    resultSpeed.y = ((Time * endDir.y) + ((1.0f - Time) * startDir.y)) * SpeedFactor / SpeedMillisFactor;
+    resultSpeed.z = 0.0f;
 }
 
 // unused
@@ -170,11 +199,6 @@ void CCurves::TestCurves() {
 #define epsilon 0.01f
 #define FLOAT_EQUAL(a, b) (fabs((a) - (b)) < (epsilon))
 
-    //const auto FLOAT_EQUAL = [](float a, float b) {
-    //    return fabs(a - b) < 0.0002f;
-    //};
-
-#if 0
     auto DistForLineToCrossOtherLine_test = []
         {
             // Test case 1: Lines intersect
@@ -228,8 +252,7 @@ void CCurves::TestCurves() {
                 assert(FLOAT_EQUAL(result, 170.658539f));  // Expected distance to crossing
             }
         };
-#endif
-#if 0
+
     auto CalcSpeedVariationInBend_test = []
         {
             // Test Case 1: Dot product <= 0 (opposite directions)
@@ -326,8 +349,7 @@ void CCurves::TestCurves() {
                     "Test Case 10 Failed: Expected value between 0 and 0.33333.");
             }
         };
-#endif
-#if 0
+
     auto CalcSpeedScaleFactor_test = []
         {
             // Test Case 1: CalcSpeedScaleFactor - Simple Bend
@@ -392,7 +414,6 @@ void CCurves::TestCurves() {
                     "Test Case Failed: Speed scale factor out of reasonable range for large values.");
             }
         };
-#endif
 
     auto CalcCurvePoint_test = []
         {
@@ -504,7 +525,7 @@ void CCurves::TestCurves() {
             {
                 // interpol please don't arrest us, we have done nothing!
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.25f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 1 Failed: Corrected distance out of range.");
@@ -512,7 +533,7 @@ void CCurves::TestCurves() {
             // Test Case 2: CalcCorrectedDist - Start of Curve (Time = 0.0)
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.0f, 1.0f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(0.0f, 1.0f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.0f) && FLOAT_EQUAL(interpol, 0.0f) &&
                     "Test Case 2 Failed: Corrected distance should be 0.0 at the start.");
@@ -521,7 +542,7 @@ void CCurves::TestCurves() {
             // Test Case 3: CalcCorrectedDist - End of Curve (Time = 1.0)
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(1.0f, 1.0f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(1.0f, 1.0f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.5f) && FLOAT_EQUAL(interpol, 1.0f) &&
                     "Test Case 3 Failed: Corrected distance should be 1.0 at the end.");
@@ -530,7 +551,7 @@ void CCurves::TestCurves() {
             // Test Case 4: CalcCorrectedDist - No Speed Variation (SpeedVariation = 0.0)
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 0.0f, interpol);
+                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 0.0f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.5f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 4 Failed: Corrected distance should match input when SpeedVariation is 0.0.");
@@ -539,7 +560,7 @@ void CCurves::TestCurves() {
             // Test Case 5: CalcCorrectedDist - Maximum Speed Variation (SpeedVariation = 1.0)
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 1.0f, interpol);
+                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 1.0f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.0f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 5 Failed: Corrected distance should be 0.0 when SpeedVariation is 1.0.");
@@ -548,7 +569,7 @@ void CCurves::TestCurves() {
             // Test Case 6: CalcCorrectedDist - Large Total Distance
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(500.0f, 1000.0f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(500.0f, 1000.0f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 250.0f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 6 Failed: Corrected distance should scale with large Total distance.");
@@ -557,7 +578,7 @@ void CCurves::TestCurves() {
             // Test Case 7: CalcCorrectedDist - Small Total Distance
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.1f, 0.2f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(0.1f, 0.2f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.05f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 7 Failed: Corrected distance should scale with small Total distance.");
@@ -566,7 +587,7 @@ void CCurves::TestCurves() {
             // Test Case 8: CalcCorrectedDist - Negative Current Distance
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(-0.5f, 1.0f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(-0.5f, 1.0f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, -0.25f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 8 Failed: Corrected distance should handle negative Current distance.");
@@ -575,7 +596,7 @@ void CCurves::TestCurves() {
             // Test Case 9: CalcCorrectedDist - Negative Total Distance
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.5f, -1.0f, 0.5f, interpol);
+                float correctedDist = CalcCorrectedDist(0.5f, -1.0f, 0.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, 0.0f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 9 Failed: Corrected distance should handle negative Total distance.");
@@ -584,16 +605,16 @@ void CCurves::TestCurves() {
             // Test Case 10: CalcCorrectedDist - SpeedVariation > 1.0
             {
                 float interpol = 0.0f;
-                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 1.5f, interpol);
+                float correctedDist = CalcCorrectedDist(0.5f, 1.0f, 1.5f, &interpol);
 
                 assert(FLOAT_EQUAL(correctedDist, -0.25f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 10 Failed: Corrected distance should handle SpeedVariation > 1.0.");
             }
         };
 
-    //DistForLineToCrossOtherLine_test();
-    //CalcSpeedVariationInBend_test();
-    //CalcSpeedScaleFactor_test();
+    DistForLineToCrossOtherLine_test();
+    CalcSpeedVariationInBend_test();
+    CalcSpeedScaleFactor_test();
     CalcCurvePoint_test();
     CalcCorrectedDist_test();
 }
