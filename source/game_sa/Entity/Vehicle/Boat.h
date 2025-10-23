@@ -52,8 +52,8 @@ public:
     float m_BlowUpTimer; // starts when vehicle health is lower than 250.0, boat blows up when it hits 5000.0
     CEntity* m_EntityThatSetUsOnFire;
 
-    CVector m_OldMoveSpeed; // m_vecOldMoveSpeed = m_vecMoveForce + m_vecFrictionMoveForce
-    CVector m_OldTurnSpeed; // m_vecOldTurnSpeed = m_vecTurnForce + m_vecFrictionTurnForce
+    CVector m_OldMoveSpeed; // m_OldMoveSpeed = m_vecMoveForce + m_vecFrictionMoveForce
+    CVector m_OldTurnSpeed; // m_OldTurnSpeed = m_vecTurnForce + m_vecFrictionTurnForce
 
     FxSystem_c* m_fxSysProp[2];
     CVector m_fxBuoyancyForce; // { 0.0f, 0.0f, DampingPower }
