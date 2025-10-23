@@ -83,20 +83,22 @@ float CCurves::CalcSpeedScaleFactor(
         endCoors.x, endCoors.y, -EndDirX, -EndDirY, startCoors.x, startCoors.y, StartDirX, StartDirY
     );
 
-    if (DistToPoint1 <= 0.0f || DistToPoint2 <= 0.0f) {
-        float StraightDist   = (startCoors - endCoors).Magnitude2D();
-        float TotalDist_Time = StraightDist / (1.0f - SpeedVariation);
-        return TotalDist_Time;
+    if (DistToPoint1 > 0.0f && DistToPoint2 > 0.0f) {
+        float BendDistOneSegment = std::min(5.0f, std::min(DistToPoint1, DistToPoint2));
+
+        float StraightDist1      = DistToPoint1 - BendDistOneSegment;
+        float StraightDist2      = DistToPoint2 - BendDistOneSegment;
+
+        float BendDist           = BendDistOneSegment + BendDistOneSegment;
+        float BendDist_Time      = (BendDistOneSegment <= 5.0f) ? BendDist : BendDistOneSegment + BendDistOneSegment;
+
+        // float TotalDist_Time = BendDist_Time + StraightDist1 + StraightDist2;
+
+        return BendDistOneSegment + BendDistOneSegment + StraightDist2 + StraightDist1;
     }
 
-    float BendDistOneSegment = std::min(5.0f, std::min(DistToPoint1, DistToPoint2));
-
-    float StraightDist1      = DistToPoint1 - BendDistOneSegment;
-    float StraightDist2      = DistToPoint2 - BendDistOneSegment;
-
-    float BendDist           = BendDistOneSegment * 2.0f + StraightDist1 + StraightDist2;
-    float TotalDist_Time     = BendDist;
-
+    float StraightDist   = (startCoors - endCoors).Magnitude2D();
+    float TotalDist_Time = StraightDist / (1.0f - SpeedVariation);
     return TotalDist_Time;
 }
 
