@@ -1564,7 +1564,7 @@ void CPopulation::ConvertToRealObject(CDummyObject* dummyObject) {
     }
 
     CWorld::Remove(dummyObject);
-    dummyObject->m_bIsVisible = false;
+    dummyObject->SetIsVisible(false);
     dummyObject->ResolveReferences();
 
     obj->SetRelatedDummy(dummyObject);
@@ -1578,7 +1578,7 @@ void CPopulation::ConvertToRealObject(CDummyObject* dummyObject) {
             obj->AddToMovingList();
         }
     } else {
-        obj->m_bIsVisible = false;
+        obj->SetIsVisible(false);
     }
 }
 
@@ -1589,7 +1589,7 @@ void CPopulation::ConvertToDummyObject(CObject* object) {
         if (!CPopulation::TestRoomForDummyObject(object)) {
             return;
         }
-        dummy->m_bIsVisible = true;
+        dummy->SetIsVisible(true);
         dummy->UpdateFromObject(object);
     }
 
@@ -1597,7 +1597,7 @@ void CPopulation::ConvertToDummyObject(CObject* object) {
         auto* mi = object->GetModelInfo()->AsAtomicModelInfoPtr();
         if (mi && mi->IsGlassType1()) {
             if (dummy) {
-                dummy->m_bIsVisible = false;
+                dummy->SetIsVisible(false);
             } else {
                 assert(false && "FIX_BUGS: dummy == nullptr");
             }
@@ -1752,7 +1752,7 @@ void CPopulation::ManageObject(CObject* object, const CVector& posn) {
 
 // 0x616000
 void CPopulation::ManageDummy(CDummy* dummy, const CVector& posn) {
-    if (!dummy->IsInCurrentArea() || !dummy->m_bIsVisible) {
+    if (!dummy->IsInCurrentArea() || !dummy->GetIsVisible()) {
         return;
     }
     if ((posn - dummy->GetPosition()).SquaredMagnitude() >= sq(FindDummyDistForModel(dummy->GetModelId()))) {

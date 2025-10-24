@@ -471,7 +471,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
         if (objectToHold) {
             if (objectToHold->GetIsTypeObject()) {
                 objectType = objectToHold->m_nObjectType;
-                bIsEntityVisible = objectToHold->m_bIsVisible;
+                bIsEntityVisible = objectToHold->GetIsVisible();
             }
             taskSimpleHoldEntityCloned = (CTaskSimpleHoldEntity*)tSimpleHoldEntity->Clone();
         }
@@ -501,7 +501,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
     if (taskSimpleHoldEntityCloned) {
         if (objectType != -1) {
             objectToHold->m_nObjectType = objectType;
-            objectToHold->m_bIsVisible  = bIsEntityVisible;
+            objectToHold->SetIsVisible(bIsEntityVisible);
         }
         m_TaskMgr.SetTaskSecondary(taskSimpleHoldEntityCloned, TASK_SECONDARY_PARTIAL_ANIM);
         taskSimpleHoldEntityCloned->ProcessPed(m_pPed);

@@ -327,7 +327,7 @@ bool CEntryExit::TransitionFinished(CPed* ped) {
     const auto spawnPos = ms_spawnPoint->m_vecExitPos;
 
     if (const auto entity = ped->GetEntityThatThisPedIsHolding()) {
-        entity->m_nAreaCode = (eAreaCodes)ms_spawnPoint->m_nArea;
+        entity->m_AreaCode = (eAreaCodes)ms_spawnPoint->m_nArea;
     }
 
     const auto DisplayEnExName = [this]{
@@ -409,9 +409,9 @@ bool CEntryExit::TransitionFinished(CPed* ped) {
     }
 
     // ms_exitEnterState == 3
-    ped->m_nAreaCode = (eAreaCodes)CGame::currArea;
+    ped->m_AreaCode = (eAreaCodes)CGame::currArea;
     if (ped->m_pVehicle && ped->bInVehicle) {
-        ped->m_pVehicle->m_nAreaCode = (eAreaCodes)CGame::currArea;
+        ped->m_pVehicle->m_AreaCode = (eAreaCodes)CGame::currArea;
     }
     ped->m_pEnex = CGame::CanSeeOutSideFromCurrArea() ? nullptr : this; // Inverted
 

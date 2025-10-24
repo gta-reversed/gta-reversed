@@ -121,7 +121,7 @@ CEntity::CEntity() : CPlaceable() {
     m_nRandomSeed = CGeneral::GetRandomNumber();
     m_pReferences = nullptr;
     m_pStreamingLink = nullptr;
-    m_nNumLodChildren = 0;
+    m_NumLodChildren = 0;
     ResetLodChildrenRendered();
     SetLod(nullptr);
 }

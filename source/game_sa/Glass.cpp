@@ -605,7 +605,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
             false
         );
         object.SetUsesCollision(false);
-        object.m_bIsVisible = false;
+        object.SetIsVisible(false);
         object.objectFlags.bHasBrokenGlass = true;
     }
 }

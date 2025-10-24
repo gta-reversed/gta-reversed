@@ -298,7 +298,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
 
     if (bUpdateEntityToHoldPosition) {
         if (m_pEntityToHold) {
-            m_pEntityToHold->m_bIsVisible = ped->m_bIsVisible;
+            m_pEntityToHold->SetIsVisible(ped->GetIsVisible());
             if (ped->bCalledPreRender) {
                 if (m_bBoneFlags & HOLD_ENTITY_UPDATE_TRANSLATION_ONLY) {
                     CVector entityToHoldPos = m_vecPosition;
@@ -432,7 +432,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                     objectToHold->m_nObjectType = OBJECT_TEMPORARY;
                     objectToHold->m_nRemovalTime = 0;
                     objectToHold->SetUsesCollision(false);
-                    objectToHold->m_bIsVisible = false;
+                    objectToHold->SetIsVisible(false);
                     bUpdateEntityPosition = false;
                 }
             }

@@ -651,7 +651,7 @@ void CReplay::ProcessLookAroundCam() {
     if (FramesActiveLookAroundCam) {
         const auto MakeVisible = [](auto* entity) {
             if (entity) {
-                entity->m_bIsVisible = true;
+                entity->SetIsVisible(true);
             }
         };
 

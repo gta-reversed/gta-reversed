@@ -47,6 +47,7 @@ public:
         struct RpClump*  m_pRwClump;
         struct RpAtomic* m_pRwAtomic;
     };
+
     union {
         struct {
             /* https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CEntitySA.h */
@@ -86,6 +87,7 @@ public:
             bool m_bTunnel : 1;                      // Is this model part of a tunnel
             bool m_bTunnelTransition : 1;            // This model should be rendered from within and outside the tunnel
         };
+
         uint32 m_nFlags;
     };
 
@@ -94,29 +96,31 @@ public:
             uint16 m_nRandomSeedUpperByte : 8;
             uint16 m_nRandomSeedSecondByte : 8;
         };
+
         uint16 m_nRandomSeed;
     };
 
-    uint16           m_nModelIndex;
+    uint16 m_nModelIndex;
 
-    CReference*      m_pReferences;
+    CReference* m_pReferences;
 
 protected:
     CLink<CEntity*>* m_pStreamingLink;
 
-    uint16           m_nScanCode;
-    uint8            m_nIplIndex;
-    eAreaCodes       m_nAreaCode;
+    uint16     m_ScanCode;
+    uint8      m_IplIndex;
+    eAreaCodes m_AreaCode;
 
     union {
         int32    m_nLodIndex; // -1 - without LOD model
         CEntity* m_pLod;
     };
-    uint8         m_nNumLodChildren;
 
-    int8          m_nNumLodChildrenRendered;
+    uint8 m_NumLodChildren;
 
-    CEntityInfo   m_info;
+    int8 m_NumLodChildrenRendered;
+
+    CEntityInfo m_info;
 
 public:
     CEntity();
@@ -172,12 +176,12 @@ public:
     bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; } // unused
     void SetIsUnimportantStream(bool unimportantStream) { m_bUnimportantStream |= unimportantStream; }
 
-    void SetScanCode(uint16 scanCode) { m_nScanCode = scanCode; }
-    uint16 GetScanCode() const { return m_nScanCode; }
-    void SetAreaCode(eAreaCodes areaCode) { m_nAreaCode = areaCode; }
-    eAreaCodes GetAreaCode() const { return m_nAreaCode; }
-    void SetIplIndex(uint8 iplIndex) { m_nIplIndex = iplIndex; }
-    uint8 GetIplIndex() { return m_nIplIndex; }
+    void SetScanCode(uint16 scanCode) { m_ScanCode = scanCode; }
+    uint16 GetScanCode() const { return m_ScanCode; }
+    void SetAreaCode(eAreaCodes areaCode) { m_AreaCode = areaCode; }
+    eAreaCodes GetAreaCode() const { return m_AreaCode; }
+    void SetIplIndex(uint8 iplIndex) { m_IplIndex = iplIndex; }
+    uint8 GetIplIndex() { return m_IplIndex; }
 
     virtual void SetModelIndex(uint32 index);
     virtual void SetModelIndexNoCreate(uint32 index);
@@ -267,16 +271,16 @@ public:
     void SetLod(CEntity* lod) { m_pLod = lod; }
     CEntity* GetLod() { return m_pLod; }
 
-    void AddLodChildren() { m_nNumLodChildren++; } // orig AddLodChild
-    void RemoveLodChildren() { m_nNumLodChildren--; } // orig RemoveLodChild
-    int32 GetNumLodChildren() { return m_nNumLodChildren; }
+    void AddLodChildren() { m_NumLodChildren++; } // orig AddLodChild
+    void RemoveLodChildren() { m_NumLodChildren--; } // orig RemoveLodChild
+    int32 GetNumLodChildren() { return m_NumLodChildren; }
 
-    void AddLodChildrenRendered() { m_nNumLodChildrenRendered++; } // orig AddLodChildRendered
-    void ResetLodChildrenRendered() { m_nNumLodChildrenRendered = 0; } // orig ResetLodRenderedCounter
-    bool HasLodChildrenRendered() { return m_nNumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
-    int32 GetNumLodChildrenRendered() { return m_nNumLodChildrenRendered; }
-    void SetCannotLodChildrenRender() { m_nNumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
-    bool CanLodChildrenRender() { return m_nNumLodChildrenRendered != 128; } // orig CanLodChildRender
+    void AddLodChildrenRendered() { m_NumLodChildrenRendered++; } // orig AddLodChildRendered
+    void ResetLodChildrenRendered() { m_NumLodChildrenRendered = 0; } // orig ResetLodRenderedCounter
+    bool HasLodChildrenRendered() { return m_NumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
+    int32 GetNumLodChildrenRendered() { return m_NumLodChildrenRendered; }
+    void SetCannotLodChildrenRender() { m_NumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
+    bool CanLodChildrenRender() { return m_NumLodChildrenRendered != 128; } // orig CanLodChildRender
 
     // 128 = displaySuperLowLodFlag, yes, this is very hacky. Blame R*
 
@@ -289,12 +293,13 @@ public:
     CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
     RwMatrix* GetModellingMatrix();
 
-    // NOTSA:
+    // NOTSA section
 
     // Always returns a non-null value. In case there's no LOD object `this` is returned
     CEntity* FindLastLOD() noexcept;
 
     CBaseModelInfo* GetModelInfo() const;
+
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
 
     // Wrapper around the mess called `CleanUpOldReference`
@@ -314,7 +319,7 @@ public:
     // + clears the old entity (if any)
     // + set the new entity (if any)
     template<typename T, typename Y>
-        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y> 
+        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y>
     static void ChangeEntityReference(T*& inOutRef, Y* entity) {
         ClearReference(inOutRef); // Clear old
         if (entity) { // Set new (if any)
@@ -325,7 +330,7 @@ public:
 
     // Similar to `ChangeEntityReference`, but doesn't clear the old reference
     template<typename T, typename Y>
-        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y> 
+        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y>
     static void SetEntityReference(T*& inOutRef, Y* entity) {
         inOutRef = entity;
         inOutRef->RegisterReference(reinterpret_cast<CEntity**>(&inOutRef));
@@ -357,10 +362,10 @@ public:
     }
 
 public:
-    // NOTSA:
+    // NOTSA section
 
     [[nodiscard]] bool IsModelTempCollision() const { return GetModelIndex() >= MODEL_TEMPCOL_DOOR1 && GetModelIndex() <= MODEL_TEMPCOL_BODYPART2; }
-    [[nodiscard]] bool IsRCCar()  const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
+    [[nodiscard]] bool IsRCCar() const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
 
     auto AsPhysical()         { return reinterpret_cast<CPhysical*>(this); }
     auto AsVehicle()          { return reinterpret_cast<CVehicle*>(this); }
@@ -384,12 +389,20 @@ public:
     bool ProcessScan();
     bool IsScanCodeCurrent() const;
     void SetCurrentScanCode();
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CEntity* Constructor() { this->CEntity::CEntity(); return this; }
-    CEntity* Destructor() { this->CEntity::~CEntity(); return this; }
+    CEntity* Constructor() {
+        this->CEntity::CEntity();
+        return this;
+    }
+
+    CEntity* Destructor() {
+        this->CEntity::~CEntity();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CEntity, 0x38);
@@ -405,7 +418,6 @@ inline bool CEntity::IsInArea(int32 area) {
 inline RwMatrix* CEntity::GetRwMatrix() {
     return RwFrameGetMatrix(RwFrameGetParent(GetRwObject()));
 }
-
 
 // Rw callbacks:
 

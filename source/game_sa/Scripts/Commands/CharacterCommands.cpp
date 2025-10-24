@@ -806,7 +806,7 @@ auto SetCharVisible(CPed& ped, bool isVisible) {
     if (&ped == FindPlayerPed()) {
         gPlayerPedVisible = isVisible;
     }
-    ped.m_bIsVisible = isVisible;
+    ped.SetIsVisible(isVisible);
 }
 
 // REMOVE_CHAR_ELEGANTLY

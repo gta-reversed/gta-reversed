@@ -233,7 +233,7 @@ void CRenderer::AddToLodDontRenderList(CEntity* entity, float distance) {
 void CRenderer::ProcessLodRenderLists() {
     for (auto renderListEntry = GetLodRenderListBase(); renderListEntry != ms_pLodRenderList; renderListEntry++) {
         CEntity* entity = renderListEntry->entity;
-        if (entity && !entity->m_bIsVisible) {
+        if (entity && !entity->GetIsVisible()) {
             entity->ResetLodChildrenRendered();
             renderListEntry->entity = nullptr;
         }
@@ -493,7 +493,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
                 if (!entity->GetRwObject())
                     return RENDERER_INVISIBLE;
             }
-            if (!entity->m_bIsVisible)
+            if (!entity->GetIsVisible())
                 return RENDERER_INVISIBLE;
             if (!entity->GetIsOnScreen() || entity->IsEntityOccluded()) {
                 if (!baseModelInfo->HasBeenPreRendered()) {
@@ -509,7 +509,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
                 AddEntityToRenderList(entity, fDistance);
             return RENDERER_INVISIBLE;
         }
-        if (fDistance - MAX_STREAMING_DISTANCE >= fDrawDistanceRadius || !bIsTimeInRange || !entity->m_bIsVisible)
+        if (fDistance - MAX_STREAMING_DISTANCE >= fDrawDistanceRadius || !bIsTimeInRange || !entity->GetIsVisible())
             return RENDERER_INVISIBLE;
         if (!entity->GetRwObject())
             entity->CreateRwObject();
@@ -522,7 +522,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
             return RENDERER_INVISIBLE;
     }
 
-    if (!entity->m_bIsVisible)
+    if (!entity->GetIsVisible())
         return RENDERER_INVISIBLE;
 
     if (entity->GetIsOnScreen() && !entity->IsEntityOccluded()) {
@@ -590,7 +590,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
             }
 
             if (!entity->GetRwObject()
-                || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex)
+                || !entity->GetIsVisible() && (!CMirrors::TypeOfMirror || entity->m_nModelIndex)
                 || !entity->IsInCurrentArea() && entity->GetIsTypeVehicle()
             ) {
                 return RENDERER_INVISIBLE;
@@ -634,7 +634,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
         {
             if (entity->m_bDontStream)
             {
-                if (!entity->GetRwObject() || !entity->m_bIsVisible && (!CMirrors::TypeOfMirror || entity->m_nModelIndex))
+                if (!entity->GetRwObject() || !entity->GetIsVisible() && (!CMirrors::TypeOfMirror || entity->m_nModelIndex))
                 {
                     return RENDERER_INVISIBLE;
                 }
