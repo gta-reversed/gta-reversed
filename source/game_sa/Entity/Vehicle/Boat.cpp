@@ -223,9 +223,10 @@ void CBoat::AddWakePoint(CVector pos) {
         return;
     }
 
-    int16 uiMaxWakePoints = 31;
+    // Determine max wake points based on entity status
+    uint16 uiMaxWakePoints = 31;
     if (GetStatus() != STATUS_PLAYER) {
-        if (m_nCreatedBy == eVehicleCreatedBy::MISSION_VEHICLE)
+        if (m_nCreatedBy == eVehicleCreatedBy::MISSION_VEHICLE) {
             uiMaxWakePoints = 20;
         } else {
             uiMaxWakePoints = 15;
@@ -600,7 +601,7 @@ void CBoat::ProcessControl() {
     auto fDamagePower = m_fDamageIntensity * m_pHandlingData->m_fCollisionDamageMultiplier;
     if (fDamagePower > 25.0F && GetStatus() != STATUS_WRECKED && m_fHealth >= 250.0F) {
         auto fSavedHealth = m_fHealth;
-        if (GetStatus() == STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.0F)
+        if (GetStatus() == STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.0F) {
             fDamagePower *= 0.5F;
         }
 
