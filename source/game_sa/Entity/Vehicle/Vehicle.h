@@ -483,7 +483,7 @@ public:
     virtual bool SetUpWheelColModel(CColModel* wheelCol) { return false; }
     // returns false if it's not possible to burst vehicle's tyre or it is already damaged. bPhysicalEffect=true applies random moving force to vehicle
     virtual bool BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) { return false; }
-    virtual bool IsRoomForPedToLeaveCar(uint32 doorId, CVector* arg1) { return false; }
+    virtual bool IsRoomForPedToLeaveCar(uint32 doorId, CVector* arg1 = nullptr) { return false; }
     virtual void ProcessDrivingAnims(CPed* driver, bool bBlend);
     // get special ride anim data for bile or quad
     virtual CRideAnimData* GetRideAnimData() { return nullptr; }
