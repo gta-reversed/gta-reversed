@@ -50,8 +50,11 @@ eWeatherType& CWeather::OldWeatherType = *(eWeatherType*)0xC81320;
 CAEWeatherAudioEntity& CWeather::m_WeatherAudioEntity = *(CAEWeatherAudioEntity*)0xC81360;
 bool& CWeather::StreamAfterRainTimer = *(bool*)0x8D5EAC;
 
-float(&CWeather::saTreeWindOffsets)[16] = *(float(*)[16])0x8CCF30;
-float(&CWeather::saBannerWindOffsets)[32] = *(float(*)[32])0x8CCF70;
+// 0x8CCF30
+std::array<float, 16> CWeather::saTreeWindOffsets = { 1.0f, 0.5f, 0.2f, 0.7f, 0.4f, 1.0f, 0.5f, 0.3f, 0.2f, 0.1f, 0.7f, 0.6f, 0.3f, 1.0f, 0.5f, 0.2f };
+
+/// 0x8CCF70
+std::array<float, 32> CWeather::saBannerWindOffsets = { 0.0f, 0.3f, 0.6f, 0.85f, 0.99f, 0.97f, 0.65f, 0.15f, -0.1f, 0.0f, 0.35f, 0.57f, 0.55f, 0.35f, 0.45f, 0.67f, 0.73f, 0.45f, 0.25f, 0.35f, 0.35f, 0.11f, 0.13f, 0.21f, 0.28f, 0.28f, 0.22f, 0.1f, 0.0f, -0.1f, -0.17f, -0.12f };
 
 
 void CWeather::InjectHooks() {

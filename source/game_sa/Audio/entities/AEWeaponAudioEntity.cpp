@@ -647,7 +647,7 @@ void CAEWeaponAudioEntity::PlayMiniGunStopSound(CPhysical* entity) {
         s.m_Event = AE_FRONTEND_PICKUP_HEALTH; // ???
         AESoundManager.RequestNewSound(&s);
     };
-    if (entity->IsVehicle() && entity->AsVehicle()->IsSubPlane()) {
+    if (entity->GetIsTypeVehicle() && entity->AsVehicle()->IsSubPlane()) {
         PlayMiniGunFireStopSound(1.8f, 0.7937f);
     } else {
         PlayMiniGunFireStopSound(1.f, 1.f);

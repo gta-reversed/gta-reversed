@@ -96,7 +96,7 @@ void DisableHeliAudio(CVehicle& vehicle, bool enable) {
 
 bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
     for (auto* const e : vehicle.GetCollidingEntities()) {
-        if (e && (e->IsBuilding() || e->IsVehicle())) {
+        if (e && (e->GetIsTypeBuilding() || e->GetIsTypeVehicle())) {
             return false;
         }
     }

@@ -189,7 +189,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
     assert(v3 == endSectorY);
 
     CWorld::IncrementCurrentScanCode();
-    player->m_nScanCode = GetCurrentScanCode();
+    player->SetCurrentScanCode();
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
@@ -230,10 +230,10 @@ void CInterestingEvents::ScanForNearbyEntities() {
             }
 
             for (auto* const vehicle : rs->Vehicles) {
-                if (vehicle->m_nScanCode == GetCurrentScanCode())
+                if (vehicle->IsScanCodeCurrent())
                     continue;
 
-                vehicle->m_nScanCode = GetCurrentScanCode();
+                vehicle->SetCurrentScanCode();
                 if (vehicle->physicalFlags.bRenderScorched != 0)
                     continue;
 

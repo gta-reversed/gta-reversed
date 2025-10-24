@@ -123,7 +123,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_pTemporaryPassenger = nullptr;
     m_nMaxPassengers = 5;
     physicalFlags.bDisableSimpleCollision = true;
-    m_bUsesCollision = true;
+    SetUsesCollision(true);
     m_nTimeWhenCreated = CTimer::GetTimeInMS();
     field_5C8 = 0;
     m_nTrackId = 0;
@@ -142,7 +142,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_bTunnelTransition = true;
     m_pPrevCarriage = nullptr;
     m_pNextCarriage = nullptr;
-    m_nStatus = STATUS_TRAIN_MOVING;
+    SetStatus(STATUS_TRAIN_MOVING);
     m_autoPilot.m_speed = 0.0f;
     m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
@@ -497,7 +497,7 @@ void CTrain::ProcessControl() {
                 m_fTrainSpeed = -m_fTrainSpeed;
             }
 
-            if (m_nStatus) {
+            if (GetStatus()) {
                 bool bIsStreakModel = trainFlags.bIsStreakModel;
                 auto fStopAtStationSpeed = static_cast<float>(m_autoPilot.m_nCruiseSpeed);
 
@@ -629,7 +629,7 @@ void CTrain::ProcessControl() {
 
             m_fCurrentRailDistance += CTimer::GetTimeStep() * m_fTrainSpeed;
 
-            if (m_nStatus == STATUS_PLAYER) {
+            if (GetStatus() == STATUS_PLAYER) {
 
                 float fTheTrainSpeed = m_fTrainSpeed;
                 if (fTheTrainSpeed < 0.0f) {
@@ -846,13 +846,13 @@ void CTrain::ProcessControl() {
             m_vecTurnSpeed.z = std::clamp(m_vecTurnSpeed.z, -0.1f, 0.1f);
         }
 
-        UpdateRW();
+        UpdateRwMatrix();
         UpdateRwFrame();
         RemoveAndAdd();
 
-        m_bIsStuck = false;
-        m_bWasPostponed = false;
-        m_bIsInSafePosition = true;
+        SetIsStuck(false);
+        SetWasPostponed(false);
+        SetIsInSafePosition(true);
 
         m_fMovingSpeed = DistanceBetweenPoints(GetPosition(), vecOldTrainPosition);
 
@@ -869,12 +869,12 @@ void CTrain::ProcessControl() {
         }
         return;
     } else {
-        if (!m_bIsStuck) {
+        if (!GetIsStuck()) {
             float fMaxForce = 0.003f;
             float fMaxTorque = 0.0009f;
             float fMaxMovingSpeed = 0.005f;
 
-            if (m_nStatus != STATUS_PLAYER) {
+            if (GetStatus() != STATUS_PLAYER) {
                 fMaxForce = 0.006f;
                 fMaxTorque = 0.0015f;
                 fMaxMovingSpeed = 0.015f;
@@ -889,7 +889,7 @@ void CTrain::ProcessControl() {
             if (m_vecForce.SquaredMagnitude() > fMaxForceTimeStep ||
                 m_vecTorque.SquaredMagnitude() > fMaxTorqueTimeStep ||
                 m_fMovingSpeed >= fMaxMovingSpeed ||
-                m_fDamageIntensity > 0.0f && m_pDamageEntity != nullptr && m_pDamageEntity->IsPed()
+                m_fDamageIntensity > 0.0f && m_pDamageEntity != nullptr && m_pDamageEntity->GetIsTypePed()
             ) {
                 m_nFakePhysics = 0;
             } else {

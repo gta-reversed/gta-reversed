@@ -294,7 +294,7 @@ CVehicle* VehicleAudioEntityDebugModule::FindTargetVehicle() const noexcept {
         return veh;
     }
     if (auto* const plyr = FindPlayerPed()) {
-        if (auto* const on = plyr->m_pContactEntity; on && on->IsVehicle()) {
+        if (auto* const on = plyr->m_pContactEntity; on && on->GetIsTypeVehicle()) {
             return on->AsVehicle();
         }
         if (auto* const closest = plyr->GetIntelligence()->GetVehicleScanner().GetClosestVehicleInRange()) {

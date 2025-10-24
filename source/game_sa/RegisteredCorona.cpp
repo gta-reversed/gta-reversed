@@ -21,23 +21,16 @@ void CRegisteredCorona::Update() {
         return;
     }
 
-    const auto fadeStep = uint8(CTimer::GetTimeStep() * m_fFadeSpeed);
+    const auto fadeStep = CTimer::GetTimeStep() * m_fFadeSpeed;
     const auto& camPos = TheCamera.GetPosition();
     if (!m_bCheckObstacles || ((!CCoronas::SunBlockedByClouds || m_dwId != 2)
         && CWorld::GetIsLineOfSightClear(m_vPosn, camPos, true, false, false, false, false, false, false))) {
         if (m_bOffScreen || (m_bOnlyFromBelow && camPos.z > m_vPosn.z)) {
-            m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - fadeStep);
+            m_FadedIntensity = (uint8)(std::max(0.f, (float)(m_FadedIntensity)-fadeStep));
         } else {
-            const auto alpha = m_Color.a;
-
-            if (m_FadedIntensity < alpha) {
-                m_FadedIntensity = std::min<uint8>(alpha, m_FadedIntensity + fadeStep);
-            } else {
-                m_FadedIntensity = std::max<uint8>(alpha, m_FadedIntensity - fadeStep);
-            }
-
+            m_FadedIntensity = (uint8)(notsa::step_to((float)(m_FadedIntensity), (float)(m_Color.a), fadeStep));
             if (CCoronas::bChangeBrightnessImmediately) {
-                m_FadedIntensity = alpha;
+                m_FadedIntensity = m_Color.a;
             }
 
             if (m_dwId == 2) {
@@ -45,7 +38,7 @@ void CRegisteredCorona::Update() {
             }
         }
     } else {
-        m_FadedIntensity = std::max<uint8>(0, m_FadedIntensity - fadeStep);
+        m_FadedIntensity = (uint8)(std::max(0.f, (float)(m_FadedIntensity)-fadeStep));
     }
 
     if (!m_FadedIntensity && !m_bJustCreated) {
@@ -62,7 +55,7 @@ auto CRegisteredCorona::GetPosition() const -> CVector {
     if (!m_pAttachedTo) {
         return m_vPosn;
     }
-    if (m_pAttachedTo->IsVehicle() && m_pAttachedTo->AsVehicle()->IsSubBike()) {
+    if (m_pAttachedTo->GetIsTypeVehicle() && m_pAttachedTo->AsVehicle()->IsSubBike()) {
         return m_pAttachedTo->AsBike()->m_mLeanMatrix.TransformPoint(m_vPosn);
     }
     return m_pAttachedTo->GetMatrix().TransformPoint(m_vPosn);

@@ -137,7 +137,7 @@ void CIplStore::EnableDynamicStreaming(int32 iplSlotIndex, bool enable) {
 eAreaCodes ResolveAreaCode(int32 ec) {
     if (ec == -1) {
         if (const auto player = FindPlayerPed()) {
-            return player->m_nAreaCode;
+            return player->GetAreaCode();
         }
         return (eAreaCodes)CGame::currArea;
     }
@@ -351,15 +351,15 @@ bool CIplStore::LoadIpl(int32 iplSlotIndex, char* data, int32 dataSize) {
     // Anti copy-paste code helper.
     // Finish loading an ObjectInstance
     const auto FinishLoadObjInst = [&](CEntity* obj) {
-        obj->m_nIplIndex = (uint8)iplSlotIndex;
+        obj->SetIplIndex((uint8)iplSlotIndex);
 
         // Assign LOD to `obj` (if set)
-        if (obj->m_nLodIndex == -1) {
-            obj->m_pLod = nullptr;
+        if (obj->GetLodIndex() == -1) {
+            obj->SetLod(nullptr);
         } else {
             assert(pIPLLODEntities);
-            obj->m_pLod = pIPLLODEntities[obj->m_nLodIndex];
-            obj->m_pLod->m_nNumLodChildren++;
+            obj->SetLod(pIPLLODEntities[obj->GetLodIndex()]);
+            obj->GetLod()->AddLodChildren();
         }
 
         obj->Add(); // Add it to the world
@@ -423,14 +423,14 @@ bool CIplStore::LoadIplBoundingBox(int32 iplSlotIndex, char* data, int32 dataSiz
     // Anti copy-paste code helper.
     // Finish loading an ObjectInstance
     const auto FinishLoadObjInst = [&](CEntity* obj) {
-        obj->m_nIplIndex = (uint8)iplSlotIndex;
+        obj->SetIplIndex((uint8)iplSlotIndex);
 
-        if (obj->m_nLodIndex == -1) {
-            obj->m_pLod = nullptr;
+        if (obj->GetLodIndex() == -1) {
+            obj->SetLod(nullptr);
         } else {
             assert(pIPLLODEntities);
-            obj->m_pLod = pIPLLODEntities[obj->m_nLodIndex];
-            obj->m_pLod->m_nNumLodChildren++;
+            obj->SetLod(pIPLLODEntities[obj->GetLodIndex()]);
+            obj->GetLod()->AddLodChildren();
 
             if (ppCurrIplInstance) {
                 *ppCurrIplInstance = obj;
@@ -508,7 +508,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
         if (e->m_pAttachedTo || e->physicalFlags.bDontApplySpeed || e->physicalFlags.b15) {
             return;
         }
-        ms_currentIPLAreaCode = e->m_nAreaCode;
+        ms_currentIPLAreaCode = e->GetAreaCode();
         ms_pQuadTree->ForAllMatching(e->GetPosition2D(), SetIfIplIsRequiredReducedBB);
     };
 
@@ -591,7 +591,7 @@ void CIplStore::RemoveIpl(int32 iplSlotIndex) {
             if (!entity)
                 continue;
 
-            if (entity->m_nIplIndex == iplSlotIndex) {
+            if (entity->GetIplIndex() == iplSlotIndex) {
                 if constexpr (std::is_same_v<PoolT, CObjectPool>) {
                     if (entity->m_pDummyObject) {
                         CWorld::Add(entity->m_pDummyObject);

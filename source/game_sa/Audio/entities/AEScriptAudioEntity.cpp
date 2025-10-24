@@ -723,7 +723,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_GARAGE_DOOR_CLOSING);
         break;
     case AE_CAS9_AD:
-        if (CLocalisation::Blood() && physical && physical->IsPed()) {
+        if (CLocalisation::Blood() && physical && physical->GetIsTypePed()) {
             physical->AsPed()->GetAE().AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, physical, 0, 0, 0);
         }
         break;

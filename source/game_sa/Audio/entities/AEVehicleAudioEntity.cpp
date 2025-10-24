@@ -68,7 +68,7 @@ CAEVehicleAudioEntity::~CAEVehicleAudioEntity() {
 
 // 0x4F7670
 void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
-    assert(entity && entity->IsVehicle());
+    assert(entity && entity->GetIsTypeVehicle());
 
     m_TimeLastServiced            = 0;
     m_Entity                      = entity;
@@ -114,7 +114,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_MovingPartSmoothedSpeed     = 0.0f;
     m_FadeIn                      = 1.0f;
     m_FadeOut                     = 0.0f;
-    m_AuSettings                  = GetVehicleAudioSettings(entity->m_nModelIndex - MODEL_VEHICLE_FIRST);
+    m_AuSettings                  = GetVehicleAudioSettings(entity->GetModelIndex() - MODEL_VEHICLE_FIRST);
     m_HasSiren                    = entity->AsVehicle()->UsesSiren();
 
     for (uint32 i = 0; auto& es : m_EngineSounds) {
@@ -137,7 +137,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
         MODEL_MOWER,
         MODEL_SWEEPER,
         MODEL_TUG,
-    }, entity->GetModelID());
+    }, entity->GetModelId());
 
     switch (m_AuSettings.VehicleAudioType) {
     case AE_CAR: {
@@ -385,7 +385,7 @@ bool CAEVehicleAudioEntity::DoesBankSlotContainThisBank(eSoundBankSlot bankSlot,
 #pragma region Helpers
 // 0x4F5C40
 bool CAEVehicleAudioEntity::CopHeli() const noexcept {
-    const auto modelIndex = m_Entity->m_nModelIndex;
+    const auto modelIndex = m_Entity->GetModelIndex();
     return modelIndex == MODEL_MAVERICK || modelIndex == MODEL_VCNMAV;
 }
 
@@ -1257,7 +1257,7 @@ constexpr float CAEVehicleAudioEntity::GetDummyIdleRatioProgress(float ratio) {
 
 // 0x4F51F0
 float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio) const noexcept {
-    if (GetVehicle()->GetModelID() == MODEL_CADDY) {
+    if (GetVehicle()->GetModelId() == MODEL_CADDY) {
         return s_Config.DummyEngine.ID.VolumeBase - 30.0f;
     }
 
@@ -1285,7 +1285,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio)
 
 // 0x4F5310
 float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float ratio, float fadeRatio) const noexcept {
-    if (GetVehicle()->m_nModelIndex == MODEL_CADDY) {
+    if (GetVehicle()->GetModelIndex() == MODEL_CADDY) {
         return 1.0f;
     }
 
@@ -1941,7 +1941,7 @@ void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, 
     if (m_IsWreckedVehicle || !m_HasSiren || !vp.Vehicle->vehicleFlags.bSirenOrAlarm) {
         isSirenOn = false;
     } else if (isSirenOn = (vp.Vehicle->GetStatus() != STATUS_ABANDONED)) {
-        isFastSirenOn = vp.Vehicle->m_HornCounter && vp.Vehicle->m_nModelIndex != MODEL_MRWHOOP;
+        isFastSirenOn = vp.Vehicle->m_HornCounter && vp.Vehicle->GetModelIndex() != MODEL_MRWHOOP;
     }
 }
 
@@ -2055,7 +2055,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
     if (isSirenOn && !isFastSirenOn) {
         if ((!m_IsSirenOn || m_IsFastSirenOn) && !m_SirenSound) {
             if (areHornSoundsLoaded) {
-                const auto isMrWhoop = vp.Vehicle->GetModelID() == MODEL_MRWHOOP;
+                const auto isMrWhoop = vp.Vehicle->GetModelId() == MODEL_MRWHOOP;
                 if (isMrWhoop && !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_ICEVAN_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) { // 0x4F9CCD
                     return;
                 }
@@ -2273,7 +2273,7 @@ void CAEVehicleAudioEntity::ProcessVehicleFlatTyre(tVehicleParams& vp) {
     const auto spinning = [&]{
         switch (m_AuSettings.VehicleAudioType) {
         case AE_SPECIAL: {
-            if (vp.Vehicle->m_nModelIndex != MODEL_CADDY) {
+            if (vp.Vehicle->GetModelIndex() != MODEL_CADDY) {
                 return false;
             }
             [[fallthrough]];
@@ -2327,7 +2327,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& vp) {
 
     // 0x4F8B47
     bool cancel = false;
-    switch (vp.Vehicle->m_nModelIndex) {
+    switch (vp.Vehicle->GetModelIndex()) {
     case MODEL_ARTICT1:
     case MODEL_ARTICT2:
     case MODEL_PETROTR:
@@ -2519,7 +2519,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
     auto* const a = vp.Vehicle->AsAutomobile();
     const auto* const cfg = &s_Config.MovingParts;
 
-    switch (vp.Vehicle->m_nModelIndex) {
+    switch (vp.Vehicle->GetModelIndex()) {
     case MODEL_PACKER:
     case MODEL_DOZER:
     case MODEL_DUMPER:
@@ -2539,7 +2539,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
         true
     );
 
-    const auto* const props   = &cfg->PropsByModel.at(vp.Vehicle->GetModelID());
+    const auto* const props   = &cfg->PropsByModel.at(vp.Vehicle->GetModelId());
     const auto        slot    = props->Slot.value_or(m_DummySlot);
     const auto* const params = &props->SoundParamsByPartDir[delta <= 0.f ? 0 : 1];
 
@@ -2568,7 +2568,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
         case AE_SOUND_CAR_REV:
             return lerp(cfg.Rev.VolMin, cfg.Rev.VolMax, vp.RealRevsRatio);
         case AE_SOUND_CAR_ID:
-            return vp.Vehicle->m_nModelIndex == MODEL_CADDY
+            return vp.Vehicle->GetModelIndex() == MODEL_CADDY
                 ? cfg.ID.VolMin - 30.f
                 : lerp(cfg.ID.VolMin, cfg.ID.VolMax, vp.RealRevsRatio);
         case AE_SOUND_PLAYER_CRZ:
@@ -2613,7 +2613,7 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
     auto* const cfg = &s_Config.PlayerEngine;
 
     float f;
-    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelID() == MODEL_CADDY) { // Moved out here to simplify logic...
+    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelId() == MODEL_CADDY) { // Moved out here to simplify logic...
         f = 0.f;
     } else {
         // 0x4F80A6 - Calculate z move speed factor
@@ -3182,7 +3182,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
             JustWreckedVehicle();
         } else if (m_IsPlayerDriver) {
             ProcessPlayerHeli(params);
-        } else if (vehicle->m_nStatus == STATUS_PHYSICS) {
+        } else if (vehicle->GetStatus() == STATUS_PHYSICS) {
             ProcessAIHeli(params);
         } else {
             ProcessDummyHeli(params);
@@ -3190,7 +3190,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
         break;
     }
     case AE_AIRCRAFT_PLANE: {
-        switch (vehicle->m_nModelIndex) {
+        switch (vehicle->GetModelIndex()) {
         case MODEL_SHAMAL:
         case MODEL_HYDRA:
         case MODEL_AT400:
@@ -3205,7 +3205,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
         default: {
             if (m_IsPlayerDriver) {
                 ProcessPlayerProp(params);
-            } else if (vehicle->m_nStatus == STATUS_PHYSICS || vehicle->m_autoPilot.m_vehicleRecordingId >= 0) {
+            } else if (vehicle->GetStatus() == STATUS_PHYSICS || vehicle->m_autoPilot.m_vehicleRecordingId >= 0) {
                 ProcessAIProp(params);
             } else {
                 ProcessDummyProp(params);
@@ -4548,11 +4548,11 @@ void CAEVehicleAudioEntity::StopNonEngineSounds() noexcept {
 // 0x501E10
 void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
     auto* const vehicle        = physical->AsVehicle();
-    const auto  isStatusSimple = vehicle->m_nStatus == STATUS_SIMPLE;
+    const auto  isStatusSimple = vehicle->GetStatus() == STATUS_SIMPLE;
 
     tVehicleParams vp{};
     vp.Vehicle               = vehicle;
-    vp.ModelIndexMinusOffset = physical->m_nModelIndex - 400;
+    vp.ModelIndexMinusOffset = physical->GetModelIndex() - MODEL_VEHICLE_FIRST;
     vp.BaseVehicleType       = vehicle->m_nVehicleType;
     vp.SpecificVehicleType   = vehicle->m_nVehicleSubType;
     vp.Transmission          = vehicle->m_pHandlingData
@@ -4601,7 +4601,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
 
         ProcessMovingParts(vp);
 
-        if (vp.Vehicle->m_nModelIndex == MODEL_COMBINE) {
+        if (vp.Vehicle->GetModelIndex() == MODEL_COMBINE) {
             ProcessPlayerCombine(vp);
         }
 

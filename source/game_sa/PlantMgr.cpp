@@ -523,7 +523,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     while (nextEntry) {
         auto* curEntry = nextEntry; // ReleaseEntry() Overwrites m_NextEntry pointer, we need to keep track of it before that can happen
         nextEntry      = curEntry->m_NextEntry;
-        if (!curEntry->m_Entity || _CalcDistanceSqrToEntity(curEntry->m_Entity, cameraPos) > PROC_OBJECTS_MAX_DISTANCE_SQUARED || !curEntry->m_Entity->IsInCurrentAreaOrBarberShopInterior()) {
+        if (!curEntry->m_Entity || _CalcDistanceSqrToEntity(curEntry->m_Entity, cameraPos) > PROC_OBJECTS_MAX_DISTANCE_SQUARED || !curEntry->m_Entity->IsInCurrentArea()) {
             curEntry->ReleaseEntry();
         }
     }
@@ -534,7 +534,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     CWorld::IncrementCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
         for (auto* const item : GetSector(x, y)->m_buildings) {
-            if (item->m_bIsProcObject || item->IsScanCodeCurrent() || !item->IsInCurrentAreaOrBarberShopInterior())
+            if (item->m_bIsProcObject || item->IsScanCodeCurrent() || !item->IsInCurrentArea())
                 continue;
 
             if (auto mi = item->GetModelInfo(); mi->GetModelType() == MODEL_INFO_ATOMIC && mi->bAtomicFlag0x200) {

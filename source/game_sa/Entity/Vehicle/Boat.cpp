@@ -223,10 +223,9 @@ void CBoat::AddWakePoint(CVector pos) {
         return;
     }
 
-    // Determine max wake points based on entity status
-    uint16 uiMaxWakePoints = 31;
-    if (m_nStatus != eEntityStatus::STATUS_PLAYER) {
-        if (m_nCreatedBy == eVehicleCreatedBy::MISSION_VEHICLE) {
+    int16 uiMaxWakePoints = 31;
+    if (GetStatus() != STATUS_PLAYER) {
+        if (m_nCreatedBy == eVehicleCreatedBy::MISSION_VEHICLE)
             uiMaxWakePoints = 20;
         } else {
             uiMaxWakePoints = 15;
@@ -485,7 +484,7 @@ void CBoat::FillBoatList() {
             }
         }
 
-        if (iNewInd != -1 && (fDistFromCam < fMinDist || boat->m_nStatus == eEntityStatus::STATUS_PLAYER)) {
+        if (iNewInd != -1 && (fDistFromCam < fMinDist || boat->GetStatus() == STATUS_PLAYER)) {
             apFrameWakeGeneratingBoats[iNewInd] = boat;
         }
     }
@@ -527,7 +526,7 @@ void CBoat::ProcessControl() {
     CVehicle::UpdateClumpAlpha();
     CVehicle::ProcessCarAlarm();
 
-    switch (m_nStatus) {
+    switch (GetStatus()) {
     case eEntityStatus::STATUS_PLAYER:
         m_nBoatFlags.bLockedToXY = false;
         m_LockedHeading = -10000.0f;
@@ -576,9 +575,7 @@ void CBoat::ProcessControl() {
         break;
     }
 
-    if (m_nStatus == eEntityStatus::STATUS_PLAYER
-        || m_nStatus == eEntityStatus::STATUS_REMOTE_CONTROLLED
-        || m_nStatus == eEntityStatus::STATUS_PHYSICS) {
+    if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED || GetStatus() == STATUS_PHYSICS) {
         auto fSTDPropSpeed = 0.0F;
         auto fROCPropSpeed = CPlane::PLANE_ROC_PROP_SPEED;
         if (m_nModelIndex == MODEL_SKIMMER) {
@@ -601,9 +598,9 @@ void CBoat::ProcessControl() {
     }
 
     auto fDamagePower = m_fDamageIntensity * m_pHandlingData->m_fCollisionDamageMultiplier;
-    if (fDamagePower > 25.0F && m_nStatus != eEntityStatus::STATUS_WRECKED && m_fHealth >= 250.0F) {
+    if (fDamagePower > 25.0F && GetStatus() != STATUS_WRECKED && m_fHealth >= 250.0F) {
         auto fSavedHealth = m_fHealth;
-        if (m_nStatus == eEntityStatus::STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.0F) {
+        if (GetStatus() == STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.0F)
             fDamagePower *= 0.5F;
         }
 
@@ -627,7 +624,7 @@ void CBoat::ProcessControl() {
         }
     }
 
-    if (m_fHealth > 460.0F || m_nStatus == eEntityStatus::STATUS_WRECKED) {
+    if (m_fHealth > 460.0F || GetStatus() == STATUS_WRECKED) {
         m_BlowUpTimer = 0.0F;
         FxSystem_c::SafeKillAndClear(m_pFireParticle);
     } else {
@@ -661,7 +658,7 @@ void CBoat::ProcessControl() {
 
     auto bPostCollision = m_fDamageIntensity > 0.0F && m_vecLastCollisionImpactVelocity.z > 0.1F;
     CPhysical::ProcessControl();
-    ProcessBoatControl(m_BoatHandling, &m_PrevVolume, m_bHasHitWall, bPostCollision);
+    ProcessBoatControl(m_BoatHandling, &m_PrevVolume, GetHasHitWall(), bPostCollision);
 
     if (m_nModelIndex == MODEL_SKIMMER
         && (m_EngineSpeed > CPlane::PLANE_MIN_PROP_SPEED || m_vecMoveSpeed.SquaredMagnitude() > CPlane::PLANE_MIN_PROP_SPEED)) {
@@ -1016,7 +1013,7 @@ void CBoat::BlowUpCar(CEntity* culprit, bool inACutscene) {
     }
 
     physicalFlags.bRenderScorched = true;
-    m_nStatus = eEntityStatus::STATUS_WRECKED;
+    SetStatus(STATUS_WRECKED);
     CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
     m_vecMoveSpeed.z += 0.13F;
     m_fHealth = 0.0F;
