@@ -67,20 +67,24 @@ void CAEWaterCannonAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayP
 }
 
 // 0x502F80
-void CAEWaterCannonAudioEntity::UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, eSoundBankSlot bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance) {
+void CAEWaterCannonAudioEntity::UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, eSoundBankSlot bankSlotId, int16 sfxId, float speed, float volume, CVector pos, float rollOff) {
     auto& sound = m_Sounds[id];
     if (splashInfoEnabled) {
         if (sound) {
             sound->m_Volume = volume;
             sound->m_Speed = speed;
-            sound->SetPosition(posn);
+            sound->SetPosition(pos);
         } else {
-            m_tempSound.Initialise(bankSlotId, sfxId, this, posn, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-            m_tempSound.m_Volume = volume;
-            m_tempSound.m_RollOffFactor = soundDistance;
-            m_tempSound.m_Speed = speed;
-            m_tempSound.m_Flags = SOUND_REQUEST_UPDATES;
-            sound = AESoundManager.RequestNewSound(&m_tempSound);
+            sound = AESoundManager.PlaySound({
+                .BankSlotID      = bankSlotId,
+                .SoundID         = sfxId,
+                .AudioEntity     = this,
+                .Pos             = pos,
+                .Volume          = volume,
+                .RollOffFactor   = rollOff,
+                .Speed           = speed,
+                .Flags           = SOUND_REQUEST_UPDATES,
+            });
         }
 
         return;
