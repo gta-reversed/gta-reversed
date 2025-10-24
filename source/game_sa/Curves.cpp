@@ -14,14 +14,14 @@ void CCurves::InjectHooks() {
 }
 
 // 0x43C610
-float CCurves::DistForLineToCrossOtherLine(float LineBaseX, float LineBaseY, float LineDirX, float LineDirY, float OtherLineBaseX, float OtherLineBaseY, float OtherLineDirX, float OtherLineDirY) {
-    float Dir = LineDirX * OtherLineDirY - LineDirY * OtherLineDirX;
+float CCurves::DistForLineToCrossOtherLine(float lineBaseX, float lineBaseY, float lineDirX, float lineDirY, float otherLineBaseX, float otherLineBaseY, float otherLineDirX, float otherLineDirY) {
+    float Dir = lineDirX * otherLineDirY - lineDirY * otherLineDirX;
 
     if (Dir == 0.0f) {
         return -1.0f; // Lines are parallel, no intersection
     }
 
-    float Dist           = (LineBaseX - OtherLineBaseX) * OtherLineDirY - (LineBaseY - OtherLineBaseY) * OtherLineDirX;
+    float Dist           = (lineBaseX - otherLineBaseX) * otherLineDirY - (lineBaseY - otherLineBaseY) * otherLineDirX;
     float DistOfCrossing = -Dist / Dir;
 
     return DistOfCrossing;
@@ -31,13 +31,13 @@ float CCurves::DistForLineToCrossOtherLine(float LineBaseX, float LineBaseY, flo
 float CCurves::CalcSpeedVariationInBend(
     const CVector& startCoors,
     const CVector& endCoors,
-    float            StartDirX,
-    float            StartDirY,
-    float            EndDirX,
-    float            EndDirY
+    float          startDirX,
+    float          startDirY,
+    float          endDirX,
+    float          endDirY
 ) {
     float ReturnVal  = 0.0f;
-    float DotProduct = StartDirX * EndDirX + StartDirY * EndDirY;
+    float DotProduct = startDirX * endDirX + startDirY * endDirY;
 
     if (DotProduct <= 0.0f) {
         // If the dot product is <= 0, return a constant value (1/3)
@@ -48,7 +48,7 @@ float CCurves::CalcSpeedVariationInBend(
     if (DotProduct > 0.7f) {
         // Calculate the distance from the start point to the mathematical line defined by the end point and direction
         float DistToLine =
-            CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, EndDirX, EndDirY, startCoors.x, startCoors.y);
+            CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, endDirX, endDirY, startCoors.x, startCoors.y);
 
         // Calculate the straight-line distance between the start and end points
         float StraightDist = (startCoors - endCoors).Magnitude2D();
@@ -68,38 +68,49 @@ float CCurves::CalcSpeedVariationInBend(
 float CCurves::CalcSpeedScaleFactor(
     const CVector& startCoors,
     const CVector& endCoors,
-    float            StartDirX,
-    float            StartDirY,
-    float            EndDirX,
-    float            EndDirY
+    float          startDirX,
+    float          startDirY,
+    float          endDirX,
+    float          endDirY
 ) {
-    float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, StartDirX, StartDirY, EndDirX, EndDirY);
+    float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDirX, startDirY, endDirX, endDirY);
 
     float DistToPoint1   = DistForLineToCrossOtherLine(
-        startCoors.x, startCoors.y, StartDirX, StartDirY, endCoors.x, endCoors.y, EndDirX, EndDirY
+        startCoors.x, startCoors.y, startDirX, startDirY, endCoors.x, endCoors.y, endDirX, endDirY
     );
 
     float DistToPoint2 = DistForLineToCrossOtherLine(
-        endCoors.x, endCoors.y, -EndDirX, -EndDirY, startCoors.x, startCoors.y, StartDirX, StartDirY
+        endCoors.x, endCoors.y, -endDirX, -endDirY, startCoors.x, startCoors.y, startDirX, startDirY
     );
 
+    float StraightDist1;
+    float StraightDist2;
+    float BendDist;
+    float BendDist_Time;
+    float BendDistOneSegment;
+    float TotalDist_Time;
+
     if (DistToPoint1 > 0.0f && DistToPoint2 > 0.0f) {
-        float BendDistOneSegment = std::min(5.0f, std::min(DistToPoint1, DistToPoint2));
+        BendDistOneSegment = std::min(DistToPoint1, DistToPoint2);
+        BendDistOneSegment = std::min(5.0f, BendDistOneSegment);
 
-        float StraightDist1      = DistToPoint1 - BendDistOneSegment;
-        float StraightDist2      = DistToPoint2 - BendDistOneSegment;
+        StraightDist1      = DistToPoint1 - BendDistOneSegment;
+        StraightDist2      = DistToPoint2 - BendDistOneSegment;
 
-        float BendDist           = BendDistOneSegment + BendDistOneSegment;
-        float BendDist_Time      = (BendDistOneSegment <= 5.0f) ? BendDist : BendDistOneSegment + BendDistOneSegment;
+        BendDist           = 2.0f * BendDistOneSegment;
 
-        // float TotalDist_Time = BendDist_Time + StraightDist1 + StraightDist2;
+        TotalDist_Time     = BendDist;
+    } else {
+        BendDist       = (startCoors - endCoors).Magnitude2D();
+        BendDist_Time  = 1.0f - SpeedVariation;
 
-        return BendDistOneSegment + BendDistOneSegment + StraightDist2 + StraightDist1;
+        StraightDist1  = 0.0f;
+        StraightDist2  = 0.0f;
+
+        TotalDist_Time = BendDist / BendDist_Time;
     }
 
-    float StraightDist   = (startCoors - endCoors).Magnitude2D();
-    float TotalDist_Time = StraightDist / (1.0f - SpeedVariation);
-    return TotalDist_Time;
+    return TotalDist_Time + StraightDist1 + StraightDist2;
 }
 
 // 0x43C880
@@ -119,12 +130,12 @@ float CCurves::CalcCorrectedDist(float current, float total, float speedVariatio
 }
 
 // 0x43C900
-void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float Time, int32 TraverselTimeInMillis, CVector& resultCoor, CVector& resultSpeed) {
+void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float time, int32 traverselTimeInMS, CVector& resultCoor, CVector& resultSpeed) {
     float     BendDist, BendDist_Time, CurrentDist_Time, Interpol, StraightDist2, StraightDist1, TotalDist_Time, OurTime;
     float     BendDistOneSegment;
     CVector CoorsOnLine1, CoorsOnLine2;
 
-    Time = std::min(std::min(1.0f, Time), 0.0f);
+    time = std::max(0.0f, std::min(1.0f, time));
 
     float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDir.x, startDir.y, endDir.x, endDir.y);
 
@@ -144,7 +155,7 @@ void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors,
 
         Interpol         = StraightDist1 / (1.0f - SpeedVariation);
 
-        CurrentDist_Time = CalcCorrectedDist(Time * Interpol, Interpol, SpeedVariation, &OurTime);
+        CurrentDist_Time = CalcCorrectedDist(time * Interpol, Interpol, SpeedVariation, &OurTime);
 
         CoorsOnLine1     = startCoors + startDir * CurrentDist_Time;
         CoorsOnLine2     = endCoors + endDir * (CurrentDist_Time - StraightDist1);
@@ -162,7 +173,7 @@ void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors,
         BendDist           = DistToPoint1 - StraightDist2;
         BendDistOneSegment = DistToPoint2 - StraightDist2;
         TotalDist_Time     = BendDist + (StraightDist2 + StraightDist2) + BendDistOneSegment;
-        BendDist_Time      = Time * TotalDist_Time;
+        BendDist_Time      = time * TotalDist_Time;
 
         if (BendDist > BendDist_Time) {
             resultCoor.x = startCoors.x + BendDist_Time * startDir.x;
@@ -185,11 +196,11 @@ void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors,
         }
     }
 
-    float SpeedFactor       = (1.0f - Time) * TotalDist_Time;
-    float SpeedMillisFactor = static_cast<float>(TraverselTimeInMillis) / 1000.0f;
+    float SpeedFactor       = (1.0f - time) * TotalDist_Time;
+    float SpeedMillisFactor = static_cast<float>(traverselTimeInMS) / 1000.0f;
 
-    resultSpeed.x = ((Time * endDir.x) + ((1.0f - Time) * startDir.x)) * SpeedFactor / SpeedMillisFactor;
-    resultSpeed.y = ((Time * endDir.y) + ((1.0f - Time) * startDir.y)) * SpeedFactor / SpeedMillisFactor;
+    resultSpeed.x = ((time * endDir.x) + ((1.0f - time) * startDir.x)) * SpeedFactor / SpeedMillisFactor;
+    resultSpeed.y = ((time * endDir.y) + ((1.0f - time) * startDir.y)) * SpeedFactor / SpeedMillisFactor;
     resultSpeed.z = 0.0f;
 }
 
@@ -205,9 +216,7 @@ void CCurves::TestCurves() {
         {
             // Test case 1: Lines intersect
             {
-                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 1.0f, 1.0f,  // Line 1: base (0,0), direction (1,1)
-                    1.0f, 0.0f, -1.0f, 1.0f                                       // Line 2: base (1,0), direction (-1,1)
-                );
+                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
 
                 // 0.5
                 assert(FLOAT_EQUAL(result, 0.5f));  // Expected distance to crossing
@@ -215,9 +224,7 @@ void CCurves::TestCurves() {
 
             // Test case 2: Lines are parallel (no intersection)
             {
-                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 1.0f, 1.0f,  // Line 1: base (0,0), direction (1,1)
-                    1.0f, 1.0f, 1.0f, 1.0f                                        // Line 2: base (1,1), direction (1,1)
-                );
+                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
                 // -1
                 assert(FLOAT_EQUAL(result, -1.0f));  // Expected -1 for parallel lines
@@ -225,9 +232,7 @@ void CCurves::TestCurves() {
 
             // Test case 3: Lines intersect at a point
             {
-                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 2.0f, 2.0f,  // Line 1: base (0,0), direction (2,2)
-                    0.0f, 4.0f, 2.0f, -2.0f                                       // Line 2: base (0,4), direction (2,-2)
-                );
+                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 2.0f, 2.0f, 0.0f, 4.0f, 2.0f, -2.0f);
 
                 // 1.0
                 assert(FLOAT_EQUAL(result, 1.0f));  // Expected distance to crossing
@@ -235,9 +240,7 @@ void CCurves::TestCurves() {
 
             // Test case 4: Lines are coincident (infinite intersections)
             {
-                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 1.0f, 1.0f,  // Line 1: base (0,0), direction (1,1)
-                    1.0f, 1.0f, 2.0f, 2.0f                                        // Line 2: base (1,1), direction (2,2)
-                );
+                float result = DistForLineToCrossOtherLine(0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 2.0f, 2.0f);
 
                 // -1
                 assert(FLOAT_EQUAL(result, -1.0f));  // Expected -1 for coincident lines
@@ -245,10 +248,7 @@ void CCurves::TestCurves() {
 
             // Test case 5: Lines with large numbers
             {
-                float result = DistForLineToCrossOtherLine(
-                    2500.5f, 1500.0f, 3.5f, 2.5f,  // Line 1: base (2500.5,1500), direction (3.5,2.5)
-                    3000.0f, 2000.0f, -4.0f, 3.0f  // Line 2: base (3000,2000), direction (-4,3)
-                );
+                float result = DistForLineToCrossOtherLine(2500.5f, 1500.0f, 3.5f, 2.5f, 3000.0f, 2000.0f, -4.0f, 3.0f);
 
                 // Should still give a reasonable intersection distance
                 assert(FLOAT_EQUAL(result, 170.658539f));  // Expected distance to crossing
@@ -463,7 +463,7 @@ void CCurves::TestCurves() {
                     FLOAT_EQUAL(resultCoor.z, 0.0f) && "Test Case 3 Failed: Incorrect curve point.");
             }
 
-            // Test Case 4: CalcCurvePoint - Time = 0.0 (Start Point)
+            // Test Case 4: CalcCurvePoint - time = 0.0 (Start Point)
             {
                 CVector startCoors(0.0f, 0.0f, 0.0f);
                 CVector endCoors(1.0f, 1.0f, 0.0f);
@@ -477,7 +477,7 @@ void CCurves::TestCurves() {
                     FLOAT_EQUAL(resultCoor.z, 0.0f) && "Test Case 4 Failed: Incorrect curve point.");
             }
 
-            // Test Case 5: CalcCurvePoint - Time = 1.0 (End Point)
+            // Test Case 5: CalcCurvePoint - time = 1.0 (End Point)
             {
                 CVector startCoors(0.0f, 0.0f, 0.0f);
                 CVector endCoors(1.0f, 1.0f, 0.0f);
@@ -532,7 +532,7 @@ void CCurves::TestCurves() {
                 assert(FLOAT_EQUAL(correctedDist, 0.25f) && FLOAT_EQUAL(interpol, 0.5f) &&
                     "Test Case 1 Failed: Corrected distance out of range.");
             }
-            // Test Case 2: CalcCorrectedDist - Start of Curve (Time = 0.0)
+            // Test Case 2: CalcCorrectedDist - Start of Curve (time = 0.0)
             {
                 float interpol = 0.0f;
                 float correctedDist = CalcCorrectedDist(0.0f, 1.0f, 0.5f, &interpol);
@@ -541,7 +541,7 @@ void CCurves::TestCurves() {
                     "Test Case 2 Failed: Corrected distance should be 0.0 at the start.");
             }
 
-            // Test Case 3: CalcCorrectedDist - End of Curve (Time = 1.0)
+            // Test Case 3: CalcCorrectedDist - End of Curve (time = 1.0)
             {
                 float interpol = 0.0f;
                 float correctedDist = CalcCorrectedDist(1.0f, 1.0f, 0.5f, &interpol);
