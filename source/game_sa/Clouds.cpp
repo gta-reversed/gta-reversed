@@ -215,7 +215,7 @@ int32 CClouds::MovingFog_GetFirstFreeSlot() {
 void CClouds::MovingFogRender() {
     ZoneScoped;
 
-    if (MovingFog_GetFXIntensity() == 0.f || !CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD)
+    if (MovingFog_GetFXIntensity() == 0.f || !CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
         return;
 
     // Adjust fog intensity

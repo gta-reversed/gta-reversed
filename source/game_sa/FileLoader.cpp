@@ -18,6 +18,7 @@
 #include "PedStats.h"
 #include "LoadingScreen.h"
 #include "Garages.h"
+#include "Glass.h"
 
 #define CHECK_ARG_COUNT(_l, _expected, _n) \
     do { \
@@ -1023,14 +1024,14 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
             newEntity->m_bDontCastShadowsOn = true;
 
         if (mi->m_fDrawDistance < 2.0F)
-            newEntity->m_bIsVisible = false;
+            newEntity->SetIsVisible(false);
     }
     else
     {
         newEntity = new CDummyObject();
         newEntity->SetModelIndexNoCreate(objInstance->m_nModelId);
-        if (IsGlassModel(newEntity) && !CModelInfo::GetModelInfo(newEntity->m_nModelIndex)->IsGlassType2()) {
-            newEntity->m_bIsVisible = false;
+        if (CGlass::IsObjectGlass(newEntity) && !CModelInfo::GetModelInfo(newEntity->m_nModelIndex)->IsGlassType2()) {
+            newEntity->SetIsVisible(false);
         }
     }
 
@@ -1057,9 +1058,9 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
     newEntity->m_bUnderwater        |= objInstance->m_bUnderwater;
     newEntity->m_bTunnel            |= objInstance->m_bTunnel;
     newEntity->m_bTunnelTransition  |= objInstance->m_bTunnelTransition;
-    newEntity->m_bUnimportantStream |= objInstance->m_bRedundantStream;
-    newEntity->m_nAreaCode           = static_cast<eAreaCodes>(objInstance->m_nAreaCode);
-    newEntity->m_nLodIndex           = objInstance->m_nLodInstanceIndex;
+    newEntity->SetIsUnimportantStream(objInstance->m_bRedundantStream);
+    newEntity->SetAreaCode(static_cast<eAreaCodes>(objInstance->m_nAreaCode));
+    newEntity->SetLodIndex(objInstance->m_nLodInstanceIndex);
 
     if (objInstance->m_nModelId == ModelIndices::MI_TRAINCROSSING)
     {
@@ -1079,7 +1080,7 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
         }
         else
         {
-            newEntity->m_bUsesCollision = false;
+            newEntity->SetUsesCollision(false);
         }
 
         if (cm->GetBoundingBox().m_vecMin.z + newEntity->GetPosition().z < 0.0f)
@@ -1954,17 +1955,18 @@ void CFileLoader::LoadZone(const char* line) {
 }
 
 // 0x5B51E0
+// orig AddBuildingInstancesToWorld ?
 void LinkLods(int32 numRelatedIPLs) {
     // Link LODs
     for (auto& building : GetLoadedBuildings()) {
-        const auto idx = building->m_nLodIndex;
+        const auto idx = building->GetLodIndex();
         const auto lod = idx != -1
             ? GetLoadedBuildings()[idx]
             : nullptr;
         if (idx != -1) {
-            lod->m_nNumLodChildren++;
+            lod->AddLodChildren();
         }
-        building->m_pLod = lod;
+        building->SetLod(lod);
     }
 
     // Load related IPLs (?)
@@ -1990,15 +1992,15 @@ void LinkLods(int32 numRelatedIPLs) {
         }
 
         // 0x5B5285
-        if (building->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) {
+        if (building->GetNumLodChildren() || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) {
             building->SetupBigBuilding();
         }
 
         // 0x5B5293 - Now handle the collision model for the building/lod
-        if (const auto lod = building->m_pLod) {
+        if (const auto lod = building->GetLod()) {
             const auto mi = building->GetModelInfo(),
                 lodMI = lod->GetModelInfo();
-            if (lod->m_nNumLodChildren == 1) {
+            if (lod->GetNumLodChildren() == 1) {
                 lod->m_bUnderwater |= building->m_bUnderwater;
                 if (const auto cm = mi->GetColModel()) {
                     if (cm != lodMI->GetColModel()) {
@@ -2009,8 +2011,8 @@ void LinkLods(int32 numRelatedIPLs) {
             } else if (mi->bDoWeOwnTheColModel) {
                 mi->m_fDrawDistance = 400.f;
             } else {
-                lod->m_nNumLodChildren--;
-                building->m_pLod = nullptr;
+                lod->RemoveLodChildren();
+                building->SetLod(nullptr);
             }
         }
     }

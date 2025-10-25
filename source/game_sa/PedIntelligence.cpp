@@ -469,9 +469,9 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
     if (const auto tSimpleHoldEntity = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
         objectToHold = (CObject*)tSimpleHoldEntity->m_pEntityToHold;
         if (objectToHold) {
-            if (objectToHold->IsObject()) {
+            if (objectToHold->GetIsTypeObject()) {
                 objectType = objectToHold->m_nObjectType;
-                bIsEntityVisible = objectToHold->m_bIsVisible;
+                bIsEntityVisible = objectToHold->GetIsVisible();
             }
             taskSimpleHoldEntityCloned = (CTaskSimpleHoldEntity*)tSimpleHoldEntity->Clone();
         }
@@ -501,7 +501,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
     if (taskSimpleHoldEntityCloned) {
         if (objectType != -1) {
             objectToHold->m_nObjectType = objectType;
-            objectToHold->m_bIsVisible  = bIsEntityVisible;
+            objectToHold->SetIsVisible(bIsEntityVisible);
         }
         m_TaskMgr.SetTaskSecondary(taskSimpleHoldEntityCloned, TASK_SECONDARY_PARTIAL_ANIM);
         taskSimpleHoldEntityCloned->ProcessPed(m_pPed);
@@ -555,7 +555,7 @@ void CPedIntelligence::ProcessAfterProcCol() {
         }
 
         if (bPositionSet) {
-            m_pPed->UpdateRW();
+            m_pPed->UpdateRwMatrix();
             m_pPed->UpdateRwFrame();
         }
     }
@@ -846,7 +846,7 @@ bool CPedIntelligence::IsPedGoingForCarDoor() {
 // should be (const CEntity* entity, bool unused)
 // 0x605550
 float CPedIntelligence::CanSeeEntityWithLights(CEntity* entity, int32 unUsed) {
-    if (!entity->IsPed())
+    if (!entity->GetIsTypePed())
         return LIGHT_AI_LEVEL_MAX;
 
     CPed* ped = entity->AsPed();
@@ -931,7 +931,7 @@ void CPedIntelligence::ProcessFirst() {
     if (m_pPed->m_fDamageIntensity > 0.0f)
     {
         CEntity* damageEntity = m_pPed->m_pDamageEntity;
-        if (damageEntity && !damageEntity->IsPed()) {
+        if (damageEntity && !damageEntity->GetIsTypePed()) {
             if (DotProduct(m_pPed->m_vecLastCollisionImpactVelocity, m_pPed->GetForward()) < -0.5f)
                 m_pPed->bPedHitWallLastFrame = true;
         }

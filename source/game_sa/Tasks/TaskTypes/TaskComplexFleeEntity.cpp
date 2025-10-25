@@ -96,7 +96,7 @@ CTask* CTaskComplexFleeEntity::CreateFirstSubTask(CPed* ped) {
             ped,
             m_entity,
             3000,
-            m_entity->m_nStatus == STATUS_PHYSICS
+            m_entity->GetStatus() == STATUS_PHYSICS
             ? BONE_HEAD
             : BONE_UNKNOWN,
             nullptr,

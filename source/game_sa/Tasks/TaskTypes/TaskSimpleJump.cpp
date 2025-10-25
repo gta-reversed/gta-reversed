@@ -88,7 +88,7 @@ bool CTaskSimpleJump::ProcessPed(CPed* ped) {
 
 // 0x67D590
 bool CTaskSimpleJump::CheckIfJumpBlocked(CPed* ped) {
-    if (ped->m_bIsStuck || ped->GetEventHandler().GetCurrentEventType() == EVENT_STUCK_IN_AIR)
+    if (ped->GetIsStuck() || ped->GetEventHandler().GetCurrentEventType() == EVENT_STUCK_IN_AIR)
         return false;
 
     auto pedColData = CModelInfo::GetModelInfo(ped->m_nModelIndex)->m_pColModel->m_pColData;

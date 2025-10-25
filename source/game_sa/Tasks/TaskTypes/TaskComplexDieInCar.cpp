@@ -120,7 +120,7 @@ CTask* CTaskComplexDieInCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x62FD00
 void CTaskComplexDieInCar::PreparePedVehicleForPedDeath(CVehicle *vehicle) {
-    if (vehicle->m_nStatus == STATUS_SIMPLE) {
+    if (vehicle->GetStatus() == STATUS_SIMPLE) {
         CCarCtrl::SwitchVehicleToRealPhysics(vehicle);
     }
     const auto ap      = &vehicle->m_autoPilot;

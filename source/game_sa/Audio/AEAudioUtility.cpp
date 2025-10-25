@@ -168,7 +168,7 @@ CVehicle* CAEAudioUtility::FindVehicleOfPlayer() {
         return vehicle;
 
     auto* attach = player->m_pAttachedTo->AsAutomobile();
-    if (attach && attach->IsVehicle())
+    if (attach && attach->GetIsTypeVehicle())
         return attach;
 
     return vehicle;

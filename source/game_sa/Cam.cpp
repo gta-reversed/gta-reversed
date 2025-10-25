@@ -339,7 +339,7 @@ bool CCam::Using3rdPersonMouseCam() const {
 
 // 0x509DC0
 bool CCam::GetWeaponFirstPersonOn() {
-    return m_pCamTargetEntity && m_pCamTargetEntity->IsPed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
+    return m_pCamTargetEntity && m_pCamTargetEntity->GetIsTypePed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
 }
 
 // inlined -- alpha = vertical angle
@@ -386,11 +386,11 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
         m_fFOV = 70.0f;
     }
 
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
         return;
@@ -495,14 +495,14 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
     gbFirstPersonRunThisFrame = true;
 
     m_fFOV = 70.0f;
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
     if (m_bResetStatics) {
         m_fVerticalAngle   = 0.0f;
         m_fHorizontalAngle = [&] {
-            if (m_pCamTargetEntity->IsPed()) {
+            if (m_pCamTargetEntity->GetIsTypePed()) {
                 return m_pCamTargetEntity->AsPed()->m_fCurrentRotation + DegreesToRadians(90.0f);
             } else {
                 return orientation;
@@ -514,7 +514,7 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
         TheCamera.m_fAvoidTheGeometryProbsTimer = 0.0f;
     }
 
-    if (m_pCamTargetEntity->IsPed()) {
+    if (m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         return;
     }
@@ -863,7 +863,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
     static uint32 dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
     static bool   byte_B70000  = StaticRef<bool>(0xB70000);
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         return;
     }
 
@@ -881,7 +881,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         dword_B6FFFC                = 0;
         dword_B6FFF8                = 0;
     }
-    m_pCamTargetEntity->UpdateRW();
+    m_pCamTargetEntity->UpdateRwMatrix();
     m_pCamTargetEntity->UpdateRwFrame();
     CVector headPosition{};
     targetPed->GetTransformedBonePosition(headPosition, eBoneTag::BONE_HEAD, true);
@@ -935,10 +935,10 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         if (hsTarget && CTimer::GetTimeInMS() - playerData->m_nLastHSMissileLOSTime > 1'000) {
             playerData->m_nLastHSMissileLOSTime = CTimer::GetTimeInMS();
 
-            const auto targetUsesCollision = hsTarget->m_bUsesCollision;
-            const auto playerUsesCollision = player->m_bUsesCollision;
-            hsTarget->m_bUsesCollision     = false;
-            player->m_bUsesCollision       = false;
+            const auto targetUsesCollision = hsTarget->GetUsesCollision();
+            const auto playerUsesCollision = player->GetUsesCollision();
+            hsTarget->SetUsesCollision(false);
+            player->SetUsesCollision(false);
 
             const auto isClear = CWorld::GetIsLineOfSightClear(
                 player->GetPosition(),
@@ -950,8 +950,8 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
                 false,
                 true
             );
-            player->m_bUsesCollision        = playerUsesCollision;
-            hsTarget->m_bUsesCollision      = targetUsesCollision;
+            player->SetUsesCollision(playerUsesCollision);
+            hsTarget->SetUsesCollision(targetUsesCollision);
             playerData->m_bLastHSMissileLOS = isClear;
         }
 

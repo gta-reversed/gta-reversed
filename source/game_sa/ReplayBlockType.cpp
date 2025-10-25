@@ -174,7 +174,7 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpol
     }
 
     veh.vehicleFlags.bEngineOn = veh.vehicleFlags.bEngineBroken != true;
-    veh.m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea); // FIXME
+    veh.SetAreaCode(static_cast<eAreaCodes>(CGame::currArea)); // FIXME
 
     CWorld::Remove(&veh);
     CWorld::Add(&veh);
