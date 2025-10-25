@@ -104,7 +104,7 @@ void CAEDoorAudioEntity::PlayDoorSound(int16 sfxId, eAudioEvents event, CVector&
             .EventID           = event
         });
     };
-    if (posn.x == -1000.0f && posn.y == -1000.0f && posn.z == -1000.0f || posn.x == 0.0f && posn.y == 0.0f && posn.z == 0.0f) {
+    if (posn.x == -1000.0f && posn.y == -1000.0f && posn.z == -1000.0f || posn.IsZero()) {
         PlaySound({ 0.0f, 1.0f, 0.0f }, true);
     } else {
         PlaySound(posn, false);
