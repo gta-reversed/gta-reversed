@@ -1465,24 +1465,11 @@ void CCamera::ProcessVectorMoveLinear(float ratio) {
 
 // 0x516500
 void CCamera::ProcessFOVLerp() {
-    auto now = static_cast<float>(CTimer::m_snTimeInMilliseconds);
-
-    // Handle timer wrap-around (unsigned overflow)
-    if (static_cast<int>(CTimer::m_snTimeInMilliseconds) < 0) {
-        now += 4294967296.0f; // 2^32
+    if (const auto now = static_cast<float>(CTimer::GetTimeInMS()); now < m_fEndZoomTime) { /* Check if still processing */
+        ProcessFOVLerp(invLerp(m_fStartZoomTime, m_fEndZoomTime, now));
+    } else if (m_bBlockZoom) { /* Finished */
+        m_bFOVLerpProcessed = true;
     }
-
-    if (now < m_fEndZoomTime) {
-        const auto duration = m_fEndZoomTime - m_fStartZoomTime;
-        const auto t        = (now - m_fStartZoomTime) / duration;
-        ProcessFOVLerp(t);
-        return;
-    }
-
-    if (!m_bBlockZoom) {
-        return;
-    }
-    m_bFOVLerpProcessed = true;
 }
 
 // 0x50D510
