@@ -130,7 +130,7 @@ float CCurves::CalcCorrectedDist(float current, float total, float speedVariatio
 }
 
 // 0x43C900
-void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float time, int32 traverselTimeInMS, CVector& resultCoor, CVector& resultSpeed) {
+void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float time, int32 traversalTimeInMS, CVector& resultCoor, CVector& resultSpeed) {
     float     BendDist, BendDist_Time, CurrentDist_Time, Interpol, StraightDist2, StraightDist1, TotalDist_Time, OurTime;
     float     BendDistOneSegment;
     CVector CoorsOnLine1, CoorsOnLine2;
@@ -197,7 +197,7 @@ void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors,
     }
 
     float SpeedFactor       = (1.0f - time) * TotalDist_Time;
-    float SpeedMillisFactor = static_cast<float>(traverselTimeInMS) / 1000.0f;
+    float SpeedMillisFactor = static_cast<float>(traversalTimeInMS) / 1000.0f;
 
     resultSpeed.x = ((time * endDir.x) + ((1.0f - time) * startDir.x)) * SpeedFactor / SpeedMillisFactor;
     resultSpeed.y = ((time * endDir.y) + ((1.0f - time) * startDir.y)) * SpeedFactor / SpeedMillisFactor;
