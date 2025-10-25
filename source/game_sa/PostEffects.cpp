@@ -1025,7 +1025,7 @@ void CPostEffects::Render() {
             );
         } else {
             Radiosity(
-                CTimeCycle::m_CurrentColours.m_nHighLightMinIntensity,
+                CTimeCycle::GetHighLightMinIntensity(),
                 m_RadiosityFilterPasses,
                 m_RadiosityRenderPasses,
                 m_RadiosityIntensity

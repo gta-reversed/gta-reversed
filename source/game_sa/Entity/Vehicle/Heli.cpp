@@ -48,10 +48,10 @@ CHeli::CHeli(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelI
 
     if (modelIndex == MODEL_HUNTER) {
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        m_doors[DOOR_LEFT_FRONT].m_fOpenAngle = (3.0f * PI) / 10.0f;
-        m_doors[DOOR_LEFT_FRONT].m_fClosedAngle = 0.0f;
-        m_doors[DOOR_LEFT_FRONT].m_nAxis = 1;
-        m_doors[DOOR_LEFT_FRONT].m_nDirn = 19;
+        m_doors[DOOR_LEFT_FRONT].m_openAngle = (3.0f * PI) / 10.0f;
+        m_doors[DOOR_LEFT_FRONT].m_closedAngle = 0.0f;
+        m_doors[DOOR_LEFT_FRONT].m_axis = 1;
+        m_doors[DOOR_LEFT_FRONT].m_dirn = 19;
     }
 
     m_nNumSwatOccupants = 4;

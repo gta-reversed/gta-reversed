@@ -86,6 +86,9 @@ constexpr inline auto find_value(auto&& mapping, auto&& needle) {
     NOTSA_UNREACHABLE("Needle not in the mapping!");
 }
 
+/*!
+* @brief Find the index of the first occurrence of a value in a range, returning a default index if not found.
+*/
 template<rng::input_range R>
 ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = -1) {
     const auto it = rng::find(r, v);

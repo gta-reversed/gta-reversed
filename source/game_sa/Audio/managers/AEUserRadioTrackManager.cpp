@@ -209,29 +209,29 @@ void CAEUserRadioTrackManager::DeleteUserTracksInfo() {
 // 0x4f3340
 void CAEUserRadioTrackManager::SetUserTrackIndex(int32 index) {
     if (index != -1)
-        FrontEndMenuManager.m_nUserTrackIndex = index;
+        FrontEndMenuManager.m_UserTrackIndex = index;
 }
 
 // 0x4f3250
 int32 CAEUserRadioTrackManager::SelectUserTrackIndex() const {
-    if (m_nUserTracksCount > 0 && FrontEndMenuManager.m_nRadioMode >= 0) {
-        switch (FrontEndMenuManager.m_nRadioMode) {
+    if (m_nUserTracksCount > 0 && FrontEndMenuManager.m_RadioMode >= 0) {
+        switch (FrontEndMenuManager.m_RadioMode) {
         case USER_TRACK_PLAY_RADIO:
         case USER_TRACK_PLAY_RANDOM: {
             if (m_nUserTracksCount == 1)
-                return FrontEndMenuManager.m_nUserTrackIndex = 1;
+                return FrontEndMenuManager.m_UserTrackIndex = 1;
             else {
                 int32 index;
 
                 do
                     index = static_cast<int32>(CAEAudioUtility::GetRandomNumberInRange(0, m_nUserTracksCount - 1));
-                while (index == FrontEndMenuManager.m_nUserTrackIndex);
+                while (index == FrontEndMenuManager.m_UserTrackIndex);
 
-                return FrontEndMenuManager.m_nUserTrackIndex = index;
+                return FrontEndMenuManager.m_UserTrackIndex = index;
             }
         }
         case USER_TRACK_PLAY_SEQUENTAL: {
-            return FrontEndMenuManager.m_nUserTrackIndex = (FrontEndMenuManager.m_nUserTrackIndex + 1) % m_nUserTracksCount;
+            return FrontEndMenuManager.m_UserTrackIndex = (FrontEndMenuManager.m_UserTrackIndex + 1) % m_nUserTracksCount;
         }
         }
     }
@@ -262,7 +262,7 @@ bool CAEUserRadioTrackManager::IsShortcut(const char* path) {
 
 // 0x4f3330
 uint8 CAEUserRadioTrackManager::GetUserTrackPlayMode() {
-    return (uint8)FrontEndMenuManager.m_nRadioMode;
+    return (uint8)FrontEndMenuManager.m_RadioMode;
 }
 
 // 0x4f4a20
@@ -291,7 +291,7 @@ DWORD __stdcall CAEUserRadioTrackManager::WriteUserTracksThread(CAEUserRadioTrac
 
             CFileMgr::CloseFile(utrax);
 
-            FrontEndMenuManager.m_nUserTrackIndex = 0;
+            FrontEndMenuManager.m_UserTrackIndex = 0;
             self->m_nUserTracksScanState = USER_TRACK_SCAN_COMPLETE;
 
             CoUninitialize();
