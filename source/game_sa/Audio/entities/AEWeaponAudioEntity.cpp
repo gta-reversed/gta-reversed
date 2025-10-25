@@ -630,7 +630,7 @@ void CAEWeaponAudioEntity::PlayMiniGunStopSound(CPhysical* entity) {
             .EventID            = AE_WEAPON_SOUND_CAT_MINIGUN_STOP
         });
     };
-    if (entity->IsVehicle() && entity->AsVehicle()->IsSubPlane()) {
+    if (entity->GetIsTypeVehicle() && entity->AsVehicle()->IsSubPlane()) {
         PlayMiniGunFireStopSound(1.8f, 0.7937f);
     } else {
         PlayMiniGunFireStopSound(1.f, 1.f);

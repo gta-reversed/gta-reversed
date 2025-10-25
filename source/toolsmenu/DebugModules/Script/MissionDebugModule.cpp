@@ -179,7 +179,7 @@ bool MissionDebugModule::StartMission(int32 missionId, bool bDoMissionCleanUp = 
     CTheScripts::bPlayerIsOffTheMap = false;
     CGame::currArea = 0;
     CPlayerPed* player = FindPlayerPed();
-    player->m_nAreaCode = AREA_CODE_NORMAL_WORLD;
+    player->SetAreaCode(AREA_CODE_NORMAL_WORLD);
     if (!CGame::currArea) {
         player->m_pEnex = nullptr;
         CEntryExitManager::ms_entryExitStackPosn = 0;

@@ -205,7 +205,7 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         CTheScripts::ClearSpaceForMissionEntity(posn, boat);
         boat->vehicleFlags.bEngineOn = false;
         boat->vehicleFlags.bIsLocked = true;
-        boat->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+        boat->SetStatus(STATUS_ABANDONED);
         JoinCarWithRoadSystem(boat);
 
         boat->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
@@ -245,7 +245,7 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
 
     CTheScripts::ClearSpaceForMissionEntity(posn, vehicle);
     vehicle->vehicleFlags.bIsLocked = true;
-    vehicle->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     JoinCarWithRoadSystem(vehicle);
     vehicle->vehicleFlags.bEngineOn = false;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;

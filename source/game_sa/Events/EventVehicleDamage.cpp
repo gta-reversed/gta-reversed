@@ -52,7 +52,7 @@ bool CEventVehicleDamage::AffectsPed(CPed* ped)
 bool CEventVehicleDamage::IsCriminalEvent()
 {
     if (m_attacker) {
-        switch (m_attacker->m_nType) {
+        switch (m_attacker->GetType()) {
         case ENTITY_TYPE_PED:
             return m_attacker->AsPed()->IsPlayer();
         case ENTITY_TYPE_VEHICLE:
@@ -75,7 +75,7 @@ void CEventVehicleDamage::ReportCriminalEvent(CPed* ped)
 // 0x4B1A70
 CEntity* CEventVehicleDamage::GetSourceEntity() const
 {
-    if (m_attacker && m_attacker->IsVehicle()) {
+    if (m_attacker && m_attacker->GetIsTypeVehicle()) {
         CVehicle* vehicle = m_attacker->AsVehicle();
         if (vehicle->m_pDriver)
             return vehicle->m_pDriver;

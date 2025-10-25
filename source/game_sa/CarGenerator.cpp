@@ -263,13 +263,13 @@ void CCarGenerator::DoInternalProcessing()
     posn.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + baseZ;
     vehicle->SetPosn(posn);
     vehicle->SetOrientation(0.0f, 0.0f, m_nAngle * (TWO_PI / 256));
-    vehicle->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     vehicle->m_nDoorLock = eCarLock::CARLOCK_UNLOCKED;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = bPlayerHasAlreadyOwnedCar;
     tractorDriverPedType = -1;
 
     if (!nightTime &&
-        (vehicle->m_nModelIndex == MODEL_TRACTOR || vehicle->m_nModelIndex == MODEL_COMBINE))
+        (vehicle->GetModelIndex() == MODEL_TRACTOR || vehicle->GetModelIndex() == MODEL_COMBINE))
     {
         // 0x6F3BF4
 
@@ -290,7 +290,7 @@ void CCarGenerator::DoInternalProcessing()
                     vehicle->m_autoPilot.SetCruiseSpeed(7);
                     vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_CRUISE);
                     vehicle->m_autoPilot.m_startingRouteNode = baseLink;
-                    vehicle->m_nStatus = eEntityStatus::STATUS_PHYSICS;
+                    vehicle->SetStatus(STATUS_PHYSICS);
                     vehicle->vehicleFlags.bNeverUseSmallerRemovalRange = true;
                     bWaitUntilFarFromPlayer = true;
                     tractorDriverPedType = PED_TYPE_CIVMALE;
@@ -370,7 +370,7 @@ void CCarGenerator::Process()
         auto vehicle = GetVehiclePool()->GetAtRef(m_nVehicleHandle);
         if (!vehicle)
             m_nVehicleHandle = -1;
-        else if (vehicle->m_nStatus == eEntityStatus::STATUS_PLAYER)
+        else if (vehicle->GetStatus() == STATUS_PLAYER)
         {
             m_nNextGenTime += 60000;
             m_nVehicleHandle = -1;

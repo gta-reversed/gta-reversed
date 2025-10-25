@@ -508,7 +508,7 @@ int32 CWanted::WorkOutPolicePresence(CVector posn, float radius) {
                 continue;
             }
 
-            if (veh->m_nStatus == STATUS_ABANDONED || veh->m_nStatus == STATUS_WRECKED) {
+            if (veh->GetStatus() == STATUS_ABANDONED || veh->GetStatus() == STATUS_WRECKED) {
                 continue;
             }
 

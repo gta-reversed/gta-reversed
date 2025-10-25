@@ -185,14 +185,14 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
+    if (GetStatus() == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
         if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
             FindPlayerInfo().m_nHavocCaused += 20;
             FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
             CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)CGeneral::GetRandomNumberInRange(4000, 10'000));
         }
 
-        if (m_nStatus == STATUS_PLAYER) { // strange
+        if (GetStatus() == STATUS_PLAYER) { // strange
             if (m_pDriver) {
                 m_pDriver->bDontRender = true;
             }
@@ -403,7 +403,7 @@ void CPlane::ProcessControl() {
     return plugin::CallMethod<0x6C9260, CPlane*>(this);
 
     // untested
-    if (m_nStatus == STATUS_PLAYER) {
+    if (GetStatus() == STATUS_PLAYER) {
         if (m_nModelIndex == MODEL_CROPDUST || m_nModelIndex == MODEL_STUNT) {
             auto pad = CPad::GetPad(m_pDriver->GetPadNumber());
             if (pad->IsRightShockPressed()) {
