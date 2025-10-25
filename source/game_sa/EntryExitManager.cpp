@@ -345,7 +345,7 @@ int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags
 // 0x43ED80
 void CEntryExitManager::ResetAreaCodeForVisibleObjects() {
     while (ms_numVisibleEntities) {
-        ms_visibleEntityList[--ms_numVisibleEntities]->m_nAreaCode = (eAreaCodes)ms_oldAreaCode;
+        ms_visibleEntityList[--ms_numVisibleEntities]->SetAreaCode((eAreaCodes)ms_oldAreaCode);
     }
 }
 
@@ -359,9 +359,9 @@ void CEntryExitManager::SetAreaCodeForVisibleObjects() {
     const auto playerPed{ FindPlayerPed() };
 
     for (auto&& entity : std::span{ objsInFrustum, (size_t)numObjsInFrustum }) {
-        if (entity->m_nAreaCode == CGame::currArea && entity != playerPed) {
+        if (entity->GetAreaCode() == CGame::currArea && entity != playerPed) {
             ms_visibleEntityList[ms_numVisibleEntities++] = entity;
-            entity->m_nAreaCode = AREA_CODE_13;
+            entity->SetAreaCode(AREA_CODE_13);
 
             if (ms_numVisibleEntities >= 32) {
                 break;

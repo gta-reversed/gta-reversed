@@ -140,7 +140,7 @@ void CEventEditableResponse::InformGroup(CPed* ped) {
 void CEventEditableResponse::TriggerLookAt(CPed* ped) const {
     CEntity* sourceEntity = GetSourceEntity();
     if (sourceEntity) {
-        if (sourceEntity->IsPed()) {
+        if (sourceEntity->GetIsTypePed()) {
             g_ikChainMan.LookAt("CEventEditableResponse", ped, sourceEntity->AsPed(), 2'000, BONE_HEAD, nullptr, true, 0.25f, 500, 3, false);
             return;
         }

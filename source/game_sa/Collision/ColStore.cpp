@@ -163,7 +163,7 @@ void CColStore::EnsureCollisionIsInMemory(const CVector& pos)
         return;
 
     auto* player = FindPlayerPed();
-    const auto area = player ? player->m_nAreaCode : CGame::currArea;
+    const auto area = player ? player->GetAreaCode() : CGame::currArea;
     if (area != CGame::currArea)
         return;
 
@@ -312,7 +312,7 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         if (obj.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_VEHICLE)
         {
             entity = GetVehiclePool()->GetAtRef(obj.handle);
-            if (!entity || entity->m_nStatus == eEntityStatus::STATUS_WRECKED)
+            if (!entity || entity->GetStatus() == STATUS_WRECKED)
                 continue;
         }
         else if (obj.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_PED)
@@ -325,7 +325,7 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         if (!entity || entity->AsPhysical()->physicalFlags.b15 || entity->AsPhysical()->physicalFlags.bDontApplySpeed)
             continue;
 
-        ms_nRequiredCollisionArea = entity->m_nAreaCode;
+        ms_nRequiredCollisionArea = entity->GetAreaCode();
         ms_pQuadTree->ForAllMatching(entity->GetPosition(), SetIfCollisionIsRequiredReducedBB);
     }
 
@@ -422,7 +422,7 @@ void CColStore::SetCollisionRequired(const CVector& pos, int32 areaCode)
     auto usedArea = areaCode;
     if (areaCode == -1) {
         auto* player = FindPlayerPed();
-        usedArea = player ? player->m_nAreaCode : CGame::currArea;
+        usedArea = player ? player->GetAreaCode() : CGame::currArea;
     }
 
     ms_nRequiredCollisionArea = usedArea;

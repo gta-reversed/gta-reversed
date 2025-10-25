@@ -289,7 +289,7 @@ int32 CVisibilityPlugins::CalculateFadingAtomicAlpha(CBaseModelInfo* modelInfo, 
     float fFadingDistance = MAX_FADING_DISTANCE;
     float fDrawDistanceRadius = modelInfo->GetColModel()->GetBoundRadius() + CRenderer::ms_fFarClipPlane;
     fDrawDistanceRadius = std::min(fDrawDistanceRadius, TheCamera.m_fLODDistMultiplier * modelInfo->m_fDrawDistance);
-    if (!entity->m_pLod) {
+    if (!entity->GetLod()) {
         const float fDrawDistance = std::min(modelInfo->m_fDrawDistance, fDrawDistanceRadius);
         if (fDrawDistance > MAX_LOWLOD_DISTANCE)
             fFadingDistance = fDrawDistance / 15.0f + 10.0f;
@@ -529,7 +529,7 @@ void CVisibilityPlugins::RenderBoatAlphaAtomics() {
 
 // 0x732B40
 void CVisibilityPlugins::RenderEntity(CEntity* entity, float distance) {
-    if (!entity->m_pRwObject)
+    if (!entity->GetRwObject())
         return;
 
     CBaseModelInfo* mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
@@ -547,18 +547,18 @@ void CVisibilityPlugins::RenderEntity(CEntity* entity, float distance) {
         RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(0));
         int32 alpha = CalculateFadingAtomicAlpha(mi, entity, distance);
         entity->m_bImBeingRendered = true;
-        if (!entity->m_bBackfaceCulled) {
+        if (!entity->GetIsBackfaceCulled()) {
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
         }
         bool bLightingSetup = entity->SetupLighting();
-        if (RwObjectGetType(entity->m_pRwObject) == rpATOMIC) {
+        if (RwObjectGetType(entity->GetRwObject()) == rpATOMIC) {
             RenderFadingAtomic(mi, entity->m_pRwAtomic, alpha);
         } else {
             RenderFadingClump(mi, entity->m_pRwClump, alpha);
         }
         entity->RemoveLighting(bLightingSetup);
         entity->m_bImBeingRendered = false;
-        if (!entity->m_bBackfaceCulled)
+        if (!entity->GetIsBackfaceCulled())
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     }
 

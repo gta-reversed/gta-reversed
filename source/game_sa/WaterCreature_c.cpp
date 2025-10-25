@@ -37,11 +37,11 @@ bool WaterCreature_c::Init(int32 nType, CVector* vecPos, WaterCreature_c* parent
     if (!m_pObject)
         return false;
 
-    m_pObject->m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea);
+    m_pObject->SetAreaCode(static_cast<eAreaCodes>(CGame::currArea));
     m_pObject->SetIsStatic(true);
     m_pObject->m_bUnderwater = true;
     m_pObject->physicalFlags.bApplyGravity = false;
-    m_pObject->m_bUsesCollision = false;
+    m_pObject->SetUsesCollision(false);
     m_pObject->m_nObjectType = eObjectType::OBJECT_TYPE_DECORATION;
     
     m_nCreatureType = nType;
@@ -74,7 +74,7 @@ bool WaterCreature_c::Init(int32 nType, CVector* vecPos, WaterCreature_c* parent
     m_ucTargetSwimSpeed = 0;
     m_bChangedDir = true;
     m_pObject->SetHeading(m_fHeading);
-    m_pObject->UpdateRW();
+    m_pObject->UpdateRwMatrix();
     m_pObject->UpdateRwFrame();
 
     CWorld::Add(m_pObject);
@@ -235,7 +235,7 @@ void WaterCreature_c::Update(float fTimeStep)
             m_pObject->SetPosn(CVector(vecJellyPos.x, vecJellyPos.y, fWaterLevel - 0.2F));
     }
 
-    m_pObject->UpdateRW();
+    m_pObject->UpdateRwMatrix();
     m_pObject->UpdateRwFrame();
     CWorld::Remove(m_pObject); //BUG? Is this remove needed here?
     CWorld::Add(m_pObject);

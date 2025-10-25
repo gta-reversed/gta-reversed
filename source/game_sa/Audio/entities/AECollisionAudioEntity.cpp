@@ -598,7 +598,7 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
     if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)) {
         return;
     }
-    if (entity && entity->IsVehicle()) {
+    if (entity && entity->GetIsTypeVehicle()) {
         surface = entity->AsVehicle()->IsSubBMX()
             ? (eSurfaceType)(188) // todo: C* Surface
             : SURFACE_CAR;

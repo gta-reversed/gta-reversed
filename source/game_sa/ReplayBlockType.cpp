@@ -44,8 +44,8 @@ tReplayVehicleBlock tReplayVehicleBlock::MakeVehicleUpdateData(CVehicle& veh, in
             ret.wheelsSuspensionCompression[i] = (uint8)(automobile->m_fWheelsSuspensionCompression[i] * 50.0f);
             ret.wheelRotation[i] = (uint8)(automobile->m_wheelRotation[i] * HEADING_COMPRESS_VALUE);
         }
-        ret.angleDoorLF = (uint8)(automobile->m_doors[DOOR_LEFT_FRONT].m_fAngle * 20.222929f);
-        ret.angleDoorRF = (uint8)(automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle * 20.222929f);
+        ret.angleDoorLF = (uint8)(automobile->m_doors[DOOR_LEFT_FRONT].m_angle * 20.222929f);
+        ret.angleDoorRF = (uint8)(automobile->m_doors[DOOR_RIGHT_FRONT].m_angle * 20.222929f);
 
         ret.doorStatus = 0u;
         for (auto&& [i, status] : rngv::enumerate(automobile->m_damageManager.GetAllDoorsStatus())) {
@@ -146,11 +146,11 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpol
             automobile->m_wheelRotation[i] = (float)wheelRotation[i] / HEADING_COMPRESS_VALUE;
 
         }
-        automobile->m_doors[DOOR_LEFT_FRONT].m_fAngle = (float)angleDoorLF / 20.222929f;
-        automobile->m_doors[DOOR_LEFT_FRONT].m_fPrevAngle = automobile->m_doors[DOOR_LEFT_FRONT].m_fAngle;
+        automobile->m_doors[DOOR_LEFT_FRONT].m_angle = (float)angleDoorLF / 20.222929f;
+        automobile->m_doors[DOOR_LEFT_FRONT].m_prevAngle = automobile->m_doors[DOOR_LEFT_FRONT].m_angle;
 
-        automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle = (float)angleDoorRF / 20.222929f;
-        automobile->m_doors[DOOR_RIGHT_FRONT].m_fPrevAngle = automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle;
+        automobile->m_doors[DOOR_RIGHT_FRONT].m_angle = (float)angleDoorRF / 20.222929f;
+        automobile->m_doors[DOOR_RIGHT_FRONT].m_prevAngle = automobile->m_doors[DOOR_RIGHT_FRONT].m_angle;
 
         auto& damageManager = automobile->m_damageManager;
         if (angleDoorLF != 0) {
@@ -174,7 +174,7 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpol
     }
 
     veh.vehicleFlags.bEngineOn = veh.vehicleFlags.bEngineBroken != true;
-    veh.m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea); // FIXME
+    veh.SetAreaCode(static_cast<eAreaCodes>(CGame::currArea)); // FIXME
 
     CWorld::Remove(&veh);
     CWorld::Add(&veh);

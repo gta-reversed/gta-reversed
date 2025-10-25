@@ -363,7 +363,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     player->physicalFlags.bRenderScorched = false;
     player->m_fArmour = 0.0f;
     player->m_fHealth = static_cast<float>(playerInfo->m_nMaxHealth);
-    player->m_bIsVisible = true;
+    player->SetIsVisible(true);
     player->m_nDeathTimeMS = 0;
     player->bDoBloodyFootprints = false;
     playerData->m_nDrunkenness = 0;
@@ -398,7 +398,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CTheScripts::ClearSpaceForMissionEntity(posn, player);
     CWorld::ClearExcitingStuffFromArea(posn, 4000.0, 1);
     player->RestoreHeadingRate();
-    player->m_nAreaCode = AREA_CODE_NORMAL_WORLD;
+    player->SetAreaCode(AREA_CODE_NORMAL_WORLD);
     player->m_pEnex = 0;
     CEntryExitManager::ms_entryExitStackPosn = 0;
     CGame::currArea = AREA_CODE_NORMAL_WORLD;
@@ -591,8 +591,8 @@ void CGameLogic::Update() {
                     CEntity::CleanUpOldReference(driver);
                     driver = nullptr;
 
-                    if (vehicle->m_nStatus != STATUS_WRECKED) {
-                        vehicle->m_nStatus = STATUS_ABANDONED;
+                    if (vehicle->GetStatus() != STATUS_WRECKED) {
+                        vehicle->SetStatus(STATUS_ABANDONED);
                     }
                 } else {
                     vehicle->RemovePassenger(player1Ped);

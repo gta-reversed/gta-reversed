@@ -137,9 +137,9 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     object->UpdateRwFrame();
     object->physicalFlags.bApplyGravity = false;
     object->physicalFlags.bExplosionProof = true;
-    object->m_bUsesCollision = false;
+    object->SetUsesCollision(false);
     object->objectFlags.bIsPickup = true;
-    object->objectFlags.b0x02 = object->m_bCollisionProcessed;
+    object->objectFlags.b0x02 = object->GetCollisionProcessed();
     object->objectFlags.bDoNotRender = PickUpShouldBeInvisible();
     object->m_bHasPreRenderEffects = true;
     object->m_bTunnelTransition = true;
@@ -270,7 +270,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
             if (CWaterLevel::GetWaterLevel(m_pObject->GetPosition(), level, true)) {
                 m_pObject->GetPosition().z = level + extra;
             }
-            m_pObject->UpdateRW();
+            m_pObject->UpdateRwMatrix();
             m_pObject->UpdateRwFrame();
         };
 
@@ -322,7 +322,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
         case PICKUP_FLOATINGPACKAGE: {
             m_pObject->GetMoveSpeed().z -= CTimer::GetTimeStep() / 1'000.0f;
             m_pObject->GetPosition() += m_pObject->GetMoveSpeed() * CTimer::GetTimeStep();
-            m_pObject->UpdateRW();
+            m_pObject->UpdateRwMatrix();
             m_pObject->UpdateRwFrame();
 
             float level;

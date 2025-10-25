@@ -158,7 +158,7 @@ public:
     // originally virtual functions
     void Add() override;
     void Remove() override;
-    CRect GetBoundRect() override;
+    CRect GetBoundRect() const override;
     void ProcessControl() override;
     void ProcessCollision() override;
     void ProcessShift() override;

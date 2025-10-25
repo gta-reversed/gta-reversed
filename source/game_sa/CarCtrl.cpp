@@ -134,17 +134,14 @@ int32 CCarCtrl::ChooseBoatModel() {
 }
 
 // 0x421900
-int32 CCarCtrl::ChooseCarModelToLoad(int32 arg1) {
-    for (auto i = 0; i < 16; i++) { // TODO: Why 16?
-        const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[i];
-#ifdef FIX_BUGS
-        if (!numCarsInGroup) {
-            continue;
-        }
-#endif
-        const auto model = CPopulation::m_CarGroups[i][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
-        if (!CStreaming::IsModelLoaded(model)) {
-            return model;
+int32 CCarCtrl::ChooseCarModelToLoad(int32 groupID) {
+    const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[groupID];
+    if (numCarsInGroup > 0) {
+        for (auto i = 0; i < 16; i++) { // 16 tries
+            const auto model = CPopulation::m_CarGroups[groupID][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
+            if (!CStreaming::IsModelLoaded(model)) {
+                return model;
+            }
         }
     }
     return -1;
@@ -208,7 +205,7 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         CTheScripts::ClearSpaceForMissionEntity(posn, boat);
         boat->vehicleFlags.bEngineOn = false;
         boat->vehicleFlags.bIsLocked = true;
-        boat->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+        boat->SetStatus(STATUS_ABANDONED);
         JoinCarWithRoadSystem(boat);
 
         boat->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
@@ -248,7 +245,7 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
 
     CTheScripts::ClearSpaceForMissionEntity(posn, vehicle);
     vehicle->vehicleFlags.bIsLocked = true;
-    vehicle->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     JoinCarWithRoadSystem(vehicle);
     vehicle->vehicleFlags.bEngineOn = false;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
