@@ -166,14 +166,22 @@ void CBoat::DebugCode() {
 }
 
 // uses debug printing
+// unused
 // 0x6F0D90
 void CBoat::DisplayHandlingData() {
     char cBuffer[64]{};
     // int32 y, x = 1; // unused
-    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass);
+
+    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass); 
+    // std::format_to(cBuffer, "Thrust Height {:3.2f}", );// mobile 3
+    // std::format_to(cBuffer, "Height Mult {:3.2f}", );// mobile 3
     std::format_to(cBuffer, "Rudder Angle  {:3.2f}", m_pHandlingData->m_fSteeringLock);
+    // std::format_to(cBuffer, "Resistance  {:3.3f}  {:3.3f}  {:3.3f}", ); // mobile 3
+    // std::format_to(cBuffer, "Turn Res    {:3.3f}  {:3.3f}  {:3.3f}", );// mobile 3
 }
 
+// unused
+// uses debug function?
 // 0x6F0DE0
 void CBoat::ModifyHandlingValue(const bool& plus) {
     float fSign;
