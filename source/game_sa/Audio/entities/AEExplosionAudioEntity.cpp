@@ -29,7 +29,7 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
         return;
     }
 
-    {
+    { // 0x4DCC93
         m_Speed = (m_Speed + 1) % NUM_VARIATIONS;
         const auto PlayExplosionSound = [&](eSoundID soundID, float rollOff) {
             AESoundManager.PlaySound({
@@ -48,7 +48,7 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
         PlayExplosionSound(3, 4.f);
         PlayExplosionSound(2, 7.5f);
     }
-    {
+    { // 0x4DCE79
         const auto PlayExplosionSound = [&](CVector frontEndPos, bool variance) {
             auto speed = gfExplosionFrequencyVariations[m_Speed];
             if (variance) {
@@ -61,7 +61,7 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
                 .Pos               = frontEndPos,
                 .Volume            = volume + CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(posn).Magnitude() / 12.0f) - 3.0f,
                 .RollOffFactor     = 12.f,
-                .Speed             = gfExplosionFrequencyVariations[m_Speed],
+                .Speed             = speed,
                 .Flags             = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_REQUEST_UPDATES | SOUND_FRONT_END,
                 .FrequencyVariance = 0.06f,
             });

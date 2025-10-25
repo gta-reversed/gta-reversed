@@ -621,7 +621,7 @@ void CAEWeaponAudioEntity::PlayMiniGunStopSound(CPhysical* entity) {
             .AudioEntity        = this,
             .Pos                = entity->GetPosition(),
             .Volume             = GetDefaultVolume(AE_WEAPON_FIRE_MINIGUN_STOP),
-            .RollOffFactor      = rollOff * 2.f / 3.f, // *0.66f....f
+            .RollOffFactor      = rollOff * (2.f / 3.f), // *0.66f....f
             .Speed              = speed,
             .Doppler            = 1.0f,
             .FrameDelay         = 0,
