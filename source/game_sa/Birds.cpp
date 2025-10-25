@@ -146,7 +146,7 @@ void CBirds::Shutdown() {
 void CBirds::Update() {
     ZoneScoped;
 
-    const auto& vecCamPos = TheCamera.GetPosition();
+    const auto& camPosn = TheCamera.GetPosition();
 
     if (!CGame::currArea
         && uiNumberOfBirds < std::size(aBirds)
@@ -181,8 +181,8 @@ void CBirds::Update() {
                 }
             }();
 
-            if (fFlightHeight > 5.0F) {
-                float fBirdSpawnZ = fFlightHeight + vecCamPos.z;
+            float fBirdSpawnZ = fFlightHeight + camPosn.z;
+            if (fBirdSpawnZ > 5.0F) {
                 float fSpawnAngleCamRelative;
 
                 if (CGeneral::GetRandomNumber() % 2)
@@ -199,8 +199,8 @@ void CBirds::Update() {
                 }
 
                 auto vecBirdSpawnPos = CVector(
-                    std::sin(fSpawnAngleCamRelative) * fSpawnDistance + vecCamPos.x,
-                    std::cos(fSpawnAngleCamRelative) * fSpawnDistance + vecCamPos.y,
+                    std::sin(fSpawnAngleCamRelative) * fSpawnDistance + camPosn.x,
+                    std::cos(fSpawnAngleCamRelative) * fSpawnDistance + camPosn.y,
                     fBirdSpawnZ
                 );
 
@@ -210,7 +210,7 @@ void CBirds::Update() {
                     vecForward.z = 0.0F;
                     vecForward.Normalise();
 
-                    auto vecFlightTargetPos = vecCamPos + (vecForward * 8.0F);
+                    auto vecFlightTargetPos = camPosn + (vecForward * 8.0F);
                     vecFlightTargetPos.z = fBirdSpawnZ;
 
                     CreateNumberOfBirds(vecBirdSpawnPos, vecFlightTargetPos, iNumBirdsToCreate, biome, true);
@@ -221,7 +221,7 @@ void CBirds::Update() {
 
     auto iBirdIndex = CTimer::GetFrameCounter() % std::size(aBirds);
     auto& checkedBird = aBirds[iBirdIndex];
-    if (checkedBird.m_bCreated && DistanceBetweenPoints2D(vecCamPos, checkedBird.m_vecPosn) > checkedBird.m_fMaxBirdDistance)
+    if (checkedBird.m_bCreated && DistanceBetweenPoints2D(camPosn, checkedBird.m_vecPosn) > checkedBird.m_fMaxBirdDistance)
     {
         checkedBird.m_bCreated = false;
         uiNumberOfBirds--;
