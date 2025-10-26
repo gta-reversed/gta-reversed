@@ -24,6 +24,9 @@ public:
     CByteCompressedVector m_vecRight;
     CByteCompressedVector m_vecForward;
 
+private:
+    uint16                align;
+
 public:
     static void InjectHooks();
 
@@ -43,4 +46,4 @@ public:
         return matrix;
     }
 };
-VALIDATE_SIZE(CCompressedMatrixNotAligned, 0x14);
+VALIDATE_SIZE(CCompressedMatrixNotAligned, 20);
