@@ -181,7 +181,7 @@ void CBirds::Update() {
                 }
             }();
 
-            float fBirdSpawnZ = fFlightHeight + camPosn.z;
+            const float fBirdSpawnZ = fFlightHeight + camPosn.z;
             if (fBirdSpawnZ > 5.0F) {
                 float fSpawnAngleCamRelative;
 
