@@ -250,11 +250,12 @@ struct tReplayDeletedPedBlock : tReplayBlockBase {
 struct tReplayBmxBlock : tReplayVehicleBlock {
     static constexpr auto Type = REPLAY_PACKET_BMX;
 
-    uint8 animLean;
-    uint8 steerAngle;
+    int8 animLean;
+    int8 steerAngle;
     uint8 __pad[2];
 
     static tReplayBmxBlock MakeBmxUpdateData(CBmx& bmx, int32 poolIdx);
+    void ExtractBmxUpdateData(CBmx& bmx, float interpolation);
 };
 
 struct tReplayHeliBlock : tReplayVehicleBlock {
