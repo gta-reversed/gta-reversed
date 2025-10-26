@@ -181,6 +181,7 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpol
     veh.m_nPhysicalFlags ^= (veh.m_nPhysicalFlags ^ (physicalFlags << 29)) & 0x20000000;
 }
 
+// 0x45BFF0
 void tReplayBikeBlock::ExtractBikeUpdateData(CBike& bike, float interpolation) {
     As<tReplayVehicleBlock>()->ExtractVehicleUpdateData(*bike.AsVehicle(), interpolation);
 
