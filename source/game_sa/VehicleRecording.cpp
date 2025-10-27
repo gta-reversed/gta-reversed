@@ -60,7 +60,7 @@ void CVehicleRecording::ChangeCarPlaybackToUseAI(CVehicle* vehicle) {
         SetRecordingToPointClosestToCoors(i, vehicle->GetPosition());
         vehicle->physicalFlags.bDisableCollisionForce = false;
         vehicle->ProcessControlCollisionCheck(false);
-        vehicle->m_nStatus = STATUS_PHYSICS;
+        vehicle->SetStatus(STATUS_PHYSICS);
     }
 }
 
@@ -324,7 +324,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
 
             vehicle->ProcessControlCollisionCheck(false);
             vehicle->RemoveAndAdd();
-            vehicle->UpdateRW();
+            vehicle->UpdateRwMatrix();
             vehicle->UpdateRwFrame();
 
             MarkSurroundingEntitiesForCollisionWithTrain(vehicle->GetPosition(), 5.0f, vehicle, true);

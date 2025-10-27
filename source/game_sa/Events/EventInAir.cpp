@@ -33,7 +33,7 @@ bool CEventInAir::AffectsPed(CPed* ped)
     CTask* simplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
     if (simplestActiveTask && simplestActiveTask->GetTaskType() == TASK_SIMPLE_FALL ||
         ped->m_pDamageEntity ||
-        !ped->m_bUsesCollision ||
+        !ped->GetUsesCollision() ||
         ped->m_pAttachedTo ||
         !CPedGeometryAnalyser::IsInAir(*ped)
     ) {

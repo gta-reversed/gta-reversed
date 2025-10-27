@@ -40,6 +40,7 @@ void CGlass::InjectHooks() {
     RH_ScopedInstall(WindowRespondsToSoftCollision, 0x71AF70);
     RH_ScopedInstall(BreakGlassPhysically, 0x71CF50);
     RH_ScopedInstall(WindowRespondsToExplosion, 0x71C1A0);
+    RH_ScopedInstall(IsObjectGlass, 0x46A760);
 }
 
 // 0x71A8D0
@@ -74,7 +75,7 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
             FindWindowSectorList(GetSector(sectorX, sectorY)->m_dummies, maxDist, entity, point);
         }
     }
-    return entity && !entity->IsDummy() && entity->AsObject()->objectFlags.bHasBrokenGlass;
+    return entity && !entity->GetIsTypeDummy() && entity->AsObject()->objectFlags.bHasBrokenGlass;
 }
 
 // 0x71C2B0
@@ -175,7 +176,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
 }
 
 bool IsGlassObjectWithCol(CEntity* entity) {
-    if (entity->IsObject() && entity->m_bUsesCollision) {
+    if (entity->GetIsTypeObject() && entity->GetUsesCollision()) {
         if (const auto ami = entity->GetModelInfo()->AsAtomicModelInfoPtr()) {
             return ami->IsGlass();
         }
@@ -243,8 +244,8 @@ void CGlass::WindowRespondsToCollision(CEntity* entity, float fDamageIntensity, 
         );
     }
 
-    object->m_bUsesCollision = false;
-    object->m_bIsVisible = false;
+    object->SetUsesCollision(false);
+    object->SetIsVisible(false);
     object->objectFlags.bGlassBrokenAltogether = true;
 }
 
@@ -411,7 +412,7 @@ void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*
         if (entity->IsScanCodeCurrent())
             continue;
 
-        if (!entity->IsObject())
+        if (!entity->GetIsTypeObject())
             continue;
 
         const auto object = entity->AsObject();
@@ -419,7 +420,7 @@ void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*
             switch (ami->nSpecialType) {
             case eModelInfoSpecialType::GLASS_TYPE_1:
             case eModelInfoSpecialType::GLASS_TYPE_2: {
-                object->m_nScanCode = CWorld::ms_nCurrentScanCode;
+                object->SetScanCode(CWorld::ms_nCurrentScanCode);
                 const auto dist = DistanceBetweenPoints(point, object->GetPosition());
                 if (dist < outDist) {
                     outEntity = entity;
@@ -519,7 +520,7 @@ CFallingGlassPane* CGlass::FindFreePane() {
 
 // 0x71AF70
 void CGlass::WindowRespondsToSoftCollision(CEntity* entity, float fDamageIntensity) {
-    if (entity->m_bUsesCollision && fDamageIntensity > 50.f && !entity->AsObject()->objectFlags.bHasBrokenGlass) {
+    if (entity->GetUsesCollision() && fDamageIntensity > 50.f && !entity->AsObject()->objectFlags.bHasBrokenGlass) {
         AudioEngine.ReportGlassCollisionEvent(AE_GLASS_HIT, entity->GetPosition());
         entity->AsObject()->objectFlags.bHasBrokenGlass = true;
     }
@@ -603,15 +604,15 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
             1,
             false
         );
-        object.m_bUsesCollision = false;
-        object.m_bIsVisible = false;
+        object.SetUsesCollision(false);
+        object.SetIsVisible(false);
         object.objectFlags.bHasBrokenGlass = true;
     }
 }
 
 // 0x71C1A0
 void CGlass::WindowRespondsToExplosion(CEntity* entity, CVector pos) {
-    if (!entity->m_bUsesCollision) {
+    if (!entity->GetUsesCollision()) {
         return;
     }
 
@@ -625,4 +626,18 @@ void CGlass::WindowRespondsToExplosion(CEntity* entity, CVector pos) {
     } else {
         WindowRespondsToCollision(entity, 10000.f, entityToPosDir * (0.3f / dist), entityPos, true);
     }
+}
+
+// 0x46A760
+bool CGlass::IsObjectGlass(CEntity* entity) {
+    if (!entity->GetIsTypeObject()) {
+        return false;
+    }
+
+    auto mi = CModelInfo::GetModelInfo(entity->GetModelIndex());
+    if (!mi->AsAtomicModelInfoPtr()) {
+        return false;
+    }
+
+    return mi->IsGlass();
 }

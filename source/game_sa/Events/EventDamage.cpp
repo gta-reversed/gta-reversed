@@ -85,7 +85,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
 
     if (ped == FindPlayerPed()) {
         if (m_pSourceEntity) {
-            if (m_pSourceEntity->IsPed() && pedSourceEntity->m_nPedType == PED_TYPE_GANG2 && m_weaponType >= WEAPON_GRENADE) {
+            if (m_pSourceEntity->GetIsTypePed() && pedSourceEntity->m_nPedType == PED_TYPE_GANG2 && m_weaponType >= WEAPON_GRENADE) {
                 const auto task = pedSourceEntity->GetTaskManager().Find<CTaskComplexKillPedOnFoot>();
                 if (!task || task->m_target != ped){
                     return false;
@@ -117,7 +117,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
         if (m_weaponType == WEAPON_PISTOL_SILENCED) {
             if (!m_pSourceEntity)
                 return false;
-            if (!m_pSourceEntity->IsPed())
+            if (!m_pSourceEntity->GetIsTypePed())
                 return false;
             if (!m_bWitnessedInVehicle)
                 return false;
@@ -125,7 +125,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
                 return false;
         }
         if (m_pSourceEntity) {
-            if (m_pSourceEntity->IsPed()) {
+            if (m_pSourceEntity->GetIsTypePed()) {
                 CTask* activeTask = pedSourceEntity->GetTaskManager().GetActiveTask();
                 if (activeTask && activeTask->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
                     CVector vecDirection = m_pSourceEntity->GetPosition() - ped->GetPosition();
@@ -140,7 +140,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
         }
     }
     if (m_pSourceEntity) {
-        if (    m_pSourceEntity->IsPed()
+        if (    m_pSourceEntity->GetIsTypePed()
             && !pedSourceEntity->IsPlayer()
             && CPedGroups::AreInSameGroup(ped, pedSourceEntity)
             && m_weaponType != WEAPON_EXPLOSION
@@ -166,7 +166,7 @@ bool CEventDamage::AffectsPedGroup(CPedGroup* pedGroup) {
     if (!m_pSourceEntity)
         return true;
 
-    if (!m_pSourceEntity->IsPed())
+    if (!m_pSourceEntity->GetIsTypePed())
         return true;
 
     auto* ped = m_pSourceEntity->AsPed();
@@ -197,9 +197,9 @@ bool CEventDamage::IsCriminalEvent() {
         auto* vehicle = m_pSourceEntity->AsVehicle();
         auto* ped     = m_pSourceEntity->AsPed();
 
-        return (   m_pSourceEntity->IsPed()
+        return (   m_pSourceEntity->GetIsTypePed()
                 && ped->IsPlayer()
-                || m_pSourceEntity->IsVehicle()
+                || m_pSourceEntity->GetIsTypeVehicle()
                 && vehicle->m_pDriver == FindPlayerPed()
         );
     }
@@ -232,7 +232,7 @@ void CEventDamage::ReportCriminalEvent(CPed* ped) {
 
 // 0x4ADA70
 CEntity* CEventDamage::GetSourceEntity() const {
-    if (m_pSourceEntity && m_pSourceEntity->IsVehicle()) {
+    if (m_pSourceEntity && m_pSourceEntity->GetIsTypeVehicle()) {
         auto* vehicle = m_pSourceEntity->AsVehicle();
         if (vehicle->m_pDriver)
             return vehicle->m_pDriver;
@@ -249,7 +249,7 @@ bool CEventDamage::TakesPriorityOver(const CEvent& refEvent) {
     }
 
     auto* ped = m_pSourceEntity->AsPed();
-    if (m_pSourceEntity && m_pSourceEntity->IsPed() && ped->IsPlayer() && refEvent.GetEventType() == EVENT_DAMAGE) {
+    if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed() && ped->IsPlayer() && refEvent.GetEventType() == EVENT_DAMAGE) {
         if (refEvent.GetSourceEntity() == m_pSourceEntity && (!m_damageResponse.m_bHealthZero || !m_bAddToEventGroup))
             return CEvent::TakesPriorityOver(refEvent);
         return true;
@@ -424,7 +424,7 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     {
         auto* pedSourceEntity = m_pSourceEntity->AsPed();
         CTaskSimpleFight* taskFight = nullptr;
-        if (m_pSourceEntity && m_pSourceEntity->IsPed())
+        if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed())
             taskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
 
         const auto bonePosition = ped->GetBonePosition(BONE_HEAD, false);
@@ -574,7 +574,7 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         bKnockOutAnim = true;
                     }
                     if (m_pSourceEntity) {
-                        if (m_pSourceEntity->IsPed() && pedSourceEntity->m_pPlayerData) {
+                        if (m_pSourceEntity->GetIsTypePed() && pedSourceEntity->m_pPlayerData) {
                             if (pedSourceEntity->m_pPlayerData->m_bAdrenaline)
                                 fForceFactor = fForceFactor * 5.0f;
                             else
@@ -660,7 +660,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     float fForceFactor = 0.0f;
     CTaskSimpleFight* sourceEntityTaskFight = nullptr;
     CTaskSimpleUseGun* sourceEntityTaskUseGun = nullptr;
-    if (m_pSourceEntity && m_pSourceEntity->IsPed()) {
+    if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed()) {
         auto* pedSourceEntity = m_pSourceEntity->AsPed();
         sourceEntityTaskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
         if (!sourceEntityTaskFight)
@@ -700,7 +700,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         }
         if (ped->bUpperBodyDamageAnimsOnly || ped->bIsDucking || ped->m_pAttachedTo || !bMultiplyForceWithPedStrength || !m_pSourceEntity) {
             if (m_weaponType >= WEAPON_CHAINSAW || ped->m_fHealth >= fHealthThreshold) {
-                if (m_weaponType != WEAPON_FALL ||  !m_pSourceEntity  || !m_pSourceEntity->IsObject()) {
+                if (m_weaponType != WEAPON_FALL ||  !m_pSourceEntity  || !m_pSourceEntity->GetIsTypeObject()) {
                     if (sourceEntityTaskFight && sourceEntityTaskFight->m_nCurrentMove == FIGHT_ATTACK_FIGHTIDLE && !ped->IsPlayer() && ped->m_nMoveState > PEDMOVE_WALK)
                         m_bFallDown = true;
                 }

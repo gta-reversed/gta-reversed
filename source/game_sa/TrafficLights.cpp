@@ -93,7 +93,7 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
     auto& prevNodeInfo = vehicle->m_autoPilot.m_nPreviousPathNodeInfo;
     if (prevNodeInfo.IsValid() && ThePaths.m_pPathNodes[prevNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(prevNodeInfo);
-        if (vehicle->m_nStatus == eEntityStatus::STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
+        if (vehicle->GetStatus() == STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
             if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_endingRouteNode) &&
                 ( naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_endingRouteNode)
             ) {

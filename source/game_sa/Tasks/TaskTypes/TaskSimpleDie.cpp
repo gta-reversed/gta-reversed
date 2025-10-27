@@ -108,7 +108,7 @@ bool CTaskSimpleDie::ProcessPed(CPed* ped) {
         if (!m_alreadyDead) {
             if (
                 ped->physicalFlags.bSubmergedInWater
-                || !ped->m_bUsesCollision
+                || !ped->GetUsesCollision()
                 || ped->physicalFlags.bDontApplySpeed
                 || ped->bIsStanding
                 && ( !ped->m_standingOnEntity

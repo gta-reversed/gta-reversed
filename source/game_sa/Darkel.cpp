@@ -131,7 +131,7 @@ bool CDarkel::ThisPedShouldBeKilledForFrenzy(const CPed& ped) {
     if (!FrenzyOnGoing())
         return false;
 
-    if (ModelToKill[3] == MODELTK_ANY_PED || rng::find(ModelToKill, ped.m_nModelIndex) != ModelToKill.end()) {
+    if (ModelToKill[3] == MODELTK_ANY_PED || rng::find(ModelToKill, ped.GetModelIndex()) != ModelToKill.end()) {
         return !ped.IsPlayer();
     }
 
@@ -143,7 +143,7 @@ bool CDarkel::ThisVehicleShouldBeKilledForFrenzy(const CVehicle& vehicle) {
     if (!FrenzyOnGoing())
         return false;
 
-    if (ModelToKill[3] == MODELTK_ANY_VEHICLE || rng::find(ModelToKill, vehicle.m_nModelIndex) != ModelToKill.end())
+    if (ModelToKill[3] == MODELTK_ANY_VEHICLE || rng::find(ModelToKill, vehicle.GetModelIndex()) != ModelToKill.end())
         return true;
 
     return ModelToKill[3] == MODELTK_ANY_BIKE && vehicle.IsSubBike();
@@ -505,7 +505,7 @@ void CDarkel::RegisterKillByPlayer(const CPed& killedPed, eWeaponType damageWeap
         }
     }
 
-    RegisteredKills[killedPed.m_nModelIndex][playerId]++;
+    RegisteredKills[killedPed.GetModelIndex()][playerId]++;
     CStats::IncrementStat(STAT_PEOPLE_YOUVE_WASTED);
     CStats::PedsKilledOfThisType[killedPed.bChrisCriminal ? PED_TYPE_CRIMINAL : killedPed.m_nPedType]++;
 
@@ -529,7 +529,7 @@ void CDarkel::RegisterCarBlownUpByPlayer(CVehicle& vehicle, int32 playerId) {
         KillsNeeded--;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE);
     }
-    RegisteredKills[vehicle.m_nModelIndex][playerId]++;
+    RegisteredKills[vehicle.GetModelIndex()][playerId]++;
 
     switch (vehicle.GetVehicleAppearance()) {
     case VEHICLE_APPEARANCE_AUTOMOBILE:
@@ -548,7 +548,7 @@ void CDarkel::RegisterCarBlownUpByPlayer(CVehicle& vehicle, int32 playerId) {
     }
 
     if (FrenzyOnGoing()) {
-        if (vehicle.m_nModelIndex == MODEL_RHINO) {
+        if (vehicle.GetModelIndex() == MODEL_RHINO) {
             CStats::IncrementStat(STAT_HIGHEST_NUMBER_OF_TANKS_DESTROYED_ON_RAMPAGE);
         } else if (vehicle.IsLawEnforcementVehicle()) {
             CStats::IncrementStat(STAT_HIGHEST_POLICE_VEHICLES_DESTROYED_ON_RAMPAGE);

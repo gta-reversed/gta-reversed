@@ -151,7 +151,7 @@ CTaskAllocator* CGroupEventHandler::ComputeStareResponse(CPedGroup* pg, CPed* st
 
 // 0x5FC070
 CTaskAllocator* CGroupEventHandler::ComputeResponseVehicleDamage(const CEventVehicleDamage& e, CPedGroup* pg, CPed* originator) {
-    if (!e.m_attacker || !e.m_attacker->IsPed()) {
+    if (!e.m_attacker || !e.m_attacker->GetIsTypePed()) {
         return nullptr;
     }
     const auto threat = e.m_attacker->AsPed();
@@ -167,7 +167,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseVehicleDamage(const CEventVeh
 
 // 0x5FBDF0
 CTaskAllocator* CGroupEventHandler::ComputeResponseShotFired(const CEventGunShot& e, CPedGroup* pg, CPed* originator) {
-    if (!e.m_firedBy || !e.m_firedBy->IsPed()) {
+    if (!e.m_firedBy || !e.m_firedBy->GetIsTypePed()) {
         return nullptr;
     }
     const auto threat = e.m_firedBy->AsPed();
@@ -372,7 +372,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnterExit(const CEventL
         }
         CTaskSimpleWaitUntilLeaderAreaCodesMatch task{leader};
         if (task.ProcessPed(m)) {
-            m->m_bUsesCollision = true;
+            m->SetUsesCollision(true);
         } else {
             pg->GetIntelligence().SetEventResponseTask(m, task);
         }
@@ -383,7 +383,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnterExit(const CEventL
 // 0x5FBD10
 CTaskAllocator* CGroupEventHandler::ComputeResponseGunAimedAt(const CEventGunAimedAt& e, CPedGroup* pg, CPed* originator) {
     const auto src = e.GetSourceEntity();
-    if (!src || !src->IsPed()) {
+    if (!src || !src->GetIsTypePed()) {
         return nullptr;
     }
     const auto srcPed = src->AsPed();
@@ -422,7 +422,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDraggedOutCar(const CEventDra
     if (!e.m_CarJacker) {
         return nullptr;
     }
-    assert(e.m_CarJacker->IsPed()); // Original code just `returns nullptr` in this case, but but since `m_CarJacker` is typed as `CPed*` it *should* be at least a `CPed*`
+    assert(e.m_CarJacker->GetIsTypePed()); // Original code just `returns nullptr` in this case, but but since `m_CarJacker` is typed as `CPed*` it *should* be at least a `CPed*`
     switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:
         return e.m_CarJacker->IsPlayer() && originator && originator->GetIntelligence()->Respects(e.m_CarJacker) && !pg->m_bIsMissionGroup
@@ -438,7 +438,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDraggedOutCar(const CEventDra
 // 0x5FB540
 CTaskAllocator* CGroupEventHandler::ComputeResponseDanger(const CEventDanger& e, CPedGroup* pg, CPed* originator) {
     const auto esrc = e.GetSourceEntity();
-    if (!esrc || !esrc->IsPed()) {
+    if (!esrc || !esrc->GetIsTypePed()) {
         return nullptr;
     }
     switch (e.m_TaskId) {
@@ -450,7 +450,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDanger(const CEventDanger& e,
 // 0x5FBF50
 CTaskAllocator* CGroupEventHandler::ComputeResponseDamage(const CEventDamage& e, CPedGroup* pg, CPed* originator) {
     const auto src = e.GetSourceEntity();
-    if (!src || !src->IsPed()) {
+    if (!src || !src->GetIsTypePed()) {
         return nullptr;
     }
     const auto srcPed = src->AsPed();

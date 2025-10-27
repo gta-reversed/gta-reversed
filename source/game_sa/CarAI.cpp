@@ -87,7 +87,7 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenge
     }
     vehicle->vehicleFlags.bOccupantsHaveBeenGenerated = true;
 
-    switch (vehicle->m_nModelIndex) {
+    switch (vehicle->GetModelIndex()) {
     case MODEL_ENFORCER:
     case MODEL_FBIRANCH: {
         vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
@@ -691,7 +691,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 || plyrVeh->GetMoveSpeed().SquaredMagnitude() < maxSpeedSq && veh->m_nCopsInCarTimer > 2500
                     ) {
                         if (veh->vehicleFlags.bIsLawEnforcer) { // 0x41DED4 | 0x41E23F
-                            if ((veh->GetModelID() != MODEL_RHINO || veh->m_nRandomSeed > 10'000) && vehPlyrDist2DSq <= sq(10.f)) { // 0x41DEE1 | 0x41E254
+                            if ((veh->GetModelId() != MODEL_RHINO || veh->m_nRandomSeed > 10'000) && vehPlyrDist2DSq <= sq(10.f)) { // 0x41DEE1 | 0x41E254
                                 TellOccupantsToLeaveCar(veh);
                                 ap->SetCruiseSpeed(0);
                                 ap->SetCarMission(MISSION_NONE);
@@ -901,14 +901,14 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                     veh->m_nCopsInCarTimer = 0;
                 }
 
-                if ((!plyrVeh || plyrVeh->IsUpsideDown() || veh->m_nCopsInCarTimer >= (veh->GetModelID() == MODEL_COPBIKE ? 2500 : 20'000)) && veh->vehicleFlags.bIsLawEnforcer && vehToPlyrDist2DSq <= sq(10.f)) {
+                if ((!plyrVeh || plyrVeh->IsUpsideDown() || veh->m_nCopsInCarTimer >= (veh->GetModelId() == MODEL_COPBIKE ? 2500 : 20'000)) && veh->vehicleFlags.bIsLawEnforcer && vehToPlyrDist2DSq <= sq(10.f)) {
                     TellOccupantsToLeaveCar(veh);
                     ap->ClearCarMission();
                     ap->SetCruiseSpeed(0);
                     if (FindPlayerWanted()->GetWantedLevel() <= 1) {
                         veh->vehicleFlags.bSirenOrAlarm = false;
                     }
-                } else if (veh->GetModelID() == MODEL_COPBIKE && veh->m_pDriver) {
+                } else if (veh->GetModelId() == MODEL_COPBIKE && veh->m_pDriver) {
                     const auto tUseSeq = notsa::dyn_cast_if_present<CTaskComplexSequence>(veh->m_pDriver->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY));
                     if (!tUseSeq || (!tUseSeq->Contains(TASK_COMPLEX_ENTER_CAR_AS_DRIVER)) && !tUseSeq->Contains(TASK_SIMPLE_GANG_DRIVEBY)) { 
                         veh->m_pDriver->GetEventGroup().Add(

@@ -71,7 +71,7 @@ CPed* CTaskComplexKillPedGroupOnFoot::ComputeNearestLivingGroupPed(CPed& ped, bo
         if (!flag) {
             if (const auto grp = ped.GetGroup()) {
                 if (const auto leader = grp->GetMembership().GetLeader()) {
-                    return leader->m_pTargetedObject && leader->m_pTargetedObject->IsPed()
+                    return leader->m_pTargetedObject && leader->m_pTargetedObject->GetIsTypePed()
                         ? leader->m_pTargetedObject->AsPed()
                         : ComputeNearestLivingGroupPed(ped, true);
                 }

@@ -215,7 +215,7 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
     bool ret = true;
     if (!victim->bInVehicle && (
            (!notsa::IsFixBugs() || CWeaponInfo::TypeIsWeapon(weaponType)) && CWeaponInfo::GetWeaponInfo(weaponType)->m_nWeaponFire == eWeaponFire::WEAPON_FIRE_MELEE
-        || weaponType == WEAPON_FALL && creator && creator->GetType() == ENTITY_TYPE_OBJECT
+        || weaponType == WEAPON_FALL && creator && creator->GetIsTypeObject()
     )) { // 0x73A6F1
         eventDmg.ComputeAnim(victim, true);
         switch (eventDmg.m_nAnimID) {
@@ -259,7 +259,7 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
     // 0x73A828
     eventDmg.m_bStealthMode =
            creator
-        && creator->IsPed()
+        && creator->GetIsTypePed()
         && (weaponType == WEAPON_PISTOL_SILENCED || creator->AsPed()->GetTaskManager().GetActiveTask()->GetTaskType() == TASK_SIMPLE_STEALTH_KILL);
 
     if (!victim->bInVehicle || victim->m_fHealth <= 0.f || !victim->GetTaskManager().GetActiveTask() || victim->GetTaskManager().GetActiveTask()->GetTaskType() != TASK_SIMPLE_GANG_DRIVEBY) {
@@ -318,9 +318,9 @@ bool CWeapon::FireSniper(CPed* shooter, CEntity* victim, CVector* target) {
         CamShakeNoPos(&TheCamera, 0.2f);
     }
 
-    if (shooter->m_nType == ENTITY_TYPE_PED) {
+    if (shooter->GetIsTypePed()) {
         CCrime::ReportCrime(CRIME_FIRE_WEAPON, shooter, shooter);
-    } else if (shooter->m_nType == ENTITY_TYPE_VEHICLE && shooter->m_roadRageWith) {
+    } else if (shooter->GetIsTypeVehicle() && shooter->m_roadRageWith) {
         CCrime::ReportCrime(CRIME_FIRE_WEAPON, shooter, shooter->m_roadRageWith);
     }
 
@@ -438,7 +438,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
         return 1.0f;
     }
 
-    switch (target->m_nType) {
+    switch (target->GetType()) {
     case ENTITY_TYPE_VEHICLE: {
         if (!target->AsVehicle()->IsBike()) {
             return 3.0f;
@@ -453,7 +453,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
         }
 
         if (CEntity* attachedTo = pedVictim->m_pAttachedTo) {
-            if (attachedTo->IsVehicle() && !attachedTo->AsVehicle()->IsBike()) {
+            if (attachedTo->GetIsTypeVehicle() && !attachedTo->AsVehicle()->IsBike()) {
                 return 3.0f;
             }
         }
@@ -462,7 +462,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
     }
     }
 
-    if (!weaponOwner->IsPed() || !weaponOwner->AsPed()->IsPlayer()) {
+    if (!weaponOwner->GetIsTypePed() || !weaponOwner->AsPed()->IsPlayer()) {
         return 1.0f;
     }
 
@@ -478,7 +478,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
 
 // 0x73B550
 void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& startPoint, const CVector& endPoint, const CColPoint& hitCP, int32 incrementalHit) {
-    const auto firedByPed = firedBy->IsPed()
+    const auto firedByPed = firedBy->GetIsTypePed()
         ? firedBy->AsPed()
         : nullptr;
     const auto firedByPlayer = firedByPed && firedByPed->IsPlayer()
@@ -532,7 +532,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
 
                     // NOTE: The code is written upside down to make the controlflow easier
 
-                    if (victimEntity->IsPed() && CPedGroups::AreInSameGroup(victimEntity->AsPed(), firedByPed)) {
+                    if (victimEntity->GetIsTypePed() && CPedGroups::AreInSameGroup(victimEntity->AsPed(), firedByPed)) {
                         return false;
                     }
 
@@ -569,7 +569,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
             }
         }
 
-        if (!victim->IsPed()) { // 0x73B85B
+        if (!victim->GetIsTypePed()) { // 0x73B85B
             CGlass::WasGlassHitByBullet(victim, hitCP.m_vecPoint);
 
             const auto DoBulletImpactFx = [&] {
@@ -647,11 +647,11 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                 DoBulletImpactFx();
                 if (victimObj->m_nColDamageEffect < 200) {
                     if (!victimObj->physicalFlags.bDisableCollisionForce && oinfo->m_fColDamageMultiplier < 99.9f) {
-                        if (victimObj->IsStatic() && oinfo->m_fUprootLimit <= 0.f) {
+                        if (victimObj->GetIsStatic() && oinfo->m_fUprootLimit <= 0.f) {
                             victimObj->SetIsStatic(false);
                             victimObj->AddToMovingList();
                         }
-                        if (!victimObj->IsStatic()) { // 0x73BC6B - Move the object a little
+                        if (!victimObj->GetIsStatic()) { // 0x73BC6B - Move the object a little
                             float force = -2.f;
                             if (victimObj->physicalFlags.bDisableZ || victimObj->physicalFlags.bDisableMoveForce) {
                                 force *= 0.1f;
@@ -901,7 +901,7 @@ void CWeapon::SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, 
         outMat.GetUp()      = r.Cross(fwd);
     };
 
-    if (victim->IsBuilding()) { // 0x73C98E
+    if (victim->GetIsTypeBuilding()) { // 0x73C98E
         const auto& n = colPoint.m_vecNormal;
         CalculateMatrixRotation(
             -n,
@@ -915,7 +915,7 @@ void CWeapon::SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, 
             hitDir,
             {0.f, 0.f, 1.f}
         );
-    } else if (!owner->IsPed()) { // 0x73CA59
+    } else if (!owner->GetIsTypePed()) { // 0x73CA59
         CalculateMatrixRotation(
             hitDir,
             {1.f, 0.f, 0.f}
@@ -931,7 +931,7 @@ void CWeapon::SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, 
     outMat.GetPosition() = colPoint.m_vecPoint;
 
     // 0x73CB1A
-    if (!victim->IsBuilding()) {
+    if (!victim->GetIsTypeBuilding()) {
         outMat.GetPosition() -= colPoint.m_vecNormal.ProjectOnToNormal(outMat.GetForward()) * depth;
     }
 }
@@ -970,7 +970,7 @@ void CWeapon::DoDoomAiming(CEntity* owner, CVector* start, CVector* end) {
     CEntity* closestEntity{};
     float    closestDist{ 10'000 };
     for (auto entity : std::span{ objInRange.begin(), (size_t)inRangeCount }) {
-        if (entity == owner || owner->AsPed()->CanSeeEntity(entity, PI / 8.f)) { // todo: add check owner->IsPed() NOTSA
+        if (entity == owner || owner->AsPed()->CanSeeEntity(entity, PI / 8.f)) { // todo: add check owner->GetIsTypePed() NOTSA
             continue;
         }
 
@@ -1003,7 +1003,7 @@ void CWeapon::DoDoomAiming(CEntity* owner, CVector* start, CVector* end) {
         }
 
         float targetZ = closestEntity->GetPosition().z + 0.3f;
-        if (closestEntity->IsPed() && closestEntity->AsPed()->bIsDucking) {
+        if (closestEntity->GetIsTypePed() && closestEntity->AsPed()->bIsDucking) {
             targetZ -= 0.8f; // Effectively only -0.5 relative to the original Z
         }
         const auto t = (*start - *end).Magnitude2D() / (*start - closestEntity->GetPosition()).Magnitude2D();
@@ -1214,7 +1214,7 @@ float CWeapon::EvaluateTargetForHeatSeekingMissile(CEntity* potentialTarget, con
     }
 
     if (arePlanesPriority) {
-        if (potentialTarget->IsVehicle() && notsa::contains({ VEHICLE_TYPE_PLANE, VEHICLE_TYPE_HELI }, potentialTarget->AsVehicle()->m_nVehicleSubType)) {
+        if (potentialTarget->GetIsTypeVehicle() && notsa::contains({ VEHICLE_TYPE_PLANE, VEHICLE_TYPE_HELI }, potentialTarget->AsVehicle()->m_nVehicleSubType)) {
             ret *= 0.25f;
         }
     }
@@ -1288,7 +1288,7 @@ bool CWeapon::FireAreaEffect(CEntity* firingEntity, const CVector& origin, CEnti
                     std::cos(heading),
                     0.f
                 };
-                if (firingEntity->IsPed()) {
+                if (firingEntity->GetIsTypePed()) {
                     if (const auto pd = firingEntity->AsPed()->m_pPlayerData) {
                         dir.z = -std::tan(pd->m_fLookPitch);
                     }
@@ -1298,7 +1298,7 @@ bool CWeapon::FireAreaEffect(CEntity* firingEntity, const CVector& origin, CEnti
         } else {
             const auto ptTarget = target
                 ? *target
-                : targetEntity->IsPed()
+                : targetEntity->GetIsTypePed()
                     ? targetEntity->AsPed()->GetBonePosition(BONE_SPINE1)
                     : targetEntity->GetPosition();
             return { (ptTarget - origin).Normalized(), ptTarget };
@@ -1402,7 +1402,7 @@ bool CWeapon::FireInstantHit(CEntity* firingEntity, CVector* origin, CVector* mu
 bool CWeapon::FireProjectile(CEntity* firedBy, const CVector& origin, CEntity* targetEntity, const CVector* targetPos, float force) {
     assert(firedBy);
 
-    const auto firedByPed = firedBy->IsPed()
+    const auto firedByPed = firedBy->GetIsTypePed()
         ? firedBy->AsPed()
         : nullptr;
     auto projOrigin     = origin;
@@ -1519,7 +1519,7 @@ bool CWeapon::FireProjectile(CEntity* firedBy, const CVector& origin, CEntity* t
             );
         }
 
-    } else if (notsa::contains({ WEAPON_GRENADE, WEAPON_REMOTE_SATCHEL_CHARGE }, GetType()) && firedBy->IsPed()) { // 0x74193B
+    } else if (notsa::contains({ WEAPON_GRENADE, WEAPON_REMOTE_SATCHEL_CHARGE }, GetType()) && firedBy->GetIsTypePed()) { // 0x74193B
         const auto thorwableProjOrigin = firedBy->GetPosition() - firedBy->GetForward() - CVector{0.f, 0.f, 0.4f};
         if (CWorld::TestSphereAgainstWorld(thorwableProjOrigin, 0.3f, nullptr, false, false, true, false, false, false)) { // 0x7419CE
             CProjectileInfo::AddProjectile(
@@ -1541,7 +1541,7 @@ bool CWeapon::FireProjectile(CEntity* firedBy, const CVector& origin, CEntity* t
     if (firedByPed) { // 0x741A74
         CCrime::ReportCrime(CRIME_EXPLOSION, firedByPed, firedByPed);
         g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_22, firedBy);
-    } else if (firedBy->IsVehicle()) { // 0x741B10
+    } else if (firedBy->GetIsTypeVehicle()) { // 0x741B10
         if (const auto drvr = firedBy->AsVehicle()->m_pDriver) {
             CCrime::ReportCrime(CRIME_FIRE_WEAPON, firedBy, drvr);
             g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_22, drvr);
@@ -1650,7 +1650,7 @@ bool CWeapon::FireM16_1stPerson(CPed* owner) {
 
 // 0x742300
 bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CEntity* targetEnt, CVector* targetPosn, CVector* altPosn) {
-    const auto firedByPed = firedBy && firedBy->IsPed()
+    const auto firedByPed = firedBy && firedBy->GetIsTypePed()
         ? firedBy->AsPed()
         : nullptr;
     const auto wi = &GetWeaponInfo(firedByPed);
@@ -1799,7 +1799,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
         case WEAPON_RLAUNCHER_HS: { // 0x7425B3
             if (firedByPed) {
                 const auto CanFire = [&](CVector origin, CVector end) {
-                    return (origin - end).SquaredMagnitude() <= sq(8.f) && !firedBy->IsPed();
+                    return (origin - end).SquaredMagnitude() <= sq(8.f) && !firedBy->GetIsTypePed();
                 };
                 if (   targetEnt  && !CanFire(firedBy->GetPosition(), targetEnt->GetPosition())
                     || targetPosn && !CanFire(firedBy->GetPosition(), *targetPosn)
@@ -1854,7 +1854,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
                 firedByPed->bFiringWeapon = true;
             }
             firedByPed->GetWeaponAE().AddAudioEvent(AE_WEAPON_FIRE);
-            if (isPlayerFiring && targetEnt && targetEnt->IsPed() && m_Type != WEAPON_PISTOL_SILENCED) {
+            if (isPlayerFiring && targetEnt && targetEnt->GetIsTypePed() && m_Type != WEAPON_PISTOL_SILENCED) {
                 firedByPed->Say(CTX_GLOBAL_SHOOT, 200); // 0x74280E
             }
         }

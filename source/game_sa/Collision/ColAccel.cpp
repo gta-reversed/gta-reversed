@@ -190,20 +190,20 @@ void CColAccel::addIPLEntity(CEntity** ppEntities, int32 entitiesCount, int32 en
         return;
 
     auto& entity = ppEntities[entityIndex];
-    auto* entModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
+    auto* entModelInfo = CModelInfo::GetModelInfo(entity->GetModelIndex());
 
     CColAccelIPLEntry iplEntry;
     iplEntry.m_nFlags = 0;
     iplEntry.m_nEntityIndex = entityIndex;
-    iplEntry.m_nModelId = entity->m_nModelIndex;
-    iplEntry.m_nLodModelId = entity->m_pLod->m_nModelIndex;
+    iplEntry.m_nModelId = entity->GetModelIndex();
+    iplEntry.m_nLodModelId = entity->GetLod()->GetModelIndex();
     iplEntry.m_nLodIndex = -1;
 
-    if (entity->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * entModelInfo->m_fDrawDistance > 300.0F)
+    if (entity->GetNumLodChildren() || TheCamera.m_fLODDistMultiplier * entModelInfo->m_fDrawDistance > 300.0F)
         iplEntry.m_bIsFarDrawDist = true;
 
     for (auto i = 0; i < entitiesCount; ++i) {
-        if (ppEntities[i] != entity->m_pLod)
+        if (ppEntities[i] != entity->GetLod())
             continue;
 
         iplEntry.m_nLodIndex = i;
@@ -211,7 +211,7 @@ void CColAccel::addIPLEntity(CEntity** ppEntities, int32 entitiesCount, int32 en
     }
 
     auto* lodModelInfo = CModelInfo::GetModelInfo(iplEntry.m_nLodModelId);
-    if (entity->m_pLod->m_nNumLodChildren == 1) {
+    if (entity->GetLod()->GetNumLodChildren() == 1) {
         if (entity->m_bUnderwater)
             iplEntry.m_bIsUnderwater = true;
 
