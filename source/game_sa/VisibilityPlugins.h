@@ -78,9 +78,9 @@ public:
         float m_distance; // alpha
     };
 
-    static int32& ms_atomicPluginOffset;
-    static int32& ms_clumpPluginOffset;
-    static int32& ms_framePluginOffset;
+    static RwInt32& ms_atomicPluginOffset;
+    static RwInt32& ms_clumpPluginOffset;
+    static RwInt32& ms_framePluginOffset;
     static CLinkList<AlphaObjectInfo>& m_alphaEntityList;
     static CLinkList<AlphaObjectInfo>& m_alphaList;
     static CLinkList<AlphaObjectInfo>& m_alphaBoatAtomicList;
@@ -188,4 +188,4 @@ public:
     static bool VehicleVisibilityCB_BigVehicle(RpClump* clump);
 };
 
-#define RpAtomicGetVisibilityPlugin(atomic) ((tAtomicVisibilityPlugin*)((uint32)atomic + CVisibilityPlugins::ms_atomicPluginOffset))
+#define RpAtomicGetVisibilityPlugin(atomic) RWPLUGINOFFSET(tAtomicVisibilityPlugin, &((RwObject*)(atomic))->flags, CVisibilityPlugins::ms_atomicPluginOffset)

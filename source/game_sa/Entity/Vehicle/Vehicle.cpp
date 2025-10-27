@@ -2321,6 +2321,7 @@ RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data) {
     return atomic;
 }
 
+// TODO: Review, mobile call CVisibilityPlugins::SetAtomicId
 // 0x732290
 static void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state) {
     RpAtomicGetVisibilityPlugin(atomic)->m_modelId = state;
@@ -2378,10 +2379,10 @@ void CVehicle::RemoveUpgrade(int32 upgradeId) {
 
 // 0x6D3650
 int32 CVehicle::GetUpgrade(int32 upgradeId) {
-    struct { int32 upgradeId; RpAtomic* atomic; } data = { upgradeId, nullptr };
-    RpClumpForAllAtomics(m_pRwClump, FindUpgradeCB, &data);
-    if (data.atomic) {
-        return CVisibilityPlugins::GetModelInfoIndex(data.atomic);
+    tCompSearchStructById upgradeAssoc = { upgradeId, nullptr };
+    RpClumpForAllAtomics(m_pRwClump, FindUpgradeCB, &upgradeAssoc);
+    if (upgradeAssoc.m_pFrame) {
+        return CVisibilityPlugins::GetModelInfoIndex((RpAtomic*)upgradeAssoc.m_pFrame);
     }
 
     switch (upgradeId) {
@@ -2465,10 +2466,10 @@ void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
 // 0x6D3A50
 int32 CVehicle::GetReplacementUpgrade(int32 nodeId) {
     auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, nodeId);
-    struct { int32 nodeId; RpAtomic* atomic; } data = { nodeId, nullptr };
-    RwFrameForAllObjects(frame, FindReplacementUpgradeCB, &data);
-    if (data.atomic)
-        return CVisibilityPlugins::GetModelInfoIndex(data.atomic);
+    tCompSearchStructById upgradeAssoc = { nodeId, nullptr };
+    RwFrameForAllObjects(frame, FindReplacementUpgradeCB, &upgradeAssoc);
+    if (upgradeAssoc.m_pFrame)
+        return CVisibilityPlugins::GetModelInfoIndex((RpAtomic*)upgradeAssoc.m_pFrame);
     else
         return -1;
 }

@@ -9,9 +9,9 @@
 
 #include "VisibilityPlugins.h"
 
-int32& CVisibilityPlugins::ms_atomicPluginOffset = *(int32*)0x8D608C;
-int32& CVisibilityPlugins::ms_clumpPluginOffset = *(int32*)0x8D6094;
-int32& CVisibilityPlugins::ms_framePluginOffset = *(int32*)0x8D6090;
+RwInt32& CVisibilityPlugins::ms_atomicPluginOffset = *(RwInt32*)0x8D608C;
+RwInt32& CVisibilityPlugins::ms_clumpPluginOffset = *(RwInt32*)0x8D6094;
+RwInt32& CVisibilityPlugins::ms_framePluginOffset = *(RwInt32*)0x8D6090;
 
 CLinkList<CVisibilityPlugins::AlphaObjectInfo>& CVisibilityPlugins::m_alphaEntityList = *(CLinkList<CVisibilityPlugins::AlphaObjectInfo>*)0xC88120;
 CLinkList<CVisibilityPlugins::AlphaObjectInfo>& CVisibilityPlugins::m_alphaList = *(CLinkList<CVisibilityPlugins::AlphaObjectInfo>*)0xC88070;
