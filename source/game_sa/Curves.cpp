@@ -15,16 +15,16 @@ void CCurves::InjectHooks() {
 
 // 0x43C610
 float CCurves::DistForLineToCrossOtherLine(float lineBaseX, float lineBaseY, float lineDirX, float lineDirY, float otherLineBaseX, float otherLineBaseY, float otherLineDirX, float otherLineDirY) {
-    float Dir = lineDirX * otherLineDirY - lineDirY * otherLineDirX;
+    float dir = lineDirX * otherLineDirY - lineDirY * otherLineDirX;
 
-    if (Dir == 0.0f) {
+    if (dir == 0.0f) {
         return -1.0f; // Lines are parallel, no intersection
     }
 
-    float Dist           = (lineBaseX - otherLineBaseX) * otherLineDirY - (lineBaseY - otherLineBaseY) * otherLineDirX;
-    float DistOfCrossing = -Dist / Dir;
+    float dist = (lineBaseX - otherLineBaseX) * otherLineDirY - (lineBaseY - otherLineBaseY) * otherLineDirX;
+    float distOfCrossing = -dist / dir;
 
-    return DistOfCrossing;
+    return distOfCrossing;
 }
 
 // 0x43C660
@@ -36,32 +36,31 @@ float CCurves::CalcSpeedVariationInBend(
     float          endDirX,
     float          endDirY
 ) {
-    float ReturnVal  = 0.0f;
-    float DotProduct = startDirX * endDirX + startDirY * endDirY;
+    float returnVal = 0.0f;
+    float dotProduct = startDirX * endDirX + startDirY * endDirY;
 
-    if (DotProduct <= 0.0f) {
+    if (dotProduct <= 0.0f) {
         // If the dot product is <= 0, return a constant value (1/3)
-        ReturnVal = 1.0f / 3.0f;
-        return ReturnVal;
+        returnVal = 1.0f / 3.0f;
+        return returnVal;
     }
 
-    if (DotProduct > 0.7f) {
+    if (dotProduct > 0.7f) {
         // Calculate the distance from the start point to the mathematical line defined by the end point and direction
-        float DistToLine =
-            CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, endDirX, endDirY, startCoors.x, startCoors.y);
+        float distToLine = CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, endDirX, endDirY, startCoors.x, startCoors.y);
 
         // Calculate the straight-line distance between the start and end points
-        float StraightDist = (startCoors - endCoors).Magnitude2D();
+        float straightDist = (startCoors - endCoors).Magnitude2D();
 
         // Normalize the distance to the line by the straight-line distance
-        ReturnVal = (DistToLine / StraightDist) * (1.0f / 3.0f);
-        return ReturnVal;
+        returnVal = (distToLine / straightDist) * (1.0f / 3.0f);
+        return returnVal;
     }
 
     // If the dot product is <= 0.7, interpolate the return value
-    ReturnVal = (1.0f - (DotProduct / 0.7f)) * (1.0f / 3.0f);
+    returnVal = (1.0f - (dotProduct / 0.7f)) * (1.0f / 3.0f);
 
-    return ReturnVal;
+    return returnVal;
 }
 
 // 0x43C710
@@ -73,134 +72,118 @@ float CCurves::CalcSpeedScaleFactor(
     float          endDirX,
     float          endDirY
 ) {
-    float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDirX, startDirY, endDirX, endDirY);
+    float speedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDirX, startDirY, endDirX, endDirY);
 
-    float DistToPoint1   = DistForLineToCrossOtherLine(
+    float distToPoint1 = DistForLineToCrossOtherLine(
         startCoors.x, startCoors.y, startDirX, startDirY, endCoors.x, endCoors.y, endDirX, endDirY
     );
 
-    float DistToPoint2 = DistForLineToCrossOtherLine(
+    float distToPoint2 = DistForLineToCrossOtherLine(
         endCoors.x, endCoors.y, -endDirX, -endDirY, startCoors.x, startCoors.y, startDirX, startDirY
     );
 
-    float StraightDist1;
-    float StraightDist2;
-    float BendDist;
-    float BendDist_Time;
-    float BendDistOneSegment;
-    float TotalDist_Time;
+    float straightDist2, straightDist1, bendDist, bendDist_Time, bendDistOneSegment, totalDist_Time;
 
-    if (DistToPoint1 > 0.0f && DistToPoint2 > 0.0f) {
-        BendDistOneSegment = std::min(DistToPoint1, DistToPoint2);
-        BendDistOneSegment = std::min(5.0f, BendDistOneSegment);
+    if (distToPoint1 > 0.0f && distToPoint2 > 0.0f) {
+        bendDistOneSegment = std::min(distToPoint1, distToPoint2);
+        bendDistOneSegment = std::min(5.0f, bendDistOneSegment);
 
-        StraightDist1      = DistToPoint1 - BendDistOneSegment;
-        StraightDist2      = DistToPoint2 - BendDistOneSegment;
+        straightDist1 = distToPoint1 - bendDistOneSegment;
+        straightDist2 = distToPoint2 - bendDistOneSegment;
 
-        BendDist           = 2.0f * BendDistOneSegment;
+        bendDist = 2.0f * bendDistOneSegment;
 
-        TotalDist_Time     = BendDist;
+        totalDist_Time = bendDist;
     } else {
-        BendDist       = (startCoors - endCoors).Magnitude2D();
-        BendDist_Time  = 1.0f - SpeedVariation;
+        bendDist = (startCoors - endCoors).Magnitude2D();
+        bendDist_Time = 1.0f - speedVariation;
 
-        StraightDist1  = 0.0f;
-        StraightDist2  = 0.0f;
+        straightDist1 = 0.0f;
+        straightDist2 = 0.0f;
 
-        TotalDist_Time = BendDist / BendDist_Time;
+        totalDist_Time = bendDist / bendDist_Time;
     }
 
-    return TotalDist_Time + StraightDist1 + StraightDist2;
+    return totalDist_Time + straightDist1 + straightDist2;
 }
 
 // 0x43C880
 float CCurves::CalcCorrectedDist(float current, float total, float speedVariation, float* outT) {
-    if (total < 0.00001f) // Epsilon to avoid division by zero
-    {
+    // Epsilon to avoid division by zero
+    if (total < 0.00001f) {
         *outT = 0.5f;
         return 0.0f;
     }
 
     *outT = 0.5f - (std::cos(PI * (current / total)) * 0.5f);
 
-    float AverageSpeed  = std::sin((current / total) * TWO_PI);
-    float CorrectedDist = AverageSpeed * (total * (1.0f / TWO_PI)) * speedVariation + ((1.0f - (speedVariation + speedVariation) + 1.0f) * 0.5f) * current;
+    float averageSpeed = std::sin((current / total) * TWO_PI);
+    float correctedDist = averageSpeed * (total * (1.0f / TWO_PI)) * speedVariation + ((1.0f - (speedVariation + speedVariation) + 1.0f) * 0.5f) * current;
 
-    return CorrectedDist;
+    return correctedDist;
 }
 
 // 0x43C900
 void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float time, int32 traversalTimeInMS, CVector& resultCoor, CVector& resultSpeed) {
-    float     BendDist, BendDist_Time, CurrentDist_Time, Interpol, StraightDist2, StraightDist1, TotalDist_Time, OurTime;
-    float     BendDistOneSegment;
-    CVector CoorsOnLine1, CoorsOnLine2;
-
     time = std::max(0.0f, std::min(1.0f, time));
 
-    float SpeedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDir.x, startDir.y, endDir.x, endDir.y);
+    float bendDist, bendDist_Time, currentDist_Time, interpol, straightDist2, straightDist1, totalDist_Time, ourTime;
+    float bendDistOneSegment;
+    CVector coorsOnLine1, coorsOnLine2;
+
+    float speedVariation = CalcSpeedVariationInBend(startCoors, endCoors, startDir.x, startDir.y, endDir.x, endDir.y);
 
     // Find where the ray from start position would intersect with end ray
-    float DistToPoint1 = DistForLineToCrossOtherLine(
+    float distToPoint1 = DistForLineToCrossOtherLine(
         startCoors.x, startCoors.y, startDir.x, startDir.y, endCoors.x, endCoors.y, endDir.x, endDir.y
     );
 
     // Find where the ray from end position would intersect with start ray (negative because direction is flipped)
-    float DistToPoint2 = DistForLineToCrossOtherLine(
+    float distToPoint2 = DistForLineToCrossOtherLine(
         endCoors.x, endCoors.y, -endDir.x, -endDir.y, startCoors.x, startCoors.y, startDir.x, startDir.y
     );
 
-    if (DistToPoint1 <= 0.0f || DistToPoint2 <= 0.0f) {
-        CVector diff     = startCoors - endCoors;
-        StraightDist1    = diff.Magnitude2D();
+    if (distToPoint1 <= 0.0f || distToPoint2 <= 0.0f) {
+        straightDist1 = (startCoors - endCoors).Magnitude2D();
 
-        Interpol         = StraightDist1 / (1.0f - SpeedVariation);
+        interpol = straightDist1 / (1.0f - speedVariation);
 
-        CurrentDist_Time = CalcCorrectedDist(time * Interpol, Interpol, SpeedVariation, &OurTime);
+        currentDist_Time = CalcCorrectedDist(time * interpol, interpol, speedVariation, &ourTime);
 
-        CoorsOnLine1     = startCoors + startDir * CurrentDist_Time;
-        CoorsOnLine2     = endCoors + endDir * (CurrentDist_Time - StraightDist1);
+        coorsOnLine1 = startCoors + startDir * currentDist_Time;
+        coorsOnLine2 = endCoors + endDir * (currentDist_Time - straightDist1);
 
-        resultCoor       = CoorsOnLine1 * (1.0f - OurTime) + CoorsOnLine2 * OurTime;
+        resultCoor = Lerp(coorsOnLine1, coorsOnLine2, ourTime);
 
-        TotalDist_Time   = StraightDist1 + 0.0f + 0.0f;
+        totalDist_Time = straightDist1;
     } else {
-        StraightDist2 = (DistToPoint1 < DistToPoint2) ? DistToPoint1 : DistToPoint2;
+        straightDist2 = std::min(distToPoint1, distToPoint2);
+        straightDist2 = std::min(5.0f, straightDist2);
 
-        if (StraightDist2 > 5.0f) {
-            StraightDist2 = 5.0f;
-        }
+        bendDist = distToPoint1 - straightDist2;
+        bendDistOneSegment = distToPoint2 - straightDist2;
+        totalDist_Time = bendDist + (straightDist2 + straightDist2) + bendDistOneSegment;
+        bendDist_Time = time * totalDist_Time;
 
-        BendDist           = DistToPoint1 - StraightDist2;
-        BendDistOneSegment = DistToPoint2 - StraightDist2;
-        TotalDist_Time     = BendDist + (StraightDist2 + StraightDist2) + BendDistOneSegment;
-        BendDist_Time      = time * TotalDist_Time;
-
-        if (BendDist > BendDist_Time) {
-            resultCoor.x = startCoors.x + BendDist_Time * startDir.x;
-            resultCoor.y = startCoors.y + BendDist_Time * startDir.y;
-            resultCoor.z = startCoors.z + BendDist_Time * startDir.z;
-        } else if (BendDist + (StraightDist2 + StraightDist2) <= BendDist_Time) {
-            BendDist_Time = BendDist_Time - TotalDist_Time;
-            resultCoor.x  = endCoors.x + BendDist_Time * endDir.x;
-            resultCoor.y  = endCoors.y + BendDist_Time * endDir.y;
-            resultCoor.z  = endCoors.z + BendDist_Time * endDir.z;
+        if (bendDist > bendDist_Time) {
+            resultCoor = startCoors + startDir * bendDist_Time;
+        } else if (bendDist + (straightDist2 + straightDist2) <= bendDist_Time) {
+            bendDist_Time = bendDist_Time - totalDist_Time;
+            resultCoor = endCoors + endDir * bendDist_Time;
         } else {
-            float BendInter          = (BendDist_Time - BendDist) / (StraightDist2 + StraightDist2);
+            float bendInter = (bendDist_Time - bendDist) / (straightDist2 + straightDist2);
 
-            CVector BendStartCoors = startCoors + startDir * BendDist + startDir * (StraightDist2 * BendInter);
+            CVector bendStartCoors = startCoors + startDir * bendDist + startDir * (straightDist2 * bendInter);
+            CVector bendEndCoors = endCoors - endDir * bendDistOneSegment - endDir * (straightDist2 * (1.0f - bendInter));
 
-            CVector BendEndCoors =
-                endCoors - endDir * BendDistOneSegment - endDir * (StraightDist2 * (1.0f - BendInter));
-
-            resultCoor = BendStartCoors * (1.0f - BendInter) + BendEndCoors * BendInter;
+            resultCoor = Lerp(bendStartCoors, bendEndCoors, bendInter);
         }
     }
 
-    float SpeedFactor       = (1.0f - time) * TotalDist_Time;
-    float SpeedMillisFactor = static_cast<float>(traversalTimeInMS) / 1000.0f;
+    float speedFactor = (1.0f - time) * totalDist_Time;
+    float speedMillisFactor = static_cast<float>(traversalTimeInMS) / 1000.0f;
 
-    resultSpeed.x = ((time * endDir.x) + ((1.0f - time) * startDir.x)) * SpeedFactor / SpeedMillisFactor;
-    resultSpeed.y = ((time * endDir.y) + ((1.0f - time) * startDir.y)) * SpeedFactor / SpeedMillisFactor;
+    resultSpeed = Lerp(startDir, endDir, time) * (speedFactor / speedMillisFactor);
     resultSpeed.z = 0.0f;
 }
 
