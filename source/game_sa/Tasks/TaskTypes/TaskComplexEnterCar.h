@@ -31,6 +31,7 @@ public:
 
     auto GetTargetCar() const { return m_Car; }
     void SetMoveState(eMoveState ms) { m_MoveState = ms; }
+    bool ShouldQuitAfterDraggingPedOut() const noexcept { return m_bQuitAfterDraggingPedOut; }
 protected:
     virtual CTask* CreateNextSubTask_AfterSimpleCarAlign(CPed* ped);
 
