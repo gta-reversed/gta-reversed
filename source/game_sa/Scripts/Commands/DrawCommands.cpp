@@ -95,19 +95,18 @@ void DrawSpriteWithRotation(int32 slot, float x, float y, float width, float hei
 
 /// DRAW_WINDOW(0937)
 void DrawWindow(CRect rect, const char* header, int32 style) {
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].cornerA             = { SCREEN_STRETCH_X(rect.left), SCREEN_STRETCH_Y(rect.top) };
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].cornerB             = { SCREEN_STRETCH_X(rect.right), SCREEN_STRETCH_Y(rect.bottom) };
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nType             = eScriptRectangleType::TEXT;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nTextureId        = -1;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nAngle            = 0.0f;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nTransparentColor = CRGBA{ 0, 0, 0, 190 };
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].gxt2[0]             = '\0';
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_Alignment         = eFontAlignment::ALIGN_LEFT;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nTextboxStyle     = style;
-
-    strncpy_s(CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].gxt1, (stricmp(header, "DUMMY") == 0 ? "\0" : header), 8);
-
-    ++CTheScripts::NumberOfIntroRectanglesThisFrame;
+    auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
+    
+    rect->cornerA             = { SCREEN_STRETCH_X(rect.left), SCREEN_STRETCH_Y(rect.top) };
+    rect->cornerB             = { SCREEN_STRETCH_X(rect.right), SCREEN_STRETCH_Y(rect.bottom) };
+    rect->m_nType             = eScriptRectangleType::TEXT;
+    rect->m_nTextureId        = -1;
+    rect->m_nAngle            = 0.0f;
+    rect->m_nTransparentColor = CRGBA{ 0, 0, 0, 190 };
+    rect->gxt2[0]             = '\0';
+    rect->m_Alignment         = eFontAlignment::ALIGN_LEFT;
+    rect->m_nTextboxStyle     = style;
+    strncpy_s(rect->gxt1, (stricmp(header, "DUMMY") == 0 ? "\0" : header), 8);
 }
 
 } // namespace
