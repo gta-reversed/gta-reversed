@@ -408,11 +408,21 @@ void CAEPedAudioEntity::HandleLandingEvent(eAudioEvents event) {
     const auto volume = GetDefaultVolume(event);
     if (g_surfaceInfos.IsAudioWater(m_pPed->m_nContactSurface)) {
         if (AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_SWIMMING, SND_BANK_SLOT_SWIMMING)) {
-            PlayLandingSound(SND_BANK_SLOT_SWIMMING, CAEAudioUtility::GetRandomNumberInRange(0, 4), std::max(0.f, volume), 50);
+            PlayLandingSound(
+                SND_BANK_SLOT_SWIMMING,
+                CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_SWIMMING_SWIM1, SND_GENRL_SWIMMING_SWIM5),
+                std::max(0.f, volume),
+                50
+            );
         }
     } else {
         if (AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC)) {
-            PlayLandingSound(SND_BANK_SLOT_FOOTSTEPS_GENERIC, event != AE_PED_LAND_ON_FEET_AFTER_FALL ? 0 : 6, volume, 0);
+            PlayLandingSound(
+                SND_BANK_SLOT_FOOTSTEPS_GENERIC,
+                event == AE_PED_LAND_ON_FEET_AFTER_FALL ? 6 : 0,
+                volume,
+                0
+            );
         }
     }
 }
