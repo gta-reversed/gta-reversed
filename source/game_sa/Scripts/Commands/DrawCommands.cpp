@@ -40,7 +40,7 @@ void DrawRect(float x, float y, float width, float height, CRGBA color) {
 /// LOAD_SPRITE(038F)
 void LoadSprite(int32 slot, const char* spriteName) {
     char lowered[16]{ 0 };
-    for (auto i = 0; i < 15 && spriteName[i] != '\0'; i++) {
+    for (auto i = 0; i < std::size(lowered) - 1 && spriteName[i] != '\0'; i++) {
         lowered[i] = tolower(spriteName[i]);
     }
 
