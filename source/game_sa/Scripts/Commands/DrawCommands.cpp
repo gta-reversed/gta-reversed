@@ -26,14 +26,15 @@ void DrawSprite(int32 slot, float x, float y, float width, float height, CRGBA c
 
 /// DRAW_RECT(038E)
 void DrawRect(float x, float y, float width, float height, CRGBA color) {
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nType             = eScriptRectangleType::MONOCOLOR;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nTextureId        = -1;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].cornerA             = { SCREEN_STRETCH_X(x - width * 0.5f), SCREEN_STRETCH_Y(y - height * 0.5f) };
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].cornerB             = { SCREEN_STRETCH_X(x + width * 0.5f), SCREEN_STRETCH_Y(y + height * 0.5f) };
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nAngle            = 0.0f;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_nTransparentColor = color;
-    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].gxt1[0]             = '\0';
-    ++CTheScripts::NumberOfIntroRectanglesThisFrame;
+    auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
+    
+    rect->m_nType             = eScriptRectangleType::MONOCOLOR;
+    rect->m_nTextureId        = -1;
+    rect->cornerA             = { SCREEN_STRETCH_X(x - width * 0.5f), SCREEN_STRETCH_Y(y - height * 0.5f) };
+    rect->cornerB             = { SCREEN_STRETCH_X(x + width * 0.5f), SCREEN_STRETCH_Y(y + height * 0.5f) };
+    rect->m_nAngle            = 0.0f;
+    rect->m_nTransparentColor = color;
+    rect->gxt1[0]             = '\0';
 }
 
 /// LOAD_SPRITE(038F)
