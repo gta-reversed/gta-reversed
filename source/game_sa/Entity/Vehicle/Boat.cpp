@@ -146,6 +146,8 @@ void CBoat::SetupModelNodes() {
     CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes);
 }
 
+// debug function
+// unused
 // 0x6F0D00
 void CBoat::DebugCode() {
     if (FindPlayerVehicle() != this) {
@@ -165,23 +167,20 @@ void CBoat::DebugCode() {
     SetupModelNodes();
 }
 
-// uses debug printing
+// debug function
 // unused
 // 0x6F0D90
 void CBoat::DisplayHandlingData() {
     char cBuffer[64]{};
     // int32 y, x = 1; // unused
 
-    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass); 
-    // std::format_to(cBuffer, "Thrust Height {:3.2f}", );// mobile 3
-    // std::format_to(cBuffer, "Height Mult {:3.2f}", );// mobile 3
+    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass);
+
     std::format_to(cBuffer, "Rudder Angle  {:3.2f}", m_pHandlingData->m_fSteeringLock);
-    // std::format_to(cBuffer, "Resistance  {:3.3f}  {:3.3f}  {:3.3f}", ); // mobile 3
-    // std::format_to(cBuffer, "Turn Res    {:3.3f}  {:3.3f}  {:3.3f}", );// mobile 3
 }
 
+// debug function
 // unused
-// uses debug function?
 // 0x6F0DE0
 void CBoat::ModifyHandlingValue(const bool& plus) {
     float fSign;
@@ -189,8 +188,11 @@ void CBoat::ModifyHandlingValue(const bool& plus) {
 
     fSign = plus ? float(nSign) : float(-nSign);
 
-    if (m_CurrentField == 4) {
+    switch (m_CurrentField) {
+    case 4: {
         m_pHandlingData->m_fSteeringLock += fSign;
+        break;
+    }
     }
 }
 
@@ -446,7 +448,7 @@ void CBoat::FillBoatList() {
     apFrameWakeGeneratingBoats.fill(nullptr);
 
     const auto& vecCamPos = TheCamera.GetPosition();
-    auto        vecCamDir = TheCamera.m_mCameraMatrix.GetForward();
+    auto vecCamDir = TheCamera.m_mCameraMatrix.GetForward();
     vecCamDir.Normalise();
 
     auto iCurBoat = 0u;
@@ -696,7 +698,7 @@ void CBoat::Teleport(CVector newCoors, bool clearOrientation) {
     CWorld::Remove(this);
     SetPosn(newCoors);
     if (clearOrientation) {
-        SetOrientation(0.0F, 0.0F, 0.0F);
+        SetOrientation(CVector{0.0f});
     }
 
     ResetMoveSpeed();
@@ -710,8 +712,8 @@ void CBoat::PreRender() {
 
     m_fContactSurfaceBrightness = 0.5F;
     auto fUsedAngle = -m_fSteerAngle;
-    SetComponentRotation(m_BoatNodes[BOAT_RUDDER], AXIS_Z, fUsedAngle, true);
-    SetComponentRotation(m_BoatNodes[BOAT_REARFLAP_LEFT], AXIS_Z, fUsedAngle, true);
+    SetComponentRotation(m_BoatNodes[BOAT_RUDDER],         AXIS_Z, fUsedAngle, true);
+    SetComponentRotation(m_BoatNodes[BOAT_REARFLAP_LEFT],  AXIS_Z, fUsedAngle, true);
     SetComponentRotation(m_BoatNodes[BOAT_REARFLAP_RIGHT], AXIS_Z, fUsedAngle, true);
 
     auto fPropSpeed = std::min(1.0F, m_EngineSpeed * (32.0F / TWO_PI));
@@ -722,12 +724,12 @@ void CBoat::PreRender() {
         m_PropellerAngle -= TWO_PI;
     }
 
-    ProcessBoatNodeRendering(BOAT_STATIC_PROP, m_PropellerAngle * 2, ucTransparency);
+    ProcessBoatNodeRendering(BOAT_STATIC_PROP,   m_PropellerAngle * +2, ucTransparency);
     ProcessBoatNodeRendering(BOAT_STATIC_PROP_2, m_PropellerAngle * -2, ucTransparency);
 
     ucTransparency = (ucTransparency >= 150 ? 0 : 150 - ucTransparency);
-    ProcessBoatNodeRendering(BOAT_MOVING_PROP, -m_PropellerAngle, ucTransparency);
-    ProcessBoatNodeRendering(BOAT_MOVING_PROP_2, m_PropellerAngle, ucTransparency);
+    ProcessBoatNodeRendering(BOAT_MOVING_PROP,   -m_PropellerAngle, ucTransparency);
+    ProcessBoatNodeRendering(BOAT_MOVING_PROP_2, +m_PropellerAngle, ucTransparency);
 
     if (m_nModelIndex == MODEL_MARQUIS) {
         auto pFlap = m_BoatNodes[BOAT_FLAP_LEFT];
@@ -735,17 +737,11 @@ void CBoat::PreRender() {
             auto tempMat = CMatrix();
             tempMat.Attach(RwFrameGetMatrix(pFlap), false);
             CVector& posCopy = tempMat.GetPosition();
-            auto     vecTransformed = GetMatrix().TransformVector(posCopy);
+            auto vecTransformed = GetMatrix().TransformVector(posCopy);
 
             m_BoatDoor.Process(this, m_OldMoveSpeed, m_OldTurnSpeed, vecTransformed);
             CVector vecAxis;
-            if (m_BoatDoor.m_axis == AXIS_X) {
-                vecAxis.Set(m_BoatDoor.m_axis, 0.0F, 0.0F);
-            } else if (m_BoatDoor.m_axis == AXIS_Y) {
-                vecAxis.Set(0.0F, m_BoatDoor.m_axis, 0.0F);
-            } else if (m_BoatDoor.m_axis == AXIS_Z) {
-                vecAxis.Set(0.0F, 0.0F, m_BoatDoor.m_axis);
-            }
+            vecAxis[m_BoatDoor.m_axis] = m_BoatDoor.m_angle;
 
             tempMat.SetRotate(vecAxis.x, vecAxis.y, vecAxis.z);
             tempMat.GetPosition() += posCopy;
@@ -868,26 +864,26 @@ void CBoat::Render() {
 
     switch (m_nModelIndex) {
     case MODEL_PREDATOR:
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.45F, 1.90F, 0.96F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.45F, 1.90F, 0.96F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.45F,  1.90F, 0.96F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.45F,  1.90F, 0.96F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -1.45F, -3.75F, 0.96F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.45F, -3.75F, 0.96F);
         break;
     case MODEL_SQUALO:
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.222F, 2.004F, 1.409F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.222F, 2.004F, 1.409F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.222F,  2.004F, 1.409F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.222F,  2.004F, 1.409F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -1.240F, -1.367F, 0.846F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.240F, -1.367F, 0.846F);
         break;
     case MODEL_SPEEDER:
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.15F, 3.61F, 1.03F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.15F, 3.61F, 1.03F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.15F,  3.61F, 1.03F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.15F,  3.61F, 1.03F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -1.15F, -0.06F, 1.03F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.15F, -0.06F, 1.03F);
         break;
     case MODEL_REEFER:
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.90F, 2.83F, 1.00F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.90F, 2.83F, 1.00F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.90F,  2.83F, 1.00F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.90F,  2.83F, 1.00F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -1.66F, -4.48F, 0.83F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.66F, -4.48F, 0.83F);
         break;
@@ -904,8 +900,8 @@ void CBoat::Render() {
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.087F, 0.831F, 0.381F);
         break;
     case MODEL_DINGHY:
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -0.797F, 1.641F, 0.573F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +0.797F, 1.641F, 0.573F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -0.797F,  1.641F, 0.573F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +0.797F,  1.641F, 0.573F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -0.865F, -1.444F, 0.509F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +0.865F, -1.444F, 0.509F);
         break;
@@ -916,8 +912,8 @@ void CBoat::Render() {
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.023F, -5.322F, 0.787F);
         break;
     case MODEL_LAUNCH:
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.0F, 2.5F, 0.3F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.0F, 2.5F, 0.3F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.0F,  2.5F, 0.3F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.0F,  2.5F, 0.3F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -1.0F, -5.4F, 0.3F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.0F, -5.4F, 0.3F);
         break;
@@ -925,11 +921,11 @@ void CBoat::Render() {
         return;
     }
 
-    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,    RWRSTATE(CWaterLevel::waterclear256Raster));
-    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE,RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATEFOGENABLE,        RWRSTATE(FALSE));
-    RwRenderStateSet(rwRENDERSTATESRCBLEND,         RWRSTATE(rwBLENDZERO));
-    RwRenderStateSet(rwRENDERSTATEDESTBLEND,        RWRSTATE(rwBLENDONE));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(CWaterLevel::waterclear256Raster));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE,         RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND,          RWRSTATE(rwBLENDZERO));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND,         RWRSTATE(rwBLENDONE));
 
     RwMatrix tempMat;
     GetMatrix().UpdateRwMatrix(&tempMat);
@@ -940,8 +936,8 @@ void CBoat::Render() {
 
     // Second tri list for Coastguard
     if (m_nModelIndex == MODEL_COASTG) {
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.087F, 0.831F, 0.381F);
-        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.087F, 0.831F, 0.381F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[0], -1.087F,  0.831F, 0.381F);
+        RwIm3DVertexSetPos(&KeepWaterOutVertices[1], +1.087F,  0.831F, 0.381F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[2], -1.097F, -2.977F, 0.381F);
         RwIm3DVertexSetPos(&KeepWaterOutVertices[3], +1.097F, -2.977F, 0.381F);
 

@@ -33,7 +33,7 @@ public:
     float m_EngineSpeed; // propeller speed
     float m_PropellerAngle; // propeller rotation (radians)
 
-    struct {
+    struct CBoatFlags {
         uint8 bBoatInWater : 1; // is placed on water
         uint8 bBoatEngineInWater : 1;
         uint8 bLockedToXY : 1; // is anchored
