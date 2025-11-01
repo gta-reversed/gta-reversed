@@ -63,7 +63,7 @@ void CMissionCleanup::RemoveEntityFromList(int32 handle, MissionCleanUpEntityTyp
 
             if (veh && veh->m_bIsStaticWaitingForCollision) {
                 veh->m_bIsStaticWaitingForCollision = false;
-                if (!veh->IsStatic()) {
+                if (!veh->GetIsStatic()) {
                     veh->AddToMovingList();
                 }
             }
@@ -74,7 +74,7 @@ void CMissionCleanup::RemoveEntityFromList(int32 handle, MissionCleanUpEntityTyp
 
             if (ped && ped->m_bIsStaticWaitingForCollision) {
                 ped->m_bIsStaticWaitingForCollision = false;
-                if (!ped->IsStatic()) {
+                if (!ped->GetIsStatic()) {
                     ped->AddToMovingList();
                 }
             }
@@ -85,7 +85,7 @@ void CMissionCleanup::RemoveEntityFromList(int32 handle, MissionCleanUpEntityTyp
 
             if (obj && obj->m_bIsStaticWaitingForCollision) {
                 obj->m_bIsStaticWaitingForCollision = false;
-                if (!obj->IsStatic()) {
+                if (!obj->GetIsStatic()) {
                     obj->AddToMovingList();
                 }
             }
