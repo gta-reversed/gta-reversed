@@ -110,7 +110,7 @@ public:
     static float IsVertexAffectedByWake(CVector coords, CBoat* boat, int16 wakeQuadrant, bool forceCheck);
     static void CheckForSkippingCalculations();
 
-    // NOTSA:
+    // NOTSA region
 
     static void RenderAllWakePointBoats();
 

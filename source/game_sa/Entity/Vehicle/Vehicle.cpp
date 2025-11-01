@@ -3103,7 +3103,7 @@ void CVehicle::SetVehicleCreatedBy(eVehicleCreatedBy createdBy) {
     }
 }
 
-// address not available due to optimization ?
+// unknown
 float CVehicle::GetNewSteeringAmt() {
     return 0.0f;
 }
