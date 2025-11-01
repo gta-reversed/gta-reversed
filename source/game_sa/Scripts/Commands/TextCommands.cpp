@@ -77,7 +77,7 @@ void UseTextCommands(bool state) {
 void I_DisplayText(CVector2D pos, const char* key, int32 n1, int32 n2) {
     assert(CTheScripts::UseTextCommands != CTheScripts::eUseTextCommandState::DISABLED);
 
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame++];
+    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame++];
     line->Pos             = pos;
     line->NumberToInsert1 = n1;
     line->NumberToInsert2 = n2;
@@ -106,7 +106,7 @@ void DisplayTextWithFloat(CVector2D pos, const char* key, float value, float pre
 template<typename... Numbers>
 void DisplayTextWithNumbers(CVector2D pos, const char* key, Numbers... args) {
     constexpr auto N{ sizeof...(args) };
-    const int32 numbers[] = { args... };
+    const int32    numbers[] = { args... };
     I_DisplayText(
         pos,
         key,
@@ -124,7 +124,7 @@ void DisplayTextWithNumbers(CVector2D pos, const char* key, Numbers... args) {
 template<typename... Numbers>
 void PrintWithNumbersNow(const char* key, Numbers... args, int32 time, int32 flag) {
     constexpr auto N{ sizeof...(args) };
-    const int32 numbers[] = { args... };
+    const int32    numbers[] = { args... };
     CMessages::AddMessageJumpQWithNumber(
         TheText.Get(key),
         time,
@@ -149,7 +149,7 @@ void PrintWithNumbersNow(const char* key, Numbers... args, int32 time, int32 fla
 template<typename... Numbers>
 void PrintWithNumbers(const char* key, Numbers... args, int32 time, int32 flag) {
     constexpr auto N{ sizeof...(args) };
-    const int32 numbers[] = { args... };
+    const int32    numbers[] = { args... };
     CMessages::AddMessageWithNumberQ(
         TheText.Get(key),
         time,
@@ -174,7 +174,7 @@ void PrintWithNumbers(const char* key, Numbers... args, int32 time, int32 flag) 
 template<typename... Numbers>
 void PrintWithNumbersBig(const char* key, Numbers... args, int32 time, int16 style) {
     constexpr auto N{ sizeof...(args) };
-    const int32 numbers[] = { args... };
+    const int32    numbers[] = { args... };
     CMessages::AddBigMessageWithNumber(
         TheText.Get(key),
         time,
@@ -222,85 +222,71 @@ void ClearThisBigPrint(const char* key) {
     CMessages::ClearThisBigPrint(TheText.Get(key));
 }
 
-// COMMAND_SET_TEXT_SCALE - 0x481AB2
-void SetTextScale(float x, float y) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->Scale.x    = x;
-    line->Scale.y    = y;
-}
-
-// COMMAND_SET_TEXT_COLOUR - 0x481B10
-void SetTextColour(uint8 r, uint8 b, uint8 g, uint8 a) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->Color      = CRGBA{ r, g, b, a };
-}
-
-// COMMAND_SET_TEXT_JUSTIFY - 0x481B4B
-void SetTextJustify(bool enabled) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->Justify    = enabled;
-}
-
-// COMMAND_SET_TEXT_CENTRE - 0x481B88
-void SetTextCentre(bool enabled) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->IsCentered = enabled;
-}
-
-// COMMAND_SET_TEXT_WRAPX - 0x481BC5
-void SetTextWrapx(float wrap) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->WrapX      = wrap;
-}
-
-// COMMAND_SET_TEXT_CENTRE_SIZE - 0x481BE9
-void SetTextCentreSize(float width) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->CentreSize = width;
-}
-
-// COMMAND_SET_TEXT_BACKGROUND - 0x481C17
-void SetTextBackground(bool enabled) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->HasBg      = enabled;
-}
-
-// COMMAND_SET_TEXT_PROPORTIONAL - 0x481C49
-void SetTextProportional(bool enabled) {
-    auto* const line     = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->IsProportional = enabled;
-}
-
-// COMMAND_SET_TEXT_FONT - 0x481C86
-void SetTextFont(eFontStyle font) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->FontStyle  = font;
-}
-
-// COMMAND_SET_TEXT_DRAW_BEFORE_FADE - 0x485536
+/// SET_TEXT_DRAW_BEFORE_FADE(03E0)
 void SetTextDrawBeforeFade(bool enabled) {
-    auto* const line       = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->IsDrawBeforeFade = enabled;
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].IsDrawBeforeFade = enabled;
 }
 
-// COMMAND_SET_TEXT_RIGHT_JUSTIFY - 0x4855BA
+/// SET_TEXT_RIGHT_JUSTIFY(03E4)
 void SetTextRightJustify(bool enabled) {
-    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->HasRightJustify = enabled;
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].HasRightJustify = enabled;
 }
 
-// COMMAND_SET_TEXT_DROPSHADOW - 0x491579
-void SetTextDropshadow(int32 shadow, uint8 r, uint8 g, uint8 b, uint8 a) {
-    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->DropShadowColor = CRGBA{ r, g, b, a };
-    line->DropShadow      = shadow;
+/// SET_TEXT_DROPSHADOW(060D)
+void SetTextDropshadow(int32 shadow, CRGBA color) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].DropShadowColor = color;
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].DropShadow      = shadow;
 }
 
-// COMMAND_SET_TEXT_EDGE - 0x473DD5
-void SetTextEdge(int32 edge, uint8 r, uint8 g, uint8 b, uint8 a) {
-    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->DropShadowColor = CRGBA{ r, g, b, a };
-    line->TextEdge        = edge;
+/// SET_TEXT_EDGE(081C)
+void SetTextEdge(int32 edge, CRGBA color) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].DropShadowColor = color;
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].TextEdge        = edge;
+}
+
+/// SET_TEXT_SCALE(033F)
+void SetTextScale(float x, float y) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].Scale = { x, y };
+}
+
+/// SET_TEXT_COLOUR(0340)
+void SetTextColour(CRGBA color) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].Color = color;
+}
+
+/// SET_TEXT_JUSTIFY(0341)
+void SetTextJustify(bool justify) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].Justify = justify;
+}
+
+/// SET_TEXT_CENTRE(0342)
+void SetTextCentre(bool isCentered) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].IsCentered = isCentered;
+}
+
+/// SET_TEXT_WRAPX(0343)
+void SetTextWrapX(float wrapX) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].WrapX = wrapX;
+}
+
+/// SET_TEXT_CENTRE_SIZE(0344)
+void SetTextCentreSize(float centreSize) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].CentreSize = centreSize;
+}
+
+/// SET_TEXT_BACKGROUND(0345)
+void SetTextBackground(bool hasBg) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].HasBg = hasBg;
+}
+
+/// SET_TEXT_PROPORTIONAL(0348)
+void SetTextProportional(bool isProportional) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].IsProportional = isProportional;
+}
+
+/// SET_TEXT_FONT(0349)
+void SetTextFont(eFontStyle fontStyle) {
+    CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame].FontStyle = fontStyle;
 }
 
 // COMMAND_LOAD_MISSION_TEXT - 0x48D590
@@ -308,15 +294,16 @@ void LoadMissionText(const char* key) {
     TheText.LoadMissionText(key);
 }
 
-// COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE - 0x47366D
-void SaveTextLabelToDebugFile(const char* key) {
-    /* noop */
+/// ADD_NEXT_MESSAGE_TO_PREVIOUS_BRIEFS(09C1)
+void AddNextMessageToPreviousBriefs(bool state) {
+    CTheScripts::bAddNextMessageToPreviousBriefs = state;
 }
 
-// COMMAND_DRAW_WINDOW_TEXT - 0x474937
-void DrawWindowText() {
-    /* noop */
+/// DISPLAY_NON_MINIGAME_HELP_MESSAGES(0A44)
+void DisplayNonMiniGameHelpMessages(bool state) {
+    CTheScripts::bDisplayNonMiniGameHelpMessages = state;
 }
+
 };
 
 void notsa::script::commands::text::RegisterHandlers() {
@@ -332,71 +319,65 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT_BIG_NOW, ClearThisPrintBigNow);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_PRINTS, ClearPrints);
     REGISTER_COMMAND_HANDLER(COMMAND_USE_TEXT_COMMANDS, UseTextCommands);
-
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT, DisplayText);
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_FLOAT, DisplayTextWithFloat);
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_NUMBER, (DisplayTextWithNumbers<int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_2_NUMBERS, (DisplayTextWithNumbers<int32, int32>));
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_DISPLAY_TEXT_WITH_3_NUMBERS);
-
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_NOW, (PrintWithNumbersNow<int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32, int32, int32, int32>));
-
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_NUMBER_SOON);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_2_NUMBERS_SOON);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_3_NUMBERS_SOON);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_4_NUMBERS_SOON);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_5_NUMBERS_SOON);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_6_NUMBERS_SOON);
-
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER, (PrintWithNumbers<int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS, (PrintWithNumbers<int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS, (PrintWithNumbers<int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS, (PrintWithNumbers<int32, int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS, (PrintWithNumbers<int32, int32, int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS, (PrintWithNumbers<int32, int32, int32, int32, int32, int32>));
-
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_NUMBER_BIG_Q);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_BIG, (PrintWithNumbersBig<int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32, int32, int32>));
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32, int32, int32, int32>));
-
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING_NOW);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING_SOON);
-
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_BIG_Q, PrintBigQ);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP_FOREVER, PrintHelpForever);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_HELP_WITH_NUMBER);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP_FOREVER_WITH_NUMBER, PrintHelpForeverWithNumber);
-    
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT, ClearThisPrint);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_BIG_PRINT, ClearThisBigPrint);
-
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_SCALE, SetTextScale);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_COLOUR, SetTextColour);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_JUSTIFY, SetTextJustify);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE, SetTextCentre);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_WRAPX, SetTextWrapx);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_WRAPX, SetTextWrapX);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE_SIZE, SetTextCentreSize);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND, SetTextBackground);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_COLOUR);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_PROPORTIONAL, SetTextProportional);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_FONT, SetTextFont);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DRAW_BEFORE_FADE, SetTextDrawBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_RIGHT_JUSTIFY, SetTextRightJustify);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DROPSHADOW, SetTextDropshadow);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_EDGE, SetTextEdge);
-
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_MISSION_TEXT, LoadMissionText);
-    REGISTER_COMMAND_HANDLER(COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE, SaveTextLabelToDebugFile);
-    REGISTER_COMMAND_HANDLER(COMMAND_DRAW_WINDOW_TEXT, DrawWindowText);
+    REGISTER_COMMAND_HANDLER(COMMAND_ADD_NEXT_MESSAGE_TO_PREVIOUS_BRIEFS, AddNextMessageToPreviousBriefs);
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_NON_MINIGAME_HELP_MESSAGES, DisplayNonMiniGameHelpMessages);
+
+    REGISTER_COMMAND_NOP(COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE);
+    REGISTER_COMMAND_NOP(COMMAND_DRAW_WINDOW_TEXT);
+
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_DISPLAY_TEXT_WITH_3_NUMBERS);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_NUMBER_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_2_NUMBERS_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_3_NUMBERS_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_4_NUMBERS_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_5_NUMBERS_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_6_NUMBERS_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_NUMBER_BIG_Q);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING_NOW);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING_SOON);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_HELP_WITH_NUMBER);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_COLOUR);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT);
 }
