@@ -290,21 +290,19 @@ void CAEWeaponAudioEntity::WeaponReload(eWeaponType type, CPhysical* entity, eAu
     }
 
     const auto PlaySound = [&](eSoundID soundID, float volumeOffsetdB = 0.f) {
-        CAESound s;
-        s.Initialise(
-            SND_BANK_SLOT_WEAPON_GEN,
-            soundID,
-            this,
-            entity->GetPosition(),
-            GetDefaultVolume(event) + volumeOffsetdB,
-            2.f / 3.f,
-            1.0f,
-            1.0f,
-            0,
-            SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY
-        );
-        s.RegisterWithPhysicalEntity(entity);
-        AESoundManager.RequestNewSound(&s);
+        AESoundManager.PlaySound({
+            .BankSlotID         = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = soundID,
+            .AudioEntity        = this,
+            .Pos                = entity->GetPosition(),
+            .Volume             = GetDefaultVolume(event) + volumeOffsetdB,
+            .RollOffFactor      = 2.f / 3.f,
+            .Speed              = 1.0f,
+            .Doppler            = 1.0f,
+            .FrameDelay         = 0,
+            .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY,
+            .RegisterWithEntity = entity,
+        });
     };
 
     switch (type) {
@@ -374,33 +372,28 @@ void CAEWeaponAudioEntity::PlayGunSounds(
         }
     }();
 
-    const auto PlaySound = [&](int16 sfxID, CVector pos, float volume, float rollOffFactor, float speed, uint32 flags, eAudioEvents audioEventOverride = AE_UNDEFINED) {
-        CAESound s;
-        s.Initialise(
-            SND_BANK_SLOT_WEAPON_GEN,
-            sfxID,
-            this,
-            pos,
-            volume,
-            rollOffFactor,
-            speed,
-            0.f,
-            0,
-            flags
-        );
-        if (flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) {
-            s.RegisterWithPhysicalEntity(entity);
-        }
-        if (audioEventOverride == AE_UNDEFINED) {
+    const auto PlaySound = [&](int16 sfxID, CVector pos, float volume, float rollOffFactor, float speed, uint32 flags, eAudioEvents event = AE_UNDEFINED) {
+        if (event == AE_UNDEFINED) {
             switch (audioEvent) {
             case AE_WEAPON_FIRE_MINIGUN_PLANE:
             case AE_WEAPON_FIRE_MINIGUN_AMMO:
-                s.m_Event = AE_FRONTEND_PICKUP_WEAPON;
+                event = AE_FRONTEND_PICKUP_WEAPON;
             }
-        } else {
-            s.m_Event = audioEventOverride;
         }
-        AESoundManager.RequestNewSound(&s);
+        AESoundManager.PlaySound({
+            .BankSlotID         = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = sfxID,
+            .AudioEntity        = this,
+            .Pos                = pos,
+            .Volume             = volume,
+            .RollOffFactor      = rollOffFactor,
+            .Speed              = speed,
+            .Doppler            = 0.f,
+            .FrameDelay         = 0,
+            .Flags              = flags,
+            .RegisterWithEntity = (flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) ? entity : nullptr,
+            .EventID            = event
+        });
     };
 
     if (dryFireSfxID != -1) { // 0x503DFF
@@ -527,34 +520,26 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
 
 // 0x503910
 void CAEWeaponAudioEntity::ReportChainsawEvent(CPhysical* entity, eAudioEvents audioEvent) {
-    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_CHAINSAW_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
-        if (AESoundManager.AreSoundsPlayingInBankSlot(SND_BANK_SLOT_PLAYER_ENGINE_P)) {
-            AESoundManager.CancelSoundsInBankSlot(SND_BANK_SLOT_PLAYER_ENGINE_P, false);
-        }
-        AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_CHAINSAW_P, SND_BANK_SLOT_PLAYER_ENGINE_P);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_CHAINSAW_P, SND_BANK_SLOT_PLAYER_ENGINE_P, false, true)) {
         return;
     }
 
-    const auto PlaySoundIfNotPlaying = [&](int16 sfxID, float rollOffFactor, eWeaponSoundCategories soundCat) {
-        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(soundCat, this) != SOUND_NOT_PLAYING) {
+    const auto PlaySoundIfNotPlaying = [&](int16 sfxID, float rollOffFactor, eWeaponSoundCategories soundCategory) {
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(soundCategory, this) != SOUND_NOT_PLAYING) {
             return;
         }
-        CAESound s;
-        s.Initialise(
-            SND_BANK_SLOT_PLAYER_ENGINE_P,
-            sfxID,
-            this,
-            entity->GetPosition(),
-            GetDefaultVolume(audioEvent),
-            rollOffFactor,
-            1.f,
-            0.f,
-            0,
-            SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES
-        );
-        s.m_Event = soundCat;
-        s.RegisterWithPhysicalEntity(entity);
-        AESoundManager.RequestNewSound(&s);
+        AESoundManager.PlaySound({
+            .BankSlotID         = SND_BANK_SLOT_PLAYER_ENGINE_P,
+            .SoundID            = sfxID,
+            .AudioEntity        = this,
+            .Pos                = entity->GetPosition(),
+            .Volume             = GetDefaultVolume(audioEvent),
+            .RollOffFactor      = rollOffFactor,
+            .Doppler            = 0.f,
+            .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES,
+            .RegisterWithEntity = entity,
+            .EventID            = soundCategory,
+        });
     };
 
     switch (audioEvent) {
@@ -629,23 +614,21 @@ void CAEWeaponAudioEntity::PlayMiniGunStopSound(CPhysical* entity) {
         return;
     }
 
-    const auto PlayMiniGunFireStopSound = [&](float speed, float maxDist) {
-        CAESound s;
-        s.Initialise(
-            SND_BANK_SLOT_WEAPON_GEN,
-            63,
-            this,
-            entity->GetPosition(),
-            GetDefaultVolume(AE_WEAPON_FIRE_MINIGUN_STOP),
-            maxDist * 2.f / 3.f, // *0.66f....f
-            speed,
-            1.0f,
-            0,
-            SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES
-        );
-        s.RegisterWithPhysicalEntity(entity);
-        s.m_Event = AE_FRONTEND_PICKUP_HEALTH; // ???
-        AESoundManager.RequestNewSound(&s);
+    const auto PlayMiniGunFireStopSound = [&](float speed, float rollOff) {
+        AESoundManager.PlaySound({
+            .BankSlotID         = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = 63,
+            .AudioEntity        = this,
+            .Pos                = entity->GetPosition(),
+            .Volume             = GetDefaultVolume(AE_WEAPON_FIRE_MINIGUN_STOP),
+            .RollOffFactor      = rollOff * (2.f / 3.f), // *0.66f....f
+            .Speed              = speed,
+            .Doppler            = 1.0f,
+            .FrameDelay         = 0,
+            .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES,
+            .RegisterWithEntity = entity,
+            .EventID            = AE_WEAPON_SOUND_CAT_MINIGUN_STOP
+        });
     };
     if (entity->GetIsTypeVehicle() && entity->AsVehicle()->IsSubPlane()) {
         PlayMiniGunFireStopSound(1.8f, 0.7937f);
@@ -709,10 +692,18 @@ void CAEWeaponAudioEntity::PlayGoggleSound(int16 sfxId, eAudioEvents event) {
         return;
     }
     const auto PlaySound = [&](float offsetX, float speed) {
-        CAESound s;
-        s.Initialise(SND_BANK_SLOT_WEAPON_GEN, sfxId, this, { offsetX, 0.0f, 0.0f }, GetDefaultVolume(event) - 9.f, 1.0f, speed, 1.0f, 0, SOUND_DEFAULT);
-        s.m_Flags = SOUND_FRONT_END | SOUND_FORCED_FRONT;
-        AESoundManager.RequestNewSound(&s);
+        AESoundManager.PlaySound({
+            .BankSlotID         = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = sfxId,
+            .AudioEntity        = this,
+            .Pos                = { offsetX, 0.0f, 0.0f },
+            .Volume             = GetDefaultVolume(event) - 9.f,
+            .RollOffFactor      = 1.0f,
+            .Speed              = speed,
+            .Doppler            = 1.0f,
+            .FrameDelay         = 0,
+            .Flags              = SOUND_FRONT_END | SOUND_FORCED_FRONT,
+        });
     };
     const auto r = CAEAudioUtility::ResolveProbability(0.5f);
     PlaySound(-1.0f, r ? 1.1892101f : 1.f);
@@ -722,23 +713,24 @@ void CAEWeaponAudioEntity::PlayGoggleSound(int16 sfxId, eAudioEvents event) {
 // 0x504470
 void CAEWeaponAudioEntity::PlayFlameThrowerSounds(CPhysical* entity, eSoundID dryFireSfxID, eSoundID flameSfxID, eAudioEvents audioEvent, float volumeOffsetdB, float speed) {
     const auto PlaySound = [&](eSoundBankSlot bankSlotID, eSoundID sfxID, float sfxVolumeOffsetdB, float rollOffFactor, float sfxSpeed, float sfxFreqVariance, eAudioEvents sfxAE) {
-        CAESound s;
-        s.Initialise(
-            bankSlotID,
-            sfxID,
-            this,
-            entity->GetPosition(),
-            GetDefaultVolume(audioEvent) + volumeOffsetdB + sfxVolumeOffsetdB,
-            rollOffFactor,
-            sfxSpeed,
-            1.f,
-            0,
-            SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY|SOUND_REQUEST_UPDATES,
-            sfxFreqVariance
-        );
-        s.m_Event = sfxAE;
-        s.RegisterWithPhysicalEntity(entity);
-        AESoundManager.RequestNewSound(&s);
+        if (sfxID == -1) {
+            return;
+        }
+        AESoundManager.PlaySound({
+            .BankSlotID         = bankSlotID, 
+            .SoundID            = sfxID, 
+            .AudioEntity        = this, 
+            .Pos                = entity->GetPosition(), 
+            .Volume             = GetDefaultVolume(audioEvent) + volumeOffsetdB + sfxVolumeOffsetdB, 
+            .RollOffFactor      = rollOffFactor, 
+            .Speed              = sfxSpeed, 
+            .Doppler            = 1.f, 
+            .FrameDelay         = 0, 
+            .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY|SOUND_REQUEST_UPDATES,
+            .FrequencyVariance  = sfxFreqVariance,
+            .RegisterWithEntity = entity,
+            .EventID            = sfxAE
+        });
     };
 
     if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN, true)) {

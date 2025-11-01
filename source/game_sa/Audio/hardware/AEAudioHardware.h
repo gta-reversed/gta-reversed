@@ -121,7 +121,7 @@ public:
     void LoadSoundBank(eSoundBank bank, eSoundBankSlot slot);
     bool IsSoundBankLoaded(eSoundBank bank, eSoundBankSlot slot);
     int8 GetSoundBankLoadingStatus(eSoundBank bank, eSoundBankSlot slot);
-    bool EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune = false);
+    bool EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune = false, bool cancelSoundsInSlot = false);
 
     void LoadSound(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
     bool IsSoundLoaded(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
