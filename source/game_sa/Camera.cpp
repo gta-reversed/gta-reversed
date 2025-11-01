@@ -1465,7 +1465,7 @@ void CCamera::ProcessVectorMoveLinear(float ratio) {
 
 // 0x516500
 void CCamera::ProcessFOVLerp() {
-    if (const auto now = static_cast<float>(CTimer::GetTimeInMS()); now < m_fEndZoomTime) { /* Check if still processing */
+    if (const auto now = static_cast<float>(CTimer::GetTimeInMS()); now <= m_fEndZoomTime) { /* Check if still processing */
         ProcessFOVLerp(invLerp(m_fStartZoomTime, m_fEndZoomTime, now));
     } else if (m_bBlockZoom) { /* Finished */
         m_bFOVLerpProcessed = true;
