@@ -334,8 +334,8 @@ public:
     CFire*            m_pFire;
     float             m_fSteerAngle;
     float             m_f2ndSteerAngle; // used for steering 2nd set of wheels or elevators etc..
-    float             m_fGasPedal;
-    float             m_fBreakPedal;
+    float             m_GasPedal;
+    float             m_BrakePedal;
     eVehicleCreatedBy m_nCreatedBy;
     int16             m_nExtendedRemovalRange;        // when game wants to delete a vehicle, it gets min(m_wExtendedRemovalRange, 170.0)
     uint8             m_nBombOnBoard : 3;             // 0 = None
@@ -358,8 +358,8 @@ public:
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
     float            m_fWheelSpinForAudio;
     float            m_fHealth; // 1000.0f = full health. 0 -> explode
-    CVehicle*        m_pTowingVehicle;
-    CVehicle*        m_pVehicleBeingTowed;
+    CVehicle*        m_pTowingVehicle;            // m_pTractor
+    CVehicle*        m_pVehicleBeingTowed;        // m_pTrailer
     CPed*            m_pWhoInstalledBombOnMe;
     uint32           m_nTimeTillWeNeedThisCar;     // game won't try to delete this car while this time won't reach
     uint32           m_nGunFiringTime;             // last time when gun on vehicle was fired (used on boats)
@@ -383,8 +383,8 @@ public:
     char            field_511;             // initialised, but not used?
     char            field_512;             // initialised, but not used?
     eCarWeapon      m_nVehicleWeaponInUse;
-    uint32          m_nHornCounter;
-    int8            m_nRandomIdRelatedToSiren;
+    uint32          m_HornCounter;
+    int8            m_HornPattern;
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
@@ -565,7 +565,7 @@ public:
     void ClearGettingOutFlags(uint8 doorId);
     void SetWindowOpenFlag(uint8 doorId);
     void ClearWindowOpenFlag(uint8 doorId);
-    bool SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 componentIndex, int32& resultModelIndex);
+    bool SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 mod, int32& resultModelIndex);
     bool ClearVehicleUpgradeFlags(int32 arg0, int32 componentIndex);
     RpAtomic* CreateUpgradeAtomic(CBaseModelInfo* model, const UpgradePosnDesc* upgradePosn, RwFrame* parentComponent, bool isDamaged);
     void RemoveUpgrade(int32 upgradeId);
@@ -659,6 +659,9 @@ public:
 
     auto GetPassengerIndex(const CPed* ped) const -> std::optional<size_t>;
 
+
+    auto GetHealth() const noexcept { return m_fHealth; }
+
     static void Shutdown();
     static void SetComponentAtomicAlpha(RpAtomic* atomic, int32 alpha);
 
@@ -709,7 +712,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
 
-    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_nStatus == STATUS_WRECKED; }
+    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_info.m_nStatus == STATUS_WRECKED; }
 
     CPlane* AsPlane() { return reinterpret_cast<CPlane*>(this); }
     CHeli*  AsHeli()  { return reinterpret_cast<CHeli*>(this); }

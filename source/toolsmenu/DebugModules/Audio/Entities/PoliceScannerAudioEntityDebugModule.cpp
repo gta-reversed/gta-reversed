@@ -39,7 +39,7 @@ void PoliceScannerAudioEntityDebugModule::RenderWindow() {
 
     const auto PrintSlots = [](auto& slots) {
         for (auto& v : slots) {
-            ImGui::Text("%d:%d, ", v.bankId, v.sfxId);
+            ImGui::Text("%d:%d, ", (int32)(v.Bank), (int32)(v.SoundID));
             ImGui::SameLine();
         }
     };
@@ -64,7 +64,7 @@ void PoliceScannerAudioEntityDebugModule::RenderWindow() {
 }
 
 void PoliceScannerAudioEntityDebugModule::RenderMenuEntry() {
-    notsa::ui::DoNestedMenuIL({ "Extra", "Audio", "Entites" }, [&] {
+    notsa::ui::DoNestedMenuIL({ "Extra", "Audio", "Entities" }, [&] {
         ImGui::MenuItem("Police Scanner", nullptr, &m_IsOpen);
     });
 }

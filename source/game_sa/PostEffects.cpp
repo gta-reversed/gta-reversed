@@ -983,7 +983,7 @@ void CPostEffects::Render() {
                 if (veh->m_nVehicleType == VEHICLE_TYPE_AUTOMOBILE && veh->handlingFlags.bNosInst && veh->AsAutomobile()->m_fTireTemperature < 0.0f) {
                     const auto dir = veh->GetMoveSpeed().Dot(veh->GetForward());
                     if (dir > 0.2f) {
-                        SetSpeedFXManualSpeedCurrentFrame(2.0f * dir * (veh->m_fGasPedal + 1.0f));
+                        SetSpeedFXManualSpeedCurrentFrame(2.0f * dir * (veh->m_GasPedal + 1.0f));
                         SpeedFX(m_fSpeedFXManualSpeedCurrentFrame);
                         fxDrawn = true;
                     }
@@ -1025,7 +1025,7 @@ void CPostEffects::Render() {
             );
         } else {
             Radiosity(
-                CTimeCycle::m_CurrentColours.m_nHighLightMinIntensity,
+                CTimeCycle::GetHighLightMinIntensity(),
                 m_RadiosityFilterPasses,
                 m_RadiosityRenderPasses,
                 m_RadiosityIntensity
