@@ -53,9 +53,7 @@ void LoadSprite(int32 slot, const char* spriteName) {
 
 /// LOAD_TEXTURE_DICTIONARY(0390)
 void LoadTextureDictionary(CRunningScript& S, const char* txdName) {
-    std::string path = "models\\txd\\";
-    path += txdName;
-    path += ".txd";
+    std::string path = std::format("models\\txd\\{}.txd", txdName);
 
     const auto slot = CTxdStore::FindOrAddTxdSlot("script");
 
