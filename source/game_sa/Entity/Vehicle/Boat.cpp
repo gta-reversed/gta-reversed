@@ -315,7 +315,7 @@ void CBoat::RenderWakePoints() {
         const auto& currPos = m_WakeCoords[wakePtIdx];
         const auto& prevPos = m_WakeCoords[wakePtIdx - 1];
 
-        auto       currToPrevDir = prevPos - currPos;
+        auto currToPrevDir = prevPos - currPos;
         const auto distToPrevSq = currToPrevDir.SquaredMagnitude();
         if (distToPrevSq >= sq(3.f)) {
             currToPrevDir /= std::sqrt(distToPrevSq); // Normalize it
