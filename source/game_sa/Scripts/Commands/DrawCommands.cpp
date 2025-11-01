@@ -94,11 +94,11 @@ void DrawSpriteWithRotation(int32 slot, float x, float y, float width, float hei
 }
 
 /// DRAW_WINDOW(0937)
-void DrawWindow(CRect rect, const char* header, int32 style) {
+void DrawWindow(CRect bounds, const char* header, int32 style) {
     auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
     
-    rect->cornerA             = { SCREEN_STRETCH_X(rect.left), SCREEN_STRETCH_Y(rect.top) };
-    rect->cornerB             = { SCREEN_STRETCH_X(rect.right), SCREEN_STRETCH_Y(rect.bottom) };
+    rect->cornerA             = { SCREEN_STRETCH_X(bounds.left), SCREEN_STRETCH_Y(bounds.top) };
+    rect->cornerB             = { SCREEN_STRETCH_X(bounds.right), SCREEN_STRETCH_Y(bounds.bottom) };
     rect->m_nType             = eScriptRectangleType::TEXT;
     rect->m_nTextureId        = -1;
     rect->m_nAngle            = 0.0f;
