@@ -273,20 +273,24 @@ void CBoat::RenderWakePoints() {
     }
 
     // 0x6EDA1B
-    const auto GetWidth = [&,
-                           maxWidth = [&] {
-                               const auto maxWidth = GetColModel()->GetBoundingBox().m_vecMax.x * 0.65f;
-                               return m_nModelIndex == MODEL_SKIMMER
-                                   ? maxWidth * 0.4f
-                                   : maxWidth;
-                           }()](auto ptIdx) {
+    const auto GetWidth = [
+        &,
+        maxWidth = [&] {
+            const auto maxWidth = GetColModel()->GetBoundingBox().m_vecMax.x * 0.65f;
+            return m_nModelIndex == MODEL_SKIMMER
+                ? maxWidth * 0.4f
+                : maxWidth;
+        }()
+    ](auto ptIdx) {
         const auto t = (CBoat::WAKE_LIFETIME - m_WakePtCounters[ptIdx]) * ((m_WakeBoatSpeed[ptIdx] / 25.f + 0.5f) / CBoat::WAKE_LIFETIME);
         return maxWidth + maxWidth * t;
     };
 
     // 0x6EDC6B
-    const auto GetAlpha = [&,
-                           boatToCamDist2D = (TheCamera.GetPosition() - GetPosition()).Magnitude2D()](auto ptIdx) {
+    const auto GetAlpha = [
+        &,
+        boatToCamDist2D = (TheCamera.GetPosition() - GetPosition()).Magnitude2D()
+    ](auto ptIdx) {
         auto alpha = (1.f - (float)ptIdx / (float)m_NumWakeCoords) * 160.f;
         if (ptIdx < 3) {
             // Pirulax: Not really noticeable, but I think this is how it was supposed to be.
@@ -698,7 +702,7 @@ void CBoat::Teleport(CVector newCoors, bool clearOrientation) {
     CWorld::Remove(this);
     SetPosn(newCoors);
     if (clearOrientation) {
-        SetOrientation(CVector{0.0f});
+        SetOrientation(CVector{ 0.0f });
     }
 
     ResetMoveSpeed();
