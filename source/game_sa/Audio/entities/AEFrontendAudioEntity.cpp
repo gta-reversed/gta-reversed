@@ -357,46 +357,30 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         return;
     case AE_FRONTEND_CAR_RESPRAY:
     {
-        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN))
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) {
             return;
-
-        float speed0, speed1;
-        if (CAEAudioUtility::ResolveProbability(0.5f)) {
-            speed0 = 1.1892101f;
-            speed1 = 1.0f;
-        } else {
-            speed0 = 1.0f;
-            speed1 = 1.1892101f;
         }
-        AESoundManager.PlaySound({
-            .BankSlotID      = SND_BANK_SLOT_WEAPON_GEN,
-            .SoundID         = 28,
-            .AudioEntity     = this,
-            .Pos             = XVECM,
-            .Volume          = volume,
-            .RollOffFactor   = 1.0f,
-            .Speed           = 1.0f,
-            .Doppler         = speed0,
-            .FrameDelay      = 0,
-            .Flags           = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | SOUND_FRONT_END,
-            .FrequencyVariance = 0.0f,
-            .PlayTime        = 0
-        });
 
-        AESoundManager.PlaySound({
-            .BankSlotID      = SND_BANK_SLOT_WEAPON_GEN,
-            .SoundID         = 28,
-            .AudioEntity     = this,
-            .Pos             = XVECP,
-            .Volume          = volume,
-            .RollOffFactor   = 1.0f,
-            .Speed           = 1.0f,
-            .Doppler         = speed1,
-            .FrameDelay      = 0,
-            .Flags           = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | SOUND_FRONT_END,
-            .FrequencyVariance = 0.0f,
-            .PlayTime        = 0
-        });
+        const auto PlaySound = [&](const CVector& position, bool choice) {
+            AESoundManager.PlaySound({
+                .BankSlotID        = SND_BANK_SLOT_WEAPON_GEN,
+                .SoundID           = SND_GENRL_WEAPONS_SPRAY_PAINT,
+                .AudioEntity       = this,
+                .Pos               = position,
+                .Volume            = volume,
+                .RollOffFactor     = 1.0f,
+                .Speed             = choice ? 1.1892101f : 1.0f,
+                .Doppler           = 1.0f,
+                .FrameDelay        = 0,
+                .Flags             = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | SOUND_FRONT_END,
+                .FrequencyVariance = 0.0f,
+                .PlayTime          = 0
+            });
+        };
+        const auto choice = CAEAudioUtility::ResolveProbability(0.5f);
+        PlaySound(XVECM, choice);
+        PlaySound(XVECP, !choice);
+
         m_nLastTimeCarRespray = CTimer::GetTimeInMS();
         return;
     }
