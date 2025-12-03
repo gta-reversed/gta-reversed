@@ -40,12 +40,16 @@ class NOTSA_EXPORT_VTABLE CTrailer : public CAutomobile {
     static constexpr auto NUM_TRAILER_WHEELS = 4;
     static constexpr auto NUM_TRAILER_SUPPORTS = 2;
     static constexpr auto NUM_TRAILER_SUSP_LINES = NUM_TRAILER_WHEELS + NUM_TRAILER_SUPPORTS;
+
 public:
-    std::array<CColPoint, NUM_TRAILER_SUPPORTS> m_supportCPs{};
-    std::array<float, NUM_TRAILER_SUPPORTS> m_supportRatios{ 1.f, 1.f };
-    float     m_fHeight; // 0x6CF3DC, 0x6CFC11
-    float     m_fTrailerTowedRatio{ 1.f };
-    float     m_fTrailerTowedRatio2{ 1.f };
+    std::array<CColPoint, NUM_TRAILER_SUPPORTS> m_supportCPs{}; // m_aSupportColPoints
+    std::array<float, NUM_TRAILER_SUPPORTS> m_supportRatios{ 1.f, 1.f }; // m_aSupportRatios
+    float m_fHeight; // m_fSupportStartZ, 0x6CF3DC, 0x6CFC11
+    float m_fTrailerTowedRatio{ 1.f }; // m_fSupportExtension
+    float m_fTrailerTowedRatio2{ 1.f }; // m_fSupportMinRatio
+
+    static constexpr float m_fTrailerSuspensionForce = 1.5f; // 0x8D3464
+    static constexpr float m_fTrailerDampingForce = 0.1f; // 0x8D3468
 
     static constexpr auto Type = VEHICLE_TYPE_TRAILER;
 
@@ -53,28 +57,34 @@ public:
     CTrailer(int32 modelIndex, eVehicleCreatedBy createdBy);
     ~CTrailer() override = default; // 0x6CED10
 
-    bool SetTowLink(CVehicle* tractor, bool setMyPosToTowBar) override;
-    void ScanForTowLink();
-
     void SetupSuspensionLines() override;
-    void ResetSuspension() override;
+
+    void ProcessControl() override;
+
+    bool ProcessAI(uint32& extraHandlingFlags) override;
     void ProcessSuspension() override;
 
+    void PreRender() override;
+
+    void ResetSuspension() override;
+
+    bool GetTowHitchPos(CVector& outPos, bool checkModelInfo, CVehicle* vehicle) override;
+    bool GetTowBarPos(CVector& outPos, bool checkModelInfo, CVehicle* vehicle) override;
+    bool SetTowLink(CVehicle* tractor, bool setMyPosToTowBar) override;
+    bool BreakTowLink() override;
+
+    void ScanForTowLink();
+
     int32 ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) override;
-    void  ProcessControl() override;
-    bool  ProcessAI(uint32& extraHandlingFlags) override;
-
-    void  PreRender() override;
-
-    bool  GetTowHitchPos(CVector& outPos, bool bCheckModelInfo, CVehicle* vehicle) override;
-    bool  GetTowBarPos(CVector& outPos, bool bCheckModelInfo, CVehicle* vehicle) override;
-    bool  BreakTowLink() override;
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTrailer* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CTrailer::CTrailer(modelIndex, createdBy); return this; }
+    CTrailer* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) {
+        this->CTrailer::CTrailer(modelIndex, createdBy);
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CTrailer, 0x9F4);

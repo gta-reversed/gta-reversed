@@ -36,7 +36,7 @@ bool cBuoyancy::ProcessBuoyancy(CPhysical* entity, float fBuoyancy, CVector* vec
 
     m_EntityMatrix = *entity->m_matrix;
     PreCalcSetup(entity, fBuoyancy);
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         entity->GetColModel(); // for some reason, this is here?
 
         m_bInWater = true;
@@ -92,7 +92,7 @@ bool cBuoyancy::ProcessBuoyancyBoat(CVehicle* vehicle, float fBuoyancy, CVector*
             vecWaveNormal.z += 2.0F;
             vecWaveNormal *= fThird;
 
-            switch (vehicle->m_nModelIndex) {
+            switch (vehicle->GetModelIndex()) {
             case MODEL_SQUALO:
             case MODEL_SPEEDER:
             case MODEL_JETMAX:
@@ -167,13 +167,13 @@ bool cBuoyancy::CalcBuoyancyForce(CPhysical* entity, CVector* vecBuoyancyTurnPoi
 void cBuoyancy::PreCalcSetup(CPhysical* entity, float fBuoyancy)
 {
     CVehicle* vehicle = entity->AsVehicle();
-    m_bProcessingBoat = entity->IsVehicle() && vehicle->IsBoat();
+    m_bProcessingBoat = entity->GetIsTypeVehicle() && vehicle->IsBoat();
     auto cm = entity->GetColModel();
     m_vecBoundingMin = cm->m_boundBox.m_vecMin;
     m_vecBoundingMax = cm->m_boundBox.m_vecMax;
 
     if (!m_bProcessingBoat) {
-        switch (entity->m_nModelIndex) {
+        switch (entity->GetModelIndex()) {
         case MODEL_LEVIATHN: //417
             m_vecBoundingMin.y *= 0.4F;
             m_vecBoundingMax.y *= 1.15F;
@@ -186,7 +186,7 @@ void cBuoyancy::PreCalcSetup(CPhysical* entity, float fBuoyancy)
             m_vecBoundingMax.y *= 1.4F;
             break;
         default:
-            if (entity->IsVehicle() && vehicle->IsSubHeli()) {
+            if (entity->GetIsTypeVehicle() && vehicle->IsSubHeli()) {
                 m_vecBoundingMin.y = -m_vecBoundingMax.y;
                 m_vecBoundingMax.z = m_vecBoundingMin.z * -1.1F;
                 m_vecBoundingMin.z *= 0.85F;
@@ -195,7 +195,7 @@ void cBuoyancy::PreCalcSetup(CPhysical* entity, float fBuoyancy)
         }
     }
     else {
-        switch (entity->m_nModelIndex) {
+        switch (entity->GetModelIndex()) {
         case MODEL_SQUALO: //446
             m_vecBoundingMax.y *= 0.9F;
             m_vecBoundingMin.y *= 0.9F;
@@ -291,7 +291,7 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
         auto vecCurPoint = Lerp(vecFrom, vecTo, fCurrentProgress);
         auto vecTransformedPoint = entity->m_matrix->TransformPoint(vecCurPoint);
 
-        if (!entity->IsPed()) {
+        if (!entity->GetIsTypePed()) {
             const auto& vecEntPos = entity->GetPosition();
             vecSplashDir = vecTransformedPoint - vecEntPos;
         }
@@ -304,7 +304,7 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
         g_fx.m_WaterSplash->AddParticle(&vecTransformedPoint, &vecVelocity, 0.0F, &curParticle, -1.0F, 1.2F, 0.6F, 0);
     }
 
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         auto ped = entity->AsPed();
         auto swimTask = ped->GetIntelligence()->GetTaskSwim();
         if (!swimTask) {

@@ -2,6 +2,7 @@
 #include "ReplayBlockType.h"
 #include "Replay.h"
 
+// 0x45B730
 tReplayVehicleBlock tReplayVehicleBlock::MakeVehicleUpdateData(CVehicle& veh, int32 poolIdx) {
     tReplayVehicleBlock ret{};
     ret.type = REPLAY_PACKET_VEHICLE;
@@ -44,8 +45,8 @@ tReplayVehicleBlock tReplayVehicleBlock::MakeVehicleUpdateData(CVehicle& veh, in
             ret.wheelsSuspensionCompression[i] = (uint8)(automobile->m_fWheelsSuspensionCompression[i] * 50.0f);
             ret.wheelRotation[i] = (uint8)(automobile->m_wheelRotation[i] * HEADING_COMPRESS_VALUE);
         }
-        ret.angleDoorLF = (uint8)(automobile->m_doors[DOOR_LEFT_FRONT].m_fAngle * 20.222929f);
-        ret.angleDoorRF = (uint8)(automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle * 20.222929f);
+        ret.angleDoorLF = (uint8)(automobile->m_doors[DOOR_LEFT_FRONT].m_angle * 20.222929f);
+        ret.angleDoorRF = (uint8)(automobile->m_doors[DOOR_RIGHT_FRONT].m_angle * 20.222929f);
 
         ret.doorStatus = 0u;
         for (auto&& [i, status] : rngv::enumerate(automobile->m_damageManager.GetAllDoorsStatus())) {
@@ -59,6 +60,7 @@ tReplayVehicleBlock tReplayVehicleBlock::MakeVehicleUpdateData(CVehicle& veh, in
     return ret;
 }
 
+// 0x45CD10
 tReplayTrainBlock tReplayTrainBlock::MakeTrainUpdateData(CTrain& train, int32 poolIdx) {
     tReplayTrainBlock ret;
     *ret.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(*train.AsVehicle(), poolIdx);
@@ -80,6 +82,7 @@ tReplayTrainBlock tReplayTrainBlock::MakeTrainUpdateData(CTrain& train, int32 po
     return ret;
 }
 
+// 0x45C070
 tReplayBikeBlock tReplayBikeBlock::MakeBikeUpdateData(CBike& bike, int32 poolIdx) {
     tReplayBikeBlock ret{};
     *ret.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(*bike.AsVehicle(), poolIdx);
@@ -90,6 +93,7 @@ tReplayBikeBlock tReplayBikeBlock::MakeBikeUpdateData(CBike& bike, int32 poolIdx
     return ret;
 }
 
+// 0x45BF90
 tReplayBmxBlock tReplayBmxBlock::MakeBmxUpdateData(CBmx& bmx, int32 poolIdx) {
     // Same as Bike, but the type is different.
     tReplayBmxBlock ret{};
@@ -98,6 +102,7 @@ tReplayBmxBlock tReplayBmxBlock::MakeBmxUpdateData(CBmx& bmx, int32 poolIdx) {
     return ret;
 }
 
+// 0x45BA90
 void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpolation) {
     veh.GetMatrix() = Lerp(veh.GetMatrix(), CCompressedMatrixNotAligned::Decompress(matrix), interpolation);
     veh.GetTurnSpeed() = CVector{0.0f};
@@ -146,11 +151,11 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpol
             automobile->m_wheelRotation[i] = (float)wheelRotation[i] / HEADING_COMPRESS_VALUE;
 
         }
-        automobile->m_doors[DOOR_LEFT_FRONT].m_fAngle = (float)angleDoorLF / 20.222929f;
-        automobile->m_doors[DOOR_LEFT_FRONT].m_fPrevAngle = automobile->m_doors[DOOR_LEFT_FRONT].m_fAngle;
+        automobile->m_doors[DOOR_LEFT_FRONT].m_angle = (float)angleDoorLF / 20.222929f;
+        automobile->m_doors[DOOR_LEFT_FRONT].m_prevAngle = automobile->m_doors[DOOR_LEFT_FRONT].m_angle;
 
-        automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle = (float)angleDoorRF / 20.222929f;
-        automobile->m_doors[DOOR_RIGHT_FRONT].m_fPrevAngle = automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle;
+        automobile->m_doors[DOOR_RIGHT_FRONT].m_angle = (float)angleDoorRF / 20.222929f;
+        automobile->m_doors[DOOR_RIGHT_FRONT].m_prevAngle = automobile->m_doors[DOOR_RIGHT_FRONT].m_angle;
 
         auto& damageManager = automobile->m_damageManager;
         if (angleDoorLF != 0) {
@@ -174,13 +179,14 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle& veh, float interpol
     }
 
     veh.vehicleFlags.bEngineOn = veh.vehicleFlags.bEngineBroken != true;
-    veh.m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea); // FIXME
+    veh.SetAreaCode(static_cast<eAreaCodes>(CGame::currArea)); // FIXME
 
     CWorld::Remove(&veh);
     CWorld::Add(&veh);
     veh.m_nPhysicalFlags ^= (veh.m_nPhysicalFlags ^ (physicalFlags << 29)) & 0x20000000;
 }
 
+// 0x45C0D0
 void tReplayBikeBlock::ExtractBikeUpdateData(CBike& bike, float interpolation) {
     As<tReplayVehicleBlock>()->ExtractVehicleUpdateData(*bike.AsVehicle(), interpolation);
 
@@ -190,6 +196,17 @@ void tReplayBikeBlock::ExtractBikeUpdateData(CBike& bike, float interpolation) {
     bike.CalculateLeanMatrix();
 }
 
+// 0x45BFF0
+void tReplayBmxBlock::ExtractBmxUpdateData(CBmx& bmx, float interpolation) {
+    As<tReplayVehicleBlock>()->ExtractVehicleUpdateData(*bmx.AsVehicle(), interpolation);
+
+    bmx.GetRideAnimData()->BarSteerAngle = (float)steerAngle / 50.0f;
+    bmx.GetRideAnimData()->LeanAngle = (float)animLean / 50.0f;
+    bmx.m_bLeanMatrixCalculated = false;
+    bmx.CalculateLeanMatrix();
+}
+
+// 0x45CDB0
 void tReplayTrainBlock::ExtractTrainUpdateData(CTrain& train, float interpolation) {
     As<tReplayVehicleBlock>()->ExtractVehicleUpdateData(*train.AsVehicle(), interpolation);
 

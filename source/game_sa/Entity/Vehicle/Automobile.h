@@ -18,6 +18,8 @@
 #include "eCarWheel.h"
 #include "eCarNodes.h"
 
+constexpr float BILLS_EXTENSION_LIMIT = 1.0f;
+
 enum class eSkidmarkType : uint32;
 
 class CVehicleModelInfo;
@@ -108,7 +110,8 @@ public:
     float m_fDoomVerticalRotation;
     float m_fDoomHorizontalRotation;
     float m_fForcedOrientation;
-    std::array<float, 2> m_fUpDownLightAngle;
+    float m_fPropRotate;
+    float m_fCumulativeDamage;
     uint8 m_nNumContactWheels;
     uint8 m_NumDriveWheelsOnGround;
     uint8 m_NumDriveWheelsOnGroundLastFrame;
@@ -147,7 +150,7 @@ public:
     void ProcessControlCollisionCheck(bool applySpeed) override;
     void ProcessControlInputs(uint8 playerNum) override;
     void GetComponentWorldPosition(int32 componentId, CVector& outPos) override;
-    bool IsComponentPresent(int32 componentId) override;
+    bool IsComponentPresent(int32 componentId) const override;
     void OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) override; // eCarNodes = componentId
 
     //!!!!!!!!!!!!!!!!!!!

@@ -18,9 +18,10 @@ public:
     float  m_fAmbientGreen_Obj;
     float  m_fAmbientBlue_Obj;
 
-    float m_fAmbientBeforeBrightnessRed; // m_fDirectional
-    float m_fAmbientBeforeBrightnessGreen;
-    float m_fAmbientBeforeBrightnessBlue;
+    float  m_fAmbientBeforeBrightnessRed; // m_fDirectional
+    float  m_fAmbientBeforeBrightnessGreen;
+    float  m_fAmbientBeforeBrightnessBlue;
+
 
     uint16 m_nSkyTopRed;
     uint16 m_nSkyTopGreen;
@@ -41,11 +42,13 @@ public:
     float  m_fSunSize;
     float  m_fSpriteSize;
     float  m_fSpriteBrightness;
-    uint16 m_nShadowStrength;
-    uint16 m_nLightShadowStrength;
-    uint16 m_nPoleShadowStrength;
+    int16  m_nShadowStrength;
+    int16  m_nLightShadowStrength;
+    int16  m_nPoleShadowStrength;
+
     float  m_fFarClip;
     float  m_fFogStart;
+
     float  m_fLightsOnGroundBrightness;
 
     uint16 m_nLowCloudsRed;
@@ -72,8 +75,9 @@ public:
     float  m_fPostFx2Alpha;
 
     float  m_fCloudAlpha;
-    int32 m_nHighLightMinIntensity;
+    int32  m_nHighLightMinIntensity;
     uint16 m_nWaterFogAlpha;
+
     float  m_fIllumination;
     float  m_fLodDistMult;
 
@@ -86,8 +90,10 @@ public:
 
     CColourSet() = default;
     CColourSet(int32 timeId, int32 weatherId);
-    void Interpolate(CColourSet* a, CColourSet* b, float fa, float fb, bool bIgnoreSky);
 
+    void Interpolate(CColourSet* A, CColourSet* B, float multA, float multB, bool ignoreSky);
+
+public: // NOTSA
     // helpers
     [[nodiscard]] CRGBA GetSkyBottom(uint8 alpha = 255) const {
         return {

@@ -16,7 +16,7 @@ bool CTaskSimpleWaitUntilLeaderAreaCodesMatch::MakeAbortable(CPed* ped, eAbortPr
     if (priority != ABORT_PRIORITY_IMMEDIATE) {
         return false;
     } else {
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         return true;
     }
 }
@@ -24,13 +24,13 @@ bool CTaskSimpleWaitUntilLeaderAreaCodesMatch::MakeAbortable(CPed* ped, eAbortPr
 // 0x6356C0
 bool CTaskSimpleWaitUntilLeaderAreaCodesMatch::ProcessPed(CPed* ped) {
     if (CTaskSimpleWaitUntilAreaCodesMatch::ProcessPed(ped)) {
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         return true;
     }
     if (!m_b) {
         if (ped->GetTaskManager().Find<Type>()) {
             m_b = true;
-            ped->m_bUsesCollision = false;
+            ped->SetUsesCollision(false);
         }
     }
     return false;

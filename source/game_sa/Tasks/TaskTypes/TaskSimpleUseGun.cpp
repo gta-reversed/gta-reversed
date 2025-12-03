@@ -223,7 +223,7 @@ bool CTaskSimpleUseGun::RequirePistolWhip(CPed* ped, CEntity* targetEntity) {
         }
         return true;
     };
-    return targetEntity && targetEntity->IsPed()
+    return targetEntity && targetEntity->GetIsTypePed()
         ? IsPistolWhipRequiredForPed(*targetEntity->AsPed())
         : rng::any_of(ped->GetIntelligence()->GetPedScanner().GetEntities<CPed>(), IsPistolWhipRequiredForPed);
 }
@@ -521,7 +521,7 @@ bool CTaskSimpleUseGun::ProcessPed(CPed* ped) {
                         const auto aimDir = (aimTargetPos - ped->GetPosition()).Normalized(); // 0x62ADF0
                         const auto targetAngleToUs = CGeneral::LimitRadianAngle(aimDir.Heading() - ped->m_fCurrentRotation);
                         m_SkipAim = [&, this]{
-                            if (m_TargetEntity && m_TargetEntity->IsPed() && m_TargetEntity->AsPed()->m_fHealth <= 0.f) {
+                            if (m_TargetEntity && m_TargetEntity->GetIsTypePed() && m_TargetEntity->AsPed()->m_fHealth <= 0.f) {
                                 if (DegreesToRadians(115.f - 40.f) < targetAngleToUs || targetAngleToUs < -DegreesToRadians(130.f - 40.f)) {
                                     return true;
                                 }
@@ -562,7 +562,7 @@ bool CTaskSimpleUseGun::SetPedPosition(CPed* ped) {
 // notsa
 CVector CTaskSimpleUseGun::GetAimTargetPosition(CPed* ped) const {
     if (m_TargetEntity) {
-        if (m_TargetEntity->IsPed()) {
+        if (m_TargetEntity->GetIsTypePed()) {
             return m_TargetEntity->AsPed()->GetBonePosition(BONE_SPINE1);
         }
         return m_TargetEntity->GetPosition();
@@ -577,7 +577,7 @@ CVector CTaskSimpleUseGun::GetAimTargetPosition(CPed* ped) const {
 
 // notsa
 std::pair<CVector, eBoneTag> CTaskSimpleUseGun::GetAimLookAtInfo() const {
-    if (m_TargetEntity->IsPed()) {
+    if (m_TargetEntity->GetIsTypePed()) {
         const auto targetPed = m_TargetEntity->AsPed();
         if (const auto pd = targetPed->m_pPlayerData) {
             CVector ret = pd->m_vecTargetBoneOffset;

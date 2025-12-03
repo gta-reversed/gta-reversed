@@ -121,7 +121,7 @@ void CEscalator::Update() {
         obj->GetMatrix() = m_Rotation;
         obj->SetPosn(beg + dir * t);
         obj->GetMoveSpeed() = (i < m_NumIntermediatePlanes ? -dir : dir) * 0.016f * (m_MoveDown ? -1.0f : 1.0f);
-        obj->UpdateRW();
+        obj->UpdateRwMatrix();
         obj->UpdateRwFrame();
         obj->RemoveAndAdd();
     }

@@ -25,7 +25,7 @@ bool CTaskSimpleEvasiveDive::MakeAbortable(CPed* ped, eAbortPriority priority, c
         return true;
     }
     if (const auto eDmg = notsa::dyn_cast_if_present<const CEventDamage>(event)) {
-        if (eDmg->m_pSourceEntity && eDmg->m_pSourceEntity->IsVehicle()) {
+        if (eDmg->m_pSourceEntity && eDmg->m_pSourceEntity->GetIsTypeVehicle()) {
             switch (eDmg->m_weaponType) {
             case WEAPON_RAMMEDBYCAR:
             case WEAPON_RUNOVERBYCAR:

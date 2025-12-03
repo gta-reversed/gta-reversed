@@ -423,13 +423,13 @@ void CEventHandler::RegisterKill(const CPed* ped, const CEntity* inflictedBy, eW
     if (!ped) {
         return;
     }
-    if (inflictedBy && inflictedBy->IsPed() && inflictedBy->AsPed()->IsPlayer() && inflictedBy != ped) {
+    if (inflictedBy && inflictedBy->GetIsTypePed() && inflictedBy->AsPed()->IsPlayer() && inflictedBy != ped) {
         const auto pi = &FindPlayerInfo();
         pi->m_nHavocCaused += 10;
         pi->m_fCurrentChaseValue += 5.f;
         CDarkel::RegisterKillByPlayer(*ped, weaponUsed, wasHeadShot, inflictedBy->AsPed()->m_nPedType);
         CPedGroups::RegisterKillByPlayer();
-    } else if (inflictedBy && inflictedBy->IsVehicle() && inflictedBy == FindPlayerVehicle()) {
+    } else if (inflictedBy && inflictedBy->GetIsTypeVehicle() && inflictedBy == FindPlayerVehicle()) {
         CStats::IncrementStat(STAT_PEOPLE_YOUVE_WASTED);
     } else {
         CDarkel::RegisterKillNotByPlayer(ped);
@@ -702,7 +702,7 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
                 }
             }
 
-            if (targetEntity->IsPed()) {
+            if (targetEntity->GetIsTypePed()) {
                 if (!g_ikChainMan.IsLooking(m_Ped)) { // 0x4BF77F
                     g_ikChainMan.LookAt(
                         "CompBldgCollResp",
@@ -852,7 +852,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
             if (!ce || ce->GetEventType() != EVENT_DAMAGE || !e->IsSameEventForAI(static_cast<CEventDamage&>(*ce))) {
                 if (!m_Ped->GetTaskManager().Has<TASK_COMPLEX_REACT_TO_ATTACK>() && !m_Ped->IsPlayer()) {
                     if (const auto esrc = e->GetSourceEntity()) {
-                        if (esrc->IsPed()) {
+                        if (esrc->GetIsTypePed()) {
                             ComputePersonalityResponseToDamage(e, esrc->AsPed());
                         }
                     }
@@ -879,7 +879,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
         if (const auto v = m_Ped->GetVehicleIfInOne()) {
             if (v->IsBike() || v->IsSubQuad()) {
                 if (!e->m_bFallDown && !e->HasKilledPed()) {
-                    assert(e->m_pSourceEntity->IsPed());
+                    assert(e->m_pSourceEntity->GetIsTypePed());
                     ComputePersonalityResponseToDamage(e, e->m_pSourceEntity->AsPed());
                 } else {
                     ComputeKnockOffBikeResponse(e, tactive, tsimplest); // 0x4C02DE
@@ -946,7 +946,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                         WEAPON_COUNTRYRIFLE,
                         WEAPON_MINIGUN
                     }, e->m_weaponType)) {
-                        if (e->m_pSourceEntity->IsPed() && e->m_pSourceEntity->AsPed()->IsCreatedByMission()) {
+                        if (e->m_pSourceEntity->GetIsTypePed() && e->m_pSourceEntity->AsPed()->IsCreatedByMission()) {
                             int32 fallToDeathDir;
                             bool  bFallToDeathOverRailing;
                             bool  bFallToDeath = CTaskComplexFallToDeath::CalcFall(m_Ped, fallToDeathDir, bFallToDeathOverRailing);
@@ -1033,7 +1033,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                 return DoComputeDamageAndResponseForPersonality();
             }
 
-            const auto eventSrcPed = e->m_pSourceEntity->IsPed()
+            const auto eventSrcPed = e->m_pSourceEntity->GetIsTypePed()
                 ? e->m_pSourceEntity->AsPed()
                 : nullptr;
 
@@ -1116,9 +1116,9 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                         e->GetAnimGroup(),
                         m_Ped->IsPlayer() ? 500 : 1000
                     };
-                    const auto knockedOverByVeh = e->m_pSourceEntity->IsVehicle()
+                    const auto knockedOverByVeh = e->m_pSourceEntity->GetIsTypeVehicle()
                         ? e->m_pSourceEntity->AsVehicle()
-                        : e->m_pSourceEntity->IsPed()
+                        : e->m_pSourceEntity->GetIsTypePed()
                             ? e->m_pSourceEntity->AsPed()->GetVehicleIfInOne()
                             : nullptr;
                     if (knockedOverByVeh) {
@@ -2123,7 +2123,7 @@ void CEventHandler::ComputeReallyLowHealthResponse(CEventHealthReallyLow* e, CTa
 void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTask* tsimplest) {
     std::tie(m_EventResponseTask, m_SayTask) = [&]() -> std::pair<CTask*, CTask*> {
         m_Ped->m_fHealth                = 100.f;
-        m_Ped->m_bUsesCollision         = true;
+        m_Ped->SetUsesCollision(true);
         m_Ped->bKnockedUpIntoAir        = false;
         m_Ped->bKnockedOffBike          = false;
         m_Ped->bKilledByStealth         = false;
@@ -2252,7 +2252,7 @@ void CEventHandler::ComputeShotFiredResponse(CEventGunShot* e, CTask* tactive, C
         if (!e->m_firedBy) {
             return nullptr;
         }
-        const auto firedByPed = e->m_firedBy->IsPed()
+        const auto firedByPed = e->m_firedBy->GetIsTypePed()
             ? e->m_firedBy->AsPed()
             : nullptr;
         switch (e->m_TaskId) {

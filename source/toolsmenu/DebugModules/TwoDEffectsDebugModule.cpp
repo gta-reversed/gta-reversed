@@ -219,7 +219,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
             m_SelectedFx     = v;
             m_SelectedFxHash = v.Hash;
             if (ig::IsMouseDoubleClicked(0)) {
-                TeleportDebugModule::TeleportTo(v.FxPos, v.Entity->m_nAreaCode);
+                TeleportDebugModule::TeleportTo(v.FxPos, v.Entity->GetAreaCode());
             }
         }
 

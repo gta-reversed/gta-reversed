@@ -239,7 +239,7 @@ void MakePlayerSafeForCutscene(uint32 playerIdx) {
 /// IS_PLAYER_TARGETTING_CHAR(0457)
 bool IsPlayerTargettingChar(CPlayerPed& player, CPed* target) {
     CEntity* targetedObject = player.m_pTargetedObject;
-    if (targetedObject && targetedObject->IsPed() && targetedObject == target) {
+    if (targetedObject && targetedObject->GetIsTypePed() && targetedObject == target) {
         return true;
     }
 
@@ -253,7 +253,7 @@ bool IsPlayerTargettingChar(CPlayerPed& player, CPed* target) {
 /// IS_PLAYER_TARGETTING_OBJECT(0458)
 bool IsPlayerTargettingObject(CPlayerPed& player, CObject* target) {
     CEntity* targetedObject = player.m_pTargetedObject;
-    return targetedObject && targetedObject->IsObject() && targetedObject == target;
+    return targetedObject && targetedObject->GetIsTypeObject() && targetedObject == target;
 }
 
 /// GIVE_REMOTE_CONTROLLED_MODEL_TO_PLAYER(046E)

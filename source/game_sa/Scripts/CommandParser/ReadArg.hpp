@@ -119,6 +119,8 @@ inline T Read(CRunningScript* S) {
         return { Read<float>(S), Read<float>(S) };
     } else if constexpr (std::is_same_v<Y, CRect>) {
         return { Read<CVector2D>(S), Read<CVector2D>(S) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
+    } else if constexpr (std::is_same_v<Y, CRGBA>) {
+        return { Read<uint8>(S), Read<uint8>(S), Read<uint8>(S), Read<uint8>(S) };
     } else if constexpr (std::is_same_v<Y, std::string_view>) {
         switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:

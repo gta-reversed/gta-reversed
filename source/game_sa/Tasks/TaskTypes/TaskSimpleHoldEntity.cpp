@@ -209,10 +209,10 @@ bool CTaskSimpleHoldEntity::ProcessPed(CPed* ped) {
             m_bEntityDropped = true;
         }
         else {
-            entityToHold->m_bUsesCollision = false;
-            if (entityToHold->IsObject()) {
+            entityToHold->SetUsesCollision(false);
+            if (entityToHold->GetIsTypeObject()) {
                 auto* objectToHold = entityToHold->AsObject();
-                if (objectToHold->IsStatic()) {
+                if (objectToHold->GetIsStatic()) {
                     objectToHold->SetIsStatic(false);
                     objectToHold->AddToMovingList();
                 }
@@ -298,7 +298,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
 
     if (bUpdateEntityToHoldPosition) {
         if (m_pEntityToHold) {
-            m_pEntityToHold->m_bIsVisible = ped->m_bIsVisible;
+            m_pEntityToHold->SetIsVisible(ped->GetIsVisible());
             if (ped->bCalledPreRender) {
                 if (m_bBoneFlags & HOLD_ENTITY_UPDATE_TRANSLATION_ONLY) {
                     CVector entityToHoldPos = m_vecPosition;
@@ -327,7 +327,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
                 else
                     m_pEntityToHold->SetPosn(ped->m_placement.m_vPosn);
             }
-            m_pEntityToHold->UpdateRW();
+            m_pEntityToHold->UpdateRwMatrix();
             m_pEntityToHold->UpdateRwFrame();
             return true;
         }
@@ -415,8 +415,8 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
     bool bUpdateEntityPosition = true;
     CObject* objectToHold = nullptr;
     if (m_pEntityToHold) {
-        m_pEntityToHold->m_bUsesCollision = true;
-        if (!m_pEntityToHold->IsObject()) {
+        m_pEntityToHold->SetUsesCollision(true);
+        if (!m_pEntityToHold->GetIsTypeObject()) {
             CEntity::ClearReference(m_pEntityToHold);
             return;
         }
@@ -431,8 +431,8 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                     }
                     objectToHold->m_nObjectType = OBJECT_TEMPORARY;
                     objectToHold->m_nRemovalTime = 0;
-                    objectToHold->m_bUsesCollision = false;
-                    objectToHold->m_bIsVisible = false;
+                    objectToHold->SetUsesCollision(false);
+                    objectToHold->SetIsVisible(false);
                     bUpdateEntityPosition = false;
                 }
             }
@@ -443,7 +443,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                 bUpdateEntityPosition = false;
             }
             else {
-                if (objectToHold->IsStatic()) {
+                if (objectToHold->GetIsStatic()) {
                     objectToHold->SetIsStatic(false);
                     objectToHold->AddToMovingList();
                 }
@@ -470,7 +470,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
             objectToHoldPosition = ped->GetPosition();
             objectToHoldPosition.z = objectToHoldPosition.z - 1.0f - objectToHold->GetColModel()->m_boundBox.m_vecMin.z;
             objectToHold->SetPosn(objectToHoldPosition);
-            objectToHold->UpdateRW();
+            objectToHold->UpdateRwMatrix();
             objectToHold->UpdateRwFrame();
         }
         CEntity::ClearReference(m_pEntityToHold);

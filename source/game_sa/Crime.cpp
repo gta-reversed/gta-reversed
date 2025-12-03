@@ -37,10 +37,10 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
     }
 
     // TODO: repair that.
-    const bool isPedCriminal = pVictim && pVictim->IsPed() && CPedType::PoliceDontCareAboutCrimesAgainstPedType(pVictim->AsPed()->m_nPedType);
+    const bool isPedCriminal = pVictim && pVictim->GetIsTypePed() && CPedType::PoliceDontCareAboutCrimesAgainstPedType(pVictim->AsPed()->m_nPedType);
     if (crimeType == CRIME_DAMAGED_PED
         && pVictim
-        && pVictim->IsPed()
+        && pVictim->GetIsTypePed()
         && IsPedPointerValid(pVictim->AsPed())
         && !pCommitedby->AsPlayer()->GetWantedLevel()
         && pVictim->AsPed()->bBeingChasedByPolice // Vanilla bug here

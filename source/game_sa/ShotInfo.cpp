@@ -41,7 +41,7 @@ void CShotInfo::Update() {
     for (auto& shot : aShotInfos) {
         iteration++;
         if (shot.m_pCreator) {
-            if (shot.m_pCreator->IsPed() && !shot.m_pCreator->AsPed()->IsPointerValid()) {
+            if (shot.m_pCreator->GetIsTypePed() && !shot.m_pCreator->AsPed()->IsPointerValid()) {
                 shot.m_pCreator = nullptr;
             }
         }

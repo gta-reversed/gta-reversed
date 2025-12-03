@@ -369,7 +369,7 @@ CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
         p.FrequencyVariance,
         p.PlayTime
     );
-    s.m_Event         = p.EventID;
+    s.m_Event          = p.EventID;
     s.m_ClientVariable = p.ClientVariable;
     if (p.Flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) {
         s.RegisterWithPhysicalEntity(p.RegisterWithEntity);

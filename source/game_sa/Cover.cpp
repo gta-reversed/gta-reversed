@@ -313,7 +313,7 @@ bool CCover::FindCoordinatesCoverPoint(const CCoverPoint& cpt, CPed* ped, const 
 
 // 0x699120
 void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
-    auto* mi = CModelInfo::GetModelInfo(building->m_nModelIndex);
+    auto* mi = CModelInfo::GetModelInfo(building->GetModelIndex());
     for (int32 i = 0; i < mi->m_n2dfxCount; ++i) {
         if (auto* const fx = notsa::dyn_cast<C2dEffectCoverPoint>(mi->Get2dEffect(i))) {
             const auto dir = building->GetMatrix().TransformVector(CVector{fx->m_DirOfCover, 0.f});

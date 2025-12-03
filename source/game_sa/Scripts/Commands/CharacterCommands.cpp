@@ -111,7 +111,7 @@ auto SetCharNeverTargetted(CPed& ped, bool bNeverEverTargetThisPed) {
 
 // SET_CHAR_COLLISION
 auto SetCharCollision(CPed& ped, bool bUsesCollision) {
-    ped.m_bUsesCollision = bUsesCollision;
+    ped.SetUsesCollision(bUsesCollision);
 }
 
 // IS_CHAR_SHOOTING
@@ -149,7 +149,7 @@ auto SetCharAllowedToDuck(CPed& ped, CVector rotdeg) {
 }
 
 auto SetCharAreaVisible(CPed& ped, eAreaCodes area) {
-    ped.m_nAreaCode = area;
+    ped.SetAreaCode(area);
     if (area != AREA_CODE_NORMAL_WORLD) {
         return;
     }
@@ -583,7 +583,7 @@ auto SetCharHeading(CPed& ped, float deg) {
     const auto rad = DegreesToRadians(FixAngleDegrees(deg));
     ped.m_fAimingRotation = ped.m_fCurrentRotation = rad;
     ped.SetHeading(rad);
-    ped.UpdateRW();
+    ped.UpdateRwMatrix();
 }
 
 // IS_CHAR_TOUCHING_OBJECT
@@ -806,7 +806,7 @@ auto SetCharVisible(CPed& ped, bool isVisible) {
     if (&ped == FindPlayerPed()) {
         gPlayerPedVisible = isVisible;
     }
-    ped.m_bIsVisible = isVisible;
+    ped.SetIsVisible(isVisible);
 }
 
 // REMOVE_CHAR_ELEGANTLY
@@ -1151,7 +1151,7 @@ auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
         DoSetPedIsWaitingForCollision(S, ped);
     } else if (ped.m_bIsStaticWaitingForCollision) {
         ped.m_bIsStaticWaitingForCollision = false;
-        if (!ped.IsStatic()) { // TODO: I think this is inlined
+        if (!ped.GetIsStatic()) {
             ped.AddToMovingList();
         }
     }
@@ -1431,7 +1431,7 @@ bool IsCharGettingInToACar(CPed& ped) {
 
 // GET_CHAR_AREA_VISIBLE
 uint32 GetCharAreaVisible(CPed& ped) {
-    return ped.m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD;
+    return ped.GetAreaCode() != eAreaCodes::AREA_CODE_NORMAL_WORLD;
 }
 
 // HAS_CHAR_SPOTTED_CHAR_IN_FRONT
@@ -1459,12 +1459,12 @@ bool IsCharTouchingChar(CPed& ped, CPed& other) {
 
 // IS_CHAR_ATTACHED_TO_ANY_CAR
 bool IsCharAttachedToAnyCar(CPed* ped) {
-    return ped && ped->m_nType == ENTITY_TYPE_VEHICLE;
+    return ped && ped->GetIsTypeVehicle();
 }
 
 // STORE_CAR_CHAR_IS_ATTACHED_TO_NO_SAVE
 CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
-    if (ped->m_nType != ENTITY_TYPE_VEHICLE) {
+    if (!ped->GetIsTypeVehicle()) {
         return nullptr;
     }
     return ped->m_pAttachedTo->AsVehicle();

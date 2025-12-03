@@ -172,7 +172,7 @@ RsEventStatus KeyboardHandler(RsEvent event, void* param) {
 }
 
 // 0x7448B0
-static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
+RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
     bool  bPadTwo   = false;
     int32 padNumber = padButtonStatus->padID;
 
@@ -188,8 +188,7 @@ static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
 
     ControlsManager.UpdateJoyButtonState(padNumber);
 
-    for (int32 i = 1; i < JOYBUTTON_COUNT; i++)
-    {
+    for (int32 i = 1; i < JOYBUTTON_COUNT; i++) {
         RsPadButtons btn = RsPadButtons(0);
         if (ControlsManager.m_ButtonStates[i - 1] == true) {
             btn = RsPadButtons(i);
@@ -197,7 +196,7 @@ static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
             if (FrontEndMenuManager.m_bMenuActive || bPadTwo) {
                 ControlsManager.UpdateJoyInConfigMenus_ButtonDown(btn, padNumber);
             } else {
-                ControlsManager.AffectControllerStateOn_ButtonDown((KeyCode)btn, eControllerType::JOY_STICK);
+                ControlsManager.UpdateJoy_ButtonDown(btn, eControllerType::JOY_STICK);
             }
         }
     }
@@ -205,7 +204,7 @@ static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
 }
 
 // 0x744930
-static RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
+RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
     bool  bPadTwo   = false;
     int32 padNumber = padButtonStatus->padID;
 
@@ -227,6 +226,7 @@ static RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
 
     ControlsManager.UpdateJoyButtonState(padNumber);
 
+    // NOTE: Why 2?
     for (int32 i = 2; i < JOYBUTTON_COUNT; i++) {
         RsPadButtons btn = RsPadButtons(0);
         if (ControlsManager.m_ButtonStates[i - 1] == false) {
