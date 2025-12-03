@@ -139,6 +139,17 @@ CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
     return CCarCtrl::CreateCarForScript(modelId, pos, S.m_UsesMissionCleanup);
 }
 
+/// DELETE_CAR
+// TODO: We need to take the handle here as well so we can delete by it later
+//void DeleteCar(CVehicle* car)
+//    if (car) {
+//        CWorld::Remove(car);
+//        CWorld::RemoveReferencesToDeletedObject(car);
+//        delete car;
+//    } else {
+//        CTheScripts::MissionCleanUp.RemoveEntityFromList(handle); // TODO
+//    }
+//}
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
@@ -163,10 +174,10 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_STUCK_CAR_CHECK, RemoveStuckCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_STUCK_CAR_CHECK_WITH_WARP, AddStuckCarCheckWithWarp);
     REGISTER_COMMAND_HANDLER(COMMAND_PLANE_ATTACK_PLAYER_USING_DOG_FIGHT, PlaneAttackPlayerUsingDogFight);
-
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ALWAYS_CREATE_SKIDS, SetCarAlwaysCreateSkids);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR, CreateCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);
