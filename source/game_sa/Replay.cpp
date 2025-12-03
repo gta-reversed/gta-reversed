@@ -1068,7 +1068,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
         vehicle->m_nPrimaryColor = packet.primaryColor;
         vehicle->m_nSecondaryColor = packet.secondaryColor;
         if (vehicle->IsSubBoat()) {
-            vehicle->AsBoat()->m_nBoatFlags.bAnchored = false;
+            vehicle->AsBoat()->m_nBoatFlags.bLockedToXY = false;
         }
 
         CWorld::Add(vehicle);
@@ -1238,9 +1238,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                // Originally BMX has an exclusive extractor for itself but it's exactly the
-                // same with bike extractor, so it's fine to use bike one here.
-                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bmxPacket.As<tReplayBmxBlock>()->ExtractBmxUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBmx(), interpolation);
             }
             break;
         }

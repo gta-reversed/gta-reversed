@@ -17,7 +17,7 @@ public:
     bool                   m_bCanAddEvent;
     char                   field_7D;
     int16                  m_nSfxId;
-    uint32                 m_nTimeInMS;
+    uint32                 m_LastSwimWakeTriggerTimeMs;
 
     float                  m_fVolume1;
     float                  m_fVolume2;

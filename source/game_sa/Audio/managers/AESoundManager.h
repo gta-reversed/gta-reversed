@@ -60,7 +60,7 @@ public:
 
         // NOTSA Args //
         CEntity*        RegisterWithEntity{};     //!< The entity to register this sound with (Automatically adds the `SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY` flag)
-        int32           EventID{ AE_UNDEFINED };  //!< Event ID
+        int32           EventID{ AE_UNDEFINED };  //!< Event ID, this can be anything, but it's usually `eAudioEvents` value
         float           ClientVariable{ 0.f };    //!< Custom value that is just stored
     };
     /*!

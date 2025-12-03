@@ -644,7 +644,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
         case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
             // Standard for all new games
-            rightColumnText = notsa::IsFixBugs() ? GetOnOffText(bInvertMouseY) : GetOnOffText(!bInvertMouseY);
+            rightColumnText = GetOnOffText(!bInvertMouseY);
             break;
         case eMenuAction::MENU_ACTION_RESOLUTION: {
             GxtChar tmpBuffer[1'024];

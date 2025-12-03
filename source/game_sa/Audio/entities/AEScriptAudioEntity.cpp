@@ -100,16 +100,22 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
         }
     }();
 
-    m_tempSound.Initialise(slot, sfx, this, pos, volume, maxDistance, speed, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-    m_tempSound.m_PlayTime = playPosn;
-    m_tempSound.m_Flags = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE;
-    m_tempSound.SetFlags(SOUND_FRONT_END, bFrontend);
-    if (physical) {
-        m_tempSound.SetFlags(SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, true);
-        m_tempSound.RegisterWithPhysicalEntity(physical);
-    }
-    m_tempSound.m_Event = static_cast<eAudioEvents>(event);
-    AESoundManager.RequestNewSound(&m_tempSound);
+    AESoundManager.PlaySound({
+        .BankSlotID         = slot,
+        .SoundID            = sfx,
+        .AudioEntity        = this,
+        .Pos                = pos,
+        .Volume             = volume,
+        .RollOffFactor      = maxDistance,
+        .Speed              = speed,
+        .Doppler            = 1.0f,
+        .FrameDelay         = 0,
+        .Flags              = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (bFrontend ? SOUND_FRONT_END : 0u),
+        .FrequencyVariance  = 0.0f,
+        .PlayTime           = playPosn,
+        .RegisterWithEntity = physical,
+        .EventID            = (eAudioEvents)(event),
+    });
 }
 
 // 0x4EC270
