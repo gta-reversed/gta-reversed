@@ -134,7 +134,11 @@ void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
     }
 }
 
+/// CREATE_CAR
+CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
+    return CCarCtrl::CreateCarForScript(modelId, pos, S.m_UsesMissionCleanup);
 }
+
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
@@ -161,7 +165,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PLANE_ATTACK_PLAYER_USING_DOG_FIGHT, PlaneAttackPlayerUsingDogFight);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ALWAYS_CREATE_SKIDS, SetCarAlwaysCreateSkids);
-
+    REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR, CreateCar);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);
