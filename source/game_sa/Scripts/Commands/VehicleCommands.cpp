@@ -214,8 +214,9 @@ void SetCarCoordinates(CVehicle& vehicle, float x, float y, float z) {
 }
 
 /// SET_CAR_CRUISE_SPEED
-//ReturnType SetCarCruiseSpeed(CVehicle& vehicle) {
-//}
+void SetCarCruiseSpeed(CVehicle& vehicle, float speed) {
+    vehicle.m_autoPilot.SetCruiseSpeed((uint32)(std::min(speed, vehicle.m_pHandlingData->m_transmissionData.m_MaxFlatVelocity * 60.f)));
+}
 
 /// SET_CAR_MISSION
 //ReturnType SetCarMission(CVehicle& vehicle) {
@@ -1099,7 +1100,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_SET_IDLE, CarSetIdle);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COORDINATES, GetCarCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES, SetCarCoordinates);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MISSION, SetCarMission);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
