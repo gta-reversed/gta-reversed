@@ -189,13 +189,13 @@ enum eSurfaceType : uint8 {
     SURFACE_RAILTRACK = 178,
 
     TOTAL_NUM_SURFACE_TYPES,
-
-    SURFACE_UNKNOWN_188 = 188,
+        
+    SURFACE_UNKNOWN_188 = 188, // BMX collision surface?
     SURFACE_UNKNOWN_190 = 190,
     SURFACE_UNKNOWN_191 = 191,
     SURFACE_UNKNOWN_192 = 192,
-    SURFACE_UNKNOWN_193 = 193,
-    SURFACE_UNKNOWN_194 = 194,
+    SURFACE_UNKNOWN_193 = 193, // Used for basketball collision surface
+    SURFACE_UNKNOWN_194 = 194, // Used for punchbag collision surface
 
     SURFACE_NUM_TYPES_FOR_COLLISION = TOTAL_NUM_SURFACE_TYPES + 16,
 };

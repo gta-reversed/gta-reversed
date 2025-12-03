@@ -201,7 +201,7 @@ std::pair<float, float> CAECollisionAudioEntity::GetLoopingCollisionSoundVolumeA
     }
 
     if ((surfaceB != SURFACE_PED && surfaceA == SURFACE_CAR) || (surfaceA != SURFACE_PED && surfaceB == SURFACE_CAR)) {
-        assert(entityA->IsPhysical());
+        assert(entityA->GetIsTypePhysical());
 
         const auto* const physicalA = entityA->AsPhysical();
         return GetVolumeAndSpeedForPhysical(physicalA->GetMoveSpeed(), physicalA->GetTurnSpeed());
@@ -370,7 +370,7 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
 
 // 0x4DAE40
 void CAECollisionAudioEntity::ReportWaterSplash(CPhysical* physical, float volume, bool isForceSplash) {
-    assert(physical->IsPhysical());
+    assert(physical->GetIsTypePhysical());
 
     if (!isForceSplash) {
         if (physical->GetMoveSpeed().z > -0.1f && volume == -100.f) {
@@ -416,11 +416,11 @@ void CAECollisionAudioEntity::ReportWaterSplash(CPhysical* physical, float volum
             .ClientVariable     = (float)(CTimer::GetTimeInMS() + interval),
         });
     };
-    if (physical->IsPed()) { // 0x4DAF2B - Inverted
+    if (physical->GetIsTypePed()) { // 0x4DAF2B - Inverted
         if (isForceSplash && !physical->AsPed()->GetIntelligence()->GetTaskSwim()) {
             PlaySound(2, 1.26f, -6.f, 166);
         }
-    } else if (physical->IsVehicle()) { // 0x4DAF52
+    } else if (physical->GetIsTypeVehicle()) { // 0x4DAF52
         PlaySound(3, 0.94f, 0.f, 248);
     } else { // 0x4DAF70
         PlaySound(2, 1.26f, -12.f, 166);
@@ -433,7 +433,7 @@ void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
         return;
     }
 
-    if (entity->GetModelID() == ModelIndices::MI_GRASSHOUSE) { // 0x4DAB94 - Moved up here
+    if (entity->GetModelId() == ModelIndices::MI_GRASSHOUSE) { // 0x4DAB94 - Moved up here
         AESoundManager.PlaySound({ // 0x4DABEF
             .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
             .SoundID       = (eSoundID)(56),
@@ -480,7 +480,7 @@ void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
         default:                         break;
         }
     };
-    if (entity->GetModelID() == MODEL_MOLOTOV) { // 0x4DAB7B
+    if (entity->GetModelId() == MODEL_MOLOTOV) { // 0x4DAB7B
         PlaySoundForSurface(SURFACE_GLASS);
     } else if (const auto cd = entity->GetColData()) { // 0x4DAB89
         if (const auto spheres = cd->GetSpheres(); !spheres.empty()) {
@@ -520,8 +520,8 @@ void CAECollisionAudioEntity::ReportCollision(
         CEntity* eA, eSurfaceType& sA,
         CEntity* eB, eSurfaceType& sB
     ) {
-        if (!eA->IsVehicle()) {      
-            switch (eA->GetModelID()) {
+        if (!eA->GetIsTypeVehicle()) {      
+            switch (eA->GetModelId()) {
             case MODEL_MOLOTOV:
                 return SURFACE_GLASS;
             case MODEL_SATCHEL:
@@ -531,7 +531,7 @@ void CAECollisionAudioEntity::ReportCollision(
             case MODEL_TEARGAS:
                 return SURFACE_UNKNOWN_191;
             }
-            const auto eAModelId = eA->GetModelID();
+            const auto eAModelId = eA->GetModelId();
             if (eAModelId == ModelIndices::MI_BASKETBALL) {
                 return SURFACE_UNKNOWN_193;
             }
@@ -544,12 +544,12 @@ void CAECollisionAudioEntity::ReportCollision(
             if (eAModelId == ModelIndices::MI_IMY_GRAY_CRATE) {
                 return SURFACE_WOOD_SOLID;
             }
-            if (eA->IsPhysical() && eA->AsPhysical()->physicalFlags.bMakeMassTwiceAsBig) {
+            if (eA->GetIsTypePhysical() && eA->AsPhysical()->physicalFlags.bMakeMassTwiceAsBig) {
                 return SURFACE_UNKNOWN_192;
             }
             return sA;        
         }
-        if (eB && eB->IsBuilding() && normal && eA->GetUp().Dot(*normal) > 0.6f) {
+        if (eB && eB->GetIsTypeBuilding() && normal && eA->GetUp().Dot(*normal) > 0.6f) {
             if (eA->AsVehicle()->IsSubBMX()) {
                 return SURFACE_UNKNOWN_188;
             }
@@ -588,7 +588,7 @@ void CAECollisionAudioEntity::ReportCollision(
             break;
         }
         default:
-            NOTSA_UNREACHABLE("Invalid soundStatus: {}", (int)soundStatus);
+            NOTSA_UNREACHABLE("Invalid soundStatus: {}", (int32)(soundStatus));
         }
     }
 }
