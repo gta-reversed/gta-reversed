@@ -68,7 +68,7 @@ void CAECollisionAudioEntity::AddCollisionSoundToList(
 ) {
     // Find an entry with no sound.
     const auto e = rng::find_if_not(m_CollisionSoundList, &tCollisionSound::Sound);
-    if (e != m_CollisionSoundList.end()) {
+    if (e == m_CollisionSoundList.end()) {
         NOTSA_LOG_WARN("Collision sound list is full");
         return;
     }
