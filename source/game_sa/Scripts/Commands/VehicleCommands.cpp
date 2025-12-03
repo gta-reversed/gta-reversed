@@ -195,8 +195,12 @@ void CarWanderRandomly(CVehicle& vehicle) {
 }
 
 /// CAR_SET_IDLE
-//ReturnType CarSetIdle(CVehicle& vehicle) {
-//}
+void CarSetIdle(CVehicle& vehicle) {
+    auto& ap = vehicle.m_autoPilot;
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
+        ap.m_nCarMission = MISSION_NONE;
+    }
+}
 
 /// GET_CAR_COORDINATES
 //ReturnType GetCarCoordinates(CVehicle& vehicle) {
@@ -1089,7 +1093,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     // REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES, CarGotoCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_WANDER_RANDOMLY, CarWanderRandomly);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CAR_SET_IDLE, CarSetIdle);
+    REGISTER_COMMAND_HANDLER(COMMAND_CAR_SET_IDLE, CarSetIdle);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COORDINATES, GetCarCoordinates);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES, SetCarCoordinates);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
