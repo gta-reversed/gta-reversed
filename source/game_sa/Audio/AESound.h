@@ -153,12 +153,12 @@ public:
     };
     uint16 m_IsInUse{true};
     int16  m_IsAudioHardwareAware{};
-    int16  m_PlayTime{};
+    int16  m_PlayTime{}; //!< Current play time in milliseconds
     int16  m_IsPhysicallyPlaying{};
     float  m_ListenerVolume{-100.f};
     float  m_ListenerSpeed{1.f};
     int16  m_HasRequestedStopped{};
     float  m_Headroom{};
-    int16  m_Length{-1};
+    int16  m_Length{ -1 }; //!< Length of the sound in milliseconds
 };
 VALIDATE_SIZE(CAESound, 0x74);
