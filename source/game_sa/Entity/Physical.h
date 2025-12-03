@@ -226,12 +226,12 @@ public:
     bool CheckCollision();
     bool CheckCollision_SimpleCar();
 
-    void     SetMoveSpeedXY(CVector2D v)   { m_vecMoveSpeed = CVector{v.x, v.y, m_vecMoveSpeed.z}; }
-    CVector& GetMoveSpeed()                { return m_vecMoveSpeed; }
-    void     SetVelocity(CVector velocity) { m_vecMoveSpeed = velocity; } // 0x441130
-    void     ResetMoveSpeed()              { SetVelocity(CVector{}); }
+    void  SetMoveSpeedXY(CVector2D v)    { m_vecMoveSpeed = CVector{v.x, v.y, m_vecMoveSpeed.z}; }
+    auto& GetMoveSpeed(this auto&& self) { return self.m_vecMoveSpeed; }
+    void  SetVelocity(CVector velocity)  { m_vecMoveSpeed = velocity; } // 0x441130
+    void  ResetMoveSpeed()               { SetVelocity(CVector{}); }
 
-    CVector& GetTurnSpeed() { return m_vecTurnSpeed; }
+    auto& GetTurnSpeed(this auto&& self) { return self.m_vecTurnSpeed; }
     void ResetTurnSpeed() { m_vecTurnSpeed = CVector(); }
 
     void ResetFrictionMoveSpeed() { m_vecFrictionMoveSpeed = CVector(); }
