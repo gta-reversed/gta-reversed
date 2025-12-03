@@ -177,871 +177,885 @@ void CarGotoCoordinates(CVehicle& vehicle, CVector where) {
 }
 
 /// CAR_WANDER_RANDOMLY
-//ReturnType CarWanderRandomly(void) {
-//}
+void CarWanderRandomly(CVehicle& vehicle) {
+    auto& ap = vehicle.m_autoPilot;
+
+    CCarCtrl::JoinCarWithRoadSystem(&vehicle);
+
+    vehicle.SetStatus(STATUS_PHYSICS);
+    vehicle.SetEngineOn(true);
+
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
+        ap.m_nCarMission = MISSION_CRUISE;
+    }
+    if (ap.m_nCruiseSpeed <= 1) {
+        ap.SetCruiseSpeed(1);
+    }
+    ap.m_nTimeToStartMission = CTimer::GetTimeInMS();
+}
 
 /// CAR_SET_IDLE
-//ReturnType CarSetIdle(void) {
+//ReturnType CarSetIdle(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_COORDINATES
-//ReturnType GetCarCoordinates(void) {
+//ReturnType GetCarCoordinates(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_COORDINATES
-//ReturnType SetCarCoordinates(void) {
+//ReturnType SetCarCoordinates(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_CRUISE_SPEED
-//ReturnType SetCarCruiseSpeed(void) {
+//ReturnType SetCarCruiseSpeed(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_MISSION
-//ReturnType SetCarMission(void) {
+//ReturnType SetCarMission(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_IN_AREA_2D
-//ReturnType IsCarInArea2D(void) {
+//ReturnType IsCarInArea2D(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_IN_AREA_3D
-//ReturnType IsCarInArea3D(void) {
+//ReturnType IsCarInArea3D(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_DEAD
-//ReturnType IsCarDead(void) {
+//ReturnType IsCarDead(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_MODEL
-//ReturnType IsCarModel(void) {
+//ReturnType IsCarModel(CVehicle& vehicle) {
 //}
 
 /// CREATE_CAR_GENERATOR
-//ReturnType CreateCarGenerator(void) {
+//ReturnType CreateCarGenerator(CVehicle& vehicle) {
 //}
 
 /// ADD_BLIP_FOR_CAR_OLD
-//ReturnType AddBlipForCarOld(void) {
+//ReturnType AddBlipForCarOld(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_HEADING
-//ReturnType GetCarHeading(void) {
+//ReturnType GetCarHeading(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_HEADING
-//ReturnType SetCarHeading(void) {
+//ReturnType SetCarHeading(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_HEALTH_GREATER
-//ReturnType IsCarHealthGreater(void) {
+//ReturnType IsCarHealthGreater(CVehicle& vehicle) {
 //}
 
 /// ADD_BLIP_FOR_CAR
-//ReturnType AddBlipForCar(void) {
+//ReturnType AddBlipForCar(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_STUCK_ON_ROOF
-//ReturnType IsCarStuckOnRoof(void) {
+//ReturnType IsCarStuckOnRoof(CVehicle& vehicle) {
 //}
 
 /// ADD_UPSIDEDOWN_CAR_CHECK
-//ReturnType AddUpsidedownCarCheck(void) {
+//ReturnType AddUpsidedownCarCheck(CVehicle& vehicle) {
 //}
 
 /// REMOVE_UPSIDEDOWN_CAR_CHECK
-//ReturnType RemoveUpsidedownCarCheck(void) {
+//ReturnType RemoveUpsidedownCarCheck(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_STOPPED_IN_AREA_2D
-//ReturnType IsCarStoppedInArea2D(void) {
+//ReturnType IsCarStoppedInArea2D(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_STOPPED_IN_AREA_3D
-//ReturnType IsCarStoppedInArea3D(void) {
+//ReturnType IsCarStoppedInArea3D(CVehicle& vehicle) {
 //}
 
 /// LOCATE_CAR_2D
-//ReturnType LocateCar2D(void) {
+//ReturnType LocateCar2D(CVehicle& vehicle) {
 //}
 
 /// LOCATE_STOPPED_CAR_2D
-//ReturnType LocateStoppedCar2D(void) {
+//ReturnType LocateStoppedCar2D(CVehicle& vehicle) {
 //}
 
 /// LOCATE_CAR_3D
-//ReturnType LocateCar3D(void) {
+//ReturnType LocateCar3D(CVehicle& vehicle) {
 //}
 
 /// LOCATE_STOPPED_CAR_3D
-//ReturnType LocateStoppedCar3D(void) {
+//ReturnType LocateStoppedCar3D(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_STOPPED
-//ReturnType IsCarStopped(void) {
+//ReturnType IsCarStopped(CVehicle& vehicle) {
 //}
 
 /// MARK_CAR_AS_NO_LONGER_NEEDED
-//ReturnType MarkCarAsNoLongerNeeded(void) {
+//ReturnType MarkCarAsNoLongerNeeded(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_DENSITY_MULTIPLIER
-//ReturnType SetCarDensityMultiplier(void) {
+//ReturnType SetCarDensityMultiplier(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_HEAVY
-//ReturnType SetCarHeavy(void) {
+//ReturnType SetCarHeavy(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_UPSIDEDOWN
-//ReturnType IsCarUpsidedown(void) {
+//ReturnType IsCarUpsidedown(CVehicle& vehicle) {
 //}
 
 /// LOCK_CAR_DOORS
-//ReturnType LockCarDoors(void) {
+//ReturnType LockCarDoors(CVehicle& vehicle) {
 //}
 
 /// EXPLODE_CAR
-//ReturnType ExplodeCar(void) {
+//ReturnType ExplodeCar(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_UPRIGHT
-//ReturnType IsCarUpright(void) {
+//ReturnType IsCarUpright(CVehicle& vehicle) {
 //}
 
 /// SET_TARGET_CAR_FOR_MISSION_GARAGE
-//ReturnType SetTargetCarForMissionGarage(void) {
+//ReturnType SetTargetCarForMissionGarage(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_HEALTH
-//ReturnType SetCarHealth(void) {
+//ReturnType SetCarHealth(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_HEALTH
-//ReturnType GetCarHealth(void) {
+//ReturnType GetCarHealth(CVehicle& vehicle) {
 //}
 
 /// CHANGE_CAR_COLOUR
-//ReturnType ChangeCarColour(void) {
+//ReturnType ChangeCarColour(CVehicle& vehicle) {
 //}
 
 /// SET_CAN_RESPRAY_CAR
-//ReturnType SetCanResprayCar(void) {
+//ReturnType SetCanResprayCar(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ONLY_DAMAGED_BY_PLAYER
-//ReturnType SetCarOnlyDamagedByPlayer(void) {
+//ReturnType SetCarOnlyDamagedByPlayer(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_IN_WATER
-//ReturnType IsCarInWater(void) {
+//ReturnType IsCarInWater(CVehicle& vehicle) {
 //}
 
 /// GET_CLOSEST_CAR_NODE
-//ReturnType GetClosestCarNode(void) {
+//ReturnType GetClosestCarNode(CVehicle& vehicle) {
 //}
 
 /// CAR_GOTO_COORDINATES_ACCURATE
-//ReturnType CarGotoCoordinatesAccurate(void) {
+//ReturnType CarGotoCoordinatesAccurate(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_ON_SCREEN
-//ReturnType IsCarOnScreen(void) {
+//ReturnType IsCarOnScreen(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_FORWARD_X
-//ReturnType GetCarForwardX(void) {
+//ReturnType GetCarForwardX(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_FORWARD_Y
-//ReturnType getCarForwardY(void) {
+//ReturnType getCarForwardY(CVehicle& vehicle) {
 //}
 
 /// HAS_CAR_BEEN_DAMAGED_BY_WEAPON
-//ReturnType hasCarBeenDamagedByWeapon(void) {
+//ReturnType hasCarBeenDamagedByWeapon(CVehicle& vehicle) {
 //}
 
 /// START_CAR_FIRE
-//ReturnType StartCarFire(void) {
+//ReturnType StartCarFire(CVehicle& vehicle) {
 //}
 
 /// GET_RANDOM_CAR_OF_TYPE_IN_AREA
-//ReturnType GetRandomCarOfTypeInArea(void) {
+//ReturnType GetRandomCarOfTypeInArea(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_VISIBLE
-//ReturnType SetCarVisible(void) {
+//ReturnType SetCarVisible(CVehicle& vehicle) {
 //}
 
 /// PLACE_OBJECT_RELATIVE_TO_CAR
-//ReturnType PlaceObjectRelativeToCar(void) {
+//ReturnType PlaceObjectRelativeToCar(CVehicle& vehicle) {
 //}
 
 /// SWITCH_CAR_SIREN
-//ReturnType SwitchCarSiren(void) {
+//ReturnType SwitchCarSiren(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_WATERTIGHT
-//ReturnType SetCarWatertight(void) {
+//ReturnType SetCarWatertight(CVehicle& vehicle) {
 //}
 
 /// TURN_CAR_TO_FACE_COORD
-//ReturnType TurnCarToFaceCoord(void) {
+//ReturnType TurnCarToFaceCoord(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_STATUS
-//ReturnType SetCarStatus(void) {
+//ReturnType SetCarStatus(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_STRONG
-//ReturnType SetCarStrong(void) {
+//ReturnType SetCarStrong(CVehicle& vehicle) {
 //}
 
 /// CLEAR_AREA_OF_CARS
-//ReturnType ClearAreaOfCars(void) {
+//ReturnType ClearAreaOfCars(CVehicle& vehicle) {
 //}
 
 /// CREATE_RANDOM_CAR_FOR_CAR_PARK
-//ReturnType CreateRandomCarForCarPark(void) {
+//ReturnType CreateRandomCarForCarPark(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_VISIBLY_DAMAGED
-//ReturnType IsCarVisiblyDamaged(void) {
+//ReturnType IsCarVisiblyDamaged(CVehicle& vehicle) {
 //}
 
 /// GET_CLOSEST_CAR_NODE_WITH_HEADING
-//ReturnType GetClosestCarNodeWithHeading(void) {
+//ReturnType GetClosestCarNodeWithHeading(CVehicle& vehicle) {
 //}
 
 /// SET_UPSIDEDOWN_CAR_NOT_DAMAGED
-//ReturnType SetUpsidedownCarNotDamaged(void) {
+//ReturnType SetUpsidedownCarNotDamaged(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_COLOURS
-//ReturnType GetCarColours(void) {
+//ReturnType GetCarColours(CVehicle& vehicle) {
 //}
 
 /// SET_ALL_CARS_CAN_BE_DAMAGED
-//ReturnType SetAllCarsCanBeDamaged(void) {
+//ReturnType SetAllCarsCanBeDamaged(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_CAN_BE_DAMAGED
-//ReturnType SetCarCanBeDamaged(void) {
+//ReturnType SetCarCanBeDamaged(CVehicle& vehicle) {
 //}
 
 /// GET_OFFSET_FROM_CAR_IN_WORLD_COORDS
-//ReturnType GetOffsetFromCarInWorldCoords(void) {
+//ReturnType GetOffsetFromCarInWorldCoords(CVehicle& vehicle) {
 //}
 
 /// SET_FREE_HEALTH_CARE
-//ReturnType SetFreeHealthCare(void) {
+//ReturnType SetFreeHealthCare(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_TRACTION
-//ReturnType SetCarTraction(void) {
+//ReturnType SetCarTraction(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_AVOID_LEVEL_TRANSITIONS
-//ReturnType SetCarAvoidLevelTransitions(void) {
+//ReturnType SetCarAvoidLevelTransitions(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_PASSENGER_SEAT_FREE
-//ReturnType IsCarPassengerSeatFree(void) {
+//ReturnType IsCarPassengerSeatFree(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_MODEL
-//ReturnType GetCarModel(void) {
+//ReturnType GetCarModel(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_STAY_IN_FAST_LANE
-//ReturnType SetCarStayInFastLane(void) {
+//ReturnType SetCarStayInFastLane(CVehicle& vehicle) {
 //}
 
 /// CLEAR_CAR_LAST_WEAPON_DAMAGE
-//ReturnType ClearCarLastWeaponDamage(void) {
+//ReturnType ClearCarLastWeaponDamage(CVehicle& vehicle) {
 //}
 
 /// GET_DRIVER_OF_CAR
-//ReturnType GetDriverOfCar(void) {
+//ReturnType GetDriverOfCar(CVehicle& vehicle) {
 //}
 
 /// LOCATE_CHAR_IN_CAR_OBJECT_2D
-//ReturnType LocateCharInCarObject2D(void) {
+//ReturnType LocateCharInCarObject2D(CVehicle& vehicle) {
 //}
 
 /// LOCATE_CHAR_IN_CAR_OBJECT_3D
-//ReturnType LocateCharInCarObject3D(void) {
+//ReturnType LocateCharInCarObject3D(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_TEMP_ACTION
-//ReturnType SetCarTempAction(void) {
+//ReturnType SetCarTempAction(CVehicle& vehicle) {
 //}
 
 /// GET_REMOTE_CONTROLLED_CAR
-//ReturnType GetRemoteControlledCar(void) {
+//ReturnType GetRemoteControlledCar(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_RANDOM_ROUTE_SEED
-//ReturnType SetCarRandomRouteSeed(void) {
+//ReturnType SetCarRandomRouteSeed(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_ON_FIRE
-//ReturnType IsCarOnFire(void) {
+//ReturnType IsCarOnFire(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_TYRE_BURST
-//ReturnType IsCarTyreBurst(void) {
+//ReturnType IsCarTyreBurst(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_FORWARD_SPEED
-//ReturnType SetCarForwardSpeed(void) {
+//ReturnType SetCarForwardSpeed(CVehicle& vehicle) {
 //}
 
 /// MARK_CAR_AS_CONVOY_CAR
-//ReturnType MarkCarAsConvoyCar(void) {
+//ReturnType MarkCarAsConvoyCar(CVehicle& vehicle) {
 //}
 
 /// GET_NTH_CLOSEST_CAR_NODE
-//ReturnType GetNthClosestCarNode(void) {
+//ReturnType GetNthClosestCarNode(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_STRAIGHT_LINE_DISTANCE
-//ReturnType SetCarStraightLineDistance(void) {
+//ReturnType SetCarStraightLineDistance(CVehicle& vehicle) {
 //}
 
 /// POP_CAR_BOOT
-//ReturnType PopCarBoot(void) {
+//ReturnType PopCarBoot(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_WAITING_FOR_WORLD_COLLISION
-//ReturnType IsCarWaitingForWorldCollision(void) {
+//ReturnType IsCarWaitingForWorldCollision(CVehicle& vehicle) {
 //}
 
 /// BURST_CAR_TYRE
-//ReturnType BurstCarTyre(void) {
+//ReturnType BurstCarTyre(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_MODEL_COMPONENTS
-//ReturnType SetCarModelComponents(void) {
+//ReturnType SetCarModelComponents(CVehicle& vehicle) {
 //}
 
 /// CLOSE_ALL_CAR_DOORS
-//ReturnType CloseAllCarDoors(void) {
+//ReturnType CloseAllCarDoors(CVehicle& vehicle) {
 //}
 
 /// SORT_OUT_OBJECT_COLLISION_WITH_CAR
-//ReturnType SortOutObjectCollisionWithCar(void) {
+//ReturnType SortOutObjectCollisionWithCar(CVehicle& vehicle) {
 //}
 
 /// FREEZE_CAR_POSITION
-//ReturnType FreezeCarPosition(void) {
+//ReturnType FreezeCarPosition(CVehicle& vehicle) {
 //}
 
 /// HAS_CAR_BEEN_DAMAGED_BY_CHAR
-//ReturnType HasCarBeenDamagedByChar(void) {
+//ReturnType HasCarBeenDamagedByChar(CVehicle& vehicle) {
 //}
 
 /// HAS_CAR_BEEN_DAMAGED_BY_CAR
-//ReturnType HasCarBeenDamagedByCar(void) {
+//ReturnType HasCarBeenDamagedByCar(CVehicle& vehicle) {
 //}
 
 /// GET_RANDOM_CAR_OF_TYPE_IN_AREA_NO_SAVE
-//ReturnType GetRandomCarOfTypeInAreaNoSave(void) {
+//ReturnType GetRandomCarOfTypeInAreaNoSave(CVehicle& vehicle) {
 //}
 
 /// SET_CAN_BURST_CAR_TYRES
-//ReturnType SetCanBurstCarTyres(void) {
+//ReturnType SetCanBurstCarTyres(CVehicle& vehicle) {
 //}
 
 /// CLEAR_CAR_LAST_DAMAGE_ENTITY
-//ReturnType ClearCarLastDamageEntity(void) {
+//ReturnType ClearCarLastDamageEntity(CVehicle& vehicle) {
 //}
 
 /// FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION
-//ReturnType FreezeCarPositionAndDontLoadCollision(void) {
+//ReturnType FreezeCarPositionAndDontLoadCollision(CVehicle& vehicle) {
 //}
 
 /// SET_LOAD_COLLISION_FOR_CAR_FLAG
-//ReturnType SetLoadCollisionForCarFlag(void) {
+//ReturnType SetLoadCollisionForCarFlag(CVehicle& vehicle) {
 //}
 
 /// SHUFFLE_CARD_DECKS
-//ReturnType ShuffleCardDecks(void) {
+//ReturnType ShuffleCardDecks(CVehicle& vehicle) {
 //}
 
 /// FETCH_NEXT_CARD
-//ReturnType FetchNextCard(void) {
+//ReturnType FetchNextCard(CVehicle& vehicle) {
 //}
 
 /// TASK_ENTER_CAR_AS_PASSENGER
-//ReturnType TaskEnterCarAsPassenger(void) {
+//ReturnType TaskEnterCarAsPassenger(CVehicle& vehicle) {
 //}
 
 /// TASK_ENTER_CAR_AS_DRIVER
-//ReturnType TaskEnterCarAsDriver(void) {
+//ReturnType TaskEnterCarAsDriver(CVehicle& vehicle) {
 //}
 
 /// TASK_LEAVE_CAR
-//ReturnType TaskLeaveCar(void) {
+//ReturnType TaskLeaveCar(CVehicle& vehicle) {
 //}
 
 /// TASK_LEAVE_CAR_AND_FLEE
-//ReturnType TaskLeaveCarAndFlee(void) {
+//ReturnType TaskLeaveCarAndFlee(CVehicle& vehicle) {
 //}
 
 /// TASK_CAR_DRIVE_TO_COORD
-//ReturnType TaskCarDriveToCoord(void) {
+//ReturnType TaskCarDriveToCoord(CVehicle& vehicle) {
 //}
 
 /// TASK_CAR_DRIVE_WANDER
-//ReturnType TaskCarDriveWander(void) {
+//ReturnType TaskCarDriveWander(CVehicle& vehicle) {
 //}
 
 /// START_PLAYBACK_RECORDED_CAR
-//ReturnType StartPlaybackRecordedCar(void) {
+//ReturnType StartPlaybackRecordedCar(CVehicle& vehicle) {
 //}
 
 /// STOP_PLAYBACK_RECORDED_CAR
-//ReturnType StopPlaybackRecordedCar(void) {
+//ReturnType StopPlaybackRecordedCar(CVehicle& vehicle) {
 //}
 
 /// PAUSE_PLAYBACK_RECORDED_CAR
-//ReturnType PausePlaybackRecordedCar(void) {
+//ReturnType PausePlaybackRecordedCar(CVehicle& vehicle) {
 //}
 
 /// UNPAUSE_PLAYBACK_RECORDED_CAR
-//ReturnType UnpausePlaybackRecordedCar(void) {
+//ReturnType UnpausePlaybackRecordedCar(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ESCORT_CAR_LEFT
-//ReturnType SetCarEscortCarLeft(void) {
+//ReturnType SetCarEscortCarLeft(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ESCORT_CAR_RIGHT
-//ReturnType SetCarEscortCarRight(void) {
+//ReturnType SetCarEscortCarRight(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ESCORT_CAR_REAR
-//ReturnType SetCarEscortCarRear(void) {
+//ReturnType SetCarEscortCarRear(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ESCORT_CAR_FRONT
-//ReturnType SetCarEscortCarFront(void) {
+//ReturnType SetCarEscortCarFront(CVehicle& vehicle) {
 //}
 
 /// IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_2D
-//ReturnType IsCharStoppedInAngledAreaInCar2D(void) {
+//ReturnType IsCharStoppedInAngledAreaInCar2D(CVehicle& vehicle) {
 //}
 
 /// IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_3D
-//ReturnType IsCharStoppedInAngledAreaInCar3D(void) {
+//ReturnType IsCharStoppedInAngledAreaInCar3D(CVehicle& vehicle) {
 //}
 
 /// IS_PLAYBACK_GOING_ON_FOR_CAR
-//ReturnType IsPlaybackGoingOnForCar(void) {
+//ReturnType IsPlaybackGoingOnForCar(CVehicle& vehicle) {
 //}
 
 /// TASK_LEAVE_CAR_IMMEDIATELY
-//ReturnType TaskLeaveCarImmediately(void) {
+//ReturnType TaskLeaveCarImmediately(CVehicle& vehicle) {
 //}
 
 /// TASK_LEAVE_ANY_CAR
-//ReturnType TaskLeaveAnyCar(void) {
+//ReturnType TaskLeaveAnyCar(CVehicle& vehicle) {
 //}
 
 /// OPEN_CAR_DOOR
-//ReturnType OpenCarDoor(void) {
+//ReturnType OpenCarDoor(CVehicle& vehicle) {
 //}
 
 /// CREATE_FX_SYSTEM_ON_CAR
-//ReturnType CreateFxSystemOnCar(void) {
+//ReturnType CreateFxSystemOnCar(CVehicle& vehicle) {
 //}
 
 /// CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION
-//ReturnType CreateFxSystemOnCarWithDirection(void) {
+//ReturnType CreateFxSystemOnCarWithDirection(CVehicle& vehicle) {
 //}
 
 /// TASK_DESTROY_CAR
-//ReturnType TaskDestroyCar(void) {
+//ReturnType TaskDestroyCar(CVehicle& vehicle) {
 //}
 
 /// CUSTOM_PLATE_FOR_NEXT_CAR
-//ReturnType CustomPlateForNextCar(void) {
+//ReturnType CustomPlateForNextCar(CVehicle& vehicle) {
 //}
 
 /// TASK_SHUFFLE_TO_NEXT_CAR_SEAT
-//ReturnType TaskShuffleToNextCarSeat(void) {
+//ReturnType TaskShuffleToNextCarSeat(CVehicle& vehicle) {
 //}
 
 /// FORCE_CAR_LIGHTS
-//ReturnType ForceCarLights(void) {
+//ReturnType ForceCarLights(CVehicle& vehicle) {
 //}
 
 /// ATTACH_OBJECT_TO_CAR
-//ReturnType AttachObjectToCar(void) {
+//ReturnType AttachObjectToCar(CVehicle& vehicle) {
 //}
 
 /// ATTACH_CAR_TO_CAR
-//ReturnType AttachCarToCar(void) {
+//ReturnType AttachCarToCar(CVehicle& vehicle) {
 //}
 
 /// DETACH_CAR
-//ReturnType DetachCar(void) {
+//ReturnType DetachCar(CVehicle& vehicle) {
 //}
 
 /// POP_CAR_DOOR
-//ReturnType PopCarDoor(void) {
+//ReturnType PopCarDoor(CVehicle& vehicle) {
 //}
 
 /// FIX_CAR_DOOR
-//ReturnType FixCarDoor(void) {
+//ReturnType FixCarDoor(CVehicle& vehicle) {
 //}
 
 /// TASK_EVERYONE_LEAVE_CAR
-//ReturnType TaskEveryoneLeaveCar(void) {
+//ReturnType TaskEveryoneLeaveCar(CVehicle& vehicle) {
 //}
 
 /// POP_CAR_PANEL
-//ReturnType PopCarPanel(void) {
+//ReturnType PopCarPanel(CVehicle& vehicle) {
 //}
 
 /// FIX_CAR_PANEL
-//ReturnType FixCarPanel(void) {
+//ReturnType FixCarPanel(CVehicle& vehicle) {
 //}
 
 /// FIX_CAR_TYRE
-//ReturnType FixCarTyre(void) {
+//ReturnType FixCarTyre(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_SPEED_VECTOR
-//ReturnType GetCarSpeedVector(void) {
+//ReturnType GetCarSpeedVector(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_MASS
-//ReturnType GetCarMass(void) {
+//ReturnType GetCarMass(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_ROLL
-//ReturnType GetCarRoll(void) {
+//ReturnType GetCarRoll(CVehicle& vehicle) {
 //}
 
 /// SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR
-//ReturnType SkipToEndAndStopPlaybackRecordedCar(void) {
+//ReturnType SkipToEndAndStopPlaybackRecordedCar(CVehicle& vehicle) {
 //}
 
 /// TASK_CAR_TEMP_ACTION
-//ReturnType TaskCarTempAction(void) {
+//ReturnType TaskCarTempAction(CVehicle& vehicle) {
 //}
 
 /// TASK_CAR_MISSION
-//ReturnType TaskCarMission(void) {
+//ReturnType TaskCarMission(CVehicle& vehicle) {
 //}
 
 /// GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING
-//ReturnType GetNthClosestCarNodeWithHeading(void) {
+//ReturnType GetNthClosestCarNodeWithHeading(CVehicle& vehicle) {
 //}
 
 /// DOES_CAR_HAVE_STUCK_CAR_CHECK
-//ReturnType DoesCarHaveStuckCarCheck(void) {
+//ReturnType DoesCarHaveStuckCarCheck(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_VALUE
-//ReturnType GetCarValue(void) {
+//ReturnType GetCarValue(CVehicle& vehicle) {
 //}
 
 /// CAR_GOTO_COORDINATES_RACING
-//ReturnType CarGotoCoordinatesRacing(void) {
+//ReturnType CarGotoCoordinatesRacing(CVehicle& vehicle) {
 //}
 
 /// START_PLAYBACK_RECORDED_CAR_USING_AI
-//ReturnType StartPlaybackRecordedCarUsingAi(void) {
+//ReturnType StartPlaybackRecordedCarUsingAi(CVehicle& vehicle) {
 //}
 
 /// SKIP_IN_PLAYBACK_RECORDED_CAR
-//ReturnType SkipInPlaybackRecordedCar(void) {
+//ReturnType SkipInPlaybackRecordedCar(CVehicle& vehicle) {
 //}
 
 /// EXPLODE_CAR_IN_CUTSCENE
-//ReturnType ExplodeCarInCutscene(void) {
+//ReturnType ExplodeCarInCutscene(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_STAY_IN_SLOW_LANE
-//ReturnType SetCarStayInSlowLane(void) {
+//ReturnType SetCarStayInSlowLane(CVehicle& vehicle) {
 //}
 
 /// TAKE_REMOTE_CONTROL_OF_CAR
-//ReturnType TakeRemoteControlOfCar(void) {
+//ReturnType TakeRemoteControlOfCar(CVehicle& vehicle) {
 //}
 
 /// TASK_WARP_CHAR_INTO_CAR_AS_DRIVER
-//ReturnType TaskWarpCharIntoCarAsDriver(void) {
+//ReturnType TaskWarpCharIntoCarAsDriver(CVehicle& vehicle) {
 //}
 
 /// TASK_WARP_CHAR_INTO_CAR_AS_PASSENGER
-//ReturnType TaskWarpCharIntoCarAsPassenger(void) {
+//ReturnType TaskWarpCharIntoCarAsPassenger(CVehicle& vehicle) {
 //}
 
 /// DAMAGE_CAR_PANEL
-//ReturnType DamageCarPanel(void) {
+//ReturnType DamageCarPanel(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ROLL
-//ReturnType SetCarRoll(void) {
+//ReturnType SetCarRoll(CVehicle& vehicle) {
 //}
 
 /// SUPPRESS_CAR_MODEL
-//ReturnType SuppressCarModel(void) {
+//ReturnType SuppressCarModel(CVehicle& vehicle) {
 //}
 
 /// DONT_SUPPRESS_CAR_MODEL
-//ReturnType DontSuppressCarModel(void) {
+//ReturnType DontSuppressCarModel(CVehicle& vehicle) {
 //}
 
 /// DONT_SUPPRESS_ANY_CAR_MODELS
-//ReturnType DontSuppressAnyCarModels(void) {
+//ReturnType DontSuppressAnyCarModels(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_CAN_GO_AGAINST_TRAFFIC
-//ReturnType SetCarCanGoAgainstTraffic(void) {
+//ReturnType SetCarCanGoAgainstTraffic(CVehicle& vehicle) {
 //}
 
 /// DAMAGE_CAR_DOOR
-//ReturnType DamageCarDoor(void) {
+//ReturnType DamageCarDoor(CVehicle& vehicle) {
 //}
 
 /// GET_RANDOM_CAR_IN_SPHERE_NO_SAVE
-//ReturnType GetRandomCarInSphereNoSave(void) {
+//ReturnType GetRandomCarInSphereNoSave(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_AS_MISSION_CAR
-//ReturnType SetCarAsMissionCar(void) {
+//ReturnType SetCarAsMissionCar(CVehicle& vehicle) {
 //}
 
 /// CUSTOM_PLATE_DESIGN_FOR_NEXT_CAR
-//ReturnType CustomPlateDesignForNextCar(void) {
+//ReturnType CustomPlateDesignForNextCar(CVehicle& vehicle) {
 //}
 
 /// TASK_GOTO_CAR
-//ReturnType TaskGotoCar(void) {
+//ReturnType TaskGotoCar(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_PITCH
-//ReturnType GetCarPitch(void) {
+//ReturnType GetCarPitch(CVehicle& vehicle) {
 //}
 
 /// GET_TRAIN_CARRIAGE
-//ReturnType GetTrainCarriage(void) {
+//ReturnType GetTrainCarriage(CVehicle& vehicle) {
 //}
 
 /// REQUEST_CAR_RECORDING
-//ReturnType RequestCarRecording(void) {
+//ReturnType RequestCarRecording(CVehicle& vehicle) {
 //}
 
 /// HAS_CAR_RECORDING_BEEN_LOADED
-//ReturnType HasCarRecordingBeenLoaded(void) {
+//ReturnType HasCarRecordingBeenLoaded(CVehicle& vehicle) {
 //}
 
 /// APPLY_FORCE_TO_CAR
-//ReturnType ApplyForceToCar(void) {
+//ReturnType ApplyForceToCar(CVehicle& vehicle) {
 //}
 
 /// ADD_TO_CAR_ROTATION_VELOCITY
-//ReturnType AddToCarRotationVelocity(void) {
+//ReturnType AddToCarRotationVelocity(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ROTATION_VELOCITY
-//ReturnType SetCarRotationVelocity(void) {
+//ReturnType SetCarRotationVelocity(CVehicle& vehicle) {
 //}
 
 /// CONTROL_CAR_HYDRAULICS
-//ReturnType ControlCarHydraulics(void) {
+//ReturnType ControlCarHydraulics(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_FOLLOW_CAR
-//ReturnType SetCarFollowCar(void) {
+//ReturnType SetCarFollowCar(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_HYDRAULICS
-//ReturnType SetCarHydraulics(void) {
+//ReturnType SetCarHydraulics(CVehicle& vehicle) {
 //}
 
 /// DOES_CAR_HAVE_HYDRAULICS
-//ReturnType DoesCarHaveHydraulics(void) {
+//ReturnType DoesCarHaveHydraulics(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ENGINE_BROKEN
-//ReturnType SetCarEngineBroken(void) {
+//ReturnType SetCarEngineBroken(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_UPRIGHT_VALUE
-//ReturnType GetCarUprightValue(void) {
+//ReturnType GetCarUprightValue(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_CAN_BE_VISIBLY_DAMAGED
-//ReturnType SetCarCanBeVisiblyDamaged(void) {
+//ReturnType SetCarCanBeVisiblyDamaged(CVehicle& vehicle) {
 //}
 
 /// CREATE_EMERGENCY_SERVICES_CAR
-//ReturnType CreateEmergencyServicesCar(void) {
+//ReturnType CreateEmergencyServicesCar(CVehicle& vehicle) {
 //}
 
 /// START_PLAYBACK_RECORDED_CAR_LOOPED
-//ReturnType StartPlaybackRecordedCarLooped(void) {
+//ReturnType StartPlaybackRecordedCarLooped(CVehicle& vehicle) {
 //}
 
 /// REMOVE_CAR_RECORDING
-//ReturnType RemoveCarRecording(void) {
+//ReturnType RemoveCarRecording(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_COORDINATES_NO_OFFSET
-//ReturnType SetCarCoordinatesNoOffset(void) {
+//ReturnType SetCarCoordinatesNoOffset(CVehicle& vehicle) {
 //}
 
 /// OPEN_CAR_DOOR_A_BIT
-//ReturnType OpenCarDoorAbit(void) {
+//ReturnType OpenCarDoorAbit(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_DOOR_FULLY_OPEN
-//ReturnType IsCarDoorFullyOpen(void) {
+//ReturnType IsCarDoorFullyOpen(CVehicle& vehicle) {
 //}
 
 /// EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS
-//ReturnType ExplodeCarInCutsceneShakeAndBits(void) {
+//ReturnType ExplodeCarInCutsceneShakeAndBits(CVehicle& vehicle) {
 //}
 
 /// SET_PLANE_UNDERCARRIAGE_UP
-//ReturnType SetPlaneUndercarriageUp(void) {
+//ReturnType SetPlaneUndercarriageUp(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_ENGINE_ON
-//ReturnType SetCarEngineOn(void) {
+//ReturnType SetCarEngineOn(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_LIGHTS_ON
-//ReturnType SetCarLightsOn(void) {
+//ReturnType SetCarLightsOn(CVehicle& vehicle) {
 //}
 
 /// GET_PLANE_UNDERCARRIAGE_POSITION
-//ReturnType GetPlaneUndercarriagePosition(void) {
+//ReturnType GetPlaneUndercarriagePosition(CVehicle& vehicle) {
 //}
 
 /// ATTACH_CAR_TO_OBJECT
-//ReturnType AttachCarToObject(void) {
+//ReturnType AttachCarToObject(CVehicle& vehicle) {
 //}
 
 /// IS_CHAR_STUCK_UNDER_CAR
-//ReturnType IsCharStuckUnderCar(void) {
+//ReturnType IsCharStuckUnderCar(CVehicle& vehicle) {
 //}
 
 /// CONTROL_CAR_DOOR
-//ReturnType ControlCarDoor(void) {
+//ReturnType ControlCarDoor(CVehicle& vehicle) {
 //}
 
 /// STORE_CAR_MOD_STATE
-//ReturnType StoreCarModState(void) {
+//ReturnType StoreCarModState(CVehicle& vehicle) {
 //}
 
 /// RESTORE_CAR_MOD_STATE
-//ReturnType RestoreCarModState(void) {
+//ReturnType RestoreCarModState(CVehicle& vehicle) {
 //}
 
 /// GET_CURRENT_CAR_MOD
-//ReturnType GetCurrentCarMod(void) {
+//ReturnType GetCurrentCarMod(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_LOW_RIDER
-//ReturnType IsCarLowRider(void) {
+//ReturnType IsCarLowRider(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_STREET_RACER
-//ReturnType IsCarStreetRacer(void) {
+//ReturnType IsCarStreetRacer(CVehicle& vehicle) {
 //}
 
 /// GET_NUM_CAR_COLOURS
-//ReturnType GetNumCarColours(void) {
+//ReturnType GetNumCarColours(CVehicle& vehicle) {
 //}
 
 /// SET_CHAR_FORCE_DIE_IN_CAR
-//ReturnType SetCharForceDieInCar(void) {
+//ReturnType SetCharForceDieInCar(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_BLOCKING_CAR
-//ReturnType GetCarBlockingCar(void) {
+//ReturnType GetCarBlockingCar(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_MOVING_COMPONENT_OFFSET
-//ReturnType GetCarMovingComponentOffset(void) {
+//ReturnType GetCarMovingComponentOffset(CVehicle& vehicle) {
 //}
 
 /// SET_CAR_COLLISION
-//ReturnType SetCarCollision(void) {
+//ReturnType SetCarCollision(CVehicle& vehicle) {
 //}
 
 /// GET_RANDOM_CAR_MODEL_IN_MEMORY
-//ReturnType GetRandomCarModelInMemory(void) {
+//ReturnType GetRandomCarModelInMemory(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_DOOR_LOCK_STATUS
-//ReturnType GetCarDoorLockStatus(void) {
+//ReturnType GetCarDoorLockStatus(CVehicle& vehicle) {
 //}
 
 /// DISPLAY_CAR_NAMES
-//ReturnType DisplayCarNames(void) {
+//ReturnType DisplayCarNames(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_DOOR_DAMAGED
-//ReturnType IsCarDoorDamaged(void) {
+//ReturnType IsCarDoorDamaged(CVehicle& vehicle) {
 //}
 
 /// SET_FORCE_RANDOM_CAR_MODEL
-//ReturnType SetForceRandomCarModel(void) {
+//ReturnType SetForceRandomCarModel(CVehicle& vehicle) {
 //}
 
 /// GET_RANDOM_CAR_OF_TYPE_IN_ANGLED_AREA_NO_SAVE
-//ReturnType GetRandomCarOfTypeInAngledAreaNoSave(void) {
+//ReturnType GetRandomCarOfTypeInAngledAreaNoSave(CVehicle& vehicle) {
 //}
 
 /// IS_CAR_TOUCHING_CAR
-//ReturnType IsCarTouchingCar(void) {
+//ReturnType IsCarTouchingCar(CVehicle& vehicle) {
 //}
 
 /// GET_CAR_MODEL_VALUE
-//ReturnType GetCarModelValue(void) {
+//ReturnType GetCarModelValue(CVehicle& vehicle) {
 //}
 
 /// CREATE_CAR_GENERATOR_WITH_PLATE
-//ReturnType CreateCarGeneratorWithPlate(void) {
+//ReturnType CreateCarGeneratorWithPlate(CVehicle& vehicle) {
 //}
 
 /// SET_AIRCRAFT_CARRIER_SAM_SITE
-//ReturnType SetAircraftCarrierSamSite(void) {
+//ReturnType SetAircraftCarrierSamSite(CVehicle& vehicle) {
 //}
 
 /// GIVE_NON_PLAYER_CAR_NITRO
-//ReturnType GiveNonPlayerCarNitro(void) {
+//ReturnType GiveNonPlayerCarNitro(CVehicle& vehicle) {
 //}
 
 /// IS_THIS_MODEL_A_CAR
-//ReturnType IsThisModelAcar(void) {
+//ReturnType IsThisModelAcar(CVehicle& vehicle) {
 //}
 
 /// SET_EXTRA_CAR_COLOURS
-//ReturnType SetExtraCarColours(void) {
+//ReturnType SetExtraCarColours(CVehicle& vehicle) {
 //}
 
 /// HAS_CAR_BEEN_RESPRAYED
-//ReturnType HasCarBeenResprayed(void) {
+//ReturnType HasCarBeenResprayed(CVehicle& vehicle) {
 //}
 
 /// IMPROVE_CAR_BY_CHEATING
-//ReturnType ImproveCarByCheating(void) {
+//ReturnType ImproveCarByCheating(CVehicle& vehicle) {
 //}
 
 /// CHANGE_CAR_COLOUR_FROM_MENU
-//ReturnType ChangeCarColourFromMenu(void) {
+//ReturnType ChangeCarColourFromMenu(CVehicle& vehicle) {
 //}
 
 /// FIX_CAR
-//ReturnType FixCar(void) {
+//ReturnType FixCar(CVehicle& vehicle) {
 //}
 
 }; // namespace
@@ -1074,7 +1088,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR, CreateCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES, CarGotoCoordinates);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CAR_WANDER_RANDOMLY, CarWanderRandomly);
+    REGISTER_COMMAND_HANDLER(COMMAND_CAR_WANDER_RANDOMLY, CarWanderRandomly);
     // REGISTER_COMMAND_HANDLER(COMMAND_CAR_SET_IDLE, CarSetIdle);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COORDINATES, GetCarCoordinates);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES, SetCarCoordinates);
