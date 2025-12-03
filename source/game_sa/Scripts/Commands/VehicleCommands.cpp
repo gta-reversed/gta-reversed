@@ -141,7 +141,7 @@ CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
 
 /// DELETE_CAR
 // TODO: We need to take the handle here as well so we can delete by it later
-//void DeleteCar(CVehicle* car)
+//void DeleteCar(CVehicle* car) {
 //    if (car) {
 //        CWorld::Remove(car);
 //        CWorld::RemoveReferencesToDeletedObject(car);
@@ -150,6 +150,8 @@ CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
 //        CTheScripts::MissionCleanUp.RemoveEntityFromList(handle); // TODO
 //    }
 //}
+
+}; // namespace
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
