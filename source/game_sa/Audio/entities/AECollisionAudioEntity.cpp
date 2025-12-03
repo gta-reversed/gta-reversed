@@ -624,11 +624,12 @@ eSoundID CAECollisionAudioEntity::ChooseCollisionSoundID(eSurfaceType surface) {
     if (l->MinSoundID == l->MaxSoundID) {
         return l->MinSoundID;
     }
-    while (true) {
+    for (auto retry = 0; retry < 100; retry++) { // NOTSA: Handle very unlikely infinite loop
         const auto soundID = CAEAudioUtility::GetRandomNumberInRange(l->MinSoundID, l->MaxSoundID);
         if (soundID != m_CollisionSoundIDHistory[surface]) {
             return soundID;
         }
     }
-    NOTSA_UNREACHABLE();
+    NOTSA_LOG_WARN("Failed to generate collision sound ID not in history!"); // NOTSA
+    return l->MinSoundID; // NOTSA
 }
