@@ -197,14 +197,16 @@ void CarWanderRandomly(CVehicle& vehicle) {
 /// CAR_SET_IDLE
 void CarSetIdle(CVehicle& vehicle) {
     auto& ap = vehicle.m_autoPilot;
+
     if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
         ap.m_nCarMission = MISSION_NONE;
     }
 }
 
 /// GET_CAR_COORDINATES
-//ReturnType GetCarCoordinates(CVehicle& vehicle) {
-//}
+CVector GetCarCoordinates(CVehicle& vehicle) {
+    return vehicle.GetPosition();
+}
 
 /// SET_CAR_COORDINATES
 //ReturnType SetCarCoordinates(CVehicle& vehicle) {
