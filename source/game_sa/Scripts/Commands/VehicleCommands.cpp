@@ -324,8 +324,9 @@ auto SetCarHeading(CVehicle& vehicle, float deg) {
 }
 
 /// IS_CAR_HEALTH_GREATER
-//auto IsCarHealthGreater(CVehicle& vehicle) {
-//}
+auto IsCarHealthGreater(CVehicle& vehicle, float value) {
+    return vehicle.GetHealth() >= value;
+}
 
 /// ADD_BLIP_FOR_CAR
 //auto AddBlipForCar(CVehicle& vehicle) {
@@ -1179,7 +1180,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR_OLD, AddBlipForCarOld);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEADING, SetCarHeading);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_HEALTH_GREATER, IsCarHealthGreater);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_HEALTH_GREATER, IsCarHealthGreater);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR, AddBlipForCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK_ON_ROOF, IsCarStuckOnRoof);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_UPSIDEDOWN_CAR_CHECK, AddUpsidedownCarCheck);
