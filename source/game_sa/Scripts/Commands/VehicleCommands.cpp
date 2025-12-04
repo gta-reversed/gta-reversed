@@ -396,14 +396,21 @@ bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2,
     );
 }
 
+/// LOCATE_CAR_3D
+auto LocateCar3D(CRunningScript& S, CVehicle& vehicle, CVector pt, CVector radius, bool highlight) {
+    return IsCarInArea3D(
+        S,
+        vehicle,
+        pt - radius,
+        pt + radius,
+        highlight
+    );
+}
+
 /// IS_CAR_STOPPED_IN_AREA_3D
 auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
     return IsCarInArea3D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea3D` check is first, as it also does highlighting
 }
-
-/// LOCATE_CAR_3D
-//auto LocateCar3D(CVehicle& vehicle) {
-//}
 
 /// LOCATE_STOPPED_CAR_3D
 //auto LocateStoppedCar3D(CVehicle& vehicle) {
@@ -1226,7 +1233,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_3D, IsCarStoppedInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_3D, LocateCar3D);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_3D, LocateCar3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED, IsCarStopped);
     // REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_NO_LONGER_NEEDED, MarkCarAsNoLongerNeeded);
