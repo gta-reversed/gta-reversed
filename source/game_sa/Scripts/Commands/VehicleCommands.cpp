@@ -264,8 +264,37 @@ bool IsCarModel(CVehicle& vehicle, eModelID modelId) {
 }
 
 /// CREATE_CAR_GENERATOR
-//ReturnType CreateCarGenerator(CVehicle& vehicle) {
-//}
+auto CreateCarGenerator(
+    CVehicle& vehicle,
+    CVector   pos,
+    float     heading,
+    eModelID  modelId,
+    uint32    primaryColor,
+    uint32    secondaryColor,
+    bool      isHighPriority,
+    uint8     chanceOfAlarm,
+    uint8     chanceOfDoorLock,
+    uint16    minDelay,
+    uint16    maxDelay
+) {
+    if (pos.z > -100.f) {
+        pos.z += 0.015f;
+    }
+    return CTheCarGenerators::CreateCarGenerator(
+        pos,
+        heading,
+        modelId,
+        primaryColor,
+        secondaryColor,
+        isHighPriority,
+        chanceOfAlarm,
+        chanceOfDoorLock,
+        minDelay,
+        maxDelay,
+        0,
+        true
+    );
+}
 
 /// ADD_BLIP_FOR_CAR_OLD
 //ReturnType AddBlipForCarOld(CVehicle& vehicle) {
@@ -1131,7 +1160,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DEAD, IsCarDead);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR, CreateCarGenerator);
+    REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR, CreateCarGenerator);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR_OLD, AddBlipForCarOld);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEADING, SetCarHeading);
