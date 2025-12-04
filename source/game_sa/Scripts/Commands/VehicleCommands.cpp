@@ -330,6 +330,7 @@ auto IsCarStopped(CVehicle& vehicle) {
 }
 
 /// IS_CAR_IN_AREA_2D
+template<bool WithDebugSquare = false>
 bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
     if (highlight) {
         CTheScripts::HighlightImportantArea(
@@ -339,20 +340,22 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
             -100.f
         );
     }
+    if constexpr (WithDebugSquare) {
+        if (CTheScripts::DbgFlag) {
+            CTheScripts::DrawDebugSquare(
+                pt.x - radius.x,
+                pt.y - radius.y,
+                pt.x + radius.x,
+                pt.y + radius.y
+            );
+        }
+    }
     return vehicle.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
 }
 
 /// LOCATE_CAR_2D
 auto LocateCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D radius, bool highlight) {
-    if (CTheScripts::DbgFlag) {
-        CTheScripts::DrawDebugSquare(
-            pt.x - radius.x,
-            pt.y - radius.y,
-            pt.x + radius.x,
-            pt.y + radius.y
-        );
-    }
-    return IsCarInArea2D(
+    return IsCarInArea2D<true>(
         S,
         vehicle,
         pt - radius,
@@ -363,21 +366,19 @@ auto LocateCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D r
 
 /// IS_CAR_STOPPED_IN_AREA_2D
 auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
-    if (CTheScripts::DbgFlag) {
-        CTheScripts::DrawDebugSquare(
-            std::min(p1.x, p2.x),
-            std::min(p1.y, p2.y),
-            std::max(p1.x, p2.x),
-            std::max(p1.y, p2.y)
-        );
-    }
-    return IsCarInArea2D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
+    return IsCarInArea2D<true>(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
 }
 
 /// LOCATE_STOPPED_CAR_2D
-//auto LocateStoppedCar2D(CVehicle& vehicle) {
-//}
-
+auto LocateStoppedCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D radius, bool highlight) {
+    return IsCarStoppedInArea2D(
+        S,
+        vehicle,
+        pt - radius,
+        pt + radius,
+        highlight
+    );
+}
 
 /// IS_CAR_IN_AREA_3D
 bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
@@ -396,7 +397,6 @@ bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2,
 }
 
 /// IS_CAR_STOPPED_IN_AREA_3D
-/// NOTE: The highlighted area is twice as tall as originally, 
 auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
     return IsCarInArea3D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea3D` check is first, as it also does highlighting
 }
@@ -1225,7 +1225,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_2D, IsCarStoppedInArea2D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_3D, IsCarStoppedInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_3D, LocateCar3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED, IsCarStopped);
