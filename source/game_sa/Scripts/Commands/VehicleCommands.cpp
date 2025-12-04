@@ -343,11 +343,11 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
     }
     if constexpr (WithDebugSquare) {
         if (CTheScripts::DbgFlag) {
+            const auto [minX, maxX] = std::minmax(p1.x, p2.x);
+            const auto [minY, maxY] = std::minmax(p1.y, p2.y);
             CTheScripts::DrawDebugSquare(
-                pt.x - radius.x,
-                pt.y - radius.y,
-                pt.x + radius.x,
-                pt.y + radius.y
+                minX, maxX,
+                minY, maxY
             );
         }
     }
@@ -1274,7 +1274,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES, SetCarCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MISSION, SetCarMission);
-    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D<false>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DEAD, IsCarDead);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
