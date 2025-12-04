@@ -413,8 +413,15 @@ auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVec
 }
 
 /// LOCATE_STOPPED_CAR_3D
-//auto LocateStoppedCar3D(CVehicle& vehicle) {
-//}
+auto LocateStoppedCar3D(CRunningScript& S, CVehicle& vehicle, CVector pt, CVector radius, bool highlight) {
+    return IsCarStoppedInArea3D(
+        S,
+        vehicle,
+        pt - radius,
+        pt + radius,
+        highlight
+    );
+}
 
 /// MARK_CAR_AS_NO_LONGER_NEEDED
 //auto MarkCarAsNoLongerNeeded(CVehicle& vehicle) {
@@ -1234,7 +1241,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_3D, LocateCar3D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED, IsCarStopped);
     // REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_NO_LONGER_NEEDED, MarkCarAsNoLongerNeeded);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_DENSITY_MULTIPLIER, SetCarDensityMultiplier);
