@@ -120,24 +120,14 @@ bool CPlaceable::IsWithinArea(float x1, float y1, float x2, float y2) const {
     return vecPos.x >= x1 && vecPos.x <= x2 && vecPos.y >= y1 && vecPos.y <= y2;
 }
 
-
 bool CPlaceable::IsWithinArea(float x1, float y1, float z1, float x2, float y2, float z2) const {
-    const auto& vecPos = GetPosition();
-    if (x1 > x2)
-        std::swap(x1, x2);
-
-    if (y1 > y2)
-        std::swap(y1, y2);
-
-    if (z1 > z2)
-        std::swap(z1, z2);
-
-    return vecPos.x >= x1
-        && vecPos.x <= x2
-        && vecPos.y >= y1
-        && vecPos.y <= y2
-        && vecPos.z >= z1
-        && vecPos.z <= z2;
+    const auto [minX, maxX] = std::minmax(x1, x2);
+    const auto [minY, maxY] = std::minmax(y1, y2);
+    const auto [minZ, maxZ] = std::minmax(z1, z2);
+    const CVector pos       = GetPosition();
+    return pos.x >= minX && pos.x <= maxX
+        && pos.y >= minY && pos.y <= maxY
+        && pos.z >= minZ && pos.z <= maxZ;
 }
 
 void CPlaceable::RemoveMatrix() {
