@@ -488,8 +488,9 @@ auto SetTargetCarForMissionGarage(const char* garageName, CVehicle* vehicle) {
 }
 
 /// SET_CAR_HEALTH
-//auto SetCarHealth(CVehicle& vehicle) {
-//}
+auto SetCarHealth(CVehicle& vehicle, float health) {
+    vehicle.m_fHealth = health;
+}
 
 /// GET_CAR_HEALTH
 //auto GetCarHealth(CVehicle& vehicle) {
@@ -1283,7 +1284,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR, ExplodeCar);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPRIGHT, IsCarUpright);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TARGET_CAR_FOR_MISSION_GARAGE, SetTargetCarForMissionGarage);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEALTH, SetCarHealth);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEALTH, SetCarHealth);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEALTH, GetCarHealth);
     // REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR, ChangeCarColour);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
