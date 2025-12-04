@@ -514,8 +514,21 @@ auto SetCarOnlyDamagedByPlayer(CVehicle& vehicle, bool enabled) {
 }
 
 /// IS_CAR_IN_WATER
-//auto IsCarInWater(CVehicle& vehicle) {
-//}
+auto IsCarInWater(CVehicle* vehicle) {
+    if (!vehicle) {
+        return false;
+    }
+    if (vehicle->physicalFlags.bSubmergedInWater) {
+        return true;
+    }
+    if (vehicle->GetModelId() == MODEL_VORTEX) {
+        const auto* const vortex = vehicle->AsAutomobile();
+        if (vortex->m_fWheelsSuspensionCompression[0] < 1.f) {
+            return g_surfaceInfos.IsShallowWater(vortex->m_wheelColPoint[0].m_nSurfaceTypeB);
+        }
+    }
+    return false;
+}
 
 /// GET_CLOSEST_CAR_NODE
 //auto GetClosestCarNode(CVehicle& vehicle) {
@@ -1294,7 +1307,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR, ChangeCarColour);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ONLY_DAMAGED_BY_PLAYER, SetCarOnlyDamagedByPlayer);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_CAR_NODE, GetClosestCarNode);
     // REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_SCREEN, IsCarOnScreen);
