@@ -437,8 +437,23 @@ auto SetCarDensityMultiplier(CVehicle& vehicle, float mult) {
 }
 
 /// SET_CAR_HEAVY
-//auto SetCarHeavy(CVehicle& vehicle) {
-//}
+auto SetCarHeavy(CVehicle* vehicle, bool isHeavy) {
+    if (!vehicle) {
+        return;
+    }
+
+    vehicle->physicalFlags.bMakeMassTwiceAsBig = isHeavy;
+
+    const auto* const handling   = vehicle->m_pHandlingData;
+    vehicle->m_fMass             = handling->m_fMass;
+    vehicle->m_fTurnMass         = handling->m_fTurnMass;
+    vehicle->m_fBuoyancyConstant = handling->m_fBuoyancyConstant;
+    if (isHeavy) {
+        vehicle->m_fMass *= 3.0f;
+        vehicle->m_fTurnMass *= 5.0f;
+        vehicle->m_fBuoyancyConstant *= 2.0f;
+    }
+}
 
 /// IS_CAR_UPSIDEDOWN
 //auto IsCarUpsidedown(CVehicle& vehicle) {
@@ -1250,7 +1265,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED, IsCarStopped);
     REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_NO_LONGER_NEEDED, MarkCarAsNoLongerNeeded);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_DENSITY_MULTIPLIER, SetCarDensityMultiplier);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEAVY, SetCarHeavy);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEAVY, SetCarHeavy);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPSIDEDOWN, IsCarUpsidedown);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCK_CAR_DOORS, LockCarDoors);
     // REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR, ExplodeCar);
