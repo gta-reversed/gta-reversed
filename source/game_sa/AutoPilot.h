@@ -124,6 +124,9 @@ public:
     void SetCarMission(eCarMission carMission) { m_nCarMission = carMission; }
 
     void SetCarMission(eCarMission carMission, uint32 timeOffsetMs);
+    void SetCarMissionFromScript(eCarMission carMission);
+
+    void StartCarMissionNow() { m_nTimeToStartMission = CTimer::GetTimeInMS(); }
 
     void ClearCarMission() { m_nCarMission = MISSION_NONE; }
 

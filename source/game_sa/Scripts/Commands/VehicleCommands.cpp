@@ -219,8 +219,13 @@ void SetCarCruiseSpeed(CVehicle& vehicle, float speed) {
 }
 
 /// SET_CAR_MISSION
-//ReturnType SetCarMission(CVehicle& vehicle) {
-//}
+void SetCarMission(CVehicle& vehicle, eCarMission mission) {
+    auto& ap = vehicle.m_autoPilot;
+
+    ap.SetCarMissionFromScript(mission);
+    ap.StartCarMissionNow();
+    vehicle.SetEngineOn(true);
+}
 
 /// IS_CAR_IN_AREA_2D
 //ReturnType IsCarInArea2D(CVehicle& vehicle) {
@@ -1101,7 +1106,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COORDINATES, GetCarCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES, SetCarCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MISSION, SetCarMission);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MISSION, SetCarMission);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DEAD, IsCarDead);
