@@ -259,8 +259,9 @@ bool IsCarDead(CVehicle* vehicle) {
 }
 
 /// IS_CAR_MODEL
-//ReturnType IsCarModel(CVehicle& vehicle) {
-//}
+bool IsCarModel(CVehicle& vehicle, eModelID modelId) {
+    return vehicle.GetModelId() == modelId;
+}
 
 /// CREATE_CAR_GENERATOR
 //ReturnType CreateCarGenerator(CVehicle& vehicle) {
@@ -1129,7 +1130,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DEAD, IsCarDead);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
     // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR, CreateCarGenerator);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR_OLD, AddBlipForCarOld);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
