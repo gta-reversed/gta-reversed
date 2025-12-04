@@ -308,7 +308,7 @@ auto CreateCarGenerator(
 }
 
 /// ADD_BLIP_FOR_CAR_OLD
-auto AddBlipForCarOld(CRunningScript& S, int32 handle, int32 color, eBlipDisplay display) { // TODO: use `notsa::ScriptEntity` instead of `int32 handle`
+auto AddBlipForCarOld(CRunningScript& S, int32 handle, int32 color, eBlipDisplay display) { // TODO: use `notsa::ScriptEntity<CVehicle>` instead of `int32 handle`
     return CRadar::SetEntityBlip(BLIP_CAR, handle, color, display);
 }
 
@@ -329,8 +329,11 @@ auto IsCarHealthGreater(CVehicle& vehicle, float value) {
 }
 
 /// ADD_BLIP_FOR_CAR
-//auto AddBlipForCar(CVehicle& vehicle) {
-//}
+auto AddBlipForCar(int32 handle) { // TODO: use `notsa::ScriptEntity<CVehicle>` instead of `int32 handle`
+    const auto blip = CRadar::SetEntityBlip(BLIP_CAR, handle, 0, BLIP_DISPLAY_BOTH);
+    CRadar::ChangeBlipScale(blip, 3);
+    return blip;
+}
 
 /// IS_CAR_STUCK_ON_ROOF
 //auto IsCarStuckOnRoof(CVehicle& vehicle) {
@@ -1181,7 +1184,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEADING, SetCarHeading);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_HEALTH_GREATER, IsCarHealthGreater);
-    // REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR, AddBlipForCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR, AddBlipForCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK_ON_ROOF, IsCarStuckOnRoof);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_UPSIDEDOWN_CAR_CHECK, AddUpsidedownCarCheck);
     // REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_UPSIDEDOWN_CAR_CHECK, RemoveUpsidedownCarCheck);
