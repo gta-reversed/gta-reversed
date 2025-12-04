@@ -456,8 +456,9 @@ auto SetCarHeavy(CVehicle* vehicle, bool isHeavy) {
 }
 
 /// IS_CAR_UPSIDEDOWN
-//auto IsCarUpsidedown(CVehicle& vehicle) {
-//}
+auto IsCarUpsidedown(CVehicle& vehicle) {
+    return vehicle.GetUp().z <= 0.3f;
+}
 
 /// LOCK_CAR_DOORS
 //auto LockCarDoors(CVehicle& vehicle) {
@@ -1266,7 +1267,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_NO_LONGER_NEEDED, MarkCarAsNoLongerNeeded);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_DENSITY_MULTIPLIER, SetCarDensityMultiplier);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEAVY, SetCarHeavy);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPSIDEDOWN, IsCarUpsidedown);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPSIDEDOWN, IsCarUpsidedown);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCK_CAR_DOORS, LockCarDoors);
     // REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR, ExplodeCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPRIGHT, IsCarUpright);
