@@ -432,8 +432,9 @@ auto MarkCarAsNoLongerNeeded(CRunningScript& S, CVehicle& vehicle) {
 }
 
 /// SET_CAR_DENSITY_MULTIPLIER
-//auto SetCarDensityMultiplier(CVehicle& vehicle) {
-//}
+auto SetCarDensityMultiplier(CVehicle& vehicle, float mult) {
+    CCarCtrl::CarDensityMultiplier = mult;
+}
 
 /// SET_CAR_HEAVY
 //auto SetCarHeavy(CVehicle& vehicle) {
@@ -1248,7 +1249,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED, IsCarStopped);
     REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_NO_LONGER_NEEDED, MarkCarAsNoLongerNeeded);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_DENSITY_MULTIPLIER, SetCarDensityMultiplier);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_DENSITY_MULTIPLIER, SetCarDensityMultiplier);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEAVY, SetCarHeavy);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPSIDEDOWN, IsCarUpsidedown);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCK_CAR_DOORS, LockCarDoors);
