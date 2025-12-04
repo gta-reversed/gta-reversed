@@ -342,6 +342,24 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
     return vehicle.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
 }
 
+/// LOCATE_CAR_2D
+auto LocateCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D radius, bool highlight) {
+    if (CTheScripts::DbgFlag) {
+        CTheScripts::DrawDebugSquare(
+            pt.x - radius.x,
+            pt.y - radius.y,
+            pt.x + radius.x,
+            pt.y + radius.y
+        );
+    }
+    return IsCarInArea2D(
+        S,
+        vehicle,
+        pt - radius,
+        pt + radius,
+        highlight
+    );
+}
 
 /// IS_CAR_STOPPED_IN_AREA_2D
 auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
@@ -354,11 +372,6 @@ auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CV
         );
     }
     return IsCarInArea2D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
-}
-
-/// LOCATE_CAR_2D
-auto LocateCar2D(CVehicle& vehicle, CVector2D pt, CVector2D radius) {
-
 }
 
 /// LOCATE_STOPPED_CAR_2D
@@ -1211,7 +1224,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_UPSIDEDOWN_CAR_CHECK, RemoveUpsidedownCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_2D, IsCarStoppedInArea2D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_3D, IsCarStoppedInArea3D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_3D, LocateCar3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
