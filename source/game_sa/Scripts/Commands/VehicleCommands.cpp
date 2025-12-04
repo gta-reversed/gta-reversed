@@ -504,8 +504,9 @@ auto ChangeCarColour(CVehicle& vehicle, uint32 primaryColor, uint32 secondaryCol
 }
 
 /// SET_CAN_RESPRAY_CAR
-//auto SetCanResprayCar(CVehicle& vehicle) {
-//}
+auto SetCanResprayCar(CAutomobile& automobile, bool enabled) {
+    automobile.autoFlags.bShouldNotChangeColour = enabled;
+}
 
 /// SET_CAR_ONLY_DAMAGED_BY_PLAYER
 //auto SetCarOnlyDamagedByPlayer(CVehicle& vehicle) {
@@ -1290,7 +1291,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEALTH, SetCarHealth);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEALTH, GetCarHealth);
     REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR, ChangeCarColour);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ONLY_DAMAGED_BY_PLAYER, SetCarOnlyDamagedByPlayer);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_CAR_NODE, GetClosestCarNode);
