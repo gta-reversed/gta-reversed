@@ -238,35 +238,6 @@ void SetCarMission(CVehicle& vehicle, eCarMission mission) {
     vehicle.SetEngineOn(true);
 }
 
-/// IS_CAR_IN_AREA_2D
-bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
-    if (highlight) {
-        CTheScripts::HighlightImportantArea(
-            (int32)(&S) + (int32)(S.m_IP),
-            p1.x, p1.y,
-            p2.x, p2.y,
-            -100.f
-        );
-    }
-    return vehicle.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
-}
-
-/// IS_CAR_IN_AREA_3D
-bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
-    if (highlight) {
-        CTheScripts::HighlightImportantArea(
-            (int32)(&S) + (int32)(S.m_IP),
-            p1.x, p1.y,
-            p2.x, p2.y,
-            (p2.z - p1.z) / 2.f
-        );
-    }
-    return vehicle.IsWithinArea(
-        p1.x, p1.y, p1.z,
-        p2.x, p2.y, p2.z
-    );
-}
-
 /// IS_CAR_DEAD
 bool IsCarDead(CVehicle* vehicle) {
     return !vehicle || vehicle->GetStatus() == STATUS_WRECKED || !!vehicle->vehicleFlags.bIsDrowning;
@@ -353,6 +324,25 @@ auto RemoveUpsidedownCarCheck(int32 handle) { // TODO: use `notsa::ScriptEntity<
     CTheScripts::UpsideDownCars.RemoveCarFromCheck(handle);
 }
 
+/// IS_CAR_STOPPED
+auto IsCarStopped(CVehicle& vehicle) {
+    return CTheScripts::IsVehicleStopped(&vehicle);
+}
+
+/// IS_CAR_IN_AREA_2D
+bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
+    if (highlight) {
+        CTheScripts::HighlightImportantArea(
+            (int32)(&S) + (int32)(S.m_IP),
+            p1.x, p1.y,
+            p2.x, p2.y,
+            -100.f
+        );
+    }
+    return vehicle.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
+}
+
+
 /// IS_CAR_STOPPED_IN_AREA_2D
 auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
     if (CTheScripts::DbgFlag) {
@@ -363,22 +353,40 @@ auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CV
             std::max(p1.y, p2.y)
         );
     }
-    return IsCarInArea2D(S, vehicle, p1, p2, highlight) && CTheScripts::IsVehicleStopped(&vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
+    return IsCarInArea2D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
+}
+
+/// LOCATE_CAR_2D
+auto LocateCar2D(CVehicle& vehicle, CVector2D pt, CVector2D radius) {
+
+}
+
+/// LOCATE_STOPPED_CAR_2D
+//auto LocateStoppedCar2D(CVehicle& vehicle) {
+//}
+
+
+/// IS_CAR_IN_AREA_3D
+bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
+    if (highlight) {
+        CTheScripts::HighlightImportantArea(
+            (int32)(&S) + (int32)(S.m_IP),
+            p1.x, p1.y,
+            p2.x, p2.y,
+            (p2.z - p1.z) / 2.f
+        );
+    }
+    return vehicle.IsWithinArea(
+        p1.x, p1.y, p1.z,
+        p2.x, p2.y, p2.z
+    );
 }
 
 /// IS_CAR_STOPPED_IN_AREA_3D
 /// NOTE: The highlighted area is twice as tall as originally, 
 auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
-    return IsCarInArea3D(S, vehicle, p1, p2, highlight) && CTheScripts::IsVehicleStopped(&vehicle); // Make sure `IsCarInArea3D` check is first, as it also does highlighting
+    return IsCarInArea3D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea3D` check is first, as it also does highlighting
 }
-
-/// LOCATE_CAR_2D
-//auto LocateCar2D(CVehicle& vehicle) {
-//}
-
-/// LOCATE_STOPPED_CAR_2D
-//auto LocateStoppedCar2D(CVehicle& vehicle) {
-//}
 
 /// LOCATE_CAR_3D
 //auto LocateCar3D(CVehicle& vehicle) {
@@ -386,10 +394,6 @@ auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVec
 
 /// LOCATE_STOPPED_CAR_3D
 //auto LocateStoppedCar3D(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_STOPPED
-//auto IsCarStopped(CVehicle& vehicle) {
 //}
 
 /// MARK_CAR_AS_NO_LONGER_NEEDED
