@@ -241,8 +241,17 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
 }
 
 /// IS_CAR_IN_AREA_3D
-//ReturnType IsCarInArea3D(CVehicle& vehicle) {
-//}
+bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
+    if (highlight) {
+        CTheScripts::HighlightImportantArea(
+            (int32)(&S) + (int32)(S.m_IP),
+            p1.x, p1.y,
+            p2.x, p2.y,
+            p2.z - p1.z
+        );
+    }
+    return vehicle.IsWithinArea(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+}
 
 /// IS_CAR_DEAD
 //ReturnType IsCarDead(CVehicle& vehicle) {
@@ -1117,7 +1126,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MISSION, SetCarMission);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DEAD, IsCarDead);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
     // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR, CreateCarGenerator);
