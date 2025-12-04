@@ -25,16 +25,27 @@ void CTheCarGenerators::InjectHooks()
 
 // return index of CarGenerator in CTheCarGenerators::CarGeneratorArray
 // 0x6F31A0
-int32 CTheCarGenerators::CreateCarGenerator(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 forceSpawn, uint8 alarmChances, uint8 doorLockChances,
-                                                 uint16 minDelay, uint16 maxDelay, uint8 iplId, bool ignorePopulationLimit)
-{
+int32 CTheCarGenerators::CreateCarGenerator(
+    CVector posn,
+    float   angle,
+    int32   modelId,
+    uint8   primaryColor,
+    uint8   secondaryColor,
+    bool    isHighPriority,
+    uint8   chanceOfAlarm,
+    uint8   chanceOfDoorLock,
+    uint16  minDelay,
+    uint16  maxDelay,
+    uint8   iplId,
+    bool    ignorePopulationLimit
+) {
     if (modelId != -1 && (modelId < MODEL_LANDSTAL || modelId > MODEL_VEG_PALMKB8))
         return -1;
 
     int32 carGenIndex = 0;
     for (auto& carGen : CarGeneratorArray) {
         if (!carGen.m_bIsUsed) {
-            carGen.Setup(posn, angle, modelId, color1, color2, forceSpawn, alarmChances, doorLockChances, minDelay, maxDelay, iplId, ignorePopulationLimit);
+            carGen.Setup(posn, angle, modelId, primaryColor, secondaryColor, isHighPriority, chanceOfAlarm, chanceOfDoorLock, minDelay, maxDelay, iplId, ignorePopulationLimit);
             NumOfCarGenerators++;
             return carGenIndex;
         }
