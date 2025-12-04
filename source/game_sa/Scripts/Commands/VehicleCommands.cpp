@@ -336,8 +336,9 @@ auto AddBlipForCar(int32 handle) { // TODO: use `notsa::ScriptEntity<CVehicle>` 
 }
 
 /// IS_CAR_STUCK_ON_ROOF
-//auto IsCarStuckOnRoof(CVehicle& vehicle) {
-//}
+auto IsCarStuckOnRoof(int32 handle) { // TODO: use `notsa::ScriptEntity<CVehicle>` instead of `int32 handle`
+    return CTheScripts::UpsideDownCars.HasCarBeenUpsideDownForAWhile(handle); 
+}
 
 /// ADD_UPSIDEDOWN_CAR_CHECK
 //auto AddUpsidedownCarCheck(CVehicle& vehicle) {
@@ -1185,7 +1186,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEADING, SetCarHeading);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_HEALTH_GREATER, IsCarHealthGreater);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR, AddBlipForCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK_ON_ROOF, IsCarStuckOnRoof);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK_ON_ROOF, IsCarStuckOnRoof);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_UPSIDEDOWN_CAR_CHECK, AddUpsidedownCarCheck);
     // REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_UPSIDEDOWN_CAR_CHECK, RemoveUpsidedownCarCheck);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_2D, IsCarStoppedInArea2D);
