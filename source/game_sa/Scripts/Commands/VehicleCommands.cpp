@@ -11,10 +11,22 @@
 #include "CommandParser/Parser.hpp"
 using namespace notsa::script;
 
+
+namespace {
+auto RadToDegForScript(float radians) {
+    const auto deg = RadiansToDegrees(radians);
+    return deg < 0.f
+        ? deg + 360.f
+        : deg > 360.f
+            ? deg - 360.f
+            : deg;
+}
+}; // namespace
+
+
 /*!
 * Various vehicle commands
 */
-
 namespace {
 void ClearHeliOrientation(CHeli& heli) {
     heli.ClearHeliOrientation();
@@ -302,8 +314,9 @@ auto AddBlipForCarOld(CRunningScript& S, int32 handle, int32 color, eBlipDisplay
 }
 
 /// GET_CAR_HEADING
-//auto GetCarHeading(CVehicle& vehicle) {
-//}
+auto GetCarHeading(CVehicle& vehicle) {
+    return RadToDegForScript(vehicle.GetHeading());
+}
 
 /// SET_CAR_HEADING
 //auto SetCarHeading(CVehicle& vehicle) {
@@ -1163,7 +1176,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR, CreateCarGenerator);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR_OLD, AddBlipForCarOld);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEADING, SetCarHeading);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_HEALTH_GREATER, IsCarHealthGreater);
     // REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR, AddBlipForCar);
