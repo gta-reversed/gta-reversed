@@ -351,8 +351,17 @@ auto RemoveUpsidedownCarCheck(int32 handle) { // TODO: use `notsa::ScriptEntity<
 }
 
 /// IS_CAR_STOPPED_IN_AREA_2D
-//auto IsCarStoppedInArea2D(CVehicle& vehicle) {
-//}
+auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
+    if (CTheScripts::DbgFlag) {
+        CTheScripts::DrawDebugSquare(
+            std::min(p1.x, p2.x),
+            std::min(p1.y, p2.y),
+            std::max(p1.x, p2.x),
+            std::max(p1.y, p2.y)
+        );
+    }
+    return IsCarInArea2D(S, vehicle, p1, p2, highlight) && CTheScripts::IsVehicleStopped(&vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
+}
 
 /// IS_CAR_STOPPED_IN_AREA_3D
 //auto IsCarStoppedInArea3D(CVehicle& vehicle) {
@@ -1191,7 +1200,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK_ON_ROOF, IsCarStuckOnRoof);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_UPSIDEDOWN_CAR_CHECK, AddUpsidedownCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_UPSIDEDOWN_CAR_CHECK, RemoveUpsidedownCarCheck);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_2D, IsCarStoppedInArea2D);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_2D, IsCarStoppedInArea2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_3D, IsCarStoppedInArea3D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
     // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
