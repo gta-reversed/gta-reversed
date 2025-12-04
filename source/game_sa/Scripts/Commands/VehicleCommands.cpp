@@ -473,8 +473,9 @@ auto ExplodeCar(CVehicle& vehicle) {
 }
 
 /// IS_CAR_UPRIGHT
-//auto IsCarUpright(CVehicle& vehicle) {
-//}
+auto IsCarUpright(CVehicle& vehicle) {
+    return vehicle.GetUp().z > 0.f;
+}
 
 /// SET_TARGET_CAR_FOR_MISSION_GARAGE
 //auto SetTargetCarForMissionGarage(CVehicle& vehicle) {
@@ -1274,7 +1275,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPSIDEDOWN, IsCarUpsidedown);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCK_CAR_DOORS, LockCarDoors);
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR, ExplodeCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPRIGHT, IsCarUpright);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPRIGHT, IsCarUpright);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_TARGET_CAR_FOR_MISSION_GARAGE, SetTargetCarForMissionGarage);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEALTH, SetCarHealth);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEALTH, GetCarHealth);
