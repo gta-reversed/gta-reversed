@@ -498,8 +498,10 @@ auto GetCarHealth(CVehicle& vehicle) {
 }
 
 /// CHANGE_CAR_COLOUR
-//auto ChangeCarColour(CVehicle& vehicle) {
-//}
+auto ChangeCarColour(CVehicle& vehicle, uint32 primaryColor, uint32 secondaryColor) {
+    vehicle.m_nPrimaryColor = primaryColor;
+    vehicle.m_nSecondaryColor = secondaryColor;
+}
 
 /// SET_CAN_RESPRAY_CAR
 //auto SetCanResprayCar(CVehicle& vehicle) {
@@ -1287,7 +1289,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TARGET_CAR_FOR_MISSION_GARAGE, SetTargetCarForMissionGarage);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEALTH, SetCarHealth);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEALTH, GetCarHealth);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR, ChangeCarColour);
+    REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR, ChangeCarColour);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ONLY_DAMAGED_BY_PLAYER, SetCarOnlyDamagedByPlayer);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
