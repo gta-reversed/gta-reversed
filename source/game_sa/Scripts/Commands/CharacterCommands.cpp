@@ -1020,8 +1020,8 @@ auto IsCharInWater(CPed* ped) {
 }
 
 // GET_CHAR_WEAPON_IN_SLOT
-auto GetCharWeaponInSlot(CPed& ped, eWeaponSlot slut) {
-    const auto& wep = ped.GetWeaponInSlot(slut);
+auto GetCharWeaponInSlot(CPed& ped, int slot) {
+    const auto& wep = ped.GetWeaponInSlot(slot - 1); // 1-based slot index
     return notsa::script::return_multiple(wep.m_Type, wep.m_TotalAmmo, CPickups::ModelForWeapon(wep.m_Type));
 }
 
