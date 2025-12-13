@@ -183,7 +183,7 @@ void CReplay::StorePedUpdate(CPed* ped, uint8 index) {
         .flags = {
             .isTalking            = (bool)(ped == FindPlayerPed() && gbFirstPersonRunThisFrame && ped->bIsTalking),
             .stillOnValidPoly     = (bool)ped->bStillOnValidPoly,
-            .usesCollision        = (bool)ped->m_bUsesCollision
+            .usesCollision        = ped->GetUsesCollision()
         }
     });
 }
@@ -508,7 +508,7 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
 
     ped->bIsTalking = packet.flags.isTalking;
     ped->bStillOnValidPoly = packet.flags.stillOnValidPoly;
-    ped->m_bUsesCollision = packet.flags.usesCollision;
+    ped->SetUsesCollision(packet.flags.usesCollision);
     ped->m_fContactSurfaceBrightness = static_cast<float>(packet.contactSurfaceBrightness) / 100.0f;
     RetrievePedAnimation(ped, packet.animState);
 
@@ -521,7 +521,7 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
         }
     }
 
-    ped->m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea);
+    ped->SetAreaCode(static_cast<eAreaCodes>(CGame::currArea));
     CWorld::Remove(ped);
     CWorld::Add(ped);
 }
@@ -651,7 +651,7 @@ void CReplay::ProcessLookAroundCam() {
     if (FramesActiveLookAroundCam) {
         const auto MakeVisible = [](auto* entity) {
             if (entity) {
-                entity->m_bIsVisible = true;
+                entity->SetIsVisible(true);
             }
         };
 
@@ -833,7 +833,7 @@ void CReplay::RecordThisFrame() {
     // Calculate the frame size beforehand.
     auto framePacketSize = 116u;
     for (const auto& veh : GetVehiclePool()->GetAllValid()) {
-        if (veh.m_pRwObject) {
+        if (veh.GetRwObject()) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
@@ -860,7 +860,7 @@ void CReplay::RecordThisFrame() {
     }
 
     for (const auto& ped : GetPedPool()->GetAllValid()) {
-        if (ped.m_pRwObject) {
+        if (ped.GetRwObject()) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
                 framePacketSize += FindSizeOfPacket(REPLAY_PACKET_PED_HEADER);
@@ -904,7 +904,7 @@ void CReplay::RecordThisFrame() {
     Record.Write<tReplayTimerBlock>({.timeInMS = CTimer::GetTimeInMS()});
 
     for (auto&& [i, veh] : GetVehiclePool()->GetAllValidWithIndex()) {
-        if (veh.m_pRwObject) {
+        if (veh.GetRwObject()) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
@@ -950,7 +950,7 @@ void CReplay::RecordThisFrame() {
     }
 
     for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
-        if (ped.m_pRwObject) {
+        if (ped.GetRwObject()) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
                 const auto modelId = ped.m_nModelIndex;
@@ -1044,7 +1044,7 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
             return nullptr;
         }
 
-        ped->m_nStatus = STATUS_PLAYER_PLAYBACK_FROM_BUFFER;
+        ped->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         ped->bUsedForReplay = true;
         ped->GetMatrix().SetUnity();
         ped->SetCharCreatedBy(PED_GAME_MISSION);
@@ -1061,14 +1061,14 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
 // 0x45F380
 bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, float interpolation, uint32* outTimer) {
     const auto SetupVehicle = [](const tReplayVehicleBlock& packet, CVehicle* vehicle) {
-        vehicle->m_nStatus = STATUS_PLAYER_PLAYBACK_FROM_BUFFER;
+        vehicle->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         vehicle->vehicleFlags.bUsedForReplay = true;
-        vehicle->m_bUsesCollision = false;
+        vehicle->SetUsesCollision(false);
         packet.matrix.DecompressIntoFullMatrix(vehicle->GetMatrix());
         vehicle->m_nPrimaryColor = packet.primaryColor;
         vehicle->m_nSecondaryColor = packet.secondaryColor;
         if (vehicle->IsSubBoat()) {
-            vehicle->AsBoat()->m_nBoatFlags.bAnchored = false;
+            vehicle->AsBoat()->m_nBoatFlags.bLockedToXY = false;
         }
 
         CWorld::Add(vehicle);
@@ -1238,9 +1238,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                // Originally BMX has an exclusive extractor for itself but it's exactly the
-                // same with bike extractor, so it's fine to use bike one here.
-                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bmxPacket.As<tReplayBmxBlock>()->ExtractBmxUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBmx(), interpolation);
             }
             break;
         }

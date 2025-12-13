@@ -214,7 +214,7 @@ bool CTaskSimpleSwim::ProcessPed(CPed* ped) {
 void CTaskSimpleSwim::ApplyRollAndPitch(CPed* ped) const {
     LimbOrientation orientation(m_fAimingRotation, m_fUpperTorsoRotationX);
     ped->m_pedIK.RotateTorso(ped->m_apBones[PED_NODE_UPPER_TORSO], orientation, rwCOMBINEREPLACE);
-    if (ped->m_pRwObject) {
+    if (ped->GetRwObject()) {
         CMatrix pedMatrix(ped->GetModellingMatrix(), false);
         CMatrix rotationMatrix;
         rotationMatrix.SetTranslate(CVector{});

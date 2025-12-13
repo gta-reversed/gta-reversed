@@ -14,14 +14,25 @@
 
 namespace notsa {
 namespace script {
+namespace detail {
 
-// eModelID wrapper that is read either from a static
-// int32 value or UsedObjectArray.
-struct Model {
-    eModelID model;
+template<typename T, size_t UniqueTag = 0>
+struct StrongAlias {
+    T value;
 
-    operator eModelID() const { return model; }
+    auto& operator=(const T& o) {
+        value = o;
+        return *this;
+    }
+
+    operator T() const { return value; }
 };
+};
+
+// eModelID wrapper that is read either from a static int32 value or UsedObjectArray.
+using Model = detail::StrongAlias<eModelID>;
+// uint32 wrapper for reading an unsigned 32-bit integer that can be out of range for int32
+using Hash = detail::StrongAlias<uint32>;
 
 namespace detail {
 
@@ -106,6 +117,8 @@ inline T Read(CRunningScript* S) {
         return { Read<float>(S), Read<float>(S) };
     } else if constexpr (std::is_same_v<Y, CRect>) {
         return { Read<CVector2D>(S), Read<CVector2D>(S) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
+    } else if constexpr (std::is_same_v<Y, CRGBA>) {
+        return { Read<uint8>(S), Read<uint8>(S), Read<uint8>(S), Read<uint8>(S) };
     } else if constexpr (std::is_same_v<Y, scm::StringRef>) {
         switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
@@ -147,7 +160,7 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<T, const char*>) { // Read C-style string (Hacky)
         const auto sv = Read<std::string_view>(S);
         assert(sv.size() < COMMANDS_CHAR_BUFFER_SIZE - 1);
-        // For explaination of why this is done this way, see the comment at CRunningScript::ScriptArgCharBuffers declaration
+        // For explanation of why this is done this way, see the comment at `CRunningScript::ScriptArgCharBuffers` declaration
         auto& buffer = CRunningScript::ScriptArgCharBuffers[CRunningScript::ScriptArgCharNextFreeBuffer++];
         sv.copy(buffer.data(), sv.size());
         buffer[sv.size()] = '\0';
@@ -202,7 +215,7 @@ inline T Read(CRunningScript* S) {
     #ifdef NOTSA_DEBUG
         if (ptr) {
             if constexpr (detail::is_derived_from_but_not_v<CVehicle, Y>) {
-                assert(Y::Type == ptr->m_nVehicleType);
+                assert(Y::Type == ptr->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
             } else if constexpr (detail::is_derived_from_but_not_v<CTask, Y>) {
                 assert(Y::Type == ptr->GetTaskType());
             } // TODO: Eventually add this for `CEvent` too
@@ -243,6 +256,8 @@ inline T Read(CRunningScript* S) {
         }
 
         return {static_cast<eModelID>(value)};
+    } else if constexpr (std::is_same_v< T, script::Hash>) {
+        return { static_cast<uint32>(Read<int32>(S)) };
     }
     // If there's an error like "function must return a value" here,
     // that means that no suitable branch was found for `T`

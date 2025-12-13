@@ -111,7 +111,7 @@ void CIdleCam::IdleCamGeneralProcess() {
 // 0x50EAE0
 void CIdleCam::GetLookAtPositionOnTarget(const CEntity* target, CVector& outPos) {
     outPos = target->GetPosition();
-    if (target->IsPed()) {
+    if (target->GetIsTypePed()) {
         switch (target->AsPed()->m_nPedType) {
         case PED_TYPE_CIVFEMALE:
         case PED_TYPE_PROSTITUTE:

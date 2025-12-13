@@ -132,7 +132,7 @@ void CWorld::InjectHooks() {
     RH_ScopedGlobalInstall(FindPlayerEntity, 0x56E120);
     RH_ScopedGlobalInstall(FindPlayerTrain, 0x56E160);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld, 0x56E250);
-    // RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
+    RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
     // RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoInteriorShift, 0x56E400);
     RH_ScopedGlobalInstall(FindPlayerHeading, 0x56E450);
     RH_ScopedGlobalInstall(FindPlayerPed, 0x56E210);
@@ -168,11 +168,11 @@ void CWorld::Initialise() {
 
 // 0x563220
 void CWorld::Add(CEntity* entity) {
-    entity->UpdateRW();
+    entity->UpdateRwMatrix();
     entity->UpdateRwFrame();
     entity->Add();
-    if (!entity->IsBuilding() && !entity->IsDummy()) {
-        if (!entity->IsStatic()) {
+    if (!entity->GetIsTypeBuilding() && !entity->GetIsTypeDummy()) {
+        if (!entity->GetIsStatic()) {
             entity->AsPhysical()->AddToMovingList();
         }
     }
@@ -185,7 +185,7 @@ void CWorld::Add(CEntity* entity) {
 */
 void CWorld::Remove(CEntity* entity) {
     entity->Remove();
-    if (entity->IsPhysical())
+    if (entity->GetIsTypePhysical())
         entity->AsPhysical()->RemoveFromMovingList();
 }
 
@@ -240,7 +240,7 @@ void CWorld::ProcessForAnimViewer() {
     for (auto* const entity : ms_listMovingEntityPtrs) {
         if (!entity->m_bRemoveFromWorld) {
             entity->UpdateAnim();
-            entity->UpdateRW();
+            entity->UpdateRwMatrix();
         }
     }
 }
@@ -254,7 +254,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 
     for (auto* const entity : ms_listMovingEntityPtrs) {
         if (!entity->m_bRemoveFromWorld) {
-            if (entity->IsPed()) {
+            if (entity->GetIsTypePed()) {
                 entity->AsPed()->GetIntelligence()->ProcessAfterPreRender();
             }
         }
@@ -265,7 +265,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 void CWorld::ClearScanCodes() {
     const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
         for (auto* const entity : list) {
-            entity->m_nScanCode = 0;
+            entity->SetScanCode(0);
         }
     };
 
@@ -366,7 +366,7 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
         dontGoToNextNode = false;
 
         const auto entity = static_cast<CEntity*>(node->Item);
-        if (entity->IsScanCodeCurrent() || !entity->m_bUsesCollision)
+        if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision())
             continue;
 
         entity->SetCurrentScanCode();
@@ -379,7 +379,7 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
         if (FilledColPointIndex < std::size(gaTempSphereColPoints)) { // TODO: Perhaps break if it's full?
             if (originalLineGoingUpwards == IsDirectionPointingUpwards(cp.m_vecPoint.z, localColLine.m_vecEnd.z) // Still pointing in the same direction
             ) {
-                entity->m_nScanCode = ms_nCurrentScanCode - 1;
+                entity->SetScanCode(ms_nCurrentScanCode - 1);
                 dontGoToNextNode = true;
                 gaTempSphereColPoints[FilledColPointIndex++] = cp;
             }
@@ -440,7 +440,7 @@ void CWorld::TestForUnusedModels(PtrListType& ptrList, int32* models) {
 
 // 0x563A10
 void CWorld::RemoveEntityInsteadOfProcessingIt(CEntity* entity) {
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         if (FindPlayerPed() == entity) {
             Remove(entity);
         } else {
@@ -716,7 +716,7 @@ void CWorld::ProcessAttachedEntities() {
             if (const auto attachedTo = veh->m_pAttachedTo) {
                 veh->m_pEntityIgnoredCollision = attachedTo;
                 veh->PositionAttachedEntity();
-                veh->UpdateRW();
+                veh->UpdateRwMatrix();
                 veh->UpdateRwFrame();
             }
         }
@@ -728,7 +728,7 @@ void CWorld::ProcessAttachedEntities() {
                 Remove(obj);
 
                 obj->PositionAttachedEntity();
-                obj->UpdateRW();
+                obj->UpdateRwMatrix();
                 obj->UpdateRwFrame();
                 Add(obj);
             }
@@ -1043,7 +1043,7 @@ void CWorld::SetPedsOnFire(float x, float y, float z, float radius, CEntity* fir
             ) {
                 if (   ped->physicalFlags.bInvulnerable
                     || !fireCreator
-                    || fireCreator->IsPed() && fireCreator->AsPed()->IsPlayer()
+                    || fireCreator->GetIsTypePed() && fireCreator->AsPed()->IsPlayer()
                 ) {
                     gFireManager.StartFire(ped, fireCreator, 0.8f, 1, 7000, 2);
                 }
@@ -1096,7 +1096,7 @@ void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fir
     };
     for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
         if (CVehicle* vehicle = GetVehiclePool()->GetAt(i - 1)) {
-            if (vehicle->m_nStatus == eEntityStatus::STATUS_WRECKED)
+            if (vehicle->GetStatus() == STATUS_WRECKED)
                 continue;
 
             if (vehicle->m_pFire)
@@ -1209,7 +1209,7 @@ void CWorld::RemoveFallenCars() {
                     continue;
 
             vehicle->Remove();
-            if (vehicle->IsPhysical())
+            if (vehicle->GetIsTypePhysical())
                 vehicle->RemoveFromMovingList();
 
             delete vehicle;
@@ -1331,7 +1331,7 @@ void CWorld::TestForUnusedModels() {
     const auto ProcessSectorList = [&]<typename PtrListType>(const PtrListType& list) {
         for (auto node = list.GetNode(); node; node = node->Next) {
             const auto object = static_cast<CEntity*>(node->Item);
-            if (object->m_nScanCode != ms_nCurrentScanCode) {
+            if (object->IsScanCodeCurrent()) {
                 usageCounts[object->m_nModelIndex]++;
             }
         }
@@ -1423,7 +1423,7 @@ CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
         if (!veh.IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || !veh.IsSubAutomobile())
             continue;
 
-        switch (veh.m_nStatus) {
+        switch (veh.GetStatus()) {
         case eEntityStatus::STATUS_PHYSICS:
         case eEntityStatus::STATUS_SIMPLE:
             break;
@@ -1491,7 +1491,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             continue;
 
         if (!entity->m_bUsesCollision) {
-            if (!entity->IsPed())
+            if (!entity->GetIsTypePed())
                 continue;
             if (const auto ped = entity->AsPed(); !bIncludeBikers && !bIncludeDeadPeds)
                 continue;
@@ -1560,7 +1560,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             }
         };
 
-        switch (entity->m_nType) {
+        switch (entity->GetType()) {
         case ENTITY_TYPE_PED: {
             const auto ped = entity->AsPed();
             if (   ped->m_bUsesCollision
@@ -1691,17 +1691,17 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
         if (entityToPointDist >= radius)
             continue;
 
-        if (entity->IsObject())
+        if (entity->GetIsTypeObject())
             entity->AsObject()->TryToExplode();
 
         if (entity->physicalFlags.bExplosionProof)
             continue;
 
-        if (entity->IsPed() && entity->AsPed()->bInVehicle)
+        if (entity->GetIsTypePed() && entity->AsPed()->bInVehicle)
             continue;
 
-        if (entity->IsStatic()) {
-            if (!entity->IsObject()) {
+        if (entity->GetIsStatic()) {
+            if (!entity->GetIsTypeObject()) {
                 if (entity->m_bUsesCollision) {
                     entity->SetIsStatic(false);
                     entity->AddToMovingList();
@@ -1710,7 +1710,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                 const auto object = entity->AsObject();
 
                 if (visibleDistance > object->m_pObjectInfo->m_fUprootLimit || ModelIndices::IsFence1Or2(object->m_nModelIndex)) {
-                    if (IsGlassModel(object)) {
+                    if (CGlass::IsObjectGlass(object)) {
                         CGlass::WindowRespondsToExplosion(object, point);
                     } else {
                         object->SetIsStatic(false);
@@ -1719,7 +1719,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                         if (   object->m_nModelIndex != ModelIndices::MI_FIRE_HYDRANT
                             || object->objectFlags.bIsExploded
                         ) {
-                            if (object->IsObject() && !object->m_pObjectInfo->m_bCausesExplosion) {
+                            if (object->GetIsTypeObject() && !object->m_pObjectInfo->m_bCausesExplosion) {
                                 object->objectFlags.bIsExploded = true;
                             }
                         } else {
@@ -1736,12 +1736,12 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                 // entity->AsObject()->m_fHealth -= 2 * radiusProgress2x;
             }
 
-            if (entity->IsStatic()) { // Redudant check
+            if (entity->GetIsStatic()) { // Redudant check
                 entity->AsObject()->ObjectDamage(std::min(1.0f, 2.f * (radius - entityToPointDist) / radius), nullptr, nullptr, creator, WEAPON_EXPLOSION);
             }
         }
 
-        if (entity->IsStatic() || !entity->m_bUsesCollision)
+        if (entity->GetIsStatic() || !entity->m_bUsesCollision)
             continue;
 
         const auto entityRelDistToRadiusEnd_Doubled = std::min(1.f, 2.f * (radius - entityToPointDist) / radius);
@@ -1751,7 +1751,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
         float impactVelocityFactor = entity->m_fMass / 1400.f * entityRelDistToRadiusEnd_Doubled * visibleDistance;
 
-        switch (entity->m_nType) {
+        switch (entity->GetType()) {
         case ENTITY_TYPE_VEHICLE: {
             const auto veh = entity->AsVehicle();
 
@@ -1769,7 +1769,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                 );
             }
 
-            if (entity->m_nStatus == eEntityStatus::STATUS_SIMPLE)
+            if (entity->GetStatus() == STATUS_SIMPLE)
                 CCarCtrl::SwitchVehicleToRealPhysics(veh);
 
             veh->InflictDamage(creator, WEAPON_EXPLOSION, entityRelDistToRadiusEnd_Doubled * damage * 1100.f, {});
@@ -1828,7 +1828,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             const auto ped = entity->AsPed();
 
             const auto pedLocalDir = ped->GetLocalDirection(impactVelocity);
-            if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->IsVehicle() && attachedTo->m_nStatus == STATUS_WRECKED) {
+            if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->GetIsTypeVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
                 CPedDamageResponseCalculator pedDamageResponseCalculator{ creator, 1000.f, WEAPON_EXPLOSION, PED_PIECE_TORSO, false};
 
                 CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, pedLocalDir, false, !!ped->bIsTalking };
@@ -1870,7 +1870,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
                 ped->GetIntelligence()->m_eventGroup.Add(&eventDamage, false);
 
-                if (creator && creator->IsPed()) {
+                if (creator && creator->GetIsTypePed()) {
                     CCrime::ReportCrime(creator->AsPed()->m_nPedType == PED_TYPE_COP ? CRIME_DAMAGE_COP_CAR : CRIME_DAMAGE_CAR, ped, creator->AsPed());
                 }
             }
@@ -1909,7 +1909,7 @@ void CWorld::Process() {
     };
 
     IterateMovingList([&](CPhysical* entity) {
-        if (entity->IsPed()) {
+        if (entity->GetIsTypePed()) {
             GetEventGlobalGroup()->AddEventsToPed(entity->AsPed());
         }
     });
@@ -1932,7 +1932,7 @@ void CWorld::Process() {
                 obj->UpdateAnim();
                 obj->ProcessControl();
                 obj->ProcessCollision();
-                obj->UpdateRW();
+                obj->UpdateRwMatrix();
                 obj->UpdateRwFrame();
             }
         }
@@ -1951,7 +1951,7 @@ void CWorld::Process() {
 
         const auto DoProcessMovingEntity = [&](CEntity* entity) {
             if (entity->m_bRemoveFromWorld) {
-                if (entity->IsPed()) {
+                if (entity->GetIsTypePed()) {
                     if (FindPlayerPed() == entity) {
                         Remove(entity);
                     } else {
@@ -1963,7 +1963,7 @@ void CWorld::Process() {
                 }
             } else {
                 entity->ProcessControl();
-                if (entity->IsStatic()) {
+                if (entity->GetIsStatic()) {
                     entity->AsPhysical()->RemoveFromMovingList();
                 }
             }
@@ -1972,7 +1972,7 @@ void CWorld::Process() {
         IterateMovingList(DoProcessMovingEntity);
         bForceProcessControl = true;
         IterateMovingList([&](CEntity* entity) {
-            if (entity->m_bWasPostponed) {
+            if (entity->GetWasPostponed()) {
                 DoProcessMovingEntity(entity);
             }
         });
@@ -1988,8 +1988,8 @@ void CWorld::Process() {
         ZoneScopedN("Update entity RW");
 
         IterateMovingList([&](CEntity* entity) {
-            entity->m_bIsInSafePosition = true;
-            entity->UpdateRW();
+            entity->SetIsInSafePosition(true);
+            entity->UpdateRwMatrix();
             entity->UpdateRwFrame();
         });
     } else {
@@ -1998,9 +1998,9 @@ void CWorld::Process() {
             ZoneScopedN("Process collision");
 
             const auto ProcessMovingEntityCollision = [](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->ProcessCollision();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
                 }
             };
@@ -2020,15 +2020,15 @@ void CWorld::Process() {
 
             // Mark entities as `stuck` if they're still in unsafe positions
             IterateMovingList([&](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
-                    entity->m_bIsStuck = true;
+                if (!entity->GetIsInSafePosition()) {
+                    entity->SetIsStuck(true);
 
                     entity->ProcessCollision();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
 
-                    if (!entity->m_bIsInSafePosition)
-                        entity->m_bIsStuck = true;
+                    if (!entity->GetIsInSafePosition())
+                        entity->SetIsStuck(true);
                 }
             });
         }
@@ -2040,28 +2040,28 @@ void CWorld::Process() {
             bSecondShift = false;
 
             IterateMovingList([&](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->ProcessShift();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
 
-                    if (!entity->m_bIsInSafePosition)
-                        entity->m_bIsStuck = true;
+                    if (!entity->GetIsInSafePosition())
+                        entity->SetIsStuck(true);
                 }
             });
 
             bSecondShift = true;
 
             IterateMovingList([&](CEntity* entity) {
-                if (!entity->m_bIsInSafePosition) {
+                if (!entity->GetIsInSafePosition()) {
                     entity->ProcessShift();
-                    entity->UpdateRW();
+                    entity->UpdateRwMatrix();
                     entity->UpdateRwFrame();
 
-                    if (!entity->m_bIsInSafePosition) {
-                        entity->m_bIsStuck = true;
+                    if (!entity->GetIsInSafePosition()) {
+                        entity->SetIsStuck(true);
 
-                        if (entity->m_nStatus == STATUS_PLAYER) { // Try to unstuck p
+                        if (entity->TreatAsPlayerForCollisions()) {
                             const auto physical = entity->AsPhysical();
                             physical->m_vecMoveSpeed *= (float)std::pow(SQRT_2 / 2.f, CTimer::GetTimeStepInMS());
                             physical->ApplyMoveSpeed();
@@ -2079,13 +2079,13 @@ void CWorld::Process() {
     ProcessAttachedEntities();
 
     IterateMovingList([&](CEntity* entity) {
-        if (entity->IsPed()) {
+        if (entity->GetIsTypePed()) {
             const auto ped = entity->AsPed();
             ped->GetIntelligence()->ProcessAfterProcCol();
             if (const auto attachedTo = ped->m_pAttachedTo) {
                 ped->m_pEntityIgnoredCollision = attachedTo;
                 ped->PositionAttachedPed();
-                ped->UpdateRW();
+                ped->UpdateRwMatrix();
                 ped->UpdateRwFrame();
             }
         }
@@ -2356,7 +2356,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
     const auto RecalcZPosAtPoint = [&](const CVector2D& point) {
         auto& pos = object->GetMatrix().GetPosition();
         pos.z = FindGroundZFor3DCoord({point.x, point.y, pos.z + std::max(2.f, colModel->m_boundBox.GetHeight())}, nullptr, nullptr) - colModel->m_boundBox.m_vecMin.z;
-        object->UpdateRW();
+        object->UpdateRwMatrix();
         object->UpdateRwFrame();
     };
 

@@ -28,7 +28,7 @@ BreakObject_c::BreakObject_c() {
 
 // 0x59E750
 bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVelocityRand, int32 bJustFaces) {
-    if (!object->m_pRwObject || RwObjectGetType(object->m_pRwObject) != rpATOMIC)
+    if (!object->GetRwObject() || RwObjectGetType(object->GetRwObject()) != rpATOMIC)
         return false;
 
     auto* info = BREAKABLEPLG(RpAtomicGetGeometry(object->m_pRwAtomic), m_pBreakableInfo);

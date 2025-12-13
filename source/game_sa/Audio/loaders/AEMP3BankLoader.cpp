@@ -123,7 +123,7 @@ void CAEMP3BankLoader::UpdateVirtualChannels(tVirtualChannelSettings* settings, 
     for (auto i = 0u; i < std::size(settings->BankSlotIDs); i++) {
         const auto sfx    = settings->SoundIDs[i];
         const auto slotID = settings->BankSlotIDs[i];
-        const auto slot   = slotID != SND_BANK_SLOT_UNK
+        const auto slot   = slotID != SND_BANK_SLOT_NONE
             ? &GetBankSlot(slotID)
             : nullptr;
 
@@ -345,4 +345,8 @@ void CAEMP3BankLoader::Service() {
             NOTSA_UNREACHABLE("Invalid: {}", (int32)(req.Status));
         }
     }
+}
+
+CAEBankSlot& CAEMP3BankLoader::GetBankSlot(eSoundBankSlot slot) const {
+    return m_BankSlots[slot];
 }

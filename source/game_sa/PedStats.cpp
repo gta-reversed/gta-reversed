@@ -2,6 +2,8 @@
 
 #include "PedStats.h"
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
+
 constexpr uint16 PED_STATS_COUNT = 43;
 
 CPedStat*& CPedStats::ms_apPedStats = *(CPedStat**)0xC0BBEC;

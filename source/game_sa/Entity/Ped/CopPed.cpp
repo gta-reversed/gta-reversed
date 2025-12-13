@@ -246,7 +246,7 @@ void CCopPed::ProcessControl() {
 
     CPed::ProcessControl();
 
-    if (m_bWasPostponed)
+    if (GetWasPostponed())
         return;
 
     if (m_nPedState == PEDSTATE_DEAD)

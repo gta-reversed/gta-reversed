@@ -82,7 +82,7 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
         return false;
     }
     if (const auto src = eGrpEvent->GetEvent().GetSourceEntity()) {
-        if (src->IsPed() && m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
+        if (src->GetIsTypePed() && m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
             return false;
         }
     }
@@ -102,7 +102,7 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
 // notsa
 CPedTaskPair* CPedGroupIntelligence::GetPedsTaskPair(CPed* ped, PedTaskPairs& taskPairs) const {
     for (auto& tp : taskPairs) {
-        if (tp.m_Ped == ped) {
+        if (tp.Ped == ped) {
             return &tp;
         }
     }
@@ -119,7 +119,7 @@ CTask* CPedGroupIntelligence::GetTaskMain(CPed* ped) {
 // 0x5F7660
 CTask* CPedGroupIntelligence::GetTask(CPed* ped, PedTaskPairs& taskPairs) const {
     if (const auto tp = GetPedsTaskPair(ped, taskPairs)) {
-        return tp->m_Task;
+        return tp->Task;
     }
     return nullptr;
 }
@@ -141,7 +141,7 @@ CTask* CPedGroupIntelligence::GetTaskSecondary(CPed* ped) {
 // 0x5F8650
 eSecondaryTask CPedGroupIntelligence::GetTaskSecondarySlot(CPed* ped) {
     if (const auto tp = GetPedsTaskPair(ped, m_SecondaryPedTaskPairs)) {
-        return tp->m_Slot;
+        return tp->Slot;
     }
     NOTSA_UNREACHABLE(); // Otherwise returned `0`, which is a valid slot...
 }
@@ -159,12 +159,12 @@ void CPedGroupIntelligence::Process() {
 
     bool hasMemberListChanged{};
     for (auto&& [i, mem] : rngv::enumerate(m_pPedGroup->GetMembership().GetMembers())) {
-        if (m_PedTaskPairs[i].m_Ped == mem) {
+        if (m_PedTaskPairs[i].Ped == mem) {
             continue;
         }
-        m_PedTaskPairs[i].m_Ped          = mem;
-        m_SecondaryPedTaskPairs[i].m_Ped = mem;
-        m_DefaultPedTaskPairs[i].m_Ped   = mem;
+        m_PedTaskPairs[i].Ped          = mem;
+        m_SecondaryPedTaskPairs[i].Ped = mem;
+        m_DefaultPedTaskPairs[i].Ped   = mem;
         hasMemberListChanged             = true;
     }
     if (hasMemberListChanged) {
@@ -246,13 +246,13 @@ void CPedGroupIntelligence::SetEventResponseTask(CPed* ped, bool hasMainTask, co
 bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* task, PedTaskPairs& taskPairs) {
     const auto tt = task->GetTaskType();
     for (auto& tp : taskPairs) {
-        if (tp.m_Ped != ped) {
+        if (tp.Ped != ped) {
             continue;
         }
-        if (!tp.m_Task || tp.m_Task->GetTaskType() != tt) {
+        if (!tp.Task || tp.Task->GetTaskType() != tt) {
             continue;
         }
-        delete std::exchange(tp.m_Task, nullptr);
+        delete std::exchange(tp.Task, nullptr);
         return true;
     }
     return false;
@@ -280,12 +280,12 @@ void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& 
     if (!tp) {
         return;
     }
-    if (tp->m_Task && (force || tp->m_Task->GetTaskType() != task.GetTaskType())) {
-        delete std::exchange(tp->m_Task, task.Clone());
-        tp->m_Slot = slot;
-    } else if (!tp->m_Task) {
-        tp->m_Task = task.Clone();
-        tp->m_Slot = slot;
+    if (tp->Task && (force || tp->Task->GetTaskType() != task.GetTaskType())) {
+        delete std::exchange(tp->Task, task.Clone());
+        tp->Slot = slot;
+    } else if (!tp->Task) {
+        tp->Task = task.Clone();
+        tp->Slot = slot;
     }
 }
 
@@ -322,10 +322,10 @@ bool CPedGroupIntelligence::ShouldSetHighestPriorityEventAsCurrent() {
 // 0x5F79C0
 void CPedGroupIntelligence::FlushTasks(PedTaskPairs& taskPairs, CPed* ped) {
     for (auto& tp : taskPairs) {
-        if (ped && tp.m_Ped != ped) {
+        if (ped && tp.Ped != ped) {
             continue;
         }
-        delete std::exchange(tp.m_Task, nullptr);
+        delete std::exchange(tp.Task, nullptr);
     }
 }
 
@@ -333,7 +333,7 @@ void CPedGroupIntelligence::FlushTasks(PedTaskPairs& taskPairs, CPed* ped) {
 void CPedGroupIntelligence::SetDefaultTaskAllocator(const CPedGroupDefaultTaskAllocator& ta) {
     m_DefaultTaskAllocator = &ta;
     for (auto& tp : m_DefaultPedTaskPairs) {
-        delete std::exchange(tp.m_Task, nullptr);
+        delete std::exchange(tp.Task, nullptr);
     }
     m_DefaultTaskAllocator->AllocateDefaultTasks(m_pPedGroup, nullptr);
 }
@@ -366,7 +366,7 @@ void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
             return;
         }
         const auto src = m_CurrentEvent->GetEvent().GetSourceEntity();
-        if (!src || !src->IsPed()) {
+        if (!src || !src->GetIsTypePed()) {
             return;
         }
         const auto grp = src->AsPed()->GetGroup();
@@ -389,8 +389,8 @@ void CPedGroupIntelligence::ReportAllBarScriptTasksFinished() {
 // 0x5F7730
 void CPedGroupIntelligence::ReportAllTasksFinished(PedTaskPairs& taskPairs) {
     for (auto& tp : taskPairs) {
-        delete tp.m_Task;
-        tp.m_Task = nullptr;
+        delete tp.Task;
+        tp.Task = nullptr;
     }
 }
 
@@ -400,7 +400,7 @@ bool CPedGroupIntelligence::IsCurrentEventValid() {
         const auto event = &m_CurrentEvent->GetEvent();
         if (event->GetEventType() == EVENT_PLAYER_COMMAND_TO_GROUP) {
             if (const auto src = event->GetSourceEntity()) {
-                if (src->IsPed()) {
+                if (src->GetIsTypePed()) {
                     if (m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
                         return false;
                     }
@@ -415,7 +415,7 @@ bool CPedGroupIntelligence::IsCurrentEventValid() {
 bool CPedGroupIntelligence::IsGroupResponding() {
     const auto CheckTaskPairs = [](PedTaskPairs& tps) {
         for (auto& tp : tps) {
-            if (tp.m_Ped && tp.m_Task) {
+            if (tp.Ped && tp.Task) {
                 return true;
             }
         }

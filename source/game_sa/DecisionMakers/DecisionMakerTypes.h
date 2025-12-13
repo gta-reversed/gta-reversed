@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Decision.h"
+#include "DecisionMaker.h"
 #include "Enums/eTaskType.h"
 
 class CPed;
 class CPedGroup;
-class CDecisionMaker;
 
 enum class eDecisionMakerType : int32 {
     UNKNOWN                 = -1,
@@ -22,6 +22,8 @@ enum class eDecisionMakerType : int32 {
     GROUP_RANDOM_AGGRESSIVE = 8, // 0x8
     GROUP_RANDOM_PASSIVE    = 9, // 0x9
 
+    COUNT_GAME_DM = 10, //!< Number of built-in decision makers
+
     MISSION0                = 10, // 0xA
     MISSION1                = 11, // 0xB
     MISSION2                = 12, // 0xC
@@ -33,19 +35,7 @@ enum class eDecisionMakerType : int32 {
     MISSION8                = 18, // 0x12
     MISSION9                = 19, // 0x13
 
-    COUNT                   = 20, // 0x14
-};
-
-class CDecisionMakerTypesFileLoader {
-public:
-    static void InjectHooks();
-
-    static void ReStart();
-    static void GetPedDMName(int32 index, char* name);
-    static void GetGrpDMName(int32 index, char* name);
-    static void LoadDefaultDecisionMaker();
-    static int32 LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bUseMissionCleanup);
-    static void LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker);
+    COUNT_TOTAL             = 20, // 0x14
 };
 
 class CDecisionMakerTypes {
@@ -59,9 +49,21 @@ public:
 
     static CDecisionMakerTypes* GetInstance();
 
-    int32 AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bUseMissionCleanup);
+    int32 AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
     void MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType);
+    void RemoveDecisionMaker(eDecisionTypes dm);
     eTaskType MakeDecision(CPedGroup* pedGroup, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskId1, eTaskType taskId2, eTaskType taskId3, eTaskType taskId4);
     void AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags);
     void FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId);
+    void LoadEventIndices();
+
+public:
+    int32          m_NoOfDecisionMakers{};
+    CDecisionMaker m_DecisionMakers[+eDecisionMakerType::COUNT_TOTAL]{};
+    int32          m_EventIndices[+eEventType::EVENT_TOTAL_NUM_EVENTS]{};
+    CDecisionMaker m_DefaultRandomPedDecisionMaker{};
+    CDecisionMaker m_DefaultMissionPedDecisionMaker{};
+    CDecisionMaker m_DefaultPlayerPedDecisionMaker{};
+    CDecisionMaker m_DefaultRandomPedGroupDecisionMaker{};
+    CDecisionMaker m_DefaultMissionPedGroupDecisionMaker{};
 };

@@ -30,8 +30,8 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
     if (!m_pTexture)
         m_pTexture = GetFirstTexture(txd->m_pRwDictionary);
 
-    m_nStatus = eEntityStatus::STATUS_SIMPLE;
-    m_bUsesCollision = false;
+    SetStatus(STATUS_SIMPLE);
+    SetUsesCollision(false);
     m_bLightObject = true;
     m_bStreamingDontDelete = true;
     m_nObjectType = eObjectType::OBJECT_TYPE_DECORATION;
@@ -50,7 +50,7 @@ void CHandObject::ProcessControl()
     const auto boneMat = CMatrix(&matArr[m_nBoneIndex], false);
     *static_cast<CMatrix*>(m_matrix) = boneMat;
 
-    m_bIsInSafePosition = true;
+    SetIsInSafePosition(true);
     CPhysical::RemoveAndAdd();
 }
 
@@ -88,7 +88,7 @@ void CHandObject::PreRender()
     }
 
     m_fContactSurfaceBrightness = m_pPed->m_fContactSurfaceBrightness;
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
     CEntity::UpdateRpHAnim();
 }

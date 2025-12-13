@@ -132,7 +132,7 @@ bool CTaskComplexCopInCar::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
 
     if (ped->m_pVehicle == m_Vehicle && m_Vehicle) {
         if (m_Vehicle->IsDriver(ped)) {
-            m_Vehicle->m_nStatus = STATUS_ABANDONED;
+            m_Vehicle->SetStatus(STATUS_ABANDONED);
             m_Vehicle->m_autoPilot.SetCarMission(MISSION_NONE);
             m_Vehicle->m_autoPilot.SetCruiseSpeed(0);
         }
