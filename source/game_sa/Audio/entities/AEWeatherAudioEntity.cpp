@@ -134,7 +134,7 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
                 const CVector velocity = player && player->IsInVehicle()
                     ? player->m_pVehicle->GetMoveSpeed()
                     : CVector{};
-                const CVector hitPhysicalPos = hitEntity->IsPhysical()
+                const CVector hitPhysicalPos = hitEntity->GetIsTypePhysical()
                     ? hitEntity->GetPosition()
                     : CVector{};
                 const auto fwd = TheCamera.GetForwardVector().Normalized();
