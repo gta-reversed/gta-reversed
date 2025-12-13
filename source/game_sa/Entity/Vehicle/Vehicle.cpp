@@ -233,6 +233,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(QueryPickedUpEntityWithWinch, 0x6D3CF0);
     RH_ScopedInstall(GetRopeHeightForHeli, 0x6D3D10);
     RH_ScopedInstall(SetRopeHeightForHeli, 0x6D3D30);
+    RH_ScopedInstall(SetEngineOn, 0x41BDD0);
 
     RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*), { .reversed = false });
     RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Frame", 0x6D26D0, RwFrame*(*)(RwFrame*, void*));
@@ -2571,6 +2572,11 @@ CVector CVehicle::GetDriverSeatDummyPositionOS() const {
 
 CVector CVehicle::GetDriverSeatDummyPositionWS() {
     return GetMatrix().TransformPoint(GetDriverSeatDummyPositionOS());
+}
+
+// 0x41BDD0
+void CVehicle::SetEngineOn(bool on) {
+    vehicleFlags.bEngineOn = !!vehicleFlags.bEngineBroken && on;
 }
 
 CVehicleAnimGroup& CVehicle::GetAnimGroup() const {
