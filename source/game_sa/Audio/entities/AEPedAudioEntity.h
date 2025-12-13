@@ -9,6 +9,7 @@
 #include "AEAudioEntity.h"
 #include "AESound.h"
 #include "AETwinLoopSoundEntity.h"
+#include <Enums/eSurfaceType.h>
 
 class CPed;
 
@@ -43,7 +44,7 @@ public:
     static void StaticInitialise();
     void Terminate();
 
-    void AddAudioEvent(eAudioEvents event, float volume = 0.0f, float speed = 1.0f, CPhysical* ped = nullptr, uint8 surfaceId = 0, int32 a7 = 0, uint32 maxVol = 0);
+    void AddAudioEvent(eAudioEvents event, float volume = 0.0f, float speed = 1.0f, CPhysical* ped = nullptr, eSurfaceType surfaceId = SURFACE_DEFAULT, int32 a7 = 0, uint32 maxVol = 0);
 
     void TurnOnJetPack();
     void TurnOffJetPack();
@@ -52,7 +53,7 @@ public:
     void PlayWindRush(float, float);
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
 
-    void HandleFootstepEvent(eAudioEvents event, float volume, float speed, uint8 surfaceId);
+    void HandleFootstepEvent(eAudioEvents event, float volume, float speed, eSurfaceType surfaceId);
     void HandleSkateEvent(eAudioEvents event, float volume, float speed);
     void HandleLandingEvent(eAudioEvents event);
     void HandlePedSwing(eAudioEvents event, int32 a3, uint32 volume);
