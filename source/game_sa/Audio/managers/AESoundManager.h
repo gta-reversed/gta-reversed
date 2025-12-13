@@ -2,6 +2,8 @@
 
 #include "AESound.h"
 #include "Physical.h"
+#include "Timer.h"
+#include <Enums/eAudioEvents.h>
 
 #undef PlaySound
 
