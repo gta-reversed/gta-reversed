@@ -198,7 +198,7 @@ public:
     bool                                                      m_UsesMissionCleanup; //< If mission cleanup is needed after this script has finished
     bool                                                      m_IsExternal;
     bool                                                      m_IsTextBlockOverride;
-    int8                                                      m_ExternalType;
+    int8                                                      m_ScriptBrainType;
     int32                                                     m_WakeTime;   //< Used for sleep-like commands (like `COMMAND_WAIT`) - The script halts execution until the time is reached
     uint16                                                    m_AndOrState; //< Next logical OP type (See `COMMAND_ANDOR`)
     bool                                                      m_NotFlag;    //< Boolean value returned by the called command should be negated

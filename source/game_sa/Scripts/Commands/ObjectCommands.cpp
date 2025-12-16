@@ -22,7 +22,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     mi->m_nAlpha  = 255u;
 
     auto* object = CObject::Create(model, false);
-    object->m_nObjectType = (S.m_IsExternal || S.m_ExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
+    object->m_nObjectType = (S.m_IsExternal || S.m_ScriptBrainType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
     CWorld::PutToGroundIfTooLow(posn);
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
@@ -150,6 +150,18 @@ namespace Attractor {
 void EnableDisabledAttractorOnObject(CObject& object, bool enabled) {
     object.objectFlags.bEnableDisabledAttractors = enabled; // todo: rename obj->objectFlags.b0x1000000
 }
+
+/// IS_OBJECT_WITHIN_BRAIN_ACTIVATION_RANGE(0977)
+bool IsObjectWithinBrainActivationRange(CObject& object) {    
+    if (const auto& playerPed = CWorld::Players[CWorld::PlayerInFocus].m_pPed) {
+        return CTheScripts::ScriptsForBrains.IsObjectWithinBrainActivationRange(
+            &object,
+            FindPlayerCentreOfWorld(CWorld::PlayerInFocus)
+        );
+    }
+    return false;
+}
+
 } // namespace Attractor
 
 namespace Animation {
@@ -222,6 +234,7 @@ void notsa::script::commands::object::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_BIG_GUN_FLASH, AddBigGunFlash);
 
     REGISTER_COMMAND_HANDLER(COMMAND_ENABLE_DISABLED_ATTRACTORS_ON_OBJECT, EnableDisabledAttractorOnObject);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_WITHIN_BRAIN_ACTIVATION_RANGE, IsObjectWithinBrainActivationRange);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_OBJECT_ANIM_SPEED, SetObjectAnimSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_PLAYING_ANIM, IsObjectPlayingAnim);
