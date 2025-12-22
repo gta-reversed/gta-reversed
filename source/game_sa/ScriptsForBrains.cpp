@@ -9,7 +9,7 @@ void CScriptsForBrains::InjectHooks() {
     RH_ScopedInstall(Init, 0x46A8C0, {.reversed = false});
     //RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900, {.reversed = false});
     //RH_ScopedInstall(AddNewScriptBrain, 0x46A930, {.reversed = false});
-    //RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0, {.reversed = false});
+    RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0);
     RH_ScopedInstall(GetIndexOfScriptBrainWithThisName, 0x46AA30);
     RH_ScopedInstall(HasAttractorScriptBrainWithThisNameLoaded, 0x46AB20);
     RH_ScopedInstall(CheckIfNewEntityNeedsScript, 0x46FF20);
@@ -24,6 +24,21 @@ void CScriptsForBrains::InjectHooks() {
 void CScriptsForBrains::Init() {
     for (auto& script : m_aScriptForBrains) {
         script = tScriptForBrains();
+    }
+}
+
+// 0x46A9C0
+void CScriptsForBrains::AddNewStreamedScriptBrainForCodeUse(int16 streamedScriptIndex, const char* scriptName, int8 brainType) {
+    for (auto& script : m_aScriptForBrains) {
+        if (script.m_StreamedScriptIndex == -1) {
+            script.m_StreamedScriptIndex         = streamedScriptIndex;
+            *script.m_ScriptName                 = *scriptName;
+            script.m_TypeOfBrain                 = brainType;
+            script.m_ObjectGroupingId            = -1;
+            script.m_bBrainActive                = true;
+            script.m_ObjectBrainActivationRadius = 5.0f;
+            return;
+        }
     }
 }
 

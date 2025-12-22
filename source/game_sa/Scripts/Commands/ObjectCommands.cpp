@@ -162,6 +162,18 @@ bool IsObjectWithinBrainActivationRange(CObject& object) {
     return false;
 }
 
+/// REGISTER_SCRIPT_BRAIN_FOR_CODE_USE(07D3)
+void RegisterScriptBrainForCodeUse(int16 scmIndex, const char* scriptName) {
+    const auto scmProperIndex = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    CTheScripts::ScriptsForBrains.AddNewStreamedScriptBrainForCodeUse(scmProperIndex, scriptName, CScriptsForBrains::CODE_PED);
+}
+
+/// REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE(0884)
+void RegisterAttractorScriptBrainForCodeUse(int16 scmIndex, const char* scriptName) {
+    const auto scmProperIndex = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    CTheScripts::ScriptsForBrains.AddNewStreamedScriptBrainForCodeUse(scmProperIndex, scriptName, CScriptsForBrains::CODE_ATTRACTOR_PED);
+}
+
 } // namespace Attractor
 
 namespace Animation {
@@ -235,6 +247,9 @@ void notsa::script::commands::object::RegisterHandlers() {
 
     REGISTER_COMMAND_HANDLER(COMMAND_ENABLE_DISABLED_ATTRACTORS_ON_OBJECT, EnableDisabledAttractorOnObject);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_WITHIN_BRAIN_ACTIVATION_RANGE, IsObjectWithinBrainActivationRange);
+    REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_SCRIPT_BRAIN_FOR_CODE_USE, RegisterScriptBrainForCodeUse);
+    REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE, RegisterAttractorScriptBrainForCodeUse);
+
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_OBJECT_ANIM_SPEED, SetObjectAnimSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_PLAYING_ANIM, IsObjectPlayingAnim);

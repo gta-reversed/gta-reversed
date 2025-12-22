@@ -52,7 +52,7 @@ public:
             uint32 bIsScaled : 1;
             uint32 bCanBeAttachedToMagnet : 1;
             uint32 bDamaged : 1;
-            uint32 bScriptBrainStatus : 2; // something something scripts for brains
+            uint32 bScriptBrainStatus : 2;
             uint32 bFadingIn : 1; // works only for objects with type 2 (OBJECT_MISSION)
             uint32 bAffectedByColBrightness : 1;
 

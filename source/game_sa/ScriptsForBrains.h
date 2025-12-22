@@ -46,7 +46,7 @@ public:
     void Init();
 
     void AddNewScriptBrain(int16 ImgIndex, int16 Model, uint16 priority, int8 brainType, int8 Type, float Radius);
-    void AddNewStreamedScriptBrainForCodeUse(int16 a2, char* a3, int8 brainType);
+    void AddNewStreamedScriptBrainForCodeUse(int16 streamedScriptIndex, const char* scriptName, int8 brainType);
 
     void CheckIfNewEntityNeedsScript(CEntity* entity, int8 brainType, void* unused);
 
