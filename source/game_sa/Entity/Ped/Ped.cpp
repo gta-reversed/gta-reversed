@@ -199,7 +199,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     m_fArmour = 0.0f;
 
     m_nPedType = pedType;
-    m_nType = ENTITY_TYPE_PED;
+    SetTypePed();
 
     // 0x5E8196
     physicalFlags.bCanBeCollidedWith = true;
@@ -1296,7 +1296,7 @@ void CPed::SetRadioStation()
 
     if (m_pVehicle->m_pDriver == this) {
         const auto& mi = *(CPedModelInfo*)GetModelInfo();
-        m_pVehicle->m_vehicleAudio.m_Settings.m_nRadioID = (CGeneral::GetRandomNumber() <= RAND_MAX / 2) ? mi.m_nRadio1 : mi.m_nRadio2;
+        m_pVehicle->m_vehicleAudio.m_AuSettings.RadioStation = (CGeneral::GetRandomNumber() <= RAND_MAX / 2) ? mi.m_nRadio1 : mi.m_nRadio2;
     }
 }
 
@@ -1411,7 +1411,7 @@ void CPed::DropEntityThatThisPedIsHolding(bool bDeleteHeldEntity) {
         // Delete held entity (If any)
         if (bDeleteHeldEntity) {
             if (const auto heldEntity = task->m_pEntityToHold) {
-                if (!heldEntity->IsObject() || !heldEntity->AsObject()->IsMissionObject()) {
+                if (!heldEntity->GetIsTypeObject() || !heldEntity->AsObject()->IsMissionObject()) {
                     heldEntity->DeleteRwObject(); // TODO; Are these 3 lines inlined?
                     CWorld::Remove(heldEntity);
                     delete heldEntity;
@@ -1589,7 +1589,7 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
     }
 
     auto target{entity->GetPosition()};
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         target.z += 1.f; // Adjust for head pos?
     }
 
@@ -1664,7 +1664,7 @@ void CPed::ProcessBuoyancy()
 
     if (bIsStanding) {
         auto& standingOnEntity = m_pContactEntity;
-        if (standingOnEntity && standingOnEntity->IsVehicle()) {
+        if (standingOnEntity && standingOnEntity->GetIsTypeVehicle()) {
             auto pStandingOnVehicle = standingOnEntity->AsVehicle();
             if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bRenderScorched) {
                 physicalFlags.bSubmergedInWater = false;
@@ -1684,7 +1684,7 @@ void CPed::ProcessBuoyancy()
         CColPoint lineColPoint;
         CEntity* colEntity;
         if (CWorld::ProcessVerticalLine(vecPedPos, fCheckZ, lineColPoint, colEntity, false, true, false, false, false, false, nullptr)) {
-            if (colEntity->IsVehicle()) {
+            if (colEntity->GetIsTypeVehicle()) {
                 auto colVehicle = colEntity->AsVehicle();
                 if (colVehicle->IsBoat()
                     && !colVehicle->physicalFlags.bRenderScorched
@@ -2801,7 +2801,7 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (m_bIsVisible && CTimeCycle::m_CurrentColours.m_nShadowStrength != 0) {
+    if (GetIsVisible() && CTimeCycle::GetShadowStrength()) {
         const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
             if (!bInVehicle) {
                 return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
@@ -2865,7 +2865,7 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (GetModelID() == MODEL_PLAYER) {
+    if (GetModelId() == MODEL_PLAYER) {
         ShoulderBoneRotation(m_pRwClump);
         m_bDontUpdateHierarchy = true;
     }
@@ -3088,11 +3088,11 @@ CEntity* CPed::AttachPedToEntity(CEntity* entity, CVector offset, uint16 turretA
 
     // Deal collision with `entity`
     if (!IsPlayer()) {
-        if (entity->IsVehicle()) {
+        if (entity->GetIsTypeVehicle()) {
             m_pEntityIgnoredCollision = entity->AsPhysical();
         }
     } else { // For player just disable collision
-        m_bUsesCollision = false;
+        SetUsesCollision(false);
     }
 
     if (m_nSavedWeapon == WEAPON_UNIDENTIFIED) {
@@ -3546,6 +3546,13 @@ bool CPed::IsInVehicleThatHasADriver() {
 /*!
 * @notsa
 */
+CPedGroup* CPed::GetGroup() const {
+    return CPedGroups::GetPedsGroup(this);
+}
+
+/*!
+* @notsa
+*/
 int32 CPed::GetGroupId() {
     return GetGroup()
         ? GetGroup()->GetId()
@@ -3578,7 +3585,7 @@ RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
 void CPed::SetModelIndex(uint32 modelIndex) {
     assert(modelIndex != MODEL_PLAYER || IsPlayer());
 
-    m_bIsVisible = true;
+    SetIsVisible(true);
 
     CEntity::SetModelIndex(modelIndex);
 
@@ -3703,7 +3710,7 @@ void CPed::Render() {
     }
 
     // 0x5E76BE
-    if (bDontRender || !(m_bIsVisible || CMirrors::ShouldRenderPeds())) {
+    if (bDontRender || !(GetIsVisible() || CMirrors::ShouldRenderPeds())) {
         return;
     }
 
@@ -3893,8 +3900,8 @@ void CPed::FlagToDestroyWhenNextProcessed() {
 
     if (m_pVehicle->IsDriver(this)) {
         ClearReference(m_pVehicle->m_pDriver);
-        if (IsPlayer() && m_pVehicle->m_nStatus != STATUS_WRECKED) {
-            m_pVehicle->m_nStatus = STATUS_ABANDONED;
+        if (IsPlayer() && m_pVehicle->GetStatus() != STATUS_WRECKED) {
+            m_pVehicle->SetStatus(STATUS_ABANDONED);
         }
     } else {
         m_pVehicle->RemovePassenger(this);
@@ -3956,36 +3963,39 @@ bool CPed::IsPedStandingInPlace() const {
 
 // 0x6497A0
 bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
-    if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
-    else
+    switch (vehicle->m_vehicleAudio.GetVehicleTypeForAudio()) {
+    case eAEVehicleAudioType::CAR:
         return jacked->Say(CTX_GLOBAL_JACKED_CAR, timeDelay) != -1;
+    case eAEVehicleAudioType::BIKE:
+    case eAEVehicleAudioType::GENERIC:
+        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }
 
 // 0x6497F0
 bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
-    if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio() == 1)
+    switch (vehicle->m_vehicleAudio.GetVehicleTypeForAudio()) {
+    case eAEVehicleAudioType::BIKE:
         return jacker->Say(CTX_GLOBAL_JACKING_BIKE, timeDelay) != -1;
-
-    if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
+    case eAEVehicleAudioType::CAR:
+        return jacked->GetSpeechAE().IsPedFemaleForAudio()
+            ? jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1
+            : jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
+    case eAEVehicleAudioType::GENERIC:
         return jacker->Say(CTX_GLOBAL_JACKING_GENERIC, timeDelay) != -1;
-
-    if (jacked->GetSpeechAE().IsPedFemaleForAudio())
-        return jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1;
-
-    return jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }
 
 // NOTSA
 int32 CPed::GetPadNumber() const {
     switch (m_nPedType) {
-    case PED_TYPE_PLAYER1:
-        return 0;
-    case PED_TYPE_PLAYER2:
-        return 1;
-    default:
-        assert(true && "Inappropriate usage of GetPadNumber");
-        return 0;
+    case PED_TYPE_PLAYER1: return 0;
+    case PED_TYPE_PLAYER2: return 1;
+    default:               NOTSA_UNREACHABLE();
     }
 }
 

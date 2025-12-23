@@ -12,6 +12,13 @@
 
 using json = nlohmann::json;
 
+#include <ranges>
+namespace rng = std::ranges;
+namespace rngv = std::views;
+
+#include <filesystem>
+namespace fs = std::filesystem;
+
 #define PLUGIN_API
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
@@ -186,6 +193,24 @@ void SAFE_RELEASE(T*& ptr) { // DirectX stuff `Release()`
         ptr = nullptr;
     }
 }
+
+// std::format support for enums
+// either using `EnumToString`, or using the enum name and value as a fallback
+template<typename Enum>
+    requires std::is_enum_v<Enum>
+struct std::formatter<Enum> : std::formatter<std::string> {
+    auto format(Enum e, format_context& ctx) const {
+        if constexpr (requires { EnumToString(e); }) {
+            if (const auto name = EnumToString(e)) {
+                return formatter<string>::format(*name, ctx);
+            }
+        }
+        return formatter<string>::format(
+            std::format("{} ({})", typeid(Enum).name(), static_cast<std::underlying_type_t<Enum>>(e)),
+            ctx
+        );
+    }
+};
 
 #define _IGNORED_
 #define _CAN_BE_NULL_

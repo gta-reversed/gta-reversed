@@ -235,7 +235,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                     targetEntity = player->m_p3rdPersonMouseTarget;
                 }
             } else {
-                if (player->m_pTargetedObject->IsPed()) {
+                if (player->m_pTargetedObject->GetIsTypePed()) {
                     targetEntity = reinterpret_cast<CPed*>(player->m_pTargetedObject);
                 }
             }
@@ -559,7 +559,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 int32 pedState = 0;
                 if ((fabs((float)pad->AimWeaponLeftRight(player)) > 100.0f || fabs((float)pad->AimWeaponUpDown(player)) > 100.0f) && !CGameLogic::IsCoopGameGoingOn() ||
                     targetedEntity == (CPed*)nullptr || CCamera::m_bUseMouse3rdPerson == true ||
-                    targetedEntity && targetedEntity->IsPed() &&
+                    targetedEntity && targetedEntity->GetIsTypePed() &&
                         (!CPlayerPed::PedCanBeTargettedVehicleWise(targetedEntity) ||
                          !CLocalisation::KickingWhenDown() && ((pedState = targetedEntity->m_nPedState, pedState == PEDSTATE_DIE) || pedState == PEDSTATE_DEAD)) ||
                     player->DoesTargetHaveToBeBroken(player->m_pTargetedObject, activeWeapon) ||
@@ -580,7 +580,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
 
                 if (CWeaponInfo::GetWeaponInfo(activeWeapon->m_Type, eWeaponSkill::STD)->m_nWeaponFire == WEAPON_FIRE_INSTANT_HIT) {
                     targetedEntity = (CPed*)player->m_pTargetedObject;
-                    if (targetedEntity && targetedEntity->IsPed() && intelligence->IsInSeeingRange(player->GetPosition())) {
+                    if (targetedEntity && targetedEntity->GetIsTypePed() && intelligence->IsInSeeingRange(player->GetPosition())) {
                         CTask* activePrimaryTask = intelligence->GetActivePrimaryTask();
                         if (!activePrimaryTask || activePrimaryTask->GetTaskType() != TASK_COMPLEX_REACT_TO_GUN_AIMED_AT) {
                             if (activeWeapon->m_Type != WEAPON_PISTOL_SILENCED) {
@@ -660,7 +660,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
         return AbortLookingIfPossible();
 
     bool bTargetedPedDead = false;
-    if (targetedObject->IsPed() && (targetedObject->bFallenDown || targetedObject->m_nPedState == PEDSTATE_DEAD)) {
+    if (targetedObject->GetIsTypePed() && (targetedObject->bFallenDown || targetedObject->m_nPedState == PEDSTATE_DEAD)) {
         bTargetedPedDead = true;
     }
 
@@ -673,7 +673,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
         return AbortLookingIfPossible();
     } else if (!g_ikChainMan.IsLooking(player) || (g_ikChainMan.GetLookAtEntity(player) != targetedObject)) {
         auto pedBoneId = BONE_UNKNOWN;
-        if (targetedObject->IsPed()) {
+        if (targetedObject->GetIsTypePed()) {
             pedBoneId = BONE_HEAD;
         }
         g_ikChainMan.LookAt("ProcPlyrWeapon", player, targetedObject, gDefaultTaskTime, pedBoneId, nullptr, false, 0.25f, 500, 3, false);
@@ -967,7 +967,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
         }
     }
     if (!(CWeaponInfo::GetWeaponInfo(player->GetActiveWeapon().m_Type, eWeaponSkill::STD)->flags.bHeavy)) {
-        if (!player->m_standingOnEntity || !player->m_standingOnEntity->m_bIsStatic || player->m_standingOnEntity->m_bHasContacted) {
+        if (!player->m_standingOnEntity || !player->m_standingOnEntity->m_bIsStatic || player->m_standingOnEntity->GetHasContacted()) {
             if (!player->GetIntelligence()->GetTaskHold(false) || !((CTaskSimpleHoldEntity*)player->GetIntelligence()->GetTaskHold(false))->m_pAnimBlendAssociation) {
                 CAnimBlendHierarchy* animHierarchy = nullptr;
                 CAnimBlendAssocGroup* animGroup = &CAnimManager::GetAssocGroups()[player->m_nAnimGroup];
@@ -1015,7 +1015,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
             player->ClearWeaponTarget();
             if (const auto task = player->GetTaskManager().GetActiveTask()) {
                 if (!notsa::isa<CTaskComplexJump>(task)) {
-                    player->GetTaskManager().SetTask(new CTaskComplexJump(COMPLEX_JUMP_TYPE_JUMP), TASK_PRIMARY_PRIMARY, false);
+                    player->GetTaskManager().SetTask(new CTaskComplexJump{}, TASK_PRIMARY_PRIMARY, false);
                 }
             }
         }

@@ -10,7 +10,7 @@
 #include <string>
 #include <initializer_list>
 #include <RenderWare.h>
-
+#include <GxtChar.h>
 #include "AnimationEnums.h"
 #include "Vector.h"
 #include "Vector2D.h"
@@ -192,14 +192,6 @@ constexpr float RadiansToDegrees(float angleInRadians) {
     return angleInRadians * 180.0F / PI;
 }
 
-//! Step towards a certain number
-template<typename T>
-T stepto(const T& from, const T& to, float step) {
-    return to <= from
-        ? std::min(from + step, to)
-        : std::max(from - step, to);
-}
-
 template<typename T>
 T lerp(const T& from, const T& to, float t) {
     // Same as `from + (to - from) * t` (Or `from + t * (to - from)`
@@ -247,6 +239,7 @@ constexpr uint32 MakeFourCC(const char fourcc[4]) {
 }
 
 char* MakeUpperCase(char *dest, const char *src);
+char* MakeUpperCase(char* dest);
 bool EndsWith(const char* str, const char* with, bool caseSensitive = true);
 
 RpAtomic* RemoveRefsCB(RpAtomic* atomic, void* _IGNORED_ data);

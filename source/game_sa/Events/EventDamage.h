@@ -8,6 +8,8 @@
 
 class CEntity;
 class CPedDamageResponseCalculator;
+class CPed;
+class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEventDamage : public CEventEditableResponse {
 public:

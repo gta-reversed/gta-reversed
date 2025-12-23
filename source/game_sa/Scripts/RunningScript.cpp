@@ -113,6 +113,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     c::vehicle::RegisterHandlers();
     c::zone::RegisterHandlers();
     c::stat::RegisterHandlers();
+    c::conversation::RegisterHandlers();
 
 #ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
     cleo::audiostream::RegisterHandlers();
@@ -263,7 +264,7 @@ void CRunningScript::GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opc
             CPedScriptedTaskRecord::ms_scriptedTasks[slot].Set(ped, opcode, event);
         }
     } else {
-        pedGroup->GetIntelligence().SetScriptCommandTask(ped, task);
+        pedGroup->GetIntelligence().SetScriptCommandTask(ped, *task);
         CTask* scriptedTask = pedGroup->GetIntelligence().GetTaskScriptCommand(ped);
         const int32 slot = CPedScriptedTaskRecord::GetVacantSlot();
         CPedScriptedTaskRecord::ms_scriptedTasks[slot].SetAsGroupTask(ped, opcode, scriptedTask);

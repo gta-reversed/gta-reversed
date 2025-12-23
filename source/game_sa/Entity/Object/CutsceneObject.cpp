@@ -24,8 +24,8 @@ void CCutsceneObject::InjectHooks() {
 CCutsceneObject::CCutsceneObject() : CObject() {
     m_vWorldPosition.Set(0.0F, 0.0F, 0.0F);
     m_vForce.Set(0.0F, 0.0F, 0.0F);
-    m_bUsesCollision = false;
-    m_nStatus = eEntityStatus::STATUS_SIMPLE;
+    SetUsesCollision(false);
+    SetStatus(STATUS_SIMPLE);
     m_nObjectType = eObjectType::OBJECT_TYPE_CUTSCENE;
     m_nAttachBone = 0;
     m_pAttachmentObject = nullptr;
@@ -33,14 +33,14 @@ CCutsceneObject::CCutsceneObject() : CObject() {
     m_bStreamingDontDelete = true;
 
     CObject::SetIsStatic(false);
-    m_bBackfaceCulled = false;
+    SetIsBackfaceCulled(false);
     m_fContactSurfaceBrightness = 0.5F;
 }
 
 // 0x5B1B20
 void CCutsceneObject::SetModelIndex(unsigned index) {
     CEntity::SetModelIndex(index);
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP) {
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
         RpAnimBlendClumpInit(m_pRwClump);
         auto* animData = RpAnimBlendClumpGetData(m_pRwClump);
         animData->m_PedPosition = &m_vecMoveSpeed;
@@ -52,8 +52,8 @@ void CCutsceneObject::SetModelIndex(unsigned index) {
 
 // 0x5B1B90
 void CCutsceneObject::ProcessControl() {
-    if (m_nAttachBone && m_pAttachmentObject && !m_bWasPostponed) {
-        m_bWasPostponed = true;
+    if (m_nAttachBone && m_pAttachmentObject && !GetWasPostponed()) {
+        SetWasPostponed(true);
         return;
     }
 
@@ -98,7 +98,7 @@ void CCutsceneObject::PreRender() {
             *static_cast<CMatrix*>(m_matrix) = attachMat;
         }
 
-        if (RwObjectGetType(m_pRwObject) == rpCLUMP) {
+        if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
             const auto* firstAtomic = GetFirstAtomic(m_pRwClump);
             if (firstAtomic) {
                 if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(firstAtomic))) {
@@ -111,7 +111,7 @@ void CCutsceneObject::PreRender() {
         }
     }
 
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP)
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP)
         CEntity::UpdateRpHAnim();
 
     g_realTimeShadowMan.DoShadowThisFrame(this);

@@ -219,7 +219,7 @@ bool CTaskComplexKillCriminal::MakeAbortable(CPed* ped, eAbortPriority priority,
             if (m_Criminal && evSrc == m_Criminal) {
                 return false; // As per 0x68DB32
             }
-            if (!evSrc || !evSrc->IsPed() || evSrc->AsPed()->IsPlayer()) {
+            if (!evSrc || !evSrc->GetIsTypePed() || evSrc->AsPed()->IsPlayer()) {
                 return false;
             }
             const auto evSrcPed = evSrc->AsPed();
@@ -311,6 +311,16 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
                 : TASK_SIMPLE_CAR_DRIVE,
             ped
         );
+    }
+    case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: { // 0x68E6FA
+        if (ped->bInVehicle) { // (Inverted)
+            return CreateSubTask(TASK_SIMPLE_CAR_DRIVE, ped);
+        }
+        m_CantGetInCar = true;
+        if (m_HasFinished || NoPedOrNoHp(m_Criminal)) {
+            return CreateSubTask(TASK_FINISHED, ped);
+        } 
+        return CreateSubTask(TASK_COMPLEX_KILL_PED_ON_FOOT, ped);
     }
     case TASK_COMPLEX_LEAVE_CAR: // 0x68E77F
         return CreateSubTask(

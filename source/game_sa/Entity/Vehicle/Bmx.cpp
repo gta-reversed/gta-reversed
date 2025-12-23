@@ -18,12 +18,13 @@ void CBmx::InjectHooks() {
 
 // 0x6BF820
 CBmx::CBmx(int32 modelIndex, eVehicleCreatedBy createdBy) :
-    CBike(modelIndex, createdBy) {
+    CBike(modelIndex, createdBy) 
+{
     auto mi                     = CModelInfo::GetModelInfo(modelIndex);
     m_nVehicleSubType           = VEHICLE_TYPE_BMX;
-    m_RideAnimData.m_nAnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
-    if (m_RideAnimData.m_nAnimGroup < ANIM_GROUP_BMX || m_RideAnimData.m_nAnimGroup > ANIM_GROUP_CHOPPA) {
-        m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BMX;
+    m_RideAnimData.AnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
+    if (m_RideAnimData.AnimGroup < ANIM_GROUP_BMX || m_RideAnimData.AnimGroup > ANIM_GROUP_CHOPPA) {
+        m_RideAnimData.AnimGroup = ANIM_GROUP_BMX;
     }
 
     m_fControlJump     = 0.0f;
@@ -83,7 +84,7 @@ void CBmx::ProcessControl() {
 
     CBike::ProcessControl();
 
-    if (m_bWasPostponed || m_nStatus != STATUS_PLAYER || !m_pDriver) {
+    if (GetWasPostponed() || GetStatus() != STATUS_PLAYER || !m_pDriver) {
         return;
     }
 
@@ -97,7 +98,7 @@ void CBmx::ProcessControl() {
         auto animBikePedal = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_PEDAL);
         if (animBikePedal && animBikePedal->GetBlendAmount() > 0.01f) {
             float mult = isMountainBike ? MTB_PEDAL_LEANMULT : BMX_PEDAL_LEANMULT;
-            GetRideAnimData()->m_fAnimLean += std::sin(animBikePedal->GetCurrentTime() / animBikePedal->GetHier()->GetTotalTime() * TWO_PI + BMX_PEDAL_LEANSTART) * animBikePedal->GetBlendAmount() * mult;
+            GetRideAnimData()->LeanAngle += std::sin(animBikePedal->GetCurrentTime() / animBikePedal->GetHier()->GetTotalTime() * TWO_PI + BMX_PEDAL_LEANSTART) * animBikePedal->GetBlendAmount() * mult;
         }
         m_fSprintLeanAngle *= 0.95f;
     }
@@ -112,9 +113,11 @@ void CBmx::ProcessDrivingAnims(CPed* driver, bool blend) {
 // 0x6C0390
 void CBmx::LaunchBunnyHopCB(CAnimBlendAssociation* assoc, void* data) {
     auto bmx = static_cast<CBmx*>(data);
-    if ((bmx->m_aWheelCounts[0] > 0.0f || bmx->m_aWheelCounts[1] > 0.0f) && (bmx->m_aWheelCounts[2] > 0.0f || bmx->m_aWheelCounts[3] > 0.0f)) {
+    if ((bmx->m_WheelCounts[0] > 0.0f || bmx->m_WheelCounts[1] > 0.0f) &&
+        (bmx->m_WheelCounts[2] > 0.0f || bmx->m_WheelCounts[3] > 0.0f)
+    ) {
         auto power = std::min(bmx->m_fControlJump / 25.0f, 1.0f) + 1.0f;
-        if (bmx->m_nStatus == STATUS_PLAYER) {
+        if (bmx->GetStatus() == STATUS_PLAYER) {
             power *= CStats::GetFatAndMuscleModifier(STAT_MOD_6);
         }
         if (CCheat::IsActive(CHEAT_HUGE_BUNNY_HOP)) {
@@ -163,7 +166,7 @@ void CBmx::ProcessBunnyHop() {
 
     if (pad->IsLeftShoulder1Pressed() && !pad->DisablePlayerControls && m_fControlJump == 0.0f) {
         m_fControlJump += CTimer::GetTimeStep();
-        anim = CAnimManager::BlendAnimation(m_pDriver->m_pRwClump, m_RideAnimData.m_nAnimGroup, ANIM_ID_BIKE_BUNNYHOP, 8.0f);
+        anim = CAnimManager::BlendAnimation(m_pDriver->m_pRwClump, m_RideAnimData.AnimGroup, ANIM_ID_BIKE_BUNNYHOP, 8.0f);
         if (anim) {
             anim->SetCurrentTime(0.0f);
             anim->SetFlag(ANIMATION_IS_PLAYING, false);
@@ -197,7 +200,7 @@ void CBmx::ProcessBunnyHop() {
 
     if (anim) {
         if (anim->GetBlendAmount() > 0.5f) {
-            m_fGasPedal                                  = 0.0f;
+            m_GasPedal                                   = 0.0f;
             FindPlayerPed()->m_pPlayerData->m_fMoveSpeed = 0.0f;
             if (!vehicleFlags.bIsHandbrakeOn && (m_aWheelRatios[0] < 1.0f || m_aWheelRatios[1] < 1.0f || m_aWheelRatios[2] < 1.0f || m_aWheelRatios[3] < 1.0f)) {
                 m_bIsFreewheeling = true;

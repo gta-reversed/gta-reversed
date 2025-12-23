@@ -603,7 +603,7 @@ bool CRadar::HasThisBlipBeenRevealed(int32 blipIndex) {
  * @returns True if it's allowed to be drawn.
  */
 bool CRadar::DisplayThisBlip(eRadarSprite spriteId, int8 priority) {
-    if (CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->m_nAreaCode == AREA_CODE_NORMAL_WORLD) {
+    if (CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->GetAreaCode() == AREA_CODE_NORMAL_WORLD) {
         switch (spriteId) {
         case RADAR_SPRITE_NONE:
         case RADAR_SPRITE_WHITE:
@@ -1364,7 +1364,7 @@ void CRadar::Draw3dMarkers() {
                         NOTSA_UNREACHABLE("Couldn't get the pickup!");
                     }
                 }
-                ret.z += (CGame::currArea != 0 || FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD) ? 1.6f : 1.8f;
+                ret.z += (CGame::currArea != 0 || FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD) ? 1.6f : 1.8f;
 
                 return ret;
             }();
@@ -1376,7 +1376,7 @@ void CRadar::Draw3dMarkers() {
             if (CTheScripts::IsPlayerOnAMission() || !FindPlayerPed())
                 break;
 
-            if (!trace.m_bTrackingBlip && FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD)
+            if (!trace.m_bTrackingBlip && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
                 break;
 
             C3dMarkers::PlaceMarkerSet(coneHandle, MARKER3D_CYLINDER, trace.m_vPosition, 2.0f, 255, 0, 0, 228, 2048u, 0.2f, 0);
@@ -1607,7 +1607,7 @@ void CRadar::DrawRadarMap() {
 // 0x586B00
 void CRadar::DrawMap() {
     const auto player = FindPlayerPed();
-    const auto mapShouldDrawn = !CGame::currArea && player->m_nAreaCode == 0 && FrontEndMenuManager.m_nRadarMode != 1;
+    const auto mapShouldDrawn = !CGame::currArea && player->GetAreaCode() == AREA_CODE_NORMAL_WORLD && FrontEndMenuManager.m_nRadarMode != 1;
 
     CalculateCachedSinCos();
 
@@ -1861,7 +1861,7 @@ void CRadar::DrawBlips() {
             if (!CPad::IsMouseLButton() &&
                 mouseX > SCREEN_STRETCH_X(60.0f) && mouseX < SCREEN_STRETCH_FROM_RIGHT(60.0f) &&
                 mouseY > SCREEN_STRETCH_Y(60.0f) && mouseY < SCREEN_STRETCH_FROM_BOTTOM(60.0f) ||
-                !FrontEndMenuManager.m_bDrawMouse)
+                !FrontEndMenuManager.m_DisplayTheMouse)
             {
                 auto drawPos = TransformRealWorldPointToBlipSpace(FrontEndMenuManager.m_vMousePos);
                 LimitToMap(drawPos.x, drawPos.y);

@@ -27,7 +27,7 @@ struct tMovingFog {
     float   m_fIntensity[MAX_MOVING_FOG];
     float   m_fMaxIntensity[MAX_MOVING_FOG];
     CVector m_vecWind;
-    float   m_fSpeed[MAX_MOVING_FOG];
+    float   m_Speed[MAX_MOVING_FOG];
     int     field_27B4[12];
     std::array<uint32, 6> m_nPrimIndices;
 };

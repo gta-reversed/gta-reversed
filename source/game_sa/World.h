@@ -10,6 +10,7 @@
 #include "PtrListDoubleLink.h"
 #include "PtrNodeDoubleLink.h"
 
+class CPedGroup;
 class CPlayerInfo;
 class CColPoint;
 class CStoredCollPoly;
@@ -290,6 +291,25 @@ public:
             GetSectorY(rect.bottom),
             GetSectorX(rect.right),
             GetSectorY(rect.top),
+            std::forward<Fn>(fn)
+        );
+    }
+    /*
+    * @notsa
+    *
+    * @brief Call `fn` with the `x, y` grid position of all lod sectors that are overlapped by the rect
+    *
+    * @param rect The rect. Use it's constructor to ease your life (for example iterating areas in a given radius can be achieved by `CRect{point, 340.f}`)
+    * 
+    * @copyreturn `IterateSectors`
+    */
+    template<std::predicate<int32, int32> Fn>
+    static bool IterateLodSectorsOverlappedByRect(CRect rect, Fn&& fn) {
+        return IterateSectors(
+            GetLodSectorX(rect.left),
+            GetLodSectorY(rect.bottom),
+            GetLodSectorX(rect.right),
+            GetLodSectorY(rect.top),
             std::forward<Fn>(fn)
         );
     }

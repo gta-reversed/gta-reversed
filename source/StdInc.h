@@ -24,13 +24,6 @@
 #include <format>
 #include "app/platform/win/winincl.h"
 
-#include <ranges>
-namespace rng = std::ranges;
-namespace rngv = std::views;
-
-#include <filesystem>
-namespace fs = std::filesystem;
-
 #include "Base.h"
 #include "config.h"
 
@@ -88,7 +81,6 @@ namespace fs = std::filesystem;
 #include "Matrix.h"
 #include "MatrixLink.h"
 #include "MatrixLinkList.h"
-#include "Pool.h"
 #include "PtrNode.h"
 #include "PtrNodeDoubleLink.h"
 #include "PtrNodeSingleLink.h"
@@ -104,6 +96,27 @@ namespace fs = std::filesystem;
 #include "ListItem_c.h"
 #include "List_c.h"
 #include "SArray.h"
+
+#include "Pool.h"
+#include "Pools/Pools.h"
+#include <Pools/IplDefPool.h>
+#include <Pools/PedPool.h>
+#include <Pools/VehiclePool.h>
+#include <Pools/BuildingPool.h>
+#include <Pools/ObjectPool.h>
+#include <Pools/DummyPool.h>
+#include <Pools/ColModelPool.h>
+#include <Pools/TaskPool.h>
+#include <Pools/PedIntelligencePool.h>
+#include <Pools/PtrNodeSingleLinkPool.h>
+#include <Pools/PtrNodeDoubleLinkPool.h>
+#include <Pools/EntryInfoNodePool.h>
+#include <Pools/PointRoutePool.h>
+#include <Pools/PatrolRoutePool.h>
+#include <Pools/EventPool.h>
+#include <Pools/NodeRoutePool.h>
+#include <Pools/TaskAllocatorPool.h>
+#include <Pools/PedAttractorPool.h>
 
 #include "GxtChar.h"
 #include "RwHelper.h"
@@ -160,7 +173,7 @@ namespace fs = std::filesystem;
 #include "VehicleScanner.h"
 #include "LoadMonitor.h"
 #include "PedStuckChecker.h"
-#include "DecisionMakerTypes.h"
+#include "DecisionMakers/DecisionMakerTypes.h"
 #include "InformGroupEventQueue.h"
 #include "InformFriendsEventQueue.h"
 #include "Events/GroupEventHandler.h"
@@ -248,9 +261,9 @@ namespace fs = std::filesystem;
 #include "CutsceneMgr.h"
 #include "Darkel.h"
 #include "Date.h"
-#include "Decision.h"
-#include "DecisionMaker.h"
-#include "DecisionSimple.h"
+#include "DecisionMakers/Decision.h"
+#include "DecisionMakers/DecisionMaker.h"
+#include "DecisionMakers/DecisionSimple.h"
 #include "Directory.h"
 #include "Draw.h"
 #include "EntityScanner.h"
@@ -305,7 +318,6 @@ namespace fs = std::filesystem;
 #include "PointLights.h"
 #include "PointList.h"
 #include "PolyBunch.h"
-#include "Pools.h"
 #include "PopCycle.h"
 #include "Population.h"
 #include "ProjectileInfo.h"
@@ -412,9 +424,10 @@ namespace fs = std::filesystem;
 #include "Entity/Vehicle/Train.h"
 #include "Entity/Vehicle/Vehicle.h"
 
-#include "Audio/config/eAudioBank.h"
-#include "Audio/config/eAudioSlot.h"
-#include "Audio/config/eSFX.h"
+#include "Fx\eFxInfoType.h"
+#include "Fx\FxManager.h"
+#include "Fx\FxPrtMult.h"
+#include "Fx\Fx.h"
 
 #include "Fx/eFxInfoType.h"
 #include "Fx/FxManager.h"

@@ -18,14 +18,14 @@ CDummyObject::CDummyObject() : CDummy() {
 
 // 0x59EA20
 CDummyObject::CDummyObject(CObject* obj) : CDummy() {
-    CEntity::SetModelIndexNoCreate(m_nModelIndex);
-    if (obj->m_pRwObject)
-        CEntity::AttachToRwObject(obj->m_pRwObject, true);
+    CEntity::SetModelIndexNoCreate(GetModelIndex());
+    if (obj->GetRwObject())
+        CEntity::AttachToRwObject(obj->GetRwObject(), true);
 
     obj->DetachFromRwObject();
-    m_nIplIndex = obj->m_nIplIndex;
-    m_nAreaCode = obj->m_nAreaCode;
-    CIplStore::IncludeEntity(m_nIplIndex, this);
+    SetIplIndex(obj->GetIplIndex());
+    SetAreaCode(obj->GetAreaCode());
+    CIplStore::IncludeEntity(GetIplIndex(), this);
 }
 
 // 0x59EAC0
@@ -36,11 +36,11 @@ CObject* CDummyObject::CreateObject() {
 
     if (obj) {
         CTheScripts::ScriptsForBrains.CheckIfNewEntityNeedsScript(obj, 1, nullptr);
-        m_bIsVisible = false;
-        m_bUsesCollision = false;
+        SetIsVisible(false);
+        SetUsesCollision(false);
 
-        obj->m_nLodIndex = m_nLodIndex;
-        m_nLodIndex = 0;
+        obj->SetLod(GetLod());
+        SetLod(nullptr);
     }
 
     return obj;
@@ -48,21 +48,21 @@ CObject* CDummyObject::CreateObject() {
 
 // 0x59EB70
 void CDummyObject::UpdateFromObject(CObject* obj) {
-    m_bIsVisible = true;
-    m_bUsesCollision = true;
+    SetIsVisible(true);
+    SetUsesCollision(true);
 
     obj->m_bImBeingRendered = true;
-    CEntity::AttachToRwObject(obj->m_pRwObject, false);
+    CEntity::AttachToRwObject(obj->GetRwObject(), false);
     obj->m_bImBeingRendered = false;
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     obj->DetachFromRwObject();
 
-    if (obj->m_nIplIndex && CIplStore::HasDynamicStreamingDisabled(obj->m_nIplIndex)) {
+    if (obj->GetIplIndex() && CIplStore::HasDynamicStreamingDisabled(obj->GetIplIndex())) {
         m_bRenderDamaged = obj->m_bRenderDamaged;
-        m_bIsVisible = obj->m_bIsVisible;
-        m_bUsesCollision = obj->m_bUsesCollision;
+        SetIsVisible(obj->GetIsVisible());
+        SetUsesCollision(obj->GetUsesCollision());
     }
 
-    m_nLodIndex = obj->m_nLodIndex;
-    obj->m_nLodIndex = 0;
+    SetLod(obj->GetLod());
+    obj->SetLod(nullptr);
 }

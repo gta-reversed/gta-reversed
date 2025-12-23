@@ -103,6 +103,12 @@ template<typename T>
 constexpr inline auto AddressOfFunction(T fn) {
     return +(fn);
 }
+
+//! Implementation of a command handler that does nothing. Optionally takes arguments.
+template<typename... Args>
+void NOPCommandHandler(Args... args) {
+    /* nop */
+}
 };
 };
 
@@ -127,6 +133,10 @@ constexpr inline auto AddressOfFunction(T fn) {
 //! Register a command handler for an unimplemented command (That is, a command that wasn't implemented in the game either)
 #define REGISTER_COMMAND_UNIMPLEMENTED(cmd) \
     REGISTER_COMMAND_HANDLER(cmd, ::notsa::script::detail::NotImplemented)
+
+//! Register a command handler for a nop command (That is, a command that does nothing)
+#define REGISTER_COMMAND_NOP(_cmd, ...) \
+    REGISTER_COMMAND_HANDLER(_cmd, (::notsa::detail::NOPCommandHandler<__VA_ARGS__>))
 
 #ifdef IMPLEMENT_UNSUPPORTED_OPCODES
 //! Register a custom command handler for an un-implemented command. (Won't be implemented if IMPLEMENT_UNSUPPORTED_OPCODES is not defined.)

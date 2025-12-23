@@ -15,7 +15,7 @@ void CAEFireAudioEntity::Initialise(FxSystem_c* system) {
 
 // 0x5B9A90
 void CAEFireAudioEntity::StaticInitialise() {
-    AEAudioHardware.LoadSoundBank(52, 4);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER);
 }
 
 // 0x4DCF40
@@ -41,59 +41,71 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
     m_snLastFireFrequencyIndex = (m_snLastFireFrequencyIndex + 1) % 5;
     const float volume = GetDefaultVolume(audioId);
 
-    CAESound sound;
-    sound.Initialise(
-        4,
-        0,
-        this,
-        posn,
-        volume,
-        2.0f,
-        gfFireFrequencyVariations[m_snLastFireFrequencyIndex],
-        1.0f,
-        0,
-        SOUND_REQUEST_UPDATES,
-        0.0f,
-        0
-    );
-    m_SoundLeft = AESoundManager.RequestNewSound(&sound);
+    m_SoundLeft = AESoundManager.PlaySound({
+        .BankSlotID      = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID         = 0,
+        .AudioEntity     = this,
+        .Pos             = posn,
+        .Volume          = volume,
+        .RollOffFactor   = 2.0f,
+        .Speed           = gfFireFrequencyVariations[m_snLastFireFrequencyIndex],
+        .Flags           = SOUND_REQUEST_UPDATES,
+    });
 
-    if (!AEAudioHardware.IsSoundBankLoaded(138, 19)) {
-        AEAudioHardware.LoadSoundBank(138, 19);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
         return;
     }
 
-    sound.Initialise(
-        19,
-        26,
-        this,
-        posn,
-        volume - 17.0f,
-        2.0f,
-        gfFireFrequencyVariations[m_snLastFireFrequencyIndex] * 0.6f,
-        1.0f,
-        0,
-        SOUND_REQUEST_UPDATES,
-        0.0f,
-        0
-    );
-    sound.m_ClientVariable = volume + 3.0f;
-    sound.m_nEvent = AE_FRONTEND_SELECT;
-    AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        .BankSlotID      = SND_BANK_SLOT_VEHICLE_GEN,
+        .SoundID         = 26,
+        .AudioEntity     = this,
+        .Pos             = posn,
+        .Volume          = volume - 17.0f,
+        .RollOffFactor   = 2.0f,
+        .Speed           = gfFireFrequencyVariations[m_snLastFireFrequencyIndex] * 0.6f,
+        .Doppler         = 1.0f,
+        .FrameDelay      = 0,
+        .Flags           = SOUND_REQUEST_UPDATES,
+        .FrequencyVariance = 0.0f,
+        .PlayTime        = 0,
+        .EventID         = AE_FRONTEND_SELECT,
+        .ClientVariable  = volume + 3.0f,
+    });
 }
 
 // 0x4DD270
 void CAEFireAudioEntity::PlayWaterSounds(eAudioEvents audioId, CVector& posn) {
-    CAESound sound;
-    sound.Initialise(2, 3, this, posn, GetDefaultVolume(audioId), 2.0f, 0.75f, 0.6f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-    sound.m_nEvent = AE_FRONTEND_HIGHLIGHT;
-    sound.m_fSpeedVariability = 0.06f;
-    m_SoundLeft = AESoundManager.RequestNewSound(&sound);
-
-    sound.Initialise(0, 0, this, posn, GetDefaultVolume(audioId) + 20.0f, 2.0f, 1.78f, 0.6f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-    sound.m_fSpeedVariability = 0.06f;
-    sound.m_nEvent = AE_FRONTEND_ERROR;
-    m_SoundRight = AESoundManager.RequestNewSound(&sound);
+    m_SoundLeft = AESoundManager.PlaySound({
+         .BankSlotID        = SND_BANK_SLOT_COLLISIONS,
+         .SoundID           = 3,
+         .AudioEntity       = this,
+         .Pos               = posn,
+         .Volume            = GetDefaultVolume(audioId),
+         .RollOffFactor     = 2.0f,
+         .Speed             = 0.75f,
+         .Doppler           = 0.6f,
+         .FrameDelay        = 0,
+         .Flags             = SOUND_REQUEST_UPDATES,
+         .FrequencyVariance = 0.06f,
+         .PlayTime          = 0,
+         .EventID           = AE_FRONTEND_HIGHLIGHT,
+    });
+    m_SoundRight = AESoundManager.PlaySound({
+        .BankSlotID        = SND_BANK_SLOT_FRONTEND_GAME,
+        .SoundID           = 0,
+        .AudioEntity       = this,
+        .Pos               = posn,
+        .Volume            = GetDefaultVolume(audioId) + 20.0f,
+        .RollOffFactor     = 2.0f,
+        .Speed             = 1.78f,
+        .Doppler           = 0.6f,
+        .FrameDelay        = 0,
+        .Flags             = SOUND_REQUEST_UPDATES,
+        .FrequencyVariance = 0.06f,
+        .PlayTime          = 0,
+        .EventID           = AE_FRONTEND_ERROR,
+    });
 }
 
 // 0x4DCF60
@@ -115,29 +127,29 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         sound->SetPosition(matrix.pos);
     }
 
-    switch (sound->m_nEvent) {
+    switch (sound->m_Event) {
     case AE_FRONTEND_SELECT:
-        if (sound->m_fVolume >= sound->m_ClientVariable) {
-            sound->m_nEvent = AE_FRONTEND_BACK;
+        if (sound->m_Volume >= sound->m_ClientVariable) {
+            sound->m_Event = AE_FRONTEND_BACK;
         } else {
-            sound->m_fVolume = std::min(sound->m_fVolume + 2.0f, sound->m_ClientVariable);
+            sound->m_Volume = std::min(sound->m_Volume + 2.0f, sound->m_ClientVariable);
         }
         break;
     case AE_FRONTEND_BACK:
-        if (sound->m_fVolume <= -30.0f)
+        if (sound->m_Volume <= -30.0f)
             sound->StopSoundAndForget();
         else
-            sound->m_fVolume -= 0.75f;
+            sound->m_Volume -= 0.75f;
         break;
     case AE_FRONTEND_ERROR:
         if (m_FxSystem && m_FxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED) {
-            sound->m_fVolume = -100.0f;
+            sound->m_Volume = -100.0f;
         }
         break;
     case AE_FRONTEND_HIGHLIGHT:
         if (m_FxSystem && m_FxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED) {
-            if (sound->m_fVolume > -100.0f) {
-                sound->m_fVolume -= 1.0f;
+            if (sound->m_Volume > -100.0f) {
+                sound->m_Volume -= 1.0f;
             }
         }
         break;

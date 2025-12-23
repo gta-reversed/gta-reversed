@@ -21,6 +21,8 @@
 
 #include <Attractors/PedAttractorPedPlacer.h>
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
+
 #include <FireManager.h>
 #include <World.h>
 #include <EntryExitManager.h>
@@ -109,7 +111,7 @@ auto SetCharNeverTargetted(CPed& ped, bool bNeverEverTargetThisPed) {
 
 // SET_CHAR_COLLISION
 auto SetCharCollision(CPed& ped, bool bUsesCollision) {
-    ped.m_bUsesCollision = bUsesCollision;
+    ped.SetUsesCollision(bUsesCollision);
 }
 
 // IS_CHAR_SHOOTING
@@ -147,7 +149,7 @@ auto SetCharAllowedToDuck(CPed& ped, CVector rotdeg) {
 }
 
 auto SetCharAreaVisible(CPed& ped, eAreaCodes area) {
-    ped.m_nAreaCode = area;
+    ped.SetAreaCode(area);
     if (area != AREA_CODE_NORMAL_WORLD) {
         return;
     }
@@ -581,7 +583,7 @@ auto SetCharHeading(CPed& ped, float deg) {
     const auto rad = DegreesToRadians(FixAngleDegrees(deg));
     ped.m_fAimingRotation = ped.m_fCurrentRotation = rad;
     ped.SetHeading(rad);
-    ped.UpdateRW();
+    ped.UpdateRwMatrix();
 }
 
 // IS_CHAR_TOUCHING_OBJECT
@@ -627,11 +629,12 @@ CPed& CreateCharInsideCar(CRunningScript& S, CVehicle& veh, ePedType pedType, eM
     return *ped;
 }
 
-// SET_CHAR_HEALTH
+/// SET_CHAR_HEALTH(0223)
 auto SetCharHealth(CPed& ped, float health) {
     if (health != 0.f) {
         if (ped.IsPlayer()) {
-            ped.m_fHealth = std::min(health, ped.m_fMaxHealth);
+            const auto slot = CWorld::FindPlayerSlotWithPedPointer(&ped);
+            ped.m_fHealth = std::min(health, (float)CWorld::Players[slot].m_nMaxHealth);
         } else {
             ped.m_fHealth = health;
             if (ped.m_fMaxHealth == 100.f) {
@@ -803,7 +806,7 @@ auto SetCharVisible(CPed& ped, bool isVisible) {
     if (&ped == FindPlayerPed()) {
         gPlayerPedVisible = isVisible;
     }
-    ped.m_bIsVisible = isVisible;
+    ped.SetIsVisible(isVisible);
 }
 
 // REMOVE_CHAR_ELEGANTLY
@@ -1017,8 +1020,8 @@ auto IsCharInWater(CPed* ped) {
 }
 
 // GET_CHAR_WEAPON_IN_SLOT
-auto GetCharWeaponInSlot(CPed& ped, eWeaponSlot slut) {
-    const auto& wep = ped.GetWeaponInSlot(slut);
+auto GetCharWeaponInSlot(CPed& ped, int slot) {
+    const auto& wep = ped.GetWeaponInSlot(slot - 1); // 1-based slot index
     return notsa::script::return_multiple(wep.m_Type, wep.m_TotalAmmo, CPickups::ModelForWeapon(wep.m_Type));
 }
 
@@ -1148,7 +1151,7 @@ auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
         DoSetPedIsWaitingForCollision(S, ped);
     } else if (ped.m_bIsStaticWaitingForCollision) {
         ped.m_bIsStaticWaitingForCollision = false;
-        if (!ped.IsStatic()) { // TODO: I think this is inlined
+        if (!ped.GetIsStatic()) {
             ped.AddToMovingList();
         }
     }
@@ -1179,7 +1182,7 @@ auto IsCharInTaxi(CPed& ped) {
 auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return ScriptThing<CDecisionMaker>
     char pedDMName[1024];
     CDecisionMakerTypesFileLoader::GetPedDMName(type, pedDMName);
-    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DECISION_ON_FOOT, S.m_UsesMissionCleanup);
+    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DEFAULT_DECISION_MAKER, S.m_UsesMissionCleanup);
     const auto handle = CTheScripts::GetNewUniqueScriptThingIndex(id, SCRIPT_THING_DECISION_MAKER);
     if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(handle, MISSION_CLEANUP_ENTITY_TYPE_DECISION_MAKER);
@@ -1428,7 +1431,7 @@ bool IsCharGettingInToACar(CPed& ped) {
 
 // GET_CHAR_AREA_VISIBLE
 uint32 GetCharAreaVisible(CPed& ped) {
-    return ped.m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD;
+    return ped.GetAreaCode() != eAreaCodes::AREA_CODE_NORMAL_WORLD;
 }
 
 // HAS_CHAR_SPOTTED_CHAR_IN_FRONT
@@ -1446,25 +1449,32 @@ void ShutCharUpForScriptedSpeech(CPed* ped, bool disable) {
 
 // IS_CHAR_TOUCHING_CHAR
 bool IsCharTouchingChar(CPed& ped, CPed& other) {
-    const auto GetRelevantEntity = [](CPed& _ped) -> CPhysical* {
-        return _ped.IsInVehicle() ? _ped.m_pVehicle->AsPhysical() : _ped.AsPhysical();
+    const auto GetRelevantEntity = [](CPed& p) -> CPhysical* {
+        return p.IsInVehicle()
+            ? p.m_pVehicle->AsPhysical()
+            : p.AsPhysical();
     };
     return GetRelevantEntity(ped)->GetHasCollidedWith(GetRelevantEntity(other));
 }
 
 // IS_CHAR_ATTACHED_TO_ANY_CAR
 bool IsCharAttachedToAnyCar(CPed* ped) {
-    return ped && ped->m_nType == ENTITY_TYPE_VEHICLE;
+    return ped && ped->GetIsTypeVehicle();
 }
 
 // STORE_CAR_CHAR_IS_ATTACHED_TO_NO_SAVE
 CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
-    if (ped->m_nType != ENTITY_TYPE_VEHICLE) {
+    if (!ped->GetIsTypeVehicle()) {
         return nullptr;
     }
     return ped->m_pAttachedTo->AsVehicle();
 }
 };
+
+// 0x46BCEA - COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY
+void ClearCharTasksImmediately(CPed& ped) {
+    ped.GetIntelligence()->FlushImmediately(true);
+}
 
 void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Char");
@@ -1660,7 +1670,7 @@ void notsa::script::commands::character::RegisterHandlers() {
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_RELATIONSHIP, SetCharRelationship);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CHAR_RELATIONSHIP, ClearCharRelationship);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_ALL_CHAR_RELATIONSHIPS, ClearAllCharRelationships);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY, ClearCharTasksImmediately);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY, ClearCharTasksImmediately);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_GOTO_CHAR_AIMING, TaskGotoCharAiming);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_KILL_CHAR_ON_FOOT_TIMED, TaskKillCharOnFootTimed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_IN_ANY_SEARCHLIGHT, IsCharInAnySearchlight);

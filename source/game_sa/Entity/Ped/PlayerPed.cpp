@@ -175,9 +175,9 @@ void CPlayerPed::RemovePlayerPed(int32 playerId) {
         CVehicle* playerVehicle = player->m_pVehicle;
         if (playerVehicle && playerVehicle->m_pDriver == player)
         {
-            playerVehicle->m_nStatus = STATUS_PHYSICS;
-            playerVehicle->m_fGasPedal = 0.0f;
-            playerVehicle->m_fBreakPedal = 0.1f;
+            playerVehicle->SetStatus(STATUS_PHYSICS);
+            playerVehicle->m_GasPedal = 0.0f;
+            playerVehicle->m_BrakePedal = 0.1f;
         }
         CWorld::Remove(static_cast<CEntity*>(player));
         delete player;
@@ -392,7 +392,7 @@ bool CPlayerPed::PedCanBeTargettedVehicleWise(CPed* ped) {
 
 // 0x609DE0
 float CPlayerPed::FindTargetPriority(CEntity* entity) {
-    switch (entity->m_nType) {
+    switch (entity->GetType()) {
     case ENTITY_TYPE_VEHICLE:
         return 0.1f;
 
@@ -604,8 +604,8 @@ void CPlayerPed::MakePlayerGroupDisappear() {
     for (int i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
         if (CPed* member = membership.GetMember(i)) {
             if (!member->IsCreatedByMission()) {
-                member->m_bCollisionProcessed = false;
-                member->m_bIsVisible = false;
+                member->SetCollisionProcessed(false);
+                member->SetIsVisible(false);
                 abTempNeverLeavesGroup[i] = member->bNeverLeavesGroup;
                 member->bNeverLeavesGroup = true;
             }
@@ -619,9 +619,9 @@ void CPlayerPed::MakePlayerGroupReappear() {
     for (int i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
         if (CPed* member = membership.GetMember(i)) {
             if (!member->IsCreatedByMission()) {
-                member->m_bIsVisible = true;
+                member->SetIsVisible(true);
                 if (!member->bInVehicle)
-                    member->m_bUsesCollision = true;
+                    member->SetUsesCollision(true);
                 member->bNeverLeavesGroup = abTempNeverLeavesGroup[i];
             }
         }
@@ -755,7 +755,7 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
 // 0x60B550
 bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2) {
     CVector origin{};
-    if (entity1->IsPed()) {
+    if (entity1->GetIsTypePed()) {
         origin = entity1->AsPed()->GetBonePosition(eBoneTag::BONE_NECK, false);
         if (entity1->AsPed()->bIsDucking)
             origin.z += 0.35f;
@@ -763,7 +763,7 @@ bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2) {
         origin = entity1->GetPosition();
     }
 
-    const auto target = entity2->IsPed()
+    const auto target = entity2->GetIsTypePed()
         ? entity1->AsPed()->GetBonePosition(eBoneTag::BONE_NECK, false)
         : entity1->GetPosition();
 
@@ -785,24 +785,26 @@ void CPlayerPed::DrawTriangleForMouseRecruitPed() {
 }
 
 // 0x60C0C0
-bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* entity, CWeapon* weapon) {
-    if (entity->m_bIsVisible)
+bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* target, CWeapon* weapon) {
+    if (!target->GetIsVisible()) {
         return true;
+    }
 
-    if (weapon->GetWeaponInfo(this).m_fTargetRange < (entity->GetPosition() - GetPosition()).Magnitude())
+    if (weapon->GetWeaponRange(this, target) < (target->GetPosition() - GetPosition()).Magnitude()) {
         return true;
+    }
 
     if (weapon->m_Type == eWeaponType::WEAPON_SPRAYCAN) {
-        if (entity->IsBuilding()) {
-            if (CTagManager::IsTag(entity)) {
-                if (CTagManager::GetAlpha(entity) == 255) { // they probably used -1
+        if (target->GetIsTypeBuilding()) {
+            if (CTagManager::IsTag(target)) {
+                if (CTagManager::GetAlpha(target) == 255) { // they probably used -1
                     return true;
                 }
             }
         }
     }
 
-    return CanIKReachThisTarget(entity->GetPosition(), weapon, false);
+    return !CanIKReachThisTarget(target->GetPosition(), weapon, false);
 }
 
 // 0x60C1E0
@@ -1046,7 +1048,7 @@ void CPlayerPed::ProcessControl() {
         }
         if (m_pTargetedObject) {
             ClearReference(m_p3rdPersonMouseTarget);
-            if (m_pTargetedObject->IsPed()) {
+            if (m_pTargetedObject->GetIsTypePed()) {
                 CPed* targetPed = m_pTargetedObject->AsPed();
                 auto weaponInfo = CWeaponInfo::GetWeaponInfo(GetActiveWeapon().m_Type, GetWeaponSkill());
                 float targetHeadRange = weaponInfo->GetTargetHeadRange();
@@ -1080,11 +1082,11 @@ void CPlayerPed::ProcessControl() {
                     if (targetVeh)
                         effectPos += (targetVeh->m_vecMoveSpeed + targetVeh->m_vecTurnSpeed) * CTimer::GetTimeStep();
                 }
-            } else if (m_pTargetedObject->IsVehicle()) {
+            } else if (m_pTargetedObject->GetIsTypeVehicle()) {
                 CVehicle* targetVeh = m_pTargetedObject->AsVehicle();
                 effectPos = (targetVeh->m_vecMoveSpeed + targetVeh->m_vecTurnSpeed) * CTimer::GetTimeStep();
                 effectPos += targetVeh->GetPosition();
-            } else if (m_pTargetedObject->IsObject()) {
+            } else if (m_pTargetedObject->GetIsTypeObject()) {
                 CObject* targetObj = m_pTargetedObject->AsObject();
                 effectPos = targetObj->m_vecMoveSpeed * CTimer::GetTimeStep();
                 effectPos += targetObj->GetPosition();
@@ -1193,7 +1195,7 @@ void CPlayerPed::ProcessControl() {
     ProcessGroupBehaviour(pad);
     if (bInVehicle)
         CCarCtrl::RegisterVehicleOfInterest(m_pVehicle);
-    if (!m_bIsVisible)
+    if (!GetIsVisible())
         UpdateRpHAnim();
     if (bInVehicle) {
         CPad* pad = CPad::GetPad(0);

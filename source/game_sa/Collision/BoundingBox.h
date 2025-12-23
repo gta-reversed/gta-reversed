@@ -20,4 +20,5 @@ public:
 
 VALIDATE_SIZE(CBoundingBox, 0x18);
 
-static inline int32& numBBFailed = *(int32*)0xB71808;
+// in entity.cpp
+static int32 numBBFailed; // 0xB71808

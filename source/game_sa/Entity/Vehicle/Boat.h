@@ -29,51 +29,52 @@ enum eBoatNodes {
 
 class NOTSA_EXPORT_VTABLE CBoat : public CVehicle {
 public:
-    float m_fMovingHiRotation; // works as counter also
-    float m_fPropSpeed;        // propeller speed
-    float m_fPropRotation;     // propeller rotation (radians)
-    struct {
-        uint8 bOnWater : 1; // is placed on water
-        uint8 bMovingOnWater : 1;
-        uint8 bAnchored : 1; // is anchored
+    float m_Scan; // works as counter also
+    float m_EngineSpeed; // propeller speed
+    float m_PropellerAngle; // propeller rotation (radians)
+
+    struct CBoatFlags {
+        uint8 bBoatInWater : 1; // is placed on water
+        uint8 bBoatEngineInWater : 1;
+        uint8 bLockedToXY : 1; // is anchored
     } m_nBoatFlags;
-    RwFrame*           m_aBoatNodes[BOAT_NUM_NODES];
-    CDoor              m_boatFlap; // for marquis model
-    tBoatHandlingData* m_pBoatHandling;
-    float              m_fAnchoredAngle; // radians, initialised with -9999.99
-    uint32             m_nAttackPlayerTime;
-    int32              field_604;       // initialised with 0, not used
-    float              m_fBurningTimer; // starts when vehicle health is lower than 250.0, boat blows up when it hits 5000.0
-    CEntity*           m_pWhoDestroyedMe;
-    CVector            m_vecBoatMoveForce; // m_vecBoatMoveForce = m_vecMoveForce + m_vecFrictionMoveForce
-    CVector            m_vecBoatTurnForce; // m_vecBoatTurnForce = m_vecTurnForce + m_vecFrictionTurnForce
-    FxSystem_c*        m_apPropSplashFx[2];
-    CVector            m_vecWaterDamping; // { 0.0f, 0.0f, DampingPower }
-    char               field_63C;         // initialised with 0, maybe boat handling type (@CBoat::DebugCode)
-    uint8              m_nPadNumber;      // 0 - 3
-    float              m_fLastWaterImmersionDepth; // initialised with 7.0f, 0.0f - not in water
-    int16              m_nNumWaterTrailPoints;
-    CVector2D          m_avecWakePoints[32];
-    float              m_afWakePointLifeTime[32];
-    uint8              m_anWakePointIntensity[32]; // m_anWakePointIntensity[i] = boat->m_vecMoveForce.Magnitude() * 100.0f;
+
+    RwFrame* m_BoatNodes[BOAT_NUM_NODES];
+    CDoor m_BoatDoor;
+
+    tBoatHandlingData* m_BoatHandling;
+
+    float m_LockedHeading; // radians
+
+    uint32 m_NextTalkTimer;
+    uint32 m_TimeOfLastParticle; // unused
+
+    float m_BlowUpTimer; // starts when vehicle health is lower than 250.0, boat blows up when it hits 5000.0
+    CEntity* m_EntityThatSetUsOnFire;
+
+    CVector m_OldMoveSpeed; // m_OldMoveSpeed = m_vecMoveForce + m_vecFrictionMoveForce
+    CVector m_OldTurnSpeed; // m_OldTurnSpeed = m_vecTurnForce + m_vecFrictionTurnForce
+
+    FxSystem_c* m_fxSysProp[2];
+    CVector m_fxBuoyancyForce; // { 0.0f, 0.0f, DampingPower }
+
+    uint8 m_CurrentField; // unused
+
+    uint8 m_PadNum; // essentially unused, 0 - 3
+
+    float m_PrevVolume; // 0.0f - not in water
+
+    uint16 m_NumWakeCoords;
+    CVector2D m_WakeCoords[32];
+    float m_WakePtCounters[32];
+    uint8 m_WakeBoatSpeed[32]; // m_WakeBoatSpeed[i] = boat->m_vecMoveForce.Magnitude() * 100.0f;
 
     static constexpr int32 NUM_WAKE_GEN_BOATS = 4;
-    static inline std::array<CBoat*, NUM_WAKE_GEN_BOATS>& apFrameWakeGeneratingBoats = *(std::array<CBoat*, NUM_WAKE_GEN_BOATS>*)0xC27994;
-    static float& MAX_WAKE_LENGTH;
-    static float& MIN_WAKE_INTERVAL;
-    static float& WAKE_LIFETIME;
-    static float& fShapeLength;
-    static float& fShapeTime;
-    static float& fRangeMult;
 
-    static int16 (&waUnknArr)[4];
-    static int16 (&waUnknArr2)[4];
-
-    static const constexpr auto uiNumVertices{ 4u };
-    static RxObjSpace3DVertex* aRenderVertices;
-
-    static const constexpr auto uiNumIndices{ 6u };
-    static RxVertexIndex* auRenderIndices;
+    static inline std::array<CBoat*, NUM_WAKE_GEN_BOATS> apFrameWakeGeneratingBoats{}; // 0xC27994
+    static constexpr float MAX_WAKE_LENGTH = 50.0f; // 0x8D3938, unused
+    static constexpr float MIN_WAKE_INTERVAL = 2.0f; // 0x8D393C
+    static constexpr float WAKE_LIFETIME = 150.0f; // 0x8D3940
 
     static constexpr auto Type = VEHICLE_TYPE_BOAT;
 
@@ -81,29 +82,36 @@ public:
     CBoat(int32 modelIndex, eVehicleCreatedBy createdBy);
     ~CBoat() override;
 
-    void SetModelIndex(uint32 index) override;
     void ProcessControl() override;
-    void Teleport(CVector destination, bool resetRotation) override;
+    void Teleport(CVector newCoors, bool clearOrientation) override;
+    void ProcessControlInputs(uint8 padNum) override;
+
     void PreRender() override;
     void Render() override;
-    void ProcessControlInputs(uint8 playerNum) override;
-    void GetComponentWorldPosition(int32 componentId, CVector& outPos) override;
-    void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) override;
-    void BlowUpCar(CEntity* damager, bool bHideExplosion) override;
 
-    inline void SetupModelNodes(); // fill m_aBoatNodes array
+    void SetModelIndex(uint32 index) override;
+    void SetupModelNodes(); // fill m_boatNodes array
+    void GetComponentWorldPosition(int32 componentId, CVector& posn) override;
+    bool IsComponentPresent(int32 component) const override;
+    void BlowUpCar(CEntity* culprit, bool inACutscene) override;
+
+    void DisplayHandlingData();
+    void ModifyHandlingValue(const bool& plus);
+
     void DebugCode();
-    void PrintThrustAndRudderInfo();
-    void ModifyHandlingValue(const bool& bIncrement);
+
     void PruneWakeTrail();
-    void AddWakePoint(CVector posn);
-    void RenderWakePoints(); // NOTSA
+    void AddWakePoint(CVector pos);
 
+    void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroupId, uint32 animId, float currTime) override { /* Do nothing */ } // 0x6F0190
 
-    static bool IsSectorAffectedByWake(CVector2D vecPos, float fOffset, CBoat** ppBoats);
-    static float IsVertexAffectedByWake(CVector vecPos, CBoat* boat, int16 wIndex, bool bUnkn);
-    static void CheckForSkippingCalculations();
     static void FillBoatList();
+    static bool IsSectorAffectedByWake(CVector2D centreCoords, float semiSize, CBoat** ppBoats);
+    static float IsVertexAffectedByWake(CVector coords, CBoat* boat, int16 wakeQuadrant, bool forceCheck);
+    static void CheckForSkippingCalculations();
+
+    // NOTSA region
+
     static void RenderAllWakePointBoats();
 
 private:
@@ -111,13 +119,20 @@ private:
     static void InjectHooks();
 
     void inline ProcessBoatNodeRendering(eBoatNodes eNode, float fRotation, RwUInt8 ucAlpha);
+    void RenderWakePoints();
 
 private: // Wrappers for hooks
     // 0x6F2940
-    CBoat* Constructor(int32 modelId, eVehicleCreatedBy createdBy) { this->CBoat::CBoat(modelId, createdBy); return this; }
+    CBoat* Constructor(int32 modelId, eVehicleCreatedBy createdBy) {
+        this->CBoat::CBoat(modelId, createdBy);
+        return this;
+    }
 
     // 0x6F00F0
-    CBoat* Destructor() { this->CBoat::~CBoat(); return this; }
+    CBoat* Destructor() {
+        this->CBoat::~CBoat();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CBoat, 0x7E8);

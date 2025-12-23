@@ -64,14 +64,10 @@ bool IsFirstCarColor(CVehicle& veh, int32 color) {
 bool IsSecondCarColor(CVehicle& veh, int32 color) {
     return veh.m_nSecondaryColor == color;
 }
-MultiRet<uint8, uint8> GetExtraCarColors(CVehicle& veh) {
-    return {veh.m_nTertiaryColor, veh.m_nQuaternaryColor};
-}
 
-//void FixCar(CVehicle& vehicle) {
-//
-//}
-//REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
+MultiRet<uint8, uint8> GetExtraCarColors(CVehicle& veh) {
+    return { veh.m_nTertiaryColor, veh.m_nQuaternaryColor };
+}
 
 void PopCarBootUsingPhysics(CAutomobile& automobile) {
     automobile.PopBootUsingPhysics();
@@ -80,7 +76,6 @@ void PopCarBootUsingPhysics(CAutomobile& automobile) {
 void SkipToNextAllowedStation(CTrain& train) {
     CTrain::SkipToNextAllowedStation(&train);
 }
-
 
 void SetRailTrackResistanceMult(float value) {
     CVehicle::ms_fRailTrackResistance = CVehicle::ms_fRailTrackResistanceDefault * (value > 0.0f ? value : 1.0f);
@@ -96,13 +91,50 @@ void DisableHeliAudio(CVehicle& vehicle, bool enable) {
 
 bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
     for (auto* const e : vehicle.GetCollidingEntities()) {
-        if (e && (e->IsBuilding() || e->IsVehicle())) {
+        if (e && (e->GetIsTypeBuilding() || e->GetIsTypeVehicle())) {
             return false;
         }
     }
     return true;
 }
-};
+
+bool IsCarStuck(CVehicle& vehicle) {
+    return CTheScripts::StuckCars.HasCarBeenStuckForAWhile(GetVehiclePool()->GetRef(&vehicle));
+}
+
+void AddStuckCarCheck(CVehicle& vehicle, float stuckRadius, uint32 time) {
+    CTheScripts::StuckCars.AddCarToCheck(GetVehiclePool()->GetRef(&vehicle), stuckRadius, time, false, false, false, false, 0);
+}
+
+void RemoveStuckCarCheck(CVehicle& vehicle) {
+    CTheScripts::StuckCars.RemoveCarFromCheck(GetVehiclePool()->GetRef(&vehicle));
+}
+
+void AddStuckCarCheckWithWarp(CVehicle& vehicle, float stuckRadius, uint32 time, bool stuck, bool flipped, bool inWater, int8 numberOfNodesToCheck) {
+    CTheScripts::StuckCars.AddCarToCheck(GetVehiclePool()->GetRef(&vehicle), stuckRadius, time, true, stuck, flipped, inWater, numberOfNodesToCheck);
+}
+
+void PlaneAttackPlayerUsingDogFight(CPlane& plane, CPlayerPed& player, float altitude) {
+    if (plane.m_autoPilot.m_nCarMission != eCarMission::MISSION_PLANE_CRASH_AND_BURN && plane.m_autoPilot.m_nCarMission != eCarMission::MISSION_HELI_CRASH_AND_BURN) {
+        plane.m_autoPilot.SetCarMission(eCarMission::MISSION_PLANE_DOG_FIGHT_PLAYER);
+    }
+    plane.m_minAltitude = altitude;
+}
+
+/// SET_CAR_ALWAYS_CREATE_SKIDS(07EE)
+void SetCarAlwaysCreateSkids(CVehicle& vehicle, bool enable) {
+    vehicle.vehicleFlags.bAlwaysSkidMarks = enable;
+}
+
+/// SET_CAR_AS_MISSION_CAR(0763)
+void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
+    if (S.m_UsesMissionCleanup && (vehicle.IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || vehicle.IsCreatedBy(eVehicleCreatedBy::PARKED_VEHICLE))) {
+        vehicle.SetVehicleCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE);
+        CTheScripts::MissionCleanUp.AddEntityToList(vehicle);
+    }
+}
+
+}
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
@@ -122,6 +154,14 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_RAILTRACK_RESISTANCE_MULT, SetRailTrackResistanceMult);
     REGISTER_COMMAND_HANDLER(COMMAND_DISABLE_HELI_AUDIO, DisableHeliAudio);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AIR_PROPER, IsCarInAirProper);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK, IsCarStuck);
+    REGISTER_COMMAND_HANDLER(COMMAND_ADD_STUCK_CAR_CHECK, AddStuckCarCheck);
+    REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_STUCK_CAR_CHECK, RemoveStuckCarCheck);
+    REGISTER_COMMAND_HANDLER(COMMAND_ADD_STUCK_CAR_CHECK_WITH_WARP, AddStuckCarCheckWithWarp);
+    REGISTER_COMMAND_HANDLER(COMMAND_PLANE_ATTACK_PLAYER_USING_DOG_FIGHT, PlaneAttackPlayerUsingDogFight);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ALWAYS_CREATE_SKIDS, SetCarAlwaysCreateSkids);
+
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);

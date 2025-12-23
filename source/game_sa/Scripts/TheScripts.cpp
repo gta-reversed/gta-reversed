@@ -27,7 +27,7 @@ void CTheScripts::InjectHooks() {
     RH_ScopedClass(CTheScripts);
     RH_ScopedCategory("Scripts");
 
-    RH_ScopedInstall(Init, 0x468D50, {.enabled = false });
+    RH_ScopedInstall(Init, 0x468D50);
     RH_ScopedInstall(InitialiseAllConnectLodObjects, 0x470960);
     RH_ScopedInstall(InitialiseConnectLodObjects, 0x470940);
     RH_ScopedInstall(InitialiseSpecialAnimGroupsAttachedToCharModels, 0x474730);
@@ -136,6 +136,7 @@ void CTheScripts::Init() {
             notsa::format_to_sz(scrFile, "MPACK//MPACK{:d}//SCR.SCM", CGame::bMissionPackGame);
 
             if (auto f = notsa::File(scrFile, "rb"); f && f.Read(ScriptSpace.data(), MAIN_SCRIPT_SIZE) >= 1) {
+                TheText.Load(false);
                 break;
             }
         }
@@ -398,7 +399,7 @@ uint32 CTheScripts::AddScriptSphere(uint32 id, CVector posn, float radius) {
 
 // 0x481140
 void CTheScripts::AddToBuildingSwapArray(CBuilding* building, int32 oldModelId, int32 newModelId) {
-    if (building->m_nIplIndex)
+    if (building->GetIplIndex())
         return;
 
     for (auto& swap : BuildingSwapArray) {
@@ -422,7 +423,7 @@ void CTheScripts::AddToBuildingSwapArray(CBuilding* building, int32 oldModelId, 
 
 // 0x481200
 void CTheScripts::AddToInvisibilitySwapArray(CEntity* entity, bool visible) {
-    if (entity->m_nIplIndex)
+    if (entity->GetIplIndex())
         return;
 
     const auto is = rng::find(InvisibilitySettingArray, entity);
@@ -713,7 +714,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
     const auto cdNumLines = std::exchange(ourColData->m_nNumLines, 0);
 
     for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
-        if (!entity || entity == ourEntity || (entity->IsPed() && entity->AsPed()->IsInVehicle())) {
+        if (!entity || entity == ourEntity || (entity->GetIsTypePed() && entity->AsPed()->IsInVehicle())) {
             continue;
         }
 
@@ -733,7 +734,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             continue;
         }
 
-        if (entity->IsVehicle()) {
+        if (entity->GetIsTypeVehicle()) {
             auto* vehicle = entity->AsVehicle();
             if (vehicle->vehicleFlags.bIsLocked || !vehicle->CanBeDeleted()) {
                 continue;
@@ -757,7 +758,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             delete vehicle;
         }
 
-        if (entity->IsPed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
+        if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
         }
     }
@@ -1052,7 +1053,9 @@ CRunningScript* CTheScripts::StartNewScript(uint8* startIP, uint16 index) {
 
     script->RemoveScriptFromList(&pIdleScripts);
     script->Init();
-    script->SetCurrentIp(startIP);
+    if (startIP) { // NOTSA/BUGFIX: `IP` is initialized to null already, so no need to set it again (As it causes an assert)
+        script->SetCurrentIp(startIP);
+    }
     script->AddScriptToList(&pActiveScripts);
     script->SetActive(true);
 
@@ -1161,32 +1164,32 @@ void CTheScripts::Load() {
         case ScriptSavedObjectType::INVISIBLE:
             // Not saved by the game, but the logic is still there
             if (is) {
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         case ScriptSavedObjectType::BUILDING:
             is = nullptr;
             if (auto* obj = GetBuildingPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible     = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         case ScriptSavedObjectType::OBJECT:
             is = nullptr;
             if (auto* obj = GetObjectPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible     = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         case ScriptSavedObjectType::DUMMY:
             is = nullptr;
             if (auto* obj = GetDummyPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible     = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         default:
@@ -1502,7 +1505,7 @@ void CTheScripts::ProcessAllSearchLights() {
             entity->m_matrix->RotateX(rotX);
             entity->m_matrix->RotateZ(rotZ);
             entity->GetPosition() += prevPos;
-            entity->UpdateRW();
+            entity->UpdateRwMatrix();
             entity->UpdateRwFrame();
         };
 
@@ -1578,8 +1581,8 @@ void CTheScripts::UndoEntityInvisibilitySettings() {
             continue;
         }
 
-        is->m_bIsVisible = true;
-        is->m_bUsesCollision = true;
+        is->SetIsVisible(true);
+        is->SetUsesCollision(true);
 
         is = nullptr; // Remove from the array.
     }
@@ -2001,8 +2004,8 @@ bool CTheScripts::ScriptAttachAnimGroupToCharModel(int32 modelId, const char* if
 void CTheScripts::ScriptConnectLodsFunction(int32 lodRef1, int32 lodRef2) {
     auto obj1 = GetObjectPool()->GetAtRef(lodRef1), obj2 = GetObjectPool()->GetAtRef(lodRef2);
 
-    obj1->m_pLod = obj2;
-    ++obj2->m_nNumLodChildren;
+    obj1->SetLod(obj2);
+    obj2->AddLodChildren();
     CWorld::Remove(obj2);
     obj2->SetupBigBuilding();
     CWorld::Add(obj2);

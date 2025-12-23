@@ -3,6 +3,10 @@
 #include "EventEditableResponse.h"
 #include "Vector.h"
 
+class CPedGroup;
+class CPed;
+class CEntity;
+
 class NOTSA_EXPORT_VTABLE CEventAcquaintancePed : public CEventEditableResponse {
 public:
     CPed* m_AcquaintancePed;

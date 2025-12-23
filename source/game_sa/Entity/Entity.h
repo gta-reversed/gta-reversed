@@ -37,11 +37,17 @@ class CBaseModelInfo;
 
 class NOTSA_EXPORT_VTABLE CEntity : public CPlaceable {
 public:
+    struct CEntityInfo {
+        eEntityType   m_nType : 3;   // Mask: & 0x7  = 7
+        eEntityStatus m_nStatus : 5; // Mask: & 0xF8 = 248 (Remember: In the original code unless this was left shifted the value it's compared to has to be left shifted by 3!)
+    };
+
     union {
         struct RwObject* m_pRwObject;
         struct RpClump*  m_pRwClump;
         struct RpAtomic* m_pRwAtomic;
     };
+
     union {
         struct {
             /* https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CEntitySA.h */
@@ -81,125 +87,220 @@ public:
             bool m_bTunnel : 1;                      // Is this model part of a tunnel
             bool m_bTunnelTransition : 1;            // This model should be rendered from within and outside the tunnel
         };
+
         uint32 m_nFlags;
     };
-    /* */
+
     union {
         struct {
             uint16 m_nRandomSeedUpperByte : 8;
             uint16 m_nRandomSeedSecondByte : 8;
         };
+
         uint16 m_nRandomSeed;
     };
-    uint16           m_nModelIndex;
-    CReference*      m_pReferences;
+
+    uint16 m_nModelIndex;
+
+    CReference* m_pReferences;
+
+protected:
     CLink<CEntity*>* m_pStreamingLink;
-    uint16           m_nScanCode;
-    uint8            m_nIplIndex;
-    eAreaCodes       m_nAreaCode;
+
+    uint16     m_ScanCode;
+    uint8      m_IplIndex;
+    eAreaCodes m_AreaCode;
+
     union {
         int32    m_nLodIndex; // -1 - without LOD model
         CEntity* m_pLod;
     };
-    int8          m_nNumLodChildren;
-    uint8         m_nNumLodChildrenRendered;
-    eEntityType   m_nType : 3;          // Mask: & 0x7  = 7
-    eEntityStatus m_nStatus : 5;        // Mask: & 0xF8 = 248 (Remember: In the original code unless this was left shifted the value it's compared to has to be left shifted by 3!)
+
+    uint8 m_NumLodChildren;
+
+    int8 m_NumLodChildrenRendered;
+
+    CEntityInfo m_info;
 
 public:
     CEntity();
     ~CEntity() override;
 
-    virtual void Add();                                             // VTab: 2, similar to previous, but with entity bound rect
-    virtual void Add(const CRect& rect);                            // VTab: 1
-    virtual void Remove();                                          // VTab: 3
-    virtual void SetIsStatic(bool isStatic);                        // VTab: 4
-    virtual void SetModelIndex(uint32 index);                       // VTab: 5
-    virtual void SetModelIndexNoCreate(uint32 index);               // VTab: 6
-    virtual void CreateRwObject();                                  // VTab: 7
-    virtual void DeleteRwObject();                                  // VTab: 8
-    virtual CRect GetBoundRect();                                   // VTab: 9
-    virtual void ProcessControl();                                  // VTab: 10
-    virtual void ProcessCollision();                                // VTab: 11
-    virtual void ProcessShift();                                    // VTab: 12
-    virtual bool TestCollision(bool bApplySpeed);                   // VTab: 13
-    virtual void Teleport(CVector destination, bool resetRotation); // VTab: 14
-    virtual void SpecialEntityPreCollisionStuff(CPhysical* colPhysical,
-                                                bool bIgnoreStuckCheck,
-                                                bool& bCollisionDisabled,
-                                                bool& bCollidedEntityCollisionIgnored,
-                                                bool& bCollidedEntityUnableToMove,
-                                                bool& bThisOrCollidedEntityStuck);                                    // VTab: 15
-    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);          // VTab: 16
-    virtual void PreRender();                                                                                         // VTab: 17
-    virtual void Render();                                                                                            // VTab: 18
-    virtual bool SetupLighting();                                                                                     // VTab: 19
-    virtual void RemoveLighting(bool bRemove);                                                                        // VTab: 20
-    virtual void FlagToDestroyWhenNextProcessed();                                                                    // VTab: 21
+    virtual void Add();
+    virtual void Add(const CRect& rect);
+    virtual void Remove();
+
+    void SetTypeBuilding() { SetType(ENTITY_TYPE_BUILDING); }
+    void SetTypeVehicle()  { SetType(ENTITY_TYPE_VEHICLE); }
+    void SetTypePed()      { SetType(ENTITY_TYPE_PED); }
+    void SetTypeObject()   { SetType(ENTITY_TYPE_OBJECT); }
+    void SetTypeDummy()    { SetType(ENTITY_TYPE_DUMMY); }
+
+    [[nodiscard]] bool GetIsTypeBuilding() const { return GetType() == ENTITY_TYPE_BUILDING; }
+    [[nodiscard]] bool GetIsTypeVehicle()  const { return GetType() == ENTITY_TYPE_VEHICLE; }
+    [[nodiscard]] bool GetIsTypePed()      const { return GetType() == ENTITY_TYPE_PED; }
+    [[nodiscard]] bool GetIsTypeObject()   const { return GetType() == ENTITY_TYPE_OBJECT; }
+    [[nodiscard]] bool GetIsTypeDummy()    const { return GetType() == ENTITY_TYPE_DUMMY; }
+    [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, orig GetIsPhysical
+
+    void SetType(eEntityType type) { m_info.m_nType = type; }
+    [[nodiscard]] auto GetType() const noexcept { return m_info.m_nType; }
+
+    void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
+    [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
+
+    // 0x541F70
+    bool TreatAsPlayerForCollisions() {
+        return GetStatus() == STATUS_PLAYER;
+    }
+
+    void SetUsesCollision(bool usesCollision) { m_bUsesCollision = usesCollision; }
+    bool GetUsesCollision() const { return m_bUsesCollision; }
+    void SetCollisionProcessed(bool collisionProcessed) { m_bCollisionProcessed = collisionProcessed; }
+    bool GetCollisionProcessed() const { return m_bCollisionProcessed; } // unused
+    virtual void SetIsStatic(bool isStatic) { m_bIsStatic = isStatic; } // 0x403E20
+    bool GetIsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
+    void SetHasContacted(bool hasContacted) { m_bHasContacted = hasContacted; }
+    bool GetHasContacted() const { return m_bHasContacted; }
+    void SetIsStuck(bool isStuck) { m_bIsStuck = isStuck; }
+    bool GetIsStuck() const { return m_bIsStuck; }
+    void SetIsInSafePosition(bool isInSafePosition) { m_bIsInSafePosition = isInSafePosition; }
+    bool GetIsInSafePosition() const { return m_bIsInSafePosition; }
+    void SetWasPostponed(bool wasPostponed) { m_bWasPostponed = wasPostponed; }
+    bool GetWasPostponed() const { return m_bWasPostponed; }
+    void SetIsVisible(bool isVisible) { m_bIsVisible = isVisible; }
+    bool GetIsVisible() const { return m_bIsVisible; }
+    void SetHasHitWall(bool hasHitWall) { m_bHasHitWall = hasHitWall; }
+    bool GetHasHitWall() const { return m_bHasHitWall; }
+    void SetIsBackfaceCulled(bool backfaceCulled) { m_bBackfaceCulled = backfaceCulled; }
+    bool GetIsBackfaceCulled() const { return m_bBackfaceCulled; } // unused
+    void SetIsUnimportantStream(bool unimportantStream) { m_bUnimportantStream |= unimportantStream; }
+
+    void SetScanCode(uint16 scanCode) { m_ScanCode = scanCode; }
+    uint16 GetScanCode() const { return m_ScanCode; }
+    void SetAreaCode(eAreaCodes areaCode) { m_AreaCode = areaCode; }
+    eAreaCodes GetAreaCode() const { return m_AreaCode; }
+    void SetIplIndex(uint8 iplIndex) { m_IplIndex = iplIndex; }
+    uint8 GetIplIndex() { return m_IplIndex; }
+
+    virtual void SetModelIndex(uint32 index);
+    virtual void SetModelIndexNoCreate(uint32 index);
+    uint32 GetModelIndex() const { return m_nModelIndex; }
+    auto GetModelId() const { return (eModelID)m_nModelIndex; } // NOTSA
+    RwObject* GetRwObject() const { return m_pRwObject; }
+    virtual void CreateRwObject();
+    void AttachToRwObject(RwObject* object, bool updateMatrix);
+    void DetachFromRwObject();
+    virtual void DeleteRwObject();
+
+    RwMatrix* GetRwMatrix();
+    void UpdateRwMatrix();
+
+    CVector GetBoundCentre() const;
+    void GetBoundCentre(CVector& outCentre) const;
+
+    float GetBoundRadius() const;
+    virtual CRect GetBoundRect() const;
+
+    CColModel* GetColModel() const;
+
+    // is entity touching entity
+    bool GetIsTouching(CEntity* entity) const;
+    // is entity touching sphere
+    bool GetIsTouching(const CVector& centre, float radius) const;
+
+    bool GetIsOnScreen();
+    bool GetIsBoundingBoxOnScreen();
+    bool IsEntityOccluded();
+
+    bool IsInCurrentArea() const;
+    bool IsInArea(int32 area);
+    bool IsVisible();
+    bool IsVisibleComplex() { return IsVisible(); } // unused
+
+    virtual void ProcessControl() { /* Do nothing */ } // 0x403E40
+    virtual void ProcessCollision() { /* Do nothing */ } // 0x403E50
+    virtual void ProcessShift() { /* Do nothing */ } // 0x403E60
+    virtual bool TestCollision(bool applySpeed) { return false; } // 0x403E70
+    virtual void Teleport(CVector newCoors, bool clearOrientation) { /* Do nothing */ } // 0x403E80
+    virtual void SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool doingShift, bool& skipTestEntirely, bool& skipCol, bool& forceBuildingCol, bool& forceSoftCol) { /* Do nothing */ } // 0x403E90
+    virtual uint8 SpecialEntityCalcCollisionSteps(bool& doPreCheckAtFullSpeed, bool& doPreCheckAtHalfSpeed) { return 1; } // 0x403EA0
 
     void UpdateRwFrame();
     void UpdateRpHAnim();
+
     bool HasPreRenderEffects();
     bool DoesNotCollideWithFlyers();
-    void ModifyMatrixForPoleInWind();
-    bool LivesInThisNonOverlapSector(int32 sectorX, int32 sectorY);
-    void SetupBigBuilding();
-    void ModifyMatrixForCrane();
-    void PreRenderForGlassWindow();
-    void SetRwObjectAlpha(int32 alpha);
-    CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
-    C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
-    CVector TransformFromObjectSpace(const CVector& offset);
-    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset);
-    void CreateEffects();
-    void DestroyEffects();
-    void AttachToRwObject(RwObject* object, bool updateEntityMatrix);
-    void DetachFromRwObject();
-    CVector* GetBoundCentre(CVector* pOutCentre);
-    void GetBoundCentre(CVector& outCentre);
-    CVector GetBoundCentre();
-    void RenderEffects();
-    // is entity touching entity
-    bool GetIsTouching(CEntity* entity);
-    // is entity touching sphere
-    bool GetIsTouching(const CVector& centre, float radius);
-    bool GetIsOnScreen();
-    bool GetIsBoundingBoxOnScreen();
-    void ModifyMatrixForTreeInWind();
-    void ModifyMatrixForBannerInWind();
-    RwMatrix* GetModellingMatrix();
-    CColModel* GetColModel() const;
-    void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
+    virtual void PreRender();
+    virtual void Render();
     void UpdateAnim();
-    bool IsVisible();
-    float GetDistanceFromCentreOfMassToBaseOfModel() const;
-    void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
 
-    /*!
-     * @addr 0x571A40
-     * @brief Clear (set to null) references to `this`
-    */
+    void BuildWindSockMatrix();
+    bool LivesInThisNonOverlapSector(int32 x, int32 y);
+    float GetDistanceFromCentreOfMassToBaseOfModel() const;
+
+    void ProcessLightsForEntity();
+
+    void RemoveEscalatorsForEntity();
+
+    virtual bool SetupLighting();
+    virtual void RemoveLighting(bool reset);
+
+    void SetupBigBuilding();
+
+    void RegisterReference(CEntity** entity);
+
+    void CleanUpOldReference(CEntity** entity);
     void ResolveReferences();
     void PruneReferences();
-    void RegisterReference(CEntity** entity);
-    void ProcessLightsForEntity();
-    void RemoveEscalatorsForEntity();
-    bool IsEntityOccluded();
-    bool IsInCurrentAreaOrBarberShopInterior() const;
-    bool IsInCurrentArea() const;
-    void UpdateRW();
-    // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
+    void ModifyMatrixForTreeInWind();
+    void ModifyMatrixForBannerInWind();
+    void ModifyMatrixForCrane();
+    void PreRenderForGlassWindow();
+
+    virtual void FlagToDestroyWhenNextProcessed() { /* Do nothing */ } // 0x403EB0
+
+    void SetRwObjectAlpha(int32 alpha);
+
+    void CreateEffects();
+    void DestroyEffects();
+    void RenderEffects();
+
+    void SetLodIndex(uint32 lodIndex) { m_nLodIndex = lodIndex; }
+    uint32 GetLodIndex() { return m_nLodIndex; }
+    void SetLod(CEntity* lod) { m_pLod = lod; }
+    CEntity* GetLod() { return m_pLod; }
+
+    void AddLodChildren() { m_NumLodChildren++; } // orig AddLodChild
+    void RemoveLodChildren() { m_NumLodChildren--; } // orig RemoveLodChild
+    int32 GetNumLodChildren() { return m_NumLodChildren; }
+
+    void AddLodChildrenRendered() { m_NumLodChildrenRendered++; } // orig AddLodChildRendered
+    void ResetLodChildrenRendered() { m_NumLodChildrenRendered = 0; } // orig ResetLodRenderedCounter
+    bool HasLodChildrenRendered() { return m_NumLodChildrenRendered > 0; } // orig HasLodChildBeenRendered
+    int32 GetNumLodChildrenRendered() { return m_NumLodChildrenRendered; }
+    void SetCannotLodChildrenRender() { m_NumLodChildrenRendered = 128; } // orig SetLodChildCannotRender
+    bool CanLodChildrenRender() { return m_NumLodChildrenRendered != 128; } // orig CanLodChildRender
+
+    // 128 = displaySuperLowLodFlag, yes, this is very hacky. Blame R*
+
+    CVector* FindTriggerPointCoors(CVector* pOutVec, int32 index);
+    void CalculateBBProjection(CVector* point1, CVector* point2, CVector* point3, CVector* point4);
+
+    C2dEffect* GetRandom2dEffect(int32 effectType, bool mustBeFree);
+
+    CVector TransformFromObjectSpace(const CVector& offset) const;
+    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset) const;
+    RwMatrix* GetModellingMatrix();
+
+    // NOTSA section
+
+    // Always returns a non-null value. In case there's no LOD object `this` is returned
     CEntity* FindLastLOD() noexcept;
 
-    // NOTSA
-    auto GetModelId() const { return (eModelID)m_nModelIndex; }
     CBaseModelInfo* GetModelInfo() const;
+
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
-
-    auto GetModelID() const { return (eModelID)(m_nModelIndex); }
-
-    //! @notsa
-    bool ProcessScan();
 
     // Wrapper around the mess called `CleanUpOldReference`
     // Takes in `ref` (which is usually a member variable),
@@ -218,7 +319,7 @@ public:
     // + clears the old entity (if any)
     // + set the new entity (if any)
     template<typename T, typename Y>
-        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y> 
+        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y>
     static void ChangeEntityReference(T*& inOutRef, Y* entity) {
         ClearReference(inOutRef); // Clear old
         if (entity) { // Set new (if any)
@@ -229,7 +330,7 @@ public:
 
     // Similar to `ChangeEntityReference`, but doesn't clear the old reference
     template<typename T, typename Y>
-        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y> 
+        requires std::is_base_of_v<CEntity, T> && std::is_base_of_v<CEntity, Y>
     static void SetEntityReference(T*& inOutRef, Y* entity) {
         inOutRef = entity;
         inOutRef->RegisterReference(reinterpret_cast<CEntity**>(&inOutRef));
@@ -261,24 +362,14 @@ public:
     }
 
 public:
-    // Rw callbacks
-    static RpAtomic* SetAtomicAlphaCB(RpAtomic* atomic, void* data);
-    static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
+    // NOTSA section
 
-    [[nodiscard]] bool IsPhysical() const { return m_nType > ENTITY_TYPE_BUILDING && m_nType < ENTITY_TYPE_DUMMY; }
-    [[nodiscard]] bool IsNothing()  const { return m_nType == ENTITY_TYPE_NOTHING; }
-    [[nodiscard]] bool IsVehicle()  const { return m_nType == ENTITY_TYPE_VEHICLE; }
-    [[nodiscard]] bool IsPed()      const { return m_nType == ENTITY_TYPE_PED; }
-    [[nodiscard]] bool IsObject()   const { return m_nType == ENTITY_TYPE_OBJECT; }
-    [[nodiscard]] bool IsBuilding() const { return m_nType == ENTITY_TYPE_BUILDING; }
-    [[nodiscard]] bool IsDummy()    const { return m_nType == ENTITY_TYPE_DUMMY; }
-
-    [[nodiscard]] bool IsModelTempCollision() const { return m_nModelIndex >= MODEL_TEMPCOL_DOOR1 && m_nModelIndex <= MODEL_TEMPCOL_BODYPART2; }
-    [[nodiscard]] bool IsStatic() const { return m_bIsStatic || m_bIsStaticWaitingForCollision; } // 0x4633E0
-    [[nodiscard]] bool IsRCCar()  const { return m_nModelIndex == MODEL_RCBANDIT || m_nModelIndex == MODEL_RCTIGER || m_nModelIndex == MODEL_RCCAM; }
+    [[nodiscard]] bool IsModelTempCollision() const { return GetModelIndex() >= MODEL_TEMPCOL_DOOR1 && GetModelIndex() <= MODEL_TEMPCOL_BODYPART2; }
+    [[nodiscard]] bool IsRCCar() const { return GetModelIndex() == MODEL_RCBANDIT || GetModelIndex() == MODEL_RCTIGER || GetModelIndex() == MODEL_RCCAM; }
 
     auto AsPhysical()         { return reinterpret_cast<CPhysical*>(this); }
     auto AsVehicle()          { return reinterpret_cast<CVehicle*>(this); }
+    auto AsVehicle()    const { return reinterpret_cast<const CVehicle*>(this); }
     auto AsAutomobile()       { return reinterpret_cast<CAutomobile*>(this); }
     auto AsAutomobile() const { return reinterpret_cast<const CAutomobile*>(this); }
     auto AsBike()             { return reinterpret_cast<CBike*>(this); }
@@ -295,24 +386,45 @@ public:
     auto AsBuilding()         { return reinterpret_cast<CBuilding*>(this); }
     auto AsDummy()            { return reinterpret_cast<CDummy*>(this); }
 
-    [[nodiscard]] auto GetType() const noexcept { return (eEntityType)m_nType; }
-    void SetType(eEntityType type) { m_nType = type; }
-
-    [[nodiscard]] auto GetStatus() const noexcept { return m_nStatus; }
-    void SetStatus(eEntityStatus status) { m_nStatus = status; }
-
+    bool ProcessScan();
     bool IsScanCodeCurrent() const;
     void SetCurrentScanCode();
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
+
+    CEntity* Constructor() {
+        this->CEntity::CEntity();
+        return this;
+    }
+
+    CEntity* Destructor() {
+        this->CEntity::~CEntity();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CEntity, 0x38);
 
-bool IsEntityPointerValid(CEntity* entity);
-RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
+inline bool CEntity::IsInCurrentArea() const {
+    return GetAreaCode() == CGame::currArea || GetAreaCode() == AREA_CODE_13;
+}
 
-bool IsGlassModel(CEntity* entity);
+inline bool CEntity::IsInArea(int32 area) {
+    return GetAreaCode() == area || GetAreaCode() == AREA_CODE_13;
+}
+
+inline RwMatrix* CEntity::GetRwMatrix() {
+    return RwFrameGetMatrix(RwFrameGetParent(GetRwObject()));
+}
+
+// Rw callbacks:
+
+static RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data);
+static RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data);
+static RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
+
+bool IsEntityPointerValid(CEntity* entity);
 
 static inline float& GAME_GRAVITY = *(float*)0x863984; // default 0.008f

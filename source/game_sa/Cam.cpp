@@ -194,13 +194,13 @@ void CCam::DoCamBump(float horizontal, float vertical) {
 
 // 0x50DD70
 void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree) {
-    m_vecFront  = (src - dest).Normalized();
+    m_vecFront  = (dest - src).Normalized();
     m_vecSource = src;
 
     // What is this thing?
     {
-        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp       = CrossProduct(rightDir, m_vecFront);
+        auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = rightDir.Cross(m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
@@ -212,18 +212,19 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
     RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.4f); // meant to use nearClip here?
     CacheLastSettingsDWCineyCam();
     gLastFrameProcessedDWCineyCam = CTimer::GetFrameCounter();
-    gHandShaker[0].Process(shakeDegree);
 
+    gHandShaker[0].Process(shakeDegree);
     m_vecFront = gHandShaker[0].m_resultMat.TransformVector(m_vecFront);
+    m_vecFront.Normalise();
 
     {
-        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp       = CrossProduct(rightDir, m_vecFront);
+        auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = rightDir.Cross(m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
-        rightDir = CrossProduct(m_vecFront, m_vecUp).Normalized();
-        m_vecUp  = CrossProduct(rightDir, m_vecFront);
+        rightDir = m_vecFront.Cross(m_vecUp).Normalized();
+        m_vecUp  = rightDir.Cross(m_vecFront);
     }
 }
 
@@ -338,7 +339,7 @@ bool CCam::Using3rdPersonMouseCam() const {
 
 // 0x509DC0
 bool CCam::GetWeaponFirstPersonOn() {
-    return m_pCamTargetEntity && m_pCamTargetEntity->IsPed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
+    return m_pCamTargetEntity && m_pCamTargetEntity->GetIsTypePed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
 }
 
 // inlined -- alpha = vertical angle
@@ -385,11 +386,11 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
         m_fFOV = 70.0f;
     }
 
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
         return;
@@ -444,14 +445,14 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
     // TODO: Put in a function name e.g. 'HandleFreeMouseControl'?
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
-    const auto mouseX = pad1->NewMouseControllerState.X, mouseY = pad1->NewMouseControllerState.Y;
+    const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
 
-    if (mouseX != 0.0f || mouseY != 0.0f) {
-        m_fHorizontalAngle += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
-        m_fVerticalAngle += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
+    if (!amountMouseMoved.IsZero()) {
+        m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
+        m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
-        const auto hv = (float)-pad1->sub_540BD0(targetPed);
-        const auto vv = (float)pad1->sub_540CC0(targetPed);
+        const auto hv = (float)-pad1->LookAroundLeftRight(targetPed);
+        const auto vv = (float)pad1->LookAroundUpDown(targetPed);
 
         m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
         m_fVerticalAngle += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
@@ -494,14 +495,14 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
     gbFirstPersonRunThisFrame = true;
 
     m_fFOV = 70.0f;
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
     if (m_bResetStatics) {
         m_fVerticalAngle   = 0.0f;
         m_fHorizontalAngle = [&] {
-            if (m_pCamTargetEntity->IsPed()) {
+            if (m_pCamTargetEntity->GetIsTypePed()) {
                 return m_pCamTargetEntity->AsPed()->m_fCurrentRotation + DegreesToRadians(90.0f);
             } else {
                 return orientation;
@@ -513,7 +514,7 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
         TheCamera.m_fAvoidTheGeometryProbsTimer = 0.0f;
     }
 
-    if (m_pCamTargetEntity->IsPed()) {
+    if (m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         return;
     }
@@ -862,7 +863,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
     static uint32 dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
     static bool   byte_B70000  = StaticRef<bool>(0xB70000);
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         return;
     }
 
@@ -880,7 +881,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         dword_B6FFFC                = 0;
         dword_B6FFF8                = 0;
     }
-    m_pCamTargetEntity->UpdateRW();
+    m_pCamTargetEntity->UpdateRwMatrix();
     m_pCamTargetEntity->UpdateRwFrame();
     CVector headPosition{};
     targetPed->GetTransformedBonePosition(headPosition, eBoneTag::BONE_HEAD, true);
@@ -888,14 +889,14 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
 
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
-    const auto mouseX = pad1->NewMouseControllerState.X, mouseY = pad1->NewMouseControllerState.Y;
+    const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
     
-    if (mouseX != 0.0f || mouseY != 0.0f) {
-        m_fHorizontalAngle += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
-        m_fVerticalAngle   += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
+    if (!amountMouseMoved.IsZero()) {
+        m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
+        m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
-        const auto hv  = (float)-pad1->sub_540BD0(targetPed);
-        const auto vv  = (float)pad1->sub_540CC0(targetPed);
+        const auto hv  = (float)-pad1->LookAroundLeftRight(targetPed);
+        const auto vv  = (float)pad1->LookAroundUpDown(targetPed);
 
         m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
         m_fVerticalAngle   += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
@@ -934,10 +935,10 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         if (hsTarget && CTimer::GetTimeInMS() - playerData->m_nLastHSMissileLOSTime > 1'000) {
             playerData->m_nLastHSMissileLOSTime = CTimer::GetTimeInMS();
 
-            const auto targetUsesCollision = hsTarget->m_bUsesCollision;
-            const auto playerUsesCollision = player->m_bUsesCollision;
-            hsTarget->m_bUsesCollision     = false;
-            player->m_bUsesCollision       = false;
+            const auto targetUsesCollision = hsTarget->GetUsesCollision();
+            const auto playerUsesCollision = player->GetUsesCollision();
+            hsTarget->SetUsesCollision(false);
+            player->SetUsesCollision(false);
 
             const auto isClear = CWorld::GetIsLineOfSightClear(
                 player->GetPosition(),
@@ -949,8 +950,8 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
                 false,
                 true
             );
-            player->m_bUsesCollision        = playerUsesCollision;
-            hsTarget->m_bUsesCollision      = targetUsesCollision;
+            player->SetUsesCollision(playerUsesCollision);
+            hsTarget->SetUsesCollision(targetUsesCollision);
             playerData->m_bLastHSMissileLOS = isClear;
         }
 
@@ -999,22 +1000,23 @@ bool CCam::Process_WheelCam(const CVector&, float, float, float) {
     return false;
 }
 
+// based on 0x51847C - 0x5184EC
 void CCam::ApplyUnderwaterMotionBlur() {
     static constexpr uint32 UNDERWATER_CAM_BLUR      = 20;    // 0x8CC7A4
     static constexpr float  UNDERWATER_CAM_MAG_LIMIT = 10.0f; // 0x8CC7A8
 
     const auto colorMag = std::sqrt(
-        sq(CTimeCycle::m_CurrentColours.m_fWaterRed) +
-        sq(CTimeCycle::m_CurrentColours.m_fWaterGreen) +
-        sq(CTimeCycle::m_CurrentColours.m_fWaterBlue)
+        sq(CTimeCycle::GetWaterRed()) +
+        sq(CTimeCycle::GetWaterGreen()) +
+        sq(CTimeCycle::GetWaterBlue())
     );
 
     const auto factor = (colorMag <= UNDERWATER_CAM_MAG_LIMIT) ? 1.0f : UNDERWATER_CAM_MAG_LIMIT / colorMag;
 
     TheCamera.SetMotionBlur(
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterRed),
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterGreen),
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterBlue),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterRed()),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterGreen()),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterBlue()),
         UNDERWATER_CAM_BLUR,
         eMotionBlurType::LIGHT_SCENE
     );

@@ -158,7 +158,7 @@ void CCutsceneMgr::DeleteCutsceneData_overlay() {
     for (auto& e : ms_pHiddenEntities | rngv::take(ms_iNumHiddenEntities)) {
         if (e) {
             CEntity::CleanUpOldReference(e);
-            e->m_bIsVisible = true;
+            e->SetIsVisible(true);
         }
     }
     ms_iNumHiddenEntities = 0;
@@ -209,7 +209,7 @@ void CCutsceneMgr::DeleteCutsceneData_overlay() {
 
     const auto player = FindPlayerPed();
     const auto pad = CPad::GetPad(0);
-    player->m_bIsVisible = true;
+    player->SetIsVisible(true);
     pad->bPlayerSafeForCutscene = false;
     pad->Clear(false, false); // moved up here
     player->GetPlayerInfoForThisPlayerPed()->MakePlayerSafe(0, 10000.0);
@@ -255,7 +255,7 @@ void CCutsceneMgr::FinishCutscene() {
         ms_cutsceneTimerS = TheCamera.GetCutSceneFinishTime() / 1000.f;
         TheCamera.FinishCutscene();
     }
-    FindPlayerPed()->m_bIsVisible = true;
+    FindPlayerPed()->SetIsVisible(true);
     FindPlayerInfo().MakePlayerSafe(false, 10000.f);
 }
 
@@ -286,10 +286,10 @@ void CCutsceneMgr::HideRequestedObjects() {
         CEntity* objInRng[32];
         CWorld::FindObjectsOfTypeInRange(modelId, cr.m_vecPosn, 1.5f, true, &nObjInRng, (int16)std::size(objInRng), objInRng, true, false, false, true, true);
         for (auto e : objInRng | rngv::take((size_t)nObjInRng)) {
-            if (!e->m_bIsVisible) {
+            if (!e->GetIsVisible()) {
                 continue;
             }
-            e->m_bIsVisible = false;
+            e->SetIsVisible(false);
             CEntity::SetEntityReference(ms_pHiddenEntities[ms_iNumHiddenEntities++], e);
         }
     }
@@ -381,7 +381,7 @@ void CCutsceneMgr::LoadCutsceneData_loading() {
             const auto objIdx = csfx.m_nObjectId;
 
             // If not a cutscene object we don't have an object matrix - i'm not quite sure how this works, but okay.
-            if (objIdx < 0 || objIdx >= ms_numCutsceneObjs + 1) { // TODO: Bug? Pretty sure the +1 is erronous...
+            if (objIdx < 0 || objIdx >= ms_numCutsceneObjs + 1) { // TODO: Bug? Pretty sure the +1 is erroneous...
                 return nullptr;
             }
 
@@ -780,7 +780,7 @@ void CCutsceneMgr::LoadCutsceneData_preload() {
 
     FindPlayerWanted()->ClearQdCrimes();
     auto player = FindPlayerPed();
-    player->m_bIsVisible = false;
+    player->SetIsVisible(false);
     player->ResetSprintEnergy();
     CPad::GetPad()->bPlayerSafeForCutscene = true;
     FindPlayerInfo().MakePlayerSafe(true, 10000.f);
@@ -943,7 +943,7 @@ void CCutsceneMgr::SetupCutsceneToStart() {
 
         // Add it to the world and update skinning
         CWorld::Add(csobj);
-        if (RwObjectGetType(csobj->m_pRwObject) == rpCLUMP) {
+        if (RwObjectGetType(csobj->GetRwObject()) == rpCLUMP) {
             csobj->UpdateRpHAnim();
         }
     }
@@ -1061,8 +1061,8 @@ void CCutsceneMgr::Update_overlay() {
 
         // Update cutscene specific model bounding boxes
         for (const auto csobj : ms_pCutsceneObjects | rngv::take(ms_numCutsceneObjs)) {
-            if (IsModelIDForCutScene(csobj->GetModelID())) {
-                UpdateCutsceneObjectBoundingBox(csobj->m_pRwClump, csobj->GetModelID());
+            if (IsModelIDForCutScene(csobj->GetModelId())) {
+                UpdateCutsceneObjectBoundingBox(csobj->m_pRwClump, csobj->GetModelId());
             }
         }
 

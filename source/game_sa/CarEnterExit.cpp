@@ -54,7 +54,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
     const auto [grpId, animId] = [&]() -> std::pair<AssocGroupId, AnimationId> {
         if (bAsDriver) { // Inverted
             if (const auto data = const_cast<CVehicle*>(vehicle)->GetRideAnimData()) {
-                return { data->m_nAnimGroup, ANIM_ID_BIKE_RIDE };
+                return { data->AnimGroup, ANIM_ID_BIKE_RIDE };
             } else if (vehicle->IsBoat()) {
                 if (vehicle->m_pHandlingData->m_bSitInBoat) {
                     return { ANIM_GROUP_DEFAULT, ANIM_ID_DRIVE_BOAT };
@@ -66,7 +66,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
             return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SIT };
         } else {
             if (const auto data = const_cast<CVehicle*>(vehicle)->GetRideAnimData()) {
-                return { data->m_nAnimGroup, ANIM_ID_BIKE_RIDE };
+                return { data->AnimGroup, ANIM_ID_BIKE_RIDE };
             } else if (vehicle->vehicleFlags.bLowVehicle) {
                 return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SITPLO };
             }
@@ -485,7 +485,7 @@ bool CCarEnterExit::IsClearToDriveAway(const CVehicle* vehicle) {
 
 // 0x651210
 bool CCarEnterExit::IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, const CVehicle* vehicle, const CVector& pos) {
-    if (vehicle->m_nModelIndex == eModelID::MODEL_AT400) {
+    if (vehicle->GetModelIndex() == eModelID::MODEL_AT400) {
         return false;
     }
 
@@ -521,7 +521,7 @@ bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId
 
 // 0x64EEC0
 bool CCarEnterExit::IsVehicleHealthy(const CVehicle* vehicle) {
-    return vehicle->m_nStatus != STATUS_WRECKED;
+    return vehicle->GetStatus() != STATUS_WRECKED;
 }
 
 // 0x6510D0
@@ -651,7 +651,7 @@ void CCarEnterExit::QuitEnteringCar(CPed* ped, CVehicle* vehicle, int32 doorId, 
             break;
         }
     }
-    ped->m_bUsesCollision = false;
+    ped->SetUsesCollision(false);
 }
 
 // 0x64F680

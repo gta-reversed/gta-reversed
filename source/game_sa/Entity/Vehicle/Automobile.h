@@ -18,6 +18,8 @@
 #include "eCarWheel.h"
 #include "eCarNodes.h"
 
+constexpr float BILLS_EXTENSION_LIMIT = 1.0f;
+
 enum class eSkidmarkType : uint32;
 
 class CVehicleModelInfo;
@@ -45,7 +47,7 @@ public:
     std::array<CColPoint, 4>            m_wheelColPoint;                    // 0x724
     std::array<float, 4>                m_fWheelsSuspensionCompression;     // 0x7D4 - [0-1] with 0 being suspension fully compressed, and 1 being completely relaxed - Filled with 1.f in the ctor
     std::array<float, 4>                m_fWheelsSuspensionCompressionPrev; // 0x7E4 - Filled with 1.f in the ctor
-    std::array<float, 4>                m_aWheelTimer;
+    std::array<float, 4>                m_WheelCounts;
 
     float field_804;
     float m_fIntertiaValue1; //  m_anWheelSurfaceType[2]
@@ -90,7 +92,7 @@ public:
     float m_fTireTemperature;
     float m_fAircraftGoToHeading;
     float m_fRotationBalance; // Controls destroyed helicopter rotation
-    float m_fMoveDirection;
+    float m_PrevSpeed;
     CVector m_moveForce;
     CVector m_turnForce;
     std::array<float, 6> DoorRotation; // Inited in ctor with random values, but seemingly unused.
@@ -108,13 +110,14 @@ public:
     float m_fDoomVerticalRotation;
     float m_fDoomHorizontalRotation;
     float m_fForcedOrientation;
-    std::array<float, 2> m_fUpDownLightAngle;
+    float m_fPropRotate;
+    float m_fCumulativeDamage;
     uint8 m_nNumContactWheels;
-    uint8 m_nWheelsOnGround;
-    uint8 m_wheelsOnGrounPrev;
-    float m_fGasPedalAudio; // [0; 1] adjusts the speed of playback of the skiding sound
+    uint8 m_NumDriveWheelsOnGround;
+    uint8 m_NumDriveWheelsOnGroundLastFrame;
+    float m_GasPedalAudioRevs; // [0; 1] adjusts the speed of playback of the skiding sound
 
-    std::array<tWheelState, 4> m_aWheelState;
+    std::array<tWheelState, 4> m_WheelStates;
     std::array<FxSystem_c*, 2> m_exhaustNitroFxSystem;
 
     uint8 m_harvesterParticleCounter;
@@ -147,7 +150,7 @@ public:
     void ProcessControlCollisionCheck(bool applySpeed) override;
     void ProcessControlInputs(uint8 playerNum) override;
     void GetComponentWorldPosition(int32 componentId, CVector& outPos) override;
-    bool IsComponentPresent(int32 componentId) override;
+    bool IsComponentPresent(int32 componentId) const override;
     void OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) override; // eCarNodes = componentId
 
     //!!!!!!!!!!!!!!!!!!!
@@ -405,7 +408,7 @@ VALIDATE_OFFSET(CAutomobile, m_wheelColPoint, 0x724);
 VALIDATE_OFFSET(CAutomobile, autoFlags, 0x868);
 VALIDATE_OFFSET(CAutomobile, m_bDoingBurnout, 0x86A);
 VALIDATE_OFFSET(CAutomobile, m_wMiscComponentAngle, 0x86C);
-VALIDATE_OFFSET(CAutomobile, m_fGasPedalAudio, 0x964);
+VALIDATE_OFFSET(CAutomobile, m_GasPedalAudioRevs, 0x964);
 
 // Disable matfx (material effects) for material (callback), "data" parameter is unused
 RpMaterial *DisableMatFx(RpMaterial* material, void* data);

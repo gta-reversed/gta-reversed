@@ -100,21 +100,21 @@ CObject::CObject(int32 modelId, bool bCreate) : CPhysical() {
 // 0x5A1DF0
 CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
     CEntity::SetModelIndexNoCreate(dummyObj->m_nModelIndex);
-    if (dummyObj->m_pRwObject)
-        CEntity::AttachToRwObject(dummyObj->m_pRwObject, true);
+    if (dummyObj->GetRwObject())
+        CEntity::AttachToRwObject(dummyObj->GetRwObject(), true);
     else
         CPlaceable::SetMatrix(dummyObj->GetMatrix());
 
     dummyObj->DetachFromRwObject();
     Init();
 
-    m_nIplIndex = dummyObj->m_nIplIndex;
-    m_nAreaCode = dummyObj->m_nAreaCode;
+    SetIplIndex(dummyObj->GetIplIndex());
+    SetAreaCode(dummyObj->GetAreaCode());
     m_bRenderDamaged = dummyObj->m_bRenderDamaged;
 
-    if (m_pRwObject) {
+    if (GetRwObject()) {
         auto* atomic = m_pRwAtomic;
-        if (RwObjectGetType(m_pRwObject) != rpATOMIC)
+        if (RwObjectGetType(GetRwObject()) != rpATOMIC)
             atomic = GetFirstAtomic(m_pRwClump);
 
         if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(atomic))
@@ -180,7 +180,7 @@ void CObject::operator delete(void* obj, int32 poolRef) {
 
 // 0x5A0760
 void CObject::SetIsStatic(bool isStatic) {
-    m_bIsStatic = isStatic;
+    CEntity::SetIsStatic(isStatic);
     physicalFlags.b31 = false;
     if (!isStatic && (physicalFlags.bDisableMoveForce && m_fDoorStartAngle < -1000.0F)) {
         m_fDoorStartAngle = GetHeading();
@@ -196,7 +196,7 @@ void CObject::CreateRwObject() {
 void CObject::ProcessControl() {
     auto* mi = GetModelInfo();
     auto bIsAnimated = false;
-    if (mi->GetRwModelType() == rpCLUMP && mi->bHasAnimBlend && m_pRwObject)
+    if (mi->GetRwModelType() == rpCLUMP && mi->bHasAnimBlend && GetRwObject())
         bIsAnimated = true;
 
     if (m_fDamageIntensity > 0.0F
@@ -230,7 +230,7 @@ void CObject::ProcessControl() {
     }
 
     objectFlags.bDamaged = false;
-    if (!m_bIsStuck && !IsStatic()) {
+    if (!GetIsStuck() && !GetIsStatic()) {
         if (!physicalFlags.bDisableZ && !physicalFlags.bInfiniteMass && !physicalFlags.bDisableMoveForce) {
             m_vecForce += m_vecMoveSpeed;
             m_vecForce /= 2.0F;
@@ -257,7 +257,7 @@ void CObject::ProcessControl() {
         }
     }
 
-    if (!IsStatic())
+    if (!GetIsStatic())
         CPhysical::ProcessControl();
 
     if (bIsAnimated)
@@ -282,11 +282,11 @@ void CObject::ProcessControl() {
 
     if (m_pObjectInfo->m_bCausesExplosion
         && objectFlags.bIsExploded
-        && m_bIsVisible
+        && GetIsVisible()
         && (CGeneral::GetRandomNumber() % 32) == 10)
     {
-        m_bUsesCollision = false;
-        m_bIsVisible = false;
+        SetUsesCollision(false);
+        SetIsVisible(false);
         physicalFlags.bExplosionProof = true;
         physicalFlags.bApplyGravity = false;
         ResetMoveSpeed();
@@ -299,7 +299,7 @@ void CObject::ProcessControl() {
     }
 
     if (m_bIsBIGBuilding)
-        m_bIsInSafePosition = true;
+        SetIsInSafePosition(true);
 
     if (physicalFlags.bDisableMoveForce && m_fDoorStartAngle > -1000.0F) {
         auto fHeading = GetHeading();
@@ -327,7 +327,7 @@ void CObject::ProcessControl() {
         }
 
         if (!m_bIsBIGBuilding
-            && !IsStatic()
+            && !GetIsStatic()
             && std::fabs(fDiff) < 0.01F
             && (objectFlags.bIsDoorMoving || std::fabs(m_vecTurnSpeed.z) < 0.01F)
         ) {
@@ -347,7 +347,7 @@ void CObject::ProcessControl() {
 void CObject::Teleport(CVector destination, bool resetRotation) {
     CWorld::Remove(this);
     SetPosn(destination);
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
     CWorld::Add(this);
 }
@@ -370,33 +370,33 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
         if (!physicalFlags.bDisableZ) {
             if (physicalFlags.bDisableMoveForce || physicalFlags.bInfiniteMass)
             {
-                if (bIgnoreStuckCheck || m_bIsStuck)
+                if (bIgnoreStuckCheck || GetIsStuck())
                     bCollisionDisabled = true;
-                else if (!colPhysical->m_bIsStuck) { /* Do nothing pretty much, and skip further calc */ }
-                else if (!colPhysical->m_bHasHitWall)
+                else if (!colPhysical->GetIsStuck()) { /* Do nothing pretty much, and skip further calc */ }
+                else if (!colPhysical->GetHasHitWall())
                     bThisOrCollidedEntityStuck = true;
                 else
                     bCollidedEntityUnableToMove = true;
             }
-            else if (objectFlags.bIsLampPost && (GetUp().z < 0.66F || m_bIsStuck))
+            else if (objectFlags.bIsLampPost && (GetUp().z < 0.66F || GetIsStuck()))
             {
-                if (colPhysical->IsVehicle() || colPhysical->IsPed()) {
+                if (colPhysical->GetIsTypeVehicle() || colPhysical->GetIsTypePed()) {
                     bCollidedEntityCollisionIgnored = true;
-                    if (colPhysical->IsVehicle())
+                    if (colPhysical->GetIsTypeVehicle())
                         return;
 
                     m_pEntityIgnoredCollision = colPhysical;
                 }
             }
-            else if ( colPhysical->IsVehicle())
+            else if ( colPhysical->GetIsTypeVehicle())
             {
                 if (IsModelTempCollision())
                     bCollisionDisabled = true;
-                else if (IsTemporary() || IsExploded() || !CEntity::IsStatic())
+                else if (IsTemporary() || IsExploded() || !CEntity::GetIsStatic())
                 {
                     if (colPhysical->AsVehicle()->IsConstructionVehicle())
                     {
-                        if (m_bIsStuck || colPhysical->m_bIsStuck)
+                        if (GetIsStuck() || colPhysical->GetIsStuck())
                             bThisOrCollidedEntityStuck = true;
                     }
                     else if (!CanBeSmashed())
@@ -425,10 +425,10 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
                 }
             }
             else if (m_nModelIndex != MODEL_GRENADE
-                || !colPhysical->IsPed()
+                || !colPhysical->GetIsTypePed()
                 || m_matrix->GetPosition().z >= colPhysical->m_matrix->GetPosition().z)
             {
-                if (colPhysical->IsObject() && colPhysical->AsObject()->m_pObjectInfo->m_fUprootLimit > 0.0F && !colPhysical->m_pAttachedTo)
+                if (colPhysical->GetIsTypeObject() && colPhysical->AsObject()->m_pObjectInfo->m_fUprootLimit > 0.0F && !colPhysical->m_pAttachedTo)
                 {
                     if ((!colPhysical->physicalFlags.bDisableCollisionForce || colPhysical->physicalFlags.bCollidable)
                         && colPhysical->m_fMass * 10.0F > m_fMass)
@@ -442,12 +442,12 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
         {
             if (bIgnoreStuckCheck)
                 bCollisionDisabled = true;
-            else if (m_bIsStuck || colPhysical->m_bIsStuck)
+            else if (GetIsStuck() || colPhysical->GetIsStuck())
                 bThisOrCollidedEntityStuck = true;
         }
     }
 
-    if (!bCollidedEntityCollisionIgnored && (bIgnoreStuckCheck || m_bIsStuck))
+    if (!bCollidedEntityCollisionIgnored && (bIgnoreStuckCheck || GetIsStuck()))
         bThisOrCollidedEntityStuck = true;
 
 }
@@ -536,7 +536,7 @@ void CObject::PreRender() {
     if (!m_pAttachedTo)
         m_fContactSurfaceBrightness = m_nColLighting.GetCurrentLighting();
 
-    if (m_pRwObject && RwObjectGetType(m_pRwObject) == rpCLUMP && objectFlags.bFadingIn)
+    if (GetRwObject() && RwObjectGetType(GetRwObject()) == rpCLUMP && objectFlags.bFadingIn)
     {
         auto iAlpha = CVisibilityPlugins::GetClumpAlpha(m_pRwClump) - 16;
         iAlpha = std::max(0, iAlpha);
@@ -548,7 +548,7 @@ void CObject::PreRender() {
     if (m_fScale != 1.0F || objectFlags.bIsScaled)
     {
         auto vecScale = CVector(m_fScale, m_fScale, m_fScale);
-        CEntity::UpdateRW();
+        CEntity::UpdateRwMatrix();
         RwMatrixScale(CEntity::GetModellingMatrix(), &vecScale, RwOpCombineType::rwCOMBINEPRECONCAT);
         CEntity::UpdateRwFrame();
         objectFlags.bIsScaled = true;
@@ -556,7 +556,7 @@ void CObject::PreRender() {
             objectFlags.bIsScaled = false; //BUG? It's unsetting the flag straight after setting it
     }
 
-    if (m_pRwObject && RwObjectGetType(m_pRwObject) == rpCLUMP)
+    if (GetRwObject() && RwObjectGetType(GetRwObject()) == rpCLUMP)
         CEntity::UpdateRpHAnim();
 }
 
@@ -648,8 +648,8 @@ void CObject::ProcessGarageDoorBehaviour() {
             m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition / 1.1F;
     }
 
-    m_bUsesCollision = garage.m_bDoorClosed;
-    CEntity::UpdateRW();
+    SetUsesCollision(garage.m_bDoorClosed);
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
@@ -760,7 +760,7 @@ void CObject::ResetDoorAngle() {
     ResetTurnSpeed();
     ResetFrictionMoveSpeed();
     ResetFrictionTurnSpeed();
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
@@ -774,7 +774,7 @@ void CObject::LockDoor() {
 
 // 0x59F840
 void CObject::Init() {
-    m_nType = ENTITY_TYPE_OBJECT;
+    SetTypeObject();
     m_pObjectInfo = &CObjectData::GetDefault();
     m_nColDamageEffect = COL_DAMAGE_EFFECT_NONE;
     m_nSpecialColResponseCase = COL_SPECIAL_RESPONSE_NONE;
@@ -843,7 +843,7 @@ void CObject::Init() {
     objectFlags.bIsTargetable = false;
     physicalFlags.bAttachedToEntity = false;
 
-    m_nAreaCode = eAreaCodes::AREA_CODE_13;
+    SetAreaCode(AREA_CODE_13);
     m_wRemapTxd = -1;
     m_pRemapTexture = nullptr;
     m_pControlCodeList = nullptr;
@@ -946,7 +946,7 @@ void CObject::ProcessSamSiteBehaviour() {
                 fNewAngle = fHeading + fTimeStep;
 
             CPlaceable::SetHeading(fNewAngle - HALF_PI);
-            CEntity::UpdateRW();
+            CEntity::UpdateRwMatrix();
             CEntity::UpdateRwFrame();
 
             auto vecShootDir = vecPos - vecTargetPos;
@@ -965,7 +965,7 @@ void CObject::ProcessSamSiteBehaviour() {
 
     fHeading += CTimer::GetTimeStep() / 200.0F;
     CPlaceable::SetHeading(fHeading - HALF_PI);
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
@@ -998,16 +998,16 @@ void CObject::ProcessTrainCrossingBehaviour() {
     else
         SetMatrixForTrainCrossing(m_matrix, std::min(PI * 0.43F, fAngle + fTimeStep));
 
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
 }
 
 // 0x5A0D90
 void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector* fxDirection, CEntity* damager, eWeaponType weaponType) {
-    if (!m_bUsesCollision)
+    if (!GetUsesCollision())
         return;
 
-    if (weaponType == eWeaponType::WEAPON_UNIDENTIFIED && damager && damager->IsVehicle())
+    if (weaponType == eWeaponType::WEAPON_UNIDENTIFIED && damager && damager->GetIsTypeVehicle())
         weaponType = eWeaponType::WEAPON_RUNOVERBYCAR;
 
     if (!CPhysical::CanPhysicalBeDamaged(weaponType, nullptr))
@@ -1024,11 +1024,11 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         if (!damager)
             return;
 
-        if (damager->IsPed()) {
+        if (damager->GetIsTypePed()) {
             auto* ped = damager->AsPed();
             if (!ped->bInVehicle || !ped->m_pVehicle || ped->m_pVehicle->m_nModelIndex != MODEL_SWATVAN)
                 return;
-        } else if (damager->IsVehicle()) {
+        } else if (damager->GetIsTypeVehicle()) {
             if (damager->m_nModelIndex != MODEL_SWATVAN)
                 return;
         } else
@@ -1052,12 +1052,12 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             break;
 
         case COL_DAMAGE_EFFECT_SMASH_COMPLETELY:
-            m_bUsesCollision = false;
-            m_bIsVisible = false;
-            if (!CEntity::IsStatic())
+            SetUsesCollision(false);
+            SetIsVisible(false);
+            if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
-            m_bIsStatic = true;
+            SetIsStatic(true);
             physicalFlags.bExplosionProof = true;
             ResetMoveSpeed();
             ResetTurnSpeed();
@@ -1067,13 +1067,13 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
 
         case COL_DAMAGE_EFFECT_CHANGE_THEN_SMASH:
             if (m_bRenderDamaged) {
-                m_bUsesCollision = false;
-                m_bIsVisible = false;
-                if (!CEntity::IsStatic()) {
+                SetUsesCollision(false);
+                SetIsVisible(false);
+                if (!CEntity::GetIsStatic()) {
                     CPhysical::RemoveFromMovingList();
                 }
 
-                m_bIsStatic = true;
+                SetIsStatic(true);
                 physicalFlags.bExplosionProof = true;
                 ResetMoveSpeed();
                 ResetTurnSpeed();
@@ -1090,12 +1090,12 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
             const auto bJustFaces = damage * m_pObjectInfo->m_fColDamageMultiplier > m_pObjectInfo->m_fSmashMultiplier * 150.0F;
             g_breakMan.Add(this, &m_pObjectInfo->m_vecBreakVelocity, m_pObjectInfo->m_fBreakVelocityRand, bJustFaces);
 
-            m_bUsesCollision = false;
-            m_bIsVisible = false;
-            if (!CEntity::IsStatic())
+            SetUsesCollision(false);
+            SetIsVisible(false);
+            if (!CEntity::GetIsStatic())
                 CPhysical::RemoveFromMovingList();
 
-            m_bIsStatic = true;
+            SetIsStatic(true);
             physicalFlags.bExplosionProof = true;
             ResetMoveSpeed();
             ResetTurnSpeed();
@@ -1106,7 +1106,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         }
         }
 
-        if (!m_bUsesCollision && !m_bIsVisible) {
+        if (!GetUsesCollision() && !GetIsVisible()) {
             m_fHealth = 0.0F;
         }
     }
@@ -1177,7 +1177,7 @@ void CObject::Explode() {
         m_vecMoveSpeed.y += CGeneral::GetRandomNumberInRange(-0.0256F, 0.0256F);
         m_vecMoveSpeed.z += 0.5F;
 
-        if (IsStatic()) {
+        if (GetIsStatic()) {
             SetIsStatic(false);
             CPhysical::AddToMovingList();
         }
@@ -1222,12 +1222,12 @@ void CObject::ObjectFireDamage(float damage, CEntity* damager) {
 
         g_breakMan.Add(this, &m_pObjectInfo->m_vecBreakVelocity, m_pObjectInfo->m_fBreakVelocityRand, true);
 
-        m_bUsesCollision = false;
-        m_bIsVisible = false;
-        if (!CEntity::IsStatic())
+        SetUsesCollision(false);
+        SetIsVisible(false);
+        if (!CEntity::GetIsStatic())
             CPhysical::RemoveFromMovingList();
 
-        m_bIsStatic = true;
+        SetIsStatic(true);
         physicalFlags.bExplosionProof = true;
         ResetMoveSpeed();
         ResetTurnSpeed();
@@ -1287,6 +1287,15 @@ void CObject::DeleteAllTempObjectsInArea(CVector point, float radius) {
     }
 }
 
+bool CObject::IsCraneMovingPart() const {
+    return notsa::contains<eModelID>({
+        ModelIndices::MI_CRANE_MAGNET,
+        ModelIndices::MI_CRANE_HARNESS,
+        ModelIndices::MI_MINI_MAGNET,
+        ModelIndices::MI_WRECKING_BALL,
+    }, GetModelId());
+}
+
 // 0x5A1AB0
 void CObject::GrabObjectToCarryWithRope(CPhysical* attachTo) {
     const auto iRopeInd = CRopes::FindRope(reinterpret_cast<uint32>(this));
@@ -1301,7 +1310,7 @@ void CObject::GrabObjectToCarryWithRope(CPhysical* attachTo) {
     vecRopePoint *= attachTo->m_matrix->TransformPoint(vecRopePoint);
 
     rope.m_pRopeAttachObject->SetPosn(vecRopePoint);
-    rope.m_pRopeAttachObject->m_bUsesCollision = false;
+    rope.m_pRopeAttachObject->SetUsesCollision(false);
 }
 
 // 0x5A1B60

@@ -238,15 +238,11 @@ void CPedIntelligence::AddTaskEventResponseNonTemp(CTask* task, int32 unUsed) {
 
 // 0x600E20
 void CPedIntelligence::AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed) {
-    CPedGroup* pegGroup = CPedGroups::GetPedsGroup(m_pPed);
-    if (m_pPed->IsPlayer() || !pegGroup)
-    {
-        CEventScriptCommand eventScriptCommand(TASK_PRIMARY_PRIMARY, task, bAffectsPed);
-        m_eventGroup.Add(&eventScriptCommand, false);
-    }
-    else
-    {
-        pegGroup->GetIntelligence().SetScriptCommandTask(m_pPed, task);
+    CPedGroup* grp = m_pPed->GetGroup();
+    if (m_pPed->IsPlayer() || !grp) {
+        m_eventGroup.Add(CEventScriptCommand{TASK_PRIMARY_PRIMARY, task, bAffectsPed});
+    } else {
+        grp->GetIntelligence().SetScriptCommandTask(m_pPed, *task);
         delete task;
     }
 }
@@ -303,18 +299,11 @@ CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestAc
     if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))) {
         return task;
     }
-
-    auto* secondaryTask = m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK);
-    if (secondaryTask && secondaryTask->GetTaskType() == TASK_SIMPLE_DUCK) {
-        return (CTaskSimpleDuck*)secondaryTask;
-    }
-
     if (!bIgnoreCheckingForSimplestActiveTask) {
         if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetSimplestActiveTask())) {
             return task;
         }
     }
-
     return nullptr;
 }
 
@@ -480,9 +469,9 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
     if (const auto tSimpleHoldEntity = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
         objectToHold = (CObject*)tSimpleHoldEntity->m_pEntityToHold;
         if (objectToHold) {
-            if (objectToHold->IsObject()) {
+            if (objectToHold->GetIsTypeObject()) {
                 objectType = objectToHold->m_nObjectType;
-                bIsEntityVisible = objectToHold->m_bIsVisible;
+                bIsEntityVisible = objectToHold->GetIsVisible();
             }
             taskSimpleHoldEntityCloned = (CTaskSimpleHoldEntity*)tSimpleHoldEntity->Clone();
         }
@@ -512,7 +501,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
     if (taskSimpleHoldEntityCloned) {
         if (objectType != -1) {
             objectToHold->m_nObjectType = objectType;
-            objectToHold->m_bIsVisible  = bIsEntityVisible;
+            objectToHold->SetIsVisible(bIsEntityVisible);
         }
         m_TaskMgr.SetTaskSecondary(taskSimpleHoldEntityCloned, TASK_SECONDARY_PARTIAL_ANIM);
         taskSimpleHoldEntityCloned->ProcessPed(m_pPed);
@@ -566,7 +555,7 @@ void CPedIntelligence::ProcessAfterProcCol() {
         }
 
         if (bPositionSet) {
-            m_pPed->UpdateRW();
+            m_pPed->UpdateRwMatrix();
             m_pPed->UpdateRwFrame();
         }
     }
@@ -746,7 +735,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
             (dislike && (pedFlag & dislike))
         );
         if (bAcquaintancesFlagSet && target->GetGroup()) {
-            const auto oe = target->GetGroup()->GetIntelligence().GetOldEvent();
+            const auto oe = target->GetGroup()->GetIntelligence().GetCurrentEvent();
             if (oe && oe->GetSourceEntity() == m_pPed && bAcquaintancesFlagSet) {
                 return false;
             }
@@ -857,7 +846,7 @@ bool CPedIntelligence::IsPedGoingForCarDoor() {
 // should be (const CEntity* entity, bool unused)
 // 0x605550
 float CPedIntelligence::CanSeeEntityWithLights(CEntity* entity, int32 unUsed) {
-    if (!entity->IsPed())
+    if (!entity->GetIsTypePed())
         return LIGHT_AI_LEVEL_MAX;
 
     CPed* ped = entity->AsPed();
@@ -942,7 +931,7 @@ void CPedIntelligence::ProcessFirst() {
     if (m_pPed->m_fDamageIntensity > 0.0f)
     {
         CEntity* damageEntity = m_pPed->m_pDamageEntity;
-        if (damageEntity && !damageEntity->IsPed()) {
+        if (damageEntity && !damageEntity->GetIsTypePed()) {
             if (DotProduct(m_pPed->m_vecLastCollisionImpactVelocity, m_pPed->GetForward()) < -0.5f)
                 m_pPed->bPedHitWallLastFrame = true;
         }
