@@ -105,8 +105,8 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a
 }
 
 // 0x461170
-void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPositionsType, ePedType type) {
-const auto DoGenerateRoadBlocks = [](eCopType copType = COP_TYPE_CITYCOP, eModelID pedModel = MODEL_INVALID, bool isSpecialCop = false) {
+void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPositionsType, ePedType pedType) {
+    const auto Generate = [&](eCopType copType = COP_TYPE_CITYCOP, eModelID pedModel = MODEL_INVALID, bool isSpecialCop = false) {
         static constexpr auto PLACEMENTS = std::to_array<CVector>({
             { -1.5f, +1.9f, 0.0f },
             { -1.5f, -2.6f, 0.0f },
@@ -131,7 +131,7 @@ const auto DoGenerateRoadBlocks = [](eCopType copType = COP_TYPE_CITYCOP, eModel
 
         for (auto i = 0u; i < vehicle->m_nNumPedsForRoadBlock; i++) {
             const auto offset = (isSpecialCop ? SPECIAL_COP_PLACEMENTS : PLACEMENTS)[placementIdx + i] * radiusRatio;
-            auto pos = vehicle->GetMatrix().TransformPoint(offset);
+            const auto pos = vehicle->GetMatrix().TransformPoint(offset);
 
             auto* ped = [&]() -> CPed* {
                 if (pedType != PED_TYPE_COP) { // 0x461560
@@ -166,7 +166,7 @@ const auto DoGenerateRoadBlocks = [](eCopType copType = COP_TYPE_CITYCOP, eModel
 
             if (pedType != PED_TYPE_COP) {
                 // CGangInfo::GetRandomWeapon() wouldn't work here because it filters free slots. 
-                // We choose a random every slot regardless if it's empty or not.
+                // We choose a random slot regardless if it's empty or not.
                 const auto weapon = CGeneral::RandomChoice(CGangs::Gang[pedType - PED_TYPE_GANG1].m_nGangWeapons);
                 if (weapon != WEAPON_UNARMED) {
                     ped->GiveDelayedWeapon(weapon, 25'001);
@@ -178,13 +178,17 @@ const auto DoGenerateRoadBlocks = [](eCopType copType = COP_TYPE_CITYCOP, eModel
         }
     };
 
+    eCopType copType{ COP_TYPE_CITYCOP };
+    eModelID pedModel{ MODEL_INVALID };
+    bool     isSpecialCop{};
+
     if (pedType == PED_TYPE_COP) {
-        switch (vehicle->GetModelID()) {
-        case MODEL_ENFORCER: DoGenerateRoadBlocks(COP_TYPE_SWAT1, MODEL_SWAT, true);       break;
-        case MODEL_BARRACKS: DoGenerateRoadBlocks(COP_TYPE_ARMY, MODEL_ARMY, true);        break;
-        case MODEL_FBIRANCH: DoGenerateRoadBlocks(COP_TYPE_FBI, MODEL_FBI, true);          break;
-        case MODEL_COPCARRU: DoGenerateRoadBlocks(COP_TYPE_CITYCOP, MODEL_INVALID, true);  break;
-        default:             DoGenerateRoadBlocks(COP_TYPE_CITYCOP, MODEL_INVALID, false); break;
+        switch (vehicle->GetModelId()) {
+        case MODEL_ENFORCER: Generate(COP_TYPE_SWAT1, MODEL_SWAT, true);       break;
+        case MODEL_BARRACKS: Generate(COP_TYPE_ARMY, MODEL_ARMY, true);        break;
+        case MODEL_FBIRANCH: Generate(COP_TYPE_FBI, MODEL_FBI, true);          break;
+        case MODEL_COPCARRU: Generate(COP_TYPE_CITYCOP, MODEL_INVALID, true);  break;
+        default:             Generate(COP_TYPE_CITYCOP, MODEL_INVALID, false); break;
         }
     } else if (IsPedTypeGang(pedType)) {
         for (auto i = 0; i < TOTAL_GANGS; i++) {
@@ -195,11 +199,11 @@ const auto DoGenerateRoadBlocks = [](eCopType copType = COP_TYPE_CITYCOP, eModel
             if (pedModel == MODEL_INVALID) {
                 continue;
             }
-            DoGenerateRoadBlocks(COP_TYPE_CITYCOP, pedModel, false);
+            Generate(COP_TYPE_CITYCOP, pedModel, false);
             return;
         }
     } else {
-        DoGenerateRoadBlocks();
+        Generate();
     }
 }
 
