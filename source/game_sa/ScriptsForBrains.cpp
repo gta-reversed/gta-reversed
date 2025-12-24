@@ -8,7 +8,7 @@ void CScriptsForBrains::InjectHooks() {
 
     RH_ScopedInstall(Init, 0x46A8C0, {.reversed = false});
     //RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900, {.reversed = false});
-    //RH_ScopedInstall(AddNewScriptBrain, 0x46A930, {.reversed = false});
+    RH_ScopedInstall(AddNewScriptBrain, 0x46A930);
     RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0);
     RH_ScopedInstall(GetIndexOfScriptBrainWithThisName, 0x46AA30);
     RH_ScopedInstall(HasAttractorScriptBrainWithThisNameLoaded, 0x46AB20);
@@ -24,6 +24,22 @@ void CScriptsForBrains::InjectHooks() {
 void CScriptsForBrains::Init() {
     for (auto& script : m_aScriptForBrains) {
         script = tScriptForBrains();
+    }
+}
+
+// 0x46A930
+void CScriptsForBrains::AddNewScriptBrain(int16 streamedScriptIndex, int16 pedModelOrPedGeneratorIndex, uint16 percentage, int8 brainType, int8 objectGroupingId, float objectActivationRange) {
+    for (auto& script : m_aScriptForBrains) {
+        if (script.m_StreamedScriptIndex == -1) {
+            script.m_StreamedScriptIndex         = streamedScriptIndex;
+            script.m_PercentageChance            = percentage;
+            script.m_ObjectGroupingId            = objectGroupingId;
+            script.m_PedModelOrPedGeneratorIndex = pedModelOrPedGeneratorIndex;
+            script.m_TypeOfBrain                 = brainType;
+            script.m_bBrainActive                = true;
+            script.m_ObjectBrainActivationRadius = (objectActivationRange > 0.0f ? objectActivationRange : 5.0f);
+            return;
+        }
     }
 }
 

@@ -18,15 +18,15 @@ using namespace notsa::script;
 namespace {
 namespace Object {
 CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
-    const auto mi = CModelInfo::GetModelInfo(model);
-    mi->m_nAlpha  = 255u;
+    const auto mi         = CModelInfo::GetModelInfo(model);
+    mi->m_nAlpha          = 255u;
 
-    auto* object = CObject::Create(model, false);
+    auto* object          = CObject::Create(model, false);
     object->m_nObjectType = (S.m_IsExternal || S.m_ScriptBrainType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
     CWorld::PutToGroundIfTooLow(posn);
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
-    object->SetOrientation(CVector{0.0f});
+    object->SetOrientation(CVector{ 0.0f });
     object->UpdateRwMatrix();
     object->UpdateRwFrame();
     if (mi->AsLodAtomicModelInfoPtr()) {
@@ -152,7 +152,7 @@ void EnableDisabledAttractorOnObject(CObject& object, bool enabled) {
 }
 
 /// IS_OBJECT_WITHIN_BRAIN_ACTIVATION_RANGE(0977)
-bool IsObjectWithinBrainActivationRange(CObject& object) {    
+bool IsObjectWithinBrainActivationRange(CObject& object) {
     if (const auto& playerPed = CWorld::Players[CWorld::PlayerInFocus].m_pPed) {
         return CTheScripts::ScriptsForBrains.IsObjectWithinBrainActivationRange(
             &object,
@@ -164,14 +164,46 @@ bool IsObjectWithinBrainActivationRange(CObject& object) {
 
 /// REGISTER_SCRIPT_BRAIN_FOR_CODE_USE(07D3)
 void RegisterScriptBrainForCodeUse(int16 scmIndex, const char* scriptName) {
-    const auto scmProperIndex = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
-    CTheScripts::ScriptsForBrains.AddNewStreamedScriptBrainForCodeUse(scmProperIndex, scriptName, CScriptsForBrains::CODE_PED);
+    const auto index = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    CTheScripts::ScriptsForBrains.AddNewStreamedScriptBrainForCodeUse(index, scriptName, CScriptsForBrains::CODE_PED);
 }
 
 /// REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE(0884)
 void RegisterAttractorScriptBrainForCodeUse(int16 scmIndex, const char* scriptName) {
-    const auto scmProperIndex = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
-    CTheScripts::ScriptsForBrains.AddNewStreamedScriptBrainForCodeUse(scmProperIndex, scriptName, CScriptsForBrains::CODE_ATTRACTOR_PED);
+    const auto index = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    CTheScripts::ScriptsForBrains.AddNewStreamedScriptBrainForCodeUse(index, scriptName, CScriptsForBrains::CODE_ATTRACTOR_PED);
+}
+
+/// GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT(0926)
+uint8 GetNumberOfInstancesOfStreamedScript(int16 scmIndex) {
+    const auto index = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    return CTheScripts::StreamedScripts.m_aScripts[index].m_NumberOfUsers;
+}
+
+/// ALLOCATE_STREAMED_SCRIPT_TO_RANDOM_PED(0928)
+void AllocateStreamedScriptToRandomPed(int16 scmIndex, script::Model model, int percentage) {
+    const auto index = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    CTheScripts::ScriptsForBrains.AddNewScriptBrain(
+        index,
+        model,
+        percentage,
+        CScriptsForBrains::PED_STREAMED,
+        -1,
+        -1.0f
+    );
+}
+
+/// ALLOCATE_STREAMED_SCRIPT_TO_OBJECT(0929)
+void AllocateStreamedScriptToObject(int16 scmIndex, script::Model model, int percentage, float radius, int groupingId) {
+    const auto index = CTheScripts::StreamedScripts.GetProperIndexFromIndexUsedByScript(scmIndex);
+    CTheScripts::ScriptsForBrains.AddNewScriptBrain(
+        index,
+        model,
+        percentage,
+        CScriptsForBrains::OBJECT_STREAMED,
+        groupingId,
+        radius
+    );
 }
 
 } // namespace Attractor
@@ -249,7 +281,9 @@ void notsa::script::commands::object::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_WITHIN_BRAIN_ACTIVATION_RANGE, IsObjectWithinBrainActivationRange);
     REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_SCRIPT_BRAIN_FOR_CODE_USE, RegisterScriptBrainForCodeUse);
     REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE, RegisterAttractorScriptBrainForCodeUse);
-
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, GetNumberOfInstancesOfStreamedScript);
+    REGISTER_COMMAND_HANDLER(COMMAND_ALLOCATE_STREAMED_SCRIPT_TO_OBJECT, AllocateStreamedScriptToObject);
+    REGISTER_COMMAND_HANDLER(COMMAND_ALLOCATE_STREAMED_SCRIPT_TO_RANDOM_PED, AllocateStreamedScriptToRandomPed);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_OBJECT_ANIM_SPEED, SetObjectAnimSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_PLAYING_ANIM, IsObjectPlayingAnim);
