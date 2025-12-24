@@ -5,6 +5,9 @@
 #include "AEAudioEnvironment.h"
 #include "AEAudioHardware.h"
 
+#include <DebugModules/Audio/SoundManagerDebugModule.hpp>
+#include <UIRenderer.h>
+
 CAESoundManager& AESoundManager = *(CAESoundManager*)0xB62CB0;
 
 void CAESoundManager::InjectHooks() {
@@ -337,6 +340,13 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
         s->NewVPSLEntry();
         AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_SoundID, s->m_BankSlot);
     }
+
+#ifdef NOTSA_DEBUG
+    notsa::ui::UIRenderer::GetSingleton().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
+        .StackTrace = std::stacktrace::current()
+    });
+#endif
+
     return s;
 }
 
@@ -359,7 +369,7 @@ CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
         p.FrequencyVariance,
         p.PlayTime
     );
-    s.m_Event         = p.EventID;
+    s.m_Event          = p.EventID;
     s.m_ClientVariable = p.ClientVariable;
     if (p.Flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) {
         s.RegisterWithPhysicalEntity(p.RegisterWithEntity);

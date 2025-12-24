@@ -21,6 +21,7 @@ namespace player { void RegisterHandlers(); };
 namespace script { void RegisterHandlers(); };
 namespace sequence { void RegisterHandlers(); };
 namespace text { void RegisterHandlers(); };
+namespace draw { void RegisterHandlers(); };
 namespace unused { void RegisterHandlers(); };
 namespace utility { void RegisterHandlers(); };
 namespace vehicle { void RegisterHandlers(); };

@@ -19,6 +19,8 @@ void CAEExplosionAudioEntity::StaticInitialise() {
 
 // 0x4DCBE0
 void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& posn, float volume) {
+    volume += GetDefaultVolume(AE_EXPLOSION);
+
     if (audioEvent != AE_EXPLOSION) {
         return;
     }
@@ -27,37 +29,47 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
         return;
     }
 
-    float vol0 = GetDefaultVolume(AE_EXPLOSION) + volume;
-    m_Speed = (m_Speed + 1) % NUM_VARIATIONS;
-
-    CAESound sound;
-
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 4, this, posn, vol0, 2.0f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
-    AESoundManager.RequestNewSound(&sound);
-
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 3, this, posn, vol0, 4.0f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
-    AESoundManager.RequestNewSound(&sound);
-
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 2, this, posn, vol0, 7.5f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
-    AESoundManager.RequestNewSound(&sound);
-
-    float speed_a, speed_b;
-    if (CAEAudioUtility::ResolveProbability(0.5f)) {
-        speed_a = gfExplosionFrequencyVariations[m_Speed] * sqrt(sqrt(2.0f));
-        speed_b = gfExplosionFrequencyVariations[m_Speed];
-    } else {
-        speed_a = gfExplosionFrequencyVariations[m_Speed];
-        speed_b = gfExplosionFrequencyVariations[m_Speed] * sqrt(sqrt(2.0f));
+    { // 0x4DCC93
+        m_Speed = (m_Speed + 1) % NUM_VARIATIONS;
+        const auto PlayExplosionSound = [&](eSoundID soundID, float rollOff) {
+            AESoundManager.PlaySound({
+                .BankSlotID        = SND_BANK_SLOT_EXPLOSIONS,
+                .SoundID           = soundID,
+                .AudioEntity       = this,
+                .Pos               = posn,
+                .Volume            = volume,
+                .RollOffFactor     = rollOff,
+                .Speed             = gfExplosionFrequencyVariations[m_Speed],
+                .Flags             = SOUND_REQUEST_UPDATES,
+                .FrequencyVariance = 0.06f,
+            });
+        };
+        PlayExplosionSound(4, 2.f);
+        PlayExplosionSound(3, 4.f);
+        PlayExplosionSound(2, 7.5f);
     }
-
-    auto vol1 = CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(posn).Magnitude() / 12.0f) + vol0 - 3.0f;
-    auto flags = static_cast<eSoundEnvironment>(SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_REQUEST_UPDATES | SOUND_FRONT_END);
-
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 1, this, { -1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_a, 1.0f, 0, flags, 0.0f, 0);
-    AESoundManager.RequestNewSound(&sound);
-
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 1, this, { 1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_b, 1.0f, 0, flags, 0.0f, 0);
-    AESoundManager.RequestNewSound(&sound);
+    { // 0x4DCE79
+        const auto PlayExplosionSound = [&](CVector frontEndPos, bool variance) {
+            auto speed = gfExplosionFrequencyVariations[m_Speed];
+            if (variance) {
+                speed *= sqrt(sqrt(2.0f));
+            }
+            AESoundManager.PlaySound({
+                .BankSlotID        = SND_BANK_SLOT_EXPLOSIONS,
+                .SoundID           = 1,
+                .AudioEntity       = this,
+                .Pos               = frontEndPos,
+                .Volume            = volume + CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(posn).Magnitude() / 12.0f) - 3.0f,
+                .RollOffFactor     = 12.f,
+                .Speed             = speed,
+                .Flags             = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_REQUEST_UPDATES | SOUND_FRONT_END,
+                .FrequencyVariance = 0.06f,
+            });
+        };
+        const auto variance = CAEAudioUtility::ResolveProbability(0.5f);
+        PlayExplosionSound({ -1.0f, 0.0f, 0.0f }, variance);
+        PlayExplosionSound({ 1.0f, 0.0f, 0.0f }, !variance);
+    }
 }
 
 // 0x4DCB90

@@ -3104,6 +3104,11 @@ void CVehicle::SetVehicleCreatedBy(eVehicleCreatedBy createdBy) {
     }
 }
 
+// unknown
+float CVehicle::GetNewSteeringAmt() {
+    return 0.0f;
+}
+
 // 0x6D64F0
 void CVehicle::SetupRender() {
     const auto mi = GetModelInfo()->AsVehicleModelInfoPtr();
@@ -3659,7 +3664,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
     if (!mod_Buoyancy.ProcessBuoyancyBoat(this, m_fBuoyancyConstant, &vecBuoyancyTurnPoint, &vecBuoyancyForce, bCollidedWithWorld)) {
         physicalFlags.bSubmergedInWater = false;
         if (IsSubBoat()) {
-            AsBoat()->m_nBoatFlags.bOnWater = false;
+            AsBoat()->m_nBoatFlags.bBoatInWater = false;
         }
         return;
     }
@@ -3802,14 +3807,14 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
             CWaterLevel::GetWaterLevel(vecWorldThrustPos, fWaterLevel, true); // warn: result not checked
             if (vecWorldThrustPos.z - 0.5F >= fWaterLevel) {
                 if (IsSubBoat())
-                    AsBoat()->m_nBoatFlags.bMovingOnWater = false;
+                    AsBoat()->m_nBoatFlags.bBoatEngineInWater = false;
             }
             else {
                 auto fThrustDepth = fWaterLevel - vecWorldThrustPos.z + 0.5F;
                 fThrustDepth = std::min(sq(fThrustDepth), 1.0F);
 
                 if (IsSubBoat())
-                    AsBoat()->m_nBoatFlags.bMovingOnWater = true;
+                    AsBoat()->m_nBoatFlags.bBoatEngineInWater = true;
 
                 bool bIsSlowingDown = false;
                 auto fGasState = std::fabs(m_GasPedal);
@@ -3965,8 +3970,8 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
 
     *fLastWaterImmersionDepth = fImmersionDepth;
     if (IsSubBoat()) {
-        AsBoat()->m_vecWaterDamping = vecBuoyancyForce;
-        AsBoat()->m_nBoatFlags.bOnWater = bOnWater;
+        AsBoat()->m_fxBuoyancyForce = vecBuoyancyForce;
+        AsBoat()->m_nBoatFlags.bBoatInWater = bOnWater;
     }
     else if (IsAutomobile()) {
         this->AsAutomobile()->m_fDoomHorizontalRotation = vecBuoyancyForce.Magnitude();

@@ -1068,7 +1068,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
         vehicle->m_nPrimaryColor = packet.primaryColor;
         vehicle->m_nSecondaryColor = packet.secondaryColor;
         if (vehicle->IsSubBoat()) {
-            vehicle->AsBoat()->m_nBoatFlags.bAnchored = false;
+            vehicle->AsBoat()->m_nBoatFlags.bLockedToXY = false;
         }
 
         CWorld::Add(vehicle);
