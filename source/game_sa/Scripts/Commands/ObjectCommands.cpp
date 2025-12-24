@@ -206,6 +206,11 @@ void AllocateStreamedScriptToObject(int16 scmIndex, script::Model model, int per
     );
 }
 
+/// SWITCH_OBJECT_BRAINS(0A46)
+void SwitchObjectBrains(int8 objectGroupingId, bool bBrainOn) {
+    CTheScripts::ScriptsForBrains.SwitchAllObjectBrainsWithThisID(objectGroupingId, bBrainOn);
+}
+
 } // namespace Attractor
 
 namespace Animation {
@@ -284,6 +289,7 @@ void notsa::script::commands::object::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, GetNumberOfInstancesOfStreamedScript);
     REGISTER_COMMAND_HANDLER(COMMAND_ALLOCATE_STREAMED_SCRIPT_TO_OBJECT, AllocateStreamedScriptToObject);
     REGISTER_COMMAND_HANDLER(COMMAND_ALLOCATE_STREAMED_SCRIPT_TO_RANDOM_PED, AllocateStreamedScriptToRandomPed);
+    REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_OBJECT_BRAINS, SwitchObjectBrains);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_OBJECT_ANIM_SPEED, SetObjectAnimSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_OBJECT_PLAYING_ANIM, IsObjectPlayingAnim);
