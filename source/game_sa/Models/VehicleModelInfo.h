@@ -465,7 +465,6 @@ static int32 CountCompsInRule(int32 comps);
 static int32 GetListOfComponentsNotUsedByRules(uint32 compRules, int32 numExtras, int32* outList);
 static RpMaterial* RemoveWindowAlphaCB(RpMaterial* material, void* data); // data is RpMaterialList**
 static RwObject* GetOkAndDamagedAtomicCB(RwObject* object, void* data);   // data is &RpAtomic[2]
-static RpAtomic* atomicDefaultRenderCB(RpAtomic* atomic);
 
 extern RwTexDictionary*& vehicleTxd;
 extern RwFrame*& carFrame;

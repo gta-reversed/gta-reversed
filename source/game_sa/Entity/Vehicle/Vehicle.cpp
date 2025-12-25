@@ -245,7 +245,6 @@ void CVehicle::InjectHooks() {
     RH_ScopedGlobalInstall(CopyObjectsCB, 0x6D3450);
     // RH_ScopedGlobalInstall(FindReplacementUpgradeCB, 0x6D3490);
     RH_ScopedGlobalInstall(RemoveAllUpgradesCB, 0x6D34D0);
-    RH_ScopedGlobalInstall(SetVehicleAtomicVisibility, 0x732290);
 }
 
 // 0x6D5F10
@@ -1905,7 +1904,7 @@ RwFrame* SetVehicleAtomicVisibilityCB(RwFrame* frame, void* data) {
 // 0x6D2700
 void CVehicle::SetComponentVisibility(RwFrame* component, uint32 visibilityState) { // see eAtomicComponentFlag
     if (component) {
-        if (visibilityState == eAtomicComponentFlag::ATOMIC_IS_DAM_STATE) {
+        if (visibilityState == eAtomicComponentFlag::ATOMIC_DAMAGED) {
             vehicleFlags.bIsDamaged = true;
         }
         RwFrameForAllObjects(component, SetVehicleAtomicVisibilityCB, (void*)visibilityState);
@@ -2145,7 +2144,7 @@ void CVehicle::ClearGettingOutFlags(uint8 doorId) {
 void CVehicle::SetWindowOpenFlag(uint8 doorId) {
     auto frameFromId = CClumpModelInfo::GetFrameFromId(m_pRwClump, doorId);
     if (frameFromId) {
-        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::SetAtomicFlagCB, (void*)ATOMIC_IS_DOOR_WINDOW_OPENED);
+        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA);
     }
 }
 
@@ -2153,7 +2152,7 @@ void CVehicle::SetWindowOpenFlag(uint8 doorId) {
 void CVehicle::ClearWindowOpenFlag(uint8 doorId) {
     auto frameFromId = CClumpModelInfo::GetFrameFromId(m_pRwClump, doorId);
     if (frameFromId) {
-        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::ClearAtomicFlagCB, (void*)ATOMIC_IS_DOOR_WINDOW_OPENED);
+        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::ClearAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA);
     }
 }
 
@@ -2312,7 +2311,7 @@ RwObject* FindReplacementUpgradeCB(RwObject* object, void* data) {
 
 // 0x6D34D0
 RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data) {
-    auto* mi = CVisibilityPlugins::GetAtomicModelInfo(atomic);
+    auto* mi = CVisibilityPlugins::GetModelInfo(atomic);
     if (mi) {
         RpClumpRemoveAtomic(atomic->clump, atomic);
         RpAtomicDestroy(atomic);
@@ -2321,22 +2320,16 @@ RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data) {
     return atomic;
 }
 
-// TODO: Review, mobile call CVisibilityPlugins::SetAtomicId
-// 0x732290
-static void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state) {
-    RpAtomicGetVisibilityPlugin(atomic)->m_modelId = state;
-}
-
+// From [0x6D35BC - 0x6D3611]
 static void SetupUpgradeAtomicRendering(RpAtomic* atomic, bool isDamaged) {
-    bool hasAlphaMaterial{};
+    RpMaterial* hasAlphaMaterial = nullptr;
     RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), CVehicleModelInfo::HasAlphaMaterialCB, &hasAlphaMaterial);
     if (hasAlphaMaterial) {
-        CVisibilityPlugins::SetAtomicFlag(atomic, ATOMIC_HAS_ALPHA);
+        CVisibilityPlugins::SetAtomicRenderCallback(atomic, CVisibilityPlugins::RenderVehicleHiDetailAlphaCB);
+        CVisibilityPlugins::SetAtomicFlag(atomic, ATOMIC_ALPHA);
+    } else {
+        CVisibilityPlugins::SetAtomicRenderCallback(atomic, CVisibilityPlugins::RenderVehicleHiDetailCB);
     }
-    CVisibilityPlugins::SetAtomicRenderCallback(
-        atomic,
-        hasAlphaMaterial ? CVisibilityPlugins::RenderVehicleHiDetailAlphaCB : CVisibilityPlugins::RenderVehicleHiDetailCB // Moved this out to here from the above `if`
-    );
 
     CVehicleModelInfo::SetRenderPipelinesCB(atomic, nullptr);
 }
@@ -2362,9 +2355,9 @@ RpAtomic* CVehicle::CreateUpgradeAtomic(CBaseModelInfo* mi, const UpgradePosnDes
 
     mi->AddRef();
 
-    SetVehicleAtomicVisibility(atomic, isDamaged ? ATOMIC_IS_DAM_STATE : ATOMIC_IS_OK_STATE); //  TODO: Use RpAtomicVisibility: isDamaged ? VISIBILITY_DAM : VISIBILITY_OK
-
-    CVisibilityPlugins::SetAtomicFlag(atomic, ATOMIC_IS_REPLACEMENT_UPGRADE | ATOMIC_RENDER_ALWAYS); // NOTE: Combined 2 flags together here
+    CVisibilityPlugins::SetAtomicId(atomic, isDamaged ? eAtomicComponentFlag::ATOMIC_DAMAGED : eAtomicComponentFlag::ATOMIC_OK);
+    CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_UPGRADE);
+    CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_DONT_CULL);
 
     SetupUpgradeAtomicRendering(atomic, isDamaged);
 
@@ -2379,10 +2372,10 @@ void CVehicle::RemoveUpgrade(int32 upgradeId) {
 
 // 0x6D3650
 int32 CVehicle::GetUpgrade(int32 upgradeId) {
-    tCompSearchStructById upgradeAssoc = { upgradeId, nullptr };
-    RpClumpForAllAtomics(m_pRwClump, FindUpgradeCB, &upgradeAssoc);
-    if (upgradeAssoc.m_pFrame) {
-        return CVisibilityPlugins::GetModelInfoIndex((RpAtomic*)upgradeAssoc.m_pFrame);
+    struct { int32 upgradeId; RpAtomic* atomic; } data = { upgradeId, nullptr };
+    RpClumpForAllAtomics(m_pRwClump, FindUpgradeCB, &data);
+    if (data.atomic) {
+        return CVisibilityPlugins::GetModelInfoIndex(data.atomic);
     }
 
     switch (upgradeId) {
@@ -2407,9 +2400,7 @@ int32 CVehicle::GetUpgrade(int32 upgradeId) {
 }
 
 // 0x6D3700
-RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentFrame, int16 atomicVisibilityFlags, bool isDamaged, bool bIsWheel) {
-    // atomicVisibilityFlags flags combined from `eAtomicComponentFlag`
-
+RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentFrame, eAtomicComponentFlag flags, bool isDamaged, bool bIsWheel) {
     if (isDamaged) {
         CDamageAtomicModelInfo::ms_bCreateDamagedVersion = true;
     }
@@ -2433,7 +2424,8 @@ RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentF
         RwFrameDestroy(frame);
     }
 
-    SetVehicleAtomicVisibility(atomic, atomicVisibilityFlags & ~(ATOMIC_IS_DAM_STATE | ATOMIC_IS_OK_STATE));
+    CVisibilityPlugins::SetAtomicId(atomic, flags & ~eAtomicComponentFlag::ATOMIC_MASK);
+    CVisibilityPlugins::SetAtomicFlag(atomic, isDamaged ? eAtomicComponentFlag::ATOMIC_DAMAGED : eAtomicComponentFlag::ATOMIC_OK);
 
     SetupUpgradeAtomicRendering(atomic, isDamaged);
 
@@ -2466,10 +2458,10 @@ void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
 // 0x6D3A50
 int32 CVehicle::GetReplacementUpgrade(int32 nodeId) {
     auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, nodeId);
-    tCompSearchStructById upgradeAssoc = { nodeId, nullptr };
-    RwFrameForAllObjects(frame, FindReplacementUpgradeCB, &upgradeAssoc);
-    if (upgradeAssoc.m_pFrame)
-        return CVisibilityPlugins::GetModelInfoIndex((RpAtomic*)upgradeAssoc.m_pFrame);
+    tCompSearchStructById data = { nodeId, nullptr };
+    RwFrameForAllObjects(frame, FindReplacementUpgradeCB, &data);
+    if (data.m_pFrame)
+        return CVisibilityPlugins::GetModelInfoIndex((RpAtomic*)data.m_pFrame);
     else
         return -1;
 }

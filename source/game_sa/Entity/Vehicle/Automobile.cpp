@@ -228,7 +228,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
 
         // Hide both
         for (auto comp : { CAR_WHEEL_LM, CAR_WHEEL_RM }) {
-            rwObjectSetFlags(GetFirstObject(m_aCarNodes[comp]), ATOMIC_IS_NOT_PRESENT);
+            rwObjectSetFlags(GetFirstObject(m_aCarNodes[comp]), eAtomicComponentFlag::ATOMIC_NONE);
         }
     } else { // 0x6B0D57
         auto& doorLR = m_doors[DOOR_LEFT_REAR];
@@ -397,7 +397,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     case -2: { // 0x6B120F
         // I don't think this is reachable, as it would crash somewhere above.
 
-        rwObjectSetFlags(GetFirstObject(m_aCarNodes[CAR_WHEEL_LF]), ATOMIC_IS_NOT_PRESENT);
+        rwObjectSetFlags(GetFirstObject(m_aCarNodes[CAR_WHEEL_LF]), eAtomicComponentFlag::ATOMIC_NONE);
 
         // Probably an inlined function here, as there was a redundant check here (model == -2)
         CMatrix wheelRFMat{ RwFrameGetMatrix(m_aCarNodes[CAR_WHEEL_RF]) };
@@ -2162,7 +2162,7 @@ void CAutomobile::OpenDoor(CPed* ped, int32 nodeIdx, eDoors doorIdx, float doorO
         RwFrameForAllObjects( // TODO: Make function (See refs to `SetAtomicFlagCB` and `ClearAtomicFlagCB` and combine them somehow)
             frame,
             CVehicleModelInfo::ClearAtomicFlagCB,
-            (void*)(ATOMIC_RENDER_ALWAYS)
+            (void*)(eAtomicComponentFlag::ATOMIC_DONT_CULL)
         );
     }
 
@@ -2183,7 +2183,7 @@ void CAutomobile::OpenDoor(CPed* ped, int32 nodeIdx, eDoors doorIdx, float doorO
         RwFrameForAllObjects( // TODO: Make function (See refs to `SetAtomicFlagCB` below)
             frame,
             CVehicleModelInfo::SetAtomicFlagCB,
-            (void*)(ATOMIC_RENDER_ALWAYS)
+            (void*)(eAtomicComponentFlag::ATOMIC_DONT_CULL)
         );
         ProcessSound(AE_CAR_BONNET_OPEN, 60.f);
     } else if (!wasClosed && doorOpenRatio == 0.f) {
@@ -2380,7 +2380,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     physicalFlags.bRenderScorched = true;
     m_nTimeWhenBlowedUp      = CTimer::GetTimeInMS();
 
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
     m_damageManager.FuckCarCompletely(false);
 
     const auto isRcShit = (bFixBugs || !bIsForCutScene)
@@ -2694,7 +2694,7 @@ void CAutomobile::Fix() {
     vehicleFlags.bIsDamaged = false;
 
     // Hide all DAM state atomics
-    RpClumpForAllAtomics(m_pRwClump, CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)ATOMIC_IS_DAM_STATE);
+    RpClumpForAllAtomics(m_pRwClump, CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
 
     // Reset rotation of some nodes
     for (auto i = (size_t)CAR_DOOR_RF; i < (size_t)CAR_NUM_NODES; i++) {
@@ -4042,7 +4042,7 @@ void CAutomobile::SetRandomDamage(bool bRemoveStuff) {
                 continue;
             }
             SetAsDamaged(pick);
-            SetComponentVisibility(m_aCarNodes[nodeIdx], ATOMIC_IS_DAM_STATE);
+            SetComponentVisibility(m_aCarNodes[nodeIdx], eAtomicComponentFlag::ATOMIC_DAMAGED);
         }
     };
 
@@ -4084,11 +4084,11 @@ void CAutomobile::SetTotalDamage(bool randomness) {
             if (!randomness || CGeneral::GetRandomNumberInRange(0, 3)) {
                 if (m_damageManager.GetDoorStatus((eDoors)i) == DAMSTATE_OK && IsComponentDamageable(nodeIdx)) {
                     m_damageManager.SetDoorStatus((eDoors)i, DAMSTATE_DAMAGED);
-                    SetComponentVisibility(doorFrame, ATOMIC_IS_DAM_STATE);
+                    SetComponentVisibility(doorFrame, eAtomicComponentFlag::ATOMIC_DAMAGED);
                 }
             } else {
                 m_damageManager.SetDoorStatus((eDoors)i, DAMSTATE_NOTPRESENT);
-                SetComponentVisibility(doorFrame, ATOMIC_IS_NOT_PRESENT);
+                SetComponentVisibility(doorFrame, eAtomicComponentFlag::ATOMIC_NONE);
             }
         }
     }
@@ -4106,11 +4106,11 @@ void CAutomobile::SetTotalDamage(bool randomness) {
                 if (!randomness || CGeneral::GetRandomNumberInRange(0, 3)) {
                     if (m_damageManager.GetPanelStatus((ePanels)i) == DAMSTATE_OK && IsComponentDamageable(nodeIdx)) {
                         m_damageManager.SetPanelStatus((ePanels)i, DAMSTATE_OPENED);
-                        SetComponentVisibility(panelFrame, ATOMIC_IS_DAM_STATE);
+                        SetComponentVisibility(panelFrame, eAtomicComponentFlag::ATOMIC_DAMAGED);
                     }
                 } else {
                     m_damageManager.SetPanelStatus((ePanels)i, DAMSTATE_OPENED_DAMAGED);
-                    SetComponentVisibility(panelFrame, ATOMIC_IS_NOT_PRESENT);
+                    SetComponentVisibility(panelFrame, eAtomicComponentFlag::ATOMIC_NONE);
                 }
             }
             break;
@@ -4186,7 +4186,7 @@ void CAutomobile::FixDoor(int32 nodeIndex, eDoors door) {
         m_doors[door].Open(0.f);
         m_damageManager.SetDoorStatus(door, DAMSTATE_OK);
         if (const auto frame = m_aCarNodes[nodeIndex]) {
-            SetComponentVisibility(frame, ATOMIC_IS_OK_STATE);
+            SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_OK);
 
             // Reset it's matrix
             CMatrix mat{ RwFrameGetLTM(frame), false };
@@ -4208,7 +4208,7 @@ void CAutomobile::FixPanel(eCarNodes nodeIndex, ePanels panel) {
     }
 
     if (const auto frame = m_aCarNodes[nodeIndex]) { // Same code as in FixDoor.. Maybe this was a standalone function, like "FixNode"?
-        SetComponentVisibility(frame, ATOMIC_IS_OK_STATE);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_OK);
 
         CMatrix mat{ RwFrameGetLTM(frame), false };
         mat.SetTranslate(GetPosition());
@@ -5542,7 +5542,7 @@ void CAutomobile::ProcessSwingingDoor(eCarNodes nodeIdx, eDoors doorIdx)
             auto* flyingObj = SpawnFlyingComponent(CAR_BONNET, 2)->AsVehicle();
 
             m_vehicleAudio.AddAudioEvent(AE_BONNET_FLUBBER_FLUBBER, flyingObj);
-            SetComponentVisibility(m_aCarNodes[CAR_BONNET], ATOMIC_IS_NOT_PRESENT);
+            SetComponentVisibility(m_aCarNodes[CAR_BONNET], eAtomicComponentFlag::ATOMIC_NONE);
             m_damageManager.SetDoorStatus(DOOR_BONNET, DAMSTATE_NOTPRESENT);
 
             // Apply some additional forces to the flying component
@@ -5580,7 +5580,7 @@ CObject* CAutomobile::RemoveBonnetInPedCollision() {
 
     auto* const flyingComp = SpawnFlyingComponent(eCarNodes::CAR_BONNET, 2u);
     m_vehicleAudio.AddAudioEvent(eAudioEvents::AE_BONNET_FLUBBER_FLUBBER, flyingComp);
-    SetComponentVisibility(m_aCarNodes[eCarNodes::CAR_BONNET], ATOMIC_IS_NOT_PRESENT);
+    SetComponentVisibility(m_aCarNodes[eCarNodes::CAR_BONNET], eAtomicComponentFlag::ATOMIC_NONE);
     m_damageManager.SetDoorStatus(eDoors::DOOR_BONNET, eDoorStatus::DAMSTATE_NOTPRESENT);
     return flyingComp;
 }
@@ -5606,7 +5606,7 @@ void CAutomobile::PopDoor(eCarNodes nodeIdx, eDoors doorIdx, bool showVisualEffe
     }
 
     m_damageManager.SetDoorStatus(doorIdx, DAMSTATE_NOTPRESENT);
-    SetComponentVisibility(m_aCarNodes[nodeIdx], ATOMIC_IS_NOT_PRESENT);
+    SetComponentVisibility(m_aCarNodes[nodeIdx], eAtomicComponentFlag::ATOMIC_NONE);
 }
 
 // 0x6ADF80
@@ -5628,7 +5628,7 @@ void CAutomobile::PopPanel(eCarNodes nodeIdx, ePanels panel, bool showVisualEffe
     }
 
     m_damageManager.SetPanelStatus(panel, ePanelDamageState::DAMSTATE_OPENED_DAMAGED);
-    SetComponentVisibility(m_aCarNodes[nodeIdx], ATOMIC_IS_NOT_PRESENT);
+    SetComponentVisibility(m_aCarNodes[nodeIdx], eAtomicComponentFlag::ATOMIC_NONE);
 }
 
 /*!
@@ -6102,14 +6102,14 @@ void CAutomobile::SetBumperDamage(ePanels panelIdx, bool withoutVisualEffect) {
         break;
     }
     case ePanelDamageState::DAMSTATE_OPENED: {
-        SetComponentVisibility(frame, ATOMIC_IS_DAM_STATE);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_DAMAGED);
         break;
     }
     case ePanelDamageState::DAMSTATE_OPENED_DAMAGED: {
         if (!withoutVisualEffect) {
             SpawnFlyingComponent(nodeIdx, 0u);
         }
-        SetComponentVisibility(frame, ATOMIC_IS_NOT_PRESENT);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_NONE);
         break;
     }
     }
@@ -6145,14 +6145,14 @@ void CAutomobile::SetPanelDamage(ePanels panel, bool createWindowGlass)
             }
             }
         }
-        SetComponentVisibility(frame, ATOMIC_IS_DAM_STATE);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_DAMAGED);
         break;
     }
     case ePanelDamageState::DAMSTATE_OPENED: {
         if (panel == ePanels::WINDSCREEN_PANEL) {
             m_vehicleAudio.AddAudioEvent(eAudioEvents::AE_WINDSCREEN_SHATTER, 0.f);
         }
-        SetComponentVisibility(frame, ATOMIC_IS_DAM_STATE);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_DAMAGED);
         break;
     }
     case ePanelDamageState::DAMSTATE_OPENED_DAMAGED: {
@@ -6163,7 +6163,7 @@ void CAutomobile::SetPanelDamage(ePanels panel, bool createWindowGlass)
         } else {
             SpawnFlyingComponent(nodeIdx, 5u);
         }
-        SetComponentVisibility(frame, ATOMIC_IS_NOT_PRESENT);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_NONE);
         break;
     }
     }
@@ -6230,7 +6230,7 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
     switch (m_damageManager.GetDoorStatus(doorIdx)) {
     case DAMSTATE_DAMAGED: { // 0x6B16E5
         if (isDamageable) {
-            SetComponentVisibility(frame, ATOMIC_IS_DAM_STATE);
+            SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_DAMAGED);
         }
 
         if (door.m_prevAngle != 0.f) {
@@ -6258,12 +6258,12 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
                 SpawnFlyingComponent(nodeIdx, doorIdx == eDoors::DOOR_BOOT ? 4u : 2u);
             }
         }
-        SetComponentVisibility(frame, ATOMIC_IS_NOT_PRESENT);
+        SetComponentVisibility(frame, eAtomicComponentFlag::ATOMIC_NONE);
         break;
     }
-    case DAMSTATE_OPENED: // 0x6B16E5
+    case DAMSTATE_OPENED: // 0x6B1834
     case DAMSTATE_OPENED_DAMAGED: {
-        RwFrameForAllObjects(frame, CVehicleModelInfo::SetAtomicFlagCB, (void*)ATOMIC_RENDER_ALWAYS);
+        RwFrameForAllObjects(frame, CVehicleModelInfo::SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_CULL);
         if (doorIdx == eDoors::DOOR_BONNET) {
             door.m_angVel = 0.2f;
         }

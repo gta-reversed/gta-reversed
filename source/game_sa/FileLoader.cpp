@@ -2390,7 +2390,7 @@ RpAtomic* CFileLoader::FindRelatedModelInfoCB(RpAtomic* atomic, void* data) {
         RpClumpRemoveAtomic(static_cast<RpClump*>(data), atomic);
         RwFrame* pRwFrame = RwFrameCreate();
         RpAtomicSetFrame(atomic, pRwFrame);
-        CVisibilityPlugins::SetAtomicId(atomic, modelId);
+        CVisibilityPlugins::SetModelInfoIndex(atomic, modelId);
     }
     return atomic;
 }
@@ -2421,7 +2421,7 @@ RpAtomic* CFileLoader::SetRelatedModelInfoCB(RpAtomic* atomic, void* data) {
 
     RpAtomicSetFrame(atomic, RwFrameCreate()); // Just create a new empty frame for it
 
-    CVisibilityPlugins::SetAtomicId(atomic, gAtomicModelId);
+    CVisibilityPlugins::SetModelInfoIndex(atomic, gAtomicModelId);
 
     return atomic;
 }
