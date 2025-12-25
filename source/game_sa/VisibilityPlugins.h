@@ -194,10 +194,8 @@ public:
     static float GetDistanceSquaredFromCamera(RwV3d* pos);
 
     static void RenderWeaponPedsForPC();
-
-    static void ResetWeaponPedsForPC() { ms_weaponPedsForPC.Clear(); }
-
-    static void AddWeaponPedForPC(CPed* pPed) { ms_weaponPedsForPC.Insert(pPed); } // 0x5E46D0
+    static void ResetWeaponPedsForPC() { ms_weaponPedsForPC.Clear(); } // inline
+    static void AddWeaponPedForPC(CPed* ped) { ms_weaponPedsForPC.Insert(ped); } // 0x5E46D0
 
 private:
     static void* AtomicConstructor(void* atomic, RwInt32 offset, RwInt32 size);
