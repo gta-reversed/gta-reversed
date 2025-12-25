@@ -797,6 +797,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.0049f, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
         default:                     break;
         }
+
         // 0x57B239
         if (displayText) {
             itemYPosition += 29 * CFont::GetNumberLines(60.0f, itemYPosition, displayText);
