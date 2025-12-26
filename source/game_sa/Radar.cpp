@@ -1336,7 +1336,14 @@ void CRadar::Draw3dMarkers() {
                 return vehPos + CVector{0.0f, 0.0f, bbMaxZ + 2.0f};
             }();
 
+            for (int i = 0; i < 14; i++) {
+                const auto test_color = CRGBA{HudColour.GetIntColour((eHudColours)i)};
+                PutMarkerCone(coneHandle, FindPlayerPed()->GetRealPosition() + CVector{ 0.0f, i * 1.5f, 1.5f }, 1.2f, test_color);
+            }
+
             PutMarkerCone(coneHandle, posn, 2.0f, color);
+
+
             break;
         }
         case BLIP_CHAR: {
