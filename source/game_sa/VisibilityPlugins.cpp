@@ -131,22 +131,21 @@ void CVisibilityPlugins::InjectHooks() {
 
 // 0x733A20
 void CVisibilityPlugins::Initialise() {
-    auto initList = [](auto& list, int size) {
+    const auto InitList = [](auto& list, int size) {
         list.Init(size);
         list.usedListHead.data.m_distance = 0.0f;
         list.usedListTail.data.m_distance = 100000000.0f;
     };
 
-    initList(m_alphaList, TOTAL_ALPHA_LISTS);
-    initList(m_alphaBoatAtomicList, TOTAL_ALPHA_BOAT_ATOMIC_LISTS);
-    initList(m_alphaEntityList, TOTAL_ALPHA_ENTITY_LISTS);
-    initList(m_alphaUnderwaterEntityList, TOTAL_ALPHA_UNDERWATER_ENTITY_LISTS);
+    InitList(m_alphaList, TOTAL_ALPHA_LISTS);
+    InitList(m_alphaBoatAtomicList, TOTAL_ALPHA_BOAT_ATOMIC_LISTS);
+    InitList(m_alphaEntityList, TOTAL_ALPHA_ENTITY_LISTS);
+    InitList(m_alphaUnderwaterEntityList, TOTAL_ALPHA_UNDERWATER_ENTITY_LISTS);
     // New in SA
-    initList(m_alphaReallyDrawLastList, TOTAL_ALPHA_DRAW_LAST_LISTS);
+    InitList(m_alphaReallyDrawLastList, TOTAL_ALPHA_DRAW_LAST_LISTS);
 
     ms_weaponPedsForPC.Init(TOTAL_WEAPON_PEDS_FOR_PC);
 }
-
 
 // 0x732EB0
 void CVisibilityPlugins::Shutdown() {
@@ -186,9 +185,9 @@ void CVisibilityPlugins::InitAlphaEntityList() {
 template<typename TObject>
 bool InsertIntoList(CLinkList<CVisibilityPlugins::AlphaObjectInfo>& list, TObject* obj, float dist, CVisibilityPlugins::RenderFunction callback) {
     CVisibilityPlugins::AlphaObjectInfo info;
-    info.m_pObj      = obj;
+    info.m_pObj = obj;
     info.m_pCallback = callback;
-    info.m_distance  = dist;
+    info.m_distance = dist;
     return list.InsertSorted(info);
 }
 
@@ -208,7 +207,7 @@ bool CVisibilityPlugins::InsertAtomicIntoBoatSortedList(RpAtomic* atomic, float 
 bool CVisibilityPlugins::InsertEntityIntoSortedList(CEntity* entity, float dist) {
     if (entity->GetModelIndex() == ModelIndices::MI_GRASSHOUSE
         //  || entity->GetModelIndex() == ModelIndices::MI_GASSTATION // In Android
-        ) {
+    ) {
         if (InsertEntityIntoReallyDrawLastList(entity, dist)) {
             return true;
         }
@@ -545,8 +544,7 @@ void CVisibilityPlugins::RenderAtomicWithAlpha(RpAtomic* atomic, int32 alpha) {
 
     for (int32 i = 0; i < numMaterials; i++) {
         RpMaterial* material = RpGeometryGetMaterial(geometry, i);
-        RwRGBA* color = RpMaterialGetColor(material);
-        color->alpha = alphas[i];
+        RpMaterialGetColor(material)->alpha = alphas[i];
     }
     RpGeometrySetFlags(geometry, geometryFlags);
 }
@@ -693,25 +691,20 @@ float CVisibilityPlugins::GetVehicleDotProduct(RpAtomic* atomic, uint32& outAtom
 }
 
 // NOTSA:
-// Common Culling Logic based on the provided reference code.
 // Returns TRUE if the object should be CULLED (Skipped), FALSE if it should be drawn.
 bool CVisibilityPlugins::ShouldCullVehicleAtomic(float distFromCam, float cullDist, float dotProduct, uint32 atomicId, bool bUseComplexHeuristic) {
-    // Condition: Vehicle is far enough, not forced visible, and viewed from a flat angle
     if (distFromCam > cullDist && !(atomicId & ATOMIC_DONT_CULL) && gAngleWithHorizontal < 0.2f) {
-        // If on the wrong side of the vehicle cull...
         if (dotProduct > 0.0f) {
-            // If using complex heuristic (Size check / Flat check)
             if (bUseComplexHeuristic) {
                 if ((atomicId & ATOMIC_FLAT) || (sq(dotProduct) > distFromCam * 0.1f)) {
-                    return true; // Cull it
+                    return true;
                 }
             } else {
-                // Simple heuristic: just check facing
-                return true; // Cull it
+                return true;
             }
         }
     }
-    return false; // Do not cull
+    return false;
 }
 
 // 0x7340B0
@@ -733,11 +726,11 @@ RpAtomic* CVisibilityPlugins::RenderHeliTailRotorAlphaCB(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_vehicleLod0Dist) {
         RwMatrix* atomicMatrix = RwFrameGetLTM(RpAtomicGetFrame(atomic));
         RwMatrix* clumpMatrix = RwFrameGetLTM(RpClumpGetFrame(RpAtomicGetClump(atomic)));
-        
+
         CVector distance = atomicMatrix->pos - *ms_pCameraPosn;
         const float dotProduct1 = distance.Dot(clumpMatrix->right);
         const float dotProduct2 = distance.Dot(clumpMatrix->up);
-        
+
         if (!InsertAtomicIntoSortedList(atomic, gVehicleDistanceFromCamera - dotProduct1 - dotProduct2)) {
             AtomicDefaultRenderCallBack(atomic);
         }
@@ -823,7 +816,7 @@ void CVisibilityPlugins::RenderReallyDrawLastObjects() {
 RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailCB(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_vehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId;
         float dotProduct = GetVehicleDotProduct(atomic, atomicId);
 
@@ -831,7 +824,7 @@ RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailCB(RpAtomic* atomic) {
         if (ShouldCullVehicleAtomic(gVehicleDistanceFromCamera, ms_cullCompsDist, dotProduct, atomicId, true)) {
             return atomic; // Cull
         }
-        
+
         AtomicDefaultRenderCallBack(atomic);
     }
     return atomic;
@@ -841,10 +834,10 @@ RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailCB(RpAtomic* atomic) {
 RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailAlphaCB(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_vehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId;
         float dotProduct = GetVehicleDotProduct(atomic, atomicId);
-        
+
         // complex heuristic = true
         if (ShouldCullVehicleAtomic(gVehicleDistanceFromCamera, ms_cullCompsDist, dotProduct, atomicId, true)) {
             return atomic; // Cull
@@ -869,7 +862,7 @@ RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailAlphaCB(RpAtomic* atomic) {
 RpAtomic* CVisibilityPlugins::RenderTrainHiDetailCB(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_bigVehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId;
         float dotProduct = GetVehicleDotProduct(atomic, atomicId);
 
@@ -886,7 +879,7 @@ RpAtomic* CVisibilityPlugins::RenderTrainHiDetailCB(RpAtomic* atomic) {
 RpAtomic* CVisibilityPlugins::RenderTrainHiDetailAlphaCB(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_bigVehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId;
         float dotProduct = GetVehicleDotProduct(atomic, atomicId);
 
@@ -921,7 +914,7 @@ RpAtomic* CVisibilityPlugins::RenderVehicleReallyLowDetailCB_BigVehicle(RpAtomic
 RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailCB_BigVehicle(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_bigVehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId;
         float dotProduct = GetVehicleDotProduct(atomic, atomicId);
 
@@ -939,10 +932,10 @@ RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailCB_BigVehicle(RpAtomic* atomi
 RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailAlphaCB_BigVehicle(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_bigVehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId;
         float dotProduct = GetVehicleDotProduct(atomic, atomicId);
-        
+
         // NOTE: BigVehicle Alpha Mode Uses COMPLEX Heuristic (True) in provided reference code
         // (dotProduct * dotProduct > gVehicleDistanceFromCamera * 0.1f) check is present
         if (ShouldCullVehicleAtomic(gVehicleDistanceFromCamera, ms_cullBigCompsDist, dotProduct, atomicId, true)) {
@@ -1006,7 +999,7 @@ RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailCB_Boat(RpAtomic* atomic) {
 RpAtomic* CVisibilityPlugins::RenderVehicleHiDetailAlphaCB_Boat(RpAtomic* atomic) {
     if (gVehicleDistanceFromCamera < ms_vehicleLod0Dist) {
         RenderVehicleCB_ControlRenderMultiPassLOD(atomic, gVehicleDistanceFromCamera);
-        
+
         uint32 atomicId = CVisibilityPlugins::GetAtomicId(atomic);
         if (atomicId & ATOMIC_ALPHA) {
             if (!InsertAtomicIntoBoatSortedList(atomic, gVehicleDistanceFromCamera)) {
@@ -1098,7 +1091,7 @@ RpAtomic* setClumpForAllAtomicsFlagCB(RpAtomic* atomic, void* data) {
 
 // 0x7322F0
 void CVisibilityPlugins::SetClumpForAllAtomicsFlag(RpClump* clump, int32 id) {
-    // like Mobile (in PC SetAtomicFlag)
+    // like Mobile (in PC call SetAtomicFlag)
     RpClumpForAllAtomics(clump, setClumpForAllAtomicsFlagCB, (void*)id);
 }
 
@@ -1156,8 +1149,7 @@ void CVisibilityPlugins::SetRenderWareCamera(RwCamera* camera) {
     ms_vehicleLod0Dist = std::powf(TheCamera.m_fGenerationDistMultiplier * 70.0f, 2.0f);
     ms_vehicleLod0Dist += ms_vehicleLod0Dist;
 
-    float vehicleLodDistance = std::powf(TheCamera.m_fGenerationDistMultiplier * 150.0f, 2.0f);
-    vehicleLodDistance += vehicleLodDistance;
+    float vehicleLodDistance = std::powf(TheCamera.m_fGenerationDistMultiplier * 150.0f, 2.0f) * 2.f;
     ms_vehicleLod1Dist = vehicleLodDistance;
     ms_bigVehicleLod0Dist = vehicleLodDistance;
 
@@ -1222,4 +1214,3 @@ RwBool CVisibilityPlugins::VehicleVisibilityCB_BigVehicle(RpClump* clump) {
 
     return FrustumSphereCB(clump);
 }
-
