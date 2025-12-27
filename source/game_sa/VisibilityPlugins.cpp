@@ -214,7 +214,7 @@ bool CVisibilityPlugins::InsertEntityIntoSortedList(CEntity* entity, float dist)
         }
     }
 
-    if(entity->m_bUnderwater) {
+    if (entity->m_bUnderwater) {
         return InsertIntoList(m_alphaUnderwaterEntityList, entity, dist, &RenderEntity);
     }
 
