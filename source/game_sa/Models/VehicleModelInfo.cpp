@@ -1205,7 +1205,6 @@ void CVehicleModelInfo::AssignRemapTxd(const char* name, int16 txdSlot)
         mi->AsVehicleModelInfoPtr()->AddRemap(txdSlot);
 }
 
-// NOTSA: optimization
 RpAtomic* CVehicleModelInfo::StoreAtomicUsedMaterialsCB(RpAtomic* atomic, void* data)
 {
     auto matList = reinterpret_cast<RpMaterialList*>(data);
