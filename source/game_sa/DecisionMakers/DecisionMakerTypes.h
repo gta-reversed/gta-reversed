@@ -56,6 +56,7 @@ public:
     void AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags);
     void FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId);
     void LoadEventIndices();
+    int32 CopyDecisionMaker(int32 index, eDecisionTypes type, bool isDecisionMakerForMission);
 
 public:
     int32          m_NoOfDecisionMakers{};
