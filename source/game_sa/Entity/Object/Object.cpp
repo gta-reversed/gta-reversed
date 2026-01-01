@@ -127,7 +127,7 @@ CObject::~CObject() {
     if (objectFlags.bScriptBrainStatus) {
         const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nStreamedScriptBrainToLoad].m_StreamedScriptIndex);
         CStreaming::SetMissionDoesntRequireModel(iIndex);
-        objectFlags.bScriptBrainStatus = 0;
+        objectFlags.bScriptBrainStatus = eObjectScriptBrainStatus::OBJECT_DOESNT_USE_SCRIPT_BRAIN;
         CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nStreamedScriptBrainToLoad);
         m_nStreamedScriptBrainToLoad = -1;
     }

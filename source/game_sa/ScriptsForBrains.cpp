@@ -154,7 +154,7 @@ void CScriptsForBrains::StartNewStreamedScriptBrain(uint8 index, CEntity* entity
         const auto object                      = entity->AsObject();
 
         script->m_LocalVars[0].uParam          = GetObjectPool()->GetRef(object);
-        object->objectFlags.bScriptBrainStatus = 2;
+        object->objectFlags.bScriptBrainStatus = eObjectScriptBrainStatus::OBJECT_RUNNING_SCRIPT_BRAIN;
         break;
     }
     }
@@ -175,11 +175,11 @@ void CScriptsForBrains::StartOrRequestNewStreamedScriptBrain(uint8 index, CEntit
     case CScriptsForBrains::OBJECT_STREAMED: {
         const auto object = entity->AsObject();
         if (bFirstTime) {
-            object->objectFlags.bScriptBrainStatus = 1;
+            object->objectFlags.bScriptBrainStatus = eObjectScriptBrainStatus::OBJECT_SCRIPT_BRAIN_NOT_LOADED;
             object->m_nStreamedScriptBrainToLoad   = index;
             CTheScripts::AddToWaitingForScriptBrainArray(object, index);
         } else {
-            object->objectFlags.bScriptBrainStatus = 2;
+            object->objectFlags.bScriptBrainStatus = eObjectScriptBrainStatus::OBJECT_WAITING_FOR_SCRIPT_BRAIN_TO_LOAD;
         }
         break;
     }
