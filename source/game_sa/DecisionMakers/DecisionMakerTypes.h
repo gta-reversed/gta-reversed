@@ -39,6 +39,10 @@ enum class eDecisionMakerType : int32 {
 };
 
 class CDecisionMakerTypes {
+private:
+    using EventIndicesArray = std::array<int32, +eEventType::EVENT_TOTAL_NUM_EVENTS>;
+    using DecisionMakersArray = std::array<CDecisionMaker, +eDecisionMakerType::COUNT_TOTAL>;
+
 public:
     static constexpr auto NUM_TYPES = 20u;
 
@@ -49,22 +53,23 @@ public:
 
     static CDecisionMakerTypes* GetInstance();
 
-    int32 AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
-    void MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType);
-    void RemoveDecisionMaker(eDecisionTypes dm);
+    int32     AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
+    void      MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType);
+    void      RemoveDecisionMaker(eDecisionTypes dm);
     eTaskType MakeDecision(CPedGroup* pedGroup, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskId1, eTaskType taskId2, eTaskType taskId3, eTaskType taskId4);
-    void AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags);
-    void FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId);
-    void LoadEventIndices();
-    int32 CopyDecisionMaker(int32 index, eDecisionTypes type, bool isDecisionMakerForMission);
+    void      AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags);
+    void      FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId);
+    void      LoadEventIndices(EventIndicesArray& out, const char* filepath);
+    void      LoadEventIndices();
+    int32     CopyDecisionMaker(int32 index, eDecisionTypes type, bool isDecisionMakerForMission);
 
 public:
-    int32                                                              m_NoOfDecisionMakers{};
-    std::array<CDecisionMaker, +eDecisionMakerType::COUNT_TOTAL> m_DecisionMakers{};
-    std::array<int32, +eEventType::EVENT_TOTAL_NUM_EVENTS>                           m_EventIndices{};
-    CDecisionMaker m_DefaultRandomPedDecisionMaker{};
-    CDecisionMaker m_DefaultMissionPedDecisionMaker{};
-    CDecisionMaker m_DefaultPlayerPedDecisionMaker{};
-    CDecisionMaker m_DefaultRandomPedGroupDecisionMaker{};
-    CDecisionMaker m_DefaultMissionPedGroupDecisionMaker{};
+    int32               m_NoOfDecisionMakers{};
+    DecisionMakersArray m_DecisionMakers{};
+    EventIndicesArray   m_EventIndices{};
+    CDecisionMaker      m_DefaultRandomPedDecisionMaker{};
+    CDecisionMaker      m_DefaultMissionPedDecisionMaker{};
+    CDecisionMaker      m_DefaultPlayerPedDecisionMaker{};
+    CDecisionMaker      m_DefaultRandomPedGroupDecisionMaker{};
+    CDecisionMaker      m_DefaultMissionPedGroupDecisionMaker{};
 };
