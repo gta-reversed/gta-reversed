@@ -107,7 +107,7 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(CalculateLeanMatrix, 0x6B7150);
     RH_ScopedInstall(ProcessRiderAnims, 0x6B7280, { .reversed = false });
     RH_ScopedInstall(FixHandsToBars, 0x6B7F90, { .reversed = false });
-    RH_ScopedInstall(PlaceOnRoadProperly, 0x6BEEB0, { .reversed = false });
+    RH_ScopedInstall(PlaceOnRoadProperly, 0x6BEEB0);
     RH_ScopedInstall(GetCorrectedWorldDoorPosition, 0x6BF230, { .reversed = false });
 
     RH_ScopedVMTInstall(Fix, 0x6B7050);
@@ -252,7 +252,7 @@ void CBike::dmgDrawCarCollidingParticles(const CVector& position, float power, e
 bool CBike::DamageKnockOffRider(CVehicle* pVehicle, float fImpulse, uint16 nPieceType, CEntity* pDamageEntity, CVector& vecDamagePos, CVector& vecDamageNormal) {
     const auto driver = pVehicle->m_pDriver;
     auto v32 = fImpulse / pVehicle->m_fMass * 800.0f;
-    if (!pVehicle->IsNothing()) {
+    if (pVehicle->GetStatus()) {
         if (driver && (driver->bDoBloodyFootprints == true && driver->bGetUpAnimStarted == false)) {
             v32 = (1.0f - driver->GetBikeRidingSkill() * 0.6f) * v32;
         }
@@ -388,7 +388,7 @@ CPed* CBike::KnockOffRider(eWeaponType hitType, uint8 localDirn, CPed* ped, bool
 
 // 0x6B5F50
 void CBike::SetRemoveAnimFlags(CPed* ped) {
-    if (ped->IsPed()) {
+    if (ped->GetIsTypePed()) {
         for (CAnimBlendAssociation* i = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_SECONDARY_TASK_ANIM); i; i = RpAnimBlendGetNextAssociation(i, ANIMATION_SECONDARY_TASK_ANIM)) {
             i->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
         }
@@ -699,7 +699,7 @@ LABEL_24:
 
 // 0x6BF400
 void CBike::ProcessDrivingAnims(CPed* driver, bool blend) {
-    if (m_bOffscreen && GetStatus() == STATUS_PLAYER)
+    if (m_bOffscreen && GetStatus() == STATUS_PLAYER) {
         return;
     }
 
@@ -868,6 +868,8 @@ bool CBike::GetAllWheelsOffGround() const {
 
 // 0x6B67A0
 void CBike::DebugCode() {
+    // CVehicleModelInfo* pModelInfo; // unused
+    
     // NOP
 }
 
@@ -937,9 +939,157 @@ void CBike::FixHandsToBars(CPed* rider) {
 }
 
 // 0x6BEEB0
+/**
+ * Places the bike properly on the road surface by detecting collision points
+ * and adjusting the bike's orientation and position accordingly.
+ */
 void CBike::PlaceOnRoadProperly() {
-    ((void(__thiscall*)(CBike*))0x6BEEB0)(this);
+    CColModel* colModel = GetColModel();
+    CMatrix*   matrix   = &GetMatrix();
+
+    // Get bike bounding box dimensions
+    float frontY     = colModel->m_boundBox.m_vecMax.y;
+    float rearY      = colModel->m_boundBox.m_vecMin.y;
+    float bikeLength = frontY - rearY;
+
+    // Get current position
+    CVector currentPos = GetPosition();
+
+    // Calculate front and rear wheel positions
+    CVector frontWheelPos, rearWheelPos;
+
+    if (matrix) {
+        // Front wheel position
+        frontWheelPos.x = currentPos.x + GetForward().x * frontY;
+        frontWheelPos.y = currentPos.y + GetForward().y * frontY;
+        frontWheelPos.z = currentPos.z + 5.0f;
+
+        // Rear wheel position
+        rearWheelPos.x = currentPos.x + GetForward().x * rearY;
+        rearWheelPos.y = currentPos.y + GetForward().y * rearY;
+        rearWheelPos.z = currentPos.z + 5.0f;
+    }
+
+    // Raycast from front wheel down to find ground
+    CColPoint frontCollision;
+    CEntity*  frontEntity = nullptr;
+    bool      frontHit    = CWorld::ProcessVerticalLine(
+        frontWheelPos,
+        currentPos.z - 5.0f,
+        frontCollision,
+        frontEntity,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        nullptr
+    );
+
+    /**
+    * Helper function to copy relevant entity flags
+    */
+    const auto CopyEntityFlagsFrom = [&](CEntity* entity) {
+        if (!entity) {
+            return;
+        }
+
+        m_bTunnel = entity->m_bTunnel;
+        m_bTunnelTransition = entity->m_bTunnelTransition;
+    };
+
+    float frontGroundZ;
+    if (frontHit) {
+        // Update collision info
+        m_FrontCollPoly.lighting = frontCollision.m_nLightingB;
+        m_pEntityWeAreOn              = frontEntity;
+
+        // Copy entity flags
+        CopyEntityFlagsFrom(frontEntity);
+
+        frontGroundZ = frontCollision.m_vecPoint.z;
+    } else {
+        frontGroundZ = currentPos.z;
+    }
+
+    // Raycast from rear wheel down to find ground
+    CColPoint rearCollision;
+    CEntity*  rearEntity = nullptr;
+    bool      rearHit    = CWorld::ProcessVerticalLine(
+        rearWheelPos,
+        currentPos.z - 5.0f,
+        rearCollision,
+        rearEntity,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        nullptr
+    );
+
+    float rearGroundZ;
+    if (rearHit) {
+        // Update collision info
+        m_RearCollPoly.lighting = rearCollision.m_nLightingB;
+        m_pEntityWeAreOn              = rearEntity;
+
+        // Copy entity flags
+        CopyEntityFlagsFrom(rearEntity);
+
+        rearGroundZ = rearCollision.m_vecPoint.z;
+    } else {
+        rearGroundZ = currentPos.z;
+    }
+
+    // Calculate elevation angle and orientation
+    float heightDiff     = frontGroundZ - rearGroundZ;
+    float elevationAngle = atan2f(heightDiff, bikeLength);
+    float cosElevation   = cosf(elevationAngle);
+    float sinElevation   = sinf(elevationAngle);
+
+    // Calculate new right vector (perpendicular to bike direction in XY plane)
+    CVector right;
+    right.x = (frontWheelPos.y - rearWheelPos.y) / bikeLength;
+    right.y = -(frontWheelPos.x - rearWheelPos.x) / bikeLength;
+    right.z = 0.0f;
+
+    // Calculate forward vector accounting for elevation
+    CVector forward;
+    forward.x = -cosElevation * right.y;
+    forward.y = cosElevation * right.x;
+    forward.z = sinElevation;
+
+    // Calculate up vector (cross product of forward and right)
+    CVector up = right.Cross(forward);
+
+    // Update bike's transformation matrix
+    if (matrix) {
+        // Set orientation vectors
+        matrix->GetRight()   = right;
+        matrix->GetForward() = forward;
+        matrix->GetUp()      = up;
+
+        // Calculate and set new position (midpoint between wheels)
+        CVector newPos;
+        newPos.x      = (frontWheelPos.x + rearWheelPos.x) * 0.5f;
+        newPos.y      = (frontWheelPos.y + rearWheelPos.y) * 0.5f;
+        newPos.z      = (frontGroundZ + rearGroundZ) * 0.5f;
+
+        matrix->GetPosition() = newPos;
+    } else {
+        // Fallback if no matrix exists
+        GetPosition().x = (frontWheelPos.x + rearWheelPos.x) * 0.5f;
+        GetPosition().y = (frontWheelPos.y + rearWheelPos.y) * 0.5f;
+        GetPosition().z = (frontGroundZ + rearGroundZ) * 0.5f;
+    }
+
+    // Update bounding sphere and related data
+    UpdateRwFrame();
 }
+
 
 // 0x6BF230
 void CBike::GetCorrectedWorldDoorPosition(CVector& out, CVector arg1, CVector arg2) {
@@ -1146,7 +1296,7 @@ void CBike::DoBurstAndSoftGroundRatios() {
 // 0x6B67E0
 bool CBike::SetUpWheelColModel(CColModel* cl) {
     const auto colData = cl->m_pColData;
-    CVehicleModelInfo* mi = CModelInfo::GetModelInfo(GetModelID())->AsVehicleModelInfoPtr();
+    CVehicleModelInfo* mi = CModelInfo::GetModelInfo(GetModelId())->AsVehicleModelInfoPtr();
     const auto colModel = GetColModel();
     cl->m_boundSphere = colModel->m_boundSphere;
     cl->m_boundBox = colModel->m_boundBox;
@@ -1224,9 +1374,4 @@ void CBike::GetComponentWorldPosition(int32 componentId, CVector& outPos) {
     } else {
         NOTSA_LOG_DEBUG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
     }
-}
-
-// 0x6B58D0
-void CBike::ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) {
-    // NOP
 }

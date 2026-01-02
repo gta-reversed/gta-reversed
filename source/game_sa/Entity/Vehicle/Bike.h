@@ -116,7 +116,10 @@ public:
 
     void PlayHornIfNecessary();
     void PlayCarHorn() override;
-    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; } // 0x6B58A0
+    // 0x6B58A0
+    int32 GetNumContactWheels() override {
+        return m_nNoOfContactWheels;
+    }
 
     CBike(int32 modelIndex, eVehicleCreatedBy createdBy); // 0x6BF430
     ~CBike() override;
@@ -137,8 +140,10 @@ public:
 
     void ResetSuspension();
     void GetComponentWorldPosition(int32 componentId, CVector& outPos) override;
-    bool IsComponentPresent(int32 componentId) const override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
-
+    // 0x6B59E0
+    bool IsComponentPresent(int32 componentId) const override {
+        return m_aBikeNodes[componentId] != nullptr;
+    }
 
     void RemoveRefsToVehicle(CEntity* entityToRemove) override;
 
@@ -154,7 +159,7 @@ public:
     static void ProcessRiderAnims(CPed* rider, CVehicle* vehicle, CRideAnimData* rideData, tBikeHandlingData* handling, int16 a5);
     void FixHandsToBars(CPed* rider);
 
-    void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) override;
+    void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) override { /* Do nothing */ } // 0x6B58D0    
 
     bool IsDoorReady(eDoors door) const override { return true; } // 0x6B58E0
     bool IsDoorFullyOpen(eDoors door) const override { return false; } // 0x6B58F0
@@ -187,7 +192,7 @@ protected:
     void SetModelIndex(uint32 index) override;
     void DebugCode();
 
-    void dmgDrawCarCollidingParticles(const CVector& position, float power, eWeaponType weaponType);
+    void dmgDrawCarCollidingParticles(const CVector& damagePosition, float impulse, eWeaponType weaponType);
 
 public: // NOTSA
     void ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver);

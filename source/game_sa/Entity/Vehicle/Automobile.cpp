@@ -5866,12 +5866,12 @@ void CAutomobile::PlaceOnRoadProperly()
             fColZ = colPoint.m_vecPoint.z;
             m_pEntityWeAreOn = colEntity;
 
-            m_FrontCollPoly.ligthing = colPoint.m_nLightingB;
+            m_FrontCollPoly.lighting = colPoint.m_nLightingB;
             vecFrontCheck.z = fColZ;
         }
     }
     else if (bColFoundFront) {
-        m_FrontCollPoly.ligthing = colPoint.m_nLightingB;
+        m_FrontCollPoly.lighting = colPoint.m_nLightingB;
         vecFrontCheck.z = fColZ;
     }
 
@@ -5893,12 +5893,12 @@ void CAutomobile::PlaceOnRoadProperly()
             fColZ = colPoint.m_vecPoint.z;
             m_pEntityWeAreOn = colEntity;
 
-            m_RearCollPoly.ligthing = colPoint.m_nLightingB;
+            m_RearCollPoly.lighting = colPoint.m_nLightingB;
             vecRearCheck.z = fColZ;
         }
     }
     else if (bColFoundRear) {
-        m_RearCollPoly.ligthing = colPoint.m_nLightingB;
+        m_RearCollPoly.lighting = colPoint.m_nLightingB;
         vecRearCheck.z = fColZ;
     }
 

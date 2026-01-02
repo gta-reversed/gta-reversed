@@ -1187,11 +1187,11 @@ void CVehicle::SetCollisionLighting(tColLighting lighting) {
 
 // 0x6D0CC0
 void CVehicle::UpdateLightingFromStoredPolys() {
-    m_anCollisionLighting[0] = m_FrontCollPoly.ligthing;
-    m_anCollisionLighting[1] = m_FrontCollPoly.ligthing;
+    m_anCollisionLighting[0] = m_FrontCollPoly.lighting;
+    m_anCollisionLighting[1] = m_FrontCollPoly.lighting;
 
-    m_anCollisionLighting[2] = m_RearCollPoly.ligthing;
-    m_anCollisionLighting[3] = m_RearCollPoly.ligthing;
+    m_anCollisionLighting[2] = m_RearCollPoly.lighting;
+    m_anCollisionLighting[3] = m_RearCollPoly.lighting;
 }
 
 // 0x6D0CF0
