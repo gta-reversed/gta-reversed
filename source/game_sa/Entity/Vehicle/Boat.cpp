@@ -1023,7 +1023,7 @@ void CBoat::BlowUpCar(CEntity* culprit, bool inACutscene) {
 
     physicalFlags.bRenderScorched = true;
     SetStatus(STATUS_WRECKED);
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
     m_vecMoveSpeed.z += 0.13F;
     m_fHealth = 0.0F;
     m_wBombTimer = 0;

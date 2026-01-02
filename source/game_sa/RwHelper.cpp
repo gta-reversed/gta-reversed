@@ -281,7 +281,7 @@ void SkinGetBonePositionsToTable(RpClump* clump, RwV3d* table) {
 // 0x7226D0
 RpAtomic* RemoveRefsCB(RpAtomic* atomic, void* data) {
     UNUSED(data);
-    auto* modelInfo = CVisibilityPlugins::GetAtomicModelInfo(atomic);
+    auto* modelInfo = CVisibilityPlugins::GetModelInfo(atomic);
     modelInfo->RemoveRef();
     return atomic;
 }

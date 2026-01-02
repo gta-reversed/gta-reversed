@@ -3763,7 +3763,7 @@ void CPed::Render() {
     if (m_pWeaponObject) {
         if (!m_pPlayerData || m_pPlayerData->m_bRenderWeapon) {
             if ((!bInVehicle || !GetIntelligence()->GetTaskSwim()) && !GetIntelligence()->GetTaskHold(false)) {
-                weaponPedsForPc_Insert(this);
+                CVisibilityPlugins::AddWeaponPedForPC(this);
                 if (m_nWeaponGunflashAlphaMP1 > 0 || m_nWeaponGunflashAlphaMP2 > 0) {
                     ResetGunFlashAlpha();
                 }

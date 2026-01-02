@@ -13,52 +13,61 @@ class CEntity;
 class CClumpModelInfo;
 class CAtomicModelInfo;
 
+// VehicleAtomicType
 enum eAtomicComponentFlag {
-    ATOMIC_IS_NOT_PRESENT = 0x0,
-    ATOMIC_IS_OK_STATE = 0x1,
-    ATOMIC_IS_DAM_STATE = 0x2,
-    ATOMIC_IS_LEFT = 0x4,
-    ATOMIC_IS_RIGHT = 0x8,
-    ATOMIC_IS_FRONT = 0x10,
-    ATOMIC_IS_REAR = 0x20,
-    ATOMIC_HAS_ALPHA = 0x40,
-    ATOMIC_CULL = 0x80,
-    ATOMIC_IS_REAR_DOOR = 0x100,
-    ATOMIC_IS_FRONT_DOOR = 0x200,
-    ATOMIC_RENDER_ALWAYS = 0x400, // enabled for opened components (doors)
-    ATOMIC_IS_REPLACEMENT_UPGRADE = 0x800,
-    ATOMIC_IS_DOOR_WINDOW_OPENED = 0x1000,
-    ATOMIC_DISABLE_REFLECTIONS = 0x2000,
-    // ATOMIC_HAS_DYNAMIC_TEXTURES  = 0x2000, // TODO: WTF is this?
-    ATOMIC_IS_BLOWN_UP = 0x4000,
-    ATOMIC_VEHCOMP_15 = 0x8000
+    ATOMIC_NONE = 0x0,
+    ATOMIC_OK = 0x1,
+    ATOMIC_DAMAGED = 0x2,
+
+    // Mask for checking whether the value is OK or DAMAGED ^^^
+    ATOMIC_MASK = 0x3,
+
+    ATOMIC_LEFT = 0x4,
+    ATOMIC_RIGHT = 0x8,
+    ATOMIC_FRONT = 0x10,
+    ATOMIC_REAR = 0x20,
+    ATOMIC_ALPHA = 0x40,
+    ATOMIC_FLAT = 0x80,
+    ATOMIC_REAR_DOOR = 0x100,
+    ATOMIC_FRONT_DOOR = 0x200,
+    ATOMIC_DONT_CULL = 0x400, // enabled for opened components (doors)
+    ATOMIC_UPGRADE = 0x800,
+    ATOMIC_DONT_RENDER_ALPHA = 0x1000,
+    ATOMIC_UNIQUE_MATERIALS = 0x2000,
+    ATOMIC_PIPE_NO_EXTRA_PASSES_LOD = 0x2000,
+    ATOMIC_PIPE_NO_EXTRA_PASSES = 0x4000,
+    ATOMIC_TOP = 0x8000
 };
+
+// NOTSA:
+// Helper to setup vehicle atomic variables (Matrix, ID, DotProduct)
+struct VehicleAtomicData {
+    uint32 Id;
+    float  Dot;
+    float  SortDist; // Calculated distance for sorting (usually dist +/- offset)
+};
+
+typedef RwBool (*ClumpVisibilityCallback)(RpClump* clump); // In source
 
 struct tAtomicVisibilityPlugin {
     int16 m_modelId;
-    union {
-        uint16 m_flags; // eAtomicComponentFlag
-        int16 m_userValue;
-    };
+    uint16 m_flags;
 };
+
 VALIDATE_SIZE(tAtomicVisibilityPlugin, 0x4);
 
 struct tClumpVisibilityPlugin {
-    void* m_visibilityCallBack;
+    ClumpVisibilityCallback m_visibilityCallBack;
     int32 m_alpha;
 };
+
 VALIDATE_SIZE(tClumpVisibilityPlugin, 0x8);
 
 struct tFrameVisibilityPlugin {
-    union {
-        int32 m_hierarchyId;
-        CClumpModelInfo* m_modelInfo;
-    };
+    int32 m_hierarchyId;
 };
-VALIDATE_SIZE(tFrameVisibilityPlugin, 0x4);
 
-// TODO: Probably belongs inside `CVisibilityPlugins`
-void weaponPedsForPc_Insert(CPed* ped);
+VALIDATE_SIZE(tFrameVisibilityPlugin, 0x4);
 
 class CVisibilityPlugins {
 public:
@@ -68,124 +77,171 @@ public:
     static const int32 TOTAL_ALPHA_UNDERWATER_ENTITY_LISTS = 100;
     static const int32 TOTAL_ALPHA_DRAW_LAST_LISTS = 50;
     static const int32 TOTAL_WEAPON_PEDS_FOR_PC = 100;
-    using tAlphaRenderOrderedListCB = void(__cdecl*)(CEntity* entity, float distance);
+
+    using RenderFunction = void (*)(void* entity, float distance);
+
     struct AlphaObjectInfo {
-        union {
-            RpAtomic* m_atomic;
-            CEntity* m_entity;
-        };
-        void* m_pCallback;
+        void* m_pObj;
+        RenderFunction m_pCallback;
         float m_distance; // alpha
     };
 
-    static int32& ms_atomicPluginOffset;
-    static int32& ms_clumpPluginOffset;
-    static int32& ms_framePluginOffset;
-    static CLinkList<AlphaObjectInfo>& m_alphaEntityList;
-    static CLinkList<AlphaObjectInfo>& m_alphaList;
-    static CLinkList<AlphaObjectInfo>& m_alphaBoatAtomicList;
-    static CLinkList<AlphaObjectInfo>& m_alphaUnderwaterEntityList;
-    static CLinkList<AlphaObjectInfo>& m_alphaReallyDrawLastList;
-    static CLinkList<CPed*>& ms_weaponPedsForPC;
-    static RwCamera*& ms_pCamera;
-    static RwV3d*& ms_pCameraPosn;
-    static float& ms_cullCompsDist;
-    static float& ms_cullBigCompsDist;
-    static float& ms_vehicleLod0RenderMultiPassDist;
-    static float& ms_vehicleLod0Dist;
-    static float& ms_vehicleLod1Dist;
-    static float& ms_bigVehicleLod0Dist;
-    static float& ms_pedLodDist;
-    static float& ms_pedFadeDist;
-    static float& gVehicleDistanceFromCamera;
-    static float& gVehicleAngleToCamera;
+private:
+    static RwInt32 ms_atomicPluginOffset; // 0x8D608C
+    static RwInt32 ms_framePluginOffset;  // 0x8D6090
+    static RwInt32 ms_clumpPluginOffset;  // 0x8D6094
+    static RpAtomicCallBackRender ms_defaultRenderer; // 0xC88048, unused
+    static RwCamera* ms_pCamera; // 0xC8804C
+    static RwV3d* ms_pCameraPosn; // 0xC88050
 
-    static void InjectHooks();
+    static float ms_vehicleLod0RenderMultiPassDist; // 0xC88044
+    static float ms_vehicleLod0Dist; // 0xC88040
+    static float ms_vehicleLod1Dist; // 0xC8803C
+    // static float ms_vehicleFadeDist; // unused
+    static float ms_bigVehicleLod0Dist; // 0xC88038
+    // static float ms_bigVehicleLod1Dist; // unused
+    static float ms_pedLodDist; // 0xC88034
+    static float ms_pedFadeDist; // 0xC88030
+    static float ms_cullCompsDist; // 0xC8802C
+    static float ms_cullBigCompsDist; // 0xC88028
 
+    static CLinkList<AlphaObjectInfo> m_alphaList; // 0xC88070
+    static CLinkList<AlphaObjectInfo> m_alphaEntityList; // 0xC88120
+    static CLinkList<AlphaObjectInfo> m_alphaUnderwaterEntityList; // 0xC88178
+    static CLinkList<AlphaObjectInfo> m_alphaBoatAtomicList; // 0xC880C8
+    static CLinkList<AlphaObjectInfo> m_alphaReallyDrawLastList; // 0xC881D0
+
+    static CLinkList<CPed*> ms_weaponPedsForPC; // 0xC88224
+
+public:
+    static bool PluginAttach();
     static void Initialise();
     static void Shutdown();
+
     static void InitAlphaAtomicList();
     static void InitAlphaEntityList();
-    static bool InsertEntityIntoEntityList(CEntity* entity, float distance, void* callback);
-    static bool InsertEntityIntoUnderwaterEntities(CEntity* entity, float distance);
-    static bool InsertAtomicIntoReallyDrawLastList(RpAtomic* atomic, float distance);
-    static bool InsertEntityIntoReallyDrawLastList(CEntity* entity, float distance);
-    static bool InsertEntityIntoSortedList(CEntity* entity, float distance);
-    static bool PluginAttach();
-    static RpAtomic* DefaultAtomicRenderCallback(RpAtomic* atomic);
-    static void* AtomicConstructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static void* AtomicCopyConstructor(void* dstObject, const void* srcObject, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static void* AtomicDestructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static int32 CalculateFadingAtomicAlpha(CBaseModelInfo* modelInfo, CEntity* entity, float distance);
-    static void ClearAtomicFlag(RpAtomic* atomic, uint16 flag);
-    static void ClearAtomicFlag(RpAtomic* atomic, int32 flag);
-    static RpAtomic* ClearAtomicFlagCB(RpAtomic* atomic, void* data);
-    static void ClearClumpForAllAtomicsFlag(RpClump* clump, uint16 flag);
-    static void* ClumpConstructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static void* ClumpCopyConstructor(void* dstObject, const void* srcObject, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static void* ClumpDestructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static int32 DefaultVisibilityCB(); // return 1;
-    static void* FrameConstructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static void* FrameCopyConstructor(void* dstObject, const void* srcObject, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static void* FrameDestructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
-    static bool FrustumSphereCB(RpClump* clump);
-    static uint16 GetAtomicId(RpAtomic* atomic);
-    static CAtomicModelInfo* GetAtomicModelInfo(RpAtomic* atomic);
-    static int32 GetClumpAlpha(RpClump* clump);
-    static CClumpModelInfo* GetClumpModelInfo(RpClump* clump);
-    static float GetDistanceSquaredFromCamera(RwFrame* frame);
-    static float GetDistanceSquaredFromCamera(const CVector* pos);
-    static float GetDotProductWithCameraVector(RwMatrix* atomicMatrix, RwMatrix* clumpMatrix, uint16 flags);
-    static int32 GetFrameHierarchyId(RwFrame* frame);
-    static int16 GetModelInfoIndex(RpAtomic* atomic);
-    static int16 GetUserValue(RpAtomic* atomic);
-    static bool IsAtomicVisible(RpAtomic* atomic);
-    static bool IsClumpVisible(RpClump* clump);
-    static void RenderAlphaAtomic(RpAtomic* atomic, int32 alpha);
+    static void RenderEntity(void* obj, float dist);
+    static void RenderAtomic(void* obj, float dist); // dist - unused
+    // static void RenderAtomicList(CLinkList<CVisibilityPlugins::AlphaObjectInfo>& alphaObjectInfoList); // unused
     static void RenderAlphaAtomics();
-    static RpAtomic* RenderAtomicWithAlphaCB(RpAtomic* atomic, void* data);
     static void RenderBoatAlphaAtomics();
-    static void RenderEntity(CEntity* entity, float distance);
-    static void RenderFadingAtomic(CBaseModelInfo* modelInfo, RpAtomic* atomic, int32 alpha);
-    static void RenderFadingClump(CBaseModelInfo* modelInfo, RpClump* clump, int32 alpha);
-    static RpAtomic* RenderFadingClumpCB(RpAtomic* atomic);
     static void RenderFadingEntities();
     static void RenderFadingUnderwaterEntities();
+    static void RenderReallyDrawLastObjects();
+    // static void RenderFadingEntities(CLinkList<CVisibilityPlugins::AlphaObjectInfo>& alphaObjectInfoList); // unused
+    static void RenderOrderedList(CLinkList<CVisibilityPlugins::AlphaObjectInfo>& alphaObjectInfoList);
+    static bool InsertAtomicIntoSortedList(RpAtomic* atomic, float dist);
+    static bool InsertAtomicIntoBoatSortedList(RpAtomic* atomic, float dist);
+    static bool InsertEntityIntoSortedList(CEntity* entity, float dist);
+    static bool InsertEntityIntoUnderwaterList(CEntity* pEntity, float dist);
+    static bool InsertAtomicIntoReallyDrawLastList(RpAtomic* atomic, float dist);
+    static bool InsertEntityIntoReallyDrawLastList(CEntity* entity, float dist);
+    static bool InsertObjectIntoSortedList(void* obj, float dist, RenderFunction fn);
+    static CLinkList<CVisibilityPlugins::AlphaObjectInfo>& GetAlphaList() { return m_alphaEntityList; } // unused
+    static CLinkList<CVisibilityPlugins::AlphaObjectInfo>& GetAlphaUnderwaterList() { return m_alphaUnderwaterEntityList; } // unused
+
+    static void SetModelInfoIndex(RpAtomic* atomic, int32 index);
+    static int32 GetModelInfoIndex(RpAtomic* atomic);
+    static CBaseModelInfo* GetModelInfo(RpAtomic* atomic);
+    static void SetAtomicId(RpAtomic* atomic, int32 id);
+    static void SetAtomicFlag(RpAtomic* atomic, uint16 flag);
+    static void SetClumpForAllAtomicsFlag(RpClump* clump, int32 id);
+    static void ClearAtomicFlag(RpAtomic* atomic, uint16 flag);
+    static void ClearClumpForAllAtomicsFlag(RpClump* clump, int32 id);
+    static int32 GetAtomicId(RpAtomic* atomic);
+    static void SetUserValue(RpAtomic* atomic, uint16 value);
+    static uint16 GetUserValue(RpAtomic* atomic);
+
+    static void  SetFrameHierarchyId(RwFrame* frame, int32 id);
+    static int32 GetFrameHierarchyId(RwFrame* frame);
+
+    static void SetClumpModelInfo(RpClump* clump, CClumpModelInfo* clumpModelInfo);
+    static CClumpModelInfo* GetClumpModelInfo(RpClump* clump);
+    static void SetClumpAlpha(RpClump* clump, int32 alpha);
+    static int32 GetClumpAlpha(RpClump* clump);
+    static bool IsClumpVisible(RpClump* clump);
+    static bool IsAtomicVisible(RpAtomic* atomic);
+
+    static void SetupVehicleVariables(RpClump* clump);
+
+    static RpAtomic* RenderVehicleReallyLowDetailCB(RpAtomic* atomic);
+    static RpAtomic* RenderVehicleHiDetailCB(RpAtomic* atomic);
+    static RpAtomic* RenderVehicleHiDetailAlphaCB(RpAtomic* atomic);
+    static RpAtomic* RenderTrainHiDetailCB(RpAtomic* atomic);
+    static RpAtomic* RenderTrainHiDetailAlphaCB(RpAtomic* atomic);
+    static RpAtomic* RenderWheelAtomicCB(RpAtomic* atomic);
+
     static RpAtomic* RenderHeliRotorAlphaCB(RpAtomic* atomic);
     static RpAtomic* RenderHeliTailRotorAlphaCB(RpAtomic* atomic);
-    static RpAtomic* RenderObjNormalAtomic(RpAtomic* atomic);
-    static void RenderOrderedList(CLinkList<CVisibilityPlugins::AlphaObjectInfo>& alphaObjectInfoList);
-    static RpAtomic* RenderPedCB(RpAtomic* atomic);
-    static RpMaterial* SetTextureCB(RpMaterial* material, void* texture);
-    static RpAtomic* RenderPlayerCB(RpAtomic* atomic);
-    static void RenderReallyDrawLastObjects();
-    static RpAtomic* RenderTrainHiDetailAlphaCB(RpAtomic* atomic);
-    static RpAtomic* RenderTrainHiDetailCB(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleHiDetailAlphaCB(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleHiDetailAlphaCB_BigVehicle(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleHiDetailAlphaCB_Boat(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleHiDetailCB(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleHiDetailCB_BigVehicle(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleHiDetailCB_Boat(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleLoDetailCB_Boat(RpAtomic* atomic);
-    static RpAtomic* RenderVehicleReallyLowDetailCB(RpAtomic* atomic);
+
     static RpAtomic* RenderVehicleReallyLowDetailCB_BigVehicle(RpAtomic* atomic);
+    // static RpAtomic* RenderVehicleLowDetailCB_BigVehicle(RpAtomic* atomic); // unused
+    static RpAtomic* RenderVehicleHiDetailCB_BigVehicle(RpAtomic* atomic);
+    // static RpAtomic* RenderVehicleLowDetailAlphaCB_BigVehicle(RpAtomic* atomic); // unused
+    static RpAtomic* RenderVehicleHiDetailAlphaCB_BigVehicle(RpAtomic* atomic);
+
+    static RpAtomic* RenderVehicleHiDetailCB_Boat(RpAtomic* atomic);
+    static RpAtomic* RenderVehicleHiDetailAlphaCB_Boat(RpAtomic* atomic);
+    static RpAtomic* RenderVehicleLoDetailCB_Boat(RpAtomic* atomic);
+
+    static RpAtomic* RenderPlayerCB(RpAtomic* atomic);
+    static RpAtomic* RenderPedCB(RpAtomic* atomic);
+
     static RpAtomic* RenderWeaponCB(RpAtomic* atomic);
-    static void RenderWeaponPedsForPC();
-    static RpAtomic* SetAtomicFlagCB(RpAtomic* atomic, void* data);
-    static void SetAtomicFlag(RpAtomic* atomic, uint16 flag);
-    static void SetAtomicFlag(RpAtomic* atomic, int32 flag);
-    static void SetClumpForAllAtomicsFlag(RpClump* clump, uint16 flag);
-    static void SetAtomicId(void* atomic, int16 id);
+
+    static RpAtomic* RenderFadingClumpCB(RpAtomic* atomic);
+
     static void SetAtomicRenderCallback(RpAtomic* atomic, RpAtomicCallBackRender renderCB);
-    static void SetClumpAlpha(RpClump* clump, int32 alpha);
-    static void SetClumpModelInfo(RpClump* clump, CClumpModelInfo* pClumpModelInfo);
-    static void SetFrameHierarchyId(RwFrame* frame, int32 id);
+
     static void SetRenderWareCamera(RwCamera* pRwCamera);
-    static void SetUserValue(RpAtomic* atomic, uint16 value);
-    static void SetupVehicleVariables(RpClump* clump);
-    static bool VehicleVisibilityCB(RpClump* clump);
-    static bool VehicleVisibilityCB_BigVehicle(RpClump* clump);
+    static float GetDistanceSquaredFromCamera(RwV3d* pos);
+
+    static void RenderWeaponPedsForPC();
+    static void ResetWeaponPedsForPC() { ms_weaponPedsForPC.Clear(); } // inline
+    static void AddWeaponPedForPC(CPed* ped) { ms_weaponPedsForPC.Insert(ped); } // 0x5E46D0
+
+private:
+    static void* AtomicConstructor(void* atomic, RwInt32 offset, RwInt32 size);
+    static void* AtomicCopyConstructor(void* destAtomic, const void* srcAtomic, RwInt32 offset, RwInt32 size);
+    static void* AtomicDestructor(void* atomic, RwInt32 offset, RwInt32 size);
+
+    static void* ClumpConstructor(void* clump, RwInt32 offset, RwInt32 size);
+    static void* ClumpCopyConstructor(void* destClump, const void* srcObject, RwInt32 offset, RwInt32 size);
+    static void* ClumpDestructor(void* clump, RwInt32 offset, RwInt32 size);
+
+    static void* FrameConstructor(void* frame, RwInt32 offset, RwInt32 size);
+    static void* FrameCopyConstructor(void* destFrame, const void* srcFrame, RwInt32 offset, RwInt32 size);
+    static void* FrameDestructor(void* frame, RwInt32 offset, RwInt32 size);
+
+    static RpAtomic* RenderObjNormalAtomic(RpAtomic* atomic);
+
+    static void RenderAtomicWithAlpha(RpAtomic* atomic, int32 alpha);
+    static int32 CalculateFadingAtomicAlpha(CBaseModelInfo* modelInfo, CEntity* entity, float distance);
+    static void SetupRenderFadingAtomic(CBaseModelInfo* modelInfo, int32 alpha); // alpha - unused
+    static void ResetRenderFadingAtomic(CBaseModelInfo* modelInfo);
+    static void RenderFadingAtomic(CBaseModelInfo* modelInfo, RpAtomic* atomic, int32 alpha);
+    static void RenderFadingClump(CBaseModelInfo* modelInfo, RpClump* clump, int32 alpha);
+    static RpAtomic* RenderAtomicWithAlphaCB(RpAtomic* atomic, void* data);
+
+    static RwBool DefaultVisibilityCB(RpClump* clump);
+    static RwBool FrustumSphereCB(RpClump* clump);
+    static RwBool VehicleVisibilityCB(RpClump* clump);
+    static RwBool VehicleVisibilityCB_BigVehicle(RpClump* clump);
+
+    static float GetDistanceSquaredFromCamera(RwFrame* frame);
+    static float GetDotProductWithCameraVector(RwMatrix* matrix, RwMatrix* carMatrix, uint32 atomicId);
+
+    static void RenderVehicleCB_ControlRenderMultiPassLOD(RpAtomic* pAtomic, float vehicleDistanceFromCamera);
+
+public:
+    // NOTSA:
+    static void InjectHooks();
+
+    static float GetVehicleDotProduct(RpAtomic* atomic, uint32& outAtomicId);
+    static bool ShouldCullVehicleAtomic(float distFromCam, float cullDist, float dotProduct, uint32 atomicId, bool bUseComplexHeuristic);
 };
 
-#define RpAtomicGetVisibilityPlugin(atomic) ((tAtomicVisibilityPlugin*)((uint32)atomic + CVisibilityPlugins::ms_atomicPluginOffset))
+RpAtomic*   clearClumpForAllAtomicsFlagCB(RpAtomic* atomic, void* data);
+RpMaterial* SetAlphaCB(RpMaterial* material, void* data);
+RpMaterial* SetTextureCB(RpMaterial* material, void* texture);
+RpAtomic*   setClumpForAllAtomicsFlagCB(RpAtomic* atomic, void* data);
