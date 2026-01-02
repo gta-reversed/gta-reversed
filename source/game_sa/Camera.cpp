@@ -145,7 +145,7 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "0", 0x50D430, void(CCamera::*)(float), { .reversed = false });
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "1", 0x5164A0, void(CCamera::*)(), { .reversed = false });
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float), { .reversed = false });
-    RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)(), { .reversed = false });
+    RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)());
     //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .reversed = false });
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
@@ -296,13 +296,13 @@ void CCamera::InitialiseCameraForDebugMode() {
 
 // 0x50A480
 void CCamera::ApplyVehicleCameraTweaks(CVehicle* vehicle) {
-    if (vehicle->m_nModelIndex == m_nCurrentTweakModelIndex) {
+    if (vehicle->GetModelIndex() == m_nCurrentTweakModelIndex) {
         return;
     }
 
     InitCameraVehicleTweaks();
     for (auto& camTweak : m_aCamTweak) {
-        if (camTweak.ModelID == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
+        if (camTweak.ModelID == vehicle->GetModelIndex()) {
             m_fCurrentTweakDistance = camTweak.Dist;
             m_fCurrentTweakAltitude = camTweak.Alt;
             m_fCurrentTweakAngle    = camTweak.Angle;
@@ -885,7 +885,7 @@ void CCamera::SetZoomValueFollowPedScript(int16 zoomMode) {
 void CCamera::SetZoomValueCamStringScript(int16 zoomMode) {
     auto entity = m_aCams[0].m_pCamTargetEntity;
 
-    if (entity->m_nStatus == STATUS_SIMPLE) {
+    if (entity->GetStatus() == STATUS_SIMPLE) {
         int32 arrPos{};
         VERIFY(GetArrPosForVehicleType(static_cast<eVehicleType>(entity->AsVehicle()->GetVehicleAppearance()), arrPos));
         m_fCarZoomValueScript = [zoomMode]{
@@ -940,7 +940,7 @@ void CCamera::StoreValuesDuringInterPol(CVector* sourceDuringInter, CVector* tar
 
 // 0x50C360
 void CCamera::UpdateTargetEntity() {
-    m_bPlayerWasOnBike = m_pTargetEntity && m_pTargetEntity->IsVehicle() && m_pTargetEntity->AsVehicle()->m_vecMoveSpeed.SquaredMagnitude() > 0.3f;
+    m_bPlayerWasOnBike = m_pTargetEntity && m_pTargetEntity->GetIsTypeVehicle() && m_pTargetEntity->AsVehicle()->m_vecMoveSpeed.SquaredMagnitude() > 0.3f;
 
     const auto player = FindPlayerPed();
     assert(player);
@@ -1040,7 +1040,7 @@ void CCamera::UpdateTargetEntity() {
         CEntity::ChangeEntityReference(m_pTargetEntity, player);
     }
 
-    if (m_pTargetEntity->IsVehicle()) {
+    if (m_pTargetEntity->GetIsTypeVehicle()) {
         if (m_nCarZoom == 0) {
             if (player->m_nPedState == PEDSTATE_ARRESTED) {
                 CEntity::ChangeEntityReference(m_pTargetEntity, player);
@@ -1063,7 +1063,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
             return {
                 [&, this] {
                     if (modeToGoTo == MODE_NONE) {
-                        switch (target->m_nType) {
+                        switch (target->GetType()) {
                         case ENTITY_TYPE_PED:
                             return MODE_FOLLOWPED;
                         case ENTITY_TYPE_VEHICLE:
@@ -1465,7 +1465,11 @@ void CCamera::ProcessVectorMoveLinear(float ratio) {
 
 // 0x516500
 void CCamera::ProcessFOVLerp() {
-    plugin::CallMethod<0x516500, CCamera*>(this);
+    if (const auto now = static_cast<float>(CTimer::GetTimeInMS()); now <= m_fEndZoomTime) { /* Check if still processing */
+        ProcessFOVLerp(invLerp(m_fStartZoomTime, m_fEndZoomTime, now));
+    } else if (m_bBlockZoom) { /* Finished */
+        m_bFOVLerpProcessed = true;
+    }
 }
 
 // 0x50D510
@@ -1783,7 +1787,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
     m_fFractionInterToStopCatchUp = 0.75f;
 
     // Handle player rotation for weapon modes
-    if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains({ MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT }, activeCamMode)) {
+    if (m_pTargetEntity && m_pTargetEntity->GetIsTypePed() && notsa::contains({ MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT }, activeCamMode)) {
         const float angle                            = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
         m_pTargetEntity->AsPed()->m_fCurrentRotation = angle;
         m_pTargetEntity->AsPed()->m_fAimingRotation  = angle;

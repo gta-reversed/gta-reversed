@@ -485,7 +485,7 @@ bool CCarEnterExit::IsClearToDriveAway(const CVehicle* vehicle) {
 
 // 0x651210
 bool CCarEnterExit::IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, const CVehicle* vehicle, const CVector& pos) {
-    if (vehicle->m_nModelIndex == eModelID::MODEL_AT400) {
+    if (vehicle->GetModelIndex() == eModelID::MODEL_AT400) {
         return false;
     }
 
@@ -521,7 +521,7 @@ bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId
 
 // 0x64EEC0
 bool CCarEnterExit::IsVehicleHealthy(const CVehicle* vehicle) {
-    return vehicle->m_nStatus != STATUS_WRECKED;
+    return vehicle->GetStatus() != STATUS_WRECKED;
 }
 
 // 0x6510D0
@@ -651,7 +651,7 @@ void CCarEnterExit::QuitEnteringCar(CPed* ped, CVehicle* vehicle, int32 doorId, 
             break;
         }
     }
-    ped->m_bUsesCollision = false;
+    ped->SetUsesCollision(false);
 }
 
 // 0x64F680

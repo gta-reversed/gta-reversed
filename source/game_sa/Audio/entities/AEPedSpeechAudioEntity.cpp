@@ -87,7 +87,7 @@ CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(CPed* ped) noexcept :
     CAEPedSpeechAudioEntity{}
 {
     m_Entity = ped;
-    if (ped->GetModelID() != MODEL_INVALID) {
+    if (ped->GetModelId() != MODEL_INVALID) {
         auto* const mi = ped->GetPedModelInfo();
         m_PedAudioType = mi->m_nPedAudioType;
         switch (m_PedAudioType) {
@@ -108,7 +108,7 @@ CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(CPed* ped) noexcept :
             break;
         }
         }
-        VERIFY(GetSexFromModel(ped->GetModelID()));
+        VERIFY(GetSexFromModel(ped->GetModelId()));
         m_IsInitialized = true;
     }
 }
@@ -1222,7 +1222,7 @@ eSoundBank CAEPedSpeechAudioEntity::GetVoiceSoundBank(eGlobalSpeechContext gCtx,
 }
 
 // The templated functions below must be here because
-// due to a cycle dependency with `CPed` they can't be defined in the header
+// due to a cyclic dependency with `CPed` they can't be defined in the header
 
 // 0x4E6550 / 0x4E60D0
 template<bool IsPedless>
@@ -1424,39 +1424,31 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
         return;
     }
 
-    const auto RequestSound = [&](CVector pos, uint32 flags, float volume, float maxDist) {
-        if constexpr (IsPedless) {
-            flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
-        }
-        CAESound s;
-        s.Initialise(
-            (eSoundBankSlot)(SND_BANK_SLOT_SPEECH_FIRST + m_PedSpeechSlotID),
-            m_SoundID,
-            this,
-            pos,
-            m_IsForcedAudible ? 3.f : volume,
-            maxDist,
-            1.f,
-            1.f,
-            0,
-            (eSoundEnvironment)flags
-        );
-        if constexpr (IsPedless) {
-            s.RegisterWithPhysicalEntity(attachTo);
-            // this->m_AttachedTo = nulllptr; Done by the caller
-        }
-        m_Sound = AESoundManager.RequestNewSound(&s);
+    const auto DoPlaySound = [&](CVector pos, uint32 flags, float volume, float maxDist) {
+        m_Sound = AESoundManager.PlaySound({
+            .BankSlotID         = (eSoundBankSlot)(SND_BANK_SLOT_SPEECH_FIRST + m_PedSpeechSlotID),
+            .SoundID            = m_SoundID,
+            .AudioEntity        = this,
+            .Pos                = pos,
+            .Volume             = m_IsForcedAudible ? 3.f : volume,
+            .RollOffFactor      = maxDist,
+            .Speed              = 1.f,
+            .Doppler            = 1.f,
+            .FrameDelay         = 0,
+            .Flags              = flags,
+            .RegisterWithEntity = IsPedless ? attachTo : nullptr
+        });
     };
 
     if (m_IsFrontend) {
-        RequestSound(
+        DoPlaySound(
             {0.f, 1.f, 0.f},
             SOUND_IS_COMPRESSABLE | SOUND_IS_DUCKABLE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | SOUND_FRONT_END,
             3.f,
             1.f
         );
     } else {
-        RequestSound(
+        DoPlaySound(
             attachTo->GetPosition(),
             SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE,
             IsPedless ? 12.f : m_EventVolume,
@@ -1492,7 +1484,6 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
         m_PedSpeechSlotID = -1;
     }
 }
-
 
 template
 void CAEPedSpeechAudioEntity::I_PlayLoadedSound<true>(CEntity* attachTo);

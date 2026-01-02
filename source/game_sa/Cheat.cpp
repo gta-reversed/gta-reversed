@@ -700,7 +700,7 @@ void CCheat::TankerCheat() {
     auto* trailer = new CTrailer(MODEL_PETROTR, RANDOM_VEHICLE);
     trailer->SetPosn(vehicle->GetPosition());
     trailer->SetOrientation(0.0f, 0.0f, DegreesToRadians(200));
-    trailer->m_nStatus = STATUS_ABANDONED;
+    trailer->SetStatus(STATUS_ABANDONED);
     CWorld::Add(trailer);
     trailer->SetTowLink(vehicle, true);
 }
@@ -708,7 +708,7 @@ void CCheat::TankerCheat() {
 // 0x43A0B0
 CVehicle* CCheat::VehicleCheat(eModelID modelId) {
     const auto player = FindPlayerPed();
-    if (player->m_nAreaCode != AREA_CODE_NORMAL_WORLD) {
+    if (player->GetAreaCode() != AREA_CODE_NORMAL_WORLD) {
         return nullptr;
     }
 
@@ -739,7 +739,7 @@ CVehicle* CCheat::VehicleCheat(eModelID modelId) {
 
     vehicle->SetPosn(pos);
     vehicle->SetOrientation(0.0f, 0.0f, rotZ);
-    vehicle->m_nStatus = STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
     CWorld::Add(vehicle);
     CTheScripts::ClearSpaceForMissionEntity(pos, vehicle);

@@ -199,7 +199,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     m_fArmour = 0.0f;
 
     m_nPedType = pedType;
-    m_nType = ENTITY_TYPE_PED;
+    SetTypePed();
 
     // 0x5E8196
     physicalFlags.bCanBeCollidedWith = true;
@@ -1411,7 +1411,7 @@ void CPed::DropEntityThatThisPedIsHolding(bool bDeleteHeldEntity) {
         // Delete held entity (If any)
         if (bDeleteHeldEntity) {
             if (const auto heldEntity = task->m_pEntityToHold) {
-                if (!heldEntity->IsObject() || !heldEntity->AsObject()->IsMissionObject()) {
+                if (!heldEntity->GetIsTypeObject() || !heldEntity->AsObject()->IsMissionObject()) {
                     heldEntity->DeleteRwObject(); // TODO; Are these 3 lines inlined?
                     CWorld::Remove(heldEntity);
                     delete heldEntity;
@@ -1589,7 +1589,7 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
     }
 
     auto target{entity->GetPosition()};
-    if (entity->IsPed()) {
+    if (entity->GetIsTypePed()) {
         target.z += 1.f; // Adjust for head pos?
     }
 
@@ -1664,7 +1664,7 @@ void CPed::ProcessBuoyancy()
 
     if (bIsStanding) {
         auto& standingOnEntity = m_pContactEntity;
-        if (standingOnEntity && standingOnEntity->IsVehicle()) {
+        if (standingOnEntity && standingOnEntity->GetIsTypeVehicle()) {
             auto pStandingOnVehicle = standingOnEntity->AsVehicle();
             if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bRenderScorched) {
                 physicalFlags.bSubmergedInWater = false;
@@ -1684,7 +1684,7 @@ void CPed::ProcessBuoyancy()
         CColPoint lineColPoint;
         CEntity* colEntity;
         if (CWorld::ProcessVerticalLine(vecPedPos, fCheckZ, lineColPoint, colEntity, false, true, false, false, false, false, nullptr)) {
-            if (colEntity->IsVehicle()) {
+            if (colEntity->GetIsTypeVehicle()) {
                 auto colVehicle = colEntity->AsVehicle();
                 if (colVehicle->IsBoat()
                     && !colVehicle->physicalFlags.bRenderScorched
@@ -2801,7 +2801,7 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (m_bIsVisible && CTimeCycle::GetShadowStrength()) {
+    if (GetIsVisible() && CTimeCycle::GetShadowStrength()) {
         const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
             if (!bInVehicle) {
                 return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
@@ -2865,7 +2865,7 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (GetModelID() == MODEL_PLAYER) {
+    if (GetModelId() == MODEL_PLAYER) {
         ShoulderBoneRotation(m_pRwClump);
         m_bDontUpdateHierarchy = true;
     }
@@ -3088,11 +3088,11 @@ CEntity* CPed::AttachPedToEntity(CEntity* entity, CVector offset, uint16 turretA
 
     // Deal collision with `entity`
     if (!IsPlayer()) {
-        if (entity->IsVehicle()) {
+        if (entity->GetIsTypeVehicle()) {
             m_pEntityIgnoredCollision = entity->AsPhysical();
         }
     } else { // For player just disable collision
-        m_bUsesCollision = false;
+        SetUsesCollision(false);
     }
 
     if (m_nSavedWeapon == WEAPON_UNIDENTIFIED) {
@@ -3585,7 +3585,7 @@ RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
 void CPed::SetModelIndex(uint32 modelIndex) {
     assert(modelIndex != MODEL_PLAYER || IsPlayer());
 
-    m_bIsVisible = true;
+    SetIsVisible(true);
 
     CEntity::SetModelIndex(modelIndex);
 
@@ -3710,7 +3710,7 @@ void CPed::Render() {
     }
 
     // 0x5E76BE
-    if (bDontRender || !(m_bIsVisible || CMirrors::ShouldRenderPeds())) {
+    if (bDontRender || !(GetIsVisible() || CMirrors::ShouldRenderPeds())) {
         return;
     }
 
@@ -3763,7 +3763,7 @@ void CPed::Render() {
     if (m_pWeaponObject) {
         if (!m_pPlayerData || m_pPlayerData->m_bRenderWeapon) {
             if ((!bInVehicle || !GetIntelligence()->GetTaskSwim()) && !GetIntelligence()->GetTaskHold(false)) {
-                weaponPedsForPc_Insert(this);
+                CVisibilityPlugins::AddWeaponPedForPC(this);
                 if (m_nWeaponGunflashAlphaMP1 > 0 || m_nWeaponGunflashAlphaMP2 > 0) {
                     ResetGunFlashAlpha();
                 }
@@ -3900,8 +3900,8 @@ void CPed::FlagToDestroyWhenNextProcessed() {
 
     if (m_pVehicle->IsDriver(this)) {
         ClearReference(m_pVehicle->m_pDriver);
-        if (IsPlayer() && m_pVehicle->m_nStatus != STATUS_WRECKED) {
-            m_pVehicle->m_nStatus = STATUS_ABANDONED;
+        if (IsPlayer() && m_pVehicle->GetStatus() != STATUS_WRECKED) {
+            m_pVehicle->SetStatus(STATUS_ABANDONED);
         }
     } else {
         m_pVehicle->RemovePassenger(this);

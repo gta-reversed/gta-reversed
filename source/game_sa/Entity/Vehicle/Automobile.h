@@ -18,7 +18,7 @@
 #include "eCarWheel.h"
 #include "eCarNodes.h"
 
-const float BILLS_EXTENSION_LIMIT = 1.0f;
+constexpr float BILLS_EXTENSION_LIMIT = 1.0f;
 
 enum class eSkidmarkType : uint32;
 
@@ -110,7 +110,8 @@ public:
     float m_fDoomVerticalRotation;
     float m_fDoomHorizontalRotation;
     float m_fForcedOrientation;
-    std::array<float, 2> m_fUpDownLightAngle;
+    float m_fPropRotate;
+    float m_fCumulativeDamage;
     uint8 m_nNumContactWheels;
     uint8 m_NumDriveWheelsOnGround;
     uint8 m_NumDriveWheelsOnGroundLastFrame;

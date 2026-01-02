@@ -89,25 +89,25 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     case MODEL_RUSTLER:
     case MODEL_CROPDUST:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK); // todo: add func(openAngle, closedAngle, axis, dir)
-        leftDoor.m_fOpenAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 1;
-        leftDoor.m_nDirn = 19;
+        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 1;
+        leftDoor.m_dirn = 19;
         break;
     case MODEL_SHAMAL:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_fOpenAngle = -((3.0f * PI) / 4.0f);
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 1;
-        leftDoor.m_nDirn = 18;
+        leftDoor.m_openAngle = -((3.0f * PI) / 4.0f);
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 1;
+        leftDoor.m_dirn = 18;
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LF]), 0);
         break;
     case MODEL_NEVADA:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_fOpenAngle = -((2.0f * PI) / 5.0f);
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 2;
-        leftDoor.m_nDirn = 20;
+        leftDoor.m_openAngle = -((2.0f * PI) / 5.0f);
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 2;
+        leftDoor.m_dirn = 20;
         break;
     case MODEL_VORTEX:
         if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1)
@@ -115,10 +115,10 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         break;
     case MODEL_STUNT:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_fOpenAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 1;
-        leftDoor.m_nDirn = 19;
+        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 1;
+        leftDoor.m_dirn = 19;
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LB]), 0);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_RB]), 0);
         break;
@@ -185,14 +185,14 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
+    if (GetStatus() == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
         if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
             FindPlayerInfo().m_nHavocCaused += 20;
             FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
             CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)CGeneral::GetRandomNumberInRange(4000, 10'000));
         }
 
-        if (m_nStatus == STATUS_PLAYER) { // strange
+        if (GetStatus() == STATUS_PLAYER) { // strange
             if (m_pDriver) {
                 m_pDriver->bDontRender = true;
             }
@@ -209,7 +209,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         // m_nType = m_nType & 7 | STATUS_WRECKED;
         physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
-        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
+        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
         m_damageManager.FuckCarCompletely(false);
         if (m_nModelIndex != MODEL_RCBARON) {
             CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
@@ -292,7 +292,7 @@ void CPlane::OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenR
     if (false) // byte_C1CAFC
     {
         CMatrix matrix(RwFrameGetMatrix(m_aCarNodes[componentId]), false);
-        const auto y = m_doors[door].m_fAngle - m_doors[door].m_fPrevAngle + matrix.GetPosition().y;
+        const auto y = m_doors[door].m_angle - m_doors[door].m_prevAngle + matrix.GetPosition().y;
         matrix.SetTranslate({matrix.GetPosition().x, y, matrix.GetPosition().z});
         matrix.UpdateRW();
     }
@@ -403,7 +403,7 @@ void CPlane::ProcessControl() {
     return plugin::CallMethod<0x6C9260, CPlane*>(this);
 
     // untested
-    if (m_nStatus == STATUS_PLAYER) {
+    if (GetStatus() == STATUS_PLAYER) {
         if (m_nModelIndex == MODEL_CROPDUST || m_nModelIndex == MODEL_STUNT) {
             auto pad = CPad::GetPad(m_pDriver->GetPadNumber());
             if (pad->IsRightShockPressed()) {

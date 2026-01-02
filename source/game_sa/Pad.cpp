@@ -286,7 +286,7 @@ void CPad::UpdateMouse() {
     }
     if (!FrontEndMenuManager.m_bMenuActive) {
         invertX = FrontEndMenuManager.bInvertMouseX ? -1 : 1;
-        invertY = FrontEndMenuManager.bInvertMouseY ? 1 : -1; // NOTSA: Original code had -1 for inverted Y
+        invertY = FrontEndMenuManager.bInvertMouseY ? -1 : 1;
     }
 
 #ifndef NOTSA_USE_SDL3

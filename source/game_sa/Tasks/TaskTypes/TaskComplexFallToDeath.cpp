@@ -126,7 +126,7 @@ CTask* CTaskComplexFallToDeath::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_LAND: {
         if (!b0x1) {
             bool v11 = z < 0.0f ? z > -0.01f : z < 0.01f;
-            if (v11 && (!ped->m_pContactEntity || ped->m_pContactEntity->IsBuilding())) {
+            if (v11 && (!ped->m_pContactEntity || ped->m_pContactEntity->GetIsTypeBuilding())) {
                 b0x1 = true;
                 return new CTaskSimpleInAir(false, true, false);
             }

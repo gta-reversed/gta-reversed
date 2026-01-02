@@ -8,6 +8,7 @@
 #include "StdInc.h"
 
 #include "Population.h"
+#include "Glass.h"
 #include <PedPlacement.h>
 #include <Attractors/PedAttractorPedPlacer.h>
 
@@ -598,7 +599,7 @@ bool CPopulation::IsSunbather(eModelID modelIndex) {
 }
 
 bool CPopulation::IsSunbather(CPed* ped) {
-    return IsSunbather(ped->GetModelID());
+    return IsSunbather(ped->GetModelId());
 }
 
 // 0x611780
@@ -719,7 +720,7 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
         return;
     }
 
-    if (ped->m_pAttachedTo && ped->m_pAttachedTo->m_nType == ENTITY_TYPE_VEHICLE) {
+    if (ped->m_pAttachedTo && ped->m_pAttachedTo->GetIsTypeVehicle()) {
         return;
     }
 
@@ -1198,7 +1199,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
             veh->SetIsStatic(false);
 
             // Now, update the RW matrix too
-            if (veh->m_pRwObject) {
+            if (veh->GetRwObject()) {
                 vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->m_pRwClump)));
             }
 
@@ -1274,7 +1275,7 @@ CPed* CPopulation::AddPedInCar(
     // Pick a model and ped type to use (TODO: Could probably just get the model type, and then resolve the ped type from the model)
     const auto pedModel = [&]() -> eModelID {
         if (addAsDriver) {
-            const auto driverModel = FindSpecificDriverModelForCar_ToUse(veh->GetModelID());
+            const auto driverModel = FindSpecificDriverModelForCar_ToUse(veh->GetModelId());
             if (driverModel != MODEL_INVALID && CStreaming::IsModelLoaded(driverModel)) {
                 return driverModel;
             }
@@ -1290,7 +1291,7 @@ CPed* CPopulation::AddPedInCar(
             return CCopPed::GetPedModelForCopType(ctype);
         };
 
-        switch (veh->GetModelID()) {
+        switch (veh->GetModelId()) {
         case MODEL_FIRETRUK:
             return FixIfInvalid(CStreaming::GetDefaultFiremanModel());
         case MODEL_AMBULAN:
@@ -1563,13 +1564,13 @@ void CPopulation::ConvertToRealObject(CDummyObject* dummyObject) {
     }
 
     CWorld::Remove(dummyObject);
-    dummyObject->m_bIsVisible = false;
+    dummyObject->SetIsVisible(false);
     dummyObject->ResolveReferences();
 
     obj->SetRelatedDummy(dummyObject);
     CWorld::Add(obj);
 
-    if (!IsGlassModel(obj) || obj->GetModelInfo()->IsGlassType2()) {
+    if (!CGlass::IsObjectGlass(obj) || obj->GetModelInfo()->IsGlassType2()) {
         if (obj->m_nModelIndex == ModelIndices::MI_BUOY || obj->physicalFlags.bAttachedToEntity) {
             obj->SetIsStatic(false);
             obj->m_vecMoveSpeed.Set(0.0F, 0.0F, -0.001F);
@@ -1577,7 +1578,7 @@ void CPopulation::ConvertToRealObject(CDummyObject* dummyObject) {
             obj->AddToMovingList();
         }
     } else {
-        obj->m_bIsVisible = false;
+        obj->SetIsVisible(false);
     }
 }
 
@@ -1588,15 +1589,15 @@ void CPopulation::ConvertToDummyObject(CObject* object) {
         if (!CPopulation::TestRoomForDummyObject(object)) {
             return;
         }
-        dummy->m_bIsVisible = true;
+        dummy->SetIsVisible(true);
         dummy->UpdateFromObject(object);
     }
 
-    if (object->IsObject()) {
+    if (object->GetIsTypeObject()) {
         auto* mi = object->GetModelInfo()->AsAtomicModelInfoPtr();
         if (mi && mi->IsGlassType1()) {
             if (dummy) {
-                dummy->m_bIsVisible = false;
+                dummy->SetIsVisible(false);
             } else {
                 assert(false && "FIX_BUGS: dummy == nullptr");
             }
@@ -1657,7 +1658,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
         for (int16 o{}; o < numEntitiesInRng; o++) {
             const auto ent = entitiesInRng[o];
             assert(ent);
-            if (!ent->m_pRwObject) {
+            if (!ent->GetRwObject()) {
                 continue;
             }
             if (!ent->IsInCurrentArea()) {
@@ -1668,7 +1669,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
                 continue;
             }
             if (attractor->m_nFlags & 1) {
-                if (!ent->IsObject()) {
+                if (!ent->GetIsTypeObject()) {
                     continue;
                 }
                 if (!ent->AsObject()->objectFlags.bEnableDisabledAttractors) {
@@ -1751,10 +1752,10 @@ void CPopulation::ManageObject(CObject* object, const CVector& posn) {
 
 // 0x616000
 void CPopulation::ManageDummy(CDummy* dummy, const CVector& posn) {
-    if (!dummy->IsInCurrentAreaOrBarberShopInterior() || !dummy->m_bIsVisible) {
+    if (!dummy->IsInCurrentArea() || !dummy->GetIsVisible()) {
         return;
     }
-    if ((posn - dummy->GetPosition()).SquaredMagnitude() >= sq(FindDummyDistForModel(dummy->GetModelID()))) {
+    if ((posn - dummy->GetPosition()).SquaredMagnitude() >= sq(FindDummyDistForModel(dummy->GetModelId()))) {
         return;
     }
     ConvertToRealObject(static_cast<CDummyObject*>(dummy));
@@ -1785,27 +1786,41 @@ void CPopulation::ManageAllPopulation() {
 // 0x616190
 void CPopulation::ManagePopulation() {
     ZoneScoped;
-
-    // TODO: Implement original `framecounter % 32` pool splitting logic
-    //       It's just a perf optimization, so I didn't bother
-
-    const auto& center = FindPlayerCentreOfWorld();
+    constexpr auto framePopulation = 32;
+    const auto& centre = FindPlayerCentreOfWorld();
+    const uint32 batch = CTimer::m_FrameCounter % framePopulation;
+    
     {
         ZoneScopedN("Manage Objects");
-        for (auto& obj : GetObjectPool()->GetAllValid()) {
-            ManageObject(&obj, center);
+        auto* pool = GetObjectPool();
+        const auto poolSize = pool->GetSize();
+        const auto startIdx = (poolSize * batch) / framePopulation;
+        const auto endIdx   = (poolSize * (batch + 1)) / framePopulation;
+        for (auto i = startIdx; i < endIdx; ++i) {
+            if (auto* obj = pool->GetAt(i)) {
+                ManageObject(obj, centre);
+            }
         }
     }
+    
     {
         ZoneScopedN("Manage Dummies");
-        for (auto& dummy : GetDummyPool()->GetAllValid()) {
-            ManageDummy(&dummy, center);
+        auto* pool = GetDummyPool();
+        const auto poolSize = pool->GetSize();
+        const auto startIdx = (poolSize * batch) / framePopulation;
+        const auto endIdx   = (poolSize * (batch + 1)) / framePopulation;
+        for (auto i = startIdx; i < endIdx; ++i) {
+            if (auto* dummy = pool->GetAt(i)) {
+                ManageDummy(dummy, centre);
+            }
         }
     }
+    
     {
         ZoneScopedN("Manage Peds");
+        auto* pool = GetPedPool();
         for (auto& ped : GetPedPool()->GetAllValid()) {
-            ManagePed(&ped, center);
+            ManagePed(&ped, centre);
         }
     }
 }
@@ -1885,7 +1900,6 @@ void CPopulation::PopulateInterior(int32 numPedsToCreate, CVector pos) {
 void CPopulation::Update(bool generatePeds) {
     ZoneScoped;
 
-    generatePeds = true;
     CurrentWorldZone = [] {
         switch (CWeather::WeatherRegion) {
         case WEATHER_REGION_DEFAULT:

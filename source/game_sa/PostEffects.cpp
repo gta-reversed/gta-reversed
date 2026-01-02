@@ -1105,7 +1105,7 @@ void CPostEffects::Render() {
             CTimer::Suspend();
             if (s_SavePhotoToGallery) {
                 CVisibilityPlugins::RenderWeaponPedsForPC();
-                CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+                CVisibilityPlugins::ResetWeaponPedsForPC();
                 CFileMgr::SetDirMyDocuments();
 
                 auto photoIdx = 0;

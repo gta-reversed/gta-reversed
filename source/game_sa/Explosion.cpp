@@ -205,7 +205,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
     const auto CreateAndPlayFxWithSound = [&](const char* name, float volume = .0f) {
         FxSystem_c* fx{nullptr};
         if (exp->m_pVictim) {
-            if (exp->m_pVictim->m_pRwObject) {
+            if (exp->m_pVictim->GetRwObject()) {
                 if (RwMatrix* matrix = exp->m_pVictim->GetModellingMatrix()) {
                     CVector expToVictimDir = pos - exp->m_pVictim->GetPosition();
                     fx = g_fxMan.CreateFxSystem(name, expToVictimDir, matrix, false);
@@ -384,7 +384,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
                         gFireManager.StartFire(firePos, 0.8f, 0, exp->m_pCreator, (uint32)(CGeneral::GetRandomNumberInRange(5'600.0f, 12'600.0f) * 0.4f), 3, 1);
                     }
                 }
-                if (creator && creator->IsPed() && creator->AsPed()->IsPlayer()) {
+                if (creator && creator->GetIsTypePed() && creator->AsPed()->IsPlayer()) {
                     CStats::IncrementStat(eStats::STAT_FIRES_STARTED, 1.0f);
                 }
             }

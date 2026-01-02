@@ -100,6 +100,17 @@ template<typename Base, typename Derived>
 constexpr auto is_derived_from_but_not_v = std::is_base_of_v<Base, Derived> && !std::is_same_v<Base, Derived>;
 };
 
+//! Script entity (Not necessarily a derivative of `CEntity`, but any pooled type)
+template<typename T>
+struct ScriptEntity {
+    static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>, "T must be a class type, not a pointer or reference.");
+
+    using EntityType = T;
+
+    EntityType* e;  ///< Pointer to the actual entity (May be null if the handle is invalid)
+    int32       h;  ///< Script handle of the entity
+};
+
 //! Read a value (Possibly from script => increases IP, or return a value (w/o increasing IP)
 template<typename T>
 inline T Read(CRunningScript* S) {
@@ -119,6 +130,8 @@ inline T Read(CRunningScript* S) {
         return { Read<float>(S), Read<float>(S) };
     } else if constexpr (std::is_same_v<Y, CRect>) {
         return { Read<CVector2D>(S), Read<CVector2D>(S) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
+    } else if constexpr (std::is_same_v<Y, CRGBA>) {
+        return { Read<uint8>(S), Read<uint8>(S), Read<uint8>(S), Read<uint8>(S) };
     } else if constexpr (std::is_same_v<Y, std::string_view>) {
         switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
@@ -207,20 +220,29 @@ inline T Read(CRunningScript* S) {
         return static_cast<Y>(Read<std::underlying_type_t<Y>>(S));
     } else if constexpr (std::is_same_v<Y, CPlayerPed>) { // Special case for `CPlayerPed` (As the IDs for it aren't from the pool)
         return FindPlayerPed(Read<int32>(S));
-    } else if constexpr (detail::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
-        T ptr = static_cast<T>(detail::PoolOf<Y>().GetAtRef(Read<int32>(S)));
+    } else if constexpr (notsa::is_specialization_of<Y, ScriptEntity>) {
+        using EntityType = typename Y::EntityType;
+
+        const auto handle = Read<int32>(S);
+        auto entity = static_cast<EntityType*>(detail::PoolOf<EntityType>().GetAtRef(handle));
 
     #ifdef NOTSA_DEBUG
-        if (ptr) {
-            if constexpr (detail::is_derived_from_but_not_v<CVehicle, Y>) {
-                assert(Y::Type == ptr->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
-            } else if constexpr (detail::is_derived_from_but_not_v<CTask, Y>) {
-                assert(Y::Type == ptr->GetTaskType());
+        // Asserts for correct type
+        if (entity) {
+            if constexpr (detail::is_derived_from_but_not_v<CVehicle, EntityType>) {
+                assert(EntityType::Type == entity->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
+            } else if constexpr (detail::is_derived_from_but_not_v<CTask, EntityType>) {
+                assert(EntityType::Type == entity->GetTaskType());
             } // TODO: Eventually add this for `CEvent` too
         }
     #endif
 
-        return ptr;
+        return {
+            .e = entity,
+            .h = handle
+        };
+    } else if constexpr (detail::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
+        return Read<ScriptEntity<Y>>(S).e;
     } else if constexpr (std::is_same_v<Y, CRunningScript>) { // Just return the script from where this command was invoked from
         return S;
     } else if constexpr (std::is_same_v<Y, CPlayerInfo>) {

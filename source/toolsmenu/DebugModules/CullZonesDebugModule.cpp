@@ -36,8 +36,8 @@ void CullZonesDebugModule::Render3D() {
         UNUSED(name);
 
         const auto& zdef = zone->zoneDef;
-        int32 x1 = zdef.m_x1, y1 = zdef.m_y1, ly = zdef.m_lenY, lx = zdef.m_lenX;
-        float bottomZ = zdef.bottomZ + m_ZOffset, topZ = zdef.topZ + m_ZOffset;
+        int32 x1 = zdef.m_cornerX, y1 = zdef.m_cornerY, ly = zdef.m_vec1Y, lx = zdef.m_vec2X;
+        float bottomZ = zdef.m_minZ + m_ZOffset, topZ = zdef.m_maxZ + m_ZOffset;
 
         RenderLine(x1 + lx, y1,      topZ,    x1,      y1,      topZ,    isActive);
         RenderLine(x1,      y1,      topZ,    x1,      y1 + ly, topZ,    isActive);

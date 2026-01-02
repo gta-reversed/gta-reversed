@@ -226,7 +226,7 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     m_autoPilot.SetCarMission(MISSION_NONE, 0);
     m_autoPilot.carCtrlFlags.bAvoidLevelTransitions = false;
 
-    m_nStatus = STATUS_SIMPLE;
+    SetStatus(STATUS_SIMPLE);
     m_nNumPassengers = 0;
     vehicleFlags.bLowVehicle = false;
     vehicleFlags.bIsBig = false;
@@ -699,7 +699,7 @@ LABEL_24:
 
 // 0x6BF400
 void CBike::ProcessDrivingAnims(CPed* driver, bool blend) {
-    if (m_bOffscreen && m_nStatus == STATUS_PLAYER) {
+    if (m_bOffscreen && GetStatus() == STATUS_PLAYER)
         return;
     }
 
@@ -727,7 +727,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
     static std::array<CColPoint, 32> pedEntityColPts; // 0xC1C280
     static int32                     isInitColPtr;    // 0xC1C800
 
-    if (m_nStatus != STATUS_SIMPLE) {
+    if (GetStatus() != STATUS_SIMPLE) {
         vehicleFlags.bVehicleColProcessed = true;
     }
 
@@ -740,7 +740,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
     }
 #endif
 
-    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->IsPed()) {
+    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->GetIsTypePed()) {
         tcd->m_nNumLines = 0; // Later reset back to original value
     }
 
@@ -806,7 +806,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
                 CEntity::ChangeEntityReference(m_aGroundPhysicalPtrs[i], entity->AsPhysical());
 
                 m_aGroundOffsets[i] = cp.m_vecPoint - entity->GetPosition();
-                if (entity->IsVehicle()) {
+                if (entity->GetIsTypeVehicle()) {
                     m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                 }
                 break;
@@ -825,13 +825,14 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
 
     if (numColPts > 0 || numProcessedLines > 0) {
         AddCollisionRecord(entity);
-        if (!entity->IsBuilding()) {
+        if (!entity->GetIsTypeBuilding()) {
             entity->AsPhysical()->AddCollisionRecord(this);
         }
         if (numColPts > 0) {
-            if (entity->IsBuilding()
-                || (entity->IsObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)) {
-                m_bHasHitWall = true;
+            if (   entity->GetIsTypeBuilding()
+                || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
+            ) {
+                SetHasHitWall(true);
             }
         }
     }
@@ -1189,7 +1190,7 @@ void CBike::RemoveRefsToVehicle(CEntity* entityToRemove) {
 // 0x6B6620
 void CBike::ProcessControlCollisionCheck(bool applySpeed) {
     const CMatrix oldMat = GetMatrix();
-    m_bIsStuck = false;
+    SetIsStuck(false);
     SkipPhysics();
     physicalFlags.bSkipLineCol = false;
     physicalFlags.bProcessingShift = false;
@@ -1206,14 +1207,14 @@ void CBike::ProcessControlCollisionCheck(bool applySpeed) {
             ApplyTurnSpeed();
         }
     } else {
-        const auto usesCollision = m_bUsesCollision;
-        m_bUsesCollision = false;
+        const auto usesCollision = GetUsesCollision();
+        SetUsesCollision(false);
         CheckCollision();
-        m_bUsesCollision = usesCollision;
+        SetUsesCollision(usesCollision);
     }
 
-    m_bIsStuck = false;
-    m_bIsInSafePosition = true;
+    SetIsStuck(false);
+    SetIsInSafePosition(true);
 }
 
 // 0x6B5990

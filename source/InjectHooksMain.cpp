@@ -537,6 +537,7 @@ void InjectHooksMain() {
 #ifdef NOTSA_WINDOWED_MODE
     notsa::InjectWindowedModeHooks();
 #endif
+    CDoor::InjectHooks();
     CControllerConfigManager::InjectHooks();
     CFormation::InjectHooks();
     CHandShaker::InjectHooks();
@@ -1442,6 +1443,9 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
+#if _DEBUG
+    CCurves::TestCurves();
+#endif
 }
 
 void InjectHooksMain(HMODULE hThisDLL) {

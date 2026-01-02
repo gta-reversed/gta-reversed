@@ -12,63 +12,65 @@
 #include "ControllerConfigManager.h"
 #include "VideoMode.h"
 
+using enum eControllerAction;
+
 constexpr std::array<eControllerAction, 28> ControllerActionsAvailableOnFoot = {
-    eControllerAction::CA_PED_FIRE_WEAPON,
-    eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT,
-    eControllerAction::CA_PED_CYCLE_WEAPON_LEFT,
-    eControllerAction::CA_PED_JUMPING,
-    eControllerAction::CA_PED_SPRINT,
-    eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
-    eControllerAction::CA_VEHICLE_ENTER_EXIT,
-    eControllerAction::CA_GO_FORWARD,
-    eControllerAction::CA_GO_BACK,
-    eControllerAction::CA_GO_LEFT,
-    eControllerAction::CA_GO_RIGHT,
-    eControllerAction::CA_PED_LOOKBEHIND,
-    eControllerAction::CA_PED_DUCK,
-    eControllerAction::CA_PED_ANSWER_PHONE,
-    eControllerAction::CA_VEHICLE_STEER_UP,
-    eControllerAction::CA_VEHICLE_STEER_DOWN,
-    eControllerAction::CA_VEHICLE_ACCELERATE,
-    eControllerAction::CA_VEHICLE_RADIO_STATION_UP,
-    eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,
-    eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,
-    eControllerAction::CA_VEHICLE_HORN,
-    eControllerAction::CA_VEHICLE_LOOKLEFT,
-    eControllerAction::CA_VEHICLE_LOOKBEHIND,
-    eControllerAction::CA_VEHICLE_MOUSELOOK,
-    eControllerAction::CA_VEHICLE_TURRETLEFT,
-    eControllerAction::CA_VEHICLE_TURRETRIGHT,
-    eControllerAction::CA_PED_CYCLE_TARGET_LEFT,
-    eControllerAction::CA_PED_FIRE_WEAPON_ALT
+    PED_FIRE_WEAPON,
+    PED_CYCLE_WEAPON_RIGHT,
+    PED_CYCLE_WEAPON_LEFT,
+    PED_JUMPING,
+    PED_SPRINT,
+    CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
+    VEHICLE_ENTER_EXIT,
+    GO_FORWARD,
+    GO_BACK,
+    GO_LEFT,
+    GO_RIGHT,
+    PED_LOOKBEHIND,
+    PED_DUCK,
+    PED_ANSWER_PHONE,
+    VEHICLE_STEERUP,
+    VEHICLE_STEERDOWN,
+    VEHICLE_ACCELERATE,
+    VEHICLE_RADIO_STATION_UP,
+    VEHICLE_RADIO_STATION_DOWN,
+    VEHICLE_RADIO_TRACK_SKIP,
+    VEHICLE_HORN,
+    VEHICLE_LOOKLEFT,
+    VEHICLE_LOOKBEHIND,
+    VEHICLE_MOUSELOOK,
+    VEHICLE_TURRETLEFT,
+    VEHICLE_TURRETRIGHT,
+    PED_CYCLE_TARGET_LEFT,
+    PED_FIRE_WEAPON_ALT
 }; // 0x865598
 
 constexpr std::array<eControllerAction, 25> ControllerActionsAvailableInCar = {
-    eControllerAction::CA_PED_FIRE_WEAPON,
-    eControllerAction::CA_PED_FIRE_WEAPON_ALT,
-    eControllerAction::CA_GO_FORWARD,
-    eControllerAction::CA_GO_BACK,
-    eControllerAction::CA_GO_LEFT,
-    eControllerAction::CA_GO_RIGHT,
-    eControllerAction::CA_PED_SNIPER_ZOOM_IN,
-    eControllerAction::CA_PED_SNIPER_ZOOM_OUT,
-    eControllerAction::CA_PED_ANSWER_PHONE,
-    eControllerAction::CA_VEHICLE_ENTER_EXIT,
-    eControllerAction::CA_PED_WALK,
-    eControllerAction::CA_VEHICLE_FIRE_WEAPON,
-    eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT,
-    eControllerAction::CA_VEHICLE_STEER_LEFT,
-    eControllerAction::CA_VEHICLE_STEER_RIGHT,
-    eControllerAction::CA_VEHICLE_STEER_UP,
-    eControllerAction::CA_VEHICLE_BRAKE,
-    eControllerAction::CA_VEHICLE_LOOKLEFT,
-    eControllerAction::CA_VEHICLE_LOOKRIGHT,
-    eControllerAction::CA_VEHICLE_LOOKBEHIND,
-    eControllerAction::CA_VEHICLE_MOUSELOOK,
-    eControllerAction::CA_TOGGLE_SUBMISSIONS,
-    eControllerAction::CA_VEHICLE_HANDBRAKE,
-    eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,
-    eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT
+    PED_FIRE_WEAPON,
+    PED_FIRE_WEAPON_ALT,
+    GO_FORWARD,
+    GO_BACK,
+    GO_LEFT,
+    GO_RIGHT,
+    PED_SNIPER_ZOOM_IN,
+    PED_SNIPER_ZOOM_OUT,
+    PED_ANSWER_PHONE,
+    VEHICLE_ENTER_EXIT,
+    PED_WALK,
+    VEHICLE_FIRE_WEAPON,
+    VEHICLE_FIRE_WEAPON_ALT,
+    VEHICLE_STEERLEFT,
+    VEHICLE_STEERRIGHT,
+    VEHICLE_STEERUP,
+    VEHICLE_BRAKE,
+    VEHICLE_LOOKLEFT,
+    VEHICLE_LOOKRIGHT,
+    VEHICLE_LOOKBEHIND,
+    VEHICLE_MOUSELOOK,
+    TOGGLE_SUBMISSIONS,
+    VEHICLE_HANDBRAKE,
+    PED_1RST_PERSON_LOOK_LEFT,
+    PED_1RST_PERSON_LOOK_RIGHT
 }; // 0x865608
 
 // 0x57C290
@@ -642,7 +644,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
         case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
             // Standard for all new games
-            rightColumnText = notsa::IsFixBugs() ? GetOnOffText(bInvertMouseY) : GetOnOffText(!bInvertMouseY);
+            rightColumnText = GetOnOffText(!bInvertMouseY);
             break;
         case eMenuAction::MENU_ACTION_RESOLUTION: {
             GxtChar tmpBuffer[1'024];
@@ -792,7 +794,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume / 64.f, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT, true); break;
         case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume / 64.f, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
         case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) / (8.0f / 7.0f), eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
-        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl * (1.0f / 200.0f), eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
+        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.005f, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
         default:                     break;
         }
 
@@ -899,18 +901,18 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
     const auto maxActions      = GetMaxAction();
     const auto verticalSpacing = GetVerticalSpacing();
     if (maxActions > 0) {
-        for (auto action = 0u; action < maxActions; action++) {
+        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
             float textX = StretchX(240.0f);
             const float textY = StretchY(float(startingYPos));
 
             for (const auto& order : CONTROLLER_ORDERS_SET) {
-                if (const auto buttonText = ControlsManager.GetControllerSettingText(eControllerAction(action), order)) {
+                if (const auto buttonText = ControlsManager.GetControllerSettingTextWithOrderNumber(eControllerAction(actionIndex), order)) {
                     CFont::PrintString(textX, textY, buttonText);
                     textX += StretchX(75.0f);
                 }
             }
 
-            if (action == m_ListSelection && m_EditingControlOptions) {
+            if (actionIndex == m_ListSelection && m_EditingControlOptions) {
                 if (CTimer::GetTimeInMSPauseMode() - m_LastHighlightToggleTime > 150) {
                     m_OptionFlashColorState ^= true;
                     m_LastHighlightToggleTime = CTimer::GetTimeInMSPauseMode();
@@ -943,106 +945,106 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     using ControlActionMapping = std::pair<eControllerAction, int32>;
 
     static constexpr std::array<ControlActionMapping, 41> CarActionMappings = {{
-        { eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT,            -1 },
-        { eControllerAction::CA_PED_CYCLE_WEAPON_LEFT,             -1 },
-        { eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, -1 },
-        { eControllerAction::CA_PED_JUMPING,                       -1 },
-        { eControllerAction::CA_PED_SPRINT,                        -1 },
-        { eControllerAction::CA_PED_LOOKBEHIND,                    -1 },
-        { eControllerAction::CA_PED_DUCK,                          -1 },
-        { eControllerAction::CA_VEHICLE_STEER_DOWN,                -1 },
-        { eControllerAction::CA_VEHICLE_ACCELERATE,                -1 },
-        { eControllerAction::CA_VEHICLE_RADIO_STATION_UP,          -1 },
-        { eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,        -1 },
-        { eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,          -1 },
-        { eControllerAction::CA_VEHICLE_HORN,                      -1 },
-        { eControllerAction::CA_VEHICLE_TURRETLEFT,                -1 },
-        { eControllerAction::CA_VEHICLE_TURRETRIGHT,               -1 },
-        { eControllerAction::CA_PED_CYCLE_TARGET_LEFT,             -1 },
-        { eControllerAction::CA_PED_FIRE_WEAPON,                   18 },
-        { eControllerAction::CA_PED_FIRE_WEAPON_ALT,               19 },
-        { eControllerAction::CA_GO_FORWARD,                        24 },
-        { eControllerAction::CA_GO_BACK,                           25 },
-        { eControllerAction::CA_GO_LEFT,                           20 },
-        { eControllerAction::CA_GO_RIGHT,                          21 },
-        { eControllerAction::CA_PED_SNIPER_ZOOM_IN,                22 },
-        { eControllerAction::CA_PED_SNIPER_ZOOM_OUT,               23 },
-        { eControllerAction::CA_VEHICLE_ENTER_EXIT,                47 },
-        { eControllerAction::CA_PED_ANSWER_PHONE,                  10 },
-        { eControllerAction::CA_PED_WALK,                          26 },
-        { eControllerAction::CA_VEHICLE_FIRE_WEAPON,               27 },
-        { eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT,           28 },
-        { eControllerAction::CA_VEHICLE_STEER_LEFT,                29 },
-        { eControllerAction::CA_VEHICLE_STEER_RIGHT,               30 },
-        { eControllerAction::CA_VEHICLE_STEER_UP,                  11 },
-        { eControllerAction::CA_VEHICLE_BRAKE,                     31 },
-        { eControllerAction::CA_TOGGLE_SUBMISSIONS,                38 },
-        { eControllerAction::CA_VEHICLE_HANDBRAKE,                 39 },
-        { eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,         41 },
-        { eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT,        40 },
-        { eControllerAction::CA_VEHICLE_LOOKLEFT,                  36 },
-        { eControllerAction::CA_VEHICLE_LOOKRIGHT,                 37 },
-        { eControllerAction::CA_VEHICLE_LOOKBEHIND,                34 },
-        { eControllerAction::CA_VEHICLE_MOUSELOOK,                 35 },
+        { PED_CYCLE_WEAPON_RIGHT,            -1 },
+        { PED_CYCLE_WEAPON_LEFT,             -1 },
+        { CAMERA_CHANGE_VIEW_ALL_SITUATIONS, -1 },
+        { PED_JUMPING,                       -1 },
+        { PED_SPRINT,                        -1 },
+        { PED_LOOKBEHIND,                    -1 },
+        { PED_DUCK,                          -1 },
+        { VEHICLE_STEERDOWN,                 -1 },
+        { VEHICLE_ACCELERATE,                -1 },
+        { VEHICLE_RADIO_STATION_UP,          -1 },
+        { VEHICLE_RADIO_STATION_DOWN,        -1 },
+        { VEHICLE_RADIO_TRACK_SKIP,          -1 },
+        { VEHICLE_HORN,                      -1 },
+        { VEHICLE_TURRETLEFT,                -1 },
+        { VEHICLE_TURRETRIGHT,               -1 },
+        { PED_CYCLE_TARGET_LEFT,             -1 },
+        { PED_FIRE_WEAPON,                   18 },
+        { PED_FIRE_WEAPON_ALT,               19 },
+        { GO_FORWARD,                        24 },
+        { GO_BACK,                           25 },
+        { GO_LEFT,                           20 },
+        { GO_RIGHT,                          21 },
+        { PED_SNIPER_ZOOM_IN,                22 },
+        { PED_SNIPER_ZOOM_OUT,               23 },
+        { VEHICLE_ENTER_EXIT,                47 },
+        { PED_ANSWER_PHONE,                  10 },
+        { PED_WALK,                          26 },
+        { VEHICLE_FIRE_WEAPON,               27 },
+        { VEHICLE_FIRE_WEAPON_ALT,           28 },
+        { VEHICLE_STEERLEFT,                 29 },
+        { VEHICLE_STEERRIGHT,                30 },
+        { VEHICLE_STEERUP,                   11 },
+        { VEHICLE_BRAKE,                     31 },
+        { TOGGLE_SUBMISSIONS,                38 },
+        { VEHICLE_HANDBRAKE,                 39 },
+        { PED_1RST_PERSON_LOOK_LEFT,         41 },
+        { PED_1RST_PERSON_LOOK_RIGHT,        40 },
+        { VEHICLE_LOOKLEFT,                  36 },
+        { VEHICLE_LOOKRIGHT,                 37 },
+        { VEHICLE_LOOKBEHIND,                34 },
+        { VEHICLE_MOUSELOOK,                 35 },
     }};
 
     static constexpr std::array<ControlActionMapping, 51> PedActionMappings = {{
-        { eControllerAction::CA_PED_FIRE_WEAPON,                   0  },
-        { eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,          0  },
-        { eControllerAction::CA_PED_FIRE_WEAPON_ALT,               2  },
-        { eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT,            3  },
-        { eControllerAction::CA_PED_CYCLE_WEAPON_LEFT,             49 },
-        { eControllerAction::CA_GO_FORWARD,                        50 },
-        { eControllerAction::CA_GO_BACK,                           48 },
-        { eControllerAction::CA_GO_LEFT,                           47 },
-        { eControllerAction::CA_VEHICLE_MOUSELOOK,                 47 },
-        { eControllerAction::CA_GO_RIGHT,                          4  },
-        { eControllerAction::CA_TOGGLE_SUBMISSIONS,                4  },
-        { eControllerAction::CA_PED_SNIPER_ZOOM_IN,                5  },
-        { eControllerAction::CA_VEHICLE_HANDBRAKE,                 5  },
-        { eControllerAction::CA_PED_SNIPER_ZOOM_OUT,               6  },
-        { eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,         6  },
-        { eControllerAction::CA_VEHICLE_ENTER_EXIT,                7  },
-        { eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT,        7  },
-        { eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, 8  },
-        { eControllerAction::CA_PED_JUMPING,                       9  },
-        { eControllerAction::CA_PED_SPRINT,                        10 },
-        { eControllerAction::CA_VEHICLE_LOOKBEHIND,                10 },
-        { eControllerAction::CA_PED_LOOKBEHIND,                    11 },
-        { eControllerAction::CA_PED_CYCLE_TARGET_RIGHT,            11 },
-        { eControllerAction::CA_PED_DUCK,                          12 },
-        { eControllerAction::CA_PED_ANSWER_PHONE,                  13 },
-        { eControllerAction::CA_PED_WALK,                          45 },
-        { eControllerAction::CA_VEHICLE_FIRE_WEAPON,               15 },
-        { eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT,           16 },
-        { eControllerAction::CA_VEHICLE_STEER_UP,                  32 },
-        { eControllerAction::CA_CONVERSATION_YES,                  32 },
-        { eControllerAction::CA_VEHICLE_STEER_DOWN,                33 },
-        { eControllerAction::CA_CONVERSATION_NO,                   33 },
-        { eControllerAction::CA_VEHICLE_TURRETLEFT,                -1 },
-        { eControllerAction::CA_VEHICLE_TURRETRIGHT,               -1 },
-        { eControllerAction::CA_VEHICLE_TURRETUP,                  -1 },
-        { eControllerAction::CA_VEHICLE_TURRETDOWN,                -1 },
-        { eControllerAction::CA_PED_CYCLE_TARGET_LEFT,             -1 },
-        { eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER,   -1 },
-        { eControllerAction::CA_NETWORK_TALK,                      -1 },
-        { eControllerAction::CA_GROUP_CONTROL_FWD,                 -1 },
-        { eControllerAction::CA_GROUP_CONTROL_BWD,                 -1 },
-        { eControllerAction::CA_PED_1RST_PERSON_LOOK_UP,           -1 },
-        { eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN,         -1 },
-        { eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,        1  },
-        { eControllerAction::CA_VEHICLE_HORN,                      1  },
-        { eControllerAction::CA_VEHICLE_RADIO_STATION_UP,          44 },
-        { eControllerAction::CA_VEHICLE_BRAKE,                     52 },
-        { eControllerAction::CA_VEHICLE_ACCELERATE,                51 },
-        { eControllerAction::CA_VEHICLE_STEER_LEFT,                17 },
-        { eControllerAction::CA_VEHICLE_STEER_RIGHT,               14 },
-        { eControllerAction::CA_PED_LOCK_TARGET,                   14 },
+        { PED_FIRE_WEAPON,                   0  },
+        { VEHICLE_RADIO_TRACK_SKIP,          0  },
+        { PED_FIRE_WEAPON_ALT,               2  },
+        { PED_CYCLE_WEAPON_RIGHT,            3  },
+        { PED_CYCLE_WEAPON_LEFT,             49 },
+        { GO_FORWARD,                        50 },
+        { GO_BACK,                           48 },
+        { GO_LEFT,                           47 },
+        { VEHICLE_MOUSELOOK,                 47 },
+        { GO_RIGHT,                          4  },
+        { TOGGLE_SUBMISSIONS,                4  },
+        { PED_SNIPER_ZOOM_IN,                5  },
+        { VEHICLE_HANDBRAKE,                 5  },
+        { PED_SNIPER_ZOOM_OUT,               6  },
+        { PED_1RST_PERSON_LOOK_LEFT,         6  },
+        { VEHICLE_ENTER_EXIT,                7  },
+        { PED_1RST_PERSON_LOOK_RIGHT,        7  },
+        { CAMERA_CHANGE_VIEW_ALL_SITUATIONS, 8  },
+        { PED_JUMPING,                       9  },
+        { PED_SPRINT,                        10 },
+        { VEHICLE_LOOKBEHIND,                10 },
+        { PED_LOOKBEHIND,                    11 },
+        { PED_CYCLE_TARGET_RIGHT,            11 },
+        { PED_DUCK,                          12 },
+        { PED_ANSWER_PHONE,                  13 },
+        { PED_WALK,                          45 },
+        { VEHICLE_FIRE_WEAPON,               15 },
+        { VEHICLE_FIRE_WEAPON_ALT,           16 },
+        { VEHICLE_STEERUP,                   32 },
+        { CONVERSATION_YES,                  32 },
+        { VEHICLE_STEERDOWN,                 33 },
+        { CONVERSATION_NO,                   33 },
+        { VEHICLE_TURRETLEFT,                -1 },
+        { VEHICLE_TURRETRIGHT,               -1 },
+        { VEHICLE_TURRETUP,                  -1 },
+        { VEHICLE_TURRETDOWN,                -1 },
+        { PED_CYCLE_TARGET_LEFT,             -1 },
+        { PED_CENTER_CAMERA_BEHIND_PLAYER,   -1 },
+        { NETWORK_TALK,                      -1 },
+        { GROUP_CONTROL_FWD,                 -1 },
+        { GROUP_CONTROL_BWD,                 -1 },
+        { PED_1RST_PERSON_LOOK_UP,           -1 },
+        { PED_1RST_PERSON_LOOK_DOWN,         -1 },
+        { VEHICLE_RADIO_STATION_DOWN,        1  },
+        { VEHICLE_HORN,                      1  },
+        { VEHICLE_RADIO_STATION_UP,          44 },
+        { VEHICLE_BRAKE,                     52 },
+        { VEHICLE_ACCELERATE,                51 },
+        { VEHICLE_STEERLEFT,                 17 },
+        { VEHICLE_STEERRIGHT,                14 },
+        { PED_LOCK_TARGET,                   14 },
     }};
 
     // Main loop - process each action
-    for (auto i = 0u; i < maxActions; i++) {
-        const auto currentY = StretchY(float(verticalOffset + i * verticalSpacing));
+    for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
+        const auto currentY = StretchY(float(verticalOffset + actionIndex * verticalSpacing));
         auto currentX = StretchX(270.0f);
         eControllerAction action = eControllerAction::CA_NONE;
         CFont::SetColor(MENU_TEXT_WHITE);
@@ -1050,15 +1052,15 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         // Map action index to controller action
         if (m_RedefiningControls == eControlMode::VEHICLE) {
             for (const auto& mapping : CarActionMappings) {
-                if (mapping.first == ControllerActionsAvailableInCar[i]) {
+                if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
                     action = (eControllerAction)mapping.second;
                     break;
                 }
             }
         } else if (m_RedefiningControls == eControlMode::FOOT) {
             for (const auto& mapping : PedActionMappings) {
-                if (mapping.first == (eControllerAction)i) { // Cast action to eControllerAction for comparison
-                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::CA_VEHICLE_STEER_UP, eControllerAction::CA_CONVERSATION_YES, eControllerAction::CA_VEHICLE_STEER_DOWN, eControllerAction::CA_CONVERSATION_NO }, mapping.first)) {
+                if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
+                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ VEHICLE_STEERUP, CONVERSATION_YES, VEHICLE_STEERDOWN, CONVERSATION_NO }, mapping.first)) {
                         action = eControllerAction::CA_NONE;
                     } else {
                         action = (eControllerAction)mapping.second;
@@ -1069,12 +1071,12 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57EA1E - Highlight selected action
-        if (m_ListSelection == i && !isOppositeScreen) {
+        if (m_ListSelection == actionIndex && !isOppositeScreen) {
             CSprite2d::DrawRect({
                     StretchX(260.0f),
-                    StretchY(float(i * verticalSpacing + verticalOffset + 1)),
+                    StretchY(float(actionIndex * verticalSpacing + verticalOffset + 1)),
                     SCREEN_STRETCH_FROM_RIGHT(20.0f),
-                    StretchY(float(i * verticalSpacing + verticalOffset + 1 + 10))
+                    StretchY(float(actionIndex * verticalSpacing + verticalOffset + 1 + 10))
                 }, MENU_TEXT_SELECTED
             );
             CFont::SetColor(MENU_TEXT_WHITE);
@@ -1089,10 +1091,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         bool hasControl = false;
         if (action != eControllerAction::CA_NONE) {
             for (const auto& order : CONTROLLER_ORDERS_SET) {
-                if (m_DeleteAllNextDefine && m_ListSelection == i) {
+                if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                if (auto buttonText = ControlsManager.GetControllerSettingText(action, order)) {
+                if (auto buttonText = ControlsManager.GetControllerSettingTextWithOrderNumber(action, order)) {
                     hasControl = true;
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);
@@ -1103,7 +1105,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57EBD9 + 0x57EBEA - Handle special cases and selection
-        if (action == eControllerAction::CA_COMBOLOCK) {
+        if (action == eControllerAction::COMBOLOCK) {
             // 0x57EBEA
             CFont::SetColor(MENU_BG);
             if (!isOppositeScreen) {
@@ -1112,10 +1114,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57EB63 + 0x57EBD9 + 0x57EC13 - Handle unbound case
-        if (action != eControllerAction::CA_NONE && action != eControllerAction::CA_COMBOLOCK && !hasControl) {
+        if (action != eControllerAction::CA_NONE && action != eControllerAction::COMBOLOCK && !hasControl) {
             // 0x57EC1F
             m_RadioAvailable = false;
-            if (m_ListSelection != i || !m_EditingControlOptions) {
+            if (m_ListSelection != actionIndex || !m_EditingControlOptions) {
                 CFont::SetColor(MENU_ERROR);
                 if (!isOppositeScreen) {
                     CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // UNBOUND
@@ -1124,12 +1126,12 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57ECA2 - Handle selection and state
-        if (i == m_ListSelection) {
-            if (action == eControllerAction::CA_NONE || action == eControllerAction::CA_COMBOLOCK) {
+        if (actionIndex == m_ListSelection) {
+            if (action == eControllerAction::CA_NONE || action == eControllerAction::COMBOLOCK) {
                 // CANNOT SET A CONTROL FOR THIS ACTION
                 DisplayHelperText("FET_EIG");
             } else {
-                m_OptionToChange = action;
+                m_OptionToChange = (int32)action;
                 if (m_EditingControlOptions) {
                     if (CTimer::GetTimeInMSPauseMode() - m_LastBlinkTime > 150) {
                         m_InputWaitBlink ^= true;

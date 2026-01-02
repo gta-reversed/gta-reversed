@@ -24,6 +24,7 @@
 #include "FxSystem.h"
 #include "Fire.h"
 #include "cHandlingDataMgr.h"
+#include "VisibilityPlugins.h"
 
 #include <Enums/eControllerType.h>
 
@@ -405,7 +406,7 @@ public:
         } m_renderLights;
     };
     RwTexture*   m_pCustomCarPlate;
-    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight
+    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight or fSteer
     eVehicleType m_nVehicleType;    // Theory by forkerer:
     eVehicleType m_nVehicleSubType; // Hack to have stuff be 2 classes at once, like vortex which can act like a car and a boat
     int16        m_nPreviousRemapTxd;
@@ -572,7 +573,7 @@ public:
     void RemoveUpgrade(int32 upgradeId);
     // return upgrade model id or -1 if not present
     int32 GetUpgrade(int32 upgradeId);
-    RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, int16 arg2, bool bDamaged, bool bIsWheel);
+    RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, eAtomicComponentFlag flags, bool bDamaged, bool bIsWheel);
     void AddReplacementUpgrade(int32 modelIndex, int32 nodeId);
     void RemoveReplacementUpgrade(int32 nodeId);
     // return upgrade model id or -1 if not present
@@ -713,7 +714,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
 
-    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_nStatus == STATUS_WRECKED; }
+    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_info.m_nStatus == STATUS_WRECKED; }
 
     CPlane* AsPlane() { return reinterpret_cast<CPlane*>(this); }
     CHeli*  AsHeli()  { return reinterpret_cast<CHeli*>(this); }
@@ -729,6 +730,10 @@ public: // NOTSA functions
     /// get position of driver seat dummy (World Space)
     CVector GetDriverSeatDummyPositionWS(); // NOTSA
 
+protected:
+    float GetNewSteeringAmt();
+
+public:
     [[nodiscard]] auto GetRopeID() const { return (uint32)&m_nFlags + 1; } // yep, flags + 1
     [[nodiscard]] CVehicleAnimGroup& GetAnimGroup() const;
     [[nodiscard]] AssocGroupId GetAnimGroupId() const;
@@ -792,7 +797,6 @@ void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state);
 CVehicle::ReduceVehicleDamage(float &);
 CVehicle::CanUseCameraHeightSetting();
 CVehicle::DoReverseLightEffect(int32, CMatrix&, uint8, uint8, uint32, uint8);
-CVehicle::GetNewSteeringAmt();
 void CVehicle::GetGasTankPosition();
 void CVehicle::SetTappedGasTankVehicle(CEntity* entity);
 bool CVehicle::GetHasDualExhausts() { return (m_pHandlingData->m_nModelFlags >> 13) & 1; // m_bNoExhaust }
