@@ -1900,7 +1900,6 @@ void CPopulation::PopulateInterior(int32 numPedsToCreate, CVector pos) {
 void CPopulation::Update(bool generatePeds) {
     ZoneScoped;
 
-    generatePeds = true;
     CurrentWorldZone = [] {
         switch (CWeather::WeatherRegion) {
         case WEATHER_REGION_DEFAULT:

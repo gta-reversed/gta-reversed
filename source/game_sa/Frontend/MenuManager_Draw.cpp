@@ -794,7 +794,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume / 64.f, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT, true); break;
         case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume / 64.f, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
         case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) / (8.0f / 7.0f), eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
-        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl * (1.0f / 200.0f), eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
+        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.005f, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
         default:                     break;
         }
 
