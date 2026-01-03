@@ -17,6 +17,10 @@ public:
     static void InjectHooks();
 
     CDecisionMaker();
+    CDecisionMaker(CDecisionMaker&& other) = default;
+
+    CDecisionMaker& operator=(const CDecisionMaker& other) = default;
+    CDecisionMaker& operator=(CDecisionMaker&& other) = default;
 };
 
 VALIDATE_SIZE(CDecisionMaker, 0x99C);

@@ -8,21 +8,31 @@ void CDecisionMakerTypes::InjectHooks() {
 
     RH_ScopedGlobalInstall(GetInstance, 0x4684F0, { .reversed = false });
 
-    RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray &, const char*));
+    RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray&, const char*));
     RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x600840, void(CDecisionMakerTypes::*)());
     //RH_ScopedInstall(HasResponse, 0x6042B0, { .reversed = false });
     RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0, { .reversed = false });
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490, { .reversed = false });
     RH_ScopedInstall(AddEventResponse, 0x6044C0, { .reversed = false });
-    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)( CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&), { .reversed = false });
-    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)( CPedGroup *, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .reversed = false });
-    RH_ScopedInstall(AddDecisionMaker, 0x607050, { .reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&), { .reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)(CPedGroup*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .reversed = false });
+    RH_ScopedInstall(AddDecisionMaker, 0x607050);
     RH_ScopedInstall(CopyDecisionMaker, 0x6070F0);
 }
 
 // 0x607050
 int32 CDecisionMakerTypes::AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission) {
-    return plugin::CallMethodAndReturn<int32, 0x607050, CDecisionMakerTypes*, CDecisionMaker*, eDecisionTypes, bool>(this, decisionMaker, decisionMakerType, bDecisionMakerForMission);
+    const auto dm = GetInactiveDecisionMaker(bDecisionMakerForMission);
+    if (!dm) {
+        return -1;
+    }
+    const auto idx = GetDecisionMakerIndex(dm);
+
+    m_IsActive[idx] = true;
+    m_Types[idx] = decisionMakerType;
+    *dm = *decisionMaker;
+
+    return idx;
 }
 
 // 0x4684F0
@@ -109,4 +119,20 @@ int32 CDecisionMakerTypes::CopyDecisionMaker(int32 index, eDecisionTypes type, b
         DEFAULT_DECISION_MAKER,
         isDecisionMakerForMission
     );
+}
+
+// notsa
+CDecisionMaker* CDecisionMakerTypes::GetInactiveDecisionMaker(bool bDecisionMakerForMission) {
+    const auto from = bDecisionMakerForMission ? 15 : 0;
+    const auto to   = bDecisionMakerForMission ? 20 : 15;
+    for (auto i = from; i < to; i++) {
+        if (!m_IsActive[i]) {
+            return &m_DecisionMakers[i];
+        }
+    }
+    return nullptr;
+}
+
+int32 CDecisionMakerTypes::GetDecisionMakerIndex(CDecisionMaker* dm) {
+    return std::distance(std::begin(m_DecisionMakers), dm);
 }
