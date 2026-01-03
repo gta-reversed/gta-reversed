@@ -6,7 +6,7 @@ void CDecisionMakerTypes::InjectHooks() {
     RH_ScopedClass(CDecisionMakerTypes);
     RH_ScopedCategory("DecisionMakers");
 
-    RH_ScopedGlobalInstall(GetInstance, 0x4684F0, { .reversed = false });
+    RH_ScopedGlobalInstall(GetInstance, 0x4684F0);
 
     RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray&, const char*));
     RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x600840, void(CDecisionMakerTypes::*)());
@@ -37,7 +37,8 @@ int32 CDecisionMakerTypes::AddDecisionMaker(CDecisionMaker* decisionMaker, eDeci
 
 // 0x4684F0
 CDecisionMakerTypes* CDecisionMakerTypes::GetInstance() {
-    return plugin::CallAndReturn<CDecisionMakerTypes*, 0x4684F0>();
+    static CDecisionMakerTypes* const instance = new CDecisionMakerTypes();
+    return instance;
 }
 
 // 0x606E70
