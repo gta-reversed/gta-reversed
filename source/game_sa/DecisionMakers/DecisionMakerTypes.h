@@ -47,12 +47,20 @@ public:
     static constexpr auto NUM_TYPES = 20u;
 
     static inline auto& ScriptReferenceIndex = StaticRef<std::array<uint16, NUM_TYPES>>(0xC0AFF4);
-    static inline auto& m_IsActive = StaticRef<std::array<bool, NUM_TYPES>>(0xC0B01C);
+    static inline auto& m_IsActive           = StaticRef<std::array<bool, NUM_TYPES>>(0xC0B01C);
+    static inline auto& m_Types              = StaticRef<std::array<bool, NUM_TYPES>>(0xC0AFE0);
 
     static void InjectHooks();
 
     static CDecisionMakerTypes* GetInstance();
 
+    /*!
+     * @brief Add a Decision Maker
+     * @param decisionMaker The decision maker to add, this will be copied into the local array
+     * @param decisionMakerType Type of the decision maker
+     * @param bDecisionMakerForMission Is for mission
+     * @return The index (or -1 if failed to allocate)
+     */
     int32     AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
     void      MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType);
     void      RemoveDecisionMaker(eDecisionTypes dm);
@@ -62,6 +70,11 @@ public:
     void      LoadEventIndices(EventIndicesArray& out, const char* filepath);
     void      LoadEventIndices();
     int32     CopyDecisionMaker(int32 index, eDecisionTypes type, bool isDecisionMakerForMission);
+
+private:
+    // notsa
+    CDecisionMaker* GetInactiveDecisionMaker(bool bDecisionMakerForMission);
+    ptrdiff_t GetDecisionMakerIndex(CDecisionMaker* dm);
 
 public:
     int32               m_NoOfDecisionMakers{};
