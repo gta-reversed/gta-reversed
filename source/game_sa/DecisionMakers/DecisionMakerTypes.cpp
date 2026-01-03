@@ -76,7 +76,7 @@ void CDecisionMakerTypes::LoadEventIndices(EventIndicesArray& out, const char* f
         if (line[0] && line[0] != '\n') {
             int32 index{};
             char name[256]{};
-            VERIFY(sscanf_s(line, "%s %d", SCANF_S_STR(name), index) == 2);
+            VERIFY(sscanf_s(line, "%s %d", SCANF_S_STR(name), &index) == 2);
             out[index] = count++;
         }
     }
