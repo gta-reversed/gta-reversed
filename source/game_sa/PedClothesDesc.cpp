@@ -9,7 +9,7 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x5A8020);
     RH_ScopedInstall(Initialise, 0x5A78F0);
     RH_ScopedInstall(GetIsWearingBalaclava, 0x5A7950);
-    RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970, { .reversed = false });
+    RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970);
     RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0, { .reversed = false });
 }
 
@@ -49,8 +49,29 @@ bool CPedClothesDesc::GetIsWearingBalaclava() {
 }
 
 // 0x5A7970
-bool CPedClothesDesc::HasVisibleNewHairCut(int32 arg1) {
-    return plugin::CallMethodAndReturn<bool, 0x5A7970, CPedClothesDesc*, int32>(this, arg1);
+bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
+    static const uint32 keyBalaclava = CKeyGen::GetUppercaseKey("balaclava");
+    static const uint32 keyHead      = CKeyGen::GetUppercaseKey("head");
+    static const uint32 keyAfro      = CKeyGen::GetUppercaseKey("afro");
+    const uint32 accessoryKey = m_anModelKeys[9];
+
+    if (accessoryKey == keyBalaclava) {
+        return false;
+    }
+
+    const uint32 hairKey             = m_anModelKeys[1];
+    const bool   hasSomethingInSlot8 = (m_anModelKeys[8] != 0);
+
+    if (hairKey == keyHead || hasSomethingInSlot8) {
+        return false;
+    }
+
+    if (nType != 1) {
+        return true;
+    }
+
+    return hairKey == keyAfro;
+    //return plugin::CallMethodAndReturn<bool, 0x5A7970, CPedClothesDesc*, int32>(this, arg1);
 }
 
 // 0x5A79D0
