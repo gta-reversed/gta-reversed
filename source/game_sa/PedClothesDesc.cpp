@@ -53,7 +53,7 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
     static const uint32 keyBalaclava = CKeyGen::GetUppercaseKey("balaclava");
     static const uint32 keyHead      = CKeyGen::GetUppercaseKey("head");
     static const uint32 keyAfro      = CKeyGen::GetUppercaseKey("afro");
-    const uint32 accessoryKey = m_anModelKeys[9];
+    const uint32 accessoryKey = m_anModelKeys[CLOTHES_MODEL_SPECIAL];
 
     if (accessoryKey == keyBalaclava) {
         return false;
