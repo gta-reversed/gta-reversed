@@ -10,7 +10,7 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5A78F0);
     RH_ScopedInstall(GetIsWearingBalaclava, 0x5A7950);
     RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970, { .reversed = false });
-    RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0, { .reversed = false });
+    RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0);
 }
 
 CPedClothesDesc::CPedClothesDesc() {
@@ -55,7 +55,12 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 arg1) {
 
 // 0x5A79D0
 bool CPedClothesDesc::HasVisibleTattoo() {
-    return plugin::CallMethodAndReturn<bool, 0x5A79D0, CPedClothesDesc*>(this);
+    for (int i = 4; i <= 12; ++i) { // Note in mobile: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12 
+        if (m_anTextureKeys[i] != 0) return true;
+    }
+
+    return false;
+    //return plugin::CallMethodAndReturn<bool, 0x5A79D0, CPedClothesDesc*>(this);
 }
 
 // 0x5A8050
