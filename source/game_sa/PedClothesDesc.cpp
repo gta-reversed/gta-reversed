@@ -71,7 +71,6 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
     }
 
     return hairKey == keyAfro;
-    //return plugin::CallMethodAndReturn<bool, 0x5A7970, CPedClothesDesc*, int32>(this, arg1);
 }
 
 // 0x5A79D0
