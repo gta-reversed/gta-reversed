@@ -394,7 +394,6 @@ public: // NOTSA:
     }
 };
 
-
 // 0x407260
 inline CSector* CWorld::GetSector(int32 x, int32 y) {
     const auto x1 = std::clamp<int32>(x, 0, MAX_SECTORS_X - 1);
@@ -417,7 +416,7 @@ inline auto& CWorld::GetLodPtrList(int32 x, int32 y) {
 
 // 0x4072E0
 inline void CWorld::AdvanceCurrentScanCode() {
-    if (ms_nCurrentScanCode == -1) {
+    if (ms_nCurrentScanCode >= 65535u) {
         ClearScanCodes();
         ms_nCurrentScanCode = 1;
     } else {
@@ -425,8 +424,10 @@ inline void CWorld::AdvanceCurrentScanCode() {
     }
 }
 
-// in player.cpp
 CPlayerInfo&   FindPlayerInfo(int32 playerId = -1);
+
+// in player.cpp:
+
 CPlayerPed*    FindPlayerPed(int32 playerId = -1);
 CVehicle*      FindPlayerVehicle(int32 playerId = -1, bool bIncludeRemote = false);
 CVector        FindPlayerCoors(int32 playerId = -1);

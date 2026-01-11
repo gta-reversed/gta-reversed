@@ -3,7 +3,7 @@
 #include "World.h"
 #include "EntryExitManager.h"
 
-constexpr static CVector NULL_VEC{ 0.f, 0.f, 0.f };
+constexpr static CVector NullVec{ 0.f, 0.f, 0.f };
 
 // inlined
 CPlayerInfo& FindPlayerInfo(int32 playerId) {
@@ -96,7 +96,7 @@ const CVector& FindPlayerCentreOfWorld_NoSniperShift(int32 playerId) {
         }
         return player->GetPosition();
     }
-    return NULL_VEC;
+    return NullVec;
 }
 
 // Returns player coords with skipping interior shift
