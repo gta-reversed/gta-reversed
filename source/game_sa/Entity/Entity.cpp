@@ -170,8 +170,8 @@ void CEntity::Add(const CRect& rect) {
         });
     } else {
         CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
-            auto* const s = GetSector(x, y);
-            auto* const rs = GetRepeatSector(x, y);
+            auto* const s = CWorld::GetSector(x, y);
+            auto* const rs = CWorld::GetRepeatSector(x, y);
             const auto  ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
                 list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
@@ -212,8 +212,8 @@ void CEntity::Remove() {
         });
     } else {
         CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
-            auto* const s = GetSector(x, y);
-            auto* const rs = GetRepeatSector(x, y);
+            auto* const s = CWorld::GetSector(x, y);
+            auto* const rs = CWorld::GetRepeatSector(x, y);
             const auto  ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
                 list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
@@ -2387,11 +2387,11 @@ RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
 // indicating if it has already been processed in the current frame
 // NOTSA
 bool CEntity::IsScanCodeCurrent() const {
-    return GetScanCode() == GetCurrentScanCode();
+    return GetScanCode() == CWorld::GetCurrentScanCode();
 }
 
 // Sets the entity's scan code to the current global scan code
 // NOTSA
 void CEntity::SetCurrentScanCode() {
-    SetScanCode(GetCurrentScanCode());
+    SetScanCode(CWorld::GetCurrentScanCode());
 }

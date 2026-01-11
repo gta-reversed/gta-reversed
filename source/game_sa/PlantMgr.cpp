@@ -531,9 +531,9 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     if (!CPlantMgr::m_UnusedColEntListHead)
         return;
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
-        for (auto* const item : GetSector(x, y)->m_buildings) {
+        for (auto* const item : CWorld::GetSector(x, y)->m_buildings) {
             if (item->m_bIsProcObject || item->IsScanCodeCurrent() || !item->IsInCurrentArea())
                 continue;
 

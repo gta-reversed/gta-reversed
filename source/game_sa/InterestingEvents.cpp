@@ -188,12 +188,12 @@ void CInterestingEvents::ScanForNearbyEntities() {
     assert(v2 == endSectorX);
     assert(v3 == endSectorY);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     player->SetCurrentScanCode();
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
+            CRepeatSector* const rs = CWorld::GetRepeatSector(sectorX, sectorY);
 
             for (auto* const ped : rs->Peds) {
                 if (ped->IsScanCodeCurrent())

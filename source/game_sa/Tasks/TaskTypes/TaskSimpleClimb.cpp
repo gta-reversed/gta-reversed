@@ -443,17 +443,17 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
     int32 endSectorX   = CWorld::GetSectorX(outPoint.x + ms_ClimbColModel.GetBoundRadius());
     int32 endSectorY   = CWorld::GetSectorY(outPoint.y + ms_ClimbColModel.GetBoundRadius());
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 y = startSectorY; y <= endSectorY; y++) {
         for (int32 x = startSectorX; x <= endSectorX; x++) {
             const auto ScanToGrabSector = [&]<typename PtrListType>(PtrListType& ptrList) -> CEntity* {
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
-            auto scanResult1 = ScanToGrabSector(GetSector(x, y)->m_buildings);
-            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Objects);
+            auto scanResult1 = ScanToGrabSector(CWorld::GetSector(x, y)->m_buildings);
+            auto scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y)->Objects);
             if (!scanResult2) {
-                scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Vehicles);
+                scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y)->Vehicles);
             }
 
             if (scanResult1 == (CEntity*)(1) || scanResult2 == (CEntity*)(1)) {

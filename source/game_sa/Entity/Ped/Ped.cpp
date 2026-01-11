@@ -3522,11 +3522,11 @@ void CPed::DeadPedMakesTyresBloody() {
     const auto endSectorX   = std::min(CWorld::GetLodSectorX(pos.x + 2.0f), MAX_LOD_PTR_LISTS_X - 1);
     const auto endSectorY   = std::min(CWorld::GetLodSectorY(pos.y + 2.0f), MAX_LOD_PTR_LISTS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 sy = startSectorY; sy <= endSectorY; ++sy) {
         for (int32 sx = startSectorX; sx <= endSectorX; ++sx) {
-            MakeTyresMuddySectorList(GetRepeatSector(sx, sy)->Vehicles);
+            MakeTyresMuddySectorList(CWorld::GetRepeatSector(sx, sy)->Vehicles);
         }
     }
 }
