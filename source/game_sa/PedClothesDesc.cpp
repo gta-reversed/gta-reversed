@@ -60,7 +60,6 @@ bool CPedClothesDesc::HasVisibleTattoo() {
     }
 
     return false;
-    //return plugin::CallMethodAndReturn<bool, 0x5A79D0, CPedClothesDesc*>(this);
 }
 
 // 0x5A8050
