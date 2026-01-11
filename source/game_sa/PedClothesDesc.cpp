@@ -59,8 +59,8 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
         return false;
     }
 
-    const uint32 hairKey             = m_anModelKeys[1];
-    const bool   hasSomethingInSlot8 = (m_anModelKeys[8] != 0);
+    const uint32 hairKey             = m_anModelKeys[CLOTHES_MODEL_HEAD];
+    const bool   hasSomethingInSlot8 = (m_anModelKeys[CLOTHES_MODEL_HATS] != 0);
 
     if (hairKey == keyHead || hasSomethingInSlot8) {
         return false;
