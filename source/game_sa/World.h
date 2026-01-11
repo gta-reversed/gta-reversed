@@ -70,7 +70,6 @@ public:
     static inline auto& ms_aLodPtrLists = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
     static inline auto& ms_listMovingEntityPtrs = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
     static inline auto& ms_listObjectsWithControlCode = StaticRef<CPtrListDoubleLink<CObject*>>(0xB9ACCC);
-
     static uint16& ms_nCurrentScanCode;
 
     static inline auto& m_aTempColPts = *(std::array<CColPoint, 32>*)0xB9ACD0;
@@ -103,14 +102,14 @@ public:
     static bool ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
     static bool ProcessVerticalLine(const CVector& origin, float distance, CColPoint& outColPoint, CEntity*& outEntity, bool buildings = false, bool vehicles = false, bool peds = false, bool objects = false, bool dummies = false, bool doSeeThroughCheck = false, CStoredCollPoly* outCollPoly = nullptr);
     static bool ProcessVerticalLine_FillGlobeColPoints(const CVector& origin, float distance, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
-    // static float GetLightingAtPoint(const CVector&, float); // unused
+    // static float GetLightingAtPoint(const CVector&, float); // unknown
 
     static void TriggerExplosion(const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
     static void CastShadow(float x1, float y1, float x2, float y2);
 
     static void ProcessForAnimViewer();
     static void Process();
-    // static void Render(); // unused
+    // static void Render(); // unknown
 
     static void FindObjectsInRange(const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
     template<typename PtrListType>
@@ -178,7 +177,7 @@ public:
 
     static int32 SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
 
-    // static void CheckBuildingOrientations(); // unused
+    // static void CheckBuildingOrientations(); // unknown
 
     static void RemoveFallenPeds();
 
@@ -221,8 +220,8 @@ public:
     static void CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
     static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
 
-    static void HandleCollisionZoneChange(eLevelName OldZone, eLevelName newZone);
-    // static void FindZoneRespawnPoint(eLevelName, eLevelName, CVector*); // unused
+    static void HandleCollisionZoneChange(eLevelName oldZone, eLevelName newZone);
+    // static void FindZoneRespawnPoint(eLevelName, eLevelName, CVector*); // in III, dont SA
     static void DoZoneTestForChaser(CPhysical* physical);
 
     static void StopAllLawEnforcersInTheirTracks();
@@ -231,7 +230,7 @@ public:
     static int32 FindPlayerSlotWithRemoteVehiclePointer(void* ptr);
     static int32 FindPlayerSlotWithVehiclePointer(CEntity* vehiclePtr);
 
-    // static bool IsPointInWorld(float x, float y); // unused
+    // static bool IsPointInWorld(float x, float y); // unknown
 
     static void ProcessAttachedEntities();
     static void ProcessPedsAfterPreRender();

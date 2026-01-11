@@ -39,7 +39,7 @@ CVector& CWorld::SnookerTableMax = *(CVector*)0x8CDEF4; // { 2495.8525, -1671.40
 CVector& CWorld::SnookerTableMin = *(CVector*)0x8CDF00; // { 497.7925, -1670.3999, 13.19 }
 
 uint32 FilledColPointIndex; // 0xB7CD7C
-// int16 SPRAY_ALPHA_CHANGE; // unused, old used in SprayPaintWorld?
+// int16 SPRAY_ALPHA_CHANGE; // unused, used in SprayPaintWorld?
 auto& gaTempSphereColPoints = *(std::array<CColPoint, 32>*)0xB9B250;
 
 void CWorld::InjectHooks() {
@@ -167,6 +167,7 @@ void CWorld::Initialise() {
     bSecondShift           = false;
     pIgnoreEntity          = nullptr;
     fWeaponSpreadRate      = 0.0f;
+
     CIplStore::Initialise();
 }
 
@@ -182,11 +183,8 @@ void CWorld::Add(CEntity* entity) {
     }
 }
 
-/*!
-* @brief Remove entity from the world.
-* Caller still has to `delete` the entity. (In case they want to delete it, and not just re-add)
-* In case of peds `CPopulation::RemovePed` should be used instead.
-*/
+// Remove entity from the world
+// 0x563280
 void CWorld::Remove(CEntity* entity) {
     entity->Remove();
     if (entity->GetIsTypePhysical()) {
@@ -229,7 +227,8 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
     return false;
 }
 
-// 0x563390 (Unused)
+// unused
+// 0x563390
 template<typename PtrListType>
 void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, float) {
     for (auto* const entity : ptrList) {
@@ -240,6 +239,7 @@ void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, flo
     }
 }
 
+// unused
 // 0x5633D0
 void CWorld::ProcessForAnimViewer() {
     for (auto* const entity : ms_listMovingEntityPtrs) {
@@ -438,10 +438,36 @@ template<typename PtrListType>
 void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
     for (typename PtrListType::NodeType *node = ptrList.GetNode(), *next{}; node; node = next) {
         next = node->Next;
-        // NOP
+
+        // From is Mobile III...
+
+        CEntity* outerEntity = (CEntity*)node->Item;
+
+        int16 outerModelId = outerEntity->GetModelIndex();
+        auto outer = outerEntity->GetPosition();
+        if (!next) {
+            break;
+        }
+
+        while (next) {
+            CEntity* innerEntity = (CEntity*)next->Item;
+            int16 innerModelId = innerEntity->GetModelIndex();
+
+            if (innerModelId == outerModelId
+                && fabsf(outer.x - innerEntity->GetPosition().x) < 0.01f
+                && fabsf(outer.y - innerEntity->GetPosition().y) < 0.01f
+                && fabsf(outer.z - innerEntity->GetPosition().z) < 0.01f) {
+                auto modelName = CModelInfo::GetModelInfo(innerModelId)->GetModelName();
+                NOTSA_LOG_WARN("Two %s at position %f,%f,%f", modelName, outerX, outerY, outerZ);
+            }
+            next = next->Next;
+        }
+        node = node->Next;
+        // ...End
     }
 }
 
+// unused
 // 0x5639D0
 template<typename PtrListType>
 void CWorld::TestForUnusedModels(PtrListType& ptrList, int32* models) {
@@ -534,11 +560,13 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrLis
     plugin::Call<0x563D00>(&ptrList, x1, y1, x2, y2, minX, minY, maxX, maxY);
 }
 
+// unused
 // 0x563F20
 void CWorld::HandleCollisionZoneChange(eLevelName oldZone, eLevelName newZone) {
     // NOP
 }
 
+// unused
 // 0x563F30
 void CWorld::DoZoneTestForChaser(CPhysical* physical) {
     // NOP
@@ -640,7 +668,7 @@ void CWorld::ShutDown() {
         IterateSectorsLists(DeleteEntitiesInList);
     }
 
-    // Make sure regular and repeat sectors are empty (And report it if not)
+    // Ensure sectors are empty
     {
         const auto MakeSureListIsEmpty = []<typename PtrListType>(PtrListType& list, int32 x, int32 y, const char* listName) {
             if (!list.IsEmpty()) {
@@ -1029,14 +1057,16 @@ void CWorld::FindMissionEntitiesIntersectingCubeSectorList(PtrListType& ptrList,
 // 0x565450
 template<typename PtrListType>
 void CWorld::FindNearestObjectOfTypeSectorList(int32 modelId, PtrListType& ptrList, const CVector& point, float radius, bool b2D, CEntity*& outNearestEntity, float& outNearestDist) {
-    UNUSED(modelId);
-
     for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent()) {
             continue;
         }
 
         entity->SetCurrentScanCode();
+
+        if (entity->GetModelIndex() != modelId && modelId >= 0) {
+            continue;
+        }
 
         const auto GetDistance = [&] {
             if (b2D) {
@@ -1366,30 +1396,36 @@ CEntity* CWorld::TestSphereAgainstSectorList(PtrListType& ptrList, CVector spher
     return nullptr;
 }
 
-// untested
+// unused
+// debug function
 // 0x566420
 void CWorld::PrintCarChanges() {
-    static uint32 s_aModelIndexes[110]; // 0xB7CBA8
+    static uint32 s_aModelIndexes[110]; // 0xB7CBA8, aka MIs
+    CVehiclePool* vehiclePool = GetVehiclePool();
+    int32 count = vehiclePool->GetSize();
 
-    const auto poolSize = GetVehiclePool()->GetSize();
-    for (auto i = 0u; i < poolSize; i++) {
-        const auto vehicle = GetVehiclePool()->GetAt(i);
+    if (count != 0) {
+        for (int32 i = count - 1; i >= 0; i--) {
+            CVehicle* veh = vehiclePool->GetAt(i);
 
-        uint16 modelIndex;
-        if (!vehicle || vehicle->m_nVehicleType) {
-            modelIndex = 0;
-        } else {
-            modelIndex = vehicle->m_nModelIndex;
-        }
+            uint32 MINow = 0;
 
-        auto prevModelIndex = s_aModelIndexes[poolSize];
-        if (modelIndex != prevModelIndex) {
-            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", poolSize, prevModelIndex, modelIndex);
-            s_aModelIndexes[poolSize] = modelIndex;
+            if (veh != nullptr) {
+                if (veh->m_nVehicleType != 0) {
+                    MINow = veh->GetModelIndex();
+                }
+            }
+
+            if (s_aModelIndexes[i] != MINow) {
+                NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]);
+                s_aModelIndexes[i] = MINow;
+            }
         }
     }
 }
 
+// unused
+// debug function
 // In mobile NOP
 // 0x5664A0
 void CWorld::TestForBuildingsOnTopOfEachOther() {
@@ -1402,11 +1438,12 @@ void CWorld::TestForBuildingsOnTopOfEachOther() {
     }
 }
 
+// unused
+// debug function
 // 0x566510
-// Unused - Probably a debug function
 void CWorld::TestForUnusedModels() {
-    static uint32 usageCounts[TOTAL_DFF_MODEL_IDS]{}; // SA uses a stack-allocated variable, but 80 kB on the stack isn't nice, so we are going to do it this way
-    std::ranges::fill(usageCounts, 0);
+    static uint32 usageModelCounts[TOTAL_DFF_MODEL_IDS]{}; // SA uses a stack-allocated variable, but 80 kB on the stack isn't nice, so we are going to do it this way
+    std::ranges::fill(usageModelCounts, 0);
 
     AdvanceCurrentScanCode();
 
@@ -1414,7 +1451,7 @@ void CWorld::TestForUnusedModels() {
         for (auto node = list.GetNode(); node; node = node->Next) {
             const auto object = static_cast<CEntity*>(node->Item);
             if (object->IsScanCodeCurrent()) {
-                usageCounts[object->m_nModelIndex]++;
+                usageModelCounts[object->m_nModelIndex]++;
             }
         }
     };
@@ -3106,10 +3143,8 @@ bool CWorld::ProcessLineOfSight(const CVector& origin, const CVector& target, CC
     //return touchDist < 1.f;
 }
 
-/*!
-* @notsa 
-* @brief Remove a vehicle from the world, along with all of it's occupants.
-*/
+// NOTSA
+// Remove a vehicle from the world, along with all of it's occupants.
 void CWorld::RemoveVehicleAndItsOccupants(CVehicle* veh) {
     if (const auto driver = veh->m_pDriver) {
         CPopulation::RemovePed(driver);
