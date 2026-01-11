@@ -458,7 +458,7 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
                 && fabsf(outer.y - innerEntity->GetPosition().y) < 0.01f
                 && fabsf(outer.z - innerEntity->GetPosition().z) < 0.01f) {
                 auto modelName = CModelInfo::GetModelInfo(innerModelId)->GetModelName();
-                NOTSA_LOG_WARN("Two %s at position %f,%f,%f", modelName, outerX, outerY, outerZ);
+                NOTSA_LOG_WARN("Two %s at position %f,%f,%f", modelName, outer.x, outer.y, outer.z);
             }
             next = next->Next;
         }
