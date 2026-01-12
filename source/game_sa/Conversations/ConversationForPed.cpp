@@ -11,7 +11,7 @@ void CConversationForPed::InjectHooks() {
 }
 
 // 0x43A770
-void CConversationForPed::Clear(bool dontClearNodes) {
+inline void CConversationForPed::Clear(bool dontClearNodes) {
     if (!dontClearNodes) {
         CConversations::m_Nodes[m_FirstNode].ClearRecursively();
     }
