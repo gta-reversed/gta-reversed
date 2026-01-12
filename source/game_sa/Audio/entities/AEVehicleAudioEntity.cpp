@@ -4490,8 +4490,8 @@ void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(tVehicleParams& vp) {
         bool isIdling;
         switch (m_State) {
         case eAEState::CAR_OFF:
-        case eAEState::DUMMY_ID:   isIdling = ratio < s_Config.DummyEngine.ID.Ratio;          break;
-        case eAEState::NUM_STATES: NOTSA_UNREACHABLE(); // This one was originally handled as part of the above, but it doesn't make any sense....
+        case eAEState::DUMMY_ID:
+        case eAEState::NUM_STATES: isIdling = ratio < s_Config.DummyEngine.ID.Ratio;          break;
         case eAEState::DUMMY_CRZ:  isIdling = ratio < s_Config.DummyEngine.Rev.Ratio;         break;
         default:                   ProcessDummyStateTransition(eAEState::CAR_OFF, ratio, vp); return;
         }
