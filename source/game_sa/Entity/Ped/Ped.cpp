@@ -267,7 +267,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     m_nWeaponAccuracy = 60;
     m_nLastWeaponDamage = -1;
     m_pLastEntityDamage = nullptr;
-    field_768 = 0;
+    m_LastDamagedTime = 0;
     m_pAttachedTo = nullptr;
     m_nTurretAmmo = 0;
     m_roadRageWith = nullptr;
