@@ -4,7 +4,7 @@ class CPed;
 
 class CConversationForPed {
 public:
-    enum eStatus : uint32 {
+    enum eStatus : int32 {
         INACTIVE = 0,
         PLAYER_SPEAKING,
         PED_SPEAKING,
@@ -20,10 +20,12 @@ public:
     bool    m_Enabled;
     bool    m_SuppressSubtitles;
 
+    void Clear(bool dontClearNodes);
+    void Update();
+    bool IsPlayerInPositionForConversation(bool randomConversation);
+
+public: // NOTSA:
     static void InjectHooks();
-    void        Clear(bool dontClearNodes);
-    void        Update();
-    bool        IsPlayerInPositionForConversation(bool randomConversation);
 };
 
 VALIDATE_SIZE(CConversationForPed, 0x1C);
