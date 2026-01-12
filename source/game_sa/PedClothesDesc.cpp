@@ -49,7 +49,7 @@ bool CPedClothesDesc::GetIsWearingBalaclava() {
 }
 
 // 0x5A7970
-bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
+bool CPedClothesDesc::HasVisibleNewHairCut(int32 type) {
     /* Balaclava hides the hair */
     if (m_anModelKeys[CLOTHES_MODEL_SPECIAL] == CKeyGen::GetUppercaseKey("balaclava")) {
         return false;
@@ -64,7 +64,7 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
         return false;
     }
 
-    return nType != 1 || m_anModelKeys[CLOTHES_MODEL_HEAD] == CKeyGen::GetUppercaseKey("afro");
+    return type != 1 || m_anModelKeys[CLOTHES_MODEL_HEAD] == CKeyGen::GetUppercaseKey("afro");
 }
 
 // 0x5A79D0
