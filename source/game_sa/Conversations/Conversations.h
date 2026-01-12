@@ -18,11 +18,8 @@ public:
     char  m_NameNodeYes[8];
     char  m_NameNodeNo[8];
     int32 m_FinalSlot;
-    int16 m_NodeYes;
-    int16 m_NodeNo;
-    int32 m_Speech;
-    int32 m_SpeechY;
-    int32 m_SpeechN;
+    int16 m_NodeYes, m_NodeNo;
+    int32 m_Speech, m_SpeechY, m_SpeechN;
     //void  Clear();
 };
 
@@ -36,32 +33,45 @@ public:
         PLAYING  = 2,
     };
 
-    static inline eAwkwardSayStatus& m_AwkwardSayStatus              = StaticRef<eAwkwardSayStatus, 0x9691C4>();
-    static inline bool&              m_SettingUpConversation         = StaticRef<bool, 0x9691D0>();
-    static inline auto&              m_Conversations                 = StaticRef<std::array<CConversationForPed, MAX_NUM_CONVERSATIONS>, 0x9691D8>();
-    static inline auto&              m_Nodes                         = StaticRef<std::array<CConversationNode, MAX_NUM_CONVERSATION_NODES>, 0x969570>();
-    static inline auto&              m_aTempNodes                    = StaticRef<std::array<CTempConversationNode, MAX_NUM_TEMP_CONVERSATION_NODES>, 0x969360>();
-    static inline auto&              m_SettingUpConversationNumNodes = StaticRef<int32, 0x9691C8>();
-    static inline auto&              m_SettingUpConversationPed      = StaticRef<CPed*, 0x9691CC>();
+    static inline auto& m_Nodes = StaticRef<std::array<CConversationNode, MAX_NUM_CONVERSATION_NODES>, 0x969570>();
+    static CTempConversationNode m_aTempNodes[MAX_NUM_TEMP_CONVERSATION_NODES]; // 0x969360
+    static CConversationForPed m_Conversations[MAX_NUM_CONVERSATIONS]; // 0x9691D8
+    static bool m_SettingUpConversation; // 0x9691D0
+    static CPed* m_SettingUpConversationPed; // 0x9691CC
+    static int32 m_SettingUpConversationNumNodes; // 0x9691C8
+    static eAwkwardSayStatus m_AwkwardSayStatus; // 0x9691C4
 
-    static void InjectHooks();
+public:
     static void Clear();
+
+    static void Update();
+
+    static void AwkwardSay(int32 whatToSay, CPed* speakingPed);
+
+    static void StartSettingUpConversation(CPed* ped);
+
+    static void DoneSettingUpConversation(bool suppressSubtitles);
+
+    static void SetUpConversationNode(const char* name, const char* linkYes, const char* linkNo, int32 speech, int32 speechY, int32 speechN);
+
+    static bool IsConversationAtNode(const char* name, CPed* ped);
+
     static void RemoveConversationForPed(CPed* ped);
 
-    static void                 Update();
-    static void                 SetUpConversationNode(const char* questionKey, const char* answerYesKey, const char* answerNoKey, int32 questionWAV, int32 answerYesWAV, int32 answerNoWAV);
-    static bool                 IsPlayerInPositionForConversation(CPed* ped, bool randomConversation);
-    static bool                 IsConversationGoingOn();
-    static CConversationForPed* FindConversationForPed(CPed* ped);
-    static bool                 IsConversationAtNode(const char* pName, CPed* pPed);
-    static void                 AwkwardSay(int32 whatToSay, CPed* speaker);
-    static void                 EnableConversation(CPed* ped, bool enabled);
-    static void                 StartSettingUpConversation(CPed* ped);
-    static void                 DoneSettingUpConversation(bool bSuppressSubtitles);
+    static CConversationForPed* FindFreeConversationSlot();
 
-    /*
-    static void FindFreeNodeSlot();
-    static void FindFreeConversationSlot();
-    
-     */
+    static CConversationForPed* FindConversationForPed(CPed* ped);
+
+    static int32 FindFreeNodeSlot();
+
+    static bool IsPlayerInPositionForConversation(CPed* ped, bool randomConversation);
+
+    static void EnableConversation(CPed* ped, bool enable);
+
+    static CConversationForPed::eStatus GetConversationStatus(CPed* ped);
+
+    static bool IsConversationGoingOn();
+
+public: // NOTSA:
+    static void InjectHooks();
 };
