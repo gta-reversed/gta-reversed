@@ -50,27 +50,21 @@ bool CPedClothesDesc::GetIsWearingBalaclava() {
 
 // 0x5A7970
 bool CPedClothesDesc::HasVisibleNewHairCut(int32 nType) {
-    static const uint32 keyBalaclava = CKeyGen::GetUppercaseKey("balaclava");
-    static const uint32 keyHead      = CKeyGen::GetUppercaseKey("head");
-    static const uint32 keyAfro      = CKeyGen::GetUppercaseKey("afro");
-    const uint32 accessoryKey = m_anModelKeys[CLOTHES_MODEL_SPECIAL];
-
-    if (accessoryKey == keyBalaclava) {
+    /* Balaclava hides the hair */
+    if (m_anModelKeys[CLOTHES_MODEL_SPECIAL] == CKeyGen::GetUppercaseKey("balaclava")) {
         return false;
     }
 
-    const uint32 hairKey             = m_anModelKeys[CLOTHES_MODEL_HEAD];
-    const bool   hasSomethingInSlot8 = (m_anModelKeys[CLOTHES_MODEL_HATS] != 0);
-
-    if (hairKey == keyHead || hasSomethingInSlot8) {
+    /* Hats hide the hair */
+    if (m_anModelKeys[CLOTHES_MODEL_HATS] != 0) {
         return false;
     }
 
-    if (nType != 1) {
-        return true;
+    if (m_anModelKeys[CLOTHES_MODEL_HEAD] == CKeyGen::GetUppercaseKey("head")) {
+        return false;
     }
 
-    return hairKey == keyAfro;
+    return nType != 1 || m_anModelKeys[CLOTHES_MODEL_HEAD] == CKeyGen::GetUppercaseKey("afro");
 }
 
 // 0x5A79D0
