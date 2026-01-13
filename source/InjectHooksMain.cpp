@@ -822,7 +822,12 @@ void InjectHooksMain() {
     CCustomBuildingRenderer::InjectHooks();
     CCustomBuildingDNPipeline::InjectHooks();
     CCustomCarEnvMapPipeline::InjectHooks();
-    CConversations::InjectHooks();
+    const auto Conversations = []() {
+        CConversations::InjectHooks();
+        CConversationForPed::InjectHooks();
+        CConversationNode::InjectHooks();
+        CPedToPlayerConversations::InjectHooks();
+    };
 
     const auto Pools = [] {
         CPools::InjectHooks();
@@ -1443,6 +1448,7 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
+    Conversations();
 #if _DEBUG
     CCurves::TestCurves();
 #endif

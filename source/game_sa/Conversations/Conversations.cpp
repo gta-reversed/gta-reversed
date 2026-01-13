@@ -276,7 +276,7 @@ inline CConversationForPed* CConversations::FindConversationForPed(CPed* ped) {
 inline int32 CConversations::FindFreeNodeSlot() {
     for (auto [i, node] : std::views::enumerate(m_Nodes)) {
         if (node.m_Name[0] == '\0') {
-            node.m_Name[0] = 'X'; // NOTE: why?
+            node.m_Name[0] = 'X';
             node.m_Name[1] = '\0';
             return i;
         }

@@ -34,12 +34,12 @@ public:
     };
 
     static inline auto& m_Nodes = StaticRef<std::array<CConversationNode, MAX_NUM_CONVERSATION_NODES>, 0x969570>();
-    static CTempConversationNode m_aTempNodes[MAX_NUM_TEMP_CONVERSATION_NODES]; // 0x969360
-    static CConversationForPed m_Conversations[MAX_NUM_CONVERSATIONS]; // 0x9691D8
-    static bool m_SettingUpConversation; // 0x9691D0
-    static CPed* m_SettingUpConversationPed; // 0x9691CC
-    static int32 m_SettingUpConversationNumNodes; // 0x9691C8
-    static eAwkwardSayStatus m_AwkwardSayStatus; // 0x9691C4
+    static inline CTempConversationNode m_aTempNodes[MAX_NUM_TEMP_CONVERSATION_NODES]; // 0x969360
+    static inline CConversationForPed m_Conversations[MAX_NUM_CONVERSATIONS]; // 0x9691D8
+    static inline bool m_SettingUpConversation; // 0x9691D0
+    static inline CPed* m_SettingUpConversationPed; // 0x9691CC
+    static inline int32 m_SettingUpConversationNumNodes; // 0x9691C8
+    static inline eAwkwardSayStatus m_AwkwardSayStatus; // 0x9691C4
 
 public:
     static void Clear();
