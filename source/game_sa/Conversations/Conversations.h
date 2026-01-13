@@ -20,7 +20,7 @@ public:
     int32 m_FinalSlot;
     int16 m_NodeYes, m_NodeNo;
     int32 m_Speech, m_SpeechY, m_SpeechN;
-    //void  Clear();
+    //void  Clear(); // unknown
 };
 
 VALIDATE_SIZE(CTempConversationNode, 0x2C);

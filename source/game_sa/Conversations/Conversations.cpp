@@ -106,10 +106,10 @@ void CConversations::SetUpConversationNode(
 
 // 0x43A960
 void CConversations::RemoveConversationForPed(CPed* ped) {
-    for (auto& conv : m_Conversations) {
-        if (conv.m_pPed == ped) {
-            conv.Clear(false);
-        }
+    if (const auto conv = FindConversationForPed(ped)) {
+        assert(conv->GetFirstNode());
+        conv->GetFirstNode()->ClearRecursively();
+        conv->Clear(false);
     }
 }
 

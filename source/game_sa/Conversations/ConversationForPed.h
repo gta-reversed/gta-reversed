@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ConversationNode.h"
+
 class CPed;
 
 class CConversationForPed {
@@ -26,6 +28,9 @@ public:
 
 public: // NOTSA:
     static void InjectHooks();
+
+    CConversationNode* GetCurrentNode() const;
+    CConversationNode* GetFirstNode() const;
 };
 
 VALIDATE_SIZE(CConversationForPed, 0x1C);

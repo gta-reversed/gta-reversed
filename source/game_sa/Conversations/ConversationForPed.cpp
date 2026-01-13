@@ -65,3 +65,13 @@ bool CConversationForPed::IsPlayerInPositionForConversation(bool randomConversat
 
     return m_pPed->PedIsReadyForConversation(randomConversation);
 }
+
+// NOTSA
+CConversationNode* CConversationForPed::GetCurrentNode() const {
+    return m_CurrentNode != -1 ? &CConversations::m_Nodes[m_CurrentNode] : nullptr;
+}
+
+// NOTSA
+CConversationNode* CConversationForPed::GetFirstNode() const {
+    return m_FirstNode != -1 ? &CConversations::m_Nodes[m_FirstNode] : nullptr;
+}
