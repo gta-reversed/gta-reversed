@@ -164,8 +164,13 @@ void CConversations::AwkwardSay(int32 whatToSay, CPed* speaker) {
 }
 
 // 0x43AA40
-void CConversations::EnableConversation(CPed* ped, bool enabled) {
-    FindConversationForPed(ped)->m_Enabled = enabled;
+void CConversations::EnableConversation(CPed* ped, bool enable) {
+    if (const auto conversation = FindConversationForPed(ped)) {
+        conversation->m_Enabled = enable;
+    } else {
+        // Originally in this case game would derefecence a nullptr, accessing address `0x18`.
+        NOTSA_UNREACHABLE("Couldn't find conversation for ped!");
+    }
 }
 
 // 0x43AA80
