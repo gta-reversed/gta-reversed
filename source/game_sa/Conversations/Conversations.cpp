@@ -124,8 +124,13 @@ inline CConversationForPed* CConversations::FindFreeConversationSlot() {
 }
 
 // 0x43B0B0
-bool CConversations::IsPlayerInPositionForConversation(CPed* ped, bool randomConversation) {
-    return FindConversationForPed(ped)->IsPlayerInPositionForConversation(randomConversation);
+bool CConversations::IsPlayerInPositionForConversation(CPed* ped, bool isRandomConversation) {
+    if (const auto conversation = FindConversationForPed(ped)) {
+        return conversation->IsPlayerInPositionForConversation(isRandomConversation);
+    }
+
+    // Originally in this case game would call a THISCALL function with nullptr `this`, so game would crash.
+    NOTSA_UNREACHABLE("Couldn't find the specified ped in any conversation.");
 }
 
 // 0x43AAC0
