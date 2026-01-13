@@ -4492,6 +4492,7 @@ void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(tVehicleParams& vp) {
         case eAEState::CAR_OFF:
         case eAEState::DUMMY_ID:
         case eAEState::NUM_STATES: isIdling = ratio < s_Config.DummyEngine.ID.Ratio;          break;
+        // case eAEState::NUM_STATES: NOTSA_UNREACHABLE(); // This one was originally handled as part of the above, but it doesn't make any sense.... - TODO: Commenting this out for now as the game work as expected, but we really should check this out sometime - Pirulax
         case eAEState::DUMMY_CRZ:  isIdling = ratio < s_Config.DummyEngine.Rev.Ratio;         break;
         default:                   ProcessDummyStateTransition(eAEState::CAR_OFF, ratio, vp); return;
         }
