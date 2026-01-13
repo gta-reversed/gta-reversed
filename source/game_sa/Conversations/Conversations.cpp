@@ -175,13 +175,11 @@ void CConversations::EnableConversation(CPed* ped, bool enable) {
 
 // 0x43AA80
 inline CConversationForPed::eStatus CConversations::GetConversationStatus(CPed* ped) {
-    // NOTE: Why max MAX_NUM_CONVERSATIONS - 1 ?
-    for (auto i = 0; i < MAX_NUM_CONVERSATIONS - 1; ++i) {
-        if (m_Conversations[i].m_pPed == ped) {
-            return m_Conversations[i].m_Status;
-        }
+    if (const auto conversation = FindConversationForPed(ped)) {
+        return conversation->m_Status;
     }
-    return m_Conversations[MAX_NUM_CONVERSATIONS - 1].m_Status;
+    // Originally in this case game would derefecence a nullptr, accessing address `0x14`.
+    NOTSA_UNREACHABLE("Couldn't find conversation for ped!");
 }
 
 // 0x43A840
