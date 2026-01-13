@@ -333,12 +333,20 @@ RsEventStatus RsEventHandler(RsEvent event, void* param) {
     return rsEVENTNOTPROCESSED;
 }
 
+// NOT-SA helper
+static bool Near(float a, float b, float eps = 0.01f) {
+    return fabsf(a - b) <= eps;
+}
+
 // Returns true if ratio is 5:3, 16:9 or 16:10.
 bool IsWideScreenRatio(float ratio) {
-    return ratio == 0.6f || ratio == 10.0f / 16.0f || ratio == 9.0f / 16.0f;
+    return Near(ratio, 3.0f / 5.0f)      // 5:3 (height/width)
+        || Near(ratio, 10.0f / 16.0f)    // 16:10
+        || Near(ratio, 9.0f / 16.0f);    // 16:9
 }
 
 // Returns true if ratio is 4:3 or 5:4.
 bool IsFullScreenRatio(float ratio) {
-    return ratio == 3.0f / 4.0f || ratio == 4.0f / 5.0f;
+    return Near(ratio, 3.0f / 4.0f)      // 4:3
+        || Near(ratio, 4.0f / 5.0f);     // 5:4
 }
