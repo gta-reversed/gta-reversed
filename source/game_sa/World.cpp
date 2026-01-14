@@ -431,35 +431,25 @@ void CWorld::RemoveStaticObjects() {
 
 // 0x563950
 template<typename PtrListType>
-void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
-    for (typename PtrListType::NodeType *node = ptrList.GetNode(), *next{}; node; node = next) {
-        next = node->Next;
+void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& list) {
+    for (CPtrNode* node1 = list.first; node1; node1 = node1->next) {
+        // In III Mobile
 
-        // From is Mobile III...
+        CEntity* entity1 = (CEntity*)node1->item;
+        const CVector& pos1 = entity1->GetPosition();
+        int16 modelIndex1 = entity1->GetModelIndex();
 
-        CEntity* outerEntity = (CEntity*)node->Item;
+        for (CPtrNode* node2 = node1->next; node2; node2 = node2->next) {
+            CEntity* entity2 = (CEntity*)node2->item;
+            int16 modelIndex2 = entity2->GetModelIndex();
 
-        int16 outerModelId = outerEntity->GetModelIndex();
-        auto outer = outerEntity->GetPosition();
-        if (!next) {
-            break;
-        }
-
-        while (next) {
-            CEntity* innerEntity = (CEntity*)next->Item;
-            int16 innerModelId = innerEntity->GetModelIndex();
-
-            if (innerModelId == outerModelId
-                && fabsf(outer.x - innerEntity->GetPosition().x) < 0.01f
-                && fabsf(outer.y - innerEntity->GetPosition().y) < 0.01f
-                && fabsf(outer.z - innerEntity->GetPosition().z) < 0.01f) {
-                auto modelName = CModelInfo::GetModelInfo(innerModelId)->GetModelName();
-                NOTSA_LOG_WARN("Two %s at position %f,%f,%f", modelName, outer.x, outer.y, outer.z);
+            if (modelIndex1 == modelIndex2) {
+                const CVector& pos2 = entity2->GetPosition();
+                if (fabsf(pos1.x - pos2.x) < 0.01f && fabsf(pos1.y - pos2.y) < 0.01f && fabsf(pos1.z - pos2.z) < 0.01f) {
+                    NOTSA_LOG_DEBUG("Two %s at position %f,%f,%f", CModelInfo::GetModelInfo(modelIndex1)->GetName(), pos1.x, pos1.y, pos1.z);
+                }
             }
-            next = next->Next;
         }
-        node = node->Next;
-        // ...End
     }
 }
 
@@ -1459,6 +1449,18 @@ void CWorld::TestForUnusedModels() {
             const auto sector = GetSector(x, y);
             ProcessSectorList(sector->m_buildings);
             ProcessSectorList(sector->m_dummies);
+        }
+    }
+
+    // In III Mobile
+
+    // Report unused models
+    for (int32 i = MODEL_VEHICLE_END; i < TOTAL_DFF_MODEL_IDS; i++) {
+        if (usageModelCounts[i] == 0) {
+            CBaseModelInfo* mi = CModelInfo::GetModelInfo(i);
+            if (mi) {
+                NOTSA_LOG_DEBUG("%s is not used", mi->GetModelName());
+            }
         }
     }
 }
