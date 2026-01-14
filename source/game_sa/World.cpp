@@ -17,9 +17,6 @@
 #include "VehicleRecording.h"
 #include "Garages.h"
 
-constexpr float WORLD_PLAYER_SHIFT_DAMPING = SQRT_2 / 2.f; // 0x8CDEEC
-constexpr int16 TAG_SPRAYING_INCREMENT_VAL = 8; // 0x8CDEF0
-
 // TODO: Remove
 int32& CWorld::ms_iProcessLineNumCrossings = *(int32*)0xB7CD60;
 float& CWorld::fWeaponSpreadRate = *(float*)0xB7CD64;
@@ -39,7 +36,6 @@ CVector& CWorld::SnookerTableMax = *(CVector*)0x8CDEF4; // { 2495.8525, -1671.40
 CVector& CWorld::SnookerTableMin = *(CVector*)0x8CDF00; // { 497.7925, -1670.3999, 13.19 }
 
 uint32 FilledColPointIndex; // 0xB7CD7C
-// int16 SPRAY_ALPHA_CHANGE; // unused, used in SprayPaintWorld?
 auto& gaTempSphereColPoints = *(std::array<CColPoint, 32>*)0xB9B250;
 
 void CWorld::InjectHooks() {
@@ -1205,6 +1201,8 @@ void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fir
 
 // 0x565B70
 int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState) {
+    constexpr int16 SPRAY_ALPHA_CHANGE = 8; // 0x8CDEF0
+
     CEntity* objects[15]{};
     int16 count{};
     FindObjectsInRange(posn, radius, false, &count, (uint16)std::size(objects), objects, true, false, false, false, false);
@@ -1228,7 +1226,7 @@ int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool
         uint8 newAlpha{ 0 };
         uint8 currAlpha = CTagManager::GetAlpha(entity);
         if (processTagAlphaState) {
-            newAlpha = (uint8)std::min((size_t)(currAlpha + TAG_SPRAYING_INCREMENT_VAL), 255u);
+            newAlpha = (uint8)std::min((size_t)(currAlpha + SPRAY_ALPHA_CHANGE), 255u);
         }
 
         if (currAlpha != 255 && newAlpha == 255) {
@@ -1830,6 +1828,9 @@ bool CWorld::ProcessVerticalLine_FillGlobeColPoints(const CVector& origin, float
 // 0x567750
 template<typename PtrListType>
 void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage) {
+    constexpr float VEHICLE_EXPLOSION_THIS_EXPLODING_MULT = 0.2f; // 0x8CDF10
+    constexpr float VEHICLE_EXPLOSION_STD_MASS = 3000.0f; // 0x8CDF0C
+
     for (auto* const entity : ptrList) {
         const auto entityToPointDir = (entity->GetPosition() - point);
         const auto entityToPointDist = entityToPointDir.Magnitude();
@@ -1956,10 +1957,10 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
                 auto forceFactor = std::min(1.f, (radius - colPointToExploPointDist) / radius * 2.f);
                 if (entity == victim) {
-                    forceFactor *= 0.2f;
+                    forceFactor *= VEHICLE_EXPLOSION_THIS_EXPLODING_MULT;
                 }
 
-                forceFactor *= std::min(1.f, veh->m_fMass / 3000.f);
+                forceFactor *= std::min(1.f, veh->m_fMass / VEHICLE_EXPLOSION_STD_MASS);
                 forceFactor *= visibleDistance;
                 if (float dot = DotProduct(veh->GetSpeed(colPointPos), colNormal); dot > forceFactor * 3.f) {
                     forceFactor = std::max(0.f, forceFactor - dot);
@@ -2055,6 +2056,8 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 // 0x5684A0
 void CWorld::Process() {
     ZoneScoped;
+
+    constexpr float WORLD_PLAYER_SHIFT_DAMPING = SQRT_2 / 2.f; // 0x8CDEEC
 
     const auto IterateMovingList = [&](auto&& fn) {
         for (auto* const entity : ms_listMovingEntityPtrs) {
