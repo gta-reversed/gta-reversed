@@ -55,7 +55,7 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(FindEngine, 0x6F5E90);
     RH_ScopedInstall(FindCarriage, 0x6F5EB0);
     RH_ScopedInstall(FindSideStationIsOn, 0x6F5EF0);
-    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .reversed = false });
+    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00);
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
     RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
@@ -333,7 +333,35 @@ bool CTrain::FindSideStationIsOn() const {
 
 // 0x6F5F00
 void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float* distanceToStation, int32* numStations) {
-    ((void(__cdecl*)(bool, float, float*, int32*))0x6F5F00)(clockwiseDirection, distance, distanceToStation, numStations);
+    int station = 0;
+
+    // Locate the station that corresponds to your current location.
+    for (int i = 0; i < 6; ++i) {
+        if (StationDist[i] <= distance) {
+            station = i;
+        } else {
+            break;
+        }
+    }
+
+    // Adjust to the opposite direction.
+    if (!clockwiseDirection) {
+        station = (station == 0) ? 5 : station - 1;
+    }
+
+    // If you are very close to the current station, move on to the next one.
+    if (approxEqual(distance, StationDist[station], 100.0f)) {
+        station += clockwiseDirection ? 1 : -1;
+    
+        if (station < 0) {
+            station = 5;
+        } else if (station > 5) {
+            station = 0;
+        }
+    }
+
+    *numStations       = station;
+    *distanceToStation = StationDist[station];
 }
 
 // 0x6F6320
