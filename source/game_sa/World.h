@@ -311,7 +311,7 @@ public: // NOTSA:
         const float fTotalMapUnitsY = static_cast<float>(MAX_WORLD_UNITS / MAX_LOD_PTR_LISTS_Y);
         return (sector - HalfOfTotalSectorsY) * fTotalMapUnitsY + (fTotalMapUnitsY / 2);
     }
-    static bool IsInWorldBounds(CVector2D pos) { // NOTSA
+    static bool IsInWorldBounds(CVector2D pos) {
         return pos.x > -3000.0f && pos.x < 3000.0f
             && pos.y > -3000.0f && pos.y < 3000.0f;
     }
@@ -319,8 +319,6 @@ public: // NOTSA:
     static void RemoveVehicleAndItsOccupants(CVehicle* veh);
 
     /*!
-    * @notsa
-    * 
     * @brief Call `fn` with the `x, y` grid position of all sectors between the specified grid positions
     *
     * @return `fn` may return `false` to stop the iteration in which case
@@ -342,8 +340,6 @@ public: // NOTSA:
     }
 
     /*
-    * @notsa
-    *
     * @brief Call `fn` with the `x, y` grid position of all sectors that are overlapped by the rect
     *
     * @param rect The rect. Use it's constructor to ease your life (for example iterating areas in a given radius can be achieved by `CRect{point, 340.f}`)
@@ -362,8 +358,6 @@ public: // NOTSA:
     }
 
     /*
-    * @notsa
-    *
     * @brief Call `fn` with the `x, y` grid position of all lod sectors that are overlapped by the rect
     *
     * @param rect The rect. Use it's constructor to ease your life (for example iterating areas in a given radius can be achieved by `CRect{point, 340.f}`)
@@ -381,14 +375,12 @@ public: // NOTSA:
         );
     }
 
-    // @notsa
     static void PutToGroundIfTooLow(CVector& pos) {
         if (pos.z <= MAP_Z_LOW_LIMIT) {
             pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y);
         }
     }
 
-    // @notsa
     static CVector AddGroundZToCoord(CVector2D xy) {
         return CVector{ xy, FindGroundZForCoord(xy.x, xy.y) };
     }
