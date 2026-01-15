@@ -431,22 +431,22 @@ void CWorld::RemoveStaticObjects() {
 
 // 0x563950
 template<typename PtrListType>
-void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& list) {
-    for (CPtrNode* node1 = list.first; node1; node1 = node1->next) {
-        // In III Mobile
-
-        CEntity* entity1 = (CEntity*)node1->item;
+void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
+    for (typename PtrListType::NodeType *node1 = ptrList.GetNode(); node1; node1 = node1->Next) {
+        CEntity* entity1 = (CEntity*)node1->Item;
         const CVector& pos1 = entity1->GetPosition();
         int16 modelIndex1 = entity1->GetModelIndex();
-
-        for (CPtrNode* node2 = node1->next; node2; node2 = node2->next) {
-            CEntity* entity2 = (CEntity*)node2->item;
+        
+        for (typename PtrListType::NodeType *node2 = node1->Next; node2; node2 = node2->Next) {
+            CEntity* entity2 = (CEntity*)node2->Item;
             int16 modelIndex2 = entity2->GetModelIndex();
-
+            
             if (modelIndex1 == modelIndex2) {
                 const CVector& pos2 = entity2->GetPosition();
-                if (fabsf(pos1.x - pos2.x) < 0.01f && fabsf(pos1.y - pos2.y) < 0.01f && fabsf(pos1.z - pos2.z) < 0.01f) {
-                    NOTSA_LOG_DEBUG("Two %s at position %f,%f,%f", CModelInfo::GetModelInfo(modelIndex1)->GetName(), pos1.x, pos1.y, pos1.z);
+                if (fabsf(pos1.x - pos2.x) < 0.01f
+                    && fabsf(pos1.y - pos2.y) < 0.01f
+                    && fabsf(pos1.z - pos2.z) < 0.01f) {
+                    NOTSA_LOG_DEBUG("Two %s at position %f,%f,%f", CModelInfo::GetModelInfo(modelIndex1)->GetModelName(), pos1.x, pos1.y, pos1.z);
                 }
             }
         }
