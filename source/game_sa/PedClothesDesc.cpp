@@ -55,7 +55,8 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 arg1) {
 
 // 0x5A79D0
 bool CPedClothesDesc::HasVisibleTattoo() {
-    for (int i = 4; i <= 12; ++i) { // Note in mobile: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12 
+    // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12 
+    for (int i = eClothesTexturePart::CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= eClothesTexturePart::CLOTHES_TEXTURE_UPPER_BACK; ++i) {
         if (m_anTextureKeys[i] != 0) return true;
     }
 
