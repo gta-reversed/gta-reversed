@@ -1413,6 +1413,23 @@ void CWorld::PrintCarChanges() {
 }
 
 // unused
+// in III Mobile
+void CWorld::CheckBuildingOrientations() {
+    const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
+        for (typename PtrListType::NodeType* node = list.GetNode(); node; node = node->Next) {
+            // NOP
+        }
+    };
+
+    for (auto y = 0; y < MAX_SECTORS_Y; y++) {
+        for (auto x = 0; x < MAX_SECTORS_X; x++) {
+            auto* const sector = GetSector(x, y);
+            ProcessList(sector->m_buildings);
+        }
+    }
+}
+
+// unused
 // debug function
 // In mobile NOP
 // 0x5664A0

@@ -177,7 +177,7 @@ public:
 
     static int32 SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
 
-    // static void CheckBuildingOrientations(); // unknown
+    static void CheckBuildingOrientations(); // in III
 
     static void RemoveFallenPeds();
 
