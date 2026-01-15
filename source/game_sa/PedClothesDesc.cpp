@@ -55,11 +55,24 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 arg1) {
 
 // 0x5A79D0
 bool CPedClothesDesc::HasVisibleTattoo() {
-    // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12 
-    for (int i = eClothesTexturePart::CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= eClothesTexturePart::CLOTHES_TEXTURE_UPPER_BACK; ++i) {
-        if (m_anTextureKeys[i] != 0) return true;
-    }
+    // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12
+    // TODO: Is it better to do it this way for optimization?
+    static constexpr eClothesTexturePart tattooParts[] = {
+        CLOTHES_TEXTURE_LOWER_LEFT_ARM,
+        CLOTHES_TEXTURE_UPPER_LEFT_ARM,
+        CLOTHES_TEXTURE_UPPER_RIGHT_ARM,
+        CLOTHES_TEXTURE_LOWER_RIGHT_ARM,
+        CLOTHES_TEXTURE_BACK_TOP,
+        CLOTHES_TEXTURE_LEFT_CHEST,
+        CLOTHES_TEXTURE_RIGHT_CHEST,
+        CLOTHES_TEXTURE_STOMACH,
+        CLOTHES_TEXTURE_UPPER_BACK
+    };
 
+    for (auto part : tattooParts) {
+        if (m_anTextureKeys[part]) return true;
+    }
+    
     return false;
 }
 
