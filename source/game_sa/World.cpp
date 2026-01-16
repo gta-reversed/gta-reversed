@@ -133,7 +133,7 @@ void CWorld::InjectHooks() {
     RH_ScopedGlobalInstall(FindPlayerTrain, 0x56E160);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld, 0x56E250);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
-    // RH_ScopedGlobalInstall(FindPlayerCentreOfWorldForMap, 0x56E400);
+    RH_ScopedGlobalInstall(FindPlayerCentreOfWorldForMap, 0x56E400, {.reversed=false});
     RH_ScopedGlobalInstall(FindPlayerHeading, 0x56E450);
     RH_ScopedGlobalInstall(FindPlayerPed, 0x56E210);
     RH_ScopedGlobalInstall(FindPlayerVehicle, 0x56E0D0);
@@ -223,10 +223,10 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
     return false;
 }
 
-// unused
+// inline
 // 0x563390
 template<typename PtrListType>
-void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, float) {
+inline void CWorld::CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax) {
     for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision()) {
             continue;
@@ -236,6 +236,7 @@ void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, flo
 }
 
 // unused
+// debug function
 // 0x5633D0
 void CWorld::ProcessForAnimViewer() {
     for (auto* const entity : ms_listMovingEntityPtrs) {
@@ -429,10 +430,13 @@ void CWorld::RemoveStaticObjects() {
     }
 }
 
+// debug function
 // 0x563950
 template<typename PtrListType>
 void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
     for (typename PtrListType::NodeType *node1 = ptrList.GetNode(); node1; node1 = node1->Next) {
+        // In III Mobile
+
         CEntity* entity1 = (CEntity*)node1->Item;
         const CVector& pos1 = entity1->GetPosition();
         int16 modelIndex1 = entity1->GetModelIndex();
@@ -453,10 +457,11 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
     }
 }
 
-// unused
+// inline
+// debug function
 // 0x5639D0
 template<typename PtrListType>
-void CWorld::TestForUnusedModels(PtrListType& ptrList, int32* models) {
+inline void CWorld::TestForUnusedModels(PtrListType& ptrList, int32* models) {
     for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent()) {
             continue;
@@ -553,6 +558,7 @@ void CWorld::HandleCollisionZoneChange(eLevelName oldZone, eLevelName newZone) {
 }
 
 // unused
+// debug function
 // 0x563F30
 void CWorld::DoZoneTestForChaser(CPhysical* physical) {
     // NOP
@@ -747,6 +753,7 @@ bool CWorld::ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSec
     return max < 1.f;
 }
 
+// unused
 // 0x564600
 void CWorld::CastShadow(float xmin, float ymin, float xmax, float ymax) {
     const int32 left   = std::max(GetSectorX(xmin), 0);
@@ -1413,6 +1420,7 @@ void CWorld::PrintCarChanges() {
 }
 
 // unused
+// debug function
 // in III Mobile
 void CWorld::CheckBuildingOrientations() {
     const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
@@ -1447,25 +1455,16 @@ void CWorld::TestForBuildingsOnTopOfEachOther() {
 // debug function
 // 0x566510
 void CWorld::TestForUnusedModels() {
-    static uint32 usageModelCounts[TOTAL_DFF_MODEL_IDS]{}; // SA uses a stack-allocated variable, but 80 kB on the stack isn't nice, so we are going to do it this way
+    static int32 usageModelCounts[TOTAL_DFF_MODEL_IDS]{}; // SA uses a stack-allocated variable, but 80 kB on the stack isn't nice, so we are going to do it this way
     std::ranges::fill(usageModelCounts, 0);
 
     AdvanceCurrentScanCode();
 
-    const auto ProcessSectorList = [&]<typename PtrListType>(const PtrListType& list) {
-        for (auto node = list.GetNode(); node; node = node->Next) {
-            const auto object = static_cast<CEntity*>(node->Item);
-            if (object->IsScanCodeCurrent()) {
-                usageModelCounts[object->m_nModelIndex]++;
-            }
-        }
-    };
-
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             const auto sector = GetSector(x, y);
-            ProcessSectorList(sector->m_buildings);
-            ProcessSectorList(sector->m_dummies);
+            TestForUnusedModels(sector->m_buildings, usageModelCounts);
+            TestForUnusedModels(sector->m_dummies, usageModelCounts);
         }
     }
 

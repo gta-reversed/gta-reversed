@@ -90,6 +90,7 @@ public:
     static PtrListType& GetObjectsWithControlCodePtrList() { return ms_listObjectsWithControlCode; }
 
     static void AdvanceCurrentScanCode();
+
     // 0x407250
     static uint16 GetCurrentScanCode() {
         return CWorld::ms_nCurrentScanCode;
