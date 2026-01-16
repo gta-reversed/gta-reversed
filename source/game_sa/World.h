@@ -259,7 +259,7 @@ protected:
     template<typename PtrListType>
     static void TriggerExplosionSectorList(PtrListType& ptrList, const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
     template<typename PtrListType>
-    static void CastShadowSectorList(PtrListType& ptrList, float arg1, float arg2, float arg3, float arg4);
+    static void CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax);
 
 public: // TODO: remove
     static bool CameraToIgnoreThisObject(CEntity* entity);

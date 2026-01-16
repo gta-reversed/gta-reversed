@@ -748,16 +748,16 @@ bool CWorld::ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSec
 }
 
 // 0x564600
-void CWorld::CastShadow(float x1, float y1, float x2, float y2) {
-    const int32 startSectorX = std::max(0, GetSectorX(x1));
-    const int32 startSectorY = std::max(0, GetSectorY(y1));
-    const int32 endSectorX = std::min(120, GetSectorX(x2));
-    const int32 endSectorY = std::min(120, GetSectorY(y2));
+void CWorld::CastShadow(float xmin, float ymin, float xmax, float ymax) {
+    const int32 left   = std::max(GetSectorX(xmin), 0);
+    const int32 top    = std::max(GetSectorY(ymin), 0);
+    const int32 right  = std::min(GetSectorX(xmax), MAX_SECTORS_X - 1);
+    const int32 bottom = std::min(GetSectorY(ymax), MAX_SECTORS_Y - 1);
 
     AdvanceCurrentScanCode();
 
-    for (int32 x = startSectorX; x <= endSectorX; x++) {
-        for (int32 y = startSectorY; y <= endSectorY; y++) {
+    for (int32 y = top; y <= bottom; y++) {
+        for (int32 x = left; x <= right; x++) {
             CastShadowSectorList(GetSector(x, y)->m_buildings, 0.0f, 0.0f, 0.0f, 0.0f); // 4 useless floats
         }
     }
