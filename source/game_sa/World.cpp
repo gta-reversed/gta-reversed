@@ -17,6 +17,9 @@
 #include "VehicleRecording.h"
 #include "Garages.h"
 
+#include "Tasks/TaskTypes/TaskComplexDestroyCar.h"
+#include "Tasks/TaskTypes/TaskSimpleStandStill.h"
+
 // TODO: Remove
 int32& CWorld::ms_iProcessLineNumCrossings = *(int32*)0xB7CD60;
 float& CWorld::fWeaponSpreadRate = *(float*)0xB7CD64;
@@ -109,7 +112,7 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(SetWorldOnFire, 0x56B910);
     RH_ScopedInstall(SetAllCarsCanBeDamaged, 0x5668F0);
     RH_ScopedInstall(CallOffChaseForAreaSectorListVehicles, 0x563A80);
-    RH_ScopedInstall(CallOffChaseForAreaSectorListPeds, 0x563D00, {.reversed=false});
+    RH_ScopedInstall(CallOffChaseForAreaSectorListPeds, 0x563D00);
     RH_ScopedInstall(RemoveEntityInsteadOfProcessingIt, 0x563A10);
     RH_ScopedOverloadedInstall(TestForUnusedModels<CPtrListDoubleLink<CPhysical*>>, "InputArray", 0x5639D0, void(*)(CPtrListDoubleLink<CPhysical*>&, int32*));
     RH_ScopedOverloadedInstall(TestForBuildingsOnTopOfEachOther<CPtrListDoubleLink<CPhysical*>>, "", 0x563950, void(*)(CPtrListDoubleLink<CPhysical*>&));
@@ -547,8 +550,56 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
 }
 
 // 0x563D00
-void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY) {
-    plugin::Call<0x563D00>(&ptrList, x1, y1, x2, y2, minX, minY, maxX, maxY);
+void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float minX, float minY, float maxX, float maxY, float biggerMinX, float biggerMinY, float biggerMaxX, float biggerMaxY) {
+    for (auto* const ped : list) {
+        if (ped->IsScanCodeCurrent()) {
+            continue;
+        }
+
+        ped->SetCurrentScanCode();
+        CPedGroup* pedGroup = CPedGroups::GetPedsGroup(ped);
+
+        CPed* leader = pedGroup ? pedGroup->GetMembership().GetLeader() : nullptr;
+
+        if (ped == FindPlayerPed() || leader == FindPlayerPed()) {
+            continue;
+        }
+
+        auto& pos = ped->GetPosition();
+        if (pos.x <= biggerMinX || pos.x >= biggerMaxX) {
+            continue;
+        }
+        if (pos.y <= biggerMinY || pos.y >= biggerMaxY) {
+            continue;
+        }
+
+        CTaskComplexKillPedOnFoot* taskKill = (CTaskComplexKillPedOnFoot*)ped->GetTaskManager().Find<TASK_COMPLEX_KILL_PED_ON_FOOT>(true);
+        CPed* objectivePed = taskKill ? taskKill->m_target : nullptr;
+
+        CTaskComplexDestroyCar* taskDestroy =(CTaskComplexDestroyCar*)ped->GetTaskManager().Find<TASK_COMPLEX_DESTROY_CAR>(true);
+        CVehicle* objectiveVehicle = taskDestroy ? taskDestroy->m_VehicleToDestroy : nullptr;
+
+        if (objectivePed == FindPlayerPed()) {
+            continue;
+        }
+
+        if (objectiveVehicle && objectiveVehicle != FindPlayerVehicle()) {
+            continue;
+        }
+
+        if (!ped->IsAlive()) {
+            continue;
+        }
+
+        if (ped->m_nPedType == PED_TYPE_COP) {
+            FindPlayerWanted()->RemovePursuitCop(ped->AsCop());
+        }
+
+        CTaskSimpleStandStill* pTaskStandStill = new CTaskSimpleStandStill(0, true, false, 8.0f);
+        CEventScriptCommand event(3, pTaskStandStill, false);
+        ped->GetEventGroup().Add(&event, false);
+        event.~CEventScriptCommand();
+    }
 }
 
 // unused

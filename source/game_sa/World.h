@@ -219,7 +219,7 @@ public:
 
     static void CallOffChaseForArea(float x1, float y1, float x2, float y2);
     static void CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
-    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
+    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float minX, float minY, float maxX, float maxY, float biggerMinX, float biggerMinY, float biggerMaxX, float biggerMaxY);
 
     static void HandleCollisionZoneChange(eLevelName oldZone, eLevelName newZone);
     // static void FindZoneRespawnPoint(eLevelName, eLevelName, CVector*); // in III, dont SA
