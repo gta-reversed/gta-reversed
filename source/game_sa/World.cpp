@@ -228,7 +228,7 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
 template<typename PtrListType>
 void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, float) {
     for (auto* const entity : ptrList) {
-        if (entity->IsScanCodeCurrent()) {
+        if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision()) {
             continue;
         }
         entity->SetCurrentScanCode();
