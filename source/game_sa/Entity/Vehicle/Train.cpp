@@ -336,10 +336,8 @@ void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float d
     int station = 0;
 
     // Locate the station that corresponds to your current location.
-    for (int i = 0; i < 6; ++i) {
-        if (StationDist[i] <= distance) {
-            station = i;
-        } else {
+    for (station = 0; station < 6; station++) {
+        if (StationDist[station] > distance) {
             break;
         }
     }
