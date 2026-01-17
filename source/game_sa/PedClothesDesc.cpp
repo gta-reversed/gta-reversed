@@ -10,7 +10,7 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5A78F0);
     RH_ScopedInstall(GetIsWearingBalaclava, 0x5A7950);
     RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970);
-    RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0, { .reversed = false });
+    RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0);
 }
 
 CPedClothesDesc::CPedClothesDesc() {
@@ -69,7 +69,12 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 type) {
 
 // 0x5A79D0
 bool CPedClothesDesc::HasVisibleTattoo() {
-    return plugin::CallMethodAndReturn<bool, 0x5A79D0, CPedClothesDesc*>(this);
+    // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12
+    for (int i = eClothesTexturePart::CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= eClothesTexturePart::CLOTHES_TEXTURE_UPPER_BACK; ++i) {
+        if (m_anTextureKeys[i] != 0) return true;
+    }
+
+    return false;
 }
 
 // 0x5A8050
