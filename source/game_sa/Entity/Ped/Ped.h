@@ -541,7 +541,6 @@ public:
         
     CPedClothesDesc* GetClothesDesc() { return GetPlayerData()->m_pPedClothesDesc; }
 
-    CPedIntelligence* GetIntelligence() { return m_pIntelligence; }
     CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }
     CTaskManager& GetTaskManager() { return GetIntelligence()->m_TaskMgr; }
     CTaskManager& GetTaskManager() const { return GetIntelligence()->m_TaskMgr; }
