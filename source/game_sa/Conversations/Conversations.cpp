@@ -194,14 +194,12 @@ void CConversations::StartSettingUpConversation(CPed* ped) {
 void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
     ZoneScoped;
 
-    // We link temporary nodes by name (set Yes/No indexes)
-    const auto numNodes = m_SettingUpConversationNumNodes;
-    if (numNodes > 0) {
-        for (auto i = 0; i < numNodes; ++i) {
+    if (m_SettingUpConversationNumNodes > 0) {
+        for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
             m_aTempNodes[i].m_NodeYes = -1;
             m_aTempNodes[i].m_NodeNo  = -1;
 
-            for (auto j = 0; j < numNodes; ++j) {
+            for (auto j = 0; j < m_SettingUpConversationNumNodes; ++j) {
                 if (strcmp(m_aTempNodes[i].m_NameNodeYes, m_aTempNodes[j].m_Name) == 0) {
                     m_aTempNodes[i].m_NodeYes = static_cast<int16>(j);
                 }
@@ -214,30 +212,28 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
 
     auto* conversationSlot = FindFreeConversationSlot();
     if (!conversationSlot) {
-        NOTSA_LOG_WARN("No free conversation slot available");
+        NOTSA_LOG_ERR("No free conversation slot available");
 
         // untested
         if (notsa::IsFixBugs()) {
-            m_SettingUpConversation         = false;
-            m_SettingUpConversationNumNodes = 0;
             return;
         }
     }
 
     // We allocate the final slots for the nodes and copy the data.
-    if (numNodes > 0) {
-        for (auto i = 0; i < numNodes; ++i) {
+    if (m_SettingUpConversationNumNodes > 0) {
+        for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
             m_aTempNodes[i].m_FinalSlot = FindFreeNodeSlot();
         }
 
-        for (auto i = 0; i < numNodes; ++i) {
+        for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
             const auto& tempNode  = m_aTempNodes[i];
             auto&       node      = m_Nodes[tempNode.m_FinalSlot];
 
             strcpy(node.m_Name, tempNode.m_Name);
 
-            node.m_NodeYes = tempNode.m_NodeYes < 0 ? -1 : int16(m_aTempNodes[tempNode.m_NodeYes].m_FinalSlot);
-            node.m_NodeNo  = tempNode.m_NodeNo < 0 ? -1 : int16(m_aTempNodes[tempNode.m_NodeNo].m_FinalSlot);
+            node.m_NodeYes = tempNode.m_NodeYes < 0 ? -1 : (int16)(m_aTempNodes[tempNode.m_NodeYes].m_FinalSlot);
+            node.m_NodeNo  = tempNode.m_NodeNo < 0 ? -1 : (int16)(m_aTempNodes[tempNode.m_NodeNo].m_FinalSlot);
 
             node.m_Speech  = tempNode.m_Speech;
             node.m_SpeechY = tempNode.m_SpeechY;
@@ -248,7 +244,7 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
     // untested
     if (notsa::IsFixBugs()) {
         // if there are no nodes — leave uninitialized fields untouched
-        conversationSlot->m_FirstNode   = numNodes > 0 ? m_aTempNodes[0].m_FinalSlot : -1;
+        conversationSlot->m_FirstNode   = m_SettingUpConversationNumNodes > 0 ? m_aTempNodes[0].m_FinalSlot : -1;
         conversationSlot->m_CurrentNode = conversationSlot->m_FirstNode;
     } else {
         // always take [0], even if numNodes == 0
@@ -256,9 +252,8 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
         conversationSlot->m_CurrentNode = m_aTempNodes[0].m_FinalSlot;
     }
 
-    auto* ped = m_SettingUpConversationPed;
-    conversationSlot->m_pPed = ped;
-    ped->RegisterReference(reinterpret_cast<CEntity**>(&conversationSlot->m_pPed));
+    conversationSlot->m_pPed = m_SettingUpConversationPed;
+    CEntity::ChangeEntityReference(m_SettingUpConversationPed, conversationSlot->m_pPed);
 
     conversationSlot->m_LastTimeWeWereCloseEnough = 0;
     conversationSlot->m_Status                    = CConversationForPed::eStatus::INACTIVE;
