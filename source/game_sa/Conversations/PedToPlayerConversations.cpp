@@ -62,7 +62,7 @@ void CPedToPlayerConversations::Update() {
         }
         */
 
-        for (auto i = 0; i < 8; i++) {
+        for (auto tries = 0; tries < 8; tries++) {
             if (++randomPed >= (int32)GetPedPool()->GetSize()) {
                 // rewind
                 randomPed = 0;
@@ -93,7 +93,7 @@ void CPedToPlayerConversations::Update() {
             }
 
             const auto RandomPedTalk = [ped] {
-                if (CGeneral::RandomBool(1.0f / 4096.0f * 100.0f)) { // NOTSA, originally: rand() % 4096 == 3
+                if (CGeneral::RandomBool(1.0f / 4095.0f * 100.0f)) { // NOTSA, originally: rand() % 4096 == 3
                     ped->Say(CTX_GLOBAL_EYEING_PLAYER);
                 }
             };
