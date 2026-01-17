@@ -253,9 +253,13 @@ public:
         bool bTestForShotInVehicle : 1 = false;
         bool bUsedForReplay : 1 = false; // This ped is controlled by replay and should be removed when replay is done.
     };
+
+protected:
     CPedIntelligence*   m_pIntelligence;
     CPlayerPedData*     m_pPlayerData;
     ePedCreatedBy       m_nCreatedBy;
+
+public:
     std::array<AnimBlendFrameData*, TOTAL_PED_NODES> m_apBones; // for Index, see ePedNode - TODO: Name incorrect, should be `m_apNodes` instead.
     AssocGroupId        m_nAnimGroup;
     CVector2D           m_vecAnimMovingShiftLocal;
@@ -518,7 +522,6 @@ public:
 
     // inlined
     CPlayerPedData* GetPlayerData() const { return m_pPlayerData; }
-    CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }
     
     // NOTSA helpers
     void SetArmour(float v) { m_fArmour = v; }
@@ -536,15 +539,16 @@ public:
     CPedGroup* GetGroup() const;
     int32 GetGroupId();
         
-    CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
+    CPedClothesDesc* GetClothesDesc() { return GetPlayerData()->m_pPedClothesDesc; }
 
     CPedIntelligence* GetIntelligence() { return m_pIntelligence; }
-    CTaskManager& GetTaskManager() { return m_pIntelligence->m_TaskMgr; }
-    CTaskManager& GetTaskManager() const { return m_pIntelligence->m_TaskMgr; }
-    CEventGroup& GetEventGroup() { return m_pIntelligence->m_eventGroup; }
-    CEventHandler& GetEventHandler() { return m_pIntelligence->m_eventHandler; }
-    CEventHandlerHistory& GetEventHandlerHistory() { return m_pIntelligence->m_eventHandler.GetHistory(); }
-    CPedStuckChecker& GetStuckChecker() { return m_pIntelligence->m_pedStuckChecker; }
+    CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }
+    CTaskManager& GetTaskManager() { return GetIntelligence()->m_TaskMgr; }
+    CTaskManager& GetTaskManager() const { return GetIntelligence()->m_TaskMgr; }
+    CEventGroup& GetEventGroup() { return GetIntelligence()->m_eventGroup; }
+    CEventHandler& GetEventHandler() { return GetIntelligence()->m_eventHandler; }
+    CEventHandlerHistory& GetEventHandlerHistory() { return GetEventHandler().GetHistory(); }
+    CPedStuckChecker& GetStuckChecker() { return GetIntelligence()->m_pedStuckChecker; }
 
     CWeapon& GetWeaponInSlot(size_t slot) noexcept { return m_aWeapons[slot]; }
     CWeapon& GetWeaponInSlot(eWeaponSlot slot) noexcept { return m_aWeapons[(size_t)slot]; }
