@@ -573,10 +573,10 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, 
             continue;
         }
 
-        CTaskComplexKillPedOnFoot* taskKill = (CTaskComplexKillPedOnFoot*)ped->GetTaskManager().Find<TASK_COMPLEX_KILL_PED_ON_FOOT>(true);
+        CTaskComplexKillPedOnFoot* taskKill = ped->GetTaskManager().Find<CTaskComplexKillPedOnFoot>(true);
         CPed* objectivePed = taskKill ? taskKill->m_target : nullptr;
 
-        CTaskComplexDestroyCar* taskDestroy =(CTaskComplexDestroyCar*)ped->GetTaskManager().Find<TASK_COMPLEX_DESTROY_CAR>(true);
+        CTaskComplexDestroyCar* taskDestroy =ped->GetTaskManager().Find<CTaskComplexDestroyCar>(true);
         CVehicle* objectiveVehicle = taskDestroy ? taskDestroy->m_VehicleToDestroy : nullptr;
 
         if (objectivePed == FindPlayerPed()) {
@@ -595,10 +595,7 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, 
             FindPlayerWanted()->RemovePursuitCop(ped->AsCop());
         }
 
-        CTaskSimpleStandStill* pTaskStandStill = new CTaskSimpleStandStill(0, true, false, 8.0f);
-        CEventScriptCommand event(3, pTaskStandStill, false);
-        ped->GetEventGroup().Add(&event, false);
-        event.~CEventScriptCommand();
+        ped->GetEventGroup().Add(CEventScriptCommand(3, new CTaskSimpleStandStill()));
     }
 }
 
