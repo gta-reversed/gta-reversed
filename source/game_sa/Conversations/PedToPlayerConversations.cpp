@@ -4,6 +4,8 @@
 #include "PedClothesDesc.h"
 #include "TaskSimpleStandStill.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 void CPedToPlayerConversations::InjectHooks() {
     RH_ScopedClass(CPedToPlayerConversations);
     RH_ScopedCategory("Conversations");
@@ -55,13 +57,13 @@ void CPedToPlayerConversations::Update() {
             return;
         }
 
-        // Added in Mobile:
-        /*
-        if (CGangWars::bGangWarsActive) {
-            return;
+        if (notsa::bugfixes::CPedToPlayerConversations_Update_DontWithGangWarn) {
+            // Added in Mobile:
+            if (CGangWars::bGangWarsActive) {
+                return;
+            }
         }
-        */
-
+        
         for (auto tries = 0; tries < 8; tries++) {
             if (++randomPed >= (int32)GetPedPool()->GetSize()) {
                 // rewind

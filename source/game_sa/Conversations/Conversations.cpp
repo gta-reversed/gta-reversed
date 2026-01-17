@@ -213,6 +213,8 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
     }
 
     auto* conversationSlot = FindFreeConversationSlot();
+
+    // NOTSA:
     if (!conversationSlot) {
         NOTSA_LOG_ERR("No free conversation slot available");
 
