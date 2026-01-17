@@ -534,8 +534,6 @@ public:
 
     CPedGroup* GetGroup() const;
     int32 GetGroupId();
-
-    CPlayerPedData* GetPlayerData() { return m_pPlayerData; }
         
     CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
 
