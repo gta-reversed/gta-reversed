@@ -101,7 +101,7 @@ bool CConversationForPed::IsPlayerInPositionForConversation(bool isRandomConvers
         return false;
     }
 
-    // Check if player and NPC are facing each other (dot product of forward vectors)
+    // Check if player and NPC are facing the same direction (dot product of forward vectors)
     if (playerPed->GetForward().Dot(m_pPed->GetForward()) > 0.0f) {
         return false;
     }
