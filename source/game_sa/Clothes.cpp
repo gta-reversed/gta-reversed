@@ -207,7 +207,7 @@ void CClothes::RebuildPlayerIfNeeded(CPlayerPed* player) {
 // 0x5A82C0
 void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
     auto assoc = RpAnimBlendClumpExtractAssociations(player->m_pRwClump);
-    auto task = player->m_pIntelligence->m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_IK);
+    auto task = player->GetIntelligence()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK);
     if (task)
         task->MakeAbortable(player, ABORT_PRIORITY_IMMEDIATE, nullptr);
 

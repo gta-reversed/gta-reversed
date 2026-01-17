@@ -130,7 +130,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
                 if (activeTask && activeTask->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
                     CVector vecDirection = m_pSourceEntity->GetPosition() - ped->GetPosition();
                     vecDirection.Normalise();
-                    if (ped->m_pIntelligence->CanSeeEntityWithLights(m_pSourceEntity, 0) <= 0.0f
+                    if (ped->GetIntelligence()->CanSeeEntityWithLights(m_pSourceEntity, 0) <= 0.0f
                         || DotProduct(&vecDirection, &ped->GetForward()) < CPedAcquaintanceScanner::ms_fThresholdDotProduct)
                     {
                         return false;
@@ -150,7 +150,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
     }
     bool bAffectsPed = ped->CanPhysicalBeDamaged(m_weaponType, nullptr);
     if (    m_weaponType == WEAPON_FALL
-        && (ped->physicalFlags.bCollisionProof || ped->m_pAttachedTo || ped->m_fHealth > 0.0f && ped->m_pIntelligence->GetTaskJetPack())
+        && (ped->physicalFlags.bCollisionProof || ped->m_pAttachedTo || ped->m_fHealth > 0.0f && ped->GetIntelligence()->GetTaskJetPack())
     ) {
         bAffectsPed = false;
     }
@@ -182,7 +182,7 @@ bool CEventDamage::AffectsPedGroup(CPedGroup* pedGroup) {
         if (groupMember) {
             CVector vecDirection = m_pSourceEntity->GetPosition() - groupMember->GetPosition();
             vecDirection.Normalise();
-            if (groupMember->m_pIntelligence->CanSeeEntityWithLights(m_pSourceEntity, 0) > 0.0f) {
+            if (groupMember->GetIntelligence()->CanSeeEntityWithLights(m_pSourceEntity, 0) > 0.0f) {
                 if (DotProduct(&vecDirection, &groupMember->GetForward()) > CPedAcquaintanceScanner::ms_fThresholdDotProduct)
                     return true;
             }
@@ -425,7 +425,7 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         auto* pedSourceEntity = m_pSourceEntity->AsPed();
         CTaskSimpleFight* taskFight = nullptr;
         if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed())
-            taskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
+            taskFight = pedSourceEntity->GetIntelligence()->GetTaskFighting();
 
         const auto bonePosition = ped->GetBonePosition(BONE_HEAD, false);
         CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
@@ -662,9 +662,9 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     CTaskSimpleUseGun* sourceEntityTaskUseGun = nullptr;
     if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed()) {
         auto* pedSourceEntity = m_pSourceEntity->AsPed();
-        sourceEntityTaskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
+        sourceEntityTaskFight = pedSourceEntity->GetIntelligence()->GetTaskFighting();
         if (!sourceEntityTaskFight)
-            sourceEntityTaskUseGun = pedSourceEntity->m_pIntelligence->GetTaskUseGun();
+            sourceEntityTaskUseGun = pedSourceEntity->GetIntelligence()->GetTaskUseGun();
         if (pedSourceEntity->GetPlayerData()) {
             if (pedSourceEntity->GetPlayerData()->m_bAdrenaline) {
                 fPedStrength = 2.0f;
@@ -774,7 +774,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                 }
                 else {
                     int32 currentEventAnimId = -1;
-                    CEvent* pCurrentEvent = ped->m_pIntelligence->m_eventHandler.GetHistory().GetCurrentEvent();
+                    CEvent* pCurrentEvent = ped->GetIntelligence()->m_eventHandler.GetHistory().GetCurrentEvent();
                     if (pCurrentEvent && pCurrentEvent->GetEventType() == EVENT_DAMAGE)
                         currentEventAnimId = static_cast<CEventDamage*>(pCurrentEvent)->m_nAnimID;
                     switch (m_pedPieceType)

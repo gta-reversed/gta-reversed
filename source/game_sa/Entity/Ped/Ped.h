@@ -518,7 +518,8 @@ public:
 
     // inlined
     CPlayerPedData* GetPlayerData() const { return m_pPlayerData; }
-
+    CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }
+    
     // NOTSA helpers
     void SetArmour(float v) { m_fArmour = v; }
     void SetWeaponShootingRange(uint8 r) { m_nWeaponShootingRate = r; }
@@ -538,7 +539,6 @@ public:
     CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
 
     CPedIntelligence* GetIntelligence() { return m_pIntelligence; }
-    CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }
     CTaskManager& GetTaskManager() { return m_pIntelligence->m_TaskMgr; }
     CTaskManager& GetTaskManager() const { return m_pIntelligence->m_TaskMgr; }
     CEventGroup& GetEventGroup() { return m_pIntelligence->m_eventGroup; }

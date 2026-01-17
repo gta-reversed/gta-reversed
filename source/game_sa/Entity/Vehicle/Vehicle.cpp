@@ -1293,7 +1293,7 @@ bool CVehicle::CanBeDeleted() {
         }
     }
 
-    switch (m_nCreatedBy) {
+    switch (GetCreatedBy()) {
     case MISSION_VEHICLE:
     case PERMANENT_VEHICLE:
         return false;
@@ -3089,7 +3089,7 @@ bool CVehicle::CanPedLeanOut(CPed* ped) {
 
 // 0x6D5D70
 void CVehicle::SetVehicleCreatedBy(eVehicleCreatedBy createdBy) {
-    if (m_nCreatedBy != createdBy) {
+    if (GetCreatedBy() != createdBy) {
         CCarCtrl::UpdateCarCount(this, true);
         m_nCreatedBy = createdBy;
         CCarCtrl::UpdateCarCount(this, false);

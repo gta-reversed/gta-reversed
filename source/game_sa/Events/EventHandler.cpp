@@ -439,7 +439,7 @@ void CEventHandler::RegisterKill(const CPed* ped, const CEntity* inflictedBy, eW
 // 0x4BC600
 void CEventHandler::SetEventResponseTask(const CEvent& event) {
     const auto i  = m_Ped->GetIntelligence();
-    const auto tm = &i->m_TaskMgr;
+    const auto tm = &i->GetTaskManager();
 
     if (m_PhysicalResponseTask) {
         i->AddTaskPhysResponse(m_PhysicalResponseTask, true);

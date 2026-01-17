@@ -518,7 +518,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
             [this]() -> CTask* {
                 if (m_pPed->IsPlayer()) {
                     return new CTaskSimplePlayerOnFoot();
-                } else if (m_pPed->m_nCreatedBy != PED_MISSION) {
+                } else if (m_pPed->GetCreatedBy() != PED_MISSION) {
                     return CTaskComplexWander::GetWanderTaskByPedType(m_pPed);
                 } else {
                     return new CTaskSimpleStandStill(0, true, false, 8.0f);

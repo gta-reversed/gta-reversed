@@ -205,7 +205,8 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     physicalFlags.bCanBeCollidedWith = true;
     physicalFlags.bDisableTurnForce = true;
 
-    m_nCreatedBy = PED_GAME;
+    SetCreatedBy(PED_GAME);
+
     m_pVehicle = nullptr;
     field_52C = 0;
     field_744 = 0;
@@ -1023,7 +1024,7 @@ bool CPed::CanBeDeleted() {
 * @returns False only if created by PED_UNKNOWN or PED_MISSION, true otherwise.
 */
 bool CPed::CanBeDeletedEvenInVehicle() const {
-    switch (m_nCreatedBy) {
+    switch (GetCreatedBy()) {
     case ePedCreatedBy::PED_MISSION:
     case ePedCreatedBy::PED_UNKNOWN:
         return false;
@@ -2104,7 +2105,7 @@ void CPed::SetPedState(ePedState pedState) {
 * @brief Set ped's created by. If created by mission, set it's hearing and seeing range to 30.
 */
 void CPed::SetCharCreatedBy(ePedCreatedBy createdBy) {
-    m_nCreatedBy = createdBy;
+    SetCreatedBy(createdBy);
 
     SetPedDefaultDecisionMaker();
 
@@ -2804,10 +2805,10 @@ void CPed::PreRenderAfterTest()
     if (GetIsVisible() && CTimeCycle::GetShadowStrength()) {
         const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
             if (!bInVehicle) {
-                return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
+                return std::make_pair(false, intel->GetTaskManager().FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
             }
 
-            return std::make_pair(intel->m_TaskMgr.FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
+            return std::make_pair(intel->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
         }();
 
         // Low quality circle below feet shadow
@@ -3269,7 +3270,7 @@ bool IsPedPointerValid(CPed* ped)
 */
 void CPed::GiveWeaponAtStartOfFight()
 {
-    if (m_nCreatedBy != PED_MISSION && GetActiveWeapon().m_Type == WEAPON_UNARMED)
+    if (GetCreatedBy() != PED_MISSION && GetActiveWeapon().m_Type == WEAPON_UNARMED)
     {
         const auto GiveRandomWeaponByType = [this](eWeaponType type, uint16 maxRandom)
         {

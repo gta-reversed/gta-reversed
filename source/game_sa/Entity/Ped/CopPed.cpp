@@ -109,8 +109,8 @@ CCopPed::CCopPed(uint32_t copTypeOrModelID) :
 
     CEntity::ClearReference(m_pTargetedObject); // Oookay?
 
-    m_pIntelligence->SetDmRadius(60.0f);
-    m_pIntelligence->SetNumPedsToScan(8);
+    GetIntelligence()->SetDmRadius(60.0f);
+    GetIntelligence()->SetNumPedsToScan(8);
     m_pedSpeech.Initialise(this);
     m_pCopPartner = nullptr;
     std::ranges::fill(m_apCriminalsToKill, nullptr);

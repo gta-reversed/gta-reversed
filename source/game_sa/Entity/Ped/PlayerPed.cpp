@@ -160,8 +160,8 @@ CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PED_TYPE_PLAYE
     m_p3rdPersonMouseTarget = nullptr;
     field_7A0 = 0;
     m_pedSpeech.Initialise(this);
-    m_pIntelligence->m_fDmRadius = 30.0f;
-    m_pIntelligence->m_nDmNumPedsToScan = 2;
+    GetIntelligence()->m_fDmRadius = 30.0f;
+    GetIntelligence()->m_nDmNumPedsToScan = 2;
 
     bUsedForReplay = bGroupCreated;
 }
@@ -281,7 +281,7 @@ bool CPlayerPed::DoesPlayerWantNewWeapon(eWeaponType weaponType, bool arg1) {
     if (arg1)
         return false;
 
-    if (m_pIntelligence->GetTaskJetPack())
+    if (GetIntelligence()->GetTaskJetPack())
         return false;
 
     /* !See comment!
@@ -1025,8 +1025,8 @@ void CPlayerPed::ProcessControl() {
         PruneReferences();
         if (GetActiveWeapon().m_Type == WEAPON_MINIGUN) {
             auto weaponInfo = CWeaponInfo::GetWeaponInfo(WEAPON_MINIGUN, eWeaponSkill::STD);
-            if (m_pIntelligence->GetTaskUseGun()) {
-                auto animAssoc = m_pIntelligence->GetTaskUseGun()->m_Anim;
+            if (GetIntelligence()->GetTaskUseGun()) {
+                auto animAssoc = GetIntelligence()->GetTaskUseGun()->m_Anim;
                 if (animAssoc && animAssoc->m_CurrentTime - animAssoc->m_TimeStep < weaponInfo->m_fAnimLoopEnd) {
                     if (GetPlayerData()->m_fGunSpinSpeed < 0.45f) {
                         GetPlayerData()->m_fGunSpinSpeed += CTimer::GetTimeStep() * 0.025f;
@@ -1045,7 +1045,7 @@ void CPlayerPed::ProcessControl() {
             }
         }
         if (GetActiveWeapon().m_Type == WEAPON_CHAINSAW && m_nPedState != PEDSTATE_ATTACK && !bInVehicle) {
-            m_pIntelligence->GetTaskSwim(); // hmmm?
+            GetIntelligence()->GetTaskSwim(); // hmmm?
         }
         if (m_pTargetedObject) {
             ClearReference(m_p3rdPersonMouseTarget);
@@ -1136,7 +1136,7 @@ void CPlayerPed::ProcessControl() {
             auto& activeWeapon = GetActiveWeapon();
             auto weaponType = activeWeapon.m_Type;
             if (!TheCamera.Using1stPersonWeaponMode() || activeWeapon.m_State == WEAPONSTATE_OUT_OF_AMMO) {
-                if (!m_pIntelligence->GetTaskSwim()) {
+                if (!GetIntelligence()->GetTaskSwim()) {
                     if (weaponType == WEAPON_SNIPERRIFLE) {
                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_FIRE_FAIL_SNIPERRIFFLE, 0.0f, 1.0f);
                     } else if (weaponType == WEAPON_RLAUNCHER || weaponType == WEAPON_RLAUNCHER_HS) {

@@ -541,7 +541,7 @@ bool CCarEnterExit::IsVehicleStealable(const CVehicle* vehicle, const CPed* ped)
     }
 
     if (ped->m_pVehicle != vehicle) {
-        switch (vehicle->m_nCreatedBy) {
+        switch (vehicle->GetCreatedBy()) {
         case RANDOM_VEHICLE:
         case PARKED_VEHICLE:
             break;
