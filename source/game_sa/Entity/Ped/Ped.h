@@ -516,6 +516,9 @@ public:
     void SetStayInSamePlace(bool enable) { bStayInSamePlace = enable; }
     bool IsWearingGoggles() const { return !!m_pGogglesObject; }
 
+    // inlined
+    CPlayerPedData* GetPlayerData() const { return m_pPlayerData; }
+
     // NOTSA helpers
     void SetArmour(float v) { m_fArmour = v; }
     void SetWeaponShootingRange(uint8 r) { m_nWeaponShootingRate = r; }
@@ -531,6 +534,9 @@ public:
 
     CPedGroup* GetGroup() const;
     int32 GetGroupId();
+
+    CPlayerPedData* GetPlayerData() { return m_pPlayerData; }
+        
     CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
 
     CPedIntelligence* GetIntelligence() { return m_pIntelligence; }

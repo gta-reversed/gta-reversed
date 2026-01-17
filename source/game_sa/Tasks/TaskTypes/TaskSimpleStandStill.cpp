@@ -42,8 +42,8 @@ bool CTaskSimpleStandStill::ProcessPed(CPed* ped) {
                 CTaskSimpleDuck* pDuckTask = ped->m_pIntelligence->GetTaskDuck(false);
                 pDuckTask->ControlDuckMove();
             }
-            if (ped->m_pPlayerData)
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+            if (ped->GetPlayerData())
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         }
     }
 

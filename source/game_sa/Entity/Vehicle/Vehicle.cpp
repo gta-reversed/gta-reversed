@@ -4441,7 +4441,7 @@ void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
     if (setClothesToAfro) {
         const auto playerPed = FindPlayerPed(PED_TYPE_PLAYER1);
         CStats::SetStatValue(STAT_FAT, 1000.0f);
-        playerPed->m_pPlayerData->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
+        playerPed->GetPlayerData()->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
         CClothes::RebuildPlayer(playerPed, false);
     }
     const eModelID modelId = setClothesToAfro ? MODEL_PLAYER : MODEL_WMOST;

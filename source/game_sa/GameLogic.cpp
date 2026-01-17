@@ -91,7 +91,7 @@ void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
             player2->GiveWeapon(weapon, true);
         }
         player1->PickWeaponAllowedFor2Player();
-        player1->m_pPlayerData->m_nChosenWeapon = player1->m_pPlayerData->m_nChosenWeapon;
+        player1->GetPlayerData()->m_nChosenWeapon = player1->GetPlayerData()->m_nChosenWeapon;
     }
 }
 
@@ -357,7 +357,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     if (player->m_fHealth <= 0.0f) {
         CStats::UpdateStatsOnRespawn();
     }
-    auto playerData = player->m_pPlayerData;
+    auto playerData = player->GetPlayerData();
     auto playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
     player->physicalFlags.bRenderScorched = false;

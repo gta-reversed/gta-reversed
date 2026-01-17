@@ -2457,7 +2457,7 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
         }
 
         if (m_Ped->IsPlayer() && !m_Ped->bIsInTheAir) { // 0x4BD9A3   
-            if (m_Ped->m_pPlayerData->m_fMoveBlendRatio != 0.f || !e->m_vehicle->m_pDriver) { // 0x4BDAD2
+            if (m_Ped->GetPlayerData()->m_fMoveBlendRatio != 0.f || !e->m_vehicle->m_pDriver) { // 0x4BDAD2
                 g_ikChainMan.LookAt(
                     "CompVehicleCollResp",
                     m_Ped,
@@ -2701,7 +2701,7 @@ void CEventHandler::ComputeVehiclePotentialCollisionResponse(CEventPotentialGetR
             const auto plyrPed = m_Ped->AsPlayer();
             if (   std::abs(pedToVehBBCenterFwdDot) < 3.f
                 && std::abs(pedToVehBBCenterFwdDot) > std::abs(vehFwdSpeedPerSec)
-                && plyrPed->m_pPlayerData->m_fMoveBlendRatio < 1.f
+                && plyrPed->GetPlayerData()->m_fMoveBlendRatio < 1.f
                 && g_ikChainMan.IsLooking(plyrPed)
             ) { // 0x4C0E84
                 plyrPed->AnnoyPlayerPed(false);

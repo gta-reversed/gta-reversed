@@ -1334,7 +1334,7 @@ float CPhysical::GetLightingTotal()
 
     if (GetIsTypePed()) {
         CPed* ped = AsPed();
-        if (ped->m_pPlayerData && (CGame::currArea || ped->m_pPlayerData->m_bForceInteriorLighting))
+        if (ped->GetPlayerData() && (CGame::currArea || ped->GetPlayerData()->m_bForceInteriorLighting))
             bInteriorLighting = true;
     }
     return GetLightingFromCol(bInteriorLighting) + m_fDynamicLighting;
