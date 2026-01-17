@@ -6,7 +6,7 @@ void CConversationForPed::InjectHooks() {
     RH_ScopedCategory("Conversations");
 
     RH_ScopedInstall(Clear, 0x43A770);
-    RH_ScopedInstall(Update, 0x43C190, { .reversed = false });
+    RH_ScopedInstall(Update, 0x43C190);
     RH_ScopedInstall(IsPlayerInPositionForConversation, 0x43AC40);
 }
 
@@ -92,7 +92,7 @@ void CConversationForPed::Update() {
 }
 
 // 0x43AC40
-bool CConversationForPed::IsPlayerInPositionForConversation(bool randomConversation) {
+bool CConversationForPed::IsPlayerInPositionForConversation(bool isRandomConversation) {
     const auto playerPed = FindPlayerPed();
 
     // Check distance
@@ -106,28 +106,24 @@ bool CConversationForPed::IsPlayerInPositionForConversation(bool randomConversat
     }
 
     // Check player's move speed (2D only)
-    if (playerPed->GetMoveSpeed().Magnitude2D() > 0.01f) {
+    if (playerPed->GetMoveSpeed().SquaredMagnitude2D() > sq(0.01f)) {
         return false;
     }
 
-    // Check if player recently damaged the NPC
+    // Check if ped was damaged by the player in the last 6 seconds
     if (m_pPed->m_pLastEntityDamage == playerPed && CTimer::GetTimeInMS() < m_pPed->m_LastDamagedTime + 6'000) {
         return false;
     }
 
     // For random conversations, check if player has group members
-    if (randomConversation) {
+    if (isRandomConversation) {
         if (playerPed->GetGroup()->GetMembership().CountMembersExcludingLeader() >= 1) {
             return false;
         }
     }
 
-    // Check if both player and NPC are ready for conversation
-    if (!playerPed->PedIsReadyForConversation(randomConversation)) {
-        return false;
-    }
-
-    return m_pPed->PedIsReadyForConversation(randomConversation);
+    return playerPed->PedIsReadyForConversation(isRandomConversation) 
+        && m_pPed->PedIsReadyForConversation(isRandomConversation);
 }
 
 // NOTSA

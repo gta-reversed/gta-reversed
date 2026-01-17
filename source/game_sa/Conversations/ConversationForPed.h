@@ -24,7 +24,7 @@ public:
 
     void Clear(bool dontClearNodes);
     void Update();
-    bool IsPlayerInPositionForConversation(bool randomConversation);
+    bool IsPlayerInPositionForConversation(bool isRandomConversation);
 
 public: // NOTSA:
     static void InjectHooks();
