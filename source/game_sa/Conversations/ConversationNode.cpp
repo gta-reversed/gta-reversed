@@ -9,6 +9,7 @@ void CConversationNode::InjectHooks() {
     RH_ScopedInstall(ClearRecursively, 0x43A7A0);
 }
 
+// inline
 // 0x43A6F0
 inline void CConversationNode::Clear() {
     m_Name[0] = '\0';

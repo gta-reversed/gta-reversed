@@ -12,14 +12,18 @@ enum {
     MAX_NUM_TEMP_CONVERSATION_NODES = 12,
 };
 
+// Mobile?
 class CTempConversationNode {
 public:
     char  m_Name[8];
     char  m_NameNodeYes[8];
     char  m_NameNodeNo[8];
     int32 m_FinalSlot;
-    int16 m_NodeYes, m_NodeNo;
-    int32 m_Speech, m_SpeechY, m_SpeechN;
+    int16 m_NodeYes;
+    int16 m_NodeNo;
+    int32 m_Speech;
+    int32 m_SpeechY;
+    int32 m_SpeechN;
     //void  Clear(); // unknown
 };
 
@@ -33,7 +37,7 @@ public:
         PLAYING  = 2,
     };
 
-    static inline auto& m_Nodes = StaticRef<std::array<CConversationNode, MAX_NUM_CONVERSATION_NODES>, 0x969570>();
+    static inline CConversationNode m_Nodes[MAX_NUM_CONVERSATION_NODES]; // 0x969570
     static inline CTempConversationNode m_aTempNodes[MAX_NUM_TEMP_CONVERSATION_NODES]; // 0x969360
     static inline CConversationForPed m_Conversations[MAX_NUM_CONVERSATIONS]; // 0x9691D8
     static inline bool m_SettingUpConversation; // 0x9691D0

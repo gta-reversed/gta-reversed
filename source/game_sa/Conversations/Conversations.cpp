@@ -113,6 +113,7 @@ void CConversations::RemoveConversationForPed(CPed* ped) {
     }
 }
 
+// inline
 // 0x43A9B0
 inline CConversationForPed* CConversations::FindFreeConversationSlot() {
     for (auto& conv : m_Conversations) {
@@ -145,15 +146,15 @@ bool CConversations::IsConversationGoingOn() {
 
 // 0x43B000
 bool CConversations::IsConversationAtNode(const char* pName, CPed* pPed) {
-    auto conversation = FindConversationForPed(pPed);
-    assert(conversation);
+    auto conv = FindConversationForPed(pPed);
+    assert(conv);
 
-    if (conversation->m_CurrentNode < 0 || conversation->m_Status == CConversationForPed::eStatus::PLAYER_SPEAKING) {
+    if (conv->m_CurrentNode < 0 || conv->m_Status == CConversationForPed::eStatus::PLAYER_SPEAKING) {
         return false;
     }
 
     // NOTSA - using stricmp instead of MakeUpperCase + strcmp
-    return !stricmp(pName, m_Nodes[conversation->m_CurrentNode].m_Name);
+    return !stricmp(pName, m_Nodes[conv->m_CurrentNode].m_Name);
 }
 
 // 0x43A810
@@ -165,18 +166,19 @@ void CConversations::AwkwardSay(int32 whatToSay, CPed* speaker) {
 
 // 0x43AA40
 void CConversations::EnableConversation(CPed* ped, bool enable) {
-    if (const auto conversation = FindConversationForPed(ped)) {
-        conversation->m_Enabled = enable;
+    if (const auto conv = FindConversationForPed(ped)) {
+        conv->m_Enabled = enable;
     } else {
         // Originally in this case game would derefecence a nullptr, accessing address `0x18`.
         NOTSA_UNREACHABLE("Couldn't find conversation for ped!");
     }
 }
 
+// inline
 // 0x43AA80
 inline CConversationForPed::eStatus CConversations::GetConversationStatus(CPed* ped) {
-    if (const auto conversation = FindConversationForPed(ped)) {
-        return conversation->m_Status;
+    if (const auto conv = FindConversationForPed(ped)) {
+        return conv->m_Status;
     }
     // Originally in this case game would derefecence a nullptr, accessing address `0x14`.
     NOTSA_UNREACHABLE("Couldn't find conversation for ped!");
@@ -265,6 +267,7 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
     m_SettingUpConversation         = false;
 }
 
+// inline
 // 0x43A9E0
 inline CConversationForPed* CConversations::FindConversationForPed(CPed* ped) {
     for (auto& conv : m_Conversations) {
@@ -275,6 +278,7 @@ inline CConversationForPed* CConversations::FindConversationForPed(CPed* ped) {
     return nullptr;
 }
 
+// inline
 // 0x43AA10
 inline int32 CConversations::FindFreeNodeSlot() {
     for (auto [i, node] : std::views::enumerate(m_Nodes)) {

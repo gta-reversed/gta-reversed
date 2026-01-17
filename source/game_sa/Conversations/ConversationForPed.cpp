@@ -10,6 +10,7 @@ void CConversationForPed::InjectHooks() {
     RH_ScopedInstall(IsPlayerInPositionForConversation, 0x43AC40);
 }
 
+// inline
 // 0x43A770
 inline void CConversationForPed::Clear(bool dontClearNodes) {
     if (!dontClearNodes) {
