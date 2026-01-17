@@ -227,6 +227,7 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
 }
 
 // inline
+// debug function
 // 0x563390
 template<typename PtrListType>
 inline void CWorld::CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax) {
@@ -235,6 +236,8 @@ inline void CWorld::CastShadowSectorList(PtrListType& ptrList, float xmin, float
             continue;
         }
         entity->SetCurrentScanCode();
+
+        // NOP?
     }
 }
 
@@ -802,6 +805,7 @@ bool CWorld::ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSec
 }
 
 // unused
+// debug function
 // 0x564600
 void CWorld::CastShadow(float xmin, float ymin, float xmax, float ymax) {
     const int32 left   = std::max(GetSectorX(xmin), 0);
@@ -1451,18 +1455,22 @@ void CWorld::PrintCarChanges() {
         for (int32 i = count - 1; i >= 0; i--) {
             CVehicle* veh = vehiclePool->GetAt(i);
 
-            uint32 MINow = 0;
-
-            if (veh != nullptr) {
-                if (veh->m_nVehicleType != 0) {
-                    MINow = veh->GetModelIndex();
-                }
+            if (!veh) {
+                continue;
             }
 
-            if (s_aModelIndexes[i] != MINow) {
-                NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]);
-                s_aModelIndexes[i] = MINow;
+            if (veh->IsAutomobile()) {
+                continue;
             }
+
+            uint32 MINow = veh->GetModelIndex();
+
+            if (s_aModelIndexes[i] == MINow) {
+                continue;
+            }
+
+            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]); // Delete in Mobile 
+            s_aModelIndexes[i] = MINow;
         }
     }
 }
