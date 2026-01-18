@@ -1811,26 +1811,30 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
         case ENTITY_TYPE_VEHICLE: {
             const auto veh = entity->AsVehicle();
 
+            // Processing the main col model
+            if (veh->GetUsesCollision()) {
             ProcessColModel(veh->GetColModel());
-
-            if (bIncludeCarTyres) {
-                break;
             }
 
-            // Do car tyre test
-
-            CColModel wheelCol{};
+            // Wheel processing
+            if (bIncludeCarTyres) {
             CCollisionData colData{};
             CColSphere colSpheres[6];
 
-            wheelCol.m_pColData = &colData;
-            colData.m_nNumSpheres = (uint16)std::size(colSpheres);
+                colData.m_nNumSpheres = 6;
+                colData.m_nNumBoxes = 0;
+                colData.m_nNumTriangles = 0;
+                colData.m_nNumLines = 0;
             colData.m_pSpheres = colSpheres;
+
+                CColModel wheelCol{};
+                wheelCol.m_pColData = &colData;
 
             if (veh->SetUpWheelColModel(&wheelCol)) {
                 CColPoint wheelCP{};
                 float wheelTouchDist = localMinTouchDist;
-                auto& mat = veh->GetMatrix();
+                    const auto& mat = veh->GetMatrix();
+
                 if (CCollision::ProcessLineOfSight(colLine, mat, wheelCol, wheelCP, wheelTouchDist, false, doShootThroughCheck)) {
                     ms_iProcessLineNumCrossings += CCollision::ms_iProcessLineNumCrossings;
 
@@ -1839,21 +1843,22 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
                         outColPoint = wheelCP;
                         outEntity = entity;
                     } else {
-                        // Since this col check consists only of checking the wheels
-                        // if `colLine.start` is at the opposite side to the col point
-                        // will mean that the `line` went thru the vehicle body
-                        // which means there must be a direct hit somewhere with the vehicle's body
+                            const auto& vehPos = mat.GetPosition();
+                            const auto lineDir = colLine.m_vecEnd - colLine.m_vecStart;
+                            const auto wheelToVehCenter = wheelCP.m_vecPoint - vehPos;
 
-                        const auto lineDir = colLine.m_vecEnd - colLine.m_vecStart;
-                        const auto lineDirDot = DotProduct(lineDir, mat.GetRight());
-                        const auto colPointToEntityDot = DotProduct(wheelCP.m_vecPoint - mat.GetPosition(), mat.GetRight());
-                        if (lineDirDot < 0.f && colPointToEntityDot > 0.f // Line begins at the left, col point is on the right
-                            || lineDirDot > 0.f && colPointToEntityDot < 0.f) // Or the other way around
-                        {
-                            // And the absolute angle between the `line` and the `right` direction vector is less than 45 deg.
-                            // Here they're betting on the fact that the wheel is not too far away from the body itself. (which is true in case of all vanilla models)
-                            // If it is, and the vehicle is small in height this might be incorrect (because the line might go over the body itself, and just hit the wheel)
-                            if (fabs(lineDirDot) / lineDir.Magnitude() > 0.5f) {
+                            const auto lineDirDotRight = DotProduct(lineDir, mat.GetRight());
+                            const auto wheelDotRight = DotProduct(wheelToVehCenter, mat.GetRight());
+
+                            bool crossesVehicleBody = false;
+                            if (lineDirDotRight < 0.0f && wheelDotRight > 0.0f) {
+                                crossesVehicleBody = true;
+                            } else if (lineDirDotRight > 0.0f && wheelDotRight < 0.0f) {
+                                crossesVehicleBody = true;
+                            }
+
+                            if (crossesVehicleBody) {
+                                if (std::abs(lineDirDotRight) / lineDir.Magnitude() > 0.5f) {
                                 localMinTouchDist = wheelTouchDist;
                                 outColPoint = wheelCP;
                                 outEntity = entity;
@@ -1864,11 +1869,13 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             }
 
             wheelCol.m_pColData = nullptr; // Otherwise destructor would try to free it
-
+            }
             break;
         }
         default: {
+            if (entity->GetUsesCollision()) {
             ProcessColModel(entity->GetColModel());
+            }
             break;
         }
         }
