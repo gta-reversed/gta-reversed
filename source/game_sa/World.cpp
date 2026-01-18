@@ -505,10 +505,19 @@ void CWorld::RemoveEntityInsteadOfProcessingIt(CEntity* entity) {
 // 0x563A80
 void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY) {
     for (auto* const veh : ptrList) {
-        const auto& pos = veh->GetPosition();
-        const auto& mat = veh->GetMatrix();
+        if (veh->IsScanCodeCurrent()) {
+            continue;
+        }
 
-        if (!IsPointWithinBounds2D({ minX, minY }, { maxX, maxY }, { pos })) {
+        veh->SetCurrentScanCode();
+        
+        if (veh == FindPlayerVehicle()) {
+            continue;
+        }
+
+        const auto& pos = veh->GetPosition();
+
+        if (!IsPointWithinBounds2D({ minX, minY }, { maxX, maxY }, pos)) {
             continue;
         }
 
@@ -516,6 +525,7 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
             continue;
         }
 
+        // Checking the mission type
         switch (veh->m_autoPilot.m_nCarMission) {
         case eCarMission::MISSION_RAMPLAYER_FARAWAY:
         case eCarMission::MISSION_RAMPLAYER_CLOSE:
@@ -530,36 +540,45 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
 
         veh->m_autoPilot.SetTempAction(TEMPACT_WAIT, 2'000);
 
-        if (const auto colData = veh->GetColModel()->m_pColData; colData->m_nNumSpheres) {
-            for (auto i = 0; i < colData->m_nNumSpheres; i++) {
-                const auto& sphere    = colData->m_pSpheres[i];
-                const auto  radius    = sphere.m_fRadius;
-                const auto  spherePos = mat.TransformPoint(sphere.m_vecCenter);
-                if ((spherePos.x + radius > x1 && spherePos.x - radius < x2)
-                    && (spherePos.y + radius > y1 && spherePos.y - radius < y2)) {
-                    // R* used a bool variable and then, after the loop they did this
-                    // and didn't break after the sphere has been found.
+        const auto colData = veh->GetColModel()->m_pColData;
+        if (!colData || !colData->m_nNumSpheres) {
+            continue;
+        }
+
+        // Checking the intersection of spheres with the region
+        const auto& mat = veh->GetMatrix();
+        const auto spheresIntersect = std::ranges::any_of(
+            std::span(colData->m_pSpheres, colData->m_nNumSpheres),
+            [&](const CColSphere& sphere) {
+                const auto spherePos = mat.TransformVector(sphere.m_vecCenter);
+                const auto radius = sphere.m_fRadius;
+                
+                return (spherePos.x + radius > x1 && spherePos.x - radius < x2) &&
+                       (spherePos.y + radius > y1 && spherePos.y - radius < y2);
+            }
+        );
+
+        if (!spheresIntersect) {
+            continue;
+        }
 
                     auto& speed = veh->m_vecMoveSpeed;
 
+        // Reset the X-component of velocity
                     if (pos.x <= (x1 + x2) / 2.f) {
                         speed.x = std::min(speed.x, 0.0f);
                     } else {
                         speed.x = std::max(speed.x, 0.0f);
                     }
 
+        // Reset the Y-component of velocity
                     if (pos.y <= (y1 + y2) / 2.f) {
                         speed.y = std::min(speed.y, 0.0f);
                     } else {
                         speed.y = std::max(speed.y, 0.0f);
                     }
-
-                    break;
                 }
             }
-        }
-    }
-}
 
 // 0x563D00
 void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float minX, float minY, float maxX, float maxY, float biggerMinX, float biggerMinY, float biggerMaxX, float biggerMaxY) {
