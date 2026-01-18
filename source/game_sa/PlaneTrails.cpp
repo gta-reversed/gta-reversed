@@ -22,9 +22,9 @@ void CPlaneTrails::Init() {
 // 0x7173A0
 void CPlaneTrails::Render() {
     const CColourSet& cc            = CTimeCycle::m_CurrentColours;
-    const float maxColorComponent   = (float)std::max({ cc.m_nSkyBottomBlue, cc.m_nSkyBottomGreen, cc.m_nSkyBottomRed }) / 256.0f;
+    const float maxColorComponent   = (float)std::max({ cc.m_nSkyBottomBlue, cc.m_nSkyBottomGreen, cc.m_nSkyBottomRed }) * (1.0f / 255.0f);
     const float visibilityIntensity = std::min({ 1.0f - CWeather::CloudCoverage, 1.0f - CWeather::Foggyness, 1.0f - CWeather::Rain });
-    const float finalIntensity      = std::max(maxColorComponent, visibilityIntensity);
+    const float finalIntensity      = std::min(maxColorComponent, visibilityIntensity);
 
     if (finalIntensity > 0.0001f) {
         for (auto& pt : aArray) {
