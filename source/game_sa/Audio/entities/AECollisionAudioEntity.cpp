@@ -613,6 +613,10 @@ void CAECollisionAudioEntity::Service() {
         if (entry.Status != COLLISION_SOUND_LOOPING || time < entry.LoopStopTimeMs)
             continue;
 
+        if (entry.Sound) {
+            entry.Sound->StopSoundAndForget();
+        }
+
         entry = {};
         --m_NumActiveCollisionSounds;
     }
