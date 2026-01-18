@@ -799,20 +799,23 @@ void CAERadioTrackManager::CheckForPause() {
     if (CTimer::GetIsPaused()) {
         m_bPauseMode = true;
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, m_bEnabledInPauseMode ? 1.0f : 0.0f);
-    } else if (
-           notsa::contains({
-               AE_RT_CIVILIAN,
-               AE_RT_EMERGENCY,
-               AE_RT_UNKNOWN
-           }, CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio()->RadioType)
-        || CAudioEngine::IsAmbienceRadioActive()
-    ) {
-        m_bPauseMode = false;
-        AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, 1.0f);
     } else {
-        StopRadio(nullptr, false);
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
-        m_bPauseMode = false;
+        auto* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
+        
+        if ((settings && notsa::contains({
+                AE_RT_CIVILIAN,
+                AE_RT_EMERGENCY,
+                AE_RT_UNKNOWN
+            }, settings->RadioType))
+            || CAudioEngine::IsAmbienceRadioActive()
+        ) {
+            m_bPauseMode = false;
+            AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, 1.0f);
+        } else {
+            StopRadio(nullptr, false);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
+            m_bPauseMode = false;
+        }
     }
 }
 
