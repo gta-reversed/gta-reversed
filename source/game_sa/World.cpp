@@ -365,18 +365,13 @@ void CWorld::FindObjectsOfTypeInRangeSectorList(uint32 modelId, PtrListType& ptr
 // 0x5636A0
 template<typename PtrListType>
 bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrList, const CColLine& colLine, CEntity*& outEntity, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly) {
-    const auto IsDirectionPointingUpwards = [](float startZ, float endZ) {
-        return endZ >= startZ;
-    };
-
-    const auto originalLineGoingUpwards = IsDirectionPointingUpwards(colLine.m_vecStart.z, colLine.m_vecEnd.z);
+    const auto originalLineGoingUpwards = (colLine.m_vecEnd.z - colLine.m_vecStart.z) >= 0.0f;
 
     auto localColLine = colLine;
 
     bool dontGoToNextNode{};
-    for (typename PtrListType::NodeType *node = ptrList.GetNode(), *next{}; next || dontGoToNextNode;) {
+    for (typename PtrListType::NodeType *node = ptrList.GetNode(), *next{}; node; node = next) {
         if (!dontGoToNextNode) {
-            node = next;
             next = node->Next;
             localColLine = colLine;
         }
@@ -396,14 +391,28 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
             continue;
         }
 
-        if (FilledColPointIndex < std::size(gaTempSphereColPoints)) { // TODO: Perhaps break if it's full?
-            if (originalLineGoingUpwards == IsDirectionPointingUpwards(cp.m_vecPoint.z, localColLine.m_vecEnd.z) // Still pointing in the same direction
-            ) {
+        if (FilledColPointIndex < std::size(gaTempSphereColPoints)) {
+            const float distToEnd = localColLine.m_vecEnd.z - cp.m_vecPoint.z;
+            
+            if (originalLineGoingUpwards) {
+                if (distToEnd > 0.0f) {
                 entity->SetScanCode(ms_nCurrentScanCode - 1);
                 dontGoToNextNode = true;
                 gaTempSphereColPoints[FilledColPointIndex++] = cp;
             }
-            localColLine.m_vecEnd.z += originalLineGoingUpwards ? 0.1f : -0.1f;
+            } else {
+                if (distToEnd < 0.0f) {
+                    entity->SetScanCode(ms_nCurrentScanCode - 1);
+                    dontGoToNextNode = true;
+                    gaTempSphereColPoints[FilledColPointIndex++] = cp;
+        }
+    }
+
+            // In any case, we shift the starting point
+            if (dontGoToNextNode) {
+                localColLine.m_vecStart = cp.m_vecPoint;
+                localColLine.m_vecStart.z += originalLineGoingUpwards ? 0.1f : -0.1f;
+            }
         }
     }
 
