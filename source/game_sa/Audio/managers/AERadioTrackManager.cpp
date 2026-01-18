@@ -689,7 +689,12 @@ int32 CAERadioTrackManager::ChooseDJBanterIndexFromList(eRadioID id, int32** lis
 void CAERadioTrackManager::ChooseTracksForStation(eRadioID id) {
     int8 trackCount = 0;
 
-    m_RequestedSettings.Reset();
+    for (auto i = 0u; i < tRadioSettings::NUM_TRACKS; i++) {
+        m_RequestedSettings.TrackTypes[i] = TYPE_NONE;
+        m_RequestedSettings.TrackQueue[i] = -1;
+        m_RequestedSettings.TrackIndices[i] = -1;
+    }
+
     if (!CAEAudioUtility::ResolveProbability(0.95f)) {
         if (id) {
             if (CAEAudioUtility::ResolveProbability(0.5f))
