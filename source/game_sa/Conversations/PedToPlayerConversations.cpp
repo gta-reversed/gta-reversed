@@ -57,7 +57,7 @@ void CPedToPlayerConversations::Update() {
             return;
         }
 
-        if (notsa::bugfixes::CPedToPlayerConversations_Update_DontWithGangWarn) {
+        if (notsa::bugfixes::CPedToPlayerConversations_Update_SkipWhileInAGangWar) {
             // Added in Mobile:
             if (CGangWars::bGangWarsActive) {
                 return;
