@@ -197,7 +197,7 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
     auto maxTouchDistanceLocal{ maxTouchDistance };
 
     for (auto* const entity : ptrList) {
-        if (entity->IsScanCodeCurrent() || !entity->m_bUsesCollision || entity == pIgnoreEntity) {
+        if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision() || entity == pIgnoreEntity) {
             continue;
         }
 
@@ -396,17 +396,17 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
             
             if (originalLineGoingUpwards) {
                 if (distToEnd > 0.0f) {
-                entity->SetScanCode(ms_nCurrentScanCode - 1);
-                dontGoToNextNode = true;
-                gaTempSphereColPoints[FilledColPointIndex++] = cp;
-            }
+                    entity->SetScanCode(ms_nCurrentScanCode - 1);
+                    dontGoToNextNode = true;
+                    gaTempSphereColPoints[FilledColPointIndex++] = cp;
+                }
             } else {
                 if (distToEnd < 0.0f) {
                     entity->SetScanCode(ms_nCurrentScanCode - 1);
                     dontGoToNextNode = true;
                     gaTempSphereColPoints[FilledColPointIndex++] = cp;
-        }
-    }
+                }
+            }
 
             // In any case, we shift the starting point
             if (dontGoToNextNode) {
@@ -539,7 +539,7 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
         }
 
         veh->m_autoPilot.SetTempAction(TEMPACT_WAIT, 2'000);
-
+        
         const auto colData = veh->GetColModel()->m_pColData;
         if (!colData || !colData->m_nNumSpheres) {
             continue;
@@ -562,23 +562,23 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
             continue;
         }
 
-                    auto& speed = veh->m_vecMoveSpeed;
+        auto& speed = veh->m_vecMoveSpeed;
 
         // Reset the X-component of velocity
-                    if (pos.x <= (x1 + x2) / 2.f) {
-                        speed.x = std::min(speed.x, 0.0f);
-                    } else {
-                        speed.x = std::max(speed.x, 0.0f);
-                    }
+        if (pos.x <= (x1 + x2) / 2.f) {
+            speed.x = std::min(speed.x, 0.0f);
+        } else {
+            speed.x = std::max(speed.x, 0.0f);
+        }
 
         // Reset the Y-component of velocity
-                    if (pos.y <= (y1 + y2) / 2.f) {
-                        speed.y = std::min(speed.y, 0.0f);
-                    } else {
-                        speed.y = std::max(speed.y, 0.0f);
-                    }
-                }
-            }
+        if (pos.y <= (y1 + y2) / 2.f) {
+            speed.y = std::min(speed.y, 0.0f);
+        } else {
+            speed.y = std::max(speed.y, 0.0f);
+        }
+    }
+}
 
 // 0x563D00
 void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float minX, float minY, float maxX, float maxY, float biggerMinX, float biggerMinY, float biggerMaxX, float biggerMaxY) {
@@ -881,7 +881,7 @@ void CWorld::ProcessAttachedEntities() {
 template<typename PtrListType>
 bool CWorld::GetIsLineOfSightSectorListClear(PtrListType& ptrList, const CColLine& colLine, bool doSeeThroughCheck, bool doCameraIgnoreCheck) {
     for (auto* const entity : ptrList) {
-        if (entity->IsScanCodeCurrent() || !entity->m_bUsesCollision) {
+        if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision()) {
             continue;
         }
 
@@ -1445,7 +1445,7 @@ CEntity* CWorld::TestSphereAgainstSectorList(PtrListType& ptrList, CVector spher
             continue;
         }
 
-        if (!entity->m_bUsesCollision || ignoreEntity == entity) {
+        if (!entity->GetUsesCollision() || ignoreEntity == entity) {
             continue;
         }
 
@@ -1725,7 +1725,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             continue;
         }
 
-        if (!entity->m_bUsesCollision) {
+        if (!entity->GetUsesCollision()) {
             if (!entity->GetIsTypePed()) {
                 continue;
             }
@@ -1800,7 +1800,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
         switch (entity->GetType()) {
         case ENTITY_TYPE_PED: {
             const auto ped = entity->AsPed();
-            if (ped->m_bUsesCollision
+            if (ped->GetUsesCollision()
                 || ped->m_pAttachedTo
                 || (bIncludeDeadPeds && !ped->IsAlive())
                 || (bIncludeBikers && ped->bTestForShotInVehicle)) {
@@ -1813,36 +1813,36 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
 
             // Processing the main col model
             if (veh->GetUsesCollision()) {
-            ProcessColModel(veh->GetColModel());
+                ProcessColModel(veh->GetColModel());
             }
 
             // Wheel processing
             if (bIncludeCarTyres) {
-            CCollisionData colData{};
-            CColSphere colSpheres[6];
-
+                CCollisionData colData{};
+                CColSphere colSpheres[6];
+        
                 colData.m_nNumSpheres = 6;
                 colData.m_nNumBoxes = 0;
                 colData.m_nNumTriangles = 0;
                 colData.m_nNumLines = 0;
-            colData.m_pSpheres = colSpheres;
-
+                colData.m_pSpheres = colSpheres;
+        
                 CColModel wheelCol{};
                 wheelCol.m_pColData = &colData;
 
-            if (veh->SetUpWheelColModel(&wheelCol)) {
-                CColPoint wheelCP{};
-                float wheelTouchDist = localMinTouchDist;
+                if (veh->SetUpWheelColModel(&wheelCol)) {
+                    CColPoint wheelCP{};
+                    float wheelTouchDist = localMinTouchDist;
                     const auto& mat = veh->GetMatrix();
 
-                if (CCollision::ProcessLineOfSight(colLine, mat, wheelCol, wheelCP, wheelTouchDist, false, doShootThroughCheck)) {
-                    ms_iProcessLineNumCrossings += CCollision::ms_iProcessLineNumCrossings;
-
-                    if (wheelTouchDist < localMinTouchDist) {
-                        localMinTouchDist = wheelTouchDist;
-                        outColPoint = wheelCP;
-                        outEntity = entity;
-                    } else {
+                    if (CCollision::ProcessLineOfSight(colLine, mat, wheelCol, wheelCP, wheelTouchDist, false, doShootThroughCheck)) {
+                        ms_iProcessLineNumCrossings += CCollision::ms_iProcessLineNumCrossings;
+    
+                        if (wheelTouchDist < localMinTouchDist) {
+                            localMinTouchDist = wheelTouchDist;
+                            outColPoint = wheelCP;
+                            outEntity = entity;
+                        } else {
                             const auto& vehPos = mat.GetPosition();
                             const auto lineDir = colLine.m_vecEnd - colLine.m_vecStart;
                             const auto wheelToVehCenter = wheelCP.m_vecPoint - vehPos;
@@ -1859,22 +1859,22 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
 
                             if (crossesVehicleBody) {
                                 if (std::abs(lineDirDotRight) / lineDir.Magnitude() > 0.5f) {
-                                localMinTouchDist = wheelTouchDist;
-                                outColPoint = wheelCP;
-                                outEntity = entity;
+                                    localMinTouchDist = wheelTouchDist;
+                                    outColPoint = wheelCP;
+                                    outEntity = entity;
+                                }
                             }
                         }
                     }
                 }
-            }
-
-            wheelCol.m_pColData = nullptr; // Otherwise destructor would try to free it
+        
+                wheelCol.m_pColData = nullptr; // Otherwise destructor would try to free it
             }
             break;
         }
         default: {
             if (entity->GetUsesCollision()) {
-            ProcessColModel(entity->GetColModel());
+                ProcessColModel(entity->GetColModel());
             }
             break;
         }
@@ -1962,7 +1962,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
         if (entity->GetIsStatic()) {
             if (!entity->GetIsTypeObject()) {
-                if (entity->m_bUsesCollision) {
+                if (entity->GetUsesCollision()) {
                     entity->SetIsStatic(false);
                     entity->AddToMovingList();
                 }
@@ -2000,7 +2000,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             }
         }
 
-        if (entity->GetIsStatic() || !entity->m_bUsesCollision) {
+        if (entity->GetIsStatic() || !entity->GetUsesCollision()) {
             continue;
         }
 
@@ -2112,7 +2112,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
 
                     impactVelocity *= impactVelocityFactor;
 
-                    if (ped->bIsStanding && ped->m_bUsesCollision) {
+                    if (ped->bIsStanding && ped->GetUsesCollision()) {
                         ped->bIsStanding = false;
                         impactVelocity.z += 4.f;
                     } else {
