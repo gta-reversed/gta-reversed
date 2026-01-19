@@ -14,7 +14,7 @@ public:
     bool IsEmpty() const noexcept { return !m_node; }
 
     // inlined
-    CEntryInfoNode* GetHeadPtr() { return m_node; }
+    CEntryInfoNode* GetNodePtr() { return m_node; } // AKA = GetHeadPtr
 };
 
 VALIDATE_SIZE(CEntryInfoList, 0x4);
