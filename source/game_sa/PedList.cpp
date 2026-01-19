@@ -8,7 +8,7 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
-    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340, { .reversed = false });
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader);
     RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0, { .reversed = false });
     RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .reversed = false });
     RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
@@ -48,7 +48,15 @@ void CPedList::FillUpHoles() {
 
 // 0x69A340
 void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership) {
-    plugin::CallMethod<0x69A340>(this, pedGroupMembership);
+    m_count = 0;
+
+    for (int32 index = 0; index < TOTAL_PED_GROUP_FOLLOWERS; ++index) {
+        if (auto* ped = pedGroupMembership->GetMember(index); ped && !ped->GetIntelligence()->IsInACarOrEnteringOne()) {
+            AddMember(ped);
+        }
+    }
+
+    ClearUnused();
 }
 
 // 0x69A3B0
