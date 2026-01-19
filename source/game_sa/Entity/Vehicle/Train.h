@@ -10,6 +10,8 @@
 #include "Door.h"
 #include "TrainNode.h"
 
+constexpr int32 NUM_TRAIN_STATIONS = 6;
+
 enum eTrainNodes {
     TRAIN_NODE_NONE   = 0,
     TRAIN_DOOR_LF     = 1,
