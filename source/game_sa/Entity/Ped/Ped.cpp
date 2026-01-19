@@ -3271,10 +3271,6 @@ bool IsPedPointerValid(CPed* ped) {
     return (ped->m_pCollisionList.GetNodePtr() || ped == FindPlayerPed());
 }
 
-/*!
-* @addr unknown
-* TODO: Android
-*/
 bool IsPedPointerValid_NotInWorld(CPed* ped) {
     return GetPedPool()->IsObjectValid(ped);
 }
