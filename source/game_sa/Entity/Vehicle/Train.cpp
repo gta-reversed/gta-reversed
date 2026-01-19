@@ -332,25 +332,25 @@ bool CTrain::FindSideStationIsOn() const {
 }
 
 // 0x6F5F00
-void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float* distanceToStation, int32* numStations) {
+void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float& distanceToStation, int32& numStations) {
     int station = 0;
 
-    // Locate the station that corresponds to your current location.
-    for (station = 0; station < 6; station++) {
+    // Locates the station corresponding to the current position.
+    for (; station < 6; station++) {
         if (StationDist[station] > distance) {
             break;
         }
     }
 
-    // Adjust to the opposite direction.
+    // Adjusts to counterclockwise
     if (!clockwiseDirection) {
         station = (station == 0) ? 5 : station - 1;
     }
 
-    // If you are very close to the current station, move on to the next one.
+    // If are very close to the current station, move forward.
     if (approxEqual(distance, StationDist[station], 100.0f)) {
         station += clockwiseDirection ? 1 : -1;
-    
+
         if (station < 0) {
             station = 5;
         } else if (station > 5) {
@@ -358,8 +358,8 @@ void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float d
         }
     }
 
-    *numStations       = station;
-    *distanceToStation = StationDist[station];
+    numStations       = station;
+    distanceToStation = StationDist[station];
 }
 
 // 0x6F6320
