@@ -86,7 +86,7 @@ public:
     static uint32& GenTrain_GenerationNode;
     static uint32& GenTrain_Status;
     static bool& bDisableRandomTrains;
-    static CVector aStationCoors[6];
+    static CVector aStationCoors[NUM_TRAIN_STATIONS];
 
     static constexpr auto Type = VEHICLE_TYPE_TRAIN;
 
