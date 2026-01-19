@@ -405,6 +405,10 @@ public:
     // loads 'white' texture
     static void LoadEnvironmentMaps();
 
+    // inlined in Android
+    const CVector& GetFrontSeatPosn() { if(IsBoat()) { return m_pVehicleStruct->m_avDummyPos[0]; } return m_pVehicleStruct->m_avDummyPos[4]; } // TODO: 0/4 ?
+    const CVector& GetBackSeatPosn() { return m_pVehicleStruct->m_avDummyPos[5]; } // TODO: 5 ?
+
     // Helpers
     // ctrl+c, ctrl+v from CVehicle
     [[nodiscard]] bool IsVehicleTypeValid()     const { return m_nVehicleType != VEHICLE_TYPE_IGNORE; }
