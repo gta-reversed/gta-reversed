@@ -84,7 +84,8 @@ void CPedList::ClearUnused() {
 }
 
 void CPedList::AddMember(CPed* ped) {
-    m_peds[m_count++] = ped;
+    // TODO: wtf MAX_NUM_PEDS_IN_LIST - 1?; in Android '<= 29'
+    if (m_count <= MAX_NUM_PEDS_IN_LIST - 1) { m_peds[m_count++] = ped; }
 }
 
 // Must call FillUpHoles afterwards!
