@@ -3268,7 +3268,7 @@ bool IsPedPointerValid(CPed* ped) {
         return IsEntityPointerValid(ped->m_pVehicle);
     }
 
-    return (ped->m_pCollisionList.GetHeadPtr() || ped == FindPlayerPed());
+    return (ped->m_pCollisionList.GetNodePtr() || ped == FindPlayerPed());
 }
 
 /*!
