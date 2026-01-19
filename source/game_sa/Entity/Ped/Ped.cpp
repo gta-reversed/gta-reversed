@@ -3259,9 +3259,24 @@ void CPed::GiveDelayedWeapon(eWeaponType weaponType, uint32 ammo) {
 /*!
 * @addr 0x5E8A30
 */
-bool IsPedPointerValid(CPed* ped)
-{
-    return ((bool(__cdecl *)(CPed*))0x5E8A30)(ped);
+bool IsPedPointerValid(CPed* ped) {
+    if(!IsPedPointerValid_NotInWorld(ped)) {
+        return false;
+    }
+
+    if (ped->IsInVehicle()) {
+        return IsEntityPointerValid(ped->m_pVehicle);
+    }
+
+    return (ped->m_pCollisionList.m_node || ped == FindPlayerPed());
+}
+
+/*!
+* @addr unknown
+* TODO: Android
+*/
+bool IsPedPointerValid_NotInWorld(CPed* ped) {
+    return GetPedPool()->IsObjectValid(ped);
 }
 
 /*!
