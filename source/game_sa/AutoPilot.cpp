@@ -49,12 +49,10 @@ void CAutoPilot::ModifySpeed(float target) {
 
 // 0x41B950
 void CAutoPilot::RemoveOnePathNode() {
-    if (m_nPathFindNodesCount <= 0) return;
-
+    assert(m_nPathFindNodesCount > 0);
+    
     --m_nPathFindNodesCount;
-
-    if (m_nPathFindNodesCount == 0) return;
-
+    
     for (int count = 0; count < m_nPathFindNodesCount; ++count) {
         m_aPathFindNodesInfo[count] = m_aPathFindNodesInfo[count + 1]; // ?
     }
