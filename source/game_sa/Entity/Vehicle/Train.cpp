@@ -289,41 +289,30 @@ void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
 
 // 0x6F5E70
 CTrain* CTrain::FindCaboose(CTrain* train) {
-    if (!train) {
-        return nullptr;
-    }
-
-    while (train->m_pNextCarriage) {
-        train = train->m_pNextCarriage;
-    }
-
-    return train;
+    auto* it = train;
+    while (it = it->m_pNextCarriage);
+    return it;
 }
 
 // 0x6F5E90
 CTrain* CTrain::FindEngine(CTrain* train) {
-    if (!train) {
-        return nullptr;
-    }
-
-    while (train->m_pPrevCarriage) {
-        train = train->m_pPrevCarriage;
-    }
-
-    return train;
+    auto* it = train;
+    while (it = it->m_pPrevCarriage);
+    return it;
 }
 
-// 0x6F5EB0
+/**
+ * @brief Find the next carriage offset by `carriage` (`0` would be the next, `1` would be the one after the next and so on)
+ * @addr 0x6F5EB0
+ */
 CTrain* CTrain::FindCarriage(CTrain* train, uint8 carriage) {
-    if(!train) {
-        return nullptr;
+    uint32 n = 0;
+    for (auto* it = train; it; it = it->m_pNextCarriage) {
+        if (++n >= carriage) {
+             return it;
+        }
     }
-
-    for (uint8 i = 0; i < carriage && train; ++i) {
-        train = train->m_pNextCarriage;
-    }
-
-    return train;
+    return nullptr;
 }
 
 // 0x6F5EF0
@@ -333,10 +322,10 @@ bool CTrain::FindSideStationIsOn() const {
 
 // 0x6F5F00
 void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float& distanceToStation, int32& numStations) {
-    int station = 0;
+    int32 station = 0;
 
     // Locates the station corresponding to the current position.
-    for (; station < 6; station++) {
+    for (; station < NUM_TRAIN_STATIONS; station++) {
         if (StationDist[station] > distance) {
             break;
         }
@@ -344,7 +333,7 @@ void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float d
 
     // Adjusts to counterclockwise
     if (!clockwiseDirection) {
-        station = (station == 0) ? 5 : station - 1;
+        station = (station == 0) ? NUM_TRAIN_STATIONS - 1 : station - 1;
     }
 
     // If are very close to the current station, move forward.
