@@ -79,22 +79,22 @@ bool CPedClothesDesc::HasVisibleTattoo() {
 
 // 0x5A8050
 void CPedClothesDesc::SetTextureAndModel(uint32 texture, uint32 model, eClothesTexturePart texturePart) {
-    if (texturePart >= CLOTHES_TEXTURE_TOTAL) return;
+    assert(texturePart < CLOTHES_TEXTURE_TOTAL);
 
     m_anTextureKeys[texturePart] = texture;
 
-    if (const auto modelPart = CClothes::GetTextureDependency(texturePart); modelPart != CLOTHES_MODEL_TOTAL) {
+    if (const auto modelPart = CClothes::GetTextureDependency(texturePart); modelPart != CLOTHES_MODEL_UNAVAILABLE) {
         m_anModelKeys[modelPart] = model;
     }
 }
 
 // 0x5A8080
 void CPedClothesDesc::SetTextureAndModel(const char* textureName, const char* modelName, eClothesTexturePart texturePart) {
-    if (texturePart >= CLOTHES_TEXTURE_TOTAL) return;
+    assert(texturePart < CLOTHES_TEXTURE_TOTAL);
 
     m_anTextureKeys[texturePart] = CKeyGen::GetUppercaseKey(textureName);
 
-    if (const auto modelPart = CClothes::GetTextureDependency(texturePart); modelPart != CLOTHES_MODEL_TOTAL) {
+    if (const auto modelPart = CClothes::GetTextureDependency(texturePart); modelPart != CLOTHES_MODEL_UNAVAILABLE) {
         m_anModelKeys[modelPart] = CKeyGen::GetUppercaseKey(modelName);
     }
 }
