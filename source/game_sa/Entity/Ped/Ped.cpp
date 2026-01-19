@@ -166,7 +166,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(Dress, 0x5E0130);
     RH_ScopedInstall(IsPlayer, 0x5DF8F0);
     RH_ScopedInstall(GetBikeRidingSkill, 0x5DF510);
-    RH_ScopedInstall(SetPedPositionInCar, 0x5DF910, { .reversed = false });
+    RH_ScopedInstall(SetPedPositionInCar, 0x5DF910);
     RH_ScopedInstall(SetRadioStation, 0x5DFD90);
     RH_ScopedInstall(PositionAttachedPed, 0x5DFDF0, { .reversed = false });
     RH_ScopedInstall(ResetGunFlashAlpha, 0x5DF4E0);
@@ -1264,7 +1264,88 @@ bool CPed::IsPlayer() const
 * @addr 0x5DF910
 */
 void CPed::SetPedPositionInCar() {
-    ((void(__thiscall *)(CPed*))0x5DF910)(this);
+    if (CReplay::Mode == MODE_PLAYBACK) {
+        return;
+    }
+
+    assert(IsInVehicle());
+
+    CVector seatLocalPos{};
+    auto*   mi     = (CVehicleModelInfo*)CModelInfo::GetModelInfo(m_pVehicle->GetModelIndex());
+    CMatrix vehMat = m_pVehicle->GetMatrix();
+    CMatrix tempMat;
+    const float heading = m_pVehicle->GetHeading();
+
+    if (this == m_pVehicle->GetDriver()) {
+        seatLocalPos = mi->GetFrontSeatPosn();
+
+        if (!m_pVehicle->IsBoat() && !m_pVehicle->IsBike()) {
+            seatLocalPos.x = -seatLocalPos.x;
+        }
+
+        if (m_pVehicle->IsSubBMX()) {
+            auto* bmx = (CBmx*)m_pVehicle;
+            seatLocalPos.z -= 0.001f * std::abs((bmx)->m_fControlJump);
+        }
+    } else if (this == m_pVehicle->m_apPassengers[0]) {
+        if (m_pVehicle->IsBike() || m_pVehicle->IsSubQuad()) {
+            seatLocalPos = mi->GetBackSeatPosn();
+        } else {
+            seatLocalPos = mi->GetFrontSeatPosn();
+        }
+    } else if (this == m_pVehicle->m_apPassengers[1]) {
+        seatLocalPos   = mi->GetBackSeatPosn();
+        seatLocalPos.x = -seatLocalPos.x;
+    } else if (this == m_pVehicle->m_apPassengers[2]) {
+        seatLocalPos = mi->GetBackSeatPosn();
+    } else {
+        seatLocalPos = mi->GetFrontSeatPosn();
+    }
+
+    if (m_pVehicle->IsBike()) {
+        auto* bike = (CBike*)m_pVehicle;
+        bike->CalculateLeanMatrix();
+        vehMat = bike->m_mLeanMatrix;
+    } else if (m_pVehicle->GetModelIndex() == MODEL_COMBINE) { // 532 ?
+        float chassisPosZ = 0.0f;
+        auto  autoMobile  = (CAutomobile*)m_pVehicle;
+
+        if (autoMobile->m_aCarNodes[CAR_CHASSIS]) {
+            tempMat.Attach(RwFrameGetMatrix(autoMobile->m_aCarNodes[CAR_CHASSIS]), false);
+            chassisPosZ = tempMat.GetPosition().z;
+            tempMat.Detach();
+        }
+
+        tempMat.SetTranslate({ 0.0f, 0.0f, -chassisPosZ });
+        tempMat.RotateY(autoMobile->m_fDoomVerticalRotation); // AKA GunOrientation ?
+        tempMat.SetTranslateOnly({ 0.0f, 0.0f, chassisPosZ });
+        vehMat *= tempMat;
+    }
+
+    vehMat.GetPosition() += vehMat.TransformVector(seatLocalPos);
+    tempMat.SetUnity();
+
+    if (m_pVehicle->m_pHandlingData->GetAnimGroupId() == 13) { // ?
+        if (this == m_pVehicle->m_apPassengers[1]) {
+            m_fCurrentRotation = heading - HALF_PI;
+            tempMat.SetTranslate({ 0.0f, 0.0f, 0.0f });
+            tempMat.RotateZ(-HALF_PI);
+            tempMat.SetTranslateOnly({ 0.0f, 0.6f, 0.0f });
+            vehMat *= tempMat;
+        } else if (this == m_pVehicle->m_apPassengers[2]) {
+            m_fCurrentRotation = heading + HALF_PI;
+            tempMat.SetTranslate({ 0.0f, 0.0f, 0.0f });
+            tempMat.RotateZ(HALF_PI);
+            vehMat *= tempMat;
+        } else {
+            m_fCurrentRotation = heading;
+        }
+    } else {
+        m_fCurrentRotation = heading;
+    }
+
+    m_fAimingRotation = m_fCurrentRotation;
+    SetMatrix(vehMat);
 }
 
 /*!
