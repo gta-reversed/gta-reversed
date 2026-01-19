@@ -802,11 +802,11 @@ void CAERadioTrackManager::CheckForPause() {
     } else {
         auto* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
         
-        if ((settings && notsa::contains({
+        if (settings && notsa::contains({
                 AE_RT_CIVILIAN,
                 AE_RT_EMERGENCY,
                 AE_RT_UNKNOWN
-            }, settings->RadioType))
+            }, settings->RadioType)
             || CAudioEngine::IsAmbienceRadioActive()
         ) {
             m_bPauseMode = false;
