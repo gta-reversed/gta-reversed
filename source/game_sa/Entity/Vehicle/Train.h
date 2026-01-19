@@ -118,7 +118,7 @@ public:
     static CTrain* FindCaboose(CTrain* train);
     static CTrain* FindEngine(CTrain* train);
     static CTrain* FindCarriage(CTrain* train, uint8 carriage);
-    static void FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float* distanceToStation, int32* numStations);
+    static void FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float& distanceToStation, int32& numStations);
     static void RemoveMissionTrains();
     static void RemoveAllTrains();
     static void ReleaseMissionTrains();
