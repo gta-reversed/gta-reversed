@@ -8,7 +8,7 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
-    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader);
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
     RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0, { .reversed = false });
     RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .reversed = false });
     RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
