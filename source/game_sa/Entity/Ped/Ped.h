@@ -637,5 +637,6 @@ VALIDATE_SIZE(CPed, 0x79C);
 
 RwObject* SetPedAtomicVisibilityCB(RwObject* rwObject, void* data);
 bool IsPedPointerValid(CPed* ped);
+bool IsPedPointerValid_NotInWorld(CPed* ped);
 bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 offset = 0);
 bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 offset = 0);
