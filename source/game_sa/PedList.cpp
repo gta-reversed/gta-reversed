@@ -64,7 +64,7 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
     CPedPool* pool = GetPedPool();
     m_count = 0;
 
-    if (!pool || pool->GetSize()) { m_peds = {}; return; }
+    if (!pool || !pool->GetSize()) { ClearUnused(); return; }
 
     for (int32 i = pool->GetSize() - 1; i >= 0; --i) {
         CPed* ped = pool->GetAt(i);
