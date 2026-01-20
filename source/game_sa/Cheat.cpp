@@ -739,7 +739,7 @@ CVehicle* CCheat::VehicleCheat(eModelID modelId) {
 
     vehicle->SetPosn(pos);
     vehicle->SetOrientation(0.0f, 0.0f, rotZ);
-    vehicle->SetStatus(STATUS_ABANDONED);
+    vehicle->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
     vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
     CWorld::Add(vehicle);
     CTheScripts::ClearSpaceForMissionEntity(pos, vehicle);
