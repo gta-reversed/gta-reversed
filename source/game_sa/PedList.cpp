@@ -47,12 +47,12 @@ void CPedList::FillUpHoles() {
 }
 
 // 0x69A340
-void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership) {
+void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* group) {
     m_count = 0;
 
-    for (int32 index = 0; index < TOTAL_PED_GROUP_FOLLOWERS; ++index) {
-        if (auto* ped = pedGroupMembership->GetMember(index); ped && !ped->GetIntelligence()->IsInACarOrEnteringOne()) {
-            AddMember(ped);
+    for (auto* const member : group->GetMembers()) {
+        if (!member->GetIntelligence()->IsInACarOrEnteringOne()) {
+            AddMember(member);
         }
     }
 
@@ -84,8 +84,7 @@ void CPedList::ClearUnused() {
 }
 
 void CPedList::AddMember(CPed* ped) {
-    // TODO: wtf MAX_NUM_PEDS_IN_LIST - 1?; in Android '<= 29'
-    if (m_count <= MAX_NUM_PEDS_IN_LIST - 1) { m_peds[m_count++] = ped; }
+    if (m_count < MAX_NUM_PEDS_IN_LIST) { m_peds[m_count++] = ped; }
 }
 
 // Must call FillUpHoles afterwards!
