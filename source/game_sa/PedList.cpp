@@ -9,7 +9,7 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
     RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
-    RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0, { .reversed = false });
+    RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0);
     RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .reversed = false });
     RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
 }
@@ -61,7 +61,21 @@ void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* group) 
 
 // 0x69A3B0
 void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
-    plugin::CallMethod<0x69A3B0>(this, pedType);
+    CPedPool* pool = GetPedPool();
+    m_count = 0;
+
+    if (!pool || pool->GetSize()) { m_peds = {}; return; }
+
+    for (int32 i = pool->GetSize() - 1; i >= 0; --i) {
+        CPed* ped = pool->GetAt(i);
+        if (!ped) continue;
+
+        if (ped->m_nPedType == pedType) {
+            AddMember(ped);
+        }
+    }
+
+    ClearUnused();
 }
 
 // 0x69A450
