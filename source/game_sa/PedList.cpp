@@ -10,7 +10,7 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
     RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
     RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0);
-    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .reversed = false });
+    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450);
     RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
 }
 
@@ -80,7 +80,25 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
 
 // 0x69A450
 void CPedList::RemovePedsAttackingPedType(int32 pedType) {
-    plugin::CallMethod<0x69A450>(this, pedType);
+    const int32 count = m_count;
+
+    for (int32 i = 0; i < count; ++i) {
+        CPed* ped = m_peds[i];
+        if (!ped) continue;
+
+        CTask* task = ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_KILL_PED_ON_FOOT);
+        const CPed* target = nullptr;
+
+        if (const auto* kill = notsa::cast_if_present<CTaskComplexKillPedOnFoot>(task)) {
+            target = kill->m_target;
+        }
+
+        if (!task || !target || target->m_nPedType != pedType) {
+            RemoveMemberNoFill(i);
+        }
+    }
+
+    FillUpHoles();
 }
 
 // 0x69A420
