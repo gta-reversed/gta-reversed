@@ -50,7 +50,7 @@ void CPedList::FillUpHoles() {
 void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* group) {
     m_count = 0;
 
-    for (auto* const member : group->GetMembers()) {
+    for (auto* const member : group->GetMembers(false)) {
         if (!member->GetIntelligence()->IsInACarOrEnteringOne()) {
             AddMember(member);
         }
