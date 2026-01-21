@@ -57,7 +57,10 @@ void Fx_c::InjectHooks() {
     RH_ScopedGlobalInstall(RenderAddTri_, 0x4A1410);
     RH_ScopedGlobalInstall(RenderEnd, 0x4A1600);
     RH_ScopedGlobalInstall(RenderBegin, 0x4A13B0);
+    RH_ScopedGlobalInstall(RotateVecIntoVec, 0x4A1660);
+    RH_ScopedGlobalInstall(RotateVecAboutVec, 0x4A1780);
 }
+
 Fx_c* Fx_c::Constructor() { this->Fx_c::Fx_c(); return this; }
 Fx_c* Fx_c::Destructor() { this->Fx_c::~Fx_c(); return this; }
 
@@ -412,10 +415,34 @@ void RenderEnd() {
 
 // 0x4A1660
 void RotateVecIntoVec(RwV3d* vecRes, RwV3d* vec, RwV3d* vecAlign) {
-    ((void(__cdecl*)(RwV3d*, RwV3d*, RwV3d*))0x4A1660)(vecRes, vec, vecAlign);
+    const CVector up = *vecAlign;
+    constexpr CVector ref{ 0.42429999f, 0.56569999f, 0.70709997f };
+
+    CVector right = up.Cross(ref);
+    right.Normalise();
+
+    const CVector at = up.Cross(right);
+
+    auto* m = g_fxMan.FxRwMatrixCreate();
+    m->right = right;
+    m->up    = up;
+    m->at    = at;
+    m->pos   = { 0.0f, 0.0f, 0.0f };
+
+    RwMatrixUpdate(m);
+    RwV3dTransformVectors(vecRes, vec, 1, m);
+    g_fxMan.FxRwMatrixDestroy(m);
 }
 
 // 0x4A1780
 void RotateVecAboutVec(RwV3d* vecRes, RwV3d* vec, RwV3d* axis, float angle) {
-    ((void(__cdecl*)(RwV3d*, RwV3d*, RwV3d*, float))0x4A1780)(vecRes, vec, axis, angle);
+    const float x = axis->x, y = axis->y, z = axis->z;
+
+    const float s = CMaths::GetSinFast(angle);
+    const float c = CMaths::GetCosFast(angle);
+    const float t = 1.0f - c;
+
+    vecRes->x = (t*x*x + c)   * vec->x + (t*x*y - s*z) * vec->y + (t*x*z + s*y) * vec->z;
+    vecRes->y = (t*x*y + s*z) * vec->x + (t*y*y + c)   * vec->y + (t*y*z - s*x) * vec->z;
+    vecRes->z = (t*x*z - s*y) * vec->x + (t*y*z + s*x) * vec->y + (t*z*z + c)   * vec->z;
 }
