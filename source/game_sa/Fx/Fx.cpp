@@ -418,10 +418,12 @@ void RotateVecIntoVec(RwV3d* vecRes, RwV3d* vec, RwV3d* vecAlign) {
     const CVector up = *vecAlign;
     constexpr CVector ref{ 0.42429999f, 0.56569999f, 0.70709997f };
 
-    CVector right = up.Cross(ref);
-    right.Normalise();
+    RwV3d right;
+    RwV3dCrossProduct(&right, &up, &ref);
+    RwV3dNormalize(&right, &right);
 
-    const CVector at = up.Cross(right);
+    RwV3d at;
+    RwV3dCrossProduct(&at, &up, &right);
 
     auto* m = g_fxMan.FxRwMatrixCreate();
     m->right = right;
