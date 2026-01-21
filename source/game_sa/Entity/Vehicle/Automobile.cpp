@@ -360,8 +360,18 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     m_wMiscComponentAnglePrev = 0;
 
     // 0x6B1111
-    rng::fill(m_fWheelsSuspensionCompression, 1.f);
-    rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
+    for (int32 i = 0; i < 4; i++) {
+        m_WheelCounts[i] = 0.0f;
+        m_wheelRotation[i] = 0.0f;
+        m_wheelSpeed[i] = 0.0f;
+        m_fWheelBurnoutSpeed[i] = 0.0f;
+        m_wheelSkidmarkType[i] = eSkidmarkType::DEFAULT;
+        m_wheelSkidmarkBloodState[i] = false;
+        m_wheelSkidmarkMuddy[i] = false;
+        m_WheelStates[i] = WHEEL_STATE_NORMAL;
+        m_fWheelsSuspensionCompression[i] = 1.0f;
+        m_fWheelsSuspensionCompressionPrev[i] = 1.0f;
+    }
 
     m_nNumContactWheels     = 0;
     m_NumDriveWheelsOnGround       = 0;
