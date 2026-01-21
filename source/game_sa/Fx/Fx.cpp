@@ -50,9 +50,9 @@ void Fx_c::InjectHooks() {
     // RH_ScopedInstall(TriggerWaterHydrant, 0x4A0D70);
     // RH_ScopedInstall(TriggerGunshot, 0x4A0DE0);
     // RH_ScopedInstall(TriggerTankFire, 0x4A0FA0);
-    // RH_ScopedInstall(TriggerWaterSplash, 0x4A1070);
-    // RH_ScopedInstall(TriggerBulletSplash, 0x4A10E0);
-    // RH_ScopedInstall(TriggerFootSplash, 0x4A1150);
+    RH_ScopedInstall(TriggerWaterSplash, 0x4A1070);
+    RH_ScopedInstall(TriggerBulletSplash, 0x4A10E0);
+    RH_ScopedInstall(TriggerFootSplash, 0x4A1150);
 
     RH_ScopedGlobalInstall(RenderAddTri_, 0x4A1410);
     RH_ScopedGlobalInstall(RenderEnd, 0x4A1600);
@@ -306,17 +306,38 @@ void Fx_c::TriggerTankFire(CVector& pos, CVector& dir) {
 
 // 0x4A1070
 void Fx_c::TriggerWaterSplash(CVector& pos) {
-    ((void(__thiscall*)(Fx_c*, CVector&))0x4A1070)(this, pos);
+    CVector delta = (TheCamera.GetPosition() - pos);
+    float distance = delta.SquaredMagnitude();
+
+    if (distance <= 625.0f) {
+        if (auto* fxSystem = g_fxMan.CreateFxSystem("water_splash_big", pos, nullptr, false)) {
+            fxSystem->PlayAndKill();
+        }
+    }
 }
 
 // 0x4A10E0
 void Fx_c::TriggerBulletSplash(CVector& pos) {
-    ((void(__thiscall*)(Fx_c*, CVector&))0x4A10E0)(this, pos);
+    CVector delta = (TheCamera.GetPosition() - pos);
+    float distance = delta.SquaredMagnitude();
+
+    if (distance <= 625.0f) {
+        if (auto* fxSystem = g_fxMan.CreateFxSystem("water_splash", pos, nullptr, false)) {
+            fxSystem->PlayAndKill();
+        }
+    }
 }
 
 // 0x4A1150
 void Fx_c::TriggerFootSplash(CVector& pos) {
-    ((void(__thiscall*)(Fx_c*, CVector&))0x4A1150)(this, pos);
+    CVector delta = (TheCamera.GetPosition() - pos);
+    float distance = delta.SquaredMagnitude();
+
+    if (distance <= 625.0f) {
+        if (auto* fxSystem = g_fxMan.CreateFxSystem("water_splsh_sml", pos, nullptr, false)) {
+            fxSystem->PlayAndKill();
+        }
+    }
 }
 
 // see RwIm3DTransformFlags
