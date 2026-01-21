@@ -11,6 +11,13 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedInstall(GetIsWearingBalaclava, 0x5A7950);
     RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970);
     RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0);
+
+    RH_ScopedOverloadedInstall(SetModel, "0", 0x5A7910, void(CPedClothesDesc::*)(uint32, eClothesModelPart));
+    RH_ScopedOverloadedInstall(SetModel, "1", 0x5A7920, void(CPedClothesDesc::*)(const char*, eClothesModelPart));
+    // TODO: Seems like this function can't be hooked because texturePart doesn't seem to be passed on the stack, but in edx...
+    // TODO: We could make it work, but it's not worth the effort. (by: Pirullax)
+    RH_ScopedOverloadedInstall(SetTextureAndModel, "0", 0x5A8050, void(CPedClothesDesc::*)(uint32, uint32, eClothesTexturePart));
+    RH_ScopedOverloadedInstall(SetTextureAndModel, "1", 0x5A8080, void(CPedClothesDesc::*)(const char*, const char*, eClothesTexturePart));
 }
 
 CPedClothesDesc::CPedClothesDesc() {
@@ -71,7 +78,7 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 type) {
 bool CPedClothesDesc::HasVisibleTattoo() {
     // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12
     for (int i = eClothesTexturePart::CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= eClothesTexturePart::CLOTHES_TEXTURE_UPPER_BACK; ++i) {
-        if (m_anTextureKeys[i] != 0) return true;
+        if (m_anTextureKeys[i]) return true;
     }
 
     return false;
