@@ -88,16 +88,16 @@ void CClothes::LoadClothesFile() {
             continue;
         }
 
-        const eClothesRules ruleTag = [&](){
-            constexpr struct {const char* name; eClothesRules rule;} map[]{
-                {"CUTS", eClothesRules::TAG_CUTS},
-                {"SETC", eClothesRules::TAG_SETC},
-                {"TEX", eClothesRules::TAG_TEX},
-                {"HIDE", eClothesRules::TAG_HIDE},
-                {"ENDIGNORE", eClothesRules::TAG_END_IGNORE},
-                {"IGNORE", eClothesRules::TAG_IGNORE},
-                {"ENDEXCLUSIVE", eClothesRules::TAG_END_EXCLUSIVE},
-                {"EXCLUSIVE", eClothesRules::TAG_EXCLUSIVE}
+        const eClothRule ruleTag = [&](){
+            constexpr struct {const char* name; eClothRule rule;} map[]{
+                {"CUTS", eClothRule::TAG_CUTS},
+                {"SETC", eClothRule::TAG_SETC},
+                {"TEX", eClothRule::TAG_TEX},
+                {"HIDE", eClothRule::TAG_HIDE},
+                {"ENDIGNORE", eClothRule::TAG_END_IGNORE},
+                {"IGNORE", eClothRule::TAG_IGNORE},
+                {"ENDEXCLUSIVE", eClothRule::TAG_END_EXCLUSIVE},
+                {"EXCLUSIVE", eClothRule::TAG_EXCLUSIVE}
             };
             for (const auto& [name, rule] : map) {
                 if (!strcmp(strTag, name)) {
@@ -113,14 +113,14 @@ void CClothes::LoadClothesFile() {
             return strtok_s(NULL, " \t,", &nextToken);
         };
         switch (ruleTag) {
-        case eClothesRules::TAG_CUTS:
-        case eClothesRules::TAG_TEX: {
+        case eClothRule::TAG_CUTS:
+        case eClothRule::TAG_TEX: {
             for (auto i = 0u; i < 2u; i++) {
                 AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
             }
             break;
         }
-        case eClothesRules::TAG_SETC: {
+        case eClothRule::TAG_SETC: {
             AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
             AddRule(GetClothesModelFromName(GetNextArg()));
             for (auto i = 0u; i < 2u; i++) {
@@ -129,15 +129,15 @@ void CClothes::LoadClothesFile() {
             }
             break;
         }
-        case eClothesRules::TAG_HIDE: {
+        case eClothRule::TAG_HIDE: {
             AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
             AddRule(GetClothesModelFromName(GetNextArg()));
             break;
         }
-        case eClothesRules::TAG_END_IGNORE:
-        case eClothesRules::TAG_IGNORE:
-        case eClothesRules::TAG_END_EXCLUSIVE:
-        case eClothesRules::TAG_EXCLUSIVE: 
+        case eClothRule::TAG_END_IGNORE:
+        case eClothRule::TAG_IGNORE:
+        case eClothRule::TAG_END_EXCLUSIVE:
+        case eClothRule::TAG_EXCLUSIVE: 
             AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
             break;
         }
