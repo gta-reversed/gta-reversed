@@ -11,7 +11,7 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
     RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0);
     RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450);
-    RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
+    RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420);
 }
 
 // 0x699DB0
@@ -103,7 +103,15 @@ void CPedList::RemovePedsAttackingPedType(int32 pedType) {
 
 // 0x69A420
 void CPedList::RemovePedsThatDontListenToPlayer() {
-    plugin::CallMethod<0x69A420>(this);
+    const uint32 count = m_count;
+
+    for (uint32 i = 0; i < count; ++i) {
+        if (const CPed* ped = m_peds[i]; ped && ped->bDoesntListenToPlayerGroupCommands) {
+            RemoveMemberNoFill(i);
+        }
+    }
+
+    FillUpHoles();
 }
 
 //
