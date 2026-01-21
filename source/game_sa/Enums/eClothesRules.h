@@ -7,7 +7,7 @@
 
 #pragma once
 
-enum eClothesRules : uint8 {
+enum eClothRule : uint8 {
     TAG_CUTS,
     TAG_SETC,
     TAG_TEX,
@@ -16,4 +16,5 @@ enum eClothesRules : uint8 {
     TAG_IGNORE,
     TAG_END_EXCLUSIVE,
     TAG_EXCLUSIVE
+
 };
