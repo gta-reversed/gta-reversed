@@ -306,17 +306,17 @@ void Fx_c::TriggerTankFire(CVector& pos, CVector& dir) {
 
 // 0x4A1070
 void Fx_c::TriggerWaterSplash(CVector& pos) {
-    CreateWaterFxWithinCameraRange("water_splash_big", pos, 625.0f);
+    CreateFxWithinCameraRange("water_splash_big", pos, 625.0f);
 }
 
 // 0x4A10E0
 void Fx_c::TriggerBulletSplash(CVector& pos) {
-    CreateWaterFxWithinCameraRange("water_splash", pos, 625.0f);
+    CreateFxWithinCameraRange("water_splash", pos, 625.0f);
 }
 
 // 0x4A1150
 void Fx_c::TriggerFootSplash(CVector& pos) {
-    CreateWaterFxWithinCameraRange("water_splsh_sml", pos, 625.0f);
+    CreateFxWithinCameraRange("water_splsh_sml", pos, 625.0f);
 }
 
 // NOTSA
