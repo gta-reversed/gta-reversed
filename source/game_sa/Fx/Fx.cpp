@@ -306,35 +306,26 @@ void Fx_c::TriggerTankFire(CVector& pos, CVector& dir) {
 
 // 0x4A1070
 void Fx_c::TriggerWaterSplash(CVector& pos) {
-    CVector delta = (TheCamera.GetPosition() - pos);
-    float distance = delta.SquaredMagnitude();
-
-    if (distance <= 625.0f) {
-        if (auto* fxSystem = g_fxMan.CreateFxSystem("water_splash_big", pos, nullptr, false)) {
-            fxSystem->PlayAndKill();
-        }
-    }
+    CreateWaterFxWithinCameraRange("water_splash_big", pos, 625.0f);
 }
 
 // 0x4A10E0
 void Fx_c::TriggerBulletSplash(CVector& pos) {
-    CVector delta = (TheCamera.GetPosition() - pos);
-    float distance = delta.SquaredMagnitude();
-
-    if (distance <= 625.0f) {
-        if (auto* fxSystem = g_fxMan.CreateFxSystem("water_splash", pos, nullptr, false)) {
-            fxSystem->PlayAndKill();
-        }
-    }
+    CreateWaterFxWithinCameraRange("water_splash", pos, 625.0f);
 }
 
 // 0x4A1150
 void Fx_c::TriggerFootSplash(CVector& pos) {
+    CreateWaterFxWithinCameraRange("water_splsh_sml", pos, 625.0f);
+}
+
+// NOTSA
+void Fx_c::CreateWaterFxWithinCameraRange(const char* name, const CVector& pos, float range) {
     CVector delta = (TheCamera.GetPosition() - pos);
     float distance = delta.SquaredMagnitude();
 
-    if (distance <= 625.0f) {
-        if (auto* fxSystem = g_fxMan.CreateFxSystem("water_splsh_sml", pos, nullptr, false)) {
+    if (distance <= range) {
+        if (auto* fxSystem = g_fxMan.CreateFxSystem(name, pos, nullptr, false)) {
             fxSystem->PlayAndKill();
         }
     }
