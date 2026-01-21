@@ -177,7 +177,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
         AddVehicleUpgrade(ModelIndices::MI_HYDRAULICS);
     }
 
-    field_804 = 20.0f;
+    m_fBrakeCount = 20.0f;
     m_GasPedalAudioRevs = 0.0f;
     m_fIntertiaValue1 = 0.0f;
     m_fIntertiaValue2 = 0.0f;
