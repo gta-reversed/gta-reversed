@@ -22,7 +22,7 @@ void CPlaneTrails::Init() {
 // 0x7173A0
 void CPlaneTrails::Render() {
     const CColourSet& cc            = CTimeCycle::m_CurrentColours;
-    const float maxColorComponent   = (float)std::max({ cc.m_nSkyBottomBlue, cc.m_nSkyBottomGreen, cc.m_nSkyBottomRed }) * (1.0f / 255.0f);
+    const float maxColorComponent   = (float)std::max({ cc.m_nSkyBottomBlue, cc.m_nSkyBottomGreen, cc.m_nSkyBottomRed }) * (1.0f / 255.0f); // Originally `/ 256.f`, but that value is impossible for a byte, so `255.f` it is.
     const float visibilityIntensity = std::min({ 1.0f - CWeather::CloudCoverage, 1.0f - CWeather::Foggyness, 1.0f - CWeather::Rain });
     const float finalIntensity      = std::min(maxColorComponent, visibilityIntensity);
 
