@@ -343,10 +343,6 @@ void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float d
     if (approxEqual(distance, StationDist[station], 100.0f)) {
         station += clockwiseDirection ? 1 : -1;
 
-        if (station < 0) {
-            station = 5;
-        } else if (station > 5) {
-            station = 0;
         station = station < 0
             ? NUM_TRAIN_STATIONS - 1
             : station > NUM_TRAIN_STATIONS - 1
