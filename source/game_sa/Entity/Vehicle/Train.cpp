@@ -302,10 +302,6 @@ CTrain* CTrain::FindEngine(CTrain* train) {
 }
 
 /**
- * @brief Find the next carriage offset by `carriage` (`0` would be the next, `1` would be the one after the next and so on)
- * @addr 0x6F5EB0
- */
-/**
  * @brief Find the next carriage offset by `carriage` (`0` would be the train itself, `1` would be the the next carriage, and so on...)
  * @addr 0x6F5EB0
  */
