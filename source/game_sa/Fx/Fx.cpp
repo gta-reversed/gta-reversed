@@ -320,7 +320,7 @@ void Fx_c::TriggerFootSplash(CVector& pos) {
 }
 
 // NOTSA
-void Fx_c::CreateFxWithinCameraRange(const char* name, const CVector& pos, float range) {
+inline void Fx_c::CreateFxWithinCameraRange(const char* name, const CVector& pos, float range) {
     CVector delta = (TheCamera.GetPosition() - pos);
     float distance = delta.SquaredMagnitude();
 
