@@ -305,7 +305,10 @@ CTrain* CTrain::FindEngine(CTrain* train) {
  * @brief Find the next carriage offset by `carriage` (`0` would be the next, `1` would be the one after the next and so on)
  * @addr 0x6F5EB0
  */
-CTrain* CTrain::FindCarriage(CTrain* train, uint8 carriage) {
+/**
+ * @brief Find the next carriage offset by `carriage` (`0` would be the train itself, `1` would be the the next carriage, and so on...)
+ * @addr 0x6F5EB0
+ */
     uint32 n = 0;
     for (auto* it = train; it; it = it->m_pNextCarriage) {
         if (++n >= carriage) {
@@ -344,7 +347,11 @@ void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float d
             station = 5;
         } else if (station > 5) {
             station = 0;
-        }
+        station = station < 0
+            ? NUM_TRAIN_STATIONS - 1
+            : station > NUM_TRAIN_STATIONS - 1
+                ? 0
+                : station;
     }
 
     numStations       = station;
