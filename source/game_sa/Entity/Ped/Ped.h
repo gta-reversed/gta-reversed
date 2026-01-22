@@ -578,6 +578,8 @@ public:
     auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeech; }
     auto&& GetWeaponAE(this auto&& self) { return self.m_weaponAudio; }
 
+    CVector GetSeatPositionInVehicle() const;
+
     /*!
      * @notsa
      * @brief Is the ped jogging, running or sprinting
