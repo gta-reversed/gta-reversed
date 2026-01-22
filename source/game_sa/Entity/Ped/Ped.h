@@ -276,7 +276,7 @@ public:
     int16               m_nWeaponGunFlashAlphaProgMP2;
 
     CPedIK              m_pedIK;
-    int32               field_52C;
+    uint32              m_nAntiSpazTimer;
     ePedState           m_nPedState;
     eMoveState          m_nMoveState;
     int32               m_nSwimmingMoveState; // type is eMoveState and used for swimming in CTaskSimpleSwim::ProcessPed
@@ -320,9 +320,9 @@ public:
     CEntity*            m_pLookTarget;
     float               m_fLookDirection; // In RAD
     int32               m_nWeaponModelId;
-    int32               field_744;
+    uint32              m_nUnconsciousTimer;
     uint32              m_nLookTime;
-    int32               field_74C;
+    uint32              m_nAttackTimer;
     int32               m_nDeathTimeMS; //< Death time in MS (CTimer::GetTimeMS())
     char                m_nBodypartToRemove;
     char                field_755;
