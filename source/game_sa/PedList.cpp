@@ -77,20 +77,21 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
 
 // 0x69A450
 void CPedList::RemovePedsAttackingPedType(int32 pedType) {
-    const int32 count = m_count;
+    const auto count = m_count;
 
-    for (int32 i = 0; i < count; ++i) {
+    for (uint32 i = 0; i < count; ++i) {
         CPed* ped = m_peds[i];
-        if (!ped) continue;
 
-        CTask* task = ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_KILL_PED_ON_FOOT);
+        assert(ped != nullptr);
+
+        const auto* killTask = ped->GetTaskManager().Find<CTaskComplexKillPedOnFoot>(false);
         const CPed* target = nullptr;
 
-        if (const auto* kill = notsa::cast_if_present<CTaskComplexKillPedOnFoot>(task)) {
-            target = kill->m_target;
+        if (killTask != nullptr) {
+            target = killTask->m_target;
         }
 
-        if (!task || !target || target->m_nPedType != pedType) {
+        if (killTask == nullptr || target == nullptr || target->m_nPedType != pedType) {
             RemoveMemberNoFill(i);
         }
     }
