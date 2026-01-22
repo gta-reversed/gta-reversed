@@ -3999,7 +3999,7 @@ CVector CPed::GetSeatPositionInVehicle() const {
 
         if (m_pVehicle->IsSubBMX()) {
             auto* bmx = (CBmx*)m_pVehicle;
-            pos.z -= 0.001f * std::abs((bmx)->m_fControlJump);
+            pos.z -= (0.001f * std::abs(bmx->m_fControlJump));
         }
     } else if (this == m_pVehicle->m_apPassengers[0]) {
         if (m_pVehicle->IsBike() || m_pVehicle->IsSubQuad()) {
