@@ -64,14 +64,11 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
     CPedPool* pool = GetPedPool();
     m_count = 0;
 
-    if (!pool || !pool->GetSize()) { ClearUnused(); return; }
+    assert(pool != nullptr);
 
-    for (int32 i = pool->GetSize() - 1; i >= 0; --i) {
-        CPed* ped = pool->GetAt(i);
-        if (!ped) continue;
-
-        if (ped->m_nPedType == pedType) {
-            AddMember(ped);
+    for (auto& ped : pool->GetAllValid()) {
+        if (ped.m_nPedType == pedType) {
+            AddMember(&ped);
         }
     }
 
