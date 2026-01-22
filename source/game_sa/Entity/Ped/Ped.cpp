@@ -1270,37 +1270,10 @@ void CPed::SetPedPositionInCar() {
 
     assert(IsInVehicle());
 
-    CVector seatLocalPos{};
-    auto*   mi     = (CVehicleModelInfo*)CModelInfo::GetModelInfo(m_pVehicle->GetModelIndex());
+    CVector seatLocalPos = GetSeatPositionInVehicle();
     CMatrix vehMat = m_pVehicle->GetMatrix();
     CMatrix tempMat;
     const float heading = m_pVehicle->GetHeading();
-
-    if (this == m_pVehicle->GetDriver()) {
-        seatLocalPos = mi->GetFrontSeatPosn();
-
-        if (!m_pVehicle->IsBoat() && !m_pVehicle->IsBike()) {
-            seatLocalPos.x = -seatLocalPos.x;
-        }
-
-        if (m_pVehicle->IsSubBMX()) {
-            auto* bmx = (CBmx*)m_pVehicle;
-            seatLocalPos.z -= 0.001f * std::abs((bmx)->m_fControlJump);
-        }
-    } else if (this == m_pVehicle->m_apPassengers[0]) {
-        if (m_pVehicle->IsBike() || m_pVehicle->IsSubQuad()) {
-            seatLocalPos = mi->GetBackSeatPosn();
-        } else {
-            seatLocalPos = mi->GetFrontSeatPosn();
-        }
-    } else if (this == m_pVehicle->m_apPassengers[1]) {
-        seatLocalPos   = mi->GetBackSeatPosn();
-        seatLocalPos.x = -seatLocalPos.x;
-    } else if (this == m_pVehicle->m_apPassengers[2]) {
-        seatLocalPos = mi->GetBackSeatPosn();
-    } else {
-        seatLocalPos = mi->GetFrontSeatPosn();
-    }
 
     if (m_pVehicle->IsBike()) {
         auto* bike = (CBike*)m_pVehicle;
@@ -4010,6 +3983,40 @@ int32 CPed::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint)
 // NOTSA
 bool CPed::IsInVehicleAsPassenger() const noexcept {
     return bInVehicle && m_pVehicle && m_pVehicle->m_pDriver != this;
+}
+
+// NOTSA
+CVector CPed::GetSeatPositionInVehicle() const {
+    CVector pos{};
+    auto* mi = (CVehicleModelInfo*)CModelInfo::GetModelInfo(m_pVehicle->GetModelIndex());
+
+    if (this == m_pVehicle->GetDriver()) {
+        pos = mi->GetFrontSeatPosn();
+
+        if (!m_pVehicle->IsBoat() && !m_pVehicle->IsBike()) {
+            pos.x = -pos.x;
+        }
+
+        if (m_pVehicle->IsSubBMX()) {
+            auto* bmx = (CBmx*)m_pVehicle;
+            pos.z -= 0.001f * std::abs((bmx)->m_fControlJump);
+        }
+    } else if (this == m_pVehicle->m_apPassengers[0]) {
+        if (m_pVehicle->IsBike() || m_pVehicle->IsSubQuad()) {
+            pos = mi->GetBackSeatPosn();
+        } else {
+            pos = mi->GetFrontSeatPosn();
+        }
+    } else if (this == m_pVehicle->m_apPassengers[1]) {
+        pos   = mi->GetBackSeatPosn();
+        pos.x = -pos.x;
+    } else if (this == m_pVehicle->m_apPassengers[2]) {
+        pos = mi->GetBackSeatPosn();
+    } else {
+        pos = mi->GetFrontSeatPosn();
+    }
+
+    return pos;
 }
 
 bool CPed::IsJoggingOrFaster() const {
