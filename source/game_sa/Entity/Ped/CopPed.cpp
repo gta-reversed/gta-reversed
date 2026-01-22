@@ -103,7 +103,7 @@ CCopPed::CCopPed(uint32_t copTypeOrModelID) :
     }
     }
     m_bDontPursuit = false;
-    field_74C = 0;
+    m_nAttackTimer = 0;
     field_79D = 0;
     field_7A4 = 0;
 
