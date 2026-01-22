@@ -208,9 +208,9 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     SetCreatedBy(PED_GAME);
 
     m_pVehicle = nullptr;
-    field_52C = 0;
-    field_744 = 0;
-    field_74C = 0;
+    m_nAntiSpazTimer = 0;
+    m_nUnconsciousTimer = 0;
+    m_nAttackTimer = 0;
     m_nLookTime = 0;
     m_nDeathTimeMS = 0;
 
