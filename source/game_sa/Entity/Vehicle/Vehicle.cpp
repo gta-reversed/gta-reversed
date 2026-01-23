@@ -1211,10 +1211,11 @@ void CVehicle::ResetAfterRender() {
     RwRenderStateSet(RwRenderState::rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     CVehicleModelInfo::ResetEditableMaterials((RpClump*)GetRwObject());
     if (IsAutomobile()) {
-        assert((CAutomobile*)this != nullptr);
-        auto* modelInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(GetModelIndex());
-        assert(modelInfo != nullptr);
-        ((CAutomobile*)this)->CustomCarPlate_AfterRenderingStop(modelInfo);
+        auto* const automobile = static_cast<CAutomobile*>(this);
+
+        auto* const mi = automobile->GetModelInfo()->AsVehicleModelInfoPtr();
+        assert(mi != nullptr);
+        automobile->CustomCarPlate_AfterRenderingStop(mi);
     }
 }
 
