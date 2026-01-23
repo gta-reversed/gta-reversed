@@ -800,7 +800,7 @@ void CAERadioTrackManager::CheckForPause() {
         m_bPauseMode = true;
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, m_bEnabledInPauseMode ? 1.0f : 0.0f);
     } else {
-        auto* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
+        const auto* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
         
         if (settings && notsa::contains({
                 AE_RT_CIVILIAN,
