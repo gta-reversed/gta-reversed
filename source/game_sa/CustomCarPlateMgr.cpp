@@ -97,7 +97,7 @@ int8 CCustomCarPlateMgr::LoadPlatecharsetDat(const char* filename, uint8* data) 
 }
 
 auto ResolvePlateType(uint8 plateType) {
-    return plateType == (uint8)-1 ? CCustomCarPlateMgr::GetMapRegionPlateDesign() : plateType;
+    return plateType == (uint8)CARPLATE_DEFAULT ? CCustomCarPlateMgr::GetMapRegionPlateDesign() : plateType;
 }
 
 // 0x6FDE50
