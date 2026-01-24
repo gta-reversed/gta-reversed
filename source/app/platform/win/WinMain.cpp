@@ -24,7 +24,37 @@ constexpr auto NO_FOREGROUND_PAUSE = true;
 
 // 0x747300
 char* getDvdGamePath() {
-    return plugin::CallAndReturn<char*, 0x747300>();
+    SetErrorMode(SEM_FAILCRITICALERRORS);
+
+    DWORD bufferSize = GetLogicalDriveStringsA(0, nullptr);
+    const auto drivesBuffer = new char[bufferSize];
+
+    GetLogicalDriveStringsA(bufferSize, drivesBuffer);
+
+    char drivePath[8] = {};
+    char volumeName[256] = {};
+
+    for (const auto* drive = drivesBuffer; *drive; drive += lstrlenA(drive) + 1) {
+        lstrcpyA(drivePath, drive);
+
+        if (GetDriveTypeA(drivePath) != DRIVE_CDROM) {
+            continue;
+        }
+
+        if (!GetVolumeInformationA(drivePath, volumeName, sizeof(volumeName) - 1, nullptr, nullptr, nullptr, nullptr, 0)) { // TODO: volumeName - 1 ?
+            continue;
+        }
+
+        if (strcmp(volumeName, "GTA_SAN_ANDREAS") == 0) {
+            const auto result = new char[lstrlenA(drivePath) + 1];
+            lstrcpyA(result, drivePath);
+            delete[] drivesBuffer;
+            return result;
+        }
+    }
+
+    delete[] drivesBuffer;
+    return nullptr;
 }
 
 // 0x746870
