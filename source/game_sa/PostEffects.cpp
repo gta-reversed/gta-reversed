@@ -86,29 +86,13 @@ void CPostEffects::DoScreenModeDependentInitializations() {
     HeatHazeFXInit();
 }
 
-// NOTSA: Returns the next power of 2 greater than or equal to n.
-static uint32 GetNextPow2(uint32 n) {
-    if (n == 0) {
-        return 1;
-    }
-
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-
-    return n + 1;
-}
-
 // 0x7043D0
 void CPostEffects::SetupBackBufferVertex() {
     RwRaster* raster = RwCameraGetRaster(Scene.m_pRwCamera);
 
-    // get maximum 2^N dimensions
-    const auto width   = GetNextPow2(RwRasterGetWidth(raster));
-    const auto height  = GetNextPow2(RwRasterGetHeight(raster));
+    // clamp width/height to next (or equal) 2^n
+    const auto width   = std::bit_ceil(static_cast<uint32>(RwRasterGetWidth(raster)));
+    const auto height  = std::bit_ceil(static_cast<uint32>(RwRasterGetHeight(raster)));
     const auto fwidth  = float(width);
     const auto fheight = float(height);
 
