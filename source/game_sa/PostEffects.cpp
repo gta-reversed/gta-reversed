@@ -307,8 +307,8 @@ void CPostEffects::ImmediateModeFilterStuffInitialize() {
 
     const auto* frameBuffer = RwCameraGetRaster(Scene.m_pRwCamera);
     ms_imf.fFrontBufferU1 = ms_imf.fFrontBufferV1 = 0.0f;
-    ms_imf.fFrontBufferU2 = SCREEN_WIDTH / GetNextPow2(RwRasterGetWidth(frameBuffer));
-    ms_imf.fFrontBufferV2 = SCREEN_HEIGHT / GetNextPow2(RwRasterGetHeight(frameBuffer));
+    ms_imf.fFrontBufferU2 = SCREEN_WIDTH / std::bit_ceil(static_cast<uint32>(RwRasterGetWidth(frameBuffer)));
+    ms_imf.fFrontBufferV2 = SCREEN_HEIGHT / std::bit_ceil(static_cast<uint32>(RwRasterGetHeight(frameBuffer)));
 }
 
 // 0x700D70
