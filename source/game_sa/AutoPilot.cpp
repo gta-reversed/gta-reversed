@@ -49,7 +49,13 @@ void CAutoPilot::ModifySpeed(float target) {
 
 // 0x41B950
 void CAutoPilot::RemoveOnePathNode() {
-    plugin::CallMethod<0x41B950, CAutoPilot*>(this);
+    assert(m_nPathFindNodesCount > 0);
+    
+    --m_nPathFindNodesCount;
+    
+    for (int count = 0; count < m_nPathFindNodesCount; ++count) {
+        m_aPathFindNodesInfo[count] = m_aPathFindNodesInfo[count + 1]; // ?
+    }
 }
 
 void CAutoPilot::SetCarMission(eCarMission carMission, uint32 timeOffsetMs) {
