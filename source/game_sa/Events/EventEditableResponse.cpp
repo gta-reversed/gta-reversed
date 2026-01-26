@@ -93,7 +93,7 @@ void CEventEditableResponse::InformRespectedFriends(CPed* ped) {
                 continue;
             }
 
-            CPlayerPedData* playerData = FindPlayerPed(0)->m_pPlayerData;
+            CPlayerPedData* playerData = FindPlayerPed(0)->GetPlayerData();
             if (playerData->m_pWanted && playerData->m_pWanted->m_nWantedLevel) {
                 continue;
             }

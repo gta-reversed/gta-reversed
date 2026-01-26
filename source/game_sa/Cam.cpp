@@ -917,7 +917,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
 
     if (isHeatSeeking) {
         auto* player     = FindPlayerPed();
-        auto* playerData = player->m_pPlayerData;
+        auto* playerData = player->GetPlayerData();
         if (!playerData->m_nFireHSMissilePressedTime) {
             playerData->m_nFireHSMissilePressedTime = CTimer::GetTimeInMS();
         }
