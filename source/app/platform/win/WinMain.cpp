@@ -26,28 +26,29 @@ constexpr auto NO_FOREGROUND_PAUSE = true;
 char* getDvdGamePath() {
     SetErrorMode(SEM_FAILCRITICALERRORS);
 
-    DWORD bufferSize = GetLogicalDriveStringsA(0, nullptr);
+    size_t bufferSize = GetLogicalDriveStringsA(0, nullptr);
     const auto drivesBuffer = new char[bufferSize];
 
     GetLogicalDriveStringsA(bufferSize, drivesBuffer);
+    assert(bufferSize > 0);
 
     char drivePath[8] = {};
-    char volumeName[256] = {};
+    char volumeName[MAX_PATH + 1] = {};
 
-    for (const auto* drive = drivesBuffer; *drive; drive += lstrlenA(drive) + 1) {
-        lstrcpyA(drivePath, drive);
+    for (const auto* drive = drivesBuffer; *drive; drive += strlen(drive) + 1) {
+        strcpy_s(drivePath, sizeof(drivePath), drive);
 
         if (GetDriveTypeA(drivePath) != DRIVE_CDROM) {
             continue;
         }
 
-        if (!GetVolumeInformationA(drivePath, volumeName, sizeof(volumeName) - 1, nullptr, nullptr, nullptr, nullptr, 0)) { // TODO: volumeName - 1 ?
+        if (!GetVolumeInformationA(drivePath, volumeName, sizeof(volumeName), nullptr, nullptr, nullptr, nullptr, 0)) {
             continue;
         }
 
         if (strcmp(volumeName, "GTA_SAN_ANDREAS") == 0) {
-            const auto result = new char[lstrlenA(drivePath) + 1];
-            lstrcpyA(result, drivePath);
+            const auto result = new char[strlen(drivePath) + 1];
+            strcpy_s(result, strlen(drivePath) + 1, drivePath);
             delete[] drivesBuffer;
             return result;
         }
