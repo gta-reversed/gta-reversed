@@ -177,7 +177,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
         AddVehicleUpgrade(ModelIndices::MI_HYDRAULICS);
     }
 
-    field_804 = 20.0f;
+    m_fBrakeCount = 20.0f;
     m_GasPedalAudioRevs = 0.0f;
     m_fIntertiaValue1 = 0.0f;
     m_fIntertiaValue2 = 0.0f;
@@ -360,8 +360,16 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     m_wMiscComponentAnglePrev = 0;
 
     // 0x6B1111
-    rng::fill(m_fWheelsSuspensionCompression, 1.f);
-    rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
+    rng::fill(m_WheelCounts, 0.0f);
+    rng::fill(m_wheelRotation, 0.0f);
+    rng::fill(m_wheelSpeed, 0.0f);
+    rng::fill(m_fWheelBurnoutSpeed, 0.0f);
+    rng::fill(m_wheelSkidmarkType, eSkidmarkType::DEFAULT);
+    rng::fill(m_wheelSkidmarkBloodState, false);
+    rng::fill(m_wheelSkidmarkMuddy, false);
+    rng::fill(m_WheelStates, WHEEL_STATE_NORMAL);
+    rng::fill(m_fWheelsSuspensionCompression, 1.0f);
+    rng::fill(m_fWheelsSuspensionCompressionPrev, 1.0f);
 
     m_nNumContactWheels     = 0;
     m_NumDriveWheelsOnGround       = 0;
