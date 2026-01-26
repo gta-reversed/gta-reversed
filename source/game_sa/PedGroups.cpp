@@ -35,10 +35,8 @@ int32 CPedGroups::AddGroup() {
     for (int32 index = 0; index < static_cast<int32>(ms_activeGroups.size()); ++index) {
         if (!ms_activeGroups[index]) {
             ms_activeGroups[index] = 1;
-            CPedGroup& group = GetGroup(index);
-            group.GetMembership().Flush();
-            group.GetIntelligence().Flush();
-            group.m_bIsMissionGroup = false;
+            auto* const group = &GetGroup(index);
+            group->Flush();
             return index;
         }
     }
@@ -70,11 +68,8 @@ void CPedGroups::Init() {
     for (int32 i = 0; i < static_cast<int32>(ms_groups.size()); ++i) {
         if (ms_activeGroups[i]) {
             ms_activeGroups[i] = 0;
-
-            CPedGroup& group = GetGroup(i);
-            group.GetMembership().Flush();
-            group.GetIntelligence().Flush();
-            group.m_bIsMissionGroup = false;
+            auto* const group = &GetGroup(i);
+            group->Flush();
         }
 
         ScriptReferenceIndex[i] = 1;
@@ -90,10 +85,8 @@ void CPedGroups::RegisterKillByPlayer() {
 // 0x5FB930
 void CPedGroups::CleanUpForShutDown() {
     for (int32 index = 0; index < static_cast<int32>(ms_groups.size()); ++index) {
-        CPedGroup& group = GetGroup(index);
-        group.GetMembership().Flush();
-        group.GetIntelligence().Flush();
-        group.m_bIsMissionGroup = false;
+        auto* const group = &GetGroup(index);
+        group->Flush();
     }
 }
 
