@@ -1013,7 +1013,7 @@ void CTheScripts::RemoveThisPed(CPed* ped) {
         }
     }
 
-    const auto isMissionChar = ped->m_nCreatedBy == ePedCreatedBy::PED_MISSION;
+    const auto isMissionChar = ped->GetCreatedBy() == ePedCreatedBy::PED_MISSION;
 
     CWorld::RemoveReferencesToDeletedObject(ped);
     delete ped;

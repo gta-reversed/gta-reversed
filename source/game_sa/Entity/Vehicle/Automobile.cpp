@@ -1128,7 +1128,7 @@ void CAutomobile::ProcessControl()
 // 0x6A1ED0
 CVector CAutomobile::AddMovingCollisionSpeed(CVector& point) {
     if (GetStatus() != STATUS_PLAYER && GetStatus() != STATUS_FORCED_STOP) {
-        if (m_nCreatedBy != MISSION_VEHICLE || !m_wMiscComponentAngle && !m_wMiscComponentAnglePrev)
+        if (GetCreatedBy() != MISSION_VEHICLE || !m_wMiscComponentAngle && !m_wMiscComponentAnglePrev)
             return {};
     }
 
@@ -1241,7 +1241,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
 
     if (vehicleFlags.bCanPark
         && !vehicleFlags.bParking
-        && m_nCreatedBy != MISSION_VEHICLE
+        && GetCreatedBy() != MISSION_VEHICLE
         && m_autoPilot.m_nCarMission == MISSION_CRUISE
         && ((CTimer::GetFrameCounter() + static_cast<uint8>(m_nRandomSeed)) & 0xF) == 0)
     {

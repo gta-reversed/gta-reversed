@@ -36,19 +36,19 @@ bool CTaskSimpleStandStill::ProcessPed(CPed* ped) {
         if (!ped->bInVehicle) {
             ped->SetMoveState(PEDMOVE_STILL);
             ped->m_nSwimmingMoveState = PEDMOVE_STILL;
-            if (!ped->bIsDucking || !ped->m_pIntelligence->GetTaskDuck(false)) {
+            if (!ped->bIsDucking || !ped->GetIntelligence()->GetTaskDuck(false)) {
                 CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, m_fBlendData);
             } else {
-                CTaskSimpleDuck* pDuckTask = ped->m_pIntelligence->GetTaskDuck(false);
+                CTaskSimpleDuck* pDuckTask = ped->GetIntelligence()->GetTaskDuck(false);
                 pDuckTask->ControlDuckMove();
             }
-            if (ped->m_pPlayerData)
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+            if (ped->GetPlayerData())
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         }
     }
 
-    if (ped->bIsDucking && ped->m_pIntelligence->GetTaskDuck(false)) {
-        CTaskSimpleDuck* pDuckTask = ped->m_pIntelligence->GetTaskDuck(false);
+    if (ped->bIsDucking && ped->GetIntelligence()->GetTaskDuck(false)) {
+        CTaskSimpleDuck* pDuckTask = ped->GetIntelligence()->GetTaskDuck(false);
         pDuckTask->ControlDuckMove();
     } else {
         ped->SetMoveState(PEDMOVE_STILL);

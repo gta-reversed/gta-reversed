@@ -168,7 +168,7 @@ void CTaskSimpleUseGun::RemoveStanceAnims(CPed* ped, float x) {
                 ped->SetMoveState(PEDMOVE_WALK);
                 ped->m_nSwimmingMoveState = PEDMOVE_WALK;
 
-                if (const auto pd = ped->m_pPlayerData) {
+                if (const auto pd = ped->GetPlayerData()) {
                     pd->m_fMoveBlendRatio = 1.f;
                 }
             }
@@ -326,7 +326,7 @@ void CTaskSimpleUseGun::AimGun(CPed* ped) {
             ped->m_pedIK.PointGunAtPosition(lookAtPos, m_Anim->GetBlendAmount());
         }
     } else if (ped->m_pedIK.bUseArm) { // 0x61EFB4 - Process player free-aiming
-        const auto pd = ped->m_pPlayerData;
+        const auto pd = ped->GetPlayerData();
         if (pd && pd->m_bFreeAiming && CVector2D{ m_TargetPos }.IsZero() && notsa::contains({ MODE_AIMWEAPON, MODE_AIMWEAPON_ATTACHED }, TheCamera.m_aCams[0].m_nMode)) { // Aim to in front of us
             CVector origin, target;
             TheCamera.Find3rdPersonCamTargetVector(20.f, ped->GetPosition() + CVector{0.f, 0.f, 0.7f}, origin, target);
@@ -367,7 +367,7 @@ void CTaskSimpleUseGun::AimGun(CPed* ped) {
     } else if (m_TargetPos.x == 0.f || m_TargetPos.y == 0.f) { // 0x61F30E
         ped->m_pedIK.PointGunInDirection(
             ped->m_fCurrentRotation,
-            ped->IsPlayer() ? ped->m_pPlayerData->m_fLookPitch : 0.f,
+            ped->IsPlayer() ? ped->GetPlayerData()->m_fLookPitch : 0.f,
             false,
             m_Anim->GetBlendAmount()
         );
@@ -414,7 +414,7 @@ bool CTaskSimpleUseGun::MakeAbortable(CPed* ped, eAbortPriority priority, const 
     }
     m_IsFinished = true;
     AbortIK(ped);
-    if (const auto pd = ped->m_pPlayerData) {
+    if (const auto pd = ped->GetPlayerData()) {
         pd->m_fAttackButtonCounter = 0.f;
     }
     return true;
@@ -436,7 +436,7 @@ bool CTaskSimpleUseGun::ProcessPed(CPed* ped) {
             MakeAbortable(ped);
         }
     } else {
-        if (const auto pd = ped->m_pPlayerData) {
+        if (const auto pd = ped->GetPlayerData()) {
             if (pd->m_nChosenWeapon != ped->m_nActiveWeaponSlot) {
                 return false;
             }
@@ -447,7 +447,7 @@ bool CTaskSimpleUseGun::ProcessPed(CPed* ped) {
             m_WeaponInfo = nullptr;
 
             AbortIK(ped);
-            if (const auto pd = ped->m_pPlayerData) {
+            if (const auto pd = ped->GetPlayerData()) {
                 pd->m_fAttackButtonCounter = 0.f;
             }
             return true;
@@ -455,12 +455,12 @@ bool CTaskSimpleUseGun::ProcessPed(CPed* ped) {
         m_MoveCmd = { 0.f, 0.f };
     }
 
-    if (!m_WeaponInfo->flags.b1stPerson || !ped->m_pPlayerData) {
+    if (!m_WeaponInfo->flags.b1stPerson || !ped->GetPlayerData()) {
         ped->bTestForBlockedPositions = true;
     }
 
     if (!m_IsFinished) {
-        if (const auto pd = ped->m_pPlayerData) {
+        if (const auto pd = ped->GetPlayerData()) {
             pd->m_fAttackButtonCounter *= std::pow(0.96f, CTimer::GetTimeStep());
         }
         if (m_IsInControl) {
@@ -579,7 +579,7 @@ CVector CTaskSimpleUseGun::GetAimTargetPosition(CPed* ped) const {
 std::pair<CVector, eBoneTag> CTaskSimpleUseGun::GetAimLookAtInfo() const {
     if (m_TargetEntity->GetIsTypePed()) {
         const auto targetPed = m_TargetEntity->AsPed();
-        if (const auto pd = targetPed->m_pPlayerData) {
+        if (const auto pd = targetPed->GetPlayerData()) {
             CVector ret = pd->m_vecTargetBoneOffset;
             targetPed->GetTransformedBonePosition(ret, (eBoneTag)pd->m_nTargetBone);
             return {ret, (eBoneTag)pd->m_nTargetBone};
