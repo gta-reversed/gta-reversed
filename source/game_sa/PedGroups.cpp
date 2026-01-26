@@ -123,7 +123,7 @@ CPedGroup* CPedGroups::GetPedsGroup(const CPed* ped) {
 }
 
 // 0x5F7EE0
-int32 CPedGroups::GetGroupId(const CPedGroup* pedGroup) {
+inline int32 CPedGroups::GetGroupId(const CPedGroup* pedGroup) {
     assert(pedGroup != nullptr);
 
     for (int32 index = 0; index < static_cast<int32>(ms_groups.size()); ++index) {
