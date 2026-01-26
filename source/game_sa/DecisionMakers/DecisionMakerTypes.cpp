@@ -5,6 +5,19 @@
 void CDecisionMakerTypes::InjectHooks() {
     RH_ScopedClass(CDecisionMakerTypes);
     RH_ScopedCategory("DecisionMakers");
+
+    RH_ScopedGlobalInstall(GetInstance, 0x4684F0, { .reversed = false });
+
+    RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray &, const char*));
+    RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x600840, void(CDecisionMakerTypes::*)());
+    //RH_ScopedInstall(HasResponse, 0x6042B0, { .reversed = false });
+    RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0, { .reversed = false });
+    RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490, { .reversed = false });
+    RH_ScopedInstall(AddEventResponse, 0x6044C0, { .reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)( CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&), { .reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)( CPedGroup *, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .reversed = false });
+    RH_ScopedInstall(AddDecisionMaker, 0x607050, { .reversed = false });
+    RH_ScopedInstall(CopyDecisionMaker, 0x6070F0);
 }
 
 // 0x607050
@@ -43,6 +56,57 @@ void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 decisionMakerInd
     plugin::CallMethod<0x604490>(this, decisionMakerIndex, eventId);
 }
 
+// 0x5BB9F0
+void CDecisionMakerTypes::LoadEventIndices(EventIndicesArray& out, const char* filepath) {
+    out.fill(0);
+
+    CFileMgr::SetDir("");
+    CFileMgr::SetDir("data\\decision\\");
+    const auto file = CFileMgr::OpenFile(filepath, "r");
+    CFileMgr::SetDir("");
+    if (!file) {
+        NOTSA_LOG_WARN("Failed to open decision maker event indices file: {}", filepath);
+        return;
+    }
+    for (int32 count = 0;;) {
+        char line[256];
+        if (!CFileMgr::ReadLine(file, line, sizeof(line))) {
+            break;
+        }
+        if (line[0] && line[0] != '\n') {
+            int32 index{};
+            char name[256]{};
+            VERIFY(sscanf_s(line, "%s %d", SCANF_S_STR(name), index) == 2);
+            out[index] = count++;
+        }
+    }
+    CFileMgr::CloseFile(file);
+}
+
+// 0x600840
 void CDecisionMakerTypes::LoadEventIndices() {
-    plugin::CallMethod<0x600840>(this);
+    LoadEventIndices(m_EventIndices, "PedEvent.txt");
+}
+
+// 0x6070F0
+int32 CDecisionMakerTypes::CopyDecisionMaker(int32 index, eDecisionTypes type, bool isDecisionMakerForMission) {
+    if (index != -1) {
+        return AddDecisionMaker(
+            &this->m_DecisionMakers[index],
+            type,
+            isDecisionMakerForMission
+        );
+    }
+    if (type != eDecisionTypes::DEFAULT_DECISION_MAKER) {
+        return AddDecisionMaker(
+            &this->m_DefaultMissionPedGroupDecisionMaker,
+            type,
+            isDecisionMakerForMission
+        );
+    }
+    return AddDecisionMaker(
+        &this->m_DefaultMissionPedDecisionMaker,
+        DEFAULT_DECISION_MAKER,
+        isDecisionMakerForMission
+    );
 }
