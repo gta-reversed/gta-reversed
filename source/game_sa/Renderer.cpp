@@ -38,6 +38,18 @@ float& CRenderer::ms_lowLodDistScale = *(float*)0x8CD804;
 uint32& gnRendererModelRequestFlags = *(uint32*)0xB745C4;
 CEntity**& gpOutEntitiesForGetObjectsInFrustum = *(CEntity***)0xB76854;
 
+namespace {
+constexpr float TREE_LOD_DISTANCE_MULTIPLIER = 1.5f;
+
+float GetEffectiveDrawDistance(const CBaseModelInfo* baseModelInfo) {
+    float drawDistance = TheCamera.m_fLODDistMultiplier * baseModelInfo->m_fDrawDistance;
+    if (baseModelInfo->SwaysInWind()) {
+        drawDistance *= TREE_LOD_DISTANCE_MULTIPLIER;
+    }
+    return drawDistance;
+}
+} // namespace
+
 void CRenderer::InjectHooks()
 {
     RH_ScopedClass(CRenderer);
@@ -467,10 +479,10 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
     }
 
     const float fFarClipRadius = baseModelInfo->GetColModel()->GetBoundRadius() + ms_fFarClipPlane;
-    float fDrawDistanceRadius = std::min(TheCamera.m_fLODDistMultiplier * baseModelInfo->m_fDrawDistance, fFarClipRadius);
+    float fDrawDistanceRadius = std::min(GetEffectiveDrawDistance(baseModelInfo), fFarClipRadius);
     float fFadingDistance = MAX_FADING_DISTANCE;
     if (!entity->GetLod()) {
-        float fDrawDistance = std::min(baseModelInfo->m_fDrawDistance, fDrawDistanceRadius);
+        float fDrawDistance = std::min(GetEffectiveDrawDistance(baseModelInfo), fDrawDistanceRadius);
         if (fDrawDistance > MAX_LOWLOD_DISTANCE)
             fFadingDistance = fDrawDistance / 15.0f + 10.0f;
         if (entity->m_bIsBIGBuilding)
@@ -666,7 +678,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
 
         outDistance = DistanceBetweenPoints(ms_vecCameraPosition, position);
         if (outDistance > MAX_LOD_DISTANCE) {
-            const float fDrawDistanceRadius = TheCamera.m_fLODDistMultiplier * baseModelInfo->m_fDrawDistance;
+            const float fDrawDistanceRadius = GetEffectiveDrawDistance(baseModelInfo);
             if (fDrawDistanceRadius > MAX_LOD_DISTANCE &&
                 fDrawDistanceRadius + MAX_FADING_DISTANCE > outDistance
             ) {
