@@ -236,7 +236,7 @@ void CBoat::AddWakePoint(CVector pos) {
     // Determine max wake points based on entity status
     uint16 uiMaxWakePoints = 31;
     if (GetStatus() != STATUS_PLAYER) {
-        if (m_nCreatedBy == eVehicleCreatedBy::MISSION_VEHICLE) {
+        if (GetCreatedBy() == eVehicleCreatedBy::MISSION_VEHICLE) {
             uiMaxWakePoints = 20;
         } else {
             uiMaxWakePoints = 15;

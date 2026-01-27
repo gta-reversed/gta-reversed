@@ -1630,7 +1630,7 @@ void CHud::RenderBreathBar(int32 playerId, int32 x, int32 y) {
         (float)y,
         (uint16)SCREEN_STRETCH_X(62.0f),
         (uint8)SCREEN_STRETCH_Y(9.0f),
-        player->m_pPlayerData->m_fBreath / CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 100.0f,
+        player->GetPlayerData()->m_fBreath / CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 100.0f,
         false,
         false,
         true,

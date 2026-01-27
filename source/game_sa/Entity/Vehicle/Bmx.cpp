@@ -201,7 +201,7 @@ void CBmx::ProcessBunnyHop() {
     if (anim) {
         if (anim->GetBlendAmount() > 0.5f) {
             m_GasPedal                                   = 0.0f;
-            FindPlayerPed()->m_pPlayerData->m_fMoveSpeed = 0.0f;
+            FindPlayerPed()->GetPlayerData()->m_fMoveSpeed = 0.0f;
             if (!vehicleFlags.bIsHandbrakeOn && (m_aWheelRatios[0] < 1.0f || m_aWheelRatios[1] < 1.0f || m_aWheelRatios[2] < 1.0f || m_aWheelRatios[3] < 1.0f)) {
                 m_bIsFreewheeling = true;
             }
