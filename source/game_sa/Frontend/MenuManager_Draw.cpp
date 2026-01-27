@@ -454,7 +454,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     const bool hasLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
 
     // 0x5798CE
-    for (auto i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
+    const auto itemCount = std::size(aScreens[m_nCurrentScreen].m_aItems);
+    for (size_t i = 0; i < itemCount; i++) {
         auto& item = aScreens[m_nCurrentScreen].m_aItems[i];
         rightColumnText = nullptr;
         const uint16 lineHeight = (item.m_nType == eMenuEntryType::TI_MPACK) ? 20 : 30;
@@ -468,7 +469,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetScale(StretchX(0.42f), StretchY(0.95f));
         }
         CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
-        if (i == m_nCurrentScreenItem && m_bMapLoaded) {
+        if (m_nCurrentScreenItem >= 0 && i == static_cast<size_t>(m_nCurrentScreenItem) && m_bMapLoaded) {
             CFont::SetColor(MENU_TEXT_SELECTED);
         } else {
             CFont::SetColor(MENU_TEXT_NORMAL);
