@@ -1293,7 +1293,7 @@ bool CVehicle::CanBeDeleted() {
         }
     }
 
-    switch (m_nCreatedBy) {
+    switch (GetCreatedBy()) {
     case MISSION_VEHICLE:
     case PERMANENT_VEHICLE:
         return false;
@@ -3089,7 +3089,7 @@ bool CVehicle::CanPedLeanOut(CPed* ped) {
 
 // 0x6D5D70
 void CVehicle::SetVehicleCreatedBy(eVehicleCreatedBy createdBy) {
-    if (m_nCreatedBy != createdBy) {
+    if (GetCreatedBy() != createdBy) {
         CCarCtrl::UpdateCarCount(this, true);
         m_nCreatedBy = createdBy;
         CCarCtrl::UpdateCarCount(this, false);
@@ -4441,7 +4441,7 @@ void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
     if (setClothesToAfro) {
         const auto playerPed = FindPlayerPed(PED_TYPE_PLAYER1);
         CStats::SetStatValue(STAT_FAT, 1000.0f);
-        playerPed->m_pPlayerData->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
+        playerPed->GetPlayerData()->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
         CClothes::RebuildPlayer(playerPed, false);
     }
     const eModelID modelId = setClothesToAfro ? MODEL_PLAYER : MODEL_WMOST;
