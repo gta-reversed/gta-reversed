@@ -1,5 +1,8 @@
 #include "StdInc.h"
 #include "Interior_c.h"
+#include "FurnitureManager_c.h"
+#include "Furniture_c.h"
+#include "InteriorManager_c.h"
 
 void Interior_c::InjectHooks() {
     RH_ScopedClass(Interior_c);
