@@ -16,6 +16,15 @@ class CObject;
 class Furniture_c;
 class InteriorGroup_c;
 
+typedef struct GotoPt_t GotoPt_t;
+struct GotoPt_t {
+    int8    tileX;
+    int8    tileY;
+    int8    link1;
+    int8    link2;
+    CVector pos;
+};
+
 class Interior_c : public ListItem_c<Interior_c> {
 public:
     int32             m_interiorId;         // 0x8
