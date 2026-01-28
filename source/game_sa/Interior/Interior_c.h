@@ -27,39 +27,26 @@ struct GotoPt_t {
 
 class Interior_c : public ListItem_c<Interior_c> {
 public:
-    int32             m_interiorId;         // 0x8
-    InteriorGroup_c*  m_pGroup;             // 0xC
-    int32             m_areaCode;           // 0x10
-    tEffectInterior*  m_box;                // 0x14
-    RwMatrix          m_matrix;             // 0x18
-    int32             field_58;             // 0x58
+    int32             m_interiorId;
+    InteriorGroup_c*  m_pGroup;
+    int32             m_areaCode;
+    tEffectInterior*  m_box;
+    RwMatrix          m_matrix;
+    float             m_distSq;
     TList_c<void>     m_list;               // 0x5C - TODO: Figure out type
-    char              field_68[900];        // 0x68
-    int16             field_3EC;            // 0x3EC
-    int16             field_3EE;            // 0x3EE
-    CNodeAddress      m_nodeAddress;        // 0x3F0
-    int16             field_3F4;            // 0x3F4
-    int16             field_3F6;            // 0x3F6
-    int32             field_3F8;            // 0x3F8
-    int32             field_3FC;            // 0x3FC
-    CVector           m_position;           // 0x400
-    int8              field_40C;            // 0x40C
-    int8              m_interiorInfosCount; // 0x40D
-    int32             field_412;            // 0x412
-    int32             field_416;            // 0x416
-    int32             field_41A;            // 0x41A
-    int32             field_41E;            // 0x41E
-    int32             field_422;            // 0x422
-    int32             field_426;            // 0x426
-    int32             field_42A;            // 0x42A
-    int32             field_42E;            // 0x42E
-    int32             field_432;            // 0x432
-    char              gap436[346];          // 0x436
-    InteriorInfo_t    m_interiorInfos[16];  // 0x590
-    int8              m_furnitureGroupId;   // 0x790
-    int8              m_furnitureId;        // 0x791
-    int8              field_792;            // 0x792
-    int8              field_793;            // 0x793
+    uint8             m_tiles[30][30];
+    CNodeAddress      m_exitAddr;
+    CNodeAddress      m_doorAddr;
+    CVector           m_exitPos;
+    CVector           m_doorPos;
+    int8              m_numGotoPts;
+    int8              m_numInteriorInfos;
+    GotoPt_t          m_gotoPts[16];
+    GotoPt_t          m_exitPts[8];
+    InteriorInfo_t    m_interiorInfos[16];
+    int8              m_shopSubType;
+    int8              m_style;
+    int8              m_style2;
 
 public:
     static void InjectHooks();
@@ -123,6 +110,8 @@ public:
     bool FindEmptyTiles(int32 a3, int32 a4, int32* arg8, int32* a5);
     void FurnishShop(int32 a2);
 
-    auto GetNodeAddress() const { return m_nodeAddress; }
+    auto GetNodeExitAddress() const { return m_exitAddr; }
+    auto GetNodeDoorAddress() const { return m_doorAddr; }
+    auto GetNodeAddress() const { return m_doorAddr; } // OLD
 };
 VALIDATE_SIZE(Interior_c, 0x794);
