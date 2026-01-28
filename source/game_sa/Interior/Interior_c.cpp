@@ -8,7 +8,7 @@ void Interior_c::InjectHooks() {
     //RH_ScopedInstall(Constructor, 0x5921D0, { .reversed = false });
     //RH_ScopedInstall(Destructor, 0x591360, { .reversed = false });
 
-    RH_ScopedInstall(Bedroom_AddTableItem, 0x593F10, { .reversed = false });
+    RH_ScopedInstall(Bedroom_AddTableItem, 0x593F10);
     RH_ScopedInstall(FurnishBedroom, 0x593FC0, { .reversed = false });
     RH_ScopedInstall(Kitchen_FurnishEdges, 0x596930, { .reversed = false });
     RH_ScopedInstall(FurnishKitchen, 0x5970B0, { .reversed = false });
@@ -80,8 +80,12 @@ void Interior_c::Exit() {
 }
 
 // 0x593F10
-CObject* Interior_c::Bedroom_AddTableItem(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6, int32 a7) {
-    return plugin::CallMethodAndReturn<CObject*, 0x593F10, Interior_c*, int32, int32, int32, int32, int32, int32>(this, a2, a3, a4, a5, a6, a7);
+void Interior_c::Bedroom_AddTableItem(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6, int32 a7) {
+    const auto fx = static_cast<float>(x) + ((wallId == 0 || wallId == 2) ? 0.5f : 0.0f);
+    const auto fy = static_cast<float>(y) + ((wallId == 1 || wallId == 3) ? 0.5f : 0.0f);
+    
+    auto* furniture = g_furnitureMan.GetFurniture(interior, subGroup, -1, m_box->m_status); // TODO: -1 or 0xFFFF ?
+    PlaceObject(1, furniture, fx + 0.5f, fy + 0.5f, 0.5f, static_cast<float>(d) * 90.0f);
 }
 
 // 0x593FC0
