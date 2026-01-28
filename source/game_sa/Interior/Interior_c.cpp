@@ -51,7 +51,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(AddGotoPt, 0x591D20, { .reversed = false });
     RH_ScopedInstall(AddInteriorInfo, 0x591E40, { .reversed = false });
     RH_ScopedInstall(AddPickups, 0x591F90, { .reversed = false });
-    RH_ScopedInstall(Exit, 0x592230, { .reversed = false });
+    RH_ScopedInstall(Exit, 0x592230);
     RH_ScopedInstall(FindBoundingBox, 0x5922C0, { .reversed = false });
     RH_ScopedInstall(CalcExitPts, 0x5924A0, { .reversed = false });
     RH_ScopedInstall(IsVisible, 0x5929F0, { .reversed = false });
@@ -69,7 +69,14 @@ int32 Interior_c::Init(const CVector& pos) {
 
 // 0x592230
 void Interior_c::Exit() {
-    plugin::CallMethod<0x592230, Interior_c*>(this);
+    const auto& [x, y, z] = m_matrix.pos;
+    CPickups::RemovePickUpsInArea(
+        x + -50.0f, x + 50.0f,
+        y + -50.0f, y + 50.0f,
+        z + -50.0f, z + 50.0f
+    );
+
+    Unfurnish();
 }
 
 // 0x593F10
