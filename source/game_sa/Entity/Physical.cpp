@@ -510,7 +510,7 @@ void CPhysical::ProcessShift() {
         CMatrix oldEntityMatrix(*m_matrix);
         ApplySpeed();
         m_matrix->Reorthogonalise();
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
 
         bool bShifted = false;
         if (GetIsTypeVehicle())
@@ -532,7 +532,7 @@ void CPhysical::ProcessShift() {
         physicalFlags.bProcessingShift = false;
 
         if (bShifted || GetIsTypeVehicle()) {
-            CWorld::IncrementCurrentScanCode();
+            CWorld::AdvanceCurrentScanCode();
             bool bShifted2 = false;
             int32 startSectorX = CWorld::GetSectorX(boundingBox.left);
             int32 startSectorY = CWorld::GetSectorY(boundingBox.bottom);
@@ -2091,8 +2091,8 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
         }
     };
 
-    CSector* s = GetSector(sectorX, sectorY);
-    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
+    CSector* s = CWorld::GetSector(sectorX, sectorY);
+    CRepeatSector* rs = CWorld::GetRepeatSector(sectorX, sectorY);
     ProcessSectorList(s->m_buildings);
     ProcessSectorList(rs->Vehicles);
     ProcessSectorList(rs->Peds);
@@ -4435,8 +4435,8 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
         }
         return false;
     };
-    CSector* s = GetSector(sectorX, sectorY);
-    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
+    CSector* s = CWorld::GetSector(sectorX, sectorY);
+    CRepeatSector* rs = CWorld::GetRepeatSector(sectorX, sectorY);
     if (   ProcessSectorList(s->m_buildings)
         || ProcessSectorList(rs->Vehicles)
         || ProcessSectorList(rs->Peds)
@@ -4737,7 +4737,7 @@ bool CPhysical::CheckCollision()
         }
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     CRect boundRect = GetBoundRect();
     int32 startSectorX = CWorld::GetSectorX(boundRect.left);
@@ -4757,7 +4757,7 @@ bool CPhysical::CheckCollision()
 bool CPhysical::CheckCollision_SimpleCar()
 {
     SetCollisionProcessed(false);
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
     if (!entryInfoNode)
         return false;

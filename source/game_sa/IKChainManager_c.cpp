@@ -56,7 +56,7 @@ void IKChainManager_c::Reset() {
 // 0x6186D0
 void IKChainManager_c::Update(float timeStep) {
     for (auto s = 0u; s < (uint32)eIKChainSlot::COUNT; s++) {
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
 
         for (auto& chain : m_ActiveList) {
             if (chain.GetIKSlot() != (eIKChainSlot)s) {

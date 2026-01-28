@@ -809,7 +809,7 @@ void CShadows::RenderStoredShadows() {
                     }
                 }
 
-                CWorld::IncrementCurrentScanCode();
+                CWorld::AdvanceCurrentScanCode();
 
                 const auto ishdwRect = GetShadowRect(ishdw);
 
@@ -817,7 +817,7 @@ void CShadows::RenderStoredShadows() {
                 CWorld::IterateSectorsOverlappedByRect(
                     ishdwRect,
                     [&] (int32 x, int32 y) -> bool {
-                        const auto sector = GetSector(x, y);
+                        const auto sector = CWorld::GetSector(x, y);
 
                         if (const auto rtshdw = ishdw.m_pRTShadow) {
                             CastRealTimeShadowSectorList(
