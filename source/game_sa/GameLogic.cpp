@@ -91,7 +91,7 @@ void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
             player2->GiveWeapon(weapon, true);
         }
         player1->PickWeaponAllowedFor2Player();
-        player1->m_pPlayerData->m_nChosenWeapon = player1->m_pPlayerData->m_nChosenWeapon;
+        player1->GetPlayerData()->m_nChosenWeapon = player1->GetPlayerData()->m_nChosenWeapon;
     }
 }
 
@@ -357,7 +357,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     if (player->m_fHealth <= 0.0f) {
         CStats::UpdateStatsOnRespawn();
     }
-    auto playerData = player->m_pPlayerData;
+    auto playerData = player->GetPlayerData();
     auto playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
     player->physicalFlags.bRenderScorched = false;
@@ -440,7 +440,7 @@ void CGameLogic::SetPlayerWantedLevelForForbiddenTerritories(bool immediately) {
     if ((!immediately && (CTimer::GetFrameCounter() % 32) != 18) || coords.z > 950.0f)
         return;
 
-    if (ped->m_pIntelligence->GetTaskSwim() || ped->GetWantedLevel() >= 4)
+    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= 4)
         return;
 
     const auto SetWantedIfInArea = [&](auto* vertices, size_t size) {
@@ -548,7 +548,7 @@ void CGameLogic::StopPlayerMovingFromDirection(int32 playerId, CVector direction
     if (auto obj = [ped = FindPlayerPed(playerId)]() -> CPhysical* {
         if (ped->IsInVehicle()) {
             return ped->GetVehicleIfInOne();
-        } else if (ped->bIsStanding || ped->m_pIntelligence->GetTaskJetPack()) {
+        } else if (ped->bIsStanding || ped->GetIntelligence()->GetTaskJetPack()) {
             return ped;
         }
 

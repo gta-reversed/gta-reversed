@@ -689,7 +689,12 @@ int32 CAERadioTrackManager::ChooseDJBanterIndexFromList(eRadioID id, int32** lis
 void CAERadioTrackManager::ChooseTracksForStation(eRadioID id) {
     int8 trackCount = 0;
 
-    m_RequestedSettings.Reset();
+    for (auto i = 0u; i < tRadioSettings::NUM_TRACKS; i++) {
+        m_RequestedSettings.TrackTypes[i] = TYPE_NONE;
+        m_RequestedSettings.TrackQueue[i] = -1;
+        m_RequestedSettings.TrackIndices[i] = -1;
+    }
+
     if (!CAEAudioUtility::ResolveProbability(0.95f)) {
         if (id) {
             if (CAEAudioUtility::ResolveProbability(0.5f))
@@ -794,20 +799,23 @@ void CAERadioTrackManager::CheckForPause() {
     if (CTimer::GetIsPaused()) {
         m_bPauseMode = true;
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, m_bEnabledInPauseMode ? 1.0f : 0.0f);
-    } else if (
-           notsa::contains({
-               AE_RT_CIVILIAN,
-               AE_RT_EMERGENCY,
-               AE_RT_UNKNOWN
-           }, CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio()->RadioType)
-        || CAudioEngine::IsAmbienceRadioActive()
-    ) {
-        m_bPauseMode = false;
-        AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, 1.0f);
     } else {
-        StopRadio(nullptr, false);
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
-        m_bPauseMode = false;
+        const auto* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
+        
+        if (settings && notsa::contains({
+                AE_RT_CIVILIAN,
+                AE_RT_EMERGENCY,
+                AE_RT_UNKNOWN
+            }, settings->RadioType)
+            || CAudioEngine::IsAmbienceRadioActive()
+        ) {
+            m_bPauseMode = false;
+            AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, 1.0f);
+        } else {
+            StopRadio(nullptr, false);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
+            m_bPauseMode = false;
+        }
     }
 }
 

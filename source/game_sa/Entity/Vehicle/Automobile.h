@@ -49,7 +49,7 @@ public:
     std::array<float, 4>                m_fWheelsSuspensionCompressionPrev; // 0x7E4 - Filled with 1.f in the ctor
     std::array<float, 4>                m_WheelCounts;
 
-    float field_804;
+    float m_fBrakeCount;
     float m_fIntertiaValue1; //  m_anWheelSurfaceType[2]
     float m_fIntertiaValue2;
 
