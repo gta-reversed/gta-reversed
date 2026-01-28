@@ -24,6 +24,7 @@ struct GotoPt_t {
     int8    link2;
     CVector pos;
 };
+VALIDATE_SIZE(GotoPt_t, 0x10);
 
 class Interior_c : public ListItem_c<Interior_c> {
 public:
