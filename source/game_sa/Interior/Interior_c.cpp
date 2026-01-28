@@ -80,7 +80,7 @@ void Interior_c::Exit() {
 }
 
 // 0x593F10
-void Interior_c::Bedroom_AddTableItem(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6, int32 a7) {
+void Interior_c::Bedroom_AddTableItem(int32 interior, int32 subGroup, int32 wallId, int32 x, int32 y, int32 d) {
     const auto fx = static_cast<float>(x) + ((wallId == 0 || wallId == 2) ? 0.5f : 0.0f);
     const auto fy = static_cast<float>(y) + ((wallId == 1 || wallId == 3) ? 0.5f : 0.0f);
     
