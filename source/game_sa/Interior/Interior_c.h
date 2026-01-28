@@ -57,7 +57,7 @@ public:
     int32 Init(const CVector& pos);
     void Exit();
 
-    CObject* Bedroom_AddTableItem(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6, int32 a7);
+    void Bedroom_AddTableItem(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6, int32 a7);
     void FurnishBedroom();
     CObject* Kitchen_FurnishEdges();
     void FurnishKitchen();
