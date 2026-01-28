@@ -55,6 +55,8 @@ void CPedGroups::RemoveGroup(int32 groupId) {
 
 // 0x5FB8A0
 void CPedGroups::RemoveAllFollowersFromGroup(int32 groupId) {
+    assert(groupId < 8);
+    
     if (!ms_activeGroups[groupId]) {
         return;
     }
