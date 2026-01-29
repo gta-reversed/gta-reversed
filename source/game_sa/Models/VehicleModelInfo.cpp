@@ -525,12 +525,14 @@ void CVehicleModelInfo::SetCarCustomPlate()
 {
     m_pPlateMaterial = nullptr;
     SetCustomCarPlateText(nullptr);
+    
+    m_nPlateType = CARPLATE_DEFAULT;
+    char plateBuffer[8 + 1] = "DEFAULT";
 
-    char plateBuffer[8];
-    CCustomCarPlateMgr::GeneratePlateText(plateBuffer, 8);
-    auto material = CCustomCarPlateMgr::SetupClump(m_pRwClump, plateBuffer, m_nPlateType);
-    if (material)
+    CCustomCarPlateMgr::GeneratePlateText(plateBuffer, sizeof(plateBuffer) - 1);
+    if (auto* material = CCustomCarPlateMgr::SetupClump(m_pRwClump, plateBuffer, m_nPlateType)) {
         m_pPlateMaterial = material;
+    }
 }
 
 void CVehicleModelInfo::DisableEnvMap()

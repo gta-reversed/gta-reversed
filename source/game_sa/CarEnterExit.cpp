@@ -259,7 +259,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
                 if (DotProduct2D(vehicle->GetRight(), ped->GetForward()) > 0 // On the left
                  && DotProduct2D(vehicle->GetForward(), ped->GetForward()) > std::cos(PI / 6.f)
                 ) {
-                    if ((ped->IsPlayer() && ped->m_pPlayerData->m_fMoveBlendRatio > 1.5f && doorId == 0) 
+                    if ((ped->IsPlayer() && ped->GetPlayerData()->m_fMoveBlendRatio > 1.5f && doorId == 0) 
                     || (!ped->IsPlayer() && ped->m_nPedType != PED_TYPE_COP && ped->m_nMoveState == PEDMOVE_RUN && ped->m_pStats->m_nTemper > 65 && doorId == 0)
                     ) {
                         // 18 here is probably either from eBikeNodes or eQuadNodes, not sure?
@@ -541,7 +541,7 @@ bool CCarEnterExit::IsVehicleStealable(const CVehicle* vehicle, const CPed* ped)
     }
 
     if (ped->m_pVehicle != vehicle) {
-        switch (vehicle->m_nCreatedBy) {
+        switch (vehicle->GetCreatedBy()) {
         case RANDOM_VEHICLE:
         case PARKED_VEHICLE:
             break;

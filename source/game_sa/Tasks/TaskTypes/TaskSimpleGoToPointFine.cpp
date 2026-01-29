@@ -71,10 +71,10 @@ void CTaskSimpleGoToPointFine::SetBlendedMoveAnim(CPed* ped) {
     auto sprintAnimAssoc = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_SPRINT);
     auto pIdleTiredAnimAssoc = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_IDLE_TIRED);
 
-    if (ped->bIsDucking && ped->m_pIntelligence->GetTaskDuck(false)) {
+    if (ped->bIsDucking && ped->GetIntelligence()->GetTaskDuck(false)) {
         float fMoveSpeedY = m_fMoveRatio * 0.5f;
         fMoveSpeedY = std::min(fMoveSpeedY, 1.0f);
-        CTaskSimpleDuck* duckTask = ped->m_pIntelligence->GetTaskDuck(false);
+        CTaskSimpleDuck* duckTask = ped->GetIntelligence()->GetTaskDuck(false);
         duckTask->ControlDuckMove({ 0.0f, -fMoveSpeedY });
         return;
     }

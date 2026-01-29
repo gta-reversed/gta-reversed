@@ -316,8 +316,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     auto* ped = FindPlayerPed(playerId);
 
     if (modelId == MI_PICKUP_ADRENALINE) {
-        ped->m_pPlayerData->m_bAdrenaline = true;
-        ped->m_pPlayerData->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
+        ped->GetPlayerData()->m_bAdrenaline = true;
+        ped->GetPlayerData()->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
         ped->ResetSprintEnergy();
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_ADRENALINE);
         return true;
