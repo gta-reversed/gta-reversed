@@ -36,6 +36,7 @@ void CWeaponInfo::Initialise() {
         info.m_nSlot = -1;
         info.m_eAnimGroup = ANIM_GROUP_DEFAULT;
         info.m_nAmmoClip = 0;
+        info.m_nDamage = 0;
         info.m_nSkillLevel = 1;
         info.m_nReqStatLevel = 0;
         info.m_fAccuracy = 1.0f;
@@ -65,6 +66,7 @@ void CWeaponInfo::Initialise() {
         offset.RLoadA = 0;
         offset.RLoadB = 0;
         offset.CrouchRLoadA = 0;
+        offset.CrouchRLoadB = 0;
     }
 
     LoadWeaponData();
