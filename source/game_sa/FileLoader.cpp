@@ -31,7 +31,7 @@
 char(&CFileLoader::ms_line)[512] = *reinterpret_cast<char(*)[512]>(0xB71848);
 uint32& gAtomicModelId = *reinterpret_cast<uint32*>(0xB71840);
 
-void LinkLods(int32 a1);
+void LinkLods(int32 numRelatedIPLs);
 
 void CFileLoader::InjectHooks() {
     RH_ScopedClass(CFileLoader);
