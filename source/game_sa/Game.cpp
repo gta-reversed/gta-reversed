@@ -534,7 +534,11 @@ bool CGame::Init3(const char* datFile) {
     LoadingScreen("Loading the Game", "Load scene");
     CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
     CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
+    
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
     D3DResourceSystem::SetUseD3DResourceBuffering(true);
+#endif
+    
     LoadingScreen("Loading the Game", "Procedural Interiors");
     g_interiorMan.Init();
     g_procObjMan.Init();
