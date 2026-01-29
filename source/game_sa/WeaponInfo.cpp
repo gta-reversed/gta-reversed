@@ -27,7 +27,6 @@ void CWeaponInfo::InjectHooks() {
 // 0x5BF750
 void CWeaponInfo::Initialise() {
     for (auto& info : aWeaponInfo) {
-        info.m_vecFireOffset = CVector();
         info.m_nWeaponFire = WEAPON_FIRE_MELEE;
         info.m_fTargetRange = 0.0f;
         info.m_fWeaponRange = 0.0f;
@@ -37,7 +36,8 @@ void CWeaponInfo::Initialise() {
         info.m_eAnimGroup = ANIM_GROUP_DEFAULT;
         info.m_nAmmoClip = 0;
         info.m_nDamage = 0;
-        info.m_nSkillLevel = 1;
+        info.m_vecFireOffset = CVector();
+        info.m_nSkillLevel = (uint32)eWeaponSkill::STD;
         info.m_nReqStatLevel = 0;
         info.m_fAccuracy = 1.0f;
         info.m_fMoveSpeed = 1.0f;
@@ -54,7 +54,9 @@ void CWeaponInfo::Initialise() {
         info.m_fSpread = 0.0f;
         info.m_nAimOffsetIndex = 0;
         info.m_nFlags = 0;
-        info.m_nBaseCombo = 4;
+
+        // Melee data
+        info.m_nBaseCombo = MELEE_COMBO_UNARMED_1;
         info.m_nNumCombos = 1;
     }
 
