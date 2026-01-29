@@ -655,8 +655,10 @@ bool CGame::InitialiseRenderWare() {
     CPostEffects::Initialise();
     CGame::m_pWorkingMatrix1 = RwMatrixCreate();
     CGame::m_pWorkingMatrix2 = RwMatrixCreate();
-
+    
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
     _rwD3D9DeviceSetRestoreCallback(_rwD3D9DeviceGetRestoreCallback());
+#endif    
     return true;
 }
 
