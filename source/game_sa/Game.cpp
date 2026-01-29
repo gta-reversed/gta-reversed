@@ -161,7 +161,11 @@ void CGame::ShutdownRenderWare() {
     CameraDestroy(Scene.m_pRwCamera);
     Scene.m_pRpWorld = nullptr;
     Scene.m_pRwCamera = nullptr;
+    
+#if !defined(BUILD_ANDROID)
     D3DResourceSystem::CancelBuffering();
+#endif
+    
     CPostEffects::Close();
 }
 
