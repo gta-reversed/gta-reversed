@@ -337,8 +337,12 @@ bool CGame::Init1(char const *datFile) {
     strcpy_s(aDatFile, datFile);
     CPools::Initialise();
     CPlaceable::InitMatrixArray();
-    CIniFile::LoadIniFile();
+    CIniFile::LoadIniFile(); // in build PC and Android
+    
+#if !defined(BUILD_ANDROID)
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
+#endif
+    
     currLevel = LEVEL_NAME_COUNTRY_SIDE;
     currArea = AREA_CODE_NORMAL_WORLD;
 
