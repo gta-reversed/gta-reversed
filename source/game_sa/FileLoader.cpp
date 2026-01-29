@@ -2140,7 +2140,7 @@ void CFileLoader::LoadScene(const char* filename) {
 
         } else {
             const auto FindSectionID = [&] {
-                static const struct { std::string_view name; SectionID id; } mapping[]{
+                constexpr struct { std::string_view name; SectionID id; } mapping[]{
                     { "path", SectionID::PATH },
                     { "inst", SectionID::INST },
                     { "mult", SectionID::MULT },
@@ -2288,7 +2288,7 @@ void CFileLoader::LoadObjectTypes(const char* filename) {
             // Find out next section
 
             const auto FindSectionID = [&] {
-                static const struct { std::string_view name; SectionID id; } mapping[]{
+                constexpr struct { std::string_view name; SectionID id; } mapping[]{
                     { "objs", SectionID::OBJS },
                     { "tobj", SectionID::TOBJ },
                     { "weap", SectionID::WEAP },
