@@ -48,7 +48,7 @@ void CReferences::RemoveReferencesToPlayer() {
     auto player = FindPlayerPed();
     if (player) {
         player->ResolveReferences();
-        auto& group = CPedGroups::GetGroup(player->m_pPlayerData->m_nPlayerGroup);
+        auto& group = CPedGroups::GetGroup(player->GetPlayerData()->m_nPlayerGroup);
         group.GetMembership().SetLeader(player);
         group.Process();
     }

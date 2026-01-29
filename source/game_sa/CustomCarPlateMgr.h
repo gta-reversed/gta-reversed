@@ -8,10 +8,12 @@
 
 #include "RenderWare.h"
 
-enum eCarPlateType {
+enum eCarPlateType : uint8 {
+    CARPLATE_DEFAULT = 255,
     CARPLATE_SF = 0,
     CARPLATE_LV = 1,
-    CARPLATE_LA = 2
+    CARPLATE_LA = 2,
+    MAX_CARPLATE = 3
 };
 
 class CCustomCarPlateMgr {
