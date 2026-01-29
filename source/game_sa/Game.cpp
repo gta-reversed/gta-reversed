@@ -601,7 +601,11 @@ void CGame::InitialiseOnceBeforeRW() {
 // 0x5BD600
 bool CGame::InitialiseRenderWare() {
     ValidateVersion();
+
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
     D3DResourceSystem::Init();
+#endif
+
     CTxdStore::Initialise();
     CVisibilityPlugins::Initialise();
 
