@@ -207,13 +207,13 @@ RpClump* CFileLoader::LoadAtomicFile2Return(const char* filename) {
 // NOTSA
 char* CFileLoader::FindFirstNonNullOrWS(char* it) {
     // Have to cast to uint8, because signed ASCII is retarded
-    for (; *it && (uint8)*it <= (uint8)' '; it++);
+    for (; *it && (uint8)*it <= (uint8)' '; it++) {}
     return it;
 }
 
 // NOTSA
 char* CFileLoader::FindFirstNullOrWS(char* it) {
-    for (; *it && *it > ' '; it++);
+    for (; *it && *it > ' '; it++) {}
     return it;
 }
 
