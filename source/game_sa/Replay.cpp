@@ -736,7 +736,7 @@ void CReplay::StoreStuffInMem() {
 void CReplay::RestoreStuffFromMem() {
     for (auto& ped : GetPedPool()->GetAllValid()) {
         if (ped.bUsedForReplay) {
-            if (auto playerData = ped.m_pPlayerData) {
+            if (auto playerData = ped.GetPlayerData()) {
                 playerData->DeAllocateData();
             }
             CWorld::Remove(&ped);

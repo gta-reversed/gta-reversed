@@ -458,7 +458,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
         }
 
         CVector objectToHoldPosition(0.0f, 0.0f, 0.0f);
-        if (objectToHold->objectFlags.bIsLiftable && ped->m_pPlayerData && bAddEventSoundQuiet) {
+        if (objectToHold->objectFlags.bIsLiftable && ped->GetPlayerData() && bAddEventSoundQuiet) {
             CEventSoundQuiet eventSoundQuiet(ped, 60.0f, -1, objectToHoldPosition);
             GetEventGlobalGroup()->Add(&eventSoundQuiet, false);
         }
