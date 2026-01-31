@@ -1654,9 +1654,6 @@ int32 GetListOfComponentsNotUsedByRules(uint32 compRules, int32 numExtras, int32
     }
 
     if (comps.nExtraBRule && IsValidCompRule(comps.nExtraBRule)) {
-        if (comps.nExtraBRule == eComponentsRules::FULL_RANDOM)
-            return 0;
-
         if (comps.nExtraB_comp1 != 0xF)
             iCompsList[comps.nExtraB_comp1] = 0xF;
 
