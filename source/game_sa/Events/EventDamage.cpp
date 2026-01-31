@@ -46,15 +46,18 @@ CEventDamage::CEventDamage(CEntity* source, uint32 startTime, eWeaponType weapon
     m_weaponType            = weaponType;
     m_pedPieceType          = pieceHit;
     m_ucDirection           = direction;
-    m_bWitnessedInVehicle   = bPedInVehicle;
     m_bJumpedOutOfMovingCar = bJumpedOutOfMovingCar;
+    m_bFallDown             = false;
+    m_bAnimAdded            = false;
+    m_bWitnessedInVehicle   = bPedInVehicle;
+    m_bStealthMode          = false;
     m_nAnimGroup            = ANIM_GROUP_DEFAULT;
     m_nAnimID               = ANIM_ID_NO_ANIMATION_SET;
     m_fAnimBlend            = 8.0f;
     m_fAnimSpeed            = 1.0f;
 
     CEntity::SafeRegisterRef(m_pSourceEntity);
-    m_bWitnessedInVehicle = true; // if we're setting this to true, then why do we have bPedInVehicle parameter in this constructor? bug?
+    // Keep bitfield defaults aligned with vanilla constructor.
 }
 
 CEventDamage::~CEventDamage() {
@@ -550,7 +553,7 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         else
                             m_nAnimID = m_pedPieceType == PED_PIECE_RIGHT_ARM
                                 ? ANIM_ID_KD_RIGHT
-                                : ANIM_ID_KO_SKID_FRONT; 
+                                : ANIM_ID_KO_SKID_FRONT;
                         break;
                     case 3:
                         m_nAnimID = ANIM_ID_KO_SPIN_L;
@@ -633,6 +636,9 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
 
 // 0x4B3FC0
 void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
+    // Vanilla clears the fall-down flag during anim selection, so don't carry it across events.
+    m_bFallDown = false;
+
     if (ped->bInVehicle && ped->m_pVehicle) {
         CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo((eWeaponType)this->m_weaponType, eWeaponSkill::STD);
         if (!pWeaponInfo->m_nWeaponFire
@@ -815,8 +821,8 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         if (m_nAnimID == currentEventAnimId) {
                             do {
                                 m_nAnimID = CGeneral::RandomChoiceFromList({ANIM_ID_DAM_LEGL_FRMBK, ANIM_ID_DAM_LEGL_FRMFT, ANIM_ID_DAM_LEGL_FRMLT});
-                            } while (m_nAnimID == currentEventAnimId);      
-                        }                                                   
+                            } while (m_nAnimID == currentEventAnimId);
+                        }
                         break;
                     case PED_PIECE_RIGHT_LEG:
                         if (m_ucDirection == 2)
@@ -908,7 +914,7 @@ void CEventDamage::ComputeAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     if (ped->m_fHealth <= 0.f) {
         ComputeDeathAnim(ped, bMakeActiveTaskAbortable);
     } else {
-        ComputeDeathAnim(ped, bMakeActiveTaskAbortable);
+        ComputeDamageAnim(ped, bMakeActiveTaskAbortable);
     }
 }
 
