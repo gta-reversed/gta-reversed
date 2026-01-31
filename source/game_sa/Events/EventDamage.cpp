@@ -57,7 +57,7 @@ CEventDamage::CEventDamage(CEntity* source, uint32 startTime, eWeaponType weapon
     m_fAnimSpeed            = 1.0f;
 
     CEntity::SafeRegisterRef(m_pSourceEntity);
-    // Keep bitfield defaults aligned with vanilla constructor.
+    m_bWitnessedInVehicle = true; // if we're setting this to true, then why do we have bPedInVehicle parameter in this constructor? bug?
 }
 
 CEventDamage::~CEventDamage() {
