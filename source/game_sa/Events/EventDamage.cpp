@@ -636,9 +636,6 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
 
 // 0x4B3FC0
 void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
-    // Vanilla clears the fall-down flag during anim selection, so don't carry it across events.
-    m_bFallDown = false;
-
     if (ped->bInVehicle && ped->m_pVehicle) {
         CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo((eWeaponType)this->m_weaponType, eWeaponSkill::STD);
         if (!pWeaponInfo->m_nWeaponFire
