@@ -37,7 +37,7 @@ void CWeaponInfo::Initialise() {
         info.m_nAmmoClip = 0;
         info.m_nDamage = 0;
         info.m_vecFireOffset = CVector();
-        info.m_nSkillLevel = (uint32)eWeaponSkill::STD;
+        info.m_nSkillLevel = eWeaponSkill::STD;
         info.m_nReqStatLevel = 0;
         info.m_fAccuracy = 1.0f;
         info.m_fMoveSpeed = 1.0f;
@@ -226,7 +226,7 @@ void CWeaponInfo::LoadWeaponData() {
             wi.m_nAmmoClip = ammo;
             wi.m_nDamage = dmg;
             wi.m_vecFireOffset = offset;
-            wi.m_nSkillLevel = (uint32)skillLevel;
+            wi.m_nSkillLevel = skillLevel;
             wi.m_nReqStatLevel = reqStatLevelForSkill;
             wi.m_fAccuracy = accuracy;
             wi.m_fMoveSpeed = moveSpeed;
