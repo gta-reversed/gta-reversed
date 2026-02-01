@@ -14,8 +14,6 @@
 #include "eWeaponSkill.h"
 #include "eWeaponFire.h"
 
-using namespace notsa;
-
 #define MAX_WEAPON_NAMES 50
 
 #define WEAPONINFO_NUM_WEAPONS_WITH_SKILLS 11
@@ -84,7 +82,7 @@ public:
     uint16       m_nAmmoClip;       // ammo in one clip // todo: should be uint32, see
     uint16       m_nDamage;         // damage inflicted per hit
     CVector      m_vecFireOffset;   // offset from weapon origin to projectile starting point
-    WEnumU32<eWeaponSkill> m_nSkillLevel;
+    notsa::WEnumU32<eWeaponSkill> m_nSkillLevel;
     uint32       m_nReqStatLevel;   // what stat level is required for this skill level (Yes, this is an int, not a float!)
     float        m_fAccuracy;       // modify accuracy of weapon
     float        m_fMoveSpeed;      // how fast can move with weapon
