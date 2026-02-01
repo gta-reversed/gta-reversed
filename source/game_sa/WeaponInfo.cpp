@@ -435,7 +435,7 @@ AnimationId CWeaponInfo::GetCrouchReloadAnimationID() const {
 
 // 0x743D50
 float CWeaponInfo::GetTargetHeadRange() const {
-    return (float)((uint32)m_nSkillLevel + 2) * m_fWeaponRange / 25.f;
+    return (float)(m_nSkillLevel.get_underlying() + 2) * m_fWeaponRange / 25.f;
 }
 
 // 0x743D70
