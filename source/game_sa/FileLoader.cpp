@@ -206,10 +206,7 @@ RpClump* CFileLoader::LoadAtomicFile2Return(const char* filename) {
 
 // NOTSA - Finds the first character that is NOT whitespace or null
 char* CFileLoader::FindFirstNonNullOrWS(char* it) {
-    while (*it) {
-        if (const auto& c = static_cast<uint8_t>(*it); c > ' ') {
-            break;
-        }
+    while (*it && static_cast<uint8_t>(*it) <= ' ') {
         ++it;
     }
     return it;
@@ -217,10 +214,7 @@ char* CFileLoader::FindFirstNonNullOrWS(char* it) {
 
 // NOTSA
 char* CFileLoader::FindFirstNullOrWS(char* it) {
-    while (*it) {
-        if (const auto& c = static_cast<uint8_t>(*it); c <= ' ') {
-            break;
-        }
+    while (*it && static_cast<uint8_t>(*it) > ' ') {
         ++it;
     }
     return it;
