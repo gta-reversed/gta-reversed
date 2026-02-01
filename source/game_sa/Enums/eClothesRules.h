@@ -16,5 +16,4 @@ enum eClothRule : uint8 {
     TAG_IGNORE,
     TAG_END_EXCLUSIVE,
     TAG_EXCLUSIVE
-
 };
