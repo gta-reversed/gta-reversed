@@ -14,6 +14,8 @@
 #include "eWeaponSkill.h"
 #include "eWeaponFire.h"
 
+using namespace notsa;
+
 #define MAX_WEAPON_NAMES 50
 
 #define WEAPONINFO_NUM_WEAPONS_WITH_SKILLS 11
