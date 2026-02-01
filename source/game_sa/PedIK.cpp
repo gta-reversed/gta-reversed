@@ -176,7 +176,7 @@ void CPedIK::PitchForSlope() {
         };
 
         if (std::abs(m_fSlopePitch) > 0.01f) {
-            if (&m_pPed->GetIntelligence()->m_TaskMgr && m_pPed->GetIntelligence()->m_TaskMgr.GetActiveTask()->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
+            if (&m_pPed->GetIntelligence()->GetTaskManager() && m_pPed->GetIntelligence()->GetTaskManager().GetActiveTask()->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
                 RotateBone(BONE_SPINE, RadiansToDegrees(m_fSlopePitch));
                 m_pPed->bUpdateMatricesRequired = true;
             } else {

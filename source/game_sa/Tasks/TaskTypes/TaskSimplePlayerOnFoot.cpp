@@ -53,7 +53,7 @@ bool CTaskSimplePlayerOnFoot::MakeAbortable(CPed* ped, eAbortPriority priority, 
     auto eventDamage = static_cast<const CEventDamage*>(event);
     bool abortable = false;
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
-        ped->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+        ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
         abortable = true;
     }
@@ -82,7 +82,7 @@ bool CTaskSimplePlayerOnFoot::MakeAbortable(CPed* ped, eAbortPriority priority, 
         }
     }
     if (abortable) {
-        if ((ped->m_pTargetedObject || (ped->m_pPlayerData->m_nPlayerFlags & 8) != 0 || TheCamera.Using1stPersonWeaponMode()) && event &&
+        if ((ped->m_pTargetedObject || (ped->GetPlayerData()->m_nPlayerFlags & 8) != 0 || TheCamera.Using1stPersonWeaponMode()) && event &&
             (event->GetEventType() == EVENT_DAMAGE || event->GetEventType() == EVENT_IN_WATER)) {
             if (event->GetEventType() != EVENT_DAMAGE || eventDamage->m_damageResponse.m_bHealthZero && eventDamage->m_bAddToEventGroup ||
                 !ped->m_pAttachedTo && (eventDamage->m_bFallDown || eventDamage->m_weaponType > WEAPON_LAST_WEAPON && eventDamage->m_weaponType != WEAPON_UZI_DRIVEBY)) {
@@ -132,7 +132,7 @@ bool CTaskSimplePlayerOnFoot::ProcessPed(CPed* ped) {
 
 // 0x6859A0
 void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
-    CPlayerPedData* playerData = player->m_pPlayerData;
+    CPlayerPedData* playerData = player->GetPlayerData();
     CPedIntelligence* intelligence = player->GetIntelligence();
     CTaskManager* taskManager = &player->GetTaskManager();
     CPad* pad = player->GetPadFromPlayer();
@@ -196,7 +196,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 if (simpleTaskUseGun) {
                     simpleTaskUseGun->PlayerPassiveControlGun();
                 }
-                player->m_pPlayerData->m_bHaveTargetSelected = 0;
+                player->GetPlayerData()->m_bHaveTargetSelected = 0;
                 return;
             }
         }
@@ -332,7 +332,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 } else if (weaponType > WEAPON_CAMERA && weaponType <= WEAPON_INFRARED && !taskManager->GetTaskPrimary(TASK_PRIMARY_PRIMARY)) {
                     auto* pCTaskComplexUseGoggles = new CTaskComplexUseGoggles();
                     taskManager->SetTask(pCTaskComplexUseGoggles, TASK_PRIMARY_PRIMARY, false);
-                    player->m_pPlayerData->m_bDontAllowWeaponChange = true;
+                    player->GetPlayerData()->m_bDontAllowWeaponChange = true;
                 }
             }
         } else {
@@ -370,7 +370,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                         } else {
                             auto* taskUseGun = new CTaskSimpleUseGun(targetedObject, CVector(0.0f, 0.0f, 0.f), gunCmd, 1, false);
                             taskManager->SetTaskSecondary(taskUseGun, TASK_SECONDARY_ATTACK);
-                            player->m_pPlayerData->m_fAttackButtonCounter = 0;
+                            player->GetPlayerData()->m_fAttackButtonCounter = 0;
                         }
                         if (!pad->GetTarget()) {
                             if (player->GetActiveWeapon().m_Type == WEAPON_EXTINGUISHER) {
@@ -478,11 +478,11 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
 
     bool lookAtTarget = false;
     int32 fightCommand = 0;
-    if (!pad->GetTarget() || player->m_pPlayerData->m_nChosenWeapon != player->m_nActiveWeaponSlot || player->m_nMoveState == PEDMOVE_SPRINT && weaponInfo->m_nWeaponFire ||
+    if (!pad->GetTarget() || player->GetPlayerData()->m_nChosenWeapon != player->m_nActiveWeaponSlot || player->m_nMoveState == PEDMOVE_SPRINT && weaponInfo->m_nWeaponFire ||
         TheCamera.Using1stPersonWeaponMode()) {
-        if (!pad->GetTarget() && !player->m_pAttachedTo || player->m_pPlayerData->m_nChosenWeapon != player->m_nActiveWeaponSlot || player->m_nMoveState == PEDMOVE_SPRINT ||
+        if (!pad->GetTarget() && !player->m_pAttachedTo || player->GetPlayerData()->m_nChosenWeapon != player->m_nActiveWeaponSlot || player->m_nMoveState == PEDMOVE_SPRINT ||
             !TheCamera.Using1stPersonWeaponMode()) {
-            if ((player->m_pTargetedObject || player->m_pPlayerData->m_bFreeAiming) && intelligence->GetTaskFighting()) {
+            if ((player->m_pTargetedObject || player->GetPlayerData()->m_bFreeAiming) && intelligence->GetTaskFighting()) {
                 if (playerData->m_vecFightMovement.y >= -0.5) {
                     fightCommand = 15;
                 } else {
@@ -629,7 +629,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
 
                 firingPoint.x = firingPoint.x * 5.0f;
                 firingPoint.y = firingPoint.y * 5.0f;
-                firingPoint.z = (std::sin(player->m_pPlayerData->m_fLookPitch) + firingPoint.z) * 5.0f;
+                firingPoint.z = (std::sin(player->GetPlayerData()->m_fLookPitch) + firingPoint.z) * 5.0f;
 
                 firingPoint += player->GetPosition();
                 TheCamera.UpdateAimingCoors(firingPoint);
@@ -868,7 +868,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
                 }
                 auto pNewAnimation = CAnimManager::BlendAnimation(player->m_pRwClump, player->m_nAnimGroup, ANIM_ID_RUN, gDuckAnimBlendData);
                 pNewAnimation->m_Flags |= ANIMATION_IS_PLAYING;
-                player->m_pPlayerData->m_fMoveBlendRatio = 1.5f;
+                player->GetPlayerData()->m_fMoveBlendRatio = 1.5f;
                 pedMoveState = PEDMOVE_RUN;
             } else {
                 if (pedMoveBlendRatio <= 0.5f) {
@@ -876,7 +876,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
                 }
                 auto pNewAnimation = CAnimManager::BlendAnimation(player->m_pRwClump, player->m_nAnimGroup, ANIM_ID_WALK, gDuckAnimBlendData);
                 pNewAnimation->m_Flags |= ANIMATION_IS_PLAYING;
-                player->m_pPlayerData->m_fMoveBlendRatio = 1.5f;
+                player->GetPlayerData()->m_fMoveBlendRatio = 1.5f;
                 pedMoveState = PEDMOVE_WALK;
             }
             player->m_nMoveState = pedMoveState;
@@ -884,7 +884,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
         } else if (pedMoveBlendRatio > 0.5f) {
             auto pNewAnimation = CAnimManager::BlendAnimation(player->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_GUNMOVE_FWD, gDuckAnimBlendData);
             pNewAnimation->m_Flags |= ANIMATION_IS_PLAYING;
-            player->m_pPlayerData->m_fMoveBlendRatio = 1.0f;
+            player->GetPlayerData()->m_fMoveBlendRatio = 1.0f;
             moveSpeed.x = 1.0f;
             moveSpeed.y = 0.0f;
             CTaskSimpleUseGun* pTaskSimpleUseGun = player->GetIntelligence()->GetTaskUseGun();
@@ -901,7 +901,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
         }
         moveSpeed.y = -pedMoveBlendRatio;
 
-        player->m_pPlayerData->m_fMoveBlendRatio = pedMoveBlendRatio;
+        player->GetPlayerData()->m_fMoveBlendRatio = pedMoveBlendRatio;
         moveSpeed.x = 0.0f;
         duckTask->ControlDuckMove({ 0.0f, moveSpeed.y });
     } else {
@@ -924,13 +924,13 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
             }
         }
         duckTask->ControlDuckMove(moveSpeed);
-        player->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+        player->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
     }
 }
 
 // 0x6883D0
 int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoidJumpingAndDucking) {
-    CPlayerPedData* playerData = player->m_pPlayerData;
+    CPlayerPedData* playerData = player->GetPlayerData();
     playerData->m_vecFightMovement = CVector2D();
 
     CPad* pad = player->GetPadFromPlayer();
@@ -947,7 +947,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
     if (pad->NewState.m_bPedWalk && pedMoveBlendRatio > 1.0f) {
         pedMoveBlendRatio = 1.0f;
     } else if (pedMoveBlendRatio <= 0.0f) {
-        player->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+        player->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         updateMoveBlendRatio = false;
     }
     if (updateMoveBlendRatio) {
@@ -963,7 +963,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
                 playerData->m_fMoveBlendRatio = fMaximumMoveBlendRatio + playerData->m_fMoveBlendRatio;
             }
         } else {
-            player->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+            player->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         }
     }
     if (!(CWeaponInfo::GetWeaponInfo(player->GetActiveWeapon().m_Type, eWeaponSkill::STD)->flags.bHeavy)) {
@@ -972,7 +972,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
                 CAnimBlendHierarchy* animHierarchy = nullptr;
                 CAnimBlendAssocGroup* animGroup = &CAnimManager::GetAssocGroups()[player->m_nAnimGroup];
 
-                if (player->m_pPlayerData->m_bPlayerSprintDisabled || g_surfaceInfos.CantSprintOn(player->m_nContactSurface) ||
+                if (player->GetPlayerData()->m_bPlayerSprintDisabled || g_surfaceInfos.CantSprintOn(player->m_nContactSurface) ||
                     (animHierarchy = animGroup->GetAnimation(ANIM_ID_RUN)->m_BlendHier, animHierarchy == animGroup->GetAnimation(ANIM_ID_SPRINT)->m_BlendHier)) {
                     if (pad->GetSprint()) {
                         player->m_nMoveState = PEDMOVE_RUN;
