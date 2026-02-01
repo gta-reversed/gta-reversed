@@ -3107,7 +3107,7 @@ void CVehicle::SetupRender() {
 
     RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(TRUE));
 
-    if (IsSubAutomobile()) {
+    if (IsAutomobile()) {
         AsAutomobile()->CustomCarPlate_BeforeRenderingStart(*mi);
     }
 
