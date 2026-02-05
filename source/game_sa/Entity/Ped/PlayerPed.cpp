@@ -95,7 +95,7 @@ bool CPlayerPed::Load() {
     CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
     auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
 
-    CWanted* wanted = GetPlayerData()->m_pWanted;
+    CWanted* wanted = GetPlayerWanted();
     wanted->m_nChaosLevel = sd.ChaosLevel;
     wanted->m_nWantedLevel= sd.WantedLevel;
 
@@ -109,7 +109,7 @@ bool CPlayerPed::Load() {
 bool CPlayerPed::Save() {
     WorkBufferSaveData saveData{};
 
-    CWanted* wanted = GetPlayerData()->m_pWanted;
+    CWanted* wanted = GetPlayerWanted();
     saveData.ChaosLevel = wanted->m_nChaosLevel;
     saveData.WantedLevel = wanted->m_nWantedLevel;
     saveData.ChosenWeapon = GetPlayerData()->m_nChosenWeapon;
@@ -1021,7 +1021,7 @@ void CPlayerPed::ProcessControl() {
     CVector effectPos;
     CPad* pad = CPad::GetPad(m_nPedType);
     if (!bCanPointGunAtTarget) {
-        GetPlayerData()->m_pWanted->Update();
+        GetPlayerWanted()->Update();
         PruneReferences();
         if (GetActiveWeapon().m_Type == WEAPON_MINIGUN) {
             auto weaponInfo = CWeaponInfo::GetWeaponInfo(WEAPON_MINIGUN, eWeaponSkill::STD);

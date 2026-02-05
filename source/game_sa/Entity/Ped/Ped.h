@@ -522,7 +522,9 @@ public:
 
     // inlined
     CPlayerPedData* GetPlayerData() const { return m_pPlayerData; }
-    
+
+    CWanted* GetPlayerWanted() const { return GetPlayerData()->m_pWanted; }
+        
     // NOTSA helpers
     void SetArmour(float v) { m_fArmour = v; }
     void SetWeaponShootingRange(uint8 r) { m_nWeaponShootingRate = r; }
