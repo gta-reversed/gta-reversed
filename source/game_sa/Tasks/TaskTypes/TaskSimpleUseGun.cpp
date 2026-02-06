@@ -657,7 +657,9 @@ void CTaskSimpleUseGun::SetMoveAnim(CPed* ped) {
             }
         }
 
-        m_MoveCmd        = { 0.f, 0.f };
+        if (!notsa::IsFixBugs()) {
+            m_MoveCmd = { 0.f, 0.f }; // BUG: At high FPS, m_MoveCmd can never accumulate past the 0.1 threshold, preventing movement while aiming
+        }
         m_HasMoveControl = false;
 
         return; // 0x61E5F3
