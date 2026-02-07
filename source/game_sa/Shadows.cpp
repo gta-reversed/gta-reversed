@@ -682,7 +682,7 @@ void CShadows::CastPlayerShadowSectorList(
         cornerAX, cornerAY,
         cornerBX, cornerBY
     };
-    for (auto* const entity : ptrList) {
+    for (const auto& entity : ptrList) {
         if (entity->IsScanCodeCurrent()) {
             continue;
         }
@@ -817,11 +817,11 @@ void CShadows::RenderStoredShadows() {
                 CWorld::IterateSectorsOverlappedByRect(
                     ishdwRect,
                     [&] (int32 x, int32 y) -> bool {
-                        const auto sector = CWorld::GetSector(x, y);
+                        auto& sector = CWorld::GetSector(x, y);
 
                         if (const auto rtshdw = ishdw.m_pRTShadow) {
                             CastRealTimeShadowSectorList(
-                                sector->m_buildings,
+                                sector.m_buildings,
                                 ishdwRect.left, ishdwRect.bottom,
                                 ishdwRect.right, ishdwRect.top,
                                 &ishdw.m_vecPosn,
@@ -839,7 +839,7 @@ void CShadows::RenderStoredShadows() {
                             uint8 unused{};
                             if (ishdw.m_bDrawOnBuildings) {
                                 CastShadowSectorList(
-                                    sector->m_buildings,
+                                    sector.m_buildings,
                                     ishdwRect.left, ishdwRect.bottom,
                                     ishdwRect.right, ishdwRect.top,
                                     &ishdw.m_vecPosn,
@@ -855,7 +855,7 @@ void CShadows::RenderStoredShadows() {
                                 );
                             } else {
                                 CastPlayerShadowSectorList(
-                                    sector->m_buildings,
+                                    sector.m_buildings,
                                     ishdwRect.left, ishdwRect.bottom,
                                     ishdwRect.right, ishdwRect.top,
                                     &ishdw.m_vecPosn,

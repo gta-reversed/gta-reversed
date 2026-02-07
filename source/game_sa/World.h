@@ -43,36 +43,37 @@ constexpr float MAP_Z_LOW_LIMIT = -100.0f;
 
 class CWorld {
 public:
-    static inline CPlayerInfo (&Players)[MAX_PLAYERS] = *(CPlayerInfo(*)[MAX_PLAYERS])0xB7CD98;
+    inline static auto& Players = StaticRef<CPlayerInfo[MAX_PLAYERS]>(0xB7CD98);
     // Current player
-    static int8& PlayerInFocus;
-    static bool& bDoingCarCollisions;
-    static bool& bNoMoreCollisionTorque;
-    static bool& bForceProcessControl;
-    static bool& bProcessCutsceneOnly;
-    static bool& bSecondShift;
-    static bool& bIncludeDeadPeds;
-    static bool& bIncludeCarTyres;
-    static bool& bIncludeBikers;
-    // entity to ignore
-    static CEntity*& pIgnoreEntity;
-    static float& fWeaponSpreadRate;
-    static int32& ms_iProcessLineNumCrossings;
+    inline static auto& PlayerInFocus = StaticRef<uint8>(0xB7CD74);
+    inline static auto& bDoingCarCollisions = StaticRef<bool>(0xB7CD73);
+    inline static auto& bNoMoreCollisionTorque = StaticRef<bool>(0xB7CD72);
+    inline static auto& bForceProcessControl = StaticRef<bool>(0xB7CD6E);
+    inline static auto& bProcessCutsceneOnly = StaticRef<bool>(0xB7CD6D);
+    inline static auto& bSecondShift = StaticRef<bool>(0xB7CD6C);
 
-    static CVector& SnookerTableMax;
-    static CVector& SnookerTableMin;
+    inline static auto& bIncludeDeadPeds = StaticRef<bool>(0xB7CD71);
+    inline static auto& bIncludeCarTyres = StaticRef<bool>(0xB7CD70);
+    inline static auto& bIncludeBikers = StaticRef<bool>(0xB7CD6F);
+    // entity to ignore
+    inline static auto& pIgnoreEntity = StaticRef<CEntity*>(0xB7CD68);
+    inline static auto& fWeaponSpreadRate = StaticRef<float>(0xB7CD64);
+    inline static auto& ms_iProcessLineNumCrossings = StaticRef<int32>(0xB7CD60);
+
+    inline static auto& SnookerTableMax = StaticRef<CVector>(0x8CDEF4);
+    inline static auto& SnookerTableMin = StaticRef<CVector>(0x8CDF00);
 
     // Use GetSector() to access this array
-    static inline CSector (&ms_aSectors)[MAX_SECTORS_Y][MAX_SECTORS_X] = *(CSector(*)[MAX_SECTORS_Y][MAX_SECTORS_X])0xB7D0B8;
+    inline static auto& ms_aSectors = StaticRef<CSector[MAX_SECTORS_Y][MAX_SECTORS_X]>(0xB7D0B8);
     // Use GetRepeatSector() to access this array
-    static inline CRepeatSector (&ms_aRepeatSectors)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X] = *(CRepeatSector(*)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X])0xB992B8;
+    inline static auto& ms_aRepeatSectors = StaticRef<CRepeatSector[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X]>(0xB992B8);
     // Use GetLodPtrList() to access this array
-    static inline auto& ms_aLodPtrLists = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
-    static inline auto& ms_listMovingEntityPtrs = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
-    static inline auto& ms_listObjectsWithControlCode = StaticRef<CPtrListDoubleLink<CObject*>>(0xB9ACCC);
-    static uint16& ms_nCurrentScanCode;
+    inline static auto& ms_aLodPtrLists = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
+    inline static auto& ms_listMovingEntityPtrs = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
+    inline static auto& ms_listObjectsWithControlCode = StaticRef<CPtrListDoubleLink<CObject*>>(0xB9ACCC);
+    inline static auto& ms_nCurrentScanCode = StaticRef<uint16>(0xB7CD78);
 
-    static inline auto& m_aTempColPts = *(std::array<CColPoint, 32>*)0xB9ACD0;
+    inline static auto& m_aTempColPts = StaticRef<std::array<CColPoint, 32>>(0xB9ACD0);
 
     static void ResetLineTestOptions();
 
@@ -80,8 +81,8 @@ public:
     static void ShutDown();
     static void ClearForRestart();
 
-    static CSector* GetSector(int32 x, int32 y);
-    static CRepeatSector* GetRepeatSector(int32 x, int32 y);
+    static CSector& GetSector(int32 x, int32 y);
+    static CRepeatSector& GetRepeatSector(int32 x, int32 y);
     static auto& GetLodPtrList(int32 x, int32 y);
 
     template<typename PtrListType>
@@ -262,12 +263,14 @@ protected:
     template<typename PtrListType>
     static void CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax);
 
-public: // TODO: remove
+public:
     static bool CameraToIgnoreThisObject(CEntity* entity);
 
-public: // NOTSA:
+private: // NOTSA:
+    friend void InjectHooksMain();
     static void InjectHooks();
 
+public:
     // Returns sector index in range -60 to 60 (Example: -3000 => -60, 3000 => 60)
     static float GetHalfMapSectorX(float x) { return x / static_cast<float>(MAX_WORLD_UNITS / MAX_SECTORS_X); }
     static float GetHalfMapSectorY(float y) { return y / static_cast<float>(MAX_WORLD_UNITS / MAX_SECTORS_Y); }
@@ -388,15 +391,15 @@ public: // NOTSA:
 };
 
 // 0x407260
-inline CSector* CWorld::GetSector(int32 x, int32 y) {
+inline CSector& CWorld::GetSector(int32 x, int32 y) {
     const auto x1 = std::clamp<int32>(x, 0, MAX_SECTORS_X - 1);
     const auto y1 = std::clamp<int32>(y, 0, MAX_SECTORS_Y - 1);
-    return &CWorld::ms_aSectors[y1][x1];
+    return CWorld::ms_aSectors[y1][x1];
 }
 
 // 0x4072A0
-inline CRepeatSector* CWorld::GetRepeatSector(int32 x, int32 y) {
-    return &CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
+inline CRepeatSector& CWorld::GetRepeatSector(int32 x, int32 y) {
+    return CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
 }
 
 // 0x4072C0

@@ -990,10 +990,10 @@ void CRenderer::ConstructRenderList() {
 // 0x555900
 void CRenderer::ScanSectorList_RequestModels(int32 sectorX, int32 sectorY) {
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector = CWorld::GetSector(sectorX, sectorY);
-        ScanPtrList_RequestModels(sector->m_buildings);
-        ScanPtrList_RequestModels(sector->m_dummies);
-        ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY)->Objects);
+        auto& sector = CWorld::GetSector(sectorX, sectorY);
+        ScanPtrList_RequestModels(sector.m_buildings);
+        ScanPtrList_RequestModels(sector.m_dummies);
+        ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY).Objects);
     }
 }
 
@@ -1192,21 +1192,21 @@ void CRenderer::RequestObjectsInDirection(const CVector& posn, float angle, int3
 
 // 0x553540
 void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY) {
-    CRepeatSector* repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
-    auto*          scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
+    auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+    auto* scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector          = CWorld::GetSector(sectorX, sectorY);
-        scanLists->buildingsList = &sector->m_buildings;
-        scanLists->objectsList   = &repeatSector->Objects;
-        scanLists->vehiclesList  = &repeatSector->Vehicles;
-        scanLists->pedsList      = &repeatSector->Peds;
-        scanLists->dummiesList   = &sector->m_dummies;
+        auto& sector          = CWorld::GetSector(sectorX, sectorY);
+        scanLists->buildingsList = &sector.m_buildings;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
+        scanLists->dummiesList   = &sector.m_dummies;
     } else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
-        scanLists->objectsList   = &repeatSector->Objects;
-        scanLists->vehiclesList  = &repeatSector->Vehicles;
-        scanLists->pedsList      = &repeatSector->Peds;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
         scanLists->dummiesList   = nullptr;
     }
 }

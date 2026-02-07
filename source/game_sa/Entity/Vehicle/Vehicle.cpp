@@ -4500,12 +4500,12 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
         const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list, float damage) {
             return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
-        auto* const s = CWorld::GetSector(x, y);
-        auto* const rs = CWorld::GetRepeatSector(x, y);
-        collided |= ProcessSector(s->m_buildings, damageMult);
-        collided |= ProcessSector(rs->Vehicles, damageMult);
-        collided |= ProcessSector(rs->Peds, 0.0);
-        collided |= ProcessSector(rs->Objects, damageMult);
+        const auto& s = CWorld::GetSector(x, y);
+        const auto& rs = CWorld::GetRepeatSector(x, y);
+        collided |= ProcessSector(s.m_buildings, damageMult);
+        collided |= ProcessSector(rs.Vehicles, damageMult);
+        collided |= ProcessSector(rs.Peds, 0.0f);
+        collided |= ProcessSector(rs.Objects, damageMult);
         return 1;
     });
 

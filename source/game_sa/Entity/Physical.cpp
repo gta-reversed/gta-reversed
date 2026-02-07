@@ -171,13 +171,13 @@ void CPhysical::Add()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->Vehicles;
+                list = &repeatSector.Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector->Peds;
+                list = &repeatSector.Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->Objects;
+                list = &repeatSector.Objects;
                 break;
             }
 
@@ -2091,12 +2091,12 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
         }
     };
 
-    CSector* s = CWorld::GetSector(sectorX, sectorY);
-    CRepeatSector* rs = CWorld::GetRepeatSector(sectorX, sectorY);
-    ProcessSectorList(s->m_buildings);
-    ProcessSectorList(rs->Vehicles);
-    ProcessSectorList(rs->Peds);
-    ProcessSectorList(rs->Objects);
+    auto& s = CWorld::GetSector(sectorX, sectorY);
+    auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
+    ProcessSectorList(s.m_buildings);
+    ProcessSectorList(rs.Vehicles);
+    ProcessSectorList(rs.Peds);
+    ProcessSectorList(rs.Objects);
 
     if (totalAcceptableColPoints == 0) {
         return false;
@@ -4435,12 +4435,12 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
         }
         return false;
     };
-    CSector* s = CWorld::GetSector(sectorX, sectorY);
-    CRepeatSector* rs = CWorld::GetRepeatSector(sectorX, sectorY);
-    if (   ProcessSectorList(s->m_buildings)
-        || ProcessSectorList(rs->Vehicles)
-        || ProcessSectorList(rs->Peds)
-        || ProcessSectorList(rs->Objects)
+    auto& s = CWorld::GetSector(sectorX, sectorY);
+    auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
+    if (   ProcessSectorList(s.m_buildings)
+        || ProcessSectorList(rs.Vehicles)
+        || ProcessSectorList(rs.Peds)
+        || ProcessSectorList(rs.Objects)
     ) {
         return true;
     }
