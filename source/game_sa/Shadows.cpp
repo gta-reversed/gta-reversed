@@ -682,7 +682,7 @@ void CShadows::CastPlayerShadowSectorList(
         cornerAX, cornerAY,
         cornerBX, cornerBY
     };
-    for (const auto& entity : ptrList) {
+    for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent()) {
             continue;
         }

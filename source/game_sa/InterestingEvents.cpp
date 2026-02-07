@@ -195,7 +195,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
 
-            for (const auto& ped : rs.Peds) {
+            for (auto* const ped : rs.Peds) {
                 if (ped->IsScanCodeCurrent())
                     continue;
 
@@ -229,7 +229,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
             }
 
-            for (const auto& vehicle : rs.Vehicles) {
+            for (auto* const vehicle : rs.Vehicles) {
                 if (vehicle->IsScanCodeCurrent())
                     continue;
 

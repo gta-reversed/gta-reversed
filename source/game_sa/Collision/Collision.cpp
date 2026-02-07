@@ -2403,7 +2403,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     auto& sector = CWorld::GetRepeatSector(sectorX, sectorY);
-    for (const auto& ped : sector.Peds) {
+    for (auto* const ped : sector.Peds) {
         if (ped->IsScanCodeCurrent()) {
             continue;
         }
