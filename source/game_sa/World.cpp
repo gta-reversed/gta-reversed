@@ -901,8 +901,8 @@ void CWorld::FindObjectsInRange(const CVector& point, float radius, bool b2D, in
                 FindObjectsInRangeSectorList(list, point, radius, b2D, outCount, maxCount, outEntities);
             };
 
-            auto sector = GetSector(x, y);
-            auto repeatSector = GetRepeatSector(x, y);
+            auto sector& = GetSector(x, y);
+            auto repeatSector& = GetRepeatSector(x, y);
 
             if (buildings) {
                 ProcessSector(sector.m_buildings);
@@ -941,8 +941,8 @@ void CWorld::FindObjectsOfTypeInRange(uint32 modelId, const CVector& point, floa
                 FindObjectsOfTypeInRangeSectorList(modelId, list, point, radius, b2D, outCount, maxCount, outEntities);
             };
 
-            auto sector = GetSector(sectorX, sectorY);
-            auto repeatSector = GetRepeatSector(sectorX, sectorY);
+            auto& sector = GetSector(sectorX, sectorY);
+            auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             if (buildings) {
                 ProcessSector(sector.m_buildings);
@@ -1516,7 +1516,7 @@ void CWorld::CheckBuildingOrientations() {
 void CWorld::TestForBuildingsOnTopOfEachOther() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
-            const auto sector = GetSector(x, y);
+            const auto& sector = GetSector(x, y);
             TestForBuildingsOnTopOfEachOther(sector.m_buildings);
             TestForBuildingsOnTopOfEachOther(sector.m_dummies);
         }
@@ -1534,7 +1534,7 @@ void CWorld::TestForUnusedModels() {
 
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
-            const auto sector = GetSector(x, y);
+            const auto& sector = GetSector(x, y);
             TestForUnusedModels(sector.m_buildings, usageModelCounts);
             TestForUnusedModels(sector.m_dummies, usageModelCounts);
         }
@@ -2396,8 +2396,8 @@ void CWorld::FindObjectsKindaColliding(const CVector& point, float radius, bool 
                 FindObjectsKindaCollidingSectorList(list, point, radius, b2D, outCount, maxCount, outEntities);
             };
 
-            const auto sector = GetSector(x, y);
-            const auto repeatSector = GetRepeatSector(x, y);
+            const auto& sector = GetSector(x, y);
+            const auto& repeatSector = GetRepeatSector(x, y);
 
             if (buildings) {
                 ProcessSector(sector.m_buildings);
@@ -2436,8 +2436,8 @@ void CWorld::FindObjectsIntersectingCube(const CVector& cornerA, const CVector& 
                 FindObjectsIntersectingCubeSectorList(list, cornerA, cornerB, outCount, maxCount, outEntities);
             };
 
-            auto sector = GetSector(sectorX, sectorY);
-            auto repeatSector = GetRepeatSector(sectorX, sectorY);
+            auto& sector = GetSector(sectorX, sectorY);
+            auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             // TODO: Could add `&& maxCount >= *outCount` to all but the first `if`
             //       Reason being that once `outEntities` is filled up there's no
@@ -2477,8 +2477,8 @@ void CWorld::FindObjectsIntersectingAngledCollisionBox(const CBox& box, const CM
                 FindObjectsIntersectingAngledCollisionBoxSectorList(list, box, transform, point, outCount, maxCount, outEntities);
             };
 
-            auto sector = GetSector(sectorX, sectorY);
-            auto repeatSector = GetRepeatSector(sectorX, sectorY);
+            auto& sector = GetSector(sectorX, sectorY);
+            auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             if (buildings) {
                 ProcessSector(sector.m_buildings);
@@ -2546,8 +2546,8 @@ CEntity* CWorld::FindNearestObjectOfType(int32 modelId, const CVector& point, fl
                 FindNearestObjectOfTypeSectorList(modelId, list, point, radius, b2D, hitEntity, radius);
             };
 
-            auto sector = GetSector(sectorX, sectorY);
-            auto repeatSector = GetRepeatSector(sectorX, sectorY);
+            auto& sector = GetSector(sectorX, sectorY);
+            auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             if (buildings) {
                 ProcessSector(sector.m_buildings);
@@ -2748,8 +2748,8 @@ CEntity* CWorld::TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius
                 return TestSphereAgainstSectorList(list, sphereCenter, sphereRadius, ignoreEntity, doIgnoreCameraCheckForThisSector);
             };
 
-            auto sector = GetSector(sectorX, sectorY);
-            auto repeatSector = GetRepeatSector(sectorX, sectorY);
+            auto& sector = GetSector(sectorX, sectorY);
+            auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             CEntity* hitEntity{};
 
