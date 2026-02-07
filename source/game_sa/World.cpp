@@ -901,8 +901,8 @@ void CWorld::FindObjectsInRange(const CVector& point, float radius, bool b2D, in
                 FindObjectsInRangeSectorList(list, point, radius, b2D, outCount, maxCount, outEntities);
             };
 
-            auto sector& = GetSector(x, y);
-            auto repeatSector& = GetRepeatSector(x, y);
+            auto& sector = GetSector(x, y);
+            auto& repeatSector = GetRepeatSector(x, y);
 
             if (buildings) {
                 ProcessSector(sector.m_buildings);
@@ -1493,7 +1493,7 @@ void CWorld::PrintCarChanges() {
 
 // unused
 // debug function
-// in III Mobile
+// In III Mobile
 void CWorld::CheckBuildingOrientations() {
     const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
         for (typename PtrListType::NodeType* node = list.GetNode(); node; node = node->Next) {
