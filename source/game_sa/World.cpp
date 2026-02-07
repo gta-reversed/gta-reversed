@@ -547,6 +547,9 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
             continue;
         }
 
+        // R* used a bool variable and then, after the loop they did this
+        // and didn't break after the sphere has been found.
+
         auto& speed = veh->m_vecMoveSpeed;
 
         // Reset the X-component of velocity
@@ -1788,7 +1791,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
             if (ped->GetUsesCollision()
                 || ped->m_pAttachedTo
                 || (bIncludeDeadPeds && !ped->IsAlive())
-                || (bIncludeBikers && ped->bTestForShotInVehicle)) {
+                || (bIncludeBikers && ped->bTestForShotInVehicle)) {    
                 ProcessColModel(CModelInfo::GetModelInfo(entity->m_nModelIndex)->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->m_pRwClump));
             }
             break;
@@ -1828,14 +1831,19 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
                             outColPoint = wheelCP;
                             outEntity = entity;
                         } else {
-                            const auto& vehPos = mat.GetPosition();
+                            // Since this col check consists only of checking the wheels
+                            // if `colLine.start` is at the opposite side to the col point
+                            // will mean that the `line` went thru the vehicle body
+                            // which means there must be a direct hit somewhere with the vehicle's body
+
                             const auto lineDir = colLine.m_vecEnd - colLine.m_vecStart;
-                            const auto wheelToVehCenter = wheelCP.m_vecPoint - vehPos;
+                            const auto wheelToVehCenter = wheelCP.m_vecPoint - mat.GetPosition();
 
                             const auto lineDirDotRight = DotProduct(lineDir, mat.GetRight());
                             const auto wheelDotRight = DotProduct(wheelToVehCenter, mat.GetRight());
 
                             bool crossesVehicleBody = false;
+                            // Line begins at the left, col point is on the right or the other way around
                             if (lineDirDotRight < 0.0f && wheelDotRight > 0.0f) {
                                 crossesVehicleBody = true;
                             } else if (lineDirDotRight > 0.0f && wheelDotRight < 0.0f) {
@@ -1843,6 +1851,9 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
                             }
 
                             if (crossesVehicleBody) {
+                                // And the absolute angle between the `line` and the `right` direction vector is less than 45 deg.
+                                // Here they're betting on the fact that the wheel is not too far away from the body itself. (which is true in case of all vanilla models)
+                                // If it is, and the vehicle is small in height this might be incorrect (because the line might go over the body itself, and just hit the wheel)
                                 if (std::abs(lineDirDotRight) / lineDir.Magnitude() > 0.5f) {
                                     localMinTouchDist = wheelTouchDist;
                                     outColPoint = wheelCP;
