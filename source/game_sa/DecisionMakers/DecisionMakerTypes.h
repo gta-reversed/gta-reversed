@@ -8,6 +8,7 @@ class CPed;
 class CPedGroup;
 
 enum class eDecisionMakerType : int32 {
+    UNKNOWN_2                = -2,
     UNKNOWN                 = -1,
 
     PED_GROUPMEMBER         = 0, // 0x0
@@ -39,6 +40,7 @@ enum class eDecisionMakerType : int32 {
 
     COUNT_TOTAL             = 20, // 0x14
 };
+NOTSA_WENUM_DEFS_FOR(eDecisionMakerType);
 
 class CDecisionMakerTypes {
 private:

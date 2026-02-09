@@ -30,7 +30,7 @@ void CPedStats::Initialise() {
         ms_apPedStats[statIndex].m_fAttackStrength = 1.0f;
         ms_apPedStats[statIndex].m_fDefendWeakness = 1.0f;
         ms_apPedStats[statIndex].m_flags = 0;
-        ms_apPedStats[statIndex].m_nDefaultDecisionMaker = 0;
+        ms_apPedStats[statIndex].m_nDefaultDecisionMaker = eDecisionMakerType::PED_GROUPMEMBER;
     }
     LoadPedStats();
     CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker();
@@ -89,7 +89,7 @@ void CPedStats::LoadPedStats() {
         ms_apPedStats[statIndex].m_fAttackStrength = attackStrength;
         ms_apPedStats[statIndex].m_fDefendWeakness = defendWeakness;
         ms_apPedStats[statIndex].m_flags = shootingRate;
-        ms_apPedStats[statIndex].m_nDefaultDecisionMaker = defaultDecisionMaker;
+        ms_apPedStats[statIndex].m_nDefaultDecisionMaker = (eDecisionMakerType)(defaultDecisionMaker);
 
         statIndex++;
     }

@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include <PedStats.h>
 #include "DecisionMakerTypes.h"
 
 void CDecisionMakerTypes::InjectHooks() {
@@ -59,7 +60,7 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
     const auto dmType = bUseInGroupDecisionMaker
         ? ped->GetIntelligence()->m_nDecisionMakerTypeInGroup
         : ped->GetIntelligence()->m_nDecisionMakerType;
-    switch (dmType) {
+    switch ((int32)(dmType.get())) {
     case -2: // PLAYER_DECISION_MAKER
         return MakeDecisionUsingMaker(&m_DefaultPlayerPedDecisionMaker);
     case -1: // DEFAULT_DECISION_MAKER
@@ -67,7 +68,7 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
             ? MakeDecisionUsingMaker(&m_DefaultMissionPedDecisionMaker)
             : MakeDecisionUsingMaker(&m_DefaultRandomPedDecisionMaker);
     default:
-        return MakeDecisionUsingMaker(&m_DecisionMakers[dmType]);
+        return MakeDecisionUsingMaker(&m_DecisionMakers[+dmType]);
     }
 }
 
@@ -142,7 +143,7 @@ int32 CDecisionMakerTypes::CopyDecisionMaker(int32 index, eDecisionTypes type, b
     }
     return AddDecisionMaker(
         &this->m_DefaultMissionPedDecisionMaker,
-        DEFAULT_DECISION_MAKER,
+        PED_DECISION_MAKER,
         isDecisionMakerForMission
     );
 }
@@ -160,5 +161,5 @@ CDecisionMaker* CDecisionMakerTypes::GetInactiveDecisionMaker(bool bDecisionMake
 }
 
 int32 CDecisionMakerTypes::GetDecisionMakerIndex(CDecisionMaker* dm) {
-    return std::distance(std::begin(m_DecisionMakers), dm);
+    return std::distance(m_DecisionMakers.data(), dm);
 }
