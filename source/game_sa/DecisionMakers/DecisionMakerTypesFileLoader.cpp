@@ -132,7 +132,7 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
             off += n;
         };
 
-        auto* const d = &decisionMaker->m_aDecisions[CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]];
+        auto* const d = &decisionMaker->Decisions[CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]];
         d->SetDefault();
         d->Set(tasks, probs, bools, facialProbs);
     }

@@ -35,6 +35,8 @@ enum class eDecisionMakerType : int32 {
     MISSION8                = 18, // 0x12
     MISSION9                = 19, // 0x13
 
+    COUNT_MISSION_DM        = MISSION9 - MISSION0 + 1, //!< Number of mission decision makers
+
     COUNT_TOTAL             = 20, // 0x14
 };
 

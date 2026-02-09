@@ -14,7 +14,7 @@ void CDecisionMakerTypes::InjectHooks() {
     RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0, { .reversed = false });
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490, { .reversed = false });
     RH_ScopedInstall(AddEventResponse, 0x6044C0, { .reversed = false });
-    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&), { .reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&));
     RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)(CPedGroup*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .reversed = false });
     RH_ScopedInstall(AddDecisionMaker, 0x607050);
     RH_ScopedInstall(CopyDecisionMaker, 0x6070F0);
@@ -43,7 +43,32 @@ CDecisionMakerTypes* CDecisionMakerTypes::GetInstance() {
 
 // 0x606E70
 void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType) {
-    plugin::CallMethod<0x606E70>(this, ped, eventType, eventSourceType, bIsPedInVehicle, taskTypeToAvoid1, taskTypeToAvoid2, taskTypeToAvoid3, taskTypeToSeek, bUseInGroupDecisionMaker, &taskType, &facialTaskType);
+    const auto MakeDecisionUsingMaker = [&] (CDecisionMaker* dm) {
+        taskType       = TASK_NONE;
+        facialTaskType = TASK_INVALID;
+        return dm->Decisions[m_EventIndices[eventType]].MakeDecision(
+            eventSourceType,
+            bIsPedInVehicle,
+            taskTypeToAvoid1,
+            taskTypeToAvoid2,
+            taskTypeToAvoid3,
+            taskTypeToSeek,
+            taskType
+        );
+    };
+    const auto dmType = bUseInGroupDecisionMaker
+        ? ped->GetIntelligence()->m_nDecisionMakerTypeInGroup
+        : ped->GetIntelligence()->m_nDecisionMakerType;
+    switch (dmType) {
+    case -2: // PLAYER_DECISION_MAKER
+        return MakeDecisionUsingMaker(&m_DefaultPlayerPedDecisionMaker);
+    case -1: // DEFAULT_DECISION_MAKER
+        return ped->IsCreatedByMission()
+            ? MakeDecisionUsingMaker(&m_DefaultMissionPedDecisionMaker)
+            : MakeDecisionUsingMaker(&m_DefaultRandomPedDecisionMaker);
+    default:
+        return MakeDecisionUsingMaker(&m_DecisionMakers[dmType]);
+    }
 }
 
 // 0x6043A0
