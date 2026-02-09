@@ -35,12 +35,15 @@ enum class eDecisionMakerType : int32 {
     MISSION8                = 18, // 0x12
     MISSION9                = 19, // 0x13
 
+    COUNT_MISSION_DM        = MISSION9 - MISSION0 + 1, //!< Number of mission decision makers
+
     COUNT_TOTAL             = 20, // 0x14
 };
 
 class CDecisionMakerTypes {
 private:
     using EventIndicesArray = std::array<int32, +eEventType::EVENT_TOTAL_NUM_EVENTS>;
+    using DecisionMakersArray = std::array<CDecisionMaker, +eDecisionMakerType::COUNT_TOTAL>;
 
 public:
     static constexpr auto NUM_TYPES = 20u;
@@ -76,12 +79,12 @@ private:
     ptrdiff_t GetDecisionMakerIndex(CDecisionMaker* dm);
 
 public:
-    int32             m_NoOfDecisionMakers{};
-    CDecisionMaker    m_DecisionMakers[+eDecisionMakerType::COUNT_TOTAL]{};
-    EventIndicesArray m_EventIndices{};
-    CDecisionMaker    m_DefaultRandomPedDecisionMaker{};
-    CDecisionMaker    m_DefaultMissionPedDecisionMaker{};
-    CDecisionMaker    m_DefaultPlayerPedDecisionMaker{};
-    CDecisionMaker    m_DefaultRandomPedGroupDecisionMaker{};
-    CDecisionMaker    m_DefaultMissionPedGroupDecisionMaker{};
+    int32               m_NoOfDecisionMakers{};
+    DecisionMakersArray m_DecisionMakers{};
+    EventIndicesArray   m_EventIndices{};
+    CDecisionMaker      m_DefaultRandomPedDecisionMaker{};
+    CDecisionMaker      m_DefaultMissionPedDecisionMaker{};
+    CDecisionMaker      m_DefaultPlayerPedDecisionMaker{};
+    CDecisionMaker      m_DefaultRandomPedGroupDecisionMaker{};
+    CDecisionMaker      m_DefaultMissionPedGroupDecisionMaker{};
 };

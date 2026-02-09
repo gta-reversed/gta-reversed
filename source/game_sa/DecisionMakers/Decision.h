@@ -50,6 +50,15 @@ public:
         notsa::mdarray<int32, MAX_NUM_CHOICES, 2>& bools,
         notsa::mdarray<float, MAX_NUM_CHOICES, 6>& facialProbs
     );
+    void MakeDecision(
+        int32 eventSourceType,
+        bool isInVehicle,
+        eTaskType taskTypeToReject1,
+        eTaskType taskTypeToReject2,
+        eTaskType taskTypeToReject3,
+        eTaskType taskTypeToSeek,
+        int16& outTaskType
+    );
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);
