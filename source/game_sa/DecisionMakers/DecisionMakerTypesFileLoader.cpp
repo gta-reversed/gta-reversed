@@ -58,16 +58,16 @@ void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
     LoadDecisionMaker("RANDOM.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedGroupDecisionMaker);
     LoadDecisionMaker("MISSION.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedGroupDecisionMaker);
 
-    LoadDecisionMaker("GangMbr.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("Cop.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("R_Norm.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("R_Tough.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("R_Weak.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("Fireman.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("m_empty.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("Indoors.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("RANDOM.grp", PLAYER_DECISION_MAKER, false);
-    LoadDecisionMaker("RANDOM2.grp", PLAYER_DECISION_MAKER, false);
+    LoadDecisionMaker("GangMbr.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("Cop.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Norm.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Tough.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Weak.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("Fireman.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("m_empty.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("Indoors.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("RANDOM.grp", GROUP_DECISION_MAKER, false);
+    LoadDecisionMaker("RANDOM2.grp", GROUP_DECISION_MAKER, false);
 }
 
 // 0x607D30 - Returns script handle for the DM
