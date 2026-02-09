@@ -15,8 +15,11 @@
 enum eTaskType : int32;
 
 enum eDecisionTypes {
-    DEFAULT_DECISION_MAKER = 0,
-    PLAYER_DECISION_MAKER = 1
+    PLAYER_DECISION_MAKER = -2,
+    DEFAULT_DECISION_MAKER = -1,
+
+    PED_DECISION_MAKER = 0,
+    GROUP_DECISION_MAKER = 1
 };
 
 enum eDecisionRelationship {
