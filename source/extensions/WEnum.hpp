@@ -29,7 +29,7 @@ struct WEnum {
     constexpr explicit operator StoreAs*() noexcept { return &m_Value; }
     constexpr explicit operator StoreAs&() noexcept { return m_Value; }
 
-    //! Use this in cases you want to cast to an int (for cout or something)
+    //! Get enum value
     constexpr Enum get() const noexcept { return static_cast<Enum>(m_Value); }
 
     //! Get the underlaying value
@@ -37,6 +37,9 @@ struct WEnum {
 
     //! Get underlaying value as a reference
     constexpr StoreAs& get_underlying_ref() noexcept { return m_Value; }
+
+    //! Convert to int using the unary + operator (Instead of `static_cast`), e.g. `+myEnum` instead of `static_cast<int>(myEnum)`
+    constexpr auto operator+() const noexcept { return +get(); }
 };
 
 // std::format support for `WEnum`
