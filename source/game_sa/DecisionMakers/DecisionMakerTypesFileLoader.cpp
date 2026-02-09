@@ -18,7 +18,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
 // 0x607D00
 void CDecisionMakerTypesFileLoader::ReStart() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_GAME_DM; i++) {
-        UnloadDecisionMaker((eDecisionTypes)(i));
+        UnloadDecisionMaker((eDecisionMakerType)(i));
     }
 }
 
@@ -46,7 +46,7 @@ void CDecisionMakerTypesFileLoader::GetGrpDMName(int32 index, char* name) {
 // 0x5BF400
 void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_TOTAL; i++) {
-        UnloadDecisionMaker((eDecisionTypes)(i));
+        UnloadDecisionMaker((eDecisionMakerType)(i));
     }
 
     CDecisionMakerTypes::GetInstance()->LoadEventIndices();
@@ -143,6 +143,6 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
 }
 
 // 0x607A70
-void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionTypes dm) {
+void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionMakerType dm) {
     CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker(dm);
 }

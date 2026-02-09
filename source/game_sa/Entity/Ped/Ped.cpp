@@ -1479,11 +1479,13 @@ float CPed::GetWalkAnimSpeed() {
 * @addr 0x5E06E0
 */
 void CPed::SetPedDefaultDecisionMaker() {
-    if (!IsPlayer()) {
-        GetIntelligence()->SetPedDecisionMakerType(IsCreatedByMission() ? -1 : m_pStats->m_nDefaultDecisionMaker);
-    } else {
-        GetIntelligence()->SetPedDecisionMakerType(-2);
-    }
+    GetIntelligence()->SetPedDecisionMakerType(
+        IsPlayer()
+            ? eDecisionMakerType::UNKNOWN_2
+            : IsCreatedByMission()
+                ? eDecisionMakerType::UNKNOWN
+                : m_pStats->m_nDefaultDecisionMaker.get()
+    );
 }
 
 /*!

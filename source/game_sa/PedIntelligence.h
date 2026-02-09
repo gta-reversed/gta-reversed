@@ -19,7 +19,8 @@
 #include "MentalHealth.h"
 #include "PedScanner.h"
 #include "Collision/CollisionEventScanner.h"
-#include "Enums/eMoveState.h"
+#include "DecisionMakers/DecisionMakerTypes.h"
+
 
 class CPed;
 class CEntity;
@@ -37,32 +38,32 @@ class CTaskSimpleInAir;
 
 class CPedIntelligence {
 public:
-    CPed*                  m_pPed;
-    CTaskManager           m_TaskMgr;
-    CEventHandler          m_eventHandler;
-    CEventGroup            m_eventGroup;
-    int32                  m_nDecisionMakerType;
-    int32                  m_nDecisionMakerTypeInGroup;
-    float                  m_fHearingRange;
-    float                  m_fSeeingRange;
-    uint32                 m_nDmNumPedsToScan;
-    float                  m_fDmRadius;
-    float                  m_FollowNodeThresholdDistance;
-    char                   m_NextEventResponseSequence;
-    uint8                  m_nEventId;
-    uint8                  m_nEventPriority;
-    char                   field_D3;
-    CVehicleScanner        m_vehicleScanner;
-    CPedScanner            m_pedScanner;
-    CMentalState           m_mentalState;
-    char                   field_188;
-    CEventScanner          m_eventScanner;
-    CCollisionEventScanner m_collisionScanner;
-    CPedStuckChecker       m_pedStuckChecker;
-    int32                  m_AnotherStaticCounter;
-    int32                  m_StaticCounter;
-    CVector                m_vecLastPedPosDuringDamageEntity;
-    CEntity*               m_apInterestingEntities[3];
+    CPed*                               m_pPed;
+    CTaskManager                        m_TaskMgr;
+    CEventHandler                       m_eventHandler;
+    CEventGroup                         m_eventGroup;
+    notsa::WEnumS32<eDecisionMakerType> m_nDecisionMakerType;
+    notsa::WEnumS32<eDecisionMakerType> m_nDecisionMakerTypeInGroup;
+    float                               m_fHearingRange;
+    float                               m_fSeeingRange;
+    uint32                              m_nDmNumPedsToScan;
+    float                               m_fDmRadius;
+    float                               m_FollowNodeThresholdDistance;
+    char                                m_NextEventResponseSequence;
+    uint8                               m_nEventId;
+    uint8                               m_nEventPriority;
+    char                                field_D3;
+    CVehicleScanner                     m_vehicleScanner;
+    CPedScanner                         m_pedScanner;
+    CMentalState                        m_mentalState;
+    char                                field_188;
+    CEventScanner                       m_eventScanner;
+    CCollisionEventScanner              m_collisionScanner;
+    CPedStuckChecker                    m_pedStuckChecker;
+    int32                               m_AnotherStaticCounter;
+    int32                               m_StaticCounter;
+    CVector                             m_vecLastPedPosDuringDamageEntity;
+    CEntity*                            m_apInterestingEntities[3];
 
     static float& STEALTH_KILL_RANGE;
     static float& LIGHT_AI_LEVEL_MAX;
@@ -78,9 +79,9 @@ public:
     CPedIntelligence(CPed* ped);
     ~CPedIntelligence();
 
-    void SetPedDecisionMakerType(int32 newType);
+    void SetPedDecisionMakerType(eDecisionMakerType newType);
     auto GetPedDecisionMakerType() const { return m_nDecisionMakerType; }
-    void SetPedDecisionMakerTypeInGroup(int32 newType);
+    void SetPedDecisionMakerTypeInGroup(eDecisionMakerType newType);
     void RestorePedDecisionMakerType();
     void SetHearingRange(float range);
     void SetSeeingRange(float range);
