@@ -384,7 +384,7 @@ void CPedIntelligence::ClearTaskDuckSecondary() {
         return;
 
     secondaryDuck->MakeAbortable(m_pPed, ABORT_PRIORITY_LEISURE, nullptr);
-    CPlayerPedData* playerData = m_pPed->m_pPlayerData;
+    CPlayerPedData* playerData = m_pPed->GetPlayerData();
     if (playerData) {
         playerData->m_fMoveBlendRatio = 0.0f;
     } else {
@@ -515,7 +515,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
             [this]() -> CTask* {
                 if (m_pPed->IsPlayer()) {
                     return new CTaskSimplePlayerOnFoot();
-                } else if (m_pPed->m_nCreatedBy != PED_MISSION) {
+                } else if (m_pPed->GetCreatedBy() != PED_MISSION) {
                     return CTaskComplexWander::GetWanderTaskByPedType(m_pPed);
                 } else {
                     return new CTaskSimpleStandStill(0, true, false, 8.0f);

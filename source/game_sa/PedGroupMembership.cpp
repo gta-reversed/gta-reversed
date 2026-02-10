@@ -18,8 +18,8 @@ void CPedGroupMembership::AddFollower(CPed* ped) {
 
     // Peds in the player's group can't drown
     if (const auto leader = GetLeader()) {
-        if (leader->IsPlayer()) { // same effect as m_pPlayerData, no?
-            assert(leader->m_pPlayerData); // Test above theory
+        if (leader->IsPlayer()) { // same effect as GetPlayerData(), no?
+            assert(leader->GetPlayerData()); // Test above theory
             ped->bDrownsInWater = false;
         }
     }
@@ -210,7 +210,7 @@ void CPedGroupMembership::RemoveMember(int32 memIdx) {
     mem->GetIntelligence()->RestorePedDecisionMakerType();
 
     if (const auto leader = GetLeader()) {
-        if (const auto plyrdat = leader->m_pPlayerData) {
+        if (const auto plyrdat = leader->GetPlayerData()) {
             mem->bDrownsInWater = true;
         }
     }

@@ -316,8 +316,8 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
             auto vecPedVelocity = CVector(0.0F, 0.0F, 0.0F);
             auto vecPedParticlePos = entity->GetPosition() + (vecPedForward * 0.4F);
 
-            if (ped->m_pPlayerData)
-                vecPedParticlePos.z = ped->m_pPlayerData->m_fWaterHeight;
+            if (ped->GetPlayerData())
+                vecPedParticlePos.z = ped->GetPlayerData()->m_fWaterHeight;
             else
                 vecPedParticlePos.z += 0.5F;
 

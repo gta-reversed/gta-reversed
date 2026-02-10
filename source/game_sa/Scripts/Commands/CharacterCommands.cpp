@@ -1313,7 +1313,7 @@ void SetCurrentCharWeapon(CPed& ped, eWeaponType weaponType) {
             continue;
 
         if (ped.IsPlayer()) {
-            ped.AsPlayer()->m_pPlayerData->m_nChosenWeapon = slot;
+            ped.AsPlayer()->GetPlayerData()->m_nChosenWeapon = slot;
         } else {
             ped.SetCurrentWeapon(slot);
         }

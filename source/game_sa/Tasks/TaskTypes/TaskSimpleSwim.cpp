@@ -159,15 +159,15 @@ bool CTaskSimpleSwim::ProcessPed(CPed* ped) {
             else
                 m_nTimeStep -= swimmingTimeStep;
 
-            ped->m_pPlayerData->m_fMoveBlendRatio = DistanceBetweenPoints2D(ped->GetPosition(), m_vecPos);
-            if (ped->m_pPlayerData->m_fMoveBlendRatio < 0.5f) {
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+            ped->GetPlayerData()->m_fMoveBlendRatio = DistanceBetweenPoints2D(ped->GetPosition(), m_vecPos);
+            if (ped->GetPlayerData()->m_fMoveBlendRatio < 0.5f) {
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
                 CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 4.0f);
                 ped->RestoreHeadingRate();
                 DestroyFxSystem();
                 return true;
             }
-            ped->m_pPlayerData->m_fMoveBlendRatio = std::min(ped->m_pPlayerData->m_fMoveBlendRatio, 1.0f);
+            ped->GetPlayerData()->m_fMoveBlendRatio = std::min(ped->GetPlayerData()->m_fMoveBlendRatio, 1.0f);
         } else {
             ProcessControlInput(ped->AsPlayer());
             m_nTimeStep = 0;
@@ -185,7 +185,7 @@ bool CTaskSimpleSwim::ProcessPed(CPed* ped) {
 
         ped->AsPlayer()->HandlePlayerBreath(bDecreaseAir, fDecreaseAirMult);
         if (m_pPed && m_nSwimState != SWIM_UNDERWATER_SPRINTING) {
-            if (CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 0.5f > ped->m_pPlayerData->m_fBreath) {
+            if (CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 0.5f > ped->GetPlayerData()->m_fBreath) {
                 ped->Say(CTX_GLOBAL_PAIN_CJ_SWIM_GASP);
             }
         }
@@ -304,7 +304,7 @@ void CTaskSimpleSwim::ProcessSwimAnims(CPed* ped) {
                 break;
             }
             if (player->IsPlayer()) {
-                assoc->m_Speed = player->m_pPlayerData->m_fMoveBlendRatio;
+                assoc->m_Speed = player->GetPlayerData()->m_fMoveBlendRatio;
             } else if (m_fAnimSpeed > 0.0f && m_fAnimSpeed <= 1.0f) {
                 assoc->m_Speed = m_fAnimSpeed;
             }
@@ -321,7 +321,7 @@ void CTaskSimpleSwim::ProcessSwimAnims(CPed* ped) {
                 m_nSwimState = SWIM_TREAD;
                 break;
             }
-            if (player->m_pPlayerData) {
+            if (player->GetPlayerData()) {
                 float buttonSprintResults = player->GetButtonSprintResults(SPRINT_WATER);
                 assoc->m_Speed = std::max(1.0f, buttonSprintResults);
             } else if (m_fAnimSpeed > 1.0f) {
@@ -352,7 +352,7 @@ void CTaskSimpleSwim::ProcessSwimAnims(CPed* ped) {
     }
     case SWIM_UNDERWATER_SPRINTING: {
         if ((m_AnimID == ANIM_ID_SWIM_UNDER || m_AnimID == ANIM_ID_SWIM_GLIDE) && m_fStateChanger >= 0.0f) {
-            if (player->m_pPlayerData && player->GetButtonSprintResults(SPRINT_UNDERWATER) >= 1.0f) {
+            if (player->GetPlayerData() && player->GetButtonSprintResults(SPRINT_UNDERWATER) >= 1.0f) {
                 CAnimBlendAssociation* assocUnder = RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_SWIM_UNDER);
                 if (!assocUnder || assocUnder->m_BlendDelta < 0.0f || assocUnder->m_BlendAmount == 0.0f) {
                     assocUnder = CAnimManager::BlendAnimation(player->m_pRwClump, ANIM_GROUP_SWIM, ANIM_ID_SWIM_UNDER, 4.0f);
@@ -432,7 +432,7 @@ void CTaskSimpleSwim::ProcessSwimAnims(CPed* ped) {
     }
     }
 
-    if (player->m_pPlayerData && (player->m_pPlayerData->m_fMoveBlendRatio > 0.5f || m_nSwimState == SWIM_UNDERWATER_SPRINTING)) {
+    if (player->GetPlayerData() && (player->GetPlayerData()->m_fMoveBlendRatio > 0.5f || m_nSwimState == SWIM_UNDERWATER_SPRINTING)) {
         CStats::UpdateStatsWhenSwimming(m_nSwimState == SWIM_UNDERWATER_SPRINTING, m_nSwimState == SWIM_SPRINTING);
     }
 }
@@ -587,8 +587,8 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
     particlePosition *= 0.4f;
     particlePosition += pedPos;
 
-    if (ped->m_pPlayerData)
-        particlePosition.z = ped->m_pPlayerData->m_fWaterHeight;
+    if (ped->GetPlayerData())
+        particlePosition.z = ped->GetPlayerData()->m_fWaterHeight;
     else
         particlePosition.z += 0.5f;
 
@@ -659,8 +659,8 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
     case SWIM_UNDERWATER_SPRINTING: {
         uint32 oxygen = 5;
         if (ped->IsPlayer()) {
-            assert(ped->m_pPlayerData);
-            oxygen = static_cast<uint32>(((100.0f - ped->m_pPlayerData->m_fBreath / CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 100.0f) / 3.0f));
+            assert(ped->GetPlayerData());
+            oxygen = static_cast<uint32>(((100.0f - ped->GetPlayerData()->m_fBreath / CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 100.0f) / 3.0f));
         }
         if ((unsigned)CGeneral::GetRandomNumberInRange(0, 100) < oxygen) {
             RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump); // todo: almost CPed::GetBoneMatrix
@@ -740,7 +740,7 @@ void CTaskSimpleSwim::ProcessControlAI(CPed* ped) {
 
 // 0x688A90
 void CTaskSimpleSwim::ProcessControlInput(CPlayerPed* ped) {
-    CPlayerPedData* playerData = ped->m_pPlayerData;
+    CPlayerPedData* playerData = ped->GetPlayerData();
     if (!m_bFinishedBlending || !m_bAnimBlockRefAdded) {
         playerData->m_fMoveBlendRatio = 0.0f;
         return;
