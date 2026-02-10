@@ -1944,9 +1944,13 @@ void CRadar::DrawBlips() {
         }
     }
 
-    const auto GetPlayerMarkerPosition = [] {
+#ifdef FIX_BUGS
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex) {
+        const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(playerIndex) - vec2DRadarOrigin) / m_radarRange;
+#else
+    const auto GetPlayerMarkerPosition = []() {
         const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(0) - vec2DRadarOrigin) / m_radarRange;
-
+#endif
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
             cachedCos * playerDirection.y - cachedSin * playerDirection.x
@@ -1964,11 +1968,13 @@ void CRadar::DrawBlips() {
             // we don't draw the player marker while flying.
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
-
+#ifdef FIX_BUGS
+            const auto pos = GetPlayerMarkerPosition(i);
+#else
             const auto pos = GetPlayerMarkerPosition();
-
+#endif        
             const auto angle = [] {
-                const auto heading = FindPlayerHeading(0);
+                const auto heading = FindPlayerHeading(0); // TODO: Is a continuation of the bug fixes possible?
 
                 if (CCamera::GetActiveCamera().m_nMode == MODE_TOPDOWN) {
                     return heading + DegreesToRadians(180.0f);
@@ -1992,7 +1998,7 @@ void CRadar::DrawBlips() {
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition();
+        const auto pos = GetPlayerMarkerPosition(); // TODO: I need help with this, as it's outside the loop.
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }
