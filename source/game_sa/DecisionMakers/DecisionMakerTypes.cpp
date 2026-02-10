@@ -12,7 +12,7 @@ void CDecisionMakerTypes::InjectHooks() {
     RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray&, const char*));
     RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x600840, void(CDecisionMakerTypes::*)());
     //RH_ScopedInstall(HasResponse, 0x6042B0, { .reversed = false });
-    RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0, { .reversed = false });
+    RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0);
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490, { .reversed = false });
     RH_ScopedInstall(AddEventResponse, 0x6044C0, { .reversed = false });
     RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&));
@@ -73,8 +73,32 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
 }
 
 // 0x6043A0
-void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionTypes dm) {
-    return plugin::Call<0x6043A0>(dm);
+void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionMakerType dm) {
+    if (!m_IsActive[+dm]) {
+        return;
+    }
+    switch (const auto type = m_Types[+dm]) {
+    case GROUP_DECISION_MAKER: { // 0x60443C
+        for (auto&& [id, group] : CPedGroups::GetActiveGroupsWithIDs()) {
+            auto* const intel = &group.GetIntelligence();
+            if (intel->GetGroupDecisionMakerType() == dm) {
+                intel->SetGroupDecisionMakerType(eDecisionMakerType::UNKNOWN);
+            }
+        }
+        break;
+    }
+    case PED_DECISION_MAKER: { // 0x6043C5
+        for (auto& ped : GetPedPool()->GetAllValid()) {
+            auto* const intel = ped.GetIntelligence();
+            if (intel->GetPedDecisionMakerType() == dm) {
+                intel->SetPedDecisionMakerType(ped.m_pStats->m_nDefaultDecisionMaker);
+            }
+        }
+        break;
+    }
+    default:
+        NOTSA_UNREACHABLE("Invalid decision maker type: {}", type.get()); // Originally this was just an else branch, not sure if there are more types than the enum has...
+    }
 }
 
 // 0x606F80
