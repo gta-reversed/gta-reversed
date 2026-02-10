@@ -16,7 +16,7 @@ void CDecisionMakerTypes::InjectHooks() {
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490);
     RH_ScopedInstall(AddEventResponse, 0x6044C0);
     RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&));
-    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)(CPedGroup*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)(CPedGroup*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType));
     RH_ScopedInstall(AddDecisionMaker, 0x607050);
     RH_ScopedInstall(CopyDecisionMaker, 0x6070F0);
 }
@@ -54,7 +54,8 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
             taskTypeToAvoid2,
             taskTypeToAvoid3,
             taskTypeToSeek,
-            taskType
+            taskType,
+            facialTaskType
         );
     };
     const auto dmType = bUseInGroupDecisionMaker
@@ -70,6 +71,44 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
     default:
         return MakeDecisionUsingMaker(&m_DecisionMakers[+dmType]);
     }
+}
+
+// 0x606F80
+eTaskType CDecisionMakerTypes::MakeDecision(
+    CPedGroup* group,
+    eEventType eventType,
+    int32      eventSourceType,
+    bool       bIsPedInVehicle,
+    eTaskType  taskTypeToAvoid1,
+    eTaskType  taskTypeToAvoid2,
+    eTaskType  taskTypeToAvoid3,
+    eTaskType  taskTypeToSeek
+) {
+    const auto MakeDecisionUsingMaker = [&](CDecisionMaker* dm) {
+        int16 responseTaskType = TASK_NONE,
+              ignored          = TASK_INVALID;
+        dm->Decisions[m_EventIndices[eventType]].MakeDecision(
+            eventSourceType,
+            bIsPedInVehicle,
+            taskTypeToAvoid1,
+            taskTypeToAvoid2,
+            taskTypeToAvoid3,
+            taskTypeToSeek,
+            responseTaskType,
+            ignored
+        );
+        return (eTaskType)(responseTaskType);
+    };
+
+    const auto type = group->GetIntelligence().GetGroupDecisionMakerType();
+    if (type == eDecisionMakerType::UNKNOWN) {
+        return MakeDecisionUsingMaker(
+            group->m_bIsMissionGroup
+                ? &m_DefaultMissionPedGroupDecisionMaker
+                : &m_DefaultRandomPedGroupDecisionMaker
+        );
+    }
+    return MakeDecisionUsingMaker(&GetDecisionMaker(type));
 }
 
 // 0x6043A0
@@ -99,12 +138,6 @@ void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionMakerType dm) {
     default:
         NOTSA_UNREACHABLE("Invalid decision maker type: {}", type.get()); // Originally this was just an else branch, not sure if there are more types than the enum has...
     }
-}
-
-// 0x606F80
-eTaskType CDecisionMakerTypes::MakeDecision(CPedGroup* pedGroup, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskId1, eTaskType taskId2, eTaskType taskId3, eTaskType taskId4) {
-    return plugin::CallMethodAndReturn<eTaskType, 0x606F80, CDecisionMakerTypes*, CPedGroup*, int32, int32, bool, int32, int32, int32, int32>(
-        this, pedGroup, eventType, eventSourceType, bIsPedInVehicle, taskId1, taskId2, taskId3, taskId4);
 }
 
 // 0x6044C0

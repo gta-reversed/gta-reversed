@@ -60,7 +60,8 @@ public:
         eTaskType taskTypeToReject2,
         eTaskType taskTypeToReject3,
         eTaskType taskTypeToSeek,
-        int16& outTaskType
+        int16&    outTaskType,
+        int16&    outFacialTaskType
     );
     void Add(eTaskType taskType, float* pProbs, int32* pBools);
 };
