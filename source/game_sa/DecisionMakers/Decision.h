@@ -62,6 +62,7 @@ public:
         eTaskType taskTypeToSeek,
         int16& outTaskType
     );
+    void Add(eTaskType taskType, float* pProbs, int32* pBools);
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);

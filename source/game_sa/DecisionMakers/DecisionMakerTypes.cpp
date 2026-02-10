@@ -14,7 +14,7 @@ void CDecisionMakerTypes::InjectHooks() {
     //RH_ScopedInstall(HasResponse, 0x6042B0, { .reversed = false });
     RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0);
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490);
-    RH_ScopedInstall(AddEventResponse, 0x6044C0, { .reversed = false });
+    RH_ScopedInstall(AddEventResponse, 0x6044C0);
     RH_ScopedOverloadedInstall(MakeDecision, "", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&));
     RH_ScopedOverloadedInstall(MakeDecision, "", 0x606F80, eTaskType(CDecisionMakerTypes::*)(CPedGroup*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .reversed = false });
     RH_ScopedInstall(AddDecisionMaker, 0x607050);
@@ -108,13 +108,17 @@ eTaskType CDecisionMakerTypes::MakeDecision(CPedGroup* pedGroup, eEventType even
 }
 
 // 0x6044C0
-void CDecisionMakerTypes::AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags) {
-    plugin::CallMethod<0x6044C0, CDecisionMakerTypes*, int32, int32, int32, float*, int32*>(this, decisionMakerIndex, eventType, taskId, responseChances, flags);
+void CDecisionMakerTypes::AddEventResponse(int32 dm, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags) {
+    m_DecisionMakers[dm].Decisions[this->m_EventIndices[eventType]].Add(
+        taskId,
+        responseChances,
+        flags
+    );
 }
 
 // 0x604490
-void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 dm, eEventType eventId) {
-    m_DecisionMakers[dm].Decisions[this->m_EventIndices[eventId]].SetDefault();
+void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 dm, eEventType eventType) {
+    m_DecisionMakers[dm].Decisions[this->m_EventIndices[eventType]].SetDefault();
 }
 
 // 0x5BB9F0
