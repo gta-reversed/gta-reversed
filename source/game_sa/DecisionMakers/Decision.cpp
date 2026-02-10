@@ -8,7 +8,7 @@ void CDecision::InjectHooks() {
 
     RH_ScopedInstall(SetDefault, 0x600530, { .reversed = false });
     RH_ScopedInstall(Set, 0x600570);
-    //RH_ScopedInstall(Add, 0x600600, { .reversed = false });
+    RH_ScopedInstall(Add, 0x600600, { .reversed = false });
     RH_ScopedInstall(From, 0x6006B0);
     //RH_ScopedInstall(HasResponse, 0x600710, { .reversed = false });
     RH_ScopedInstall(MakeDecision, 0x6040D0, { .reversed = false });
@@ -61,14 +61,14 @@ void CDecision::MakeDecision(
     );
 }
 
+// 0x600600
+void CDecision::Add(eTaskType taskType, float* pProbs, int32* pBools) {
+    plugin::CallMethod<0x600600, CDecision*, eTaskType, float*, int32*>(this, taskType, pProbs, pBools);
+}
+
 /*
 // 0x600710
 bool CDecision::HasResponse() {
-
-}
-
-// 0x600600
-void CDecision::Add(int32, float*, int32*) {
 
 }
 */
