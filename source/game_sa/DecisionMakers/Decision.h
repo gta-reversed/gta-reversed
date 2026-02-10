@@ -21,6 +21,7 @@ enum eDecisionTypes {
     PED_DECISION_MAKER = 0,
     GROUP_DECISION_MAKER = 1
 };
+NOTSA_WENUM_DEFS_FOR(eDecisionTypes);
 
 enum eDecisionRelationship {
     DECISION_RELATIONSHIP_NEUTRAL = 0,
