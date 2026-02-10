@@ -47,9 +47,10 @@ void CDecision::MakeDecision(
     eTaskType taskTypeToReject2,
     eTaskType taskTypeToReject3,
     eTaskType taskTypeToSeek,
-    int16& outTaskType
+    int16&    outTaskType,
+    int16&    outFacialTaskType
 ) {
-    plugin::CallMethod<0x6040D0, CDecision*, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, int16*>(
+    plugin::CallMethod<0x6040D0>(
         this,
         eventSourceType,
         isInVehicle,
@@ -57,7 +58,8 @@ void CDecision::MakeDecision(
         taskTypeToReject2,
         taskTypeToReject3,
         taskTypeToSeek,
-        &outTaskType
+        &outTaskType,
+        &outFacialTaskType
     );
 }
 
