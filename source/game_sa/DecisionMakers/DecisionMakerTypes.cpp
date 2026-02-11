@@ -9,8 +9,8 @@ void CDecisionMakerTypes::InjectHooks() {
 
     RH_ScopedGlobalInstall(GetInstance, 0x4684F0);
 
-    RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray&, const char*));
-    RH_ScopedOverloadedInstall(LoadEventIndices, "", 0x600840, void(CDecisionMakerTypes::*)());
+    RH_ScopedOverloadedInstall(LoadEventIndices, "ToArray", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray&, const char*));
+    RH_ScopedOverloadedInstall(LoadEventIndices, "FromFile", 0x600840, void(CDecisionMakerTypes::*)());
     //RH_ScopedInstall(HasResponse, 0x6042B0, { .reversed = false });
     RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0);
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490);
