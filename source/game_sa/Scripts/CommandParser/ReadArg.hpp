@@ -220,9 +220,6 @@ inline T Read(CRunningScript* S, bool updateIP = true) {
         return static_cast<Y>(Read<std::underlying_type_t<Y>>(S, updateIP));
     } else if constexpr (std::is_same_v<Y, CPlayerPed>) { // Special case for `CPlayerPed` (As the IDs for it aren't from the pool)
         return FindPlayerPed(Read<int32>(S, updateIP));
-    } else if constexpr (detail::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
-        T ptr = static_cast<T>(detail::PoolOf<Y>().GetAtRef(Read<int32>(S, updateIP)));
-        return FindPlayerPed(Read<int32>(S));
     } else if constexpr (notsa::is_specialization_of<Y, ScriptEntity>) {
         using EntityType = typename Y::EntityType;
 
