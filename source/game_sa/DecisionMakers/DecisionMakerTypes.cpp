@@ -42,6 +42,14 @@ CDecisionMakerTypes* CDecisionMakerTypes::GetInstance() {
     return instance;
 }
 
+// 0x4650F0
+CDecisionMakerTypes::CDecisionMakerTypes() {
+    /* Member variables are inited using member-init-lists in the header */
+
+    rng::fill(m_Types, PED_DECISION_MAKER);
+    rng::fill(ScriptReferenceIndex, 1);
+}
+
 // 0x606E70
 void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType) {
     const auto MakeDecisionUsingMaker = [&] (CDecisionMaker* dm) {

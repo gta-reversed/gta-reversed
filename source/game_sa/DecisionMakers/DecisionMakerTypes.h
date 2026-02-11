@@ -58,6 +58,8 @@ public:
 
     static CDecisionMakerTypes* GetInstance();
 
+    CDecisionMakerTypes();
+
     /*!
      * @brief Add a Decision Maker
      * @param decisionMaker The decision maker to add, this will be copied into the local array
@@ -79,10 +81,10 @@ private:
     // notsa
     CDecisionMaker* GetInactiveDecisionMaker(bool bDecisionMakerForMission);
     ptrdiff_t GetDecisionMakerIndex(CDecisionMaker* dm);
-    auto& GetDecisionMaker(this auto&& self, eDecisionMakerType dm) { assert(+dm < self.m_NoOfDecisionMakers);  return self.m_DecisionMakers[+dm]; }
+    auto& GetDecisionMaker(this auto&& self, eDecisionMakerType dm) { return self.m_DecisionMakers[+dm]; }
 
 public:
-    int32               m_NoOfDecisionMakers{};
+    int32               m_NoOfDecisionMakers{}; ///!< Not used
     DecisionMakersArray m_DecisionMakers{};
     EventIndicesArray   m_EventIndices{};
     CDecisionMaker      m_DefaultRandomPedDecisionMaker{};
