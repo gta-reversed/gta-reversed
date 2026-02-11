@@ -9,8 +9,8 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x5A8020);
     RH_ScopedInstall(Initialise, 0x5A78F0);
     RH_ScopedInstall(GetIsWearingBalaclava, 0x5A7950);
-    RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970, { .reversed = false });
-    RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0, { .reversed = false });
+    RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970);
+    RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0);
 }
 
 CPedClothesDesc::CPedClothesDesc() {
@@ -49,13 +49,32 @@ bool CPedClothesDesc::GetIsWearingBalaclava() {
 }
 
 // 0x5A7970
-bool CPedClothesDesc::HasVisibleNewHairCut(int32 arg1) {
-    return plugin::CallMethodAndReturn<bool, 0x5A7970, CPedClothesDesc*, int32>(this, arg1);
+bool CPedClothesDesc::HasVisibleNewHairCut(int32 type) {
+    /* Balaclava hides the hair */
+    if (m_anModelKeys[CLOTHES_MODEL_SPECIAL] == CKeyGen::GetUppercaseKey("balaclava")) {
+        return false;
+    }
+
+    /* Hats hide the hair */
+    if (m_anModelKeys[CLOTHES_MODEL_HATS] != 0) {
+        return false;
+    }
+
+    if (m_anModelKeys[CLOTHES_MODEL_HEAD] == CKeyGen::GetUppercaseKey("head")) {
+        return false;
+    }
+
+    return type != 1 || m_anModelKeys[CLOTHES_MODEL_HEAD] == CKeyGen::GetUppercaseKey("afro");
 }
 
 // 0x5A79D0
 bool CPedClothesDesc::HasVisibleTattoo() {
-    return plugin::CallMethodAndReturn<bool, 0x5A79D0, CPedClothesDesc*>(this);
+    // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12
+    for (int i = eClothesTexturePart::CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= eClothesTexturePart::CLOTHES_TEXTURE_UPPER_BACK; ++i) {
+        if (m_anTextureKeys[i] != 0) return true;
+    }
+
+    return false;
 }
 
 // 0x5A8050

@@ -149,7 +149,7 @@ bool CTaskSimpleThrowProjectile::ProcessPed(CPed* ped) {
                     m_ButtonCounter = CTimer::GetTimeInMS() - m_ButtonCounter;
                 }
                 m_ButtonCounter = std::min(m_ButtonCounter, 533u);
-                ped->m_pPlayerData->m_fAttackButtonCounter = (float)m_ButtonCounter / 20.f;
+                ped->GetPlayerData()->m_fAttackButtonCounter = (float)m_ButtonCounter / 20.f;
             }
 
             if (m_TargetEntity) {

@@ -308,27 +308,29 @@ void CRenderer::PreRender() {
     assert(ms_nNoOfInVisibleEntities <= MAX_INVISIBLE_ENTITY_PTRS);
     std::ranges::for_each(GetInVisibleEntityPtrs(), [](auto& entity) { entity->PreRender(); });
 
-    for (auto* link = CVisibilityPlugins::m_alphaEntityList.usedListHead.next;
-        link != &CVisibilityPlugins::m_alphaEntityList.usedListTail;
+    for (auto* link = CVisibilityPlugins::GetAlphaList().usedListHead.next;
+        link != &CVisibilityPlugins::GetAlphaList().usedListTail;
         link = link->next
     ) {
         // NOTSA: HACK: We compare function pointers, and want it to work with reversible hooks,
         // we need to check for both original function and our one
         if (link->data.m_pCallback == CVisibilityPlugins::RenderEntity || link->data.m_pCallback == (void*)0x732B40) {
-            link->data.m_entity->m_bOffscreen = false;
-            link->data.m_entity->PreRender();
+            auto* entity = (CEntity*)link->data.m_pObj;
+            entity->m_bOffscreen = false;
+            entity->PreRender();
         }
     }
 
-    for (auto* link = CVisibilityPlugins::m_alphaUnderwaterEntityList.usedListHead.next;
-        link != &CVisibilityPlugins::m_alphaUnderwaterEntityList.usedListTail;
+    for (auto* link = CVisibilityPlugins::GetAlphaUnderwaterList().usedListHead.next;
+        link != &CVisibilityPlugins::GetAlphaUnderwaterList().usedListTail;
         link = link->next
     ) {
         // todo: NOTSA: HACK: We compare function pointers, and want it to work with reversible hooks,
         // we need to check for both original function and our one
         if (link->data.m_pCallback == CVisibilityPlugins::RenderEntity || link->data.m_pCallback == (void*)0x732B40) {
-            link->data.m_entity->m_bOffscreen = false;
-            link->data.m_entity->PreRender();
+            auto* entity = (CEntity*)link->data.m_pObj;
+            entity->m_bOffscreen = false;
+            entity->PreRender();
         }
     }
     CHeli::SpecialHeliPreRender();
@@ -397,7 +399,7 @@ void CRenderer::RenderEverythingBarRoads() {
                 if (bInsertIntoSortedList)
                     bInserted = CVisibilityPlugins::InsertEntityIntoSortedList(entity, fMagnitude);
                 else
-                    bInserted = CVisibilityPlugins::InsertEntityIntoUnderwaterEntities(entity, fMagnitude);
+                    bInserted = CVisibilityPlugins::InsertEntityIntoUnderwaterList(entity, fMagnitude);
             }
         }
         if (!bInserted)

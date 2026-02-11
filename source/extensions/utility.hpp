@@ -446,4 +446,13 @@ F step_to(F x, F to, F step, bool useTimeStep = false) {
 //! See: https://stackoverflow.com/a/64228354/15363969
 template <typename R, typename T>
 concept range_of = rng::range<R> && std::same_as<rng::range_value_t<R>, T>;
+
+// https://www.reddit.com/r/cpp/comments/1hw6a29/comment/m61d6wv
+template <class T, template <typename...> class Template> 
+concept is_specialization_of = requires ( std::remove_cvref_t<T> t ) 
+{ 
+  // Check an immediately invoked lambda can compile 
+  []<typename... Args> ( Template<Args...>& ) {} ( t ); 
 };
+
+}; // namespace notsa

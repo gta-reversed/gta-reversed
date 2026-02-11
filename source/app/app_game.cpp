@@ -360,7 +360,7 @@ void Idle(void* param) {
         CMirrors::RenderMirrorBuffer();
         RenderScene();
         CVisibilityPlugins::RenderWeaponPedsForPC();
-        CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+        CVisibilityPlugins::ResetWeaponPedsForPC();
         RenderEffects();
         if (TheCamera.m_nBlurType == eMotionBlurType::NONE || TheCamera.m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
             if (TheCamera.m_fScreenReductionPercentage > 0.0f) {

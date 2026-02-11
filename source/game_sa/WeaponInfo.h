@@ -82,7 +82,7 @@ public:
     uint16       m_nAmmoClip;       // ammo in one clip // todo: should be uint32, see
     uint16       m_nDamage;         // damage inflicted per hit
     CVector      m_vecFireOffset;   // offset from weapon origin to projectile starting point
-    uint32       m_nSkillLevel;     // what's the skill level of this weapon type - We can't make the field eWeaponSkill because the game uses uint32 for it...
+    notsa::WEnumU32<eWeaponSkill> m_nSkillLevel;
     uint32       m_nReqStatLevel;   // what stat level is required for this skill level (Yes, this is an int, not a float!)
     float        m_fAccuracy;       // modify accuracy of weapon
     float        m_fMoveSpeed;      // how fast can move with weapon
