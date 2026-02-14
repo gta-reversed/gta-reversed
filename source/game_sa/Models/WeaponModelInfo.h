@@ -23,7 +23,9 @@ public:
     void Init() override;
     void SetClump(RpClump* clump) override;
 
-    // VTable implementations
+    // inlined
+    void SetWeaponInfo(eWeaponType weapon) { m_weaponInfo = weapon; }
+    eWeaponType GetWeaponInfo() { return m_weaponInfo; }
 };
 
 VALIDATE_SIZE(CWeaponModelInfo, 0x28);
