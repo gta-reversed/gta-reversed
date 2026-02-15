@@ -110,7 +110,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     }
 
     if (mi->GetModelType() == MODEL_INFO_WEAPON) {
-        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->m_weaponInfo);
+        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->GetWeaponInfo());
     }
 
     if (slotIndex < 0) {
