@@ -3538,7 +3538,7 @@ void CPed::DeadPedMakesTyresBloody() {
 
     for (int32 sy = startSectorY; sy <= endSectorY; ++sy) {
         for (int32 sx = startSectorX; sx <= endSectorX; ++sx) {
-            MakeTyresMuddySectorList(CWorld::GetRepeatSector(sx, sy).Vehicles);
+            MakeTyresMuddySectorList(CWorld::GetRepeatSector(sx, sy).GetOverlapVehiclePtrList());
         }
     }
 }

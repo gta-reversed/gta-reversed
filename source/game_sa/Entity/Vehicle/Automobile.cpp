@@ -6331,7 +6331,7 @@ bool CAutomobile::RcbanditCheckHitWheels() {
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
-            if (RcbanditCheck1CarWheels(repeatSector.Vehicles))
+            if (RcbanditCheck1CarWheels(repeatSector.GetOverlapVehiclePtrList()))
                 break;
         }
     }

@@ -332,10 +332,10 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
-            TrainHitStuff(repeatSector.Vehicles, entity);
+            TrainHitStuff(repeatSector.GetOverlapVehiclePtrList(), entity);
             if (!bOnlyVehicles) {
-                TrainHitStuff(repeatSector.Peds, entity);
-                TrainHitStuff(repeatSector.Objects, entity);
+                TrainHitStuff(repeatSector.GetOverlapPedPtrList(), entity);
+                TrainHitStuff(repeatSector.GetOverlapObjectPtrList(), entity);
             }
         }
     }

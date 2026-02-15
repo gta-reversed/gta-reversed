@@ -15,13 +15,29 @@ class CObject;
 enum eRepeatSectorList : int32 {
     REPEATSECTOR_VEHICLES = 0,
     REPEATSECTOR_PEDS     = 1,
-    REPEATSECTOR_OBJECTS  = 2
+    REPEATSECTOR_OBJECTS  = 2,
+
+    REPEATSECTOR_COUNT
 };
 
 class CRepeatSector {
+protected:
+    CPtrListDoubleLink<void*> m_ptrListArray[REPEATSECTOR_COUNT];
+
 public:
-    CPtrListDoubleLink<CVehicle*> Vehicles;
-    CPtrListDoubleLink<CPed*>     Peds;
-    CPtrListDoubleLink<CObject*>  Objects;
+    CPtrListDoubleLink<void*>* GetPtrListArray() { return m_ptrListArray; } // unused
+
+    CPtrListDoubleLink<CVehicle*>& GetOverlapVehiclePtrList() {
+        return reinterpret_cast<CPtrListDoubleLink<CVehicle*>&>(m_ptrListArray[REPEATSECTOR_VEHICLES]);
+    }
+
+    CPtrListDoubleLink<CPed*>& GetOverlapPedPtrList() {
+        return reinterpret_cast<CPtrListDoubleLink<CPed*>&>(m_ptrListArray[REPEATSECTOR_PEDS]);
+    }
+
+    CPtrListDoubleLink<CObject*>& GetOverlapObjectPtrList() {
+        return reinterpret_cast<CPtrListDoubleLink<CObject*>&>(m_ptrListArray[REPEATSECTOR_OBJECTS]);
+    }
 };
+
 VALIDATE_SIZE(CRepeatSector, 0xC);

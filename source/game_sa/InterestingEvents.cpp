@@ -195,7 +195,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
 
-            for (auto* const ped : rs.Peds) {
+            for (auto* const ped : rs.GetOverlapPedPtrList()) {
                 if (ped->IsScanCodeCurrent())
                     continue;
 
@@ -229,7 +229,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
             }
 
-            for (auto* const vehicle : rs.Vehicles) {
+            for (auto* const vehicle : rs.GetOverlapVehiclePtrList()) {
                 if (vehicle->IsScanCodeCurrent())
                     continue;
 

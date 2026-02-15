@@ -451,9 +451,9 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
             auto scanResult1 = ScanToGrabSector(CWorld::GetSector(x, y).GetOverlapBuildingPtrList());
-            auto scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Objects);
+            auto scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).GetOverlapObjectPtrList());
             if (!scanResult2) {
-                scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Vehicles);
+                scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).GetOverlapVehiclePtrList());
             }
 
             if (scanResult1 == (CEntity*)(1) || scanResult2 == (CEntity*)(1)) {

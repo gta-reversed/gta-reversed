@@ -71,7 +71,7 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
     CEntity* entity{};
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            FindWindowSectorList(CWorld::GetRepeatSector(sectorX, sectorY).Objects, maxDist, entity, point);
+            FindWindowSectorList(CWorld::GetRepeatSector(sectorX, sectorY).GetOverlapObjectPtrList(), maxDist, entity, point);
             FindWindowSectorList(CWorld::GetSector(sectorX, sectorY).GetOverlapDummyPtrList(), maxDist, entity, point);
         }
     }
