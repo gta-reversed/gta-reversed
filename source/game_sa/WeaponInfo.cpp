@@ -261,7 +261,7 @@ void CWeaponInfo::LoadWeaponData() {
 
             if (skillLevel == eWeaponSkill::STD && weaponType != eWeaponType::WEAPON_DETONATOR) {
                 if (modelId1 > 0) {
-                    CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->m_weaponInfo = weaponType;
+                    CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->SetWeaponInfo(weaponType);
                 }
             }
             break;
@@ -333,7 +333,7 @@ void CWeaponInfo::LoadWeaponData() {
                 wi.m_eAnimGroup = CAnimManager::GetAnimationGroupIdByName(stealthAnimGrpName);
 
             if (modelId1 > 0)
-                CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->m_weaponInfo = wType;
+                CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->SetWeaponInfo(wType);
 
             break;
         }
