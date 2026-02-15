@@ -101,6 +101,34 @@ private: // NOTSA:
         this->CLoadMonitor::~CLoadMonitor();
         return this;
     }
+
+#ifdef _DEBUG
+public:
+    // Getters for debug module
+    uint32 GetInFrame() const { return m_bInFrame; }
+    uint32 GetUseLoadMonitor() const { return m_bUseLoadMonitor; }
+    eProcessingLevel GetForceProcLevel() const { return m_bForceProcLevel; }
+    eLoadMonitorDisplay GetDisplayType() const { return m_DisplayType; }
+    eLoadMonitorDisplay GetVarConsoleDisplayType() const { return m_VarConsoleDisplayType; }
+    eProcessingLevel GetProcLevelToForce() const { return m_eProcLevelToForce; }
+    
+    uint32 GetLastTime() const { return m_LastTime; }
+    uint32 GetNumFramesThisSec() const { return m_NumFramesThisSec; }
+    uint32 GetFPS() const { return m_FPS; }
+    
+    uint32 GetStartTime(eLoadType t) const { return m_iStartTimes[+t]; }
+    uint32 GetCyclesThisFrame(eLoadType t) const { return m_iCyclesThisFrame[+t]; }
+    uint32 GetMaxCycles(eLoadType t) const { return m_iMaxCycles[+t]; }
+    
+    float GetSmoothedValue(eLoadType t) const { return m_fSmoothedValues[+t]; }
+    float GetPeakLevel(eLoadType t) const { return m_fPeakLevels[+t]; }
+    float GetNormalizedPeakRangeValue(eLoadType t) const { return m_fNormalizedPeakRangeValues[+t]; }
+    float GetAveragedCyclesThisSecond(eLoadType t) const { return m_fAveragedCyclesThisSecond[+t]; }
+    
+    uint32 GetCyclesHistory(eLoadType t, size_t idx) const { return m_iCyclesHistory[+t][idx]; }
+    uint8 GetGraphPoint(eLoadType t, size_t idx) const { return m_GraphPoints[+t][idx]; }
+    int32 GetCurrentGraphIndex() const { return m_iCurrentGraphIndex; }
+#endif
 };
 
 VALIDATE_SIZE(CLoadMonitor, 0x2B0);
