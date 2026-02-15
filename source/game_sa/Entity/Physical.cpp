@@ -2093,7 +2093,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
 
     auto& s = CWorld::GetSector(sectorX, sectorY);
     auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
-    ProcessSectorList(s.m_buildings);
+    ProcessSectorList(s.GetOverlapBuildingPtrList());
     ProcessSectorList(rs.Vehicles);
     ProcessSectorList(rs.Peds);
     ProcessSectorList(rs.Objects);
@@ -4437,7 +4437,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
     };
     auto& s = CWorld::GetSector(sectorX, sectorY);
     auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
-    if (   ProcessSectorList(s.m_buildings)
+    if (   ProcessSectorList(s.GetOverlapBuildingPtrList())
         || ProcessSectorList(rs.Vehicles)
         || ProcessSectorList(rs.Peds)
         || ProcessSectorList(rs.Objects)

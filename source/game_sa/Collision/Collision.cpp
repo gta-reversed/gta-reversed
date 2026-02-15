@@ -2898,7 +2898,7 @@ bool CCollision::CheckCameraCollisionBuildings(
     const auto checkFlyerCollision = plyrVeh && plyrVeh->physicalFlags.bDontCollideWithFlyers;
 
     bool anyCollided = false;
-    for (auto* const entity : CWorld::GetSector(X, Y).m_buildings) {
+    for (auto* const entity : CWorld::GetSector(X, Y).GetOverlapBuildingPtrList()) {
         if (!entity->ProcessScan()) {
             continue;
         }

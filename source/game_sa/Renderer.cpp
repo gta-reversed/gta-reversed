@@ -991,8 +991,8 @@ void CRenderer::ConstructRenderList() {
 void CRenderer::ScanSectorList_RequestModels(int32 sectorX, int32 sectorY) {
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
         auto& sector = CWorld::GetSector(sectorX, sectorY);
-        ScanPtrList_RequestModels(sector.m_buildings);
-        ScanPtrList_RequestModels(sector.m_dummies);
+        ScanPtrList_RequestModels(sector.GetOverlapBuildingPtrList());
+        ScanPtrList_RequestModels(sector.GetOverlapDummyPtrList());
         ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY).Objects);
     }
 }
@@ -1196,11 +1196,11 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY) {
     auto* scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
         auto& sector          = CWorld::GetSector(sectorX, sectorY);
-        scanLists->buildingsList = &sector.m_buildings;
+        scanLists->buildingsList = &sector.GetOverlapBuildingPtrList();
         scanLists->objectsList   = &repeatSector.Objects;
         scanLists->vehiclesList  = &repeatSector.Vehicles;
         scanLists->pedsList      = &repeatSector.Peds;
-        scanLists->dummiesList   = &sector.m_dummies;
+        scanLists->dummiesList   = &sector.GetOverlapDummyPtrList();
     } else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;

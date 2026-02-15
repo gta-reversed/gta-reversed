@@ -270,14 +270,14 @@ void CStreaming::AddModelsToRequestList(const CVector& point, int32 streamingFla
             const int32 pointSectorDistSq = distanceX * distanceX + distanceY * distanceY;
 
             if (pointSectorDistSq <= radiusInnerSq) {
-                ProcessEntitiesInSectorList(sector.m_buildings, streamingFlags);
+                ProcessEntitiesInSectorList(sector.GetOverlapBuildingPtrList(), streamingFlags);
                 ProcessEntitiesInSectorList(repeatSector.Peds, streamingFlags);
-                ProcessEntitiesInSectorList(sector.m_dummies, streamingFlags);
+                ProcessEntitiesInSectorList(sector.GetOverlapDummyPtrList(), streamingFlags);
             } else {
                 if (pointSectorDistSq <= radiusOuterSq) {
-                    ProcessEntitiesInSectorList(sector.m_buildings, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(sector.GetOverlapBuildingPtrList(), point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
                     ProcessEntitiesInSectorList(repeatSector.Peds, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
-                    ProcessEntitiesInSectorList(sector.m_dummies, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(sector.GetOverlapDummyPtrList(), point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
                 }
             }
         }
@@ -737,9 +737,9 @@ void CStreaming::DeleteAllRwObjects() {
         for (int32 sy = 0; sy < MAX_SECTORS_Y; ++sy) {
             auto& repeatSector = CWorld::GetRepeatSector(sx, sy);
             auto& sector = CWorld::GetSector(sx, sy);
-            DeleteRwObjectsInList(sector.m_buildings);
+            DeleteRwObjectsInList(sector.GetOverlapBuildingPtrList());
             DeleteRwObjectsInList(repeatSector.Objects);
-            DeleteRwObjectsInList(sector.m_dummies);
+            DeleteRwObjectsInList(sector.GetOverlapDummyPtrList());
         }
     }
 }
@@ -801,9 +801,9 @@ void CStreaming::DeleteRwObjectsAfterDeath(const CVector& point) {
                 if (std::abs(pointSecY - sy) > 3) {
                     auto& repeatSector = CWorld::GetRepeatSector(sx, sy);
                     auto& sector = CWorld::GetSector(sx, sy);
-                    DeleteRwObjectsInSectorList(sector.m_buildings);
+                    DeleteRwObjectsInSectorList(sector.GetOverlapBuildingPtrList());
                     DeleteRwObjectsInSectorList(repeatSector.Objects);
-                    DeleteRwObjectsInSectorList(sector.m_dummies);
+                    DeleteRwObjectsInSectorList(sector.GetOverlapDummyPtrList());
                 }
             }
         }
@@ -845,8 +845,8 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.m_dummies, memoryToCleanInBytes) ||
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
@@ -869,8 +869,8 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsNotInFrustumInSectorList(sector.m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(sector.m_dummies, memoryToCleanInBytes) ||
+                if (DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
                     DeleteRwObjectsNotInFrustumInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
@@ -883,8 +883,8 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.m_dummies, memoryToCleanInBytes) ||
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
@@ -912,8 +912,8 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.m_dummies, memoryToCleanInBytes) ||
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
@@ -935,8 +935,8 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsNotInFrustumInSectorList(sector.m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(sector.m_dummies, memoryToCleanInBytes) ||
+                if (DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
                     DeleteRwObjectsNotInFrustumInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
@@ -952,8 +952,8 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.m_dummies, memoryToCleanInBytes) ||
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
@@ -2968,9 +2968,9 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
         for (auto sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
             auto& sector = CWorld::GetSector(sectorX, sectorY);
-            InstanceLoadedModelsInSectorList(sector.m_buildings);
+            InstanceLoadedModelsInSectorList(sector.GetOverlapBuildingPtrList());
             InstanceLoadedModelsInSectorList(repeatSector.Objects);
-            InstanceLoadedModelsInSectorList(sector.m_dummies);
+            InstanceLoadedModelsInSectorList(sector.GetOverlapDummyPtrList());
         }
     }
 }

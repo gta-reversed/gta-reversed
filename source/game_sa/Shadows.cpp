@@ -821,7 +821,7 @@ void CShadows::RenderStoredShadows() {
 
                         if (const auto rtshdw = ishdw.m_pRTShadow) {
                             CastRealTimeShadowSectorList(
-                                sector.m_buildings,
+                                sector.GetOverlapBuildingPtrList(),
                                 ishdwRect.left, ishdwRect.bottom,
                                 ishdwRect.right, ishdwRect.top,
                                 &ishdw.m_vecPosn,
@@ -839,7 +839,7 @@ void CShadows::RenderStoredShadows() {
                             uint8 unused{};
                             if (ishdw.m_bDrawOnBuildings) {
                                 CastShadowSectorList(
-                                    sector.m_buildings,
+                                    sector.GetOverlapBuildingPtrList(),
                                     ishdwRect.left, ishdwRect.bottom,
                                     ishdwRect.right, ishdwRect.top,
                                     &ishdw.m_vecPosn,
@@ -855,7 +855,7 @@ void CShadows::RenderStoredShadows() {
                                 );
                             } else {
                                 CastPlayerShadowSectorList(
-                                    sector.m_buildings,
+                                    sector.GetOverlapBuildingPtrList(),
                                     ishdwRect.left, ishdwRect.bottom,
                                     ishdwRect.right, ishdwRect.top,
                                     &ishdw.m_vecPosn,

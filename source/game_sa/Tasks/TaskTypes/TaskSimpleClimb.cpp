@@ -450,7 +450,7 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
             const auto ScanToGrabSector = [&]<typename PtrListType>(PtrListType& ptrList) -> CEntity* {
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
-            auto scanResult1 = ScanToGrabSector(CWorld::GetSector(x, y).m_buildings);
+            auto scanResult1 = ScanToGrabSector(CWorld::GetSector(x, y).GetOverlapBuildingPtrList());
             auto scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Objects);
             if (!scanResult2) {
                 scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Vehicles);
