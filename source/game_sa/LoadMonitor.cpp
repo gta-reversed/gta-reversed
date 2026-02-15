@@ -57,9 +57,7 @@ void CLoadMonitor::EndFrame() {
             movevec = ped->GetMoveSpeed();
         }
 
-        movevec *= 50.0f;
-        float movespeed = movevec.Magnitude();
-        m_iCyclesThisFrame[+eLoadType::MOVE_SPEED] = (uint32)movespeed;
+        m_iCyclesThisFrame[+eLoadType::MOVE_SPEED] = (uint32)(movevec.Magnitude() * 50.f);
     }
 
     // 0x53D143 - 0x53D1D3
@@ -88,8 +86,8 @@ void CLoadMonitor::EndFrame() {
 
             float recip = 1.0f / (float)m_NumFramesThisSec;
 
-            for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
-                m_fAveragedCyclesThisSecond[t] *= recip;
+            for (auto& averag : m_fAveragedCyclesThisSecond) {
+                averag *= recip;
             }
 
             m_NumFramesThisSec = 0;
