@@ -1,9 +1,9 @@
-# Reversed Classes [As of Jan 12, 2026, 15:48:11 UTC]
+# Reversed Classes [As of Feb 11, 2026, 21:43:15 UTC]
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (555/700) [79%]
+#### Completely reversed classes (556/700) [79%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -72,6 +72,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CPedGroups (2)<br />
 - CPedGroupMembership (18)<br />
 - CPedGroupIntelligence (26)<br />
+- CPedClothesDesc (5)<br />
 - CPedAttractorManager (14)<br />
 - CPathNode (1)<br />
 - CPad (75)<br />
@@ -564,7 +565,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (136/700) [19%]
+#### Partially reversed classes (135/700) [19%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -591,7 +592,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CPedGroup (10/12) [83%]<br />
 - CPedGeometryAnalyser (6/20) [30%]<br />
 - CPedDamageResponseCalculator (2/7) [29%]<br />
-- CPedClothesDesc (4/5) [80%]<br />
 - CPathFind (54/56) [96%]<br />
 - CMenuSystem (20/21) [95%]<br />
 - CMenuManager (60/61) [98%]<br />
