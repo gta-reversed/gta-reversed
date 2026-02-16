@@ -28,17 +28,27 @@ protected:
 public:
     static const int32 ms_iScanPeriod = 10; // Mobile, unused
 
+    friend class CPedIntelligence; // NOTE: There's no other way at all
+
 public:
     CEntityScanner();
     ~CEntityScanner();
 
-    CEntity** GetEntitiesInRange() { return m_apEntities.data(); }
+    std::span<CEntity*> GetEntitiesInRange() { // NOTSA modificated
+        return { m_apEntities.data(), m_apEntities.size() };
+    }
 
-    CTickCounter* GetTimer() { return &m_timer; } // unused
+    // unused
+    CTickCounter* GetTimer() {
+        return &m_timer;
+    }
 
 protected:
     virtual void ScanForEntitiesInRange(const eRepeatSectorList sectorList, const CPed& ped);
-    CEntity* GetClosestEntity() const { return m_pClosestEntityInRange; }
+    CEntity* GetClosestEntity() const {
+        return m_pClosestEntityInRange;
+    }
+
     void Clear();
 
 private: // NOTSA:

@@ -168,7 +168,7 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
 // 0x66B300
 void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
     CPed* criminalPed = nullptr;
-    for (auto& entity : ped->GetIntelligence()->m_pedScanner.m_apEntities) {
+    for (auto& entity : ped->GetIntelligence()->m_pedScanner.GetEntitiesInRange()) {
         criminalPed = entity->AsPed();
         if (!criminalPed)
             continue;

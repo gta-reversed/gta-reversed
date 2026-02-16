@@ -270,7 +270,7 @@ bool CTaskComplexAvoidOtherPedWhileWandering::NearbyPedsInSphere(CPed* ped, cons
 // 0x672080
 void CTaskComplexAvoidOtherPedWhileWandering::ComputeAvoidSphere(CPed* ped, CColSphere& outSp) {
     PedsToAvoidArray pedsToCheck{};
-    for (auto&& [i, entityToCheck] : rngv::enumerate(ped->GetIntelligence()->GetPedScanner().m_apEntities)) { // Can't use GetEntities<CPed>() because it filters null entries
+    for (auto&& [i, entityToCheck] : rngv::enumerate(ped->GetIntelligence()->GetPedScanner().GetEntitiesInRange())) { // Can't use GetEntities<CPed>() because it filters null entries
         const auto pedToCheck = entityToCheck->AsPed();
         pedsToCheck[i] = pedToCheck != m_PedToAvoid && !CPedGroups::AreInSameGroup(ped, pedToCheck) // Inverted
             ? pedToCheck

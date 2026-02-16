@@ -227,7 +227,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
 
         auto subTask = reinterpret_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask);
         if (subTask->m_moveState != PEDMOVE_WALK && DistanceBetweenPointsSquared(ped->GetPosition(), m_vecAccidentPosition) < 25.0F) {
-            for (CEntity* entity : ped->GetIntelligence()->m_vehicleScanner.m_apEntities) {
+            for (CEntity* entity : ped->GetIntelligence()->m_vehicleScanner.GetEntitiesInRange()) {
                 if (entity && CPedGeometryAnalyser::IsEntityBlockingTarget(entity, m_vecAccidentPosition, 0.125F)) {
                     return CreateDealWithNextAccidentTask(ped, nullptr);
                 }
