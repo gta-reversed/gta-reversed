@@ -95,12 +95,12 @@ bool CPlayerPed::Load() {
     CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
     auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
 
-    CWanted* wanted = m_pPlayerData->m_pWanted;
+    CWanted* wanted = GetPlayerWanted();
     wanted->m_nChaosLevel = sd.ChaosLevel;
     wanted->m_nWantedLevel= sd.WantedLevel;
 
-    *m_pPlayerData->m_pPedClothesDesc = sd.ClothesDesc;
-    m_pPlayerData->m_nChosenWeapon   = sd.ChosenWeapon;
+    *GetPlayerData()->m_pPedClothesDesc = sd.ClothesDesc;
+    GetPlayerData()->m_nChosenWeapon   = sd.ChosenWeapon;
 
     return true;
 }
@@ -109,11 +109,11 @@ bool CPlayerPed::Load() {
 bool CPlayerPed::Save() {
     WorkBufferSaveData saveData{};
 
-    CWanted* wanted = m_pPlayerData->m_pWanted;
+    CWanted* wanted = GetPlayerWanted();
     saveData.ChaosLevel = wanted->m_nChaosLevel;
     saveData.WantedLevel = wanted->m_nWantedLevel;
-    saveData.ChosenWeapon = m_pPlayerData->m_nChosenWeapon;
-    saveData.ClothesDesc  = *m_pPlayerData->m_pPedClothesDesc;
+    saveData.ChosenWeapon = GetPlayerData()->m_nChosenWeapon;
+    saveData.ClothesDesc  = *GetPlayerData()->m_pPedClothesDesc;
 
     CPed::Save();
     CGenericGameStorage::SaveDataToWorkBuffer(sizeof(WorkBufferSaveData));
@@ -125,7 +125,7 @@ bool CPlayerPed::Save() {
 // 0x60D5B0
 CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PED_TYPE_PLAYER1) {
     m_pPlayerData = &CWorld::Players[playerId].m_PlayerData;
-    m_pPlayerData->AllocateData();
+    GetPlayerData()->AllocateData();
 
     CPed::SetModelIndex(MODEL_PLAYER);
 
@@ -138,17 +138,17 @@ CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PED_TYPE_PLAYE
     gPlayIdlesAnimBlockIndex = CAnimManager::GetAnimationBlockIndex("playidles");
 
     if (!bGroupCreated) {
-        m_pPlayerData->m_nPlayerGroup = CPedGroups::AddGroup();
+        GetPlayerData()->m_nPlayerGroup = CPedGroups::AddGroup();
 
-        auto& group = CPedGroups::GetGroup(m_pPlayerData->m_nPlayerGroup);
+        auto& group = CPedGroups::GetGroup(GetPlayerData()->m_nPlayerGroup);
         group.GetIntelligence().SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType::RANDOM);
         group.m_bIsMissionGroup = true;
         group.m_groupMembership.SetLeader(this);
         group.Process();
 
-        m_pPlayerData->m_bGroupStuffDisabled = false;
-        m_pPlayerData->m_bGroupAlwaysFollow  = false;
-        m_pPlayerData->m_bGroupNeverFollow   = false;
+        GetPlayerData()->m_bGroupStuffDisabled = false;
+        GetPlayerData()->m_bGroupAlwaysFollow  = false;
+        GetPlayerData()->m_bGroupNeverFollow   = false;
     }
 
     m_fMaxHealth = CStats::GetFatAndMuscleModifier(STAT_MOD_MAX_HEALTH);
@@ -160,8 +160,8 @@ CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PED_TYPE_PLAYE
     m_p3rdPersonMouseTarget = nullptr;
     field_7A0 = 0;
     m_pedSpeech.Initialise(this);
-    m_pIntelligence->m_fDmRadius = 30.0f;
-    m_pIntelligence->m_nDmNumPedsToScan = 2;
+    GetIntelligence()->m_fDmRadius = 30.0f;
+    GetIntelligence()->m_nDmNumPedsToScan = 2;
 
     bUsedForReplay = bGroupCreated;
 }
@@ -212,7 +212,7 @@ CPad* CPlayerPed::GetPadFromPlayer() const {
 
 // 0x609590
 bool CPlayerPed::CanPlayerStartMission() {
-    if (CGameLogic::GameState != GAME_STATE_INITIAL || CGameLogic::IsCoopGameGoingOn())
+    if (CGameLogic::GameState != GAMELOGIC_STATE_PLAYING || CGameLogic::IsCoopGameGoingOn())
         return false;
 
     if (!IsPedInControl() && !IsStateDriving())
@@ -281,7 +281,7 @@ bool CPlayerPed::DoesPlayerWantNewWeapon(eWeaponType weaponType, bool arg1) {
     if (arg1)
         return false;
 
-    if (m_pIntelligence->GetTaskJetPack())
+    if (GetIntelligence()->GetTaskJetPack())
         return false;
 
     /* !See comment!
@@ -309,8 +309,9 @@ void CPlayerPed::ProcessPlayerWeapon(CPad* pad) {
 
 // 0x609800
 void CPlayerPed::PickWeaponAllowedFor2Player() {
-    if (!GetWeaponInSlot(m_pPlayerData->m_nChosenWeapon).CanBeUsedFor2Player())
-        m_pPlayerData->m_nChosenWeapon = eWeaponType::WEAPON_UNARMED;
+    if (!GetWeaponInSlot(GetPlayerData()->m_nChosenWeapon).CanBeUsedFor2Player()) {
+        GetPlayerData()->m_nChosenWeapon = eWeaponType::WEAPON_UNARMED;
+    }
 }
 
 // 0x609830
@@ -373,7 +374,7 @@ float CPlayerPed::GetWeaponRadiusOnScreen() {
 
     default: {
         const float rangeProg = std::min(1.0f, 15.0f / wepInfo.m_fWeaponRange);
-        const float radius = (m_pPlayerData->m_fAttackButtonCounter * 0.5f + 1.0f) * rangeProg * accuracyProg;
+        const float radius = (GetPlayerData()->m_fAttackButtonCounter * 0.5f + 1.0f) * rangeProg * accuracyProg;
         if (bIsDucking)
             return std::max(0.2f, radius / 2.0f);
         return std::max(0.2f, radius);
@@ -515,8 +516,8 @@ void CPlayerPed::AnnoyPlayerPed(bool arg0) {
 
 // 0x60A070
 void CPlayerPed::ClearAdrenaline() {
-    if (m_pPlayerData->m_bAdrenaline && m_pPlayerData->m_nAdrenalineEndTime != 0) {
-        m_pPlayerData->m_nAdrenalineEndTime = 0;
+    if (GetPlayerData()->m_bAdrenaline && GetPlayerData()->m_nAdrenalineEndTime != 0) {
+        GetPlayerData()->m_nAdrenalineEndTime = 0;
         CTimer::ResetTimeScale();
     }
 }
@@ -547,9 +548,9 @@ void CPlayerPed::MakeGroupRespondToPlayerTakingDamage(CEventDamage& damageEvent)
 
 // 0x60A1D0
 void CPlayerPed::TellGroupToStartFollowingPlayer(bool arg0, bool arg1, bool arg2) {
-    if (m_pPlayerData->m_bGroupAlwaysFollow && !arg0)
+    if (GetPlayerData()->m_bGroupAlwaysFollow && !arg0)
         return;
-    if (m_pPlayerData->m_bGroupNeverFollow && arg0)
+    if (GetPlayerData()->m_bGroupNeverFollow && arg0)
         return;
 
     CPedGroup& group = GetPlayerGroup();
@@ -631,16 +632,16 @@ void CPlayerPed::MakePlayerGroupReappear() {
 // 0x60A530
 void CPlayerPed::ResetSprintEnergy()
 {
-    m_pPlayerData->m_fTimeCanRun = CStats::GetFatAndMuscleModifier(STAT_MOD_TIME_CAN_RUN);
+    GetPlayerData()->m_fTimeCanRun = CStats::GetFatAndMuscleModifier(STAT_MOD_TIME_CAN_RUN);
 }
 
 // 0x60A550
 bool CPlayerPed::HandleSprintEnergy(bool sprint, float adrenalineConsumedPerTimeStep) {
-    float& timeCanRun = m_pPlayerData->m_fTimeCanRun;
+    float& timeCanRun = GetPlayerData()->m_fTimeCanRun;
     if (sprint) {
         if (FindPlayerInfo().m_bDoesNotGetTired)
             return true;
-        if (m_pPlayerData->m_bAdrenaline || adrenalineConsumedPerTimeStep == 0.0f)
+        if (GetPlayerData()->m_bAdrenaline || adrenalineConsumedPerTimeStep == 0.0f)
             return true;
 
         if (timeCanRun > -150.0f) { // TODO: Find out what this magic number is
@@ -688,23 +689,23 @@ float CPlayerPed::GetButtonSprintResults(eSprintType sprintType) {
     // which causes a crash (as it is used to store a pointer to an anim blend assoc)
     __asm { and edx, edx };
 
-    if (m_pPlayerData->m_fMoveSpeed <= PLAYER_SPRINT_THRESHOLD) {
-        return m_pPlayerData->m_fMoveSpeed <= 0.0f ? 0.0f : 1.0f;
+    if (GetPlayerData()->m_fMoveSpeed <= PLAYER_SPRINT_THRESHOLD) {
+        return GetPlayerData()->m_fMoveSpeed <= 0.0f ? 0.0f : 1.0f;
     } else {
-        const float progress = std::max(0.0f, m_pPlayerData->m_fMoveSpeed / PLAYER_SPRINT_THRESHOLD - 1.0f);
+        const float progress = std::max(0.0f, GetPlayerData()->m_fMoveSpeed / PLAYER_SPRINT_THRESHOLD - 1.0f);
         return PLAYER_SPRINT_SET[sprintType].field_1C * progress + 1.0f;
     }
 }
 
 // 0x60A8A0
 void CPlayerPed::ResetPlayerBreath() {
-    m_pPlayerData->m_fBreath = CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG);
-    m_pPlayerData->m_bRequireHandleBreath = false;
+    GetPlayerData()->m_fBreath = CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG);
+    GetPlayerData()->m_bRequireHandleBreath = false;
 }
 
 // 0x60A8D0
 void CPlayerPed::HandlePlayerBreath(bool bDecreaseAir, float fMultiplier) {
-    float& breath = m_pPlayerData->m_fBreath;
+    float& breath = GetPlayerData()->m_fBreath;
     float  decreaseAmount = CTimer::GetTimeStep() * fMultiplier;
     if (!bDecreaseAir || CCheat::IsActive(CHEAT_INFINITE_OXYGEN)) {
         if (CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) > breath)
@@ -715,7 +716,7 @@ void CPlayerPed::HandlePlayerBreath(bool bDecreaseAir, float fMultiplier) {
         else
             CWeapon::GenerateDamageEvent(this, this, eWeaponType::WEAPON_DROWNING, (int32)(decreaseAmount * 3.0f), PED_PIECE_TORSO, 0);
     }
-    m_pPlayerData->m_bRequireHandleBreath = false;
+    GetPlayerData()->m_bRequireHandleBreath = false;
 }
 
 // 0x60A9C0
@@ -731,8 +732,8 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
 
     SetCurrentWeapon(weaponType);
 
-    m_pPlayerData->m_nChosenWeapon = m_nActiveWeaponSlot;
-    m_pPlayerData->m_fAttackButtonCounter= 0.0f;
+    GetPlayerData()->m_nChosenWeapon = m_nActiveWeaponSlot;
+    GetPlayerData()->m_fAttackButtonCounter= 0.0f;
 
     CWeapon& wep = GetActiveWeapon();
     CWeaponInfo& wepInfo = wep.GetWeaponInfo(this);
@@ -743,7 +744,7 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
         ClearWeaponTarget();
 
     if (!wepInfo.flags.bOnlyFreeAim)
-        m_pPlayerData->m_bFreeAiming = false;
+        GetPlayerData()->m_bFreeAiming = false;
 
 
     if (auto anim = RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_FIRE))
@@ -814,7 +815,7 @@ void CPlayerPed::KeepAreaAroundPlayerClear() {
 
 // 0x60C520
 void CPlayerPed::SetPlayerMoveBlendRatio(CVector* point) {
-    float& moveBlendRatio = m_pPlayerData->m_fMoveBlendRatio;
+    float& moveBlendRatio = GetPlayerData()->m_fMoveBlendRatio;
     if (point) {
         moveBlendRatio = std::min(2.0f, (*point - GetPosition()).Magnitude2D() * 2.0f);
     } else {
@@ -886,14 +887,14 @@ CPed* CPlayerPed::FindPedToAttack() {
 
 // 0x60C7C0
 void CPlayerPed::ForceGroupToAlwaysFollow(bool enable) {
-    m_pPlayerData->m_bGroupAlwaysFollow = enable;
+    GetPlayerData()->m_bGroupAlwaysFollow = enable;
     if (enable)
         TellGroupToStartFollowingPlayer(true, false, true);
 }
 
 // 0x60C800
 void CPlayerPed::ForceGroupToNeverFollow(bool enable) {
-    m_pPlayerData->m_bGroupNeverFollow = enable;
+    GetPlayerData()->m_bGroupNeverFollow = enable;
     if (enable)
         TellGroupToStartFollowingPlayer(false, false, true);
 }
@@ -992,27 +993,27 @@ bool CPlayerPed::FindNextWeaponLockOnTarget(CEntity* arg0, bool arg1) {
 
 // 0x60EA90
 void CPlayerPed::ProcessControl() {
-    if (m_pPlayerData->m_nCarDangerCounter)
-        m_pPlayerData->m_nCarDangerCounter--;
-    if (!m_pPlayerData->m_nCarDangerCounter)
-        m_pPlayerData->m_pDangerCar = 0;
-    if (m_pPlayerData->m_nFadeDrunkenness) {
-        if (m_pPlayerData->m_nDrunkenness - 1 > 0) {
-            --m_pPlayerData->m_nDrunkenness;
+    if (GetPlayerData()->m_nCarDangerCounter)
+        GetPlayerData()->m_nCarDangerCounter--;
+    if (!GetPlayerData()->m_nCarDangerCounter)
+        GetPlayerData()->m_pDangerCar = 0;
+    if (GetPlayerData()->m_nFadeDrunkenness) {
+        if (GetPlayerData()->m_nDrunkenness - 1 > 0) {
+            --GetPlayerData()->m_nDrunkenness;
         } else {
-            m_pPlayerData->m_nDrunkenness = 0;
+            GetPlayerData()->m_nDrunkenness = 0;
             CMBlur::ClearDrunkBlur();
-            m_pPlayerData->m_nFadeDrunkenness = 0;
+            GetPlayerData()->m_nFadeDrunkenness = 0;
         }
     }
-    if (m_pPlayerData->m_nDrunkenness) 
-        CMBlur::SetDrunkBlur(m_pPlayerData->m_nDrunkenness / 255.0f);
-    if (m_pPlayerData->m_bRequireHandleBreath) {
-        if (CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) > m_pPlayerData->m_fBreath)
-            m_pPlayerData->m_fBreath += CTimer::GetTimeStep() + CTimer::GetTimeStep();
-        m_pPlayerData->m_bRequireHandleBreath = false;
+    if (GetPlayerData()->m_nDrunkenness) 
+        CMBlur::SetDrunkBlur(GetPlayerData()->m_nDrunkenness / 255.0f);
+    if (GetPlayerData()->m_bRequireHandleBreath) {
+        if (CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) > GetPlayerData()->m_fBreath)
+            GetPlayerData()->m_fBreath += CTimer::GetTimeStep() + CTimer::GetTimeStep();
+        GetPlayerData()->m_bRequireHandleBreath = false;
     }
-    m_pPlayerData->m_bRequireHandleBreath = true;
+    GetPlayerData()->m_bRequireHandleBreath = true;
     CPed::ProcessControl();
     bCheckColAboveHead = true;
     float markColor = 1.0f;
@@ -1020,16 +1021,16 @@ void CPlayerPed::ProcessControl() {
     CVector effectPos;
     CPad* pad = CPad::GetPad(m_nPedType);
     if (!bCanPointGunAtTarget) {
-        m_pPlayerData->m_pWanted->Update();
+        GetPlayerWanted()->Update();
         PruneReferences();
         if (GetActiveWeapon().m_Type == WEAPON_MINIGUN) {
             auto weaponInfo = CWeaponInfo::GetWeaponInfo(WEAPON_MINIGUN, eWeaponSkill::STD);
-            if (m_pIntelligence->GetTaskUseGun()) {
-                auto animAssoc = m_pIntelligence->GetTaskUseGun()->m_Anim;
+            if (GetIntelligence()->GetTaskUseGun()) {
+                auto animAssoc = GetIntelligence()->GetTaskUseGun()->m_Anim;
                 if (animAssoc && animAssoc->m_CurrentTime - animAssoc->m_TimeStep < weaponInfo->m_fAnimLoopEnd) {
-                    if (m_pPlayerData->m_fGunSpinSpeed < 0.45f) {
-                        m_pPlayerData->m_fGunSpinSpeed += CTimer::GetTimeStep() * 0.025f;
-                        m_pPlayerData->m_fGunSpinSpeed = std::min(m_pPlayerData->m_fGunSpinSpeed, 0.45f);
+                    if (GetPlayerData()->m_fGunSpinSpeed < 0.45f) {
+                        GetPlayerData()->m_fGunSpinSpeed += CTimer::GetTimeStep() * 0.025f;
+                        GetPlayerData()->m_fGunSpinSpeed = std::min(GetPlayerData()->m_fGunSpinSpeed, 0.45f);
                     }
                     if (pad->GetWeapon(this) && GetActiveWeapon().m_TotalAmmo > 0 && animAssoc->m_CurrentTime >= weaponInfo->m_fAnimLoopStart) 
                         m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE_MINIGUN_AMMO);
@@ -1037,14 +1038,14 @@ void CPlayerPed::ProcessControl() {
                         m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE_MINIGUN_NO_AMMO);
                 }
             } else {
-                if (m_pPlayerData->m_fGunSpinSpeed > 0.0f) {
-                    m_pPlayerData->m_fGunSpinSpeed -= CTimer::GetTimeStep() * 0.003f;
-                    m_pPlayerData->m_fGunSpinSpeed = std::max(m_pPlayerData->m_fGunSpinSpeed, 0.0f);
+                if (GetPlayerData()->m_fGunSpinSpeed > 0.0f) {
+                    GetPlayerData()->m_fGunSpinSpeed -= CTimer::GetTimeStep() * 0.003f;
+                    GetPlayerData()->m_fGunSpinSpeed = std::max(GetPlayerData()->m_fGunSpinSpeed, 0.0f);
                 }
             }
         }
         if (GetActiveWeapon().m_Type == WEAPON_CHAINSAW && m_nPedState != PEDSTATE_ATTACK && !bInVehicle) {
-            m_pIntelligence->GetTaskSwim(); // hmmm?
+            GetIntelligence()->GetTaskSwim(); // hmmm?
         }
         if (m_pTargetedObject) {
             ClearReference(m_p3rdPersonMouseTarget);
@@ -1060,17 +1061,17 @@ void CPlayerPed::ProcessControl() {
                         instantFireHit = true;
                         CVector distance = targetPed->GetPosition() - GetPosition();
                         if (targetHeadRange * targetHeadRange > distance.SquaredMagnitude()) {
-                            m_pPlayerData->m_nTargetBone = BONE_HEAD;
-                            m_pPlayerData->m_vecTargetBoneOffset.x = 0.05f;
+                            GetPlayerData()->m_nTargetBone = BONE_HEAD;
+                            GetPlayerData()->m_vecTargetBoneOffset.x = 0.05f;
                         }
                     }
                 }
                 if (!instantFireHit) {
-                    m_pPlayerData->m_nTargetBone = BONE_SPINE1;
-                    m_pPlayerData->m_vecTargetBoneOffset.x = 0.2f;
+                    GetPlayerData()->m_nTargetBone = BONE_SPINE1;
+                    GetPlayerData()->m_vecTargetBoneOffset.x = 0.2f;
                 }
-                effectPos = m_pPlayerData->m_vecTargetBoneOffset;
-                targetPed->GetTransformedBonePosition(effectPos, static_cast<eBoneTag>(m_pPlayerData->m_nTargetBone), false);
+                effectPos = GetPlayerData()->m_vecTargetBoneOffset;
+                targetPed->GetTransformedBonePosition(effectPos, static_cast<eBoneTag>(GetPlayerData()->m_nTargetBone), false);
                 bool targetIsInVehicle = false;
                 if (markColor > 0.0f) {
                     if (!targetPed->bInVehicle && targetPed->m_nMoveState != PEDMOVE_STILL) {
@@ -1119,8 +1120,8 @@ void CPlayerPed::ProcessControl() {
         if (m_nMoveState != PEDMOVE_RUN) {
             if (m_nMoveState != PEDMOVE_SPRINT)
                 HandleSprintEnergy(false, 1.0f);
-        } else if (CStats::GetFatAndMuscleModifier(STAT_MOD_TIME_CAN_RUN) > m_pPlayerData->m_fTimeCanRun)
-            m_pPlayerData->m_fTimeCanRun += CTimer::GetTimeStep() * 0.15f;
+        } else if (CStats::GetFatAndMuscleModifier(STAT_MOD_TIME_CAN_RUN) > GetPlayerData()->m_fTimeCanRun)
+            GetPlayerData()->m_fTimeCanRun += CTimer::GetTimeStep() * 0.15f;
     } else if (bInVehicle) {
         if (m_pVehicle && !m_pVehicle->IsSubBMX())
             HandleSprintEnergy(false, 1.0f);
@@ -1135,7 +1136,7 @@ void CPlayerPed::ProcessControl() {
             auto& activeWeapon = GetActiveWeapon();
             auto weaponType = activeWeapon.m_Type;
             if (!TheCamera.Using1stPersonWeaponMode() || activeWeapon.m_State == WEAPONSTATE_OUT_OF_AMMO) {
-                if (!m_pIntelligence->GetTaskSwim()) {
+                if (!GetIntelligence()->GetTaskSwim()) {
                     if (weaponType == WEAPON_SNIPERRIFLE) {
                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_FIRE_FAIL_SNIPERRIFFLE, 0.0f, 1.0f);
                     } else if (weaponType == WEAPON_RLAUNCHER || weaponType == WEAPON_RLAUNCHER_HS) {
@@ -1177,21 +1178,21 @@ void CPlayerPed::ProcessControl() {
         SetLookTimer(250);
     }
     if (m_vecMoveSpeed.Magnitude() >= 0.1f) {
-        m_pPlayerData->m_nStandStillTimer = 0;
-        m_pPlayerData->m_bStoppedMoving = false;
-    } else if (!m_pPlayerData->m_nStandStillTimer) {
-        m_pPlayerData->m_nStandStillTimer = CTimer::GetTimeInMS() + 500;
-    } else if (CTimer::GetTimeInMS() > m_pPlayerData->m_nStandStillTimer) {
-        m_pPlayerData->m_bStoppedMoving = true;
+        GetPlayerData()->m_nStandStillTimer = 0;
+        GetPlayerData()->m_bStoppedMoving = false;
+    } else if (!GetPlayerData()->m_nStandStillTimer) {
+        GetPlayerData()->m_nStandStillTimer = CTimer::GetTimeInMS() + 500;
+    } else if (CTimer::GetTimeInMS() > GetPlayerData()->m_nStandStillTimer) {
+        GetPlayerData()->m_bStoppedMoving = true;
     }
-    if (m_pPlayerData->m_bDontAllowWeaponChange) {
+    if (GetPlayerData()->m_bDontAllowWeaponChange) {
         if (IsPlayer()) {
             if (!CPad::GetPad(0)->GetTarget())
-                m_pPlayerData->m_bDontAllowWeaponChange = false;
+                GetPlayerData()->m_bDontAllowWeaponChange = false;
         }
     }
     if (m_nPedState != PEDSTATE_SNIPER_MODE && GetActiveWeapon().m_State == WEAPONSTATE_FIRING)
-        m_pPlayerData->m_nLastTimeFiring = CTimer::GetTimeInMS();
+        GetPlayerData()->m_nLastTimeFiring = CTimer::GetTimeInMS();
     ProcessGroupBehaviour(pad);
     if (bInVehicle)
         CCarCtrl::RegisterVehicleOfInterest(m_pVehicle);
@@ -1201,34 +1202,34 @@ void CPlayerPed::ProcessControl() {
         CPad* pad = CPad::GetPad(0);
         if (!pad->IsDPadDownPressed()) {
             if (pad->IsDPadUpPressed())
-                m_pPlayerData->m_bPlayersGangActive = true;
+                GetPlayerData()->m_bPlayersGangActive = true;
         } else {
-            m_pPlayerData->m_bPlayersGangActive = false;
+            GetPlayerData()->m_bPlayersGangActive = false;
         }
     }
     if (physicalFlags.bSubmergedInWater) {
         CVector pos = GetPosition();
         pos.z += 1.5f;
-        if (CWaterLevel::GetWaterLevel(pos.x, pos.y, pos.z, m_pPlayerData->m_fWaterHeight, true, nullptr)) {
+        if (CWaterLevel::GetWaterLevel(pos.x, pos.y, pos.z, GetPlayerData()->m_fWaterHeight, true, nullptr)) {
             auto& box = CEntity::GetColModel()->GetBoundingBox();
             float playerMinZ = pos.z + box.m_vecMin.z;
             float playerMaxZ = pos.z + box.m_vecMax.z;
-            if (m_pPlayerData->m_fWaterHeight < playerMaxZ) {
-                if (m_pPlayerData->m_fWaterHeight > playerMinZ)
-                    m_pPlayerData->m_nWaterCoverPerc = static_cast<uint8>((m_pPlayerData->m_fWaterHeight - playerMinZ) / (playerMaxZ - playerMinZ) * 100.0f);
+            if (GetPlayerData()->m_fWaterHeight < playerMaxZ) {
+                if (GetPlayerData()->m_fWaterHeight > playerMinZ)
+                    GetPlayerData()->m_nWaterCoverPerc = static_cast<uint8>((GetPlayerData()->m_fWaterHeight - playerMinZ) / (playerMaxZ - playerMinZ) * 100.0f);
                 else
-                    m_pPlayerData->m_nWaterCoverPerc = 0;
+                    GetPlayerData()->m_nWaterCoverPerc = 0;
             } else {
-                m_pPlayerData->m_nWaterCoverPerc = 100;
+                GetPlayerData()->m_nWaterCoverPerc = 100;
             }
         } else {
             physicalFlags.bSubmergedInWater = false;
         }
     } else {
-        m_pPlayerData->m_nWaterCoverPerc = 0;
+        GetPlayerData()->m_nWaterCoverPerc = 0;
     }
     if ((CTimer::GetFrameCounter() & 0x7F) == 0 && !FindPlayerVehicle()) {
-        auto& group = CPedGroups::GetGroup(m_pPlayerData->m_nPlayerGroup);
+        auto& group = CPedGroups::GetGroup(GetPlayerData()->m_nPlayerGroup);
         if (group.m_bMembersEnterLeadersVehicle) {
             int32 memberCount = group.m_groupMembership.CountMembersExcludingLeader();
             if (memberCount > 0) {
