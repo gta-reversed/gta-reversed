@@ -212,7 +212,7 @@ CPad* CPlayerPed::GetPadFromPlayer() const {
 
 // 0x609590
 bool CPlayerPed::CanPlayerStartMission() {
-    if (CGameLogic::GameState != GAME_STATE_INITIAL || CGameLogic::IsCoopGameGoingOn())
+    if (CGameLogic::GameState != GAMELOGIC_STATE_PLAYING || CGameLogic::IsCoopGameGoingOn())
         return false;
 
     if (!IsPedInControl() && !IsStateDriving())
