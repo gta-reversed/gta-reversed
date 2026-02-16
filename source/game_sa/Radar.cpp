@@ -1944,13 +1944,9 @@ void CRadar::DrawBlips() {
         }
     }
 
-#ifdef FIX_BUGS
-    const auto GetPlayerMarkerPosition = [](int32 playerIndex) {
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
         const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(playerIndex) - vec2DRadarOrigin) / m_radarRange;
-#else
-    const auto GetPlayerMarkerPosition = []() {
-        const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(0) - vec2DRadarOrigin) / m_radarRange;
-#endif
+
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
             cachedCos * playerDirection.y - cachedSin * playerDirection.x
@@ -1968,13 +1964,11 @@ void CRadar::DrawBlips() {
             // we don't draw the player marker while flying.
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
-#ifdef FIX_BUGS
-            const auto pos = GetPlayerMarkerPosition(i);
-#else
-            const auto pos = GetPlayerMarkerPosition();
-#endif        
+
+            const auto pos = GetPlayerMarkerPosition(notsa::IsFixBugs() ? i : 0);
+
             const auto angle = [] {
-                const auto heading = FindPlayerHeading(0); // TODO: Is a continuation of the bug fixes possible?
+                const auto heading = FindPlayerHeading(0);
 
                 if (CCamera::GetActiveCamera().m_nMode == MODE_TOPDOWN) {
                     return heading + DegreesToRadians(180.0f);
@@ -1989,16 +1983,12 @@ void CRadar::DrawBlips() {
                 pos.y,
                 angle,
                 static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #ifdef FIX_BUGS
-                static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)),
-            #else
-                static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #endif
+                (notsa::IsFixBugs() ? static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)) : static_cast<uint32>(SCREEN_STRETCH_X(8.0f))),
                 player->IsHidden() ? CRGBA{50, 50, 50, 255} : CRGBA{255, 255, 255, 255}
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition(); // TODO: I need help with this, as it's outside the loop.
+        const auto pos = GetPlayerMarkerPosition(0);
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }
