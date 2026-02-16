@@ -171,13 +171,13 @@ void CPhysical::Add()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector.GetOverlapVehiclePtrList();
+                list = &repeatSector.Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector.GetOverlapPedPtrList();
+                list = &repeatSector.Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector.GetOverlapObjectPtrList();
+                list = &repeatSector.Objects;
                 break;
             }
 
@@ -2093,10 +2093,10 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
 
     auto& s = CWorld::GetSector(sectorX, sectorY);
     auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
-    ProcessSectorList(s.GetOverlapBuildingPtrList());
-    ProcessSectorList(rs.GetOverlapVehiclePtrList());
-    ProcessSectorList(rs.GetOverlapPedPtrList());
-    ProcessSectorList(rs.GetOverlapObjectPtrList());
+    ProcessSectorList(s.Buildings);
+    ProcessSectorList(rs.Vehicles);
+    ProcessSectorList(rs.Peds);
+    ProcessSectorList(rs.Objects);
 
     if (totalAcceptableColPoints == 0) {
         return false;
@@ -4437,10 +4437,10 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
     };
     auto& s = CWorld::GetSector(sectorX, sectorY);
     auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
-    if (   ProcessSectorList(s.GetOverlapBuildingPtrList())
-        || ProcessSectorList(rs.GetOverlapVehiclePtrList())
-        || ProcessSectorList(rs.GetOverlapPedPtrList())
-        || ProcessSectorList(rs.GetOverlapObjectPtrList())
+    if (   ProcessSectorList(s.Buildings)
+        || ProcessSectorList(rs.Vehicles)
+        || ProcessSectorList(rs.Peds)
+        || ProcessSectorList(rs.Objects)
     ) {
         return true;
     }
@@ -4488,8 +4488,8 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
 
     // Find entity we're colliding with
     CPhysical* entity;
-    if (!(entity = ProcessSectorList(repeatSector->GetOverlapVehiclePtrList()))) {
-        if (!(entity = ProcessSectorList(repeatSector->GetOverlapObjectPtrList()))) {
+    if (!(entity = ProcessSectorList(repeatSector->Vehicles))) {
+        if (!(entity = ProcessSectorList(repeatSector->Objects))) {
             return false;
         }
     }

@@ -9,13 +9,9 @@
 #include "PtrListDoubleLink.h"
 
 class CSector {
-protected:
+public: // Original used protected and accessor to use them
     CPtrListSingleLink<CBuilding*> Buildings{}; //!< Buildings in this sector [Yes, it's single-link]
     CPtrListDoubleLink<CDummy*>    Dummies{};   //!< Dummies in this sector
-
-public: // inline
-    CPtrListSingleLink<CBuilding*>& GetOverlapBuildingPtrList() { return Buildings; }
-    CPtrListDoubleLink<CDummy*>&    GetOverlapDummyPtrList()    { return Dummies; }
 
 public: // NOTSA:
     CSector(const CSector&)            = delete;

@@ -176,11 +176,11 @@ void CEntity::Add(const CRect& rect) {
                 list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
             switch (GetType()) {
-            case ENTITY_TYPE_DUMMY:    ProcessAddItem(s.GetOverlapDummyPtrList()); break;
-            case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs.GetOverlapVehiclePtrList()); break;
-            case ENTITY_TYPE_PED:      ProcessAddItem(rs.GetOverlapPedPtrList()); break;
-            case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs.GetOverlapObjectPtrList()); break;
-            case ENTITY_TYPE_BUILDING: ProcessAddItem(s.GetOverlapBuildingPtrList()); break;
+            case ENTITY_TYPE_DUMMY:    ProcessAddItem(s.Dummies); break;
+            case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs.Vehicles); break;
+            case ENTITY_TYPE_PED:      ProcessAddItem(rs.Peds); break;
+            case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs.Objects); break;
+            case ENTITY_TYPE_BUILDING: ProcessAddItem(s.Buildings); break;
             }
             return true;
         });
@@ -218,11 +218,11 @@ void CEntity::Remove() {
                 list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
             switch (GetType()) {
-            case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s.GetOverlapDummyPtrList()); break;
-            case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs.GetOverlapVehiclePtrList()); break;
-            case ENTITY_TYPE_PED:      ProcessDeleteItem(rs.GetOverlapPedPtrList()); break;
-            case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs.GetOverlapObjectPtrList()); break;
-            case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s.GetOverlapBuildingPtrList()); break;
+            case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s.Dummies); break;
+            case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs.Vehicles); break;
+            case ENTITY_TYPE_PED:      ProcessDeleteItem(rs.Peds); break;
+            case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs.Objects); break;
+            case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s.Buildings); break;
             }
             return true;
         });

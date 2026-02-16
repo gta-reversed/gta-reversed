@@ -270,14 +270,14 @@ void CStreaming::AddModelsToRequestList(const CVector& point, int32 streamingFla
             const int32 pointSectorDistSq = distanceX * distanceX + distanceY * distanceY;
 
             if (pointSectorDistSq <= radiusInnerSq) {
-                ProcessEntitiesInSectorList(sector.GetOverlapBuildingPtrList(), streamingFlags);
-                ProcessEntitiesInSectorList(repeatSector.GetOverlapPedPtrList(), streamingFlags);
-                ProcessEntitiesInSectorList(sector.GetOverlapDummyPtrList(), streamingFlags);
+                ProcessEntitiesInSectorList(sector.Buildings, streamingFlags);
+                ProcessEntitiesInSectorList(repeatSector.Peds, streamingFlags);
+                ProcessEntitiesInSectorList(sector.Dummies, streamingFlags);
             } else {
                 if (pointSectorDistSq <= radiusOuterSq) {
-                    ProcessEntitiesInSectorList(sector.GetOverlapBuildingPtrList(), point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
-                    ProcessEntitiesInSectorList(repeatSector.GetOverlapPedPtrList(), point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
-                    ProcessEntitiesInSectorList(sector.GetOverlapDummyPtrList(), point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(sector.Buildings, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(repeatSector.Peds, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(sector.Dummies, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
                 }
             }
         }
@@ -737,9 +737,9 @@ void CStreaming::DeleteAllRwObjects() {
         for (int32 sy = 0; sy < MAX_SECTORS_Y; ++sy) {
             auto& repeatSector = CWorld::GetRepeatSector(sx, sy);
             auto& sector = CWorld::GetSector(sx, sy);
-            DeleteRwObjectsInList(sector.GetOverlapBuildingPtrList());
-            DeleteRwObjectsInList(repeatSector.GetOverlapObjectPtrList());
-            DeleteRwObjectsInList(sector.GetOverlapDummyPtrList());
+            DeleteRwObjectsInList(sector.Buildings);
+            DeleteRwObjectsInList(repeatSector.Objects);
+            DeleteRwObjectsInList(sector.Dummies);
         }
     }
 }
@@ -801,9 +801,9 @@ void CStreaming::DeleteRwObjectsAfterDeath(const CVector& point) {
                 if (std::abs(pointSecY - sy) > 3) {
                     auto& repeatSector = CWorld::GetRepeatSector(sx, sy);
                     auto& sector = CWorld::GetSector(sx, sy);
-                    DeleteRwObjectsInSectorList(sector.GetOverlapBuildingPtrList());
-                    DeleteRwObjectsInSectorList(repeatSector.GetOverlapObjectPtrList());
-                    DeleteRwObjectsInSectorList(sector.GetOverlapDummyPtrList());
+                    DeleteRwObjectsInSectorList(sector.Buildings);
+                    DeleteRwObjectsInSectorList(repeatSector.Objects);
+                    DeleteRwObjectsInSectorList(sector.Dummies);
                 }
             }
         }
@@ -845,9 +845,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.GetOverlapObjectPtrList(), memoryToCleanInBytes)
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -869,9 +869,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector.GetOverlapObjectPtrList(), memoryToCleanInBytes)
+                if (DeleteRwObjectsNotInFrustumInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -883,9 +883,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.GetOverlapObjectPtrList(), memoryToCleanInBytes)
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -912,9 +912,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.GetOverlapObjectPtrList(), memoryToCleanInBytes)
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -935,9 +935,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector.GetOverlapObjectPtrList(), memoryToCleanInBytes)
+                if (DeleteRwObjectsNotInFrustumInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -952,9 +952,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
                 auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
                 auto& sector = CWorld::GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapBuildingPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector.GetOverlapDummyPtrList(), memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.GetOverlapObjectPtrList(), memoryToCleanInBytes)
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -2968,9 +2968,9 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
         for (auto sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
             auto& sector = CWorld::GetSector(sectorX, sectorY);
-            InstanceLoadedModelsInSectorList(sector.GetOverlapBuildingPtrList());
-            InstanceLoadedModelsInSectorList(repeatSector.GetOverlapObjectPtrList());
-            InstanceLoadedModelsInSectorList(sector.GetOverlapDummyPtrList());
+            InstanceLoadedModelsInSectorList(sector.Buildings);
+            InstanceLoadedModelsInSectorList(repeatSector.Objects);
+            InstanceLoadedModelsInSectorList(sector.Dummies);
         }
     }
 }

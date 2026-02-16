@@ -991,9 +991,9 @@ void CRenderer::ConstructRenderList() {
 void CRenderer::ScanSectorList_RequestModels(int32 sectorX, int32 sectorY) {
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
         auto& sector = CWorld::GetSector(sectorX, sectorY);
-        ScanPtrList_RequestModels(sector.GetOverlapBuildingPtrList());
-        ScanPtrList_RequestModels(sector.GetOverlapDummyPtrList());
-        ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY).GetOverlapObjectPtrList());
+        ScanPtrList_RequestModels(sector.Buildings);
+        ScanPtrList_RequestModels(sector.Dummies);
+        ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY).Objects);
     }
 }
 
@@ -1196,17 +1196,17 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY) {
     auto* scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
         auto& sector             = CWorld::GetSector(sectorX, sectorY);
-        scanLists->buildingsList = &sector.GetOverlapBuildingPtrList();
-        scanLists->objectsList   = &repeatSector.GetOverlapObjectPtrList();
-        scanLists->vehiclesList  = &repeatSector.GetOverlapVehiclePtrList();
-        scanLists->pedsList      = &repeatSector.GetOverlapPedPtrList();
-        scanLists->dummiesList   = &sector.GetOverlapDummyPtrList();
+        scanLists->buildingsList = &sector.Buildings;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
+        scanLists->dummiesList   = &sector.Dummies;
     } else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
-        scanLists->objectsList   = &repeatSector.GetOverlapObjectPtrList();
-        scanLists->vehiclesList  = &repeatSector.GetOverlapVehiclePtrList();
-        scanLists->pedsList      = &repeatSector.GetOverlapPedPtrList();
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
         scanLists->dummiesList   = nullptr;
     }
 }

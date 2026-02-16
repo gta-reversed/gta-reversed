@@ -266,17 +266,17 @@ void CWorld::ClearScanCodes() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = GetSector(x, y);
-            ProcessList(sector.GetOverlapBuildingPtrList());
-            ProcessList(sector.GetOverlapDummyPtrList());
+            ProcessList(sector.Buildings);
+            ProcessList(sector.Dummies);
         }
     }
 
     for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
             auto& rs = GetRepeatSector(x, y);
-            ProcessList(rs.GetOverlapVehiclePtrList());
-            ProcessList(rs.GetOverlapPedPtrList());
-            ProcessList(rs.GetOverlapObjectPtrList());
+            ProcessList(rs.Vehicles);
+            ProcessList(rs.Peds);
+            ProcessList(rs.Objects);
         }
     }
 }
@@ -416,16 +416,16 @@ void CWorld::RemoveStaticObjects() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = GetSector(x, y);
-            ProcessList(sector.GetOverlapBuildingPtrList());
-            ProcessList(sector.GetOverlapDummyPtrList());
-            sector.GetOverlapBuildingPtrList().Flush();
-            sector.GetOverlapDummyPtrList().Flush();
+            ProcessList(sector.Buildings);
+            ProcessList(sector.Dummies);
+            sector.Buildings.Flush();
+            sector.Dummies.Flush();
         }
     }
 
     for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
-            ProcessList(GetRepeatSector(x, y).GetOverlapObjectPtrList());
+            ProcessList(GetRepeatSector(x, y).Objects);
         }
     }
 }
@@ -697,8 +697,8 @@ void CWorld::ShutDown() {
         for (auto y = 0; y < MAX_SECTORS_Y; y++) {
             for (auto x = 0; x < MAX_SECTORS_X; x++) {
                 auto& sector = GetSector(x, y);
-                fn(sector.GetOverlapBuildingPtrList(), x, y, "Buildings");
-                fn(sector.GetOverlapDummyPtrList(), x, y, "Dummies");
+                fn(sector.Buildings, x, y, "Buildings");
+                fn(sector.Dummies, x, y, "Dummies");
             }
         }
     };
@@ -707,9 +707,9 @@ void CWorld::ShutDown() {
         for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
             for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
                 auto& sector = GetRepeatSector(x, y);
-                fn(sector.GetOverlapVehiclePtrList(), x, y, "Vehicles");
-                fn(sector.GetOverlapPedPtrList(), x, y, "Peds");
-                fn(sector.GetOverlapObjectPtrList(), x, y, "Objects");
+                fn(sector.Vehicles, x, y, "Vehicles");
+                fn(sector.Peds, x, y, "Peds");
+                fn(sector.Objects, x, y, "Objects");
             }
         }
     };
@@ -771,8 +771,8 @@ void CWorld::ClearForRestart() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = GetRepeatSector(x, y);
-            DeleteEntitiesInList(sector.GetOverlapPedPtrList());
-            DeleteEntitiesInList(sector.GetOverlapVehiclePtrList());
+            DeleteEntitiesInList(sector.Peds);
+            DeleteEntitiesInList(sector.Vehicles);
         }
     }
 
@@ -784,11 +784,11 @@ void CWorld::ClearForRestart() {
 bool CWorld::ProcessVerticalLineSector_FillGlobeColPoints(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly) {
     bool bSuccess{};
 
-    bSuccess |= buildings && ProcessVerticalLineSectorList_FillGlobeColPoints(sector.GetOverlapBuildingPtrList(), colLine, outEntity, doSeeThroughCheck, outCollPoly);
-    bSuccess |= vehicles && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.GetOverlapVehiclePtrList(), colLine, outEntity, doSeeThroughCheck, outCollPoly);
-    bSuccess |= peds && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.GetOverlapPedPtrList(), colLine, outEntity, doSeeThroughCheck, outCollPoly);
-    bSuccess |= objects && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.GetOverlapObjectPtrList(), colLine, outEntity, doSeeThroughCheck, outCollPoly);
-    bSuccess |= dummies && ProcessVerticalLineSectorList_FillGlobeColPoints(sector.GetOverlapDummyPtrList(), colLine, outEntity, doSeeThroughCheck, outCollPoly);
+    bSuccess |= buildings && ProcessVerticalLineSectorList_FillGlobeColPoints(sector.Buildings, colLine, outEntity, doSeeThroughCheck, outCollPoly);
+    bSuccess |= vehicles && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.Vehicles, colLine, outEntity, doSeeThroughCheck, outCollPoly);
+    bSuccess |= peds && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.Peds, colLine, outEntity, doSeeThroughCheck, outCollPoly);
+    bSuccess |= objects && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.Objects, colLine, outEntity, doSeeThroughCheck, outCollPoly);
+    bSuccess |= dummies && ProcessVerticalLineSectorList_FillGlobeColPoints(sector.Dummies, colLine, outEntity, doSeeThroughCheck, outCollPoly);
 
     return bSuccess;
 }
@@ -802,19 +802,19 @@ bool CWorld::ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSec
     };
 
     if (buildings) {
-        ProcessSector(sector.GetOverlapBuildingPtrList());
+        ProcessSector(sector.Buildings);
     }
     if (vehicles) {
-        ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+        ProcessSector(repeatSector.Vehicles);
     }
     if (peds) {
-        ProcessSector(repeatSector.GetOverlapPedPtrList());
+        ProcessSector(repeatSector.Peds);
     }
     if (objects) {
-        ProcessSector(repeatSector.GetOverlapObjectPtrList());
+        ProcessSector(repeatSector.Objects);
     }
     if (dummies) {
-        ProcessSector(sector.GetOverlapDummyPtrList());
+        ProcessSector(sector.Dummies);
     }
 
     return max < 1.f;
@@ -833,7 +833,7 @@ void CWorld::CastShadow(float xmin, float ymin, float xmax, float ymax) {
 
     for (int32 y = top; y <= bottom; y++) {
         for (int32 x = left; x <= right; x++) {
-            CastShadowSectorList(GetSector(x, y).GetOverlapBuildingPtrList(), 0.0f, 0.0f, 0.0f, 0.0f); // 4 useless floats
+            CastShadowSectorList(GetSector(x, y).Buildings, 0.0f, 0.0f, 0.0f, 0.0f); // 4 useless floats
         }
     }
 }
@@ -905,19 +905,19 @@ void CWorld::FindObjectsInRange(const CVector& point, float radius, bool b2D, in
             auto& repeatSector = GetRepeatSector(x, y);
 
             if (buildings) {
-                ProcessSector(sector.GetOverlapBuildingPtrList());
+                ProcessSector(sector.Buildings);
             }
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+                ProcessSector(repeatSector.Vehicles);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList());
+                ProcessSector(repeatSector.Peds);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList());
+                ProcessSector(repeatSector.Objects);
             }
             if (dummies) {
-                ProcessSector(sector.GetOverlapDummyPtrList());
+                ProcessSector(sector.Dummies);
             }
 
             return true;
@@ -945,19 +945,19 @@ void CWorld::FindObjectsOfTypeInRange(uint32 modelId, const CVector& point, floa
             auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             if (buildings) {
-                ProcessSector(sector.GetOverlapBuildingPtrList());
+                ProcessSector(sector.Buildings);
             }
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+                ProcessSector(repeatSector.Vehicles);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList());
+                ProcessSector(repeatSector.Peds);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList());
+                ProcessSector(repeatSector.Objects);
             }
             if (dummies) {
-                ProcessSector(sector.GetOverlapDummyPtrList());
+                ProcessSector(sector.Dummies);
             }
         }
     }
@@ -1504,7 +1504,7 @@ void CWorld::CheckBuildingOrientations() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = GetSector(x, y);
-            ProcessList(sector.GetOverlapBuildingPtrList());
+            ProcessList(sector.Buildings);
         }
     }
 }
@@ -1517,8 +1517,8 @@ void CWorld::TestForBuildingsOnTopOfEachOther() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = GetSector(x, y);
-            TestForBuildingsOnTopOfEachOther(sector.GetOverlapBuildingPtrList());
-            TestForBuildingsOnTopOfEachOther(sector.GetOverlapDummyPtrList());
+            TestForBuildingsOnTopOfEachOther(sector.Buildings);
+            TestForBuildingsOnTopOfEachOther(sector.Dummies);
         }
     }
 }
@@ -1535,8 +1535,8 @@ void CWorld::TestForUnusedModels() {
     for (auto y = 0; y < MAX_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = GetSector(x, y);
-            TestForUnusedModels(sector.GetOverlapBuildingPtrList(), usageModelCounts);
-            TestForUnusedModels(sector.GetOverlapDummyPtrList(), usageModelCounts);
+            TestForUnusedModels(sector.Buildings, usageModelCounts);
+            TestForUnusedModels(sector.Dummies, usageModelCounts);
         }
     }
 
@@ -1609,8 +1609,8 @@ void CWorld::CallOffChaseForArea(float minX, float minY, float maxX, float maxY)
         { minX - 10.f, minY - 10.f, maxX + 10.f, maxY + 10.f },
         [&](int32 x, int32 y) {
             auto& sector = GetRepeatSector(x, y);
-            CallOffChaseForAreaSectorListVehicles(sector.GetOverlapVehiclePtrList(), minX, minY, maxX, maxY, minX, minY, maxX, maxY);
-            CallOffChaseForAreaSectorListPeds(sector.GetOverlapPedPtrList(), minX, minY, maxX, maxY, minX, minY, maxX, maxY);
+            CallOffChaseForAreaSectorListVehicles(sector.Vehicles, minX, minY, maxX, maxY, minX, minY, maxX, maxY);
+            CallOffChaseForAreaSectorListPeds(sector.Peds, minX, minY, maxX, maxY, minX, minY, maxX, maxY);
             return true;
         }
     );
@@ -2378,11 +2378,11 @@ bool CWorld::GetIsLineOfSightSectorClear(CSector& sector, CRepeatSector& repeatS
     const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list, bool doIgnoreCamCheckForThisSector) {
         return GetIsLineOfSightSectorListClear(list, colLine, doSeeThroughCheck, doIgnoreCamCheckForThisSector);
     };
-    return (!buildings || ProcessSectorList(sector.GetOverlapBuildingPtrList(), false))
-        && (!vehicles  || ProcessSectorList(repeatSector.GetOverlapVehiclePtrList(), false))
-        && (!peds      || ProcessSectorList(repeatSector.GetOverlapPedPtrList(), false))
-        && (!objects   || ProcessSectorList(repeatSector.GetOverlapObjectPtrList(), doIgnoreCameraCheck))
-        && (!dummies   || ProcessSectorList(sector.GetOverlapDummyPtrList(), false));
+    return (!buildings || ProcessSectorList(sector.Buildings, false))
+        && (!vehicles  || ProcessSectorList(repeatSector.Vehicles, false))
+        && (!peds      || ProcessSectorList(repeatSector.Peds, false))
+        && (!objects   || ProcessSectorList(repeatSector.Objects, doIgnoreCameraCheck))
+        && (!dummies   || ProcessSectorList(sector.Dummies, false));
 }
 
 // 0x568B80
@@ -2400,19 +2400,19 @@ void CWorld::FindObjectsKindaColliding(const CVector& point, float radius, bool 
             auto& repeatSector = GetRepeatSector(x, y);
 
             if (buildings) {
-                ProcessSector(sector.GetOverlapBuildingPtrList());
+                ProcessSector(sector.Buildings);
             }
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+                ProcessSector(repeatSector.Vehicles);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList());
+                ProcessSector(repeatSector.Peds);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList());
+                ProcessSector(repeatSector.Objects);
             }
             if (dummies) {
-                ProcessSector(sector.GetOverlapDummyPtrList());
+                ProcessSector(sector.Dummies);
             }
 
             return true;
@@ -2443,19 +2443,19 @@ void CWorld::FindObjectsIntersectingCube(const CVector& cornerA, const CVector& 
             //       Reason being that once `outEntities` is filled up there's no
             //       no need to keep scanning for entities.
             if (buildings) {
-                ProcessSector(sector.GetOverlapBuildingPtrList());
+                ProcessSector(sector.Buildings);
             }
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+                ProcessSector(repeatSector.Vehicles);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList());
+                ProcessSector(repeatSector.Peds);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList());
+                ProcessSector(repeatSector.Objects);
             }
             if (dummies) {
-                ProcessSector(sector.GetOverlapDummyPtrList());
+                ProcessSector(sector.Dummies);
             }
         }
     }
@@ -2481,19 +2481,19 @@ void CWorld::FindObjectsIntersectingAngledCollisionBox(const CBox& box, const CM
             auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             if (buildings) {
-                ProcessSector(sector.GetOverlapBuildingPtrList());
+                ProcessSector(sector.Buildings);
             }
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+                ProcessSector(repeatSector.Vehicles);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList());
+                ProcessSector(repeatSector.Peds);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList());
+                ProcessSector(repeatSector.Objects);
             }
             if (dummies) {
-                ProcessSector(sector.GetOverlapDummyPtrList());
+                ProcessSector(sector.Dummies);
             }
         }
     }
@@ -2517,13 +2517,13 @@ void CWorld::FindMissionEntitiesIntersectingCube(const CVector& cornerA, const C
 
             auto& repeatSector = GetRepeatSector(sectorX, sectorY);
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList(), true, false, false);
+                ProcessSector(repeatSector.Vehicles, true, false, false);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList(), false, true, false);
+                ProcessSector(repeatSector.Peds, false, true, false);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList(), false, false, true);
+                ProcessSector(repeatSector.Objects, false, false, true);
             }
         }
     }
@@ -2550,19 +2550,19 @@ CEntity* CWorld::FindNearestObjectOfType(int32 modelId, const CVector& point, fl
             auto& repeatSector = GetRepeatSector(sectorX, sectorY);
 
             if (buildings) {
-                ProcessSector(sector.GetOverlapBuildingPtrList());
+                ProcessSector(sector.Buildings);
             }
             if (vehicles) {
-                ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+                ProcessSector(repeatSector.Vehicles);
             }
             if (peds) {
-                ProcessSector(repeatSector.GetOverlapPedPtrList());
+                ProcessSector(repeatSector.Peds);
             }
             if (objects) {
-                ProcessSector(repeatSector.GetOverlapObjectPtrList());
+                ProcessSector(repeatSector.Objects);
             }
             if (dummies) {
-                ProcessSector(sector.GetOverlapDummyPtrList());
+                ProcessSector(sector.Dummies);
             }
         }
     }
@@ -2753,23 +2753,23 @@ CEntity* CWorld::TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius
 
             CEntity* hitEntity{};
 
-            if (buildings && (hitEntity = ProcessSector(sector.GetOverlapBuildingPtrList(), false))) {
+            if (buildings && (hitEntity = ProcessSector(sector.Buildings, false))) {
                 return hitEntity;
             }
 
-            if (vehicles && (hitEntity = ProcessSector(repeatSector.GetOverlapVehiclePtrList(), false))) {
+            if (vehicles && (hitEntity = ProcessSector(repeatSector.Vehicles, false))) {
                 return hitEntity;
             }
 
-            if (peds && (hitEntity = ProcessSector(repeatSector.GetOverlapPedPtrList(), false))) {
+            if (peds && (hitEntity = ProcessSector(repeatSector.Peds, false))) {
                 return hitEntity;
             }
 
-            if (objects && (hitEntity = ProcessSector(repeatSector.GetOverlapObjectPtrList(), doCameraIgnoreCheck))) {
+            if (objects && (hitEntity = ProcessSector(repeatSector.Objects, doCameraIgnoreCheck))) {
                 return hitEntity;
             }
 
-            if (dummies && (hitEntity = ProcessSector(sector.GetOverlapDummyPtrList(), false))) {
+            if (dummies && (hitEntity = ProcessSector(sector.Dummies, false))) {
                 return hitEntity;
             }
         }
@@ -3014,7 +3014,7 @@ bool CWorld::ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSect
     };
 
     if (buildings) {
-        ProcessSector(sector.GetOverlapBuildingPtrList());
+        ProcessSector(sector.Buildings);
     }
 
     if (fWeaponSpreadRate_Original > 0.f) {
@@ -3022,7 +3022,7 @@ bool CWorld::ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSect
     }
 
     if (vehicles) {
-        ProcessSector(repeatSector.GetOverlapVehiclePtrList());
+        ProcessSector(repeatSector.Vehicles);
     }
 
     if (peds) {
@@ -3034,18 +3034,18 @@ bool CWorld::ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSect
             bIncludeBikers = bIncludeBikers_Original;
         }
 
-        ProcessSector(repeatSector.GetOverlapPedPtrList());
+        ProcessSector(repeatSector.Peds);
 
         bIncludeDeadPeds = false;
         bIncludeBikers = false;
     }
 
     if (objects) {
-        ProcessSector(repeatSector.GetOverlapObjectPtrList());
+        ProcessSector(repeatSector.Objects);
     }
 
     if (dummies) {
-        ProcessSector(sector.GetOverlapDummyPtrList());
+        ProcessSector(sector.Dummies);
     }
 
     bIncludeDeadPeds = bIncludeDeadPeds_Original;
@@ -3075,9 +3075,9 @@ void CWorld::TriggerExplosion(const CVector& point, float radius, float visibleD
             };
 
             auto& sector = GetRepeatSector(sectorX, sectorY);
-            ProcessSector(sector.GetOverlapVehiclePtrList());
-            ProcessSector(sector.GetOverlapPedPtrList());
-            ProcessSector(sector.GetOverlapObjectPtrList());
+            ProcessSector(sector.Vehicles);
+            ProcessSector(sector.Peds);
+            ProcessSector(sector.Objects);
         }
     }
 }

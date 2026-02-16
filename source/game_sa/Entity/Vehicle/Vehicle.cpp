@@ -4502,10 +4502,10 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
         };
         auto& s = CWorld::GetSector(x, y);
         auto& rs = CWorld::GetRepeatSector(x, y);
-        collided |= ProcessSector(s.GetOverlapBuildingPtrList(), damageMult);
-        collided |= ProcessSector(rs.GetOverlapVehiclePtrList(), damageMult);
-        collided |= ProcessSector(rs.GetOverlapPedPtrList(), 0.0f);
-        collided |= ProcessSector(rs.GetOverlapObjectPtrList(), damageMult);
+        collided |= ProcessSector(s.Buildings, damageMult);
+        collided |= ProcessSector(rs.Vehicles, damageMult);
+        collided |= ProcessSector(rs.Peds, 0.0f);
+        collided |= ProcessSector(rs.Objects, damageMult);
         return 1;
     });
 

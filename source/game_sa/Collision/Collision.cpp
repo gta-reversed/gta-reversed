@@ -2403,7 +2403,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     auto& sector = CWorld::GetRepeatSector(sectorX, sectorY);
-    for (auto* const ped : sector.GetOverlapPedPtrList()) {
+    for (auto* const ped : sector.Peds) {
         if (ped->IsScanCodeCurrent()) {
             continue;
         }
@@ -2898,7 +2898,7 @@ bool CCollision::CheckCameraCollisionBuildings(
     const auto checkFlyerCollision = plyrVeh && plyrVeh->physicalFlags.bDontCollideWithFlyers;
 
     bool anyCollided = false;
-    for (auto* const entity : CWorld::GetSector(X, Y).GetOverlapBuildingPtrList()) {
+    for (auto* const entity : CWorld::GetSector(X, Y).Buildings) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2932,7 +2932,7 @@ bool CCollision::CheckCameraCollisionVehicles(
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
 
     bool anyCollided = false;
-    for (auto* const entity : CWorld::GetRepeatSector(X, Y).GetOverlapVehiclePtrList()) {
+    for (auto* const entity : CWorld::GetRepeatSector(X, Y).Vehicles) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2983,7 +2983,7 @@ bool CCollision::CheckCameraCollisionObjects(
     // Pirulax: At this point I'm certain R* devs were paid by lines written
 
     bool anyCollided = false;
-    for (auto* const entity : CWorld::GetRepeatSector(X, Y).GetOverlapObjectPtrList()) {
+    for (auto* const entity : CWorld::GetRepeatSector(X, Y).Objects) {
         if (!entity->ProcessScan()) {
             continue;
         }
