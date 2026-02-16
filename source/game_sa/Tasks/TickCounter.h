@@ -8,10 +8,7 @@
 
 class CTickCounter {
 public:
-    CTickCounter() {
-        Count  = 0;
-        Period = 0;
-    }
+    CTickCounter() : Count(0), Period(0) {}
 
     ~CTickCounter() = default;
 
@@ -19,9 +16,12 @@ public:
     int32 GetPeriod() { return Period; }
 
     bool Tick() {
-        int32 oldCount = Count;
-        Count          = Count >= Period ? 0 : Count + 1;
-        return oldCount == 0;
+        bool shouldTrigger = Count == 0;
+        Count++;
+        if (Count > Period) {
+            Count = 0;
+        }
+        return shouldTrigger;
     }
 
     void SetCount(int32 count) { Count = count; }
