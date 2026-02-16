@@ -1334,7 +1334,7 @@ float CPhysical::GetLightingTotal()
 
     if (GetIsTypePed()) {
         CPed* ped = AsPed();
-        if (ped->m_pPlayerData && (CGame::currArea || ped->m_pPlayerData->m_bForceInteriorLighting))
+        if (ped->GetPlayerData() && (CGame::currArea || ped->GetPlayerData()->m_bForceInteriorLighting))
             bInteriorLighting = true;
     }
     return GetLightingFromCol(bInteriorLighting) + m_fDynamicLighting;
@@ -3277,13 +3277,13 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
         if (CCheat::IsActive(CHEAT_CARS_FLOAT_AWAY_WHEN_HIT))
         {
             if (FindPlayerVehicle() == thisVehicle
-                && entity->GetIsTypeVehicle() && entityVehicle->m_nCreatedBy != MISSION_VEHICLE)
+                && entity->GetIsTypeVehicle() && entityVehicle->GetCreatedBy() != MISSION_VEHICLE)
             {
                 entity->physicalFlags.bApplyGravity = false;
             }
             if (FindPlayerVehicle() == entityVehicle
                 && GetIsTypeVehicle()
-                && thisVehicle->m_nCreatedBy != MISSION_VEHICLE)
+                && thisVehicle->GetCreatedBy() != MISSION_VEHICLE)
             {
                 physicalFlags.bApplyGravity = false;
             }
@@ -4725,7 +4725,7 @@ bool CPhysical::CheckCollision()
         }
 
         if (ped->IsPlayer()) {
-            CTaskSimpleClimb* taskClimb = ped->m_pIntelligence->GetTaskClimb();
+            CTaskSimpleClimb* taskClimb = ped->GetIntelligence()->GetTaskClimb();
             if (taskClimb) {
                 switch (taskClimb->GetHeightForPos()) {
                 case CLIMB_GRAB:
