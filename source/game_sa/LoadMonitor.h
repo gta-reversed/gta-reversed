@@ -102,7 +102,6 @@ private: // NOTSA:
         return this;
     }
 
-#ifdef _DEBUG
 public:
     // Getters for debug module
     uint32 GetInFrame() const { return m_bInFrame; }
@@ -128,7 +127,6 @@ public:
     uint32 GetCyclesHistory(eLoadType t, size_t idx) const { return m_iCyclesHistory[+t][idx]; }
     uint8 GetGraphPoint(eLoadType t, size_t idx) const { return m_GraphPoints[+t][idx]; }
     int32 GetCurrentGraphIndex() const { return m_iCurrentGraphIndex; }
-#endif
 };
 
 VALIDATE_SIZE(CLoadMonitor, 0x2B0);
