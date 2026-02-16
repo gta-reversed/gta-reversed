@@ -482,7 +482,7 @@ void CStats::DisplayScriptStatUpdateMessage(eStatUpdateState state, eStats stat,
     case STAT_GANG_STRENGTH: {
         if (auto player = FindPlayerPed())
         {
-            auto maxGroup = std::min<uint8>(FindMaxNumberOfGroupMembers(), player->m_pPlayerData->m_nScriptLimitToGangSize);
+            auto maxGroup = std::min<uint8>(FindMaxNumberOfGroupMembers(), player->GetPlayerData()->m_nScriptLimitToGangSize);
             CHud::SetHelpMessageStatUpdate(state, stat, value, maxGroup);
         }
         break;

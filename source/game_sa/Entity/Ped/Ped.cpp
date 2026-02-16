@@ -205,11 +205,12 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     physicalFlags.bCanBeCollidedWith = true;
     physicalFlags.bDisableTurnForce = true;
 
-    m_nCreatedBy = PED_GAME;
+    SetCreatedBy(PED_GAME);
+
     m_pVehicle = nullptr;
-    field_52C = 0;
-    field_744 = 0;
-    field_74C = 0;
+    m_nAntiSpazTimer = 0;
+    m_nUnconsciousTimer = 0;
+    m_nAttackTimer = 0;
     m_nLookTime = 0;
     m_nDeathTimeMS = 0;
 
@@ -821,8 +822,8 @@ void CPed::ClearAimFlag() {
         m_nLookTime = 0;
     }
 
-    if (m_pPlayerData) {
-        m_pPlayerData->m_fLookPitch = 0.f;
+    if (GetPlayerData()) {
+        GetPlayerData()->m_fLookPitch = 0.f;
     }
 }
 
@@ -1023,7 +1024,7 @@ bool CPed::CanBeDeleted() {
 * @returns False only if created by PED_UNKNOWN or PED_MISSION, true otherwise.
 */
 bool CPed::CanBeDeletedEvenInVehicle() const {
-    switch (m_nCreatedBy) {
+    switch (GetCreatedBy()) {
     case ePedCreatedBy::PED_MISSION:
     case ePedCreatedBy::PED_UNKNOWN:
         return false;
@@ -1193,7 +1194,7 @@ void CPed::ResetGunFlashAlpha() {
 * @returns If ped is a player returns stat value BIKE_SKILL, otherwise 1 for mission peds and 0 for all others.
 */
 float CPed::GetBikeRidingSkill() const {
-    if (m_pPlayerData) {
+    if (GetPlayerData()) {
         return std::min(1000.f, CStats::GetStatValue(eStats::STAT_BIKE_SKILL) / 1000.f);
     }
     return IsCreatedByMission() ? 1.f : 0.f;
@@ -1613,7 +1614,7 @@ void CPed::SortPeds(CPed** pedList, int32 arg1, int32 arg2)
 * @brief Update `m_fFPSMoveHeading` depending on the ped's Up/Down, Left/Right control states.
 */
 float CPed::WorkOutHeadingForMovingFirstPerson(float heading) {
-    if (!IsPlayer() || !m_pPlayerData) {
+    if (!IsPlayer() || !GetPlayerData()) {
         return 0.f; // Probably shouldn't ever happen, but okay
     }
 
@@ -1621,13 +1622,13 @@ float CPed::WorkOutHeadingForMovingFirstPerson(float heading) {
     const auto walkLeftRight = (float)CPad::GetPad()->GetPedWalkLeftRight();
     if (walkUpDown == 0.f) {
         if (walkLeftRight != 0.f) {
-            m_pPlayerData->m_fFPSMoveHeading = walkLeftRight < 0.f ? HALF_PI : -HALF_PI;
+            GetPlayerData()->m_fFPSMoveHeading = walkLeftRight < 0.f ? HALF_PI : -HALF_PI;
         }
     } else {
-        m_pPlayerData->m_fFPSMoveHeading = CGeneral::GetRadianAngleBetweenPoints(0.f, 0.f, -walkLeftRight, walkUpDown);
+        GetPlayerData()->m_fFPSMoveHeading = CGeneral::GetRadianAngleBetweenPoints(0.f, 0.f, -walkLeftRight, walkUpDown);
     }
 
-    return CGeneral::LimitRadianAngle(heading + m_pPlayerData->m_fFPSMoveHeading);
+    return CGeneral::LimitRadianAngle(heading + GetPlayerData()->m_fFPSMoveHeading);
 }
 
 /*!
@@ -1678,7 +1679,7 @@ void CPed::ProcessBuoyancy()
         }
     }
 
-    if (m_pPlayerData) {
+    if (GetPlayerData()) {
         const auto& vecPedPos = GetPosition();
         float fCheckZ = vecPedPos.z - 3.0F;
         CColPoint lineColPoint;
@@ -1769,7 +1770,7 @@ void CPed::ProcessBuoyancy()
         return;
     }
 
-    if (m_pPlayerData) {
+    if (GetPlayerData()) {
         CVector vecHeadPos(0.0F, 0.0F, 0.1F);
         GetTransformedBonePosition(vecHeadPos, eBoneTag::BONE_HEAD, false);
         if (vecHeadPos.z < mod_Buoyancy.m_fWaterLevel) {
@@ -2104,7 +2105,7 @@ void CPed::SetPedState(ePedState pedState) {
 * @brief Set ped's created by. If created by mission, set it's hearing and seeing range to 30.
 */
 void CPed::SetCharCreatedBy(ePedCreatedBy createdBy) {
-    m_nCreatedBy = createdBy;
+    SetCreatedBy(createdBy);
 
     SetPedDefaultDecisionMaker();
 
@@ -2348,7 +2349,7 @@ void CPed::PlayFootSteps() {
     }
 
     if (IsPlayer()) { // 0x5E5B79
-        if (const auto pd = m_pPlayerData) {
+        if (const auto pd = GetPlayerData()) {
             const auto DoEventSoundQuiet = [this](float volume) {
                 // 0x5E5BCB
                 CEventSoundQuiet event{ this, volume, (uint32)-1, {0.f, 0.f, 0.f}};
@@ -2604,7 +2605,7 @@ void CPed::SetCurrentWeapon(int32 slot) {
     m_nActiveWeaponSlot = slot;
 
     // Set chosen weapon in player data
-    if (const auto playerData = AsPlayer()->m_pPlayerData) {
+    if (const auto playerData = AsPlayer()->GetPlayerData()) {
         playerData->m_nChosenWeapon = slot;
     }
 
@@ -2674,8 +2675,8 @@ void CPed::ClearWeapons()
 */
 void CPed::RemoveWeaponWhenEnteringVehicle(int32 isJetpack) {
     assert(isJetpack == 0 || isJetpack == 1);
-    if (m_pPlayerData) {
-        m_pPlayerData->m_bInVehicleDontAllowWeaponChange = true;
+    if (GetPlayerData()) {
+        GetPlayerData()->m_bInVehicleDontAllowWeaponChange = true;
     }
 
     if (m_nSavedWeapon != WEAPON_UNIDENTIFIED) {
@@ -2731,8 +2732,8 @@ void CPed::RemoveWeaponWhenEnteringVehicle(int32 isJetpack) {
 * @brief If ped has no saved weapon and is not a player load current weapon's model, otherwise set saved weapon as current.
 */
 void CPed::ReplaceWeaponWhenExitingVehicle() {
-    if (m_pPlayerData) {
-        m_pPlayerData->m_bInVehicleDontAllowWeaponChange = false;
+    if (GetPlayerData()) {
+        GetPlayerData()->m_bInVehicleDontAllowWeaponChange = false;
     }
 
     if (IsPlayer() && m_nSavedWeapon != WEAPON_UNIDENTIFIED) {
@@ -2788,13 +2789,13 @@ void CPed::PreRenderAfterTest()
     bCalledPreRender = true;
     UpdateRpHAnim();
 
-    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && m_pPlayerData) {
+    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && GetPlayerData()) {
         if (GetActiveWeapon().GetType() == eWeaponType::WEAPON_MINIGUN) {
             if (const auto f = CClumpModelInfo::GetFrameFromName(m_pWeaponObject, "minigun2")) {
                 RwMatrixRotate(
                     RwFrameGetMatrix(f),
                     &CPedIK::XaxisIK,
-                    RadiansToDegrees(CTimer::GetTimeStep() * m_pPlayerData->m_fGunSpinSpeed),
+                    RadiansToDegrees(CTimer::GetTimeStep() * GetPlayerData()->m_fGunSpinSpeed),
                     rwCOMBINEPRECONCAT
                 );
             }
@@ -2804,10 +2805,10 @@ void CPed::PreRenderAfterTest()
     if (GetIsVisible() && CTimeCycle::GetShadowStrength()) {
         const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
             if (!bInVehicle) {
-                return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
+                return std::make_pair(false, intel->GetTaskManager().FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
             }
 
-            return std::make_pair(intel->m_TaskMgr.FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
+            return std::make_pair(intel->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
         }();
 
         // Low quality circle below feet shadow
@@ -2877,7 +2878,7 @@ void CPed::PreRenderAfterTest()
         return &RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, id)];
     };
 
-    if (!m_pPlayerData || !m_pPlayerData->m_pPedClothesDesc->IsWearingModel("vest") && !m_pPlayerData->m_pPedClothesDesc->IsWearingModel("torso")) {
+    if (!GetPlayerData() || !GetPlayerData()->m_pPedClothesDesc->IsWearingModel("vest") && !GetPlayerData()->m_pPedClothesDesc->IsWearingModel("torso")) {
         if (rainAffectsPlayer || drivingOpenTopVeh) {
             float vehSpeed = drivingOpenTopVeh ? m_pVehicle->GetMoveSpeed().Magnitude() : 0.0f;
 
@@ -2984,13 +2985,13 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (m_pPlayerData && m_pPlayerData->m_nWetness && m_pPlayerData->m_nWaterCoverPerc < 30u) {
+    if (GetPlayerData() && GetPlayerData()->m_nWetness && GetPlayerData()->m_nWaterCoverPerc < 30u) {
         FxPrtMult_c p{1.0f, 1.0f, 1.0f, 0.2f, 0.15f, 0.0f, 0.1f};
         CVector     pos = GetPosition();
         pos.x += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
         pos.y += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
         pos.z += CGeneral::GetRandomNumberInRange(-0.8f, 0.2f);
-        p.m_Color.alpha *= (float)m_pPlayerData->m_nWetness / 100.0f;
+        p.m_Color.alpha *= (float)GetPlayerData()->m_nWetness / 100.0f;
         CVector vel{};
         g_fx.m_WaterSplash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
     }
@@ -3109,7 +3110,7 @@ CEntity* CPed::AttachPedToEntity(CEntity* entity, CVector offset, uint16 turretA
             GiveWeapon(weaponType, 30'000, true);
         }
 
-        m_pPlayerData->m_nChosenWeapon = weaponType;
+        GetPlayerData()->m_nChosenWeapon = weaponType;
 
         if (weaponType == WEAPON_CAMERA) {
             TheCamera.SetNewPlayerWeaponMode(eCamMode::MODE_CAMERA);
@@ -3119,7 +3120,7 @@ CEntity* CPed::AttachPedToEntity(CEntity* entity, CVector offset, uint16 turretA
                 && !CWeaponInfo::GetWeaponInfo(weaponType)->flags.b1stPerson
             ) {
                 TheCamera.SetNewPlayerWeaponMode(eCamMode::MODE_AIMWEAPON_ATTACHED);
-                m_pPlayerData->m_bFreeAiming = true;
+                GetPlayerData()->m_bFreeAiming = true;
             } else {
                 TheCamera.SetNewPlayerWeaponMode(eCamMode::MODE_HELICANNON_1STPERSON);
             }
@@ -3280,7 +3281,7 @@ inline bool IsPedPointerValid_NotInWorld(CPed* ped) {
 */
 void CPed::GiveWeaponAtStartOfFight()
 {
-    if (m_nCreatedBy != PED_MISSION && GetActiveWeapon().m_Type == WEAPON_UNARMED)
+    if (GetCreatedBy() != PED_MISSION && GetActiveWeapon().m_Type == WEAPON_UNARMED)
     {
         const auto GiveRandomWeaponByType = [this](eWeaponType type, uint16 maxRandom)
         {
@@ -3772,7 +3773,7 @@ void CPed::Render() {
     // 0x5E7817
     // Render weapon (and gun flash) as well. (Done for local player only if flag is set.)
     if (m_pWeaponObject) {
-        if (!m_pPlayerData || m_pPlayerData->m_bRenderWeapon) {
+        if (!GetPlayerData() || GetPlayerData()->m_bRenderWeapon) {
             if ((!bInVehicle || !GetIntelligence()->GetTaskSwim()) && !GetIntelligence()->GetTaskHold(false)) {
                 CVisibilityPlugins::AddWeaponPedForPC(this);
                 if (m_nWeaponGunflashAlphaMP1 > 0 || m_nWeaponGunflashAlphaMP2 > 0) {
