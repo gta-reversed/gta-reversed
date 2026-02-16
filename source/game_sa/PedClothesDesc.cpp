@@ -16,8 +16,8 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedOverloadedInstall(SetModel, "modelName", 0x5A7920, void(CPedClothesDesc::*)(const char*, eClothesModelPart));
     // TODO: Seems like this function can't be hooked because texturePart doesn't seem to be passed on the stack, but in edx...
     // TODO: We could make it work, but it's not worth the effort. (by: Pirulax)
-    RH_ScopedOverloadedInstall(SetTextureAndModel, "hash", 0x5A8050, void(CPedClothesDesc::*)(uint32, uint32, eClothesTexturePart));
-    RH_ScopedOverloadedInstall(SetTextureAndModel, "name", 0x5A8080, void(CPedClothesDesc::*)(const char*, const char*, eClothesTexturePart));
+    //RH_ScopedOverloadedInstall(SetTextureAndModel, "hash", 0x5A8050, void(CPedClothesDesc::*)(uint32, uint32, eClothesTexturePart));
+    //RH_ScopedOverloadedInstall(SetTextureAndModel, "name", 0x5A8080, void(CPedClothesDesc::*)(const char*, const char*, eClothesTexturePart));
 }
 
 CPedClothesDesc::CPedClothesDesc() {
