@@ -1212,7 +1212,7 @@ void CVehicle::ResetAfterRender() {
     CVehicleModelInfo::ResetEditableMaterials((RpClump*)GetRwObject());
 
     if (IsAutomobile()) {
-        auto* const automobile = (CAutomobile*)(this);
+        auto* const automobile = static_cast<CAutomobile*>(this);
         auto* const mi = GetVehicleModelInfo();
         assert(mi != nullptr);
         automobile->CustomCarPlate_AfterRenderingStop(mi);
