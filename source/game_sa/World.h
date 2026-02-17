@@ -220,7 +220,7 @@ public:
 
     static void CallOffChaseForArea(float x1, float y1, float x2, float y2);
     static void CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
-    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
+    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float minX, float minY, float maxX, float maxY, float biggerMinX, float biggerMinY, float biggerMaxX, float biggerMaxY);
 
     static void HandleCollisionZoneChange(eLevelName oldZone, eLevelName newZone);
     // static void FindZoneRespawnPoint(eLevelName oldZone, eLevelName newZone, CVector* out); // in III, dont SA
@@ -261,7 +261,7 @@ protected:
     template<typename PtrListType>
     static void TriggerExplosionSectorList(PtrListType& ptrList, const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
     template<typename PtrListType>
-    static void CastShadowSectorList(PtrListType& ptrList, float x1, float y1, float x2, float y2);
+    static void CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax);
 
 public:
     static bool CameraToIgnoreThisObject(CEntity* entity);

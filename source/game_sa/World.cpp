@@ -215,7 +215,7 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
 // debug function
 // 0x563390
 template<typename PtrListType>
-inline void CWorld::CastShadowSectorList(PtrListType& ptrList, float x1, float y1, float x2, float y2) {
+inline void CWorld::CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax) {
     for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent() || !entity->GetUsesCollision()) {
             continue;
@@ -823,11 +823,11 @@ bool CWorld::ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSec
 // unused
 // debug function
 // 0x564600
-void CWorld::CastShadow(float x1, float y1, float x2, float y2) {
-    const int32 left   = std::max(GetSectorX(x1), 0);
-    const int32 top    = std::max(GetSectorY(y1), 0);
-    const int32 right  = std::min(GetSectorX(x2), MAX_SECTORS_X - 1);
-    const int32 bottom = std::min(GetSectorY(y2), MAX_SECTORS_Y - 1);
+void CWorld::CastShadow(float xmin, float ymin, float xmax, float ymax) {
+    const int32 left   = std::max(GetSectorX(xmin), 0);
+    const int32 top    = std::max(GetSectorY(ymin), 0);
+    const int32 right  = std::min(GetSectorX(xmax), MAX_SECTORS_X - 1);
+    const int32 bottom = std::min(GetSectorY(ymax), MAX_SECTORS_Y - 1);
 
     AdvanceCurrentScanCode();
 
