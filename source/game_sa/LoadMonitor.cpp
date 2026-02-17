@@ -114,7 +114,7 @@ void CLoadMonitor::EndFrame() {
                         sum += (float)m_iCyclesHistory[t][a];
                     }
 
-                    float avg = sum * 0.125f;
+                    float avg = sum / 8.f;
                     smoothed  = std::fminf(avg, (float)m_iMaxCycles[t]);
                 }
 
