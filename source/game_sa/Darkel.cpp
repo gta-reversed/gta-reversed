@@ -201,7 +201,7 @@ void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsN
         }
 
         if (FindPlayerVehicle()) {
-            auto chosenWeapon = playerPed->m_pPlayerData->m_nChosenWeapon;
+            auto chosenWeapon = playerPed->GetPlayerData()->m_nChosenWeapon;
             playerPed->SetCurrentWeapon(chosenWeapon);
 
             if (auto& activeWeapon = playerPed->GetActiveWeapon(); activeWeapon.m_TotalAmmo >= activeWeapon.GetWeaponInfo().m_nAmmoClip) {
@@ -264,7 +264,7 @@ void CDarkel::DealWithWeaponChangeAtEndOfFrenzy() {
     if (FindPlayerVehicle()) {
         playerPed->RemoveWeaponModel(playerPed->GetActiveWeapon().GetWeaponInfo().m_nModelId1);
 
-        auto& chosenWeaponSlot = playerPed->m_pPlayerData->m_nChosenWeapon;
+        auto& chosenWeaponSlot = playerPed->GetPlayerData()->m_nChosenWeapon;
         if (playerPed->GetWeaponInSlot(eWeaponSlot::SMG).m_Type != WEAPON_UNARMED) {
             chosenWeaponSlot = (uint8)eWeaponSlot::SMG;
         } else {

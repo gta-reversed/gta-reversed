@@ -110,7 +110,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     }
 
     if (mi->GetModelType() == MODEL_INFO_WEAPON) {
-        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->m_weaponInfo);
+        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->GetWeaponInfo());
     }
 
     if (slotIndex < 0) {
@@ -435,10 +435,10 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nFlags.bHelpMessageDisplayed = true;
                                     }
 
-                                    if (!CollectPickupBuffer || CTimer::GetTimeInMS() - player->m_pPlayerData->m_nLastHSMissileLOSTime < 1500) {
+                                    if (!CollectPickupBuffer || CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500) {
                                         return false;
                                     }
-                                } else if (CTimer::GetTimeInMS() - player->m_pPlayerData->m_nLastHSMissileLOSTime < 1500 ||
+                                } else if (CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500 ||
                                            !CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(weapon)) {
                                     CPickups::PlayerOnWeaponPickup = 6;
                                     return false;
@@ -514,7 +514,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             player->GiveDelayedWeapon(weapon, (!m_nFlags.bEmpty) ? AmmoForWeapon_OnStreet[weapon] : 0);
                                         }
 
-                                        if (auto& chosen = player->m_pPlayerData->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
+                                        if (auto& chosen = player->GetPlayerData()->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
                                             chosen = player->GetWeaponSlot(weapon);
                                         }
                                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_WEAPON);
@@ -549,7 +549,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             player->GiveDelayedWeapon(weapon, (m_nFlags.bEmpty) ? 0 : AmmoForWeapon_OnStreet[weapon]);
                                         }
 
-                                        if (auto& chosen = player->m_pPlayerData->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
+                                        if (auto& chosen = player->GetPlayerData()->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
                                             chosen = player->GetWeaponSlot(weapon);
                                         }
                                     }

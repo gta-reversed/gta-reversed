@@ -588,7 +588,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
             case eEntityType::ENTITY_TYPE_BUILDING: { // 0x73C014
                 DoBulletImpactFx();
                 if (firedByPlayer) {
-                    firedByPlayer->m_pPlayerData->m_nModelIndexOfLastBuildingShot = victim->m_nModelIndex;
+                    firedByPlayer->GetPlayerData()->m_nModelIndexOfLastBuildingShot = victim->m_nModelIndex;
                 }
                 break;
             }
@@ -1289,7 +1289,7 @@ bool CWeapon::FireAreaEffect(CEntity* firingEntity, const CVector& origin, CEnti
                     0.f
                 };
                 if (firingEntity->GetIsTypePed()) {
-                    if (const auto pd = firingEntity->AsPed()->m_pPlayerData) {
+                    if (const auto pd = firingEntity->AsPed()->GetPlayerData()) {
                         dir.z = -std::tan(pd->m_fLookPitch);
                     }
                 }
@@ -1432,7 +1432,7 @@ bool CWeapon::FireProjectile(CEntity* firedBy, const CVector& origin, CEntity* t
             if (firedByPed->IsPlayer()) { // 0x7416DC
                 CEntity* hsMissleTarget{};
                 if (GetType() == WEAPON_RLAUNCHER_HS && CWeaponEffects::IsLockedOn(WEAPONEFFECTS_LOCK_ON)) {
-                    const auto pd = firedByPed->m_pPlayerData;
+                    const auto pd = firedByPed->GetPlayerData();
                     if (pd->m_nFireHSMissilePressedTime) {
                         hsMissleTarget = PickTargetForHeatSeekingMissile(
                             firedBy->GetPosition(),
@@ -1715,7 +1715,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
                         *shotOrigin,
                         targetEnt,
                         nullptr,
-                        firedBy->AsPed()->m_pPlayerData->m_fAttackButtonCounter * 0.0375f
+                        firedBy->AsPed()->GetPlayerData()->m_fAttackButtonCounter * 0.0375f
                     ),
                     true
                 };

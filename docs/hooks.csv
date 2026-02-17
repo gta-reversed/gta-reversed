@@ -1556,7 +1556,7 @@ CPedDamageResponseCalculator,IsBleedingWeapon,0x004B5C2A,0,1,0
 CPedClothesDesc,Constructor,0x005A8020,1,0,0
 CPedClothesDesc,GetIsWearingBalaclava,0x005A7950,1,0,0
 CPedClothesDesc,HasVisibleNewHairCut,0x005A7970,1,0,0
-CPedClothesDesc,HasVisibleTattoo,0x005A79D0,0,1,0
+CPedClothesDesc,HasVisibleTattoo,0x005A79D0,1,0,0
 CPedClothesDesc,Initialise,0x005A78F0,1,0,0
 CPedAttractorManager,BroadcastArrival-,0x005EFE20,1,0,0
 CPedAttractorManager,BroadcastDeparture-,0x005EC980,1,0,0

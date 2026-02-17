@@ -42,7 +42,7 @@ CTask* CTaskComplexDieInCar::ControlSubTask(CPed* ped) {
     if (CTimer::GetTimeInMS() < m_nTimeMS + m_nOffset)
         return m_pSubTask;
 
-    if (ped->m_nCreatedBy == PED_MISSION || ped->m_pVehicle->CanPedStepOutCar(false))
+    if (ped->GetCreatedBy() == PED_MISSION || ped->m_pVehicle->CanPedStepOutCar(false))
         return CreateSubTask(TASK_COMPLEX_LEAVE_CAR_AND_DIE, ped);
 
     return CreateSubTask(TASK_SIMPLE_DIE_IN_CAR, ped);
