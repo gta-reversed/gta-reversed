@@ -450,7 +450,7 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
                 if (fabsf(pos1.x - pos2.x) < 0.01f
                     && fabsf(pos1.y - pos2.y) < 0.01f
                     && fabsf(pos1.z - pos2.z) < 0.01f) {
-                    NOTSA_LOG_DEBUG("Two %s at position %f,%f,%f", CModelInfo::GetModelInfo(modelIndex1)->GetModelName(), pos1.x, pos1.y, pos1.z);
+                    NOTSA_LOG_DEBUG("Two {} at position {},{},{}", CModelInfo::GetModelInfo(modelIndex1)->GetModelName(), pos1.x, pos1.y, pos1.z); // R* log
                 }
             }
         }
@@ -1320,6 +1320,7 @@ void CWorld::RemoveFallenPeds() {
         if (vecPedPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
+        NOTSA_LOG_DEBUG("&&&&&&Another ped has fallen through the map&&&&&&&&&& {} {} {}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || ped->IsPlayer()) {
             CNodeAddress pathNodeAddress = ThePaths.FindNodeClosestToCoors(vecPedPos, PATH_TYPE_PED, 1000000.0f, 0, 0, 0, 0, 0);
             if (pathNodeAddress.IsValid()) {
@@ -1348,6 +1349,8 @@ void CWorld::RemoveFallenCars() {
         if (vecPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
+
+        NOTSA_LOG_DEBUG("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {} {} {}", vecPos.x, vecPos.y, vecPos.z); // R* log
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
@@ -1485,7 +1488,7 @@ void CWorld::PrintCarChanges() {
                 continue;
             }
 
-            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]); // Delete in Mobile 
+            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]); // Delete in Mobile, R* log
             s_aModelIndexes[i] = MINow;
         }
     }
@@ -1547,7 +1550,7 @@ void CWorld::TestForUnusedModels() {
         if (usageModelCounts[i] == 0) {
             CBaseModelInfo* mi = CModelInfo::GetModelInfo(i);
             if (mi) {
-                NOTSA_LOG_DEBUG("%s is not used", mi->GetModelName());
+                NOTSA_LOG_DEBUG("{} is not used", mi->GetModelName());
             }
         }
     }
@@ -1912,21 +1915,11 @@ bool CWorld::ProcessVerticalLine_FillGlobeColPoints(const CVector& origin, float
     FilledColPointIndex = 0;
 
     const int32 secX = GetSectorX(origin.x), secY = GetSectorY(origin.y);
-    CColLine colLine{
-        origin, CVector{ origin.x, origin.y, distance }
-    };
     return ProcessVerticalLineSector_FillGlobeColPoints(
         GetSector(secX, secY),
         GetRepeatSector(secX, secY),
-        colLine,
-        outEntity,
-        buildings,
-        vehicles,
-        peds,
-        objects,
-        dummies,
-        doSeeThroughCheck,
-        outCollPoly
+        CColLine{ origin, CVector{origin.x, origin.y, distance} },
+        outEntity, buildings, vehicles, peds, objects, dummies, doSeeThroughCheck, outCollPoly
     );
 }
 
@@ -2327,6 +2320,7 @@ void CWorld::Process() {
                         entity->SetIsStuck(true);
 
                         if (entity->TreatAsPlayerForCollisions()) {
+                            NOTSA_LOG_DEBUG("STUCK: Final Step: Player Entity {} Is Stuck", entity->GetModelIndex()); // R* log
                             const auto physical = entity->AsPhysical();
                             physical->m_vecMoveSpeed *= (float)std::pow(WORLD_PLAYER_SHIFT_DAMPING, CTimer::GetTimeStepInMS());
                             physical->ApplyMoveSpeed();
