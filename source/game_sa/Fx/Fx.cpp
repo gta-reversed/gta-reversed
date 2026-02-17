@@ -111,6 +111,15 @@ void Fx_c::InitEntitySystems() {
     // NOP
 }
 
+// NOTSA
+static void CreateFxWithinCameraRange(const char* name, const CVector& pos, float range) {
+    if (DistanceBetweenPointsSquared(TheCamera.GetPosition(), pos) <= range) {
+        if (auto* fxSystem = g_fxMan.CreateFxSystem(name, pos, nullptr, false)) {
+            fxSystem->PlayAndKill();
+        }
+    }
+}
+
 // 0x4A12D0
 void Fx_c::ExitEntitySystems() {
     for (auto it = m_FxEntities.GetHead(); it; it = m_FxEntities.GetNext(it)) {
