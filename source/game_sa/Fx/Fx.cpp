@@ -428,7 +428,7 @@ void RenderEnd() {
 // 0x4A1660
 void RotateVecIntoVec(RwV3d* vecRes, RwV3d* vec, RwV3d* vecAlign) {
     const CVector up = *vecAlign;
-    constexpr CVector ref{ 0.42429999f, 0.56569999f, 0.70709997f };
+    const auto ref = CVector{ 3.f, 4.f, 5.f }.Normalized();
 
     RwV3d right;
     RwV3dCrossProduct(&right, &up, &ref);
