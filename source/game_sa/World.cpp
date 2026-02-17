@@ -1550,7 +1550,7 @@ void CWorld::TestForUnusedModels() {
         if (usageModelCounts[i] == 0) {
             CBaseModelInfo* mi = CModelInfo::GetModelInfo(i);
             if (mi) {
-                NOTSA_LOG_DEBUG("{} is not used", mi->GetModelName());
+                NOTSA_LOG_DEBUG("{} is not used", mi->GetModelName()); // R* log
             }
         }
     }
