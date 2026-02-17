@@ -47,15 +47,10 @@ void CLoadMonitor::BeginFrame() {
 
 // 0x53D0B0
 void CLoadMonitor::EndFrame() {
-    auto* ped = FindPlayerPed();
-
-    if (ped) {
-        CVector movevec;
-        if (auto veh = ped->GetVehicleIfInOne()) {
-            movevec = veh->GetMoveSpeed();
-        } else {
-            movevec = ped->GetMoveSpeed();
-        }
+    if (auto* ped = FindPlayerPed()) {
+        const auto movevec = ped->IsInVehicle()
+            ? ped->GetVehicleIfInOne()->GetMoveSpeed()
+            : ped->GetMoveSpeed();
 
         m_iCyclesThisFrame[+eLoadType::MOVE_SPEED] = (uint32)(movevec.Magnitude() * 50.f);
     }
@@ -75,75 +70,70 @@ void CLoadMonitor::EndFrame() {
     if (delta > 2'000) {
         m_LastTime = mstime;
         m_NumFramesThisSec = 0;
+        return;
+    }
+
+    if (delta >= 1'000) {
+        m_FPS = m_NumFramesThisSec;
+        m_LastTime = mstime;
+
+        if (m_NumFramesThisSec == 0) {
+            m_NumFramesThisSec = 1;
+        }
+
+        const float recip = 1.f / (float)m_NumFramesThisSec;
+        for (auto& avg : m_fAveragedCyclesThisSecond) {
+            avg *= recip;
+        }
+
+        m_NumFramesThisSec = 0;
+
+        for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
+            for (auto i = 7u; i > 0; i--) {
+                m_iCyclesHistory[t][i] = m_iCyclesHistory[t][i - 1];
+            }
+
+            m_iCyclesHistory[t][0] = (uint32)m_fAveragedCyclesThisSecond[t];
+            m_fAveragedCyclesThisSecond[t] = 0.f;
+        }
+
+        m_eProcLevel = eProcessingLevel::OK;
+
+        const auto needsCyclesConversion = [](uint32 t) {
+            return t != +eLoadType::NUM_STREAMING_REQUESTS
+                && t != +eLoadType::MOVE_SPEED;
+        };
+
+        for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
+            float smoothed{};
+            if (m_iMaxCycles[t] != 0) {
+                float sum{};
+                for (auto a = 0u; a < 8u; a++) {
+                    sum += (float)m_iCyclesHistory[t][a];
+                }
+
+                smoothed = std::fminf(sum / 8.f, (float)m_iMaxCycles[t]);
+            }
+            m_fSmoothedValues[t] = smoothed;
+
+            const float val = needsCyclesConversion(t) ? smoothed / (float)CTimer::GetCyclesPerMillisecond() : smoothed;
+            const float normalized = val / m_fPeakLevels[t];
+
+            if (normalized > (2.f / 3.f) && m_eProcLevel < eProcessingLevel::HIGH) {
+                m_eProcLevel = eProcessingLevel::HIGH;
+            } else if (normalized > (1.f / 3.f) && m_eProcLevel < eProcessingLevel::MED) {
+                m_eProcLevel = eProcessingLevel::MED;
+            }
+
+            m_fNormalizedPeakRangeValues[t] = normalized;
+            m_fSmoothedValues[t] = smoothed / (float)m_iMaxCycles[t];
+        }
     } else {
-        if (delta >= 1'000) {
-            m_FPS = m_NumFramesThisSec;
-            m_LastTime = mstime;
+        m_NumFramesThisSec++;
+    }
 
-            if (m_NumFramesThisSec == 0) {
-                m_NumFramesThisSec = 1;
-            }
-
-            float recip = 1.0f / (float)m_NumFramesThisSec;
-
-            for (auto& averag : m_fAveragedCyclesThisSecond) {
-                averag *= recip;
-            }
-
-            m_NumFramesThisSec = 0;
-
-            for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
-                for (auto i = 7u; i > 0; i--) {
-                    m_iCyclesHistory[t][i] = m_iCyclesHistory[t][i - 1];
-                }
-
-                m_iCyclesHistory[t][0] = (uint32)m_fAveragedCyclesThisSecond[t];
-                m_fAveragedCyclesThisSecond[t] = 0.0f;
-            }
-
-            m_eProcLevel = eProcessingLevel::OK;
-
-            for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
-                float smoothed;
-
-                if (m_iMaxCycles[t] == 0) {
-                    smoothed = 0.0f;
-                } else {
-                    float sum = 0.0f;
-                    for (int a = 0; a < 8; a++) {
-                        sum += (float)m_iCyclesHistory[t][a];
-                    }
-
-                    float avg = sum / 8.f;
-                    smoothed  = std::fminf(avg, (float)m_iMaxCycles[t]);
-                }
-
-                m_fSmoothedValues[t] = smoothed;
-
-                float val = smoothed;
-                if (t != +eLoadType::NUM_STREAMING_REQUESTS && t != +eLoadType::MOVE_SPEED) {
-                    val /= (float)CTimer::GetCyclesPerMillisecond();
-                }
-
-                float normalized = val / m_fPeakLevels[t];
-
-                if (normalized > (2.f / 3.f) && m_eProcLevel < eProcessingLevel::HIGH) {
-                    m_eProcLevel = eProcessingLevel::HIGH;
-                } else if (normalized > (1.f / 3.f) && m_eProcLevel < eProcessingLevel::MED) {
-                    m_eProcLevel = eProcessingLevel::MED;
-                }
-
-                m_fNormalizedPeakRangeValues[t] = normalized;
-
-                m_fSmoothedValues[t] = smoothed / (float)m_iMaxCycles[t];
-            }
-        } else {
-            m_NumFramesThisSec++;
-        }
-
-        if (IsForcingProcLevel()) {
-            m_eProcLevel = m_eProcLevelToForce;
-        }
+    if (IsForcingProcLevel()) {
+        m_eProcLevel = m_eProcLevelToForce;
     }
 }
 
