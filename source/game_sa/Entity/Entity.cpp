@@ -172,7 +172,7 @@ void CEntity::Add(const CRect& rect) {
         CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
             auto& s = CWorld::GetSector(x, y);
             auto& rs = CWorld::GetRepeatSector(x, y);
-            const auto  ProcessAddItem = [this]<typename PtrListType>(PtrListType list) {
+            const auto  ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
                 list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
             switch (GetType()) {
@@ -214,7 +214,7 @@ void CEntity::Remove() {
         CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
             auto& s = CWorld::GetSector(x, y);
             auto& rs = CWorld::GetRepeatSector(x, y);
-            const auto  ProcessDeleteItem = [this]<typename PtrListType>(PtrListType list) {
+            const auto  ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
                 list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
             switch (GetType()) {
