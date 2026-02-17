@@ -53,7 +53,7 @@ void CAutoPilot::RemoveOnePathNode() {
     
     --m_nPathFindNodesCount;
     
-    for (int count = 0; count < m_nPathFindNodesCount; ++count) {
+    for (int16 count = 0; count < m_nPathFindNodesCount; ++count) {
         m_aPathFindNodesInfo[count] = m_aPathFindNodesInfo[count + 1]; // ?
     }
 }
