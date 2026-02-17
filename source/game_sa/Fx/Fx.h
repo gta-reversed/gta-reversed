@@ -108,9 +108,6 @@ public:
     void TriggerWaterSplash(CVector& posn);
     void TriggerBulletSplash(CVector& posn);
     void TriggerFootSplash(CVector& posn);
-
-    // Helpers - NOTSA
-    void CreateFxWithinCameraRange(const char* name, const CVector& pos, float range = 625.0f);
 };
 VALIDATE_SIZE(Fx_c, 0x70);
 
