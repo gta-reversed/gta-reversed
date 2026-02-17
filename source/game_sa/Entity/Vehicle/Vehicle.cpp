@@ -1210,6 +1210,7 @@ void CVehicle::CalculateLightingFromCollision() {
 void CVehicle::ResetAfterRender() {
     RwRenderStateSet(RwRenderState::rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     CVehicleModelInfo::ResetEditableMaterials((RpClump*)GetRwObject());
+
     if (IsAutomobile()) {
         auto* const mi = GetVehicleModelInfo();
         assert(mi != nullptr);
