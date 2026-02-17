@@ -1208,7 +1208,14 @@ void CVehicle::CalculateLightingFromCollision() {
 
 // 0x6D0E20
 void CVehicle::ResetAfterRender() {
-    ((void(__thiscall*)(CVehicle*))0x6D0E20)(this);
+    RwRenderStateSet(RwRenderState::rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
+    CVehicleModelInfo::ResetEditableMaterials((RpClump*)GetRwObject());
+
+    if (IsAutomobile()) {
+        auto* const mi = GetVehicleModelInfo();
+        assert(mi != nullptr);
+        AsAutomobile()->CustomCarPlate_AfterRenderingStop(mi);
+    }
 }
 
 // 0x6D1080
