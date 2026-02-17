@@ -328,18 +328,6 @@ void Fx_c::TriggerFootSplash(CVector& pos) {
     CreateFxWithinCameraRange("water_splsh_sml", pos, 625.0f);
 }
 
-// NOTSA
-inline void Fx_c::CreateFxWithinCameraRange(const char* name, const CVector& pos, float range) {
-    CVector delta = (TheCamera.GetPosition() - pos);
-    float distance = delta.SquaredMagnitude();
-
-    if (distance <= range) {
-        if (auto* fxSystem = g_fxMan.CreateFxSystem(name, pos, nullptr, false)) {
-            fxSystem->PlayAndKill();
-        }
-    }
-}
-
 // see RwIm3DTransformFlags
 // 0x4A13B0
 void RenderBegin(RwRaster* newRaster, RwMatrix* transform, uint32 transformRenderFlags) {
