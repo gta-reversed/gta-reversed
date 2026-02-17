@@ -4000,7 +4000,7 @@ bool CPed::IsInVehicleAsPassenger() const noexcept {
 // NOTSA
 CVector CPed::GetSeatPositionInVehicle() const {
     CVector pos{};
-    auto* mi = (CVehicleModelInfo*)CModelInfo::GetModelInfo(m_pVehicle->GetModelIndex());
+    auto* mi = m_pVehicle->GetVehicleModelInfo();
 
     if (this == m_pVehicle->GetDriver()) {
         pos = mi->GetFrontSeatPosn();
