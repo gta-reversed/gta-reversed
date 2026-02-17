@@ -9,8 +9,8 @@ CAutoPilot::CAutoPilot() : m_aPathFindNodesInfo() {
 
     m_nCarCtrlFlags = 0;
 
-    field_C = 0;
-    m_nSpeedScaleFactor = 1000;
+    m_timeToLeaveLink = 0;
+    m_timeToGetToNextLink = 1000;
     m_nNextLane = 0;
     m_nCurrentLane = 0;
     m_nCarDrivingStyle = DRIVING_STYLE_STOP_FOR_CARS;
