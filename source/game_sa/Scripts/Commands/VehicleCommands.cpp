@@ -178,7 +178,7 @@ void CarGotoCoordinates(CVehicle& vehicle, CVector where) {
     vehicle.SetEngineOn(true);
 
     if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
-        ap.m_nCarMission = joined
+        ap.m_nCarMission = !joined
             ? MISSION_GOTOCOORDINATES
             : MISSION_GOTOCOORDINATES_STRAIGHTLINE;
     }
@@ -530,13 +530,30 @@ auto IsCarInWater(CVehicle* vehicle) {
     return false;
 }
 
-/// GET_CLOSEST_CAR_NODE
-//auto GetClosestCarNode(CVehicle& vehicle) {
-//}
-
 /// CAR_GOTO_COORDINATES_ACCURATE
-//auto CarGotoCoordinatesAccurate(CVehicle& vehicle) {
-//}
+auto CarGotoCoordinatesAccurate(CVehicle& vehicle, CVector where) {
+    auto& ap = vehicle.m_autoPilot;
+
+    if (where.z <= -100.f) {
+        where.z = CWorld::FindGroundZForCoord(where.x, where.y);
+    }
+    where.z += vehicle.GetDistanceFromCentreOfMassToBaseOfModel();
+
+    const auto joined = CCarCtrl::JoinCarWithRoadSystemGotoCoors(&vehicle, where, false);
+
+    vehicle.SetStatus(STATUS_PHYSICS);
+    vehicle.SetEngineOn(true);
+
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
+        ap.m_nCarMission = !joined
+            ? MISSION_GOTOCOORDINATES_ACCURATE
+            : MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE;
+    }
+    if (ap.m_nCruiseSpeed <= 1) {
+        ap.SetCruiseSpeed(1);
+    }
+    ap.StartCarMissionNow();
+}
 
 /// IS_CAR_ON_SCREEN
 //auto IsCarOnScreen(CVehicle& vehicle) {
@@ -600,10 +617,6 @@ auto IsCarInWater(CVehicle* vehicle) {
 
 /// IS_CAR_VISIBLY_DAMAGED
 //auto IsCarVisiblyDamaged(CVehicle& vehicle) {
-//}
-
-/// GET_CLOSEST_CAR_NODE_WITH_HEADING
-//auto GetClosestCarNodeWithHeading(CVehicle& vehicle) {
 //}
 
 /// SET_UPSIDEDOWN_CAR_NOT_DAMAGED
@@ -1308,8 +1321,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ONLY_DAMAGED_BY_PLAYER, SetCarOnlyDamagedByPlayer);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_CAR_NODE, GetClosestCarNode);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
+    REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_SCREEN, IsCarOnScreen);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_X, GetCarForwardX);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_Y, getCarForwardY);
@@ -1326,7 +1338,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     // REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_AREA_OF_CARS, ClearAreaOfCars);
     // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_RANDOM_CAR_FOR_CAR_PARK, CreateRandomCarForCarPark);
     // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_CAR_NODE_WITH_HEADING, GetClosestCarNodeWithHeading);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_UPSIDEDOWN_CAR_NOT_DAMAGED, SetUpsidedownCarNotDamaged);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_ALL_CARS_CAN_BE_DAMAGED, SetAllCarsCanBeDamaged);
