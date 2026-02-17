@@ -106,7 +106,6 @@ void CClothes::LoadClothesFile() {
             }
             NOTSA_UNREACHABLE("Invalid rule tag: {}", strTag);
         }();
-        
         AddRule(static_cast<uint32>(ruleTag));
 
         const auto GetNextArg = [&nextToken]{
