@@ -107,9 +107,15 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
     std::cout << std::format("{}::{} => {}\n", category, fnName, fnVTblIdx);
 #endif
 
-    auto item = std::make_shared<ReversibleHook::Virtual>(std::move(fnName), vtblGTA, vtblOur, fnVTblIdx);
+    auto item = std::make_shared<ReversibleHook::Virtual>(
+        std::move(fnName),
+        vtblGTA,
+        vtblOur,
+        fnVTblIdx,
+        opt.locked,
+        opt.reversed
+    );
     item->State(opt.enabled);
-    item->LockState(opt.locked);
     AddItemToCategory(category, std::move(item));
 }
 
@@ -128,14 +134,13 @@ void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
 
 void WriteHooksToFile(const std::filesystem::path& file) {
     std::ofstream of{ file };
-    of << "class,fn_name,address,reversed,locked,is_virtual\n";
+    of << "class,fn_name,address,reversed,locked,type\n";
     s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
         using namespace ReversibleHook;
         for (const auto& item : cat.Items()) {
             if (item->Type() == Base::HookType::ScriptCommand) {
                 continue;
             }
-            const auto isVirtual = item->Type() == Base::HookType::Virtual;
             of
                 << cat.Name() << "," // class
                 << item->Name() << "," // fn_name
@@ -150,9 +155,9 @@ void WriteHooksToFile(const std::filesystem::path& file) {
                         }
                     }()
                 << std::dec << ","
-                << item->Hooked() << "," // reversed // TODO: Improve this (Add `m_isReversed` to `Base`) - For now this will do
+                << item->Reversed() << "," // reversed
                 << item->Locked() << "," // locked
-                << (item->Type() == Base::HookType::Virtual) << '\n'; // is_virtual
+                << item->Symbol(); // type - `V` - virtual, `S` - simple, `C` - command (script)
         }
     });
 }
@@ -168,7 +173,16 @@ void HookInstall(std::string_view category, std::string fnName, uint32 installAd
     }
 #endif
 
-    auto item = std::make_shared<ReversibleHook::Simple>(std::move(fnName), installAddress, addressToJumpTo, opt.jmpCodeSize, opt.stackArguments);
+    auto item = std::make_shared<ReversibleHook::Simple>(
+        std::move(fnName),
+        installAddress,
+        addressToJumpTo,
+        opt.locked,
+        opt.reversed,
+        opt.jmpCodeSize,
+        opt.stackArguments
+    );
+    
     item->State(opt.enabled);
     item->LockState(opt.locked);
     AddItemToCategory(category, std::move(item));

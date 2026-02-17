@@ -10,7 +10,14 @@
 namespace ReversibleHooks{
 namespace ReversibleHook{
 struct Virtual : public Base {
-    Virtual(std::string fnName, void** vtblGTA, void** vtblOur, size_t fnIdx);
+    Virtual(
+        std::string name,
+        void** vtblGTA,
+        void** vtblOur,
+        size_t fnIdx,
+        bool locked = false,
+        bool reversed = true
+    );
     ~Virtual() override = default;
 
     void        Switch() override;

@@ -20,11 +20,13 @@ struct Base {
         ScriptCommand
     };
 
-    Base(std::string fnName, HookType type, bool locked = false) :
-        m_fnName{std::move(fnName)},
-        m_type{type},
-        m_bIsLocked{locked}
+    Base(std::string fnName, HookType type, bool locked = false, bool reversed = true) :
+        m_Name{std::move(fnName)},
+        m_Type{type},
+        m_IsLocked{locked},
+        m_IsReversed{reversed}
     {
+        //assert((reversed || locked) && "Hooks for functions not reversed must be locked!");
     }
 
     virtual ~Base() = default;
@@ -40,10 +42,10 @@ struct Base {
     * @returns If the state has changed
     */
     bool State(bool hooked) {
-        if (hooked == m_bIsHooked) {
+        if (hooked == m_IsHooked) {
             return false; // No change
         }
-        if (m_bIsLocked) {
+        if (m_IsLocked) {
             return false; // Can't change
         }
         Switch();
@@ -51,26 +53,28 @@ struct Base {
     }
 
     void LockState(bool locked) {
-        m_bIsLocked = locked;
+        m_IsLocked = locked;
     }
 
     /// Symbol in ImGui (On the left side of the checkbox)
     virtual const char* Symbol() const = 0;
 
-    const auto& Name()   const { return m_fnName; }
-    const auto  Type()   const { return m_type; }
-    const auto  Hooked() const { return m_bIsHooked; }
-    const auto  Locked() const { return m_bIsLocked; }
+    const auto& Name()     const { return m_Name; }
+    const auto  Type()     const { return m_Type; }
+    const auto  Hooked()   const { return m_IsHooked; }
+    const auto  Locked()   const { return m_IsLocked; }
+    const auto  Reversed() const { return m_IsReversed; }
 
 public:
     // ImGui stuff
     bool m_isVisible{true};
 
 protected:
-    bool        m_bIsHooked{};  // Is hook installed
-    std::string m_fnName{};     // Name of function, eg.: `Add` (Referring to CEntity::Add)
-    HookType    m_type{};
-    bool        m_bIsLocked{};  // Is hook locked, i.e.: the hooked state can't be changed.
+    bool        m_IsReversed{}; // Is the function reversed - Only used when dumping hooks to csv
+    bool        m_IsHooked{};   // Is hook installed (true => yes, gta calls are redirected to our code, false => our code is redirected to the gta function)
+    bool        m_IsLocked{};   // Is hook locked, i.e.: the hooked state can't be changed.
+    std::string m_Name{};       // Name of function, eg.: `Add` (Referring to CEntity::Add)
+    HookType    m_Type{};
 };
 };
 };
