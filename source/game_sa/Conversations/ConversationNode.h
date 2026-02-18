@@ -12,7 +12,8 @@ public:
     void Clear();
     void ClearRecursively();
 
-public: // NOTSA:
+private: // NOTSA:
+    friend void InjectHooksMain();
     static void InjectHooks();
 };
 

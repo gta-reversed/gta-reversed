@@ -232,7 +232,7 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
 
         for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
             const auto& tempNode  = m_aTempNodes[i];
-            auto&       node      = m_Nodes[tempNode.m_FinalSlot];
+            auto& node = m_Nodes[tempNode.m_FinalSlot];
 
             strcpy(node.m_Name, tempNode.m_Name);
 

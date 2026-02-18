@@ -6,7 +6,7 @@ class CPed;
 
 class CConversationForPed {
 public:
-    enum eStatus : int32 {
+    enum class eStatus : uint32 {
         INACTIVE = 0,
         PLAYER_SPEAKING,
         PED_SPEAKING,
@@ -26,9 +26,11 @@ public:
     void Update();
     bool IsPlayerInPositionForConversation(bool isRandomConversation);
 
-public: // NOTSA:
+private: // NOTSA:
+    friend void InjectHooksMain();
     static void InjectHooks();
 
+public:
     CConversationNode* GetCurrentNode() const;
     CConversationNode* GetFirstNode() const;
 };

@@ -3,6 +3,7 @@
 #include "ConversationForPed.h"
 #include "PedToPlayerConversations.h"
 #include "ConversationNode.h"
+#include "TempConversationNode.h"
 
 class CPed;
 
@@ -12,22 +13,6 @@ enum {
     MAX_NUM_TEMP_CONVERSATION_NODES = 12,
 };
 
-// Mobile?
-class CTempConversationNode {
-public:
-    char  m_Name[8];
-    char  m_NameNodeYes[8];
-    char  m_NameNodeNo[8];
-    int32 m_FinalSlot;
-    int16 m_NodeYes;
-    int16 m_NodeNo;
-    int32 m_Speech;
-    int32 m_SpeechY;
-    int32 m_SpeechN;
-    //void  Clear(); // unknown
-};
-
-VALIDATE_SIZE(CTempConversationNode, 0x2C);
 
 class CConversations {
 public:
@@ -76,6 +61,7 @@ public:
 
     static bool IsConversationGoingOn();
 
-public: // NOTSA:
+private: // NOTSA:
+    friend void InjectHooksMain();
     static void InjectHooks();
 };
