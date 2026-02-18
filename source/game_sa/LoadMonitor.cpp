@@ -48,7 +48,7 @@ void CLoadMonitor::BeginFrame() {
 // 0x53D0B0
 void CLoadMonitor::EndFrame() {
     if (auto* ped = FindPlayerPed()) {
-        const auto movevec = ped->IsInVehicle()
+        const auto& movevec = ped->IsInVehicle()
             ? ped->GetVehicleIfInOne()->GetMoveSpeed()
             : ped->GetMoveSpeed();
 
