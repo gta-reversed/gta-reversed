@@ -1132,7 +1132,7 @@ CVector CAutomobile::AddMovingCollisionSpeed(CVector& point) {
             return {};
     }
 
-    uint16 angleDiff = m_wMiscComponentAngle - m_wMiscComponentAnglePrev;
+    const auto angleDiff = (int32)m_wMiscComponentAngle - (int32)m_wMiscComponentAnglePrev;
     if (angleDiff > 100 || angleDiff < -100)
         return {};
 
