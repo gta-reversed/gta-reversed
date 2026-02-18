@@ -78,15 +78,17 @@ public:
 
     bool IsForcingProcLevel() { return m_bForceProcLevel != eProcessingLevel::OK; } // unknown, unused
     void StopForcingProcLevel() { m_bForceProcLevel = eProcessingLevel::OK; } // unknown, unused
-
-    void ForceProcLevel(eProcessingLevel v) { m_bForceProcLevel = v; } // unused
+    void ForceProcLevel(eProcessingLevel v) { // unused
+        m_bForceProcLevel = v;
+    }
 
     bool IsAmbientCrimeEnabled() { return m_bEnableAmbientCrime; }
-
     void EnableAmbientCrime() { m_bEnableAmbientCrime = true; }
     void DisableAmbientCrime() { m_bEnableAmbientCrime = false; }
 
-    void SetTimeForThisFrame(eLoadType t, uint32 v) { m_iCyclesThisFrame[+t] = v; }
+    void SetTimeForThisFrame(eLoadType t, uint32 v) {
+        m_iCyclesThisFrame[+t] = v;
+    }
 
 private: // NOTSA:
     friend void InjectHooksMain();

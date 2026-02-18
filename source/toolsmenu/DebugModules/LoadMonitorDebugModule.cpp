@@ -38,8 +38,6 @@ void LoadMonitorDebugModule::RenderWindow() {
         ImGui::Text("FPS: %u", lm.GetFPS());
     }
 
-    constexpr auto NUM_LOAD_TYPES = static_cast<size_t>(eLoadType::NUM_LOAD_TYPES);
-
     if (ImGui::CollapsingHeader("Load Types Data")) {
         if (ImGui::BeginTable("LoadTypesTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
             ImGui::TableSetupColumn("Load Type");
@@ -49,7 +47,7 @@ void LoadMonitorDebugModule::RenderWindow() {
             ImGui::TableSetupColumn("Peak Level");
             ImGui::TableHeadersRow();
 
-            for (size_t i = 0; i < NUM_LOAD_TYPES; ++i) {
+            for (size_t i = 0; i < +eLoadType::NUM_LOAD_TYPES; ++i) {
                 const auto t = static_cast<eLoadType>(i);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -76,7 +74,7 @@ void LoadMonitorDebugModule::RenderWindow() {
             ImGui::TableSetupColumn("Averaged Cycles/Sec");
             ImGui::TableHeadersRow();
 
-            for (size_t i = 0; i < NUM_LOAD_TYPES; ++i) {
+            for (size_t i = 0; i < +eLoadType::NUM_LOAD_TYPES; ++i) {
                 const auto t = static_cast<eLoadType>(i);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -94,7 +92,7 @@ void LoadMonitorDebugModule::RenderWindow() {
     }
 
     if (ImGui::CollapsingHeader("Cycles History")) {
-        for (size_t i = 0; i < NUM_LOAD_TYPES; ++i) {
+        for (size_t i = 0; i < +eLoadType::NUM_LOAD_TYPES; ++i) {
             const auto t = static_cast<eLoadType>(i);
             if (ImGui::TreeNode(reinterpret_cast<void*>(i), "Load Type %zu", i)) {
                 for (size_t j = 0; j < 8; ++j) {
