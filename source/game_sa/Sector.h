@@ -9,8 +9,15 @@
 #include "PtrListDoubleLink.h"
 
 class CSector {
-public:
-    CPtrListSingleLink<CBuilding*> m_buildings{}; //!< Buildings in this sector [Yes, it's single-link]
-    CPtrListDoubleLink<CDummy*>    m_dummies{};   //!< Dummies in this sector
+public: // Original used protected and accessor to use them
+    CPtrListSingleLink<CBuilding*> Buildings{}; //!< Buildings in this sector [Yes, it's single-link]
+    CPtrListDoubleLink<CDummy*>    Dummies{};   //!< Dummies in this sector
+
+public: // NOTSA:
+    CSector(const CSector&)            = delete;
+    CSector& operator=(const CSector&) = delete;
+    CSector(CSector&&)                 = delete;
+    CSector& operator=(CSector&&)      = delete;
 };
-VALIDATE_SIZE(CSector, 8);
+
+VALIDATE_SIZE(CSector, 0x8);

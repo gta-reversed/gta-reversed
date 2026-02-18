@@ -6327,11 +6327,11 @@ bool CAutomobile::RcbanditCheckHitWheels() {
     int32 startSectorY = std::max(CWorld::GetSectorY(minY), 0);
     int32 endSectorX = std::min(CWorld::GetSectorX(maxX), MAX_SECTORS_X - 1);
     int32 endSectorY = std::min(CWorld::GetSectorY(maxY), MAX_SECTORS_Y - 1);
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            if (RcbanditCheck1CarWheels(repeatSector->Vehicles))
+            auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+            if (RcbanditCheck1CarWheels(repeatSector.Vehicles))
                 break;
         }
     }
