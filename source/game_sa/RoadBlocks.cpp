@@ -14,7 +14,7 @@ void CRoadBlocks::InjectHooks() {
     RH_ScopedInstall(ClearScriptRoadBlocks, 0x460EC0);
     RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020);
     RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .reversed = false });
-    RH_ScopedInstall(GenerateRoadBlockCopsForCar, 0x461170);
+    RH_ScopedInstall(GenerateRoadBlockPedsForCar, 0x461170);
     RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0, { .reversed = false });
     RH_ScopedInstall(GetRoadBlockNodeInfo, 0x460EE0);
     RH_ScopedInstall(RegisterScriptRoadBlock, 0x460DF0);
@@ -105,7 +105,7 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a
 }
 
 // 0x461170
-void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPositionsType, ePedType pedType) {
+void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPositionsType, ePedType pedType) {
     const auto Generate = [&](eCopType copType = COP_TYPE_CITYCOP, eModelID pedModel = MODEL_INVALID, bool isSpecialCop = false) {
         static constexpr auto PLACEMENTS = std::to_array<CVector>({
             { -1.5f, +1.9f, 0.0f },
@@ -149,7 +149,7 @@ void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPosit
             ped->GetMatrix().SetRotateKeepPos({ 0.0f, 0.0f, -HALF_PI });
 
             if (pedType == PED_TYPE_COP) {
-                auto* t = new CTaskComplexWanderCop(PEDMOVE_STILL, CGeneral::GetRandomNumberInRange(8u));
+                auto* t = new CTaskComplexWanderCop(PEDMOVE_STILL, CGeneral::GetRandomNumberInRange(8ui8));
                 t->m_nSubTaskCreatedTimer = {};
                 t->m_nScanForStuffTimer   = {};
                 ped->GetTaskManager().SetTask(t, TASK_PRIMARY_PRIMARY);
@@ -177,10 +177,6 @@ void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPosit
             ped->GetEventGroup().Add<CEventScriptCommand>({ TASK_PRIMARY_PRIMARY, new CTaskComplexKillPedOnFoot(FindPlayerPed()) });
         }
     };
-
-    eCopType copType{ COP_TYPE_CITYCOP };
-    eModelID pedModel{ MODEL_INVALID };
-    bool     isSpecialCop{};
 
     if (pedType == PED_TYPE_COP) {
         switch (vehicle->GetModelId()) {
@@ -240,16 +236,16 @@ bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress nodeAddress, float& outWidth
 }
 
 // 0x460DF0
-void CRoadBlocks::RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoute) {
+void CRoadBlocks::RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoadBlock) {
     auto free = rng::find_if(aScriptRoadBlocks, [](const auto& srb) { return !srb.IsActive; });
     if (free == aScriptRoadBlocks.end()) {
         // No free script roadblock found
         return;
     }
 
-    free->CornerA     = cornerA;
-    free->CornerB     = cornerB;
-    free->IsActive    = true;
-    free->IsCreated   = true;
-    free->IsGangRoute = isGangRoute;
+    free->CornerA         = cornerA;
+    free->CornerB         = cornerB;
+    free->IsActive        = true;
+    free->IsSafeToCreate  = true;
+    free->IsGangRoadBlock = isGangRoadBlock;
 }
