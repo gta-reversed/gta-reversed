@@ -86,29 +86,13 @@ void CPostEffects::DoScreenModeDependentInitializations() {
     HeatHazeFXInit();
 }
 
-// NOTSA: Returns the next power of 2 greater than or equal to n.
-static uint32 GetNextPow2(uint32 n) {
-    if (n == 0) {
-        return 1;
-    }
-
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-
-    return n + 1;
-}
-
 // 0x7043D0
 void CPostEffects::SetupBackBufferVertex() {
     RwRaster* raster = RwCameraGetRaster(Scene.m_pRwCamera);
 
-    // get maximum 2^N dimensions
-    const auto width   = GetNextPow2(RwRasterGetWidth(raster));
-    const auto height  = GetNextPow2(RwRasterGetHeight(raster));
+    // clamp width/height to next (or equal) 2^n
+    const auto width   = std::bit_ceil(static_cast<uint32>(RwRasterGetWidth(raster)));
+    const auto height  = std::bit_ceil(static_cast<uint32>(RwRasterGetHeight(raster)));
     const auto fwidth  = float(width);
     const auto fheight = float(height);
 
@@ -323,8 +307,8 @@ void CPostEffects::ImmediateModeFilterStuffInitialize() {
 
     const auto* frameBuffer = RwCameraGetRaster(Scene.m_pRwCamera);
     ms_imf.fFrontBufferU1 = ms_imf.fFrontBufferV1 = 0.0f;
-    ms_imf.fFrontBufferU2 = SCREEN_WIDTH / GetNextPow2(RwRasterGetWidth(frameBuffer));
-    ms_imf.fFrontBufferV2 = SCREEN_HEIGHT / GetNextPow2(RwRasterGetHeight(frameBuffer));
+    ms_imf.fFrontBufferU2 = SCREEN_WIDTH / std::bit_ceil(static_cast<uint32>(RwRasterGetWidth(frameBuffer)));
+    ms_imf.fFrontBufferV2 = SCREEN_HEIGHT / std::bit_ceil(static_cast<uint32>(RwRasterGetHeight(frameBuffer)));
 }
 
 // 0x700D70
@@ -1105,7 +1089,7 @@ void CPostEffects::Render() {
             CTimer::Suspend();
             if (s_SavePhotoToGallery) {
                 CVisibilityPlugins::RenderWeaponPedsForPC();
-                CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+                CVisibilityPlugins::ResetWeaponPedsForPC();
                 CFileMgr::SetDirMyDocuments();
 
                 auto photoIdx = 0;

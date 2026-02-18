@@ -316,8 +316,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     auto* ped = FindPlayerPed(playerId);
 
     if (modelId == MI_PICKUP_ADRENALINE) {
-        ped->m_pPlayerData->m_bAdrenaline = true;
-        ped->m_pPlayerData->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
+        ped->GetPlayerData()->m_bAdrenaline = true;
+        ped->GetPlayerData()->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
         ped->ResetSprintEnergy();
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_ADRENALINE);
         return true;
@@ -716,7 +716,7 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
     }
 
     if (auto mi = CModelInfo::GetModelInfo(modelId); mi->GetModelType() == MODEL_INFO_WEAPON) {
-        return mi->AsWeaponModelInfoPtr()->m_weaponInfo;
+        return mi->AsWeaponModelInfoPtr()->GetWeaponInfo();
     }
 
     return WEAPON_UNARMED;

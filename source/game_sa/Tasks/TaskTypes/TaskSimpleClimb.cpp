@@ -346,7 +346,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                     continue;
                 }
 
-                int32 fatModifier = ped->m_pPlayerData && !ped->GetIntelligence()->GetTaskSwim() ? (int32)CStats::GetFatAndMuscleModifier(STAT_MOD_0) : 0;
+                int32 fatModifier = ped->GetPlayerData() && !ped->GetIntelligence()->GetTaskSwim() ? (int32)CStats::GetFatAndMuscleModifier(STAT_MOD_0) : 0;
 
                 if (!isLaunch || fatModifier >= 1) {
                     if (nColSphereIndex == 5 || nColSphereIndex == 11 || nColSphereIndex == 17) {
@@ -443,17 +443,17 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
     int32 endSectorX   = CWorld::GetSectorX(outPoint.x + ms_ClimbColModel.GetBoundRadius());
     int32 endSectorY   = CWorld::GetSectorY(outPoint.y + ms_ClimbColModel.GetBoundRadius());
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 y = startSectorY; y <= endSectorY; y++) {
         for (int32 x = startSectorX; x <= endSectorX; x++) {
             const auto ScanToGrabSector = [&]<typename PtrListType>(PtrListType& ptrList) -> CEntity* {
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
-            auto scanResult1 = ScanToGrabSector(GetSector(x, y)->m_buildings);
-            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Objects);
+            auto scanResult1 = ScanToGrabSector(CWorld::GetSector(x, y).Buildings);
+            auto scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Objects);
             if (!scanResult2) {
-                scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Vehicles);
+                scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Vehicles);
             }
 
             if (scanResult1 == (CEntity*)(1) || scanResult2 == (CEntity*)(1)) {
@@ -585,8 +585,8 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
         CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
         ped->SetMoveState(PEDMOVE_STILL);
         ped->SetMoveAnim();
-        if (ped->m_pPlayerData) {
-            ped->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+        if (ped->GetPlayerData()) {
+            ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         }
         if (m_Anim) {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
@@ -611,7 +611,7 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
 
     if (m_Anim) {
         m_Anim->SetDeleteCallback(DeleteAnimCB, this);
-        if (ped->m_pPlayerData && m_Anim->m_Flags & ANIMATION_IS_PLAYING && (m_Anim->m_AnimId == ANIM_ID_CLIMB_PULL || m_Anim->m_AnimId == ANIM_ID_CLIMB_STAND || m_Anim->m_AnimId == ANIM_ID_CLIMB_JUMP_B)) {
+        if (ped->GetPlayerData() && m_Anim->m_Flags & ANIMATION_IS_PLAYING && (m_Anim->m_AnimId == ANIM_ID_CLIMB_PULL || m_Anim->m_AnimId == ANIM_ID_CLIMB_STAND || m_Anim->m_AnimId == ANIM_ID_CLIMB_JUMP_B)) {
             m_Anim->m_Speed = CStats::GetFatAndMuscleModifier(STAT_MOD_1);
         }
     }

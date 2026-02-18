@@ -214,11 +214,11 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
     _rwD3D9EnableClippingIfNeeded(atomic, type);
 
     const auto atmFlags = CVisibilityPlugins::GetAtomicId(atomic);
-    const auto noReflections = (atmFlags & (ATOMIC_IS_BLOWN_UP | ATOMIC_DISABLE_REFLECTIONS)) != 0;
+    const auto noReflections = (atmFlags & (ATOMIC_PIPE_NO_EXTRA_PASSES_LOD | ATOMIC_UNIQUE_MATERIALS)) != 0;
 
     // Fixed blown up car rendering ("DarkVehiclesFix")
     // Credit: SilentPatch
-    const auto isBlownUp = notsa::IsFixBugs() && (atmFlags & ATOMIC_IS_BLOWN_UP) && !(RpLightGetFlags(pDirect) & rpLIGHTLIGHTATOMICS);
+    const auto isBlownUp = notsa::IsFixBugs() && (atmFlags & ATOMIC_PIPE_NO_EXTRA_PASSES_LOD) && !(RpLightGetFlags(pDirect) & rpLIGHTLIGHTATOMICS);
 
     DWORD isLightingEnabled = 0;
     RwD3D9GetRenderState(D3DRS_LIGHTING, &isLightingEnabled);

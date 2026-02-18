@@ -129,7 +129,7 @@ void CTaskSimpleJump::Launch(CPed* ped) {
 
     float fJumpForce = (ped->IsPlayer() || m_bHighJump) ? 8.5F : 4.5F;
 
-    if (ped->m_pPlayerData) {
+    if (ped->GetPlayerData()) {
         float modifier = CStats::GetFatAndMuscleModifier(STAT_MOD_2);
         fHorizontalJumpSpeed *= modifier;
         fJumpForce *= modifier;
@@ -217,7 +217,7 @@ bool CTaskSimpleJump::StartLaunchAnim(CPed* ped) {
 
     m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, fMoveAnimBlendAmount >= 0.5F ? ANIM_ID_JUMP_LAUNCH_R : ANIM_ID_JUMP_LAUNCH, 8.0F);
 
-    if (ped->m_pPlayerData)
+    if (ped->GetPlayerData())
         m_pAnim->m_Speed = CStats::GetFatAndMuscleModifier(STAT_MOD_2);
     m_pAnim->SetFinishCallback(JumpAnimFinishCB, this);
     ped->m_fAimingRotation = ped->m_fCurrentRotation;

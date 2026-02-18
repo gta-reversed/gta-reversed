@@ -166,7 +166,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         if (CCarEnterExit::IsCarDoorInUse(m_Car, m_TargetDoor, m_TargetDoorOppositeToFlag)) { // 0x63EC24
             ped->SetMoveState(PEDMOVE_STILL);
             if (ped->IsPlayer()) {
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.f;
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.f;
                 ped->AsPlayer()->SetRealMoveAnim();
             } else {
                 ped->SetMoveAnim();

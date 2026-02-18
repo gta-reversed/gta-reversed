@@ -236,7 +236,7 @@ void CBoat::AddWakePoint(CVector pos) {
     // Determine max wake points based on entity status
     uint16 uiMaxWakePoints = 31;
     if (GetStatus() != STATUS_PLAYER) {
-        if (m_nCreatedBy == eVehicleCreatedBy::MISSION_VEHICLE) {
+        if (GetCreatedBy() == eVehicleCreatedBy::MISSION_VEHICLE) {
             uiMaxWakePoints = 20;
         } else {
             uiMaxWakePoints = 15;
@@ -1023,7 +1023,7 @@ void CBoat::BlowUpCar(CEntity* culprit, bool inACutscene) {
 
     physicalFlags.bRenderScorched = true;
     SetStatus(STATUS_WRECKED);
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
     m_vecMoveSpeed.z += 0.13F;
     m_fHealth = 0.0F;
     m_wBombTimer = 0;

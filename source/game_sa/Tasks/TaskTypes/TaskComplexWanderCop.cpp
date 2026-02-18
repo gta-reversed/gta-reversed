@@ -154,8 +154,8 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
     CPlayerPed* player = FindPlayerPed();
 
     CWanted* wanted = nullptr;
-    if (player->m_pPlayerData) {
-        wanted = player->m_pPlayerData->m_pWanted;
+    if (player->GetPlayerData()) {
+        wanted = player->GetPlayerWanted();
     }
 
     if (wanted && !wanted->m_nWantedLevel && player->m_pVehicle) {
