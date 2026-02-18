@@ -57,10 +57,7 @@ void CLoadMonitor::EndFrame() {
 
     // 0x53D143 - 0x53D1D3
     for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
-        if (m_iCyclesThisFrame[t] > m_iMaxCycles[t]) {
-            m_iMaxCycles[t] = m_iCyclesThisFrame[t];
-        }
-
+        m_iMaxCycles[t] = std::max(m_iMaxCycles[t], m_iCyclesThisFrame[t]);
         m_fAveragedCyclesThisSecond[t] += (float)m_iCyclesThisFrame[t];
     }
 
@@ -88,13 +85,10 @@ void CLoadMonitor::EndFrame() {
 
         m_NumFramesThisSec = 0;
 
-        for (auto t = 0u; t < +eLoadType::NUM_LOAD_TYPES; t++) {
-            for (auto i = 7u; i > 0; i--) {
-                m_iCyclesHistory[t][i] = m_iCyclesHistory[t][i - 1];
-            }
-
-            m_iCyclesHistory[t][0] = (uint32)m_fAveragedCyclesThisSecond[t];
-            m_fAveragedCyclesThisSecond[t] = 0.f;
+        for (auto&& [ch, acts] : rngv::zip(m_iCyclesHistory, m_fAveragedCyclesThisSecond)) {
+            std::shift_right(std::begin(ch), std::end(ch), 1);
+            ch[0] = (uint32)acts;
+            acts = 0.0f;
         }
 
         m_eProcLevel = eProcessingLevel::OK;
@@ -148,6 +142,7 @@ void CLoadMonitor::EndTimer(eLoadType timerIndex) {
 }
 
 // debug function?
+// See LoadMonitorDebugModule
 // 0x53D480
 void CLoadMonitor::Render() {
     // NOP
