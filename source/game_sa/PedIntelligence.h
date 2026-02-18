@@ -163,9 +163,9 @@ public:
     CEventScanner&   GetEventScanner()                 { return m_eventScanner; }
     CPedScanner&     GetPedScanner()                   { return m_pedScanner; }
     CVehicleScanner& GetVehicleScanner()               { return m_vehicleScanner; }
-    CEntity**        GetPedEntities()                  { return m_pedScanner.GetEntitiesInRange().data(); }     // 0x4893E0
+    CEntity**        GetPedEntities()                  { return m_pedScanner.GetEntitiesInRange(); }     // 0x4893E0
     CEntity*         GetPedEntity(uint32 index)        { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
-    CEntity**        GetVehicleEntities()              { return m_vehicleScanner.GetEntitiesInRange().data(); }
+    CEntity**        GetVehicleEntities()              { return m_vehicleScanner.GetEntitiesInRange(); }
     auto&            GetStuckChecker(this auto&& self) { return self.m_pedStuckChecker; }
 
 private:

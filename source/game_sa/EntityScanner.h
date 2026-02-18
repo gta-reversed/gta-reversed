@@ -22,7 +22,11 @@ static constexpr size_t MAX_NUM_ENTITIES = 16; // Mobile
 class CEntityScanner {
 protected:
     CTickCounter m_timer;
+
+public: // NOTE: It's too much of a headache
     std::array<CEntity*, MAX_NUM_ENTITIES> m_apEntities; /// SEEMINGLY: The array might have "holes" in it, also it's sorted by distance (closer to further)
+
+protected:
     CEntity* m_pClosestEntityInRange;
 
 public:
@@ -34,8 +38,8 @@ public:
     CEntityScanner();
     ~CEntityScanner();
 
-    std::span<CEntity*> GetEntitiesInRange() { // NOTSA modificated
-        return { m_apEntities.data(), m_apEntities.size() };
+    CEntity** GetEntitiesInRange() {
+        return m_apEntities.data();
     }
 
     // unused
