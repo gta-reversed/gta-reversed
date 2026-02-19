@@ -584,8 +584,16 @@ auto HasCarBeenDamagedByWeapon(CVehicle* vehicle, eWeaponType weaponType) {
 }
 
 /// START_CAR_FIRE
-//auto StartCarFire(CVehicle& vehicle) {
-//}
+auto StartCarFire(CVehicle& vehicle) {
+    return gFireManager.StartScriptFire(
+        vehicle.GetPosition(),
+        &vehicle,
+        0.8f,
+        1,
+        0,
+        1
+    );
+}
 
 /// GET_RANDOM_CAR_OF_TYPE_IN_AREA
 //auto GetRandomCarOfTypeInArea(CVehicle& vehicle) {
@@ -1338,7 +1346,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_X, GetCarForwardX);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_Y, GetCarForwardY);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_WEAPON, HasCarBeenDamagedByWeapon);
-    // REGISTER_COMMAND_HANDLER(COMMAND_START_CAR_FIRE, StartCarFire);
+    REGISTER_COMMAND_HANDLER(COMMAND_START_CAR_FIRE, StartCarFire);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_OF_TYPE_IN_AREA, GetRandomCarOfTypeInArea);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_VISIBLE, SetCarVisible);
     // REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
