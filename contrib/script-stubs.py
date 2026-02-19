@@ -1,4 +1,5 @@
 import argparse
+import io
 from pathlib import Path
 import re
 import requests
@@ -12,6 +13,7 @@ arg_parser.add_argument("--output", "-o", help="Output file for the generated st
 arg_parser.add_argument("--klass", help="Regex pattern to match class names", default=None)
 arg_parser.add_argument("--extension", help="Regex pattern to match extension names", default='default')
 arg_parser.add_argument('--with-handlers', action='store_true', help="Generate `REGISTER_COMMAND_HANDLER` stubs for the commands")
+arg_parser.add_argument('--commented-out', action='store_true', help="Comment out the generated stubs")
 args = arg_parser.parse_args()
 
 TYPE_MAPPING = {
@@ -21,6 +23,7 @@ TYPE_MAPPING = {
     'Boat': 'CBoat&',
     'model_char': 'eModelID',
     'model_vehicle': 'eModelID',
+    'string': 'std::string_view',
 }
 
 Meta = TypedDict('Meta', {
@@ -92,6 +95,10 @@ def main():
     def get_handler_name(command: Command) -> str:
         return ''.join(v.capitalize() for v in command['name'].split('_'))
     
+    def write_code_line(f: io.TextIOWrapper, line: str, indent_level: int = 0):
+        indent = '    ' * indent_level
+        f.write(f'{"// " if args.commented_out else ""}{indent}{line}\n')
+    
     with output_path.open('w', encoding='utf-8') as f:
         for cmd in commands:
             input_params = [
@@ -128,19 +135,20 @@ def main():
                 f.write(' * \n')
                 for param in input_params:
                     f.write(f' * @param {param["name"]} {param["type"]}\n')
-            f.write(' */\n')    
-            f.write(f"{return_type} {get_handler_name(cmd)}({', '.join(f"{param['type']} {param['name']}" for param in input_params)}) {{\n")
+            f.write(' */\n')
+            
+            write_code_line(f, f"{return_type} {get_handler_name(cmd)}({', '.join(f"{param['type']} {param['name']}" for param in input_params)}) {{")
             if 'attrs' in cmd and cmd['attrs'].get('nop', False) or cmd.get('short_desc') == 'Does nothing':
-                f.write('    /* no-op */\n')
+                write_code_line(f, '/* no-op */', 1)
             else:
-                f.write('    NOTSA_UNREACHABLE("Not implemented");\n')
-            f.write('}\n')
+                write_code_line(f, 'NOTSA_UNREACHABLE("Not implemented");', 1)
+            write_code_line(f, '}', 0)
             f.write('\n')
            
     with output_path.with_stem(f'{output_path.stem}.handlers').open('w', encoding='utf-8') as f:
         if args.with_handlers:
             for cmd in commands:
-                f.write(f'REGISTER_COMMAND_HANDLER(COMMAND_{cmd["name"]}, {get_handler_name(cmd)});\n')
+                write_code_line(f, f'REGISTER_COMMAND_HANDLER({cmd["name"]}, {get_handler_name(cmd)});', 1)
 
     print(f'Generated stubs for {len(commands)} commands in `{output_path.absolute()}`')
 
