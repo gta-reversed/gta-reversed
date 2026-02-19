@@ -556,8 +556,9 @@ auto CarGotoCoordinatesAccurate(CVehicle& vehicle, CVector where) {
 }
 
 /// IS_CAR_ON_SCREEN
-//auto IsCarOnScreen(CVehicle& vehicle) {
-//}
+auto IsCarOnScreen(CVehicle& vehicle) {
+    return vehicle.GetIsOnScreen();
+}
 
 /// GET_CAR_FORWARD_X
 //auto GetCarForwardX(CVehicle& vehicle) {
@@ -1322,7 +1323,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ONLY_DAMAGED_BY_PLAYER, SetCarOnlyDamagedByPlayer);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_SCREEN, IsCarOnScreen);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_SCREEN, IsCarOnScreen);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_X, GetCarForwardX);
     // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_Y, getCarForwardY);
     // REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_WEAPON, hasCarBeenDamagedByWeapon);
