@@ -629,8 +629,9 @@ auto GetRandomCarOfTypeInArea(CRunningScript& S, CVehicle& vehicle, float minX, 
 }
 
 /// SET_CAR_VISIBLE
-//auto SetCarVisible(CVehicle& vehicle) {
-//}
+auto SetCarVisible(CVehicle& vehicle, bool visible) {
+    vehicle.SetIsVisible(visible);
+}
 
 /// PLACE_OBJECT_RELATIVE_TO_CAR
 //auto PlaceObjectRelativeToCar(CVehicle& vehicle) {
@@ -1377,7 +1378,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_WEAPON, HasCarBeenDamagedByWeapon);
     REGISTER_COMMAND_HANDLER(COMMAND_START_CAR_FIRE, StartCarFire);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_OF_TYPE_IN_AREA, GetRandomCarOfTypeInArea);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_VISIBLE, SetCarVisible);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_VISIBLE, SetCarVisible);
     // REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_CAR_SIREN, SwitchCarSiren);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
