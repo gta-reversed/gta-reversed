@@ -76,20 +76,23 @@ Definitions = TypedDict('Definitions', {
 def main():
     definitions: Definitions = requests.get(args.input, timeout=15).json()
     
+    output_path = Path(args.output)
+
+    commands = [
+        command
+        for extension in definitions['extensions']
+            if not args.extension or re.search(args.extension, extension['name'])
+        for command in extension['commands']
+            if re.search(args.commands_pattern, command['name']) and
+                (not args.klass or ('class' in command and re.search(args.klass, command['class'])))
+    ]
+    if not commands:
+        return print("No commands matched the given criteria")
+
     def get_handler_name(command: Command) -> str:
         return ''.join(v.capitalize() for v in command['name'].split('_'))
     
-    output_path = Path(args.output)
-    
     with output_path.open('w', encoding='utf-8') as f:
-        commands = [
-            command
-            for extension in definitions['extensions']
-                if not args.extension or re.search(args.extension, extension['name'])
-            for command in extension['commands']
-                if re.search(args.commands_pattern, command['name']) and
-                    (not args.klass or ('class' in command and re.search(args.klass, command['class'])))
-        ]
         for cmd in commands:
             input_params = [
                 {
@@ -138,6 +141,8 @@ def main():
         if args.with_handlers:
             for cmd in commands:
                 f.write(f'REGISTER_COMMAND_HANDLER({cmd["name"]}, {get_handler_name(cmd)});\n')
+
+    print(f'Generated stubs for {len(commands)} commands in `{output_path.absolute()}`')
 
 if __name__ == "__main__":
     main()
