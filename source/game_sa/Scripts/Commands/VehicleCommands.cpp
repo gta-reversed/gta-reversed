@@ -643,666 +643,1727 @@ auto SwitchCarSiren(CVehicle& vehicle, bool state) {
     vehicle.vehicleFlags.bSirenOrAlarm = state;
 }
 
-/// SET_CAR_WATERTIGHT
-//auto SetCarWatertight(CVehicle& vehicle) {
-//}
-
-/// TURN_CAR_TO_FACE_COORD
-//auto TurnCarToFaceCoord(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_STATUS
-//auto SetCarStatus(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_STRONG
-//auto SetCarStrong(CVehicle& vehicle) {
-//}
-
-/// CLEAR_AREA_OF_CARS
-//auto ClearAreaOfCars(CVehicle& vehicle) {
-//}
-
-/// CREATE_RANDOM_CAR_FOR_CAR_PARK
-//auto CreateRandomCarForCarPark(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_VISIBLY_DAMAGED
-//auto IsCarVisiblyDamaged(CVehicle& vehicle) {
-//}
-
-/// SET_UPSIDEDOWN_CAR_NOT_DAMAGED
-//auto SetUpsidedownCarNotDamaged(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_COLOURS
-//auto GetCarColours(CVehicle& vehicle) {
-//}
-
-/// SET_ALL_CARS_CAN_BE_DAMAGED
-//auto SetAllCarsCanBeDamaged(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_CAN_BE_DAMAGED
-//auto SetCarCanBeDamaged(CVehicle& vehicle) {
-//}
-
-/// GET_OFFSET_FROM_CAR_IN_WORLD_COORDS
-//auto GetOffsetFromCarInWorldCoords(CVehicle& vehicle) {
-//}
-
-/// SET_FREE_HEALTH_CARE
-//auto SetFreeHealthCare(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_TRACTION
-//auto SetCarTraction(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_AVOID_LEVEL_TRANSITIONS
-//auto SetCarAvoidLevelTransitions(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_PASSENGER_SEAT_FREE
-//auto IsCarPassengerSeatFree(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_MODEL
-//auto GetCarModel(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_STAY_IN_FAST_LANE
-//auto SetCarStayInFastLane(CVehicle& vehicle) {
-//}
-
-/// CLEAR_CAR_LAST_WEAPON_DAMAGE
-//auto ClearCarLastWeaponDamage(CVehicle& vehicle) {
-//}
-
-/// GET_DRIVER_OF_CAR
-//auto GetDriverOfCar(CVehicle& vehicle) {
-//}
-
-/// LOCATE_CHAR_IN_CAR_OBJECT_2D
-//auto LocateCharInCarObject2D(CVehicle& vehicle) {
-//}
-
-/// LOCATE_CHAR_IN_CAR_OBJECT_3D
-//auto LocateCharInCarObject3D(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_TEMP_ACTION
-//auto SetCarTempAction(CVehicle& vehicle) {
-//}
-
-/// GET_REMOTE_CONTROLLED_CAR
-//auto GetRemoteControlledCar(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_RANDOM_ROUTE_SEED
-//auto SetCarRandomRouteSeed(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_ON_FIRE
-//auto IsCarOnFire(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_TYRE_BURST
-//auto IsCarTyreBurst(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_FORWARD_SPEED
-//auto SetCarForwardSpeed(CVehicle& vehicle) {
-//}
-
-/// MARK_CAR_AS_CONVOY_CAR
-//auto MarkCarAsConvoyCar(CVehicle& vehicle) {
-//}
-
-/// GET_NTH_CLOSEST_CAR_NODE
-//auto GetNthClosestCarNode(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_STRAIGHT_LINE_DISTANCE
-//auto SetCarStraightLineDistance(CVehicle& vehicle) {
-//}
-
-/// POP_CAR_BOOT
-//auto PopCarBoot(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_WAITING_FOR_WORLD_COLLISION
-//auto IsCarWaitingForWorldCollision(CVehicle& vehicle) {
-//}
-
-/// BURST_CAR_TYRE
-//auto BurstCarTyre(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_MODEL_COMPONENTS
-//auto SetCarModelComponents(CVehicle& vehicle) {
-//}
-
-/// CLOSE_ALL_CAR_DOORS
-//auto CloseAllCarDoors(CVehicle& vehicle) {
-//}
-
-/// SORT_OUT_OBJECT_COLLISION_WITH_CAR
-//auto SortOutObjectCollisionWithCar(CVehicle& vehicle) {
-//}
-
-/// FREEZE_CAR_POSITION
-//auto FreezeCarPosition(CVehicle& vehicle) {
-//}
-
-/// HAS_CAR_BEEN_DAMAGED_BY_CHAR
-//auto HasCarBeenDamagedByChar(CVehicle& vehicle) {
-//}
-
-/// HAS_CAR_BEEN_DAMAGED_BY_CAR
-//auto HasCarBeenDamagedByCar(CVehicle& vehicle) {
-//}
-
-/// GET_RANDOM_CAR_OF_TYPE_IN_AREA_NO_SAVE
-//auto GetRandomCarOfTypeInAreaNoSave(CVehicle& vehicle) {
-//}
-
-/// SET_CAN_BURST_CAR_TYRES
-//auto SetCanBurstCarTyres(CVehicle& vehicle) {
-//}
-
-/// CLEAR_CAR_LAST_DAMAGE_ENTITY
-//auto ClearCarLastDamageEntity(CVehicle& vehicle) {
-//}
-
-/// FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION
-//auto FreezeCarPositionAndDontLoadCollision(CVehicle& vehicle) {
-//}
-
-/// SET_LOAD_COLLISION_FOR_CAR_FLAG
-//auto SetLoadCollisionForCarFlag(CVehicle& vehicle) {
-//}
-
-/// SHUFFLE_CARD_DECKS
-//auto ShuffleCardDecks(CVehicle& vehicle) {
-//}
-
-/// FETCH_NEXT_CARD
-//auto FetchNextCard(CVehicle& vehicle) {
-//}
-
-/// TASK_ENTER_CAR_AS_PASSENGER
-//auto TaskEnterCarAsPassenger(CVehicle& vehicle) {
-//}
-
-/// TASK_ENTER_CAR_AS_DRIVER
-//auto TaskEnterCarAsDriver(CVehicle& vehicle) {
-//}
-
-/// TASK_LEAVE_CAR
-//auto TaskLeaveCar(CVehicle& vehicle) {
-//}
-
-/// TASK_LEAVE_CAR_AND_FLEE
-//auto TaskLeaveCarAndFlee(CVehicle& vehicle) {
-//}
-
-/// TASK_CAR_DRIVE_TO_COORD
-//auto TaskCarDriveToCoord(CVehicle& vehicle) {
-//}
-
-/// TASK_CAR_DRIVE_WANDER
-//auto TaskCarDriveWander(CVehicle& vehicle) {
-//}
-
-/// START_PLAYBACK_RECORDED_CAR
-//auto StartPlaybackRecordedCar(CVehicle& vehicle) {
-//}
-
-/// STOP_PLAYBACK_RECORDED_CAR
-//auto StopPlaybackRecordedCar(CVehicle& vehicle) {
-//}
-
-/// PAUSE_PLAYBACK_RECORDED_CAR
-//auto PausePlaybackRecordedCar(CVehicle& vehicle) {
-//}
-
-/// UNPAUSE_PLAYBACK_RECORDED_CAR
-//auto UnpausePlaybackRecordedCar(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ESCORT_CAR_LEFT
-//auto SetCarEscortCarLeft(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ESCORT_CAR_RIGHT
-//auto SetCarEscortCarRight(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ESCORT_CAR_REAR
-//auto SetCarEscortCarRear(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ESCORT_CAR_FRONT
-//auto SetCarEscortCarFront(CVehicle& vehicle) {
-//}
-
-/// IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_2D
-//auto IsCharStoppedInAngledAreaInCar2D(CVehicle& vehicle) {
-//}
-
-/// IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_3D
-//auto IsCharStoppedInAngledAreaInCar3D(CVehicle& vehicle) {
-//}
-
-/// IS_PLAYBACK_GOING_ON_FOR_CAR
-//auto IsPlaybackGoingOnForCar(CVehicle& vehicle) {
-//}
-
-/// TASK_LEAVE_CAR_IMMEDIATELY
-//auto TaskLeaveCarImmediately(CVehicle& vehicle) {
-//}
-
-/// TASK_LEAVE_ANY_CAR
-//auto TaskLeaveAnyCar(CVehicle& vehicle) {
-//}
-
-/// OPEN_CAR_DOOR
-//auto OpenCarDoor(CVehicle& vehicle) {
-//}
-
-/// CREATE_FX_SYSTEM_ON_CAR
-//auto CreateFxSystemOnCar(CVehicle& vehicle) {
-//}
-
-/// CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION
-//auto CreateFxSystemOnCarWithDirection(CVehicle& vehicle) {
-//}
-
-/// TASK_DESTROY_CAR
-//auto TaskDestroyCar(CVehicle& vehicle) {
-//}
-
-/// CUSTOM_PLATE_FOR_NEXT_CAR
-//auto CustomPlateForNextCar(CVehicle& vehicle) {
-//}
-
-/// TASK_SHUFFLE_TO_NEXT_CAR_SEAT
-//auto TaskShuffleToNextCarSeat(CVehicle& vehicle) {
-//}
-
-/// FORCE_CAR_LIGHTS
-//auto ForceCarLights(CVehicle& vehicle) {
-//}
-
-/// ATTACH_OBJECT_TO_CAR
-//auto AttachObjectToCar(CVehicle& vehicle) {
-//}
-
-/// ATTACH_CAR_TO_CAR
-//auto AttachCarToCar(CVehicle& vehicle) {
-//}
-
-/// DETACH_CAR
-//auto DetachCar(CVehicle& vehicle) {
-//}
-
-/// POP_CAR_DOOR
-//auto PopCarDoor(CVehicle& vehicle) {
-//}
-
-/// FIX_CAR_DOOR
-//auto FixCarDoor(CVehicle& vehicle) {
-//}
-
-/// TASK_EVERYONE_LEAVE_CAR
-//auto TaskEveryoneLeaveCar(CVehicle& vehicle) {
-//}
-
-/// POP_CAR_PANEL
-//auto PopCarPanel(CVehicle& vehicle) {
-//}
-
-/// FIX_CAR_PANEL
-//auto FixCarPanel(CVehicle& vehicle) {
-//}
-
-/// FIX_CAR_TYRE
-//auto FixCarTyre(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_SPEED_VECTOR
-//auto GetCarSpeedVector(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_MASS
-//auto GetCarMass(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_ROLL
-//auto GetCarRoll(CVehicle& vehicle) {
-//}
-
-/// SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR
-//auto SkipToEndAndStopPlaybackRecordedCar(CVehicle& vehicle) {
-//}
-
-/// TASK_CAR_TEMP_ACTION
-//auto TaskCarTempAction(CVehicle& vehicle) {
-//}
-
-/// TASK_CAR_MISSION
-//auto TaskCarMission(CVehicle& vehicle) {
-//}
-
-/// GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING
-//auto GetNthClosestCarNodeWithHeading(CVehicle& vehicle) {
-//}
-
-/// DOES_CAR_HAVE_STUCK_CAR_CHECK
-//auto DoesCarHaveStuckCarCheck(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_VALUE
-//auto GetCarValue(CVehicle& vehicle) {
-//}
-
-/// CAR_GOTO_COORDINATES_RACING
-//auto CarGotoCoordinatesRacing(CVehicle& vehicle) {
-//}
-
-/// START_PLAYBACK_RECORDED_CAR_USING_AI
-//auto StartPlaybackRecordedCarUsingAi(CVehicle& vehicle) {
-//}
-
-/// SKIP_IN_PLAYBACK_RECORDED_CAR
-//auto SkipInPlaybackRecordedCar(CVehicle& vehicle) {
-//}
-
-/// EXPLODE_CAR_IN_CUTSCENE
-//auto ExplodeCarInCutscene(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_STAY_IN_SLOW_LANE
-//auto SetCarStayInSlowLane(CVehicle& vehicle) {
-//}
-
-/// TAKE_REMOTE_CONTROL_OF_CAR
-//auto TakeRemoteControlOfCar(CVehicle& vehicle) {
-//}
-
-/// TASK_WARP_CHAR_INTO_CAR_AS_DRIVER
-//auto TaskWarpCharIntoCarAsDriver(CVehicle& vehicle) {
-//}
-
-/// TASK_WARP_CHAR_INTO_CAR_AS_PASSENGER
-//auto TaskWarpCharIntoCarAsPassenger(CVehicle& vehicle) {
-//}
-
-/// DAMAGE_CAR_PANEL
-//auto DamageCarPanel(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ROLL
-//auto SetCarRoll(CVehicle& vehicle) {
-//}
-
-/// SUPPRESS_CAR_MODEL
-//auto SuppressCarModel(CVehicle& vehicle) {
-//}
-
-/// DONT_SUPPRESS_CAR_MODEL
-//auto DontSuppressCarModel(CVehicle& vehicle) {
-//}
-
-/// DONT_SUPPRESS_ANY_CAR_MODELS
-//auto DontSuppressAnyCarModels(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_CAN_GO_AGAINST_TRAFFIC
-//auto SetCarCanGoAgainstTraffic(CVehicle& vehicle) {
-//}
-
-/// DAMAGE_CAR_DOOR
-//auto DamageCarDoor(CVehicle& vehicle) {
-//}
-
-/// GET_RANDOM_CAR_IN_SPHERE_NO_SAVE
-//auto GetRandomCarInSphereNoSave(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_AS_MISSION_CAR
-//auto SetCarAsMissionCar(CVehicle& vehicle) {
-//}
-
-/// CUSTOM_PLATE_DESIGN_FOR_NEXT_CAR
-//auto CustomPlateDesignForNextCar(CVehicle& vehicle) {
-//}
-
-/// TASK_GOTO_CAR
-//auto TaskGotoCar(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_PITCH
-//auto GetCarPitch(CVehicle& vehicle) {
-//}
-
-/// GET_TRAIN_CARRIAGE
-//auto GetTrainCarriage(CVehicle& vehicle) {
-//}
-
-/// REQUEST_CAR_RECORDING
-//auto RequestCarRecording(CVehicle& vehicle) {
-//}
-
-/// HAS_CAR_RECORDING_BEEN_LOADED
-//auto HasCarRecordingBeenLoaded(CVehicle& vehicle) {
-//}
-
-/// APPLY_FORCE_TO_CAR
-//auto ApplyForceToCar(CVehicle& vehicle) {
-//}
-
-/// ADD_TO_CAR_ROTATION_VELOCITY
-//auto AddToCarRotationVelocity(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ROTATION_VELOCITY
-//auto SetCarRotationVelocity(CVehicle& vehicle) {
-//}
-
-/// CONTROL_CAR_HYDRAULICS
-//auto ControlCarHydraulics(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_FOLLOW_CAR
-//auto SetCarFollowCar(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_HYDRAULICS
-//auto SetCarHydraulics(CVehicle& vehicle) {
-//}
-
-/// DOES_CAR_HAVE_HYDRAULICS
-//auto DoesCarHaveHydraulics(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ENGINE_BROKEN
-//auto SetCarEngineBroken(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_UPRIGHT_VALUE
-//auto GetCarUprightValue(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_CAN_BE_VISIBLY_DAMAGED
-//auto SetCarCanBeVisiblyDamaged(CVehicle& vehicle) {
-//}
-
-/// CREATE_EMERGENCY_SERVICES_CAR
-//auto CreateEmergencyServicesCar(CVehicle& vehicle) {
-//}
-
-/// START_PLAYBACK_RECORDED_CAR_LOOPED
-//auto StartPlaybackRecordedCarLooped(CVehicle& vehicle) {
-//}
-
-/// REMOVE_CAR_RECORDING
-//auto RemoveCarRecording(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_COORDINATES_NO_OFFSET
-//auto SetCarCoordinatesNoOffset(CVehicle& vehicle) {
-//}
-
-/// OPEN_CAR_DOOR_A_BIT
-//auto OpenCarDoorAbit(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_DOOR_FULLY_OPEN
-//auto IsCarDoorFullyOpen(CVehicle& vehicle) {
-//}
-
-/// EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS
-//auto ExplodeCarInCutsceneShakeAndBits(CVehicle& vehicle) {
-//}
-
-/// SET_PLANE_UNDERCARRIAGE_UP
-//auto SetPlaneUndercarriageUp(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_ENGINE_ON
-//auto SetCarEngineOn(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_LIGHTS_ON
-//auto SetCarLightsOn(CVehicle& vehicle) {
-//}
-
-/// GET_PLANE_UNDERCARRIAGE_POSITION
-//auto GetPlaneUndercarriagePosition(CVehicle& vehicle) {
-//}
-
-/// ATTACH_CAR_TO_OBJECT
-//auto AttachCarToObject(CVehicle& vehicle) {
-//}
-
-/// IS_CHAR_STUCK_UNDER_CAR
-//auto IsCharStuckUnderCar(CVehicle& vehicle) {
-//}
-
-/// CONTROL_CAR_DOOR
-//auto ControlCarDoor(CVehicle& vehicle) {
-//}
-
-/// STORE_CAR_MOD_STATE
-//auto StoreCarModState(CVehicle& vehicle) {
-//}
-
-/// RESTORE_CAR_MOD_STATE
-//auto RestoreCarModState(CVehicle& vehicle) {
-//}
-
-/// GET_CURRENT_CAR_MOD
-//auto GetCurrentCarMod(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_LOW_RIDER
-//auto IsCarLowRider(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_STREET_RACER
-//auto IsCarStreetRacer(CVehicle& vehicle) {
-//}
-
-/// GET_NUM_CAR_COLOURS
-//auto GetNumCarColours(CVehicle& vehicle) {
-//}
-
-/// SET_CHAR_FORCE_DIE_IN_CAR
-//auto SetCharForceDieInCar(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_BLOCKING_CAR
-//auto GetCarBlockingCar(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_MOVING_COMPONENT_OFFSET
-//auto GetCarMovingComponentOffset(CVehicle& vehicle) {
-//}
-
-/// SET_CAR_COLLISION
-//auto SetCarCollision(CVehicle& vehicle) {
-//}
-
-/// GET_RANDOM_CAR_MODEL_IN_MEMORY
-//auto GetRandomCarModelInMemory(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_DOOR_LOCK_STATUS
-//auto GetCarDoorLockStatus(CVehicle& vehicle) {
-//}
-
-/// DISPLAY_CAR_NAMES
-//auto DisplayCarNames(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_DOOR_DAMAGED
-//auto IsCarDoorDamaged(CVehicle& vehicle) {
-//}
-
-/// SET_FORCE_RANDOM_CAR_MODEL
-//auto SetForceRandomCarModel(CVehicle& vehicle) {
-//}
-
-/// GET_RANDOM_CAR_OF_TYPE_IN_ANGLED_AREA_NO_SAVE
-//auto GetRandomCarOfTypeInAngledAreaNoSave(CVehicle& vehicle) {
-//}
-
-/// IS_CAR_TOUCHING_CAR
-//auto IsCarTouchingCar(CVehicle& vehicle) {
-//}
-
-/// GET_CAR_MODEL_VALUE
-//auto GetCarModelValue(CVehicle& vehicle) {
-//}
-
-/// CREATE_CAR_GENERATOR_WITH_PLATE
-//auto CreateCarGeneratorWithPlate(CVehicle& vehicle) {
-//}
-
-/// SET_AIRCRAFT_CARRIER_SAM_SITE
-//auto SetAircraftCarrierSamSite(CVehicle& vehicle) {
-//}
-
-/// GIVE_NON_PLAYER_CAR_NITRO
-//auto GiveNonPlayerCarNitro(CVehicle& vehicle) {
-//}
-
-/// IS_THIS_MODEL_A_CAR
-//auto IsThisModelAcar(CVehicle& vehicle) {
-//}
-
-/// SET_EXTRA_CAR_COLOURS
-//auto SetExtraCarColours(CVehicle& vehicle) {
-//}
-
-/// HAS_CAR_BEEN_RESPRAYED
-//auto HasCarBeenResprayed(CVehicle& vehicle) {
-//}
-
-/// IMPROVE_CAR_BY_CHEATING
-//auto ImproveCarByCheating(CVehicle& vehicle) {
-//}
-
-/// CHANGE_CAR_COLOUR_FROM_MENU
-//auto ChangeCarColourFromMenu(CVehicle& vehicle) {
-//}
-
-/// FIX_CAR
-//auto FixCar(CVehicle& vehicle) {
-//}
-
+/*
+* @opcode 039C
+* @command SET_CAR_WATERTIGHT
+* @class Car
+* @method SetWatertight
+* 
+* @brief Makes the vehicle watertight, meaning characters inside will not be harmed if the vehicle is submerged in water
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarWatertight(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 039F
+* @command TURN_CAR_TO_FACE_COORD
+* @class Car
+* @method TurnToFaceCoord
+* 
+* @brief Sets the car's heading so that it is facing the 2D coordinate
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+*/
+// void TurnCarToFaceCoord(CVehicle& self, CVector2D vec1) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 03A2
+* @command SET_CAR_STATUS
+* @class Car
+* @method SetStatus
+* 
+* @brief Sets the car's status
+* 
+* @param self CVehicle&
+* @param status eEntityStatus
+*/
+// void SetCarStatus(CVehicle& self, eEntityStatus status) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 03AB
+* @command SET_CAR_STRONG
+* @class Car
+* @method SetStrong
+* 
+* @brief Defines whether the car is more resistant to collisions than normal
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarStrong(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 03C9
+* @command IS_CAR_VISIBLY_DAMAGED
+* @class Car
+* @method IsVisiblyDamaged
+* 
+* @brief Returns true if any of the car components is visibly damaged or lost
+* 
+* @param self CVehicle&
+*/
+// void IsCarVisiblyDamaged(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 03ED
+* @command SET_UPSIDEDOWN_CAR_NOT_DAMAGED
+* @class Car
+* @method SetUpsidedownNotDamaged
+* 
+* @brief Disables the car from exploding when it is upside down, as long as the player is not in the vehicle
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetUpsidedownCarNotDamaged(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 03F3
+* @command GET_CAR_COLOURS
+* @class Car
+* @method GetColors
+* 
+* @brief Gets the car's primary and secondary colors
+* 
+* @param self CVehicle&
+*/
+// notsa::script::MultiRet<int, int> GetCarColours(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 03F5
+* @command SET_CAR_CAN_BE_DAMAGED
+* @class Car
+* @method SetCanBeDamaged
+* 
+* @brief Sets whether the car receives damage
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarCanBeDamaged(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0407
+* @command GET_OFFSET_FROM_CAR_IN_WORLD_COORDS
+* @class Car
+* @method GetOffsetInWorldCoords
+* 
+* @brief Returns the coordinates of an offset of the vehicle's position, depending on the vehicle's rotation
+* 
+* @param self CVehicle&
+* @param xOffset float
+* @param yOffset float
+* @param zOffset float
+*/
+// notsa::script::MultiRet<float, float, float> GetOffsetFromCarInWorldCoords(CVehicle& self, CVector offset) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0423
+* @command SET_CAR_TRACTION
+* @class Car
+* @method SetTraction
+* 
+* @brief Overrides the default AI controlled vehicle traction value of 1.0
+* 
+* @param self CVehicle&
+* @param traction float
+*/
+// void SetCarTraction(CVehicle& self, float traction) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0428
+* @command SET_CAR_AVOID_LEVEL_TRANSITIONS
+* @class Car
+* @method SetAvoidLevelTransitions
+* 
+* @brief Sets whether the vehicle will avoid paths between levels (0426)
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0431
+* @command IS_CAR_PASSENGER_SEAT_FREE
+* @class Car
+* @method IsPassengerSeatFree
+* 
+* @brief Returns true if the specified car seat is empty
+* 
+* @param self CVehicle&
+* @param seat eSeatId
+*/
+// void IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0441
+* @command GET_CAR_MODEL
+* @class Car
+* @method GetModel
+* 
+* @brief Returns the car's model id
+* 
+* @param self CVehicle&
+*/
+// eModelID GetCarModel(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0466
+* @command SET_CAR_STAY_IN_FAST_LANE
+* @class Car
+* @method SetStayInFastLane
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarStayInFastLane(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0468
+* @command CLEAR_CAR_LAST_WEAPON_DAMAGE
+* @class Car
+* @method ClearLastWeaponDamage
+* 
+* @brief Clears the vehicle's last weapon damage (see 031E)
+* 
+* @param self CVehicle&
+*/
+// void ClearCarLastWeaponDamage(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 046C
+* @command GET_DRIVER_OF_CAR
+* @class Car
+* @method GetDriver
+* 
+* @brief Returns the car's driver handle
+* 
+* @param self CVehicle&
+*/
+// CPed& GetDriverOfCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0477
+* @command SET_CAR_TEMP_ACTION
+* @class Car
+* @method SetTempAction
+* 
+* @brief Makes the AI driver perform the action in the vehicle for the specified period of time
+* 
+* @param self CVehicle&
+* @param actionId eTempAction
+* @param time int
+*/
+// void SetCarTempAction(CVehicle& self, eTempAction actionId, int time) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 048B
+* @command SET_CAR_RANDOM_ROUTE_SEED
+* @class Car
+* @method SetRandomRouteSeed
+* 
+* @brief Sets the car on a specific route
+* 
+* @param self CVehicle&
+* @param routeSeed int
+*/
+// void SetCarRandomRouteSeed(CVehicle& self, int routeSeed) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0495
+* @command IS_CAR_ON_FIRE
+* @class Car
+* @method IsOnFire
+* 
+* @brief Returns true if the car is burning
+* 
+* @param self CVehicle&
+*/
+// void IsCarOnFire(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0496
+* @command IS_CAR_TYRE_BURST
+* @class Car
+* @method IsTireBurst
+* 
+* @brief Returns true if a given tire on the car is deflated
+* 
+* @param self CVehicle&
+* @param tireId eWheelId
+*/
+// void IsCarTyreBurst(CVehicle& self, eWheelId tireId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 04BA
+* @command SET_CAR_FORWARD_SPEED
+* @class Car
+* @method SetForwardSpeed
+* 
+* @brief Sets the speed of the car
+* 
+* @param self CVehicle&
+* @param forwardSpeed float
+*/
+// void SetCarForwardSpeed(CVehicle& self, float forwardSpeed) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 04BD
+* @command MARK_CAR_AS_CONVOY_CAR
+* @class Car
+* @method MarkAsConvoyCar
+* 
+* @brief Marks the car as being part of a convoy, which seems to follow a path set by 0994
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void MarkCarAsConvoyCar(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 04E0
+* @command SET_CAR_STRAIGHT_LINE_DISTANCE
+* @class Car
+* @method SetStraightLineDistance
+* 
+* @brief Sets the minimum distance for the AI driver to start ignoring car paths and go straight to the target
+* 
+* @param self CVehicle&
+* @param distance int
+*/
+// void SetCarStraightLineDistance(CVehicle& self, int distance) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 04E1
+* @command POP_CAR_BOOT
+* @class Car
+* @method PopBoot
+* 
+* @brief Opens the car's trunk and keeps it open
+* 
+* @param self CVehicle&
+*/
+// void PopCarBoot(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 04F1
+* @command IS_CAR_WAITING_FOR_WORLD_COLLISION
+* @class Car
+* @method IsWaitingForWorldCollision
+* 
+* @brief 
+* 
+* @param self CVehicle&
+*/
+// void IsCarWaitingForWorldCollision(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 04FE
+* @command BURST_CAR_TYRE
+* @class Car
+* @method BurstTire
+* 
+* @brief Deflates the car's tire
+* 
+* @param self CVehicle&
+* @param tireId eWheelId
+*/
+// void BurstCarTyre(CVehicle& self, eWheelId tireId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0506
+* @command SET_CAR_MODEL_COMPONENTS
+* @class Car
+* @method SetModelComponents
+* 
+* @brief Sets the variation of the next car to be created
+* 
+* @param _unused eModelID
+* @param component1 int
+* @param component2 int
+*/
+// void SetCarModelComponents(eModelID _unused, int component1, int component2) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0508
+* @command CLOSE_ALL_CAR_DOORS
+* @class Car
+* @method CloseAllDoors
+* 
+* @brief Closes all car doors, hoods and boots
+* 
+* @param self CVehicle&
+*/
+// void CloseAllCarDoors(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 050B
+* @command POP_CAR_BOOT_USING_PHYSICS
+* 
+* @brief Opens the trunk/boot door component of the vehicle
+*/
+// void PopCarBootUsingPhysics() {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0519
+* @command FREEZE_CAR_POSITION
+* @class Car
+* @method FreezePosition
+* 
+* @brief Locks the vehicle's position
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void FreezeCarPosition(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 051C
+* @command HAS_CAR_BEEN_DAMAGED_BY_CHAR
+* @class Car
+* @method HasBeenDamagedByChar
+* 
+* @brief Returns true if the car has been damaged by the specified char
+* 
+* @param self CVehicle&
+* @param handle CPed&
+*/
+// void HasCarBeenDamagedByChar(CVehicle& self, CPed& handle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 051D
+* @command HAS_CAR_BEEN_DAMAGED_BY_CAR
+* @class Car
+* @method HasBeenDamagedByCar
+* 
+* @brief Returns true if the vehicle has been damaged by another specified vehicle
+* 
+* @param self CVehicle&
+* @param other CVehicle&
+*/
+// void HasCarBeenDamagedByCar(CVehicle& self, CVehicle& other) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 053F
+* @command SET_CAN_BURST_CAR_TYRES
+* @class Car
+* @method SetCanBurstTires
+* 
+* @brief Sets whether the car's tires can be deflated
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCanBurstCarTyres(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 054F
+* @command CLEAR_CAR_LAST_DAMAGE_ENTITY
+* @class Car
+* @method ClearLastDamageEntity
+* 
+* @brief Clears the car's last damage entity
+* 
+* @param self CVehicle&
+*/
+// void ClearCarLastDamageEntity(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0574
+* @command FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION
+* @class Car
+* @method FreezePositionAndDontLoadCollision
+* 
+* @brief Makes the car maintain its position
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void FreezeCarPositionAndDontLoadCollision(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0587
+* @command SET_LOAD_COLLISION_FOR_CAR_FLAG
+* @class Car
+* @method SetLoadCollisionFlag
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetLoadCollisionForCarFlag(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 059D
+* @command SHUFFLE_CARD_DECKS
+* @class CardDecks
+* @method Shuffle
+* 
+* @brief 
+* 
+* @param type int
+*/
+// void ShuffleCardDecks(int type) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 059E
+* @command FETCH_NEXT_CARD
+* @class CardDecks
+* @method FetchNextCard
+* 
+* @brief Returns a random number between 1 and 52, inclusive
+*/
+// int FetchNextCard() {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05EB
+* @command START_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method StartPlayback
+* 
+* @brief Assigns a car to a path
+* 
+* @param self CVehicle&
+* @param path int
+*/
+// void StartPlaybackRecordedCar(CVehicle& self, int path) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05EC
+* @command STOP_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method StopPlayback
+* 
+* @brief Stops car from following path
+* 
+* @param self CVehicle&
+*/
+// void StopPlaybackRecordedCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05ED
+* @command PAUSE_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method PausePlayback
+* 
+* @brief Freezes the car on its path
+* 
+* @param self CVehicle&
+*/
+// void PausePlaybackRecordedCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05EE
+* @command UNPAUSE_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method UnpausePlayback
+* 
+* @brief Unfreezes the vehicle on its path
+* 
+* @param self CVehicle&
+*/
+// void UnpausePlaybackRecordedCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05F1
+* @command SET_CAR_ESCORT_CAR_LEFT
+* @class Car
+* @method SetEscortCarLeft
+* 
+* @brief Makes the vehicle stay on the other vehicle's left side, keeping parallel
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+*/
+// void SetCarEscortCarLeft(CVehicle& self, CVehicle& handle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05F2
+* @command SET_CAR_ESCORT_CAR_RIGHT
+* @class Car
+* @method SetEscortCarRight
+* 
+* @brief Makes the vehicle stay by the right side of the other vehicle, keeping parallel
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+*/
+// void SetCarEscortCarRight(CVehicle& self, CVehicle& handle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05F3
+* @command SET_CAR_ESCORT_CAR_REAR
+* @class Car
+* @method SetEscortCarRear
+* 
+* @brief Makes the vehicle stay behind the other car, keeping parallel
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+*/
+// void SetCarEscortCarRear(CVehicle& self, CVehicle& handle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 05F4
+* @command SET_CAR_ESCORT_CAR_FRONT
+* @class Car
+* @method SetEscortCarFront
+* 
+* @brief Makes the vehicle stay in front of the other, keeping parallel
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+*/
+// void SetCarEscortCarFront(CVehicle& self, CVehicle& handle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 060E
+* @command IS_PLAYBACK_GOING_ON_FOR_CAR
+* @class Car
+* @method IsPlaybackGoingOn
+* 
+* @brief Returns true if the car is assigned to a path
+* 
+* @param self CVehicle&
+*/
+// void IsPlaybackGoingOnForCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0657
+* @command OPEN_CAR_DOOR
+* @class Car
+* @method OpenDoor
+* 
+* @brief Opens the specified car door
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+// void OpenCarDoor(CVehicle& self, eCarDoor door) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0674
+* @command CUSTOM_PLATE_FOR_NEXT_CAR
+* @class Car
+* @method CustomPlateForNextCar
+* 
+* @brief Sets the numberplate of the next car to be spawned with the specified model
+* 
+* @param modelId eModelID
+* @param text std::string_view
+*/
+// void CustomPlateForNextCar(eModelID modelId, std::string_view text) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 067F
+* @command FORCE_CAR_LIGHTS
+* @class Car
+* @method ForceLights
+* 
+* @brief Sets an override for the car's lights
+* 
+* @param self CVehicle&
+* @param lightMode eCarLights
+*/
+// void ForceCarLights(CVehicle& self, eCarLights lightMode) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0683
+* @command ATTACH_CAR_TO_CAR
+* @class Car
+* @method AttachToCar
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+* @param xOffset float
+* @param yOffset float
+* @param zOffset float
+* @param xRotation float
+* @param yRotation float
+* @param zRotation float
+*/
+// void AttachCarToCar(CVehicle& self, CVehicle& handle, CVector offset, CVector rotation) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0684
+* @command DETACH_CAR
+* @class Car
+* @method Detach
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+* @param z float
+* @param collisionDetection bool
+*/
+// void DetachCar(CVehicle& self, CVector vec1, bool collisionDetection) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0689
+* @command POP_CAR_DOOR
+* @class Car
+* @method PopDoor
+* 
+* @brief Removes the specified car door component from the car
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+* @param visibility bool
+*/
+// void PopCarDoor(CVehicle& self, eCarDoor door, bool visibility) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 068A
+* @command FIX_CAR_DOOR
+* @class Car
+* @method FixDoor
+* 
+* @brief Repairs the car door
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+// void FixCarDoor(CVehicle& self, eCarDoor door) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 068B
+* @command TASK_EVERYONE_LEAVE_CAR
+* @class Car
+* @method TaskEveryoneLeave
+* 
+* @brief Makes all passengers of the car leave it
+* 
+* @param self CVehicle&
+*/
+// void TaskEveryoneLeaveCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0697
+* @command POP_CAR_PANEL
+* @class Car
+* @method PopPanel
+* 
+* @brief Detatches or deletes car's body part
+* 
+* @param self CVehicle&
+* @param panelId eCarPanel
+* @param drop bool
+*/
+// void PopCarPanel(CVehicle& self, eCarPanel panelId, bool drop) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0698
+* @command FIX_CAR_PANEL
+* @class Car
+* @method FixPanel
+* 
+* @brief Repairs or reinstalls car's body part
+* 
+* @param self CVehicle&
+* @param panelId eCarPanel
+*/
+// void FixCarPanel(CVehicle& self, eCarPanel panelId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0699
+* @command FIX_CAR_TYRE
+* @class Car
+* @method FixTire
+* 
+* @brief Repairs a car's tire
+* 
+* @param self CVehicle&
+* @param tireId eWheelId
+*/
+// void FixCarTyre(CVehicle& self, eWheelId tireId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 06A2
+* @command GET_CAR_SPEED_VECTOR
+* @class Car
+* @method GetSpeedVector
+* 
+* @brief 
+* 
+* @param self CVehicle&
+*/
+// notsa::script::MultiRet<float, float, float> GetCarSpeedVector(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 06A3
+* @command GET_CAR_MASS
+* @class Car
+* @method GetMass
+* 
+* @brief Returns the vehicle's mass
+* 
+* @param self CVehicle&
+*/
+// float GetCarMass(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 06BE
+* @command GET_CAR_ROLL
+* @class Car
+* @method GetRoll
+* 
+* @brief Returns the Y Angle of the vehicle
+* 
+* @param self CVehicle&
+*/
+// float GetCarRoll(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 06C5
+* @command SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method SkipToEndAndStopPlayback
+* 
+* @brief 
+* 
+* @param self CVehicle&
+*/
+// void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 06FC
+* @command DOES_CAR_HAVE_STUCK_CAR_CHECK
+* @class Car
+* @method DoesHaveStuckCarCheck
+* 
+* @brief Returns true if the car has car stuck check enabled
+* 
+* @param self CVehicle&
+*/
+// void DoesCarHaveStuckCarCheck(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0704
+* @command CAR_GOTO_COORDINATES_RACING
+* @class Car
+* @method GotoCoordinatesRacing
+* 
+* @brief Makes the AI drive to the destination as fast as possible, trying to overtake other vehicles
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+* @param z float
+*/
+// void CarGotoCoordinatesRacing(CVehicle& self, CVector vec1) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0705
+* @command START_PLAYBACK_RECORDED_CAR_USING_AI
+* @class Car
+* @method StartPlaybackUsingAi
+* 
+* @brief Starts the playback of a recorded car with driver AI enabled
+* 
+* @param self CVehicle&
+* @param pathId int
+*/
+// void StartPlaybackRecordedCarUsingAi(CVehicle& self, int pathId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0706
+* @command SKIP_IN_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method SkipInPlayback
+* 
+* @brief Advances the recorded car playback by the specified amount
+* 
+* @param self CVehicle&
+* @param amount float
+*/
+// void SkipInPlaybackRecordedCar(CVehicle& self, float amount) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 070C
+* @command EXPLODE_CAR_IN_CUTSCENE
+* @class Car
+* @method ExplodeInCutscene
+* 
+* @brief Makes the vehicle explode without affecting its surroundings
+* 
+* @param self CVehicle&
+*/
+// void ExplodeCarInCutscene(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0714
+* @command SET_CAR_STAY_IN_SLOW_LANE
+* @class Car
+* @method SetStayInSlowLane
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarStayInSlowLane(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0730
+* @command DAMAGE_CAR_PANEL
+* @class Car
+* @method DamagePanel
+* 
+* @brief Damages a panel on the car
+* 
+* @param self CVehicle&
+* @param panelId int
+*/
+// void DamageCarPanel(CVehicle& self, int panelId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0731
+* @command SET_CAR_ROLL
+* @class Car
+* @method SetRoll
+* 
+* @brief Sets the Y Angle of the vehicle to the specified value
+* 
+* @param self CVehicle&
+* @param yAngle float
+*/
+// void SetCarRoll(CVehicle& self, float yAngle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0732
+* @command SUPPRESS_CAR_MODEL
+* @class CarGenerator
+* @method SuppressCarModel
+* 
+* @brief Prevents the specified car model from spawning for car generators
+* 
+* @param model eModelID
+*/
+// void SuppressCarModel(eModelID model) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0733
+* @command DONT_SUPPRESS_CAR_MODEL
+* @class CarGenerator
+* @method DontSuppressCarModel
+* 
+* @brief Allows the specified car model to spawn for car generators
+* 
+* @param modelId eModelID
+*/
+// void DontSuppressCarModel(eModelID modelId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0734
+* @command DONT_SUPPRESS_ANY_CAR_MODELS
+* @class CarGenerator
+* @method DontSuppressAnyCarModels
+* 
+* @brief Resets the disabled car model list for car generators
+*/
+// void DontSuppressAnyCarModels() {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 073B
+* @command SET_CAR_CAN_GO_AGAINST_TRAFFIC
+* @class Car
+* @method SetCanGoAgainstTraffic
+* 
+* @brief Sets whether the vehicle will drive the wrong way on roads
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarCanGoAgainstTraffic(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 073C
+* @command DAMAGE_CAR_DOOR
+* @class Car
+* @method DamageDoor
+* 
+* @brief Damages a component on the vehicle
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+// void DamageCarDoor(CVehicle& self, eCarDoor door) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0763
+* @command SET_CAR_AS_MISSION_CAR
+* @class Car
+* @method SetAsMissionCar
+* 
+* @brief Sets the script as the owner of the vehicle and adds it to the mission cleanup list
+* 
+* @param self CVehicle&
+*/
+// void SetCarAsMissionCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 077D
+* @command GET_CAR_PITCH
+* @class Car
+* @method GetPitch
+* 
+* @brief Returns the X Angle of the vehicle
+* 
+* @param self CVehicle&
+*/
+// float GetCarPitch(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 07D5
+* @command APPLY_FORCE_TO_CAR
+* @class Car
+* @method ApplyForce
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param xOffset float
+* @param yOffset float
+* @param zOffset float
+* @param xRotation float
+* @param yRotation float
+* @param zRotation float
+*/
+// void ApplyForceToCar(CVehicle& self, CVector offset, CVector rotation) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 07DA
+* @command ADD_TO_CAR_ROTATION_VELOCITY
+* @class Car
+* @method AddToRotationVelocity
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+* @param z float
+*/
+// void AddToCarRotationVelocity(CVehicle& self, CVector vec1) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 07DB
+* @command SET_CAR_ROTATION_VELOCITY
+* @class Car
+* @method SetRotationVelocity
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+* @param z float
+*/
+// void SetCarRotationVelocity(CVehicle& self, CVector vec1) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 07F5
+* @command CONTROL_CAR_HYDRAULICS
+* @class Car
+* @method ControlHydraulics
+* 
+* @brief Changes the car wheels' suspension level
+* 
+* @param self CVehicle&
+* @param frontLeftWheelSuspension float
+* @param rearLeftWheelSuspension float
+* @param frontRightWheelSuspension float
+* @param rearRightWheelSuspension float
+*/
+// void ControlCarHydraulics(CVehicle& self, float frontLeftWheelSuspension, float rearLeftWheelSuspension, float frontRightWheelSuspension, float rearRightWheelSuspension) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 07F8
+* @command SET_CAR_FOLLOW_CAR
+* @class Car
+* @method SetFollowCar
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+* @param radius float
+*/
+// void SetCarFollowCar(CVehicle& self, CVehicle& handle, float radius) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 07FF
+* @command SET_CAR_HYDRAULICS
+* @class Car
+* @method SetHydraulics
+* 
+* @brief Enables hydraulic suspension on the car
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarHydraulics(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0803
+* @command DOES_CAR_HAVE_HYDRAULICS
+* @class Car
+* @method DoesHaveHydraulics
+* 
+* @brief Returns true if the car has hydraulics installed
+* 
+* @param self CVehicle&
+*/
+// void DoesCarHaveHydraulics(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 081D
+* @command SET_CAR_ENGINE_BROKEN
+* @class Car
+* @method SetEngineBroken
+* 
+* @brief Sets whether the car's engine is broken
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarEngineBroken(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 083F
+* @command GET_CAR_UPRIGHT_VALUE
+* @class Car
+* @method GetUprightValue
+* 
+* @brief Gets the car's vertical angle
+* 
+* @param self CVehicle&
+*/
+// float GetCarUprightValue(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0852
+* @command SET_CAR_CAN_BE_VISIBLY_DAMAGED
+* @class Car
+* @method SetCanBeVisiblyDamaged
+* 
+* @brief Sets whether the vehicle can be visibly damaged
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarCanBeVisiblyDamaged(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 085E
+* @command START_PLAYBACK_RECORDED_CAR_LOOPED
+* @class Car
+* @method StartPlaybackLooped
+* 
+* @brief Starts looped playback of a recorded car path
+* 
+* @param self CVehicle&
+* @param pathId int
+*/
+// void StartPlaybackRecordedCarLooped(CVehicle& self, int pathId) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 085F
+* @command START_PLAYBACK_RECORDED_CAR_USING_AI_LOOPED
+* 
+* @brief Does nothing
+*/
+// void StartPlaybackRecordedCarUsingAiLooped() {
+//     /* no-op */
+// }
+
+/*
+* @opcode 088C
+* @command SET_CAR_COORDINATES_NO_OFFSET
+* @class Car
+* @method SetCoordinatesNoOffset
+* 
+* @brief Sets the vehicle coordinates without applying offsets to account for the height of the vehicle
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+* @param z float
+*/
+// void SetCarCoordinatesNoOffset(CVehicle& self, CVector vec1) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 08A6
+* @command OPEN_CAR_DOOR_A_BIT
+* @class Car
+* @method OpenDoorABit
+* 
+* @brief Sets the angle of a car door
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+* @param value float
+*/
+// void OpenCarDoorABit(CVehicle& self, eCarDoor door, float value) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 08A7
+* @command IS_CAR_DOOR_FULLY_OPEN
+* @class Car
+* @method IsDoorFullyOpen
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+// void IsCarDoorFullyOpen(CVehicle& self, eCarDoor door) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 08CB
+* @command EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS
+* @class Car
+* @method ExplodeInCutsceneShakeAndBits
+* 
+* @brief Causes the vehicle to explode, without damage to surrounding entities
+* 
+* @param self CVehicle&
+* @param shake bool
+* @param effect bool
+* @param sound bool
+*/
+// void ExplodeCarInCutsceneShakeAndBits(CVehicle& self, bool shake, bool effect, bool sound) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0918
+* @command SET_CAR_ENGINE_ON
+* @class Car
+* @method SetEngineOn
+* 
+* @brief Sets whether the vehicle's engine is turned on or off
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarEngineOn(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0919
+* @command SET_CAR_LIGHTS_ON
+* @class Car
+* @method SetLightsOn
+* 
+* @brief Sets whether the vehicle's lights are on
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarLightsOn(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0939
+* @command ATTACH_CAR_TO_OBJECT
+* @class Car
+* @method AttachToObject
+* 
+* @brief Attaches the car to object with offset and rotation
+* 
+* @param self CVehicle&
+* @param handle Object
+* @param xOffset float
+* @param yOffset float
+* @param zOffset float
+* @param xRotation float
+* @param yRotation float
+* @param zRotation float
+*/
+// void AttachCarToObject(CVehicle& self, Object handle, CVector offset, CVector rotation) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 095E
+* @command CONTROL_CAR_DOOR
+* @class Car
+* @method ControlDoor
+* 
+* @brief Sets the car's door angle and latch state
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+* @param state eCarDoorState
+* @param angle float
+*/
+// void ControlCarDoor(CVehicle& self, eCarDoor door, eCarDoorState state, float angle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 096B
+* @command STORE_CAR_MOD_STATE
+* @class Car
+* @method StoreModState
+* 
+* @brief 
+*/
+// void StoreCarModState() {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 096C
+* @command RESTORE_CAR_MOD_STATE
+* @class Car
+* @method RestoreModState
+* 
+* @brief 
+*/
+// void RestoreCarModState() {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 096D
+* @command GET_CURRENT_CAR_MOD
+* @class Car
+* @method GetCurrentMod
+* 
+* @brief Returns the model of the component installed on the specified slot of the vehicle, or -1 otherwise
+* 
+* @param self CVehicle&
+* @param slot eModSlot
+*/
+// model_object GetCurrentCarMod(CVehicle& self, eModSlot slot) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 096E
+* @command IS_CAR_LOW_RIDER
+* @class Car
+* @method IsLowRider
+* 
+* @brief Returns true if the vehicle is a low rider
+* 
+* @param self CVehicle&
+*/
+// void IsCarLowRider(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 096F
+* @command IS_CAR_STREET_RACER
+* @class Car
+* @method IsStreetRacer
+* 
+* @brief Returns true if the vehicle is a street racer
+* 
+* @param self CVehicle&
+*/
+// void IsCarStreetRacer(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 097D
+* @command GET_NUM_CAR_COLOURS
+* @class Car
+* @method GetNumColors
+* 
+* @brief Returns number of color variations defined for the model of this car in carcols.dat
+* 
+* @param self CVehicle&
+*/
+// int GetNumCarColours(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0987
+* @command GET_CAR_BLOCKING_CAR
+* @class Car
+* @method GetBlockingCar
+* 
+* @brief Returns a handle of the vehicle preventing this car from getting to its destination
+* 
+* @param self CVehicle&
+*/
+// CVehicle& GetCarBlockingCar(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 098D
+* @command GET_CAR_MOVING_COMPONENT_OFFSET
+* @class Car
+* @method GetMovingComponentOffset
+* 
+* @brief Sets the angle of a vehicle's extra
+* 
+* @param self CVehicle&
+*/
+// float GetCarMovingComponentOffset(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 099A
+* @command SET_CAR_COLLISION
+* @class Car
+* @method SetCollision
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void SetCarCollision(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 09B3
+* @command GET_CAR_DOOR_LOCK_STATUS
+* @class Car
+* @method GetDoorLockStatus
+* 
+* @brief Returns the door lock mode of the vehicle
+* 
+* @param self CVehicle&
+*/
+// eCarLock GetCarDoorLockStatus(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 09BB
+* @command IS_CAR_DOOR_DAMAGED
+* @class Car
+* @method IsDoorDamaged
+* 
+* @brief Returns true if the specified vehicle part is visibly damaged
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+// void IsCarDoorDamaged(CVehicle& self, eCarDoor door) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 09CB
+* @command IS_CAR_TOUCHING_CAR
+* @class Car
+* @method IsTouchingCar
+* 
+* @brief Returns true if the car is touching the other car
+* 
+* @param self CVehicle&
+* @param handle CVehicle&
+*/
+// void IsCarTouchingCar(CVehicle& self, CVehicle& handle) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 09E1
+* @command GET_CAR_MODEL_VALUE
+* @class Car
+* @method GetModelValue
+* 
+* @brief Returns the value of the specified car model
+* 
+* @param model eModelID
+*/
+// int GetCarModelValue(eModelID model) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 09E2
+* @command CREATE_CAR_GENERATOR_WITH_PLATE
+* @class CarGenerator
+* @method CreateWithPlate
+* 
+* @brief Creates a parked car generator with a number plate (modelId -1 selects a random vehicle from the local popcycle)
+* 
+* @param x float
+* @param y float
+* @param z float
+* @param heading float
+* @param modelId eModelID
+* @param primaryColor int
+* @param secondaryColor int
+* @param forceSpawn bool
+* @param alarmChance int
+* @param doorLockChance int
+* @param minDelay int
+* @param maxDelay int
+* @param plateName std::string_view
+*/
+// CarGenerator CreateCarGeneratorWithPlate(CVector vec0, float heading, eModelID modelId, int primaryColor, int secondaryColor, bool forceSpawn, int alarmChance, int doorLockChance, int minDelay, int maxDelay, std::string_view plateName) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 09E9
+* @command GIVE_NON_PLAYER_CAR_NITRO
+* @class Car
+* @method GiveNonPlayerNitro
+* 
+* @brief Makes the car have one nitro
+* 
+* @param self CVehicle&
+*/
+// void GiveNonPlayerCarNitro(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0A11
+* @command SET_EXTRA_CAR_COLOURS
+* @class Car
+* @method SetExtraColors
+* 
+* @brief Sets the car's ternary and quaternary colors. See also 0229
+* 
+* @param self CVehicle&
+* @param color3 int
+* @param color4 int
+*/
+// void SetExtraCarColours(CVehicle& self, int color3, int color4) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0A15
+* @command HAS_CAR_BEEN_RESPRAYED
+* @class Car
+* @method HasBeenResprayed
+* 
+* @brief Returns true if the vehicle was resprayed in the last frame
+* 
+* @param self CVehicle&
+*/
+// void HasCarBeenResprayed(CVehicle& self) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
+
+/*
+* @opcode 0A21
+* @command IMPROVE_CAR_BY_CHEATING
+* @class Car
+* @method ImproveByCheating
+* 
+* @brief Sets whether a ped driven vehicle's handling is affected by the 'perfect handling' cheat
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+// void ImproveCarByCheating(CVehicle& self, bool state) {
+//     NOTSA_UNREACHABLE("Not implemented");
+// }
 }; // namespace
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
@@ -1383,171 +2444,120 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_VISIBLE, SetCarVisible);
     REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_CAR_SIREN, SwitchCarSiren);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STATUS, SetCarStatus);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_AREA_OF_CARS, ClearAreaOfCars);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_RANDOM_CAR_FOR_CAR_PARK, CreateRandomCarForCarPark);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_UPSIDEDOWN_CAR_NOT_DAMAGED, SetUpsidedownCarNotDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_ALL_CARS_CAN_BE_DAMAGED, SetAllCarsCanBeDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_DAMAGED, SetCarCanBeDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_FREE_HEALTH_CARE, SetFreeHealthCare);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CHAR_IN_CAR_OBJECT_2D, LocateCharInCarObject2D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CHAR_IN_CAR_OBJECT_3D, LocateCharInCarObject3D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_REMOTE_CONTROLLED_CAR, GetRemoteControlledCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
-    // REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_NTH_CLOSEST_CAR_NODE, GetNthClosestCarNode);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
-    // REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_WAITING_FOR_WORLD_COLLISION, IsCarWaitingForWorldCollision);
-    // REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MODEL_COMPONENTS, SetCarModelComponents);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SORT_OUT_OBJECT_COLLISION_WITH_CAR, SortOutObjectCollisionWithCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
-    // REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CHAR, HasCarBeenDamagedByChar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_OF_TYPE_IN_AREA_NO_SAVE, GetRandomCarOfTypeInAreaNoSave);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FETCH_NEXT_CARD, FetchNextCard);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_ENTER_CAR_AS_PASSENGER, TaskEnterCarAsPassenger);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_ENTER_CAR_AS_DRIVER, TaskEnterCarAsDriver);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_LEAVE_CAR, TaskLeaveCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_LEAVE_CAR_AND_FLEE, TaskLeaveCarAndFlee);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_CAR_DRIVE_TO_COORD, TaskCarDriveToCoord);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_CAR_DRIVE_WANDER, TaskCarDriveWander);
-    // REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_2D, IsCharStoppedInAngledAreaInCar2D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_3D, IsCharStoppedInAngledAreaInCar3D);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_LEAVE_CAR_IMMEDIATELY, TaskLeaveCarImmediately);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_LEAVE_ANY_CAR, TaskLeaveAnyCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_FX_SYSTEM_ON_CAR, CreateFxSystemOnCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_FX_SYSTEM_ON_CAR_WITH_DIRECTION, CreateFxSystemOnCarWithDirection);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_DESTROY_CAR, TaskDestroyCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_SHUFFLE_TO_NEXT_CAR_SEAT, TaskShuffleToNextCarSeat);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
-    // REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_OBJECT_TO_CAR, AttachObjectToCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_CAR_TEMP_ACTION, TaskCarTempAction);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_CAR_MISSION, TaskCarMission);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_NTH_CLOSEST_CAR_NODE_WITH_HEADING, GetNthClosestCarNodeWithHeading);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_VALUE, GetCarValue);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_RACING, CarGotoCoordinatesRacing);
-    // REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAi);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_SLOW_LANE, SetCarStayInSlowLane);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TAKE_REMOTE_CONTROL_OF_CAR, TakeRemoteControlOfCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_WARP_CHAR_INTO_CAR_AS_DRIVER, TaskWarpCharIntoCarAsDriver);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_WARP_CHAR_INTO_CAR_AS_PASSENGER, TaskWarpCharIntoCarAsPassenger);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SUPPRESS_CAR_MODEL, SuppressCarModel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_ANY_CAR_MODELS, DontSuppressAnyCarModels);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_GO_AGAINST_TRAFFIC, SetCarCanGoAgainstTraffic);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_IN_SPHERE_NO_SAVE, GetRandomCarInSphereNoSave);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_DESIGN_FOR_NEXT_CAR, CustomPlateDesignForNextCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_TASK_GOTO_CAR, TaskGotoCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_TRAIN_CARRIAGE, GetTrainCarriage);
-    // REGISTER_COMMAND_HANDLER(COMMAND_REQUEST_CAR_RECORDING, RequestCarRecording);
-    // REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_RECORDING_BEEN_LOADED, HasCarRecordingBeenLoaded);
-    // REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_UPRIGHT_VALUE, GetCarUprightValue);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_EMERGENCY_SERVICES_CAR, CreateEmergencyServicesCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
-    // REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_CAR_RECORDING, RemoveCarRecording);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
-    // REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR_A_BIT, OpenCarDoorAbit);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
-    // REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_PLANE_UNDERCARRIAGE_UP, SetPlaneUndercarriageUp);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_PLANE_UNDERCARRIAGE_POSITION, GetPlaneUndercarriagePosition);
-    // REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_STUCK_UNDER_CAR, IsCharStuckUnderCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
-    // REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
-    // REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_FORCE_DIE_IN_CAR, SetCharForceDieInCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_MODEL_IN_MEMORY, GetRandomCarModelInMemory);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_CAR_NAMES, DisplayCarNames);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_FORCE_RANDOM_CAR_MODEL, SetForceRandomCarModel);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_OF_TYPE_IN_ANGLED_AREA_NO_SAVE, GetRandomCarOfTypeInAngledAreaNoSave);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_AIRCRAFT_CARRIER_SAM_SITE, SetAircraftCarrierSamSite);
-    // REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IS_THIS_MODEL_A_CAR, IsThisModelAcar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
-    // REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
-    // REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
-    // REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR_FROM_MENU, ChangeCarColourFromMenu);
-    // REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
+    //REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STATUS, SetCarStatus);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_UPSIDEDOWN_CAR_NOT_DAMAGED, SetUpsidedownCarNotDamaged);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_DAMAGED, SetCarCanBeDamaged);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
+    //REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
+    //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_WAITING_FOR_WORLD_COLLISION, IsCarWaitingForWorldCollision);
+    //REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MODEL_COMPONENTS, SetCarModelComponents);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
+    //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CHAR, HasCarBeenDamagedByChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FETCH_NEXT_CARD, FetchNextCard);
+    //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_RACING, CarGotoCoordinatesRacing);
+    //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAi);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_SLOW_LANE, SetCarStayInSlowLane);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SUPPRESS_CAR_MODEL, SuppressCarModel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_ANY_CAR_MODELS, DontSuppressAnyCarModels);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_GO_AGAINST_TRAFFIC, SetCarCanGoAgainstTraffic);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
+    //REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_UPRIGHT_VALUE, GetCarUprightValue);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
+    //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
+    //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR_A_BIT, OpenCarDoorABit);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
+    //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
+    //REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
+    //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
+    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
     
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);
