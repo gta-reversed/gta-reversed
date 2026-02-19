@@ -731,6 +731,8 @@ public: // NOTSA functions
 
     void SetEngineOn(bool on);
 
+    auto GetLastWeaponDamageType() const { return (eWeaponType)(m_nLastWeaponDamageType); }
+
 protected:
     float GetNewSteeringAmt();
 
