@@ -140,7 +140,7 @@ def main():
     with output_path.with_stem(f'{output_path.stem}.handlers').open('w', encoding='utf-8') as f:
         if args.with_handlers:
             for cmd in commands:
-                f.write(f'REGISTER_COMMAND_HANDLER({cmd["name"]}, {get_handler_name(cmd)});\n')
+                f.write(f'REGISTER_COMMAND_HANDLER(COMMAND_{cmd["name"]}, {get_handler_name(cmd)});\n')
 
     print(f'Generated stubs for {len(commands)} commands in `{output_path.absolute()}`')
 
