@@ -634,8 +634,9 @@ auto SetCarVisible(CVehicle& vehicle, bool visible) {
 }
 
 /// PLACE_OBJECT_RELATIVE_TO_CAR
-//auto PlaceObjectRelativeToCar(CVehicle& vehicle) {
-//}
+auto PlaceObjectRelativeToCar(CObject& obj, CVehicle& vehicle, CVector offset) {
+    CPhysical::PlacePhysicalRelativeToOtherPhysical(&obj, &vehicle, offset);
+}
 
 /// SWITCH_CAR_SIREN
 //auto SwitchCarSiren(CVehicle& vehicle) {
@@ -1379,7 +1380,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_START_CAR_FIRE, StartCarFire);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_RANDOM_CAR_OF_TYPE_IN_AREA, GetRandomCarOfTypeInArea);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_VISIBLE, SetCarVisible);
-    // REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_CAR_SIREN, SwitchCarSiren);
     // REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
     // REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
