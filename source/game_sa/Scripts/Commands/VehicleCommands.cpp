@@ -654,9 +654,13 @@ auto SwitchCarSiren(CVehicle& vehicle, bool state) {
 * @param self CVehicle&
 * @param state bool
 */
-// void SetCarWatertight(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarWatertight(CVehicle& self, bool state) {
+    if (self.IsBike()) { // 0x484440
+        self.AsBike()->bikeFlags.bWaterTight = state;
+    } else if (self.IsAutomobile()) { // 0x484407
+        self.AsAutomobile()->autoFlags.bWaterTight = state;
+    }
+}
 
 /*
 * @opcode 039F
@@ -2444,7 +2448,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_VISIBLE, SetCarVisible);
     REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_CAR_SIREN, SwitchCarSiren);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
     //REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STATUS, SetCarStatus);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
