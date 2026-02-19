@@ -59,3 +59,7 @@ ConanPresets.json
 
 ## TODO: These files can be put into a better place?
 /source/libs/imgui/*
+
+# script-stubs.py output
+out.cpp
+out.handlers.cpp
