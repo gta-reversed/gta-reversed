@@ -63,6 +63,11 @@ Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/
 1) Launch the game
 2) Attach using the [ReAttach plugin](https://marketplace.visualstudio.com/items?itemName=ErlandR.ReAttach) to make your life easier
 
+### Tools
+We've got some tools, mostly for script commands:
+- `contrib/script-stubs.py` - Generate stubs for script commands
+- [ida-ScriptCmdJump](https://github.com/Pirulax/ida-ScriptCmdJmp) - Jump to the handler of script script commands
+
 # Credits
 - All contributors of the [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) project.
 - All contributors of the [original project](https://github.com/codenulls/gta-reversed).
