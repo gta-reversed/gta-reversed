@@ -1546,14 +1546,22 @@ void AttachCarToCar(CVehicle& self, CVehicle& other, CVector offset, CVector rot
 * @brief 
 * 
 * @param self CVehicle&
-* @param x float
-* @param y float
-* @param z float
+* @param dirX float
+* @param dirY float
+* @param strength float
 * @param collisionDetection bool
 */
-// void DetachCar(CVehicle& self, CVector vec1, bool collisionDetection) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void DetachCar(CVehicle* vehicle, CVector2D dir, float strength, bool collisionDetection) {
+    if (!vehicle || !vehicle->m_pAttachedTo) {
+        return;
+    }
+    vehicle->DettachEntityFromEntity(
+        DegreesToRadians(dir.x),
+        DegreesToRadians(dir.y),
+        strength,
+        collisionDetection
+    );
+}
 
 /*
 * @opcode 0689
@@ -2636,7 +2644,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
     REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);

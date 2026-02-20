@@ -1219,7 +1219,7 @@ void CPhysical::RemoveRefsToEntity(CEntity* entity)
 }
 
 // 0x5442F0
-void CPhysical::DettachEntityFromEntity(float x, float y, float z, bool bApplyTurnForce)
+void CPhysical::DettachEntityFromEntity(float dirX, float dirY, float strength, bool bApplyTurnForce)
 {
     CMatrix vecDetachOffsetMatrix{};
     if (GetIsTypeVehicle() && m_pAttachedTo && m_pAttachedTo->GetIsTypeVehicle()) {
@@ -1245,11 +1245,11 @@ void CPhysical::DettachEntityFromEntity(float x, float y, float z, bool bApplyTu
     }
 
     vecDetachOffsetMatrix.ResetOrientation();
-    vecDetachOffsetMatrix.RotateZ(y);
-    vecDetachOffsetMatrix.RotateX(x);
+    vecDetachOffsetMatrix.RotateZ(dirY);
+    vecDetachOffsetMatrix.RotateX(dirX);
 
     vecDetachOffsetMatrix *= m_pAttachedTo->GetMatrix();
-    CVector vecForce = vecDetachOffsetMatrix.GetForward() * z;
+    CVector vecForce = vecDetachOffsetMatrix.GetForward() * strength;
     CWorld::Remove(this);
     SetIsStatic(false);
     physicalFlags.bAttachedToEntity = false;
