@@ -1769,9 +1769,10 @@ void SkipInPlaybackRecordedCar(CVehicle& self, float amount) {
 * 
 * @param self CVehicle&
 */
-// void ExplodeCarInCutscene(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ExplodeCarInCutscene(CVehicle& self) {
+    self.vehicleFlags.bCanBeDamaged = true;
+    self.BlowUpCar(nullptr, true);
+}
 
 /*
 * @opcode 0714
@@ -2647,7 +2648,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAI);
     REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
+    REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_SLOW_LANE, SetCarStayInSlowLane);
     //REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
