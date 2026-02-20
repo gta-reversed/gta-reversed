@@ -861,9 +861,9 @@ bool IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
 * 
 * @param self CVehicle&
 */
-// eModelID GetCarModel(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+eModelID GetCarModel(CVehicle& self) {
+    return self.GetModelId();
+}
 
 /*
 * @opcode 0466
@@ -2483,7 +2483,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
