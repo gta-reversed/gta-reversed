@@ -1682,9 +1682,9 @@ auto GetCarSpeedVector(CVehicle& self) {
 * 
 * @param self CVehicle&
 */
-// float GetCarMass(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+float GetCarMass(CVehicle& self) {
+    return self.GetMass();
+}
 
 /*
 * @opcode 06BE
@@ -2656,7 +2656,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
     //REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
