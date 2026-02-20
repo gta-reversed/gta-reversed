@@ -104,6 +104,12 @@ MultiRet<uint8, uint8> GetExtraCarColors(CVehicle& veh) {
     return { veh.m_nTertiaryColor, veh.m_nQuaternaryColor };
 }
 
+/*
+* @opcode 050B
+* @command POP_CAR_BOOT_USING_PHYSICS
+* 
+* @brief Opens the trunk/boot door component of the vehicle
+*/
 void PopCarBootUsingPhysics(CAutomobile& automobile) {
     automobile.PopBootUsingPhysics();
 }
@@ -1144,16 +1150,6 @@ void CloseAllCarDoors(CVehicle& self) {
 }
 
 /*
-* @opcode 050B
-* @command POP_CAR_BOOT_USING_PHYSICS
-* 
-* @brief Opens the trunk/boot door component of the vehicle
-*/
-// void PopCarBootUsingPhysics() {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
-
-/*
 * @opcode 0519
 * @command FREEZE_CAR_POSITION
 * @class Car
@@ -1164,9 +1160,16 @@ void CloseAllCarDoors(CVehicle& self) {
 * @param self CVehicle&
 * @param state bool
 */
-// void FreezeCarPosition(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void FreezeCarPosition(CVehicle& self, bool state) {
+    self.physicalFlags.bDontApplySpeed = state;
+    self.physicalFlags.bCollidable = state;
+    self.physicalFlags.bDisableCollisionForce = state;
+    if (state) {
+        self.SkipPhysics();
+        self.SetVelocity({ 0.f, 0.f, 0.f });
+        self.SetTurnSpeed({ 0.f, 0.f, 0.f });
+    }
+}
 
 /*
 * @opcode 051C
@@ -2556,7 +2559,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MODEL_COMPONENTS, SetCarModelComponents);
     REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
+    REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
     //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CHAR, HasCarBeenDamagedByChar);
     //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);

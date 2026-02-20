@@ -232,6 +232,7 @@ public:
     void  ResetMoveSpeed()               { SetVelocity(CVector{}); }
 
     auto& GetTurnSpeed(this auto&& self) { return self.m_vecTurnSpeed; }
+    void SetTurnSpeed(CVector speed) { m_vecTurnSpeed = speed; }
     void ResetTurnSpeed() { m_vecTurnSpeed = CVector(); }
 
     void ResetFrictionMoveSpeed() { m_vecFrictionMoveSpeed = CVector(); }
