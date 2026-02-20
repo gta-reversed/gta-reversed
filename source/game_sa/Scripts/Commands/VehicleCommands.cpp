@@ -1710,9 +1710,9 @@ float GetCarRoll(CVehicle& self) {
 * 
 * @param self CVehicle&
 */
-// void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
+    CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(&self);
+}
 
 /*
 * @opcode 06FC
@@ -2658,7 +2658,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
     //REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_RACING, CarGotoCoordinatesRacing);
     //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAi);
