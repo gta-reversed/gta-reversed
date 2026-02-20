@@ -821,9 +821,9 @@ void SetCarTraction(CVehicle& self, float traction) {
 * @param self CVehicle&
 * @param state bool
 */
-// void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
+    self.m_autoPilot.carCtrlFlags.bAvoidLevelTransitions = state;
+}
 
 /*
 * @opcode 0431
@@ -2470,7 +2470,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_DAMAGED, SetCarCanBeDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
