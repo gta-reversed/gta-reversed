@@ -950,9 +950,15 @@ void SetCarRandomRouteSeed(CVehicle& self, int16 routeSeed) {
 * 
 * @param self CVehicle&
 */
-// void IsCarOnFire(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarOnFire(CVehicle& self) {
+    if (self.m_fHealth < 250.f) {
+        return true;
+    }
+    if (self.IsAutomobile()) {
+        return self.AsAutomobile()->GetDamageManager().GetEngineStatus() >= 225;
+    }
+    return self.m_pFire != nullptr;
+}
 
 /*
 * @opcode 0496
@@ -2490,7 +2496,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
