@@ -919,7 +919,7 @@ eModelID GetCarModel(CVehicle& self) {
 * @param self CVehicle&
 */
 void ClearCarLastWeaponDamage(CVehicle& self) {
-    self.m_nLastWeaponDamageType = WEAPON_NONE;
+    self.m_nLastWeaponDamageType = (uint8)(WEAPON_NONE);
     assert(self.m_nLastWeaponDamageType == (uint8)(-1)); // sanity check
 }
 
