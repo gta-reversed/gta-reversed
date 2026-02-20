@@ -69,8 +69,9 @@ We've got some tools, mostly for script commands:
 - [ida-ScriptCmdJump](https://github.com/Pirulax/ida-ScriptCmdJmp) - Jump to the handler of script script commands
 
 # Credits
-- All contributors of the [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) project.
+- All contributors [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) project.
 - All contributors of the [original project](https://github.com/codenulls/gta-reversed).
 - Hundreds of great people on [gtaforums.com](https://gtaforums.com/topic/194199-documenting-gta-sa-memory-addresses).
 - [re3 team](https://github.com/GTAmodding/re3).
 - And everyone who contributed to GTA:SA reversing.
+- All contributors of [Sanny Builder Library](https://library.sannybuilder.com/#/)

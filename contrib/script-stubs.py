@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import io
 from pathlib import Path
 import re
@@ -8,27 +9,37 @@ from typing import TypedDict, NotRequired
 
 arg_parser = argparse.ArgumentParser(description="Generate function stubs for script commands")
 arg_parser.add_argument("commands_pattern", help="Regex pattern to match script commands", default='.')
-arg_parser.add_argument("--input", "-i", help="Link containing script command definitions in JSON format", default='https://library.sannybuilder.com/assets/sa/sa.json')
+arg_parser.add_argument("--definitions", "-d", help="Link containing script command definitions in JSON format", default='https://library.sannybuilder.com/assets/sa/sa.json')
+arg_parser.add_argument("--enum-definitions", help="Link containing enum definitions", default='https://library.sannybuilder.com/assets/sa/enums.txt')
 arg_parser.add_argument("--output", "-o", help="Output file for the generated stubs", default='out.cpp')
-arg_parser.add_argument("--klass", help="Regex pattern to match class names", default=None)
-arg_parser.add_argument("--extension", help="Regex pattern to match extension names", default='default')
+arg_parser.add_argument("--klass", "-k", help="Regex pattern to match class names", default=None)
+arg_parser.add_argument("--extension", "-e", help="Regex pattern to match extension names", default='default')
 arg_parser.add_argument('--with-handlers', action='store_true', help="Generate `REGISTER_COMMAND_HANDLER` stubs for the commands")
 arg_parser.add_argument('--commented-out', action='store_true', help="Comment out the generated stubs")
 arg_parser.add_argument('--transform-params', action='store_true', help="Transform groups of x, y, (z) parameters into vector types", default=True)
 args = arg_parser.parse_args()
 
+ENUMS = set([
+    line.split(' ', 1)[1].strip() # enum name
+    for line in requests.get(args.enum_definitions, timeout=15).text.splitlines()
+    if line.startswith('enum ')
+])
+print(f'[+] Loaded {len(ENUMS)} enums from `{args.enum_definitions}`')
 TYPE_MAPPING = {
     'Car': 'CVehicle&',
     'Char': 'CPed&',
-    'PedType': 'CPed&',
     'Boat': 'CBoat&',
     'model_char': 'eModelID',
     'model_vehicle': 'eModelID',
     'string': 'std::string_view',
 }
+def map_type(type_str: str) -> str:
+    if type_str in ENUMS:
+        return f'e{type_str}'
+    return TYPE_MAPPING.get(type_str, type_str)
 
 Meta = TypedDict('Meta', {
-    'last_updated': int,
+    'last_update': int,
     'version': str,
     'url': str
 })
@@ -81,7 +92,9 @@ def to_camel_case(str: str) -> str:
     return f'{str[0].lower()}{str[1:]}' if str else str
 
 def main():
-    definitions: Definitions = requests.get(args.input, timeout=15).json()
+    definitions: Definitions = requests.get(args.definitions, timeout=15).json()
+    
+    print(f'[+] Loaded definitions from `{args.definitions}`, version {definitions["meta"]["version"]}, last updated at {datetime.datetime.fromtimestamp(definitions["meta"]["last_update"] / 1000).strftime("%Y-%m-%d %H:%M:%S")} (UTC)')
     
     output_path = Path(args.output)
 
@@ -94,7 +107,7 @@ def main():
                 (not args.klass or ('class' in command and re.search(args.klass, command['class'])))
     ]
     if not commands:
-        return print("No commands matched the given criteria")
+        return print("[x] No commands matched the given criteria")
 
     def get_handler_name(command: Command) -> str:
         return ''.join(v.capitalize() for v in command['name'].split('_'))
@@ -108,7 +121,7 @@ def main():
             input_params: list[CommandInputParameter] = [
                 {
                     'name': param['name'],
-                    'type': TYPE_MAPPING.get(param['type'], param['type'])
+                    'type': map_type(param['type'])
                 }
                 for param in cmd.get('input', [])
             ]
@@ -156,7 +169,7 @@ def main():
             output_params = [
                 {
                     'name': param['name'],
-                    'type': TYPE_MAPPING.get(param['type'], param['type'])
+                    'type': map_type(param['type'])
                 }
                 for param in cmd.get('output', [])
             ]
@@ -194,7 +207,7 @@ def main():
             for cmd in commands:
                 write_code_line(f, f'REGISTER_COMMAND_HANDLER({cmd["name"]}, {get_handler_name(cmd)});', 1)
 
-    print(f'Generated stubs for {len(commands)} commands in `{output_path.absolute()}`')
+    print(f'[ok] Generated stubs for {len(commands)} commands in `{output_path.absolute()}`')
 
 if __name__ == "__main__":
     main()
