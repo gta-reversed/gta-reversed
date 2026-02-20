@@ -723,9 +723,9 @@ void SetCarStrong(CVehicle& self, bool state) {
 * 
 * @param self CVehicle&
 */
-// void IsCarVisiblyDamaged(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarVisiblyDamaged(CVehicle& self) {
+    return self.vehicleFlags.bIsDamaged;
+}
 
 /*
 * @opcode 03ED
@@ -2457,7 +2457,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STATUS, SetCarStatus);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_UPSIDEDOWN_CAR_NOT_DAMAGED, SetUpsidedownCarNotDamaged);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_DAMAGED, SetCarCanBeDamaged);
