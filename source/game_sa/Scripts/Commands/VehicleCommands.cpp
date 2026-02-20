@@ -890,9 +890,10 @@ eModelID GetCarModel(CVehicle& self) {
 * 
 * @param self CVehicle&
 */
-// void ClearCarLastWeaponDamage(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ClearCarLastWeaponDamage(CVehicle& self) {
+    self.m_nLastWeaponDamageType = WEAPON_NONE;
+    assert(self.m_nLastWeaponDamageType == (uint8)(-1)); // sanity check
+}
 
 /*
 * @opcode 046C
@@ -2485,7 +2486,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
