@@ -1259,9 +1259,19 @@ void ClearCarLastDamageEntity(CVehicle& self) {
 * @param self CVehicle&
 * @param state bool
 */
-// void FreezeCarPositionAndDontLoadCollision(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void FreezeCarPositionAndDontLoadCollision(CRunningScript& S, CVehicle& self, bool state) {
+    self.physicalFlags.bDontApplySpeed = state;
+    self.physicalFlags.bDisableCollisionForce = state;
+    if (state) {
+        if (S.m_UsesMissionCleanup) {
+            CWorld::Remove(&self);
+            self.m_bIsStaticWaitingForCollision = true;
+            CWorld::Add(&self);
+        }
+    } else {
+        self.m_nFakePhysics = false;
+    }
+}
 
 /*
 * @opcode 0587
@@ -2582,7 +2592,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
+    REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
     //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
     //REGISTER_COMMAND_HANDLER(COMMAND_FETCH_NEXT_CARD, FetchNextCard);
