@@ -70,3 +70,8 @@ void CAutoPilot::SetTempAction(eAutoPilotTempAction action, uint32 durMs) {
     m_nTempAction = action;
     m_nTempActionTime = CTimer::GetTimeInMS() + durMs;
 }
+
+// notsa
+void CAutoPilot::SetTargetEntity(CVehicle* target) {
+    CEntity::ChangeEntityReference(m_TargetEntity, target);
+}

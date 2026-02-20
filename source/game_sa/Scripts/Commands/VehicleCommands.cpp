@@ -1372,9 +1372,14 @@ void UnpausePlaybackRecordedCar(CVehicle& self) {
 * @param self CVehicle&
 * @param handle CVehicle&
 */
-// void SetCarEscortCarLeft(CVehicle& self, CVehicle& handle) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarEscortCarLeft(CVehicle& self, CVehicle& other) {
+    auto* const ap = &self.m_autoPilot;
+
+    ap->SetTargetEntity(&other);
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, ap->m_nCarMission)) {
+        ap->m_nCarMission = MISSION_ESCORT_LEFT;
+    }
+}
 
 /*
 * @opcode 05F2
@@ -2588,7 +2593,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);

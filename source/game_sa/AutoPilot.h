@@ -146,6 +146,8 @@ public:
     void ClearTempAct() { m_nTempAction = TEMPACT_NONE; }
 
     void SetDrivingStyle(eCarDrivingStyle s) { m_nCarDrivingStyle = s; }
+
+    void SetTargetEntity(CVehicle* target);
 };
 
 VALIDATE_SIZE(CAutoPilot, 0x98);
