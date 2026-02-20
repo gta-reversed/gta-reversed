@@ -21,7 +21,19 @@ enum class eSeatId {
     PASSENGER6,
     PASSENGER7,
     PASSENGER8,
-    BIKE_REAR=0,
+
+    BIKE_REAR = 0,
+};
+
+enum class eWheelId {
+    FRONT_LEFT,
+    REAR_LEFT,
+    FRONT_RIGHT,
+    REAR_RIGHT,
+    ANY,
+
+    BIKE_FRONT = 0,
+    BIKE_REAR  = 1,
 };
 
 namespace {
@@ -971,9 +983,36 @@ bool IsCarOnFire(CVehicle& self) {
 * @param self CVehicle&
 * @param tireId eWheelId
 */
-// void IsCarTyreBurst(CVehicle& self, eWheelId tireId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarTyreBurst(CVehicle& self, eWheelId tire) {
+    if (self.IsBike()) {
+        auto* const bike = self.AsBike();
+        switch (tire) {
+        case eWheelId::ANY:
+            return rng::all_of(bike->m_nWheelStatus, [](auto status) { return status == 1; });
+        case eWheelId::FRONT_RIGHT:
+        case eWheelId::BIKE_FRONT:
+            return bike->m_nWheelStatus[+eWheelId::BIKE_FRONT] == 1;
+        case eWheelId::REAR_RIGHT:
+        case eWheelId::BIKE_REAR:
+            return bike->m_nWheelStatus[+eWheelId::BIKE_REAR] == 1;
+        default:
+            NOTSA_UNREACHABLE("Invalid wheel ID for bike: {}", +tire);
+        }
+    } else if (self.IsAutomobile()) {
+        auto* const automobile = self.AsAutomobile();
+        switch (tire) {
+        case eWheelId::ANY:
+            return automobile->GetDamageManager().GetWheelStatus(eCarWheel::CAR_WHEEL_FRONT_LEFT)
+                || automobile->GetDamageManager().GetWheelStatus(eCarWheel::CAR_WHEEL_FRONT_RIGHT)
+                || automobile->GetDamageManager().GetWheelStatus(eCarWheel::CAR_WHEEL_REAR_LEFT)
+                || automobile->GetDamageManager().GetWheelStatus(eCarWheel::CAR_WHEEL_REAR_RIGHT);
+        default:
+            return automobile->GetDamageManager().GetWheelStatus(static_cast<eCarWheel>(tire));
+        }
+    } else {
+        NOTSA_UNREACHABLE();
+    }
+}
 
 /*
 * @opcode 04BA
@@ -2497,7 +2536,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
