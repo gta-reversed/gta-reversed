@@ -121,12 +121,12 @@ VALIDATE_SIZE(CCarPathLink, 0xE);
 class CPathNode {
 public:
     CPathNode        *m_next, *m_prev;
-    CompressedVector m_vPos;
+    CompressedVector m_vPos; // TODO: FixedVector
     int16            m_totalDistFromOrigin; /// Sum of linkLength's up to this node. Using this the current hash bucket (in `m_pathFindHashTable`) can be obtained by `% std::size(m_pathFindHashTable)`. Used in `DoPathSearch`. `SHRT_MAX - 1` by default.
     int16            m_wBaseLinkId;
     uint16           m_wAreaId; // TODO: Replace these 2 with `CNodeAddress`
     uint16           m_wNodeId;
-    uint8            m_nPathWidth; // Fixed-point float, divide by 16
+    uint8            m_nPathWidth; // Fixed-point float, divide by 16. TODO: FixedFloat
     uint8            m_nFloodFill;
 
     // byte 0

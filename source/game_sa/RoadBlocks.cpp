@@ -15,7 +15,7 @@ void CRoadBlocks::InjectHooks() {
     RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020);
     RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .reversed = false });
     RH_ScopedInstall(GenerateRoadBlockPedsForCar, 0x461170);
-    RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0, { .reversed = false });
+    RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0);
     RH_ScopedInstall(GetRoadBlockNodeInfo, 0x460EE0);
     RH_ScopedInstall(RegisterScriptRoadBlock, 0x460DF0);
 }
@@ -101,8 +101,8 @@ bool CRoadBlocks::ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB)
 }
 
 // 0x4619C0
-void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a3) {
-    plugin::Call<0x4619C0, CVector, CVector, uint32>(a1, a2, a3);
+void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGangRoadBlock) {
+    plugin::Call<0x4619C0, CVector, CVector, bool>(a, b, isGangRoadBlock);
 }
 
 // 0x461170
@@ -206,7 +206,134 @@ void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPosit
 void CRoadBlocks::GenerateRoadBlocks() {
     ZoneScoped;
 
-    plugin::Call<0x4629E0>();
+    if (FindPlayerWanted()->m_nChanceOnRoadBlock && FindPlayerVehicle()) {
+        if (!GenerateDynamicRoadBlocks) {
+            rng::fill(InOrOut, true);
+            GenerateDynamicRoadBlocks = true;
+        }
+
+        const auto counter1      = 325 * (CTimer::GetFrameCounter() % 16 + 1);
+        const auto rbsToGenerate = std::min((uint32)NumRoadBlocks, ((counter1 % 16) + counter1) / 16);
+        auto       counter2      = 325 * (CTimer::GetFrameCounter() % 16) / 16;
+
+        for (; counter2 < rbsToGenerate; counter2++) {
+            const auto& mrbNode = RoadBlockNodes[counter2];
+            if (!ThePaths.IsAreaLoaded(mrbNode)) {
+                continue;
+            }
+            const auto& mainNode = ThePaths.GetPathNode(mrbNode);
+            const auto  playerPos = FindPlayerCoors();
+            if (std::abs(playerPos.x - mainNode->GetPosition().x) >= 90.0f ||
+                std::abs(playerPos.y - mainNode->GetPosition().y) >= 90.0f ||
+                DistanceBetweenPointsSquared2D(playerPos, mainNode->GetPosition()) >= 90.0f)
+            {
+                InOrOut[counter2] = false;
+                continue;
+            }
+
+            if (InOrOut[counter2]) {
+                continue;
+            }
+            InOrOut[counter2] = true;
+
+            if (CGeneral::GetRandomNumberInRange(128u) >= FindPlayerWanted()->m_nChanceOnRoadBlock) {
+                continue;
+            }
+
+            float mrbWidth{};
+            CVector mrbDir{};
+            if (!GetRoadBlockNodeInfo(mrbNode, mrbWidth, mrbDir)) {
+                continue;
+            }
+
+            if (mainNode->m_nPathWidth) {
+                const auto width = mainNode->m_nPathWidth / 16.0f;
+                CreateRoadBlockBetween2Points(
+                    mainNode->GetPosition() + mrbDir * (mrbWidth / 2.f + width),
+                    mainNode->GetPosition() + mrbDir * width,
+                    false
+                );
+                CreateRoadBlockBetween2Points(
+                    mainNode->GetPosition() - mrbDir * width,
+                    mainNode->GetPosition() - mrbDir * (mrbWidth / 2.f + width),
+                    false
+                );
+                continue;
+            }
+
+            for (auto&& [i, nodeAddr] : rngv::enumerate(RoadBlockNodes)) {
+                if (counter2 == i || InOrOut[i] || !ThePaths.IsAreaLoaded(nodeAddr.m_wAreaId)) {
+                    continue;
+                }
+                const auto& node = ThePaths.GetPathNode(nodeAddr);
+
+                if (std::abs(mainNode->GetPosition().x - node->GetPosition().x) >= 30.0f ||
+                    std::abs(mainNode->GetPosition().y - node->GetPosition().y) >= 30.0f)
+                {
+                    continue;
+                }
+
+                float   width{};
+                CVector dir{}; 
+                if (!GetRoadBlockNodeInfo(nodeAddr, width, dir)) {
+                    continue;
+                }
+
+                if (mrbWidth != width || dir.Dot(mrbDir) <= 0.7f) {
+                    continue;
+                }
+
+                [[maybe_unused]] CColPoint col{};
+                [[maybe_unused]] CEntity*  colEntity{};
+                if (CWorld::ProcessLineOfSight(
+                    mainNode->GetPosition() + CVector{0.0f, 0.0f, 1.0f},
+                    node->GetPosition() + CVector{0.0f, 0.0f, 1.0f},
+                    col,
+                    colEntity,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false
+                )) {
+                    continue;
+                }
+
+                const auto dirFromMain = (node->GetPosition() - mainNode->GetPosition()).Normalized();
+                CreateRoadBlockBetween2Points(
+                    node->GetPosition()     + dirFromMain * (mrbWidth / 2.0f),
+                    mainNode->GetPosition() - dirFromMain * (mrbWidth / 2.0f),
+                    false
+                );
+                InOrOut[i] = true;
+
+                if (i == NumRoadBlocks) {
+                    CreateRoadBlockBetween2Points(
+                        mainNode->GetPosition() - dirFromMain * (mrbWidth / 2.0f),
+                        mainNode->GetPosition() + dirFromMain * (mrbWidth / 2.0f),
+                        false
+                    );
+                    break;
+                }
+            }
+        }
+    } else {
+        GenerateDynamicRoadBlocks = false;
+    }
+
+    if (auto& srb = aScriptRoadBlocks[CTimer::GetFrameCounter() % 16]; srb.IsActive) {
+        const auto c = CVector::Centroid({ srb.CornerA, srb.CornerB });
+
+        if (DistanceBetweenPoints(FindPlayerCoors(), c) >= 90.0f) {
+            srb.IsSafeToCreate = true;
+        } else if (srb.IsSafeToCreate) {
+            CreateRoadBlockBetween2Points(srb.CornerA, srb.CornerB, srb.IsGangRoadBlock);
+            srb.IsSafeToCreate = false;
+        }
+    }
 }
 
 // 0x460EE0
