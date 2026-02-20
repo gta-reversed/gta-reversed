@@ -1575,9 +1575,10 @@ void DetachCar(CVehicle* vehicle, CVector2D dir, float strength, bool collisionD
 * @param door eCarDoor
 * @param visibility bool
 */
-// void PopCarDoor(CVehicle& self, eCarDoor door, bool visibility) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void PopCarDoor(CVehicle& self, eDoors door, bool visibility) {
+    auto* const automobile = self.AsAutomobile();
+    automobile->PopDoor(CDamageManager::GetCarNodeIndexFromDoor(door), door, visibility);
+}
 
 /*
 * @opcode 068A
@@ -2645,7 +2646,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
+    REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
