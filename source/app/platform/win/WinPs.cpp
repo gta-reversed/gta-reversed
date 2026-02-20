@@ -565,7 +565,7 @@ bool psSelectDevice() {
     RwEngineGetVideoModeInfo(&vmi, GcurSelVM);
 
 #ifdef NOTSA_USE_SDL3
-    SDL_SetWindowSize((SDL_Window*)(PSGLOBAL(sdlWindow)), (int)(vmi.width), (int)(vmi.height));
+    SDL_SetWindowSize(PSGLOBAL(sdlWindow), (int)(vmi.width), (int)(vmi.height));
 #endif
 
     if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {

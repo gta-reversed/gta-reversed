@@ -120,6 +120,10 @@ struct RsInputDevice {
     RsInputEventHandler inputEventHandler;
 };
 
+#ifdef NOTSA_USE_SDL3
+typedef struct SDL_Window;
+#endif
+
 /**
  * platform-specific global data
  */
@@ -136,7 +140,7 @@ struct psGlobalType {
     LPDIRECTINPUTDEVICE8 diDevice2;
 
 #ifdef NOTSA_USE_SDL3
-    void* sdlWindow; // SDL_Window*
+    SDL_Window* sdlWindow;
 #endif
 };
 
