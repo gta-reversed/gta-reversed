@@ -1362,6 +1362,18 @@ void UnpausePlaybackRecordedCar(CVehicle& self) {
 }
 
 /*
+* @brief Helper function for setting a car to escort another using a specific mission
+*/
+void SetCarEscortCarUsingMission(CVehicle& self, CVehicle& other, eCarMission mission) {
+    auto* const ap = &self.m_autoPilot;
+
+    ap->SetTargetEntity(&other);
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, ap->m_nCarMission)) {
+        ap->m_nCarMission = mission;
+    }
+}
+
+/*
 * @opcode 05F1
 * @command SET_CAR_ESCORT_CAR_LEFT
 * @class Car
@@ -1373,12 +1385,7 @@ void UnpausePlaybackRecordedCar(CVehicle& self) {
 * @param handle CVehicle&
 */
 void SetCarEscortCarLeft(CVehicle& self, CVehicle& other) {
-    auto* const ap = &self.m_autoPilot;
-
-    ap->SetTargetEntity(&other);
-    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, ap->m_nCarMission)) {
-        ap->m_nCarMission = MISSION_ESCORT_LEFT;
-    }
+    SetCarEscortCarUsingMission(self, other, MISSION_ESCORT_LEFT);
 }
 
 /*
@@ -1392,9 +1399,9 @@ void SetCarEscortCarLeft(CVehicle& self, CVehicle& other) {
 * @param self CVehicle&
 * @param handle CVehicle&
 */
-// void SetCarEscortCarRight(CVehicle& self, CVehicle& handle) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarEscortCarRight(CVehicle& self, CVehicle& other) {
+    SetCarEscortCarUsingMission(self, other, MISSION_ESCORT_RIGHT);
+}
 
 /*
 * @opcode 05F3
@@ -2594,7 +2601,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
