@@ -905,9 +905,9 @@ void ClearCarLastWeaponDamage(CVehicle& self) {
 * 
 * @param self CVehicle&
 */
-// CPed& GetDriverOfCar(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+CPed* GetDriverOfCar(CVehicle& self) {
+    return self.m_pDriver; /* null will be pushed as `-1` - as expected */
+}
 
 /*
 * @opcode 0477
@@ -2487,7 +2487,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
