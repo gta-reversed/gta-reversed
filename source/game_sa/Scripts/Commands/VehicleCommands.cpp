@@ -1652,11 +1652,11 @@ void FixCarPanel(CVehicle& self, ePanels panel) {
 * @brief Repairs a car's tire
 * 
 * @param self CVehicle&
-* @param tireId eWheelId
+* @param tireId eCarWheel
 */
-// void FixCarTyre(CVehicle& self, eWheelId tireId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void FixCarTyre(CVehicle& self, eCarWheel tire) {
+    self.AsAutomobile()->FixTyre(static_cast<eCarWheel>(tire));
+}
 
 /*
 * @opcode 06A2
@@ -2654,7 +2654,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
+    REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
