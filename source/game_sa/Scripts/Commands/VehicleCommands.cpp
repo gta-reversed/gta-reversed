@@ -1348,6 +1348,20 @@ void PausePlaybackRecordedCar(CVehicle& self) {
 }
 
 /*
+* @opcode 060E
+* @command IS_PLAYBACK_GOING_ON_FOR_CAR
+* @class Car
+* @method IsPlaybackGoingOn
+* 
+* @brief Returns true if the car is assigned to a path
+* 
+* @param self CVehicle&
+*/
+bool IsPlaybackGoingOnForCar(CVehicle& self) {
+    return CVehicleRecording::IsPlaybackGoingOnForCar(&self);
+}
+
+/*
 * @opcode 05EE
 * @command UNPAUSE_PLAYBACK_RECORDED_CAR
 * @class Car
@@ -1432,20 +1446,6 @@ void SetCarEscortCarRear(CVehicle& self, CVehicle& other) {
 void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
     SetCarEscortCarUsingMission(self, other, MISSION_ESCORT_FRONT);
 }
-
-/*
-* @opcode 060E
-* @command IS_PLAYBACK_GOING_ON_FOR_CAR
-* @class Car
-* @method IsPlaybackGoingOn
-* 
-* @brief Returns true if the car is assigned to a path
-* 
-* @param self CVehicle&
-*/
-// void IsPlaybackGoingOnForCar(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
 
 /*
 * @opcode 0657
@@ -2596,15 +2596,18 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
+
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
+
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
+
     //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
