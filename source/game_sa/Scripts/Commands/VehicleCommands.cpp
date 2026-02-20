@@ -919,11 +919,11 @@ CPed* GetDriverOfCar(CVehicle& self) {
 * 
 * @param self CVehicle&
 * @param actionId eTempAction
-* @param time int
+* @param duration uint
 */
-// void SetCarTempAction(CVehicle& self, eTempAction actionId, int time) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarTempAction(CVehicle& self, eAutoPilotTempAction action, uint32 duration) {
+    self.m_autoPilot.SetTempAction(action, duration);
+}
 
 /*
 * @opcode 048B
@@ -2488,7 +2488,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
