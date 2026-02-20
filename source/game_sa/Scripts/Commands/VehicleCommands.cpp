@@ -202,8 +202,7 @@ CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
 //    }
 //}
 
-/// CAR_GOTO_COORDINATES
-void CarGotoCoordinates(CVehicle& vehicle, CVector where) {
+void CarGotoCoordinatesUsingMission(CVehicle& vehicle, CVector where, eCarMission mission, eCarMission missionStraightLine) {
     auto& ap = vehicle.m_autoPilot;
 
     if (where.z <= MAP_Z_LOW_LIMIT) {
@@ -218,13 +217,40 @@ void CarGotoCoordinates(CVehicle& vehicle, CVector where) {
 
     if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
         ap.m_nCarMission = !joined
-            ? MISSION_GOTOCOORDINATES
-            : MISSION_GOTOCOORDINATES_STRAIGHTLINE;
+            ? mission
+            : missionStraightLine;
     }
     if (ap.m_nCruiseSpeed <= 1) {
         ap.SetCruiseSpeed(1);
     }
-    ap.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    ap.StartCarMissionNow();
+}
+
+/// CAR_GOTO_COORDINATES
+void CarGotoCoordinates(CVehicle& vehicle, CVector where) {
+    CarGotoCoordinatesUsingMission(vehicle, where, MISSION_GOTOCOORDINATES, MISSION_GOTOCOORDINATES_STRAIGHTLINE);
+}
+
+/// CAR_GOTO_COORDINATES_ACCURATE
+auto CarGotoCoordinatesAccurate(CVehicle& vehicle, CVector where) {
+    CarGotoCoordinatesUsingMission(vehicle, where, MISSION_GOTOCOORDINATES_ACCURATE, MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE);
+}
+
+/*
+* @opcode 0704
+* @command CAR_GOTO_COORDINATES_RACING
+* @class Car
+* @method GotoCoordinatesRacing
+* 
+* @brief Makes the AI drive to the destination as fast as possible, trying to overtake other vehicles
+* 
+* @param self CVehicle&
+* @param x float
+* @param y float
+* @param z float
+*/
+void CarGotoCoordinatesRacing(CVehicle& self, CVector where) {
+    CarGotoCoordinatesUsingMission(self, where, MISSION_GOTOCOORDINATES_RACING, MISSION_GOTOCOORDINATES_STRAIGHTLINE);
 }
 
 /// CAR_WANDER_RANDOMLY
@@ -567,31 +593,6 @@ auto IsCarInWater(CVehicle* vehicle) {
         }
     }
     return false;
-}
-
-/// CAR_GOTO_COORDINATES_ACCURATE
-auto CarGotoCoordinatesAccurate(CVehicle& vehicle, CVector where) {
-    auto& ap = vehicle.m_autoPilot;
-
-    if (where.z <= -100.f) {
-        where.z = CWorld::FindGroundZForCoord(where.x, where.y);
-    }
-    where.z += vehicle.GetDistanceFromCentreOfMassToBaseOfModel();
-
-    const auto joined = CCarCtrl::JoinCarWithRoadSystemGotoCoors(&vehicle, where, false);
-
-    vehicle.SetStatus(STATUS_PHYSICS);
-    vehicle.SetEngineOn(true);
-
-    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
-        ap.m_nCarMission = !joined
-            ? MISSION_GOTOCOORDINATES_ACCURATE
-            : MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE;
-    }
-    if (ap.m_nCruiseSpeed <= 1) {
-        ap.SetCruiseSpeed(1);
-    }
-    ap.StartCarMissionNow();
 }
 
 /// IS_CAR_ON_SCREEN
@@ -1729,23 +1730,6 @@ bool DoesCarHaveStuckCarCheck(notsa::script::ScriptEntity<CVehicle> self) {
 }
 
 /*
-* @opcode 0704
-* @command CAR_GOTO_COORDINATES_RACING
-* @class Car
-* @method GotoCoordinatesRacing
-* 
-* @brief Makes the AI drive to the destination as fast as possible, trying to overtake other vehicles
-* 
-* @param self CVehicle&
-* @param x float
-* @param y float
-* @param z float
-*/
-// void CarGotoCoordinatesRacing(CVehicle& self, CVector vec1) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
-
-/*
 * @opcode 0705
 * @command START_PLAYBACK_RECORDED_CAR_USING_AI
 * @class Car
@@ -2547,6 +2531,8 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR, CreateCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES, CarGotoCoordinates);
+    REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
+    REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_RACING, CarGotoCoordinatesRacing);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_WANDER_RANDOMLY, CarWanderRandomly);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_SET_IDLE, CarSetIdle);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COORDINATES, GetCarCoordinates);
@@ -2587,7 +2573,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_RESPRAY_CAR, SetCanResprayCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ONLY_DAMAGED_BY_PLAYER, SetCarOnlyDamagedByPlayer);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_WATER, IsCarInWater);
-    REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_SCREEN, IsCarOnScreen);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_X, GetCarForwardX);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_FORWARD_Y, GetCarForwardY);
@@ -2660,7 +2645,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
     REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_RACING, CarGotoCoordinatesRacing);
     //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAi);
     //REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
