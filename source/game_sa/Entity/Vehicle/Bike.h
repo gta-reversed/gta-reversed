@@ -66,7 +66,7 @@ public:
     float m_fSuspensionLength[NUM_SUSP_LINES];
     float m_fLineLength[NUM_SUSP_LINES];
     float m_fHeightAboveRoad;
-    float m_fExtraTractionMult;
+    float m_fExtraTractionMult; /* aka m_fCarTraction */
     float m_fSwingArmLength;
     float m_fForkYOffset;
     float m_fForkZOffset;

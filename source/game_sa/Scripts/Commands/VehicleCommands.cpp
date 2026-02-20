@@ -802,9 +802,13 @@ CVector GetOffsetFromCarInWorldCoords(CVehicle& self, CVector offset) {
 * @param self CVehicle&
 * @param traction float
 */
-// void SetCarTraction(CVehicle& self, float traction) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarTraction(CVehicle& self, float traction) {
+    if (self.IsAutomobile()) {
+        self.AsAutomobile()->m_fCarTraction = traction;
+    } else {
+        self.AsBike()->m_fExtraTractionMult = traction;
+    }
+}
 
 /*
 * @opcode 0428
@@ -2465,7 +2469,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_DAMAGED, SetCarCanBeDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
