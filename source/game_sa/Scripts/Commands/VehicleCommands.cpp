@@ -12,6 +12,17 @@
 #include "CommandParser/Parser.hpp"
 using namespace notsa::script;
 
+enum class eSeatId {
+    FRONT_RIGHT,
+    REAR_LEFT,
+    REAR_RIGHT,
+    PASSENGER4,
+    PASSENGER5,
+    PASSENGER6,
+    PASSENGER7,
+    PASSENGER8,
+    BIKE_REAR=0,
+};
 
 namespace {
 auto ClampDegreesForScript(float deg) {
@@ -836,9 +847,9 @@ void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
 * @param self CVehicle&
 * @param seat eSeatId
 */
-// void IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
+    return +seat < self.m_nMaxPassengers && !self.m_apPassengers[+seat];
+}
 
 /*
 * @opcode 0441
@@ -2471,7 +2482,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
