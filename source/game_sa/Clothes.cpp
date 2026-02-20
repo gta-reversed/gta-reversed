@@ -88,16 +88,6 @@ void CClothes::LoadClothesFile() {
             continue;
         }
 
-        enum class eClothRule : uint8_t {
-            TAG_CUTS,
-            TAG_SETC,
-            TAG_TEX,
-            TAG_HIDE,
-            TAG_END_IGNORE,
-            TAG_IGNORE,
-            TAG_END_EXCLUSIVE,
-            TAG_EXCLUSIVE
-        };
         const eClothRule ruleTag = [&](){
             constexpr struct {const char* name; eClothRule rule;} map[]{
                 {"CUTS", eClothRule::TAG_CUTS},
