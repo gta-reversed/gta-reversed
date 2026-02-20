@@ -1072,9 +1072,9 @@ void SetCarStraightLineDistance(CVehicle& self, uint8 distance) {
 * 
 * @param self CVehicle&
 */
-// void PopCarBoot(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void PopCarBoot(CVehicle& self) {
+    self.AsAutomobile()->PopBoot();
+}
 
 /*
 * @opcode 04F1
@@ -2543,7 +2543,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
-    //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
+    REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_WAITING_FOR_WORLD_COLLISION, IsCarWaitingForWorldCollision);
     //REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MODEL_COMPONENTS, SetCarModelComponents);
