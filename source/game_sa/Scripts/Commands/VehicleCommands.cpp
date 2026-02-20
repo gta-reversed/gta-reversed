@@ -936,9 +936,9 @@ void SetCarTempAction(CVehicle& self, eAutoPilotTempAction action, uint32 durati
 * @param self CVehicle&
 * @param routeSeed int
 */
-// void SetCarRandomRouteSeed(CVehicle& self, int routeSeed) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarRandomRouteSeed(CVehicle& self, int16 routeSeed) {
+    self.m_nForcedRandomRouteSeed = routeSeed;
+}
 
 /*
 * @opcode 0495
@@ -2489,7 +2489,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
