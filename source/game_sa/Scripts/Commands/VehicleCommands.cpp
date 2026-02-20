@@ -1508,9 +1508,9 @@ void CustomPlateForNextCar(eModelID modelId, std::string_view text) {
 * @param self CVehicle&
 * @param lightMode eCarLights
 */
-// void ForceCarLights(CVehicle& self, eCarLights lightMode) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ForceCarLights(CVehicle& self, eVehicleOverrideLightsState lightMode) {
+    self.m_nOverrideLights = lightMode;
+}
 
 /*
 * @opcode 0683
@@ -2630,7 +2630,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
 
     REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
+    REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
     //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
