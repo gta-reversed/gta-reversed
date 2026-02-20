@@ -674,9 +674,11 @@ void SetCarWatertight(CVehicle& self, bool state) {
 * @param x float
 * @param y float
 */
-// void TurnCarToFaceCoord(CVehicle& self, CVector2D vec1) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void TurnCarToFaceCoord(CVehicle& self, CVector2D point) {
+    const auto& pos = self.GetPosition();
+    const auto angle = CGeneral::GetATanOf(pos - point) + HALF_PI;
+    self.SetHeading(angle > TWO_PI ? angle - TWO_PI : angle);
+}
 
 /*
 * @opcode 03A2
@@ -2449,7 +2451,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PLACE_OBJECT_RELATIVE_TO_CAR, PlaceObjectRelativeToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_CAR_SIREN, SwitchCarSiren);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
-    //REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
+    REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STATUS, SetCarStatus);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
