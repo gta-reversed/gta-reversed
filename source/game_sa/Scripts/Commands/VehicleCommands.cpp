@@ -787,9 +787,9 @@ void SetCarCanBeDamaged(CVehicle& self, bool state) {
 * @param yOffset float
 * @param zOffset float
 */
-// notsa::script::MultiRet<float, float, float> GetOffsetFromCarInWorldCoords(CVehicle& self, CVector offset) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+CVector GetOffsetFromCarInWorldCoords(CVehicle& self, CVector offset) {
+    return self.GetMatrix().TransformPoint(offset);
+}
 
 /*
 * @opcode 0423
@@ -2464,7 +2464,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_UPSIDEDOWN_CAR_NOT_DAMAGED, SetUpsidedownCarNotDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_DAMAGED, SetCarCanBeDamaged);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
