@@ -14,6 +14,7 @@ arg_parser.add_argument("--klass", help="Regex pattern to match class names", de
 arg_parser.add_argument("--extension", help="Regex pattern to match extension names", default='default')
 arg_parser.add_argument('--with-handlers', action='store_true', help="Generate `REGISTER_COMMAND_HANDLER` stubs for the commands")
 arg_parser.add_argument('--commented-out', action='store_true', help="Comment out the generated stubs")
+arg_parser.add_argument('--transform-params', action='store_true', help="Transform groups of x, y, (z) parameters into vector types", default=True)
 args = arg_parser.parse_args()
 
 TYPE_MAPPING = {
@@ -76,6 +77,9 @@ Definitions = TypedDict('Definitions', {
     'extensions': list[Extension]
 })
 
+def to_camel_case(str: str) -> str:
+    return f'{str[0].lower()}{str[1:]}' if str else str
+
 def main():
     definitions: Definitions = requests.get(args.input, timeout=15).json()
     
@@ -101,13 +105,53 @@ def main():
     
     with output_path.open('w', encoding='utf-8') as f:
         for cmd in commands:
-            input_params = [
+            input_params: list[CommandInputParameter] = [
                 {
                     'name': param['name'],
                     'type': TYPE_MAPPING.get(param['type'], param['type'])
                 }
                 for param in cmd.get('input', [])
             ]
+                   
+            handler_input_params: list[CommandInputParameter] = []
+            i = 0
+            while i < len(input_params):
+                param = input_params[i]
+
+                #
+                # A group of x, y, (z) values can be represented as a vector type
+                #
+                if args.transform_params:
+                    def is_coord_param(idx: int, coord: str, params: list[CommandInputParameter] = input_params) -> bool:
+                        try:
+                            param_name = params[idx]['name'].lower()
+                            return param_name.startswith(coord) or param_name.endswith(coord)
+                        except IndexError:
+                            return False
+
+                    if is_coord_param(i, 'x') and is_coord_param(i + 1, 'y'):
+                        def get_new_param_name(pattern, param=param, i=i): 
+                            return to_camel_case(re.sub(f'[{pattern}]$|^[{pattern}]', '', param['name'], flags=re.IGNORECASE)) or f'vec{i}'
+                        
+                        if is_coord_param(i + 2, 'z'):
+                            handler_input_params.append({
+                                'name': get_new_param_name('xyz'),
+                                'type': 'CVector'
+                            })
+                            i += 3
+                        else:
+                            handler_input_params.append({
+                                'name': get_new_param_name('xy'),
+                                'type': 'CVector2D'
+                            })
+                            i += 2
+                        continue
+
+                #
+                # Not a vector param, add as-is (with type mapping)
+                # 
+                handler_input_params.append(param)
+                i += 1
   
             output_params = [
                 {
@@ -133,11 +177,11 @@ def main():
                 f.write(f' * @brief {cmd["short_desc"]}\n')
             if input_params:
                 f.write(' * \n')
-                for param in input_params:
+                for param in input_params: # Use original input params for documentation, as the handler params are an implementation detail
                     f.write(f' * @param {param["name"]} {param["type"]}\n')
             f.write(' */\n')
             
-            write_code_line(f, f"{return_type} {get_handler_name(cmd)}({', '.join(f"{param['type']} {param['name']}" for param in input_params)}) {{")
+            write_code_line(f, f"{return_type} {get_handler_name(cmd)}({', '.join(f"{param['type']} {param['name']}" for param in handler_input_params)}) {{")
             if 'attrs' in cmd and cmd['attrs'].get('nop', False) or cmd.get('short_desc') == 'Does nothing':
                 write_code_line(f, '/* no-op */', 1)
             else:
