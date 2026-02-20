@@ -1638,9 +1638,10 @@ void PopCarPanel(CVehicle& self, ePanels panel, bool drop) {
 * @param self CVehicle&
 * @param panelId eCarPanel
 */
-// void FixCarPanel(CVehicle& self, eCarPanel panelId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void FixCarPanel(CVehicle& self, ePanels panel) {
+    auto* const automobile = self.AsAutomobile();
+    automobile->FixPanel(CDamageManager::GetCarNodeIndexFromPanel(panel), panel);
+}
 
 /*
 * @opcode 0699
@@ -2652,7 +2653,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
+    REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
     //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
