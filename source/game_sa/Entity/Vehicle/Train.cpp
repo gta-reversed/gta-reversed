@@ -366,15 +366,15 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
     int32 endSectorX   = std::min(CWorld::GetSectorX(pos.x + radius), MAX_SECTORS_X - 1);
     int32 endSectorY   = std::min(CWorld::GetSectorY(pos.y + radius), MAX_SECTORS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            TrainHitStuff(repeatSector->Vehicles, entity);
+            auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+            TrainHitStuff(repeatSector.Vehicles, entity);
             if (!bOnlyVehicles) {
-                TrainHitStuff(repeatSector->Peds, entity);
-                TrainHitStuff(repeatSector->Objects, entity);
+                TrainHitStuff(repeatSector.Peds, entity);
+                TrainHitStuff(repeatSector.Objects, entity);
             }
         }
     }
