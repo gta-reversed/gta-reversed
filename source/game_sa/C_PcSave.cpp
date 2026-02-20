@@ -13,13 +13,12 @@ void C_PcSave::InjectHooks() {
     RH_ScopedClass(C_PcSave);
     RH_ScopedCategoryGlobal();
 
-    // See note in CGenericGameStorage::InjectHooks as to why all this is unhooked by default
-
-    RH_ScopedInstall(SetSaveDirectory, 0x619040, { .reversed = false });
-    RH_ScopedInstall(GenerateGameFilename, 0x6190A0, { .reversed = false });
-    RH_ScopedInstall(PopulateSlotInfo, 0x619140, { .reversed = false });
-    RH_ScopedInstall(SaveSlot, 0x619060, { .reversed = false });
-    RH_ScopedInstall(DeleteSlot, 0x6190D0, { .reversed = false });
+    // See note in CGenericGameStorage::InjectHooks as to why GenerateGameFilename is unhooked by default
+    RH_ScopedInstall(SetSaveDirectory, 0x619040);
+    RH_ScopedInstall(GenerateGameFilename, 0x6190A0, { .reversed = false }); // bad
+    RH_ScopedInstall(PopulateSlotInfo, 0x619140);
+    RH_ScopedInstall(SaveSlot, 0x619060);
+    RH_ScopedInstall(DeleteSlot, 0x6190D0);
 }
 
 // 0x619040
@@ -60,7 +59,7 @@ void C_PcSave::PopulateSlotInfo() {
             if (std::string_view{TopLineEmptyFile} != (char*)vars.m_szSaveName) {
                 memcpy(CGenericGameStorage::ms_SlotFileName[i], vars.m_szSaveName, 48); // TODO: why 48?
                 CGenericGameStorage::ms_Slots[i] = eSlotState::SLOT_FILLED;
-                CGenericGameStorage::ms_SlotFileName[i][24] = 0; // TODO: Why 24?
+                CGenericGameStorage::ms_SlotFileName[i][24] = 0; // Truncate the name at 24th character
             }
             CFileMgr::CloseFile(file);
         }
