@@ -630,7 +630,7 @@ CPathNode* CPathFind::GetPathNode(CNodeAddress address) {
 // notsa
 CCarPathLinkAddress CPathFind::GetNaviLink(uint16 area, uint16 linkId) const {
     assert(area < NUM_PATH_MAP_AREAS);
-    //assert(linkId < m_anNumCarPathLinks[area]);
+    assert(linkId < m_anNumAddresses[area]);
     return m_pNaviLinks[area][linkId];
 }
 

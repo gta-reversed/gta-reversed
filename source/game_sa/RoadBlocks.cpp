@@ -27,6 +27,7 @@ void CRoadBlocks::Init() {
 
     if (notsa::File rbx("data\\paths\\roadblox.dat", "rb"); rbx) {
         rbx.Read(&NumRoadBlocks, sizeof(int32));
+        assert(NumRoadBlocks <= MAX_ROADBLOCKS);
         rbx.Read(RoadBlockNodes.data(), RoadBlockNodes.size() * sizeof(CNodeAddress));
     } else {
         NOTSA_UNREACHABLE("roadblox.dat couldn't be opened!");
@@ -106,7 +107,7 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a
 
 // 0x461170
 void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPositionsType, ePedType pedType) {
-    const auto Generate = [&](eCopType copType = COP_TYPE_CITYCOP, eModelID pedModel = MODEL_INVALID, bool isSpecialCop = false) {
+    const auto Generate = [&](eModelID pedModel = MODEL_INVALID, eCopType copType = COP_TYPE_CITYCOP, bool isSpecialCop = false) {
         static constexpr auto PLACEMENTS = std::to_array<CVector>({
             { -1.5f, +1.9f, 0.0f },
             { -1.5f, -2.6f, 0.0f },
@@ -165,9 +166,7 @@ void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPosit
             CVisibilityPlugins::SetClumpAlpha(ped->m_pRwClump, 0);
 
             if (pedType != PED_TYPE_COP) {
-                // CGangInfo::GetRandomWeapon() wouldn't work here because it filters free slots. 
-                // We choose a random slot regardless if it's empty or not.
-                const auto weapon = CGeneral::RandomChoice(CGangs::Gang[pedType - PED_TYPE_GANG1].m_nGangWeapons);
+                const auto weapon = CGangs::Gang[pedType - PED_TYPE_GANG1].GetRandomWeapon(false);
                 if (weapon != WEAPON_UNARMED) {
                     ped->GiveDelayedWeapon(weapon, 25'001);
                     ped->SetCurrentWeapon(weapon);
@@ -180,11 +179,11 @@ void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPosit
 
     if (pedType == PED_TYPE_COP) {
         switch (vehicle->GetModelId()) {
-        case MODEL_ENFORCER: Generate(COP_TYPE_SWAT1, MODEL_SWAT, true);       break;
-        case MODEL_BARRACKS: Generate(COP_TYPE_ARMY, MODEL_ARMY, true);        break;
-        case MODEL_FBIRANCH: Generate(COP_TYPE_FBI, MODEL_FBI, true);          break;
-        case MODEL_COPCARRU: Generate(COP_TYPE_CITYCOP, MODEL_INVALID, true);  break;
-        default:             Generate(COP_TYPE_CITYCOP, MODEL_INVALID, false); break;
+        case MODEL_ENFORCER: Generate(MODEL_SWAT,    COP_TYPE_SWAT1,   true); break;
+        case MODEL_BARRACKS: Generate(MODEL_ARMY,    COP_TYPE_ARMY,    true); break;
+        case MODEL_FBIRANCH: Generate(MODEL_FBI,     COP_TYPE_FBI,     true); break;
+        case MODEL_COPCARRU: Generate(MODEL_INVALID, COP_TYPE_CITYCOP, true); break;
+        default:             Generate(MODEL_INVALID, COP_TYPE_CITYCOP, false); break;
         }
     } else if (IsPedTypeGang(pedType)) {
         for (auto i = 0; i < TOTAL_GANGS; i++) {
@@ -195,7 +194,7 @@ void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPosit
             if (pedModel == MODEL_INVALID) {
                 continue;
             }
-            Generate(COP_TYPE_CITYCOP, pedModel, false);
+            Generate(pedModel);
             return;
         }
     } else {
@@ -215,6 +214,7 @@ bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress nodeAddress, float& outWidth
     auto* const node = ThePaths.GetPathNode(nodeAddress);
     assert(node);
 
+    assert(node->m_nNumLinks >= 2);
     const auto naviLinkAddrA = ThePaths.GetNaviLink(nodeAddress.m_wAreaId, node->m_wBaseLinkId + 0),
                naviLinkAddrB = ThePaths.GetNaviLink(nodeAddress.m_wAreaId, node->m_wBaseLinkId + 1);
     if (!ThePaths.IsAreaLoaded(naviLinkAddrA.m_wAreaId) || !ThePaths.IsAreaLoaded(naviLinkAddrB.m_wAreaId)) {
