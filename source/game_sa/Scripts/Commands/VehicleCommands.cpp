@@ -1521,7 +1521,7 @@ void ForceCarLights(CVehicle& self, eVehicleOverrideLightsState lightMode) {
 * @brief 
 * 
 * @param self CVehicle&
-* @param handle CVehicle&
+* @param other CVehicle&
 * @param xOffset float
 * @param yOffset float
 * @param zOffset float
@@ -1529,9 +1529,13 @@ void ForceCarLights(CVehicle& self, eVehicleOverrideLightsState lightMode) {
 * @param yRotation float
 * @param zRotation float
 */
-// void AttachCarToCar(CVehicle& self, CVehicle& handle, CVector offset, CVector rotation) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void AttachCarToCar(CVehicle& self, CVehicle& other, CVector offset, CVector rotation) {
+    if (offset.x > -999.9f) {
+        self.AttachEntityToEntity(&other, offset, rotation * DEG_TO_RAD);
+    } else {
+        self.AttachEntityToEntity(&other, nullptr, nullptr);
+    }
+}
 
 /*
 * @opcode 0684
@@ -2631,7 +2635,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
     REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
-    //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
