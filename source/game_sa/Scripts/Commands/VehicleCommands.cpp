@@ -1429,9 +1429,9 @@ void SetCarEscortCarRear(CVehicle& self, CVehicle& other) {
 * @param self CVehicle&
 * @param handle CVehicle&
 */
-// void SetCarEscortCarFront(CVehicle& self, CVehicle& handle) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
+    SetCarEscortCarUsingMission(self, other, MISSION_ESCORT_FRONT);
+}
 
 /*
 * @opcode 060E
@@ -2603,7 +2603,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
