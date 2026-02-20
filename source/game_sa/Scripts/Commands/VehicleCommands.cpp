@@ -1668,9 +1668,9 @@ void FixCarTyre(CVehicle& self, eCarWheel tire) {
 * 
 * @param self CVehicle&
 */
-// notsa::script::MultiRet<float, float, float> GetCarSpeedVector(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+auto GetCarSpeedVector(CVehicle& self) {
+    return self.GetMoveSpeed() * 50.f;
+}
 
 /*
 * @opcode 06A3
@@ -2655,7 +2655,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
     //REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
