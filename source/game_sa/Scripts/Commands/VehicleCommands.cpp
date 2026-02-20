@@ -1099,9 +1099,18 @@ bool IsCarWaitingForWorldCollision(CVehicle& self) {
 * @param self CVehicle&
 * @param tireId eWheelId
 */
-// void BurstCarTyre(CVehicle& self, eWheelId tireId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void BurstCarTyre(CVehicle& self, eWheelId tire) {
+    if (self.IsBike()) {
+        switch (tire) {
+        case eWheelId::BIKE_FRONT:
+        case eWheelId::FRONT_RIGHT: self.BurstTyre(0, true); break;
+        case eWheelId::BIKE_REAR:
+        case eWheelId::REAR_RIGHT:  self.BurstTyre(1, true); break;
+        default:                    NOTSA_UNREACHABLE("Invalid wheel ID for bike: {}", +tire);
+        }
+    }
+    self.BurstTyre(+tire, true);
+}
 
 /*
 * @opcode 0506
@@ -2543,7 +2552,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_WAITING_FOR_WORLD_COLLISION, IsCarWaitingForWorldCollision);
-    //REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
+    REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MODEL_COMPONENTS, SetCarModelComponents);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
     //REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
