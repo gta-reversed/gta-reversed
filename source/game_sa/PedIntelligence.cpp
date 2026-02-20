@@ -111,8 +111,8 @@ CPedIntelligence::CPedIntelligence(CPed* ped) :
     m_eventHandler{ CEventHandler(ped) },
     m_eventGroup{ CEventGroup(ped) }
 {
-    m_nDecisionMakerType                  = DM_EVENT_UNDEFINED;
-    m_nDecisionMakerTypeInGroup           = -1;
+    m_nDecisionMakerType                  = eDecisionMakerType::UNKNOWN;
+    m_nDecisionMakerTypeInGroup           = eDecisionMakerType::UNKNOWN;
     m_fHearingRange                       = 15.0f;
     m_fSeeingRange                        = 15.0f;
     m_nDmNumPedsToScan                    = 3;
@@ -138,35 +138,32 @@ CPedIntelligence::~CPedIntelligence() {
 }
 
 // 0x600B50
-void CPedIntelligence::SetPedDecisionMakerType(int32 newType) {
-    int32 oldType = m_nDecisionMakerType;
-    if (oldType)
-    {
-        if (!newType)
-        {
-            m_nDecisionMakerTypeInGroup = oldType;
+void CPedIntelligence::SetPedDecisionMakerType(eDecisionMakerType newType) {
+    const auto prev = m_nDecisionMakerType;
+    if (prev != eDecisionMakerType::PED_GROUPMEMBER) {
+        if (newType != eDecisionMakerType::PED_GROUPMEMBER) {
+            m_nDecisionMakerType = newType;
+        } else {
+            m_nDecisionMakerTypeInGroup = prev;
+            m_nDecisionMakerType        = eDecisionMakerType::PED_GROUPMEMBER;
         }
-        m_nDecisionMakerType = newType;
-    }
-    else
-    {
+    } else {
         m_nDecisionMakerTypeInGroup = newType;
     }
-    if (m_nDecisionMakerType == DM_EVENT_PED_ENTERED_MY_VEHICLE)
-    {
-        m_fDmRadius = 5.0f;
+    if (m_nDecisionMakerType == eDecisionMakerType::PED_INDOORS) {
+        m_fDmRadius        = 5.0f;
         m_nDmNumPedsToScan = 15;
     }
 }
 
 // 0x600BB0
-void CPedIntelligence::SetPedDecisionMakerTypeInGroup(int32 newType) {
+void CPedIntelligence::SetPedDecisionMakerTypeInGroup(eDecisionMakerType newType) {
     m_nDecisionMakerTypeInGroup = newType;
 }
 
 // 0x600BC0
 void CPedIntelligence::RestorePedDecisionMakerType() {
-    if (!m_nDecisionMakerType) { // todo: DM_EVENT_DRAGGED_OUT_CAR
+    if (m_nDecisionMakerType == eDecisionMakerType::PED_GROUPMEMBER) {
         m_nDecisionMakerType = m_nDecisionMakerTypeInGroup;
     }
 }

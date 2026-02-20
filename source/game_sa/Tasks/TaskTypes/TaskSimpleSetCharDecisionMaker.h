@@ -9,14 +9,14 @@ class CTaskSimpleSetCharDecisionMaker;
 class NOTSA_EXPORT_VTABLE CTaskSimpleSetCharDecisionMaker : public CTaskSimple {
 
 public:
-    uint32 m_decisionMaker{};
+    eDecisionMakerTypeS32 m_DecisionMakerType{};
 
 public:
     static void InjectHooks();
 
     static constexpr auto Type = eTaskType::TASK_SIMPLE_SET_CHAR_DECISION_MAKER;
 
-    CTaskSimpleSetCharDecisionMaker(uint32 decisionMaker);
+    CTaskSimpleSetCharDecisionMaker(eDecisionMakerTypeS32 decisionMaker);
     CTaskSimpleSetCharDecisionMaker(const CTaskSimpleSetCharDecisionMaker&); // NOTSA
     ~CTaskSimpleSetCharDecisionMaker() = default;
 
@@ -27,7 +27,7 @@ public:
 
 private: // Wrappers for hooks
     // 0x46A470
-    CTaskSimpleSetCharDecisionMaker* Constructor(uint32 dm) {
+    CTaskSimpleSetCharDecisionMaker* Constructor(eDecisionMakerTypeS32 dm) {
         this->CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(dm);
         return this;
     }
