@@ -1481,9 +1481,21 @@ void OpenCarDoor(CVehicle& self, eDoors door) {
 * @param modelId eModelID
 * @param text std::string_view
 */
-// void CustomPlateForNextCar(eModelID modelId, std::string_view text) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void CustomPlateForNextCar(eModelID modelId, std::string_view text) {
+    assert(text.length() <= 8);
+
+    auto* const mi = CModelInfo::GetVehicleModelInfo(modelId); /* NOTE: Not sure if this is correct, it uses `AsVehicleModelInfoPtr` without checking */
+    if (!mi || mi->GetModelType() != MODEL_INFO_VEHICLE || !mi->m_pPlateMaterial) {
+        return;
+    }
+
+    char plate[8 + 1]{ 0 };
+    for (auto [i, chr] : rngv::enumerate(text)) {
+        plate[i] = chr == '_' || !chr ? ' ' : chr;
+    }
+    plate[8] = '\0';
+    mi->SetCustomCarPlateText(plate);
+}
 
 /*
 * @opcode 067F
@@ -2617,7 +2629,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
 
     REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
     //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
