@@ -1458,9 +1458,17 @@ void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
 * @param self CVehicle&
 * @param door eCarDoor
 */
-// void OpenCarDoor(CVehicle& self, eCarDoor door) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void OpenCarDoor(CVehicle& self, eDoors door) {
+    auto* const automobile = self.AsAutomobile();
+    if (automobile->IsDoorMissing(door)) {
+        return;
+    }
+    const auto node = CDamageManager::GetCarNodeIndexFromDoor(door);
+    if (!automobile->m_aCarNodes[node]) {
+        return;
+    }
+    automobile->OpenDoor(nullptr, node, door, 1.f, true);
+}
 
 /*
 * @opcode 0674
@@ -2608,7 +2616,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
 
-    //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
+    REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
     //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
