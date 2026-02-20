@@ -318,10 +318,10 @@ void CCarGenerator::DoInternalProcessing()
         }
     }
 
-    if (CGeneral::GetRandomNumberInRange(0, 100) < m_nAlarmChance)
+    if (CGeneral::GetRandomNumberInRange(0, 100) < m_ChanceOfAlarm)
         vehicle->m_nAlarmState = -1;
 
-    if (CGeneral::GetRandomNumberInRange(0, 100) < m_nDoorLockChance)
+    if (CGeneral::GetRandomNumberInRange(0, 100) < m_ChanceOfDoorLock)
         vehicle->m_nDoorLock = eCarLock::CARLOCK_LOCKED;
 
     if (m_nPrimaryColor != -1 && m_nSecondaryColor != -1)
@@ -383,25 +383,35 @@ void CCarGenerator::Process()
 }
 
 // 0x6F2E50
-void CCarGenerator::Setup(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
-                          uint8 alarmChance, uint8 doorLockChance, uint16 minDelay, uint16 maxDelay,
-                          uint8 iplId, bool ignorePopulationLimit)
-{
+void CCarGenerator::Setup(
+    CVector posn,
+    float   angle,
+    int32   modelId,
+    uint8   primaryColor,
+    uint8   secondaryColor,
+    bool    isHighPriority,
+    uint8   chanceOfAlarm,
+    uint8   chanceOfDoorLock,
+    uint16  minDelay,
+    uint16  maxDelay,
+    uint8   iplId,
+    bool    ignorePopulationLimit
+) {
     constexpr float magic = 256.0f / 360.0f; // 0x8722E8 original expression 128.0f / 180.0f
 
     m_vecPosn = CompressLargeVector(posn);
     m_nAngle = (char)(angle * magic);
     m_nModelId = modelId;
-    m_nPrimaryColor = (uint8)(color1);
-    m_nSecondaryColor = (uint8)(color2);
+    m_nPrimaryColor = (uint8)(primaryColor);
+    m_nSecondaryColor = (uint8)(secondaryColor);
 
     bWaitUntilFarFromPlayer = false;
     bIgnorePopulationLimit = ignorePopulationLimit;
-    bHighPriority = bForceSpawn;
+    bHighPriority = isHighPriority;
     bPlayerHasAlreadyOwnedCar = false;
 
-    m_nAlarmChance = alarmChance;
-    m_nDoorLockChance = doorLockChance;
+    m_ChanceOfAlarm = chanceOfAlarm;
+    m_ChanceOfDoorLock = chanceOfDoorLock;
     m_nMinDelay = minDelay;
     m_nMaxDelay = maxDelay;
     m_nIplId = iplId;

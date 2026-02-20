@@ -729,6 +729,10 @@ public: // NOTSA functions
     /// get position of driver seat dummy (World Space)
     CVector GetDriverSeatDummyPositionWS(); // NOTSA
 
+    void SetEngineOn(bool on);
+
+    auto GetLastWeaponDamageType() const { return (eWeaponType)(m_nLastWeaponDamageType); }
+
 protected:
     float GetNewSteeringAmt();
 

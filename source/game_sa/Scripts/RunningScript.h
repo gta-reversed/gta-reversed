@@ -310,34 +310,34 @@ public:
         return ret;
     }
 
-    //! Get local variable
+    //! Get local variable (Doesn't touch IP)
     template<typename T>
     T& GetLocal(scm::VarLoc loc) {
         return reinterpret_cast<T&>(m_ThisMustBeTheOnlyMissionRunning ? CTheScripts::LocalVariablesForCurrentMission[loc] : m_LocalVars[loc]);
     }
 
-    //! Get value from local array
+    //! Get value from local array (Doesn't touch IP)
     template<typename T>
     T& GetArrayLocal(scm::VarLoc base, size_t idx, size_t elemSizeInDWords = std::min<size_t>(1, sizeof(T) / sizeof(int32))) {
         return GetLocal<T>((scm::VarLoc)(base + idx * elemSizeInDWords));
     }
 
-    //! Get global variable
+    //! Get global variable (Doesn't touch IP)
     template<typename T>
     T& GetGlobal(scm::VarLoc loc) {
         return reinterpret_cast<T&>(CTheScripts::ScriptSpace[loc]);
     }
 
-    //! Get value from global array
+    //! Get value from global array (Doesn't touch IP)
     template<typename T>
     T& GetArrayGlobal(scm::VarLoc base, size_t idx, size_t elemSizeInDWords = std::max<size_t>(1, sizeof(T) / sizeof(int32))) {
         return GetGlobal<T>((scm::VarLoc)(base + idx * elemSizeInDWords * sizeof(int32)));
     }
 
-    //! Perform array access (Increments IP)
+    //! Perform array access
     template<typename T>
-    T& GetAtIPFromArray(bool isGlobalArray) {
-        const auto op = GetAtIPAs<scm::ArrayAccess>();
+    T& GetAtIPFromArray(bool isGlobalArray, bool updateIP = true) {
+        const auto op = GetAtIPAs<scm::ArrayAccess>(updateIP);
         VERIFY(op.ElemType == scm::ArrayAccess::GetElementTypeOf<T>());
         const auto idx = op.IdxVarIsGlobal
             ? GetGlobal<int32>(op.IdxVarLoc)
