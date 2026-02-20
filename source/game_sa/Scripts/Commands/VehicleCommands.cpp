@@ -1301,32 +1301,6 @@ void SetLoadCollisionForCarFlag(CRunningScript& S, CVehicle& self, bool state) {
 }
 
 /*
-* @opcode 059D
-* @command SHUFFLE_CARD_DECKS
-* @class CardDecks
-* @method Shuffle
-* 
-* @brief 
-* 
-* @param type int
-*/
-// void ShuffleCardDecks(int type) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
-
-/*
-* @opcode 059E
-* @command FETCH_NEXT_CARD
-* @class CardDecks
-* @method FetchNextCard
-* 
-* @brief Returns a random number between 1 and 52, inclusive
-*/
-// int FetchNextCard() {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
-
-/*
 * @opcode 05EB
 * @command START_PLAYBACK_RECORDED_CAR
 * @class Car
@@ -2606,8 +2580,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FETCH_NEXT_CARD, FetchNextCard);
     //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
