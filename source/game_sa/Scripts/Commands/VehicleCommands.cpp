@@ -44,6 +44,14 @@ auto ClampDegreesForScript(float deg) {
             ? deg - 360.f
             : deg;
 }
+
+void DoSetCarIsWaitingForCollision(CRunningScript& S, CVehicle& self) {
+    if (S.m_UsesMissionCleanup) {
+        CWorld::Remove(&self);
+        self.m_bIsStaticWaitingForCollision = true;
+        CWorld::Add(&self);
+    }
+}
 }; // namespace
 
 
@@ -1263,11 +1271,7 @@ void FreezeCarPositionAndDontLoadCollision(CRunningScript& S, CVehicle& self, bo
     self.physicalFlags.bDontApplySpeed = state;
     self.physicalFlags.bDisableCollisionForce = state;
     if (state) {
-        if (S.m_UsesMissionCleanup) {
-            CWorld::Remove(&self);
-            self.m_bIsStaticWaitingForCollision = true;
-            CWorld::Add(&self);
-        }
+        DoSetCarIsWaitingForCollision(S, self);
     } else {
         self.m_nFakePhysics = false;
     }
@@ -1284,9 +1288,17 @@ void FreezeCarPositionAndDontLoadCollision(CRunningScript& S, CVehicle& self, bo
 * @param self CVehicle&
 * @param state bool
 */
-// void SetLoadCollisionForCarFlag(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetLoadCollisionForCarFlag(CRunningScript& S, CVehicle& self, bool state) {
+    self.physicalFlags.b15 = !state;
+    if (state) {
+        DoSetCarIsWaitingForCollision(S, self);
+    } else if (self.m_bIsStaticWaitingForCollision) {
+        self.m_bIsStaticWaitingForCollision = false;
+        if (!self.GetIsStatic()) {
+            self.AddToMovingList();
+        }
+    }
+}
 
 /*
 * @opcode 059D
@@ -2593,7 +2605,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
     //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
     //REGISTER_COMMAND_HANDLER(COMMAND_FETCH_NEXT_CARD, FetchNextCard);
     //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
