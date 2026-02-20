@@ -289,18 +289,20 @@ void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
 
 // 0x6F5E70
 CTrain* CTrain::FindCaboose(CTrain* train) {
-    auto* it = train;
-    assert(it != nullptr);
-    while (it = it->m_pNextCarriage);
-    return it;
+    assert(train != nullptr);
+    while (train->m_pNextCarriage) {
+        train = train->m_pNextCarriage;
+    }
+    return train;
 }
 
 // 0x6F5E90
 CTrain* CTrain::FindEngine(CTrain* train) {
-    auto* it = train;
-    assert(it != nullptr);
-    while (it = it->m_pPrevCarriage);
-    return it;
+    assert(train != nullptr);
+    while (train->m_pPrevCarriage) {
+        train = train->m_pPrevCarriage;
+    }
+    return train;
 }
 
 /**
