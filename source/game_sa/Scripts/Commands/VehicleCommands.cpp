@@ -837,6 +837,21 @@ void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
 }
 
 /*
+* @opcode 0466
+* @command SET_CAR_STAY_IN_FAST_LANE
+* @class Car
+* @method SetStayInFastLane
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+void SetCarStayInFastLane(CVehicle& self, bool state) {
+    self.m_autoPilot.carCtrlFlags.bStayInFastLane = state;
+}
+
+/*
 * @opcode 0431
 * @command IS_CAR_PASSENGER_SEAT_FREE
 * @class Car
@@ -864,21 +879,6 @@ bool IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
 eModelID GetCarModel(CVehicle& self) {
     return self.GetModelId();
 }
-
-/*
-* @opcode 0466
-* @command SET_CAR_STAY_IN_FAST_LANE
-* @class Car
-* @method SetStayInFastLane
-* 
-* @brief 
-* 
-* @param self CVehicle&
-* @param state bool
-*/
-// void SetCarStayInFastLane(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
 
 /*
 * @opcode 0468
@@ -2482,9 +2482,9 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_OFFSET_FROM_CAR_IN_WORLD_COORDS, GetOffsetFromCarInWorldCoords);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TRACTION, SetCarTraction);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AVOID_LEVEL_TRANSITIONS, SetCarAvoidLevelTransitions);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_PASSENGER_SEAT_FREE, IsCarPassengerSeatFree);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL, GetCarModel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_FAST_LANE, SetCarStayInFastLane);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_WEAPON_DAMAGE, ClearCarLastWeaponDamage);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_DRIVER_OF_CAR, GetDriverOfCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
