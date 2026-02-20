@@ -1798,11 +1798,19 @@ void SetCarStayInSlowLane(CVehicle& self, bool state) {
 * @brief Damages a panel on the car
 * 
 * @param self CVehicle&
-* @param panelId int
+* @param panel CarPanel
 */
-// void DamageCarPanel(CVehicle& self, int panelId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void DamageCarPanel(CVehicle& self, ePanels panel) {
+    assert(panel <= MAX_PANELS);
+
+    auto* const automobile = self.AsAutomobile();
+    automobile->GetDamageManager().ApplyDamage(
+        automobile,
+        (tComponent)(+COMPONENT_WING_LF + +panel),
+        150.f,
+        1.f
+    );
+}
 
 /*
 * @opcode 0731
@@ -2650,7 +2658,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_SLOW_LANE, SetCarStayInSlowLane);
-    //REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
+    REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
     //REGISTER_COMMAND_HANDLER(COMMAND_SUPPRESS_CAR_MODEL, SuppressCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
