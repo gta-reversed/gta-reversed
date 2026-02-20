@@ -100,7 +100,7 @@ public:
             uint8 bIsParked : 1;
         } movementFlags;
     };
-    uint8           m_nStraightLineDistance;
+    uint8           m_nStraightLineDistance; //!< Minimum distance for the AI driver to start ignoring car paths and go straight to the target
     uint8           m_ucCarFollowDist;
     uint8           m_ucHeliTargetDist2;
     char            field_50;
