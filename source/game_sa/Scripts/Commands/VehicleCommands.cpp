@@ -1209,9 +1209,15 @@ bool HasCarBeenDamagedByChar(CVehicle* self, CPed* ped) {
 * @param self CVehicle&
 * @param other CVehicle&
 */
-// void HasCarBeenDamagedByCar(CVehicle& self, CVehicle& other) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool HasCarBeenDamagedByCar(CVehicle* self, CVehicle* other) {
+    if (!self || !self->m_pLastDamageEntity) {
+        return false;
+    }
+    if (!other) {
+        return self->m_pLastDamageEntity->GetIsTypeVehicle();
+    }
+    return self->m_pLastDamageEntity == other;
+}
 
 /*
 * @opcode 053F
@@ -2573,7 +2579,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CHAR, HasCarBeenDamagedByChar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
     //REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
