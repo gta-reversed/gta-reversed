@@ -109,6 +109,21 @@ float CPlaceable::GetRoll() const {
     return std::atan2(right.z, m_matrix->GetUp().z < 0.f ? -xymag : xymag);
 }
 
+/*
+* @notsa
+* @brief Set roll (rotation around Y axis)
+*
+* @param roll Roll in radians
+*/
+void CPlaceable::SetRoll(float roll) {
+    if (!m_matrix) {
+        return;
+    }
+    m_matrix->SetRotateZOnly(GetHeading());
+    m_matrix->SetRotateYOnly(roll);
+    /* pos was kept, no need to restore it */
+}
+
 bool CPlaceable::IsWithinArea(float x1, float y1, float x2, float y2) const {
     const auto& vecPos = GetPosition();
     if (x1 > x2)

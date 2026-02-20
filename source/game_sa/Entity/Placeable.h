@@ -41,6 +41,7 @@ public:
     void SetHeading(float heading);
     float GetHeading() const;
     float GetRoll() const;
+    void SetRoll(float roll);
     bool IsWithinArea(float x1, float y1, float x2, float y2) const;
     bool IsWithinArea(float x1, float y1, float z1, float x2, float y2, float z2) const;
     void RemoveMatrix();

@@ -1821,11 +1821,11 @@ void DamageCarPanel(CVehicle& self, ePanels panel) {
 * @brief Sets the Y Angle of the vehicle to the specified value
 * 
 * @param self CVehicle&
-* @param yAngle float
+* @param roll float
 */
-// void SetCarRoll(CVehicle& self, float yAngle) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarRoll(CVehicle& self, float roll) {
+    self.SetRoll(roll);
+}
 
 /*
 * @opcode 0732
@@ -2659,7 +2659,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_SLOW_LANE, SetCarStayInSlowLane);
     REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
     //REGISTER_COMMAND_HANDLER(COMMAND_SUPPRESS_CAR_MODEL, SuppressCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_ANY_CAR_MODELS, DontSuppressAnyCarModels);
