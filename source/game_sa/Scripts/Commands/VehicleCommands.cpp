@@ -1025,9 +1025,12 @@ bool IsCarTyreBurst(CVehicle& self, eWheelId tire) {
 * @param self CVehicle&
 * @param forwardSpeed float
 */
-// void SetCarForwardSpeed(CVehicle& self, float forwardSpeed) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarForwardSpeed(CVehicle& self, float forwardSpeed) {
+    self.m_vecMoveSpeed = self.GetForward() * (forwardSpeed / 60.f);
+    if (self.m_pHandlingData->m_bIsHeli && !self.IsAutomobile()) {
+        self.AsHeli()->m_fHeliRotorSpeed = 0.22f;
+    }
+}
 
 /*
 * @opcode 04BD
@@ -2537,7 +2540,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
     //REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
