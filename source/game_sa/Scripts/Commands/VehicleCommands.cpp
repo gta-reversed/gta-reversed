@@ -709,9 +709,9 @@ void SetCarStatus(CVehicle& self, eEntityStatus status) {
 * @param self CVehicle&
 * @param state bool
 */
-// void SetCarStrong(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarStrong(CVehicle& self, bool state) {
+    self.vehicleFlags.bTakeLessDamage = state;
+}
 
 /*
 * @opcode 03C9
@@ -2456,7 +2456,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_WATERTIGHT, SetCarWatertight);
     REGISTER_COMMAND_HANDLER(COMMAND_TURN_CAR_TO_FACE_COORD, TurnCarToFaceCoord);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STATUS, SetCarStatus);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRONG, SetCarStrong);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_VISIBLY_DAMAGED, IsCarVisiblyDamaged);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_UPSIDEDOWN_CAR_NOT_DAMAGED, SetUpsidedownCarNotDamaged);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_COLOURS, GetCarColours);
