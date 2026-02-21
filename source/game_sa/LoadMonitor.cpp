@@ -86,7 +86,7 @@ void CLoadMonitor::EndFrame() {
         m_NumFramesThisSec = 0;
 
         for (auto&& [ch, acts] : rngv::zip(m_iCyclesHistory, m_fAveragedCyclesThisSecond)) {
-            std::shift_right(std::begin(ch), std::end(ch), 1);
+            rng::shift_right(ch, 1);
             ch[0] = (uint32)acts;
             acts = 0.0f;
         }
