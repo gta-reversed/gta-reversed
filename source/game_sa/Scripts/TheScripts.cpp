@@ -100,6 +100,7 @@ void CTheScripts::InjectHooks() {
     RH_ScopedInstall(UseSwitchJumpTable, 0x4703C0);
     RH_ScopedInstall(AttachSearchlightToSearchlightObject, 0x4934F0);
     RH_ScopedInstall(CheckStreamedScriptVersion, 0x464FF0);
+    RH_ScopedInstall(AddToSuppressedCarModelArray, 0x46B1A0);
 }
 
 // 0x468D50
@@ -520,6 +521,19 @@ void CTheScripts::AddToWaitingForScriptBrainArray(CEntity* entity, int16 special
 
     free->m_pEntity = entity;
     free->m_ScriptBrainIndex = specialModelIndex;
+}
+
+// 0x46B1A0
+void CTheScripts::AddToSuppressedCarModelArray(eModelID model) {
+    if (notsa::contains(SuppressedVehicleModels, model)) {
+        return;
+    }
+    auto const free = rng::find(SuppressedVehicleModels, MODEL_INVALID);
+    if (free != SuppressedVehicleModels.end()) {
+        *free = model;
+    } else {
+        NOTSA_LOG_WARN("No free space left to add model ({}) to suppressed vehicle models array", +model);
+    }
 }
 
 // 0x4934F0
