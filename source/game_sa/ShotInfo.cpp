@@ -34,7 +34,7 @@ void CShotInfo::Shutdown() {
 
 // 0x739C30
 bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin, CVector target) {
-    const auto shot = rng::find_if_not(aShotInfos, [](const auto& s) { return s.m_bExist; });
+    const auto shot = rng::find_if_not(aShotInfos, &CShotInfo::m_bExist);
     if (shot == aShotInfos.end()) {
         NOTSA_LOG_WARN("Shotinfo slots are full!");
         return false;
@@ -49,9 +49,11 @@ bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin
     shot->m_vecOrigin       = origin;
     shot->m_vecTargetOffset = target - origin;
     if (weapInfo->m_fSpread != 0.0f) {
-        shot->m_vecTargetOffset.x += CGeneral::RandomChoice(RandTable) * weapInfo->m_fSpread;
-        shot->m_vecTargetOffset.y += CGeneral::RandomChoice(RandTable) * weapInfo->m_fSpread;
-        shot->m_vecTargetOffset.z += CGeneral::RandomChoice(RandTable);
+        shot->m_vecTargetOffset += CVector{
+            CGeneral::RandomChoice(RandTable) * weapInfo->m_fSpread,
+            CGeneral::RandomChoice(RandTable) * weapInfo->m_fSpread,
+            CGeneral::RandomChoice(RandTable)
+        };
     }
     shot->m_vecTargetOffset.Normalise();
 

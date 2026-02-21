@@ -30,7 +30,6 @@ public:
     float       m_DestroyTime{};
     bool        m_bExist{};
     bool        m_bExecuted{};
-    char        _pad2A[2];
 
 private:
     friend void InjectHooksMain();
