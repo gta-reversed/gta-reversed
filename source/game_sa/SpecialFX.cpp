@@ -8,7 +8,7 @@ void CSpecialFX::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x7268F0);
-    RH_ScopedInstall(Update, 0x726AA0, { .reversed = false });
+    RH_ScopedInstall(Update, 0x726AA0);
     RH_ScopedInstall(Shutdown, 0x723390);
     RH_ScopedInstall(AddWeaponStreak, 0x7233F0);
     RH_ScopedInstall(Render, 0x726AD0);
@@ -75,7 +75,14 @@ void CSpecialFX::Init() {
 void CSpecialFX::Update() {
     ZoneScoped;
 
-    plugin::Call<0x726AA0>();
+    for (auto& mbs : CMotionBlurStreaks::aStreaks) {
+        if (mbs.m_nId) {
+            mbs.Update();
+        }
+    }
+    CBulletTraces::Update();
+    CCheckpoints::Update();
+    C3dMarkers::Update();
 }
 
 // 0x723390
