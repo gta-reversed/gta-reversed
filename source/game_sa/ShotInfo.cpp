@@ -6,7 +6,7 @@ constexpr auto      MAX_SHOT_INFOS = 100u;
 static inline auto& aShotInfos = StaticRef<std::array<CShotInfo, MAX_SHOT_INFOS>>(0xC89690);
 
 // Originally CShotInfo::ms_afRandTable
-static inline std::array<float, 20>& RandTable = StaticRef<std::array<float, 20>>(0xC89628);
+static inline auto& RandTable = StaticRef<std::array<float, 20>>(0xC89628);
 
 void CShotInfo::InjectHooks() {
     RH_ScopedClass(CShotInfo);
@@ -21,16 +21,7 @@ void CShotInfo::InjectHooks() {
 
 // 0x739B60
 void CShotInfo::Initialise() {
-    for (auto& shot : aShotInfos) {
-        shot.m_vecOrigin.Reset();
-        shot.m_vecTargetOffset.Reset();
-        shot.m_bExist      = false;
-        shot.m_bExecuted   = false;
-        shot.m_nWeaponType = WEAPON_PISTOL;
-        shot.m_fRange      = 1.0f;
-        shot.m_pCreator    = nullptr;
-        shot.m_DestroyTime = 0.0f;
-    }
+    rng::fill(aShotInfos, CShotInfo{});
     for (auto&& [i, rd] : rngv::enumerate(RandTable)) {
         rd = -0.05f + 0.005f * i;
     }
@@ -43,7 +34,7 @@ void CShotInfo::Shutdown() {
 
 // 0x739C30
 bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin, CVector target) {
-    auto shot = rng::find_if(aShotInfos, [](const auto& s) { return !s.m_bExist; });
+    const auto shot = rng::find_if_not(aShotInfos, [](const auto& s) { return s.m_bExist; });
     if (shot == aShotInfos.end()) {
         NOTSA_LOG_WARN("Shotinfo slots are full!");
         return false;
@@ -96,7 +87,7 @@ void CShotInfo::Update() {
             continue;
         }
 
-        auto& weaponInfo = *CWeaponInfo::GetWeaponInfo(shot.m_nWeaponType);
+        const auto& weaponInfo = *CWeaponInfo::GetWeaponInfo(shot.m_nWeaponType);
         if (static_cast<float>(CTimer::GetTimeInMS()) > shot.m_DestroyTime) {
             shot.m_bExist = false;
         }

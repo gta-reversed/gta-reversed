@@ -19,15 +19,17 @@ public:
     static bool GetFlameThrowerShotPosn(uint8 shotId, CVector& outPos);
     static void Update();
 
+    CShotInfo() = default; // NOTSA
+
 public:
-    eWeaponType m_nWeaponType;
-    CVector     m_vecOrigin;
-    CVector     m_vecTargetOffset;
-    float       m_fRange;
-    CEntity*    m_pCreator;
-    float       m_DestroyTime;
-    bool        m_bExist;
-    bool        m_bExecuted;
+    eWeaponType m_nWeaponType{WEAPON_PISTOL};
+    CVector     m_vecOrigin{};
+    CVector     m_vecTargetOffset{};
+    float       m_fRange{ 1.0f };
+    CEntity*    m_pCreator{};
+    float       m_DestroyTime{};
+    bool        m_bExist{};
+    bool        m_bExecuted{};
     char        _pad2A[2];
 
 private:
