@@ -13,26 +13,27 @@ class CEntity;
 
 class CShotInfo {
 public:
-    int32    m_nWeaponType;
-    CVector  m_vecOrigin;
-    CVector  m_vecTargetOffset;
-    float    m_fRange;
-    CEntity* m_pCreator;
-    float    m_DestroyTime;
-    bool     m_bExist;
-    bool     m_bExecuted;
-    char     _pad2A[2];
-
-    static float *ms_afRandTable; // static float ms_afRandTable[20]
-
-public:
-    static void InjectHooks();
-
     static void Initialise();
     static void Shutdown();
     static bool AddShot(CEntity* creator, eWeaponType weaponType, CVector origin, CVector target);
-    static bool GetFlameThrowerShotPosn(uint8 shotId, CVector* outPos);
+    static bool GetFlameThrowerShotPosn(uint8 shotId, CVector& outPos);
     static void Update();
+
+    CShotInfo() = default; // NOTSA
+
+public:
+    eWeaponType m_nWeaponType{WEAPON_PISTOL};
+    CVector     m_vecOrigin{};
+    CVector     m_vecTargetOffset{};
+    float       m_fRange{ 1.0f };
+    CEntity*    m_pCreator{};
+    float       m_DestroyTime{};
+    bool        m_bExist{};
+    bool        m_bExecuted{};
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 VALIDATE_SIZE(CShotInfo, 0x2C);
