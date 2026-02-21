@@ -3,16 +3,11 @@
 #include "Checkpoints.h"
 #include "SpecialFX.h"
 
-bool& CSpecialFX::bVideoCam = *(bool*)0xC7C70C;
-bool& CSpecialFX::bLiftCam = *(bool*)0xC7C70D;
-bool& CSpecialFX::bSnapShotActive = *(bool*)0xC7C714;
-uint32& CSpecialFX::SnapShotFrames = *(uint32*)0xC7C710;
-
 void CSpecialFX::InjectHooks() {
     RH_ScopedClass(CSpecialFX);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Init, 0x7268F0, { .reversed = false });
+    RH_ScopedInstall(Init, 0x7268F0);
     RH_ScopedInstall(Update, 0x726AA0, { .reversed = false });
     RH_ScopedInstall(Shutdown, 0x723390);
     RH_ScopedInstall(AddWeaponStreak, 0x7233F0);
@@ -23,7 +18,57 @@ void CSpecialFX::InjectHooks() {
 
 // 0x7268F0
 void CSpecialFX::Init() {
-    plugin::Call<0x7268F0>();
+    for (auto& bt : CBulletTraces::aTraces) {
+        bt.m_bExists = false;
+    }
+
+    for (auto& m : C3dMarkers::ms_user3dMarkers) {
+        m.m_bIsUsed = false;
+    }
+
+    for (auto& da : C3dMarkers::ms_directionArrows) {
+        da.m_bIsUsed = false;
+    }
+
+    constexpr RxVertexIndex MBSIndices[] = { 0, 1, 2, 1, 3, 2, 0, 2, 1, 1, 2, 3 };
+    constexpr RxObjSpace3DVertex MBSVertices[] = {
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+    };
+    rng::copy(MBSIndices, CMotionBlurStreaks::aIndices);
+    rng::copy(MBSVertices, CMotionBlurStreaks::aStreakVertices);
+
+    for (auto& mbs : CMotionBlurStreaks::aStreaks) {
+        mbs.m_nId = 0;
+    }
+
+    CBrightLights::NumBrightLights = 0;
+    CShinyTexts::NumShinyTexts     = 0;
+    C3dMarkers::Init();
+    CCheckpoints::Init();
+
+    bVideoCam       = false;
+    bLiftCam        = false;
+    bSnapShotActive = false;
+    SnapShotFrames  = 0;
+
+    CTxdStore::PushCurrentTxd();
+    CTxdStore::SetCurrentTxd(CTxdStore::FindTxdSlot("particle"));
+    if (!gpFinishFlagTex) {
+        gpFinishFlagTex = RwTextureRead("finishFlag", nullptr);
+    }
+    CTxdStore::PopCurrentTxd();
+
+    if (CMirrors::pBuffer) {
+        RwRasterDestroy(std::exchange(CMirrors::pBuffer, nullptr));
+    }
+    if (CMirrors::pZBuffer) {
+        RwRasterDestroy(std::exchange(CMirrors::pZBuffer, nullptr));
+    }
+    CMirrors::TypeOfMirror = eMirrorType::MIRROR_TYPE_NONE;
+    CMirrors::MirrorFlags  = 0;
 }
 
 // 0x726AA0
