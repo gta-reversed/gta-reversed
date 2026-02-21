@@ -31,14 +31,15 @@ void CSpecialFX::Init() {
     }
 
     constexpr RxVertexIndex MBSIndices[] = { 0, 1, 2, 1, 3, 2, 0, 2, 1, 1, 2, 3 };
-    constexpr RxObjSpace3DVertex MBSVertices[] = {
-        { 0.0f, 0.0f },
-        { 1.0f, 0.0f },
-        { 0.0f, 0.0f },
-        { 1.0f, 0.0f },
-    };
     rng::copy(MBSIndices, CMotionBlurStreaks::aIndices);
-    rng::copy(MBSVertices, CMotionBlurStreaks::aStreakVertices);
+
+    for (auto i = 0; i < 2; i++) {
+        RxObjSpace3DVertexSetU(&CMotionBlurStreaks::aStreakVertices[i + 0], 0.0f);
+        RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[i + 0], 0.0f);
+
+        RxObjSpace3DVertexSetU(&CMotionBlurStreaks::aStreakVertices[i + 1], 1.0f);
+        RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[i + 1], 0.0f);
+    }
 
     for (auto& mbs : CMotionBlurStreaks::aStreaks) {
         mbs.m_nId = 0;
@@ -149,11 +150,11 @@ void CSpecialFX::Render2DFXs() {
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetColor({ 0, 255, 0, 200 });
         CFont::SetFontStyle(FONT_SUBTITLES);
-        sprintf(gString, "%d", CTimer::GetFrameCounter() % 64);
+        notsa::format_to_sz(gString, "{}", CTimer::GetFrameCounter() % 64);
         AsciiToGxtChar(gString, gGxtString);
         CFont::PrintString(0.8f * SCREEN_WIDTH, 0.8f * SCREEN_HEIGHT, gGxtString);
 
-        for (auto y = 3.0f; y - 3.0f < SCREEN_WIDTH; y += 4.0f) {
+        for (auto y = 3.0f; y - 3.0f < SCREEN_HEIGHT; y += 4.0f) {
             RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDONE));
             RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDONE));
             CSprite2d::Draw2DPolygon(
@@ -195,7 +196,7 @@ void CSpecialFX::Render2DFXs() {
         CFont::SetFontStyle(FONT_SUBTITLES);
         // ...nothing to print?
 
-        for (auto y = 3.0f; y - 3.0f < SCREEN_WIDTH; y += 4.0f) {
+        for (auto y = 3.0f; y - 3.0f < SCREEN_HEIGHT; y += 4.0f) {
             RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDONE));
             RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDONE));
             CSprite2d::Draw2DPolygon(
