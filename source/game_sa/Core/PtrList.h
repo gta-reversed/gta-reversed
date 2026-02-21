@@ -160,6 +160,9 @@ public:
     auto begin() { return iterator{ m_node }; }
     auto end() { return iterator{ nullptr }; }
 
+    auto begin() const { return iterator{ m_node }; }
+    auto end() const { return iterator{ nullptr }; }
+
     auto cbegin() const { return const_iterator{ m_node }; }
     auto cend() const { return const_iterator{ nullptr }; }
 

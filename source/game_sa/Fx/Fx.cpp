@@ -50,14 +50,17 @@ void Fx_c::InjectHooks() {
     // RH_ScopedInstall(TriggerWaterHydrant, 0x4A0D70);
     // RH_ScopedInstall(TriggerGunshot, 0x4A0DE0);
     // RH_ScopedInstall(TriggerTankFire, 0x4A0FA0);
-    // RH_ScopedInstall(TriggerWaterSplash, 0x4A1070);
-    // RH_ScopedInstall(TriggerBulletSplash, 0x4A10E0);
-    // RH_ScopedInstall(TriggerFootSplash, 0x4A1150);
+    RH_ScopedInstall(TriggerWaterSplash, 0x4A1070);
+    RH_ScopedInstall(TriggerBulletSplash, 0x4A10E0);
+    RH_ScopedInstall(TriggerFootSplash, 0x4A1150);
 
     RH_ScopedGlobalInstall(RenderAddTri_, 0x4A1410);
     RH_ScopedGlobalInstall(RenderEnd, 0x4A1600);
     RH_ScopedGlobalInstall(RenderBegin, 0x4A13B0);
+    RH_ScopedGlobalInstall(RotateVecIntoVec, 0x4A1660);
+    RH_ScopedGlobalInstall(RotateVecAboutVec, 0x4A1780);
 }
+
 Fx_c* Fx_c::Constructor() { this->Fx_c::Fx_c(); return this; }
 Fx_c* Fx_c::Destructor() { this->Fx_c::~Fx_c(); return this; }
 
@@ -106,6 +109,15 @@ void Fx_c::ExitStaticSystems() {
 // 0x49EA60
 void Fx_c::InitEntitySystems() {
     // NOP
+}
+
+// NOTSA
+static void CreateFxWithinCameraRange(const char* name, const CVector& pos, float range) {
+    if (DistanceBetweenPointsSquared(TheCamera.GetPosition(), pos) <= range) {
+        if (auto* fxSystem = g_fxMan.CreateFxSystem(name, pos, nullptr, false)) {
+            fxSystem->PlayAndKill();
+        }
+    }
 }
 
 // 0x4A12D0
@@ -303,17 +315,17 @@ void Fx_c::TriggerTankFire(CVector& pos, CVector& dir) {
 
 // 0x4A1070
 void Fx_c::TriggerWaterSplash(CVector& pos) {
-    ((void(__thiscall*)(Fx_c*, CVector&))0x4A1070)(this, pos);
+    CreateFxWithinCameraRange("water_splash_big", pos, 625.0f);
 }
 
 // 0x4A10E0
 void Fx_c::TriggerBulletSplash(CVector& pos) {
-    ((void(__thiscall*)(Fx_c*, CVector&))0x4A10E0)(this, pos);
+    CreateFxWithinCameraRange("water_splash", pos, 625.0f);
 }
 
 // 0x4A1150
 void Fx_c::TriggerFootSplash(CVector& pos) {
-    ((void(__thiscall*)(Fx_c*, CVector&))0x4A1150)(this, pos);
+    CreateFxWithinCameraRange("water_splsh_sml", pos, 625.0f);
 }
 
 // see RwIm3DTransformFlags
@@ -412,10 +424,36 @@ void RenderEnd() {
 
 // 0x4A1660
 void RotateVecIntoVec(RwV3d* vecRes, RwV3d* vec, RwV3d* vecAlign) {
-    ((void(__cdecl*)(RwV3d*, RwV3d*, RwV3d*))0x4A1660)(vecRes, vec, vecAlign);
+    const CVector up = *vecAlign;
+    const auto ref = CVector{ 3.f, 4.f, 5.f }.Normalized();
+
+    RwV3d right;
+    RwV3dCrossProduct(&right, &up, &ref);
+    RwV3dNormalize(&right, &right);
+
+    RwV3d at;
+    RwV3dCrossProduct(&at, &up, &right);
+
+    auto* m = g_fxMan.FxRwMatrixCreate();
+    m->right = right;
+    m->up    = up;
+    m->at    = at;
+    m->pos   = { 0.0f, 0.0f, 0.0f };
+
+    RwMatrixUpdate(m);
+    RwV3dTransformVectors(vecRes, vec, 1, m);
+    g_fxMan.FxRwMatrixDestroy(m);
 }
 
 // 0x4A1780
 void RotateVecAboutVec(RwV3d* vecRes, RwV3d* vec, RwV3d* axis, float angle) {
-    ((void(__cdecl*)(RwV3d*, RwV3d*, RwV3d*, float))0x4A1780)(vecRes, vec, axis, angle);
+    const float x = axis->x, y = axis->y, z = axis->z;
+
+    const float s = CMaths::GetSinFast(angle);
+    const float c = CMaths::GetCosFast(angle);
+    const float t = 1.0f - c;
+
+    vecRes->x = (t*x*x + c)   * vec->x + (t*x*y - s*z) * vec->y + (t*x*z + s*y) * vec->z;
+    vecRes->y = (t*x*y + s*z) * vec->x + (t*y*y + c)   * vec->y + (t*y*z - s*x) * vec->z;
+    vecRes->z = (t*x*z - s*y) * vec->x + (t*y*z + s*x) * vec->y + (t*z*z + c)   * vec->z;
 }
