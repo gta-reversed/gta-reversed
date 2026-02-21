@@ -534,6 +534,7 @@ public:
     static void RemoveScriptSphere(int32 scriptIndex);
     static void RemoveScriptTextureDictionary();
     static void RemoveThisPed(CPed* ped);
+    static void RemoveFromSuppressedCarModelArray(eModelID model);
 
     static void RenderAllSearchLights();
     static bool ScriptAttachAnimGroupToCharModel(int32 modelId, const char* ifpName);

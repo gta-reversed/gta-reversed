@@ -101,6 +101,7 @@ void CTheScripts::InjectHooks() {
     RH_ScopedInstall(AttachSearchlightToSearchlightObject, 0x4934F0);
     RH_ScopedInstall(CheckStreamedScriptVersion, 0x464FF0);
     RH_ScopedInstall(AddToSuppressedCarModelArray, 0x46B1A0);
+    RH_ScopedInstall(RemoveFromSuppressedCarModelArray, 0x46A7E0);
 }
 
 // 0x468D50
@@ -1035,6 +1036,11 @@ void CTheScripts::RemoveThisPed(CPed* ped) {
     if (isMissionChar) {
         --CPopulation::ms_nTotalMissionPeds;
     }
+}
+
+// 0x46A7E0
+void CTheScripts::RemoveFromSuppressedCarModelArray(eModelID model) {
+    rng::replace(SuppressedVehicleModels, model, MODEL_INVALID);
 }
 
 // 0x464C20
