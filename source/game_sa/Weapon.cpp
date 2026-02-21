@@ -602,7 +602,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                         hitCP.m_vecPoint
                     );
                     DoBulletImpactFx();
-                    if (g_LoadMonitor.m_bForceProcLevel != CLoadMonitor::EProcessingLevel::HIGH) { // 0x73BF6C - NOTE/TODO: Useless, remove
+                    if (g_LoadMonitor.GetProcLevel() != eProcessingLevel::HIGH) { // 0x73BF6C - NOTE/TODO: Useless, remove
                         const auto wepForceMult = [this]{
                             switch (GetType()) {
                             case WEAPON_DESERT_EAGLE:

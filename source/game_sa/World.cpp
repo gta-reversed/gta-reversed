@@ -2239,7 +2239,7 @@ void CWorld::Process() {
         obj->ProcessControlLogic();
     }
 
-    g_LoadMonitor.StartTimer(true);
+    g_LoadMonitor.StartTimer(eLoadType::COLLISION);
     if (CReplay::Mode == MODE_PLAYBACK) {
         ZoneScopedN("Update entity RW");
 
@@ -2331,7 +2331,7 @@ void CWorld::Process() {
             });
         }
     }
-    g_LoadMonitor.EndTimer(true);
+    g_LoadMonitor.EndTimer(eLoadType::COLLISION);
 
     CVehicleRecording::SaveOrRetrieveDataForThisFrame();
     g_ikChainMan.Update(CTimer::GetTimeStepInSeconds());

@@ -542,7 +542,7 @@ void CPedIntelligence::SetEffectInUse(C2dEffect* effect) {
 
 // 0x6018F0
 void CPedIntelligence::ProcessAfterProcCol() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     auto* activeSimplestTask = m_TaskMgr.GetSimplestActiveTask();
     if (activeSimplestTask && activeSimplestTask->IsSimple()) {
@@ -562,12 +562,12 @@ void CPedIntelligence::ProcessAfterProcCol() {
 
     m_pPed->bCalledPreRender = 0;
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x6019B0
 void CPedIntelligence::ProcessAfterPreRender() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     CTask* secondaryTask = m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM);
     if (secondaryTask && secondaryTask->IsSimple())
@@ -614,7 +614,7 @@ void CPedIntelligence::ProcessAfterPreRender() {
         }
     }
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x601BB0
@@ -922,7 +922,7 @@ void CPedIntelligence::ProcessStaticCounter() {
 
 // 0x6073A0
 void CPedIntelligence::ProcessFirst() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     ProcessStaticCounter();
     if (!m_pedStuckChecker.TestPedStuck(m_pPed, &m_eventGroup))
@@ -948,12 +948,12 @@ void CPedIntelligence::ProcessFirst() {
     }
     m_pPed->bMoveAnimSpeedHasBeenSetByTask = false;
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x608260
 void CPedIntelligence::Process() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     m_vehicleScanner.ScanForVehiclesInRange(*m_pPed);
     m_pedScanner.ScanForPedsInRange(*m_pPed);
@@ -963,7 +963,7 @@ void CPedIntelligence::Process() {
     GetPlayerRelationshipRecorder().RecordRelationshipWithPlayer(m_pPed);
     LookAtInterestingEntities();
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x4B85B0
