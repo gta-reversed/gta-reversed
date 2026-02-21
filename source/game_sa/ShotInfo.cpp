@@ -1,14 +1,18 @@
 #include "StdInc.h"
 #include "ShotInfo.h"
+#include <algorithm>
 
 constexpr auto      MAX_SHOT_INFOS = 100u;
 static inline auto& aShotInfos = StaticRef<std::array<CShotInfo, MAX_SHOT_INFOS>>(0xC89690);
+
+// Originally CShotInfo::ms_afRandTable
+static inline std::array<float, 20>& RandTable = StaticRef<std::array<float, 20>>(0xC89628);
 
 void CShotInfo::InjectHooks() {
     RH_ScopedClass(CShotInfo);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x739B60, {.reversed = false});
+    RH_ScopedInstall(Initialise, 0x739B60);
     RH_ScopedInstall(Shutdown, 0x739C20, {.reversed = false});
     RH_ScopedInstall(AddShot, 0x739C30, {.reversed = false});
     RH_ScopedInstall(GetFlameThrowerShotPosn, 0x739DE0, {.reversed = false});
@@ -17,7 +21,19 @@ void CShotInfo::InjectHooks() {
 
 // 0x739B60
 void CShotInfo::Initialise() {
-    return plugin::CallAndReturn<void, 0x739B60>();
+    for (auto& shot : aShotInfos) {
+        shot.m_vecOrigin.Reset();
+        shot.m_vecTargetOffset.Reset();
+        shot.m_bExist      = false;
+        shot.m_bExecuted   = false;
+        shot.m_nWeaponType = WEAPON_PISTOL;
+        shot.m_fRange      = 1.0f;
+        shot.m_pCreator    = nullptr;
+        shot.m_DestroyTime = 0.0f;
+    }
+    for (auto&& [i, rd] : rngv::enumerate(RandTable)) {
+        rd = -0.05f + 0.005f * i;
+    }
 }
 
 // 0x739C20
