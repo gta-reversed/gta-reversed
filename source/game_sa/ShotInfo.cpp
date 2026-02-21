@@ -66,7 +66,7 @@ bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin
 
 // 0x739DE0
 bool CShotInfo::GetFlameThrowerShotPosn(uint8 shotId, CVector& outPos) {
-    if (const auto s = aShotInfos[shotId]; s.m_bExist && s.m_nWeaponType == WEAPON_FLAMETHROWER) {
+    if (const auto& s = aShotInfos[shotId]; s.m_bExist && s.m_nWeaponType == WEAPON_FLAMETHROWER) {
         outPos = s.m_vecOrigin;
         return true;
     }
