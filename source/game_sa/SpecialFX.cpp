@@ -55,12 +55,12 @@ void CSpecialFX::Init() {
     bSnapShotActive = false;
     SnapShotFrames  = 0;
 
-    CTxdStore::PushCurrentTxd();
-    CTxdStore::SetCurrentTxd(CTxdStore::FindTxdSlot("particle"));
-    if (!gpFinishFlagTex) {
-        gpFinishFlagTex = RwTextureRead("finishFlag", nullptr);
+    {
+        CTxdStore::ScopedTXDSlot scoped("particle");
+        if (!gpFinishFlagTex) {
+            gpFinishFlagTex = RwTextureRead("finishFlag", nullptr);
+        }
     }
-    CTxdStore::PopCurrentTxd();
 
     if (CMirrors::pBuffer) {
         RwRasterDestroy(std::exchange(CMirrors::pBuffer, nullptr));
