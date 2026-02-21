@@ -13,7 +13,7 @@ void CShotInfo::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Initialise, 0x739B60);
-    RH_ScopedInstall(Shutdown, 0x739C20, {.reversed = false});
+    RH_ScopedInstall(Shutdown, 0x739C20);
     RH_ScopedInstall(AddShot, 0x739C30, {.reversed = false});
     RH_ScopedInstall(GetFlameThrowerShotPosn, 0x739DE0, {.reversed = false});
     RH_ScopedInstall(Update, 0x739E60);
@@ -38,7 +38,7 @@ void CShotInfo::Initialise() {
 
 // 0x739C20
 void CShotInfo::Shutdown() {
-    return plugin::CallAndReturn<void, 0x739C20>();
+    // NOP
 }
 
 // 0x739C30
