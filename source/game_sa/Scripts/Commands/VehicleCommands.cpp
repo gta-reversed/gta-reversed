@@ -1851,9 +1851,9 @@ void SuppressCarModel(eModelID model) {
 * 
 * @param modelId eModelID
 */
-// void DontSuppressCarModel(eModelID modelId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void DontSuppressCarModel(eModelID modelId) {
+    CTheScripts::RemoveFromSuppressedCarModelArray(modelId);
+}
 
 /*
 * @opcode 0734
@@ -2661,7 +2661,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
     REGISTER_COMMAND_HANDLER(COMMAND_SUPPRESS_CAR_MODEL, SuppressCarModel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
+    REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
     //REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_ANY_CAR_MODELS, DontSuppressAnyCarModels);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_GO_AGAINST_TRAFFIC, SetCarCanGoAgainstTraffic);
     //REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
