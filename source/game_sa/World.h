@@ -21,6 +21,13 @@ class CVehicle;
 class CPlayerPed;
 class CWanted;
 
+// NOTSA
+enum class eSprayPaintState : int32 {
+    NOT_FOUND,
+    DISCOVERED,
+    PAINTED
+};
+
 constexpr int32 MAX_PLAYERS = 2;
 constexpr int32 MAX_WORLD_UNITS = 6000;
 
@@ -126,8 +133,8 @@ public:
     static void RemoveReferencesToDeletedObject(CEntity* entity);
     static void SetPedsOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
     static void SetPedsChoking(float x, float y, float z, float radius, CEntity* gasCreator);
-    static void SetCarsOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
-    static int32 SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
+    static void SetCarsOnFire(CVector pos, float radius, CEntity* fireCreator);
+    static eSprayPaintState SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
     static void RemoveFallenPeds();
     static void RemoveFallenCars();
     static void UseDetonator(CPed* creator);
@@ -184,7 +191,7 @@ public:
     static bool GetIsLineOfSightClear(const CVector& origin, const CVector& target, bool buildings, bool vehicles, bool peds, bool objects, bool dummies = false, bool doSeeThroughCheck = false, bool doCameraIgnoreCheck = false);
     static bool ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CColPoint& outColPoint, float& maxTouchDistance, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
     static void TriggerExplosion(const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
-    static void SetWorldOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
+    static void SetWorldOnFire(CVector pos, float radius, CEntity* fireCreator);
     static void RepositionCertainDynamicObjects();
     static bool ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
     static void IncrementCurrentScanCode();

@@ -159,13 +159,12 @@ void CShotInfo::Update() {
             }
             CVector sprayDir{};
             const auto sprayState = CWorld::SprayPaintWorld(shot.m_vecOrigin, sprayDir, shot.m_fRange, true);
-            if (sprayState) {
+            if (sprayState != eSprayPaintState::NOT_FOUND) {
                 shot.m_bExecuted = true;
 
-                const auto sprayDot = shot.m_vecTargetOffset.Dot(sprayDir);
-                shot.m_vecTargetOffset -= sprayDir * sprayDot;
+                shot.m_vecTargetOffset -= sprayDir * shot.m_vecTargetOffset.Dot(sprayDir);
                 shot.m_vecTargetOffset += shot.m_vecTargetOffset;
-                if (sprayState == 2 && shot.m_pCreator == FindPlayerPed()) {
+                if (sprayState == eSprayPaintState::PAINTED && shot.m_pCreator == FindPlayerPed()) {
                     AudioEngine.ReportFrontendAudioEvent(eAudioEvents::AE_FRONTEND_PART_MISSION_COMPLETE, 0.f, 1.f);
                 }
             }
@@ -179,9 +178,9 @@ void CShotInfo::Update() {
         }
         default: {
             if ((CTimer::GetFrameCounter() + i) % 4 == 0) {
-                CWorld::SetCarsOnFire(shot.m_vecOrigin.x, shot.m_vecOrigin.y, shot.m_vecOrigin.z, 4.f, shot.m_pCreator);
+                CWorld::SetCarsOnFire(shot.m_vecOrigin, 4.f, shot.m_pCreator);
             }
-            CWorld::SetWorldOnFire(shot.m_vecOrigin.x, shot.m_vecOrigin.y, shot.m_vecOrigin.z, 0.1f, shot.m_pCreator);
+            CWorld::SetWorldOnFire(shot.m_vecOrigin, 0.1f, shot.m_pCreator);
         }
         }
 
