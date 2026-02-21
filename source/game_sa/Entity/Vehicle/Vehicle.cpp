@@ -105,6 +105,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(SetCollisionLighting, 0x6D0CA0);
     RH_ScopedInstall(UpdateLightingFromStoredPolys, 0x6D0CC0);
     RH_ScopedInstall(CalculateLightingFromCollision, 0x6D0CF0);
+    RH_ScopedInstall(ResetAfterRender, 0x6D0E20);
     RH_ScopedInstall(ProcessWheel, 0x6D6C00);
     RH_ScopedInstall(ApplyBoatWaterResistance, 0x6D2740);
     RH_ScopedInstall(ProcessBoatControl, 0x6DBCE0);
