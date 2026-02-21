@@ -38,10 +38,6 @@ public:
     CEntityScanner();
     ~CEntityScanner();
 
-    CEntity** GetEntitiesInRange() {
-        return m_apEntities.data();
-    }
-
     // unused
     CTickCounter* GetTimer() {
         return &m_timer;
