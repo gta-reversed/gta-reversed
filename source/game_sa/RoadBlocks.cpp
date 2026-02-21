@@ -212,9 +212,9 @@ void CRoadBlocks::GenerateRoadBlocks() {
             GenerateDynamicRoadBlocks = true;
         }
 
-        const auto counter1      = 325 * (CTimer::GetFrameCounter() % 16 + 1);
+        const auto counter1      = MAX_ROADBLOCKS * (CTimer::GetFrameCounter() % 16 + 1);
         const auto rbsToGenerate = std::min((uint32)NumRoadBlocks, ((counter1 % 16) + counter1) / 16);
-        auto       counter2      = 325 * (CTimer::GetFrameCounter() % 16) / 16;
+        auto       counter2      = MAX_ROADBLOCKS * (CTimer::GetFrameCounter() % 16) / 16;
 
         for (; counter2 < rbsToGenerate; counter2++) {
             const auto& mrbNode = RoadBlockNodes[counter2];
@@ -225,7 +225,7 @@ void CRoadBlocks::GenerateRoadBlocks() {
             const auto  playerPos = FindPlayerCoors();
             if (std::abs(playerPos.x - mainNode->GetPosition().x) >= 90.0f ||
                 std::abs(playerPos.y - mainNode->GetPosition().y) >= 90.0f ||
-                DistanceBetweenPointsSquared2D(playerPos, mainNode->GetPosition()) >= 90.0f)
+                DistanceBetweenPoints2D(playerPos, mainNode->GetPosition()) >= 90.0f)
             {
                 InOrOut[counter2] = false;
                 continue;
@@ -324,7 +324,7 @@ void CRoadBlocks::GenerateRoadBlocks() {
         GenerateDynamicRoadBlocks = false;
     }
 
-    if (auto& srb = aScriptRoadBlocks[CTimer::GetFrameCounter() % 16]; srb.IsActive) {
+    if (auto& srb = aScriptRoadBlocks[CTimer::GetFrameCounter() % MAX_SCRIPT_ROADBLOCKS]; srb.IsActive) {
         const auto c = CVector::Centroid({ srb.CornerA, srb.CornerB });
 
         if (DistanceBetweenPoints(FindPlayerCoors(), c) >= 90.0f) {
