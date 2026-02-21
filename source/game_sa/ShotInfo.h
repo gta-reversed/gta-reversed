@@ -20,15 +20,15 @@ public:
     static void Update();
 
 public:
-    int32    m_nWeaponType;
-    CVector  m_vecOrigin;
-    CVector  m_vecTargetOffset;
-    float    m_fRange;
-    CEntity* m_pCreator;
-    float    m_DestroyTime;
-    bool     m_bExist;
-    bool     m_bExecuted;
-    char     _pad2A[2];
+    eWeaponType m_nWeaponType;
+    CVector     m_vecOrigin;
+    CVector     m_vecTargetOffset;
+    float       m_fRange;
+    CEntity*    m_pCreator;
+    float       m_DestroyTime;
+    bool        m_bExist;
+    bool        m_bExecuted;
+    char        _pad2A[2];
 
 private:
     friend void InjectHooksMain();
