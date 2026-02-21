@@ -16,13 +16,10 @@ public:
     static void Initialise();
     static void Shutdown();
     static bool AddShot(CEntity* creator, eWeaponType weaponType, CVector origin, CVector target);
-    static bool GetFlameThrowerShotPosn(uint8 shotId, CVector* outPos);
+    static bool GetFlameThrowerShotPosn(uint8 shotId, CVector& outPos);
     static void Update();
 
-private:
-    friend void InjectHooksMain();
-    static void InjectHooks();
-
+public:
     int32    m_nWeaponType;
     CVector  m_vecOrigin;
     CVector  m_vecTargetOffset;
@@ -32,6 +29,10 @@ private:
     bool     m_bExist;
     bool     m_bExecuted;
     char     _pad2A[2];
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 VALIDATE_SIZE(CShotInfo, 0x2C);

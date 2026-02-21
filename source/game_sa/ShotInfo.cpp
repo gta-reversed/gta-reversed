@@ -14,7 +14,7 @@ void CShotInfo::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x739B60);
     RH_ScopedInstall(Shutdown, 0x739C20);
-    RH_ScopedInstall(AddShot, 0x739C30, {.reversed = false});
+    RH_ScopedInstall(AddShot, 0x739C30);
     RH_ScopedInstall(GetFlameThrowerShotPosn, 0x739DE0, {.reversed = false});
     RH_ScopedInstall(Update, 0x739E60);
 }
@@ -43,12 +43,39 @@ void CShotInfo::Shutdown() {
 
 // 0x739C30
 bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin, CVector target) {
-    return plugin::CallAndReturn<bool, 0x739C30, CEntity*, eWeaponType, CVector, CVector>(creator, weaponType, origin, target);
+    auto shot = rng::find_if(aShotInfos, [](const auto& s) { return !s.m_bExist; });
+    if (shot == aShotInfos.end()) {
+        NOTSA_LOG_WARN("Shotinfo slots are full!");
+        return false;
+    }
+
+    const auto weapInfo     = CWeaponInfo::GetWeaponInfo(weaponType);
+    shot->m_bExist          = true;
+    shot->m_bExecuted       = false;
+    shot->m_nWeaponType     = weaponType;
+    shot->m_pCreator        = creator;
+    shot->m_fRange          = weapInfo->m_fRadius;
+    shot->m_vecOrigin       = origin;
+    shot->m_vecTargetOffset = target - origin;
+    if (weapInfo->m_fSpread != 0.0f) {
+        shot->m_vecTargetOffset.x += CGeneral::RandomChoice(RandTable) * weapInfo->m_fSpread;
+        shot->m_vecTargetOffset.y += CGeneral::RandomChoice(RandTable) * weapInfo->m_fSpread;
+        shot->m_vecTargetOffset.z += CGeneral::RandomChoice(RandTable);
+    }
+    shot->m_vecTargetOffset.Normalise();
+
+    const auto speed = weapInfo->m_Speed + (weapInfo->flags.bRandSpeed ? CGeneral::RandomChoice(RandTable) : 0.0f);
+    shot->m_vecTargetOffset *= speed;
+
+    // TODO: overflow handling?
+    const auto now      = (float)(double(CTimer::GetTimeInMS()) + ((CTimer::GetTimeInMS() & 0x80000000) ? 4294967300.0 : 0.0));
+    shot->m_DestroyTime = now + weapInfo->m_fLifespan;
+    return true;
 }
 
 // 0x739DE0
-bool CShotInfo::GetFlameThrowerShotPosn(uint8 shotId, CVector* pPosn) {
-    return plugin::CallAndReturn<bool, 0x739DE0, uint8, CVector*>(shotId, pPosn);
+bool CShotInfo::GetFlameThrowerShotPosn(uint8 shotId, CVector& pPosn) {
+    return plugin::CallAndReturn<bool, 0x739DE0, uint8, CVector&>(shotId, pPosn);
 }
 
 // 0x739E60
