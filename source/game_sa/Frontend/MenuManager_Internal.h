@@ -239,9 +239,5 @@ enum eFrontend : int8 {
 };
 
 static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
-// NOTSA
-inline const bool IsSaveSlot(eMenuEntryType slot) {
-    return ((slot >= eMenuEntryType::FIRST_SAVE_SLOT && slot <= eMenuEntryType::MAX_SAVE_SLOT) ? true : false);
-}
 extern SpriteFileName FrontEndFilenames[];
 extern tMenuScreen aScreensX[];

@@ -299,7 +299,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
             eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
 
             // Audio feedback based on menu type and status
-            if ((!m_isPreInitialised && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
+            if (m_isPreInitialised || !IsSaveSlot(menuType) || GetSavedGameState(m_nCurrentScreenItem) == eSlotState::SLOT_FILLED) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             } else {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);

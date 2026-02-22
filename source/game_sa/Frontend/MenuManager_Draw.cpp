@@ -369,6 +369,11 @@ void CMenuManager::DrawBackground() {
     }
 }
 
+// NOTSA; inline
+static bool IsSaveSlot(eMenuEntryType slot) {
+    return slot >= eMenuEntryType::FIRST_SAVE_SLOT && slot <= eMenuEntryType::MAX_SAVE_SLOT;
+}
+
 // 0x5794A0
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
     constexpr uint16 DEFAULT_CONTENT_X = APP_MINIMAL_WIDTH / 2;
