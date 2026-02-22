@@ -1806,7 +1806,7 @@ void DamageCarPanel(CVehicle& self, ePanels panel) {
     auto* const automobile = self.AsAutomobile();
     automobile->GetDamageManager().ApplyDamage(
         automobile,
-        (tComponent)(+COMPONENT_WING_LF + +panel),
+        (tComponent)(+COMPONENT_WING_LF + +panelId),
         150.f,
         1.f
     );
@@ -1893,9 +1893,17 @@ void SetCarCanGoAgainstTraffic(CVehicle& self, bool state) {
 * @param self CVehicle&
 * @param door eCarDoor
 */
-// void DamageCarDoor(CVehicle& self, eCarDoor door) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void DamageCarDoor(CVehicle& self, eDoors door) {
+    assert(door <= MAX_DOORS);
+
+    auto* const automobile = self.AsAutomobile();
+    automobile->GetDamageManager().ApplyDamage(
+        automobile,
+        (tComponent)(+COMPONENT_BONNET + +door),
+        150.f,
+        1.f
+    );
+}
 
 /*
 * @opcode 0763
