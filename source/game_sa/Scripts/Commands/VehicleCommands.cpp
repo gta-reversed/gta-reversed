@@ -2041,9 +2041,13 @@ void SetCarFollowCar(CVehicle& self, CVehicle& handle, float radius) {
 * @param self CVehicle&
 * @param state bool
 */
-// void SetCarHydraulics(CVehicle& self, bool state) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarHydraulics(CVehicle& self, bool state) {
+    if (state) {
+        self.AddVehicleUpgrade(ModelIndices::MI_HYDRAULICS);
+    } else {
+        self.RemoveVehicleUpgrade(ModelIndices::MI_HYDRAULICS);
+    }
+}
 
 /*
 * @opcode 0803
@@ -2688,7 +2692,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_UPRIGHT_VALUE, GetCarUprightValue);
