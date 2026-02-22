@@ -2188,9 +2188,9 @@ bool IsCarDoorFullyOpen(CVehicle& self, eDoors door) {
 * @param effect bool
 * @param sound bool
 */
-// void ExplodeCarInCutsceneShakeAndBits(CVehicle& self, bool shake, bool effect, bool sound) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ExplodeCarInCutsceneShakeAndBits(CVehicle& self, bool shake, bool effect, bool sound) {
+    self.BlowUpCarCutSceneNoExtras(!shake, !effect, false, sound);
+}
 
 /*
 * @opcode 0918
@@ -2696,7 +2696,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
-    //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
+    REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);
     //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
