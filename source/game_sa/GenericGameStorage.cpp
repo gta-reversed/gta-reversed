@@ -279,13 +279,13 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
                 NOTSA_LOG_ERR("Got {}, expected {}", SaveVersionName(varsVer), SaveVersionName(GetCurrentVersionNumber()));
 
                 if (!g_MiscConfig.LoadSavesWithMismatchingVersion) {
-                    NOTSA_LOG_WARN("Starting a new game instead... (You can force load it by setting Misc.LoadSavesWithMismatchingVersion on");
+                    NOTSA_LOG_WARN("Starting a new game instead... (You can force load it by setting Misc.LoadSavesWithMismatchingVersion to true in the config)");
 
                     varsBackup.Extract(varsVer); // Restore old state
                     CloseFile();
                     return false;
                 } else {
-                    NOTSA_LOG_WARN("Forcefully loading an mismatching save. You are on your own! If the save mismatches with the script, the game will crash.");
+                    NOTSA_LOG_WARN("Forcefully loading a mismatching save. You are on your own! If the save mismatches with the script, the game will crash.");
                 }
             }
             break;
