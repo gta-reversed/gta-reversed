@@ -429,12 +429,13 @@ void CMenuManager::PrintStats() {
     for (auto i = 0; i < numStats; ++i) {
         float y = StretchY(54.0f) * (float)i + minY - scrollPos;
 
-        for (float dy{}; y < minY; y += dy) {
-            dy = StretchY(float(numStats + 7) * 54.0f);
+        const float dy = StretchY(float(numStats + 7) * 54.0f);
+        while (y < minY) {
+            y += dy;
         }
 
-        for (float dy{}; y > maxY; y -= dy) {
-            dy = StretchY(float(numStats + 7) * 54.0f);
+        while (y > maxY) {
+            y -= dy;
         }
 
         if (y > visibleTop && y < visibleBottom) {
