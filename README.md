@@ -69,3 +69,6 @@ Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/
 - Hundreds of great people on [gtaforums.com](https://gtaforums.com/topic/194199-documenting-gta-sa-memory-addresses).
 - [re3 team](https://github.com/GTAmodding/re3).
 - And everyone who contributed to GTA:SA reversing.
+
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&legend=top-left)](https://www.star-history.com/#gta-reversed/gta-reversed&type=date&legend=top-left)
