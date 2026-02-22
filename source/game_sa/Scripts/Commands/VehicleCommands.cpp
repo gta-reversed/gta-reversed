@@ -2126,16 +2126,6 @@ void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
 }
 
 /*
-* @opcode 085F
-* @command START_PLAYBACK_RECORDED_CAR_USING_AI_LOOPED
-* 
-* @brief Does nothing
-*/
-// void StartPlaybackRecordedCarUsingAiLooped() {
-//     /* no-op */
-// }
-
-/*
 * @opcode 088C
 * @command SET_CAR_COORDINATES_NO_OFFSET
 * @class Car
@@ -2741,4 +2731,5 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CAR_FUNNY_SUSPENSION);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CAR_BIG_WHEELS);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_CAR_RADIO);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI_LOOPED);
 }
