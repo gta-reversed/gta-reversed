@@ -2170,9 +2170,10 @@ void SetCarCoordinatesNoOffset(CVehicle& self, CVector pos) {
 * @param self CVehicle&
 * @param door eCarDoor
 */
-// void IsCarDoorFullyOpen(CVehicle& self, eCarDoor door) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarDoorFullyOpen(CVehicle& self, eDoors door) {
+    auto* const automobile = self.AsAutomobile();
+    return automobile->IsDoorFullyOpenU32(automobile->GetDamageManager().GetCarNodeIndexFromDoor(door));
+}
 
 /*
 * @opcode 08CB
@@ -2694,7 +2695,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
     //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);

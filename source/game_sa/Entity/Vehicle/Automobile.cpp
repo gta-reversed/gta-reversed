@@ -2281,9 +2281,7 @@ bool CAutomobile::IsDoorFullyOpenU32(uint32 door) {
     case 10: return IsDoorFullyOpen(DOOR_LEFT_FRONT);
     case 11: return IsDoorFullyOpen(DOOR_LEFT_REAR);
     case 18: return false;
-    default:
-        assert(0); // Prevent usage mistakes - There's is an eDoors overload, and if an int literal is used instead of the enum this function will be called incorrectly.
-        return false;
+    default: NOTSA_UNREACHABLE("There's is an `eDoors` overload, and if an int literal is used instead of the enum this function will be called incorrectly.");
     }
 }
 
