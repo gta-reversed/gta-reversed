@@ -1936,17 +1936,17 @@ float GetCarPitch(CVehicle& self) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
-* @param xOffset float
-* @param yOffset float
-* @param zOffset float
-* @param xRotation float
-* @param yRotation float
-* @param zRotation float
+* @param self
+* @param offset Offset from the car's centre of mass, in the car's local space
+* @param force Force direction, in the car's local space - Magnitude is ignored
 */
-// void ApplyForceToCar(CVehicle& self, CVector offset, CVector rotation) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ApplyForceToCar(CVehicle& self, CVector force, CVector offset) {
+    self.ApplyForce(
+        force * self.GetMass(offset, force.Normalized()),
+        offset + self.GetMatrix().TransformVector(self.m_vecCentreOfMass),
+        true
+    );
+}
 
 /*
 * @opcode 07DA
@@ -2669,7 +2669,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
-    //REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
     //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
