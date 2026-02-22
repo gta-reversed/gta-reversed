@@ -18,17 +18,9 @@ void CSpecialFX::InjectHooks() {
 
 // 0x7268F0
 void CSpecialFX::Init() {
-    for (auto& bt : CBulletTraces::aTraces) {
-        bt.m_bExists = false;
-    }
-
-    for (auto& m : C3dMarkers::ms_user3dMarkers) {
-        m.m_bIsUsed = false;
-    }
-
-    for (auto& da : C3dMarkers::ms_directionArrows) {
-        da.m_bIsUsed = false;
-    }
+    CBulletTraces::Init();
+    C3dMarkers::User3dMarkerDeleteAll();
+    C3dMarkers::DirectionArrowsInit();
 
     constexpr RxVertexIndex MBSIndices[] = { 0, 1, 2, 1, 3, 2, 0, 2, 1, 1, 2, 3 };
     rng::copy(MBSIndices, CMotionBlurStreaks::aIndices);
@@ -41,12 +33,9 @@ void CSpecialFX::Init() {
         RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[2 * i + 1], 0.0f);
     }
 
-    for (auto& mbs : CMotionBlurStreaks::aStreaks) {
-        mbs.m_nId = 0;
-    }
-
-    CBrightLights::NumBrightLights = 0;
-    CShinyTexts::NumShinyTexts     = 0;
+    CMotionBlurStreaks::Init();
+    CBrightLights::Init();
+    CShinyTexts::Init();
     C3dMarkers::Init();
     CCheckpoints::Init();
 
@@ -62,14 +51,7 @@ void CSpecialFX::Init() {
         }
     }
 
-    if (CMirrors::pBuffer) {
-        RwRasterDestroy(std::exchange(CMirrors::pBuffer, nullptr));
-    }
-    if (CMirrors::pZBuffer) {
-        RwRasterDestroy(std::exchange(CMirrors::pZBuffer, nullptr));
-    }
-    CMirrors::TypeOfMirror = eMirrorType::MIRROR_TYPE_NONE;
-    CMirrors::MirrorFlags  = 0;
+    CMirrors::Init();
 }
 
 // 0x726AA0
