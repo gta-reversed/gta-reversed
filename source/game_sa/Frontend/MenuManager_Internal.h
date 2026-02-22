@@ -238,6 +238,11 @@ enum eFrontend : int8 {
     FRONTEND_SPRITE_CROSS_HAIR,
 };
 
+// NOTSA
+inline bool IsSaveSlot(eMenuEntryType slot) {
+    return slot >= eMenuEntryType::FIRST_SAVE_SLOT && slot <= eMenuEntryType::MAX_SAVE_SLOT;
+}
+
 static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
 extern SpriteFileName FrontEndFilenames[];
 extern tMenuScreen aScreensX[];
