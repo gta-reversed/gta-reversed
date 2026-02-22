@@ -1440,6 +1440,31 @@ void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
     SetCarEscortCarUsingMission(self, other, MISSION_ESCORT_FRONT);
 }
 
+
+/*
+* @opcode 08A6
+* @command OPEN_CAR_DOOR_A_BIT
+* @class Car
+* @method OpenDoorABit
+* 
+* @brief Sets the angle of a car door
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+* @param value float
+*/
+void OpenCarDoorABit(CVehicle& self, eDoors door, float value) {
+    auto* const automobile = self.AsAutomobile();
+    if (automobile->IsDoorMissing(door)) {
+        return;
+    }
+    const auto node = CDamageManager::GetCarNodeIndexFromDoor(door);
+    if (!automobile->m_aCarNodes[node]) {
+        return;
+    }
+    automobile->OpenDoor(nullptr, node, door, value, true);
+}
+
 /*
 * @opcode 0657
 * @command OPEN_CAR_DOOR
@@ -1452,15 +1477,7 @@ void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
 * @param door eCarDoor
 */
 void OpenCarDoor(CVehicle& self, eDoors door) {
-    auto* const automobile = self.AsAutomobile();
-    if (automobile->IsDoorMissing(door)) {
-        return;
-    }
-    const auto node = CDamageManager::GetCarNodeIndexFromDoor(door);
-    if (!automobile->m_aCarNodes[node]) {
-        return;
-    }
-    automobile->OpenDoor(nullptr, node, door, 1.f, true);
+    OpenCarDoorABit(self, door, 1.f);
 }
 
 /*
@@ -2143,22 +2160,6 @@ void SetCarCoordinatesNoOffset(CVehicle& self, CVector pos) {
 }
 
 /*
-* @opcode 08A6
-* @command OPEN_CAR_DOOR_A_BIT
-* @class Car
-* @method OpenDoorABit
-* 
-* @brief Sets the angle of a car door
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-* @param value float
-*/
-// void OpenCarDoorABit(CVehicle& self, eCarDoor door, float value) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
-
-/*
 * @opcode 08A7
 * @command IS_CAR_DOOR_FULLY_OPEN
 * @class Car
@@ -2651,6 +2652,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
 
+    REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR_A_BIT, OpenCarDoorABit);
     REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
     REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
@@ -2692,7 +2694,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
-    //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR_A_BIT, OpenCarDoorABit);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
     //REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
