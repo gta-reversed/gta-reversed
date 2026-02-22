@@ -2382,9 +2382,9 @@ bool IsCarLowRider(CVehicle& self) {
 * 
 * @param self CVehicle&
 */
-// void IsCarStreetRacer(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarStreetRacer(CVehicle& self) {
+    return gHandlingDataMgr.m_aVehicleHandling[self.GetVehicleModelInfo()->m_nHandlingId].m_bStreetRacer;
+}
 
 /*
 * @opcode 097D
@@ -2764,7 +2764,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
