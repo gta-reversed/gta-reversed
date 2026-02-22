@@ -1920,13 +1920,13 @@ void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
 * @class Car
 * @method GetPitch
 * 
-* @brief Returns the X Angle of the vehicle
+* @brief Returns the X Angle of the vehicle in DEGREES
 * 
 * @param self CVehicle&
 */
-// float GetCarPitch(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+float GetCarPitch(CVehicle& self) {
+    return ClampDegreesForScript(DegreesToRadians(self.AsAutomobile()->GetCarPitch()));
+}
 
 /*
 * @opcode 07D5
@@ -2668,7 +2668,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_GO_AGAINST_TRAFFIC, SetCarCanGoAgainstTraffic);
     REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
     //REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
