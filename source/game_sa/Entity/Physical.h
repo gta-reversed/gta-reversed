@@ -131,7 +131,7 @@ public:
     CVector             m_vecLastCollisionPosn;
     uint16              m_nPieceType;
     CPhysical*          m_pAttachedTo;
-    CVector             m_vecAttachOffset;
+    CVector                         m_vecAttachOffset; //!< Position of the the attached entity in it's own local space (See `PositionAttachedEntity`)
     CVector             m_vecAttachedEntityRotation;
     CQuaternion         m_qAttachedEntityRotation;
     CEntity*            m_pEntityIgnoredCollision;

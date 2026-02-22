@@ -2230,18 +2230,14 @@ void SetCarLightsOn(CVehicle& self, bool state) {
 * 
 * @brief Attaches the car to object with offset and rotation
 * 
-* @param self CVehicle&
-* @param handle Object
-* @param xOffset float
-* @param yOffset float
-* @param zOffset float
-* @param xRotation float
-* @param yRotation float
-* @param zRotation float
+* @param self Vehicle
+* @param object Object
+* @param offset Vector of the object in it's local space
+* @param rotation Vector Rotation in degrees
 */
-// void AttachCarToObject(CVehicle& self, Object handle, CVector offset, CVector rotation) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void AttachCarToObject(CVehicle& self, CObject& object, CVector offset, CVector rotation) {
+    self.AttachEntityToEntity(&object, offset, rotation * DEG_TO_RAD);
+}
 
 /*
 * @opcode 095E
@@ -2699,7 +2695,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);
-    //REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
+    REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
     //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
     //REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
