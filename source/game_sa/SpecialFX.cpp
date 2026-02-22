@@ -34,11 +34,11 @@ void CSpecialFX::Init() {
     rng::copy(MBSIndices, CMotionBlurStreaks::aIndices);
 
     for (auto i = 0; i < 2; i++) {
-        RxObjSpace3DVertexSetU(&CMotionBlurStreaks::aStreakVertices[i + 0], 0.0f);
-        RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[i + 0], 0.0f);
+        RxObjSpace3DVertexSetU(&CMotionBlurStreaks::aStreakVertices[2 * i + 0], 0.0f);
+        RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[2 * i + 0], 0.0f);
 
-        RxObjSpace3DVertexSetU(&CMotionBlurStreaks::aStreakVertices[i + 1], 1.0f);
-        RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[i + 1], 0.0f);
+        RxObjSpace3DVertexSetU(&CMotionBlurStreaks::aStreakVertices[2 * i + 1], 1.0f);
+        RxObjSpace3DVertexSetV(&CMotionBlurStreaks::aStreakVertices[2 * i + 1], 0.0f);
     }
 
     for (auto& mbs : CMotionBlurStreaks::aStreaks) {
@@ -56,7 +56,7 @@ void CSpecialFX::Init() {
     SnapShotFrames  = 0;
 
     {
-        CTxdStore::ScopedTXDSlot scoped("particle");
+        CTxdStore::ScopedTXDSlot _("particle");
         if (!gpFinishFlagTex) {
             gpFinishFlagTex = RwTextureRead("finishFlag", nullptr);
         }

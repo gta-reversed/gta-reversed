@@ -21,10 +21,10 @@ public:
     static void ReplayStarted();
 
 public:
-    static inline auto& bVideoCam       = *(bool*)0xC7C70C;
-    static inline auto& bLiftCam        = *(bool*)0xC7C70D;
-    static inline auto& bSnapShotActive = *(bool*)0xC7C714;
-    static inline auto& SnapShotFrames  = *(uint32*)0xC7C710;
+    static inline auto& bVideoCam       = StaticRef<bool>(0xC7C70C);
+    static inline auto& bLiftCam        = StaticRef<bool>(0xC7C70D);
+    static inline auto& bSnapShotActive = StaticRef<bool>(0xC7C714);
+    static inline auto& SnapShotFrames  = StaticRef<uint32>(0xC7C710);
 
 private:
     friend void InjectHooksMain();
