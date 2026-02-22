@@ -2252,9 +2252,23 @@ void AttachCarToObject(CVehicle& self, CObject& object, CVector offset, CVector 
 * @param state eCarDoorState
 * @param angle float
 */
-// void ControlCarDoor(CVehicle& self, eCarDoor door, eCarDoorState state, float angle) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ControlCarDoor(CVehicle& self, eDoors door, eDoorStatus state, float angle) {
+    auto* const automobile = self.AsAutomobile();
+
+    if (door >= MAX_DOORS) {
+        auto* const chassis = &automobile->m_swingingChassis;
+        if (angle >= 0.f) {
+            chassis->Open(angle);
+        }
+        chassis->m_doorState = (eDoorState)(state); // TODO
+    } else {
+        if (angle >= 0.f) {
+            automobile->m_doors[door].Open(angle);
+        }
+        automobile->GetDamageManager().SetDoorStatus(door, state);
+        automobile->SetDoorDamage(door);
+    }
+}
 
 /*
 * @opcode 096B
@@ -2696,7 +2710,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
+    REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
     //REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
     //REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
