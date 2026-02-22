@@ -2026,9 +2026,9 @@ void ControlCarHydraulics(CVehicle& self, float frontLeftWheelSuspension, float 
 * @param handle CVehicle&
 * @param radius float
 */
-// void SetCarFollowCar(CVehicle& self, CVehicle& handle, float radius) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarFollowCar(CVehicle& self, CVehicle& handle, float radius) {
+    CCarAI::TellCarToFollowOtherCar(&self, &handle, radius);
+}
 
 /*
 * @opcode 07FF
@@ -2687,7 +2687,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
