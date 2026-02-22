@@ -396,30 +396,25 @@ void CMenuManager::PrintMap() {
 
 // 0x574900
 void CMenuManager::PrintStats() {
-    constexpr float STATS_SCROLL_SMOOTHNESS = 2.0f;
-
     static eStats& currentStatId  = StaticRef<eStats>(0xB794CC);
-    static float   scrollPos      = -120.0f; // 0x8CDFF4
-    static int8    prevScreenItem = 15;      // 0x8CDFF8
+    static float   scrollPos      = StaticRef<float>(0x8CDFF4); // -120.0f
+    static int8    prevScreenItem = StaticRef<int8>(0x8CDFF8); // 15
 
-    if (m_nCurrentScreenItem >= 8) {
-        m_nCurrentScreenItem = 8;
-    }
-
+    m_nCurrentScreenItem = std::min(m_nCurrentScreenItem, 8);
     // 0x574933
     if (prevScreenItem != m_nCurrentScreenItem) {
         scrollPos = -120.0f;
         prevScreenItem = m_nCurrentScreenItem;
     }
 
-    auto numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
+    const auto numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
     CFont::SetFontStyle(eFontStyle::FONT_MENU);
     CFont::SetScale(StretchX(0.3f), StretchY(0.75f));
 
     // 0x5749DA
     if (CTimer::GetTimeInMSPauseMode() - m_StatsScrollTime > 40) {
         if (m_fStatsScrollSpeed > 0.0f) {
-            float scrollDelta = StretchY(100.0f / m_fStatsScrollSpeed);
+            const float scrollDelta = StretchY(100.0f) / m_fStatsScrollSpeed;
             scrollPos += m_nStatsScrollDirection ? scrollDelta : -scrollDelta;
         }
         m_StatsScrollTime = CTimer::GetTimeInMSPauseMode();
@@ -432,13 +427,14 @@ void CMenuManager::PrintStats() {
 
     // 0x574A4E
     for (auto i = 0; i < numStats; ++i) {
-        float y = StretchY(54.0f) * i + StretchY(50.0f) - scrollPos;
-        float totalHeight = (numStats + 7) * StretchY(54.0f);
+        float y = StretchY(54.0f) * (float)i + minY - scrollPos;
 
-        if (y < minY) {
-            y += std::ceil((minY - y) / totalHeight) * totalHeight;
-        } else if (y > maxY) {
-            y -= std::ceil((y - maxY) / totalHeight) * totalHeight;
+        for (float dy{}; y < minY; y += dy) {
+            dy = StretchY(float(numStats + 7) * 54.0f);
+        }
+
+        for (float dy{}; y > maxY; y -= dy) {
+            dy = StretchY(float(numStats + 7) * 54.0f);
         }
 
         if (y > visibleTop && y < visibleBottom) {
@@ -449,7 +445,7 @@ void CMenuManager::PrintStats() {
             }
 
             // 0x574BE1
-            float alpha_f;
+            float alpha_f{};
             if (y > StretchY(80.0f) && y < StretchY(330.0f)) {
                 if (y < StretchY(110.0f)) {
                     // Fade In
