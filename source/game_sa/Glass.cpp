@@ -65,14 +65,14 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
     const int32 endSectorX   = std::min(CWorld::GetSectorX(point.x + 30.f), MAX_SECTORS_X - 1);
     const int32 endSectorY   = std::min(CWorld::GetSectorY(point.y + 30.f), MAX_SECTORS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     float maxDist = 20.f;
     CEntity* entity{};
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            FindWindowSectorList(GetRepeatSector(sectorX, sectorY)->Objects, maxDist, entity, point);
-            FindWindowSectorList(GetSector(sectorX, sectorY)->m_dummies, maxDist, entity, point);
+            FindWindowSectorList(CWorld::GetRepeatSector(sectorX, sectorY).Objects, maxDist, entity, point);
+            FindWindowSectorList(CWorld::GetSector(sectorX, sectorY).Dummies, maxDist, entity, point);
         }
     }
     return entity && !entity->GetIsTypeDummy() && entity->AsObject()->objectFlags.bHasBrokenGlass;

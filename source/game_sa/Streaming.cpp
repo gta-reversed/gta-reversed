@@ -223,7 +223,7 @@ void CStreaming::AddLodsToRequestList(const CVector& point, int32 streamingFlags
     const int32 endSectorX = std::min(CWorld::GetLodSectorX(maxX), MAX_LOD_PTR_LISTS_X - 1);
     const int32 endSectorY = std::min(CWorld::GetLodSectorY(maxY), MAX_LOD_PTR_LISTS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 sy = startSectorY; sy <= endSectorY; ++sy) {
         for (int32 sx = startSectorX; sx <= endSectorX; ++sx) {
@@ -258,26 +258,26 @@ void CStreaming::AddModelsToRequestList(const CVector& point, int32 streamingFla
     const int32 endSectorX = std::min(CWorld::GetSectorX(max.x), MAX_SECTORS_X - 1);
     const int32 endSectorY = std::min(CWorld::GetSectorY(max.y), MAX_SECTORS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            CSector* sector = GetSector(sectorX, sectorY);
+            auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+            auto& sector = CWorld::GetSector(sectorX, sectorY);
 
             const int32 distanceY = sectorY - pointSectorY;
             const int32 distanceX = sectorX - pointSectorX;
             const int32 pointSectorDistSq = distanceX * distanceX + distanceY * distanceY;
 
             if (pointSectorDistSq <= radiusInnerSq) {
-                ProcessEntitiesInSectorList(sector->m_buildings, streamingFlags);
-                ProcessEntitiesInSectorList(repeatSector->Peds, streamingFlags);
-                ProcessEntitiesInSectorList(sector->m_dummies, streamingFlags);
+                ProcessEntitiesInSectorList(sector.Buildings, streamingFlags);
+                ProcessEntitiesInSectorList(repeatSector.Peds, streamingFlags);
+                ProcessEntitiesInSectorList(sector.Dummies, streamingFlags);
             } else {
                 if (pointSectorDistSq <= radiusOuterSq) {
-                    ProcessEntitiesInSectorList(sector->m_buildings, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
-                    ProcessEntitiesInSectorList(repeatSector->Peds, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
-                    ProcessEntitiesInSectorList(sector->m_dummies, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(sector.Buildings, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(repeatSector.Peds, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(sector.Dummies, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
                 }
             }
         }
@@ -735,11 +735,11 @@ void CStreaming::DeleteAllRwObjects() {
 
     for (int32 sx = 0; sx < MAX_SECTORS_X; ++sx) {
         for (int32 sy = 0; sy < MAX_SECTORS_Y; ++sy) {
-            CRepeatSector* repeatSector = GetRepeatSector(sx, sy);
-            CSector* sector = GetSector(sx, sy);
-            DeleteRwObjectsInList(sector->m_buildings);
-            DeleteRwObjectsInList(repeatSector->Objects);
-            DeleteRwObjectsInList(sector->m_dummies);
+            auto& repeatSector = CWorld::GetRepeatSector(sx, sy);
+            auto& sector = CWorld::GetSector(sx, sy);
+            DeleteRwObjectsInList(sector.Buildings);
+            DeleteRwObjectsInList(repeatSector.Objects);
+            DeleteRwObjectsInList(sector.Dummies);
         }
     }
 }
@@ -799,11 +799,11 @@ void CStreaming::DeleteRwObjectsAfterDeath(const CVector& point) {
         if (std::abs(pointSecX - sx) > 3) {
             for (int32 sy = 0; sy < MAX_SECTORS_Y; ++sy) {
                 if (std::abs(pointSecY - sy) > 3) {
-                    CRepeatSector* repeatSector = GetRepeatSector(sx, sy);
-                    CSector* sector = GetSector(sx, sy);
-                    DeleteRwObjectsInSectorList(sector->m_buildings);
-                    DeleteRwObjectsInSectorList(repeatSector->Objects);
-                    DeleteRwObjectsInSectorList(sector->m_dummies);
+                    auto& repeatSector = CWorld::GetRepeatSector(sx, sy);
+                    auto& sector = CWorld::GetSector(sx, sy);
+                    DeleteRwObjectsInSectorList(sector.Buildings);
+                    DeleteRwObjectsInSectorList(repeatSector.Objects);
+                    DeleteRwObjectsInSectorList(sector.Dummies);
                 }
             }
         }
@@ -840,14 +840,14 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             factorX = +1;
         }
 
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
         for (int32 sectorX = sectorStartX; sectorX != sectorEndX; sectorX += factorX) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
-                CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-                CSector* sector = GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
+                auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+                auto& sector = CWorld::GetSector(sectorX, sectorY);
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -864,28 +864,28 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             factorX = +1;
         }
 
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
         for (int32 sectorX = sectorStartX; sectorX != sectorEndX; sectorX -= factorX) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
-                CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-                CSector* sector = GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsNotInFrustumInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->Objects, memoryToCleanInBytes)
+                auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+                auto& sector = CWorld::GetSector(sectorX, sectorY);
+                if (DeleteRwObjectsNotInFrustumInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
             }
         }
 
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
         for (int32 sectorX = sectorStartX; sectorX != sectorEndX; sectorX -= factorX) {
             for (int32 sectorY = sectorStartY; sectorY <= sectorEndY; sectorY++) {
-                CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-                CSector* sector = GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
+                auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+                auto& sector = CWorld::GetSector(sectorX, sectorY);
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -907,14 +907,14 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             sectorEndY = std::max(pointSecY - END_OFFSET_XY, 0);
             factorY = +1;
         }
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
         for (int32 sectorY = sectorStartY; sectorY != sectorEndY; sectorY += factorY) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
-                CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-                CSector* sector = GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
+                auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+                auto& sector = CWorld::GetSector(sectorX, sectorY);
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -930,14 +930,14 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
             sectorStartY = std::min(pointSecY + START_OFFSET_XY, MAX_SECTORS_Y - 1);
             factorY = +1;
         }
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
         for (int32 sectorY = sectorStartY; sectorY != sectorEndY; sectorY -= factorY) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
-                CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-                CSector* sector = GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsNotInFrustumInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->Objects, memoryToCleanInBytes)
+                auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+                auto& sector = CWorld::GetSector(sectorX, sectorY);
+                if (DeleteRwObjectsNotInFrustumInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -947,14 +947,14 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
         if (RemoveReferencedTxds(memoryToCleanInBytes))
             return;
 
-        // BUG: possibly missing CWorld::IncrementCurrentScanCode() here?
+        // BUG: possibly missing CWorld::AdvanceCurrentScanCode() here?
         for (int32 sectorY = sectorStartY; sectorY != sectorEndY; sectorY -= factorY) {
             for (int32 sectorX = sectorStartX; sectorX <= sectorEndX; sectorX++) {
-                CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-                CSector* sector = GetSector(sectorX, sectorY);
-                if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
+                auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+                auto& sector = CWorld::GetSector(sectorX, sectorY);
+                if (DeleteRwObjectsBehindCameraInSectorList(sector.Buildings, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(sector.Dummies, memoryToCleanInBytes) ||
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector.Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -2966,11 +2966,11 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
     const auto endSectorY = std::min(CWorld::GetSectorY(point.y + radius), MAX_SECTORS_Y - 1);
     for (auto sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (auto sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            CSector* sector = GetSector(sectorX, sectorY);
-            InstanceLoadedModelsInSectorList(sector->m_buildings);
-            InstanceLoadedModelsInSectorList(repeatSector->Objects);
-            InstanceLoadedModelsInSectorList(sector->m_dummies);
+            auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+            auto& sector = CWorld::GetSector(sectorX, sectorY);
+            InstanceLoadedModelsInSectorList(sector.Buildings);
+            InstanceLoadedModelsInSectorList(repeatSector.Objects);
+            InstanceLoadedModelsInSectorList(sector.Dummies);
         }
     }
 }
@@ -3735,7 +3735,7 @@ void CStreaming::StreamZoneModels_Gangs(const CVector& unused) {
 void CStreaming::Update() {
     ZoneScoped;
 
-    g_LoadMonitor.m_numModelsRequest = ms_numModelsRequested;
+    g_LoadMonitor.SetTimeForThisFrame(eLoadType::NUM_STREAMING_REQUESTS, ms_numModelsRequested);
     if (CTimer::GetIsPaused())
         return;
 

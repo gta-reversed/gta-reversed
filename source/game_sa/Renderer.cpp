@@ -990,10 +990,10 @@ void CRenderer::ConstructRenderList() {
 // 0x555900
 void CRenderer::ScanSectorList_RequestModels(int32 sectorX, int32 sectorY) {
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector = GetSector(sectorX, sectorY);
-        ScanPtrList_RequestModels(sector->m_buildings);
-        ScanPtrList_RequestModels(sector->m_dummies);
-        ScanPtrList_RequestModels(GetRepeatSector(sectorX, sectorY)->Objects);
+        auto& sector = CWorld::GetSector(sectorX, sectorY);
+        ScanPtrList_RequestModels(sector.Buildings);
+        ScanPtrList_RequestModels(sector.Dummies);
+        ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY).Objects);
     }
 }
 
@@ -1023,7 +1023,7 @@ void CRenderer::ScanWorld() {
     m_pFirstPersonVehicle = nullptr;
     CVisibilityPlugins::InitAlphaEntityList();
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     static CVector& lastCameraPosition = *(CVector*)0xB76888; //TODO | STATICREF
     static CVector& lastCameraForward = *(CVector*)0xB7687C; //TODO | STATICREF
@@ -1103,7 +1103,7 @@ int32 CRenderer::GetObjectsInFrustum(CEntity** outEntities, float farPlane, RwMa
         frustumPoints[i] = CVector(0.0f, 0.0f, 0.0f);
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     RwMatrix* theTransformMatrix = transformMatrix;
     if (!theTransformMatrix)
@@ -1145,7 +1145,7 @@ void CRenderer::RequestObjectsInFrustum(RwMatrix* transformMatrix, int32 modelRe
         frustumPoints[i] = CVector(0.0f, 0.0f, 0.0f);
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     if (!transformMatrix) {
         transformMatrix = TheCamera.GetRwMatrix();
@@ -1192,21 +1192,21 @@ void CRenderer::RequestObjectsInDirection(const CVector& posn, float angle, int3
 
 // 0x553540
 void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY) {
-    CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-    auto*          scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
+    auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+    auto* scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector          = GetSector(sectorX, sectorY);
-        scanLists->buildingsList = &sector->m_buildings;
-        scanLists->objectsList   = &repeatSector->Objects;
-        scanLists->vehiclesList  = &repeatSector->Vehicles;
-        scanLists->pedsList      = &repeatSector->Peds;
-        scanLists->dummiesList   = &sector->m_dummies;
+        auto& sector             = CWorld::GetSector(sectorX, sectorY);
+        scanLists->buildingsList = &sector.Buildings;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
+        scanLists->dummiesList   = &sector.Dummies;
     } else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
-        scanLists->objectsList   = &repeatSector->Objects;
-        scanLists->vehiclesList  = &repeatSector->Vehicles;
-        scanLists->pedsList      = &repeatSector->Peds;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
         scanLists->dummiesList   = nullptr;
     }
 }
