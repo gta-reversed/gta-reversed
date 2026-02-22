@@ -1944,6 +1944,8 @@ void CRadar::DrawBlips() {
         }
     }
 
+    // FIX_BUGS: Originally 2 player blips both drawing P1's position.
+    // https://github.com/CookiePLMonster/SilentPatch/issues/209
     const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
         const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(playerIndex) - vec2DRadarOrigin) / m_radarRange;
 
