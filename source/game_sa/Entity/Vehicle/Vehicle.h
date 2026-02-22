@@ -571,12 +571,12 @@ public:
     RpAtomic* CreateUpgradeAtomic(CBaseModelInfo* model, const UpgradePosnDesc* upgradePosn, RwFrame* parentComponent, bool isDamaged);
     void RemoveUpgrade(int32 upgradeId);
     // return upgrade model id or -1 if not present
-    int32 GetUpgrade(int32 upgradeId);
+    eModelID GetUpgrade(int32 upgradeId);
     RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, eAtomicComponentFlag flags, bool bDamaged, bool bIsWheel);
     void AddReplacementUpgrade(int32 modelIndex, int32 nodeId);
     void RemoveReplacementUpgrade(int32 nodeId);
     // return upgrade model id or -1 if not present
-    int32 GetReplacementUpgrade(int32 nodeId);
+    eModelID GetReplacementUpgrade(int32 nodeId);
     void RemoveAllUpgrades();
     [[nodiscard]] int32 GetSpareHasslePosId() const;
     void SetHasslePosId(int32 hasslePos, bool enable);
