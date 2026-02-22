@@ -11,6 +11,7 @@
 #include "TheCarGenerators.h"
 #include "VehicleRecording.h"
 #include "CommandParser/Parser.hpp"
+#include <cHandlingDataMgr.h>
 
 using namespace notsa::script;
 
@@ -2367,9 +2368,9 @@ eModelID GetCurrentCarMod(CVehicle& self, eModSlot slot) {
 * 
 * @param self CVehicle&
 */
-// void IsCarLowRider(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarLowRider(CVehicle& self) {
+    return gHandlingDataMgr.m_aVehicleHandling[self.GetVehicleModelInfo()->m_nHandlingId].m_bLowRider;
+}
 
 /*
 * @opcode 096F
@@ -2762,7 +2763,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
     REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
