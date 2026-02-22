@@ -38,6 +38,27 @@ enum class eWheelId {
     BIKE_REAR  = 1,
 };
 
+
+enum class eModSlot {
+    HOOD = 0,
+    VENTS = 1,
+    SPOILERS = 2,
+    SIDE_SKIRTS = 3,
+    FRONT_BULLBARS = 4,
+    REAR_BULLBARS = 5,
+    LIGHTS = 6,
+    ROOF = 7,
+    NITRO = 8,
+    HYDRAULICS = 9,
+    CAR_STEREO = 10,
+    P11 = 11,
+    WHEELS = 12,
+    EXHAUSTS = 13,
+    FRONT_BUMPER = 14,
+    REAR_BUMPER = 15,
+    P16 = 16,
+};
+
 namespace {
 auto ClampDegreesForScript(float deg) {
     return deg < 0.f
@@ -2300,14 +2321,41 @@ void RestoreCarModState() {
 * @class Car
 * @method GetCurrentMod
 * 
-* @brief Returns the model of the component installed on the specified slot of the vehicle, or -1 otherwise
+* @brief Returns the model of the component installed on the specified slot of the vehicle, or MODEL_INVALID (-1) otherwise
 * 
-* @param self CVehicle&
-* @param slot eModSlot
+* @param self Vehicle
+* @param slot ModSlot
 */
-// model_object GetCurrentCarMod(CVehicle& self, eModSlot slot) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+eModelID GetCurrentCarMod(CVehicle& self, eModSlot slot) {
+    using enum eModSlot;
+
+    const auto GetDependentUpgrade = [&self] (int32 upgradeA, int32 upgradeB) {
+        if (self.GetUpgrade(upgradeA) == -1) {
+            return MODEL_INVALID;
+        }
+        return self.GetUpgrade(upgradeB);
+    };
+
+    switch (slot) {
+    case HOOD:           return self.GetUpgrade(0);
+    case VENTS:          return GetDependentUpgrade(1, 2);
+    case SPOILERS:       return self.GetUpgrade(6);
+    case SIDE_SKIRTS:    return GetDependentUpgrade(8, 9);
+    case FRONT_BULLBARS: return self.GetUpgrade(10);
+    case REAR_BULLBARS:  return self.GetUpgrade(11);
+    case LIGHTS:         return self.GetUpgrade(12);
+    case ROOF:           return self.GetUpgrade(14);
+    case NITRO:          return self.GetUpgrade(15);
+    case HYDRAULICS:     return self.GetUpgrade(16);
+    case CAR_STEREO:     return self.GetUpgrade(17);
+    case WHEELS:         return self.GetReplacementUpgrade(2);
+    case EXHAUSTS:       return self.GetReplacementUpgrade(19);
+    case FRONT_BUMPER:   return self.GetReplacementUpgrade(12);
+    case REAR_BUMPER:    return self.GetReplacementUpgrade(13);
+    case P16:            return self.GetReplacementUpgrade(20);
+    }
+    return MODEL_INVALID;
+}
 
 /*
 * @opcode 096E
@@ -2713,7 +2761,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
     REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
