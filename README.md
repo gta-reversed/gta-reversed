@@ -70,7 +70,7 @@ Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/
 - [re3 team](https://github.com/GTAmodding/re3).
 - And everyone who contributed to GTA:SA reversing.
 
-### Star History
+# Star History
 <a href="https://www.star-history.com/#gta-reversed/gta-reversed&type=date&legend=top-left">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&theme=dark&legend=top-left" />
