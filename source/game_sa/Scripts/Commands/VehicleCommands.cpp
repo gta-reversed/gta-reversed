@@ -177,14 +177,6 @@ void SetCarAlwaysCreateSkids(CVehicle& vehicle, bool enable) {
     vehicle.vehicleFlags.bAlwaysSkidMarks = enable;
 }
 
-/// SET_CAR_AS_MISSION_CAR(0763)
-void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
-    if (S.m_UsesMissionCleanup && (vehicle.IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || vehicle.IsCreatedBy(eVehicleCreatedBy::PARKED_VEHICLE))) {
-        vehicle.SetVehicleCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE);
-        CTheScripts::MissionCleanUp.AddEntityToList(vehicle);
-    }
-}
-
 /// CREATE_CAR
 CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
     return CCarCtrl::CreateCarForScript(modelId, pos, S.m_UsesMissionCleanup);
@@ -1915,9 +1907,12 @@ void DamageCarDoor(CVehicle& self, eDoors door) {
 * 
 * @param self CVehicle&
 */
-// void SetCarAsMissionCar(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
+    if (S.m_UsesMissionCleanup && (vehicle.IsCreatedBy(RANDOM_VEHICLE) || vehicle.IsCreatedBy(PARKED_VEHICLE))) {
+        vehicle.SetVehicleCreatedBy(MISSION_VEHICLE);
+        CTheScripts::MissionCleanUp.AddEntityToList(vehicle);
+    }
+}
 
 /*
 * @opcode 077D
@@ -2544,7 +2539,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_STUCK_CAR_CHECK_WITH_WARP, AddStuckCarCheckWithWarp);
     REGISTER_COMMAND_HANDLER(COMMAND_PLANE_ATTACK_PLAYER_USING_DOG_FIGHT, PlaneAttackPlayerUsingDogFight);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ALWAYS_CREATE_SKIDS, SetCarAlwaysCreateSkids);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR, CreateCar);
     // REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES, CarGotoCoordinates);
@@ -2673,7 +2667,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_ANY_CAR_MODELS, DontSuppressAnyCarModels);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_GO_AGAINST_TRAFFIC, SetCarCanGoAgainstTraffic);
     REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
     //REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
