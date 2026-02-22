@@ -2022,12 +2022,12 @@ void ControlCarHydraulics(CVehicle& self, float frontLeftWheelSuspension, float 
 * 
 * @brief 
 * 
-* @param self CVehicle&
-* @param handle CVehicle&
+* @param self CVehicle
+* @param other CVehicle
 * @param radius float
 */
-void SetCarFollowCar(CVehicle& self, CVehicle& handle, float radius) {
-    CCarAI::TellCarToFollowOtherCar(&self, &handle, radius);
+void SetCarFollowCar(CVehicle& self, CVehicle& other, float radius) {
+    CCarAI::TellCarToFollowOtherCar(&self, &other, radius);
 }
 
 /*
@@ -2059,9 +2059,9 @@ void SetCarHydraulics(CVehicle& self, bool state) {
 * 
 * @param self CVehicle&
 */
-// void DoesCarHaveHydraulics(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool DoesCarHaveHydraulics(CVehicle& self) {
+    return self.IsSubAutomobile() && self.handlingFlags.bHydraulicInst;
+}
 
 /*
 * @opcode 081D
@@ -2693,7 +2693,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
-    //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
+    REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_UPRIGHT_VALUE, GetCarUprightValue);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
