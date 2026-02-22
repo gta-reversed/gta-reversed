@@ -501,7 +501,7 @@ void CMenuManager::PrintStats() {
 
 // 0x576320
 void CMenuManager::PrintBriefs() {
-    CFont::SetColor(MENU_TEXT_WHITE);
+    CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
     CFont::SetDropColor(MENU_BG);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
