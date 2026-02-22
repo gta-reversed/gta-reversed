@@ -52,7 +52,8 @@ char* InitUserDirectories()
     constexpr const wchar_t*             USERTRACKS = L".\\User Tracks";
 
     if (g_MiscConfig.SaveDirectoryPath.has_value()) {
-        wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), UTF8ToUnicode(*g_MiscConfig.SaveDirectoryPath).c_str());
+        const auto absolutePath = fs::absolute(fs::path(*g_MiscConfig.SaveDirectoryPath));
+        wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), UTF8ToUnicode(absolutePath.string()).c_str());
     } else {
         if (SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, gtaUserDirWide.data()) != S_OK) {
             strcpy_s(gta_user_dir_path, std::size("data"), "data"); // 2nd param is required or game won't be able to find files!
