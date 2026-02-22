@@ -2121,9 +2121,9 @@ void SetCarCanBeVisiblyDamaged(CVehicle& self, bool state) {
 * @param self CVehicle&
 * @param pathId int
 */
-// void StartPlaybackRecordedCarLooped(CVehicle& self, int pathId) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
+    CVehicleRecording::StartPlaybackRecordedCar(&self, pathId, false, true);
+}
 
 /*
 * @opcode 085F
@@ -2700,7 +2700,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_UPRIGHT_VALUE, GetCarUprightValue);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
-    //REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
+    REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
     //REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR_A_BIT, OpenCarDoorABit);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
