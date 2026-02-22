@@ -1956,14 +1956,16 @@ void ApplyForceToCar(CVehicle& self, CVector force, CVector offset) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
-* @param x float
-* @param y float
-* @param z float
+* @param self
+* @param velocity Velocity to add, in local space
 */
-// void AddToCarRotationVelocity(CVehicle& self, CVector vec1) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void AddToCarRotationVelocity(CVehicle& self, CVector velocity) {
+    if (self.m_bIsStatic) {
+        self.SetIsStatic(false);
+        self.AddToMovingList();
+    }
+    self.SetTurnSpeed(self.GetTurnSpeed() + self.GetMatrix().TransformVector(velocity / 50.f));
+}
 
 /*
 * @opcode 07DB
@@ -2670,7 +2672,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
     REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
+    REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
     //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
