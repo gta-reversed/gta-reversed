@@ -1902,9 +1902,9 @@ void DamageCarDoor(CVehicle& self, eDoors door) {
 * @command SET_CAR_AS_MISSION_CAR
 * @class Car
 * @method SetAsMissionCar
-* 
+*
 * @brief Sets the script as the owner of the vehicle and adds it to the mission cleanup list
-* 
+*
 * @param self CVehicle&
 */
 void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
@@ -1919,9 +1919,9 @@ void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
 * @command GET_CAR_PITCH
 * @class Car
 * @method GetPitch
-* 
+*
 * @brief Returns the X Angle of the vehicle in DEGREES
-* 
+*
 * @param self CVehicle&
 */
 float GetCarPitch(CVehicle& self) {
@@ -1933,9 +1933,9 @@ float GetCarPitch(CVehicle& self) {
 * @command APPLY_FORCE_TO_CAR
 * @class Car
 * @method ApplyForce
-* 
-* @brief 
-* 
+*
+* @brief
+*
 * @param self
 * @param offset Offset from the car's centre of mass, in the car's local space
 * @param force Force direction, in the car's local space - Magnitude is ignored
@@ -1953,9 +1953,9 @@ void ApplyForceToCar(CVehicle& self, CVector force, CVector offset) {
 * @command ADD_TO_CAR_ROTATION_VELOCITY
 * @class Car
 * @method AddToRotationVelocity
-* 
-* @brief 
-* 
+*
+* @brief
+*
 * @param self
 * @param velocity Velocity to add, in local space
 */
@@ -1972,9 +1972,9 @@ void AddToCarRotationVelocity(CVehicle& self, CVector velocity) {
 * @command SET_CAR_ROTATION_VELOCITY
 * @class Car
 * @method SetRotationVelocity
-* 
-* @brief 
-* 
+*
+* @brief
+*
 * @param self CVehicle&
 * @param velocity Velocity to set, in local space
 */
@@ -1991,18 +1991,28 @@ void SetCarRotationVelocity(CVehicle& self, CVector velocity) {
 * @command CONTROL_CAR_HYDRAULICS
 * @class Car
 * @method ControlHydraulics
-* 
+*
 * @brief Changes the car wheels' suspension level
-* 
-* @param self CVehicle&
-* @param frontLeftWheelSuspension float
-* @param rearLeftWheelSuspension float
-* @param frontRightWheelSuspension float
-* @param rearRightWheelSuspension float
+*
+* @param self
+* @param frontLeftWheelSuspension
+* @param rearLeftWheelSuspension
+* @param frontRightWheelSuspension
+* @param rearRightWheelSuspension
 */
-// void ControlCarHydraulics(CVehicle& self, float frontLeftWheelSuspension, float rearLeftWheelSuspension, float frontRightWheelSuspension, float rearRightWheelSuspension) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void ControlCarHydraulics(CVehicle& self, float frontLeftWheelSuspension, float rearLeftWheelSuspension, float frontRightWheelSuspension, float rearRightWheelSuspension) {
+    if (self.m_vehicleSpecialColIndex < 0) {
+        if (!self.GetSpecialColModel()) {
+            NOTSA_LOG_WARN("Failed to allocate SpecialColModel for vehicle {:p}", (void*)(&self));
+            return;
+        }
+    }
+    auto& suspension = self.m_aSpecialHydraulicData[self.m_vehicleSpecialColIndex].m_aWheelSuspension;
+    suspension[CAR_WHEEL_FRONT_LEFT]  = frontLeftWheelSuspension;
+    suspension[CAR_WHEEL_REAR_LEFT]   = rearLeftWheelSuspension;
+    suspension[CAR_WHEEL_FRONT_RIGHT] = frontRightWheelSuspension;
+    suspension[CAR_WHEEL_REAR_RIGHT]  = rearRightWheelSuspension;
+}
 
 /*
 * @opcode 07F8
@@ -2676,7 +2686,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
+    REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_HYDRAULICS, ControlCarHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FOLLOW_CAR, SetCarFollowCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HYDRAULICS, SetCarHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_HYDRAULICS, DoesCarHaveHydraulics);
