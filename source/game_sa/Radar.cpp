@@ -1944,8 +1944,10 @@ void CRadar::DrawBlips() {
         }
     }
 
-    const auto GetPlayerMarkerPosition = [] {
-        const auto playerDirection = (FindPlayerCentreOfWorldForMap(0) - vec2DRadarOrigin) / m_radarRange;
+    // FIX_BUGS: Originally 2 player blips both drawing P1's position.
+    // https://github.com/CookiePLMonster/SilentPatch/issues/209
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
+        const auto playerDirection = (FindPlayerCentreOfWorldForMap(playerIndex) - vec2DRadarOrigin) / m_radarRange;
 
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
@@ -1965,7 +1967,7 @@ void CRadar::DrawBlips() {
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
 
-            const auto pos = GetPlayerMarkerPosition();
+            const auto pos = GetPlayerMarkerPosition(notsa::IsFixBugs() ? i : 0);
 
             const auto angle = [] {
                 const auto heading = FindPlayerHeading(0);
@@ -1983,16 +1985,12 @@ void CRadar::DrawBlips() {
                 pos.y,
                 angle,
                 static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #ifdef FIX_BUGS
-                static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)),
-            #else
-                static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #endif
+                (notsa::IsFixBugs() ? static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)) : static_cast<uint32>(SCREEN_STRETCH_X(8.0f))),
                 player->IsHidden() ? CRGBA{50, 50, 50, 255} : CRGBA{255, 255, 255, 255}
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition();
+        const auto pos = GetPlayerMarkerPosition(0);
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }

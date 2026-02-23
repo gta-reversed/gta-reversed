@@ -42,7 +42,7 @@ UIRenderer::UIRenderer() :
     m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 #ifdef NOTSA_USE_SDL3
-    ImGui_ImplSDL3_InitForD3D((SDL_Window*)(PSGLOBAL(sdlWindow)));
+    ImGui_ImplSDL3_InitForD3D(PSGLOBAL(sdlWindow));
 #else
     ImGui_ImplWin32_Init(PSGLOBAL(window));
 #endif
@@ -95,7 +95,7 @@ void UIRenderer::SetIsActive(bool active) {
     }
 
 #ifdef NOTSA_USE_SDL3
-    SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), !active);
+    SDL_SetWindowRelativeMouseMode(PSGLOBAL(sdlWindow), !active);
 #endif
 }
 
