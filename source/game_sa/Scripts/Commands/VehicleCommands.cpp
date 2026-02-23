@@ -13,6 +13,8 @@
 #include "MissionCleanup.h"
 #include <cHandlingDataMgr.h>
 
+#include "Tasks/TaskTypes/TaskComplexLeaveAnyCar.h"
+
 using namespace notsa::script;
 
 enum class eSeatId {
@@ -1643,9 +1645,27 @@ void FixCarDoor(CVehicle& self, eDoors door) {
 * 
 * @param self CVehicle&
 */
-// void TaskEveryoneLeaveCar(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void TaskEveryoneLeaveCar(CRunningScript& S, CVehicle& self) {
+    const auto ProcessPed = [&] (CPed* ped, int32 delay) {
+        S.GivePedScriptedTask(
+            ped,
+            new CTaskComplexLeaveAnyCar{ delay, false, false },
+            COMMAND_TASK_EVERYONE_LEAVE_CAR
+        );
+    };
+
+    if (auto* const driver = self.m_pDriver) {
+        ProcessPed(driver, 0);
+    }
+
+    int32 delay = 0;
+    for (auto* const passenger : self.GetPassengers()) {
+        if (passenger) {
+            ProcessPed(passenger, CGeneral::GetRandomNumberInRange(-250, 250) + 500 + delay);
+            delay += 500;
+        }
+    }
+}
 
 /*
 * @opcode 0697
@@ -2780,7 +2800,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
-    //REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
