@@ -10,7 +10,7 @@
 #include "CarGenerator.h"
 #include "TheCarGenerators.h"
 #include "VehicleRecording.h"
-#include "CommandParser/Parser.hpp"
+#include "MissionCleanup.h"
 #include <cHandlingDataMgr.h>
 
 using namespace notsa::script;
@@ -212,17 +212,18 @@ CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
 }
 
 /// DELETE_CAR
-// TODO: We need to take the handle here as well so we can delete by it later
-//void DeleteCar(CVehicle* car) {
-//    if (car) {
-//        CWorld::Remove(car);
-//        CWorld::RemoveReferencesToDeletedObject(car);
-//        delete car;
-//    } else {
-//        CTheScripts::MissionCleanUp.RemoveEntityFromList(handle); // TODO
-//    }
-//}
+void DeleteCar(notsa::script::ScriptEntity<CVehicle> entity) {
+    const auto [vehicle, handle] = entity;
+    if (vehicle) {
+        CWorld::Remove(vehicle);
+        CWorld::RemoveReferencesToDeletedObject(vehicle);
+        delete vehicle;
+    } else {
+        CTheScripts::MissionCleanUp.RemoveEntityFromList(handle, MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+    }
+}
 
+/// Not a script command, but a shared implementation
 void CarGotoCoordinatesUsingMission(CVehicle& vehicle, CVector where, eCarMission mission, eCarMission missionStraightLine) {
     auto& ap = vehicle.m_autoPilot;
 
@@ -2656,7 +2657,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PLANE_ATTACK_PLAYER_USING_DOG_FIGHT, PlaneAttackPlayerUsingDogFight);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ALWAYS_CREATE_SKIDS, SetCarAlwaysCreateSkids);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR, CreateCar);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CAR, DeleteCar);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES, CarGotoCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_ACCURATE, CarGotoCoordinatesAccurate);
     REGISTER_COMMAND_HANDLER(COMMAND_CAR_GOTO_COORDINATES_RACING, CarGotoCoordinatesRacing);
