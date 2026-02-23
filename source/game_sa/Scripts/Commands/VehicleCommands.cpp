@@ -2408,11 +2408,16 @@ int GetNumCarColours(CVehicle& self) {
 * 
 * @brief Returns a handle of the vehicle preventing this car from getting to its destination
 * 
-* @param self CVehicle&
+* @param self Vehicle or null
 */
-// CVehicle& GetCarBlockingCar(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+CVehicle* GetCarBlockingCar(CVehicle& self) {
+    if (auto* const entity = self.m_autoPilot.m_ObstructingEntity) {
+        if (entity->GetIsTypeVehicle()) {
+            return entity->AsVehicle();
+        }
+    }
+    return nullptr;
+}
 
 /*
 * @opcode 098D
@@ -2766,7 +2771,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_LOW_RIDER, IsCarLowRider);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
