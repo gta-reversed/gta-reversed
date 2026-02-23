@@ -2459,9 +2459,9 @@ void SetCarCollision(CVehicle& self, bool state) {
 * 
 * @param self CVehicle&
 */
-// eCarLock GetCarDoorLockStatus(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+eCarLock GetCarDoorLockStatus(CVehicle& self) {
+    return self.m_nDoorLock;
+}
 
 /*
 * @opcode 09BB
@@ -2775,7 +2775,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
