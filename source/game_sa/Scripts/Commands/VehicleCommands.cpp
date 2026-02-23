@@ -2594,9 +2594,10 @@ void GiveNonPlayerCarNitro(CVehicle& self) {
 * @param color3 int
 * @param color4 int
 */
-// void SetExtraCarColours(CVehicle& self, int color3, int color4) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+void SetExtraCarColours(CVehicle& self, int color3, int color4) {
+    self.m_nTertiaryColor = color3;
+    self.m_nQuaternaryColor = color4;
+}
 
 /*
 * @opcode 0A15
@@ -2816,7 +2817,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
     REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
     //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
     //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
