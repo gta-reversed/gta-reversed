@@ -2605,13 +2605,15 @@ void SetExtraCarColours(CVehicle& self, int color3, int color4) {
 * @class Car
 * @method HasBeenResprayed
 * 
-* @brief Returns true if the vehicle was resprayed in the last frame
+* @brief Returns true if the vehicle was resprayed in the last frame AND resets the resprayed state to false.
 * 
 * @param self CVehicle&
 */
-// void HasCarBeenResprayed(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool HasCarBeenResprayed(CVehicle& self) {
+    const bool resprayed = self.vehicleFlags.bHasBeenResprayed;
+    self.vehicleFlags.bHasBeenResprayed = false;
+    return resprayed;
+}
 
 /*
 * @opcode 0A21
@@ -2818,7 +2820,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
     REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
-    //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
+    REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
     //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
     
