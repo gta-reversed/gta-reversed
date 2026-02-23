@@ -2503,9 +2503,9 @@ bool IsCarTouchingCar(CVehicle& self, CVehicle& other) {
 * 
 * @param model eModelID
 */
-// int GetCarModelValue(eModelID model) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+int GetCarModelValue(eModelID model) {
+    return gHandlingDataMgr.m_aVehicleHandling[CModelInfo::GetModelInfo(model)->AsVehicleModelInfoPtr()->m_nHandlingId].m_nMonetaryValue;
+}
 
 /*
 * @opcode 09E2
@@ -2778,7 +2778,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
     //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
     //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
