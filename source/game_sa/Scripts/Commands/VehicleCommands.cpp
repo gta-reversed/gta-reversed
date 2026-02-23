@@ -2429,9 +2429,9 @@ CVehicle* GetCarBlockingCar(CVehicle& self) {
 * 
 * @param self CVehicle&
 */
-// float GetCarMovingComponentOffset(CVehicle& self) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+float GetCarMovingComponentOffset(CVehicle& self) {
+    return self.AsAutomobile()->GetMovingCollisionOffset();
+}
 
 /*
 * @opcode 099A
@@ -2772,7 +2772,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STREET_RACER, IsCarStreetRacer);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_CAR_COLOURS, GetNumCarColours);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_BLOCKING_CAR, GetCarBlockingCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
