@@ -171,13 +171,13 @@ void CPhysical::Add()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->Vehicles;
+                list = &repeatSector.Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector->Peds;
+                list = &repeatSector.Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->Objects;
+                list = &repeatSector.Objects;
                 break;
             }
 
@@ -510,7 +510,7 @@ void CPhysical::ProcessShift() {
         CMatrix oldEntityMatrix(*m_matrix);
         ApplySpeed();
         m_matrix->Reorthogonalise();
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
 
         bool bShifted = false;
         if (GetIsTypeVehicle())
@@ -532,7 +532,7 @@ void CPhysical::ProcessShift() {
         physicalFlags.bProcessingShift = false;
 
         if (bShifted || GetIsTypeVehicle()) {
-            CWorld::IncrementCurrentScanCode();
+            CWorld::AdvanceCurrentScanCode();
             bool bShifted2 = false;
             int32 startSectorX = CWorld::GetSectorX(boundingBox.left);
             int32 startSectorY = CWorld::GetSectorY(boundingBox.bottom);
@@ -2091,12 +2091,12 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
         }
     };
 
-    CSector* s = GetSector(sectorX, sectorY);
-    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
-    ProcessSectorList(s->m_buildings);
-    ProcessSectorList(rs->Vehicles);
-    ProcessSectorList(rs->Peds);
-    ProcessSectorList(rs->Objects);
+    auto& s = CWorld::GetSector(sectorX, sectorY);
+    auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
+    ProcessSectorList(s.Buildings);
+    ProcessSectorList(rs.Vehicles);
+    ProcessSectorList(rs.Peds);
+    ProcessSectorList(rs.Objects);
 
     if (totalAcceptableColPoints == 0) {
         return false;
@@ -4435,12 +4435,12 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
         }
         return false;
     };
-    CSector* s = GetSector(sectorX, sectorY);
-    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
-    if (   ProcessSectorList(s->m_buildings)
-        || ProcessSectorList(rs->Vehicles)
-        || ProcessSectorList(rs->Peds)
-        || ProcessSectorList(rs->Objects)
+    auto& s = CWorld::GetSector(sectorX, sectorY);
+    auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
+    if (   ProcessSectorList(s.Buildings)
+        || ProcessSectorList(rs.Vehicles)
+        || ProcessSectorList(rs.Peds)
+        || ProcessSectorList(rs.Objects)
     ) {
         return true;
     }
@@ -4737,7 +4737,7 @@ bool CPhysical::CheckCollision()
         }
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     CRect boundRect = GetBoundRect();
     int32 startSectorX = CWorld::GetSectorX(boundRect.left);
@@ -4757,7 +4757,7 @@ bool CPhysical::CheckCollision()
 bool CPhysical::CheckCollision_SimpleCar()
 {
     SetCollisionProcessed(false);
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
     if (!entryInfoNode)
         return false;

@@ -10,6 +10,7 @@
 #include "FileMgr.h"
 
 #include "HookSystem.h"
+#include "extensions/Configs/Miscellaneous.hpp"
 
 char (&CFileMgr::ms_dirName)[128] = *(char (*)[128])0xb71a60;
 char (&CFileMgr::ms_rootDirName)[128] = *(char (*)[128])0xb71ae0;
@@ -43,27 +44,29 @@ char* InitUserDirectories()
     if (gta_user_dir_path[0] != '\0')
         return gta_user_dir_path;
 
-    // MikuAuahDark: Let's improve the function
-    // to use wide char
-
+    // NOTSA(MikuAuahDark): Let's improve the function to use wide char
     static std::array<wchar_t, MAX_PATH> gtaUserDirWide;
-
-    if (SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, gtaUserDirWide.data()) != S_OK) {
-        strcpy_s(gta_user_dir_path, std::size("data"), "data"); // 2nd param is required or game won't be able to find files!
-        return gta_user_dir_path;
-    }
-
-    constexpr const wchar_t* USERFILES = L"\\GTA San Andreas User Files";
-    constexpr const wchar_t* GALLERY = L".\\Gallery";
-    constexpr const wchar_t* USERTRACKS = L".\\User Tracks";
     static std::array<wchar_t, MAX_PATH> userGalleryDirWide;
     static std::array<wchar_t, MAX_PATH> userTracksDirWide;
+    constexpr const wchar_t*             GALLERY    = L".\\Gallery";
+    constexpr const wchar_t*             USERTRACKS = L".\\User Tracks";
 
-    // Base GTASA User Files
-    if ((wcslen(gtaUserDirWide.data()) + wcslen(USERFILES)) >= MAX_PATH)
-        wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), L".");
-    else
-        wcscat_s(gtaUserDirWide.data(), gtaUserDirWide.size(), USERFILES);
+    if (g_MiscConfig.SaveDirectoryPath.has_value()) {
+        wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), UTF8ToUnicode(*g_MiscConfig.SaveDirectoryPath).c_str());
+    } else {
+        if (SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, gtaUserDirWide.data()) != S_OK) {
+            strcpy_s(gta_user_dir_path, std::size("data"), "data"); // 2nd param is required or game won't be able to find files!
+            return gta_user_dir_path;
+        }
+
+        constexpr const wchar_t* USERFILES = L"\\GTA San Andreas User Files";
+        // Base GTASA User Files
+        if ((wcslen(gtaUserDirWide.data()) + wcslen(USERFILES)) >= MAX_PATH) {
+            wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), L".");
+        } else {
+            wcscat_s(gtaUserDirWide.data(), gtaUserDirWide.size(), USERFILES);
+        }
+    }
     createDirectory(gtaUserDirWide.data());
 
     size_t userDirLen = wcslen(gtaUserDirWide.data());

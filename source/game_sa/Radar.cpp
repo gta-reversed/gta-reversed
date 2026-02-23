@@ -1289,7 +1289,7 @@ void CRadar::SetMapCentreToPlayerCoords() {
 
     InitFrontEndMap();
 
-    CVector2D posReal = FindPlayerCentreOfWorld_NoInteriorShift(0);
+    CVector2D posReal = FindPlayerCentreOfWorldForMap(0);
 
     if (CTheScripts::HideAllFrontEndMapBlips || CTheScripts::bPlayerIsOffTheMap)
         posReal.Set(0.0f, 0.0f);
@@ -1576,7 +1576,7 @@ void CRadar::DrawRadarMap() {
 
     // Draw green rectangle when in plane
     if (vehicle && vehicle->IsSubPlane() && !ModelIndices::IsVortex(vehicle->m_nModelIndex)) {
-        CVector playerPos = FindPlayerCentreOfWorld_NoInteriorShift(0);
+        CVector playerPos = FindPlayerCentreOfWorldForMap(0);
 
         const auto cSin = cachedSin;
         const auto cCos = cachedCos;
@@ -1643,11 +1643,11 @@ void CRadar::DrawMap() {
 
     vec2DRadarOrigin = []() -> CVector2D {
         if (!CGameLogic::IsCoopGameGoingOn()) [[likely]] {
-            return FindPlayerCentreOfWorld_NoInteriorShift(0);
+            return FindPlayerCentreOfWorldForMap(0);
         } else if (CGameLogic::n2PlayerPedInFocus == eFocusedPlayer::PLAYER2) {
-            return FindPlayerCentreOfWorld_NoInteriorShift(1);
+            return FindPlayerCentreOfWorldForMap(1);
         } else {
-            return (FindPlayerCentreOfWorld_NoInteriorShift(0) + FindPlayerCentreOfWorld_NoInteriorShift(1)) / 2.0f; // Halfway between the two player's positions
+            return (FindPlayerCentreOfWorldForMap(0) + FindPlayerCentreOfWorldForMap(1)) / 2.0f; // Halfway between the two player's positions
         }
     }();
 
@@ -1694,7 +1694,7 @@ void CRadar::DrawCoordBlip(int32 blipIndex, bool isSprite) {
     }
 
     const auto GetHeight = [&] {
-        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorld_NoInteriorShift(PED_TYPE_PLAYER1).z;
+        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorldForMap(PED_TYPE_PLAYER1).z;
 
         if (zDiff > 2.0f) {
             // trace is higher
@@ -1944,8 +1944,10 @@ void CRadar::DrawBlips() {
         }
     }
 
-    const auto GetPlayerMarkerPosition = [] {
-        const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(0) - vec2DRadarOrigin) / m_radarRange;
+    // FIX_BUGS: Originally 2 player blips both drawing P1's position.
+    // https://github.com/CookiePLMonster/SilentPatch/issues/209
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
+        const auto playerDirection = (FindPlayerCentreOfWorldForMap(playerIndex) - vec2DRadarOrigin) / m_radarRange;
 
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
@@ -1965,7 +1967,7 @@ void CRadar::DrawBlips() {
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
 
-            const auto pos = GetPlayerMarkerPosition();
+            const auto pos = GetPlayerMarkerPosition(notsa::IsFixBugs() ? i : 0);
 
             const auto angle = [] {
                 const auto heading = FindPlayerHeading(0);
@@ -1983,16 +1985,12 @@ void CRadar::DrawBlips() {
                 pos.y,
                 angle,
                 static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #ifdef FIX_BUGS
-                static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)),
-            #else
-                static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #endif
+                (notsa::IsFixBugs() ? static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)) : static_cast<uint32>(SCREEN_STRETCH_X(8.0f))),
                 player->IsHidden() ? CRGBA{50, 50, 50, 255} : CRGBA{255, 255, 255, 255}
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition();
+        const auto pos = GetPlayerMarkerPosition(0);
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }
