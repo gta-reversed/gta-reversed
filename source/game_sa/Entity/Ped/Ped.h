@@ -107,13 +107,14 @@ public:
 
 protected: // Use accessors
     CAEPedAudioEntity       m_pedAudio;
-    CAEPedSpeechAudioEntity m_pedSpeech;
-    CAEPedWeaponAudioEntity m_weaponAudio;
-public:
+    CAEPedSpeechAudioEntity m_pedSpeechAudio;
+    CAEPedWeaponAudioEntity m_pedWeaponAudio;
+public: // Detele in Mobile
     char                    field_43C[36];
     CPed*                   m_roadRageWith;
     char                    field_464[4];
     int32                   field_468;
+    // ***
 
     /* https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CPedSA.h */
     struct {
@@ -261,8 +262,11 @@ protected:
 
 public:
     std::array<AnimBlendFrameData*, TOTAL_PED_NODES> m_apBones; // for Index, see ePedNode - TODO: Name incorrect, should be `m_apNodes` instead.
-    AssocGroupId        m_nAnimGroup;
+
+    AssocGroupId        m_nAnimGroup; // m_motionAnimGroup
+
     CVector2D           m_vecAnimMovingShiftLocal;
+
     CAcquaintance       m_acquaintance;
 
     RpClump*            m_pWeaponObject;
@@ -276,59 +280,87 @@ public:
     int16               m_nWeaponGunFlashAlphaProgMP2;
 
     CPedIK              m_pedIK;
+
     uint32              m_nAntiSpazTimer;
+
     ePedState           m_nPedState;
     eMoveState          m_nMoveState;
+
+    // Delete in Mobile:
     int32               m_nSwimmingMoveState; // type is eMoveState and used for swimming in CTaskSimpleSwim::ProcessPed
     int32               field_53C;
+    // ***
+
     float               m_fHealth;
     float               m_fMaxHealth;
     float               m_fArmour;
+
     uint32              m_nTimeTillWeNeedThisPed;
+
     CVector2D           m_vecAnimMovingShift;
     float               m_fCurrentRotation;
     float               m_fAimingRotation;
     float               m_fHeadingChangeRate;
     float               m_fMoveAnim; // not sure about the name here
+
     CEntity*            m_standingOnEntity;
     CVector             field_56C;
     CVector             field_578;
     CEntity*            m_pContactEntity;
     float               field_588;
+
     CVehicle*           m_pVehicle;         //< Might be set even if the ped isn't in a vehicle, in that case it's the vehicle they should get back into. But (in theory) a ped is guaranteed to be in a vehicle if `bInVehicle` is set.
-    CVehicle*           m_VehDeadInFrontOf; // Set if `bDeadPedInFrontOfCar` 
+
+    CVehicle*           m_VehDeadInFrontOf; // Set if `bDeadPedInFrontOfCar`
     int32               field_594;
+
     ePedType            m_nPedType;
     CPedStat*           m_pStats;
+
     std::array<CWeapon, NUM_WEAPON_SLOTS> m_aWeapons;
+
     eWeaponType         m_nSavedWeapon;   // when we need to hide ped weapon, we save it temporary here
     eWeaponType         m_nDelayedWeapon; // 'delayed' weapon is like an additional weapon, f.e., simple cop has a nitestick as current and pistol as delayed weapons
     uint32              m_nDelayedWeaponAmmo;
+
     uint8               m_nActiveWeaponSlot;
     uint8               m_nWeaponShootingRate;
     uint8               m_nWeaponAccuracy;
+
     CEntity*            m_pTargetedObject; // lock-on target
     int32               field_720;
+
     int32               field_724;
     int32               field_728;
+
     eWeaponSkill        m_nWeaponSkill;
     eFightingStyle      m_nFightingStyle;
     char                m_nAllowedAttackMoves;
+
     uint8               field_72F; // taskId related? 0x4B5C47
+
     CFire*              m_pFire;
     float               m_fireDmgMult;
+
     CEntity*            m_pLookTarget;
     float               m_fLookDirection; // In RAD
+
     int32               m_nWeaponModelId;
+
     uint32              m_nUnconsciousTimer;
     uint32              m_nLookTime;
     uint32              m_nAttackTimer;
     int32               m_nDeathTimeMS; //< Death time in MS (CTimer::GetTimeMS())
+
     char                m_nBodypartToRemove;
-    char                field_755;
+
+    char                field_755; // Delete in Mobile
+
     int16               m_nMoneyCount; // Used for money pickup when ped is killed
+
     float               m_Wobble;
     float               m_WobbleSpeed;
+
     char                m_nLastWeaponDamage; // See eWeaponType
     CEntity*            m_pLastEntityDamage;
     int32               field_768;
@@ -343,9 +375,12 @@ public:
 
     CCoverPoint*        m_pCoverPoint;
     CEntryExit*         m_pEnex; // CEnEx *
+
     float               m_fRemovalDistMultiplier;
+
     int16               m_StreamedScriptBrainToLoad;
-    int32               field_798;
+
+    uint32              m_lastTalkSfx; // unused
 
 public:
     void SetModelIndex(uint32 modelIndex) override;
@@ -584,8 +619,8 @@ public:
     bool IsCurrentlyUnarmed() { return GetActiveWeapon().m_Type == WEAPON_UNARMED; }
 
     auto&& GetAE(this auto&& self)    { return self.m_pedAudio; }
-    auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeech; }
-    auto&& GetWeaponAE(this auto&& self) { return self.m_weaponAudio; }
+    auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeechAudio; }
+    auto&& GetWeaponAE(this auto&& self) { return self.m_pedWeaponAudio; }
 
     /*!
      * @notsa

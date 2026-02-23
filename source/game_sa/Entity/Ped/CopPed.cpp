@@ -111,7 +111,7 @@ CCopPed::CCopPed(uint32_t copTypeOrModelID) :
 
     GetIntelligence()->SetDmRadius(60.0f);
     GetIntelligence()->SetNumPedsToScan(8);
-    m_pedSpeech.Initialise(this);
+    m_pedSpeechAudio.Initialise(this);
     m_pCopPartner = nullptr;
     std::ranges::fill(m_apCriminalsToKill, nullptr);
     m_isTheDriver = 0;
