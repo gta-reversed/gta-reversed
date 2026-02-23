@@ -443,6 +443,22 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
     return vehicle.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
 }
 
+/// IS_CAR_IN_AREA_3D
+bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
+    if (highlight) {
+        CTheScripts::HighlightImportantArea(
+            (int32)(&S) + (int32)(S.m_IP),
+            p1.x, p1.y,
+            p2.x, p2.y,
+            (p2.z - p1.z) / 2.f
+        );
+    }
+    return vehicle.IsWithinArea(
+        p1.x, p1.y, p1.z,
+        p2.x, p2.y, p2.z
+    );
+}
+
 /// LOCATE_CAR_2D
 auto LocateCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D radius, bool highlight) {
     return IsCarInArea2D<true>(
@@ -467,22 +483,6 @@ auto LocateStoppedCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVec
         pt - radius,
         pt + radius,
         highlight
-    );
-}
-
-/// IS_CAR_IN_AREA_3D
-bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
-    if (highlight) {
-        CTheScripts::HighlightImportantArea(
-            (int32)(&S) + (int32)(S.m_IP),
-            p1.x, p1.y,
-            p2.x, p2.y,
-            (p2.z - p1.z) / 2.f
-        );
-    }
-    return vehicle.IsWithinArea(
-        p1.x, p1.y, p1.z,
-        p2.x, p2.y, p2.z
     );
 }
 
@@ -1056,6 +1056,60 @@ bool IsCarTyreBurst(CVehicle& self, eWheelId tire) {
 }
 
 /*
+* @opcode 04FE
+* @command BURST_CAR_TYRE
+* @class Car
+* @method BurstTire
+* 
+* @brief Deflates the car's tire
+* 
+* @param self CVehicle&
+* @param tireId eWheelId
+*/
+void BurstCarTyre(CVehicle& self, eWheelId tire) {
+    if (self.IsBike()) {
+        switch (tire) {
+        case eWheelId::BIKE_FRONT:
+        case eWheelId::FRONT_RIGHT: self.BurstTyre(0, true); break;
+        case eWheelId::BIKE_REAR:
+        case eWheelId::REAR_RIGHT:  self.BurstTyre(1, true); break;
+        default:                    NOTSA_UNREACHABLE("Invalid wheel ID for bike: {}", +tire);
+        }
+    }
+    self.BurstTyre(+tire, true);
+}
+
+/*
+* @opcode 0699
+* @command FIX_CAR_TYRE
+* @class Car
+* @method FixTire
+* 
+* @brief Repairs a car's tire
+* 
+* @param self CVehicle&
+* @param tireId eCarWheel
+*/
+void FixCarTyre(CVehicle& self, eCarWheel tire) {
+    self.AsAutomobile()->FixTyre(static_cast<eCarWheel>(tire));
+}
+
+/*
+* @opcode 053F
+* @command SET_CAN_BURST_CAR_TYRES
+* @class Car
+* @method SetCanBurstTires
+* 
+* @brief Sets whether the car's tires can be deflated
+* 
+* @param self CVehicle&
+* @param state bool
+*/
+void SetCanBurstCarTyres(CVehicle& self, bool state) {
+    self.vehicleFlags.bTyresDontBurst = state;
+}
+
+/*
 * @opcode 04BA
 * @command SET_CAR_FORWARD_SPEED
 * @class Car
@@ -1130,30 +1184,6 @@ bool IsCarWaitingForWorldCollision(CVehicle& self) {
 }
 
 /*
-* @opcode 04FE
-* @command BURST_CAR_TYRE
-* @class Car
-* @method BurstTire
-* 
-* @brief Deflates the car's tire
-* 
-* @param self CVehicle&
-* @param tireId eWheelId
-*/
-void BurstCarTyre(CVehicle& self, eWheelId tire) {
-    if (self.IsBike()) {
-        switch (tire) {
-        case eWheelId::BIKE_FRONT:
-        case eWheelId::FRONT_RIGHT: self.BurstTyre(0, true); break;
-        case eWheelId::BIKE_REAR:
-        case eWheelId::REAR_RIGHT:  self.BurstTyre(1, true); break;
-        default:                    NOTSA_UNREACHABLE("Invalid wheel ID for bike: {}", +tire);
-        }
-    }
-    self.BurstTyre(+tire, true);
-}
-
-/*
 * @opcode 0506
 * @command SET_CAR_MODEL_COMPONENTS
 * @class Car
@@ -1168,20 +1198,6 @@ void BurstCarTyre(CVehicle& self, eWheelId tire) {
 void SetCarModelComponents(eModelID _unused, int component1, int component2) {
     CVehicleModelInfo::ms_compsToUse[0] = component1;
     CVehicleModelInfo::ms_compsToUse[1] = component2;
-}
-
-/*
-* @opcode 0508
-* @command CLOSE_ALL_CAR_DOORS
-* @class Car
-* @method CloseAllDoors
-* 
-* @brief Closes all car doors, hoods and boots
-* 
-* @param self CVehicle&
-*/
-void CloseAllCarDoors(CVehicle& self) {
-    self.AsAutomobile()->CloseAllDoors();
 }
 
 /*
@@ -1255,21 +1271,6 @@ bool HasCarBeenDamagedByCar(CVehicle* self, CVehicle* other) {
 }
 
 /*
-* @opcode 053F
-* @command SET_CAN_BURST_CAR_TYRES
-* @class Car
-* @method SetCanBurstTires
-* 
-* @brief Sets whether the car's tires can be deflated
-* 
-* @param self CVehicle&
-* @param state bool
-*/
-void SetCanBurstCarTyres(CVehicle& self, bool state) {
-    self.vehicleFlags.bTyresDontBurst = state;
-}
-
-/*
 * @opcode 054F
 * @command CLEAR_CAR_LAST_DAMAGE_ENTITY
 * @class Car
@@ -1327,17 +1328,18 @@ void SetLoadCollisionForCarFlag(CRunningScript& S, CVehicle& self, bool state) {
     }
 }
 
+
 /*
-* @opcode 05EB
-* @command START_PLAYBACK_RECORDED_CAR
-* @class Car
-* @method StartPlayback
-* 
-* @brief Assigns a car to a path
-* 
-* @param self CVehicle&
-* @param path int
-*/
+ * @opcode 05EB
+ * @command START_PLAYBACK_RECORDED_CAR
+ * @class Car
+ * @method StartPlayback
+ * 
+ * @brief Assigns a car to a path
+ * 
+ * @param self CVehicle&
+ * @param path int
+ */
 void StartPlaybackRecordedCar(CVehicle& self, int32 path) {
     CVehicleRecording::StartPlaybackRecordedCar(&self, path, false, false);
 }
@@ -1398,6 +1400,68 @@ bool IsPlaybackGoingOnForCar(CVehicle& self) {
 */
 void UnpausePlaybackRecordedCar(CVehicle& self) {
     CVehicleRecording::UnpausePlaybackRecordedCar(&self);
+}
+
+
+/*
+* @opcode 06C5
+* @command SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method SkipToEndAndStopPlayback
+* 
+* @brief 
+* 
+* @param self CVehicle&
+*/
+void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
+    CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(&self);
+}
+
+
+/*
+* @opcode 0705
+* @command START_PLAYBACK_RECORDED_CAR_USING_AI
+* @class Car
+* @method StartPlaybackUsingAi
+* 
+* @brief Starts the playback of a recorded car with driver AI enabled
+* 
+* @param self CVehicle&
+* @param pathId int
+*/
+void StartPlaybackRecordedCarUsingAI(CVehicle& self, int pathId) {
+    CVehicleRecording::StartPlaybackRecordedCar(&self, pathId, true, false);
+}
+
+
+/*
+* @opcode 0706
+* @command SKIP_IN_PLAYBACK_RECORDED_CAR
+* @class Car
+* @method SkipInPlayback
+* 
+* @brief Advances the recorded car playback by the specified amount
+* 
+* @param self CVehicle&
+* @param amount float
+*/
+void SkipInPlaybackRecordedCar(CVehicle& self, float amount) {
+    CVehicleRecording::SkipForwardInRecording(&self, amount);
+}
+
+/*
+* @opcode 085E
+* @command START_PLAYBACK_RECORDED_CAR_LOOPED
+* @class Car
+* @method StartPlaybackLooped
+* 
+* @brief Starts looped playback of a recorded car path
+* 
+* @param self CVehicle&
+* @param pathId int
+*/
+void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
+    CVehicleRecording::StartPlaybackRecordedCar(&self, pathId, false, true);
 }
 
 /*
@@ -1472,7 +1536,6 @@ void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
     SetCarEscortCarUsingMission(self, other, MISSION_ESCORT_FRONT);
 }
 
-
 /*
 * @opcode 08A6
 * @command OPEN_CAR_DOOR_A_BIT
@@ -1510,6 +1573,138 @@ void OpenCarDoorABit(CVehicle& self, eDoors door, float value) {
 */
 void OpenCarDoor(CVehicle& self, eDoors door) {
     OpenCarDoorABit(self, door, 1.f);
+}
+
+/*
+* @opcode 0508
+* @command CLOSE_ALL_CAR_DOORS
+* @class Car
+* @method CloseAllDoors
+* 
+* @brief Closes all car doors, hoods and boots
+* 
+* @param self CVehicle&
+*/
+void CloseAllCarDoors(CVehicle& self) {
+    self.AsAutomobile()->CloseAllDoors();
+}
+
+/*
+* @opcode 073C
+* @command DAMAGE_CAR_DOOR
+* @class Car
+* @method DamageDoor
+* 
+* @brief Damages a component on the vehicle
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+void DamageCarDoor(CVehicle& self, eDoors door) {
+    assert(door <= MAX_DOORS);
+
+    auto* const automobile = self.AsAutomobile();
+    automobile->GetDamageManager().ApplyDamage(
+        automobile,
+        (tComponent)(+COMPONENT_BONNET + +door),
+        150.f,
+        1.f
+    );
+}
+
+/*
+* @opcode 08A7
+* @command IS_CAR_DOOR_FULLY_OPEN
+* @class Car
+* @method IsDoorFullyOpen
+* 
+* @brief 
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+bool IsCarDoorFullyOpen(CVehicle& self, eDoors door) {
+    auto* const automobile = self.AsAutomobile();
+    return automobile->IsDoorFullyOpenU32(automobile->GetDamageManager().GetCarNodeIndexFromDoor(door));
+}
+
+/*
+* @opcode 0689
+* @command POP_CAR_DOOR
+* @class Car
+* @method PopDoor
+* 
+* @brief Removes the specified car door component from the car
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+* @param visibility bool
+*/
+void PopCarDoor(CVehicle& self, eDoors door, bool visibility) {
+    auto* const automobile = self.AsAutomobile();
+    automobile->PopDoor(CDamageManager::GetCarNodeIndexFromDoor(door), door, visibility);
+}
+
+/*
+* @opcode 068A
+* @command FIX_CAR_DOOR
+* @class Car
+* @method FixDoor
+* 
+* @brief Repairs the car door
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+void FixCarDoor(CVehicle& self, eDoors door) {
+    auto* const automobile = self.AsAutomobile();
+    automobile->FixDoor(CDamageManager::GetCarNodeIndexFromDoor(door), door);
+}
+
+/*
+* @opcode 095E
+* @command CONTROL_CAR_DOOR
+* @class Car
+* @method ControlDoor
+* 
+* @brief Sets the car's door angle and latch state
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+* @param state eCarDoorState
+* @param angle float
+*/
+void ControlCarDoor(CVehicle& self, eDoors door, eDoorStatus state, float angle) {
+    auto* const automobile = self.AsAutomobile();
+
+    if (door >= MAX_DOORS) {
+        auto* const chassis = &automobile->m_swingingChassis;
+        if (angle >= 0.f) {
+            chassis->Open(angle);
+        }
+        chassis->m_doorState = (eDoorState)(state); // TODO
+    } else {
+        if (angle >= 0.f) {
+            automobile->m_doors[door].Open(angle);
+        }
+        automobile->GetDamageManager().SetDoorStatus(door, state);
+        automobile->SetDoorDamage(door);
+    }
+}
+
+/*
+* @opcode 09BB
+* @command IS_CAR_DOOR_DAMAGED
+* @class Car
+* @method IsDoorDamaged
+* 
+* @brief Returns true if the specified vehicle part is visibly damaged
+* 
+* @param self CVehicle&
+* @param door eCarDoor
+*/
+bool IsCarDoorDamaged(CVehicle& self, eDoors door) {
+    return self.AsAutomobile()->GetDamageManager().GetDoorStatus(door) != eDoorStatus::DAMSTATE_OK;
 }
 
 /*
@@ -1603,39 +1798,6 @@ void DetachCar(CVehicle* vehicle, CVector2D dir, float strength, bool collisionD
 }
 
 /*
-* @opcode 0689
-* @command POP_CAR_DOOR
-* @class Car
-* @method PopDoor
-* 
-* @brief Removes the specified car door component from the car
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-* @param visibility bool
-*/
-void PopCarDoor(CVehicle& self, eDoors door, bool visibility) {
-    auto* const automobile = self.AsAutomobile();
-    automobile->PopDoor(CDamageManager::GetCarNodeIndexFromDoor(door), door, visibility);
-}
-
-/*
-* @opcode 068A
-* @command FIX_CAR_DOOR
-* @class Car
-* @method FixDoor
-* 
-* @brief Repairs the car door
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-*/
-void FixCarDoor(CVehicle& self, eDoors door) {
-    auto* const automobile = self.AsAutomobile();
-    automobile->FixDoor(CDamageManager::GetCarNodeIndexFromDoor(door), door);
-}
-
-/*
 * @opcode 068B
 * @command TASK_EVERYONE_LEAVE_CAR
 * @class Car
@@ -1701,18 +1863,26 @@ void FixCarPanel(CVehicle& self, ePanels panel) {
 }
 
 /*
-* @opcode 0699
-* @command FIX_CAR_TYRE
+* @opcode 0730
+* @command DAMAGE_CAR_PANEL
 * @class Car
-* @method FixTire
+* @method DamagePanel
 * 
-* @brief Repairs a car's tire
+* @brief Damages a panel on the car
 * 
 * @param self CVehicle&
-* @param tireId eCarWheel
+* @param panelId int
 */
-void FixCarTyre(CVehicle& self, eCarWheel tire) {
-    self.AsAutomobile()->FixTyre(static_cast<eCarWheel>(tire));
+void DamageCarPanel(CVehicle& self, ePanels panel) {
+    assert(panel <= MAX_PANELS);
+
+    auto* const automobile = self.AsAutomobile();
+    automobile->GetDamageManager().ApplyDamage(
+        automobile,
+        (tComponent)(+COMPONENT_WING_LF + +panel),
+        150.f,
+        1.f
+    );
 }
 
 /*
@@ -1758,17 +1928,32 @@ float GetCarRoll(CVehicle& self) {
 }
 
 /*
-* @opcode 06C5
-* @command SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR
+* @opcode 0731
+* @command SET_CAR_ROLL
 * @class Car
-* @method SkipToEndAndStopPlayback
+* @method SetRoll
 * 
-* @brief 
+* @brief Sets the Y Angle of the vehicle to the specified value
 * 
 * @param self CVehicle&
+* @param roll float
 */
-void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
-    CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(&self);
+void SetCarRoll(CVehicle& self, float roll) {
+    self.SetRoll(roll);
+}
+
+/*
+* @opcode 077D
+* @command GET_CAR_PITCH
+* @class Car
+* @method GetPitch
+*
+* @brief Returns the X Angle of the vehicle in DEGREES
+*
+* @param self CVehicle&
+*/
+float GetCarPitch(CVehicle& self) {
+    return ClampDegreesForScript(DegreesToRadians(self.AsAutomobile()->GetCarPitch()));
 }
 
 /*
@@ -1785,35 +1970,6 @@ bool DoesCarHaveStuckCarCheck(notsa::script::ScriptEntity<CVehicle> self) {
     return CTheScripts::StuckCars.IsCarInStuckCarArray(self.h);
 }
 
-/*
-* @opcode 0705
-* @command START_PLAYBACK_RECORDED_CAR_USING_AI
-* @class Car
-* @method StartPlaybackUsingAi
-* 
-* @brief Starts the playback of a recorded car with driver AI enabled
-* 
-* @param self CVehicle&
-* @param pathId int
-*/
-void StartPlaybackRecordedCarUsingAI(CVehicle& self, int pathId) {
-    CVehicleRecording::StartPlaybackRecordedCar(&self, pathId, true, false);
-}
-
-/*
-* @opcode 0706
-* @command SKIP_IN_PLAYBACK_RECORDED_CAR
-* @class Car
-* @method SkipInPlayback
-* 
-* @brief Advances the recorded car playback by the specified amount
-* 
-* @param self CVehicle&
-* @param amount float
-*/
-void SkipInPlaybackRecordedCar(CVehicle& self, float amount) {
-    CVehicleRecording::SkipForwardInRecording(&self, amount);
-}
 
 /*
 * @opcode 070C
@@ -1843,44 +1999,6 @@ void ExplodeCarInCutscene(CVehicle& self) {
 */
 void SetCarStayInSlowLane(CVehicle& self, bool state) {
     self.m_autoPilot.carCtrlFlags.bStayInSlowLane = state;
-}
-
-/*
-* @opcode 0730
-* @command DAMAGE_CAR_PANEL
-* @class Car
-* @method DamagePanel
-* 
-* @brief Damages a panel on the car
-* 
-* @param self CVehicle&
-* @param panel CarPanel
-*/
-void DamageCarPanel(CVehicle& self, ePanels panel) {
-    assert(panel <= MAX_PANELS);
-
-    auto* const automobile = self.AsAutomobile();
-    automobile->GetDamageManager().ApplyDamage(
-        automobile,
-        (tComponent)(+COMPONENT_WING_LF + +panelId),
-        150.f,
-        1.f
-    );
-}
-
-/*
-* @opcode 0731
-* @command SET_CAR_ROLL
-* @class Car
-* @method SetRoll
-* 
-* @brief Sets the Y Angle of the vehicle to the specified value
-* 
-* @param self CVehicle&
-* @param roll float
-*/
-void SetCarRoll(CVehicle& self, float roll) {
-    self.SetRoll(roll);
 }
 
 /*
@@ -1939,29 +2057,6 @@ void SetCarCanGoAgainstTraffic(CVehicle& self, bool state) {
 }
 
 /*
-* @opcode 073C
-* @command DAMAGE_CAR_DOOR
-* @class Car
-* @method DamageDoor
-* 
-* @brief Damages a component on the vehicle
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-*/
-void DamageCarDoor(CVehicle& self, eDoors door) {
-    assert(door <= MAX_DOORS);
-
-    auto* const automobile = self.AsAutomobile();
-    automobile->GetDamageManager().ApplyDamage(
-        automobile,
-        (tComponent)(+COMPONENT_BONNET + +door),
-        150.f,
-        1.f
-    );
-}
-
-/*
 * @opcode 0763
 * @command SET_CAR_AS_MISSION_CAR
 * @class Car
@@ -1976,20 +2071,6 @@ void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
         vehicle.SetVehicleCreatedBy(MISSION_VEHICLE);
         CTheScripts::MissionCleanUp.AddEntityToList(vehicle);
     }
-}
-
-/*
-* @opcode 077D
-* @command GET_CAR_PITCH
-* @class Car
-* @method GetPitch
-*
-* @brief Returns the X Angle of the vehicle in DEGREES
-*
-* @param self CVehicle&
-*/
-float GetCarPitch(CVehicle& self) {
-    return ClampDegreesForScript(DegreesToRadians(self.AsAutomobile()->GetCarPitch()));
 }
 
 /*
@@ -2175,21 +2256,6 @@ void SetCarCanBeVisiblyDamaged(CVehicle& self, bool state) {
 }
 
 /*
-* @opcode 085E
-* @command START_PLAYBACK_RECORDED_CAR_LOOPED
-* @class Car
-* @method StartPlaybackLooped
-* 
-* @brief Starts looped playback of a recorded car path
-* 
-* @param self CVehicle&
-* @param pathId int
-*/
-void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
-    CVehicleRecording::StartPlaybackRecordedCar(&self, pathId, false, true);
-}
-
-/*
 * @opcode 088C
 * @command SET_CAR_COORDINATES_NO_OFFSET
 * @class Car
@@ -2204,22 +2270,6 @@ void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
 */
 void SetCarCoordinatesNoOffset(CVehicle& self, CVector pos) {
     CCarCtrl::SetCoordsOfScriptCar(&self, pos.x, pos.y, pos.z, false, false);
-}
-
-/*
-* @opcode 08A7
-* @command IS_CAR_DOOR_FULLY_OPEN
-* @class Car
-* @method IsDoorFullyOpen
-* 
-* @brief 
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-*/
-bool IsCarDoorFullyOpen(CVehicle& self, eDoors door) {
-    auto* const automobile = self.AsAutomobile();
-    return automobile->IsDoorFullyOpenU32(automobile->GetDamageManager().GetCarNodeIndexFromDoor(door));
 }
 
 /*
@@ -2284,37 +2334,6 @@ void SetCarLightsOn(CVehicle& self, bool state) {
 */
 void AttachCarToObject(CVehicle& self, CObject& object, CVector offset, CVector rotation) {
     self.AttachEntityToEntity(&object, offset, rotation * DEG_TO_RAD);
-}
-
-/*
-* @opcode 095E
-* @command CONTROL_CAR_DOOR
-* @class Car
-* @method ControlDoor
-* 
-* @brief Sets the car's door angle and latch state
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-* @param state eCarDoorState
-* @param angle float
-*/
-void ControlCarDoor(CVehicle& self, eDoors door, eDoorStatus state, float angle) {
-    auto* const automobile = self.AsAutomobile();
-
-    if (door >= MAX_DOORS) {
-        auto* const chassis = &automobile->m_swingingChassis;
-        if (angle >= 0.f) {
-            chassis->Open(angle);
-        }
-        chassis->m_doorState = (eDoorState)(state); // TODO
-    } else {
-        if (angle >= 0.f) {
-            automobile->m_doors[door].Open(angle);
-        }
-        automobile->GetDamageManager().SetDoorStatus(door, state);
-        automobile->SetDoorDamage(door);
-    }
 }
 
 /*
@@ -2486,21 +2505,6 @@ void SetCarCollision(CVehicle& self, bool state) {
 */
 eCarLock GetCarDoorLockStatus(CVehicle& self) {
     return self.m_nDoorLock;
-}
-
-/*
-* @opcode 09BB
-* @command IS_CAR_DOOR_DAMAGED
-* @class Car
-* @method IsDoorDamaged
-* 
-* @brief Returns true if the specified vehicle part is visibly damaged
-* 
-* @param self CVehicle&
-* @param door eCarDoor
-*/
-bool IsCarDoorDamaged(CVehicle& self, eDoors door) {
-    return self.AsAutomobile()->GetDamageManager().GetDoorStatus(door) != eDoorStatus::DAMSTATE_OK;
 }
 
 /*
@@ -2702,25 +2706,39 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES, SetCarCoordinates);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CRUISE_SPEED, SetCarCruiseSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MISSION, SetCarMission);
-    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D<false>);
-    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DEAD, IsCarDead);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_MODEL, IsCarModel);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR, CreateCarGenerator);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR_OLD, AddBlipForCarOld);
+
+    //
+    // Heading
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEADING, GetCarHeading);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEADING, SetCarHeading);
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_HEALTH_GREATER, IsCarHealthGreater);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_BLIP_FOR_CAR, AddBlipForCar);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STUCK_ON_ROOF, IsCarStuckOnRoof);
+
+    //
+    // Upsidedown Car Check
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_UPSIDEDOWN_CAR_CHECK, AddUpsidedownCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_UPSIDEDOWN_CAR_CHECK, RemoveUpsidedownCarCheck);
+
+    //
+    // IsInArea checks
+    //
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2D<false>);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_3D, IsCarInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_2D, IsCarStoppedInArea2D);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED_IN_AREA_3D, IsCarStoppedInArea3D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_2D, LocateCar2D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_2D, LocateStoppedCar2D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CAR_3D, LocateCar3D);
     REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_STOPPED_CAR_3D, LocateStoppedCar3D);
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_STOPPED, IsCarStopped);
     REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_NO_LONGER_NEEDED, MarkCarAsNoLongerNeeded);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_DENSITY_MULTIPLIER, SetCarDensityMultiplier);
@@ -2764,64 +2782,97 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_TEMP_ACTION, SetCarTempAction);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_RANDOM_ROUTE_SEED, SetCarRandomRouteSeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_ON_FIRE, IsCarOnFire);
+
+    //
+    // Tyres
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TYRE_BURST, IsCarTyreBurst);
+    REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
+    REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
+
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_FORWARD_SPEED, SetCarForwardSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_MARK_CAR_AS_CONVOY_CAR, MarkCarAsConvoyCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STRAIGHT_LINE_DISTANCE, SetCarStraightLineDistance);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_BOOT, PopCarBoot);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_WAITING_FOR_WORLD_COLLISION, IsCarWaitingForWorldCollision);
-    REGISTER_COMMAND_HANDLER(COMMAND_BURST_CAR_TYRE, BurstCarTyre);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_MODEL_COMPONENTS, SetCarModelComponents);
-    REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION, FreezeCarPosition);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CHAR, HasCarBeenDamagedByChar);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_DAMAGED_BY_CAR, HasCarBeenDamagedByCar);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAN_BURST_CAR_TYRES, SetCanBurstCarTyres);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CAR_LAST_DAMAGE_ENTITY, ClearCarLastDamageEntity);
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CAR_POSITION_AND_DONT_LOAD_COLLISION, FreezeCarPositionAndDontLoadCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_LOAD_COLLISION_FOR_CAR_FLAG, SetLoadCollisionForCarFlag);
 
+    //
+    // Playback (`CVehicleRecording`)
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAI);
+    REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_REAR, SetCarEscortCarRear);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_FRONT, SetCarEscortCarFront);
 
+    //
+    // Doors
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR_A_BIT, OpenCarDoorABit);
     REGISTER_COMMAND_HANDLER(COMMAND_OPEN_CAR_DOOR, OpenCarDoor);
-    REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
-    REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
-    REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
-    REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLOSE_ALL_CAR_DOORS, CloseAllCarDoors);
+    REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_DOOR, PopCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_DOOR, FixCarDoor);
+    REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_CUSTOM_PLATE_FOR_NEXT_CAR, CustomPlateForNextCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_FORCE_CAR_LIGHTS, ForceCarLights);
+
+    //
+    // Attach/detach
+    //
+    REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_CAR, AttachCarToCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_DETACH_CAR, DetachCar);
+
     REGISTER_COMMAND_HANDLER(COMMAND_TASK_EVERYONE_LEAVE_CAR, TaskEveryoneLeaveCar);
+
+    //
+    // Panels
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_POP_CAR_PANEL, PopCarPanel);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_PANEL, FixCarPanel);
-    REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR_TYRE, FixCarTyre);
+    REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
+
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_SPEED_VECTOR, GetCarSpeedVector);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MASS, GetCarMass);
+
+    //
+    // Roll
+    //
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_ROLL, GetCarRoll);
-    REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
+
+    // Pitch
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
+
     REGISTER_COMMAND_HANDLER(COMMAND_DOES_CAR_HAVE_STUCK_CAR_CHECK, DoesCarHaveStuckCarCheck);
-    REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAI);
-    REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE, ExplodeCarInCutscene);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_STAY_IN_SLOW_LANE, SetCarStayInSlowLane);
-    REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_PANEL, DamageCarPanel);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROLL, SetCarRoll);
     REGISTER_COMMAND_HANDLER(COMMAND_SUPPRESS_CAR_MODEL, SuppressCarModel);
     REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_CAR_MODEL, DontSuppressCarModel);
     REGISTER_COMMAND_HANDLER(COMMAND_DONT_SUPPRESS_ANY_CAR_MODELS, DontSuppressAnyCarModels);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_GO_AGAINST_TRAFFIC, SetCarCanGoAgainstTraffic);
-    REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CAR_DOOR, DamageCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_AS_MISSION_CAR, SetCarAsMissionCar);
-    REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_PITCH, GetCarPitch);
     REGISTER_COMMAND_HANDLER(COMMAND_APPLY_FORCE_TO_CAR, ApplyForceToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_TO_CAR_ROTATION_VELOCITY, AddToCarRotationVelocity);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ROTATION_VELOCITY, SetCarRotationVelocity);
@@ -2832,14 +2883,11 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_BROKEN, SetCarEngineBroken);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_UPRIGHT_VALUE, GetCarUprightValue);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_CAN_BE_VISIBLY_DAMAGED, SetCarCanBeVisiblyDamaged);
-    REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COORDINATES_NO_OFFSET, SetCarCoordinatesNoOffset);
-    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_FULLY_OPEN, IsCarDoorFullyOpen);
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR_IN_CUTSCENE_SHAKE_AND_BITS, ExplodeCarInCutsceneShakeAndBits);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ENGINE_ON, SetCarEngineOn);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_LIGHTS_ON, SetCarLightsOn);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAR_TO_OBJECT, AttachCarToObject);
-    REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_CAR_DOOR, ControlCarDoor);
     REGISTER_COMMAND_HANDLER(COMMAND_STORE_CAR_MOD_STATE, StoreCarModState);
     REGISTER_COMMAND_HANDLER(COMMAND_RESTORE_CAR_MOD_STATE, RestoreCarModState);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_CAR_MOD, GetCurrentCarMod);
@@ -2850,7 +2898,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
-    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
     REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);

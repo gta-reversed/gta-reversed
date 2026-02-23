@@ -111,7 +111,7 @@ public:
     uint16          m_nPathFindNodesCount;
     char            field_8A[2];
     CVehicle*       m_TargetEntity;
-    CEntity*        m_ObstructingEntity; // Entity to slow down for
+    CEntity*        m_ObstructingEntity; // Entity to slow down for (aka m_pCarWeMakingSlowDownFor)
     int8            m_vehicleRecordingId;
     bool            m_bPlaneDogfightSomething;
     int16           field_96;
