@@ -26,13 +26,11 @@ CTask* CTaskComplexEnterAnyCarAsDriver::CreateFirstSubTask(CPed* ped) {
     // Otherwise just enter the closest vehicle (Not sure why they didn't use `GetClosestVehicleInRange`?)
     auto closestDistSq = FLT_MAX;
     CVehicle* closest{};
-    for (auto vehicle : ped->GetIntelligence()->GetVehicleScanner().m_apEntities) {
-        if (vehicle) {
-            const auto distSq = (vehicle->GetPosition() - ped->GetPosition()).SquaredMagnitude();
-            if (distSq < closestDistSq) {
-                closestDistSq = distSq;
-                closest = vehicle->AsVehicle();
-            }
+    for (auto& vehicle : ped->GetIntelligence()->GetVehicleScanner().GetEntities<CVehicle>()) {
+        const auto distSq = (vehicle.GetPosition() - ped->GetPosition()).SquaredMagnitude();
+        if (distSq < closestDistSq) {
+            closestDistSq = distSq;
+            closest = vehicle.AsVehicle();
         }
     }
 
