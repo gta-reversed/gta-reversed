@@ -76,6 +76,13 @@ void DoSetCarIsWaitingForCollision(CRunningScript& S, CVehicle& self) {
         CWorld::Add(&self);
     }
 }
+
+void ConvertScriptTextToCarPlate(char (&out)[9], std::string_view in) {
+    for (auto [i, chr] : rngv::enumerate(in)) {
+        out[i] = chr == '_' || !chr ? ' ' : chr;
+    }
+    out[8] = '\0';
+}
 }; // namespace
 
 
@@ -1522,10 +1529,7 @@ void CustomPlateForNextCar(eModelID modelId, std::string_view text) {
     }
 
     char plate[8 + 1]{ 0 };
-    for (auto [i, chr] : rngv::enumerate(text)) {
-        plate[i] = chr == '_' || !chr ? ' ' : chr;
-    }
-    plate[8] = '\0';
+    ConvertScriptTextToCarPlate(plate, text);
     mi->SetCustomCarPlateText(plate);
 }
 
@@ -2527,11 +2531,42 @@ int GetCarModelValue(eModelID model) {
 * @param doorLockChance int
 * @param minDelay int
 * @param maxDelay int
-* @param plateName std::string_view
+* @param plateName string
 */
-// CarGenerator CreateCarGeneratorWithPlate(CVector vec0, float heading, eModelID modelId, int primaryColor, int secondaryColor, bool forceSpawn, int alarmChance, int doorLockChance, int minDelay, int maxDelay, std::string_view plateName) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+auto CreateCarGeneratorWithPlate(
+    CVector          pos,
+    float            heading,
+    eModelID         modelId,
+    int              primaryColor,
+    int              secondaryColor,
+    bool             forceSpawn,
+    int              alarmChance,
+    int              doorLockChance,
+    int              minDelay,
+    int              maxDelay,
+    std::string_view plateName
+) {
+    char plate[8 + 1]{ 0 };
+    ConvertScriptTextToCarPlate(plate, plateName);
+
+    auto generator = CTheCarGenerators::CreateCarGenerator(
+        pos,
+        heading,
+        modelId,
+        primaryColor,
+        secondaryColor,
+        forceSpawn,
+        alarmChance,
+        doorLockChance,
+        minDelay,
+        maxDelay,
+        0,
+        true
+    );
+    CTheCarGenerators::m_SpecialPlateHandler.Add(generator, plate);
+
+    return generator;
+}
 
 /*
 * @opcode 09E9
@@ -2779,7 +2814,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
+    REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
     //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
     //REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
