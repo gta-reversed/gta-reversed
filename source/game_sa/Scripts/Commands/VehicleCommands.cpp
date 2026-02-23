@@ -2487,11 +2487,11 @@ bool IsCarDoorDamaged(CVehicle& self, eDoors door) {
 * @brief Returns true if the car is touching the other car
 * 
 * @param self CVehicle&
-* @param handle CVehicle&
+* @param other CVehicle&
 */
-// void IsCarTouchingCar(CVehicle& self, CVehicle& handle) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarTouchingCar(CVehicle& self, CVehicle& other) {
+    return self.GetHasCollidedWith(&other);
+}
 
 /*
 * @opcode 09E1
@@ -2777,7 +2777,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
     //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
     //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_NON_PLAYER_CAR_NITRO, GiveNonPlayerCarNitro);
