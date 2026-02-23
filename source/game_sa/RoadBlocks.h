@@ -23,7 +23,7 @@ public:
     static void Init();
     static void ClearScriptRoadBlocks();
     static void CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGangRoadBlock);
-    static void GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 a2, ePedType pedType);
+    static void GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 orientationToCar, ePedType pedType);
     static void GenerateRoadBlocks();
     static void RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoadBlock);
 
