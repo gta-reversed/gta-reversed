@@ -87,8 +87,8 @@ void ConvertScriptTextToCarPlate(char (&out)[9], std::string_view in) {
 }; // namespace
 
 /*!
-* Various vehicle commands
-*/
+ * Various vehicle commands
+ */
 namespace {
 void ClearHeliOrientation(CHeli& heli) {
     heli.ClearHeliOrientation();
@@ -161,16 +161,16 @@ void SetRailTrackResistanceMult(float value) {
     CVehicle::ms_fRailTrackResistance = CVehicle::ms_fRailTrackResistanceDefault * (value > 0.0f ? value : 1.0f);
 }
 
-void DisableHeliAudio(CVehicle& vehicle, bool enable) {
+void DisableHeliAudio(CVehicle& self, bool enable) {
     if (enable) {
-        vehicle.m_vehicleAudio.EnableHelicoptor();
+        self.m_vehicleAudio.EnableHelicoptor();
     } else {
-        vehicle.m_vehicleAudio.DisableHelicoptor();
+        self.m_vehicleAudio.DisableHelicoptor();
     }
 }
 
-bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
-    for (auto* const e : vehicle.GetCollidingEntities()) {
+bool IsCarInAirProper(CRunningScript& S, CVehicle& self) {
+    for (auto* const e : self.GetCollidingEntities()) {
         if (e && (e->GetIsTypeBuilding() || e->GetIsTypeVehicle())) {
             return false;
         }
@@ -178,20 +178,20 @@ bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
     return true;
 }
 
-bool IsCarStuck(CVehicle& vehicle) {
-    return CTheScripts::StuckCars.HasCarBeenStuckForAWhile(GetVehiclePool()->GetRef(&vehicle));
+bool IsCarStuck(CVehicle& self) {
+    return CTheScripts::StuckCars.HasCarBeenStuckForAWhile(GetVehiclePool()->GetRef(&self));
 }
 
-void AddStuckCarCheck(CVehicle& vehicle, float stuckRadius, uint32 time) {
-    CTheScripts::StuckCars.AddCarToCheck(GetVehiclePool()->GetRef(&vehicle), stuckRadius, time, false, false, false, false, 0);
+void AddStuckCarCheck(CVehicle& self, float stuckRadius, uint32 time) {
+    CTheScripts::StuckCars.AddCarToCheck(GetVehiclePool()->GetRef(&self), stuckRadius, time, false, false, false, false, 0);
 }
 
-void RemoveStuckCarCheck(CVehicle& vehicle) {
-    CTheScripts::StuckCars.RemoveCarFromCheck(GetVehiclePool()->GetRef(&vehicle));
+void RemoveStuckCarCheck(CVehicle& self) {
+    CTheScripts::StuckCars.RemoveCarFromCheck(GetVehiclePool()->GetRef(&self));
 }
 
-void AddStuckCarCheckWithWarp(CVehicle& vehicle, float stuckRadius, uint32 time, bool stuck, bool flipped, bool inWater, int8 numberOfNodesToCheck) {
-    CTheScripts::StuckCars.AddCarToCheck(GetVehiclePool()->GetRef(&vehicle), stuckRadius, time, true, stuck, flipped, inWater, numberOfNodesToCheck);
+void AddStuckCarCheckWithWarp(CVehicle& self, float stuckRadius, uint32 time, bool stuck, bool flipped, bool inWater, int8 numberOfNodesToCheck) {
+    CTheScripts::StuckCars.AddCarToCheck(GetVehiclePool()->GetRef(&self), stuckRadius, time, true, stuck, flipped, inWater, numberOfNodesToCheck);
 }
 
 void PlaneAttackPlayerUsingDogFight(CPlane& plane, CPlayerPed& player, float altitude) {
@@ -202,8 +202,8 @@ void PlaneAttackPlayerUsingDogFight(CPlane& plane, CPlayerPed& player, float alt
 }
 
 /// SET_CAR_ALWAYS_CREATE_SKIDS(07EE)
-void SetCarAlwaysCreateSkids(CVehicle& vehicle, bool enable) {
-    vehicle.vehicleFlags.bAlwaysSkidMarks = enable;
+void SetCarAlwaysCreateSkids(CVehicle& self, bool enable) {
+    self.vehicleFlags.bAlwaysSkidMarks = enable;
 }
 
 /// CREATE_CAR
@@ -213,31 +213,31 @@ CVehicle* CreateCar(CRunningScript& S, eModelID modelId, CVector pos) {
 
 /// DELETE_CAR
 void DeleteCar(notsa::script::ScriptEntity<CVehicle> entity) {
-    const auto [vehicle, handle] = entity;
-    if (vehicle) {
-        CWorld::Remove(vehicle);
-        CWorld::RemoveReferencesToDeletedObject(vehicle);
-        delete vehicle;
+    const auto [self, handle] = entity;
+    if (self) {
+        CWorld::Remove(self);
+        CWorld::RemoveReferencesToDeletedObject(self);
+        delete self;
     } else {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(handle, MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
     }
 }
 
 /// Not a script command, but a shared implementation
-void CarGotoCoordinatesUsingMission(CVehicle& vehicle, CVector where, eCarMission mission, eCarMission missionStraightLine) {
-    auto& ap = vehicle.m_autoPilot;
+void CarGotoCoordinatesUsingMission(CVehicle& self, CVector where, eCarMission mission, eCarMission missionStraightLine) {
+    auto& ap = self.m_autoPilot;
 
     if (where.z <= MAP_Z_LOW_LIMIT) {
         where.z = CWorld::FindGroundZForCoord(where.x, where.y);
     }
-    where.z += vehicle.GetDistanceFromCentreOfMassToBaseOfModel();
+    where.z += self.GetDistanceFromCentreOfMassToBaseOfModel();
 
-    const auto joined = CCarCtrl::JoinCarWithRoadSystemGotoCoors(&vehicle, where, false);
+    const auto joined = CCarCtrl::JoinCarWithRoadSystemGotoCoors(&self, where, false);
 
-    vehicle.SetStatus(STATUS_PHYSICS);
-    vehicle.SetEngineOn(true);
+    self.SetStatus(STATUS_PHYSICS);
+    self.SetEngineOn(true);
 
-    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, self.m_autoPilot.m_nCarMission)) {
         ap.m_nCarMission = !joined
             ? mission
             : missionStraightLine;
@@ -249,13 +249,13 @@ void CarGotoCoordinatesUsingMission(CVehicle& vehicle, CVector where, eCarMissio
 }
 
 /// CAR_GOTO_COORDINATES
-void CarGotoCoordinates(CVehicle& vehicle, CVector where) {
-    CarGotoCoordinatesUsingMission(vehicle, where, MISSION_GOTOCOORDINATES, MISSION_GOTOCOORDINATES_STRAIGHTLINE);
+void CarGotoCoordinates(CVehicle& self, CVector where) {
+    CarGotoCoordinatesUsingMission(self, where, MISSION_GOTOCOORDINATES, MISSION_GOTOCOORDINATES_STRAIGHTLINE);
 }
 
 /// CAR_GOTO_COORDINATES_ACCURATE
-auto CarGotoCoordinatesAccurate(CVehicle& vehicle, CVector where) {
-    CarGotoCoordinatesUsingMission(vehicle, where, MISSION_GOTOCOORDINATES_ACCURATE, MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE);
+auto CarGotoCoordinatesAccurate(CVehicle& self, CVector where) {
+    CarGotoCoordinatesUsingMission(self, where, MISSION_GOTOCOORDINATES_ACCURATE, MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE);
 }
 
 /*
@@ -266,7 +266,7 @@ auto CarGotoCoordinatesAccurate(CVehicle& vehicle, CVector where) {
 * 
 * @brief Makes the AI drive to the destination as fast as possible, trying to overtake other vehicles
 * 
-* @param self CVehicle&
+* @param self Car
 * @param x float
 * @param y float
 * @param z float
@@ -276,15 +276,15 @@ void CarGotoCoordinatesRacing(CVehicle& self, CVector where) {
 }
 
 /// CAR_WANDER_RANDOMLY
-void CarWanderRandomly(CVehicle& vehicle) {
-    auto& ap = vehicle.m_autoPilot;
+void CarWanderRandomly(CVehicle& self) {
+    auto& ap = self.m_autoPilot;
 
-    CCarCtrl::JoinCarWithRoadSystem(&vehicle);
+    CCarCtrl::JoinCarWithRoadSystem(&self);
 
-    vehicle.SetStatus(STATUS_PHYSICS);
-    vehicle.SetEngineOn(true);
+    self.SetStatus(STATUS_PHYSICS);
+    self.SetEngineOn(true);
 
-    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, self.m_autoPilot.m_nCarMission)) {
         ap.m_nCarMission = MISSION_CRUISE;
     }
     if (ap.m_nCruiseSpeed <= 1) {
@@ -294,51 +294,51 @@ void CarWanderRandomly(CVehicle& vehicle) {
 }
 
 /// CAR_SET_IDLE
-void CarSetIdle(CVehicle& vehicle) {
-    auto& ap = vehicle.m_autoPilot;
+void CarSetIdle(CVehicle& self) {
+    auto& ap = self.m_autoPilot;
 
-    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, vehicle.m_autoPilot.m_nCarMission)) {
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, self.m_autoPilot.m_nCarMission)) {
         ap.m_nCarMission = MISSION_NONE;
     }
 }
 
 /// GET_CAR_COORDINATES
-CVector GetCarCoordinates(CVehicle& vehicle) {
-    return vehicle.GetPosition();
+CVector GetCarCoordinates(CVehicle& self) {
+    return self.GetPosition();
 }
 
 /// SET_CAR_COORDINATES
-void SetCarCoordinates(CVehicle& vehicle, float x, float y, float z) {
-    CCarCtrl::SetCoordsOfScriptCar(&vehicle, x, y, z, false, true);
+void SetCarCoordinates(CVehicle& self, float x, float y, float z) {
+    CCarCtrl::SetCoordsOfScriptCar(&self, x, y, z, false, true);
 }
 
 /// SET_CAR_CRUISE_SPEED
-void SetCarCruiseSpeed(CVehicle& vehicle, float speed) {
-    vehicle.m_autoPilot.SetCruiseSpeed((uint32)(std::min(speed, vehicle.m_pHandlingData->m_transmissionData.m_MaxFlatVelocity * 60.f)));
+void SetCarCruiseSpeed(CVehicle& self, float speed) {
+    self.m_autoPilot.SetCruiseSpeed((uint32)(std::min(speed, self.m_pHandlingData->m_transmissionData.m_MaxFlatVelocity * 60.f)));
 }
 
 /// SET_CAR_MISSION
-void SetCarMission(CVehicle& vehicle, eCarMission mission) {
-    auto& ap = vehicle.m_autoPilot;
+void SetCarMission(CVehicle& self, eCarMission mission) {
+    auto& ap = self.m_autoPilot;
 
     ap.SetCarMissionFromScript(mission);
     ap.StartCarMissionNow();
-    vehicle.SetEngineOn(true);
+    self.SetEngineOn(true);
 }
 
 /// IS_CAR_DEAD
-bool IsCarDead(CVehicle* vehicle) {
-    return !vehicle || vehicle->GetStatus() == STATUS_WRECKED || !!vehicle->vehicleFlags.bIsDrowning;
+bool IsCarDead(CVehicle* car) {
+    return !car || car->GetStatus() == STATUS_WRECKED || !!car->vehicleFlags.bIsDrowning;
 }
 
 /// IS_CAR_MODEL
-bool IsCarModel(CVehicle& vehicle, eModelID modelId) {
-    return vehicle.GetModelId() == modelId;
+bool IsCarModel(CVehicle& self, eModelID modelId) {
+    return self.GetModelId() == modelId;
 }
 
 /// CREATE_CAR_GENERATOR
 auto CreateCarGenerator(
-    CVehicle& vehicle,
+    CVehicle& self,
     CVector   pos,
     float     heading,
     eModelID  modelId,
@@ -375,19 +375,19 @@ auto AddBlipForCarOld(CRunningScript& S, int32 handle, int32 color, eBlipDisplay
 }
 
 /// GET_CAR_HEADING
-auto GetCarHeading(CVehicle& vehicle) {
-    return ClampDegreesForScript(DegreesToRadians(vehicle.GetHeading()));
+auto GetCarHeading(CVehicle& self) {
+    return ClampDegreesForScript(DegreesToRadians(self.GetHeading()));
 }
 
 /// SET_CAR_HEADING
-auto SetCarHeading(CVehicle& vehicle, float deg) {
-    vehicle.SetHeading(DegreesToRadians(ClampDegreesForScript(deg)));
-    vehicle.UpdateRwMatrix();
+auto SetCarHeading(CVehicle& self, float deg) {
+    self.SetHeading(DegreesToRadians(ClampDegreesForScript(deg)));
+    self.UpdateRwMatrix();
 }
 
 /// IS_CAR_HEALTH_GREATER
-auto IsCarHealthGreater(CVehicle& vehicle, float value) {
-    return vehicle.GetHealth() >= value;
+auto IsCarHealthGreater(CVehicle& self, float value) {
+    return self.GetHealth() >= value;
 }
 
 /// ADD_BLIP_FOR_CAR
@@ -413,13 +413,13 @@ auto RemoveUpsidedownCarCheck(int32 handle) { // TODO: use `notsa::ScriptEntity<
 }
 
 /// IS_CAR_STOPPED
-auto IsCarStopped(CVehicle& vehicle) {
-    return CTheScripts::IsVehicleStopped(&vehicle);
+auto IsCarStopped(CVehicle& self) {
+    return CTheScripts::IsVehicleStopped(&self);
 }
 
 /// IS_CAR_IN_AREA_2D
 template<bool WithDebugSquare = false>
-bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
+bool IsCarInArea2D(CRunningScript& S, CVehicle& self, CVector2D p1, CVector2D p2, bool highlight) {
     if (highlight) {
         CTheScripts::HighlightImportantArea(
             (int32)(&S) + (int32)(S.m_IP),
@@ -439,11 +439,11 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
             );
         }
     }
-    return vehicle.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
+    return self.IsWithinArea(p1.x, p1.y, p2.x, p2.y);
 }
 
 /// IS_CAR_IN_AREA_3D
-bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
+bool IsCarInArea3D(CRunningScript& S, CVehicle& self, CVector p1, CVector p2, bool highlight) {
     if (highlight) {
         CTheScripts::HighlightImportantArea(
             (int32)(&S) + (int32)(S.m_IP),
@@ -454,16 +454,16 @@ bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2,
             (p2.z - p1.z) / 2.f
         );
     }
-    return vehicle.IsWithinArea(
+    return self.IsWithinArea(
         p1.x, p1.y, p1.z, p2.x, p2.y, p2.z
     );
 }
 
 /// LOCATE_CAR_2D
-auto LocateCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D radius, bool highlight) {
+auto LocateCar2D(CRunningScript& S, CVehicle& self, CVector2D pt, CVector2D radius, bool highlight) {
     return IsCarInArea2D<true>(
         S,
-        vehicle,
+        self,
         pt - radius,
         pt + radius,
         highlight
@@ -471,15 +471,15 @@ auto LocateCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D r
 }
 
 /// IS_CAR_STOPPED_IN_AREA_2D
-auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D p2, bool highlight) {
-    return IsCarInArea2D<true>(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
+auto IsCarStoppedInArea2D(CRunningScript& S, CVehicle& self, CVector2D p1, CVector2D p2, bool highlight) {
+    return IsCarInArea2D<true>(S, self, p1, p2, highlight) && IsCarStopped(self); // Make sure `IsCarInArea2D` check is first, as it also does highlighting
 }
 
 /// LOCATE_STOPPED_CAR_2D
-auto LocateStoppedCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVector2D radius, bool highlight) {
+auto LocateStoppedCar2D(CRunningScript& S, CVehicle& self, CVector2D pt, CVector2D radius, bool highlight) {
     return IsCarStoppedInArea2D(
         S,
-        vehicle,
+        self,
         pt - radius,
         pt + radius,
         highlight
@@ -487,10 +487,10 @@ auto LocateStoppedCar2D(CRunningScript& S, CVehicle& vehicle, CVector2D pt, CVec
 }
 
 /// LOCATE_CAR_3D
-auto LocateCar3D(CRunningScript& S, CVehicle& vehicle, CVector pt, CVector radius, bool highlight) {
+auto LocateCar3D(CRunningScript& S, CVehicle& self, CVector pt, CVector radius, bool highlight) {
     return IsCarInArea3D(
         S,
-        vehicle,
+        self,
         pt - radius,
         pt + radius,
         highlight
@@ -498,15 +498,15 @@ auto LocateCar3D(CRunningScript& S, CVehicle& vehicle, CVector pt, CVector radiu
 }
 
 /// IS_CAR_STOPPED_IN_AREA_3D
-auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2, bool highlight) {
-    return IsCarInArea3D(S, vehicle, p1, p2, highlight) && IsCarStopped(vehicle); // Make sure `IsCarInArea3D` check is first, as it also does highlighting
+auto IsCarStoppedInArea3D(CRunningScript& S, CVehicle& self, CVector p1, CVector p2, bool highlight) {
+    return IsCarInArea3D(S, self, p1, p2, highlight) && IsCarStopped(self); // Make sure `IsCarInArea3D` check is first, as it also does highlighting
 }
 
 /// LOCATE_STOPPED_CAR_3D
-auto LocateStoppedCar3D(CRunningScript& S, CVehicle& vehicle, CVector pt, CVector radius, bool highlight) {
+auto LocateStoppedCar3D(CRunningScript& S, CVehicle& self, CVector pt, CVector radius, bool highlight) {
     return IsCarStoppedInArea3D(
         S,
-        vehicle,
+        self,
         pt - radius,
         pt + radius,
         highlight
@@ -514,82 +514,82 @@ auto LocateStoppedCar3D(CRunningScript& S, CVehicle& vehicle, CVector pt, CVecto
 }
 
 /// MARK_CAR_AS_NO_LONGER_NEEDED
-auto MarkCarAsNoLongerNeeded(CRunningScript& S, CVehicle& vehicle) {
-    CTheScripts::CleanUpThisVehicle(&vehicle);
+auto MarkCarAsNoLongerNeeded(CRunningScript& S, CVehicle& self) {
+    CTheScripts::CleanUpThisVehicle(&self);
     if (S.m_UsesMissionCleanup) {
-        CTheScripts::MissionCleanUp.RemoveEntityFromList(vehicle);
+        CTheScripts::MissionCleanUp.RemoveEntityFromList(self);
     }
 }
 
 /// SET_CAR_DENSITY_MULTIPLIER
-auto SetCarDensityMultiplier(CVehicle& vehicle, float mult) {
+auto SetCarDensityMultiplier(CVehicle& self, float mult) {
     CCarCtrl::CarDensityMultiplier = mult;
 }
 
 /// SET_CAR_HEAVY
-auto SetCarHeavy(CVehicle* vehicle, bool isHeavy) {
-    if (!vehicle) {
+auto SetCarHeavy(CVehicle* car, bool isHeavy) {
+    if (!car) {
         return;
     }
 
-    vehicle->physicalFlags.bMakeMassTwiceAsBig = isHeavy;
+    car->physicalFlags.bMakeMassTwiceAsBig = isHeavy;
 
-    const auto* const handling                 = vehicle->m_pHandlingData;
-    vehicle->m_fMass                           = handling->m_fMass;
-    vehicle->m_fTurnMass                       = handling->m_fTurnMass;
-    vehicle->m_fBuoyancyConstant               = handling->m_fBuoyancyConstant;
+    const auto* const handling             = car->m_pHandlingData;
+    car->m_fMass                           = handling->m_fMass;
+    car->m_fTurnMass                       = handling->m_fTurnMass;
+    car->m_fBuoyancyConstant               = handling->m_fBuoyancyConstant;
     if (isHeavy) {
-        vehicle->m_fMass *= 3.0f;
-        vehicle->m_fTurnMass *= 5.0f;
-        vehicle->m_fBuoyancyConstant *= 2.0f;
+        car->m_fMass *= 3.0f;
+        car->m_fTurnMass *= 5.0f;
+        car->m_fBuoyancyConstant *= 2.0f;
     }
 }
 
 /// IS_CAR_UPSIDEDOWN
-auto IsCarUpsidedown(CVehicle& vehicle) {
-    return vehicle.GetUp().z <= 0.3f;
+auto IsCarUpsidedown(CVehicle& self) {
+    return self.GetUp().z <= 0.3f;
 }
 
 /// LOCK_CAR_DOORS
-auto LockCarDoors(CVehicle* vehicle, eCarLock lock) {
-    if (vehicle) {
-        vehicle->m_nDoorLock = lock;
+auto LockCarDoors(CVehicle* car, eCarLock lock) {
+    if (car) {
+        car->m_nDoorLock = lock;
     }
 }
 
 /// EXPLODE_CAR
-auto ExplodeCar(CVehicle& vehicle) {
-    vehicle.BlowUpCar(nullptr, false);
+auto ExplodeCar(CVehicle& self) {
+    self.BlowUpCar(nullptr, false);
 }
 
 /// IS_CAR_UPRIGHT
-auto IsCarUpright(CVehicle& vehicle) {
-    return vehicle.GetUp().z > 0.f;
+auto IsCarUpright(CVehicle& self) {
+    return self.GetUp().z > 0.f;
 }
 
 /// SET_TARGET_CAR_FOR_MISSION_GARAGE
-auto SetTargetCarForMissionGarage(const char* garageName, CVehicle* vehicle) {
+auto SetTargetCarForMissionGarage(const char* garageName, CVehicle* car) {
     const auto garage = CGarages::FindGarageIndex(garageName);
     if (garage == -1) {
         return;
     }
-    CGarages::SetTargetCarForMissionGarage(garage, vehicle);
+    CGarages::SetTargetCarForMissionGarage(garage, car);
 }
 
 /// SET_CAR_HEALTH
-auto SetCarHealth(CVehicle& vehicle, float health) {
-    vehicle.m_fHealth = health;
+auto SetCarHealth(CVehicle& self, float health) {
+    self.m_fHealth = health;
 }
 
 /// GET_CAR_HEALTH
-auto GetCarHealth(CVehicle& vehicle) {
-    return vehicle.m_fHealth;
+auto GetCarHealth(CVehicle& self) {
+    return self.m_fHealth;
 }
 
 /// CHANGE_CAR_COLOUR
-auto ChangeCarColour(CVehicle& vehicle, uint32 primaryColor, uint32 secondaryColor) {
-    vehicle.m_nPrimaryColor   = primaryColor;
-    vehicle.m_nSecondaryColor = secondaryColor;
+auto ChangeCarColour(CVehicle& self, uint32 primaryColor, uint32 secondaryColor) {
+    self.m_nPrimaryColor   = primaryColor;
+    self.m_nSecondaryColor = secondaryColor;
 }
 
 /// SET_CAN_RESPRAY_CAR
@@ -598,20 +598,20 @@ auto SetCanResprayCar(CAutomobile& automobile, bool enabled) {
 }
 
 /// SET_CAR_ONLY_DAMAGED_BY_PLAYER
-auto SetCarOnlyDamagedByPlayer(CVehicle& vehicle, bool enabled) {
-    vehicle.physicalFlags.bInvulnerable = enabled;
+auto SetCarOnlyDamagedByPlayer(CVehicle& self, bool enabled) {
+    self.physicalFlags.bInvulnerable = enabled;
 }
 
 /// IS_CAR_IN_WATER
-auto IsCarInWater(CVehicle* vehicle) {
-    if (!vehicle) {
+auto IsCarInWater(CVehicle* car) {
+    if (!car) {
         return false;
     }
-    if (vehicle->physicalFlags.bSubmergedInWater) {
+    if (car->physicalFlags.bSubmergedInWater) {
         return true;
     }
-    if (vehicle->GetModelId() == MODEL_VORTEX) {
-        const auto* const vortex = vehicle->AsAutomobile();
+    if (car->GetModelId() == MODEL_VORTEX) {
+        const auto* const vortex = car->AsAutomobile();
         if (vortex->m_fWheelsSuspensionCompression[0] < 1.f) {
             return g_surfaceInfos.IsShallowWater(vortex->m_wheelColPoint[0].m_nSurfaceTypeB);
         }
@@ -620,38 +620,38 @@ auto IsCarInWater(CVehicle* vehicle) {
 }
 
 /// IS_CAR_ON_SCREEN
-auto IsCarOnScreen(CVehicle& vehicle) {
-    return vehicle.GetIsOnScreen();
+auto IsCarOnScreen(CVehicle& self) {
+    return self.GetIsOnScreen();
 }
 
 /// GET_CAR_FORWARD_X
-auto GetCarForwardX(CVehicle& vehicle) {
-    const CVector2D forward{ vehicle.GetForward() };
+auto GetCarForwardX(CVehicle& self) {
+    const CVector2D forward{ self.GetForward() };
     return forward.x / forward.Magnitude();
 }
 
 /// GET_CAR_FORWARD_Y
-auto GetCarForwardY(CVehicle& vehicle) {
-    const CVector2D forward{ vehicle.GetForward() };
+auto GetCarForwardY(CVehicle& self) {
+    const CVector2D forward{ self.GetForward() };
     return forward.y / forward.Magnitude();
 }
 
 /// HAS_CAR_BEEN_DAMAGED_BY_WEAPON
-auto HasCarBeenDamagedByWeapon(CVehicle* vehicle, eWeaponType weaponType) {
-    if (!vehicle) {
+auto HasCarBeenDamagedByWeapon(CVehicle* car, eWeaponType weaponType) {
+    if (!car) {
         return false;
     }
     if (weaponType == WEAPON_ANYMELEE || weaponType == WEAPON_ANYWEAPON) {
-        return CDarkel::CheckDamagedWeaponType(vehicle->GetLastWeaponDamageType(), weaponType);
+        return CDarkel::CheckDamagedWeaponType(car->GetLastWeaponDamageType(), weaponType);
     }
-    return vehicle->GetLastWeaponDamageType() == weaponType;
+    return car->GetLastWeaponDamageType() == weaponType;
 }
 
 /// START_CAR_FIRE
-auto StartCarFire(CVehicle& vehicle) {
+auto StartCarFire(CVehicle& self) {
     return gFireManager.StartScriptFire(
-        vehicle.GetPosition(),
-        &vehicle,
+        self.GetPosition(),
+        &self,
         0.8f,
         1,
         0,
@@ -660,7 +660,7 @@ auto StartCarFire(CVehicle& vehicle) {
 }
 
 /// GET_RANDOM_CAR_OF_TYPE_IN_AREA
-auto GetRandomCarOfTypeInArea(CRunningScript& S, CVehicle& vehicle, float minX, float minY, float maxX, float maxY, eModelID modelId) {
+auto GetRandomCarOfTypeInArea(CRunningScript& S, CVehicle& self, float minX, float minY, float maxX, float maxY, eModelID modelId) {
     int32 ret = -1;
     for (auto& veh : GetVehiclePool()->GetAllValid()) {
         switch (veh.GetVehicleAppearance()) {
@@ -693,18 +693,18 @@ auto GetRandomCarOfTypeInArea(CRunningScript& S, CVehicle& vehicle, float minX, 
 }
 
 /// SET_CAR_VISIBLE
-auto SetCarVisible(CVehicle& vehicle, bool visible) {
-    vehicle.SetIsVisible(visible);
+auto SetCarVisible(CVehicle& self, bool visible) {
+    self.SetIsVisible(visible);
 }
 
 /// PLACE_OBJECT_RELATIVE_TO_CAR
-auto PlaceObjectRelativeToCar(CObject& obj, CVehicle& vehicle, CVector offset) {
-    CPhysical::PlacePhysicalRelativeToOtherPhysical(&obj, &vehicle, offset);
+auto PlaceObjectRelativeToCar(CObject& obj, CVehicle& self, CVector offset) {
+    CPhysical::PlacePhysicalRelativeToOtherPhysical(&obj, &self, offset);
 }
 
 /// SWITCH_CAR_SIREN
-auto SwitchCarSiren(CVehicle& vehicle, bool state) {
-    vehicle.vehicleFlags.bSirenOrAlarm = state;
+auto SwitchCarSiren(CVehicle& self, bool state) {
+    self.vehicleFlags.bSirenOrAlarm = state;
 }
 
 /*
@@ -715,7 +715,7 @@ auto SwitchCarSiren(CVehicle& vehicle, bool state) {
 * 
 * @brief Makes the vehicle watertight, meaning characters inside will not be harmed if the vehicle is submerged in water
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarWatertight(CVehicle& self, bool state) {
@@ -734,7 +734,7 @@ void SetCarWatertight(CVehicle& self, bool state) {
 * 
 * @brief Sets the car's heading so that it is facing the 2D coordinate
 * 
-* @param self CVehicle&
+* @param self Car
 * @param x float
 * @param y float
 */
@@ -752,7 +752,7 @@ void TurnCarToFaceCoord(CVehicle& self, CVector2D point) {
 * 
 * @brief Sets the car's status
 * 
-* @param self CVehicle&
+* @param self Car
 * @param status eEntityStatus
 */
 void SetCarStatus(CVehicle& self, eEntityStatus status) {
@@ -770,7 +770,7 @@ void SetCarStatus(CVehicle& self, eEntityStatus status) {
 * 
 * @brief Defines whether the car is more resistant to collisions than normal
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarStrong(CVehicle& self, bool state) {
@@ -785,7 +785,7 @@ void SetCarStrong(CVehicle& self, bool state) {
 * 
 * @brief Returns true if any of the car components is visibly damaged or lost
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool IsCarVisiblyDamaged(CVehicle& self) {
     return self.vehicleFlags.bIsDamaged;
@@ -799,7 +799,7 @@ bool IsCarVisiblyDamaged(CVehicle& self) {
 * 
 * @brief Disables the car from exploding when it is upside down, as long as the player is not in the vehicle
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetUpsidedownCarNotDamaged(CVehicle& self, bool state) {
@@ -814,7 +814,7 @@ void SetUpsidedownCarNotDamaged(CVehicle& self, bool state) {
 * 
 * @brief Gets the car's primary and secondary colors
 * 
-* @param self CVehicle&
+* @param self Car
 */
 auto GetCarColours(CVehicle& self) {
     return notsa::script::return_multiple(
@@ -831,7 +831,7 @@ auto GetCarColours(CVehicle& self) {
 * 
 * @brief Sets whether the car receives damage
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarCanBeDamaged(CVehicle& self, bool state) {
@@ -846,7 +846,7 @@ void SetCarCanBeDamaged(CVehicle& self, bool state) {
 * 
 * @brief Returns the coordinates of an offset of the vehicle's position, depending on the vehicle's rotation
 * 
-* @param self CVehicle&
+* @param self Car
 * @param xOffset float
 * @param yOffset float
 * @param zOffset float
@@ -863,7 +863,7 @@ CVector GetOffsetFromCarInWorldCoords(CVehicle& self, CVector offset) {
 * 
 * @brief Overrides the default AI controlled vehicle traction value of 1.0
 * 
-* @param self CVehicle&
+* @param self Car
 * @param traction float
 */
 void SetCarTraction(CVehicle& self, float traction) {
@@ -882,7 +882,7 @@ void SetCarTraction(CVehicle& self, float traction) {
 * 
 * @brief Sets whether the vehicle will avoid paths between levels (0426)
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
@@ -897,7 +897,7 @@ void SetCarAvoidLevelTransitions(CVehicle& self, bool state) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarStayInFastLane(CVehicle& self, bool state) {
@@ -912,7 +912,7 @@ void SetCarStayInFastLane(CVehicle& self, bool state) {
 * 
 * @brief Returns true if the specified car seat is empty
 * 
-* @param self CVehicle&
+* @param self Car
 * @param seat eSeatId
 */
 bool IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
@@ -927,7 +927,7 @@ bool IsCarPassengerSeatFree(CVehicle& self, eSeatId seat) {
 * 
 * @brief Returns the car's model id
 * 
-* @param self CVehicle&
+* @param self Car
 */
 eModelID GetCarModel(CVehicle& self) {
     return self.GetModelId();
@@ -941,7 +941,7 @@ eModelID GetCarModel(CVehicle& self) {
 * 
 * @brief Clears the vehicle's last weapon damage (see 031E)
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void ClearCarLastWeaponDamage(CVehicle& self) {
     self.m_nLastWeaponDamageType = (uint8)(WEAPON_NONE);
@@ -956,7 +956,7 @@ void ClearCarLastWeaponDamage(CVehicle& self) {
 * 
 * @brief Returns the car's driver handle
 * 
-* @param self CVehicle&
+* @param self Car
 */
 CPed* GetDriverOfCar(CVehicle& self) {
     return self.m_pDriver; /* null will be pushed as `-1` - as expected */
@@ -970,7 +970,7 @@ CPed* GetDriverOfCar(CVehicle& self) {
 * 
 * @brief Makes the AI driver perform the action in the vehicle for the specified period of time
 * 
-* @param self CVehicle&
+* @param self Car
 * @param actionId eTempAction
 * @param duration uint
 */
@@ -986,7 +986,7 @@ void SetCarTempAction(CVehicle& self, eAutoPilotTempAction action, uint32 durati
 * 
 * @brief Sets the car on a specific route
 * 
-* @param self CVehicle&
+* @param self Car
 * @param routeSeed int
 */
 void SetCarRandomRouteSeed(CVehicle& self, int16 routeSeed) {
@@ -1001,7 +1001,7 @@ void SetCarRandomRouteSeed(CVehicle& self, int16 routeSeed) {
 * 
 * @brief Returns true if the car is burning
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool IsCarOnFire(CVehicle& self) {
     if (self.m_fHealth < 250.f) {
@@ -1021,7 +1021,7 @@ bool IsCarOnFire(CVehicle& self) {
 * 
 * @brief Returns true if a given tire on the car is deflated
 * 
-* @param self CVehicle&
+* @param self Car
 * @param tireId eWheelId
 */
 bool IsCarTyreBurst(CVehicle& self, eWheelId tire) {
@@ -1065,7 +1065,7 @@ bool IsCarTyreBurst(CVehicle& self, eWheelId tire) {
 * 
 * @brief Deflates the car's tire
 * 
-* @param self CVehicle&
+* @param self Car
 * @param tireId eWheelId
 */
 void BurstCarTyre(CVehicle& self, eWheelId tire) {
@@ -1089,7 +1089,7 @@ void BurstCarTyre(CVehicle& self, eWheelId tire) {
 * 
 * @brief Repairs a car's tire
 * 
-* @param self CVehicle&
+* @param self Car
 * @param tireId eCarWheel
 */
 void FixCarTyre(CVehicle& self, eCarWheel tire) {
@@ -1104,7 +1104,7 @@ void FixCarTyre(CVehicle& self, eCarWheel tire) {
 * 
 * @brief Sets whether the car's tires can be deflated
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCanBurstCarTyres(CVehicle& self, bool state) {
@@ -1119,7 +1119,7 @@ void SetCanBurstCarTyres(CVehicle& self, bool state) {
 * 
 * @brief Sets the speed of the car
 * 
-* @param self CVehicle&
+* @param self Car
 * @param forwardSpeed float
 */
 void SetCarForwardSpeed(CVehicle& self, float forwardSpeed) {
@@ -1137,7 +1137,7 @@ void SetCarForwardSpeed(CVehicle& self, float forwardSpeed) {
 * 
 * @brief Marks the car as being part of a convoy, which seems to follow a path set by 0994
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void MarkCarAsConvoyCar(CVehicle& self, bool state) {
@@ -1152,7 +1152,7 @@ void MarkCarAsConvoyCar(CVehicle& self, bool state) {
 * 
 * @brief Sets the minimum distance for the AI driver to start ignoring car paths and go straight to the target
 * 
-* @param self CVehicle&
+* @param self Car
 * @param distance int
 */
 void SetCarStraightLineDistance(CVehicle& self, uint8 distance) {
@@ -1167,7 +1167,7 @@ void SetCarStraightLineDistance(CVehicle& self, uint8 distance) {
 * 
 * @brief Opens the car's trunk and keeps it open
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void PopCarBoot(CVehicle& self) {
     self.AsAutomobile()->PopBoot();
@@ -1179,7 +1179,7 @@ void PopCarBoot(CVehicle& self) {
 * @class Car
 * @method IsWaitingForWorldCollision
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool IsCarWaitingForWorldCollision(CVehicle& self) {
     return self.m_bIsStaticWaitingForCollision;
@@ -1210,7 +1210,7 @@ void SetCarModelComponents(eModelID _unused, int component1, int component2) {
 * 
 * @brief Locks the vehicle's position
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void FreezeCarPosition(CVehicle& self, bool state) {
@@ -1229,24 +1229,25 @@ void FreezeCarPosition(CVehicle& self, bool state) {
 * @command HAS_CAR_BEEN_DAMAGED_BY_CHAR
 * @class Car
 * @method HasBeenDamagedByChar
+* @static
 * 
 * @brief Returns true if the car has been damaged by the specified char
 * 
 * @param self CVehicle
 * @param ped CPed
 */
-bool HasCarBeenDamagedByChar(CVehicle* self, CPed* ped) {
-    if (!self || !self->m_pLastDamageEntity) {
+bool HasCarBeenDamagedByChar(CVehicle* car, CPed* ped) {
+    if (!car || !car->m_pLastDamageEntity) {
         return false;
     }
     if (!ped) {
-        return self->m_pLastDamageEntity->GetIsTypePed();
+        return car->m_pLastDamageEntity->GetIsTypePed();
     }
-    if (self->m_pLastDamageEntity == ped) {
+    if (car->m_pLastDamageEntity == ped) {
         return true;
     }
     if (ped->bInVehicle) {
-        return self->m_pLastDamageEntity == ped->m_pVehicle;
+        return car->m_pLastDamageEntity == ped->m_pVehicle;
     }
     return false;
 }
@@ -1256,20 +1257,21 @@ bool HasCarBeenDamagedByChar(CVehicle* self, CPed* ped) {
 * @command HAS_CAR_BEEN_DAMAGED_BY_CAR
 * @class Car
 * @method HasBeenDamagedByCar
+* @static
 * 
 * @brief Returns true if the vehicle has been damaged by another specified vehicle
 * 
-* @param self CVehicle&
+* @param self Car
 * @param other CVehicle&
 */
-bool HasCarBeenDamagedByCar(CVehicle* self, CVehicle* other) {
-    if (!self || !self->m_pLastDamageEntity) {
+bool HasCarBeenDamagedByCar(CVehicle* car, CVehicle* other) {
+    if (!car || !car->m_pLastDamageEntity) {
         return false;
     }
     if (!other) {
-        return self->m_pLastDamageEntity->GetIsTypeVehicle();
+        return car->m_pLastDamageEntity->GetIsTypeVehicle();
     }
-    return self->m_pLastDamageEntity == other;
+    return car->m_pLastDamageEntity == other;
 }
 
 /*
@@ -1280,7 +1282,7 @@ bool HasCarBeenDamagedByCar(CVehicle* self, CVehicle* other) {
 * 
 * @brief Clears the car's last damage entity
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void ClearCarLastDamageEntity(CVehicle& self) {
     self.m_pLastDamageEntity = nullptr;
@@ -1294,7 +1296,7 @@ void ClearCarLastDamageEntity(CVehicle& self) {
 * 
 * @brief Makes the car maintain its position
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void FreezeCarPositionAndDontLoadCollision(CRunningScript& S, CVehicle& self, bool state) {
@@ -1315,7 +1317,7 @@ void FreezeCarPositionAndDontLoadCollision(CRunningScript& S, CVehicle& self, bo
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetLoadCollisionForCarFlag(CRunningScript& S, CVehicle& self, bool state) {
@@ -1338,7 +1340,7 @@ void SetLoadCollisionForCarFlag(CRunningScript& S, CVehicle& self, bool state) {
  * 
  * @brief Assigns a car to a path
  * 
- * @param self CVehicle&
+ * @param self Car
  * @param path int
  */
 void StartPlaybackRecordedCar(CVehicle& self, int32 path) {
@@ -1350,14 +1352,15 @@ void StartPlaybackRecordedCar(CVehicle& self, int32 path) {
 * @command STOP_PLAYBACK_RECORDED_CAR
 * @class Car
 * @method StopPlayback
+* @static
 * 
 * @brief Stops car from following path
 * 
-* @param self CVehicle&
+* @param self Car
 */
-void StopPlaybackRecordedCar(CVehicle* self) {
-    if (self) {
-        CVehicleRecording::StopPlaybackRecordedCar(self);
+void StopPlaybackRecordedCar(CVehicle* car) {
+    if (car) {
+        CVehicleRecording::StopPlaybackRecordedCar(car);
     }
 }
 
@@ -1369,7 +1372,7 @@ void StopPlaybackRecordedCar(CVehicle* self) {
 * 
 * @brief Freezes the car on its path
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void PausePlaybackRecordedCar(CVehicle& self) {
     CVehicleRecording::PausePlaybackRecordedCar(&self);
@@ -1383,7 +1386,7 @@ void PausePlaybackRecordedCar(CVehicle& self) {
 * 
 * @brief Returns true if the car is assigned to a path
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool IsPlaybackGoingOnForCar(CVehicle& self) {
     return CVehicleRecording::IsPlaybackGoingOnForCar(&self);
@@ -1397,7 +1400,7 @@ bool IsPlaybackGoingOnForCar(CVehicle& self) {
 * 
 * @brief Unfreezes the vehicle on its path
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void UnpausePlaybackRecordedCar(CVehicle& self) {
     CVehicleRecording::UnpausePlaybackRecordedCar(&self);
@@ -1411,7 +1414,7 @@ void UnpausePlaybackRecordedCar(CVehicle& self) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
     CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(&self);
@@ -1425,7 +1428,7 @@ void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
 * 
 * @brief Starts the playback of a recorded car with driver AI enabled
 * 
-* @param self CVehicle&
+* @param self Car
 * @param pathId int
 */
 void StartPlaybackRecordedCarUsingAI(CVehicle& self, int pathId) {
@@ -1440,7 +1443,7 @@ void StartPlaybackRecordedCarUsingAI(CVehicle& self, int pathId) {
 * 
 * @brief Advances the recorded car playback by the specified amount
 * 
-* @param self CVehicle&
+* @param self Car
 * @param amount float
 */
 void SkipInPlaybackRecordedCar(CVehicle& self, float amount) {
@@ -1455,7 +1458,7 @@ void SkipInPlaybackRecordedCar(CVehicle& self, float amount) {
 * 
 * @brief Starts looped playback of a recorded car path
 * 
-* @param self CVehicle&
+* @param self Car
 * @param pathId int
 */
 void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
@@ -1482,7 +1485,7 @@ void SetCarEscortCarUsingMission(CVehicle& self, CVehicle& other, eCarMission mi
 * 
 * @brief Makes the vehicle stay on the other vehicle's left side, keeping parallel
 * 
-* @param self CVehicle&
+* @param self Car
 * @param handle CVehicle&
 */
 void SetCarEscortCarLeft(CVehicle& self, CVehicle& other) {
@@ -1495,9 +1498,9 @@ void SetCarEscortCarLeft(CVehicle& self, CVehicle& other) {
 * @class Car
 * @method SetEscortCarRight
 * 
-* @brief Makes the vehicle stay by the right side of the other vehicle, keeping parallel
+* @brief Makes the vehicle stay by the right side of the other self, keeping parallel
 * 
-* @param self CVehicle&
+* @param self Car
 * @param handle CVehicle&
 */
 void SetCarEscortCarRight(CVehicle& self, CVehicle& other) {
@@ -1512,7 +1515,7 @@ void SetCarEscortCarRight(CVehicle& self, CVehicle& other) {
 * 
 * @brief Makes the vehicle stay behind the other car, keeping parallel
 * 
-* @param self CVehicle&
+* @param self Car
 * @param handle CVehicle&
 */
 void SetCarEscortCarRear(CVehicle& self, CVehicle& other) {
@@ -1527,7 +1530,7 @@ void SetCarEscortCarRear(CVehicle& self, CVehicle& other) {
 * 
 * @brief Makes the vehicle stay in front of the other, keeping parallel
 * 
-* @param self CVehicle&
+* @param self Car
 * @param handle CVehicle&
 */
 void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
@@ -1542,7 +1545,7 @@ void SetCarEscortCarFront(CVehicle& self, CVehicle& other) {
 * 
 * @brief Sets the angle of a car door
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 * @param value float
 */
@@ -1566,7 +1569,7 @@ void OpenCarDoorABit(CVehicle& self, eDoors door, float value) {
 * 
 * @brief Opens the specified car door
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 */
 void OpenCarDoor(CVehicle& self, eDoors door) {
@@ -1581,7 +1584,7 @@ void OpenCarDoor(CVehicle& self, eDoors door) {
 * 
 * @brief Closes all car doors, hoods and boots
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void CloseAllCarDoors(CVehicle& self) {
     self.AsAutomobile()->CloseAllDoors();
@@ -1595,7 +1598,7 @@ void CloseAllCarDoors(CVehicle& self) {
 * 
 * @brief Damages a component on the vehicle
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 */
 void DamageCarDoor(CVehicle& self, eDoors door) {
@@ -1618,7 +1621,7 @@ void DamageCarDoor(CVehicle& self, eDoors door) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 */
 bool IsCarDoorFullyOpen(CVehicle& self, eDoors door) {
@@ -1634,7 +1637,7 @@ bool IsCarDoorFullyOpen(CVehicle& self, eDoors door) {
 * 
 * @brief Removes the specified car door component from the car
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 * @param visibility bool
 */
@@ -1651,7 +1654,7 @@ void PopCarDoor(CVehicle& self, eDoors door, bool visibility) {
 * 
 * @brief Repairs the car door
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 */
 void FixCarDoor(CVehicle& self, eDoors door) {
@@ -1667,7 +1670,7 @@ void FixCarDoor(CVehicle& self, eDoors door) {
 * 
 * @brief Sets the car's door angle and latch state
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 * @param state eCarDoorState
 * @param angle float
@@ -1698,7 +1701,7 @@ void ControlCarDoor(CVehicle& self, eDoors door, eDoorStatus state, float angle)
 * 
 * @brief Returns true if the specified vehicle part is visibly damaged
 * 
-* @param self CVehicle&
+* @param self Car
 * @param door eCarDoor
 */
 bool IsCarDoorDamaged(CVehicle& self, eDoors door) {
@@ -1737,7 +1740,7 @@ void CustomPlateForNextCar(eModelID modelId, std::string_view text) {
 * 
 * @brief Sets an override for the car's lights
 * 
-* @param self CVehicle&
+* @param self Car
 * @param lightMode eCarLights
 */
 void ForceCarLights(CVehicle& self, eVehicleOverrideLightsState lightMode) {
@@ -1752,7 +1755,7 @@ void ForceCarLights(CVehicle& self, eVehicleOverrideLightsState lightMode) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param other CVehicle&
 * @param xOffset float
 * @param yOffset float
@@ -1774,20 +1777,21 @@ void AttachCarToCar(CVehicle& self, CVehicle& other, CVector offset, CVector rot
 * @command DETACH_CAR
 * @class Car
 * @method Detach
+* @static
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param dirX float
 * @param dirY float
 * @param strength float
 * @param collisionDetection bool
 */
-void DetachCar(CVehicle* vehicle, CVector2D dir, float strength, bool collisionDetection) {
-    if (!vehicle || !vehicle->m_pAttachedTo) {
+void DetachCar(CVehicle* car, CVector2D dir, float strength, bool collisionDetection) {
+    if (!car || !car->m_pAttachedTo) {
         return;
     }
-    vehicle->DettachEntityFromEntity(
+    car->DettachEntityFromEntity(
         DegreesToRadians(dir.x),
         DegreesToRadians(dir.y),
         strength,
@@ -1803,7 +1807,7 @@ void DetachCar(CVehicle* vehicle, CVector2D dir, float strength, bool collisionD
 * 
 * @brief Makes all passengers of the car leave it
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void TaskEveryoneLeaveCar(CRunningScript& S, CVehicle& self) {
     const auto ProcessPed = [&](CPed* ped, int32 delay) {
@@ -1835,7 +1839,7 @@ void TaskEveryoneLeaveCar(CRunningScript& S, CVehicle& self) {
 * 
 * @brief Detatches or deletes car's body part
 * 
-* @param self CVehicle&
+* @param self Car
 * @param panelId eCarPanel
 * @param drop bool
 */
@@ -1852,7 +1856,7 @@ void PopCarPanel(CVehicle& self, ePanels panel, bool drop) {
 * 
 * @brief Repairs or reinstalls car's body part
 * 
-* @param self CVehicle&
+* @param self Car
 * @param panelId eCarPanel
 */
 void FixCarPanel(CVehicle& self, ePanels panel) {
@@ -1868,7 +1872,7 @@ void FixCarPanel(CVehicle& self, ePanels panel) {
 * 
 * @brief Damages a panel on the car
 * 
-* @param self CVehicle&
+* @param self Car
 * @param panelId int
 */
 void DamageCarPanel(CVehicle& self, ePanels panel) {
@@ -1891,7 +1895,7 @@ void DamageCarPanel(CVehicle& self, ePanels panel) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 */
 auto GetCarSpeedVector(CVehicle& self) {
     return self.GetMoveSpeed() * 50.f;
@@ -1905,7 +1909,7 @@ auto GetCarSpeedVector(CVehicle& self) {
 * 
 * @brief Returns the vehicle's mass
 * 
-* @param self CVehicle&
+* @param self Car
 */
 float GetCarMass(CVehicle& self) {
     return self.GetMass();
@@ -1919,7 +1923,7 @@ float GetCarMass(CVehicle& self) {
 * 
 * @brief Returns the Y Angle of the vehicle
 * 
-* @param self CVehicle&
+* @param self Car
 */
 float GetCarRoll(CVehicle& self) {
     return self.GetRoll();
@@ -1933,7 +1937,7 @@ float GetCarRoll(CVehicle& self) {
 * 
 * @brief Sets the Y Angle of the vehicle to the specified value
 * 
-* @param self CVehicle&
+* @param self Car
 * @param roll float
 */
 void SetCarRoll(CVehicle& self, float roll) {
@@ -1948,7 +1952,7 @@ void SetCarRoll(CVehicle& self, float roll) {
 *
 * @brief Returns the X Angle of the vehicle in DEGREES
 *
-* @param self CVehicle&
+* @param self Car
 */
 float GetCarPitch(CVehicle& self) {
     return ClampDegreesForScript(DegreesToRadians(self.AsAutomobile()->GetCarPitch()));
@@ -1962,7 +1966,7 @@ float GetCarPitch(CVehicle& self) {
 * 
 * @brief Returns true if the car has car stuck check enabled
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool DoesCarHaveStuckCarCheck(notsa::script::ScriptEntity<CVehicle> self) {
     return CTheScripts::StuckCars.IsCarInStuckCarArray(self.h);
@@ -1976,7 +1980,7 @@ bool DoesCarHaveStuckCarCheck(notsa::script::ScriptEntity<CVehicle> self) {
 * 
 * @brief Makes the vehicle explode without affecting its surroundings
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void ExplodeCarInCutscene(CVehicle& self) {
     self.vehicleFlags.bCanBeDamaged = true;
@@ -1991,7 +1995,7 @@ void ExplodeCarInCutscene(CVehicle& self) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarStayInSlowLane(CVehicle& self, bool state) {
@@ -2046,7 +2050,7 @@ void DontSuppressAnyCarModels() {
 * 
 * @brief Sets whether the vehicle will drive the wrong way on roads
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarCanGoAgainstTraffic(CVehicle& self, bool state) {
@@ -2061,12 +2065,12 @@ void SetCarCanGoAgainstTraffic(CVehicle& self, bool state) {
 *
 * @brief Sets the script as the owner of the vehicle and adds it to the mission cleanup list
 *
-* @param self CVehicle&
+* @param self Car
 */
-void SetCarAsMissionCar(CRunningScript& S, CVehicle& vehicle) {
-    if (S.m_UsesMissionCleanup && (vehicle.IsCreatedBy(RANDOM_VEHICLE) || vehicle.IsCreatedBy(PARKED_VEHICLE))) {
-        vehicle.SetVehicleCreatedBy(MISSION_VEHICLE);
-        CTheScripts::MissionCleanUp.AddEntityToList(vehicle);
+void SetCarAsMissionCar(CRunningScript& S, CVehicle& self) {
+    if (S.m_UsesMissionCleanup && (self.IsCreatedBy(RANDOM_VEHICLE) || self.IsCreatedBy(PARKED_VEHICLE))) {
+        self.SetVehicleCreatedBy(MISSION_VEHICLE);
+        CTheScripts::MissionCleanUp.AddEntityToList(self);
     }
 }
 
@@ -2117,7 +2121,7 @@ void AddToCarRotationVelocity(CVehicle& self, CVector velocity) {
 *
 * @brief
 *
-* @param self CVehicle&
+* @param self Car
 * @param velocity Velocity to set, in local space
 */
 void SetCarRotationVelocity(CVehicle& self, CVector velocity) {
@@ -2180,7 +2184,7 @@ void SetCarFollowCar(CVehicle& self, CVehicle& other, float radius) {
 * 
 * @brief Enables hydraulic suspension on the car
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarHydraulics(CVehicle& self, bool state) {
@@ -2199,7 +2203,7 @@ void SetCarHydraulics(CVehicle& self, bool state) {
 * 
 * @brief Returns true if the car has hydraulics installed
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool DoesCarHaveHydraulics(CVehicle& self) {
     return self.IsSubAutomobile() && self.handlingFlags.bHydraulicInst;
@@ -2213,7 +2217,7 @@ bool DoesCarHaveHydraulics(CVehicle& self) {
 * 
 * @brief Sets whether the car's engine is broken
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarEngineBroken(CVehicle& self, bool broken) {
@@ -2231,7 +2235,7 @@ void SetCarEngineBroken(CVehicle& self, bool broken) {
 * 
 * @brief Gets the car's vertical angle
 * 
-* @param self CVehicle&
+* @param self Car
 */
 float GetCarUprightValue(CVehicle& self) {
     return self.GetUpVector().z;
@@ -2245,7 +2249,7 @@ float GetCarUprightValue(CVehicle& self) {
 * 
 * @brief Sets whether the vehicle can be visibly damaged
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarCanBeVisiblyDamaged(CVehicle& self, bool state) {
@@ -2260,7 +2264,7 @@ void SetCarCanBeVisiblyDamaged(CVehicle& self, bool state) {
 * 
 * @brief Sets the vehicle coordinates without applying offsets to account for the height of the vehicle
 * 
-* @param self CVehicle&
+* @param self Car
 * @param x float
 * @param y float
 * @param z float
@@ -2277,7 +2281,7 @@ void SetCarCoordinatesNoOffset(CVehicle& self, CVector pos) {
 * 
 * @brief Causes the vehicle to explode, without damage to surrounding entities
 * 
-* @param self CVehicle&
+* @param self Car
 * @param shake bool
 * @param effect bool
 * @param sound bool
@@ -2294,7 +2298,7 @@ void ExplodeCarInCutsceneShakeAndBits(CVehicle& self, bool shake, bool effect, b
 * 
 * @brief Sets whether the vehicle's engine is turned on or off
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarEngineOn(CVehicle& self, bool state) {
@@ -2309,7 +2313,7 @@ void SetCarEngineOn(CVehicle& self, bool state) {
 * 
 * @brief Sets whether the vehicle's lights are on
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarLightsOn(CVehicle& self, bool state) {
@@ -2363,7 +2367,7 @@ void RestoreCarModState() {
 * @class Car
 * @method GetCurrentMod
 * 
-* @brief Returns the model of the component installed on the specified slot of the vehicle, or MODEL_INVALID (-1) otherwise
+* @brief Returns the model of the component installed on the specified slot of the self, or MODEL_INVALID (-1) otherwise
 * 
 * @param self Vehicle
 * @param slot ModSlot
@@ -2407,7 +2411,7 @@ eModelID GetCurrentCarMod(CVehicle& self, eModSlot slot) {
 * 
 * @brief Returns true if the vehicle is a low rider
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool IsCarLowRider(CVehicle& self) {
     return gHandlingDataMgr.m_aVehicleHandling[self.GetVehicleModelInfo()->m_nHandlingId].m_bLowRider;
@@ -2421,7 +2425,7 @@ bool IsCarLowRider(CVehicle& self) {
 * 
 * @brief Returns true if the vehicle is a street racer
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool IsCarStreetRacer(CVehicle& self) {
     return gHandlingDataMgr.m_aVehicleHandling[self.GetVehicleModelInfo()->m_nHandlingId].m_bStreetRacer;
@@ -2435,7 +2439,7 @@ bool IsCarStreetRacer(CVehicle& self) {
 * 
 * @brief Returns number of color variations defined for the model of this car in carcols.dat
 * 
-* @param self CVehicle&
+* @param self Car
 */
 int GetNumCarColours(CVehicle& self) {
     return self.GetVehicleModelInfo()->m_nNumColorVariations;
@@ -2468,7 +2472,7 @@ CVehicle* GetCarBlockingCar(CVehicle& self) {
 * 
 * @brief Sets the angle of a vehicle's extra
 * 
-* @param self CVehicle&
+* @param self Car
 */
 float GetCarMovingComponentOffset(CVehicle& self) {
     return self.AsAutomobile()->GetMovingCollisionOffset();
@@ -2482,7 +2486,7 @@ float GetCarMovingComponentOffset(CVehicle& self) {
 * 
 * @brief 
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void SetCarCollision(CVehicle& self, bool state) {
@@ -2498,7 +2502,7 @@ void SetCarCollision(CVehicle& self, bool state) {
 * 
 * @brief Returns the door lock mode of the vehicle
 * 
-* @param self CVehicle&
+* @param self Car
 */
 eCarLock GetCarDoorLockStatus(CVehicle& self) {
     return self.m_nDoorLock;
@@ -2512,7 +2516,7 @@ eCarLock GetCarDoorLockStatus(CVehicle& self) {
 * 
 * @brief Returns true if the car is touching the other car
 * 
-* @param self CVehicle&
+* @param self Car
 * @param other CVehicle&
 */
 bool IsCarTouchingCar(CVehicle& self, CVehicle& other) {
@@ -2598,7 +2602,7 @@ auto CreateCarGeneratorWithPlate(
 * 
 * @brief Makes the car have one nitro
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void GiveNonPlayerCarNitro(CVehicle& self) {
     self.AsAutomobile()->NitrousControl(1);
@@ -2612,7 +2616,7 @@ void GiveNonPlayerCarNitro(CVehicle& self) {
 * 
 * @brief Sets the car's ternary and quaternary colors. See also 0229
 * 
-* @param self CVehicle&
+* @param self Car
 * @param color3 int
 * @param color4 int
 */
@@ -2629,7 +2633,7 @@ void SetExtraCarColours(CVehicle& self, int color3, int color4) {
 * 
 * @brief Returns true if the vehicle was resprayed in the last frame AND resets the resprayed state to false.
 * 
-* @param self CVehicle&
+* @param self Car
 */
 bool HasCarBeenResprayed(CVehicle& self) {
     const bool resprayed                = self.vehicleFlags.bHasBeenResprayed;
@@ -2645,7 +2649,7 @@ bool HasCarBeenResprayed(CVehicle& self) {
 * 
 * @brief Sets whether a ped driven vehicle's handling is affected by the 'perfect handling' cheat
 * 
-* @param self CVehicle&
+* @param self Car
 * @param state bool
 */
 void ImproveCarByCheating(CVehicle& self, bool state) {
@@ -2660,7 +2664,7 @@ void ImproveCarByCheating(CVehicle& self, bool state) {
 * 
 * @brief Restores the vehicle to full health and removes the damage
 * 
-* @param self CVehicle&
+* @param self Car
 */
 void FixCar(CVehicle& self) {
     self.Fix();
@@ -2744,7 +2748,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_LOCK_CAR_DOORS, LockCarDoors);
     REGISTER_COMMAND_HANDLER(COMMAND_EXPLODE_CAR, ExplodeCar);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_UPRIGHT, IsCarUpright);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_TARGET_CAR_FOR_MISSION_GARAGE, SetTargetCarForMissionGarage);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TARGET_CAR_FOR_MISSION_GARAGE, SetTargetCarForMissionGarage); // TODO: This is Garages stuff, move it out from here
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_HEALTH, SetCarHealth);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_HEALTH, GetCarHealth);
     REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_CAR_COLOUR, ChangeCarColour);
