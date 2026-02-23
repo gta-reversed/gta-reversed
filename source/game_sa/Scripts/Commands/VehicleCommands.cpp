@@ -2630,6 +2630,21 @@ bool HasCarBeenResprayed(CVehicle& self) {
 void ImproveCarByCheating(CVehicle& self, bool state) {
     self.vehicleFlags.bUseCarCheats = state;
 }
+
+/*
+* @opcode 0A30
+* @command FIX_CAR
+* @class Car
+* @method Fix
+* 
+* @brief Restores the vehicle to full health and removes the damage
+* 
+* @param self CVehicle&
+*/
+void FixCar(CVehicle& self) {
+    self.Fix();
+    self.m_fHealth = 1000.f;
+}
 }; // namespace
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
@@ -2823,7 +2838,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_EXTRA_CAR_COLOURS, SetExtraCarColours);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
     REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
     
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);
