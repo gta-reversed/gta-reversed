@@ -8,6 +8,13 @@
 #include "PostEffects.h"
 #include "UIRenderer.h"
 
+static bool IsInFullscreen()
+{
+    // TODO: Currently with our hacky windowed mode, looks like there's no
+    // good way to gather this information.
+    return false;
+}
+
 namespace notsa {
 namespace SDLWrapper {
 bool Initialize() {
@@ -48,7 +55,9 @@ void ProcessEvents() {
                 break;
             }
             static CVector2D s_MousePos{};
-            if (FrontEndMenuManager.m_bMenuActive) {
+
+            // Use desktop cursor speed if it's windowed, accelerate ingame otherwise.
+            if (IsInFullscreen() && FrontEndMenuManager.m_bMenuActive) {
                 s_MousePos.x += e.motion.xrel * CCamera::m_fMouseAccelHorzntl * 100.f;
                 s_MousePos.y += e.motion.yrel * CCamera::m_fMouseAccelVertical * 100.f;
             } else {
