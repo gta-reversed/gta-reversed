@@ -2474,9 +2474,9 @@ eCarLock GetCarDoorLockStatus(CVehicle& self) {
 * @param self CVehicle&
 * @param door eCarDoor
 */
-// void IsCarDoorDamaged(CVehicle& self, eCarDoor door) {
-//     NOTSA_UNREACHABLE("Not implemented");
-// }
+bool IsCarDoorDamaged(CVehicle& self, eDoors door) {
+    return self.AsAutomobile()->GetDamageManager().GetDoorStatus(door) != eDoorStatus::DAMSTATE_OK;
+}
 
 /*
 * @opcode 09CB
@@ -2776,7 +2776,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MOVING_COMPONENT_OFFSET, GetCarMovingComponentOffset);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_COLLISION, SetCarCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_DOOR_LOCK_STATUS, GetCarDoorLockStatus);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_DOOR_DAMAGED, IsCarDoorDamaged);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_TOUCHING_CAR, IsCarTouchingCar);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CAR_MODEL_VALUE, GetCarModelValue);
     //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CAR_GENERATOR_WITH_PLATE, CreateCarGeneratorWithPlate);
