@@ -41,25 +41,24 @@ enum class eWheelId {
     BIKE_REAR  = 1,
 };
 
-
 enum class eModSlot {
-    HOOD = 0,
-    VENTS = 1,
-    SPOILERS = 2,
-    SIDE_SKIRTS = 3,
+    HOOD           = 0,
+    VENTS          = 1,
+    SPOILERS       = 2,
+    SIDE_SKIRTS    = 3,
     FRONT_BULLBARS = 4,
-    REAR_BULLBARS = 5,
-    LIGHTS = 6,
-    ROOF = 7,
-    NITRO = 8,
-    HYDRAULICS = 9,
-    CAR_STEREO = 10,
-    P11 = 11,
-    WHEELS = 12,
-    EXHAUSTS = 13,
-    FRONT_BUMPER = 14,
-    REAR_BUMPER = 15,
-    P16 = 16,
+    REAR_BULLBARS  = 5,
+    LIGHTS         = 6,
+    ROOF           = 7,
+    NITRO          = 8,
+    HYDRAULICS     = 9,
+    CAR_STEREO     = 10,
+    P11            = 11,
+    WHEELS         = 12,
+    EXHAUSTS       = 13,
+    FRONT_BUMPER   = 14,
+    REAR_BUMPER    = 15,
+    P16            = 16,
 };
 
 namespace {
@@ -67,8 +66,8 @@ auto ClampDegreesForScript(float deg) {
     return deg < 0.f
         ? deg + 360.f
         : deg > 360.f
-            ? deg - 360.f
-            : deg;
+        ? deg - 360.f
+        : deg;
 }
 
 void DoSetCarIsWaitingForCollision(CRunningScript& S, CVehicle& self) {
@@ -86,7 +85,6 @@ void ConvertScriptTextToCarPlate(char (&out)[9], std::string_view in) {
     out[8] = '\0';
 }
 }; // namespace
-
 
 /*!
 * Various vehicle commands
@@ -401,7 +399,7 @@ auto AddBlipForCar(int32 handle) { // TODO: use `notsa::ScriptEntity<CVehicle>` 
 
 /// IS_CAR_STUCK_ON_ROOF
 auto IsCarStuckOnRoof(int32 handle) { // TODO: use `notsa::ScriptEntity<CVehicle>` instead of `int32 handle`
-    return CTheScripts::UpsideDownCars.HasCarBeenUpsideDownForAWhile(handle); 
+    return CTheScripts::UpsideDownCars.HasCarBeenUpsideDownForAWhile(handle);
 }
 
 /// ADD_UPSIDEDOWN_CAR_CHECK
@@ -425,8 +423,10 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
     if (highlight) {
         CTheScripts::HighlightImportantArea(
             (int32)(&S) + (int32)(S.m_IP),
-            p1.x, p1.y,
-            p2.x, p2.y,
+            p1.x,
+            p1.y,
+            p2.x,
+            p2.y,
             -100.f
         );
     }
@@ -435,8 +435,7 @@ bool IsCarInArea2D(CRunningScript& S, CVehicle& vehicle, CVector2D p1, CVector2D
             const auto [minX, maxX] = std::minmax(p1.x, p2.x);
             const auto [minY, maxY] = std::minmax(p1.y, p2.y);
             CTheScripts::DrawDebugSquare(
-                minX, maxX,
-                minY, maxY
+                minX, maxX, minY, maxY
             );
         }
     }
@@ -448,14 +447,15 @@ bool IsCarInArea3D(CRunningScript& S, CVehicle& vehicle, CVector p1, CVector p2,
     if (highlight) {
         CTheScripts::HighlightImportantArea(
             (int32)(&S) + (int32)(S.m_IP),
-            p1.x, p1.y,
-            p2.x, p2.y,
+            p1.x,
+            p1.y,
+            p2.x,
+            p2.y,
             (p2.z - p1.z) / 2.f
         );
     }
     return vehicle.IsWithinArea(
-        p1.x, p1.y, p1.z,
-        p2.x, p2.y, p2.z
+        p1.x, p1.y, p1.z, p2.x, p2.y, p2.z
     );
 }
 
@@ -534,10 +534,10 @@ auto SetCarHeavy(CVehicle* vehicle, bool isHeavy) {
 
     vehicle->physicalFlags.bMakeMassTwiceAsBig = isHeavy;
 
-    const auto* const handling   = vehicle->m_pHandlingData;
-    vehicle->m_fMass             = handling->m_fMass;
-    vehicle->m_fTurnMass         = handling->m_fTurnMass;
-    vehicle->m_fBuoyancyConstant = handling->m_fBuoyancyConstant;
+    const auto* const handling                 = vehicle->m_pHandlingData;
+    vehicle->m_fMass                           = handling->m_fMass;
+    vehicle->m_fTurnMass                       = handling->m_fTurnMass;
+    vehicle->m_fBuoyancyConstant               = handling->m_fBuoyancyConstant;
     if (isHeavy) {
         vehicle->m_fMass *= 3.0f;
         vehicle->m_fTurnMass *= 5.0f;
@@ -588,7 +588,7 @@ auto GetCarHealth(CVehicle& vehicle) {
 
 /// CHANGE_CAR_COLOUR
 auto ChangeCarColour(CVehicle& vehicle, uint32 primaryColor, uint32 secondaryColor) {
-    vehicle.m_nPrimaryColor = primaryColor;
+    vehicle.m_nPrimaryColor   = primaryColor;
     vehicle.m_nSecondaryColor = secondaryColor;
 }
 
@@ -626,13 +626,13 @@ auto IsCarOnScreen(CVehicle& vehicle) {
 
 /// GET_CAR_FORWARD_X
 auto GetCarForwardX(CVehicle& vehicle) {
-    const CVector2D forward { vehicle.GetForward() };
+    const CVector2D forward{ vehicle.GetForward() };
     return forward.x / forward.Magnitude();
 }
 
 /// GET_CAR_FORWARD_Y
 auto GetCarForwardY(CVehicle& vehicle) {
-    const CVector2D forward { vehicle.GetForward() };
+    const CVector2D forward{ vehicle.GetForward() };
     return forward.y / forward.Magnitude();
 }
 
@@ -739,8 +739,8 @@ void SetCarWatertight(CVehicle& self, bool state) {
 * @param y float
 */
 void TurnCarToFaceCoord(CVehicle& self, CVector2D point) {
-    const auto& pos = self.GetPosition();
-    const auto angle = CGeneral::GetATanOf(pos - point) + HALF_PI;
+    const auto& pos   = self.GetPosition();
+    const auto  angle = CGeneral::GetATanOf(pos - point) + HALF_PI;
     self.SetHeading(angle > TWO_PI ? angle - TWO_PI : angle);
 }
 
@@ -1029,7 +1029,9 @@ bool IsCarTyreBurst(CVehicle& self, eWheelId tire) {
         auto* const bike = self.AsBike();
         switch (tire) {
         case eWheelId::ANY:
-            return rng::all_of(bike->m_nWheelStatus, [](auto status) { return status == 1; });
+            return rng::all_of(bike->m_nWheelStatus, [](auto status) {
+                return status == 1;
+            });
         case eWheelId::FRONT_RIGHT:
         case eWheelId::BIKE_FRONT:
             return bike->m_nWheelStatus[+eWheelId::BIKE_FRONT] == 1;
@@ -1212,8 +1214,8 @@ void SetCarModelComponents(eModelID _unused, int component1, int component2) {
 * @param state bool
 */
 void FreezeCarPosition(CVehicle& self, bool state) {
-    self.physicalFlags.bDontApplySpeed = state;
-    self.physicalFlags.bCollidable = state;
+    self.physicalFlags.bDontApplySpeed        = state;
+    self.physicalFlags.bCollidable            = state;
     self.physicalFlags.bDisableCollisionForce = state;
     if (state) {
         self.SkipPhysics();
@@ -1296,7 +1298,7 @@ void ClearCarLastDamageEntity(CVehicle& self) {
 * @param state bool
 */
 void FreezeCarPositionAndDontLoadCollision(CRunningScript& S, CVehicle& self, bool state) {
-    self.physicalFlags.bDontApplySpeed = state;
+    self.physicalFlags.bDontApplySpeed        = state;
     self.physicalFlags.bDisableCollisionForce = state;
     if (state) {
         DoSetCarIsWaitingForCollision(S, self);
@@ -1327,7 +1329,6 @@ void SetLoadCollisionForCarFlag(CRunningScript& S, CVehicle& self, bool state) {
         }
     }
 }
-
 
 /*
  * @opcode 05EB
@@ -1402,7 +1403,6 @@ void UnpausePlaybackRecordedCar(CVehicle& self) {
     CVehicleRecording::UnpausePlaybackRecordedCar(&self);
 }
 
-
 /*
 * @opcode 06C5
 * @command SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR
@@ -1416,7 +1416,6 @@ void UnpausePlaybackRecordedCar(CVehicle& self) {
 void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
     CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(&self);
 }
-
 
 /*
 * @opcode 0705
@@ -1432,7 +1431,6 @@ void SkipToEndAndStopPlaybackRecordedCar(CVehicle& self) {
 void StartPlaybackRecordedCarUsingAI(CVehicle& self, int pathId) {
     CVehicleRecording::StartPlaybackRecordedCar(&self, pathId, true, false);
 }
-
 
 /*
 * @opcode 0706
@@ -1808,7 +1806,7 @@ void DetachCar(CVehicle* vehicle, CVector2D dir, float strength, bool collisionD
 * @param self CVehicle&
 */
 void TaskEveryoneLeaveCar(CRunningScript& S, CVehicle& self) {
-    const auto ProcessPed = [&] (CPed* ped, int32 delay) {
+    const auto ProcessPed = [&](CPed* ped, int32 delay) {
         S.GivePedScriptedTask(
             ped,
             new CTaskComplexLeaveAnyCar{ delay, false, false },
@@ -1969,7 +1967,6 @@ float GetCarPitch(CVehicle& self) {
 bool DoesCarHaveStuckCarCheck(notsa::script::ScriptEntity<CVehicle> self) {
     return CTheScripts::StuckCars.IsCarInStuckCarArray(self.h);
 }
-
 
 /*
 * @opcode 070C
@@ -2152,7 +2149,7 @@ void ControlCarHydraulics(CVehicle& self, float frontLeftWheelSuspension, float 
             return;
         }
     }
-    auto& suspension = self.m_aSpecialHydraulicData[self.m_vehicleSpecialColIndex].m_aWheelSuspension;
+    auto& suspension                  = self.m_aSpecialHydraulicData[self.m_vehicleSpecialColIndex].m_aWheelSuspension;
     suspension[CAR_WHEEL_FRONT_LEFT]  = frontLeftWheelSuspension;
     suspension[CAR_WHEEL_REAR_LEFT]   = rearLeftWheelSuspension;
     suspension[CAR_WHEEL_FRONT_RIGHT] = frontRightWheelSuspension;
@@ -2374,7 +2371,7 @@ void RestoreCarModState() {
 eModelID GetCurrentCarMod(CVehicle& self, eModSlot slot) {
     using enum eModSlot;
 
-    const auto GetDependentUpgrade = [&self] (int32 upgradeA, int32 upgradeB) {
+    const auto GetDependentUpgrade = [&self](int32 upgradeA, int32 upgradeB) {
         if (self.GetUpgrade(upgradeA) == -1) {
             return MODEL_INVALID;
         }
@@ -2489,7 +2486,7 @@ float GetCarMovingComponentOffset(CVehicle& self) {
 * @param state bool
 */
 void SetCarCollision(CVehicle& self, bool state) {
-    self.m_bUsesCollision = state;
+    self.m_bUsesCollision            = state;
     self.physicalFlags.bApplyGravity = state;
 }
 
@@ -2620,7 +2617,7 @@ void GiveNonPlayerCarNitro(CVehicle& self) {
 * @param color4 int
 */
 void SetExtraCarColours(CVehicle& self, int color3, int color4) {
-    self.m_nTertiaryColor = color3;
+    self.m_nTertiaryColor   = color3;
     self.m_nQuaternaryColor = color4;
 }
 
@@ -2635,7 +2632,7 @@ void SetExtraCarColours(CVehicle& self, int color3, int color4) {
 * @param self CVehicle&
 */
 bool HasCarBeenResprayed(CVehicle& self) {
-    const bool resprayed = self.vehicleFlags.bHasBeenResprayed;
+    const bool resprayed                = self.vehicleFlags.bHasBeenResprayed;
     self.vehicleFlags.bHasBeenResprayed = false;
     return resprayed;
 }
@@ -2906,7 +2903,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
     REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
-    
+
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_BOAT);
