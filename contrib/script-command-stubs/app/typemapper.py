@@ -1,6 +1,7 @@
 import re
 from typing import TypeVar, cast
 
+from .args import args
 from .cpp import is_cpp_reserved_keyword
 from .data import DEFINITIONS, ENUMS
 from .jsontypes import Command, CommandInputParameter, CommandOutputParameter
@@ -37,6 +38,9 @@ OUTPUT_PARAMETER_TYPE_MAPPING = TYPE_MAPPING | {
 
 T = TypeVar("T", bound=CommandInputParameter | CommandOutputParameter)
 def get_vectorized_parameters(params: list[T], is_for_handler: bool):
+    if not args.vectorize_params:
+        return params
+    
     out: list[T] = []
     
     def is_coord_param(param_name: str, coord: str) -> bool:

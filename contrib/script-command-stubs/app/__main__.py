@@ -188,8 +188,7 @@ def update_existing(commands_by_criteria: list[Command]):
             f.write(line)
 
         # Add missing register handler calls
-        if missing_register_handler_commands:
-
+        if args.generate_register_calls and missing_register_handler_commands:
             def get_macro_for_command(cmd: Command) -> str:
                 if cmd.get("attrs", {}).get("is_nop", False):
                     return "REGISTER_COMMAND_NOP"
@@ -257,7 +256,7 @@ def main():
     with output_path.with_stem(f"{output_path.stem}.handlers").open(
         "w", encoding="utf-8"
     ) as f:
-        if args.with_handlers:
+        if args.generate_register_calls:
             # Separately generate handlers and nops to group them together in the output
             for is_nop in [
                 False,
@@ -268,13 +267,13 @@ def main():
                         if is_nop:
                             write_code_line(
                                 f,
-                                f'REGISTER_COMMAND_HANDLER({cmd["name"]}, {util.get_handler_name(cmd)});',
+                                f'REGISTER_COMMAND_NOP({cmd["name"]});',
                                 1,
                             )
                         else:
                             write_code_line(
                                 f,
-                                f'REGISTER_COMMAND_NOP({cmd["name"]}, {util.get_handler_name(cmd)});',
+                                f'REGISTER_COMMAND_HANDLER({cmd["name"]}, {util.get_handler_name(cmd)});',
                                 1,
                             )
 

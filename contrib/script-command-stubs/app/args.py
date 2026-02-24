@@ -33,17 +33,17 @@ arg_parser.add_argument(
     default="default",
 )
 arg_parser.add_argument(
-    "--with-handlers",
+    "--generate-register-calls",
     action="store_true",
     help="Generate `REGISTER_COMMAND_HANDLER` stubs for the commands",
 )
 arg_parser.add_argument(
-    "--commented-out", action="store_true", help="Comment out the generated stubs"
+    "--commented-out", action="store_true", help="Comment out the generated code"
 )
 arg_parser.add_argument(
-    "--transform-params",
+    "--vectorize-params",
     action="store_true",
-    help="Transform groups of x, y, (z) parameters into vector types",
+    help="Transform groups of x, y, (z) parameters into vector types (CVector2D, CVector for cpp handler, or Vector, Vector2D in script docs)",
     default=True,
 )
 args = arg_parser.parse_args()
