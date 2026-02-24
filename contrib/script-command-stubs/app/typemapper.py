@@ -1,4 +1,5 @@
 import re
+from typing import TypeVar, cast
 
 from .cpp import is_cpp_reserved_keyword
 from .data import DEFINITIONS, ENUMS
@@ -34,20 +35,17 @@ OUTPUT_PARAMETER_TYPE_MAPPING = TYPE_MAPPING | {
     # Nothing special for now
 }
 
-
-def get_transformed_input_parameters(command: Command, is_for_handler: bool):
-    params = command.get("input", [])
-    is_static = command.get("attrs", {}).get("is_static", False)
-    out: list[CommandInputParameter] = []
-
+T = TypeVar("T", bound=CommandInputParameter | CommandOutputParameter)
+def get_vectorized_parameters(params: list[T], is_for_handler: bool):
+    out: list[T] = []
+    
     def is_coord_param(param_name: str, coord: str) -> bool:
-        lower_param_name = param_name.lower()
-        return lower_param_name.startswith(coord) or lower_param_name.endswith(coord)
+        lwr_name = param_name.lower()
+        return lwr_name.startswith(coord) or lwr_name.endswith(coord)
 
     i = 0
     while i < len(params):
         param = params[i]
-
         try:
             if is_coord_param(param["name"], "x") and is_coord_param(
                 params[i + 1]["name"], "y"
@@ -56,28 +54,38 @@ def get_transformed_input_parameters(command: Command, is_for_handler: bool):
                     util.to_camel_case(
                         re.sub("x$|^x", "", param["name"], flags=re.IGNORECASE)
                     )
-                    or f"vec{i}"
+                    or ''
                 )
                 if is_coord_param(params[i + 2]["name"], "z"):
                     out.append(
-                        {
+                        cast(T, {
                             "name": name,
                             "type": "CVector" if is_for_handler else "Vector",
-                        }
+                        })
                     )
                     i += 3
                 else:
                     out.append(
-                        {
+                        cast(T, {
                             "name": name,
                             "type": "CVector2D" if is_for_handler else "Vector2D",
-                        }
+                        })
                     )
                     i += 2
                 continue
+            
+            out.append(param)
+            i += 1
         except IndexError:
-            pass
+            break
+        
+    return out + params[i:]
 
+def get_transformed_input_parameters(command: Command, is_for_handler: bool):
+    is_static = command.get("attrs", {}).get("is_static", False)
+    
+    out: list[CommandInputParameter] = []
+    for i, param in enumerate(get_vectorized_parameters(command.get("input", []), is_for_handler)):
         # Handle the common case of a class static function 
         # where the first parameter is the handle of the instance, 
         # by replacing its type with the class name
@@ -107,7 +115,6 @@ def get_transformed_input_parameters(command: Command, is_for_handler: bool):
             param["name"] += "_"
 
         out.append(param)
-        i += 1
 
     return out
 
@@ -124,5 +131,5 @@ def get_transformed_output_parameters(
                 else param["type"]
             ),
         }
-        for param in params
+        for param in get_vectorized_parameters(params, is_for_handler_output)
     ]
