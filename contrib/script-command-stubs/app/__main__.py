@@ -2,6 +2,7 @@ from pathlib import Path
 from pprint import pprint
 import re
 import logging
+from typing import cast
 
 from . import util
 from .data import DEFINITIONS
@@ -45,52 +46,63 @@ def update_existing(commands_by_criteria: list[Command]):
 
         # Find all already registered handlers in the file to avoid adding duplicate registrations/stubs
         # It matches on commented out register lines as well
-        register_handler_macros = {
-            "REGISTER_COMMAND_HANDLER",
-            "REGISTER_COMMAND_UNIMPLEMENTED",
-            "REGISTER_COMMAND_NOP",
-            "REGISTER_UNSUPPORTED_COMMAND_HANDLER",
-        }
-        registered_handler_macros_regex = re.compile(
+        register_handler_macros_regex = re.compile(
             r"^\s*(\/\/)?\s*(?P<macro>"
-            + "|".join(register_handler_macros)
-            + r")\s*\(\s*COMMAND_(?P<command_name>[A-Za-z0-9_]+)\s*,\s*(?P<handler_name>[A-Za-z0-9_]+)\s*\)\s*;"
+            + "|".join(
+                (
+                    "REGISTER_COMMAND_HANDLER",
+                    "REGISTER_UNSUPPORTED_COMMAND_HANDLER",
+                    "REGISTER_COMMAND_NOP",
+                    "REGISTER_COMMAND_UNIMPLEMENTED",
+                )
+            )
+            + r")\s*\(\s*COMMAND_(?P<command_name>[A-Za-z0-9_]+)\s*(?:,\s*(?P<handler>[A-Za-z0-9_]+))?\s*\)\s*;"
         )
-        register_handlers_by_command = {
-            match.group("command_name"): (  # No COMMAND_ prefix
-                match.group("handler_name"),
-                match.group("macro"),
+        register_call_by_command = {
+            cast(str, match.group("command_name")): (  # No COMMAND_ prefix
+                cast(str | None, match.group("handler")),
+                cast(str, match.group("macro")),
             )
             for line in lines
-            if (match := registered_handler_macros_regex.match(line.strip()))
+            if (match := register_handler_macros_regex.match(line.strip()))
         }
-        # pprint(register_handlers_by_command)
+        #pprint(register_call_by_command)
 
-        handler_to_command_map = {
-            handler: commands_by_name.get(command_name.removeprefix("COMMAND_"))
-            for command_name, (handler, _) in register_handlers_by_command.items()
+        commands_by_handler_name = {
+            util.get_handler_name(cmd).lower(): cmd
+            for cmd in all_commands if not cmd.get("attrs", {}).get("is_nop", False)   
         }
-        # pprint(handler_to_command_map)
 
-        # Find commands that match the criteria but don't have a registered handler in the file
+        # Find commands that match the criteria but don't have a handler registered
         missing_register_handler_commands = [
             commands_by_name[cmd_name]
-            for cmd_name in set(cmd["name"] for cmd in commands_by_criteria)
-            - set(register_handlers_by_command.keys())
+            for cmd_name in set(cmd["name"] for cmd in commands_by_criteria).difference(
+                set(register_call_by_command.keys())
+            )
         ]
 
         # Old-style single-line docs comment regex (e.g. `// COMMAND_FOO` or `/// COMMAND_FOO - some description` with or without the `COMMAND_` prefix)
         singleline_docs_comment_regex = re.compile(
-            rf"^\s*//+\s*(?P<command_name>[COMMAND_]?{'|'.join(cmd for cmd in register_handlers_by_command.keys())})(?:\s*-\s*(?P<description>.*))?$"
+            rf"^\s*//+\s*(?P<command_name>[COMMAND_]?{'|'.join(cmd for cmd in register_call_by_command.keys())})(?:\s*-\s*(?P<description>.*))?$"
         )
 
-        # Regex for handler
-        handler_regex = re.compile(
-            rf"^\s*(?P<return_type>[A-Za-z0-9_:]+)\s+(?P<handler_name>{'|'.join(handler for handler, _ in register_handlers_by_command.values())})\s*\((?P<params>[^)]*)\)\s*{{"
+        # Regex for handler function name
+        all_handler_functions = {
+            handler
+            for handler, _ in register_call_by_command.values() if handler
+        } | {
+            util.get_handler_name(cmd)
+            for cmd in commands_by_criteria if not cmd.get("attrs", {}).get("is_nop", False)
+        }
+        #pprint(all_handler_functions)
+        
+        handler_function_regex = re.compile(
+            fr"^\s*(?P<return_type>[A-Za-z0-9_:]+)\s+(?P<handler_name>{'|'.join(all_handler_functions)})\s*\((?P<params>[^)]*)\)\s*{{",
+            re.IGNORECASE,
         )
 
         # Check if line should be written as-is, or needs to be replaced by new docs comment
-        def get_line_info_for_docs(
+        def get_line_info(
             line: str,
         ) -> tuple[Command, bool] | tuple[None, None]:
             # Handle old-style single-line docs comments and replace them with new-style
@@ -107,9 +119,9 @@ def update_existing(commands_by_criteria: list[Command]):
                 )
 
             # Found handler, try to find corresponding command to extract info for docs generation
-            elif match := handler_regex.match(line):
+            elif match := handler_function_regex.match(line):
                 handler_name = match.group("handler_name")
-                command = handler_to_command_map.get(handler_name)
+                command = commands_by_handler_name.get(handler_name.lower())
 
                 if command:
                     return command, False
@@ -122,25 +134,36 @@ def update_existing(commands_by_criteria: list[Command]):
             return None, None
 
         # Keep track of handlers we've already added docs for
-        docs_added_to = set()
+        has_docs_commands = set()
+        handlers_found = set()
 
         # Add docs to handlers
         for line in lines[:register_handlers_line_index]:
             stripped_line = line.strip()
 
-            command, replace_line = get_line_info_for_docs(stripped_line)
-            if command and command["id"] not in docs_added_to:
-                write_docs(f, command)
-                docs_added_to.add(command["id"])
-                if not replace_line:
-                    f.write(line)
-            else:
-                f.write(line)
+            # Process new-style docs comments
+            if match := re.search(
+                r"@command\s+(?P<command>[A-Za-z0-9_]+)", stripped_line
+            ):
+                has_docs_commands.add(match.group("command"))
 
-        logger.info("Added missing docs to %i handlers", len(docs_added_to))
+            command, replace_line = get_line_info(stripped_line)
+            if command:
+                handlers_found.add(command['name'])
+                if command["name"] not in has_docs_commands:
+                    write_docs(f, command)
+                    has_docs_commands.add(command["name"])
+                    if replace_line:
+                        continue
+
+            f.write(line)            
+
+        logger.info("Added missing docs to %i handlers", len(has_docs_commands))
 
         # Add missing stubs (after existing handlers but before the `RegisterHandlers` function)
         for cmd in missing_register_handler_commands:
+            if cmd["name"] in handlers_found:
+                continue
             write_docs(f, cmd)
             write_handler_function_stub(f, cmd)
             f.write("\n")
@@ -158,7 +181,9 @@ def update_existing(commands_by_criteria: list[Command]):
             raise NotImplementedError(
                 "Could not find `REGISTER_COMMAND_HANDLER_BEGIN` in the input file - cannot add missing handlers"
             ) from None
-        for line in lines[register_handlers_line_index:register_command_handler_begin_line_index + 1]:
+        for line in lines[
+            register_handlers_line_index : register_command_handler_begin_line_index + 1
+        ]:
             f.write(line)
 
         # Add missing register handler calls
@@ -170,12 +195,15 @@ def update_existing(commands_by_criteria: list[Command]):
                     return "REGISTER_UNSUPPORTED_COMMAND_HANDLER"
                 else:
                     return "REGISTER_COMMAND_HANDLER"
-            for line in sorted([
-                f'{get_macro_for_command(cmd)}(COMMAND_{cmd["name"]}, {util.get_handler_name(cmd)});'
-                for cmd in missing_register_handler_commands
-            ]):
+
+            for line in sorted(
+                [
+                    f'{get_macro_for_command(cmd)}(COMMAND_{cmd["name"]}, {util.get_handler_name(cmd)});'
+                    for cmd in missing_register_handler_commands
+                ]
+            ):
                 write_code_line(f, line, 1)
-            
+
             logger.info(
                 "Added missing handlers for %i commands",
                 len(missing_register_handler_commands),
@@ -189,8 +217,6 @@ def update_existing(commands_by_criteria: list[Command]):
 
 
 def main():
-    output_path = Path(args.output)
-
     # Gather commands matching the specified criteria (extension, command name pattern, class name pattern, etc...)
     commands = [
         command
@@ -208,6 +234,8 @@ def main():
 
     if args.input:
         return update_existing(commands)
+
+    output_path = Path(args.output)
 
     # Write stubs
     with output_path.open("w", encoding="utf-8") as f:
