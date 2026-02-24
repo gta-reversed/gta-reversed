@@ -75,3 +75,12 @@ We've got some tools, mostly for script commands:
 - [re3 team](https://github.com/GTAmodding/re3).
 - And everyone who contributed to GTA:SA reversing.
 - All contributors of [Sanny Builder Library](https://library.sannybuilder.com/#/)
+
+# Star History
+<a href="https://www.star-history.com/#gta-reversed/gta-reversed&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&legend=top-left" />
+ </picture>
+</a>

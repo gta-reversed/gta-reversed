@@ -716,7 +716,7 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
     }
 
     if (auto mi = CModelInfo::GetModelInfo(modelId); mi->GetModelType() == MODEL_INFO_WEAPON) {
-        return mi->AsWeaponModelInfoPtr()->m_weaponInfo;
+        return mi->AsWeaponModelInfoPtr()->GetWeaponInfo();
     }
 
     return WEAPON_UNARMED;
