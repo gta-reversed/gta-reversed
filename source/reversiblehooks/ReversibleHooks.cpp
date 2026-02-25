@@ -127,7 +127,7 @@ void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
 #endif
 
 void WriteHooksToFile(const std::filesystem::path& file) {
-    const auto canonical = std::filesystem::canonical(file);
+    const auto path = std::filesystem::weakly_canonical(file);
     if (std::ofstream of{ file }) {
         of << "class,fn_name,address,reversed,locked,is_virtual\n";
         s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
@@ -155,9 +155,9 @@ void WriteHooksToFile(const std::filesystem::path& file) {
                     << (item->Type() == Base::HookType::Virtual) << '\n'; // is_virtual
             }
         });
-        NOTSA_LOG_INFO("Hooks written to `{}`", canonical.string());
+        NOTSA_LOG_INFO("Hooks written to `{}`", path.string());
     } else {
-        NOTSA_LOG_ERR("Failed to open file `{}` for writing hooks!", canonical.string());
+        NOTSA_LOG_ERR("Failed to open file `{}` for writing hooks!", path.string());
     }
 }
 
