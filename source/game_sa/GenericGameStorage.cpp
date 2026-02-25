@@ -214,15 +214,15 @@ void CGenericGameStorage::InitRadioStationPositionList() {
 // NOTSA
 static std::string SaveVersionName(uint32 version) {
     switch (version) {
-    case 0x35DA8175: return "v1 Unmodified";
-    case 0x65F3E583: return "v1 Modified";
-    case 0x9A6EBE58: return "v1.1 Unmodified";
-    case 0x9345765E: return "v1.1 Modified";
-    case 0xFD148DF6: return "v2 Unmodified / PS2 v2 (Greatest Hits)";
-    case 0x5D31CC22: return "v2 (German)";
-    case 0x641DDC4C: return "PS2 v1";
-    case 0xDB72E396: return "v2 (Austrian)";
-    default:         return std::format("Unknown({})", version);
+    case CKeyGen::GetKey("Aug  7 197223:11:02"): return "PS2 v1";
+    case CKeyGen::GetKey("Apr 28 200510:28:55"): return "v1 Unmodified";
+    case CKeyGen::GetKey("Apr 28 200510:40:18"): return "v1 Modified";
+    case CKeyGen::GetKey("Aug  5 200516:43:32"): return "v1.1 Unmodified";
+    case CKeyGen::GetKey("Aug  5 200516:45:06"): return "v1.1 Modified";
+    case CKeyGen::GetKey("Aug  7 197223:11:01"): return "v2 Unmodified / PS2 v2 (Greatest Hits)";
+    case CKeyGen::GetKey("Oct 17 201418:37:43"): return "v2 (Austrian)";
+    case 0x5D31CC22:                             return "v2 (German)";
+    default:                                     return std::format("Unknown({})", version);
     }
 }
 
