@@ -3467,7 +3467,6 @@ CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
 }
 };
 
-// 0x46BCEA - COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY
 /*
  * @opcode 0792
  * @command CLEAR_CHAR_TASKS_IMMEDIATELY
