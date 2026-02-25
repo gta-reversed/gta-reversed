@@ -1,9 +1,13 @@
 #pragma once
 
+import notsa.script.CommandParser.Exceptions;
+
 #include <utility>
+#include <string_view>
 #include "StoreArg.hpp"
 #include "ReadArg.hpp"
 #include "RunningScript.h"
+
 
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include <reversiblehooks/ReversibleHook/ScriptCommand.h>
@@ -22,13 +26,13 @@ inline OpcodeResult CollectArgsAndCall(CRunningScript* S, eScriptCommands comman
         };
 
         if constexpr (std::is_same_v<T_FnRet, void>) {
-            CallCommandFn(); // Returns void, nothing to push
+            CallCommandFn(); /* Returns void, nothing to push */
         } else {
             T_FnRet ret = CallCommandFn();
             if constexpr (std::is_same_v<T_FnRet, OpcodeResult>) { 
-                return ret;
+                return ret; /* doesn't need to be stored */
             } else {
-                StoreArg(S, std::forward<T_FnRet>(ret)); // Store result to script
+                StoreArg(S, std::forward<T_FnRet>(ret)); /* Store result to script */
             }
         }
 
@@ -50,31 +54,31 @@ inline OpcodeResult CollectArgsAndCall(CRunningScript* S, eScriptCommands comman
         } else {
             return ContinueWithArg(notsa::script::Read<T_ToRead>(S)); // Read next parameter and continue
         }
-    
-        // Don't remove this, we might need it!
-        //try {
-        //} catch (const std::exception&) {
-            // In cases the argument parser has errored out we still
-            // have to read all values before returning.
-            // Reason: The IP has to be increased
-            //((void)(notsa::script::Read<T_FnArgs>(S)), ...);
-            //return OR_CONTINUE;
-        //}
     }
 }
 
 //! That is, ones that aren't used anywhere.
 //! If this ever gets called, that means that the command is used after all, and shouldn't be hooked as unimplemented.
 inline auto NotImplemented(CRunningScript& S, eScriptCommands cmd) {
-    NOTSA_LOG_DEBUG("[{}][IP: {:#x} + {:#x}]: Unimplemented command has been called! [ID: {:04X}; Name: {}]", S.m_szName, LOG_PTR(S.m_BaseIP), LOG_PTR(S.m_IP - S.m_BaseIP), (unsigned)(cmd), GetScriptCommandName(cmd));
-    NOTSA_DEBUGBREAK(); // Something went horribly wrong here, and the game will crash after this [if the function is supposed to take/return any arguments], so better stop here.
-    return OR_INTERRUPT; // Vanilla SA behavior
+    throw command_parser::exceptions::CommandNotImplemented{};
 }
 
 template<eScriptCommands Command, auto* CommandFn>
 inline OpcodeResult CommandParser(CRunningScript* S) {
     CRunningScript::ScriptArgCharNextFreeBuffer = 0;
-    return detail::CollectArgsAndCall(S, Command, CommandFn);
+
+    const auto LogException                     = [S](std::string_view name, std::exception& e) {
+        NOTSA_LOG_ERR("[{}]:[{:#X} + {:#X}]: {} @ {}: {}", S->GetName(), LOG_PTR(S->m_BaseIP), LOG_PTR(S->m_IP - S->m_BaseIP), name, GetScriptCommandName(Command), e.what());
+    };
+    try {
+        return detail::CollectArgsAndCall(S, Command, CommandFn);
+    } catch (std::invalid_argument& e) {
+        LogException("Invalid argument", e);
+    } catch (command_parser::exceptions::CommandNotImplemented& e) {
+        LogException("Not implemented", e);
+    }
+
+    return OR_EXCEPTION;
 } 
 
 template<eScriptCommands Command, auto* CommandFn>
