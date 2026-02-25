@@ -4,6 +4,7 @@
 #include <CommandParser/Parser.hpp>
 #include <extensions/Shapes/AngledRect.hpp>
 #include "Utility.h"
+#include <Bugs.hpp>
 
 #include <TaskTypes/TaskComplexDie.h>
 #include <TaskTypes/TaskSimpleCarSetPedInAsDriver.h>
@@ -351,10 +352,8 @@ auto SetCharRotation(CPed& ped, CVector angles) {
  * @param {Char} self
  * @param {bool} state
  */
-auto SetCharAllowedToDuck(CPed& ped, CVector rotdeg) {
-    CWorld::Remove(&ped);
-    ped.SetOrientation(rotdeg * DegreesToRadians(1.f)); // degrees => radians
-    CWorld::Add(&ped);
+auto SetCharAllowedToDuck(CPed& ped, bool bCanDuck) {
+    ped.bNotAllowedToDuck = !bCanDuck;
 }
 
 /*
@@ -510,6 +509,11 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
  */
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
+
+    if (notsa::bugfixes::GenericCrashing && !veh) {
+        NOTSA_LOG_WARN("Tried to store vehicle of a ped that isn't in a vehicle!");
+        return -1; // TODO: Raise exception here for the error
+    }
 
     if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
         // Unstore previous (If it still exists)
@@ -1829,8 +1833,8 @@ auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civi
  * @param {Char} self
  * @param {model_char} modelId
  */
-auto IsCharModel(CPed& ped, int8 accuracy) {
-    ped.m_nWeaponAccuracy = accuracy;
+auto IsCharModel(CPed& ped, eModelID modelId) {
+    return ped.m_nModelIndex == modelId;
 }
 
 /*
@@ -3456,7 +3460,7 @@ bool IsCharAttachedToAnyCar(CPed* ped) {
  * @returns {Car} handle
  */
 CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
-    if (!ped->GetIsTypeVehicle()) {
+    if (!ped || !ped->GetIsTypeVehicle() || !ped->m_pAttachedTo) {
         return nullptr;
     }
     return ped->m_pAttachedTo->AsVehicle();
