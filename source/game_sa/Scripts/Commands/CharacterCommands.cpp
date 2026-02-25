@@ -4,7 +4,7 @@
 #include <CommandParser/Parser.hpp>
 #include <extensions/Shapes/AngledRect.hpp>
 #include "Utility.h"
-#include <Bugs.hpp>
+#include <reversiblebugfixes/Bugs.hpp>
 
 #include <TaskTypes/TaskComplexDie.h>
 #include <TaskTypes/TaskSimpleCarSetPedInAsDriver.h>
