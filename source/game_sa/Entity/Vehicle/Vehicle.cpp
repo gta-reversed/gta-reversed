@@ -105,6 +105,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(SetCollisionLighting, 0x6D0CA0);
     RH_ScopedInstall(UpdateLightingFromStoredPolys, 0x6D0CC0);
     RH_ScopedInstall(CalculateLightingFromCollision, 0x6D0CF0);
+    RH_ScopedInstall(ResetAfterRender, 0x6D0E20);
     RH_ScopedInstall(ProcessWheel, 0x6D6C00);
     RH_ScopedInstall(ApplyBoatWaterResistance, 0x6D2740);
     RH_ScopedInstall(ProcessBoatControl, 0x6DBCE0);
@@ -1208,7 +1209,14 @@ void CVehicle::CalculateLightingFromCollision() {
 
 // 0x6D0E20
 void CVehicle::ResetAfterRender() {
-    ((void(__thiscall*)(CVehicle*))0x6D0E20)(this);
+    RwRenderStateSet(RwRenderState::rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
+    CVehicleModelInfo::ResetEditableMaterials((RpClump*)GetRwObject());
+
+    if (IsAutomobile()) {
+        auto* const mi = GetVehicleModelInfo();
+        assert(mi != nullptr);
+        AsAutomobile()->CustomCarPlate_AfterRenderingStop(mi);
+    }
 }
 
 // 0x6D1080
@@ -4495,17 +4503,17 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 
     bool collided = false;
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect(CRect{ m_matrix->TransformPoint(pos), radius }, [&](int32 x, int32 y) {
         const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list, float damage) {
             return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
-        auto* const s = GetSector(x, y);
-        auto* const rs = GetRepeatSector(x, y);
-        collided |= ProcessSector(s->m_buildings, damageMult);
-        collided |= ProcessSector(rs->Vehicles, damageMult);
-        collided |= ProcessSector(rs->Peds, 0.0);
-        collided |= ProcessSector(rs->Objects, damageMult);
+        auto& s = CWorld::GetSector(x, y);
+        auto& rs = CWorld::GetRepeatSector(x, y);
+        collided |= ProcessSector(s.Buildings, damageMult);
+        collided |= ProcessSector(rs.Vehicles, damageMult);
+        collided |= ProcessSector(rs.Peds, 0.0f);
+        collided |= ProcessSector(rs.Objects, damageMult);
         return 1;
     });
 

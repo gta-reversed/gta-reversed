@@ -9,6 +9,7 @@
 #include <extensions/utility.hpp>
 #include "PtrListDoubleLink.h"
 #include "PtrNodeDoubleLink.h"
+#include "Sector.h"
 
 class CPedGroup;
 class CPlayerInfo;
@@ -20,6 +21,13 @@ class CPed;
 class CVehicle;
 class CPlayerPed;
 class CWanted;
+
+// NOTSA
+enum class eSprayPaintState : int32 {
+    NOT_FOUND,
+    DISCOVERED,
+    PAINTED
+};
 
 constexpr int32 MAX_PLAYERS = 2;
 constexpr int32 MAX_WORLD_UNITS = 6000;
@@ -37,122 +45,89 @@ constexpr int32 MAX_LOD_PTR_LISTS_Y = 30;
 constexpr int32 MAX_LOD_PTR_LISTS = MAX_LOD_PTR_LISTS_X * MAX_LOD_PTR_LISTS_Y;
 
 constexpr inline float WORLD_BOUND_RANGE = 3000.0f;
-constexpr inline CRect WORLD_BOUNDS{-3000.0F, -3000.0F, 3000.0F, 3000.0F};
+constexpr inline CRect WORLD_BOUNDS{ -3000.0F, -3000.0F, 3000.0F, 3000.0F };
 constexpr float MAP_Z_LOW_LIMIT = -100.0f;
 
 class CWorld {
 public:
-    static int32& ms_iProcessLineNumCrossings;
-    static float& fWeaponSpreadRate;
-    // entity to ignore
-    static CEntity*& pIgnoreEntity;
-    static bool& bSecondShift;
-    static bool& bProcessCutsceneOnly;
-    static bool& bForceProcessControl;
-    static bool& bIncludeBikers;
-    static bool& bIncludeCarTyres;
-    static bool& bIncludeDeadPeds;
-    static bool& bNoMoreCollisionTorque;
-    static bool& bDoingCarCollisions;
+    inline static auto& Players = StaticRef<CPlayerInfo[MAX_PLAYERS]>(0xB7CD98);
     // Current player
-    static int8& PlayerInFocus;
-    static uint16& ms_nCurrentScanCode;
-    static inline CPlayerInfo(&Players)[MAX_PLAYERS] = *(CPlayerInfo(*)[MAX_PLAYERS])0xB7CD98;
+    inline static auto& PlayerInFocus = StaticRef<uint8>(0xB7CD74);
+    inline static auto& bDoingCarCollisions = StaticRef<bool>(0xB7CD73);
+    inline static auto& bNoMoreCollisionTorque = StaticRef<bool>(0xB7CD72);
+    inline static auto& bForceProcessControl = StaticRef<bool>(0xB7CD6E);
+    inline static auto& bProcessCutsceneOnly = StaticRef<bool>(0xB7CD6D);
+    inline static auto& bSecondShift = StaticRef<bool>(0xB7CD6C);
+
+    inline static auto& bIncludeDeadPeds = StaticRef<bool>(0xB7CD71);
+    inline static auto& bIncludeCarTyres = StaticRef<bool>(0xB7CD70);
+    inline static auto& bIncludeBikers = StaticRef<bool>(0xB7CD6F);
+    // entity to ignore
+    inline static auto& pIgnoreEntity = StaticRef<CEntity*>(0xB7CD68);
+    inline static auto& fWeaponSpreadRate = StaticRef<float>(0xB7CD64);
+    inline static auto& ms_iProcessLineNumCrossings = StaticRef<int32>(0xB7CD60);
+
+    inline static auto& SnookerTableMax = StaticRef<CVector>(0x8CDEF4);
+    inline static auto& SnookerTableMin = StaticRef<CVector>(0x8CDF00);
+
     // Use GetSector() to access this array
-    static inline CSector(&ms_aSectors)[MAX_SECTORS_Y][MAX_SECTORS_X] = *(CSector(*)[MAX_SECTORS_Y][MAX_SECTORS_X])0xB7D0B8;
+    inline static auto& ms_aSectors = StaticRef<CSector[MAX_SECTORS_Y][MAX_SECTORS_X]>(0xB7D0B8);
     // Use GetRepeatSector() to access this array
-    static inline CRepeatSector(&ms_aRepeatSectors)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X] = *(CRepeatSector(*)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X])0xB992B8;
+    inline static auto& ms_aRepeatSectors = StaticRef<CRepeatSector[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X]>(0xB992B8);
     // Use GetLodPtrList() to access this array
-    static inline auto& ms_aLodPtrLists               = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
-    static inline auto& ms_listMovingEntityPtrs       = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
-    static inline auto& ms_listObjectsWithControlCode = StaticRef<CPtrListDoubleLink<CObject*>>(0xB9ACCC);
+    inline static auto& ms_aLodPtrLists = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
+    inline static auto& ms_listMovingEntityPtrs = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
+    inline static auto& ms_listObjectsWithControlCode = StaticRef<CPtrListDoubleLink<CObject*>>(0xB9ACCC);
+    inline static auto& ms_nCurrentScanCode = StaticRef<uint16>(0xB7CD78);
 
-    static inline auto& m_aTempColPts = *(std::array<CColPoint, 32>*)0xB9ACD0;
-    static CVector &SnookerTableMax; // default { 497.7925, -1670.3999, 13.19 }
-    static CVector &SnookerTableMin; // default { 2495.8525, -1671.4099, 12.9 }
+    inline static auto& m_aTempColPts = StaticRef<std::array<CColPoint, 32>>(0xB9ACD0);
 
-    static void InjectHooks();
+    static void ResetLineTestOptions();
 
     static void Initialise();
     static void ShutDown();
     static void ClearForRestart();
+
+    static CSector& GetSector(int32 x, int32 y);
+    static CRepeatSector& GetRepeatSector(int32 x, int32 y);
+    static auto& GetLodPtrList(int32 x, int32 y);
+
+    template<typename PtrListType>
+    static PtrListType& GetMovingEntityPtrList() { return ms_listMovingEntityPtrs; }
+    template<typename PtrListType>
+    static PtrListType& GetObjectsWithControlCodePtrList() { return ms_listObjectsWithControlCode; }
+
+    static void AdvanceCurrentScanCode();
+
+    // 0x407250
+    static uint16 GetCurrentScanCode() {
+        return CWorld::ms_nCurrentScanCode;
+    }
+
     static void Add(CEntity* entity);
     static void Remove(CEntity* entity);
-    static void ResetLineTestOptions();
-    template<typename PtrListType>
-    static bool ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& colPoint, float& maxTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, CStoredCollPoly* collPoly);
-    template<typename PtrListType>
-    static void CastShadowSectorList(PtrListType& ptrList, float arg1, float arg2, float arg3, float arg4);
+
+    static bool GetIsLineOfSightClear(const CVector& origin, const CVector& target, bool buildings, bool vehicles, bool peds, bool objects, bool dummies = false, bool doSeeThroughCheck = false, bool doCameraIgnoreCheck = false);
+    static bool ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
+    static bool ProcessVerticalLine(const CVector& origin, float distance, CColPoint& outColPoint, CEntity*& outEntity, bool buildings = false, bool vehicles = false, bool peds = false, bool objects = false, bool dummies = false, bool doSeeThroughCheck = false, CStoredCollPoly* outCollPoly = nullptr);
+    static bool ProcessVerticalLine_FillGlobeColPoints(const CVector& origin, float distance, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
+    // static float GetLightingAtPoint(const CVector&, float); // unknown
+
+    static void TriggerExplosion(const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
+    static void CastShadow(float x1, float y1, float x2, float y2);
+
     static void ProcessForAnimViewer();
-    static void ProcessPedsAfterPreRender();
-    static void ClearScanCodes();
+    static void Process();
+    // static void Render(); // unknown
+
+    static void FindObjectsInRange(const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
     template<typename PtrListType>
     static void FindObjectsInRangeSectorList(PtrListType& arg0, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities);
-    template<typename PtrListType>
-    static void FindObjectsOfTypeInRangeSectorList(uint32 modelId, PtrListType& ptrList, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities);
-    template<typename PtrListType>
-    static bool ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrList, const CColLine& colLine, CEntity*& outEntity, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
-    static void RemoveStaticObjects();
-    template<typename PtrListType>
-    static void TestForBuildingsOnTopOfEachOther(PtrListType& ptrList);
-    template<typename PtrListType>
-    static void TestForUnusedModels(PtrListType& ptrList, int32* models);
-    static void RemoveEntityInsteadOfProcessingIt(CEntity* entity);
-    static void CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
-    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
-    static bool CameraToIgnoreThisObject(CEntity* entity);
-    static int32 FindPlayerSlotWithPedPointer(void* ptr);
-    static int32 FindPlayerSlotWithRemoteVehiclePointer(void* ptr);
-    static int32 FindPlayerSlotWithVehiclePointer(CEntity* vehiclePtr);
-    static bool ProcessVerticalLineSector_FillGlobeColPoints(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
-    static bool ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
-    static void CastShadow(float x1, float y1, float x2, float y2);
-    static void ProcessAttachedEntities();
-    template<typename PtrListType>
-    static bool GetIsLineOfSightSectorListClear(PtrListType& ptrList, const CColLine& colLine, bool doSeeThroughCheck, bool doCameraIgnoreCheck);
-    static void FindObjectsInRange(const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
+
     static void FindObjectsOfTypeInRange(uint32 modelId, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
     static void FindLodOfTypeInRange(uint32 modelId, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities);
     template<typename PtrListType>
-    static void FindObjectsKindaCollidingSectorList(PtrListType& ptrList, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities);
-    template<typename PtrListType>
-    static void FindObjectsIntersectingCubeSectorList(PtrListType& ptrList, const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities);
-    template<typename PtrListType>
-    static void FindObjectsIntersectingAngledCollisionBoxSectorList(PtrListType& ptrList, const CBox& box, const CMatrix& transform, const CVector& point, int16* outCount, int16 maxCount, CEntity** outEntities);
-    template<typename PtrListType>
-    static void FindMissionEntitiesIntersectingCubeSectorList(PtrListType& ptrList, const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities, bool vehiclesList, bool pedsList, bool objectsList);
-    template<typename PtrListType>
-    static void FindNearestObjectOfTypeSectorList(int32 modelId, PtrListType& ptrList, const CVector& point, float radius, bool b2D, CEntity *& outEntity, float& outDistance);
-    static void RemoveReferencesToDeletedObject(CEntity* entity);
-    static void SetPedsOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
-    static void SetPedsChoking(float x, float y, float z, float radius, CEntity* gasCreator);
-    static void SetCarsOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
-    static int32 SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
-    static void RemoveFallenPeds();
-    static void RemoveFallenCars();
-    static void UseDetonator(CPed* creator);
-    static CEntity* TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doCameraIgnoreCheck);
-    template<typename PtrListType>
-    static CEntity* TestSphereAgainstSectorList(PtrListType& ptrList, CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool doCameraIgnoreCheck);
-    static void PrintCarChanges();
-    static void TestForBuildingsOnTopOfEachOther();
-    static void TestForUnusedModels();
-    static void ClearCarsFromArea(float x1, float y1, float z1, float x2, float y2, float z2);
-    static void ClearPedsFromArea(float x1, float y1, float z1, float x2, float y2, float z2);
-    static void SetAllCarsCanBeDamaged(bool enable);
-    static void ExtinguishAllCarFiresInArea(CVector point, float radius);
-    static void CallOffChaseForArea(float x1, float y1, float x2, float y2);
-    static void StopAllLawEnforcersInTheirTracks();
-    static CVehicle* FindUnsuspectingTargetCar(CVector point, CVector playerPosn);
-    static CPed* FindUnsuspectingTargetPed(CVector point, CVector playerPosn);
-    template<typename PtrListType>
-    static bool ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& outColPoint, float& minTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, bool doIgnoreCameraCheck, bool doShootThroughCheck);
-    static bool ProcessVerticalLine(const CVector& origin, float distance, CColPoint& outColPoint, CEntity*& outEntity, bool buildings = false, bool vehicles = false, bool peds = false, bool objects = false, bool dummies = false, bool doSeeThroughCheck = false, CStoredCollPoly* outCollPoly = nullptr);
-    static bool ProcessVerticalLine_FillGlobeColPoints(const CVector& origin, float distance, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
-    template<typename PtrListType>
-    static void TriggerExplosionSectorList(PtrListType& ptrList, const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
-    static void Process();
-    static bool GetIsLineOfSightSectorClear(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doIgnoreCameraCheck);
+    static void FindObjectsOfTypeInRangeSectorList(uint32 modelId, PtrListType& ptrList, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities);
 
     /*!
     * Find object that are "kinda" colliding at `point`
@@ -170,33 +145,139 @@ public:
     * @param dummies           Check dummies?
     */
     static void FindObjectsKindaColliding(const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
+    template<typename PtrListType>
+    static void FindObjectsKindaCollidingSectorList(PtrListType& ptrList, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities);
 
     static void FindObjectsIntersectingCube(const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
+    template<typename PtrListType>
+    static void FindObjectsIntersectingCubeSectorList(PtrListType& ptrList, const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities);
+
     static void FindObjectsIntersectingAngledCollisionBox(const CBox& box, const CMatrix& transform, const CVector& point, float x1, float y1, float x2, float y2, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
+    template<typename PtrListType>
+    static void FindObjectsIntersectingAngledCollisionBoxSectorList(PtrListType& ptrList, const CBox& box, const CMatrix& transform, const CVector& point, int16* outCount, int16 maxCount, CEntity** outEntities);
+
     static void FindMissionEntitiesIntersectingCube(const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities, bool vehicles, bool peds, bool objects);
+    template<typename PtrListType>
+    static void FindMissionEntitiesIntersectingCubeSectorList(PtrListType& ptrList, const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities, bool vehiclesList, bool pedsList, bool objectsList);
+
     static CEntity* FindNearestObjectOfType(int32 modelId, const CVector& point, float radius, bool b2D, bool buildings, bool vehicles, bool peds, bool objects, bool dummies);
+    template<typename PtrListType>
+    static void FindNearestObjectOfTypeSectorList(int32 modelId, PtrListType& ptrList, const CVector& point, float radius, bool b2D, CEntity*& outEntity, float& outDistance);
+
     static float FindGroundZForCoord(float x, float y);
+
     static float FindGroundZFor3DCoord(CVector coord, bool* outResult = nullptr, CEntity** outEntity = nullptr);
+
     static float FindRoofZFor3DCoord(float x, float y, float z, bool* outResult);
+
     static float FindLowestZForCoord(float x, float y);
-    static void RepositionOneObject(CEntity* object);
-    static void ClearExcitingStuffFromArea(const CVector& point, float radius, uint8 bRemoveProjectilesAndShadows);
-    static bool GetIsLineOfSightClear(const CVector& origin, const CVector& target, bool buildings, bool vehicles, bool peds, bool objects, bool dummies = false, bool doSeeThroughCheck = false, bool doCameraIgnoreCheck = false);
-    static bool ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CColPoint& outColPoint, float& maxTouchDistance, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
-    static void TriggerExplosion(const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
-    static void SetWorldOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
+
+    static void CheckBlockListIntegrity();
+
+    static void RemoveReferencesToDeletedObject(CEntity* entity);
+
+    static void SetPedsOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
+
+    static void SetPedsChoking(float x, float y, float z, float radius, CEntity* gasCreator);
+
+    static void SetCarsOnFire(CVector pos, float radius, CEntity* fireCreator);
+
+    static void SetWorldOnFire(CVector pos, float radius, CEntity* fireCreator);
+
+    static eSprayPaintState SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
+
+    static void CheckBuildingOrientations(); // in III
+
+    static void RemoveFallenPeds();
+
+    static void RemoveFallenCars();
+
     static void RepositionCertainDynamicObjects();
-    static bool ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
-    static void IncrementCurrentScanCode();
 
-    // 0x4072C0
-    static auto& GetLodPtrList(int32 x, int32 y) {
-        assert(x < MAX_LOD_PTR_LISTS_X);
-        assert(y < MAX_LOD_PTR_LISTS_Y);
+    static void RepositionOneObject(CEntity* object);
 
-        return ms_aLodPtrLists[y][x];
-    }
+    static void UseDetonator(CPed* creator);
 
+    static void PrintCarChanges();
+
+    static void RemoveStaticObjects();
+
+    static CEntity* TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doCameraIgnoreCheck);
+    template<typename PtrListType>
+    static CEntity* TestSphereAgainstSectorList(PtrListType& ptrList, CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool doCameraIgnoreCheck);
+
+    static void TestForBuildingsOnTopOfEachOther();
+    template<typename PtrListType>
+    static void TestForBuildingsOnTopOfEachOther(PtrListType& ptrList);
+    static void TestForUnusedModels();
+    template<typename PtrListType>
+    static void TestForUnusedModels(PtrListType& ptrList, int32* models);
+
+    static void RemoveEntityInsteadOfProcessingIt(CEntity* entity);
+
+    static void ClearExcitingStuffFromArea(const CVector& point, float radius, uint8 bRemoveProjectilesAndShadows);
+
+    static void ClearCarsFromArea(float x1, float y1, float z1, float x2, float y2, float z2);
+
+    static void ClearPedsFromArea(float x1, float y1, float z1, float x2, float y2, float z2);
+
+    static void SetAllCarsCanBeDamaged(bool enable);
+
+    static void ExtinguishAllCarFiresInArea(CVector point, float radius);
+
+    static void CallOffChaseForArea(float x1, float y1, float x2, float y2);
+    static void CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
+    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, float minX, float minY, float maxX, float maxY, float biggerMinX, float biggerMinY, float biggerMaxX, float biggerMaxY);
+
+    static void HandleCollisionZoneChange(eLevelName oldZone, eLevelName newZone);
+    // static void FindZoneRespawnPoint(eLevelName oldZone, eLevelName newZone, CVector* out); // in III, dont SA
+    static void DoZoneTestForChaser(CPhysical* physical);
+
+    static void StopAllLawEnforcersInTheirTracks();
+
+    static int32 FindPlayerSlotWithPedPointer(void* ptr);
+    static int32 FindPlayerSlotWithRemoteVehiclePointer(void* ptr);
+    static int32 FindPlayerSlotWithVehiclePointer(CEntity* vehiclePtr);
+
+    // static bool IsPointInWorld(float x, float y); // unknown
+
+    static void ProcessAttachedEntities();
+    static void ProcessPedsAfterPreRender();
+
+    static CVehicle* FindUnsuspectingTargetCar(CVector point, CVector playerPosn);
+
+    static CPed* FindUnsuspectingTargetPed(CVector point, CVector playerPosn);
+
+protected:
+    static void ClearScanCodes();
+
+    static bool GetIsLineOfSightSectorClear(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doIgnoreCameraCheck);
+    static bool ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CColPoint& outColPoint, float& maxTouchDistance, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
+    static bool ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
+    static bool ProcessVerticalLineSector_FillGlobeColPoints(CSector& sector, CRepeatSector& repeatSector, const CColLine& colLine, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
+
+    template<typename PtrListType>
+    static bool GetIsLineOfSightSectorListClear(PtrListType& ptrList, const CColLine& colLine, bool doSeeThroughCheck, bool doCameraIgnoreCheck);
+    template<typename PtrListType>
+    static bool ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& outColPoint, float& minTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, bool doIgnoreCameraCheck, bool doShootThroughCheck);
+    template<typename PtrListType>
+    static bool ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& colPoint, float& maxTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, CStoredCollPoly* collPoly);
+    template<typename PtrListType>
+    static bool ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrList, const CColLine& colLine, CEntity*& outEntity, bool doSeeThroughCheck, CStoredCollPoly* outCollPoly);
+
+    template<typename PtrListType>
+    static void TriggerExplosionSectorList(PtrListType& ptrList, const CVector& point, float radius, float visibleDistance, CEntity* victim, CEntity* creator, bool processVehicleBombTimer, float damage);
+    template<typename PtrListType>
+    static void CastShadowSectorList(PtrListType& ptrList, float xmin, float ymin, float xmax, float ymax);
+
+public:
+    static bool CameraToIgnoreThisObject(CEntity* entity);
+
+private: // NOTSA:
+    friend void InjectHooksMain();
+    static void InjectHooks();
+
+public:
     // Returns sector index in range -60 to 60 (Example: -3000 => -60, 3000 => 60)
     static float GetHalfMapSectorX(float x) { return x / static_cast<float>(MAX_WORLD_UNITS / MAX_SECTORS_X); }
     static float GetHalfMapSectorY(float y) { return y / static_cast<float>(MAX_WORLD_UNITS / MAX_SECTORS_Y); }
@@ -209,15 +290,13 @@ public:
     static int32 GetSectorX(float x) { return static_cast<int32>(std::floor(GetSectorfX(x))); }
     static int32 GetSectorY(float y) { return static_cast<int32>(std::floor(GetSectorfY(y))); }
 
-    static float GetSectorPosX(int32 sector)
-    {
+    static float GetSectorPosX(int32 sector) {
         constexpr auto HalfOfTotalSectorsX = MAX_SECTORS_X / 2;
         constexpr auto fTotalMapUnitsX = MAX_WORLD_UNITS / MAX_SECTORS_X;
         return static_cast<float>((sector - HalfOfTotalSectorsX) * fTotalMapUnitsX + (fTotalMapUnitsX / 2));
     }
 
-    static float GetSectorPosY(int32 sector)
-    {
+    static float GetSectorPosY(int32 sector) {
         constexpr auto HalfOfTotalSectorsY = MAX_SECTORS_Y / 2;
         constexpr auto fTotalMapUnitsY = MAX_WORLD_UNITS / MAX_SECTORS_Y;
         return static_cast<float>((sector - HalfOfTotalSectorsY) * fTotalMapUnitsY + (fTotalMapUnitsY / 2));
@@ -233,19 +312,17 @@ public:
     // returns sector index in range 0 to 30 (covers full map)
     static int32 GetLodSectorX(float fSector) { return static_cast<int32>(std::floor(GetLodSectorfX(fSector))); }
     static int32 GetLodSectorY(float fSector) { return static_cast<int32>(std::floor(GetLodSectorfY(fSector))); }
-    static float GetLodSectorPosX(int32 sector)
-    {
+    static float GetLodSectorPosX(int32 sector) {
         const int32 HalfOfTotalSectorsX = MAX_LOD_PTR_LISTS_X / 2;
         const float fTotalMapUnitsX = static_cast<float>(MAX_WORLD_UNITS / MAX_LOD_PTR_LISTS_X);
         return (sector - HalfOfTotalSectorsX) * fTotalMapUnitsX + (fTotalMapUnitsX / 2);
     }
-    static float GetLodSectorPosY(int32 sector)
-    {
+    static float GetLodSectorPosY(int32 sector) {
         const int32 HalfOfTotalSectorsY = MAX_LOD_PTR_LISTS_Y / 2;
         const float fTotalMapUnitsY = static_cast<float>(MAX_WORLD_UNITS / MAX_LOD_PTR_LISTS_Y);
         return (sector - HalfOfTotalSectorsY) * fTotalMapUnitsY + (fTotalMapUnitsY / 2);
     }
-    static bool IsInWorldBounds(CVector2D pos) { // NOTSA
+    static bool IsInWorldBounds(CVector2D pos) {
         return pos.x > -3000.0f && pos.x < 3000.0f
             && pos.y > -3000.0f && pos.y < 3000.0f;
     }
@@ -253,8 +330,6 @@ public:
     static void RemoveVehicleAndItsOccupants(CVehicle* veh);
 
     /*!
-    * @notsa
-    * 
     * @brief Call `fn` with the `x, y` grid position of all sectors between the specified grid positions
     *
     * @return `fn` may return `false` to stop the iteration in which case
@@ -276,8 +351,6 @@ public:
     }
 
     /*
-    * @notsa
-    *
     * @brief Call `fn` with the `x, y` grid position of all sectors that are overlapped by the rect
     *
     * @param rect The rect. Use it's constructor to ease your life (for example iterating areas in a given radius can be achieved by `CRect{point, 340.f}`)
@@ -294,9 +367,8 @@ public:
             std::forward<Fn>(fn)
         );
     }
+
     /*
-    * @notsa
-    *
     * @brief Call `fn` with the `x, y` grid position of all lod sectors that are overlapped by the rect
     *
     * @param rect The rect. Use it's constructor to ease your life (for example iterating areas in a given radius can be achieved by `CRect{point, 340.f}`)
@@ -313,28 +385,52 @@ public:
             std::forward<Fn>(fn)
         );
     }
-    // @notsa
+
     static void PutToGroundIfTooLow(CVector& pos) {
         if (pos.z <= MAP_Z_LOW_LIMIT) {
             pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y);
         }
     }
 
-    // @notsa
     static CVector AddGroundZToCoord(CVector2D xy) {
         return CVector{ xy, FindGroundZForCoord(xy.x, xy.y) };
     }
 };
 
-extern uint32 &FilledColPointIndex;
-static inline auto& gaTempSphereColPoints = *(std::array<CColPoint, 32>*)0xB9B250;
-extern int16 &TAG_SPRAYING_INCREMENT_VAL; // default 8
+// 0x407260
+inline CSector& CWorld::GetSector(int32 x, int32 y) {
+    const auto x1 = std::clamp<int32>(x, 0, MAX_SECTORS_X - 1);
+    const auto y1 = std::clamp<int32>(y, 0, MAX_SECTORS_Y - 1);
+    return CWorld::ms_aSectors[y1][x1];
+}
 
-uint16 GetCurrentScanCode();
-CSector* GetSector(int32 x, int32 y);
-CRepeatSector* GetRepeatSector(int32 x, int32 y);
+// 0x4072A0
+inline CRepeatSector& CWorld::GetRepeatSector(int32 x, int32 y) {
+    return CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
+}
+
+// 0x4072C0
+inline auto& CWorld::GetLodPtrList(int32 x, int32 y) {
+    assert(x < MAX_LOD_PTR_LISTS_X);
+    assert(y < MAX_LOD_PTR_LISTS_Y);
+
+    return ms_aLodPtrLists[y][x];
+}
+
+// 0x4072E0
+inline void CWorld::AdvanceCurrentScanCode() {
+    if (ms_nCurrentScanCode >= 65535u) {
+        ClearScanCodes();
+        ms_nCurrentScanCode = 1;
+    } else {
+        ms_nCurrentScanCode++;
+    }
+}
 
 CPlayerInfo&   FindPlayerInfo(int32 playerId = -1);
+
+// in player.cpp:
+
 CPlayerPed*    FindPlayerPed(int32 playerId = -1);
 CVehicle*      FindPlayerVehicle(int32 playerId = -1, bool bIncludeRemote = false);
 CVector        FindPlayerCoors(int32 playerId = -1);
@@ -343,7 +439,7 @@ CEntity*       FindPlayerEntity(int32 playerId = -1);
 CTrain*        FindPlayerTrain(int32 playerId = -1);
 const CVector& FindPlayerCentreOfWorld(int32 playerId = -1);
 const CVector& FindPlayerCentreOfWorld_NoSniperShift(int32 playerId = -1);
-CVector        FindPlayerCentreOfWorld_NoInteriorShift(int32 playerId = -1);
+CVector        FindPlayerCentreOfWorldForMap(int32 playerId = -1);
 float          FindPlayerHeading(int32 playerId = -1);
 float          FindPlayerHeight(int32 playerId = -1);
 CWanted*       FindPlayerWanted(int32 playerId = -1);

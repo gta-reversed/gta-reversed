@@ -458,8 +458,8 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_MOLOTOV: {
                 const CVector& pos = exp.m_vecPosition;
                 CWorld::SetPedsOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetWorldOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetCarsOnFire(pos.x, pos.y, pos.z, 0.1f, exp.m_pCreator);
+                CWorld::SetWorldOnFire(pos, 6.0f, exp.m_pCreator);
+                CWorld::SetCarsOnFire(pos, 0.1f, exp.m_pCreator);
 
                 if (exp.m_nActiveCounter < 10 && exp.m_nActiveCounter == 1) {
                     CEntity* hitEntity;
