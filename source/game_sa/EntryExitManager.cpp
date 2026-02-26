@@ -445,7 +445,7 @@ bool CEntryExitManager::Save() {
     // Save entry exit stack
     CGenericGameStorage::SaveDataToWorkBuffer(ms_entryExitStackPosn);
     for (auto&& enex : std::span{ ms_entryExitStack, ms_entryExitStackPosn}) {
-        CGenericGameStorage::SaveDataToWorkBuffer((uint16)mp_poolEntryExits->GetIndex(enex));
+        CGenericGameStorage::SaveDataToWorkBuffer<uint16>(mp_poolEntryExits->GetIndex(enex));
     }
 
     // Save entry exits
@@ -458,7 +458,7 @@ bool CEntryExitManager::Save() {
                 data = linkIndex;
             }
         }
-        CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
+        CGenericGameStorage::SaveDataToWorkBuffer<int16>(i); // Enex idx in pool
         CGenericGameStorage::SaveDataToWorkBuffer(enex.m_nFlags);
         CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
     }
