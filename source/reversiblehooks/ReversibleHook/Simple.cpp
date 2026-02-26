@@ -4,8 +4,16 @@
 
 namespace ReversibleHooks{
 namespace ReversibleHook{
-Simple::Simple(std::string fnName, uint32 installAddress, void* addressToJumpTo, int iJmpCodeSize, int stackArguments) :
-    Base{ std::move(fnName), HookType::Simple },
+Simple::Simple(
+    std::string name,
+    uint32 installAddress,
+    void* addressToJumpTo,
+    bool locked,
+    bool reversed,
+    int iJmpCodeSize,
+    int stackArguments
+) :
+    Base{ std::move(name), HookType::Simple, locked, reversed },
     m_iLibFunctionAddress((uint32)addressToJumpTo),
     m_iRealHookedAddress(installAddress),
     m_iHookedBytes(iJmpCodeSize)
@@ -32,7 +40,7 @@ Simple::Simple(std::string fnName, uint32 installAddress, void* addressToJumpTo,
         if (bVirtProtect)
             VirtualProtect((void*)m_iRealHookedAddress, m_iHookedBytes, dwProtectHoodlum[0], &dwProtectHoodlum[1]);
 
-        m_bIsHooked = true;
+        m_IsHooked = true;
         m_isVisible = true;
     };
 
@@ -146,25 +154,21 @@ void Simple::GenerateECXPreservationThunk(int stackArguments)
 void Simple::Switch()
 {
     using namespace ReversibleHooks::detail;
-    if (m_bIsLocked)
+    if (m_IsLocked) {
         return;
-
-    if (m_bIsHooked) {
-        // Unhook (make our code jump to the GTA function)
-
+    }
+    if (m_IsHooked) { // Unhook (make our code jump to the GTA function)
         VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_OriginalFunctionContent, m_iHookedBytes);
         ApplyJumpToGTACode();
-    } else {
-        // Hook (make the GTA function jump to ours)
-
+    } else { // Hook (make the GTA function jump to ours)
         VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_HookContent, m_iHookedBytes);
         VirtualCopy((void*)m_iLibFunctionAddress, (void*)&m_LibOriginalFunctionContent, m_iLibHookedBytes);
     }
-    m_bIsHooked = !m_bIsHooked;
+    m_IsHooked = !m_IsHooked;
 }
 
 void Simple::Check() {
-    if (m_bIsHooked) {
+    if (m_IsHooked) {
         CheckLibFnForChangesAndStore((void*)m_LibOriginalFunctionContent);
     } else {
         if (CheckLibFnForChangesAndStore((void*)&m_LibHookContent)) {
