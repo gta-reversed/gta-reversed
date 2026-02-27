@@ -3579,11 +3579,14 @@ bool DoesVehicleExist(CVehicle* car) {
  * 
  * @param {Car} self
  * 
- * @returns {Vector} , {float} w
+ * @returns {float} x, {float} y, {float} z, {float} w
  */
-//auto GetVehicleQuaternion(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetVehicleQuaternion(CVehicle& self) {
+    const auto mm = self.GetModellingMatrix();
+    CQuaternion q;
+    q.Set(*self.GetModellingMatrix());
+    return q;
+}
 
 /*
  * @opcode 0432
@@ -4269,7 +4272,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ATTACHED, IsVehicleAttached);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_DIRT_LEVEL, SetVehicleDirtLevel);
     REGISTER_COMMAND_HANDLER(COMMAND_DOES_VEHICLE_EXIST, DoesVehicleExist);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_QUATERNION, GetVehicleQuaternion);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_QUATERNION, GetVehicleQuaternion);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
