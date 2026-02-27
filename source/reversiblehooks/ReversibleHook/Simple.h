@@ -27,7 +27,15 @@ struct Simple : Base {
     uint32       m_iLibHookedBytes{};
     uint32       m_iLibFunctionAddress{}; // Address of our function
 
-    Simple(std::string fnName, uint32 installAddress, void* addressToJumpTo, int iJmpCodeSize = 5, int stackArguments = -1);
+    Simple(
+        std::string name,
+        uint32 installAddress,
+        void* addressToJumpTo,
+        bool locked = false,
+        bool reversed = true,
+        int iJmpCodeSize = 5,
+        int stackArguments = -1
+    );
 
     virtual ~Simple() override = default;
 
