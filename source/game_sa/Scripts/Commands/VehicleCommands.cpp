@@ -3446,7 +3446,6 @@ void FixCar(CVehicle& self) {
     self.Fix();
     self.m_fHealth = 1000.f;
 }
-}; // namespace
 
 /*
  * @opcode 08EC
@@ -3460,9 +3459,9 @@ void FixCar(CVehicle& self) {
  * 
  * @returns {VehicleClass} class
  */
-//auto GetVehicleClass(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetVehicleClass(CVehicle& self) {
+    return self.GetVehicleModelInfo()->m_nVehicleClass;
+}
 
 /*
  * @opcode 084E
@@ -4039,6 +4038,7 @@ void FixCar(CVehicle& self) {
 //bool IsEmergencyServicesVehicle(CVehicle& self) {
     //NOTSA_UNREACHABLE("Not implemented");
 //}
+}; // namespace
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
@@ -4275,7 +4275,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CAR_BEEN_RESPRAYED, HasCarBeenResprayed);
     REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
-    //REGISTER_COMMAND_HANDLER(GET_VEHICLE_CLASS, GetVehicleClass);
+    REGISTER_COMMAND_HANDLER(GET_VEHICLE_CLASS, GetVehicleClass);
     //REGISTER_COMMAND_HANDLER(SET_VEHICLE_CAN_BE_TARGETTED, SetVehicleCanBeTargetted);
     //REGISTER_COMMAND_HANDLER(FETCH_NEXT_CARD, FetchNextCard);
     //REGISTER_COMMAND_HANDLER(GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
