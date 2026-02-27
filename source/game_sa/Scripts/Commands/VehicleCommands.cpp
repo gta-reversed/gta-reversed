@@ -3531,12 +3531,13 @@ auto GetAvailableVehicleMod(CVehicle& self, eModSlot slotId) {
  * @command IS_VEHICLE_ATTACHED
  * @class Car
  * @method IsAttached
+ * @static
  * 
- * @param {Car} self
+ * @param {Car} car
  */
-//bool IsVehicleAttached(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+bool IsVehicleAttached(CVehicle* car) {
+    return car && car->m_pAttachedTo;
+}
 
 /*
  * @opcode 0878
@@ -4265,7 +4266,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
     REGISTER_COMMAND_HANDLER(COMMAND_SELECT_WEAPONS_FOR_VEHICLE, SelectWeaponsForVehicle);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_AVAILABLE_VEHICLE_MOD, GetAvailableVehicleMod);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ATTACHED, IsVehicleAttached);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ATTACHED, IsVehicleAttached);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_DIRT_LEVEL, SetVehicleDirtLevel);
     //REGISTER_COMMAND_HANDLER(COMMAND_DOES_VEHICLE_EXIST, DoesVehicleExist);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_QUATERNION, GetVehicleQuaternion);
