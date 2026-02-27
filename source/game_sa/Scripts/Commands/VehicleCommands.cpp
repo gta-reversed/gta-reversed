@@ -3615,9 +3615,15 @@ auto GetCharInCarPassengerSeat(CVehicle& self, eSeatId seat) {
  * 
  * @param {Car} self
  */
-//bool IsVehicleOnAllWheels(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+bool IsVehicleOnAllWheels(CVehicle& self) {
+    if (self.IsBike()) {
+        return self.AsBike()->m_nNoOfContactWheels == 4; // ?????????
+    }
+    if (self.IsAutomobile()) {
+        return self.AsAutomobile()->m_nNumContactWheels == 4;
+    }
+    return false;
+}
 
 /*
  * @opcode 07C6
@@ -4274,7 +4280,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DOES_VEHICLE_EXIST, DoesVehicleExist);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_QUATERNION, GetVehicleQuaternion);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
     //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);

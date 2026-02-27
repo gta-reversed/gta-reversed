@@ -82,7 +82,7 @@ public:
     CPhysical* m_aGroundPhysicalPtrs[4];
     CVector m_aGroundOffsets[4];
     CEntity* m_Damager; // Entity That Set Us On Fire
-    uint8 m_nNoOfContactWheels;
+    uint8 m_nNoOfContactWheels; // Seems like the max value is 4??? (See `COMMAND_IS_VEHICLE_ON_ALL_WHEELS`)
     uint8 m_NumDriveWheelsOnGround;
     uint8 m_NumDriveWheelsOnGroundLastFrame;
     float m_GasPedalAudioRevs;
