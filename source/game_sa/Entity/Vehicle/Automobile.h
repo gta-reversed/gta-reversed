@@ -158,14 +158,14 @@ public:
     //!!!!!!!!!!!!!!!!!!!
     float GetDooorAngleOpenRatioU32(uint32 door) override;
     float GetDooorAngleOpenRatio(eDoors door) override;
-    bool IsDoorReadyU32(uint32 door) override;
-    bool IsDoorReady(eDoors door) override;
-    bool IsDoorFullyOpenU32(uint32 door) override;
-    bool IsDoorFullyOpen(eDoors door) override;
-    bool IsDoorClosedU32(uint32 door) override;
-    bool IsDoorClosed(eDoors door) override;
-    bool IsDoorMissingU32(uint32 door) override;
-    bool IsDoorMissing(eDoors door) override;
+    bool IsDoorReadyU32(uint32 door) const override;
+    bool IsDoorReady(eDoors door) const override;
+    bool IsDoorFullyOpenU32(uint32 door) const override;
+    bool IsDoorFullyOpen(eDoors door) const override;
+    bool IsDoorClosedU32(uint32 door) const override;
+    bool IsDoorClosed(eDoors door) const override;
+    bool IsDoorMissingU32(uint32 door) const override;
+    bool IsDoorMissing(eDoors door) const override;
 
     bool IsOpenTopCar() override;
     void RemoveRefsToVehicle(CEntity* entity) override;
@@ -179,7 +179,7 @@ public:
     void Fix() override;
     void SetupDamageAfterLoad() override;
     void DoBurstAndSoftGroundRatios() override;
-    float GetHeightAboveRoad() override;
+    float GetHeightAboveRoad() const override;
     void PlayCarHorn() override;
     int32 GetNumContactWheels() override;
     void VehicleDamage(float damageIntensity, eVehicleCollisionComponent collisionComponent, CEntity* damager, CVector* vecCollisionCoors, CVector* vecCollisionDirection, eWeaponType weapon) override;
