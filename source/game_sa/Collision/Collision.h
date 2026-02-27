@@ -9,6 +9,7 @@
 #include "ColModel.h"
 #include "ColPoint.h"
 #include "StoredCollPoly.h"
+#include "CompressedVector.h"
 
 class  CEntity;
 class  CVehicle;
@@ -85,9 +86,9 @@ public:
     static bool ProcessLineBox(const CColLine& line, const CColBox& box, CColPoint& colPoint, float& maxTouchDistance);
     static bool Test2DLineAgainst2DLine(float line1StartX, float line1StartY, float line1EndX, float line1EndY, float line2StartX, float line2StartY, float line2EndX, float line2EndY);
     static bool ProcessDiscCollision(CColPoint& tempTriCol, const CMatrix& matBA, const CColDisk& disk, CColPoint& diskColPoint, bool& lineCollision, float& lineRatio, CColPoint& lineColPoint);
-    static bool TestLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane);
-    static bool ProcessLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly);
-    static bool ProcessVerticalLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly);
+    static bool TestLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane);
+    static bool ProcessLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly);
+    static bool ProcessVerticalLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly);
     static bool IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, float lineDist, CColPoint& colPoint, CStoredCollPoly* collPoly);
     static CColBox GetBoundingBoxFromTwoSpheres(const CColSphere& spA, const CColSphere& spB);
     static bool IsThisVehicleSittingOnMe(CVehicle* vehicle, CVehicle* vehicleOnMe);
@@ -103,12 +104,12 @@ public:
         const CVector* verts
     );
     static void Closest3(CVector* arg0, CVector* arg1);
-    static bool  SphereCastVersusVsPoly(const CColSphere& sphere1, const CColSphere& sphere2, const CColTriangle& tri, const CColTrianglePlane& triPlane, FixedVector<int16, 128.0f>* verts);
+    static bool  SphereCastVersusVsPoly(const CColSphere& sphere1, const CColSphere& sphere2, const CColTriangle& tri, const CColTrianglePlane& triPlane, CompressedVector* verts);
     static void CalculateTrianglePlanes(CCollisionData* colData);
     static void RemoveTrianglePlanes(CCollisionData* colData);
     static bool ProcessSphereSphere(const CColSphere& sphere1, const CColSphere& sphere2, CColPoint& colPoint, float& maxTouchDistance);
-    static bool TestSphereTriangle(const CColSphere& sphere, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane);
-    static bool ProcessSphereTriangle(const CColSphere& sphere, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane, CColPoint& colPoint, float& maxTouchDistance);
+    static bool TestSphereTriangle(const CColSphere& sphere, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane);
+    static bool ProcessSphereTriangle(const CColSphere& sphere, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& triPlane, CColPoint& colPoint, float& maxTouchDistance);
     static bool TestLineSphere(const CColLine& line, const CColSphere& sphere);
     static float DistToLine(const CVector& lineStart, const CVector& lineEnd, const CVector& point);
     static bool TestLineOfSight(const CColLine& line, const CMatrix& transform, CColModel& colModel, bool doSeeThroughCheck, bool doShootThroughCheck);

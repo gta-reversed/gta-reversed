@@ -1445,7 +1445,7 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
 /*!
 * @addr 0x413AC0
 */
-bool CCollision::TestLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& plane) {
+bool CCollision::TestLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& plane) {
     ZoneScoped;
 
     return ProcessLineTriangle_Internal<true>(line, tri.GetPoly(verts), plane, nullptr, nullptr, nullptr);
@@ -1462,7 +1462,7 @@ bool CCollision::TestLineTriangle(const CColLine& line, const FixedVector<int16,
 *
 * @returns If there was a collision that was closer to the beginning of the line than `maxTouchDistance`
 */
-bool CCollision::ProcessLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& plane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly) {
+bool CCollision::ProcessLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& plane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly) {
     CVector ip, normal;
     const auto poly = tri.GetPoly(verts);
     if (!ProcessLineTriangle_Internal<false>(line, poly, plane, &maxTouchDistance, &ip, &normal)) {
@@ -1489,7 +1489,7 @@ bool CCollision::ProcessLineTriangle(const CColLine& line, const FixedVector<int
 // 0x4147E0
 bool CCollision::ProcessVerticalLineTriangle(
     const CColLine& line,
-    const FixedVector<int16, 128.0f>* verts,
+    const CompressedVector* verts,
     const CColTriangle& tri,
     const CColTrianglePlane& plane,
     CColPoint& colPoint,
@@ -1545,7 +1545,7 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
 */
 bool CCollision::TestSphereTriangle(
     const CColSphere& sphere,
-    const FixedVector<int16, 128.0f>* verts,
+    const CompressedVector* verts,
     const CColTriangle& tri,
     const CColTrianglePlane& plane
 ) {
@@ -1598,7 +1598,7 @@ bool CCollision::TestSphereTriangle(
 // 0x416BA0
 bool CCollision::ProcessSphereTriangle(
     const CColSphere& sphere,
-    const FixedVector<int16, 128.0f>* verts,
+    const CompressedVector* verts,
     const CColTriangle& tri,
     const CColTrianglePlane& plane,
     CColPoint& colPoint,
@@ -2520,7 +2520,7 @@ bool CCollision::SphereCastVersusVsPoly(
     const CColSphere& spB,
     const CColTriangle& tri,
     const CColTrianglePlane& triPlane,
-    FixedVector<int16, 128.0f>* verts
+    CompressedVector* verts
 ) {
     ZoneScoped;
 
@@ -3303,7 +3303,7 @@ void CCollision::Tests(int32 i) {
     const auto RandomTriangleVertices = [&](float min = -100.f, float max = 100.f) {
         const auto vtxA = RandomVector(min, max);
         const auto norm = RandomNormal();
-        return std::array<FixedVector<int16, 128.0f>, 3>{
+        return std::array<CompressedVector, 3>{
             vtxA,
             vtxA.Cross(norm),
             norm.Cross(vtxA)
@@ -3504,7 +3504,7 @@ void CCollision::Tests(int32 i) {
 
         const auto line  = RandomLine();
 
-        const auto Org = plugin::CallAndReturn<bool, 0x413AC0, const CColLine&, const FixedVector<int16, 128.0f>*, const CColTriangle&, const CColTrianglePlane&>;
+        const auto Org = plugin::CallAndReturn<bool, 0x413AC0, const CColLine&, const CompressedVector*, const CColTriangle&, const CColTrianglePlane&>;
         /*
         const auto Benchmark = [&](auto fn, const char* title) {
             using namespace std::chrono;
@@ -3536,7 +3536,7 @@ void CCollision::Tests(int32 i) {
         const auto tripl = tri.GetPlane(vtxs.data());
 
         // Our version seems to fail sometimes, but I'v2 assume they're edge cases
-        const auto Org = plugin::CallAndReturn<bool, 0x4165B0, const CColSphere&, const FixedVector<int16, 128.0f>*, const CColTriangle&, const CColTrianglePlane&>;
+        const auto Org = plugin::CallAndReturn<bool, 0x4165B0, const CColSphere&, const CompressedVector*, const CColTriangle&, const CColTrianglePlane&>;
         Test("TestSphereTriangle", Org, TestSphereTriangle, std::equal_to{}, sp, vtxs.data(), tri, tripl);
     }
 

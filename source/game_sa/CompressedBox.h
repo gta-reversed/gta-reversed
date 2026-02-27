@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Box.h"
-#include "extensions/FixedVector.hpp"
+#include "CompressedVector.h"
 
 class CompressedBox {
 public:
-    FixedVector<int16, 8.0f> m_vecMin, m_vecMax;
+    CompressedLargeVector m_vecMin, m_vecMax;
 
     void DrawWireFrame(CRGBA color, const CMatrix& transform) const;
 

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Vector.h"
-#include "extensions/FixedVector.hpp"
+#include "CompressedVector.h"
 
 class CFileCarGenerator {
 public:
@@ -32,13 +32,13 @@ VALIDATE_SIZE(CFileCarGenerator, 0x30);
 
 class CCarGenerator {
 public:
-    int16            m_nModelId;
-    int8             m_nPrimaryColor;
-    int8             m_nSecondaryColor;
-    FixedVector<int16, 8.0f> m_vecPosn;
-    char             m_nAngle;
-    uint8            m_nAlarmChance;    // in percentage 0-100
-    uint8            m_nDoorLockChance; // in percentage 0-100
+    int16                 m_nModelId;
+    int8                  m_nPrimaryColor;
+    int8                  m_nSecondaryColor;
+    CompressedLargeVector m_vecPosn;
+    char                  m_nAngle;
+    uint8                 m_nAlarmChance;    // in percentage 0-100
+    uint8                 m_nDoorLockChance; // in percentage 0-100
 
     union {
         struct {

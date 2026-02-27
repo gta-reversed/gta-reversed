@@ -7,6 +7,7 @@
 #include "Vector.h"
 #include "Sphere.h"
 #include "Box.h"
+#include "CompressedVector.h"
 
 // Based on https://gtamods.com/wiki/Collision_File
 
@@ -160,7 +161,7 @@ struct Header {
 }; // namespace V1
 
 namespace V2 {
-using TVertex = FixedVector<int16, 128.0f>;
+using TVertex = CompressedVector;
 static_assert(std::is_trivially_copyable_v<TVertex>);
 VALIDATE_SIZE(TVertex, 6);
 

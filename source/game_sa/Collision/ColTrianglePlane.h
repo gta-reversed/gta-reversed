@@ -6,7 +6,7 @@
 */
 #pragma once
 
-#include <extensions/FixedVector.hpp>
+#include "CompressedVector.h"
 #include <extensions/FixedFloat.hpp>
 #include "Vector.h"
 
@@ -24,20 +24,20 @@ public:
         NEG_Z,
     };
 public:
-    FixedVector<int16, 4096.f> m_normal{};       //< Surface normal
-    FixedFloat<int16, 128.f>   m_normalOffset{}; //< vA.Dot(m_normal)
-    Orientation                m_orientation{};  //< The planes orientation (Calculated from the normal)
+    CompressedUnitVector     m_normal{};       //< Surface normal
+    FixedFloat<int16, 128.f> m_normalOffset{}; //< vA.Dot(m_normal)
+    Orientation              m_orientation{};  //< The planes orientation (Calculated from the normal)
 
 public:
     static void InjectHooks();
 
     CColTrianglePlane(const CStoredCollPoly& poly);
-    CColTrianglePlane(const CColTriangle& tri, const FixedVector<int16, 128.0f>* vertices);
+    CColTrianglePlane(const CColTriangle& tri, const CompressedVector* vertices);
     CColTrianglePlane(const CVector& a, const CVector& b, const CVector& c);
 
     void GetNormal(CVector& out);
     CVector GetNormal() const noexcept { return m_normal; }
-    void Set(const FixedVector<int16, 128.0f>* vertices, const CColTriangle& triangle);
+    void Set(const CompressedVector* vertices, const CColTriangle& triangle);
 
     float GetPtDotNormal(const CVector& pt) const { return pt.Dot(m_normal) - m_normalOffset; }
 };

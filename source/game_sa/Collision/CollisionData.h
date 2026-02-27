@@ -13,6 +13,7 @@
 #include "ColTrianglePlane.h"
 #include "ColDisk.h"
 #include "Link.h"
+#include "CompressedVector.h"
 
 namespace ColHelpers {
 struct TFaceGroup;
@@ -46,7 +47,7 @@ public:
         CColDisk* m_pDisks;
     };
 
-    FixedVector<int16, 128.0f>* m_pVertices;
+    CompressedVector* m_pVertices;
 
     // If you take a look here: https://gtamods.com/wiki/Collision_File#Body
     // You may notice there's an extra section called `TFaceGroups` before `TFace` (triangles)
@@ -67,12 +68,12 @@ public:
     // NOTEs:
     // ** Col models may also be loaded by the Collision plugin from a clump file - In this case `CFileLoader::LoadCollisionModelVer2/3` is called, but then
     //    the col data is reallocated using `MakeMultipleAlloc` which uses `Copy` to copy the data, in this case the face groups aren't copied. (And the flag is set to false in the ctor)
-    CColTriangle*               m_pTriangles;          // 0x18
-    CColTrianglePlane*          m_pTrianglePlanes;     // 0x1C
-    uint32                      m_nNumShadowTriangles; // 0x20
-    uint32                      m_nNumShadowVertices;  // 0x24
-    FixedVector<int16, 128.0f>* m_pShadowVertices;     // 0x28
-    CColTriangle*               m_pShadowTriangles;    // 0x2C
+    CColTriangle*      m_pTriangles;          // 0x18
+    CColTrianglePlane* m_pTrianglePlanes;     // 0x1C
+    uint32             m_nNumShadowTriangles; // 0x20
+    uint32             m_nNumShadowVertices;  // 0x24
+    CompressedVector*  m_pShadowVertices;     // 0x28
+    CColTriangle*      m_pShadowTriangles;    // 0x2C
 
     // <size 0x30>
 
