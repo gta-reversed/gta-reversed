@@ -3601,9 +3601,9 @@ auto GetVehicleQuaternion(CVehicle& self) {
  * 
  * @returns {Char} handle
  */
-//auto GetCharInCarPassengerSeat(CVehicle& self, eSeatId seat) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetCharInCarPassengerSeat(CVehicle& self, eSeatId seat) {
+    return self.GetPassengers()[+seat];
+}
 
 /*
  * @opcode 09D0
@@ -4273,7 +4273,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_DIRT_LEVEL, SetVehicleDirtLevel);
     REGISTER_COMMAND_HANDLER(COMMAND_DOES_VEHICLE_EXIST, DoesVehicleExist);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_QUATERNION, GetVehicleQuaternion);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
     //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
