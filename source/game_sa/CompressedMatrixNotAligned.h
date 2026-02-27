@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector.h"
+#include "extensions/FixedVector.hpp"
 
 class CCompressedMatrixNotAligned {
 public:

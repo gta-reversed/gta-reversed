@@ -3547,9 +3547,9 @@ void CCollision::Tests(int32 i) {
         const auto tripl = tri.GetPlane(vtxs.data());
         const auto pt = RandomVector();
         const CVector ucverts[]{
-            UncompressVector(vtxs[tri.vA]),
-            UncompressVector(vtxs[tri.vB]),
-            UncompressVector(vtxs[tri.vC])
+            vtxs[tri.vA],
+            vtxs[tri.vB],
+            vtxs[tri.vC]
         };
 
         const auto Org = plugin::CallAndReturn<bool, 0x415730, const CVector&, const CColTriangle&, const CVector&, const CVector*>;

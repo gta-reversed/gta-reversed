@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Vector.h"
+#include "extensions/FixedVector.hpp"
 
 class CObject;
 class CVehicle;

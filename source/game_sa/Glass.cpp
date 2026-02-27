@@ -119,7 +119,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     for (auto t = 0; t < 2; t++) { // t - triangle idx
         const auto& tri = triangles[glassTriIdx + t];
         for (auto v = 0; v < 3; v++) { // v - vertex idx of this triangle
-            triVertices[t * 3 + v] =vehMat.TransformPoint(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]);
+            triVertices[t * 3 + v] = vehMat.TransformPoint(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]);
         }
     }
 
