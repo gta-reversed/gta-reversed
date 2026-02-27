@@ -3503,11 +3503,11 @@ auto GetNumAvailablePaintjobs(CVehicle& self) {
  * @brief Sets the vehicle to use its secondary guns
  * 
  * @param {Car} self
- * @param {int} _p2
+ * @param {CarWeapon} weapon
  */
-//void SelectWeaponsForVehicle(CVehicle& self, int32 _p2) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SelectWeaponsForVehicle(CVehicle& self, eCarWeapon weapon) {
+    self.m_nVehicleWeaponInUse = weapon;
+}
 
 /*
  * @opcode 06E5
@@ -4263,7 +4263,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_CLASS, GetVehicleClass);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_CAN_BE_TARGETTED, SetVehicleCanBeTargetted);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SELECT_WEAPONS_FOR_VEHICLE, SelectWeaponsForVehicle);
+    REGISTER_COMMAND_HANDLER(COMMAND_SELECT_WEAPONS_FOR_VEHICLE, SelectWeaponsForVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_AVAILABLE_VEHICLE_MOD, GetAvailableVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ATTACHED, IsVehicleAttached);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_DIRT_LEVEL, SetVehicleDirtLevel);
