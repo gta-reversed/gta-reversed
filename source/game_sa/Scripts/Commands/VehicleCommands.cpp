@@ -3479,21 +3479,6 @@ void SetVehicleCanBeTargetted(CVehicle& self, bool state) {
 }
 
 /*
- * @opcode 059E
- * @command FETCH_NEXT_CARD
- * @class CardDecks
- * @method FetchNextCard
- * @static
- * 
- * @brief Returns a random number between 1 and 52, inclusive
- * 
- * @returns {int} number
- */
-//auto FetchNextCard() {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
-
-/*
  * @opcode 06EC
  * @command GET_NUM_AVAILABLE_PAINTJOBS
  * @class Car
@@ -4277,7 +4262,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_CLASS, GetVehicleClass);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_CAN_BE_TARGETTED, SetVehicleCanBeTargetted);
-    //REGISTER_COMMAND_HANDLER(COMMAND_FETCH_NEXT_CARD, FetchNextCard);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
     //REGISTER_COMMAND_HANDLER(COMMAND_SELECT_WEAPONS_FOR_VEHICLE, SelectWeaponsForVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_AVAILABLE_VEHICLE_MOD, GetAvailableVehicleMod);
