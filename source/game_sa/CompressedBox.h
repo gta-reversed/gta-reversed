@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Box.h"
 #include "extensions/FixedVector.hpp"
 
 class CompressedBox {
