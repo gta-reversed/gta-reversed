@@ -3474,9 +3474,9 @@ auto GetVehicleClass(CVehicle& self) {
  * @param {Car} self
  * @param {bool} state
  */
-//void SetVehicleCanBeTargetted(CVehicle& self, bool state) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetVehicleCanBeTargetted(CVehicle& self, bool state) {
+    self.vehicleFlags.bVehicleCanBeTargetted = state;
+}
 
 /*
  * @opcode 059E
@@ -4276,7 +4276,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IMPROVE_CAR_BY_CHEATING, ImproveCarByCheating);
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
     REGISTER_COMMAND_HANDLER(GET_VEHICLE_CLASS, GetVehicleClass);
-    //REGISTER_COMMAND_HANDLER(SET_VEHICLE_CAN_BE_TARGETTED, SetVehicleCanBeTargetted);
+    REGISTER_COMMAND_HANDLER(SET_VEHICLE_CAN_BE_TARGETTED, SetVehicleCanBeTargetted);
     //REGISTER_COMMAND_HANDLER(FETCH_NEXT_CARD, FetchNextCard);
     //REGISTER_COMMAND_HANDLER(GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
     //REGISTER_COMMAND_HANDLER(SELECT_WEAPONS_FOR_VEHICLE, SelectWeaponsForVehicle);
