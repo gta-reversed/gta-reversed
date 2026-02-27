@@ -30,9 +30,9 @@ public:
     * @param vertices  Pointer to the array of vertices where this triangles vertices are (CColData::m_pVertices usually)
     * @param transform Transformation matrix to be used
     */
-    void DrawWireFrame(CRGBA color, const CompressedVector* vertices, const CMatrix& transform) const;
-    auto GetPlane(const CompressedVector* vertices) const -> CColTrianglePlane;
-    auto GetPoly(const CompressedVector* verts) const -> CStoredCollPoly;
+    void DrawWireFrame(CRGBA color, const FixedVector<int16, 128.0f>* vertices, const CMatrix& transform) const;
+    auto GetPlane(const FixedVector<int16, 128.0f>* vertices) const -> CColTrianglePlane;
+    auto GetPoly(const FixedVector<int16, 128.0f>* verts) const -> CStoredCollPoly;
 
     static auto GetBoundingRect(const CVector& a, const CVector& b, const CVector& c) -> CRect;
 

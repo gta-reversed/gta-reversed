@@ -6,7 +6,6 @@
 */
 #pragma once
 
-#include "CompressedVector.h"
 #include "Vector.h"
 
 class CObject;
@@ -47,15 +46,15 @@ enum ePickupPropertyText : int32 {
 
 class CPickup {
 public:
-    float            m_fRevenueValue;
-    CObject*         m_pObject;
-    uint32           m_nAmmo;
-    uint32           m_nRegenerationTime;
-    CompressedVector m_vecPos;
-    uint16           m_nMoneyPerDay;
-    int16            m_nModelIndex;
-    int16            m_nReferenceIndex;
-    ePickupType      m_nPickupType;
+    float                    m_fRevenueValue;
+    CObject*                 m_pObject;
+    uint32                   m_nAmmo;
+    uint32                   m_nRegenerationTime;
+    FixedVector<int16, 8.0f> m_vecPos;
+    uint16                   m_nMoneyPerDay;
+    int16                    m_nModelIndex;
+    int16                    m_nReferenceIndex;
+    ePickupType              m_nPickupType;
     struct {
         uint8 bDisabled : 1; // waiting for regeneration
         uint8 bEmpty : 1;    // no ammo
@@ -67,8 +66,8 @@ public:
 public:
     static void InjectHooks();
 
-    void SetPosn(CVector posn) { m_vecPos = CompressLargeVector(posn); } // 0x454960
-    [[nodiscard]] CVector GetPosn() const { return UncompressLargeVector(m_vecPos); } // 0x4549A0
+    void SetPosn(CVector posn) { m_vecPos = posn; } // 0x454960
+    [[nodiscard]] CVector GetPosn() const { return m_vecPos; } // 0x4549A0
     [[nodiscard]] CVector2D GetPosn2D() const { return GetPosn(); };    // NOTSA
     [[nodiscard]] float GetXCoord() const { return m_vecPos.x / 8.0f; } // 0x4549F0
     [[nodiscard]] float GetYCoord() const { return m_vecPos.y / 8.0f; } // 0x454A10

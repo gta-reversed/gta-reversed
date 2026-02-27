@@ -12,11 +12,11 @@ void CColTrianglePlane::InjectHooks()
     RH_ScopedInstall(Set, 0x411660);
 }
 
-CColTrianglePlane::CColTrianglePlane(const CColTriangle& tri, const CompressedVector* vertices) :
+CColTrianglePlane::CColTrianglePlane(const CColTriangle& tri, const FixedVector<int16, 128.0f>* vertices) :
     CColTrianglePlane{
-        UncompressVector(vertices[tri.vA]),
-        UncompressVector(vertices[tri.vB]),
-        UncompressVector(vertices[tri.vC])
+        vertices[tri.vA],
+        vertices[tri.vB],
+        vertices[tri.vC]
     }
 {
 }
@@ -56,6 +56,6 @@ void CColTrianglePlane::GetNormal(CVector& out) {
     out = GetNormal();
 }
 
-void CColTrianglePlane::Set(const CompressedVector* vertices, const CColTriangle& triangle) {
+void CColTrianglePlane::Set(const FixedVector<int16, 128.0f>* vertices, const CColTriangle& triangle) {
     *this = CColTrianglePlane{ triangle, vertices };
 }

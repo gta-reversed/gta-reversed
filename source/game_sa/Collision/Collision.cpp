@@ -1445,7 +1445,7 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
 /*!
 * @addr 0x413AC0
 */
-bool CCollision::TestLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& plane) {
+bool CCollision::TestLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& plane) {
     ZoneScoped;
 
     return ProcessLineTriangle_Internal<true>(line, tri.GetPoly(verts), plane, nullptr, nullptr, nullptr);
@@ -1462,7 +1462,7 @@ bool CCollision::TestLineTriangle(const CColLine& line, const CompressedVector* 
 *
 * @returns If there was a collision that was closer to the beginning of the line than `maxTouchDistance`
 */
-bool CCollision::ProcessLineTriangle(const CColLine& line, const CompressedVector* verts, const CColTriangle& tri, const CColTrianglePlane& plane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly) {
+bool CCollision::ProcessLineTriangle(const CColLine& line, const FixedVector<int16, 128.0f>* verts, const CColTriangle& tri, const CColTrianglePlane& plane, CColPoint& colPoint, float& maxTouchDistance, CStoredCollPoly* collPoly) {
     CVector ip, normal;
     const auto poly = tri.GetPoly(verts);
     if (!ProcessLineTriangle_Internal<false>(line, poly, plane, &maxTouchDistance, &ip, &normal)) {
@@ -1489,7 +1489,7 @@ bool CCollision::ProcessLineTriangle(const CColLine& line, const CompressedVecto
 // 0x4147E0
 bool CCollision::ProcessVerticalLineTriangle(
     const CColLine& line,
-    const CompressedVector* verts,
+    const FixedVector<int16, 128.0f>* verts,
     const CColTriangle& tri,
     const CColTrianglePlane& plane,
     CColPoint& colPoint,
@@ -1545,7 +1545,7 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
 */
 bool CCollision::TestSphereTriangle(
     const CColSphere& sphere,
-    const CompressedVector* verts,
+    const FixedVector<int16, 128.0f>* verts,
     const CColTriangle& tri,
     const CColTrianglePlane& plane
 ) {
@@ -1558,9 +1558,9 @@ bool CCollision::TestSphereTriangle(
     const auto P = sphere.m_vecCenter;
     const auto r = sphere.m_fRadius;
 
-    const auto A  = UncompressVector(verts[tri.vA]) - P;
-    const auto B  = UncompressVector(verts[tri.vB]) - P;
-    const auto C  = UncompressVector(verts[tri.vC]) - P;
+    const auto A  = verts[tri.vA] - P;
+    const auto B  = verts[tri.vB] - P;
+    const auto C  = verts[tri.vC] - P;
     const auto rr = r * r;
     const auto N  = plane.GetNormal();
     const int  s1 = std::abs(A.Dot(N)) > r;
@@ -1598,7 +1598,7 @@ bool CCollision::TestSphereTriangle(
 // 0x416BA0
 bool CCollision::ProcessSphereTriangle(
     const CColSphere& sphere,
-    const CompressedVector* verts,
+    const FixedVector<int16, 128.0f>* verts,
     const CColTriangle& tri,
     const CColTrianglePlane& plane,
     CColPoint& colPoint,
@@ -1612,9 +1612,9 @@ bool CCollision::ProcessSphereTriangle(
 
     // Find closest point on triangle to sphere
     const auto ip = ClosestPtPointTriangle(
-        UncompressVector(verts[tri.vA]),
-        UncompressVector(verts[tri.vB]),
-        UncompressVector(verts[tri.vC]),
+        verts[tri.vA],
+        verts[tri.vB],
+        verts[tri.vC],
         sphere.m_vecCenter
     );
 
@@ -2520,7 +2520,7 @@ bool CCollision::SphereCastVersusVsPoly(
     const CColSphere& spB,
     const CColTriangle& tri,
     const CColTrianglePlane& triPlane,
-    CompressedVector* verts
+    FixedVector<int16, 128.0f>* verts
 ) {
     ZoneScoped;
 
@@ -2535,7 +2535,7 @@ bool CCollision::SphereCastVersusVsPoly(
     auto spAProjPl = spA.m_vecCenter - plNorm * (isSpTouchingPl ? plSpCenterDist : spARadius); 
 
     const auto spAToB = spB.m_vecCenter - spA.m_vecCenter; // AKA velocity
-    const auto vA     = UncompressVector(verts[tri.vA]);
+    const auto vA     = verts[tri.vA];
 
     if (!isSpTouchingPl) {
         const auto vtxAToSpDistSqOnPl = (vA - spAProjPl).Dot(plNorm);
@@ -2549,8 +2549,7 @@ bool CCollision::SphereCastVersusVsPoly(
         spAProjPl += spAToB * (vtxAToSpDistSqOnPl / spAToBDistSqOnPl); // Interpolate between spA -> spB
     }
 
-    const auto vB = UncompressVector(verts[tri.vB]),
-               vC = UncompressVector(verts[tri.vC]);
+    const auto vB = verts[tri.vB], vC = verts[tri.vC];
 
     const CVector cverts[]{vA, vB, vC};
     if (PointInPoly(spAProjPl, tri, plNorm, cverts)) {
@@ -3304,10 +3303,10 @@ void CCollision::Tests(int32 i) {
     const auto RandomTriangleVertices = [&](float min = -100.f, float max = 100.f) {
         const auto vtxA = RandomVector(min, max);
         const auto norm = RandomNormal();
-        return std::array<CompressedVector, 3>{
-            CompressVector(vtxA),
-            CompressVector(vtxA.Cross(norm)),
-            CompressVector(norm.Cross(vtxA))
+        return std::array<FixedVector<int16, 128.0f>, 3>{
+            vtxA,
+            vtxA.Cross(norm),
+            norm.Cross(vtxA)
         };
     };
 
@@ -3505,7 +3504,7 @@ void CCollision::Tests(int32 i) {
 
         const auto line  = RandomLine();
 
-        const auto Org = plugin::CallAndReturn<bool, 0x413AC0, const CColLine&, const CompressedVector*, const CColTriangle&, const CColTrianglePlane&>;
+        const auto Org = plugin::CallAndReturn<bool, 0x413AC0, const CColLine&, const FixedVector<int16, 128.0f>*, const CColTriangle&, const CColTrianglePlane&>;
         /*
         const auto Benchmark = [&](auto fn, const char* title) {
             using namespace std::chrono;
@@ -3537,7 +3536,7 @@ void CCollision::Tests(int32 i) {
         const auto tripl = tri.GetPlane(vtxs.data());
 
         // Our version seems to fail sometimes, but I'v2 assume they're edge cases
-        const auto Org = plugin::CallAndReturn<bool, 0x4165B0, const CColSphere&, const CompressedVector*, const CColTriangle&, const CColTrianglePlane&>;
+        const auto Org = plugin::CallAndReturn<bool, 0x4165B0, const CColSphere&, const FixedVector<int16, 128.0f>*, const CColTriangle&, const CColTrianglePlane&>;
         Test("TestSphereTriangle", Org, TestSphereTriangle, std::equal_to{}, sp, vtxs.data(), tri, tripl);
     }
 

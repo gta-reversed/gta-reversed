@@ -3,10 +3,10 @@
 #include "Lines.h"
 
 // NOTSA
-void CColTriangle::DrawWireFrame(CRGBA color, const CompressedVector* vertices, const CMatrix& transform) const {
-    const CVector a = transform.TransformPoint(UncompressVector(vertices[vA]));
-    const CVector b = transform.TransformPoint(UncompressVector(vertices[vB]));
-    const CVector c = transform.TransformPoint(UncompressVector(vertices[vC]));
+void CColTriangle::DrawWireFrame(CRGBA color, const FixedVector<int16, 128.0f>* vertices, const CMatrix& transform) const {
+    const CVector a = transform.TransformPoint(vertices[vA]);
+    const CVector b = transform.TransformPoint(vertices[vB]);
+    const CVector c = transform.TransformPoint(vertices[vC]);
 
     const auto colorARGB = color.ToIntARGB();
     CLines::RenderLineNoClipping(a, b, colorARGB, colorARGB);
@@ -14,7 +14,7 @@ void CColTriangle::DrawWireFrame(CRGBA color, const CompressedVector* vertices, 
     CLines::RenderLineNoClipping(b, c, colorARGB, colorARGB);
 }
 
-auto CColTriangle::GetPlane(const CompressedVector* vertices) const -> CColTrianglePlane {
+auto CColTriangle::GetPlane(const FixedVector<int16, 128.0f>* vertices) const -> CColTrianglePlane {
     return { *this, vertices };
 }
 
@@ -24,9 +24,9 @@ auto CColTriangle::GetBoundingRect(const CVector& a, const CVector& b, const CVe
     return CRect{ left, bottom, right, top };
 }
 
-auto CColTriangle::GetPoly(const CompressedVector* verts) const -> CStoredCollPoly {
+auto CColTriangle::GetPoly(const FixedVector<int16, 128.0f>* verts) const -> CStoredCollPoly {
     return CStoredCollPoly{
-        .verts    = { UncompressVector(verts[vA]), UncompressVector(verts[vB]), UncompressVector(verts[vC]) },
+        .verts    = { verts[vA], verts[vB], verts[vC] },
         .valid    = true,
         .ligthing = m_nLight,
     };

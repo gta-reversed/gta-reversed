@@ -4,8 +4,6 @@
 
 // NOTE:
 // The term `face` and `triangle` are used interchangably here.
-
-#include "CompressedVector.h"
 #include "Vector.h"
 #include "Sphere.h"
 #include "Box.h"
@@ -149,7 +147,7 @@ struct Header {
 }; // namespace V1
 
 namespace V2 {
-using TVertex = CompressedVector;
+using TVertex = FixedVector<int16, 128.0f>;
 
 struct TSphere : CSphere {
     TSurface surface{};

@@ -294,7 +294,6 @@
 #include "NodeRoute.h"
 #include "ObjectData.h"
 #include "CustomRoadsignMgr.h"
-#include "CompressedVector.h"
 #include "CompressedMatrixNotAligned.h"
 #include "KeyboardState.h"
 #include "MouseControllerState.h"

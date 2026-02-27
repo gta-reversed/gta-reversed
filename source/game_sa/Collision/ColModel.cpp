@@ -81,7 +81,7 @@ void CColModel::AllocateData(int32 numSpheres, int32 numBoxes, int32 numLines, i
     const auto baseSize = sizeof(CCollisionData);
     const auto spheresSize = numSpheres * sizeof(CColSphere);
     const auto linesOrDisksSize = bUsesDisks ? (numLines * sizeof(CColDisk)) : (numLines * sizeof(CColLine));
-    const auto vertsSize = numVertices * sizeof(CompressedVector);
+    const auto vertsSize = numVertices * sizeof(FixedVector<int16, 128.0f>);
     const auto boxesSize = numBoxes * sizeof(CColBox);
     const auto trianglesSize = numTriangles * sizeof(CColTriangle);
 
@@ -113,7 +113,7 @@ void CColModel::AllocateData(int32 numSpheres, int32 numBoxes, int32 numLines, i
         m_pColData->m_pLines = numLines ? m_pColData->GetPointerToColArray<CColLine>(linesOrDisksOffset) : nullptr;
 
     m_pColData->m_pBoxes = numBoxes ? m_pColData->GetPointerToColArray<CColBox>(boxesOffset) : nullptr;
-    m_pColData->m_pVertices = numVertices ? m_pColData->GetPointerToColArray<CompressedVector>(vertsOffset) : nullptr;
+    m_pColData->m_pVertices = numVertices ? m_pColData->GetPointerToColArray<FixedVector<int16, 128.0f>>(vertsOffset) : nullptr;
     m_pColData->m_pTriangles = numTriangles ? m_pColData->GetPointerToColArray<CColTriangle>(trianglesOffset) : nullptr;
     m_pColData->m_pTrianglePlanes = nullptr;
 
