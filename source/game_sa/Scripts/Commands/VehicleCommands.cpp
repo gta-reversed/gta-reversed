@@ -3490,9 +3490,9 @@ void SetVehicleCanBeTargetted(CVehicle& self, bool state) {
  * 
  * @returns {int} numPaintjobs
  */
-//auto GetNumAvailablePaintjobs(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetNumAvailablePaintjobs(CVehicle& self) {
+    return self.GetVehicleModelInfo()->GetNumRemaps();
+}
 
 /*
  * @opcode 0841
@@ -4262,7 +4262,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_FIX_CAR, FixCar);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_CLASS, GetVehicleClass);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_CAN_BE_TARGETTED, SetVehicleCanBeTargetted);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_NUM_AVAILABLE_PAINTJOBS, GetNumAvailablePaintjobs);
     //REGISTER_COMMAND_HANDLER(COMMAND_SELECT_WEAPONS_FOR_VEHICLE, SelectWeaponsForVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_AVAILABLE_VEHICLE_MOD, GetAvailableVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ATTACHED, IsVehicleAttached);
