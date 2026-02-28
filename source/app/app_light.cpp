@@ -15,7 +15,7 @@ void AppLightInjectHooks() {
     RH_ScopedGlobalInstall(SetLightsWithTimeOfDayColour, 0x7354E0);
     RH_ScopedGlobalInstall(WorldReplaceNormalLightsWithScorched, 0x7357E0);
     RH_ScopedGlobalInstall(WorldReplaceScorchedLightsWithNormal, 0x735820);
-    RH_ScopedGlobalInstall(AddAnExtraDirectionalLight, 0x735840, {.reversed = false});
+    RH_ScopedGlobalInstall(AddAnExtraDirectionalLight, 0x735840);
     RH_ScopedGlobalInstall(RemoveExtraDirectionalLights, 0x7359E0);
     RH_ScopedGlobalInstall(SetAmbientAndDirectionalColours, 0x735A20);
     RH_ScopedGlobalInstall(ReSetAmbientAndDirectionalColours, 0x735C40);
@@ -184,7 +184,44 @@ void WorldReplaceScorchedLightsWithNormal(RpWorld* world) {
 
 // 0x735840
 void AddAnExtraDirectionalLight(RpWorld* world, float x, float y, float z, float red, float green, float blue) {
-    ((void(__cdecl *)(RpWorld*, float, float, float, float, float, float))0x735840)(world, x, y, z, red, green, blue);
+    const float strength     = std::max({ red, green, blue });
+    const auto  numDirLights = CGame::CanSeeOutSideFromCurrArea() ? 4 : 6;
+
+    const auto slot = [&] {
+        if (numDirLights > NumExtraDirectionalLights) {
+            return NumExtraDirectionalLights;
+        }
+
+        int32 msIdx{};
+        float msValue{ strength };
+        for (const auto&& [i, s] : rngv::enumerate(LightStrengths)) {
+            if (msValue > s) {
+                msIdx = i;
+                msValue = s;
+            }
+        }
+        return msIdx;
+    }();
+
+    if (slot < 0) {
+        // In PC, this case is impossible. Android sets `msIdx` to -1.
+        return;
+    }
+
+    RwRGBAReal color{ red, green, blue };
+    RpLightSetColor(pExtraDirectionals[slot], &color);
+
+    auto* frame = RpLightGetFrame(pExtraDirectionals[slot]);
+    auto* mat   = RwFrameGetMatrix(frame);
+    *RwMatrixGetAt(mat) = { -x, -y, -z };
+    RwMatrixUpdate(mat);
+    RwFrameUpdateObjects(frame);
+
+    // RpLightSetFlags "returns" the first arg, which is marked [[nodiscard]], so we have to use it.
+    (void)RpLightSetFlags(pExtraDirectionals[slot], rpLIGHTDIRECTIONAL);
+
+    LightStrengths[slot] = strength;
+    NumExtraDirectionalLights = std::min(NumExtraDirectionalLights + 1, numDirLights);
 }
 
 // 0x7359E0
@@ -192,7 +229,7 @@ void RemoveExtraDirectionalLights(RpWorld* world) {
     for (auto& light : pExtraDirectionals) {
         RpLightSetFlags(light, 0x0);
     }
-    numExtraDirectionalLights = 0;
+    NumExtraDirectionalLights = 0;
 }
 
 // fMult = [ 0.0f; 1.0f ]
