@@ -4,6 +4,7 @@ namespace notsa {
 namespace script {
 namespace commands {
 namespace basic { void RegisterHandlers(); };
+namespace attractors { void RegisterHandlers(); };
 namespace camera { void RegisterHandlers(); };
 namespace character { void RegisterHandlers(); };
 namespace clock { void RegisterHandlers(); };

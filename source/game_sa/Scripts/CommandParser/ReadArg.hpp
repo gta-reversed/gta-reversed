@@ -223,24 +223,52 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (notsa::is_specialization_of<Y, ScriptEntity>) {
         using EntityType = typename Y::EntityType;
 
-        const auto handle = Read<int32>(S);
-        auto entity = static_cast<EntityType*>(detail::PoolOf<EntityType>().GetAtRef(handle));
+        if constexpr (detail::PooledType<EntityType>) {
+            const auto handle = Read<int32>(S);
+            auto entity = static_cast<EntityType*>(detail::PoolOf<EntityType>().GetAtRef(handle));
 
-    #ifdef NOTSA_DEBUG
-        // Asserts for correct type
-        if (entity) {
-            if constexpr (detail::is_derived_from_but_not_v<CVehicle, EntityType>) {
-                assert(EntityType::Type == entity->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
-            } else if constexpr (detail::is_derived_from_but_not_v<CTask, EntityType>) {
-                assert(EntityType::Type == entity->GetTaskType());
-            } // TODO: Eventually add this for `CEvent` too
+        #ifdef NOTSA_DEBUG
+            // Asserts for correct type
+            if (entity) {
+                if constexpr (detail::is_derived_from_but_not_v<CVehicle, EntityType>) {
+                    assert(EntityType::Type == entity->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
+                } else if constexpr (detail::is_derived_from_but_not_v<CTask, EntityType>) {
+                    assert(EntityType::Type == entity->GetTaskType());
+                } // TODO: Eventually add this for `CEvent` too
+            }
+        #endif
+
+            return {
+                .e = entity,
+                .h = handle
+            };
+        } else if constexpr (detail::scriptthing::is_script_thing_v<Y>) {
+            // Read information (packed 2x16 int)
+            const auto handle = Read<uint32>(S);
+            if (handle == (uint32)(-1)) { // Invalid handle, may happen if a function returned it (and they didn't handle it properly)
+                return nullptr; 
+            }
+
+            // Extract index and (expected) ID of the object
+            const auto index = (uint16)(LOWORD(handle)), id = (uint16)(HIWORD(handle));
+
+            // Check if the object is active (If not, it has been reused/deleted)
+            if (!detail::scriptthing::IsActive<Y>(index)) {
+                return nullptr;
+            }
+
+            // Check if ID is what we expect (If not, that means that the object has been reused)
+            if (detail::scriptthing::GetId<Y>(index) != id) {
+                return nullptr;
+            }
+
+            return {
+                .e = &detail::scriptthing::GetAt<Y>(index),
+                .h = handle
+            }
+        } else {
+            NOTSA_UNREACHABLE();
         }
-    #endif
-
-        return {
-            .e = entity,
-            .h = handle
-        };
     } else if constexpr (detail::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
         return Read<ScriptEntity<Y>>(S).e;
     } else if constexpr (std::is_same_v<Y, CRunningScript>) { // Just return the script from where this command was invoked from
@@ -248,26 +276,7 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<Y, CPlayerInfo>) {
         return &FindPlayerInfo(Read<int32>(S));
     } else if constexpr (detail::scriptthing::is_script_thing_v<Y>) {
-        // Read information (packed 2x16 int)
-        const auto info = Read<uint32>(S);
-        if (info == (uint32)(-1)) { // Invalid handle, may happen if a function returned it (and they didn't handle it properly)
-            return nullptr; 
-        }
-
-        // Extract index and (expected) ID of the object
-        const auto index = (uint16)(LOWORD(info)), id = (uint16)(HIWORD(info));
-
-        // Check if the object is active (If not, it has been reused/deleted)
-        if (!detail::scriptthing::IsActive<Y>(index)) {
-            return nullptr;
-        }
-
-        // Check if ID is what we expect (If not, that means that the object has been reused)
-        if (detail::scriptthing::GetId<Y>(index) != id) {
-            return nullptr;
-        }
-
-        return &detail::scriptthing::GetAt<Y>(index);
+        return Read<ScriptEntity<Y>>(S).e;
     } else if constexpr (std::is_same_v<T, script::Model>) {
         const auto value = Read<int32>(S);
         if (value < 0) {
