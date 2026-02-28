@@ -3860,9 +3860,9 @@ void SetPetrolTankWeakpoint(CVehicle& self, bool state) {
  * @param {Car} self
  * @param {int} paintjobId
  */
-//void GiveVehiclePaintjob(CVehicle& self, int32 paintjobId) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void GiveVehiclePaintjob(CVehicle& self, int32 paintjobId) {
+    self.SetRemap(paintjobId);
+}
 
 /*
  * @opcode 01E9
@@ -4292,7 +4292,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_DOES_PROVIDE_COVER, VehicleDoesProvideCover);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_VEHICLE_PAINTJOB, GetCurrentVehiclePaintjob);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PETROL_TANK_WEAKPOINT, SetPetrolTankWeakpoint);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
+    REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
     //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
