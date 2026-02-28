@@ -3643,19 +3643,6 @@ void SetVehicleQuaternion(CVehicle& self, CQuaternion quaternion) {
 }
 
 /*
- * @opcode 059D
- * @command SHUFFLE_CARD_DECKS
- * @class CardDecks
- * @method Shuffle
- * @static
- * 
- * @param {int} type
- */
-//void ShuffleCardDecks(int32 type) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
-
-/*
  * @opcode 0840
  * @command SET_VEHICLE_AREA_VISIBLE
  * @class Car
@@ -4283,7 +4270,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
