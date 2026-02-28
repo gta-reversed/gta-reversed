@@ -4003,9 +4003,11 @@ auto GetDoorAngleRatio(CVehicle& self, eDoors door) {
  * 
  * @param {Car} self
  */
-//void ResetVehicleHydraulics(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void ResetVehicleHydraulics(CVehicle& self) {
+    if (self.handlingFlags.bHydraulicInst && self.IsAutomobile()) {
+        self.AsAutomobile()->m_wMiscComponentAngle = 0;
+    }
+}
 
 /*
  * @opcode 08A5
@@ -4306,8 +4308,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2d);
-    //REGISTER_COMMAND_HANDLER(COMMAND_RESET_VEHICLE_HYDRAULICS, ResetVehicleHydraulics);
+    REGISTER_COMMAND_HANDLER(COMMAND_RESET_VEHICLE_HYDRAULICS, ResetVehicleHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_WINCH_CAN_PICK_VEHICLE_UP, WinchCanPickVehicleUp);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_EMERGENCY_SERVICES_VEHICLE, IsEmergencyServicesVehicle);
 
