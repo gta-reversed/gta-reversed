@@ -3938,9 +3938,9 @@ void ControlMovableVehiclePart(CVehicle& self, float range) {
  * @param {Car} self
  * @param {bool} state
  */
-//void SetVehicleIsConsideredByPlayer(CVehicle& self, bool state) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetVehicleIsConsideredByPlayer(CVehicle& self, bool state) {
+    self.vehicleFlags.bConsideredByPlayer = state;
+}
 
 /*
  * @opcode 0594
@@ -4298,7 +4298,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
     REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYBACK_SPEED, SetPlaybackSpeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
