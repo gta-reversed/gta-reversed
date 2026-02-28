@@ -115,7 +115,7 @@ struct ScriptEntity {
 template<typename T>
 inline T Read(CRunningScript* S, bool updateIP = true) {
     using Y = std::remove_pointer_t<std::remove_cvref_t<T>>;
-
+        
     // First of all, deal with references
     // References are a way to express that a value (non-null) value must be present
     // While simple pointers are a way to express that "it's okay if it's null, I can handle it".
@@ -124,10 +124,12 @@ inline T Read(CRunningScript* S, bool updateIP = true) {
         const auto ptr = Read<std::remove_reference_t<T>*>(S, updateIP);
         assert(ptr); // This assert is usually hit if the implementation defines an argument with a different type than the original. Eg.: `CVehicle&` instead of `CPed&`.
         return *ptr;
-    } else if constexpr (std::is_same_v<Y, CVector>) {
-        return { Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP) };
     } else if constexpr (std::is_same_v<Y, CVector2D>) {
-        return { Read<float>(S, updateIP), Read<float>(S, updateIP) };
+        return { Read<float>(S, updateIP), Read<float>(S, updateIP) }; // x, y
+    } else if constexpr (std::is_same_v<Y, CVector>) {
+        return { Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP) }; // x, y, z
+    } else if constexpr (std::is_same_v<Y, CQuaternion>) {
+        return { Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP) }; // x, y, z, w
     } else if constexpr (std::is_same_v<Y, CRect>) {
         return { Read<CVector2D>(S, updateIP), Read<CVector2D>(S, updateIP) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
     } else if constexpr (std::is_same_v<Y, CRGBA>) {
