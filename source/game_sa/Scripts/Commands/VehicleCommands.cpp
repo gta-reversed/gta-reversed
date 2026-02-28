@@ -3908,9 +3908,9 @@ bool IsVehicleTouchingObject(CVehicle* car, CObject& obj) {
  * @param {Car} self
  * @param {bool} state
  */
-//void VehicleCanBeTargettedByHsMissile(CVehicle& self, bool state) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void VehicleCanBeTargettedByHsMissile(CVehicle& self, bool state) {
+    self.vehicleFlags.bVehicleCanBeTargettedByHS = state;
+}
 
 /*
  * @opcode 08A4
@@ -4296,7 +4296,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
-    //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
+    REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
     //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
