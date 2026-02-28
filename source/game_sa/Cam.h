@@ -120,7 +120,7 @@ public:
     CVector   m_avecTargetHistoryPos[4];
     uint32    m_anTargetHistoryTime[4];
     uint32    m_nCurrentHistoryPoints;
-    CEntity*  m_pCamTargetEntity;
+    CEntity*  m_pCamTargetEntity; // Owner entity. e.g.: player
     float     m_fCameraDistance;
     float     m_fIdealAlpha;
     float     m_fPlayerVelocity;
@@ -132,53 +132,66 @@ public:
     static void InjectHooks();
 
     CCam();
-    CCam* Constructor();
 
     void Init();
 
     void CacheLastSettingsDWCineyCam();
     void DoCamBump(float horizontal, float vertical);
-    void Finalise_DW_CineyCams(CVector*, CVector*, float, float, float, float);
-    void GetCoreDataForDWCineyCamMode(CEntity**, CVehicle**, CVector*, CVector*, CVector*, CVector*, CVector*, CVector*, float*, CVector*, float*, CColSphere*);
-    void GetLookFromLampPostPos(CEntity*, CPed*, CVector&, CVector&);
+    void Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree);
+    void GetCoreDataForDWCineyCamMode(CEntity*& entity, CVehicle*& vehicle, CVector& dest, CVector& src, CVector& targetUp, CVector& targetRight, CVector& targetFwd, CVector& targetVel, float& targetSpeed, CVector& targetAngVel, float& targetAngSpeed, CColSphere& colSphere);
+    void GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, const CVector& vecSource);
     void GetVectorsReadyForRW();
     void Get_TwoPlayer_AimVector(CVector&);
-    void IsTimeToExitThisDWCineyCamMode(int32, CVector*, CVector*, float, bool);
+    bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
     void LookRight(bool bLookRight);
     void RotCamIfInFrontCar(const CVector&, float);
     bool Using3rdPersonMouseCam() const;
     bool GetWeaponFirstPersonOn();
+    void ClipAlpha();
+    void ClipBeta();
 
-    bool Process();
-    bool ProcessArrestCamOne();
-    bool ProcessPedsDeadBaby();
-    bool Process_1rstPersonPedOnPC(const CVector&, float, float, float);
-    bool Process_1stPerson(const CVector&, float, float, float);
-    bool Process_AimWeapon(const CVector&, float, float, float);
-    bool Process_AttachedCam();
-    bool Process_Cam_TwoPlayer();
-    bool Process_Cam_TwoPlayer_InCarAndShooting();
-    bool Process_Cam_TwoPlayer_Separate_Cars();
-    bool Process_Cam_TwoPlayer_Separate_Cars_TopDown();
-    bool Process_DW_BirdyCam(bool);
-    bool Process_DW_CamManCam(bool);
-    bool Process_DW_HeliChaseCam(bool);
-    bool Process_DW_PlaneCam1(bool);
-    bool Process_DW_PlaneCam2(bool);
-    bool Process_DW_PlaneCam3(bool);
-    bool Process_DW_PlaneSpotterCam(bool);
-    bool Process_Editor(const CVector&, float, float, float);
-    bool Process_Fixed(const CVector&, float, float, float);
-    bool Process_FlyBy(const CVector&, float, float, float);
-    bool Process_FollowCar_SA(const CVector&, float, float, float, bool);
-    bool Process_FollowPedWithMouse(const CVector&, float, float, float);
-    bool Process_FollowPed_SA(const CVector&, float, float, float, bool);
-    bool Process_M16_1stPerson(const CVector&, float, float, float);
-    bool Process_Rocket(const CVector&, float, float, float, bool);
-    bool Process_SpecialFixedForSyphon(const CVector&, float, float, float);
-    bool Process_WheelCam(const CVector&, float, float, float);
+    void Process();
+    void ProcessArrestCamOne();
+    void ProcessPedsDeadBaby();
+    void Process_1rstPersonPedOnPC(const CVector&, float, float, float);
+    void Process_1stPerson(const CVector&, float, float, float);
+    void Process_AimWeapon(const CVector&, float, float, float);
+    void Process_AttachedCam();
+    void Process_Cam_TwoPlayer();
+    void Process_Cam_TwoPlayer_InCarAndShooting();
+    void Process_Cam_TwoPlayer_Separate_Cars();
+    void Process_Cam_TwoPlayer_Separate_Cars_TopDown();
+    void Process_DW_BirdyCam(bool);
+    void Process_DW_CamManCam(bool);
+    void Process_DW_HeliChaseCam(bool);
+    void Process_DW_PlaneCam1(bool);
+    void Process_DW_PlaneCam2(bool);
+    void Process_DW_PlaneCam3(bool);
+    void Process_DW_PlaneSpotterCam(bool);
+    void Process_Editor(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+    void Process_Fixed(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+    void Process_FlyBy(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+    void Process_FollowCar_SA(const CVector& target, float orientation, float speedVar, float speedVarWanted, bool);
+    void Process_FollowPedWithMouse(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+    void Process_FollowPed_SA(const CVector& target, float orientation, float speedVar, float speedVarWanted, bool);
+    void Process_M16_1stPerson(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+    void Process_Rocket(const CVector& target, float orientation, float speedVar, float speedVarWanted, bool isHeatSeeking);
+    void Process_SpecialFixedForSyphon(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+    bool Process_WheelCam(const CVector& target, float orientation, float speedVar, float speedVarWanted);
+
+    // inlined
+    void ApplyUnderwaterMotionBlur();
+
+private:
+    CCam* Constructor() {
+        this->CCam::CCam();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CCam, 0x238);
+
+int32 ConvertPedNode2BoneTag(int32 simpleId);
+bool  IsLampPost(eModelID modelId);

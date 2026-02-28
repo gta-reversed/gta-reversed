@@ -97,7 +97,7 @@ int8 CCustomCarPlateMgr::LoadPlatecharsetDat(const char* filename, uint8* data) 
 }
 
 auto ResolvePlateType(uint8 plateType) {
-    return plateType == (uint8)-1 ? CCustomCarPlateMgr::GetMapRegionPlateDesign() : plateType;
+    return plateType == CARPLATE_DEFAULT ? CCustomCarPlateMgr::GetMapRegionPlateDesign() : plateType;
 }
 
 // 0x6FDE50
@@ -302,7 +302,7 @@ RwTexture* CCustomCarPlateMgr::CreatePlateTexture(const char* text, uint8 plateT
 
 // 0x6FDF50
 RpMaterial* CCustomCarPlateMgr::MaterialUpgradeSetCarplateTextureCB(RpMaterial* material, void* geometry) {
-    //printf("[Debug - Trace]: MaterialUpgradeSetCarplateTextureCB");
+    //NOTSA_LOG_DEBUG("[Debug - Trace]: MaterialUpgradeSetCarplateTextureCB");
 
     assert(material);
     assert(geometry);
@@ -321,7 +321,7 @@ RpMaterial* CCustomCarPlateMgr::MaterialUpgradeSetCarplateTextureCB(RpMaterial* 
 
 // 0x6FDFC0
 RpAtomic* CCustomCarPlateMgr::AtomicUpgradeSetCarplateTextureCB(RpAtomic* atomic, _IGNORED_ void* data) {
-    DEV_LOG("[Debug - Trace]: AtomicUpgradeSetCarplateTextureCB");
+    NOTSA_LOG_DEBUG("[Debug - Trace]: AtomicUpgradeSetCarplateTextureCB");
     assert(atomic);
 
     RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), MaterialUpgradeSetCarplateTextureCB, RpAtomicGetGeometry(atomic));
@@ -336,7 +336,7 @@ int8 CCustomCarPlateMgr::SetupClumpAfterVehicleUpgrade(RpClump* clump, RpMateria
     if (!plateMaterial)
         return false;
 
-    DEV_LOG("[Debug - Trace]: SetupClumpAfterVehicleUpgrade");
+    NOTSA_LOG_DEBUG("[Debug - Trace]: SetupClumpAfterVehicleUpgrade");
 
     CurrentLicensePlateType = plateType;
     CurrentLicensePlateMaterial = plateMaterial;

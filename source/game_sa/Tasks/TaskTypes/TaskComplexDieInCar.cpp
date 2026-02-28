@@ -42,7 +42,7 @@ CTask* CTaskComplexDieInCar::ControlSubTask(CPed* ped) {
     if (CTimer::GetTimeInMS() < m_nTimeMS + m_nOffset)
         return m_pSubTask;
 
-    if (ped->m_nCreatedBy == PED_MISSION || ped->m_pVehicle->CanPedStepOutCar(false))
+    if (ped->GetCreatedBy() == PED_MISSION || ped->m_pVehicle->CanPedStepOutCar(false))
         return CreateSubTask(TASK_COMPLEX_LEAVE_CAR_AND_DIE, ped);
 
     return CreateSubTask(TASK_SIMPLE_DIE_IN_CAR, ped);
@@ -120,13 +120,13 @@ CTask* CTaskComplexDieInCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x62FD00
 void CTaskComplexDieInCar::PreparePedVehicleForPedDeath(CVehicle *vehicle) {
-    if (vehicle->m_nStatus == STATUS_SIMPLE) {
+    if (vehicle->GetStatus() == STATUS_SIMPLE) {
         CCarCtrl::SwitchVehicleToRealPhysics(vehicle);
     }
-    vehicle->m_autoPilot.m_nCruiseSpeed    = 0;
-    vehicle->m_autoPilot.m_nCarMission     = eCarMission::MISSION_NONE;
-    vehicle->m_autoPilot.m_nTempAction     = 6;
-    vehicle->m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 2000;
+    const auto ap      = &vehicle->m_autoPilot;
+    ap->SetCruiseSpeed(0);
+    ap->m_nCarMission  = eCarMission::MISSION_NONE;
+    ap->SetTempAction(TEMPACT_HANDBRAKESTRAIGHT, 2'000);
 }
 
 // 0x637850

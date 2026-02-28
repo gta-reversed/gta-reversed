@@ -14,7 +14,7 @@ CAEDoorAudioEntity::CAEDoorAudioEntity() : CAEAudioEntity() {
 
 // 0x5B9A80
 void CAEDoorAudioEntity::StaticInitialise() {
-    AEAudioHardware.LoadSoundBank(51, 31);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_DOORS, SND_BANK_SLOT_DOORS);
 }
 
 // 0x4DC6B0
@@ -83,25 +83,31 @@ void CAEDoorAudioEntity::AddAudioEvent(eAudioEvents event, CVector& posn, float 
 
 // 0x4DC6D0
 void CAEDoorAudioEntity::PlayDoorSound(int16 sfxId, eAudioEvents event, CVector& posn, float volumeDelta, float speed) {
-    if (AEAudioHardware.IsSoundBankLoaded(51, 31)) {
-        CVector position;
-        bool    enabled = false;
-        if (posn.x == -1000.0f && posn.y == -1000.0f && posn.z == -1000.0f || posn.x == 0.0f && posn.y == 0.0f && posn.z == 0.0f) {
-            position.Set(0.0f, 1.0f, 0.0f);
-            enabled = true;
-        } else {
-            position = posn;
-        }
-
-        const float eventVolume = GetDefaultVolume(event);
-        const float volume = eventVolume + volumeDelta;
-        CAESound    sound;
-        sound.Initialise(31, sfxId, this, position, volume, 2.0f, speed, 1.0f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-        sound.SetIndividualEnvironment(SOUND_FRONT_END, enabled);
-        sound.m_nEvent = event;
-        AESoundManager.RequestNewSound(&sound);
-    } else {
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_DOORS, SND_BANK_SLOT_DOORS)) {
         StaticInitialise();
+        return;
+    }
+    const auto PlaySound = [&](CVector pos, bool isFrontEnd) {
+        AESoundManager.PlaySound({
+            .BankSlotID        = SND_BANK_SLOT_DOORS,
+            .SoundID           = sfxId,
+            .AudioEntity       = this,
+            .Pos               = pos,
+            .Volume            = GetDefaultVolume(event) + volumeDelta,
+            .RollOffFactor     = 2.0f,
+            .Speed             = speed,
+            .Doppler           = 1.0f,
+            .FrameDelay        = 0,
+            .Flags             = SOUND_REQUEST_UPDATES | (isFrontEnd ? SOUND_FRONT_END : 0u),
+            .FrequencyVariance = 0.0f,
+            .PlayTime          = 0,
+            .EventID           = event
+        });
+    };
+    if (posn.x == -1000.0f && posn.y == -1000.0f && posn.z == -1000.0f || posn.IsZero()) {
+        PlaySound({ 0.0f, 1.0f, 0.0f }, true);
+    } else {
+        PlaySound(posn, false);
     }
 }
 
@@ -136,21 +142,21 @@ void CAEDoorAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         return sound->StopSoundAndForget();
 #else
     eAudioEvents event;
-    if (sound->m_nEvent == AE_GARAGE_DOOR_OPENING) {
+    if (sound->m_Event == AE_GARAGE_DOOR_OPENING) {
         event = AE_GARAGE_DOOR_OPENED;
         if (CTimer::GetTimeInMS() > (m_nTime + 10000)) {
             auto playing = (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_GARAGE_DOOR_OPENED, this) &&
                             AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_GARAGE_DOOR_OPENING, this));
             if (playing) {
                 AESoundManager.CancelSoundsOwnedByAudioEntity(this, 1);
-                PlayDoorSound(2, AE_GARAGE_DOOR_OPENED, sound->m_vecCurrPosn, 0.0f, 1.0f);
+                PlayDoorSound(2, AE_GARAGE_DOOR_OPENED, sound->m_CurrPos, 0.0f, 1.0f);
             }
             m_nTime = CTimer::GetTimeInMS();
             sound->StopSoundAndForget();
             return;
         }
     } else {
-        if (sound->m_nEvent != AE_GARAGE_DOOR_CLOSING)
+        if (sound->m_Event != AE_GARAGE_DOOR_CLOSING)
             return;
 
         event = AE_GARAGE_DOOR_CLOSED;
@@ -159,7 +165,7 @@ void CAEDoorAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
                             AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_GARAGE_DOOR_CLOSING, this));
             if (playing) {
                 AESoundManager.CancelSoundsOwnedByAudioEntity(this, 1);
-                PlayDoorSound(2, AE_GARAGE_DOOR_CLOSED, sound->m_vecCurrPosn, 0.0f, 0.79f);
+                PlayDoorSound(2, AE_GARAGE_DOOR_CLOSED, sound->m_CurrPos, 0.0f, 0.79f);
             }
             m_nTime = CTimer::GetTimeInMS();
             sound->StopSoundAndForget();

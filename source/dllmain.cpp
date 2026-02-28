@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-
 #include "StdInc.h"
 #include "config.h"
 
@@ -31,6 +27,7 @@ void WaitForDebugger() {
 static constexpr auto DEFAULT_INI_FILENAME = "gta-reversed.ini";
 
 #include "extensions/Configs/FastLoader.hpp"
+#include "extensions/Configs/Miscellaneous.hpp"
 
 void LoadConfigurations() {
     // Firstly load the INI into the memory.
@@ -38,6 +35,7 @@ void LoadConfigurations() {
 
     // Then load all specific configurations.
     g_FastLoaderConfig.Load();
+    g_MiscConfig.Load();
     // ...
 }
 

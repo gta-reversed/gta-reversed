@@ -8,6 +8,7 @@
 #include "TaskSimpleJetPack.h"
 #include "PostEffects.h"
 #include "Hud.h"
+#include <CarGenerator.h>
 
 /*
  * Interesting links:
@@ -131,32 +132,6 @@ const auto cheats = std::to_array<Cheat>({
         { 0x0, nullptr, "", 0x86988dae, CHEAT_PROSTITUTES_PAY_YOU },
         { 0x0, nullptr, "", 0x2bdd2fa1, CHEAT_ALL_TAXIS_NITRO },
 });
-
-void CCheat::InjectHooks() {
-    RH_ScopedClass(CCheat);
-    RH_ScopedCategoryGlobal();
-
-    RH_ScopedInstall(AddToCheatString, 0x438480);
-    RH_ScopedInstall(HandleSpecialCheats, 0x439A10);
-    RH_ScopedInstall(DoCheats, 0x439AF0);
-    RH_ScopedInstall(ResetCheats, 0x438450);
-    RH_ScopedInstall(IsZoneStreamingAllowed, 0x407410);
-    RH_ScopedInstall(ApplyCheat, 0x438370);
-
-    for (auto& cheat: cheats) {
-        if (cheat.installAddress == 0x0) {
-            continue;
-        }
-
-        RH_ScopedNamedGlobalInstall(cheat.method, cheat.methodName, cheat.installAddress);
-
-        for (auto& cheatFunc: CCheat::m_aCheatFunctions) {
-            if (reinterpret_cast<unsigned long>(cheatFunc) == cheat.installAddress) {
-                cheatFunc = static_cast<void (*)()>(cheat.method);
-            }
-        }
-    }
-}
 
 // 0x438480
 void CCheat::AddToCheatString(char LastPressedKey) {
@@ -309,11 +284,8 @@ void CCheat::BlackCarsCheat() {
 
 // 0x439d80
 void CCheat::BlowUpCarsCheat() {
-    for (int32 index = 0; index < GetVehiclePool()->m_nSize; index++) {
-        CVehicle* vehicle = GetVehiclePool()->GetAt(index);
-        if (vehicle) {
-            vehicle->BlowUpCar(nullptr, false);
-        }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        veh.BlowUpCar(nullptr, false);
     }
 }
 
@@ -389,17 +361,16 @@ void CCheat::ElvisLivesCheat() {
 void CCheat::EverybodyAttacksPlayerCheat() {
     Toggle(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD);
     if (IsActive(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD)) {
-        auto player = FindPlayerPed();
-        for (auto i = 0; i < GetPedPool()->m_nSize; i++) {
-            auto ped = GetPedPool()->GetAt(i);
-            if (!ped || ped->IsPlayer())
+        auto* const player = FindPlayerPed();
+        for (auto& ped : GetPedPool()->GetAllValid()) {
+            if (ped.IsPlayer())
                 continue;
 
-            ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
+            ped.GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
             CEventAcquaintancePedHate event(player);
             event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
-            ped->GetEventGroup().Add(&event, false);
+            ped.GetEventGroup().Add(&event, false);
         }
     }
 }
@@ -729,22 +700,20 @@ void CCheat::TankerCheat() {
     auto* trailer = new CTrailer(MODEL_PETROTR, RANDOM_VEHICLE);
     trailer->SetPosn(vehicle->GetPosition());
     trailer->SetOrientation(0.0f, 0.0f, DegreesToRadians(200));
-    trailer->m_nStatus = STATUS_ABANDONED;
+    trailer->SetStatus(STATUS_ABANDONED);
     CWorld::Add(trailer);
     trailer->SetTowLink(vehicle, true);
 }
 
 // 0x43A0B0
 CVehicle* CCheat::VehicleCheat(eModelID modelId) {
-    return plugin::CallAndReturn<CVehicle*, 0x43A0B0, eModelID>(modelId);
-
     const auto player = FindPlayerPed();
-    if (player->m_nAreaCode != AREA_CODE_NORMAL_WORLD) {
+    if (player->GetAreaCode() != AREA_CODE_NORMAL_WORLD) {
         return nullptr;
     }
 
     //    for (auto i = 0; i < 50; ++i) {
-    //        auto vehicle = CPools::ms_pVehiclePool->GetAtRef(i);
+    //        auto vehicle = CPools::GetVehiclePool()->GetAtRef(i);
     //        if (vehicle)
     //    }
 
@@ -758,52 +727,31 @@ CVehicle* CCheat::VehicleCheat(eModelID modelId) {
         CStreaming::SetModelIsDeletable(modelId);
         CStreaming::SetModelTxdIsDeletable(modelId);
     }
+    
+    auto* const vehicle = CCarGenerator::CreateVehicle(modelId, RANDOM_VEHICLE); // NB(NOTSA): Made this function instead of having shit here (Also fixes train spawning!)
+    if (!vehicle) {
+        return nullptr;
+    }
 
-    const auto GetVehicle = [](auto modelId) -> CVehicle* {
-        const auto* mi = CModelInfo::GetModelInfo(modelId)->AsVehicleModelInfoPtr();
-        switch (mi->m_nVehicleType) {
-        case VEHICLE_TYPE_MTRUCK:
-            return new CMonsterTruck(modelId, RANDOM_VEHICLE);
-        case VEHICLE_TYPE_QUAD:
-            return new CQuadBike(modelId, RANDOM_VEHICLE);
-        case VEHICLE_TYPE_HELI:
-            return new CHeli(modelId, RANDOM_VEHICLE);
-        case VEHICLE_TYPE_PLANE:
-            return new CPlane(modelId, RANDOM_VEHICLE);
-        case VEHICLE_TYPE_BOAT:
-            return new CBoat(modelId, RANDOM_VEHICLE);
-        case VEHICLE_TYPE_BIKE: {
-            auto* vehicle = new CBike(modelId, RANDOM_VEHICLE);
-            vehicle->bikeFlags.bOnSideStand = true;
-            return vehicle;
-        }
-        case VEHICLE_TYPE_BMX: {
-            auto* vehicle = new CBmx(modelId, RANDOM_VEHICLE);
-            vehicle->bikeFlags.bOnSideStand = true;
-            return vehicle;
-        }
-        case VEHICLE_TYPE_TRAILER:
-            return new CTrailer(modelId, RANDOM_VEHICLE);
-        default:
-            return new CAutomobile(modelId, RANDOM_VEHICLE, true);
-        }
-    };
-    auto* vehicle = GetVehicle(modelId);
+    const float radius = vehicle->GetModelInfo()->GetColModel()->GetBoundRadius();
+    const auto  rotZ   = player->m_fCurrentRotation + HALF_PI;
+    const auto  pos    = player->GetPosition() + (radius + 2.0f) * player->GetForward();
 
-    const float radius      = vehicle->GetModelInfo()->GetColModel()->GetBoundRadius();
-    const auto  rotZ        = player->m_fCurrentRotation + HALF_PI;
-    const auto  vehiclePosn = player->GetPosition() + (radius + 2.0f) * player->GetForward();
-
-    vehicle->SetPosn(vehiclePosn);
+    vehicle->SetPosn(pos);
     vehicle->SetOrientation(0.0f, 0.0f, rotZ);
-    vehicle->m_nStatus = STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     vehicle->m_nDoorLock = CARLOCK_UNLOCKED;
     CWorld::Add(vehicle);
-    CTheScripts::ClearSpaceForMissionEntity(vehiclePosn, vehicle);
+    CTheScripts::ClearSpaceForMissionEntity(pos, vehicle);
 
     switch (vehicle->m_nVehicleType) {
-    case VEHICLE_TYPE_BOAT:
+    case VEHICLE_TYPE_TRAIN: {
+        const auto train = vehicle->AsTrain();
+        train->FindPositionOnTrackFromCoors();
         break;
+    }
+    case VEHICLE_TYPE_BOAT:
+        break; /* nop */
     case VEHICLE_TYPE_BIKE:
         vehicle->AsBike()->PlaceOnRoadProperly();
         break;
@@ -1245,3 +1193,31 @@ void CCheat::WeaponSlotCheat() {
     // SLOT_EQUIPMENT       "NIGHT-VISION GOGGLES" "FIRE EXTINGUISHER" "SPRAY CAN" "PARACHUTE" "CAMERA" "THERMAL GOGGLES"
     // SLOT_OTHER           "VIBRA2" "DILDO1" "CANE" "DILDO2" "FLOWERS" "VIBRA1"
 }
+
+void CCheat::InjectHooks() {
+    RH_ScopedClass(CCheat);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(AddToCheatString, 0x438480);
+    RH_ScopedInstall(HandleSpecialCheats, 0x439A10);
+    RH_ScopedInstall(DoCheats, 0x439AF0);
+    RH_ScopedInstall(ResetCheats, 0x438450);
+    RH_ScopedInstall(IsZoneStreamingAllowed, 0x407410);
+    RH_ScopedInstall(ApplyCheat, 0x438370);
+    RH_ScopedInstall(VehicleCheat, 0x43A0B0);
+
+    for (auto& cheat: cheats) {
+        if (cheat.installAddress == 0x0) {
+            continue;
+        }
+
+        RH_ScopedNamedGlobalInstall(cheat.method, cheat.methodName, cheat.installAddress);
+
+        for (auto& cheatFunc: CCheat::m_aCheatFunctions) {
+            if (reinterpret_cast<unsigned long>(cheatFunc) == cheat.installAddress) {
+                cheatFunc = static_cast<void (*)()>(cheat.method);
+            }
+        }
+    }
+}
+

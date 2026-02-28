@@ -75,7 +75,7 @@ bool CTaskComplexUseSwatRope::MakeAbortable(CPed* ped, eAbortPriority priority, 
         && m_pSubTask->MakeAbortable(ped, priority, event)
     ) {
         ped->bIsStanding = false;
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         ped->ResetMoveSpeed();
         return true;
     }
@@ -106,13 +106,13 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
     if (   m_bIsOnHeli
         && (
                !m_pHeli
-               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_CRASH_HELI_AND_BURN
+               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_HELI_CRASH_AND_BURN
                || m_pHeli->m_fHealth <= 0.0F
            )
         && m_pSubTask->MakeAbortable(ped)
     ) {
         ped->bIsStanding = false;
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         ped->ResetMoveSpeed();
         return nullptr;
     }
@@ -148,7 +148,7 @@ CTask* CTaskComplexUseSwatRope::CreateSubTask(eTaskType taskType, CPed* ped) {
     case TASK_NONE:
         return new CTaskSimpleNone();
     case TASK_FINISHED:
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         ped->ResetMoveSpeed();
         return nullptr;
     default:

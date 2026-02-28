@@ -8,7 +8,7 @@ public:
     ~CEventVehicleDamageCollision() override = default;
 
     eEventType GetEventType() const override { return EVENT_VEHICLE_DAMAGE_COLLISION; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
 private:
     friend void InjectHooksMain();

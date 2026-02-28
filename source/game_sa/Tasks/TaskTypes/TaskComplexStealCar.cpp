@@ -60,7 +60,7 @@ CTask* CTaskComplexStealCar::CreateSubTask(eTaskType taskType, CPed* ped) {
         return new CTaskSimpleSetPedAsAutoDriver{ m_veh };
     case TASK_FINISHED: {
         if (!ped->bInVehicle) {
-            ped->m_bUsesCollision = true;
+            ped->SetUsesCollision(true);
         }
         return nullptr;
     }
@@ -98,7 +98,8 @@ CTask* CTaskComplexStealCar::CreateNextSubTask(CPed* ped) {
         }
         case TASK_COMPLEX_CAR_DRIVE_MISSION_FLEE_SCENE: {
             if (ped->bInVehicle) {
-                ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE, 10);
+                ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE);
+                ped->m_pVehicle->m_autoPilot.SetCruiseSpeed(10);
             }
             return TASK_FINISHED;
         }

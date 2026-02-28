@@ -120,6 +120,10 @@ struct RsInputDevice {
     RsInputEventHandler inputEventHandler;
 };
 
+#ifdef NOTSA_USE_SDL3
+typedef struct SDL_Window;
+#endif
+
 /**
  * platform-specific global data
  */
@@ -134,6 +138,10 @@ struct psGlobalType {
     LPDIRECTINPUTDEVICE8 diMouse;
     LPDIRECTINPUTDEVICE8 diDevice1;
     LPDIRECTINPUTDEVICE8 diDevice2;
+
+#ifdef NOTSA_USE_SDL3
+    SDL_Window* sdlWindow;
+#endif
 };
 
 typedef struct RsGlobalType RsGlobalType;
@@ -164,6 +172,8 @@ struct RsMouseStatus
 };
 
 enum RsKeyCodes : int32 {
+    /* ASCII chars up to 0xFF are also valid */
+
     rsESC            = 1000,
 
     rsF1             = 1001,

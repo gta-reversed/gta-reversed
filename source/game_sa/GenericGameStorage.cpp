@@ -14,6 +14,8 @@
 #include "TheScripts.h"
 #include "Garages.h"
 
+#include "extensions/Configs/Miscellaneous.hpp"
+
 //#define ENABLE_SAVE_DATA_LOG
 #ifdef ENABLE_SAVE_DATA_LOG
 template<typename TInputIter>
@@ -36,10 +38,10 @@ std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercas
 void LOG_HEX_SPAN(uint8* start, size_t size) {
     auto span = std::span(start, size);
     auto str  = make_hex_string(span.begin(), span.end(), true, true);
-    DEV_LOG("{}", str);
+    NOTSA_LOG_DEBUG("{}", str);
 }
 
-    #define LOG_SAVE(msg) DEV_LOG(msg)
+    #define LOG_SAVE(msg) NOTSA_LOG_DEBUG(msg)
 
 #else
 void LOG_HEX_SPAN(uint8* start, size_t size) {}
@@ -99,10 +101,7 @@ void CGenericGameStorage::ReportError(eBlocks nBlock, eSaveLoadError nError) {
     sprintf_s(buffer, GetErrorString(), GetBlockName(nBlock));
 
     // Yes, they don't do anything with `buffer`
-
-#ifdef _DEBUG
-    std::cerr << "[CGenericGameStorage]: " << buffer << std::endl; // NOTSA
-#endif
+    NOTSA_LOG_ERR(buffer);
 }
 
 // part from 0x5D08C0
@@ -212,6 +211,21 @@ void CGenericGameStorage::InitRadioStationPositionList() {
     // NOP
 }
 
+// NOTSA
+static std::string SaveVersionName(uint32 version) {
+    switch (version) {
+    case CKeyGen::GetKey("Aug  7 197223:11:02"): return "PS2 v1";
+    case CKeyGen::GetKey("Apr 28 200510:28:55"): return "v1 Unmodified";
+    case CKeyGen::GetKey("Apr 28 200510:40:18"): return "v1 Modified";
+    case CKeyGen::GetKey("Aug  5 200516:43:32"): return "v1.1 Unmodified";
+    case CKeyGen::GetKey("Aug  5 200516:45:06"): return "v1.1 Modified";
+    case CKeyGen::GetKey("Aug  7 197223:11:01"): return "v2 Unmodified / PS2 v2 (Greatest Hits)";
+    case CKeyGen::GetKey("Oct 17 201418:37:43"): return "v2 (Austrian)";
+    case 0x5D31CC22:                             return "v2 (German)";
+    default:                                     return std::format("Unknown({})", version);
+    }
+}
+
 // 0x5D17B0
 bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
     out_bVariablesLoaded = false;
@@ -261,10 +275,18 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             uint32 varsVer{};
             vars.Extract(varsVer);
             if (GetCurrentVersionNumber() != varsVer) {
-                fprintf(stderr, "[error] GenericGameStorage: Loading failed (wrong version number = 0x%08x)!", varsVer); // NOTSA
-                varsBackup.Extract(varsVer); // Restore old state
-                CloseFile();
-                return false;
+                NOTSA_LOG_ERR("Tried loading a save file with mismatching version!");
+                NOTSA_LOG_ERR("Got {}, expected {}", SaveVersionName(varsVer), SaveVersionName(GetCurrentVersionNumber()));
+
+                if (!g_MiscConfig.LoadSavesWithMismatchingVersion) {
+                    NOTSA_LOG_WARN("Starting a new game instead... (You can force load it by setting Misc.LoadSavesWithMismatchingVersion to true in the config)");
+
+                    varsBackup.Extract(varsVer); // Restore old state
+                    CloseFile();
+                    return false;
+                } else {
+                    NOTSA_LOG_WARN("Forcefully loading a mismatching save. You are on your own! If the save mismatches with the script, the game will crash.");
+                }
             }
             break;
         }

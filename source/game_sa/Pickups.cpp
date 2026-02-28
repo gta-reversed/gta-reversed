@@ -6,8 +6,6 @@
 */
 #include "StdInc.h"
 
-#include "extensions/enumerate.hpp"
-
 #include "Pickups.h"
 #include "Garages.h"
 #include "tPickupMessage.h"
@@ -170,9 +168,9 @@ void CPickups::DoCollectableEffects(CEntity* entity) {
             40.0f,
             CORONATYPE_TORUS,
             FLARETYPE_NONE,
-            false,
-            false,
-            0,
+            eCoronaReflType::CORREFL_NONE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
             0.0f,
             false,
             1.5f,
@@ -225,9 +223,9 @@ void CPickups::DoMineEffects(CEntity* entity) {
             40.0f,
             CORONATYPE_TORUS,
             FLARETYPE_NONE,
-            false,
-            false,
-            0,
+            eCoronaReflType::CORREFL_NONE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
             0.0f,
             false,
             1.5f,
@@ -318,8 +316,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     auto* ped = FindPlayerPed(playerId);
 
     if (modelId == MI_PICKUP_ADRENALINE) {
-        ped->m_pPlayerData->m_bAdrenaline = true;
-        ped->m_pPlayerData->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
+        ped->GetPlayerData()->m_bAdrenaline = true;
+        ped->GetPlayerData()->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
         ped->ResetSprintEnergy();
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_ADRENALINE);
         return true;
@@ -464,7 +462,7 @@ void CPickups::PictureTaken() {
     std::optional<size_t> capturedPickup{};
     auto lastFoundDist = 999'999.88f; // maybe FLT_MAX
 
-    for (auto&& [i, pickup] : notsa::enumerate(aPickUps)) {
+    for (auto&& [i, pickup] : rngv::enumerate(aPickUps)) {
         if (pickup.m_nPickupType != PICKUP_SNAPSHOT)
             continue;
 
@@ -512,7 +510,7 @@ bool CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(eWeaponType weaponType)
 
 // 0x456DE0
 void CPickups::RemoveMissionPickUps() {
-    for (auto&& [i, pickup] : notsa::enumerate(aPickUps)) {
+    for (auto&& [i, pickup] : rngv::enumerate(aPickUps)) {
         switch (pickup.m_nPickupType) {
         case PICKUP_ONCE_FOR_MISSION: {
             CRadar::ClearBlipForEntity(BLIP_PICKUP, GetUniquePickupIndex(i).num);
@@ -718,7 +716,7 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
     }
 
     if (auto mi = CModelInfo::GetModelInfo(modelId); mi->GetModelType() == MODEL_INFO_WEAPON) {
-        return mi->AsWeaponModelInfoPtr()->m_weaponInfo;
+        return mi->AsWeaponModelInfoPtr()->GetWeaponInfo();
     }
 
     return WEAPON_UNARMED;

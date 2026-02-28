@@ -166,7 +166,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         if (CCarEnterExit::IsCarDoorInUse(m_Car, m_TargetDoor, m_TargetDoorOppositeToFlag)) { // 0x63EC24
             ped->SetMoveState(PEDMOVE_STILL);
             if (ped->IsPlayer()) {
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.f;
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.f;
                 ped->AsPlayer()->SetRealMoveAnim();
             } else {
                 ped->SetMoveAnim();
@@ -199,7 +199,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_CAR_OPEN_DOOR_FROM_OUTSIDE:
     case TASK_SIMPLE_BIKE_PICK_UP: { // 0x63EE0D
         if (m_Car->GetMoveSpeed().SquaredMagnitude2D() > sq(ped->IsPlayer() ? 0.2f : 0.1f)) { // 0x63EDAB
-            ped->m_bUsesCollision = true;
+            ped->SetUsesCollision(true);
             return C(ped->IsPlayer() ? TASK_FINISHED : TASK_COMPLEX_FALL_AND_GET_UP);
         }
 
@@ -393,7 +393,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask_AfterSimpleCarAlign(CPed* ped) {
     };
 
     if (m_Car->GetMoveSpeed().SquaredMagnitude2D() > sq(ped->IsPlayer() ? 0.2f : 0.1f)) {
-        ped->m_bUsesCollision = true;
+        ped->SetUsesCollision(true);
         return C(ped->IsPlayer() ? TASK_FINISHED : TASK_COMPLEX_FALL_AND_GET_UP);
     }
 
@@ -545,7 +545,7 @@ CTask* CTaskComplexEnterCar::CreateFirstSubTask(CPed* ped) {
 
     if (const auto tGoToCarDoor = static_cast<CTaskComplexGoToCarDoorAndStandStill*>(C(TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL))) {
         if (ped->physicalFlags.bSubmergedInWater && !ped->bIsStanding) {
-            if (notsa::contains({ MODEL_SKIMMER, MODEL_VORTEX, MODEL_SEASPAR, MODEL_LEVIATHN }, m_Car->GetModelID())) {
+            if (notsa::contains({ MODEL_SKIMMER, MODEL_VORTEX, MODEL_SEASPAR, MODEL_LEVIATHN }, m_Car->GetModelId())) {
                 if (CCarEnterExit::GetNearestCarDoor(ped, m_Car, m_TargetDoorPos, m_TargetDoor)) {
                     tGoToCarDoor->SetTargetPt(m_TargetDoorPos);
                     tGoToCarDoor->SetTargetDoor(m_TargetDoor);
@@ -637,8 +637,8 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
             return nullptr;
         }
 
-        if (!ped->bInVehicle && !ped->m_bUsesCollision) { // 0x63E67A
-            ped->m_bUsesCollision = true;
+        if (!ped->bInVehicle && !ped->GetUsesCollision()) { // 0x63E67A
+            ped->SetUsesCollision(true);
             if (m_Car && m_TargetDoor != 0) { // TODO: Enum
                 CTaskSimpleCarSetPedOut::PositionPedOutOfCollision(ped, m_Car, m_TargetDoor);
             }
@@ -664,7 +664,7 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 
         if (m_Car && m_CruiseSpeed >= 0.f) {
             if (ped->IsPlayer() ? !ped->bInVehicle && m_Car->m_pDriver && m_bQuitAfterOpeningDoor : ped->bInVehicle) {  // 0x63E7A4 - NOTE/BUG: Why is it checking `!bInVehicle` for the player? Typo?
-                m_Car->m_autoPilot.m_nCruiseSpeed = (uint32)m_CruiseSpeed;
+                m_Car->m_autoPilot.SetCruiseSpeed((uint32)m_CruiseSpeed);
             }
         }
 
@@ -707,7 +707,7 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
             FindPlayerInfo().SetLastTargetVehicle(m_Car);
         }
         if (ped && !ped->bInVehicle) {
-            ped->m_bUsesCollision = true;
+            ped->SetUsesCollision(true);
         }
         if (m_Car) {
             CTaskSimpleCarSetPedOut::PositionPedOutOfCollision(ped, m_Car, m_TargetDoor);
@@ -760,7 +760,7 @@ int32 CTaskComplexEnterCar::ComputeTargetDoorOppositeToFlag() const {
 
 // 0x63AC80
 void CTaskComplexEnterCar::PreparePedForVehicleEnter(CPed* ped) {
-    ped->m_bUsesCollision = false;
+    ped->SetUsesCollision(false);
     if (const auto tDuck = ped->GetIntelligence()->GetTaskDuck()) {
         tDuck->MakeAbortable(ped);
     }
@@ -772,7 +772,7 @@ void CTaskComplexEnterCar::PrepareVehicleForPedEnter(CPed* ped) {
         m_CruiseSpeed = (float)carCruiseSpeed;
     }
     if (!ped->IsPlayer() || !CCarEnterExit::CarHasDoorToOpen(m_Car, (eDoors)m_TargetDoor) || CCarEnterExit::CarHasOpenableDoor(m_Car, m_TargetDoor, ped)) {
-        m_Car->m_autoPilot.m_nCruiseSpeed = 0;
+        m_Car->m_autoPilot.SetCruiseSpeed(0);
     }
 }
 

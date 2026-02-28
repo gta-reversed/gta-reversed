@@ -26,7 +26,7 @@ public:
     bool TakesPriorityOver(const CEvent& refEvent) override;
     float GetLocalSoundLevel() override { return m_bHasNoSound ? 0.0f : 160.0f; }
     bool CanBeInterruptedBySameEvent() override { return true; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
     CEventGunShot* Constructor(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);
 };

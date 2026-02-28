@@ -35,7 +35,7 @@ bool CEventGunShot::AffectsPed(CPed* ped) {
     if (!m_firedBy)
         return false;
 
-    if (m_firedBy->IsPed() && CPedGroups::AreInSameGroup(ped, m_firedBy->AsPed()))
+    if (m_firedBy->GetIsTypePed() && CPedGroups::AreInSameGroup(ped, m_firedBy->AsPed()))
         return false;
 
     if (!ped->IsInVehicleThatHasADriver()) {
@@ -74,7 +74,7 @@ bool CEventGunShot::AffectsPed(CPed* ped) {
 
 // 0x4AC810
 bool CEventGunShot::IsCriminalEvent() {
-    return m_firedBy && m_firedBy->IsPed() && m_firedBy->AsPed()->IsPlayer();
+    return m_firedBy && m_firedBy->GetIsTypePed() && m_firedBy->AsPed()->IsPlayer();
 }
 
 // 0x4AC780
@@ -83,12 +83,12 @@ bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) {
         bool bIsPlayer = false;
         bool otherPedIsPlayer = false;
         const auto refEventGunShot = static_cast<const CEventGunShot*>(&refEvent);
-        if (m_firedBy && m_firedBy->AsPed()->IsPed()) {
+        if (m_firedBy && m_firedBy->AsPed()->GetIsTypePed()) {
             bIsPlayer = m_firedBy->AsPed()->IsPlayer();
         }
 
         CPed* otherPed = refEventGunShot->m_firedBy->AsPed();
-        if (otherPed && otherPed->IsPed())
+        if (otherPed && otherPed->GetIsTypePed())
             otherPedIsPlayer = otherPed->IsPlayer();
 
         return bIsPlayer && !otherPedIsPlayer;
@@ -97,6 +97,6 @@ bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) {
 }
 
 // 0x4B6B20
-CEventEditableResponse* CEventGunShot::CloneEditable() {
+CEventEditableResponse* CEventGunShot::CloneEditable() const noexcept {
     return new CEventGunShot(m_firedBy, m_startPoint, m_endPoint, m_bHasNoSound);
 }

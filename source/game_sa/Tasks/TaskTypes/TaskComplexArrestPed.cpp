@@ -194,7 +194,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
         }
 
         if (!ped->GetActiveWeapon().IsTypeMelee()) {
-            if (!FindPlayerWanted()->IsClosestCop(ped, 2)) {
+            if (!FindPlayerWanted()->IsClosestCop(ped->AsCop(), 2)) {
                 return DoDestroyCarTask();
             }
         }
@@ -272,7 +272,7 @@ CTask* CTaskComplexArrestPed::CreateSubTask(eTaskType taskType, CPed* ped) {
         if (m_PedToArrest->m_pVehicle) {
             if (m_PedToArrest->m_pVehicle->IsDriver(m_PedToArrest)) {
                 m_PedToArrest->m_pVehicle->vehicleFlags.bIsHandbrakeOn = true;
-                m_PedToArrest->m_pVehicle->m_nStatus = STATUS_FORCED_STOP;
+                m_PedToArrest->m_pVehicle->SetStatus(STATUS_FORCED_STOP);
             }
         }
         return new CTaskSimpleArrestPed(m_PedToArrest);

@@ -20,10 +20,10 @@ void CEventKnockOffBike::InjectHooks()
     RH_ScopedInstall(SetPedSafePosition, 0x4B4AC0);
 }
 
-CEventKnockOffBike::CEventKnockOffBike(CVehicle* vehicle, CVector* moveSpeed, CVector* collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOffDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff)
+CEventKnockOffBike::CEventKnockOffBike(CVehicle* vehicle, const CVector& moveSpeed, const CVector& collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOffDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff)
 {
-    m_moveSpeed = *moveSpeed;
-    m_collisionImpactVelocity = *collisionImpactVelocity;
+    m_moveSpeed = moveSpeed;
+    m_collisionImpactVelocity = collisionImpactVelocity;
     m_time = time;
     m_damageIntensity = damageIntensity;
     field_28 = a6;
@@ -60,7 +60,7 @@ CEventKnockOffBike::~CEventKnockOffBike()
 
 CEventKnockOffBike* CEventKnockOffBike::Constructor(CVehicle* vehicle, CVector* moveSpeed, CVector* collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOffDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff)
 {
-    this->CEventKnockOffBike::CEventKnockOffBike(vehicle, moveSpeed, collisionImpactVelocity, damageIntensity, a6, knockOffType, knockOffDirection, time, ped, isVictimDriver, forceKnockOff);
+    this->CEventKnockOffBike::CEventKnockOffBike(vehicle, *moveSpeed, *collisionImpactVelocity, damageIntensity, a6, knockOffType, knockOffDirection, time, ped, isVictimDriver, forceKnockOff);
     return this;
 }
 
@@ -74,7 +74,7 @@ CEventKnockOffBike* CEventKnockOffBike::Constructor()
 bool CEventKnockOffBike::AffectsPed(CPed* ped)
 {
     if (ped->IsAlive()) {
-        if (m_vehicle && m_vehicle->m_nStatus == STATUS_GHOST)
+        if (m_vehicle && m_vehicle->GetStatus() == STATUS_GHOST)
             return false;
         if (ped->CantBeKnockedOffBike && !ped->bHasBeenRendered && !m_forceKnockOff)
             return false;
@@ -280,7 +280,7 @@ bool CEventKnockOffBike::SetPedSafePosition(CPed* ped)
 {
     if (m_vehicle->IsBike()) {
         CBike* bike = m_vehicle->AsBike();
-        bike->m_RideAnimData.m_fAnimLean = 0.0f;
+        bike->m_RideAnimData.LeanAngle = 0.0f;
         bike->m_bLeanMatrixCalculated = false;
         ped->SetPedPositionInCar();
     }

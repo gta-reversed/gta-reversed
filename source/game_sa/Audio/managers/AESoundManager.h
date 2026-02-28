@@ -2,6 +2,10 @@
 
 #include "AESound.h"
 #include "Physical.h"
+#include "Timer.h"
+#include <Enums/eAudioEvents.h>
+
+#undef PlaySound
 
 static constexpr int32 MAX_NUM_SOUNDS = 300;
 static constexpr int32 MAX_NUM_AUDIO_CHANNELS = 64;
@@ -12,21 +16,22 @@ enum eSoundPlayingStatus : int16 {
     SOUND_HAS_STARTED = 2,
 };
 
+using tSoundReference = int16;
+
 class CAESoundManager {
 public:
-    uint16   m_nNumAvailableChannels;
-    int16    m_nChannel;
-    CAESound m_aSounds[MAX_NUM_SOUNDS];
-    int16*   m_aChannelSoundTable;
-    int16*   m_aChannelSoundPlayTimes;
-    int16*   m_aChannelSoundUncancellable;
-    int16    m_aSoundLengths[MAX_NUM_SOUNDS];
-    int16    m_aSoundLoopStartTimes[MAX_NUM_SOUNDS];
-    uint32   m_nUpdateTime;
-    bool     m_bPauseTimeInUse;
-    bool     m_bManuallyPaused;
-    uint8    field_8CB6[2];
-    uint32   m_nPauseUpdateTime;
+    uint16           m_NumAllocatedPhysicalChannels;
+    int16            m_AudioHardwareHandle;
+    CAESound         m_VirtuallyPlayingSoundList[MAX_NUM_SOUNDS];
+    tSoundReference* m_PhysicallyPlayingSoundList;                        //!< List of sounds that are currently playing (Size: `m_AllocatedPhysicalChannels`)
+    int16*           m_ChannelPosition;                                   //!< Sound positions (Size: `m_AllocatedPhysicalChannels`)
+    tSoundReference* m_PrioritisedSoundList;                              //!< List of sounds that are currently playing and are uncancellable (Size: `m_AllocatedPhysicalChannels`)
+    int16            m_VirtualChannelSoundLengths[MAX_NUM_SOUNDS];        //!< Sound lengths in ms (Size: `m_AllocatedPhysicalChannels`)
+    int16            m_VirtualChannelSoundLoopStartTimes[MAX_NUM_SOUNDS]; //!< Sound loop start times in ms (Size: `m_AllocatedPhysicalChannels`)
+    uint32           m_TimeLastCalled;
+    bool             m_WasGamePausedLastFrame;
+    bool             m_IsManuallyPaused;
+    uint32           m_TimeLastCalledUnpaused;
 
 public:
     static void InjectHooks();
@@ -42,7 +47,7 @@ public:
     CAESound* RequestNewSound(CAESound* pSound);
 
     struct tSoundPlayParams {
-        int16           BankSlotID;               //!< The slot to play the sound from (From the currently loaded bank (?))
+        eSoundBankSlot  BankSlotID;               //!< The slot to play the sound from
         eSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
         CAEAudioEntity* AudioEntity;              //!< The audio entity that requested this sound
         CVector         Pos;                      //!< The position
@@ -53,11 +58,11 @@ public:
         uint8           FrameDelay{ 0 };          //!< After how many frames the sound will be played
         uint32          Flags{ 0 };               //!< See `eSoundEnvironment`
         float           FrequencyVariance{ 0.f }; //!< Random speed variance (?)
-        int16           PlayTime{ 0 };            //!< Where to start the sound
+        int16           PlayTime{ 0 };            //!< Where to start the sound (AKA `CurrentPlayPosition`)
 
         // NOTSA Args //
         CEntity*        RegisterWithEntity{};     //!< The entity to register this sound with (Automatically adds the `SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY` flag)
-        int32           EventID{ AE_UNDEFINED };  //!< Event ID
+        int32           EventID{ AE_UNDEFINED };  //!< Event ID, this can be anything, but it's usually `eAudioEvents` value
         float           ClientVariable{ 0.f };    //!< Custom value that is just stored
     };
     /*!
@@ -74,12 +79,16 @@ public:
     void      CancelSoundsOwnedByAudioEntity(CAEAudioEntity* audioEntity, bool bFullStop);
     int16     GetVirtualChannelForPhysicalChannel(int16 physicalChannel) const;
 
+    auto GetPhysicallyPlayingSoundList() const { return std::span{ m_PhysicallyPlayingSoundList, m_NumAllocatedPhysicalChannels }; }
+    auto GetChannelPositions() const { return std::span{ m_ChannelPosition, m_NumAllocatedPhysicalChannels }; }
+    auto GetPrioritisedSoundList() const { return std::span{ m_PrioritisedSoundList, m_NumAllocatedPhysicalChannels }; }
+
 private:
     CAESound* GetFreeSound(size_t* outIdx);
 
 public:
-    bool IsPaused() const { return CTimer::GetIsPaused() || m_bManuallyPaused; }
-    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.GetUnpausable(); }
+    bool IsPaused() const { return CTimer::GetIsPaused() || m_IsManuallyPaused; }
+    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.IsUnpausable(); }
 };
 VALIDATE_SIZE(CAESoundManager, 0x8CBC);
 

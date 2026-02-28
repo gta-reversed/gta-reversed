@@ -18,7 +18,7 @@ public:
    int32 GetEventPriority() const override { return 10; }
    int32 GetLifeTime() override { return 0; }
    bool AffectsPed(CPed* ped) override;
-   CEvent* Clone() override { return new CEventSignalAtPed(m_SignalAt, m_InitialPause, m_bPlayAnimAtEnd); }
+   CEvent* Clone() const noexcept override { return new CEventSignalAtPed(m_SignalAt, m_InitialPause, m_bPlayAnimAtEnd); }
    bool IsValid(CPed* ped) override;
 };
 

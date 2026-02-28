@@ -18,8 +18,8 @@ void CPedGroupMembership::AddFollower(CPed* ped) {
 
     // Peds in the player's group can't drown
     if (const auto leader = GetLeader()) {
-        if (leader->IsPlayer()) { // same effect as m_pPlayerData, no?
-            assert(leader->m_pPlayerData); // Test above theory
+        if (leader->IsPlayer()) { // same effect as GetPlayerData(), no?
+            assert(leader->GetPlayerData()); // Test above theory
             ped->bDrownsInWater = false;
         }
     }
@@ -82,7 +82,7 @@ int32 CPedGroupMembership::CountMembersExcludingLeader() {
 
 // 0x5FB160
 void CPedGroupMembership::Flush() {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (mem) {
             RemoveMember(i);
         }
@@ -99,7 +99,7 @@ CPed* CPedGroupMembership::GetMember(int32 memberId) {
 }
 
 int32 CPedGroupMembership::GetMemberId(const CPed* ped) const {
-    for (auto&& [id, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [id, mem] : rngv::enumerate(m_members)) {
         if (mem == ped) {
             return id;
         }
@@ -125,7 +125,7 @@ bool CPedGroupMembership::IsMember(const CPed* ped) const {
 // 0x5FBA60
 void CPedGroupMembership::Process() {
     // Remove dead members (except player ped)
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem || mem->IsAlive()) {
             continue;
         }
@@ -145,7 +145,7 @@ void CPedGroupMembership::Process() {
 
     // Now that we have a leader, check for separation distance and remove members further than it
     const auto& leaderPos = GetLeader()->GetPosition();
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem || mem->bNeverLeavesGroup) {
             continue;
         }
@@ -161,7 +161,7 @@ void CPedGroupMembership::Process() {
 
 // 0x5FB190
 void CPedGroupMembership::RemoveAllFollowers(bool bCreatedByMissionOnly) {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem || IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
@@ -177,7 +177,7 @@ void CPedGroupMembership::RemoveNFollowers(size_t count) {
     if (count == 0) { // Nothing to do
         return;
     }
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
@@ -210,7 +210,7 @@ void CPedGroupMembership::RemoveMember(int32 memIdx) {
     mem->GetIntelligence()->RestorePedDecisionMakerType();
 
     if (const auto leader = GetLeader()) {
-        if (const auto plyrdat = leader->m_pPlayerData) {
+        if (const auto plyrdat = leader->GetPlayerData()) {
             mem->bDrownsInWater = true;
         }
     }
@@ -240,6 +240,11 @@ void CPedGroupMembership::SetLeader(CPed* ped) {
     GivePedRandomObjectToHold(ped);
 }
 
+// notsa
+auto CPedGroupMembership::GetMemberClosestTo(CPed* ped, bool includeLeader) -> FindClosestMemberResult {
+    return GetMemberClosestToIf(ped, [](CPed&) { return true; }, includeLeader);
+}
+
 // NOTSA
 auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindClosestMemberResult {
     if (const auto leader = GetLeader()) {
@@ -266,7 +271,7 @@ eModelID CPedGroupMembership::GetObjectForPedToHold() {
 
 // NOTSA
 int32 CPedGroupMembership::FindNewLeaderToAppoint() const {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (mem) {
             return i;
         }
@@ -276,7 +281,7 @@ int32 CPedGroupMembership::FindNewLeaderToAppoint() const {
 
 // NOTSA
 int32 CPedGroupMembership::FindIdForNewMember() const {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem) {
             return i;
         }

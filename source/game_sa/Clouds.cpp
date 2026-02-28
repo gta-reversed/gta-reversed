@@ -149,7 +149,7 @@ void CClouds::MovingFog_Create(CVector* posn) {
     ms_mf.m_fSize[slotId] = CGeneral::GetRandomNumberInRange(4.0f, 10.0f);
     ms_mf.m_fIntensity[slotId] = 1.0f;
     ms_mf.m_fMaxIntensity[slotId] = CGeneral::GetRandomNumberInRange(8.0f, 20.0f);
-    ms_mf.m_fSpeed[slotId] = CGeneral::GetRandomNumberInRange(0.5f, 1.2f);
+    ms_mf.m_Speed[slotId] = CGeneral::GetRandomNumberInRange(0.5f, 1.2f);
     ms_mf.m_bFogSlots[slotId] = true;
 }
 
@@ -174,8 +174,8 @@ void CClouds::MovingFog_Update() {
         CVector& fogPosn = ms_mf.m_vecPosn[i];
         CVector  offset  = fogPosn - camPos;
 
-        fogPosn.x += MovingFog_GetWind().x * ms_mf.m_fSpeed[i];
-        fogPosn.y += MovingFog_GetWind().y * ms_mf.m_fSpeed[i];
+        fogPosn.x += MovingFog_GetWind().x * ms_mf.m_Speed[i];
+        fogPosn.y += MovingFog_GetWind().y * ms_mf.m_Speed[i];
 
         if (offset.Magnitude() <= 60.f)
         {
@@ -215,7 +215,7 @@ int32 CClouds::MovingFog_GetFirstFreeSlot() {
 void CClouds::MovingFogRender() {
     ZoneScoped;
 
-    if (MovingFog_GetFXIntensity() == 0.f || !CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD)
+    if (MovingFog_GetFXIntensity() == 0.f || !CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
         return;
 
     // Adjust fog intensity
@@ -396,7 +396,7 @@ void CClouds::Render_MaybeRenderMoon(float colorBalance) {
     //
     // Draw the actual moon texture
     //
-    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[2])));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_MOON])));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,      RWRSTATE(rwBLENDDESTALPHA));
     RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDONE));
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,  RWRSTATE(FALSE));
@@ -455,7 +455,7 @@ void CClouds::Render_MaybeRenderRockstarLogo(float colorBalance) {
     const auto colorB  = (uint8)(255u * t / 60u);
     const auto colorRG = CalculateColorWithBalance(colorB, colorBalance);
 
-    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[0])));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_SHINYSTAR])));
 
     const auto camPos = TheCamera.GetPosition();
 
@@ -591,7 +591,7 @@ void CClouds::Render_MaybeRenderRainbows() {
         }
     }
 
-    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[0])));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_SHINYSTAR])));
 
     const auto camPos = TheCamera.GetPosition();
 

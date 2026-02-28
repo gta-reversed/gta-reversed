@@ -1,9 +1,11 @@
 #pragma once
 
 #include "EventEditableResponse.h"
-
-#include "EventEditableResponse.h"
 #include "Vector.h"
+
+class CPedGroup;
+class CPed;
+class CEntity;
 
 class NOTSA_EXPORT_VTABLE CEventAcquaintancePed : public CEventEditableResponse {
 public:

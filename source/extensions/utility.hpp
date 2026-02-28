@@ -5,6 +5,7 @@
 #include <Vector.h>
 #include <unordered_map>
 #include "Base.h"
+#include <game_sa/Timer.h>
 
 namespace notsa {
 //template<typename TChar, size_t N>
@@ -17,6 +18,7 @@ namespace notsa {
 //private:
 //    TChar m_chars[N]{};
 //};
+
 namespace rng = std::ranges;
 
 namespace detail {
@@ -84,6 +86,9 @@ constexpr inline auto find_value(auto&& mapping, auto&& needle) {
     NOTSA_UNREACHABLE("Needle not in the mapping!");
 }
 
+/*!
+* @brief Find the index of the first occurrence of a value in a range, returning a default index if not found.
+*/
 template<rng::input_range R>
 ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = -1) {
     const auto it = rng::find(r, v);
@@ -134,22 +139,6 @@ T ston(std::string_view str, std::chars_format fmt = std::chars_format::general,
 }
 
 /*
-* Parse a string into a 3D vector. The format is `X Y Z` (There might be multiple spaces, they're ignored)
-* [On failure asserts in debug]
-*/
-CVector stov3d(std::string_view str, std::chars_format fmt = std::chars_format::general) {
-    CVector v3d;
-    for (auto i = 0; i < 3; i++) {
-        const char* end;
-        v3d[i] = ston<float>(str, fmt, &end);
-        if (i < 2) {
-            str = str.substr(end - str.data() + 1);
-        }
-    }
-    return v3d;
-}
-
-/*
 * Want to know something funny?
 * `std::initializer_list` is just a proxy object for a stack allocated array.
 * So, if you return one from a function you're dommed to be fucked :)
@@ -181,6 +170,31 @@ constexpr auto IsFixBugs() {
 #else
     return false;
 #endif
+}
+
+template<rng::input_range R, typename T_Ptr = rng::range_value_t<R>>
+    requires std::is_pointer_v<T_Ptr> 
+auto SpatialQuery(R&& r, CVector distToPos, T_Ptr ignored, T_Ptr closest = nullptr) {
+    const auto GetDistSq = [distToPos](T_Ptr e) {
+        return (e->GetPosition() - distToPos).SquaredMagnitude();
+    };
+
+    float closestDistSq = closest
+        ? GetDistSq(closest)
+        : std::numeric_limits<float>::max();
+    for (T_Ptr e : r) {
+        if (ignored && e == ignored) {
+            continue;
+        }
+        const auto distSq = GetDistSq(e);
+        if (closestDistSq > distSq) {
+            closestDistSq = distSq;
+            closest       = e;
+        }
+    }
+
+    struct Ret{ T_Ptr entity; float distSq; };
+    return Ret{ closest, closestDistSq };
 }
 
 /// Predicate to check if `value` is null
@@ -391,4 +405,54 @@ F wrap(F x, F min, F max) {
     }
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
+
+template<std::floating_point F>
+F step_up_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::min<F>(to, x + (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+template<std::floating_point F>
+F step_down_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::max<F>(to, x - (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+/*!
+* @brief Step `x` towards `to` in steps
+* @brief This function is useful for interpolating changing values
+* @arg stepUp The step size when `x` is less than `to`
+* @arg stepDown The step size when `x` is greater than `to`
+* @arg useTimeStep Whether to use timestep for calculating the correct step size (Avoids FPS related issues somewhat)
+*********/
+template<std::floating_point F>
+F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
+    assert(stepDown > 0.f);
+    assert(stepUp > 0.f);
+
+    if (x == to) {
+        return to;
+    }
+    return x < to
+        ? step_up_to<F>(x, to, stepUp, useTimeStep)
+        : step_down_to<F>(x, to, stepUp, useTimeStep);
+}
+
+// Step `x` towards `to` in steps
+template<std::floating_point F>
+F step_to(F x, F to, F step, bool useTimeStep = false) {
+    return step_to<F>(x, to, step, step, useTimeStep);
+}
+
+//! Range of a specific type
+//! See: https://stackoverflow.com/a/64228354/15363969
+template <typename R, typename T>
+concept range_of = rng::range<R> && std::same_as<rng::range_value_t<R>, T>;
+
+// https://www.reddit.com/r/cpp/comments/1hw6a29/comment/m61d6wv
+template <class T, template <typename...> class Template> 
+concept is_specialization_of = requires ( std::remove_cvref_t<T> t ) 
+{ 
+  // Check an immediately invoked lambda can compile 
+  []<typename... Args> ( Template<Args...>& ) {} ( t ); 
 };
+
+}; // namespace notsa

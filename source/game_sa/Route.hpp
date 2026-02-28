@@ -6,7 +6,7 @@
 namespace notsa {
 // Implementation of CPointRoute and CNodeRoute [As they basically do the same shit]
 // TODO/NOTE: This shit is mostly just a simplified fixed vector implementation :D
-template<typename T>
+template<typename T, size_t N = 8>
 class Route {
 public:
     //! Get all active entries
@@ -51,6 +51,6 @@ public:
 
 public: // TODO: Make private
     uint32           m_NumEntries{};
-    std::array<T, 8> m_Entries{};
+    std::array<T, N> m_Entries{};
 };
 };

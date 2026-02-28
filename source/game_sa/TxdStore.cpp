@@ -166,7 +166,7 @@ int32 CTxdStore::FindTxdSlot(const char* name) {
     if (last < 0) {
         last = ms_lastSlotFound;
         for (last++;; last++) {
-            if (last >= ms_pTxdPool->GetSize())
+            if (last >= 0 && static_cast<size_t>(last) >= ms_pTxdPool->GetSize())
                 return -1;
 
             TxdDef* txd = ms_pTxdPool->GetAt(last);
@@ -182,9 +182,8 @@ int32 CTxdStore::FindTxdSlot(const char* name) {
 // find txd by name hash. Returning value is txd index
 // 0x7318E0
 int32 CTxdStore::FindTxdSlot(uint32 hash) {
-    for (int32 i = 0; i < ms_pTxdPool->GetSize(); i++) {
-        TxdDef* txd = ms_pTxdPool->GetAt(i);
-        if (txd && txd->m_hash == hash)
+    for (auto&& [i, txd] : ms_pTxdPool->GetAllValidWithIndex()) {
+        if (txd.m_hash == hash)
             return i;
     }
     return -1;
@@ -207,6 +206,7 @@ int32 CTxdStore::GetParentTxdSlot(int32 index) {
 // create rw tex dictionary for txd slot
 // 0x731990
 void CTxdStore::Create(int32 index) {
+    NOTSA_LOG_DEBUG("CTxdStore::Create({})", index);
     TxdDef* txd = ms_pTxdPool->GetAt(index);
     if (txd)
         txd->m_pRwDictionary = RwTexDictionaryCreate();
@@ -221,12 +221,15 @@ int32 CTxdStore::AddTxdSlot(const char* name) {
     txd->m_wParentIndex = -1;
     txd->m_hash = CKeyGen::GetUppercaseKey(name);
 
-    return ms_pTxdPool->GetIndex(txd);
+    const auto i = ms_pTxdPool->GetIndex(txd);
+    NOTSA_LOG_TRACE("CTxdStore::AddTxdSlot({:?}) -> {}", name, i);
+    return i;
 }
 
 // remove txd slot
 // 0x731CD0
 void CTxdStore::RemoveTxdSlot(int32 index) {
+    NOTSA_LOG_TRACE("CTxdStore::RemoveTxdSlot({})", index);
     TxdDef* txd = ms_pTxdPool->GetAt(index);
     if (!txd)
         return;
@@ -239,6 +242,7 @@ void CTxdStore::RemoveTxdSlot(int32 index) {
 // remove txd
 // 0x731E90
 void CTxdStore::RemoveTxd(int32 index) {
+    NOTSA_LOG_TRACE("CTxdStore::RemoveTxd({})", index);
     TxdDef* txd = ms_pTxdPool->GetAt(index);
     if (!txd)
         return;

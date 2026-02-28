@@ -38,7 +38,7 @@ CTask* CTaskComplexWaitForBus::CreateNextSubTask(CPed* ped) {
         if (const auto player = FindPlayerPed()) {
             if (m_bus->IsPassenger(player) || m_bus->IsDriver(player)) { // NOTE: Why complicate it so much? `ped->IsInVehicle(player)` ?
                 assert(player->IsInVehicle(m_bus)); // This should always hold true. If so, replace above with this
-                player->m_pPlayerData += 5;
+                player->GetPlayerData()->m_nBusFaresCollected += 5; // TODO: Fix bugs.
             }
         }
 

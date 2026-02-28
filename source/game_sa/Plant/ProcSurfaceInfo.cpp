@@ -80,9 +80,9 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
     auto modelInfo  = CModelInfo::GetModelInfo(m_ModelIndex);
     bool isBuilding = modelInfo->m_nObjectInfoIndex == -1;
     if (isBuilding) {
-        CPools::ms_pBuildingPool->m_bIsLocked = true;
+        GetBuildingPool()->SetDealWithNoMemory(true);
         head->m_Obj                           = new CBuilding();
-        CPools::ms_pBuildingPool->m_bIsLocked = false;
+        GetBuildingPool()->SetDealWithNoMemory(false);
         if (!head->m_Obj) {
             return nullptr;
         }
@@ -93,9 +93,9 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
             return nullptr;
         }
 
-        CPools::ms_pObjectPool->m_bIsLocked = true;
+        GetObjectPool()->SetDealWithNoMemory(true);
         head->m_Obj                         = new CObject(m_ModelIndex, false);
-        CPools::ms_pObjectPool->m_bIsLocked = false;
+        GetObjectPool()->SetDealWithNoMemory(false);
         if (!head->m_Obj) {
             return nullptr;
         }
@@ -140,15 +140,15 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
         head->m_bAllocatedMatrix = false;
     }
 
-    head->m_Obj->m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea);
+    head->m_Obj->SetAreaCode(static_cast<eAreaCodes>(CGame::currArea));
     head->m_Obj->SetIsStatic(true);
     head->m_Obj->CreateRwObject();
-    head->m_Obj->UpdateRW();
+    head->m_Obj->UpdateRwMatrix();
     head->m_Obj->UpdateRwFrame();
     CWorld::Add(head->m_Obj);
     m_Objects.AddItem(head);
     if (!isBuilding && (xyScale != 1.0f && zScale != 1.0f)) {
-        auto* rwObject = head->m_Obj->m_pRwObject;
+        auto* rwObject = head->m_Obj->GetRwObject();
         if (rwObject && rwObjectGetParent(rwObject) != (void*)-16) { // I don't understand this if, there must be some missing macro
             auto* modellingMatrix = head->m_Obj->GetModellingMatrix();
 

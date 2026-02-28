@@ -88,16 +88,6 @@ void CClothes::LoadClothesFile() {
             continue;
         }
 
-        enum class eClothRule : uint8_t {
-            TAG_CUTS,
-            TAG_SETC,
-            TAG_TEX,
-            TAG_HIDE,
-            TAG_END_IGNORE,
-            TAG_IGNORE,
-            TAG_END_EXCLUSIVE,
-            TAG_EXCLUSIVE
-        };
         const eClothRule ruleTag = [&](){
             constexpr struct {const char* name; eClothRule rule;} map[]{
                 {"CUTS", eClothRule::TAG_CUTS},
@@ -196,8 +186,8 @@ void CClothes::RequestMotionGroupAnims() {
 
 // 0x5A8390
 void CClothes::RebuildPlayerIfNeeded(CPlayerPed* player) {
-    const auto& fat = player->m_pPlayerData->m_pPedClothesDesc->m_fFatStat;
-    const auto& muscle = player->m_pPlayerData->m_pPedClothesDesc->m_fMuscleStat;
+    const auto& fat = player->GetPlayerData()->m_pPedClothesDesc->m_fFatStat;
+    const auto& muscle = player->GetPlayerData()->m_pPedClothesDesc->m_fMuscleStat;
 
     if (CStats::GetStatValue(STAT_FAT) != fat || CStats::GetStatValue(STAT_MUSCLE) != muscle) {
         RebuildPlayer(player, 0);
@@ -207,26 +197,26 @@ void CClothes::RebuildPlayerIfNeeded(CPlayerPed* player) {
 // 0x5A82C0
 void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
     auto assoc = RpAnimBlendClumpExtractAssociations(player->m_pRwClump);
-    auto task = player->m_pIntelligence->m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_IK);
+    auto task = player->GetIntelligence()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK);
     if (task)
         task->MakeAbortable(player, ABORT_PRIORITY_IMMEDIATE, nullptr);
 
     player->DeleteRwObject();
     CWorld::Remove(player);
     if (!bIgnoreFatAndMuscle) {
-        player->m_pPlayerData->m_pPedClothesDesc->m_fFatStat = CStats::GetStatValue(STAT_FAT);
-        player->m_pPlayerData->m_pPedClothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
+        player->GetPlayerData()->m_pPedClothesDesc->m_fFatStat = CStats::GetStatValue(STAT_FAT);
+        player->GetPlayerData()->m_pPedClothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
     }
 
-    ConstructPedModel(player->m_nModelIndex, *player->m_pPlayerData->m_pPedClothesDesc, &PlayerClothes, 0);
+    ConstructPedModel(player->GetModelIndex(), *player->GetPlayerData()->m_pPedClothesDesc, &PlayerClothes, 0);
     player->Dress();
     RpAnimBlendClumpGiveAssociations(player->m_pRwClump, assoc);
-    PlayerClothes = *player->m_pPlayerData->m_pPedClothesDesc;
+    PlayerClothes = *player->GetPlayerData()->m_pPedClothesDesc;
 }
 
 // 0x5A8270
 void CClothes::RebuildCutscenePlayer(CPlayerPed* player, int32 modelId) {
-    const auto& clothesDesc    = player->m_pPlayerData->m_pPedClothesDesc;
+    const auto& clothesDesc    = player->GetPlayerData()->m_pPedClothesDesc;
     clothesDesc->m_fFatStat    = CStats::GetStatValue(STAT_FAT);
     clothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
     ConstructPedModel(modelId, *clothesDesc, nullptr, true);

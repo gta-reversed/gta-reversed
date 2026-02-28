@@ -54,7 +54,7 @@ public:
     CColPoint m_aWheelColPoints[NUM_SUSP_LINES];
     float m_aWheelRatios[NUM_SUSP_LINES];
     float m_aRatioHistory[NUM_SUSP_LINES];
-    float m_aWheelCounts[NUM_SUSP_LINES];
+    float m_WheelCounts[NUM_SUSP_LINES];
     float m_fBrakeCount;
     eSkidmarkType m_aWheelSkidmarkType[2];
     bool m_bWheelBloody[2];
@@ -77,16 +77,16 @@ public:
     uint8 m_nFixLeftHand;
     uint8 m_nFixRightHand;
     uint8 m_nTestPedCollision;
-    float m_fPrevSpeed;
+    float m_PrevSpeed;
     float m_BlowUpTimer;
     CPhysical* m_aGroundPhysicalPtrs[4];
     CVector m_aGroundOffsets[4];
     CEntity* m_Damager; // Entity That Set Us On Fire
     uint8 m_nNoOfContactWheels;
-    uint8 m_nDriveWheelsOnGround;
-    uint8 m_nDriveWheelsOnGroundLastFrame;
-    float m_fGasPedalAudioRevs;
-    tWheelState m_aWheelState[2];
+    uint8 m_NumDriveWheelsOnGround;
+    uint8 m_NumDriveWheelsOnGroundLastFrame;
+    float m_GasPedalAudioRevs;
+    tWheelState m_WheelStates[2];
 
     static constexpr auto Type = VEHICLE_TYPE_BIKE;
 
@@ -125,12 +125,12 @@ public:
     bool IsDoorClosedU32(uint32 door) override { return false; }    // 0x6B5940
     bool IsDoorMissingU32(uint32 door) override { return true; }    // 0x6B5950
 
-    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset) override { return true; }              // 0x6B7270
-    inline bool IsComponentPresent(int32 componentId) override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
-    CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                       // 0x6B58C0
-    float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                          // 0x6B58B0
-    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; }                                       // 0x6B58A0
-    float FindWheelWidth(bool bRear) override { return 0.15f; }                                                 // 0x6B8940
+    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset) override { return true; }                    // 0x6B7270
+    inline bool IsComponentPresent(int32 componentId) const override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
+    CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                             // 0x6B58C0
+    float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                                // 0x6B58B0
+    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; }                                             // 0x6B58A0
+    float FindWheelWidth(bool bRear) override { return 0.15f; }                                                       // 0x6B8940
 
     virtual bool ProcessAI(uint32& extraHandlingFlags);
 
@@ -162,4 +162,4 @@ public: // NOTSA
     CBike* Destructor() {this->CBike::~CBike(); return this; }
                                                                                     };
 VALIDATE_SIZE(CBike, 0x814);
-VALIDATE_OFFSET(CBike, m_fGasPedalAudioRevs, 0x808);
+VALIDATE_OFFSET(CBike, m_GasPedalAudioRevs, 0x808);

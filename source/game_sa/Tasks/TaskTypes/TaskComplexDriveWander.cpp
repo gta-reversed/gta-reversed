@@ -18,9 +18,9 @@ void CTaskComplexCarDriveWander::SetUpCar() {
     m_bIsCarSetUp          = true;
     if (!CCarCtrl::bCarIsBeingCreated) {
         CCarCtrl::JoinCarWithRoadSystem(m_Veh);
-        m_Veh->m_nStatus = STATUS_PHYSICS;
-        m_Veh->m_autoPilot.m_nCarMission = MISSION_CRUISE;
-        m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)m_CruiseSpeed;
+        m_Veh->SetStatus(STATUS_PHYSICS);
+        m_Veh->m_autoPilot.SetCarMission(MISSION_CRUISE);
+        m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
         m_Veh->m_autoPilot.m_speed = m_Veh->m_autoPilot.m_nCruiseSpeed;
         m_Veh->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
     }

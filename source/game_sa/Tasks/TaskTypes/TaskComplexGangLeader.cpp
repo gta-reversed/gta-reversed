@@ -137,7 +137,7 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
 CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     const auto [closestPed, distSq] = group->GetMembership().GetMemberClosestTo(ped);
     if (closestPed && sq(4.f) >= distSq) {
-        if (!closestPed->IsPed()) {
+        if (!closestPed->GetIsTypePed()) {
             return closestPed;
         }
     }
@@ -149,7 +149,7 @@ CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     float distSq{};
     if (const auto closestPed = group->GetClosestGroupPed(ped, &distSq)) {
         if (distSq < sq(4.f)) {
-            if (!closestPed->IsPed()) {
+            if (!closestPed->GetIsTypePed()) {
                 return closestPed;
             }
         }
@@ -467,7 +467,7 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
                 m_gang->GetMembership().AddFollower(&scannedPed);
             }
 
-            // Find a member close enough to the scanned ped, and make the partners
+            // Find a member close enough to the scanned ped, and make them partners
             if (const auto [closestMem, distSq] = m_gang->GetMembership().GetMemberClosestTo(&scannedPed); // 0x65E61F
                 closestMem && sq(10.f) >= distSq && distSq >= sq(4.f)
             ) {           

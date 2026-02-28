@@ -2,6 +2,9 @@
 
 #include "EventEditableResponse.h"
 
+class CPedGroup;
+class CPed;
+
 enum ePlayerGroupCommand : int32
 {
     PLAYER_GROUP_COMMAND_ATTACK = 0,
@@ -21,7 +24,7 @@ public:
 
     eEventType GetEventType() const override { return EVENT_PLAYER_COMMAND_TO_GROUP; }
     int32_t GetEventPriority() const override { return 44; }
-    CEventPlayerCommandToGroup* CloneEditable() override { return new CEventPlayerCommandToGroup(ePlayerGroupCommand::PLAYER_GROUP_COMMAND_ATTACK, m_target); }
+    CEventPlayerCommandToGroup* CloneEditable() const noexcept override { return new CEventPlayerCommandToGroup(ePlayerGroupCommand::PLAYER_GROUP_COMMAND_ATTACK, m_target); }
     int32_t GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override { return false; }
     bool AffectsPedGroup(CPedGroup* pedGroup) override;

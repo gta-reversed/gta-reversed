@@ -53,7 +53,7 @@ void DarkelDebugModule::RenderWindow() {
     }
     SameLine();
     if (BeginCombo("Weapon Type", WEAPON_TYPE_STRING[m_WeaponType])) {
-        for (auto&& [typeId, wepName] : notsa::enumerate(WEAPON_TYPE_STRING)) {
+        for (auto&& [typeId, wepName] : rngv::enumerate(WEAPON_TYPE_STRING)) {
             const notsa::ui::ScopedID id{ typeId };
             if (Selectable(wepName, m_WeaponType == typeId)) {
                 m_WeaponType = typeId;

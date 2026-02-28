@@ -39,7 +39,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
             || GetEventType() != EVENT_ATTRACTOR
             || !FindPlayerWanted()->m_nWantedLevel
             && m_2dEffect->m_nAttractorType == PED_ATTRACTOR_TRIGGER_SCRIPT
-            && CPopulation::PedMICanBeCreatedAtThisAttractor(ped->GetModelID(), m_2dEffect->m_szScriptName))
+            && CPopulation::PedMICanBeCreatedAtThisAttractor(ped->GetModelId(), m_2dEffect->m_szScriptName))
         {
             CTask* activeTask = ped->GetTaskManager().GetActiveTask();
             if (!activeTask
@@ -66,7 +66,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
 }
 
 // 0x4B7440
-CEventEditableResponse* CEventAttractor::CloneEditable()
+CEventEditableResponse* CEventAttractor::CloneEditable() const noexcept
 {
     return new CEventAttractor(m_2dEffect, m_entity, m_bAvoidLookingAtAttractor);
 }

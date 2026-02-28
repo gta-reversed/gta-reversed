@@ -82,7 +82,7 @@ public:
     uint16       m_nAmmoClip;       // ammo in one clip // todo: should be uint32, see
     uint16       m_nDamage;         // damage inflicted per hit
     CVector      m_vecFireOffset;   // offset from weapon origin to projectile starting point
-    uint32       m_nSkillLevel;     // what's the skill level of this weapon type - We can't make the field eWeaponSkill because the game uses uint32 for it...
+    notsa::WEnumU32<eWeaponSkill> m_nSkillLevel;
     uint32       m_nReqStatLevel;   // what stat level is required for this skill level (Yes, this is an int, not a float!)
     float        m_fAccuracy;       // modify accuracy of weapon
     float        m_fMoveSpeed;      // how fast can move with weapon
@@ -97,7 +97,7 @@ public:
     float        m_fAnimLoop2Fire;  // time in animation2 when weapon should be fired
 
     float        m_fBreakoutTime;   // time after which player can break out of attack and run off
-    float        m_fSpeed;          // speed of projectile
+    float        m_Speed;          // speed of projectile
     float        m_fRadius;         // radius affected
     float        m_fLifespan;       // time taken for shot to dissipate
     float        m_fSpread;         // angle inside which shots are created
@@ -142,8 +142,8 @@ public:
     void StreamModelsForWeapon(eStreamingFlags streamingFlags);
 
     //! NOTSA: GetWeaponInfo for specific ped.
-    static auto GetWeaponInfo(CPed* ped) {
-        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, ped->GetWeaponSkill());
+    static auto GetWeaponInfo(CPed* ped, std::optional<eWeaponSkill> skill = {}) {
+        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, skill.value_or(ped->GetWeaponSkill()));
     }
 
     const auto& GetAimingOffset() const { return g_GunAimingOffsets[m_nAimOffsetIndex]; }

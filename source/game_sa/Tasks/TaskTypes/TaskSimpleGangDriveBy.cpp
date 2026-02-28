@@ -2,34 +2,33 @@
 
 #include "TaskSimpleGangDriveBy.h"
 
-CTaskSimpleGangDriveBy::CTaskSimpleGangDriveBy(CEntity* target, const CVector* targetPos, float abortRange,
-    int8 frequencyPercentage, eDrivebyStyle drivebyStyle, bool seatRHS)
-{
-    m_bSeatRHS = seatRHS;
-    m_nDrivebyStyle = drivebyStyle;
-    m_fAbortRange = abortRange;
-    m_pTargetEntity = target;
+CTaskSimpleGangDriveBy::CTaskSimpleGangDriveBy(CEntity* target, const CVector* targetPos, float abortRange, int8 frequencyPercentage, eDrivebyStyle drivebyStyle, bool seatRHS) {
+    m_bSeatRHS             = seatRHS;
+    m_nDrivebyStyle        = drivebyStyle;
+    m_fAbortRange          = abortRange;
+    m_pTargetEntity        = target;
     m_nFrequencyPercentage = frequencyPercentage;
-    m_bIsFinished = false;
-    m_bAnimsReferenced = false;
-    m_bInRangeToShoot = false;
-    m_bInWeaponRange = false;
-    m_bReachedAbortRange = false;
-    m_bFromScriptCommand = false;
-    m_nBurstShots = -1;
-    m_nFakeShootDirn = -1;
-    m_nAttackTimer = -1;
-    m_nLastCommand = 0;
-    m_nNextCommand = 1;
-    m_nLOSCheckTime = 0;
-    m_nLOSBlocked = true;
-    m_pAnimAssoc = nullptr;
-    m_nRequiredAnimID = ANIM_ID_NO_ANIMATION_SET;
-    m_nRequiredAnimGroup = ANIM_GROUP_DEFAULT;
-    m_pWeaponInfo = nullptr;
+    m_bIsFinished          = false;
+    m_bAnimsReferenced     = false;
+    m_bInRangeToShoot      = false;
+    m_bInWeaponRange       = false;
+    m_bReachedAbortRange   = false;
+    m_bFromScriptCommand   = false;
+    m_nBurstShots          = -1;
+    m_nFakeShootDirn       = -1;
+    m_nAttackTimer         = -1;
+    m_nLastCommand         = 0;
+    m_nNextCommand         = 1;
+    m_nLOSCheckTime        = 0;
+    m_nLOSBlocked          = true;
+    m_pAnimAssoc           = nullptr;
+    m_nRequiredAnimID      = ANIM_ID_NO_ANIMATION_SET;
+    m_nRequiredAnimGroup   = ANIM_GROUP_DEFAULT;
+    m_pWeaponInfo          = nullptr;
     CEntity::SafeRegisterRef(m_pTargetEntity);
-    if (targetPos)
+    if (targetPos) {
         m_vecCoords = *targetPos;
+    }
 }
 
 CTaskSimpleGangDriveBy::~CTaskSimpleGangDriveBy()

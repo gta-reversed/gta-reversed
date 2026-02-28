@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include "Plugins/TwoDEffectPlugin/2dEffect.h"
 #include "PedTaskPair.h"
 #include "SArray.h"
 #include <Enums/eMoveState.h>
@@ -10,27 +10,7 @@ class CPed;
 class CTask;
 
 class NOTSA_EXPORT_VTABLE CPedAttractor {
-public:
-    C2dEffectPedAttractor* m_Fx{};
-    CEntity::Ref           m_Entity{};
-    SArray<CPed*>          m_AttractPeds{};
-    SArray<CPed*>          m_ArrivedPeds{}; // AKA queue
-    SArray<CPedTaskPair>   m_PedTaskPairs{};
-    size_t                 m_MaxNumPeds{}; //!< Maximum number of registered peds (ArrivedPeds + AttractPeds, see `GetNoOfRegisteredPeds()`)
-    float                  m_Spacing{};
-    float                  m_AchieveQueueTime{};
-    float                  m_AchieveQueueShuffleTime{};
-    float                  m_ArriveRange{};
-    float                  m_HeadingRange{};
-    float                  m_DeltaPos{};
-    float                  m_DeltaHeading{};
-    CVector                m_Pos{};
-    CVector                m_QueueDir{};
-    CVector                m_UseDir{};
-    eMoveState             m_MoveState{};
-    char                   m_ScriptName[8]{};
-
-    inline static SArray<CTask>& ms_tasks = *reinterpret_cast<SArray<CTask>*>(0xC0985C);
+    inline static auto& ms_tasks = StaticRef<SArray<CTask*>>(0xC0985C);
 
 public:
     static void InjectHooks();
@@ -84,10 +64,14 @@ public:
     float        ComputeDeltaHeading() const;
 
     void         ComputeAttractTime(int32 slotIdx, bool hasArrived, float& outTime) const;
-    virtual void ComputeAttractPos(int32 pedId, CVector& outPos);
-    virtual void ComputeAttractHeading(int32 bQueue, float& heading);
 
-    virtual void BroadcastDeparture(CPed* ped);
+    virtual void ComputeAttractPos(int32 pedId, CVector& outPos);
+    CVector      ComputeAttractPos(int32 pedId) { CVector pos;  ComputeAttractPos(pedId, pos); return pos; }
+
+    virtual void ComputeAttractHeading(int32 bQueue, float& heading);
+    float        ComputeAttractHeading(int32 bQueue) { float heading; ComputeAttractHeading(bQueue, heading); return heading; }
+
+    virtual bool BroadcastDeparture(CPed* ped);
     bool         BroadcastArrival(CPed* ped);
 
     void AbortPedTasks();
@@ -105,5 +89,25 @@ private:
         std::destroy_at(this);
         return this;
     }
+
+public:
+    C2dEffectPedAttractor* m_Fx{};
+    notsa::EntityRef<>     m_Entity{};
+    SArray<CPed*>          m_AttractPeds{};
+    SArray<CPed*>          m_ArrivedPeds{}; // AKA queue
+    SArray<CPedTaskPair>   m_PedTaskPairs{};
+    size_t                 m_MaxNumPeds{}; //!< Maximum number of registered peds (ArrivedPeds + AttractPeds, see `GetNoOfRegisteredPeds()`)
+    float                  m_Spacing{};
+    float                  m_AchieveQueueTime{};
+    float                  m_AchieveQueueShuffleTime{};
+    float                  m_ArriveRange{};
+    float                  m_HeadingRange{};
+    float                  m_DeltaPos{};
+    float                  m_DeltaHeading{};
+    CVector                m_Pos{};
+    CVector                m_QueueDir{};
+    CVector                m_UseDir{};
+    eMoveState             m_MoveState{};
+    char                   m_ScriptName[8]{};
 };
 VALIDATE_SIZE(CPedAttractor, 0x8C);

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdlib> // RAND_MAX
+#include <extensions/utility.hpp>
 
 //! If you see this value USE THE INTEGER VERSION of `GetRandomNumberInRange`
 //! It's very important to do that, because the int version will is exclusive
@@ -152,5 +153,45 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
     */
     inline auto RandomNodeHeading() {
         return (uint8)CGeneral::GetRandomNumberInRange(0, 8);
+    }
+
+    template<typename T = float>
+    struct PiecewisePair {
+        float x;
+        T     y;
+    };
+
+    /*
+    * @brief Do piecewise calculation - Input range should be sorted by `x` in lower -> higher order
+    */
+    template<typename T = float, notsa::range_of<PiecewisePair<T>> R = std::initializer_list<PiecewisePair<T>>>
+    constexpr static T GetPiecewiseLinear(R&& r, float x) {
+        assert(!rng::empty(r));
+
+        // Not necessary to check tbh
+        if (std::size(r) == 1) {
+            return std::begin(r)->y;
+        }
+
+        // Out of range in the beginning?
+        if (const auto b = std::begin(r); x <= b->x) {
+            return b->y;
+        }
+
+        // Out of range on the end?
+        if (const auto l = std::prev(std::end(r)); x >= l->x) {
+            return l->y;
+        }
+
+        // Find high point
+        const auto hi = rng::find_if(r | rng::views::drop(1), [x](auto&& p) { // Drop 0th element, because we need `prev` to be valid
+            return p.x >= x;
+        });
+
+        // Find low point
+        const auto lo = std::prev(hi);
+
+        // Calculate `y` between these 2 points according to `x`
+        return lerp(lo->y, hi->y, invLerp(lo->x, hi->x, x));
     }
 };

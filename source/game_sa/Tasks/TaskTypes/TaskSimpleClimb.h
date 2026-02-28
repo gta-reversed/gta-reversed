@@ -6,10 +6,12 @@
 */
 #pragma once
 
-
 #include "TaskSimple.h"
 #include "AnimBlendAssociation.h"
 #include "Entity.h"
+#include <extensions/EntityRef.hpp>
+#include <eSurfaceType.h>
+
 
 enum eClimbHeights : int8 {
     CLIMB_NOT_READY = 0,
@@ -44,7 +46,8 @@ public:
         eSurfaceType& outSurfaceType,  //!< [out] Surface type
         bool          bLaunch          //!< [in]  Not sure
     );
-    static CEntity* ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
+    template<typename PtrListType>
+    static CEntity* ScanToGrabSectorList(PtrListType* sectorList, CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
     static CEntity* ScanToGrab(CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition);
     static bool CreateColModel();
     static void Shutdown();
@@ -75,7 +78,7 @@ private:
     int8                   m_FallAfterVault{-1};
     float                  m_HandholdHeading{};
     CVector                m_HandholdPos{};
-    CEntity::Ref           m_ClimbEntity{};
+    notsa::EntityRef<>     m_ClimbEntity{};
     uint16                 m_GetToPosCounter{}; // we can use u32 without any problems
     CAnimBlendAssociation* m_Anim{};
 

@@ -25,7 +25,7 @@ CEventVehicleDamageWeapon* CEventVehicleDamageWeapon::Constructor(CVehicle* vehi
 }
 
 // 0x61C330
-CEventEditableResponse* CEventVehicleDamageWeapon::CloneEditable()
+CEventEditableResponse* CEventVehicleDamageWeapon::CloneEditable() const noexcept
 {
     return new CEventVehicleDamageWeapon(m_vehicle, m_attacker, m_weaponType);
 }

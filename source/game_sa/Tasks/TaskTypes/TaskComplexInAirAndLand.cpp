@@ -65,11 +65,11 @@ CTask* CTaskComplexInAirAndLand::CreateNextSubTask(CPed* ped) {
             else
                 newTask = new CTaskSimpleLand(ANIM_ID_FALL_COLLAPSE);
 
-            ped->GetAE().AddAudioEvent(AE_PED_COLLAPSE_AFTER_FALL, 0.0F, 1.0F, 0, 0, 0, 0);
+            ped->GetAE().AddAudioEvent(AE_PED_COLLAPSE_AFTER_FALL);
 
-            if (ped->m_pPlayerData) {
+            if (ped->GetPlayerData()) {
                 CVector          empty{};
-                CEventSoundQuiet eventSound(ped, ped->m_pPlayerData->m_pPedClothesDesc->GetIsWearingBalaclava() ? 75.0F : 60.0F, -1, empty);
+                CEventSoundQuiet eventSound(ped, ped->GetPlayerData()->m_pPedClothesDesc->GetIsWearingBalaclava() ? 75.0F : 60.0F, -1, empty);
                 GetEventGlobalGroup()->Add(&eventSound, false);
             }
 
@@ -83,7 +83,7 @@ CTask* CTaskComplexInAirAndLand::CreateNextSubTask(CPed* ped) {
                 landAnimId = ANIM_ID_IDLE_TIRED;
             else {
                 auto pad = ped->AsPlayer()->GetPadFromPlayer();
-                if (ped->m_pPlayerData->m_fMoveBlendRatio > 1.5F && pad && (pad->GetPedWalkUpDown() != 0.0F || pad->GetPedWalkLeftRight() != 0.0F))
+                if (ped->GetPlayerData()->m_fMoveBlendRatio > 1.5F && pad && (pad->GetPedWalkUpDown() != 0.0F || pad->GetPedWalkLeftRight() != 0.0F))
                     landAnimId = ANIM_ID_JUMP_LAND;
                 else
                     landAnimId = ANIM_ID_FALL_LAND;
@@ -91,11 +91,11 @@ CTask* CTaskComplexInAirAndLand::CreateNextSubTask(CPed* ped) {
 
             auto newTask = new CTaskSimpleLand(landAnimId);
 
-            ped->GetAE().AddAudioEvent(AE_PED_LAND_ON_FEET_AFTER_FALL, 0.0F, 1.0F, 0, 0, 0, 0);
+            ped->GetAE().AddAudioEvent(AE_PED_LAND_ON_FEET_AFTER_FALL);
 
-            if (ped->m_pPlayerData) {
+            if (ped->GetPlayerData()) {
                 CVector          empty{};
-                CEventSoundQuiet eventSound(ped, ped->m_pPlayerData->m_pPedClothesDesc->GetIsWearingBalaclava() ? 70.0F : 55.0F, -1, empty);
+                CEventSoundQuiet eventSound(ped, ped->GetPlayerData()->m_pPedClothesDesc->GetIsWearingBalaclava() ? 70.0F : 55.0F, -1, empty);
                 GetEventGlobalGroup()->Add(&eventSound, false);
             }
 

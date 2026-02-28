@@ -35,9 +35,9 @@ CTaskComplexMedicTreatInjuredPed* CTaskComplexMedicTreatInjuredPed::Constructor(
 }
 
 // 0x658BA0
-CTaskComplexMedicTreatInjuredPed::CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* ped, bool isDriver) : CTaskComplex() {
+CTaskComplexMedicTreatInjuredPed::CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* partner, bool isDriver) : CTaskComplex() {
     m_pVehicle      = vehicle;
-    m_pPartnerMedic = ped;
+    m_pPartnerMedic = partner;
     m_bIsDriver     = isDriver;
     m_pAccident     = nullptr;
     m_bLeftCarOnce  = false;
@@ -227,8 +227,8 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
 
         auto subTask = reinterpret_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask);
         if (subTask->m_moveState != PEDMOVE_WALK && DistanceBetweenPointsSquared(ped->GetPosition(), m_vecAccidentPosition) < 25.0F) {
-            for (CEntity* entity : ped->GetIntelligence()->m_vehicleScanner.m_apEntities) {
-                if (entity && CPedGeometryAnalyser::IsEntityBlockingTarget(entity, m_vecAccidentPosition, 0.125F)) {
+            for (auto& entity : ped->GetIntelligence()->m_vehicleScanner.GetEntities<CEntity>()) {
+                if (CPedGeometryAnalyser::IsEntityBlockingTarget(&entity, m_vecAccidentPosition, 0.125F)) {
                     return CreateDealWithNextAccidentTask(ped, nullptr);
                 }
             }

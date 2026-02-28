@@ -80,7 +80,7 @@ public:
     eGunCommand            m_NextCmd{};                           //!< Active command
     eGunCommand            m_LastCmd{ eGunCommand::UNKNOWN };     //!< Previous command
     CVector2D              m_MoveCmd{ 0.f, 0.f };                 //!< Where we should be moving towards
-    CEntity::Ref           m_TargetEntity{};                      //!< Entity we're aiming for (If set, `m_TargetPos` is ignored)
+    notsa::EntityRef<>     m_TargetEntity{};                      //!< Entity we're aiming for (If set, `m_TargetPos` is ignored)
     CVector                m_TargetPos{};                         //!< Either a position, or a direction vector (?) - Only used if `m_TargetEntity` is not set.
     CAnimBlendAssociation* m_Anim{};                              //!< Animation for the current command (Reloading, Firing, etc)
     CWeaponInfo*           m_WeaponInfo{};                        //!< Ped active weapon's info

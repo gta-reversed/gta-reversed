@@ -17,7 +17,7 @@ void CTaskComplexCarDriveMission::InjectHooks() {
 CTaskComplexCarDriveMission::CTaskComplexCarDriveMission(CVehicle* vehicle, CEntity* targetVehicle, eCarMission carDriveMission, eCarDrivingStyle carDrivingStyle, float fSpeed) :
     CTaskComplexCarDrive{ vehicle, fSpeed, MODEL_INVALID, carDrivingStyle }
 {
-    // assert(targetVehicle->IsVehicle());
+    // assert(targetVehicle->GetIsTypeVehicle());
     m_pTargetVehicle = static_cast<CVehicle*>(targetVehicle);
     m_nCarMission    = carDriveMission;
     CEntity::SafeRegisterRef(m_pTargetVehicle);
@@ -33,17 +33,15 @@ void CTaskComplexCarDriveMission::SetUpCar() {
     CTaskComplexCarDrive::SetUpCar();
 
     CCarCtrl::JoinCarWithRoadSystem(m_Veh);
-    m_Veh->m_nStatus = STATUS_PHYSICS;
+    m_Veh->SetStatus(STATUS_PHYSICS);
 
     auto& autopilot = m_Veh->m_autoPilot;
-    autopilot.m_nCarMission         = m_nCarMission;
     autopilot.m_nCruiseSpeed        = (uint32)m_CruiseSpeed;
     autopilot.m_speed               = (float)autopilot.m_nCruiseSpeed;
     autopilot.m_nCarDrivingStyle    = (eCarDrivingStyle)m_CarDrivingStyle;
-    autopilot.m_pTargetCar          = m_pTargetVehicle;
-    autopilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
-
-    CEntity::SafeRegisterRef(autopilot.m_pTargetCar);
+    autopilot.m_TargetEntity          = m_pTargetVehicle;
+    autopilot.SetCarMission(m_nCarMission, 0);
+    CEntity::SafeRegisterRef(autopilot.m_TargetEntity);
 
     m_Veh->vehicleFlags.bEngineOn = m_Veh->vehicleFlags.bEngineBroken ? false : true;
 }

@@ -1,5 +1,4 @@
 #include "StdInc.h"
-
 #include "TaskSimpleCarShuffle.h"
 #include "TaskUtilityLineUpPedWithCar.h"
 
@@ -12,7 +11,6 @@ void CTaskSimpleCarShuffle::InjectHooks() {
 
     RH_ScopedInstall(FinishAnimCarShuffleCB, 0x646970);
     RH_ScopedInstall(StartAnim, 0x64B3E0);
-
     RH_ScopedVMTInstall(Clone, 0x649C40);
     RH_ScopedVMTInstall(GetTaskType, 0x646880);
     RH_ScopedVMTInstall(MakeAbortable, 0x646900);
@@ -26,7 +24,6 @@ CTaskSimpleCarShuffle::CTaskSimpleCarShuffle(CVehicle* car, int32 targetDoor, CT
     m_TargetDoor{ targetDoor },
     m_LineUpUtility{ lineUpTask }
 {
-    CEntity::SafeRegisterRef(m_Car);
 }
 
 // 0x649C40
@@ -37,22 +34,21 @@ CTaskSimpleCarShuffle::CTaskSimpleCarShuffle(const CTaskSimpleCarShuffle&) :
 
 // 0x646890
 CTaskSimpleCarShuffle::~CTaskSimpleCarShuffle() {
-    CEntity::SafeCleanUpRef(m_Car);
     if (m_Anim) {
         m_Anim->SetDefaultFinishCallback();
     }
 }
 
 // 0x646970
-void CTaskSimpleCarShuffle::FinishAnimCarShuffleCB(CAnimBlendAssociation* assoc, void* data) {
-    const auto self = static_cast<CTaskSimpleCarShuffle*>(data);
+void CTaskSimpleCarShuffle::FinishAnimCarShuffleCB(CAnimBlendAssociation* anim, void* data) {
+    const auto self = notsa::cast<CTaskSimpleCarShuffle>(static_cast<CTask*>(data));
 
-    assert(self->m_Anim);
+    assert(self->m_Anim == anim);
 
     self->m_Anim->SetBlendDelta(-1000.f);
     self->m_Anim = nullptr;
 
-    self->m_bFinished = true;
+    self->m_IsFinished = true;
 }
 
 // 0x64B3E0
@@ -80,7 +76,7 @@ bool CTaskSimpleCarShuffle::MakeAbortable(CPed* ped, eAbortPriority priority, co
 
 // 0x64DC40
 bool CTaskSimpleCarShuffle::ProcessPed(CPed* ped) {
-    if (m_bFinished || !m_Car) {
+    if (m_IsFinished || !m_Car) {
         return true;
     }
     if (!m_Anim) {

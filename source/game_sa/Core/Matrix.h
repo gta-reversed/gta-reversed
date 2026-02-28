@@ -8,6 +8,7 @@
 
 #include "RenderWare.h"
 #include "Quaternion.h"
+#include <Vector.h>
 
 enum eMatrixEulerFlags : uint32 {
     SWAP_XZ = 0x01,
@@ -86,17 +87,16 @@ public:
 public:
     static void InjectHooks();
 
-    CVector& GetRight() { return m_right; }
-    const CVector& GetRight() const { return m_right; }
+    auto& GetRight(this auto&& self) { return self.m_right; }
+    CVector GetLeft() const { return -GetRight(); }
 
-    CVector& GetForward() { return m_forward; }
-    const CVector& GetForward() const { return m_forward; }
+    auto& GetForward(this auto&& self) { return self.m_forward; }
+    CVector GetBackward() const { return -GetForward(); }
 
-    CVector& GetUp() { return m_up; }
-    const CVector& GetUp() const { return m_up; }
+    auto& GetUp(this auto&& self) { return self.m_up; }
+    CVector GetDown() const { return -GetUp(); }
 
-    CVector& GetPosition() { return m_pos; }
-    const CVector& GetPosition() const { return m_pos; }
+    auto& GetPosition(this auto&& self) { return self.m_pos; }
 
     void Attach(RwMatrix* matrix, bool bOwnsMatrix);
     void Detach();
@@ -163,6 +163,7 @@ public:
     /*!
      * @notsa
      * @brief Transform a direction vector - will not take into account translation part of the Matrix.
+     * @brief Use instead of `Multiply3x3` (0x59C790)
      * @param pt The vector (direction) to transform
      */
     CVector TransformVector(CVector v) const {
@@ -185,7 +186,7 @@ public:
 
     /*!
      * @notsa
-     * @brief Transform the vector using the inverse of this Matrix
+     * @brief Transform the vector using the inverse of this Matrix (So transform into this matrix's space, without translation)
      * @brief Use this instead of `Multiply3x3(_MV)` (0x59C790)
      * @param pt The vector (direction) to transform
      */
@@ -221,14 +222,7 @@ public:
         m_pos = pos;
     }
 
-    static auto GetIdentity() {
-        CMatrix mat;
-        mat.m_right   = CVector{ 1.f, 0.f, 0.f };
-        mat.m_forward = CVector{ 0.f, 1.f, 0.f };
-        mat.m_up      = CVector{ 0.f, 0.f, 1.f };
-        mat.m_pos     = CVector{ 0.f, 0.f, 0.f };
-        return mat;
-    }
+    static CMatrix GetIdentity();
     
     // Similar to ::Scale but this also scales the position vector.
     // 0x45AF40

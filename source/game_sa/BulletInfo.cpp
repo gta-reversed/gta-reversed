@@ -87,7 +87,7 @@ void CBulletInfo::Update() {
         if (CWorld::ProcessLineOfSight(info.m_vecPosition, newPosition, colPoint, hitEntity, true, true, true, true, true, false, false, true)) {
             CWeapon::CheckForShootingVehicleOccupant(&hitEntity, &colPoint, info.m_nWeaponType, info.m_vecPosition, newPosition);
 
-            switch (hitEntity->m_nType) {
+            switch (hitEntity->GetType()) {
             case ENTITY_TYPE_PED: {
                 auto hitPed = hitEntity->AsPed();
 
@@ -130,7 +130,7 @@ void CBulletInfo::Update() {
                 // std::cout << "Hit vehicle\n";
                 auto hitVehicle = hitEntity->AsVehicle();
 
-                if (info.m_pCreator && info.m_pCreator->IsPed())
+                if (info.m_pCreator && info.m_pCreator->GetIsTypePed())
                     if (info.m_pCreator->AsPed()->m_pAttachedTo == hitVehicle)
                         break;
 
@@ -163,11 +163,11 @@ void CBulletInfo::Update() {
                 if (TheCamera.IsSphereVisible(colPoint.m_vecNormal, 1.0f))
                     g_fx.AddBulletImpact(colPoint.m_vecPoint, colPoint.m_vecNormal, colPoint.m_nSurfaceTypeB, 8, colPoint.m_nLightingB.GetCurrentLighting());
 
-                if (info.m_pCreator && info.m_pCreator->IsPed())
+                if (info.m_pCreator && info.m_pCreator->GetIsTypePed())
                     if (info.m_pCreator->AsPed()->m_pAttachedTo == hitEntity)
                         break;
 
-                switch (hitEntity->m_nType) {
+                switch (hitEntity->GetType()) {
                 case ENTITY_TYPE_OBJECT: {
                     // std::cout << "Hit object\n";
                     auto hitObject = hitEntity->AsObject();
@@ -180,11 +180,11 @@ void CBulletInfo::Update() {
                         if (hitObject->physicalFlags.bDisableCollisionForce || hitObject->m_pObjectInfo->m_fColDamageMultiplier >= 99.9f) {
                             /* empty */
                         } else {
-                            if (hitObject->IsStatic() && hitObject->m_pObjectInfo->m_fUprootLimit <= 0.0f) {
+                            if (hitObject->GetIsStatic() && hitObject->m_pObjectInfo->m_fUprootLimit <= 0.0f) {
                                 hitObject->SetIsStatic(false);
                                 hitObject->AddToMovingList();
                             }
-                            if (!hitObject->IsStatic()) {
+                            if (!hitObject->GetIsStatic()) {
                                 hitObject->ApplyMoveForce(colPoint.m_vecNormal * -7.5f);
                             }
                         }
@@ -205,9 +205,9 @@ void CBulletInfo::Update() {
                 }
                 case ENTITY_TYPE_BUILDING: {
                     // std::cout << "Hit building\n";
-                    if (info.m_pCreator && info.m_pCreator->IsPed()) {
-                        if (auto playerData = info.m_pCreator->AsPed()->m_pPlayerData) {
-                            playerData->m_nModelIndexOfLastBuildingShot = hitEntity->m_nModelIndex;
+                    if (info.m_pCreator && info.m_pCreator->GetIsTypePed()) {
+                        if (auto playerData = info.m_pCreator->AsPed()->GetPlayerData()) {
+                            playerData->m_nModelIndexOfLastBuildingShot = hitEntity->GetModelIndex();
                         }
                     }
                     break;

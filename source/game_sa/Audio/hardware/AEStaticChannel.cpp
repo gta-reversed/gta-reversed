@@ -19,12 +19,12 @@ void CAEStaticChannel::InjectHooks() {
     RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = false});
 }
 
-CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool arg3, uint32 samplesPerSec, uint16 bitsPerSample)
-    : CAEAudioChannel(pDirectSound, channelId, samplesPerSec, bitsPerSample)
+CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
+    CAEAudioChannel(pDirectSound, channelId, samplesPerSec, bitsPerSample),
+    m_bNeedData(false),
+    m_bNeedsSynch(false),
+    m_IsHardwareMixAvailable(hardwareMixAvailable)
 {
-    m_bNeedData = false;
-    m_bNeedsSynch = false;
-    field_8A = arg3;
 }
 
 // 0x4F10D0
@@ -115,8 +115,8 @@ void CAEStaticChannel::SynchPlayback() {
 
     if (m_bUnkn2) {
         m_pDirectSoundBuffer->SetVolume(-10000);
-        if (!AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, m_fVolume, -2, false)) {
-            const auto dwVolume = static_cast<LONG>(m_fVolume * 100.0F);
+        if (!AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, m_Volume, -2, false)) {
+            const auto dwVolume = static_cast<LONG>(m_Volume * 100.0F);
             m_pDirectSoundBuffer->SetVolume(dwVolume);
         }
     }

@@ -3,6 +3,8 @@
 #include "World.h"
 #include "EntryExitManager.h"
 
+constexpr static CVector NULL_VEC{ 0.f, 0.f, 0.f };
+
 // inlined
 CPlayerInfo& FindPlayerInfo(int32 playerId) {
     return CWorld::Players[playerId < 0 ? CWorld::PlayerInFocus : playerId];
@@ -82,12 +84,24 @@ const CVector& FindPlayerCentreOfWorld(int32 playerId) {
 // Returns player coords with skipping sniper shift
 // 0x56E320
 const CVector& FindPlayerCentreOfWorld_NoSniperShift(int32 playerId) {
-    return plugin::CallAndReturn<const CVector&, 0x56E320, int32>(playerId);
+    if (CCarCtrl::bCarsGeneratedAroundCamera) {
+        return TheCamera.GetPosition();
+    }
+    if (const auto* const veh = FindPlayerInfo(playerId).m_pRemoteVehicle) {
+        return veh->GetPosition();
+    }
+    if (const auto* const player = FindPlayerPed(playerId)) {
+        if (const auto* const veh = player->GetVehicleIfInOne()) {
+            return veh->GetPosition();
+        }
+        return player->GetPosition();
+    }
+    return NULL_VEC;
 }
 
 // Returns player coords with skipping interior shift
 // 0x56E400
-CVector FindPlayerCentreOfWorld_NoInteriorShift(int32 playerId) {
+CVector FindPlayerCentreOfWorldForMap(int32 playerId) {
     return plugin::CallAndReturn<CVector, 0x56E400, int32>(playerId);
 
     CVector centre = FindPlayerCentreOfWorld(playerId);

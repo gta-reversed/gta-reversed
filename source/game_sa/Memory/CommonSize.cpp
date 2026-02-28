@@ -34,7 +34,7 @@ void CommonSize::Free(HeapFreeBlockDesc* desc) {
 }
 
 void CommonSize::_DumpInfo() {
-    DEV_LOG("CommonSize (blockSize {}, failed {}, free {}):\n", m_BlockSize, m_NumFails, m_NumFreeBlocks);
+    NOTSA_LOG_DEBUG("CommonSize (blockSize {}, failed {}, free {}):\n", m_BlockSize, m_NumFails, m_NumFreeBlocks);
     HeapFreeBlockDesc* block = &m_ListStart;
     while (true) {
         block->_DumpBlockInfo();

@@ -20,7 +20,7 @@ void CTaskSimpleIKManager::InjectHooks() {
 CTaskSimpleIKManager::CTaskSimpleIKManager(const CTaskSimpleIKManager& o) :
     CTaskSimpleIKManager{}
 {
-    for (auto&& [slot, t] : notsa::enumerate(o.m_IKChainTasks)) {
+    for (auto&& [slot, t] : rngv::enumerate(o.m_IKChainTasks)) {
         m_IKChainTasks[slot] = notsa::cast<CTaskSimpleIKChain>(t->Clone());
     }
 }

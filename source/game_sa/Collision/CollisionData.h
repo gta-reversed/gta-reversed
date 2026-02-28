@@ -6,8 +6,6 @@
 */
 #pragma once
 
-#include <extensions/enumerate.hpp>
-
 #include "ColSphere.h"
 #include "ColBox.h"
 #include "ColLine.h"

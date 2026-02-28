@@ -8,7 +8,6 @@
 
 #include "Radar.h"
 #include "EntryExitManager.h"
-#include <extensions/enumerate.hpp>
 
 constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E0
     airstrip_info{ { +1750.0f,  -2494.0f }, 180.0f, 1000.0f }, // AIRSTRIP_LS_AIRPORT
@@ -604,7 +603,7 @@ bool CRadar::HasThisBlipBeenRevealed(int32 blipIndex) {
  * @returns True if it's allowed to be drawn.
  */
 bool CRadar::DisplayThisBlip(eRadarSprite spriteId, int8 priority) {
-    if (CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->m_nAreaCode == AREA_CODE_NORMAL_WORLD) {
+    if (CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->GetAreaCode() == AREA_CODE_NORMAL_WORLD) {
         switch (spriteId) {
         case RADAR_SPRITE_NONE:
         case RADAR_SPRITE_WHITE:
@@ -1290,7 +1289,7 @@ void CRadar::SetMapCentreToPlayerCoords() {
 
     InitFrontEndMap();
 
-    CVector2D posReal = FindPlayerCentreOfWorld_NoInteriorShift(0);
+    CVector2D posReal = FindPlayerCentreOfWorldForMap(0);
 
     if (CTheScripts::HideAllFrontEndMapBlips || CTheScripts::bPlayerIsOffTheMap)
         posReal.Set(0.0f, 0.0f);
@@ -1310,7 +1309,7 @@ void CRadar::Draw3dMarkers() {
         C3dMarkers::PlaceMarkerCone(id, pos, size, color.r, color.g, color.b, 255, 1024u, 0.2f, 5, true);
     };
 
-    for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) {
         if (!trace.m_bTrackingBlip) {
             continue;
         }
@@ -1365,7 +1364,7 @@ void CRadar::Draw3dMarkers() {
                         NOTSA_UNREACHABLE("Couldn't get the pickup!");
                     }
                 }
-                ret.z += (CGame::currArea != 0 || FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD) ? 1.6f : 1.8f;
+                ret.z += (CGame::currArea != 0 || FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD) ? 1.6f : 1.8f;
 
                 return ret;
             }();
@@ -1377,7 +1376,7 @@ void CRadar::Draw3dMarkers() {
             if (CTheScripts::IsPlayerOnAMission() || !FindPlayerPed())
                 break;
 
-            if (!trace.m_bTrackingBlip && FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD)
+            if (!trace.m_bTrackingBlip && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
                 break;
 
             C3dMarkers::PlaceMarkerSet(coneHandle, MARKER3D_CYLINDER, trace.m_vPosition, 2.0f, 255, 0, 0, 228, 2048u, 0.2f, 0);
@@ -1442,7 +1441,7 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
         GetTextureCorners(x, y, corners);
 
         CVector2D rotated[8]{};
-        for (auto&& [i, corner] : notsa::enumerate(corners)) {
+        for (auto&& [i, corner] : rngv::enumerate(corners)) {
             rotated[i] = CachedRotateClockwise((corner - vec2DRadarOrigin) / m_radarRange);
         }
         return ClipRadarPoly(clipped, rotated);
@@ -1512,13 +1511,13 @@ void CRadar::DrawRadarGangOverlay(bool inMenu) {
     for (auto& zone : CTheZones::GetNavigationZones()) {
         const auto info = CTheZones::GetZoneInfo(&zone);
 
-        if (!info || !info->radarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
+        if (!info || !info->RadarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
             continue;
 
         g_RadarGangOverlay = zone.GetRect();
 
         // todo: enum
-        switch (info->radarMode) {
+        switch (info->RadarMode) {
         case 1:
             DrawAreaOnRadar(g_RadarGangOverlay, info->ZoneColor, inMenu);
             break;
@@ -1577,7 +1576,7 @@ void CRadar::DrawRadarMap() {
 
     // Draw green rectangle when in plane
     if (vehicle && vehicle->IsSubPlane() && !ModelIndices::IsVortex(vehicle->m_nModelIndex)) {
-        CVector playerPos = FindPlayerCentreOfWorld_NoInteriorShift(0);
+        CVector playerPos = FindPlayerCentreOfWorldForMap(0);
 
         const auto cSin = cachedSin;
         const auto cCos = cachedCos;
@@ -1608,7 +1607,7 @@ void CRadar::DrawRadarMap() {
 // 0x586B00
 void CRadar::DrawMap() {
     const auto player = FindPlayerPed();
-    const auto mapShouldDrawn = !CGame::currArea && player->m_nAreaCode == 0 && FrontEndMenuManager.m_nRadarMode != 1;
+    const auto mapShouldDrawn = !CGame::currArea && player->GetAreaCode() == AREA_CODE_NORMAL_WORLD && FrontEndMenuManager.m_nRadarMode != 1;
 
     CalculateCachedSinCos();
 
@@ -1644,11 +1643,11 @@ void CRadar::DrawMap() {
 
     vec2DRadarOrigin = []() -> CVector2D {
         if (!CGameLogic::IsCoopGameGoingOn()) [[likely]] {
-            return FindPlayerCentreOfWorld_NoInteriorShift(0);
+            return FindPlayerCentreOfWorldForMap(0);
         } else if (CGameLogic::n2PlayerPedInFocus == eFocusedPlayer::PLAYER2) {
-            return FindPlayerCentreOfWorld_NoInteriorShift(1);
+            return FindPlayerCentreOfWorldForMap(1);
         } else {
-            return (FindPlayerCentreOfWorld_NoInteriorShift(0) + FindPlayerCentreOfWorld_NoInteriorShift(1)) / 2.0f; // Halfway between the two player's positions
+            return (FindPlayerCentreOfWorldForMap(0) + FindPlayerCentreOfWorldForMap(1)) / 2.0f; // Halfway between the two player's positions
         }
     }();
 
@@ -1695,7 +1694,7 @@ void CRadar::DrawCoordBlip(int32 blipIndex, bool isSprite) {
     }
 
     const auto GetHeight = [&] {
-        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorld_NoInteriorShift(PED_TYPE_PLAYER1).z;
+        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorldForMap(PED_TYPE_PLAYER1).z;
 
         if (zDiff > 2.0f) {
             // trace is higher
@@ -1811,7 +1810,7 @@ void CRadar::SetupAirstripBlips() {
         // NOTSA, effectively the same thing though.
         const auto location = [veh] {
             float distances[NUM_AIRSTRIPS]{};
-            for (auto&& [i, table] : notsa::enumerate(airstrip_table)) {
+            for (auto&& [i, table] : rngv::enumerate(airstrip_table)) {
                 distances[i] = DistanceBetweenPoints2D(table.position, veh->GetPosition());
             }
 
@@ -1862,7 +1861,7 @@ void CRadar::DrawBlips() {
             if (!CPad::IsMouseLButton() &&
                 mouseX > SCREEN_STRETCH_X(60.0f) && mouseX < SCREEN_STRETCH_FROM_RIGHT(60.0f) &&
                 mouseY > SCREEN_STRETCH_Y(60.0f) && mouseY < SCREEN_STRETCH_FROM_BOTTOM(60.0f) ||
-                !FrontEndMenuManager.m_bDrawMouse)
+                !FrontEndMenuManager.m_DisplayTheMouse)
             {
                 auto drawPos = TransformRealWorldPointToBlipSpace(FrontEndMenuManager.m_vMousePos);
                 LimitToMap(drawPos.x, drawPos.y);
@@ -1897,7 +1896,7 @@ void CRadar::DrawBlips() {
     // we first do whole thing with isSprite = true, then = false... yeah.
     for (const auto isSprite : {false, true}) {
         for (auto priority = 1; priority < 4; priority++) {
-            for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) { // todo: check if looping all
+            for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) { // todo: check if looping all
                 if (!trace.m_bTrackingBlip)
                     continue;
 
@@ -1928,7 +1927,7 @@ void CRadar::DrawBlips() {
             }
         }
 
-        for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) { // todo: check if looping all, same thing with above.
+        for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) { // todo: check if looping all, same thing with above.
             if (!trace.m_bTrackingBlip)
                 continue;
 
@@ -1945,8 +1944,10 @@ void CRadar::DrawBlips() {
         }
     }
 
-    const auto GetPlayerMarkerPosition = [] {
-        const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(0) - vec2DRadarOrigin) / m_radarRange;
+    // FIX_BUGS: Originally 2 player blips both drawing P1's position.
+    // https://github.com/CookiePLMonster/SilentPatch/issues/209
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
+        const auto playerDirection = (FindPlayerCentreOfWorldForMap(playerIndex) - vec2DRadarOrigin) / m_radarRange;
 
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
@@ -1966,7 +1967,7 @@ void CRadar::DrawBlips() {
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
 
-            const auto pos = GetPlayerMarkerPosition();
+            const auto pos = GetPlayerMarkerPosition(notsa::IsFixBugs() ? i : 0);
 
             const auto angle = [] {
                 const auto heading = FindPlayerHeading(0);
@@ -1984,16 +1985,12 @@ void CRadar::DrawBlips() {
                 pos.y,
                 angle,
                 static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #ifdef FIX_BUGS
-                static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)),
-            #else
-                static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #endif
+                (notsa::IsFixBugs() ? static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)) : static_cast<uint32>(SCREEN_STRETCH_X(8.0f))),
                 player->IsHidden() ? CRGBA{50, 50, 50, 255} : CRGBA{255, 255, 255, 255}
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition();
+        const auto pos = GetPlayerMarkerPosition(0);
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }
@@ -2008,7 +2005,7 @@ bool CRadar::Load() {
     for (auto& trace : ms_RadarTrace) {
         CGenericGameStorage::LoadDataFromWorkBuffer(trace);
         if (trace.m_EntryExitPoolInd) {
-            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
+            trace.m_pEntryExit = CEntryExitManager::GetInSlot(trace.m_EntryExitPoolInd - 1);
         }
     }
 
@@ -2023,8 +2020,8 @@ bool CRadar::Save() {
     for (auto& trace : ms_RadarTrace) {
         CEntryExit* savedEnex = nullptr;
         if (trace.m_pEntryExit) {
-            const auto index = CEntryExitManager::mp_poolEntryExits->GetIndex(trace.m_pEntryExit);
-            if (CEntryExitManager::mp_poolEntryExits->IsIndexInBounds(index) && !CEntryExitManager::mp_poolEntryExits->IsFreeSlotAtIndex(index)) {
+            const auto index = CEntryExitManager::GetPool()->GetIndex(trace.m_pEntryExit);
+            if (CEntryExitManager::GetPool()->IsIndexInBounds(index) && !CEntryExitManager::GetPool()->IsFreeSlotAtIndex(index)) {
                 savedEnex = trace.m_pEntryExit;
                 trace.m_EntryExitPoolInd = index + 1; // Assign the pool index for save duration, restore it later
             }
@@ -2141,7 +2138,7 @@ const GxtChar* CRadar::GetBlipName(eRadarSprite blipType) {
  * @brief Returns the first index in `ms_RadarTrace` that is not a tracking blip.
  */
 int32 CRadar::FindTraceNotTrackingBlipIndex() {
-    for (auto&& [i, v] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto&& [i, v] : rngv::enumerate(ms_RadarTrace)) {
         if (!v.m_bTrackingBlip) {
             return (int32)i;
         }

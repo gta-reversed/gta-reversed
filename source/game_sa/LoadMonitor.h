@@ -1,80 +1,136 @@
 #pragma once
 
-/*
-TODO: size of CLoadMonitor is unknown, and it's uncomplete.
-*/
+enum class eLoadType : uint32 {
+    PED_AI = 0,
+    COLLISION,
+    NUM_STREAMING_REQUESTS,
+    MOVE_SPEED,
+
+    NUM_LOAD_TYPES,
+
+    TOP_INDEX_USED_FOR_PROCESSOR_USAGE = 3
+};
+
+enum class eProcessingLevel : uint32 {
+    OK = 0,
+    MED, // MEDIUM
+    HIGH
+};
+
+enum class eLoadMonitorDisplay : uint32 {
+    NONE = 0,
+    COMPACT,
+    COMPACT_PLUS_GRAPH
+};
+
 class CLoadMonitor {
-public:
-    enum class ELoadMonitorDisplay {
-        eNone = 0x0,
-        eCompact = 0x1,
-        eCompactPlusGraph = 0x2,
-    };
+private:
+    uint32           m_bInFrame; // unused
+    uint32           m_bUseLoadMonitor; // unused
+    eProcessingLevel m_bForceProcLevel; // unused
 
-    enum EProcessingLevel {
-        OK = 0x0,
-        MED = 0x1,
-        HIGH = 0x2,
-    };
+    eLoadMonitorDisplay m_DisplayType; // unused
+    eLoadMonitorDisplay m_VarConsoleDisplayType; // unused
 
-public:
-    uint32              m_bInFrame;
-    uint32              m_bUseLoadMonitor;
-    uint32              m_bForceProcLevel;
-    ELoadMonitorDisplay m_DisplayType;
-    uint32              m_VarConsoleDisplayType;
-    EProcessingLevel    m_eProcLevel;
-    EProcessingLevel    m_eProcLevelToForce;    
-    char  field_1C;
-    char  field_1D;
-    char  field_1E;
-    char  field_1F;
-    char  field_20;
-    char  field_21;
-    char  field_22;
-    char  field_23;
-    char  field_24;
-    char  field_25;
-    char  field_26;
-    char  field_27;
-    char  field_28;
-    char  field_29;
-    char  field_2A;
-    char  field_2B;
-    char  field_2C;
-    char  field_2D;
-    char  field_2E;
-    char  field_2F;
-    char  field_30;
-    char  field_31;
-    char  field_32;
-    char  field_33;
-    char  field_34;
-    char  field_35;
-    char  field_36;
-    char  field_37;
-    char  field_38;
-    char  field_39;
-    char  field_3A;
-    char  field_3B;
-    int32 field_3C;
-    int32 field_40;
-    int32 m_numModelsRequest;
-    char  field_48[88];
+    eProcessingLevel m_eProcLevel; // unused
+
+    eProcessingLevel m_eProcLevelToForce; // unused
+
+    bool m_bEnableAmbientCrime;
+
+    uint32 m_LastTime; // CTimer::GetTimeInMS
+    uint32 m_NumFramesThisSec;
+    uint32 m_FPS; // unused
+
+    uint32 m_iStartTimes[+eLoadType::NUM_LOAD_TYPES]; // CTimer::GetCurrentTimeInCycles
+    uint32 m_iCyclesThisFrame[+eLoadType::NUM_LOAD_TYPES];
+    uint32 m_iMaxCycles[+eLoadType::NUM_LOAD_TYPES];
+
+    float m_fSmoothedValues[+eLoadType::NUM_LOAD_TYPES]; // unused
+
+    float m_fPeakLevels[+eLoadType::NUM_LOAD_TYPES];
+
+    float m_fNormalizedPeakRangeValues[+eLoadType::NUM_LOAD_TYPES]; // unused
+
+    float m_fAveragedCyclesThisSecond[+eLoadType::NUM_LOAD_TYPES]; // unused
+
+    uint32 m_iCyclesHistory[+eLoadType::NUM_LOAD_TYPES][8];
+
+    uint8 m_GraphPoints[+eLoadType::NUM_LOAD_TYPES][100]; // unused
+    int32 m_iCurrentGraphIndex; // unused
 
 public:
-    static void InjectHooks();
-
     CLoadMonitor();
-    CLoadMonitor* Constructor();
-
-    ~CLoadMonitor() = default; // 0x856430-
-    CLoadMonitor*  Destructor();
+    ~CLoadMonitor() = default; // 0x53D020
 
     void BeginFrame();
     void EndFrame();
-    void StartTimer(uint32 timerIndex);
-    void EndTimer(uint32 timerIndex);
+
+    void StartTimer(eLoadType timerIndex);
+    void EndTimer(eLoadType timerIndex);
+
+    void Render();
+
+    eProcessingLevel GetProcLevel() { return m_eProcLevel; }
+
+    // bool GetInUse();       // unknown, unused
+    // void SetInUse(bool b); // unknown, unused
+
+    bool IsForcingProcLevel() { return m_bForceProcLevel != eProcessingLevel::OK; } // unknown, unused
+    void StopForcingProcLevel() { m_bForceProcLevel = eProcessingLevel::OK; } // unknown, unused
+    void ForceProcLevel(eProcessingLevel v) { // unused
+        m_bForceProcLevel = v;
+    }
+
+    bool IsAmbientCrimeEnabled() { return m_bEnableAmbientCrime; }
+    void EnableAmbientCrime() { m_bEnableAmbientCrime = true; }
+    void DisableAmbientCrime() { m_bEnableAmbientCrime = false; }
+
+    void SetTimeForThisFrame(eLoadType t, uint32 v) {
+        m_iCyclesThisFrame[+t] = v;
+    }
+
+private: // NOTSA:
+    friend void InjectHooksMain();
+    static void InjectHooks();
+
+    CLoadMonitor* Constructor() {
+        this->CLoadMonitor::CLoadMonitor();
+        return this;
+    }
+
+    CLoadMonitor* Destructor() {
+        this->CLoadMonitor::~CLoadMonitor();
+        return this;
+    }
+
+public:
+    // Getters for debug module
+    uint32 GetInFrame() const { return m_bInFrame; }
+    uint32 GetUseLoadMonitor() const { return m_bUseLoadMonitor; }
+    eProcessingLevel GetForceProcLevel() const { return m_bForceProcLevel; }
+    eLoadMonitorDisplay GetDisplayType() const { return m_DisplayType; }
+    eLoadMonitorDisplay GetVarConsoleDisplayType() const { return m_VarConsoleDisplayType; }
+    eProcessingLevel GetProcLevelToForce() const { return m_eProcLevelToForce; }
+    
+    uint32 GetLastTime() const { return m_LastTime; }
+    uint32 GetNumFramesThisSec() const { return m_NumFramesThisSec; }
+    uint32 GetFPS() const { return m_FPS; }
+    
+    uint32 GetStartTime(eLoadType t) const { return m_iStartTimes[+t]; }
+    uint32 GetCyclesThisFrame(eLoadType t) const { return m_iCyclesThisFrame[+t]; }
+    uint32 GetMaxCycles(eLoadType t) const { return m_iMaxCycles[+t]; }
+    
+    float GetSmoothedValue(eLoadType t) const { return m_fSmoothedValues[+t]; }
+    float GetPeakLevel(eLoadType t) const { return m_fPeakLevels[+t]; }
+    float GetNormalizedPeakRangeValue(eLoadType t) const { return m_fNormalizedPeakRangeValues[+t]; }
+    float GetAveragedCyclesThisSecond(eLoadType t) const { return m_fAveragedCyclesThisSecond[+t]; }
+    
+    uint32 GetCyclesHistory(eLoadType t, size_t idx) const { return m_iCyclesHistory[+t][idx]; }
+    uint8 GetGraphPoint(eLoadType t, size_t idx) const { return m_GraphPoints[+t][idx]; }
+    int32 GetCurrentGraphIndex() const { return m_iCurrentGraphIndex; }
 };
+
+VALIDATE_SIZE(CLoadMonitor, 0x2B0);
 
 extern CLoadMonitor& g_LoadMonitor;
