@@ -2,6 +2,7 @@
 
 #include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
+#include <CommandParser/Typeshed.hpp>
 #include <cassert>
 
 #include "Garages.h"
@@ -14,8 +15,6 @@
 #include <cHandlingDataMgr.h>
 
 #include "Tasks/TaskTypes/TaskComplexLeaveAnyCar.h"
-
-using namespace notsa::script;
 
 enum class eSeatId {
     FRONT_RIGHT,
