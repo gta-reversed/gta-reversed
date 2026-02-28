@@ -2232,6 +2232,20 @@ void StartPlaybackRecordedCarLooped(CVehicle& self, int32 pathId) {
 }
 
 /*
+* @opcode 099B
+* @command CHANGE_PLAYBACK_TO_USE_AI
+* @class Car
+* @method ChangePlaybackToUseAi
+* 
+* @brief Changes vehicle control from playback to AI driven
+* 
+* @param {Car} self
+*/
+void ChangePlaybackToUseAi(CVehicle& self) {
+    CVehicleRecording::ChangeCarPlaybackToUseAI(&self);
+}
+
+/*
 * @brief Helper function for setting a car to escort another using a specific mission
 */
 void SetCarEscortCarUsingMission(CVehicle& self, CVehicle& other, eCarMission mission) {
@@ -3709,20 +3723,6 @@ void SetTaxiLights(CVehicle& self, bool state) {
 }
 
 /*
- * @opcode 099B
- * @command CHANGE_PLAYBACK_TO_USE_AI
- * @class Car
- * @method ChangePlaybackToUseAi
- * 
- * @brief Changes vehicle control from playback to AI driven
- * 
- * @param {Car} self
- */
-//void ChangePlaybackToUseAi(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
-
-/*
  * @opcode 08F3
  * @command SET_FREEBIES_IN_VEHICLE
  * @class Car
@@ -4175,6 +4175,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_USING_AI, StartPlaybackRecordedCarUsingAI);
     REGISTER_COMMAND_HANDLER(COMMAND_SKIP_IN_PLAYBACK_RECORDED_CAR, SkipInPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR_LOOPED, StartPlaybackRecordedCarLooped);
+    REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_PLAYBACK_TO_USE_AI, ChangePlaybackToUseAi);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_LEFT, SetCarEscortCarLeft);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CAR_ESCORT_CAR_RIGHT, SetCarEscortCarRight);
@@ -4281,7 +4282,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_PLAYBACK_TO_USE_AI, ChangePlaybackToUseAi);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_FREEBIES_IN_VEHICLE, SetFreebiesInVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_ADD_VEHICLE_MOD, AddVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
