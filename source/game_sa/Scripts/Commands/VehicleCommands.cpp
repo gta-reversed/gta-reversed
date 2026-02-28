@@ -3985,9 +3985,13 @@ void SetVehicleToFadeIn(CVehicle& self, int32 alpha) {
  * 
  * @returns {float} ratio
  */
-//auto GetDoorAngleRatio(CVehicle& self, eCarDoor door) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetDoorAngleRatio(CVehicle& self, eDoors door) {
+    auto* const automobile = self.AsAutomobile();
+    if (door >= MAX_DOORS) {
+        return automobile->m_swingingChassis.m_angle;
+    }
+    return automobile->m_doors[+door].m_angle;
+}
 
 /*
  * @opcode 09FE
@@ -4301,7 +4305,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2d);
     //REGISTER_COMMAND_HANDLER(COMMAND_RESET_VEHICLE_HYDRAULICS, ResetVehicleHydraulics);
     //REGISTER_COMMAND_HANDLER(COMMAND_WINCH_CAN_PICK_VEHICLE_UP, WinchCanPickVehicleUp);
