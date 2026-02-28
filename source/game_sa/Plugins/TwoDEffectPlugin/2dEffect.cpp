@@ -1,8 +1,5 @@
 #include "StdInc.h"
 
-uint32& C2dEffect::g2dEffectPluginOffset = *(uint32*)0xC3A1E0;
-uint32& C2dEffect::ms_nTxdSlot = *(uint32*)0x8D4948;
-
 void C2dEffect::InjectHooks()
 {
     RH_ScopedClass(C2dEffect);
@@ -26,7 +23,7 @@ void C2dEffect::InjectHooks()
     RH_ScopedGlobalInstall(t2dEffectPluginDestructor, 0x6FA880);
     RH_ScopedGlobalInstall(t2dEffectPluginCopyConstructor, 0x6F9FB0);
 
-    RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkReadCallBack, 0x6F9FD0, { .reversed = false });
+    RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkReadCallBack, 0x6F9FD0, { .reversed = true });
     RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkWriteCallBack, 0x6FA620);
     RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkGetSizeCallBack, 0x6FA630);
 }
@@ -181,8 +178,197 @@ void* t2dEffectPluginCopyConstructor(void* dstObject, const void* srcObject, RwI
 
 RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream, RwInt32 binaryLength, void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
 {
-    return plugin::CallAndReturn<RwStream*, 0x6F9FD0, RwStream*, RwInt32, const void*, RwInt32, RwInt32>
-        (stream, binaryLength, object, offsetInObject, sizeInObject);
+    if (C2dEffect::ms_nTxdSlot == -1) {
+        C2dEffect::ms_nTxdSlot = CTxdStore::FindTxdSlot("particle");
+    }
+
+    uint32 numEffects{};
+    RwStreamRead(stream, &numEffects, sizeof(numEffects));
+    if (!numEffects) {
+        return stream;
+    }
+
+    auto* e = static_cast<t2dEffectPluginEntry*>(CMemoryMgr::Malloc(numEffects * sizeof(C2dEffect) + sizeof(t2dEffectPluginEntry::m_nObjCount)));
+
+    uint32 countedNumFx{numEffects};
+    for (auto i = 0u; i < numEffects; i++) {
+        auto& fx = e->m_pObjects[i];
+        RwStreamRead(stream, &fx.m_Pos, sizeof(CVector));
+
+        uint32 type{}, sectionSize{};
+        RwStreamRead(stream, &type, sizeof(uint32));
+        RwStreamRead(stream, &sectionSize, sizeof(uint32));
+        fx.m_Type = static_cast<e2dEffectType>(type);
+
+        switch (fx.m_Type) {
+        case e2dEffectType::EFFECT_LIGHT: {
+            auto* light = C2dEffect::Cast<C2dEffectLight>(&fx);
+
+            t2dEffectLightStreamData d{};
+            if (sectionSize != 80 && sectionSize != 76) {
+                NOTSA_LOG_DEBUG("Invalid light 2dfx section size: {}, skipping...", sectionSize);
+                break;
+            }
+
+            RwStreamRead(stream, &d, sectionSize);
+            light->m_color                   = d.Color;
+            light->m_fCoronaSize             = d.CoronaSize;
+            light->m_fCoronaFarClip          = d.CoronaFarClip;
+            light->m_bCoronaEnableReflection = d.CoronaEnableReflection;
+            light->m_fShadowSize             = d.ShadowSize;
+            light->m_nCoronaFlareType        = d.CoronaFlareType;
+            light->m_fPointlightRange        = d.PointlightRange;
+            light->m_nCoronaFlashType        = d.CoronaFlashType;
+            light->m_nShadowColorMultiplier  = d.ShadowColorMultiplier;
+            light->m_nFlags                  = ((uint16)d.Flags2 << 8) | d.Flags1;
+            light->m_nShadowZDistance        = d.ShadowZDistance;
+
+            // Lights may not have light dir XYZ values at the end
+            light->offsetX = (sectionSize == 80) ? d.OffsetX : 0;
+            light->offsetY = (sectionSize == 80) ? d.OffsetY : 0;
+            light->offsetZ = (sectionSize == 80) ? d.OffsetZ : 100;
+
+            {
+                CTxdStore::ScopedTXDSlot _{ C2dEffect::ms_nTxdSlot };
+                light->m_pCoronaTex = RwTextureRead(d.CoronaName, nullptr);
+                light->m_pShadowTex = RwTextureRead(d.ShadowName, nullptr);
+            }
+            continue;
+        }
+        case e2dEffectType::EFFECT_ROADSIGN: {
+            auto* sign = C2dEffect::Cast<C2dEffectRoadsign>(&fx);
+
+            if (sectionSize != sizeof(t2dEffectRoadsignStreamData)) {
+                NOTSA_LOG_DEBUG("Invalid roadsign 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectRoadsignStreamData d{};
+            RwStreamRead(stream, &d, sizeof(t2dEffectRoadsignStreamData));
+            sign->m_vecSize     = d.Size;
+            sign->m_vecRotation = d.Rotation;
+            sign->m_nFlags      = d.Flags;
+            sign->m_pAtomic     = nullptr;
+            sign->m_pText       = static_cast<RwChar*>(CMemoryMgr::Malloc(sizeof(d.Text)));
+            std::memcpy(sign->m_pText, d.Text, sizeof(d.Text));
+            continue;
+        }
+        case e2dEffectType::EFFECT_ENEX: {
+            auto* enex = C2dEffect::Cast<C2dEffectEnEx>(&fx);
+
+            if (sectionSize != 44 && sectionSize != 40) {
+                NOTSA_LOG_DEBUG("Invalid enex 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectEnExStreamData d{};
+            RwStreamRead(stream, &d, sectionSize);
+            enex->m_vecRadius   = d.Radius;
+            enex->m_fEnterAngle = d.EnterAngle;
+            enex->m_vecExitPosn = d.ExitPos;
+            enex->m_nInteriorId = d.InteriorId;
+            enex->m_fExitAngle  = d.ExitAngle;
+            enex->m_nSkyColor   = d.SkyColor;
+            enex->m_nFlags1     = d.Flags1;
+            std::memcpy(enex->m_szInteriorName, d.InteriorName, sizeof(d.InteriorName));
+
+            enex->m_nTimeOn  = (sectionSize == 44) ? d.TimeOn : 0;
+            enex->m_nTimeOff = (sectionSize == 44) ? d.TimeOn : 24;
+            enex->m_nFlags2  = d.Flags2; // TODO: ???
+            continue;
+        }
+        case e2dEffectType::EFFECT_COVER_POINT: {
+            auto* cp = C2dEffect::Cast<C2dEffectCoverPoint>(&fx);
+
+            if (sectionSize != sizeof(t2dEffectCoverPointStreamData)) {
+                NOTSA_LOG_DEBUG("Invalid cp 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectCoverPointStreamData d{};
+            RwStreamRead(stream, &d, sizeof(t2dEffectCoverPointStreamData));
+            cp->m_DirOfCover = d.Dir;
+            cp->m_Usage      = d.Usage;
+            continue;
+        }
+        case e2dEffectType::EFFECT_SUN_GLARE:
+            NOTSA_UNREACHABLE("sunglare 2dfx unused");
+            RwStreamSkip(stream, sectionSize);
+            --i; // We haven't added anything, so skip incrementing.
+            break;
+        case e2dEffectType::EFFECT_TRIGGER_POINT: {
+            auto* wheel = C2dEffect::Cast<C2dEffectSlotMachineWheel>(&fx);
+
+            if (sectionSize != sizeof(t2dEffectSlotMachineWheelStreamData)) {
+                NOTSA_LOG_DEBUG("Invalid slot machine wheel 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectSlotMachineWheelStreamData d{};
+            RwStreamRead(stream, &d, sizeof(t2dEffectSlotMachineWheelStreamData));
+            wheel->m_nId = d.PointId;
+            continue;
+        }
+        case e2dEffectType::EFFECT_ESCALATOR: {
+            auto* e = C2dEffect::Cast<C2dEffectEscalator>(&fx);
+
+            if (sectionSize != sizeof(t2dEffectEscalatorStreamData)) {
+                NOTSA_LOG_DEBUG("Invalid escalator 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectEscalatorStreamData d{};
+            RwStreamRead(stream, &d, sizeof(t2dEffectEscalatorStreamData));
+            e->m_nDirection = d.Direction;
+            e->m_vecBottom  = d.Bottom;
+            e->m_vecEnd     = d.End;
+            e->m_vecTop     = d.Top;
+            continue;
+        }
+        case e2dEffectType::EFFECT_ATTRACTOR: {
+            auto* pa = C2dEffect::Cast<C2dEffectPedAttractor>(&fx);
+
+            if (sectionSize != sizeof(t2dEffectPedAttractorStreamData)) {
+                NOTSA_LOG_DEBUG("Invalid ped attractor 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectPedAttractorStreamData d{};
+            RwStreamRead(stream, &d, sizeof(t2dEffectPedAttractorStreamData));
+            pa->m_vecQueueDir    = d.QueueDir;
+            pa->m_vecUseDir      = d.UseDir;
+            pa->m_vecForwardDir  = d.ForwardDir;
+            pa->m_nAttractorType = d.Type;
+
+            // TODO: unk/not_used fields assign to higher portion of m_nAttractorType, check.
+            continue;
+        }
+        case e2dEffectType::EFFECT_PARTICLE: {
+            auto* p = C2dEffect::Cast<C2dEffectParticle>(&fx);
+
+            if (sectionSize != sizeof(t2dEffectParticleStreamData)) {
+                NOTSA_LOG_DEBUG("Invalid particle 2dfx section size: {}", sectionSize);
+                break;
+            }
+
+            t2dEffectParticleStreamData d{};
+            RwStreamRead(stream, &d, sizeof(t2dEffectParticleStreamData));
+            std::memcpy(p->m_szName, d, sizeof(t2dEffectParticleStreamData));
+            continue;
+        }
+        default:
+            NOTSA_LOG_WARN("Unknown 2dfx type: {}", +fx.m_Type);
+            continue; // not skipping unintendedly?
+        }
+
+        RwStreamSkip(stream, sectionSize);
+        --i; // We haven't added anything, so skip incrementing.
+        --countedNumFx;
+    }
+
+    e->m_nObjCount = countedNumFx; // correct the count without counting the skipped ones.
+    RWPLUGINOFFSET(t2dEffectPlugin, object, C2dEffect::g2dEffectPluginOffset)->m_pEffectEntries = e;
+    return stream;
 }
 
 RwStream* Rwt2dEffectPluginDataChunkWriteCallBack(RwStream* stream, RwInt32 binaryLength, const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
