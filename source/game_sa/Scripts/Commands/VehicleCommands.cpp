@@ -3953,9 +3953,9 @@ void SetVehicleIsConsideredByPlayer(CVehicle& self, bool state) {
  * @param {Car} self
  * @param {int} alpha
  */
-//void SetVehicleToFadeIn(CVehicle& self, int32 alpha) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetVehicleToFadeIn(CVehicle& self, int32 alpha) {
+    CVisibilityPlugins::SetClumpAlpha(self.m_pRwClump, alpha);
+}
 
 /*
  * @opcode 06FD
