@@ -161,7 +161,11 @@ void CGame::ShutdownRenderWare() {
     CameraDestroy(Scene.m_pRwCamera);
     Scene.m_pRpWorld = nullptr;
     Scene.m_pRwCamera = nullptr;
+    
+#if !defined(BUILD_ANDROID)
     D3DResourceSystem::CancelBuffering();
+#endif
+    
     CPostEffects::Close();
 }
 
@@ -333,8 +337,12 @@ bool CGame::Init1(char const *datFile) {
     strcpy_s(aDatFile, datFile);
     CPools::Initialise();
     CPlaceable::InitMatrixArray();
-    CIniFile::LoadIniFile();
+    CIniFile::LoadIniFile(); // in build PC and Android
+    
+#if !defined(BUILD_ANDROID)
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
+#endif
+    
     currLevel = LEVEL_NAME_COUNTRY_SIDE;
     currArea = AREA_CODE_NORMAL_WORLD;
 
@@ -526,7 +534,11 @@ bool CGame::Init3(const char* datFile) {
     LoadingScreen("Loading the Game", "Load scene");
     CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
     CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
+    
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
     D3DResourceSystem::SetUseD3DResourceBuffering(true);
+#endif
+    
     LoadingScreen("Loading the Game", "Procedural Interiors");
     g_interiorMan.Init();
     g_procObjMan.Init();
@@ -597,7 +609,11 @@ void CGame::InitialiseOnceBeforeRW() {
 // 0x5BD600
 bool CGame::InitialiseRenderWare() {
     ValidateVersion();
+
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
     D3DResourceSystem::Init();
+#endif
+
     CTxdStore::Initialise();
     CVisibilityPlugins::Initialise();
 
@@ -647,8 +663,10 @@ bool CGame::InitialiseRenderWare() {
     CPostEffects::Initialise();
     CGame::m_pWorkingMatrix1 = RwMatrixCreate();
     CGame::m_pWorkingMatrix2 = RwMatrixCreate();
-
+    
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
     _rwD3D9DeviceSetRestoreCallback(_rwD3D9DeviceGetRestoreCallback());
+#endif    
     return true;
 }
 
