@@ -491,7 +491,7 @@ int32 CVisibilityPlugins::GetFrameHierarchyId(RwFrame* frame) {
     return FRAMEPLG_HIERARCHYID(frame);
 }
 
-// 0x732230
+// 0x732230 - TODO: Return `eModelID`
 void CVisibilityPlugins::SetModelInfoIndex(RpAtomic* atomic, int32 index) {
     ATOMICPLG_MODELID(atomic) = index;
 }

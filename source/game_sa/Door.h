@@ -25,7 +25,7 @@ public:
 
     uint16     m_dirn{}; // Def a bitfield. 2 x 4 bits + some more
     uint8      m_axis{}; // X, Y, Z - Right/left, front/back, up/down
-    eDoorState m_doorState{};
+    eDoorState m_doorState{}; // TODO(pirulax): is this `eDoorState` or `eDoorStatus`?
 
     float      m_angle{};
     float      m_prevAngle{};

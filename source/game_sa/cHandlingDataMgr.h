@@ -270,5 +270,5 @@ public:
 
 VALIDATE_SIZE(cHandlingDataMgr, 0xC624);
 
-// If you're searching for `mod_HandlingManager`, you can use this:
+// If you're searching for `mod_HandlingManager` (aka 0xC2B9C4), you can use this:
 static inline cHandlingDataMgr& gHandlingDataMgr = *(cHandlingDataMgr*)0xC2B9C8;

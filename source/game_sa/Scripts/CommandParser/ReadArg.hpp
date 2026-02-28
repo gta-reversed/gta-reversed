@@ -11,28 +11,10 @@
 #include "Rect.h"
 #include "Scripted2dEffects.h"
 
+#include "./Typeshed.hpp"
+
 namespace notsa {
 namespace script {
-namespace detail {
-
-template<typename T, size_t UniqueTag = 0>
-struct StrongAlias {
-    T value;
-
-    auto& operator=(const T& o) {
-        value = o;
-        return *this;
-    }
-
-    operator T() const { return value; }
-};
-};
-
-// eModelID wrapper that is read either from a static int32 value or UsedObjectArray.
-using Model = detail::StrongAlias<eModelID>;
-// uint32 wrapper for reading an unsigned 32-bit integer that can be out of range for int32
-using Hash = detail::StrongAlias<uint32>;
-
 namespace detail {
 
 //! Script thing bullshittery
@@ -113,63 +95,65 @@ struct ScriptEntity {
 
 //! Read a value (Possibly from script => increases IP, or return a value (w/o increasing IP)
 template<typename T>
-inline T Read(CRunningScript* S) {
+inline T Read(CRunningScript* S, bool updateIP = true) {
     using Y = std::remove_pointer_t<std::remove_cvref_t<T>>;
-
+        
     // First of all, deal with references
     // References are a way to express that a value (non-null) value must be present
     // While simple pointers are a way to express that "it's okay if it's null, I can handle it".
     // This check here also means that all other branches must either return by-value or a pointer (not a refernce)
     if constexpr (std::is_reference_v<T>) {
-        const auto ptr = Read<std::remove_reference_t<T>*>(S);
+        const auto ptr = Read<std::remove_reference_t<T>*>(S, updateIP);
         assert(ptr); // This assert is usually hit if the implementation defines an argument with a different type than the original. Eg.: `CVehicle&` instead of `CPed&`.
         return *ptr;
-    } else if constexpr (std::is_same_v<Y, CVector>) {
-        return { Read<float>(S), Read<float>(S), Read<float>(S) };
     } else if constexpr (std::is_same_v<Y, CVector2D>) {
-        return { Read<float>(S), Read<float>(S) };
+        return { Read<float>(S, updateIP), Read<float>(S, updateIP) }; // x, y
+    } else if constexpr (std::is_same_v<Y, CVector>) {
+        return { Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP) }; // x, y, z
+    } else if constexpr (std::is_same_v<Y, CQuaternion>) {
+        return { Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP), Read<float>(S, updateIP) }; // x, y, z, w
     } else if constexpr (std::is_same_v<Y, CRect>) {
-        return { Read<CVector2D>(S), Read<CVector2D>(S) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
+        return { Read<CVector2D>(S, updateIP), Read<CVector2D>(S, updateIP) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
     } else if constexpr (std::is_same_v<Y, CRGBA>) {
-        return { Read<uint8>(S), Read<uint8>(S), Read<uint8>(S), Read<uint8>(S) };
+        return { Read<uint8>(S, updateIP), Read<uint8>(S, updateIP), Read<uint8>(S, updateIP), Read<uint8>(S, updateIP) };
     } else if constexpr (std::is_same_v<Y, std::string_view>) {
-        switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
+        switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>(updateIP)) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
-            return S->GetGlobal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
+            return S->GetGlobal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>(updateIP));
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return S->GetLocal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
+            return S->GetLocal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>(updateIP));
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::ShortString>(true);
+            return S->GetAtIPFromArray<scm::ShortString>(true, updateIP);
         case SCRIPT_PARAM_GLOBAL_LONG_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::LongString>(true);
+            return S->GetAtIPFromArray<scm::LongString>(true, updateIP);
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::ShortString>(false);
+            return S->GetAtIPFromArray<scm::ShortString>(false, updateIP);
         case SCRIPT_PARAM_LOCAL_LONG_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::LongString>(false);
+            return S->GetAtIPFromArray<scm::LongString>(false, updateIP);
 
         case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
-            return S->GetLocal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+            return S->GetLocal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>(updateIP));
         case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
-            return S->GetGlobal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+            return S->GetGlobal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>(updateIP));
 
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
-            return S->GetAtIPAs<scm::ShortString>();
+            return S->GetAtIPAs<scm::ShortString>(updateIP);
         case SCRIPT_PARAM_STATIC_LONG_STRING:
-            return S->GetAtIPAs<scm::LongString>();
+            return S->GetAtIPAs<scm::LongString>(updateIP);
 
         case SCRIPT_PARAM_STATIC_PASCAL_STRING: {
-            const auto sSize = S->GetAtIPAs<int8>(); // signed size, max size = 127, not 255
+            const auto sSize = S->GetAtIPAs<int8>(updateIP); // signed size, max size = 127, not 255
             VERIFY(sSize >= 0);
             const auto size = (size_t)(sSize);
-            return { &S->GetAtIPAs<char>(true, size), size};
+            return { &S->GetAtIPAs<char>(updateIP, size), size};
         }
         default:
             NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
         }
     } else if constexpr (std::is_same_v<T, const char*>) { // Read C-style string (Hacky)
-        const auto sv = Read<std::string_view>(S);
+        const auto sv = Read<std::string_view>(S, updateIP);
         assert(sv.size() < COMMANDS_CHAR_BUFFER_SIZE - 1);
         // For explaination of why this is done this way, see the comment at CRunningScript::ScriptArgCharBuffers declaration
         auto& buffer = CRunningScript::ScriptArgCharBuffers[CRunningScript::ScriptArgCharNextFreeBuffer++];
@@ -177,49 +161,49 @@ inline T Read(CRunningScript* S) {
         buffer[sv.size()] = '\0';
         return buffer.data();
     } else if constexpr (std::is_arithmetic_v<Y>) { // Simple arithmetic types (After reading a string, because `const char*` with cv and pointer removed is just `char` which is an arithmetic type)
-        const auto ptype = S->GetAtIPAs<eScriptParameterType>();
+        const auto ptype = S->GetAtIPAs<eScriptParameterType>(updateIP);
         if constexpr (std::is_pointer_v<T>) { // by-ref (This is a special case, as some basic ops need a reference instead of a value)
             switch (ptype) {
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return &S->GetGlobal<Y>(S->GetAtIPAs<scm::VarLoc>());
+                return &S->GetGlobal<Y>(S->GetAtIPAs<scm::VarLoc>(updateIP));
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return &S->GetLocal<Y>(S->GetAtIPAs<scm::VarLoc>());
+                return &S->GetLocal<Y>(S->GetAtIPAs<scm::VarLoc>(updateIP));
             case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
-                return &S->GetAtIPFromArray<Y>(true);
+                return &S->GetAtIPFromArray<Y>(true, updateIP);
             case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
-                return &S->GetAtIPFromArray<Y>(false);
+                return &S->GetAtIPFromArray<Y>(false, updateIP);
             }
         } else { // Regular by-value
             switch (ptype) {
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return S->GetGlobal<T>(S->GetAtIPAs<scm::VarLoc>());
+                return S->GetGlobal<T>(S->GetAtIPAs<scm::VarLoc>(updateIP));
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return S->GetLocal<T>(S->GetAtIPAs<scm::VarLoc>());
+                return S->GetLocal<T>(S->GetAtIPAs<scm::VarLoc>(updateIP));
             case SCRIPT_PARAM_STATIC_INT_8BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int8>());
+                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int8>(updateIP));
             case SCRIPT_PARAM_STATIC_INT_16BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int16>());
+                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int16>(updateIP));
             case SCRIPT_PARAM_STATIC_INT_32BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int32>());
+                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int32>(updateIP));
             case SCRIPT_PARAM_STATIC_FLOAT: {
                 if constexpr (!std::is_floating_point_v<T>) {
                     // Check your call stack and change the function argument type to a float.
                     // Possibly unintended truncation of `float` to integeral type!
                     DebugBreak();
                 }
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<float>());
+                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<float>(updateIP));
             }
             case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
-                return S->GetAtIPFromArray<T>(true);
+                return S->GetAtIPFromArray<T>(true, updateIP);
             case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
-                return S->GetAtIPFromArray<Y>(false);
+                return S->GetAtIPFromArray<Y>(false, updateIP);
             }
         }
         NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
     } else if constexpr (std::is_enum_v<Y>) { // Read underlaying arithmetic type and cast (then profit)
-        return static_cast<Y>(Read<std::underlying_type_t<Y>>(S));
+        return static_cast<Y>(Read<std::underlying_type_t<Y>>(S, updateIP));
     } else if constexpr (std::is_same_v<Y, CPlayerPed>) { // Special case for `CPlayerPed` (As the IDs for it aren't from the pool)
-        return FindPlayerPed(Read<int32>(S));
+        return FindPlayerPed(Read<int32>(S, updateIP));
     } else if constexpr (notsa::is_specialization_of<Y, ScriptEntity>) {
         using EntityType = typename Y::EntityType;
 
@@ -246,10 +230,10 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<Y, CRunningScript>) { // Just return the script from where this command was invoked from
         return S;
     } else if constexpr (std::is_same_v<Y, CPlayerInfo>) {
-        return &FindPlayerInfo(Read<int32>(S));
+        return &FindPlayerInfo(Read<int32>(S, updateIP));
     } else if constexpr (detail::scriptthing::is_script_thing_v<Y>) {
         // Read information (packed 2x16 int)
-        const auto info = Read<uint32>(S);
+        const auto info = Read<uint32>(S, updateIP);
         if (info == (uint32)(-1)) { // Invalid handle, may happen if a function returned it (and they didn't handle it properly)
             return nullptr; 
         }
@@ -269,7 +253,7 @@ inline T Read(CRunningScript* S) {
 
         return &detail::scriptthing::GetAt<Y>(index);
     } else if constexpr (std::is_same_v<T, script::Model>) {
-        const auto value = Read<int32>(S);
+        const auto value = Read<int32>(S, updateIP);
         if (value < 0) {
             // we get the model from UsedObjectArray.
             return {static_cast<eModelID>(CTheScripts::UsedObjectArray[-value].nModelIndex)};
@@ -277,7 +261,7 @@ inline T Read(CRunningScript* S) {
 
         return {static_cast<eModelID>(value)};
     } else if constexpr (std::is_same_v< T, script::Hash>) {
-        return { static_cast<uint32>(Read<int32>(S)) };
+        return { static_cast<uint32>(Read<int32>(S, updateIP)) };
     }
     // If there's an error like "function must return a value" here,
     // that means that no suitable branch was found for `T`

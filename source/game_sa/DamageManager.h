@@ -21,8 +21,8 @@ enum eDamageState : int8 {
     DAMAGE_STATE_NOT_OK4 = 4
 };
 
-// TODO: Seems like these are the damage states for doors only.
-//       Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
+// TODO(pirulax): Seems like these are the damage states for doors only.
+//                Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
 // TODO(yukani): change prefix to something else?
 enum ePanelDamageState : uint8 {
     DAMSTATE_OK             = 0, // Closed

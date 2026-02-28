@@ -489,6 +489,7 @@ public:
     static void AddToSwitchJumpTable(int32 switchValue, int32 switchLabelLocalAddress);
     static void AddToVehicleModelsBlockedByScript(eModelID modelIndex);
     static void AddToWaitingForScriptBrainArray(CEntity* entity, int16 arg2);
+    static void AddToSuppressedCarModelArray(eModelID model);
 
     static void AttachSearchlightToSearchlightObject(int32 searchLightId, CObject* tower, CObject* housing, CObject* bulb, CVector offset);
     static bool CheckStreamedScriptVersion(RwStream* stream, const char* filename);
@@ -533,6 +534,7 @@ public:
     static void RemoveScriptSphere(int32 scriptIndex);
     static void RemoveScriptTextureDictionary();
     static void RemoveThisPed(CPed* ped);
+    static void RemoveFromSuppressedCarModelArray(eModelID model);
 
     static void RenderAllSearchLights();
     static bool ScriptAttachAnimGroupToCharModel(int32 modelId, const char* ifpName);

@@ -38,8 +38,8 @@ public:
     int8             m_nSecondaryColor;
     CompressedVector m_vecPosn;
     char             m_nAngle;
-    uint8            m_nAlarmChance;    // in percentage 0-100
-    uint8            m_nDoorLockChance; // in percentage 0-100
+    uint8            m_ChanceOfAlarm;    // in percentage 0-100
+    uint8            m_ChanceOfDoorLock; // in percentage 0-100
 
     union {
         struct {
@@ -72,9 +72,20 @@ public:
     bool CheckIfWithinRangeOfAnyPlayers();
     void DoInternalProcessing();
     void Process();
-    void Setup(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
-               uint8 alarmChance, uint8 doorLockChance, uint16 minDelay, uint16 maxDelay,
-               uint8 iplId, bool ignorePopulationLimit);
+    void Setup(
+        CVector posn,
+        float   angle,
+        int32   modelId,
+        uint8   primaryColor,
+        uint8   secondaryColor,
+        bool    isHighPriority,
+        uint8   chanceOfAlarm,
+        uint8   chanceOfDoorLock,
+        uint16  minDelay,
+        uint16  maxDelay,
+        uint8   iplId,
+        bool    ignorePopulationLimit
+    );
     void SwitchOff();
     void SwitchOn();
 

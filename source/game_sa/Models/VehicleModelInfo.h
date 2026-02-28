@@ -193,7 +193,7 @@ public:
     uint8       m_nCurrentSecondaryColor;
     uint8       m_nCurrentTertiaryColor;
     uint8       m_nCurrentQuaternaryColor;
-    int16       m_anUpgrades[18];
+    int16       m_anUpgrades[18]; // Use `eModSlot` to index
     int16       m_anRemapTxds[4];
 
     union {

@@ -100,7 +100,7 @@ public:
             uint8 bIsParked : 1;
         } movementFlags;
     };
-    uint8           m_nStraightLineDistance;
+    uint8           m_nStraightLineDistance; //!< Minimum distance for the AI driver to start ignoring car paths and go straight to the target
     uint8           m_ucCarFollowDist;
     uint8           m_ucHeliTargetDist2;
     char            field_50;
@@ -111,7 +111,7 @@ public:
     uint16          m_nPathFindNodesCount;
     char            field_8A[2];
     CVehicle*       m_TargetEntity;
-    CEntity*        m_ObstructingEntity; // Entity to slow down for
+    CEntity*        m_ObstructingEntity; // Entity to slow down for (aka m_pCarWeMakingSlowDownFor)
     int8            m_vehicleRecordingId;
     bool            m_bPlaneDogfightSomething;
     int16           field_96;
@@ -124,6 +124,9 @@ public:
     void SetCarMission(eCarMission carMission) { m_nCarMission = carMission; }
 
     void SetCarMission(eCarMission carMission, uint32 timeOffsetMs);
+    void SetCarMissionFromScript(eCarMission carMission);
+
+    void StartCarMissionNow() { m_nTimeToStartMission = CTimer::GetTimeInMS(); }
 
     void ClearCarMission() { m_nCarMission = MISSION_NONE; }
 
@@ -143,6 +146,8 @@ public:
     void ClearTempAct() { m_nTempAction = TEMPACT_NONE; }
 
     void SetDrivingStyle(eCarDrivingStyle s) { m_nCarDrivingStyle = s; }
+
+    void SetTargetEntity(CVehicle* target);
 };
 
 VALIDATE_SIZE(CAutoPilot, 0x98);

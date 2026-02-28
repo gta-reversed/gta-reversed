@@ -28,8 +28,16 @@ public:
     constexpr CQuaternion() : x{}, y{}, z{}, w{} {}
     constexpr CQuaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
+    // Get `this` as T
+    template<typename T>
+    T GetAs() const noexcept;
+
     // Quat to matrix
-    void Get(RwMatrix* out) const;
+    template<>
+    RwMatrix GetAs<RwMatrix>() const noexcept;
+
+    // Quat to matrix
+    void Get(RwMatrix* out) const { *out = GetAs<RwMatrix>(); }
 
     // Quat to euler angles
     void Get(float *x, float *y, float *z);
