@@ -3766,7 +3766,7 @@ void SetFreebiesInVehicle(CVehicle& self, bool state) {
  * 
  * @returns {int} handle
  */
-auto AddVehicleMod(CVehicle& self, Model modelId) {
+auto AddVehicleMod(CVehicle& self, notsa::script::Model modelId) {
     self.AddVehicleUpgrade(modelId);
 }
 
