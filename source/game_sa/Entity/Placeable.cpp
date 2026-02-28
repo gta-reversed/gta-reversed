@@ -179,7 +179,7 @@ void CPlaceable::AllocateMatrix() {
     m_matrix->m_pOwner = this;
 }
 
-void CPlaceable::SetMatrix(CMatrix& matrix) {
+void CPlaceable::SetMatrix(const CMatrix& matrix) {
     if (!m_matrix) {
         if (matrix.GetUp().z == 1.0F) {
             auto& vecForward = matrix.GetForward();
