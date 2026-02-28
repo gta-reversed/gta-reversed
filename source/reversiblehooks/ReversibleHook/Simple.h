@@ -31,7 +31,6 @@ struct Simple : Base {
         std::string name,
         uint32 installAddress,
         void* addressToJumpTo,
-        bool locked = false,
         bool reversed = true,
         int iJmpCodeSize = 5,
         int stackArguments = -1

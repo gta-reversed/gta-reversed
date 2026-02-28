@@ -8,8 +8,8 @@
 namespace ReversibleHooks {
 namespace ReversibleHook {
 struct ScriptCommand : Base {
-    ScriptCommand(eScriptCommands command, bool locked = false, bool reversed = true, bool enabledByDefault = true) :
-        Base{ std::string{::notsa::script::GetScriptCommandName(command)}, Base::HookType::ScriptCommand, locked, reversed },
+    ScriptCommand(eScriptCommands command, bool reversed = true, bool enabledByDefault = true) :
+        Base{ std::string{::notsa::script::GetScriptCommandName(command)}, Base::HookType::ScriptCommand, reversed },
         m_cmd{command},
         m_originalHandler{CRunningScript::CustomCommandHandlerOf(command)}
     {
