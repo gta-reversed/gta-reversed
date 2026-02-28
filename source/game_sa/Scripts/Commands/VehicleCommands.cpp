@@ -3885,15 +3885,16 @@ auto GetNumberOfPassengers(CVehicle& self) {
  * @command IS_VEHICLE_TOUCHING_OBJECT
  * @class Car
  * @method IsTouchingObject
+ * @static
  * 
  * @brief Returns true if the vehicle is in contact with the object
  * 
  * @param {Car} self
  * @param {Object} handle
  */
-//bool IsVehicleTouchingObject(CVehicle& self, CObject& handle) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+bool IsVehicleTouchingObject(CVehicle* car, CObject& obj) {
+    return car && car->GetHasCollidedWith(&obj);
+}
 
 /*
  * @opcode 08F2
@@ -4294,7 +4295,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PETROL_TANK_WEAKPOINT, SetPetrolTankWeakpoint);
     REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
     //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
     //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
