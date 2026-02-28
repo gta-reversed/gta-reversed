@@ -3766,9 +3766,9 @@ auto AddVehicleMod(CVehicle& self, Model modelId) {
  * @param {Car} self
  * @param {model_object} modelId
  */
-//void RemoveVehicleMod(CVehicle& self, model_object modelId) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void RemoveVehicleMod(CVehicle& self, Model modelId) {
+    self.RemoveVehicleUpgrade(modelId);
+}
 
 /*
  * @opcode 09AB
@@ -4284,7 +4284,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_FREEBIES_IN_VEHICLE, SetFreebiesInVehicle);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_VEHICLE_MOD, AddVehicleMod);
-    //REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
+    REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_RANDOM_PASSENGER_SAY, RandomPassengerSay);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_BIG_VEHICLE, IsBigVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_DOES_PROVIDE_COVER, VehicleDoesProvideCover);
