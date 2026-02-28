@@ -3751,9 +3751,9 @@ void SetFreebiesInVehicle(CVehicle& self, bool state) {
  * 
  * @returns {int} handle
  */
-//auto AddVehicleMod(CVehicle& self, model_object modelId) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto AddVehicleMod(CVehicle& self, Model modelId) {
+    self.AddVehicleUpgrade(modelId);
+}
 
 /*
  * @opcode 06E8
@@ -4283,7 +4283,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_FREEBIES_IN_VEHICLE, SetFreebiesInVehicle);
-    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_VEHICLE_MOD, AddVehicleMod);
+    REGISTER_COMMAND_HANDLER(COMMAND_ADD_VEHICLE_MOD, AddVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_RANDOM_PASSENGER_SAY, RandomPassengerSay);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_BIG_VEHICLE, IsBigVehicle);
