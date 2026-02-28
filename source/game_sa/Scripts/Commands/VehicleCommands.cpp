@@ -3876,9 +3876,9 @@ void GiveVehiclePaintjob(CVehicle& self, int32 paintjobId) {
  * 
  * @returns {int} count
  */
-//auto GetNumberOfPassengers(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetNumberOfPassengers(CVehicle& self) {
+    return self.m_nNumPassengers;
+}
 
 /*
  * @opcode 0897
@@ -4293,7 +4293,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_VEHICLE_PAINTJOB, GetCurrentVehiclePaintjob);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PETROL_TANK_WEAKPOINT, SetPetrolTankWeakpoint);
     REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
     //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
     //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
