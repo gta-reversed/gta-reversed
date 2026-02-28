@@ -3814,9 +3814,9 @@ bool IsBigVehicle(CVehicle& self) {
  * @param {Car} self
  * @param {bool} state
  */
-//void VehicleDoesProvideCover(CVehicle& self, bool state) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void VehicleDoesProvideCover(CVehicle& self, bool state) {
+    self.vehicleFlags.bDoesProvideCover = state;
+}
 
 /*
  * @opcode 0988
@@ -4289,7 +4289,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
     REGISTER_COMMAND_HANDLER(COMMAND_RANDOM_PASSENGER_SAY, RandomPassengerSay);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_BIG_VEHICLE, IsBigVehicle);
-    //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_DOES_PROVIDE_COVER, VehicleDoesProvideCover);
+    REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_DOES_PROVIDE_COVER, VehicleDoesProvideCover);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_VEHICLE_PAINTJOB, GetCurrentVehiclePaintjob);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_PETROL_TANK_WEAKPOINT, SetPetrolTankWeakpoint);
     //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
