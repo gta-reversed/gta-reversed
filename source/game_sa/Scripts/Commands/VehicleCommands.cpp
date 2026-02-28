@@ -3667,7 +3667,7 @@ bool IsVehicleOnAllWheels(CVehicle& self) {
  */
 void SetVehicleQuaternion(CVehicle& self, CQuaternion quaternion) {
     const CVector pos = self.GetPosition();
-    self.SetMatrix(CMatrix{quaternion.GetAs<CMatrix>()});
+    self.SetMatrix(CMatrix{quaternion.GetAs<RwMatrix>()});
     self.GetMatrix().SetTranslate(pos);
 }
 
