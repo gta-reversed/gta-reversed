@@ -3734,9 +3734,9 @@ void SetTaxiLights(CVehicle& self, bool state) {
  * @param {Car} self
  * @param {bool} state
  */
-//void SetFreebiesInVehicle(CVehicle& self, bool state) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetFreebiesInVehicle(CVehicle& self, bool state) {
+    self.vehicleFlags.bFreebies = state;
+}
 
 /*
  * @opcode 06E7
@@ -4282,7 +4282,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_FREEBIES_IN_VEHICLE, SetFreebiesInVehicle);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_FREEBIES_IN_VEHICLE, SetFreebiesInVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_ADD_VEHICLE_MOD, AddVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
     //REGISTER_COMMAND_HANDLER(COMMAND_RANDOM_PASSENGER_SAY, RandomPassengerSay);
