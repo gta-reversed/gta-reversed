@@ -3634,12 +3634,13 @@ bool IsVehicleOnAllWheels(CVehicle& self) {
  * @brief Sets the rotation of a vehicle using quaternion values
  * 
  * @param {Car} self
- * @param {Vector} 
- * @param {float} w
+ * @param {Quaternion} quaternion
  */
-//void SetVehicleQuaternion(CVehicle& self, CVector& , float w) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetVehicleQuaternion(CVehicle& self, CQuaternion quaternion) {
+    const CVector pos = self.GetPosition();
+    self.SetMatrix(CMatrix{quaternion.GetAs<CMatrix>()});
+    self.GetMatrix().SetTranslate(pos);
+}
 
 /*
  * @opcode 059D
@@ -4281,7 +4282,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_VEHICLE_QUATERNION, GetVehicleQuaternion);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
     //REGISTER_COMMAND_HANDLER(COMMAND_SHUFFLE_CARD_DECKS, ShuffleCardDecks);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
