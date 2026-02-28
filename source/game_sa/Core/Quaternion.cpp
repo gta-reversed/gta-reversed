@@ -18,7 +18,7 @@ void CQuaternion::InjectHooks() {
 
 // Quat to matrix
 template<>
-RwMatrix CQuaternion::GetAs() const {
+RwMatrix CQuaternion::GetAs() const noexcept {
     auto ii  = imag + imag;
 
     const auto x2x = ii.x * imag.x;

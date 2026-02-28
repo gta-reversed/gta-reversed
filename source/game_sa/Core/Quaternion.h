@@ -34,7 +34,7 @@ public:
 
     // Quat to matrix
     template<>
-    RwMatrix GetAs<RwMatrix>() const;
+    RwMatrix GetAs<RwMatrix>() const noexcept;
 
     // Quat to matrix
     void Get(RwMatrix* out) const { *out = GetAs<RwMatrix>(); }
