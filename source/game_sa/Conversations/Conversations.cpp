@@ -1,4 +1,5 @@
 #include "StdInc.h"
+
 #include "Conversations.h"
 #include "ConversationForPed.h"
 
@@ -16,23 +17,27 @@ void CConversations::InjectHooks() {
     RH_ScopedInstall(AwkwardSay, 0x43A810);
     RH_ScopedInstall(EnableConversation, 0x43A7F0);
     RH_ScopedInstall(StartSettingUpConversation, 0x43A840);
-    RH_ScopedInstall(DoneSettingUpConversation, 0x43ADB0, {.reversed = false});
+    RH_ScopedInstall(DoneSettingUpConversation, 0x43ADB0);
+    RH_ScopedInstall(FindFreeConversationSlot, 0x43A9B0);
+    RH_ScopedInstall(GetConversationStatus, 0x43AA80);
+    RH_ScopedInstall(FindConversationForPed, 0x43A9E0);
+    RH_ScopedInstall(FindFreeNodeSlot, 0x43AA10);
 }
 
 // 0x43A7B0
 void CConversations::Clear() {
     ZoneScoped;
 
-    for (auto& conversation : m_Conversations) {
-        conversation.Clear(true);
+    for (auto& conv : m_Conversations) {
+        conv.Clear(true);
     }
 
     for (auto& node : m_Nodes) {
         node.Clear();
     }
 
-    m_SettingUpConversation = 0;
-    m_AwkwardSayStatus      = eAwkwardSayStatus::INACTIVE;
+    m_SettingUpConversation = false;
+    m_AwkwardSayStatus = eAwkwardSayStatus::INACTIVE;
 }
 
 // 0x43C590
@@ -40,8 +45,8 @@ void CConversations::Update() {
     ZoneScoped;
 
     const auto updateConversations = [&]() {
-        for (auto& conversation : m_Conversations) {
-            conversation.Update();
+        for (auto& conv : m_Conversations) {
+            conv.Update();
         }
     };
 
@@ -61,6 +66,9 @@ void CConversations::Update() {
     case eAwkwardSayStatus::INACTIVE:
         updateConversations();
         break;
+    default:
+        NOTSA_UNREACHABLE();
+        break;
     }
 }
 
@@ -73,7 +81,7 @@ void CConversations::SetUpConversationNode(
     int32       answerYesWAV,
     int32       answerNoWAV
 ) {
-    auto& node = CConversations::m_aTempNodes[CConversations::m_SettingUpConversationNumNodes];
+    auto& node = m_aTempNodes[m_SettingUpConversationNumNodes];
     strncpy(node.m_Name, questionKey, 6u);
     MakeUpperCase(node.m_Name);
 
@@ -81,39 +89,55 @@ void CConversations::SetUpConversationNode(
     node.m_SpeechY = answerYesWAV;
     node.m_SpeechN = answerNoWAV;
 
-    if (answerYesKey) {
-        strncpy(node.m_NameNodeYes, answerYesKey, 6u);
-        MakeUpperCase(node.m_NameNodeYes);
-    } else {
-        node.m_NameNodeYes[0] = '\0';
-    }
-    if (answerNoKey) {
-        strncpy(node.m_NameNodeNo, answerNoKey, 6u);
-        MakeUpperCase(node.m_NameNodeNo);
-    } else {
-        node.m_NameNodeNo[0] = '\0';
-    }
-    ++CConversations::m_SettingUpConversationNumNodes;
+    const auto ProcessNode = [&](char* dest, const char* src) {
+        if (src) {
+            strncpy(dest, src, 6u);
+            MakeUpperCase(dest);
+        } else {
+            dest[0] = '\0';
+        }
+    };
+
+    ProcessNode(node.m_NameNodeYes, answerYesKey);
+    ProcessNode(node.m_NameNodeNo, answerNoKey);
+
+    ++m_SettingUpConversationNumNodes;
 }
 
 // 0x43A960
 void CConversations::RemoveConversationForPed(CPed* ped) {
-    for (auto& conversation : m_Conversations) {
-        if (conversation.m_pPed == ped) {
-            conversation.Clear(false);
-        }
+    if (const auto conv = FindConversationForPed(ped)) {
+        assert(conv->GetFirstNode());
+        conv->GetFirstNode()->ClearRecursively();
+        conv->Clear(false);
     }
 }
 
+// inline
+// 0x43A9B0
+inline CConversationForPed* CConversations::FindFreeConversationSlot() {
+    for (auto& conv : m_Conversations) {
+        if (conv.m_pPed == nullptr) {
+            return &conv;
+        }
+    }
+    return nullptr;
+}
+
 // 0x43B0B0
-bool CConversations::IsPlayerInPositionForConversation(CPed* ped, bool randomConversation) {
-    return FindConversationForPed(ped)->IsPlayerInPositionForConversation(randomConversation);
+bool CConversations::IsPlayerInPositionForConversation(CPed* ped, bool isRandomConversation) {
+    if (const auto conversation = FindConversationForPed(ped)) {
+        return conversation->IsPlayerInPositionForConversation(isRandomConversation);
+    }
+
+    // Originally in this case game would call a THISCALL function with nullptr `this`, so game would crash.
+    NOTSA_UNREACHABLE("Couldn't find the specified ped in any conversation.");
 }
 
 // 0x43AAC0
 bool CConversations::IsConversationGoingOn() {
-    for (const auto& conversation : m_Conversations) {
-        if (conversation.m_Status != CConversationForPed::eStatus::INACTIVE) {
+    for (const auto& conv : m_Conversations) {
+        if (conv.m_Status != CConversationForPed::eStatus::INACTIVE) {
             return true;
         }
     }
@@ -122,14 +146,15 @@ bool CConversations::IsConversationGoingOn() {
 
 // 0x43B000
 bool CConversations::IsConversationAtNode(const char* pName, CPed* pPed) {
-    auto conversation = FindConversationForPed(pPed);
-    assert(conversation);
+    auto conv = FindConversationForPed(pPed);
+    assert(conv);
 
-    if (conversation->m_CurrentNode < 0 || conversation->m_Status == CConversationForPed::eStatus::PLAYER_SPEAKING) {
+    if (conv->m_CurrentNode < 0 || conv->m_Status == CConversationForPed::eStatus::PLAYER_SPEAKING) {
         return false;
     }
+
     // NOTSA - using stricmp instead of MakeUpperCase + strcmp
-    return !stricmp(pName, CConversations::m_Nodes[conversation->m_CurrentNode].m_Name);
+    return !stricmp(pName, m_Nodes[conv->m_CurrentNode].m_Name);
 }
 
 // 0x43A810
@@ -140,8 +165,23 @@ void CConversations::AwkwardSay(int32 whatToSay, CPed* speaker) {
 }
 
 // 0x43AA40
-void CConversations::EnableConversation(CPed* ped, bool enabled) {
-    FindConversationForPed(ped)->m_Enabled = enabled;
+void CConversations::EnableConversation(CPed* ped, bool enable) {
+    if (const auto conv = FindConversationForPed(ped)) {
+        conv->m_Enabled = enable;
+    } else {
+        // Originally in this case game would derefecence a nullptr, accessing address `0x18`.
+        NOTSA_UNREACHABLE("Couldn't find conversation for ped!");
+    }
+}
+
+// inline
+// 0x43AA80
+inline CConversationForPed::eStatus CConversations::GetConversationStatus(CPed* ped) {
+    if (const auto conv = FindConversationForPed(ped)) {
+        return conv->m_Status;
+    }
+    // Originally in this case game would derefecence a nullptr, accessing address `0x14`.
+    NOTSA_UNREACHABLE("Couldn't find conversation for ped!");
 }
 
 // 0x43A840
@@ -149,19 +189,106 @@ void CConversations::StartSettingUpConversation(CPed* ped) {
     m_SettingUpConversationPed = ped;
     ped->RegisterReference(m_SettingUpConversationPed);
     m_SettingUpConversationNumNodes = 0;
-    m_SettingUpConversation         = true;
+    m_SettingUpConversation = true;
 }
 
 // 0x43ADB0
-void CConversations::DoneSettingUpConversation(bool bSuppressSubtitles) {
-    plugin::Call<0x43ADB0, bool>(bSuppressSubtitles);
+void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
+    ZoneScoped;
+
+    if (m_SettingUpConversationNumNodes > 0) {
+        for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
+            m_aTempNodes[i].m_NodeYes = -1;
+            m_aTempNodes[i].m_NodeNo  = -1;
+
+            for (auto j = 0; j < m_SettingUpConversationNumNodes; ++j) {
+                if (strcmp(m_aTempNodes[i].m_NameNodeYes, m_aTempNodes[j].m_Name) == 0) {
+                    m_aTempNodes[i].m_NodeYes = static_cast<int16>(j);
+                }
+                if (strcmp(m_aTempNodes[i].m_NameNodeNo, m_aTempNodes[j].m_Name) == 0) {
+                    m_aTempNodes[i].m_NodeNo = static_cast<int16>(j);
+                }
+            }
+        }
+    }
+
+    auto* conversationSlot = FindFreeConversationSlot();
+
+    // NOTSA:
+    if (!conversationSlot) {
+        NOTSA_LOG_ERR("No free conversation slot available");
+
+        // untested
+        if (notsa::IsFixBugs()) {
+            return;
+        }
+    }
+
+    // We allocate the final slots for the nodes and copy the data.
+    if (m_SettingUpConversationNumNodes > 0) {
+        for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
+            m_aTempNodes[i].m_FinalSlot = FindFreeNodeSlot();
+        }
+
+        for (auto i = 0; i < m_SettingUpConversationNumNodes; ++i) {
+            const auto& tempNode  = m_aTempNodes[i];
+            auto& node = m_Nodes[tempNode.m_FinalSlot];
+
+            strcpy(node.m_Name, tempNode.m_Name);
+
+            node.m_NodeYes = tempNode.m_NodeYes < 0 ? -1 : (int16)(m_aTempNodes[tempNode.m_NodeYes].m_FinalSlot);
+            node.m_NodeNo  = tempNode.m_NodeNo < 0 ? -1 : (int16)(m_aTempNodes[tempNode.m_NodeNo].m_FinalSlot);
+
+            node.m_Speech  = tempNode.m_Speech;
+            node.m_SpeechY = tempNode.m_SpeechY;
+            node.m_SpeechN = tempNode.m_SpeechN;
+        }
+    }
+
+    // untested
+    if (notsa::IsFixBugs()) {
+        // if there are no nodes — leave uninitialized fields untouched
+        conversationSlot->m_FirstNode   = m_SettingUpConversationNumNodes > 0 ? m_aTempNodes[0].m_FinalSlot : -1;
+        conversationSlot->m_CurrentNode = conversationSlot->m_FirstNode;
+    } else {
+        // always take [0], even if numNodes == 0
+        conversationSlot->m_FirstNode   = m_aTempNodes[0].m_FinalSlot;
+        conversationSlot->m_CurrentNode = m_aTempNodes[0].m_FinalSlot;
+    }
+
+    conversationSlot->m_pPed = m_SettingUpConversationPed;
+    CEntity::ChangeEntityReference(m_SettingUpConversationPed, conversationSlot->m_pPed);
+
+    conversationSlot->m_LastTimeWeWereCloseEnough = 0;
+    conversationSlot->m_Status                    = CConversationForPed::eStatus::INACTIVE;
+    conversationSlot->m_Enabled                   = true;
+    conversationSlot->m_SuppressSubtitles         = suppressSubtitles;
+    conversationSlot->m_LastChange                = CTimer::GetTimeInMS();
+
+    m_SettingUpConversationNumNodes = 0;
+    m_SettingUpConversation         = false;
 }
 
-CConversationForPed* CConversations::FindConversationForPed(CPed* ped) {
-    for (auto& conversation : m_Conversations) {
-        if (conversation.m_pPed == ped) {
-            return &conversation;
+// inline
+// 0x43A9E0
+inline CConversationForPed* CConversations::FindConversationForPed(CPed* ped) {
+    for (auto& conv : m_Conversations) {
+        if (conv.m_pPed == ped) {
+            return &conv;
         }
     }
     return nullptr;
+}
+
+// inline
+// 0x43AA10
+inline int32 CConversations::FindFreeNodeSlot() {
+    for (auto [i, node] : std::views::enumerate(m_Nodes)) {
+        if (node.m_Name[0] == '\0') {
+            node.m_Name[0] = 'X';
+            node.m_Name[1] = '\0';
+            return i;
+        }
+    }
+    return 0;
 }
