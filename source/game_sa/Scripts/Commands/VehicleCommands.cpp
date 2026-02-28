@@ -3830,9 +3830,9 @@ void VehicleDoesProvideCover(CVehicle& self, bool state) {
  * 
  * @returns {int} paintjobNumber
  */
-//auto GetCurrentVehiclePaintjob(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetCurrentVehiclePaintjob(CVehicle& self) {
+    return self.GetRemapIndex();
+}
 
 /*
  * @opcode 09C4
@@ -4290,7 +4290,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_RANDOM_PASSENGER_SAY, RandomPassengerSay);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_BIG_VEHICLE, IsBigVehicle);
     REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_DOES_PROVIDE_COVER, VehicleDoesProvideCover);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_VEHICLE_PAINTJOB, GetCurrentVehiclePaintjob);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_VEHICLE_PAINTJOB, GetCurrentVehiclePaintjob);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_PETROL_TANK_WEAKPOINT, SetPetrolTankWeakpoint);
     //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_VEHICLE_PAINTJOB, GiveVehiclePaintjob);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
