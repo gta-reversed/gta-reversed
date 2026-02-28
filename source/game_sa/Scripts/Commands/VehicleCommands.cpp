@@ -3798,9 +3798,9 @@ void RandomPassengerSay(CVehicle& self, eGlobalSpeechContext phrase) {
  * 
  * @param {Car} self
  */
-//bool IsBigVehicle(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+bool IsBigVehicle(CVehicle& self) {
+    return self.vehicleFlags.bIsBig;
+}
 
 /*
  * @opcode 0957
@@ -4288,7 +4288,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_VEHICLE_MOD, AddVehicleMod);
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_VEHICLE_MOD, RemoveVehicleMod);
     REGISTER_COMMAND_HANDLER(COMMAND_RANDOM_PASSENGER_SAY, RandomPassengerSay);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_BIG_VEHICLE, IsBigVehicle);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_BIG_VEHICLE, IsBigVehicle);
     //REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_DOES_PROVIDE_COVER, VehicleDoesProvideCover);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_CURRENT_VEHICLE_PAINTJOB, GetCurrentVehiclePaintjob);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_PETROL_TANK_WEAKPOINT, SetPetrolTankWeakpoint);
