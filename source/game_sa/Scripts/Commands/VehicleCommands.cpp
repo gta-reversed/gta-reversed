@@ -3923,9 +3923,9 @@ void VehicleCanBeTargettedByHsMissile(CVehicle& self, bool state) {
  * @param {Car} self
  * @param {float} range
  */
-//void ControlMovableVehiclePart(CVehicle& self, float range) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void ControlMovableVehiclePart(CVehicle& self, float range) {
+    self.AsAutomobile()->UpdateMovingCollision(range);
+}
 
 /*
  * @opcode 09B0
@@ -4297,7 +4297,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_PASSENGERS, GetNumberOfPassengers);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_TOUCHING_OBJECT, IsVehicleTouchingObject);
     REGISTER_COMMAND_HANDLER(COMMAND_VEHICLE_CAN_BE_TARGETTED_BY_HS_MISSILE, VehicleCanBeTargettedByHsMissile);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
+    REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYBACK_SPEED, SetPlaybackSpeed);
