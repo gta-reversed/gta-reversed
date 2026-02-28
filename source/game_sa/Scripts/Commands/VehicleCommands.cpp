@@ -4020,9 +4020,9 @@ void ResetVehicleHydraulics(CVehicle& self) {
  * @param {Car} self
  * @param {bool} state
  */
-//void WinchCanPickVehicleUp(CVehicle& self, bool state) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void WinchCanPickVehicleUp(CVehicle& self, bool state) {
+    self.vehicleFlags.bWinchCanPickMeUp = state;
+}
 
 /*
  * @opcode 0975
@@ -4309,7 +4309,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
     REGISTER_COMMAND_HANDLER(COMMAND_RESET_VEHICLE_HYDRAULICS, ResetVehicleHydraulics);
-    //REGISTER_COMMAND_HANDLER(COMMAND_WINCH_CAN_PICK_VEHICLE_UP, WinchCanPickVehicleUp);
+    REGISTER_COMMAND_HANDLER(COMMAND_WINCH_CAN_PICK_VEHICLE_UP, WinchCanPickVehicleUp);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_EMERGENCY_SERVICES_VEHICLE, IsEmergencyServicesVehicle);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
