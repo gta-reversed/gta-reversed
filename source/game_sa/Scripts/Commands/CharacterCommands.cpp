@@ -2804,7 +2804,7 @@ auto IsCharInTaxi(CPed& ped) {
 auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return ScriptThing<CDecisionMaker>
     char pedDMName[1024];
     CDecisionMakerTypesFileLoader::GetPedDMName(type, pedDMName);
-    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DEFAULT_DECISION_MAKER, S.m_UsesMissionCleanup);
+    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, PED_DECISION_MAKER, S.m_UsesMissionCleanup);
     const auto handle = CTheScripts::GetNewUniqueScriptThingIndex(id, SCRIPT_THING_DECISION_MAKER);
     if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(handle, MISSION_CLEANUP_ENTITY_TYPE_DECISION_MAKER);
@@ -2826,8 +2826,8 @@ auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return Scri
 auto SetCharDecisionMaker(CPed& ped, int32 scriptHandleOfDM) { // TODO: Use `ScriptThing<CDecisionMaker>` instead of `int32` for `scriptHandleOfDM`
     ped.GetIntelligence()->SetPedDecisionMakerType(
         scriptHandleOfDM == -1
-            ? -1
-            : CTheScripts::GetActualScriptThingIndex(scriptHandleOfDM, SCRIPT_THING_DECISION_MAKER)
+            ? eDecisionMakerType::UNKNOWN
+            : (eDecisionMakerType)(CTheScripts::GetActualScriptThingIndex(scriptHandleOfDM, SCRIPT_THING_DECISION_MAKER))
     );
 }
 

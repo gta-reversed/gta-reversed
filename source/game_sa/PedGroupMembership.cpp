@@ -47,7 +47,7 @@ void CPedGroupMembership::AddMember(CPed* member, int32 memIdx) {
     CEntity::RegisterReference(m_members[memIdx]);
     /* dead code before checking if the member is in the player's group */
     if (!member->IsPlayer()) {
-        member->GetIntelligence()->SetPedDecisionMakerType(DM_EVENT_DRAGGED_OUT_CAR);
+        member->GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_GROUPMEMBER);
     }
 }
 

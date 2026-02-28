@@ -15,8 +15,11 @@
 enum eTaskType : int32;
 
 enum eDecisionTypes {
-    DEFAULT_DECISION_MAKER = 0,
-    PLAYER_DECISION_MAKER = 1
+    PLAYER_DECISION_MAKER = -2,
+    DEFAULT_DECISION_MAKER = -1,
+
+    PED_DECISION_MAKER = 0,
+    GROUP_DECISION_MAKER = 1
 };
 
 enum eDecisionRelationship {
@@ -50,6 +53,17 @@ public:
         notsa::mdarray<int32, MAX_NUM_CHOICES, 2>& bools,
         notsa::mdarray<float, MAX_NUM_CHOICES, 6>& facialProbs
     );
+    void MakeDecision(
+        int32 eventSourceType,
+        bool isInVehicle,
+        eTaskType taskTypeToReject1,
+        eTaskType taskTypeToReject2,
+        eTaskType taskTypeToReject3,
+        eTaskType taskTypeToSeek,
+        int16&    outTaskType,
+        int16&    outFacialTaskType
+    );
+    void Add(eTaskType taskType, float* pProbs, int32* pBools);
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);

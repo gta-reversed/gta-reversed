@@ -53,17 +53,17 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
     case TASK_SIMPLE_CAR_DRIVE:
         return new CTaskSimpleCarDrive(m_Vehicle);
     case TASK_COMPLEX_LEAVE_CAR: {
-        copPed->GetIntelligence()->SetPedDecisionMakerType(DM_EVENT_KNOCK_OFF_BIKE);
+        copPed->GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_COP);
         return new CTaskComplexLeaveCar(m_Vehicle, 0, 0, true, false);
     }
     case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
-        copPed->GetIntelligence()->SetPedDecisionMakerType(DM_EVENT_SHOT_FIRED);
+        copPed->GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_EMPTY);
         return new CTaskComplexEnterCarAsDriver(m_Vehicle);
     }
     case TASK_SIMPLE_STAND_STILL:
         return new CTaskSimpleStandStill(1000, true, false, 8.f);
     case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: {
-        copPed->GetIntelligence()->SetPedDecisionMakerType(DM_EVENT_SHOT_FIRED);
+        copPed->GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_EMPTY);
         return new CTaskComplexEnterCarAsPassenger(m_Vehicle, 0, false);
     }
     case TASK_COMPLEX_POLICE_PURSUIT:
@@ -214,7 +214,7 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
 
 
 CTask* CTaskComplexCopInCar::CreateFirstSubTask(CPed* ped) {
-    ped->GetIntelligence()->SetPedDecisionMakerType(DM_EVENT_SHOT_FIRED);
+    ped->GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_EMPTY);
     if (!m_Cop) {
         m_IsDriver = true;
     }

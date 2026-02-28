@@ -8,10 +8,10 @@ void CDecision::InjectHooks() {
 
     RH_ScopedInstall(SetDefault, 0x600530, { .reversed = false });
     RH_ScopedInstall(Set, 0x600570);
-    //RH_ScopedInstall(Add, 0x600600, { .reversed = false });
+    RH_ScopedInstall(Add, 0x600600, { .reversed = false });
     RH_ScopedInstall(From, 0x6006B0);
     //RH_ScopedInstall(HasResponse, 0x600710, { .reversed = false });
-    //RH_ScopedInstall(MakeDecision, 0x6040D0, { .reversed = false });
+    RH_ScopedInstall(MakeDecision, 0x6040D0, { .reversed = false });
 }
 
 // 0x6040C0
@@ -39,19 +39,38 @@ void CDecision::Set(
     plugin::CallMethod<0x600570>(this, &tasks, &probs, &bools, &facialProbs);
 }
 
-/*
 // 0x6040D0
-void CDecision::MakeDecision(int32, bool, int32, int32, int32, int32, int16&, int16&) {
-
-}
-
-// 0x600710
-bool CDecision::HasResponse() {
-
+void CDecision::MakeDecision(
+    int32 eventSourceType,
+    bool isInVehicle,
+    eTaskType taskTypeToReject1,
+    eTaskType taskTypeToReject2,
+    eTaskType taskTypeToReject3,
+    eTaskType taskTypeToSeek,
+    int16&    outTaskType,
+    int16&    outFacialTaskType
+) {
+    plugin::CallMethod<0x6040D0>(
+        this,
+        eventSourceType,
+        isInVehicle,
+        taskTypeToReject1,
+        taskTypeToReject2,
+        taskTypeToReject3,
+        taskTypeToSeek,
+        &outTaskType,
+        &outFacialTaskType
+    );
 }
 
 // 0x600600
-void CDecision::Add(int32, float*, int32*) {
+void CDecision::Add(eTaskType taskType, float* pProbs, int32* pBools) {
+    plugin::CallMethod<0x600600, CDecision*, eTaskType, float*, int32*>(this, taskType, pProbs, pBools);
+}
+
+/*
+// 0x600710
+bool CDecision::HasResponse() {
 
 }
 */

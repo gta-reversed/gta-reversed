@@ -238,9 +238,8 @@ void CCopPed::ClearCriminalsToKill() {
 // 0x5DE160
 void CCopPed::ProcessControl() {
     if (FindPlayerWanted()->GetWantedLevel() != 0) {
-        if (GetIntelligence()->GetPedDecisionMakerType() == eDecisionMakerEvents::DM_EVENT_PED_ENTERED_MY_VEHICLE)
-        {
-            GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerEvents::DM_EVENT_KNOCK_OFF_BIKE);
+        if (GetIntelligence()->GetPedDecisionMakerType() == eDecisionMakerType::PED_INDOORS) {
+            GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_COP);
         }
     }
 
