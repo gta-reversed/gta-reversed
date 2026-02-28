@@ -5,8 +5,8 @@
 
 namespace {
 // COMMAND_ADD_ATTRACTOR - 0x491AC0
-int32 AddAttractor(CRunningScript& S, CVector pos, float queueDirDeg, float fwdDirDeg, tScriptSequence* seq) { // TODO: Returns `C2dEffect` as a scriptthing
-    if (!seq) {
+int32 AddAttractor(CRunningScript& S, CVector pos, float queueDirDeg, float fwdDirDeg, notsa::script::ScriptEntity<tScriptSequence> seq) { // TODO: Returns `C2dEffect` as a scriptthing
+    if (!seq.e) {
         return -1;
     }
 
@@ -15,7 +15,7 @@ int32 AddAttractor(CRunningScript& S, CVector pos, float queueDirDeg, float fwdD
         return -1;
     }
 
-    auto* const a = new (&CScripted2dEffects::Get(fxID)) C2dEffectPedAttractor;
+    auto* const a = new (CScripted2dEffects::GetEffect(fxID)) C2dEffectPedAttractor;
     a->m_Type           = EFFECT_ATTRACTOR;
     a->m_nAttractorType = PED_ATTRACTOR_SCRIPTED;
     a->m_Pos            = pos;
@@ -23,11 +23,10 @@ int32 AddAttractor(CRunningScript& S, CVector pos, float queueDirDeg, float fwdD
     a->m_vecQueueDir    = a->m_vecUseDir;
     a->m_vecForwardDir  = CVector{ 0.f, -std::sin(DegreesToRadians(fwdDirDeg)), std::cos(DegreesToRadians(fwdDirDeg)) }.Normalized();
 
-    NOTSA_UNREACHABLE();
-    //CScripted2dEffects::ms_effectSequenceTaskIDs[fxID] = ; // todo: use seq's script ID here
+    CScripted2dEffects::ms_effectSequenceTaskIDs[fxID] = seq.h;
 
     const auto fxScriptID = CTheScripts::GetNewUniqueScriptThingIndex(fxID, SCRIPT_THING_2D_EFFECT);
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(fxScriptID, MISSION_CLEANUP_ENTITY_TYPE_PED_QUEUE);
     }
     return fxScriptID;
@@ -105,19 +104,22 @@ void GetUserOfClosestMapAttractor(...) {
 };
 
 void notsa::script::commands::attractors::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Attractors");
+
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_ATTRACTOR, AddAttractor);
-    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_ATTRACTOR, ClearAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_ATTRACTOR, ClearAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CHAR_AT_ATTRACTOR, CreateCharAtAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_PEDMODEL_AS_ATTRACTOR_USER, AddPedmodelAsAttractorUser);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_ATTRACTOR_PAIR, SetAttractorPair);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_PED_GENERATOR_AT_ATTRACTOR, CreatePedGeneratorAtAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_PEDTYPE_AS_ATTRACTOR_USER, AddPedtypeAsAttractorUser);
+    //REGISTER_COMMAND_HANDLER(COMMAND_TASK_USE_ATTRACTOR, TaskUseAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_ATTRACTOR_AS_COVER_NODE, SetAttractorAsCoverNode);
+    //REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE, RegisterAttractorScriptBrainForCodeUse);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ALLOCATE_SCRIPT_TO_ATTRACTOR, AllocateScriptToAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_ATTRACTOR_WITH_THIS_SCRIPT, GetClosestAttractorWithThisScript);
+    //REGISTER_COMMAND_HANDLER(COMMAND_TASK_USE_CLOSEST_MAP_ATTRACTOR, TaskUseClosestMapAttractor);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_USER_OF_CLOSEST_MAP_ATTRACTOR, GetUserOfClosestMapAttractor);
+
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_CLEAR_ALL_ATTRACTORS);
-    REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CHAR_AT_ATTRACTOR, CreateCharAtAttractor);
-    REGISTER_COMMAND_HANDLER(COMMAND_ADD_PEDMODEL_AS_ATTRACTOR_USER, AddPedmodelAsAttractorUser);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_ATTRACTOR_PAIR, SetAttractorPair);
-    REGISTER_COMMAND_HANDLER(COMMAND_CREATE_PED_GENERATOR_AT_ATTRACTOR, CreatePedGeneratorAtAttractor);
-    REGISTER_COMMAND_HANDLER(COMMAND_ADD_PEDTYPE_AS_ATTRACTOR_USER, AddPedtypeAsAttractorUser);
-    REGISTER_COMMAND_HANDLER(COMMAND_TASK_USE_ATTRACTOR, TaskUseAttractor);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_ATTRACTOR_AS_COVER_NODE, SetAttractorAsCoverNode);
-    REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE, RegisterAttractorScriptBrainForCodeUse);
-    REGISTER_COMMAND_HANDLER(COMMAND_ALLOCATE_SCRIPT_TO_ATTRACTOR, AllocateScriptToAttractor);
-    REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_ATTRACTOR_WITH_THIS_SCRIPT, GetClosestAttractorWithThisScript);
-    REGISTER_COMMAND_HANDLER(COMMAND_TASK_USE_CLOSEST_MAP_ATTRACTOR, TaskUseClosestMapAttractor);
-    REGISTER_COMMAND_HANDLER(COMMAND_GET_USER_OF_CLOSEST_MAP_ATTRACTOR, GetUserOfClosestMapAttractor);
 }
