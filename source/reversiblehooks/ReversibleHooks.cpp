@@ -112,10 +112,10 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
         vtblGTA,
         vtblOur,
         fnVTblIdx,
-        opt.locked,
         opt.reversed
     );
     item->State(opt.enabled);
+    item->LockState(opt.locked);
     AddItemToCategory(category, std::move(item));
 }
 
@@ -182,7 +182,6 @@ void HookInstall(std::string_view category, std::string fnName, uint32 installAd
         std::move(fnName),
         installAddress,
         addressToJumpTo,
-        opt.locked,
         opt.reversed,
         opt.jmpCodeSize,
         opt.stackArguments
