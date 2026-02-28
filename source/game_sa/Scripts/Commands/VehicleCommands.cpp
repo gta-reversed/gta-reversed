@@ -3667,9 +3667,9 @@ void SetVehicleAreaVisible(CVehicle& self, eAreaCodes areaCode) {
  * 
  * @returns {int} count
  */
-//auto GetMaximumNumberOfPassengers(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+auto GetMaximumNumberOfPassengers(CVehicle& self) {
+    return self.m_nMaxPassengers;
+}
 
 /*
  * @opcode 088B
@@ -4271,7 +4271,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
+    REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
     //REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_PLAYBACK_TO_USE_AI, ChangePlaybackToUseAi);
