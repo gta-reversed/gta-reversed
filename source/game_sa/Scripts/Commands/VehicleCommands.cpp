@@ -3649,11 +3649,11 @@ void SetVehicleQuaternion(CVehicle& self, CQuaternion quaternion) {
  * @method SetAreaVisible
  * 
  * @param {Car} self
- * @param {int} interiorId
+ * @param {AreaCode} areaCode
  */
-//void SetVehicleAreaVisible(CVehicle& self, int32 interiorId) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetVehicleAreaVisible(CVehicle& self, eAreaCodes areaCode) {
+    self.SetAreaCode(areaCode);
+}
 
 /*
  * @opcode 01EA
@@ -4270,7 +4270,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VEHICLE_ON_ALL_WHEELS, IsVehicleOnAllWheels);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
