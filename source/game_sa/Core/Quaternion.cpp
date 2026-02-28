@@ -17,24 +17,34 @@ void CQuaternion::InjectHooks() {
 }
 
 // Quat to matrix
-void CQuaternion::Get(RwMatrix* out) const {
-    auto vecImag2 = imag + imag;
-    auto x2x = vecImag2.x * imag.x;
-    auto y2x = vecImag2.y * imag.x;
-    auto z2x = vecImag2.z * imag.x;
+template<>
+RwMatrix CQuaternion::GetAs() const {
+    auto ii  = imag + imag;
 
-    auto y2y = vecImag2.y * imag.y;
-    auto z2y = vecImag2.z * imag.y;
-    auto z2z = vecImag2.z * imag.z;
+    const auto x2x = ii.x * imag.x;
+    const auto y2x = ii.y * imag.x;
+    const auto z2x = ii.z * imag.x;
 
-    auto x2r = vecImag2.x * real;
-    auto y2r = vecImag2.y * real;
-    auto z2r = vecImag2.z * real;
+    const auto y2y = ii.y * imag.y;
+    const auto z2y = ii.z * imag.y;
+    const auto z2z = ii.z * imag.z;
 
-    CVector right{1.0F - (z2z + y2y), z2r + y2x, z2x - y2r}, up{y2x - z2r, 1.0F - (z2z + x2x), x2r + z2y}, at{y2r + z2x, z2y - x2r, 1.0F - (y2y + x2x)};
-    RwV3dAssign(RwMatrixGetRight(out), &right);
-    RwV3dAssign(RwMatrixGetUp(out), &up);
-    RwV3dAssign(RwMatrixGetAt(out), &at);
+    const auto x2r = ii.x * real;
+    const auto y2r = ii.y * real;
+    const auto z2r = ii.z * real;
+
+    RwMatrix out;
+
+    CVector right{ 1.0F - (z2z + y2y), z2r + y2x, z2x - y2r };
+    RwV3dAssign(RwMatrixGetRight(&out), &right);
+
+    CVector up{ y2x - z2r, 1.0F - (z2z + x2x), x2r + z2y };
+    RwV3dAssign(RwMatrixGetUp(&out), &up);
+
+    CVector at{ y2r + z2x, z2y - x2r, 1.0F - (y2y + x2x) };
+    RwV3dAssign(RwMatrixGetAt(&out), &at);
+
+    return out;
 }
 
 // Quat to euler angles
