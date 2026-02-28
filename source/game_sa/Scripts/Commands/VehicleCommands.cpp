@@ -3781,7 +3781,7 @@ auto AddVehicleMod(CVehicle& self, notsa::script::Model modelId) {
  * @param {Car} self
  * @param {model_object} modelId
  */
-void RemoveVehicleMod(CVehicle& self, Model modelId) {
+void RemoveVehicleMod(CVehicle& self, notsa::script::Model modelId) {
     self.RemoveVehicleUpgrade(modelId);
 }
 
