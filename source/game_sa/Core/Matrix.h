@@ -43,6 +43,7 @@ public:
     
     CMatrix(const CMatrix& matrix);
     CMatrix(RwMatrix* matrix, bool temporary = false); // like previous + attach
+    CMatrix(const RwMatrix& matrix) { UpdateMatrix(&matrix); }
 
     ~CMatrix();                                        // destructor detaches matrix if attached
 
@@ -105,7 +106,7 @@ public:
                                                  // Using UpdateRW() is more safe since it perform this check.
     void UpdateRW();                             // update RwMatrix with attaching matrix.
     void UpdateRwMatrix(RwMatrix* matrix) const; // update RwMatrix with this matrix
-    void UpdateMatrix(RwMatrix* rwMatrix);
+    void UpdateMatrix(const RwMatrix* rwMatrix);
     void SetUnity();
     void ResetOrientation();
     void SetScale(float scale);                  // set (scaled)
