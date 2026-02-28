@@ -24,6 +24,7 @@ int32 AddAttractor(CRunningScript& S, CVector pos, float queueDirDeg, float fwdD
     a->m_vecForwardDir  = CVector{ 0.f, -std::sin(DegreesToRadians(fwdDirDeg)), std::cos(DegreesToRadians(fwdDirDeg)) }.Normalized();
 
     CScripted2dEffects::ms_effectSequenceTaskIDs[fxID] = seq.h;
+    assert("above is wrong, should store index, not handle");
 
     const auto fxScriptID = CTheScripts::GetNewUniqueScriptThingIndex(fxID, SCRIPT_THING_2D_EFFECT);
     if (S.m_UsesMissionCleanup) {
@@ -33,8 +34,8 @@ int32 AddAttractor(CRunningScript& S, CVector pos, float queueDirDeg, float fwdD
 }
 
 // COMMAND_CLEAR_ATTRACTOR - 0x491C37
-void ClearAttractor(C2dEffectPedAttractor* attractor) {
-    // todo
+void ClearAttractor(notsa::script::ScriptEntity<C2dEffectPedAttractor> attractor) {
+    //const auto fxID = CTheScripts::GetActualScriptThingIndex(attractor.h, SCRIPT_THING_2D_EFFECT);
 }
 
 // COMMAND_CLEAR_ALL_ATTRACTORS

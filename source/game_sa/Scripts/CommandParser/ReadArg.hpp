@@ -244,13 +244,13 @@ inline T Read(CRunningScript* S) {
             };
         } else if constexpr (detail::scriptthing::is_script_thing_v<Y>) {
             // Read information (packed 2x16 int)
-            const auto info = Read<uint32>(S);
-            if (info == (uint32)(-1)) { // Invalid handle, may happen if a function returned it (and they didn't handle it properly)
+            const auto handle = Read<uint32>(S);
+            if (handle == (uint32)(-1)) { // Invalid handle, may happen if a function returned it (and they didn't handle it properly)
                 return nullptr; 
             }
 
             // Extract index and (expected) ID of the object
-            const auto index = (uint16)(LOWORD(info)), id = (uint16)(HIWORD(info));
+            const auto index = (uint16)(LOWORD(handle)), id = (uint16)(HIWORD(handle));
 
             // Check if the object is active (If not, it has been reused/deleted)
             if (!detail::scriptthing::IsActive<Y>(index)) {
@@ -262,7 +262,10 @@ inline T Read(CRunningScript* S) {
                 return nullptr;
             }
 
-            return &detail::scriptthing::GetAt<Y>(index);
+            return {
+                .e = &detail::scriptthing::GetAt<Y>(index),
+                .h = handle
+            }
         } else {
             NOTSA_UNREACHABLE();
         }
