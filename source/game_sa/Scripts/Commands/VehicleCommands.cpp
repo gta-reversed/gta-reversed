@@ -2147,6 +2147,21 @@ void PausePlaybackRecordedCar(CVehicle& self) {
 }
 
 /*
+* @opcode 06FD
+* @command SET_PLAYBACK_SPEED
+* @class Car
+* @method SetPlaybackSpeed
+* 
+* @brief Sets the playback speed of the car playing a car recording
+* 
+* @param {Car} self
+* @param {float} speed
+*/
+void SetPlaybackSpeed(CVehicle& self, float speed) {
+    CVehicleRecording::SetPlaybackSpeed(&self, speed);
+}
+
+/*
  * @opcode 060E
  * @command IS_PLAYBACK_GOING_ON_FOR_CAR
  * @class Car
@@ -3958,21 +3973,6 @@ void SetVehicleToFadeIn(CVehicle& self, int32 alpha) {
 }
 
 /*
- * @opcode 06FD
- * @command SET_PLAYBACK_SPEED
- * @class Car
- * @method SetPlaybackSpeed
- * 
- * @brief Sets the playback speed of the car playing a car recording
- * 
- * @param {Car} self
- * @param {float} speed
- */
-//void SetPlaybackSpeed(CVehicle& self, float speed) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
-
-/*
  * @opcode 095F
  * @command GET_DOOR_ANGLE_RATIO
  * @class Car
@@ -4172,6 +4172,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_START_PLAYBACK_RECORDED_CAR, StartPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_STOP_PLAYBACK_RECORDED_CAR, StopPlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_PAUSE_PLAYBACK_RECORDED_CAR, PausePlaybackRecordedCar);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYBACK_SPEED, SetPlaybackSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_UNPAUSE_PLAYBACK_RECORDED_CAR, UnpausePlaybackRecordedCar);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYBACK_GOING_ON_FOR_CAR, IsPlaybackGoingOnForCar);
     REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_END_AND_STOP_PLAYBACK_RECORDED_CAR, SkipToEndAndStopPlaybackRecordedCar);
@@ -4300,7 +4301,6 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CONTROL_MOVABLE_VEHICLE_PART, ControlMovableVehiclePart);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_IS_CONSIDERED_BY_PLAYER, SetVehicleIsConsideredByPlayer);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_TO_FADE_IN, SetVehicleToFadeIn);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYBACK_SPEED, SetPlaybackSpeed);
     //REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AREA_2D, IsCarInArea2d);
     //REGISTER_COMMAND_HANDLER(COMMAND_RESET_VEHICLE_HYDRAULICS, ResetVehicleHydraulics);
