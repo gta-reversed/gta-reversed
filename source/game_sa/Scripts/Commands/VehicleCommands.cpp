@@ -3682,9 +3682,16 @@ auto GetMaximumNumberOfPassengers(CVehicle& self) {
  * @param {Car} self
  * @param {float} multiplier
  */
-//void SetVehicleAirResistanceMultiplier(CVehicle& self, float multiplier) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+void SetVehicleAirResistanceMultiplier(CVehicle& self, float multiplier) {
+    auto* const hd = self.m_pHandlingData;
+    if (!hd) {
+        return;
+    }
+    self.m_fAirResistance = hd->m_fDragMult <= 0.01f
+        ? hd->m_fDragMult
+        : hd->m_fDragMult / 1000.f * 0.5f;
+    self.m_fAirResistance *= multiplier;
+}
 
 /*
  * @opcode 0216
@@ -4272,7 +4279,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_QUATERNION, SetVehicleQuaternion);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AREA_VISIBLE, SetVehicleAreaVisible);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_MAXIMUM_NUMBER_OF_PASSENGERS, GetMaximumNumberOfPassengers);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VEHICLE_AIR_RESISTANCE_MULTIPLIER, SetVehicleAirResistanceMultiplier);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_TAXI_LIGHTS, SetTaxiLights);
     //REGISTER_COMMAND_HANDLER(COMMAND_CHANGE_PLAYBACK_TO_USE_AI, ChangePlaybackToUseAi);
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_FREEBIES_IN_VEHICLE, SetFreebiesInVehicle);
