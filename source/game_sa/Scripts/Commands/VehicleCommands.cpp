@@ -4034,9 +4034,18 @@ void WinchCanPickVehicleUp(CVehicle& self, bool state) {
  * 
  * @param {Car} self
  */
-//bool IsEmergencyServicesVehicle(CVehicle& self) {
-    //NOTSA_UNREACHABLE("Not implemented");
-//}
+bool IsEmergencyServicesVehicle(CVehicle& self) {
+    if (self.IsLawEnforcementVehicle()) {
+        return true;
+    }
+    switch (self.GetModelId()) {
+    case MODEL_AMBULAN:
+    case MODEL_FIRETRUK:
+    case MODEL_FIRELA:
+        return true;
+    }
+    return false;
+}
 }; // namespace
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
@@ -4310,7 +4319,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DOOR_ANGLE_RATIO, GetDoorAngleRatio);
     REGISTER_COMMAND_HANDLER(COMMAND_RESET_VEHICLE_HYDRAULICS, ResetVehicleHydraulics);
     REGISTER_COMMAND_HANDLER(COMMAND_WINCH_CAN_PICK_VEHICLE_UP, WinchCanPickVehicleUp);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_EMERGENCY_SERVICES_VEHICLE, IsEmergencyServicesVehicle);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_EMERGENCY_SERVICES_VEHICLE, IsEmergencyServicesVehicle);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);
