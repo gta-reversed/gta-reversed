@@ -143,11 +143,11 @@ storedCars[i].Clear();
             delete vehicle;
         }
     }
-}
 
-// Clear slots with no vehicles in it
-for (auto i = storedCarIdx; i < NUM_GARAGE_STORED_CARS; i++)
-    storedCars[i].Clear();
+    // Clear slots with no vehicles in it
+    for (auto i = storedCarIdx; i < NUM_GARAGE_STORED_CARS; i++) {
+        storedCars[i].Clear();
+    }
 }
 
 // !any_of(outside) = all_of(inside)
@@ -452,7 +452,7 @@ void CGarage::UpdatePlayerCameraStuff() {
     }
     if (const auto plyrVeh = plyrPed->GetVehicleIfInOne()) {
         if (!CGarage::IsEntityEntirelyInside3D( // 0x44AAFB
-            plyrVeh->GetModelID() == eModelID::MODEL_KART
+            plyrVeh->GetModelId() == eModelID::MODEL_KART
                 ? (CEntity*)plyrVeh
                 : (CEntity*)plyrPed,
             0.25f
@@ -460,7 +460,7 @@ void CGarage::UpdatePlayerCameraStuff() {
             if (!IsEntityEntirelyOutside(plyrVeh)) {
                 TheCamera.m_pToGarageWeAreInForHackAvoidFirstPerson = this;
             }
-            if (plyrVeh->GetModelID() != MODEL_MRWHOOP) {
+            if (plyrVeh->GetModelId() != MODEL_MRWHOOP) {
                 return;
             }
             if (!GetAARect().IsPointInside(plyrVeh->GetPosition2D(), 0.5f)) {
@@ -881,7 +881,7 @@ void CGarage::Update(int32 garageId) {
             }
             if (SlideDoorClosed()) {
                 m_DoorState = GARAGE_DOOR_CLOSED;
-                AudioEngine.ReportFrontendAudioEvent(AE_BUY_CAR_RESPRAY);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_CAR_RESPRAY);
                 m_TimeToOpen = CTimer::GetTimeInMS() + 2000;
                 CStats::IncrementStat(STAT_TOTAL_LEGITIMATE_KILLS, CStats::GetStatValue(STAT_KILLS_SINCE_LAST_CHECKPOINT));
                 CStats::SetStatValue(STAT_KILLS_SINCE_LAST_CHECKPOINT, 0.f);

@@ -1,6 +1,7 @@
 #include "StdInc.h"
 #include <extensions/ci_string.hpp>
 
+#include "Camera.h"
 #include "Garages.h"
 
 void CGarages::InjectHooks() {
@@ -85,7 +86,7 @@ void CGarages::Shutdown() {
 void CGarages::Update() {
     ZoneScoped;
 
-    if (CReplay::Mode == eReplayMode::MODE_PLAYBACK || CGameLogic::IsCoopGameGoingOn())
+    if (CReplay::Mode == eReplayMode::MODE_PLAYBACK || CGameLogic::IsCoopGameGoingOn()) {
         return;
     }
 
@@ -240,7 +241,7 @@ int16 CGarages::FindGarageForObject(CObject* obj) {
 
     auto  closestDistSqToCenter = std::numeric_limits<float>::max();
     int32 closest              = -1;
-    for (auto&& [i, grg] : notsa::enumerate(GetAll())) {
+    for (auto&& [i, grg] : rngv::enumerate(GetAll())) {
         if (!grg.IsPointInsideGarage(objPos, 7.f)) { // TODO: Maybe use bounding sphere size of the object instead?
             continue;
         }
@@ -424,7 +425,7 @@ void CGarages::ChangeGarageType(int16 garageId, eGarageType type, uint32 unused)
 // 0x447680
 int16 CGarages::GetGarageNumberByName(const char* name) {
     const auto ciName = notsa::ci_string_view{ name };
-    for (auto&& [i, grg] : notsa::enumerate(GetAll())) {
+    for (auto&& [i, grg] : rngv::enumerate(GetAll())) {
         if (grg.m_Name == ciName) {
             return (int16)i;
         }
@@ -454,13 +455,13 @@ bool CGarages::Load() {
     //       C/C++ is row-major, so, the row loop should've been the outer one..
     //       This is important, because the array isn't accessed contiguously
     //       Which means the data isn't saved contiguously either, so watch out for that.
-    for (auto c = 0; c < 4; c++) {
-        for (auto r = 0; r < 20; r++) {
+    for (auto c = 0; c < MAX_CARS_IN_SAFEHOUSE; c++) {
+        for (auto r = 0; r < MAX_NUM_SAFEHOUSES; r++) {
             CGenericGameStorage::LoadDataFromWorkBuffer(aCarsInSafeHouse[r][c]);
         }
     }
 
-    for (auto i = 0; i < NumGarages; i++) {
+    for (auto i = 0u; i < NumGarages; i++) {
         auto sg = CGenericGameStorage::LoadDataFromWorkBuffer<CSaveGarage>();
         sg.CopyGarageOutOfSaveGarage(aGarages[i]);
     }

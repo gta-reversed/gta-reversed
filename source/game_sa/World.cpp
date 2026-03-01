@@ -2427,7 +2427,7 @@ void CWorld::FindObjectsIntersectingCube(const CVector& cornerMin, const CVector
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list) {
-                FindObjectsIntersectingCubeSectorList(list, cornerA, cornerB, outCount, maxCount, outEntities);
+                FindObjectsIntersectingCubeSectorList(list, cornerMin, cornerMax, outCount, maxCount, outEntities);
             };
 
             auto& sector = GetSector(sectorX, sectorY);
