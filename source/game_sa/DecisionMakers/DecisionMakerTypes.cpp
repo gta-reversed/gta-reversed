@@ -11,7 +11,7 @@ void CDecisionMakerTypes::InjectHooks() {
 
     RH_ScopedOverloadedInstall(LoadEventIndices, "ToArray", 0x5BB9F0, void(CDecisionMakerTypes::*)(EventIndicesArray&, const char*));
     RH_ScopedOverloadedInstall(LoadEventIndices, "FromFile", 0x600840, void(CDecisionMakerTypes::*)());
-    //RH_ScopedInstall(HasResponse, 0x6042B0, { .reversed = false });
+    RH_ScopedOverloadedInstall(HasResponse, "OG", 0x6042B0, bool(CDecisionMakerTypes::*)(CPed * ped, eEventType * eventTypes, int32 numEventTypes));
     RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0);
     RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490);
     RH_ScopedInstall(AddEventResponse, 0x6044C0);
@@ -215,6 +215,28 @@ int32 CDecisionMakerTypes::CopyDecisionMaker(int32 index, eDecisionTypes type, b
         PED_DECISION_MAKER,
         isDecisionMakerForMission
     );
+}
+
+// notsa, implementation from 0x6042B0
+bool CDecisionMakerTypes::HasResponse(CPed* ped, eEventType event) {
+    const auto CheckHasResponse = [&](CDecisionMaker& dm) {
+        return dm.Decisions[m_EventIndices[event]].HasResponse();
+    };
+    switch (const auto dmType = ped->GetIntelligence()->GetPedDecisionMakerType()) {
+    case eDecisionMakerType::UNKNOWN_2: return CheckHasResponse(m_DefaultPlayerPedDecisionMaker);
+    case eDecisionMakerType::UNKNOWN:   return CheckHasResponse(ped->IsCreatedByMission() ? m_DefaultMissionPedDecisionMaker : m_DefaultRandomPedDecisionMaker);
+    default:                            return CheckHasResponse(m_DecisionMakers[+dmType]);
+    }
+}
+
+// 0x6042B0
+bool CDecisionMakerTypes::HasResponse(CPed* ped, eEventType* eventTypes, int32 numEventTypes) {
+    for (int32 i = 0; i < numEventTypes; i++) {
+        if (HasResponse(ped, eventTypes[i])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // notsa
