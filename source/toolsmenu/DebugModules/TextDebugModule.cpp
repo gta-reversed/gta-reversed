@@ -31,16 +31,16 @@ void TextDebugModule::RenderMainWindow() {
         ImGui::TableNextRow();
         ImGui::PushID(&entry);
 
-            if (!ImGui::TableNextColumn()) {
-                return false;
-            }
-            ImGui::TextUnformatted(table);
+        if (!ImGui::TableNextColumn()) {
+            return false;
+        }
+        ImGui::TextUnformatted(table);
 
-            ImGui::TableNextColumn();
-            ImGui::Text("%08X", entry.hash);
+        ImGui::TableNextColumn();
+        ImGui::Text("%08X", entry.hash);
 
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
             ImGui::SetClipboardText(entry.string);
