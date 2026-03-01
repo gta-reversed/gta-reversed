@@ -76,6 +76,11 @@ public:
     void      LoadEventIndices(EventIndicesArray& out, const char* filepath);
     void      LoadEventIndices();
     int32     CopyDecisionMaker(int32 index, eDecisionTypes type, bool isDecisionMakerForMission);
+    bool      HasResponse(CPed* ped, eEventType event);
+    bool      HasResponse(CPed* ped, eEventType* eventTypes, int32 numEventTypes);
+
+private:
+    CDecisionMaker& GetDecisionMakerOfPed(CPed* ped, bool useInGroupDecisionMaker = false);
 
 private:
     // notsa

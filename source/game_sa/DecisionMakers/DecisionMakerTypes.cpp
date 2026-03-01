@@ -51,34 +51,31 @@ CDecisionMakerTypes::CDecisionMakerTypes() {
 }
 
 // 0x606E70
-void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType) {
-    const auto MakeDecisionUsingMaker = [&] (CDecisionMaker* dm) {
-        taskType       = TASK_NONE;
-        facialTaskType = TASK_INVALID;
-        return dm->Decisions[m_EventIndices[eventType]].MakeDecision(
-            eventSourceType,
-            bIsPedInVehicle,
-            taskTypeToAvoid1,
-            taskTypeToAvoid2,
-            taskTypeToAvoid3,
-            taskTypeToSeek,
-            taskType,
-            facialTaskType
-        );
-    };
-    const auto dmType = bUseInGroupDecisionMaker
-        ? ped->GetIntelligence()->m_nDecisionMakerTypeInGroup
-        : ped->GetIntelligence()->m_nDecisionMakerType;
-    switch ((int32)(dmType.get())) {
-    case -2: // PLAYER_DECISION_MAKER
-        return MakeDecisionUsingMaker(&m_DefaultPlayerPedDecisionMaker);
-    case -1: // DEFAULT_DECISION_MAKER
-        return ped->IsCreatedByMission()
-            ? MakeDecisionUsingMaker(&m_DefaultMissionPedDecisionMaker)
-            : MakeDecisionUsingMaker(&m_DefaultRandomPedDecisionMaker);
-    default:
-        return MakeDecisionUsingMaker(&m_DecisionMakers[+dmType]);
-    }
+void CDecisionMakerTypes::MakeDecision(
+    CPed*      ped,
+    eEventType eventType,
+    int32      eventSourceType,
+    bool       bIsPedInVehicle,
+    eTaskType  taskTypeToAvoid1,
+    eTaskType  taskTypeToAvoid2,
+    eTaskType  taskTypeToAvoid3,
+    eTaskType  taskTypeToSeek,
+    bool       bUseInGroupDecisionMaker,
+    int16&     taskType,
+    int16&     facialTaskType
+) {
+    taskType       = TASK_NONE;
+    facialTaskType = TASK_INVALID;
+    return GetDecisionMakerOfPed(ped, bUseInGroupDecisionMaker).Decisions[m_EventIndices[eventType]].MakeDecision(
+        eventSourceType,
+        bIsPedInVehicle,
+        taskTypeToAvoid1,
+        taskTypeToAvoid2,
+        taskTypeToAvoid3,
+        taskTypeToSeek,
+        taskType,
+        facialTaskType
+    );
 }
 
 // 0x606F80
@@ -219,14 +216,7 @@ int32 CDecisionMakerTypes::CopyDecisionMaker(int32 index, eDecisionTypes type, b
 
 // notsa, implementation from 0x6042B0
 bool CDecisionMakerTypes::HasResponse(CPed* ped, eEventType event) {
-    const auto CheckHasResponse = [&](CDecisionMaker& dm) {
-        return dm.Decisions[m_EventIndices[event]].HasResponse();
-    };
-    switch (const auto dmType = ped->GetIntelligence()->GetPedDecisionMakerType()) {
-    case eDecisionMakerType::UNKNOWN_2: return CheckHasResponse(m_DefaultPlayerPedDecisionMaker);
-    case eDecisionMakerType::UNKNOWN:   return CheckHasResponse(ped->IsCreatedByMission() ? m_DefaultMissionPedDecisionMaker : m_DefaultRandomPedDecisionMaker);
-    default:                            return CheckHasResponse(m_DecisionMakers[+dmType]);
-    }
+    return GetDecisionMakerOfPed(ped).Decisions[m_EventIndices[event]].HasResponse();
 }
 
 // 0x6042B0
@@ -237,6 +227,18 @@ bool CDecisionMakerTypes::HasResponse(CPed* ped, eEventType* eventTypes, int32 n
         }
     }
     return false;
+}
+
+// notsa
+CDecisionMaker& CDecisionMakerTypes::GetDecisionMakerOfPed(CPed* ped, bool useGroupDecisionMaker) {
+    const auto dmType = useGroupDecisionMaker
+        ? ped->GetIntelligence()->m_nDecisionMakerTypeInGroup
+        : ped->GetIntelligence()->m_nDecisionMakerType;
+    switch (dmType) {
+    case eDecisionMakerType::UNKNOWN_2: return m_DefaultPlayerPedDecisionMaker;
+    case eDecisionMakerType::UNKNOWN:   return ped->IsCreatedByMission() ? m_DefaultMissionPedDecisionMaker : m_DefaultRandomPedDecisionMaker;
+    default:                            return m_DecisionMakers[+dmType];
+    }
 }
 
 // notsa
