@@ -65,7 +65,7 @@ public:
     static CScriptedEffectPairs* GetEffectPairs(const C2dEffectPedAttractor* effect);
     static int32 GetIndex(const C2dEffectPedAttractor* effect);
 
-    static int32 AddScripted2DEffect(float radius);
+    static int32 AddScripted2DEffect(float radius = -1.f);
     static void ReturnScripted2DEffect(int32 index);
 
     /// Index of the effect if it's from `ms_effects` `nullopt` otherwise.
