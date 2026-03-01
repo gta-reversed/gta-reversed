@@ -182,6 +182,45 @@ struct is_nullptr {
     }
 };
 
+template<rng::input_range R, typename T_Ptr = rng::range_value_t<R>>
+    requires std::is_pointer_v<T_Ptr> 
+auto SpatialQuery(R&& r, CVector distToPos, T_Ptr ignored, T_Ptr closest = nullptr) {
+    const auto GetDistSq = [distToPos](T_Ptr e) {
+        return (e->GetPosition() - distToPos).SquaredMagnitude();
+    };
+
+    float closestDistSq = closest
+        ? GetDistSq(closest)
+        : std::numeric_limits<float>::max();
+    for (T_Ptr e : r) {
+        if (ignored && e == ignored) {
+            continue;
+        }
+        const auto distSq = GetDistSq(e);
+        if (closestDistSq > distSq) {
+            closestDistSq = distSq;
+            closest       = e;
+        }
+    }
+
+    struct Ret{ T_Ptr entity; float distSq; };
+    return Ret{ closest, closestDistSq };
+}
+
+/// Predicate to check if `value` is null
+struct IsNull {
+    template<typename T>
+        requires(std::is_pointer_v<T>)
+    bool operator()(T ptr) { return ptr == nullptr; }
+};
+//template<typename T>
+//    requires(std::is_pointer_v<T>)
+//bool IsNull(T value) { return value == nullptr; }
+
+/// Negate another predicate function
+template<typename T>
+auto Not(bool(*fn)(T)) { return [fn](const T& value) { return !fn(value); }; }
+
 struct NotIsNull {
     template<typename T>
     bool operator()(const T* ptr) {
