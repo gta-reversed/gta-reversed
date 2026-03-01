@@ -9,6 +9,7 @@
 #include <Base.h>
 #include <ColTrianglePlane.h>
 #include "StoredCollPoly.h"
+#include "CompressedVector.h"
 
 class CColTriangle {
 public:

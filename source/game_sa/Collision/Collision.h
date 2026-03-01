@@ -9,6 +9,7 @@
 #include "ColModel.h"
 #include "ColPoint.h"
 #include "StoredCollPoly.h"
+#include "CompressedVector.h"
 
 class  CEntity;
 class  CVehicle;
@@ -103,7 +104,7 @@ public:
         const CVector* verts
     );
     static void Closest3(CVector* arg0, CVector* arg1);
-    static bool SphereCastVersusVsPoly(const CColSphere& sphere1, const CColSphere& sphere2, const CColTriangle& tri, const CColTrianglePlane& triPlane, CompressedVector* verts);
+    static bool  SphereCastVersusVsPoly(const CColSphere& sphere1, const CColSphere& sphere2, const CColTriangle& tri, const CColTrianglePlane& triPlane, CompressedVector* verts);
     static void CalculateTrianglePlanes(CCollisionData* colData);
     static void RemoveTrianglePlanes(CCollisionData* colData);
     static bool ProcessSphereSphere(const CColSphere& sphere1, const CColSphere& sphere2, CColPoint& colPoint, float& maxTouchDistance);

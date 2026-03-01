@@ -1558,9 +1558,9 @@ bool CCollision::TestSphereTriangle(
     const auto P = sphere.m_vecCenter;
     const auto r = sphere.m_fRadius;
 
-    const auto A  = UncompressVector(verts[tri.vA]) - P;
-    const auto B  = UncompressVector(verts[tri.vB]) - P;
-    const auto C  = UncompressVector(verts[tri.vC]) - P;
+    const auto A  = verts[tri.vA] - P;
+    const auto B  = verts[tri.vB] - P;
+    const auto C  = verts[tri.vC] - P;
     const auto rr = r * r;
     const auto N  = plane.GetNormal();
     const int  s1 = std::abs(A.Dot(N)) > r;
@@ -1612,9 +1612,9 @@ bool CCollision::ProcessSphereTriangle(
 
     // Find closest point on triangle to sphere
     const auto ip = ClosestPtPointTriangle(
-        UncompressVector(verts[tri.vA]),
-        UncompressVector(verts[tri.vB]),
-        UncompressVector(verts[tri.vC]),
+        verts[tri.vA],
+        verts[tri.vB],
+        verts[tri.vC],
         sphere.m_vecCenter
     );
 
@@ -2535,7 +2535,7 @@ bool CCollision::SphereCastVersusVsPoly(
     auto spAProjPl = spA.m_vecCenter - plNorm * (isSpTouchingPl ? plSpCenterDist : spARadius); 
 
     const auto spAToB = spB.m_vecCenter - spA.m_vecCenter; // AKA velocity
-    const auto vA     = UncompressVector(verts[tri.vA]);
+    const auto vA     = verts[tri.vA];
 
     if (!isSpTouchingPl) {
         const auto vtxAToSpDistSqOnPl = (vA - spAProjPl).Dot(plNorm);
@@ -2549,8 +2549,7 @@ bool CCollision::SphereCastVersusVsPoly(
         spAProjPl += spAToB * (vtxAToSpDistSqOnPl / spAToBDistSqOnPl); // Interpolate between spA -> spB
     }
 
-    const auto vB = UncompressVector(verts[tri.vB]),
-               vC = UncompressVector(verts[tri.vC]);
+    const auto vB = verts[tri.vB], vC = verts[tri.vC];
 
     const CVector cverts[]{vA, vB, vC};
     if (PointInPoly(spAProjPl, tri, plNorm, cverts)) {
@@ -3305,9 +3304,9 @@ void CCollision::Tests(int32 i) {
         const auto vtxA = RandomVector(min, max);
         const auto norm = RandomNormal();
         return std::array<CompressedVector, 3>{
-            CompressVector(vtxA),
-            CompressVector(vtxA.Cross(norm)),
-            CompressVector(norm.Cross(vtxA))
+            vtxA,
+            vtxA.Cross(norm),
+            norm.Cross(vtxA)
         };
     };
 
@@ -3548,9 +3547,9 @@ void CCollision::Tests(int32 i) {
         const auto tripl = tri.GetPlane(vtxs.data());
         const auto pt = RandomVector();
         const CVector ucverts[]{
-            UncompressVector(vtxs[tri.vA]),
-            UncompressVector(vtxs[tri.vB]),
-            UncompressVector(vtxs[tri.vC])
+            vtxs[tri.vA],
+            vtxs[tri.vB],
+            vtxs[tri.vC]
         };
 
         const auto Org = plugin::CallAndReturn<bool, 0x415730, const CVector&, const CColTriangle&, const CVector&, const CVector*>;
