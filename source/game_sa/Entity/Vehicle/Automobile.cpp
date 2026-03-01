@@ -3839,10 +3839,10 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
             if (specialColTriangle.m_nMaterial == SURFACE_CAR_MOVINGCOMPONENT) {
                 const CColTriangle& colTriangle = cd->m_pTriangles[triIndx];
                 for (int32 i = 0; i < 3; i++) {
-                    CVector vertexPos = UncompressVector(cd->m_pVertices[colTriangle.m_vertIndices[i]]);
+                    CVector vertexPos = cd->m_pVertices[colTriangle.m_vertIndices[i]];
                     CVector distance  = vertexPos - componentPos;
                     vertexPos = rotMatrix.TransformPoint(distance) + componentPos;
-                    specialColData->m_pVertices[specialColTriangle.m_vertIndices[i]] = CompressVector(vertexPos);
+                    specialColData->m_pVertices[specialColTriangle.m_vertIndices[i]] = vertexPos;
                     if (maxZ < vertexPos.z)
                         maxZ = vertexPos.z;
                     else if (minZ > vertexPos.z)

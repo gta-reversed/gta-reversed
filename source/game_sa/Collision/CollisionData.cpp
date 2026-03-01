@@ -137,7 +137,7 @@ void CCollisionData::Copy(const CCollisionData& src) {
 
             if (iHighestVertInd) {
                 iHighestVertInd++; // allocated space needs to be 1 bigger to compensate for index 0
-                m_pVertices = static_cast<CompressedVector*>(CMemoryMgr::Malloc(iHighestVertInd * sizeof(CompressedVector)));
+                m_pVertices = static_cast<decltype(m_pVertices)>(CMemoryMgr::Malloc(iHighestVertInd * sizeof(*m_pVertices)));
                 for (auto i = 0; i < iHighestVertInd; ++i) {
                     m_pVertices[i] = src.m_pVertices[i];
                 }
@@ -167,7 +167,7 @@ void CCollisionData::Copy(const CCollisionData& src) {
 
             if (iHighestVertInd) {
                 iHighestVertInd++; // allocated space needs to be 1 bigger to compensate for index 0
-                m_pShadowVertices = static_cast<CompressedVector*>(CMemoryMgr::Malloc(iHighestVertInd * sizeof(CompressedVector)));
+                m_pShadowVertices = static_cast<decltype(m_pShadowVertices)>(CMemoryMgr::Malloc(iHighestVertInd * sizeof(*m_pShadowVertices)));
                 for (auto i = 0; i < iHighestVertInd; ++i)
                     m_pShadowVertices[i] = src.m_pShadowVertices[i];
             }
@@ -197,12 +197,12 @@ void CCollisionData::RemoveTrianglePlanes() {
 
 // 0x40F5E0
 void CCollisionData::GetTrianglePoint(CVector& outVec, int32 vertId) {
-    outVec = UncompressVector(m_pVertices[vertId]);
+    outVec = m_pVertices[vertId];
 }
 
 // 0x40F640
 void CCollisionData::GetShadTrianglePoint(CVector& outVec, int32 vertId) {
-    outVec = UncompressVector(m_pShadowVertices[vertId]);
+    outVec = m_pShadowVertices[vertId];
 }
 
 // 0x40F6C0
@@ -252,7 +252,7 @@ auto CCollisionData::GetFaceGroups() const -> std::span<ColHelpers::TFaceGroup> 
 auto CCollisionData::GetTriVertices(const CColTriangle& tri) const->std::array<CVector, 3> {
     std::array<CVector, 3> verts;
     for (auto&& [i, j] : rngv::enumerate(tri.m_vertIndices)) {
-        verts[i] = UncompressVector(m_pVertices[j]);
+        verts[i] = m_pVertices[j];
     }
     return verts;
 }
