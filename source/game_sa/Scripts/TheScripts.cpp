@@ -1434,7 +1434,14 @@ void CTheScripts::Process() {
 
         it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
         it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
-        it->Process();
+
+        switch (it->Process()) {
+        case OR_EXCEPTION: {
+            NOTSA_LOG_CRIT("Terminating script `{}` because of an exception - See logs for more information", it->GetName());
+            it->RemoveScriptFromList(&pActiveScripts);
+            break;
+        }
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();
