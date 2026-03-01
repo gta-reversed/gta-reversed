@@ -8,6 +8,7 @@
 #include "Sphere.h"
 #include "Box.h"
 #include "CompressedVector.h"
+#include <type_traits>
 
 // Based on https://gtamods.com/wiki/Collision_File
 
