@@ -9,9 +9,20 @@ TextDebugModule::TextDebugModule() :
 }
 
 void TextDebugModule::RenderMainWindow() {
-    if (m_Filter.Draw()) {
-        m_FilterTextHash = CKeyGen::GetUppercaseKey(m_Filter.InputBuf);
+    if (m_Filter.Draw(m_FilterByKey ? "Key/Hash (Exact)" : "Text content (inc, -exc)")) {
+        if (m_FilterByKey) {
+            if (*m_Filter.InputBuf) {
+                const auto n = std::strtoul(m_Filter.InputBuf, nullptr, 16);
+                m_FilterKeyHash = n != 0
+                    ? n
+                    : CKeyGen::GetUppercaseKey(m_Filter.InputBuf);
+            } else {
+                m_FilterKeyHash = 0;
+            }
+        }
     }
+    ImGui::SameLine();
+    ImGui::Checkbox("Filter by key", &m_FilterByKey);
 
     if (!ImGui::BeginTable("TextDebugModule_Table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody)) {
         return;
@@ -22,14 +33,24 @@ void TextDebugModule::RenderMainWindow() {
     ImGui::TableSetupColumn("String");
     ImGui::TableHeadersRow();
 
-    const auto WriteRow = [this](const auto& entry, const auto& tabl) {
-        if (!m_Filter.PassFilter(entry.string) && m_FilterTextHash != entry.hash) {
-            return;
+    // TODO: This shit is slow, use `ImGuiListClipper`
+    const auto WriteRow = [this](const auto& entry, const auto& table) {
+        char text[1024]{ 0 };
+        GxtCharToUTF8(text, entry.string);
+
+        notsa::ui::ScopedID id{ entry.hash };
+
+        if (m_FilterByKey) {
+            if (m_FilterKeyHash && m_FilterKeyHash != entry.hash) {
+                return true;
+            }
+        } else {
+            if (!m_Filter.PassFilter(text)) {
+                return true;
+            }
         }
 
-
         ImGui::TableNextRow();
-        ImGui::PushID(&entry);
 
         if (!ImGui::TableNextColumn()) {
             return false;
@@ -40,13 +61,13 @@ void TextDebugModule::RenderMainWindow() {
         ImGui::Text("%08X", entry.hash);
 
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
+        ImGui::TextUnformatted(text);
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
-            ImGui::SetClipboardText(entry.string);
+            ImGui::SetClipboardText(text);
         }
 
-        ImGui::PopID();
+        return true;
     };
     
     for (const auto& entry : TheText.GetMissionKeys()) {

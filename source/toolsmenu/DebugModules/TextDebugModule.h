@@ -2,14 +2,15 @@
 
 #include "DebugModule.h"
 
-class TextDebugModule : public DebugModuleSingleWindow {
+class TextDebugModule final : public DebugModuleSingleWindow {
 public:
     TextDebugModule();
 
-    void RenderMainWindow() override final;
-    void RenderMenuEntry() override final;
+    void RenderMainWindow() override;
+    void RenderMenuEntry() override;
 
 private:
+    bool            m_FilterByKey{ false };
     ImGuiTextFilter m_Filter{};
-    uint32          m_FilterTextHash{};
+    uint32          m_FilterKeyHash{};
 };
