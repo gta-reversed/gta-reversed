@@ -10,7 +10,7 @@ void CDecision::InjectHooks() {
     RH_ScopedInstall(Set, 0x600570);
     RH_ScopedInstall(Add, 0x600600, { .reversed = false });
     RH_ScopedInstall(From, 0x6006B0);
-    //RH_ScopedInstall(HasResponse, 0x600710, { .reversed = false });
+    RH_ScopedInstall(HasResponse, 0x600710);
     RH_ScopedInstall(MakeDecision, 0x6040D0, { .reversed = false });
 }
 
@@ -68,9 +68,9 @@ void CDecision::Add(eTaskType taskType, float* pProbs, int32* pBools) {
     plugin::CallMethod<0x600600, CDecision*, eTaskType, float*, int32*>(this, taskType, pProbs, pBools);
 }
 
-/*
 // 0x600710
-bool CDecision::HasResponse() {
-
+bool CDecision::HasResponse() const noexcept {
+    return rng::any_of(m_Tasks, [] (eTaskType tt) {
+        return tt != TASK_NONE;
+    });
 }
-*/

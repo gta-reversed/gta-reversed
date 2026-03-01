@@ -65,6 +65,7 @@ public:
         int16&    outFacialTaskType
     );
     void Add(eTaskType taskType, float* pProbs, int32* pBools);
+    bool HasResponse() const noexcept;
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);
