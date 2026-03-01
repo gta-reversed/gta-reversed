@@ -3458,13 +3458,12 @@ bool IsCharAttachedToAnyCar(CPed* ped) {
  * 
  * @returns {Car} handle
  */
-CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
-    if (!ped || !ped->GetIsTypeVehicle() || !ped->m_pAttachedTo) {
-        return nullptr;
-    }
-    return ped->m_pAttachedTo->AsVehicle();
+CVehicle* StoreCarCharIsAttachedToNoSave(CPed& ped) {
+    auto* const attachedTo = ped.m_pAttachedTo;
+    return attachedTo && attachedTo->GetIsTypeVehicle()
+        ? attachedTo->AsVehicle()
+        : nullptr;
 }
-};
 
 /*
  * @opcode 0792
@@ -4042,6 +4041,7 @@ void ClearCharTasksImmediately(CPed& ped) {
 //void ClearLookAt(CPed& self) {
     //NOTSA_UNREACHABLE("Not implemented");
 //}
+}; // namespace
 
 void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Char");
