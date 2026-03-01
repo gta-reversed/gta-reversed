@@ -932,8 +932,8 @@ OpcodeResult CRunningScript::Process() {
         do {
             res = ProcessOneCommand();
         } while (res == OR_CONTINUE);
-        if (res == OR_EXCEPTION) {
-            return OR_EXCEPTION;
+        if (res == OR_ERROR) {
+            return OR_ERROR;
         }
     }
 

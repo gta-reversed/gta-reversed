@@ -78,7 +78,7 @@ inline OpcodeResult CommandParser(CRunningScript* S) {
         LogException("Not implemented", e);
     }
 
-    return OR_EXCEPTION;
+    return OR_ERROR;
 } 
 
 template<eScriptCommands Command, auto* CommandFn>

@@ -166,7 +166,7 @@ auto TerminateThisScript(CRunningScript& S) { // 0x04E
     S.RemoveScriptFromList(&CTheScripts::pActiveScripts);
     S.AddScriptToList(&CTheScripts::pIdleScripts);
     S.ShutdownThisScript();
-    return OR_WAIT;
+    return OR_INTERRUPT;
 }
 
 auto StartNewScript(CRunningScript& S, int32 offset) { // 0x04F
@@ -199,7 +199,7 @@ void DebugOff() {
 
 auto Wait(CRunningScript& S, uint32 duration) {
     S.m_WakeTime = CTimer::GetTimeInMS() + duration;
-    return OR_WAIT;
+    return OR_INTERRUPT;
 }
 
 auto Nop() {
