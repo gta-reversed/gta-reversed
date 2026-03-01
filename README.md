@@ -27,7 +27,7 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 
 #### 2. Setting up VS
 0) Run the setup script with `python setup.py`. Use `--help` for more info.
-1) Open the generated VS solution at `build/GTASA.sln`, alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
+1) Open the generated VS solution at `build/GTASA.sln` (Or `build/GTASA.slnx`), alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
 2) You can also type `cmake --build build` to build in command line.
 
 ### 3. Set up the game and ASI
