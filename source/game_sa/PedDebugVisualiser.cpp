@@ -29,9 +29,9 @@ void CPedDebugVisualiser::SetRenderStates() {
     CFont::SetDropColor({ 0, 0, 0, 255 });
 }
 
-void CPedDebugVisualiser::VisualiseAttractorsInPtrList(CPtrList& list, const CPed& ped) {
-
-}
+//void CPedDebugVisualiser::VisualiseAttractorsInPtrList(PtrListType& list, const CPed& ped) {
+//
+//}
 
 void CPedDebugVisualiser::VisualiseBoundingVolumes(CPed& ped) {
 

@@ -7,7 +7,7 @@ CGangInfo::CGangInfo() {
 // NOTSA
 size_t CGangInfo::GetNumOfWeaponChoices() const {
     size_t n{};
-    for (; m_nGangWeapons[n] != WEAPON_UNARMED && n++ < m_nGangWeapons.size(););
+    for (; m_nGangWeapons[n] != WEAPON_UNARMED && ++n < m_nGangWeapons.size(););
     return n;
 }
 

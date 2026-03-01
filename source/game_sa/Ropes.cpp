@@ -50,6 +50,8 @@ void CRopes::Shutdown() {
 
 // 0x558D70
 void CRopes::Update() {
+    ZoneScoped;
+
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
@@ -61,6 +63,8 @@ void CRopes::Update() {
 
 // 0x556AE0
 void CRopes::Render() {
+    ZoneScoped;
+
     for (auto& rope : aRopes) {
         if (rope.m_nType != eRopeType::NONE)
             rope.Render();

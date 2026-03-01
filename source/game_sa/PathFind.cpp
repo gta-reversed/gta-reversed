@@ -5,8 +5,9 @@
     Do not delete this comment block. Respect others' work!
 */
 #include "StdInc.h"
-#include <extensions/enumerate.hpp>
 #include "PathFind.h"
+
+#include <reversiblebugfixes/Bugs.hpp>
 
 // TODO: Move into the class itself
 CVector& s_pathsNeededPosn = *(CVector*)0x977B70;
@@ -64,16 +65,16 @@ void CPathFind::InjectHooks() {
     //RH_ScopedInstall(AddDynamicLinkBetween2Nodes, 0x4512D0);
     RH_ScopedOverloadedInstall(LoadPathFindData, "Area", 0x452F40, void(CPathFind::*)(int32));
     RH_ScopedOverloadedInstall(LoadPathFindData, "FromStream", 0x4529F0, void(CPathFind::*)(RwStream*, int32));
-    //RH_ScopedInstall(SwitchPedRoadsOffInArea, 0x452F00);
-    //RH_ScopedInstall(SwitchRoadsOffInArea, 0x452C80);
-    //RH_ScopedInstall(SwitchRoadsOffInAreaForOneRegion, 0x452820);
-    //RH_ScopedInstall(ComputeRoute, 0x452760);
+    RH_ScopedInstall(SwitchPedRoadsOffInArea, 0x452F00);
+    RH_ScopedInstall(SwitchRoadsOffInArea, 0x452C80);
+    RH_ScopedInstall(SwitchRoadsOffInAreaForOneRegion, 0x452820);
+    RH_ScopedInstall(ComputeRoute, 0x452760, { .reversed = false });
     //RH_ScopedInstall(CompleteNewInterior, 0x452270);
     RH_ScopedInstall(SwitchOffNodeAndNeighbours, 0x452160);
     //RH_ScopedInstall(Find2NodesForCarCreation, 0x452090);
     //RH_ScopedInstall(TestCoorsCloseness, 0x452000);
     //RH_ScopedInstall(FindNextNodeWandering, 0x451B70);
-    RH_ScopedInstall(DoPathSearch, 0x4515D0);
+    RH_ScopedInstall(DoPathSearch, 0x4515D0, {.reversed = false}); // Sometimes breaks `CTaskComplexFollowNodeRoute::ComputePathNodes` - To repro just walk around in groove st. 
     //RH_ScopedInstall(FindParkingNodeInArea, 0x4513F0);
     RH_ScopedInstall(FindLinkBetweenNodes, 0x451350);
     RH_ScopedInstall(ReturnInteriorNodeIndex, 0x451300);
@@ -107,31 +108,33 @@ void CPathFind::InjectHooks() {
 void CPathNode::InjectHooks() {
     RH_ScopedClass(CPathNode);
     RH_ScopedCategoryGlobal();
-    RH_ScopedInstall(GetNodeCoors, 0x420A10);
+    RH_ScopedInstall(GetPosition, 0x420A10);
 }
 
 // 0x44D080
 void CPathFind::Init() {
+    ZoneScoped;
+
     static int32 NumTempExternalNodes = 0; // Unused
-    m_nNumForbiddenAreas = 0;
+    m_nNumNodeSwitches                = 0;
     m_loadAreaRequestPending = false;
 
-    for (auto i = 0u; i < NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS; ++i) {
+    for (auto i = 0u; i < NUM_TOTAL_PATH_NODE_AREAS; ++i) {
         m_pPathNodes[i] = nullptr;
         m_pNaviNodes[i] = nullptr;
         m_pNodeLinks[i] = nullptr;
         m_pLinkLengths[i] = nullptr;
         m_pPathIntersections[i] = nullptr;
         m_pNaviLinks[i] = nullptr; // BUG: Out of array bounds write, same as in original code
-        m_aUnused[i] = nullptr;    // BUG: Out of array bounds write, same as in original code
+        m_aTempNodes[i] = nullptr;    // BUG: Out of array bounds write, same as in original code
     }
 
-    rng::fill(m_interiorIDs, 0xFF);
+    rng::fill(m_interiorIDs, (uint32)-1);
 }
 
 // 0x44E4E0
 void CPathFind::ReInit() {
-    m_nNumForbiddenAreas = 0;
+    m_nNumNodeSwitches       = 0;
     m_loadAreaRequestPending = false;
 }
 
@@ -200,7 +203,7 @@ bool CPathFind::ThisNodeWillLeadIntoADeadEnd(CPathNode* startNode, CPathNode* en
 
 // 0x44D3B0
 void CPathFind::TidyUpNodeSwitchesAfterMission() {
-    m_nNumForbiddenAreas = std::min(54u, m_nNumForbiddenAreas); // todo: magic number
+    m_nNumNodeSwitches = std::min(54u, m_nNumNodeSwitches); // todo: magic number
 }
 
 // 0x44D400
@@ -230,7 +233,7 @@ auto CPathFind::FindIntersection(const CNodeAddress& startNodeAddress, const CNo
         return nullptr;
     }
 
-    const auto& startNode = m_pPathNodes[startNodeAddress.m_wAreaId][startNodeAddress.m_wNodeId];
+    const auto& startNode = *GetPathNode(startNodeAddress);
     const auto& nodeLinks = m_pNodeLinks[startNodeAddress.m_wAreaId];
     for (auto i = 0u; i < startNode.m_nNumLinks; i++) {
         const auto linkedNodeIdx = startNode.m_wBaseLinkId + i;
@@ -260,15 +263,18 @@ bool CPathFind::TestForPedTrafficLight(CNodeAddress startNodeAddress, CNodeAddre
 }
 
 // 0x4509A0
-CVector CPathFind::TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, uint16 randomSeed) {
+CVector CPathFind::TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, int16 randomSeed) {
     // Invalid area, or area not loaded
-    if (nodeAddress.IsValid() && IsAreaNodesAvailable(nodeAddress)) {
-        const auto nbits = 4u;
-        const auto Random = [](uint16 seed) { return (float)(seed % (1 << nbits) - 7); };
-        return GetPathNode(nodeAddress)->GetNodeCoors() + CVector{ Random(randomSeed), Random(randomSeed >> nbits), 0.f };
+    if (!nodeAddress.IsValid() || !IsAreaNodesAvailable(nodeAddress)) {
+        return {};
     }
 
-    return {};
+    auto node         = GetPathNode(nodeAddress);
+    auto basePosition = node->GetPosition();
+    auto offsetX      = float(node->m_nPathWidth * ((randomSeed % 16) - 7)); // bottom 8 bits remapped to [-7 : +8]
+    auto offsetY      = float(node->m_nPathWidth * (((randomSeed / 16) % 16) - 7)); // top 8 bits remapped to [-7 : +8]
+    auto offset       = CVector{ offsetX * 0.00775f, offsetY * 0.00775f, 0.f };
+    return basePosition + offset;
 }
 
 //  0x44F8C0
@@ -481,9 +487,14 @@ void CPathFind::DoPathSearch(
     }
 }
 
-void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
-    const auto areaRect = CRect{ {fXMax, fYMax}, {fXMin, fYMin} };
+// 0x452760
+void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route) {
+    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &startAddress, route);
+}
 
+// 0x44D960
+void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
+    const auto areaRect = CRect{ {fXMin, fYMin}, {fXMax, fYMax} };
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         if (!IsAreaLoaded(areaId)) {
             continue;
@@ -501,7 +512,7 @@ void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, floa
 namespace detail {
 // NOTSA
 CVector GetPosnBetweenNodesForScript(CPathNode* nodeA, CVector2D dir) {
-    return nodeA->GetNodeCoors() + CVector{dir.GetPerpLeft() * ((float)nodeA->m_nPathWidth / 16.f + 2.7f)};
+    return nodeA->GetPosition() + CVector{dir.GetPerpLeft() * ((float)nodeA->m_nPathWidth / 16.f + 2.7f)};
 }
 };
 
@@ -512,20 +523,20 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress address, bool* bFound) {
             *bFound = found;
         }
     };
-    if (!address.IsValid() || IsAreaNodesAvailable(address)) {
+    if (!address.IsValid() || !IsAreaNodesAvailable(address)) {
         SetFound(false);
         return {};
     } else {
         SetFound(true);
 
         const auto node = GetPathNode(address);
-        const auto nodePos = node->GetNodeCoors();
+        const auto nodePos = node->GetPosition();
  
         // If this node has a link return some kind of position between this and the first link
         if (node->m_nPathWidth && node->m_nNumLinks) {
             if (const auto firstLink = m_pNodeLinks[node->m_wBaseLinkId]) {
                 if (const auto firstLinkedNode = GetPathNode(*firstLink)) {
-                    auto dir = CVector2D{ firstLinkedNode->GetNodeCoors() - nodePos }.Normalized();
+                    auto dir = CVector2D{ firstLinkedNode->GetPosition() - nodePos }.Normalized();
 
                     // By negating here we invert the direction
                     dir = dir.x >= 0 ? dir : -dir;
@@ -551,8 +562,8 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress nodeAddrA, CNodeAddress n
         SetFound(true);
 
         const auto nodeA = GetPathNode(nodeAddrA);
-        const auto posA  = nodeA->GetNodeCoors();
-        const auto dir   = CVector2D{ GetPathNode(nodeAddrB)->GetNodeCoors() - posA }.Normalized();
+        const auto posA  = nodeA->GetPosition();
+        const auto dir   = CVector2D{ GetPathNode(nodeAddrB)->GetPosition() - posA }.Normalized();
 
         outHeadingDeg = RWRAD2DEG(dir.Heading());
 
@@ -575,22 +586,51 @@ void CPathFind::MarkRoadNodeAsDontWander(float x, float y, float z) {
 }
 
 // 0x452820
-void CPathFind::SwitchRoadsOffInAreaForOneRegion(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bLowTraffic, uint8 nodeType, int32 areaId,
-                                                 uint8 bUnused) {
-    return plugin::CallMethod<0x452820, CPathFind*, float, float, float, float, float, float, bool, char, int32, bool>(this, xMin, xMax, yMin, yMax, zMin, zMax, bLowTraffic,
-                                                                                                                       nodeType, areaId, bUnused);
+void CPathFind::SwitchRoadsOffInAreaForOneRegion(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bSwitchOff, bool bCars, int areaId, bool bBackToOriginal) {
+    assert(areaId >= 0 && areaId < NUM_PATH_MAP_AREAS);
+
+    if (!IsAreaLoaded(areaId)) {
+        return;
+    }
+
+    auto start = bCars ? 0 : m_anNumVehicleNodes[areaId];
+    auto end   = bCars ? m_anNumVehicleNodes[areaId] : m_anNumNodes[areaId];
+
+    for (auto nodeIdx = start; nodeIdx < end; ++nodeIdx) {
+        CPathNode& node     = m_pPathNodes[areaId][nodeIdx];
+        const auto position = node.GetPosition();
+
+        if (position.x < xMin || position.x > xMax || position.y < yMin || position.y > yMax || position.z < zMin || position.z > zMax) {
+            continue;
+        }
+        if (!ThisNodeHasToBeSwitchedOff(&node) || node.m_isSwitchedOff == (bBackToOriginal ? node.m_isSwitchedOffOriginal : bSwitchOff)) {
+            continue;
+        }
+        CPathNode* next1{};
+        CPathNode* next2{};
+
+        SwitchOffNodeAndNeighbours(&node, next1, &next2, bSwitchOff, bBackToOriginal);
+
+        for (auto iter = next1; iter;) {
+            SwitchOffNodeAndNeighbours(iter, iter, nullptr, bSwitchOff, bBackToOriginal);
+        }
+        for (auto iter = next2; iter;) {
+            SwitchOffNodeAndNeighbours(iter, iter, nullptr, bSwitchOff, bBackToOriginal);
+        }
+    }
 }
 
 // NOTSA
 CPathNode* CPathFind::GetPathNode(CNodeAddress address) {
     assert(address.IsValid());
+    assert(IsAreaNodesAvailable(address));
     return &m_pPathNodes[address.m_wAreaId][address.m_wNodeId];
 }
 
 // NOTSA
 bool CPathFind::FindNodeCoorsForScript(CVector& outPos, CNodeAddress addr) {
     bool valid{};
-    FindNodeCoorsForScript(addr, &valid);
+    outPos = FindNodeCoorsForScript(addr, &valid);
     return valid;
 }
 
@@ -649,12 +689,12 @@ void CPathFind::LoadPathFindData(RwStream* stream, int32 areaId) {
 
     for (auto i = 0u; i < numNodes; ++i) {
         auto& node = m_pPathNodes[areaId][i];
-        node.m_isOriginallyOnDeadEnd = node.m_onDeadEnd;
+        node.m_isSwitchedOffOriginal = node.m_isSwitchedOff;
     }
 
-    for (auto i = 0u; i < m_nNumForbiddenAreas; ++i) {
-        auto& area = m_aForbiddenAreas[i];
-        SwitchRoadsOffInAreaForOneRegion(area.m_fXMin, area.m_fXMax, area.m_fYMin, area.m_fYMax, area.m_fZMin, area.m_fZMax, area.m_bEnable, area.m_nType, areaId, false);
+    for (auto i = 0u; i < m_nNumNodeSwitches; ++i) {
+        auto& area = m_aNodeSwitches[i];
+        SwitchRoadsOffInAreaForOneRegion(area.xMin, area.xMax, area.yMin, area.yMax, area.zMin, area.zMax, area.isOff, area.isCars, areaId, false);
     }
     for (auto i = 0u; i < NUM_DYNAMIC_LINKS_PER_AREA; ++i) {
         rng::fill(m_aDynamicLinksBaseIds[i], -1);
@@ -683,7 +723,7 @@ void CPathFind::UnLoadPathFindData(int32 index) {
 void CPathFind::LoadSceneForPathNodes(CVector point) {
     rng::fill(ToBeStreamed, false);
     MarkRegionsForCoors(point, 350.f);
-    for (const auto [areaId, load] : notsa::enumerate(ToBeStreamed)) {
+    for (const auto [areaId, load] : rngv::enumerate(ToBeStreamed)) {
         if (load) {
             CStreaming::RequestModel(DATToModelId((int32)areaId), STREAMING_DEFAULT);
         }
@@ -695,7 +735,7 @@ bool CPathFind::IsWaterNodeNearby(CVector position, float radius) {
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         for (const auto& node : GetPathNodesInArea(areaId, PATH_TYPE_VEH)) {
             if (node.m_bWaterNode) {
-                if ((node.GetNodeCoors() - position).SquaredMagnitude() <= sq(radius)) {
+                if ((node.GetPosition() - position).SquaredMagnitude() <= sq(radius)) {
                     return true;
                 }
             }
@@ -723,6 +763,8 @@ CNodeAddress CPathFind::FindNodeClosestToCoors(
 
 // 0x450A60
 void CPathFind::UpdateStreaming(bool bForceStreaming) {
+    ZoneScoped;
+
     // The time thingy I think is some kind of `% 512`, not sure yet, will have to figure it out.
     if (!s_bLoadPathsNeeded && !bForceStreaming && (CTimer::m_snTimeInMilliseconds ^ CTimer::m_snPreviousTimeInMilliseconds) < 512) {
         return;
@@ -772,7 +814,7 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
     }
 
     // Load/unload areas as per `ToBeStreamed`
-    for (const auto [areaId, shouldBeLoaded] : notsa::enumerate(ToBeStreamed)) {
+    for (const auto [areaId, shouldBeLoaded] : rngv::enumerate(ToBeStreamed)) {
         if (shouldBeLoaded) {
             if (!IsAreaLoaded(areaId)) {
                 CStreaming::RequestModel(
@@ -781,11 +823,11 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
                         ? STREAMING_MISSION_REQUIRED
                         : STREAMING_KEEP_IN_MEMORY
                 );
-                DEV_LOG("Requested area: %i", (int)areaId);
+                NOTSA_LOG_DEBUG("Requested area: {}", (int)areaId);
             }
         } else if (IsAreaLoaded(areaId)) {
             CStreaming::RemoveModel(DATToModelId(areaId));
-            DEV_LOG("Removed area: %i", (int)areaId);
+            NOTSA_LOG_DEBUG("Removed area: {}", (int)areaId);
         }
     }
 }
@@ -799,7 +841,7 @@ void CPathFind::StartNewInterior(int32 interiorNum) {
 
     // BUG: Possible endless loop if 8 interiors are loaded i think
     NewInteriorSlot = 0;
-    while (m_interiorIDs[NewInteriorSlot] != -1) {
+    while (m_interiorIDs[NewInteriorSlot] != (uint32)-1) {
         NewInteriorSlot++;
         assert(NewInteriorSlot < 8);
     }
@@ -873,6 +915,8 @@ CNodeAddress CPathFind::FindNearestExteriorNodeToInteriorNode(int32 interiorId) 
 
 // 0x44E000
 void CPathFind::AddDynamicLinkBetween2Nodes_For1Node(CNodeAddress first, CNodeAddress second) {
+    assert(IsAreaNodesAvailable(first));
+
     auto& firstPathInfo = m_pPathNodes[first.m_wAreaId][first.m_wNodeId];
     auto numAddresses = m_anNumAddresses[first.m_wAreaId];
 
@@ -932,14 +976,14 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
     float        scoreOfClosest{std::numeric_limits<float>::max()};
     for (auto areaId{ 0u }; areaId < NUM_TOTAL_PATH_NODE_AREAS; areaId++) {
         for (const auto& node : GetPathNodesInArea(areaId, nodeType)) { // NOTE: Function takes care of checking whenever the area is loaded
-            const auto dirToNodeUN = pos - node.GetNodeCoors();
+            const auto dirToNodeUN = pos - node.GetPosition();
 
             const auto dotScore = (abs(dirToNodeUN) * CVector { 1.f, 1.f, 3.f }).ComponentwiseSum();
             if (dotScore >= scoreOfClosest) {
                 continue;
             }
 
-            const auto score = dotScore - (dir.Dot(dirToNodeUN) - 1.f) * 20.f;
+            const auto score = dotScore - (dir.Dot(CVector2D{ dirToNodeUN }.Normalized()) - 1.f) * 20.f;
             if (score <= scoreOfClosest) {
                 scoreOfClosest = score;
                 closest = node.GetAddress();
@@ -952,18 +996,18 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
 
 // 0x5D34C0
 bool CPathFind::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
-    for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&area, sizeof(area));
+    CGenericGameStorage::SaveDataToWorkBuffer(m_nNumNodeSwitches);
+    for (auto& area : std::span{ m_aNodeSwitches, m_nNumNodeSwitches }) {
+        CGenericGameStorage::SaveDataToWorkBuffer(area);
     }
     return true;
 }
 
 // 0x5D3500
 bool CPathFind::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
-    for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&area, sizeof(area));
+    CGenericGameStorage::LoadDataFromWorkBuffer(m_nNumNodeSwitches);
+    for (auto& area : std::span{ m_aNodeSwitches, m_nNumNodeSwitches }) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(area);
     }
     return true;
 }
@@ -1020,12 +1064,14 @@ size_t CPathFind::CountNeighboursToBeSwitchedOff(const CPathNode& node) {
     return ret;
 }
 
+// 0x450320
+float CPathFind::FindNodeOrientationForCarPlacement(CNodeAddress nodeInfo) {
+    return plugin::CallMethodAndReturn<float, 0x450320, CPathFind*, CNodeAddress>(this, nodeInfo);
+}
+
 // 0x452160
-void CPathFind::SwitchOffNodeAndNeighbours(CPathNode* node, CPathNode*& outNext1, CPathNode** outNext2, bool isOnDeadEnd, bool setIsDeadEndToOriginal) {
-    const auto isNodeOnDeadEnd = setIsDeadEndToOriginal
-        ? node->m_isOriginallyOnDeadEnd
-        : isOnDeadEnd;
-    node->m_onDeadEnd = isNodeOnDeadEnd;
+void CPathFind::SwitchOffNodeAndNeighbours(CPathNode* node, CPathNode*& outNext1, CPathNode** outNext2, bool bWhatToSwitchTo, bool bBackToOriginal) {
+    node->m_isSwitchedOff = bBackToOriginal ? node->m_isSwitchedOffOriginal : bWhatToSwitchTo;
    
     outNext1 = nullptr;
     if (outNext2) {
@@ -1040,7 +1086,7 @@ void CPathFind::SwitchOffNodeAndNeighbours(CPathNode* node, CPathNode*& outNext1
         if (!linked.HasToBeSwitchedOff()) {
             continue;
         }
-        if (linked.m_onDeadEnd == isNodeOnDeadEnd) {
+        if (linked.m_isSwitchedOff == bWhatToSwitchTo) {
             continue;
         }
         if (CountNeighboursToBeSwitchedOff(*node) > 2) {
@@ -1167,9 +1213,8 @@ float CPathFind::FindYCoorsForRegion(size_t y) {
 // 0x44DED0
 void CPathFind::AddInteriorLink(int32 intNodeA, int32 intNodeB) {
     const auto AddLink = [](int32 intIdx, int32 linkTo) {
-        // NOTE: Original code compared >= 0, but it's most likely -1.. If anything goes bad use `>= 0`
         const auto it = rng::find(ConnectsToGiven[intIdx], -1); 
-        assert(*it >= 0);
+        assert(!(*it >= 0)); // NOTE: Original code did a `while (*it >= 0), if anything goes bad use `>= 0` for `rng::find`
         *it = linkTo;
     };
     AddLink(intNodeA, intNodeB);
@@ -1229,4 +1274,64 @@ void CPathFind::AddNodeToList(CPathNode* node, int32 distFromOrigin) {
     node->m_totalDistFromOrigin = (int16)distFromOrigin;
 
     m_totalNumNodesInPathFindHashTable++;
+}
+
+// 0x452C80
+void CPathFind::SwitchRoadsOffInArea(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bSwitchOff, bool bCars, bool bBackToOriginal) {
+    for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; ++areaId) {
+        SwitchRoadsOffInAreaForOneRegion(xMin, xMax, yMin, yMax, zMin, zMax, bSwitchOff, bCars, areaId, bBackToOriginal);
+    }
+
+    for (auto i = 0u; i < m_nNumNodeSwitches; ++i) {
+        auto* pArea = &m_aNodeSwitches[i];
+
+        if (notsa::bugfixes::CPathFind_SwitchRoadsOffInArea_StrayAreas) {
+            // some missions create both types of switches at the same area, so we store them separately
+            if (pArea->isCars != bCars) {
+                continue;
+            }
+
+            // avoid creating stray areas, potentially leaving no space for important areas later in game
+            // ideally, the script would use SWITCH_ROADS_BACK_TO_ORIGINAL or SWITCH_PED_ROADS_BACK_TO_ORIGINAL but that's not always the case
+            // so we consider toggling the same area as "back to original"
+            if (pArea->xMin == xMin && pArea->yMin == yMin && pArea->zMin == zMin && pArea->xMax == xMax && pArea->yMax == yMax && pArea->zMax == zMax && pArea->isOff != bSwitchOff) {
+                bBackToOriginal = true;
+            }
+        }
+
+        // If the existing area is completely inside the area we are switching off, remove it
+        if (pArea->xMin < xMin || pArea->yMin < yMin || pArea->zMin < zMin || pArea->xMax > xMax || pArea->yMax > yMax || pArea->zMax > zMax) {
+            continue;
+        }
+
+        for (auto j = i; j < m_nNumNodeSwitches - 1; ++j) {
+            if (notsa::bugfixes::CPathFind_SwitchRoadsOffInArea_StrayAreas) {
+                m_aNodeSwitches[j] = m_aNodeSwitches[j + 1];
+            } else {
+                // R* bug, they messed up with the index
+                m_aNodeSwitches[i] = m_aNodeSwitches[i + 1];
+            }
+        }
+
+        --m_nNumNodeSwitches;
+        --i;
+    }
+
+    if (!bBackToOriginal && m_nNumNodeSwitches < NUM_PATH_MAP_AREAS) {
+        auto& area  = m_aNodeSwitches[m_nNumNodeSwitches];
+        area.xMin   = xMin;
+        area.xMax   = xMax;
+        area.yMin   = yMin;
+        area.yMax   = yMax;
+        area.zMin   = zMin;
+        area.zMax   = zMax;
+        area.isOff  = bSwitchOff;
+        area.isCars = bCars;
+        m_nNumNodeSwitches++;
+    }
+}
+
+// 0x452F00
+void CPathFind::SwitchPedRoadsOffInArea(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bSwitchOff, bool bBackToOriginal) {
+    SwitchRoadsOffInArea(xMin, xMax, yMin, yMax, zMin, zMax, bSwitchOff, false, bBackToOriginal);
 }

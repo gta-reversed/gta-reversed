@@ -13,7 +13,7 @@ public:
     CPlaceName();
 
     void Init();
-    const char* GetForMap(float x, float y);
+    const GxtChar* GetForMap(const CVector2D pos);
     void Process();
     inline void Display() const;
     void ProcessAfterFrontEndShutDown();

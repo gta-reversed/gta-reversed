@@ -25,6 +25,23 @@ typedef CPool<TxdDef> CTxdPool;
 
 class CTxdStore {
 public:
+    struct ScopedTXDSlot {
+        ScopedTXDSlot(int32 id) {
+            assert(id >= 0);
+            CTxdStore::PushCurrentTxd();
+            CTxdStore::SetCurrentTxd(static_cast<uint32>(id));
+        }
+
+        ScopedTXDSlot(const char* txd) :
+            ScopedTXDSlot{ CTxdStore::FindTxdSlot(txd) }
+        {
+        }
+
+        ~ScopedTXDSlot() {
+            CTxdStore::PopCurrentTxd();
+        }
+    };
+public:
     static CTxdPool*&        ms_pTxdPool;
     static RwTexDictionary*& ms_pStoredTxd;
     static int32&            ms_lastSlotFound;

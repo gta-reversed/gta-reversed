@@ -16,7 +16,7 @@ bool CSphere::IsPointWithin(const CVector& p) const {
 
 // NOTSA
 void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
-    const CVector center = transform * m_vecCenter;
+    const CVector center = transform.TransformPoint(m_vecCenter);
  
     CVector v13 = center;
     v13.z += m_fRadius;
@@ -36,7 +36,7 @@ void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     CVector v61 = center;
     v61.y -= m_fRadius;
 
-    const auto colorARGB = color.ToInt();
+    const auto colorARGB = color.ToIntARGB();
     CLines::RenderLineNoClipping(v13, v32, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v13, v41, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v21, v32, colorARGB, colorARGB);
@@ -48,9 +48,9 @@ void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
 }
 
 auto CSphere::GetTransformed(const CMatrix& transform) const -> CSphere {
-    return { transform * m_vecCenter, m_fRadius };
+    return { transform.TransformPoint(m_vecCenter), m_fRadius };
 }
 
 auto TransformObject(const CSphere& sp, const CMatrix& transform) -> CSphere {
-    return { transform * sp.m_vecCenter, sp.m_fRadius };
+    return { transform.TransformPoint(sp.m_vecCenter), sp.m_fRadius };
 }

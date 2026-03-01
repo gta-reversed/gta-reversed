@@ -8,7 +8,7 @@ class Entity;
 class CVehicle;
 class CEntity;
 
-class CTaskGangHassleVehicle : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskGangHassleVehicle : public CTaskComplex {
 public:
     uint8     gapC[4];
     CVehicle* m_Vehicle;
@@ -31,8 +31,8 @@ public:
     CTaskGangHassleVehicle(CVehicle* vehicle, int32 a3, uint8 a4, float a5, float a6);
     ~CTaskGangHassleVehicle() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask*    Clone() override { return new CTaskGangHassleVehicle(m_Vehicle, m_nHasslePosId, byte18, dword1C, m_fOffsetX); } // 0x65FC00;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    Clone() const override { return new CTaskGangHassleVehicle(m_Vehicle, m_nHasslePosId, byte18, dword1C, m_fOffsetX); } // 0x65FC00;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;

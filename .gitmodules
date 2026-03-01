@@ -1,9 +1,0 @@
-[submodule "libs/vorbis"]
-	path = libs/vorbis
-	url = https://github.com/xiph/vorbis
-[submodule "libs/ogg"]
-	path = libs/ogg
-	url = https://github.com/xiph/ogg
-[submodule "libs/imgui"]
-	path = libs/imgui
-	url = ../../ocornut/imgui.git

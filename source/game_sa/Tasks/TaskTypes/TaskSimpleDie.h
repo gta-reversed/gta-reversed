@@ -36,9 +36,9 @@ public:
     CTaskSimpleDie(CAnimBlendHierarchy* animHierarchy, eAnimationFlags animFlags, float blendDelta, float animSpeed);
     ~CTaskSimpleDie() override;
 
-    eTaskType GetTaskType() override { return Type; } // 0x62FA50
-    CTask*    Clone() override;
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; } // 0x62FA50
+    CTask*    Clone() const override;
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool      ProcessPed(CPed* ped) override;
 
     void        StartAnim(CPed* ped);
@@ -49,9 +49,6 @@ public:
     CTaskSimpleDie* Constructor(CAnimBlendHierarchy* animHierarchy, eAnimationFlags animFlags, float blendDelta, float animSpeed);
     CTaskSimpleDie* Destructor();
 
-    CTask*    Clone_Reversed();
-    bool      MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool      ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleDie, 0x28);
 extern void CTaskSimpleDie__InjectHooks();

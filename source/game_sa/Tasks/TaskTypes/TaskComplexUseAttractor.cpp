@@ -78,15 +78,15 @@ CTask* CTaskComplexUseAttractor::CreateFirstSubTask(CPed* ped) {
                 return nullptr;
             }
 
-            if (!CTheScripts::ScriptsForBrains.HasAttractorScriptBrainWithThisNameLoaded(m_attractor->m_szScriptName)) {
+            if (!CTheScripts::ScriptsForBrains.HasAttractorScriptBrainWithThisNameLoaded(m_attractor->m_ScriptName)) {
                 return nullptr;
             }
 
-            if (const auto entity = m_attractor->m_pEntity) {
-                if (!entity->IsObject() || entity->AsObject()->objectFlags.bEnableDisabledAttractors) {
-                    CTheScripts::ScriptsForBrains.StartAttractorScriptBrainWithThisName(m_attractor->m_szScriptName, ped, ped->bUseAttractorInstantly);
+            if (CEntity* const entity = m_attractor->m_Entity) {
+                if (!entity->GetIsTypeObject() || entity->AsObject()->objectFlags.bEnableDisabledAttractors) {
+                    CTheScripts::ScriptsForBrains.StartAttractorScriptBrainWithThisName(m_attractor->m_ScriptName, ped, ped->bUseAttractorInstantly);
                     CScriptedBrainTaskStore::Clear(ped);
-                    return new CTaskComplexUseScriptedBrain{ m_attractor->m_szScriptName };
+                    return new CTaskComplexUseScriptedBrain{ m_attractor->m_ScriptName };
                 }
             }
 
@@ -113,9 +113,9 @@ CTask* CTaskComplexUseAttractor::CreateFirstSubTask(CPed* ped) {
 
 // 0x6327C0
 CTask* CTaskComplexUseAttractor::ControlSubTask(CPed* ped) {
-    if (m_attractor->m_pEntity) {
-        if (const auto entity = m_attractor->m_pEntity) {
-            if (entity->IsObject() || entity->AsObject()->objectFlags.bIsBroken) {
+    if (m_attractor->m_Entity) {
+        if (CEntity* const entity = m_attractor->m_Entity) {
+            if (entity->GetIsTypeObject() || entity->AsObject()->objectFlags.bIsBroken) {
                 m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr);
             }
         }

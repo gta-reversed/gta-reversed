@@ -24,6 +24,8 @@ public:
     }
 
     bool TestPedStuck(CPed* ped, CEventGroup* eventGroup);
+
+    auto GetState() const { return m_state; }
 };
 
 VALIDATE_SIZE(CPedStuckChecker, 0x10);

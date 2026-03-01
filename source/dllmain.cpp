@@ -1,10 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-
 #include "StdInc.h"
-
 #include "config.h"
+
+#include "extensions/CommandLine.h"
+#include "extensions/Configuration.hpp"
+#include "reversiblehooks/RootHookCategory.h"
 
 void InjectHooksMain(HMODULE hThisDLL);
 
@@ -25,33 +24,61 @@ void WaitForDebugger() {
     }
 }
 
-namespace CommandLineArguments {
+static constexpr auto DEFAULT_INI_FILENAME = "gta-reversed.ini";
 
-std::vector<std::wstring> Get() {
-    std::vector<std::wstring> out;
-    int numArgs{0};
-    LPWSTR* szArgs = CommandLineToArgvW(GetCommandLineW(), &numArgs);
-    out.reserve(numArgs);
-    if (szArgs) {
-        for (int i = 0; i < numArgs; i++) {
-            out.emplace_back(szArgs[i]);
-        }
-    }
-    LocalFree(szArgs);
-    return out;
+#include "extensions/Configs/FastLoader.hpp"
+#include "extensions/Configs/Miscellaneous.hpp"
+
+void LoadConfigurations() {
+    // Firstly load the INI into the memory.
+    g_ConfigurationMgr.Load(DEFAULT_INI_FILENAME);
+
+    // Then load all specific configurations.
+    g_FastLoaderConfig.Load();
+    g_MiscConfig.Load();
+    // ...
 }
 
-void Process() {
-    using namespace std::literals;
-    const auto args = Get();
-    for (const auto& arg : args) {
-        if (arg == L"--debug") {
-            WaitForDebugger();
+static void ApplyCommandLineHookSettings() {
+    using namespace ReversibleHooks;
+
+    const auto ResultText = [](SetCatOrItemStateResult res) {
+        switch (res) {
+        case SetCatOrItemStateResult::NotFound: return "not found";
+        case SetCatOrItemStateResult::Locked:   return "locked";
+        case SetCatOrItemStateResult::Done:     return "done";
+        default: NOTSA_UNREACHABLE();
+        }
+    };
+
+    if (CommandLine::s_UnhookAll || !CommandLine::s_UnhookExcept.empty()) {
+        GetRootCategory().SetAllItemsEnabled(false);
+
+        NOTSA_LOG_DEBUG("Unhooked all via command-line");
+        for (const auto& item : CommandLine::s_UnhookExcept) {
+            const auto res = SetCategoryOrItemStateByPath(item, true);
+
+            if (res == SetCatOrItemStateResult::Done) {
+                NOTSA_LOG_DEBUG("Rehooked '{}' via command-line.", item);
+            } else {
+                NOTSA_LOG_WARN("Couldn't rehook '{}' via command-line: {}", item, ResultText(res));
+            }
+        }
+        return;
+    }
+
+    if (!CommandLine::s_UnhookSome.empty()) {
+        for (const auto& item : CommandLine::s_UnhookSome) {
+            const auto res = SetCategoryOrItemStateByPath(item, false);
+
+            if (res == SetCatOrItemStateResult::Done) {
+                NOTSA_LOG_DEBUG("Unhooked '{}' via command-line.", item);
+            } else {
+                NOTSA_LOG_WARN("Couldn't unhook '{}' via command-line: {}", item, ResultText(res));
+            }
         }
     }
 }
-
-} // namespace CommandLineArguments
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -66,9 +93,21 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
             return FALSE;
         }
 
+        std::setlocale(LC_ALL, "en_US.UTF-8");
+        // Support UTF-8 IO for Windows Terminal. (or CMD if a supported font is used)
+        SetConsoleCP(CP_UTF8);
+        SetConsoleOutputCP(CP_UTF8);
+
         DisplayConsole();
-        CommandLineArguments::Process();
+        CommandLine::Load(__argc, __argv);
+
+        if (CommandLine::waitForDebugger)
+            WaitForDebugger();
+
+        LoadConfigurations();
+
         InjectHooksMain(hModule);
+        ApplyCommandLineHookSettings();
         break;
     }
     case DLL_THREAD_ATTACH:

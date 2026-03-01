@@ -1,3 +1,4 @@
+
 /***************************************************************************
  *                                                                         *
  * Module  : rtPng.h                                                       *
@@ -25,16 +26,23 @@
 /*--- Include files ---*/
 #include "rwcore.h"
 
-#include "rtpng.rpe"   /* automatically generated header file */
+//#include "rtpng.rpe"   /* automatically generated header file */
 
 /****************************************************************************
  Function prototypes
  */
 
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
 
-RwImage *RtPNGImageWrite(RwImage *image, const RwChar *imageName); // 0x7CF600
-RwImage *RtPNGImageRead(const RwChar *imageName);                  // 0x7CF9B0
+extern RwImage *RtPNGImageWrite(RwImage * image, const RwChar * imageName);
+extern RwImage *RtPNGImageRead(const RwChar * imageName);
 
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
 
 /* RWPUBLICEND */
 

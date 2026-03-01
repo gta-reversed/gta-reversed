@@ -6,11 +6,15 @@
 #include "platform.h"
 
 #include "Clouds.h"
+#include "CarFXRenderer.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 #include "Pipelines/CustomBuilding/CustomBuildingRenderer.h"
 
-#include "win/win.h"
+#include "platform/win/WinPlatform.h"
+
+#include "Enums/eGameState.h"
+#include "Base.h"
 
 void AppInjectHooks() {
     RH_ScopedCategory("App");
@@ -30,6 +34,13 @@ void AppInjectHooks() {
     AppGameInjectHooks();
     AppLightInjectHooks();
 }
+
+void ChangeGameStateTo(eGameState newgs) {
+    if (gGameState != newgs) {
+        //NOTSA_LOG_DEBUG("GS Change: `{}` to `{}`", (eGameState)(gGameState), (eGameState)(newgs)); // doesn't compile???
+        gGameState = newgs;
+    }
+};
 
 // 0x53D690
 bool DoRWStuffStartOfFrame(int16 TopRed, int16 TopGreen, int16 TopBlue, int16 BottomRed, int16 BottomGreen, int16 BottomBlue, int16 Alpha) {
@@ -54,6 +65,8 @@ bool DoRWStuffStartOfFrame(int16 TopRed, int16 TopGreen, int16 TopBlue, int16 Bo
 
 // 0x53D7A0
 bool DoRWStuffStartOfFrame_Horizon(int16 TopRed, int16 TopGreen, int16 TopBlue, int16 BottomRed, int16 BottomGreen, int16 BottomBlue, int16 Alpha) {
+    ZoneScoped;
+
     CDraw::CalculateAspectRatio();
     CameraSize(Scene.m_pRwCamera, nullptr, SCREEN_VIEW_WINDOW, SCREEN_ASPECT_RATIO);
     CVisibilityPlugins::SetRenderWareCamera(Scene.m_pRwCamera);
@@ -119,7 +132,7 @@ RsEventStatus AppEventHandler(RsEvent event, void* param) {
 bool PluginAttach() {
     const auto Attach = [](auto name, auto attachFn) {
         if (!attachFn()) {
-            DEV_LOG("Couldn't attach {} plugin", name);
+            NOTSA_LOG_DEBUG("Couldn't attach {} plugin", name);
             return false;
         }
         return true;

@@ -14,8 +14,8 @@ void CDirectory::InjectHooks() {
     RH_ScopedInstall(ReadDirFile, 0x532350);
     RH_ScopedInstall(WriteDirFile, 0x532410);
     RH_ScopedOverloadedInstall(FindItem, "", 0x532450, DirectoryInfo*(CDirectory::*)(const char*) const);
-    RH_ScopedOverloadedInstall(FindItem, "ByName", 0x5324A0, bool(CDirectory::*)(const char*, uint32&, uint32&) const);
-    RH_ScopedOverloadedInstall(FindItem, "ByHash", 0x5324D0, bool(CDirectory::*)(uint32, uint32&, uint32&) const);
+    RH_ScopedOverloadedInstall(FindItem, "ByName", 0x5324A0, bool(CDirectory::*)(const char*, CdStreamPos&, uint32&) const);
+    RH_ScopedOverloadedInstall(FindItem, "ByHash", 0x5324D0, bool(CDirectory::*)(uint32, CdStreamPos&, uint32&) const);
 }
 
 CDirectory* CDirectory::Constructor() { this->CDirectory::CDirectory(); return this; }
@@ -51,20 +51,22 @@ void CDirectory::AddItem(const DirectoryInfo& dirInfo) {
     if (m_nNumEntries < m_nCapacity) {
 #ifdef FIX_BUGS
         // don't add if already exists
-        uint32 offset, size;
-        if(FindItem(dirInfo.m_szName, offset, size))
+        uint32 size;
+        CdStreamPos pos;
+        if (FindItem(dirInfo.Name, pos, size)) {
             return;
+        }
 #endif
         m_pEntries[m_nNumEntries++] = dirInfo;
     } else {
-        DEV_LOG("Too many objects without modelinfo structures");
+        NOTSA_LOG_DEBUG("Too many objects without modelinfo structures");
     }
 }
 
 // NOTSA
-void CDirectory::AddItem(const DirectoryInfo& dirInfo, int32 imgId) {
+void CDirectory::AddItem(const DirectoryInfo& dirInfo, CdStreamID streamID) {
     DirectoryInfo di = dirInfo;
-    di.m_nOffset |= imgId << 24;
+    di.Pos.FileID = streamID;
     AddItem(di);
 }
 
@@ -99,40 +101,38 @@ bool CDirectory::WriteDirFile(const char* fileName) {
 
 // 0x532450
 CDirectory::DirectoryInfo* CDirectory::FindItem(const char* itemName) const {
-    if (m_nNumEntries <= 0)
+    if (m_nNumEntries <= 0) {
         return nullptr;
-
+    }
     for (DirectoryInfo* it = m_pEntries; it != m_pEntries + m_nNumEntries; it++) {
-        if (_stricmp(it->m_szName, itemName) == 0) {
+        if (_stricmp(it->Name, itemName) == 0) {
             return it;
         }
     }
-
     return nullptr;
 }
 
 // 0x5324A0
-bool CDirectory::FindItem(const char* name, uint32& outOffset, uint32& outStreamingSize) const {
+bool CDirectory::FindItem(const char* name, CdStreamPos& pos, uint32& outSize) const {
     if (DirectoryInfo* info = FindItem(name)) {
-        outOffset        = info->m_nOffset;
-        outStreamingSize = info->m_nStreamingSize;
+        pos     = info->Pos;
+        outSize = info->Size;
         return true;
     }
     return false;
 }
 
 // 0x5324D0
-bool CDirectory::FindItem(uint32 hashKey, uint32& outOffset, uint32& outStreamingSize) const {
-    if (m_nNumEntries <= 0)
+bool CDirectory::FindItem(uint32 hashKey, CdStreamPos& pos, uint32& outSize) const {
+    if (m_nNumEntries <= 0) {
         return false;
-
+    }
     for (DirectoryInfo* it = m_pEntries; it != m_pEntries + m_nNumEntries; it++) {
-        if (CKeyGen::GetUppercaseKey(it->m_szName) == hashKey) {
-            outOffset = it->m_nOffset;
-            outStreamingSize = it->m_nStreamingSize;
+        if (CKeyGen::GetUppercaseKey(it->Name) == hashKey) {
+            pos     = it->Pos;
+            outSize = it->Size;
             return true;
         }
     }
-
     return false;
 }

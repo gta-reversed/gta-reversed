@@ -27,9 +27,6 @@ public:
     void Render() override;
 
 private:
-    void ProcessControl_Reversed();
-    void PreRender_Reversed();
-    void Render_Reversed();
 };
 
 VALIDATE_SIZE(CHandObject, 0x18C);

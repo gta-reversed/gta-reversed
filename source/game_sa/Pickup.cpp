@@ -110,7 +110,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     }
 
     if (mi->GetModelType() == MODEL_INFO_WEAPON) {
-        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->m_weaponInfo);
+        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->GetWeaponInfo());
     }
 
     if (slotIndex < 0) {
@@ -121,7 +121,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     CPools::MakeSureSlotInObjectPoolIsEmpty(slotIndex);
     object = new (slotIndex << 8) CObject(m_nModelIndex, false);
     if (!object) {
-        DEV_LOG("NO OBJECT ALLOCATED WHAT THE FUCK");
+        NOTSA_LOG_DEBUG("NO OBJECT ALLOCATED WHAT THE FUCK");
         return;
     }
 
@@ -137,9 +137,9 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     object->UpdateRwFrame();
     object->physicalFlags.bApplyGravity = false;
     object->physicalFlags.bExplosionProof = true;
-    object->m_bUsesCollision = false;
+    object->SetUsesCollision(false);
     object->objectFlags.bIsPickup = true;
-    object->objectFlags.b0x02 = object->m_bCollisionProcessed;
+    object->objectFlags.b0x02 = object->GetCollisionProcessed();
     object->objectFlags.bDoNotRender = PickUpShouldBeInvisible();
     object->m_bHasPreRenderEffects = true;
     object->m_bTunnelTransition = true;
@@ -154,7 +154,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     switch (m_nPickupType) {
     case PICKUP_IN_SHOP_OUT_OF_STOCK:
         object->objectFlags.bPickupInShopOutOfStock = true;
-        object->physicalFlags.bDestroyed = true; // ?
+        object->physicalFlags.bRenderScorched = true; // ?
         break;
 
     case PICKUP_PROPERTY_FORSALE:
@@ -191,7 +191,7 @@ bool CPickup::PickUpShouldBeInvisible() {
 
 // Checks if pickup collides with line (origin;target), removes pickup and creates an explosion. Used in previous GTA games for mine pickup
 // 0x4588B0
-void CPickup::ProcessGunShot(CVector* start, CVector* end) {
+void CPickup::ProcessGunShot(const CVector& start, const CVector& end) {
     if (!m_pObject)
         return;
 
@@ -203,7 +203,8 @@ void CPickup::ProcessGunShot(CVector* start, CVector* end) {
 
 // 0x4556C0
 void CPickup::Remove() {
-    CRadar::ClearBlipForEntity(BLIP_PICKUP, CPickups::GetUniquePickupIndex(this - CPickups::aPickUps.data()).num);
+    auto pickupRef = tPickupReference(*this);
+    CRadar::ClearBlipForEntity(BLIP_PICKUP, pickupRef.num);
     GetRidOfObjects();
     m_nPickupType = PICKUP_NONE;
     m_nFlags.bDisabled = true;
@@ -269,7 +270,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
             if (CWaterLevel::GetWaterLevel(m_pObject->GetPosition(), level, true)) {
                 m_pObject->GetPosition().z = level + extra;
             }
-            m_pObject->UpdateRW();
+            m_pObject->UpdateRwMatrix();
             m_pObject->UpdateRwFrame();
         };
 
@@ -285,13 +286,8 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
             ObjectWaterLevelCheck(0.6f);
 
             bool isAnyVehicleTouching = false;
-            for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-                auto vehicle = GetVehiclePool()->GetAt(i);
-
-                if (!vehicle)
-                    continue;
-
-                if (vehicle->IsSphereTouchingVehicle(m_pObject->GetPosition(), 2.0f)) {
+            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+                if (vehicle.IsSphereTouchingVehicle(m_pObject->GetPosition(), 2.0f)) {
                     isAnyVehicleTouching = true;
                     // break?
                 }
@@ -310,13 +306,8 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
 
         case PICKUP_MINE_ARMED: {
             bool explode = CTimer::GetTimeInMS() > m_nRegenerationTime;
-            for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-                auto vehicle = GetVehiclePool()->GetAt(i);
-
-                if (!vehicle)
-                    continue;
-
-                if (vehicle->IsSphereTouchingVehicle(m_pObject->GetPosition(), 1.5f)) {
+            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+                if (vehicle.IsSphereTouchingVehicle(m_pObject->GetPosition(), 1.5f)) {
                     explode = true;
                     // break?
                 }
@@ -331,7 +322,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
         case PICKUP_FLOATINGPACKAGE: {
             m_pObject->GetMoveSpeed().z -= CTimer::GetTimeStep() / 1'000.0f;
             m_pObject->GetPosition() += m_pObject->GetMoveSpeed() * CTimer::GetTimeStep();
-            m_pObject->UpdateRW();
+            m_pObject->UpdateRwMatrix();
             m_pObject->UpdateRwFrame();
 
             float level;
@@ -387,7 +378,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                             const auto& weaponInfo = CWeaponInfo::GetWeaponInfo(weapon);
                             auto& pedWeapon = player->GetWeaponInSlot(weaponInfo->m_nSlot);
 
-                            if (pedWeapon.m_nType != weapon) {
+                            if (pedWeapon.m_Type != weapon) {
                                 if (!CStreaming::GetInfo(m_pObject->m_nModelIndex).IsLoaded()) {
                                     return false;
                                 }
@@ -403,7 +394,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     }
                                 };
 
-                                if (pedWeapon.m_nType != WEAPON_UNARMED && (pedWeapon.m_nTotalAmmo != 0 || IsSlotExchangeable(weaponInfo->m_nSlot))) {
+                                if (pedWeapon.m_Type != WEAPON_UNARMED && (pedWeapon.m_TotalAmmo != 0 || IsSlotExchangeable(weaponInfo->m_nSlot))) {
                                     CPickups::PlayerOnWeaponPickup = 6;
 
                                     if (IsSlotExchangeable(weaponInfo->m_nSlot)) {
@@ -444,10 +435,10 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nFlags.bHelpMessageDisplayed = true;
                                     }
 
-                                    if (!CollectPickupBuffer || CTimer::GetTimeInMS() - player->m_pPlayerData->m_nLastHSMissileLOSTime < 1500) {
+                                    if (!CollectPickupBuffer || CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500) {
                                         return false;
                                     }
-                                } else if (CTimer::GetTimeInMS() - player->m_pPlayerData->m_nLastHSMissileLOSTime < 1500 ||
+                                } else if (CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500 ||
                                            !CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(weapon)) {
                                     CPickups::PlayerOnWeaponPickup = 6;
                                     return false;
@@ -500,7 +491,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nRegenerationTime = regenTime + 30'000;
                                         break;
                                     case PICKUP_ON_STREET_SLOW:
-                                        m_nRegenerationTime = regenTime + (mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000;
+                                        m_nRegenerationTime = regenTime + ((mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000);
                                         break;
                                     default:
                                         break;
@@ -523,7 +514,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             player->GiveDelayedWeapon(weapon, (!m_nFlags.bEmpty) ? AmmoForWeapon_OnStreet[weapon] : 0);
                                         }
 
-                                        if (auto& chosen = player->m_pPlayerData->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
+                                        if (auto& chosen = player->GetPlayerData()->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
                                             chosen = player->GetWeaponSlot(weapon);
                                         }
                                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_WEAPON);
@@ -558,7 +549,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             player->GiveDelayedWeapon(weapon, (m_nFlags.bEmpty) ? 0 : AmmoForWeapon_OnStreet[weapon]);
                                         }
 
-                                        if (auto& chosen = player->m_pPlayerData->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
+                                        if (auto& chosen = player->GetPlayerData()->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
                                             chosen = player->GetWeaponSlot(weapon);
                                         }
                                     }
@@ -574,7 +565,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                             case PICKUP_MONEY_DOESNTDISAPPEAR:
                                 FindPlayerInfo().m_nMoney += m_nAmmo; // originally player 0
                                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_MONEY);
-                                player->Say(172u);
+                                player->Say(CTX_GLOBAL_PICKUP_CASH);
                                 SetRemoved();
                                 break;
                             case PICKUP_ASSET_REVENUE:
@@ -599,7 +590,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     CHud::SetHelpMessage(gGxtString, false, false, false);
                                 }
                                 if (CollectPickupBuffer) {
-                                    const char* textToPrint = nullptr;
+                                    const GxtChar* textToPrint = nullptr;
                                     if (CTheScripts::IsPlayerOnAMission()) {
                                         textToPrint = TheText.Get("PROP_2");
                                     } else if (FindPlayerInfo().m_nMoney < (int32)m_nAmmo) {

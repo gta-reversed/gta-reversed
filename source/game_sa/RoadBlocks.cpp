@@ -43,6 +43,8 @@ void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPosit
 
 // 0x4629E0
 void CRoadBlocks::GenerateRoadBlocks() {
+    ZoneScoped;
+
     plugin::Call<0x4629E0>();
 }
 

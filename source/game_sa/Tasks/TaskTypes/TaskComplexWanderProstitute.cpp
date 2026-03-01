@@ -3,7 +3,7 @@
 #include "TaskComplexWanderProstitute.h"
 
 // 0x672690
-CTaskComplexWanderProstitute::CTaskComplexWanderProstitute(int32 MoveState, uint8 Dir, bool bWanderSensibly) :
+CTaskComplexWanderProstitute::CTaskComplexWanderProstitute(eMoveState MoveState, uint8 Dir, bool bWanderSensibly) :
     CTaskComplexWanderStandard(MoveState, Dir, bWanderSensibly),
     m_nStartTimeInMs{ 0 }
 {

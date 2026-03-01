@@ -277,14 +277,6 @@ public:
     void SetClump(RpClump* clump) override;
 
     // VTable implementations
-    ModelInfoType GetModelType_Reversed();
-    void Init_Reversed();
-    void DeleteRwObject_Reversed();
-    RwObject* CreateInstance_Reversed();
-    void SetAnimFile_Reversed(const char* filename);
-    void ConvertAnimFileIndex_Reversed();
-    int32 GetAnimFileIndex_Reversed();
-    void SetClump_Reversed(RpClump* clump);
 
     // Class methods
     // setup model render callbacks
@@ -329,7 +321,7 @@ public:
     // get num doors in this model
     int32 GetNumDoors();
     // get position of dummy in model-space
-    CVector* GetModelDummyPosition(eVehicleDummy dummy) const { return &m_pVehicleStruct->m_avDummyPos[dummy]; } // NOTSA
+    auto&& GetModelDummyPosition(this auto&& self, eVehicleDummy dummy) { return self.m_pVehicleStruct->m_avDummyPos[dummy]; } // NOTSA
     // Static method's
     // setup lights states for currently rendered vehicle
     static void SetupLightFlags(class CVehicle* vehicle);
@@ -473,7 +465,6 @@ static int32 CountCompsInRule(int32 comps);
 static int32 GetListOfComponentsNotUsedByRules(uint32 compRules, int32 numExtras, int32* outList);
 static RpMaterial* RemoveWindowAlphaCB(RpMaterial* material, void* data); // data is RpMaterialList**
 static RwObject* GetOkAndDamagedAtomicCB(RwObject* object, void* data);   // data is &RpAtomic[2]
-static RpAtomic* atomicDefaultRenderCB(RpAtomic* atomic);
 
 extern RwTexDictionary*& vehicleTxd;
 extern RwFrame*& carFrame;

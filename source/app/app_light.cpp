@@ -97,25 +97,19 @@ void LightsDestroy(RpWorld* world) {
     if (!world) {
         return;
     }
-
-    if (pAmbient) {
-        RpWorldRemoveLight(world, pAmbient);
-        RpLightDestroy(pAmbient);
-        pAmbient = nullptr;
-    }
-
-    if (pDirect) {
-        RpWorldRemoveLight(world, pDirect);
-        RwFrameDestroy(RpLightGetFrame(pDirect));
-        RpLightDestroy(pDirect);
-        pDirect = nullptr;
-    }
-
+    const auto DestroyLight = [world](RpLight*& light, bool destroyFrame) {
+        if (light) {
+            RpWorldRemoveLight(world, light);
+            if (destroyFrame) {
+                RwFrameDestroy(RpLightGetFrame(light));
+            }
+            RpLightDestroy(std::exchange(light, nullptr));
+        }
+    };
+    DestroyLight(pAmbient, false);
+    DestroyLight(pDirect, true);
     for (auto& light : pExtraDirectionals) {
-        RpWorldRemoveLight(world, light);
-        RwFrameDestroy(RpLightGetFrame(light));
-        RpLightDestroy(light);
-        light = nullptr;
+        DestroyLight(light, true);
     }
 }
 
@@ -126,6 +120,8 @@ void LightsEnable(int32 enable) {
 
 // 0x7354E0
 void SetLightsWithTimeOfDayColour(RpWorld* world) {
+    ZoneScoped;
+
     assert(world);
 
     if (pAmbient) {

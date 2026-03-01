@@ -1,16 +1,15 @@
 #include "StdInc.h"
-
 #include "EventOnFire.h"
 
+
 void CEventOnFire::InjectHooks() {
-    RH_ScopedClass(CEventOnFire);
+    RH_ScopedVirtualClass(CEventOnFire, 0x86CCC0, 16);
     RH_ScopedCategory("Events");
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B1050);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B1050);
 }
-bool CEventOnFire::AffectsPed(CPed* ped) { return CEventOnFire::AffectsPed_Reversed(ped); }
 
 // 0x4B1050
-bool CEventOnFire::AffectsPed_Reversed(CPed* ped) {
+bool CEventOnFire::AffectsPed(CPed* ped) {
     if (ped->m_pFire && !ped->physicalFlags.bFireProof) {
         CTask* activeTask = ped->GetTaskManager().GetActiveTask();
         if (activeTask && activeTask->GetTaskType() == TASK_COMPLEX_ON_FIRE)

@@ -2,6 +2,7 @@
 
 #include "TaskComplexWander.h"
 #include "TaskTimer.h"
+#include "eMoveState.h"
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWanderStandard : public CTaskComplexWander {
 public:
@@ -9,9 +10,9 @@ public:
     uint32     m_nMinNextScanTime;
 
 public:
-    CTaskComplexWanderStandard(int32 MoveState, uint8 Dir, bool bWanderSensibly = true);
+    CTaskComplexWanderStandard(eMoveState MoveState, uint8 Dir, bool bWanderSensibly = true);
 
-    CTask* Clone() override { return new CTaskComplexWanderStandard(m_nMoveState, m_nDir); } // 0x48E530
+    CTask* Clone() const override { return new CTaskComplexWanderStandard(m_nMoveState, m_nDir); } // 0x48E530
     eWanderType GetWanderType() override { return WANDER_TYPE_STANDARD; } // 0x48E5D0
     void ScanForStuff(CPed* ped) override;
 

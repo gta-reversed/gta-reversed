@@ -9,7 +9,7 @@ class CVector;
 class CSimpleVariablesSaveStructure {
 public:
     uint32       m_nVersionId;
-    char         m_szSaveName[100];
+    GxtChar      m_szSaveName[100];
     bool         m_bMissionPackGame;
     int32        m_nCurrLevel;
     CVector      m_vecCamPosn;

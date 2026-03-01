@@ -4,11 +4,11 @@
 
 // NOTSA
 void CColTriangle::DrawWireFrame(CRGBA color, const CompressedVector* vertices, const CMatrix& transform) const {
-    const CVector a = transform * UncompressVector(vertices[vA]);
-    const CVector b = transform * UncompressVector(vertices[vB]);
-    const CVector c = transform * UncompressVector(vertices[vC]);
+    const CVector a = transform.TransformPoint(vertices[vA]);
+    const CVector b = transform.TransformPoint(vertices[vB]);
+    const CVector c = transform.TransformPoint(vertices[vC]);
 
-    const auto colorARGB = color.ToInt();
+    const auto colorARGB = color.ToIntARGB();
     CLines::RenderLineNoClipping(a, b, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(a, c, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(b, c, colorARGB, colorARGB);
@@ -26,7 +26,7 @@ auto CColTriangle::GetBoundingRect(const CVector& a, const CVector& b, const CVe
 
 auto CColTriangle::GetPoly(const CompressedVector* verts) const -> CStoredCollPoly {
     return CStoredCollPoly{
-        .verts    = { UncompressVector(verts[vA]), UncompressVector(verts[vB]), UncompressVector(verts[vC]) },
+        .verts    = { verts[vA], verts[vB], verts[vC] },
         .valid    = true,
         .ligthing = m_nLight,
     };

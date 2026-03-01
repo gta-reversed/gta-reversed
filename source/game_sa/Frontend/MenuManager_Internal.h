@@ -3,21 +3,29 @@
 #include "Game.h"
 
 // Type of menu entries
-enum eMenuEntryType : int8 {
-    MENU_ENTRY_NONE,
-    MENU_ENTRY_SAVE_1 = 1,
-    MENU_ENTRY_SAVE_2,
-    MENU_ENTRY_SAVE_3,
-    MENU_ENTRY_SAVE_4,
-    MENU_ENTRY_SAVE_5,
-    MENU_ENTRY_SAVE_6,
-    MENU_ENTRY_SAVE_7,
-    MENU_ENTRY_SAVE_8,
+enum eMenuEntryType : int8 { // Originally it has no name.
+    TI_STRING       = 0,
+    TI_SLOT1        = 1,
+    FIRST_SAVE_SLOT = TI_SLOT1,
+    TI_SLOT2,
+    TI_SLOT3,
+    TI_SLOT4,
+    TI_SLOT5,
+    TI_SLOT6,
+    TI_SLOT7,
+    TI_SLOT8,
+    MAX_SAVE_SLOT = TI_SLOT8,
 
-    MENU_ENTRY_MPACK,       // mission pack
-    MENU_ENTRY_JOY_MOUSE,
-    MENU_ENTRY_BUTTON,
-    MENU_ENTRY_OPTION,
+    /*
+    TI_SLOTAUTO
+    TI_SLOTCP1
+    TI_SLOTCP2
+    */
+
+    TI_MPACK = 9,
+    TI_MOUSEJOYPAD = 10,
+    TI_ENTER = 11,
+    TI_OPTION = 12,
 };
 
 enum eMenuScreen : int8 {
@@ -114,7 +122,7 @@ enum eMenuAction : int8 { // There's many actions @0x57702E and @0x57CD88
     MENU_ACTION_RADAR_MODE,               // 34
     MENU_ACTION_HUD_MODE,                 // 35
 
-    MENU_ACTION_LANGUAGE,                 // 36  Old way to switch language?
+    MENU_ACTION_LANGUAGE,                  // 36  Old way to switch language?
     MENU_ACTION_LANG_ENGLISH,              // 37
     MENU_ACTION_LANG_FRENCH,               // 38
     MENU_ACTION_LANG_GERMAN,               // 39
@@ -160,6 +168,7 @@ enum eMenuAction : int8 { // There's many actions @0x57702E and @0x57CD88
 # if defined(USE_GALLERY)
     MENU_ACTION_GALLERY, // (xbox #34)
 # endif
+    MENU_ACTION_COUNT
 };
 
 enum eMenuAlign : int8 {
@@ -184,11 +193,11 @@ struct tMenuScreen {
     char            m_szTitleName[8];
     eMenuScreen     m_nParentMenu;
     int8            m_nStartEntry;
-    tMenuScreenItem m_aItems[12];
+    tMenuScreenItem m_aItems[12]; // eMenuEntryType::TI_OPTION ?
 };
 VALIDATE_SIZE(tMenuScreen, 0xE2);
 
-enum {
+enum eFrontend : int8 {
     FRONTEND1_START       = 0,
     FRONTEND2_START       = 13,
     FRONTEND3_START       = 21,
@@ -228,6 +237,11 @@ enum {
     FRONTEND_SPRITE_MOUSE        = FRONTEND4_START,
     FRONTEND_SPRITE_CROSS_HAIR,
 };
+
+// NOTSA
+inline bool IsSaveSlot(eMenuEntryType slot) {
+    return slot >= eMenuEntryType::FIRST_SAVE_SLOT && slot <= eMenuEntryType::MAX_SAVE_SLOT;
+}
 
 static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
 extern SpriteFileName FrontEndFilenames[];

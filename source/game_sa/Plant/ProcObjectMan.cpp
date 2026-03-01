@@ -16,7 +16,7 @@ void ProcObjectMan_c::InjectHooks() {
     RH_ScopedInstall(GetEntityFromPool, 0x5A3120);
     RH_ScopedInstall(ReturnEntityToPool, 0x5A3130);
     RH_ScopedInstall(ProcessTriangleAdded, 0x5A3F20);
-    RH_ScopedInstall(ProcessTriangleRemoved, 0x5A3F70, {.reversed = false});
+    RH_ScopedInstall(ProcessTriangleRemoved, 0x5A3F70);
 }
 
 // 0x5A3EA0
@@ -31,6 +31,8 @@ void ProcObjectMan_c::Init() {
 
 // 0x5A3110
 void ProcObjectMan_c::Update() {
+    ZoneScoped;
+
     // NOP
 }
 
@@ -96,7 +98,7 @@ ProcObjectListItem* ProcObjectMan_c::GetEntityFromPool() {
 }
 
 // 0x5A3130
-void ProcObjectMan_c::ReturnEntityToPool(ListItem_c* item) { // todo: EntityItem_c
+void ProcObjectMan_c::ReturnEntityToPool(ProcObjectListItem* item) {
     m_ObjectsList.AddItem(item);
 }
 
@@ -113,9 +115,6 @@ int32 ProcObjectMan_c::ProcessTriangleAdded(CPlantLocTri* plant) {
 
 // 0x5A3F70
 void ProcObjectMan_c::ProcessTriangleRemoved(CPlantLocTri* triangle) {
-    return plugin::CallMethod<0x5A3F70, ProcObjectMan_c*, CPlantLocTri*>(this, triangle);
-    // todo: fix the fucking list loop
-    /*
     if (m_numProcSurfaceInfos <= 0)
         return;
 
@@ -123,10 +122,14 @@ void ProcObjectMan_c::ProcessTriangleRemoved(CPlantLocTri* triangle) {
         if (info.m_SurfaceId != triangle->m_SurfaceId)
             continue;
 
-        for (auto i = info.m_Objects.GetHead(); i; i = info.m_Objects.GetNext(i)) {
-            auto& obj = *(ProcObjectListItem*)i;
+        auto* head = info.m_Objects.GetHead();
+        while (head) {
+            // The list is edited inside this loop, we need to keep reference to next object before we do any procesing
+            auto*  next = info.m_Objects.GetNext(head);
+
+            auto& obj = *(ProcObjectListItem*)head;
             if (obj.m_LocTri == triangle) {
-                if (obj.m_Obj->m_nType == ENTITY_TYPE_OBJECT) {
+                if (obj.m_Obj->GetIsTypeObject()) {
                     CObject::nNoTempObjects--;
                 }
 
@@ -134,15 +137,16 @@ void ProcObjectMan_c::ProcessTriangleRemoved(CPlantLocTri* triangle) {
                 g_procObjMan.m_ObjectsList.AddItem(&obj);
                 obj.m_Obj->DeleteRwObject();
                 CWorld::Remove(obj.m_Obj);
-                if (obj.m_Obj) {
-                    delete obj.m_Obj;
-                }
+
+                delete obj.m_Obj;
+                obj.m_Obj = nullptr;
 
                 if (obj.m_bAllocatedMatrix) {
                     m_numAllocatedMatrices--;
                     obj.m_bAllocatedMatrix = false;
                 }
             }
+            head = next;
         }
-    }*/
+    }
 }

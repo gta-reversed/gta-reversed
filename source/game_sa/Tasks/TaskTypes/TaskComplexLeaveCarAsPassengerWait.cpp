@@ -123,7 +123,7 @@ CTask* CTaskComplexLeaveCarAsPassengerWait::CreateFirstSubTask(CPed* ped) {
 CTask* CTaskComplexLeaveCarAsPassengerWait::ControlSubTask(CPed* ped) {
     if (m_pSubTask->GetTaskType() == TASK_SIMPLE_CAR_DRIVE) {
         if (GetNextPassengerToLeave() == ped) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
             }
         }

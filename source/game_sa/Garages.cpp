@@ -37,6 +37,8 @@ void CGarages::InjectHooks() {
 
 // 0x447120
 void CGarages::Init() {
+    ZoneScoped;
+
     NumGarages            = 0;
     MessageEndTime        = 0;
     MessageStartTime      = 0;
@@ -81,7 +83,9 @@ void CGarages::Shutdown() {
 
 // 0x44C8C0
 void CGarages::Update() {
-    if (CReplay::Mode == eReplayMode::MODE_PLAYBACK || CGameLogic::IsCoopGameGoingOn()) {
+    ZoneScoped;
+
+    if (CReplay::Mode == eReplayMode::MODE_PLAYBACK || CGameLogic::IsCoopGameGoingOn())
         return;
     }
 
@@ -124,8 +128,8 @@ void CGarages::GivePlayerDetonator() {
     auto player = FindPlayerPed();
     auto slot = CWeaponInfo::GetWeaponInfo(WEAPON_DETONATOR, eWeaponSkill::STD)->m_nSlot;
     player->GiveWeapon(WEAPON_DETONATOR, 1, true);
-    player->m_aWeapons[slot].m_nState = WEAPONSTATE_READY;
-    player->m_pPlayerData->m_nChosenWeapon = slot;
+    player->m_aWeapons[slot].m_State = WEAPONSTATE_READY;
+    player->GetPlayerData()->m_nChosenWeapon = slot;
     if (player->m_nSavedWeapon != WEAPON_UNIDENTIFIED)
         player->m_nSavedWeapon = WEAPON_DETONATOR;
 }
@@ -432,19 +436,19 @@ int16 CGarages::GetGarageNumberByName(const char* name) {
 bool CGarages::Load() {
     CloseHideOutGaragesBeforeSave();
 
-    LoadDataFromWorkBuffer(NumGarages);
-    LoadDataFromWorkBuffer(BombsAreFree);
-    LoadDataFromWorkBuffer(RespraysAreFree);
-    LoadDataFromWorkBuffer(NoResprays);
-    LoadDataFromWorkBuffer(CarsCollected);
-    LoadDataFromWorkBuffer(BankVansCollected);
-    LoadDataFromWorkBuffer(PoliceCarsCollected);
+    CGenericGameStorage::LoadDataFromWorkBuffer(NumGarages);
+    CGenericGameStorage::LoadDataFromWorkBuffer(BombsAreFree);
+    CGenericGameStorage::LoadDataFromWorkBuffer(RespraysAreFree);
+    CGenericGameStorage::LoadDataFromWorkBuffer(NoResprays);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CarsCollected);
+    CGenericGameStorage::LoadDataFromWorkBuffer(BankVansCollected);
+    CGenericGameStorage::LoadDataFromWorkBuffer(PoliceCarsCollected);
 
     for (auto& v : CarTypesCollected) {
-        LoadDataFromWorkBuffer(v);
+        CGenericGameStorage::LoadDataFromWorkBuffer(v);
     }
 
-    LoadDataFromWorkBuffer(LastTimeHelpMessage);
+    CGenericGameStorage::LoadDataFromWorkBuffer(LastTimeHelpMessage);
 
     // NOTE: Here they messed up the order of loops
     //       C/C++ is row-major, so, the row loop should've been the outer one..
@@ -452,15 +456,12 @@ bool CGarages::Load() {
     //       Which means the data isn't saved contiguously either, so watch out for that.
     for (auto c = 0; c < 4; c++) {
         for (auto r = 0; r < 20; r++) {
-            LoadDataFromWorkBuffer(aCarsInSafeHouse[r][c]);
+            CGenericGameStorage::LoadDataFromWorkBuffer(aCarsInSafeHouse[r][c]);
         }
     }
 
-    // our debug leftover std::ranges::for_each(aCarsInSafeHouse, [&](auto& car) { DEV_LOG("%d\n", car->m_wModelIndex); });
-
-    for (auto i = 0u; i < NumGarages; i++) {
-        CSaveGarage sg{};
-        LoadDataFromWorkBuffer(sg);
+    for (auto i = 0; i < NumGarages; i++) {
+        auto sg = CGenericGameStorage::LoadDataFromWorkBuffer<CSaveGarage>();
         sg.CopyGarageOutOfSaveGarage(aGarages[i]);
     }
 
@@ -474,19 +475,19 @@ bool CGarages::Load() {
 // todo: fix Update()
 // 0x5D3160
 bool CGarages::Save() {
-    SaveDataToWorkBuffer(NumGarages);
-    SaveDataToWorkBuffer(BombsAreFree);
-    SaveDataToWorkBuffer(RespraysAreFree);
-    SaveDataToWorkBuffer(NoResprays);
-    SaveDataToWorkBuffer(CarsCollected);
-    SaveDataToWorkBuffer(BankVansCollected);
-    SaveDataToWorkBuffer(PoliceCarsCollected);
+    CGenericGameStorage::SaveDataToWorkBuffer(NumGarages);
+    CGenericGameStorage::SaveDataToWorkBuffer(BombsAreFree);
+    CGenericGameStorage::SaveDataToWorkBuffer(RespraysAreFree);
+    CGenericGameStorage::SaveDataToWorkBuffer(NoResprays);
+    CGenericGameStorage::SaveDataToWorkBuffer(CarsCollected);
+    CGenericGameStorage::SaveDataToWorkBuffer(BankVansCollected);
+    CGenericGameStorage::SaveDataToWorkBuffer(PoliceCarsCollected);
 
     for (auto carType : CarTypesCollected) {
-        SaveDataToWorkBuffer(carType);
+        CGenericGameStorage::SaveDataToWorkBuffer(carType);
     }
 
-    SaveDataToWorkBuffer(LastTimeHelpMessage);
+    CGenericGameStorage::SaveDataToWorkBuffer(LastTimeHelpMessage);
 
     // NOTE: Here they messed up the order of loops
     //       C/C++ is row-major, so, the row loop should've been the outer one..
@@ -494,14 +495,14 @@ bool CGarages::Save() {
     //       Which means the data isn't saved contiguously either, so watch out for that.
     for (auto c = 0; c < 4; c++) {
         for (auto r = 0; r < 20; r++) {
-            SaveDataToWorkBuffer(aCarsInSafeHouse[r][c]);
+            CGenericGameStorage::SaveDataToWorkBuffer(aCarsInSafeHouse[r][c]);
         }
     }
 
     for (auto i = 0u; i < NumGarages; i++) {
         CSaveGarage sg{};
         sg.CopyGarageIntoSaveGarage(aGarages[i]);
-        SaveDataToWorkBuffer(sg);
+        CGenericGameStorage::SaveDataToWorkBuffer(sg);
     }
 
     return true;

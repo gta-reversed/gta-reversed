@@ -4,7 +4,7 @@
 
 class CEntity;
 
-class CTaskGangHasslePed : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskGangHasslePed : public CTaskComplex {
 public:
     CPed* m_Ped;
     int32 dword10; // values are 0, 1, 2
@@ -22,8 +22,8 @@ public:
     CTaskGangHasslePed(CPed* ped, int32 a3, int32 a4, int32 a5);
     ~CTaskGangHasslePed() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskGangHasslePed(m_Ped, dword10, m_RndMin, m_RndMax); } // 0x6620D0
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskGangHasslePed(m_Ped, dword10, m_RndMin, m_RndMax); } // 0x6620D0
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

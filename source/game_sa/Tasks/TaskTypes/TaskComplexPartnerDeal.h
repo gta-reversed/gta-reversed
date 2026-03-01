@@ -2,7 +2,7 @@
 
 #include "TaskComplexPartner.h"
 
-class CTaskComplexPartnerDeal : public CTaskComplexPartner {
+class NOTSA_EXPORT_VTABLE CTaskComplexPartnerDeal : public CTaskComplexPartner {
 public:
     int32 field_70;
 
@@ -12,8 +12,8 @@ public:
     CTaskComplexPartnerDeal(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, CVector point);
     ~CTaskComplexPartnerDeal() override = default;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexPartnerDeal(m_commandName, m_partner, m_leadSpeaker, m_distanceMultiplier, m_point); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexPartnerDeal(m_commandName, m_partner, m_leadSpeaker, m_distanceMultiplier, m_point); }
     CTask* CreateFirstSubTask(CPed* ped) override;
     void StreamRequiredAnims() override;
     virtual CTaskComplexSequence* GetPartnerSequence();

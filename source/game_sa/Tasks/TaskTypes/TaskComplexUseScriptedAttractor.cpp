@@ -30,7 +30,7 @@ CTaskComplexUseScriptedAttractor::CTaskComplexUseScriptedAttractor(const CTaskCo
 
 // 0x6390C0
 CTask* CTaskComplexUseScriptedAttractor::CreateFirstSubTask(CPed* ped) {
-    if (const auto optEffectIdx = CScripted2dEffects::IndexOfEffect(m_attractor.m_pEffect)) {
+    if (const auto optEffectIdx = CScripted2dEffects::IndexOfEffect(m_attractor.m_Fx)) {
         return new CTaskComplexUseSequence{
             CScripted2dEffects::ms_effectSequenceTaskIDs[*optEffectIdx]
         };

@@ -6,10 +6,9 @@
 class ProcSurfaceInfo_c;
 class CObject;
 class CEntity;
-class ListItem_c;
 class CPlantLocTri;
 
-class ProcObjectListItem : public ListItem_c {
+class ProcObjectListItem : public ListItem_c<ProcObjectListItem> {
 public:
     CEntity*      m_Obj;
     CPlantLocTri* m_LocTri;
@@ -37,7 +36,7 @@ public:
     void LoadDataFile();
 
     ProcObjectListItem* GetEntityFromPool();
-    void ReturnEntityToPool(ListItem_c* item);
+    void ReturnEntityToPool(ProcObjectListItem* item);
 
     int32 ProcessTriangleAdded(CPlantLocTri* plant);
     void ProcessTriangleRemoved(CPlantLocTri* plant);

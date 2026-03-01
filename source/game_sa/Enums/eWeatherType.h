@@ -35,3 +35,16 @@ enum eWeatherType : int16 {
     NUM_WEATHERS,
     WEATHER_EXTRA_START = WEATHER_EXTRACOLOURS_1
 };
+
+inline bool IsExtraSunny(eWeatherType wt) {
+    switch (wt) {
+    case WEATHER_EXTRASUNNY_LA:
+    case WEATHER_EXTRASUNNY_SMOG_LA:
+    case WEATHER_EXTRASUNNY_COUNTRYSIDE:
+    case WEATHER_EXTRASUNNY_SF:
+    case WEATHER_EXTRASUNNY_VEGAS:
+    case WEATHER_EXTRASUNNY_DESERT:
+        return true;
+    }
+    return false;
+}

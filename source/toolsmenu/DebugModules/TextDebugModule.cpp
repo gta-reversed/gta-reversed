@@ -31,14 +31,16 @@ void TextDebugModule::RenderMainWindow() {
         ImGui::TableNextRow();
         ImGui::PushID(&entry);
 
-        ImGui::TableNextColumn();
-        ImGui::TextUnformatted(tabl);
+            if (!ImGui::TableNextColumn()) {
+                return false;
+            }
+            ImGui::TextUnformatted(table);
 
-        ImGui::TableNextColumn();
-        ImGui::Text("%08X", entry.hash);
+            ImGui::TableNextColumn();
+            ImGui::Text("%08X", entry.hash);
 
-        ImGui::TableNextColumn();
-        ImGui::TextUnformatted(entry.string);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
             ImGui::SetClipboardText(entry.string);
@@ -46,13 +48,17 @@ void TextDebugModule::RenderMainWindow() {
 
         ImGui::PopID();
     };
-
+    
     for (const auto& entry : TheText.GetMissionKeys()) {
-        WriteRow(entry, TheText.GetMissionName());
+        if (!WriteRow(entry, TheText.GetMissionName())) {
+            break;
+        }
     }
 
     for (const auto& entry : TheText.GetKeys()) {
-        WriteRow(entry, "MAIN");
+        if (!WriteRow(entry, "MAIN")) {
+            break;
+        }
     }
 
     ImGui::EndTable();

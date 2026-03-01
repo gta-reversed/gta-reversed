@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+.natvis file for Visual Studio debugger.
+Purpose: provide nicer views on data types used by GTA SA
+
+More information at: https://docs.microsoft.com/en-us/visualstudio/debugger/create-custom-views-of-native-objects?view=vs-2019
+-->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="CPool&lt;*, *, *&gt;">
+    <DisplayString>{{Capacity={m_Capacity}}}</DisplayString>
+    <Expand>
+      <Item Name="[Size]">m_Capacity</Item>
+      <Item Name="[Objects]">m_Storage</Item>
+      <Item Name="[FirstFree]" ExcludeView="simple">m_FirstFreeSlot</Item>
+      <Item Name="[OwnsAllocations]" ExcludeView="simple">m_OwnsAllocations</Item>
+      <ArrayItems>
+        <Size>m_Capacity</Size>
+        <ValuePointer>m_Storage</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

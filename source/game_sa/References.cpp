@@ -17,6 +17,8 @@ void CReferences::InjectHooks() {
 
 // 0x5719B0
 void CReferences::Init() {
+    ZoneScoped;
+
     pEmptyList = aRefs;
 
     // todo: do better
@@ -46,25 +48,14 @@ void CReferences::RemoveReferencesToPlayer() {
     auto player = FindPlayerPed();
     if (player) {
         player->ResolveReferences();
-        auto& group = CPedGroups::GetGroup(player->m_pPlayerData->m_nPlayerGroup);
+        auto& group = CPedGroups::GetGroup(player->GetPlayerData()->m_nPlayerGroup);
         group.GetMembership().SetLeader(player);
         group.Process();
     }
 }
 
 void CReferences::PruneAllReferencesInWorld() {
-    for (int32 i = 0; i < GetPedPool()->GetSize(); ++i) {
-        if (auto ped = GetPedPool()->GetAt(i))
-            ped->PruneReferences();
-    }
-
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); ++i) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i))
-            vehicle->PruneReferences();
-    }
-
-    for (int32 i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        if (auto obj = GetObjectPool()->GetAt(i))
-            obj->PruneReferences();
-    }
+    rng::for_each(GetPedPool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetVehiclePool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetObjectPool()->GetAllValid(), &CEntity::PruneReferences);
 }

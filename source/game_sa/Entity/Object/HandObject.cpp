@@ -2,12 +2,12 @@
 
 void CHandObject::InjectHooks()
 {
-    RH_ScopedClass(CHandObject);
+    RH_ScopedVirtualClass(CHandObject, 0x866EE0, 23);
     RH_ScopedCategory("Entity/Object");
 
-    RH_ScopedVirtualInstall(ProcessControl, 0x59EC40);
-    RH_ScopedVirtualInstall(PreRender, 0x59ECD0);
-    RH_ScopedVirtualInstall(Render, 0x59EE80);
+    RH_ScopedVMTInstall(ProcessControl, 0x59EC40);
+    RH_ScopedVMTInstall(PreRender, 0x59ECD0);
+    RH_ScopedVMTInstall(Render, 0x59EE80);
 }
 
 CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObject()
@@ -17,9 +17,9 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
     ped->UpdateRpHAnim();
 
     if (bLeftHand)
-        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, ePedBones::BONE_L_FORE_ARM);
+        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, eBoneTag::BONE_L_FORE_ARM);
     else
-        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, ePedBones::BONE_R_FORE_ARM);
+        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, eBoneTag::BONE_R_FORE_ARM);
 
     CEntity::SetModelIndex(handModelIndex);
     RpAnimBlendClumpInit(m_pRwClump);
@@ -30,8 +30,8 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
     if (!m_pTexture)
         m_pTexture = GetFirstTexture(txd->m_pRwDictionary);
 
-    m_nStatus = eEntityStatus::STATUS_SIMPLE;
-    m_bUsesCollision = false;
+    SetStatus(STATUS_SIMPLE);
+    SetUsesCollision(false);
     m_bLightObject = true;
     m_bStreamingDontDelete = true;
     m_nObjectType = eObjectType::OBJECT_TYPE_DECORATION;
@@ -42,26 +42,20 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
 
 }
 
+// 0x59EC40
 void CHandObject::ProcessControl()
-{
-    CHandObject::ProcessControl_Reversed();
-}
-void CHandObject::ProcessControl_Reversed()
 {
     auto* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
     auto* matArr = RpHAnimHierarchyGetMatrixArray(animHierarchy);
     const auto boneMat = CMatrix(&matArr[m_nBoneIndex], false);
     *static_cast<CMatrix*>(m_matrix) = boneMat;
 
-    m_bIsInSafePosition = true;
+    SetIsInSafePosition(true);
     CPhysical::RemoveAndAdd();
 }
 
+// 0x59ECD0
 void CHandObject::PreRender()
-{
-    CHandObject::PreRender_Reversed();
-}
-void CHandObject::PreRender_Reversed()
 {
     auto* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
     m_pPed->UpdateRpHAnim();
@@ -94,16 +88,13 @@ void CHandObject::PreRender_Reversed()
     }
 
     m_fContactSurfaceBrightness = m_pPed->m_fContactSurfaceBrightness;
-    CEntity::UpdateRW();
+    CEntity::UpdateRwMatrix();
     CEntity::UpdateRwFrame();
     CEntity::UpdateRpHAnim();
 }
 
+// 0x59EE80
 void CHandObject::Render()
-{
-    CHandObject::Render_Reversed();
-}
-void CHandObject::Render_Reversed()
 {
     auto* firstAtomic = GetFirstAtomic(m_pRwClump);
     RpMaterialSetTexture(RpGeometryGetMaterial(RpAtomicGetGeometry(firstAtomic), 0), m_pTexture);

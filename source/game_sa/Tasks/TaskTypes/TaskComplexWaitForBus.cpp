@@ -27,7 +27,7 @@ CTaskComplexWaitForBus::CTaskComplexWaitForBus(const CTaskComplexWaitForBus& o) 
 CTask* CTaskComplexWaitForBus::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_WAIT_FOR_BUS: {
-        m_bus = CTask::Cast<CTaskSimpleWaitForBus>(m_pSubTask)->m_bus;
+        m_bus = notsa::cast<CTaskSimpleWaitForBus>(m_pSubTask)->m_bus;
         return new CTaskComplexEnterCarAsPassenger{ m_bus, 0, false };
     }
     case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: {
@@ -38,7 +38,7 @@ CTask* CTaskComplexWaitForBus::CreateNextSubTask(CPed* ped) {
         if (const auto player = FindPlayerPed()) {
             if (m_bus->IsPassenger(player) || m_bus->IsDriver(player)) { // NOTE: Why complicate it so much? `ped->IsInVehicle(player)` ?
                 assert(player->IsInVehicle(m_bus)); // This should always hold true. If so, replace above with this
-                player->m_pPlayerData += 5;
+                player->GetPlayerData()->m_nBusFaresCollected += 5; // TODO: Fix bugs.
             }
         }
 

@@ -42,8 +42,8 @@ void CProjectileInfo::RemoveNotAdd(CEntity* creator, eWeaponType weaponType, CVe
 }
 
 // 0x737C80
-bool CProjectileInfo::AddProjectile(CEntity* creator, eWeaponType WeponType, CVector src, float force, CVector* dest, CEntity* victim) {
-    return plugin::CallAndReturn<bool, 0x737C80, CEntity*, eWeaponType, CVector, float, CVector*, CEntity*>(creator, WeponType, src, force, dest, victim);
+bool CProjectileInfo::AddProjectile(CEntity* creator, eWeaponType projectileType, CVector origin, float force, const CVector* dir, CEntity* target) {
+    return plugin::CallAndReturn<bool, 0x737C80>(creator, projectileType, origin, force, dir, target);
 }
 
 // 0x738860

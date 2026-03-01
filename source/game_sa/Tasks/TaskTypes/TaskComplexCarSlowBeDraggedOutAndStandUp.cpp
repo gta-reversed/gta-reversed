@@ -3,7 +3,7 @@
 #include "TaskComplexCarSlowBeDraggedOutAndStandUp.h"
 
 void CTaskComplexCarSlowBeDraggedOutAndStandUp::InjectHooks() {
-    RH_ScopedClass(CTaskComplexCarSlowBeDraggedOutAndStandUp);
+    RH_ScopedVirtualClass(CTaskComplexCarSlowBeDraggedOutAndStandUp, 0x86EF80, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x648620);

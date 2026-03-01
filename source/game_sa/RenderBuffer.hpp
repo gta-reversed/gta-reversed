@@ -39,6 +39,12 @@ void StopStoring();
 void RenderStuffInBuffer();
 
 /*!
+* @notsa
+* @brief Render out the contents of the temporary buffer as specified by the arguments. Frequently inlined!
+*/
+void Render(RwPrimitiveType primType, RwMatrix* ltm = nullptr, RwUInt32 /*RwIm3DTransformFlags*/ flags = 0, bool isIndexed = true);
+
+/*!
 * @addr 0x707790
 * @brief Reset the index/vertex buffer stored counters.
 * Frequently inlined!
@@ -53,20 +59,32 @@ void RenderIfDoesntFit(int32 nIdx, int32 nVtx);
 
 /*
 * @addr notsa
-* @brief Push a vertex to the buffer. Not to be used with `StartStoring`!
+* @brief Push a vertex to the buffer. Not to be used with `StartStoring`! Use if the VERTEXUV flag **IS NOT** used when calling `Render`
 */
-void PushVertex(CVector pos, CVector2D uv, CRGBA color);
+RwIm3DVertex* PushVertex(CVector pos, CRGBA color);
+
+/*
+* @addr notsa
+* @brief Push a vertex to the buffer. Not to be used with `StartStoring`! Use if the VERTEXUV flag **IS** used when calling `Render`
+*/
+RwIm3DVertex* PushVertex(CVector pos, CVector2D uv, CRGBA color);
 
 /*!
 * @addr notsa
 * @brief Push an index into the buffer. Not to be used with `StartStoring`!
 */
-void PushIndex(RwImVertexIndex idx, bool useCurrentVtxAsBase);
+void PushIndex(int32 idx, bool useCurrentVtxAsBase);
 
 
 /*!
 * @addr notsa
 * @brief Push multiple indices into the buffer. Not to be used with `StartStoring`!
 */
-void PushIndices(std::initializer_list<RwImVertexIndex> idxs, bool useCurrentVtxAsBase);
+void PushIndices(std::initializer_list<int32> idxs, bool useCurrentVtxAsBase);
+
+/*!
+* @addr notsa
+* @brief Check if the buffer can fit `nVtxNeeded` vertices
+*/
+bool CanFitVertices(int32 nVtxNeeded);
 }; // namespace RenderBuffer

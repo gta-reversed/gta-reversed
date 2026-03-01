@@ -6,10 +6,11 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "RenderWare.h"
 #include "ColModel.h"
 #include "KeyGen.h"
-#include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include "Plugins/TwoDEffectPlugin/2dEffect.h"
 
 #include "eModelID.h"
 
@@ -24,16 +25,45 @@ enum ModelInfoType : uint8 {
 };
 
 enum eModelInfoSpecialType : uint8 {
-    TREE = 1,
-    PALM = 2,
-    GLASS_TYPE_1 = 4,
-    GLASS_TYPE_2 = 5,
-    TAG = 6,
-    GARAGE_DOOR = 7,
-    CRANE = 9,
-    UNKNOWN = 10,
+    TREE             = 1,
+    PALM             = 2,
+    GLASS_TYPE_1     = 4,
+    GLASS_TYPE_2     = 5,
+    TAG              = 6,
+    GARAGE_DOOR      = 7,
+    CRANE            = 9,
+    UNKNOWN          = 10,
     BREAKABLE_STATUE = 11,
 };
+
+enum class eVehicleMod : uint8 {
+    // Upgrades
+    UPGRADE_BONNET            = 0,  // 0x0
+    UPGRADE_BONNET_LEFT_RIGHT = 1,  // 0x1
+    UPGRADE_SPOILER           = 2,  // 0x2
+    UPGRADE_WING              = 3,  // 0x3
+    UPGRADE_FRONT_BULLBAR     = 4,  // 0x4
+    UPGRADE_REAR_BULLBAR      = 5,  // 0x5
+    UPGRADE_FRONT_LIGHTS      = 6,  // 0x6
+    UPGRADE_ROOF              = 7,  // 0x7
+    UPGRADE_NITRO             = 8,  // 0x8
+    UPGRADE_HYDRAULICS        = 9,  // 0x9
+    UPGRADE_STEREO            = 10, // 0xA
+
+    // Replacement parts
+    REPLACEMENT_CHASSIS       = 11, // 0xB
+    REPLACEMENT_WHEEL         = 12, // 0xC
+    REPLACEMENT_EXHAUST       = 13, // 0xD
+    REPLACEMENT_FRONT_BUMPER  = 14, // 0xE
+    REPLACEMENT_REAR_BUMPER   = 15, // 0xF
+    REPLACEMENT_MISC          = 16, // 0x10
+
+    // Keep these at the bottom
+    NUM,
+    NUM_BITS_REQUIRED = 5
+};
+NOTSA_WENUM_DEFS_FOR(eVehicleMod);
+static_assert(std::bit_width((+eVehicleMod::NUM)) <= (+eVehicleMod::NUM_BITS_REQUIRED));
 
 class CTimeInfo;
 
@@ -49,7 +79,7 @@ class CWeaponModelInfo;
 struct RwObject;
 
 // originally an abstract class
-class CBaseModelInfo {
+class NOTSA_EXPORT_VTABLE CBaseModelInfo {
 public:
     uint32 m_nKey;
     uint16 m_nRefCount;
@@ -87,7 +117,7 @@ public:
                 struct { // Vehicle flags
                     uint8 bUsesVehDummy : 1;
                     uint8 : 1;
-                    uint8 nCarmodId : 5;
+                    uint8 CarMod : (+eVehicleMod::NUM_BITS_REQUIRED); //!< Value is one of `eVehicleMod`
                     uint8 bUseCommonVehicleDictionary : 1;
                 };
                 struct { // Clump flags
@@ -121,7 +151,7 @@ public:
     virtual void Init();
     virtual void Shutdown();
     virtual void DeleteRwObject() = 0;
-    virtual uint32 GetRwModelType() = 0;
+    virtual uint32 GetRwModelType() const = 0;
     virtual RwObject* CreateInstance() = 0;                 // todo: check order
     virtual RwObject* CreateInstance(RwMatrix* matrix) = 0; // todo: check order
     virtual void SetAnimFile(const char* filename);
@@ -139,7 +169,12 @@ public:
     void Init2dEffects();
     void DeleteCollisionModel();
     // index is a number of effect (max number is (m_n2dfxCount - 1))
-    C2dEffect* Get2dEffect(int32 index);
+    C2dEffect* Get2dEffect(int32 index) const; // todo: change ret type to `C2dEffectBase*`
+    auto Get2dEffects() {
+        return rng::views::iota(m_n2dfxCount) | rng::views::transform([this](size_t i) {
+            return Get2dEffect((int32)i);
+        });
+    }
     void Add2dEffect(C2dEffect* effect);
 
     // Those further ones are completely inlined in final version, not present at all in android version;
@@ -191,15 +226,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CAtomicModelInfo* AsAtomicModelInfoPtr_Reversed();
-    CDamageAtomicModelInfo* AsDamageAtomicModelInfoPtr_Reversed();
-    CLodAtomicModelInfo* AsLodAtomicModelInfoPtr_Reversed();
-    CTimeInfo* GetTimeInfo_Reversed();
-    void Init_Reversed();
-    void Shutdown_Reversed();
-    void SetAnimFile_Reversed(const char* filename);
-    void ConvertAnimFileIndex_Reversed();
-    int32 GetAnimFileIndex_Reversed();
 };
 VALIDATE_SIZE(CBaseModelInfo, 0x20);
 

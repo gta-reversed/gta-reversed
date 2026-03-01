@@ -1,20 +1,30 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskComplexFollowPointRoute.h"
+#include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
+#include "TaskComplexWalkAlongsidePed.h"
+#include "TaskComplexTurnToFaceEntityOrCoord.h"
+#include "TaskComplexFollowNodeRoute.h"
 #include "TaskComplexExtinguishFires.h"
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
+#include "TaskComplexCarSlowBeDraggedOut.h"
 
 #include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx9.h>
-#include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <libs/imgui/misc/cpp/imgui_stdlib.h>
+
+#ifdef NOTSA_USE_SDL3
+#include <SDL3/SDL.h>
+#include <libs/imgui/bindings/imgui_impl_sdl3.h>
+#else
+#include <libs/imgui/bindings/imgui_impl_win32.h>
+#endif
+#include <libs/imgui/bindings/imgui_impl_dx9.h>
 
 #include <Windows.h>
-#include <extensions/ScriptCommands.h>
 #include "DebugModules/DebugModules.h"
 
 namespace notsa {
@@ -25,117 +35,103 @@ UIRenderer::UIRenderer() :
 {
     IMGUI_CHECKVERSION();
 
-    m_ImIO->WantCaptureMouse    = true;
-    m_ImIO->WantCaptureKeyboard = true;
-    m_ImIO->WantSetMousePos     = true;
-    m_ImIO->MouseDrawCursor     = false;
-    m_ImIO->ConfigFlags         = ImGuiConfigFlags_NavEnableSetMousePos | ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
-    m_ImIO->DisplaySize         = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT);
+    m_ImIO->ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard
+                        | ImGuiConfigFlags_NavEnableGamepad
+                        | ImGuiConfigFlags_DockingEnable
+                        | ImGuiConfigFlags_ViewportsEnable;
+    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+#ifdef NOTSA_USE_SDL3
+    ImGui_ImplSDL3_InitForD3D(PSGLOBAL(sdlWindow));
+#else
     ImGui_ImplWin32_Init(PSGLOBAL(window));
-    ImGui_ImplDX9_Init(GetD3DDevice());
+#endif
+    ImGui_ImplDX9_Init(GetD3D9Device());
 
-    DEV_LOG("I say hello!");
+    SetIsActive(false);
+
+    NOTSA_LOG_DEBUG("I say hello!");
 }
 
 UIRenderer::~UIRenderer() {
     ImGui_ImplDX9_Shutdown();
+#ifdef NOTSA_USE_SDL3
+    ImGui_ImplSDL3_Shutdown();
+#else
     ImGui_ImplWin32_Shutdown();
+#endif
     ImGui::DestroyContext(m_ImCtx);
 
-    DEV_LOG("Good bye!");
+    //NOTSA_LOG_DEBUG("Good bye!");
 }
 
-void UIRenderer::UpdateInput() {
-    if (!Visible()) {
-        return;
+void UIRenderer::SetIsActive(bool active) {
+    const auto pad = CPad::GetPad(0);
+
+    m_InputActive = active;
+
+    if (active) { // Clear controller states
+        pad->OldMouseControllerState
+            = pad->NewMouseControllerState
+            = CMouseControllerState{};
+    } else {
+        SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
+    }
+    pad->Clear(false, true);
+
+    m_ImIO->MouseDrawCursor = active;
+    m_ImIO->ConfigNavCaptureKeyboard = active;
+    
+    if (active) {
+        m_ImIO->ConfigFlags &= ~(ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard);
+    } else {
+        m_ImIO->ConfigFlags |= ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
     }
 
-    // Update mouse
-    {
-        const auto WHEEL_SPEED = 20.0f;
-
-        CPad::GetPad()->DisablePlayerControls = true;
-
-        // Update position
-        auto& MousePos = m_ImIO->MousePos;
-        MousePos.x += CPad::NewMouseControllerState.X;
-        MousePos.y -= CPad::NewMouseControllerState.Y;
-
-        MousePos.x = std::clamp(MousePos.x, 0.0f, SCREEN_WIDTH);
-        MousePos.y = std::clamp(MousePos.y, 0.0f, SCREEN_HEIGHT);
-
-        if (CPad::NewMouseControllerState.wheelDown)
-            m_ImIO->MouseWheel -= (WHEEL_SPEED * m_ImIO->DeltaTime);
-
-        if (CPad::NewMouseControllerState.wheelUp)
-            m_ImIO->MouseWheel += (WHEEL_SPEED * m_ImIO->DeltaTime);
-
-        m_ImIO->MouseDown[ImGuiMouseButton_Left]   = CPad::NewMouseControllerState.lmb;
-        m_ImIO->MouseDown[ImGuiMouseButton_Right]  = CPad::NewMouseControllerState.rmb;
-        m_ImIO->MouseDown[ImGuiMouseButton_Middle] = CPad::NewMouseControllerState.mmb;
-
-        CPad::NewMouseControllerState.X = 0.0f;
-        CPad::NewMouseControllerState.Y = 0.0f;
+    if (active) {
+        ImGui::TeleportMousePos(m_LastMousePos);
+    } else {
+        m_LastMousePos = ImGui::GetMousePos();
     }
 
-    // Update keyboard
-    {
-        BYTE KeyStates[256];
-
-        VERIFY(GetKeyboardState(KeyStates));
-
-        const auto IsKeyDown = [&](auto key) { return (KeyStates[key] & 0x80) != 0; };
-
-        for (auto key = 0; key < 256; key++) {
-            // Check if there was a state change
-            if (IsKeyDown(key) == m_ImIO->KeysDown[key]) {
-                continue;
-            }
-
-            // There was!
-            if (IsKeyDown(key)) { // Key is now down
-                m_ImIO->KeysDown[key] = true;
-
-                char ResultUTF8[16] = {0};
-                if (ToAscii(key, MapVirtualKey(key, 0), KeyStates, (LPWORD)ResultUTF8, 0)) {
-                    m_ImIO->AddInputCharactersUTF8(ResultUTF8);
-                }
-            } else { // Key is now released
-                m_ImIO->KeysDown[key] = false;
-            }
-        }
-
-        m_ImIO->KeyCtrl  = IsKeyDown(VK_CONTROL);
-        m_ImIO->KeyShift = IsKeyDown(VK_SHIFT);
-        m_ImIO->KeyAlt   = IsKeyDown(VK_MENU);
-        m_ImIO->KeySuper = false;
-    }
+#ifdef NOTSA_USE_SDL3
+    SDL_SetWindowRelativeMouseMode(PSGLOBAL(sdlWindow), !active);
+#endif
 }
 
 void UIRenderer::PreRenderUpdate() {
+    ZoneScoped;
+
     m_ImIO->DeltaTime   = CTimer::GetTimeStepInSeconds();
-    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after imgui was already initialized
+    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after ImGui was already initialized
 
     m_DebugModules.PreRenderUpdate();
     DebugCode();
     ReversibleHooks::CheckAll();
 
-    if (const auto pad = CPad::GetPad(); pad->DebugMenuJustPressed()) {
-        m_ShowMenu              = !m_ShowMenu;
-        m_ImIO->MouseDrawCursor = m_ShowMenu;
-        pad->bPlayerSafe        = m_ShowMenu;
+    if (ImGui::IsKeyChordPressed(ImGuiKey_F7, ImGuiInputFlags_RouteAlways) || CPad::GetPad()->IsFKeyJustDown(FKEY7)) {
+        SetIsActive(!m_InputActive);
     }
 }
 
+void UIRenderer::PostRenderUpdate() {
+    //m_ImIO->NavActive = m_InputActive; // ImGUI clears `NavActive` every frame, so have to set it here.
+}
+
 void UIRenderer::DrawLoop() {
+    ZoneScoped;
+
     if (m_ReInitRequested) {
         ResetSingleton(); // This will destruct the current object so we gotta stop here.
         return;
     }
 
     PreRenderUpdate();
-
+#ifdef NOTSA_USE_SDL3
+    ImGui_ImplSDL3_NewFrame();
+#else
+    ImGui_ImplWin32_NewFrame();
+#endif
     ImGui_ImplDX9_NewFrame();
     ImGui::NewFrame();
 
@@ -144,14 +140,26 @@ void UIRenderer::DrawLoop() {
     ImGui::EndFrame();
     ImGui::Render();
     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-    ImGui_ImplDX9_InvalidateDeviceObjects();
+    //ImGui_ImplDX9_InvalidateDeviceObjects();
+
+    PostRenderUpdate();
+
+    // Update and Render additional Platform Windows
+    if (m_ImIO->ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
 }
 
 void UIRenderer::Render2D() {
+    ZoneScoped;
+
     m_DebugModules.Render2D();
 }
 
 void UIRenderer::Render3D() {
+    ZoneScoped;
+
     m_DebugModules.Render3D();
 }
 
@@ -160,39 +168,43 @@ void UIRenderer::DebugCode() {
 
     const auto player = FindPlayerPed();
 
-    if (UIRenderer::Visible() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
+    if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
     if (pad->IsStandardKeyJustPressed('8')) {
-
-        CPointRoute route{};
-
-        const auto r = 10.f;
-        const auto totalAngle = PI * 2.f;
-        for (auto a = 0.f; a < totalAngle; a += totalAngle / 8.f) {
-            route.AddPoints(player->GetPosition() + CVector{std::cosf(a), std::sinf(a), 0.f} *r);
-        }
-
         player->GetTaskManager().SetTask(
-            new CTaskComplexFollowPointRoute{
+            new CTaskComplexFollowNodeRoute{
                 PEDMOVE_SPRINT,
-                route,
-                CTaskComplexFollowPointRoute::Mode::ONE_WAY,
-                3.f,
-                3.f,
-                false,
-                true,
-                true
+                CVector{0.f, 0.f, 10.f}
             },
             TASK_PRIMARY_PRIMARY
         );
+        NOTSA_LOG_DEBUG("GOING!");
+        //CPointRoute route{};
+        //
+        //const auto r = 10.f;
+        //const auto totalAngle = PI * 2.f;
+        //for (auto a = 0.f; a < totalAngle; a += totalAngle / 8.f) {
+        //    route.AddPoints(player->GetPosition() + CVector{std::cosf(a), std::sinf(a), 0.f} *r);
+        //}
+        //
+        //player->GetTaskManager().SetTask(
+        //    new CTaskComplexFollowPointRoute{
+        //        PEDMOVE_SPRINT,
+        //        route,
+        //        CTaskComplexFollowPointRoute::Mode::ONE_WAY,
+        //        3.f,
+        //        3.f,
+        //        false,
+        //        true,
+        //        true
+        //    },
+        //    TASK_PRIMARY_PRIMARY
+        //);
     }
 
-    if (pad->IsStandardKeyJustPressed('0')) {
-        if (const auto veh = FindPlayerVehicle()) {
-            veh->Fix();
-            veh->AsAutomobile()->SetRandomDamage(false);
-        }
+    if (pad->IsStandardKeyJustPressed('J')) {
+        CCheat::JetpackCheat();
     }
 
     if (pad->IsStandardKeyJustPressed('9')) {
@@ -202,17 +214,15 @@ void UIRenderer::DebugCode() {
         }
     }
 
-    if (pad->IsStandardKeyJustPressed('1')) {
-        CCheat::JetpackCheat();
-    }
     if (pad->IsStandardKeyJustPressed('2')) {
         CCheat::MoneyArmourHealthCheat();
     }
     if (pad->IsStandardKeyJustPressed('3')) {
         CCheat::VehicleCheat(MODEL_INFERNUS);
     }
-    if (pad->IsStandardKeyJustPressed('4')) {
-        CTimer::Suspend();
+    if (pad->IsStandardKeyJustDown('8')) {
+        TheCamera.AddShakeSimple(10000.f, 1, 10.f);
+        NOTSA_LOG_DEBUG("Hey");
     }
     if (pad->IsStandardKeyJustPressed('5')) {
         if (const auto veh = FindPlayerVehicle()) {
@@ -223,15 +233,59 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        CMessages::AddBigMessage("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK", 1000, eMessageStyle::STYLE_BOTTOM_RIGHT);
-    }
-    if (pad->IsStandardKeyJustPressed('7')) {
-        CMessages::AddMessageWithNumberQ("PRESS ~k~~PED_ANSWER_PHONE~TO FUCK ~1~~1~~1~", 1000, 0, 1, 2, 3, 4, 5, 6);
+        FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
-    if (pad->IsStandardKeyJustPressed('8')) {
-        CMessages::AddToPreviousBriefArray("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK");
+    if (pad->IsStandardKeyJustPressed('T')) {
+        auto i = CPedGroups::AddGroup();
+        CPedGroups::RemoveGroup(i);
+        CPedGroupPlacer{}.PlaceGroup(
+            PED_TYPE_GANG2,
+            7,
+            player->GetPosition() + player->GetForward() * 6.f,
+            ePedGroupDefaultTaskAllocatorType::RANDOM
+        );
+        //auto* grp = &CPedGroups::GetGroup(i);
+        //grp->GetMembership().SetLeader(player);
+
+        //auto* const grp = &CPedGroups::GetGroup(CPedGroups::AddGroup());
+        //grp->GetMembership().SetLeader(player);
+        //
+        ////CStreaming::RequestModel(MODEL_WMYDRUG, STREAMING_PRIORITY_REQUEST);
+        ////CStreaming::LoadAllRequestedModels(true);
+        //
+        //for (int32 i = 0; i < 7; i++) {
+        //    auto* f = CPopulation::AddPed(ePedType::PED_TYPE_CRIMINAL, MODEL_MALE01, player->GetPosition() + player->GetForward() * (float)(i), false);
+        //    f->SetCreatedBy(PED_GAME);
+        //    f->SetModelIndex(MODEL_MALE01);
+        //    f->SetHeading(player->GetHeading());
+        //    CWorld::Add(f);
+        //    f->SetPosn(player->GetPosition() + player->GetForward() * (float)(i));
+        //    f->PositionAnyPedOutOfCollision();
+        //    grp->GetMembership().AddFollower(f);
+        //}
     }
+
+    //if (pad->IsStandardKeyJustPressed('T')) {
+    //    const auto ped = new CPed(ePedType::PED_TYPE_GANG1);
+    //    ped->SetCreatedBy(PED_GAME);
+    //    ped->SetModelIndex(MODEL_MALE01);
+    //    ped->SetHeading(player->GetHeading());
+    //    CWorld::Add(ped);
+    //    ped->SetPosn(player->GetPosition() + player->GetForward() * 6.f);
+    //    ped->GetTaskManager().SetTask(
+    //        new CTaskSimpleGoToPoint{PEDMOVE_SPRINT, ped->GetPosition() + ped->GetForward() * 40.f},
+    //        TASK_PRIMARY_PRIMARY
+    //    );
+    //    player->GetTaskManager().SetTask(
+    //        new CTaskComplexWalkAlongsidePed{ped, 15.f},
+    //        TASK_PRIMARY_PRIMARY
+    //    );
+    //}
+
+    //if (pad->IsStandardKeyJustPressed('8')) {
+    //    CMessages::AddToPreviousBriefArray("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK");
+    //}
 }
 }; // namespace ui
 }; // namespace notsa

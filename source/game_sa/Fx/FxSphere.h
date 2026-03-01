@@ -1,27 +1,26 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
 #pragma once
 
 #include "FxPlane.h"
+#include "Sphere.h"
 
-class FxSphere_c {
+class FxSphere_c : public CSphere {
 public:
-    RwV3d  m_vecCenter;
-    float  m_fRadius;
-    uint32 m_nNumPlanesPassed;
+    uint32 m_nNumPlanesPassed; // m_LastPlaneRejected
 
 public:
-    static void* operator new(uint32 size, int32 notAligned);
+    static void InjectHooks();
+
+    static void* operator new(uint32 size, bool32 bUseGlobalHeep);
     static void  operator delete(void* data);
+    static void  operator delete(void* data, bool32 bUseGlobalHeep);
 
     FxSphere_c();
 
-    bool  IsCollision(FxSphere_c* sphere);
-    float GetDistToPlane(FxPlane_c* plane);
+    // NOTSA
+    FxSphere_c(CVector center, float radius) : CSphere(center, radius), m_nNumPlanesPassed(0) {}
+
+    inline bool  IsCollision(FxSphere_c* sphere) const;
+    inline float GetDistToPlane(FxPlane_c* plane) const;
 };
 
 VALIDATE_SIZE(FxSphere_c, 0x14);

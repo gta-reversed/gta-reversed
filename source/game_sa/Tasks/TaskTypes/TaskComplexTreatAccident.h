@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 #include "Accident.h"
 
-class CTaskComplexTreatAccident : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexTreatAccident : public CTaskComplex {
 public:
     CAccident* m_pAccident;
 
@@ -13,8 +13,8 @@ public:
     explicit CTaskComplexTreatAccident(CAccident* accident);
     ~CTaskComplexTreatAccident() override = default; // 0x658AE0
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
@@ -28,9 +28,5 @@ private:
 
     CTaskComplexTreatAccident* Constructor(CAccident* pAcc);
 
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    CTask* Clone_Reversed();
 };
 VALIDATE_SIZE(CTaskComplexTreatAccident, 0x10);

@@ -49,6 +49,7 @@ public:
     static uint8  GetGameWeekDay()        { return CurrentDay; }           // NOTSA, maybe
 
     static float GetMinutesToday() { return float(ms_nGameClockMinutes) + 60.0f * (float)ms_nGameClockHours + (float)ms_nGameClockSeconds / 60.0f; } // 0x55F470
+    static float GetHoursToday() { return (float)(CClock::GetGameClockMinutes()) / 60.0f + (float)(CClock::GetGameClockSeconds()) / 3600.0f + (float)(CClock::GetGameClockHours()); } // notsa
 
     static bool ClockHoursInRange(uint8 start, uint8 end) { return ms_nGameClockHours > start && ms_nGameClockHours < end; }
 };

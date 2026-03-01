@@ -82,6 +82,8 @@ void CCustomBuildingRenderer::UpdateDayNightBalanceParam() {
 
 // 0x5D8050
 void CCustomBuildingRenderer::Update() {
+    ZoneScoped;
+
     plugin::Call<0x5D8050>();
 
     /*

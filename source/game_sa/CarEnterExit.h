@@ -44,13 +44,13 @@ public:
     static CVector GetPositionToOpenCarDoor(const CVehicle* vehicle, int32 doorId);
     static bool IsCarDoorInUse(const CVehicle* vehicle, int32 firstDoorId, int32 secondDoorId);
     static bool IsCarDoorReady(const CVehicle* vehicle, int32 doorId);
-    static bool IsCarQuickJackPossible(const CVehicle* vehicle, int32 doorId, const CPed* ped);
+    static bool IsCarQuickJackPossible(CVehicle* vehicle, int32 doorId, const CPed* ped);
     static bool IsCarSlowJackRequired(const CVehicle* vehicle, int32 doorId);
     static bool IsClearToDriveAway(const CVehicle* outVehicle);
     static bool IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, const CVehicle* vehicle, const CVector& pos);
     static bool IsPedHealthy(CPed* vehicle);
     static bool IsPlayerToQuitCarEnter(const CPed* ped, const CVehicle* vehicle, int32 startTime, CTask* task);
-    static bool IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, CVector* pos = nullptr);
+    static bool IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, const CVector* pos = nullptr);
     static bool IsVehicleHealthy(const CVehicle* vehicle);
     static bool IsVehicleStealable(const CVehicle* vehicle, const CPed* ped);
     static void MakeUndraggedDriverPedLeaveCar(const CVehicle* vehicle, const CPed* ped);

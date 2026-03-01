@@ -16,31 +16,31 @@ void CAnimBlendClumpData::InjectHooks() {
 
 // 0x4CF0E0
 CAnimBlendClumpData::CAnimBlendClumpData() {
-    m_NumFrames   = 0;
+    m_NumFrameData   = 0;
     m_PedPosition = nullptr;
-    m_Frames      = nullptr;
+    m_FrameDatas      = nullptr;
 }
 
 // 0x4CF100
 CAnimBlendClumpData::~CAnimBlendClumpData() {
-    m_Associations.Remove();
-    if (m_Frames) {
-        CMemoryMgr::FreeAlign(&m_Frames);
+    m_AnimList.Remove();
+    if (m_FrameDatas) {
+        CMemoryMgr::FreeAlign(&m_FrameDatas);
     }
 }
 
 // 0x4CF140
-void CAnimBlendClumpData::SetNumberOfBones(int32 numBones) {
-    if (m_Frames) {
-        CMemoryMgr::FreeAlign(&m_Frames);
+void CAnimBlendClumpData::SetNumberOfBones(uint32 numBones) {
+    if (m_FrameDatas) {
+        CMemoryMgr::FreeAlign(&m_FrameDatas);
     }
-    m_NumFrames = numBones;
-    m_Frames = reinterpret_cast<AnimBlendFrameData*>(CMemoryMgr::MallocAlign(sizeof(AnimBlendFrameData) * numBones, 64));
+    m_NumFrameData = numBones;
+    m_FrameDatas = static_cast<AnimBlendFrameData*>(CMemoryMgr::MallocAlign(sizeof(AnimBlendFrameData) * numBones, 64));
 }
 
 // 0x4CF190
 void CAnimBlendClumpData::ForAllFrames(void (*callback)(AnimBlendFrameData*, void*), void* data) {
-    for (auto& frame : std::span{ m_Frames, m_NumFrames }) {
+    for (auto& frame : std::span{ m_FrameDatas, m_NumFrameData }) {
         callback(&frame, data);
     }
 }

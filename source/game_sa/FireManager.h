@@ -14,7 +14,7 @@ class CEntity;
 
 class CFireManager {
 public:
-    CFire  m_aFires[MAX_NUM_FIRES];
+    std::array<CFire, MAX_NUM_FIRES> m_aFires;
     uint32 m_nMaxFireGenerationsAllowed;
 
 public:
@@ -57,16 +57,19 @@ public:
     uint32 GetNumOfFires();
     CFire& GetRandomFire();
 
+    // NOTSA
+    CFire& Get(size_t idx)
+    {
+        assert(m_aFires[idx].IsActive());
+        return m_aFires[idx];
+    }
+    auto GetIndexOf(const CFire* fire) const { return std::distance(m_aFires.data(), fire); }
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
     CFireManager* Constructor();
     CFireManager* Destructor();
-
-    // NOTSA
-    CFire& Get(size_t idx) { return m_aFires[idx]; }
-    auto GetIndexOf(const CFire* fire) const { return std::distance(std::begin(m_aFires), fire); }
 };
 
 VALIDATE_SIZE(CFireManager, 0x964);

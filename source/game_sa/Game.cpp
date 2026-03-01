@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 #include "WaterCannons.h"
 #include "TheCarGenerators.h"
 #include "Radar.h"
@@ -73,7 +74,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680);
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -165,7 +166,7 @@ void CGame::ShutdownRenderWare() {
 }
 
 // 0x53C4A0
-bool CGame::CanSeeOutSideFromCurrArea() {
+bool CGame::CanSeeOutSideFromCurrArea() { // pattern: !CGame::currArea 
     return currArea == AREA_CODE_NORMAL_WORLD;
 }
 
@@ -194,7 +195,7 @@ bool CGame::Shutdown() {
     g_procObjMan.Exit();
     g_waterCreatureMan.Exit();
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
-    CStencilShadowObject::Shutdown();
+    CStencilShadows::Shutdown();
     CPlantMgr::Shutdown();
     CGrassRenderer::Shutdown();
     CRopes::Shutdown();
@@ -261,15 +262,7 @@ bool CGame::Shutdown() {
     col1[1].m_boundBox.m_vecMin.z = 0.0f;
     col1[0].m_pColData = nullptr;
     CTaskSimpleClimb::Shutdown();
-
-    { // todo: move to CPedAttractor::Shutdown() or something
-        // delete CPedAttractor::ms_tasks.First;
-        // CPedAttractor::ms_tasks.First = 0;
-        // CPedAttractor::ms_tasks.Last = 0;
-        // CPedAttractor::ms_tasks.End = 0;
-        CPedAttractor::ms_tasks = {};
-    }
-
+    CPedAttractor::Shutdown();
     CTheScripts::RemoveScriptTextureDictionary();
     CMBlur::MotionBlurClose();
     CdStreamRemoveImages();
@@ -285,7 +278,6 @@ void CGame::ShutDownForRestart() {
     CReplay::EmptyReplayBuffer();
     CMovingThings::Shutdown();
     rng::for_each(CWorld::Players, [](auto& info) { info.Clear(); });
-    memset(CTheZones::ZonesVisited, 0, sizeof(CTheZones::ZonesVisited));
     CTheScripts::UndoBuildingSwaps();
     CTheScripts::UndoEntityInvisibilitySettings();
     g_interiorMan.Exit();
@@ -335,6 +327,8 @@ void CGame::GenerateTempPedAtStartOfNetworkGame() {
 
 // 0x5BF840
 bool CGame::Init1(char const *datFile) {
+    ZoneScoped;
+
     CMaths::InitMathsTables();
     strcpy_s(aDatFile, datFile);
     CPools::Initialise();
@@ -359,7 +353,7 @@ bool CGame::Init1(char const *datFile) {
     CGangWars::InitAtStartOfGame();
     CConversations::Clear();
     CPedToPlayerConversations::Clear();
-    CQuadTreeNode::InitPool();
+    CQuadTreeNode<void*>::InitPool();
 
     if (!CPlantMgr::Initialise() || !CCustomRoadsignMgr::Initialise()) {
         return false;
@@ -425,6 +419,8 @@ bool CGame::Init1(char const *datFile) {
 
 // 0x5BA1A0
 bool CGame::Init2(const char* datFile) {
+    ZoneScoped;
+
     LoadingScreen("Loading the Game", "Add Particles");
     CTheZones::PostZoneCreation();
     CEntryExitManager::PostEntryExitsCreation();
@@ -445,7 +441,7 @@ bool CGame::Init2(const char* datFile) {
     CDraw::ms_fLODDistance = 0.0f;
 
     if (!CCustomCarPlateMgr::Initialise()) {
-        DEV_LOG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
+        NOTSA_LOG_DEBUG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
         return false;
     }
 
@@ -525,6 +521,8 @@ bool CGame::Init2(const char* datFile) {
 
 // 0x5BA400
 bool CGame::Init3(const char* datFile) {
+    ZoneScoped;
+
     LoadingScreen("Loading the Game", "Load scene");
     CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
     CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
@@ -539,6 +537,8 @@ bool CGame::Init3(const char* datFile) {
 
 // 0x53BC80
 void CGame::Initialise(const char* datFile) {
+    ZoneScoped;
+
     using notsa::events::OnGameInit;
     const auto DispatchGameInit = [&, ui = &notsa::ui::UIRenderer::GetSingleton()](OnGameInit::Stage s) {
         ui->HandleEvent(OnGameInit{ s, datFile });
@@ -577,7 +577,7 @@ bool CGame::InitialiseCoreDataAfterRW() {
 
     g_surfaceInfos.Init();
     CPedStats::Initialise();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CVehicleRecording::InitAtStartOfGame();
 
@@ -621,9 +621,14 @@ bool CGame::InitialiseRenderWare() {
 
     const auto frame = RwFrameCreate();
     rwObjectHasFrameSetFrame(&camera->object.object, frame);
-    camera->frameBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA);
-    camera->zBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER);
-    if (!camera->object.object.parent) {
+
+    RwCameraSetRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA));
+    assert(RwCameraGetRaster(camera));
+
+    RwCameraSetZRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER));
+    assert(RwCameraGetZRaster(camera));
+
+    if (!RwCameraGetFrame(camera)) {
         CameraDestroy(camera);
         return false;
     }
@@ -719,6 +724,8 @@ void CGame::InitialiseWhenRestarting() {
 
 // 0x53BEE0
 void CGame::Process() {
+    ZoneScoped;
+
     CPad::UpdatePads();
     g_LoadMonitor.BeginFrame();
 
@@ -739,7 +746,7 @@ void CGame::Process() {
     CAudioZones::Update(false, TheCamera.GetPosition());
     CWindModifiers::Number = 0;
 
-    if (!CTimer::m_UserPause && !CTimer::m_CodePause) {
+    if (!CTimer::GetIsPaused()) {
         CSprite2d::SetRecipNearClip();
         CSprite2d::InitPerFrame();
         CFont::InitPerFrame();
@@ -761,8 +768,7 @@ void CGame::Process() {
 
         if (updateTimeDelta >= 4) {
             CPopulation::Update(false);
-        }
-        else {
+        } else {
             const auto timeBeforePopulationUpdate = GetTime();
             CPopulation::Update(true);
             updateTimeDelta = GetTime() - timeBeforePopulationUpdate;
@@ -806,9 +812,8 @@ void CGame::Process() {
 
         if (CReplay::ShouldStandardCameraBeProcessed()) {
             TheCamera.Process();
-        }
-        else {
-            TheCamera.CCamera::ProcessFade();
+        } else {
+            TheCamera.ProcessFade();
         }
 
         CCullZones::Update();
@@ -825,6 +830,12 @@ void CGame::Process() {
 
         CPlantMgr::Update(TheCamera.GetPosition());
         CCustomBuildingRenderer::Update();
+
+        CStencilShadows::RenderBuffer({
+            CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue] * 2.f,
+            CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue] * 2.f,
+            -1.5f
+        });
 
         CStencilShadows::Process(TheCamera.GetPosition());
         if (CReplay::Mode != MODE_PLAYBACK) {
@@ -865,7 +876,7 @@ void CGame::ReInitGameObjectVariables() {
     CRadar::Initialise();
     CCarCtrl::ReInit();
     ThePaths.ReInit();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CDraw::SetFOV(120.0f);
     CDraw::ms_fLODDistance = 500.0f;

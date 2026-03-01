@@ -54,6 +54,8 @@ void CSkidmarks::Clear() {
 
 // 0x7205C0
 void CSkidmarks::Update() {
+    ZoneScoped;
+
     for (CSkidmark& mark : m_aSkidmarks) {
         mark.Update();
     }
@@ -61,6 +63,8 @@ void CSkidmarks::Update() {
 
 // 0x720640
 void CSkidmarks::Render() {
+    ZoneScoped;
+
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,          RWRSTATE(rwBLENDSRCALPHA));

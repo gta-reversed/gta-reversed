@@ -6,20 +6,34 @@
 */
 #pragma once
 
-class CPtrNodeSingleLink {
-public:
-    void*               m_item;
-    CPtrNodeSingleLink* m_next;
+#include <PtrNode.h>
 
-public:
-    static void InjectHooks();
-
-    static void* operator new(unsigned size);
-    static void  operator delete(void* data);
-
-    CPtrNodeSingleLink(void* item) : m_item(item) {}
-
-    void AddToList(class CPtrListSingleLink* list);
+// Can't include <Pool.h> here, because it would cause circular dependency
+namespace details {
+void* CPtrNodeSingleLink__operator_new(size_t sz);
+void  CPtrNodeSingleLink__operator_delete(void* data, size_t sz);
 };
 
-VALIDATE_SIZE(CPtrNodeSingleLink, 8);
+template<typename TItemType>
+class CPtrNodeSingleLink : public CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>> {
+public:
+    using ItemType = TItemType;
+
+public:
+    static void* operator new(size_t sz) {
+        return details::CPtrNodeSingleLink__operator_new(sz);
+    }
+
+    static void operator delete(void* data, size_t sz) {
+        return details::CPtrNodeSingleLink__operator_delete(data, sz);
+    }
+
+public:
+    using CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>>::CPtrNode;
+
+    //void AddToList(CPtrListSingleLink* list) {
+    //    m_next       = list->GetNode();
+    //    list->m_node = static_cast<CPtrNode*>(this);
+    //}
+};
+VALIDATE_SIZE(CPtrNodeSingleLink<void*>, 0x8);

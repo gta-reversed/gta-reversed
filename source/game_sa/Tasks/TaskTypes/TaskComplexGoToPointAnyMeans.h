@@ -6,7 +6,7 @@
 class CVehicle;
 enum eMoveState : uint32;
 
-class CTaskComplexGoToPointAnyMeans : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToPointAnyMeans : public CTaskComplex {
 public:
     CVector    m_Pos;
     eMoveState m_MoveState;
@@ -25,8 +25,8 @@ public:
     CTaskComplexGoToPointAnyMeans(int32 moveState, const CVector& posn, CVehicle* vehicle, float radius, int32 modelId);
     ~CTaskComplexGoToPointAnyMeans() override;
 
-    eTaskType GetTaskType() override { return Type; } // 0x66B780
-    CTask* Clone() override { return new CTaskComplexGoToPointAnyMeans(m_MoveState, m_Pos, m_Vehicle, m_fRadius, m_nModelId); } // 0x66D1E0
+    eTaskType GetTaskType() const override { return Type; } // 0x66B780
+    CTask* Clone() const override { return new CTaskComplexGoToPointAnyMeans(m_MoveState, m_Pos, m_Vehicle, m_fRadius, m_nModelId); } // 0x66D1E0
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

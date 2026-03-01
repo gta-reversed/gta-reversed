@@ -1,5 +1,12 @@
 #pragma once
-//#include "common.h"
+
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
+#include <extensions/Singleton.hpp>
+
+#define PUSH_RENDERGROUP(str) 0
+#define POP_RENDERGROUP() 0
 
 namespace notsa {
 namespace detail {
@@ -8,35 +15,38 @@ static void VerifyMacroImpl(bool result) {
 }
 };
 };
-
-#define VERIFY notsa::detail::VerifyMacroImpl
+#define VERIFY ::notsa::detail::VerifyMacroImpl
 #define VERIFY_TODO_FIX(_expr) (_expr) // Macro used to mark shit that uses `VERIFY and sometimes fails
 
-#ifdef _DEBUG
 namespace notsa {
+using log_ptr = std::shared_ptr<spdlog::logger>;
+struct Logging : public Singleton<Logging> {
+    Logging();
+    ~Logging();
 
-template<typename... Ts>
-static void DevPrint(int lineno, std::string_view file, std::string_view fmt, Ts&&... fmtArgs) {
-    const auto userFormat = std::vformat(fmt, std::make_format_args(std::forward<Ts>(fmtArgs)...));
-    std::cout << std::format("[{} @ {}] {}", fs::relative(file, SOURCE_PATH).string(), lineno, userFormat);
+    auto Create(std::string name, std::optional<spdlog::level::level_enum> level = std::nullopt) -> log_ptr;
 
-    if (fmt.back() != '\n') {
-        std::cout << std::endl;
-    }
-}
+private:
+    std::vector<spdlog::sink_ptr> m_sinks;
 };
-// WARNING: Use std::format specifiers! Use LOG_PTR macro for pointer arguments.
-#define DEV_LOG(...) notsa::DevPrint(__LINE__, __FILE__, ##__VA_ARGS__)
-#define LOG_PTR(x) ((const void*)x)
-#else
-#define DEV_LOG(...) (void)0
-#define LOG_PTR(x)
-#endif
+};
+//! Make sure to *NOT* call this function to initialize static variables, it will fuck up spdlog.
+//! Instead, make the static variable with type `notsa::log_ptr` and initialize it in `InjectHooks`!
+#define NOTSA_MAKE_LOGGER notsa::Logging::GetSingleton().Create
 
-#define PUSH_RENDERGROUP(str) 0
-#define POP_RENDERGROUP() 0
+#define NOTSA_LOG_CRIT SPDLOG_CRITICAL
+#define NOTSA_LOG_INFO SPDLOG_INFO
+#define NOTSA_LOG_ERR SPDLOG_ERROR
+#define NOTSA_LOG_WARN SPDLOG_WARN
+#define NOTSA_LOG_DEBUG SPDLOG_DEBUG
+#define NOTSA_LOG_TRACE SPDLOG_TRACE
+
+//! Use this to pass pointers to logging functions [both std::format, logs, and printf-style stuff]
+// We're casting to uintptr_t, because formatting just works better that way
+#define LOG_PTR(x) ((uintptr_t)(x))
+static_assert(sizeof(void*) == sizeof(uintptr_t));
 
 void CreateDebugFont();
 void DestroyDebugFont();
-void ObrsPrintfString(const char* str, int16 x, int16 y);
+//void ObrsPrintfString(const char* str, int16 x, int16 y);
 void FlushObrsPrintfs();

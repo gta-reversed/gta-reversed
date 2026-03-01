@@ -21,6 +21,7 @@ void CTaskSimpleGunControl::InjectHooks() {
 // because that took pointers instead for the CVector's, but that's stupid, because
 // they just 0 inited it otherwise, thus we can just default init the args
 // instead of passing nullptr, and it's going to be the same effect.
+// so, tldr, instead of `nullptr` for the CVector&'s pass in `{}`
 CTaskSimpleGunControl::CTaskSimpleGunControl(CEntity* targetEntity, CVector const& targetPos, CVector const& moveTarget, eGunCommand firingTask, int16 burstAmmoCnt, int32 leisureDurMs) :
     m_targetPos{targetPos},
     m_moveTarget{moveTarget},
@@ -34,7 +35,7 @@ CTaskSimpleGunControl::CTaskSimpleGunControl(CEntity* targetEntity, CVector cons
 }
 
 CTaskSimpleGunControl::CTaskSimpleGunControl(const CTaskSimpleGunControl& o) :
-    CTaskSimpleGunControl{o.m_targetEntity, &o.m_targetPos, &o.m_moveTarget, o.m_firingTask, o.m_burstAmmoCnt, o.m_leisureDurMs}
+    CTaskSimpleGunControl{o.m_targetEntity, o.m_targetPos, o.m_moveTarget, o.m_firingTask, o.m_burstAmmoCnt, o.m_leisureDurMs}
 {
     m_aimImmidiately = o.m_aimImmidiately;
 }
@@ -68,8 +69,8 @@ bool CTaskSimpleGunControl::MakeAbortable(CPed* ped, eAbortPriority priority, CE
     }
 
     if (const auto useGun = ped->GetIntelligence()->GetTaskUseGun()) {
-        useGun->m_nCountDownFrames = urgent ? 2 : 10;
-        useGun->m_bFiredGun = false;
+        useGun->m_CountDownFrames = urgent ? 2 : 10;
+        useGun->m_HasFiredGun = false;
     }
 
     ForceStopDuckingMove(ped);
@@ -81,8 +82,8 @@ bool CTaskSimpleGunControl::MakeAbortable(CPed* ped, eAbortPriority priority, CE
 bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     if (m_isFinished) {
         if (const auto useGun = ped->GetIntelligence()->GetTaskUseGun()) {
-            useGun->m_nCountDownFrames = std::min<uint8>(useGun->m_nCountDownFrames, 4u);
-            useGun->m_bFiredGun = false;
+            useGun->m_CountDownFrames = std::min<uint8>(useGun->m_CountDownFrames, 4u);
+            useGun->m_HasFiredGun = false;
         }
         ForceStopDuckingMove(ped);      
         return true;
@@ -94,22 +95,22 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
         break;
 
     default: {
-        if (const auto attack = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
-            if (const auto useGun = CTask::DynCast<CTaskSimpleUseGun>(attack)) { // Inverted
+        if (const auto attackTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
+            if (const auto useGun = notsa::dyn_cast_if_present<CTaskSimpleUseGun>(attackTask)) { // Inverted
                 if (m_isFirstTime) {
                     m_nextAtkTimeMs = 0;
                     m_isFirstTime = false;
-                    useGun->Reset(ped, m_targetEntity, m_targetPos, true, m_burstAmmoCnt);
+                    useGun->Reset(ped, m_targetEntity, m_targetPos, eGunCommand::AIM, m_burstAmmoCnt);
                 }
             } else {
-                attack->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+                attackTask->MakeAbortable(ped);
                 return false;
             }
         } else {
             const auto useGun = new CTaskSimpleUseGun{
                 m_targetEntity,
                 m_targetPos,
-                (uint8)eGunCommand::AIM,
+                eGunCommand::AIM,
                 (uint16)m_burstAmmoCnt,
                 m_aimImmidiately
             };
@@ -126,10 +127,10 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
 
     // Moved from 0x6254D3
     const auto& winfo = [&, this] {
-        if (!useGunTask || !useGunTask->m_pWeaponInfo) {
+        if (!useGunTask || !useGunTask->m_WeaponInfo) {
             return ped->GetActiveWeapon().GetWeaponInfo(ped);
         }
-        return *useGunTask->m_pWeaponInfo;
+        return *useGunTask->m_WeaponInfo;
     }();
 
     // Play gunstand animation if necessary
@@ -139,7 +140,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
         }
 
         if (useGunTask) { // 0x625459
-            if (const auto wi = useGunTask->m_pWeaponInfo) {
+            if (const auto wi = useGunTask->m_WeaponInfo) {
                 if (wi->flags.bAimWithArm) {
                     return true;
                 }
@@ -150,7 +151,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     }()) {
         // 0x62546E
         const auto anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_GANG_GUNSTAND);
-        if (!anim || (anim->m_fBlendAmount < 1.f && anim->m_fBlendDelta <= 0.f)) {
+        if (!anim || (anim->m_BlendAmount < 1.f && anim->m_BlendDelta <= 0.f)) {
             CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_GANG_GUNSTAND);
         }
     }
@@ -159,7 +160,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     auto [nextGunCmd, dontCheckLeisureDur] = [&, this]() -> std::pair<eGunCommand, bool> {
         using enum eGunCommand;
 
-        if (ped->GetActiveWeapon().m_nState == WEAPONSTATE_RELOADING && winfo.flags.bReload) {
+        if (ped->GetActiveWeapon().m_State == WEAPONSTATE_RELOADING && winfo.flags.bReload) {
             return { RELOAD, false }; // 0x625517
         }
 
@@ -178,7 +179,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
         case FIREBURST: {
             if (CTimer::GetTimeInMS() < m_nextAtkTimeMs) {
                 if (m_nextAtkTimeMs == (uint32)-1) { // 0x625600
-                    if (useGunTask && (eGunCommand)useGunTask->m_nLastCommand != FIREBURST) {
+                    if (useGunTask && (eGunCommand)useGunTask->m_LastCmd != FIREBURST) {
                         m_nextAtkTimeMs = 0;
                     }
                 }
@@ -196,13 +197,13 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
             }
 
             if (useGunTask) {
-                useGunTask->m_nBurstLength = m_burstAmmoCnt;
+                useGunTask->m_BurstLength = m_burstAmmoCnt;
             }
 
             return { FIREBURST, false };
         }
         case RELOAD: {
-            if (!useGunTask || (eGunCommand)useGunTask->m_nLastCommand != RELOAD) {
+            if (!useGunTask || (eGunCommand)useGunTask->m_LastCmd != RELOAD) {
                 return { FIREBURST, false };
             }
             m_firingTask = END_LEISURE;
@@ -224,15 +225,15 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     if (dontCheckLeisureDur || !m_leisureDurMs) { // 0x625681
         using enum eGunCommand;
 
-            if (useGunTask && (m_firingTask != END_LEISURE || !useGunTask->m_bIsFinished)) {
-                if (useGunTask->m_bFiredGun) {
-                    switch ((eGunCommand)useGunTask->m_nLastCommand) {
+            if (useGunTask && (m_firingTask != END_LEISURE || !useGunTask->m_IsFinished)) {
+                if (useGunTask->m_HasFiredGun) {
+                    switch ((eGunCommand)useGunTask->m_LastCmd) {
                     case FIRE:
                     case FIREBURST:
                         break;
                 default: {
-                    useGunTask->m_nCountDownFrames = 2;
-                    useGunTask->m_bFiredGun = false;
+                    useGunTask->m_CountDownFrames = 2;
+                    useGunTask->m_HasFiredGun = false;
                     }
                 }
             }
@@ -246,7 +247,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
 
         if (!m_leisureDurMs && useGunTask) {
             m_firingTask = END_LEISURE;
-            useGunTask->ControlGun(ped, m_targetEntity, (int8)END_LEISURE);
+            useGunTask->ControlGun(ped, m_targetEntity, END_LEISURE);
         }
     }
 
@@ -273,9 +274,8 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     }();
 
     if (useGunTask) {
-        useGunTask->ControlGun(ped, m_targetEntity, (int8)nextGunCmd);
+        useGunTask->ControlGun(ped, m_targetEntity, nextGunCmd);
     }
-
 
     CVector pedToTarget{};
     if (!GetPedToTarget(ped, pedToTarget)) {
@@ -295,7 +295,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
 
         if (!isRightArmBlockedForPistolWhip) {
             if (pedToTarget.SquaredMagnitude() >= 6.f) {
-                if ((eGunCommand)useGunTask->m_nLastCommand == eGunCommand::FIREBURST) {
+                if ((eGunCommand)useGunTask->m_LastCmd == eGunCommand::FIREBURST) {
                     if (winfo.flags.bMoveFire) {
                         return false;
                     }

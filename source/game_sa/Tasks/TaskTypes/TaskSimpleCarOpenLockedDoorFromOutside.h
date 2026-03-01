@@ -29,9 +29,9 @@ public:
     static void FinishAnimCarOpenLockedDoorFromOutsideCB(CAnimBlendAssociation* anim, void* data);
     void StartAnim(CPed* ped);
 
-    CTask*    Clone() override { return new CTaskSimpleCarOpenLockedDoorFromOutside{*this}; }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskSimpleCarOpenLockedDoorFromOutside{*this}; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool      ProcessPed(CPed* ped) override;
     bool      SetPedPosition(CPed * ped) override; 
 
@@ -41,6 +41,7 @@ private: // Wrappers for hooks
         this->CTaskSimpleCarOpenLockedDoorFromOutside::CTaskSimpleCarOpenLockedDoorFromOutside(veh, door, lineUpTask);
         return this;
     }
+
     // 0x6460F0
     CTaskSimpleCarOpenLockedDoorFromOutside* Destructor() {
         this->CTaskSimpleCarOpenLockedDoorFromOutside::~CTaskSimpleCarOpenLockedDoorFromOutside();

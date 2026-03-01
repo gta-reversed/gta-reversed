@@ -6,9 +6,8 @@
 */
 #pragma once
 
-#include "CompressedVector.h"
-
 #include "Vector.h"
+#include "CompressedVector.h"
 
 class CFileCarGenerator {
 public:
@@ -33,13 +32,13 @@ VALIDATE_SIZE(CFileCarGenerator, 0x30);
 
 class CCarGenerator {
 public:
-    int16            m_nModelId;
-    int8             m_nPrimaryColor;
-    int8             m_nSecondaryColor;
-    CompressedVector m_vecPosn;
-    char             m_nAngle;
-    uint8            m_nAlarmChance;    // in percentage 0-100
-    uint8            m_nDoorLockChance; // in percentage 0-100
+    int16                 m_nModelId;
+    int8                  m_nPrimaryColor;
+    int8                  m_nSecondaryColor;
+    CompressedLargeVector m_vecPosn;
+    char                  m_nAngle;
+    uint8                 m_nAlarmChance;    // in percentage 0-100
+    uint8                 m_nDoorLockChance; // in percentage 0-100
 
     union {
         struct {
@@ -72,13 +71,15 @@ public:
     bool CheckIfWithinRangeOfAnyPlayers();
     void DoInternalProcessing();
     void Process();
-    void Setup(const CVector& posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
+    void Setup(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
                uint8 alarmChance, uint8 doorLockChance, uint16 minDelay, uint16 maxDelay,
                uint8 iplId, bool ignorePopulationLimit);
     void SwitchOff();
     void SwitchOn();
 
     static uint32 CalcNextGen();
+
+    static CVehicle* CreateVehicle(eModelID model, eVehicleCreatedBy createdBy);
 };
 
 VALIDATE_SIZE(CCarGenerator, 0x20);

@@ -41,7 +41,7 @@ void CTaskSimpleSitIdle::StartAnim(CPed* ped) {
     }
 
     if (m_anim) {
-        m_anim->m_fSpeed = CGeneral::GetRandomNumberInRange(0.9f, 1.5f);
+        m_anim->m_Speed = CGeneral::GetRandomNumberInRange(0.9f, 1.5f);
     }
 }
 
@@ -50,7 +50,7 @@ bool CTaskSimpleSitIdle::MakeAbortable(CPed* ped, eAbortPriority priority, CEven
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
             m_anim->SetDefaultFinishCallback();
         }
         g_ikChainMan.AbortLookAt(ped, 750); // Omitted redudant `IsLooking` check.

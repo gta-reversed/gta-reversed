@@ -15,7 +15,7 @@ public:
     CTaskSimpleLookAbout(uint32 durationMs);
     CTaskSimpleLookAbout(const CTaskSimpleLookAbout& o);
 
-    CTask*  Clone() override { return new CTaskSimpleLookAbout{*this}; }
+    CTask*  Clone() const override { return new CTaskSimpleLookAbout{*this}; }
     virtual bool IsInterruptable(CPed const* ped) { return false; }
 private: // Wrappers for hooks
     // 0x48E0A0

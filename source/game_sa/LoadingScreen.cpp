@@ -9,6 +9,8 @@
 #include "platform.h"
 #include "LoadingScreen.h"
 
+#include "extensions/Configs/FastLoader.hpp"
+
 void CLoadingScreen::InjectHooks() {
     RH_ScopedClass(CLoadingScreen);
     RH_ScopedCategoryGlobal();
@@ -175,9 +177,10 @@ void CLoadingScreen::Continue() {
 
 // 0x590370
 void CLoadingScreen::RenderLoadingBar() {
+#ifdef PRINT_LOADMSG
     // NOTSA
-    // TODO: Add some kind of ifdef for dev stuff
     // TODO: Fix new-line not rendered when using fastload into a savegame
+
     char loadingMsg[1024];
     *std::format_to(loadingMsg, "{}\n{}", m_LoadingGxtMsg1, m_LoadingGxtMsg2) = 0;
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
@@ -189,6 +192,7 @@ void CLoadingScreen::RenderLoadingBar() {
         loadingMsg
     );
     CFont::RenderFontBuffer();
+#endif
 
     if (m_TimeBarAppeared == 0.0f) {
         m_TimeBarAppeared = GetClockTime();
@@ -240,7 +244,7 @@ void CLoadingScreen::DisplayPCScreen() {
         DefinedState2d();
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
         RenderSplash();
-        if (!FastLoadSettings.NoLoadBar) {
+        if (!g_FastLoaderConfig.NoLoadBar) {
             if (m_currDisplayedSplash > 0 && (!m_bFading || m_currDisplayedSplash != 1)) {
                 RenderLoadingBar();
             }
@@ -299,7 +303,7 @@ void CLoadingScreen::DoPCScreenChange(uint32 finish) {
 #endif
     }
 
-    if (!FastLoadSettings.NoFading) {
+    if (!g_FastLoaderConfig.NoFading) {
         for (auto i = 20; i > 0; i--) {
             m_FadeAlpha = 0;
             DisplayPCScreen();
@@ -344,11 +348,11 @@ void CLoadingScreen::NewChunkLoaded() {
     }
 
 #ifdef FIX_BUGS // Fix copyright screen appearing instead of an actual loading screen splash
-    if (m_currDisplayedSplash && delta < FastLoadSettings.ScreenChangeTime) {
+    if (m_currDisplayedSplash && delta < g_FastLoaderConfig.ScreenChangeTime) {
 #else
     if ((m_currDisplayedSplash && delta < 5.0f) || (!m_currDisplayedSplash && delta < 5.5f)) {
 #endif
-        if (!FastLoadSettings.NoLoadScreen || !FastLoadSettings.NoLoadBar) {
+        if (!g_FastLoaderConfig.NoLoadScreen || !g_FastLoaderConfig.NoLoadBar) {
             DisplayPCScreen();
         }
     } else { // New splash screen
@@ -377,8 +381,8 @@ void CLoadingScreen::SkipCopyrightSplash() {
 // 0x53DED0
 void LoadingScreen(const char* msg1, const char* msg2, const char* msg3) {
     if (msg1) {
-        if (!FastLoadSettings.NoDbgLogScreens) { // Very slow, so skip it
-            DEV_LOG("Loadingscreen: {} [{}][{}]", msg1, msg2 ? msg2 : "NULL", msg3 ? msg3 : "NULL");
+        if (!g_FastLoaderConfig.NoDbgLogScreens) { // Very slow, so skip it
+            NOTSA_LOG_DEBUG("Loadingscreen: {} [{}][{}]", msg1, msg2 ? msg2 : "NULL", msg3 ? msg3 : "NULL");
         }
         CLoadingScreen::SetLoadingBarMsg(msg1, msg2);
     }

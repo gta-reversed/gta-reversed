@@ -4,15 +4,15 @@
 #include "TaskGangHasslePed.h"
 
 void CTaskGangHasslePed::InjectHooks() {
-    RH_ScopedClass(CTaskGangHasslePed);
+    RH_ScopedVirtualClass(CTaskGangHasslePed, 0x86FA00, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x65FED0);
     RH_ScopedInstall(Destructor, 0x65FF60);
 
-    RH_ScopedVirtualInstall2(CreateNextSubTask, 0x6642C0, { .reversed = false });
-    RH_ScopedVirtualInstall2(CreateFirstSubTask, 0x664380, { .reversed = false });
-    RH_ScopedVirtualInstall2(ControlSubTask, 0x65FFE0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6642C0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x664380, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x65FFE0, { .reversed = false });
 }
 
 // 0x65FED0

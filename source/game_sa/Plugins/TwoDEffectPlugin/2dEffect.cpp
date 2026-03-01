@@ -33,7 +33,7 @@ void C2dEffect::InjectHooks()
 
 void C2dEffect::Shutdown()
 {
-    if (m_type == e2dEffectType::EFFECT_ROADSIGN) {
+    if (m_Type == e2dEffectType::EFFECT_ROADSIGN) {
         if (roadsign.m_pText) {
             CMemoryMgr::Free(roadsign.m_pText);
             roadsign.m_pText = nullptr;
@@ -44,7 +44,7 @@ void C2dEffect::Shutdown()
             roadsign.m_pAtomic = nullptr;
         }
     }
-    else if (m_type == e2dEffectType::EFFECT_LIGHT) {
+    else if (m_Type == e2dEffectType::EFFECT_LIGHT) {
         if (light.m_pCoronaTex) {
             RwTextureDestroy(light.m_pCoronaTex);
             light.m_pCoronaTex = nullptr;

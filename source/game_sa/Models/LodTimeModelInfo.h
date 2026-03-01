@@ -15,8 +15,6 @@ public:
     CTimeInfo*    GetTimeInfo() override;
 
     // virtual implementations
-    ModelInfoType GetModelType_Reversed();
-    CTimeInfo*    GetTimeInfo_Reversed();
 };
 
 VALIDATE_SIZE(CLodTimeModelInfo, 0x28);

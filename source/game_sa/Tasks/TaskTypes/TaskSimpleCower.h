@@ -15,7 +15,7 @@ public:
     CTaskSimpleCower() : CTaskSimpleRunAnim{ ANIM_GROUP_DEFAULT, ANIM_ID_HANDSCOWER, 4.0, Type, "Cower", false } {}
     ~CTaskSimpleCower() = default;
 
-    CTask* Clone() override { return new CTaskSimpleCower{}; }
+    CTask* Clone() const override { return new CTaskSimpleCower{}; }
     virtual bool IsInterruptable(CPed const* ped) { return false; } // NOTE: Possible leftover from `CTaskSimpleRunAnim`?
 
 private: // Wrappers for hooks

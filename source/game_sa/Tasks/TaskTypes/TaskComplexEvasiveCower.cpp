@@ -3,9 +3,10 @@
 #include "TaskComplexEvasiveCower.h"
 
 // 0x655460
-CTaskComplexEvasiveCower::CTaskComplexEvasiveCower(CEntity* entity, CVector& pos) : CTaskComplex() {
-    m_Pos = pos;
-    m_Entity = entity;
+CTaskComplexEvasiveCower::CTaskComplexEvasiveCower(CEntity* entity, const CVector& pos) :
+    m_Pos{pos},
+    m_Entity{entity}
+{
     CEntity::SafeRegisterRef(m_Entity);
 }
 

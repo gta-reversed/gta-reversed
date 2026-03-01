@@ -54,12 +54,8 @@ CVector2D CVector2D::RotatedBy(float rad) const {
     };
 }
 
-CVector2D CVector2D::GetPerpRight() const {
-    return { y, -x }; // `RotatedBy(-PI / 2)` done manually, rotate by +PI/2 would be `{-y, x}`
-}
-
-CVector2D CVector2D::GetPerpLeft() const {
-    return { -y, x };
+bool CVector2D::ApproxEqualTo(CVector2D o, float epsilon) {
+    return approxEqual(x, o.x, epsilon) && approxEqual(y, o.y, epsilon);
 }
 
 bool CVector2D::IsUnitVector() const {

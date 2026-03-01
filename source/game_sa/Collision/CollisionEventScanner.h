@@ -9,3 +9,4 @@ public:
 
     void ScanForCollisionEvents(CPed* victim, CEventGroup* eventGroup);
 };
+VALIDATE_SIZE(CCollisionEventScanner, 0x1);

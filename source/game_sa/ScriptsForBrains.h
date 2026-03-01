@@ -12,18 +12,18 @@ class CEntity;
 class CObject;
 
 struct tScriptForBrains {
-    int16  m_nIMGindex{-1};     /// SCM ID for `CStreaming` (Translated using SCMToModelId)
-    int8   m_nAttachType{-1};
-    int8   m_nType{-1};
-    int8   m_ucStatus{1};
-    float  m_fRadius{5.f};
+    int16 m_StreamedScriptIndex{-1}; /// SCM ID for `CStreaming` (Translated using SCMToModelId)
+    int8  m_TypeOfBrain{ -1 };
+    int8  m_ObjectGroupingId{ -1 };
+    bool  m_bBrainActive{ true };
+    float m_ObjectBrainActivationRadius{ 5.f };
     union {
         struct {
-            int16  m_pedModelOrPedGeneratorIndex;
-            uint16 m_percentageChance;
-            uint32 m_pad;
+            int16  m_PedModelOrPedGeneratorIndex;
+            uint16 m_PercentageChance;
+            uint32 m_Pad;
         };
-        char m_scriptName[8]{};
+        char m_ScriptName[8]{};
     };
 };
 
@@ -41,10 +41,10 @@ public:
 
     void CheckIfNewEntityNeedsScript(CEntity* entity, int8 attachType, void* unused);
 
-    int16 GetIndexOfScriptBrainWithThisName(const char* name, int8 attachType);
+    int16 GetIndexOfScriptBrainWithThisName(const char* name, int8 type);
 
     bool HasAttractorScriptBrainWithThisNameLoaded(const char* name);
-    bool IsObjectWithinBrainActivationRange(CObject* entity, CVector const* point);
+    bool IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point);
 
     void MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded(const char* name);
     void RequestAttractorScriptBrainWithThisName(const char* name);

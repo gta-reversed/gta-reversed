@@ -20,6 +20,8 @@ void CCranes::InitCranes() {
 
 // 0x6F3FE0
 void CCranes::UpdateCranes() {
+    ZoneScoped;
+
     // NOP
 }
 

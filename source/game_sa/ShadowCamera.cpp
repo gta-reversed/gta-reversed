@@ -211,19 +211,11 @@ RwCamera* CShadowCamera::Create(int32 rasterSizePower) {
 RpAtomic* atomicQuickRender(RpAtomic* atomic, void* data) {
     UNUSED(data);
 
-    // Save original callback
-    const auto origcb = RpAtomicGetRenderCallBack(atomic);
+    const auto original = RpAtomicGetRenderCallBack(atomic);
 
-    // Set default callback
-    RpAtomicSetRenderCallBack(atomic, &AtomicDefaultRenderCallBack);
-
-    // NOTSA: Omitting useless `if` - It's condition always evals to `false` - Perhaps BUG?
-
-    // Render using default
-    AtomicDefaultRenderCallBack(atomic);
-
-    // Set original (if not null) or use default
-    RpAtomicSetRenderCallBack(atomic, origcb ? origcb : &AtomicDefaultRenderCallBack);
+    RpAtomicSetRenderCallBack(atomic, NULL);
+    RpAtomicRender(atomic);
+    RpAtomicSetRenderCallBack(atomic, original);
 
     return atomic;
 }

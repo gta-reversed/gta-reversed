@@ -5,7 +5,6 @@
 class CPed;
 class CTask;
 class CVehicle;
-class CTaskComplexLeaveCarAsPassengerWait;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexLeaveCarAsPassengerWait : public CTaskComplex {
 public:
@@ -24,8 +23,8 @@ public:
     CPed* GetNextPassengerToLeave();
     void SetPedInZerothPassengerSeat(CPed* ped);
 
-    CTask*    Clone() override { return new CTaskComplexLeaveCarAsPassengerWait{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexLeaveCarAsPassengerWait{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
@@ -36,6 +35,7 @@ private: // Wrappers for hooks
         this->CTaskComplexLeaveCarAsPassengerWait::CTaskComplexLeaveCarAsPassengerWait(veh);
         return this;
     }
+
     // 0x63B4A0
     CTaskComplexLeaveCarAsPassengerWait* Destructor() {
         this->CTaskComplexLeaveCarAsPassengerWait::~CTaskComplexLeaveCarAsPassengerWait();

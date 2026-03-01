@@ -10,23 +10,26 @@
 #include "eWeaponType.h"
 
 class NOTSA_EXPORT_VTABLE CWeaponModelInfo : public CClumpModelInfo {
-public:
+private:
     eWeaponType m_weaponInfo;
 
 public:
-    static void InjectHooks();
-
     CWeaponModelInfo() : CClumpModelInfo() {}
 
     // VTable
-    ModelInfoType GetModelType() override;
+
     void Init() override;
+
+    ModelInfoType GetModelType() override;
     void SetClump(RpClump* clump) override;
 
-    // VTable implementations
-    ModelInfoType GetModelType_Reversed();
-    void Init_Reversed();
-    void SetClump_Reversed(RpClump* clump);
+    // inlined
+    void SetWeaponInfo(eWeaponType weapon) { m_weaponInfo = weapon; }
+    eWeaponType GetWeaponInfo() { return m_weaponInfo; }
+
+private: // NOTSA:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 VALIDATE_SIZE(CWeaponModelInfo, 0x28);

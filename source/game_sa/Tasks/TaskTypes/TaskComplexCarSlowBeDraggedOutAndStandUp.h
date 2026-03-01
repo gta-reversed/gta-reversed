@@ -5,7 +5,7 @@
 class CVehicle;
 class CEvent;
 
-class CTaskComplexCarSlowBeDraggedOutAndStandUp : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexCarSlowBeDraggedOutAndStandUp : public CTaskComplex {
 public:
     CVehicle* m_Vehicle;
     int32     dword10;
@@ -16,9 +16,9 @@ public:
     CTaskComplexCarSlowBeDraggedOutAndStandUp(CVehicle* vehicle, int32 a3);
     ~CTaskComplexCarSlowBeDraggedOutAndStandUp() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexCarSlowBeDraggedOutAndStandUp(m_Vehicle, dword10); } // 0x64A190;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexCarSlowBeDraggedOutAndStandUp(m_Vehicle, dword10); } // 0x64A190;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

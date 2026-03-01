@@ -15,7 +15,7 @@ struct SHookContent {
 VALIDATE_SIZE(SHookContent, 0x34);
 
 struct Simple : Base {
-    // TODO: Refactor this copy-pate and document it
+    // TODO: Refactor this copy-paste and document it
 
     SHookContent m_HookContent{};
     uint8        m_OriginalFunctionContent[sizeof(m_HookContent)]{};
@@ -27,7 +27,14 @@ struct Simple : Base {
     uint32       m_iLibHookedBytes{};
     uint32       m_iLibFunctionAddress{}; // Address of our function
 
-    Simple(std::string fnName, uint32 installAddress, void* addressToJumpTo, int iJmpCodeSize = 5, int stackArguments = -1);
+    Simple(
+        std::string name,
+        uint32 installAddress,
+        void* addressToJumpTo,
+        bool reversed = true,
+        int iJmpCodeSize = 5,
+        int stackArguments = -1
+    );
 
     virtual ~Simple() override = default;
 

@@ -6,9 +6,11 @@
 */
 #pragma once
 
+#include "PtrListDoubleLink.h"
+#include "PtrListSingleLink.h"
+
 class CVehicle;
 class CBaseModelInfo;
-class CPtrListDoubleLink;
 
 enum eRendererVisibility {
     RENDERER_INVISIBLE = 0,
@@ -18,22 +20,28 @@ enum eRendererVisibility {
 };
 
 struct tScanLists {
-    CPtrListDoubleLink* buildingsList;
-    CPtrListDoubleLink* objectsList;
-    CPtrListDoubleLink* vehiclesList;
-    CPtrListDoubleLink* pedsList;
-    CPtrListDoubleLink* dummiesList;
+    CPtrListSingleLink<CBuilding*>* buildingsList;
+    CPtrListDoubleLink<CObject*>*   objectsList;
+    CPtrListDoubleLink<CVehicle*>*  vehiclesList;
+    CPtrListDoubleLink<CPed*>*      pedsList;
+    CPtrListDoubleLink<CDummy*>*    dummiesList;
 
-    [[nodiscard]] inline CPtrListDoubleLink* GetList(uint32 index) const {
-        switch (index) {
-            case 0: return buildingsList;
-            case 1: return objectsList;
-            case 2: return vehiclesList;
-            case 3: return pedsList;
-            case 4: return dummiesList;
-            default:
-                assert(false); // Shouldn't ever happen
-                return nullptr;
+    template<typename Visitor>
+    void VisitLists(Visitor&& visitor) {
+        if (buildingsList) {
+            std::invoke(visitor, *buildingsList);
+        }
+        if (objectsList) {
+            std::invoke(visitor, *objectsList);
+        }
+        if (vehiclesList) {
+            std::invoke(visitor, *vehiclesList);
+        }
+        if (pedsList) {
+            std::invoke(visitor, *pedsList);
+        }
+        if (dummiesList) {
+            std::invoke(visitor, *dummiesList);
         }
     }
 };
@@ -110,7 +118,8 @@ public:
     static void ScanSectorList(int32 sectorX, int32 sectorY);
     static void ScanBigBuildingList(int32 sectorX, int32 sectorY);
     static bool ShouldModelBeStreamed(CEntity* entity, const CVector& origin, float farClip);
-    static void ScanPtrList_RequestModels(CPtrList& list);
+    template<typename PtrListType>
+    static void ScanPtrList_RequestModels(PtrListType& list);
     static void ConstructRenderList();
     static void ScanSectorList_RequestModels(int32 sectorX, int32 sectorY);
     static void ScanWorld();

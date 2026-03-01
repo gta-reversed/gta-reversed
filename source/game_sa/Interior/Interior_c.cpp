@@ -62,15 +62,9 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(FurnishShop, 0x59A790, { .reversed = false });
 }
 
-// 0x5921D0
-Interior_c::Interior_c() : ListItem_c() {
-    field_3EC = -1;
-    m_nodeAddress.m_wAreaId = (uint16)-1;
-}
-
 // 0x593BF0
-int32 Interior_c::Init(CVector* a2) {
-    return plugin::CallMethodAndReturn<int32, 0x593BF0, Interior_c*, CVector*>(this, a2);
+int32 Interior_c::Init(const CVector& pos) {
+    return plugin::CallMethodAndReturn<int32, 0x593BF0>(this, &pos);
 }
 
 // 0x592230
@@ -194,8 +188,8 @@ void Interior_c::Shop_FurnishEdges() {
 }
 
 // 0x593DB0
-int8 Interior_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* a3) {
-    return plugin::CallMethodAndReturn<int8, 0x593DB0, Interior_c*, FurnitureEntity_c*, CVector*>(this, entity, a3);
+bool Interior_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* a3) {
+    return plugin::CallMethodAndReturn<bool, 0x593DB0, Interior_c*, FurnitureEntity_c*, CVector*>(this, entity, a3);
 }
 
 // 0x593910
@@ -210,13 +204,13 @@ CObject* Interior_c::PlaceObject(uint8 isStealable, Furniture_c* furniture, floa
 }
 
 // 0x5913B0
-ListItem_c* Interior_c::GetFurnitureEntity(CEntity* entity) {
-    return plugin::CallMethodAndReturn<ListItem_c*, 0x5913B0, Interior_c*, CEntity*>(this, entity);
+FurnitureEntity_c* Interior_c::GetFurnitureEntity(CEntity* entity) {
+    return plugin::CallMethodAndReturn<FurnitureEntity_c*, 0x5913B0, Interior_c*, CEntity*>(this, entity);
 }
 
 // 0x5913E0
-bool Interior_c::IsPtInside(CVector* a2, float a3, float a4, float a5) {
-    return plugin::CallMethodAndReturn<bool, 0x5913E0, Interior_c*, CVector*, float, float, float>(this, a2, a3, a4, a5);
+bool Interior_c::IsPtInside(const CVector& pt, CVector bias) {
+    return plugin::CallMethodAndReturn<bool, 0x5913E0, Interior_c*, const CVector&, CVector&>(this, pt, bias);
 }
 
 // 0x5914D0

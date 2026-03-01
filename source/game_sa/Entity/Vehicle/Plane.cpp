@@ -25,30 +25,30 @@ float& PLANE_DAMAGE_DESTROY_THRESHHOLD = *(float*)0x8D33EC; // 5000.0f
 CVector& vecRCBaronGunPos = *(CVector*)0x8D33F0;            // <0.0f, 0.45f, 0.0f>
 
 void CPlane::InjectHooks() {
-    RH_ScopedClass(CPlane);
+    RH_ScopedVirtualClass(CPlane, 0x871948, 71);
     RH_ScopedCategory("Vehicle");
 
     RH_ScopedInstall(Constructor, 0x6C8E20);
     RH_ScopedInstall(InitPlaneGenerationAndRemoval, 0x6CAD90);
-    RH_ScopedVirtualInstall(SetUpWheelColModel, 0x6C9140);
-    RH_ScopedVirtualInstall(BurstTyre, 0x6C9150);
-    RH_ScopedVirtualInstall(PreRender, 0x6C94A0, { .reversed = false });
-    RH_ScopedVirtualInstall(Render, 0x6CAB70);
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C9140);
+    RH_ScopedVMTInstall(BurstTyre, 0x6C9150);
+    RH_ScopedVMTInstall(PreRender, 0x6C94A0, { .reversed = false });
+    RH_ScopedVMTInstall(Render, 0x6CAB70);
     RH_ScopedInstall(IsAlreadyFlying, 0x6CAB90);
-    RH_ScopedVirtualInstall(Fix, 0x6CABB0);
-    RH_ScopedVirtualInstall(SetupDamageAfterLoad, 0x6CAC10);
+    RH_ScopedVMTInstall(Fix, 0x6CABB0);
+    RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6CAC10);
     RH_ScopedInstall(SetGearUp, 0x6CAC20);
     RH_ScopedInstall(SetGearDown, 0x6CAC70);
-    RH_ScopedVirtualInstall(OpenDoor, 0x6CACB0);
-    RH_ScopedVirtualInstall(ProcessControl, 0x6C9260, { .reversed = false });
-    RH_ScopedVirtualInstall(ProcessControlInputs, 0x6CADD0, { .reversed = false });
-    RH_ScopedVirtualInstall(ProcessFlyingCarStuff, 0x6CB7C0, { .reversed = false });
-    RH_ScopedVirtualInstall(VehicleDamage, 0x6CC4B0, { .reversed = false });
+    RH_ScopedVMTInstall(OpenDoor, 0x6CACB0);
+    RH_ScopedVMTInstall(ProcessControl, 0x6C9260, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessControlInputs, 0x6CADD0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessFlyingCarStuff, 0x6CB7C0, { .reversed = false });
+    RH_ScopedVMTInstall(VehicleDamage, 0x6CC4B0, { .reversed = false });
     RH_ScopedInstall(CountPlanesAndHelis, 0x6CCA50);
     RH_ScopedInstall(AreWeInNoPlaneZone, 0x6CCAA0);
     RH_ScopedInstall(AreWeInNoBigPlaneZone, 0x6CCBB0);
     RH_ScopedInstall(SwitchAmbientPlanes, 0x6CCC50, { .reversed = false });
-    RH_ScopedVirtualInstall(BlowUpCar, 0x6CCCF0, { .reversed = false });
+    RH_ScopedVMTInstall(BlowUpCar, 0x6CCCF0, { .reversed = false });
     RH_ScopedInstall(FindPlaneCreationCoors, 0x6CD090, { .reversed = false });
     RH_ScopedInstall(DoPlaneGenerationAndRemoval, 0x6CD2F0, { .reversed = false });
 }
@@ -89,25 +89,25 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     case MODEL_RUSTLER:
     case MODEL_CROPDUST:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK); // todo: add func(openAngle, closedAngle, axis, dir)
-        leftDoor.m_fOpenAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 1;
-        leftDoor.m_nDirn = 19;
+        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 1;
+        leftDoor.m_dirn = 19;
         break;
     case MODEL_SHAMAL:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_fOpenAngle = -((3.0f * PI) / 4.0f);
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 1;
-        leftDoor.m_nDirn = 18;
+        leftDoor.m_openAngle = -((3.0f * PI) / 4.0f);
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 1;
+        leftDoor.m_dirn = 18;
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LF]), 0);
         break;
     case MODEL_NEVADA:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_fOpenAngle = -((2.0f * PI) / 5.0f);
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 2;
-        leftDoor.m_nDirn = 20;
+        leftDoor.m_openAngle = -((2.0f * PI) / 5.0f);
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 2;
+        leftDoor.m_dirn = 20;
         break;
     case MODEL_VORTEX:
         if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1)
@@ -115,10 +115,10 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         break;
     case MODEL_STUNT:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_fOpenAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_fClosedAngle = 0.0f;
-        leftDoor.m_nAxis = 1;
-        leftDoor.m_nDirn = 19;
+        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
+        leftDoor.m_closedAngle = 0.0f;
+        leftDoor.m_axis = 1;
+        leftDoor.m_dirn = 19;
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LB]), 0);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_RB]), 0);
         break;
@@ -185,14 +185,14 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_CRASH_PLANE_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
+    if (GetStatus() == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
         if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
             FindPlayerInfo().m_nHavocCaused += 20;
             FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
             CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)CGeneral::GetRandomNumberInRange(4000, 10'000));
         }
 
-        if (m_nStatus == STATUS_PLAYER) { // strange
+        if (GetStatus() == STATUS_PLAYER) { // strange
             if (m_pDriver) {
                 m_pDriver->bDontRender = true;
             }
@@ -207,9 +207,9 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         }
 
         // m_nType = m_nType & 7 | STATUS_WRECKED;
-        physicalFlags.bDestroyed = true;
+        physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
-        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
+        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
         m_damageManager.FuckCarCompletely(false);
         if (m_nModelIndex != MODEL_RCBARON) {
             CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
@@ -264,7 +264,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
             CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
         }
     } else {
-        m_autoPilot.m_nCarMission = MISSION_CRASH_PLANE_AND_BURN;
+        m_autoPilot.SetCarMission(MISSION_PLANE_CRASH_AND_BURN);
         m_fHealth = 0.0f;
     }
 }
@@ -292,7 +292,7 @@ void CPlane::OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenR
     if (false) // byte_C1CAFC
     {
         CMatrix matrix(RwFrameGetMatrix(m_aCarNodes[componentId]), false);
-        const auto y = m_doors[door].m_fAngle - m_doors[door].m_fPrevAngle + matrix.GetPosition().y;
+        const auto y = m_doors[door].m_angle - m_doors[door].m_prevAngle + matrix.GetPosition().y;
         matrix.SetTranslate({matrix.GetPosition().x, y, matrix.GetPosition().z});
         matrix.UpdateRW();
     }
@@ -336,9 +336,8 @@ void CPlane::SetGearDown() {
 // 0x6CCA50
 uint32 CPlane::CountPlanesAndHelis() {
     uint32 counter = 0;
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (vehicle && (vehicle->IsSubHeli() || vehicle->IsSubPlane())) {
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.IsSubHeli() || vehicle.IsSubPlane()) {
             counter++;
         }
     }
@@ -369,8 +368,8 @@ void CPlane::SwitchAmbientPlanes(bool enable) {
 }
 
 // 0x6CD090
-void CPlane::FindPlaneCreationCoors(CVector* center, CVector* playerCoords, float* outHeading, float* outHeight, bool arg4) {
-    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(center, playerCoords, outHeading, outHeight, arg4);
+void CPlane::FindPlaneCreationCoors(CVector* outCoors, CVector* outTargetCoors, float* outPlaneOrientation, float* outFlightHeight, bool isBigPlane) {
+    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(outCoors, outTargetCoors, outPlaneOrientation, outFlightHeight, isBigPlane);
 }
 
 // 0x6CD2F0
@@ -404,7 +403,7 @@ void CPlane::ProcessControl() {
     return plugin::CallMethod<0x6C9260, CPlane*>(this);
 
     // untested
-    if (m_nStatus == STATUS_PLAYER) {
+    if (GetStatus() == STATUS_PLAYER) {
         if (m_nModelIndex == MODEL_CROPDUST || m_nModelIndex == MODEL_STUNT) {
             auto pad = CPad::GetPad(m_pDriver->GetPadNumber());
             if (pad->IsRightShockPressed()) {
@@ -425,17 +424,17 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.field_7C = static_cast<int16>(field_9A0);
+    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(field_9A0);
     if (field_9A0) {
         field_9A0 = 0;
     }
 
     CVehicle::ProcessWeapons();
     if (m_nModelIndex == MODEL_VORTEX) {
-        m_aWheelState[0] = WHEEL_STATE_NORMAL;
-        m_aWheelState[1] = WHEEL_STATE_NORMAL;
-        m_aWheelState[2] = WHEEL_STATE_NORMAL;
-        m_aWheelState[3] = WHEEL_STATE_NORMAL;
+        m_WheelStates[0] = WHEEL_STATE_NORMAL;
+        m_WheelStates[1] = WHEEL_STATE_NORMAL;
+        m_WheelStates[2] = WHEEL_STATE_NORMAL;
+        m_WheelStates[3] = WHEEL_STATE_NORMAL;
     }
 
     if (m_pSmokeParticle) {

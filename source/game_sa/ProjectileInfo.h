@@ -34,7 +34,7 @@ public:
     void RemoveFXSystem(bool bInstantly);
     static CProjectileInfo* GetProjectileInfo(int32 infoId);
     static void RemoveNotAdd(CEntity* creator, eWeaponType weaponType, CVector posn);
-    static bool AddProjectile(CEntity* creator, eWeaponType eWeaponType, CVector posn, float force, CVector* direction, CEntity* victim);
+    static bool AddProjectile(CEntity* creator, eWeaponType eWeaponType, CVector posn, float force, const CVector* direction, CEntity* victim);
     static void RemoveDetonatorProjectiles();
     static void RemoveProjectile(CProjectileInfo* projectileInfo, CProjectile* projectileObject);
     static void Update();

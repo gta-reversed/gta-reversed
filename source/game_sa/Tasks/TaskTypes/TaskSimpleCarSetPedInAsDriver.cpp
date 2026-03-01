@@ -25,7 +25,7 @@ CTaskSimpleCarSetPedInAsDriver::~CTaskSimpleCarSetPedInAsDriver() {
 }
 
 // 0x649E00
-CTask* CTaskSimpleCarSetPedInAsDriver::Clone() {
+CTask* CTaskSimpleCarSetPedInAsDriver::Clone() const {
     auto task = new CTaskSimpleCarSetPedInAsDriver(m_pTargetVehicle, m_pUtility);
     task->m_bWarpingInToCar = m_bWarpingInToCar;
     task->m_nDoorFlagsToClear = m_nDoorFlagsToClear;

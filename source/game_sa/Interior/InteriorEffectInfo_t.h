@@ -4,16 +4,15 @@
 
 #include "Vector.h"
 
-class C2dEffect;
-class CEntity;
+struct C2dEffectInterior;
+class  CEntity;
 
 struct InteriorEffectInfo_t {
-    CEntity*   m_pEntity;
-    int32      m_nEffectCount;
-    C2dEffect* m_pEffects[8];
-    int32      m_nEffectIndicesInModelInfo[8];
-    int32      m_field_48;
-    bool       m_field_4C;
-    int8       m_field_4D[3];
+    CEntity*                          Entity;
+    size_t                            NumFx;
+    std::array<C2dEffectInterior*, 8> Effects;
+    std::array<uint32, 8>             FxIds;
+    float                             DistSq; ///< Min dist. sq. to camera from any of the effects (in the `Effects` array)
+    bool                              IsCulled;
 };
 VALIDATE_SIZE(InteriorEffectInfo_t, 0x50);

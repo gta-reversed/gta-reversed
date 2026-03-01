@@ -35,8 +35,9 @@ void CMotionBlurStreaks::Update()
 }
 
 // 0x7240E0
-void CMotionBlurStreaks::Render()
-{
+void CMotionBlurStreaks::Render() {
+    ZoneScoped;
+
     bool bRenderParamsSet = false;
     for (CRegisteredMotionBlurStreak& streak : CMotionBlurStreaks::aStreaks) {
         if (streak.m_nId) {

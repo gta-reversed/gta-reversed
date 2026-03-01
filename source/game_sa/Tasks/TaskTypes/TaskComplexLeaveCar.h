@@ -10,7 +10,7 @@
 #include "Vehicle.h"
 #include "TaskUtilityLineUpPedWithCar.h"
 
-class CTaskComplexLeaveCar : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexLeaveCar : public CTaskComplex {
 public:
     CVehicle*                     m_pTargetVehicle;
     int32                         m_nTargetDoor;
@@ -29,14 +29,15 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_LEAVE_CAR;
 
-    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime);
-    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime, bool bSensibleLeaveCar, bool bForceGetOut);
+    [[deprecated]]
+    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime); // TODO: Add `bool die` to the ctor below and remove this one
+    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor /*= 0*/, int32 nDelayTime /*= 0*/, bool bSensibleLeaveCar /*= true */, bool bForceGetOut /*= false */);
     CTaskComplexLeaveCar(const CTaskComplexLeaveCar& o); // NOTSA
     ~CTaskComplexLeaveCar() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexLeaveCar{ *this }; } // 0x63D9E0
-    bool   MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexLeaveCar{ *this }; } // 0x63D9E0
+    bool   MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

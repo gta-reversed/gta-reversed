@@ -5,7 +5,7 @@
 //#define COL_EXTRA_DEBUG
 
 #ifdef COL_DEBUG
-#define DEV_LOG_COL(...) DEV_LOG(__VA_ARGS__)
+#define DEV_LOG_COL(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
 #else
 #define DEV_LOG_COL(...)
 #endif
@@ -26,15 +26,15 @@ void CColModel::InjectHooks() {
 }
 
 CColModel::CColModel() : m_boundBox() {
-    m_nColSlot = 0;
-    m_pColData = nullptr;
-    m_bHasCollisionVolumes = false;
+    m_nColSlot              = 0;
+    m_pColData              = nullptr;
+    m_bHasCollisionVolumes  = false;
     m_bIsSingleColDataAlloc = false;
-    m_bIsActive = true;
+    m_IsActive             = true;
 }
 
 CColModel::~CColModel() {
-    if (!m_bIsActive) {
+    if (!m_IsActive) {
         return;
     }
     RemoveCollisionVolumes();

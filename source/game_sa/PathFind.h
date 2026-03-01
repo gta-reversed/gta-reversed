@@ -6,7 +6,7 @@
 */
 #pragma once
 
-#include "CompressedVector.h"
+#include <Base.h>
 #include "Vector.h"
 #include "NodeAddress.h"
 #include "NodeRoute.h"
@@ -33,18 +33,18 @@ enum eTrafficLevel {
     TRAFFIC_LOW = 3,
 };
 
-class CForbiddenArea {
+class CNodesSwitchedOnOrOff {
 public:
-    float m_fXMin;
-    float m_fXMax;
-    float m_fYMin;
-    float m_fYMax;
-    float m_fZMin;
-    float m_fZMax;
-    bool  m_bEnable;
-    uint8 m_nType;
+    float xMin;
+    float xMax;
+    float yMin;
+    float yMax;
+    float zMin;
+    float zMax;
+    bool  isOff;
+    bool  isCars;
 };
-VALIDATE_SIZE(CForbiddenArea, 0x1C);
+VALIDATE_SIZE(CNodesSwitchedOnOrOff, 0x1C);
 
 class CCarPathLinkAddress {
 public:
@@ -119,14 +119,14 @@ VALIDATE_SIZE(CCarPathLink, 0xE);
 
 class CPathNode {
 public:
-    CPathNode        *m_next, *m_prev;
-    CompressedVector m_vPos;
-    int16            m_totalDistFromOrigin; /// Sum of linkLength's up to this node. Using this the current hash bucket (in `m_pathFindHashTable`) can be obtained by `% std::size(m_pathFindHashTable)`. Used in `DoPathSearch`. `SHRT_MAX - 1` by default.
-    int16            m_wBaseLinkId;
-    uint16           m_wAreaId; // TODO: Replace these 2 with `CNodeAddress`
-    uint16           m_wNodeId;
-    uint8            m_nPathWidth; // Fixed-point float, divide by 16
-    uint8            m_nFloodFill;
+    CPathNode *           m_next, *m_prev;
+    CompressedLargeVector m_vPos;
+    int16                 m_totalDistFromOrigin; /// Sum of linkLength's up to this node. Using this the current hash bucket (in `m_pathFindHashTable`) can be obtained by `% std::size(m_pathFindHashTable)`. Used in `DoPathSearch`. `SHRT_MAX - 1` by default.
+    int16                 m_wBaseLinkId;
+    uint16                m_wAreaId; // TODO: Replace these 2 with `CNodeAddress`
+    uint16                m_wNodeId;
+    uint8                 m_nPathWidth; // Fixed-point float, divide by 16
+    uint8                 m_nFloodFill;
 
     // byte 0
     uint32 m_nNumLinks : 4; // Mask: 0xF
@@ -136,7 +136,7 @@ public:
     uint32 m_bWaterNode : 1;
 
     // byte 1
-    uint32 m_isOriginallyOnDeadEnd : 1;
+    uint32 m_isSwitchedOffOriginal : 1;
     uint32 unk1 : 1; // not used in paths data files
     uint32 m_bDontWander : 1;
     uint32 unk2 : 1; // not used in paths data files
@@ -154,9 +154,7 @@ public:
     static void InjectHooks();
 
     /// Get uncompressed world position
-    CVector GetNodeCoors() const {
-        return UncompressLargeVector(m_vPos);
-    }
+    CVector GetPosition() const { return m_vPos; }
 
     CNodeAddress GetAddress() const {
         return { m_wAreaId, m_wNodeId };
@@ -193,27 +191,26 @@ public:
     * The first part of the array has the vehicle nodes (count: `m_anNumVehicleNodes`)
     * the remaining part has ped nodes (count: `m_anNumPedNodes`)
     */
-    CPathNode*             m_pPathNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x804
+    CPathNode*             m_pPathNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x804
 
     // Use CPathFind::GetCarPathLink to access
-    CCarPathLink*          m_pNaviNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x924
-    CNodeAddress*          m_pNodeLinks[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xA44
-    uint8*                 m_pLinkLengths[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xB64
-    CPathIntersectionInfo* m_pPathIntersections[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xC84
+    CCarPathLink*          m_pNaviNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x924
+    CNodeAddress*          m_pNodeLinks[NUM_TOTAL_PATH_NODE_AREAS]; // 0xA44
+    uint8*                 m_pLinkLengths[NUM_TOTAL_PATH_NODE_AREAS]; // 0xB64
+    CPathIntersectionInfo* m_pPathIntersections[NUM_TOTAL_PATH_NODE_AREAS]; // 0xC84
     CCarPathLinkAddress*   m_pNaviLinks[NUM_PATH_MAP_AREAS]; // 0xDA4
-    void*                  m_aUnused[22]; // 0xEA4
-    uint32                 m_aUnk[NUM_PATH_MAP_AREAS - 22]; // 0xEFC
-    uint32                 m_anNumNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xFA4
-    uint32                 m_anNumVehicleNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x10C4
-    uint32                 m_anNumPedNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x11E4
-    uint32                 m_anNumCarPathLinks[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS];
-    uint32                 m_anNumAddresses[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS];
+    void*                  m_aTempNodes[NUM_PATH_MAP_AREAS];                   // 0xEA4
+    uint32                 m_anNumNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0xFA4
+    uint32                 m_anNumVehicleNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x10C4
+    uint32                 m_anNumPedNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x11E4
+    uint32                 m_anNumCarPathLinks[NUM_TOTAL_PATH_NODE_AREAS];
+    uint32                 m_anNumAddresses[NUM_TOTAL_PATH_NODE_AREAS];
     int32                  m_aDynamicLinksBaseIds[NUM_PATH_MAP_AREAS][NUM_DYNAMIC_LINKS_PER_AREA];
     int32                  m_aDynamicLinksIds[NUM_PATH_MAP_AREAS][NUM_DYNAMIC_LINKS_PER_AREA];
     uint32                 m_totalNumNodesInPathFindHashTable; // Number of items in total in all buckets of `m_pathFindHashTable`
     uint32                 m_interiorIDs[NUM_PATH_INTERIOR_AREAS];
-    uint32                 m_nNumForbiddenAreas;
-    CForbiddenArea         m_aForbiddenAreas[NUM_PATH_MAP_AREAS];
+    uint32                 m_nNumNodeSwitches;
+    CNodesSwitchedOnOrOff  m_aNodeSwitches[NUM_PATH_MAP_AREAS];
 
     bool                   m_loadAreaRequestPending; /// Whenever an area to be loaded was requested via `MakeRequestForNodesToBeLoaded`
     // TODO: Replace below with CRect
@@ -289,9 +286,9 @@ public:
     bool ThisNodeHasToBeSwitchedOff(CPathNode* node);
     size_t CountNeighboursToBeSwitchedOff(const CPathNode& node);
     void SwitchOffNodeAndNeighbours(CPathNode* node, CPathNode*& outNext1, CPathNode** outNext2, bool lowTraffic, bool backToOriginal);
-    void SwitchRoadsOffInAreaForOneRegion(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bLowTraffic, uint8 nodeType, int areaId, uint8 bUnused);
-    void SwitchRoadsOffInArea(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bLowTraffic, uint8 nodeType, bool bForbidden);
-    void SwitchPedRoadsOffInArea(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bLowTraffic, uint8 nodeType);
+    void SwitchRoadsOffInAreaForOneRegion(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bSwitchOff, bool bCars, int areaId, bool bBackToOriginal);
+    void SwitchRoadsOffInArea(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bSwitchOff, bool bCars, bool bBackToOriginal);
+    void SwitchPedRoadsOffInArea(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bSwitchOff, bool bBackToOriginal);
     void LoadPathFindData(RwStream* stream, int32 areaId);
     void LoadPathFindData(int32 areaId);
     void UnMarkAllRoadNodesAsDontWander();
@@ -349,7 +346,7 @@ public:
         bool includeNodesWithoutLinks,
         bool waterPath
     ); 
-    void ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& address, CNodeRoute& nodeRoute);
+    void ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route);
     void SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool bTrainCrossing);
 
     /*!
@@ -378,7 +375,7 @@ public:
     CVector FindNodeCoorsForScript(CNodeAddress nodeAddrA, CNodeAddress nodeAddrB, float& outHeadingDeg, bool* outFound);
 
     void Shutdown();
-    CVector TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, uint16 randomSeed);
+    CVector TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, int16 randomSeed);
     void TakeWidthIntoAccountForCoors(CNodeAddress address, CNodeAddress address2, uint16 seed, float* fOut1, float* fOut2);
 
     /*!
@@ -460,7 +457,7 @@ public:
     CPathNode* GetPathNode(CNodeAddress address);
 
     inline CCarPathLink& GetCarPathLink(const CCarPathLinkAddress& address) {
-        assert(address.m_wAreaId < NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS);
+        assert(address.m_wAreaId < NUM_TOTAL_PATH_NODE_AREAS);
         return m_pNaviNodes[address.m_wAreaId][address.m_wCarPathLinkId];
     }
 

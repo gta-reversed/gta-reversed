@@ -46,6 +46,8 @@ bool CUpsideDownCarCheck::IsCarUpsideDown(const CVehicle* vehicle) {
 // Process
 // 0x4655E0
 void CUpsideDownCarCheck::UpdateTimers() {
+    ZoneScoped;
+
     for (auto& car : m_aUpsideDownCars) {
         if (!car.m_nHandle)
             continue;

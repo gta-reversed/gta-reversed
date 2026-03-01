@@ -17,7 +17,7 @@ void CTaskComplexDrivePointRoute::InjectHooks() {
 }
 
 // 0x6433E0
-CTaskComplexDrivePointRoute::CTaskComplexDrivePointRoute(CVehicle* vehicle, CPointRoute const& route, float cruiseSpeed, uint32 mode, int32 carModelIdx, float targetRadius, eCarDrivingStyle drivingStyle) :
+CTaskComplexDrivePointRoute::CTaskComplexDrivePointRoute(CVehicle* vehicle, CPointRoute const& route, float cruiseSpeed, uint32 mode, eModelID carModelIdx, float targetRadius, eCarDrivingStyle drivingStyle) :
     m_mode{mode},
     m_veh{vehicle},
     m_route{new CPointRoute{route}},
@@ -54,7 +54,7 @@ CTask* CTaskComplexDrivePointRoute::CreateTaskForCurrentPoint() const {
 
 // 0x63CF90
 CTask* CTaskComplexDrivePointRoute::CreateNextSubTask(CPed* ped) {
-    if (m_currPtIdx++ == m_route->m_nNumPoints) {
+    if (m_currPtIdx++ == m_route->m_NumEntries) {
         return nullptr;
     }
 

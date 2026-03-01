@@ -44,7 +44,7 @@ void CAECutsceneTrackManager::PlayPreloadedCutsceneTrack() {
 // 0x4DBE80
 void CAECutsceneTrackManager::StopCutsceneTrack() {
     if (m_nStatus <= STATE_PLAYING)
-        m_nStatus = S4;
+        m_nStatus = STATE_STOP_REQUESTED;
 
     m_bPlayRequest = false;
     m_bPaused = false;
@@ -65,11 +65,11 @@ uint8 CAECutsceneTrackManager::GetCutsceneTrackStatus() const {
         return S2;
     case STATE_PLAYING:
         return STATE_PLAYING;
-    case S4:
+    case STATE_STOP_REQUESTED:
     case S5:
     case S6:
     case S7:
-        return S4;
+        return STATE_STOP_REQUESTED;
     default:
         return S0;
     }
@@ -82,8 +82,8 @@ void CAECutsceneTrackManager::PauseTrack(bool pause) {
 
 // 0x4DBFB0
 void CAECutsceneTrackManager::Service(int32 trackPlayTime) {
+    static int32 previousPlayTime = m_nTrackPlayTime;
     m_nTrackPlayTime = trackPlayTime;
-    static int32 previousPlayTime = trackPlayTime;
     m_nTrackLengthMs = AEAudioHardware.GetTrackLengthMs();
     m_nPlayingTrackId = AEAudioHardware.GetPlayingTrackID();
 
@@ -110,7 +110,7 @@ void CAECutsceneTrackManager::Service(int32 trackPlayTime) {
             m_nStatus = S8;
         }
         break;
-    case S4:
+    case STATE_STOP_REQUESTED:
     case S6:
         AEAudioHardware.StopTrack();
         m_nStatus = S7;

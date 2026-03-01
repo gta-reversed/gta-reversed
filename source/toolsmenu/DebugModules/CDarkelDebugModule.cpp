@@ -40,7 +40,7 @@ void DarkelDebugModule::RenderWindow() {
         "bHeadShotRequired             = %d\n"
         "bStandardSoundAndMessages     = %d\n"
         "bProperKillFrenzy             = %d",
-        CDarkel::pStartMessage ? CDarkel::pStartMessage : "<nullptr>", CDarkel::AmmoInterruptedWeapon, WEAPON_TYPE_STRING[CDarkel::InterruptedWeaponType],
+        CDarkel::pStartMessage ? GxtCharToUTF8(CDarkel::pStartMessage) : "<nullptr>", CDarkel::AmmoInterruptedWeapon, WEAPON_TYPE_STRING[CDarkel::InterruptedWeaponType],
         WEAPON_TYPE_STRING[CDarkel::InterruptedWeaponTypeSelected], CDarkel::TimeOfFrenzyStart, CDarkel::PreviousTime, CDarkel::TimeLimit, CDarkel::KillsNeeded,
         CDarkel::ModelToKill[0], CDarkel::ModelToKill[1], CDarkel::ModelToKill[2], CDarkel::ModelToKill[3], WEAPON_TYPE_STRING[CDarkel::WeaponType], CDarkel::Status,
         CDarkel::bHeadShotRequired, CDarkel::bStandardSoundAndMessages, CDarkel::bProperKillFrenzy
@@ -53,7 +53,7 @@ void DarkelDebugModule::RenderWindow() {
     }
     SameLine();
     if (BeginCombo("Weapon Type", WEAPON_TYPE_STRING[m_WeaponType])) {
-        for (auto&& [typeId, wepName] : notsa::enumerate(WEAPON_TYPE_STRING)) {
+        for (auto&& [typeId, wepName] : rngv::enumerate(WEAPON_TYPE_STRING)) {
             const notsa::ui::ScopedID id{ typeId };
             if (Selectable(wepName, m_WeaponType == typeId)) {
                 m_WeaponType = typeId;

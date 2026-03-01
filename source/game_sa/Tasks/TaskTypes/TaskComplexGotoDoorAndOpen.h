@@ -6,7 +6,7 @@
 class CEntity;
 class CObject;
 
-class CTaskComplexGotoDoorAndOpen : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGotoDoorAndOpen : public CTaskComplex {
 public:
     CObject* m_Object;
     CVector  m_Start;
@@ -25,9 +25,9 @@ public:
     CTaskComplexGotoDoorAndOpen(const CVector& start, const CVector& end);
     ~CTaskComplexGotoDoorAndOpen() override;
 
-    eTaskType GetTaskType() override{ return Type; } // 0x66BB90
-    CTask* Clone() override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override{ return Type; } // 0x66BB90
+    CTask* Clone() const override;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

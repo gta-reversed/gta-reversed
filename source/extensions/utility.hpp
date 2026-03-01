@@ -1,11 +1,11 @@
 #pragma once
 
-#include <memory>
 #include <charconv>
 #include <initializer_list>
-
+#include <Vector.h>
+#include <unordered_map>
 #include "Base.h"
-
+#include <game_sa/Timer.h>
 
 namespace notsa {
 //template<typename TChar, size_t N>
@@ -18,7 +18,90 @@ namespace notsa {
 //private:
 //    TChar m_chars[N]{};
 //};
+
 namespace rng = std::ranges;
+
+namespace detail {
+template<typename K, typename V, size_t N>
+struct Mapping {
+    using value_type     = std::pair<const K, const V>;
+    using storage_type   = std::array<value_type, N>;
+    using iterator       = storage_type::iterator;
+    using const_iterator = storage_type::const_iterator;
+
+    constexpr Mapping(value_type (&&m)[N]) : 
+        m_mapping{std::to_array(m)} 
+    {
+    }
+
+    constexpr const_iterator find(auto&& needle) const { // Using auto&& instead of K&& to allow transparent lookup
+        for (auto it = begin(); it != end(); it++) {
+            if (it->first == needle) {
+                return it;
+            }
+        }
+        return end();
+    }
+        
+    constexpr auto begin() const { return m_mapping.begin(); }
+    constexpr auto end() const { return m_mapping.end(); }
+
+protected:
+    storage_type m_mapping;
+};
+};
+
+/*!
+* @brief Create a mapping of k-v pairs. Dynamically chooses between an unordered_map and a custom fixed-size mapping.
+*/
+template<typename K, typename V, size_t N>
+auto make_mapping(std::pair<const K, const V> (&&m)[N]) {
+    if constexpr (N > 10) { // After 10 or so elements unordered_map becomes faster
+        return std::unordered_map<K, V>{std::begin(m), std::end(m)};
+    } else { // Otherwise the stack allocated one is faster
+        return detail::Mapping<K, V, N>{std::move(m)};
+    }
+}
+
+/*!
+* @brief Helper function to get kv-mapping value from a key.
+* @brief Unlike `.find()`, this returns the value directly
+*/
+constexpr inline auto find_value_or(auto&& mapping, auto&& needle, auto&& defval) {
+    const auto it = mapping.find(needle);
+    return it != mapping.end()
+        ? it->second
+        : defval;
+}
+
+/*!
+* @brief Helper function to get kv-mapping value from a key.
+* @brief Unlike `.find()`, this returns the value directly, or asserts if the key is not found.
+*/
+constexpr inline auto find_value(auto&& mapping, auto&& needle) {
+    const auto it = mapping.find(needle);
+    if (it != mapping.end()) {
+        return it->second;
+    }
+    NOTSA_UNREACHABLE("Needle not in the mapping!");
+}
+
+/*!
+* @brief Find the index of the first occurrence of a value in a range, returning a default index if not found.
+*/
+template<rng::input_range R>
+ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = -1) {
+    const auto it = rng::find(r, v);
+    return it != rng::end(r)
+        ? rng::distance(rng::begin(r), it)
+        : defaultIdx;
+}
+
+//! [mostly] Works like C#'s `??` (null coalescing operator) or GCC's `?:`
+template<typename T>
+T coalesce(T a, T b) {
+    return a ? a : b;
+}
 
 /*!
 * Much like std::stoi [and variants] but takes an `std::string_view` + in debug does error checking [unlike the C stuff]
@@ -53,22 +136,6 @@ T ston(std::string_view str, std::chars_format fmt = std::chars_format::general,
         *end = ptr;
     }
     return out;
-}
-
-/*
-* Parse a string into a 3D vector. The format is `X Y Z` (There might be multiple spaces, they're ignored)
-* [On failure asserts in debug]
-*/
-CVector stov3d(std::string_view str, std::chars_format fmt = std::chars_format::general) {
-    CVector v3d;
-    for (auto i = 0; i < 3; i++) {
-        const char* end;
-        v3d[i] = ston<float>(str, fmt, &end);
-        if (i < 2) {
-            str = str.substr(end - str.data() + 1);
-        }
-    }
-    return v3d;
 }
 
 /*
@@ -122,7 +189,7 @@ struct NotIsNull {
     }
 };
 
-// Find first non-null value in range. If found it's returned, `null` otherwise.
+//! Find first non-null value in range. If found it's returned, `null` otherwise.
 template<rng::input_range R, typename T_Ret = rng::range_value_t<R>>
     requires(std::is_pointer_v<T_Ret>)
 T_Ret FirstNonNull(R&& range) {
@@ -155,7 +222,7 @@ using mdarray = typename mdarray_impl<T, Ds...>::type;
 *
 * @brief Check if a range contains a value, uses `rng::find`. NOTE: If you plan on using the iterator, just use `rng::find` instead..
 */
-template<rng::input_range R, class T, class Proj = std::identity>
+template<rng::input_range R, class T = rng::range_value_t<R>, class Proj = std::identity>
     requires std::indirect_binary_predicate<rng::equal_to, std::projected<rng::iterator_t<R>, Proj>, const T*>
 bool contains(R&& r, const T& value, Proj proj = {}) {
     return rng::find(r, value, proj) != rng::end(r);
@@ -165,8 +232,8 @@ bool contains(R&& r, const T& value, Proj proj = {}) {
 /*!
 * Helper (Of your fingers) - Reduces typing needed for Python style `value in {}`
 */
-template<typename Y, typename T>
-bool contains(std::initializer_list<Y> r, const T& value) {
+template<typename Y>
+bool contains(std::initializer_list<Y> r, const Y& value) {
     return contains(r, value, {});
 }
 
@@ -285,39 +352,93 @@ static constexpr void IterateFunction(auto&& functor) {
     }
 }
 
-//! Simple (not thread safe) singleton class. Instance created on first call to `GetSingleton()`.
+template<typename T, typename... Ts>
+concept is_any_of_type_v = (std::same_as<T, Ts> || ...);
+
+//! Check if the type is an integer type excluding bool and character types.
 template<typename T>
-class Singleton {
-    static inline std::unique_ptr<T> s_instance{};
-public:
-    Singleton() = default;
-    Singleton(const Singleton&) = delete;
-    Singleton& operator=(const Singleton&) = delete;
+inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_type_v<T, bool, char, wchar_t, char8_t, char16_t, char32_t>;
 
-public:
-    //! Get current singleton instance (Create it if none)
-    static T& GetSingleton() {
-        if (!s_instance) {
-            CreateSingleton();
-        }
-        return *s_instance;
-    }
+//! Null terminated `std::format_to`. Use inplace of sprintf.
+//! NOTE: Not a complete replacement for std::format_to,
+//! e.g. it doesn't use output iterators. i don't care.
+template<size_t N, class... Args>
+void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
+    *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
+}
 
-    //! Destroy current instance and create new
-    static void ResetSingleton() {
-        DestroySingleton();
-        CreateSingleton();
-    }
+//! Reads a pointer as specified type.
+template<typename T> requires std::is_trivially_constructible_v<T>
+T ReadAs(void* ptr) {
+    return *static_cast<T*>(ptr);
+}
+//! Safe C string copying, use this instead of strcpy.
+inline void string_copy(char* out, const char* from, size_t size) {
+    std::snprintf(out, size, "%s", from);
+}
 
-private:
-    static void CreateSingleton() {
-        assert(!s_instance);
-        s_instance = std::make_unique<T>();
-    }
+//! Safe C string copying, use this instead of strcpy.
+template<size_t N>
+void string_copy(char (&out)[N], const char* from) {
+    std::snprintf(out, N, "%s", from);
+}
 
-    static void DestroySingleton() {
-        s_instance.reset();
+// Like clamp, but wraps the number - https://stackoverflow.com/a/64273069/15363969
+template<std::floating_point F>
+F wrap(F x, F min, F max) {
+    if (min > max) {
+        std::swap(min, max);
     }
+    return (x < 0 ? max : min) + std::fmod(x, max - min);
+}
+
+template<std::floating_point F>
+F step_up_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::min<F>(to, x + (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+template<std::floating_point F>
+F step_down_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::max<F>(to, x - (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+/*!
+* @brief Step `x` towards `to` in steps
+* @brief This function is useful for interpolating changing values
+* @arg stepUp The step size when `x` is less than `to`
+* @arg stepDown The step size when `x` is greater than `to`
+* @arg useTimeStep Whether to use timestep for calculating the correct step size (Avoids FPS related issues somewhat)
+*********/
+template<std::floating_point F>
+F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
+    assert(stepDown > 0.f);
+    assert(stepUp > 0.f);
+
+    if (x == to) {
+        return to;
+    }
+    return x < to
+        ? step_up_to<F>(x, to, stepUp, useTimeStep)
+        : step_down_to<F>(x, to, stepUp, useTimeStep);
+}
+
+// Step `x` towards `to` in steps
+template<std::floating_point F>
+F step_to(F x, F to, F step, bool useTimeStep = false) {
+    return step_to<F>(x, to, step, step, useTimeStep);
+}
+
+//! Range of a specific type
+//! See: https://stackoverflow.com/a/64228354/15363969
+template <typename R, typename T>
+concept range_of = rng::range<R> && std::same_as<rng::range_value_t<R>, T>;
+
+// https://www.reddit.com/r/cpp/comments/1hw6a29/comment/m61d6wv
+template <class T, template <typename...> class Template> 
+concept is_specialization_of = requires ( std::remove_cvref_t<T> t ) 
+{ 
+  // Check an immediately invoked lambda can compile 
+  []<typename... Args> ( Template<Args...>& ) {} ( t ); 
 };
 
-};
+}; // namespace notsa

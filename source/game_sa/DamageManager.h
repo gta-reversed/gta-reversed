@@ -199,7 +199,9 @@ public:
     void SetAllWheelsState(eCarWheelStatus state);
     void SetDoorStatus(std::initializer_list<eDoors> doors, eDoorStatus status); 
     void SetDoorOpen(eDoors door);
+    void SetDoorOpen_Component(tComponent door);
     void SetDoorClosed(eDoors door);
+    void SetDoorClosed_Component(tComponent door);
     [[nodiscard]] auto GetAllLightsState() const -> std::array<eLightsState, 4>;
     [[nodiscard]] auto GetAllDoorsStatus() const -> std::array<eDoorStatus, MAX_DOORS>;
     [[nodiscard]] bool IsDoorOpen(eDoors door) const;

@@ -111,7 +111,7 @@ auto CTaskSimpleCarGetOut::ComputeAnimID() -> std::pair<AssocGroupId, AnimationI
             NOTSA_UNREACHABLE();
         }
     }();
-    return { (AssocGroupId)m_veh->GetAnimGroup().GetGroup(animId), animId };
+    return { m_veh->GetAnimGroup().GetGroup(animId), animId };
 }
 
 // 0x64BDE0
@@ -128,7 +128,7 @@ bool CTaskSimpleCarGetOut::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         return true;
     }
@@ -153,19 +153,19 @@ bool CTaskSimpleCarGetOut::ProcessPed(CPed* ped) {
     }
 
     if (m_anim) {
-        if (m_anim->m_fBlendAmount == 1.f) {
+        if (m_anim->m_BlendAmount == 1.f) {
             ped->bRenderPedInCar = true;
         }
         
         if (m_vehHasDoorToOpen && !m_isUpsideDown) {
             const auto [grpId, animId] = ComputeAnimID();
-            m_veh->ProcessOpenDoor(ped, m_door, grpId, m_anim->m_nAnimId, m_anim->m_fCurrentTime);
+            m_veh->ProcessOpenDoor(ped, m_door, grpId, m_anim->m_AnimId, m_anim->m_CurrentTime);
         }
     } else {
         StartAnim(ped);
         ped->SetPedPositionInCar();
         ped->ReplaceWeaponWhenExitingVehicle();
-        m_vehHasDoorToOpen = CCarEnterExit::CarHasDoorToOpen(m_veh, m_door);
+        m_vehHasDoorToOpen = CCarEnterExit::CarHasDoorToOpen(m_veh, (eDoors)m_door);
     }
 
     return false;
@@ -173,7 +173,7 @@ bool CTaskSimpleCarGetOut::ProcessPed(CPed* ped) {
 
 // 0x6472F0
 bool CTaskSimpleCarGetOut::SetPedPosition(CPed* ped) {
-    if (!m_anim || m_anim->m_fBlendAmount == 0.f) {
+    if (!m_anim || m_anim->m_BlendAmount == 0.f) {
         ped->SetPedPositionInCar();
     } else {
         m_taskLineUp->ProcessPed(ped, m_veh, m_anim);

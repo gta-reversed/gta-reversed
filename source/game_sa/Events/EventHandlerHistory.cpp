@@ -34,21 +34,21 @@ void CEventHandlerHistory::ClearAllEvents()
 // 0x4B8C60
 void CEventHandlerHistory::ClearNonTempEvent()
 {
-    delete m_nonTempEvent;
-    m_nonTempEvent = nullptr;
+    delete m_CurrentNonTempEvent;
+    m_CurrentNonTempEvent = nullptr;
 }
 
 // 0x4B8C40
 void CEventHandlerHistory::ClearTempEvent()
 {
-    delete m_tempEvent;
-    m_tempEvent = nullptr;
+    delete m_CurrentTempEvent;
+    m_CurrentTempEvent = nullptr;
 }
 
 void CEventHandlerHistory::ClearStoredActiveEvent()
 {
-    delete m_storedActiveEvent;
-    m_storedActiveEvent = nullptr;
+    delete m_StoredEventActive;
+    m_StoredEventActive = nullptr;
 }
 
 void CEventHandlerHistory::Flush()
@@ -58,26 +58,26 @@ void CEventHandlerHistory::Flush()
 }
 
 // 0x4B8C80
-int32 CEventHandlerHistory::GetCurrentEventPriority()
+int32 CEventHandlerHistory::GetCurrentEventPriority() const
 {
-    if (m_tempEvent)
-        return m_tempEvent->GetEventPriority();
-    if (m_nonTempEvent)
-        return m_nonTempEvent->GetEventPriority();
+    if (m_CurrentTempEvent)
+        return m_CurrentTempEvent->GetEventPriority();
+    if (m_CurrentNonTempEvent)
+        return m_CurrentNonTempEvent->GetEventPriority();
     return -1;
 }
 
 // 0x4B8B90
-bool CEventHandlerHistory::IsRespondingToEvent(eEventType eventType)
+bool CEventHandlerHistory::IsRespondingToEvent(eEventType eventType) const
 {
     if (eventType == EVENT_NONE)
-        return m_nonTempEvent || m_storedActiveEvent;
+        return m_CurrentNonTempEvent || m_StoredEventActive;
 
     bool isNonTempEvent = false;
-    if (m_nonTempEvent && m_nonTempEvent->GetEventType() == eventType)
+    if (m_CurrentNonTempEvent && m_CurrentNonTempEvent->GetEventType() == eventType)
         isNonTempEvent = true;
 
-    if (!m_storedActiveEvent || m_storedActiveEvent->GetEventType() != eventType)
+    if (!m_StoredEventActive || m_StoredEventActive->GetEventType() != eventType)
         return isNonTempEvent;
 
     return true;
@@ -86,54 +86,54 @@ bool CEventHandlerHistory::IsRespondingToEvent(eEventType eventType)
 // 0x4BC4B0
 void CEventHandlerHistory::RecordCurrentEvent(CPed* ped, CEvent& event)
 {
-    if (event.GetEventType() != EVENT_SCRIPT_COMMAND) {
-        if (CEventHandler::IsTemporaryEvent(event)) {
-            if (m_nonTempEvent) {
-                StoreActiveEvent();
-                m_nonTempEvent = nullptr;
-            }
-            ClearTempEvent();
-            m_tempEvent = event.Clone();
+    if (event.GetEventType() == EVENT_SCRIPT_COMMAND) {
+        return;
+    }
+    if (CEventHandler::IsTemporaryEvent(event)) {
+        if (m_CurrentNonTempEvent) {
+            StoreActiveEvent();
+            m_CurrentNonTempEvent = nullptr;
         }
-        else {
-            ClearNonTempEvent();
-            m_nonTempEvent = event.Clone();
-            ClearStoredActiveEvent();
-            ClearTempEvent();
-        }
+        ClearTempEvent();
+        m_CurrentTempEvent = event.Clone();
+    } else {
+        ClearNonTempEvent();
+        m_CurrentNonTempEvent = event.Clone();
+        ClearStoredActiveEvent();
+        ClearTempEvent();
     }
 }
 
 // 0x4B8BF0
 void CEventHandlerHistory::StoreActiveEvent()
 {
-    delete m_storedActiveEvent;
-    m_storedActiveEvent = m_nonTempEvent;
-    m_storedActiveEventTimer.Start(2000);
+    delete m_StoredEventActive;
+    m_StoredEventActive = m_CurrentNonTempEvent;
+    m_StoreTimer.Start(2000);
 }
 
 // 0x4BC580
-bool CEventHandlerHistory::TakesPriorityOverCurrentEvent(CEvent& event)
+bool CEventHandlerHistory::TakesPriorityOverCurrentEvent(CEvent& event) const
 {
-    if (m_nonTempEvent)
-        return event.TakesPriorityOver(*m_nonTempEvent);
-    if (!m_tempEvent)
+    if (m_CurrentNonTempEvent)
+        return event.TakesPriorityOver(*m_CurrentNonTempEvent);
+    if (!m_CurrentTempEvent)
         return true;
     if (CEventHandler::IsTemporaryEvent(event))
-        return event.TakesPriorityOver(*m_tempEvent);
-    if (!event.TakesPriorityOver(*m_tempEvent))
+        return event.TakesPriorityOver(*m_CurrentTempEvent);
+    if (!event.TakesPriorityOver(*m_CurrentTempEvent))
         return false;
-    if (!m_storedActiveEvent || event.TakesPriorityOver(*m_storedActiveEvent))
+    if (!m_StoredEventActive || event.TakesPriorityOver(*m_StoredEventActive))
         return true;
     return false;
 }
 
 // 0x4B8C20
-void CEventHandlerHistory::TickStoredEvent(CPed* ped)
+void CEventHandlerHistory::TickStoredEvent(CPed*)
 {
-    if (m_storedActiveEvent && !m_tempEvent) {
-        m_nonTempEvent = m_storedActiveEvent;
-        m_storedActiveEvent = nullptr;
+    if (m_StoredEventActive && !m_CurrentTempEvent) {
+        m_CurrentNonTempEvent = m_StoredEventActive;
+        m_StoredEventActive = nullptr;
     }
 }
 

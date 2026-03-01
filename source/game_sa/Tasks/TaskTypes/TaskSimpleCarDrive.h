@@ -5,7 +5,7 @@
 class CVehicle;
 class CTaskUtilityLineUpPedWithCar;
 
-class CTaskSimpleCarDrive : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarDrive : public CTaskSimple {
 public:
     CVehicle*                     m_pVehicle;
     CAnimBlendAssociation*        m_pAnimCloseDoorRolling;
@@ -43,10 +43,13 @@ public:
     explicit CTaskSimpleCarDrive(CVehicle* vehicle, CTaskUtilityLineUpPedWithCar* utilityTask = {}, bool updateCurrentVehicle = {});
     ~CTaskSimpleCarDrive() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
+
+
+eTaskType GetTaskType() const override { return Type; }
+
+    CTask* Clone() const override;
     bool ProcessPed(class CPed* ped) override;
-    bool MakeAbortable(class CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(class CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool SetPedPosition(CPed* ped) override;
 
     void TriggerIK(CPed* ped) const;
@@ -64,11 +67,6 @@ private:
 
     CTaskSimpleCarDrive* Constructor(CVehicle* pVehicle, CTaskUtilityLineUpPedWithCar* pUtilityTask, int8_t bUpdateCurrentVehicle) { this->CTaskSimpleCarDrive::CTaskSimpleCarDrive(pVehicle, pUtilityTask, bUpdateCurrentVehicle); return this; }
     CTaskSimpleCarDrive* Destructor() { this->CTaskSimpleCarDrive::~CTaskSimpleCarDrive(); return this; }
-    CTask* Clone_Reversed() { return CTaskSimpleCarDrive::Clone(); }
-    eTaskType GetTaskType_Reversed() { return CTaskSimpleCarDrive::GetTaskType(); }
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, CEvent const* event) { return CTaskSimpleCarDrive::MakeAbortable(ped, priority, event); }
-    bool ProcessPed_Reversed(CPed* ped) { return CTaskSimpleCarDrive::ProcessPed(ped); }
-    bool SetPedPosition_Reversed(CPed* ped) { return CTaskSimpleCarDrive::SetPedPosition(ped); }
-};
+                    };
 
 VALIDATE_SIZE(CTaskSimpleCarDrive, 0x60);

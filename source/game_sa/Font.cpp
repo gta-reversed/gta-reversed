@@ -605,6 +605,8 @@ void CFont::SetOrientation(eFontAlignment alignment) {
 // Need to call this each frame
 // 0x719800
 void CFont::InitPerFrame() {
+    ZoneScoped;
+
     m_nFontOutline = 0;
     m_nFontOutlineOrShadow = 0;
     m_nFontShadow = 0;
@@ -623,16 +625,16 @@ void CFont::RenderFontBuffer() {
 }
 
 // 0x71A0E0
-float CFont::GetStringWidth(const char* string, bool full, bool scriptText) {
+float CFont::GetStringWidth(const GxtChar* string, bool full, bool scriptText) {
     size_t len = CMessages::GetStringLength(string);
-    char data[400] = {0};
+    GxtChar data[400] = { 0 };
 
-    strncpy_s(data, string, len);
+    strncpy_s((char*)data, sizeof(data), AsciiFromGxtChar(string), len);
     CMessages::InsertPlayerControlKeysInString(data);
 
     float width = 0.0f;
     bool lastWasTag = false, lastWasLetter = false;
-    char* pStr = data;
+    auto* pStr = data;
 
     while (true) {
         if (*pStr == ' ' && !full)
@@ -644,7 +646,7 @@ float CFont::GetStringWidth(const char* string, bool full, bool scriptText) {
             if (!full && (lastWasTag || lastWasLetter))
                 return width;
 
-            char* next = pStr + 1;
+            auto* next = pStr + 1;
 
             if (*next != '~') {
                 for (; *next && *next != '~'; next++);
@@ -678,26 +680,28 @@ float CFont::GetStringWidth(const char* string, bool full, bool scriptText) {
 
 // same as RenderFontBuffer() (0x71A210)
 void CFont::DrawFonts() {
+    ZoneScoped;
+
     RenderFontBuffer();
 }
 
 // 0x71A220
-int16 CFont::ProcessCurrentString(bool print, float x, float y, const char* text) {
-    return plugin::CallAndReturn<int16, 0x71A220, bool, float, float, const char*>(print, x, y, text);
+int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* text) {
+    return plugin::CallAndReturn<int16, 0x71A220, bool, float, float, const GxtChar*>(print, x, y, text);
 }
 
 // 0x71A5E0
-int16 CFont::GetNumberLines(float x, float y, const char* text) {
+int16 CFont::GetNumberLines(float x, float y, const GxtChar* text) {
     return ProcessCurrentString(false, x, y, text);
 }
 
 // 0x71A600
-int16 CFont::ProcessStringToDisplay(float x, float y, const char* text) {
+int16 CFont::ProcessStringToDisplay(float x, float y, const GxtChar* text) {
     return ProcessCurrentString(true, x, y, text);
 }
 
 // 0x71A620
-void CFont::GetTextRect(CRect* rect, float x, float y, const char* text) {
+void CFont::GetTextRect(CRect* rect, float x, float y, const GxtChar* text) {
     if (m_bFontCentreAlign) {
         rect->left = x - (m_fFontCentreSize / 2.0f + 4.0f);
         rect->right = m_fFontCentreSize / 2.0f + x + 4.0f;
@@ -716,7 +720,7 @@ void CFont::GetTextRect(CRect* rect, float x, float y, const char* text) {
 }
 
 // 0x71A700
-void CFont::PrintString(float x, float y, const char* text) {
+void CFont::PrintString(float x, float y, const GxtChar* text) {
     if (*text == '\0' || *text == '*')
         return;
 
@@ -743,7 +747,7 @@ void CFont::PrintString(float x, float y, const char* text) {
 }
 
 // 0x71A820
-void CFont::PrintStringFromBottom(float x, float y, const char* text) {
+void CFont::PrintStringFromBottom(float x, float y, const GxtChar* text) {
     float drawY = y - GetHeight() * (float)GetNumberLines(x, y, text);
 
     if (m_fSlant != 0.0f)

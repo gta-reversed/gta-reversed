@@ -40,9 +40,9 @@ public:
     void SetFleePosition(CVector const& fleePos, float safeDistance, bool scream);
     void ComputeTargetPoint(CPed const* ped);
 
-    CTask*    Clone() override { return new CTaskComplexFleePoint{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskComplexFleePoint{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask*    CreateNextSubTask(CPed * ped) override;
     CTask*    CreateFirstSubTask(CPed * ped) override;
     CTask*    ControlSubTask(CPed * ped) override;

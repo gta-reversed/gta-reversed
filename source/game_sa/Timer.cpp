@@ -174,9 +174,10 @@ uint32 CTimer::GetCyclesPerFrame()
 }
 
 // 0x561A80
-uint64 CTimer::GetCurrentTimeInCycles()
+uint32 CTimer::GetCurrentTimeInCycles()
 {
-    return GetOSWPerformanceTime() - m_snRenderStartTime;
+    // TODO: Make it use 64-bit timestamps.
+    return (uint32)(GetOSWPerformanceTime() - m_snRenderStartTime);
 }
 
 // 0x561AD0
@@ -233,8 +234,9 @@ void CTimer::UpdateVariables(float timeElapsed)
 }
 
 // 0x561B10
-void CTimer::Update()
-{
+void CTimer::Update() {
+    ZoneScoped;
+
     if (!ms_fnTimerFunction)
         return;
 

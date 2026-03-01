@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "BreakObject_c.h"
-#include "Plugins\BreakablePlugin\BreakablePlugin.h"
+#include "Plugins/BreakablePlugin/BreakablePlugin.h"
 #include "PostEffects.h"
 
 void BreakObject_c::InjectHooks() {
@@ -28,7 +28,7 @@ BreakObject_c::BreakObject_c() {
 
 // 0x59E750
 bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVelocityRand, int32 bJustFaces) {
-    if (!object->m_pRwObject || RwObjectGetType(object->m_pRwObject) != rpATOMIC)
+    if (!object->GetRwObject() || RwObjectGetType(object->GetRwObject()) != rpATOMIC)
         return false;
 
     auto* info = BREAKABLEPLG(RpAtomicGetGeometry(object->m_pRwAtomic), m_pBreakableInfo);
@@ -50,7 +50,7 @@ bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVeloci
     if (info->m_uiPosRule != eBreakablePluginPositionRule::OBJECT_ORIGIN) {
         auto usedPoint = colModel->GetBoundingBox().GetCenter();
         usedPoint.z += 0.25f;
-        vecOrigin = *object->m_matrix * usedPoint;
+        vecOrigin = object->m_matrix->TransformPoint(usedPoint);
     } else {
         vecOrigin = *RwMatrixGetPos(ltm);
         vecOrigin.z += colModel->GetBoundingBox().m_vecMin.z + 0.25f;

@@ -2,10 +2,12 @@
 
 #include "Event.h"
 
-struct InteriorInfo_t;
-class Interior_c;
+#include "Event.h"
+#include "Interior_c.h"
+#include "InteriorInfo_t.h"
 
-class CEventInteriorUseInfo : public CEvent {
+
+class NOTSA_EXPORT_VTABLE CEventInteriorUseInfo : public CEvent {
 public:
     InteriorInfo_t* m_InteriorInfo;
     Interior_c*     m_Interior;
@@ -19,7 +21,7 @@ public:
     eEventType GetEventType() const override { return EVENT_INTERIOR_USE_INFO; }
     int32 GetEventPriority() const override { return 9; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override { return new CEventInteriorUseInfo(m_InteriorInfo, m_Interior, m_ActionAnimTime, m_nLoopAction); }
+    CEvent* Clone() const noexcept override { return new CEventInteriorUseInfo(m_InteriorInfo, m_Interior, m_ActionAnimTime, m_nLoopAction); }
     bool AffectsPed(CPed* ped) override;
     bool IsValid(CPed* ped) override;
 };

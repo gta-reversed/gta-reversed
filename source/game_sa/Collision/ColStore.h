@@ -7,11 +7,7 @@
 // thanks to jte for reversing this
 struct ColDef {
     CRect  m_Area;
-    uint32 field_10;
-    uint32 field_14;
-    uint32 field_18;
-    uint32 field_1C;
-    uint16 field_20;
+    char   name[18]{};
     int16  m_nModelIdStart;
     int16  m_nModelIdEnd;
     uint16 m_nRefCount;
@@ -25,15 +21,9 @@ struct ColDef {
 };
 VALIDATE_SIZE(ColDef, 0x2C);
 
-typedef CPool<ColDef> CColPool;
-
-class CQuadTreeNode;
-
+using CColPool = CPool<ColDef>;
 class CColStore {
 public:
-    static CColPool*& ms_pColPool;
-    static CQuadTreeNode*& ms_pQuadTree;
-
     static CVector& ms_vecCollisionNeeded;
     static bool&    ms_bCollisionNeeded;
     static int32    ms_nRequiredCollisionArea;
@@ -46,7 +36,8 @@ public:
     static int32 AddColSlot(const char* name);
     static void AddCollisionNeededAtPosn(const CVector& pos);
     static void AddRef(int32 colNum);
-    static int32 FindColSlot();
+    static int32 FindColSlot() { return -1; }
+    static int32 FindColSlot(const char*);
     static void BoundingBoxesPostProcess();
     static void EnsureCollisionIsInMemory(const CVector& pos);
     static CRect* GetBoundingBox(int32 colSlot);
@@ -63,7 +54,7 @@ public:
     static void RemoveRef(int32 colNum);
     static void RequestCollision(const CVector& pos, int32 areaCode);
     static void SetCollisionRequired(const CVector& pos, int32 areaCode);
-};
 
-void SetIfCollisionIsRequired(const CVector2D& vecPos, void* data); // data is ColDef*
-void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, void* data); // data is ColDef*
+    static ColDef* GetInSlot(int32 slot);
+    static CColPool* GetPool();
+};

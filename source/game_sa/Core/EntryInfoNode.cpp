@@ -7,8 +7,8 @@ void CEntryInfoNode::InjectHooks()
     RH_ScopedClass(CEntryInfoNode);
     RH_ScopedCategory("Core");
 
-    RH_ScopedInstall(operator new, 0x536DC0);
-    RH_ScopedInstall(operator delete, 0x536DD0);
+    RH_ScopedInstall(operator new, 0x536DC0, {.locked = true}); // Crashes the game if unhooked
+    RH_ScopedInstall(operator delete, 0x536DD0, {.locked = true});
 }
 
 void* CEntryInfoNode::operator new(unsigned size)

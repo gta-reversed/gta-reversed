@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KeyGen.h"
 #include <string>
 #include <string_view>
 
@@ -32,3 +33,19 @@ struct ci_char_traits : public std::char_traits<char> {
 using ci_string = std::basic_string<char, details::ci_char_traits>;
 using ci_string_view = std::basic_string_view<char, details::ci_char_traits>;
 }; // namespace notsa
+
+namespace std {
+template<>
+struct hash<notsa::ci_string> {
+    std::size_t operator()(const notsa::ci_string& s) const noexcept {
+        return CKeyGen::GetUppercaseKey(s.data(), s.data() + s.size());
+    }
+};
+
+template<>
+struct hash<notsa::ci_string_view> {
+    std::size_t operator()(const notsa::ci_string_view& s) const noexcept {
+        return CKeyGen::GetUppercaseKey(s.data(), s.data() + s.size());
+    }
+};
+}

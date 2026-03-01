@@ -1,10 +1,7 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
+#ifndef RTDICT_H
+#define RTDICT_H
+
+//#include <rtdict.rpe>          /* automatically generated header file */
 
 /* Doxygen plugin groups. */
 
@@ -20,7 +17,20 @@
  Includes
  */
 
-#include "rwplcore.h"
+#include <rwplcore.h>
+
+/* RWPUBLIC */
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+#ifdef _RWDLL
+#define RTDICTSCHEMADECLARE(schema) extern __declspec(dllimport) RtDictSchema schema;
+#else
+#define RTDICTSCHEMADECLARE(schema) extern RtDictSchema schema;
+#endif
 
 /**
  * \ingroup rtdict
@@ -226,21 +236,69 @@ struct RtDictSchema
         /**< Callback used to stream out an entry */
 };
 
-RtDictSchema* RtDictSchemaInit(RtDictSchema* schema); // 0x7CED40
-RwBool RtDictSchemaDestruct(RtDictSchema* schema); // 0x7CED70
-RtDict* RtDictSchemaStreamReadDict(RtDictSchema* schema, RwStream* stream); // 0x7CF240
-RtDict* RtDictSchemaCreateDict(RtDictSchema* schema); // 0x7CED90
-RtDictSchema* RtDictSchemaAddDict(RtDictSchema* schema, RtDict* dict); // 0x7CEE50
-RtDictSchema* RtDictSchemaRemoveDict(RtDictSchema* schema, RtDict* dict); // 0x7CEE80
-RwBool RtDictSchemaForAllDictionaries(RtDictSchema* schema, RtDictCallBack* callback, RtDictEntryType data); // 0x7CF5B0
-RtDict* RtDictSchemaGetCurrentDict(RtDictSchema* schema); // 0x7CEEE0
-RtDictSchema* RtDictSchemaSetCurrentDict(RtDictSchema* schema, RtDict* dict); // 0x7CEEF0
-RwBool RtDictDestroy(RtDict* dictionary); // 0x7CF130
-RtDictEntryType RtDictAddEntry(RtDict* dictionary, RtDictEntryType entry); // 0x7CEFB0
-RtDictEntryType RtDictFindNamedEntry(RtDict* dictionary, const RwChar* name); // 0x7CEFE0
-const RtDict* RtDictForAllEntries(const RtDict* dictionary, RtDictEntryCallBack* callBack, RtDictEntryType data); // 0x7CF060
-RtDict* RtDictRemoveEntry(RtDict* dictionary, RtDictEntryType entry); // 0x7CF0C0
-const RtDict* RtDictStreamWrite(const RtDict* dictionary, RwStream* stream); // 0x7CF490
-RwUInt32 RtDictStreamGetSize(const RtDict* dictionary); // 0x7CF1F0
-RtDict* _rtDictSchemaInitDict(RtDictSchema* schema, RtDict* dictionary); // 0x7CEF00
-RwBool _rtDictDestruct(RtDict* dictionary); // 0x7CEF60
+/* Dictionary schema functions */
+extern RtDictSchema *
+RtDictSchemaInit(RtDictSchema *schema);
+
+extern RwBool
+RtDictSchemaDestruct(RtDictSchema *schema);
+
+extern RtDict *
+RtDictSchemaStreamReadDict(RtDictSchema *schema, RwStream *stream);
+
+extern RtDict *
+RtDictSchemaCreateDict(RtDictSchema *schema);
+
+extern RtDictSchema *
+RtDictSchemaAddDict(RtDictSchema *schema, RtDict *dict);
+
+extern RtDictSchema *
+RtDictSchemaRemoveDict(RtDictSchema *schema, RtDict *dict);
+
+extern RwBool
+RtDictSchemaForAllDictionaries(RtDictSchema *schema, RtDictCallBack *callback, RtDictEntryType data);
+
+extern RtDict *
+RtDictSchemaGetCurrentDict(RtDictSchema *schema);
+
+extern RtDictSchema *
+RtDictSchemaSetCurrentDict(RtDictSchema *schema, RtDict *dict);
+
+/* Dictionary functions */
+extern RwBool
+RtDictDestroy(RtDict *dictionary);
+
+extern RtDictEntryType
+RtDictAddEntry(RtDict *dictionary, RtDictEntryType entry);
+
+extern RtDictEntryType
+RtDictFindNamedEntry(RtDict *dictionary, const RwChar *name);
+
+extern const RtDict *
+RtDictForAllEntries(const RtDict *dictionary, RtDictEntryCallBack *callBack, RtDictEntryType data);
+
+extern RtDict *
+RtDictRemoveEntry(RtDict *dictionary, RtDictEntryType entry);
+
+extern const RtDict *
+RtDictStreamWrite(const RtDict *dictionary, RwStream *stream);
+
+extern RwUInt32
+RtDictStreamGetSize(const RtDict *dictionary);
+
+/* RWPUBLICEND */
+
+/* Stealth */
+extern RtDict *
+_rtDictSchemaInitDict(RtDictSchema *schema, RtDict *dictionary);
+
+extern RwBool
+_rtDictDestruct(RtDict *dictionary);
+
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
+#endif /* RTDICT_H */

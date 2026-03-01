@@ -11,9 +11,9 @@ CVector CPedShelterAttractor::GetDisplacement(int32 pedId) {
 
 // 0x5EFC40
 void CPedShelterAttractor::ComputeAttractPos(int32 pedId, CVector& outPos) {
-    if (m_pEffect) {
+    if (m_Fx) {
         CVector displacement = GetDisplacement(pedId);
-        outPos = displacement + m_vecAttractorPosn;
+        outPos = displacement + m_Pos;
     }
 }
 
@@ -23,28 +23,16 @@ void CPedShelterAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
 }
 
 // 0x5EF570
-void CPedShelterAttractor::BroadcastDeparture(CPed* ped) {
-    plugin::CallMethod<0x5EF570, CPedShelterAttractor*, CPed*>(this, ped);
+bool CPedShelterAttractor::BroadcastDeparture(CPed* ped) {
+    return plugin::CallMethodAndReturn<bool, 0x5EF570, CPedShelterAttractor*, CPed*>(this, ped);
 }
 
 void CPedShelterAttractor::InjectHooks() {
-    RH_ScopedClass(CPedShelterAttractor);
+    RH_ScopedVirtualClass(CPedShelterAttractor, 0x86C5B4, 6);
     RH_ScopedCategory("Attractors");
 
     RH_ScopedInstall(GetDisplacement, 0x5EF420, { .reversed = false });
-    RH_ScopedVirtualInstall(ComputeAttractPos, 0x5EFC40);
-    RH_ScopedVirtualInstall(ComputeAttractHeading, 0x5E9690);
-    RH_ScopedVirtualInstall(BroadcastDeparture, 0x5EF570, { .reversed = false });
-}
-
-void CPedShelterAttractor::ComputeAttractPos_Reversed(int32 pedId, CVector& posn) {
-    CPedShelterAttractor::ComputeAttractPos(pedId, posn);
-}
-
-void CPedShelterAttractor::ComputeAttractHeading_Reversed(int32 bQueue, float& heading) {
-    CPedShelterAttractor::ComputeAttractHeading(bQueue, heading);
-}
-
-void CPedShelterAttractor::BroadcastDeparture_Reversed(CPed* ped) {
-    CPedShelterAttractor::BroadcastDeparture(ped);
+    RH_ScopedVMTInstall(ComputeAttractPos, 0x5EFC40);
+    RH_ScopedVMTInstall(ComputeAttractHeading, 0x5E9690);
+    RH_ScopedVMTInstall(BroadcastDeparture, 0x5EF570, { .reversed = false });
 }

@@ -8,6 +8,8 @@
 
 #include "Vector.h"
 #include "RGBA.h"
+#include <extensions/Casting.hpp>
+#include <CoverPoint.h>
 
 enum e2dEffectType : uint8 {
     EFFECT_LIGHT         = 0,
@@ -15,7 +17,7 @@ enum e2dEffectType : uint8 {
     EFFECT_MISSING_OR_UNK= 2,
     EFFECT_ATTRACTOR     = 3,
     EFFECT_SUN_GLARE     = 4,
-    EFFECT_FURNITURE     = 5,
+    EFFECT_INTERIOR      = 5,
     EFFECT_ENEX          = 6,
     EFFECT_ROADSIGN      = 7,
     EFFECT_TRIGGER_POINT = 8, // todo: EFFECT_SLOTMACHINE_WHEEL?
@@ -99,8 +101,6 @@ struct tEffectLight {
 VALIDATE_SIZE(tEffectLight, 0x30);
 
 struct tEffectParticle {
-    static inline constexpr e2dEffectType Type = EFFECT_PARTICLE;
-
     char m_szName[24];
 };
 VALIDATE_SIZE(tEffectParticle, 0x18);
@@ -171,8 +171,8 @@ VALIDATE_SIZE(tEffectSlotMachineWheel, 0x4);
 struct tEffectCoverPoint {
     static inline constexpr e2dEffectType Type = EFFECT_COVER_POINT;
 
-    RwV2d m_vecDirection;
-    uint8 m_nType;
+    RwV2d               m_DirOfCover;
+    CCoverPoint::eUsage m_Usage;
 };
 VALIDATE_SIZE(tEffectCoverPoint, 0xC);
 
@@ -186,10 +186,45 @@ struct tEffectEscalator {
 };
 VALIDATE_SIZE(tEffectEscalator, 0x28);
 
+struct tEffectInterior {
+    static inline constexpr e2dEffectType Type = EFFECT_INTERIOR;
+
+    uint8 m_type;
+    int8  m_groupId;
+    uint8 m_width;
+    uint8 m_depth;
+    uint8 m_height;
+    int8  m_door;
+    int8  m_lDoorStart;
+    int8  m_lDoorEnd;
+    int8  m_rDoorStart;
+    int8  m_rDoorEnd;
+    int8  m_tDoorStart;
+    int8  m_tDoorEnd;
+    int8  m_lWindowStart;
+    int8  m_lWindowEnd;
+    int8  m_rWindowStart;
+    int8  m_rWindowEnd;
+    int8  m_tWindowStart;
+    int8  m_tWindowEnd;
+    int8  m_noGoLeft[3];
+    int8  m_noGoBottom[3];
+    int8  m_noGoWidth[3];
+    int8  m_noGoDepth[3];
+    uint8 m_seed;
+    uint8 m_status;
+    float m_rot;
+};
+VALIDATE_SIZE(tEffectInterior, 0x34 - 0x10);
+
 //! NOTASA base class (otherwise SA)
 struct C2dEffectBase {
-    CVector       m_pos;
-    e2dEffectType m_type;
+    CVector       m_Pos;
+    e2dEffectType m_Type;
+
+    // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->m_Type == Self::Type; }
 };
 VALIDATE_SIZE(C2dEffectBase, 0x10);
 
@@ -204,6 +239,7 @@ struct C2dEffectRoadsign         : C2dEffectBase, tEffectRoadsign {};
 struct C2dEffectSlotMachineWheel : C2dEffectBase, tEffectSlotMachineWheel {};
 struct C2dEffectCoverPoint       : C2dEffectBase, tEffectCoverPoint {};
 struct C2dEffectEscalator        : C2dEffectBase, tEffectEscalator {};
+struct C2dEffectInterior         : C2dEffectBase, tEffectInterior {};
 
 struct C2dEffect : public C2dEffectBase {
     union {
@@ -220,6 +256,19 @@ struct C2dEffect : public C2dEffectBase {
 public:
     static uint32& g2dEffectPluginOffset;
     static uint32& ms_nTxdSlot;
+
+    template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
+    static To* DynCast(From* p) {
+        return p->m_Type == To::Type
+            ? reinterpret_cast<To*>(p)
+            : nullptr;
+    }
+
+    template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
+    static To* Cast(From* p) {
+        assert(!p || p->m_Type == To::Type);
+        return reinterpret_cast<To*>(p);
+    }
 
 public:
     static void InjectHooks();

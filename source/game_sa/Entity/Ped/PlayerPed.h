@@ -33,10 +33,9 @@ public:
 
     CPlayerPed(int32 playerId, bool bGroupCreated);
 
-    bool Load_Reversed();
-    bool Save_Reversed();
 
     void ProcessControl() override;
+    void SetMoveAnim() override;
     bool Load() override;
     bool Save() override;
 
@@ -55,7 +54,7 @@ public:
     void Clear3rdPersonMouseTarget();
     // GetWanted()->m_nWantedLevel = 0;
     void Busted();
-    uint32 GetWantedLevel();
+    uint32 GetWantedLevel() const;
     void SetWantedLevel(int32 level);
     void SetWantedLevelNoDrop(int32 level);
     void CheatWantedLevel(int32 level);
@@ -100,7 +99,11 @@ public:
     // Thanks to Silent
     // 0x41BE60
     inline CWanted* GetWanted() {
-        return m_pPlayerData ? m_pPlayerData->m_pWanted : nullptr;
+        return GetPlayerData() ? GetPlayerData()->m_pWanted : nullptr;
+    }
+
+    inline const CWanted* GetWanted() const {
+        return GetPlayerData() ? GetPlayerData()->m_pWanted : nullptr;
     }
 
     static void RemovePlayerPed(int32 playerId);
@@ -110,7 +113,7 @@ public:
     static void SetupPlayerPed(int playerId);
 
     // NOTSA
-    CPedGroup& GetPlayerGroup() const noexcept { return CPedGroups::GetGroup(m_pPlayerData->m_nPlayerGroup); }
+    CPedGroup& GetPlayerGroup() const noexcept { return CPedGroups::GetGroup(GetPlayerData()->m_nPlayerGroup); }
 };
 
 VALIDATE_SIZE(CPlayerPed, 0x7A4);

@@ -1,44 +1,65 @@
 #pragma once
 
+#include <extensions/EntityRef.hpp>
 #include "TaskComplex.h"
 
-class CTaskComplexPolicePursuit : public CTaskComplex {
+class CEvent;
+class CPed;
+
+class NOTSA_EXPORT_VTABLE CTaskComplexPolicePursuit : public CTaskComplex {
 public:
-    uint8 m_nFlags;
-    CPed* m_pursuer;
-    CPed* m_persecuted;
+    bool                      m_IsRoadBlockCop : 1 {};
+    bool                      m_IsPlayerInCullZone : 1 {};
+    bool                      m_CouldJoinPursuit : 1 { true };
+    notsa::EntityRef<CCopPed> m_Pursuer{};
+    notsa::EntityRef<CPed>    m_Pursued{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_POLICE_PURSUIT;
 
-    CTaskComplexPolicePursuit();
-    ~CTaskComplexPolicePursuit() override;
-
-    eTaskType GetTaskType() override { return Type; }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override { return m_pSubTask->MakeAbortable(ped, priority, event); } // 0x68BAB0
-    CTask* Clone() override;
-    CTask* ControlSubTask(CPed* ped) override;
-    CTask* CreateFirstSubTask(CPed* ped) override;
-    CTask* CreateNextSubTask(CPed* ped) override;
-
-    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
-    bool PersistPursuit(CPed* ped);
-    bool SetPursuit(CPed* ped);
-    void ClearPursuit(CPed* ped);
-    void SetWeapon(CPed* ped);
-
-public:
-    friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexPolicePursuit* Constructor();
+    CTaskComplexPolicePursuit() = default;
+    CTaskComplexPolicePursuit(const CTaskComplexPolicePursuit&);
+    ~CTaskComplexPolicePursuit() override;
 
-    CTask* Clone_Reversed();
-    eTaskType GetTaskType_Reversed();
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
+    static void __stdcall SetWeapon(CPed* ped);
+    static void __stdcall ClearPursuit(CCopPed* pursuer);
+
+    // 0x68BAA0
+    eTaskType GetTaskType() const override { return Type; }
+
+    // 0x68BAB0
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return m_pSubTask->MakeAbortable(ped, priority, event); }
+
+    // 0x68CDD0
+    CTask* Clone() const override { return new CTaskComplexPolicePursuit{*this}; }
+
+    // 0x68BAC0
+    CTask* CreateNextSubTask(CPed* ped) override { return nullptr; }
+
+    bool SetPursuit(CPed* ped);
+    bool PersistPursuit(CCopPed* pursuer);
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
+
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override;
+
+private:
+    eTaskType GetNextSubTaskType(CCopPed* ped);
+
+private: // Wrappers for hooks
+    // 0x68BA70
+    CTaskComplexPolicePursuit* Constructor() {
+        this->CTaskComplexPolicePursuit::CTaskComplexPolicePursuit();
+        return this;
+    }
+
+    // 0x68D880
+    CTaskComplexPolicePursuit* Destructor() {
+        this->CTaskComplexPolicePursuit::~CTaskComplexPolicePursuit();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CTaskComplexPolicePursuit, 0x18);

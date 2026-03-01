@@ -29,6 +29,8 @@ void D3DResourceSystem::Init() {
 
 // 0x730AC0
 void D3DResourceSystem::SetUseD3DResourceBuffering(bool bUse) {
+    ZoneScoped;
+
     plugin::Call<0x730AC0, bool>(bUse);
 }
 

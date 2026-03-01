@@ -197,8 +197,9 @@ CPedModelInfo* CModelInfo::AddPedModel(int32 index)
 }
 
 // 0x4C6810
-void CModelInfo::Initialise()
-{
+void CModelInfo::Initialise() {
+    ZoneScoped;
+
     memset(ms_modelInfoPtrs, 0, sizeof(ms_modelInfoPtrs));
     ms_damageAtomicModelInfoStore.m_nCount = 0;
     ms_lodAtomicModelInfoStore.m_nCount = 0;

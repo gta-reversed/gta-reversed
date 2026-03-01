@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ePedType.h"
+#include "Acquaintance.h"
 
 class CPedType {
 public:

@@ -194,28 +194,28 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
 
     exp->m_nParticlesExpireTime = lifetime ? CTimer::GetTimeInMS() + lifetime : 0;
 
-    const auto PlaySoundIfEnabled = [&]() {
+    const auto PlaySoundIfEnabled = [&](float volume = .0f) {
         if (exp->m_bMakeSound) {
-            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, -36.0f);
+            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, volume);
         }
     };
 
     // Originally most likely a separate function
     // but this way its nicer
-    const auto CreateAndPlayFxWithSound = [&](const char* name) {
+    const auto CreateAndPlayFxWithSound = [&](const char* name, float volume = .0f) {
         FxSystem_c* fx{nullptr};
         if (exp->m_pVictim) {
-            if (exp->m_pVictim->m_pRwObject) {
+            if (exp->m_pVictim->GetRwObject()) {
                 if (RwMatrix* matrix = exp->m_pVictim->GetModellingMatrix()) {
                     CVector expToVictimDir = pos - exp->m_pVictim->GetPosition();
-                    fx = g_fxMan.CreateFxSystem(name, &expToVictimDir, matrix, false);
+                    fx = g_fxMan.CreateFxSystem(name, expToVictimDir, matrix, false);
                 }
             }
         } else {
-            fx = g_fxMan.CreateFxSystem(name, &exp->m_vecPosition, nullptr, false);
+            fx = g_fxMan.CreateFxSystem(name, exp->m_vecPosition, nullptr, false);
         }
         if (fx) {
-            PlaySoundIfEnabled();
+            PlaySoundIfEnabled(volume);
             fx->PlayAndKill();
         }
     };
@@ -261,7 +261,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             }
         }
 
-        CreateAndPlayFxWithSound("explosion_molotov");
+        CreateAndPlayFxWithSound("explosion_molotov", -36.f);
 
         break;
     }
@@ -384,7 +384,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
                         gFireManager.StartFire(firePos, 0.8f, 0, exp->m_pCreator, (uint32)(CGeneral::GetRandomNumberInRange(5'600.0f, 12'600.0f) * 0.4f), 3, 1);
                     }
                 }
-                if (creator && creator->IsPed() && creator->AsPed()->IsPlayer()) {
+                if (creator && creator->GetIsTypePed() && creator->AsPed()->IsPlayer()) {
                     CStats::IncrementStat(eStats::STAT_FIRES_STARTED, 1.0f);
                 }
             }
@@ -458,8 +458,8 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_MOLOTOV: {
                 const CVector& pos = exp.m_vecPosition;
                 CWorld::SetPedsOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetWorldOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetCarsOnFire(pos.x, pos.y, pos.z, 0.1f, exp.m_pCreator);
+                CWorld::SetWorldOnFire(pos, 6.0f, exp.m_pCreator);
+                CWorld::SetCarsOnFire(pos, 0.1f, exp.m_pCreator);
 
                 if (exp.m_nActiveCounter < 10 && exp.m_nActiveCounter == 1) {
                     CEntity* hitEntity;
@@ -505,7 +505,7 @@ void CExplosion::Update() {
                     const float& fOffsetDistance = exp.m_fFuelOffsetDistance[i];
                     if (fOffsetDistance > 0.0f) {
                         CVector fxPos = exp.m_vecPosition + exp.m_vecFuelDirection[i] * (fOffsetDistance + fFuelTimerProgress * exp.m_fFuelSpeed[i]);
-                        if (auto fx = g_fxMan.CreateFxSystem("explosion_fuel_car", &fxPos, nullptr, false)) {
+                        if (auto fx = g_fxMan.CreateFxSystem("explosion_fuel_car", fxPos, nullptr, false)) {
                             fx->PlayAndKill();
                         }
                     }

@@ -80,8 +80,7 @@ void CPPTriPlantBuffer::SetPlantModelsTab(uint32 index, RpAtomic** pPlantModels)
 // 'data' is a pointer to RwRGBA
 // 0x5DAC10
 RpMaterial* CPPTriPlantBuffer::SetGrassMaterialCB(RpMaterial* material, void* data) {
-    const auto color = *reinterpret_cast<RwRGBA*>(data);
-    RpMaterialSetColor(material, &color);
+    RpMaterialSetColor(material, reinterpret_cast<RwRGBA*>(data));
     if (RpMaterialGetTexture(material) != RenderGrassTexture) {
         RpMaterialSetTexture(material, RenderGrassTexture);
     }

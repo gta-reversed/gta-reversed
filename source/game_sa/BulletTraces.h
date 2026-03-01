@@ -15,8 +15,8 @@ public:
 
     static void Init();
     static void Update();
-    static void AddTrace(CVector* from, CVector* to, float radius, uint32 disappearTime, uint8 alpha);
-    static void AddTrace(CVector* from, CVector* to, eWeaponType weaponType, CEntity* fromEntity);
+    static void AddTrace(const CVector& from, const CVector& to, float radius, uint32 disappearTime, uint8 alpha);
+    static void AddTrace(const CVector& from, const CVector& to, eWeaponType weaponType, CEntity* fromEntity);
     static void Render();
 
     static CBulletTrace* GetFree(); // Inlined function (Kinda NOTSA)

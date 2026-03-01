@@ -15,18 +15,18 @@ void CSimpleVariablesSaveStructure::InjectHooks() {
 
 // 0x5D1B80
 void CSimpleVariablesSaveStructure::Construct() {
-    const char* saveName;
+    const GxtChar* gxtSaveName;
     if (CStats::LastMissionPassedName[0]) {
-        saveName = TheText.Get(CStats::LastMissionPassedName);
+        gxtSaveName = TheText.Get(CStats::LastMissionPassedName);
     } else if (CGame::bMissionPackGame) {
-        saveName = TheText.Get("MPACKID");
+        gxtSaveName = TheText.Get("MPACKID");
     } else {
-        saveName = TheText.Get("ITBEG");
+        gxtSaveName = TheText.Get("ITBEG");
     }
 
-    char dots[8];
+    GxtChar dots[8];
     AsciiToGxtChar("...'", dots); // dot dot dot apostrophe
-    TextCopy(m_szSaveName, saveName);
+    TextCopy(m_szSaveName, gxtSaveName);
     uint32 strLen = GxtCharStrlen(m_szSaveName);
     if (strLen > SAVEGAME_MAX_NAME_LEN) {
         TextCopy(&m_szSaveName[SAVEGAME_MAX_NAME_LEN - 3 - 1], dots);

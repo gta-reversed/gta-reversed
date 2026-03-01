@@ -9,15 +9,18 @@ class CEntity;
 class CVector;
 class CEvent;
 
-enum class eGunCommand : uint8 {
-    NONE,
-    AIM,
-    FIRE,
-    FIREBURST,
-    RELOAD,
-    PISTOLWHIP,
-    END_LEISURE,
-    END_NOW,
+enum class eGunCommand : int8 {
+    UNKNOWN    = -1,
+    NONE       = 0,
+    AIM        = 1,
+    FIRE       = 2,
+    FIREBURST  = 3,
+    RELOAD     = 4,
+    PISTOLWHIP = 5,
+
+    // These 2 must stay in this order, after all other commands
+    END_LEISURE = 6, //! End task when possible
+    END_NOW     = 7, //! End task immidiately
 };
 
 class NOTSA_EXPORT_VTABLE CTaskSimpleGunControl : public CTaskSimple {
@@ -47,9 +50,9 @@ public:
     CTaskSimpleGunControl(const CTaskSimpleGunControl&);
     ~CTaskSimpleGunControl();
 
-    CTask*    Clone() override { return new CTaskSimpleGunControl{*this}; }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskSimpleGunControl{*this}; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool      ProcessPed(CPed* ped) override;
 
 private:

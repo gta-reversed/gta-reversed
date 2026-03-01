@@ -1,11 +1,15 @@
 #pragma once
 
+#include <chrono>
 #include <imgui.h>
 #include "DebugModule.h"
 
 class DebugModules {
+    static constexpr time_t MODULE_SERIALIZATION_INTERVAL_MS = 5000; //!< How often to serialize the debug module states and save them to the disk
+
 public:
     DebugModules(ImGuiContext* ctx);
+    ~DebugModules();
 
     //! Pre-Render updates
     void PreRenderUpdate();
@@ -24,6 +28,17 @@ public:
         }
     }
 
+    //! Get a debug module by type
+    template<typename T>
+    T* GetModule() {
+        for (auto& m : m_Modules) {
+            if (auto* module = dynamic_cast<T*>(m.get())) {
+                return module;
+            }
+        }
+        return nullptr;
+    }
+
 private:
     //! Creates all modules
     void CreateModules();
@@ -34,11 +49,18 @@ private:
     //! Add a new module
     template<std::derived_from<DebugModule> T>
     void Add() {
-        auto& module = m_Modules.emplace_back(std::make_unique<T>());
-        module->OnImGuiInitialised(m_ImCtx);
+        auto& m = m_Modules.emplace_back(std::make_unique<T>());
+        m->OnImGuiInitialised(m_ImCtx);
     }
+
+    //! Serialize the state of all debug modules
+    void DoSerializeModules();
+
+    //! Restore state of modules from serialized state
+    void DoDeserializeModules();
 
 private:
     std::vector<std::unique_ptr<DebugModule>> m_Modules{};
     ImGuiContext*                             m_ImCtx{};
+    time_t                                    m_LastSerializationTimeMs{};
 };

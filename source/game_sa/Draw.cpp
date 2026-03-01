@@ -40,6 +40,8 @@ void CDraw::CalculateAspectRatio() {
 
 // 0x53E600
 void DoFade() {
+    ZoneScoped;
+
     if (CTimer::GetIsPaused())
         return;
 

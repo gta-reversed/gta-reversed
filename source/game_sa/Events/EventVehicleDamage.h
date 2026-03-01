@@ -28,10 +28,6 @@ public:
 
 private:
     CEventVehicleDamage* Constructor(CVehicle* vehicle, CEntity* attacker, eWeaponType weaponType);
-    bool AffectsPed_Reversed(CPed* ped);
-    bool IsCriminalEvent_Reversed();
-    void ReportCriminalEvent_Reversed(CPed* ped);
-    CEntity* GetSourceEntity_Reversed() const;
 };
 
 VALIDATE_SIZE(CEventVehicleDamage, 0x20);

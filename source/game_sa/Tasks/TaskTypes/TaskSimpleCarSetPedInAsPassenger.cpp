@@ -13,19 +13,21 @@ CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(CVehicle* t
     CEntity::SafeRegisterRef(m_pTargetVehicle);
 }
 
+// For 0x649D90
+CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(const CTaskSimpleCarSetPedInAsPassenger& o) :
+    CTaskSimpleCarSetPedInAsPassenger{
+        o.m_pTargetVehicle,
+        o.m_nTargetDoor,
+        o.m_bWarpingInToCar,
+        o.m_pUtility
+    }
+{
+    m_nNumGettingInToClear = o.m_nNumGettingInToClear;
+}
 
 // 0x647080
 CTaskSimpleCarSetPedInAsPassenger::~CTaskSimpleCarSetPedInAsPassenger() {
     CEntity::SafeCleanUpRef(m_pTargetVehicle);
-}
-
-// 0x649D90
-CTask* CTaskSimpleCarSetPedInAsPassenger::Clone() {
-    auto task = new CTaskSimpleCarSetPedInAsPassenger(m_pTargetVehicle, m_nTargetDoor, m_pUtility);
-    task->m_bWarpingInToCar = m_bWarpingInToCar;
-    task->m_nDoorFlagsToClear = m_nDoorFlagsToClear;
-    task->m_nNumGettingInToClear = m_nNumGettingInToClear;
-    return task;
 }
 
 // 0x64B5D0

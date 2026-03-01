@@ -27,31 +27,37 @@ struct tMovingFog {
     float   m_fIntensity[MAX_MOVING_FOG];
     float   m_fMaxIntensity[MAX_MOVING_FOG];
     CVector m_vecWind;
-    float   m_fSpeed[MAX_MOVING_FOG];
+    float   m_Speed[MAX_MOVING_FOG];
     int     field_27B4[12];
     std::array<uint32, 6> m_nPrimIndices;
 };
 
 struct tVolumetricClouds {
-    bool       m_bSlots[MAX_VOLUMETRIC_CLOUDS];
-    bool       m_bInsideVisibilityRange[MAX_VOLUMETRIC_CLOUDS];
-    CVector    field_168[MAX_VOLUMETRIC_CLOUDS];
-    CVector    field_9D8[MAX_VOLUMETRIC_CLOUDS];
-    int32      m_nHeight[MAX_VOLUMETRIC_CLOUDS];
-    RwTexture* m_pTex;
-    CVector    m_vecCloudsSpace[3];
-    float      m_fCloudXCoords[18];
-    float      m_fCloudYCoords[18];
-    float      m_fCloudZCoords[18];
-    float      m_fCloudUCoords[18];
-    float      m_fCloudVCoords[18];
+    bool       bUsed[MAX_VOLUMETRIC_CLOUDS];
+    bool       bJustCreated[MAX_VOLUMETRIC_CLOUDS];
+
+    CVector    pos[MAX_VOLUMETRIC_CLOUDS];
+    CVector    size[MAX_VOLUMETRIC_CLOUDS];
+
+    int32      alpha[MAX_VOLUMETRIC_CLOUDS];
+
+    RwTexture* texture;
+
+    CVector    quadNormal[3];
+
+    float      modelX[18];
+    float      modelY[18];
+    float      modelZ[18];
+
+    float      modelU[18];
+    float      modelV[18];
 };
 
 class CClouds {
 public:
-    static float& m_fVolumetricCloudDensity;        // default 1.0f
-    static bool& m_bVolumetricCloudHeightSwitch;    // default true
-    static float& m_fVolumetricCloudWindMoveFactor; // default 0.1f
+    static inline auto& m_fVolumetricCloudDensity = StaticRef<float, 0x8D5388>();
+    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8, 0x8D538C>();
+    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float, 0x8D5390>();
     static float& m_fVolumetricCloudMaxDistance;
     static uint32& m_VolumetricCloudsUsedNum;
     static float& ms_cameraRoll;
@@ -61,6 +67,12 @@ public:
     static tMovingFog& ms_mf;
     static CVector& PlayerCoords;
     static CVector& CameraCoors;
+
+    static inline struct DebugSettings {
+        struct RenderSettingPair {
+            bool Enabled = true, Force = false;
+        } Moon, Rockstar, LowClouds, Rainbow, Streaks, VolumetricClouds;
+    } s_DebugSettings;
 
 public:
     static void InjectHooks();
@@ -76,6 +88,11 @@ public:
     static void MovingFog_Delete(int32 fogSlotIndex);
     static void MovingFog_Update();
     static void MovingFogRender();
+    static void Render_MaybeRenderMoon(float colorBalance);
+    static void Render_MaybeRenderRockstarLogo(float colorBalance);
+    static void Render_RenderLowClouds(float colorBalance);
+    static void Render_MaybeRenderRainbows();
+    static void Render_MaybeRenderStreaks();
     static float MovingFog_GetFXIntensity();
     static CVector MovingFog_GetWind();
     static int32 MovingFog_GetFirstFreeSlot();
@@ -92,15 +109,6 @@ public:
     static void RenderBottomFromHeight();
 };
 
-extern uint8* RAINBOW_LINES_COLOR_RED;   // RAINBOW_LINES_COLOR_RED[6] =   { 30, 30, 30, 10,  0, 15 }
-extern uint8* RAINBOW_LINES_COLOR_GREEN; // RAINBOW_LINES_COLOR_GREEN[6] = {  0, 15, 30, 30,  0,  0 }
-extern uint8* RAINBOW_LINES_COLOR_BLUE;  // RAINBOW_LINES_COLOR_BLUE[6]  = {  0,  0,  0, 10, 30, 30 }
-extern float* LOW_CLOUDS_X_COORDS;               // LOW_CLOUDS_X_COORDS[12] = { 1.0f, 0.7f, 0.0f, -0.7f, -1.0f, -0.7f, 0.0f, 0.7f, 0.8f, -0.8f, 0.4f, 0.4f }
-extern float* LOW_CLOUDS_Y_COORDS;               // LOW_CLOUDS_Y_COORDS[12] = { 0.0f, -0.7f, -1.0f, -0.7f, 0.0f, 0.7f, 1.0f, 0.7f, 0.4f, 0.4f, -0.8f. -0.8f }
-extern float* LOW_CLOUDS_Z_COORDS;               // LOW_CLOUDS_Z_COORDS[12] = { 0.0f, 1.0f, 0.5f, 0.0f, 1.0f, 0.3f, 0.9f, 0.4f, 1.3f, 1.4f, 1.2f, 1.7f }
-extern float* STARS_Y_POSITIONS;                 // STARS_Y_POSITIONS[9] = { 0.0f, 0.05f, 0.13f, 0.4f, 0.7f, 0.6f, 0.27f, 0.55f, 0.75f }
-extern float* STARS_Z_POSITIONS;                 // STARS_Z_POSITIONS[9] = { 0.0f, 0.45f, 0.9f, 1.0f, 0.85f, 0.52f, 0.48f, 0.35f, 0.2f }
-extern float* STARS_SIZES;                       // STARS_SIZES[9] = { 1.0f, 1.4f, 0.9f, 1.0f, 0.6f, 1.5f, 1.3f, 1.0f, 0.8f }
 extern float& CurrentFogIntensity;               // default 1.0f
 extern RwTexture*& gpMoonMask;
 extern RwTexture*& gpCloudTex;

@@ -40,5 +40,7 @@ void CPointLights::AddLight(uint8 lightType, CVector point, CVector direction, f
 
 // 0x7002D0
 void CPointLights::RenderFogEffect() {
+    ZoneScoped;
+
     plugin::Call<0x7002D0>();
 }

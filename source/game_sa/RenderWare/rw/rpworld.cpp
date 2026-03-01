@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "rpworld.h"
+#include <rpdbgerr.h>
 
 void _rwD3D9VSSetActiveWorldMatrix(const RwMatrix* worldMatrix) {
     ((void(__cdecl *)(const RwMatrix*))0x764650)(worldMatrix);
@@ -1144,4 +1145,52 @@ RpPlaneSectorChunkInfo* _rpPlaneSectorChunkInfoRead(RwStream* stream, RpPlaneSec
 
 RpWorldChunkInfo* _rpWorldChunkInfoRead(RwStream* stream, RpWorldChunkInfo* worldChunkInfo, RwInt32* bytesRead) {
     return ((RpWorldChunkInfo*(__cdecl *)(RwStream*, RpWorldChunkInfo*, RwInt32*))0x763690)(stream, worldChunkInfo, bytesRead);
+}
+
+
+/****************************************************************************
+_rwD3D9EnableClippingIfNeeded
+Purpose:
+On entry:
+On exit :
+*/
+void
+_rwD3D9EnableClippingIfNeeded(void *object,
+    RwUInt32 type)
+{
+    RwCamera    *camera;
+    RwBool      fullyInsideFrustum;
+
+    RWFUNCTION(RWSTRING("_rwD3D9EnableClippingIfNeeded"));
+    RWASSERT(object != NULL);
+
+    camera = RwCameraGetCurrentCamera();
+    RWASSERT(camera != NULL);
+
+    if (type == rpATOMIC)
+    {
+        RpAtomic    *atomic;
+
+        atomic = (RpAtomic *)object;
+
+        fullyInsideFrustum =
+            RwD3D9CameraIsSphereFullyInsideFrustum(camera,
+                RpAtomicGetWorldBoundingSphere(atomic));
+    }
+    else
+    {
+        const RpWorldSector   *worldSector;
+
+        RWASSERT(type == ((RwUInt8)rwSECTORATOMIC));
+
+        worldSector = (const RpWorldSector *)object;
+
+        fullyInsideFrustum =
+            RwD3D9CameraIsBBoxFullyInsideFrustum(camera,
+                RpWorldSectorGetTightBBox(worldSector));
+    }
+
+    RwD3D9SetRenderState(D3DRS_CLIPPING, (fullyInsideFrustum == FALSE));
+
+    RWRETURNVOID();
 }

@@ -19,12 +19,10 @@ public:
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
     float GetLocalSoundLevel() override { return 60.0f; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
 private:
     CEventVehicleOnFire* Constructor(CVehicle* vehicle);
-    bool AffectsPed_Reversed(CPed* ped);
-    CEventEditableResponse* CloneEditable_Reversed();
 };
 
 VALIDATE_SIZE(CEventVehicleOnFire, 0x18);

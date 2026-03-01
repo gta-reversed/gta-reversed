@@ -10,7 +10,7 @@
 
 typedef CPool<class COctTree> COctTreePool;
 
-class COctTree {
+class NOTSA_EXPORT_VTABLE COctTree {
 public:
     uint32 m_nLevel;
     bool   m_bLastStep;       // no children

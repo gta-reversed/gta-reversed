@@ -10,14 +10,14 @@
 #include "AnimBlendAssociation.h"
 #include "Entity.h"
 
-class CTaskSimpleTriggerLookAt : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleTriggerLookAt : public CTaskSimple {
 public:
     CEntity* m_pEntity;
     int32    m_time;
     int32    m_nOffsetBoneTag;
     RwV3d    m_vOffsetPos;
     bool     m_bUseTorso;
-    float    m_fSpeed;
+    float    m_Speed;
     int32    m_nBlendTime;
     bool     m_bEntityExist;
     int8     m_nPriority;

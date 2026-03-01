@@ -8,6 +8,7 @@ public:
 
     void RenderMainWindow() override final;
     void RenderMenuEntry() override final;
+
 private:
     ImGuiTextFilter m_Filter{};
     uint32          m_FilterTextHash{};

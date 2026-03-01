@@ -122,7 +122,7 @@ CTask* CTaskComplexInvestigateDeadPed::ControlSubTask(CPed* ped) {
         break;
     }
     case TASK_SIMPLE_ANIM: {
-        ped->Say(181);
+        ped->Say(CTX_GLOBAL_SHOCKED);
         break;
     }
     }

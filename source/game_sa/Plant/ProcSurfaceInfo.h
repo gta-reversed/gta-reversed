@@ -2,7 +2,7 @@
 
 #include "Vector.h"
 
-class ProcObjectMan_c;
+class ProcObjectListItem;
 class CPlantLocTri;
 
 class ProcSurfaceInfo_c {
@@ -25,7 +25,7 @@ public:
     float  m_fOffsetMaxZ;
     bool   m_Align;
     float  m_fUseGrid;
-    TList_c<ProcObjectMan_c> m_Objects;
+    TList_c<ProcObjectListItem> m_Objects;
 
 public:
     static void InjectHooks();
@@ -43,8 +43,9 @@ public:
     );
     void Exit();
 
-    void AddObject(CVector p1, CVector p2, bool a3);
-    int32 AddObjects(CPlantLocTri* plant);
+    ProcObjectListItem* AddObject(CVector pos, CVector normal, tColLighting lighting);
+    int32               AddObjects(CPlantLocTri* plant);
+    bool                IsPtInTriangle2D(float x, float y, CVector v1, CVector v2, CVector v3, CVector normal, float* z);
 
 };
 VALIDATE_SIZE(ProcSurfaceInfo_c, 0x48);

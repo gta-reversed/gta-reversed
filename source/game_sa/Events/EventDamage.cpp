@@ -9,24 +9,24 @@
 #include "TaskSimpleUseGun.h"
 
 void CEventDamage::InjectHooks() {
-    RH_ScopedClass(CEventDamage);
+    RH_ScopedVirtualClass(CEventDamage, 0x85AD78, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedOverloadedInstall(Constructor, "", 0x4B33B0, CEventDamage*(CEventDamage::*)(const CEventDamage&));
     RH_ScopedOverloadedInstall(Constructor, "1", 0x4AD830, CEventDamage * (CEventDamage::*)(CEntity*, uint32, eWeaponType, ePedPieceTypes, uint8, bool, bool));
-    RH_ScopedVirtualInstall(GetEventType, 0x4AD910);
-    RH_ScopedVirtualInstall(GetEventPriority, 0x4AD950);
-    RH_ScopedVirtualInstall(GetLifeTime, 0x4AD920);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B35A0);
-    RH_ScopedVirtualInstall(AffectsPedGroup, 0x4B38D0);
-    RH_ScopedVirtualInstall(IsCriminalEvent, 0x4ADA90);
-    RH_ScopedVirtualInstall(ReportCriminalEvent, 0x4B3440);
-    RH_ScopedVirtualInstall(GetSourceEntity, 0x4ADA70);
-    RH_ScopedVirtualInstall(TakesPriorityOver, 0x4ADB00);
-    RH_ScopedVirtualInstall(GetLocalSoundLevel, 0x4AD930);
-    RH_ScopedVirtualInstall(DoInformVehicleOccupants, 0x4ADAE0);
-    RH_ScopedVirtualInstall(CanBeInterruptedBySameEvent, 0x4AD940);
-    RH_ScopedVirtualInstall(CloneEditable, 0x4B5D40);
+    RH_ScopedVMTInstall(GetEventType, 0x4AD910);
+    RH_ScopedVMTInstall(GetEventPriority, 0x4AD950);
+    RH_ScopedVMTInstall(GetLifeTime, 0x4AD920);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B35A0);
+    RH_ScopedVMTInstall(AffectsPedGroup, 0x4B38D0);
+    RH_ScopedVMTInstall(IsCriminalEvent, 0x4ADA90);
+    RH_ScopedVMTInstall(ReportCriminalEvent, 0x4B3440);
+    RH_ScopedVMTInstall(GetSourceEntity, 0x4ADA70);
+    RH_ScopedVMTInstall(TakesPriorityOver, 0x4ADB00);
+    RH_ScopedVMTInstall(GetLocalSoundLevel, 0x4AD930);
+    RH_ScopedVMTInstall(DoInformVehicleOccupants, 0x4ADAE0);
+    RH_ScopedVMTInstall(CanBeInterruptedBySameEvent, 0x4AD940);
+    RH_ScopedVMTInstall(CloneEditable, 0x4B5D40);
     RH_ScopedInstall(From, 0x4AD9C0);
     RH_ScopedInstall(ProcessDamage, 0x4B3A20);
     RH_ScopedInstall(ComputeBodyPartToRemove, 0x4ADC10);
@@ -40,22 +40,24 @@ CEventDamage::CEventDamage(const CEventDamage& event) : CEventEditableResponse()
 }
 
 // 0x4AD830
-CEventDamage::CEventDamage(CEntity* source, uint32 startTime, eWeaponType weaponType, ePedPieceTypes pieceHit, uint8 direction, bool a7, bool bPedInVehicle) : CEventEditableResponse() {
-    m_pSourceEntity = source;
-    m_nStartTime    = startTime;
-    m_weaponType    = weaponType;
-    m_pedPieceType  = pieceHit;
-    m_ucDirection   = direction;
-    m_ucFlags       = 0;
-    m_bPedInVehicle = bPedInVehicle;
-    m_b01           = a7;
-    m_nAnimGroup    = 0;
-    m_nAnimID       = ANIM_ID_NO_ANIMATION_SET;
-    m_fAnimBlend    = 8.0f;
-    m_fAnimSpeed    = 1.0f;
+CEventDamage::CEventDamage(CEntity* source, uint32 startTime, eWeaponType weaponType, ePedPieceTypes pieceHit, uint8 direction, bool bJumpedOutOfMovingCar, bool bPedInVehicle) : CEventEditableResponse() {
+    m_pSourceEntity         = source;
+    m_nStartTime            = startTime;
+    m_weaponType            = weaponType;
+    m_pedPieceType          = pieceHit;
+    m_ucDirection           = direction;
+    m_bJumpedOutOfMovingCar = bJumpedOutOfMovingCar;
+    m_bFallDown             = false;
+    m_bAnimAdded            = false;
+    m_bWitnessedInVehicle   = bPedInVehicle;
+    m_bStealthMode          = false;
+    m_nAnimGroup            = ANIM_GROUP_DEFAULT;
+    m_nAnimID               = ANIM_ID_NO_ANIMATION_SET;
+    m_fAnimBlend            = 8.0f;
+    m_fAnimSpeed            = 1.0f;
 
     CEntity::SafeRegisterRef(m_pSourceEntity);
-    m_bPedInVehicle = true; // if we're setting this to true, then why do we have bPedInVehicle parameter in this constructor? bug?
+    m_bWitnessedInVehicle = true; // if we're setting this to true, then why do we have bPedInVehicle parameter in this constructor? bug?
 }
 
 CEventDamage::~CEventDamage() {
@@ -72,77 +74,13 @@ CEventDamage* CEventDamage::Constructor(CEntity* source, uint32 startTime, eWeap
     return this;
 }
 
-// 0x4AD910
-eEventType CEventDamage::GetEventType() const {
-    return CEventDamage::GetEventType_Reversed();
-}
-
-// 0x4AD950
-int32 CEventDamage::GetEventPriority() const {
-    return CEventDamage::GetEventPriority_Reversed();
-}
-
-// 0x4AD920
-int32 CEventDamage::GetLifeTime() {
-    return CEventDamage::GetLifeTime_Reversed();
-}
-
 // 0x4B35A0
 bool CEventDamage::AffectsPed(CPed* ped) {
-    return CEventDamage::AffectsPed_Reversed(ped);
-}
-
-// 0x4B38D0
-bool CEventDamage::AffectsPedGroup(CPedGroup* pedGroup) {
-    return CEventDamage::AffectsPedGroup_Reversed(pedGroup);
-}
-
-// 0x4ADA90
-bool CEventDamage::IsCriminalEvent() {
-    return CEventDamage::IsCriminalEvent_Reversed();
-}
-
-// 0x4B3440
-void CEventDamage::ReportCriminalEvent(CPed* ped) {
-    return CEventDamage::ReportCriminalEvent_Reversed(ped);
-}
-
-// 0x4ADA70
-CEntity* CEventDamage::GetSourceEntity() const {
-    return CEventDamage::GetSourceEntity_Reversed();
-}
-
-// 0x4ADB00
-bool CEventDamage::TakesPriorityOver(const CEvent& refEvent) {
-    return CEventDamage::TakesPriorityOver_Reversed(refEvent);
-}
-
-// 0x4AD930
-float CEventDamage::GetLocalSoundLevel() {
-    return CEventDamage::GetLocalSoundLevel_Reversed();
-}
-
-// 0x4ADAE0
-bool CEventDamage::DoInformVehicleOccupants(CPed* ped) {
-    return CEventDamage::DoInformVehicleOccupants_Reversed(ped);
-}
-
-// 0x4AD940
-bool CEventDamage::CanBeInterruptedBySameEvent() {
-    return CEventDamage::CanBeInterruptedBySameEvent_Reversed();
-}
-
-// 0x4B5D40
-CEventEditableResponse* CEventDamage::CloneEditable() {
-    return CEventDamage::CloneEditable_Reversed();
-}
-
-bool CEventDamage::AffectsPed_Reversed(CPed* ped) {
     auto* pedSourceEntity = GetSourceEntity()->AsPed();
     if (m_damageResponse.m_bDamageCalculated && !m_damageResponse.m_bCheckIfAffectsPed)
         return true;
 
-    if (!ped->IsAlive() || ped == FindPlayerPed() && !FindPlayerPed()->m_pPlayerData->m_bCanBeDamaged)
+    if (!ped->IsAlive() || ped == FindPlayerPed() && !FindPlayerPed()->GetPlayerData()->m_bCanBeDamaged)
         return false;
 
     if (m_weaponType == WEAPON_DROWNING && !ped->bDrownsInWater)
@@ -150,7 +88,7 @@ bool CEventDamage::AffectsPed_Reversed(CPed* ped) {
 
     if (ped == FindPlayerPed()) {
         if (m_pSourceEntity) {
-            if (m_pSourceEntity->IsPed() && pedSourceEntity->m_nPedType == PED_TYPE_GANG2 && m_weaponType >= WEAPON_GRENADE) {
+            if (m_pSourceEntity->GetIsTypePed() && pedSourceEntity->m_nPedType == PED_TYPE_GANG2 && m_weaponType >= WEAPON_GRENADE) {
                 const auto task = pedSourceEntity->GetTaskManager().Find<CTaskComplexKillPedOnFoot>();
                 if (!task || task->m_target != ped){
                     return false;
@@ -182,20 +120,20 @@ bool CEventDamage::AffectsPed_Reversed(CPed* ped) {
         if (m_weaponType == WEAPON_PISTOL_SILENCED) {
             if (!m_pSourceEntity)
                 return false;
-            if (!m_pSourceEntity->IsPed())
+            if (!m_pSourceEntity->GetIsTypePed())
                 return false;
-            if (!m_bPedInVehicle)
+            if (!m_bWitnessedInVehicle)
                 return false;
             if (!ped->bInVehicle)
                 return false;
         }
         if (m_pSourceEntity) {
-            if (m_pSourceEntity->IsPed()) {
+            if (m_pSourceEntity->GetIsTypePed()) {
                 CTask* activeTask = pedSourceEntity->GetTaskManager().GetActiveTask();
                 if (activeTask && activeTask->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
                     CVector vecDirection = m_pSourceEntity->GetPosition() - ped->GetPosition();
                     vecDirection.Normalise();
-                    if (ped->m_pIntelligence->CanSeeEntityWithLights(m_pSourceEntity, 0) <= 0.0f
+                    if (ped->GetIntelligence()->CanSeeEntityWithLights(m_pSourceEntity, 0) <= 0.0f
                         || DotProduct(&vecDirection, &ped->GetForward()) < CPedAcquaintanceScanner::ms_fThresholdDotProduct)
                     {
                         return false;
@@ -205,7 +143,7 @@ bool CEventDamage::AffectsPed_Reversed(CPed* ped) {
         }
     }
     if (m_pSourceEntity) {
-        if (    m_pSourceEntity->IsPed()
+        if (    m_pSourceEntity->GetIsTypePed()
             && !pedSourceEntity->IsPlayer()
             && CPedGroups::AreInSameGroup(ped, pedSourceEntity)
             && m_weaponType != WEAPON_EXPLOSION
@@ -215,7 +153,7 @@ bool CEventDamage::AffectsPed_Reversed(CPed* ped) {
     }
     bool bAffectsPed = ped->CanPhysicalBeDamaged(m_weaponType, nullptr);
     if (    m_weaponType == WEAPON_FALL
-        && (ped->physicalFlags.bCollisionProof || ped->m_pAttachedTo || ped->m_fHealth > 0.0f && ped->m_pIntelligence->GetTaskJetPack())
+        && (ped->physicalFlags.bCollisionProof || ped->m_pAttachedTo || ped->m_fHealth > 0.0f && ped->GetIntelligence()->GetTaskJetPack())
     ) {
         bAffectsPed = false;
     }
@@ -223,14 +161,15 @@ bool CEventDamage::AffectsPed_Reversed(CPed* ped) {
 
 }
 
-bool CEventDamage::AffectsPedGroup_Reversed(CPedGroup* pedGroup) {
+// 0x4B38D0
+bool CEventDamage::AffectsPedGroup(CPedGroup* pedGroup) {
     if (m_weaponType == WEAPON_PISTOL_SILENCED)
         return false;
 
     if (!m_pSourceEntity)
         return true;
 
-    if (!m_pSourceEntity->IsPed())
+    if (!m_pSourceEntity->GetIsTypePed())
         return true;
 
     auto* ped = m_pSourceEntity->AsPed();
@@ -246,7 +185,7 @@ bool CEventDamage::AffectsPedGroup_Reversed(CPedGroup* pedGroup) {
         if (groupMember) {
             CVector vecDirection = m_pSourceEntity->GetPosition() - groupMember->GetPosition();
             vecDirection.Normalise();
-            if (groupMember->m_pIntelligence->CanSeeEntityWithLights(m_pSourceEntity, 0) > 0.0f) {
+            if (groupMember->GetIntelligence()->CanSeeEntityWithLights(m_pSourceEntity, 0) > 0.0f) {
                 if (DotProduct(&vecDirection, &groupMember->GetForward()) > CPedAcquaintanceScanner::ms_fThresholdDotProduct)
                     return true;
             }
@@ -255,21 +194,23 @@ bool CEventDamage::AffectsPedGroup_Reversed(CPedGroup* pedGroup) {
     return false;
 }
 
-bool CEventDamage::IsCriminalEvent_Reversed() {
+// 0x4ADA90
+bool CEventDamage::IsCriminalEvent() {
     if (m_pSourceEntity) {
         auto* vehicle = m_pSourceEntity->AsVehicle();
         auto* ped     = m_pSourceEntity->AsPed();
 
-        return (   m_pSourceEntity->IsPed()
+        return (   m_pSourceEntity->GetIsTypePed()
                 && ped->IsPlayer()
-                || m_pSourceEntity->IsVehicle()
+                || m_pSourceEntity->GetIsTypeVehicle()
                 && vehicle->m_pDriver == FindPlayerPed()
         );
     }
     return false;
 }
 
-void CEventDamage::ReportCriminalEvent_Reversed(CPed* ped) {
+// 0x4B3440
+void CEventDamage::ReportCriminalEvent(CPed* ped) {
     if (IsCriminalEvent() && m_pSourceEntity) {
         bool bPoliceCareAboutCrime = CPedType::PoliceDontCareAboutCrimesAgainstPedType(ped->m_nPedType);
         if (m_weaponType <= WEAPON_CHAINSAW) {
@@ -292,8 +233,9 @@ void CEventDamage::ReportCriminalEvent_Reversed(CPed* ped) {
     }
 }
 
-CEntity* CEventDamage::GetSourceEntity_Reversed() const {
-    if (m_pSourceEntity && m_pSourceEntity->IsVehicle()) {
+// 0x4ADA70
+CEntity* CEventDamage::GetSourceEntity() const {
+    if (m_pSourceEntity && m_pSourceEntity->GetIsTypeVehicle()) {
         auto* vehicle = m_pSourceEntity->AsVehicle();
         if (vehicle->m_pDriver)
             return vehicle->m_pDriver;
@@ -301,7 +243,8 @@ CEntity* CEventDamage::GetSourceEntity_Reversed() const {
     return m_pSourceEntity;
 }
 
-bool CEventDamage::TakesPriorityOver_Reversed(const CEvent& refEvent) {
+// 0x4ADB00
+bool CEventDamage::TakesPriorityOver(const CEvent& refEvent) {
     if (refEvent.GetEventType() == EVENT_IN_WATER && m_damageResponse.m_bHealthZero && m_bAddToEventGroup
         || refEvent.GetEventType() == EVENT_ON_FIRE && m_damageResponse.m_bHealthZero && m_bAddToEventGroup
         || refEvent.GetEventType() == EVENT_KNOCK_OFF_BIKE && m_damageResponse.m_bHealthZero && m_bAddToEventGroup) {
@@ -309,7 +252,7 @@ bool CEventDamage::TakesPriorityOver_Reversed(const CEvent& refEvent) {
     }
 
     auto* ped = m_pSourceEntity->AsPed();
-    if (m_pSourceEntity && m_pSourceEntity->IsPed() && ped->IsPlayer() && refEvent.GetEventType() == EVENT_DAMAGE) {
+    if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed() && ped->IsPlayer() && refEvent.GetEventType() == EVENT_DAMAGE) {
         if (refEvent.GetSourceEntity() == m_pSourceEntity && (!m_damageResponse.m_bHealthZero || !m_bAddToEventGroup))
             return CEvent::TakesPriorityOver(refEvent);
         return true;
@@ -322,16 +265,18 @@ bool CEventDamage::TakesPriorityOver_Reversed(const CEvent& refEvent) {
     return CEvent::TakesPriorityOver(refEvent);
 }
 
-bool CEventDamage::DoInformVehicleOccupants_Reversed(CPed* ped) {
+// 0x4ADAE0
+bool CEventDamage::DoInformVehicleOccupants(CPed* ped) {
     if (GetSourceEntity())
         return m_weaponType != WEAPON_DROWNING;
     return false;
 }
 
-CEventEditableResponse* CEventDamage::CloneEditable_Reversed() {
+// 0x4B5D40
+CEventEditableResponse* CEventDamage::CloneEditable() const noexcept {
     auto* clonedEvent      = new CEventDamage(*this);
     clonedEvent->m_nAnimID = m_nAnimID;
-    clonedEvent->m_b05     = m_b05;
+    clonedEvent->m_bStealthMode     = m_bStealthMode;
     return clonedEvent;
 }
 
@@ -340,16 +285,20 @@ void CEventDamage::From(const CEventDamage& event) {
     m_pSourceEntity = event.m_pSourceEntity;
     CEntity::SafeRegisterRef(m_pSourceEntity);
 
-    m_nStartTime     = event.m_nStartTime;
-    m_weaponType     = event.m_weaponType;
-    m_pedPieceType   = event.m_pedPieceType;
-    m_ucDirection    = event.m_ucDirection;
-    m_damageResponse = event.m_damageResponse;
-    m_nAnimGroup     = event.m_nAnimGroup;
-    m_nAnimID        = event.m_nAnimID;
-    m_fAnimBlend     = event.m_fAnimBlend;
-    m_fAnimSpeed     = event.m_fAnimSpeed;
-    m_ucFlags        = event.m_ucFlags;
+    m_nStartTime            = event.m_nStartTime;
+    m_weaponType            = event.m_weaponType;
+    m_pedPieceType          = event.m_pedPieceType;
+    m_ucDirection           = event.m_ucDirection;
+    m_damageResponse        = event.m_damageResponse;
+    m_nAnimGroup            = event.m_nAnimGroup;
+    m_nAnimID               = event.m_nAnimID;
+    m_fAnimBlend            = event.m_fAnimBlend;
+    m_fAnimSpeed            = event.m_fAnimSpeed;
+    m_bJumpedOutOfMovingCar = event.m_bJumpedOutOfMovingCar;
+    m_bFallDown             = event.m_bFallDown;
+    m_bAnimAdded            = event.m_bAnimAdded;
+    m_bWitnessedInVehicle   = event.m_bWitnessedInVehicle;
+    m_bStealthMode          = event.m_bStealthMode;
 }
 
 // 0x4B3A20
@@ -478,17 +427,16 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     {
         auto* pedSourceEntity = m_pSourceEntity->AsPed();
         CTaskSimpleFight* taskFight = nullptr;
-        if (m_pSourceEntity && m_pSourceEntity->IsPed())
-            taskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
+        if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed())
+            taskFight = pedSourceEntity->GetIntelligence()->GetTaskFighting();
 
-        CVector bonePosition;
-        ped->GetBonePosition(*(RwV3d*)&bonePosition, BONE_HEAD, false);
+        const auto bonePosition = ped->GetBonePosition(BONE_HEAD, false);
         CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
         if (ped->GetPosition().z - 0.2f > bonePosition.z
             && pSimplestActiveTask && (pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_FALL || pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_GET_UP))
         {
-            m_bKnockOffPed = true;
-            m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
+            m_bFallDown = true;
+            m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
         }
         else
         {
@@ -499,7 +447,7 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                 && taskFight->m_nCurrentMove <= FIGHT_ATTACK_HIT_3
             ) {
                 m_nAnimGroup = taskFight->GetComboAnimGroupID();
-                m_nAnimID = taskFight->m_nCurrentMove + ANIM_ID_FIGHT_HIT_1;
+                m_nAnimID = (AnimationId)(taskFight->m_nCurrentMove + ANIM_ID_FIGHT_HIT_1);
                 m_fAnimBlend = 16.0f;
                 fForceFactor = 1.0f;
             }
@@ -592,7 +540,9 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         if (m_pedPieceType == PED_PIECE_LEFT_ARM)
                             m_nAnimID = ANIM_ID_KD_LEFT;
                         else
-                            m_nAnimID = m_pedPieceType ? ANIM_ID_KO_SKID_BACK : ANIM_ID_KD_RIGHT;
+                            m_nAnimID = m_pedPieceType
+                                ? ANIM_ID_KO_SKID_BACK
+                                : ANIM_ID_KD_RIGHT;
                         break;
                     case 1:
                         m_nAnimID = ANIM_ID_KO_SPIN_R;
@@ -601,7 +551,9 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         if (m_pedPieceType == PED_PIECE_LEFT_ARM)
                             m_nAnimID = ANIM_ID_KD_LEFT;
                         else
-                            m_nAnimID = (m_pedPieceType != PED_PIECE_RIGHT_ARM) + ANIM_ID_KD_RIGHT;
+                            m_nAnimID = m_pedPieceType == PED_PIECE_RIGHT_ARM
+                                ? ANIM_ID_KD_RIGHT
+                                : ANIM_ID_KO_SKID_FRONT;
                         break;
                     case 3:
                         m_nAnimID = ANIM_ID_KO_SPIN_L;
@@ -625,8 +577,8 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         bKnockOutAnim = true;
                     }
                     if (m_pSourceEntity) {
-                        if (m_pSourceEntity->IsPed() && pedSourceEntity->m_pPlayerData) {
-                            if (pedSourceEntity->m_pPlayerData->m_bAdrenaline)
+                        if (m_pSourceEntity->GetIsTypePed() && pedSourceEntity->GetPlayerData()) {
+                            if (pedSourceEntity->GetPlayerData()->m_bAdrenaline)
                                 fForceFactor = fForceFactor * 5.0f;
                             else
                                 fForceFactor = CStats::GetFatAndMuscleModifier(STAT_MOD_4) * fForceFactor;
@@ -692,7 +644,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
             && m_weaponType != WEAPON_PARACHUTE
             || pWeaponInfo->m_nDamage > 50)
         {
-            m_bKnockOffPed = true;
+            m_bFallDown = true;
         }
         m_nAnimID = ANIM_ID_NO_ANIMATION_SET;
         return;
@@ -711,13 +663,13 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     float fForceFactor = 0.0f;
     CTaskSimpleFight* sourceEntityTaskFight = nullptr;
     CTaskSimpleUseGun* sourceEntityTaskUseGun = nullptr;
-    if (m_pSourceEntity && m_pSourceEntity->IsPed()) {
+    if (m_pSourceEntity && m_pSourceEntity->GetIsTypePed()) {
         auto* pedSourceEntity = m_pSourceEntity->AsPed();
-        sourceEntityTaskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
+        sourceEntityTaskFight = pedSourceEntity->GetIntelligence()->GetTaskFighting();
         if (!sourceEntityTaskFight)
-            sourceEntityTaskUseGun = pedSourceEntity->m_pIntelligence->GetTaskUseGun();
-        if (pedSourceEntity->m_pPlayerData) {
-            if (pedSourceEntity->m_pPlayerData->m_bAdrenaline) {
+            sourceEntityTaskUseGun = pedSourceEntity->GetIntelligence()->GetTaskUseGun();
+        if (pedSourceEntity->GetPlayerData()) {
+            if (pedSourceEntity->GetPlayerData()->m_bAdrenaline) {
                 fPedStrength = 2.0f;
             }
             else {
@@ -728,18 +680,18 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     }
 
     CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
-    CVector bonePosition;
-    ped->GetBonePosition(*(RwV3d*)&bonePosition, BONE_HEAD, false);
-    if (bonePosition.z < ped->GetPosition().z && !ped->IsPlayer()
+
+    const auto headPos = ped->GetBonePosition(BONE_HEAD, false);
+    if (headPos.z < ped->GetPosition().z && !ped->IsPlayer()
         && pSimplestActiveTask
         && (pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_FALL|| pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_GET_UP))
     {
-        m_bKnockOffPed = true;
-        m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
+        m_bFallDown = true;
+        m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
     }
     else if (m_pedPieceType == PED_PIECE_TORSO) {
         bool bMultiplyForceWithPedStrength = false;
-        if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_nLastCommand == 5) {
+        if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->GetLastGunCommand() == eGunCommand::PISTOLWHIP) {
             if (m_ucDirection)
                 bMultiplyForceWithPedStrength = true;
             if (ped->IsPlayer())
@@ -751,43 +703,43 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         }
         if (ped->bUpperBodyDamageAnimsOnly || ped->bIsDucking || ped->m_pAttachedTo || !bMultiplyForceWithPedStrength || !m_pSourceEntity) {
             if (m_weaponType >= WEAPON_CHAINSAW || ped->m_fHealth >= fHealthThreshold) {
-                if (m_weaponType != WEAPON_FALL ||  !m_pSourceEntity  || !m_pSourceEntity->IsObject()) {
+                if (m_weaponType != WEAPON_FALL ||  !m_pSourceEntity  || !m_pSourceEntity->GetIsTypeObject()) {
                     if (sourceEntityTaskFight && sourceEntityTaskFight->m_nCurrentMove == FIGHT_ATTACK_FIGHTIDLE && !ped->IsPlayer() && ped->m_nMoveState > PEDMOVE_WALK)
-                        m_bKnockOffPed = true;
+                        m_bFallDown = true;
                 }
                 else {
-                    m_bKnockOffPed = true;
+                    m_bFallDown = true;
                 }
             }
             else {
-                m_bKnockOffPed = true;
+                m_bFallDown = true;
                 fForceFactor = fPedStrength * 5.0f;
             }
         }
         else {
-            m_bKnockOffPed = true;
+            m_bFallDown = true;
             fForceFactor = 5.0f;
         }
     }
 
     bool bPlayHitAnim = true;
     bool bNoComboHit = false;
-    if (m_bKnockOffPed && (m_ucDirection || !sourceEntityTaskFight || !sourceEntityTaskFight->IsComboSet() && !sourceEntityTaskFight->IsHitComboSet())) {
+    if (m_bFallDown && (m_ucDirection || !sourceEntityTaskFight || !sourceEntityTaskFight->IsComboSet() && !sourceEntityTaskFight->IsHitComboSet())) {
         bNoComboHit = true;
         bPlayHitAnim = false;
     }
     else {
-        m_bKnockOffPed = false;
+        m_bFallDown = false;
         if (!m_ucDirection) {
             if (sourceEntityTaskFight && sourceEntityTaskFight->m_nComboSet >= 4 && sourceEntityTaskFight->m_nCurrentMove <= FIGHT_ATTACK_HIT_3) {
                 m_nAnimGroup = sourceEntityTaskFight->GetComboAnimGroupID();
-                m_nAnimID = sourceEntityTaskFight->m_nCurrentMove + ANIM_ID_FIGHT_HIT_1;
+                m_nAnimID = (AnimationId)(sourceEntityTaskFight->m_nCurrentMove + ANIM_ID_FIGHT_HIT_1);
                 m_fAnimBlend = 16.0f;
                 if (sourceEntityTaskFight->IsComboSet())
-                    m_bKnockOffPed = true;
+                    m_bFallDown = true;
                 bPlayHitAnim = false;
             }
-            else if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_nLastCommand == 5) {
+            else if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_LastCmd == eGunCommand::PISTOLWHIP) {
                 m_nAnimGroup = CTaskSimpleFight::m_aComboData[0].m_nAnimGroup;
                 m_nAnimID = ANIM_ID_FIGHT_HIT_2;
                 m_fAnimBlend = 16.0f;
@@ -803,7 +755,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         {
             bool bPlayBodyPartHitAnim = true;
             if (ped->IsPlayer() && m_weaponType >= WEAPON_PISTOL) {
-              CPlayerPedData * playerData = ped->m_pPlayerData;
+              CPlayerPedData * playerData = ped->GetPlayerData();
                 if (CTimer::GetTimeInMS() <= playerData->m_nHitAnimDelayTimer || ped->m_nPedState == PEDSTATE_DRIVING) {
                     m_nAnimID = ANIM_ID_NO_ANIMATION_SET;
                     bPlayBodyPartHitAnim = false;
@@ -814,7 +766,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
             }
             if (bPlayBodyPartHitAnim) {
                 if (m_weaponType < WEAPON_PISTOL || m_weaponType > WEAPON_LAST_WEAPON) {
-                    m_nAnimID = m_ucDirection + ANIM_ID_HIT_FRONT;
+                    m_nAnimID = (AnimationId)(m_ucDirection + ANIM_ID_HIT_FRONT);
                     if (m_ucDirection || m_damageResponse.m_fDamageArmor + m_damageResponse.m_fDamageHealth <= 20.0f) {
                         if (m_ucDirection == 2 && m_weaponType <= WEAPON_CANE)
                             m_nAnimID = ANIM_ID_HIT_BEHIND;
@@ -825,7 +777,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                 }
                 else {
                     int32 currentEventAnimId = -1;
-                    CEvent* pCurrentEvent = ped->m_pIntelligence->m_eventHandler.m_history.GetCurrentEvent();
+                    CEvent* pCurrentEvent = ped->GetIntelligence()->m_eventHandler.GetHistory().GetCurrentEvent();
                     if (pCurrentEvent && pCurrentEvent->GetEventType() == EVENT_DAMAGE)
                         currentEventAnimId = static_cast<CEventDamage*>(pCurrentEvent)->m_nAnimID;
                     switch (m_pedPieceType)
@@ -839,7 +791,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                             m_nAnimID = ANIM_ID_DAM_ARML_FRMFT;
                         if (m_nAnimID == currentEventAnimId) {
                             do {
-                                m_nAnimID = ANIM_ID_DAM_ARML_FRMBK - CGeneral::GetRandomNumberInRange(0, -3);
+                                m_nAnimID = CGeneral::RandomChoiceFromList({ANIM_ID_DAM_ARML_FRMBK, ANIM_ID_DAM_ARML_FRMFT, ANIM_ID_DAM_ARML_FRMLT});
                             } while (m_nAnimID == currentEventAnimId);
                         }
                         break;
@@ -852,7 +804,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                             m_nAnimID = ANIM_ID_DAM_ARMR_FRMFT;
                         if (m_nAnimID == currentEventAnimId) {
                             do {
-                                m_nAnimID = CGeneral::GetRandomNumberInRange(0, 3) + ANIM_ID_DAM_ARMR_FRMBK;
+                                m_nAnimID = CGeneral::RandomChoiceFromList({ANIM_ID_DAM_ARMR_FRMBK, ANIM_ID_DAM_ARMR_FRMFT, ANIM_ID_DAM_ARMR_FRMRT});
                             } while (m_nAnimID == currentEventAnimId);
                         }
                         break;
@@ -865,7 +817,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                             m_nAnimID = ANIM_ID_DAM_LEGL_FRMFT;
                         if (m_nAnimID == currentEventAnimId) {
                             do {
-                                m_nAnimID = CGeneral::GetRandomNumberInRange(0, 3) + ANIM_ID_DAM_LEGL_FRMBK;
+                                m_nAnimID = CGeneral::RandomChoiceFromList({ANIM_ID_DAM_LEGL_FRMBK, ANIM_ID_DAM_LEGL_FRMFT, ANIM_ID_DAM_LEGL_FRMLT});
                             } while (m_nAnimID == currentEventAnimId);
                         }
                         break;
@@ -878,7 +830,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                             m_nAnimID = ANIM_ID_DAM_LEGR_FRMFT;
                         if (m_nAnimID == currentEventAnimId) {
                             do {
-                                m_nAnimID = CGeneral::GetRandomNumberInRange(0, 3) + ANIM_ID_DAM_LEGR_FRMBK;
+                                m_nAnimID = CGeneral::RandomChoiceFromList({ANIM_ID_DAM_LEGR_FRMBK, ANIM_ID_DAM_LEGR_FRMFT, ANIM_ID_DAM_LEGR_FRMRT});
                             } while (m_nAnimID == currentEventAnimId);
                         }
                         break;
@@ -903,12 +855,12 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                         }
                         if (m_nAnimID == currentEventAnimId) {
                             do {
-                                m_nAnimID = CGeneral::GetRandomNumberInRange(0, 4) + ANIM_ID_DAM_STOMACH_FRMBK;
+                                m_nAnimID = CGeneral::RandomChoiceFromList({ANIM_ID_DAM_STOMACH_FRMBK, ANIM_ID_DAM_STOMACH_FRMFT, ANIM_ID_DAM_STOMACH_FRMLT, ANIM_ID_DAM_STOMACH_FRMRT});
                             } while (m_nAnimID == currentEventAnimId);
                         }
                         break;
                     default:
-                        m_nAnimID = m_ucDirection + ANIM_ID_HIT_FRONT;
+                        m_nAnimID = (AnimationId)(m_ucDirection + ANIM_ID_HIT_FRONT);
                         break;
                     }
                 }
@@ -918,13 +870,13 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         {
             m_nAnimGroup = ANIM_GROUP_DEFAULT;
             m_fAnimBlend = 8.0f;
-            m_nAnimID = m_ucDirection + ANIM_ID_SHOT_PARTIAL;
+            m_nAnimID = (AnimationId)(m_ucDirection + ANIM_ID_SHOT_PARTIAL);
             if (ped->IsPlayer()) {
-                if (CTimer::GetTimeInMS() > ped->m_pPlayerData->m_nHitAnimDelayTimer && ped->m_nPedState != PEDSTATE_DRIVING) {
+                if (CTimer::GetTimeInMS() > ped->GetPlayerData()->m_nHitAnimDelayTimer && ped->m_nPedState != PEDSTATE_DRIVING) {
                     if (m_weaponType == WEAPON_M4)
-                        ped->m_pPlayerData->m_nHitAnimDelayTimer = static_cast<uint32>(float(CTimer::GetTimeInMS()) + 2500.0f);
+                        ped->GetPlayerData()->m_nHitAnimDelayTimer = static_cast<uint32>(float(CTimer::GetTimeInMS()) + 2500.0f);
                     else
-                        ped->m_pPlayerData->m_nHitAnimDelayTimer = static_cast<uint32>(float(CTimer::GetTimeInMS()) + 1500.0f);
+                        ped->GetPlayerData()->m_nHitAnimDelayTimer = static_cast<uint32>(float(CTimer::GetTimeInMS()) + 1500.0f);
                 }
                 else {
                     m_nAnimID = ANIM_ID_NO_ANIMATION_SET;
@@ -937,12 +889,12 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         if (activeTask && !activeTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, this)) {
             m_nAnimGroup = ANIM_GROUP_DEFAULT;
             m_nAnimID = ANIM_ID_DOOR_LHINGE_O;
-            m_bKnockOffPed = false;
+            m_bFallDown = false;
         }
     }
 
-    if (m_bKnockOffPed && bNoComboHit) {
-        m_nAnimID = m_ucDirection + ANIM_ID_KO_SKID_FRONT;
+    if (m_bFallDown && bNoComboHit) {
+        m_nAnimID = (AnimationId)(m_ucDirection + ANIM_ID_KO_SKID_FRONT);
         if (fForceFactor > 0.0f) {
             ped->bWasStanding = false;
             ped->bIsStanding = false;
@@ -955,6 +907,14 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     }
 }
 
+void CEventDamage::ComputeAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
+    if (ped->m_fHealth <= 0.f) {
+        ComputeDeathAnim(ped, bMakeActiveTaskAbortable);
+    } else {
+        ComputeDamageAnim(ped, bMakeActiveTaskAbortable);
+    }
+}
+
 // NOTSA
 void CEventDamage::ComputeDamageResponseIfAffectsPed(CPed* ped, CPedDamageResponseCalculator calculator, bool bSpeak) {
     if (AffectsPed(ped)) {
@@ -962,4 +922,45 @@ void CEventDamage::ComputeDamageResponseIfAffectsPed(CPed* ped, CPedDamageRespon
     } else {
         m_damageResponse.SetDamageAsCalculated();
     }
+}
+
+// 0x4ADD60
+bool CEventDamage::WasHeadShot() const {
+    switch (m_weaponType) {
+    case WEAPON_UNARMED:
+    case WEAPON_BRASSKNUCKLE:
+    case WEAPON_GOLFCLUB:
+    case WEAPON_NIGHTSTICK:
+    case WEAPON_KNIFE:
+    case WEAPON_BASEBALLBAT:
+    case WEAPON_SHOVEL:
+    case WEAPON_POOL_CUE:
+    case WEAPON_KATANA:
+    case WEAPON_CHAINSAW:
+    case WEAPON_DILDO1:
+    case WEAPON_DILDO2:
+    case WEAPON_VIBE1:
+    case WEAPON_VIBE2:
+    case WEAPON_FLOWERS:
+    case WEAPON_CANE:
+    case WEAPON_PARACHUTE:
+        return m_damageResponse.m_bForceDeath;
+    case WEAPON_PISTOL:
+    case WEAPON_PISTOL_SILENCED:
+    case WEAPON_DESERT_EAGLE:
+    case WEAPON_SHOTGUN:
+    case WEAPON_SAWNOFF_SHOTGUN:
+    case WEAPON_SPAS12_SHOTGUN:
+    case WEAPON_MICRO_UZI:
+    case WEAPON_MP5:
+    case WEAPON_AK47:
+    case WEAPON_M4:
+    case WEAPON_TEC9:
+    case WEAPON_COUNTRYRIFLE:
+    case WEAPON_SNIPERRIFLE:
+    case WEAPON_MINIGUN:
+    case WEAPON_UZI_DRIVEBY:
+        return m_damageResponse.m_bForceDeath && m_pedPieceType == PED_PIECE_HEAD;
+    }
+    return false;
 }

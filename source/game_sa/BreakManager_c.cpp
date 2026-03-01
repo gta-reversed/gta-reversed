@@ -53,6 +53,8 @@ BreakObject_c* BreakManager_c::GetFirstFreeSlot() {
 
 // 0x59E670
 void BreakManager_c::Update(float timeStep) {
+    ZoneScoped;
+
     for (BreakObject_c& object : m_aObjects) {
         if (object.m_bActive) {
             object.Update(timeStep);

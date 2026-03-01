@@ -169,13 +169,14 @@ void CSprite2d::Draw(float x1, float y1, float x2, float y2, float x3, float y3,
 }
 
 // 0x727260
-void CSprite2d::SetRecipNearClip()
-{
+void CSprite2d::SetRecipNearClip() {
+    ZoneScoped;
     // NOP
 }
 
-void CSprite2d::InitPerFrame()
-{
+void CSprite2d::InitPerFrame() {
+    ZoneScoped;
+
     nextBufferVertex = 0;
     nextBufferIndex = 0;
     RecipNearClip = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
@@ -332,10 +333,7 @@ void CSprite2d::SetVertices(RwIm2DVertex* vertices, const CRect& posn, const CRG
 void CSprite2d::DrawRect(const CRect& posn, const CRGBA& color) {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
     SetVertices(posn, color, color, color, color);
-    if (color.a == 255)
-        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
-    else
-        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(color.a != 255));
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
 }

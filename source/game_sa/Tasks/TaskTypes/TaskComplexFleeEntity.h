@@ -34,18 +34,18 @@ public:
     CTaskComplexFleeEntity(
         CEntity* fleeEntity,
         bool scream,
-        float safeDistance,
-        int32 fleeTime,
-        int32 posCheckPeriod,
-        float posChangeTolerance
+        float safeDistance = 60.f,
+        int32 fleeTime = 1'000'000,
+        int32 posCheckPeriod = 1'000,
+        float posChangeTolerance = 1.f
     );
     CTaskComplexFleeEntity(const CTaskComplexFleeEntity&);
     ~CTaskComplexFleeEntity();
 
     CTask* CreateSubTask(eTaskType taskType);
 
-    CTask*    Clone() override { return new CTaskComplexFleeEntity{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexFleeEntity{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;

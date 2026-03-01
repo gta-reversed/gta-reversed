@@ -116,6 +116,8 @@ void CMirrors::BuildCamMatrix(CMatrix& mat, CVector pointA, CVector pointB) {
 
 // 0x726090
 void CMirrors::RenderMirrorBuffer() {
+    ZoneScoped;
+
     if (TypeOfMirror == MIRROR_TYPE_NONE)
         return;
 
@@ -135,7 +137,7 @@ void CMirrors::RenderMirrorBuffer() {
 
     RwImVertexIndex indices[] = { 0, 1, 2, 0, 2, 3 };
 
-    if (MirrorFlags & CAM_STAIRS_FOR_PLAYER || bFudgeNow) {
+    if (MirrorFlags & eZoneAttributes::STAIRS || bFudgeNow) {
         RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
         RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
@@ -299,7 +301,7 @@ void CMirrors::BeforeConstructRenderList() {
         Init();
     }
 
-    CCullZoneReflection* mirrorAttrs = nullptr;
+    CMirrorAttributeZone* mirrorAttrs = nullptr;
 
     const auto mirrorActive = [&](){
         // Check player is in heli/plane
@@ -315,14 +317,13 @@ void CMirrors::BeforeConstructRenderList() {
             return false;
         }
 
-        if ((mirrorAttrs->flags & CAM_STAIRS_FOR_PLAYER) == 0) {
+        if ((mirrorAttrs->flags & eZoneAttributes::STAIRS) == 0) {
             return true;
         }
 
         return rng::any_of(Screens8Track, [](const auto& track) {
             TheCamera.m_bMirrorActive = false;
-            const auto origin = CVector::AverageN(std::begin(track), 4);
-            return TheCamera.IsSphereVisible(origin, 8.0f);
+            return TheCamera.IsSphereVisible(CVector::Centroid(track), 8.0f);
         });
     }();
 
@@ -330,8 +331,8 @@ void CMirrors::BeforeConstructRenderList() {
         // Actually update cam
         assert(mirrorAttrs);
 
-        MirrorV = mirrorAttrs->cm;
-        MirrorNormal = CVector{ (float)mirrorAttrs->vx, (float)mirrorAttrs->vy, (float)mirrorAttrs->vz } / 100.0f;
+        MirrorV = mirrorAttrs->mirrorV;
+        MirrorNormal = CVector{ (float)mirrorAttrs->mirrorNormalX, (float)mirrorAttrs->mirrorNormalY, (float)mirrorAttrs->mirrorNormalZ } / 100.0f;
         MirrorFlags = mirrorAttrs->flags;
 
         TypeOfMirror = std::fabs(MirrorNormal.z) <= 0.7f ? MIRROR_TYPE_WALL : MIRROR_TYPE_FLOOR;
@@ -340,7 +341,7 @@ void CMirrors::BeforeConstructRenderList() {
         ShutDown();
     }
 
-    if ((MirrorFlags & CAM_STAIRS_FOR_PLAYER) != 0 || bFudgeNow) {
+    if ((MirrorFlags & eZoneAttributes::STAIRS) != 0 || bFudgeNow) {
         CMatrix mat{};
         BuildCameraMatrixForScreens(mat);
         TheCamera.DealWithMirrorBeforeConstructRenderList(mirrorActive, MirrorNormal, MirrorV, &mat);
@@ -351,6 +352,8 @@ void CMirrors::BeforeConstructRenderList() {
 
 // 0x727140
 void CMirrors::BeforeMainRender() {
+    ZoneScoped;
+
     if (TypeOfMirror == MIRROR_TYPE_NONE)
         return;
 
@@ -363,13 +366,13 @@ void CMirrors::BeforeMainRender() {
     TheCamera.SetCameraUpForMirror();
 
     RwRGBA color{ 0, 0, 0, 255 };
-    RwCameraClear(Scene.m_pRwCamera, &color, rwCAMERACLEARZ | rwCAMERACLEARIMAGE | (GraphicsLowQuality() ? rwCAMERACLEARSTENCIL : 0));
+    RwCameraClear(Scene.m_pRwCamera, &color, rwCAMERACLEARZ | rwCAMERACLEARIMAGE | (GraphicsHighQuality() ? rwCAMERACLEARSTENCIL : 0));
     if (RsCameraBeginUpdate(Scene.m_pRwCamera)) {
         bRenderingReflection = true;
         DefinedState();
         RenderScene();
         CVisibilityPlugins::RenderWeaponPedsForPC();
-        CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+        CVisibilityPlugins::ResetWeaponPedsForPC();
         bRenderingReflection = false;
 
         RwCameraEndUpdate(Scene.m_pRwCamera);

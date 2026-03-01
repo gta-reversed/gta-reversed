@@ -6,10 +6,10 @@
 
 class CMentalState {
 public:
-    uint8      m_anger;
-    uint8      m_oldAnger;
+    uint8      m_AngerAtPlayer;
+    uint8      m_LastAngerAtPlayer;
 
-    CTaskTimer m_timer;
+    CTaskTimer m_AngerTimer;
 
     uint8      m_pedHealth;
     uint8      m_oldPedHealth;

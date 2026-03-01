@@ -16,7 +16,7 @@ public:
     CTaskSimpleHandsUp(const CTaskSimpleHandsUp& o) : CTaskSimpleHandsUp{o.m_durationMs} {}
     ~CTaskSimpleHandsUp() override = default;
 
-    CTask* Clone() override { return new CTaskSimpleHandsUp{*this}; }
+    CTask* Clone() const override { return new CTaskSimpleHandsUp{*this}; }
     virtual bool IsInterruptable(CPed const* ped) { return false; }
 
 private: // Wrappers for hooks

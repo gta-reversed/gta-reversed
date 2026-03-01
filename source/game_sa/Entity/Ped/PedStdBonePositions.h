@@ -9,7 +9,7 @@
 // And yes, R* typo: Posisions :D
 
 static const auto& GetPedBoneStdPosition(uint32 bone) { // ePedBone
-    static constexpr CVector aStdBonePosisions[BONE_NUM]{
+    static constexpr CVector aStdBonePosisions[BONE_MAX_ID]{
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 0.0f, 0.0f },

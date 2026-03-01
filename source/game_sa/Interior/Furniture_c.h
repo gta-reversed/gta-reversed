@@ -2,7 +2,7 @@
 
 #include "Base.h"
 
-class Furniture_c : public ListItem_c {
+class Furniture_c : public ListItem_c<Furniture_c> {
 public:
     int16 m_nModelId;                 // 0x8
     int16 m_nId;                      // 0xA

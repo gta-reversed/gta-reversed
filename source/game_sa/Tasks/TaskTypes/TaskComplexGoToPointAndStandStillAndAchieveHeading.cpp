@@ -6,7 +6,7 @@
 #include "TaskSimpleGoToPoint.h"
 
 void CTaskComplexGoToPointAndStandStillAndAchieveHeading::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGoToPointAndStandStillAndAchieveHeading);
+    RH_ScopedVirtualClass(CTaskComplexGoToPointAndStandStillAndAchieveHeading, 0x86FE58, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x668CD0);

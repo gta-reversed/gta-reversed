@@ -24,6 +24,8 @@ void CCustomRoadsignMgr::InjectHooks()
 
 // 0x6FE120
 bool CCustomRoadsignMgr::Initialise() {
+    ZoneScoped;
+
     CTxdStore::PushCurrentTxd();
     CTxdStore::SetCurrentTxd(CTxdStore::FindTxdSlot("particle"));
 

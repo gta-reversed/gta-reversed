@@ -3,64 +3,66 @@
 #include "TaskAllocatorKillThreatsBasicRandomGroup.h"
 #include "TaskSimpleNone.h"
 #include "TaskComplexKillPedOnFoot.h"
+#include "TaskComplexKillPedGroupOnFoot.h"
+#include "TaskComplexSeekCoverUntilTargetDead.h"
+#include "TaskSimpleLookAbout.h"
+
 #include "InterestingEvents.h"
 
 // 0x69D460
 void CTaskAllocatorKillThreatsBasicRandomGroup::AllocateTasks(CPedGroupIntelligence* intel) {
-    plugin::CallMethod<0x69D460, CTaskAllocatorKillThreatsBasicRandomGroup*, CPedGroupIntelligence*>(this, intel);
+    intel->FlushTasks(intel->GetPedTaskPairs(), nullptr);
+    intel->FlushTasks(intel->GetSecondaryPedTaskPairs(), nullptr);
 
-    /*
-    CPedGroupIntelligence::FlushTasks(&intel->m_groupTasks, nullptr);
-    CPedGroupIntelligence::FlushTasks(&intel->m_groupTasks[8], nullptr);
-    auto memberId = intel->m_pPedGroup;
-    auto groupMembership = &intel->m_pPedGroup->m_groupMembership;
-    if (!m_Ped0)
+    if (!m_Threat) {
         return;
+    }
 
-    auto groups = CPedGroups::GetPedsGroup(m_Ped0);
-    if (groups) {
-        auto groupId = CPedGroups::GetGroupId(groups);
-        auto v5 = &CPedGroups::ms_groups[groupId];
-        if (v5 == memberId) {
-            DEV_LOG("ComputeKillThreatsBasicResponse() - threat ped already in group");
+    auto* const group = &intel->GetPedGroup();
+    if (auto* const threatsGroup = m_Threat->GetGroup()) {
+        if (threatsGroup == group) {
+            NOTSA_LOG_DEBUG("ComputeKillThreatsBasicResponse() - threat ped already in group"); // vanilla
         } else {
-            CTaskAllocatorKillThreatsBasic::ComputeClosestPeds(memberId, v5, ped);
-            for (auto memberIda = 0; memberIda < 8; ++memberIda) {
-                auto member = groupMembership->GetMember(memberIda);
-                if (!member || member->IsPlayer())
+            CPed* closest[TOTAL_PED_GROUP_MEMBERS]{};
+            ComputeClosestPeds(*group, *threatsGroup, closest);
+            for (int32 i = 0; i < TOTAL_PED_GROUP_MEMBERS; i++) { // 0x69D539
+                auto* mem = group->GetMembership().GetMember(i);
+                if (!mem || mem->IsPlayer()) {
                     continue;
-
-                if (!member->GetActiveWeapon().IsTypeMelee() || m_Ped0->GetActiveWeapon().IsTypeMelee()) {
-                    new CTaskComplexKillPedGroupOnFoot(GroupId, ped[memberIda]);
-                    CTaskSimpleNone v23;
-                    intel->SetEventResponseTask(v8, member, 1, v28, 0, &v23, -1);
+                }
+                if (!mem->GetActiveWeapon().IsTypeMelee() || m_Threat->GetActiveWeapon().IsTypeMelee()) {
+                    intel->SetEventResponseTask(mem, CTaskComplexKillPedGroupOnFoot{ threatsGroup->GetId(), closest[i] });
                 } else {
-                    new CTaskComplexSeekCoverUntilTargetDead(&v27[1], GroupId);
-                    CTaskSimpleNone v25;
-                    intel->SetEventResponseTask(&v25, member, 1, &v27[1], 0, &v25, -1);
+                    intel->SetEventResponseTask(mem, CTaskComplexSeekCoverUntilTargetDead{ threatsGroup->GetId() });
                 }
             }
-            g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_24, groupMembership.GetLeader());
+            g_InterestingEvents.Add(CInterestingEvents::GANG_FIGHT, group->GetMembership().GetLeader());
         }
     } else {
-        for (auto memberIdb = 0; memberIdb < 8; ++memberIdb) {
-            auto member = groupMembership->GetMember(memberIdb);
-            if (!member || member->IsPlayer())
+        for (auto* const mem : group->GetMembership().GetMembers()) {
+            if (mem->IsPlayer()) {
                 continue;
-
-            if (!member->GetActiveWeapon().IsTypeMelee() || m_Ped0->GetActiveWeapon().IsTypeMelee()) {
-                CTaskComplexSequence sequence;
-                sequence.AddTask(new CTaskComplexKillPedOnFoot(m_Ped0, -1, 0, 0, 0, 1));
-                sequence.AddTask(new CTaskSimpleLookAbout(CGeneral::GetRandomNumberInRange(1000, 2000)));
-                CTaskSimpleNone v27;
-                intel->SetEventResponseTask(member, 1, sequence, 0, &v27, -1);
+            }
+            if (!mem->GetActiveWeapon().IsTypeMelee() || m_Threat->GetActiveWeapon().IsTypeMelee()) { // 0x69D6ED
+                intel->SetEventResponseTask( // 0x69D864
+                    mem,
+                    CTaskComplexSequence{
+                        new CTaskComplexKillPedOnFoot{ m_Threat },
+                        new CTaskSimpleLookAbout{ CGeneral::GetRandomNumberInRange(1000u, 2000u) },
+                    }
+                );
             } else {
-                auto task = new CTaskComplexSeekCoverUntilTargetDead(m_Ped0);
-                CTaskSimpleNone v23;
-                intel->SetEventResponseTask(member, true, &task, false, &v23, -1);
+                intel->SetEventResponseTask(mem, CTaskComplexSeekCoverUntilTargetDead{ m_Threat }); // 0x69D71F
             }
         }
-        g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_23, groupMembership->GetLeader());
+        g_InterestingEvents.Add(CInterestingEvents::GANG_ATTACKING_PED, group->GetMembership().GetLeader());
     }
-    */
+}
+
+void CTaskAllocatorKillThreatsBasicRandomGroup::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskAllocatorKillThreatsBasicRandomGroup, 0x86C80C, 6);
+    RH_ScopedCategory("Tasks/Allocators");
+
+    RH_ScopedInstall(GetType, 0x5F68F0);
+    RH_ScopedInstall(AllocateTasks, 0x69D460);
 }

@@ -61,8 +61,10 @@ public:
     static CAEWeatherAudioEntity &m_WeatherAudioEntity;
     static bool& StreamAfterRainTimer;
 
-    static float(&saTreeWindOffsets)[16];
-    static float(&saBannerWindOffsets)[32];
+    // in entity.cpp:
+
+    static std::array<float, 16> saTreeWindOffsets; // orig WindTabel
+    static std::array<float, 32> saBannerWindOffsets; // orig BannerWindTabel
 
 public:
     static void InjectHooks();
@@ -79,6 +81,12 @@ public:
     static void SetWeatherToAppropriateTypeNow();
     static void Update();
     static void UpdateInTunnelness();
+    /*!
+    * @notsa
+    * @detail Based on code @ `0x72A640`
+    * @return The corresponding weather region at a given 2D position, or `WEATHER_REGION_DEFAULT` if no specific region was found
+    */
+    static eWeatherRegion FindWeatherRegion(CVector2D pos);
     static void UpdateWeatherRegion(CVector* posn);
     static bool IsRainy();
 

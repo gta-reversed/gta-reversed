@@ -85,7 +85,7 @@ public:
     void ClearWantedLevelAndGoOnParole();
     static int32 WorkOutPolicePresence(CVector posn, float radius);
     void UpdateCrimesQ();
-    bool IsClosestCop(CPed* ped, int32 numCopsToCheck);
+    bool IsClosestCop(CCopPed* ped, int32 numCopsToCheck);
     static CCopPed* ComputePursuitCopToDisplace(CCopPed* cop, CCopPed** copsArray);
     void RemovePursuitCop(CCopPed* cop);
     void RemoveExcessPursuitCops();

@@ -50,8 +50,11 @@ eWeatherType& CWeather::OldWeatherType = *(eWeatherType*)0xC81320;
 CAEWeatherAudioEntity& CWeather::m_WeatherAudioEntity = *(CAEWeatherAudioEntity*)0xC81360;
 bool& CWeather::StreamAfterRainTimer = *(bool*)0x8D5EAC;
 
-float(&CWeather::saTreeWindOffsets)[16] = *(float(*)[16])0x8CCF30;
-float(&CWeather::saBannerWindOffsets)[32] = *(float(*)[32])0x8CCF70;
+// 0x8CCF30
+std::array<float, 16> CWeather::saTreeWindOffsets = { 1.0f, 0.5f, 0.2f, 0.7f, 0.4f, 1.0f, 0.5f, 0.3f, 0.2f, 0.1f, 0.7f, 0.6f, 0.3f, 1.0f, 0.5f, 0.2f };
+
+/// 0x8CCF70
+std::array<float, 32> CWeather::saBannerWindOffsets = { 0.0f, 0.3f, 0.6f, 0.85f, 0.99f, 0.97f, 0.65f, 0.15f, -0.1f, 0.0f, 0.35f, 0.57f, 0.55f, 0.35f, 0.45f, 0.67f, 0.73f, 0.45f, 0.25f, 0.35f, 0.35f, 0.11f, 0.13f, 0.21f, 0.28f, 0.28f, 0.22f, 0.1f, 0.0f, -0.1f, -0.17f, -0.12f };
 
 
 void CWeather::InjectHooks() {
@@ -76,6 +79,8 @@ void CWeather::InjectHooks() {
 
 // 0x72A480
 void CWeather::Init() {
+    ZoneScoped;
+
     NewWeatherType = WEATHER_EXTRASUNNY_LA;
     OldWeatherType = WEATHER_EXTRASUNNY_LA;
     WeatherRegion  = WEATHER_REGION_DEFAULT;
@@ -244,7 +249,7 @@ void CWeather::RenderRainStreaks() {
 
         const uint8 alphas[]{ streakStrength[s], static_cast<uint8>(streakStrength[s] / 2u) };
         for (auto v = 0u; v < std::size(alphas); v++) {
-            RxObjSpace3DVertex* vertex = &aTempBufferVertices[GetRealVertexIndex(v)];
+            RxObjSpace3DVertex* vertex = &TempBufferVertices.m_3d[GetRealVertexIndex(v)];
 
             const RwRGBA color{ 210, 210, 230, alphas[v] };
             // const RwRGBA color{ 255, 0, 0, 255 }; // For debug (makes it more visible)
@@ -272,7 +277,7 @@ void CWeather::RenderRainStreaks() {
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(NULL));
 
-    if (RwIm3DTransform(aTempBufferVertices, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXXYZ)) {
+    if (RwIm3DTransform(TempBufferVertices.m_3d, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXXYZ)) {
         RwIm3DRenderIndexedPrimitive(rwPRIMTYPELINELIST, aTempBufferIndices, uiTempBufferIndicesStored);
         RwIm3DEnd();
     }
@@ -298,6 +303,8 @@ void CWeather::SetWeatherToAppropriateTypeNow() {
 
 // 0x72B850
 void CWeather::Update() {
+    ZoneScoped;
+
     plugin::Call<0x72B850>();
 }
 
@@ -306,29 +313,26 @@ void CWeather::UpdateInTunnelness() {
     plugin::Call<0x72B630>();
 }
 
+// Based on 0x72A640
+eWeatherRegion CWeather::FindWeatherRegion(CVector2D pos) {
+    if (pos.x > 1000.0f && pos.y > 910.0f) {
+        return WEATHER_REGION_LV;
+    }
+    if (pos.x > -850.0f && pos.x < 1000.0f && pos.y > 1280.0f) {
+        return WEATHER_REGION_DESERT;
+    }
+    if (pos.x < -1430.0f && pos.y > -580.0f && pos.y < 1430.0f) {
+        return WEATHER_REGION_SF;
+    }
+    if (pos.x > 250.0f && pos.x < 3000.0f && pos.y > -3000.0f && pos.y < -850.0f) {
+        return WEATHER_REGION_LA;
+    }
+    return WEATHER_REGION_DEFAULT;
+}
+
 // 0x72A640
 void CWeather::UpdateWeatherRegion(CVector* posn) {
-    CVector camPos = TheCamera.GetPosition();
-    if (posn) {
-        camPos = *posn;
-    }
-    if (camPos.x > 1000.0f && camPos.y > 910.0f) {
-        WeatherRegion = WEATHER_REGION_LV;
-        return;
-    }
-    if (camPos.x > -850.0f && camPos.x < 1000.0f && camPos.y > 1280.0f) {
-        WeatherRegion = WEATHER_REGION_DESERT;
-        return;
-    }
-    if (camPos.x < -1430.0f && camPos.y > 580.0f && camPos.y < 1430.0f) {
-        WeatherRegion = WEATHER_REGION_SF;
-        return;
-    }
-    if (camPos.x > 250.0f && camPos.x < 3000.0f && camPos.y > -3000.0f && camPos.y < -850.0f) { // todo: maybe wrong
-        WeatherRegion = WEATHER_REGION_LA;
-        return;
-    }
-    WeatherRegion = WEATHER_REGION_DEFAULT;
+    WeatherRegion = FindWeatherRegion(posn ? *posn : TheCamera.GetPosition());
 }
 
 // 0x4ABF50

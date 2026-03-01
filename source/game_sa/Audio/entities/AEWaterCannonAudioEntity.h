@@ -5,7 +5,7 @@
 class CVector;
 class CWaterCannon;
 
-class CAEWaterCannonAudioEntity : public CAEAudioEntity {
+class NOTSA_EXPORT_VTABLE CAEWaterCannonAudioEntity : public CAEAudioEntity {
 public:
     bool      m_bInitialized;
     bool      m_bSplashInfoEnabled;
@@ -25,7 +25,7 @@ public:
     void SetSplashInfo(CVector posn, float magnitude);
     void ClearSplashInfo();
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
-    void UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, int16 bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance);
+    void UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, eSoundBankSlot bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance);
     void Service();
 
 private:
@@ -34,7 +34,6 @@ private:
 
     CAEWaterCannonAudioEntity* Constructor();
 
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 
 VALIDATE_SIZE(CAEWaterCannonAudioEntity, 0xA0);

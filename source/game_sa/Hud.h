@@ -8,10 +8,12 @@
 
 #include "Stats.h"
 #include "eHud.h"
+#include <GxtChar.h>
 
 class CSprite2d;
 class CPed;
 class CPlayerInfo;
+class CPlayerPed;
 
 class CHud {
 public:
@@ -24,12 +26,12 @@ public:
 
     static inline bool& bDrawClock = *(bool*)0xBAA400;
 
-    static inline const char*& m_pVehicleNameToPrint = *(const char**)0xBAA444;
+    static inline const GxtChar*& m_pVehicleNameToPrint = *(const GxtChar**)0xBAA444;
     static inline eNameState& m_VehicleState = *(eNameState*)0xBAA448;
     static inline int32& m_VehicleFadeTimer = *(int32*)0xBAA44C;
     static inline int32& m_VehicleNameTimer = *(int32*)0xBAA450;
-    static inline const char*& m_pLastVehicleName = *(const char**)0xBAA454;
-    static inline const char*& m_pVehicleName = *(const char**)0xBAA458;
+    static inline const GxtChar*& m_pLastVehicleName = *(const GxtChar**)0xBAA454;
+    static inline const GxtChar*& m_pVehicleName = *(const GxtChar**)0xBAA458;
 
     static inline bool& m_bDraw3dMarkers = *(bool*)0xBAA45C;
     static inline bool& m_Wants_To_Draw_Hud = *(bool*)0xBAA45D;
@@ -44,16 +46,16 @@ public:
     static inline int32& m_nHelpMessageState = *(int32*)0xBAA474;
     static inline uint32& m_nHelpMessageFadeTimer = *(uint32*)0xBAA478;
     static inline uint32& m_nHelpMessageTimer = *(uint32*)0xBAA47C;
-    static inline char (&m_pHelpMessageToPrint)[400] = *(char(*)[400])0xBAA480;
-    static inline char (&m_pLastHelpMessage)[400] = *(char(*)[400])0xBAA610;
-    static inline char (&m_pHelpMessage)[400] = *(char(*)[400])0xBAA7A0;
+    static inline GxtChar (&m_pHelpMessageToPrint)[400] = *(GxtChar(*)[400])0xBAA480;
+    static inline GxtChar (&m_pLastHelpMessage)[400] = *(GxtChar(*)[400])0xBAA610;
+    static inline GxtChar (&m_pHelpMessage)[400] = *(GxtChar(*)[400])0xBAA7A0;
 
     static inline eNameState& m_ZoneState = *(eNameState*)0xBAA930;
     static inline int32& m_ZoneFadeTimer = *(int32*)0xBAA934;
     static inline uint32& m_ZoneNameTimer = *(uint32*)0xBAA938;
-    static inline const char*& m_ZoneToPrint = *(const char**)0xBAB1D0; // TODO: Use GxtChar
-    static inline const char*& m_pLastZoneName = *(const char**)0xBAB1D4;
-    static inline const char*& m_pZoneName = *(const char**)0xBAB1D8;
+    static inline const GxtChar*& m_ZoneToPrint = *(const GxtChar**)0xBAB1D0;
+    static inline const GxtChar*& m_pLastZoneName = *(const GxtChar**)0xBAB1D4;
+    static inline const GxtChar*& m_pZoneName = *(const GxtChar**)0xBAB1D8;
 
     static inline eHudItem& m_ItemToFlash = *(eHudItem*)0xBAB1DC;
     static inline bool& bDrawingVitalStats = *(bool*)0xBAB1DE;
@@ -80,9 +82,9 @@ public:
     static inline uint32& m_EnergyLostTimer = *(uint32*)0xBAA43C;
     static inline uint32& m_LastTimeEnergyLost = *(uint32*)0xBAA440;
 
-    static inline char  (&m_Message)[400] = *(char (*)[400])0xBAB040;
-    static inline char  (&m_BigMessage)[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE] = *(char (*)[NUM_MESSAGE_STYLES][128])0xBAACC0;
-    static inline char  (&LastBigMessage)[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE] = *(char(*)[NUM_MESSAGE_STYLES][128])0xBAA940;
+    static inline GxtChar  (&m_Message)[400] = *(GxtChar (*)[400])0xBAB040;
+    static inline GxtChar  (&m_BigMessage)[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE] = *(GxtChar (*)[NUM_MESSAGE_STYLES][128])0xBAACC0;
+    static inline GxtChar  (&LastBigMessage)[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE] = *(GxtChar(*)[NUM_MESSAGE_STYLES][128])0xBAA940;
     static inline float (&BigMessageAlpha)[NUM_MESSAGE_STYLES] = *(float(*)[NUM_MESSAGE_STYLES])0xBAA3A4;
     static inline float (&BigMessageInUse)[NUM_MESSAGE_STYLES] = *(float(*)[NUM_MESSAGE_STYLES])0xBAA3C0;
     static inline float (&BigMessageX)[NUM_MESSAGE_STYLES] = *(float(*)[NUM_MESSAGE_STYLES])0xBAA3DC;
@@ -113,13 +115,13 @@ public:
     static float GetYPosBasedOnHealth(uint8 playerId, float pos, int8 offset);
     static bool HelpMessageDisplayed();
 
-    static void SetMessage(const char* message);
-    static void SetBigMessage(char* message, eMessageStyle style);
-    static void SetHelpMessage(char const* text, bool quickMessage, bool permanent, bool addToBrief);
+    static void SetMessage(const GxtChar* message);
+    static void SetBigMessage(GxtChar* message, eMessageStyle style);
+    static void SetHelpMessage(const GxtChar* text, bool quickMessage = false, bool permanent = false, bool addToBrief = false);
     static void SetHelpMessageStatUpdate(eStatUpdateState state, uint16 statId, float diff, float max);
-    static void SetHelpMessageWithNumber(char const* text, int32 number, bool quickMessage, bool permanent);
-    static void SetVehicleName(const char* name);
-    static void SetZoneName(const char* name, bool displayImmediately);
+    static void SetHelpMessageWithNumber(const GxtChar* text, int32 number, bool quickMessage, bool permanent);
+    static void SetVehicleName(const GxtChar* name);
+    static void SetZoneName(const GxtChar* name, bool displayImmediately);
 
     static void Draw();
     static void DrawAfterFade();

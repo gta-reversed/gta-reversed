@@ -10,11 +10,13 @@
 
 class CPointList {
 public:
-    uint32  m_nCount;
-    CVector m_avCoords[24];
-    bool    m_abUsedCoords[24];
+    bool Empty() const noexcept;
+    void AddPoint(CVector pt) noexcept;
+    void MergeListsRemovingDoubles(CPointList* main, CPointList* toBeMerged) noexcept;
 
-    void Empty();
+public:
+    uint32                  m_Count{};
+    std::array<CVector, 24> m_Points{};
+    bool                    m_PointHasBeenClaimed[24]{};
 };
-
 VALIDATE_SIZE(CPointList, 0x13C);

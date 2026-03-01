@@ -3,7 +3,7 @@
 #include "TaskComplexWanderStandard.h"
 
 // 0x48E4F0
-CTaskComplexWanderStandard::CTaskComplexWanderStandard(int32 MoveState, uint8 Dir, bool bWanderSensibly) :
+CTaskComplexWanderStandard::CTaskComplexWanderStandard(eMoveState MoveState, uint8 Dir, bool bWanderSensibly) :
     CTaskComplexWander(MoveState, Dir, bWanderSensibly),
     m_nMinNextScanTime{ 0 }
 {

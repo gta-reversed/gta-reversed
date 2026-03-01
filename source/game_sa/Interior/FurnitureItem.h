@@ -6,7 +6,7 @@
 
 class CObject;
 
-class FurnitureItem : public ListItem_c {
+class FurnitureItem : public ListItem_c<FurnitureItem> {
 public:
     FurnitureItem() = default;
 

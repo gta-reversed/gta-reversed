@@ -2,7 +2,7 @@
 
 #include "TaskComplexPartner.h"
 
-class CTaskComplexPartnerChat : public CTaskComplexPartner {
+class NOTSA_EXPORT_VTABLE CTaskComplexPartnerChat : public CTaskComplexPartner {
 public:
     int32 field_70;
     bool m_conversationEnabled;
@@ -15,9 +15,9 @@ public:
     CTaskComplexPartnerChat(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, bool conversationEnabled, bool a8, CVector point);
     ~CTaskComplexPartnerChat() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexPartnerChat(m_commandName, m_partner, m_leadSpeaker,  m_distanceMultiplier, m_updateDirectionCount, m_conversationEnabled, field_75, m_point); }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexPartnerChat(m_commandName, m_partner, m_leadSpeaker,  m_distanceMultiplier, m_updateDirectionCount, m_conversationEnabled, field_75, m_point); }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     virtual CTaskComplexSequence* GetPartnerSequence();
 
     static void InjectHooks();

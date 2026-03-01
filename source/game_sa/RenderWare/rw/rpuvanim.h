@@ -1,10 +1,3 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
 /*****************************************************************************
  *
  * File :     rpuvanim.h
@@ -30,6 +23,9 @@
  *
  *****************************************************************************/
 
+#ifndef RPUVANIM_H
+#define RPUVANIM_H
+
 /**
  * \defgroup rpuvanim RpUVAnim
  * \ingroup animtools
@@ -40,12 +36,13 @@
 /*===========================================================================*
  *--- Include files ---------------------------------------------------------*
  *===========================================================================*/
-#include "rwcore.h"
-#include "rpworld.h"
-#include "rtanim.h"
-#include "rtdict.h"
+#include <rwcore.h>
+#include <rpworld.h>
+#include <rtanim.h>
+#include <rtdict.h>
 
-#include "rpcriter.h"
+#include <rpcriter.h>
+//#include "rpuvanim.rpe" /* automatically generated header file */
 
 /*===========================================================================*
  *--- Global Types ----------------------------------------------------------*
@@ -88,6 +85,7 @@
  Includes
  */
 
+#if (!defined(DOXYGEN))
 typedef struct RpUVAnimMaterialGlobalVars RpUVAnimMaterialGlobalVars;
 
 struct RpUVAnimMaterialGlobalVars
@@ -103,6 +101,17 @@ struct _rpUVAnimCustomData   /* Warning - streaming depends on layout */
     RwUInt32 nodeToUVChannelMap[RP_UVANIM_MAXSLOTS];
     RwUInt32 refCount;
 };
+
+extern _rpUVAnimCustomData *
+_rpUVAnimCustomDataStreamRead(RwStream *stream);
+
+extern const _rpUVAnimCustomData *
+_rpUVAnimCustomDataStreamWrite(const _rpUVAnimCustomData *customData,
+                               RwStream *stream);
+
+extern RwUInt32
+_rpUVAnimCustomDataStreamGetSize(const _rpUVAnimCustomData *customData);
+#endif /* (!defined(DOXYGEN)) */
 
 /**
  * \ingroup rpuvanim
@@ -274,32 +283,245 @@ struct RpUVAnimMaterialExtension
                 /**< pass and dual pass UV transformations only */ 
 };
 
-_rpUVAnimCustomData* _rpUVAnimCustomDataStreamRead(RwStream* stream); // 0x7CBF70
-const _rpUVAnimCustomData* _rpUVAnimCustomDataStreamWrite(const _rpUVAnimCustomData* customData, RwStream* stream); // 0x7CBFD0
-RwUInt32 _rpUVAnimCustomDataStreamGetSize(const _rpUVAnimCustomData* customData); // 0x7CC010
-RwBool RpUVAnimPluginAttach(); // 0x7CB940
-void RpUVAnimLinearKeyFrameApply(void* matrix, void* voidIFrame); // 0x7CC9F0
-void RpUVAnimLinearKeyFrameBlend(void* voidOut, void* voidIn1, void* voidIn2, RwReal alpha); // 0x7CCAC0
-void RpUVAnimLinearKeyFrameInterpolate(void* voidOut, void* voidIn1, void* voidIn2, RwReal time, void* customData); // 0x7CCA40
-void RpUVAnimLinearKeyFrameAdd(void* voidOut, void* voidIn1, void* voidIn2); // 0x7CCBE0
-void RpUVAnimLinearKeyFrameMulRecip(void* voidFrame, void* voidStart); // 0x7CCB30
-void RpUVAnimParamKeyFrameApply(void* matrix, void* voidIFrame); // 0x7CC560
-void RpUVAnimParamKeyFrameBlend(void* voidOut, void* voidIn1, void* voidIn2, RwReal alpha); // 0x7CC6A0
-void RpUVAnimParamKeyFrameInterpolate(void* voidOut, void* voidIn1, void* voidIn2, RwReal time, void* customData); // 0x7CC600
-void RpUVAnimParamKeyFrameAdd(void* voidOut, void* voidIn1, void* voidIn2); // 0x7CC750
-void RpUVAnimParamKeyFrameMulRecip(void* voidFrame, void* voidStart); // 0x7CC740
-RtAnimAnimation* RpUVAnimKeyFrameStreamRead(RwStream* stream, RtAnimAnimation* animation); // 0x7CC870
-RwBool RpUVAnimKeyFrameStreamWrite(const RtAnimAnimation* animation, RwStream* stream); // 0x7CC920
-RwInt32 RpUVAnimKeyFrameStreamGetSize(const RtAnimAnimation* animation); // 0x7CC9D0
-RpUVAnim* RpUVAnimCreate(const RwChar* name, RwUInt32 numNodes, RwUInt32 numFrames, RwReal duration, RwUInt32* nodeIndexToUVChannelMap, RpUVAnimKeyFrameType keyframeType); // 0x7CC020
-RwBool RpUVAnimDestroy(RpUVAnim* anim); // 0x7CC0C0
-RpUVAnim* RpUVAnimAddRef(RpUVAnim* anim); // 0x7CC100
-const RwChar* RpUVAnimGetName(const RpUVAnim* anim); // 0x7CC3A0
-RpMaterial* RpMaterialSetUVAnim(RpMaterial* material, RpUVAnim* anim, RwUInt32 slot); // 0x7CC3B0
-RpUVAnimInterpolator* RpMaterialUVAnimGetInterpolator(RpMaterial* material, RwUInt32 slot); // 0x7CC430
-RpMaterial* RpMaterialUVAnimSetInterpolator(RpMaterial* material, RpUVAnimInterpolator* interp, RwUInt32 slot); // 0x7CC450
-RpMaterial* RpMaterialUVAnimSetCurrentTime(RpMaterial* material, RwReal time); // 0x7CC470
-RpMaterial* RpMaterialUVAnimAddAnimTime(RpMaterial* material, RwReal deltaTime); // 0x7CC4B0
-RpMaterial* RpMaterialUVAnimSubAnimTime(RpMaterial* material, RwReal deltaTime); // 0x7CC4F0
-RpMaterial* RpMaterialUVAnimApplyUpdate(RpMaterial* material); // 0x7CC110
-RwBool RpMaterialUVAnimExists(const RpMaterial* material); // 0x7CC530
+/*--- Plugin API Functions ---*/
+
+#define RpUVAnimLinearKeyFrameToMatrixMacro(_matrix,_voidIFrame)        \
+MACRO_START                                                             \
+{                                                                       \
+    RpUVAnimInterpFrame *iFrame = (RpUVAnimInterpFrame *)(_voidIFrame); \
+    RpUVAnimLinearKeyFrameData *lkf = &iFrame->data.linear;             \
+                                                                        \
+    (_matrix)->right.x = lkf->uv[0];                                    \
+    (_matrix)->right.y = lkf->uv[1];                                    \
+    (_matrix)->right.z = 0.0f;                                          \
+    (_matrix)->up.x    = lkf->uv[2];                                    \
+    (_matrix)->up.y    = lkf->uv[3];                                    \
+    (_matrix)->up.z    = 0.0f;                                          \
+    (_matrix)->at.x    = 0.0f;                                          \
+    (_matrix)->at.y    = 0.0f;                                          \
+    (_matrix)->at.z    = 0.0f;                                          \
+    (_matrix)->pos.x   = lkf->uv[4];                                    \
+    (_matrix)->pos.y   = lkf->uv[5];                                    \
+    (_matrix)->pos.z   = 0.0f;                                          \
+    RwMatrixUpdate(_matrix);                                            \
+}                                                                       \
+MACRO_STOP
+
+#define RpUVAnimParamKeyFrameToMatrixMacro(_matrix,_voidIFrame, _Pivot, _InvPivot) \
+MACRO_START                                                             \
+{                                                                       \
+    /* RwV3d _InvPivot; */                                              \
+    RpUVAnimParamKeyFrameData *param                                    \
+       = &((RpUVAnimKeyFrame *)(_voidIFrame))->data.param;              \
+                                                                        \
+    RwV3d zAxis = {0.0f, 0.0f, 1.0f};                                   \
+                                                                        \
+    (_matrix)->right.x = param->s0;                          \
+    (_matrix)->right.y = param->skew; \
+    (_matrix)->right.z = 0.0f;                                          \
+    (_matrix)->up.x    = 0.0f;                          \
+    (_matrix)->up.y    = param->s1; \
+    (_matrix)->up.z    = 0.0f;                                          \
+    (_matrix)->at.x    = 0.0f;                                          \
+    (_matrix)->at.y    = 0.0f;                                          \
+    (_matrix)->at.z    = 0.0f;                                          \
+    (_matrix)->pos.x   = param->x;                          \
+    (_matrix)->pos.y   = param->y;                           \
+    (_matrix)->pos.z   = 0.0f;                                          \
+    RwMatrixUpdate((_matrix));                                          \
+    RwMatrixTranslate((_matrix), _Pivot, rwCOMBINEPOSTCONCAT);  \
+    RwMatrixRotate((_matrix), &zAxis, param->theta/rwPI*180.0f, rwCOMBINEPOSTCONCAT); \
+    RwMatrixTranslate((_matrix), _InvPivot, rwCOMBINEPOSTCONCAT);    \
+}                                                                       \
+MACRO_STOP
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+extern RpUVAnimMaterialGlobalVars RpUVAnimMaterialGlobals;
+
+/* Module management */
+void
+RpUVAnimSetFreeListCreateParams(RwInt32 blockSize,
+                                RwInt32 numBlocksToPrealloc);
+
+/* Plugin support */
+
+extern RwBool
+RpUVAnimPluginAttach(void);
+
+/* uvanim interpolator info */
+extern RtAnimInterpolatorInfo _rpUVAnimLinearInterpolatorInfo;
+extern RtAnimInterpolatorInfo _rpUVAnimParamInterpolatorInfo;
+
+/* uvanim keyframe functions */
+
+extern void
+RpUVAnimLinearKeyFrameApply(void *matrix,
+                      void *voidIFrame);
+
+extern void
+RpUVAnimLinearKeyFrameBlend(void *voidOut,
+                        void *voidIn1,
+                        void *voidIn2,
+                        RwReal alpha);
+
+extern void
+RpUVAnimLinearKeyFrameInterpolate(void *voidOut,
+                           void *voidIn1,
+                           void *voidIn2,
+                           RwReal time,
+                           void *customData);
+
+extern void
+RpUVAnimLinearKeyFrameAdd(void *voidOut,
+                      void *voidIn1,
+                      void *voidIn2);
+
+extern void
+RpUVAnimLinearKeyFrameMulRecip(void *voidFrame,
+                           void *voidStart);
+
+
+extern void
+RpUVAnimParamKeyFrameApply(void *matrix,
+                      void *voidIFrame);
+
+extern void
+RpUVAnimParamKeyFrameBlend(void *voidOut,
+                        void *voidIn1,
+                        void *voidIn2,
+                        RwReal alpha);
+
+extern void
+RpUVAnimParamKeyFrameInterpolate(void *voidOut,
+                           void *voidIn1,
+                           void *voidIn2,
+                           RwReal time,
+                           void *customData);
+
+extern void
+RpUVAnimParamKeyFrameAdd(void *voidOut,
+                      void *voidIn1,
+                      void *voidIn2);
+
+extern void
+RpUVAnimParamKeyFrameMulRecip(void *voidFrame,
+                           void *voidStart);
+
+extern RtAnimAnimation *
+RpUVAnimKeyFrameStreamRead(RwStream *stream,
+                             RtAnimAnimation *animation);
+
+extern RwBool
+RpUVAnimKeyFrameStreamWrite(const RtAnimAnimation *animation,
+                              RwStream *stream);
+
+extern RwInt32
+RpUVAnimKeyFrameStreamGetSize(const RtAnimAnimation *animation);
+
+extern RpUVAnimLinearKeyFrameData *
+RpUVAnimLinearKeyFrameDataInitFromMatrix(
+                              RpUVAnimLinearKeyFrameData *data,
+                              const RwMatrix *matrix);
+
+extern RpUVAnimParamKeyFrameData *
+RpUVAnimParamKeyFrameDataInitFromMatrix(
+                              RpUVAnimParamKeyFrameData *data,
+                              const RwMatrix *matrix);
+
+extern RpUVAnimKeyFrame *
+RpUVAnimKeyFrameInit(const RtAnimAnimation *animation,
+                    RpUVAnimKeyFrame *keyFrame,
+                    RpUVAnimKeyFrame *prevFrame,
+                    RwReal time,
+                    const RwMatrix *matrix);
+
+/*
+ * Schema Declaration
+ */
+RTDICTSCHEMADECLARE(_rpUVAnimDictSchema)
+
+#if defined(DOXYGEN)
+/**
+ * \ingroup rpuvanim
+ * \ref RpUVAnimGetDictSchema
+ * returns the dictionary schema used for dictionaries of UV animations
+ *
+ * \return The UV animation dictionary schema
+ * \see RtDictSchemaCreateDict
+ */
+extern RtDictSchema *
+RpUVAnimGetDictSchema();
+#else
+#define RpUVAnimGetDictSchema()\
+        (&_rpUVAnimDictSchema)
+#endif
+
+/* General API */
+extern RpUVAnim *
+RpUVAnimCreate(const RwChar *name, RwUInt32 numNodes, RwUInt32 numFrames,
+               RwReal duration, RwUInt32 *nodeIndexToUVChannelMap,
+               RpUVAnimKeyFrameType keyframeType);
+
+extern RwBool
+RpUVAnimDestroy(RpUVAnim *anim);
+
+extern RpUVAnim *
+RpUVAnimAddRef(RpUVAnim *anim);
+
+extern const RwChar *
+RpUVAnimGetName(const RpUVAnim *anim);
+
+#ifdef RWDEBUG
+extern const RpUVAnim *
+_rpUVAnimDump(const RpUVAnim *anim);
+#endif
+
+#define RpUVAnimStreamGetSize(anim)\
+            RtAnimAnimationStreamGetSize((anim))
+
+#define RpUVAnimStreamRead(stream)\
+            RtAnimAnimationStreamRead((stream))
+
+#define RpUVAnimStreamWrite(anim, stream)\
+            RtAnimAnimationStreamWrite((anim), (stream))
+
+#define RpUVAnimGetUVNodeToChannelMap(anim)\
+            (((_rpUVAnimCustomData *)(anim)->customData)->nodeToUVChannelMap)
+
+extern RpMaterial *
+RpMaterialSetUVAnim(RpMaterial *material, RpUVAnim *anim, RwUInt32 slot);
+
+extern RpUVAnimInterpolator *
+RpMaterialUVAnimGetInterpolator(RpMaterial *material, RwUInt32 slot);
+
+extern RpMaterial *
+RpMaterialUVAnimSetInterpolator(RpMaterial *material, RpUVAnimInterpolator *interp, RwUInt32 slot);
+
+extern RpMaterial *
+RpMaterialUVAnimSetCurrentTime(RpMaterial *material, RwReal time);
+
+extern RpMaterial *
+RpMaterialUVAnimAddAnimTime(RpMaterial *material, RwReal deltaTime);
+
+extern RpMaterial *
+RpMaterialUVAnimSubAnimTime(RpMaterial *material, RwReal deltaTime);
+
+extern RwBool
+RpMaterialUVAnimExists(const RpMaterial *material);
+
+RpMaterial *
+RpMaterialUVAnimApplyUpdate(RpMaterial *material);
+
+extern const RwV3d rpUVAnimPivot;
+extern const RwV3d rpUVAnimInvPivot;
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+#endif /* RPUVANIM_H */
+

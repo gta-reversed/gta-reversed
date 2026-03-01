@@ -9,7 +9,6 @@
 #include "PathFind.h"
 #include "Vector.h"
 
-class CPtrList;
 class CPhysical;
 class CVehicle;
 class CAutomobile;
@@ -93,7 +92,7 @@ public:
     static bool IsThisVehicleInteresting(CVehicle* vehicle);
     static void JoinCarWithRoadAccordingToMission(CVehicle* vehicle);
     static void JoinCarWithRoadSystem(CVehicle* vehicle);
-    static bool JoinCarWithRoadSystemGotoCoors(CVehicle* vehicle, const CVector& posn, bool unused, bool bIsBoat);
+    static bool JoinCarWithRoadSystemGotoCoors(CVehicle* vehicle, const CVector& posn, bool unused = true, bool bIsBoat = false);
     static bool PickNextNodeAccordingStrategy(CVehicle* vehicle);
     static void PickNextNodeRandomly(CVehicle* vehicle);
     static bool PickNextNodeToChaseCar(CVehicle* vehicle, float destX, float destY, float destZ);
@@ -110,11 +109,14 @@ public:
     static bool ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector posn);
     static void SetCoordsOfScriptCar(CVehicle* vehicle, float x, float y, float z, uint8 arg5, uint8 arg6);
     static void SetUpDriverAndPassengersForVehicle(CVehicle* vehicle, int32 arg2, int32 arg3, bool arg4, bool arg5, int32 passengersNum);
-    static void SlowCarDownForCarsSectorList(CPtrList& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
+    template<typename PtrListType>
+    static void SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
     static void SlowCarDownForObject(CEntity* entity, CVehicle* vehicle, float* arg3, float arg4);
-    static void SlowCarDownForObjectsSectorList(CPtrList& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
+    template<typename PtrListType>
+    static void SlowCarDownForObjectsSectorList(PtrListType& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
     static void SlowCarDownForOtherCar(CEntity* car1, CVehicle* car2, float* arg3, float arg4);
-    static void SlowCarDownForPedsSectorList(CPtrList& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
+    template<typename PtrListType>
+    static void SlowCarDownForPedsSectorList(PtrListType& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
     static void SlowCarOnRailsDownForTrafficAndLights(CVehicle* vehicle);
     static void SteerAIBoatWithPhysicsAttackingPlayer(CVehicle* vehicle, float* arg2, float* arg3, float* arg4, bool* arg5);
     static void SteerAIBoatWithPhysicsCirclingPlayer(CVehicle* vehicle, float* arg2, float* arg3, float* arg4, bool* arg5);
@@ -153,7 +155,11 @@ public:
     static void UpdateCarOnRails(CVehicle* vehicle);
     static void WeaveForObject(CEntity* entity, CVehicle* vehicle, float* arg3, float* arg4);
     static void WeaveForOtherCar(CEntity* entity, CVehicle* vehicle, float* arg3, float* arg4);
-    static void WeaveThroughCarsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);
-    static void WeaveThroughObjectsSectorList(CPtrList& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float* arg8);
-    static void WeaveThroughPedsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);
+    template<typename PtrListType>
+    static void WeaveThroughCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);
+    template<typename PtrListType>
+    static void WeaveThroughObjectsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float* arg8);
+    template<typename PtrListType>
+    static void WeaveThroughPedsSectorList(PtrListType& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);
+    static float FindMaxSteerAngle(CVehicle* veh);
 };

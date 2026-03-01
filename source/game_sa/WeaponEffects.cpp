@@ -101,5 +101,7 @@ void CWeaponEffects::ClearCrossHairsImmediately() {
 
 // 0x742CF0
 void CWeaponEffects::Render() {
+    ZoneScoped;
+
     plugin::Call<0x742CF0>();
 }

@@ -6,14 +6,18 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "Vector.h"
 
 class CEntity;
 
 enum ePointLightType : uint8 {
     PLTYPE_POINTLIGHT = 0,
-    PLTYPE_SPOTLIGHT = 1,
-    PLTYPE_DARKLIGHT = 2,
+    PLTYPE_DIRECTIONAL,
+    PLTYPE_ANTILIGHT,
+    PLTYPE_ONLYFOGEFFECT_ALWAYS,
+    PLTYPE_ONLYFOGEFFECT,
+    PLTYPE_SMOG
 };
 
 class CPointLight {

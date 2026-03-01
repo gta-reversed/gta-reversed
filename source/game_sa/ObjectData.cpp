@@ -14,8 +14,10 @@ void CObjectData::InjectHooks()
 }
 
 // 0x5B5360
-void CObjectData::Initialise(const char* fileName)
-{
+void CObjectData::Initialise(const char* fileName) {
+    ZoneScoped;
+    ZoneText(fileName, strlen(fileName));
+
     auto& default0 = CObjectData::GetDefault();
     default0.m_fMass = 99999.0F;
     default0.m_fTurnMass = 99999.0F;

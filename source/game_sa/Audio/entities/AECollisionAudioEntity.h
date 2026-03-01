@@ -2,24 +2,31 @@
 
 #include "AEAudioEntity.h"
 
-struct tCollisionAudioEntry {
-    CEntity*  m_Entity1;
-    CEntity*  m_Entity2;
-    CAESound* m_Sound;
-    int32     m_nTime;
-    uint8     m_nStatus;
-    eSurfaceType m_nSurface1;
-    eSurfaceType m_nSurface2;
+enum eCollisionSoundStatus : uint8 {
+    COLLISION_SOUND_INACTIVE,
+    COLLISION_SOUND_ONE_SHOT,
+    COLLISION_SOUND_LOOPING,
 };
-VALIDATE_SIZE(tCollisionAudioEntry, 0x14);
+
+struct tCollisionSound {
+    CEntity*              EntityA{ nullptr };
+    CEntity*              EntityB{ nullptr };
+    CAESound*             Sound{ nullptr };
+    uint32                LoopStopTimeMs{ 0 };
+    eCollisionSoundStatus Status{ COLLISION_SOUND_INACTIVE };
+    eSurfaceType          SurfaceA{ SURFACE_NUM_TYPES_FOR_COLLISION }; // ?
+    eSurfaceType          SurfaceB{ SURFACE_NUM_TYPES_FOR_COLLISION }; // ?
+};
+VALIDATE_SIZE(tCollisionSound, 0x14);
 
 class NOTSA_EXPORT_VTABLE CAECollisionAudioEntity : public CAEAudioEntity {
 public:
-    int16                m_aHistory[194]; // NUM_FUCKING_SURFACES
-    int16                field_200;
-    int16                m_nRandom;
-    int32                m_nCurrentId;
-    tCollisionAudioEntry m_Entries[300];
+    static constexpr auto NUM_ENTRIES = 300u;
+
+    int16                                    m_CollisionSoundIDHistory[SURFACE_NUM_TYPES_FOR_COLLISION]{ 255 };
+    int16                                    m_LastBulletHitSoundID{ -1 };
+    int32                                    m_NumActiveCollisionSounds{ 0 };
+    std::array<tCollisionSound, NUM_ENTRIES> m_CollisionSoundList{};
 
 public:
     static void InjectHooks();
@@ -28,24 +35,51 @@ public:
     static void InitialisePostLoading();
     void Reset();
 
-    void AddCollisionSoundToList(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CAESound* sound, int32 status);
+    void AddCollisionSoundToList(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CAESound* sound, eCollisionSoundStatus status);
 
-    int8 GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32* a5);
+    eCollisionSoundStatus GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32& outIndex);
 
-    void PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, CVector& posn, uint8 a7);
-    void UpdateLoopingCollisionSound();
+    void PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn, bool isForceLooping);
+    void UpdateLoopingCollisionSound(
+        CAESound*      pSound,
+        CEntity*       entityA,
+        CEntity*       entityB,
+        eSurfaceType   surfA,
+        eSurfaceType   surfB,
+        float          impulseForce,
+        const CVector& position,
+        bool           isForceLooping
+    );
 
-    void PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, CVector& posn);
-    void PlayBulletHitCollisionSound(eSurfaceType surface, CVector& posn, float angleWithColPointNorm);
+    std::pair<float, float> GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfA, eSurfaceType surfB, bool isForceLooping); // notsa
+    void PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn);
+    void PlayBulletHitCollisionSound(eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 
-    void ReportGlassCollisionEvent(int32 glassSoundType, Const CVector& posn, uint32 time);
+    void ReportGlassCollisionEvent(eAudioEvents glassSoundType, const CVector& posn, uint32 time);
     void ReportWaterSplash(CVector posn, float volume);
     void ReportWaterSplash(CPhysical* physical, float height, bool splashMoreThanOnce);
     void ReportObjectDestruction(CEntity* entity);
-    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CVector& colPoint, CVector* normal, float collisionImpact1, float collisionImpact2, bool bOnlyPlayOneShotCollisionSound, bool unknown);
-    void ReportBulletHit(CEntity* entity, eSurfaceType surface, CVector& posn, float angleWithColPointNorm);
+    void ReportCollision(
+        CEntity*       entityA,
+        CEntity*       entityB,
+        eSurfaceType   surfA,
+        eSurfaceType   surfB,
+        const CVector& pos,
+        const CVector* normal,
+        float          impulseForce,
+        float          relVelSq,
+        bool           isForceOneShot,
+        bool           isForceLooping
+    );
+    void ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 
     void Service();
+
+    // notsa
+    bool CanAddNewSound() const { return m_NumActiveCollisionSounds <= m_CollisionSoundList.size(); }
+
+protected:
+    eSoundID ChooseCollisionSoundID(eSurfaceType surface);
 };
 
 VALIDATE_SIZE(CAECollisionAudioEntity, 0x1978);

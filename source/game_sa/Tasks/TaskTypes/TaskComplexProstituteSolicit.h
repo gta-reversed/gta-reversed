@@ -9,7 +9,7 @@
 #include "TaskComplex.h"
 #include "Ped.h"
 
-class CTaskComplexProstituteSolicit : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexProstituteSolicit : public CTaskComplex {
 public:
     CPed*   m_pClient; // player only
     CVector m_vecVehiclePosn;
@@ -40,9 +40,9 @@ public:
     explicit CTaskComplexProstituteSolicit(CPed* client);
     ~CTaskComplexProstituteSolicit() override;
 
-    eTaskType GetTaskType() override { return Type; } // 0x661AE0
-    CTask* Clone() override { return new CTaskComplexProstituteSolicit(m_pClient); } // 0x6622F0
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; } // 0x661AE0
+    CTask* Clone() const override { return new CTaskComplexProstituteSolicit(m_pClient); } // 0x6622F0
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

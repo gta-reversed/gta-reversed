@@ -3,19 +3,19 @@
 #include "TaskComplexBeInGroup.h"
 
 void CTaskComplexBeInGroup::InjectHooks() {
-    RH_ScopedClass(CTaskComplexBeInGroup);
+    RH_ScopedVirtualClass(CTaskComplexBeInGroup, 0x86E22C, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x632E50);
     RH_ScopedInstall(Destructor, 0x632EA0);
     RH_ScopedInstall(MonitorMainGroupTask, 0x633010);
     RH_ScopedInstall(MonitorSecondaryGroupTask, 0x6330B0);
-    RH_ScopedVirtualInstall(Clone, 0x636BE0);
-    RH_ScopedVirtualInstall(GetTaskType, 0x632E90);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x632EB0);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x632F40);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x632FB0);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x638AA0);
+    RH_ScopedVMTInstall(Clone, 0x636BE0);
+    RH_ScopedVMTInstall(GetTaskType, 0x632E90);
+    RH_ScopedVMTInstall(MakeAbortable, 0x632EB0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x632F40);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x632FB0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x638AA0);
 }
 
 // 0x632E50
@@ -33,13 +33,13 @@ CTaskComplexBeInGroup::CTaskComplexBeInGroup(int32 groupId, bool isLeader) : CTa
 CTask* CTaskComplexBeInGroup::MonitorMainGroupTask(CPed* ped) {
     if (const auto groupMainTask = CPedGroups::GetGroup(m_nGroupId).GetIntelligence().GetTaskMain(ped)) {
         if (groupMainTask != m_MainTask || groupMainTask->GetTaskType() != m_nMainTaskId) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 m_MainTask = groupMainTask;
                 m_nMainTaskId = groupMainTask->GetTaskType();
                 return groupMainTask->Clone();
             }
         }
-    } else if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+    } else if (m_pSubTask->MakeAbortable(ped)) {
         m_MainTask = nullptr;
         m_nMainTaskId = TASK_NONE;
         return nullptr;
@@ -75,7 +75,7 @@ void CTaskComplexBeInGroup::MonitorSecondaryGroupTask(CPed* ped) {
         }
 
         // Make sure ped has the task the new task (and abort current)
-        if (!pedGrpSecTask || pedGrpSecTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+        if (!pedGrpSecTask || pedGrpSecTask->MakeAbortable(ped)) {
             m_SecondaryTask = grpSecTask;
             m_nSecondaryTaskSlot = pedGrpSecTaskSlot;
             if (grpSecTask) { 

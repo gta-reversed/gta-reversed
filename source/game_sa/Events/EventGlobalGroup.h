@@ -1,10 +1,11 @@
 #pragma once
 
 #include "EventGroup.h"
+#include <Vector.h>
 
+class CPedGroup;
 class CEntity;
 class CPed;
-class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEventGlobalGroup : public CEventGroup {
 public:

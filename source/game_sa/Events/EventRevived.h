@@ -2,7 +2,10 @@
 
 #include "Event.h"
 
-class CEventRevived : public CEvent {
+#include "Event.h"
+
+
+class NOTSA_EXPORT_VTABLE CEventRevived : public CEvent {
 public:
     CEventRevived() = default;
     ~CEventRevived() override = default;
@@ -10,7 +13,7 @@ public:
     eEventType GetEventType() const override { return EVENT_REVIVE; }
     int32 GetEventPriority() const override { return 74; }
     int32 GetLifeTime() override { return 0; }
-    CEventRevived* Clone() override { return new CEventRevived(); }
+    CEventRevived* Clone() const noexcept override { return new CEventRevived(); }
     bool AffectsPed(CPed* ped) override;
 };
 VALIDATE_SIZE(CEventRevived, 0xC);

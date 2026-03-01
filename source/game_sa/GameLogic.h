@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Vector.h"
+#include <Weapon.h>
+#include <Vector.h>
+#include <Enums/eLevelName.h>
 
 class CEntity;
 class CPed;
@@ -74,7 +76,7 @@ public:
     static void ClearSkip(bool afterMission);
     static void DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons);
     static void StorePedsWeapons(CPed* ped);
-    static uint32 FindCityClosestToPoint(CVector2D point);
+    static eLevelName FindCityClosestToPoint(CVector2D point);
     static void ForceDeathRestart();
     static void InitAtStartOfGame();
     static bool IsCoopGameGoingOn();
@@ -99,26 +101,14 @@ public:
     static void UpdateSkip();
 
     // @notsa
-    static bool IsAPlayerInFocusOn2PlayerGame() {
-        return n2PlayerPedInFocus == eFocusedPlayer::PLAYER1 || n2PlayerPedInFocus == eFocusedPlayer::PLAYER2;
-    }
-    // @notsa
-    static CPlayerPed* GetFocusedPlayerPed() {
-        if (!IsAPlayerInFocusOn2PlayerGame()) {
-            return nullptr;
-        } else {
-            return FindPlayerPed((int32)n2PlayerPedInFocus);
-        }
-    }
+    static bool IsAPlayerInFocusOn2PlayerGame();
 
     // @notsa
-    static bool CanPlayerTripSkip() {
-        return SkipState == SKIP_AVAILABLE || SkipState == SKIP_AFTER_MISSION;
-    }
+    static CPlayerPed* GetFocusedPlayerPed();
 
     // @notsa
-    static void SetMissionFailed() {
-        GameState = GAMELOGIC_STATE_MISSION_FAILED;
-        TimeOfLastEvent = CTimer::GetTimeInMS();
-    }
+    static bool CanPlayerTripSkip();
+
+    // @notsa
+    static void SetMissionFailed();
 };

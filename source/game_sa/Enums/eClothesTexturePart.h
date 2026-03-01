@@ -19,7 +19,8 @@ enum eClothesTexturePart : int32 {
     CLOTHES_TEXTURE_LEFT_CHEST      = 9,
     CLOTHES_TEXTURE_RIGHT_CHEST     = 10,
     CLOTHES_TEXTURE_STOMACH         = 11,
-    CLOTHES_TEXTURE_LOWER_BACK      = 11, // todo: add 12?
+    CLOTHES_TEXTURE_LOWER_BACK      = 11,
+    CLOTHES_TEXTURE_UPPER_BACK      = 12, //!< Not sure
     CLOTHES_TEXTURE_NECKLACE        = 13,
     CLOTHES_TEXTURE_BRACELET        = 14,
     CLOTHES_TEXTURE_GLASSES         = 15,
