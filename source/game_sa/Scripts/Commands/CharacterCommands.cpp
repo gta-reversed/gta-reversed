@@ -510,9 +510,8 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
 
-    if (notsa::bugfixes::GenericCrashing && !veh) {
-        NOTSA_LOG_WARN("Tried to store vehicle of a ped that isn't in a vehicle!");
-        return -1; // TODO: Raise exception here for the error
+    if (!veh) {
+        throw std::invalid_argument("Char is not in a vehicle");
     }
 
     if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
