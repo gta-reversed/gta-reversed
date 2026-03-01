@@ -27,9 +27,15 @@ file(
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h*"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c*"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.ixx"
 )
 list(APPEND SOURCE_FILES_LIST StdInc.cpp)
+
+file(
+    GLOB_RECURSE CXX_MODULE_FILES_LIST
+    LIST_DIRECTORIES false
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.ixx"
+)
 
 #--------------------------------------------------------------------
 # Remove unused sources
@@ -52,7 +58,13 @@ else()
 endif()
 
 
-add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
+add_library(${RE_PROJECT_LIB_NAME})
+target_sources(${RE_PROJECT_LIB_NAME} 
+    PRIVATE
+        ${SOURCE_FILES_LIST}
+    PUBLIC
+        FILE_SET CXX_MODULES FILES ${CXX_MODULE_FILES_LIST}
+)
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/INCREMENTAL>"
 )
