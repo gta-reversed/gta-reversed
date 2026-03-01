@@ -8,18 +8,10 @@
 
 #include "eWeaponType.h"
 
-static inline RwTexture*& gpFinishFlagTex = *reinterpret_cast<RwTexture**>(0xC7C718);
+static inline RwTexture*& gpFinishFlagTex = StaticRef<RwTexture*>(0xC7C718);
 
 class CSpecialFX {
 public:
-    static bool& bVideoCam;
-    static bool& bLiftCam;
-    static uint32& SnapShotFrames;
-    static bool& bSnapShotActive;
-
-public:
-    static void InjectHooks();
-
     static void Init();
     static void Update();
     static void Shutdown();
@@ -27,4 +19,14 @@ public:
     static void Render();
     static void Render2DFXs();
     static void ReplayStarted();
+
+public:
+    static inline auto& bVideoCam       = StaticRef<bool>(0xC7C70C);
+    static inline auto& bLiftCam        = StaticRef<bool>(0xC7C70D);
+    static inline auto& bSnapShotActive = StaticRef<bool>(0xC7C714);
+    static inline auto& SnapShotFrames  = StaticRef<uint32>(0xC7C710);
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };

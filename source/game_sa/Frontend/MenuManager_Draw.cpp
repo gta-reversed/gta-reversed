@@ -412,7 +412,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
         CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(40.0f));
         CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
-        CFont::SetScaleForCurrentLanguage(StretchX(0.5f), StretchY(1.2f));
+        CFont::SetScaleForCurrentLanguage(StretchX(0.49f), StretchY(1.2f));
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetEdge(2);
         CFont::SetDropColor(MENU_BG);
@@ -793,8 +793,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case MENU_ACTION_BRIGHTNESS: processSlider(m_PrefsBrightness / 384.f, eMouseInBounds::SLIDER_LEFT, eMouseInBounds::SLIDER_RIGHT); break;
         case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume / 64.f, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT, true); break;
         case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume / 64.f, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
-        case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) / (8.0f / 7.0f), eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
-        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl * (1.0f / 200.0f), eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
+        case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) / 0.875f, eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
+        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.005f, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
         default:                     break;
         }
 

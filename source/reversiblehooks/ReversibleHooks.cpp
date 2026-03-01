@@ -84,7 +84,7 @@ void OnInjectionEnd() {
 
     s_RootCategory.OnInjectionEnd();
 
-    // WriteHooksToFile("C:/hooks.csv");
+    WriteHooksToFile("hooks.csv");
 }
 
 void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, void* fnOurAddr, size_t nVirtFns, const HookInstallOptions& opt) {
@@ -107,7 +107,13 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
     std::cout << std::format("{}::{} => {}\n", category, fnName, fnVTblIdx);
 #endif
 
-    auto item = std::make_shared<ReversibleHook::Virtual>(std::move(fnName), vtblGTA, vtblOur, fnVTblIdx);
+    auto item = std::make_shared<ReversibleHook::Virtual>(
+        std::move(fnName),
+        vtblGTA,
+        vtblOur,
+        fnVTblIdx,
+        opt.reversed
+    );
     item->State(opt.enabled);
     item->LockState(opt.locked);
     AddItemToCategory(category, std::move(item));
@@ -127,34 +133,38 @@ void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
 #endif
 
 void WriteHooksToFile(const std::filesystem::path& file) {
-    std::ofstream of{ file };
-    of << "class,fn_name,address,reversed,locked,is_virtual\n";
-    s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
-        using namespace ReversibleHook;
-        for (const auto& item : cat.Items()) {
-            if (item->Type() == Base::HookType::ScriptCommand) {
-                continue;
+    const auto path = std::filesystem::weakly_canonical(file);
+    if (std::ofstream of{ file }) {
+        of << "class,fn_name,address,reversed,locked,is_virtual\n";
+        s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
+            using namespace ReversibleHook;
+            for (const auto& item : cat.Items()) {
+                if (item->Type() == Base::HookType::ScriptCommand) {
+                    continue;
+                }
+                of
+                    << cat.Name() << "," // class
+                    << item->Name() << "," // fn_name
+                    << "0x" << std::hex << [&] { // address
+                            switch (item->Type()) {
+                            case Base::HookType::Virtual:
+                                return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
+                            case Base::HookType::Simple:
+                                return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
+                            default:
+                                NOTSA_UNREACHABLE();
+                            }
+                        }()
+                    << std::dec << ","
+                    << item->Reversed() << "," // reversed
+                    << item->Locked() << "," // locked
+                    << item->Symbol(); // type - `V` - virtual, `S` - simple, `C` - command (script)
             }
-            const auto isVirtual = item->Type() == Base::HookType::Virtual;
-            of
-                << cat.Name() << "," // class
-                << item->Name() << "," // fn_name
-                << "0x" << std::hex << [&] { // address
-                        switch (item->Type()) {
-                        case Base::HookType::Virtual:
-                            return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
-                        case Base::HookType::Simple:
-                            return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
-                        default:
-                            NOTSA_UNREACHABLE();
-                        }
-                    }()
-                << std::dec << ","
-                << item->Hooked() << "," // reversed // TODO: Improve this (Add `m_isReversed` to `Base`) - For now this will do
-                << item->Locked() << "," // locked
-                << (item->Type() == Base::HookType::Virtual) << '\n'; // is_virtual
-        }
-    });
+        });
+        NOTSA_LOG_INFO("Hooks written to `{}`", path.string());
+    } else {
+        NOTSA_LOG_ERR("Failed to open file `{}` for writing hooks!", path.string());
+    }
 }
 
 namespace detail {
@@ -168,7 +178,15 @@ void HookInstall(std::string_view category, std::string fnName, uint32 installAd
     }
 #endif
 
-    auto item = std::make_shared<ReversibleHook::Simple>(std::move(fnName), installAddress, addressToJumpTo, opt.jmpCodeSize, opt.stackArguments);
+    auto item = std::make_shared<ReversibleHook::Simple>(
+        std::move(fnName),
+        installAddress,
+        addressToJumpTo,
+        opt.reversed,
+        opt.jmpCodeSize,
+        opt.stackArguments
+    );
+    
     item->State(opt.enabled);
     item->LockState(opt.locked);
     AddItemToCategory(category, std::move(item));

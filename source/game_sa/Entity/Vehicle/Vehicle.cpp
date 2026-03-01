@@ -105,6 +105,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(SetCollisionLighting, 0x6D0CA0);
     RH_ScopedInstall(UpdateLightingFromStoredPolys, 0x6D0CC0);
     RH_ScopedInstall(CalculateLightingFromCollision, 0x6D0CF0);
+    RH_ScopedInstall(ResetAfterRender, 0x6D0E20);
     RH_ScopedInstall(ProcessWheel, 0x6D6C00);
     RH_ScopedInstall(ApplyBoatWaterResistance, 0x6D2740);
     RH_ScopedInstall(ProcessBoatControl, 0x6DBCE0);
@@ -245,7 +246,6 @@ void CVehicle::InjectHooks() {
     RH_ScopedGlobalInstall(CopyObjectsCB, 0x6D3450);
     // RH_ScopedGlobalInstall(FindReplacementUpgradeCB, 0x6D3490);
     RH_ScopedGlobalInstall(RemoveAllUpgradesCB, 0x6D34D0);
-    RH_ScopedGlobalInstall(SetVehicleAtomicVisibility, 0x732290);
 }
 
 // 0x6D5F10
@@ -1209,7 +1209,14 @@ void CVehicle::CalculateLightingFromCollision() {
 
 // 0x6D0E20
 void CVehicle::ResetAfterRender() {
-    ((void(__thiscall*)(CVehicle*))0x6D0E20)(this);
+    RwRenderStateSet(RwRenderState::rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
+    CVehicleModelInfo::ResetEditableMaterials((RpClump*)GetRwObject());
+
+    if (IsAutomobile()) {
+        auto* const mi = GetVehicleModelInfo();
+        assert(mi != nullptr);
+        AsAutomobile()->CustomCarPlate_AfterRenderingStop(mi);
+    }
 }
 
 // 0x6D1080
@@ -1294,7 +1301,7 @@ bool CVehicle::CanBeDeleted() {
         }
     }
 
-    switch (m_nCreatedBy) {
+    switch (GetCreatedBy()) {
     case MISSION_VEHICLE:
     case PERMANENT_VEHICLE:
         return false;
@@ -1905,7 +1912,7 @@ RwFrame* SetVehicleAtomicVisibilityCB(RwFrame* frame, void* data) {
 // 0x6D2700
 void CVehicle::SetComponentVisibility(RwFrame* component, uint32 visibilityState) { // see eAtomicComponentFlag
     if (component) {
-        if (visibilityState == eAtomicComponentFlag::ATOMIC_IS_DAM_STATE) {
+        if (visibilityState == eAtomicComponentFlag::ATOMIC_DAMAGED) {
             vehicleFlags.bIsDamaged = true;
         }
         RwFrameForAllObjects(component, SetVehicleAtomicVisibilityCB, (void*)visibilityState);
@@ -2145,7 +2152,7 @@ void CVehicle::ClearGettingOutFlags(uint8 doorId) {
 void CVehicle::SetWindowOpenFlag(uint8 doorId) {
     auto frameFromId = CClumpModelInfo::GetFrameFromId(m_pRwClump, doorId);
     if (frameFromId) {
-        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::SetAtomicFlagCB, (void*)ATOMIC_IS_DOOR_WINDOW_OPENED);
+        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA);
     }
 }
 
@@ -2153,7 +2160,7 @@ void CVehicle::SetWindowOpenFlag(uint8 doorId) {
 void CVehicle::ClearWindowOpenFlag(uint8 doorId) {
     auto frameFromId = CClumpModelInfo::GetFrameFromId(m_pRwClump, doorId);
     if (frameFromId) {
-        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::ClearAtomicFlagCB, (void*)ATOMIC_IS_DOOR_WINDOW_OPENED);
+        RwFrameForAllObjects(frameFromId, CVehicleModelInfo::ClearAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA);
     }
 }
 
@@ -2312,7 +2319,7 @@ RwObject* FindReplacementUpgradeCB(RwObject* object, void* data) {
 
 // 0x6D34D0
 RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data) {
-    auto* mi = CVisibilityPlugins::GetAtomicModelInfo(atomic);
+    auto* mi = CVisibilityPlugins::GetModelInfo(atomic);
     if (mi) {
         RpClumpRemoveAtomic(atomic->clump, atomic);
         RpAtomicDestroy(atomic);
@@ -2321,21 +2328,16 @@ RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data) {
     return atomic;
 }
 
-// 0x732290
-static void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state) {
-    RpAtomicGetVisibilityPlugin(atomic)->m_modelId = state;
-}
-
+// From [0x6D35BC - 0x6D3611]
 static void SetupUpgradeAtomicRendering(RpAtomic* atomic, bool isDamaged) {
-    bool hasAlphaMaterial{};
+    RpMaterial* hasAlphaMaterial = nullptr;
     RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), CVehicleModelInfo::HasAlphaMaterialCB, &hasAlphaMaterial);
     if (hasAlphaMaterial) {
-        CVisibilityPlugins::SetAtomicFlag(atomic, ATOMIC_HAS_ALPHA);
+        CVisibilityPlugins::SetAtomicRenderCallback(atomic, CVisibilityPlugins::RenderVehicleHiDetailAlphaCB);
+        CVisibilityPlugins::SetAtomicFlag(atomic, ATOMIC_ALPHA);
+    } else {
+        CVisibilityPlugins::SetAtomicRenderCallback(atomic, CVisibilityPlugins::RenderVehicleHiDetailCB);
     }
-    CVisibilityPlugins::SetAtomicRenderCallback(
-        atomic,
-        hasAlphaMaterial ? CVisibilityPlugins::RenderVehicleHiDetailAlphaCB : CVisibilityPlugins::RenderVehicleHiDetailCB // Moved this out to here from the above `if`
-    );
 
     CVehicleModelInfo::SetRenderPipelinesCB(atomic, nullptr);
 }
@@ -2361,9 +2363,9 @@ RpAtomic* CVehicle::CreateUpgradeAtomic(CBaseModelInfo* mi, const UpgradePosnDes
 
     mi->AddRef();
 
-    SetVehicleAtomicVisibility(atomic, isDamaged ? ATOMIC_IS_DAM_STATE : ATOMIC_IS_OK_STATE); //  TODO: Use RpAtomicVisibility: isDamaged ? VISIBILITY_DAM : VISIBILITY_OK
-
-    CVisibilityPlugins::SetAtomicFlag(atomic, ATOMIC_IS_REPLACEMENT_UPGRADE | ATOMIC_RENDER_ALWAYS); // NOTE: Combined 2 flags together here
+    CVisibilityPlugins::SetAtomicId(atomic, isDamaged ? eAtomicComponentFlag::ATOMIC_DAMAGED : eAtomicComponentFlag::ATOMIC_OK);
+    CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_UPGRADE);
+    CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_DONT_CULL);
 
     SetupUpgradeAtomicRendering(atomic, isDamaged);
 
@@ -2406,9 +2408,7 @@ int32 CVehicle::GetUpgrade(int32 upgradeId) {
 }
 
 // 0x6D3700
-RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentFrame, int16 atomicVisibilityFlags, bool isDamaged, bool bIsWheel) {
-    // atomicVisibilityFlags flags combined from `eAtomicComponentFlag`
-
+RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentFrame, eAtomicComponentFlag flags, bool isDamaged, bool bIsWheel) {
     if (isDamaged) {
         CDamageAtomicModelInfo::ms_bCreateDamagedVersion = true;
     }
@@ -2432,7 +2432,8 @@ RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentF
         RwFrameDestroy(frame);
     }
 
-    SetVehicleAtomicVisibility(atomic, atomicVisibilityFlags & ~(ATOMIC_IS_DAM_STATE | ATOMIC_IS_OK_STATE));
+    CVisibilityPlugins::SetAtomicId(atomic, flags & ~eAtomicComponentFlag::ATOMIC_MASK);
+    CVisibilityPlugins::SetAtomicFlag(atomic, isDamaged ? eAtomicComponentFlag::ATOMIC_DAMAGED : eAtomicComponentFlag::ATOMIC_OK);
 
     SetupUpgradeAtomicRendering(atomic, isDamaged);
 
@@ -2465,10 +2466,10 @@ void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
 // 0x6D3A50
 int32 CVehicle::GetReplacementUpgrade(int32 nodeId) {
     auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, nodeId);
-    struct { int32 nodeId; RpAtomic* atomic; } data = { nodeId, nullptr };
+    tCompSearchStructById data = { nodeId, nullptr };
     RwFrameForAllObjects(frame, FindReplacementUpgradeCB, &data);
-    if (data.atomic)
-        return CVisibilityPlugins::GetModelInfoIndex(data.atomic);
+    if (data.m_pFrame)
+        return CVisibilityPlugins::GetModelInfoIndex((RpAtomic*)data.m_pFrame);
     else
         return -1;
 }
@@ -3096,7 +3097,7 @@ bool CVehicle::CanPedLeanOut(CPed* ped) {
 
 // 0x6D5D70
 void CVehicle::SetVehicleCreatedBy(eVehicleCreatedBy createdBy) {
-    if (m_nCreatedBy != createdBy) {
+    if (GetCreatedBy() != createdBy) {
         CCarCtrl::UpdateCarCount(this, true);
         m_nCreatedBy = createdBy;
         CCarCtrl::UpdateCarCount(this, false);
@@ -3114,7 +3115,7 @@ void CVehicle::SetupRender() {
 
     RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(TRUE));
 
-    if (IsSubAutomobile()) {
+    if (IsAutomobile()) {
         AsAutomobile()->CustomCarPlate_BeforeRenderingStart(*mi);
     }
 
@@ -4448,7 +4449,7 @@ void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
     if (setClothesToAfro) {
         const auto playerPed = FindPlayerPed(PED_TYPE_PLAYER1);
         CStats::SetStatValue(STAT_FAT, 1000.0f);
-        playerPed->m_pPlayerData->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
+        playerPed->GetPlayerData()->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
         CClothes::RebuildPlayer(playerPed, false);
     }
     const eModelID modelId = setClothesToAfro ? MODEL_PLAYER : MODEL_WMOST;
@@ -4502,17 +4503,17 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 
     bool collided = false;
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect(CRect{ m_matrix->TransformPoint(pos), radius }, [&](int32 x, int32 y) {
         const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list, float damage) {
             return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
-        auto* const s = GetSector(x, y);
-        auto* const rs = GetRepeatSector(x, y);
-        collided |= ProcessSector(s->m_buildings, damageMult);
-        collided |= ProcessSector(rs->Vehicles, damageMult);
-        collided |= ProcessSector(rs->Peds, 0.0);
-        collided |= ProcessSector(rs->Objects, damageMult);
+        auto& s = CWorld::GetSector(x, y);
+        auto& rs = CWorld::GetRepeatSector(x, y);
+        collided |= ProcessSector(s.Buildings, damageMult);
+        collided |= ProcessSector(rs.Vehicles, damageMult);
+        collided |= ProcessSector(rs.Peds, 0.0f);
+        collided |= ProcessSector(rs.Objects, damageMult);
         return 1;
     });
 

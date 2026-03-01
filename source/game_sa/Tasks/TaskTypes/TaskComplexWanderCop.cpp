@@ -154,8 +154,8 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
     CPlayerPed* player = FindPlayerPed();
 
     CWanted* wanted = nullptr;
-    if (player->m_pPlayerData) {
-        wanted = player->m_pPlayerData->m_pWanted;
+    if (player->GetPlayerData()) {
+        wanted = player->GetPlayerWanted();
     }
 
     if (wanted && !wanted->m_nWantedLevel && player->m_pVehicle) {
@@ -168,8 +168,8 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
 // 0x66B300
 void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
     CPed* criminalPed = nullptr;
-    for (auto& entity : ped->GetIntelligence()->m_pedScanner.m_apEntities) {
-        criminalPed = entity->AsPed();
+    for (auto& entity : ped->GetIntelligence()->m_pedScanner.GetEntities<CEntity>()) {
+        criminalPed = entity.AsPed();
         if (!criminalPed)
             continue;
 

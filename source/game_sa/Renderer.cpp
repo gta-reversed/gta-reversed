@@ -308,27 +308,29 @@ void CRenderer::PreRender() {
     assert(ms_nNoOfInVisibleEntities <= MAX_INVISIBLE_ENTITY_PTRS);
     std::ranges::for_each(GetInVisibleEntityPtrs(), [](auto& entity) { entity->PreRender(); });
 
-    for (auto* link = CVisibilityPlugins::m_alphaEntityList.usedListHead.next;
-        link != &CVisibilityPlugins::m_alphaEntityList.usedListTail;
+    for (auto* link = CVisibilityPlugins::GetAlphaList().usedListHead.next;
+        link != &CVisibilityPlugins::GetAlphaList().usedListTail;
         link = link->next
     ) {
         // NOTSA: HACK: We compare function pointers, and want it to work with reversible hooks,
         // we need to check for both original function and our one
         if (link->data.m_pCallback == CVisibilityPlugins::RenderEntity || link->data.m_pCallback == (void*)0x732B40) {
-            link->data.m_entity->m_bOffscreen = false;
-            link->data.m_entity->PreRender();
+            auto* entity = (CEntity*)link->data.m_pObj;
+            entity->m_bOffscreen = false;
+            entity->PreRender();
         }
     }
 
-    for (auto* link = CVisibilityPlugins::m_alphaUnderwaterEntityList.usedListHead.next;
-        link != &CVisibilityPlugins::m_alphaUnderwaterEntityList.usedListTail;
+    for (auto* link = CVisibilityPlugins::GetAlphaUnderwaterList().usedListHead.next;
+        link != &CVisibilityPlugins::GetAlphaUnderwaterList().usedListTail;
         link = link->next
     ) {
         // todo: NOTSA: HACK: We compare function pointers, and want it to work with reversible hooks,
         // we need to check for both original function and our one
         if (link->data.m_pCallback == CVisibilityPlugins::RenderEntity || link->data.m_pCallback == (void*)0x732B40) {
-            link->data.m_entity->m_bOffscreen = false;
-            link->data.m_entity->PreRender();
+            auto* entity = (CEntity*)link->data.m_pObj;
+            entity->m_bOffscreen = false;
+            entity->PreRender();
         }
     }
     CHeli::SpecialHeliPreRender();
@@ -397,7 +399,7 @@ void CRenderer::RenderEverythingBarRoads() {
                 if (bInsertIntoSortedList)
                     bInserted = CVisibilityPlugins::InsertEntityIntoSortedList(entity, fMagnitude);
                 else
-                    bInserted = CVisibilityPlugins::InsertEntityIntoUnderwaterEntities(entity, fMagnitude);
+                    bInserted = CVisibilityPlugins::InsertEntityIntoUnderwaterList(entity, fMagnitude);
             }
         }
         if (!bInserted)
@@ -988,10 +990,10 @@ void CRenderer::ConstructRenderList() {
 // 0x555900
 void CRenderer::ScanSectorList_RequestModels(int32 sectorX, int32 sectorY) {
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector = GetSector(sectorX, sectorY);
-        ScanPtrList_RequestModels(sector->m_buildings);
-        ScanPtrList_RequestModels(sector->m_dummies);
-        ScanPtrList_RequestModels(GetRepeatSector(sectorX, sectorY)->Objects);
+        auto& sector = CWorld::GetSector(sectorX, sectorY);
+        ScanPtrList_RequestModels(sector.Buildings);
+        ScanPtrList_RequestModels(sector.Dummies);
+        ScanPtrList_RequestModels(CWorld::GetRepeatSector(sectorX, sectorY).Objects);
     }
 }
 
@@ -1021,7 +1023,7 @@ void CRenderer::ScanWorld() {
     m_pFirstPersonVehicle = nullptr;
     CVisibilityPlugins::InitAlphaEntityList();
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     static CVector& lastCameraPosition = *(CVector*)0xB76888; //TODO | STATICREF
     static CVector& lastCameraForward = *(CVector*)0xB7687C; //TODO | STATICREF
@@ -1101,7 +1103,7 @@ int32 CRenderer::GetObjectsInFrustum(CEntity** outEntities, float farPlane, RwMa
         frustumPoints[i] = CVector(0.0f, 0.0f, 0.0f);
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     RwMatrix* theTransformMatrix = transformMatrix;
     if (!theTransformMatrix)
@@ -1143,7 +1145,7 @@ void CRenderer::RequestObjectsInFrustum(RwMatrix* transformMatrix, int32 modelRe
         frustumPoints[i] = CVector(0.0f, 0.0f, 0.0f);
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     if (!transformMatrix) {
         transformMatrix = TheCamera.GetRwMatrix();
@@ -1190,21 +1192,21 @@ void CRenderer::RequestObjectsInDirection(const CVector& posn, float angle, int3
 
 // 0x553540
 void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY) {
-    CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-    auto*          scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
+    auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+    auto* scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector          = GetSector(sectorX, sectorY);
-        scanLists->buildingsList = &sector->m_buildings;
-        scanLists->objectsList   = &repeatSector->Objects;
-        scanLists->vehiclesList  = &repeatSector->Vehicles;
-        scanLists->pedsList      = &repeatSector->Peds;
-        scanLists->dummiesList   = &sector->m_dummies;
+        auto& sector             = CWorld::GetSector(sectorX, sectorY);
+        scanLists->buildingsList = &sector.Buildings;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
+        scanLists->dummiesList   = &sector.Dummies;
     } else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
-        scanLists->objectsList   = &repeatSector->Objects;
-        scanLists->vehiclesList  = &repeatSector->Vehicles;
-        scanLists->pedsList      = &repeatSector->Peds;
+        scanLists->objectsList   = &repeatSector.Objects;
+        scanLists->vehiclesList  = &repeatSector.Vehicles;
+        scanLists->pedsList      = &repeatSector.Peds;
         scanLists->dummiesList   = nullptr;
     }
 }

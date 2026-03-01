@@ -47,6 +47,21 @@ void HandleEntityMissionCleanup(CRunningScript& S, T& entity) {
 //
 
 namespace {
+/*
+ * @opcode 02AB
+ * @command SET_CHAR_PROOFS
+ * @class Char
+ * @method SetProofs
+ * 
+ * @brief Sets the character's immunities
+ * 
+ * @param {Char} self
+ * @param {bool} bulletProof
+ * @param {bool} fireProof
+ * @param {bool} explosionProof
+ * @param {bool} collisionProof
+ * @param {bool} meleeProof
+ */
 void SetCharProofs(CPed& ped, bool bullet, bool fire, bool explosion, bool collision, bool melee) {
     auto& flags = ped.physicalFlags;
     flags.bBulletProof = bullet;
@@ -56,98 +71,303 @@ void SetCharProofs(CPed& ped, bool bullet, bool fire, bool explosion, bool colli
     flags.bMeleeProof = melee;
 }
 
+/*
+ * @opcode 087E
+ * @command SET_CHAR_DROPS_WEAPONS_WHEN_DEAD
+ * @class Char
+ * @method SetDropsWeaponsWhenDead
+ * 
+ * @brief Sets whether the character will drop any of their weapons when they die
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharDropsWeaponsWhenDead(CPed& ped, bool dropsWepsWhenDead) {
     ped.bDoesntDropWeaponsWhenDead = !dropsWepsWhenDead;
 }
 
+/*
+ * @opcode 087F
+ * @command SET_CHAR_NEVER_LEAVES_GROUP
+ * @class Char
+ * @method SetNeverLeavesGroup
+ * 
+ * @brief Prevents the character from leaving their group
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharNeverLeavesGroup(CPed& ped, bool bNeverLeavesGroup) {
     ped.bNeverLeavesGroup = bNeverLeavesGroup;
 }
 
-// SET_CHAR_BLEEDING
+/*
+ * @opcode 0332
+ * @command SET_CHAR_BLEEDING
+ * @class Char
+ * @method SetBleeding
+ * 
+ * @brief Makes a character bleed
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharBleeding(CPed& ped, bool isBleeding) {
     ped.bPedIsBleeding = isBleeding;
 }
 
-// SET_CHAR_CANT_BE_DRAGGED_OUT
+/*
+ * @opcode 039E
+ * @command SET_CHAR_CANT_BE_DRAGGED_OUT
+ * @class Char
+ * @method SetCantBeDraggedOut
+ * 
+ * @brief Locks the character while in a car
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharCantBeDraggedOut(CPed& ped, bool bDontDrag) {
     ped.bDontDragMeOutCar = bDontDrag;
 }
 
-// SET_CHAR_IS_CHRIS_CRIMINAL
+/*
+ * @opcode 0433
+ * @command SET_CHAR_IS_CHRIS_CRIMINAL
+ * @class Char
+ * @method SetIsChrisCriminal
+ * 
+ * @brief Sets whether the character is a psychotic killer or not
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharIsChrisCriminal(CPed& ped, bool value) {
     ped.bChrisCriminal = value;
 }
 
-// SET_CHAR_SUFFERS_CRITICAL_HITS
+/*
+ * @opcode 0446
+ * @command SET_CHAR_SUFFERS_CRITICAL_HITS
+ * @class Char
+ * @method SetSuffersCriticalHits
+ * 
+ * @brief Sets whether the specified character is immune to headshots
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharSuffersCriticalHits(CPed& ped, bool value) {
     ped.bNoCriticalHits = !value;
 }
 
-// FREEZE_CHAR_POSITION
+/*
+ * @opcode 04D7
+ * @command FREEZE_CHAR_POSITION
+ * @class Char
+ * @method FreezePosition
+ * 
+ * @brief Sets whether the character's position remains unchanged
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto FreezeCharPosition(CPed& ped, bool freeze) {
     ped.physicalFlags.bDontApplySpeed = freeze;
 }
 
-// SET_CHAR_DROWNS_IN_WATER
+/*
+ * @opcode 04D8
+ * @command SET_CHAR_DROWNS_IN_WATER
+ * @class Char
+ * @method SetDrownsInWater
+ * 
+ * @brief Controls whether the character can drown in water
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharDrownsInWater(CPed& ped, bool bDrownsInWater) {
     ped.bDrownsInWater = bDrownsInWater;
 }
 
-// SET_CHAR_STAY_IN_CAR_WHEN_JACKED
+/*
+ * @opcode 0526
+ * @command SET_CHAR_STAY_IN_CAR_WHEN_JACKED
+ * @class Char
+ * @method SetStayInCarWhenJacked
+ * 
+ * @brief Makes the character stay in the vehicle when it is jacked (characters let themselves get "kidnapped")
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharStayInCarWhenJacked(CPed& ped, bool bStayInCarOnJack) {
     ped.bStayInCarOnJack = bStayInCarOnJack;
 }
 
-// SET_CHAR_CAN_BE_SHOT_IN_VEHICLE
+/*
+ * @opcode 054A
+ * @command SET_CHAR_CAN_BE_SHOT_IN_VEHICLE
+ * @class Char
+ * @method SetCanBeShotInVehicle
+ * 
+ * @brief Makes the character immune to a damage while in a vehicle
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharCanBeShotInVehicle(CPed& ped, bool bCanBeShotInVehicle) {
     ped.bCanBeShotInVehicle = bCanBeShotInVehicle;
 }
 
-// SET_CHAR_NEVER_TARGETTED
+/*
+ * @opcode 0568
+ * @command SET_CHAR_NEVER_TARGETTED
+ * @class Char
+ * @method SetNeverTargeted
+ * 
+ * @brief Sets whether the character won't be targeted by the autoaim system
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharNeverTargetted(CPed& ped, bool bNeverEverTargetThisPed) {
     ped.bNeverEverTargetThisPed = bNeverEverTargetThisPed;
 }
 
-// SET_CHAR_COLLISION
+/*
+ * @opcode 0619
+ * @command SET_CHAR_COLLISION
+ * @class Char
+ * @method SetCollision
+ * 
+ * @brief Sets whether collision detection is enabled for the character
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharCollision(CPed& ped, bool bUsesCollision) {
     ped.SetUsesCollision(bUsesCollision);
 }
 
-// IS_CHAR_SHOOTING
+/*
+ * @opcode 02E0
+ * @command IS_CHAR_SHOOTING
+ * @class Char
+ * @method IsShooting
+ * 
+ * @brief Returns true if the character is firing a weapon
+ * 
+ * @param {Char} self
+ */
 auto IsCharShooting(CPed& ped) {
     return ped.bFiringWeapon;
 }
 
-// IS_CHAR_WAITING_FOR_WORLD_COLLISION
+/*
+ * @opcode 04F0
+ * @command IS_CHAR_WAITING_FOR_WORLD_COLLISION
+ * @class Char
+ * @method IsWaitingForWorldCollision
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ */
 auto IsCharWaitingForWorldCollision(CPed& ped) {
     return ped.m_bIsStaticWaitingForCollision;
 }
 
-// IS_CHAR_DUCKING
+/*
+ * @opcode 0597
+ * @command IS_CHAR_DUCKING
+ * @class Char
+ * @method IsDucking
+ * 
+ * @brief Returns true if the specified character is crouching
+ * 
+ * @param {Char} self
+ */
 auto IsCharDucking(CPed& ped) {
     return ped.bIsDucking;
 }
 
+/*
+ * @opcode 083D
+ * @command GET_CHAR_VELOCITY
+ * @class Char
+ * @method GetVelocity
+ * 
+ * @brief Gets the characters velocity
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Vector} 
+ */
 auto GetCharVelocity(CPed& ped) {
     return ped.GetMoveSpeed();
 }
 
+/*
+ * @opcode 083C
+ * @command SET_CHAR_VELOCITY
+ * @class Char
+ * @method SetVelocity
+ * 
+ * @brief Sets the characters velocity
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ */
 auto SetCharVelocity(CPed& ped, CVector velocity) {
     ped.SetVelocity(velocity / 50.f);
 }
 
+/*
+ * @opcode 083E
+ * @command SET_CHAR_ROTATION
+ * @class Char
+ * @method SetRotation
+ * 
+ * @brief Sets the characters rotation
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ */
 auto SetCharRotation(CPed& ped, CVector angles) {
     ped.SetOrientation(angles * DegreesToRadians(1.0f)); // make euler angles from degrees
     CWorld::Add(&ped);
 }
 
+/*
+ * @opcode 0856
+ * @command SET_CHAR_ALLOWED_TO_DUCK
+ * @class Char
+ * @method SetAllowedToDuck
+ * 
+ * @brief Sets whether the character can crouch
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharAllowedToDuck(CPed& ped, CVector rotdeg) {
     CWorld::Remove(&ped);
     ped.SetOrientation(rotdeg * DegreesToRadians(1.f)); // degrees => radians
     CWorld::Add(&ped);
 }
 
+/*
+ * @opcode 0860
+ * @command SET_CHAR_AREA_VISIBLE
+ * @class Char
+ * @method SetAreaVisible
+ * 
+ * @brief Sets the interior that the char is in
+ * 
+ * @param {Char} self
+ * @param {int} areaId
+ */
 auto SetCharAreaVisible(CPed& ped, eAreaCodes area) {
     ped.SetAreaCode(area);
     if (area != AREA_CODE_NORMAL_WORLD) {
@@ -161,26 +381,86 @@ auto SetCharAreaVisible(CPed& ped, eAreaCodes area) {
     CTimeCycle::StopExtraColour(0);
 }
 
+/*
+ * @opcode 0883
+ * @command ATTACH_FX_SYSTEM_TO_CHAR_BONE
+ * @class Particle
+ * @method AttachToCharBone
+ * 
+ * @brief Attaches the specified particle to the specified character
+ * 
+ * @param {Particle} self
+ * @param {Char} handle
+ * @param {PedBone} pedBone
+ */
 auto AttachFxSystemToCharBone(tScriptEffectSystem& fx, CPed& ped, eBoneTag bone) {
     fx.m_pFxSystem->AttachToBone(&ped, bone);
 }
 
+/*
+ * @opcode 0889
+ * @command GET_DEAD_CHAR_COORDINATES
+ * @class Char
+ * @method GetCoordinatesOfDied
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Vector} 
+ */
 auto GetDeadCharCoordinates(CPed& ped) {
     return ped.IsInVehicle()
         ? ped.m_pVehicle->GetPosition()
         : ped.GetBonePosition(BONE_PELVIS);
 }
 
+/*
+ * @opcode 00A0
+ * @command GET_CHAR_COORDINATES
+ * @class Char
+ * @method GetCoordinates
+ * 
+ * @brief Returns the character's coordinates
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Vector} 
+ */
 auto GetCharCoordinates(CPed& ped) {
     return ped.IsInVehicle()
         ? ped.m_pVehicle->GetPosition()
         : ped.GetPosition();
 }
 
+/*
+ * @opcode 00A1
+ * @command SET_CHAR_COORDINATES
+ * @class Char
+ * @method SetCoordinates
+ * 
+ * @brief Puts the character at the specified location
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ */
 auto SetCharCoordinates(CRunningScript& S, CPed& ped, CVector coords) {
     S.SetCharCoordinates(ped, coords, true, true);
 }
 
+/*
+ * @opcode 00A3
+ * @command IS_CHAR_IN_AREA_2D
+ * @class Char
+ * @method IsInArea2D
+ * 
+ * @brief Returns true if the character is within the specified 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {bool} drawSphere
+ */
 auto IsCharInArea2D(CRunningScript& S, CPed& ped, CVector2D a, CVector2D b, bool highlightArea) {
     if (highlightArea) {
         S.HighlightImportantArea(a, b);
@@ -192,6 +472,19 @@ auto IsCharInArea2D(CRunningScript& S, CPed& ped, CVector2D a, CVector2D b, bool
         : Check(ped);
 }
 
+/*
+ * @opcode 00A4
+ * @command IS_CHAR_IN_AREA_3D
+ * @class Char
+ * @method IsInArea3D
+ * 
+ * @brief Returns true if the character is within the specified 3D area
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {bool} drawSphere
+ */
 auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool highlightArea) {
     if (highlightArea) {
         S.HighlightImportantArea(a, b);
@@ -203,6 +496,18 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
         : Check(ped);
 }
 
+/*
+ * @opcode 00D9
+ * @command STORE_CAR_CHAR_IS_IN
+ * @class Char
+ * @method StoreCarIsIn
+ * 
+ * @brief Returns the current vehicle of the character and adds it to the mission cleanup list (alts:03C0,0811,0484)
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Car} handle
+ */
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
 
@@ -240,14 +545,46 @@ auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     return CTheScripts::StoreVehicleIndex;
 }
 
+/*
+ * @opcode 00DB
+ * @command IS_CHAR_IN_CAR
+ * @class Char
+ * @method IsInCar
+ * 
+ * @brief Returns true if the character is in the specified vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ */
 auto IsCharInCar(CPed& ped, CVehicle& veh) {
     return ped.IsInVehicle() && ped.m_pVehicle == &veh;
 }
 
+/*
+ * @opcode 00DD
+ * @command IS_CHAR_IN_MODEL
+ * @class Char
+ * @method IsInModel
+ * 
+ * @brief Returns true if the character is driving a vehicle with the specified model
+ * 
+ * @param {Char} self
+ * @param {model_vehicle} modelId
+ */
 auto IsCharInModel(CPed& ped, eModelID model) {
     return ped.IsInVehicle() && ped.m_pVehicle->m_nModelIndex == model;
 }
 
+/*
+ * @opcode 00DF
+ * @command IS_CHAR_IN_ANY_CAR
+ * @class Char
+ * @method IsInAnyCar
+ * 
+ * @brief Returns true if the character has a vehicle, even if they are not actually sat inside it (opening and closing the door)
+ * 
+ * @param {Char} self
+ */
 auto IsCharInAnyCar(CPed& ped) {
     return ped.IsInVehicle();
 }
@@ -310,52 +647,208 @@ bool LocateCharEntity2D(CRunningScript& S, CPed& ped, CEntity& entity, CVector2D
 
 // => 2D
 
+/*
+ * @opcode 00EC
+ * @command LOCATE_CHAR_ANY_MEANS_2D
+ * @class Char
+ * @method LocateAnyMeans2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the coordinates point
+ * 
+ * @param {Char} self
+ * @param {Vector2D} 
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeans2D(CRunningScript& S, CPed& ped, CVector2D pos, CVector2D radius, bool highlightArea) {
     return LocateChar2D(S, ped, pos, radius, highlightArea, false, false, false);
 }
 
+/*
+ * @opcode 00ED
+ * @command LOCATE_CHAR_ON_FOOT_2D
+ * @class Char
+ * @method LocateOnFoot2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the coordinates point on foot
+ * 
+ * @param {Char} self
+ * @param {Vector2D} 
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFoot2D(CRunningScript& S, CPed& ped, CVector2D pos, CVector2D radius, bool highlightArea) {
     return LocateChar2D(S, ped, pos, radius, highlightArea, false, true, false);
 }
 
+/*
+ * @opcode 00EE
+ * @command LOCATE_CHAR_IN_CAR_2D
+ * @class Char
+ * @method LocateInCar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the coordinates point in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Vector2D} 
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCar2D(CRunningScript& S, CPed& ped, CVector2D pos, CVector2D radius, bool highlightArea) {
     return LocateChar2D(S, ped, pos, radius, highlightArea, true, false, false);
 }
 
+/*
+ * @opcode 00EF
+ * @command LOCATE_STOPPED_CHAR_ANY_MEANS_2D
+ * @class Char
+ * @method LocateStoppedAnyMeans2D
+ * 
+ * @brief Returns true if the character stopped within the 2D radius of the coordinates point
+ * 
+ * @param {Char} self
+ * @param {Vector2D} 
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateStoppedCharAnyMeans2D(CRunningScript& S, CPed& ped, CVector2D pos, CVector2D radius, bool highlightArea) {
     return LocateChar2D(S, ped, pos, radius, highlightArea, false, false, true);
 }
 
+/*
+ * @opcode 00F0
+ * @command LOCATE_STOPPED_CHAR_ON_FOOT_2D
+ * @class Char
+ * @method LocateStoppedOnFoot2D
+ * 
+ * @brief Returns true if the character stopped within the 2D radius of the coordinates point on foot
+ * 
+ * @param {Char} self
+ * @param {Vector2D} 
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateStoppedCharOnFoot2D(CRunningScript& S, CPed& ped, CVector2D pos, CVector2D radius, bool highlightArea) {
     return LocateChar2D(S, ped, pos, radius, highlightArea, false, true, true);
 }
 
+/*
+ * @opcode 00F1
+ * @command LOCATE_STOPPED_CHAR_IN_CAR_2D
+ * @class Char
+ * @method LocateStoppedInCar2D
+ * 
+ * @brief Returns true if the character stopped within the 2D radius of the coordinates point in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Vector2D} 
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateStoppedCharInCar2D(CRunningScript& S, CPed& ped, CVector2D pos, CVector2D radius, bool highlightArea) {
     return LocateChar2D(S, ped, pos, radius, highlightArea, true, false, true);
 }
 
 // => 3D
 
+/*
+ * @opcode 00FE
+ * @command LOCATE_CHAR_ANY_MEANS_3D
+ * @class Char
+ * @method LocateAnyMeans3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the coordinates point
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeans3D(CRunningScript& S, CPed& ped, CVector pos, CVector radius, bool highlightArea) {
     return LocateChar3D(S, ped, pos, radius, highlightArea, false, false, false);
 }
 
+/*
+ * @opcode 00FF
+ * @command LOCATE_CHAR_ON_FOOT_3D
+ * @class Char
+ * @method LocateOnFoot3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the coordinates point on foot
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFoot3D(CRunningScript& S, CPed& ped, CVector pos, CVector radius, bool highlightArea) {
     return LocateChar3D(S, ped, pos, radius, highlightArea, false, true, false);
 }
 
+/*
+ * @opcode 0100
+ * @command LOCATE_CHAR_IN_CAR_3D
+ * @class Char
+ * @method LocateInCar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the coordinates point in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCar3D(CRunningScript& S, CPed& ped, CVector pos, CVector radius, bool highlightArea) {
     return LocateChar3D(S, ped, pos, radius, highlightArea, true, false, false);
 }
 
+/*
+ * @opcode 0101
+ * @command LOCATE_STOPPED_CHAR_ANY_MEANS_3D
+ * @class Char
+ * @method LocateStoppedAnyMeans3D
+ * 
+ * @brief Returns true if the character stopped within the 3D radius of the coordinates point
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateStoppedCharAnyMeans3D(CRunningScript& S, CPed& ped, CVector pos, CVector radius, bool highlightArea) {
     return LocateChar3D(S, ped, pos, radius, highlightArea, false, false, true);
 }
 
+/*
+ * @opcode 0102
+ * @command LOCATE_STOPPED_CHAR_ON_FOOT_3D
+ * @class Char
+ * @method LocateStoppedOnFoot3D
+ * 
+ * @brief Returns true if the character stopped within the 3D radius of the coordinates point on foot
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateStoppedCharOnFoot3D(CRunningScript& S, CPed& ped, CVector pos, CVector radius, bool highlightArea) {
     return LocateChar3D(S, ped, pos, radius, highlightArea, false, true, true);
 }
 
+/*
+ * @opcode 0103
+ * @command LOCATE_STOPPED_CHAR_IN_CAR_3D
+ * @class Char
+ * @method LocateStoppedInCar3D
+ * 
+ * @brief Returns true if the character stopped within the 3D radius of the coordinates point in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateStoppedCharInCar3D(CRunningScript& S, CPed& ped, CVector pos, CVector radius, bool highlightArea) {
     return LocateChar3D(S, ped, pos, radius, highlightArea, true, false, true);
 }
@@ -366,28 +859,106 @@ auto LocateStoppedCharInCar3D(CRunningScript& S, CPed& ped, CVector pos, CVector
 
 // => 2D
 
+/*
+ * @opcode 00F2
+ * @command LOCATE_CHAR_ANY_MEANS_CHAR_2D
+ * @class Char
+ * @method LocateAnyMeansChar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the other character
+ * 
+ * @param {Char} self
+ * @param {Char} target
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeansChar2D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped1, ped2, radius, highlightArea, false, false);
 }
 
+/*
+ * @opcode 00F3
+ * @command LOCATE_CHAR_ON_FOOT_CHAR_2D
+ * @class Char
+ * @method LocateOnFootChar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the other character on foot
+ * 
+ * @param {Char} self
+ * @param {Char} target
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFootChar2D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped1, ped2, radius, highlightArea, false, true);
 }
 
+/*
+ * @opcode 00F4
+ * @command LOCATE_CHAR_IN_CAR_CHAR_2D
+ * @class Char
+ * @method LocateInCarChar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the other character in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Char} otherChar
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCarChar2D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped1, ped2, radius, highlightArea, true, false);
 }
 
 // => 3D
 
+/*
+ * @opcode 0104
+ * @command LOCATE_CHAR_ANY_MEANS_CHAR_3D
+ * @class Char
+ * @method LocateAnyMeansChar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the other character
+ * 
+ * @param {Char} self
+ * @param {Char} target
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeansChar3D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped1, ped2, radius, highlightArea, false, false);
 }
 
+/*
+ * @opcode 0105
+ * @command LOCATE_CHAR_ON_FOOT_CHAR_3D
+ * @class Char
+ * @method LocateOnFootChar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the other character on foot
+ * 
+ * @param {Char} self
+ * @param {Char} target
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFootChar3D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped1, ped2, radius, highlightArea, false, true);
 }
 
+/*
+ * @opcode 0106
+ * @command LOCATE_CHAR_IN_CAR_CHAR_3D
+ * @class Char
+ * @method LocateInCarChar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the other character in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Char} target
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCarChar3D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped1, ped2, radius, highlightArea, true, false);
 }
@@ -398,28 +969,106 @@ auto LocateCharInCarChar3D(CRunningScript& S, CPed& ped1, CPed& ped2, CVector ra
 
 // => 2D
 
+/*
+ * @opcode 0202
+ * @command LOCATE_CHAR_ANY_MEANS_CAR_2D
+ * @class Char
+ * @method LocateAnyMeansCar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeansCar2D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, veh, radius, highlightArea, false, false);
 }
 
+/*
+ * @opcode 0203
+ * @command LOCATE_CHAR_ON_FOOT_CAR_2D
+ * @class Char
+ * @method LocateOnFootCar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the vehicle on foot
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFootCar2D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, veh, radius, highlightArea, false, true);
 }
 
+/*
+ * @opcode 0204
+ * @command LOCATE_CHAR_IN_CAR_CAR_2D
+ * @class Char
+ * @method LocateInCarCar2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the vehicle in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} handle
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCarCar2D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, veh, radius, highlightArea, true, false);
 }
 
 // => 3D
 
+/*
+ * @opcode 0205
+ * @command LOCATE_CHAR_ANY_MEANS_CAR_3D
+ * @class Char
+ * @method LocateAnyMeansCar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeansCar3D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped, veh, radius, highlightArea, false, false);
 }
 
+/*
+ * @opcode 0206
+ * @command LOCATE_CHAR_ON_FOOT_CAR_3D
+ * @class Char
+ * @method LocateOnFootCar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the vehicle on foot
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFootCar3D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped, veh, radius, highlightArea, false, true);
 }
 
+/*
+ * @opcode 0207
+ * @command LOCATE_CHAR_IN_CAR_CAR_3D
+ * @class Char
+ * @method LocateInCarCar3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the vehicle in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCarCar3D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped, veh, radius, highlightArea, true, false);
 }
@@ -430,28 +1079,106 @@ auto LocateCharInCarCar3D(CRunningScript& S, CPed& ped, CVehicle& veh, CVector r
 
 // => 2D
 
+/*
+ * @opcode 0471
+ * @command LOCATE_CHAR_ANY_MEANS_OBJECT_2D
+ * @class Char
+ * @method LocateAnyMeansObject2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the object
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeansObject2D(CRunningScript& S, CPed& ped, CObject& obj, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, obj, radius, highlightArea, false, false);
 }
 
+/*
+ * @opcode 0472
+ * @command LOCATE_CHAR_ON_FOOT_OBJECT_2D
+ * @class Char
+ * @method LocateOnFootObject2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the object on foot
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFootObject2D(CRunningScript& S, CPed& ped, CObject& obj, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, obj, radius, highlightArea, false, true);
 }
 
+/*
+ * @opcode 0473
+ * @command LOCATE_CHAR_IN_CAR_OBJECT_2D
+ * @class Char
+ * @method LocateInCarObject2D
+ * 
+ * @brief Returns true if the character is within the 2D radius of the object in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ * @param {Vector2D} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCarObject2D(CRunningScript& S, CPed& ped, CObject& obj, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, obj, radius, highlightArea, true, false);
 }
 
 // => 3D
 
+/*
+ * @opcode 0474
+ * @command LOCATE_CHAR_ANY_MEANS_OBJECT_3D
+ * @class Char
+ * @method LocateAnyMeansObject3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the object
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharAnyMeansObject3D(CRunningScript& S, CPed& ped, CObject& obj, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped, obj, radius, highlightArea, false, false);
 }
 
+/*
+ * @opcode 0475
+ * @command LOCATE_CHAR_ON_FOOT_OBJECT_3D
+ * @class Char
+ * @method LocateOnFootObject3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the object on foot
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharOnFootObject3D(CRunningScript& S, CPed& ped, CObject& obj, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped, obj, radius, highlightArea, false, true);
 }
 
+/*
+ * @opcode 0476
+ * @command LOCATE_CHAR_IN_CAR_OBJECT_3D
+ * @class Char
+ * @method LocateInCarObject3D
+ * 
+ * @brief Returns true if the character is within the 3D radius of the object in a vehicle
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ * @param {Vector} radius
+ * @param {bool} drawSphere
+ */
 auto LocateCharInCarObject3D(CRunningScript& S, CPed& ped, CObject& obj, CVector radius, bool highlightArea) {
     return LocateCharEntity3D(S, ped, obj, radius, highlightArea, true, false);
 }
@@ -487,32 +1214,111 @@ bool IsPedInAngledArea2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir,
     );
 }
 
-// IS_CHAR_IN_ANGLED_AREA_2D
+/*
+ * @opcode 05F6
+ * @command IS_CHAR_IN_ANGLED_AREA_2D
+ * @class Char
+ * @method IsInAngledArea2D
+ * 
+ * @brief Checks if the character is within the angled 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharInAngledArea2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea2D(ped, a, b, widthAndDir, highlightArea, false, false, false);
 }
 
-// IS_CHAR_IN_ANGLED_AREA_ON_FOOT_2D
+/*
+ * @opcode 05F7
+ * @command IS_CHAR_IN_ANGLED_AREA_ON_FOOT_2D
+ * @class Char
+ * @method IsInAngledAreaOnFoot2D
+ * 
+ * @brief Checks if the character is within the angled 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharInAngledAreaOnFoot2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea2D(ped, a, b, widthAndDir, highlightArea, false, true, false);
 }
 
-// IS_CHAR_IN_ANGLED_AREA_IN_CAR_2D
+/*
+ * @opcode 05F8
+ * @command IS_CHAR_IN_ANGLED_AREA_IN_CAR_2D
+ * @class Char
+ * @method IsInAngledAreaInCar2D
+ * 
+ * @brief Checks if the character is in a car which is within the angled 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharInAngledAreaInCar2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea2D(ped, a, b, widthAndDir, highlightArea, true, false, false);
 }
 
-// IS_CHAR_STOPPED_IN_ANGLED_AREA_2D
+/*
+ * @opcode 05F9
+ * @command IS_CHAR_STOPPED_IN_ANGLED_AREA_2D
+ * @class Char
+ * @method IsStoppedInAngledArea2D
+ * 
+ * @brief Checks if the character is within the angled 2D area and is motionless
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharStoppedInAngledArea2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea2D(ped, a, b, widthAndDir, highlightArea, false, false, true);
 }
 
-// IS_CHAR_STOPPED_IN_ANGLED_AREA_ON_FOOT_2D
+/*
+ * @opcode 05FA
+ * @command IS_CHAR_STOPPED_IN_ANGLED_AREA_ON_FOOT_2D
+ * @class Char
+ * @method IsStoppedInAngledAreaOnFoot2D
+ * 
+ * @brief Checks if the character is within the angled 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharStoppedInAngledAreaOnFoot2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea2D(ped, a, b, widthAndDir, highlightArea, false, true, true);
 }
 
 // IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_2D
+/*
+ * @opcode 05FB
+ * @command IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_2D
+ * @class Char
+ * @method IsStoppedInAngledAreaInCar2D
+ * 
+ * @brief Checks if the character is in a motionless car within the angled 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharStoppedInAngledAreaInCar2D(CPed& ped, CVector2D a, CVector2D b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea2D(ped, a, b, widthAndDir, highlightArea, true, false, true);
 }
@@ -530,51 +1336,172 @@ bool IsPedInAngledArea3D(CPed& ped, CVector a, CVector b, float widthAndDir, boo
     );
 }
 
-// IS_CHAR_IN_ANGLED_AREA_3D
+/*
+ * @opcode 05FC
+ * @command IS_CHAR_IN_ANGLED_AREA_3D
+ * @class Char
+ * @method IsInAngledArea3D
+ * 
+ * @brief Checks if the character is within the angled 3D area
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharInAngledArea3D(CPed& ped, CVector a, CVector b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea3D(ped, a, b, widthAndDir, highlightArea, false, false, false);
 }
 
-// IS_CHAR_IN_ANGLED_AREA_ON_FOOT_3D
+/*
+ * @opcode 05FD
+ * @command IS_CHAR_IN_ANGLED_AREA_ON_FOOT_3D
+ * @class Char
+ * @method IsInAngledAreaOnFoot3D
+ * 
+ * @brief Checks if the character is within the angled 3D area
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharInAngledAreaOnFoot3D(CPed& ped, CVector a, CVector b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea3D(ped, a, b, widthAndDir, highlightArea, false, true, false);
 }
 
-// IS_CHAR_IN_ANGLED_AREA_IN_CAR_3D
+/*
+ * @opcode 05FE
+ * @command IS_CHAR_IN_ANGLED_AREA_IN_CAR_3D
+ * @class Char
+ * @method IsInAngledAreaInCar3D
+ * 
+ * @brief Checks if the character is in a car which is within the angled 3D area
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharInAngledAreaInCar3D(CPed& ped, CVector a, CVector b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea3D(ped, a, b, widthAndDir, highlightArea, true, false, false);
 }
 
-// IS_CHAR_STOPPED_IN_ANGLED_AREA_3D
+/*
+ * @opcode 05FF
+ * @command IS_CHAR_STOPPED_IN_ANGLED_AREA_3D
+ * @class Char
+ * @method IsStoppedInAngledArea3D
+ * 
+ * @brief Checks if the character is within the angled 3D area and is motionless
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharStoppedInAngledArea3D(CPed& ped, CVector a, CVector b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea3D(ped, a, b, widthAndDir, highlightArea, false, false, true);
 }
 
-// IS_CHAR_STOPPED_IN_ANGLED_AREA_ON_FOOT_3D
+/*
+ * @opcode 0600
+ * @command IS_CHAR_STOPPED_IN_ANGLED_AREA_ON_FOOT_3D
+ * @class Char
+ * @method IsStoppedInAngledAreaOnFoot3D
+ * 
+ * @brief Checks if the character is on foot within the angled 3D area and is motionless
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharStoppedInAngledAreaOnFoot3D(CPed& ped, CVector a, CVector b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea3D(ped, a, b, widthAndDir, highlightArea, false, true, true);
 }
 
 // IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_3D
+/*
+ * @opcode 0601
+ * @command IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_3D
+ * @class Char
+ * @method IsStoppedInAngledAreaInCar3D
+ * 
+ * @brief Checks if the character is in a motionless car within the angled 3D area
+ * 
+ * @param {Char} self
+ * @param {Vector} leftBottom
+ * @param {Vector} rightTop
+ * @param {float} angle
+ * @param {bool} drawSphere
+ */
 auto IsCharStoppedInAngledAreaInCar3D(CPed& ped, CVector a, CVector b, float widthAndDir, bool highlightArea) {
     return IsPedInAngledArea3D(ped, a, b, widthAndDir, highlightArea, true, false, true);
 }
 
+/*
+ * @opcode 0118
+ * @command IS_CHAR_DEAD
+ * @class Char
+ * @method IsDead
+ * @static
+ * 
+ * @brief Returns true if the handle is an invalid character handle or the character is dead (wasted)
+ * 
+ * @param {Char} char_
+ */
 auto IsCharDead(CPed* ped) {
     return !ped || ped->IsStateDeadForScript();
 }
 
-// IS_CHAR_IN_ZONE
+/*
+ * @opcode 0154
+ * @command IS_CHAR_IN_ZONE
+ * @class Char
+ * @method IsInZone
+ * 
+ * @brief Returns true if the character is in the specified map zone
+ * 
+ * @param {Char} self
+ * @param {zone_key} zone
+ */
 auto IsCharInZone(CPed& ped, std::string_view zoneName) {
     return CTheZones::FindZone(GetCharCoordinates(ped), zoneName, ZONE_TYPE_NAVI);
 }
 
-// GET_CHAR_HEADING
+/*
+ * @opcode 0172
+ * @command GET_CHAR_HEADING
+ * @class Char
+ * @method GetHeading
+ * 
+ * @brief Returns the character's heading (z-angle)
+ * 
+ * @param {Char} self
+ * 
+ * @returns {float} heading
+ */
 auto GetCharHeading(CPed& ped) {
     return FixAngleDegrees(RadiansToDegrees(GetPedOrItsVehicle(ped).GetHeading()));
 }
 
-// SET_CHAR_HEADING
+/*
+ * @opcode 0173
+ * @command SET_CHAR_HEADING
+ * @class Char
+ * @method SetHeading
+ * 
+ * @brief Sets the character's heading (z-angle)
+ * 
+ * @param {Char} self
+ * @param {float} heading
+ */
 auto SetCharHeading(CPed& ped, float deg) {
     if (ped.IsInVehicle()) {
         return;
@@ -586,17 +1513,48 @@ auto SetCharHeading(CPed& ped, float deg) {
     ped.UpdateRwMatrix();
 }
 
-// IS_CHAR_TOUCHING_OBJECT
+/*
+ * @opcode 0179
+ * @command IS_CHAR_TOUCHING_OBJECT
+ * @class Char
+ * @method IsTouchingObject
+ * 
+ * @brief Returns true if the character is colliding with the specified object
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ */
 auto IsCharTouchingObject(CPed& ped, CObject& obj) {
     return GetPedOrItsVehicle(ped).GetHasCollidedWith(&obj);
 }
 
-// SET_CHAR_AMMO
+/*
+ * @opcode 017B
+ * @command SET_CHAR_AMMO
+ * @class Char
+ * @method SetAmmo
+ * 
+ * @brief Sets the amount of ammo the character has in the specified weapon
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ * @param {int} ammo
+ */
 auto SetCharAmmo(CPed& ped, eWeaponType wep, int32 nammo) {
     ped.SetAmmo(wep, nammo);
 }
 
-// IS_CHAR_HEALTH_GREATER
+/*
+ * @opcode 0184
+ * @command IS_CHAR_HEALTH_GREATER
+ * @class Char
+ * @method IsHealthGreater
+ * 
+ * @brief Returns true if the character's health is over the specified value
+ * 
+ * @param {Char} self
+ * @param {int} health
+ */
 auto IsCharHealthGreater(CPed& ped, float health) {
     return ped.m_fHealth >= health;
 }
@@ -630,6 +1588,17 @@ CPed& CreateCharInsideCar(CRunningScript& S, CVehicle& veh, ePedType pedType, eM
 }
 
 /// SET_CHAR_HEALTH(0223)
+/*
+ * @opcode 0223
+ * @command SET_CHAR_HEALTH
+ * @class Char
+ * @method SetHealth
+ * 
+ * @brief Sets the character's health
+ * 
+ * @param {Char} self
+ * @param {int} health
+ */
 auto SetCharHealth(CPed& ped, float health) {
     if (health != 0.f) {
         if (ped.IsPlayer()) {
@@ -656,27 +1625,79 @@ auto SetCharHealth(CPed& ped, float health) {
     }
 }
 
-// GET_CHAR_HEALTH
+/*
+ * @opcode 0226
+ * @command GET_CHAR_HEALTH
+ * @class Char
+ * @method GetHealth
+ * 
+ * @brief Returns the character's health
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} health
+ */
 auto GetCharHealth(CPed& ped) {
     return ped.m_fHealth;
 }
 
-// IS_CHAR_TOUCHING_OBJECT_ON_FOOT
+/*
+ * @opcode 023B
+ * @command IS_CHAR_TOUCHING_OBJECT_ON_FOOT
+ * @class Char
+ * @method IsTouchingObjectOnFoot
+ * 
+ * @brief Returns true if the character is colliding with the specified object on foot
+ * 
+ * @param {Char} self
+ * @param {Object} object
+ */
 auto IsCharTouchingObjectOnFoot(CPed& ped, CObject& obj) {
     return !ped.IsInVehicle() && ped.GetHasCollidedWith(&obj);
 }
 
-// IS_CHAR_STOPPED
+/*
+ * @opcode 02A0
+ * @command IS_CHAR_STOPPED
+ * @class Char
+ * @method IsStopped
+ * 
+ * @brief Returns true if the character is not moving
+ * 
+ * @param {Char} self
+ */
 auto IsCharStopped(CPed& ped) {
     return CTheScripts::IsPedStopped(&ped);
 }
 
-// SET_CHAR_ONLY_DAMAGED_BY_PLAYER
+/*
+ * @opcode 02A9
+ * @command SET_CHAR_ONLY_DAMAGED_BY_PLAYER
+ * @class Char
+ * @method SetOnlyDamagedByPlayer
+ * 
+ * @brief Makes a character immune to everything except the player
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharOnlyDamagedByPlayer(CPed& ped, bool enabled) {
     ped.physicalFlags.bInvulnerable = enabled;
 }
 
-// GET_CLOSEST_CHAR_NODE
+/*
+ * @opcode 02C0
+ * @command GET_CLOSEST_CHAR_NODE
+ * @class Path
+ * @method GetClosestCharNode
+ * @static
+ * 
+ * @brief Returns the nearest path node from the specified coordinates that a pedestrian can walk on
+ * 
+ * @param {Vector} 
+ * 
+ * @returns {Vector} node
+ */
 auto GetClosestCharNode(CVector pos) -> CVector {
     CWorld::PutToGroundIfTooLow(pos);
     if (const auto node = ThePaths.FindNodeClosestToCoors(pos)) {
@@ -685,12 +1706,33 @@ auto GetClosestCharNode(CVector pos) -> CVector {
     return {}; // Can't find anything nearby
 }
 
-// IS_CHAR_ON_SCREEN
+/*
+ * @opcode 02CB
+ * @command IS_CHAR_ON_SCREEN
+ * @class Char
+ * @method IsOnScreen
+ * 
+ * @brief Returns true if the character is visible
+ * 
+ * @param {Char} self
+ */
 auto IsCharOnScreen(CPed& ped) {
     return ped.GetIsOnScreen();
 }
 
-// IS_CHAR_SHOOTING_IN_AREA
+/*
+ * @opcode 02D6
+ * @command IS_CHAR_SHOOTING_IN_AREA
+ * @class Char
+ * @method IsShootingInArea
+ * 
+ * @brief Returns true if the character fired a weapon within the specified 2D area
+ * 
+ * @param {Char} self
+ * @param {Vector2D} leftBottom
+ * @param {Vector2D} topRight
+ * @param {bool} drawSphere
+ */
 auto IsCharShootingInArea(CRunningScript& S, CPed& ped, CRect area, bool highlightArea) {
     if (highlightArea) {
         S.HighlightImportantArea(area);
@@ -703,7 +1745,17 @@ auto IsCharShootingInArea(CRunningScript& S, CPed& ped, CRect area, bool highlig
     return ped.bFiringWeapon && area.IsPointInside(ped.GetPosition2D());
 }
 
-// IS_CURRENT_CHAR_WEAPON
+/*
+ * @opcode 02D8
+ * @command IS_CURRENT_CHAR_WEAPON
+ * @class Char
+ * @method IsCurrentWeapon
+ * 
+ * @brief Returns true if the character is holding the given type of weapon
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ */
 auto IsCurrentCharWeapon(CPed& ped, eWeaponType wep) {
     if (wep == WEAPON_ANYMELEE && ped.GetActiveWeapon().IsTypeMelee()) {
         return true;
@@ -711,7 +1763,21 @@ auto IsCurrentCharWeapon(CPed& ped, eWeaponType wep) {
     return ped.GetActiveWeapon().m_Type == wep;
 }
 
-// GET_RANDOM_CHAR_IN_ZONE
+/*
+ * @opcode 02DD
+ * @command GET_RANDOM_CHAR_IN_ZONE
+ * @class Zone
+ * @method GetRandomChar
+ * 
+ * @brief Gets a random character in the specified zone whose pedtype matches the specified values
+ * 
+ * @param {zone_key} zone
+ * @param {bool} civilian
+ * @param {bool} gang
+ * @param {bool} criminalOrProstitute
+ * 
+ * @returns {Char} handle
+ */
 auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civilian, bool gang, bool criminal) -> CPed* { // 0x04802D0
     const auto playerPosZ = FindPlayerCoors().z;
     for (auto& ped : GetPedPool()->GetAllValid()) {
@@ -752,12 +1818,32 @@ auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civi
     return nullptr; // No suitable ped found
 }
 
-// IS_CHAR_MODEL
+/*
+ * @opcode 02F2
+ * @command IS_CHAR_MODEL
+ * @class Char
+ * @method IsModel
+ * 
+ * @brief Returns true if the character's model ID is equivalent to the model ID passed
+ * 
+ * @param {Char} self
+ * @param {model_char} modelId
+ */
 auto IsCharModel(CPed& ped, int8 accuracy) {
     ped.m_nWeaponAccuracy = accuracy;
 }
 
-// HAS_CHAR_BEEN_DAMAGED_BY_WEAPON
+/*
+ * @opcode 031D
+ * @command HAS_CHAR_BEEN_DAMAGED_BY_WEAPON
+ * @class Char
+ * @method HasBeenDamagedByWeapon
+ * 
+ * @brief Returns true if the character has been hit by the specified weapon
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ */
 auto HasCharBeenDamagedByWeapon(CPed* ped, eWeaponType byWepType) {
     if (!ped) {
         return false;
@@ -770,7 +1856,16 @@ auto HasCharBeenDamagedByWeapon(CPed* ped, eWeaponType byWepType) {
     return (eWeaponType)(ped->m_nLastWeaponDamage) == byWepType;
 }
 
-// EXPLODE_CHAR_HEAD
+/*
+ * @opcode 0321
+ * @command EXPLODE_CHAR_HEAD
+ * @class Char
+ * @method ExplodeHead
+ * 
+ * @brief Dismembers the character
+ * 
+ * @param {Char} self
+ */
 auto ExplodeCharHead(CPed& ped) {
     CEventDamage dmgEvent{
         nullptr,
@@ -796,12 +1891,33 @@ auto ExplodeCharHead(CPed& ped) {
     ped.GetEventGroup().Add(dmgEvent);
 }
 
-// START_CHAR_FIRE
+/*
+ * @opcode 0326
+ * @command START_CHAR_FIRE
+ * @class ScriptFire
+ * @method CreateCharFire
+ * 
+ * @brief Creates a script fire on the character
+ * 
+ * @param {Char} char_
+ * 
+ * @returns {ScriptFire} handle
+ */
 auto StartCharFire(CPed& ped) { // TODO: return type: ScriptThing<CFire>
     return gFireManager.StartScriptFire(ped.GetPosition(), &ped, 0.8f, true, 0, 1);
 }
 
-// SET_CHAR_VISIBLE
+/*
+ * @opcode 0337
+ * @command SET_CHAR_VISIBLE
+ * @class Char
+ * @method SetVisible
+ * 
+ * @brief Sets whether the character is visible or not
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharVisible(CPed& ped, bool isVisible) {
     if (&ped == FindPlayerPed()) {
         gPlayerPedVisible = isVisible;
@@ -809,7 +1925,16 @@ auto SetCharVisible(CPed& ped, bool isVisible) {
     ped.SetIsVisible(isVisible);
 }
 
-// REMOVE_CHAR_ELEGANTLY
+/*
+ * @opcode 034F
+ * @command REMOVE_CHAR_ELEGANTLY
+ * @class Char
+ * @method RemoveElegantly
+ * 
+ * @brief Removes the character with a fade, freeing game memory
+ * 
+ * @param {Char} self
+ */
 auto RemoveCharElegantly(CRunningScript& S, CPed* ped) {
     if (ped && ped->IsCreatedBy(PED_MISSION)) {
         if (ped->IsInVehicle()) {
@@ -831,12 +1956,32 @@ auto RemoveCharElegantly(CRunningScript& S, CPed* ped) {
     }
 }
 
-// SET_CHAR_STAY_IN_SAME_PLACE
+/*
+ * @opcode 0350
+ * @command SET_CHAR_STAY_IN_SAME_PLACE
+ * @class Char
+ * @method SetStayInSamePlace
+ * 
+ * @brief Makes the character maintain their position when attacked
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetCharStayInSamePlace(CPed& ped, bool bStay) {
     ped.SetStayInSamePlace(bStay);
 }
 
-// WARP_CHAR_FROM_CAR_TO_COORD
+/*
+ * @opcode 0362
+ * @command WARP_CHAR_FROM_CAR_TO_COORD
+ * @class Char
+ * @method WarpFromCarToCoord
+ * 
+ * @brief Pulls the character out of their car and places at the location
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ */
 auto WarpCharFromCarToCoord(CPed& ped, CVector pos) {
     CWorld::PutToGroundIfTooLow(pos);
     ped.GetIntelligence()->FlushImmediately(true);
@@ -848,42 +1993,115 @@ auto WarpCharFromCarToCoord(CPed& ped, CVector pos) {
     CTheScripts::ClearSpaceForMissionEntity(pos, &ped);
 }
 
-// HAS_CHAR_SPOTTED_CHAR
+/*
+ * @opcode 0364
+ * @command HAS_CHAR_SPOTTED_CHAR
+ * @class Char
+ * @method HasSpottedChar
+ * 
+ * @brief Returns true if the character can see the target character
+ * 
+ * @param {Char} self
+ * @param {Char} target
+ */
 auto HasCharSpottedChar(CPed& ped, CPed& target) {
     return ped.OurPedCanSeeThisEntity(&target, true);
 }
 
-// WARP_CHAR_INTO_CAR
+/*
+ * @opcode 036A
+ * @command WARP_CHAR_INTO_CAR
+ * @class Char
+ * @method WarpIntoCar
+ * 
+ * @brief Puts the character in the specified vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ */
 auto WarpCharIntoCar(CPed& ped, CVehicle& veh) {
     ped.GetIntelligence()->FlushImmediately(false);
     CTaskSimpleCarSetPedInAsDriver{ &veh, true, nullptr }.ProcessPed(&ped);
 }
 
-// SET_CHAR_ANIM_SPEED
+/*
+ * @opcode 0393
+ * @command SET_CHAR_ANIM_SPEED
+ * @class Char
+ * @method SetAnimSpeed
+ * 
+ * @brief Makes an char perform an animation at the specified speed
+ * 
+ * @param {Char} self
+ * @param {string} animName
+ * @param {float} animSpeed
+ */
 auto SetCharAnimSpeed(CPed& ped, const char* animName, float speed) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
         anim->SetSpeed(speed);
     }
 }
 
-// IS_CHAR_MALE
+/*
+ * @opcode 03A3
+ * @command IS_CHAR_MALE
+ * @class Char
+ * @method IsMale
+ * 
+ * @brief Returns true if the character is male
+ * 
+ * @param {Char} self
+ */
 auto IsCharMale(CPed& ped) {
     return !IsPedTypeFemale(ped.m_nPedType);
 }
 
-// STORE_CAR_CHAR_IS_IN_NO_SAVE
+/*
+ * @opcode 03C0
+ * @command STORE_CAR_CHAR_IS_IN_NO_SAVE
+ * @class Char
+ * @method StoreCarIsInNoSave
+ * 
+ * @brief Returns the character's vehicle handle without marking it as used by the script, therefore allowing it to be deleted by the game at any time (alts:00D9,0811,0484)
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Car} handle
+ */
 auto StoreCarCharIsInNoSave(CPed& ped) -> CVehicle& { 
     assert(ped.bInVehicle && ped.m_pVehicle); // Original code had a bug (namely, calling VehiclePool::GetRef() with nullptr, very bad)
     return *ped.m_pVehicle;
 }
 
-// SET_CHAR_MONEY
+/*
+ * @opcode 03FE
+ * @command SET_CHAR_MONEY
+ * @class Char
+ * @method SetMoney
+ * 
+ * @brief Sets the character's cash sum, setting how much cash they will drop when dead
+ * 
+ * @param {Char} self
+ * @param {int} amount
+ */
 auto SetCharMoney(CPed& ped, int16 money) {
     ped.bMoneyHasBeenGivenByScript = true;
     ped.m_nMoneyCount = money;
 }
 
-// GET_AMMO_IN_CHAR_WEAPON
+/*
+ * @opcode 041A
+ * @command GET_AMMO_IN_CHAR_WEAPON
+ * @class Char
+ * @method GetAmmoInWeapon
+ * 
+ * @brief Gets the amount of ammo in the specified weapon of the character
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ * 
+ * @returns {int} ammo
+ */
 auto GetAmmoInCharWeapon(CPed& ped, eWeaponType wtype) -> uint32 {
     for (auto& wep : ped.m_aWeapons) { 
         if (wep.m_Type == wtype) { // Originally they continued looping, but that doesn't make sense (A ped can't have the same weapon _twice_)
@@ -893,7 +2111,18 @@ auto GetAmmoInCharWeapon(CPed& ped, eWeaponType wtype) -> uint32 {
     return 0;
 }
 
-// WARP_CHAR_INTO_CAR_AS_PASSENGER
+/*
+ * @opcode 0430
+ * @command WARP_CHAR_INTO_CAR_AS_PASSENGER
+ * @class Char
+ * @method WarpIntoCarAsPassenger
+ * 
+ * @brief Puts the character into a vehicle's passenger seat
+ * 
+ * @param {Char} self
+ * @param {Car} handle
+ * @param {SeatId} seat
+ */
 auto WarpCharIntoCarAsPassenger(CPed& ped, CVehicle& veh, int32 psgrSeatIdx) {
     if (psgrSeatIdx >= 0) {
         psgrSeatIdx = CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(&veh, psgrSeatIdx);
@@ -902,7 +2131,19 @@ auto WarpCharIntoCarAsPassenger(CPed& ped, CVehicle& veh, int32 psgrSeatIdx) {
     CTaskSimpleCarSetPedInAsPassenger{ &veh, (eTargetDoor)(psgrSeatIdx), true }.ProcessPed(&ped); // Warp ped into car
 }
 
-// GET_CHAR_IN_CAR_PASSENGER_SEAT - TODO: Move to `Vehicle`
+/*
+ * @opcode 0432
+ * @command GET_CHAR_IN_CAR_PASSENGER_SEAT
+ * @class Car
+ * @method GetCharInPassengerSeat
+ * 
+ * @brief Returns the handle of a character sitting in the specified car seat
+ * 
+ * @param {Car} self
+ * @param {SeatId} seat
+ * 
+ * @returns {Char} handle
+ */
 auto GetCharInCarPassengerSeat(CVehicle& veh, uint32 psgrSeatIdx) -> CPed& {
     return *veh.m_apPassengers[psgrSeatIdx];
 }
@@ -911,22 +2152,64 @@ bool HasPedSittingInCarTask(CPed& ped) {
     return ped.GetTaskManager().IsSimplestActiveTaskOfType({ TASK_SIMPLE_CAR_DRIVE, TASK_SIMPLE_GANG_DRIVEBY });
 }
 
-// IS_CHAR_SITTING_IN_CAR
+/*
+ * @opcode 0448
+ * @command IS_CHAR_SITTING_IN_CAR
+ * @class Char
+ * @method IsSittingInCar
+ * 
+ * @brief Returns true if the character is sitting in the specified vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ */
 auto IsCharSittingInCar(CPed& ped, CVehicle& veh) {
     return ped.bInVehicle && ped.m_pVehicle == &veh && HasPedSittingInCarTask(ped);
 }
 
-// IS_CHAR_SITTING_IN_ANY_CAR
+/*
+ * @opcode 0449
+ * @command IS_CHAR_SITTING_IN_ANY_CAR
+ * @class Char
+ * @method IsSittingInAnyCar
+ * 
+ * @brief Returns true if the character is sitting in any vehicle
+ * 
+ * @param {Char} self
+ */
 auto IsCharSittingInAnyCar(CPed& ped) {
     return ped.bInVehicle && HasPedSittingInCarTask(ped);
 }
 
-// IS_CHAR_ON_FOOT
+/*
+ * @opcode 044B
+ * @command IS_CHAR_ON_FOOT
+ * @class Char
+ * @method IsOnFoot
+ * 
+ * @brief Returns true if the character is on foot, and not occupying a vehicle
+ * 
+ * @param {Char} self
+ */
 auto IsCharOnFoot(CPed& ped) {
     return !ped.bInVehicle && !ped.GetTaskManager().HasAnyOf<TASK_COMPLEX_ENTER_CAR_AS_PASSENGER, TASK_COMPLEX_ENTER_CAR_AS_DRIVER>();
 }
 
-// ATTACH_CHAR_TO_CAR
+/*
+ * @opcode 0464
+ * @command ATTACH_CHAR_TO_CAR
+ * @class Char
+ * @method AttachToCar
+ * 
+ * @brief Puts character into a turret on the vehicle, allowing them to shoot
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector} offset
+ * @param {Facing} heading
+ * @param {float} headingRange
+ * @param {WeaponType} weaponType
+ */
 auto AttachCharToCar(CPed& ped, CVehicle& veh, CVector offset, int32 pos, float angleLimitDeg, eWeaponType wtype) {
     ped.AttachPedToEntity(
         &veh,
@@ -937,24 +2220,63 @@ auto AttachCharToCar(CPed& ped, CVehicle& veh, CVector offset, int32 pos, float 
     );
 }
 
-// DETACH_CHAR_FROM_CAR
+/*
+ * @opcode 0465
+ * @command DETACH_CHAR_FROM_CAR
+ * @class Char
+ * @method DetachFromCar
+ * 
+ * @brief Takes the character out of turret mode (0464)
+ * 
+ * @param {Char} self
+ */
 auto DetachCharFromCar(CPed* ped) {
     if (ped && ped->m_pAttachedTo) {
         ped->DettachPedFromEntity();
     }
 }
 
-// CLEAR_CHAR_LAST_WEAPON_DAMAGE
+/*
+ * @opcode 0467
+ * @command CLEAR_CHAR_LAST_WEAPON_DAMAGE
+ * @class Char
+ * @method ClearLastWeaponDamage
+ * 
+ * @brief Clears the character's last weapon damage (see 031D)
+ * 
+ * @param {Char} self
+ */
 auto ClearCharLastWeaponDamage(CPed& ped) {
     ped.m_nLastWeaponDamage = -1;
 }
 
-// GET_CURRENT_CHAR_WEAPON
+/*
+ * @opcode 0470
+ * @command GET_CURRENT_CHAR_WEAPON
+ * @class Char
+ * @method GetCurrentWeapon
+ * 
+ * @brief Returns the type of weapon that the character is currently holding
+ * 
+ * @param {Char} self
+ * 
+ * @returns {WeaponType} weaponType
+ */
 auto GetCurrentCharWeapon(CPed& ped) {
     return ped.GetActiveWeapon().m_Type;
 }
 
-// CAN_CHAR_SEE_DEAD_CHAR
+/*
+ * @opcode 0480
+ * @command CAN_CHAR_SEE_DEAD_CHAR
+ * @class Char
+ * @method CanSeeDeadChar
+ * 
+ * @brief Returns true if the character sees a dead body of the given type
+ * 
+ * @param {Char} self
+ * @param {PedType} pedType
+ */
 auto CanCharSeeDeadChar(CPed& ped) {
     for (auto& nearbyPed : ped.GetIntelligence()->GetPedScanner().GetEntities<CPed>()) {
         if (!nearbyPed.IsAlive() && CPedGeometryAnalyser::CanPedTargetPed(ped, nearbyPed, true)) {
@@ -964,7 +2286,17 @@ auto CanCharSeeDeadChar(CPed& ped) {
     return false;
 }
 
-// SHUT_CHAR_UP
+/*
+ * @opcode 0489
+ * @command SHUT_CHAR_UP
+ * @class Char
+ * @method ShutUp
+ * 
+ * @brief Sets the character's ability to talk
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto ShutCharUp(CPed& ped, bool stfu) {
     if (stfu) {
         ped.DisablePedSpeech(false);
@@ -973,17 +2305,48 @@ auto ShutCharUp(CPed& ped, bool stfu) {
     }
 }
 
-// REMOVE_ALL_CHAR_WEAPONS
+/*
+ * @opcode 048F
+ * @command REMOVE_ALL_CHAR_WEAPONS
+ * @class Char
+ * @method RemoveAllWeapons
+ * 
+ * @brief Removes the characters weapons
+ * 
+ * @param {Char} self
+ */
 auto RemoveAllCharWeapons(CPed& ped) {
     ped.ClearWeapons();
 }
 
-// HAS_CHAR_GOT_WEAPON
+/*
+ * @opcode 0491
+ * @command HAS_CHAR_GOT_WEAPON
+ * @class Char
+ * @method HasGotWeapon
+ * 
+ * @brief Returns true if the character has the specified weapon
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ */
 auto HasCharGotWeapon(CPed& ped, eWeaponType wtype) {
     return notsa::contains(ped.m_aWeapons, wtype, [](CWeapon& w) { return w.m_Type; });
 }
 
-// GET_DEAD_CHAR_PICKUP_COORDS
+/*
+ * @opcode 04A5
+ * @command GET_DEAD_CHAR_PICKUP_COORDS
+ * @class World
+ * @method GetDeadCharPickupCoords
+ * @static
+ * 
+ * @brief Returns appropriate coordinates for creating a pickup by a dead character
+ * 
+ * @param {Char} char_
+ * 
+ * @returns {Vector} 
+ */
 auto GetDeadCharPickupCoords(CPed& ped) {
     CVector pos;
     ped.CreateDeadPedPickupCoors(pos);
@@ -994,43 +2357,121 @@ auto IsPedInVehicleOfAppearance(CPed& ped, eVehicleAppearance appr) {
     return ped.IsInVehicle() && ped.m_pVehicle->GetVehicleAppearance() == appr;
 }
 
-// IS_CHAR_ON_ANY_BIKE
+/*
+ * @opcode 047A
+ * @command IS_CHAR_ON_ANY_BIKE
+ * @class Char
+ * @method IsOnAnyBike
+ * 
+ * @brief Returns true if the character is riding a bike
+ * 
+ * @param {Char} self
+ */
 auto IsCharOnAnyBike(CPed& ped) {
     return IsPedInVehicleOfAppearance(ped, VEHICLE_APPEARANCE_BIKE);
 }
 
-// IS_CHAR_IN_ANY_BOAT
+/*
+ * @opcode 04A7
+ * @command IS_CHAR_IN_ANY_BOAT
+ * @class Char
+ * @method IsInAnyBoat
+ * 
+ * @brief Returns true if the character is driving a boat
+ * 
+ * @param {Char} self
+ */
 auto IsCharInAnyBoat(CPed& ped) {
     return IsPedInVehicleOfAppearance(ped, VEHICLE_APPEARANCE_BOAT);
 }
 
-// IS_CHAR_IN_ANY_HELI
+/*
+ * @opcode 04A9
+ * @command IS_CHAR_IN_ANY_HELI
+ * @class Char
+ * @method IsInAnyHeli
+ * 
+ * @brief Returns true if the character is flying a helicopter
+ * 
+ * @param {Char} self
+ */
 auto IsCharInAnyHeli(CPed& ped) {
     return IsPedInVehicleOfAppearance(ped, VEHICLE_APPEARANCE_HELI);
 }
 
-// IS_CHAR_IN_ANY_PLANE
+/*
+ * @opcode 04AB
+ * @command IS_CHAR_IN_ANY_PLANE
+ * @class Char
+ * @method IsInAnyPlane
+ * 
+ * @brief Returns true if the character is in a plane
+ * 
+ * @param {Char} self
+ */
 auto IsCharInAnyPlane(CPed& ped) {
     return IsPedInVehicleOfAppearance(ped, VEHICLE_APPEARANCE_PLANE);
 }
 
-// IS_CHAR_IN_WATER
+/*
+ * @opcode 04AD
+ * @command IS_CHAR_IN_WATER
+ * @class Char
+ * @method IsInWater
+ * 
+ * @brief Returns true if the character is in water
+ * 
+ * @param {Char} self
+ */
 auto IsCharInWater(CPed* ped) {
     return ped && ped->physicalFlags.bSubmergedInWater;
 }
 
-// GET_CHAR_WEAPON_IN_SLOT
+/*
+ * @opcode 04B8
+ * @command GET_CHAR_WEAPON_IN_SLOT
+ * @class Char
+ * @method GetWeaponInSlot
+ * 
+ * @brief Returns the weapon type, ammo and model from the specified slot
+ * 
+ * @param {Char} self
+ * @param {int} slot
+ * 
+ * @returns {WeaponType} weaponType, {int} weaponAmmo, {model_object} weaponModel
+ */
 auto GetCharWeaponInSlot(CPed& ped, int slot) {
     const auto& wep = ped.GetWeaponInSlot(slot - 1); // 1-based slot index
     return notsa::script::return_multiple(wep.m_Type, wep.m_TotalAmmo, CPickups::ModelForWeapon(wep.m_Type));
 }
 
-// GET_OFFSET_FROM_CHAR_IN_WORLD_COORDS
+/*
+ * @opcode 04C4
+ * @command GET_OFFSET_FROM_CHAR_IN_WORLD_COORDS
+ * @class Char
+ * @method GetOffsetInWorldCoords
+ * 
+ * @brief Returns the coordinates of the character, with an offset
+ * 
+ * @param {Char} self
+ * @param {Vector} offset
+ * 
+ * @returns {Vector} 
+ */
 auto GetOffsetFromCharInWorldCoords(CPed& ped, CVector offset) {
     return ped.GetMatrix().TransformPoint(offset);
 }
 
-// HAS_CHAR_BEEN_PHOTOGRAPHED
+/*
+ * @opcode 04C5
+ * @command HAS_CHAR_BEEN_PHOTOGRAPHED
+ * @class Char
+ * @method HasBeenPhotographed
+ * 
+ * @brief Returns true if the character has been photographed
+ * 
+ * @param {Char} self
+ */
 auto HasCharBeenPhotographed(CPed* ped) {
     if (ped) {
         if (ped->bHasBeenPhotographed) {
@@ -1041,45 +2482,122 @@ auto HasCharBeenPhotographed(CPed* ped) {
     return false;
 }
 
-// IS_CHAR_IN_FLYING_VEHICLE
+/*
+ * @opcode 04C8
+ * @command IS_CHAR_IN_FLYING_VEHICLE
+ * @class Char
+ * @method IsInFlyingVehicle
+ * 
+ * @brief Returns true if the character is in a flying vehicle
+ * 
+ * @param {Char} self
+ */
 auto IsCharInFlyingVehicle(CPed& ped) {
     return IsCharInAnyHeli(ped) || IsCharInAnyPlane(ped);
 }
 
-// GET_CHAR_ARMOUR
+/*
+ * @opcode 04DD
+ * @command GET_CHAR_ARMOUR
+ * @class Char
+ * @method GetArmor
+ * 
+ * @brief Returns the character's armor amount
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} armor
+ */
 auto GetCharArmour(CPed& ped) {
     return ped.m_fArmour;
 }
 
 // 0x48C12E - COMMAND_GET_CHAR_ARMOUR
+/*
+ * @opcode 04DE
+ * @command SET_CHAR_ARMOUR
+ */
 void SetCharArmour(CPed& ped, float value) {
     ped.m_fArmour = value;
 }
 
-// ATTACH_CHAR_TO_OBJECT
+/*
+ * @opcode 04F4
+ * @command ATTACH_CHAR_TO_OBJECT
+ * @class Char
+ * @method AttachToObject
+ * 
+ * @brief Attaches the character to the specified object, in turret mode
+ * 
+ * @param {Char} self
+ * @param {Object} handle
+ * @param {Vector} offset
+ * @param {Facing} heading
+ * @param {float} headingRange
+ * @param {WeaponType} weaponType
+ */
 auto AttachCharToObject(CPed& ped, CObject& obj, CVector offset, int32 orientation, float angleLimitDeg, eWeaponType wtype) {
     ped.AttachPedToEntity(&obj, offset, orientation, DegreesToRadians(angleLimitDeg), wtype);
 }
 
-// HAS_CHAR_BEEN_DAMAGED_BY_CHAR
+/*
+ * @opcode 051A
+ * @command HAS_CHAR_BEEN_DAMAGED_BY_CHAR
+ * @class Char
+ * @method HasBeenDamagedByChar
+ * 
+ * @brief Returns true if the character has been hurt by the other character
+ * 
+ * @param {Char} self
+ * @param {Char} handle
+ */
 auto HasCharBeenDamagedByChar(CPed* ped, CPed& byPed) {
     return ped && ped->m_pLastEntityDamage
         && (ped->m_pLastEntityDamage == &byPed || byPed.bInVehicle && ped->m_pLastEntityDamage == byPed.m_pVehicle);
 }
 
-// HAS_CHAR_BEEN_DAMAGED_BY_CAR
+/*
+ * @opcode 051B
+ * @command HAS_CHAR_BEEN_DAMAGED_BY_CAR
+ * @class Char
+ * @method HasBeenDamagedByCar
+ * 
+ * @brief Returns true if the char has been hurt by the specified vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} handle
+ */
 auto HasCharBeenDamagedByCar(CPed* ped, CVehicle& veh) {
     return ped && ped->m_pLastEntityDamage == &veh;
 }
 
-// IS_CHAR_TOUCHING_VEHICLE
+/*
+ * @opcode 0547
+ * @command IS_CHAR_TOUCHING_VEHICLE
+ * @class Char
+ * @method IsTouchingVehicle
+ * 
+ * @brief Returns true if the character is colliding with a car
+ * 
+ * @param {Char} self
+ * @param {Car} handle
+ */
 auto IsCharTouchingVehicle(CPed& ped, CVehicle& withVeh) {
     return ped.bInVehicle
         ? ped.m_pVehicle->GetHasCollidedWith(&withVeh)
         : ped.GetHasCollidedWith(&withVeh);
 }
 
-// CLEAR_CHAR_LAST_DAMAGE_ENTITY
+/*
+ * @opcode 054E
+ * @command CLEAR_CHAR_LAST_DAMAGE_ENTITY
+ * @class Char
+ * @method ClearLastDamageEntity
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ */
 auto ClearCharLastDamageEntity(CPed* ped) {
     if (ped) {
         ped->m_pLastEntityDamage = nullptr;
@@ -1100,17 +2618,49 @@ auto CreateRandomCharInVehicle(CRunningScript& S, CVehicle& veh, bool asDriver, 
     return *ped;
 }
 
-// CREATE_RANDOM_CHAR_AS_DRIVER
+/*
+ * @opcode 0560
+ * @command CREATE_RANDOM_CHAR_AS_DRIVER
+ * @class Char
+ * @method CreateRandomAsDriver
+ * 
+ * @brief Creates a driver in the vehicle
+ * 
+ * @param {Car} vehicle
+ * 
+ * @returns {Char} handle
+ */
 auto CreateRandomCharAsDriver(CRunningScript& S, CVehicle& veh) -> CPed& {
     return CreateRandomCharInVehicle(S, veh, true);
 }
 
-// CREATE_RANDOM_CHAR_AS_PASSENGER
+/*
+ * @opcode 0561
+ * @command CREATE_RANDOM_CHAR_AS_PASSENGER
+ * @class Char
+ * @method CreateRandomAsPassenger
+ * 
+ * @brief Creates a random character in the passenger seat of the vehicle
+ * 
+ * @param {Car} vehicle
+ * @param {SeatId} seat
+ * 
+ * @returns {Char} handle
+ */
 auto CreateRandomCharAsPassenger(CRunningScript& S, CVehicle& veh, int32 psgrSeatIdx) -> CPed& {
     return CreateRandomCharInVehicle(S, veh, false, psgrSeatIdx);
 }
 
-// IS_CHAR_IN_ANY_POLICE_VEHICLE
+/*
+ * @opcode 056C
+ * @command IS_CHAR_IN_ANY_POLICE_VEHICLE
+ * @class Char
+ * @method IsInAnyPoliceVehicle
+ * 
+ * @brief Returns true if the character is driving a police vehicle
+ * 
+ * @param {Char} self
+ */
 auto IsCharInAnyPoliceVehicle(CPed& ped) {
     if (!ped.IsInVehicle()) {
         return false;
@@ -1119,11 +2669,32 @@ auto IsCharInAnyPoliceVehicle(CPed& ped) {
     return veh->IsLawEnforcementVehicle() && veh->m_nModelIndex != eModelID::MODEL_PREDATOR;
 }
 
-// DOES_CHAR_EXIST
+/*
+ * @opcode 056D
+ * @command DOES_CHAR_EXIST
+ * @class Char
+ * @method DoesExist
+ * @static
+ * 
+ * @brief Returns true if the handle is a valid character handle
+ * 
+ * @param {Char} char_
+ */
 auto DoesCharExist(CPed* ped) {
     return ped != nullptr;
 }
 
+/*
+ * @opcode 02E2
+ * @command SET_CHAR_ACCURACY
+ * @class Char
+ * @method SetAccuracy
+ * 
+ * @brief Affects how often the character will hit the target when attacking with a weapon
+ * 
+ * @param {Char} self
+ * @param {int} accuracy
+ */
 auto SetCharAccuracy(CPed& ped, uint8 accuracy) {
     ped.m_nWeaponAccuracy = accuracy;
 }
@@ -1136,7 +2707,17 @@ void DoSetPedIsWaitingForCollision(CRunningScript& S, CPed& ped) {
     }
 }
 
-// FREEZE_CHAR_POSITION_AND_DONT_LOAD_COLLISION
+/*
+ * @opcode 0575
+ * @command FREEZE_CHAR_POSITION_AND_DONT_LOAD_COLLISION
+ * @class Char
+ * @method FreezePositionAndDontLoadCollision
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto FreezeCharPositionAndDontLoadCollision(CRunningScript& S, CPed& ped, bool freeze) {
     ped.physicalFlags.bDontApplySpeed = freeze;
     if (freeze) {
@@ -1144,7 +2725,17 @@ auto FreezeCharPositionAndDontLoadCollision(CRunningScript& S, CPed& ped, bool f
     }
 }
 
-// SET_LOAD_COLLISION_FOR_CHAR_FLAG
+/*
+ * @opcode 0588
+ * @command SET_LOAD_COLLISION_FOR_CHAR_FLAG
+ * @class Char
+ * @method SetLoadCollisionFlag
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
     ped.physicalFlags.b15 = !loadCol;
     if (loadCol) {
@@ -1157,7 +2748,18 @@ auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
     }
 }
 
-// TASK_KILL_CHAR_ON_FOOT
+/*
+ * @opcode 05E2
+ * @command TASK_KILL_CHAR_ON_FOOT
+ * @class Task
+ * @method KillCharOnFoot
+ * @static
+ * 
+ * @brief Makes a character attack another character on foot
+ * 
+ * @param {Char} killer
+ * @param {Char} target
+ */
 auto TaskKillCharOnFoot(CRunningScript& S, eScriptCommands opcode, CPed& ped, CPed& target) {
     S.GivePedScriptedTask(
         &ped,
@@ -1166,7 +2768,16 @@ auto TaskKillCharOnFoot(CRunningScript& S, eScriptCommands opcode, CPed& ped, CP
     );
 }
 
-// IS_CHAR_IN_TAXI
+/*
+ * @opcode 0602
+ * @command IS_CHAR_IN_TAXI
+ * @class Char
+ * @method IsInTaxi
+ * 
+ * @brief Returns true if the character is driving a taxi
+ * 
+ * @param {Char} self
+ */
 auto IsCharInTaxi(CPed& ped) {
     if (ped.IsInVehicle()) {
         switch ((eModelID)(ped.m_pVehicle->m_nModelIndex)) {
@@ -1178,7 +2789,18 @@ auto IsCharInTaxi(CPed& ped) {
     return false;
 }
 
-// LOAD_CHAR_DECISION_MAKER
+/*
+ * @opcode 060A
+ * @command LOAD_CHAR_DECISION_MAKER
+ * @class DecisionMakerChar
+ * @method Load
+ * 
+ * @brief Creates a decision maker with the specified type and adds it to mission cleanup list. Otherwise should be released with REMOVE_DECISION_MAKER
+ * 
+ * @param {DecisionMakerType} type
+ * 
+ * @returns {DecisionMakerChar} handle
+ */
 auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return ScriptThing<CDecisionMaker>
     char pedDMName[1024];
     CDecisionMakerTypesFileLoader::GetPedDMName(type, pedDMName);
@@ -1190,7 +2812,17 @@ auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return Scri
     return handle;
 }
 
-// SET_CHAR_DECISION_MAKER
+/*
+ * @opcode 060B
+ * @command SET_CHAR_DECISION_MAKER
+ * @class Char
+ * @method SetDecisionMaker
+ * 
+ * @brief Sets the decision maker for the character
+ * 
+ * @param {Char} self
+ * @param {DecisionMakerCharTemplate} handleOrTemplate
+ */
 auto SetCharDecisionMaker(CPed& ped, int32 scriptHandleOfDM) { // TODO: Use `ScriptThing<CDecisionMaker>` instead of `int32` for `scriptHandleOfDM`
     ped.GetIntelligence()->SetPedDecisionMakerType(
         scriptHandleOfDM == -1
@@ -1199,19 +2831,52 @@ auto SetCharDecisionMaker(CPed& ped, int32 scriptHandleOfDM) { // TODO: Use `Scr
     );
 }
 
-// IS_CHAR_PLAYING_ANIM
+/*
+ * @opcode 0611
+ * @command IS_CHAR_PLAYING_ANIM
+ * @class Char
+ * @method IsPlayingAnim
+ * 
+ * @brief Returns true if character is performing the specified animation
+ * 
+ * @param {Char} self
+ * @param {string} animationName
+ */
 auto IsCharPlayingAnim(CPed& ped, const char* animName) {
     return RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName) != nullptr;
 }
 
-// SET_CHAR_ANIM_PLAYING_FLAG
+/*
+ * @opcode 0612
+ * @command SET_CHAR_ANIM_PLAYING_FLAG
+ * @class Char
+ * @method SetAnimPlayingFlag
+ * 
+ * @brief Sets whether the animation is playing
+ * 
+ * @param {Char} self
+ * @param {string} animationName
+ * @param {bool} flag
+ */
 auto SetCharAnimPlayingFlag(CPed& ped, const char* animName, bool started) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
         anim->SetFlag(ANIMATION_IS_PLAYING, started);
     }
 }
 
-// GET_CHAR_ANIM_CURRENT_TIME
+/*
+ * @opcode 0613
+ * @command GET_CHAR_ANIM_CURRENT_TIME
+ * @class Char
+ * @method GetAnimCurrentTime
+ * 
+ * @brief Returns the progress of the animation on the char, ranging from 0.0 to 1.0
+ * 
+ * @param {Char} self
+ * @param {string} animationName
+ * 
+ * @returns {float} time
+ */
 auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
         return anim->m_CurrentTime / anim->m_BlendHier->m_fTotalTime;
@@ -1219,7 +2884,18 @@ auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
     return 0.f;
 }
 
-// SET_CHAR_ANIM_CURRENT_TIME
+/*
+ * @opcode 0614
+ * @command SET_CHAR_ANIM_CURRENT_TIME
+ * @class Char
+ * @method SetAnimCurrentTime
+ * 
+ * @brief Sets how far through the animation the character is, with 1
+ * 
+ * @param {Char} self
+ * @param {string} animationName
+ * @param {float} time
+ */
 auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
         anim->SetCurrentTime(progress * anim->m_BlendHier->m_fTotalTime);
@@ -1227,6 +2903,19 @@ auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
 }
 
 // GET_CHAR_ANIM_TOTAL_TIME (In seconds)
+/*
+ * @opcode 061A
+ * @command GET_CHAR_ANIM_TOTAL_TIME
+ * @class Char
+ * @method GetAnimTotalTime
+ * 
+ * @brief Returns a float of the length of the animation in milliseconds
+ * 
+ * @param {Char} self
+ * @param {string} animationName
+ * 
+ * @returns {float} totalTime
+ */
 auto GetCharAnimTotalTime(CPed& ped, const char* animName) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
         return anim->m_BlendHier->m_fTotalTime * 1000.f;
@@ -1234,7 +2923,21 @@ auto GetCharAnimTotalTime(CPed& ped, const char* animName) {
     return 0.f;
 }
 
-// CREATE_CHAR_AT_ATTRACTOR
+/*
+ * @opcode 0621
+ * @command CREATE_CHAR_AT_ATTRACTOR
+ * @class Char
+ * @method CreateAtAttractor
+ * 
+ * @brief 
+ * 
+ * @param {PedType} pedType
+ * @param {model_char} modelId
+ * @param {Attractor} attractor
+ * @param {TaskCommand} task
+ * 
+ * @returns {Char} handle
+ */
 //auto CreateCharAtAttractor(CRunningScript& S, ePedType pedType, eModelID pedModel, int32 taskType, C2dEffectPedAttractor* attractor) -> CPed* {
     /*
     if (!attractor) {
@@ -1265,7 +2968,21 @@ auto GetCharAnimTotalTime(CPed& ped, const char* animName) {
     */
 //}
 
-// TASK_KILL_CHAR_ON_FOOT_WHILE_DUCKING
+/*
+ * @opcode 0634
+ * @command TASK_KILL_CHAR_ON_FOOT_WHILE_DUCKING
+ * @class Task
+ * @method KillCharOnFootWhileDucking
+ * @static
+ * 
+ * @brief 
+ * 
+ * @param {Char} char_
+ * @param {Char} target
+ * @param {int} flags
+ * @param {int} actionDelay
+ * @param {int} actionChance
+ */
 auto TaskKillCharOnFootWhileDucking(eScriptCommands command, CRunningScript& S, CPed& ped, CPed& target, int32 flags, int32 actionDelay, int32 actionChance) {
     S.GivePedScriptedTask(
         &ped,
@@ -1281,7 +2998,18 @@ auto TaskKillCharOnFootWhileDucking(eScriptCommands command, CRunningScript& S, 
     );
 }
 
-// TASK_TURN_CHAR_TO_FACE_CHAR
+/*
+ * @opcode 0639
+ * @command TASK_TURN_CHAR_TO_FACE_CHAR
+ * @class Task
+ * @method TurnCharToFaceChar
+ * @static
+ * 
+ * @brief Makes a character face another character
+ * 
+ * @param {Char} char_
+ * @param {Char} target
+ */
 auto TaskTurnCharToFaceChar(eScriptCommands command, CRunningScript& S, int32 pedHandle, CPed& target) {
     S.GivePedScriptedTask(
         pedHandle,
@@ -1290,7 +3018,17 @@ auto TaskTurnCharToFaceChar(eScriptCommands command, CRunningScript& S, int32 pe
     );
 }
 
-// IS_CHAR_AT_SCRIPTED_ATTRACTOR
+/*
+ * @opcode 0642
+ * @command IS_CHAR_AT_SCRIPTED_ATTRACTOR
+ * @class Char
+ * @method IsAtScriptedAttractor
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {Attractor} handle
+ */
 auto IsCharAtScriptedAttractor(CPed* ped, C2dEffectPedAttractor* attractor) {
     if (!attractor) {
         return false;
@@ -1301,26 +3039,56 @@ auto IsCharAtScriptedAttractor(CPed* ped, C2dEffectPedAttractor* attractor) {
         : pedUsingAttractor != nullptr;
 }
 
-// GET_CHAR_MODEL
+/*
+ * @opcode 0665
+ * @command GET_CHAR_MODEL
+ * @class Char
+ * @method GetModel
+ * 
+ * @brief Returns the characters model
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} modelId
+ */
 auto GetCharModel(CPed& ped) {
     return (eModelID)(ped.m_nModelIndex);
 }
 
-// SET_CURRENT_CHAR_WEAPON
+/*
+ * @opcode 01B9
+ * @command SET_CURRENT_CHAR_WEAPON
+ * @class Char
+ * @method SetCurrentWeapon
+ * 
+ * @brief Sets the character's currently held weapon
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ */
 void SetCurrentCharWeapon(CPed& ped, eWeaponType weaponType) {
     for (auto&& [slot, weapon] : rngv::enumerate(ped.m_aWeapons)) {
         if (weapon.m_Type != weaponType)
             continue;
 
         if (ped.IsPlayer()) {
-            ped.AsPlayer()->m_pPlayerData->m_nChosenWeapon = slot;
+            ped.AsPlayer()->GetPlayerData()->m_nChosenWeapon = slot;
         } else {
             ped.SetCurrentWeapon(slot);
         }
     }
 }
 
-// MARK_CHAR_AS_NO_LONGER_NEEDED
+/*
+ * @opcode 01C2
+ * @command MARK_CHAR_AS_NO_LONGER_NEEDED
+ * @class Char
+ * @method MarkAsNoLongerNeeded
+ * 
+ * @brief Allows the character to be deleted by the game if necessary, and also removes them from the mission cleanup list, if applicable
+ * 
+ * @param {Char} self
+ */
 void MarkCharAsNoLongerNeeded(CRunningScript& S, int32 handle) { // TODO: Some way to get a CPed* and it's handle too (As this function seems to be called even if the handle is not pointing to a ped anymore)
     const auto ped = GetPedPool()->GetAtRef(handle); // This might be null, but we need the handle even if it is, so we can't take `CPed*` either...
     CTheScripts::CleanUpThisPed(ped);
@@ -1329,17 +3097,48 @@ void MarkCharAsNoLongerNeeded(CRunningScript& S, int32 handle) { // TODO: Some w
     }
 }
 
-// GET_CHAR_SPEED
+/*
+ * @opcode 06AC
+ * @command GET_CHAR_SPEED
+ * @class Char
+ * @method GetSpeed
+ * 
+ * @brief Returns the char's movement speed
+ * 
+ * @param {Char} self
+ * 
+ * @returns {float} speed
+ */
 float GetCharSpeed(CPed& ped) {
     return ped.GetMoveSpeed().Magnitude() * 50.0f;
 }
 
 // IS_CHAR_IN_SEARCH_LIGHT
+/*
+ * @opcode 06B7
+ * @command IS_CHAR_IN_SEARCHLIGHT
+ * @class Searchlight
+ * @method IsCharIn
+ * 
+ * @brief Returns true if the searchlight has spotted the char
+ * 
+ * @param {Searchlight} self
+ * @param {Char} handle
+ */
 bool IsCharInSearchlight(uint32 searchLightIdx, CPed& ped) {
     return CSearchLight::IsSpottedEntity(searchLightIdx, ped);
 }
 
-// REMOVE_CHAR_FROM_GROUP
+/*
+ * @opcode 06C9
+ * @command REMOVE_CHAR_FROM_GROUP
+ * @class Char
+ * @method RemoveFromGroup
+ * 
+ * @brief Removes the character from their current group
+ * 
+ * @param {Char} self
+ */
 void RemoveCharFromGroup(CPed& ped) {
     if (auto pedGroup = ped.GetGroup(); pedGroup && !pedGroup->GetMembership().IsLeader(&ped)) {
         pedGroup->GetMembership().RemoveMember(&ped);
@@ -1347,13 +3146,39 @@ void RemoveCharFromGroup(CPed& ped) {
     }
 }
 
-// ATTACH_CHAR_TO_BIKE
+/*
+ * @opcode 06A7
+ * @command ATTACH_CHAR_TO_BIKE
+ * @class Char
+ * @method AttachToBike
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ * @param {Vector} offset
+ * @param {Facing} heading
+ * @param {float} headingRange
+ * @param {float} pitchRange
+ * @param {WeaponType} weaponType
+ */
 void AttachCharToBike(CPed& ped, CVehicle& bike, CVector posn, uint16 heading, float headingLimit, float verticalLimit, eWeaponType weapon) {
     // turret on car?
     ped.AttachPedToBike(&bike, posn, heading, DegreesToRadians(headingLimit), DegreesToRadians(verticalLimit), weapon);
 }
 
-// GET_CAR_CHAR_IS_USING
+/*
+ * @opcode 0811
+ * @command GET_CAR_CHAR_IS_USING
+ * @class Char
+ * @method GetCarIsUsing
+ * 
+ * @brief Stores a handle for the vehicle the character is in or entering (alts: 00D9,03C0,0484)
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Car} handle
+ */
 CVehicle* GetCarCharIsUsing(CPed& ped) {
     if (ped.bInVehicle) {
         return ped.m_pVehicle;
@@ -1367,32 +3192,90 @@ CVehicle* GetCarCharIsUsing(CPed& ped) {
     return nullptr;
 }
 
-// ENABLE_CHAR_SPEECH
+/*
+ * @opcode 094F
+ * @command ENABLE_CHAR_SPEECH
+ * @class Char
+ * @method EnableSpeech
+ * 
+ * @brief Enables pain audio if it was disabled using 094E
+ * 
+ * @param {Char} self
+ */
 void EnableCharSpeech(CPed& ped) {
     ped.EnablePedSpeech();
 }
 
-// DISABLE_CHAR_SPEECH
+/*
+ * @opcode 094E
+ * @command DISABLE_CHAR_SPEECH
+ * @class Char
+ * @method DisableSpeech
+ * 
+ * @brief Prevents any character speech from playing
+ * 
+ * @param {Char} self
+ * @param {bool} stopNow
+ */
 void DisableCharSpeech(CPed& ped, bool stopCurrentSpeech) {
     ped.DisablePedSpeech(stopCurrentSpeech);
 }
 
-// SET_CHAR_WANTED_BY_POLICE
+/*
+ * @opcode 09B6
+ * @command SET_CHAR_WANTED_BY_POLICE
+ * @class Char
+ * @method SetWantedByPolice
+ * 
+ * @brief Sets whether police should chase the character
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 void SetCharWantedByPolice(CPed& ped, bool state) {
     ped.bWantedByPolice = state;
 }
 
-// SET_CHAR_SIGNAL_AFTER_KILL
+/*
+ * @opcode 09B5
+ * @command SET_CHAR_SIGNAL_AFTER_KILL
+ * @class Char
+ * @method SetSignalAfterKill
+ * 
+ * @brief Sets whether the character signals after killing
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 void SetCharSignalAfterKill(CPed& ped, bool state) {
     ped.bSignalAfterKill = state;
 }
 
-// SET_CHAR_COORDINATES_DONT_WARP_GANG_NO_OFFSET
+/*
+ * @opcode 09BC
+ * @command SET_CHAR_COORDINATES_DONT_WARP_GANG_NO_OFFSET
+ * @class Char
+ * @method SetCoordinatesDontWarpGangNoOffset
+ * 
+ * @brief This command is a combination of 0972 and 08C7
+ * 
+ * @param {Char} self
+ * @param {Vector} 
+ */
 void SetCharCoordinatesDontWarpGangNoOffset(CRunningScript& S, CPed& ped, CVector posn) {
     S.SetCharCoordinates(ped, posn, false, false);
 }
 
-// IS_CHAR_USING_MAP_ATTRACTOR
+/*
+ * @opcode 09C5
+ * @command IS_CHAR_USING_MAP_ATTRACTOR
+ * @class Char
+ * @method IsUsingMapAttractor
+ * 
+ * @brief Returns true if the character is using a map attractor
+ * 
+ * @param {Char} self
+ */
 bool IsCharUsingMapAttractor(CPed& ped) {
     return GetPedAttractorManager()->IsPedRegisteredWithEffect(&ped);
 }
@@ -1402,7 +3285,17 @@ eTargetDoor ComputeTargetDoorToExit(const CVehicle& vehicle, const CPed& ped) {
     return plugin::CallAndReturn<eTargetDoor, 0x64F110, const CVehicle&, const CPed&>(vehicle, ped);
 }
 
-// REMOVE_CHAR_FROM_CAR_MAINTAIN_POSITION
+/*
+ * @opcode 09C9
+ * @command REMOVE_CHAR_FROM_CAR_MAINTAIN_POSITION
+ * @class Char
+ * @method RemoveFromCarMaintainPosition
+ * 
+ * @brief Removes the character from the vehicle
+ * 
+ * @param {Char} self
+ * @param {Car} vehicle
+ */
 void RemoveCharFromCarMaintainPosition(CPed& ped, CVehicle& vehicle) {
     const auto pedPos = ped.GetPosition();
     CTaskSimpleCarSetPedOut task(&vehicle, ComputeTargetDoorToExit(vehicle, ped), false);
@@ -1410,17 +3303,55 @@ void RemoveCharFromCarMaintainPosition(CPed& ped, CVehicle& vehicle) {
     ped.SetPosn(pedPos); // ?
 }
 
-// SET_CHAR_SAY_CONTEXT_IMPORTANT
+/*
+ * @opcode 09D5
+ * @command SET_CHAR_SAY_CONTEXT_IMPORTANT
+ * @class Char
+ * @method SetSayContextImportant
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {SpeechId} phrase
+ * @param {bool} overrideSilence
+ * @param {bool} ignoreMute
+ * @param {bool} frontEnd
+ * 
+ * @returns {int} saidVariant
+ */
 int16 SetCharSayContextImportant(CPed& ped, uint16 phraseId, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
     return ped.Say((eGlobalSpeechContext)phraseId, 0u, 1.0f, overrideSilence, isForceAudible, isFrontEnd);
 }
 
-// SET_CHAR_SAY_SCRIPT - 0x47ABC0
+/*
+ * @opcode 09D6
+ * @command SET_CHAR_SAY_SCRIPT
+ * @class Char
+ * @method SetSayScript
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {int} _p2
+ * @param {bool} _p3
+ * @param {bool} _p4
+ * @param {bool} _p5
+ */
 void SetCharSayScript(CPed& ped, eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
     ped.SayScript(scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 // IS_CHAR_GETTING_IN_INTO_A_CAR
+/*
+ * @opcode 09DE
+ * @command IS_CHAR_GETTING_IN_TO_A_CAR
+ * @class Char
+ * @method IsGettingInToACar
+ * 
+ * @brief Returns true if the character is entering a car, but is not in the car
+ * 
+ * @param {Char} self
+ */
 bool IsCharGettingInToACar(CPed& ped) {
     return ped.GetTaskManager().FindActiveTaskFromList({
         TASK_COMPLEX_ENTER_CAR_AS_DRIVER,
@@ -1429,17 +3360,48 @@ bool IsCharGettingInToACar(CPed& ped) {
     });
 }
 
-// GET_CHAR_AREA_VISIBLE
+/*
+ * @opcode 09E8
+ * @command GET_CHAR_AREA_VISIBLE
+ * @class Char
+ * @method GetAreaVisible
+ * 
+ * @brief Returns the interior ID that the character is in
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} areaId
+ */
 uint32 GetCharAreaVisible(CPed& ped) {
     return ped.GetAreaCode() != eAreaCodes::AREA_CODE_NORMAL_WORLD;
 }
 
-// HAS_CHAR_SPOTTED_CHAR_IN_FRONT
+/*
+ * @opcode 09ED
+ * @command HAS_CHAR_SPOTTED_CHAR_IN_FRONT
+ * @class Char
+ * @method HasSpottedCharInFront
+ * 
+ * @brief Returns true if the character can see the other character in front of them
+ * 
+ * @param {Char} self
+ * @param {Char} handle
+ */
 bool HasCharSpottedCharInFront(CPed& ped, CPed& other) {
     return ped.OurPedCanSeeThisEntity(&other, true);
 }
 
-// SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH
+/*
+ * @opcode 0A09
+ * @command SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH
+ * @class Char
+ * @method ShutUpForScriptedSpeech
+ * 
+ * @brief Works similar to 0489, but mutes more things, including ambient speeches (needs confirming)
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
 void ShutCharUpForScriptedSpeech(CPed* ped, bool disable) {
     if (!ped)
         return;
@@ -1447,7 +3409,17 @@ void ShutCharUpForScriptedSpeech(CPed* ped, bool disable) {
     ped->DisablePedSpeechForScriptSpeech(disable);
 }
 
-// IS_CHAR_TOUCHING_CHAR
+/*
+ * @opcode 0A1B
+ * @command IS_CHAR_TOUCHING_CHAR
+ * @class Char
+ * @method IsTouchingChar
+ * 
+ * @brief Returns true if the character is touching the other character
+ * 
+ * @param {Char} self
+ * @param {Char} other
+ */
 bool IsCharTouchingChar(CPed& ped, CPed& other) {
     const auto GetRelevantEntity = [](CPed& p) -> CPhysical* {
         return p.IsInVehicle()
@@ -1457,12 +3429,32 @@ bool IsCharTouchingChar(CPed& ped, CPed& other) {
     return GetRelevantEntity(ped)->GetHasCollidedWith(GetRelevantEntity(other));
 }
 
-// IS_CHAR_ATTACHED_TO_ANY_CAR
+/*
+ * @opcode 0A32
+ * @command IS_CHAR_ATTACHED_TO_ANY_CAR
+ * @class Char
+ * @method IsAttachedToAnyCar
+ * 
+ * @brief Returns true if the char is turreted on any vehicle
+ * 
+ * @param {Char} self
+ */
 bool IsCharAttachedToAnyCar(CPed* ped) {
     return ped && ped->GetIsTypeVehicle();
 }
 
-// STORE_CAR_CHAR_IS_ATTACHED_TO_NO_SAVE
+/*
+ * @opcode 0A33
+ * @command STORE_CAR_CHAR_IS_ATTACHED_TO_NO_SAVE
+ * @class Char
+ * @method StoreCarIsAttachedToNoSave
+ * 
+ * @brief Returns the vehicle the character is attached to
+ * 
+ * @param {Char} self
+ * 
+ * @returns {Car} handle
+ */
 CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
     if (!ped->GetIsTypeVehicle()) {
         return nullptr;
@@ -1472,12 +3464,625 @@ CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
 };
 
 // 0x46BCEA - COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY
+/*
+ * @opcode 0792
+ * @command CLEAR_CHAR_TASKS_IMMEDIATELY
+ * @class Char
+ * @method ClearTasksImmediately
+ * 
+ * @brief Clears all the characters tasks immediately, resetting the character to an idle state
+ * 
+ * @param {Char} self
+ */
 void ClearCharTasksImmediately(CPed& ped) {
     ped.GetIntelligence()->FlushImmediately(true);
 }
 
+/*
+ * @opcode 07A0
+ * @command PERFORM_SEQUENCE_TASK_FROM_PROGRESS
+ * @class Char
+ * @method PerformSequenceFromProgress
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {Sequence} sequence
+ * @param {int} startTaskIndex
+ * @param {int} endTaskIndex
+ */
+//void PerformSequenceTaskFromProgress(CPed& self, CSequence& sequence, int32 startTaskIndex, int32 endTaskIndex) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 009A
+ * @command CREATE_CHAR
+ * @class Char
+ * @method Create
+ * 
+ * @brief Creates a character at the specified location, with the specified model and pedtype
+ * 
+ * @param {PedType} pedType
+ * @param {model_char} modelId
+ * @param {Vector} 
+ * 
+ * @returns {Char} handle
+ */
+//auto CreateChar(ePedType pedType, eModelID modelId, CVector& ) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 01B2
+ * @command GIVE_WEAPON_TO_CHAR
+ * @class Char
+ * @method GiveWeapon
+ * 
+ * @brief Gives the character the weapon with the specified amount of ammo
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ * @param {int} ammo
+ */
+//void GiveWeaponToChar(CPed& self, eWeaponType weaponType, int32 ammo) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 01C8
+ * @command CREATE_CHAR_AS_PASSENGER
+ * @class Char
+ * @method CreateAsPassenger
+ * 
+ * @brief Creates a character with the specified model in the passenger seat of the vehicle
+ * 
+ * @param {Car} vehicle
+ * @param {PedType} pedType
+ * @param {model_char} modelId
+ * @param {SeatId} seat
+ * 
+ * @returns {Char} handle
+ */
+//auto CreateCharAsPassenger(CVehicle& vehicle, ePedType pedType, eModelID modelId, eSeatId seat) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 062E
+ * @command GET_SCRIPT_TASK_STATUS
+ * @class Char
+ * @method GetScriptTaskStatus
+ * 
+ * @brief Returns the status of the specified script task of the character
+ * 
+ * @param {Char} self
+ * @param {TaskCommand} task
+ * 
+ * @returns {TaskStatus} status
+ */
+//auto GetScriptTaskStatus(CPed& self, eTaskCommand task) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 07CB
+ * @command LISTEN_TO_PLAYER_GROUP_COMMANDS
+ * @class Char
+ * @method ListenToPlayerGroupCommands
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
+//void ListenToPlayerGroupCommands(CPed& self, bool state) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0376
+ * @command CREATE_RANDOM_CHAR
+ * @class Char
+ * @method CreateRandom
+ * 
+ * @brief Creates a character with a randomised model and pedtype at the specified coordinates
+ * 
+ * @param {Vector} 
+ * 
+ * @returns {Char} handle
+ */
+//auto CreateRandomChar(CVector& ) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 06EF
+ * @command IS_GROUP_LEADER
+ * @class Char
+ * @method IsGroupLeader
+ * 
+ * @brief Returns true if the character is the leader of the specified group
+ * 
+ * @param {Char} self
+ * @param {Group} handle
+ */
+//bool IsGroupLeader(CPed& self, CGroup& handle) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 07A4
+ * @command GET_SEQUENCE_PROGRESS_RECURSIVE
+ * @class Char
+ * @method GetSequenceProgressRecursive
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} _p2, {int} _p3
+ */
+//auto GetSequenceProgressRecursive(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 060F
+ * @command SET_SENSE_RANGE
+ * @class Char
+ * @method SetSenseRange
+ * @static
+ * 
+ * @brief Sets the seeing and hearing range for the specified character or for all mission characters when handle is -1
+ * 
+ * @param {Char} char_
+ * @param {float} range
+ */
+//void SetSenseRange(CPed* char_, float range) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 06FF
+ * @command ARE_ANY_CHARS_NEAR_CHAR
+ * @class Char
+ * @method IsNearAnyChars
+ * 
+ * @brief Returns true if any characters are within range of the character
+ * 
+ * @param {Char} self
+ * @param {float} radius
+ */
+//bool AreAnyCharsNearChar(CPed& self, float radius) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 07A1
+ * @command SET_NEXT_DESIRED_MOVE_STATE
+ * @class Char
+ * @method SetNextDesiredMoveState
+ * @static
+ * 
+ * @brief Sets how the character chooses to go to their destination in the next task without a parameter specifying this
+ * 
+ * @param {MoveState} moveState
+ */
+//void SetNextDesiredMoveState(eMoveState moveState) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 089F
+ * @command GET_PED_TYPE
+ * @class Char
+ * @method GetPedType
+ * 
+ * @brief Gets the ped type of the character
+ * 
+ * @param {Char} self
+ * 
+ * @returns {PedType} pedType
+ */
+//auto GetPedType(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 01C5
+ * @command DONT_REMOVE_CHAR
+ * @class Char
+ * @method DontRemove
+ * 
+ * @brief Removes the character from the mission cleanup list, preventing it from being deleted when the mission ends
+ * 
+ * @param {Char} self
+ */
+//void DontRemoveChar(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 07FE
+ * @command GIVE_MELEE_ATTACK_TO_CHAR
+ * @class Char
+ * @method GiveMeleeAttack
+ * 
+ * @brief Sets the specified characters fighting style and moves
+ * 
+ * @param {Char} self
+ * @param {FightStyle} style
+ * @param {FightMoves} move
+ */
+//void GiveMeleeAttackToChar(CPed& self, eFightStyle style, eFightMoves move) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 009B
+ * @command DELETE_CHAR
+ * @class Char
+ * @method Delete
+ * 
+ * @brief Removes the character from the game and mission cleanup list, freeing game memory
+ * 
+ * @param {Char} self
+ */
+//void DeleteChar(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 06EE
+ * @command IS_GROUP_MEMBER
+ * @class Char
+ * @method IsGroupMember
+ * 
+ * @brief Returns true if the character is a member of the specified group
+ * 
+ * @param {Char} self
+ * @param {Group} handle
+ */
+//bool IsGroupMember(CPed& self, CGroup& handle) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0646
+ * @command GET_SEQUENCE_PROGRESS
+ * @class Char
+ * @method GetSequenceProgress
+ * 
+ * @brief Gets the characters task sequence progress, as started by 0618
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} progress
+ */
+//auto GetSequenceProgress(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 09A1
+ * @command DROP_SECOND_OBJECT
+ * @class Char
+ * @method DropSecondObject
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
+//void DropSecondObject(CPed& self, bool state) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0245
+ * @command SET_ANIM_GROUP_FOR_CHAR
+ * @class Char
+ * @method SetAnimGroup
+ * 
+ * @brief Sets the animation group for the character
+ * 
+ * @param {Char} self
+ * @param {AnimGroup} animGroup
+ */
+//void SetAnimGroupForChar(CPed& self, eAnimGroup animGroup) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0618
+ * @command PERFORM_SEQUENCE_TASK
+ * @class Char
+ * @method PerformSequence
+ * 
+ * @brief Assigns the character to the specified action sequence
+ * 
+ * @param {Char} self
+ * @param {Sequence} sequence
+ */
+//void PerformSequenceTask(CPed& self, CSequence& sequence) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0A28
+ * @command SET_SWIM_SPEED
+ * @class Char
+ * @method SetSwimSpeed
+ * 
+ * @brief Sets the speed that the character swims at, changing their swimming animation speed
+ * 
+ * @param {Char} self
+ * @param {float} speed
+ */
+//void SetSwimSpeed(CPed& self, float speed) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 09F4
+ * @command IGNORE_HEIGHT_DIFFERENCE_FOLLOWING_NODES
+ * @class Char
+ * @method IgnoreHeightDifferenceFollowingNodes
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
+//void IgnoreHeightDifferenceFollowingNodes(CPed& self, bool state) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0114
+ * @command ADD_AMMO_TO_CHAR
+ * @class Char
+ * @method AddAmmo
+ * 
+ * @brief Adds the specified amount of ammo to the character's weapon, if the character has the weapon
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ * @param {int} ammo
+ */
+//void AddAmmoToChar(CPed& self, eWeaponType weaponType, int32 ammo) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 09F6
+ * @command SET_CHAR_GET_OUT_UPSIDE_DOWN_CAR
+ * @class Char
+ * @method SetGetOutUpsideDownCar
+ * 
+ * @brief Controls whether the character will try to exit an upside-down car until it is on fire
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
+//void SetCharGetOutUpsideDownCar(CPed& self, bool state) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 070B
+ * @command DROP_OBJECT
+ * @class Char
+ * @method DropObject
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
+//void DropObject(CPed& self, bool state) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 035F
+ * @command ADD_ARMOUR_TO_CHAR
+ * @class Char
+ * @method AddArmor
+ * 
+ * @brief Increases the character's armor by the specified value to the maximum of 100
+ * 
+ * @param {Char} self
+ * @param {int} amount
+ */
+//void AddArmourToChar(CPed& self, int32 amount) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0A27
+ * @command SET_DEATH_WEAPONS_PERSIST
+ * @class Char
+ * @method SetDeathWeaponsPersist
+ * 
+ * @brief Prevents pickups, which are created when this character dies, from disappearing until picked up by the player
+ * 
+ * @param {Char} self
+ * @param {bool} state
+ */
+//void SetDeathWeaponsPersist(CPed& self, bool state) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0887
+ * @command SET_HEADING_LIMIT_FOR_ATTACHED_CHAR
+ * @class Char
+ * @method SetHeadingLimitForAttached
+ * 
+ * @brief Sets the heading limit for a character attached to an object or vehicle
+ * 
+ * @param {Char} self
+ * @param {Facing} heading
+ * @param {float} headingRange
+ */
+//void SetHeadingLimitForAttachedChar(CPed& self, eFacing heading, float headingRange) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0503
+ * @command CREATE_SWAT_ROPE
+ * @class Char
+ * @method CreateSwatRope
+ * 
+ * @brief Creates a character descending from a rope
+ * 
+ * @param {PedType} pedType
+ * @param {model_char} modelId
+ * @param {Vector} 
+ * 
+ * @returns {Char} handle
+ */
+//auto CreateSwatRope(ePedType pedType, eModelID modelId, CVector& ) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0555
+ * @command REMOVE_WEAPON_FROM_CHAR
+ * @class Char
+ * @method RemoveWeapon
+ * 
+ * @brief Removes the weapon from the character
+ * 
+ * @param {Char} self
+ * @param {WeaponType} weaponType
+ */
+//void RemoveWeaponFromChar(CPed& self, eWeaponType weaponType) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0648
+ * @command SET_FOLLOW_NODE_THRESHOLD_DISTANCE
+ * @class Char
+ * @method SetFollowNodeThresholdDistance
+ * 
+ * @brief Sets the range within which the char responds to events
+ * 
+ * @param {Char} self
+ * @param {float} range
+ */
+//void SetFollowNodeThresholdDistance(CPed& self, float range) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 046D
+ * @command GET_NUMBER_OF_FOLLOWERS
+ * @class Char
+ * @method GetNumberOfFollowers
+ * 
+ * @brief Returns the number of members which are in a group of the character (01DE)
+ * 
+ * @param {Char} self
+ * 
+ * @returns {int} number
+ */
+//auto GetNumberOfFollowers(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0851
+ * @command DAMAGE_CHAR
+ * @class Char
+ * @method Damage
+ * 
+ * @brief Decreases the characters health
+ * 
+ * @param {Char} self
+ * @param {int} amount
+ * @param {bool} damageArmour
+ */
+//void DamageChar(CPed& self, int32 amount, bool damageArmour) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 074E
+ * @command SET_INFORM_RESPECTED_FRIENDS
+ * @class Char
+ * @method SetInformRespectedFriends
+ * 
+ * @brief 
+ * 
+ * @param {Char} self
+ * @param {float} radius
+ * @param {int} _p3
+ */
+//void SetInformRespectedFriends(CPed& self, float radius, int32 _p3) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
+/*
+ * @opcode 0647
+ * @command CLEAR_LOOK_AT
+ * @class Char
+ * @method ClearLookAt
+ * 
+ * @brief Clears the char's look task, making them stop looking at whatever they were assigned to look at
+ * 
+ * @param {Char} self
+ */
+//void ClearLookAt(CPed& self) {
+    //NOTSA_UNREACHABLE("Not implemented");
+//}
+
 void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Char");
+    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_AMMO_TO_CHAR, AddAmmoToChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ADD_ARMOUR_TO_CHAR, AddArmourToChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_ARE_ANY_CHARS_NEAR_CHAR, AreAnyCharsNearChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_LOOK_AT, ClearLookAt);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CHAR, CreateChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_CHAR_AS_PASSENGER, CreateCharAsPassenger);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_RANDOM_CHAR, CreateRandomChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_CREATE_SWAT_ROPE, CreateSwatRope);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DAMAGE_CHAR, DamageChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DELETE_CHAR, DeleteChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DONT_REMOVE_CHAR, DontRemoveChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DROP_OBJECT, DropObject);
+    //REGISTER_COMMAND_HANDLER(COMMAND_DROP_SECOND_OBJECT, DropSecondObject);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_NUMBER_OF_FOLLOWERS, GetNumberOfFollowers);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_PED_TYPE, GetPedType);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_SCRIPT_TASK_STATUS, GetScriptTaskStatus);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_SEQUENCE_PROGRESS, GetSequenceProgress);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GET_SEQUENCE_PROGRESS_RECURSIVE, GetSequenceProgressRecursive);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_MELEE_ATTACK_TO_CHAR, GiveMeleeAttackToChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_WEAPON_TO_CHAR, GiveWeaponToChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IGNORE_HEIGHT_DIFFERENCE_FOLLOWING_NODES, IgnoreHeightDifferenceFollowingNodes);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_2D, IsCharStoppedInAngledAreaInCar2d);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_STOPPED_IN_ANGLED_AREA_IN_CAR_3D, IsCharStoppedInAngledAreaInCar3d);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_GROUP_LEADER, IsGroupLeader);
+    //REGISTER_COMMAND_HANDLER(COMMAND_IS_GROUP_MEMBER, IsGroupMember);
+    //REGISTER_COMMAND_HANDLER(COMMAND_LISTEN_TO_PLAYER_GROUP_COMMANDS, ListenToPlayerGroupCommands);
+    //REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CHAR_IN_CAR_OBJECT_2D, LocateCharInCarObject2d);
+    //REGISTER_COMMAND_HANDLER(COMMAND_LOCATE_CHAR_IN_CAR_OBJECT_3D, LocateCharInCarObject3d);
+    //REGISTER_COMMAND_HANDLER(COMMAND_PERFORM_SEQUENCE_TASK, PerformSequenceTask);
+    //REGISTER_COMMAND_HANDLER(COMMAND_PERFORM_SEQUENCE_TASK_FROM_PROGRESS, PerformSequenceTaskFromProgress);
+    //REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_WEAPON_FROM_CHAR, RemoveWeaponFromChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_ANIM_GROUP_FOR_CHAR, SetAnimGroupForChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_GET_OUT_UPSIDE_DOWN_CAR, SetCharGetOutUpsideDownCar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_DEATH_WEAPONS_PERSIST, SetDeathWeaponsPersist);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_FOLLOW_NODE_THRESHOLD_DISTANCE, SetFollowNodeThresholdDistance);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_HEADING_LIMIT_FOR_ATTACHED_CHAR, SetHeadingLimitForAttachedChar);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_INFORM_RESPECTED_FRIENDS, SetInformRespectedFriends);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_NEXT_DESIRED_MOVE_STATE, SetNextDesiredMoveState);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_SENSE_RANGE, SetSenseRange);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_SWIM_SPEED, SetSwimSpeed);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_PROOFS, SetCharProofs);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_VELOCITY, SetCharVelocity);
