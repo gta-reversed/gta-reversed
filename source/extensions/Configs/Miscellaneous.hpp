@@ -13,6 +13,7 @@ inline struct MiscConfig {
     INI_CONFIG_SECTION("Misc");
 
     std::optional<std::string> SaveDirectoryPath{};
+    bool LoadSavesWithMismatchingVersion{};
 
     void Load() {
         STORE_INI_CONFIG_VALUE_OPT(SaveDirectoryPath);
@@ -21,5 +22,7 @@ inline struct MiscConfig {
             SaveDirectoryPath->resize(255);
             NOTSA_LOG_WARN("Custom save directory path is too long! Truncated to: '{}'", *SaveDirectoryPath);
         }
+
+        STORE_INI_CONFIG_VALUE(LoadSavesWithMismatchingVersion, false);
     }
 } g_MiscConfig{};
