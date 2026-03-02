@@ -6,15 +6,21 @@
 */
 #pragma once
 
+#include "PtrNode.h"
 #include "PtrNodeDoubleLink.h"
 #include "PtrList.h"
 
+namespace notsa {
 namespace details {
 template<typename ItemType>
 struct PtrListDoubleLinkTraits {
     using NodeType = CPtrNodeDoubleLink<ItemType>;
 
     static NodeType* AddNode(NodeType*& head, NodeType* node) {
+        assert(node);
+        assert(!head || IsNodeValid(*head));
+        assert(IsNodeValid(*node));
+
         NodeType* next = node->Next = std::exchange(head, node);
         if (next) {
             assert(next->Prev == nullptr && "Head node must have no `prev`");
@@ -28,6 +34,9 @@ struct PtrListDoubleLinkTraits {
         assert(node);
         assert(node->Prev == prev && "Incorrect `prev` value");
         assert(head && "Can't remove node from empty list");
+        assert(!prev || IsNodeValid(*prev));
+        assert(IsNodeValid(*head));
+        assert(IsNodeValid(*node));
 
         NodeType* next = node->Next;
 
@@ -47,15 +56,26 @@ struct PtrListDoubleLinkTraits {
 
         return next;
     }
+
+    static bool IsNodeValid(const NodeType& node) requires std::is_pointer_v<ItemType> {
+        if (!GetPtrNodeDoubleLinkPool()->IsObjectValid(reinterpret_cast<const CPtrNodeDoubleLink<void*>*>(&node))) {
+            return false;
+        }
+        if (!node.IsItemValid()) {
+            return false;
+        }
+        return true;
+    }
 };
-};
+}; // namespace details
+}; // namespace notsa
 
 /*!
 * @brief A list of double-linked nodes
 */
 template<typename ItemType>
-class CPtrListDoubleLink : public CPtrList<details::PtrListDoubleLinkTraits<ItemType>> {
-    using Base = CPtrList<details::PtrListDoubleLinkTraits<ItemType>>;
+class CPtrListDoubleLink : public CPtrList<notsa::details::PtrListDoubleLinkTraits<ItemType>> {
+    using Base = CPtrList<notsa::details::PtrListDoubleLinkTraits<ItemType>>;
 
 public:
     using NodeType = typename Base::NodeType;
