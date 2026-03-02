@@ -132,9 +132,11 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
             off += n;
         };
 
-        auto* const d = &decisionMaker->Decisions[CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]];
-        d->SetDefault();
-        d->Set(tasks, probs, bools, facialProbs);
+        if (const auto idx = CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]; idx != -1) { // NOTE(pirulax): `-1` is not a vanilla value, see `CDecisionMakerTypes::LoadEventIndices`
+            auto* const d = &decisionMaker->Decisions[idx];
+            d->SetDefault();
+            d->Set(tasks, probs, bools, facialProbs);
+        }
     }
 
     CFileMgr::CloseFile(file);
