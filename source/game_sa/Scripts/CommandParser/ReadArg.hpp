@@ -11,6 +11,7 @@
 #include "Utility.hpp"
 #include "Rect.h"
 #include "Scripted2dEffects.h"
+#include <Pools/Pools.h>
 
 namespace notsa {
 namespace script {
@@ -78,10 +79,6 @@ static_assert(is_script_thing_v<C2dEffect> && !is_script_thing_v<int>);
 };
 
 namespace detail {
-template<typename T>
-concept PooledType =
-    requires { detail::PoolOf<typename std::remove_cvref_t<T>>(); };
-
 //! Safely cast one arithmetic type to another (Checks for under/overflow in debug mode only), then casts to `T`
 template<typename T, typename F>
 inline T safe_arithmetic_cast(F value) {
@@ -224,7 +221,7 @@ inline T Read(CRunningScript* S) {
         using EntityType = typename Y::EntityType;
 
         const auto handle = Read<int32>(S);
-        auto entity = static_cast<EntityType*>(detail::PoolOf<EntityType>().GetAtRef(handle));
+        auto entity = static_cast<EntityType*>(::notsa::PoolOf<EntityType>().GetAtRef(handle));
 
     #ifdef NOTSA_DEBUG
         // Asserts for correct type
@@ -241,7 +238,7 @@ inline T Read(CRunningScript* S) {
             .e = entity,
             .h = handle
         };
-    } else if constexpr (detail::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
+    } else if constexpr (::notsa::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
         return Read<ScriptEntity<Y>>(S).e;
     } else if constexpr (std::is_same_v<Y, CRunningScript>) { // Just return the script from where this command was invoked from
         return S;
