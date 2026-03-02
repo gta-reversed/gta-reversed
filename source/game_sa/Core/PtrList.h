@@ -10,7 +10,7 @@ namespace details {
 /*!
  * @brief A safe iterator that pre-caches the next node
  */
-template<typename ItemType, typename NodeType>
+template<typename ItemType, typename NodeType, typename Traits>
 struct PtrListIterator {
 public:
     using difference_type   = std::ptrdiff_t;
@@ -23,7 +23,10 @@ public:
     PtrListIterator(NodeType* node) :
         m_curr{ node },
         m_next{ node ? node->Next : nullptr }
-    {}
+    {
+        assert(!m_curr || Traits::IsNodeValid(*m_curr));
+        assert(!m_next || Traits::IsNodeValid(*m_next));
+    }
 
     reference operator*() { return m_curr->Item; }
     pointer   operator->() { return &m_curr->Item; }
@@ -56,8 +59,8 @@ public:
     using NodeType = typename Traits::NodeType;
     using ItemType = typename NodeType::ItemType;
 
-    using iterator       = details::PtrListIterator<ItemType, NodeType>;
-    using const_iterator = details::PtrListIterator<const ItemType, NodeType>;
+    using iterator       = details::PtrListIterator<ItemType, NodeType, Traits>;
+    using const_iterator = details::PtrListIterator<const ItemType, NodeType, Traits>;
 
 public:
     CPtrList() = default;
