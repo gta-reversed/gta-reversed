@@ -157,10 +157,12 @@ void CSprite::RenderOneXLUSprite_Triangle(CVector2D screen1, CVector2D screen2, 
     const uint32 B      = (factor * b) >> 8;
     const uint32 depthI = (factor * intensity) >> 8;
 
-    r = ((R & 0xff) * depthI) >> 8;
-    g = ((G & 0xff) * depthI) >> 8;
-    b = ((B & 0xff) * depthI) >> 8;
-    const auto emissiveColor = CRGBA{ r, g, b, alpha }.ToIntARGB();
+    const auto emissiveColor = CRGBA{
+        static_cast<uint8>(((R & 0xff) * depthI) >> 8),
+        static_cast<uint8>(((G & 0xff) * depthI) >> 8),
+        static_cast<uint8>(((B & 0xff) * depthI) >> 8),
+        alpha
+    }.ToIntARGB();
 
     const auto z  = (RwIm2DGetFarScreenZ() - RwIm2DGetNearScreenZ())
         * (screenZ - CDraw::ms_fNearClipZ)

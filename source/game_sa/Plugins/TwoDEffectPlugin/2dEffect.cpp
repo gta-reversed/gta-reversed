@@ -1,4 +1,5 @@
 #include "StdInc.h"
+#include "2dEffectStream.h"
 
 void C2dEffect::InjectHooks()
 {

@@ -20,4 +20,15 @@ More information at: https://docs.microsoft.com/en-us/visualstudio/debugger/crea
       </ArrayItems>
     </Expand>
   </Type>
+  <Type Name="t2dEffectPluginEntry">
+    <DisplayString>{m_nObjCount} object(s)</DisplayString>
+    <Expand>
+      <Item Name="[Count]">m_nObjCount</Item>
+      <Item Name="[Objects]">m_pObjects</Item>
+      <ArrayItems>
+        <Size>m_nObjCount</Size>
+        <ValuePointer>m_pObjects</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
 </AutoVisualizer>

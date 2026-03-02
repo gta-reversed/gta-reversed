@@ -192,6 +192,7 @@ void AddAnExtraDirectionalLight(RpWorld* world, float x, float y, float z, float
             return NumExtraDirectionalLights;
         }
 
+        // Android sets `msIdx` to -1, making `slot < 0` satisfiable.
         int32 msIdx{};
         float msValue{ strength };
         for (const auto&& [i, s] : rngv::enumerate(LightStrengths)) {
@@ -204,7 +205,6 @@ void AddAnExtraDirectionalLight(RpWorld* world, float x, float y, float z, float
     }();
 
     if (slot < 0) {
-        // In PC, this case is impossible. Android sets `msIdx` to -1.
         return;
     }
 
