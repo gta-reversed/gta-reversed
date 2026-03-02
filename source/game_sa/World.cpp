@@ -257,7 +257,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 
 // 0x563470
 void CWorld::ClearScanCodes() {
-    const auto ProcessList = []<typename PtrListType>(PtrListType list) {
+    const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
         for (auto* const entity : list) {
             entity->SetScanCode(0);
         }
