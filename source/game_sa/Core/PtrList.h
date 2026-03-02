@@ -63,6 +63,24 @@ public:
     CPtrList() = default;
     ~CPtrList() { Flush(); }
 
+    CPtrList(const CPtrList&) = delete; // NOTE(pirulax): It would be possible to implement this, but it's not needed - Keeping it deleted will prevent bugs
+    CPtrList(CPtrList&& other) noexcept :
+        CPtrList{}
+    {
+        swap(*this, other);
+    }
+
+    auto& operator=(CPtrList other) {
+        swap(*this, other);
+        return *this;
+    }
+
+    friend void swap(CPtrList& a, CPtrList& b) noexcept {
+        using std::swap;
+
+        swap(a.m_Head, b.m_Head);
+    }
+
     /*!
     * @brief Remove all nodes of this list
     * @warning `delete`s all nodes of this list
