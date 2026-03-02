@@ -161,7 +161,7 @@ void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 dm, eEventType e
 
 // 0x5BB9F0
 void CDecisionMakerTypes::LoadEventIndices(EventIndicesArray& out, const char* filepath) {
-    out.fill(0);
+    out.fill(-1); // notsa: Use `-1` instead of `0` to catch uninitialized indices [`0` is a valid index]
 
     CFileMgr::SetDir("");
     CFileMgr::SetDir("data\\decision\\");
@@ -171,7 +171,9 @@ void CDecisionMakerTypes::LoadEventIndices(EventIndicesArray& out, const char* f
         NOTSA_LOG_WARN("Failed to open decision maker event indices file: {}", filepath);
         return;
     }
-    for (int32 count = 0;;) {
+    NOTSA_LOG_DEBUG("Loading decision maker event indices from `{}`, mapping:", filepath);
+    int32 count = 0;
+    for (;;) {
         char line[256];
         if (!CFileMgr::ReadLine(file, line, sizeof(line))) {
             break;
@@ -180,9 +182,11 @@ void CDecisionMakerTypes::LoadEventIndices(EventIndicesArray& out, const char* f
             int32 index{};
             char name[256]{};
             VERIFY(sscanf_s(line, "%s %d", SCANF_S_STR(name), &index) == 2);
+            NOTSA_LOG_DEBUG("{} -> {}", name, index);
             out[index] = count++;
         }
     }
+    NOTSA_LOG_DEBUG("Loaded `{}` event indcies", count);
     CFileMgr::CloseFile(file);
 }
 
@@ -253,6 +257,7 @@ CDecisionMaker* CDecisionMakerTypes::GetInactiveDecisionMaker(bool bDecisionMake
     return nullptr;
 }
 
+// notsa
 int32 CDecisionMakerTypes::GetDecisionMakerIndex(CDecisionMaker* dm) {
     return std::distance(m_DecisionMakers.data(), dm);
 }
