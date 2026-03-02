@@ -4,11 +4,11 @@
 
 // NOTE:
 // The term `face` and `triangle` are used interchangably here.
-
-#include "CompressedVector.h"
 #include "Vector.h"
 #include "Sphere.h"
 #include "Box.h"
+#include "CompressedVector.h"
+#include <type_traits>
 
 // Based on https://gtamods.com/wiki/Collision_File
 
@@ -67,6 +67,7 @@ public:
         return info.GetVersion();
     }
 };
+static_assert(std::is_trivially_copyable_v<FileHeader>);
 VALIDATE_SIZE(FileHeader::FileInfo, 0x8);
 VALIDATE_SIZE(FileHeader, 0x20);
 
@@ -75,6 +76,8 @@ struct TSurface {
     uint8 flag, brightness;
     tColLighting light;
 };
+static_assert(std::is_trivially_copyable_v<TSurface>);
+VALIDATE_SIZE(TSurface, 4);
 
 struct TBox : CBox {
     TSurface surface{};
@@ -88,6 +91,8 @@ struct TBox : CBox {
         };
     }
 };
+//static_assert(std::is_trivially_copyable_v<TBox>);
+VALIDATE_SIZE(TBox, 28);
 
 // NOTE: Face = triangle
 struct TFaceGroup {
@@ -96,6 +101,8 @@ struct TFaceGroup {
     CBoundingBox bb{};
     uint16       first{}, last{}; // First and last face index (Inclusive: [first, last])
 };
+//static_assert(std::is_trivially_copyable_v<TFaceGroup>);
+VALIDATE_SIZE(TFaceGroup, 28);
 
 namespace V1 {
 
@@ -117,6 +124,8 @@ struct TSphere {
         };
     }
 };
+//static_assert(std::is_trivially_copyable_v<TSphere>);
+VALIDATE_SIZE(TSphere, 20);
 
 struct TFace {
     uint32 a{}, b{}, c{};
@@ -129,6 +138,8 @@ struct TFace {
         };
     }
 };
+static_assert(std::is_trivially_copyable_v<TFace>);
+VALIDATE_SIZE(TFace, 16);
 
 struct TBounds {
     // Unfortunately can't use CSphere, because `center` and `radius` are swapped
@@ -140,6 +151,8 @@ struct TBounds {
     } sphere;
     CBoundingBox box{};
 };
+//static_assert(std::is_trivially_copyable_v<TBounds>);
+VALIDATE_SIZE(TBounds, 40);
 
 // Version specific header after FileHeader
 struct Header {
@@ -150,20 +163,28 @@ struct Header {
 
 namespace V2 {
 using TVertex = CompressedVector;
+static_assert(std::is_trivially_copyable_v<TVertex>);
+VALIDATE_SIZE(TVertex, 6);
 
 struct TSphere : CSphere {
     TSurface surface{};
 };
+//static_assert(std::is_trivially_copyable_v<TSphere>);
+VALIDATE_SIZE(TSphere, 20);
 
 struct TBounds {
     CBoundingBox box{};
     CSphere sphere{};
 };
+//static_assert(std::is_trivially_copyable_v<TBounds>);
+VALIDATE_SIZE(TBounds, 40);
 
 struct TFace {
     uint16 a{}, b{}, c{};
     uint8 material{}, light{};
 };
+static_assert(std::is_trivially_copyable_v<TFace>);
+VALIDATE_SIZE(TFace, 8);
 
 // Version specific header after FileHeader
 struct Header {
@@ -184,6 +205,7 @@ struct Header {
     [[nodiscard]] bool IsEmpty() const { return !(flags & 2); }
     [[nodiscard]] bool HasFaceGroups() const { return flags & 8; }
 };
+//static_assert(std::is_trivially_copyable_v<Header>);
 VALIDATE_SIZE(Header, 0x4C);
 
 }; // namespace V2
@@ -213,6 +235,8 @@ struct Header : V2::Header {
 
     [[nodiscard]] bool HasShadowMesh() const { return flags & 16; }
 };
+//static_assert(std::is_trivially_copyable_v<Header>);
+VALIDATE_SIZE(Header, 88);
 }; // namespace V3
 
 namespace V4 {
@@ -222,6 +246,8 @@ using namespace V3; // Inherit all others stuff
 struct Header : V3::Header {
     uint32 unk{};
 };
+//static_assert(std::is_trivially_copyable_v<Header>);
+VALIDATE_SIZE(Header, 92);
 }; // namespace V4
 
 }; // namespace ColHelpers

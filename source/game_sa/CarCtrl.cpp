@@ -724,7 +724,7 @@ void CCarCtrl::RemoveDistantCars() {
         if (DistanceBetweenPoints(FindPlayerCentreOfWorld(), veh.GetPosition()) >= 54.5f) {
             continue;
         }
-        CRoadBlocks::GenerateRoadBlockCopsForCar(
+        CRoadBlocks::GenerateRoadBlockPedsForCar(
             &veh,
             veh.m_nPedsPositionForRoadBlock,
             veh.IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1

@@ -22,6 +22,13 @@ class CVehicle;
 class CPlayerPed;
 class CWanted;
 
+// NOTSA
+enum class eSprayPaintState : int32 {
+    NOT_FOUND,
+    DISCOVERED,
+    PAINTED
+};
+
 constexpr int32 MAX_PLAYERS = 2;
 constexpr int32 MAX_WORLD_UNITS = 6000;
 
@@ -173,11 +180,11 @@ public:
 
     static void SetPedsChoking(float x, float y, float z, float radius, CEntity* gasCreator);
 
-    static void SetCarsOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
+    static void SetCarsOnFire(CVector pos, float radius, CEntity* fireCreator);
 
-    static void SetWorldOnFire(float x, float y, float z, float radius, CEntity* fireCreator);
+    static void SetWorldOnFire(CVector pos, float radius, CEntity* fireCreator);
 
-    static int32 SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
+    static eSprayPaintState SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState);
 
     static void CheckBuildingOrientations(); // in III
 

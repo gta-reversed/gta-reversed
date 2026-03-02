@@ -1237,11 +1237,11 @@ void CWorld::SetPedsChoking(float x, float y, float z, float radius, CEntity* ga
 
 // 0x5659F0
 // NOTE: Radius is treated as a cuboid with the height of 10, width and length of 2 * radius
-void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fireCreator) {
+void CWorld::SetCarsOnFire(CVector pos, float radius, CEntity* fireCreator) {
     // NOTSA - Originally it was some abs() macro crap, we ain't gonna do it like that
     const CBoundingBox bb{
-        { x - radius, y - radius, z - 5.f },
-        { x + radius, y + radius, z + 5.f }
+        { pos.x - radius, pos.y - radius, pos.z - 5.f },
+        { pos.x + radius, pos.y + radius, pos.z + 5.f }
     };
     for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
         if (CVehicle* vehicle = GetVehiclePool()->GetAt(i - 1)) {
@@ -1265,14 +1265,14 @@ void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fir
 }
 
 // 0x565B70
-int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState) {
+eSprayPaintState CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState) {
     constexpr static int16 SPRAY_ALPHA_CHANGE = 8; // 0x8CDEF0
 
     CEntity* objects[15]{};
     int16 count{};
     FindObjectsInRange(posn, radius, false, &count, (uint16)std::size(objects), objects, true, false, false, false, false);
     if (count <= 0) {
-        return 0;
+        return eSprayPaintState::NOT_FOUND;
     }
 
     bool hasChangedAlphaTo255{}, hasFoundTag{};
@@ -1302,10 +1302,10 @@ int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool
     }
 
     if (hasChangedAlphaTo255) {
-        return 2;
+        return eSprayPaintState::PAINTED;
     }
 
-    return hasFoundTag ? 1 : 0;
+    return hasFoundTag ? eSprayPaintState::DISCOVERED : eSprayPaintState::NOT_FOUND;
 }
 
 // 0x565CB0
@@ -2239,7 +2239,7 @@ void CWorld::Process() {
         obj->ProcessControlLogic();
     }
 
-    g_LoadMonitor.StartTimer(true);
+    g_LoadMonitor.StartTimer(eLoadType::COLLISION);
     if (CReplay::Mode == MODE_PLAYBACK) {
         ZoneScopedN("Update entity RW");
 
@@ -2331,7 +2331,7 @@ void CWorld::Process() {
             });
         }
     }
-    g_LoadMonitor.EndTimer(true);
+    g_LoadMonitor.EndTimer(eLoadType::COLLISION);
 
     CVehicleRecording::SaveOrRetrieveDataForThisFrame();
     g_ikChainMan.Update(CTimer::GetTimeStepInSeconds());
@@ -3077,10 +3077,10 @@ void CWorld::TriggerExplosion(const CVector& point, float radius, float visibleD
 }
 
 // 0x56B910
-void CWorld::SetWorldOnFire(float x, float y, float z, float radius, CEntity* fireCreator) {
-    if (TestSphereAgainstWorld({ x, y, z }, radius, nullptr, true, false, false, true, false, false)) {
-        if (!gFireManager.GetNumFiresInRange({ x, y, z }, 2.f)) {
-            gFireManager.StartFire({ x, y, z }, 0.8f, 1u, nullptr, 7'000u, 100u, 1u);
+void CWorld::SetWorldOnFire(CVector pos, float radius, CEntity* fireCreator) {
+    if (TestSphereAgainstWorld(pos, radius, nullptr, true, false, false, true, false, false)) {
+        if (!gFireManager.GetNumFiresInRange(pos, 2.f)) {
+            gFireManager.StartFire(pos, 0.8f, 1u, nullptr, 7'000u, 100u, 1u);
         }
     }
 }
