@@ -18,6 +18,7 @@ template<typename TItemType>
 class CPtrNodeSingleLink : public CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>> {
 public:
     using ItemType = TItemType;
+    using RawItemType = std::remove_pointer_t<std::remove_cvref_t<ItemType>>;
 
 public:
     static void* operator new(size_t sz) {
