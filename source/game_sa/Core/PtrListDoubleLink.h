@@ -78,6 +78,6 @@ public:
     * @return Node following the removed node (that is `node->next`)
     */
     NodeType* UnlinkNode(NodeType* node) {
-        return Base::Traits::UnlinkNode(this->m_node, node, node->Prev);
+        return Base::Traits::UnlinkNode(this->m_Head, node, node->Prev);
     }
 };

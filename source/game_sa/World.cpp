@@ -1700,7 +1700,7 @@ CPed* CWorld::FindUnsuspectingTargetPed(CVector point, CVector playerPosn) {
 // 0x566EE0
 template<typename PtrListType>
 bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& outColPoint, float& minTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, bool doIgnoreCameraCheck, bool doShootThroughCheck) {
-    if (!ptrList.m_node) {
+    if (!ptrList.m_Head) {
         return false;
     }
 

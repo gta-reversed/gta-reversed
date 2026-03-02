@@ -69,8 +69,8 @@ public:
     */
     void Flush() {
         // Keep popping from the head until empty
-        while (m_node) {
-            DeleteNode(m_node, nullptr);
+        while (m_Head) {
+            DeleteNode(m_Head, nullptr);
         }
     }
 
@@ -87,7 +87,7 @@ public:
     **/
     NodeType* DeleteItem(ItemType item) {
         assert(item);
-        for (NodeType *curr = m_node, *prev{}; curr; prev = std::exchange(curr, curr->Next)) {
+        for (NodeType *curr = m_Head, *prev{}; curr; prev = std::exchange(curr, curr->Next)) {
             if (curr->Item == item) {
                 return DeleteNode(curr, prev);
             }
@@ -100,7 +100,7 @@ public:
     * @return The added node
     */
     NodeType* AddNode(NodeType* node) {
-        return Traits::AddNode(m_node, node);
+        return Traits::AddNode(m_Head, node);
     }
 
     /*!
@@ -109,7 +109,7 @@ public:
     * @return Node following the removed node (that is `node->next`)
     */
     NodeType* UnlinkNode(NodeType* node, NodeType* prev) {
-        return Traits::UnlinkNode(m_node, node, prev);
+        return Traits::UnlinkNode(m_Head, node, prev);
     }
 
     /*!
@@ -127,7 +127,7 @@ public:
     * @return If the specified item is in the list
     */
     bool IsMemberOfList(ItemType item) const {
-        for (NodeType* node = m_node; node; node = node->Next) {
+        for (NodeType* node = m_Head; node; node = node->Next) {
             if (node->Item == item) {
                 return true;
             }
@@ -141,7 +141,7 @@ public:
      */
     uint32 GetSize() const {
         uint32 counter;
-        for (NodeType* node = m_node; node; node = node->Next) {
+        for (NodeType* node = m_Head; node; node = node->Next) {
             ++counter;
         }
         return counter;
@@ -150,22 +150,22 @@ public:
     /*!
      * @return If the list is empty
      */
-    bool IsEmpty() const { return !m_node; }
+    bool IsEmpty() const { return !m_Head; }
 
     /*!
      * @return The head node of the list
      */
-    NodeType* GetNode() const { return m_node; }
+    NodeType* GetNode() const { return m_Head; }
 
-    auto begin() { return iterator{ m_node }; }
+    auto begin() { return iterator{ m_Head }; }
     auto end() { return iterator{ nullptr }; }
 
-    auto begin() const { return iterator{ m_node }; }
+    auto begin() const { return iterator{ m_Head }; }
     auto end() const { return iterator{ nullptr }; }
 
-    auto cbegin() const { return const_iterator{ m_node }; }
+    auto cbegin() const { return const_iterator{ m_Head }; }
     auto cend() const { return const_iterator{ nullptr }; }
 
 public:
-    NodeType* m_node{};
+    NodeType* m_Head{};
 };

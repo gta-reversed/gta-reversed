@@ -33,7 +33,7 @@ public:
 
     //void AddToList(CPtrListSingleLink* list) {
     //    m_next       = list->GetNode();
-    //    list->m_node = static_cast<CPtrNode*>(this);
+    //    list->m_Head = static_cast<CPtrNode*>(this);
     //}
 };
 VALIDATE_SIZE(CPtrNodeSingleLink<void*>, 0x8);
