@@ -82,7 +82,7 @@ public:
     void GetRidOfObjects();
     bool PickUpShouldBeInvisible();
     void Remove();
-    void GiveUsAPickUpObject(CObject** obj, int32 slotIndex);
+    void GiveUsAPickUpObject(CObject*& obj, int32 slotIndex = -1);
     bool Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId);
     void ProcessGunShot(const CVector& origin, const CVector& target);
 
