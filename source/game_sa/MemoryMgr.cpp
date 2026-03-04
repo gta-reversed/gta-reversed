@@ -87,8 +87,8 @@ void CMemoryMgr::SetHint(void* memory, const char* hint) {
         if (HeapBlockDesc* desc = heap._FindBlockDesc(memory)) {
             desc->m_upDebugInfo = (const uint8*)hint;
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-            desc->m_Flags.NoDebugHint     = (hint == nullptr);
-            desc->m_Flags.StringDebugInfo = (hint != nullptr);
+            desc->Flags.NoDebugHint     = (hint == nullptr);
+            desc->Flags.StringDebugInfo = (hint != nullptr);
 #endif
             return;
         }
@@ -364,7 +364,7 @@ void* CMemoryMgr::MoveMemory(void* memory, void** ppUnk, int32 iUnk) {
 void* CMemoryMgr::Malloc(uint32 size) {
     void* memory = Malloc(size, 0);
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    GET_HEAP_DESC(memory)->m_Flags.NoDebugHint = true;
+    GET_HEAP_DESC(memory)->Flags.NoDebugHint = true;
 #endif
     return memory;
 }
@@ -374,7 +374,7 @@ void* CMemoryMgr::MallocAlign(uint32 size, uint32 align) {
 
     void* memory = MallocAlign(size, align, 0);
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    GET_HEAP_DESC(memory)->m_Flags.NoDebugHint = true;
+    GET_HEAP_DESC(memory)->Flags.NoDebugHint = true;
 #endif
     return memory;
 }
@@ -382,7 +382,7 @@ void* CMemoryMgr::MallocAlign(uint32 size, uint32 align) {
 void* CMemoryMgr::Calloc(uint32 hint, uint32 size) {
     void* memory = Calloc(hint, size, 0);
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    GET_HEAP_DESC(memory)->m_Flags.NoDebugHint = true;
+    GET_HEAP_DESC(memory)->Flags.NoDebugHint = true;
 #endif
     return memory;
 }
@@ -390,7 +390,7 @@ void* CMemoryMgr::Calloc(uint32 hint, uint32 size) {
 uint8* CMemoryMgr::Realloc(void* memory, uint32 size) {
     memory = Realloc(memory, size, 0);
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    GET_HEAP_DESC(memory)->m_Flags.NoDebugHint = true;
+    GET_HEAP_DESC(memory)->Flags.NoDebugHint = true;
 #endif
     return static_cast<uint8*>(memory);
 }
@@ -400,8 +400,8 @@ uint8* CMemoryMgr::Realloc(void* memory, uint32 size) {
 void* operator new[](uint32 size) {
     void* memory = CMemoryMgr::Malloc(size);
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    GET_HEAP_DESC(memory)->m_Flags.AllocatedUsingNew = true;
-    GET_HEAP_DESC(memory)->m_Flags.IsArray = true;
+    GET_HEAP_DESC(memory)->Flags.AllocatedUsingNew = true;
+    GET_HEAP_DESC(memory)->Flags.IsArray = true;
 #endif
     return memory;
 }
@@ -411,8 +411,8 @@ void operator delete[](void* memory) {
         return;
     }
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    assert(GET_HEAP_DESC(memory)->m_Flags.AllocatedUsingNew);
-    assert(GET_HEAP_DESC(memory)->m_Flags.IsArray);
+    assert(GET_HEAP_DESC(memory)->Flags.AllocatedUsingNew);
+    assert(GET_HEAP_DESC(memory)->Flags.IsArray);
 #endif
     CMemoryMgr::Free(memory);
 }
@@ -420,7 +420,7 @@ void operator delete[](void* memory) {
 void* operator new(uint32 size) {
     void* memory = CMemoryMgr::Malloc(size);
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    GET_HEAP_DESC(memory)->m_Flags.AllocatedUsingNew = true;
+    GET_HEAP_DESC(memory)->Flags.AllocatedUsingNew = true;
 #endif
     return memory;
 }
@@ -430,8 +430,8 @@ void operator delete(void* memory) {
         return;
     }
 #if defined MEMORY_MGR_USE_HEAP_FLAGS
-    assert(GET_HEAP_DESC(memory)->m_Flags.AllocatedUsingNew);
-    assert(!GET_HEAP_DESC(memory)->m_Flags.IsArray);
+    assert(GET_HEAP_DESC(memory)->Flags.AllocatedUsingNew);
+    assert(!GET_HEAP_DESC(memory)->Flags.IsArray);
 #endif
     CMemoryMgr::Free(memory);
 }

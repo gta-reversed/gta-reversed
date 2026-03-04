@@ -11,8 +11,8 @@ void CommonSize::Init(int32 blockSize) {
     m_NumFreeBlocks = 0;
 
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    m_ListEnd.m_Flags.ResetFlags(true);
-    m_ListStart.m_Flags.ResetFlags(true);
+    m_ListEnd.Flags.ResetFlags(true);
+    m_ListStart.Flags.ResetFlags(true);
 #endif
 }
 

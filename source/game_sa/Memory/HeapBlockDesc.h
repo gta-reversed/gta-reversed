@@ -40,7 +40,7 @@ public:
     bool  m_bInUse;
 
 #ifdef MEMORYMGR_USE_HEAP_FLAGS
-    HeapBlockFlags m_Flags; //< +0x05  gap (I've used this field for my own flags)
+    HeapBlockFlags Flags; //< +0x05  gap (I've used this field for my own flags)
 #endif
 
     int16 m_nMemId; // HeapID ?

@@ -27,7 +27,7 @@ CFire* CFire::Constructor() {
 
 // 0x538B30
 void CFire::Initialise() {
-    // Originally m_nFlags = (m_nFlags & 0xF4) | 0x14; - Clear 1st, 2nd, 4th and set 3rd, 5th bits (1-based numbering)
+    // Originally Flags = (Flags & 0xF4) | 0x14; - Clear 1st, 2nd, 4th and set 3rd, 5th bits (1-based numbering)
     m_IsActive = false;
     m_IsCreatedByScript = false;
     m_MakesNoise = true;
@@ -222,7 +222,7 @@ void CFire::Extinguish() {
 
     m_TimeToBurn = 0;
 
-    // Originally m_nFlags = (m_nFlags & 0xF6) | 0x10; - Clear 1st and 4th, set 5th
+    // Originally Flags = (Flags & 0xF6) | 0x10; - Clear 1st and 4th, set 5th
     m_IsActive = false;
     m_IsBeingExtinguished = false;
     m_IsFirstGeneration = true;

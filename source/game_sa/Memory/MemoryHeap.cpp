@@ -55,10 +55,10 @@ void CMemoryHeap::Init(void* mem, uint32 size, bool bInitSizes) {
     m_FreeListEnd.m_Next   = &m_FreeListBegin;
 
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    m_FreeListBegin.m_Flags.ResetFlags(true);
-    m_FreeListEnd.m_Flags.ResetFlags(true);
-    m_FirstBlock->m_Flags.ResetFlags(false);
-    m_LastBlock->m_Flags.ResetFlags(true);
+    m_FreeListBegin.Flags.ResetFlags(true);
+    m_FreeListEnd.Flags.ResetFlags(true);
+    m_FirstBlock->Flags.ResetFlags(false);
+    m_LastBlock->Flags.ResetFlags(true);
 #endif
 
     // insert mapped free block
@@ -91,7 +91,7 @@ void CMemoryHeap::RegisterFree(HeapFreeBlockDesc* desc) {
 // 0x72EAF0
 void CMemoryHeap::RegisterMalloc(HeapBlockDesc* desc) {
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    assert(!desc->m_Flags.IsBoundBlock);
+    assert(!desc->Flags.IsBoundBlock);
 #endif
     desc->m_bInUse = true;
     desc->m_nMemId = m_nMemId;
@@ -139,7 +139,7 @@ void CMemoryHeap::Free(void* memory) {
     HeapFreeBlockDesc* desc = GetFreeBlockDesc(memory);
 
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    assert(!desc->m_Flags.bIsBoundBlock && "Cannot free BOUND heap block!");
+    assert(!desc->Flags.bIsBoundBlock && "Cannot free BOUND heap block!");
 #endif
     assert(desc->m_bInUse && "Memory block was already deallocated!");
 
@@ -151,7 +151,7 @@ void CMemoryHeap::Free(void* memory) {
     desc = _JoinFreeBlocks(desc);
 
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    desc->m_Flags.ResetFlags(false);
+    desc->Flags.ResetFlags(false);
 #endif
 
 #ifdef _DEBUG
@@ -204,7 +204,7 @@ void* CMemoryHeap::Malloc(uint32 size) {
             if (block) {
                 RegisterMalloc(block);
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-                block->m_Flags.ResetFlags();
+                block->Flags.ResetFlags();
 #endif
                 return block->_GetBlockData();
             }
@@ -228,7 +228,7 @@ void* CMemoryHeap::Malloc(uint32 size) {
     block->RemoveHeapFreeBlock();
     FillInBlockData(block, block->_GetNextLocatedBlock(), blockSize);
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    block->m_Flags.ResetFlags();
+    block->Flags.ResetFlags();
 #endif
     return block->_GetBlockData();
 }
@@ -250,7 +250,7 @@ void CMemoryHeap::FillInBlockData(HeapBlockDesc* desc, HeapBlockDesc* nextDesc, 
         next->m_bInUse = false;
 
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-        next->m_Flags.ResetFlags(false);
+        next->Flags.ResetFlags(false);
 #endif
 
         nextDesc->m_PrevBlock = next;

@@ -45,14 +45,14 @@ void C2dEffect::Shutdown()
         }
     }
     else if (m_Type == e2dEffectType::EFFECT_LIGHT) {
-        if (light.m_pCoronaTex) {
-            RwTextureDestroy(light.m_pCoronaTex);
-            light.m_pCoronaTex = nullptr;
+        if (light.CoronaTex) {
+            RwTextureDestroy(light.CoronaTex);
+            light.CoronaTex = nullptr;
         }
 
-        if (light.m_pShadowTex) {
-            RwTextureDestroy(light.m_pShadowTex);
-            light.m_pShadowTex = nullptr;
+        if (light.ShadowTex) {
+            RwTextureDestroy(light.ShadowTex);
+            light.ShadowTex = nullptr;
         }
     }
 }

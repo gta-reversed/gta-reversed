@@ -1834,7 +1834,7 @@ void CEntity::ProcessLightsForEntity() {
         }
 
         const auto& entityPos = GetPosition();
-        const auto flashType = effect->light.m_nCoronaFlashType;
+        const auto flashType = effect->light.Flashiness;
 
         if (flashType == e2dCoronaFlashType::FLASH_RANDOM_WHEN_WET && CWeather::WetRoads > 0.5f || ApplyOffVersion) {
             switch (flashType) {
@@ -1956,11 +1956,11 @@ void CEntity::ProcessLightsForEntity() {
                     0,
                     255,
                     effectPos,
-                    effect->light.m_fCoronaSize,
-                    effect->light.m_fCoronaFarClip,
-                    effect->light.m_pCoronaTex,
-                    static_cast<eCoronaFlareType>(effect->light.m_nCoronaFlareType),
-                    static_cast<eCoronaReflType>(effect->light.m_bCoronaEnableReflection),
+                    effect->light.CoronaSize,
+                    effect->light.LodDistance,
+                    effect->light.CoronaTex,
+                    static_cast<eCoronaFlareType>(effect->light.LensFlareType),
+                    static_cast<eCoronaReflType>(effect->light.ReflectionType),
                     static_cast<eCoronaLOSCheck>(effect->light.m_bCheckObstacles),
                     eCoronaTrail::TRAIL_OFF,
                     0.0f,
@@ -1979,9 +1979,9 @@ void CEntity::ProcessLightsForEntity() {
             if (effect->light.m_bCheckDirection) {
                 const auto& camPos = TheCamera.GetPosition();
                 CVector lightOffset{
-                    static_cast<float>(effect->light.offsetX),
-                    static_cast<float>(effect->light.offsetY),
-                    static_cast<float>(effect->light.offsetZ)
+                    static_cast<float>(effect->light.LightDirX),
+                    static_cast<float>(effect->light.LightDirY),
+                    static_cast<float>(effect->light.LightDirZ)
                 };
                 const auto lightPos = GetMatrix().TransformVector(lightOffset);
                 const auto dot = lightPos.Dot(camPos - effectPos);
@@ -2012,21 +2012,21 @@ void CEntity::ProcessLightsForEntity() {
                 }
 
                 TimeFade = CTimeCycle::m_CurrentColours.m_fSpriteBrightness * brightness / 10.0f;
-                const auto coronaSize = effect->light.m_fCoronaSize * sizeMult;
+                const auto coronaSize = effect->light.CoronaSize * sizeMult;
 
                 CCoronas::RegisterCorona(
                     (uint32)this + C,
                     nullptr,
-                    static_cast<uint8>(static_cast<float>(effect->light.m_color.red) * TimeFade),
-                    static_cast<uint8>(static_cast<float>(effect->light.m_color.green) * TimeFade),
-                    static_cast<uint8>(static_cast<float>(effect->light.m_color.blue) * TimeFade),
+                    static_cast<uint8>(static_cast<float>(effect->light.Сolor.red) * TimeFade),
+                    static_cast<uint8>(static_cast<float>(effect->light.Сolor.green) * TimeFade),
+                    static_cast<uint8>(static_cast<float>(effect->light.Сolor.blue) * TimeFade),
                     static_cast<uint8>(LightFade * 255.0f),
                     effectPos,
                     coronaSize,
-                    effect->light.m_fCoronaFarClip,
-                    effect->light.m_pCoronaTex,
-                    static_cast<eCoronaFlareType>(effect->light.m_nCoronaFlareType),
-                    static_cast<eCoronaReflType>(effect->light.m_bCoronaEnableReflection),
+                    effect->light.LodDistance,
+                    effect->light.CoronaTex,
+                    static_cast<eCoronaFlareType>(effect->light.LensFlareType),
+                    static_cast<eCoronaReflType>(effect->light.ReflectionType),
                     static_cast<eCoronaLOSCheck>(effect->light.m_bCheckObstacles),
                     eCoronaTrail::TRAIL_OFF,
                     0.0f,
@@ -2053,11 +2053,11 @@ void CEntity::ProcessLightsForEntity() {
                 0,
                 255,
                 effectPos,
-                effect->light.m_fCoronaSize,
-                effect->light.m_fCoronaFarClip,
-                effect->light.m_pCoronaTex,
-                static_cast<eCoronaFlareType>(effect->light.m_nCoronaFlareType),
-                static_cast<eCoronaReflType>(effect->light.m_bCoronaEnableReflection),
+                effect->light.CoronaSize,
+                effect->light.LodDistance,
+                effect->light.CoronaTex,
+                static_cast<eCoronaFlareType>(effect->light.LensFlareType),
+                static_cast<eCoronaReflType>(effect->light.ReflectionType),
                 static_cast<eCoronaLOSCheck>(effect->light.m_bCheckObstacles),
                 eCoronaTrail::TRAIL_OFF,
                 0.0f,
@@ -2074,15 +2074,15 @@ void CEntity::ProcessLightsForEntity() {
             CCoronas::UpdateCoronaCoors(
                 (uint32)this + C,
                 effectPos,
-                effect->light.m_fCoronaFarClip,
+                effect->light.LodDistance,
                 0.0f
             );
         }
 
         // POINT LIGHTS
         bool skipLights = false;
-        if (effect->light.m_fPointlightRange != 0.0f && ApplyLight) {
-            const auto& color = effect->light.m_color;
+        if (effect->light.Size != 0.0f && ApplyLight) {
+            const auto& color = effect->light.Сolor;
             if (color.red || color.green || color.blue) {
                 const float colorMult = LightFade * TimeFade / 256.0f;
                 skipLights = true;
@@ -2090,7 +2090,7 @@ void CEntity::ProcessLightsForEntity() {
                     ePointLightType::PLTYPE_POINTLIGHT,
                     effectPos,
                     CVector{},
-                    effect->light.m_fPointlightRange,
+                    effect->light.Size,
                     static_cast<float>(color.red) * colorMult,
                     static_cast<float>(color.green) * colorMult,
                     static_cast<float>(color.blue) * colorMult,
@@ -2103,7 +2103,7 @@ void CEntity::ProcessLightsForEntity() {
                     ePointLightType::PLTYPE_ANTILIGHT,
                     effectPos,
                     CVector{},
-                    effect->light.m_fPointlightRange,
+                    effect->light.Size,
                     0.0f,
                     0.0f,
                     0.0f,
@@ -2115,7 +2115,7 @@ void CEntity::ProcessLightsForEntity() {
         }
 
         if (!skipLights) {
-            const auto& color = effect->light.m_color;
+            const auto& color = effect->light.Сolor;
             if (effect->light.m_nFogType & RwFogType::rwFOGTYPEEXPONENTIAL) {
                 CPointLights::AddLight(
                     ePointLightType::PLTYPE_ONLYFOGEFFECT_ALWAYS,
@@ -2129,7 +2129,7 @@ void CEntity::ProcessLightsForEntity() {
                     true,
                     nullptr
                 );
-            } else if (effect->light.m_nFogType & RwFogType::rwFOGTYPELINEAR && ApplyLight && effect->light.m_fPointlightRange == 0.0f) {
+            } else if (effect->light.m_nFogType & RwFogType::rwFOGTYPELINEAR && ApplyLight && effect->light.Size == 0.0f) {
                 CPointLights::AddLight(
                     ePointLightType::PLTYPE_ONLYFOGEFFECT,
                     effectPos,
@@ -2147,15 +2147,15 @@ void CEntity::ProcessLightsForEntity() {
 
         // PC Only?
         // SHADOWS
-        if (effect->light.m_fShadowSize != 0.0f) {
+        if (effect->light.ShadowSize != 0.0f) {
             float shadowZ = 15.0f;
-            if (effect->light.m_nShadowZDistance) {
-                shadowZ = static_cast<float>(effect->light.m_nShadowZDistance);
+            if (effect->light.ShadowDepth) {
+                shadowZ = static_cast<float>(effect->light.ShadowDepth);
             }
 
             if (ApplyLight) {
-                auto color = effect->light.m_color;
-                const float colorMult = effect->light.m_nShadowColorMultiplier * TimeFade / 256.0f;
+                auto color = effect->light.Сolor;
+                const float colorMult = effect->light.ShadowAlpha * TimeFade / 256.0f;
                 color.red = static_cast<uint8>(static_cast<float>(color.red) * colorMult);
                 color.green = static_cast<uint8>(static_cast<float>(color.green) * colorMult);
                 color.blue = static_cast<uint8>(static_cast<float>(color.blue) * colorMult);
@@ -2163,12 +2163,12 @@ void CEntity::ProcessLightsForEntity() {
                 CShadows::StoreStaticShadow(
                     (uint32)this + C,
                     eShadowType::SHADOW_ADDITIVE,
-                    effect->light.m_pShadowTex,
+                    effect->light.ShadowTex,
                     effectPos,
-                    effect->light.m_fShadowSize,
+                    effect->light.ShadowSize,
                     0.0f,
                     0.0f,
-                    -effect->light.m_fShadowSize,
+                    -effect->light.ShadowSize,
                     128,
                     color.red,
                     color.green,
@@ -2183,12 +2183,12 @@ void CEntity::ProcessLightsForEntity() {
                 CShadows::StoreStaticShadow(
                     (uint32)this + C,
                     eShadowType::SHADOW_ADDITIVE,
-                    effect->light.m_pShadowTex,
+                    effect->light.ShadowTex,
                     effectPos,
-                    effect->light.m_fShadowSize,
+                    effect->light.ShadowSize,
                     0.0f,
                     0.0f,
-                    -effect->light.m_fShadowSize,
+                    -effect->light.ShadowSize,
                     0,
                     0,
                     0,

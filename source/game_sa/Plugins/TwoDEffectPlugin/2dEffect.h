@@ -58,16 +58,17 @@ enum e2dCoronaFlashType : uint8 {
     FLASH_4ON_6OFF        = 13,
 };
 
+// CLightAttr
 struct tEffectLight {
     static inline constexpr e2dEffectType Type = EFFECT_LIGHT;
 
-    RwRGBA m_color;
-    float  m_fCoronaFarClip;
-    float  m_fPointlightRange;
-    float  m_fCoronaSize;
-    float  m_fShadowSize;
+    RwRGBA Сolor;
+    float  LodDistance;
+    float  Size;
+    float  CoronaSize;
+    float  ShadowSize;
     union {
-        uint16 m_nFlags;
+        uint16 Flags;
         struct {
             uint16 m_bCheckObstacles : 1;
             uint16 m_nFogType : 2;
@@ -84,21 +85,19 @@ struct tEffectLight {
             uint16 m_bBlinking3 : 1;
         };
     };
-    e2dCoronaFlashType m_nCoronaFlashType;
-    bool               m_bCoronaEnableReflection;
-    uint8      m_nCoronaFlareType;
-    uint8      m_nShadowColorMultiplier;
-    char               m_nShadowZDistance;
-    char               offsetX;
-    char               offsetY;
-    char               offsetZ;
-    // char               _pad2E[2];
-    RwTexture*         m_pCoronaTex;
-    RwTexture*         m_pShadowTex;
-    int32                field_38;
-    int32                field_3C;
+    e2dCoronaFlashType Flashiness;
+    uint8              ReflectionType;
+    uint8              LensFlareType;
+    uint8              ShadowAlpha;
+    uint8              ShadowDepth;
+    int8               LightDirX;
+    int8               LightDirY;
+    int8               LightDirZ;
+    RwTexture*         CoronaTex;
+    RwTexture*         ShadowTex;
 };
-VALIDATE_SIZE(tEffectLight, 0x30);
+
+VALIDATE_SIZE(tEffectLight, 0x28);
 
 struct tEffectParticle {
     char m_szName[24];

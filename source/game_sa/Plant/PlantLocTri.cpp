@@ -56,7 +56,7 @@ CPlantLocTri* CPlantLocTri::Add(const CVector& p1, const CVector& p2, const CVec
     }
 
     if (m_createsObjects) {
-        // m_nFlags = m_nFlags & 0xFE;
+        // Flags = Flags & 0xFE;
         m_createsPlants = false;
 
         CPlantMgr::MoveLocTriToList(CPlantMgr::m_UnusedLocTriListHead, CPlantMgr::m_CloseLocTriListHead[3], this);
@@ -118,7 +118,7 @@ void CPlantLocTri::Release() {
         m_SurfaceId = 0xFE;
     }
 
-    // m_nFlags = m_nFlags & 0xF8;
+    // Flags = Flags & 0xF8;
     m_createsPlants = false;
     m_createsObjects = false;
     m_createdObjects = false;

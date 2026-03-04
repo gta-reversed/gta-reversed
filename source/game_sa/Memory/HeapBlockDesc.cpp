@@ -10,7 +10,7 @@ HeapBlockDesc::HeapBlockDesc() {
     m_pDebugInfo = nullptr;
     m_PrevBlock  = nullptr;
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    m_Flags.value = 0;
+    Flags.value = 0;
 #endif
 }
 
@@ -34,19 +34,19 @@ void HeapBlockDesc::_DumpBlockInfo() const {
     char szInfo[128] = { 0 };
     info = szInfo;
 
-    if (self->m_Flags.AllocatedUsingNew) {
-        if (self->m_Flags.IsArray)
+    if (self->Flags.AllocatedUsingNew) {
+        if (self->Flags.IsArray)
             strcpy_s(szInfo, "operator new[]");
         else
             strcpy_s(szInfo, "operator new  ");
         info = szInfo;
     }
 
-    if (!self->m_Flags.NoDebugHint) {
+    if (!self->Flags.NoDebugHint) {
         if (szInfo[0])
             strcat_s(szInfo, " ");
 
-        if (self->m_Flags.StringDebugInfo)
+        if (self->Flags.StringDebugInfo)
             sprintf_s(szInfo + strlen(szInfo), "[Hint: %s]", self->m_upDebugInfo); // TODO: fix
         else
             sprintf_s(szInfo + strlen(szInfo), "[Hint: 0x%08x]", self->m_pDebugInfo); // TODO: fix
@@ -60,7 +60,7 @@ void HeapBlockDesc::_DumpBlockInfo() const {
         type = "FREE";
     }*/
 #ifdef MEMORY_MGR_USE_HEAP_FLAGS
-    if (m_Flags.IsBoundBlock) {
+    if (Flags.IsBoundBlock) {
         type = "BOUND";
     } else if (m_nMemId == -1) {
         type = "SYS";

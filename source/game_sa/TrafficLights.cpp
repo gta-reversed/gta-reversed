@@ -193,8 +193,8 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
         auto vecLightPos = entity->GetMatrix().TransformPoint(effect->m_Pos);
         vecCenter += vecLightPos;
         int32 iColorState = eTrafficLightsState::LIGHT_GREEN;
-        if (effect->light.m_color.red > 200) {
-            if (effect->light.m_color.green > 100)
+        if (effect->light.Сolor.red > 200) {
+            if (effect->light.Сolor.green > 100)
                 iColorState = eTrafficLightsState::LIGHT_YELLOW;
             else
                 iColorState = eTrafficLightsState::LIGHT_RED;

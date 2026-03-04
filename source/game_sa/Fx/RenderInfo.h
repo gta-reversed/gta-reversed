@@ -14,7 +14,7 @@ struct RenderInfo_t {
     RwRGBA m_Color2;
     ERenderColorType m_nColorType;
 
-    float m_fSizeX; // todo: CVector2D m_Size, m_SizeBias
+    float m_fSizeX; // todo: CVector2D Size, m_SizeBias
     float m_fSizeY;
     float m_fSizeXBias;
     float m_fSizeYBias;
