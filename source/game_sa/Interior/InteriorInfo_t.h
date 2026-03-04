@@ -23,8 +23,8 @@ struct InteriorInfo_t {
     notsa::WEnumS8<eInteriorInfoType> Type;
     bool                              IsInUse;
 
-    RwV3d Pos;
-    RwV3d Dir;
+    CVector Pos;
+    CVector Dir;
 
     CEntity* EntityIgnoredCollision;
 };
