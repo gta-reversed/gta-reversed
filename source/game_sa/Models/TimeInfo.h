@@ -3,27 +3,27 @@
 #include <stdint.h>
 
 class CTimeInfo {
-public:
-    uint8 m_nTimeOn;
-    uint8 m_nTimeOff;
-    int16 m_nOtherTimeModel = -1;
+protected:
+    uint8 m_On, m_Off;
+    int16 m_OtherModel;
 
 public:
+    CTimeInfo() = default;
+
+    void SetTimes(uint8 timeOn, uint8 timeOff) { m_On = timeOn; m_Off = timeOff; }
+    int32 GetTimeOn() const { return m_On; }
+    int32 GetTimeOff() const { return m_Off; }
+
+    CTimeInfo* FindOtherTimeModel(const char* name);
+
+    void SetOtherTimeModel(int32 index) { m_OtherModel = index; }
+    int32 GetOtherTimeModel() const { return m_OtherModel; }
+
+private:
+    friend void InjectHooksMain();
     static void InjectHooks();
 
 public:
-    CTimeInfo* FindOtherTimeModel(const char* modelName);
-
-    int32 GetOtherTimeModel() const { return m_nOtherTimeModel; }
-
-    void SetOtherTimeModel(int16 otherTimeModel) { m_nOtherTimeModel = otherTimeModel; }
-
-    uint8 GetTimeOn() const { return m_nTimeOn; }
-
-    uint8 GetTimeOff() const { return m_nTimeOff; }
-
-    void SetTimes(uint8 timeOn, uint8 timeOff) { m_nTimeOn = timeOn; m_nTimeOff = timeOff; }
-
     bool IsVisibleNow() const noexcept { return CClock::GetIsTimeInRange(GetTimeOn(), GetTimeOff()); }
 };
 

@@ -38,7 +38,7 @@ CTimeInfo* CTimeInfo::FindOtherTimeModel(const char* modelName) {
     CTimeInfo* timeInfo = modelInfo ? modelInfo->GetTimeInfo() : nullptr;
 
     if (timeInfo) {
-        m_nOtherTimeModel = index;
+        m_OtherModel = index;
         return timeInfo;
     }
 
