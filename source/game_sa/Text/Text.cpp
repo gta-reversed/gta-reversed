@@ -201,7 +201,7 @@ void CText::Load(bool keepMissionPack) {
         offset += header.size;
     }
 
-    m_MainKeyArray.Update(m_MainText.m_data);
+    m_MainKeyArray.Update(m_MainText.Buffer);
     CFileMgr::CloseFile(file);
 
     static char gxtErrText[255]{};
@@ -291,7 +291,7 @@ void CText::LoadMissionText(const char* mission) {
         offset += header.size;
     }
 
-    m_MissionKeyArray.Update(m_MissionText.m_data);
+    m_MissionKeyArray.Update(m_MissionText.Buffer);
 
     CFileMgr::CloseFile(file);
     CTimer::Resume();
@@ -360,7 +360,7 @@ void CText::LoadMissionPackText() {
             }
         }
     }
-    m_MainKeyArray.Update(m_MissionText.m_data);
+    m_MainKeyArray.Update(m_MissionText.Buffer);
     m_bIsMissionPackLoaded = true;
     strcpy_s(m_szMissionName, "MPNAME");
     CFileMgr::CloseFile(file);

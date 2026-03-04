@@ -3,13 +3,12 @@
 // TDAT block
 class CData {
 public:
-    char*  m_data;
-    uint32 m_size;
+    char*  Buffer; // TODO: GxtChar*
+    uint32 Count;
 
 public:
     CData();
     ~CData();
-
-    bool Load(uint32 length, FILESTREAM file, uint32* offset, uint8 unknown);
+    bool Load(const uint32 bytes, FILESTREAM file, uint32* numCharsRead, bool loadFromMemoryCard);
     void Unload();
 };
