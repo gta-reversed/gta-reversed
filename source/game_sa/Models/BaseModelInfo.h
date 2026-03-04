@@ -80,14 +80,20 @@ struct RwObject;
 
 // originally an abstract class
 class NOTSA_EXPORT_VTABLE CBaseModelInfo {
-public:
+public: // TODO: protected
     uint32 m_nKey;
+
+    // char   m_modelName[21]; // Mobile Added
+
     uint16 m_nRefCount;
+
     int16  m_nTxdIndex;
     uint8  m_nAlpha;
     uint8  m_n2dfxCount;
+
     int16  m_n2dEffectIndex;
     int16  m_nObjectInfoIndex;
+
     union {
         uint16 m_nFlags;
         struct {
@@ -131,8 +137,10 @@ public:
             };
         };
     };
+
     CColModel* m_pColModel;     // 20
     float      m_fDrawDistance; // 24
+
     union {
         RwObject* m_pRwObject;
         RpClump*  m_pRwClump;
