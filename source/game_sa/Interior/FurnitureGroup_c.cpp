@@ -32,10 +32,10 @@ bool FurnitureGroup_c::AddSubGroup(int32 subGroupId, int32 minWidth, int32 minDe
         return false;
     }
 
-    sg->m_SubGroupId = subGroupId;
-    sg->m_bCanPlaceInFrontOfWindow = canPlaceInFrontOfWindow;
-    sg->m_bIsTall = isTall;
-    sg->m_bCanSteal = canSteal;
+    sg->m_Id = subGroupId;
+    sg->m_OnWindowTile = canPlaceInFrontOfWindow;
+    sg->m_IsTall = isTall;
+    sg->m_IsStealable = canSteal;
 
     m_SubGroupList.AddItem(sg);
 
@@ -69,7 +69,7 @@ bool FurnitureGroup_c::AddFurniture(int32 subGroupId, uint16 modelId, int16 id, 
 // notsa
 FurnitureSubGroup_c* FurnitureGroup_c::GetSubGroup(int32 subGroupId) {
     for (auto& sg : m_SubGroupList) {
-        if (sg.m_SubGroupId == subGroupId) {
+        if (sg.m_Id == subGroupId) {
             return &sg;
         }
     }
