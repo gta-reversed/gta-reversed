@@ -12,7 +12,6 @@
 #include "TaskComplexDriveWander.h"
 #include "TaskComplexGoToPointAndStandStill.h"
 #include "TaskComplexWanderMedic.h"
-#include "TaskComplexGoToPointAndStandStill.h"
 #include "InterestingEvents.h"
 
 void CTaskComplexMedicTreatInjuredPed::InjectHooks() {
