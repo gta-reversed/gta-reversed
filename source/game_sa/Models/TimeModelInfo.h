@@ -10,16 +10,17 @@
 #include "TimeInfo.h"
 
 class NOTSA_EXPORT_VTABLE CTimeModelInfo : public CAtomicModelInfo {
-public:
-    CTimeInfo m_timeInfo;
+protected:
+    CTimeInfo m_Time;
 
 public:
-    static void InjectHooks();
+    CTimeModelInfo() = default;
 
     ModelInfoType GetModelType() override;
     CTimeInfo* GetTimeInfo() override;
-
 private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 VALIDATE_SIZE(CTimeModelInfo, 0x24);

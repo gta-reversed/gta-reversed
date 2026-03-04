@@ -17,6 +17,6 @@ ModelInfoType CTimeModelInfo::GetModelType() {
 
 // 0x4C5670
 CTimeInfo* CTimeModelInfo::GetTimeInfo() {
-    return &m_timeInfo;
+    return &m_Time;
 }
 
