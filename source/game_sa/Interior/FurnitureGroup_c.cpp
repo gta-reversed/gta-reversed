@@ -21,12 +21,12 @@ int32 FurnitureGroup_c::Init() {
 
 // 0x5910B0
 void FurnitureGroup_c::Exit() {
-    rng::for_each(m_subGroupsList, &FurnitureSubGroup_c::Exit);
-    m_subGroupsList.RemoveAll();
+    rng::for_each(m_SubGroupList, &FurnitureSubGroup_c::Exit);
+    m_SubGroupList.RemoveAll();
 }
 
 // 0x5910E0
-bool FurnitureGroup_c::AddSubGroup(int32 subGroupId, int32 minWidth, int32 minDepth, int32 maxWidth, int32 maxDepth, uint8 canPlaceInFrontOfWindow, bool isTall, bool canSteal) {
+bool FurnitureGroup_c::AddSubGroup(int32 subGroupId, int32 minWidth, int32 minDepth, int32 maxWidth, int32 maxDepth, bool canPlaceInFrontOfWindow, bool isTall, bool canSteal) {
     const auto sg = FurnitureManager_c::NewSubGroup();
     if (!sg) {
         return false;
@@ -37,7 +37,7 @@ bool FurnitureGroup_c::AddSubGroup(int32 subGroupId, int32 minWidth, int32 minDe
     sg->m_bIsTall = isTall;
     sg->m_bCanSteal = canSteal;
 
-    m_subGroupsList.AddItem(sg);
+    m_SubGroupList.AddItem(sg);
 
     return true;
 }
@@ -68,7 +68,7 @@ bool FurnitureGroup_c::AddFurniture(int32 subGroupId, uint16 modelId, int16 id, 
 
 // notsa
 FurnitureSubGroup_c* FurnitureGroup_c::GetSubGroup(int32 subGroupId) {
-    for (auto& sg : m_subGroupsList) {
+    for (auto& sg : m_SubGroupList) {
         if (sg.m_SubGroupId == subGroupId) {
             return &sg;
         }
