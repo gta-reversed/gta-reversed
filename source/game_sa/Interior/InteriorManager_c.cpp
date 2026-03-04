@@ -41,7 +41,7 @@ void InteriorManager_c::Init() {
         m_InteriorPool.AddItem(&i);
     }
     for (auto&& [i, g] : rngv::enumerate(m_InteriorGroups)) {
-        g.m_id = (uint8)i;
+        g.m_Id = (uint8)i;
         m_InteriorGroupPool.AddItem(&g);
     }
     g_furnitureMan.Init();
@@ -104,7 +104,7 @@ bool InteriorManager_c::Update() {
         const auto grp = m_InteriorGroupPool.RemoveHead();
         assert(grp);
         grp->Init(ifx.Entity, ifx.Effects[0]->m_groupId);
-        grp->m_EnEx = m_EnEx;
+        grp->m_EntryExit = m_EnEx;
         m_InteriorGroupList.AddItem(grp);
 
         //> 0x59910C - Create interiors for it
@@ -386,9 +386,9 @@ bool InteriorManager_c::HasInteriorHadStealDataSetup(Interior_c* interior) const
 }
 
 // 0x598280
-int8 InteriorManager_c::IsGroupActive(int32 groupType) const {
+bool InteriorManager_c::IsGroupActive(int32 groupType) const {
     return rng::any_of(m_InteriorGroupList, [&](const InteriorGroup_c& g) {
-        return g.m_groupType == groupType;
+        return g.m_GroupType == groupType;
     });
 }
 

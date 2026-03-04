@@ -55,7 +55,7 @@ public:
     int32 FindStealableObjectId(CEntity* entity) const;
     int32 FindStealableObjectId(int32 interiorId, int32 modelId, CVector point) const;
     bool HasInteriorHadStealDataSetup(Interior_c* interior) const;
-    int8 IsGroupActive(int32 group) const;
+    bool IsGroupActive(int32 group) const;
     InteriorGroup_c* GetPedsInteriorGroup(const CPed* ped);
     void SetEntryExitPtr(CEntryExit* exit);
     bool GetBoundingBox(FurnitureEntity_c* entity, CVector* pos);

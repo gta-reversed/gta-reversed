@@ -96,22 +96,22 @@ int8 InteriorGroup_c::CalcIsVisible() {
 
 // 0x595160
 void InteriorGroup_c::DereferenceAnims() {
-    if (!m_animBlockReferenced) {
+    if (!m_AnimsReferenced) {
         return;
     }
     CAnimManager::AddAnimBlockRef(CAnimManager::GetAnimationBlockIndex(GetAnimBlockName()));
-    m_animBlockReferenced = false;
+    m_AnimsReferenced = false;
 }
 
 // 0x5950D0
 void InteriorGroup_c::ReferenceAnims() {
-    if (m_animBlockReferenced) {
+    if (m_AnimsReferenced) {
         return;
     }
     const auto animBlkIdx = CAnimManager::GetAnimationBlockIndex(GetAnimBlockName());
     if (CStreaming::IsModelLoaded(IFPToModelId(animBlkIdx))) {
         CAnimManager::AddAnimBlockRef(animBlkIdx);
-        m_animBlockReferenced = true;
+        m_AnimsReferenced = true;
     } else {
         CStreaming::RequestModel(IFPToModelId(animBlkIdx), STREAMING_KEEP_IN_MEMORY);
     }
@@ -170,7 +170,7 @@ int32 InteriorGroup_c::GetRandomInterior() {
 
 //! @notsa
 const char* InteriorGroup_c::GetAnimBlockName() {
-    switch ((eInteriorGroupType)m_groupType) {
+    switch ((eInteriorGroupType)m_GroupType) {
     case eInteriorGroupType::HOUSE:  return "int_house";
     case eInteriorGroupType::SHOP:   return "int_shop";
     case eInteriorGroupType::OFFICE: return "int_office";

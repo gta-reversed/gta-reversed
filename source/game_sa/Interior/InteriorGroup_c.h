@@ -17,22 +17,25 @@ enum class eInteriorGroupType : int8 {
 };
 
 class InteriorGroup_c : public ListItem_c<InteriorGroup_c> {
-public:
-    CEntity*    m_pEntity;             // 0x8
-    uint8       m_id;                  // 0xC
-    uint8       m_groupId;             // 0xD
-    uint8       m_groupType;           // 0xE - TODO: eInteriorGroupType
-    uint8       m_numInteriors;        // 0xF
-    Interior_c* m_interiors[8];        // 0x10
-    CEntryExit* m_EnEx;                // 0x30
-    bool        m_isVisible;           // 0x34
-    bool        m_lastIsVisible;       // 0x35
-    int8        m_numPeds;             // 0x36
-    CPed*       m_peds[16];            // 0x38
-    CPed*       m_pedsToRemove[16];    // 0x78
-    int8        m_pathSetupComplete;   // 0xB8
-    int8        m_updatePeds;          // 0xB9
-    int8        m_animBlockReferenced; // 0xBA
+public: // TODO: private
+    CEntity*                   m_Entity;       // 0x8
+    uint8                      m_Id;           // 0xC
+    uint8                      m_GroupId;      // 0xD
+    uint8                      m_GroupType;    // 0xE - TODO: eInteriorGroupType
+    uint8                      m_NumInteriors; // 0xF
+    std::array<Interior_c*, 8> m_Interiors;    // 0x10
+    CEntryExit*                m_EntryExit;    // 0x30
+
+    bool m_IsVisible;     // 0x34
+    bool m_LastIsVisible; // 0x35
+
+    int8                  m_NumPeds;      // 0x36
+    std::array<CPed*, 16> m_Peds;         // 0x38
+    std::array<CPed*, 16> m_PedsToRemove; // 0x78
+
+    bool m_PathsSetup;      // 0xB8
+    bool m_PedsSetup;       // 0xB9
+    bool m_AnimsReferenced; // 0xBA
 
 public:
     static void InjectHooks();
@@ -40,10 +43,10 @@ public:
     InteriorGroup_c() = default;  // 0x597FE0
     ~InteriorGroup_c() = default; // 0x597FF0
 
-    auto GetInteriors() { return m_interiors | rng::views::take(m_numInteriors); }
-    auto GetPeds() { return m_peds | rng::views::take(m_numPeds); }
+    auto GetInteriors() { return m_Interiors | rng::views::take(m_NumInteriors); }
+    auto GetPeds() { return m_Peds | rng::views::take(m_NumPeds); }
 
-    void Init(CEntity* entity, int32 id);
+    void Init(CEntity* entity, int32 groupId);
     void Update();
     int32 AddInterior(Interior_c* interior);
     void SetupPeds();
@@ -69,9 +72,9 @@ public:
     bool FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_t** a3, Interior_c** a4);
     int32 GetNumInteriorInfos(int32 a2);
     int32 GetRandomInterior();
-    auto GetId() const { return m_id; }
+    auto GetId() const { return m_Id; }
 
-    auto GetInteriors() const { return m_interiors | std::views::take(m_numInteriors); }
+    auto GetInteriors() const { return m_Interiors | std::views::take(m_NumInteriors); }
 private:
 
     //! @notsa
