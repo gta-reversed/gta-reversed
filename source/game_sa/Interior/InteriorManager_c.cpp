@@ -356,14 +356,14 @@ Interior_c* InteriorManager_c::GetVectorsInterior(const CVector& pt) { // TODO: 
 // 0x598390
 void InteriorManager_c::SetStealableObjectStolen(CEntity* entity, uint8 isStolen) {
     if (const auto idx = FindStealableObjectId(entity); idx != -1) {
-        m_Objects[idx].wasStolen = isStolen;
+        m_Objects[idx].IsStolen = isStolen;
     }
 }
 
 // 0x598360
 int32 InteriorManager_c::FindStealableObjectId(CEntity* entity) const {
     for (auto&& [i, v] : rngv::enumerate(GetObjects())) {
-        if (v.entity == entity) {
+        if (v.Entity == entity) {
             return i;
         }
     }
@@ -373,7 +373,7 @@ int32 InteriorManager_c::FindStealableObjectId(CEntity* entity) const {
 // 0x5982F0
 int32 InteriorManager_c::FindStealableObjectId(int32 interiorId, int32 modelId, CVector point) const {
     for (auto&& [i, v] : rngv::enumerate(GetObjects())) {
-        if (v.interiorId == interiorId && v.modelId == modelId && v.pos == point) {
+        if (v.InteriorId == interiorId && v.ModelId == modelId && v.Position == point) {
             return i;
         }
     }

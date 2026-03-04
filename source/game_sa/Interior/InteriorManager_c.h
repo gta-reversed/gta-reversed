@@ -73,7 +73,7 @@ private:
     size_t                   m_InteriorCount{};              // 0x42A4
     int32                    m_InteriorIds[64]{};            // 0x42A8
     int32                    m_ObjectCount{};                // 0x43A8
-    InteriorObject           m_Objects[32]{};                // 0x43AC
+    StealableInfo_t           m_Objects[32]{};                // 0x43AC
     bool                     m_InteriorPedsAliveState[16]{}; // 0x472C
     CEntryExit*              m_EnEx{};                       // 0x473C
     CRect                    m_EnExRect{};                   // 0x4740
