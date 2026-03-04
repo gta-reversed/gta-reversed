@@ -22,8 +22,11 @@ enum class eInteriorInfoType {
 struct InteriorInfo_t {
     notsa::WEnumS8<eInteriorInfoType> Type;
     bool                              IsInUse;
-    CVector                           Pos;
-    CVector                           Dir;
-    CEntity*                          EntityIgnoredCollision;
+
+    RwV3d Pos;
+    RwV3d Dir;
+
+    CEntity* EntityIgnoredCollision;
 };
+
 VALIDATE_SIZE(InteriorInfo_t, 0x20);
