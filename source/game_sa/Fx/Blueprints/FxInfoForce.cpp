@@ -4,7 +4,7 @@
 
 // 0x4A5450
 FxInfoForce_c::FxInfoForce_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_FORCE_DATA;
+    m_Type = FX_INFO_FORCE_DATA;
     m_InterpInfo.Allocate(3);
 }
 

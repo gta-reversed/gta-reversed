@@ -4,7 +4,7 @@
 
 // 0x4A5650
 FxInfoAttractPt_c::FxInfoAttractPt_c() : FxInfo_c() {
-    m_nType = FX_INFO_ATTRACTPT_DATA;
+    m_Type = FX_INFO_ATTRACTPT_DATA;
     m_InterpInfo.Allocate(4);
 }
 

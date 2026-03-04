@@ -4,7 +4,7 @@
 
 // 0x4A51B0
 FxInfoEmRotation_c::FxInfoEmRotation_c() : FxInfo_c() {
-    m_nType = FX_INFO_EMROTATION_DATA;
+    m_Type = FX_INFO_EMROTATION_DATA;
     m_InterpInfo.Allocate(2);
 }
 

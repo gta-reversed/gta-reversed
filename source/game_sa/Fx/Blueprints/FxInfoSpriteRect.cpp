@@ -4,7 +4,7 @@
 
 // 0x4A60B0
 FxInfoSpriteRect_c::FxInfoSpriteRect_c() : FxInfo_c() {
-    m_nType = FX_INFO_SPRITERECT_DATA;
+    m_Type = FX_INFO_SPRITERECT_DATA;
     m_InterpInfo.Allocate(4);
 }
 

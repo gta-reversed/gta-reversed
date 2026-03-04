@@ -195,7 +195,7 @@ void FxInfoManager_c::ProcessEmissionInfo(float currentTime, float mult, float t
 
     for (auto i = 0; i < m_MovementOffset; i++) {
         auto& info = m_pInfos[i];
-        if ((info->m_nType & 0x1000) != 0) {
+        if ((info->m_Type & 0x1000) != 0) {
             info->GetValue(currentTime, 0.0f, mult, totalTime, useConst, emission);
         }
     }
@@ -208,7 +208,7 @@ void FxInfoManager_c::ProcessMovementInfo(float currentTime, float mult, float t
 
     for (int i = m_MovementOffset; i < m_RenderOffset; i++) {
         auto& info = m_pInfos[i];
-        if ((info->m_nType & 0x2000) != 0) {
+        if ((info->m_Type & 0x2000) != 0) {
             info->GetValue(currentTime, mult, totalTime, length, useConst, movementInfo);
         }
     }
@@ -221,7 +221,7 @@ void FxInfoManager_c::ProcessRenderInfo(float currentTime, float mult, float tot
 
     for (int i = m_RenderOffset; i < m_nNumInfos; i++) {
         auto& info = m_pInfos[i];
-        if ((info->m_nType & 0xC000) != 0) { // 0xC000 == -0x4000u | m_nType >= 0x4000u
+        if ((info->m_Type & 0xC000) != 0) { // 0xC000 == -0x4000u | m_nType >= 0x4000u
             info->GetValue(currentTime, mult, totalTime, length, useConst, renderInfo);
         }
     }

@@ -4,7 +4,7 @@
 
 // 0x4A5980
 FxInfoGroundCollide_c::FxInfoGroundCollide_c() : FxInfo_c() {
-    m_nType = FX_INFO_GROUNDCOLLIDE_DATA;
+    m_Type = FX_INFO_GROUNDCOLLIDE_DATA;
     m_InterpInfo.Allocate(3);
 }
 

@@ -3,7 +3,7 @@
 #include "FxInfoNoise.h"
 
 FxInfoNoise_c::FxInfoNoise_c() : FxInfo_c() {
-    m_nType = FX_INFO_NOISE_DATA;
+    m_Type = FX_INFO_NOISE_DATA;
     m_InterpInfo.Allocate(1);
 }
 

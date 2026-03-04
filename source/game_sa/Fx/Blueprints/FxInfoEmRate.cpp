@@ -4,7 +4,7 @@
 
 // 0x4A6A00
 FxInfoEmRate_c::FxInfoEmRate_c() : FxInfo_c() {
-    m_nType = FX_INFO_EMRATE_DATA;
+    m_Type = FX_INFO_EMRATE_DATA;
     m_InterpInfo.Allocate(1);
 }
 

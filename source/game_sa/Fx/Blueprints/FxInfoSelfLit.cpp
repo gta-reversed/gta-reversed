@@ -5,7 +5,7 @@
 
 // 0x4A6760
 FxInfoSelfLit_c::FxInfoSelfLit_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_SELFLIT_DATA;
+    m_Type = FX_INFO_SELFLIT_DATA;
     m_InterpInfo.Allocate(0);
 }
 

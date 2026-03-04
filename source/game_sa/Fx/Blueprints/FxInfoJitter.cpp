@@ -4,7 +4,7 @@
 
 // 0x4A5B20
 FxInfoJitter_c::FxInfoJitter_c() : FxInfo_c() {
-    m_nType = FX_INFO_JITTER_DATA;
+    m_Type = FX_INFO_JITTER_DATA;
     m_InterpInfo.Allocate(1);
 }
 

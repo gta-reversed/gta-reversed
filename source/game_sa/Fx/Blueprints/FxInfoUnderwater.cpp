@@ -5,7 +5,7 @@
 
 // 0x4A5E20
 FxInfoUnderwater_c::FxInfoUnderwater_c() : FxInfo_c() {
-    m_nType = FX_INFO_UNDERWATER_DATA;
+    m_Type = FX_INFO_UNDERWATER_DATA;
     m_InterpInfo.Allocate(0);
 }
 

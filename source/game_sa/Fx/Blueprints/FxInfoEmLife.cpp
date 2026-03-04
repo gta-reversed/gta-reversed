@@ -4,7 +4,7 @@
 
 // 0x4A4F50
 FxInfoEmLife_c::FxInfoEmLife_c() : FxInfo_c() {
-    m_nType = FX_INFO_EMLIFE_DATA;
+    m_Type = FX_INFO_EMLIFE_DATA;
     m_InterpInfo.Allocate(2);
 }
 

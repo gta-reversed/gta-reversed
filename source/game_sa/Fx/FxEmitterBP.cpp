@@ -189,7 +189,7 @@ bool FxEmitterBP_c::IsFxInfoPresent(eFxInfoType type) const {
         return false;
 
     for (auto& info : m_FxInfoManager.GetInfos()) {
-        if (info->m_nType == type) {
+        if (info->m_Type == type) {
             return true;
         }
     }

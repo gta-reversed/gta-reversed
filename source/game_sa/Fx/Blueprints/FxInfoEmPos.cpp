@@ -4,7 +4,7 @@
 
 // 0x4A5010
 FxInfoEmPos_c::FxInfoEmPos_c() : FxInfo_c() {
-    m_nType = FX_INFO_EMPOS_DATA;
+    m_Type = FX_INFO_EMPOS_DATA;
     m_InterpInfo.Allocate(3);
 }
 

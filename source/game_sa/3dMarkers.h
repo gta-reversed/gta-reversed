@@ -14,50 +14,51 @@
 struct RpClump;
 struct RpAtomic;
 
-struct tUser3dMarker {
-    bool    m_bIsUsed;
-    CVector m_vecPosition;
-    uint32  m_nRed;
-    uint32  m_nGreen;
-    uint32  m_nBlue;
+struct tUser3dMarkers {
+    bool    IsUsed;
+    CVector Position;
+    uint32  Red, Green, Blue;
 
-    auto GetColor() const { return CRGBA((uint8)m_nRed, (uint8)m_nGreen, (uint8)m_nBlue, 255u); }
+    auto GetColor() const { return CRGBA((uint8)Red, (uint8)Green, (uint8)Blue, 255u); }
 
-    auto IsInUse() const { return m_bIsUsed; }
+    auto IsInUse() const { return IsUsed; }
     void Render(RpClump* clump) const;
 };
 
-VALIDATE_SIZE(tUser3dMarker, 0x1C);
+VALIDATE_SIZE(tUser3dMarkers, 0x1C);
 
-struct tDirectionArrow {
-    bool    m_bIsUsed;
-    CVector m_vecPosition;
-    float   m_fSize;
-    CVector m_normal;       // Normal - That is, the direction it points to
-    uint32  m_nRed;
-    uint32  m_nGreen;
-    uint32  m_nBlue;
-    uint32  m_nAlpha;
+struct tDirectionArrows {
+    bool    IsUsed;
+    CVector Position;
+    float   Size;
+    CVector Normal;       // Normal - That is, the direction it points to
+    uint32  Red, Green, Blue, Alpha;
 
-    auto GetColor() const { return CRGBA((uint8)m_nRed, (uint8)m_nGreen, (uint8)m_nBlue, (uint8)m_nAlpha); }
+    auto GetColor() const { return CRGBA((uint8)Red, (uint8)Green, (uint8)Blue, (uint8)Alpha); }
 
-    auto IsInUse() const { return m_bIsUsed; }
+    auto IsInUse() const { return IsUsed; }
     void Render(RpClump* clump);
 };
 
-VALIDATE_SIZE(tDirectionArrow, 0x30);
+VALIDATE_SIZE(tDirectionArrows, 0x30);
 
 class C3dMarkers {
 public:
-    static inline uint8& m_colDiamond = *(uint8*)0x8D5D8B; // default 255
-    static inline CRGBA& m_user3dMarkerColor = *(CRGBA*)0xC7C620;
-    static inline bool& IgnoreRenderLimit = *(bool*)0xC7C704;
-    static inline float& m_angleDiamondDeg = *(float*)0xC7C700;
-    static inline uint32& NumActiveMarkers = *(uint32*)0xC7C6D8;
-    static inline std::array<RpClump*, (size_t)(MARKER3D_COUNT)>& m_pRpClumpArray = *(std::array<RpClump*, 7>*)0xC7C6DC;
-    static inline std::array<tDirectionArrow, 5>& ms_directionArrows = *(std::array<tDirectionArrow, 5>*)0xC802E8;
-    static inline std::array<tUser3dMarker, 5>& ms_user3dMarkers = *(std::array<tUser3dMarker, 5>*)0xC80258;
-    static inline std::array<C3dMarker, 32>& m_aMarkerArray = *(std::array<C3dMarker, 32>*)0xC7DD58;
+    static inline auto& IgnoreRenderLimit = StaticRef<bool, 0xC7C704>();
+
+    static inline auto& ms_user3dMarkers = StaticRef<std::array<tUser3dMarkers, MARKER3D_COUNT>, 0xC80258>();
+
+    static inline auto& m_user3dMarkerColor = StaticRef<CRGBA, 0xC7C620>();
+
+    static inline auto& ms_directionArrows = StaticRef<std::array<tDirectionArrows, 5>, 0xC802E8>();
+
+    static inline auto& m_pRpClumpArray = StaticRef<std::array<RpClump*, MARKER3D_COUNT>, 0xC7C6DC>();
+    static inline auto& m_aMarkerArray = StaticRef<std::array<C3dMarker, 32>, 0xC7DD58>();
+    static inline auto& NumActiveMarkers = StaticRef<uint32, 0xC7C6D8>();
+
+    static inline auto& m_colDiamond = StaticRef<uint8, 0x8D5D8B>(); // default 255
+    // static inline auto& m_colDiamondMat; // unknown, unused
+    static inline auto& m_angleDiamondDeg = StaticRef<float, 0xC7C700>();
 
 public:
     static void InjectHooks();

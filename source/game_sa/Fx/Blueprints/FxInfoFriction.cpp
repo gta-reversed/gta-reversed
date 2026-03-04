@@ -4,7 +4,7 @@
 
 // 0x4A5550
 FxInfoFriction_c::FxInfoFriction_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_FRICTION_DATA;
+    m_Type = FX_INFO_FRICTION_DATA;
     m_InterpInfo.Allocate(1);
 }
 

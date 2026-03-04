@@ -4,7 +4,7 @@
 
 // 0x4A4C20
 FxInfoEmSize_c::FxInfoEmSize_c() : FxInfo_c() {
-    m_nType = FX_INFO_EMSIZE_DATA;
+    m_Type = FX_INFO_EMSIZE_DATA;
     m_InterpInfo.Allocate(7);
 }
 

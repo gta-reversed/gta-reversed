@@ -5,7 +5,7 @@
 
 // 0x4A6320
 FxInfoFlat_c::FxInfoFlat_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_FLAT_DATA;
+    m_Type = FX_INFO_FLAT_DATA;
     m_InterpInfo.Allocate(9);
 }
 

@@ -4,7 +4,7 @@
 
 // 0x4A6440
 FxInfoDir_c::FxInfoDir_c() : FxInfo_c() {
-    m_nType = FX_INFO_DIR_DATA;
+    m_Type = FX_INFO_DIR_DATA;
     m_InterpInfo.Allocate(3);
 }
 

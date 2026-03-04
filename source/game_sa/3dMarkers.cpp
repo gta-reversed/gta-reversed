@@ -151,7 +151,7 @@ C3dMarker* C3dMarkers::FindFree() {
 //> 0x721120
 int32 C3dMarkers::DirectionArrowFindFirstFreeSlot() {
     for (const auto& [index, arrow] : rngv::enumerate(ms_directionArrows)) {
-        if (!arrow.m_bIsUsed) {
+        if (!arrow.IsUsed) {
             return index;
         }
     }
@@ -166,14 +166,14 @@ void C3dMarkers::DirectionArrowSet(CVector posn, float size, int32 red, int32 gr
     }
 
     auto& arrow = ms_directionArrows[arrowIndex];
-    arrow.m_vecPosition.Set(posn.x, posn.y, posn.z + 3.0f);
-    arrow.m_normal.Set(dirX, dirY, dirZ);
-    arrow.m_fSize = size;
-    arrow.m_nRed = red;
-    arrow.m_nGreen = green;
-    arrow.m_nBlue = blue;
-    arrow.m_nAlpha = alpha;
-    arrow.m_bIsUsed = true;
+    arrow.Position.Set(posn.x, posn.y, posn.z + 3.0f);
+    arrow.Normal.Set(dirX, dirY, dirZ);
+    arrow.Size = size;
+    arrow.Red = red;
+    arrow.Green = green;
+    arrow.Blue = blue;
+    arrow.Alpha = alpha;
+    arrow.IsUsed = true;
 }
 
 //> 0x7211F0
@@ -181,7 +181,7 @@ void C3dMarkers::DirectionArrowsDraw() {
     auto bRenderParamsSet = false;
 
     for (auto& arrow : ms_directionArrows) {
-        if (!arrow.m_bIsUsed) {
+        if (!arrow.IsUsed) {
             continue;
         }
 
@@ -201,7 +201,7 @@ void C3dMarkers::DirectionArrowsDraw() {
 
         arrow.Render(m_pRpClumpArray[MARKER3D_CONE]);
 
-        arrow.m_bIsUsed = false;
+        arrow.IsUsed = false;
     }
 
     if (bRenderParamsSet) {
@@ -215,7 +215,7 @@ void C3dMarkers::DirectionArrowsDraw() {
 //> 0x721100
 void C3dMarkers::DirectionArrowsInit() {
     for (auto& arrow : ms_directionArrows) {
-        arrow.m_bIsUsed = false;
+        arrow.IsUsed = false;
     }
 }
 
@@ -554,14 +554,14 @@ RpAtomic* C3dMarkers::User3dMarkerAtomicCB(RpAtomic* atomic, void*) {
 //> 0x721090
 void C3dMarkers::User3dMarkerDelete(int32 slotIndex) {
     if (slotIndex >= 0 && slotIndex <= (int32)(ms_user3dMarkers.size() - 1)) {
-        ms_user3dMarkers[slotIndex].m_bIsUsed = false;
+        ms_user3dMarkers[slotIndex].IsUsed = false;
     }
 }
 
 //> 0x7210B0
 void C3dMarkers::User3dMarkerDeleteAll() {
     for (auto& marker : ms_user3dMarkers) {
-        marker.m_bIsUsed = false;
+        marker.IsUsed = false;
     }
 }
 
@@ -569,7 +569,7 @@ void C3dMarkers::User3dMarkerDeleteAll() {
 //> 0x720FB0
 int32 C3dMarkers::User3dMarkerFindFirstFreeSlot() {
     for (const auto& [index, marker] : rngv::enumerate(ms_user3dMarkers)) {
-        if (!marker.m_bIsUsed) {
+        if (!marker.IsUsed) {
             return index;
         }
     }
@@ -583,14 +583,14 @@ int32 C3dMarkers::User3dMarkerSet(float x, float y, float z, eHudColours color) 
     if (markerIndex != -1) {
         auto& marker = ms_user3dMarkers[markerIndex];
 
-        marker.m_vecPosition.Set(x, y, z);
+        marker.Position.Set(x, y, z);
     
         const auto colour = HudColour.GetRGB(color);
-        marker.m_nRed = colour.r;
-        marker.m_nGreen = colour.g;
-        marker.m_nBlue = colour.b;
+        marker.Red = colour.r;
+        marker.Green = colour.g;
+        marker.Blue = colour.b;
 
-        marker.m_bIsUsed = true;
+        marker.IsUsed = true;
     }
 
     return markerIndex;
@@ -601,7 +601,7 @@ void C3dMarkers::User3dMarkersDraw() {
     bool bRenderParamsSet = false;
 
     for (auto& marker : ms_user3dMarkers) {
-        if (!marker.m_bIsUsed) {
+        if (!marker.IsUsed) {
             continue;
         }
 
@@ -644,18 +644,18 @@ bool C3dMarkers::SaveUser3dMarkers() {
 }
 
 // Code from (beginning at): 0x7212A4
-void tDirectionArrow::Render(RpClump* clump) {
+void tDirectionArrows::Render(RpClump* clump) {
     const auto frame = RpClumpGetFrame(clump);
 
     // Reset frame's matrix (As we re-calculate it below)
     RwFrameSetIdentity(frame);
 
     // Update position to our's
-    RwFrameTranslate(frame, &m_vecPosition, rwCOMBINEREPLACE);
+    RwFrameTranslate(frame, &Position, rwCOMBINEREPLACE);
 
     auto DoRender = [
         &,
-        transform = CMatrix{ RwFrameGetMatrix(frame) } * CMatrix::WithUp(m_normal) // Build transform matrix we'll use to render
+        transform = CMatrix{ RwFrameGetMatrix(frame) } * CMatrix::WithUp(Normal) // Build transform matrix we'll use to render
     ](CRGBA color, float scale) mutable {
         transform.Scale(scale);
         transform.UpdateRwMatrix(RwFrameGetMatrix(frame)); // Push this matrix to the underlaying RW matrix
@@ -671,19 +671,19 @@ void tDirectionArrow::Render(RpClump* clump) {
         RpClumpRender(clump);
     };
 
-    DoRender({ 0, 0, 0, 255 }, m_fSize);
+    DoRender({ 0, 0, 0, 255 }, Size);
     DoRender(GetColor(),       0.8f   ); // Matrix overall scale comes out to be `m_fSize * 0.8f` (Because scaling is preserved from the last step)
 }
 
 // Code from (beginning at): 0x7232BF
-void tUser3dMarker::Render(RpClump* clump) const {
+void tUser3dMarkers::Render(RpClump* clump) const {
     const auto frame = RpClumpGetFrame(clump);
 
     // Reset rotation
     RwFrameSetIdentity(frame);
 
     // Update position
-    CVector pos = m_vecPosition;
+    CVector pos = Position;
     pos.z += std::sin(DegreesToRadians(C3dMarkers::m_angleDiamondDeg)) * 0.25f;
     RwFrameTranslate(frame, &pos, rwCOMBINEREPLACE);
 

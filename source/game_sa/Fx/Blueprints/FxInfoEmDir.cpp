@@ -4,7 +4,7 @@
 
 // 0x4A4DC0
 FxInfoEmDir_c::FxInfoEmDir_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_EMDIR_DATA;
+    m_Type = FX_INFO_EMDIR_DATA;
     m_InterpInfo.Allocate(3);
 }
 

@@ -5,7 +5,7 @@
 
 // 0x4A50E0
 FxInfoEmWeather_c::FxInfoEmWeather_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_EMWEATHER_DATA;
+    m_Type = FX_INFO_EMWEATHER_DATA;
     m_InterpInfo.Allocate(4);
 }
 

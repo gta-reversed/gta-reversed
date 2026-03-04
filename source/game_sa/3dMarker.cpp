@@ -149,21 +149,21 @@ void C3dMarker::Render() {
 }
 
 // 0x724E10
-void C3dMarker::SetZCoordinateIfNotUpToDate(float coordinate) {
+void C3dMarker::SetZCoordinateIfNotUpToDate(float newZ) {
     if (!IsZCoordinateUpToDate()) {
-        m_Mat.GetPosition().z = coordinate;
+        m_Mat.GetPosition().z = newZ;
     }
 }
 
 // 0x724D40
-void C3dMarker::UpdateZCoordinate(CVector point, float zDistance) {
+void C3dMarker::UpdateZCoordinate(CVector tempPlayerPos, float size) {
     if (IsZCoordinateUpToDate()) {
         return;
     }
 
     auto& pos = m_Mat.GetPosition();
 
-    if (DistanceBetweenPointsSquared2D(pos, point) >= sq(100.0f)) {
+    if (DistanceBetweenPointsSquared2D(pos, tempPlayerPos) >= sq(100.0f)) {
         return;
     }
 
@@ -174,7 +174,7 @@ void C3dMarker::UpdateZCoordinate(CVector point, float zDistance) {
     bool found{};
     auto height = CWorld::FindGroundZFor3DCoord({ pos.x, pos.y, pos.z + 1.0f }, &found, nullptr);
     if (found) {
-        pos.z = height - zDistance / 20.0f;
+        pos.z = height - size / 20.0f;
     }
 
     m_LastMapReadX = static_cast<uint16>(pos.x);

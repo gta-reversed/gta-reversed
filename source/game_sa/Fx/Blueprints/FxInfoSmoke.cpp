@@ -4,7 +4,7 @@
 
 // 0x4A68E0
 FxInfoSmoke_c::FxInfoSmoke_c() : FxInfo_c() {
-    m_nType = FX_INFO_SMOKE_DATA;
+    m_Type = FX_INFO_SMOKE_DATA;
     m_InterpInfo.Allocate(8);
 }
 

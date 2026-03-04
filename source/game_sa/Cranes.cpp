@@ -36,6 +36,6 @@ bool CCranes::IsThisCarBeingTargettedByAnyCrane(CVehicle* vehicle) {
 }
 
 // 0x6F3FD0
-bool CCranes::IsThisCarPickedUp(float a1, float a2, CVehicle* vehicle) {
+bool CCranes::IsThisCarPickedUp(float x, float y, CVehicle* vehicle) {
     return false;
 }

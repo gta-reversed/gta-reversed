@@ -5,7 +5,7 @@
 
 // 0x4A5CB0
 FxInfoRotSpeed_c::FxInfoRotSpeed_c() : FxInfo_c() {
-    m_nType = FX_INFO_ROTSPEED_DATA;
+    m_Type = FX_INFO_ROTSPEED_DATA;
     m_InterpInfo.Allocate(4);
 }
 

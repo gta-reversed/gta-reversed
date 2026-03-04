@@ -5,7 +5,7 @@
 
 // 0x4A6550
 FxInfoAnimTexture_c::FxInfoAnimTexture_c() : FxInfo_c() {
-    m_nType = FX_INFO_ANIMTEX_DATA;
+    m_Type = FX_INFO_ANIMTEX_DATA;
     m_InterpInfo.Allocate(1);
 }
 

@@ -4,7 +4,7 @@
 
 // 0x4A4E90
 FxInfoEmAngle_c::FxInfoEmAngle_c() : FxInfo_c() {
-    m_nType = FX_INFO_EMANGLE_DATA;
+    m_Type = FX_INFO_EMANGLE_DATA;
     m_InterpInfo.Allocate(2);
 }
 

@@ -4,7 +4,7 @@
 
 // 0x4A61A0
 FxInfoHeatHaze_c::FxInfoHeatHaze_c() : FxInfo_c() {
-    m_nType = FX_INFO_HEATHAZE_DATA;
+    m_Type = FX_INFO_HEATHAZE_DATA;
     m_InterpInfo.Allocate(0);
 }
 

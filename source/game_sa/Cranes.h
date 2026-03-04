@@ -1,12 +1,15 @@
 #pragma once
 
+// straight from III/VC
 class CCranes {
 public:
-    static void InjectHooks();
-
     static void InitCranes();
     static void UpdateCranes();
+    static bool IsThisCarPickedUp(float x, float y, CVehicle* vehicle);
     static bool IsThisCarBeingCarriedByAnyCrane(CVehicle* vehicle);
     static bool IsThisCarBeingTargettedByAnyCrane(CVehicle* vehicle);
-    static bool IsThisCarPickedUp(float a1, float a2, CVehicle* vehicle);
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };

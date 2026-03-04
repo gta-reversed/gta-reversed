@@ -5,7 +5,7 @@
 
 // 0x4A4D00
 FxInfoEmSpeed_c::FxInfoEmSpeed_c() : FxInfo_c(), m_InterpInfo() {
-    m_nType = FX_INFO_EMSPEED_DATA;
+    m_Type = FX_INFO_EMSPEED_DATA;
     m_InterpInfo.Allocate(2);
 }
 
