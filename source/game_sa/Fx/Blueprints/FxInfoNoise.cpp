@@ -14,7 +14,7 @@ void FxInfoNoise_c::Load(FILESTREAM file, int32 version) {
 // 0x4A5300
 void FxInfoNoise_c::GetValue(float currentTime, float mult, float totalTime, float len, bool useConst, void* info) {
     auto& movement = *static_cast<MovementInfo_t*>(info);
-    if (!m_bTimeModeParticle) {
+    if (!m_TimeModeParticle) {
         mult = currentTime / len;
     }
 

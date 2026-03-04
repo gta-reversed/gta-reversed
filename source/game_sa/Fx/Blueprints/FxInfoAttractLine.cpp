@@ -28,7 +28,7 @@ void FindClosestPtOnLine(CVector& out, CVector& lineA, CVector& lineB, CVector& 
 // 0x4A5850
 void FxInfoAttractLine_c::GetValue(float currentTime, float mult, float totalTime, float length, bool useConst, void* info) {
     float values[7];
-    if (m_bTimeModeParticle) {
+    if (m_TimeModeParticle) {
         m_InterpInfo.GetVal(values, mult);
     } else {
         m_InterpInfo.GetVal(values, currentTime / length);

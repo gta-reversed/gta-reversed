@@ -10,7 +10,7 @@
 class NOTSA_EXPORT_VTABLE FxInfo_c {
 protected:
     eFxInfoType m_Type;
-    bool        m_bTimeModeParticle;
+    bool        m_TimeModeParticle;
 
 public:
     FxInfo_c() = default;    // 0x4A4B30

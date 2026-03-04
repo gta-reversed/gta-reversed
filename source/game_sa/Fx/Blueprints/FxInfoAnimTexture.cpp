@@ -16,7 +16,7 @@ void FxInfoAnimTexture_c::Load(FILESTREAM file, int32 version) {
 
 // 0x4A65E0
 void FxInfoAnimTexture_c::GetValue(float currentTime, float mult, float totalTime, float len, bool useConst, void* info) {
-    if (!m_bTimeModeParticle) {
+    if (!m_TimeModeParticle) {
         mult = currentTime / len;
     }
 

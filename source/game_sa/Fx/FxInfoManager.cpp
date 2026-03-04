@@ -173,7 +173,7 @@ void FxInfoManager_c::Load(FILESTREAM file, int32 version) {
         info->Load(file, version);
         ReadField<void>(file);
 
-        info->m_bTimeModeParticle = bTimeModePrt;
+        info->m_TimeModeParticle = bTimeModePrt;
     }
 
     if (m_RenderOffset == -1)
