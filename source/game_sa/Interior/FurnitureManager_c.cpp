@@ -18,7 +18,7 @@ void FurnitureManager_c::InjectHooks() {
 }
 
 // 0x5C04A0
-bool FurnitureManager_c::Init() {
+int32 FurnitureManager_c::Init() {
     g_currSubGroupId = 0;
     g_currFurnitureId = 0;
 
@@ -30,7 +30,7 @@ bool FurnitureManager_c::Init() {
 
     LoadFurniture();
 
-    return true;
+    return 1;
 }
 
 // 0x5911A0
