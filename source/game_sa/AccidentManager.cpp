@@ -2,27 +2,26 @@
 
 #include "AccidentManager.h"
 
-CAccidentManager*& CAccidentManager::gAccidentManager = *(CAccidentManager * *)0xB9B7D0;
-
 void CAccidentManager::InjectHooks()
 {
     RH_ScopedClass(CAccidentManager);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(GetInstance, 0x56CF20);
+    RH_ScopedGlobalInstall(GetAccidentManager, 0x56CF20);
+
     RH_ScopedInstall(ReportAccident, 0x56CE80);
-    RH_ScopedInstall(GetNumberOfFreeAccidents, 0x56CEE0);
+    RH_ScopedInstall(ComputeNoOfFreeAccidents, 0x56CEE0);
     RH_ScopedInstall(GetNearestFreeAccidentExceptThisOne, 0x56CF90);
     RH_ScopedInstall(GetNearestFreeAccident, 0x56D050);
 }
 
 // 0x56CF20
-CAccidentManager* CAccidentManager::GetInstance()
-{
-    if (!gAccidentManager)
-        gAccidentManager = new CAccidentManager();
+CAccidentManager* GetAccidentManager() {
+    static auto& spAccidentManager = StaticRef<CAccidentManager*>(0xB9B7D0);
+    if (!spAccidentManager)
+        spAccidentManager = new CAccidentManager();
 
-    return gAccidentManager;
+    return spAccidentManager;
 }
 
 // 0x56CE80
@@ -51,8 +50,7 @@ void CAccidentManager::ReportAccident(CPed* ped)
 }
 
 // 0x56CEE0
-int32 CAccidentManager::GetNumberOfFreeAccidents()
-{
+int32 CAccidentManager::ComputeNoOfFreeAccidents() const {
     int32 count = 0;
 
     for (auto& acc : m_Accidents)
@@ -63,7 +61,7 @@ int32 CAccidentManager::GetNumberOfFreeAccidents()
 }
 
 // 0x56CF90
-CAccident* CAccidentManager::GetNearestFreeAccidentExceptThisOne(CVector& posn, CAccident* thisOne, bool bIgnoreHeadless)
+CAccident* CAccidentManager::GetNearestFreeAccidentExceptThisOne(const CVector& posn, CAccident* thisOne, bool bIgnoreHeadless)
 {
     float minDistance = FLT_MAX;
     CAccident* nearestAcc = nullptr;
@@ -88,7 +86,7 @@ CAccident* CAccidentManager::GetNearestFreeAccidentExceptThisOne(CVector& posn, 
 }
 
 // 0x56D050
-CAccident* CAccidentManager::GetNearestFreeAccident(CVector& posn, bool bIgnoreHeadless)
+CAccident* CAccidentManager::GetNearestFreeAccident(const CVector& posn, bool bIgnoreHeadless)
 {
     return GetNearestFreeAccidentExceptThisOne(posn, nullptr, bIgnoreHeadless);
 }

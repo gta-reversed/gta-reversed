@@ -4,23 +4,27 @@
 
 #include "Accident.h"
 
-const int32 NUM_ACCIDENTS = 16;
+static constexpr size_t NUM_ACCIDENTS = 16;
 
 class CAccidentManager {
-public:
-    CAccident m_Accidents[NUM_ACCIDENTS];
-
-    static CAccidentManager*& gAccidentManager;
+private:
+    CAccident m_Accidents[NUM_ACCIDENTS]{};
 
 public:
+    CAccidentManager()  = default;
+    ~CAccidentManager() = default;
+
+    void ReportAccident(CPed* injuredPed);
+    int32 ComputeNoOfFreeAccidents() const;
+
+    CAccident* GetNearestFreeAccident(const CVector& pos, bool corpseMustHaveHead);
+    CAccident* GetNearestFreeAccidentExceptThisOne(const CVector& pos, CAccident* exclude, bool corpseMustHaveHead);
+
+private:
+    friend void InjectHooksMain();
     static void InjectHooks();
-
-    static CAccidentManager* GetInstance();
-
-    void       ReportAccident(CPed* ped);
-    int32      GetNumberOfFreeAccidents();
-    CAccident* GetNearestFreeAccidentExceptThisOne(CVector& posn, CAccident* thisOne, bool bIgnoreHeadless);
-    CAccident* GetNearestFreeAccident(CVector& posn, bool bIgnoreHeadless);
 };
 
 VALIDATE_SIZE(CAccidentManager, 0x80);
+
+CAccidentManager* GetAccidentManager();

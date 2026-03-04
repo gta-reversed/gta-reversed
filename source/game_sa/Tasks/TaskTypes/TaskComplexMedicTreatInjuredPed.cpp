@@ -85,7 +85,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateSubTask(eTaskType taskType) {
 
 // 0x65A020
 CTask* CTaskComplexMedicTreatInjuredPed::CreateDealWithNextAccidentTask(CPed* ped, CAccident* accident) {
-    m_pAccident = CAccidentManager::GetInstance()->GetNearestFreeAccidentExceptThisOne(ped->GetPosition(), accident, true);
+    m_pAccident = GetAccidentManager()->GetNearestFreeAccidentExceptThisOne(ped->GetPosition(), accident, true);
     if (m_pAccident && m_pAccident->m_pPed) {
         m_pAccident->m_bIsTreated = true;
         CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
@@ -102,7 +102,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateDealWithNextAccidentTask(CPed* pe
 
 // 0x658CC0
 void CTaskComplexMedicTreatInjuredPed::FindNearestAccident(CVector& posn) {
-    m_pAccident = CAccidentManager::GetInstance()->GetNearestFreeAccident(posn, true);
+    m_pAccident = GetAccidentManager()->GetNearestFreeAccident(posn, true);
 }
 
 // 0x658D20

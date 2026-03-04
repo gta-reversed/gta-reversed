@@ -6,20 +6,15 @@ class CPed;
 
 class CAccident {
 public:
-    CPed* m_pPed;
-    bool  m_bIsTreated;
-    bool  m_bIsRevived;
+    CPed* m_pPed{ nullptr };
+    bool  m_bIsTreated{ false };
+    bool  m_bIsRevived{ false };
 
 public:
-    // 0x56CDE0
-    CAccident() {
-        m_pPed = nullptr;
-        m_bIsTreated = false;
-        m_bIsRevived = false;
-    }
+    CAccident() = default; // 0x56CDE0
 
     // 0x56CE00
-    bool IsFree() {
+    bool IsFree() const {
         return    m_pPed
                && !m_bIsTreated
                && !m_bIsRevived
