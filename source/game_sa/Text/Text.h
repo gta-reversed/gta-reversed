@@ -60,7 +60,8 @@ public:
     bool                m_bCdErrorLoaded;
     bool                m_bIsMissionPackLoaded;
     char                m_szMissionName[8];
-    char                m_szCdErrorText[256];
+    char                m_szCdErrorText[256]; // NOTE: Maybe 255?
+
     CMissionTextOffsets m_MissionTextOffsets;
 
 private:
