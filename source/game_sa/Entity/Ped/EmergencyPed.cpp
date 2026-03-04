@@ -5,7 +5,7 @@
 // 0x5DE340
 CEmergencyPed::CEmergencyPed(ePedType pedType, uint32 modelIndex) : CPed(pedType) {
     SetModelIndex(modelIndex); // V1053 Calling the 'SetModelIndex' virtual function in the constructor may lead to unexpected result at runtime
-    m_pedSpeechAudio.Initialise(this);
+    m_pedSpeech.Initialise(this);
 }
 
 void CEmergencyPed::MedicAI() {

@@ -243,7 +243,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     m_nBodypartToRemove = -1;
     bHasACamera = CGeneral::GetRandomNumber() % 4 != 0;
 
-    m_pedWeaponAudio.Initialise(this);
+    m_weaponAudio.Initialise(this);
     m_pedAudio.Initialise(this);
 
     m_acquaintance = CPedType::GetPedTypeAcquaintances(m_nPedType);
@@ -291,7 +291,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
 
     m_pCoverPoint = nullptr;
     m_pEnex = nullptr;
-    m_lastTalkSfx = -1;
+    field_798 = -1;
 
     m_pIntelligence = new CPedIntelligence(this);
     m_pPlayerData = nullptr;
@@ -348,8 +348,8 @@ CPed::~CPed() {
 
     CPopulation::UpdatePedCount(this, 1);
 
-    m_pedSpeechAudio.Terminate();
-    m_pedWeaponAudio.Terminate();
+    m_pedSpeech.Terminate();
+    m_weaponAudio.Terminate();
     m_pedAudio.Terminate();
 
     delete m_pIntelligence;
@@ -3351,49 +3351,49 @@ void CPed::GiveWeaponWhenJoiningGang()
 * @addr 0x5EFF50
 */
 bool CPed::GetPedTalking() {
-    return m_pedSpeechAudio.GetPedTalking();
+    return m_pedSpeech.GetPedTalking();
 }
 
 /*!
 * @addr 0x5EFF60
 */
 void CPed::DisablePedSpeech(bool stopCurrentSpeech) {
-    m_pedSpeechAudio.DisablePedSpeech(stopCurrentSpeech);
+    m_pedSpeech.DisablePedSpeech(stopCurrentSpeech);
 }
 
 /*!
 * @addr 0x5EFF70
 */
 void CPed::EnablePedSpeech() {
-    m_pedSpeechAudio.EnablePedSpeech();
+    m_pedSpeech.EnablePedSpeech();
 }
 
 /*!
 * @addr 0x5EFF80
 */
 void CPed::DisablePedSpeechForScriptSpeech(bool stopCurrentSpeech) {
-    m_pedSpeechAudio.DisablePedSpeechForScriptSpeech(stopCurrentSpeech);
+    m_pedSpeech.DisablePedSpeechForScriptSpeech(stopCurrentSpeech);
 }
 
 /*!
 * @addr 0x5EFF90
 */
 void CPed::EnablePedSpeechForScriptSpeech() {
-    m_pedSpeechAudio.EnablePedSpeechForScriptSpeech();
+    m_pedSpeech.EnablePedSpeechForScriptSpeech();
 }
 
 /*!
 * @addr 0x5EFFA0
 */
 bool CPed::CanPedHoldConversation() const {
-    return m_pedSpeechAudio.CanPedHoldConversation();
+    return m_pedSpeech.CanPedHoldConversation();
 }
 
 /*!
 * @addr 0x5EFFB0
 */
 void CPed::SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
-    m_pedSpeechAudio.AddScriptSayEvent(AE_SCRIPT_SPEECH_PED, scriptID, overrideSilence, isForceAudible, isFrontEnd);
+    m_pedSpeech.AddScriptSayEvent(AE_SCRIPT_SPEECH_PED, scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 /*!
@@ -3402,7 +3402,7 @@ void CPed::SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAu
 */
 int16 CPed::Say(eGlobalSpeechContext gCtx, uint32 startTimeDelay, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
     return gCtx != CTX_GLOBAL_NO_SPEECH
-        ? m_pedSpeechAudio.AddSayEvent(AE_SPEECH_PED, gCtx, startTimeDelay, probability, overrideSilence, isForceAudible, isFrontEnd)
+        ? m_pedSpeech.AddSayEvent(AE_SPEECH_PED, gCtx, startTimeDelay, probability, overrideSilence, isForceAudible, isFrontEnd)
         : -1;
 }
 

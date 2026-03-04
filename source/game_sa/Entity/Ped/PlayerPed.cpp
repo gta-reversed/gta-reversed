@@ -159,7 +159,7 @@ CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PED_TYPE_PLAYE
 
     m_p3rdPersonMouseTarget = nullptr;
     field_7A0 = 0;
-    m_pedSpeechAudio.Initialise(this);
+    m_pedSpeech.Initialise(this);
     GetIntelligence()->m_fDmRadius = 30.0f;
     GetIntelligence()->m_nDmNumPedsToScan = 2;
 
@@ -1033,9 +1033,9 @@ void CPlayerPed::ProcessControl() {
                         GetPlayerData()->m_fGunSpinSpeed = std::min(GetPlayerData()->m_fGunSpinSpeed, 0.45f);
                     }
                     if (pad->GetWeapon(this) && GetActiveWeapon().m_TotalAmmo > 0 && animAssoc->m_CurrentTime >= weaponInfo->m_fAnimLoopStart) 
-                        m_pedWeaponAudio.AddAudioEvent(AE_WEAPON_FIRE_MINIGUN_AMMO);
+                        m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE_MINIGUN_AMMO);
                     else 
-                        m_pedWeaponAudio.AddAudioEvent(AE_WEAPON_FIRE_MINIGUN_NO_AMMO);
+                        m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE_MINIGUN_NO_AMMO);
                 }
             } else {
                 if (GetPlayerData()->m_fGunSpinSpeed > 0.0f) {

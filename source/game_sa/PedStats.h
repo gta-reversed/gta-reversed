@@ -2,7 +2,6 @@
 
 #include "ePedStats.h"
 
-// AKA CPedStats
 class CPedStat {
 public:
     uint32 m_nId;
