@@ -6,6 +6,6 @@
 class CEntity;
 
 struct FurnitureEntity_c : ListItem_c<FurnitureEntity_c> {
-    CEntity* m_entity;
-    uint16 m_tileX, m_tileY;
+    CEntity* m_Entity;
+    uint16 m_TileX, m_TileY;
 };
