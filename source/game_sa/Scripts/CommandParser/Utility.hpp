@@ -2,79 +2,11 @@
 
 #include <tuple> // tuple
 
-#include <Pools/Pools.h>
-
 class CRunningScript;
 class CPhysical;
 
 namespace notsa {
 namespace script {
-namespace detail {
-template<typename T>
-auto& PoolOf() = delete;
-
-template<>
-auto& PoolOf<CColModel>() { return *GetColModelPool(); }
-
-template<>
-auto& PoolOf<CPedIntelligence>() { return *GetPedIntelligencePool(); }
-
-//template<>
-//auto& PoolOf<CPtrNodeSingleLink>() { return *GetPtrNodeSingleLinkPool(); }
-//
-//template<>
-//auto& PoolOf<CPtrNodeDoubleLink>() { return *GetPtrNodeDoubleLinkPool(); }
-
-template<>
-auto& PoolOf<CEntryInfoNode>() { return *GetEntryInfoNodePool(); }
-
-template<>
-auto& PoolOf<CPointRoute>() { return *GetPointRoutePool(); }
-
-//template<>
-//auto& PoolOf<CPatrolRoute>() { return *GetPatrolRoutePool(); }
-
-template<>
-auto& PoolOf<CNodeRoute>() { return *GetNodeRoutePool(); }
-
-template<>
-auto& PoolOf<CTaskAllocator>() { return *GetTaskAllocatorPool(); }
-
-template<>
-auto& PoolOf<CPedAttractor>() { return *GetPedAttractorPool(); }
-
-/*
-* Pools of derived types
-*/
-template<typename T>
-    requires std::is_base_of_v<CPed, T>
-auto& PoolOf() { return *GetPedPool(); }
-
-template<typename T>
-    requires std::is_base_of_v<CVehicle, T>
-auto& PoolOf() { return *GetVehiclePool(); }
-
-template<typename T>
-    requires std::is_base_of_v<CBuilding, T>
-auto& PoolOf() { return *GetBuildingPool(); }
-
-template<typename T>
-    requires std::is_base_of_v<CObject, T>
-auto& PoolOf() { return *GetObjectPool(); }
-
-template<typename T>
-    requires std::is_base_of_v<CDummy, T>
-auto& PoolOf() { return *GetDummyPool(); }
-
-template<typename T>
-    requires std::is_base_of_v<CTask, T>
-auto& PoolOf() { return *GetTaskPool(); }
-
-template<typename T>
-    requires std::is_base_of_v<CEvent, T>
-auto& PoolOf() { return *GetEventPool(); }
-}; // detail
-
 /*!
 * Struct used to return multiple values from a script function.
 * Eg.: MultiRet<int, int> => Should push 2 ints (Using `StoreArg`)

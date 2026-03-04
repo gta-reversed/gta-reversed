@@ -119,7 +119,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     for (auto t = 0; t < 2; t++) { // t - triangle idx
         const auto& tri = triangles[glassTriIdx + t];
         for (auto v = 0; v < 3; v++) { // v - vertex idx of this triangle
-            triVertices[t * 3 + v] =vehMat.TransformPoint(UncompressVector(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]));
+            triVertices[t * 3 + v] = vehMat.TransformPoint(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]);
         }
     }
 
@@ -216,7 +216,7 @@ void CGlass::WindowRespondsToCollision(CEntity* entity, float fDamageIntensity, 
     if (const auto cd = object->GetColModel()->m_pColData; cd && cd->m_nNumTriangles == 2) {
         // Object space vertices
         CVector verticesOS[4];
-        rng::transform(std::span{ cd->m_pVertices, 4 }, verticesOS, UncompressVector);
+        rng::copy(std::span{ cd->m_pVertices, 4 }, verticesOS);
 
         const auto [minZ, maxZ] = FindMinMaxZOfVertices(verticesOS);
 
@@ -576,7 +576,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
 
         CVector verticesObjSpace[4];
         for (auto i = 0u; i < std::size(verticesObjSpace); ++i) {
-            verticesObjSpace[i] = UncompressVector(colData->m_pVertices[i]);
+            verticesObjSpace[i] = colData->m_pVertices[i];
         }
 
         const auto [minZ, maxZ] = FindMinMaxZOfVertices(verticesObjSpace);

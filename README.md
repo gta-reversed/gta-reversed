@@ -15,10 +15,10 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 
 ## Build Instructions
 #### 0. Requirements/Prerequisites
-* **Latest [Visual Studio 2022](https://visualstudio.microsoft.com/en/downloads/)**
+* **Latest [Visual Studio 2026](https://visualstudio.microsoft.com/en/downloads/)**
 * [Python](https://www.python.org/downloads/) >= 3.x (For Conan)
 * [Conan](https://docs.conan.io/2/installation.html#install-with-pip-recommended) (>= 2.x)
-* [CMake](https://cmake.org/download/)
+* [CMake](https://cmake.org/download/) (>= 4.20)
 
 #### 1. Install Python and Conan
 * Install the [latest Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
@@ -27,7 +27,7 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 
 #### 2. Setting up VS
 0) Run the setup script with `python setup.py`. Use `--help` for more info.
-1) Open the generated VS solution at `build/GTASA.sln`, alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
+1) Open the generated VS solution at `build/GTASA.sln` (Or `build/GTASA.slnx`), alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
 2) You can also type `cmake --build build` to build in command line.
 
 ### 3. Set up the game and ASI
@@ -69,3 +69,12 @@ Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/
 - Hundreds of great people on [gtaforums.com](https://gtaforums.com/topic/194199-documenting-gta-sa-memory-addresses).
 - [re3 team](https://github.com/GTAmodding/re3).
 - And everyone who contributed to GTA:SA reversing.
+
+# Star History
+<a href="https://www.star-history.com/#gta-reversed/gta-reversed&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=gta-reversed/gta-reversed&type=date&legend=top-left" />
+ </picture>
+</a>

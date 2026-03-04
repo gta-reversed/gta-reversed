@@ -412,7 +412,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
         CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(40.0f));
         CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
-        CFont::SetScaleForCurrentLanguage(StretchX(0.5f), StretchY(1.2f));
+        CFont::SetScaleForCurrentLanguage(StretchX(0.49f), StretchY(1.2f));
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetEdge(2);
         CFont::SetDropColor(MENU_BG);
