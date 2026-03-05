@@ -95,7 +95,7 @@ public:
     bool SetPursuitCop(CCopPed* cop);
 
     // NOTSA
-    // Same with ((this->Flags & 7) != 0)
+    // Same with ((this->m_nFlags & 7) != 0)
     [[nodiscard]] bool BackOff() const { return m_bEverybodyBackOff || m_bPoliceBackOff || m_bPoliceBackOffGarage; }
 };
 
