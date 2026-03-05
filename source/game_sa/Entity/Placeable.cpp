@@ -195,6 +195,15 @@ bool CPlaceable::IsPointInRange(const CVector& point, float range) {
     return DistanceBetweenPointsSquared(point, GetPosition()) <= sq(range);
 }
 
+void CPlaceable::UnFlipIfFlipped() {
+    auto &up = GetUp(),
+         &r  = GetRight();
+    if (up.z < 0.f) {
+        up = -up;
+        r  = -r;
+    }
+}
+
 CMatrix& CPlaceable::GetMatrix() {
     if (!m_matrix) {
         CPlaceable::AllocateMatrix();

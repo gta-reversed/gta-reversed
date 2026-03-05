@@ -633,19 +633,19 @@ void CObject::ProcessGarageDoorBehaviour() {
     const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight() - 0.1f;
     const auto& garage = CGarages::GetGarage(m_nGarageDoorGarageIndex);
     if (garage.m_bDoorOpensUp) {
-        m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition * 0.48F;
-        float fDoorPos = garage.m_fDoorPosition;
+        m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_DoorOpenness * 0.48F;
+        float fDoorPos = garage.m_DoorOpenness;
         if (garage.m_bDoorGoesIn)
             fDoorPos = -fDoorPos;
 
         CGarage::BuildRotatedDoorMatrix(this, fDoorPos);
     } else {
-        if (garage.m_nType == eGarageType::HANGAR_AT400)
-            m_matrix->GetPosition().z = vecDummyPos.z - fHeight * garage.m_fDoorPosition;
-        else if (garage.m_nType == eGarageType::HANGAR_ABANDONED_AIRPORT)
-            m_matrix->GetPosition().x = vecDummyPos.x - garage.m_fDoorPosition * m_matrix->GetRight().x * 14.0F;
+        if (garage.m_Type == eGarageType::HANGAR_AT400)
+            m_matrix->GetPosition().z = vecDummyPos.z - fHeight * garage.m_DoorOpenness;
+        else if (garage.m_Type == eGarageType::HANGAR_ABANDONED_AIRPORT)
+            m_matrix->GetPosition().x = vecDummyPos.x - garage.m_DoorOpenness * m_matrix->GetRight().x * 14.0F;
         else
-            m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition / 1.1F;
+            m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_DoorOpenness / 1.1F;
     }
 
     SetUsesCollision(garage.m_bDoorClosed);

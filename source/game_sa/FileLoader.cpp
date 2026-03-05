@@ -1261,22 +1261,23 @@ void CFileLoader::LoadEntryExit(const char* line) {
 void CFileLoader::LoadGarage(const char* line) {
     uint32 flags;
     uint32 type;
-    CVector p1{}, p2{};
-    float frontX, frontY;
-    char name[128];
+    CVector base;
+    CVector2D p1, p2;
+    float ceilingZ;
+    char name[8];
 
     if (sscanf_s(
         line,
         "%f %f %f %f %f %f %f %f %d %d %s",
-        &p1.x, &p1.y, &p1.z,
-        &frontX,
-        &frontY,
-        &p2.x, &p2.y, &p2.z,
+        &base.x, &base.y, &base.z,
+        &p1.x, &p1.y,
+        &p2.x, &p2.y,
+        &ceilingZ,
         &flags,
         &type,
         SCANF_S_STR(name)
     ) == 11) {
-        CGarages::AddOne(p1.x, p1.y, p1.z, frontX, frontY, p2.x, p2.y, p2.z, (eGarageType)type, 0, name, flags);
+        CGarages::AddOne(base, p1, p2, ceilingZ, (eGarageType)type, 0, name, flags);
     }
 }
 

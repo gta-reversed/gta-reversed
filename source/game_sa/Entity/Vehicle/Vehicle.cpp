@@ -66,6 +66,15 @@ float& DIFF_SPRING_MULT_Z = *(float*)0x8D35C0;           // 0.1f
 float& DIFF_SPRING_COMPRESS_MULT = *(float*)0x8D35C4;    // 2.0f
 CVector (&VehicleGunOffset)[14] = *(CVector(*)[14])0x8D35D4; // maybe [12]
 
+bool CVehicle::SetColors(std::array<uint8, 4> newColors) {
+    if (rng::equal(m_Colors, newColors)) {
+        return false;
+    } else {
+        rng::copy(newColors, rng::begin(m_Colors));
+        return true;
+    }
+}
+
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
     RH_ScopedCategory("Vehicle");
@@ -1752,8 +1761,8 @@ void CVehicle::DestroyVehicleAndDriverAndPassengers(CVehicle* vehicle) {
         }
     };
 
-    ProcessOccupant(m_pDriver);
-    rng::for_each(GetMaxPassengerSeats(), ProcessOccupant);
+    ProcessOccupant(vehicle->m_pDriver);
+    rng::for_each(vehicle->GetMaxPassengerSeats(), ProcessOccupant);
 
     CWorld::Remove(vehicle);
     delete vehicle;
@@ -4604,4 +4613,14 @@ auto CVehicle::GetPassengerIndex(const CPed* passenger) const -> std::optional<s
 
 bool CVehicle::IsDriverAPlayer() const {
     return m_pDriver && m_pDriver->IsPlayer();
+}
+
+// NOTSA
+bool CVehicle::CanBomBeInstalled() const {
+    switch (m_nVehicleType) {
+    case VEHICLE_TYPE_BIKE:
+    case VEHICLE_TYPE_AUTOMOBILE:
+        return true;
+    }
+    return false;
 }

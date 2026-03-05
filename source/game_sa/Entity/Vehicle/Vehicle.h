@@ -36,6 +36,16 @@ class CHeli;
 class CPedGroup;
 class CVehicleAnimGroup;
 
+// Sadly this is going to be a weak enum until we can use this type directly to store the value in `CVehicle`
+enum eBombOnBoard : uint8 {
+    BOB_NONE,                   // None
+    BOB_TIMED,                  // Timed
+    BOB_ON_IGNITION,            // On ignition
+    BOB_REMOTE,                 // Remote [Activated with detonator]
+    BOB_TIMED_ACTIVATED,        // Timed Bomb has been activated
+    BOB_ON_IGNITION_ACTIVATED   // On ignition has been activated
+};
+
 enum eCarWeapon : uint8 {
     CAR_WEAPON_NOT_USED       = 0,
     CAR_WEAPON_HEAVY_GUN      = 1,
@@ -311,10 +321,15 @@ public:
     };
 
     uint32            m_nCreationTime;
-    uint8             m_nPrimaryColor;
-    uint8             m_nSecondaryColor;
-    uint8             m_nTertiaryColor;
-    uint8             m_nQuaternaryColor;
+    union {
+        struct {
+            uint8 m_nPrimaryColor;
+            uint8 m_nSecondaryColor;
+            uint8 m_nTertiaryColor;
+            uint8 m_nQuaternaryColor;
+        };
+        std::array<uint8, 4> m_Colors;
+    };
     uint8             m_anExtras[2];
     std::array<int16, NUM_VEHICLE_UPGRADES> m_anUpgrades;
     float             m_fWheelScale;
@@ -339,12 +354,7 @@ public:
     float             m_BrakePedal;
     eVehicleCreatedBy m_nCreatedBy;
     int16             m_nExtendedRemovalRange;        // when game wants to delete a vehicle, it gets min(m_wExtendedRemovalRange, 170.0)
-    uint8             m_nBombOnBoard : 3;             // 0 = None
-                                                      // 1 = Timed
-                                                      // 2 = On ignition
-                                                      // 3 = remotely set ?
-                                                      // 4 = Timed Bomb has been activated
-                                                      // 5 = On ignition has been activated
+    uint8             m_nBombOnBoard : 3;             // See eBombOnBoard
     uint8            m_nOverrideLights : 2;           // uses enum NO_CAR_LIGHT_OVERRIDE, FORCE_CAR_LIGHTS_OFF, FORCE_CAR_LIGHTS_ON
     uint8            m_ropeType : 2;                  // See `eRopeType` (also called `m_nWinchType`)
     uint8            m_nGunsCycleIndex : 2;           // Cycle through alternate gun hard-points on planes/helis
@@ -542,7 +552,7 @@ public:
     [[nodiscard]] bool CanDoorsBeDamaged() const;
     bool CanPedEnterCar();
     void ProcessCarAlarm();
-    void DestroyVehicleAndDriverAndPassengers(CVehicle* vehicle);
+    static void DestroyVehicleAndDriverAndPassengers(CVehicle* vehicle);
     bool IsVehicleNormal();
     void ChangeLawEnforcerState(bool bIsEnforcer);
     bool IsLawEnforcementVehicle() const;
@@ -759,6 +769,13 @@ public:
     /// Is there enough space for at least one more passenger - TODO: -1 is only for buses
     [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers -1 > m_nNumPassengers; }
 
+    //! If a bomb can be installed
+    bool CanBomBeInstalled() const;
+    auto GetBombOnBoard() const { return (eBombOnBoard)m_nBombOnBoard; }
+
+    //! Set the colors of the vehicle.
+    //! @returns If the colors have changed
+    bool SetColors(std::array<uint8, 4> colors);
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
@@ -788,7 +805,6 @@ RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data);
 RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data);
 RwObject* SetVehicleAtomicVisibilityCB(RwObject* object, void* data);
 RwFrame* SetVehicleAtomicVisibilityCB(RwFrame* component, void* data);
-void DestroyVehicleAndDriverAndPassengers(CVehicle* vehicle);
 void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state);
 
 /* Missing funcs | from Android
