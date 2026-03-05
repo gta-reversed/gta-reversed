@@ -76,6 +76,9 @@ public:
     static void SetSpeedFXManualSpeedCurrentFrame(float value);
 
     static void Render();
+#if defined(BUILD_ANDROID)
+    static void MobileRender();
+#endif
 
 public:
     static inline float& SCREEN_EXTRA_MULT_CHANGE_RATE = *(float*)0x8D5168; // 0.0005f;
