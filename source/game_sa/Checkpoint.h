@@ -26,7 +26,7 @@ enum class eCheckpointType : uint32 {
     //
     // Add above this
     //
-    NUM = 0x9,   ///< Count of different checkpoint types
+    NUM = 0x9,   ///< m_size of different checkpoint types
     NA  = 0x101, ///< Sentinel value (Used for markers not in use)
 };
 using eCheckpointTypeU16 = notsa::WEnumU16<eCheckpointType>;

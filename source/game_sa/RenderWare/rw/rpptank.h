@@ -97,7 +97,7 @@ enum RpPTankDataLockFlags
     rpPTANKLFLAG2DROTATE                 = ((int)0x00000020),   /**<Access the 2D rotations buffer*/
     rpPTANKLFLAGVTXCOLOR                 = ((int)0x00000040),   /**<Access the colors buffer (when using a color per vertex) */
     rpPTANKLFLAGVTX2TEXCOORDS            = ((int)0x00000080),   /**<Access the Top-Left and Bottom-Right Texture coordinates buffer*/
-    rpPTANKLFLAGVTX4TEXCOORDS            = ((int)0x00000100),   /**<Access the texture UVs Buffer (when using a color per vertex)*/
+    rpPTANKLFLAGVTX4TEXCOORDS            = ((int)0x00000100),   /**<Access the texture UVs m_data (when using a color per vertex)*/
 
     RPPTANKLOCKFLAGSFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
 };

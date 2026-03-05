@@ -4,8 +4,8 @@
 #include "GxtChar.h"
 
 CData::CData() {
-    Buffer = nullptr;
-    Count = 0;
+    m_data = nullptr;
+    m_size = 0;
 }
 
 CData::~CData() {
@@ -14,9 +14,9 @@ CData::~CData() {
 
 // 0x69F640
 void CData::Unload() {
-    delete[] Buffer;
-    Buffer = nullptr;
-    Count = 0;
+    delete[] m_data;
+    m_data = nullptr;
+    m_size = 0;
 }
 
 // loadFromMemoryCard always 0
@@ -28,20 +28,20 @@ bool CData::Load(const uint32 length, FILESTREAM file, uint32* offset, bool load
     if (!length)
         return true;
 
-    for (uint32 i = 0; i < Count; ++i) {
+    for (uint32 i = 0; i < m_size; ++i) {
         if (!loadFromMemoryCard)
             if (sizeof(GxtChar) != CFileMgr::Read(file, &temp, sizeof(GxtChar)))
                 return false;
 
-        Buffer[i] = (GxtChar)temp;
+        m_data[i] = (GxtChar)temp;
         ++*offset;
     }
 #endif
 
-    Count = length / sizeof(char);
-    Buffer = new char[Count];
+    m_size = length / sizeof(char);
+    m_data = new char[m_size];
 
-    CFileMgr::Read(file, Buffer, length);
+    CFileMgr::Read(file, m_data, length);
     *offset += length;
 
     return true;

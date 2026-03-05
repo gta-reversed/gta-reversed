@@ -152,7 +152,7 @@ private:
 public: // TODO: Eventually make this private
     eWeaponType  m_Type{};                            //< Weapon's type
     eWeaponState m_State{};                           //< Current weapon state
-    uint32       m_AmmoInClip{};                      //< Count of ammo in the clip currently
+    uint32       m_AmmoInClip{};                      //< m_size of ammo in the clip currently
     uint32       m_TotalAmmo{};                       //< The total amount of ammo (Anything above 25k is considered infinite in case of player peds)
     uint32       m_TimeForNextShotMs{};               //< When the next shot is allowed to be fired
     bool         m_IsFirstPersonWeaponModeSelected{}; //< Fuck knows, unused

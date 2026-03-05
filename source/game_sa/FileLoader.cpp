@@ -491,7 +491,7 @@ void LoadCollisionModelAnyVersion(const ColHelpers::FileHeader& header, uint8* c
 // Load one, or multiple, collision models from the given buffer
 bool CFileLoader::LoadCollisionFile(uint8* buff, uint32 buffSize, uint8 colId) {
     using namespace ColHelpers;
-    assert(buffSize >= sizeof(FileHeader) && "LoadCollisionFileFirstTime called with not enough data"); // Buffer should be big enough to have at least 1 col header in it
+    assert(buffSize >= sizeof(FileHeader) && "LoadCollisionFileFirstTime called with not enough data"); // m_data should be big enough to have at least 1 col header in it
 
     auto fileTotalSize{0u};
     for (auto buffPos = 0u; buffPos < buffSize; buffPos += fileTotalSize) {
@@ -575,7 +575,7 @@ void CFileLoader::LoadCollisionFile(const char* filename, uint8 colId) {
 // 0x5B5000
 bool CFileLoader::LoadCollisionFileFirstTime(uint8* buff, uint32 buffSize, uint8 colId) {
     using namespace ColHelpers;
-    assert(buffSize >= sizeof(FileHeader) && "LoadCollisionFileFirstTime called with not enough data"); // Buffer should be big enough to have at least 1 col header in it
+    assert(buffSize >= sizeof(FileHeader) && "LoadCollisionFileFirstTime called with not enough data"); // m_data should be big enough to have at least 1 col header in it
 
     auto fileTotalSize{0u};
     for (auto buffPos = 0u; buffPos < buffSize; buffPos += fileTotalSize) {

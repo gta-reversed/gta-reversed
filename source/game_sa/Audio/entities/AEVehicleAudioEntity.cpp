@@ -4055,7 +4055,7 @@ void CAEVehicleAudioEntity::ProcessTrainTrackSound(tVehicleParams& vp) {
         ? &s_Config.Train.Tram.TrackSound
         : &s_Config.Train.Generic.TrackSound;
 
-    // Count number of carriages
+    // m_size number of carriages
     size_t n{};
     for (auto it = train; it; it = it->m_pPrevCarriage) {
         n++;

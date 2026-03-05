@@ -538,7 +538,7 @@ uint32 RpAnimBlendClumpCountAssociationsIf(RpClump* clump, Fn&& Pred) {
 // 0x4D6B60
 uint32 RpAnimBlendClumpGetNumAssociations(RpClump* clump) {
     return RpAnimBlendClumpCountAssociationsIf(clump, [](const CAnimBlendAssociation& a){
-        return true; // Count all
+        return true; // m_size all
     });
 }
 

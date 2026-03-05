@@ -40,10 +40,10 @@ public:
     //! Set a new leader [Should be called only if there's no leader]
     void AppointNewLeader();
 
-    //! Count of members
+    //! m_size of members
     size_t CountMembers();
 
-    //! Count of followers
+    //! m_size of followers
     int32 CountMembersExcludingLeader();
 
     //! Flush the toilet

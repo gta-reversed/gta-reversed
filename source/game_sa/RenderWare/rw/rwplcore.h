@@ -4552,7 +4552,7 @@ typedef struct
     RwUInt32    numSamplerStageStateChanges;    /**< Number of Sampler States changed */
     RwUInt32    numMaterialChanges;             /**< Number of Material changes */
     RwUInt32    numLightsChanged;               /**< Number of Lights changed */
-    RwUInt32    numVBSwitches;                  /**< Number of Vertex Buffer switches */
+    RwUInt32    numVBSwitches;                  /**< Number of Vertex m_data switches */
 }
 RwD3D9Metrics;
 #endif /* !defined(RWADOXYGENEXTERNAL) */

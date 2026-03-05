@@ -3,8 +3,8 @@
 // TDAT block
 class CData {
 public:
-    char*  Buffer; // TODO: GxtChar*
-    uint32 Count;
+    char*  m_data; // TODO: GxtChar*
+    uint32 m_size;
 
 public:
     CData();

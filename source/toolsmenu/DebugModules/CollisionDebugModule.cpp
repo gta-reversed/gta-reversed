@@ -70,7 +70,7 @@ void RenderShapeShapeCollisionStuff() {
             return rng::count_if(states[s], [&](State st) { return st == stcnt; });
         };
 
-        // Count number of enabled and unsupported entires
+        // m_size number of enabled and unsupported entires
         const auto nenabled = CountState(State::ENABLED);
         const auto nunsupp  = CountState(State::NOT_SUPPORTED);
 
