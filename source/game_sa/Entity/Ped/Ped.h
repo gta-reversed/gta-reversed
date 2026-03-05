@@ -331,7 +331,7 @@ public:
     float               m_WobbleSpeed;
     char                m_nLastWeaponDamage; // See eWeaponType
     CEntity*            m_pLastEntityDamage;
-    int32               field_768;
+    uint32              m_LastDamagedTime;
 
     // TODO: Not turret, but rather attached entity, see `AttachPedToEntity` and `AttachPedToBike`
     CVector             m_vecTurretOffset;
