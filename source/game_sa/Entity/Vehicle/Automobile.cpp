@@ -1820,7 +1820,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
         // Process the real wheels
         for (auto i = 0; i < MAX_CARWHEELS; i++) {
             // 0x6AD0D4
-            auto& cp = aAutomobileColPoints[i];
+            const auto& cp = aAutomobileColPoints[i];
 
             const auto wheelColPtsTouchDist = wheelColPtsTouchDists[i];
             if (wheelColPtsTouchDist >= 1.f || wheelColPtsTouchDist >= m_fWheelsSuspensionCompression[i]) {
@@ -1906,7 +1906,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
             if (suspComprDelta <= 0.1f /* 0x8D3200 */) {
                 continue;
             }
-            auto& wheelcp = m_wheelColPoint[i];
+            const auto& wheelcp = m_wheelColPoint[i];
             if (g_surfaceInfos.GetAdhesionGroup(wheelcp.GetSurfaceTypeB()) == ADHESION_GROUP_SAND || wheelcp.GetSurfaceTypeB() == SURFACE_RAILTRACK) {
                 continue;
             }

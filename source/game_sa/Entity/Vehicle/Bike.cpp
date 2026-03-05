@@ -373,7 +373,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
     if (tcd->m_nNumLines) {
         // Process the real wheels
         for (auto i = 0; i < NUM_SUSP_LINES; i++) {
-            auto& cp = m_aWheelColPoints[i];
+            const auto& cp = m_aWheelColPoints[i];
 
             const auto wheelColPtsTouchDist = m_aWheelRatios[i];
             if (wheelColPtsTouchDist >= 1.f || wheelColPtsTouchDist >= ogWheelRatios[i]) {

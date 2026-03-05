@@ -341,7 +341,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
         // Process the real wheel's susp lines
         for (auto i = 0; i < NUM_TRAILER_WHEELS; i++) {
             // 0x6AD0D4
-            auto& cp = suspLineCPs[i];
+            const auto& cp = suspLineCPs[i];
             const auto touchDist = suspLineTouchDists[i];
             if (touchDist < BILLS_EXTENSION_LIMIT && touchDist < m_fWheelsSuspensionCompression[i]) {
                 numProcessedLines++;

@@ -29,10 +29,12 @@ public:
     void SetPosition(float x, float y, float z) { m_Position.Set(x, y, z); }
     void SetPosition(const CVector& pos) { m_Position = pos; }
     CVector& GetPosition() { return m_Position; }
+    const CVector& GetPosition() const { return m_Position; } // NOTSA
 
     void SetNormal(float x, float y, float z) { m_Normal.Set(x, y, z); }
     void SetNormal(const CVector& pos) { m_Normal = pos; }
     CVector& GetNormal() { return m_Normal; }
+    const CVector& GetNormal() const { return m_Normal; } // NOTSA
 
     void SetDataA(const tColData& data) { m_DataA = data; }
     tColData GetDataA() const { return m_DataA;}

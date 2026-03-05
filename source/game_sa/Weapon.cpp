@@ -477,7 +477,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
 }
 
 // 0x73B550
-void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& startPoint, const CVector& endPoint, CColPoint& hitCP, int32 incrementalHit) {
+void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& startPoint, const CVector& endPoint, const CColPoint& hitCP, int32 incrementalHit) {
     const auto firedByPed = firedBy->GetIsTypePed()
         ? firedBy->AsPed()
         : nullptr;

@@ -58,7 +58,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
     if (tcm->GetData()->m_nNumLines) {
         for (auto i = 0; i < MAX_CARWHEELS; i++) {
             const auto  thisWheelTouchDistNow = wheelColPtsTouchDists[i];
-            auto& thisWheelColPtNow = m_wheelColPoint[i];
+            const auto& thisWheelColPtNow = m_wheelColPoint[i];
 
             if (thisWheelTouchDistNow <= m_wheelPosition[i]) {
                 continue;

@@ -3540,7 +3540,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
 
             const auto prevElasticity = std::exchange(m_fElasticity, 1.f);
 
-            for (auto& cp : CWorld::m_aTempColPts | rng::views::take(numColls)) { // 0x6DB474
+            for (const auto& cp : CWorld::m_aTempColPts | rng::views::take(numColls)) { // 0x6DB474
                 const auto colDir = cp.GetPosition() - colModelCenter;
                 const auto colDirOnRotorUp = DotProduct(colDir, rotorUp);
 
