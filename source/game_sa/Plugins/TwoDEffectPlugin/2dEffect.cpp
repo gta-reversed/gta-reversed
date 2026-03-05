@@ -24,7 +24,7 @@ void C2dEffect::InjectHooks()
     RH_ScopedGlobalInstall(t2dEffectPluginDestructor, 0x6FA880);
     RH_ScopedGlobalInstall(t2dEffectPluginCopyConstructor, 0x6F9FB0);
 
-    RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkReadCallBack, 0x6F9FD0, { .reversed = true });
+    RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkReadCallBack, 0x6F9FD0);
     RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkWriteCallBack, 0x6FA620);
     RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkGetSizeCallBack, 0x6FA630);
 }
@@ -176,7 +176,7 @@ void* t2dEffectPluginCopyConstructor(void* dstObject, const void* srcObject, RwI
     C2DEFFECTPLG(dstObject, m_pEffectEntries) = nullptr;
     return dstObject;
 }
-
+// 0x6F9FD0
 RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream, RwInt32 binaryLength, void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
 {
     if (C2dEffect::ms_nTxdSlot == -1) {

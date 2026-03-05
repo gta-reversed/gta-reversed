@@ -255,8 +255,8 @@ struct C2dEffect : public C2dEffectBase {
     };
 
 public:
-    static inline int32& ms_nTxdSlot = StaticRef<int32>(0x8D4948);
-    static inline uint32& g2dEffectPluginOffset = StaticRef<uint32>(0xC3A1E0);
+    static inline auto& ms_nTxdSlot = StaticRef<int32>(0x8D4948);
+    static inline auto& g2dEffectPluginOffset = StaticRef<uint32>(0xC3A1E0);
 
     template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
     static To* DynCast(From* p) {
