@@ -35,7 +35,7 @@ enum ePedAttractorType : int8 {
     PED_ATTRACTOR_SHELTER        = 4, // Ped goes away after spawning, but stands if weather is rainy
     PED_ATTRACTOR_TRIGGER_SCRIPT = 5, // Launches an external script
     PED_ATTRACTOR_LOOK_AT        = 6, // Ped looks at object, then goes away
-    PED_ATTRACTOR_SCRIPTED       = 7, // This type is not IsValidPolyStored
+    PED_ATTRACTOR_SCRIPTED       = 7, // This type is not valid
     PED_ATTRACTOR_PARK           = 8, // Ped lays (at daytime only, ped goes away after 6 PM)
     PED_ATTRACTOR_STEP           = 9, // Ped sits on steps
 };

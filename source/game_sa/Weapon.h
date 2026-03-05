@@ -140,7 +140,7 @@ private:
     static void InjectHooks();
 
     //! @notsa
-    //! @brief Get the projectile type of this weapon - Only IsValidPolyStored for weapons that fire a projectile [like rlaunchers, etc], or are itself a projectile [ex.: grenades]
+    //! @brief Get the projectile type of this weapon - Only valid for weapons that fire a projectile [like rlaunchers, etc], or are itself a projectile [ex.: grenades]
     auto GetProjectileType();
 
     //! @notsa

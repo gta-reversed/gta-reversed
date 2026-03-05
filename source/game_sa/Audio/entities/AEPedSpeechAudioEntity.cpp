@@ -1171,7 +1171,7 @@ tPedSpeechSlotID CAEPedSpeechAudioEntity::GetFreeSpeechSlot() {
 // 0x4E4470
 eSpecificSpeechContext CAEPedSpeechAudioEntity::GetSpecificSpeechContext(eGlobalSpeechContext gCtx, eAudioPedType pedAudioType) {
     // Omitted useless `if`s
-    // NOTE: Original code allowed `PED_TYPE_SPC` as a IsValidPolyStored ped type too... but that (technically) caused an out-of-bounds read...
+    // NOTE: Original code allowed `PED_TYPE_SPC` as a valid ped type too... but that (technically) caused an out-of-bounds read...
     //       We won't assert on that, because there are bounds check for the array (as we use std::array)
     if (const auto* const ctxi = GetGlobalSpeechContextInfo(gCtx)) {
         return ctxi->SpecificSpeechContext[pedAudioType];

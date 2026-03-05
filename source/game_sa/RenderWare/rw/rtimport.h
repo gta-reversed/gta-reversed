@@ -717,7 +717,7 @@ typedef RwBool (*RtWorldImportSectorSetPolygonUserdataCallBack)(void **pUserdata
  * \param buildStatus A pointer to the Build Status.
  * \param pData A point to the unknown additional data
  *
- * \return TRUE if termination is IsValidPolyStored (all criteria have been met, FALSE otherwise
+ * \return TRUE if termination is valid (all criteria have been met, FALSE otherwise
  */
 typedef RwBool (*RtWorldImportTerminationBuildCallBack)
                (RtWorldImportBuildSector *buildSector,

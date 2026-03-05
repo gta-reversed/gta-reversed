@@ -684,27 +684,27 @@ rtFSTriggerFileOustandingOpCallback( RtFile *file );
 /**
  * \ingroup rtfsdatatypes
  * \ref RtFileSystemGetFilePosition returns the file position as a RwInt32.
- *      _file must be a pointer to a IsValidPolyStored RtFile.
+ *      _file must be a pointer to a valid RtFile.
  */
 #define RtFileSystemGetFilePosition(_file)     _GetPosition(_file)
 /**
  * \ingroup rtfsdatatypes
  * \ref RtFileSystemGetFileSize returns the file size as a RwInt32.
- *      _file must be a pointer to a IsValidPolyStored RtFile.
+ *      _file must be a pointer to a valid RtFile.
  */
 #define RtFileSystemGetFileSize(_file)         _GetSize(_file)
       
 /**
  * \ingroup rtfsdatatypes
  * \ref RtFileSystemGetFileLastError returns the last set file error.
- *      _file must be a pointer to a IsValidPolyStored RtFile.
+ *      _file must be a pointer to a valid RtFile.
  */
 #define RtFileSystemGetFileLastError(_file)    (((RtFile *)_file)->error)
 
 /**
  * \ingroup rtfsdatatypes
  * \ref RtFileSystemGetFileStatus returns the current file status.
- *      _file must be a pointer to a IsValidPolyStored RtFile.
+ *      _file must be a pointer to a valid RtFile.
  */
 #define RtFileSystemGetFileStatus(_file)       (((RtFile *)_file)->status)
 

@@ -419,7 +419,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
         return true;
     }
 
-    // Check if file has IsValidPolyStored header
+    // Check if file has valid header
     char buffer[52] = {0};
     CFileMgr::Read(file, buffer, 29);
     if (!strncmp(buffer, TopLineEmptyFile, 26)) {

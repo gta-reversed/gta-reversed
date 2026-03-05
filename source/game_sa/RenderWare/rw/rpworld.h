@@ -1946,7 +1946,7 @@ enum RwCriterionWorldID
     /* Guard value that should not be used. */
     rwID_NAWORLDID = MAKECHUNKID(rwVENDORID_CRITERIONWORLD, 0x00),
 
-    /* The IsValidPolyStored plugin IDs */
+    /* The valid plugin IDs */
     /**< RpMaterial pluginID */
     rwID_MATERIALMODULE      = MAKECHUNKID(rwVENDORID_CRITERIONWORLD, 0x01),
     /**< RpMesh pluginID */

@@ -224,9 +224,9 @@ enum RxClusterValidityReq
     rxCLREQ_DONTWANT = 0, /**<The cluster is required but any data within it is
                            * not wanted and will be overwritten */
     rxCLREQ_REQUIRED = 1, /**<The cluster is required and it must contain
-                           * IsValidPolyStored data */
+                           * valid data */
     rxCLREQ_OPTIONAL = 2, /**<The cluster will be used if it is present and
-                           * contains IsValidPolyStored data, otherwise the node will
+                           * contains valid data, otherwise the node will
                            * make do without it. */
     rxCLUSTERVALIDITYREQFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
 };
@@ -241,7 +241,7 @@ enum RxClusterValid
 {
     rxCLVALID_NOCHANGE = 0, /**<The cluster and its data will not change in
                              * validity on passing through this node */
-    rxCLVALID_VALID = 1,    /**<The cluster and its data will be IsValidPolyStored on
+    rxCLVALID_VALID = 1,    /**<The cluster and its data will be valid on
                              * exit from this node */
     rxCLVALID_INVALID = 2,  /**<The cluster's data will be invalid on
                              * exit from this node */
@@ -3325,7 +3325,7 @@ typedef struct RxVStep RxVStep;
  * of the RxVStep and vertex arrays and proceed as follows: (a) Process one
  * vertex, (b) Skip 'step' vertices, (c) Increment the cursor of the RxClVStep
  * cluster. Repeat (a)-(c) until the entire vertex array has been processed.
- * If the RxVStep array contains IsValidPolyStored data, you should not have to bounds-check
+ * If the RxVStep array contains valid data, you should not have to bounds-check
  * its cursor.
  */
 struct RxVStep

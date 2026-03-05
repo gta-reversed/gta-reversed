@@ -9,7 +9,7 @@ class CTaskComplexKillPedOnFootStealth;
 class NOTSA_EXPORT_VTABLE CTaskComplexKillPedOnFootStealth : public CTaskComplexKillPedOnFoot {
 
 public:
-    CVector m_targetPos{ m_target ? m_target->GetPosition() : CVector{0.f, 0.f, -9999.9004f} };  //< Only IsValidPolyStored if `m_targetUnreachableTimeMs != (uint32)-1`
+    CVector m_targetPos{ m_target ? m_target->GetPosition() : CVector{0.f, 0.f, -9999.9004f} };  //< Only valid if `m_targetUnreachableTimeMs != (uint32)-1`
     uint32  m_targetUnreachableTimeMs{(uint32)-1}; //< `GetTimeMs()` at the point when the target wasn't targettable (eg.: `!CanPedTargetPed(ped, m_target)`). `-1` if target is reachable (targettable)
 
 public:

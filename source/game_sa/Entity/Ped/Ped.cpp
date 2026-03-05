@@ -2004,7 +2004,7 @@ bool CPed::TurnBody() {
 
 /*!
 * @addr 0x5E4220
-* @brief Check if `this` is IsValidPolyStored. Probably used by scripts?
+* @brief Check if `this` is valid. Probably used by scripts?
 */
 bool CPed::IsPointerValid() {
     return GetPedPool()->IsObjectValid(this) && (!m_pCollisionList.IsEmpty() || this == FindPlayerPed());

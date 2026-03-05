@@ -884,7 +884,7 @@ OpcodeResult CRunningScript::ProcessOneCommand() {
 
     const auto op = GetAtIPAs<scm::Instruction>();
 
-    // Check if IP is IsValidPolyStored pre-return
+    // Check if IP is valid pre-return
     notsa::ScopeGuard guardIP{[this]() {
         const auto next{ GetAtIPAs<scm::Instruction>(false) };
         VERIFY(next.Command <= COMMAND_HIGHEST_VANILLA_ID);

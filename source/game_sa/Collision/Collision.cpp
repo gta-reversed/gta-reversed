@@ -1222,7 +1222,7 @@ bool CCollision::Test2DLineAgainst2DLine(float line1StartX, float line1StartY, f
 * @param diskColPoint  Disk collision point (Space A)
 * @param lineCollision If there was a line collision (Only checked if no discr collision)
 * @param lineRatio     Not sure
-* @param lineColPoint  Line colpoint (Only IsValidPolyStored if `lineCollision` was set)
+* @param lineColPoint  Line colpoint (Only valid if `lineCollision` was set)
 * @returns If the diskColPoint collides with the discr
 */
 // 0x413960

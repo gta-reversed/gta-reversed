@@ -750,7 +750,7 @@ _rwD3D9BeginScene(void)
 
  On entry   : Camera
             : RwRGBA colour to clear to
-            : m_data mask to clear
+            : Buffer mask to clear
  On exit    : TRUE on success
  */
 RwBool
@@ -772,7 +772,7 @@ _rwD3D9CameraClear(void *camera, void *color, RwInt32 clearFlags)
         D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, /* Clear Frame & Z buffer */
         D3DCLEAR_STENCIL,       /* Clear Stencil buffer */
         D3DCLEAR_TARGET | D3DCLEAR_STENCIL, /* Clear Frame & Stencil buffer */
-        D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, /* Clear Z m_data & Stencil */
+        D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, /* Clear Z Buffer & Stencil */
         D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, /* Clear Frame, Z & stencil */
     };
 
@@ -1676,7 +1676,7 @@ D3D9SetPresentParameters(const D3DDISPLAYMODE *mode,
     Present.EnableAutoDepthStencil = TRUE;
 
     /*
-    * Find the Z-m_data depth
+    * Find the Z-Buffer depth
     * Best perfomance results when using same bit depth than back buffer
     */
     _RwD3D9ZBufferDepth = D3D9FindDepth(Present.BackBufferFormat);

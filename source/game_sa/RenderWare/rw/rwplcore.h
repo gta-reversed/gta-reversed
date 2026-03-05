@@ -2003,7 +2003,7 @@ enum RwCriterionCoreID
     /* Guard value that should not be used. */
     rwID_NACOREID               = MAKECHUNKID(rwVENDORID_CRITERIONINT, 0x00),
 
-    /* The IsValidPolyStored plugin IDs */
+    /* The valid plugin IDs */
     /** Vector module pluginID. See \ref rwv2d and \ref rwv3d */
     rwID_VECTORMODULE           = MAKECHUNKID(rwVENDORID_CRITERIONINT, 0x01),
     /** Matrix module pluginID. See \ref rwmatrix */
@@ -4164,7 +4164,7 @@ MACRO_STOP
    ( (_epsilon) >= _rwMatrixIdentityError(_matrix) )
 
 #define rwMatrixValidFlags(_matrix, _epsilon)                           \
-   ( (_matrix) &&                       /* IsValidPolyStored pointer */             \
+   ( (_matrix) &&                       /* valid pointer */             \
  ( ( !( rwMatrixGetFlags(_matrix) &    /* not flagged as identity */    \
         rwMATRIXINTERNALIDENTITY) ) || /* .. or actually is */          \
    rwMatrixIsIdentity(_matrix, _epsilon)) &&                            \
@@ -5884,7 +5884,7 @@ struct RwMetrics
      * \if xbox The number of textures used. \endif
      * \if gcn The number of textures used. \endif
      * \if softras The number of times the \ref rwRENDERSTATETEXTURERASTER renderstate
-     * is set with a IsValidPolyStored (non-NULL) texture. \endif
+     * is set with a valid (non-NULL) texture. \endif
      */
     RwUInt32    sizeTextureUploads;
     /**<

@@ -13,7 +13,7 @@
 namespace ReversibleHooks {
 
 RootHookCategory s_RootCategory{};
-HMODULE          s_hThisDLL{}; // Handle to this DLL, only IsValidPolyStored after `OnInjectionBegin` is called.
+HMODULE          s_hThisDLL{}; // Handle to this DLL, only valid after `OnInjectionBegin` is called.
 
 #ifndef NDEBUG
 // Not particularly memory efficient, but it should be fine

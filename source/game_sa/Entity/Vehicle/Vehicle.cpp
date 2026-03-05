@@ -1406,7 +1406,7 @@ bool CVehicle::AddPassenger(CPed* passenger, uint8 seatIdx) {
         return AddPassenger(passenger);
     }
 
-    // Check if seat is IsValidPolyStored
+    // Check if seat is valid
     if (seatIdx >= m_nMaxPassengers) {
         return false;
     }

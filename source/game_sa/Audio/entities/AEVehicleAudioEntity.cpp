@@ -322,7 +322,7 @@ eSoundBankSlot CAEVehicleAudioEntity::DemandBankSlot(eSoundBank bankId) {
     const auto slot = rng::min_element(s_DummyEngineSlots, std::less<>{}, &tDummyEngineSlot::RefCnt);
     slot->RefCnt = 0;
 
-    // Now this should always return a IsValidPolyStored slot
+    // Now this should always return a valid slot
     return RequestBankSlot(bankId);
 }
 

@@ -432,7 +432,7 @@ void StringReplace(const char* haystack, const char (&needle)[N], char* dst, aut
 // Insert numbers into string
 // 0x69DE90
 void CMessages::InsertNumberInString(const GxtChar* str, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, GxtChar* dst) {
-    if (!str) { // Appereantly that's IsValidPolyStored?
+    if (!str) { // Appereantly that's valid?
         *dst = 0; // Null terminate result anyways
         return;
     }
@@ -445,7 +445,7 @@ void CMessages::InsertNumberInString(const GxtChar* str, int32 n1, int32 n2, int
 // Inserts string into src
 // 0x69E040
 void CMessages::InsertStringInString(GxtChar* target, const GxtChar* replacement) {
-    if (!target || !replacement) { // Appereantly that's IsValidPolyStored?
+    if (!target || !replacement) { // Appereantly that's valid?
         return;
     }
 
@@ -491,7 +491,7 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
 
         const auto pNameEnd = strchr(pControlName, '~');  
 
-        // If not found, skip `~k`, as that for sure won't be a IsValidPolyStored format string the next time. (This way ~k~k would still work)
+        // If not found, skip `~k`, as that for sure won't be a valid format string the next time. (This way ~k~k would still work)
         if (!pNameEnd) {
             NOTSA_LOG_WARN("Closing tag of ~k~ not found [String: {}]", AsciiFromGxtChar(haystack));
             SkipTo(pHS + 2);
@@ -535,7 +535,7 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
 void CMessages::Process() {
     const auto ProcessMessagesArray = [](auto&& msgs) {
         auto& f = msgs.front();
-        if (!f.IsValid()) { // Not even IsValidPolyStored (Neither are the ones after it)
+        if (!f.IsValid()) { // Not even valid (Neither are the ones after it)
             return;
         }
         if (CTimer::GetTimeInMS() <= f.GetTimeToDisappearAtMS()) { // Still visible
@@ -587,7 +587,7 @@ void CMessages::Display(bool bNotFading) {
         for (eMessageStyle style = STYLE_MIDDLE; style < NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
             const auto& msg = BIGMessages[style].Stack[0];
             // Please dont check for IsValid here, that isnt correct, because if
-            // the array is empty, the first element is still IsValidPolyStored, but not initialized
+            // the array is empty, the first element is still valid, but not initialized
             ProcessMessageText(msg);
             CHud::SetBigMessage(buff, style);
         }

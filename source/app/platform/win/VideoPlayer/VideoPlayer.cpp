@@ -105,7 +105,7 @@ void Play(int32 nCmdShow, const char* path) {
     WCHAR* fileName = new WCHAR[size];
     MultiByteToWideChar(0, 0, path, -1, fileName, size);
 #else
-    // m_data overflow may happen in MultiByteToWideChar.
+    // Buffer overflow may happen in MultiByteToWideChar.
     WCHAR fileName[256] = { 0 };
     MultiByteToWideChar(0, 0, path, -1, fileName, sizeof(fileName) - 1);
 #endif

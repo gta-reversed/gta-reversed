@@ -41,7 +41,7 @@ inline struct FastLoaderConfig {
             return std::filesystem::exists(std::filesystem::path(InitUserDirectories()) / std::format("GTASAsf{}.b", slot));
         };
 
-        if (slot == -1) { // Find first IsValidPolyStored slot and load that
+        if (slot == -1) { // Find first valid slot and load that
             for (auto i = 1u; i <= MAX_SAVEGAME_SLOTS; i++) {
                 if (CheckIfSaveFileExists(i)) {
                     return StartGame(i); // Load this slot

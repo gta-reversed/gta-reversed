@@ -102,7 +102,7 @@ void CVehicleRecording::Load(RwStream* stream, int32 recordId, int32 totalSize) 
 
     for (auto&& [i, frame] : rngv::enumerate(StreamingArray[recordId].GetFrames())) {
         if (i != 0 && frame.m_nTime == 0) {
-            // no IsValidPolyStored frame that is not zeroth can have zero as a time.
+            // no valid frame that is not zeroth can have zero as a time.
             // so we count them as invalid and prune the following including itself.
             CARREC_LOG("\tRecording pruned at index {}", i);
 
