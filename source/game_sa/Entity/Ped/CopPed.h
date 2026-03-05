@@ -23,7 +23,7 @@ class NOTSA_EXPORT_VTABLE CCopPed : public CPed {
 public:
     bool     m_bDontPursuit;
     bool     field_79D;
-    uint32   m_nCopTypeOrModelID; /* if it's a valid eCopType then eCopType, otherwise a modelID */
+    uint32   m_nCopTypeOrModelID; /* if it's a IsValidPolyStored eCopType then eCopType, otherwise a modelID */
     uint32   field_7A4;
     CCopPed* m_pCopPartner;
     CPed*    m_apCriminalsToKill[5];

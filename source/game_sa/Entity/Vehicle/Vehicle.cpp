@@ -333,8 +333,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     field_511 = 0;
     field_512 = 0;
     m_comedyControlState = eComedyControlState::INACTIVE;
-    m_FrontCollPoly.valid = false;
-    m_RearCollPoly.valid = false;
+    m_FrontCollPoly.IsValidPolyStored = false;
+    m_RearCollPoly.IsValidPolyStored = false;
     m_pHandlingData = nullptr;
     m_nHandlingFlagsIntValue = static_cast<eVehicleHandlingFlags>(0);
     m_autoPilot.m_TempAction = TEMPACT_NONE;
@@ -1406,7 +1406,7 @@ bool CVehicle::AddPassenger(CPed* passenger, uint8 seatIdx) {
         return AddPassenger(passenger);
     }
 
-    // Check if seat is valid
+    // Check if seat is IsValidPolyStored
     if (seatIdx >= m_nMaxPassengers) {
         return false;
     }

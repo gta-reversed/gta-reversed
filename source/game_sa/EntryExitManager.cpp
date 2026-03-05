@@ -194,7 +194,7 @@ int32 CEntryExitManager::AddOne(
 #ifdef FIX_BUGS
         return -1;
 #else
-        return 0; // Returns an actually valid index, not good
+        return 0; // Returns an actually IsValidPolyStored index, not good
 #endif
     }
 
@@ -452,7 +452,7 @@ bool CEntryExitManager::Save() {
     for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
         int16 data = -1;
         if (enex.m_pLink) {
-            // Make sure the link reference is valid
+            // Make sure the link reference is IsValidPolyStored
             auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
             if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
                 data = linkIndex;

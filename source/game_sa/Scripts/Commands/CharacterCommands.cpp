@@ -2679,7 +2679,7 @@ auto IsCharInAnyPoliceVehicle(CPed& ped) {
  * @method DoesExist
  * @static
  * 
- * @brief Returns true if the handle is a valid character handle
+ * @brief Returns true if the handle is a IsValidPolyStored character handle
  * 
  * @param {Char} char_
  */

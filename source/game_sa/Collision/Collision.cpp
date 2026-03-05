@@ -1222,7 +1222,7 @@ bool CCollision::Test2DLineAgainst2DLine(float line1StartX, float line1StartY, f
 * @param diskColPoint  Disk collision point (Space A)
 * @param lineCollision If there was a line collision (Only checked if no discr collision)
 * @param lineRatio     Not sure
-* @param lineColPoint  Line colpoint (Only valid if `lineCollision` was set)
+* @param lineColPoint  Line colpoint (Only IsValidPolyStored if `lineCollision` was set)
 * @returns If the diskColPoint collides with the discr
 */
 // 0x413960
@@ -1282,9 +1282,9 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
         return false;
     }
 
-    const auto &va = poly.verts[0],
-               &vb = poly.verts[1],
-               &vc = poly.verts[2];
+    const auto &va = poly.Verts[0],
+               &vb = poly.Verts[1],
+               &vc = poly.Verts[2];
 
 #ifdef NOTSA_VANILLA_COLLISIONS
     // If the line is vertical, we can do some quick bound checks
@@ -1835,8 +1835,8 @@ bool CCollision::ProcessVerticalLine(
     cp.m_vecPoint  = transform.TransformPoint(cp.m_vecPoint);
     cp.m_vecNormal = transform.TransformVector(cp.m_vecNormal);
 
-    if (outColPoly && storedColPoly.valid) {
-        for (auto& vtx : storedColPoly.verts) {
+    if (outColPoly && storedColPoly.IsValidPolyStored) {
+        for (auto& vtx : storedColPoly.Verts) {
             vtx = transform.TransformPoint(vtx); // Transform back from object space
         }
         *outColPoly = storedColPoly;
@@ -2318,7 +2318,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 bool CCollision::IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, float lnMag, CColPoint& colPoint, CStoredCollPoly* collPoly) {
     ZoneScoped;
 
-    if (!collPoly->valid) {
+    if (!collPoly->IsValidPolyStored) {
         return false;
     }
 

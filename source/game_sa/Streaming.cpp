@@ -1890,7 +1890,7 @@ void CStreaming::RequestSpecialModel(int32 modelId, const char* name, int32 flag
         // 0x409F38
         if (foundModelInfo
             && foundModelInfo->m_nTxdIndex != -1
-            && CTxdStore::ms_pTxdPool->GetAt(foundModelInfo->m_nTxdIndex) /*has valid TXD*/
+            && CTxdStore::ms_pTxdPool->GetAt(foundModelInfo->m_nTxdIndex) /*has IsValidPolyStored TXD*/
         ) {
             CTxdStore::AddRef(foundModelInfo->m_nTxdIndex); // Makes sure TXD doesn't get unloaded
             RemoveModel(modelId);

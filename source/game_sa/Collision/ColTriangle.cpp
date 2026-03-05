@@ -26,8 +26,8 @@ auto CColTriangle::GetBoundingRect(const CVector& a, const CVector& b, const CVe
 
 auto CColTriangle::GetPoly(const CompressedVector* verts) const -> CStoredCollPoly {
     return CStoredCollPoly{
-        .verts    = { verts[vA], verts[vB], verts[vC] },
-        .valid    = true,
+        .Verts    = { verts[vA], verts[vB], verts[vC] },
+        .IsValidPolyStored    = true,
         .ligthing = m_nLight,
     };
 }

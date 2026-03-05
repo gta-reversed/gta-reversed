@@ -270,7 +270,7 @@ public:
     * @brief Returns pointer to object by SCM handle (ref)
     */
     T* GetAtRef(int32 ref) {
-        int32 idx = ref >> 8; // It is possible the ref is invalid here, thats why we check for the idx is valid below (And also why GetIndexFromRef isn't used, it would assert)
+        int32 idx = ref >> 8; // It is possible the ref is invalid here, thats why we check for the idx is IsValidPolyStored below (And also why GetIndexFromRef isn't used, it would assert)
         return IsIndexInBounds(idx) && m_SlotState[idx].ToInt() == (ref & 0xFF)
             ? reinterpret_cast<T*>(&m_Storage[idx])
             : nullptr;
@@ -331,7 +331,7 @@ public:
     void SetDealWithNoMemory(bool enabled) { m_DealWithNoMemory = enabled; }
     bool CanDealWithNoMemory() const { return m_DealWithNoMemory; }
 
-    // NOTSA - Get all valid objects with their index - Useful for iteration
+    // NOTSA - Get all IsValidPolyStored objects with their index - Useful for iteration
     template<typename R = T>
     auto GetAllValidWithIndex() {
         return std::span{ reinterpret_cast<StorageType*>(m_Storage), (size_t)(m_Capacity) }
@@ -341,7 +341,7 @@ public:
             | rngv::transform([](auto&& p) -> std::tuple<int32, R&> { return { std::get<0>(p), *std::get<1>(p) }; }); // Convert obj pointer to ref 
     }
 
-    // NOTSA - Get all valid objects - Useful for iteration
+    // NOTSA - Get all IsValidPolyStored objects - Useful for iteration
     template<typename R = T>
     auto GetAllValid() {
         return GetAllValidWithIndex<R>()

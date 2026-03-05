@@ -224,9 +224,9 @@ enum RxClusterValidityReq
     rxCLREQ_DONTWANT = 0, /**<The cluster is required but any data within it is
                            * not wanted and will be overwritten */
     rxCLREQ_REQUIRED = 1, /**<The cluster is required and it must contain
-                           * valid data */
+                           * IsValidPolyStored data */
     rxCLREQ_OPTIONAL = 2, /**<The cluster will be used if it is present and
-                           * contains valid data, otherwise the node will
+                           * contains IsValidPolyStored data, otherwise the node will
                            * make do without it. */
     rxCLUSTERVALIDITYREQFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
 };
@@ -241,7 +241,7 @@ enum RxClusterValid
 {
     rxCLVALID_NOCHANGE = 0, /**<The cluster and its data will not change in
                              * validity on passing through this node */
-    rxCLVALID_VALID = 1,    /**<The cluster and its data will be valid on
+    rxCLVALID_VALID = 1,    /**<The cluster and its data will be IsValidPolyStored on
                              * exit from this node */
     rxCLVALID_INVALID = 2,  /**<The cluster's data will be invalid on
                              * exit from this node */
@@ -3325,7 +3325,7 @@ typedef struct RxVStep RxVStep;
  * of the RxVStep and vertex arrays and proceed as follows: (a) Process one
  * vertex, (b) Skip 'step' vertices, (c) Increment the cursor of the RxClVStep
  * cluster. Repeat (a)-(c) until the entire vertex array has been processed.
- * If the RxVStep array contains valid data, you should not have to bounds-check
+ * If the RxVStep array contains IsValidPolyStored data, you should not have to bounds-check
  * its cursor.
  */
 struct RxVStep
@@ -3445,7 +3445,7 @@ struct rwIm3DPool
 {
     RwUInt16         numElements; /* could become RwUInt32 nowadays */
     RwUInt16         pad;         /* alignment padding */
-    void            *elements;    /* the original array of verts (or whatever...) - referenced not copied */
+    void            *elements;    /* the original array of Verts (or whatever...) - referenced not copied */
     RwInt32          stride;      /* the stride of the element */
     _rwIm3DPoolStash  stash;
 };

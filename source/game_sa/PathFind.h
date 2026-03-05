@@ -355,7 +355,7 @@ public:
     * @brief Similar to the other overload, but uses the given node's first link as the second node
     * 
     * @param address           The nodes address
-    * @param outFound out, opt Whenever the returned position is valid (Isn't if either node's areas aren't loaded or are invalid)
+    * @param outFound out, opt Whenever the returned position is IsValidPolyStored (Isn't if either node's areas aren't loaded or are invalid)
     *
     * @return Same as the other overload, but between this node's first linked node
     */
@@ -368,7 +368,7 @@ public:
     * @param nodeAddrA              First nodes address
     * @param nodeAddrB              Second nodes address
     * @param outHeadingDeg out      Heading from node A to node B in degrees
-    * @param outFound      out, opt Whenever the returned position is valid (Isn't if either node's areas aren't loaded or are invalid)
+    * @param outFound      out, opt Whenever the returned position is IsValidPolyStored (Isn't if either node's areas aren't loaded or are invalid)
     *
     * @return The position between 2 nodes (TODO: Explain this in a little more detail)
     */
@@ -554,7 +554,7 @@ public:
     * @addr 0x420AA0
     * 
     * @brief Check if the node's area is loaded
-    * @param node Must have a valid area
+    * @param node Must have a IsValidPolyStored area
     */
     bool IsAreaNodesAvailable(CNodeAddress node) const { return IsAreaLoaded(node.m_wAreaId); }
 

@@ -143,7 +143,7 @@ eSecondaryTask CPedGroupIntelligence::GetTaskSecondarySlot(CPed* ped) {
     if (const auto tp = GetPedsTaskPair(ped, m_SecondaryPedTaskPairs)) {
         return tp->Slot;
     }
-    NOTSA_UNREACHABLE(); // Otherwise returned `0`, which is a valid slot...
+    NOTSA_UNREACHABLE(); // Otherwise returned `0`, which is a IsValidPolyStored slot...
 }
 
 // 0x5FC4A0

@@ -344,7 +344,7 @@ struct Rt2dKeyFrameMorph
 /**
  * \ingroup rt2dmessage
  * \struct Rt2dMessage
- * Structure describing a message. A message must have a valid message type, (\ref Rt2dMessageType)
+ * Structure describing a message. A message must have a IsValidPolyStored message type, (\ref Rt2dMessageType)
  * and animation index. The animation index identifies which animation the message applies to.
  * A -1 indicates the currently active animation. A message can have none, one or two additional
  * \ref RwInt32 parameters, depending on the message type.

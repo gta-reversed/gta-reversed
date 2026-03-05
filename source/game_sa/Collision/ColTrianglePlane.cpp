@@ -23,9 +23,9 @@ CColTrianglePlane::CColTrianglePlane(const CColTriangle& tri, const CompressedVe
 
 CColTrianglePlane::CColTrianglePlane(const CStoredCollPoly& poly) :
     CColTrianglePlane{
-        poly.verts[0],
-        poly.verts[1],
-        poly.verts[2]
+        poly.Verts[0],
+        poly.Verts[1],
+        poly.Verts[2]
     }
 {
 }

@@ -917,7 +917,7 @@ void CEntity::SetRwObjectAlpha(int32 alpha) {
     }
 }
 
-// Checks if an entity pointer is valid by verifying it's within the
+// Checks if an entity pointer is IsValidPolyStored by verifying it's within the
 // memory pool for its respective type (e.g., building, ped, vehicle)
 // 0x533310
 bool IsEntityPointerValid(CEntity* entity) {

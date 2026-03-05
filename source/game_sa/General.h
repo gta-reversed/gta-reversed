@@ -184,7 +184,7 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
         }
 
         // Find high point
-        const auto hi = rng::find_if(r | rng::views::drop(1), [x](auto&& p) { // Drop 0th element, because we need `prev` to be valid
+        const auto hi = rng::find_if(r | rng::views::drop(1), [x](auto&& p) { // Drop 0th element, because we need `prev` to be IsValidPolyStored
             return p.x >= x;
         });
 

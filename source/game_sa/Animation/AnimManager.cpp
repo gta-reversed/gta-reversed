@@ -883,7 +883,7 @@ inline void CAnimManager::LoadAnimFile_ANP23(RwStream* s, const IFPSectionHeader
             const auto numFrames = RwStreamRead<uint32>(s);
             const auto boneTag   = RwStreamRead<eBoneTag32>(s);
 
-            // Only 1 of these will be valid in the end
+            // Only 1 of these will be IsValidPolyStored in the end
             // If BoneTag != -1 then it overwrites the name.
             seq->SetName(seqName);
             seq->SetBoneTag(boneTag);

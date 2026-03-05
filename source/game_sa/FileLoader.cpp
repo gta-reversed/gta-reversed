@@ -1309,7 +1309,7 @@ void CFileLoader::LoadLevel(const char* levelFileName) {
             // The latter is the reason why they had to make a copy in the first place.
             // If we were to just return `l + strlen(id) + 1` we'd depend on the line buffer's content not to change,
             // but the line is just a static buffer (ms_line) which is modified each time `LoadLine` is called.
-            // So if any of the invoked functions call `LoadLine` the path will no longer be valid
+            // So if any of the invoked functions call `LoadLine` the path will no longer be IsValidPolyStored
             // So in order to prevent this nasty bug we're just going to copy it each time.
             strcpy_s(pathBuffer, l + id.size() + 1);
             return pathBuffer;

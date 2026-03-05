@@ -33,7 +33,7 @@ typedef struct RwMatrixWeights RwMatrixWeights;
  *
  * \note
  * Values should be sorted, such that any zero 0.0f entries appear
- * after the valid weights. Any weights that appear after a zero
+ * after the IsValidPolyStored weights. Any weights that appear after a zero
  * entry will be ignored.
  *
  * \see RpSkinCreate

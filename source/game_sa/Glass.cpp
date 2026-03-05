@@ -97,7 +97,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     }
 
     // `glassTriIdx` is the first triangle of the glass rectangle, the second one is the one after it.
-    // So, logically, if `glassTriIdx + 1` is valid, `glassTriIdx` is going to be valid as well.
+    // So, logically, if `glassTriIdx + 1` is IsValidPolyStored, `glassTriIdx` is going to be IsValidPolyStored as well.
     if (glassTriIdx + 1 >= colModel->GetTriCount())
         return;
 

@@ -240,7 +240,7 @@ int32 CIplStore::GetNewIplEntityIndexArray(int32 entitiesCount) {
  * @returns If all IPLs around `coords` in a 190 unit radius have loaded
  */
 bool CIplStore::HaveIplsLoaded(const CVector& coords, int32 /*playerNumber*/) {
-    // Can't use `ms_pPool->GetAllValid()` here, because we must ignore the first slot (whenever it's valid or not).
+    // Can't use `ms_pPool->GetAllValid()` here, because we must ignore the first slot (whenever it's IsValidPolyStored or not).
     bool ret = true;
     for (auto slot = 1; slot < TOTAL_IPL_MODEL_IDS; slot++) {
         auto def = ms_pPool->GetAt(slot);
@@ -290,7 +290,7 @@ void CIplStore::IncludeEntity(int32 iplSlotIndex, CEntity* entity) {
 void CIplStore::LoadAllRemainingIpls() {
     ZoneScoped;
 
-    // Can't use `ms_pPool->GetAllValid()` here, because we must ignore the first slot (whenever it's valid or not).
+    // Can't use `ms_pPool->GetAllValid()` here, because we must ignore the first slot (whenever it's IsValidPolyStored or not).
     for (auto slot = 1 /*skip 1st*/; slot < TOTAL_IPL_MODEL_IDS; slot++) {
         auto def = ms_pPool->GetAt(slot);
 
@@ -566,7 +566,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
  * @brief Unload all loaded IPL's using `CStreaming::RemoveModel`
  */
 void CIplStore::RemoveAllIpls() {
-    // Can't use `ms_pPool->GetAllValid()` here, because we must ignore the first slot (whenever it's valid or not).
+    // Can't use `ms_pPool->GetAllValid()` here, because we must ignore the first slot (whenever it's IsValidPolyStored or not).
     for (auto slot = 1 /*skip 1st*/; slot < TOTAL_IPL_MODEL_IDS; slot++) {
         auto def = ms_pPool->GetAt(slot);
         if (!def) {

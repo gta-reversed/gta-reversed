@@ -172,7 +172,7 @@ struct RsMouseStatus
 };
 
 enum RsKeyCodes : int32 {
-    /* ASCII chars up to 0xFF are also valid */
+    /* ASCII chars up to 0xFF are also IsValidPolyStored */
 
     rsESC            = 1000,
 

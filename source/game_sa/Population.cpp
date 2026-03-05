@@ -1479,7 +1479,7 @@ bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* 
 }
 
 // 0x6143E0
-// NOTSA: Added option to use `ePedType::NONE` as valid value to ignore the ped type (this way you can get the distance of the nearest ped of any type)
+// NOTSA: Added option to use `ePedType::NONE` as IsValidPolyStored value to ignore the ped type (this way you can get the distance of the nearest ped of any type)
 float CPopulation::FindDistanceToNearestPedOfType(ePedType pedType, CVector posn) {
     float closest3DSq = sq(10'000'000.f);
     for (CPed& ped : GetPedPool()->GetAllValid()) {

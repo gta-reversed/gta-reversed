@@ -151,7 +151,7 @@ public:
         bool bGetUpAnimStarted : 1 = false;     // 27 don't want to play getup anim if under something
         bool bDoBloodyFootprints : 1 = false;   // 28 bIsLeader
         bool bDontDragMeOutCar : 1 = false;     // 29
-        bool bStillOnValidPoly : 1 = false;     // 30 set if the polygon the ped is on is still valid for collision
+        bool bStillOnValidPoly : 1 = false;     // 30 set if the polygon the ped is on is still IsValidPolyStored for collision
         bool bAllowMedicsToReviveMe : 1 = true; // 31
 
         // 5th byte starts here (m_nSecondPedFlags)
