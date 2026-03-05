@@ -62,7 +62,7 @@ enum e2dCoronaFlashType : uint8 {
 struct tEffectLight {
     static inline constexpr e2dEffectType Type = EFFECT_LIGHT;
 
-    RwRGBA Сolor;
+    RwRGBA Color;
     float  LodDistance;
     float  Size;
     float  CoronaSize;

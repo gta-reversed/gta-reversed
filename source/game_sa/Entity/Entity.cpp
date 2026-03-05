@@ -2017,9 +2017,9 @@ void CEntity::ProcessLightsForEntity() {
                 CCoronas::RegisterCorona(
                     (uint32)this + C,
                     nullptr,
-                    static_cast<uint8>(static_cast<float>(effect->light.Сolor.red) * TimeFade),
-                    static_cast<uint8>(static_cast<float>(effect->light.Сolor.green) * TimeFade),
-                    static_cast<uint8>(static_cast<float>(effect->light.Сolor.blue) * TimeFade),
+                    static_cast<uint8>(static_cast<float>(effect->light.Color.red) * TimeFade),
+                    static_cast<uint8>(static_cast<float>(effect->light.Color.green) * TimeFade),
+                    static_cast<uint8>(static_cast<float>(effect->light.Color.blue) * TimeFade),
                     static_cast<uint8>(LightFade * 255.0f),
                     effectPos,
                     coronaSize,
@@ -2082,7 +2082,7 @@ void CEntity::ProcessLightsForEntity() {
         // POINT LIGHTS
         bool skipLights = false;
         if (effect->light.Size != 0.0f && ApplyLight) {
-            const auto& color = effect->light.Сolor;
+            const auto& color = effect->light.Color;
             if (color.red || color.green || color.blue) {
                 const float colorMult = LightFade * TimeFade / 256.0f;
                 skipLights = true;
@@ -2115,7 +2115,7 @@ void CEntity::ProcessLightsForEntity() {
         }
 
         if (!skipLights) {
-            const auto& color = effect->light.Сolor;
+            const auto& color = effect->light.Color;
             if (effect->light.m_nFogType & RwFogType::rwFOGTYPEEXPONENTIAL) {
                 CPointLights::AddLight(
                     ePointLightType::PLTYPE_ONLYFOGEFFECT_ALWAYS,
@@ -2154,7 +2154,7 @@ void CEntity::ProcessLightsForEntity() {
             }
 
             if (ApplyLight) {
-                auto color = effect->light.Сolor;
+                auto color = effect->light.Color;
                 const float colorMult = effect->light.ShadowAlpha * TimeFade / 256.0f;
                 color.red = static_cast<uint8>(static_cast<float>(color.red) * colorMult);
                 color.green = static_cast<uint8>(static_cast<float>(color.green) * colorMult);
