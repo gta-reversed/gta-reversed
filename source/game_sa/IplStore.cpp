@@ -711,23 +711,24 @@ void CIplStore::SetIsInterior(int32 iplSlotIndex, bool isInterior) {
 }
 
 bool IsIPLAnInterior(const char* iplFileName) {
-    return rng::any_of(std::array{
-        "gen_int1",
-        "gen_int2",
-        "gen_int3",
-        "gen_int4",
-        "gen_int5",
-        "gen_intb",
-        "savehous",
-        "stadint",
-        "int_la",
-        "int_sf",
-        "int_veg",
-        "int_cont",
-        "levelmap"
-    }, [iplFileName](auto name) {
-        return _stricmp(iplFileName, name) == 0;
-    });
+    return rng::contains(
+        std::to_array<notsa::ci_string_view>({
+            "gen_int1",
+            "gen_int2",
+            "gen_int3",
+            "gen_int4",
+            "gen_int5",
+            "gen_intb",
+            "savehous",
+            "stadint",
+            "int_la",
+            "int_sf",
+            "int_veg",
+            "int_cont",
+            "levelmap"
+        }),
+        iplFileName
+    );
 }
 
 template<size_t N>
@@ -767,10 +768,10 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
             if (_strnicmp(iplName, def.name, iplNameLen)) {
                 continue;
             }
-            def = CColAccel::getIplDef(slot);
-            def.staticIdx = index;
+            def            = CColAccel::getIplDef(slot);
+            def.staticIdx  = index;
             def.isInterior = isIPLAnInterior;
-            def.loaded = false;
+            def.loaded     = false;
             ms_pQuadTree->AddItem(&def, def.bb);
         }
     } else {
@@ -778,8 +779,8 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
             if (_strnicmp(iplName, def.name, iplNameLen)) {
                 continue;
             }
-            def.staticIdx = index;
-            def.isInterior = isIPLAnInterior;
+            def.staticIdx               = index;
+            def.isInterior              = isIPLAnInterior;
             def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
             CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
         }
@@ -858,7 +859,7 @@ void CIplStore::InjectHooks() {
     RH_ScopedInstall(Save, 0x5D5420);
     RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
     RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
-    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });
+    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0);
     RH_ScopedInstall(EnableDynamicStreaming, 0x404D30);
     RH_ScopedInstall(IncludeEntity, 0x404C90);
     RH_ScopedInstall(GetBoundingBox, 0x404C70);

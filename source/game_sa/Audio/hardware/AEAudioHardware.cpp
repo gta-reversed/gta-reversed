@@ -86,19 +86,20 @@ bool CAEAudioHardware::Initialise() {
 
     VERIFY(SUCCEEDED(CoInitialize(nullptr)));
 
-    // TODO: We need EAX headers here.
-    //
-    // Though, EAX through DirectSound IS NOT SUPPORTED after Windows Vista since
-    // Windows doesn't emulate EAX extensions.
-    //
-    // Wine or 3rd party DSOUND libraries may support it so we should have them
-    // here.
-
-    // if (FAILED(EAXDirectSoundCreate(&DSDEVID_DefaultPlayback, &m_pDSDevice, 0)))
-    //    return false;
-
-    if (FAILED(DirectSoundCreate8(&DSDEVID_DefaultPlayback, &m_pDSDevice, 0)))
+#if 0 // No EAX
+    if (FAILED(EAXDirectSoundCreate(
+        const_cast<GUID*>(&DSDEVID_DefaultPlayback),
+        reinterpret_cast<IDirectSound**>(&m_pDSDevice),
+        0
+    ))) {
         return false;
+    }
+#else
+    // TODO: Use DirectSoundCreate.
+    if (FAILED(DirectSoundCreate8(&DSDEVID_DefaultPlayback, &m_pDSDevice, 0))) {
+        return false;
+    }
+#endif
 
     m_dsCaps.dwSize = sizeof(DSCAPS);
     m_pDSDevice->GetCaps(&m_dsCaps);
@@ -636,8 +637,21 @@ void CAEAudioHardware::Query3DSoundEffects() {
 
     IKsPropertySet* ppIKsPropertySet{};
     if (ppDS3DBuffer->QueryInterface(IID_IKsPropertySet, (LPVOID*)&ppIKsPropertySet) == S_OK) {
-        // TODO: EAX (0x4D8593)
-        m_n3dEffectsQueryResult = 1;
+#if 0 // No EAX
+        auto fxSlot0 = EAXPROPERTYID_EAX_FXSlot0;
+        auto envRoom = EAX_ENVIRONMENT_ROOM;
+        auto defRoom = EAXREVERB_DEFAULTROOM;
+        if (
+            SUCCEEDED(ppIKsPropertySet->Set(EAXPROPERTYID_EAX_Context, EAXCONTEXT_PRIMARYFXSLOTID, nullptr, 0, &fxSlot0, sizeof(fxSlot0))) &&
+            SUCCEEDED(ppIKsPropertySet->Set(EAXPROPERTYID_EAX_FXSlot0, EAXREVERB_ENVIRONMENT, nullptr, 0, &envRoom, sizeof(envRoom))) &&
+            SUCCEEDED(ppIKsPropertySet->Set(EAXPROPERTYID_EAX_FXSlot0, EAXREVERB_ROOM, nullptr, 0, &defRoom, sizeof(defRoom)))
+        ) {
+            NOTSA_LOG_DEBUG("EAX properties set successfully!");
+            m_n3dEffectsQueryResult = 1;
+        } else {
+            NOTSA_LOG_DEBUG("EAX properties couldn't be set!");
+        }
+#endif
         SAFE_RELEASE(ppIKsPropertySet);
     }
     if (!m_n3dEffectsQueryResult)
