@@ -12,5 +12,5 @@ public:
     static void  LoadDefaultDecisionMaker();
     static int32 LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
     static bool  LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker);
-    static void  UnloadDecisionMaker(eDecisionTypes dm);
+    static void  UnloadDecisionMaker(eDecisionMakerType dm);
 };

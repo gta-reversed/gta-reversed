@@ -18,7 +18,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
 // 0x607D00
 void CDecisionMakerTypesFileLoader::ReStart() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_GAME_DM; i++) {
-        UnloadDecisionMaker((eDecisionTypes)(i));
+        UnloadDecisionMaker((eDecisionMakerType)(i));
     }
 }
 
@@ -46,7 +46,7 @@ void CDecisionMakerTypesFileLoader::GetGrpDMName(int32 index, char* name) {
 // 0x5BF400
 void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_TOTAL; i++) {
-        UnloadDecisionMaker((eDecisionTypes)(i));
+        UnloadDecisionMaker((eDecisionMakerType)(i));
     }
 
     CDecisionMakerTypes::GetInstance()->LoadEventIndices();
@@ -58,16 +58,16 @@ void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
     LoadDecisionMaker("RANDOM.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedGroupDecisionMaker);
     LoadDecisionMaker("MISSION.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedGroupDecisionMaker);
 
-    LoadDecisionMaker("GangMbr.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("Cop.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("R_Norm.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("R_Tough.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("R_Weak.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("Fireman.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("m_empty.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("Indoors.ped", DEFAULT_DECISION_MAKER, false);
-    LoadDecisionMaker("RANDOM.grp", PLAYER_DECISION_MAKER, false);
-    LoadDecisionMaker("RANDOM2.grp", PLAYER_DECISION_MAKER, false);
+    LoadDecisionMaker("GangMbr.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("Cop.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Norm.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Tough.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Weak.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("Fireman.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("m_empty.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("Indoors.ped", PED_DECISION_MAKER, false);
+    LoadDecisionMaker("RANDOM.grp", GROUP_DECISION_MAKER, false);
+    LoadDecisionMaker("RANDOM2.grp", GROUP_DECISION_MAKER, false);
 }
 
 // 0x607D30 - Returns script handle for the DM
@@ -132,7 +132,7 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
             off += n;
         };
 
-        auto* const d = &decisionMaker->m_aDecisions[CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]];
+        auto* const d = &decisionMaker->Decisions[CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]];
         d->SetDefault();
         d->Set(tasks, probs, bools, facialProbs);
     }
@@ -143,6 +143,6 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
 }
 
 // 0x607A70
-void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionTypes dm) {
+void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionMakerType dm) {
     CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker(dm);
 }

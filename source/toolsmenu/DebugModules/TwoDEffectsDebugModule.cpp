@@ -272,8 +272,7 @@ void TwoDEffectsDebugModule::RenderSelectedEffectDetails() {
                 eModelID::MODEL_WFYSEX,
                 attr,
                 selFx.FxPos,
-                selFx.Entity,
-                -1
+                selFx.Entity           
             );
         }
     }

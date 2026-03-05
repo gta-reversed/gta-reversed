@@ -1449,7 +1449,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
 }
 
 // 0x614210
-bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* attractor, CVector posn, CEntity* entity, int32 decisionMakerType) {
+bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* attractor, CVector posn, CEntity* entity, eDecisionMakerType decisionMakerType) {
     if (FindDistanceToNearestPed(posn) <= 0.015f) {
         return false;
     }
@@ -1464,7 +1464,7 @@ bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* 
     }
     
     ped->SetCharCreatedBy(PED_GAME);
-    ped->GetIntelligence()->SetPedDecisionMakerType(decisionMakerType == -1 ? 2 : decisionMakerType);
+    ped->GetIntelligence()->SetPedDecisionMakerType(decisionMakerType == eDecisionMakerType::UNKNOWN ? eDecisionMakerType::PED_RANDOM1 : decisionMakerType);
     ped->GetTaskManager().SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
 
     CPedAttractorPedPlacer::PlacePedAtEffect(*attractor, entity, ped, 0.02f);
@@ -1621,13 +1621,13 @@ bool CPopulation::AddToPopulation(float arg0, float arg1, float arg2, float arg3
 
 // 0x615970
 int32 CPopulation::GeneratePedsAtAttractors(
-    CVector pos,
-    float   minRadius,
-    float   maxRadius,
-    float   minRadiusClose,
-    float   maxRadiusClose,
-    int32   decisionMaker,
-    int32   numPedsToCreate
+    CVector            pos,
+    float              minRadius,
+    float              maxRadius,
+    float              minRadiusClose,
+    float              maxRadiusClose,
+    eDecisionMakerType decisionMaker,
+    int32              numPedsToCreate
 ) {
     ZoneScoped;
 
@@ -1701,7 +1701,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
                 );
 
             if (usePoliceModel) {
-                decisionMaker = 1; // TODO: Shouldn't this be local to this iteration instead? Right now this will presist into all futher iterations...
+                decisionMaker = eDecisionMakerType::PED_COP; // TODO: Shouldn't this be local to this iteration instead? Right now this will presist into all futher iterations...
             }
 
             switch (model) {
@@ -1716,7 +1716,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
 
             numPedsCreated++;
 
-            if (decisionMaker == -1) {
+            if (decisionMaker == eDecisionMakerType::UNKNOWN) {
                 break;
             }
 
@@ -1742,7 +1742,7 @@ void CPopulation::GeneratePedsAtStartOfGame() {
         AddToPopulation(minRadius, maxRadius, minRadius, maxRadius);
     }
 
-    GeneratePedsAtAttractors(FindPlayerCentreOfWorld(), minRadius, maxRadius, minRadius, maxRadius, -1, 1);
+    GeneratePedsAtAttractors(FindPlayerCentreOfWorld(), minRadius, maxRadius, minRadius, maxRadius, eDecisionMakerType::UNKNOWN, 1);
 }
 
 // 0x615DC0
@@ -1867,7 +1867,7 @@ void CPopulation::PopulateInterior(int32 numPedsToCreate, CVector pos) {
         return;
     }
 
-    numPedsToCreate -= GeneratePedsAtAttractors(pos, 0.f, 150.f, 0.f, 150.f, 7, numPedsToCreate * 19 / 20); // 19 / 20 = 0.95
+    numPedsToCreate -= GeneratePedsAtAttractors(pos, 0.f, 150.f, 0.f, 150.f, eDecisionMakerType::PED_INDOORS, numPedsToCreate * 19 / 20); // 19 / 20 = 0.95
     
     for (size_t i{}; numPedsToCreate && i < 25; i++) {
         float   orientation{};
@@ -1888,7 +1888,7 @@ void CPopulation::PopulateInterior(int32 numPedsToCreate, CVector pos) {
 
         numPedsToCreate--;
 
-        ped->GetIntelligence()->SetPedDecisionMakerType(7);
+        ped->GetIntelligence()->SetPedDecisionMakerType(eDecisionMakerType::PED_INDOORS);
 
         if (ped->m_nAnimGroup == CAnimManager::GetAnimationGroupIdByName("jogger")) { // TODO: Move `GetAnimationGroupId` out the loop?
             ped->m_nAnimGroup = CAnimManager::GetAnimationGroupIdByName("man");
@@ -1949,8 +1949,8 @@ void CPopulation::Update(bool generatePeds) {
             FindPlayerCentreOfWorld(),
             dists[0], dists[1],
             dists[2], dists[3],
-            CGame::CanSeeOutSideFromCurrArea() ? -1 : 7,
-            true
+            CGame::CanSeeOutSideFromCurrArea() ? eDecisionMakerType::UNKNOWN : eDecisionMakerType::PED_INDOORS,
+            1
         );
     }
 }
