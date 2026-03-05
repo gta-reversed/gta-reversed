@@ -328,7 +328,7 @@ public:
     bool IsAnyWheelTouchingSand() {
         for (int32 i = 0; i < 4; i++) {
             if (m_fWheelsSuspensionCompression[i] < 1.0f) {
-                if (g_surfaceInfos.GetAdhesionGroup(m_wheelColPoint[i].m_nSurfaceTypeB) == ADHESION_GROUP_SAND)
+                if (g_surfaceInfos.GetAdhesionGroup(m_wheelColPoint[i].GetSurfaceTypeB()) == ADHESION_GROUP_SAND)
                     return true;
             }
         }
@@ -338,7 +338,7 @@ public:
     bool IsAnyWheelTouchingRailTrack() {
         for (int32 i = 0; i < 4; i++) {
             if (m_fWheelsSuspensionCompression[i] < 1.0f) {
-                if (m_wheelColPoint[i].m_nSurfaceTypeB == SURFACE_RAILTRACK)
+                if (m_wheelColPoint[i].GetSurfaceTypeB() == SURFACE_RAILTRACK)
                     return true;
             }
         }
@@ -347,7 +347,7 @@ public:
 
     bool IsAnyWheelTouchingShallowWaterGround() {
         for (int32 i = 0; i < 4; i++) {
-            if (m_fWheelsSuspensionCompression[i] < 1.0f && m_wheelColPoint[i].m_nSurfaceTypeB == SURFACE_WATER_SHALLOW)
+            if (m_fWheelsSuspensionCompression[i] < 1.0f && m_wheelColPoint[i].GetSurfaceTypeB() == SURFACE_WATER_SHALLOW)
                 return true;
         }
         return false;
@@ -372,7 +372,7 @@ public:
     // check the previous compression state using m_fWheelsSuspensionCompressionPrev
     bool DidAnyWheelTouchShallowWaterGroundPrev() {
         for (int32 i = 0; i < 4; i++) {
-            if (m_fWheelsSuspensionCompressionPrev[i] < 1.0f && m_wheelColPoint[i].m_nSurfaceTypeB == SURFACE_WATER_SHALLOW)
+            if (m_fWheelsSuspensionCompressionPrev[i] < 1.0f && m_wheelColPoint[i].GetSurfaceTypeB() == SURFACE_WATER_SHALLOW)
                 return true;
         }
         return false;

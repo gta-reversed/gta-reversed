@@ -141,7 +141,7 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
                 const auto force = (velocity.ProjectOnToNormal(fwd) - hitPhysicalPos.ProjectOnToNormal(fwd)).Magnitude();
                 if (force > 0.35f) { // 0x505E8D
                     const auto speed = (force - 0.35f) / 0.95f;
-                    UpdateSound(speed * 1.75f + 1.75f, CAEAudioUtility::AudioLog10((1.f - (pov + camRight - hitCP.m_vecPoint).Magnitude() / 0.6f) * speed) * 20.f + 30.f);
+                    UpdateSound(speed * 1.75f + 1.75f, CAEAudioUtility::AudioLog10((1.f - (pov + camRight - hitCP.GetPosition()).Magnitude() / 0.6f) * speed) * 20.f + 30.f);
                 }
                 lastEntity = hitEntity;
             } else {

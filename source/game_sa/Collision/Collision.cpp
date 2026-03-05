@@ -116,19 +116,19 @@ void CalculateColPointInsideBox(CBox const& box, CVector const& point, CColPoint
     };
 
     colPoint = {};
-    colPoint.m_vecPoint = point;
+    colPoint.SetPosition(point);
 
     if (pointToClosest.x >= pointToClosest.y || pointToClosest.x >= pointToClosest.z) {
         if (pointToClosest.y >= pointToClosest.x || pointToClosest.y >= pointToClosest.z) {
-            colPoint.m_vecNormal.z = CalcNormal(pointToCenter.z);
-            colPoint.m_fDepth = pointToClosest.z;
+            colPoint.SetNormal(0.f, 0.f, CalcNormal(pointToCenter.z));
+            colPoint.SetDepth(pointToClosest.z);
         } else {
-            colPoint.m_vecNormal.y = CalcNormal(pointToCenter.y);
-            colPoint.m_fDepth = pointToClosest.y;
+            colPoint.SetNormal(0.f, CalcNormal(pointToCenter.y), 0.f);
+            colPoint.SetDepth(pointToClosest.y);
         }
     } else {
-        colPoint.m_vecNormal.x = CalcNormal(pointToCenter.x);
-        colPoint.m_fDepth = pointToClosest.x;
+        colPoint.SetNormal(CalcNormal(pointToCenter.x), 0.f, 0.f);
+        colPoint.SetDepth(pointToClosest.x);
     }
 }
 
@@ -155,8 +155,8 @@ bool CCollision::TestSphereBox(CSphere const& sphere, CBox const& box) {
 bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CColPoint & colp, float& minDistSq) {
     ZoneScoped;
 
-	// GTA's code is too complicated, uses a huge 3x3x3 if statement
-	// we can simplify the structure a lot
+    // GTA's code is too complicated, uses a huge 3x3x3 if statement
+    // we can simplify the structure a lot
     // Some of the original code, to give you an idea:
     /*
     if (sphere.m_vecCenter.x + sphere.m_fRadius < bb.m_vecMin.x)
@@ -188,8 +188,8 @@ bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CCo
                             CColPoint boxCP{};
                             CalculateColPointInsideBox(bb, sphere.m_vecCenter, boxCP);
 
-                            diskColPoint.m_vecPoint = boxCP.m_vecPoint - boxCP.m_vecNormal * sphere.m_fRadius;
-                            diskColPoint.m_fDepth = boxCP.m_fDepth;
+                            diskColPoint.m_Position = boxCP.m_Position - boxCP.m_Normal * sphere.m_fRadius;
+                            diskColPoint.m_Depth = boxCP.m_Depth;
 
                             diskColPoint.m_nLightingA = sphere.ligthing;
                             diskColPoint.m_nSurfaceTypeA = sphere.m_nMaterial;
@@ -253,11 +253,11 @@ bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CCo
     }
     */
 
-	// First make sure we have a collision at all
+    // First make sure we have a collision at all
     if (!TestSphereBox(sph, box))
         return false;
 
-	// Now find out where the sphere center lies in relation to all the sides
+    // Now find out where the sphere center lies in relation to all the sides
     enum class ClosestCorner {
         INSIDE,
         MIN,    
@@ -272,42 +272,42 @@ bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CCo
                    INSIDE;
     }
 
-	if(axies[0] == INSIDE && axies[1] == INSIDE && axies[2] == INSIDE) { // Sphere center is inside the bb
+    if(axies[0] == INSIDE && axies[1] == INSIDE && axies[2] == INSIDE) { // Sphere center is inside the bb
         const auto p{ box.GetCenter() };
 
-		const auto dir = sph.m_vecCenter - p;
+        const auto dir = sph.m_vecCenter - p;
         const auto distSq = dir.SquaredMagnitude();
-		if(distSq < minDistSq){
-            colp.m_vecNormal = dir / sqrt(distSq); // Normalize direction
-			colp.m_vecPoint = sph.m_vecCenter - colp.m_vecNormal;
+        if(distSq < minDistSq){
+            colp.SetNormal(dir / sqrt(distSq)); // Normalize direction
+            colp.SetPosition(sph.m_vecCenter - colp.GetNormal());
 
-            colp.m_nSurfaceTypeA = sph.m_Surface.m_nMaterial;
-            colp.m_nLightingA = sph.m_Surface.m_nLighting;
+            colp.SetSurfaceTypeA(sph.m_Surface.m_nMaterial);
+            colp.SetLightingA(sph.m_Surface.m_nLighting);
 
-            colp.m_nSurfaceTypeB = box.m_Surface.m_nMaterial;
-            colp.m_nLightingB = box.m_Surface.m_nLighting;
+            colp.SetSurfaceTypeB(box.m_Surface.m_nMaterial);
+            colp.SetLightingB(box.m_Surface.m_nLighting);
 
-			// find absolute distance to the closer side in each dimension
-			const float dx = dir.x > 0.0f ?
-				box.m_vecMax.x - sph.m_vecCenter.x :
-				sph.m_vecCenter.x - box.m_vecMin.x;
+            // find absolute distance to the closer side in each dimension
+            const float dx = dir.x > 0.0f ?
+                box.m_vecMax.x - sph.m_vecCenter.x :
+                sph.m_vecCenter.x - box.m_vecMin.x;
 
-			const float dy = dir.y > 0.0f ?
-				box.m_vecMax.y - sph.m_vecCenter.y :
-				sph.m_vecCenter.y - box.m_vecMin.y;
+            const float dy = dir.y > 0.0f ?
+                box.m_vecMax.y - sph.m_vecCenter.y :
+                sph.m_vecCenter.y - box.m_vecMin.y;
 
-			const float dz = dir.z > 0.0f ?
-				box.m_vecMax.z - sph.m_vecCenter.z :
-				sph.m_vecCenter.z - box.m_vecMin.z;
+            const float dz = dir.z > 0.0f ?
+                box.m_vecMax.z - sph.m_vecCenter.z :
+                sph.m_vecCenter.z - box.m_vecMin.z;
 
-			// collision depth is maximum of that:
-            colp.m_fDepth = std::max({ dx, dy, dz });
+            // collision depth is maximum of that:
+            colp.SetDepth(std::max({ dx, dy, dz }));
 
-			return true;
-		}
-	} else { // Sphere centre is outside on at least one axis
-		
-		// Position of closest corner:
+            return true;
+        }
+    } else { // Sphere centre is outside on at least one axis
+        
+        // Position of closest corner:
         const CVector p{
             axies[0] == MIN ? box.m_vecMin.x :
             axies[0] == MAX ? box.m_vecMax.x :
@@ -325,21 +325,21 @@ bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CCo
         const auto dir = sph.m_vecCenter - p;
         const auto distSq = dir.SquaredMagnitude();
         if (distSq < minDistSq) {
-            colp.m_vecNormal = dir / sqrt(distSq); // Normalize vector
-            colp.m_vecPoint = p;
+            colp.SetNormal(dir / sqrt(distSq)); // Normalize vector
+            colp.SetPosition(p);
 
-            colp.m_nSurfaceTypeA = sph.m_Surface.m_nMaterial;
-            colp.m_nLightingA = sph.m_Surface.m_nLighting;
+            colp.SetSurfaceTypeA(sph.m_Surface.m_nMaterial);
+            colp.SetLightingA(sph.m_Surface.m_nLighting);
 
-            colp.m_nSurfaceTypeB = box.m_Surface.m_nMaterial;
-            colp.m_nLightingB = box.m_Surface.m_nLighting;
+            colp.SetSurfaceTypeB(box.m_Surface.m_nMaterial);
+            colp.SetLightingB(box.m_Surface.m_nLighting);
 
-			minDistSq = distSq;
+            minDistSq = distSq;
 
-			return true;
-		}
-	}
-	return false;
+            return true;
+        }
+    }
+    return false;
 }
 
 /*!
@@ -492,12 +492,12 @@ CVector CCollision::GetClosestPtOnLine(const CVector& l0, const CVector& l1, con
     ZoneScoped;
 
     const auto lnMagSq = (l1 - l0).SquaredMagnitude();
-	const auto dot = (point - l0).Dot(l1 - l0);
+    const auto dot = (point - l0).Dot(l1 - l0);
     if (dot <= 0.0f) {
-		return l0;
+        return l0;
     }
     if (dot >= lnMagSq) {
-		return l1;
+        return l1;
     }
     return lerp(l0, l1, dot / lnMagSq);
 }
@@ -930,17 +930,17 @@ NOTSA_FORCEINLINE bool ProcessLineSphere_Internal(
 bool CCollision::ProcessLineSphere(CColLine const& line, CColSphere const& sphere, CColPoint& colPoint, float& depth) {
     ZoneScoped;
 
-    if (!ProcessLineSphere_Internal(line, sphere, &colPoint.m_vecPoint, &depth)) {
+    if (!ProcessLineSphere_Internal(line, sphere, &colPoint.GetPosition(), &depth)) {
         return false;
     }
 
-    colPoint.m_vecNormal = (colPoint.m_vecPoint - sphere.m_vecCenter).Normalized(); // A little different from the original, but same effect
+    colPoint.SetNormal((colPoint.GetPosition() - sphere.m_vecCenter).Normalized()); // A little different from the original, but same effect
 
-    colPoint.m_nSurfaceTypeA = {};
-    colPoint.m_nLightingA    = {};
+    colPoint.SetSurfaceTypeA({});
+    colPoint.SetLightingA ({});
 
-    colPoint.m_nSurfaceTypeB = sphere.m_Surface.m_nMaterial;
-    colPoint.m_nLightingB    = sphere.m_Surface.m_nLighting;
+    colPoint.SetSurfaceTypeB(sphere.m_Surface.m_nMaterial);
+    colPoint.SetLightingB(sphere.m_Surface.m_nLighting);
 
     ms_iProcessLineNumCrossings += 2;
 
@@ -1185,14 +1185,14 @@ bool CCollision::ProcessLineBox(CColLine const& line, CColBox const& box, CColPo
     if (mint >= maxTouchDistance)
         return false;
 
-    colPoint.m_vecPoint = p;
-    colPoint.m_vecNormal = normal;
+    colPoint.SetPosition(p);
+    colPoint.SetNormal(normal);
 
-    colPoint.m_nSurfaceTypeA = eSurfaceType::SURFACE_DEFAULT;
-    colPoint.m_nLightingA = tColLighting(0);
+    colPoint.SetSurfaceTypeA(eSurfaceType::SURFACE_DEFAULT);
+    colPoint.SetLightingA(tColLighting(0));
 
-    colPoint.m_nSurfaceTypeB = box.m_Surface.m_nMaterial;
-    colPoint.m_nLightingB = box.m_Surface.m_nLighting;
+    colPoint.SetSurfaceTypeB(box.m_Surface.m_nMaterial);
+    colPoint.SetLightingB(box.m_Surface.m_nLighting);
 
     maxTouchDistance = mint;
 
@@ -1237,16 +1237,16 @@ bool CCollision::ProcessDiscCollision(
 ) {
     ZoneScoped;
 
-    const auto cp       = matBA.TransformPoint(tempTriCol.m_vecPoint);
-    const auto cpNormal = matBA.TransformVector(tempTriCol.m_vecNormal);
+    const auto cp       = matBA.TransformPoint(tempTriCol.GetPosition());
+    const auto cpNormal = matBA.TransformVector(tempTriCol.GetNormal());
     
     if (std::abs((cpNormal * disk.m_vThickness).ComponentwiseSum()) >= 0.77f ||
         std::abs((((cp - disk.m_vecCenter) * disk.m_vThickness).ComponentwiseSum()) >= disk.m_fThickness)
     ) {
-        if (disk.m_Surface.m_nPiece < 17 && tempTriCol.m_fDepth > diskColPoint.m_fDepth) {
+        if (disk.m_Surface.m_nPiece < 17 && tempTriCol.GetDepth() > diskColPoint.GetDepth()) {
             diskColPoint = tempTriCol;
-            //diskColPoint.m_fDepth = tempTriCol.m_fDepth; // Done in operator=
-            diskColPoint.m_nSurfaceTypeB = SURFACE_WHEELBASE;
+            //diskColPoint.m_Depth = tempTriCol.m_Depth; // Done in operator=
+            diskColPoint.SetSurfaceTypeB(SURFACE_WHEELBASE);
             return true;
         }
     } else {
@@ -1256,7 +1256,7 @@ bool CCollision::ProcessDiscCollision(
             lineCollision = true;
             lineRatio     = lineRatioNow;
             lineColPoint  = tempTriCol;
-            // lineColPoint.m_fDepth = tempTriCol.m_fDepth;  // Done in operator=
+            // lineColPoint.m_Depth = tempTriCol.m_Depth;  // Done in operator=
             return false; // False is returned here, but `lineCollision` was set to true.
         }
     }
@@ -1302,16 +1302,16 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
 
     // Check if both points are above or below the plane, if so, no chance of intersection
     if (std::signbit(plNormDotLnOrigin) == std::signbit(plane.GetPtDotNormal(line.m_vecEnd))) {
-		return false;
+        return false;
     }
 
     // Magnitude of line on plane
     const auto plLnMag = -(line.m_vecEnd - line.m_vecStart).Dot(plNorm);
 
 #ifdef FIX_BUGS
-	// Line is lies on plane, no intersection
+    // Line is lies on plane, no intersection
     if (plLnMag == 0.0f) {
-		return false;
+        return false;
     }
 #endif
 
@@ -1322,7 +1322,7 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
         }
     }
 
-	// Find point of intersection
+    // Find point of intersection
     const auto ip = lerp(line.m_vecStart, line.m_vecEnd, t);
     if constexpr (!TestOnly) {
         *outIP = ip;
@@ -1331,12 +1331,12 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
     // Get the points relative to the plane's orientation
     // This way the bound checks can be done in 2D
     const auto [pl_va, pl_vb, pl_vc, pl_ip] = [&]() -> std::tuple<CVector2D, CVector2D, CVector2D, CVector2D> {
-	    // We do the test in 2D.
+        // We do the test in 2D.
         // With the plane direction we can figure out how to project the vectors.
-	    // normal = (c - a) x (b - a)
+        // normal = (c - a) x (b - a)
         using enum CColTrianglePlane::Orientation;
-	    switch (plane.m_orientation){
-	    case POS_X: return {
+        switch (plane.m_orientation){
+        case POS_X: return {
             {va.y, va.z},
             {vc.y, vc.z},
             {vb.y, vb.z},
@@ -1367,23 +1367,23 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
             {ip.x, ip.y}
         };
         case NEG_Z: return {
-			{va.x, va.y},
-			{vb.x, vb.y},
-			{vc.x, vc.y},
-			{ip.x, ip.y}
-		};
-	    default: NOTSA_UNREACHABLE();
-	    }
+            {va.x, va.y},
+            {vb.x, vb.y},
+            {vc.x, vc.y},
+            {ip.x, ip.y}
+        };
+        default: NOTSA_UNREACHABLE();
+        }
     }();
 
-	// This is our triangle:
-	// pl_vc---pl_vb
-	//    \     /
-	//     \   /
-	//      \ /
-	//     pl_va
-	// We can use the "2v2 cross product" to check on which side
-	// a vector is of another. Test is true if point is inside of all edges.
+    // This is our triangle:
+    // pl_vc---pl_vb
+    //    \     /
+    //     \   /
+    //      \ /
+    //     pl_va
+    // We can use the "2v2 cross product" to check on which side
+    // a vector is of another. Test is true if point is inside of all edges.
     const auto pl_ip_a = pl_ip - pl_va;
     if ((pl_vb - pl_va).Cross(pl_ip_a) >= 0.0f && (pl_vc - pl_va).Cross(pl_ip_a) <= 0.0f && (pl_vc - pl_vb).Cross(pl_ip - pl_vb) >= 0.0f) {
         if (inOutMaxTouchDist) {
@@ -1469,15 +1469,15 @@ bool CCollision::ProcessLineTriangle(const CColLine& line, const CompressedVecto
         return false;
     }
 
-    colPoint.m_vecPoint  = ip;
-    colPoint.m_vecNormal = normal;
+    colPoint.SetPosition(ip);
+    colPoint.SetNormal(normal);
 
-    colPoint.m_nSurfaceTypeB = tri.m_nMaterial;
-    colPoint.m_nPieceTypeB = 0;
-    colPoint.m_nLightingB = tri.m_nLight;
+    colPoint.SetSurfaceTypeB(tri.m_nMaterial);
+    colPoint.SetPieceTypeB(0);
+    colPoint.SetLightingB(tri.m_nLight);
 
-    colPoint.m_nSurfaceTypeA = SURFACE_DEFAULT;
-    colPoint.m_nPieceTypeA = 0;
+    colPoint.SetSurfaceTypeA(SURFACE_DEFAULT);
+    colPoint.SetPieceTypeA(0);
 
     if (collPoly) {
         *collPoly = poly;
@@ -1522,18 +1522,18 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
 
     maxTouchDistance = touchDistSq;
 
-    colPoint.m_vecNormal = spBToA.Normalized();
-    colPoint.m_vecPoint  = spA.m_vecCenter - colPoint.m_vecNormal * touchDist;
-    colPoint.m_fDepth    = spA.m_fRadius - touchDist;
+    colPoint.SetNormal(spBToA.Normalized());
+    colPoint.SetPosition(spA.m_vecCenter - colPoint.GetNormal() * touchDist);
+    colPoint.SetDepth(spA.m_fRadius - touchDist);
 
-    colPoint.m_nSurfaceTypeA = spA.m_Surface.m_nMaterial;
-    colPoint.m_nPieceTypeA   = spA.m_Surface.m_nPiece;
-    colPoint.m_nLightingA    = spA.m_Surface.m_nLighting;
+    colPoint.SetSurfaceTypeA (spA.m_Surface.m_nMaterial);
+    colPoint.SetPieceTypeA(spA.m_Surface.m_nPiece);
+    colPoint.SetLightingA(spA.m_Surface.m_nLighting);
 
 
-    colPoint.m_nSurfaceTypeB = spB.m_Surface.m_nMaterial;
-    colPoint.m_nPieceTypeB   = spB.m_Surface.m_nPiece;
-    colPoint.m_nLightingB    = spB.m_Surface.m_nLighting;
+    colPoint.SetSurfaceTypeB(spB.m_Surface.m_nMaterial);
+    colPoint.SetPieceTypeB(spB.m_Surface.m_nPiece);
+    colPoint.SetLightingB(spB.m_Surface.m_nLighting);
 
     return true;
 }
@@ -1634,18 +1634,17 @@ bool CCollision::ProcessSphereTriangle(
     maxTouchDistance = touchDistSq;
 
     const auto touchDist = std::sqrt(touchDistSq);
-    colPoint.m_vecNormal = spToIp / touchDist; // Normalize
-    colPoint.m_fDepth    = sphere.m_fRadius - touchDist;
-    colPoint.m_vecPoint  = ip;
+    colPoint.SetNormal(spToIp / touchDist); // Normalize
+    colPoint.SetDepth(sphere.m_fRadius - touchDist);
+    colPoint.SetPosition(ip);
 
-    colPoint.m_nSurfaceTypeA = sphere.m_Surface.m_nMaterial;
-    colPoint.m_nPieceTypeA   = sphere.m_Surface.m_nPiece;
-    colPoint.m_nLightingA    = sphere.m_Surface.m_nLighting;
+    colPoint.SetSurfaceTypeA(sphere.m_Surface.m_nMaterial);
+    colPoint.SetPieceTypeA(sphere.m_Surface.m_nPiece);
+    colPoint.SetLightingA(sphere.m_Surface.m_nLighting);
 
-
-    colPoint.m_nSurfaceTypeB = tri.m_nMaterial;
-    colPoint.m_nPieceTypeB   = 0;
-    colPoint.m_nLightingB    = tri.m_nLight;
+    colPoint.SetSurfaceTypeB(tri.m_nMaterial);
+    colPoint.SetPieceTypeB(0);
+    colPoint.SetLightingB(tri.m_nLight);
 
     return true;
 } 
@@ -1757,8 +1756,8 @@ bool CCollision::ProcessLineOfSight(const CColLine& lnws, const CMatrix& transfo
     }
 
     if (localMinTouchDist < maxTouchDistance) {
-        colPoint.m_vecPoint = transform.TransformPoint(colPoint.m_vecPoint);
-        colPoint.m_vecNormal = transform.TransformVector(colPoint.m_vecNormal);
+        colPoint.SetPosition(transform.TransformPoint(colPoint.GetPosition()));
+        colPoint.SetNormal(transform.TransformVector(colPoint.GetNormal()));
         maxTouchDistance = localMinTouchDist;
         return true;
     }
@@ -1832,8 +1831,8 @@ bool CCollision::ProcessVerticalLine(
     maxTouchDistance = localMaxTouchDist;
 
     // Transform back from object space
-    cp.m_vecPoint  = transform.TransformPoint(cp.m_vecPoint);
-    cp.m_vecNormal = transform.TransformVector(cp.m_vecNormal);
+    cp.SetPosition(transform.TransformPoint(cp.GetPosition()));
+    cp.SetNormal(transform.TransformVector(cp.GetNormal()));
 
     if (outColPoly && storedColPoly.IsValidPolyStored) {
         for (auto& vtx : storedColPoly.Verts) {
@@ -2060,7 +2059,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 
     // 0x418CAD
     // Process all of A's colliding spheres against all of B's colliding spheres, boxes and triangles
-    sphereCPs[0].m_fDepth = -1.f;
+    sphereCPs[0].m_Depth = -1.f;
     uint32 nNumSphereCPs{};
     if (numCollSphA) {
         for (auto sphereAIdx : std::span{collSphA, numCollSphA}) {
@@ -2101,7 +2100,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                     if (bReturnAllCollisions && sphereA.m_Surface.m_nPiece <= 2 && nNumSphereCPs < std::size(sphereCPs)) {
                         advanceColPointIdx = false;
                         minTouchDist = 1e24f;
-                        sphereCPs[nNumSphereCPs + 1].m_fDepth = -1.f;
+                        sphereCPs[nNumSphereCPs + 1].m_Depth = -1.f;
                         nNumSphereCPs++;
                     } else {
                         advanceColPointIdx = true;
@@ -2119,7 +2118,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                     if (bReturnAllCollisions && sphereA.m_Surface.m_nPiece <= 2 && nNumSphereCPs < std::size(sphereCPs)) {
                         advanceColPointIdx = false;
                         minTouchDist = 1e24f;
-                        sphereCPs[nNumSphereCPs + 1].m_fDepth = -1.f;
+                        sphereCPs[nNumSphereCPs + 1].m_Depth = -1.f;
                         nNumSphereCPs++;
                     } else {
                         advanceColPointIdx = true;
@@ -2132,15 +2131,15 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                 if (nNumSphereCPs + 1 >= std::size(sphereCPs)) { // BUG: Should preincrement here instead of + 1
                     break;
                 }
-                sphereCPs[nNumSphereCPs++].m_fDepth = -1.f; // Set next's depth
+                sphereCPs[nNumSphereCPs++].m_Depth = -1.f; // Set next's depth
             }
         }
 
         // 0x41996E
         // Transform all colpoints into world space (Originally not here)
         for (auto&& cp : std::span{sphereCPs, nNumSphereCPs}) {
-            cp.m_vecPoint = transformB.TransformPoint(cp.m_vecPoint);
-            cp.m_vecNormal = Multiply3x3(transformB, cp.m_vecNormal);
+            cp.m_Position = transformB.TransformPoint(cp.m_Position);
+            cp.m_Normal = Multiply3x3(transformB, cp.m_Normal);
         }
     }
 
@@ -2199,8 +2198,8 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
             // 0x4198DA
             // Now, transform colpoint if it the line collided into world space
             if (hasCollided) {
-                thisLineCP.m_vecPoint = transformB.TransformPoint(thisLineCP.m_vecPoint);
-                thisLineCP.m_vecNormal = Multiply3x3(transformB, thisLineCP.m_vecNormal);
+                thisLineCP.m_Position = transformB.TransformPoint(thisLineCP.m_Position);
+                thisLineCP.m_Normal = Multiply3x3(transformB, thisLineCP.m_Normal);
             }
         }
     }
@@ -2255,11 +2254,11 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
             }
 
             if (anyCollided) {
-                sphereCPs[nNumSphereCPs].m_vecNormal *= -1.f;
+                sphereCPs[nNumSphereCPs].m_Normal *= -1.f;
                 if (nNumSphereCPs + 1 >= std::size(sphereCPs)) { // BUG: Should preincrement here instead of + 1
                     break;
                 }
-                sphereCPs[nNumSphereCPs++].m_fDepth = -1.f; // Set next CP's depth
+                sphereCPs[nNumSphereCPs++].m_Depth = -1.f; // Set next CP's depth
             }
         }
 
@@ -2281,12 +2280,12 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                     cp.m_nPieceTypeB = sphere.m_Surface.m_nPiece;
                     cp.m_nLightingB = sphere.m_Surface.ligthing;
 
-                    cp.m_vecNormal *= -1.f; // Invert direction
+                    cp.m_Normal *= -1.f; // Invert direction
 
                     if (nNumSphereCPs + 1 >= std::size(sphereCPs)) { // BUG: Should preincrement here instead of + 1
                         break;
                     }
-                    sphereCPs[nNumSphereCPs++].m_fDepth = -1.f; // Set next CP's depth
+                    sphereCPs[nNumSphereCPs++].m_Depth = -1.f; // Set next CP's depth
                 }
             }
         }
@@ -2295,8 +2294,8 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
         // Transform added colpoints into world space
         if (numCPsPrev != nNumSphereCPs) {                                                   // If we've processed any items..
             for (auto& cp : std::span{sphereCPs + numCPsPrev, nNumSphereCPs - numCPsPrev}) { // Transform all newly added colpoints
-                cp.m_vecPoint = transformA.TransformPoint(cp.m_vecPoint);
-                cp.m_vecNormal = Multiply3x3(transformA, cp.m_vecNormal);
+                cp.m_Position = transformA.TransformPoint(cp.m_Position);
+                cp.m_Normal = Multiply3x3(transformA, cp.m_Normal);
 
                 // Weird stuff, idk why they do this
                 cp.m_nSurfaceTypeB = cp.m_nSurfaceTypeA;
@@ -3264,9 +3263,9 @@ void CCollision::Tests(int32 i) {
     };
 
     const auto ColPointEq = [&](const CColPoint& lhs, const CColPoint& rhs) {
-        return VectorEq(lhs.m_vecPoint, rhs.m_vecPoint)
-            && approxEqual(lhs.m_fDepth, rhs.m_fDepth, 0.01f)
-            && VectorEq(lhs.m_vecNormal, rhs.m_vecNormal);
+        return VectorEq(lhs.m_Position, rhs.m_Position)
+            && approxEqual(lhs.m_Depth, rhs.m_Depth, 0.01f)
+            && VectorEq(lhs.m_Normal, rhs.m_Normal);
     };
 
     const auto RandomVector = [](float min = -100.f, float max = 100.f) {

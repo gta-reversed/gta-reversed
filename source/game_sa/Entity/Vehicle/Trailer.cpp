@@ -246,16 +246,16 @@ void CTrailer::ProcessSuspension() {
         if (m_supportRatios[i] < m_fTrailerTowedRatio2 && m_fTrailerTowedRatio2 > 0.1f) {
             CVector forceDir = m_matrix->GetDown();
 
-            contactPoints[i] = m_supportCPs[i].m_vecPoint - GetPosition();
+            contactPoints[i] = m_supportCPs[i].GetPosition() - GetPosition();
 
             const float compression = m_supportRatios[i] / m_fTrailerTowedRatio2;
 
-            CPhysical::ApplySpringCollisionAlt(m_fTrailerSuspensionForce, forceDir, contactPoints[i], compression, 1.0f, m_supportCPs[i].m_vecNormal, impulseMagnitudes[i]);
+            CPhysical::ApplySpringCollisionAlt(m_fTrailerSuspensionForce, forceDir, contactPoints[i], compression, 1.0f, m_supportCPs[i].GetNormal(), impulseMagnitudes[i]);
 
             contactSpeeds[i] = GetSpeed(contactPoints[i]);
 
-            CVector dampeningDir = m_supportCPs[i].m_vecNormal.z > 0.35f
-                ? -m_supportCPs[i].m_vecNormal
+            CVector dampeningDir = m_supportCPs[i].GetNormal().z > 0.35f
+                ? -m_supportCPs[i].GetNormal()
                 : m_matrix->GetDown();
 
             CPhysical::ApplySpringDampening(m_fTrailerDampingForce, impulseMagnitudes[i], dampeningDir, contactPoints[i], contactSpeeds[i]);
@@ -341,21 +341,21 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
         // Process the real wheel's susp lines
         for (auto i = 0; i < NUM_TRAILER_WHEELS; i++) {
             // 0x6AD0D4
-            const auto& cp = suspLineCPs[i];
+            auto& cp = suspLineCPs[i];
             const auto touchDist = suspLineTouchDists[i];
             if (touchDist < BILLS_EXTENSION_LIMIT && touchDist < m_fWheelsSuspensionCompression[i]) {
                 numProcessedLines++;
                 m_fWheelsSuspensionCompression[i] = touchDist;
                 m_wheelColPoint[i] = cp;
-                m_anCollisionLighting[i] = cp.m_nLightingB;
-                m_nContactSurface = cp.m_nSurfaceTypeB;
+                m_anCollisionLighting[i] = cp.GetLightingB();
+                m_nContactSurface = cp.GetSurfaceTypeB();
 
                 switch (entity->GetType()) {
                 case ENTITY_TYPE_VEHICLE:
                 case ENTITY_TYPE_OBJECT: {
                     CEntity::ChangeEntityReference(m_apWheelCollisionEntity[i], entity->AsPhysical());
 
-                    m_vWheelCollisionPos[i] = cp.m_vecPoint - entity->GetPosition();
+                    m_vWheelCollisionPos[i] = cp.GetPosition() - entity->GetPosition();
                     if (entity->GetIsTypeVehicle()) {
                         m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                     }

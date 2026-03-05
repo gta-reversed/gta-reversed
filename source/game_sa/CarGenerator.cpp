@@ -208,7 +208,7 @@ void CCarGenerator::DoInternalProcessing()
         if (!CWorld::ProcessVerticalLine(posn, -1000.0f, colPoint, entity, true, false, false, false, false, false, nullptr))
             return;
 
-        baseZ = colPoint.m_vecPoint.z;
+        baseZ = colPoint.GetPosition().z;
         plate.m_nCarGenId = CTheCarGenerators::GetIndex(this);
         CTheCarGenerators::m_SpecialPlateHandler.Find(plate.m_nCarGenId, plate.m_szPlateText);
         if (plate.m_szPlateText[0])
@@ -254,7 +254,7 @@ void CCarGenerator::DoInternalProcessing()
         vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
         vehicle->vehicleFlags.bLightsOn = false;
         vehicle->m_nOverrideLights = NO_CAR_LIGHT_OVERRIDE;
-        vehicle->SetCollisionLighting(colPoint.m_nLightingB);
+        vehicle->SetCollisionLighting(colPoint.GetLightingB());
     }
 
     vehicle->SetIsStatic(false);

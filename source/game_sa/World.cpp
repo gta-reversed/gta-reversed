@@ -377,7 +377,7 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
         }
 
         if (FilledColPointIndex < std::size(gaTempSphereColPoints)) {
-            const float distToEnd = localColLine.m_vecEnd.z - cp.m_vecPoint.z;
+            const float distToEnd = localColLine.m_vecEnd.z - cp.GetPosition().z;
             
             if (originalLineGoingUpwards) {
                 if (distToEnd > 0.0f) {
@@ -395,7 +395,7 @@ bool CWorld::ProcessVerticalLineSectorList_FillGlobeColPoints(PtrListType& ptrLi
 
             // In any case, we shift the starting point
             if (dontGoToNextNode) {
-                localColLine.m_vecStart = cp.m_vecPoint;
+                localColLine.m_vecStart = cp.GetPosition();
                 localColLine.m_vecStart.z += originalLineGoingUpwards ? 0.1f : -0.1f;
             }
         }
@@ -1840,7 +1840,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
                             // which means there must be a direct hit somewhere with the vehicle's body
 
                             const auto lineDir = colLine.m_vecEnd - colLine.m_vecStart;
-                            const auto wheelToVehCenter = wheelCP.m_vecPoint - mat.GetPosition();
+                            const auto wheelToVehCenter = wheelCP.GetPosition() - mat.GetPosition();
 
                             const auto lineDirDotRight = DotProduct(lineDir, mat.GetRight());
                             const auto wheelDotRight = DotProduct(wheelToVehCenter, mat.GetRight());
@@ -2039,7 +2039,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                     cp,
                     maxTouchDist
                 )) {
-                auto colNormal = veh->GetMatrix().TransformVector(-cp.m_vecNormal);
+                auto colNormal = veh->GetMatrix().TransformVector(-cp.GetNormal());
                 if (auto& z = colNormal.z; z >= -0.f) { // TODO: Wat is dis?
                     if (z < 0.2f && z > 0.f) {
                         z += 0.2f;
@@ -2048,7 +2048,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
                     z = -0.2f;
                 }
 
-                colPointPos = veh->GetMatrix().TransformVector(cp.m_vecPoint);
+                colPointPos = veh->GetMatrix().TransformVector(cp.GetPosition());
                 const auto colPointToExploPointDist = ((colPointPos + veh->GetPosition()) - point).Magnitude();
 
                 // TODO: Document this a little better pls
@@ -2070,7 +2070,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             }
 
             if (veh->IsSubPlane()) {
-                auto normalBackwards = cp.m_vecNormal;
+                auto normalBackwards = cp.GetNormal();
                 auto colPos = colPointPos + veh->GetPosition();
                 veh->VehicleDamage(1000.f, eVehicleCollisionComponent::DEFAULT, creator, &colPos, &normalBackwards, WEAPON_EXPLOSION);
             }
@@ -2568,7 +2568,7 @@ float CWorld::FindGroundZForCoord(float x, float y) {
     CEntity* hitEntity{};
     CColPoint cp{};
     return ProcessVerticalLine({ x, y, 1000.f }, -1000.f, cp, hitEntity, true, false, false, false, true, false, nullptr)
-        ? cp.m_vecPoint.z
+        ? cp.GetPosition().z
         : 20.f;
 }
 
@@ -2583,7 +2583,7 @@ float CWorld::FindGroundZFor3DCoord(CVector coord, bool* outResult, CEntity** ou
         if (outEntity) {
             *outEntity = localOutEntity;
         }
-        return colPoint.m_vecPoint.z;
+        return colPoint.GetPosition().z;
     } else {
         if (outResult) {
             *outResult = false;
@@ -2603,7 +2603,7 @@ float CWorld::FindRoofZFor3DCoord(float x, float y, float z, bool* outResult) {
         if (outResult) {
             *outResult = true;
         }
-        return colPoint.m_vecPoint.z;
+        return colPoint.GetPosition().z;
     } else {
         if (outResult) {
             *outResult = false;
@@ -2619,7 +2619,7 @@ float CWorld::FindLowestZForCoord(float x, float y) {
     CEntity* outEntity{};
     CColPoint colPoint{};
     if (ProcessVerticalLine({ x, y, -1000.0f }, 1000.0f, colPoint, outEntity, true, false, false, false, true, false, nullptr)) {
-        return colPoint.m_vecPoint.z;
+        return colPoint.GetPosition().z;
     }
 
     return 20.0f;

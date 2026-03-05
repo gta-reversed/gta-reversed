@@ -143,11 +143,11 @@ void CTaskComplexWalkRoundBuildingAttempt::ComputeCrapRoute(CPed const& ped) {
         CColPoint cp{};
         CEntity* hitEntity{};
         if (CWorld::ProcessLineOfSight(pedPos, target, cp, hitEntity, true, false, false, false, false, false, false, false)) {
-            auto cpToPedDir = cp.m_vecPoint - pedPos;
+            auto cpToPedDir = cp.GetPosition() - pedPos;
             if (cpToPedDir.NormaliseAndMag() < 0.35f) {
                 return;
             }
-            m_crapRoute->Add(cp.m_vecPoint - cpToPedDir * 0.35f);
+            m_crapRoute->Add(cp.GetPosition() - cpToPedDir * 0.35f);
         } else {
             m_crapRoute->Add(target);
         }

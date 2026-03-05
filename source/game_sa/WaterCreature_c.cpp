@@ -152,7 +152,7 @@ void WaterCreature_c::Update(float fTimeStep)
                 CColPoint colPoint;
                 CEntity* entity;
                 if (CWorld::ProcessLineOfSight(vecPos, vecTargetPos, colPoint, entity, true, false, false, false, false, false, false, false)) {
-                    const auto fHeading = CGeneral::GetRadianAngleBetweenPoints(colPoint.m_vecNormal.x, colPoint.m_vecNormal.y, 0.0F, 0.0F);
+                    const auto fHeading = CGeneral::GetRadianAngleBetweenPoints(colPoint.GetNormal().x, colPoint.GetNormal().y, 0.0F, 0.0F);
                     m_fHeading = CGeneral::LimitRadianAngle(fHeading);
                     m_bChangedDir = true;
                 }

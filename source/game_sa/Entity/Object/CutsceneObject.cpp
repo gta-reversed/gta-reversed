@@ -138,7 +138,7 @@ void CCutsceneObject::PreRender() {
     CColPoint colPoint{};
     CEntity* entity = nullptr;
     if (CWorld::ProcessVerticalLine(vecPos, fHeight, colPoint, entity, true)) {
-        const auto fDayNight = colPoint.m_nLightingB.GetCurrentLighting();
+        const auto fDayNight = colPoint.GetLightingB().GetCurrentLighting();
         m_fContactSurfaceBrightness = lerp(m_fContactSurfaceBrightness, fDayNight, CTimer::GetTimeStep() / 10.0F);
     }
 }

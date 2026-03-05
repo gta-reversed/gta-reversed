@@ -7,50 +7,55 @@
 #pragma once
 
 #include "Vector.h"
+#include "ColData.h"
+#include "ColLighting.h"
 #include "Enums/eSurfaceType.h"
 
-struct tColLighting {
-    union {
-        struct {
-            uint8 day : 4;
-            uint8 night : 4;
-        };
-        uint8 value;
-    };
-
-    tColLighting() = default;
-    constexpr explicit tColLighting(const uint8 ucLighting) {
-        day = ucLighting & 0xF;
-        night = (ucLighting >> 4) & 0xF;
-    }
-
-    [[nodiscard]] float GetCurrentLighting(float fScale = 0.5F) const;
-};
-VALIDATE_SIZE(tColLighting, 0x1);
-
 class CColPoint {
-public:
+private:
     /* https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CColPointSA.h */
-    CVector      m_vecPoint;        // 0x00
-    float        field_C;           // 0x0C
-    CVector      m_vecNormal;       // 0x10
-    float        field_1C;          // 0x1C
+    CVector m_Position; // 0x00
+    float   pad;        // 0x0C
+    CVector m_Normal;   // 0x10
+    float   pad2;       // 0x1C
 
-    // col shape 1 info
-    eSurfaceType m_nSurfaceTypeA;   // 0x20
-    uint8        m_nPieceTypeA;     // 0x21
-    tColLighting m_nLightingA;      // 0x22
+    // col shape 1 and 2 info
+    tColData m_DataA; // 0x20-0x22
+    tColData m_DataB; // 0x23-0x25
 
-    // col shape 2 info
-    eSurfaceType m_nSurfaceTypeB;   // 0x23
-    uint8 m_nPieceTypeB;            // 0x24
-    tColLighting m_nLightingB;      // 0x25
-
-    char _align0x26[2];             // 0x26
-                            
-    float m_fDepth;                 // 0x28
+    float m_Depth; // 0x28
 
 public:
-    CColPoint& operator=(CColPoint const&) = default;
+    void SetPosition(float x, float y, float z) { m_Position.Set(x, y, z); }
+    void SetPosition(const CVector& pos) { m_Position = pos; }
+    CVector& GetPosition() { return m_Position; }
+
+    void SetNormal(float x, float y, float z) { m_Normal.Set(x, y, z); }
+    void SetNormal(const CVector& pos) { m_Normal = pos; }
+    CVector& GetNormal() { return m_Normal; }
+
+    void SetDataA(const tColData& data) { m_DataA = data; }
+    tColData GetDataA() const { return m_DataA;}
+    void SetSurfaceTypeA(eSurfaceType surfaceType) { m_DataA.SurfaceType = surfaceType; }
+    eSurfaceType GetSurfaceTypeA() const { return m_DataA.SurfaceType; }
+    void SetPieceTypeA(uint8 pieceType) { m_DataA.PieceType = pieceType; }
+    uint8 GetPieceTypeA() const { return m_DataA.PieceType; }
+    void SetLightingA(tColLighting lighting) { m_DataA.Lighting = lighting; }
+    tColLighting GetLightingA() const { return m_DataA.Lighting; }
+
+    void SetDataB(const tColData& data) { m_DataB = data; }
+    tColData GetDataB() const { return m_DataB; }
+    void SetSurfaceTypeB(eSurfaceType surfaceType) { m_DataB.SurfaceType = surfaceType; }
+    eSurfaceType GetSurfaceTypeB() const { return m_DataB.SurfaceType; }
+    void SetPieceTypeB(uint8 pieceType) { m_DataB.PieceType = pieceType; }
+    uint8 GetPieceTypeB() const { return m_DataB.PieceType; }
+    void SetLightingB(tColLighting lighting) { m_DataB.Lighting = lighting; }
+    tColLighting GetLightingB() const { return m_DataB.Lighting; }
+
+    void SetDepth(float depth) { m_Depth = depth; }
+    float GetDepth() const { return m_Depth; }
+
+    CColPoint& operator=(const CColPoint& p) = default;
 };
+
 VALIDATE_SIZE(CColPoint, 0x2C);

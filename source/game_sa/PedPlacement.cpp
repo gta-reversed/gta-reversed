@@ -24,7 +24,7 @@ std::pair<CVector, bool> CPedPlacement::FindZCoorForPed(CVector pos) {
         CEntity*  hit{};
         CColPoint cp{};
         return CWorld::ProcessVerticalLine(pos + offset, pos.z - 100.0f, cp, hit, true, true, false, false, true, false, nullptr)
-            ? cp.m_vecPoint.z
+            ? cp.GetPosition().z
             : MAP_Z_LOW_LIMIT;
     };
     const auto highestZ = std::max(

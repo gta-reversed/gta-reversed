@@ -98,20 +98,20 @@ void CBulletInfo::Update() {
                             info.m_pCreator,
                             info.m_nWeaponType,
                             info.m_nDamage,
-                            (ePedPieceTypes)colPoint.m_nPieceTypeB,
-                            hitPed->GetLocalDirection(hitPed->GetPosition2D() - CVector2D{ colPoint.m_vecPoint })
+                            (ePedPieceTypes)colPoint.GetPieceTypeB(),
+                            hitPed->GetLocalDirection(hitPed->GetPosition2D() - CVector2D{ colPoint.GetPosition() })
                         );
                         CCrime::ReportCrime(
                             (hitPed->m_nPedType == PED_TYPE_COP) ? eCrimeType::CRIME_DAMAGE_COP_CAR : eCrimeType::CRIME_DAMAGE_CAR,
                             hitPed,
                             info.m_pCreator->AsPed()
                         );
-                        newPosition = colPoint.m_vecPoint;
+                        newPosition = colPoint.GetPosition();
                     }
                 }
 
                 if (CLocalisation::Blood()) {
-                    g_fx.AddBlood(colPoint.m_vecPoint, colPoint.m_vecNormal, 8, hitPed->m_fContactSurfaceBrightness);
+                    g_fx.AddBlood(colPoint.GetPosition(), colPoint.GetNormal(), 8, hitPed->m_fContactSurfaceBrightness);
                     // std::cout << "Create blood\n";
                     if (hitPed->m_nPedState == PEDSTATE_DEAD) {
                         const auto anim = RpAnimBlendClumpGetFirstAssociation(hitPed->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
@@ -122,7 +122,7 @@ void CBulletInfo::Update() {
                             // std::cout << "Blood anim\n";
                         }
                     }
-                    newPosition = colPoint.m_vecPoint;
+                    newPosition = colPoint.GetPosition();
                 }
                 break;
             }
@@ -135,14 +135,14 @@ void CBulletInfo::Update() {
                         break;
 
                 // Originally: if (colPoint.m_nPieceTypeB < 13u || colPoint.m_nPieceTypeB > 16u)
-                switch ((eCarPiece)colPoint.m_nPieceTypeB) {
+                switch ((eCarPiece)colPoint.GetPieceTypeB()) {
                 default: /* originally `if` body */
                 {
-                    hitVehicle->InflictDamage(info.m_pCreator, info.m_nWeaponType, info.m_nDamage, colPoint.m_vecPoint);
+                    hitVehicle->InflictDamage(info.m_pCreator, info.m_nWeaponType, info.m_nDamage, colPoint.GetPosition());
                     if (info.m_nWeaponType == eWeaponType::WEAPON_FLAMETHROWER) {
                         gFireManager.StartFire(hitVehicle, info.m_pCreator, 0.8f, true, 7000, 100);
-                    } else if (TheCamera.IsSphereVisible(colPoint.m_vecNormal, 1.0f)) {
-                        g_fx.AddBulletImpact(colPoint.m_vecPoint, colPoint.m_vecNormal, colPoint.m_nSurfaceTypeB, 8, colPoint.m_nLightingB.GetCurrentLighting());
+                    } else if (TheCamera.IsSphereVisible(colPoint.GetNormal(), 1.0f)) {
+                        g_fx.AddBulletImpact(colPoint.GetPosition(), colPoint.GetNormal(), colPoint.GetSurfaceTypeB(), 8, colPoint.GetLightingB().GetCurrentLighting());
                     }
                     break;
                 }
@@ -150,8 +150,8 @@ void CBulletInfo::Update() {
                 case eCarPiece::CAR_PIECE_WHEEL_RF:
                 case eCarPiece::CAR_PIECE_WHEEL_RL:
                 case eCarPiece::CAR_PIECE_WHEEL_RR: { /* originally `else` body */
-                    hitVehicle->BurstTyre(colPoint.m_nPieceTypeB, true);
-                    g_fx.AddTyreBurst(colPoint.m_vecPoint, colPoint.m_vecNormal);
+                    hitVehicle->BurstTyre(colPoint.GetPieceTypeB(), true);
+                    g_fx.AddTyreBurst(colPoint.GetPosition(), colPoint.GetNormal());
                     // std::cout << "Brust vehicle tyre " << (int)colPoint.m_nPieceTypeB << "\n";
                     break;
                 }
@@ -160,8 +160,8 @@ void CBulletInfo::Update() {
                 break;
             }
             default: {
-                if (TheCamera.IsSphereVisible(colPoint.m_vecNormal, 1.0f))
-                    g_fx.AddBulletImpact(colPoint.m_vecPoint, colPoint.m_vecNormal, colPoint.m_nSurfaceTypeB, 8, colPoint.m_nLightingB.GetCurrentLighting());
+                if (TheCamera.IsSphereVisible(colPoint.GetNormal(), 1.0f))
+                    g_fx.AddBulletImpact(colPoint.GetPosition(), colPoint.GetNormal(), colPoint.GetSurfaceTypeB(), 8, colPoint.GetLightingB().GetCurrentLighting());
 
                 if (info.m_pCreator && info.m_pCreator->GetIsTypePed())
                     if (info.m_pCreator->AsPed()->m_pAttachedTo == hitEntity)
@@ -173,7 +173,7 @@ void CBulletInfo::Update() {
                     auto hitObject = hitEntity->AsObject();
 
                     const auto DoDamageToObject = [&](float dmg) {
-                        hitObject->ObjectDamage(dmg, &colPoint.m_vecPoint, &colPoint.m_vecNormal, info.m_pCreator, info.m_nWeaponType);
+                        hitObject->ObjectDamage(dmg, &colPoint.GetPosition(), &colPoint.GetNormal(), info.m_pCreator, info.m_nWeaponType);
                     };
 
                     if (hitObject->m_nColDamageEffect < 200u) {
@@ -185,7 +185,7 @@ void CBulletInfo::Update() {
                                 hitObject->AddToMovingList();
                             }
                             if (!hitObject->GetIsStatic()) {
-                                hitObject->ApplyMoveForce(colPoint.m_vecNormal * -7.5f);
+                                hitObject->ApplyMoveForce(colPoint.GetNormal() * -7.5f);
                             }
                         }
                     } else {
@@ -220,12 +220,12 @@ void CBulletInfo::Update() {
                 // std::cout << "Register sniper bullet hit\n";
                 CVector dir = newPosition - info.m_vecPosition;
                 dir.Normalise();
-                const float dirDotColPointNorm = DotProduct(dir, colPoint.m_vecNormal);
+                const float dirDotColPointNorm = DotProduct(dir, colPoint.GetNormal());
                 if (dirDotColPointNorm < 0.0f) {
-                    AudioEngine.ReportBulletHit(hitEntity, colPoint.m_nSurfaceTypeB, colPoint.m_vecPoint, RadiansToDegrees(asin(-dirDotColPointNorm)));
+                    AudioEngine.ReportBulletHit(hitEntity, colPoint.GetSurfaceTypeB(), colPoint.GetPosition(), RadiansToDegrees(asin(-dirDotColPointNorm)));
                 }
             }
-            CGlass::WasGlassHitByBullet(hitEntity, colPoint.m_vecPoint);
+            CGlass::WasGlassHitByBullet(hitEntity, colPoint.GetPosition());
         }
 
         CWorld::bIncludeDeadPeds = false;

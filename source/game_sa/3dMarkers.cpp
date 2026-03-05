@@ -350,7 +350,7 @@ C3dMarker* C3dMarkers::PlaceMarker(
                         false
                     );
                     m->m_RoofHeight = hasHit
-                        ? hitCP.m_vecPoint.z
+                        ? hitCP.GetPosition().z
                         : 65535.f;
                 }
             }

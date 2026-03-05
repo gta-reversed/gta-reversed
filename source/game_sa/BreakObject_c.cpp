@@ -59,8 +59,8 @@ bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVeloci
     CColPoint colPoint;
     CEntity* colEntity;
     if (CWorld::ProcessVerticalLine(vecOrigin, -1000.0f, colPoint, colEntity, true)) {
-        m_GroundZ = colPoint.m_vecPoint.z;
-        m_VecNormal = colPoint.m_vecNormal;
+        m_GroundZ = colPoint.GetPosition().z;
+        m_VecNormal = colPoint.GetNormal();
         if (std::fabs(m_VecNormal.x) < 0.01f &&
             std::fabs(m_VecNormal.y) < 0.01f &&
             std::fabs(m_VecNormal.z) < 0.01f

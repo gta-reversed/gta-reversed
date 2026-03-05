@@ -619,8 +619,8 @@ void CReplay::ProcessLookAroundCam() {
             CColPoint colPoint;
             CEntity* outEntity{};
             if (CWorld::ProcessLineOfSight(CameraFocus, target, colPoint, outEntity, true, false, false, false, false, true, true, false)) {
-                target = colPoint.m_vecPoint;
-                const auto focusCollisionDir = (CameraFocus - colPoint.m_vecPoint).Normalized();
+                target = colPoint.GetPosition();
+                const auto focusCollisionDir = (CameraFocus - colPoint.GetPosition()).Normalized();
                 target.x += focusCollisionDir.x / 4.0f;
                 target.y += focusCollisionDir.y / 4.0f;
                 target.z += focusCollisionDir.z;

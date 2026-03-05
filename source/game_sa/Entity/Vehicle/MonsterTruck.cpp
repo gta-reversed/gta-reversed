@@ -58,7 +58,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
     if (tcm->GetData()->m_nNumLines) {
         for (auto i = 0; i < MAX_CARWHEELS; i++) {
             const auto  thisWheelTouchDistNow = wheelColPtsTouchDists[i];
-            const auto& thisWheelColPtNow = m_wheelColPoint[i];
+            auto& thisWheelColPtNow = m_wheelColPoint[i];
 
             if (thisWheelTouchDistNow <= m_wheelPosition[i]) {
                 continue;
@@ -73,8 +73,8 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
             m_fWheelsSuspensionCompression[i] = 0.f;
             m_wheelPosition[i] = thisWheelTouchDistNow;
 
-            m_anCollisionLighting[i] = thisWheelColPtNow.m_nLightingB;
-            m_nContactSurface = thisWheelColPtNow.m_nSurfaceTypeB;
+            m_anCollisionLighting[i] = thisWheelColPtNow.GetLightingB();
+            m_nContactSurface = thisWheelColPtNow.GetSurfaceTypeB();
 
             // Same as in CAutomobile::ProcessEntityCollision
             switch (entity->GetType()) {
@@ -82,7 +82,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
             case ENTITY_TYPE_OBJECT: {
                 CEntity::ChangeEntityReference(m_apWheelCollisionEntity[i], entity->AsPhysical());
 
-                m_vWheelCollisionPos[i] = thisWheelColPtNow.m_vecPoint - entity->GetPosition();
+                m_vWheelCollisionPos[i] = thisWheelColPtNow.GetPosition() - entity->GetPosition();
                 if (entity->GetIsTypeVehicle()) {
                     m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                 }

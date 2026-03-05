@@ -477,7 +477,7 @@ float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner
 }
 
 // 0x73B550
-void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& startPoint, const CVector& endPoint, const CColPoint& hitCP, int32 incrementalHit) {
+void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& startPoint, const CVector& endPoint, CColPoint& hitCP, int32 incrementalHit) {
     const auto firedByPed = firedBy->GetIsTypePed()
         ? firedBy->AsPed()
         : nullptr;
@@ -494,21 +494,21 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
     if (victim) { // Inverted
         CBulletTraces::AddTrace( // 0x73B60C
             incrementalHit
-                ? startPoint + (hitCP.m_vecPoint - startPoint) * 0.4f
+                ? startPoint + (hitCP.GetPosition()  - startPoint) * 0.4f
                 : startPoint,
-            hitCP.m_vecPoint,
+            hitCP.GetPosition(),
             GetType(),
             firedBy
         );
 
         const auto DoBulletHitFx = [&] {
             if (incrementalHit <= 0) {
-                const auto angle = (endPoint - startPoint).Normalized().Dot(hitCP.m_vecNormal);
+                const auto angle = (endPoint - startPoint).Normalized().Dot(hitCP.GetNormal());
                 if (angle < 0.f) { // Normal is opposite to that of the bullet's direction
                     AudioEngine.ReportBulletHit(
                         victim,
-                        hitCP.m_nSurfaceTypeB,
-                        hitCP.m_vecPoint,
+                        hitCP.GetSurfaceTypeB(),
+                        hitCP.GetPosition(),
                         RWRAD2DEG(std::asin(-angle))
                     );
                 }
@@ -543,8 +543,8 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                     }
                     case eEntityType::ENTITY_TYPE_VEHICLE: {
                         const auto victimVeh = victimEntity->AsVehicle();
-                        if (notsa::contains(eCarPiece_WheelPieces, (eCarPiece)hitCP.m_nPieceTypeB)) {
-                            if (!victimVeh->BurstTyre(hitCP.m_nPieceTypeB, true)) {
+                        if (notsa::contains(eCarPiece_WheelPieces, (eCarPiece)hitCP.GetPieceTypeB())) {
+                            if (!victimVeh->BurstTyre(hitCP.GetPieceTypeB(), true)) {
                                 return false;
                             }
                         }
@@ -570,16 +570,16 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
         }
 
         if (!victim->GetIsTypePed()) { // 0x73B85B
-            CGlass::WasGlassHitByBullet(victim, hitCP.m_vecPoint);
+            CGlass::WasGlassHitByBullet(victim, hitCP.GetPosition());
 
             const auto DoBulletImpactFx = [&] {
-                if (TheCamera.IsSphereVisible(hitCP.m_vecPoint, 1.f)) {
+                if (TheCamera.IsSphereVisible(hitCP.GetPosition(), 1.f)) {
                     g_fx.AddBulletImpact(
-                        hitCP.m_vecPoint,
-                        hitCP.m_vecNormal,
-                        hitCP.m_nSurfaceTypeB,
+                        hitCP.GetPosition(),
+                        hitCP.GetNormal(),
+                        hitCP.GetSurfaceTypeB(),
                         incrementalHit ? 2 : 8,
-                        hitCP.m_nLightingA.GetCurrentLighting()
+                        hitCP.GetLightingA().GetCurrentLighting()
                     );
                 }
             };
@@ -594,12 +594,12 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
             }
             case eEntityType::ENTITY_TYPE_VEHICLE: { // 0x73BD2A
                 const auto victimVeh = victim->AsVehicle();
-                if (!notsa::contains(eCarPiece_WheelPieces, (eCarPiece)hitCP.m_nPieceTypeB)) {
+                if (!notsa::contains(eCarPiece_WheelPieces, (eCarPiece)hitCP.GetPieceTypeB())) {
                     victimVeh->InflictDamage(
                         firedBy,
                         GetType(),
                         (float)(firedByPlayer && TheCamera.GetActiveCam().m_nMode == MODE_TWOPLAYER_IN_CAR_AND_SHOOTING ? 2 * wi->m_nDamage : wi->m_nDamage),
-                        hitCP.m_vecPoint
+                        hitCP.GetPosition()
                     );
                     DoBulletImpactFx();
                     if (g_LoadMonitor.GetProcLevel() != eProcessingLevel::HIGH) { // 0x73BF6C - NOTE/TODO: Useless, remove
@@ -616,14 +616,14 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                             }
                         }();
                         victimVeh->ApplyForce(
-                            hitCP.m_vecNormal * (wepForceMult * std::min(1.f, victimVeh->m_fMass / 1000.f)),
-                            hitCP.m_vecPoint - victimVeh->GetPosition(),
+                            hitCP.GetNormal() * (wepForceMult * std::min(1.f, victimVeh->m_fMass / 1000.f)),
+                            hitCP.GetPosition() - victimVeh->GetPosition(),
                             true
                         );
                     }
                 } else { // 0x73BD3F
-                    victimVeh->BurstTyre(hitCP.m_nPieceTypeB, true);
-                    g_fx.AddTyreBurst(hitCP.m_vecPoint, hitCP.m_vecNormal);
+                    victimVeh->BurstTyre(hitCP.GetPieceTypeB(), true);
+                    g_fx.AddTyreBurst(hitCP.GetPosition(), hitCP.GetNormal());
                     if (firedByPed) { // Add event to occupants
                         const auto AddEventVehicleDamageWeapon = [&](CPed* ped) {
                             if (ped) {
@@ -660,8 +660,8 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                                 force *= 0.2f;
                             }
                             victimObj->ApplyForce(
-                                hitCP.m_vecNormal * force,
-                                hitCP.m_vecPoint - victimObj->GetPosition(),
+                                hitCP.GetNormal() * force,
+                                hitCP.GetPosition() - victimObj->GetPosition(),
                                 true
                             );
                         }
@@ -675,8 +675,8 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                             default: return 50.f;
                             }
                         }(),
-                        &hitCP.m_vecPoint,
-                        &hitCP.m_vecNormal,
+                        &hitCP.GetPosition(),
+                        &hitCP.GetNormal(),
                         firedBy,
                         GetType()
                     );
@@ -714,7 +714,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                                 ? -(incrementalHit * (int32)wi->m_nDamage)
                                 : (int32)wi->m_nDamage;
                         }(),
-                        (ePedPieceTypes)hitCP.m_nPieceTypeB,
+                        (ePedPieceTypes)hitCP.GetPieceTypeB(),
                         victimPed->GetLocalDirection(startPoint - victimPed->GetPosition2D())
                     );
                 }();
@@ -723,9 +723,9 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                 }
                 if (CLocalisation::Blood() && bAddBloodFx) { // 0x73BA81
                     g_fx.AddBlood(
-                        hitCP.m_vecPoint,
-                        hitCP.m_vecNormal,
-                        hitCP.m_nPieceTypeB == ePedPieceTypes::PED_PIECE_HEAD
+                        hitCP.GetPosition(),
+                        hitCP.GetNormal(),
+                        hitCP.GetPieceTypeB() == ePedPieceTypes::PED_PIECE_HEAD
                                 ? victimPed->m_fHealth <= 0.f ? 32 : 16
                                 : incrementalHit ? 4 : 8,
                         victimPed->m_fContactSurfaceBrightness
@@ -861,7 +861,7 @@ void CWeapon::SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, 
     }
     auto* const cd = ms_PelletTestCol.GetData();
 
-    auto hitDir = (colPoint.m_vecPoint - point);
+    auto hitDir = (colPoint.GetPosition() - point);
     const float depth = hitDir.NormaliseAndMag() * CWorld::fWeaponSpreadRate * 1.3f;
 
     //> 0x73C806 - Create pellet lines
@@ -902,7 +902,7 @@ void CWeapon::SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, 
     };
 
     if (victim->GetIsTypeBuilding()) { // 0x73C98E
-        const auto& n = colPoint.m_vecNormal;
+        const auto& n = colPoint.GetNormal();
         CalculateMatrixRotation(
             -n,
             std::abs(n.z) >= 0.9f
@@ -928,11 +928,11 @@ void CWeapon::SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, 
     }
 
     // 0x73CAFF
-    outMat.GetPosition() = colPoint.m_vecPoint;
+    outMat.GetPosition() = colPoint.GetPosition();
 
     // 0x73CB1A
     if (!victim->GetIsTypeBuilding()) {
-        outMat.GetPosition() -= colPoint.m_vecNormal.ProjectOnToNormal(outMat.GetForward()) * depth;
+        outMat.GetPosition() -= colPoint.GetNormal().ProjectOnToNormal(outMat.GetForward()) * depth;
     }
 }
 
@@ -1609,7 +1609,7 @@ bool CWeapon::FireM16_1stPerson(CPed* owner) {
 
     //> 0x741DC4 - Check if hit entity is within range
     if (shotHitEntity) {
-        if (TargetWeaponRangeMultiplier(shotHitEntity, owner) * wi->m_fWeaponRange >= (camOriginPos - shotCP.m_vecPoint).SquaredMagnitude2D()) {
+        if (TargetWeaponRangeMultiplier(shotHitEntity, owner) * wi->m_fWeaponRange >= (camOriginPos - shotCP.GetPosition()).SquaredMagnitude2D()) {
             shotHitEntity = nullptr;
         }
     }
@@ -1989,7 +1989,7 @@ void FireOneInstantHitRound(const CVector& startPoint, const CVector& endPoint, 
 
     CBulletTraces::AddTrace(
         startPoint,
-        hitEntity ? hitCP.m_vecPoint : endPoint,
+        hitEntity ? hitCP.GetPosition() : endPoint,
         0.02f,
         750,
         150
@@ -2012,7 +2012,7 @@ void FireOneInstantHitRound(const CVector& startPoint, const CVector& endPoint, 
                     nullptr,
                     WEAPON_UZI_DRIVEBY,
                     intensity,
-                    (ePedPieceTypes)hitCP.m_nPieceTypeB,
+                    (ePedPieceTypes)hitCP.GetPieceTypeB(),
                     pedHitDir
                 );
             }
@@ -2031,12 +2031,12 @@ void FireOneInstantHitRound(const CVector& startPoint, const CVector& endPoint, 
         }
         }
 
-        const auto angleOfIncidenceCos = (endPoint - startPoint).Normalized().Dot(hitCP.m_vecNormal); // 0x73B0CC
+        const auto angleOfIncidenceCos = (endPoint - startPoint).Normalized().Dot(hitCP.GetNormal()); // 0x73B0CC
         if (angleOfIncidenceCos < 0.f) {
             AudioEngine.ReportBulletHit(
                 hitEntity,
-                hitCP.m_nSurfaceTypeB,
-                hitCP.m_vecPoint,
+                hitCP.GetSurfaceTypeB(),
+                hitCP.GetPosition(),
                 RWRAD2DEG(std::asin(-angleOfIncidenceCos)) // Really should've used `acos + PI / 2` here to make this cleaner
             );
         }

@@ -664,7 +664,7 @@ bool SurfaceInfos_c::IsAudioTile(SurfaceId id)
 // 0x55EB50
 float SurfaceInfos_c::GetAdhesiveLimit(CColPoint* colPoint)
 {
-    auto& surfaceA = m_surfaces[colPoint->m_nSurfaceTypeA];
-    auto& surfaceB = m_surfaces[colPoint->m_nSurfaceTypeB];
+    auto& surfaceA = m_surfaces[colPoint->GetSurfaceTypeA()];
+    auto& surfaceB = m_surfaces[colPoint->GetSurfaceTypeB()];
     return m_adhesiveLimits[surfaceB.ucAdhesionGroup][surfaceA.ucAdhesionGroup];
 }

@@ -503,7 +503,7 @@ bool CPopulation::IsSkateable(const CVector& point) {
     CColPoint cp{};
     CEntity* hitEntity{};
     CWorld::ProcessVerticalLine(point + CVector{ 0.f, 0.f, 2.f }, point.z - 2.f, cp, hitEntity, true);
-    return hitEntity && g_surfaceInfos.IsSkateable(cp.m_nSurfaceTypeB);
+    return hitEntity && g_surfaceInfos.IsSkateable(cp.GetSurfaceTypeB());
 }
 
 // 0x611550

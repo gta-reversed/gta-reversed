@@ -28,7 +28,7 @@ void FxInfoGroundCollide_c::GetValue(float currentTime, float mult, float totalT
     if (!CWorld::ProcessVerticalLine(origin, diff, colPoint, colEntity, true))
         return;
 
-    if (colPoint.m_vecPoint.z > origin.z || movement.m_Pos.z >= colPoint.m_vecPoint.z)
+    if (colPoint.GetPosition().z > origin.z || movement.m_Pos.z >= colPoint.GetPosition().z)
         return;
 
     float values[16];
@@ -38,12 +38,12 @@ void FxInfoGroundCollide_c::GetValue(float currentTime, float mult, float totalT
     in.Normalise();
     in *= values[2] * totalTime * 5.0f;
 
-    auto v13 = colPoint.m_vecNormal.SquaredMagnitude() * values[0];
+    auto v13 = colPoint.GetNormal().SquaredMagnitude() * values[0];
     CVector out;
-    out = movement.m_Vel - colPoint.m_vecNormal * (v13 + v13);
+    out = movement.m_Vel - colPoint.GetNormal() * (v13 + v13);
     out += in;
     out.Normalise();
 
-    movement.m_Pos.z = colPoint.m_vecPoint.z;
+    movement.m_Pos.z = colPoint.GetPosition().z;
     movement.m_Vel = values[1] * out.Magnitude() * out;
 }

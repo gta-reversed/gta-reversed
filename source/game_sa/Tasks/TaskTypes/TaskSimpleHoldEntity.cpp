@@ -489,11 +489,11 @@ void CTaskSimpleHoldEntity::ChoosePutDownHeight(CPed* ped) {
         m_nAnimGroupId = ANIM_GROUP_CARRY;
     }
     else {
-        if (ped->GetPosition().z - 0.2f <= colPoint.m_vecPoint.z) {
+        if (ped->GetPosition().z - 0.2f <= colPoint.GetPosition().z) {
             m_nAnimGroupId = ANIM_GROUP_CARRY105;
         }
         else {
-            if (ped->GetPosition().z - 0.7f <= colPoint.m_vecPoint.z)
+            if (ped->GetPosition().z - 0.7f <= colPoint.GetPosition().z)
                 m_nAnimGroupId = ANIM_GROUP_CARRY05;
             else
                 m_nAnimGroupId = ANIM_GROUP_CARRY;

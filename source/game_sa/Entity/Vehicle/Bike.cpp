@@ -359,7 +359,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
                 } else {
                     for (auto i = 0; i < numPedEntityColPts && numColPts < 32; i++) {
                         const auto& pedEntityCP = pedCPs[i];
-                        if (pedEntityCP.m_nPieceTypeA == PED_COL_SPHERE_LEG) {
+                        if (pedEntityCP.GetPieceTypeA() == PED_COL_SPHERE_LEG) {
                             continue;
                         }
                         outColPoints[numColPts++] = pedEntityCP;
@@ -373,7 +373,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
     if (tcd->m_nNumLines) {
         // Process the real wheels
         for (auto i = 0; i < NUM_SUSP_LINES; i++) {
-            const auto& cp = m_aWheelColPoints[i];
+            auto& cp = m_aWheelColPoints[i];
 
             const auto wheelColPtsTouchDist = m_aWheelRatios[i];
             if (wheelColPtsTouchDist >= 1.f || wheelColPtsTouchDist >= ogWheelRatios[i]) {
@@ -382,15 +382,15 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
 
             numProcessedLines++;
 
-            m_anCollisionLighting[i] = cp.m_nLightingB;
-            m_nContactSurface = cp.m_nSurfaceTypeB;
+            m_anCollisionLighting[i] = cp.GetLightingB();
+            m_nContactSurface = cp.GetSurfaceTypeB();
 
             switch (entity->GetType()) {
             case ENTITY_TYPE_VEHICLE:
             case ENTITY_TYPE_OBJECT: {
                 CEntity::ChangeEntityReference(m_aGroundPhysicalPtrs[i], entity->AsPhysical());
 
-                m_aGroundOffsets[i] = cp.m_vecPoint - entity->GetPosition();
+                m_aGroundOffsets[i] = cp.GetPosition() - entity->GetPosition();
                 if (entity->GetIsTypeVehicle()) {
                     m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                 }

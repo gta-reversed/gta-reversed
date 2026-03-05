@@ -1591,7 +1591,7 @@ float CCamera::CalculateGroundHeight(eGroundHeightType type) {
             const auto& hitEntPos = hitEntity->GetPosition();
             const auto& hitBB = hitEntity->GetColModel()->GetBoundingBox();
 
-            exactGroundHeight = cp.m_vecPoint.z;
+            exactGroundHeight = cp.GetPosition().z;
 
             bbTopZ = hitEntPos.z + hitBB.m_vecMax.z;
 

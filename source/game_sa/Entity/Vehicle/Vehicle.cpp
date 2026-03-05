@@ -2060,7 +2060,7 @@ void CVehicle::AddDamagedVehicleParticles() {
 
 // 0x6D2BF0
 void CVehicle::MakeDirty(CColPoint& colPoint) {
-    if (g_surfaceInfos.IsWater(colPoint.m_nSurfaceTypeB) || CWeather::IsRainy()) {
+    if (g_surfaceInfos.IsWater(colPoint.GetSurfaceTypeB()) || CWeather::IsRainy()) {
         if (m_fDirtLevel <= 1.0f) {
             return;
         }
@@ -2068,7 +2068,7 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
         return;
     }
 
-    if (g_surfaceInfos.MakesCarDirty(colPoint.m_nSurfaceTypeB)) {
+    if (g_surfaceInfos.MakesCarDirty(colPoint.GetSurfaceTypeB())) {
         if (m_vecMoveSpeed.Magnitude2D() <= 0.06f) {
             return;
         }
@@ -2076,7 +2076,7 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
         return;
     }
 
-    if (g_surfaceInfos.MakesCarClean(colPoint.m_nSurfaceTypeB)) {
+    if (g_surfaceInfos.MakesCarClean(colPoint.GetSurfaceTypeB())) {
         if (m_vecMoveSpeed.Magnitude2D() <= 0.04f || m_fDirtLevel <= 4.0f) {
             return;
         }
@@ -2086,18 +2086,18 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
 
 // 0x6D2D50
 bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrops, bool isWheelsSpinning, bool isWheelInWater) {
-    if (!isProduceWheelDrops && !g_surfaceInfos.IsSand(colPoint.m_nPieceTypeB)) {
+    if (!isProduceWheelDrops && !g_surfaceInfos.IsSand(colPoint.GetPieceTypeB())) {
         return false;
     }
 
     if (isWheelInWater) {
-        g_fx.AddWheelSpray(this, colPoint.m_vecPoint, isWheelsSpinning, true, m_fContactSurfaceBrightness);
+        g_fx.AddWheelSpray(this, colPoint.GetPosition(), isWheelsSpinning, true, m_fContactSurfaceBrightness);
         return false;
     }
 
     const auto CreateFxForSurface = [&](auto CheckSurface, auto AddFx) {
-        if ((g_surfaceInfos.*CheckSurface)(colPoint.m_nSurfaceTypeB)) {
-            (g_fx.*AddFx)(this, colPoint.m_vecPoint, isWheelsSpinning, m_fContactSurfaceBrightness);
+        if ((g_surfaceInfos.*CheckSurface)(colPoint.GetSurfaceTypeB())) {
+            (g_fx.*AddFx)(this, colPoint.GetPosition(), isWheelsSpinning, m_fContactSurfaceBrightness);
             return true;
         }
         return false;
@@ -2120,8 +2120,8 @@ bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrop
         }
     }
     if (CWeather::WetRoads > 0.4f && !CCullZones::CamNoRain()) {
-        if (g_surfaceInfos.CreatesWheelSpray(colPoint.m_nPieceTypeB)) {
-            g_fx.AddWheelSpray(this, colPoint.m_vecPoint, isWheelsSpinning, false, m_fContactSurfaceBrightness);
+        if (g_surfaceInfos.CreatesWheelSpray(colPoint.GetPieceTypeB())) {
+            g_fx.AddWheelSpray(this, colPoint.GetPosition(), isWheelsSpinning, false, m_fContactSurfaceBrightness);
             return false;
         }
     }
@@ -3540,19 +3540,19 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
 
             const auto prevElasticity = std::exchange(m_fElasticity, 1.f);
 
-            for (const auto& cp : CWorld::m_aTempColPts | rng::views::take(numColls)) { // 0x6DB474
-                const auto colDir = cp.m_vecPoint - colModelCenter;
+            for (auto& cp : CWorld::m_aTempColPts | rng::views::take(numColls)) { // 0x6DB474
+                const auto colDir = cp.GetPosition() - colModelCenter;
                 const auto colDirOnRotorUp = DotProduct(colDir, rotorUp);
 
                 if ( std::abs(colDirOnRotorUp) > ROTOR_SEMI_THICKNESS * 2.f
-                  && std::abs(colDirOnRotorUp) > std::abs(DotProduct(colDir, cp.m_vecNormal)) * 0.3f
+                  && std::abs(colDirOnRotorUp) > std::abs(DotProduct(colDir, cp.GetNormal())) * 0.3f
                 ) {
                     continue;
                 }
 
                 wasAnyCPValid = true;
 
-                     cpOnRotor   = cp.m_vecPoint - rotorUp * colDirOnRotorUp;
+                     cpOnRotor   = cp.GetPosition() - rotorUp * colDirOnRotorUp;
                 auto colForceDir = rotorSize.Cross(cpOnRotor - colModelCenter) + m_vecMoveSpeed;
 
                 g_fx.AddSparks(

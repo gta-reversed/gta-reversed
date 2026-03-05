@@ -28,7 +28,7 @@ CCopPed* CSetPiece::TryToGenerateCopPed(CVector2D posn) {
         false,
         true
     )) {
-        point.z = cp.m_vecPoint.z + 0.9f;
+        point.z = cp.GetPosition().z + 0.9f;
     }
 
     int16 numCollidingObjects{};
@@ -81,7 +81,7 @@ CVehicle* CSetPiece::TryToGenerateCopCar(CVector2D posn, CVector2D target) {
         false,
         true
     )) {
-        point.z = car->GetHeightAboveRoad() + cp.m_vecPoint.z;
+        point.z = car->GetHeightAboveRoad() + cp.GetPosition().z;
     }
 
     const CVector dir{ (target - posn).Normalized() };

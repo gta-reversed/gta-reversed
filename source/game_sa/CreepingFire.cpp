@@ -49,7 +49,7 @@ bool CCreepingFire::TryToStartFireAtCoors(CVector pos, uint8 nGenerations, bool 
     if (!CWorld::ProcessVerticalLine(pos, pos.z - fDistance, cp, hitEntity, true, false, false, false, false, false, nullptr))
         return false;
 
-    pos.z = cp.m_vecPoint.z;
+    pos.z = cp.GetPosition().z;
     status = 6;
 
     CFire* fire = gFireManager.StartFire(pos, 0.8f, true, nullptr, 20'000u, nGenerations, !bScriptFire);

@@ -465,7 +465,7 @@ void CExplosion::Update() {
                     CEntity* hitEntity;
                     CColPoint colPoint{};
                     const bool bGroundHit = CWorld::ProcessVerticalLine(pos, -1000.0f, colPoint, hitEntity, true, false, false, false, true, false, nullptr);
-                    exp.m_fGroundZ = bGroundHit ? colPoint.m_vecPoint.z : pos.z;
+                    exp.m_fGroundZ = bGroundHit ? colPoint.GetPosition().z : pos.z;
                 }
                 break;
             }

@@ -78,7 +78,7 @@ public:
 
     bool HasWeaponAmmoToBeUsed();
     void StopWeaponEffect();
-    void DoBulletImpact(CEntity* owner, CEntity* victim, const CVector& startPoint, const CVector& endPoint, const CColPoint& colPoint, int32 arg5);
+    void DoBulletImpact(CEntity* owner, CEntity* victim, const CVector& startPoint, const CVector& endPoint, CColPoint& colPoint, int32 arg5);
     /*!
     * @addr 0x73C1F0
     * @brief Marks all peds and objects that are in range (125 units) and in frame (on the screen - 0.1 relative border) as photographed.

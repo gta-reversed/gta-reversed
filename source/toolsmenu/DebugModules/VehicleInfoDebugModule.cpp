@@ -61,13 +61,13 @@ void VehicleInfoDebugModule::RenderWindow() {
 
                 auto& colPoint = automobile->m_wheelColPoint[i];
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", colPoint.m_vecPoint.x);
+                ImGui::Text("%.2f", colPoint.GetPosition().x);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", colPoint.m_vecPoint.y);
+                ImGui::Text("%.2f", colPoint.GetPosition().y);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", colPoint.m_vecPoint.z);
+                ImGui::Text("%.2f", colPoint.GetPosition().z);
             }
 
             ImGui::EndTable();

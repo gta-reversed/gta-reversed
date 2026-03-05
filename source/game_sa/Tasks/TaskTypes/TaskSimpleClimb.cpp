@@ -329,7 +329,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
                     return entity;
                 }
-                uint8 nColSphereIndex = CWorld::m_aTempColPts[0].m_nPieceTypeA;
+                uint8 nColSphereIndex = CWorld::m_aTempColPts[0].GetPieceTypeA();
 
                 if (nColSphereIndex == 0 || nColSphereIndex == 1 || nColSphereIndex == 2 || nColSphereIndex == 3 || nColSphereIndex == 4 || nColSphereIndex == 10) {
                     if (entity->GetIsTypeVehicle() && numSpheres > -1) {
@@ -338,8 +338,8 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                     return (CEntity*)(1);
                 }
 
-                auto relPosn = CWorld::m_aTempColPts[0].m_vecPoint - outTargetPos;
-                if (nColSphereIndex == 16 || CWorld::m_aTempColPts[0].m_vecPoint.z <= outTargetPos.z && DotProduct(relPosn, ped->GetForward()) >= 0.0f || !g_surfaceInfos.CanClimb(CWorld::m_aTempColPts[0].m_nSurfaceTypeB)) {
+                auto relPosn = CWorld::m_aTempColPts[0].GetPosition() - outTargetPos;
+                if (nColSphereIndex == 16 || CWorld::m_aTempColPts[0].GetPosition().z <= outTargetPos.z && DotProduct(relPosn, ped->GetForward()) >= 0.0f || !g_surfaceInfos.CanClimb(CWorld::m_aTempColPts[0].GetSurfaceTypeB())) {
                     if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
@@ -366,43 +366,43 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                     }
                 }
 
-                if (fabsf(CWorld::m_aTempColPts[0].m_vecNormal.x) <= 0.05f && fabsf(CWorld::m_aTempColPts[0].m_vecNormal.y) <= 0.05F) {
-                    outTargetPos      = CWorld::m_aTempColPts[0].m_vecPoint;
+                if (fabsf(CWorld::m_aTempColPts[0].GetNormal().x) <= 0.05f && fabsf(CWorld::m_aTempColPts[0].GetNormal().y) <= 0.05F) {
+                    outTargetPos     = CWorld::m_aTempColPts[0].GetPosition();
                     outAngle         = ped->m_fCurrentRotation;
-                    outSurfaceType   = CWorld::m_aTempColPts[0].m_nSurfaceTypeB;
+                    outSurfaceType   = CWorld::m_aTempColPts[0].GetSurfaceTypeB();
                     collidedEntity = entity;
                 } else {
-                    CVector vecNormal = CWorld::m_aTempColPts[0].m_vecNormal;
+                    CVector vecNormal = CWorld::m_aTempColPts[0].GetNormal();
 
-                    if (DotProduct2D(vecNormal, CWorld::m_aTempColPts[0].m_vecPoint - ped->GetPosition()) < 0.0F) {
+                    if (DotProduct2D(vecNormal, CWorld::m_aTempColPts[0].GetPosition() - ped->GetPosition()) < 0.0F) {
                         vecNormal = -vecNormal;
                     }
 
                     if (DotProduct(vecNormal, ped->GetForward()) > 0.3F) {
-                        outTargetPos      = CWorld::m_aTempColPts[0].m_vecPoint;
+                        outTargetPos     = CWorld::m_aTempColPts[0].GetPosition();
                         outAngle         = std::atan2f(-vecNormal.x, vecNormal.y);
-                        outSurfaceType   = CWorld::m_aTempColPts[0].m_nSurfaceTypeB;
+                        outSurfaceType   = CWorld::m_aTempColPts[0].GetSurfaceTypeB();
                         collidedEntity = entity;
                     }
                 }
 
                 CMatrix matrix{ped->GetMatrix()};
-                matrix.SetTranslateOnly(CWorld::m_aTempColPts[0].m_vecPoint);
+                matrix.SetTranslateOnly(CWorld::m_aTempColPts[0].GetPosition());
                 if (CCollision::ProcessColModels(matrix, ms_FindEdgeColModel, entity->GetMatrix(), *entity->GetColModel(), CWorld::m_aTempColPts, nullptr, nullptr, false) > 0) {
-                    if (std::fabsf(CWorld::m_aTempColPts[0].m_vecNormal.x) <= 0.05f && std::fabsf(CWorld::m_aTempColPts[0].m_vecNormal.y) <= 0.05F) {
-                        outTargetPos    = CWorld::m_aTempColPts[0].m_vecPoint;
-                        outSurfaceType = CWorld::m_aTempColPts[0].m_nSurfaceTypeB;
+                    if (std::fabsf(CWorld::m_aTempColPts[0].GetNormal().x) <= 0.05f && std::fabsf(CWorld::m_aTempColPts[0].GetNormal().y) <= 0.05F) {
+                        outTargetPos   = CWorld::m_aTempColPts[0].GetPosition();
+                        outSurfaceType = CWorld::m_aTempColPts[0].GetSurfaceTypeB();
                     } else {
-                        CVector vecNormal = CWorld::m_aTempColPts[0].m_vecNormal;
+                        CVector vecNormal = CWorld::m_aTempColPts[0].GetNormal();
 
-                        if (DotProduct2D(vecNormal, CWorld::m_aTempColPts[0].m_vecPoint - ped->GetPosition()) < 0.0F) {
+                        if (DotProduct2D(vecNormal, CWorld::m_aTempColPts[0].GetPosition() - ped->GetPosition()) < 0.0F) {
                             vecNormal = -vecNormal;
                         }
 
                         if (DotProduct(vecNormal, ped->GetForward()) > 0.3F) {
-                            outTargetPos      = CWorld::m_aTempColPts[0].m_vecPoint;
+                            outTargetPos     = CWorld::m_aTempColPts[0].GetPosition();
                             outAngle         = std::atan2f(-vecNormal.x, vecNormal.y);
-                            outSurfaceType   = CWorld::m_aTempColPts[0].m_nSurfaceTypeB;
+                            outSurfaceType   = CWorld::m_aTempColPts[0].GetSurfaceTypeB();
                             collidedEntity = entity;
                         }
                     }
@@ -648,7 +648,7 @@ void CTaskSimpleClimb::GetCameraStickModifier(CEntity* entity, float& outAlpha, 
         CColPoint colPoint{};
         CEntity*  colEntity{};
         m_FallAfterVault = CWorld::ProcessVerticalLine(pos, pos.z - 3.0f, colPoint, colEntity, true, true, false, true)
-            ? (int8)(std::max(pos.z - colPoint.m_vecPoint.z - 1.0f, 0.0F) * 10.0f)
+            ? (int8)(std::max(pos.z - colPoint.GetPosition().z - 1.0f, 0.0F) * 10.0f)
             : 20;
 
         const float d = m_FallAfterVault > 8 ? -0.6f : -0.1f;

@@ -1646,19 +1646,19 @@ void CTheScripts::DrawDebugSquare(float x1, float y1, float x2, float y2) {
 
     CVector p1 { x1, y1, -1000.0f };
     CWorld::ProcessVerticalLine(p1, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p1.z = colPoint.m_vecPoint.z + 2.0f;
+    p1.z = colPoint.GetPosition().z + 2.0f;
 
     CVector p2 { x2, y1, -1000.0f };
     CWorld::ProcessVerticalLine(p2, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p2.z = colPoint.m_vecPoint.z + 2.0f;
+    p2.z = colPoint.GetPosition().z + 2.0f;
 
     CVector p3 { x2, y2, -1000.0f };
     CWorld::ProcessVerticalLine(p3, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p3.z = colPoint.m_vecPoint.z + 2.0f;
+    p3.z = colPoint.GetPosition().z + 2.0f;
 
     CVector p4 { x1, y2, -1000.0f };
     CWorld::ProcessVerticalLine(p4, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p4.z = colPoint.m_vecPoint.z + 2.0f; // FIX_BUGS: missing in original code 🤷
+    p4.z = colPoint.GetPosition().z + 2.0f; // FIX_BUGS: missing in original code 🤷
 
     ScriptDebugLine3D(p1, p2, DbgLineColour, DbgLineColour);
     ScriptDebugLine3D(p2, p3, DbgLineColour, DbgLineColour);
@@ -1674,19 +1674,19 @@ void CTheScripts::DrawDebugAngledSquare(const CVector2D& inf, const CVector2D& s
 
     CVector p1 { inf.x, inf.y, -1000.0f };
     CWorld::ProcessVerticalLine(p1, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p1.z = colPoint.m_vecPoint.z + 2.0f;
+    p1.z = colPoint.GetPosition().z + 2.0f;
 
     CVector p2 { sup.x, sup.y, -1000.0f };
     CWorld::ProcessVerticalLine(p2, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p2.z = colPoint.m_vecPoint.z + 2.0f;
+    p2.z = colPoint.GetPosition().z + 2.0f;
 
     CVector p3 { rotSup.x, rotSup.y, -1000.0f };
     CWorld::ProcessVerticalLine(p3, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p3.z = colPoint.m_vecPoint.z + 2.0f;
+    p3.z = colPoint.GetPosition().z + 2.0f;
 
     CVector p4 { rotInf.x, rotInf.y, -1000.0f };
     CWorld::ProcessVerticalLine(p4, 1000.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr);
-    p4.z = colPoint.m_vecPoint.z + 2.0f;
+    p4.z = colPoint.GetPosition().z + 2.0f;
 
     ScriptDebugLine3D(p1, p2, DbgLineColour, DbgLineColour);
     ScriptDebugLine3D(p2, p3, DbgLineColour, DbgLineColour);

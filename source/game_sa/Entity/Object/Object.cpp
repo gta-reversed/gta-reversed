@@ -894,7 +894,7 @@ void CObject::GetLightingFromCollisionBelow() {
     CColPoint colPoint{};
     CEntity* entity;
     if (CWorld::ProcessVerticalLine(GetPosition(), -1000.0F, colPoint, entity, true, false, false, false, true)) {
-        m_nColLighting = colPoint.m_nLightingB;
+        m_nColLighting = colPoint.GetLightingB();
     }
 }
 

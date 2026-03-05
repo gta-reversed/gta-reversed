@@ -216,17 +216,17 @@ void CWaterCannon::Render() {
                 const bool hasSectionHit = CWorld::ProcessLineOfSight(prevPosn, currPosn, colPoint, hitEntity, true, true, false, false, false, false, false, false);
                 if (hasSectionHit) {
                     FxPrtMult_c prtInfo{ 1.0f, 1.0f, 1.0f, 0.15f, 0.75f, 1.0f, 0.2f };
-                    CVector velocity0 = colPoint.m_vecNormal * 3.0f * CVector::Random(0.2f, 1.8f);
+                    CVector velocity0 = colPoint.GetNormal() * 3.0f * CVector::Random(0.2f, 1.8f);
 
                     for (auto n = 0; n < 2; n++) {
                         const auto unk = (float)n / CTimer::GetTimeStepInMS();
 
-                        g_fx.m_WaterSplash->AddParticle(&colPoint.m_vecPoint, &velocity0, unk, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
+                        g_fx.m_WaterSplash->AddParticle(&colPoint.GetPosition(), &velocity0, unk, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
                         CVector velocity1 = velocity0 * 0.6f;
-                        g_fx.m_WaterSplash->AddParticle(&colPoint.m_vecPoint, &velocity1, unk, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
+                        g_fx.m_WaterSplash->AddParticle(&colPoint.GetPosition(), &velocity1, unk, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
                     }
 
-                    m_Audio.SetSplashInfo(colPoint.m_vecPoint, velocity0.Magnitude());
+                    m_Audio.SetSplashInfo(colPoint.GetPosition(), velocity0.Magnitude());
 
                     break;
                 }
