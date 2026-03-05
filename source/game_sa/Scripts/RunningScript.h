@@ -131,7 +131,7 @@ struct StringRef {
 public:
     char* Data{};   //!< Pointer to the string (This points to a memory location inside the script, so be careful)
     uint8 Length{}; //!< Length of the string (not including the null terminator)
-    uint8 Cap{};    //!< m_data capacity
+    uint8 Cap{};    //!< Buffer capacity
 };
 
 /** See https://gtamods.com/wiki/SCM_Instruction#Arrays */

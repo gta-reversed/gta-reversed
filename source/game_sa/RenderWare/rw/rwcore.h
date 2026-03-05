@@ -526,7 +526,7 @@ struct RxNodeDefinition
     RxIoSpec            io;                     /**< Input/output specification */
     RwUInt32            pipelineNodePrivateDataSize; /**< Size in bytes of node's private data  */
     RxNodeDefEditable   editable;               /**< Flags whether a node is editable */
-    RwInt32             InputPipesCnt;          /**< m_size of the unlocked pipelines containing this node */
+    RwInt32             InputPipesCnt;          /**< Count of the unlocked pipelines containing this node */
 };
 
 /***************************************************************************
@@ -626,7 +626,7 @@ struct RxPipelineNode
 struct RxPipelineNodeTopSortData
 {
     RwUInt32            numIns;                 /**< Input count */
-    RwUInt32            numInsVisited;          /**< m_size of inputs visited during dependencies
+    RwUInt32            numInsVisited;          /**< Count of inputs visited during dependencies
                                                  * propagation/cluster slot allocation */
     rxReq              *req;                    /**< Req used in dependencies propagation/cluster
                                                  * slot allocation */
@@ -1504,7 +1504,7 @@ typedef enum RwRasterFlipMode RwRasterFlipMode;
 enum RwRasterType
 {
     rwRASTERTYPENORMAL = 0x00,          /**<Normal */
-    rwRASTERTYPEZBUFFER = 0x01,         /**<Z m_data */
+    rwRASTERTYPEZBUFFER = 0x01,         /**<Z Buffer */
     rwRASTERTYPECAMERA = 0x02,          /**<Camera */
     rwRASTERTYPETEXTURE = 0x04,         /**<Texture */
     rwRASTERTYPECAMERATEXTURE = 0x05,   /**<Camera texture */
@@ -1952,7 +1952,7 @@ typedef struct
     RwUInt32    numSamplerStageStateChanges;    /**< Number of Sampler States changed */
     RwUInt32    numMaterialChanges;             /**< Number of Material changes */
     RwUInt32    numLightsChanged;               /**< Number of Lights changed */
-    RwUInt32    numVBSwitches;                  /**< Number of Vertex m_data switches */
+    RwUInt32    numVBSwitches;                  /**< Number of Vertex Buffer switches */
 }
 RwD3D9Metrics;
 #endif /* !defined(RWADOXYGENEXTERNAL) */
@@ -2177,8 +2177,8 @@ MACRO_STOP
 enum RxRenderStateFlag
 {
     rxRENDERSTATEFLAG_TEXTUREPERSPECTIVE   = 0x00000001, /**<Perspective texturing is to be enabled */
-    rxRENDERSTATEFLAG_ZTESTENABLE          = 0x00000002, /**<Z-m_data testing is to be performed */
-    rxRENDERSTATEFLAG_ZWRITEENABLE         = 0x00000004, /**<Z-m_data writing is to be enabled */
+    rxRENDERSTATEFLAG_ZTESTENABLE          = 0x00000002, /**<Z-Buffer testing is to be performed */
+    rxRENDERSTATEFLAG_ZWRITEENABLE         = 0x00000004, /**<Z-Buffer writing is to be enabled */
     rxRENDERSTATEFLAG_VERTEXALPHAENABLE    = 0x00000008, /**<Vertex alpha is to be enabled */
     rxRENDERSTATEFLAG_FOGENABLE            = 0x00000010, /**<Fog is to be enabled */
     rxRENDERSTATEFLAGFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
@@ -3556,7 +3556,7 @@ struct RxD3D9VertexStream
                                  of the Vertex buffer */
     RwUInt32 stride;        /**< Size of the components in bytes */
     RwUInt16 geometryFlags; /**< Geometry locked flags */
-    RwUInt8 managed;        /**< Created by the Vertex m_data Manager */
+    RwUInt8 managed;        /**< Created by the Vertex Buffer Manager */
     RwUInt8 dynamicLock;    /**< Using RwD3D9DynamicVertexBufferLock */
 };
 
