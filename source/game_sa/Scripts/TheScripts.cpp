@@ -896,7 +896,7 @@ int32 CTheScripts::GetUniqueScriptThingIndex(int32 playerGroup, eScriptThingType
     case SCRIPT_THING_PED_GROUP:
         return playerGroup | (CPedGroups::ScriptReferenceIndex[playerGroup] << 16);
     default:
-        return OR_INTERRUPT;
+        return -1;
     }
 }
 
@@ -1434,7 +1434,14 @@ void CTheScripts::Process() {
 
         it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
         it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
-        it->Process();
+
+        switch (it->Process()) {
+        case OR_ERROR: {
+            NOTSA_LOG_CRIT("Terminating script `{}` because of an error - See logs for more information", it->GetName());
+            it->RemoveScriptFromList(&pActiveScripts);
+            break;
+        }
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();
