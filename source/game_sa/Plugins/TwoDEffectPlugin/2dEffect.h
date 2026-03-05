@@ -8,6 +8,7 @@
 
 #include "Vector.h"
 #include "RGBA.h"
+#include "RegisteredCorona.h"
 #include <extensions/Casting.hpp>
 #include <CoverPoint.h>
 
@@ -86,8 +87,8 @@ struct tEffectLight {
         };
     };
     e2dCoronaFlashType Flashiness;
-    uint8              ReflectionType;
-    uint8              LensFlareType;
+    eCoronaReflType    ReflectionType;
+    eCoronaFlareType   LensFlareType;
     uint8              ShadowAlpha;
     uint8              ShadowDepth;
     int8               LightDirX;

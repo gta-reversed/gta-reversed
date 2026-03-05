@@ -74,7 +74,7 @@ public:
     uint32              BankOffsetBytes{};                       //!< Offset (#Sectors) (From lookup)
     uint32              BankNumBytes{};                          //!< Size of bank [bytes] (From lookup) - Set only for whole bank loads (SoundID == -1)
     AEAudioStream*      StreamDataPtr{};                         //!< Sector (STREAMING_SECTOR_SIZE) aligned pointer into the buffer
-    void*               StreamBufPtr{};                          //!< m_data (Allocated using `CMemoryMgr::Malloc`)
+    void*               StreamBufPtr{};                          //!< Buffer (Allocated using `CMemoryMgr::Malloc`)
     eSoundRequestStatus Status{ eSoundRequestStatus::INACTIVE }; //!< Current load status
     eSoundBank          Bank{ -1 };                              //!< Bank to load
     eSoundBankSlot      Slot{ -1 };                              //!< Slot to load the bank into
