@@ -381,7 +381,7 @@ bool __stdcall CCollision::PointInTriangle(CVector const& point, CVector const* 
 /*!
 * @address 0x412850
 *
-* @param ln0 Origin of line seg.
+* @param ln0 Base of line seg.
 * @param ln1 End of line seg.
 * @param pt  The point
 * 
@@ -401,7 +401,7 @@ float CCollision::DistToLineSqr(CVector const& ln0, CVector const& ln1, CVector 
     // O *----+--------* L
     //     pl  IP
     //
-    // O    - Origin (line start)
+    // O    - Base (line start)
     // L    - Line end
     // P    - Point
     // IP   - Intersection pt
@@ -519,7 +519,7 @@ void CCollision::Closest3(CVector* arg0, CVector* arg1) {
 * Computes closest points C1 and C2 of S1(s)=P1+s*d1 and
 * S2(t)=P2+t*d2, returning s and t.
 *
-* @param       s1p0 Origin of ln. seg 1
+* @param       s1p0 Base of ln. seg 1
 * @param       d1 Direction of ln. seg. 1 (Not normalized!)
 * @param       a  Sq. mag. of ln. seg 1
 * @param       s2p1 As s1p0 ln. seg. 2
@@ -617,7 +617,7 @@ float CCollision::ClosestPtSegmentSegment(
 * @param s1p0 Seg. 1 origin
 * @param s2p0 Seg. 2 origin
 * @param s2p1 Seg. 2 end
-* @param u    Dir. of seg. 1 (Unnormalized!)
+* @param u    Delta. of seg. 1 (Unnormalized!)
 * @param a    Sq. mag. of seg 1
 *
 * @returns Sq. dist. of the closest points on the 2 line segments
@@ -1297,7 +1297,7 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
         *outPlNorm = plNorm;
     }
 
-    // Origin of line on the plane
+    // Base of line on the plane
     const auto plNormDotLnOrigin = plane.GetPtDotNormal(line.m_vecStart);
 
     // Check if both points are above or below the plane, if so, no chance of intersection

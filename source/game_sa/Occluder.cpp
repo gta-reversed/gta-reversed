@@ -210,18 +210,18 @@ bool COccluder::ProcessLineSegment(int32 idxFrom, int32 idxTo, CActiveOccluder* 
     auto* const l = &activeOccluder->m_Lines[activeOccluder->m_LinesUsed];
 
     // Calculate line origin and dir
-    l->Origin = *from;
-    l->Dir    = *to - *from;
-    if (!IsPointInsideLine(l->Origin, l->Dir, CenterOnScreen, 0.f)) {
-        l->Origin = *to;
-        l->Dir    = -l->Dir; // basically *from - *to
+    l->Base = *from;
+    l->Delta    = *to - *from;
+    if (!IsPointInsideLine(l->Base, l->Delta, CenterOnScreen, 0.f)) {
+        l->Base = *to;
+        l->Delta    = -l->Delta; // basically *from - *to
     }
-    l->Dir = l->Dir.Normalized(&l->Length);
+    l->Delta = l->Delta.Normalized(&l->Length);
 
-    if (!DoesInfiniteLineTouchScreen(l->Origin, l->Dir)) {
+    if (!DoesInfiniteLineTouchScreen(l->Base, l->Delta)) {
         return !IsPointInsideLine(
-            l->Origin,
-            l->Dir,
+            l->Base,
+            l->Delta,
             {SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f},
             0.f
         );

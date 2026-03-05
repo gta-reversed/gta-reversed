@@ -66,13 +66,13 @@ bool COcclusion::OccluderHidesBehind(CActiveOccluder* first, CActiveOccluder* se
         for (auto b = 0; b < second->m_LinesUsed; ++b) {
             const auto& lineB = second->m_Lines[b];
 
-            if (!IsPointInsideLine(lineB.Origin, lineB.Dir, lineA.Origin, 0.0f)) {
+            if (!IsPointInsideLine(lineB.Base, lineB.Delta, lineA.Base, 0.0f)) {
                 return false;
             }
             if (!IsPointInsideLine(
-                lineB.Origin,
-                lineB.Dir,
-                lineA.Origin + lineA.Dir * lineA.Length,
+                lineB.Base,
+                lineB.Delta,
+                lineA.Base + lineA.Delta * lineA.Length,
                 0.0f
             )) {
                 return false;

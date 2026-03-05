@@ -13,7 +13,7 @@ void CActiveOccluder::InjectHooks() {
 // 0x71E580
 bool CActiveOccluder::IsPointWithinOcclusionArea(CVector2D pt, float radius) const {
     return rng::all_of(GetLines(), [=](auto&& l) {
-        return IsPointInsideLine(l.Origin, l.Dir, pt, radius);
+        return IsPointInsideLine(l.Base, l.Delta, pt, radius);
     });
 }
 
