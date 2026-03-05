@@ -10,16 +10,19 @@
 
 class C2dEffect;
 
+// TODO: Refactoring
 class CAttractorScanner {
 public:
-    char       field_0;
-    char       _pad[3];
-    CTaskTimer field_4;
-    C2dEffect* m_pEffectInUse;
-    int32      field_14;
-    int32      field_18[10];
-    int32      field_40[10];
-    int32      field_68[10];
+    bool m_Activated;
+
+    CTaskTimer m_Timer;
+
+    C2dEffect* m_PreviousEffect;
+    CEntity*   m_PreviousEntity;
+
+    CEntity*   m_Entities[10];
+    C2dEffect* m_Effects[10];
+    float      m_MinDistanceSq[10];
 
     void Clear();
 };
