@@ -124,10 +124,10 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
 
 // 0x59F660
 CObject::~CObject() {
-    if (objectFlags.b0x100000_0x200000) {
+    if (objectFlags.bScriptBrainStatus) {
         const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nStreamedScriptBrainToLoad].m_StreamedScriptIndex);
         CStreaming::SetMissionDoesntRequireModel(iIndex);
-        objectFlags.b0x100000_0x200000 = 0;
+        objectFlags.bScriptBrainStatus = eObjectScriptBrainStatus::OBJECT_DOESNT_USE_SCRIPT_BRAIN;
         CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nStreamedScriptBrainToLoad);
         m_nStreamedScriptBrainToLoad = -1;
     }
