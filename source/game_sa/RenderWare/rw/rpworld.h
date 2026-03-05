@@ -849,7 +849,7 @@ struct RpGeometry
     RwUInt16            lockedSinceLastInst; /* What has been locked since we last instanced - for re-instancing */
     RwInt16             refCount;   /* Reference count (for keeping track of atomics referencing geometry) */
 
-    RwInt32             numTriangles; /* Quantity of various things (polys, Verts and morph targets) */
+    RwInt32             numTriangles; /* Quantity of various things (polys, verts and morph targets) */
     RwInt32             numVertices;
     RwInt32             numMorphTargets;
     RwInt32             numTexCoordSets;

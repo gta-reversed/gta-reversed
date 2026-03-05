@@ -220,7 +220,7 @@ RpAtomic* CCustomRoadsignMgr::CreateRoadsignAtomicA(float fWidth, float fHeight,
                     break;
                 }
 
-                // Adjust the Verts based on the above calculations
+                // Adjust the verts based on the above calculations
                 pVerts[0] = { fNegHalfWidth, fNewY, 0.0F };
                 pVerts[1] = { fNegHalfWidth + fWidth, fNewY, 0.0F };
                 pVerts[2] = { fNegHalfWidth + fWidth, fNewY + fUsedLineHeight, 0.0F };

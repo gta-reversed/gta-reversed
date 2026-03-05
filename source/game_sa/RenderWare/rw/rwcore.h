@@ -3445,7 +3445,7 @@ struct rwIm3DPool
 {
     RwUInt16         numElements; /* could become RwUInt32 nowadays */
     RwUInt16         pad;         /* alignment padding */
-    void            *elements;    /* the original array of Verts (or whatever...) - referenced not copied */
+    void            *elements;    /* the original array of verts (or whatever...) - referenced not copied */
     RwInt32          stride;      /* the stride of the element */
     _rwIm3DPoolStash  stash;
 };
