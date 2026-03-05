@@ -61,7 +61,7 @@ bool CTaskSimpleCarSetTempAction::ProcessPed(CPed* ped) {
             m_TempAct = TEMPACT_NONE;
             return false;
         }
-        if (ap->m_nTempAction == TEMPACT_NONE) {
+        if (ap->m_TempAction == TEMPACT_NONE) {
             return true;
         }
     }

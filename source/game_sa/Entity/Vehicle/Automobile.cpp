@@ -450,7 +450,7 @@ void CAutomobile::ProcessControl()
     m_vehicleAudio.Service();
     bool bExplodeImmediately = false;
     if (IsSubPlane() || IsSubHeli()) {
-        eCarMission carMission = m_autoPilot.m_nCarMission;
+        eCarMission carMission = m_autoPilot.m_Mission;
         if ((carMission == MISSION_PLANE_CRASH_AND_BURN
             || carMission == MISSION_HELI_CRASH_AND_BURN
             || GetStatus() == STATUS_PLAYER && m_fHealth < 250.0 && m_fireParticleCounter == 2)
@@ -1182,13 +1182,13 @@ CVector CAutomobile::AddMovingCollisionSpeed(CVector& point) {
 bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
     CColModel* colModel = GetColModel();
     CCollisionData* colData = colModel->m_pColData;
-    int8 recordingId = this->m_autoPilot.m_vehicleRecordingId;
+    int8 recordingId = this->m_autoPilot.m_RecordingNumber;
     m_autoPilot.carCtrlFlags.bHonkAtCar = false;
     m_autoPilot.carCtrlFlags.bHonkAtPed = false;
     if (recordingId >= 0 && !CVehicleRecording::bUseCarAI[recordingId])
         return false;
 
-    eCarMission carMission = m_autoPilot.m_nCarMission;
+    eCarMission carMission = m_autoPilot.m_Mission;
     CVehicle* playerVehicle = FindPlayerVehicle();
     if (playerVehicle && playerVehicle != this && FindPlayerWanted()->m_nWantedLevel > 3
         && (carMission == MISSION_RAMPLAYER_FARAWAY
@@ -1214,7 +1214,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
     }
     else if (GetStatus() == STATUS_PHYSICS) {
         if (handlingFlags.bHydraulicGeom) {
-            if (m_autoPilot.m_nCarMission != MISSION_NONE && colData && colData->m_nNumLines > 0) {
+            if (m_autoPilot.m_Mission != MISSION_NONE && colData && colData->m_nNumLines > 0) {
                 m_vecCentreOfMass.y = (colData->m_pLines[0].m_vecStart.y + colData->m_pLines[1].m_vecStart.y)  * 0.5f;
                 handlingFlags.bNpcNeutralHandl = true;
             }
@@ -1242,7 +1242,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
     if (vehicleFlags.bCanPark
         && !vehicleFlags.bParking
         && GetCreatedBy() != MISSION_VEHICLE
-        && m_autoPilot.m_nCarMission == MISSION_CRUISE
+        && m_autoPilot.m_Mission == MISSION_CRUISE
         && ((CTimer::GetFrameCounter() + static_cast<uint8>(m_nRandomSeed)) & 0xF) == 0)
     {
         if (m_nModelIndex != MODEL_TAXI && m_nModelIndex != MODEL_CABBIE) {
@@ -1266,7 +1266,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_nNumContactWheels = 4;
         m_NumDriveWheelsOnGroundLastFrame = m_NumDriveWheelsOnGround;
         m_NumDriveWheelsOnGround = 4;
-        float speed = m_autoPilot.m_speed / 50.0f;
+        float speed = m_autoPilot.m_ActualSpeed / 50.0f;
         m_pHandlingData->GetTransmission().CalculateGearForSimpleCar(speed, m_nCurrentGear);
         float wheelRot = CVehicle::ProcessWheelRotation(WHEEL_STATE_NORMAL, GetForward(), m_vecMoveSpeed, 0.35f);
         for (float& rotation : m_wheelRotation) {
@@ -2354,7 +2354,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
 
     if (bIsForCutScene) {
         if (IsSubPlane() && GetStatus() != STATUS_PLAYER) {
-            switch (m_autoPilot.m_nCarMission) {
+            switch (m_autoPilot.m_Mission) {
             case MISSION_PLANE_FLYTOCOORS:
             case MISSION_PLANE_ATTACK_PLAYER:
             case MISSION_PLANE_FLYINDIRECTION:
@@ -3929,7 +3929,7 @@ float CAutomobile::GetMovingCollisionOffset() {
 
 // 0x6A2390
 void CAutomobile::TellHeliToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
-    m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
+    m_autoPilot.m_TargetCoors = CVector{ x, y, z };
     m_autoPilot.SetCarMission(MISSION_HELI_FLYTOCOORS);
     m_autoPilot.SetCruiseSpeed(100);
 
@@ -3963,7 +3963,7 @@ void CAutomobile::ClearHeliOrientation() {
 
 // 0x6A2470
 void CAutomobile::TellPlaneToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
-    m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
+    m_autoPilot.m_TargetCoors = CVector{ x, y, z };
     m_autoPilot.SetCarMission(MISSION_PLANE_FLYTOCOORS);
     m_autoPilot.SetCruiseSpeed(0);
 

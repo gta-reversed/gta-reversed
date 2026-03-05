@@ -125,7 +125,7 @@ void CTaskComplexDieInCar::PreparePedVehicleForPedDeath(CVehicle *vehicle) {
     }
     const auto ap      = &vehicle->m_autoPilot;
     ap->SetCruiseSpeed(0);
-    ap->m_nCarMission  = eCarMission::MISSION_NONE;
+    ap->m_Mission  = eCarMission::MISSION_NONE;
     ap->SetTempAction(TEMPACT_HANDBRAKESTRAIGHT, 2'000);
 }
 

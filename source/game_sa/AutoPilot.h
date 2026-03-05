@@ -14,6 +14,8 @@
 #include "eCarMission.h"
 #include "eCarDrivingStyle.h"
 
+static constexpr size_t CAR_NUM_PATHNODES_LOOKAHEAD = 8;
+
 class CVehicle;
 class CEntity;
 
@@ -47,87 +49,82 @@ enum eAutoPilotTempAction : int8 {
 
 class CAutoPilot {
 public:
-    CNodeAddress        m_currentAddress;
-    CNodeAddress        m_startingRouteNode;
-    CNodeAddress        m_endingRouteNode;
-    int32               field_C;
-    uint32              m_nSpeedScaleFactor;
-    CCarPathLinkAddress m_nCurrentPathNodeInfo;
-    CCarPathLinkAddress m_nNextPathNodeInfo;
-    CCarPathLinkAddress m_nPreviousPathNodeInfo;
-    char                field_1A[2];
-    uint32              m_nTimeToStartMission;
-    uint32              m_nTimeSwitchedToRealPhysics;
-    int8                _smthPrev;
-    int8                _smthCurr;
-    int8                _smthNext;
-    int8                m_nCurrentLane;
-    int8                m_nNextLane;
-    eCarDrivingStyle    m_nCarDrivingStyle;
-    eCarMission         m_nCarMission;
-    eAutoPilotTempAction m_nTempAction;
-    uint32              m_nTempActionTime;
-    uint32              m_LastUpdateTimeMs; // 
-    uint8               m_ucTempActionMode;
-    uint8               m_ucCarMissionModeCounter;
-    char                field_36[2];
-    float               m_speed;
-    float               m_fMaxTrafficSpeed;
-    uint8               m_nCruiseSpeed;
-    char                field_41;
-    char                field_42[2];
+    CNodeAddress        m_OldNode, m_NewNode, m_VeryOldNode;
+    uint32              m_TimeToLeaveLink; // Time
+    uint32              m_TimeToGetToNextLink; // Time
+    CCarPathLinkAddress m_OldLink, m_NewLink, m_VeryOldLink;
+
+    uint32              m_LastTimeNotStuck; // Time
+    uint32              m_LastTimeMoving; // Time
+    int8                m_InvertDirVeryOldLink, m_InvertDirOldLink, m_InvertDirNewLink;
+    int8                m_OldLane, m_NewLane;
+    eCarDrivingStyle    m_DrivingMode;
+    eCarMission         m_Mission;
+    eAutoPilotTempAction m_TempAction;
+    uint32              m_TempActionFinish; // Time
+    uint32              m_LastTimeWeStartedTempActReverse; // Time
+    uint8               m_WhatToTryForReverse;
+    uint8               m_NumTimesWantingToChangeNodes;
+    float               m_ActualSpeed;
+    float               m_MaxSpeedBuffer;
+    uint8               m_CruiseSpeed;
+    int8                m_SpeedFromNodes;
     float               m_SpeedMult;
-    uint8               m_ucHeliTargetDist;
-    uint8               m_ucHeliSpeedMult;
-    char                field_4A;
+    uint8               m_HooverDistFromTarget; // unused?
+    uint8               m_SpeedCheat;
+    int8                m_AimAheadOfTarget;
     union {
         uint8 m_nCarCtrlFlags;
         struct carCtrlFlags {
-            uint8 bHonkAtCar : 1;
-            uint8 bHonkAtPed : 1;
-            uint8 bAvoidLevelTransitions : 1;
-            uint8 bStayInFastLane : 1;
-            uint8 bStayInSlowLane : 1;
-            uint8 bDoTargetCatchupCheck : 1;
-            uint8 bCantGoAgainstTraffic : 1;
-            uint8 bHeliFollowTarget : 1;
+            uint8 bHonkAtCar : 1; // SlowingDownForCar
+            uint8 bHonkAtPed : 1; // SlowingDownForPed
+            uint8 bAvoidLevelTransitions : 1; // AvoidLevelTransitions
+            uint8 bStayInFastLane : 1; // AlwaysInFastLane
+            uint8 bStayInSlowLane : 1; // AlwaysInSlowLane
+            uint8 bDoTargetCatchupCheck : 1; // WarnTargetEntity
+            uint8 bCantGoAgainstTraffic : 1; // DontGoAgainstTraffic
+            uint8 bHeliFollowTarget : 1; // LeaveAfterAWhile
         } carCtrlFlags;
     };
     union {
         uint8 m_nMovementFlags;
         struct movementFlags {
-            uint8 bIsStopped : 1;
-            uint8 bIsParked : 1;
+            uint8 bIsStopped : 1; // WaitForValidNodes
+            uint8 bIsParked : 1; // CarHasToReverseFirst
         } movementFlags;
     };
-    uint8           m_nStraightLineDistance;
-    uint8           m_ucCarFollowDist;
-    uint8           m_ucHeliTargetDist2;
-    char            field_50;
-    char            field_51;
-    char            field_52[10];
-    CVector         m_vecDestinationCoors;
-    CNodeAddress    m_aPathFindNodesInfo[8];
-    uint16          m_nPathFindNodesCount;
-    char            field_8A[2];
-    CVehicle*       m_TargetEntity;
+    uint8           m_AISwitchToStraightLineDist;
+    uint8           m_FollowCarDist; // default 10
+    uint8           m_TargetReachedDist; // default 10
+    int8            m_LaneChangeCounter;
+    int8            m_FramesFloating;
+
+    // NOTE: Added in Mobile?
+    int16           m_ConstrainAreaMinX, m_ConstrainAreaMaxX; // unused
+    int16           m_ConstrainAreaMinY, m_ConstrainAreaMaxY; // unused
+
+    CVector         m_TargetCoors;
+    CNodeAddress    m_PathNodeList[CAR_NUM_PATHNODES_LOOKAHEAD];
+    uint16          m_NumPathNodes;
+    CVehicle*       m_TargetEntity; // CEntity
     CEntity*        m_ObstructingEntity; // Entity to slow down for
-    int8            m_vehicleRecordingId;
-    bool            m_bPlaneDogfightSomething;
-    int16           field_96;
+
+    int8            m_RecordingNumber;
+
+    int8            m_Diversion;
 
     CAutoPilot();
 
     void ModifySpeed(float target);
     void RemoveOnePathNode();
 
-    void SetCarMission(eCarMission carMission) { m_nCarMission = carMission; }
+    void SetCarMission(eCarMission carMission) { m_Mission = carMission; }
 
     void SetCarMission(eCarMission carMission, uint32 timeOffsetMs);
 
-    void ClearCarMission() { m_nCarMission = MISSION_NONE; }
+    void ClearCarMission() { m_Mission = MISSION_NONE; }
 
-    void SetCruiseSpeed(uint32 s) { assert(s <= UINT8_MAX); m_nCruiseSpeed = (uint8)s; }
+    void SetCruiseSpeed(uint32 s) { assert(s <= UINT8_MAX); m_CruiseSpeed = (uint8)s; }
 
     /*!
      * @notsa
@@ -140,9 +137,9 @@ public:
     /*!
      * @brief Clear current temp. act.
     */
-    void ClearTempAct() { m_nTempAction = TEMPACT_NONE; }
+    void ClearTempAct() { m_TempAction = TEMPACT_NONE; }
 
-    void SetDrivingStyle(eCarDrivingStyle s) { m_nCarDrivingStyle = s; }
+    void SetDrivingStyle(eCarDrivingStyle s) { m_DrivingMode = s; }
 };
 
 VALIDATE_SIZE(CAutoPilot, 0x98);

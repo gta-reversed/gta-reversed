@@ -80,7 +80,7 @@ void CTaskSimpleCarDrive::TriggerIK(CPed* ped) const {
         return;
     }
 
-    switch (m_pVehicle->m_autoPilot.m_nCarMission) {
+    switch (m_pVehicle->m_autoPilot.m_Mission) {
     case MISSION_RAMPLAYER_FARAWAY:
     case MISSION_RAMPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_FARAWAY:

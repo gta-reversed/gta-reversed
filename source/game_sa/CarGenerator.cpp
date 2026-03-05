@@ -286,10 +286,10 @@ void CCarGenerator::DoInternalProcessing()
                 if (ThePaths.m_pPathNodes[baseLink.m_wAreaId])
                 {
                     vehicle->SetVehicleCreatedBy(RANDOM_VEHICLE);
-                    vehicle->m_autoPilot.m_currentAddress = pathLink;
+                    vehicle->m_autoPilot.m_OldNode = pathLink;
                     vehicle->m_autoPilot.SetCruiseSpeed(7);
                     vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_CRUISE);
-                    vehicle->m_autoPilot.m_startingRouteNode = baseLink;
+                    vehicle->m_autoPilot.m_NewNode = baseLink;
                     vehicle->SetStatus(STATUS_PHYSICS);
                     vehicle->vehicleFlags.bNeverUseSmallerRemovalRange = true;
                     bWaitUntilFarFromPlayer = true;

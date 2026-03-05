@@ -230,7 +230,7 @@ CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
     }
 
     // 0x68FD7E
-    if (m_Vehicle && !m_Vehicle->m_pDriver && m_Vehicle->m_autoPilot.m_nCarMission != MISSION_NONE) {
+    if (m_Vehicle && !m_Vehicle->m_pDriver && m_Vehicle->m_autoPilot.m_Mission != MISSION_NONE) {
         m_Vehicle->m_autoPilot.SetCarMission(MISSION_NONE);
     }
 

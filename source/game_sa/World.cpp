@@ -511,7 +511,7 @@ void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>
         }
 
         // Checking the mission type
-        switch (veh->m_autoPilot.m_nCarMission) {
+        switch (veh->m_autoPilot.m_Mission) {
         case eCarMission::MISSION_RAMPLAYER_FARAWAY:
         case eCarMission::MISSION_RAMPLAYER_CLOSE:
         case eCarMission::MISSION_BLOCKPLAYER_FARAWAY:

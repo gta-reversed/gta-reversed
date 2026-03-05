@@ -54,7 +54,7 @@ float GetCarSpeed(CVehicle& veh) {
 }
 
 void SetCarDrivingStyle(CVehicle& veh, eCarDrivingStyle style) {
-    veh.m_autoPilot.m_nCarDrivingStyle = style;
+    veh.m_autoPilot.m_DrivingMode = style;
 }
 
 bool IsFirstCarColor(CVehicle& veh, int32 color) {
@@ -115,7 +115,7 @@ void AddStuckCarCheckWithWarp(CVehicle& vehicle, float stuckRadius, uint32 time,
 }
 
 void PlaneAttackPlayerUsingDogFight(CPlane& plane, CPlayerPed& player, float altitude) {
-    if (plane.m_autoPilot.m_nCarMission != eCarMission::MISSION_PLANE_CRASH_AND_BURN && plane.m_autoPilot.m_nCarMission != eCarMission::MISSION_HELI_CRASH_AND_BURN) {
+    if (plane.m_autoPilot.m_Mission != eCarMission::MISSION_PLANE_CRASH_AND_BURN && plane.m_autoPilot.m_Mission != eCarMission::MISSION_HELI_CRASH_AND_BURN) {
         plane.m_autoPilot.SetCarMission(eCarMission::MISSION_PLANE_DOG_FIGHT_PLAYER);
     }
     plane.m_minAltitude = altitude;

@@ -57,9 +57,9 @@ CTaskComplexCarDrive::CTaskComplexCarDrive(const CTaskComplexCarDrive& o) :
 CTaskComplexCarDrive::~CTaskComplexCarDrive() {
     if (m_Veh) {
         if (m_bIsCarSetUp) {
-            m_Veh->m_autoPilot.m_nCarDrivingStyle = m_OriginalDrivingStyle;
-            m_Veh->m_autoPilot.m_nCarMission      = static_cast<eCarMission>(m_OriginalMission);
-            m_Veh->m_autoPilot.m_nCruiseSpeed     = m_OriginalSpeed;
+            m_Veh->m_autoPilot.m_DrivingMode = m_OriginalDrivingStyle;
+            m_Veh->m_autoPilot.m_Mission      = static_cast<eCarMission>(m_OriginalMission);
+            m_Veh->m_autoPilot.m_CruiseSpeed     = m_OriginalSpeed;
         }
         CEntity::SafeCleanUpRef(m_Veh);
     }
@@ -157,9 +157,9 @@ CTask* CTaskComplexCarDrive::ControlSubTask(CPed* ped) {
 
 // 0x63CAE0
 void CTaskComplexCarDrive::SetUpCar() {
-    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_nCarDrivingStyle;
-    m_OriginalMission      = m_Veh->m_autoPilot.m_nCarMission;
-    m_OriginalSpeed        = m_Veh->m_autoPilot.m_nCruiseSpeed;
+    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_DrivingMode;
+    m_OriginalMission      = m_Veh->m_autoPilot.m_Mission;
+    m_OriginalSpeed        = m_Veh->m_autoPilot.m_CruiseSpeed;
     m_bIsCarSetUp          = true;
 }
 

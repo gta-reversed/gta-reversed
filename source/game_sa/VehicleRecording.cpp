@@ -156,7 +156,7 @@ void CVehicleRecording::RequestRecordingFile(int32 fileNumber) {
 // 0x459440
 void CVehicleRecording::StopPlaybackWithIndex(int32 playbackId) {
     if (auto vehicle = pVehicleForPlayback[playbackId]) {
-        vehicle->m_autoPilot.m_vehicleRecordingId = -1;
+        vehicle->m_autoPilot.m_RecordingNumber = -1;
         pVehicleForPlayback[playbackId]->physicalFlags.bDisableCollisionForce = false;
     }
     pVehicleForPlayback[playbackId] = nullptr;
@@ -196,7 +196,7 @@ void CVehicleRecording::StartPlaybackRecordedCar(CVehicle* vehicle, int32 fileNu
         vehicle->physicalFlags.bDisableCollisionForce = true;
         vehicle->physicalFlags.bCollidable = false;
     }
-    vehicle->m_autoPilot.m_vehicleRecordingId = playbackId;
+    vehicle->m_autoPilot.m_RecordingNumber = playbackId;
 }
 
 // 0x45A280
@@ -402,7 +402,7 @@ void CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(CVehicle* vehicle) {
         pPlaybackBuffer[i] = nullptr;
         PlaybackBufferSize[i] = 0;
         bPlaybackGoingOn[i] = false;
-        vehicle->m_autoPilot.m_vehicleRecordingId = -1;
+        vehicle->m_autoPilot.m_RecordingNumber = -1;
 
         StreamingArray[PlayBackStreamingIndex[i]].RemoveRef();
     }

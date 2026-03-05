@@ -46,12 +46,12 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
         return (pos - naviNode.m_posn).Dot(naviNode.m_dir);
     };
 
-    auto& currentNodeInfo = vehicle->m_autoPilot.m_nCurrentPathNodeInfo;
+    auto& currentNodeInfo = vehicle->m_autoPilot.m_OldLink;
     if (currentNodeInfo.IsValid() && ThePaths.m_pPathNodes[currentNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(currentNodeInfo);
         if (naviNode.m_nTrafficLightState) {
-            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_currentAddress) &&
-                (naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_currentAddress)
+            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_OldNode) &&
+                (naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_OldNode)
             ) {
                 if (!bUnkn
                     && (naviNode.m_nTrafficLightState != DIR_NORTH_SOUTH || !LightForCars1())
@@ -61,19 +61,19 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
                 }
 
                 const auto dot = CalcDot(naviNode);
-                if (vehicle->m_autoPilot._smthCurr == -1 ? dot > 0.0F && dot < 12.0F : dot < 0.0F && dot > -12.0F) {
+                if (vehicle->m_autoPilot.m_InvertDirOldLink == -1 ? dot > 0.0F && dot < 12.0F : dot < 0.0F && dot > -12.0F) {
                     return true;
                 }
             }
         }
     }
 
-    auto& nextNodeInfo = vehicle->m_autoPilot.m_nNextPathNodeInfo;
+    auto& nextNodeInfo = vehicle->m_autoPilot.m_NewLink;
     if (nextNodeInfo.IsValid() && ThePaths.m_pPathNodes[nextNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(nextNodeInfo);
         if (naviNode.m_nTrafficLightState) {
-            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_startingRouteNode) &&
-                (naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_startingRouteNode)
+            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_NewNode) &&
+                (naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_NewNode)
             ) {
                 if (!bUnkn
                     && (naviNode.m_nTrafficLightState != DIR_NORTH_SOUTH || !LightForCars1())
@@ -83,19 +83,19 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
                 }
 
                 const auto dot = CalcDot(naviNode);
-                if (vehicle->m_autoPilot._smthNext == -1 ? dot > 0.0F && dot < 12.0F : dot < 0.0F && dot > -12.0F) {
+                if (vehicle->m_autoPilot.m_InvertDirNewLink == -1 ? dot > 0.0F && dot < 12.0F : dot < 0.0F && dot > -12.0F) {
                     return true;
                 }
             }
         }
     }
 
-    auto& prevNodeInfo = vehicle->m_autoPilot.m_nPreviousPathNodeInfo;
+    auto& prevNodeInfo = vehicle->m_autoPilot.m_VeryOldLink;
     if (prevNodeInfo.IsValid() && ThePaths.m_pPathNodes[prevNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(prevNodeInfo);
         if (vehicle->GetStatus() == STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
-            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_endingRouteNode) &&
-                ( naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_endingRouteNode)
+            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_VeryOldNode) &&
+                ( naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_VeryOldNode)
             ) {
                 if (!bUnkn
                     && (naviNode.m_nTrafficLightState != DIR_NORTH_SOUTH || !LightForCars1())
@@ -105,7 +105,7 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
                 }
 
                 const auto dot = CalcDot(naviNode);
-                if (vehicle->m_autoPilot._smthPrev == -1 ? dot > 0.0F && dot < 6.0F : dot < 0.0F && dot > -6.0F) {
+                if (vehicle->m_autoPilot.m_InvertDirVeryOldLink == -1 ? dot > 0.0F && dot < 6.0F : dot < 0.0F && dot > -6.0F) {
                     return true;
                 }
             }
@@ -121,11 +121,11 @@ bool CTrafficLights::ShouldCarStopForBridge(CVehicle* vehicle) {
     if (appearance == VEHICLE_APPEARANCE_HELI || appearance == VEHICLE_APPEARANCE_PLANE)
         return false;
 
-    auto& nextNodeInfo = vehicle->m_autoPilot.m_nNextPathNodeInfo;
+    auto& nextNodeInfo = vehicle->m_autoPilot.m_NewLink;
     if (!nextNodeInfo.IsValid() || !ThePaths.m_pPathNodes[nextNodeInfo.m_wAreaId])
         return false;
 
-    auto& curNodeInfo = vehicle->m_autoPilot.m_nCurrentPathNodeInfo;
+    auto& curNodeInfo = vehicle->m_autoPilot.m_OldLink;
     if (!curNodeInfo.IsValid() || ThePaths.m_pPathNodes[curNodeInfo.m_wAreaId])
         return false;
 

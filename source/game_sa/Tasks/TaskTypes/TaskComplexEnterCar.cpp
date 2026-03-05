@@ -192,7 +192,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_CAR_OPEN_LOCKED_DOOR_FROM_OUTSIDE: { // 0x63ED58
         // This does not make sense, i have no idea why R* put it here
         if (m_Car && m_CruiseSpeed >= 0.f) {
-            m_Car->m_autoPilot.m_nCruiseSpeed = (uint32)m_CruiseSpeed;
+            m_Car->m_autoPilot.m_CruiseSpeed = (uint32)m_CruiseSpeed;
         }
         return C(TASK_SIMPLE_STAND_STILL);
     }
@@ -768,7 +768,7 @@ void CTaskComplexEnterCar::PreparePedForVehicleEnter(CPed* ped) {
 
 // 0x63AC10
 void CTaskComplexEnterCar::PrepareVehicleForPedEnter(CPed* ped) {
-    if (const auto carCruiseSpeed = m_Car->m_autoPilot.m_nCruiseSpeed) {
+    if (const auto carCruiseSpeed = m_Car->m_autoPilot.m_CruiseSpeed) {
         m_CruiseSpeed = (float)carCruiseSpeed;
     }
     if (!ped->IsPlayer() || !CCarEnterExit::CarHasDoorToOpen(m_Car, (eDoors)m_TargetDoor) || CCarEnterExit::CarHasOpenableDoor(m_Car, m_TargetDoor, ped)) {

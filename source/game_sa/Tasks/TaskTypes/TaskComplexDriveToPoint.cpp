@@ -21,9 +21,9 @@ CTask* CTaskComplexDriveToPoint::CreateSubTaskCannotGetInCar(CPed* ped) {
 
 // 0x63CF00
 void CTaskComplexDriveToPoint::SetUpCar() {
-    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_nCarDrivingStyle;
-    m_OriginalMission         = m_Veh->m_autoPilot.m_nCarMission;
-    m_OriginalSpeed              = m_Veh->m_autoPilot.m_nCruiseSpeed;
+    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_DrivingMode;
+    m_OriginalMission         = m_Veh->m_autoPilot.m_Mission;
+    m_OriginalSpeed              = m_Veh->m_autoPilot.m_CruiseSpeed;
 
     m_bIsCarSetUp = true;
 
@@ -31,8 +31,8 @@ void CTaskComplexDriveToPoint::SetUpCar() {
         assert(m_CruiseSpeed < 255.0f);
         m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
     }
-    m_Veh->m_autoPilot.m_nCarDrivingStyle    = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
-    m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_Veh->m_autoPilot.m_DrivingMode    = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
+    m_Veh->m_autoPilot.m_LastTimeNotStuck = CTimer::GetTimeInMS();
 }
 
 // 0x645420
@@ -46,8 +46,8 @@ CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
         return CTaskComplexCarDrive::CreateSubTask(TASK_FINISHED, ped);
     }
 
-    if (dist >= 3.0f || m_Veh->m_autoPilot.m_nCarMission) {
-        if (!m_Veh->m_autoPilot.m_nCruiseSpeed) {
+    if (dist >= 3.0f || m_Veh->m_autoPilot.m_Mission) {
+        if (!m_Veh->m_autoPilot.m_CruiseSpeed) {
             assert(m_CruiseSpeed < 255.0f);
             m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
         }

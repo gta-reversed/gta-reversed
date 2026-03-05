@@ -120,7 +120,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
 
     m_autoPilot.carCtrlFlags.bHonkAtCar = false;
     m_autoPilot.carCtrlFlags.bHonkAtPed = false;
-    const auto recID = m_autoPilot.m_vehicleRecordingId;
+    const auto recID = m_autoPilot.m_RecordingNumber;
     if (recID >= 0 && !CVehicleRecording::bUseCarAI[recID]) {
         return false;
     }

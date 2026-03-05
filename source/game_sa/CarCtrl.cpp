@@ -209,8 +209,8 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         JoinCarWithRoadSystem(boat);
 
         boat->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
-        boat->m_autoPilot.m_nTempAction = TEMPACT_NONE;
-        boat->m_autoPilot.m_speed = 20.0F;
+        boat->m_autoPilot.m_TempAction = TEMPACT_NONE;
+        boat->m_autoPilot.m_ActualSpeed = 20.0F;
         boat->m_autoPilot.SetCruiseSpeed(20);
 
         if (doMissionCleanup)
@@ -251,12 +251,12 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
 
     vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
-    vehicle->m_autoPilot.m_nTempAction = TEMPACT_NONE;
-    vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVING_STYLE_STOP_FOR_CARS;
-    vehicle->m_autoPilot.m_speed = 13.0F;
+    vehicle->m_autoPilot.m_TempAction = TEMPACT_NONE;
+    vehicle->m_autoPilot.m_DrivingMode = DRIVING_STYLE_STOP_FOR_CARS;
+    vehicle->m_autoPilot.m_ActualSpeed = 13.0F;
     vehicle->m_autoPilot.SetCruiseSpeed(13);
-    vehicle->m_autoPilot.m_nCurrentLane = 0;
-    vehicle->m_autoPilot.m_nNextLane = 0;
+    vehicle->m_autoPilot.m_OldLane = 0;
+    vehicle->m_autoPilot.m_NewLane = 0;
 
     if (doMissionCleanup)
         vehicle->m_bIsStaticWaitingForCollision = true;
@@ -473,7 +473,7 @@ CVehicle* CCarCtrl::GetNewVehicleDependingOnCarModel(int32 modelId, uint8 create
 // 0x42C250
 bool CCarCtrl::IsAnyoneParking() {
     for (auto& veh : GetVehiclePool()->GetAllValid()) {
-        switch (veh.m_autoPilot.m_nCarMission) {
+        switch (veh.m_autoPilot.m_Mission) {
         case eCarMission::MISSION_PARK_PARALLEL:
         case eCarMission::MISSION_PARK_PARALLEL_2:
         case eCarMission::MISSION_PARK_PERPENDICULAR:
@@ -501,7 +501,7 @@ bool CCarCtrl::IsThisVehicleInteresting(CVehicle* vehicle) {
 
 // 0x432CB0
 void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
-    switch (vehicle->m_autoPilot.m_nCarMission) {
+    switch (vehicle->m_autoPilot.m_Mission) {
     case MISSION_NONE:
     case MISSION_CRUISE:
     case MISSION_WAITFORDELETION:
@@ -534,7 +534,7 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE:
     case MISSION_GOTOCOORDINATES_ASTHECROWSWIMS:
     case MISSION_GOTOCOORDINATES_RACING: {
-        JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_vecDestinationCoors, true, vehicle->IsSubBoat());
+        JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_TargetCoors, true, vehicle->IsSubBoat());
         break;
     }
     case MISSION_RAMCAR_FARAWAY:
@@ -752,7 +752,7 @@ void CCarCtrl::ScanForPedDanger(CVehicle* vehicle) {
 bool CCarCtrl::ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector posn) {
     if (CStreaming::IsModelLoaded(modelId)) {
         if (auto pAuto = GenerateOneEmergencyServicesCar(modelId, posn)) {
-            pAuto->m_autoPilot.m_vecDestinationCoors = posn;
+            pAuto->m_autoPilot.m_TargetCoors = posn;
             pAuto->m_autoPilot.SetCarMission(JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDINATES_STRAIGHTLINE : MISSION_GOTOCOORDINATES);
             return true;
         }
@@ -815,17 +815,17 @@ void CCarCtrl::SlowCarOnRailsDownForTrafficAndLights(CVehicle* vehicle) {
     if ((((int8)CTimer::GetFrameCounter() + (int8)(vehicle->m_nRandomSeed)) & 3) == 0) {
         if (CTrafficLights::ShouldCarStopForLight(vehicle, false) || CTrafficLights::ShouldCarStopForBridge(vehicle)) {
             CCarAI::CarHasReasonToStop(vehicle);
-            autoPilot.m_fMaxTrafficSpeed = 0.0f;
+            autoPilot.m_MaxSpeedBuffer = 0.0f;
         } else {
-            autoPilot.m_fMaxTrafficSpeed = FindMaximumSpeedForThisCarInTraffic(vehicle);
+            autoPilot.m_MaxSpeedBuffer = FindMaximumSpeedForThisCarInTraffic(vehicle);
         }
     }
 
-    if (autoPilot.m_fMaxTrafficSpeed >= autoPilot.m_speed) {
-        autoPilot.ModifySpeed(std::min(autoPilot.m_fMaxTrafficSpeed, CTimer::GetTimeStep() * 0.05f + autoPilot.m_speed));
-    } else if (autoPilot.m_speed >= 0.1f) {
-        autoPilot.ModifySpeed(std::max(autoPilot.m_fMaxTrafficSpeed, autoPilot.m_speed - CTimer::GetTimeStep() * 0.7f));
-    } else if (autoPilot.m_speed != 0.0f) {
+    if (autoPilot.m_MaxSpeedBuffer >= autoPilot.m_ActualSpeed) {
+        autoPilot.ModifySpeed(std::min(autoPilot.m_MaxSpeedBuffer, CTimer::GetTimeStep() * 0.05f + autoPilot.m_ActualSpeed));
+    } else if (autoPilot.m_ActualSpeed >= 0.1f) {
+        autoPilot.ModifySpeed(std::max(autoPilot.m_MaxSpeedBuffer, autoPilot.m_ActualSpeed - CTimer::GetTimeStep() * 0.7f));
+    } else if (autoPilot.m_ActualSpeed != 0.0f) {
         autoPilot.ModifySpeed(0.0f);
     }
 }

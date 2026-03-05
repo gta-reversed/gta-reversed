@@ -527,7 +527,7 @@ void CBoat::ProcessControl() {
     if (wanted->m_nWantedLevel > 0 && m_nModelIndex == MODEL_PREDATOR) {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
-            auto iCarMission = m_autoPilot.m_nCarMission;
+            auto iCarMission = m_autoPilot.m_Mission;
             if (iCarMission == eCarMission::MISSION_BOAT_ATTACKPLAYER
                 || (iCarMission >= eCarMission::MISSION_RAMPLAYER_FARAWAY
                     && iCarMission <= eCarMission::MISSION_BLOCKPLAYER_CLOSE)) {

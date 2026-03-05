@@ -134,7 +134,7 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
                 oveh->IsBike()
                     ? MISSION_FOLLOWCAR_CLOSE
                     : MISSION_BLOCKCAR_CLOSE,
-                (float)(m_Criminal->m_pVehicle->m_autoPilot.m_nCruiseSpeed) + 10.f,
+                (float)(m_Criminal->m_pVehicle->m_autoPilot.m_CruiseSpeed) + 10.f,
                 cveh
             );
         } else {

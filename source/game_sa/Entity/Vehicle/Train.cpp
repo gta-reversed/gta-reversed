@@ -143,7 +143,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_pPrevCarriage = nullptr;
     m_pNextCarriage = nullptr;
     SetStatus(STATUS_TRAIN_MOVING);
-    m_autoPilot.m_speed = 0.0f;
+    m_autoPilot.m_ActualSpeed = 0.0f;
     m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
 }
@@ -499,7 +499,7 @@ void CTrain::ProcessControl() {
 
             if (GetStatus()) {
                 bool bIsStreakModel = trainFlags.bIsStreakModel;
-                auto fStopAtStationSpeed = static_cast<float>(m_autoPilot.m_nCruiseSpeed);
+                auto fStopAtStationSpeed = static_cast<float>(m_autoPilot.m_CruiseSpeed);
 
                 uint32 timeAtStation = CTimer::GetTimeInMS() - m_nTimeWhenStoppedAtStation;
                 if (timeAtStation >= (bIsStreakModel ? 20'000u : 10'000u)) {

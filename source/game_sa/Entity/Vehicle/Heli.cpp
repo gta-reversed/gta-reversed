@@ -66,7 +66,7 @@ CHeli::CHeli(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelI
     m_nPoliceShoutTimer = CTimer::GetTimeInMS();
 
     vehicleFlags.bNeverUseSmallerRemovalRange = true; // 0x6C42BD
-    m_autoPilot.m_ucHeliTargetDist2 = 10;
+    m_autoPilot.m_TargetReachedDist = 10;
 
     m_ppGunflashFx = nullptr;
     m_nFiringMultiplier = 16;

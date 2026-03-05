@@ -12,17 +12,17 @@ CTaskComplexCarDriveWander::CTaskComplexCarDriveWander(CVehicle* vehicle, eCarDr
 
 // 0x63CB60
 void CTaskComplexCarDriveWander::SetUpCar() {
-    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_nCarDrivingStyle;
-    m_OriginalMission      = m_Veh->m_autoPilot.m_nCarMission;
-    m_OriginalSpeed        = m_Veh->m_autoPilot.m_nCruiseSpeed;
+    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_DrivingMode;
+    m_OriginalMission      = m_Veh->m_autoPilot.m_Mission;
+    m_OriginalSpeed        = m_Veh->m_autoPilot.m_CruiseSpeed;
     m_bIsCarSetUp          = true;
     if (!CCarCtrl::bCarIsBeingCreated) {
         CCarCtrl::JoinCarWithRoadSystem(m_Veh);
         m_Veh->SetStatus(STATUS_PHYSICS);
         m_Veh->m_autoPilot.SetCarMission(MISSION_CRUISE);
         m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
-        m_Veh->m_autoPilot.m_speed = m_Veh->m_autoPilot.m_nCruiseSpeed;
-        m_Veh->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
+        m_Veh->m_autoPilot.m_ActualSpeed = m_Veh->m_autoPilot.m_CruiseSpeed;
+        m_Veh->m_autoPilot.m_DrivingMode = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
     }
     if (m_Veh->vehicleFlags.bEngineBroken) {
         m_Veh->vehicleFlags.bEngineOn = false;
@@ -30,7 +30,7 @@ void CTaskComplexCarDriveWander::SetUpCar() {
     } else {
         m_Veh->vehicleFlags.bEngineOn = true;
     }
-    m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_Veh->m_autoPilot.m_LastTimeNotStuck = CTimer::GetTimeInMS();
 }
 
 // 0x643240

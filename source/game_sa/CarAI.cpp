@@ -167,15 +167,15 @@ void CCarAI::BackToCruisingIfNoWantedLevel(CVehicle* vehicle) {
 
     CCarCtrl::JoinCarWithRoadSystem(vehicle);
 
-    vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVING_STYLE_STOP_FOR_CARS;
-    vehicle->m_autoPilot.m_nCarMission = CCullZones::NoPolice()
+    vehicle->m_autoPilot.m_DrivingMode = DRIVING_STYLE_STOP_FOR_CARS;
+    vehicle->m_autoPilot.m_Mission = CCullZones::NoPolice()
         ? MISSION_NONE
         : MISSION_CRUISE;
 }
 
 // 0x41C050
 void CCarAI::CarHasReasonToStop(CVehicle* vehicle) {
-    vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+    vehicle->m_autoPilot.m_LastTimeNotStuck = CTimer::m_snTimeInMilliseconds;
 }
 
 // 0x41CD00
@@ -236,7 +236,7 @@ int32 CCarAI::FindPoliceCarSpeedForWantedLevel(CVehicle* vehicle) {
 
 // 0x41BF50
 float CCarAI::FindSwitchDistanceClose(CVehicle* vehicle) {
-    return (float)vehicle->m_autoPilot.m_nStraightLineDistance;
+    return (float)vehicle->m_autoPilot.m_AISwitchToStraightLineDist;
 }
 
 // 0x41BF70
@@ -249,7 +249,7 @@ float CCarAI::FindSwitchDistanceFar(CVehicle* vehicle) {
 // 0x41CE30
 float CCarAI::GetCarToGoToCoors(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed) {
     const auto ap = &veh->m_autoPilot;
-    switch (ap->m_nCarMission) {
+    switch (ap->m_Mission) {
     case MISSION_PARK_PERPENDICULAR:
     case MISSION_PARK_PARALLEL:
     case MISSION_PARK_PERPENDICULAR_2:
@@ -263,7 +263,7 @@ float CCarAI::GetCarToGoToCoors(CVehicle* veh, const CVector& coors, eCarDriving
         [[fallthrough]];
     }
     default: {
-        ap->m_nCarDrivingStyle = drivingStyle;
+        ap->m_DrivingMode = drivingStyle;
         ap->ClearTempAct();
         if (setCruiseSpeed) {
             ap->SetCruiseSpeed(20);
@@ -287,16 +287,16 @@ float CCarAI::GetCarToGoToCoors(CVehicle* veh, const CVector& coors, eCarDriving
 float CCarAI::GetCarToGoToCoorsAccurate(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed) {
     const auto ap = &veh->m_autoPilot;
 
-    switch (ap->m_nCarMission) {
+    switch (ap->m_Mission) {
     case MISSION_GOTOCOORDINATES_ACCURATE:
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE: {
         if (!veh->GetPosition2D().ApproxEqualTo(coors, 2.f)) {
-            ap->m_vecDestinationCoors = coors;
+            ap->m_TargetCoors = coors;
         }
         break;
     }
     default: { // Copy paste from `GetCarToGoToCoors`
-        ap->m_nCarDrivingStyle = drivingStyle;
+        ap->m_DrivingMode = drivingStyle;
         ap->ClearTempAct();
         if (setCruiseSpeed) {
             ap->SetCruiseSpeed(20);
@@ -321,16 +321,16 @@ float CCarAI::GetCarToGoToCoorsAccurate(CVehicle* veh, const CVector& coors, eCa
 float CCarAI::GetCarToGoToCoorsRacing(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed) {
     const auto ap = &veh->m_autoPilot;
 
-    switch (ap->m_nCarMission) {
+    switch (ap->m_Mission) {
     case MISSION_GOTOCOORDINATES_RACING:
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE: {
         if (!veh->GetPosition2D().ApproxEqualTo(coors, 2.f)) {
-            ap->m_vecDestinationCoors = coors;
+            ap->m_TargetCoors = coors;
         }
         break;
     }
     default: {
-        ap->m_nCarDrivingStyle = drivingStyle;
+        ap->m_DrivingMode = drivingStyle;
         ap->ClearTempAct();
         if (setCruiseSpeed) {
             ap->SetCruiseSpeed(20);
@@ -338,7 +338,7 @@ float CCarAI::GetCarToGoToCoorsRacing(CVehicle* veh, const CVector& coors, eCarD
         if (veh->GetStatus() != STATUS_GHOST) {
             veh->SetStatus(STATUS_PHYSICS);
         }
-        ap->m_vecDestinationCoors = coors;
+        ap->m_TargetCoors = coors;
         ap->SetCarMission(MISSION_GOTOCOORDINATES_RACING, 0);
         CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, coors, false, false);
         break;
@@ -352,15 +352,15 @@ float CCarAI::GetCarToGoToCoorsRacing(CVehicle* veh, const CVector& coors, eCarD
 float CCarAI::GetCarToGoToCoorsStraightLine(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed) {
     const auto ap = &veh->m_autoPilot;
 
-    switch (ap->m_nCarMission) {
+    switch (ap->m_Mission) {
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE: {
         if (!veh->GetPosition2D().ApproxEqualTo(coors, 2.f)) {
-            ap->m_vecDestinationCoors = coors;
+            ap->m_TargetCoors = coors;
         }
         break;
     }
     default: {
-        ap->m_nCarDrivingStyle = drivingStyle;
+        ap->m_DrivingMode = drivingStyle;
         ap->ClearTempAct();
         if (setCruiseSpeed) {
             ap->SetCruiseSpeed(20);
@@ -368,7 +368,7 @@ float CCarAI::GetCarToGoToCoorsStraightLine(CVehicle* veh, const CVector& coors,
         if (veh->GetStatus() != STATUS_GHOST) {
             veh->SetStatus(STATUS_PHYSICS);
         }
-        ap->m_vecDestinationCoors = coors;
+        ap->m_TargetCoors = coors;
         ap->SetCarMission(MISSION_GOTOCOORDINATES_STRAIGHTLINE, 0);
         // TODO/BUG: No `CCarCtrl::JoinCarWithRoadSystemGotoCoors` ?
         break;
@@ -432,14 +432,14 @@ void CCarAI::MakeWayForCarWithSiren(CVehicle* carWithSiren) {
         const auto vehAP = &v.m_autoPilot;
         if (carWithSirenMoveDir2D.Dot(dirToCarWithSiren2D / distToCarWithSiren) <= 0.8f) { // 0x41D8A2
             if (dirToCarWithSiren2D.Dot(CVector2D{ v.GetMoveSpeed() }) < 0.f) { // Going in different directions?
-                if (!notsa::contains({ TEMPACT_WAIT, TEMPACT_BRAKE }, vehAP->m_nTempAction)) {
+                if (!notsa::contains({ TEMPACT_WAIT, TEMPACT_BRAKE }, vehAP->m_TempAction)) {
                     vehAP->SetTempAction(TEMPACT_WAIT, 2'000);
                 }
             }
         } else { // 0x41D8BD
             const auto goingSameDirDot = carWithSirenMoveDir2D.Dot(v.GetForward());
             if (goingSameDirDot > 0.7f || goingSameDirDot < -0.9f) { // 0x41D8DE
-                if (!notsa::contains({ TEMPACT_SWIRVELEFT_STOP, TEMPACT_SWIRVERIGHT_STOP }, vehAP->m_nTempAction)) {
+                if (!notsa::contains({ TEMPACT_SWIRVELEFT_STOP, TEMPACT_SWIRVERIGHT_STOP }, vehAP->m_TempAction)) {
                     eAutoPilotTempAction a = carWithSirenMoveDir2D.Dot(dirToCarWithSiren2D) <= 0.f // 0x41D954
                         ? TEMPACT_SWIRVERIGHT_STOP
                         : TEMPACT_SWIRVELEFT_STOP;
@@ -457,7 +457,7 @@ void CCarAI::MakeWayForCarWithSiren(CVehicle* carWithSiren) {
                     v.SetStatus(STATUS_PHYSICS);
                 }
             } else if (dirToCarWithSiren2D.Dot(v.GetMoveSpeed()) < 0.f) { // 0x41D910
-                if (!notsa::contains({ TEMPACT_SWIRVELEFT_STOP, TEMPACT_SWIRVERIGHT_STOP }, vehAP->m_nTempAction)) {
+                if (!notsa::contains({ TEMPACT_SWIRVELEFT_STOP, TEMPACT_SWIRVERIGHT_STOP }, vehAP->m_TempAction)) {
                     vehAP->SetTempAction(TEMPACT_WAIT, 4'000);
                 }
             }
@@ -504,7 +504,7 @@ void CCarAI::MellowOutChaseSpeed(CVehicle* vehicle) {
             return 34;
         }
         }
-        return (uint32)vehicle->m_autoPilot.m_nCruiseSpeed;
+        return (uint32)vehicle->m_autoPilot.m_CruiseSpeed;
     }();
     vehicle->m_autoPilot.SetCruiseSpeed(
         !isPlayerInVeh && desiredSpeed >= 10 && plyrToVehDist3D <= 30.f && FindPlayerPed()->m_vecMoveSpeed.SquaredMagnitude() < sq(0.07f)
@@ -516,7 +516,7 @@ void CCarAI::MellowOutChaseSpeed(CVehicle* vehicle) {
 // 0x41CB70
 void CCarAI::MellowOutChaseSpeedBoat(CVehicle* vehicle) {
     assert(vehicle->IsBoat());
-    vehicle->m_autoPilot.m_nCruiseSpeed = []{
+    vehicle->m_autoPilot.m_CruiseSpeed = []{
         switch (FindPlayerWanted()->GetWantedLevel()) {
         case 0:  return 8;
         case 1:  return 10;
@@ -540,7 +540,7 @@ void CCarAI::TellCarToBlockOtherCar(CVehicle* vehicle1, CVehicle* vehicle2) {
     vehicle1->m_autoPilot.SetCarMission(MISSION_BLOCKCAR_FARAWAY);
     vehicle1->vehicleFlags.bEngineOn    = !vehicle1->vehicleFlags.bEngineBroken;
 
-    vehicle1->m_autoPilot.SetCruiseSpeed(std::max(vehicle1->m_autoPilot.m_nCruiseSpeed, (uint8)6));
+    vehicle1->m_autoPilot.SetCruiseSpeed(std::max(vehicle1->m_autoPilot.m_CruiseSpeed, (uint8)6));
     */
     NOTSA_UNREACHABLE("Unused");
 }
@@ -552,10 +552,10 @@ void CCarAI::TellCarToFollowOtherCar(CVehicle* follower, CVehicle* toFollow, flo
 
     CCarCtrl::JoinCarWithRoadSystem(follower);
 
-    follower->m_autoPilot.m_nCarMission     = MISSION_FOLLOWCAR_FARAWAY;
+    follower->m_autoPilot.m_Mission     = MISSION_FOLLOWCAR_FARAWAY;
     follower->vehicleFlags.bEngineOn        = follower->vehicleFlags.bEngineBroken == 0;
-    follower->m_autoPilot.m_nCruiseSpeed    = std::max(follower->m_autoPilot.m_nCruiseSpeed, (uint8)6);
-    follower->m_autoPilot.m_ucCarFollowDist = (uint8)radius;
+    follower->m_autoPilot.m_CruiseSpeed    = std::max(follower->m_autoPilot.m_CruiseSpeed, (uint8)6);
+    follower->m_autoPilot.m_FollowCarDist = (uint8)radius;
 }
 
 // unused
@@ -568,7 +568,7 @@ void CCarAI::TellCarToRamOtherCar(CVehicle* vehicle1, CVehicle* vehicle2) {
     vehicle1->m_autoPilot.SetCarMission(MISSION_RAMCAR_FARAWAY);
     vehicle1->vehicleFlags.bEngineOn    = !vehicle1->vehicleFlags.bEngineBroken;
 
-    vehicle1->m_autoPilot.SetCruiseSpeed(std::max(vehicle1->m_autoPilot.m_nCruiseSpeed, (uint8)6));
+    vehicle1->m_autoPilot.SetCruiseSpeed(std::max(vehicle1->m_autoPilot.m_CruiseSpeed, (uint8)6));
     */
     NOTSA_UNREACHABLE("Unused");
 }
@@ -596,19 +596,19 @@ void CCarAI::TellOccupantsToLeaveCar(CVehicle* vehicle) {
 void CCarAI::UpdateCarAI(CVehicle* veh) {
     const auto ap = &veh->m_autoPilot;
 
-    if (ap->m_vehicleRecordingId >= 0 && (!CVehicleRecording::bUseCarAI[ap->m_vehicleRecordingId] || veh->IsSubHeli())) {
+    if (ap->m_RecordingNumber >= 0 && (!CVehicleRecording::bUseCarAI[ap->m_RecordingNumber] || veh->IsSubHeli())) {
         return;
     }
 
-    if (ap->m_nCarMission == MISSION_PLANE_ATTACK_PLAYER_POLICE) { // 0x41DAA0
+    if (ap->m_Mission == MISSION_PLANE_ATTACK_PLAYER_POLICE) { // 0x41DAA0
         const auto wntd = FindPlayerWanted();
         if (wntd->m_nWantedLevel < 3 || !FindPlayerVehicle()) {
-            ap->m_vecDestinationCoors = CVector{-6'000.f, -10'000.f, 500.f};
+            ap->m_TargetCoors = CVector{-6'000.f, -10'000.f, 500.f};
         }
     }
 
     if (veh->vehicleFlags.bIsLawEnforcer) { // 0x41DAF8
-        switch (ap->m_nCarMission) {
+        switch (ap->m_Mission) {
         case MISSION_BLOCKPLAYER_FARAWAY:
         case MISSION_RAMPLAYER_FARAWAY:
         case MISSION_BLOCKPLAYER_CLOSE:
@@ -631,7 +631,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
     case STATUS_SIMPLE:
     case STATUS_PHYSICS:
     case STATUS_GHOST: {
-        switch (ap->m_nCarMission) {
+        switch (ap->m_Mission) {
         case MISSION_RAMPLAYER_FARAWAY: { // 0x41DB72 - If close enough switch to `MISSION_RAMPLAYER_CLOSE`
             const auto vehPlyrDist2DSq = (vehPos - plyrPos).SquaredMagnitude2D();
             if (   vehPlyrDist2DSq <= sq(FindSwitchDistanceClose(veh))
@@ -650,13 +650,13 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         { 
             const auto vehPlyrDist2DSq = (vehPos - plyrPos).SquaredMagnitude2D();
 
-            const auto maxSpeedSq = ap->m_nCarMission == MISSION_RAMPLAYER_CLOSE
+            const auto maxSpeedSq = ap->m_Mission == MISSION_RAMPLAYER_CLOSE
                 ? sq(0.05f)
                 : sq(0.04f);
 
             if (sq(FindSwitchDistanceFar(veh)) < vehPlyrDist2DSq) { // 0x41DD4F | 0x41E13A
                 if (!CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, FindPlayerCoors(), true, false)) {
-                    ap->m_nCarMission               = MISSION_RAMPLAYER_FARAWAY;
+                    ap->m_Mission               = MISSION_RAMPLAYER_FARAWAY;
                     veh->m_HornCounter             = 0;
                     veh->vehicleFlags.bSirenOrAlarm = false;
                 }
@@ -667,9 +667,9 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 break;
             }
 
-            if (ap->m_nCarMission == MISSION_RAMPLAYER_CLOSE) { // 0x41DDA2
+            if (ap->m_Mission == MISSION_RAMPLAYER_CLOSE) { // 0x41DDA2
                 if (plyrVeh && veh->GetHasCollidedWith(plyrVeh)) { // 0x41DDA2
-                    if (!notsa::contains({ TEMPACT_TURNLEFT, TEMPACT_TURNRIGHT }, ap->m_nTempAction)) {
+                    if (!notsa::contains({ TEMPACT_TURNLEFT, TEMPACT_TURNRIGHT }, ap->m_TempAction)) {
                         ap->SetTempAction(
                             TEMPACT_REVERSE,
                             plyrVeh->GetMoveSpeed().SquaredMagnitude() >= maxSpeedSq
@@ -705,22 +705,22 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
             break;
         }
         case MISSION_GOTOCOORDINATES: { // 0x41E2BF - If close enough switch to `MISSION_GOTOCOORDS_STRAIGHT`
-            if ((veh->GetPosition() - ap->m_vecDestinationCoors).SquaredMagnitude2D() <= sq(FindSwitchDistanceClose(veh))) {
+            if ((veh->GetPosition() - ap->m_TargetCoors).SquaredMagnitude2D() <= sq(FindSwitchDistanceClose(veh))) {
                 ap->SetCarMission(MISSION_GOTOCOORDINATES_STRAIGHTLINE);
             }
             break;
         }
         case MISSION_GOTOCOORDINATES_STRAIGHTLINE: { // 0x41E3B1
-            const auto distToDestSq = (veh->GetPosition() - ap->m_vecDestinationCoors).SquaredMagnitude2D();
+            const auto distToDestSq = (veh->GetPosition() - ap->m_TargetCoors).SquaredMagnitude2D();
 
             if (distToDestSq < sq(3.f)) {
                 ap->ClearTempAct();
                 ap->ClearCarMission();
             }
-            else if (distToDestSq >= sq((float)ap->m_nStraightLineDistance + 5.f) && CTimer::GetFrameCounter() % 8 == 0) {
+            else if (distToDestSq >= sq((float)ap->m_AISwitchToStraightLineDist + 5.f) && CTimer::GetFrameCounter() % 8 == 0) {
                 ap->ClearTempAct();
                 ap->SetCarMission(
-                    CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, ap->m_vecDestinationCoors, true, false)
+                    CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, ap->m_TargetCoors, true, false)
                     ? MISSION_GOTOCOORDINATES_STRAIGHTLINE
                     : MISSION_GOTOCOORDINATES
                 );
@@ -733,13 +733,13 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         case MISSION_PROTECTION_FRONT:
             break;
         case MISSION_GOTOCOORDINATES_ACCURATE: { // 0x41E338 (Pretty much copy paste `MISSION_GOTOCOORDINATES`)
-            if ((veh->GetPosition() - ap->m_vecDestinationCoors).SquaredMagnitude2D() <= sq(FindSwitchDistanceClose(veh))) {
+            if ((veh->GetPosition() - ap->m_TargetCoors).SquaredMagnitude2D() <= sq(FindSwitchDistanceClose(veh))) {
                 ap->SetCarMission(MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE);
             }
             break;
         }
         case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE: { // 0x41E473 (Pretty much copy paste `MISSION_GOTOCOORDINATES_STRAIGHTLINE`)
-            const auto distToDest2DSq = (veh->GetPosition() - ap->m_vecDestinationCoors).SquaredMagnitude2D();
+            const auto distToDest2DSq = (veh->GetPosition() - ap->m_TargetCoors).SquaredMagnitude2D();
 
             if (distToDest2DSq < sq(1.f)) { // Inverted
                 ap->ClearTempAct();
@@ -749,10 +749,10 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                     veh->vehicleFlags.bParking = false;
                 }
             }
-            else if (distToDest2DSq >= sq((float)ap->m_nStraightLineDistance + 5.f) && CTimer::GetFrameCounter() % 8 == 0) {
+            else if (distToDest2DSq >= sq((float)ap->m_AISwitchToStraightLineDist + 5.f) && CTimer::GetFrameCounter() % 8 == 0) {
                 ap->ClearTempAct();
                 ap->SetCarMission(
-                    CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, ap->m_vecDestinationCoors, true, false)
+                    CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, ap->m_TargetCoors, true, false)
                     ? MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE
                     : MISSION_GOTOCOORDINATES_ACCURATE
                 );
@@ -832,7 +832,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         }
 
         case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_1: { // 0x41EB46
-            if ((veh->GetPosition() - ap->m_vecDestinationCoors).SquaredMagnitude2D() <= sq(1.5f)) {
+            if ((veh->GetPosition() - ap->m_TargetCoors).SquaredMagnitude2D() <= sq(1.5f)) {
                 ap->SetCarMission(MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_2);
             }
             break;
@@ -861,14 +861,14 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         case MISSION_ESCORT_RIGHT:
         case MISSION_ESCORT_REAR:
         case MISSION_ESCORT_FRONT: { // 0x41F771
-            if (ap->m_nStraightLineDistance >= 240) {
+            if (ap->m_AISwitchToStraightLineDist >= 240) {
                 break;
             }
 
             if ((veh->GetPosition() - FindPlayerCoors()).SquaredMagnitude2D() >= sq(FindSwitchDistanceFar(veh))) {
                 if (!CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, FindPlayerCoors())) {
-                    ap->m_nCarMission = [&]{
-                        switch (ap->m_nCarMission) {
+                    ap->m_Mission = [&]{
+                        switch (ap->m_Mission) {
                         case MISSION_ESCORT_LEFT:  return MISSION_ESCORT_LEFT_FARAWAY;
                         case MISSION_ESCORT_RIGHT: return MISSION_ESCORT_RIGHT_FARAWAY;
                         case MISSION_ESCORT_REAR:  return MISSION_ESCORT_REAR_FARAWAY;
@@ -1025,8 +1025,8 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         case MISSION_ESCORT_REAR_FARAWAY:
         case MISSION_ESCORT_FRONT_FARAWAY: {
             if ((veh->GetPosition() - FindPlayerCoors()).SquaredMagnitude2D() <= sq(FindSwitchDistanceClose(veh))) {
-                ap->m_nCarMission = [&]{
-                    switch (ap->m_nCarMission) {
+                ap->m_Mission = [&]{
+                    switch (ap->m_Mission) {
                     case MISSION_ESCORT_LEFT_FARAWAY:  return MISSION_ESCORT_LEFT;
                     case MISSION_ESCORT_RIGHT_FARAWAY: return MISSION_ESCORT_RIGHT;
                     case MISSION_ESCORT_REAR_FARAWAY:  return MISSION_ESCORT_REAR;
@@ -1060,8 +1060,8 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 }
 
                 ap->ClearTempAct();
-                ap->m_nCarDrivingStyle = DRIVING_STYLE_AVOID_CARS;
-            } else if (ap->m_nCarMission == MISSION_CRUISE) { // 0x41F9CE
+                ap->m_DrivingMode = DRIVING_STYLE_AVOID_CARS;
+            } else if (ap->m_Mission == MISSION_CRUISE) { // 0x41F9CE
                 if (veh->GetStatus() != STATUS_GHOST) {
                     veh->SetStatus(STATUS_PHYSICS);
                 }
@@ -1102,12 +1102,12 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
     const auto vehMvSpeed2DSq = veh->GetMoveSpeed().SquaredMagnitude2D();
 
     if (vehMvSpeed2DSq >= sq(0.05f)) {
-        ap->m_nTimeSwitchedToRealPhysics = CTimer::GetTimeInMS();
-        ap->m_nTimeToStartMission        = CTimer::GetTimeInMS();
+        ap->m_LastTimeMoving = CTimer::GetTimeInMS();
+        ap->m_LastTimeNotStuck        = CTimer::GetTimeInMS();
     }
 
-    if (ap->m_nTempAction == TEMPACT_NONE) { // 0x41FB1B
-        if (ap->m_nCruiseSpeed == 0 || notsa::contains({ // 0x41FB29
+    if (ap->m_TempAction == TEMPACT_NONE) { // 0x41FB1B
+        if (ap->m_CruiseSpeed == 0 || notsa::contains({ // 0x41FB29
                 MISSION_NONE,
                 MISSION_STOP_FOREVER,
                 MISSION_BLOCKPLAYER_HANDBRAKESTOP,
@@ -1118,25 +1118,25 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 MISSION_ESCORT_REAR,
                 MISSION_ESCORT_FRONT,
                 MISSION_FOLLOWCAR_CLOSE,
-            }, ap->m_nCarMission)
+            }, ap->m_Mission)
         ) {
             if (CTimer::GetTimeInMS() - veh->m_nLastCollisionTime > 500) { // 0x41FBA8
-                ap->m_nTimeToStartMission = CTimer::GetTimeInMS();
+                ap->m_LastTimeNotStuck = CTimer::GetTimeInMS();
             }
 
             if (vehMvSpeed2DSq <= sq(0.012f)) { // 0x41FBB6
-                const auto updateInterval = notsa::contains({ DRIVING_STYLE_STOP_FOR_CARS, DRIVING_STYLE_STOP_FOR_CARS_IGNORE_LIGHTS }, ap->m_nCarDrivingStyle)
+                const auto updateInterval = notsa::contains({ DRIVING_STYLE_STOP_FOR_CARS, DRIVING_STYLE_STOP_FOR_CARS_IGNORE_LIGHTS }, ap->m_DrivingMode)
                     ? 500u * (veh->m_nRandomSeed % 16) + 40u
                     : 1000u;
-                if ((CTimer::GetTimeInMS() - ap->m_nTimeToStartMission) > updateInterval) {
-                    ap->m_ucTempActionMode = CTimer::GetTimeInMS() >= ap->m_LastUpdateTimeMs + 10'000 // 0x41FC02
+                if ((CTimer::GetTimeInMS() - ap->m_LastTimeNotStuck) > updateInterval) {
+                    ap->m_WhatToTryForReverse = CTimer::GetTimeInMS() >= ap->m_LastTimeWeStartedTempActReverse + 10'000 // 0x41FC02
                         ? 0
-                        : (ap->m_ucTempActionMode + 1) % 4;
+                        : (ap->m_WhatToTryForReverse + 1) % 4;
 
-                    ap->m_LastUpdateTimeMs = CTimer::GetTimeInMS();
+                    ap->m_LastTimeWeStartedTempActReverse = CTimer::GetTimeInMS();
 
-                    if (ap->m_nCarMission != MISSION_CRUISE || veh->IsCreatedBy(MISSION_VEHICLE) || (veh->vehicleFlags.bUsedForReplay)) { // 0x41FC4E
-                        switch (ap->m_ucTempActionMode) {
+                    if (ap->m_Mission != MISSION_CRUISE || veh->IsCreatedBy(MISSION_VEHICLE) || (veh->vehicleFlags.bUsedForReplay)) { // 0x41FC4E
+                        switch (ap->m_WhatToTryForReverse) {
                         case 0:  ap->SetTempAction(TEMPACT_REVERSE, 1'500);       break;
                         case 1:  ap->SetTempAction(TEMPACT_REVERSE, 4'000);       break;
                         case 2:  ap->SetTempAction(TEMPACT_REVERSE_LEFT, 2'500);  break;
@@ -1147,15 +1147,15 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                         ap->SetTempAction(TEMPACT_REVERSE, 750); 
                     }
 
-                    ap->m_nTimeToStartMission = CTimer::GetTimeInMS();
+                    ap->m_LastTimeNotStuck = CTimer::GetTimeInMS();
 
                     if (veh->IsCreatedBy(RANDOM_VEHICLE)) { // 0x41FCF2
-                        switch (ap->m_nCarDrivingStyle) {
+                        switch (ap->m_DrivingMode) {
                         case DRIVING_STYLE_STOP_FOR_CARS:
                         case DRIVING_STYLE_SLOW_DOWN_FOR_CARS:
                         case DRIVING_STYLE_STOP_FOR_CARS_IGNORE_LIGHTS:
                         case DRIVING_STYLE_STOP_FOR_CARS_IGNORE_LIGHTS|DRIVING_STYLE_AVOID_CARS:
-                            veh->m_autoPilot.m_nCarDrivingStyle = DRIVING_STYLE_AVOID_CARS;
+                            veh->m_autoPilot.m_DrivingMode = DRIVING_STYLE_AVOID_CARS;
                             break;
                         }
                     }
@@ -1171,19 +1171,19 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
     }
 
     if (veh->m_nRandomSeed % 8 == 0) { // 0x41FD3C
-        if (   CTimer::GetTimeInMS() - ap->m_nTimeSwitchedToRealPhysics > 30'000
-            && CTimer::GetPreviousTimeInMS() - ap->m_nTimeSwitchedToRealPhysics < 30'000
-            && ap->m_nCarMission == MISSION_CRUISE
+        if (   CTimer::GetTimeInMS() - ap->m_LastTimeMoving > 30'000
+            && CTimer::GetPreviousTimeInMS() - ap->m_LastTimeMoving < 30'000
+            && ap->m_Mission == MISSION_CRUISE
             && !CTrafficLights::ShouldCarStopForBridge(veh)
             ) {
             CCarCtrl::SwitchVehicleToRealPhysics(veh);
-            ap->m_nCarDrivingStyle = DRIVING_STYLE_AVOID_CARS;
+            ap->m_DrivingMode = DRIVING_STYLE_AVOID_CARS;
             ap->SetTempAction(TEMPACT_REVERSE, 400);
         }
     }
 
     if (veh->vehicleFlags.bIsLawEnforcer) { // 0x41FDA1
-        if (notsa::contains({ MISSION_RAMPLAYER_FARAWAY, MISSION_RAMPLAYER_CLOSE }, ap->m_nCarMission)) {
+        if (notsa::contains({ MISSION_RAMPLAYER_FARAWAY, MISSION_RAMPLAYER_CLOSE }, ap->m_Mission)) {
             if (plyrVeh) {
                 if (plyrVeh->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) {
                     ap->SetCarMission(MISSION_BLOCKPLAYER_FARAWAY);
@@ -1196,7 +1196,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         ap->SetTempAction(TEMPACT_REVERSE, 1'000);
     }
 
-    if (   notsa::contains({ TEMPACT_NONE, TEMPACT_BOOST_USE_STEERING_ANGLE }, ap->m_nTempAction)
+    if (   notsa::contains({ TEMPACT_NONE, TEMPACT_BOOST_USE_STEERING_ANGLE }, ap->m_TempAction)
         && notsa::contains(
             {
                 MISSION_RAMPLAYER_FARAWAY,
@@ -1206,7 +1206,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 MISSION_APPROACHPLAYER_FARAWAY,
                 MISSION_APPROACHPLAYER_CLOSE
             },
-            ap->m_nCarMission
+            ap->m_Mission
           )
         && plyrVeh
     ) { // 0x41FE1B
@@ -1254,7 +1254,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                     ? rdot >= 0.f
                         ? TEMPACT_HANDBRAKETURNRIGHT
                         : TEMPACT_HANDBRAKETURNLEFT
-                    : ap->m_nTempAction, // No change
+                    : ap->m_TempAction, // No change
                 2'000
             );
         }
@@ -1267,8 +1267,8 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
     //> 0x4203F0 - Handle speed mult change based on time
     ap->m_SpeedMult = [&]{
-        const auto targetSpeedMult = ap->m_nCarMission == MISSION_CRUISE
-            ? CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(ap->field_41)
+        const auto targetSpeedMult = ap->m_Mission == MISSION_CRUISE
+            ? CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(ap->m_SpeedFromNodes)
             : 1.f;
         const auto delta = std::abs(ap->m_SpeedMult - targetSpeedMult);
         const auto step  = CTimer::GetTimeStep() * 0.01f;
@@ -1317,7 +1317,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
     //> 0x420559 - 0x42064E - Adjust cruise speed in some cases
     if (CTimer::GetFrameCounter() % 16 == 14 && veh->vehicleFlags.bIsLawEnforcer) {
-        if (notsa::contains({ STATUS_SIMPLE, STATUS_PHYSICS }, veh->GetStatus()) && ap->m_nCarMission == MISSION_CRUISE && veh->IsSubAutomobile()) {
+        if (notsa::contains({ STATUS_SIMPLE, STATUS_PHYSICS }, veh->GetStatus()) && ap->m_Mission == MISSION_CRUISE && veh->IsSubAutomobile()) {
             if (CPopCycle::m_bCurrentZoneIsGangArea) {
                 ap->SetCruiseSpeed(10); // Start at 10, go down to min 1
                 for (auto& p : GetPedPool()->GetAllValid()) {
@@ -1327,7 +1327,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                     if ((veh->GetPosition() - p.GetPosition()).SquaredMagnitude() >= sq(10.f)) {
                         continue;
                     }
-                    if (--ap->m_nCruiseSpeed == 1) { // Minimum 1
+                    if (--ap->m_CruiseSpeed == 1) { // Minimum 1
                         break;
                     }
                 }
