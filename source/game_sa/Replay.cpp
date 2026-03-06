@@ -94,7 +94,7 @@ void CReplay::Update() {
     if (CTimer::GetIsCodePaused() || CTimer::GetIsUserPaused())
         return;
 
-    static uint32& s_FrameRecordCounter = *reinterpret_cast<uint32*>(0x97FB40);
+    static auto& s_FrameRecordCounter = StaticRef<uint32>(0x97FB40);
     if (Mode == MODE_PLAYBACK) {
         PlayBackThisFrame();
     } else if (CTimer::GetTimeInMS() - s_FrameRecordCounter > 26) {

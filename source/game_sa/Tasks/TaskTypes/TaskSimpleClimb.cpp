@@ -10,10 +10,10 @@
 #include "TaskSimpleClimb_models.h"
 
 
-CColModel& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
-CColModel& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
-CColModel& ms_VaultColModel    = StaticRef<CColModel>(0xC19578);
-CColModel& ms_FindEdgeColModel = StaticRef<CColModel>(0xC195A8);
+auto& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
+auto& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
+auto& ms_VaultColModel    = StaticRef<CColModel>(0xC19578);
+auto& ms_FindEdgeColModel = StaticRef<CColModel>(0xC195A8);
 
 float ms_fHangingOffsetHorz = -0.40f; // 0x8D2F1C
 float ms_fHangingOffsetVert = -1.10f; // 0x8D2F20

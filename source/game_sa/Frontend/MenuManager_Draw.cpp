@@ -259,9 +259,9 @@ void CMenuManager::DrawBackground() {
 
     // 0x57BC19
     if (m_bScanningUserTracks) {
-        static bool updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
-        static int32 progressDir = StaticRef<int32>(0x8CDFFC); // -1
-        static int32 progressPos = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
+        static auto& updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
+        static auto& progressDir = StaticRef<int32>(0x8CDFFC); // -1
+        static auto& progressPos = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
 
         if (!bScanningUserTracks) {
             bScanningUserTracks = true;

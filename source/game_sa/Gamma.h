@@ -20,5 +20,5 @@ public:
 
 VALIDATE_SIZE(CGamma, 0x10);
 
-inline static bool& gbGammaChanged = StaticRef<bool>(0xC920C8);
-inline static CGamma& gamma        = StaticRef<CGamma>(0xC92134);
+inline static auto& gbGammaChanged = StaticRef<bool>(0xC920C8);
+inline static auto& gamma          = StaticRef<CGamma>(0xC92134);
