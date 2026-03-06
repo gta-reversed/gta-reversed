@@ -8,10 +8,6 @@
 #include "LoadingScreen.h"
 #include "VehicleRecording.h"
 
-// Default models for current level
-int32& CStreaming::ms_DefaultCopBikeModel = *(&ms_aDefaultCopCarModel[4]); // reinterpret_cast<int32*>(0x8A5A9C);
-int32& CStreaming::ms_DefaultCopBikerModel = *(&ms_aDefaultCopModel[4]);
-
 static auto& CurrentGangMemberToLoad = StaticRef<int32>(0x9654D4);
 
 auto& gRwStream = StaticRef<RwStream>(0x8E48AC);

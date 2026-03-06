@@ -200,8 +200,8 @@ public:
     static inline auto& ms_aDefaultFiremanModel = StaticRef<int32[4]>(0x8A5AE4);
 
     // Default models for current level
-    static int32& ms_DefaultCopBikeModel;
-    static int32& ms_DefaultCopBikerModel;
+    static inline auto& ms_DefaultCopBikeModel = StaticRef<int32>(0x8A5A9C);
+    static inline auto& ms_DefaultCopBikerModel = StaticRef<int32>(0x8A5AB0);
 
     static inline auto& ms_pExtraObjectsDir = StaticRef<CDirectory*>(0x8E48D0);
     static inline auto& ms_files = StaticRef<tStreamingFileDesc[TOTAL_IMG_ARCHIVES]>(0x8E48D8);
