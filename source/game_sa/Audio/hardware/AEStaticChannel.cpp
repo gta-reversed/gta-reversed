@@ -210,7 +210,7 @@ bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size,
     }
 
     if (m_nCurrentBufferOffset) {
-        std::memcpy((uint8*)audioPtr + field_24 - m_nCurrentBufferOffset, m_pBuffer, field_24 - m_nCurrentBufferOffset);
+        std::memcpy((uint8*)audioPtr + field_24 - m_nCurrentBufferOffset, m_pBuffer, m_nCurrentBufferOffset);
         m_nNumLoops = m_nCurrentBufferOffset / m_nNumLockBytes + 1;
         m_dwLockOffset = field_24 - m_nNumLockBytes * m_nNumLoops;
 
