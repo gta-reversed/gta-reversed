@@ -194,10 +194,10 @@ void CWeather::RenderRainStreaks() {
     constexpr auto RAIN_STREAK_COUNT{ 32u };
 
     // These are arrays of size `RAIN_STREAK_COUNT`
-    static auto& streakPosX = StaticRef<int32*>(0xC81420); // TODO | STATICREF
-    static auto& streakPosY = StaticRef<int32*>(0xC8141C); // TODO | STATICREF
-    static auto& streakPosZ = StaticRef<int32*>(0xC81418); // TODO | STATICREF
-    static auto& streakStrength = StaticRef<uint8*>(0xC81414); // TODO | STATICREF
+    static auto& streakPosX = StaticRef<int32*>(0xC81420);
+    static auto& streakPosY = StaticRef<int32*>(0xC8141C);
+    static auto& streakPosZ = StaticRef<int32*>(0xC81418);
+    static auto& streakStrength = StaticRef<uint8*>(0xC81414);
 
     if (!streakPosX) {
         // This stuff isn't even freed anywhere..

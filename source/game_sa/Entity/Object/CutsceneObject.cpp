@@ -160,8 +160,8 @@ void CCutsceneObject::RemoveLighting(bool bRemove) {
 
 // 0x5B1AB0
 void CCutsceneObject::SetupCarPipeAtomicsForClump(unsigned modelId, RpClump* clump) {
-    static auto& bCarPipeAtomicsInitialized = StaticRef<bool>(0xBC4058);                              // TODO | STATICREF // = false;
-    static auto (&anHashKeys)[NUM_CUTSCENE_VEHS] = StaticRef<uint32[NUM_CUTSCENE_VEHS]>(0xBC4040); // TODO | STATICREF
+    static auto& bCarPipeAtomicsInitialized = StaticRef<bool>(0xBC4058); // false
+    static auto (&anHashKeys)[NUM_CUTSCENE_VEHS] = StaticRef<uint32[NUM_CUTSCENE_VEHS]>(0xBC4040);
 
     if (!bCarPipeAtomicsInitialized) {
         bCarPipeAtomicsInitialized = true;

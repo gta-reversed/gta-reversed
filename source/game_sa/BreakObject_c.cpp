@@ -172,9 +172,9 @@ void BreakObject_c::SetGroupData(const RwMatrix* matrix, const CVector* vecVeloc
 
 // 0x59D7F0
 void BreakObject_c::SetBreakInfo(BreakInfo_t* info, int32 bJustFaces) {
-    static auto& ambientRed = StaticRef<float>(0x8D0A0C);  // TODO | STATICREF // = 32.0f;
-    static auto& ambientGreen = StaticRef<float>(0x8D0A08);  // TODO | STATICREF // = 32.0f;
-    static auto& ambientBlue = StaticRef<float>(0x8D0A04);  // TODO | STATICREF // = 32.0f;
+    static auto& ambientRed = StaticRef<float>(0x8D0A0C); // 32.0f
+    static auto& ambientGreen = StaticRef<float>(0x8D0A08); // 32.0f
+    static auto& ambientBlue = StaticRef<float>(0x8D0A04); // 32.0f
 
     m_NumBreakGroups = bJustFaces ? info->m_usNumTriangles : info->m_usNumMaterials;
     m_BreakGroups = new BreakGroup_t[m_NumBreakGroups];
