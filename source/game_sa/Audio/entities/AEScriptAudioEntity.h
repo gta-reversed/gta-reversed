@@ -32,18 +32,18 @@ public:
     static constexpr auto MISSION_AUDIO_COUNT = 4;
 
 public:
-    uint8                   field_7C;
-    uint8                   field_7D;
-    uint8                   field_7E;
-    uint8                   field_7F;
-    uint32                  m_nLastTimeHornPlayed;
-    float                   m_Volume;
-    float                   m_Speed;
-    float                   field_8C;
-    CAudioLink              wavLinks[MISSION_AUDIO_COUNT];
-    CPhysical*              m_Physical;
-    CAEDoorAudioEntity      m_GarageAudio;
-    CAEExplosionAudioEntity m_ExplosionAudio;
+    uint8                                       field_7C;
+    uint8                                       field_7D;
+    uint8                                       field_7E;
+    uint8                                       field_7F;
+    uint32                                      m_nLastTimeHornPlayed;
+    float                                       m_Volume;
+    float                                       m_Speed;
+    float                                       field_8C;
+    std::array<CAudioLink, MISSION_AUDIO_COUNT> wavLinks;
+    CPhysical*                                  m_Physical;
+    CAEDoorAudioEntity                          m_GarageAudio;
+    CAEExplosionAudioEntity                     m_ExplosionAudio;
 
 public:
     CAEScriptAudioEntity();
@@ -59,7 +59,7 @@ public:
     bool IsMissionAudioSampleFinished(uint8 sampleId);
     int8 GetMissionAudioLoadingStatus(uint8 sampleId);
     int32 GetMissionAudioEvent(uint8 sampleId);
-    void SetMissionAudioPosition(uint8 sampleId, CVector& posn);
+    void SetMissionAudioPosition(uint8 sampleId, const CVector& posn);
     CVector* GetMissionAudioPosition(uint8);
 
     void PlayMissionBankSound(uint8 sampleId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7 = 0, float volume = 0.0f, float maxDistance = 2.0f, float speed = 1.0f);

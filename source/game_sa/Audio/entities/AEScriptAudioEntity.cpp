@@ -108,8 +108,9 @@ int32 CAEScriptAudioEntity::GetMissionAudioEvent(uint8 sampleId) {
 }
 
 // 0x4EC0C0
-void CAEScriptAudioEntity::SetMissionAudioPosition(uint8 sampleId, CVector& posn) {
-    plugin::CallMethod<0x4EC0C0, CAEScriptAudioEntity*, uint8, CVector&>(this, sampleId, posn);
+void CAEScriptAudioEntity::SetMissionAudioPosition(uint8 sampleId, const CVector& posn) {
+    wavLinks[sampleId].m_vPosition = posn;
+    wavLinks[sampleId].m_pEntity = nullptr;
 }
 
 // 0x4EC4D0
@@ -836,7 +837,7 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0);
     RH_ScopedInstall(GetMissionAudioEvent, 0x4EC020);
     RH_ScopedInstall(ClearMissionAudio, 0x4EC040);
-    RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0, { .reversed = false });
+    RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0);
     RH_ScopedInstall(AttachMissionAudioToPhysical, 0x4EC100);
     RH_ScopedInstall(PreloadMissionAudio, 0x4EC190, { .reversed = false });
     RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270, { .reversed = false });
