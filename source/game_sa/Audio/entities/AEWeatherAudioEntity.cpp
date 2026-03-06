@@ -16,7 +16,7 @@ enum class eWeatherEvent {
 
 constexpr CVector DEFAULT_POS                   = { -0.906f, 0.f, 0.423f };
 
-float& CAEWeatherAudioEntity::m_sfRainVolume = *(float*)0x8CC30C; // -100.0f
+float& CAEWeatherAudioEntity::m_sfRainVolume = *(float*)0x8CC30C; // -100.0f = VOLUME_SILENCE
 
 auto& m_snLastRainDropSoundID = StaticRef<int32>(0x8CC310); // TODO: Use `eSoundID`
 CAETwinLoopSoundEntity& m_sRainSoundL = *(CAETwinLoopSoundEntity*)0xB6BB18;  // dunno about names
@@ -34,7 +34,7 @@ void CAEWeatherAudioEntity::StaticInitialise() {
 
 // 0x5052B0
 void CAEWeatherAudioEntity::StaticReset() {
-    m_sfRainVolume = -100.0f;
+    m_sfRainVolume = VOLUME_SILENCE;
 
     if (m_sRainSoundL.IsActive()) {
         m_sRainSoundL.StopSoundAndForget();
@@ -293,7 +293,7 @@ void CAEWeatherAudioEntity::Service() {
         }
     };
     if (CWeather::Rain <= 0.f || CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || !CGame::CanSeeOutSideFromCurrArea()) { // 0x5055A3
-        UpdateRainSounds(-100.0f);
+        UpdateRainSounds(VOLUME_SILENCE);
     } else { // 0x5055D5
         m_sfRainVolume = std::max(m_sfRainVolume, -50.f);
         UpdateRainSounds(GetDefaultVolume(AE_RAIN) + CAEAudioUtility::AudioLog10(std::max(CWeather::Rain - 0.2f, 0.f) / 0.8f) * 20.f);

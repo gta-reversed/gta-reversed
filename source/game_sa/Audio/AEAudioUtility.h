@@ -4,6 +4,8 @@
 
 class CVehicle;
 
+static constexpr float VOLUME_SILENCE = -100.0f;
+
 class CAEAudioUtility {
 public:
     static void      StaticInitialise();

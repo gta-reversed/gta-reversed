@@ -11,7 +11,7 @@ public:
     int32                 field_68;
     int32                 field_6C;
     uint32                m_nSyncTime;
-    int32                 field_74;
+    int32                 m_CurrentBufferOffsetMs;
     int32                 m_dwLockOffset;
     int32                 m_nNumLockBytes;
     uint16                m_nNumLoops;
@@ -20,7 +20,7 @@ public:
     uint16                field_88;
     bool                  m_IsHardwareMixAvailable;
     char                  field_8B;
-    int32                 field_8C;
+    int16                 field_8C;
 
 public:
     CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool arg3, uint32 samplesPerSec, uint16 bitsPerSample);

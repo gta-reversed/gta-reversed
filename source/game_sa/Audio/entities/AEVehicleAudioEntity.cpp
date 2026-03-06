@@ -95,8 +95,8 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_ACPlayPositionWhenStopped   = 0;
     m_ACPlayPercentWhenStopped    = 0;
     m_FramesAgoACLooped           = 0;
-    m_HornVolume                  = -100.0f;
-    m_CurrentDummyEngineVolume    = -100.0f;
+    m_HornVolume                  = VOLUME_SILENCE;
+    m_CurrentDummyEngineVolume    = VOLUME_SILENCE;
     m_SurfaceSoundType            = -1;
     m_RoadNoiseSoundType          = -1;
     m_FlatTireSoundType           = -1;
@@ -1616,7 +1616,7 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
     case AE_AIRCRAFT_SEAPLANE: { // 0x4FCFC8
         CancelAllVehicleEngineSounds();
         m_CurrentRotorFrequency    = -1.0f;
-        m_CurrentDummyEngineVolume = -100.0f;
+        m_CurrentDummyEngineVolume = VOLUME_SILENCE;
         break;
     }
     case AE_BMX:
@@ -1691,7 +1691,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
         }
 
         m_CurrentRotorFrequency    = -1.0f;
-        m_CurrentDummyEngineVolume = -100.0f;
+        m_CurrentDummyEngineVolume = VOLUME_SILENCE;
 
         break;
     }
@@ -2012,8 +2012,8 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
             return;
         }
     } else if (m_AuSettings.HornType == eAEVehicleHornType::BIKE) { 
-        m_HornVolume = std::max(m_HornVolume - std::pow(s_Config.Horn.BikeBellFadeOut, CTimer::GetTimeStep()), -100.0f); // NB: Framerate bugfix with `std::pow`
-        if (m_HornVolume <= -100.0f) {
+        m_HornVolume = std::max(m_HornVolume - std::pow(s_Config.Horn.BikeBellFadeOut, CTimer::GetTimeStep()), VOLUME_SILENCE); // NB: Framerate bugfix with `std::pow`
+        if (m_HornVolume <= VOLUME_SILENCE) {
             StopAndForgetSound(m_HornSound);
         } else if (m_HornSound) {
             m_HornSound->SetVolume(m_HornVolume);
@@ -2146,7 +2146,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& vp) {
         const float skidPerWheel = sumWheelSkid / (float)(numWheels);
         if (skidPerWheel > 0.00001f) {
             volume += CAEAudioUtility::AudioLog10(skidPerWheel) * 20.0f + s_Config.Skid.VolBase;
-            if (volume >= -100.0f) {
+            if (volume >= VOLUME_SILENCE) {
                 return PlaySkidSound(sfx, speed, volume);
             }
         }
@@ -2386,10 +2386,10 @@ void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& vp) {
             cfg->FrqBase + std::abs(revs) * cfg->FrqRevsFactor,
             std::abs(revs) > 0.0f
                 ? cfg->VolBase + CAEAudioUtility::AudioLog10(std::abs(revs)) * 20.0f
-                : -100.0f
+                : VOLUME_SILENCE
         );
     } else { // Cancel sound otherwise
-        PlayReverseSound(-1, 1.0f, -100.0f);
+        PlayReverseSound(-1, 1.0f, VOLUME_SILENCE);
     }
 }
 
@@ -2400,7 +2400,7 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
     if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER)) {
         return;
     }
-    if (CAEWeatherAudioEntity::m_sfRainVolume <= -100.0f) {
+    if (CAEWeatherAudioEntity::m_sfRainVolume <= VOLUME_SILENCE) {
         return;
     }
     if (++m_RainDropCounter < 3) {
@@ -2544,7 +2544,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
     const auto* const params = &props->SoundParamsByPartDir[delta <= 0.f ? 0 : 1];
 
     const auto volume = params->Vol + CAEAudioUtility::AudioLog10(m_MovingPartSmoothedSpeed) * 20.0f;
-    if (volume <= -100.0f) {
+    if (volume <= VOLUME_SILENCE) {
         StopGenericEngineSound(AE_SOUND_MOVING_PARTS);
     } else {
         UpdateGenericVehicleSound(

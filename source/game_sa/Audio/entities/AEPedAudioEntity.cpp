@@ -52,12 +52,12 @@ void CAEPedAudioEntity::Initialise(CPed* ped) {
     m_bJetPackPlaying = false;
     m_JetPackSound0 = nullptr;
     m_JetPackSound1 = nullptr;
-    m_fVolume1 = -100.0f;
-    m_fVolume2 = -100.0f;
+    m_fVolume1 = VOLUME_SILENCE;
+    m_fVolume2 = VOLUME_SILENCE;
 
     field_150 = nullptr;
-    field_154 = -100.0f;
-    field_158 = -100.0f;
+    field_154 = VOLUME_SILENCE;
+    field_158 = VOLUME_SILENCE;
     m_bCanAddEvent = true;
 }
 
@@ -185,8 +185,8 @@ void CAEPedAudioEntity::TurnOnJetPack() {
     if (m_bJetPackPlaying || m_JetPackSound1 || m_JetPackSound0 || m_JetPackSound2)
         return;
 
-    m_fVolume1 = -100.0f;
-    m_fVolume2 = -100.0f;
+    m_fVolume1 = VOLUME_SILENCE;
+    m_fVolume2 = VOLUME_SILENCE;
     m_fVolume3 = +2.000f;
     m_JetPackSoundSpeedMult = 0.400f;
 
@@ -238,13 +238,13 @@ void CAEPedAudioEntity::UpdateJetPack(float thrustFwd, float thrustAngle) {
     }
 
     if (thrustFwd <= 0.5f) { // flying
-        m_fVolume1 = std::max(m_fVolume1 - 5.0f, -100.0f);
+        m_fVolume1 = std::max(m_fVolume1 - 5.0f, VOLUME_SILENCE);
         m_fVolume2 = std::min(m_fVolume2 + 6.0f, -17.0f);
         m_fVolume3 = std::max(m_fVolume3 - 0.3f, 2.0f);
         m_JetPackSoundSpeedMult = std::max(m_JetPackSoundSpeedMult - 0.031f, 0.4f);
     } else { // idle
         m_fVolume1 = std::min(m_fVolume1 + 15.0f, -15.0f);
-        m_fVolume2 = std::max(m_fVolume2 - 7.1f, -100.0f);
+        m_fVolume2 = std::max(m_fVolume2 - 7.1f, VOLUME_SILENCE);
         m_fVolume3 = std::min(m_fVolume3 + 0.3f, 11.0f);
         m_JetPackSoundSpeedMult = std::min(m_JetPackSoundSpeedMult + 0.031f, 0.71f);
     }

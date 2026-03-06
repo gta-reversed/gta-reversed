@@ -29,7 +29,7 @@ bool CAEAmbienceTrackManager::Initialise(int32 hwClientHandle) {
         .TrackFlags     = 3
     };
     m_AmbienceStatus      = AmbienceStatus::STOPPED;
-    m_Volume              = -100.0f;
+    m_Volume              = VOLUME_SILENCE;
     m_FreqFactor          = 1.0f;
     return true;
 }
@@ -390,7 +390,7 @@ void CAEAmbienceTrackManager::Service(int32 trackPlayTime) {
             m_PrevAmbiencePlayTimeMs = trackPlayTime;
             m_PrevAmbienceStopTimeMs = CTimer::GetTimeInMS();
         }
-        m_Volume = -100.0f;
+        m_Volume = VOLUME_SILENCE;
         [[fallthrough]];
     case AmbienceStatus::STOPPING_CHANNELS_STOPPED: // Moved here to allow fallthrough
         AEAudioHardware.StopTrack();

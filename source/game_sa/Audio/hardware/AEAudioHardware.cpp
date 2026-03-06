@@ -128,7 +128,7 @@ bool CAEAudioHardware::Initialise() {
         m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_IsHardwareMixAvailable, 44'100, 16);
     }
 
-    m_pStreamingChannel->SetVolume(-100.0f);
+    m_pStreamingChannel->SetVolume(VOLUME_SILENCE);
     m_awChannelFlags[0] = 55; // todo: flag
 
     if (FrontEndMenuManager.m_bTracksAutoScan) {
