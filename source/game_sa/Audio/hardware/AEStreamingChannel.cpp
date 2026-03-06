@@ -6,7 +6,7 @@
 #include "AEAudioUtility.h"
 
 //! Stereo channel FX Param EQ presets [0x8CBA70]
-static inline DSFXParamEq s_FXParamEqPresets[(+eBassSetting::NUM)][2]{
+static constexpr DSFXParamEq s_FXParamEqPresets[(+eBassSetting::NUM)][2]{
     {{ 0.0f, 0.0f,  0.0f }, { 0.f,   0.0f,  0.0f }}, // Preset NORMAL [Unused]
     {{ 80.f, 30.f,  4.0f }, { 180.f, 30.f,  1.5f }}, // Preset BOOST
     {{ 80.f, 36.f, -15.f }, { 80.f,  36.f, -15.f }}, // Preset CUT
@@ -23,21 +23,10 @@ CAEStreamingChannel::~CAEStreamingChannel() {
         m_pDirectSoundBuffer8->SetFX(0, nullptr, nullptr);
     }
 
-    if (m_pSilenceBuffer) {
-        std::exchange(m_pSilenceBuffer, nullptr)->Release();
-    }
-
-    if (m_pDirectSoundBuffer) {
-        std::exchange(m_pDirectSoundBuffer, nullptr)->Release();
-    }
-
-    if (m_pStreamingDecoder) {
-        delete std::exchange(m_pStreamingDecoder, nullptr);
-    }
-
-    if (m_pNextStreamingDecoder) {
-        delete std::exchange(m_pNextStreamingDecoder, nullptr);
-    }
+    SAFE_RELEASE(m_pSilenceBuffer);
+    SAFE_RELEASE(m_pDirectSoundBuffer);
+    delete std::exchange(m_pStreamingDecoder, nullptr);
+    delete std::exchange(m_pNextStreamingDecoder, nullptr);
 }
 
 // 0x4F22F0
@@ -45,20 +34,20 @@ void CAEStreamingChannel::Initialise() {
     VERIFY(SUCCEEDED(CoInitialize(nullptr)));
 
     DSBUFFERDESC bufferDesc{};
-    bufferDesc.guid3DAlgorithm = GUID_NULL;
-    bufferDesc.lpwfxFormat = &m_WaveFormat;
-    bufferDesc.dwSize = 36;
-    bufferDesc.dwBufferBytes = 0xC0000;
-    bufferDesc.dwReserved = 0;
-    bufferDesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLFX | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE;
+    bufferDesc.guid3DAlgorithm   = GUID_NULL;
+    bufferDesc.lpwfxFormat       = &m_WaveFormat;
+    bufferDesc.dwSize            = 36;
+    bufferDesc.dwBufferBytes     = 2 * CHANNEL_BUFFER_SIZE;
+    bufferDesc.dwReserved        = 0;
+    bufferDesc.dwFlags           = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLFX | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE;
 
-    m_WaveFormat.wFormatTag = WAVE_FORMAT_PCM;
-    m_WaveFormat.cbSize = 0;
-    m_WaveFormat.nChannels = 2;
-    m_WaveFormat.wBitsPerSample = 16;
-    m_WaveFormat.nSamplesPerSec = 48000;
-    m_WaveFormat.nAvgBytesPerSec = 192000;
-    m_WaveFormat.nBlockAlign = 4;
+    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
+    m_WaveFormat.cbSize          = 0;
+    m_WaveFormat.nChannels       = 2;
+    m_WaveFormat.wBitsPerSample  = 16;
+    m_WaveFormat.nSamplesPerSec  = 48'000;
+    m_WaveFormat.nAvgBytesPerSec = 192'000;
+    m_WaveFormat.nBlockAlign     = 4;
 
     if (SUCCEEDED(m_pDirectSound->CreateSoundBuffer(
         &bufferDesc,
@@ -76,17 +65,17 @@ void CAEStreamingChannel::Initialise() {
 // 0x4F1C70
 void CAEStreamingChannel::InitialiseSilence() {
     DSBUFFERDESC bufferDesc{};
-    bufferDesc.dwSize = 36;
-    bufferDesc.lpwfxFormat = &m_WaveFormat;
+    bufferDesc.dwSize        = 36;
+    bufferDesc.lpwfxFormat   = &m_WaveFormat;
     bufferDesc.dwBufferBytes = 0x8000;
-    bufferDesc.dwFlags = DSBCAPS_GLOBALFOCUS | DSBCAPS_LOCSOFTWARE;
+    bufferDesc.dwFlags       = DSBCAPS_GLOBALFOCUS | DSBCAPS_LOCSOFTWARE;
 
     if (SUCCEEDED(m_pDirectSound->CreateSoundBuffer(&bufferDesc, &m_pSilenceBuffer, 0))) {
         void *audioPtr;
         DWORD audioPtrBytes;
 
         m_pSilenceBuffer->Lock(0, 0, &audioPtr, &audioPtrBytes, nullptr, 0, DSBLOCK_ENTIREBUFFER);
-        memset(audioPtr, 0, audioPtrBytes);
+        std::memset(audioPtr, 0, audioPtrBytes);
         m_pSilenceBuffer->Unlock(audioPtr, audioPtrBytes, nullptr, 0);
         m_pSilenceBuffer->Play(0, 0, DSBPLAY_LOOPING);
 
@@ -125,7 +114,7 @@ void CAEStreamingChannel::SetBassEQ(eBassSetting mode, float gain) {
     }
 
     for (auto ch = 0; ch < 2; ch++) {
-        IDirectSoundFXParamEq* fxEqParam;
+        IDirectSoundFXParamEq* fxEqParam{};
         if (FAILED(m_pDirectSoundBuffer8->GetObjectInPath(
             GUID_All_Objects,
             ch,
@@ -159,7 +148,7 @@ void CAEStreamingChannel::SetFrequencyScalingFactor(float factor) {
         if (!m_pDirectSoundBuffer)
             return;
 
-        m_pDirectSoundBuffer->SetVolume(-10'000);
+        m_pDirectSoundBuffer->SetVolume(DSBVOLUME_MIN);
         m_pDirectSoundBuffer->Play(0, 0, m_bLooped ? DSBPLAY_LOOPING : 0);
 
         if (!AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, m_Volume, 35, true))
@@ -194,7 +183,7 @@ uint32 CAEStreamingChannel::FillBuffer(void* buffer, uint32 size) {
 
                     filled += m_pStreamingDecoder->FillBuffer((uint8*)buffer + filled, size - filled);
                 } else {
-                    memset((uint8*)buffer + filled, 0, size - filled);
+                    std::memset((uint8*)buffer + filled, 0, size - filled);
                     filled = size;
                     m_bSilenced = true;
                 }
@@ -247,7 +236,7 @@ void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 fl
         0,
         0,
         &audioPtr,
-        (DWORD*)&audioBytes,
+        &audioBytes,
         nullptr,
         0,
         DSBLOCK_ENTIREBUFFER
@@ -256,7 +245,7 @@ void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 fl
         if (written == audioBytes) {
             m_bNeedToFinish = false;
         } else {
-            memset(reinterpret_cast<uint8*>(audioPtr) + written, 0, audioBytes - written);
+            std::memset(reinterpret_cast<uint8*>(audioPtr) + written, 0, audioBytes - written);
             m_bNeedToFinish = true;
         }
         DitherSamples(audioPtr, audioBytes);
@@ -285,9 +274,7 @@ void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 fl
 
 // 0x4F1DE0
 void CAEStreamingChannel::SetNextStream(CAEStreamingDecoder* decoder) {
-    if (m_pNextStreamingDecoder) {
-        delete m_pNextStreamingDecoder;
-    }
+    delete m_pNextStreamingDecoder;
     m_pNextStreamingDecoder = decoder;
 }
 
@@ -325,9 +312,9 @@ int32 CAEStreamingChannel::UpdatePlayTime() {
 
     DWORD currentPlayCursor;
     m_pDirectSoundBuffer->GetCurrentPosition(&currentPlayCursor, nullptr);
-    auto freqFactor = m_nFrequency / 250.f;
-    auto upperLimit = 393216.f / freqFactor; //TODO: Magic number (393.216 khz can be found often with oscilators / clock generators, also that's 0x60000 in hex)
-    auto curStep    = currentPlayCursor / freqFactor;
+    const auto freqFactor = m_nFrequency / 250.f;
+    const auto upperLimit = 393216.f / freqFactor; //TODO: Magic number (393.216 khz can be found often with oscilators / clock generators, also that's 0x60000 in hex)
+    const auto curStep    = currentPlayCursor / freqFactor;
     if ((uint32(freqFactor) / 0x60000) > 0) {
         if (m_lastWrittenSlot == 1) {
             m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - (2 * upperLimit));
@@ -453,7 +440,7 @@ void CAEStreamingChannel::Play(int16 startOffsetMs, int8 soundFlags, float freqF
     SetOriginalFrequency(m_pStreamingDecoder->GetSampleRate());
 
     if (m_nState != StreamingChannelState::Paused) {
-        m_bLoopTrack = (soundFlags & 1) != 0;
+        m_bLoopTrack = (soundFlags & TRKFLAG_LOOP_TRACK) != 0;
     }
 
     if (m_nState == StreamingChannelState::Stopping) {

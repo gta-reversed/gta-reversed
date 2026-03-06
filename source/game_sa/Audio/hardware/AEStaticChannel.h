@@ -3,24 +3,24 @@
 
 class NOTSA_EXPORT_VTABLE CAEStaticChannel : public CAEAudioChannel {
 public:
-    bool                  m_bNeedData;
-    bool                  m_bUnkn2;
-    bool                  m_bNeedsSynch;
-    bool                  m_bUnkn4;
-    int32                 m_nCurrentBufferOffset;
-    int32                 field_68;
-    int32                 field_6C;
-    uint32                m_nSyncTime;
-    int32                 m_CurrentBufferOffsetMs;
-    int32                 m_dwLockOffset;
-    int32                 m_nNumLockBytes;
-    uint16                m_nNumLoops;
-    uint16                field_82;
-    IDirectSound3DBuffer* m_pBuffer;
-    uint16                field_88;
-    bool                  m_IsHardwareMixAvailable;
-    char                  field_8B;
-    int16                 field_8C;
+    bool   m_bNeedData;
+    bool   m_bUnkn2;
+    bool   m_bNeedsSynch;
+    bool   m_bUnkn4;
+    int32  m_nCurrentBufferOffset;
+    uint32 field_68;
+    int32  field_6C;
+    uint32 m_nSyncTime;
+    int32  m_CurrentBufferOffsetMs;
+    int32  m_dwLockOffset;
+    int32  m_nNumLockBytes;
+    uint16 m_nNumLoops;
+    uint16 field_82;
+    void*  m_pBuffer;
+    uint16 field_88;
+    bool   m_IsHardwareMixAvailable;
+    char   field_8B;
+    int16  field_8C;
 
 public:
     CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool arg3, uint32 samplesPerSec, uint16 bitsPerSample);
@@ -33,7 +33,7 @@ public:
     void   SynchPlayback() override;
     void   Stop() override;
 
-    bool SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency);
+    bool SetAudioBuffer(void* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency);
 
 private:
     friend void InjectHooksMain();

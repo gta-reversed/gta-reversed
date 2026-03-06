@@ -16,7 +16,7 @@ void CAEStaticChannel::InjectHooks() {
     RH_ScopedVMTInstall(SynchPlayback, 0x4F1040);
     RH_ScopedVMTInstall(Stop, 0x4F0FB0);
 
-    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40);
+    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = false}); // check
 }
 
 CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
@@ -142,8 +142,8 @@ void CAEStaticChannel::Stop() {
     }
 }
 
-// 0x4F0C40
-bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency) {
+// 0x4F0C40 -- broken, loops aren't correct. test with molotovs
+bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency) {
     if (!size || !frequency) {
         return false;
     }
@@ -174,10 +174,9 @@ bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size,
     DSBUFFERDESC dsBufferDesc{ .dwSize = sizeof(DSBUFFERDESC) }; // guid already set to zero
     if (m_bLooped && m_nCurrentBufferOffset) {
         m_nNumLockBytes            = field_68 - m_nCurrentBufferOffset;
-        field_68                   = std::min(field_68, 24'000);
-        field_6C                   = field_68 / m_nNumLockBytes + 1;
-        dsBufferDesc.dwBufferBytes = m_nNumLockBytes * field_6C;
+        field_6C                   = std::max(field_68, 24'000u) / m_nNumLockBytes + 1;
         field_24                   = m_nNumLockBytes * field_6C;
+        dsBufferDesc.dwBufferBytes = field_24;
     } else {
         dsBufferDesc.dwBufferBytes = field_24 = size;
     }
@@ -188,6 +187,7 @@ bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size,
 
     m_nOriginalFrequency         = frequency;
     m_nFrequency                 = frequency;
+
     m_WaveFormat.nAvgBytesPerSec = 2 * frequency;
     m_WaveFormat.nSamplesPerSec  = frequency;
     m_WaveFormat.cbSize          = 0;
@@ -204,15 +204,17 @@ bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size,
 
     void* audioPtr{};
     DWORD audioBytes{};
-    if (FAILED(m_pDirectSoundBuffer->Lock(0, m_nLengthInBytes, &audioPtr, &audioBytes, nullptr, 0, DSBLOCK_ENTIREBUFFER))) {
+    if (FAILED(m_pDirectSoundBuffer->Lock(0, m_nLengthInBytes, &audioPtr, &audioBytes, nullptr, nullptr, DSBLOCK_ENTIREBUFFER))) {
         SAFE_RELEASE(m_pDirectSoundBuffer);
         return false;
     }
 
+    DWORD newPosition{};
     if (m_nCurrentBufferOffset) {
         std::memcpy((uint8*)audioPtr + field_24 - m_nCurrentBufferOffset, m_pBuffer, m_nCurrentBufferOffset);
         m_nNumLoops = m_nCurrentBufferOffset / m_nNumLockBytes + 1;
         m_dwLockOffset = field_24 - m_nNumLockBytes * m_nNumLoops;
+        newPosition    = field_24 - m_nCurrentBufferOffset;
 
         if (field_6C != m_nNumLoops) {
             for (auto i = 0; i < field_6C - m_nNumLoops; i++) {
@@ -234,7 +236,7 @@ bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size,
     }
 
     m_pDirectSoundBuffer->Unlock(audioPtr, audioBytes, nullptr, 0);
-    m_pDirectSoundBuffer->SetCurrentPosition(field_24 - m_nCurrentBufferOffset);
+    m_pDirectSoundBuffer->SetCurrentPosition(newPosition);
     m_pDirectSoundBuffer->QueryInterface(IID_IDirectSound3DBuffer, (LPVOID*)&m_pDirectSound3DBuffer);
     m_Volume = VOLUME_SILENCE;
     m_pDirectSoundBuffer->SetVolume(DSBVOLUME_MIN);
