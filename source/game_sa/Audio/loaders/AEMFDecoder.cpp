@@ -40,7 +40,7 @@ const IID MFAttributes = {0x2cd2d921, 0xc447, 0x44a7, {0xa1, 0x3c, 0x4a, 0xda, 0
 } // namespace MFID
 
 // QuickTime is replaced with MediaFoundation
-bool& CAEMFDecoder::quickTimeInitialized = *(bool*)0xb61d70;
+auto& CAEMFDecoder::quickTimeInitialized = StaticRef<bool>(0xb61d70);
 
 // MediaFoundation pointers
 HMODULE CAEMFDecoder::mfPlatModule = nullptr;

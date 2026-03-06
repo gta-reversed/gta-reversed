@@ -11,12 +11,12 @@
 #include "Buoyancy.h"
 #include "CarCtrl.h"
 
-uint32& CTrain::GenTrain_Track = *(uint32*)0xC37FFC;
-uint32& CTrain::GenTrain_TrainConfig = *(uint32*)0xC38000;
-uint8& CTrain::GenTrain_Direction = *(uint8*)0xC38004;
-uint32& CTrain::GenTrain_GenerationNode = *(uint32*)0xC38008;
-uint32& CTrain::GenTrain_Status = *(uint32*)0xC3800C;
-bool& CTrain::bDisableRandomTrains = *(bool*)0xC38010;
+auto& CTrain::GenTrain_Track = StaticRef<uint32>(0xC37FFC);
+auto& CTrain::GenTrain_TrainConfig = StaticRef<uint32>(0xC38000);
+auto& CTrain::GenTrain_Direction = StaticRef<uint8>(0xC38004);
+auto& CTrain::GenTrain_GenerationNode = StaticRef<uint32>(0xC38008);
+auto& CTrain::GenTrain_Status = StaticRef<uint32>(0xC3800C);
+auto& CTrain::bDisableRandomTrains = StaticRef<bool>(0xC38010);
 CVector CTrain::aStationCoors[6] = { // 0x8D48F8
     CVector{ 1741.0f, -1954.0f, 15.0f },
     CVector{ 1297.0f, -1898.0f, 3.0f  },
@@ -26,10 +26,10 @@ CVector CTrain::aStationCoors[6] = { // 0x8D48F8
     CVector{ 2865.0f,  1281.0f, 12.0  }
 };
 
-CTrainNode* (&pTrackNodes)[4] = *(CTrainNode*(*)[4])0xC38024;
-int32 (&NumTrackNodes)[4] = *(int32(*)[4])0xC38014;
-float (&arrTotalTrackLength)[4] = *(float (*)[4])0xC37FEC;
-float (&StationDist)[6] = *(float (*)[6])0xC38034;
+auto (&pTrackNodes)[4] = StaticRef<CTrainNode*[4]>(0xC38024);
+auto (&NumTrackNodes)[4] = StaticRef<int32[4]>(0xC38014);
+auto (&arrTotalTrackLength)[4] = StaticRef<float[4]>(0xC37FEC);
+auto (&StationDist)[6] = StaticRef<float[6]>(0xC38034);
 
 void CTrain::InjectHooks() {
     RH_ScopedVirtualClass(CTrain, 0x872370, 66);

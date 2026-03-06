@@ -27,44 +27,44 @@
 #include "Shadows.h"
 #include "PedClothesDesc.h"
 
-uint32& planeRotorDmgTimeMS = *(uint32*)0xC1CC1C;
-float& CVehicle::WHEELSPIN_TARGET_RATE = *(float*)0x8D3498;          // 1.0f
-float& CVehicle::WHEELSPIN_INAIR_TARGET_RATE = *(float*)0x8D349C;    // 10.0f
-float& CVehicle::WHEELSPIN_RISE_RATE = *(float*)0x8D34A0;            // 0.95f
-float& CVehicle::WHEELSPIN_FALL_RATE = *(float*)0x8D34A4;            // 0.7f
-float& CVehicle::m_fAirResistanceMult = *(float*)0x8D34A8;           // 2.5f
-float& CVehicle::ms_fRailTrackResistance = *(float*)0x8D34AC;        // 0.003f
-float& CVehicle::ms_fRailTrackResistanceDefault = *(float*)0x8D34B0; // 0.003f
-bool& CVehicle::bDisableRemoteDetonation = *(bool*)0xC1CC00;
-bool& CVehicle::bDisableRemoteDetonationOnContact = *(bool*)0xC1CC01;
-bool& CVehicle::m_bEnableMouseSteering = *(bool*)0xC1CC02;
-bool& CVehicle::m_bEnableMouseFlying = *(bool*)0xC1CC03;
-bool& CVehicle::ms_forceVehicleLightsOff = *(bool*)0xC1CC18;
-bool& CVehicle::s_bPlaneGunsEjectShellCasings = *(bool*)0xC1CC19;
+auto& planeRotorDmgTimeMS = StaticRef<uint32>(0xC1CC1C);
+auto& CVehicle::WHEELSPIN_TARGET_RATE = StaticRef<float>(0x8D3498);          // 1.0f
+auto& CVehicle::WHEELSPIN_INAIR_TARGET_RATE = StaticRef<float>(0x8D349C);    // 10.0f
+auto& CVehicle::WHEELSPIN_RISE_RATE = StaticRef<float>(0x8D34A0);            // 0.95f
+auto& CVehicle::WHEELSPIN_FALL_RATE = StaticRef<float>(0x8D34A4);            // 0.7f
+auto& CVehicle::m_fAirResistanceMult = StaticRef<float>(0x8D34A8);           // 2.5f
+auto& CVehicle::ms_fRailTrackResistance = StaticRef<float>(0x8D34AC);        // 0.003f
+auto& CVehicle::ms_fRailTrackResistanceDefault = StaticRef<float>(0x8D34B0); // 0.003f
+auto& CVehicle::bDisableRemoteDetonation = StaticRef<bool>(0xC1CC00);
+auto& CVehicle::bDisableRemoteDetonationOnContact = StaticRef<bool>(0xC1CC01);
+auto& CVehicle::m_bEnableMouseSteering = StaticRef<bool>(0xC1CC02);
+auto& CVehicle::m_bEnableMouseFlying = StaticRef<bool>(0xC1CC03);
+auto& CVehicle::ms_forceVehicleLightsOff = StaticRef<bool>(0xC1CC18);
+auto& CVehicle::s_bPlaneGunsEjectShellCasings = StaticRef<bool>(0xC1CC19);
 
-float& fBurstTyreMod = *(float*)0x8D34B4;                // 0.13f
-float& fBurstSpeedMax = *(float*)0x8D34B8;               // 0.3f
-float& CAR_NOS_EXTRA_SKID_LOSS = *(float*)0x8D34BC;      // 0.9f
-float& WS_TRAC_FRAC_LIMIT = *(float*)0x8D34C0;           // 0.3f
-float& WS_ALREADY_SPINNING_LOSS = *(float*)0x8D34C4;     // 0.2f
-float& fBurstBikeTyreMod = *(float*)0x8D34C8;            // 0.05f
-float& fBurstBikeSpeedMax = *(float*)0x8D34CC;           // 0.12f
-float& fTweakBikeWheelTurnForce = *(float*)0x8D34D0;     // 2.0f
-float& AUTOGYRO_ROTORSPIN_MULT = *(float*)0x8D34D4;      // 0.006f
-float& AUTOGYRO_ROTORSPIN_MULTLIMIT = *(float*)0x8D34D8; // 0.25f
-float& AUTOGYRO_ROTORSPIN_DAMP = *(float*)0x8D34DC;      // 0.997f
-float& AUTOGYRO_ROTORLIFT_MULT = *(float*)0x8D34E0;      // 4.5f
-float& AUTOGYRO_ROTORLIFT_FALLOFF = *(float*)0x8D34E4;   // 0.75f
-float& AUTOGYRO_ROTORTILT_ANGLE = *(float*)0x8D34E8;     // 0.25f
-float& ROTOR_SEMI_THICKNESS = *(float*)0x8D34EC;         // 0.05f
+auto& fBurstTyreMod = StaticRef<float>(0x8D34B4);                // 0.13f
+auto& fBurstSpeedMax = StaticRef<float>(0x8D34B8);               // 0.3f
+auto& CAR_NOS_EXTRA_SKID_LOSS = StaticRef<float>(0x8D34BC);      // 0.9f
+auto& WS_TRAC_FRAC_LIMIT = StaticRef<float>(0x8D34C0);           // 0.3f
+auto& WS_ALREADY_SPINNING_LOSS = StaticRef<float>(0x8D34C4);     // 0.2f
+auto& fBurstBikeTyreMod = StaticRef<float>(0x8D34C8);            // 0.05f
+auto& fBurstBikeSpeedMax = StaticRef<float>(0x8D34CC);           // 0.12f
+auto& fTweakBikeWheelTurnForce = StaticRef<float>(0x8D34D0);     // 2.0f
+auto& AUTOGYRO_ROTORSPIN_MULT = StaticRef<float>(0x8D34D4);      // 0.006f
+auto& AUTOGYRO_ROTORSPIN_MULTLIMIT = StaticRef<float>(0x8D34D8); // 0.25f
+auto& AUTOGYRO_ROTORSPIN_DAMP = StaticRef<float>(0x8D34DC);      // 0.997f
+auto& AUTOGYRO_ROTORLIFT_MULT = StaticRef<float>(0x8D34E0);      // 4.5f
+auto& AUTOGYRO_ROTORLIFT_FALLOFF = StaticRef<float>(0x8D34E4);   // 0.75f
+auto& AUTOGYRO_ROTORTILT_ANGLE = StaticRef<float>(0x8D34E8);     // 0.25f
+auto& ROTOR_SEMI_THICKNESS = StaticRef<float>(0x8D34EC);         // 0.05f
 float* gfSpeedMult = (float*)0x8D34F8;                   // float fSpeedMult[5] = { 0.8f, 0.75f, 0.85f, 0.9f, 0.85f, 0.85f }
-float& fDamagePosSpeedShift = *(float*)0x8D3510;         // 0.4f
-float& DIFF_LIMIT = *(float*)0x8D35B4;                   // 0.8f
-float& DIFF_SPRING_MULT_X = *(float*)0x8D35B8;           // 0.05f
-float& DIFF_SPRING_MULT_Y = *(float*)0x8D35BC;           // 0.05f
-float& DIFF_SPRING_MULT_Z = *(float*)0x8D35C0;           // 0.1f
-float& DIFF_SPRING_COMPRESS_MULT = *(float*)0x8D35C4;    // 2.0f
-CVector (&VehicleGunOffset)[14] = *(CVector(*)[14])0x8D35D4; // maybe [12]
+auto& fDamagePosSpeedShift = StaticRef<float>(0x8D3510);         // 0.4f
+auto& DIFF_LIMIT = StaticRef<float>(0x8D35B4);                   // 0.8f
+auto& DIFF_SPRING_MULT_X = StaticRef<float>(0x8D35B8);           // 0.05f
+auto& DIFF_SPRING_MULT_Y = StaticRef<float>(0x8D35BC);           // 0.05f
+auto& DIFF_SPRING_MULT_Z = StaticRef<float>(0x8D35C0);           // 0.1f
+auto& DIFF_SPRING_COMPRESS_MULT = StaticRef<float>(0x8D35C4);    // 2.0f
+auto (&VehicleGunOffset)[14] = StaticRef<CVector[14]>(0x8D35D4); // maybe [12]
 
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);

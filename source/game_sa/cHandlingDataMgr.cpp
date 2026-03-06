@@ -2,7 +2,7 @@
 
 #include "cHandlingDataMgr.h"
 
-char (&VehicleNames)[210][14] = *(char(*)[210][14])0x8D3978;
+auto (&VehicleNames)[210][14] = StaticRef<char[210][14]>(0x8D3978);
 
 //! 0xC2B9B4 - Used for acceleration conversion from file to game units
 constexpr auto ACCEL_CONST = 1.f / sq(50.f); // This number 50 seems to be coming up a lot...;

@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-CScriptedBrainTaskEntry(&CScriptedBrainTaskStore::ms_entries)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES] = *(CScriptedBrainTaskEntry(*)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES])0xC188F0;
+auto (&CScriptedBrainTaskStore::ms_entries)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES] = StaticRef<CScriptedBrainTaskEntry[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES]>(0xC188F0);
 
 void CScriptedBrainTaskEntry::InjectHooks()
 {

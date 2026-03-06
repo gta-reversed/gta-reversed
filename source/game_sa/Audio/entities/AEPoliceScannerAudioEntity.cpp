@@ -6,20 +6,20 @@
 
 #define NUM_POLICE_SCANNER_SLOTS 5
 
-float& CAEPoliceScannerAudioEntity::s_fVolumeOffset = *(float*)0xB61CF8;
-CAESound*& CAEPoliceScannerAudioEntity::s_pSound = *(CAESound**)0xB61D00;
-uint32& CAEPoliceScannerAudioEntity::s_nAbortPlaybackTime = *(uint32*)0xB61D08;
-uint32& CAEPoliceScannerAudioEntity::s_nPlaybackStartTime = *(uint32*)0xB61D0C;
-int16& CAEPoliceScannerAudioEntity::s_nSectionPlaying = *(int16*)0xB61D04;
+auto& CAEPoliceScannerAudioEntity::s_fVolumeOffset = StaticRef<float>(0xB61CF8);
+auto& CAEPoliceScannerAudioEntity::s_pSound = StaticRef<CAESound*>(0xB61D00);
+auto& CAEPoliceScannerAudioEntity::s_nAbortPlaybackTime = StaticRef<uint32>(0xB61D08);
+auto& CAEPoliceScannerAudioEntity::s_nPlaybackStartTime = StaticRef<uint32>(0xB61D0C);
+auto& CAEPoliceScannerAudioEntity::s_nSectionPlaying = StaticRef<int16>(0xB61D04);
 
-int16 (&CAEPoliceScannerAudioEntity::s_SlotState)[NUM_POLICE_SCANNER_SLOTS] = *(int16(*)[NUM_POLICE_SCANNER_SLOTS])0xB61D14;
+auto (&CAEPoliceScannerAudioEntity::s_SlotState)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<int16[NUM_POLICE_SCANNER_SLOTS]>(0xB61D14);
 tScannerSlot* (&CAEPoliceScannerAudioEntity::s_pCurrentSlots) = *(tScannerSlot*(*))0xB61D10;
-tScannerSlot (&CAEPoliceScannerAudioEntity::s_ScannerSlotFirst)[NUM_POLICE_SCANNER_SLOTS] = *(tScannerSlot (*)[NUM_POLICE_SCANNER_SLOTS])0xB61D34;
-tScannerSlot (&CAEPoliceScannerAudioEntity::s_ScannerSlotSecond)[NUM_POLICE_SCANNER_SLOTS] = *(tScannerSlot (*)[NUM_POLICE_SCANNER_SLOTS])0xB61D20;
-bool& CAEPoliceScannerAudioEntity::s_bStoppingScanner = *(bool*)0xB61CFC;
-bool& CAEPoliceScannerAudioEntity::s_bScannerDisabled = *(bool*)0xB61D4E;
-CAEPoliceScannerAudioEntity::State& CAEPoliceScannerAudioEntity::s_nScannerPlaybackState = *(CAEPoliceScannerAudioEntity::State*)0xB61D4C;
-uint32& CAEPoliceScannerAudioEntity::s_NextNewScannerDialogueTime = *(uint32*)0xB61D50;
+auto (&CAEPoliceScannerAudioEntity::s_ScannerSlotFirst)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D34);
+auto (&CAEPoliceScannerAudioEntity::s_ScannerSlotSecond)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D20);
+auto& CAEPoliceScannerAudioEntity::s_bStoppingScanner = StaticRef<bool>(0xB61CFC);
+auto& CAEPoliceScannerAudioEntity::s_bScannerDisabled = StaticRef<bool>(0xB61D4E);
+auto& CAEPoliceScannerAudioEntity::s_nScannerPlaybackState = StaticRef<CAEPoliceScannerAudioEntity::State>(0xB61D4C);
+auto& CAEPoliceScannerAudioEntity::s_NextNewScannerDialogueTime = StaticRef<uint32>(0xB61D50);
 
 CAEPoliceScannerAudioEntity* CAEPoliceScannerAudioEntity::s_pPSControlling = *(CAEPoliceScannerAudioEntity**)0xB61D48;
 

@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-CPedScriptedTaskRecordData(&CPedScriptedTaskRecord::ms_scriptedTasks)[TOTAL_SCRIPTED_TASKS] = *(CPedScriptedTaskRecordData(*)[TOTAL_SCRIPTED_TASKS])0xC0B1E8;
+auto (&CPedScriptedTaskRecord::ms_scriptedTasks)[TOTAL_SCRIPTED_TASKS] = StaticRef<CPedScriptedTaskRecordData[TOTAL_SCRIPTED_TASKS]>(0xC0B1E8);
 
 void CPedScriptedTaskRecordData::InjectHooks()
 {

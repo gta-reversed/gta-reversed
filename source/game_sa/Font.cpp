@@ -10,39 +10,39 @@
 
 #include "eLanguage.h"
 
-CFontChar (&FontRenderStateBuf)[9] = *(CFontChar(*)[9])0xC716B0;
+auto (&FontRenderStateBuf)[9] = StaticRef<CFontChar[9]>(0xC716B0);
 CFontChar* pEmptyChar = (CFontChar*)0xC716A8;
 
-CFontChar& CFont::RenderState = *(CFontChar*)0xC71AA0;
-CSprite2d (&CFont::Sprite)[MAX_FONT_SPRITES] = *(CSprite2d(*)[2])0xC71AD0;
-CSprite2d (&CFont::ButtonSprite)[MAX_FONT_BUTTON_SPRITES] = *(CSprite2d(*)[15])0xC71AD8;
-eExtraFontSymbol& CFont::PS2Symbol = *(eExtraFontSymbol*)0xC71A54;
-bool& CFont::m_bNewLine = *(bool*)0xC71A55;
-CRGBA& CFont::m_Color = *(CRGBA*)0xC71A60;
-CVector2D& CFont::m_Scale = *(CVector2D*)0xC71A64;
-float& CFont::m_fSlant = *(float*)0xC71A6C;
-CVector2D& CFont::m_fSlantRefPoint = *(CVector2D*)0xC71A70;
-bool& CFont::m_bFontJustify = *(bool*)0xC71A78;
-bool& CFont::m_bFontCentreAlign = *(bool*)0xC71A79;
-bool& CFont::m_bFontRightAlign = *(bool*)0xC71A7A;
-bool& CFont::m_bFontBackground = *(bool*)0xC71A7B;
-bool& CFont::m_bEnlargeBackgroundBox = *(bool*)0xC71A7C;
-bool& CFont::m_bFontPropOn = *(bool*)0xC71A7D;
-bool& CFont::m_bFontIsBlip = *(bool*)0xC71A7E;
-float& CFont::m_fFontAlpha = *(float*)0xC71A80;
-CRGBA& CFont::m_FontBackgroundColor = *(CRGBA*)0xC71A84;
-float& CFont::m_fWrapx = *(float*)0xC71A88;
-float& CFont::m_fFontCentreSize = *(float*)0xC71A8C;
-float& CFont::m_fRightJustifyWrap = *(float*)0xC71A90;
-uint8& CFont::m_FontTextureId = *(uint8*)0xC71A94;
-uint8& CFont::m_FontStyle = *(uint8*)0xC71A95;
-uint8& CFont::m_nFontShadow = *(uint8*)0xC71A96;
-CRGBA& CFont::m_FontDropColor = *(CRGBA*)0xC71A97;
-uint8& CFont::m_nFontOutlineSize = *(uint8*)0xC71A9B;
-uint8& CFont::m_nFontOutline = *(uint8*)0xC71A9C;
-uint8& CFont::m_nFontOutlineOrShadow = *(uint8*)0xC71A9C;
+auto& CFont::RenderState = StaticRef<CFontChar>(0xC71AA0);
+auto (&CFont::Sprite)[MAX_FONT_SPRITES] = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
+auto (&CFont::ButtonSprite)[MAX_FONT_BUTTON_SPRITES] = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
+auto& CFont::PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
+auto& CFont::m_bNewLine = StaticRef<bool>(0xC71A55);
+auto& CFont::m_Color = StaticRef<CRGBA>(0xC71A60);
+auto& CFont::m_Scale = StaticRef<CVector2D>(0xC71A64);
+auto& CFont::m_fSlant = StaticRef<float>(0xC71A6C);
+auto& CFont::m_fSlantRefPoint = StaticRef<CVector2D>(0xC71A70);
+auto& CFont::m_bFontJustify = StaticRef<bool>(0xC71A78);
+auto& CFont::m_bFontCentreAlign = StaticRef<bool>(0xC71A79);
+auto& CFont::m_bFontRightAlign = StaticRef<bool>(0xC71A7A);
+auto& CFont::m_bFontBackground = StaticRef<bool>(0xC71A7B);
+auto& CFont::m_bEnlargeBackgroundBox = StaticRef<bool>(0xC71A7C);
+auto& CFont::m_bFontPropOn = StaticRef<bool>(0xC71A7D);
+auto& CFont::m_bFontIsBlip = StaticRef<bool>(0xC71A7E);
+auto& CFont::m_fFontAlpha = StaticRef<float>(0xC71A80);
+auto& CFont::m_FontBackgroundColor = StaticRef<CRGBA>(0xC71A84);
+auto& CFont::m_fWrapx = StaticRef<float>(0xC71A88);
+auto& CFont::m_fFontCentreSize = StaticRef<float>(0xC71A8C);
+auto& CFont::m_fRightJustifyWrap = StaticRef<float>(0xC71A90);
+auto& CFont::m_FontTextureId = StaticRef<uint8>(0xC71A94);
+auto& CFont::m_FontStyle = StaticRef<uint8>(0xC71A95);
+auto& CFont::m_nFontShadow = StaticRef<uint8>(0xC71A96);
+auto& CFont::m_FontDropColor = StaticRef<CRGBA>(0xC71A97);
+auto& CFont::m_nFontOutlineSize = StaticRef<uint8>(0xC71A9B);
+auto& CFont::m_nFontOutline = StaticRef<uint8>(0xC71A9C);
+auto& CFont::m_nFontOutlineOrShadow = StaticRef<uint8>(0xC71A9C);
 
-tFontData (&gFontData)[2] = *(tFontData(*)[2])0xC718B0;
+auto (&gFontData)[2] = StaticRef<tFontData[2]>(0xC718B0);
 
 void CFont::InjectHooks() {
     RH_ScopedClass(CFont);

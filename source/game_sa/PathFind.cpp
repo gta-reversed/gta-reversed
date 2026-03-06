@@ -10,21 +10,21 @@
 #include <reversiblebugfixes/Bugs.hpp>
 
 // TODO: Move into the class itself
-CVector& s_pathsNeededPosn = *(CVector*)0x977B70;
-bool&    s_bLoadPathsNeeded  = *(bool*)0x96F030;
+auto& s_pathsNeededPosn = StaticRef<CVector>(0x977B70);
+auto& s_bLoadPathsNeeded = StaticRef<bool>(0x96F030);
 
 // TODO: Remove this and use a stack array or smth..
-std::array<bool, NUM_PATH_MAP_AREAS>& ToBeStreamed = *(std::array<bool, NUM_PATH_MAP_AREAS>*)0x96EFD0;
+auto& ToBeStreamed = StaticRef<std::array<bool, NUM_PATH_MAP_AREAS>>(0x96EFD0);
 
-std::array<float, 64>& XCoorGiven = *(std::array<float, 64>*)0x96EE80;
-std::array<float, 64>& YCoorGiven = *(std::array<float, 64>*)0x96ED80;
-std::array<float, 64>& ZCoorGiven = *(std::array<float, 64>*)0x96EC80;
-std::array<std::array<int8, 8>, 64>& ConnectsToGiven = *(std::array<std::array<int8, 8>, 64>*)0x96EAC0;
+auto& XCoorGiven = StaticRef<std::array<float, 64>>(0x96EE80);
+auto& YCoorGiven = StaticRef<std::array<float, 64>>(0x96ED80);
+auto& ZCoorGiven = StaticRef<std::array<float, 64>>(0x96EC80);
+auto& ConnectsToGiven = StaticRef<std::array<std::array<int8, 8>, 64>>(0x96EAC0);
 
-std::array<int32, NUM_PATH_INTERIOR_AREAS>& aInteriorNodeLinkedToExterior = *(std::array<int32, NUM_PATH_INTERIOR_AREAS>*)0x96EA98;
-std::array<CNodeAddress, NUM_PATH_INTERIOR_AREAS>& aExteriorNodeLinkedTo = *(std::array<CNodeAddress, NUM_PATH_INTERIOR_AREAS>*)0x977B7C;
+auto& aInteriorNodeLinkedToExterior = StaticRef<std::array<int32, NUM_PATH_INTERIOR_AREAS>>(0x96EA98);
+auto& aExteriorNodeLinkedTo = StaticRef<std::array<CNodeAddress, NUM_PATH_INTERIOR_AREAS>>(0x977B7C);
 
-std::array<CNodeAddress, 5000>& aNodesToBeCleared = *(std::array<CNodeAddress, 5000>*)0x972CD0;
+auto& aNodesToBeCleared = StaticRef<std::array<CNodeAddress, 5000>>(0x972CD0);
 
 void CPathFind::InjectHooks() {
     RH_ScopedClass(CPathFind);

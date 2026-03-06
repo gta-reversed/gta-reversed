@@ -2,17 +2,17 @@
 
 #include "ColAccel.h"
 
-CColAccelColBound*& CColAccel::m_colBounds = *(CColAccelColBound**)0xBC4090;
-IplDef*& CColAccel::m_iplDefs = *(IplDef**)0xBC4094;
-int32*& CColAccel::m_iSectionSize = *(int32**)0xBC4098;
-int32& CColAccel::m_iCachingColSize = *(int32*)0xBC409C;
-eColAccelState& CColAccel::m_iCacheState = *(eColAccelState*)0xBC40A0;
-CColAccelColEntry*& CColAccel::mp_caccColItems = *(CColAccelColEntry**)0xBC40A4;
-int32& CColAccel::m_iNumColItems = *(int32*)0xBC40A8;
-CColAccelIPLEntry*& CColAccel::mp_caccIPLItems = *(CColAccelIPLEntry**)0xBC40AC;
-int32& CColAccel::m_iNumIPLItems = *(int32*)0xBC40B0;
-int32& CColAccel::m_iNumSections = *(int32*)0xBC40B4;
-int32& CColAccel::m_iNumColBounds = *(int32*)0xBC40B8;
+auto& CColAccel::m_colBounds = StaticRef<CColAccelColBound*>(0xBC4090);
+auto& CColAccel::m_iplDefs = StaticRef<IplDef*>(0xBC4094);
+auto& CColAccel::m_iSectionSize = StaticRef<int32*>(0xBC4098);
+auto& CColAccel::m_iCachingColSize = StaticRef<int32>(0xBC409C);
+auto& CColAccel::m_iCacheState = StaticRef<eColAccelState>(0xBC40A0);
+auto& CColAccel::mp_caccColItems = StaticRef<CColAccelColEntry*>(0xBC40A4);
+auto& CColAccel::m_iNumColItems = StaticRef<int32>(0xBC40A8);
+auto& CColAccel::mp_caccIPLItems = StaticRef<CColAccelIPLEntry*>(0xBC40AC);
+auto& CColAccel::m_iNumIPLItems = StaticRef<int32>(0xBC40B0);
+auto& CColAccel::m_iNumSections = StaticRef<int32>(0xBC40B4);
+auto& CColAccel::m_iNumColBounds = StaticRef<int32>(0xBC40B8);
 const char* CColAccel::mp_cCacheName = "MODELS\\CINFO.BIN"; // 0x8D0F84
 
 void CColAccel::InjectHooks() {

@@ -20,28 +20,28 @@
 
 #include <reversiblebugfixes/Bugs.hpp>
 
-uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
-uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
-uint32& CCarCtrl::NumAmbulancesOnDuty = *(uint32*)0x9690A8;
-uint32& CCarCtrl::NumFireTrucksOnDuty = *(uint32*)0x9690AC;
-uint32& CCarCtrl::MaxNumberOfCarsInUse = *(uint32*)0x8A5B24;
-float& CCarCtrl::CarDensityMultiplier = *(float*)0x8A5B20;
-int32& CCarCtrl::NumRandomCars = *(int32*)0x969094;
-int32& CCarCtrl::NumMissionCars = *(int32*)0x96909C;
-int32& CCarCtrl::NumPermanentVehicles = *(int32*)0x9690A4;
-int32& CCarCtrl::LastTimeAmbulanceCreated = *(int32*)0x9690B0;
-int32& CCarCtrl::LastTimeFireTruckCreated = *(int32*)0x9690B4;
-bool& CCarCtrl::bAllowEmergencyServicesToBeCreated = *(bool*)0x8A5B28;
-bool& CCarCtrl::bCarsGeneratedAroundCamera = *(bool*)0x9690C1;
-int8& CCarCtrl::CountDownToCarsAtStart = *(int8*)0x9690C0;
-float& CCarCtrl::TimeNextMadDriverChaseCreated = *(float*)0x9690BC;
-int32& CCarCtrl::SequenceElements = *(int32*)0x969078;
-int32& CCarCtrl::SequenceRandomOffset = *(int32*)0x969074;
-bool& CCarCtrl::bSequenceOtherWay = *(bool*)0x969070;
-int32& CCarCtrl::LastTimeLawEnforcerCreated = *(int32*)0x9690B8;
+auto& CCarCtrl::NumLawEnforcerCars = StaticRef<uint32>(0x969098);
+auto& CCarCtrl::NumParkedCars = StaticRef<uint32>(0x9690A0);
+auto& CCarCtrl::NumAmbulancesOnDuty = StaticRef<uint32>(0x9690A8);
+auto& CCarCtrl::NumFireTrucksOnDuty = StaticRef<uint32>(0x9690AC);
+auto& CCarCtrl::MaxNumberOfCarsInUse = StaticRef<uint32>(0x8A5B24);
+auto& CCarCtrl::CarDensityMultiplier = StaticRef<float>(0x8A5B20);
+auto& CCarCtrl::NumRandomCars = StaticRef<int32>(0x969094);
+auto& CCarCtrl::NumMissionCars = StaticRef<int32>(0x96909C);
+auto& CCarCtrl::NumPermanentVehicles = StaticRef<int32>(0x9690A4);
+auto& CCarCtrl::LastTimeAmbulanceCreated = StaticRef<int32>(0x9690B0);
+auto& CCarCtrl::LastTimeFireTruckCreated = StaticRef<int32>(0x9690B4);
+auto& CCarCtrl::bAllowEmergencyServicesToBeCreated = StaticRef<bool>(0x8A5B28);
+auto& CCarCtrl::bCarsGeneratedAroundCamera = StaticRef<bool>(0x9690C1);
+auto& CCarCtrl::CountDownToCarsAtStart = StaticRef<int8>(0x9690C0);
+auto& CCarCtrl::TimeNextMadDriverChaseCreated = StaticRef<float>(0x9690BC);
+auto& CCarCtrl::SequenceElements = StaticRef<int32>(0x969078);
+auto& CCarCtrl::SequenceRandomOffset = StaticRef<int32>(0x969074);
+auto& CCarCtrl::bSequenceOtherWay = StaticRef<bool>(0x969070);
+auto& CCarCtrl::LastTimeLawEnforcerCreated = StaticRef<int32>(0x9690B8);
 
-CVehicle* (&apCarsToKeep)[2] = *(CVehicle*(*)[2])0x969084;
-uint32 (&aCarsToKeepTime)[2] = *(uint32(*)[2])0x96907C;
+auto (&apCarsToKeep)[2] = StaticRef<CVehicle*[2]>(0x969084);
+auto (&aCarsToKeepTime)[2] = StaticRef<uint32[2]>(0x96907C);
 
 void CCarCtrl::InjectHooks()
 {

@@ -7,25 +7,25 @@
 #include "TaskSimpleDuck.h"
 #include "Hud.h"
 
-float& CCamera::m_f3rdPersonCHairMultY = *reinterpret_cast<float*>(0xB6EC10); ///< Where the player will be on the screen in relative coords when quick aiming
-float& CCamera::m_f3rdPersonCHairMultX = *reinterpret_cast<float*>(0xB6EC14);
-float& CCamera::m_fMouseAccelVertical = *reinterpret_cast<float*>(0xB6EC18);
-float& CCamera::m_fMouseAccelHorzntl = *reinterpret_cast<float*>(0xB6EC1C);
-bool& CCamera::m_bUseMouse3rdPerson = *reinterpret_cast<bool*>(0xB6EC2E);
-bool& CCamera::bDidWeProcessAnyCinemaCam = *reinterpret_cast<bool*>(0xB6EC2D);
+auto& CCamera::m_f3rdPersonCHairMultY = StaticRef<float>(0xB6EC10); ///< Where the player will be on the screen in relative coords when quick aiming
+auto& CCamera::m_f3rdPersonCHairMultX = StaticRef<float>(0xB6EC14);
+auto& CCamera::m_fMouseAccelVertical = StaticRef<float>(0xB6EC18);
+auto& CCamera::m_fMouseAccelHorzntl = StaticRef<float>(0xB6EC1C);
+auto& CCamera::m_bUseMouse3rdPerson = StaticRef<bool>(0xB6EC2E);
+auto& CCamera::bDidWeProcessAnyCinemaCam = StaticRef<bool>(0xB6EC2D);
 
-CCamera& TheCamera = *reinterpret_cast<CCamera*>(0xB6F028);
-bool& gbModelViewer = *reinterpret_cast<bool*>(0xBA6728);
-int8& gbCineyCamMessageDisplayed = *(int8*)0x8CC381; // 2
-int32& gCameraDirection = *(int32*)0x8CC384;         // 3
-eCamMode& gCameraMode = *(eCamMode*)0x8CC388;        // -1
-uint32& gLastTime2PlayerCameraWasOK = *(uint32*)0xB6EC24;    // 0
-uint32& gLastTime2PlayerCameraCollided = *(uint32*)0xB6EC28; // 0
-bool& gPlayerPedVisible = *(bool*)0x8CC380; // true
-uint8& gCurCamColVars = *(uint8*)0x8CCB80;
-float& gCurDistForCam = *(float*)0x8CCB84;
-float*& gpCamColVars = *(float**)0xB6FE88;
-float (&gCamColVars)[28][6] = *(float (*)[28][6])0x8CC8E0;
+auto& TheCamera = StaticRef<CCamera>(0xB6F028);
+auto& gbModelViewer = StaticRef<bool>(0xBA6728);
+auto& gbCineyCamMessageDisplayed = StaticRef<int8>(0x8CC381); // 2
+auto& gCameraDirection = StaticRef<int32>(0x8CC384);         // 3
+auto& gCameraMode = StaticRef<eCamMode>(0x8CC388);        // -1
+auto& gLastTime2PlayerCameraWasOK = StaticRef<uint32>(0xB6EC24);    // 0
+auto& gLastTime2PlayerCameraCollided = StaticRef<uint32>(0xB6EC28); // 0
+auto& gPlayerPedVisible = StaticRef<bool>(0x8CC380); // true
+auto& gCurCamColVars = StaticRef<uint8>(0x8CCB80);
+auto& gCurDistForCam = StaticRef<float>(0x8CCB84);
+auto& gpCamColVars = StaticRef<float*>(0xB6FE88);
+auto (&gCamColVars)[28][6] = StaticRef<float[28][6]>(0x8CC8E0);
 
 CCam& CCamera::GetActiveCamera() {
     return TheCamera.m_aCams[TheCamera.m_nActiveCam];

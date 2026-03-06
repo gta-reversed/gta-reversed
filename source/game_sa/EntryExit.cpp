@@ -11,9 +11,9 @@
 #include "Object.h"
 #include "Interior/InteriorManager_c.h"
 
-bool& CEntryExit::ms_bWarping = *(bool*)0x96A7B8;
-CObject*& CEntryExit::ms_pDoor = *(CObject**)0x96A7BC;
-CEntryExit*& CEntryExit::ms_spawnPoint = *(CEntryExit**)0x96A7C0;
+auto& CEntryExit::ms_bWarping = StaticRef<bool>(0x96A7B8);
+auto& CEntryExit::ms_pDoor = StaticRef<CObject*>(0x96A7BC);
+auto& CEntryExit::ms_spawnPoint = StaticRef<CEntryExit*>(0x96A7C0);
 
 void CEntryExit::InjectHooks() {
     RH_ScopedClass(CEntryExit);

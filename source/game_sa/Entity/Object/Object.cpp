@@ -19,9 +19,9 @@
 #include "CustomBuildingRenderer.h"
 
 uint16& CObject::nNoTempObjects = *(uint16*)(0xBB4A70);
-float& CObject::fDistToNearestTree = *(float*)0x8D0A20;
-bool& CObject::bAircraftCarrierSamSiteDisabled = *(bool*)0x8D0A24;
-bool& CObject::bArea51SamSiteDisabled = *(bool*)0xBB4A72;
+auto& CObject::fDistToNearestTree = StaticRef<float>(0x8D0A20);
+auto& CObject::bAircraftCarrierSamSiteDisabled = StaticRef<bool>(0x8D0A24);
+auto& CObject::bArea51SamSiteDisabled = StaticRef<bool>(0xBB4A72);
 
 void CObject::InjectHooks()
 {

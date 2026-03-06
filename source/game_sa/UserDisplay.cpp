@@ -4,9 +4,9 @@
 #include "CurrentVehicle.h"
 #include "PlaceName.h"
 
-CPlaceName& CUserDisplay::PlaceName = *(CPlaceName*)0xBA18F4;
-COnscreenTimer& CUserDisplay::OnscnTimer = *(COnscreenTimer*)0xBA1788;
-CCurrentVehicle& CUserDisplay::CurrentVehicle = *(CCurrentVehicle*)0xBA18FC;
+auto& CUserDisplay::PlaceName = StaticRef<CPlaceName>(0xBA18F4);
+auto& CUserDisplay::OnscnTimer = StaticRef<COnscreenTimer>(0xBA1788);
+auto& CUserDisplay::CurrentVehicle = StaticRef<CCurrentVehicle>(0xBA18FC);
 
 void CUserDisplay::InjectHooks() {
     RH_ScopedClass(CUserDisplay);

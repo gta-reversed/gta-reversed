@@ -2,9 +2,9 @@
 
 #include "Skidmarks.h"
 
-RxVertexIndex (&CSkidmarks::m_aIndices)[96] = *reinterpret_cast<uint16 (*)[96]>(0xC799C8);
-RwTexture*& CSkidmarks::m_pTexture = *reinterpret_cast<RwTexture**>(0xC79A88);
-CSkidmark (&CSkidmarks::m_aSkidmarks)[SKIDMARKS_COUNT] = *reinterpret_cast<CSkidmark (*)[SKIDMARKS_COUNT]>(0xC79AA8);
+auto (&CSkidmarks::m_aIndices)[96] = StaticRef<RxVertexIndex[96]>(0xC799C8);
+auto& CSkidmarks::m_pTexture = StaticRef<RwTexture*>(0xC79A88);
+auto (&CSkidmarks::m_aSkidmarks)[SKIDMARKS_COUNT] = StaticRef<CSkidmark[SKIDMARKS_COUNT]>(0xC79AA8);
 
 void CSkidmarks::InjectHooks() {
     RH_ScopedClass(CSkidmarks);

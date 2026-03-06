@@ -14,9 +14,9 @@
 #include "EntryExitManager.h"
 #include "MBlur.h"
 
-bool (&abTempNeverLeavesGroup)[7] = *(bool (*)[7])0xC0BC08;
-int32& gPlayIdlesAnimBlockIndex = *(int32*)0xC0BC10;
-bool& CPlayerPed::bHasDisplayedPlayerQuitEnterCarHelpText = *(bool*)0xC0BC15;
+auto (&abTempNeverLeavesGroup)[7] = StaticRef<bool[7]>(0xC0BC08);
+auto& gPlayIdlesAnimBlockIndex = StaticRef<int32>(0xC0BC10);
+auto& CPlayerPed::bHasDisplayedPlayerQuitEnterCarHelpText = StaticRef<bool>(0xC0BC15);
 
 bool CPlayerPed::bDebugPlayerInvincible;
 bool CPlayerPed::bDebugTargeting;

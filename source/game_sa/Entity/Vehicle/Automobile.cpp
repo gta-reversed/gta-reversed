@@ -24,15 +24,15 @@
 
 #include <FireManager.h>
 
-bool& CAutomobile::m_sAllTaxiLights = *(bool*)0xC1BFD0;
-CVector& CAutomobile::vecHunterGunPos = *(CVector*)0x8D3394;
+auto& CAutomobile::m_sAllTaxiLights = StaticRef<bool>(0xC1BFD0);
+auto& CAutomobile::vecHunterGunPos = StaticRef<CVector>(0x8D3394);
 CMatrix* CAutomobile::matW2B = (CMatrix*)0xC1C220;
 
 constexpr size_t NUM_AUTOMOBILE_SUSP_LINES  = (size_t)MAX_CARWHEELS;
 constexpr size_t NUM_RHINO_EXTRA_SUSP_LINES = (size_t)MAX_CARWHEELS * 2u; // 8
 constexpr size_t NUM_RHINO_SUSP_LINES       = NUM_AUTOMOBILE_SUSP_LINES + NUM_RHINO_EXTRA_SUSP_LINES; // 8
 constexpr size_t MAX_NUM_SUSP_LINES         = std::max(NUM_AUTOMOBILE_SUSP_LINES, NUM_RHINO_SUSP_LINES); // 12
-auto& aAutomobileColPoints = *(std::array<CColPoint, MAX_NUM_SUSP_LINES>*)0xC1BFF8;
+auto& aAutomobileColPoints = StaticRef<std::array<CColPoint, MAX_NUM_SUSP_LINES>>(0xC1BFF8);
 
 static constexpr CVector PACKER_COL_PIVOT = CVector(0.0f, 0.0f, 2.0f);
 static constexpr float CAR_BALANCE_MULT = 0.08f;

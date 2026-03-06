@@ -2,7 +2,7 @@
 
 #include "ObjectData.h"
 
-CObjectData(&CObjectData::ms_aObjectInfo)[NUM_OBJECT_INFOS] = *(CObjectData(*)[NUM_OBJECT_INFOS])0xBB4A90;
+auto (&CObjectData::ms_aObjectInfo)[NUM_OBJECT_INFOS] = StaticRef<CObjectData[NUM_OBJECT_INFOS]>(0xBB4A90);
 
 void CObjectData::InjectHooks()
 {

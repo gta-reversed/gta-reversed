@@ -6,8 +6,8 @@
 #include "InterestingEvents.h"
 #include "Shadows.h"
 
-CAEExplosionAudioEntity& CExplosion::m_ExplosionAudioEntity = *(CAEExplosionAudioEntity*)0xC888D0;
-CExplosion (&CExplosion::aExplosions)[16] = *(CExplosion(*)[16])0xC88950;
+auto& CExplosion::m_ExplosionAudioEntity = StaticRef<CAEExplosionAudioEntity>(0xC888D0);
+auto (&CExplosion::aExplosions)[16] = StaticRef<CExplosion[16]>(0xC88950);
 
 void CExplosion::InjectHooks() {
     RH_ScopedClass(CExplosion);

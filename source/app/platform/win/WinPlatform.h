@@ -39,9 +39,9 @@ struct OSStatus {
 };
 inline auto& s_OSStatus = StaticRef<OSStatus>(0xC8CF68);
 
-inline bool& anisotropySupportedByGFX = *(bool*)0xC87FFC;
-inline bool& isForeground = *(bool*)0xC920EC;
-inline bool& Windowed = *(bool*)0xC920CC;
+inline auto& anisotropySupportedByGFX = StaticRef<bool>(0xC87FFC);
+inline auto& isForeground = StaticRef<bool>(0xC920EC);
+inline auto& Windowed = StaticRef<bool>(0xC920CC);
 
 void Win32InjectHooks();
 

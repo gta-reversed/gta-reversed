@@ -7,8 +7,8 @@
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 
 /*
-const float& CCarEnterExit::ms_fMaxSpeed_CanDragPedOut = *(float*)0x0;
-const float& CCarEnterExit::ms_fMaxSpeed_PlayerCanDragPedOut = *(float*)0x0;
+auto& CCarEnterExit::ms_fMaxSpeed_CanDragPedOut = StaticRef<float>(0x0);
+auto& CCarEnterExit::ms_fMaxSpeed_PlayerCanDragPedOut = StaticRef<float>(0x0);
 */
 
 void CCarEnterExit::InjectHooks() {

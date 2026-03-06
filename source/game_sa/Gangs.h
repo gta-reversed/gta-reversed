@@ -13,8 +13,8 @@ class GangInfo;
 
 class CGangs {
 public:
-    inline static std::array<bool, TOTAL_GANGS>& GangAttackWithCops = *reinterpret_cast<std::array<bool, 10>*>(0xC091D9);
-    inline static std::array<CGangInfo, TOTAL_GANGS>& Gang = *reinterpret_cast<std::array<CGangInfo, 10>*>(0xC091F0);
+    static inline auto& GangAttackWithCops = StaticRef<std::array<bool, 10>>(0xC091D9);
+    static inline auto& Gang = StaticRef<std::array<CGangInfo, 10>>(0xC091F0);
 
 public:
     static void InjectHooks();

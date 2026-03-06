@@ -3,25 +3,25 @@
 #include "Clouds.h"
 #include "PostEffects.h"
 
-float& CClouds::m_fVolumetricCloudMaxDistance = *reinterpret_cast<float*>(0xC6AA58);
-uint32& CClouds::m_VolumetricCloudsUsedNum = *reinterpret_cast<uint32*>(0xC6AA5C);
+auto& CClouds::m_fVolumetricCloudMaxDistance = StaticRef<float>(0xC6AA58);
+auto& CClouds::m_VolumetricCloudsUsedNum = StaticRef<uint32>(0xC6AA5C);
 
-float& CClouds::ms_cameraRoll = *reinterpret_cast<float*>(0xC6AA64);
+auto& CClouds::ms_cameraRoll = StaticRef<float>(0xC6AA64);
 
-int32& CClouds::IndividualRotation = *reinterpret_cast<int32*>(0xC6AA6C);
-float& CClouds::CloudRotation = *reinterpret_cast<float*>(0xC6AA70);
+auto& CClouds::IndividualRotation = StaticRef<int32>(0xC6AA6C);
+auto& CClouds::CloudRotation = StaticRef<float>(0xC6AA70);
 
-tVolumetricClouds& CClouds::ms_vc = *reinterpret_cast<tVolumetricClouds*>(0xC6AAB0);
+auto& CClouds::ms_vc = StaticRef<tVolumetricClouds>(0xC6AAB0);
 
-tMovingFog& CClouds::ms_mf = *reinterpret_cast<tMovingFog*>(0xC6C158);
+auto& CClouds::ms_mf = StaticRef<tMovingFog>(0xC6C158);
 
-CVector& CClouds::PlayerCoords = *reinterpret_cast<CVector*>(0xC6E958); // gVecPlayerCoors
-CVector& CClouds::CameraCoors = *reinterpret_cast<CVector*>(0xC6E964);  // gVecCameraCoors
+auto& CClouds::PlayerCoords = StaticRef<CVector>(0xC6E958); // gVecPlayerCoors
+auto& CClouds::CameraCoors = StaticRef<CVector>(0xC6E964);  // gVecCameraCoors
 
-float& CurrentFogIntensity = *reinterpret_cast<float*>(0x8D5798);
+auto& CurrentFogIntensity = StaticRef<float>(0x8D5798);
 
-RwTexture*& gpMoonMask = *reinterpret_cast<RwTexture**>(0xC6AA74);
-RwTexture*& gpCloudTex = *reinterpret_cast<RwTexture**>(0xC6AA78);
+auto& gpMoonMask = StaticRef<RwTexture*>(0xC6AA74);
+auto& gpCloudTex = StaticRef<RwTexture*>(0xC6AA78);
 RwTexture*& gpCloudMaskTex = *reinterpret_cast<RwTexture**>(0xC6AA78 + 0x4);
 
 void CClouds::InjectHooks() {

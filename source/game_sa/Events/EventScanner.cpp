@@ -2,7 +2,7 @@
 
 #include "EventScanner.h"
 
-float& CPedAcquaintanceScanner::ms_fThresholdDotProduct = *(float*)0xC0B034;
+auto& CPedAcquaintanceScanner::ms_fThresholdDotProduct = StaticRef<float>(0xC0B034);
 
 // 0x605300
 CEventScanner::CEventScanner() {

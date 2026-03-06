@@ -12,17 +12,17 @@
 #include "TaskSimpleClimb.h"
 #include "RealTimeShadowManager.h"
 
-float& CPhysical::DAMPING_LIMIT_IN_FRAME = *(float*)0x8CD7A0;
-float& CPhysical::DAMPING_LIMIT_OF_SPRING_FORCE = *(float*)0x8CD7A4;
-float& CPhysical::PHYSICAL_SHIFT_SPEED_DAMP = *(float*)0x8CD788;
-float& CPhysical::SOFTCOL_SPEED_MULT = *(float*)0x8CD794;
-float& CPhysical::SOFTCOL_SPEED_MULT2 = *(float*)0x8CD798;
-float& CPhysical::SOFTCOL_DEPTH_MIN = *(float*)0x8CD78C;
-float& CPhysical::SOFTCOL_DEPTH_MULT = *(float*)0x8CD790;
-float& CPhysical::SOFTCOL_CARLINE_SPEED_MULT = *(float*)0x8CD79C;
-float& CPhysical::TEST_ADD_AMBIENT_LIGHT_FRAC = *(float*)0x8CD7B8;
-float& CPhysical::HIGHSPEED_ELASTICITY_MULT_COPCAR = *(float*)0x8CD784;
-CVector& CPhysical::fxDirection = *(CVector*)0xB73720;
+auto& CPhysical::DAMPING_LIMIT_IN_FRAME = StaticRef<float>(0x8CD7A0);
+auto& CPhysical::DAMPING_LIMIT_OF_SPRING_FORCE = StaticRef<float>(0x8CD7A4);
+auto& CPhysical::PHYSICAL_SHIFT_SPEED_DAMP = StaticRef<float>(0x8CD788);
+auto& CPhysical::SOFTCOL_SPEED_MULT = StaticRef<float>(0x8CD794);
+auto& CPhysical::SOFTCOL_SPEED_MULT2 = StaticRef<float>(0x8CD798);
+auto& CPhysical::SOFTCOL_DEPTH_MIN = StaticRef<float>(0x8CD78C);
+auto& CPhysical::SOFTCOL_DEPTH_MULT = StaticRef<float>(0x8CD790);
+auto& CPhysical::SOFTCOL_CARLINE_SPEED_MULT = StaticRef<float>(0x8CD79C);
+auto& CPhysical::TEST_ADD_AMBIENT_LIGHT_FRAC = StaticRef<float>(0x8CD7B8);
+auto& CPhysical::HIGHSPEED_ELASTICITY_MULT_COPCAR = StaticRef<float>(0x8CD784);
+auto& CPhysical::fxDirection = StaticRef<CVector>(0xB73720);
 
 void CPhysical::InjectHooks()
 {

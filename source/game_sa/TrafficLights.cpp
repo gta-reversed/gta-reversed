@@ -3,16 +3,16 @@
 #include "TrafficLights.h"
 #include "Shadows.h"
 
-uint8(&CTrafficLights::aTrafficLightColoursR)[3] = *(uint8(*)[3])0x8A6214;
-uint8(&CTrafficLights::aTrafficLightColoursG)[3] = *(uint8(*)[3])0x8A6218;
-uint8(&CTrafficLights::aTrafficLightColoursB)[3] = *(uint8(*)[3])0xA9AD94;
-float& CTrafficLights::fLightMult = *(float*)0x8A621C;
+auto (&CTrafficLights::aTrafficLightColoursR)[3] = StaticRef<uint8[3]>(0x8A6214);
+auto (&CTrafficLights::aTrafficLightColoursG)[3] = StaticRef<uint8[3]>(0x8A6218);
+auto (&CTrafficLights::aTrafficLightColoursB)[3] = StaticRef<uint8[3]>(0xA9AD94);
+auto& CTrafficLights::fLightMult = StaticRef<float>(0x8A621C);
 
-CVector& CTrafficLights::vecTrafficLights5_1 = *(CVector*)0xA9ADD4;
-CVector& CTrafficLights::vecTrafficLights5_2 = *(CVector*)0xA9ADC8;
-CVector& CTrafficLights::vecTrafficLights_1 = *(CVector*)0xA9ADBC;
-CVector& CTrafficLights::vecTrafficLights_2 = *(CVector*)0xA9ADB0;
-uint32& CTrafficLights::uiPedLightFlags = *(uint32*)0xA9ADE0;
+auto& CTrafficLights::vecTrafficLights5_1 = StaticRef<CVector>(0xA9ADD4);
+auto& CTrafficLights::vecTrafficLights5_2 = StaticRef<CVector>(0xA9ADC8);
+auto& CTrafficLights::vecTrafficLights_1 = StaticRef<CVector>(0xA9ADBC);
+auto& CTrafficLights::vecTrafficLights_2 = StaticRef<CVector>(0xA9ADB0);
+auto& CTrafficLights::uiPedLightFlags = StaticRef<uint32>(0xA9ADE0);
 
 void CTrafficLights::InjectHooks()
 {

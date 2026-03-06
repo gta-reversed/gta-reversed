@@ -3,7 +3,7 @@
 #include "WaterCannons.h"
 #include "WaterCannon.h"
 
-CWaterCannon (&CWaterCannons::aCannons)[3] = *(CWaterCannon (*)[3])0xC80740;
+auto (&CWaterCannons::aCannons)[3] = StaticRef<CWaterCannon[3]>(0xC80740);
 
 void CWaterCannons::InjectHooks() {
     RH_ScopedClass(CWaterCannons);

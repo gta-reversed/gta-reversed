@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-int32& CPlayerSkin::m_txdSlot = *(int32*) 0xC3F03C;
+auto& CPlayerSkin::m_txdSlot = StaticRef<int32>(0xC3F03C);
 
 RpClump*& gpPlayerClump = *(RpClump**)(0xC3F040);
 

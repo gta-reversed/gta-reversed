@@ -2,18 +2,18 @@
 
 #include "Draw.h"
 
-float& CDraw::ms_fFOV = *(float *)0x8D5038;
-float& CDraw::ms_fLODDistance = *(float *)0xC3EF98;
-float& CDraw::ms_fFarClipZ = *(float *)0xC3EF9C;
-float& CDraw::ms_fNearClipZ = *(float *)0xC3EFA0;
-float& CDraw::ms_fAspectRatio = *(float *)0xC3EFA4;
-uint8& CDraw::FadeRed = *(uint8*)0xC3EFA8;
-uint8& CDraw::FadeGreen = *(uint8*)0xC3EFA9;
-uint8& CDraw::FadeBlue = *(uint8*)0xC3EFAA;
-uint8& CDraw::FadeValue = *(uint8*)0xC3EFAB;
+auto& CDraw::ms_fFOV = StaticRef<float>(0x8D5038);
+auto& CDraw::ms_fLODDistance = StaticRef<float>(0xC3EF98);
+auto& CDraw::ms_fFarClipZ = StaticRef<float>(0xC3EF9C);
+auto& CDraw::ms_fNearClipZ = StaticRef<float>(0xC3EFA0);
+auto& CDraw::ms_fAspectRatio = StaticRef<float>(0xC3EFA4);
+auto& CDraw::FadeRed = StaticRef<uint8>(0xC3EFA8);
+auto& CDraw::FadeGreen = StaticRef<uint8>(0xC3EFA9);
+auto& CDraw::FadeBlue = StaticRef<uint8>(0xC3EFAA);
+auto& CDraw::FadeValue = StaticRef<uint8>(0xC3EFAB);
 
-uint32& FadeTimer = *(uint32*)0xC16EE0;
-uint32& FadeOutTime = *(uint32*)0x8D2BD4;
+auto& FadeTimer = StaticRef<uint32>(0xC16EE0);
+auto& FadeOutTime = StaticRef<uint32>(0x8D2BD4);
 
 void CDraw::InjectHooks() {
     RH_ScopedClass(CDraw);

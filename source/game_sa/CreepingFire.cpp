@@ -3,7 +3,7 @@
 #include "CreepingFire.h"
 #include "FireManager.h"
 
-uint8 (&CCreepingFire::m_aFireStatus)[32][32] = *(uint8(*)[32][32])0xB71B68;
+auto (&CCreepingFire::m_aFireStatus)[32][32] = StaticRef<uint8[32][32]>(0xB71B68);
 
 void CCreepingFire::InjectHooks() {
     RH_ScopedClass(CCreepingFire);

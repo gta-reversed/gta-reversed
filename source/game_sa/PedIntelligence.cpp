@@ -39,10 +39,10 @@
 #include <TaskComplexGoToCarDoorAndStandStill.h>
 #include "TaskSimplePickUpEntity.h"
 
-float& CPedIntelligence::STEALTH_KILL_RANGE = *reinterpret_cast<float*>(0x8D2398); // 2.5f
-float& CPedIntelligence::LIGHT_AI_LEVEL_MAX = *reinterpret_cast<float*>(0x8D2380); // 0.3f
-float& CPedIntelligence::flt_8D2384 = *reinterpret_cast<float*>(0x8D2384); // 30.0f
-float& CPedIntelligence::flt_8D2388 = *reinterpret_cast<float*>(0x8D2388); // 50.0f
+auto& CPedIntelligence::STEALTH_KILL_RANGE = StaticRef<float>(0x8D2398); // 2.5f
+auto& CPedIntelligence::LIGHT_AI_LEVEL_MAX = StaticRef<float>(0x8D2380); // 0.3f
+auto& CPedIntelligence::flt_8D2384 = StaticRef<float>(0x8D2384); // 30.0f
+auto& CPedIntelligence::flt_8D2388 = StaticRef<float>(0x8D2388); // 50.0f
 
 void CPedIntelligence::InjectHooks()
 {

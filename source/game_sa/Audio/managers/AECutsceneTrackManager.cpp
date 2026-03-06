@@ -4,7 +4,7 @@
 #include "AEAudioHardware.h"
 #include "CutSceneStreamsPC.h"
 
-CAECutsceneTrackManager& AECutsceneTrackManager = *(CAECutsceneTrackManager*)0x8AE554;
+auto& AECutsceneTrackManager = StaticRef<CAECutsceneTrackManager>(0x8AE554);
 
 void CAECutsceneTrackManager::InjectHooks() {
     RH_ScopedClass(CAECutsceneTrackManager);

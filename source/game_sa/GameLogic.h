@@ -36,13 +36,13 @@ class CPed;
 
 class CGameLogic {
 public:
-    inline static std::array<CWeapon, NUM_WEAPON_SLOTS>& SavedWeapons = *reinterpret_cast<std::array<CWeapon, NUM_WEAPON_SLOTS>*>(0x96A9B8);
+    static inline auto& SavedWeapons = StaticRef<std::array<CWeapon, NUM_WEAPON_SLOTS>>(0x96A9B8);
 
-    inline static std::array<float, 16>& AfterDeathStartPointOrientations = *reinterpret_cast<std::array<float, 16>*>(0x96A850);
-    inline static std::array<CVector, 16>& AfterDeathStartPoints = *reinterpret_cast<std::array<CVector, 16>*>(0x96A8E0);
+    static inline auto& AfterDeathStartPointOrientations = StaticRef<std::array<float, 16>>(0x96A850);
+    static inline auto& AfterDeathStartPoints = StaticRef<std::array<CVector, 16>>(0x96A8E0);
 
-    inline static CVector& SkipPosition = *reinterpret_cast<CVector*>(0x96A8D4);
-    inline static float& SkipHeading = *reinterpret_cast<float*>(0x96A8A4);
+    static inline auto& SkipPosition = StaticRef<CVector>(0x96A8D4);
+    static inline auto& SkipHeading = StaticRef<float>(0x96A8A4);
 
     static inline auto& nPrintFocusHelpCounter = StaticRef<int32>(0x96A8B8);
     static inline auto& nPrintFocusHelpTimer = StaticRef<int32>(0x96A8B4);

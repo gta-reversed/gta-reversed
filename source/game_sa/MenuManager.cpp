@@ -18,7 +18,7 @@
 #include "Hud.h"
 #include "ControllerConfigManager.h"
 
-CMenuManager& FrontEndMenuManager = *(CMenuManager*)0xBA6748;
+auto& FrontEndMenuManager = StaticRef<CMenuManager>(0xBA6748);
 
 CMenuManager& GetMenu() {
     return FrontEndMenuManager;

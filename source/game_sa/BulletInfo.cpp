@@ -8,9 +8,9 @@
 
 // Note: This class is only used by CWeapon::FireSniper
 
-CBulletInfo (&CBulletInfo::aBulletInfos)[8] = *(CBulletInfo(*)[8])0xC88740;
-CVector& CBulletInfo::PlayerSniperBulletStart = *(CVector*)0xC888A0;
-CVector& CBulletInfo::PlayerSniperBulletEnd = *(CVector*)0xC888AC;
+auto (&CBulletInfo::aBulletInfos)[8] = StaticRef<CBulletInfo[8]>(0xC88740);
+auto& CBulletInfo::PlayerSniperBulletStart = StaticRef<CVector>(0xC888A0);
+auto& CBulletInfo::PlayerSniperBulletEnd = StaticRef<CVector>(0xC888AC);
 
 void CBulletInfo::InjectHooks() {
     RH_ScopedClass(CBulletInfo);

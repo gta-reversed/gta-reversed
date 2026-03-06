@@ -2,7 +2,7 @@
 
 #include "PedType.h"
 
-CAcquaintance*& CPedType::ms_apPedTypes = *(CAcquaintance**)0xC0BBE8;
+auto& CPedType::ms_apPedTypes = StaticRef<CAcquaintance*>(0xC0BBE8);
 CAcquaintance* CPedType::ms_apPedTypesOld = {}; // NOTSA
 
 void CPedType::InjectHooks() {

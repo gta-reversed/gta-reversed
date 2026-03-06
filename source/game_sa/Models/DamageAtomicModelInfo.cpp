@@ -4,7 +4,7 @@
 #include "CustomBuildingRenderer.h"
 #include "CarFXRenderer.h"
 
-bool& CDamageAtomicModelInfo::ms_bCreateDamagedVersion = *(bool*)0xA9B0B0;
+auto& CDamageAtomicModelInfo::ms_bCreateDamagedVersion = StaticRef<bool>(0xA9B0B0);
 
 void CDamageAtomicModelInfo::InjectHooks()
 {

@@ -4,25 +4,25 @@
 #include "CarCtrl.h"
 #include "FireManager.h"
 
-int32& CPlane::GenPlane_ModelIndex = *(int32*)0xC1CAD8;
-uint32& CPlane::GenPlane_Status = *(uint32*)0xC1CADC;
-uint32& CPlane::GenPlane_LastTimeGenerated = *(uint32*)0xC1CAE0;
+auto& CPlane::GenPlane_ModelIndex = StaticRef<int32>(0xC1CAD8);
+auto& CPlane::GenPlane_Status = StaticRef<uint32>(0xC1CADC);
+auto& CPlane::GenPlane_LastTimeGenerated = StaticRef<uint32>(0xC1CAE0);
 
-bool& CPlane::GenPlane_Active = *(bool*)0x8D33BC;                 // true
-float& CPlane::ANDROM_COL_ANGLE_MULT = *(float*)0x8D33C0;         // 0.00015f
-uint16& CPlane::HARRIER_NOZZLE_ROTATE_LIMIT = *(uint16*)0x8D33C4; // 5000
-uint16& CPlane::HARRIER_NOZZLE_SWITCH_LIMIT = *(uint16*)0x8D33C8; // 3000
-float& CPlane::PLANE_MIN_PROP_SPEED = *(float*)0x8D33CC;          // 0.05f
-float& CPlane::PLANE_STD_PROP_SPEED = *(float*)0x8D33D0;          // 0.18f
-float& CPlane::PLANE_MAX_PROP_SPEED = *(float*)0x8D33D4;          // 0.34f
-float& CPlane::PLANE_ROC_PROP_SPEED = *(float*)0x8D33D8;          // 0.01f
+auto& CPlane::GenPlane_Active = StaticRef<bool>(0x8D33BC);                 // true
+auto& CPlane::ANDROM_COL_ANGLE_MULT = StaticRef<float>(0x8D33C0);         // 0.00015f
+auto& CPlane::HARRIER_NOZZLE_ROTATE_LIMIT = StaticRef<uint16>(0x8D33C4); // 5000
+auto& CPlane::HARRIER_NOZZLE_SWITCH_LIMIT = StaticRef<uint16>(0x8D33C8); // 3000
+auto& CPlane::PLANE_MIN_PROP_SPEED = StaticRef<float>(0x8D33CC);          // 0.05f
+auto& CPlane::PLANE_STD_PROP_SPEED = StaticRef<float>(0x8D33D0);          // 0.18f
+auto& CPlane::PLANE_MAX_PROP_SPEED = StaticRef<float>(0x8D33D4);          // 0.34f
+auto& CPlane::PLANE_ROC_PROP_SPEED = StaticRef<float>(0x8D33D8);          // 0.01f
 
-float& HARRIER_NOZZLE_ROTATERATE = *(float*)0x8D33DC;       // 25.0f
-float& PLANE_DAMAGE_WAVE_COUNTER_VAR = *(float*)0x8D33E0;   // 0.75f
-float& PLANE_DAMAGE_THRESHHOLD = *(float*)0x8D33E4;         // 500.0f
-float& PLANE_DAMAGE_SCALE_MASS = *(float*)0x8D33E8;         // 10000.0f
-float& PLANE_DAMAGE_DESTROY_THRESHHOLD = *(float*)0x8D33EC; // 5000.0f
-CVector& vecRCBaronGunPos = *(CVector*)0x8D33F0;            // <0.0f, 0.45f, 0.0f>
+auto& HARRIER_NOZZLE_ROTATERATE = StaticRef<float>(0x8D33DC);       // 25.0f
+auto& PLANE_DAMAGE_WAVE_COUNTER_VAR = StaticRef<float>(0x8D33E0);   // 0.75f
+auto& PLANE_DAMAGE_THRESHHOLD = StaticRef<float>(0x8D33E4);         // 500.0f
+auto& PLANE_DAMAGE_SCALE_MASS = StaticRef<float>(0x8D33E8);         // 10000.0f
+auto& PLANE_DAMAGE_DESTROY_THRESHHOLD = StaticRef<float>(0x8D33EC); // 5000.0f
+auto& vecRCBaronGunPos = StaticRef<CVector>(0x8D33F0);            // <0.0f, 0.45f, 0.0f>
 
 void CPlane::InjectHooks() {
     RH_ScopedVirtualClass(CPlane, 0x871948, 71);

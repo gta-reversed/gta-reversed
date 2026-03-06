@@ -3,8 +3,8 @@
 #include "ColStore.h"
 #include "TheScripts.h"
 
-CVector& CColStore::ms_vecCollisionNeeded = *(CVector*)0x965580;
-bool& CColStore::ms_bCollisionNeeded = *(bool*)0x965558;
+auto& CColStore::ms_vecCollisionNeeded = StaticRef<CVector>(0x965580);
+auto& CColStore::ms_bCollisionNeeded = StaticRef<bool>(0x965558);
 int32 CColStore::ms_nRequiredCollisionArea = *(int32*)0x965554;
 
 auto& ms_pColPool = StaticRef<CColPool*>(0x965560);

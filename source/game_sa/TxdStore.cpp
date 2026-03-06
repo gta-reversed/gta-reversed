@@ -8,11 +8,11 @@
 
 #include "TxdStore.h"
 
-CTxdPool*& CTxdStore::ms_pTxdPool = *reinterpret_cast<CTxdPool**>(0xC8800C);
-RwTexDictionary*& CTxdStore::ms_pStoredTxd = *reinterpret_cast<RwTexDictionary**>(0xC88010);
-int32& CTxdStore::ms_lastSlotFound = *reinterpret_cast<int32*>(0xC88014);
+auto& CTxdStore::ms_pTxdPool = StaticRef<CTxdPool*>(0xC8800C);
+auto& CTxdStore::ms_pStoredTxd = StaticRef<RwTexDictionary*>(0xC88010);
+auto& CTxdStore::ms_lastSlotFound = StaticRef<int32>(0xC88014);
 
-int16 (&CTxdStore::defaultTxds)[4] = *reinterpret_cast<int16 (*)[4]>(0xC88004);
+auto (&CTxdStore::defaultTxds)[4] = StaticRef<int16[4]>(0xC88004);
 
 // variables list is not finished. Need to make CPools before.
 

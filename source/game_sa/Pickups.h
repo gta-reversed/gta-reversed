@@ -130,6 +130,6 @@ struct tPickupReference {
 };
 VALIDATE_SIZE(tPickupReference, 0x4);
 
-inline static int32& CollectPickupBuffer = *(int32*)0x97D644;
+static inline auto& CollectPickupBuffer = StaticRef<int32>(0x97D644);
 
 void ModifyStringLabelForControlSetting(char* stringLabel);

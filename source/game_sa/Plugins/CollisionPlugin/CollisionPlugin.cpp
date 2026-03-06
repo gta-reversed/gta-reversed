@@ -2,8 +2,8 @@
 
 #include "CollisionPlugin.h"
 
-RwInt32& gCollisionPluginOffset = *(RwInt32*)0x9689DC;
-CClumpModelInfo*& CCollisionPlugin::ms_currentModel = *(CClumpModelInfo**)0x9689E0;
+auto& gCollisionPluginOffset = StaticRef<RwInt32>(0x9689DC);
+auto& CCollisionPlugin::ms_currentModel = StaticRef<CClumpModelInfo*>(0x9689E0);
 
 void CCollisionPlugin::InjectHooks() {
     RH_ScopedClass(CCollisionPlugin);

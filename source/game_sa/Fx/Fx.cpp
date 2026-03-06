@@ -11,7 +11,7 @@
 
 static auto (&TempVertexBuffer)[4] = StaticRef<RxObjSpace3DVertex[4]>(0xC4D958);
 
-Fx_c& g_fx = *(Fx_c*)0xA9AE00;
+auto& g_fx = StaticRef<Fx_c>(0xA9AE00);
 
 void Fx_c::InjectHooks() {
     RH_ScopedClass(Fx_c);

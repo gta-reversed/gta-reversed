@@ -33,34 +33,34 @@
 #define POP_LOG_DEBUG(...)
 #endif
 
-float& CPopulation::PedDensityMultiplier = *(float*)0x8D2530;
-int32& CPopulation::m_AllRandomPedsThisType = *(int32*)0x8D2534;
-uint32& CPopulation::MaxNumberOfPedsInUse = *(uint32*)0x8D2538;
-uint32& CPopulation::NumberOfPedsInUseInterior = *(uint32*)0x8D253C;
-CLoadedCarGroup& CPopulation::m_LoadedBoats = *(CLoadedCarGroup*)0xC0E998;
-CLoadedCarGroup& CPopulation::m_InAppropriateLoadedCars = *(CLoadedCarGroup*)0xC0E9C8;
-CLoadedCarGroup& CPopulation::m_AppropriateLoadedCars = *(CLoadedCarGroup*)0xC0E9F8;
-CLoadedCarGroup (&CPopulation::m_LoadedGangCars)[10] = *(CLoadedCarGroup(*)[10])0xC0EA28;
-bool& CPopulation::bZoneChangeHasHappened = *(bool*)0xC0EC22;
-uint8& CPopulation::m_CountDownToPedsAtStart = *(uint8*)0xC0EC23;
-uint32& CPopulation::ms_nTotalMissionPeds = *(uint32*)0xC0EC24;
-uint32& CPopulation::ms_nTotalPeds = *(uint32*)0xC0EC28;
-uint32& CPopulation::ms_nTotalGangPeds = *(uint32*)0xC0EC2C;
-uint32& CPopulation::ms_nTotalCivPeds = *(uint32*)0xC0EC30;
-uint32& CPopulation::ms_nTotalCarPassengerPeds = *(uint32*)0xC0EC34;
-uint32& CPopulation::ms_nNumDealers = *(uint32*)0xC0EC38;
-std::array<uint32, TOTAL_GANGS>& CPopulation::ms_nNumGang = *(std::array<uint32, TOTAL_GANGS>*)0xC0EC3C;
-uint32& CPopulation::ms_nNumEmergency = *(uint32*)0xC0EC64;
-uint32& CPopulation::ms_nNumCop = *(uint32*)0xC0EC68;
-uint32& CPopulation::ms_nNumCivFemale = *(uint32*)0xC0EC6C;
-uint32& CPopulation::ms_nNumCivMale = *(uint32*)0xC0EC70;
-bool& CPopulation::m_bDontCreateRandomGangMembers = *(bool*)0xC0FCB2;
-bool& CPopulation::m_bOnlyCreateRandomGangMembers = *(bool*)0xC0FCB3;
-bool& CPopulation::m_bDontCreateRandomCops = *(bool*)0xC0FCB4;
-bool& CPopulation::m_bMoreCarsAndFewerPeds = *(bool*)0xC0FCB5;
-bool& CPopulation::bInPoliceStation = *(bool*)0xC0FCB6;
-uint32& CPopulation::NumMiamiViceCops = *(uint32*)0xC0FCB8;
-uint32& CPopulation::CurrentWorldZone = *(uint32*)0xC0FCBC;
+auto& CPopulation::PedDensityMultiplier = StaticRef<float>(0x8D2530);
+auto& CPopulation::m_AllRandomPedsThisType = StaticRef<int32>(0x8D2534);
+auto& CPopulation::MaxNumberOfPedsInUse = StaticRef<uint32>(0x8D2538);
+auto& CPopulation::NumberOfPedsInUseInterior = StaticRef<uint32>(0x8D253C);
+auto& CPopulation::m_LoadedBoats = StaticRef<CLoadedCarGroup>(0xC0E998);
+auto& CPopulation::m_InAppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9C8);
+auto& CPopulation::m_AppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9F8);
+auto (&CPopulation::m_LoadedGangCars)[10] = StaticRef<CLoadedCarGroup[10]>(0xC0EA28);
+auto& CPopulation::bZoneChangeHasHappened = StaticRef<bool>(0xC0EC22);
+auto& CPopulation::m_CountDownToPedsAtStart = StaticRef<uint8>(0xC0EC23);
+auto& CPopulation::ms_nTotalMissionPeds = StaticRef<uint32>(0xC0EC24);
+auto& CPopulation::ms_nTotalPeds = StaticRef<uint32>(0xC0EC28);
+auto& CPopulation::ms_nTotalGangPeds = StaticRef<uint32>(0xC0EC2C);
+auto& CPopulation::ms_nTotalCivPeds = StaticRef<uint32>(0xC0EC30);
+auto& CPopulation::ms_nTotalCarPassengerPeds = StaticRef<uint32>(0xC0EC34);
+auto& CPopulation::ms_nNumDealers = StaticRef<uint32>(0xC0EC38);
+auto& CPopulation::ms_nNumGang = StaticRef<std::array<uint32, TOTAL_GANGS>>(0xC0EC3C);
+auto& CPopulation::ms_nNumEmergency = StaticRef<uint32>(0xC0EC64);
+auto& CPopulation::ms_nNumCop = StaticRef<uint32>(0xC0EC68);
+auto& CPopulation::ms_nNumCivFemale = StaticRef<uint32>(0xC0EC6C);
+auto& CPopulation::ms_nNumCivMale = StaticRef<uint32>(0xC0EC70);
+auto& CPopulation::m_bDontCreateRandomGangMembers = StaticRef<bool>(0xC0FCB2);
+auto& CPopulation::m_bOnlyCreateRandomGangMembers = StaticRef<bool>(0xC0FCB3);
+auto& CPopulation::m_bDontCreateRandomCops = StaticRef<bool>(0xC0FCB4);
+auto& CPopulation::m_bMoreCarsAndFewerPeds = StaticRef<bool>(0xC0FCB5);
+auto& CPopulation::bInPoliceStation = StaticRef<bool>(0xC0FCB6);
+auto& CPopulation::NumMiamiViceCops = StaticRef<uint32>(0xC0FCB8);
+auto& CPopulation::CurrentWorldZone = StaticRef<uint32>(0xC0FCBC);
 
 void CPopulation::InjectHooks() {
     RH_ScopedClass(CPopulation);

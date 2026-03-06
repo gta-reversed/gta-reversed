@@ -2,9 +2,9 @@
 
 #include "Buoyancy.h"
 
-cBuoyancy& mod_Buoyancy = *(cBuoyancy*)0xC1C890;
-float& cBuoyancy::fPointVolMultiplier = *(float*)0x8D32C8;
-CBuoyancyCalcStruct& cBuoyancy::calcStruct = *(CBuoyancyCalcStruct*)0xC1C858;
+auto& mod_Buoyancy = StaticRef<cBuoyancy>(0xC1C890);
+auto& cBuoyancy::fPointVolMultiplier = StaticRef<float>(0x8D32C8);
+auto& cBuoyancy::calcStruct = StaticRef<CBuoyancyCalcStruct>(0xC1C858);
 float(*cBuoyancy::afBoatVolumeDistributionSpeed)[3] = (float(*)[3])0x8D335C;
 float(*cBuoyancy::afBoatVolumeDistributionDinghy)[3] = (float(*)[3])0x8D3338;
 float(*cBuoyancy::afBoatVolumeDistributionSail)[3] = (float(*)[3])0x8D3314;

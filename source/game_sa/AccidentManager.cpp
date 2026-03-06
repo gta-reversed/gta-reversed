@@ -2,7 +2,7 @@
 
 #include "AccidentManager.h"
 
-CAccidentManager*& CAccidentManager::gAccidentManager = *(CAccidentManager * *)0xB9B7D0;
+auto& CAccidentManager::gAccidentManager = StaticRef<CAccidentManager*>(0xB9B7D0);
 
 void CAccidentManager::InjectHooks()
 {

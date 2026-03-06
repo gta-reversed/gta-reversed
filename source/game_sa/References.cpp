@@ -2,7 +2,7 @@
 
 #include "References.h"
 
-CReference (&CReferences::aRefs)[MAX_NUM_REFERENCES] = *(CReference(*)[MAX_NUM_REFERENCES])0xB9B9A8;
+auto (&CReferences::aRefs)[MAX_NUM_REFERENCES] = StaticRef<CReference[MAX_NUM_REFERENCES]>(0xB9B9A8);
 CReference*(&CReferences::pEmptyList) = *(CReference**)0xBA1768;
 
 void CReferences::InjectHooks() {

@@ -21,18 +21,18 @@
 
 
 // mouse states 
-CMouseControllerState& CPad::TempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
-CMouseControllerState& CPad::NewMouseControllerState = *(CMouseControllerState*)0xB73418;
-CMouseControllerState& CPad::OldMouseControllerState = *(CMouseControllerState*)0xB7342C;
+auto& CPad::TempMouseControllerState = StaticRef<CMouseControllerState>(0xB73404); // Updated in `CPad::UpdateMouse`
+auto& CPad::NewMouseControllerState = StaticRef<CMouseControllerState>(0xB73418);
+auto& CPad::OldMouseControllerState = StaticRef<CMouseControllerState>(0xB7342C);
 
-CKeyboardState& CPad::TempKeyState = *(CKeyboardState*)0xB72CB0;
-CKeyboardState& CPad::OldKeyState = *(CKeyboardState*)0xB72F20;
-CKeyboardState& CPad::NewKeyState = *(CKeyboardState*)0xB73190;
+auto& CPad::TempKeyState = StaticRef<CKeyboardState>(0xB72CB0);
+auto& CPad::OldKeyState = StaticRef<CKeyboardState>(0xB72F20);
+auto& CPad::NewKeyState = StaticRef<CKeyboardState>(0xB73190);
 
-CPad (&CPad::Pads)[MAX_PADS] = *(CPad(*)[MAX_PADS])0xB73458;
+auto (&CPad::Pads)[MAX_PADS] = StaticRef<CPad[MAX_PADS]>(0xB73458);
 
-bool& CPad::bInvertLook4Pad = *(bool*)0xB73402;
-char& CPad::padNumber = *(char*)0xB73400;
+auto& CPad::bInvertLook4Pad = StaticRef<bool>(0xB73402);
+auto& CPad::padNumber = StaticRef<char>(0xB73400);
 
 static auto& byte_B73403 = StaticRef<bool>(0xB73403); // TODO: Find out what modifies this, as it has no value by default..
 static auto& byte_8CD782 = StaticRef<bool>(0x8CD782); // true by default, left here for documentation purposes, as it's used in multiple CPad functions
