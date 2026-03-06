@@ -1575,10 +1575,10 @@ void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVect
 
 // 0x514B80
 float CCamera::CalculateGroundHeight(eGroundHeightType type) {
-    static auto& lastCalcCamPos    = StaticRef<CVector, 0xB70034>();
-    static auto& exactGroundHeight = StaticRef<float, 0xB70030>();
-    static auto& bbTopZ            = StaticRef<float, 0xB7002C>();
-    static auto& bbBottomZ         = StaticRef<float, 0xB70028>();
+    static auto& lastCalcCamPos    = StaticRef<CVector>(0xB70034);
+    static auto& exactGroundHeight = StaticRef<float>(0xB70030);
+    static auto& bbTopZ            = StaticRef<float>(0xB7002C);
+    static auto& bbBottomZ         = StaticRef<float>(0xB70028);
 
     const auto& camPos = GetPosition();
 

@@ -407,7 +407,7 @@ public:
 
     static inline auto& ScriptCheckpointArray = StaticRef<std::array<tScriptCheckpoint, MAX_NUM_SCRIPT_CHECKPOINTS>>(0xA44070);
     static inline uint16& NumberOfScriptCheckpoints = *reinterpret_cast<uint16*>(0xA44068);
-    static inline auto&   UnknownDebugStuff         = StaticRef<uint32, 0xA95190>(); // used in DO_DEBUG_STUFF command
+    static inline auto&   UnknownDebugStuff         = StaticRef<uint32>(0xA95190); // used in DO_DEBUG_STUFF command
 
     enum class eUseTextCommandState : uint8 {
         DISABLED,

@@ -897,7 +897,7 @@ void CClouds::RenderBottomFromHeight() {
 
     auto lowZ = 160.f, highZ = 190.f;
 
-    auto& windShift = StaticRef<float, 0xC6E954>();
+    auto& windShift = StaticRef<float>(0xC6E954);
 
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
@@ -1148,7 +1148,7 @@ void CClouds::VolumetricCloudsRender() {
 
     const auto camPos = TheCamera.GetPosition();
 
-    auto& gfVolumetricCloudFader = StaticRef<float, 0xC6E970>();
+    auto& gfVolumetricCloudFader = StaticRef<float>(0xC6E970);
     if (m_bVolumetricCloudHeightSwitch) {
         const auto delta = CTimer::GetTimeStep() * 4.f;
         if (camPos.z < 220.f) {
@@ -1178,8 +1178,8 @@ void CClouds::VolumetricCloudsRender() {
 
 
     //> 0x71653F
-    auto& gVecCameraCoors = StaticRef<CVector, 0xC6E964>();
-    auto& gVecPlayerCoors = StaticRef<CVector, 0xC6E958>();
+    auto& gVecCameraCoors = StaticRef<CVector>(0xC6E964);
+    auto& gVecPlayerCoors = StaticRef<CVector>(0xC6E958);
 
     const auto bIsCameraOrPlayerPosNotStatic = (camPos != gVecCameraCoors) || (plyrPos != gVecPlayerCoors);
 

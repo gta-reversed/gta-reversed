@@ -64,16 +64,16 @@ public:
     static uint32& CurrentWorldZone;
 
     //! Number of model IDs in each corresponding car group
-    static inline auto& m_nNumCarsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_CARGROUPS)>, 0xC0EC78>();
+    static inline auto& m_nNumCarsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_CARGROUPS)>>(0xC0EC78);
 
     //! Car model IDs in each corresponding car group
-    static inline auto& m_CarGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_CARGROUPS), 23>, 0xC0ED38>();
+    static inline auto& m_CarGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_CARGROUPS), 23>>(0xC0ED38);
 
     //! Number of model IDs in each corresponding ped group
-    static inline auto& m_nNumPedsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS)>, 0xC0ECC0>();
+    static inline auto& m_nNumPedsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS)>>(0xC0ECC0);
 
     //! Ped model IDs in each corresponding ped group
-    static inline auto& m_PedGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS), 21>, 0xC0F358>();
+    static inline auto& m_PedGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS), 21>>(0xC0F358);
 
 public:
     static void InjectHooks();

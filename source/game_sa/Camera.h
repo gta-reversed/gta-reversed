@@ -531,7 +531,7 @@ extern uint32& gLastTime2PlayerCameraWasOK;
 extern uint32& gLastTime2PlayerCameraCollided;
 extern float*& gpCamColVars;
 extern float (&gCamColVars)[28][6];
-static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>, 0x9655A0>();
-static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32, 0x9655DC>();
+static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>>(0x9655A0);
+static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32>(0x9655DC);
 
 void CamShakeNoPos(CCamera* camera, float strength);

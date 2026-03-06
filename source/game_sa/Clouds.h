@@ -55,9 +55,9 @@ struct tVolumetricClouds {
 
 class CClouds {
 public:
-    static inline auto& m_fVolumetricCloudDensity = StaticRef<float, 0x8D5388>();
-    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8, 0x8D538C>();
-    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float, 0x8D5390>();
+    static inline auto& m_fVolumetricCloudDensity = StaticRef<float>(0x8D5388);
+    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8>(0x8D538C);
+    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float>(0x8D5390);
     static float& m_fVolumetricCloudMaxDistance;
     static uint32& m_VolumetricCloudsUsedNum;
     static float& ms_cameraRoll;

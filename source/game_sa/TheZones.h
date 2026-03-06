@@ -13,7 +13,7 @@
 
 class CTheZones {
 public:
-    static inline auto&       ZonesVisited = StaticRef<notsa::mdarray<bool, 10, 10>, 0xBA3730>(); // Explored territories. Count: 100
+    static inline auto&       ZonesVisited = StaticRef<notsa::mdarray<bool, 10, 10>>(0xBA3730); // Explored territories. Count: 100
 
     static eLevelName& m_CurrLevel;
     static int32&      ZonesRevealed;                // Number of explored territories

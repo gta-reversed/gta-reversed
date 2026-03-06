@@ -424,8 +424,8 @@ public:
     static bool &m_bEnableMouseSteering;
     static bool &m_bEnableMouseFlying;
     static inline auto& m_nLastControlInput = StaticRef<eControllerType>(0xC1CC04);
-    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>, 0xC1CC08>();
-    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>, 0xC1CC78>();
+    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>>(0xC1CC08);
+    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>>(0xC1CC78);
     static bool &ms_forceVehicleLightsOff;
     static bool &s_bPlaneGunsEjectShellCasings;
     static inline auto (&m_aSpecialHydraulicData)[4] = StaticRef<tHydraulicData[4]>(0xC1CB60);

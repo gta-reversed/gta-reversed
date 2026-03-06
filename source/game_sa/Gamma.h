@@ -2,8 +2,8 @@
 
 class CGamma {
 public:
-    inline static auto& ms_SavedGamma = StaticRef<D3DGAMMARAMP, 0xC8D4C8>();
-    inline static auto& ms_GammaTable = StaticRef<D3DGAMMARAMP, 0xC8DAC8>();
+    inline static auto& ms_SavedGamma = StaticRef<D3DGAMMARAMP>(0xC8D4C8);
+    inline static auto& ms_GammaTable = StaticRef<D3DGAMMARAMP>(0xC8DAC8);
 
 public:
     bool  m_IsEnabled;

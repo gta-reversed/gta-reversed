@@ -1438,7 +1438,7 @@ int GetCurrentKeyPressed(RsKeyCodes& keys) {
 
 #ifndef NOTSA_USE_SDL3
 IDirectInputDevice8* DIReleaseMouse() { // todo: wininput
-    return plugin::CallAndReturn<IDirectInputDevice8*, 0x746F70>();
+    return plugin::CallAndReturn<IDirectInputDevice8*>(0x746F70);
 }
 
 void InitialiseMouse(bool exclusive) {

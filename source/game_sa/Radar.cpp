@@ -258,8 +258,8 @@ void CRadar::DrawLegend(int32 x, int32 y, eRadarSprite blipType) {
         return;
     }
 
-    static auto& legendTraceHeight = StaticRef<eRadarTraceHeight, 0xBAA350>(); // = eRadarTraceHeight::RADAR_TRACE_LOW;
-    static auto& legendTraceTimer  = StaticRef<uint32, 0xBAA354>(); // = CTimer::GetTimeInMS();
+    static auto& legendTraceHeight = StaticRef<eRadarTraceHeight>(0xBAA350); // = eRadarTraceHeight::RADAR_TRACE_LOW;
+    static auto& legendTraceTimer  = StaticRef<uint32>(0xBAA354); // = CTimer::GetTimeInMS();
 
     if (CTimer::GetTimeInMSPauseMode() - legendTraceTimer > 600) {
         legendTraceTimer = CTimer::GetTimeInMSPauseMode();

@@ -3,8 +3,8 @@
 #include "CustomBuildingDNPipeline.h"
 #include "CustomCarEnvMapPipeline.h"
 
-uint32& s_Magic1 = StaticRef<uint32, 0xC02C14>();
-uint32& s_Magic2 = StaticRef<uint32, 0xC02C18>();
+uint32& s_Magic1 = StaticRef<uint32>(0xC02C14);
+uint32& s_Magic2 = StaticRef<uint32>(0xC02C18);
 
 // 0x5D72E0
 bool CCustomBuildingDNPipeline::ExtraVertColourPluginAttach() {

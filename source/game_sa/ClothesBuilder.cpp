@@ -8,11 +8,11 @@
 CDirectory& playerImg = *(CDirectory*)0xBC12C0;
 CDirectory::DirectoryInfo& playerImgEntries = *(CDirectory::DirectoryInfo*)0xBBCDC8;
 
-auto& gBoneIndices = StaticRef<notsa::mdarray<int16, 10, 64>, 0xBBC8C8>();
+auto& gBoneIndices = StaticRef<notsa::mdarray<int16, 10, 64>>(0xBBC8C8);
 
-auto& ms_ratiosHaveChanged  = StaticRef<bool, 0x8D0AA4>();
-auto& ms_geometryHasChanged = StaticRef<bool, 0x8D0AA5>();
-auto& ms_textureHasChanged  = StaticRef<bool, 0x8D0AA6>();
+auto& ms_ratiosHaveChanged  = StaticRef<bool>(0x8D0AA4);
+auto& ms_geometryHasChanged = StaticRef<bool>(0x8D0AA5);
+auto& ms_textureHasChanged  = StaticRef<bool>(0x8D0AA6);
 
 void CClothesBuilder::InjectHooks() {
     RH_ScopedClass(CClothesBuilder);
@@ -70,7 +70,7 @@ int32 CClothesBuilder::RequestTexture(uint32 txdNameKey) {
         return -1;
     }
 
-    auto& defaultTxdIdx = StaticRef<uint32, 0xBC12D0>();
+    auto& defaultTxdIdx = StaticRef<uint32>(0xBC12D0);
     const auto defaultTxd = CTxdStore::defaultTxds[defaultTxdIdx];
     defaultTxdIdx = (defaultTxdIdx + 1) % 4;
 

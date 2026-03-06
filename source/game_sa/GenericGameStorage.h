@@ -69,9 +69,9 @@ public:
     static inline auto& ms_bFailed = StaticRef<bool>(0xC16EFC);
     static inline auto& ms_bLoading = StaticRef<bool>(0xC16EFD);
     static inline const char ms_BlockTagName[] = "BLOCK";
-    static inline std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>& ms_SlotSaveDate = StaticRef<std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>, 0xC16138>();
-    static inline std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>& ms_SlotFileName = StaticRef<std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>, 0xC16368>();
-    static inline std::array<eSlotState, MAX_SAVEGAME_SLOTS>& ms_Slots = StaticRef<std::array<eSlotState, MAX_SAVEGAME_SLOTS>, 0xC16EBC>();
+    static inline std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>& ms_SlotSaveDate = StaticRef<std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>>(0xC16138);
+    static inline std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>& ms_SlotFileName = StaticRef<std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>>(0xC16368);
+    static inline std::array<eSlotState, MAX_SAVEGAME_SLOTS>& ms_Slots = StaticRef<std::array<eSlotState, MAX_SAVEGAME_SLOTS>>(0xC16EBC);
 
 public:
     static void InjectHooks();

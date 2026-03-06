@@ -21,7 +21,7 @@ enum class WinVer {
 
     UNKNOWN
 };
-static auto& s_WinVer = StaticRef<WinVer, 0xC8CF68>();
+static auto& s_WinVer = StaticRef<WinVer>(0xC8CF68);
 
 struct OSStatus {
     WinVer OSVer;
@@ -37,7 +37,7 @@ struct OSStatus {
         SIZE_T Avail;
     } VRAM;
 };
-inline auto& s_OSStatus = StaticRef<OSStatus, 0xC8CF68>();
+inline auto& s_OSStatus = StaticRef<OSStatus>(0xC8CF68);
 
 inline bool& anisotropySupportedByGFX = *(bool*)0xC87FFC;
 inline bool& isForeground = *(bool*)0xC920EC;
