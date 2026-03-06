@@ -19,6 +19,8 @@ enum eTrackFlags : int8 {
 };
 
 class NOTSA_EXPORT_VTABLE CAEStreamingChannel : public CAEAudioChannel {
+    static constexpr size_t CHANNEL_BUFFER_SIZE = 0x60000; // 384 KB
+
 public:
     bool                  m_bInitialized{ false };
     bool                  m_bLoopTrack{ false };
@@ -29,7 +31,7 @@ public:
     uint8                 m_lastSlot{ 0u };
     uint8                 m_lastWrittenSlot{ 0u };
     void*                 m_pBuffer{ nullptr };
-    uint8                 m_aBuffer[0x60000];
+    uint8                 m_aBuffer[CHANNEL_BUFFER_SIZE];
     CAEStreamingDecoder*  m_pStreamingDecoder{ nullptr };
     CAEStreamingDecoder*  m_pNextStreamingDecoder{ nullptr };
     StreamingChannelState m_nState{ StreamingChannelState::Stopped };
