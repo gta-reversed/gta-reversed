@@ -32,21 +32,20 @@ public:
     static constexpr auto MISSION_AUDIO_COUNT = 4;
 
 public:
-    uint8                                       field_7C;
-    uint8                                       field_7D;
-    uint8                                       field_7E;
-    uint8                                       field_7F;
-    uint32                                      m_nLastTimeHornPlayed;
-    float                                       m_Volume;
-    float                                       m_Speed;
-    float                                       field_8C;
-    std::array<CAudioLink, MISSION_AUDIO_COUNT> wavLinks;
-    CPhysical*                                  m_Physical;
-    CAEDoorAudioEntity                          m_GarageAudio;
-    CAEExplosionAudioEntity                     m_ExplosionAudio;
+    bool                                        m_MiniGameOneShotTriggered{};
+    bool                                        m_InACrane{};
+    int8                                        m_MeshGateTriggerCount{};
+    uint32                                      m_LastMiniGameLoopTriggerTimeMs{};
+    float                                       m_CraneVolume{};
+    float                                       m_CraneFrequencyScaling{ 1.0f };
+    float                                       m_MissionSoundEnvelopePhase{};
+    std::array<CAudioLink, MISSION_AUDIO_COUNT> wavLinks{};
+    CPhysical*                                  m_Crane{};
+    CAEDoorAudioEntity                          m_DoorAudioEntity{};
+    CAEExplosionAudioEntity                     m_ExplosionAudioEntity{};
 
 public:
-    CAEScriptAudioEntity();
+    CAEScriptAudioEntity() = default; // 0x5074D0
 
     void Initialise();
     void Reset();
@@ -62,14 +61,14 @@ public:
     void SetMissionAudioPosition(uint8 sampleId, const CVector& posn);
     CVector* GetMissionAudioPosition(uint8);
 
-    void PlayMissionBankSound(uint8 sampleId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7 = 0, float volume = 0.0f, float maxDistance = 2.0f, float speed = 1.0f);
-    void PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, CVector& posn, CPhysical* physical, float vol, float speed = 1.0f, int16 playPosn = 0, float maxDistance = 1.0f);
+    void PlayMissionBankSound(uint8 sampleId, const CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7 = 0, float volume = 0.0f, float maxDistance = 2.0f, float speed = 1.0f);
+    void PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, const CVector& posn, CPhysical* physical, float vol, float speed = 1.0f, int16 playPosn = 0, float maxDistance = 1.0f);
     void PlayLoadedMissionAudio(uint8);
-    void PreloadMissionAudio(uint8 slotId, int32 sampleId);
+    void PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId);
 
-    void ProcessMissionAudioEvent(eAudioEvents eventId, CVector& posn, CPhysical* physical, float volume = 0.0f, float speed = 1.0f);
+    void ProcessMissionAudioEvent(eAudioEvents eventId, const CVector& posn, CPhysical* physical, float volume = 0.0f, float speed = 1.0f);
     void ReportMissionAudioEvent(eAudioEvents eventId, CPhysical* physical, float volume = 0.0f, float speed = 1.0f);
-    void ReportMissionAudioEvent(eAudioEvents eventId, CVector& posn);
+    void ReportMissionAudioEvent(eAudioEvents eventId, const CVector& posn);
 
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
     void Service();

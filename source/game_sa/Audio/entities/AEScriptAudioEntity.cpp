@@ -6,17 +6,6 @@
 #include "AEAudioHardware.h"
 #include "AEAmbienceTrackManager.h"
 
-// 0x5074D0
-CAEScriptAudioEntity::CAEScriptAudioEntity() : CAEAudioEntity() {
-    m_nLastTimeHornPlayed = 0;
-    field_7E = 0;
-    field_7C = 0;
-    m_Volume = 0.0f;
-    m_Speed = 1.0f;
-    field_7D = 0;
-    field_8C = 0.0f;
-}
-
 // 0x5B9B60
 void CAEScriptAudioEntity::Initialise() {
     for (auto& link : wavLinks) {
@@ -29,10 +18,11 @@ void CAEScriptAudioEntity::Reset() {
     for (auto i = 0; i < MISSION_AUDIO_COUNT; i++) {
         ClearMissionAudio(i);
     }
-    field_7C = 0;
-    m_Entity = nullptr;
-    field_7D = 0;
-    field_8C = 2.0f;
+    m_Crane                     = nullptr;
+    m_MiniGameOneShotTriggered  = 0;
+    m_Crane                     = 0;
+    m_InACrane                  = 0;
+    m_MissionSoundEnvelopePhase = 2.0;
 }
 
 // 0x0
@@ -59,9 +49,9 @@ void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
     }
 
     AESoundManager.CancelSoundsInBankSlot(GetBankSlot(sampleId), true);
-    auto& wav = wavLinks[sampleId];
+    auto& wav         = wavLinks[sampleId];
     wav.m_nBankSlotId = 0;
-    wav.m_Sound = nullptr;
+    wav.m_Sound       = nullptr;
     wav.m_vPosition.Set(-1000.0f, -1000.0f, -1000.0f);
 }
 
@@ -119,13 +109,13 @@ CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
 }
 
 // 0x4EC6D0
-void CAEScriptAudioEntity::PlayMissionBankSound(uint8 sampleId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
-    plugin::CallMethod<0x4EC6D0, CAEScriptAudioEntity*, uint8, CVector&, CPhysical*, int16, uint8, uint8, float, float, float>(this, sampleId, posn, physical, sfxId, linkId, a7, volume, maxDistance, speed);
+void CAEScriptAudioEntity::PlayMissionBankSound(uint8 sampleId, const CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
+    plugin::CallMethod<0x4EC6D0, CAEScriptAudioEntity*, uint8, const CVector&, CPhysical*, int16, uint8, uint8, float, float, float>(this, sampleId, posn, physical, sfxId, linkId, a7, volume, maxDistance, speed);
 }
 
 // event eAudioEvents
 // 0x4EC550
-void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, CVector& posn, CPhysical* physical, float vol, float speed, int16 playPosn, float maxDistance) {
+void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, const CVector& posn, CPhysical* physical, float vol, float speed, int16 playPosn, float maxDistance) {
     if (!AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
         return;
     }
@@ -167,13 +157,13 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
 }
 
 // 0x4EC190
-void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, int32 sampleId) {
-    plugin::CallMethod<0x4EC190, CAEScriptAudioEntity*>(this, slotId, sampleId);
+void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId) {
+    plugin::CallMethod<0x4EC190, CAEScriptAudioEntity*>(this, slotId, scriptId);
 }
 
 // 0x4ECCF0
-void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVector& posn, CPhysical* physical, float volume, float speed) {
-    return plugin::CallMethod<0x4ECCF0, CAEScriptAudioEntity*, eAudioEvents, CVector&, CPhysical*, float, float>(this, eventId, posn, physical, volume, speed);
+void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, const CVector& posn, CPhysical* physical, float volume, float speed) {
+    return plugin::CallMethod<0x4ECCF0, CAEScriptAudioEntity*, eAudioEvents, const CVector&, CPhysical*, float, float>(this, eventId, posn, physical, volume, speed);
 
     /*
     * Untested
@@ -800,12 +790,11 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
 
 // 0x4EE960
 void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, CPhysical* physical, float volume, float speed) {
-    CVector posn{ -1000.0f, -1000.0f, -1000.0f };
-    ProcessMissionAudioEvent(eventId, posn, physical, volume, speed);
+    ProcessMissionAudioEvent(eventId, { -1000.0f, -1000.0f, -1000.0f }, physical, volume, speed);
 }
 
 // 0x4EE940
-void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, CVector& posn) {
+void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, const CVector& posn) {
     ProcessMissionAudioEvent(eventId, posn, nullptr);
 }
 
@@ -816,13 +805,23 @@ void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
 
 // 0x4EC900
 void CAEScriptAudioEntity::Service() {
-    CVector posn = {-1000.0f, -1000.0f, -1000.0f};
-    if (!m_Physical)
+    if (!m_Crane)
         return;
     if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CRANE_ENTER, this) != 0)
         return;
 
-    PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, 0, AE_SCRIPT_CRANE_ENTER, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
+    PlayResidentSoundEvent(
+        SND_BANK_SLOT_PLAYER_ENGINE_P,
+        SND_BANK_GENRL_CRANE_P,
+        0,
+        AE_SCRIPT_CRANE_ENTER,
+        { -1000.0f, -1000.0f, -1000.0f },
+        m_Crane,
+        0.0f,
+        1.0f,
+        0,
+        2.5f
+    );
 }
 
 void CAEScriptAudioEntity::InjectHooks() {
@@ -846,7 +845,7 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0, { .reversed = false });
     RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .reversed = false });
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "1", 0x4EE960, void (CAEScriptAudioEntity::*)(eAudioEvents, CPhysical*, float, float));
-    RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, CVector&));
+    RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, const CVector&));
     RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .reversed = false });
 }
 

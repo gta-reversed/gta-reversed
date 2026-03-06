@@ -520,7 +520,7 @@ bool CAudioEngine::IsAmbienceRadioActive() {
 }
 
 // 0x507290
-void CAudioEngine::PreloadMissionAudio(uint8 slotId, int32 scriptSlotAudioEvent) {
+void CAudioEngine::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptSlotAudioEvent) {
     m_ScriptAE.PreloadMissionAudio(slotId, scriptSlotAudioEvent);
 }
 
