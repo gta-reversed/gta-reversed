@@ -52,14 +52,46 @@ void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
     plugin::CallMethod<0x4EC040, CAEScriptAudioEntity*, uint8>(this, sampleId);
 }
 
+// NOTSA
+static eSoundBankSlot GetBankSlot(uint8 sampleId) {
+    return static_cast<eSoundBankSlot>(sampleId);
+}
+
 // 0x4EBFE0
 bool CAEScriptAudioEntity::IsMissionAudioSampleFinished(uint8 sampleId) {
-    return plugin::CallMethodAndReturn<bool, 0x4EBFE0, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    if (sampleId >= std::size(wavLinks)) {
+        return true;
+    }
+
+    if (sampleId < 2) {
+        return !wavLinks[sampleId].m_Sound;
+    }
+    return !AESoundManager.AreSoundsPlayingInBankSlot(GetBankSlot(sampleId));
 }
 
 // 0x4EBF60
 int8 CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
-    return plugin::CallMethodAndReturn<int8, 0x4EBF60, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    if (sampleId >= std::size(wavLinks)) {
+        return 1;
+    }
+
+    auto& wav = wavLinks[sampleId];
+    if (wav.m_nBankId < 0) {
+        return 1;
+    }
+
+    if (wav.m_nBankSlotId < 0) {
+        return AEAudioHardware.GetSoundBankLoadingStatus(
+            wav.m_nBankId,
+            GetBankSlot(sampleId)
+        );
+    } else {
+        return AEAudioHardware.GetSoundLoadingStatus(
+            wav.m_nBankId,
+            wav.m_nBankSlotId,
+            GetBankSlot(sampleId)
+        );
+    }
 }
 
 // 0x4EC020
@@ -792,8 +824,8 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5B9B60);
     RH_ScopedInstall(Service, 0x4EC900);
     RH_ScopedInstall(Reset, 0x4EC150);
-    RH_ScopedInstall(GetMissionAudioLoadingStatus, 0x4EBF60, { .reversed = false });
-    RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0, { .reversed = false });
+    RH_ScopedInstall(GetMissionAudioLoadingStatus, 0x4EBF60);
+    RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0);
     RH_ScopedInstall(GetMissionAudioEvent, 0x4EC020);
     RH_ScopedInstall(ClearMissionAudio, 0x4EC040, { .reversed = false });
     RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0, { .reversed = false });

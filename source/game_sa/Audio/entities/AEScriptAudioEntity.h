@@ -8,16 +8,16 @@ class CEntity;
 class CVector;
 
 struct CAudioLink {
-    CVector  m_vPosition;
-    CEntity* m_pEntity;
-    CAESound*m_Sound;
-    int32    m_nAudioEvent;
-    int32    m_nBankId;
-    int32    m_nBankSlotId;
+    CVector    m_vPosition;
+    CEntity*   m_pEntity;
+    CAESound*  m_Sound;
+    int32      m_nAudioEvent;
+    eSoundBank m_nBankId;
+    int32      m_nBankSlotId;
 
     void Init() {
         m_nAudioEvent = -1;
-        m_nBankId     = -1;
+        m_nBankId     = eSoundBank::SND_BANK_UNK;
         m_nBankSlotId = -1;
         m_pEntity     =  nullptr;
         m_Sound       =  nullptr;
