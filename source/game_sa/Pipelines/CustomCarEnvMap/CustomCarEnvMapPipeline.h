@@ -96,18 +96,18 @@ public:
     };
 
 public:
-    static inline int32& ms_envMapPluginOffset = *(int32*)0x8D12C4;      // -1
-    static inline int32& ms_envMapAtmPluginOffset = *(int32*)0x8D12C8;   // -1
-    static inline int32& ms_specularMapPluginOffset = *(int32*)0x8D12CC; // -1
+    static inline auto& ms_envMapPluginOffset = StaticRef<int32>(0x8D12C4);      // -1
+    static inline auto& ms_envMapAtmPluginOffset = StaticRef<int32>(0x8D12C8);   // -1
+    static inline auto& ms_specularMapPluginOffset = StaticRef<int32>(0x8D12CC); // -1
 
-    static inline RxPipeline*& ObjPipeline = *(RxPipeline**)0xC02D24;
+    static inline auto& ObjPipeline = StaticRef<RxPipeline*>(0xC02D24);
 
-    static inline CustomEnvMapPipeMaterialData& fakeEnvMapPipeMatData = *(CustomEnvMapPipeMaterialData*)0xC02D18;
-    static inline CustomEnvMapPipeMaterialDataPool*& m_gEnvMapPipeMatDataPool = *(CustomEnvMapPipeMaterialDataPool**)0xC02D28;
-    static inline CustomEnvMapPipeAtomicDataPool*& m_gEnvMapPipeAtmDataPool = *(CustomEnvMapPipeAtomicDataPool**)0xC02D2C;
-    static inline CustomSpecMapPipeMaterialDataPool*& m_gSpecMapPipeMatDataPool = *(CustomSpecMapPipeMaterialDataPool**)0xC02D30;
+    static inline auto& fakeEnvMapPipeMatData = StaticRef<CustomEnvMapPipeMaterialData>(0xC02D18);
+    static inline auto& m_gEnvMapPipeMatDataPool = StaticRef<CustomEnvMapPipeMaterialDataPool*>(0xC02D28);
+    static inline auto& m_gEnvMapPipeAtmDataPool = StaticRef<CustomEnvMapPipeAtomicDataPool*>(0xC02D2C);
+    static inline auto& m_gSpecMapPipeMatDataPool = StaticRef<CustomSpecMapPipeMaterialDataPool*>(0xC02D30);
 
-    static inline D3DLIGHT9& g_GameLight = *(D3DLIGHT9*)0xC02CB0;
+    static inline auto& g_GameLight = StaticRef<D3DLIGHT9>(0xC02CB0);
 
 public:
     static void InjectHooks();

@@ -37,4 +37,4 @@ private:
 };
 VALIDATE_SIZE(FurnitureManager_c, 0x2078);
 
-static inline auto& g_furnitureMan = StaticRef<FurnitureManager_c, 0xBAB380>();
+static inline auto& g_furnitureMan = StaticRef<FurnitureManager_c>(0xBAB380);

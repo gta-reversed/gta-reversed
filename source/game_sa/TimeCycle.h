@@ -17,7 +17,7 @@ public:
 };
 VALIDATE_SIZE(CTimeCycleBox, 0x28);
 
-static inline float& gfLaRiotsLightMult = *(float*)0x8CD060; // 1.0f
+static inline auto& gfLaRiotsLightMult = StaticRef<float>(0x8CD060); // 1.0f
 
 enum eTimeType {
     TIME_MIDNIGHT,
@@ -102,36 +102,36 @@ public:
     static inline auto& m_nWaterFogAlpha = StaticRef<Colors<uint8>>(0xB7A090);
     static inline auto& m_nDirectionalMult = StaticRef<Colors<uint8>>(0xB79FD8);
 
-    static inline CColourSet& m_CurrentColours = *(CColourSet*)0xB7C4A0;
+    static inline auto& m_CurrentColours = StaticRef<CColourSet>(0xB7C4A0);
 
-    static inline CTimeCycleBox (&m_aBoxes)[20] = *(CTimeCycleBox(*)[20])0xB7C550;
-    static inline uint32& m_NumBoxes = *(uint32*)0xB7C480;
+    static inline auto& m_aBoxes = StaticRef<CTimeCycleBox[20]>(0xB7C550);
+    static inline auto& m_NumBoxes = StaticRef<uint32>(0xB7C480);
 
-    static inline uint32& m_CurrentStoredValue = *(uint32*)0xB79FD0;
-    static inline CVector (&m_VectorToSun)[16] = *(CVector(*)[16])0xB7CA50;
+    static inline auto& m_CurrentStoredValue = StaticRef<uint32>(0xB79FD0);
+    static inline auto& m_VectorToSun = StaticRef<CVector[16]>(0xB7CA50);
 
     // TODO: CVector2D?
-    static inline float (&m_fShadowFrontX)[16] = *(float(*)[16])0xB79F90;
-    static inline float (&m_fShadowFrontY)[16] = *(float(*)[16])0xB79F50;
-    static inline float (&m_fShadowSideX)[16] = *(float(*)[16])0xB79F10;
-    static inline float (&m_fShadowSideY)[16] = *(float(*)[16])0xB79ED0;
-    static inline float (&m_fShadowDisplacementX)[16] = *(float(*)[16])0xB79E90;
-    static inline float (&m_fShadowDisplacementY)[16] = *(float(*)[16])0xB79E50;
+    static inline auto& m_fShadowFrontX = StaticRef<float[16]>(0xB79F90);
+    static inline auto& m_fShadowFrontY = StaticRef<float[16]>(0xB79F50);
+    static inline auto& m_fShadowSideX = StaticRef<float[16]>(0xB79F10);
+    static inline auto& m_fShadowSideY = StaticRef<float[16]>(0xB79ED0);
+    static inline auto& m_fShadowDisplacementX = StaticRef<float[16]>(0xB79E90);
+    static inline auto& m_fShadowDisplacementY = StaticRef<float[16]>(0xB79E50);
 
-    static inline int32& m_FogReduction = *(int32*)0xB79E48;
+    static inline auto& m_FogReduction = StaticRef<int32>(0xB79E48);
 
-    static inline int32& m_ExtraColour = *(int32*)0xB79E44;
-    static inline int32& m_ExtraColourWeatherType = *(int32*)0xB79E40;
-    static inline uint32& m_bExtraColourOn = *(uint32*)0xB7C484;
-    static inline float& m_ExtraColourInter = *(float*)0xB79E3C;
+    static inline auto& m_ExtraColour = StaticRef<int32>(0xB79E44);
+    static inline auto& m_ExtraColourWeatherType = StaticRef<int32>(0xB79E40);
+    static inline auto& m_bExtraColourOn = StaticRef<uint32>(0xB7C484);
+    static inline auto& m_ExtraColourInter = StaticRef<float>(0xB79E3C);
 
-    static inline RwRGBA& m_BelowHorizonGrey = *(RwRGBA*)0xB7CB10;
+    static inline auto& m_BelowHorizonGrey = StaticRef<RwRGBA>(0xB7CB10);
 
-    static inline float& m_BrightnessAddedToAmbientRed = *(float*)0xB79E38;
-    static inline float& m_BrightnessAddedToAmbientGreen = *(float*)0xB79E34;
-    static inline float& m_BrightnessAddedToAmbientBlue = *(float*)0xB79E30;
+    static inline auto& m_BrightnessAddedToAmbientRed = StaticRef<float>(0xB79E38);
+    static inline auto& m_BrightnessAddedToAmbientGreen = StaticRef<float>(0xB79E34);
+    static inline auto& m_BrightnessAddedToAmbientBlue = StaticRef<float>(0xB79E30);
 
-    static inline CVector& m_vecDirnLightToSun = *(CVector*)0xB7CB14;
+    static inline auto& m_vecDirnLightToSun = StaticRef<CVector>(0xB7CB14);
 
 public:
     static void InjectHooks();

@@ -14,9 +14,8 @@
 #include "EntryExitManager.h"
 #include "MBlur.h"
 
-bool (&abTempNeverLeavesGroup)[7] = *(bool (*)[7])0xC0BC08;
-int32& gPlayIdlesAnimBlockIndex = *(int32*)0xC0BC10;
-bool& CPlayerPed::bHasDisplayedPlayerQuitEnterCarHelpText = *(bool*)0xC0BC15;
+auto& abTempNeverLeavesGroup = StaticRef<bool[7]>(0xC0BC08);
+auto& gPlayIdlesAnimBlockIndex = StaticRef<int32>(0xC0BC10);
 
 bool CPlayerPed::bDebugPlayerInvincible;
 bool CPlayerPed::bDebugTargeting;
@@ -920,7 +919,7 @@ void CPlayerPed::MakeChangesForNewWeapon(uint32 weaponSlot) {
         MakeChangesForNewWeapon(GetWeaponInSlot(weaponSlot).m_Type);
 }
 
-static auto& PLAYER_MAX_TARGET_VIEW_ANGLE = *(float*)0x8D243C; // 140.0f
+static auto& PLAYER_MAX_TARGET_VIEW_ANGLE = StaticRef<float>(0x8D243C); // 140.0f
 
 // 0x60D020
 void CPlayerPed::EvaluateTarget(CEntity* target, CEntity *& outTarget, float & outTargetPriority, float maxDistance, float compensationRotRad, bool arg5) {

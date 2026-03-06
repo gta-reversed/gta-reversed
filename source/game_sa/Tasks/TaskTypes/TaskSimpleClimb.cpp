@@ -10,22 +10,22 @@
 #include "TaskSimpleClimb_models.h"
 
 
-CColModel& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
-CColModel& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
-CColModel& ms_VaultColModel    = StaticRef<CColModel>(0xC19578);
-CColModel& ms_FindEdgeColModel = StaticRef<CColModel>(0xC195A8);
+auto& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
+auto& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
+auto& ms_VaultColModel    = StaticRef<CColModel>(0xC19578);
+auto& ms_FindEdgeColModel = StaticRef<CColModel>(0xC195A8);
 
-float ms_fHangingOffsetHorz = -0.40f; // 0x8D2F1C
-float ms_fHangingOffsetVert = -1.10f; // 0x8D2F20
+const float ms_fHangingOffsetHorz = -0.40f; // 0x8D2F1C
+const float ms_fHangingOffsetVert = -1.10f; // 0x8D2F20
 
-float ms_fAtEdgeOffsetHorz = -0.40f; // 0x8D2F24
-float ms_fAtEdgeOffsetVert = +0.00f; // 0xC18F78
+const float ms_fAtEdgeOffsetHorz = -0.40f; // 0x8D2F24
+const float ms_fAtEdgeOffsetVert = +0.00f; // 0xC18F78
 
-float ms_fStandUpOffsetHorz = +0.15f; // 0x8D2F28
-float ms_fStandUpOffsetVert = +1.00f; // 0x8D2F2C
+const float ms_fStandUpOffsetHorz = +0.15f; // 0x8D2F28
+const float ms_fStandUpOffsetVert = +1.00f; // 0x8D2F2C
 
-float ms_fVaultOffsetHorz = +0.50f; // 0x8D2F30
-float ms_fVaultOffsetVert = +0.00f; // 0xC18F7C
+const float ms_fVaultOffsetHorz = +0.50f; // 0x8D2F30
+const float ms_fVaultOffsetVert = +0.00f; // 0xC18F7C
 
 void CTaskSimpleClimb::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleClimb, 0x87059C, 9);

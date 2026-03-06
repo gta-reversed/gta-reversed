@@ -7,7 +7,7 @@
 
 #include "StdInc.h"
 
-static inline bool& bRotateWithNeck = *(bool*)0x8D2354;
+static inline auto& bRotateWithNeck = StaticRef<bool>(0x8D2354);
 
 void CPedIK::InjectHooks() {
     RH_ScopedClass(CPedIK);

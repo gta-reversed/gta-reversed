@@ -78,12 +78,12 @@ public:
     CDoor    m_aDoors[6];
     RwFrame* m_aTrainNodes[TRAIN_NUM_NODES];
 
-    static uint32& GenTrain_Track;
-    static uint32& GenTrain_TrainConfig;
-    static uint8& GenTrain_Direction;
-    static uint32& GenTrain_GenerationNode;
-    static uint32& GenTrain_Status;
-    static bool& bDisableRandomTrains;
+    static inline auto& GenTrain_Track = StaticRef<uint32>(0xC37FFC);
+    static inline auto& GenTrain_TrainConfig = StaticRef<uint32>(0xC38000);
+    static inline auto& GenTrain_Direction = StaticRef<uint8>(0xC38004);
+    static inline auto& GenTrain_GenerationNode = StaticRef<uint32>(0xC38008);
+    static inline auto& GenTrain_Status = StaticRef<uint32>(0xC3800C);
+    static inline auto& bDisableRandomTrains = StaticRef<bool>(0xC38010);
     static CVector aStationCoors[6];
 
     static constexpr auto Type = VEHICLE_TYPE_TRAIN;

@@ -2,8 +2,6 @@
 
 #include "VehicleAnimGroupData.h"
 
-CVehicleAnimGroup(&CVehicleAnimGroupData::m_vehicleAnimGroups)[NUM_VEH_ANIM_GROUPS] = *(CVehicleAnimGroup(*)[NUM_VEH_ANIM_GROUPS])0xC1CDC0;
-
 void CVehicleAnimGroup::InjectHooks() {
     RH_ScopedClass(CVehicleAnimGroup);
     RH_ScopedCategoryGlobal();

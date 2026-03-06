@@ -5,7 +5,7 @@
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
-CAEAmbienceTrackManager& AEAmbienceTrackManager = *(CAEAmbienceTrackManager*)0x8AC15C;
+auto& AEAmbienceTrackManager = StaticRef<CAEAmbienceTrackManager>(0x8AC15C);
 
 void CAEAmbienceTrackManager::InjectHooks() {
     RH_ScopedClass(CAEAmbienceTrackManager);

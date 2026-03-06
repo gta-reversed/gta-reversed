@@ -165,39 +165,39 @@ public:
     using IdentIndexHistory    = tRadioIndexHistory<int32, IDENT_INDEX_HISTORY_COUNT>;
     using MusicTrackHistory    = tRadioIndexHistory<int8, MUSIC_TRACK_HISTORY_COUNT>;
 
-    static inline DJBanterIndexHistory (&m_nDJBanterIndexHistory)[RADIO_COUNT] = *(DJBanterIndexHistory(*)[RADIO_COUNT])0xB61D78; // 210
-    static inline AdvertIndexHistory (&m_nAdvertIndexHistory)[RADIO_COUNT] = *(AdvertIndexHistory(*)[RADIO_COUNT])0xB620C0;       // 560
-    static inline IdentIndexHistory (&m_nIdentIndexHistory)[RADIO_COUNT] = *(IdentIndexHistory(*)[RADIO_COUNT])0xB62980;          // 112
-    static inline MusicTrackHistory (&m_nMusicTrackIndexHistory)[RADIO_COUNT] = *(MusicTrackHistory(*)[RADIO_COUNT])0xB62B40;   // 280
+    static inline auto& m_nDJBanterIndexHistory = StaticRef<DJBanterIndexHistory[RADIO_COUNT]>(0xB61D78); // 210
+    static inline auto& m_nAdvertIndexHistory = StaticRef<AdvertIndexHistory[RADIO_COUNT]>(0xB620C0);       // 560
+    static inline auto& m_nIdentIndexHistory = StaticRef<IdentIndexHistory[RADIO_COUNT]>(0xB62980);          // 112
+    static inline auto& m_nMusicTrackIndexHistory = StaticRef<MusicTrackHistory[RADIO_COUNT]>(0xB62B40);   // 280
 
-    static uint8& m_nStatsLastHitTimeOutHours;   // = -1;
-    static uint8& m_nStatsLastHitGameClockHours; // = -1;
-    static uint8& m_nStatsLastHitGameClockDays;  // = -1;
-    static uint8& m_nStatsStartedCrash1;         // = 0;
-    static uint8& m_nStatsStartedCat2;           // = 0;
-    static uint8& m_nStatsStartedBadlands;       // = 0;
-    static uint8& m_nStatsPassedVCrash2;         // = 0;
-    static uint8& m_nStatsPassedTruth2;          // = 0;
-    static uint8& m_nStatsPassedSweet2;          // = 0;
-    static uint8& m_nStatsPassedStrap4;          // = 0;
-    static uint8& m_nStatsPassedSCrash1;         // = 0;
-    static uint8& m_nStatsPassedRiot1;           // = 0;
-    static uint8& m_nStatsPassedRyder2;          // = 0;
-    static uint8& m_nStatsPassedMansion2;        // = 0;
-    static uint8& m_nStatsPassedLAFin2;          // = 0;
-    static uint8& m_nStatsPassedFarlie3;         // = 0;
-    static uint8& m_nStatsPassedDesert10;        // = 0;
-    static uint8& m_nStatsPassedDesert8;         // = 0;
-    static uint8& m_nStatsPassedDesert5;         // = 0;
-    static uint8& m_nStatsPassedDesert3;         // = 0;
-    static uint8& m_nStatsPassedDesert1;         // = 0;
-    static uint8& m_nStatsPassedCat1;            // = 0;
-    static uint8& m_nStatsPassedCasino10;        // = 0;
-    static uint8& m_nStatsPassedCasino6;         // = 0;
-    static uint8& m_nStatsPassedCasino3;         // = 0;
-    static uint8& m_nStatsCitiesPassed;          // = 0;
-    static uint8& m_nSpecialDJBanterIndex;       // = -1;
-    static uint8& m_nSpecialDJBanterPending;     // = 3; // ?
+    static inline auto& m_nStatsLastHitTimeOutHours = StaticRef<uint8>(0xB62C58); // = -1;
+    static inline auto& m_nStatsLastHitGameClockHours = StaticRef<uint8>(0xB62C59); // = -1;
+    static inline auto& m_nStatsLastHitGameClockDays = StaticRef<uint8>(0xB62C5A); // = -1;
+    static inline auto& m_nStatsStartedCrash1 = StaticRef<uint8>(0xB62C5B); // = 0;
+    static inline auto& m_nStatsStartedCat2 = StaticRef<uint8>(0xB62C5C); // = 0;
+    static inline auto& m_nStatsStartedBadlands = StaticRef<uint8>(0xB62C5D); // = 0;
+    static inline auto& m_nStatsPassedVCrash2 = StaticRef<uint8>(0xB62C5E); // = 0;
+    static inline auto& m_nStatsPassedTruth2 = StaticRef<uint8>(0xB62C5F); // = 0;
+    static inline auto& m_nStatsPassedSweet2 = StaticRef<uint8>(0xB62C60); // = 0;
+    static inline auto& m_nStatsPassedStrap4 = StaticRef<uint8>(0xB62C61); // = 0;
+    static inline auto& m_nStatsPassedSCrash1 = StaticRef<uint8>(0xB62C62); // = 0;
+    static inline auto& m_nStatsPassedRiot1 = StaticRef<uint8>(0xB62C63); // = 0;
+    static inline auto& m_nStatsPassedRyder2 = StaticRef<uint8>(0xB62C64); // = 0;
+    static inline auto& m_nStatsPassedMansion2 = StaticRef<uint8>(0xB62C65); // = 0;
+    static inline auto& m_nStatsPassedLAFin2 = StaticRef<uint8>(0xB62C66); // = 0;
+    static inline auto& m_nStatsPassedFarlie3 = StaticRef<uint8>(0xB62C67); // = 0;
+    static inline auto& m_nStatsPassedDesert10 = StaticRef<uint8>(0xB62C68); // = 0;
+    static inline auto& m_nStatsPassedDesert8 = StaticRef<uint8>(0xB62C69); // = 0;
+    static inline auto& m_nStatsPassedDesert5 = StaticRef<uint8>(0xB62C6A); // = 0;
+    static inline auto& m_nStatsPassedDesert3 = StaticRef<uint8>(0xB62C6B); // = 0;
+    static inline auto& m_nStatsPassedDesert1 = StaticRef<uint8>(0xB62C6C); // = 0;
+    static inline auto& m_nStatsPassedCat1 = StaticRef<uint8>(0xB62C6D); // = 0;
+    static inline auto& m_nStatsPassedCasino10 = StaticRef<uint8>(0xB62C6E); // = 0;
+    static inline auto& m_nStatsPassedCasino6 = StaticRef<uint8>(0xB62C6F); // = 0;
+    static inline auto& m_nStatsPassedCasino3 = StaticRef<uint8>(0xB62C70); // = 0;
+    static inline auto& m_nStatsCitiesPassed = StaticRef<uint8>(0xB62C71); // = 0;
+    static inline auto& m_nSpecialDJBanterIndex = StaticRef<uint8>(0xB62C72); // = -1;
+    static inline auto& m_nSpecialDJBanterPending = StaticRef<uint8>(0xB62C73); // = 3; // ?
 
 public:
     static void InjectHooks();

@@ -4,9 +4,9 @@
 #include "VehicleRecording.h"
 #include "ControllerConfigManager.h"
 
-bool& bDoQuadDamping = *(bool*)0x8D3450; // true 0x8D3450
-float& QUAD_HBSTEER_ANIM_MULT = *(float*)0x8D3454; // -0.4f 0x8D3454
-CVector& vecQuadResistance = *(CVector*)0x8D3458; // { 0.995f, 0.995f, 1.0f } // 0x8D3458
+auto& bDoQuadDamping = StaticRef<bool>(0x8D3450); // true
+auto& QUAD_HBSTEER_ANIM_MULT = StaticRef<float>(0x8D3454); // -0.4f
+auto& vecQuadResistance = StaticRef<CVector>(0x8D3458); // { 0.995f, 0.995f, 1.0f }
 
 void CQuadBike::InjectHooks() {
     RH_ScopedVirtualClass(CQuadBike, 0x871ae8, 71);

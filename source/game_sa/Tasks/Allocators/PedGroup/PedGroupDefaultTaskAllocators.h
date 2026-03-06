@@ -13,12 +13,12 @@
 
 class CPedGroupDefaultTaskAllocators {
 private:
-    static inline const auto& ms_FollowAnyMeansAllocator = StaticRef<CPedGroupDefaultTaskAllocatorFollowAnyMeans, 0xC09908>();
-    static inline const auto& ms_FollowLimitedAllocator  = StaticRef<CPedGroupDefaultTaskAllocatorFollowLimited, 0xC0990C>();
-    static inline const auto& ms_StandStillAllocator     = StaticRef<CPedGroupDefaultTaskAllocatorStandStill, 0xC09910>();
-    static inline const auto& ms_ChatAllocator           = StaticRef<CPedGroupDefaultTaskAllocatorChat, 0xC09914>();
-    static inline const auto& ms_SitInLeaderCarAllocator = StaticRef<CPedGroupDefaultTaskAllocatorSitInLeaderCar, 0xC0991C>();
-    static inline const auto& ms_RandomAllocator         = StaticRef<CPedGroupDefaultTaskAllocatorRandom, 0xC09918>();
+    static inline const auto& ms_FollowAnyMeansAllocator = StaticRef<CPedGroupDefaultTaskAllocatorFollowAnyMeans>(0xC09908);
+    static inline const auto& ms_FollowLimitedAllocator  = StaticRef<CPedGroupDefaultTaskAllocatorFollowLimited>(0xC0990C);
+    static inline const auto& ms_StandStillAllocator     = StaticRef<CPedGroupDefaultTaskAllocatorStandStill>(0xC09910);
+    static inline const auto& ms_ChatAllocator           = StaticRef<CPedGroupDefaultTaskAllocatorChat>(0xC09914);
+    static inline const auto& ms_SitInLeaderCarAllocator = StaticRef<CPedGroupDefaultTaskAllocatorSitInLeaderCar>(0xC0991C);
+    static inline const auto& ms_RandomAllocator         = StaticRef<CPedGroupDefaultTaskAllocatorRandom>(0xC09918);
 
 public:
     static const CPedGroupDefaultTaskAllocator& Get(ePedGroupDefaultTaskAllocatorType type) {

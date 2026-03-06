@@ -412,23 +412,23 @@ public:
     int16        m_nRemapTxd;
     RwTexture*   m_pRemapTexture;
 
-    static float &WHEELSPIN_TARGET_RATE;
-    static float &WHEELSPIN_INAIR_TARGET_RATE;
-    static float &WHEELSPIN_RISE_RATE;
-    static float &WHEELSPIN_FALL_RATE;
-    static float &m_fAirResistanceMult;
-    static float &ms_fRailTrackResistance;
-    static float &ms_fRailTrackResistanceDefault;
-    static bool &bDisableRemoteDetonation;
-    static bool &bDisableRemoteDetonationOnContact;
-    static bool &m_bEnableMouseSteering;
-    static bool &m_bEnableMouseFlying;
-    static inline auto& m_nLastControlInput = *(eControllerType*)0xC1CC04;
-    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>, 0xC1CC08>();
-    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>, 0xC1CC78>();
-    static bool &ms_forceVehicleLightsOff;
-    static bool &s_bPlaneGunsEjectShellCasings;
-    static inline tHydraulicData(&m_aSpecialHydraulicData)[4] = *(tHydraulicData(*)[4])0xC1CB60;
+    static inline auto& WHEELSPIN_TARGET_RATE = StaticRef<float>(0x8D3498);
+    static inline auto& WHEELSPIN_INAIR_TARGET_RATE = StaticRef<float>(0x8D349C);
+    static inline auto& WHEELSPIN_RISE_RATE = StaticRef<float>(0x8D34A0);
+    static inline auto& WHEELSPIN_FALL_RATE = StaticRef<float>(0x8D34A4);
+    static inline auto& m_fAirResistanceMult = StaticRef<float>(0x8D34A8);
+    static inline auto& ms_fRailTrackResistance = StaticRef<float>(0x8D34AC);
+    static inline auto& ms_fRailTrackResistanceDefault = StaticRef<float>(0x8D34B0);
+    static inline auto& bDisableRemoteDetonation = StaticRef<bool>(0xC1CC00);
+    static inline auto& bDisableRemoteDetonationOnContact = StaticRef<bool>(0xC1CC01);
+    static inline auto& m_bEnableMouseSteering = StaticRef<bool>(0xC1CC02);
+    static inline auto& m_bEnableMouseFlying = StaticRef<bool>(0xC1CC03);
+    static inline auto& m_nLastControlInput = StaticRef<eControllerType>(0xC1CC04);
+    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>>(0xC1CC08);
+    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>>(0xC1CC78);
+    static inline auto& ms_forceVehicleLightsOff = StaticRef<bool>(0xC1CC18);
+    static inline auto& s_bPlaneGunsEjectShellCasings = StaticRef<bool>(0xC1CC19);
+    static inline auto& m_aSpecialHydraulicData = StaticRef<tHydraulicData[4]>(0xC1CB60);
 
     static constexpr auto Type = VEHICLE_TYPE_IGNORE;
 

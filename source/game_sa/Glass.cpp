@@ -4,20 +4,6 @@
 #include "FallingGlassPane.h"
 #include "Shadows.h"
 
-CVector2D (&CGlass::PanePolyPositions)[4][3] = *(CVector2D(*)[4][3])0x8D5CD8;
-int32& CGlass::ReflectionPolyVertexBaseIdx = *(int32*)0xC71B18;
-int32& CGlass::ReflectionPolyIndexBaseIdx = *(int32*)0xC71B1C;
-RxObjSpace3DLitVertex (&CGlass::ReflectionPolyVertexBuffer)[1706] = *(RxObjSpace3DLitVertex(*)[1706])0xC5B158;
-RxObjSpace3DLitVertex (&CGlass::ShatteredPolyVertexBuffer)[512] = *(RxObjSpace3DLitVertex(*)[512])0xC56958;
-int32& CGlass::ShatteredVerticesBaseIdx = *(int32*)0xC71B20;
-int32& CGlass::ShatteredIndicesBaseIdx = *(int32*)0xC71B24;
-uint32& CGlass::H1iLightPolyVerticesIdx = *(uint32*)0xC71B28;
-int32& CGlass::HiLightPolyIndicesIdx = *(int32*)0xC71B2C;
-CVector2D (&CGlass::PanePolyCenterPositions)[5] = *(CVector2D(*)[5])0xC71B30;
-CEntity* (&CGlass::apEntitiesToBeRendered)[32] = *(CEntity * (*)[32])0xC71B58;
-CFallingGlassPane (&CGlass::aGlassPanes)[44] = *(CFallingGlassPane(*)[44])0xC71BF8;
-uint32& CGlass::LastColCheckMS = *(uint32*)0xC72FA8;
-
 void CGlass::InjectHooks() {
     RH_ScopedClass(CGlass);
     RH_ScopedCategoryGlobal();

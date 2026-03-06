@@ -15,7 +15,7 @@ auto& ms_pQuadTree = StaticRef<IplTreeNode*>(0x8E3FAC);
 
 auto& ms_pPool = StaticRef<CIplPool*>(0x8E3FB0);
 
-int32& ms_currentIPLAreaCode = *(int32*)0x8E3EF8;
+auto& ms_currentIPLAreaCode = StaticRef<int32>(0x8E3EF8);
 
 /*!
  * @addr 0x405EC0

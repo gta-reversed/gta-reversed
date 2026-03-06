@@ -35,9 +35,9 @@ private:
     static bool ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB);
 
 private:
-    static inline std::array<bool, MAX_ROADBLOCKS>&                    InOrOut                   = StaticRef<std::array<bool, MAX_ROADBLOCKS>>(0xA43438);
-    static inline std::array<CNodeAddress, MAX_ROADBLOCKS>&            RoadBlockNodes            = StaticRef<std::array<CNodeAddress, MAX_ROADBLOCKS>>(0xA435A0);
-    static inline std::array<CScriptRoadBlock, MAX_SCRIPT_ROADBLOCKS>& aScriptRoadBlocks         = StaticRef<std::array<CScriptRoadBlock, MAX_SCRIPT_ROADBLOCKS>>(0xA43AB8);
-    static inline bool&                                                GenerateDynamicRoadBlocks = StaticRef<bool>(0xA43584);
-    static inline int32&                                               NumRoadBlocks             = StaticRef<int32>(0xA43580);
+    static inline auto& InOrOut                   = StaticRef<std::array<bool, MAX_ROADBLOCKS>>(0xA43438);
+    static inline auto& RoadBlockNodes            = StaticRef<std::array<CNodeAddress, MAX_ROADBLOCKS>>(0xA435A0);
+    static inline auto& aScriptRoadBlocks         = StaticRef<std::array<CScriptRoadBlock, MAX_SCRIPT_ROADBLOCKS>>(0xA43AB8);
+    static inline auto& GenerateDynamicRoadBlocks = StaticRef<bool>(0xA43584);
+    static inline auto& NumRoadBlocks             = StaticRef<int32>(0xA43580);
 };

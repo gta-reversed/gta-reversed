@@ -6,7 +6,7 @@
 #include "AESmoothFadeThread.h"
 #include <AEAudioHardware.h>
 
-uint32& g_numSoundChannelsUsed = *(uint32*)0xB5F898;
+auto& g_numSoundChannelsUsed = StaticRef<uint32>(0xB5F898);
 
 #if 0 // No EAX
 static std::array<uint32, 48> s_EAXEnvironments = {

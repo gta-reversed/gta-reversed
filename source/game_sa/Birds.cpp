@@ -3,10 +3,6 @@
 #include "Birds.h"
 #include "Clouds.h"
 
-bool& CBirds::bHasBirdBeenShot = *(bool*)0xC6A8A0;
-uint32& CBirds::uiNumberOfBirds = *(uint32*)0xC6A8A4;
-CVector& CBirds::vecBirdShotAt = *(CVector*)0xC6AA48;
-
 /*
 These spawn in a formation like this:
     4           5

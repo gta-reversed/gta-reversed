@@ -220,11 +220,11 @@ public:
     float                  m_loadAreaRequestMaxY;
 
 public:
-    static inline int32&  InteriorIDBeingBuilt = *(int32*)0x96EF88;
-    static inline bool&   bInteriorBeingBuilt = *(bool*)0x96F031;
-    static inline uint32& NumNodesGiven = *(uint32*)0x96EF80;
-    static inline int32&  NumLinksToExteriorNodes = *(int32*)0x96EAB8;
-    static inline int32&  NewInteriorSlot = *(int32*)0x96EF84;
+    static inline auto& InteriorIDBeingBuilt = StaticRef<int32>(0x96EF88);
+    static inline auto& bInteriorBeingBuilt = StaticRef<bool>(0x96F031);
+    static inline auto& NumNodesGiven = StaticRef<uint32>(0x96EF80);
+    static inline auto& NumLinksToExteriorNodes = StaticRef<int32>(0x96EAB8);
+    static inline auto& NewInteriorSlot = StaticRef<int32>(0x96EF84);
 
 public:
     static void InjectHooks();
