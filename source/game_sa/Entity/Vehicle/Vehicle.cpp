@@ -2298,7 +2298,7 @@ RwFrame* RemoveObjectsCB(RwFrame* frame, void* data) {
 }
 
 // 0x6D3450
-static auto& CopyObjectsCB_TargetClump = *(RpClump**)0xC1CB58;
+static auto& CopyObjectsCB_TargetClump = StaticRef<RpClump*>(0xC1CB58);
 RwObject* CopyObjectsCB(RwObject* object, void* data) {
     const auto frame = (RwFrame*)data;
 
@@ -3173,9 +3173,9 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
                             int8 wheelId, float* wheelSpeed,
                             tWheelState* wheelState, uint16 wheelStatus
 ) {
-    static bool& bBraking = *(bool*)0xC1CDAE; // false
-    static bool& bDriving = *(bool*)0xC1CDAD; // false
-    static bool& bAlreadySkidding = *(bool*)0xC1CDAC; // false
+    static auto& bBraking = StaticRef<bool>(0xC1CDAE); // false
+    static auto& bDriving = StaticRef<bool>(0xC1CDAD); // false
+    static auto& bAlreadySkidding = StaticRef<bool>(0xC1CDAC); // false
 
     float right = 0.0f;
     float fwd = 0.0f;

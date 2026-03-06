@@ -354,7 +354,7 @@ public:
 
     //! Lower `MAIN_SCRIPT_SIZE` is where MAIN.SCM is, remaining `MISSION_SCRIPT_SIZE` is for other loaded scripts.
     //static inline uint8(&ScriptSpace)[SCRIPT_SPACE_SIZE] = *(uint8(*)[SCRIPT_SPACE_SIZE])0xA49960;
-    static inline auto& ScriptSpace = *(std::array<uint8,SCRIPT_SPACE_SIZE>*)0xA49960;
+    static inline auto& ScriptSpace = StaticRef<std::array<uint8,SCRIPT_SPACE_SIZE>>(0xA49960);
 
     //! Reference to ScriptSpace's lower portion for MAIN.SCM - Prefer this over `&ScriptSpace[0]`
     static inline std::span<uint8, MAIN_SCRIPT_SIZE> MainSCMBlock{ ScriptSpace.data() + 0, MAIN_SCRIPT_SIZE };
@@ -362,34 +362,34 @@ public:
     //! Reference to ScriptSpace's upper portion for other scripts - Prefer this over `&ScriptSpace[MAIN_SCRIPT_SIZE]`
     static inline std::span<uint8, MISSION_SCRIPT_SIZE> MissionBlock{ ScriptSpace.data() + MainSCMBlock.size(), MISSION_SCRIPT_SIZE };
 
-    static inline auto&   SwitchJumpTable                     = *(std::array<tScriptSwitchCase, MAX_NUM_SwitchJumpTable>*)0xA43CF8;
+    static inline auto& SwitchJumpTable = StaticRef<std::array<tScriptSwitchCase, MAX_NUM_SwitchJumpTable>>(0xA43CF8);
     static inline uint16& NumberOfEntriesInSwitchTable        = *reinterpret_cast<uint16*>(0xA43F50);
     static inline uint16& NumberOfEntriesStillToReadForSwitch = *reinterpret_cast<uint16*>(0xA43F60);
 
-    static inline auto& CardStack                    = *(std::array<int16, MAX_NUM_CARDS>*)0xA44218;
-    static inline auto& MultiScriptArray             = *(std::array<int32, MAX_NUM_MISSION_SCRIPTS>*)0xA444C8;
-    static inline auto& ScriptConnectLodsObjects     = *(std::array<tScriptConnectLodsObject, MAX_NUM_SCRIPT_CONNECT_LODS_OBJECTS>*)0xA44800;
-    static inline auto& ScriptAttachedAnimGroups     = *(std::array<tScriptAttachedAnimGroup, MAX_NUM_SCRIPT_ATTACHED_ANIM_GROUPS>*)0xA44850;
-    static inline auto& VehicleModelsBlockedByScript = *(std::array<eModelID, MAX_NUM_VEHICLE_MODELS_BLOCKED_BY_SCRIPT>*)0xA448F0;
-    static inline auto& SuppressedVehicleModels      = *(std::array<eModelID, MAX_NUM_SUPPRESSED_VEHICLE_MODELS>*)0xA44940;
-    static inline auto& InvisibilitySettingArray     = *(std::array<CEntity*, MAX_NUM_INVISIBILITY_SETTINGS>*)0xA449E0;
+    static inline auto& CardStack = StaticRef<std::array<int16, MAX_NUM_CARDS>>(0xA44218);
+    static inline auto& MultiScriptArray = StaticRef<std::array<int32, MAX_NUM_MISSION_SCRIPTS>>(0xA444C8);
+    static inline auto& ScriptConnectLodsObjects = StaticRef<std::array<tScriptConnectLodsObject, MAX_NUM_SCRIPT_CONNECT_LODS_OBJECTS>>(0xA44800);
+    static inline auto& ScriptAttachedAnimGroups = StaticRef<std::array<tScriptAttachedAnimGroup, MAX_NUM_SCRIPT_ATTACHED_ANIM_GROUPS>>(0xA44850);
+    static inline auto& VehicleModelsBlockedByScript = StaticRef<std::array<eModelID, MAX_NUM_VEHICLE_MODELS_BLOCKED_BY_SCRIPT>>(0xA448F0);
+    static inline auto& SuppressedVehicleModels = StaticRef<std::array<eModelID, MAX_NUM_SUPPRESSED_VEHICLE_MODELS>>(0xA44940);
+    static inline auto& InvisibilitySettingArray = StaticRef<std::array<CEntity*, MAX_NUM_INVISIBILITY_SETTINGS>>(0xA449E0);
 
-    static inline auto&   LocalVariablesForCurrentMission            = *(std::array<tScriptParam, MAX_NUM_LOCAL_VARIABLES_FOR_CURRENT_MISSION>*)0xA48960;
+    static inline auto& LocalVariablesForCurrentMission = StaticRef<std::array<tScriptParam, MAX_NUM_LOCAL_VARIABLES_FOR_CURRENT_MISSION>>(0xA48960);
     static inline uint32& LargestNumberOfMissionScriptLocalVariables = *reinterpret_cast<uint32*>(0xA444B4);
 
-    static inline auto& BuildingSwapArray = *(std::array<tBuildingSwap, MAX_NUM_BUILDING_SWAPS>*)0xA44A30;
+    static inline auto& BuildingSwapArray = StaticRef<std::array<tBuildingSwap, MAX_NUM_BUILDING_SWAPS>>(0xA44A30);
 
-    static inline auto&   UsedObjectArray     = *(std::array<tUsedObject, MAX_NUM_USED_OBJECTS>*)0xA44B70;
+    static inline auto& UsedObjectArray = StaticRef<std::array<tUsedObject, MAX_NUM_USED_OBJECTS>>(0xA44B70);
     static inline uint16& NumberOfUsedObjects = *reinterpret_cast<uint16*>(0xA44B6C);
 
-    static inline auto&   EntitiesWaitingForScriptBrain   = *(std::array<tScriptBrainWaitEntity, MAX_NUM_ENTITIES_WAITING_FOR_SCRIPT_BRAIN>*)0xA476B0;
-    static inline auto&   IntroTextLines                  = *(std::array<tScriptText, MAX_NUM_INTRO_TEXT_LINES>*)0xA913E8;
+    static inline auto& EntitiesWaitingForScriptBrain = StaticRef<std::array<tScriptBrainWaitEntity, MAX_NUM_ENTITIES_WAITING_FOR_SCRIPT_BRAIN>>(0xA476B0);
+    static inline auto& IntroTextLines = StaticRef<std::array<tScriptText, MAX_NUM_INTRO_TEXT_LINES>>(0xA913E8);
     static inline uint16& NumberOfIntroTextLinesThisFrame = *reinterpret_cast<uint16*>(0xA44B68);
 
-    static inline auto&   IntroRectangles                  = *(std::array<tScriptRectangle, MAX_NUM_SCRIPT_RECTANGLES>*)0xA92D68;
+    static inline auto& IntroRectangles = StaticRef<std::array<tScriptRectangle, MAX_NUM_SCRIPT_RECTANGLES>>(0xA92D68);
     static inline uint16& NumberOfIntroRectanglesThisFrame = *reinterpret_cast<uint16*>(0xA44B5C);
 
-    static inline auto& ScriptSprites = *(std::array<CSprite2d, MAX_NUM_SCRIPT_SPRITES>*)0xA94B68;
+    static inline auto& ScriptSprites = StaticRef<std::array<CSprite2d, MAX_NUM_SCRIPT_SPRITES>>(0xA94B68);
 
     static inline uint16& NumberOfExclusiveMissionScripts = *reinterpret_cast<uint16*>(0xA444B8);
     static inline uint16& NumberOfMissionScripts          = *reinterpret_cast<uint16*>(0xA444BC);
@@ -398,14 +398,14 @@ public:
     // Script things
     //
 
-    static inline auto& ScriptSphereArray       = *(std::array<tScriptSphere, MAX_NUM_SCRIPT_SPHERES>*)0xA91268;
-    static inline auto& ScriptEffectSystemArray = *(std::array<tScriptEffectSystem, MAX_NUM_SCRIPT_EFFECT_SYSTEMS>*)0xA44110;
-    static inline auto& ScriptSearchLightArray  = *(std::array<tScriptSearchlight, MAX_NUM_SCRIPT_SEARCH_LIGHT>*)0xA94D68;
+    static inline auto& ScriptSphereArray = StaticRef<std::array<tScriptSphere, MAX_NUM_SCRIPT_SPHERES>>(0xA91268);
+    static inline auto& ScriptEffectSystemArray = StaticRef<std::array<tScriptEffectSystem, MAX_NUM_SCRIPT_EFFECT_SYSTEMS>>(0xA44110);
+    static inline auto& ScriptSearchLightArray = StaticRef<std::array<tScriptSearchlight, MAX_NUM_SCRIPT_SEARCH_LIGHT>>(0xA94D68);
 
-    static inline auto&   ScriptSequenceTaskArray    = *(std::array<tScriptSequence, MAX_NUM_SCRIPT_SEQUENCE_TASKS>*)0xA43F68;
+    static inline auto& ScriptSequenceTaskArray = StaticRef<std::array<tScriptSequence, MAX_NUM_SCRIPT_SEQUENCE_TASKS>>(0xA43F68);
     static inline uint16& NumberOfScriptSearchLights = *reinterpret_cast<uint16*>(0xA90830);
 
-    static inline auto&   ScriptCheckpointArray     = *(std::array<tScriptCheckpoint, MAX_NUM_SCRIPT_CHECKPOINTS>*)0xA44070;
+    static inline auto& ScriptCheckpointArray = StaticRef<std::array<tScriptCheckpoint, MAX_NUM_SCRIPT_CHECKPOINTS>>(0xA44070);
     static inline uint16& NumberOfScriptCheckpoints = *reinterpret_cast<uint16*>(0xA44068);
     static inline auto&   UnknownDebugStuff         = StaticRef<uint32, 0xA95190>(); // used in DO_DEBUG_STUFF command
 

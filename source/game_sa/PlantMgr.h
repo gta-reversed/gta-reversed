@@ -17,17 +17,17 @@ constexpr auto PLANTS_ALPHA_MAX_DIST             = 60.0f;
 
 class CPlantMgr {
 public:
-    static inline RwTexture* (&PC_PlantTextureTab)[4][4] = *(RwTexture * (*)[4][4])0xC039A0;
-    static inline RpAtomic*  (&PC_PlantModelsTab)[4][4]  = *(RpAtomic * (*)[4][4])0xC039F0;
+    static inline auto (&PC_PlantTextureTab)[4][4] = StaticRef<RwTexture*[4][4]>(0xC039A0);
+    static inline auto (&PC_PlantModelsTab)[4][4] = StaticRef<RpAtomic*[4][4]>(0xC039F0);
 
-    static inline int16&              m_scanCode                                = *(int16*)0xC03980;
-    static inline CPlantLocTri*&      m_UnusedLocTriListHead                    = *(CPlantLocTri**)0xC03984;
-    static inline CPlantLocTri*       (&m_CloseLocTriListHead)[4]               = *(CPlantLocTri * (*)[4])0xC03988;
-    static inline CPlantColEntEntry*& m_UnusedColEntListHead                    = *(CPlantColEntEntry**)0xC03998;
-    static inline CPlantColEntEntry*& m_CloseColEntListHead                     = *(CPlantColEntEntry**)0xC0399C;
-    static inline CRGBA&              m_AmbientColor                            = *(CRGBA*)0xC03A44;
-    static inline CPlantLocTri        (&m_LocTrisTab)[MAX_NUM_PLANT_TRIANGLES]  = *(CPlantLocTri(*)[MAX_NUM_PLANT_TRIANGLES])0xC03A48;
-    static inline CPlantColEntEntry   (&m_ColEntCacheTab)[MAX_NUM_PROC_OBJECTS] = *(CPlantColEntEntry(*)[MAX_NUM_PROC_OBJECTS])0xC08E48;
+    static inline auto& m_scanCode = StaticRef<int16>(0xC03980);
+    static inline auto& m_UnusedLocTriListHead = StaticRef<CPlantLocTri*>(0xC03984);
+    static inline auto (&m_CloseLocTriListHead)[4] = StaticRef<CPlantLocTri*[4]>(0xC03988);
+    static inline auto& m_UnusedColEntListHead = StaticRef<CPlantColEntEntry*>(0xC03998);
+    static inline auto& m_CloseColEntListHead = StaticRef<CPlantColEntEntry*>(0xC0399C);
+    static inline auto& m_AmbientColor = StaticRef<CRGBA>(0xC03A44);
+    static inline auto (&m_LocTrisTab)[MAX_NUM_PLANT_TRIANGLES] = StaticRef<CPlantLocTri[MAX_NUM_PLANT_TRIANGLES]>(0xC03A48);
+    static inline auto (&m_ColEntCacheTab)[MAX_NUM_PROC_OBJECTS] = StaticRef<CPlantColEntEntry[MAX_NUM_PROC_OBJECTS]>(0xC08E48);
 
 public:
     static void InjectHooks();
@@ -69,6 +69,6 @@ private:
     static void IncrementScanCode() { ++m_scanCode; } // 0x5DB2D0
 };
 
-static inline RwTexture** (&grassTexturesPtr)[4] = *(RwTexture** (*)[4])0xC039E0;
-static inline RpAtomic* (&grassModelsPtr)[4] = *(RpAtomic * (*)[4])0xC03A30;
-static inline RwTexture*& tex_gras07Si = *(RwTexture**)0xC09174;
+static inline auto (&grassTexturesPtr)[4] = StaticRef<RwTexture**[4]>(0xC039E0);
+static inline auto (&grassModelsPtr)[4] = StaticRef<RpAtomic*[4]>(0xC03A30);
+static inline auto& tex_gras07Si = StaticRef<RwTexture*>(0xC09174);

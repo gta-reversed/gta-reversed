@@ -49,9 +49,9 @@ struct CPlantSurfProp {
 
 class CPlantSurfPropMgr {
 public:
-    static inline std::array<CPlantSurfProp*, 178>& m_SurfPropPtrTab = *(std::array<CPlantSurfProp*, 178>*)0xC38070;
-    static inline uint32& m_countSurfPropsAllocated = *(uint32*)0xC39ED4;
-    static inline CPlantSurfProp (&m_SurfPropTab)[MAX_SURFACE_PROPERTIES] = *(CPlantSurfProp(*)[57])0xC38338;
+    static inline auto& m_SurfPropPtrTab = StaticRef<std::array<CPlantSurfProp*, 178>>(0xC38070);
+    static inline auto& m_countSurfPropsAllocated = StaticRef<uint32>(0xC39ED4);
+    static inline auto (&m_SurfPropTab)[MAX_SURFACE_PROPERTIES] = StaticRef<CPlantSurfProp[MAX_SURFACE_PROPERTIES]>(0xC38338);
 
 public:
     static void InjectHooks();

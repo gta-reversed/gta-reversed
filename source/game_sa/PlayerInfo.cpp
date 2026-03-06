@@ -322,10 +322,10 @@ void CPlayerInfo::PlayerFailedCriticalMission() {
 // 0x56E610
 void CPlayerInfo::WorkOutEnergyFromHunger() {
 
-    static bool& s_lastTimeHungryStateProcessedInitialized = *(bool*)0xB9B8F4; // TODO | STATICREF // = false;
-    static uint8& s_lastTimeHungryStateProcessed = *(uint8*)0xB9B8F2;            // TODO | STATICREF
-    static int8& s_LastHungryState = *(int8*)0xB9B8F1;                         // TODO | STATICREF
-    static bool& s_bHungryMessageShown = *(bool*)0xB9B8F0;                     // TODO | STATICREF
+    static auto& s_lastTimeHungryStateProcessedInitialized = StaticRef<bool>(0xB9B8F4); // TODO | STATICREF // = false;
+    static auto& s_lastTimeHungryStateProcessed = StaticRef<uint8>(0xB9B8F2);            // TODO | STATICREF
+    static auto& s_LastHungryState = StaticRef<int8>(0xB9B8F1);                         // TODO | STATICREF
+    static auto& s_bHungryMessageShown = StaticRef<bool>(0xB9B8F0);                     // TODO | STATICREF
 
     if (CCheat::IsActive(CHEAT_NEVER_GET_HUNGRY)) {
         return;

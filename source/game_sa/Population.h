@@ -36,7 +36,7 @@ public:
     static int32&  m_AllRandomPedsThisType;
     static uint32& MaxNumberOfPedsInUse;
     static uint32& NumberOfPedsInUseInterior;
-    static inline tPedGroupTranslationData (&m_TranslationArray)[POPCYCLE_TOTAL_GROUPS] = *(tPedGroupTranslationData(*)[33])0x8D2540;
+    static inline auto (&m_TranslationArray)[POPCYCLE_TOTAL_GROUPS] = StaticRef<tPedGroupTranslationData[POPCYCLE_TOTAL_GROUPS]>(0x8D2540);
     static CLoadedCarGroup&          m_LoadedBoats;
     static CLoadedCarGroup&          m_InAppropriateLoadedCars;
     static CLoadedCarGroup&          m_AppropriateLoadedCars;

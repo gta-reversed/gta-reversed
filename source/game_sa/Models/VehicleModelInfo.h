@@ -168,7 +168,7 @@ public:
         uint32          m_nMaskComponentsDamagable;
 
     public:
-        static inline CPool<CVehicleStructure>*& m_pInfoPool = *(CPool<CVehicleStructure>**)0xB4E680;
+        static inline auto& m_pInfoPool = StaticRef<CPool<CVehicleStructure>*>(0xB4E680);
 
     public: // Helpers
         [[nodiscard]] bool IsDummyActive(eVehicleDummy dummy) const {
@@ -251,8 +251,8 @@ public:
     // extras ids for next-spawned car
     // static char ms_compsUsed[2];
     static constexpr int32 NUM_COMPS_USAGE = 2;
-    static inline int8(&ms_compsUsed)[NUM_COMPS_USAGE] = *(int8(*)[NUM_COMPS_USAGE])0xB4E478;
-    static inline int8(&ms_compsToUse)[NUM_COMPS_USAGE] = *(int8(*)[NUM_COMPS_USAGE])0x8A6458;
+    static inline auto (&ms_compsUsed)[NUM_COMPS_USAGE] = StaticRef<int8[NUM_COMPS_USAGE]>(0xB4E478);
+    static inline auto (&ms_compsToUse)[NUM_COMPS_USAGE] = StaticRef<int8[NUM_COMPS_USAGE]>(0x8A6458);
 
     // vehicle colours from carcols.dat
     // static CRGBA ms_vehicleColourTable[128];

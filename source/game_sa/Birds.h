@@ -72,7 +72,7 @@ class CBirds {
 public:
     static bool& bHasBirdBeenShot;
     static uint32& uiNumberOfBirds;
-    static inline std::array<CBird, 6>& aBirds = *(std::array<CBird, 6>*)0xC6A8B0;
+    static inline auto& aBirds = StaticRef<std::array<CBird, 6>>(0xC6A8B0);
     static CVector& vecBirdShotAt;
 
     static float faCreationCoorsX[6];

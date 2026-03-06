@@ -214,7 +214,7 @@ public:
     static uint16& ms_loadedGangs;
 
     //! Currently loaded peds (For/from ped groups) - Prefer using `GetLoadedPeds()` to access.
-    static inline auto& ms_pedsLoaded = *(std::array<eModelID, 8>*)0x8E4C00;
+    static inline auto& ms_pedsLoaded = StaticRef<std::array<eModelID, 8>>(0x8E4C00);
 
     //! Number of active values in `ms_pedsLoaded`
     static inline auto& ms_numPedsLoaded = *reinterpret_cast<uint32*>(0x8E4BB0);
@@ -222,7 +222,7 @@ public:
     //! Contains the next slot, that is, index at which the next model to load of a group is.
     //! This is used by `PickPedMIToStreamInForCurrentZone`
     //! And the modelId to load can be accessed by `CPopulation::GetPedGroupModelId` for a given 
-    static inline auto& ms_NextPedToLoadFromGroup = *(std::array<int32, 18>*)0x8E4BB8;
+    static inline auto& ms_NextPedToLoadFromGroup = StaticRef<std::array<int32, 18>>(0x8E4BB8);
 
     static int32& ms_currentZoneType;
     static CLoadedCarGroup& ms_vehiclesLoaded;
@@ -250,9 +250,9 @@ public:
     static CLink<CEntity*>*& ms_renderEntityLink;
     static bool& m_bLoadingAllRequestedModels;
     static bool& m_bModelStreamNotLoaded;
-    static inline bool& ms_bReadLayerForceFully = *(bool*)0x9654C4;
-    static inline int32& ms_oldSectorX = *(int32*)0x8E4B98;
-    static inline int32& ms_oldSectorY = *(int32*)0x8E4B94;
+    static inline auto& ms_bReadLayerForceFully = StaticRef<bool>(0x9654C4);
+    static inline auto& ms_oldSectorX = StaticRef<int32>(0x8E4B98);
+    static inline auto& ms_oldSectorY = StaticRef<int32>(0x8E4B94);
 
 public:
     static void InjectHooks();

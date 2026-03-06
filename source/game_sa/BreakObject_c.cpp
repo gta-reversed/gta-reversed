@@ -172,9 +172,9 @@ void BreakObject_c::SetGroupData(const RwMatrix* matrix, const CVector* vecVeloc
 
 // 0x59D7F0
 void BreakObject_c::SetBreakInfo(BreakInfo_t* info, int32 bJustFaces) {
-    static float& ambientRed   = *(float*)0x8D0A0C;  // TODO | STATICREF // = 32.0f;
-    static float& ambientGreen = *(float*)0x8D0A08;  // TODO | STATICREF // = 32.0f;
-    static float& ambientBlue  = *(float*)0x8D0A04;  // TODO | STATICREF // = 32.0f;
+    static auto& ambientRed = StaticRef<float>(0x8D0A0C);  // TODO | STATICREF // = 32.0f;
+    static auto& ambientGreen = StaticRef<float>(0x8D0A08);  // TODO | STATICREF // = 32.0f;
+    static auto& ambientBlue = StaticRef<float>(0x8D0A04);  // TODO | STATICREF // = 32.0f;
 
     m_NumBreakGroups = bJustFaces ? info->m_usNumTriangles : info->m_usNumMaterials;
     m_BreakGroups = new BreakGroup_t[m_NumBreakGroups];
@@ -246,9 +246,9 @@ void BreakObject_c::SetBreakInfo(BreakInfo_t* info, int32 bJustFaces) {
 
 // 0x59DE40
 void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, const CVector* vecNormal, float groundZ) const {
-    static float& dotMultiplier = *(float*)0x8D0A18;   // TODO | STATICREF // = 0.85f;
-    static float& timestepScaling = *(float*)0x8D0A14; // TODO | STATICREF // = 0.05f;
-    static float& velocityScaling = *(float*)0x8D0A10; // TODO | STATICREF // = 0.8f;
+    static auto& dotMultiplier = StaticRef<float>(0x8D0A18);   // TODO | STATICREF // = 0.85f;
+    static auto& timestepScaling = StaticRef<float>(0x8D0A14); // TODO | STATICREF // = 0.05f;
+    static auto& velocityScaling = StaticRef<float>(0x8D0A10); // TODO | STATICREF // = 0.8f;
 
     auto dotProd = DotProduct(group->m_Velocity, *vecNormal) * dotMultiplier;
     CVector velocityChange = *vecNormal;

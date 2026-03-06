@@ -21,7 +21,7 @@ class CRopes {
 public:
     static constexpr auto MAX_NUM_ROPES{ 8u };
 
-    static inline std::array<CRope, MAX_NUM_ROPES>& aRopes = *(std::array<CRope, MAX_NUM_ROPES>*)0xB768B8; // Access using CRopes::GetRope()
+    static inline auto& aRopes = StaticRef<std::array<CRope, MAX_NUM_ROPES>>(0xB768B8); // Access using CRopes::GetRope()
     static eControlledCrane& PlayerControlsCrane;
     static uint32& m_nRopeIdCreationCounter;
 

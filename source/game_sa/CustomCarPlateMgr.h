@@ -27,12 +27,12 @@ private:
     static constexpr uint32 CHARSET_COL_WIDTH{ 4 * CHARSET_CHAR_WIDTH }; // 4x chars / row
     static constexpr uint32 CHARSET_ROW_HEIGHT{ 16u };
     
-    static inline RwTexture*& pCharsetTex = *(RwTexture**)0xC3EF5C;
-    static inline RpMaterial*& CurrentLicensePlateMaterial = *(RpMaterial**)0xC3EF7C;
-    static inline uint8& CurrentLicensePlateType = *(uint8*)0xC3EF80;
-    static inline RwTexture* (&pPlatebackTexTab)[3] = *(RwTexture * (*)[3])0xC3EF60;
-    static inline void* (&pPalette1555Tab)[3] = *(void*(*)[3])0xC3EF6C;
-    static inline RwUInt8*& pCharsetLockedData = *(RwUInt8**)0xC3EF78; 
+    static inline auto& pCharsetTex = StaticRef<RwTexture*>(0xC3EF5C);
+    static inline auto& CurrentLicensePlateMaterial = StaticRef<RpMaterial*>(0xC3EF7C);
+    static inline auto& CurrentLicensePlateType = StaticRef<uint8>(0xC3EF80);
+    static inline auto (&pPlatebackTexTab)[3] = StaticRef<RwTexture*[3]>(0xC3EF60);
+    static inline auto (&pPalette1555Tab)[3] = StaticRef<void*[3]>(0xC3EF6C);
+    static inline auto& pCharsetLockedData = StaticRef<RwUInt8*>(0xC3EF78); 
 public:
     static void InjectHooks();
 

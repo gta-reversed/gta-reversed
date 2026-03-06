@@ -23,7 +23,7 @@ public:
     static CZone       (&MapZoneArray)[39];
     static int16&      TotalNumberOfZoneInfos;
     
-    static inline std::array<CZoneInfo, 380>& ZoneInfoArray = *(std::array<CZoneInfo, 380>*)0xBA1DF0;
+    static inline auto& ZoneInfoArray = StaticRef<std::array<CZoneInfo, 380>>(0xBA1DF0);
 
 public:
     static void InjectHooks();

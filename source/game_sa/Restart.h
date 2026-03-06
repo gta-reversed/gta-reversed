@@ -6,34 +6,34 @@ class CRestart {
 public:
     static constexpr uint32 MAX_RESTART_POINTS{ 10u };
 
-    static inline bool& bOverrideRespawnBasePointForMission = *(bool*)0xA43248;
-    static inline CVector& OverrideRespawnBasePointForMission = *(CVector*)0xA4342C;
-    static inline float& OverrideHeading = *(float*)0xA43260;
-    static inline bool& bOverrideRestart = *(bool*)0xA43264;
-    static inline CVector& OverridePosition = *(CVector*)0xA43408;
+    static inline auto& bOverrideRespawnBasePointForMission = StaticRef<bool>(0xA43248);
+    static inline auto& OverrideRespawnBasePointForMission = StaticRef<CVector>(0xA4342C);
+    static inline auto& OverrideHeading = StaticRef<float>(0xA43260);
+    static inline auto& bOverrideRestart = StaticRef<bool>(0xA43264);
+    static inline auto& OverridePosition = StaticRef<CVector>(0xA43408);
 
-    static inline bool& bFadeInAfterNextArrest = *(bool*)0xA4325C;
-    static inline bool& bFadeInAfterNextDeath = *(bool*)0xA4325D;
+    static inline auto& bFadeInAfterNextArrest = StaticRef<bool>(0xA4325C);
+    static inline auto& bFadeInAfterNextDeath = StaticRef<bool>(0xA4325D);
 
-    static inline uint16& NumberOfPoliceRestarts = *(uint16*)0xA43268;
-    static inline int32 (&PoliceRestartWhenToUse)[MAX_RESTART_POINTS] = *(int32(*)[MAX_RESTART_POINTS])0xA43270;
-    static inline float (&PoliceRestartHeadings)[MAX_RESTART_POINTS] = *(float (*)[MAX_RESTART_POINTS])0xA43298;
-    static inline CVector (&PoliceRestartPoints)[MAX_RESTART_POINTS] = *(CVector(*)[MAX_RESTART_POINTS])0xA43390;
+    static inline auto& NumberOfPoliceRestarts = StaticRef<uint16>(0xA43268);
+    static inline auto (&PoliceRestartWhenToUse)[MAX_RESTART_POINTS] = StaticRef<int32[MAX_RESTART_POINTS]>(0xA43270);
+    static inline auto (&PoliceRestartHeadings)[MAX_RESTART_POINTS] = StaticRef<float[MAX_RESTART_POINTS]>(0xA43298);
+    static inline auto (&PoliceRestartPoints)[MAX_RESTART_POINTS] = StaticRef<CVector[MAX_RESTART_POINTS]>(0xA43390);
 
-    static inline uint16& NumberOfHospitalRestarts = *(uint16*)0xA4326C;
-    static inline int32 (&HospitalRestartWhenToUse)[MAX_RESTART_POINTS] = *(int32(*)[MAX_RESTART_POINTS])0xA432C0;
-    static inline float (&HospitalRestartHeadings)[MAX_RESTART_POINTS] = *(float (*)[MAX_RESTART_POINTS])0xA432E8;
-    static inline CVector (&HospitalRestartPoints)[MAX_RESTART_POINTS] = *(CVector(*)[MAX_RESTART_POINTS])0xA43318;
+    static inline auto& NumberOfHospitalRestarts = StaticRef<uint16>(0xA4326C);
+    static inline auto (&HospitalRestartWhenToUse)[MAX_RESTART_POINTS] = StaticRef<int32[MAX_RESTART_POINTS]>(0xA432C0);
+    static inline auto (&HospitalRestartHeadings)[MAX_RESTART_POINTS] = StaticRef<float[MAX_RESTART_POINTS]>(0xA432E8);
+    static inline auto (&HospitalRestartPoints)[MAX_RESTART_POINTS] = StaticRef<CVector[MAX_RESTART_POINTS]>(0xA43318);
 
     // Script command 2271 (COMMAND_SET_EXTRA_HOSPITAL_RESTART_POINT) arguments
-    static inline CVector& ExtraHospitalRestartCoors = *(CVector*)0xA43414;
-    static inline float& ExtraHospitalRestartRadius = *(float*)0xA43258;
-    static inline float& ExtraHospitalRestartHeading = *(float*)0xA43254;
+    static inline auto& ExtraHospitalRestartCoors = StaticRef<CVector>(0xA43414);
+    static inline auto& ExtraHospitalRestartRadius = StaticRef<float>(0xA43258);
+    static inline auto& ExtraHospitalRestartHeading = StaticRef<float>(0xA43254);
 
     // Script command 2272 (COMMAND_SET_EXTRA_POLICE_RESTART_POINT) arguments
-    static inline CVector& ExtraPoliceStationRestartCoors = *(CVector*)0xA43420;
-    static inline float& ExtraPoliceStationRestartRadius = *(float*)0xA43250;
-    static inline float& ExtraPoliceStationRestartHeading = *(float*)0xA4324C;
+    static inline auto& ExtraPoliceStationRestartCoors = StaticRef<CVector>(0xA43420);
+    static inline auto& ExtraPoliceStationRestartRadius = StaticRef<float>(0xA43250);
+    static inline auto& ExtraPoliceStationRestartHeading = StaticRef<float>(0xA4324C);
 
 public:
     static void InjectHooks();

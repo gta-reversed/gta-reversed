@@ -6,8 +6,8 @@
 */
 #pragma once
 
-static inline bool& JustLoadedDontFadeInYet = *(bool*)0xC16EDC;
-static inline bool& StillToFadeOut = *(bool*)0xC16EDD;
+static inline auto& JustLoadedDontFadeInYet = StaticRef<bool>(0xC16EDC);
+static inline auto& StillToFadeOut = StaticRef<bool>(0xC16EDD);
 
 class CDraw {
 public:

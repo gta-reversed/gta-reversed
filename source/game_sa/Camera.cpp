@@ -1629,7 +1629,7 @@ void CCamera::ImproveNearClip(CVehicle* vehicle, CPed* ped, CVector* source, CVe
     return plugin::CallMethod<0x516B20, CCamera*, CVehicle*, CPed*, CVector*, CVector*>(this, vehicle, ped, source, targPosn);
 }
 
-static CMatrix& preMirrorMat = *(CMatrix*)0xB6FE40;
+static auto& preMirrorMat = StaticRef<CMatrix>(0xB6FE40);
 
 // 0x51A560
 void CCamera::SetCameraUpForMirror() {

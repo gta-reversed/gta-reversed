@@ -42,8 +42,8 @@ class CDecisionMakerTypes {
 public:
     static constexpr auto NUM_TYPES = 20u;
 
-    static inline auto& ScriptReferenceIndex = *(std::array<uint16, NUM_TYPES>*)0xC0AFF4;
-    static inline auto& m_IsActive          = *(std::array<bool, NUM_TYPES>*)0xC0B01C;
+    static inline auto& ScriptReferenceIndex = StaticRef<std::array<uint16, NUM_TYPES>>(0xC0AFF4);
+    static inline auto& m_IsActive = StaticRef<std::array<bool, NUM_TYPES>>(0xC0B01C);
 
     static void InjectHooks();
 

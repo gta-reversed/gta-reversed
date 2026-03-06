@@ -27,7 +27,7 @@ public:
     static int32& HiLightPolyIndicesIdx;
     static CVector2D (&PanePolyCenterPositions)[5];
     static CEntity*(&apEntitiesToBeRendered)[32];
-    static inline uint32& NumGlassEntities = *(uint32*)0xC71BD8;
+    static inline auto& NumGlassEntities = StaticRef<uint32>(0xC71BD8);
     static CFallingGlassPane (&aGlassPanes)[44];
     static uint32& LastColCheckMS;
 

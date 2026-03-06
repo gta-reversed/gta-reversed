@@ -66,7 +66,7 @@ CLinkList<CEntity*>& CStreaming::ms_rwObjectInstances = *reinterpret_cast<CLinkL
 CLink<CEntity*>*& CStreaming::ms_renderEntityLink = *reinterpret_cast<CLink<CEntity*>**>(0x8E48A0);
 bool& CStreaming::m_bLoadingAllRequestedModels = *reinterpret_cast<bool*>(0x965538);
 bool& CStreaming::m_bModelStreamNotLoaded = *reinterpret_cast<bool*>(0x9654C4);
-static int32& CurrentGangMemberToLoad = *(int32*)0x9654D4;
+static auto& CurrentGangMemberToLoad = StaticRef<int32>(0x9654D4);
 
 RwStream& gRwStream = *reinterpret_cast<RwStream*>(0x8E48AC);
 
@@ -2678,7 +2678,7 @@ void CStreaming::RetryLoadFile(int32 chIdx) {
 
 // 0x40E3A0
 void CStreaming::LoadRequestedModels() {
-    static int32& currentChannel = *(int32*)0x965534; // TODO | STATICREF // 0; = 0;
+    static auto& currentChannel = StaticRef<int32>(0x965534); // TODO | STATICREF // 0; = 0;
     if (ms_bLoadingBigModel)
         currentChannel = 0;
 
@@ -2758,7 +2758,7 @@ bool CStreaming::AddToLoadedVehiclesList(int32 modelId) {
 
 // 0x407D50
 int32 CStreaming::GetDefaultCabDriverModel() {
-    static int32& randomIndex = *(int32*)0x965524; // TODO | STATICREF // 0; = 0;
+    static auto& randomIndex = StaticRef<int32>(0x965524); // TODO | STATICREF // 0; = 0;
     static constexpr int32 ms_aDefaultCabDriverModel[7] = { // 0x8A5AF4 CStreaming::ms_aDefaultCabDriverModel
         MODEL_BMOCD,
         MODEL_WMYCD1,
@@ -3282,7 +3282,7 @@ void CStreaming::StreamOneNewCar() {
     if (!GetInfo(MODEL_TAXI).IsLoaded() &&
         !GetInfo(MODEL_CABBIE).IsLoaded()
     ) {
-        static int32& lastCarModelStreamedIn = *(int32*)0x965528; // TODO | STATICREF // = 0;
+        static auto& lastCarModelStreamedIn = StaticRef<int32>(0x965528); // TODO | STATICREF // = 0;
         if (lastCarModelStreamedIn == MODEL_TAXI) {
             if (!IsCarModelNeededInCurrentZone(MODEL_CABBIE) && IsCarModelNeededInCurrentZone(MODEL_TAXI)) {
                 carModelId = MODEL_TAXI;
@@ -3472,7 +3472,7 @@ void CStreaming::StreamVehiclesAndPeds() {
         dealerGroupId = CPopulation::GetPedGroupId(POPCYCLE_GROUP_DEALERS, 0);
     }
 
-    static int32& framesBeforeStreamingNextNewCar = *(int32*)0x965530; // TODO | STATICREF // 0; = 0;
+    static auto& framesBeforeStreamingNextNewCar = StaticRef<int32>(0x965530); // TODO | STATICREF // 0; = 0;
     if (framesBeforeStreamingNextNewCar >= 0) {
         --framesBeforeStreamingNextNewCar;
     }
@@ -3520,7 +3520,7 @@ void CStreaming::StreamVehiclesAndPeds_Always(const CVector& unused) {
     StreamZoneModels_Gangs({});
 
     if (CPopCycle::m_pCurrZoneInfo) {
-        static int32& lastZonePopulationType = *(int32*)0x96552C; // TODO | STATICREF // 0; = 0;
+        static auto& lastZonePopulationType = StaticRef<int32>(0x96552C); // TODO | STATICREF // 0; = 0;
         if (CPopCycle::m_pCurrZoneInfo->PopType != lastZonePopulationType) {
             ReclassifyLoadedCars();
             lastZonePopulationType = CPopCycle::m_pCurrZoneInfo->PopType;
@@ -3533,7 +3533,7 @@ void CStreaming::StreamZoneModels(const CVector& unused) {
     if (!CPopCycle::m_pCurrZoneInfo || CCheat::IsZoneStreamingAllowed())
         return;
 
-    static int32& timeBeforeNextLoad = *(int32*)0x9654CC; // TODO | STATICREF // 0; = 0;
+    static auto& timeBeforeNextLoad = StaticRef<int32>(0x9654CC); // TODO | STATICREF // 0; = 0;
     if (CPopCycle::m_pCurrZoneInfo->PopType == ms_currentZoneType) {
         if (timeBeforeNextLoad >= 0) {
             timeBeforeNextLoad--;
@@ -3592,7 +3592,7 @@ void CStreaming::StreamZoneModels(const CVector& unused) {
         timeBeforeNextLoad = 300;
     }
 
-    static int32& timeBeforeNextGangLoad = *(int32*)0x9654D0; // TODO | STATICREF // 0; = 0;
+    static auto& timeBeforeNextGangLoad = StaticRef<int32>(0x9654D0); // TODO | STATICREF // 0; = 0;
     if (timeBeforeNextGangLoad >= 0) {
         timeBeforeNextGangLoad--;
     } else /*if (timeBeforeNextGangLoad < 0) - unnecessary*/ {

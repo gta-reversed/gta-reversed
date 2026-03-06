@@ -1025,8 +1025,8 @@ void CRenderer::ScanWorld() {
 
     CWorld::AdvanceCurrentScanCode();
 
-    static CVector& lastCameraPosition = *(CVector*)0xB76888; //TODO | STATICREF
-    static CVector& lastCameraForward = *(CVector*)0xB7687C; //TODO | STATICREF
+    static auto& lastCameraPosition = StaticRef<CVector>(0xB76888); //TODO | STATICREF
+    static auto& lastCameraForward = StaticRef<CVector>(0xB7687C); //TODO | STATICREF
 
     CVector distance = TheCamera.GetPosition() - lastCameraPosition;
     static bool bUnusedBool = false;

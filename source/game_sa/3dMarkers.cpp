@@ -92,8 +92,8 @@ void C3dMarkers::Shutdown() {
 void C3dMarkers::Render() {
     ZoneScoped;
 
-    static RwRGBAReal& ambient = *(RwRGBAReal*)0xC80444; // STATICREF
-    static RwRGBAReal& directional = *(RwRGBAReal*)0xC80434; // STATICREF
+    static auto& ambient = StaticRef<RwRGBAReal>(0xC80444);
+    static auto& directional = StaticRef<RwRGBAReal>(0xC80434);
 
     // Setup render states
     ActivateDirectional();

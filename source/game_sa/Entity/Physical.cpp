@@ -3933,7 +3933,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 // 0x54BA60
 bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73710; // TODO | STATICREF
+    static auto (&colPoints)[32] = StaticRef<CColPoint[32]>(0xB73710); // TODO | STATICREF
 
     bool bResult = false;
 
@@ -4450,7 +4450,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 // 0x54CFF0
 bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73C98; // TODO | STATICREF
+    static auto (&colPoints)[32] = StaticRef<CColPoint[32]>(0xB73C98); // TODO | STATICREF
     float fThisDamageIntensity = -1.0f;
     float fEntityDamageIntensity = -1.0f;
 

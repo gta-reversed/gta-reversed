@@ -34,9 +34,9 @@ CPad (&CPad::Pads)[MAX_PADS] = *(CPad(*)[MAX_PADS])0xB73458;
 bool& CPad::bInvertLook4Pad = *(bool*)0xB73402;
 char& CPad::padNumber = *(char*)0xB73400;
 
-static bool& byte_B73403 = *(bool*)0xB73403; // TODO: Find out what modifies this, as it has no value by default..
-static bool& byte_8CD782 = *(bool*)0x8CD782; // true by default, left here for documentation purposes, as it's used in multiple CPad functions
-static char& byte_B73401 = *(char*)0xB73401; // unused, unknown
+static auto& byte_B73403 = StaticRef<bool>(0xB73403); // TODO: Find out what modifies this, as it has no value by default..
+static auto& byte_8CD782 = StaticRef<bool>(0x8CD782); // true by default, left here for documentation purposes, as it's used in multiple CPad functions
+static auto& byte_B73401 = StaticRef<char>(0xB73401); // unused, unknown
 
 void CPad::InjectHooks() {
     RH_ScopedClass(CPad);
