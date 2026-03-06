@@ -208,12 +208,13 @@ uint32 CAEStreamingChannel::FillBuffer(void* buffer, uint32 size) {
     return filled;
 }
 
-// 0x4F23D0, broken af
-void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 soundFlags, uint32 audioBytes) {
-    if (!newDecoder || !m_pDirectSoundBuffer)
+// 0x4F23D0
+void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 flags, bool needStop) {
+    if (!newDecoder || !m_pDirectSoundBuffer) {
         return;
+    }
 
-    if (audioBytes != 0) {
+    if (needStop) {
         switch (m_nState) {
         case StreamingChannelState::UNK_MINUS_3:
         case StreamingChannelState::Finished:
@@ -223,49 +224,51 @@ void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 so
         default:
             break;
         }
-
         m_nState = StreamingChannelState::Stopped;
     }
 
-    if (m_pStreamingDecoder)
-        delete m_pStreamingDecoder;
-
-    m_bLoopTrack = (soundFlags & 1) != 0;
+    delete m_pStreamingDecoder;
     m_pStreamingDecoder = newDecoder;
+    m_bLoopTrack        = flags & TRKFLAG_LOOP_TRACK;
+
+    void* audioPtr{};
+    DWORD audioBytes{};
     if (SUCCEEDED(m_pDirectSoundBuffer->Lock(
         0,
         0,
-        (LPVOID*)(&newDecoder),
+        &audioPtr,
         (DWORD*)&audioBytes,
         nullptr,
         0,
         DSBLOCK_ENTIREBUFFER
     ))) {
-        const auto written = FillBuffer(newDecoder, audioBytes);
+        const auto written = FillBuffer(audioPtr, audioBytes);
         if (written == audioBytes) {
-            m_bNeedToFinish = 0;
+            m_bNeedToFinish = false;
         } else {
-            memset(reinterpret_cast<uint8*>(newDecoder) + written, 0, audioBytes - written);
-            m_bNeedToFinish = 1;
+            memset(reinterpret_cast<uint8*>(audioPtr) + written, 0, audioBytes - written);
+            m_bNeedToFinish = true;
         }
 
-        // ?
-        if (audioBytes & 0xFFFFFFFC) {
-            for (auto i = 0u; i < audioBytes >> 2; i++) {
-                // *((uint32*)&stream->_vftable + i) |= 0x10001u;
+        if (audioBytes >= 4) {
+            // dither samples to get rid of complete silence so 3D-audio math don't shit itself
+            for (auto& sample : std::span{ reinterpret_cast<int16*>(audioPtr), audioBytes / 2 }) {
+                sample |= 1;
             }
         }
 
-        m_pDirectSoundBuffer->Unlock(newDecoder, audioBytes, nullptr, 0);
+        m_pDirectSoundBuffer->Unlock(audioPtr, audioBytes, nullptr, 0);
+    } else {
+        NOTSA_LOG_ERR("Couldn't write samples to the new decoder!");
     }
 
     switch (m_nState) {
     case StreamingChannelState::UNK_MINUS_3:
     case StreamingChannelState::Started:
     case StreamingChannelState::Paused:
-        m_nState = StreamingChannelState::UNK_MINUS_2;
         break;
     default:
+        m_nState = StreamingChannelState::UNK_MINUS_2;
         break;
     }
 
@@ -499,10 +502,10 @@ void CAEStreamingChannel::InjectHooks() {
     RH_ScopedVirtualClass(CAEStreamingChannel, 0x85F3F0, 9);
     RH_ScopedCategory("Audio/Hardware");
 
-    RH_ScopedInstall(Constructor, 0x4F1800, { .reversed = false }); // makes game not load radio
+    RH_ScopedInstall(Constructor, 0x4F1800);
     RH_ScopedInstall(Destructor, 0x4F2200);
     RH_ScopedInstall(SynchPlayback, 0x4F1870);
-    RH_ScopedInstall(PrepareStream, 0x4F23D0, { .reversed = false });
+    RH_ScopedInstall(PrepareStream, 0x4F23D0);
     RH_ScopedInstall(Initialise, 0x4F22F0);
     RH_ScopedInstall(Pause, 0x4F2170);
     RH_ScopedInstall(SetReady, 0x4F1FF0);
