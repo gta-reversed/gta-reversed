@@ -246,9 +246,9 @@ void BreakObject_c::SetBreakInfo(BreakInfo_t* info, int32 bJustFaces) {
 
 // 0x59DE40
 void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, const CVector* vecNormal, float groundZ) const {
-    static auto& dotMultiplier = StaticRef<float>(0x8D0A18);   // TODO | STATICREF // = 0.85f;
-    static auto& timestepScaling = StaticRef<float>(0x8D0A14); // TODO | STATICREF // = 0.05f;
-    static auto& velocityScaling = StaticRef<float>(0x8D0A10); // TODO | STATICREF // = 0.8f;
+    static auto& dotMultiplier = StaticRef<float>(0x8D0A18);   // 0.85f
+    static auto& timestepScaling = StaticRef<float>(0x8D0A14); // 0.05f
+    static auto& velocityScaling = StaticRef<float>(0x8D0A10); // 0.8f
 
     auto dotProd = DotProduct(group->m_Velocity, *vecNormal) * dotMultiplier;
     CVector velocityChange = *vecNormal;
