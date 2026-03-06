@@ -6,8 +6,6 @@
 
 constexpr uint16 PED_STATS_COUNT = 43;
 
-auto& CPedStats::ms_apPedStats = StaticRef<CPedStat*>(0xC0BBEC);
-
 void CPedStats::InjectHooks() {
     RH_ScopedClass(CPedStats);
     RH_ScopedCategoryGlobal();

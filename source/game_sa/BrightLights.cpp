@@ -2,9 +2,6 @@
 
 #include "BrightLights.h"
 
-auto& CBrightLights::NumBrightLights = StaticRef<uint32>(0xC7C6FC);
-auto (&CBrightLights::aBrightLights)[MAX_NUM_BRIGHTLIGHTS] = StaticRef<tBrightLight[MAX_NUM_BRIGHTLIGHTS]>(0xC7CB58);
-
 void CBrightLights::InjectHooks() {
     RH_ScopedClass(CBrightLights);
     RH_ScopedCategoryGlobal();

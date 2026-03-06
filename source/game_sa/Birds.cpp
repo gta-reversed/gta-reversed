@@ -3,10 +3,6 @@
 #include "Birds.h"
 #include "Clouds.h"
 
-auto& CBirds::bHasBirdBeenShot = StaticRef<bool>(0xC6A8A0);
-auto& CBirds::uiNumberOfBirds = StaticRef<uint32>(0xC6A8A4);
-auto& CBirds::vecBirdShotAt = StaticRef<CVector>(0xC6AA48);
-
 /*
 These spawn in a formation like this:
     4           5

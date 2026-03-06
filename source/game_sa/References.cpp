@@ -2,8 +2,6 @@
 
 #include "References.h"
 
-auto (&CReferences::aRefs)[MAX_NUM_REFERENCES] = StaticRef<CReference[MAX_NUM_REFERENCES]>(0xB9B9A8);
-CReference*(&CReferences::pEmptyList) = *(CReference**)0xBA1768;
 
 void CReferences::InjectHooks() {
     RH_ScopedClass(CReferences);

@@ -10,8 +10,8 @@ class CWindModifiers {
 public:
     static constexpr int32 MAX_NUM_MODIFIERS = 16;
 
-    static int32& Number;
-    static CWindModifier (&Array)[MAX_NUM_MODIFIERS];
+    static inline auto& Number = StaticRef<int32>(0xC81450);
+    static inline auto (&Array)[MAX_NUM_MODIFIERS] = StaticRef<CWindModifier[MAX_NUM_MODIFIERS]>(0xC81458);
 
 public:
     static void InjectHooks();

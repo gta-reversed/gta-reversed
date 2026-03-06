@@ -2,9 +2,6 @@
 
 #include "WindModifiers.h"
 
-auto& CWindModifiers::Number = StaticRef<int32>(0xC81450);
-auto (&CWindModifiers::Array)[MAX_NUM_MODIFIERS] = StaticRef<CWindModifier[MAX_NUM_MODIFIERS]>(0xC81458);
-
 void CWindModifiers::InjectHooks() {
     RH_ScopedClass(CWindModifiers);
     RH_ScopedCategoryGlobal();

@@ -14,8 +14,8 @@ class CTask;
 
 class CCarEnterExit {
 public:
-    static const float& ms_fMaxSpeed_CanDragPedOut;
-    static const float& ms_fMaxSpeed_PlayerCanDragPedOut;
+    static inline auto& ms_fMaxSpeed_CanDragPedOut = StaticRef<float>(0x86F104); // 0.1
+    static inline auto& ms_fMaxSpeed_PlayerCanDragPedOut = StaticRef<float>(0x86F108); // 0.2
 
     static inline auto& ms_bPedOffsetsCalculated = StaticRef<bool>(0xC18C20);
     static inline auto& ms_vecPedGetUpAnimOffset = StaticRef<CVector>(0xC18C3C);

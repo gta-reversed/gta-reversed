@@ -10,7 +10,7 @@
 
 class CCreepingFire {
 public:
-    static uint8 (&m_aFireStatus)[32][32];
+    static inline auto (&m_aFireStatus)[32][32] = StaticRef<uint8[32][32]>(0xB71B68);
 
 public:
     static void InjectHooks();

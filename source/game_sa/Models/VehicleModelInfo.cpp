@@ -11,19 +11,6 @@
 #include "LoadingScreen.h"
 #include "CarFXRenderer.h"
 
-auto& CVehicleModelInfo::ms_linkedUpgrades = StaticRef<CVehicleModelInfo::CLinkedUpgradeList>(0xB4E6D8);
-auto& CVehicleModelInfo::ms_pRemapTexture = StaticRef<RwTexture*>(0xB4E47C);
-auto& CVehicleModelInfo::ms_pLightsTexture = StaticRef<RwTexture*>(0xB4E68C);
-auto& CVehicleModelInfo::ms_pLightsOnTexture = StaticRef<RwTexture*>(0xB4E690);
-auto (&CVehicleModelInfo::ms_currentCol)[NUM_CURRENT_COLORS] = StaticRef<uint8[NUM_CURRENT_COLORS]>(0xB4E3F0);
-auto (&CVehicleModelInfo::ms_vehicleColourTable)[NUM_VEHICLE_COLORS] = StaticRef<CRGBA[NUM_VEHICLE_COLORS]>(0xB4E480);
-auto (&CVehicleModelInfo::ms_numWheelUpgrades)[NUM_WHEELS] = StaticRef<int16[NUM_WHEELS]>(0xB4E470);
-auto (&CVehicleModelInfo::ms_wheelFrameIDs)[NUM_WHEELS] = StaticRef<int32[NUM_WHEELS]>(0x8A7770);
-auto (&CVehicleModelInfo::ms_upgradeWheels)[NUM_WHEEL_UPGRADES][NUM_WHEELS] = StaticRef<int16[NUM_WHEEL_UPGRADES][NUM_WHEELS]>(0xB4E3F8);
-auto (&CVehicleModelInfo::ms_lightsOn)[NUM_LIGHTS] = StaticRef<uint8[NUM_LIGHTS]>(0xB4E3E8);
-auto (&CVehicleModelInfo::ms_vehicleDescs)[NUM_VEHICLE_MODEL_DESCS] = StaticRef<RwObjectNameIdAssocation*[NUM_VEHICLE_MODEL_DESCS]>(0x8A7740);
-
-auto& CVehicleModelInfo::SavedTextureFindCallback = StaticRef<RwTextureCallBackFind>(0xB4E6A0);
 auto& vehicleTxd = StaticRef<RwTexDictionary*>(0xB4E688);
 auto& carFrame = StaticRef<RwFrame*>(0xB4E6B8);
 auto& gLightSurfProps = StaticRef<RwSurfaceProperties>(0x8A645C);

@@ -4,23 +4,6 @@
 
 uint8 CClock::daysInMonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 0x8CCF24
 
-auto& CClock::bClockHasBeenStored = StaticRef<bool>(0xB70144);
-auto& CClock::ms_Stored_nGameClockSeconds = StaticRef<uint16>(0xB70148);
-auto& CClock::ms_Stored_nGameClockMinutes = StaticRef<uint8>(0xB7014A);
-auto& CClock::ms_Stored_nGameClockHours = StaticRef<uint8>(0xB7014B);
-auto& CClock::ms_Stored_nGameClockDays = StaticRef<uint8>(0xB7014C);
-auto& CClock::ms_Stored_nGameClockMonths = StaticRef<uint8>(0xB7014D);
-
-auto& CClock::CurrentDay = StaticRef<uint8>(0xB7014E);
-auto& CClock::ms_nGameClockSeconds = StaticRef<uint16>(0xB70150);
-auto& CClock::ms_nGameClockMinutes = StaticRef<uint8>(0xB70152);
-auto& CClock::ms_nGameClockHours = StaticRef<uint8>(0xB70153);
-auto& CClock::ms_nGameClockDays = StaticRef<uint8>(0xB70154);
-auto& CClock::ms_nGameClockMonth = StaticRef<uint8>(0xB70155);
-
-auto& CClock::ms_nLastClockTick = StaticRef<uint32>(0xB70158);
-auto& CClock::ms_nMillisecondsPerGameMinute = StaticRef<uint32>(0xB7015C);
-
 void CClock::InjectHooks() {
     RH_ScopedClass(CClock);
     RH_ScopedCategoryGlobal();

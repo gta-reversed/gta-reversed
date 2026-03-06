@@ -10,9 +10,6 @@
 #include "ModelInfo.h"
 #include "TempColModels.h"
 
-auto (&CModelInfo::ms_modelInfoPtrs)[NUM_MODEL_INFOS] = StaticRef<CBaseModelInfo*[NUM_MODEL_INFOS]>(0xA9B0C8);
-auto& CModelInfo::ms_lastPositionSearched = StaticRef<int32>(0xAAE948);
-
 auto& CModelInfo::ms_atomicModelInfoStore = StaticRef<CStore<CAtomicModelInfo, NUM_ATOMIC_MODEL_INFOS>>(0xAAE950);
 auto& CModelInfo::ms_damageAtomicModelInfoStore = StaticRef<CStore<CDamageAtomicModelInfo, NUM_DAMAGE_ATOMIC_MODEL_INFOS>>(0xB1BF58);
 auto& CModelInfo::ms_lodAtomicModelInfoStore = StaticRef<CStore<CLodAtomicModelInfo, NUM_LOD_ATOMIC_MODEL_INFOS>>(0xB1C934);

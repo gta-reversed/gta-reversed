@@ -100,18 +100,18 @@ public:
     char    _pad131[3];
 
 public:
-    static CMouseControllerState& TempMouseControllerState;
-    static CMouseControllerState& NewMouseControllerState;
-    static CMouseControllerState& OldMouseControllerState;
+    static inline auto& TempMouseControllerState = StaticRef<CMouseControllerState>(0xB73404);
+    static inline auto& NewMouseControllerState = StaticRef<CMouseControllerState>(0xB73418);
+    static inline auto& OldMouseControllerState = StaticRef<CMouseControllerState>(0xB7342C);
 
-    static CKeyboardState& TempKeyState;
-    static CKeyboardState& OldKeyState;
-    static CKeyboardState& NewKeyState;
+    static inline auto& TempKeyState = StaticRef<CKeyboardState>(0xB72CB0);
+    static inline auto& OldKeyState = StaticRef<CKeyboardState>(0xB72F20);
+    static inline auto& NewKeyState = StaticRef<CKeyboardState>(0xB73190);
 
-    static CPad (&Pads)[MAX_PADS];
+    static inline auto (&Pads)[MAX_PADS] = StaticRef<CPad[MAX_PADS]>(0xB73458);
 
-    static bool& bInvertLook4Pad;
-    static char& padNumber;
+    static inline auto& bInvertLook4Pad = StaticRef<bool>(0xB73402);
+    static inline auto& padNumber = StaticRef<char>(0xB73400);
 
 public:
     static void InjectHooks();

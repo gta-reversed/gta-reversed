@@ -11,34 +11,6 @@
 #include "MenuSystem.h"
 #include "Hud.h"
 
-auto (&CStats::StatMessage)[128] = StaticRef<tStatMessage[128]>(0xB78200);
-auto (&CStats::LastMissionPassedName)[8] = StaticRef<char[8]>(0xB78A00);
-auto (&CStats::TimesMissionAttempted)[100] = StaticRef<int32[100]>(0xB78CC8);
-auto (&CStats::FavoriteRadioStationList)[14] = StaticRef<int32[14]>(0xB78E58);
-auto (&CStats::PedsKilledOfThisType)[32] = StaticRef<int32[32]>(0xB78E90);
-auto (&CStats::StatReactionValue)[59] = StaticRef<float[59]>(0xB78F10);
-auto (&CStats::StatTypesInt)[223] = StaticRef<int32[223]>(0xB79000);
-auto (&CStats::StatTypesFloat)[82] = StaticRef<float[82]>(0xB79380);
-auto& CStats::TotalNumStatMessages = StaticRef<uint32>(0xB794D0);
-auto& CStats::bStatUpdateMessageDisplayed = StaticRef<bool>(0xB794D4);
-auto& CStats::m_SprintStaminaCounter = StaticRef<uint32>(0xB794D8);
-auto& CStats::m_CycleStaminaCounter = StaticRef<uint32>(0xB794DC);
-auto& CStats::m_CycleSkillCounter = StaticRef<uint32>(0xB794E0);
-auto& CStats::m_SwimStaminaCounter = StaticRef<uint32>(0xB794E4);
-auto& CStats::m_SwimUnderWaterCounter = StaticRef<uint32>(0xB794E8);
-auto& CStats::m_DrivingCounter = StaticRef<uint32>(0xB794EC);
-auto& CStats::m_FlyingCounter = StaticRef<uint32>(0xB794F0);
-auto& CStats::m_BoatCounter = StaticRef<uint32>(0xB794F4);
-auto& CStats::m_BikeCounter = StaticRef<uint32>(0xB794F8);
-auto& CStats::m_FatCounter = StaticRef<uint32>(0xB794FC);
-auto& CStats::m_RunningCounter = StaticRef<uint32>(0xB79500);
-auto& CStats::m_WeaponCounter = StaticRef<uint32>(0xB79504);
-auto& CStats::m_DeathCounter = StaticRef<uint32>(0xB79508);
-auto& CStats::m_MaxHealthCounter = StaticRef<uint32>(0xB7950C);
-auto& CStats::m_AddToHealthCounter = StaticRef<uint32>(0xB79510);
-auto& CStats::m_LastWeaponTypeFired = StaticRef<uint32>(0xB79514);
-auto& CStats::bShowUpdateStats = StaticRef<bool>(0x8CDE56);
-
 void CStats::InjectHooks() {
     RH_ScopedClass(CStats);
     RH_ScopedCategoryGlobal();

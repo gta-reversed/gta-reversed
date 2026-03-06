@@ -3,8 +3,7 @@
 #include "AEFireAudioEntity.h"
 #include "AEAudioHardware.h"
 
-auto& CAEFireAudioEntity::m_snLastFireFrequencyIndex = StaticRef<uint8>(0xB612EC);
-float gfFireFrequencyVariations[5] = { 1.16f, 1.08f, 1.0f, 0.92f, 0.84f }; // 0x8AE598
+auto (&gfFireFrequencyVariations)[5] = StaticRef<float[5]>(0x8AE598);
 
 // 0x4DCF20
 void CAEFireAudioEntity::Initialise(FxSystem_c* system) {

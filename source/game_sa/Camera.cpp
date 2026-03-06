@@ -7,13 +7,6 @@
 #include "TaskSimpleDuck.h"
 #include "Hud.h"
 
-auto& CCamera::m_f3rdPersonCHairMultY = StaticRef<float>(0xB6EC10); ///< Where the player will be on the screen in relative coords when quick aiming
-auto& CCamera::m_f3rdPersonCHairMultX = StaticRef<float>(0xB6EC14);
-auto& CCamera::m_fMouseAccelVertical = StaticRef<float>(0xB6EC18);
-auto& CCamera::m_fMouseAccelHorzntl = StaticRef<float>(0xB6EC1C);
-auto& CCamera::m_bUseMouse3rdPerson = StaticRef<bool>(0xB6EC2E);
-auto& CCamera::bDidWeProcessAnyCinemaCam = StaticRef<bool>(0xB6EC2D);
-
 auto& TheCamera = StaticRef<CCamera>(0xB6F028);
 auto& gbModelViewer = StaticRef<bool>(0xBA6728);
 auto& gbCineyCamMessageDisplayed = StaticRef<int8>(0x8CC381); // 2

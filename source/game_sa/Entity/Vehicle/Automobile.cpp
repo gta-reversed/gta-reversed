@@ -24,10 +24,6 @@
 
 #include <FireManager.h>
 
-auto& CAutomobile::m_sAllTaxiLights = StaticRef<bool>(0xC1BFD0);
-auto& CAutomobile::vecHunterGunPos = StaticRef<CVector>(0x8D3394);
-CMatrix* CAutomobile::matW2B = (CMatrix*)0xC1C220;
-
 constexpr size_t NUM_AUTOMOBILE_SUSP_LINES  = (size_t)MAX_CARWHEELS;
 constexpr size_t NUM_RHINO_EXTRA_SUSP_LINES = (size_t)MAX_CARWHEELS * 2u; // 8
 constexpr size_t NUM_RHINO_SUSP_LINES       = NUM_AUTOMOBILE_SUSP_LINES + NUM_RHINO_EXTRA_SUSP_LINES; // 8

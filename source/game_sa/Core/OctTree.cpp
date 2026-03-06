@@ -1,10 +1,6 @@
 #include "StdInc.h"
 
 #include "OctTree.h"
-
-auto& COctTree::ms_bFailed = StaticRef<bool>(0xBC12DC);
-auto& COctTree::ms_level = StaticRef<uint32>(0xBC12E0);
-auto& COctTree::ms_octTreePool = StaticRef<COctTreePool>(0xBC12E4);
 auto& gpTmpOctTree = StaticRef<COctTree*>(0xBC12D8);
 
 // 0x5A6DB0

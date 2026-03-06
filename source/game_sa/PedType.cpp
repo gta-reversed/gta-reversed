@@ -1,8 +1,6 @@
 #include "StdInc.h"
 
 #include "PedType.h"
-
-auto& CPedType::ms_apPedTypes = StaticRef<CAcquaintance*>(0xC0BBE8);
 CAcquaintance* CPedType::ms_apPedTypesOld = {}; // NOTSA
 
 void CPedType::InjectHooks() {

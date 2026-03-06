@@ -4,19 +4,6 @@
 #include "CarCtrl.h"
 #include "FireManager.h"
 
-auto& CPlane::GenPlane_ModelIndex = StaticRef<int32>(0xC1CAD8);
-auto& CPlane::GenPlane_Status = StaticRef<uint32>(0xC1CADC);
-auto& CPlane::GenPlane_LastTimeGenerated = StaticRef<uint32>(0xC1CAE0);
-
-auto& CPlane::GenPlane_Active = StaticRef<bool>(0x8D33BC);                 // true
-auto& CPlane::ANDROM_COL_ANGLE_MULT = StaticRef<float>(0x8D33C0);         // 0.00015f
-auto& CPlane::HARRIER_NOZZLE_ROTATE_LIMIT = StaticRef<uint16>(0x8D33C4); // 5000
-auto& CPlane::HARRIER_NOZZLE_SWITCH_LIMIT = StaticRef<uint16>(0x8D33C8); // 3000
-auto& CPlane::PLANE_MIN_PROP_SPEED = StaticRef<float>(0x8D33CC);          // 0.05f
-auto& CPlane::PLANE_STD_PROP_SPEED = StaticRef<float>(0x8D33D0);          // 0.18f
-auto& CPlane::PLANE_MAX_PROP_SPEED = StaticRef<float>(0x8D33D4);          // 0.34f
-auto& CPlane::PLANE_ROC_PROP_SPEED = StaticRef<float>(0x8D33D8);          // 0.01f
-
 auto& HARRIER_NOZZLE_ROTATERATE = StaticRef<float>(0x8D33DC);       // 25.0f
 auto& PLANE_DAMAGE_WAVE_COUNTER_VAR = StaticRef<float>(0x8D33E0);   // 0.75f
 auto& PLANE_DAMAGE_THRESHHOLD = StaticRef<float>(0x8D33E4);         // 500.0f

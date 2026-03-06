@@ -20,7 +20,7 @@ public:
 
 public:
     static constexpr int32 NUM_CUTSCENE_VEHS = 6;
-    static char* (&ms_sCutsceneVehNames)[NUM_CUTSCENE_VEHS];
+    static inline auto (&ms_sCutsceneVehNames)[NUM_CUTSCENE_VEHS] = StaticRef<char*[NUM_CUTSCENE_VEHS]>(0x8D0F68);
 
 public:
     static void InjectHooks();

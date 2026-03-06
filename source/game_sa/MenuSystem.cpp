@@ -2,10 +2,7 @@
 
 #include "MenuSystem.h"
 
-auto& CMenuSystem::num_menus_in_use = StaticRef<uint8>(0xBA82E3);
-auto& CMenuSystem::CurrentMenuInUse = StaticRef<int8>(0xBA82E2);
-std::array<CMenuSystem::Menu*, 2> (&MenuNumber) = *(std::array<CMenuSystem::Menu*, 2>(*))0xBA82D8;
-std::array<bool, CMenuSystem::MENU_COUNT> (&CMenuSystem::MenuInUse) = *(std::array<bool, CMenuSystem::MENU_COUNT> (*))0xBA82E0;
+auto& MenuNumber = StaticRef<std::array<CMenuSystem::Menu*, 2>>(0xBA82D8);
 
 void CMenuSystem::InjectHooks() {
     RH_ScopedClass(CMenuSystem);

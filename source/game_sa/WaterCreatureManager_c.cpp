@@ -3,7 +3,6 @@
 #include "WaterCreatureManager_c.h"
 
 auto& g_waterCreatureMan = StaticRef<WaterCreatureManager_c>(0xC1DF30);
-auto (&WaterCreatureManager_c::ms_waterCreatureInfos)[NUM_WATER_CREATURE_INFOS] = StaticRef<WaterCreatureInfo[NUM_WATER_CREATURE_INFOS]>(0x8D3698);
 
 void WaterCreatureManager_c::InjectHooks()
 {

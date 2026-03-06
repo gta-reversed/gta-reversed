@@ -15,10 +15,10 @@ public:
     static constexpr uint8  ALPHA_TAGGED = 228;
     static constexpr uint32 MAX_TAGS = 150;
 
-    static tTagDesc     (&ms_tagDesc)[MAX_TAGS];
-    static int32&       ms_numTags;
-    static int32&       ms_numTagged;
-    static RxPipeline*& ms_pPipeline;
+    static inline auto (&ms_tagDesc)[MAX_TAGS] = StaticRef<tTagDesc[MAX_TAGS]>(0xA9A8C0);
+    static inline auto& ms_numTags = StaticRef<int32>(0xA9AD70);
+    static inline auto& ms_numTagged = StaticRef<int32>(0xA9AD74);
+    static inline auto& ms_pPipeline = StaticRef<RxPipeline*>(0xA9AD78);
 
 public:
     static void InjectHooks();

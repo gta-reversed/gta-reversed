@@ -8,7 +8,7 @@ class CBulletTrace;
 
 class CBulletTraces {
 public:
-    static CBulletTrace(&aTraces)[16];
+    static inline auto (&aTraces)[16] = StaticRef<CBulletTrace[16]>(0xC7C748);
 
 public:
     static void InjectHooks();

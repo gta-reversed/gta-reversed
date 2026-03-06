@@ -3,26 +3,11 @@
 #include "Clouds.h"
 #include "PostEffects.h"
 
-auto& CClouds::m_fVolumetricCloudMaxDistance = StaticRef<float>(0xC6AA58);
-auto& CClouds::m_VolumetricCloudsUsedNum = StaticRef<uint32>(0xC6AA5C);
-
-auto& CClouds::ms_cameraRoll = StaticRef<float>(0xC6AA64);
-
-auto& CClouds::IndividualRotation = StaticRef<int32>(0xC6AA6C);
-auto& CClouds::CloudRotation = StaticRef<float>(0xC6AA70);
-
-auto& CClouds::ms_vc = StaticRef<tVolumetricClouds>(0xC6AAB0);
-
-auto& CClouds::ms_mf = StaticRef<tMovingFog>(0xC6C158);
-
-auto& CClouds::PlayerCoords = StaticRef<CVector>(0xC6E958); // gVecPlayerCoors
-auto& CClouds::CameraCoors = StaticRef<CVector>(0xC6E964);  // gVecCameraCoors
-
 auto& CurrentFogIntensity = StaticRef<float>(0x8D5798);
 
 auto& gpMoonMask = StaticRef<RwTexture*>(0xC6AA74);
 auto& gpCloudTex = StaticRef<RwTexture*>(0xC6AA78);
-RwTexture*& gpCloudMaskTex = *reinterpret_cast<RwTexture**>(0xC6AA78 + 0x4);
+auto& gpCloudMaskTex = StaticRef<RwTexture*>(0xC6AA7C);
 
 void CClouds::InjectHooks() {
     RH_ScopedClass(CClouds);

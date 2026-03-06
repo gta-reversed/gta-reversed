@@ -2,8 +2,6 @@
 
 #include "AccidentManager.h"
 
-auto& CAccidentManager::gAccidentManager = StaticRef<CAccidentManager*>(0xB9B7D0);
-
 void CAccidentManager::InjectHooks()
 {
     RH_ScopedClass(CAccidentManager);

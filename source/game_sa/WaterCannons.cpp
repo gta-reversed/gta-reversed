@@ -3,8 +3,6 @@
 #include "WaterCannons.h"
 #include "WaterCannon.h"
 
-auto (&CWaterCannons::aCannons)[3] = StaticRef<CWaterCannon[3]>(0xC80740);
-
 void CWaterCannons::InjectHooks() {
     RH_ScopedClass(CWaterCannons);
     RH_ScopedCategoryGlobal();

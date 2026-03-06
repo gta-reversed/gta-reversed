@@ -33,35 +33,6 @@
 #define POP_LOG_DEBUG(...)
 #endif
 
-auto& CPopulation::PedDensityMultiplier = StaticRef<float>(0x8D2530);
-auto& CPopulation::m_AllRandomPedsThisType = StaticRef<int32>(0x8D2534);
-auto& CPopulation::MaxNumberOfPedsInUse = StaticRef<uint32>(0x8D2538);
-auto& CPopulation::NumberOfPedsInUseInterior = StaticRef<uint32>(0x8D253C);
-auto& CPopulation::m_LoadedBoats = StaticRef<CLoadedCarGroup>(0xC0E998);
-auto& CPopulation::m_InAppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9C8);
-auto& CPopulation::m_AppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9F8);
-auto (&CPopulation::m_LoadedGangCars)[10] = StaticRef<CLoadedCarGroup[10]>(0xC0EA28);
-auto& CPopulation::bZoneChangeHasHappened = StaticRef<bool>(0xC0EC22);
-auto& CPopulation::m_CountDownToPedsAtStart = StaticRef<uint8>(0xC0EC23);
-auto& CPopulation::ms_nTotalMissionPeds = StaticRef<uint32>(0xC0EC24);
-auto& CPopulation::ms_nTotalPeds = StaticRef<uint32>(0xC0EC28);
-auto& CPopulation::ms_nTotalGangPeds = StaticRef<uint32>(0xC0EC2C);
-auto& CPopulation::ms_nTotalCivPeds = StaticRef<uint32>(0xC0EC30);
-auto& CPopulation::ms_nTotalCarPassengerPeds = StaticRef<uint32>(0xC0EC34);
-auto& CPopulation::ms_nNumDealers = StaticRef<uint32>(0xC0EC38);
-auto& CPopulation::ms_nNumGang = StaticRef<std::array<uint32, TOTAL_GANGS>>(0xC0EC3C);
-auto& CPopulation::ms_nNumEmergency = StaticRef<uint32>(0xC0EC64);
-auto& CPopulation::ms_nNumCop = StaticRef<uint32>(0xC0EC68);
-auto& CPopulation::ms_nNumCivFemale = StaticRef<uint32>(0xC0EC6C);
-auto& CPopulation::ms_nNumCivMale = StaticRef<uint32>(0xC0EC70);
-auto& CPopulation::m_bDontCreateRandomGangMembers = StaticRef<bool>(0xC0FCB2);
-auto& CPopulation::m_bOnlyCreateRandomGangMembers = StaticRef<bool>(0xC0FCB3);
-auto& CPopulation::m_bDontCreateRandomCops = StaticRef<bool>(0xC0FCB4);
-auto& CPopulation::m_bMoreCarsAndFewerPeds = StaticRef<bool>(0xC0FCB5);
-auto& CPopulation::bInPoliceStation = StaticRef<bool>(0xC0FCB6);
-auto& CPopulation::NumMiamiViceCops = StaticRef<uint32>(0xC0FCB8);
-auto& CPopulation::CurrentWorldZone = StaticRef<uint32>(0xC0FCBC);
-
 void CPopulation::InjectHooks() {
     RH_ScopedClass(CPopulation);
     RH_ScopedCategoryGlobal();

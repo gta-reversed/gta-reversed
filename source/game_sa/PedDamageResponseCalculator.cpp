@@ -3,8 +3,6 @@
 #include <reversiblebugfixes/Bugs.hpp>
 #include "PedDamageResponseCalculator.h"
 
-auto& CPedDamageResponseCalculator::ms_damageFactor = StaticRef<float>(0x8A6260); // 5555.5498
-
 void CPedDamageResponseCalculator::InjectHooks() {
     RH_ScopedClass(CPedDamageResponseCalculator);
     RH_ScopedCategoryGlobal();

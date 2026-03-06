@@ -6,8 +6,6 @@
 #include "Shadows.h"
 #include "CarFXRenderer.h"
 
-auto (&CCutsceneObject::ms_sCutsceneVehNames)[NUM_CUTSCENE_VEHS] = StaticRef<char*[NUM_CUTSCENE_VEHS]>(0x8D0F68);
-
 void CCutsceneObject::InjectHooks() {
     RH_ScopedVirtualClass(CCutsceneObject, 0x868A60, 23);
     RH_ScopedCategory("Entity/Object");

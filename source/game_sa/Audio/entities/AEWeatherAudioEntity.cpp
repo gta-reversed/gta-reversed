@@ -14,9 +14,7 @@ enum class eWeatherEvent {
 };
 
 
-constexpr CVector DEFAULT_POS                   = { -0.906f, 0.f, 0.423f };
-
-auto& CAEWeatherAudioEntity::m_sfRainVolume = StaticRef<float>(0x8CC30C); // -100.0f
+constexpr CVector DEFAULT_POS = { -0.906f, 0.f, 0.423f };
 
 auto& m_snLastRainDropSoundID = StaticRef<int32>(0x8CC310); // TODO: Use `eSoundID`
 auto& m_sRainSoundL = StaticRef<CAETwinLoopSoundEntity>(0xB6BB18);  // dunno about names

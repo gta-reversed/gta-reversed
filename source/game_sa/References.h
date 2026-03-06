@@ -12,8 +12,8 @@ class CReference;
 
 class CReferences {
 public:
-    static CReference (&aRefs)[MAX_NUM_REFERENCES];
-    static CReference*(&pEmptyList);
+    static inline auto (&aRefs)[MAX_NUM_REFERENCES] = StaticRef<CReference[MAX_NUM_REFERENCES]>(0xB9B9A8);
+    static inline auto& pEmptyList = StaticRef<CReference*>(0xBA1768);
 
 public:
     static void InjectHooks();

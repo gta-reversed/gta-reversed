@@ -3,9 +3,6 @@
 #include "IniFile.h"
 #include "CarCtrl.h"
 
-auto& CIniFile::PedNumberMultiplier = StaticRef<float>(0x8CDF14);
-auto& CIniFile::CarNumberMultiplier = StaticRef<float>(0x8CDF18);
-
 void CIniFile::InjectHooks() {
     RH_ScopedClass(CIniFile);
     RH_ScopedCategoryGlobal();

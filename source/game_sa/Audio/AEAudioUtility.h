@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    static float (&m_sfLogLookup)[50][2];
+    static inline auto (&m_sfLogLookup)[50][2] = StaticRef<float[50][2]>(0xb61100);
 
 private:
     friend void InjectHooksMain();

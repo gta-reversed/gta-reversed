@@ -3,11 +3,6 @@
 #include "TagManager.h"
 #include "Garages.h"
 
-auto (&CTagManager::ms_tagDesc)[MAX_TAGS] = StaticRef<tTagDesc[MAX_TAGS]>(0xA9A8C0);
-auto& CTagManager::ms_numTags = StaticRef<int32>(0xA9AD70);
-auto& CTagManager::ms_numTagged = StaticRef<int32>(0xA9AD74);
-auto& CTagManager::ms_pPipeline = StaticRef<RxPipeline*>(0xA9AD78);
-
 void CTagManager::InjectHooks()
 {
     RH_ScopedClass(CTagManager);

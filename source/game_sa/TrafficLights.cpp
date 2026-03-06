@@ -3,17 +3,6 @@
 #include "TrafficLights.h"
 #include "Shadows.h"
 
-auto (&CTrafficLights::aTrafficLightColoursR)[3] = StaticRef<uint8[3]>(0x8A6214);
-auto (&CTrafficLights::aTrafficLightColoursG)[3] = StaticRef<uint8[3]>(0x8A6218);
-auto (&CTrafficLights::aTrafficLightColoursB)[3] = StaticRef<uint8[3]>(0xA9AD94);
-auto& CTrafficLights::fLightMult = StaticRef<float>(0x8A621C);
-
-auto& CTrafficLights::vecTrafficLights5_1 = StaticRef<CVector>(0xA9ADD4);
-auto& CTrafficLights::vecTrafficLights5_2 = StaticRef<CVector>(0xA9ADC8);
-auto& CTrafficLights::vecTrafficLights_1 = StaticRef<CVector>(0xA9ADBC);
-auto& CTrafficLights::vecTrafficLights_2 = StaticRef<CVector>(0xA9ADB0);
-auto& CTrafficLights::uiPedLightFlags = StaticRef<uint32>(0xA9ADE0);
-
 void CTrafficLights::InjectHooks()
 {
     RH_ScopedClass(CTrafficLights);

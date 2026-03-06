@@ -19,13 +19,6 @@
  *
  */
 
-void (*(&CCheat::m_aCheatFunctions)[TOTAL_CHEATS])() = *reinterpret_cast<void (*(*)[TOTAL_CHEATS])()>(0x8A5B58);
-auto (&CCheat::m_aCheatHashKeys)[TOTAL_CHEATS] = StaticRef<int32[TOTAL_CHEATS]>(0x8A5CC8);
-auto (&CCheat::m_aCheatsActive)[TOTAL_CHEATS] = StaticRef<bool[TOTAL_CHEATS]>(0x969130);
-
-auto (&CCheat::m_CheatString)[CHEAT_STRING_SIZE] = StaticRef<char[CHEAT_STRING_SIZE]>(0x969110);
-auto& CCheat::m_bHasPlayerCheated = StaticRef<bool>(0x96918C);
-
 bool CCheat::m_bShowMappings;
 uint32 CCheat::m_nLastScriptBypassTime;
 

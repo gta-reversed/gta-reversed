@@ -20,26 +20,6 @@
 
 #include <reversiblebugfixes/Bugs.hpp>
 
-auto& CCarCtrl::NumLawEnforcerCars = StaticRef<uint32>(0x969098);
-auto& CCarCtrl::NumParkedCars = StaticRef<uint32>(0x9690A0);
-auto& CCarCtrl::NumAmbulancesOnDuty = StaticRef<uint32>(0x9690A8);
-auto& CCarCtrl::NumFireTrucksOnDuty = StaticRef<uint32>(0x9690AC);
-auto& CCarCtrl::MaxNumberOfCarsInUse = StaticRef<uint32>(0x8A5B24);
-auto& CCarCtrl::CarDensityMultiplier = StaticRef<float>(0x8A5B20);
-auto& CCarCtrl::NumRandomCars = StaticRef<int32>(0x969094);
-auto& CCarCtrl::NumMissionCars = StaticRef<int32>(0x96909C);
-auto& CCarCtrl::NumPermanentVehicles = StaticRef<int32>(0x9690A4);
-auto& CCarCtrl::LastTimeAmbulanceCreated = StaticRef<int32>(0x9690B0);
-auto& CCarCtrl::LastTimeFireTruckCreated = StaticRef<int32>(0x9690B4);
-auto& CCarCtrl::bAllowEmergencyServicesToBeCreated = StaticRef<bool>(0x8A5B28);
-auto& CCarCtrl::bCarsGeneratedAroundCamera = StaticRef<bool>(0x9690C1);
-auto& CCarCtrl::CountDownToCarsAtStart = StaticRef<int8>(0x9690C0);
-auto& CCarCtrl::TimeNextMadDriverChaseCreated = StaticRef<float>(0x9690BC);
-auto& CCarCtrl::SequenceElements = StaticRef<int32>(0x969078);
-auto& CCarCtrl::SequenceRandomOffset = StaticRef<int32>(0x969074);
-auto& CCarCtrl::bSequenceOtherWay = StaticRef<bool>(0x969070);
-auto& CCarCtrl::LastTimeLawEnforcerCreated = StaticRef<int32>(0x9690B8);
-
 auto (&apCarsToKeep)[2] = StaticRef<CVehicle*[2]>(0x969084);
 auto (&aCarsToKeepTime)[2] = StaticRef<uint32[2]>(0x96907C);
 

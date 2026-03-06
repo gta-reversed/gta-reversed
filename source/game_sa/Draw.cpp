@@ -2,16 +2,6 @@
 
 #include "Draw.h"
 
-auto& CDraw::ms_fFOV = StaticRef<float>(0x8D5038);
-auto& CDraw::ms_fLODDistance = StaticRef<float>(0xC3EF98);
-auto& CDraw::ms_fFarClipZ = StaticRef<float>(0xC3EF9C);
-auto& CDraw::ms_fNearClipZ = StaticRef<float>(0xC3EFA0);
-auto& CDraw::ms_fAspectRatio = StaticRef<float>(0xC3EFA4);
-auto& CDraw::FadeRed = StaticRef<uint8>(0xC3EFA8);
-auto& CDraw::FadeGreen = StaticRef<uint8>(0xC3EFA9);
-auto& CDraw::FadeBlue = StaticRef<uint8>(0xC3EFAA);
-auto& CDraw::FadeValue = StaticRef<uint8>(0xC3EFAB);
-
 auto& FadeTimer = StaticRef<uint32>(0xC16EE0);
 auto& FadeOutTime = StaticRef<uint32>(0x8D2BD4);
 

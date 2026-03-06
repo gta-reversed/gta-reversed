@@ -8,64 +8,10 @@
 #include "LoadingScreen.h"
 #include "VehicleRecording.h"
 
-auto& CStreaming::ms_memoryAvailable = StaticRef<size_t>(0x8A5A80); // 25'600'000 == 25.6 MB
-auto& CStreaming::desiredNumVehiclesLoaded = StaticRef<uint32>(0x8A5A84);
-auto& CStreaming::ms_bLoadVehiclesInLoadScene = StaticRef<bool>(0x8A5A88);
-
-// Default models for each level (see eLevelNames)
-auto (&CStreaming::ms_aDefaultCopCarModel)[5] = StaticRef<int32[5]>(0x8A5A8C); // Last one is bike cop, not matching any level name
-auto (&CStreaming::ms_aDefaultCopModel)[5] = StaticRef<int32[5]>(0x8A5AA0); // Last one is bike cop, not matching any level name
-auto (&CStreaming::ms_aDefaultAmbulanceModel)[4] = StaticRef<int32[4]>(0x8A5AB4);
-auto (&CStreaming::ms_aDefaultMedicModel)[4] = StaticRef<int32[4]>(0x8A5AC4);
-auto (&CStreaming::ms_aDefaultFireEngineModel)[4] = StaticRef<int32[4]>(0x8A5AD4);
-auto (&CStreaming::ms_aDefaultFiremanModel)[4] = StaticRef<int32[4]>(0x8A5AE4);
-
 // Default models for current level
 int32& CStreaming::ms_DefaultCopBikeModel = *(&ms_aDefaultCopCarModel[4]); // reinterpret_cast<int32*>(0x8A5A9C);
 int32& CStreaming::ms_DefaultCopBikerModel = *(&ms_aDefaultCopModel[4]);
 
-auto& CStreaming::ms_nTimePassedSinceLastCopBikeStreamedIn = StaticRef<uint32>(0x9654C0);
-auto& CStreaming::ms_pExtraObjectsDir = StaticRef<CDirectory*>(0x8E48D0);
-auto (&CStreaming::ms_files)[TOTAL_IMG_ARCHIVES] = StaticRef<tStreamingFileDesc[TOTAL_IMG_ARCHIVES]>(0x8E48D8);
-auto& CStreaming::ms_bLoadingBigModel = StaticRef<bool>(0x8E4A58);
-// There are only two channels within CStreaming::ms_channel
-auto (&CStreaming::ms_channel)[2] = StaticRef<tStreamingChannel[2]>(0x8E4A60);
-auto& CStreaming::ms_channelError = StaticRef<int32>(0x8E4B90);
-auto& CStreaming::m_bHarvesterModelsRequested = StaticRef<bool>(0x8E4B9C);
-auto& CStreaming::m_bStreamHarvesterModelsThisFrame = StaticRef<bool>(0x8E4B9D);
-auto& CStreaming::ms_numPriorityRequests = StaticRef<uint32>(0x8E4BA0);
-auto& CStreaming::ms_lastCullZone = StaticRef<int32>(0x8E4BA4);
-auto& CStreaming::ms_loadedGangCars = StaticRef<uint16>(0x8E4BA8);
-
-// Bitfield of gangs loaded. Each gang is a bit. (0th bit being BALLAS, following the ordering in POPCYCLE_GROUP_BALLAS)
-auto& CStreaming::ms_loadedGangs = StaticRef<uint16>(0x8E4BAC);
-
-auto& CStreaming::ms_currentZoneType = StaticRef<int32>(0x8E4C20);
-auto& CStreaming::ms_vehiclesLoaded = StaticRef<CLoadedCarGroup>(0x8E4C24);
-auto& CStreaming::ms_pEndRequestedList = StaticRef<CStreamingInfo*>(0x8E4C54);
-auto& CStreaming::ms_pStartRequestedList = StaticRef<CStreamingInfo*>(0x8E4C58);
-auto& CStreaming::ms_pEndLoadedList = StaticRef<CStreamingInfo*>(0x8E4C5C);
-auto& CStreaming::ms_startLoadedList = StaticRef<CStreamingInfo*>(0x8E4C60);
-auto& CStreaming::ms_lastImageRead = StaticRef<int32>(0x8E4C64);
-auto (&CStreaming::ms_imageOffsets)[6] = StaticRef<int32[6]>(0x8E4C8C);
-auto& CStreaming::ms_bEnableRequestListPurge = StaticRef<bool>(0x8E4CA4);
-
-auto& CStreaming::ms_streamingBufferSize = StaticRef<uint32>(0x8E4CA8);
-auto (&CStreaming::ms_pStreamingBuffer)[2] = StaticRef<uint8*[2]>(0x8E4CAC);
-
-auto& CStreaming::ms_memoryUsedBytes = StaticRef<uint32>(0x8E4CB4);
-auto& CStreaming::ms_numModelsRequested = StaticRef<int32>(0x8E4CB8);
-auto (&CStreaming::ms_aInfoForModel)[26316] = StaticRef<CStreamingInfo[26316]>(0x8E4CC0);
-auto& CStreaming::ms_disableStreaming = StaticRef<bool>(0x9654B0);
-auto& CStreaming::ms_bIsInitialised = StaticRef<int32>(0x9654B8);
-auto& CStreaming::m_bBoatsNeeded = StaticRef<bool>(0x9654BC);
-auto& CStreaming::ms_bLoadingScene = StaticRef<bool>(0x9654BD);
-auto& CStreaming::m_bCopBikeLoaded = StaticRef<bool>(0x9654BE);
-auto& CStreaming::m_bDisableCopBikes = StaticRef<bool>(0x9654BF);
-auto& CStreaming::ms_rwObjectInstances = StaticRef<CLinkList<CEntity*>>(0x9654F0);
-auto& CStreaming::ms_renderEntityLink = StaticRef<CLink<CEntity*>*>(0x8E48A0);
-auto& CStreaming::m_bLoadingAllRequestedModels = StaticRef<bool>(0x965538);
-auto& CStreaming::m_bModelStreamNotLoaded = StaticRef<bool>(0x9654C4);
 static auto& CurrentGangMemberToLoad = StaticRef<int32>(0x9654D4);
 
 auto& gRwStream = StaticRef<RwStream>(0x8E48AC);

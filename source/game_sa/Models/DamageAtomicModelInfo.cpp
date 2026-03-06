@@ -4,8 +4,6 @@
 #include "CustomBuildingRenderer.h"
 #include "CarFXRenderer.h"
 
-auto& CDamageAtomicModelInfo::ms_bCreateDamagedVersion = StaticRef<bool>(0xA9B0B0);
-
 void CDamageAtomicModelInfo::InjectHooks()
 {
     RH_ScopedVirtualClass(CDamageAtomicModelInfo, 0x85BC30, 16);

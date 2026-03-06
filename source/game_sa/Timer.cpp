@@ -8,40 +8,6 @@
 
 #include "oswrapper.h"
 
-auto& CTimer::ms_fnTimerFunction = StaticRef<TimerFunction_t>(0xB7CB28); // Izzotop: Added in commit 50ce121c. That should be just timerDef.
-
-auto& CTimer::m_sbEnableTimeDebug = StaticRef<bool>(0xB7CB40);
-auto& CTimer::bSkipProcessThisFrame = StaticRef<bool>(0xB7CB89);
-auto& CTimer::bSlowMotionActive = StaticRef<bool>(0xB7CB88);
-auto& CTimer::game_FPS = StaticRef<float>(0xB7CB50);
-
-auto& CTimer::m_CodePause = StaticRef<bool>(0xB7CB48);
-auto& CTimer::m_UserPause = StaticRef<bool>(0xB7CB49);
-
-auto& CTimer::m_FrameCounter = StaticRef<uint32>(0xB7CB4C);
-auto& CTimer::m_snTimerDivider = StaticRef<uint32>(0xB7CB2C);
-
-auto& CTimer::ms_fTimeStep = StaticRef<float>(0xB7CB5C);
-auto& CTimer::ms_fTimeStepNonClipped = StaticRef<float>(0xB7CB58);
-auto& CTimer::ms_fOldTimeStep = StaticRef<float>(0xB7CB54);
-
-auto& CTimer::ms_fTimeScale = StaticRef<float>(0xB7CB64);
-auto& CTimer::ms_fSlowMotionScale = StaticRef<float>(0xB7CB60);
-
-auto& CTimer::m_snTimeInMillisecondsPauseMode = StaticRef<uint32>(0xB7CB7C);
-auto& CTimer::m_snTimeInMillisecondsNonClipped = StaticRef<uint32>(0xB7CB80);
-auto& CTimer::m_snTimeInMilliseconds = StaticRef<uint32>(0xB7CB84);
-auto& CTimer::m_snPreviousTimeInMillisecondsNonClipped = StaticRef<uint32>(0xB7CB68);
-
-auto& CTimer::m_snRenderStartTime = StaticRef<uint64>(0xB7CB38);
-auto& CTimer::m_snRenderPauseTime = StaticRef<uint64>(0xB7CB30);
-auto& CTimer::m_snRenderTimerPauseCount = StaticRef<uint32>(0xB7CB44);
-
-auto& CTimer::m_snPPPPreviousTimeInMilliseconds = StaticRef<uint32>(0xB7CB6C);
-auto& CTimer::m_snPPPreviousTimeInMilliseconds = StaticRef<uint32>(0xB7CB70);
-auto& CTimer::m_snPPreviousTimeInMilliseconds = StaticRef<uint32>(0xB7CB74);
-auto& CTimer::m_snPreviousTimeInMilliseconds = StaticRef<uint32>(0xB7CB78);
-
 
 void CTimer::InjectHooks()
 {

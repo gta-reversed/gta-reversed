@@ -9,10 +9,6 @@
 
 #include "Localisation.h"
 
-auto& CLocalisation::nastyGame = StaticRef<bool>(0xB9B7EC);
-auto& CLocalisation::germanGame = StaticRef<bool>(0xB9B7ED);
-auto& CLocalisation::frenchGame = StaticRef<bool>(0xB9B7EE);
-
 void CLocalisation::InjectHooks() {
     RH_ScopedClass(CLocalisation);
     RH_ScopedCategoryGlobal();

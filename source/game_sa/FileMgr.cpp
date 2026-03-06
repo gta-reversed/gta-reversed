@@ -12,9 +12,6 @@
 #include "HookSystem.h"
 #include "extensions/Configs/Miscellaneous.hpp"
 
-auto (&CFileMgr::ms_dirName)[128] = StaticRef<char[128]>(0xb71a60);
-auto (&CFileMgr::ms_rootDirName)[128] = StaticRef<char[128]>(0xb71ae0);
-
 auto (&user_tracks_dir_path)[256] = StaticRef<char[256]>(0xc92168);
 auto (&user_gallery_dir_path)[256] = StaticRef<char[256]>(0xc92268);
 auto (&gta_user_dir_path)[256] = StaticRef<char[256]>(0xc92368);

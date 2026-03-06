@@ -2,7 +2,6 @@
 
 #include "MonsterTruck.h"
 
-auto& CMonsterTruck::DUMPER_COL_ANGLEMULT = StaticRef<float>(0x8D33A8);
 auto& fWheelExtensionRate = StaticRef<float>(0x8D33AC);
 
 void CMonsterTruck::InjectHooks() {

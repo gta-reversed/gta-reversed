@@ -8,14 +8,6 @@
 
 #include "TxdStore.h"
 
-auto& CTxdStore::ms_pTxdPool = StaticRef<CTxdPool*>(0xC8800C);
-auto& CTxdStore::ms_pStoredTxd = StaticRef<RwTexDictionary*>(0xC88010);
-auto& CTxdStore::ms_lastSlotFound = StaticRef<int32>(0xC88014);
-
-auto (&CTxdStore::defaultTxds)[4] = StaticRef<int16[4]>(0xC88004);
-
-// variables list is not finished. Need to make CPools before.
-
 void CTxdStore::InjectHooks() {
     RH_ScopedClass(CTxdStore);
     RH_ScopedCategoryGlobal();

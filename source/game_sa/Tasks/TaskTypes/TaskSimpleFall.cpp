@@ -2,8 +2,6 @@
 
 #include "TaskSimpleFall.h"
 
-auto& CTaskSimpleFall::m_nMaxPlayerDownTime = StaticRef<uint32>(0x8D2EF4);
-
 void CTaskSimpleFall::InjectHooks()
 {
     RH_ScopedVirtualClass(CTaskSimpleFall, 0x870430, 9);

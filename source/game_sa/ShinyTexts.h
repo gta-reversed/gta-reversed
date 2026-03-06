@@ -33,8 +33,8 @@ VALIDATE_SIZE(CRegisteredShinyText, 0x58);
 
 class CShinyTexts {
 public:
-    static uint32& NumShinyTexts;
-    static CRegisteredShinyText (&aShinyTexts)[MAX_SHINYTEXTS];
+    static inline auto& NumShinyTexts = StaticRef<uint32>(0xC7C6F8);
+    static inline auto (&aShinyTexts)[32] = StaticRef<CRegisteredShinyText[32]>(0xC7D258);
 
 public:
     static void InjectHooks();

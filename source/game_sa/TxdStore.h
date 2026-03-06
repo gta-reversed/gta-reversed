@@ -42,12 +42,12 @@ public:
         }
     };
 public:
-    static CTxdPool*&        ms_pTxdPool;
-    static RwTexDictionary*& ms_pStoredTxd;
-    static int32&            ms_lastSlotFound;
+    static inline auto& ms_pTxdPool = StaticRef<CTxdPool*>(0xC8800C);
+    static inline auto& ms_pStoredTxd = StaticRef<RwTexDictionary*>(0xC88010);
+    static inline auto& ms_lastSlotFound = StaticRef<int32>(0xC88014);
     // variables list is not finished. Need to make CPools before.
 
-    static int16 (&defaultTxds)[4];
+    static inline auto (&defaultTxds)[4] = StaticRef<int16[4]>(0xC88004);
 
 public:
     static void InjectHooks();

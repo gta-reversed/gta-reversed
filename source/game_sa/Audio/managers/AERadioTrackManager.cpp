@@ -10,35 +10,6 @@
 
 auto& AERadioTrackManager = StaticRef<CAERadioTrackManager>(0x8CB6F8);
 
-auto& CAERadioTrackManager::m_nStatsLastHitTimeOutHours = StaticRef<uint8>(0xB62C58);
-auto& CAERadioTrackManager::m_nStatsLastHitGameClockHours = StaticRef<uint8>(0xB62C59);
-auto& CAERadioTrackManager::m_nStatsLastHitGameClockDays = StaticRef<uint8>(0xB62C5A);
-auto& CAERadioTrackManager::m_nStatsStartedCrash1 = StaticRef<uint8>(0xB62C5B);
-auto& CAERadioTrackManager::m_nStatsStartedCat2 = StaticRef<uint8>(0xB62C5C);
-auto& CAERadioTrackManager::m_nStatsStartedBadlands = StaticRef<uint8>(0xB62C5D);
-auto& CAERadioTrackManager::m_nStatsPassedVCrash2 = StaticRef<uint8>(0xB62C5E);
-auto& CAERadioTrackManager::m_nStatsPassedTruth2 = StaticRef<uint8>(0xB62C5F);
-auto& CAERadioTrackManager::m_nStatsPassedSweet2 = StaticRef<uint8>(0xB62C60);
-auto& CAERadioTrackManager::m_nStatsPassedStrap4 = StaticRef<uint8>(0xB62C61);
-auto& CAERadioTrackManager::m_nStatsPassedSCrash1 = StaticRef<uint8>(0xB62C62);
-auto& CAERadioTrackManager::m_nStatsPassedRiot1 = StaticRef<uint8>(0xB62C63);
-auto& CAERadioTrackManager::m_nStatsPassedRyder2 = StaticRef<uint8>(0xB62C64);
-auto& CAERadioTrackManager::m_nStatsPassedMansion2 = StaticRef<uint8>(0xB62C65);
-auto& CAERadioTrackManager::m_nStatsPassedLAFin2 = StaticRef<uint8>(0xB62C66);
-auto& CAERadioTrackManager::m_nStatsPassedFarlie3 = StaticRef<uint8>(0xB62C67);
-auto& CAERadioTrackManager::m_nStatsPassedDesert10 = StaticRef<uint8>(0xB62C68);
-auto& CAERadioTrackManager::m_nStatsPassedDesert8 = StaticRef<uint8>(0xB62C69);
-auto& CAERadioTrackManager::m_nStatsPassedDesert5 = StaticRef<uint8>(0xB62C6A);
-auto& CAERadioTrackManager::m_nStatsPassedDesert3 = StaticRef<uint8>(0xB62C6B);
-auto& CAERadioTrackManager::m_nStatsPassedDesert1 = StaticRef<uint8>(0xB62C6C);
-auto& CAERadioTrackManager::m_nStatsPassedCat1 = StaticRef<uint8>(0xB62C6D);
-auto& CAERadioTrackManager::m_nStatsPassedCasino10 = StaticRef<uint8>(0xB62C6E);
-auto& CAERadioTrackManager::m_nStatsPassedCasino6 = StaticRef<uint8>(0xB62C6F);
-auto& CAERadioTrackManager::m_nStatsPassedCasino3 = StaticRef<uint8>(0xB62C70);
-auto& CAERadioTrackManager::m_nStatsCitiesPassed = StaticRef<uint8>(0xB62C71);
-auto& CAERadioTrackManager::m_nSpecialDJBanterIndex = StaticRef<uint8>(0xB62C72);
-auto& CAERadioTrackManager::m_nSpecialDJBanterPending = StaticRef<uint8>(0xB62C73);
-
 void CAERadioTrackManager::InjectHooks() {
     RH_ScopedClass(CAERadioTrackManager);
     RH_ScopedCategory("Audio/Managers");

@@ -10,15 +10,6 @@
 #include "Shadows.h"
 #include "CarFXRenderer.h"
 
-auto& CMirrors::pBuffer = StaticRef<RwRaster*>(0xC7C71C);
-auto& CMirrors::pZBuffer = StaticRef<RwRaster*>(0xC7C720);
-auto& CMirrors::bRenderingReflection = StaticRef<bool>(0xC7C728);
-auto& CMirrors::d3dRestored = StaticRef<bool>(0xC7C729);
-auto& CMirrors::TypeOfMirror = StaticRef<eMirrorType>(0xC7C724);
-auto& CMirrors::MirrorFlags = StaticRef<uint8>(0xC7C618);
-auto& CMirrors::MirrorNormal = StaticRef<CVector>(0xC803D8);
-auto& CMirrors::MirrorV = StaticRef<float>(0xC7C61C);
-
 auto& bFudgeNow = StaticRef<bool>(0xC7C72A);
 
 /*!

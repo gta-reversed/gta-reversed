@@ -41,7 +41,7 @@ public:
     float field_988[4]; // unused
     float m_fSuspensionRadius;
 
-    static float& DUMPER_COL_ANGLEMULT; // 0.0002f
+    static inline auto& DUMPER_COL_ANGLEMULT = StaticRef<float>(0x8D33A8); // 0.0002f
 
     static constexpr auto Type = VEHICLE_TYPE_MTRUCK;
 

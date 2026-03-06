@@ -1,12 +1,6 @@
 #include "StdInc.h"
 #include "BouncingPanel.h"
 
-auto& CBouncingPanel::BOUNCE_SPRING_DAMP_MULT = StaticRef<float>(0x8D3954);
-auto& CBouncingPanel::BOUNCE_SPRING_RETURN_MULT = StaticRef<float>(0x8D3958);
-auto& CBouncingPanel::BOUNCE_VEL_CHANGE_LIMIT = StaticRef<float>(0x8D395C);
-auto& CBouncingPanel::BOUNCE_HANGING_DAMP_MULT = StaticRef<float>(0x8D3960);
-auto& CBouncingPanel::BOUNCE_HANGING_RETURN_MULT = StaticRef<float>(0x8D3964);
-
 void CBouncingPanel::InjectHooks() {
     RH_ScopedClass(CBouncingPanel);
     RH_ScopedCategoryGlobal();

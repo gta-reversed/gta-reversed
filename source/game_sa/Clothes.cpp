@@ -11,10 +11,6 @@
 #include "ClothesBuilder.h"
 #include "PedClothesDesc.h"
 
-auto& CClothes::ms_clothesImageId = StaticRef<int32>(0xBC12F8);
-auto& CClothes::ms_numRuleTags = StaticRef<uint32>(0xBC12FC);
-auto (&CClothes::ms_clothesRules)[600] = StaticRef<uint32[600]>(0xBC1300);
-
 auto& PlayerClothes = StaticRef<CPedClothesDesc>(0xBC1C78);
 
 void CClothes::InjectHooks() {

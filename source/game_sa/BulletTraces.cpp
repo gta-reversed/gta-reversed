@@ -1,8 +1,6 @@
 #include "StdInc.h"
 #include "BulletTraces.h"
 
-auto (&CBulletTraces::aTraces)[16] = StaticRef<CBulletTrace[16]>(0xC7C748);
-
 void CBulletTraces::InjectHooks()
 {
     RH_ScopedClass(CBulletTraces);

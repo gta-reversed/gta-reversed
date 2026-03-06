@@ -67,26 +67,26 @@ public:
 
 class CRenderer {
 public:
-    static bool& ms_bRenderTunnels;
-    static bool& ms_bRenderOutsideTunnels;
-    static tRenderListEntry*& ms_pLodDontRenderList;
-    static tRenderListEntry*& ms_pLodRenderList;
-    static CVehicle*& m_pFirstPersonVehicle;
-    static CEntity* (&ms_aInVisibleEntityPtrs)[MAX_INVISIBLE_ENTITY_PTRS];
-    static CEntity* (&ms_aVisibleSuperLodPtrs)[MAX_VISIBLE_SUPERLOD_PTRS];
-    static CEntity* (&ms_aVisibleLodPtrs)[MAX_VISIBLE_LOD_PTRS];
-    static CEntity* (&ms_aVisibleEntityPtrs)[MAX_VISIBLE_ENTITY_PTRS];
-    static int32& ms_nNoOfVisibleSuperLods;
-    static int32& ms_nNoOfInVisibleEntities;
-    static int32& ms_nNoOfVisibleLods;
-    static int32& ms_nNoOfVisibleEntities;
-    static float& ms_fFarClipPlane;
-    static float& ms_fCameraHeading;
-    static bool& m_loadingPriority;
-    static bool& ms_bInTheSky;
-    static CVector& ms_vecCameraPosition;
-    static float& ms_lodDistScale;    // default 1.2
-    static float& ms_lowLodDistScale; // default 1.0
+    static inline auto& ms_bRenderTunnels = StaticRef<bool>(0xB745C0);
+    static inline auto& ms_bRenderOutsideTunnels = StaticRef<bool>(0xB745C1);
+    static inline auto& ms_pLodDontRenderList = StaticRef<tRenderListEntry*>(0xB745CC);
+    static inline auto& ms_pLodRenderList = StaticRef<tRenderListEntry*>(0xB745D0);
+    static inline auto& m_pFirstPersonVehicle = StaticRef<CVehicle*>(0xB745D4);
+    static inline auto (&ms_aInVisibleEntityPtrs)[MAX_INVISIBLE_ENTITY_PTRS] = StaticRef<CEntity*[MAX_INVISIBLE_ENTITY_PTRS]>(0xB745D8);
+    static inline auto (&ms_aVisibleSuperLodPtrs)[MAX_VISIBLE_SUPERLOD_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_SUPERLOD_PTRS]>(0xB74830);
+    static inline auto (&ms_aVisibleLodPtrs)[MAX_VISIBLE_LOD_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_LOD_PTRS]>(0xB748F8);
+    static inline auto (&ms_aVisibleEntityPtrs)[MAX_VISIBLE_ENTITY_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_ENTITY_PTRS]>(0xB75898);
+    static inline auto& ms_nNoOfVisibleSuperLods = StaticRef<int32>(0xB76838);
+    static inline auto& ms_nNoOfInVisibleEntities = StaticRef<int32>(0xB7683C);
+    static inline auto& ms_nNoOfVisibleLods = StaticRef<int32>(0xB76840);
+    static inline auto& ms_nNoOfVisibleEntities = StaticRef<int32>(0xB76844);
+    static inline auto& ms_fFarClipPlane = StaticRef<float>(0xB76848);
+    static inline auto& ms_fCameraHeading = StaticRef<float>(0xB7684C);
+    static inline auto& m_loadingPriority = StaticRef<bool>(0xB76850);
+    static inline auto& ms_bInTheSky = StaticRef<bool>(0xB76851);
+    static inline auto& ms_vecCameraPosition = StaticRef<CVector>(0xB76870);
+    static inline auto& ms_lodDistScale = StaticRef<float>(0x8CD800); // default 1.2
+    static inline auto& ms_lowLodDistScale = StaticRef<float>(0x8CD804); // default 1.0
 
 public:
     static void InjectHooks();

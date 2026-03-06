@@ -14,27 +14,6 @@
 #include "CarFXRenderer.h"
 
 #include "toolsmenu/UIRenderer.h"
-
-auto& CRenderer::ms_bRenderTunnels = StaticRef<bool>(0xB745C0);
-auto& CRenderer::ms_bRenderOutsideTunnels = StaticRef<bool>(0xB745C1);
-auto& CRenderer::ms_pLodDontRenderList = StaticRef<tRenderListEntry*>(0xB745CC);
-auto& CRenderer::ms_pLodRenderList = StaticRef<tRenderListEntry*>(0xB745D0);
-auto& CRenderer::m_pFirstPersonVehicle = StaticRef<CVehicle*>(0xB745D4);
-auto (&CRenderer::ms_aInVisibleEntityPtrs)[MAX_INVISIBLE_ENTITY_PTRS] = StaticRef<CEntity*[MAX_INVISIBLE_ENTITY_PTRS]>(0xB745D8);
-auto (&CRenderer::ms_aVisibleSuperLodPtrs)[MAX_VISIBLE_SUPERLOD_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_SUPERLOD_PTRS]>(0xB74830);
-auto (&CRenderer::ms_aVisibleLodPtrs)[MAX_VISIBLE_LOD_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_LOD_PTRS]>(0xB748F8);
-auto (&CRenderer::ms_aVisibleEntityPtrs)[MAX_VISIBLE_ENTITY_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_ENTITY_PTRS]>(0xB75898);
-auto& CRenderer::ms_nNoOfVisibleSuperLods = StaticRef<int32>(0xB76838);
-auto& CRenderer::ms_nNoOfInVisibleEntities = StaticRef<int32>(0xB7683C);
-auto& CRenderer::ms_nNoOfVisibleLods = StaticRef<int32>(0xB76840);
-auto& CRenderer::ms_nNoOfVisibleEntities = StaticRef<int32>(0xB76844);
-auto& CRenderer::ms_fFarClipPlane = StaticRef<float>(0xB76848);
-auto& CRenderer::ms_fCameraHeading = StaticRef<float>(0xB7684C);
-auto& CRenderer::m_loadingPriority = StaticRef<bool>(0xB76850);
-auto& CRenderer::ms_bInTheSky = StaticRef<bool>(0xB76851);
-auto& CRenderer::ms_vecCameraPosition = StaticRef<CVector>(0xB76870);
-auto& CRenderer::ms_lodDistScale = StaticRef<float>(0x8CD800);
-auto& CRenderer::ms_lowLodDistScale = StaticRef<float>(0x8CD804);
 auto& gnRendererModelRequestFlags = StaticRef<uint32>(0xB745C4);
 auto& gpOutEntitiesForGetObjectsInFrustum = StaticRef<CEntity**>(0xB76854);
 

@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-auto& CStreamingInfo::ms_pArrayBase = StaticRef<CStreamingInfo*>(0x9654B4); // Just a pointer to `CStreaming::ms_aInfoForModel`
-
 void CStreamingInfo::InjectHooks() {
     RH_ScopedClass(CStreamingInfo);
     RH_ScopedCategoryGlobal();

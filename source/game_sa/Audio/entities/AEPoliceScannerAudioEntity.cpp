@@ -4,25 +4,6 @@
 
 #include "AEAudioHardware.h"
 
-#define NUM_POLICE_SCANNER_SLOTS 5
-
-auto& CAEPoliceScannerAudioEntity::s_fVolumeOffset = StaticRef<float>(0xB61CF8);
-auto& CAEPoliceScannerAudioEntity::s_pSound = StaticRef<CAESound*>(0xB61D00);
-auto& CAEPoliceScannerAudioEntity::s_nAbortPlaybackTime = StaticRef<uint32>(0xB61D08);
-auto& CAEPoliceScannerAudioEntity::s_nPlaybackStartTime = StaticRef<uint32>(0xB61D0C);
-auto& CAEPoliceScannerAudioEntity::s_nSectionPlaying = StaticRef<int16>(0xB61D04);
-
-auto (&CAEPoliceScannerAudioEntity::s_SlotState)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<int16[NUM_POLICE_SCANNER_SLOTS]>(0xB61D14);
-tScannerSlot* (&CAEPoliceScannerAudioEntity::s_pCurrentSlots) = *(tScannerSlot*(*))0xB61D10;
-auto (&CAEPoliceScannerAudioEntity::s_ScannerSlotFirst)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D34);
-auto (&CAEPoliceScannerAudioEntity::s_ScannerSlotSecond)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D20);
-auto& CAEPoliceScannerAudioEntity::s_bStoppingScanner = StaticRef<bool>(0xB61CFC);
-auto& CAEPoliceScannerAudioEntity::s_bScannerDisabled = StaticRef<bool>(0xB61D4E);
-auto& CAEPoliceScannerAudioEntity::s_nScannerPlaybackState = StaticRef<CAEPoliceScannerAudioEntity::State>(0xB61D4C);
-auto& CAEPoliceScannerAudioEntity::s_NextNewScannerDialogueTime = StaticRef<uint32>(0xB61D50);
-
-CAEPoliceScannerAudioEntity* CAEPoliceScannerAudioEntity::s_pPSControlling = *(CAEPoliceScannerAudioEntity**)0xB61D48;
-
 // 0x4E6E00
 CAEPoliceScannerAudioEntity::~CAEPoliceScannerAudioEntity() {
     if (s_pPSControlling == this && s_nScannerPlaybackState != STATE_INITIAL) {

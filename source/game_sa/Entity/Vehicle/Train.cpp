@@ -11,12 +11,6 @@
 #include "Buoyancy.h"
 #include "CarCtrl.h"
 
-auto& CTrain::GenTrain_Track = StaticRef<uint32>(0xC37FFC);
-auto& CTrain::GenTrain_TrainConfig = StaticRef<uint32>(0xC38000);
-auto& CTrain::GenTrain_Direction = StaticRef<uint8>(0xC38004);
-auto& CTrain::GenTrain_GenerationNode = StaticRef<uint32>(0xC38008);
-auto& CTrain::GenTrain_Status = StaticRef<uint32>(0xC3800C);
-auto& CTrain::bDisableRandomTrains = StaticRef<bool>(0xC38010);
 CVector CTrain::aStationCoors[6] = { // 0x8D48F8
     CVector{ 1741.0f, -1954.0f, 15.0f },
     CVector{ 1297.0f, -1898.0f, 3.0f  },

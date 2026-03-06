@@ -28,19 +28,6 @@
 #include "PedClothesDesc.h"
 
 auto& planeRotorDmgTimeMS = StaticRef<uint32>(0xC1CC1C);
-auto& CVehicle::WHEELSPIN_TARGET_RATE = StaticRef<float>(0x8D3498);          // 1.0f
-auto& CVehicle::WHEELSPIN_INAIR_TARGET_RATE = StaticRef<float>(0x8D349C);    // 10.0f
-auto& CVehicle::WHEELSPIN_RISE_RATE = StaticRef<float>(0x8D34A0);            // 0.95f
-auto& CVehicle::WHEELSPIN_FALL_RATE = StaticRef<float>(0x8D34A4);            // 0.7f
-auto& CVehicle::m_fAirResistanceMult = StaticRef<float>(0x8D34A8);           // 2.5f
-auto& CVehicle::ms_fRailTrackResistance = StaticRef<float>(0x8D34AC);        // 0.003f
-auto& CVehicle::ms_fRailTrackResistanceDefault = StaticRef<float>(0x8D34B0); // 0.003f
-auto& CVehicle::bDisableRemoteDetonation = StaticRef<bool>(0xC1CC00);
-auto& CVehicle::bDisableRemoteDetonationOnContact = StaticRef<bool>(0xC1CC01);
-auto& CVehicle::m_bEnableMouseSteering = StaticRef<bool>(0xC1CC02);
-auto& CVehicle::m_bEnableMouseFlying = StaticRef<bool>(0xC1CC03);
-auto& CVehicle::ms_forceVehicleLightsOff = StaticRef<bool>(0xC1CC18);
-auto& CVehicle::s_bPlaneGunsEjectShellCasings = StaticRef<bool>(0xC1CC19);
 
 auto& fBurstTyreMod = StaticRef<float>(0x8D34B4);                // 0.13f
 auto& fBurstSpeedMax = StaticRef<float>(0x8D34B8);               // 0.3f

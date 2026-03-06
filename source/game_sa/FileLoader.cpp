@@ -27,8 +27,6 @@
             NOTSA_LOG_WARN("Line: {:?}", _l); \
         } \
     } while (0)
-
-auto (&CFileLoader::ms_line)[512] = StaticRef<char[512]>(0xB71848);
 auto& gAtomicModelId = StaticRef<uint32>(0xB71840);
 
 void LinkLods(int32 a1);

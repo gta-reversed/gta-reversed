@@ -18,11 +18,6 @@
 #include "Garages.h"
 #include "CustomBuildingRenderer.h"
 
-uint16& CObject::nNoTempObjects = *(uint16*)(0xBB4A70);
-auto& CObject::fDistToNearestTree = StaticRef<float>(0x8D0A20);
-auto& CObject::bAircraftCarrierSamSiteDisabled = StaticRef<bool>(0x8D0A24);
-auto& CObject::bArea51SamSiteDisabled = StaticRef<bool>(0xBB4A72);
-
 void CObject::InjectHooks()
 {
     RH_ScopedVirtualClass(CObject, 0x866F60, 23);
