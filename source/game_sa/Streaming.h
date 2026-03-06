@@ -217,7 +217,7 @@ public:
     static inline auto& ms_pedsLoaded = StaticRef<std::array<eModelID, 8>>(0x8E4C00);
 
     //! Number of active values in `ms_pedsLoaded`
-    static inline auto& ms_numPedsLoaded = *reinterpret_cast<uint32*>(0x8E4BB0);
+    static inline auto& ms_numPedsLoaded = StaticRef<uint32>(0x8E4BB0);
 
     //! Contains the next slot, that is, index at which the next model to load of a group is.
     //! This is used by `PickPedMIToStreamInForCurrentZone`

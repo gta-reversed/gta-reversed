@@ -138,7 +138,7 @@ void ValidateVersion() {
         NOTSA_UNREACHABLE("Invalid version\npeds.col version text does not start with 'grandtheftauto3'.\nText was '{}'", buf);
     }
 
-    static char(&version_name)[64] = *reinterpret_cast<char(*)[64]>(0xB72C28);
+    static auto (&version_name)[64] = StaticRef<char[64]>(0xB72C28);
 
     strncpy_s(version_name, &buf[15], 64u);
     CFileMgr::CloseFile(file);

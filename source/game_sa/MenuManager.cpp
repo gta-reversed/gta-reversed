@@ -901,7 +901,7 @@ void CMenuManager::SaveStatsToFile() {
             auto valFormatted = (char*)val;
 
             // todo. xref: CStats::ConstructStatLine, PrintStats
-            static uint16& unk = *reinterpret_cast<uint16*>(0xB794CC);
+            static auto& unk = StaticRef<uint16>(0xB794CC);
             if (unk) { // stat line formatted in percents?
                 sprintf_s(valFormatted, 5u, "%0.0f%%", std::min(atoi(val) / 10.0f, 100.0f)); // max length: "100%\0"
             }
