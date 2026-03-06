@@ -1305,7 +1305,7 @@ int32 CPad::sub_541290() {
 
 // 0x540A40
 bool CPad::sub_540A40() {
-    static int16 oldfStickX = 0; // 0xB73704
+    static auto& oldfStickX = StaticRef<int16>(0xB73704); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (!leftStickX && oldfStickX > leftStickX) {
@@ -1319,7 +1319,7 @@ bool CPad::sub_540A40() {
 
 // 0x540A10
 bool CPad::sub_540A10() {
-    static int16 oldfStickX = 0; // 0xB73700
+    static auto& oldfStickX = StaticRef<int16>(0xB73700); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (!leftStickX && oldfStickX < leftStickX) {
@@ -1333,7 +1333,7 @@ bool CPad::sub_540A10() {
 
 // 0x540950
 bool CPad::GetAnaloguePadUp() {
-    static int16 oldfStickY = 0; // 0xB736F0
+    static auto& oldfStickY = StaticRef<int16>(0xB736F0); // 0
     auto leftStickY = GetPad()->GetLeftStickY();
 
     if (leftStickY < -15 && oldfStickY >= -5) {
@@ -1347,7 +1347,7 @@ bool CPad::GetAnaloguePadUp() {
 
 // 0x5409B0
 bool CPad::GetAnaloguePadLeft() {
-    static int16 oldfStickX = 0; // 0xB736F8
+    static auto& oldfStickX = StaticRef<int16>(0xB736F8); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (leftStickX < -15 && oldfStickX >= -5) {
@@ -1361,7 +1361,7 @@ bool CPad::GetAnaloguePadLeft() {
 
 // 0x5409E0
 bool CPad::GetAnaloguePadRight() {
-    static int16 oldfStickX = 0; // 0xB736FC
+    static auto& oldfStickX = StaticRef<int16>(0xB736FC); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (leftStickX > 15 && oldfStickX <= 5) {
@@ -1375,7 +1375,7 @@ bool CPad::GetAnaloguePadRight() {
 
 // 0x540980
 bool CPad::GetAnaloguePadDown() {
-    static int16 oldfStickY = 0; // 0xB736F4
+    static auto& oldfStickY = StaticRef<int16>(0xB736F4); // 0
     auto leftStickY = GetPad()->GetLeftStickY();
 
     if (leftStickY > 15 && oldfStickY <= 5) {

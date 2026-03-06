@@ -4,7 +4,7 @@
 #include "PostEffects.h"
 
 // RwIm3DVertex StreakVertices[4];
-RxObjSpace3DVertex* aRenderVertices = (RxObjSpace3DVertex*)0xC278F8;
+auto& aRenderVertices = StaticRef<RxObjSpace3DVertex*>(0xC278F8);
 
 void C3dMarkers::InjectHooks() {
     RH_ScopedClass(C3dMarkers);

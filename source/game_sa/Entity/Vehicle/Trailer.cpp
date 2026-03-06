@@ -6,15 +6,15 @@
 // define?
 constexpr float BAGGAGE_TRAILER_TOWED_RATIO = -1000.0f;
 
-float TRAILER_TOWED_MINRATIO = 0.9f; // 0x8D346C
+constexpr float TRAILER_TOWED_MINRATIO = 0.9f; // 0x8D346C
 constexpr float TRAILER_SUPPORT_RETRACTION_RATE = 0.002f; // 0x871C14
 constexpr float TRAILER_SUPPORT_EXTENSION_RATE = 0.002f; // 0x871C18
 constexpr float TRAILER_SUPPORT_WAIT_EXTENSION_RATE = 0.0005f; // 0x871C1C
 
-float TRAILER_TOWBAR_OFFSET_Y = -0.05f; // 0x871C20
+constexpr float TRAILER_TOWBAR_OFFSET_Y = -0.05f; // 0x871C20
 
-float RELINK_TRAILER_DIFF_LIMIT_XY = 0.4f; // 0x8D3470
-float RELINK_TRAILER_DIFF_LIMIT_Z = 1.0f; // 0x8D3474
+constexpr float RELINK_TRAILER_DIFF_LIMIT_XY = 0.4f; // 0x8D3470
+constexpr float RELINK_TRAILER_DIFF_LIMIT_Z = 1.0f; // 0x8D3474
 
 void CTrailer::InjectHooks() {
     RH_ScopedVirtualClass(CTrailer, 0x871c28, 71);

@@ -2927,8 +2927,9 @@ bool CCollision::CheckCameraCollisionVehicles(
 ) {
     ZoneScoped;
 
-    static auto& gFramesSittingOnTimeOut = StaticRef<int32>(0x9689D4);
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*>(0x9689D8);
+    static auto& gFramesSittingOnTimeOut = StaticRef<int32>(0x9689D4);
+    static auto& gFramesToConsiderSittingOnStillTrue = StaticRef<int32>(0x8A5B1C); // 30
 
     bool anyCollided = false;
     for (auto* const entity : CWorld::GetRepeatSector(X, Y).Vehicles) {
@@ -2942,7 +2943,7 @@ bool CCollision::CheckCameraCollisionVehicles(
 
         if (IsThisVehicleSittingOnMe(CWorld::pIgnoreEntity->AsVehicle(), entity)) {
             gpLastSittingOnEntity = entity;
-            gFramesSittingOnTimeOut = 30; // from 0x8A5B1C
+            gFramesSittingOnTimeOut = gFramesToConsiderSittingOnStillTrue;
             continue;
         }
 
