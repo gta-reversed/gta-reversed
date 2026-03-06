@@ -18,14 +18,14 @@ public:
     static constexpr auto MAX_CARS_IN_SAFEHOUSE{ 4 };
     static constexpr auto MAX_NUM_GARAGES{ 50 };
 
-    static inline auto (&aCarsInSafeHouse)[MAX_NUM_SAFEHOUSES][MAX_CARS_IN_SAFEHOUSE] = StaticRef<CStoredCar[MAX_NUM_SAFEHOUSES][MAX_CARS_IN_SAFEHOUSE]>(0x96ABD8);
-    static inline auto (&aGarages)[MAX_NUM_GARAGES] = StaticRef<CGarage[MAX_NUM_GARAGES]>(0x96C048);
-    static inline auto (&MessageIDString)[8] = StaticRef<char[8]>(0x96C014);
+    static inline auto& aCarsInSafeHouse = StaticRef<CStoredCar[MAX_NUM_SAFEHOUSES][MAX_CARS_IN_SAFEHOUSE]>(0x96ABD8);
+    static inline auto& aGarages = StaticRef<CGarage[MAX_NUM_GARAGES]>(0x96C048);
+    static inline auto& MessageIDString = StaticRef<char[8]>(0x96C014);
     static inline auto& LastGaragePlayerWasIn = StaticRef<int32>(0x96BFDC);
     static inline auto& LastTimeHelpMessage = StaticRef<int32>(0x96BFE0);
     static inline auto& bCamShouldBeOutside = StaticRef<bool>(0x96BFE4);
     static inline auto& CrushedCarId = StaticRef<int32>(0x96BFE8);
-    static inline auto (&CarTypesCollected)[MAX_CARS_IN_SAFEHOUSE] = StaticRef<int32[MAX_CARS_IN_SAFEHOUSE]>(0x96BFEC);
+    static inline auto& CarTypesCollected = StaticRef<int32[MAX_CARS_IN_SAFEHOUSE]>(0x96BFEC);
     static inline auto& PoliceCarsCollected = StaticRef<int32>(0x96BFFC);
     static inline auto& BankVansCollected = StaticRef<int32>(0x96C000);
     static inline auto& CarsCollected = StaticRef<int32>(0x96C004);

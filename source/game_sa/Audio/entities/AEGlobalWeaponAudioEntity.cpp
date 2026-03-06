@@ -4,7 +4,7 @@
 #include "AEGlobalWeaponAudioEntity.h"
 #include "AEAudioHardware.h"
 
-auto (&pWaterfall)[3] = StaticRef<CAESound*[3]>(0xB612F0);
+auto& pWaterfall = StaticRef<CAESound*[3]>(0xB612F0);
 auto& pFogHorn = StaticRef<CAESound*>(0xB612FC);
 
 // 0x5075B0

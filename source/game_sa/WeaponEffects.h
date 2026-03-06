@@ -50,4 +50,4 @@ VALIDATE_SIZE(CWeaponEffects, 0x2C);
 constexpr auto MAX_NUM_WEAPON_CROSSHAIRS{ 2u };
 static inline auto& gCrossHair = StaticRef<std::array<CWeaponEffects, MAX_NUM_WEAPON_CROSSHAIRS>>(0xC8A838);
 static inline auto& gpCrossHairTex = StaticRef<RwTexture*>(0xC8A818);
-static inline auto (&gpCrossHairTexFlight)[2] = StaticRef<RwTexture*[2]>(0xC8A810);
+static inline auto& gpCrossHairTexFlight = StaticRef<RwTexture*[2]>(0xC8A810);

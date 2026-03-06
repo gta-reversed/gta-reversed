@@ -82,9 +82,9 @@ class CWaterLevel {
     static inline auto& m_bWaterFogScript = StaticRef<bool>(0x8D37D5);
     static inline auto& m_WaterFogDensity = StaticRef<int32>(0x8D37E0);
 
-    static inline auto (&faWaveMultipliersX)[8] = StaticRef<float[8]>(0x8D38C8);
-    static inline auto (&faWaveMultipliersY)[8] = StaticRef<float[8]>(0x8D38E8);
-    static inline auto (&ms_WakePointAlphaMults)[4] = StaticRef<float[4]>(0x8D390C);
+    static inline auto& faWaveMultipliersX = StaticRef<float[8]>(0x8D38C8);
+    static inline auto& faWaveMultipliersY = StaticRef<float[8]>(0x8D38E8);
+    static inline auto& ms_WakePointAlphaMults = StaticRef<float[4]>(0x8D390C);
 
     static inline auto& waterclear256Raster = StaticRef<RwRaster*>(0xC228A8);
     static inline auto& texWaterclear256 = StaticRef<RwTexture*>(0xC228AC);

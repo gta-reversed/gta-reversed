@@ -189,25 +189,25 @@ public:
 
     // Default models for each level (see eLevelNames):
 
-    static inline auto (&ms_aDefaultCopCarModel)[5] = StaticRef<int32[5]>(0x8A5A8C); // Last one is bike cop, not matching any level name
-    static inline auto (&ms_aDefaultCopModel)[5] = StaticRef<int32[5]>(0x8A5AA0); // Last one is bike cop, not matching any level name
+    static inline auto& ms_aDefaultCopCarModel = StaticRef<int32[5]>(0x8A5A8C); // Last one is bike cop, not matching any level name
+    static inline auto& ms_aDefaultCopModel = StaticRef<int32[5]>(0x8A5AA0); // Last one is bike cop, not matching any level name
 
     static inline auto& ms_nTimePassedSinceLastCopBikeStreamedIn = StaticRef<uint32>(0x9654C0);
 
-    static inline auto (&ms_aDefaultAmbulanceModel)[4] = StaticRef<int32[4]>(0x8A5AB4);
-    static inline auto (&ms_aDefaultMedicModel)[4] = StaticRef<int32[4]>(0x8A5AC4);
-    static inline auto (&ms_aDefaultFireEngineModel)[4] = StaticRef<int32[4]>(0x8A5AD4);
-    static inline auto (&ms_aDefaultFiremanModel)[4] = StaticRef<int32[4]>(0x8A5AE4);
+    static inline auto& ms_aDefaultAmbulanceModel = StaticRef<int32[4]>(0x8A5AB4);
+    static inline auto& ms_aDefaultMedicModel = StaticRef<int32[4]>(0x8A5AC4);
+    static inline auto& ms_aDefaultFireEngineModel = StaticRef<int32[4]>(0x8A5AD4);
+    static inline auto& ms_aDefaultFiremanModel = StaticRef<int32[4]>(0x8A5AE4);
 
     // Default models for current level
     static int32& ms_DefaultCopBikeModel;
     static int32& ms_DefaultCopBikerModel;
 
     static inline auto& ms_pExtraObjectsDir = StaticRef<CDirectory*>(0x8E48D0);
-    static inline auto (&ms_files)[TOTAL_IMG_ARCHIVES] = StaticRef<tStreamingFileDesc[TOTAL_IMG_ARCHIVES]>(0x8E48D8);
+    static inline auto& ms_files = StaticRef<tStreamingFileDesc[TOTAL_IMG_ARCHIVES]>(0x8E48D8);
     static inline auto& ms_bLoadingBigModel = StaticRef<bool>(0x8E4A58);
     // There are only two channels within CStreaming::ms_channel
-    static inline auto (&ms_channel)[2] = StaticRef<tStreamingChannel[2]>(0x8E4A60);
+    static inline auto& ms_channel = StaticRef<tStreamingChannel[2]>(0x8E4A60);
     static inline auto& ms_channelError = StaticRef<int32>(0x8E4B90);
     static inline auto& m_bHarvesterModelsRequested = StaticRef<bool>(0x8E4B9C);
     static inline auto& m_bStreamHarvesterModelsThisFrame = StaticRef<bool>(0x8E4B9D);
@@ -237,14 +237,14 @@ public:
     static inline auto& ms_startLoadedList = StaticRef<CStreamingInfo*>(0x8E4C60);
 
     static inline auto& ms_lastImageRead = StaticRef<int32>(0x8E4C64); // initialized but not used?
-    static inline auto (&ms_imageOffsets)[6] = StaticRef<int32[6]>(0x8E4C8C); // initialized but never used?
+    static inline auto& ms_imageOffsets = StaticRef<int32[6]>(0x8E4C8C); // initialized but never used?
 
     static inline auto& ms_bEnableRequestListPurge = StaticRef<bool>(0x8E4CA4);
     static inline auto& ms_streamingBufferSize = StaticRef<uint32>(0x8E4CA8);
-    static inline auto (&ms_pStreamingBuffer)[2] = StaticRef<uint8*[2]>(0x8E4CAC);
+    static inline auto& ms_pStreamingBuffer = StaticRef<uint8*[2]>(0x8E4CAC);
     static inline auto& ms_memoryUsedBytes = StaticRef<uint32>(0x8E4CB4);
     static inline auto& ms_numModelsRequested = StaticRef<int32>(0x8E4CB8);
-    static inline auto (&ms_aInfoForModel)[26316] = StaticRef<CStreamingInfo[26316]>(0x8E4CC0);
+    static inline auto& ms_aInfoForModel = StaticRef<CStreamingInfo[26316]>(0x8E4CC0);
     static inline auto& ms_disableStreaming = StaticRef<bool>(0x9654B0);
     static inline auto& ms_bIsInitialised = StaticRef<int32>(0x9654B8);
     static inline auto& m_bBoatsNeeded = StaticRef<bool>(0x9654BC);

@@ -14,7 +14,7 @@ class CEntity;
 class CGame {
 public:
     //! Current number of area
-    static inline auto (&aDatFile)[32] = StaticRef<char[32]>(0xB728EC);
+    static inline auto& aDatFile = StaticRef<char[32]>(0xB728EC);
     static inline auto& currLevel = StaticRef<int32>(0xB7290C);
     static inline auto& bMissionPackGame = StaticRef<uint8>(0xB72910);
     static inline auto& currArea = StaticRef<int32>(0xB72914);

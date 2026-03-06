@@ -14,7 +14,7 @@
 #include "EntryExitManager.h"
 #include "MBlur.h"
 
-auto (&abTempNeverLeavesGroup)[7] = StaticRef<bool[7]>(0xC0BC08);
+auto& abTempNeverLeavesGroup = StaticRef<bool[7]>(0xC0BC08);
 auto& gPlayIdlesAnimBlockIndex = StaticRef<int32>(0xC0BC10);
 
 bool CPlayerPed::bDebugPlayerInvincible;

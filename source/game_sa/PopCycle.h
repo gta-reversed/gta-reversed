@@ -228,7 +228,7 @@ public:
     static inline auto& m_nMaxNumPeds = StaticRef<PercDataArray>(0xC0E798);
 
     //! See `Initialise` for more info about this array.
-    static inline auto (&m_nPercTypeGroup)[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS] = StaticRef<uint8[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS]>(0xC0BC78);
+    static inline auto& m_nPercTypeGroup = StaticRef<uint8[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS]>(0xC0BC78);
 
     static void InjectHooks();
 

@@ -21,7 +21,7 @@ class CModelInfo {
 public:
     // static CBaseModelInfo *ms_modelInfoPtrs[20000]; Use GetModelInfo(int32 index) to get model info by id
     static constexpr int32 NUM_MODEL_INFOS = 20000;
-    static inline auto (&ms_modelInfoPtrs)[NUM_MODEL_INFOS] = StaticRef<CBaseModelInfo*[NUM_MODEL_INFOS]>(0xA9B0C8);
+    static inline auto& ms_modelInfoPtrs = StaticRef<CBaseModelInfo*[NUM_MODEL_INFOS]>(0xA9B0C8);
     static inline auto& ms_lastPositionSearched = StaticRef<int32>(0xAAE948);
 
     static constexpr int32 NUM_ATOMIC_MODEL_INFOS = 14000;

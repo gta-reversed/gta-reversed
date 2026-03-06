@@ -24,7 +24,7 @@ public:
 
 public:
     // Eg.: C:/Users/user/Documents/GTA San Andreas User Files/GTASAsf
-    static inline auto (&DefaultPCSaveFileName)[MAX_PATH] = StaticRef<char[MAX_PATH]>(0xC16F18);
+    static inline auto& DefaultPCSaveFileName = StaticRef<char[MAX_PATH]>(0xC16F18);
     static inline const char* MarketingPCSaveFileName = "GTASAmf";
 
     static void InjectHooks();

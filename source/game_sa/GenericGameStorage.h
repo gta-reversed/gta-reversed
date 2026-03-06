@@ -56,10 +56,10 @@ class CGenericGameStorage {
         
 public:
     static inline auto& ms_WorkBufferSize = StaticRef<uint32>(0x8D2BE0);
-    static inline auto (&ms_SaveFileNameJustSaved)[MAX_PATH] = StaticRef<char[MAX_PATH]>(0xC16030);
-    static inline auto (&ms_SaveFileName)[256] = StaticRef<char[256]>(0xC16DB8);
-    static inline auto (&ms_LoadFileName)[104] = StaticRef<char[104]>(0xC15FC8);
-    static inline auto (&ms_LoadFileNameWithPath)[104] = StaticRef<char[104]>(0xC15F60);
+    static inline auto& ms_SaveFileNameJustSaved = StaticRef<char[MAX_PATH]>(0xC16030);
+    static inline auto& ms_SaveFileName = StaticRef<char[256]>(0xC16DB8);
+    static inline auto& ms_LoadFileName = StaticRef<char[104]>(0xC15FC8);
+    static inline auto& ms_LoadFileNameWithPath = StaticRef<char[104]>(0xC15F60);
     static inline auto& ms_CheckSum = StaticRef<uint32>(0xC16134);
     static inline auto& ms_WorkBuffer = StaticRef<uint8*>(0xC16EE8);
     static inline auto& ms_WorkBufferPos = StaticRef<int32>(0xC16EEC);

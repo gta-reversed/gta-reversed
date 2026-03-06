@@ -30,8 +30,8 @@ private:
     static inline auto& pCharsetTex = StaticRef<RwTexture*>(0xC3EF5C);
     static inline auto& CurrentLicensePlateMaterial = StaticRef<RpMaterial*>(0xC3EF7C);
     static inline auto& CurrentLicensePlateType = StaticRef<uint8>(0xC3EF80);
-    static inline auto (&pPlatebackTexTab)[3] = StaticRef<RwTexture*[3]>(0xC3EF60);
-    static inline auto (&pPalette1555Tab)[3] = StaticRef<void*[3]>(0xC3EF6C);
+    static inline auto& pPlatebackTexTab = StaticRef<RwTexture*[3]>(0xC3EF60);
+    static inline auto& pPalette1555Tab = StaticRef<void*[3]>(0xC3EF6C);
     static inline auto& pCharsetLockedData = StaticRef<RwUInt8*>(0xC3EF78); 
 public:
     static void InjectHooks();

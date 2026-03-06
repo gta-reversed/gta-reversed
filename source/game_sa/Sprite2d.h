@@ -21,7 +21,7 @@ public:
     static inline auto& nextBufferVertex = StaticRef<int32>(0xC8045C);
     static inline auto& NearScreenZ = StaticRef<float>(0xC80460);
     static inline auto& RecipNearClip = StaticRef<float>(0xC80464);
-    static inline auto (&maVertices)[8] = StaticRef<RwIm2DVertex[8]>(0xC80468);
+    static inline auto& maVertices = StaticRef<RwIm2DVertex[8]>(0xC80468);
 
 public:
     static void InjectHooks();

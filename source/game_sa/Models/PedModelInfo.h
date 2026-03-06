@@ -39,8 +39,8 @@ public:
     static constexpr int32 NUM_PED_NAME_ID_ASSOC = 13;
     static constexpr int32 NUM_PED_COL_NODE_INFOS = 12;
 
-    static inline auto (&m_pPedIds)[NUM_PED_NAME_ID_ASSOC] = StaticRef<RwObjectNameIdAssocation[NUM_PED_NAME_ID_ASSOC]>(0x8A6268);
-    static inline auto (&m_pColNodeInfos)[NUM_PED_COL_NODE_INFOS] = StaticRef<tPedColNodeInfo[NUM_PED_COL_NODE_INFOS]>(0x8A6308);
+    static inline auto& m_pPedIds = StaticRef<RwObjectNameIdAssocation[NUM_PED_NAME_ID_ASSOC]>(0x8A6268);
+    static inline auto& m_pColNodeInfos = StaticRef<tPedColNodeInfo[NUM_PED_COL_NODE_INFOS]>(0x8A6308);
 
 public:
     static void InjectHooks();

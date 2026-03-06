@@ -62,7 +62,7 @@ enum eMemoryId {
     MEM_32                   = 32,
 };
 
-static inline auto (&s_MemoryHeapBuffer)[16384] = StaticRef<char[16384]>(0xC8E0C8);
+static inline auto& s_MemoryHeapBuffer = StaticRef<char[16384]>(0xC8E0C8);
 static inline auto& g_Heaps = StaticRef<std::array<CMemoryHeap, 3>>(0xC87B40);
 
 // todo fixed stack

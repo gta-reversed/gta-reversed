@@ -154,7 +154,7 @@ void CAECutsceneTrackManager::PreloadCutsceneTrack(int16 trackId, bool wait) {
 
 // 0x4DC130
 void CAECutsceneTrackManager::PreloadBeatTrack(int16 trackId, bool wait) {
-    static auto (&gBeatTrackLookup)[14] = StaticRef<int16[14]>(0x8AE538);
+    static auto& gBeatTrackLookup = StaticRef<int16[14]>(0x8AE538);
 
     PreloadCutsceneTrack(gBeatTrackLookup[trackId], wait);
 }

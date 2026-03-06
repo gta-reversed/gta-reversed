@@ -79,7 +79,7 @@ class CShopping {
     static inline auto& ms_priceSectionLoaded = StaticRef<ePriceSection>(0xA9A7C8);
     static inline auto& ms_numPrices = StaticRef<int32>(0xA9A7CC);
     static inline auto& ms_numPriceModifiers = StaticRef<int32>(0xA9A7D0);
-    static inline auto (&ms_shopLoaded)[24] = StaticRef<char[24]>(0xA9A7D8);
+    static inline auto& ms_shopLoaded = StaticRef<char[24]>(0xA9A7D8);
     static inline auto& ms_numItemsInShop = StaticRef<int32>(0xA9A7F0);
 
 public:

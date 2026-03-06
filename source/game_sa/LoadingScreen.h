@@ -11,9 +11,9 @@ class CLoadingScreen {
 public:
     static constexpr size_t MAX_SPLASHES = 7u;
 
-    static inline auto (&m_PopUpMessage)[16] = StaticRef<char[16]>(0xBAB268);
-    static inline auto (&m_LoadingGxtMsg1)[80] = StaticRef<GxtChar[80]>(0xBAB2C8);
-    static inline auto (&m_LoadingGxtMsg2)[80] = StaticRef<GxtChar[80]>(0xBAB278);
+    static inline auto& m_PopUpMessage = StaticRef<char[16]>(0xBAB268);
+    static inline auto& m_LoadingGxtMsg1 = StaticRef<GxtChar[80]>(0xBAB2C8);
+    static inline auto& m_LoadingGxtMsg2 = StaticRef<GxtChar[80]>(0xBAB278);
     static inline auto& m_aSplashes = StaticRef<std::array<CSprite2d, MAX_SPLASHES>>(0xBAB35C);
 
     static inline auto& m_currDisplayedSplash = StaticRef<int32>(0x8D093C);

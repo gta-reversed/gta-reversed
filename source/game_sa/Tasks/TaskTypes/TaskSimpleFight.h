@@ -57,7 +57,7 @@ public:
     uint8                  m_nNextCommand;
     uint8                  m_nLastCommand;
 
-    static inline auto (&m_aComboData)[12] = StaticRef<CMeleeInfo[12]>(0xC170D0);
+    static inline auto& m_aComboData = StaticRef<CMeleeInfo[12]>(0xC170D0);
 
 public:
     static constexpr auto Type = eTaskType::TASK_SIMPLE_FIGHT;

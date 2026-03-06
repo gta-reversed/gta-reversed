@@ -60,16 +60,16 @@ constexpr auto BUILD_NAME_FULL = "TEST"; // NOTSA
 
 static inline int32 gDefaultTaskTime = 9'999'999; // or 0x98967F a.k.a (ten million - 1)
 
-static inline auto (&gString)[352] = StaticRef<char[352]>(0xB71670);
-static inline auto (&gString2)[352] = StaticRef<char[352]>(0xB71510);
+static inline auto& gString = StaticRef<char[352]>(0xB71670);
+static inline auto& gString2 = StaticRef<char[352]>(0xB71510);
 
-static inline auto (&gGxtString)[552] = StaticRef<GxtChar[552]>(0xC1B100);
-static inline auto (&gGxtString2)[552] = StaticRef<GxtChar[552]>(0xC1AED8);
-static inline auto (&GxtErrorString)[32] = StaticRef<GxtChar[32]>(0xC1AEB8);
+static inline auto& gGxtString = StaticRef<GxtChar[552]>(0xC1B100);
+static inline auto& gGxtString2 = StaticRef<GxtChar[552]>(0xC1AED8);
+static inline auto& GxtErrorString = StaticRef<GxtChar[32]>(0xC1AEB8);
 
 static inline auto& g_nNumIm3dDrawCalls = StaticRef<int32>(0xB73708);
 
-static inline auto (&PC_Scratch)[16384] = StaticRef<char[16384]>(0xC8E0C8);
+static inline auto& PC_Scratch = StaticRef<char[16384]>(0xC8E0C8);
 
 extern RwRGBAReal& AmbientLightColour;
 extern RwRGBAReal& AmbientLightColourForFrame;
@@ -282,6 +282,6 @@ struct TempVertexBuffer {
 
 static inline auto& uiTempBufferIndicesStored = StaticRef<uint16>(0xC4B954);
 static inline auto& uiTempBufferVerticesStored = StaticRef<uint16>(0xC4B950);
-static inline auto (&aTempBufferIndices)[TOTAL_TEMP_BUFFER_INDICES] = StaticRef<RxVertexIndex[TOTAL_TEMP_BUFFER_INDICES]>(0xC4B958);
+static inline auto& aTempBufferIndices = StaticRef<RxVertexIndex[TOTAL_TEMP_BUFFER_INDICES]>(0xC4B958);
 static inline auto& TempBufferVertices = StaticRef<TempVertexBuffer>(0xC4D958);
-static inline auto (&aRadiosityVertexBuffer)[TOTAL_RADIOSITY_VERTEX_BUFFER] = StaticRef<RwD3D9Vertex[TOTAL_RADIOSITY_VERTEX_BUFFER]>(0xC5F958);
+static inline auto& aRadiosityVertexBuffer = StaticRef<RwD3D9Vertex[TOTAL_RADIOSITY_VERTEX_BUFFER]>(0xC5F958);

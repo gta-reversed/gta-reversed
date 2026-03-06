@@ -220,7 +220,7 @@ public:
     // vehicle components description tables
     // static RwObjectNameIdAssocation ms_vehicleDescs[12];
     static constexpr int32 NUM_VEHICLE_MODEL_DESCS = 12;
-    static inline auto (&ms_vehicleDescs)[NUM_VEHICLE_MODEL_DESCS] = StaticRef<RwObjectNameIdAssocation*[NUM_VEHICLE_MODEL_DESCS]>(0x8A7740); // use eVehicleType to access
+    static inline auto& ms_vehicleDescs = StaticRef<RwObjectNameIdAssocation*[NUM_VEHICLE_MODEL_DESCS]>(0x8A7740); // use eVehicleType to access
 
     // remap texture
     static inline auto& ms_pRemapTexture = StaticRef<RwTexture*>(0xB4E47C);
@@ -232,34 +232,34 @@ public:
     // color of currently rendered car
     // static uint8 ms_currentCol[4];
     static constexpr int32 NUM_CURRENT_COLORS = 4;
-    static inline auto (&ms_currentCol)[NUM_CURRENT_COLORS] = StaticRef<uint8[NUM_CURRENT_COLORS]>(0xB4E3F0);
+    static inline auto& ms_currentCol = StaticRef<uint8[NUM_CURRENT_COLORS]>(0xB4E3F0);
 
     // number of wheel upgrades available
     // static int16 ms_numWheelUpgrades[4];
     static constexpr int32 NUM_WHEELS = 4;
-    static inline auto (&ms_numWheelUpgrades)[NUM_WHEELS] = StaticRef<int16[NUM_WHEELS]>(0xB4E470);
+    static inline auto& ms_numWheelUpgrades = StaticRef<int16[NUM_WHEELS]>(0xB4E470);
 
-    static inline auto (&ms_wheelFrameIDs)[NUM_WHEELS] = StaticRef<int32[NUM_WHEELS]>(0x8A7770);
+    static inline auto& ms_wheelFrameIDs = StaticRef<int32[NUM_WHEELS]>(0x8A7770);
 
     // wheels upgrades data
     // static int16 ms_upgradeWheels[15][4];
     static constexpr int32 NUM_WHEEL_UPGRADES = 15;
-    static inline auto (&ms_upgradeWheels)[NUM_WHEEL_UPGRADES][NUM_WHEELS] = StaticRef<int16[NUM_WHEEL_UPGRADES][NUM_WHEELS]>(0xB4E3F8);
+    static inline auto& ms_upgradeWheels = StaticRef<int16[NUM_WHEEL_UPGRADES][NUM_WHEELS]>(0xB4E3F8);
 
     // Light states for currently rendered car
     static constexpr int32 NUM_LIGHTS = 4;
-    static inline auto (&ms_lightsOn)[NUM_LIGHTS] = StaticRef<uint8[NUM_LIGHTS]>(0xB4E3E8);
+    static inline auto& ms_lightsOn = StaticRef<uint8[NUM_LIGHTS]>(0xB4E3E8);
 
     // extras ids for next-spawned car
     // static char ms_compsUsed[2];
     static constexpr int32 NUM_COMPS_USAGE = 2;
-    static inline auto (&ms_compsUsed)[NUM_COMPS_USAGE] = StaticRef<int8[NUM_COMPS_USAGE]>(0xB4E478);
-    static inline auto (&ms_compsToUse)[NUM_COMPS_USAGE] = StaticRef<int8[NUM_COMPS_USAGE]>(0x8A6458);
+    static inline auto& ms_compsUsed = StaticRef<int8[NUM_COMPS_USAGE]>(0xB4E478);
+    static inline auto& ms_compsToUse = StaticRef<int8[NUM_COMPS_USAGE]>(0x8A6458);
 
     // vehicle colours from carcols.dat
     // static CRGBA ms_vehicleColourTable[128];
     static constexpr int32 NUM_VEHICLE_COLORS = 128;
-    static inline auto (&ms_vehicleColourTable)[NUM_VEHICLE_COLORS] = StaticRef<CRGBA[NUM_VEHICLE_COLORS]>(0xB4E480);
+    static inline auto& ms_vehicleColourTable = StaticRef<CRGBA[NUM_VEHICLE_COLORS]>(0xB4E480);
 
     static inline auto& SavedTextureFindCallback = StaticRef<RwTextureCallBackFind>(0xB4E6A0);
 

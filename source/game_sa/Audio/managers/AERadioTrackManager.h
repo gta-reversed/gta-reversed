@@ -165,10 +165,10 @@ public:
     using IdentIndexHistory    = tRadioIndexHistory<int32, IDENT_INDEX_HISTORY_COUNT>;
     using MusicTrackHistory    = tRadioIndexHistory<int8, MUSIC_TRACK_HISTORY_COUNT>;
 
-    static inline auto (&m_nDJBanterIndexHistory)[RADIO_COUNT] = StaticRef<DJBanterIndexHistory[RADIO_COUNT]>(0xB61D78); // 210
-    static inline auto (&m_nAdvertIndexHistory)[RADIO_COUNT] = StaticRef<AdvertIndexHistory[RADIO_COUNT]>(0xB620C0);       // 560
-    static inline auto (&m_nIdentIndexHistory)[RADIO_COUNT] = StaticRef<IdentIndexHistory[RADIO_COUNT]>(0xB62980);          // 112
-    static inline auto (&m_nMusicTrackIndexHistory)[RADIO_COUNT] = StaticRef<MusicTrackHistory[RADIO_COUNT]>(0xB62B40);   // 280
+    static inline auto& m_nDJBanterIndexHistory = StaticRef<DJBanterIndexHistory[RADIO_COUNT]>(0xB61D78); // 210
+    static inline auto& m_nAdvertIndexHistory = StaticRef<AdvertIndexHistory[RADIO_COUNT]>(0xB620C0);       // 560
+    static inline auto& m_nIdentIndexHistory = StaticRef<IdentIndexHistory[RADIO_COUNT]>(0xB62980);          // 112
+    static inline auto& m_nMusicTrackIndexHistory = StaticRef<MusicTrackHistory[RADIO_COUNT]>(0xB62B40);   // 280
 
     static inline auto& m_nStatsLastHitTimeOutHours = StaticRef<uint8>(0xB62C58); // = -1;
     static inline auto& m_nStatsLastHitGameClockHours = StaticRef<uint8>(0xB62C59); // = -1;

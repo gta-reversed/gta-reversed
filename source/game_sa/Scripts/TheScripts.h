@@ -353,7 +353,7 @@ public:
     static constexpr uint32 MAX_SAVED_GVAR_PART_SIZE = 51'200;
 
     //! Lower `MAIN_SCRIPT_SIZE` is where MAIN.SCM is, remaining `MISSION_SCRIPT_SIZE` is for other loaded scripts.
-    // static inline auto (&ScriptSpace)[SCRIPT_SPACE_SIZE] = StaticRef<uint8[SCRIPT_SPACE_SIZE]>(0xA49960);
+    // static inline auto& ScriptSpace = StaticRef<uint8[SCRIPT_SPACE_SIZE]>(0xA49960);
     static inline auto& ScriptSpace = StaticRef<std::array<uint8, SCRIPT_SPACE_SIZE>>(0xA49960);
 
     //! Reference to ScriptSpace's lower portion for MAIN.SCM - Prefer this over `&ScriptSpace[0]`

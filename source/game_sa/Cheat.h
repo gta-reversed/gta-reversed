@@ -16,10 +16,10 @@ public:
     static constexpr auto CHEAT_STRING_SIZE = 30;
     static constexpr auto CHEAT_MIN_HASH_SIZE = 6;
 
-    static inline auto (&m_aCheatFunctions)[TOTAL_CHEATS] = StaticRef<void (*[TOTAL_CHEATS])()>(0x8A5B58);
-    static inline auto (&m_aCheatHashKeys)[TOTAL_CHEATS] = StaticRef<int32[TOTAL_CHEATS]>(0x8A5CC8);
-    static inline auto (&m_CheatString)[CHEAT_STRING_SIZE] = StaticRef<char[CHEAT_STRING_SIZE]>(0x969110);
-    static inline auto (&m_aCheatsActive)[TOTAL_CHEATS] = StaticRef<bool[TOTAL_CHEATS]>(0x969130);
+    static inline auto& m_aCheatFunctions = StaticRef<void (*[TOTAL_CHEATS])()>(0x8A5B58);
+    static inline auto& m_aCheatHashKeys = StaticRef<int32[TOTAL_CHEATS]>(0x8A5CC8);
+    static inline auto& m_CheatString = StaticRef<char[CHEAT_STRING_SIZE]>(0x969110);
+    static inline auto& m_aCheatsActive = StaticRef<bool[TOTAL_CHEATS]>(0x969130);
     static inline auto& m_bHasPlayerCheated = StaticRef<bool>(0x96918C);
 
     // Android

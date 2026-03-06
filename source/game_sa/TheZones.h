@@ -18,9 +18,9 @@ public:
     static inline auto& m_CurrLevel = StaticRef<eLevelName>(0xBA6718);
     static inline auto& ZonesRevealed = StaticRef<int32>(0xBA372C); // Number of explored territories
     static inline auto& TotalNumberOfNavigationZones = StaticRef<int16>(0xBA3794); // Info zones
-    static inline auto (&NavigationZoneArray)[380] = StaticRef<CZone[380]>(0xBA3798);
+    static inline auto& NavigationZoneArray = StaticRef<CZone[380]>(0xBA3798);
     static inline auto& TotalNumberOfMapZones = StaticRef<int16>(0xBA1900); // Map zones
-    static inline auto (&MapZoneArray)[39] = StaticRef<CZone[39]>(0xBA1908);
+    static inline auto& MapZoneArray = StaticRef<CZone[39]>(0xBA1908);
     static inline auto& TotalNumberOfZoneInfos = StaticRef<int16>(0xBA1DE8);
     
     static inline auto& ZoneInfoArray = StaticRef<std::array<CZoneInfo, 380>>(0xBA1DF0);

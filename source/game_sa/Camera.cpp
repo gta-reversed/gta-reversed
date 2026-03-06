@@ -18,7 +18,7 @@ auto& gPlayerPedVisible = StaticRef<bool>(0x8CC380); // true
 auto& gCurCamColVars = StaticRef<uint8>(0x8CCB80);
 auto& gCurDistForCam = StaticRef<float>(0x8CCB84);
 auto& gpCamColVars = StaticRef<float*>(0xB6FE88);
-auto (&gCamColVars)[28][6] = StaticRef<float[28][6]>(0x8CC8E0);
+auto& gCamColVars = StaticRef<float[28][6]>(0x8CC8E0);
 
 CCam& CCamera::GetActiveCamera() {
     return TheCamera.m_aCams[TheCamera.m_nActiveCam];

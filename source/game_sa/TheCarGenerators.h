@@ -17,7 +17,7 @@ public:
     static inline auto& ProcessCounter = StaticRef<uint8>(0xC279D1);
     static inline auto& NumOfCarGenerators = StaticRef<uint32>(0xC279D4);
     static inline auto& m_SpecialPlateHandler = StaticRef<CSpecialPlateHandler>(0xC279D8);
-    static inline auto (&CarGeneratorArray)[NUM_CAR_GENERATORS] = StaticRef<CCarGenerator[NUM_CAR_GENERATORS]>(0xC27AD0);
+    static inline auto& CarGeneratorArray = StaticRef<CCarGenerator[NUM_CAR_GENERATORS]>(0xC27AD0);
 
 public:
     static void InjectHooks();

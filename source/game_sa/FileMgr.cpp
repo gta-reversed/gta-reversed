@@ -12,9 +12,9 @@
 #include "HookSystem.h"
 #include "extensions/Configs/Miscellaneous.hpp"
 
-auto (&user_tracks_dir_path)[256] = StaticRef<char[256]>(0xc92168);
-auto (&user_gallery_dir_path)[256] = StaticRef<char[256]>(0xc92268);
-auto (&gta_user_dir_path)[256] = StaticRef<char[256]>(0xc92368);
+auto& user_tracks_dir_path = StaticRef<char[256]>(0xc92168);
+auto& user_gallery_dir_path = StaticRef<char[256]>(0xc92268);
+auto& gta_user_dir_path = StaticRef<char[256]>(0xc92368);
 
 constexpr size_t PATH_SIZE = 256;
 

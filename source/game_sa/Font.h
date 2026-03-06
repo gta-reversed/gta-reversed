@@ -91,9 +91,9 @@ public:
 
     static inline auto& RenderState = StaticRef<CFontChar>(0xC71AA0);
     // font textures array
-    static inline auto (&Sprite)[MAX_FONT_SPRITES] = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
+    static inline auto& Sprite = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
     // button textures array
-    static inline auto (&ButtonSprite)[MAX_FONT_BUTTON_SPRITES] = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
+    static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
     static inline auto& PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
     static inline auto& m_bNewLine = StaticRef<bool>(0xC71A55);
     static inline auto& m_Color = StaticRef<CRGBA>(0xC71A60);

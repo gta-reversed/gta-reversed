@@ -41,15 +41,15 @@ public:
     static constexpr size_t FIRST_INT_STAT = 120;
     static constexpr size_t FIRST_UNUSED_STAT = 82;
 
-    static inline auto (&StatMessage)[128] = StaticRef<tStatMessage[128]>(0xB78200);
+    static inline auto& StatMessage = StaticRef<tStatMessage[128]>(0xB78200);
     static inline auto& TotalNumStatMessages = StaticRef<uint32>(0xB794D0);
-    static inline auto (&LastMissionPassedName)[8] = StaticRef<char[8]>(0xB78A00);
-    static inline auto (&TimesMissionAttempted)[100] = StaticRef<int32[100]>(0xB78CC8);
-    static inline auto (&FavoriteRadioStationList)[14] = StaticRef<int32[14]>(0xB78E58);
-    static inline auto (&PedsKilledOfThisType)[32] = StaticRef<int32[32]>(0xB78E90);
-    static inline auto (&StatReactionValue)[59] = StaticRef<float[59]>(0xB78F10);
-    static inline auto (&StatTypesInt)[223] = StaticRef<int32[223]>(0xB79000);
-    static inline auto (&StatTypesFloat)[82] = StaticRef<float[82]>(0xB79380);
+    static inline auto& LastMissionPassedName = StaticRef<char[8]>(0xB78A00);
+    static inline auto& TimesMissionAttempted = StaticRef<int32[100]>(0xB78CC8);
+    static inline auto& FavoriteRadioStationList = StaticRef<int32[14]>(0xB78E58);
+    static inline auto& PedsKilledOfThisType = StaticRef<int32[32]>(0xB78E90);
+    static inline auto& StatReactionValue = StaticRef<float[59]>(0xB78F10);
+    static inline auto& StatTypesInt = StaticRef<int32[223]>(0xB79000);
+    static inline auto& StatTypesFloat = StaticRef<float[82]>(0xB79380);
     static int16& m_ThisStatIsABarChart;
     static inline auto& bStatUpdateMessageDisplayed = StaticRef<bool>(0xB794D4);
     static inline auto& m_SprintStaminaCounter = StaticRef<uint32>(0xB794D8);

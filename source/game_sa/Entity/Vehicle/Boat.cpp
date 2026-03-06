@@ -7,9 +7,9 @@
 const float SECOND_LOD_DISTANCE = 150.0f; // 0x872188
 
 static const constexpr auto uiNumIndices{ 6u };
-auto (&KeepWaterOutIndices)[uiNumIndices] = StaticRef<RwImVertexIndex[uiNumIndices]>(0xC27988);
+auto& KeepWaterOutIndices = StaticRef<RwImVertexIndex[uiNumIndices]>(0xC27988);
 static const constexpr auto uiNumVertices{ 4u };
-auto (&KeepWaterOutVertices)[uiNumVertices] = StaticRef<RwIm3DVertex[uiNumVertices]>(0xC278F8);
+auto& KeepWaterOutVertices = StaticRef<RwIm3DVertex[uiNumVertices]>(0xC278F8);
 
 const float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
 

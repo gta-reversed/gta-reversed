@@ -72,10 +72,10 @@ public:
     static inline auto& ms_pLodDontRenderList = StaticRef<tRenderListEntry*>(0xB745CC);
     static inline auto& ms_pLodRenderList = StaticRef<tRenderListEntry*>(0xB745D0);
     static inline auto& m_pFirstPersonVehicle = StaticRef<CVehicle*>(0xB745D4);
-    static inline auto (&ms_aInVisibleEntityPtrs)[MAX_INVISIBLE_ENTITY_PTRS] = StaticRef<CEntity*[MAX_INVISIBLE_ENTITY_PTRS]>(0xB745D8);
-    static inline auto (&ms_aVisibleSuperLodPtrs)[MAX_VISIBLE_SUPERLOD_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_SUPERLOD_PTRS]>(0xB74830);
-    static inline auto (&ms_aVisibleLodPtrs)[MAX_VISIBLE_LOD_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_LOD_PTRS]>(0xB748F8);
-    static inline auto (&ms_aVisibleEntityPtrs)[MAX_VISIBLE_ENTITY_PTRS] = StaticRef<CEntity*[MAX_VISIBLE_ENTITY_PTRS]>(0xB75898);
+    static inline auto& ms_aInVisibleEntityPtrs = StaticRef<CEntity*[MAX_INVISIBLE_ENTITY_PTRS]>(0xB745D8);
+    static inline auto& ms_aVisibleSuperLodPtrs = StaticRef<CEntity*[MAX_VISIBLE_SUPERLOD_PTRS]>(0xB74830);
+    static inline auto& ms_aVisibleLodPtrs = StaticRef<CEntity*[MAX_VISIBLE_LOD_PTRS]>(0xB748F8);
+    static inline auto& ms_aVisibleEntityPtrs = StaticRef<CEntity*[MAX_VISIBLE_ENTITY_PTRS]>(0xB75898);
     static inline auto& ms_nNoOfVisibleSuperLods = StaticRef<int32>(0xB76838);
     static inline auto& ms_nNoOfInVisibleEntities = StaticRef<int32>(0xB7683C);
     static inline auto& ms_nNoOfVisibleLods = StaticRef<int32>(0xB76840);

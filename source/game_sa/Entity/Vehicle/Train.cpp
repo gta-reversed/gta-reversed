@@ -20,10 +20,10 @@ CVector CTrain::aStationCoors[6] = { // 0x8D48F8
     CVector{ 2865.0f,  1281.0f, 12.0  }
 };
 
-auto (&pTrackNodes)[4] = StaticRef<CTrainNode*[4]>(0xC38024);
-auto (&NumTrackNodes)[4] = StaticRef<int32[4]>(0xC38014);
-auto (&arrTotalTrackLength)[4] = StaticRef<float[4]>(0xC37FEC);
-auto (&StationDist)[6] = StaticRef<float[6]>(0xC38034);
+auto& pTrackNodes = StaticRef<CTrainNode*[4]>(0xC38024);
+auto& NumTrackNodes = StaticRef<int32[4]>(0xC38014);
+auto& arrTotalTrackLength = StaticRef<float[4]>(0xC37FEC);
+auto& StationDist = StaticRef<float[6]>(0xC38034);
 
 void CTrain::InjectHooks() {
     RH_ScopedVirtualClass(CTrain, 0x872370, 66);

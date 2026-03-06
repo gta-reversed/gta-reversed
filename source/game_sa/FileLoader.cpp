@@ -537,7 +537,7 @@ bool CFileLoader::LoadCollisionFile(uint8* buff, uint32 buffSize, uint8 colId) {
 
 // 0x5B4E60
 void CFileLoader::LoadCollisionFile(const char* filename, uint8 colId) {
-    auto (&buffer)[0x8000] = StaticRef<uint8[0x8000]>(0xBC40D8); // 32 kB
+    auto& buffer = StaticRef<uint8[0x8000]>(0xBC40D8); // 32 kB
 
     using namespace ColHelpers;
 

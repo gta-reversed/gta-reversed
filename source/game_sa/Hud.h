@@ -46,9 +46,9 @@ public:
     static inline auto& m_nHelpMessageState = StaticRef<int32>(0xBAA474);
     static inline auto& m_nHelpMessageFadeTimer = StaticRef<uint32>(0xBAA478);
     static inline auto& m_nHelpMessageTimer = StaticRef<uint32>(0xBAA47C);
-    static inline auto (&m_pHelpMessageToPrint)[400] = StaticRef<GxtChar[400]>(0xBAA480);
-    static inline auto (&m_pLastHelpMessage)[400] = StaticRef<GxtChar[400]>(0xBAA610);
-    static inline auto (&m_pHelpMessage)[400] = StaticRef<GxtChar[400]>(0xBAA7A0);
+    static inline auto& m_pHelpMessageToPrint = StaticRef<GxtChar[400]>(0xBAA480);
+    static inline auto& m_pLastHelpMessage = StaticRef<GxtChar[400]>(0xBAA610);
+    static inline auto& m_pHelpMessage = StaticRef<GxtChar[400]>(0xBAA7A0);
 
     static inline auto& m_ZoneState = StaticRef<eNameState>(0xBAA930);
     static inline auto& m_ZoneFadeTimer = StaticRef<int32>(0xBAA934);
@@ -82,19 +82,19 @@ public:
     static inline auto& m_EnergyLostTimer = StaticRef<uint32>(0xBAA43C);
     static inline auto& m_LastTimeEnergyLost = StaticRef<uint32>(0xBAA440);
 
-    static inline auto (&m_Message)[400] = StaticRef<GxtChar[400]>(0xBAB040);
-    static inline auto (&m_BigMessage)[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE] = StaticRef<GxtChar[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE]>(0xBAACC0);
-    static inline auto (&LastBigMessage)[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE] = StaticRef<GxtChar[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE]>(0xBAA940);
-    static inline auto (&BigMessageAlpha)[NUM_MESSAGE_STYLES] = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3A4);
-    static inline auto (&BigMessageInUse)[NUM_MESSAGE_STYLES] = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3C0);
-    static inline auto (&BigMessageX)[NUM_MESSAGE_STYLES] = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3DC);
+    static inline auto& m_Message = StaticRef<GxtChar[400]>(0xBAB040);
+    static inline auto& m_BigMessage = StaticRef<GxtChar[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE]>(0xBAACC0);
+    static inline auto& LastBigMessage = StaticRef<GxtChar[NUM_MESSAGE_STYLES][BIG_MESSAGE_SIZE]>(0xBAA940);
+    static inline auto& BigMessageAlpha = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3A4);
+    static inline auto& BigMessageInUse = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3C0);
+    static inline auto& BigMessageX = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3DC);
 
-    static inline auto (&Sprites)[6] = StaticRef<CSprite2d[6]>(0xBAB1FC);
+    static inline auto& Sprites = StaticRef<CSprite2d[6]>(0xBAB1FC);
 
     static inline auto& TimerMainCounterHideState = StaticRef<int16>(0xBAA388);
     static inline auto& TimerMainCounterWasDisplayed = StaticRef<bool>(0xBAA38A);
-    static inline auto (&TimerCounterHideState)[4] = StaticRef<int16[4]>(0xBAA38C);
-    static inline auto (&TimerCounterWasDisplayed)[4] = StaticRef<int16[4]>(0xBAA394);
+    static inline auto& TimerCounterHideState = StaticRef<int16[4]>(0xBAA38C);
+    static inline auto& TimerCounterWasDisplayed = StaticRef<int16[4]>(0xBAA394);
 
     static inline auto& OddJob2OffTimer = StaticRef<float>(0xBAA398);
     static inline auto& OddJob2XOffset = StaticRef<float>(0xBAA39C);

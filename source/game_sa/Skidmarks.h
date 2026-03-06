@@ -6,9 +6,9 @@ constexpr auto SKIDMARKS_COUNT{ 32u };
 
 class CSkidmarks {
 public:
-    static inline auto (&m_aIndices)[SKIDMARK_NUM_PARTS * 6] = StaticRef<RxVertexIndex[96]>(0xC799C8);
+    static inline auto& m_aIndices = StaticRef<RxVertexIndex[96]>(0xC799C8);
     static inline auto& m_pTexture = StaticRef<RwTexture*>(0xC79A88);
-    static inline auto (&m_aSkidmarks)[SKIDMARKS_COUNT] = StaticRef<CSkidmark[SKIDMARKS_COUNT]>(0xC79AA8);
+    static inline auto& m_aSkidmarks = StaticRef<CSkidmark[SKIDMARKS_COUNT]>(0xC79AA8);
 
 public:
     static void InjectHooks();

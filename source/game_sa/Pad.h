@@ -108,7 +108,7 @@ public:
     static inline auto& OldKeyState = StaticRef<CKeyboardState>(0xB72F20);
     static inline auto& NewKeyState = StaticRef<CKeyboardState>(0xB73190);
 
-    static inline auto (&Pads)[MAX_PADS] = StaticRef<CPad[MAX_PADS]>(0xB73458);
+    static inline auto& Pads = StaticRef<CPad[MAX_PADS]>(0xB73458);
 
     static inline auto& bInvertLook4Pad = StaticRef<bool>(0xB73402);
     static inline auto& padNumber = StaticRef<char>(0xB73400);

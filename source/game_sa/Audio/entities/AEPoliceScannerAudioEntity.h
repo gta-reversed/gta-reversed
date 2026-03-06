@@ -34,10 +34,10 @@ public:
     static inline auto& s_nPlaybackStartTime = StaticRef<uint32>(0xB61D0C);
     static inline auto& s_nSectionPlaying = StaticRef<int16>(0xB61D04);
 
-    static inline auto (&s_SlotState)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<int16[NUM_POLICE_SCANNER_SLOTS]>(0xB61D14);
+    static inline auto& s_SlotState = StaticRef<int16[NUM_POLICE_SCANNER_SLOTS]>(0xB61D14);
     static inline auto& s_pCurrentSlots = StaticRef<tScannerSlot*>(0xB61D10);
-    static inline auto (&s_ScannerSlotFirst)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D34);
-    static inline auto (&s_ScannerSlotSecond)[NUM_POLICE_SCANNER_SLOTS] = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D20);
+    static inline auto& s_ScannerSlotFirst = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D34);
+    static inline auto& s_ScannerSlotSecond = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D20);
 
     static inline auto& s_pPSControlling = StaticRef<CAEPoliceScannerAudioEntity*>(0xB61D48);
     static inline auto& s_nScannerPlaybackState = StaticRef<CAEPoliceScannerAudioEntity::State>(0xB61D4C);

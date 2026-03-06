@@ -26,10 +26,10 @@ enum ExitEnterState : int32 {
 using CEntryExitsPool = CPool<CEntryExit>;
 class CEntryExitManager {
 public:
-    static inline auto (&ms_entryExitStack)[4] = StaticRef<CEntryExit*[4]>(0x96A720);
+    static inline auto& ms_entryExitStack = StaticRef<CEntryExit*[4]>(0x96A720);
     static inline auto& ms_bBurglaryHousesEnabled = StaticRef<bool>(0x96A730);
     static inline auto& ms_oldAreaCode = StaticRef<int32>(0x96A734);
-    static inline auto (&ms_visibleEntityList)[32] = StaticRef<CEntity*[32]>(0x96A738);
+    static inline auto& ms_visibleEntityList = StaticRef<CEntity*[32]>(0x96A738);
     static inline auto& ms_entryExitStackPosn = StaticRef<uint32>(0x96A7C4); // No. of enex's on the stack
     static inline auto& ms_bDisabled = StaticRef<int8>(0x96A7C8);
     static inline auto& ms_exitEnterState = StaticRef<int32>(0x96A7CC); // TODO: Some kind of enum, seems to have values [0, 4]

@@ -12,7 +12,7 @@ class CReference;
 
 class CReferences {
 public:
-    static inline auto (&aRefs)[MAX_NUM_REFERENCES] = StaticRef<CReference[MAX_NUM_REFERENCES]>(0xB9B9A8);
+    static inline auto& aRefs = StaticRef<CReference[MAX_NUM_REFERENCES]>(0xB9B9A8);
     static inline auto& pEmptyList = StaticRef<CReference*>(0xBA1768);
 
 public:

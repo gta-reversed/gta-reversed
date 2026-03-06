@@ -17,9 +17,9 @@ enum eTrafficLightsDirection {
 
 class CTrafficLights {
 private:
-    static inline auto (&aTrafficLightColoursR)[3] = StaticRef<uint8[3]>(0x8A6214);
-    static inline auto (&aTrafficLightColoursG)[3] = StaticRef<uint8[3]>(0x8A6218);
-    static inline auto (&aTrafficLightColoursB)[3] = StaticRef<uint8[3]>(0xA9AD94);
+    static inline auto& aTrafficLightColoursR = StaticRef<uint8[3]>(0x8A6214);
+    static inline auto& aTrafficLightColoursG = StaticRef<uint8[3]>(0x8A6218);
+    static inline auto& aTrafficLightColoursB = StaticRef<uint8[3]>(0xA9AD94);
     static inline auto& fLightMult = StaticRef<float>(0x8A621C);
 
     static inline auto& vecTrafficLights5_1 = StaticRef<CVector>(0xA9ADD4);

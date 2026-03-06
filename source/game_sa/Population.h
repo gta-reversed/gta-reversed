@@ -36,11 +36,11 @@ public:
     static inline auto& m_AllRandomPedsThisType = StaticRef<int32>(0x8D2534);
     static inline auto& MaxNumberOfPedsInUse = StaticRef<uint32>(0x8D2538);
     static inline auto& NumberOfPedsInUseInterior = StaticRef<uint32>(0x8D253C);
-    static inline auto (&m_TranslationArray)[POPCYCLE_TOTAL_GROUPS] = StaticRef<tPedGroupTranslationData[POPCYCLE_TOTAL_GROUPS]>(0x8D2540);
+    static inline auto& m_TranslationArray = StaticRef<tPedGroupTranslationData[POPCYCLE_TOTAL_GROUPS]>(0x8D2540);
     static inline auto& m_LoadedBoats = StaticRef<CLoadedCarGroup>(0xC0E998);
     static inline auto& m_InAppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9C8);
     static inline auto& m_AppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9F8);
-    static inline auto (&m_LoadedGangCars)[10] = StaticRef<CLoadedCarGroup[10]>(0xC0EA28);
+    static inline auto& m_LoadedGangCars = StaticRef<CLoadedCarGroup[10]>(0xC0EA28);
     static inline auto& bZoneChangeHasHappened = StaticRef<bool>(0xC0EC22);
     static inline auto& m_CountDownToPedsAtStart = StaticRef<uint8>(0xC0EC23);
     static inline auto& ms_nTotalMissionPeds = StaticRef<uint32>(0xC0EC24);

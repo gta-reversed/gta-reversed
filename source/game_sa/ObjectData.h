@@ -75,7 +75,7 @@ public:
 
 public:
     static constexpr int32 NUM_OBJECT_INFOS = 160;
-    static inline auto (&ms_aObjectInfo)[NUM_OBJECT_INFOS] = StaticRef<CObjectData[NUM_OBJECT_INFOS]>(0xBB4A90);
+    static inline auto& ms_aObjectInfo = StaticRef<CObjectData[NUM_OBJECT_INFOS]>(0xBB4A90);
 
 public:
     static void InjectHooks();

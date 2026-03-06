@@ -20,8 +20,8 @@
 
 #include <reversiblebugfixes/Bugs.hpp>
 
-auto (&apCarsToKeep)[2] = StaticRef<CVehicle*[2]>(0x969084);
-auto (&aCarsToKeepTime)[2] = StaticRef<uint32[2]>(0x96907C);
+auto& apCarsToKeep = StaticRef<CVehicle*[2]>(0x969084);
+auto& aCarsToKeepTime = StaticRef<uint32[2]>(0x96907C);
 
 void CCarCtrl::InjectHooks()
 {
