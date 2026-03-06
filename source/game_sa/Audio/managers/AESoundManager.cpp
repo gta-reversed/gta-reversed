@@ -308,7 +308,7 @@ void CAESoundManager::Service() {
             auto slomoFactor = sound.GetSlowMoFrequencyScalingFactor();
             AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, i, freq * slomoFactor);
         } else {
-            AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, i, -100.0F, 0);
+            AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, i, VOLUME_SILENCE, 0);
             AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, i, 0.0F);
         }
         AEAudioHardware.SetChannelPosition(m_AudioHardwareHandle, i, sound.GetRelativePosition(), 0);

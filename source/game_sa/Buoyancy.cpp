@@ -326,7 +326,7 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
         }
     }
 
-    AudioEngine.ReportWaterSplash(entity, -100.0F, false);
+    AudioEngine.ReportWaterSplash(entity, VOLUME_SILENCE, false);
 }
 
 void cBuoyancy::SimpleCalcBuoyancy(CPhysical* entity)

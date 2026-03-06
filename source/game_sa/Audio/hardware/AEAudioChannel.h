@@ -4,7 +4,6 @@
 
 #include "Vector.h"
 
-
 #pragma pack(push, 1)
 class NOTSA_EXPORT_VTABLE CAEAudioChannel {
 public:
@@ -17,7 +16,8 @@ public:
     IDirectSound3DBuffer* m_pDirectSound3DBuffer;
 #endif
 
-    char                  _pad10[24];
+    char                  _pad10[20];
+    uint32                field_24;
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
     uint32                m_dwStopTime; // unused

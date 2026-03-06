@@ -691,14 +691,14 @@ public:
     bool GetHornState(tVehicleParams& vp) const noexcept;
     void GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& vp) const noexcept;
 
-    void PlayAircraftSound(eAircraftSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
-    void PlayRoadNoiseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
-    void PlayFlatTyreSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
-    void PlayReverseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
+    void PlayAircraftSound(eAircraftSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = VOLUME_SILENCE, float speed = 1.0f);
+    void PlayRoadNoiseSound(eSoundID sfx, float speed = 1.0f, float volume = VOLUME_SILENCE);
+    void PlayFlatTyreSound(eSoundID sfx, float speed = 1.0f, float volume = VOLUME_SILENCE);
+    void PlayReverseSound(eSoundID sfx, float speed = 1.0f, float volume = VOLUME_SILENCE);
     void PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, tVehicleParams& vp);
-    void PlayBicycleSound(eBicycleSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
-    void PlaySkidSound(eSoundID soundType, float speed = 1.0f, float volume = -100.0f);
-    void PlayTrainBrakeSound(eSoundID soundType, float speed = 1.0f, float volume = -100.0f);
+    void PlayBicycleSound(eBicycleSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = VOLUME_SILENCE, float speed = 1.0f);
+    void PlaySkidSound(eSoundID soundType, float speed = 1.0f, float volume = VOLUME_SILENCE);
+    void PlayTrainBrakeSound(eSoundID soundType, float speed = 1.0f, float volume = VOLUME_SILENCE);
 
     void ProcessVehicleFlatTyre(tVehicleParams& vp);
     void ProcessVehicleRoadNoise(tVehicleParams& vp);

@@ -143,12 +143,12 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         break;
     case AE_FRONTEND_ERROR:
         if (m_FxSystem && m_FxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED) {
-            sound->m_Volume = -100.0f;
+            sound->m_Volume = VOLUME_SILENCE;
         }
         break;
     case AE_FRONTEND_HIGHLIGHT:
         if (m_FxSystem && m_FxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED) {
-            if (sound->m_Volume > -100.0f) {
+            if (sound->m_Volume > VOLUME_SILENCE) {
                 sound->m_Volume -= 1.0f;
             }
         }

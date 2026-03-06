@@ -55,7 +55,7 @@ CAEAudioChannel::CAEAudioChannel(IDirectSound* directSound, uint16 channelId, ui
     m_nBufferStatus              = 0;
     m_nFrequency                 = samplesPerSec;
     m_nOriginalFrequency         = samplesPerSec;
-    m_Volume                    = -100.0f;
+    m_Volume                     = VOLUME_SILENCE;
     m_pDirectSoundBuffer         = nullptr;
     m_pDirectSound3DBuffer       = nullptr;
     m_bPaused                    = false;
@@ -88,7 +88,7 @@ void CAEAudioChannel::SetFrequencyScalingFactor(float factor) {
         if (m_pDirectSoundBuffer &&
             !m_bPaused &&
             IsBufferPlaying() &&
-            !AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, -100.0F, -1, true)
+            !AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, VOLUME_SILENCE, -1, true)
         ) {
             m_pDirectSoundBuffer->Stop();
         }
