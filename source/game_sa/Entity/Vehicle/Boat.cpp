@@ -11,14 +11,14 @@ auto (&KeepWaterOutIndices)[uiNumIndices] = StaticRef<RwImVertexIndex[uiNumIndic
 static const constexpr auto uiNumVertices{ 4u };
 auto (&KeepWaterOutVertices)[uiNumVertices] = StaticRef<RwIm3DVertex[uiNumVertices]>(0xC278F8);
 
-constexpr float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
+const float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
 
-constexpr float BOAT_MOUSE_STEER_SCALE = -0.0035f; // 0x872190
-constexpr float BOAT_STEER_DAMP_THRESHOLD = 0.5f; // 0x872194
-constexpr float BOAT_STEER_DAMP_BASE = 0.985f; // 0x872198
+const float BOAT_MOUSE_STEER_SCALE = -0.0035f; // 0x872190
+const float BOAT_STEER_DAMP_THRESHOLD = 0.5f; // 0x872194
+const float BOAT_STEER_DAMP_BASE = 0.985f; // 0x872198
 
-constexpr float fShapeLength = 0.4f; // 0x8D3944
-constexpr float fShapeTime = 0.05f; // 0x8D3948
+const float fShapeLength = 0.4f; // 0x8D3944
+const float fShapeTime = 0.05f; // 0x8D3948
 
 auto& fRangeMult = StaticRef<float>(0x8D394C); // 0.6f
 auto& fTimeMult = StaticRef<float>(0xC279CC); // 1.2f / CBoat::WAKE_LIFETIME

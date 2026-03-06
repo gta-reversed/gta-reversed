@@ -58,11 +58,11 @@ public:
 
     static inline auto& fPointVolMultiplier = StaticRef<float>(0x8D32C8);
     static inline auto& calcStruct = StaticRef<CBuoyancyCalcStruct>(0xC1C858);
-    static inline auto (&afBoatVolumeDistributionSpeed)[3] = StaticRef<float*[3]>(0x8D335C);     // 3x3 array of buoyancy modifiers for speedboats
-    static inline auto (&afBoatVolumeDistributionDinghy)[3] = StaticRef<float*[3]>(0x8D3338);    // 3x3 array of buoyancy modifiers for small boats
-    static inline auto (&afBoatVolumeDistributionSail)[3] = StaticRef<float*[3]>(0x8D3314);      // 3x3 array of buoyancy modifiers for sailboats
-    static inline auto (&afBoatVolumeDistribution)[3] = StaticRef<float*[3]>(0x8D32CC);          // 3x3 array of buoyancy modifiers for other boats
-    static inline auto (&afBoatVolumeDistributionCat)[3] = StaticRef<float*[3]>(0x8D3314);       // Catamaran volume distribution, unused in game, as there is no matching vehicle
+    static inline auto (&afBoatVolumeDistribution)[3][3] = StaticRef<float[3][3]>(0x8D32CC); // 3x3 array of buoyancy modifiers for other boats
+    static inline auto (&afBoatVolumeDistributionCat)[3][3] = StaticRef<float[3][3]>(0x8D32F0); // Catamaran volume distribution, unused in game, as there is no matching vehicle (Address fixed via DWARF)
+    static inline auto (&afBoatVolumeDistributionSail)[3][3] = StaticRef<float[3][3]>(0x8D3314); // 3x3 array of buoyancy modifiers for sailboats
+    static inline auto (&afBoatVolumeDistributionDinghy)[3][3] = StaticRef<float[3][3]>(0x8D3338); // 3x3 array of buoyancy modifiers for small boats
+    static inline auto (&afBoatVolumeDistributionSpeed)[3][3] = StaticRef<float[3][3]>(0x8D335C); // 3x3 array of buoyancy modifiers for speedboats
 
 public:
     static void InjectHooks();

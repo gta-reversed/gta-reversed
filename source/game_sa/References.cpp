@@ -2,7 +2,6 @@
 
 #include "References.h"
 
-
 void CReferences::InjectHooks() {
     RH_ScopedClass(CReferences);
     RH_ScopedCategoryGlobal();

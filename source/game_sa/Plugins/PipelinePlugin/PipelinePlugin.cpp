@@ -4,7 +4,7 @@
 
 #include <rpworld.h>
 
- auto& gPipelinePluginOffset = StaticRef<RwInt32>(0x8D6080);
+auto& gPipelinePluginOffset = StaticRef<RwInt32>(0x8D6080);
 
 
 void PipelinePlugin::InjectHooks() {

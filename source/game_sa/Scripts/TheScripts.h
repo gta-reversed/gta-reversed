@@ -354,7 +354,7 @@ public:
 
     //! Lower `MAIN_SCRIPT_SIZE` is where MAIN.SCM is, remaining `MISSION_SCRIPT_SIZE` is for other loaded scripts.
     // static inline auto (&ScriptSpace)[SCRIPT_SPACE_SIZE] = StaticRef<uint8[SCRIPT_SPACE_SIZE]>(0xA49960);
-    static inline auto& ScriptSpace = StaticRef<std::array<uint8,SCRIPT_SPACE_SIZE>>(0xA49960);
+    static inline auto& ScriptSpace = StaticRef<std::array<uint8, SCRIPT_SPACE_SIZE>>(0xA49960);
 
     //! Reference to ScriptSpace's lower portion for MAIN.SCM - Prefer this over `&ScriptSpace[0]`
     static inline std::span<uint8, MAIN_SCRIPT_SIZE> MainSCMBlock{ ScriptSpace.data() + 0, MAIN_SCRIPT_SIZE };
