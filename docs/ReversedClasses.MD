@@ -657,7 +657,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
 - CTaskSimpleThrowControl (5/6) [83%]<br />
-- CTaskSimpleRunNamedAnim (4/7) [57%]<br />
+- CTaskSimpleRunNamedAnim (6/7) [86%]<br />
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
 - CTaskSimpleFightingControl (6/7) [86%]<br />
@@ -665,7 +665,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskSimpleCarDrive (7/13) [54%]<br />
 - CTaskLeanOnVehicle (3/5) [60%]<br />
 - CTaskGoToVehicleAndLean (3/7) [43%]<br />
-- CTaskGangHassleVehicle (2/8) [25%]<br />
+- CTaskGangHassleVehicle (3/8) [38%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (7/8) [88%]<br />
