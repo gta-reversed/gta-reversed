@@ -16,7 +16,7 @@ void CTaskComplexCarSlowBeDraggedOutAndStandUp::InjectHooks() {
     RH_ScopedInstall(MakeAbortable, 0x6486F0, { .reversed = false });
     RH_ScopedInstall(CreateNextSubTask, 0x6488F0);
     RH_ScopedInstall(CreateFirstSubTask, 0x648A10);
-    RH_ScopedInstall(ControlSubTask, 0x648B80, { .reversed = false });
+    RH_ScopedInstall(ControlSubTask, 0x648B80);
 }
 
 // 0x648620
@@ -79,5 +79,6 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateFirstSubTask(CPed* ped) 
 
 // 0x648B80
 CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x648B80, CTaskComplexCarSlowBeDraggedOutAndStandUp*, CPed*>(this, ped);
+    UNUSED(ped);
+    return m_pSubTask;
 }

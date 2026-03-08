@@ -668,7 +668,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskGangHassleVehicle (2/8) [25%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
-- CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
+- CTaskComplexUseClosestFreeScriptedAttractor (7/8) [88%]<br />
 - CTaskComplexTrackEntity (8/11) [73%]<br />
 - CTaskComplexSunbathe (2/8) [25%]<br />
 - CTaskComplexSmartFleePoint (2/12) [17%]<br />
@@ -686,7 +686,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
 - CTaskComplexDestroyCarArmed (8/10) [80%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (6/9) [67%]<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (7/9) [78%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
 - CScriptsForBrains (3/6) [50%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
