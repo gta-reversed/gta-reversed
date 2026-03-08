@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "EntitySeekPosCalculatorXYOffset.h"
+#include "PedGeometryAnalyser.h"
 
 void CEntitySeekPosCalculatorXYOffset::InjectHooks() {
     RH_ScopedVirtualClass(CEntitySeekPosCalculatorXYOffset, 0x86F8F8, 1);
@@ -9,9 +10,7 @@ void CEntitySeekPosCalculatorXYOffset::InjectHooks() {
     RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x6946a0);
 }
 
-void CEntitySeekPosCalculatorXYOffset::ComputeEntitySeekPos(const CPed&, const CEntity& target, CVector& outPos) {
-    outPos = target.GetPosition()
-        + target.GetRight() * m_offsetXY.x
-        + target.GetForward() * m_offsetXY.y
-        + CVector{ 0.0f, 0.0f, m_offsetXY.z };
+void CEntitySeekPosCalculatorXYOffset::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {
+    const auto seekPos = target.GetPosition() + m_offsetXY;
+    CPedGeometryAnalyser::ComputeClearTarget(seeker, seekPos, outPos);
 }
