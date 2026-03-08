@@ -30,7 +30,7 @@ void CTaskSimplePlayerOnFoot::InjectHooks() {
 
     RH_ScopedInstall(ProcessPlayerWeapon, 0x6859A0);
     RH_ScopedInstall(PlayIdleAnimations, 0x6872C0);
-    RH_ScopedInstall(PlayerControlFighter, 0x687530, {.reversed = false});
+    RH_ScopedInstall(PlayerControlFighter, 0x687530);
     RH_ScopedInstall(PlayerControlZelda, 0x6883D0);
 
     RH_ScopedVMTInstall(Clone, 0x68AFF0);
@@ -760,7 +760,38 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
 
 // 0x687530
 void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
-    plugin::CallMethod<0x687530, CTaskSimplePlayerOnFoot*, CPlayerPed*>(this, player);
+    auto* const playerData = player->GetPlayerData();
+    auto* const pad        = player->GetPadFromPlayer();
+    if (!playerData || !pad) {
+        return;
+    }
+
+    const auto leftRight = (float)pad->GetPedWalkLeftRight();
+    const auto upDown    = (float)pad->GetPedWalkUpDown();
+    const auto padMove   = CVector2D{ leftRight, upDown }.Magnitude();
+
+    playerData->m_vecFightMovement = { leftRight / 60.0f, upDown / 60.0f };
+
+    if (padMove > 0.0f) {
+        player->m_fAimingRotation = CGeneral::LimitRadianAngle(
+            CGeneral::GetRadianAngleBetweenPoints(0.0f, 0.0f, -leftRight, upDown) - TheCamera.m_fOrientation
+        );
+    }
+
+    if (CWeaponInfo::GetWeaponInfo(player->GetActiveWeapon().m_Type, eWeaponSkill::STD)->flags.bHeavy || !pad->JumpJustDown()) {
+        return;
+    }
+
+    if (player->bIsInTheAir || player->m_pAttachedTo) {
+        return;
+    }
+
+    if (const auto task = player->GetTaskManager().GetActiveTask()) {
+        if (!notsa::isa<CTaskComplexJump>(task)) {
+            player->ClearWeaponTarget();
+            player->GetTaskManager().SetTask(new CTaskComplexJump{}, TASK_PRIMARY_PRIMARY, false);
+        }
+    }
 }
 
 // 0x687C20
