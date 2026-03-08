@@ -36,5 +36,5 @@ bool CTask::IsGoToTask(CTask* task) {
 
 // 0x61A4B0
 bool CTask::IsTaskPtr(CTask* task) {
-    return plugin::CallAndReturn<bool, 0x61A4B0>(task);
+    return task && GetTaskPool()->IsObjectValid(task);
 }
