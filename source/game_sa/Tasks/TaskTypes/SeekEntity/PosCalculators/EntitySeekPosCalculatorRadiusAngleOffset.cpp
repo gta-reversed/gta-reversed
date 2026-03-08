@@ -21,5 +21,7 @@ void CEntitySeekPosCalculatorRadiusAngleOffset::ComputeEntitySeekPos(const CPed&
         std::cos(m_angle) * m_radius,
         0.0f
     };
-    outPos = target.GetMatrix().TransformPoint(offset);
+    outPos = target.GetPosition()
+        + target.GetRight() * offset.x
+        + target.GetForward() * offset.y;
 }

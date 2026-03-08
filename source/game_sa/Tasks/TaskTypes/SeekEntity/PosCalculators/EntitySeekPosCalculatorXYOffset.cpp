@@ -10,5 +10,8 @@ void CEntitySeekPosCalculatorXYOffset::InjectHooks() {
 }
 
 void CEntitySeekPosCalculatorXYOffset::ComputeEntitySeekPos(const CPed&, const CEntity& target, CVector& outPos) {
-    outPos = target.GetMatrix().TransformPoint(m_offsetXY);
+    outPos = target.GetPosition()
+        + target.GetRight() * m_offsetXY.x
+        + target.GetForward() * m_offsetXY.y
+        + CVector{ 0.0f, 0.0f, m_offsetXY.z };
 }

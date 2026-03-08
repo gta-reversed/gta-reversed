@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (558/700) [80%]
+#### Completely reversed classes (559/700) [80%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -486,6 +486,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexDieInCar (6)<br />
 - CTaskComplexDie (5)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
+- CTaskComplexDragPedFromCar (2)<br />
 - CTaskComplexCopInCar (9)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
 - CTaskComplexCarDriveMission (5)<br />
@@ -567,7 +568,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (135/700) [19%]
+#### Partially reversed classes (134/700) [19%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -683,7 +684,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexGangLeader (2/13) [15%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
-- CTaskComplexDragPedFromCar (1/2) [50%]<br />
 - CTaskComplexDestroyCarArmed (8/10) [80%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />

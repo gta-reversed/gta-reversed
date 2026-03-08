@@ -7,7 +7,7 @@ void CTaskComplexDragPedFromCar__InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedVMTInstall(ControlSubTask, 0x640530);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00);
 }
 
 // 0x640430
@@ -36,8 +36,21 @@ CTask* CTaskComplexDragPedFromCar::ControlSubTask(CPed* ped) {
 }
 
 // 0x643D00
-
-// 0x0
 CTask* CTaskComplexDragPedFromCar::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x643D00, CTaskComplexDragPedFromCar*, CPed*>(this, ped);
+    const auto C = [this, ped](eTaskType tt) { return CreateSubTask(tt, ped); };
+
+    if (!m_Ped || !m_Ped->bInVehicle || !m_Ped->m_pVehicle) {
+        return C(TASK_FINISHED);
+    }
+
+    CEntity::ChangeEntityReference(m_Car, m_Ped->m_pVehicle);
+
+    m_bAsDriver = m_Car->IsDriver(m_Ped);
+    m_TargetSeat = CCarEnterExit::ComputeTargetDoorToExit(m_Car, m_Ped);
+    if (m_TargetSeat < 0) {
+        return C(TASK_FINISHED);
+    }
+
+    m_TargetDoor = m_TargetSeat;
+    return CTaskComplexEnterCar::CreateFirstSubTask(ped);
 }
