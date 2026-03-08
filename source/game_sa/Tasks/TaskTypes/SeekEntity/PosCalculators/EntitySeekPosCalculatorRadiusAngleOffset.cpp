@@ -6,7 +6,7 @@ void CEntitySeekPosCalculatorRadiusAngleOffset::InjectHooks() {
     RH_ScopedVirtualClass(CEntitySeekPosCalculatorRadiusAngleOffset, 0x85A384, 2);
     RH_ScopedCategory("Tasks/TaskTypes/SeekPosCalculators");
 
-    RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x6946f0, { .reversed = false });
+    RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x6946f0);
 }
 
 CEntitySeekPosCalculatorRadiusAngleOffset::CEntitySeekPosCalculatorRadiusAngleOffset(float radius, float angle) :
@@ -15,6 +15,10 @@ CEntitySeekPosCalculatorRadiusAngleOffset::CEntitySeekPosCalculatorRadiusAngleOf
 {
 }
 
-void CEntitySeekPosCalculatorRadiusAngleOffset::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {
-    return plugin::CallMethod<0x6946f0, CEntitySeekPosCalculatorRadiusAngleOffset*, const CPed&, const CEntity&, CVector&>(this, seeker, target, outPos);
+void CEntitySeekPosCalculatorRadiusAngleOffset::ComputeEntitySeekPos(const CPed&, const CEntity& target, CVector& outPos) {
+    const auto right   = std::sin(m_angle) * m_radius;
+    const auto forward = std::cos(m_angle) * m_radius;
+    outPos = target.GetPosition()
+        + target.GetRight() * right
+        + target.GetForward() * forward;
 }
