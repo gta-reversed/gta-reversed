@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (565/700) [81%]
+#### Completely reversed classes (566/700) [81%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -571,10 +571,11 @@ The percentages and the number of classes shown here may not be completely accur
 - CPedAttractorPedPlacer (1)<br />
 - CCarAI (25)<br />
 - CTaskSimpleCarFallOut (9)<br />
+- CTaskSimpleChoking (7)<br />
 
 </details>
 
-#### Partially reversed classes (128/700) [18%]
+#### Partially reversed classes (127/700) [18%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -661,7 +662,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
 - CTaskSimpleFightingControl (6/7) [86%]<br />
-- CTaskSimpleChoking (5/7) [71%]<br />
 - CTaskSimpleCarDrive (7/13) [54%]<br />
 - CTaskLeanOnVehicle (3/5) [60%]<br />
 - CTaskGoToVehicleAndLean (3/7) [43%]<br />
