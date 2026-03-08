@@ -19,7 +19,7 @@ void CTaskComplexDestroyCar::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x621C80);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x62D9E0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x62DA90);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6288C0, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6288C0);
 }
 
 // 0x621C00
@@ -94,5 +94,36 @@ CTask* CTaskComplexDestroyCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 
 // 0x6288C0
 CTask* CTaskComplexDestroyCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6288C0, CTaskComplexDestroyCar*, CPed*>(this, ped);
+    if (!m_VehicleToDestroy || m_VehicleToDestroy->m_fHealth <= 0.f) {
+        return nullptr;
+    }
+
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_DESTROY_CAR_ARMED: {
+        if (ped->bInVehicle) {
+            return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
+        }
+        if (ped->GetActiveWeapon().IsTypeMelee()) {
+            return CreateSubTask(TASK_COMPLEX_DESTROY_CAR_MELEE, ped);
+        }
+        break;
+    }
+    case TASK_COMPLEX_DESTROY_CAR_MELEE: {
+        if (ped->bInVehicle) {
+            return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
+        }
+        if (!ped->GetActiveWeapon().IsTypeMelee()) {
+            return CreateSubTask(TASK_COMPLEX_DESTROY_CAR_ARMED, ped);
+        }
+        break;
+    }
+    case TASK_COMPLEX_LEAVE_CAR: {
+        if (!ped->bInVehicle) {
+            return CreateSubTask(ped->GetActiveWeapon().IsTypeMelee() ? TASK_COMPLEX_DESTROY_CAR_MELEE : TASK_COMPLEX_DESTROY_CAR_ARMED, ped);
+        }
+        break;
+    }
+    }
+
+    return m_pSubTask;
 }

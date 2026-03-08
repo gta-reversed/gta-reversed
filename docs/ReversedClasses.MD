@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (566/700) [81%]
+#### Completely reversed classes (570/700) [81%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -572,10 +572,14 @@ The percentages and the number of classes shown here may not be completely accur
 - CCarAI (25)<br />
 - CTaskSimpleCarFallOut (9)<br />
 - CTaskSimpleChoking (7)<br />
+- CTaskSimpleFightingControl (7)<br />
+- CTaskSimpleThrowControl (6)<br />
+- CTaskComplexDestroyCar (9)<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 
 </details>
 
-#### Partially reversed classes (127/700) [18%]
+#### Partially reversed classes (123/700) [18%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -657,11 +661,9 @@ The percentages and the number of classes shown here may not be completely accur
 - CPhysical (54/56) [96%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
-- CTaskSimpleThrowControl (5/6) [83%]<br />
 - CTaskSimpleRunNamedAnim (6/7) [86%]<br />
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
-- CTaskSimpleFightingControl (6/7) [86%]<br />
 - CTaskSimpleCarDrive (7/13) [54%]<br />
 - CTaskLeanOnVehicle (3/5) [60%]<br />
 - CTaskGoToVehicleAndLean (3/7) [43%]<br />
@@ -685,8 +687,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexGangJoinRespond (3/7) [43%]<br />
 - CTaskComplexFollowLeaderInFormation (3/7) [43%]<br />
 - CTaskComplexDestroyCarArmed (8/10) [80%]<br />
-- CTaskComplexDestroyCar (8/9) [89%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (8/9) [89%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
 - CScriptsForBrains (3/6) [50%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />

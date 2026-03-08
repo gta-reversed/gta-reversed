@@ -22,7 +22,7 @@ void CTaskSimpleFightingControl::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x622EB0);
     RH_ScopedVMTInstall(GetTaskType, 0x61DC90);
     RH_ScopedVMTInstall(MakeAbortable, 0x61DD00);
-    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0);
 }
 
 // 0x61DC10
@@ -174,42 +174,53 @@ bool CTaskSimpleFightingControl::MakeAbortable(CPed* ped, eAbortPriority priorit
 
 // 0x62A0A0
 bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x62A0A0, CTaskSimpleFightingControl*, CPed*>(this, ped);
-
-    /*
-    * Code below should be good so far, I'm lazy to finish it
     if (!m_target) {
-        return false;
+        return true;
+    }
+
+    if (m_target->GetIsTypePed() && m_target->AsPed()->m_fHealth <= 0.f) {
+        return true;
+    }
+
+    if (m_target->GetIsTypeVehicle() && m_target->AsVehicle()->m_fHealth <= 0.f) {
+        return true;
     }
 
     if (m_bool) {
         return true;
     }
 
-    const auto pedShootingRange = [ped] {
-        const auto range = (int16)ped->m_nWeaponShootingRate;
-        if (!ped->IsCreatedByMission() && ped->m_nPedType != PED_TYPE_COP && range == 40) {
-            return ped->m_pStats->m_wShootingRate;
-        }
-        return range;
-    }();
-
     ped->GiveWeaponAtStartOfFight();
 
-    // Create fight task for ped if not already
-    if (!ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
-        ped->GetTaskManager().SetTaskSecondary(new CTaskSimpleFight{ m_target, false, (uint32)FIGHT_CTRL_FIGHT_IDLE_TIME }, TASK_SECONDARY_ATTACK);
+    auto& taskMgr = ped->GetTaskManager();
+    if (!taskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
+        taskMgr.SetTaskSecondary(new CTaskSimpleFight{ m_target, 0, (uint32)FIGHT_CTRL_FIGHT_IDLE_TIME }, TASK_SECONDARY_ATTACK);
         m_nextAttackTime = 0;
-    }
-
-    const auto pedFightTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK);
-    if (pedFightTask->GetTaskType() != TASK_SIMPLE_FIGHT) {
-        pedFightTask->MakeAbortable(ped);
         return false;
     }
 
-    if (m_nextAttackTime <= CTimer::GetTimeInMS()) {
+    auto* const attackTask = taskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK);
+    auto* const fightTask  = notsa::dyn_cast_if_present<CTaskSimpleFight>(attackTask);
+    if (!fightTask) {
+        attackTask->MakeAbortable(ped);
+        return false;
+    }
+
+    fightTask->m_bIsInControl = true;
+
+    const auto now = CTimer::GetTimeInMS();
+    if (m_nextAttackTime && m_nextAttackTime <= now) {
         m_nextAttackTime = 0;
     }
-    */
+
+    const auto cmd = CalcMoveCommand(ped);
+    if (cmd >= 0) {
+        fightTask->ControlFight(m_target, (uint8)cmd);
+
+        if (cmd >= 7) {
+            m_nextAttackTime = now + (uint32)(1000.f / std::max(ped->m_nWeaponShootingRate / 40.f, 0.01f));
+        }
+    }
+
+    return false;
 }
