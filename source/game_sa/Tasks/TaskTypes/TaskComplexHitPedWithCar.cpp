@@ -14,8 +14,8 @@ void CTaskComplexHitPedWithCar::InjectHooks() {
     RH_ScopedInstall(HitHurtsPed, 0x653AE0, { .reversed = false });
     RH_ScopedInstall(CreateSubTask, 0x6560E0, { .reversed = false });
 
-    RH_ScopedVMTInstall(Clone, 0x6559B0, { .reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x653A20, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x6559B0);
+    RH_ScopedVMTInstall(GetTaskType, 0x653A20);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0, { .reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x656300, { .reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x653A90, { .reversed = false });

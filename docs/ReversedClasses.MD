@@ -670,11 +670,11 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (7/8) [88%]<br />
 - CTaskComplexTrackEntity (8/11) [73%]<br />
-- CTaskComplexSunbathe (2/8) [25%]<br />
-- CTaskComplexSmartFleePoint (2/12) [17%]<br />
+- CTaskComplexSunbathe (4/8) [50%]<br />
+- CTaskComplexSmartFleePoint (4/12) [33%]<br />
 - CTaskComplexSignalAtPed (4/7) [57%]<br />
 - CTaskComplexPlayHandSignalAnim (3/9) [33%]<br />
-- CTaskComplexLeaveCarAndWander (2/8) [25%]<br />
+- CTaskComplexLeaveCarAndWander (4/8) [50%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
 - CTaskComplexKillPedFromBoat (4/7) [57%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
@@ -682,8 +682,8 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
 - CTaskComplexGoToPointAiming (5/8) [62%]<br />
 - CTaskComplexGangLeader (2/13) [15%]<br />
-- CTaskComplexGangJoinRespond (2/7) [29%]<br />
-- CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
+- CTaskComplexGangJoinRespond (3/7) [43%]<br />
+- CTaskComplexFollowLeaderInFormation (3/7) [43%]<br />
 - CTaskComplexDestroyCarArmed (8/10) [80%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (8/9) [89%]<br />
