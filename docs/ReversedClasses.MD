@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (556/700) [79%]
+#### Completely reversed classes (558/700) [80%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -122,6 +122,8 @@ The percentages and the number of classes shown here may not be completely accur
 - CCustomBuildingPipeline (7)<br />
 - CCurves (6)<br />
 - CCurrentVehicle (2)<br />
+- CEntitySeekPosCalculatorRadiusAngleOffset (1)<br />
+- CEntitySeekPosCalculatorXYOffset (1)<br />
 - CCullZones (21)<br />
 - CCrime (2)<br />
 - CCreepingFire (3)<br />
@@ -706,15 +708,13 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Not-at-all reversed classes (9/700) [1%]
+#### Not-at-all reversed classes (7/700) [1%]
 
 <details>
 <summary>See list of classes</summary>- C_PcSave (5)<br />
 - CRoadBlocks (8)<br />
 - CLoadMonitor (6)<br />
 - CEntityScanner (2)<br />
-- CEntitySeekPosCalculatorXYOffset (1)<br />
-- CEntitySeekPosCalculatorRadiusAngleOffset (1)<br />
 - CTaskComplexGangFollower (7)<br />
 - Interior_c (52)<br />
 - FurnitureSubGroup_c (3)<br />
