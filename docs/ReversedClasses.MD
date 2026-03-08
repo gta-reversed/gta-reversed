@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (564/700) [81%]
+#### Completely reversed classes (565/700) [81%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -460,6 +460,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexHitResponse (7)<br />
 - CTaskComplexHitByGunResponse (8)<br />
 - CTaskComplexGoToAttractor (5)<br />
+- CTaskComplexGoToPointShooting (3)<br />
 - CTaskComplexGoToPointAndStandStillTimed (6)<br />
 - CTaskComplexGoToPointAndStandStillAndAchieveHeading (7)<br />
 - CTaskComplexGoToPointAndStandStill (7)<br />
@@ -573,7 +574,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (129/700) [18%]
+#### Partially reversed classes (128/700) [18%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -678,7 +679,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexKillPedFromBoat (2/7) [29%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
-- CTaskComplexGoToPointShooting (1/3) [33%]<br />
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
 - CTaskComplexGoToPointAiming (5/8) [62%]<br />
 - CTaskComplexGangLeader (2/13) [15%]<br />
