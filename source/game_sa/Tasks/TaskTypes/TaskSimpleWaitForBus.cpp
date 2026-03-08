@@ -34,5 +34,5 @@ bool CTaskSimpleWaitForBus::ProcessPed(CPed* ped) {
         return nullptr;
     }();
 
-    return true;
+    return m_bus != nullptr;
 }

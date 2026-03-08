@@ -22,7 +22,7 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66F450);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x674140, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x674140);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6740E0);
     RH_ScopedVMTInstall(ControlSubTask, 0x674C30);
     RH_ScopedVMTInstall(UpdateDir, 0x669DA0);
@@ -51,8 +51,6 @@ CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWa
 
 
 CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x674140, CTaskComplexWander*, CPed*>(this, ped); // untested
-
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_SCRATCH_HEAD: {
         m_nDir++;

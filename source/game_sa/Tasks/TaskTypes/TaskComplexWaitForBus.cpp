@@ -11,11 +11,11 @@ void CTaskComplexWaitForBus::InjectHooks() {
 
     RH_ScopedInstall(Destructor, 0x632930);
 
-    RH_ScopedVMTInstall(Clone, 0x636A60, {.reversed = false});
-    RH_ScopedVMTInstall(GetTaskType, 0x632920, {.reversed = false});
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x632940, {.reversed = false});
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x638940, {.reversed = false});
-    RH_ScopedVMTInstall(ControlSubTask, 0x632A40, {.reversed = false});
+    RH_ScopedVMTInstall(Clone, 0x636A60);
+    RH_ScopedVMTInstall(GetTaskType, 0x632920);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x632940);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x638940);
+    RH_ScopedVMTInstall(ControlSubTask, 0x632A40);
 }
 
 CTaskComplexWaitForBus::CTaskComplexWaitForBus(const CTaskComplexWaitForBus& o) :
@@ -28,6 +28,9 @@ CTask* CTaskComplexWaitForBus::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_WAIT_FOR_BUS: {
         m_bus = notsa::cast<CTaskSimpleWaitForBus>(m_pSubTask)->m_bus;
+        if (!m_bus) {
+            return CreateFirstSubTask(ped);
+        }
         return new CTaskComplexEnterCarAsPassenger{ m_bus, 0, false };
     }
     case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: {

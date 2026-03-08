@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (559/700) [80%]
+#### Completely reversed classes (561/700) [80%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -398,11 +398,13 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskSimpleAffectSecondaryBehaviour (5)<br />
 - CTaskSimpleAchieveHeading (5)<br />
 - CTaskComplexWanderFlee (6)<br />
+- CTaskComplexWander (14)<br />
 - CTaskComplexWanderCop (9)<br />
 - CTaskComplexWalkRoundObject (1)<br />
 - CTaskComplexWalkRoundFire (8)<br />
 - CTaskComplexWalkRoundBuildingAttempt (12)<br />
 - CTaskComplexWalkAlongsidePed (9)<br />
+- CTaskComplexWaitForBus (7)<br />
 - CTaskComplexWaitForDryWeather (7)<br />
 - CTaskComplexWaitForBackup (8)<br />
 - CTaskComplexWaitAtAttractor (7)<br />
@@ -568,7 +570,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (134/700) [19%]
+#### Partially reversed classes (132/700) [19%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -661,9 +663,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskGangHassleVehicle (2/8) [25%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
-- CTaskComplexWander (13/14) [93%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
-- CTaskComplexWaitForBus (2/7) [29%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractorSprint (2/4) [50%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
 - CTaskComplexTrackEntity (8/11) [73%]<br />
