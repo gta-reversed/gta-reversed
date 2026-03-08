@@ -686,7 +686,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
 - CTaskComplexDestroyCarArmed (8/10) [80%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (6/9) [67%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
 - CScriptsForBrains (3/6) [50%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
