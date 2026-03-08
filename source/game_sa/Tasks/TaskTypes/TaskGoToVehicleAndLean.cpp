@@ -8,7 +8,7 @@ void CTaskGoToVehicleAndLean::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x660E60);
     RH_ScopedInstall(Destructor, 0x660EE0);
-    RH_ScopedInstall(Clone, 0x6621B0, { .reversed = false });
+    RH_ScopedInstall(Clone, 0x6621B0);
     RH_ScopedInstall(MakeAbortable, 0x664500, { .reversed = false });
     RH_ScopedInstall(CreateNextSubTask, 0x664590, { .reversed = false });
     RH_ScopedInstall(CreateFirstSubTask, 0x664D40, { .reversed = false });

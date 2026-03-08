@@ -664,7 +664,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskSimpleChoking (5/7) [71%]<br />
 - CTaskSimpleCarDrive (7/13) [54%]<br />
 - CTaskLeanOnVehicle (3/5) [60%]<br />
-- CTaskGoToVehicleAndLean (2/7) [29%]<br />
+- CTaskGoToVehicleAndLean (3/7) [43%]<br />
 - CTaskGangHassleVehicle (2/8) [25%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
@@ -676,7 +676,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexPlayHandSignalAnim (3/9) [33%]<br />
 - CTaskComplexLeaveCarAndWander (2/8) [25%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
-- CTaskComplexKillPedFromBoat (2/7) [29%]<br />
+- CTaskComplexKillPedFromBoat (4/7) [57%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
@@ -686,7 +686,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
 - CTaskComplexDestroyCarArmed (8/10) [80%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (7/9) [78%]<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (8/9) [89%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
 - CScriptsForBrains (3/6) [50%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
