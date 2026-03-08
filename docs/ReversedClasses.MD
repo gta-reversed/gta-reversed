@@ -3,7 +3,7 @@
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (7965 functions, 700 classes)
 
-#### Completely reversed classes (561/700) [80%]
+#### Completely reversed classes (564/700) [81%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -412,6 +412,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexUseSwatRope (7)<br />
 - CTaskComplexUseScriptedBrain (8)<br />
 - CTaskComplexUseScriptedAttractor (7)<br />
+- CTaskComplexUseClosestFreeScriptedAttractorSprint (4)<br />
 - CTaskComplexUseGoggles (5)<br />
 - CTaskComplexUseEffectSprinting (2)<br />
 - CTaskComplexUseEffectRunning (2)<br />
@@ -458,7 +459,9 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexInAirAndLand (4)<br />
 - CTaskComplexHitResponse (7)<br />
 - CTaskComplexHitByGunResponse (8)<br />
+- CTaskComplexGoToAttractor (5)<br />
 - CTaskComplexGoToPointAndStandStillTimed (6)<br />
+- CTaskComplexGoToPointAndStandStillAndAchieveHeading (7)<br />
 - CTaskComplexGoToPointAndStandStill (7)<br />
 - CTaskComplexGoToCarDoorAndStandStill (11)<br />
 - CTaskComplexGoToBoatSteeringWheel (6)<br />
@@ -570,7 +573,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (132/700) [19%]
+#### Partially reversed classes (129/700) [18%]
 
 <details>
 <summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
@@ -664,7 +667,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskGangHassleVehicle (2/8) [25%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
-- CTaskComplexUseClosestFreeScriptedAttractorSprint (2/4) [50%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
 - CTaskComplexTrackEntity (8/11) [73%]<br />
 - CTaskComplexSunbathe (2/8) [25%]<br />
@@ -678,9 +680,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexGoToPointShooting (1/3) [33%]<br />
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
-- CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7) [43%]<br />
 - CTaskComplexGoToPointAiming (5/8) [62%]<br />
-- CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGangLeader (2/13) [15%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />

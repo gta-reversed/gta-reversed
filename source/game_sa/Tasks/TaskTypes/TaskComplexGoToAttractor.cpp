@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "TaskComplexGoToAttractor.h"
-#include "PedAtmAttractor.h"
+#include "TaskComplexGoToPointAndStandStillAndAchieveHeading.h"
 
 void CTaskComplexGoToAttractor::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoToAttractor, 0x86FF3C, 11);
@@ -10,9 +10,9 @@ void CTaskComplexGoToAttractor::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x66B640);
     RH_ScopedInstall(Destructor, 0x66B6A0);
 
-    RH_ScopedVMTInstall(Clone, 0x66D130, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x66B6C0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x670420, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x66D130);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x66B6C0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x670420);
 }
 
 // 0x66B640
@@ -41,7 +41,20 @@ CTask* CTaskComplexGoToAttractor::CreateNextSubTask(CPed* ped) {
 
 // 0x670420
 CTask* CTaskComplexGoToAttractor::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x670420, CTaskComplexGoToAttractor*, CPed*>(this, ped);
+    UNUSED(ped);
+
+    if (!m_Attractor) {
+        return nullptr;
+    }
+
+    return new CTaskComplexGoToPointAndStandStillAndAchieveHeading{
+        m_MoveState,
+        m_vecAttrPosn,
+        m_fAttrHeading,
+        m_Attractor->m_ArriveRange,
+        0.5f,
+        m_Attractor->m_HeadingRange
+    };
 }
 
 // 0x66B710
