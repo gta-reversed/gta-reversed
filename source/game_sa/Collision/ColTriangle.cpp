@@ -28,6 +28,6 @@ auto CColTriangle::GetPoly(const CompressedVector* verts) const -> CStoredCollPo
     return CStoredCollPoly{
         .verts    = { verts[vA], verts[vB], verts[vC] },
         .valid    = true,
-        .ligthing = m_nLight,
+        .lighting = m_nLight,
     };
 }

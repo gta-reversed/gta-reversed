@@ -1028,7 +1028,7 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
 }
 
 // 0x871F54// 0x6D63F0
-float CVehicle::GetHeightAboveRoad() {
+float CVehicle::GetHeightAboveRoad() const {
     return CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundingBox().m_vecMin.z * -1.0F;
 }
 
@@ -1188,11 +1188,11 @@ void CVehicle::SetCollisionLighting(tColLighting lighting) {
 
 // 0x6D0CC0
 void CVehicle::UpdateLightingFromStoredPolys() {
-    m_anCollisionLighting[0] = m_FrontCollPoly.ligthing;
-    m_anCollisionLighting[1] = m_FrontCollPoly.ligthing;
+    m_anCollisionLighting[0] = m_FrontCollPoly.lighting;
+    m_anCollisionLighting[1] = m_FrontCollPoly.lighting;
 
-    m_anCollisionLighting[2] = m_RearCollPoly.ligthing;
-    m_anCollisionLighting[3] = m_RearCollPoly.ligthing;
+    m_anCollisionLighting[2] = m_RearCollPoly.lighting;
+    m_anCollisionLighting[3] = m_RearCollPoly.lighting;
 }
 
 // 0x6D0CF0
