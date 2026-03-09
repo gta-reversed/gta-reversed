@@ -18,13 +18,16 @@ CEntitySeekPosCalculatorRadiusAngleOffset::CEntitySeekPosCalculatorRadiusAngleOf
 
 void CEntitySeekPosCalculatorRadiusAngleOffset::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {
     const auto heading = CGeneral::LimitRadianAngle(
-        CGeneral::GetRadianAngleBetweenPoints(target.GetForward().x, target.GetForward().y, 0.0f, 0.0f)
+        CGeneral::GetRadianAngleBetweenPoints(target.GetForward(), CVector2D{ 0.0f, 0.0f })
     );
-    const auto angle   = CGeneral::LimitRadianAngle(heading + m_angle);
-    const auto seekPos = target.GetPosition() + CVector{
-        -std::sin(angle) * m_radius,
-         std::cos(angle) * m_radius,
-         0.0f
-    };
-    CPedGeometryAnalyser::ComputeClearTarget(seeker, seekPos, outPos);
+    const auto angle = CGeneral::LimitRadianAngle(heading + m_angle);
+    CPedGeometryAnalyser::ComputeClearTarget(
+        seeker, 
+        target.GetPosition() + CVector{
+            -std::sin(angle) * m_radius,
+            std::cos(angle) * m_radius,
+            0.0f
+        }, 
+        outPos
+    );
 }
