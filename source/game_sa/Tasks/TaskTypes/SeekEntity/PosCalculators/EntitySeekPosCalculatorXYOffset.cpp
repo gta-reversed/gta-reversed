@@ -11,6 +11,5 @@ void CEntitySeekPosCalculatorXYOffset::InjectHooks() {
 }
 
 void CEntitySeekPosCalculatorXYOffset::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {
-    const auto seekPos = target.GetPosition() + m_offsetXY;
-    CPedGeometryAnalyser::ComputeClearTarget(seeker, seekPos, outPos);
+    CPedGeometryAnalyser::ComputeClearTarget(seeker, target.GetPosition() + m_offsetXY, outPos);
 }
