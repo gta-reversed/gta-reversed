@@ -121,7 +121,7 @@ void CWorld::InjectHooks() {
     RH_ScopedGlobalInstall(FindPlayerTrain, 0x56E160);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld, 0x56E250);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
-    RH_ScopedGlobalInstall(FindPlayerCentreOfWorldForMap, 0x56E400, {.reversed=false});
+    RH_ScopedGlobalInstall(FindPlayerCentreOfWorldForMap, 0x56E400);
     RH_ScopedGlobalInstall(FindPlayerHeading, 0x56E450);
     RH_ScopedGlobalInstall(FindPlayerPed, 0x56E210);
     RH_ScopedGlobalInstall(FindPlayerVehicle, 0x56E0D0);
@@ -257,7 +257,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 
 // 0x563470
 void CWorld::ClearScanCodes() {
-    const auto ProcessList = []<typename PtrListType>(PtrListType list) {
+    const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
         for (auto* const entity : list) {
             entity->SetScanCode(0);
         }
@@ -1700,7 +1700,7 @@ CPed* CWorld::FindUnsuspectingTargetPed(CVector point, CVector playerPosn) {
 // 0x566EE0
 template<typename PtrListType>
 bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& outColPoint, float& minTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, bool doIgnoreCameraCheck, bool doShootThroughCheck) {
-    if (!ptrList.m_node) {
+    if (!ptrList.m_Head) {
         return false;
     }
 

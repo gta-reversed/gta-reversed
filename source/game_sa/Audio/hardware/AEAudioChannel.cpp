@@ -4,8 +4,30 @@
 
 #include "AEAudioUtility.h"
 #include "AESmoothFadeThread.h"
+#include <AEAudioHardware.h>
 
 uint32& g_numSoundChannelsUsed = *(uint32*)0xB5F898;
+
+#if 0 // No EAX
+static std::array<uint32, 48> s_EAXEnvironments = {
+    EAX_ENVIRONMENT_GENERIC, EAX_ENVIRONMENT_PADDEDCELL, EAX_ENVIRONMENT_ROOM,
+    EAX_ENVIRONMENT_BATHROOM, EAX_ENVIRONMENT_LIVINGROOM, EAX_ENVIRONMENT_STONEROOM,
+    EAX_ENVIRONMENT_AUDITORIUM, EAX_ENVIRONMENT_CONCERTHALL, EAX_ENVIRONMENT_CAVE,
+    EAX_ENVIRONMENT_ARENA, EAX_ENVIRONMENT_HANGAR, EAX_ENVIRONMENT_CARPETEDHALLWAY,
+    EAX_ENVIRONMENT_HALLWAY, EAX_ENVIRONMENT_STONECORRIDOR, EAX_ENVIRONMENT_ALLEY,
+    EAX_ENVIRONMENT_FOREST, EAX_ENVIRONMENT_CITY, EAX_ENVIRONMENT_MOUNTAINS,
+    EAX_ENVIRONMENT_QUARRY, EAX_ENVIRONMENT_PLAIN, EAX_ENVIRONMENT_PARKINGLOT,
+    EAX_ENVIRONMENT_SEWERPIPE, EAX_ENVIRONMENT_UNDERWATER, EAX_ENVIRONMENT_ROOM,
+    EAX_ENVIRONMENT_PADDEDCELL, EAX_ENVIRONMENT_ROOM, EAX_ENVIRONMENT_BATHROOM,
+    EAX_ENVIRONMENT_LIVINGROOM, EAX_ENVIRONMENT_STONEROOM, EAX_ENVIRONMENT_AUDITORIUM,
+    EAX_ENVIRONMENT_CONCERTHALL, EAX_ENVIRONMENT_CAVE, EAX_ENVIRONMENT_ARENA,
+    EAX_ENVIRONMENT_HANGAR, EAX_ENVIRONMENT_CARPETEDHALLWAY, EAX_ENVIRONMENT_HALLWAY,
+    EAX_ENVIRONMENT_STONECORRIDOR, EAX_ENVIRONMENT_ALLEY, EAX_ENVIRONMENT_FOREST,
+    EAX_ENVIRONMENT_CITY, EAX_ENVIRONMENT_MOUNTAINS, EAX_ENVIRONMENT_QUARRY,
+    EAX_ENVIRONMENT_PLAIN, EAX_ENVIRONMENT_PARKINGLOT, EAX_ENVIRONMENT_SEWERPIPE,
+    EAX_ENVIRONMENT_UNDERWATER, EAX_ENVIRONMENT_DRUGGED, EAX_ENVIRONMENT_BATHROOM
+};
+#endif
 
 void CAEAudioChannel::InjectHooks() {
     RH_ScopedVirtualClass(CAEAudioChannel, 0x85F03C, 9);
@@ -21,6 +43,8 @@ void CAEAudioChannel::InjectHooks() {
     RH_ScopedInstall(SetOriginalFrequency, 0x4D7A70);
     RH_ScopedVMTInstall(SetFrequencyScalingFactor, 0x4D7D00);
     RH_ScopedInstall(GetCurrentPlaybackPosition, 0x4D79A0);
+    RH_ScopedInstall(SetReverbAndDepth, 0x4D7AA0);
+    RH_ScopedInstall(SetNotInRoom, 0x4D7B50);
 }
 
 // 0x4D7890
@@ -189,6 +213,41 @@ bool CAEAudioChannel::Lost() const {
     return true;
 }
 
-bool CAEAudioChannel::SetReverbAndDepth(uint32 reverb, uint32 depth) {
-    return plugin::CallMethodAndReturn<bool, 0x4D7AA0>(this, reverb, depth);
+// 0x4D7AA0
+bool CAEAudioChannel::SetReverbAndDepth(uint32 reverbEnv, uint32 depth) {
+    if (!m_pDirectSoundBuffer || !m_pDirectSound3DBuffer || AEAudioHardware.m_n3dEffectsQueryResult != 1) {
+        return false;
+    }
+
+    IKsPropertySet* ppIKsPropertySet{};
+    if (SUCCEEDED(m_pDirectSound3DBuffer->QueryInterface(IID_IKsPropertySet, (LPVOID*)&ppIKsPropertySet))) {
+        notsa::ScopeGuard _([&ppIKsPropertySet] {
+            SAFE_RELEASE(ppIKsPropertySet);
+        });
+#if 0 // No EAX
+        int32 room = 100 * depth;
+        return SUCCEEDED(ppIKsPropertySet->Set(EAXPROPERTYID_EAX_FXSlot0, EAXREVERB_ENVIRONMENT, nullptr, 0, &s_EAXEnvironments[reverbEnv], sizeof(s_EAXEnvironments[reverbEnv])))
+            && SUCCEEDED(ppIKsPropertySet->Set(EAXPROPERTYID_EAX_FXSlot0, EAXREVERB_ROOM, nullptr, 0, &room, sizeof(room)));
+#endif
+    }
+    return false;
+}
+
+// 0x4D7B50
+void CAEAudioChannel::SetNotInRoom(bool onStreet) {
+    if (!m_pDirectSoundBuffer || !m_pDirectSound3DBuffer || AEAudioHardware.m_n3dEffectsQueryResult != 1) {
+        return;
+    }
+
+    IKsPropertySet* ppIKsPropertySet{};
+    if (SUCCEEDED(m_pDirectSound3DBuffer->QueryInterface(IID_IKsPropertySet, (LPVOID*)&ppIKsPropertySet))) {
+        notsa::ScopeGuard _([&ppIKsPropertySet] {
+            SAFE_RELEASE(ppIKsPropertySet);
+        });
+
+#if 0 // No EAX
+        int32 room = onStreet ? EAXREVERB_MAXROOM : EAXREVERB_MINROOM;
+        assert(ppIKsPropertySet->Set(EAXPROPERTYID_EAX_Source, EAXSOURCE_ROOM, nullptr, 0, &room, sizeof(room)));
+#endif
+    }
 }

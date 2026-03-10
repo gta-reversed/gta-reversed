@@ -9,10 +9,9 @@ Virtual::Virtual(
     void** vtblGTA,
     void** vtblOur,
     size_t fnIdx,
-    bool locked,
     bool reversed
 ) :
-    Base{ name, HookType::Virtual, locked, reversed },
+    Base{ name, HookType::Virtual, reversed },
     m_vtbls{vtblGTA, vtblOur}, // Should be in the same order as the indexers: GTA, OUR
     m_fnIdx{ fnIdx },
     m_simpleHook{ name, (uint32)vtblGTA[fnIdx], vtblOur[fnIdx]} // Making sure this has a name too, for debugging purposes..

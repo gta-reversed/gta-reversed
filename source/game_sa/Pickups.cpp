@@ -639,7 +639,7 @@ void CPickups::Update() {
 
         if (pickup.m_nFlags.bVisible = pickup.IsVisible()) {
             if (!pickup.m_nFlags.bDisabled && !pickup.m_pObject) {
-                pickup.GiveUsAPickUpObject(&pickup.m_pObject, -1);
+                pickup.GiveUsAPickUpObject(pickup.m_pObject);
 
                 if (auto& obj = pickup.m_pObject; obj) {
                     CWorld::Add(obj);

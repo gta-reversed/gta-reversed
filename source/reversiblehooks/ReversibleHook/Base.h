@@ -20,13 +20,11 @@ struct Base {
         ScriptCommand
     };
 
-    Base(std::string fnName, HookType type, bool locked = false, bool reversed = true) :
+    Base(std::string fnName, HookType type, bool reversed = true) :
         m_Name{std::move(fnName)},
         m_Type{type},
-        m_IsLocked{locked},
         m_IsReversed{reversed}
     {
-        //assert((reversed || locked) && "Hooks for functions not reversed must be locked!");
     }
 
     virtual ~Base() = default;

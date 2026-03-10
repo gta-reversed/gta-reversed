@@ -112,10 +112,10 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
         vtblGTA,
         vtblOur,
         fnVTblIdx,
-        opt.locked,
         opt.reversed
     );
     item->State(opt.enabled);
+    item->LockState(opt.locked);
     AddItemToCategory(category, std::move(item));
 }
 
@@ -142,23 +142,27 @@ void WriteHooksToFile(const std::filesystem::path& file) {
                 if (item->Type() == Base::HookType::ScriptCommand) {
                     continue;
                 }
-                of
-                    << cat.Name() << "," // class
-                    << item->Name() << "," // fn_name
-                    << "0x" << std::hex << [&] { // address
-                            switch (item->Type()) {
-                            case Base::HookType::Virtual:
-                                return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
-                            case Base::HookType::Simple:
-                                return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
-                            default:
-                                NOTSA_UNREACHABLE();
-                            }
-                        }()
-                    << std::dec << ","
-                    << item->Reversed() << "," // reversed
-                    << item->Locked() << "," // locked
-                    << item->Symbol(); // type - `V` - virtual, `S` - simple, `C` - command (script)
+                const auto address = [&] {
+                    switch (item->Type()) {
+                    case Base::HookType::Virtual:
+                        return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
+                    case Base::HookType::Simple:
+                        return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
+                    default:
+                        NOTSA_UNREACHABLE();
+                    }
+                }();
+
+                std::println(
+                    of,
+                    "{},{},0x{:08X},{},{},{}",
+                    cat.Name(),
+                    item->Name(),
+                    (uintptr_t)address,
+                    (int32)item->Reversed(),
+                    (int32)item->Locked(),
+                    item->Symbol()
+                );
             }
         });
         NOTSA_LOG_INFO("Hooks written to `{}`", path.string());
@@ -182,7 +186,6 @@ void HookInstall(std::string_view category, std::string fnName, uint32 installAd
         std::move(fnName),
         installAddress,
         addressToJumpTo,
-        opt.locked,
         opt.reversed,
         opt.jmpCodeSize,
         opt.stackArguments

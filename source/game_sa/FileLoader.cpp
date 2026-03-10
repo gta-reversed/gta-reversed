@@ -668,12 +668,12 @@ void CFileLoader::LoadCollisionModel(uint8* buffer, CColModel& cm) {
 
     // Vertices
     if (auto nVertices = *reinterpret_cast<uint32*&>(bufferIt)++) {
-        cd->m_pVertices = (CompressedVector*)CMemoryMgr::Malloc(nVertices * sizeof(CompressedVector));
+        cd->m_pVertices = static_cast<decltype(cd->m_pVertices)>(CMemoryMgr::Malloc(nVertices * sizeof(*cd->m_pVertices)));
 
         // Here they (or the compiler) originally did an unroll (with 4 vertices / iteration)
         // We are going to let the compiler do that.
         for (auto i = 0u; i < nVertices; i++) {
-            cd->m_pVertices[i] = CompressVector(*reinterpret_cast<TVertex*&>(bufferIt)++);
+            cd->m_pVertices[i] = *reinterpret_cast<TVertex*&>(bufferIt)++;
         }
     } else {
         cd->m_pVertices = nullptr;

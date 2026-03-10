@@ -15,7 +15,6 @@ struct Virtual : public Base {
         void** vtblGTA,
         void** vtblOur,
         size_t fnIdx,
-        bool locked = false,
         bool reversed = true
     );
     ~Virtual() override = default;

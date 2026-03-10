@@ -8,12 +8,11 @@ Simple::Simple(
     std::string name,
     uint32 installAddress,
     void* addressToJumpTo,
-    bool locked,
     bool reversed,
     int iJmpCodeSize,
     int stackArguments
 ) :
-    Base{ std::move(name), HookType::Simple, locked, reversed },
+    Base{ std::move(name), HookType::Simple, reversed },
     m_iLibFunctionAddress((uint32)addressToJumpTo),
     m_iRealHookedAddress(installAddress),
     m_iHookedBytes(iJmpCodeSize)

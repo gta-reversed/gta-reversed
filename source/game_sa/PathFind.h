@@ -7,7 +7,6 @@
 #pragma once
 
 #include <Base.h>
-#include "CompressedVector.h"
 #include "Vector.h"
 #include "NodeAddress.h"
 #include "NodeRoute.h"
@@ -85,7 +84,7 @@ VALIDATE_SIZE(CPathIntersectionInfo, 0x1);
 
 class CCarPathLink { // "Navi Nodes"
 public:
-    FixedVector2D<int16, 8.f>  m_posn;
+    FixedVector2D<int16, 8.f>  m_posn;                       ///< Position of this node in world coordinates (compressed)
     CNodeAddress               m_attachedTo;                 ///< Identifies the target node a navi node is attached to.
     FixedVector2D<int8, 100.f> m_dir;                        ///< This is a normalized vector pointing towards the [above mentioned] target node, thus defining the general direction of the path segment.
     FixedFloat<int8, 16.f>     m_nPathNodeWidth;             ///< Usually a copy of the linked node's path width (byte)
@@ -120,14 +119,14 @@ VALIDATE_SIZE(CCarPathLink, 0xE);
 
 class CPathNode {
 public:
-    CPathNode        *m_next, *m_prev;
-    CompressedVector m_vPos;
-    int16            m_totalDistFromOrigin; /// Sum of linkLength's up to this node. Using this the current hash bucket (in `m_pathFindHashTable`) can be obtained by `% std::size(m_pathFindHashTable)`. Used in `DoPathSearch`. `SHRT_MAX - 1` by default.
-    int16            m_wBaseLinkId;
-    uint16           m_wAreaId; // TODO: Replace these 2 with `CNodeAddress`
-    uint16           m_wNodeId;
-    uint8            m_nPathWidth; // Fixed-point float, divide by 16
-    uint8            m_nFloodFill;
+    CPathNode            *m_next, *m_prev;
+    CompressedLargeVector m_vPos;
+    int16                 m_totalDistFromOrigin; /// Sum of linkLength's up to this node. Using this the current hash bucket (in `m_pathFindHashTable`) can be obtained by `% std::size(m_pathFindHashTable)`. Used in `DoPathSearch`. `SHRT_MAX - 1` by default.
+    int16                 m_wBaseLinkId;
+    uint16                m_wAreaId; // TODO: Replace these 2 with `CNodeAddress`
+    uint16                m_wNodeId;
+    uint8                 m_nPathWidth; // Fixed-point float, divide by 16
+    uint8                 m_nFloodFill;
 
     // byte 0
     uint32 m_nNumLinks : 4; // Mask: 0xF
@@ -155,9 +154,7 @@ public:
     static void InjectHooks();
 
     /// Get uncompressed world position
-    CVector GetPosition() const {
-        return UncompressLargeVector(m_vPos);
-    }
+    CVector GetPosition() const { return m_vPos; }
 
     CNodeAddress GetAddress() const {
         return { m_wAreaId, m_wNodeId };
@@ -458,6 +455,8 @@ public:
     bool Save();
 
     CPathNode* GetPathNode(CNodeAddress address);
+
+    CCarPathLinkAddress GetNaviLink(uint16 area, uint16 linkId) const;
 
     inline CCarPathLink& GetCarPathLink(const CCarPathLinkAddress& address) {
         assert(address.m_wAreaId < NUM_TOTAL_PATH_NODE_AREAS);
