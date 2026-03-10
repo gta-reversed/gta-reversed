@@ -22,8 +22,8 @@ inline void StoreArg(CRunningScript* S, T arg) {
 /*!
 * @brief Store an argument of type. NOTE: Increments script's IP.
 *
-* @param S The S to which the values should be stored to
-* @param arg    The argument to store
+* @param S The script to which the values should be stored to
+* @param arg The argument to store
 */
 template<typename T>
     requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
@@ -70,10 +70,10 @@ inline void StoreArg(CRunningScript* S, CompareFlagUpdate flag) {
 
 //! Store a pooled type (CPed, CVehicle, etc) - It pushes a handle of the entity to the script
 template<typename T, typename U = std::remove_cvref_t<std::remove_pointer_t<T>>>
-    requires detail::PooledType<U>
+    requires ::notsa::PooledType<U>
 inline void StoreArg(CRunningScript* S, T&& value) {
     const auto StoreEntity = [&](auto ptr) {
-        StoreArg(S, detail::PoolOf<U>().GetRef(ptr));
+        StoreArg(S, ::notsa::PoolOf<U>().GetRef(ptr));
     };
     if constexpr (std::is_pointer_v<T>) {
         if (value) { // As always, pointers might be null, so we have to check.

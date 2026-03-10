@@ -47,7 +47,7 @@ void CSprite2d::InjectHooks() {
     RH_ScopedInstall(DrawAnyRect, 0x727CC0);
     RH_ScopedInstall(Draw2DPolygon, 0x7285B0);
     RH_ScopedInstall(DrawBarChart, 0x728640);
-    RH_ScopedInstall(DrawCircleAtNearClip, 0x727D60, { .reversed = false });
+    RH_ScopedInstall(DrawCircleAtNearClip, 0x727D60);
 }
 
 CSprite2d::CSprite2d()
@@ -372,9 +372,6 @@ void CSprite2d::DrawAnyRect(float x1, float y1, float x2, float y2, float x3, fl
 // draws a triangle with rotation (degrees)
 void CSprite2d::DrawCircleAtNearClip(const CVector2D& posn, float size, const CRGBA& color, int32 angle)
 {
-    ((void(__cdecl*)(const CVector2D&, float, const CRGBA&, int32))0x727D60)(posn, size, color, angle);
-
-    /* NOT TESTED
     RwIm2DVertexSetScreenX(&maVertices[0], posn.x);
     RwIm2DVertexSetScreenY(&maVertices[0], posn.y);
     RwIm2DVertexSetScreenZ(&maVertices[0], NearScreenZ);
@@ -386,22 +383,24 @@ void CSprite2d::DrawCircleAtNearClip(const CVector2D& posn, float size, const CR
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(NULL));
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
 
-    float posna = 360.f / static_cast<float>(angle);
-    float step = posna * DegreesToRadians(1.f) * (256.f / DegreesToRadians(360.f)); // posna * 35 / 45
-    for (int32 i = 0; i < angle; ++i)
-    {
+    // #1
+    float step = DegreesToRadians(360.f / static_cast<float>(angle));
+    for (int32 i = 0; i < angle; ++i) {
         for (int32 l = 1; l <= 2; ++l) {
-            uint8 idx = static_cast<uint8>(static_cast<float>(i + l - 1) * step);
-            RwIm2DVertexSetScreenX(&maVertices[l], size * CMaths::ms_SinTable[idx + 64] + posn.x);
-            RwIm2DVertexSetScreenY(&maVertices[l], size * CMaths::ms_SinTable[idx] + posn.y);
+            float rad = static_cast<float>(i + l - 1) * step;
+            float c   = CMaths::GetCosFast(rad);
+            float s   = CMaths::GetSinFast(rad);
+
+            RwIm2DVertexSetScreenX(&maVertices[l], size * c + posn.x);
+            RwIm2DVertexSetScreenY(&maVertices[l], size * s + posn.y);
             RwIm2DVertexSetScreenZ(&maVertices[l], NearScreenZ);
             RwIm2DVertexSetRecipCameraZ(&maVertices[l], RecipNearClip);
             RwIm2DVertexSetIntRGBA(&maVertices[l], color.r, color.g, color.b, color.a);
-            RwIm2DVertexSetU(&maVertices[l], (CMaths::ms_SinTable[idx + 64] + 1.f) * 0.5f, RecipNearClip);
-            RwIm2DVertexSetV(&maVertices[l], (CMaths::ms_SinTable[idx] + 1.f) * 0.5f, RecipNearClip);
+            RwIm2DVertexSetU(&maVertices[l], (c + 1.f) * 0.5f, RecipNearClip);
+            RwIm2DVertexSetV(&maVertices[l], (s + 1.f) * 0.5f, RecipNearClip);
         }
-        RWSRCGLOBAL(dOpenDevice).fpIm2DRenderTriangle(maVertices, 3, 2, 1, 0);
-    } */
+        RwIm2DRenderTriangle(maVertices, 3, 2, 1, 0);
+    }
 }
 
 // this makes some trick with sprite z position (z = NearScreenZ + 0.000001).

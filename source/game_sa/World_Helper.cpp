@@ -102,8 +102,6 @@ const CVector& FindPlayerCentreOfWorld_NoSniperShift(int32 playerId) {
 // Returns player coords with skipping interior shift
 // 0x56E400
 CVector FindPlayerCentreOfWorldForMap(int32 playerId) {
-    return plugin::CallAndReturn<CVector, 0x56E400, int32>(playerId);
-
     CVector centre = FindPlayerCentreOfWorld(playerId);
     CEntryExitManager::GetPositionRelativeToOutsideWorld(centre);
     return centre;
