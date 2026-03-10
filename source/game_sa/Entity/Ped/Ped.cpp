@@ -4013,9 +4013,7 @@ CVector CPed::GetSeatPositionInVehicle() const {
 
         return pos;
     } else if (this == m_pVehicle->m_apPassengers[0]) {
-        return m_pVehicle->IsBike() || m_pVehicle->IsSubQuad(
-            ? mi->GetBackSeatPosn()
-            : mi->GetFrontSeatPosn());
+        return m_pVehicle->IsBike() || m_pVehicle->IsSubQuad() ? mi->GetBackSeatPosn() : mi->GetFrontSeatPosn();
     } else if (this == m_pVehicle->m_apPassengers[1]) {
         CVector pos   = mi->GetBackSeatPosn();
         pos.x = -pos.x;
