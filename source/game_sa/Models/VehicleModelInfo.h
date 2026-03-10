@@ -406,7 +406,6 @@ public:
     static void LoadEnvironmentMaps();
 
     // inlined in Android
-    // inlined in Android
     const CVector& GetFrontSeatPosn() { return m_pVehicleStruct->m_avDummyPos[IsBoat() ? 0 : 4]; } // TODO: 0/4 ?
     const CVector& GetBackSeatPosn() { return m_pVehicleStruct->m_avDummyPos[5]; } // TODO: 5 ?
 
