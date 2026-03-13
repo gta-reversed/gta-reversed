@@ -40,6 +40,7 @@
 #include "LoadMonitorDebugModule.hpp"
 #include "Audio/SoundManagerDebugModule.hpp"
 #include "Audio/AudioDebugModule.hpp"
+#include "GarageDebugModule.hpp"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
     m_ImCtx(ctx)
@@ -119,6 +120,7 @@ void DebugModules::CreateModules() {
     Add<notsa::debugmodules::WeaponDebugModule>();
     Add<ParticleDebugModule>();
     Add<TextDebugModule>();
+    Add<notsa::debugmodules::Garage>();
     Add<notsa::debugmodules::CheckpointsDebugModule>();
     Add<ProcObjectDebugModule>();
     Add<VehicleInfoDebugModule>();
