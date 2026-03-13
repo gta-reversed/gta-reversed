@@ -198,9 +198,46 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
 
 // 0x4EC270
 void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
-    plugin::CallMethod<0x4EC270, CAEScriptAudioEntity*, uint8>(this, sampleId);
-}
+    if (sampleId >= 4) {
+        return;
+    }
+    auto& wav = wavLinks[sampleId];
 
+    if (wav.m_nBankId < 0 || wav.m_nBankSlotId < 0 || !GetMissionAudioLoadingStatus(sampleId)) {
+        return;
+    }
+
+    const auto [volume, duck] = [&wav, sampleId] -> std::pair<float, bool> {
+        if (wav.m_nAudioEvent == eAudioEvents::AE_UNDEFINED) { // TODO: This is originally 65535, investigate.
+            return { -100.0f, false };
+        }
+
+        const auto def = CAEAudioEntity::GetDefaultVolume(eAudioEvents::AE_UNDEFINED);
+        return {
+            (sampleId < 2 && def == -128.0f) ? 6.0f : def,
+            sampleId < 2
+        };
+    }();
+
+    const auto [pos, isFrontend] = [&] -> std::pair<CVector, bool> {
+        if (wav.m_pEntity) {
+            return { wav.m_pEntity->GetPosition(), false };
+        } else if (wav.m_vPosition == -1000.0f || wav.m_vPosition.IsZero()) {
+            return { CVector{ 0.0f, 1.0f, 0.0f }, true };
+        } else {
+            return { wav.m_vPosition, false };
+        }
+    }();
+
+    CAESound sound{};
+    sound.Initialise(GetBankSlot(sampleId), wav.m_nBankSlotId, this, pos, volume);
+    sound.m_Flags = SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE;
+    sound.SetFlags(SOUND_FRONT_END, isFrontend);
+    sound.SetFlags(SOUND_IS_DUCKABLE, duck);
+    sound.SetFlags(SOUND_IS_COMPRESSABLE, duck);
+    sound.SetFlags(SOUND_SMOOTH_DUCKING, duck);
+    wav.m_Sound = AESoundManager.RequestNewSound(&sound);
+}
 // 0x4EC190
 void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId) {
     if (slotId >= 4 || !IsMissionAudioSampleFinished(slotId)) {
@@ -907,7 +944,7 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0);
     RH_ScopedInstall(AttachMissionAudioToPhysical, 0x4EC100);
     RH_ScopedInstall(PreloadMissionAudio, 0x4EC190);
-    RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270, { .reversed = false });
+    RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270);
     RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0);
     RH_ScopedInstall(PlayResidentSoundEvent, 0x4EC550);
     RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0);
