@@ -2,25 +2,25 @@
 #include "OALBase.h"
 
 OALBase::OALBase() {
-    m_refCount = 1;
-    ++livingCount;
+    m_RefCount = 1;
+    ++s_LivingCount;
 }
 
 OALBase::~OALBase() {
-    --livingCount;
+    --s_LivingCount;
 }
 
 void OALBase::Release() {
-    if (--m_refCount)
+    if (--m_RefCount)
         return;
 
-    // OS_MutexObtain(trashMutex);
-    trashCan.push_back(this);
-    // OS_MutexRelease(trashMutex);
+    OS_MutexObtain(s_TrashMutex);
+    s_TrashCan.push_back(std::unique_ptr<OALBase>(this));
+    OS_MutexRelease(s_TrashMutex);
 }
 
 void OALBase::AddRef() {
-    ++m_refCount;
+    ++m_RefCount;
 }
 
 bool OALCheckErrors(std::string_view file, int32 line) {
