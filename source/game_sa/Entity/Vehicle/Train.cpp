@@ -51,11 +51,11 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(ReleaseOneMissionTrain, 0x6F5DF0);
     RH_ScopedInstall(SetTrainSpeed, 0x6F5E20);
     RH_ScopedInstall(SetTrainCruiseSpeed, 0x6F5E50);
-    RH_ScopedInstall(FindCaboose, 0x6F5E70, { .reversed = false });
-    RH_ScopedInstall(FindEngine, 0x6F5E90, { .reversed = false });
-    RH_ScopedInstall(FindCarriage, 0x6F5EB0, { .reversed = false });
+    RH_ScopedInstall(FindCaboose, 0x6F5E70);
+    RH_ScopedInstall(FindEngine, 0x6F5E90);
+    RH_ScopedInstall(FindCarriage, 0x6F5EB0);
     RH_ScopedInstall(FindSideStationIsOn, 0x6F5EF0);
-    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .reversed = false });
+    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00);
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
     RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
@@ -289,17 +289,34 @@ void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
 
 // 0x6F5E70
 CTrain* CTrain::FindCaboose(CTrain* train) {
-    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E70)(train);
+    assert(train != nullptr);
+    while (train->m_pNextCarriage) {
+        train = train->m_pNextCarriage;
+    }
+    return train;
 }
 
 // 0x6F5E90
 CTrain* CTrain::FindEngine(CTrain* train) {
-    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E90)(train);
+    assert(train != nullptr);
+    while (train->m_pPrevCarriage) {
+        train = train->m_pPrevCarriage;
+    }
+    return train;
 }
 
-// 0x6F5EB0
+/**
+ * @brief Find the next carriage offset by `carriage` (`0` would be the train itself, `1` would be the the next carriage, and so on...)
+ * @addr 0x6F5EB0
+ */
 CTrain* CTrain::FindCarriage(CTrain* train, uint8 carriage) {
-    return ((CTrain * (__cdecl*)(CTrain*, uint8))0x6F5EB0)(train, carriage);
+    uint32 n = 0;
+    for (auto* it = train; it; it = it->m_pNextCarriage) {
+        if (++n >= carriage) {
+             return it;
+        }
+    }
+    return nullptr;
 }
 
 // 0x6F5EF0
@@ -308,8 +325,34 @@ bool CTrain::FindSideStationIsOn() const {
 }
 
 // 0x6F5F00
-void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float* distanceToStation, int32* numStations) {
-    ((void(__cdecl*)(bool, float, float*, int32*))0x6F5F00)(clockwiseDirection, distance, distanceToStation, numStations);
+void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float& distanceToStation, int32& numStations) {
+    int32 station = 0;
+
+    // Locates the station corresponding to the current position.
+    for (; station < NUM_TRAIN_STATIONS; station++) {
+        if (StationDist[station] > distance) {
+            break;
+        }
+    }
+
+    // Adjusts to counterclockwise
+    if (!clockwiseDirection) {
+        station = (station == 0) ? NUM_TRAIN_STATIONS - 1 : station - 1;
+    }
+
+    // If are very close to the current station, move forward.
+    if (approxEqual(distance, StationDist[station], 100.0f)) {
+        station += clockwiseDirection ? 1 : -1;
+
+        station = station < 0
+            ? NUM_TRAIN_STATIONS - 1
+            : station > NUM_TRAIN_STATIONS - 1
+                ? 0
+                : station;
+    }
+
+    numStations       = station;
+    distanceToStation = StationDist[station];
 }
 
 // 0x6F6320

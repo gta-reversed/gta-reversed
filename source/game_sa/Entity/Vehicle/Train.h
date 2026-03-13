@@ -10,6 +10,8 @@
 #include "Door.h"
 #include "TrainNode.h"
 
+constexpr int32 NUM_TRAIN_STATIONS = 6;
+
 enum eTrainNodes {
     TRAIN_NODE_NONE   = 0,
     TRAIN_DOOR_LF     = 1,
@@ -84,7 +86,7 @@ public:
     static uint32& GenTrain_GenerationNode;
     static uint32& GenTrain_Status;
     static bool& bDisableRandomTrains;
-    static CVector aStationCoors[6];
+    static CVector aStationCoors[NUM_TRAIN_STATIONS];
 
     static constexpr auto Type = VEHICLE_TYPE_TRAIN;
 
@@ -118,7 +120,7 @@ public:
     static CTrain* FindCaboose(CTrain* train);
     static CTrain* FindEngine(CTrain* train);
     static CTrain* FindCarriage(CTrain* train, uint8 carriage);
-    static void FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float* distanceToStation, int32* numStations);
+    static void FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float& distanceToStation, int32& numStations);
     static void RemoveMissionTrains();
     static void RemoveAllTrains();
     static void ReleaseMissionTrains();
