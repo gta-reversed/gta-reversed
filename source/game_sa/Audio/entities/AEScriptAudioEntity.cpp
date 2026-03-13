@@ -904,8 +904,50 @@ void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, const C
 }
 
 // 0x4EC970
+// -1 to delete the sound
 void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
-    plugin::CallMethod<0x4EC970, CAEScriptAudioEntity*, CAESound*, int16>(this, sound, playTime);
+    if (!sound) {
+        return;
+    }
+
+    for (auto& wav : wavLinks) {
+        if (wav.m_Sound == sound) {
+            if (playTime == -1) {
+                wav.m_Sound = nullptr;
+                return;
+            }
+
+            if (wav.m_pEntity) {
+                sound->SetPosition(wav.m_pEntity->GetPosition());
+            }
+            continue;
+        }
+
+        // NOTE: I intentionally avoid using enums here cuz them make zero sense!!
+        // TODO: make sense of this
+        if (wav.m_nAudioEvent > 0x45E) {
+            auto triggerEnd = m_LastMiniGameLoopTriggerTimeMs + 500;
+            if (const auto x = wav.m_nAudioEvent - 0x47B; x) {
+                const auto y = x - 20;
+                if (y && y != 10) {
+                    continue;
+                }
+                triggerEnd -= 200; // it's +300 instead of 500.
+            }
+
+            if (CTimer::GetTimeInMS() > triggerEnd) {
+                wav.m_Sound->StopSoundAndForget();
+                m_LastMiniGameLoopTriggerTimeMs = 0;
+            }
+            continue;
+        }
+
+        if (wav.m_nAudioEvent != 0x45E) {
+            break;
+        }
+
+        // ...
+    }
 }
 
 // 0x4EC900
