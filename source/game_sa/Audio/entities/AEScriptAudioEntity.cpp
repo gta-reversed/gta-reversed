@@ -237,6 +237,7 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
     sound.SetFlags(SOUND_SMOOTH_DUCKING, duck);
     wav.m_Sound = AESoundManager.RequestNewSound(&sound);
 }
+
 // 0x4EC190
 void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId) {
     if (slotId >= 4 || !IsMissionAudioSampleFinished(slotId)) {
@@ -256,7 +257,7 @@ void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents script
     wav.m_nBankId = bank; // @TODO: get rid of this
 
     if (wav.m_nBankSlotId < 0) {
-        AEAudioHardware.LoadSoundBank(bank, GetBankSlot(wav.m_nBankSlotId));
+        AEAudioHardware.LoadSoundBank(bank, GetBankSlot(slotId));
     } else {
         AEAudioHardware.LoadSound(bank, wav.m_nBankSlotId, GetBankSlot(slotId));
     }
