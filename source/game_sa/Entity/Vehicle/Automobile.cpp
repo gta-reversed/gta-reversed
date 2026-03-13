@@ -4639,7 +4639,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         // TOOD: Refactor
         float sinSteerAngle = 0.0f;
         float cosSteerAngle = 0.0f;
-        bool  canSteer      = steerAngle > VOLUME_SILENCE;
+        bool  canSteer      = steerAngle > -100.0f;
         if (canSteer) {
             sinSteerAngle = std::sin(steerAngle);
             cosSteerAngle = std::cos(steerAngle);
