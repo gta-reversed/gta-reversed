@@ -44,9 +44,6 @@ public:
     }
 
 private:
-    static float (&m_sfLogLookup)[50][2];
-
-private:
     friend void InjectHooksMain();
     static void InjectHooks();
 };
