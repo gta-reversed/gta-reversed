@@ -71,8 +71,8 @@ public:
     bool Lost() const;
 
     // Those 2 require DirectSound EAX 4.0 extensions or some alternative to be available in project
-    bool SetReverbAndDepth(uint32 reverb, uint32 depth);
-    void SetNotInRoom(uint8 type); // 0 - frontend, 1 - world
+    bool SetReverbAndDepth(uint32 reverbEnv, uint32 depth);
+    void SetNotInRoom(bool onStreet); // 0 - frontend, 1 - world
 
 private:
     friend void InjectHooksMain();
