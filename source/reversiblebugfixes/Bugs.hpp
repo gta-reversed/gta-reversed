@@ -74,4 +74,9 @@ inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
     .Description = "Fix multiple issues related to saving unused path areas after missions",
     .Credit      = "Contributors"
 };
+inline const ReversibleBugFix CPedToPlayerConversations_Update_SkipWhileInAGangWar{
+    .Name        = "Skip CPedToPlayerConversations::Update while in a gang war",
+    .Description = "You can't engage in a conversation while in a gang war.",
+    .Credit      = "WDS"
+};
 };

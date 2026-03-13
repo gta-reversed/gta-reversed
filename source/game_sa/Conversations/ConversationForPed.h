@@ -1,10 +1,12 @@
 #pragma once
 
+#include "ConversationNode.h"
+
 class CPed;
 
 class CConversationForPed {
 public:
-    enum eStatus : uint32 {
+    enum class eStatus : uint32 {
         INACTIVE = 0,
         PLAYER_SPEAKING,
         PED_SPEAKING,
@@ -20,10 +22,17 @@ public:
     bool    m_Enabled;
     bool    m_SuppressSubtitles;
 
+    void Clear(bool dontClearNodes);
+    void Update();
+    bool IsPlayerInPositionForConversation(bool isRandomConversation);
+
+private: // NOTSA:
+    friend void InjectHooksMain();
     static void InjectHooks();
-    void        Clear(bool dontClearNodes);
-    void        Update();
-    bool        IsPlayerInPositionForConversation(bool randomConversation);
+
+public:
+    CConversationNode* GetCurrentNode() const;
+    CConversationNode* GetFirstNode() const;
 };
 
 VALIDATE_SIZE(CConversationForPed, 0x1C);
