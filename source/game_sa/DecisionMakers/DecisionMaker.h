@@ -9,14 +9,7 @@
 #include "Decision.h"
 #include "eDecisionMakerEvents.h"
 
-class CDecisionMaker {
-public:
-    CDecision m_aDecisions[DM_TOTAL_NUM_EVENTS];
-
-public:
-    static void InjectHooks();
-
-    CDecisionMaker();
+struct CDecisionMaker {
+    std::array<CDecision, DM_TOTAL_NUM_EVENTS> Decisions{};
 };
-
 VALIDATE_SIZE(CDecisionMaker, 0x99C);

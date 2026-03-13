@@ -15,18 +15,17 @@ void CTaskSimpleSetCharDecisionMaker::InjectHooks() {
 }
 
 // 0x46A470
-CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(uint32 decisionMaker) :
-    m_decisionMaker{ decisionMaker }
-{
+CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(eDecisionMakerTypeS32 decisionMaker) :
+    m_DecisionMakerType{ decisionMaker } {
 }
 
+// For 0x46A490
 CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(const CTaskSimpleSetCharDecisionMaker& o) :
-    CTaskSimpleSetCharDecisionMaker{o.m_decisionMaker}
-{
+    CTaskSimpleSetCharDecisionMaker{ o.m_DecisionMakerType } {
 }
 
 // 0x635430
 bool CTaskSimpleSetCharDecisionMaker::ProcessPed(CPed* ped) {
-    ped->GetIntelligence()->SetPedDecisionMakerType(m_decisionMaker);
+    ped->GetIntelligence()->SetPedDecisionMakerType(m_DecisionMakerType);
     return true;
 }
