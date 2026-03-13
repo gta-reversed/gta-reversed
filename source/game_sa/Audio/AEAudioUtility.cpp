@@ -120,7 +120,7 @@ void CAEAudioUtility::StaticInitialise() {
     for (size_t i = 2; i < std::size(m_sfLogLookup); i++) {
         const float v       = 10.0f / std::pow(1.2f, static_cast<float>(std::size(m_sfLogLookup) - i - 1));
         m_sfLogLookup[i][0] = v;
-        m_sfLogLookup[1][1] = std::log10(v);
+        m_sfLogLookup[i][1] = std::log10(v);
     }
 
     startTimeMs = GetCurrentTimeInMS();

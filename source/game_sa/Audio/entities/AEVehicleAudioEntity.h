@@ -9,6 +9,7 @@
 #include <extensions/FixedFloat.hpp>
 
 #include "AEAudioEntity.h"
+#include "AEAudioUtility.h"
 #include "cTransmission.h"
 #include "AETwinLoopSoundEntity.h"
 #include "eRadioID.h"

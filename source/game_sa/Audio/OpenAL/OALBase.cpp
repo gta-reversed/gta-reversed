@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "OALBase.h"
+#include <mutex>
 
 OALBase::OALBase() {
     m_RefCount = 1;
@@ -14,13 +15,14 @@ void OALBase::Release() {
     if (--m_RefCount)
         return;
 
+    static std::once_flag s_TrashMutexInitFlag;
+    std::call_once(s_TrashMutexInitFlag, [] {
+        s_TrashMutex = OS_MutexCreate();
+    });
+
     OS_MutexObtain(s_TrashMutex);
     s_TrashCan.push_back(std::unique_ptr<OALBase>(this));
     OS_MutexRelease(s_TrashMutex);
-}
-
-void OALBase::AddRef() {
-    ++m_RefCount;
 }
 
 bool OALCheckErrors(std::string_view file, int32 line) {

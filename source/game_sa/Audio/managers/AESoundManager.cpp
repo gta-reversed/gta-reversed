@@ -4,6 +4,7 @@
 
 #include "AEAudioEnvironment.h"
 #include "AEAudioHardware.h"
+#include "AEAudioUtility.h"
 
 #include <DebugModules/Audio/SoundManagerDebugModule.hpp>
 #include <UIRenderer.h>

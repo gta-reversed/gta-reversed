@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "BulletTraces.h"
+#include "AEAudioUtility.h"
 
 CBulletTrace (&CBulletTraces::aTraces)[16] = *(CBulletTrace(*)[16])0xC7C748;
 

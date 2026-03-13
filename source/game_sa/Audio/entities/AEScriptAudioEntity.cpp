@@ -20,7 +20,6 @@ void CAEScriptAudioEntity::Reset() {
     }
     m_Crane                     = nullptr;
     m_MiniGameOneShotTriggered  = 0;
-    m_Crane                     = 0;
     m_InACrane                  = 0;
     m_MissionSoundEnvelopePhase = 2.0;
 }

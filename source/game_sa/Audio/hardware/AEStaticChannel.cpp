@@ -2,6 +2,8 @@
 
 #include "AEStaticChannel.h"
 
+#include "AEAudioUtility.h"
+
 #include "AESmoothFadeThread.h"
 
 void CAEStaticChannel::InjectHooks() {

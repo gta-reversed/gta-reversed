@@ -3,6 +3,7 @@
 #include "AEAudioChannel.h"
 #include "AEStreamingDecoder.h"
 #include "AESmoothFadeThread.h"
+#include "AEAudioUtility.h"
 
 enum class StreamingChannelState : int32 {
     Paused = -7,
