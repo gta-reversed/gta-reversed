@@ -35,8 +35,8 @@ struct PtrListDoubleLinkTraits {
         assert(node->Prev == prev && "Incorrect `prev` value");
         assert(head && "Can't remove node from empty list");
         assert(!prev || IsNodeValid(*prev));
-        //assert(IsNodeValid(*head));
-        //assert(IsNodeValid(*node));
+        assert(IsNodeValid(*head));
+        assert(IsNodeValid(*node));
 
         NodeType* next = node->Next;
 
