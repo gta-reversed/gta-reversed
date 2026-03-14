@@ -27,7 +27,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Setup CMake using Conan
               uses: ./.github/actions/setup-cmake
