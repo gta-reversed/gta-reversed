@@ -139,26 +139,22 @@ void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVec
         return { posn, false };
     }();
 
-    m_tempSound.Initialise(
-        GetBankSlot(linkId),
-        sfxId,
-        this,
-        pos,
-        CAEAudioEntity::GetDefaultVolume(eventId) + volume,
-        maxDistance,
-        speed
-    );
-    m_tempSound.m_Flags = 0;
-    m_tempSound.SetFlags(eSoundEnvironment::SOUND_FRONT_END, isFrontend);
-    m_tempSound.SetFlags(eSoundEnvironment::SOUND_IS_CANCELLABLE, true);
-    m_tempSound.SetFlags(eSoundEnvironment::SOUND_REQUEST_UPDATES, true);
-
-    if (physical) {
-        m_tempSound.SetFlags(SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, true);
-        m_tempSound.RegisterWithPhysicalEntity(physical);
-    }
-    m_tempSound.m_Event = eventId;
-    AESoundManager.RequestNewSound(&m_tempSound);
+    AESoundManager.PlaySound({
+        .BankSlotID = GetBankSlot(linkId),
+        .SoundID = sfxId,
+        .AudioEntity = this,
+        .Pos = pos,
+        .Volume = CAEAudioEntity::GetDefaultVolume(eventId) + volume,
+        .RollOffFactor = maxDistance,
+        .Speed = speed,
+        .Doppler = 1.0f,
+        .FrameDelay = 0,
+        .Flags = SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | (isFrontend ? SOUND_FRONT_END : 0u) | (physical ? SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY : 0u),
+        .FrequencyVariance = 0.0f,
+        .PlayTime = 0,
+        .RegisterWithEntity = physical,
+        .EventID = eventId
+    });
 }
 
 // 0x4EC550
@@ -228,19 +224,24 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
         }
     }();
 
-    CAESound sound{};
-    sound.Initialise(GetBankSlot(sampleId), wav.m_nBankSlotId, this, pos, volume);
-    sound.m_Flags = SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE;
-    sound.SetFlags(SOUND_FRONT_END, isFrontend);
-    sound.SetFlags(SOUND_IS_DUCKABLE, duck);
-    sound.SetFlags(SOUND_IS_COMPRESSABLE, duck);
-    sound.SetFlags(SOUND_SMOOTH_DUCKING, duck);
-    wav.m_Sound = AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        .BankSlotID = GetBankSlot(sampleId),
+        .SoundID = static_cast<eSoundID>(wav.m_nBankSlotId), // TODO
+        .AudioEntity = this,
+        .Pos = pos,
+        .Volume = volume,
+        .RollOffFactor = 1.0f,
+        .Speed = 1.0f,
+        .Doppler = 1.0f,
+        .FrameDelay = 0,
+        .Flags = SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (isFrontend ? SOUND_FRONT_END : 0u)
+            | (duck ? SOUND_IS_DUCKABLE | SOUND_IS_COMPRESSABLE | SOUND_SMOOTH_DUCKING : 0u)
+    });
 }
 
 // 0x4EC190
 void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId) {
-    if (slotId >= 4 || !IsMissionAudioSampleFinished(slotId)) {
+    if (slotId >= std::size(wavLinks) || !IsMissionAudioSampleFinished(slotId)) {
         return;
     }
 
@@ -925,9 +926,9 @@ void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
 
         // NOTE: I intentionally avoid using enums here cuz them make zero sense!!
         // TODO: make sense of this
-        if (wav.m_nAudioEvent > 0x45E) {
+        if (wav.m_nAudioEvent > AE_SCRIPT_GYM_RUNNING_MACHINE_START) {
             auto triggerEnd = m_LastMiniGameLoopTriggerTimeMs + 500;
-            if (const auto x = wav.m_nAudioEvent - 0x47B; x) {
+            if (const auto x = wav.m_nAudioEvent - AE_SCRIPT_SWEETS_HORN; x) {
                 const auto y = x - 20;
                 if (y && y != 10) {
                     continue;
@@ -942,11 +943,11 @@ void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
             continue;
         }
 
-        if (wav.m_nAudioEvent != 0x45E) {
+        if (wav.m_nAudioEvent != AE_SCRIPT_GYM_RUNNING_MACHINE_START) {
             break;
         }
 
-        // ...
+        NOTSA_UNREACHABLE("partially reversed");
     }
 }
 

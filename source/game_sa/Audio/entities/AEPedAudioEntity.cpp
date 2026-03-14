@@ -511,22 +511,22 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
     }
 
     const auto Sound = [&](eSoundID sfxId, uint32 var, eSoundBankSlot slot = SND_BANK_SLOT_WEAPON_GEN) {
-        m_tempSound.Initialise(
-            slot,
-            sfxId,
-            this,
-            m_pPed->GetPosition(),
-            GetDefaultVolume(event),
-            2.0f,
-            0.0f,
-            1.0f,
-            0,
-            SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES
-        );
-        m_tempSound.RegisterWithPhysicalEntity(m_pPed);
-        m_tempSound.m_Event          = event;
-        m_tempSound.m_ClientVariable = static_cast<float>(var);
-        AESoundManager.RequestNewSound(&m_tempSound);
+        AESoundManager.PlaySound({
+            .BankSlotID         = slot,
+            .SoundID            = sfxId,
+            .AudioEntity        = this,
+            .Pos                = m_pPed->GetPosition(),
+            .Volume             = GetDefaultVolume(event),
+            .Speed              = 2.0f,
+            .Doppler            = 1.0f,
+            .FrameDelay         = 0,
+            .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES,
+            .FrequencyVariance  = 0.0f,
+            .PlayTime           = 0,
+            .RegisterWithEntity = m_pPed,
+            .EventID            = event,
+            .ClientVariable     = static_cast<float>(var)
+        });
     };
 
     const auto now          = CTimer::GetTimeInMS();
