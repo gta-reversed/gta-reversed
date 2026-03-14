@@ -1,4 +1,4 @@
-name: Build
+name: Static Analysis
 
 env:
     # Compile in parallel where possible.
@@ -14,16 +14,15 @@ permissions:
     contents: read
 
 jobs:
-    build:
+    static-analysis:
         permissions:
             contents: read # for actions/checkout to fetch code
+            security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
         strategy:
             fail-fast: false
             matrix:
                 os: [windows-2025-vs2026]
-                arch: [x86]
                 conf: [Debug, Release]
-                preset: [NoUnity, Unity]
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout
@@ -37,12 +36,19 @@ jobs:
                   conf: ${{ matrix.conf }}
                   preset: ${{ matrix.preset }}
 
-            - name: Build ${{ matrix.conf }}-${{ matrix.arch }}
-              shell: cmd
-              run: cmake --build build --config ${{ matrix.conf }}
-
-            - name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-              uses: actions/upload-artifact@v4
+            - name: Initialize MSVC Code Analysis
+              uses: microsoft/msvc-code-analysis-action@v0.1.1
+              id: analysis
               with:
-                  name: gta_reversed-${{ matrix.conf }}-${{ matrix.preset }}
-                  path: bin/${{ matrix.conf }}
+                  cmakeBuildDirectory: ${{ env.build }}
+                  # Ruleset file that will determine what checks will be run
+                  ruleset: NativeRecommendedRules.ruleset
+                  buildConfiguration: ${{ matrix.conf }}
+                  # Exclude external libraries from analysis
+                  ignoredPaths: ${{ github.workspace }}/libs
+
+              # Upload SARIF file to GitHub Code Scanning Alerts
+            - name: Upload SARIF to GitHub
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: ${{ steps.analysis.outputs.sarif }}
