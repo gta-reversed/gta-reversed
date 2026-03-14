@@ -71,23 +71,73 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
 
     constexpr CVector posA = { -0.906f, 0.423f, 0.0f }, posB = { 0.906f, 0.423f, 0.0f };
 
-    CAESound sound{};
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 4, this, posA, VOLUME_SILENCE, 1.0f, speedA, 1.0f, 0, envFlags);
-    sound.m_Event = AE_FRONTEND_SELECT;
-    AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        SND_BANK_SLOT_EXPLOSIONS,
+        4,
+        this,
+        posA,
+        VOLUME_SILENCE,
+        1.0f,
+        speedA,
+        1.0f,
+        0,
+        envFlags,
+        0.0f,
+        0,
+        nullptr,
+        AE_FRONTEND_SELECT
+    });
 
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 4, this, posB, VOLUME_SILENCE, 1.0f, speedB, 1.0f, 0, envFlags);
-    sound.m_Event = AE_FRONTEND_SELECT;
-    AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        SND_BANK_SLOT_EXPLOSIONS,
+        4,
+        this,
+        posB,
+        VOLUME_SILENCE,
+        1.0f,
+        speedB,
+        1.0f, 0,
+        envFlags,
+        0.0f,
+        0,
+        nullptr,
+        AE_FRONTEND_SELECT
+    });
 
     const float volume = CAEAudioEntity::GetDefaultVolume(AE_THUNDER) + std::log10(CWeather::LightningDuration * 0.0375f) * 20.0f;
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 1, this, posA, volume, 1.0f, speedA, 1.0f, 0, envFlags | SOUND_ROLLED_OFF);
-    sound.m_Event = AE_FRONTEND_BACK;
-    AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        SND_BANK_SLOT_EXPLOSIONS,
+        1,
+        this,
+        posA,
+        volume,
+        1.0f,
+        speedA,
+        1.0f,
+        0,
+        envFlags | SOUND_ROLLED_OFF,
+        0.0f,
+        0,
+        nullptr,
+        AE_FRONTEND_BACK
+    });
 
-    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 1, this, posB, volume, 1.0f, speedB, 1.0f, 0, envFlags | SOUND_ROLLED_OFF);
-    sound.m_Event = AE_FRONTEND_BACK;
-    AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        SND_BANK_SLOT_EXPLOSIONS,
+        1,
+        this,
+        posB,
+        volume,
+        1.0f,
+        speedB,
+        1.0f,
+        0,
+        envFlags | SOUND_ROLLED_OFF,
+        0.0f,
+        0,
+        nullptr,
+        AE_FRONTEND_BACK
+    });
 }
 
 // 0x505A00
