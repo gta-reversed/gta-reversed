@@ -13,10 +13,10 @@
 #include "TaskSimpleFight.h"
 #include "TaskSimpleDuck.h"
 
-int32& gLastRandomNumberForIdleAnimationID = *reinterpret_cast<int32*>(0x8D2FEC);
-uint32& gLastTouchTimeDelta = *reinterpret_cast<uint32*>(0xC19664);
-float& gDuckAnimBlendData = *reinterpret_cast<float*>(0x8D2FF0); // 4.0f
-bool& gbUnknown_8D2FE8 = *reinterpret_cast<bool*>(0x8D2FE8);     // default value true; also always true
+auto& gLastRandomNumberForIdleAnimationID = StaticRef<int32>(0x8D2FEC);
+auto& gLastTouchTimeDelta = StaticRef<uint32>(0xC19664);
+auto& gDuckAnimBlendData = StaticRef<float>(0x8D2FF0); // 4.0f
+auto& gbUnknown_8D2FE8 = StaticRef<bool>(0x8D2FE8);     // default value true; also always true
 
 void CTaskSimplePlayerOnFoot::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimplePlayerOnFoot, 0x8708ec, 9);

@@ -2,7 +2,7 @@
 
 #include "HudColours.h"
 
-CHudColours& HudColour = *reinterpret_cast<CHudColours*>(0xBAB22C);
+auto& HudColour = StaticRef<CHudColours>(0xBAB22C);
 
 void CHudColours::InjectHooks() {
     RH_ScopedClass(CHudColours);

@@ -4,17 +4,18 @@
 
 extern void AppLightInjectHooks();
 
-static inline RpLight*& pAmbient = *reinterpret_cast<RpLight**>(0xC886E8);
-static inline RwRGBAReal& AmbientLightColour = *reinterpret_cast<RwRGBAReal*>(0xC886A4);
-static inline RwRGBAReal& AmbientLightColourForFrame = *reinterpret_cast<RwRGBAReal*>(0xC886D4);
-static inline RwRGBAReal& AmbientLightColourForFrame_PedsCarsAndObjects = *reinterpret_cast<RwRGBAReal*>(0xC886C4);
+static inline auto& pAmbient = StaticRef<RpLight*>(0xC886E8);
+static inline auto& AmbientLightColour = StaticRef<RwRGBAReal>(0xC886A4);
+static inline auto& AmbientLightColourForFrame = StaticRef<RwRGBAReal>(0xC886D4);
+static inline auto& AmbientLightColourForFrame_PedsCarsAndObjects = StaticRef<RwRGBAReal>(0xC886C4);
 
-static inline RpLight*& pDirect = *reinterpret_cast<RpLight**>(0xC886EC);
-static inline RwRGBAReal& DirectionalLightColour = *reinterpret_cast<RwRGBAReal*>(0xC88694);
-static inline RwRGBAReal& DirectionalLightColourForFrame = *reinterpret_cast<RwRGBAReal*>(0xC886B4);
-static inline RwRGBAReal (&DirectAmbientLight)[2] = *reinterpret_cast<RwRGBAReal (*)[2]>(0xC8865C); // Direct, Ambient Light
-static inline RpLight* (&pExtraDirectionals)[6] = *reinterpret_cast<RpLight* (*)[6]>(0xC886F0);
-static inline int32& numExtraDirectionalLights = *reinterpret_cast<int32*>(0xC88708);
+static inline auto& pDirect = StaticRef<RpLight*>(0xC886EC);
+static inline auto& DirectionalLightColour = StaticRef<RwRGBAReal>(0xC88694);
+static inline auto& DirectionalLightColourForFrame = StaticRef<RwRGBAReal>(0xC886B4);
+static inline auto& DirectAmbientLight = StaticRef<RwRGBAReal[2]>(0xC8865C); // Direct, Ambient Light
+static inline auto& pExtraDirectionals = StaticRef<std::array<RpLight*, 6>>(0xC886F0);
+static inline auto& NumExtraDirectionalLights = StaticRef<int32>(0xC88708);
+static inline auto& LightStrengths = StaticRef<std::array<float, 6>>(0xC8867C);
 
 extern void ActivateDirectional();
 extern void DeActivateDirectional();

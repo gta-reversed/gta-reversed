@@ -11,26 +11,13 @@
 #include "LoadingScreen.h"
 #include "CarFXRenderer.h"
 
-CVehicleModelInfo::CLinkedUpgradeList& CVehicleModelInfo::ms_linkedUpgrades = *(CVehicleModelInfo::CLinkedUpgradeList*)0xB4E6D8;
-RwTexture* &CVehicleModelInfo::ms_pRemapTexture = *(RwTexture**)0xB4E47C;
-RwTexture* &CVehicleModelInfo::ms_pLightsTexture = *(RwTexture**)0xB4E68C;
-RwTexture* &CVehicleModelInfo::ms_pLightsOnTexture = *(RwTexture**)0xB4E690;
-uint8 (&CVehicleModelInfo::ms_currentCol)[NUM_CURRENT_COLORS] = *(uint8(*)[NUM_CURRENT_COLORS])0xB4E3F0;
-CRGBA (&CVehicleModelInfo::ms_vehicleColourTable)[NUM_VEHICLE_COLORS] = *(CRGBA(*)[NUM_VEHICLE_COLORS])0xB4E480;
-int16(&CVehicleModelInfo::ms_numWheelUpgrades)[NUM_WHEELS] = *(int16(*)[NUM_WHEELS])0xB4E470;
-int32 (&CVehicleModelInfo::ms_wheelFrameIDs)[NUM_WHEELS] = *(int32(*)[NUM_WHEELS])0x8A7770;
-int16(&CVehicleModelInfo::ms_upgradeWheels)[NUM_WHEEL_UPGRADES][NUM_WHEELS] = *(int16(*)[NUM_WHEEL_UPGRADES][NUM_WHEELS])0xB4E3F8;
-uint8(&CVehicleModelInfo::ms_lightsOn)[NUM_LIGHTS] = *(uint8(*)[NUM_LIGHTS])0xB4E3E8;
-RwObjectNameIdAssocation* (&CVehicleModelInfo::ms_vehicleDescs)[NUM_VEHICLE_MODEL_DESCS] = *(RwObjectNameIdAssocation*(*)[NUM_VEHICLE_MODEL_DESCS])0x8A7740;
-
-RwTextureCallBackFind & CVehicleModelInfo::SavedTextureFindCallback = *(RwTextureCallBackFind*)0xB4E6A0;
-RwTexDictionary* &vehicleTxd = *(RwTexDictionary**)0xB4E688;
-RwFrame* &carFrame = *(RwFrame**)0xB4E6B8;
-RwSurfaceProperties& gLightSurfProps = *(RwSurfaceProperties*)0x8A645C;
-tRestoreEntry(&gRestoreEntries)[NUM_RESTORE_ENTRIES] = *(tRestoreEntry(*)[NUM_RESTORE_ENTRIES])0xB4DBE8;
-RwTexture*& gpWhiteTexture = *(RwTexture**)0xB4E3EC;
-float& fEnvMapDefaultCoeff = *(float*)0x8A7780;
-float& fRearDoubleWheelOffsetFactor = *(float*)0x8A7784;
+auto& vehicleTxd = StaticRef<RwTexDictionary*>(0xB4E688);
+auto& carFrame = StaticRef<RwFrame*>(0xB4E6B8);
+auto& gLightSurfProps = StaticRef<RwSurfaceProperties>(0x8A645C);
+auto& gRestoreEntries = StaticRef<tRestoreEntry[NUM_RESTORE_ENTRIES]>(0xB4DBE8);
+auto& gpWhiteTexture = StaticRef<RwTexture*>(0xB4E3EC);
+auto& fEnvMapDefaultCoeff = StaticRef<float>(0x8A7780);
+auto& fRearDoubleWheelOffsetFactor = StaticRef<float>(0x8A7784);
 
 void CVehicleModelInfo::InjectHooks()
 {

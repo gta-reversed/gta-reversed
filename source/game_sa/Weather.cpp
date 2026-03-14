@@ -9,47 +9,6 @@
 #include "eWeatherType.h"
 #include "game_sa/Data/Weather.def"
 
-float& CWeather::TrafficLightsBrightness = *(float*)0xC812A8;
-bool& CWeather::bScriptsForceRain = *(bool*)0xC812AC;
-float& CWeather::Earthquake = *(float*)0xC81340;
-uint32& CWeather::CurrentRainParticleStrength = *(uint32*)0xC812B0;
-uint32& CWeather::LightningStartY = *(uint32*)0xC812B4;
-uint32& CWeather::LightningStartX = *(uint32*)0xC812B8;
-int32& CWeather::LightningFlashLastChange = *(int32*)0xC812BC;
-int32& CWeather::WhenToPlayLightningSound = *(int32*)0xC812C0;
-uint32& CWeather::LightningDuration = *(uint32*)0xC812C4;
-uint32& CWeather::LightningStart = *(uint32*)0xC812C8;
-bool& CWeather::LightningFlash = *(bool*)0xC812CC;
-bool& CWeather::LightningBurst = *(bool*)0xC812CD;
-float& CWeather::HeadLightsSpectrum = *(float*)0xC812D0;
-float& CWeather::WaterFogFXControl = *(float*)0xC81338;
-float& CWeather::HeatHazeFXControl = *(float*)0xC812D8;
-float& CWeather::HeatHaze = *(float*)0xC812DC;
-float& CWeather::SunGlare = *(float*)0xC812E0;
-float& CWeather::Rainbow = *(float*)0xC812E4;
-float& CWeather::Wavyness = *(float*)0xC812E8;
-float& CWeather::WindClipped = *(float*)0xC812EC;
-CVector& CWeather::WindDir = *(CVector*)0xC813E0;
-float& CWeather::Wind = *(float*)0xC812F0;
-float& CWeather::Sandstorm = *(float*)0xC812F4;
-float& CWeather::Rain = *(float*)0xC81324;
-float& CWeather::InTunnelness = *(float*)0xC81334;
-float& CWeather::WaterDepth = *(float*)0xC81330;
-float& CWeather::UnderWaterness = *(float*)0xC8132C;
-float& CWeather::ExtraSunnyness = *(float*)0xC812F8;
-float& CWeather::Foggyness_SF = *(float*)0xC812FC;
-float& CWeather::Foggyness = *(float*)0xC81300;
-float& CWeather::CloudCoverage = *(float*)0xC81304;
-float& CWeather::WetRoads = *(float*)0xC81308;
-float& CWeather::InterpolationValue = *(float*)0xC8130C;
-uint32& CWeather::WeatherTypeInList = *(uint32*)0xC81310;
-eWeatherRegion& CWeather::WeatherRegion = *(eWeatherRegion*)0xC81314;
-eWeatherType& CWeather::ForcedWeatherType = *(eWeatherType*)0xC81318;
-eWeatherType& CWeather::NewWeatherType = *(eWeatherType*)0xC8131C;
-eWeatherType& CWeather::OldWeatherType = *(eWeatherType*)0xC81320;
-CAEWeatherAudioEntity& CWeather::m_WeatherAudioEntity = *(CAEWeatherAudioEntity*)0xC81360;
-bool& CWeather::StreamAfterRainTimer = *(bool*)0x8D5EAC;
-
 // 0x8CCF30
 std::array<float, 16> CWeather::saTreeWindOffsets = { 1.0f, 0.5f, 0.2f, 0.7f, 0.4f, 1.0f, 0.5f, 0.3f, 0.2f, 0.1f, 0.7f, 0.6f, 0.3f, 1.0f, 0.5f, 0.2f };
 
@@ -194,10 +153,10 @@ void CWeather::RenderRainStreaks() {
     constexpr auto RAIN_STREAK_COUNT{ 32u };
 
     // These are arrays of size `RAIN_STREAK_COUNT`
-    static int32*& streakPosX = *(int32**)0xC81420; // TODO | STATICREF
-    static int32*& streakPosY = *(int32**)0xC8141C; // TODO | STATICREF
-    static int32*& streakPosZ = *(int32**)0xC81418; // TODO | STATICREF
-    static uint8*& streakStrength = *(uint8**)0xC81414; // TODO | STATICREF
+    static auto& streakPosX = StaticRef<int32*>(0xC81420);
+    static auto& streakPosY = StaticRef<int32*>(0xC8141C);
+    static auto& streakPosZ = StaticRef<int32*>(0xC81418);
+    static auto& streakStrength = StaticRef<uint8*>(0xC81414);
 
     if (!streakPosX) {
         // This stuff isn't even freed anywhere..

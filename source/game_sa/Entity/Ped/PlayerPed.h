@@ -21,7 +21,7 @@ public:
     int32 field_7A0;
 
     // did we display "JCK_HLP" message
-    static bool& bHasDisplayedPlayerQuitEnterCarHelpText;
+    static inline auto& bHasDisplayedPlayerQuitEnterCarHelpText = StaticRef<bool>(0xC0BC15);
 
     // Android
     static bool bDebugPlayerInvincible;

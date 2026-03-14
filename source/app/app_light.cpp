@@ -15,7 +15,7 @@ void AppLightInjectHooks() {
     RH_ScopedGlobalInstall(SetLightsWithTimeOfDayColour, 0x7354E0);
     RH_ScopedGlobalInstall(WorldReplaceNormalLightsWithScorched, 0x7357E0);
     RH_ScopedGlobalInstall(WorldReplaceScorchedLightsWithNormal, 0x735820);
-    RH_ScopedGlobalInstall(AddAnExtraDirectionalLight, 0x735840, {.reversed = false});
+    RH_ScopedGlobalInstall(AddAnExtraDirectionalLight, 0x735840);
     RH_ScopedGlobalInstall(RemoveExtraDirectionalLights, 0x7359E0);
     RH_ScopedGlobalInstall(SetAmbientAndDirectionalColours, 0x735A20);
     RH_ScopedGlobalInstall(ReSetAmbientAndDirectionalColours, 0x735C40);
@@ -184,7 +184,44 @@ void WorldReplaceScorchedLightsWithNormal(RpWorld* world) {
 
 // 0x735840
 void AddAnExtraDirectionalLight(RpWorld* world, float x, float y, float z, float red, float green, float blue) {
-    ((void(__cdecl *)(RpWorld*, float, float, float, float, float, float))0x735840)(world, x, y, z, red, green, blue);
+    const float strength     = std::max({ red, green, blue });
+    const auto  numDirLights = CGame::CanSeeOutSideFromCurrArea() ? 4 : 6;
+
+    const auto slot = [&] {
+        if (numDirLights > NumExtraDirectionalLights) {
+            return NumExtraDirectionalLights;
+        }
+
+        // Android sets `msIdx` to -1, making `slot < 0` satisfiable.
+        int32 msIdx{};
+        float msValue{ strength };
+        for (const auto&& [i, s] : rngv::enumerate(LightStrengths)) {
+            if (msValue > s) {
+                msIdx = i;
+                msValue = s;
+            }
+        }
+        return msIdx;
+    }();
+
+    if (slot < 0) {
+        return;
+    }
+
+    RwRGBAReal color{ red, green, blue };
+    RpLightSetColor(pExtraDirectionals[slot], &color);
+
+    auto* frame = RpLightGetFrame(pExtraDirectionals[slot]);
+    auto* mat   = RwFrameGetMatrix(frame);
+    *RwMatrixGetAt(mat) = { -x, -y, -z };
+    RwMatrixUpdate(mat);
+    RwFrameUpdateObjects(frame);
+
+    // RpLightSetFlags "returns" the first arg, which is marked [[nodiscard]], so we have to use it.
+    (void)RpLightSetFlags(pExtraDirectionals[slot], rpLIGHTDIRECTIONAL);
+
+    LightStrengths[slot] = strength;
+    NumExtraDirectionalLights = std::min(NumExtraDirectionalLights + 1, numDirLights);
 }
 
 // 0x7359E0
@@ -192,7 +229,7 @@ void RemoveExtraDirectionalLights(RpWorld* world) {
     for (auto& light : pExtraDirectionals) {
         RpLightSetFlags(light, 0x0);
     }
-    numExtraDirectionalLights = 0;
+    NumExtraDirectionalLights = 0;
 }
 
 // fMult = [ 0.0f; 1.0f ]
@@ -273,9 +310,9 @@ void SetDirectionalColours(RwRGBAReal* color) {
 // unused
 // 0x735C90
 void SetAmbientColoursToIndicateRoadGroup(int32 idx) {
-    static uint8 (&IndicateR)[8] = *reinterpret_cast<uint8 (*)[8]>(0x8D60D0);
-    static uint8 (&IndicateG)[8] = *reinterpret_cast<uint8 (*)[8]>(0x8D60D8);
-    static uint8 (&IndicateB)[8] = *reinterpret_cast<uint8 (*)[8]>(0x8D60E0);
+    static auto& IndicateR = StaticRef<uint8[8]>(0x8D60D0);
+    static auto& IndicateG = StaticRef<uint8[8]>(0x8D60D8);
+    static auto& IndicateB = StaticRef<uint8[8]>(0x8D60E0);
 
     AmbientLightColour.red   = (float)IndicateR[idx & std::size(IndicateR)] * (1.0f / 255.0f);
     AmbientLightColour.green = (float)IndicateG[idx & std::size(IndicateG)] * (1.0f / 255.0f);
@@ -286,7 +323,7 @@ void SetAmbientColoursToIndicateRoadGroup(int32 idx) {
 // unused
 // 0x735D10
 void SetFullAmbient() {
-    static RwRGBAReal& FullLight = *reinterpret_cast<RwRGBAReal*>(0x8D60C0); // { 1.0f, 1.0f, 1.0f, 1.0f }
+    static auto& FullLight = StaticRef<RwRGBAReal>(0x8D60C0); // { 1.0f, 1.0f, 1.0f, 1.0f }
     RpLightSetColor(pAmbient, &FullLight);
 }
 

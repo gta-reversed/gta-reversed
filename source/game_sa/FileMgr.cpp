@@ -12,12 +12,9 @@
 #include "HookSystem.h"
 #include "extensions/Configs/Miscellaneous.hpp"
 
-char (&CFileMgr::ms_dirName)[128] = *(char (*)[128])0xb71a60;
-char (&CFileMgr::ms_rootDirName)[128] = *(char (*)[128])0xb71ae0;
-
-char (&user_tracks_dir_path)[256] = *(char (*)[256])0xc92168;
-char (&user_gallery_dir_path)[256] = *(char (*)[256])0xc92268;
-char (&gta_user_dir_path)[256] = *(char (*)[256])0xc92368;
+auto& user_tracks_dir_path = StaticRef<char[256]>(0xc92168);
+auto& user_gallery_dir_path = StaticRef<char[256]>(0xc92268);
+auto& gta_user_dir_path = StaticRef<char[256]>(0xc92368);
 
 constexpr size_t PATH_SIZE = 256;
 

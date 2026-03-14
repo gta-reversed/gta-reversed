@@ -2,7 +2,7 @@
 
 #include "InterestingEvents.h"
 
-CInterestingEvents& g_InterestingEvents = *(CInterestingEvents*)0xC0B058;
+auto& g_InterestingEvents = StaticRef<CInterestingEvents>(0xC0B058);
 
 /*
  * Commented hooks aren't tested.

@@ -331,12 +331,12 @@ public:
     int32           field_D70{};
     int32           field_D74{};
 
-    static float &m_f3rdPersonCHairMultY;
-    static float &m_f3rdPersonCHairMultX;
-    static float &m_fMouseAccelVertical;
-    static float &m_fMouseAccelHorzntl;
-    static bool &m_bUseMouse3rdPerson;
-    static bool &bDidWeProcessAnyCinemaCam;
+    static inline auto& m_f3rdPersonCHairMultY = StaticRef<float>(0xB6EC10);
+    static inline auto& m_f3rdPersonCHairMultX = StaticRef<float>(0xB6EC14);
+    static inline auto& m_fMouseAccelVertical = StaticRef<float>(0xB6EC18);
+    static inline auto& m_fMouseAccelHorzntl = StaticRef<float>(0xB6EC1C);
+    static inline auto& m_bUseMouse3rdPerson = StaticRef<bool>(0xB6EC2E);
+    static inline auto& bDidWeProcessAnyCinemaCam = StaticRef<bool>(0xB6EC2D);
 
 public:
     static void InjectHooks();
@@ -531,7 +531,7 @@ extern uint32& gLastTime2PlayerCameraWasOK;
 extern uint32& gLastTime2PlayerCameraCollided;
 extern float*& gpCamColVars;
 extern float (&gCamColVars)[28][6];
-static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>, 0x9655A0>();
-static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32, 0x9655DC>();
+static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>>(0x9655A0);
+static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32>(0x9655DC);
 
 void CamShakeNoPos(CCamera* camera, float strength);

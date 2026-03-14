@@ -11,33 +11,33 @@ class CLoadingScreen {
 public:
     static constexpr size_t MAX_SPLASHES = 7u;
 
-    static inline char (&m_PopUpMessage)[16] = *(char (*)[16])0xBAB268;
-    static inline GxtChar (&m_LoadingGxtMsg1)[80] = *(GxtChar (*)[80])0xBAB2C8;
-    static inline GxtChar (&m_LoadingGxtMsg2)[80] = *(GxtChar (*)[80])0xBAB278;
-    static inline std::array<CSprite2d, MAX_SPLASHES>& m_aSplashes = *(std::array<CSprite2d, MAX_SPLASHES>*)0xBAB35C;
+    static inline auto& m_PopUpMessage = StaticRef<char[16]>(0xBAB268);
+    static inline auto& m_LoadingGxtMsg1 = StaticRef<GxtChar[80]>(0xBAB2C8);
+    static inline auto& m_LoadingGxtMsg2 = StaticRef<GxtChar[80]>(0xBAB278);
+    static inline auto& m_aSplashes = StaticRef<std::array<CSprite2d, MAX_SPLASHES>>(0xBAB35C);
 
-    static inline int32& m_currDisplayedSplash = *(int32*)0x8D093C;
-    static inline int32& m_numChunksLoaded = *(int32*)0x8D0940; // -1
-    static inline int32& m_chunkBarAppeared = *(int32*)0x8D0944; // -1
+    static inline auto& m_currDisplayedSplash = StaticRef<int32>(0x8D093C);
+    static inline auto& m_numChunksLoaded = StaticRef<int32>(0x8D0940); // -1
+    static inline auto& m_chunkBarAppeared = StaticRef<int32>(0x8D0944); // -1
 
-    static inline bool& m_bActive = *(bool*)0xBAB318;
-    static inline bool& m_bWantToPause = *(bool*)0xBAB319;
-    static inline bool& m_bPaused = *(bool*)0xBAB31A;
-    static inline bool& m_bFading = *(bool*)0xBAB31C;
-    static inline bool& m_bLegalScreen = *(bool*)0xBAB31D;
-    static inline bool& m_bFadeInNextSplashFromBlack = *(bool*)0xBAB31E;
-    static inline bool& m_bFadeOutCurrSplashToBlack = *(bool*)0xBAB31F;
-    static inline bool& m_bReadyToDelete = *(bool*)0xBAB33D;
+    static inline auto& m_bActive = StaticRef<bool>(0xBAB318);
+    static inline auto& m_bWantToPause = StaticRef<bool>(0xBAB319);
+    static inline auto& m_bPaused = StaticRef<bool>(0xBAB31A);
+    static inline auto& m_bFading = StaticRef<bool>(0xBAB31C);
+    static inline auto& m_bLegalScreen = StaticRef<bool>(0xBAB31D);
+    static inline auto& m_bFadeInNextSplashFromBlack = StaticRef<bool>(0xBAB31E);
+    static inline auto& m_bFadeOutCurrSplashToBlack = StaticRef<bool>(0xBAB31F);
+    static inline auto& m_bReadyToDelete = StaticRef<bool>(0xBAB33D);
 
-    static inline uint8& m_FadeAlpha = *(uint8*)0xBAB320;
-    static inline float& m_StartFadeTime = *(float*)0xBAB324;
-    static inline float& m_ClockTimeOnPause = *(float*)0xBAB328;
-    static inline float& m_PauseTime = *(float*)0xBAB32C;
+    static inline auto& m_FadeAlpha = StaticRef<uint8>(0xBAB320);
+    static inline auto& m_StartFadeTime = StaticRef<float>(0xBAB324);
+    static inline auto& m_ClockTimeOnPause = StaticRef<float>(0xBAB328);
+    static inline auto& m_PauseTime = StaticRef<float>(0xBAB32C);
 
-    static inline float& gfLoadingPercentage = *(float*)0xBAB330;
-    static inline float& m_TimeBarAppeared = *(float*)0xBAB338;
+    static inline auto& gfLoadingPercentage = StaticRef<float>(0xBAB330);
+    static inline auto& m_TimeBarAppeared = StaticRef<float>(0xBAB338);
 
-    static inline float& m_timeSinceLastScreen = *(float*)0xBAB340;
+    static inline auto& m_timeSinceLastScreen = StaticRef<float>(0xBAB340);
 
 public:
     static void InjectHooks();
