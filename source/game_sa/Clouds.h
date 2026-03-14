@@ -55,18 +55,18 @@ struct tVolumetricClouds {
 
 class CClouds {
 public:
-    static inline auto& m_fVolumetricCloudDensity = StaticRef<float, 0x8D5388>();
-    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8, 0x8D538C>();
-    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float, 0x8D5390>();
-    static float& m_fVolumetricCloudMaxDistance;
-    static uint32& m_VolumetricCloudsUsedNum;
-    static float& ms_cameraRoll;
-    static int32& IndividualRotation;
-    static float& CloudRotation;
-    static tVolumetricClouds& ms_vc;
-    static tMovingFog& ms_mf;
-    static CVector& PlayerCoords;
-    static CVector& CameraCoors;
+    static inline auto& m_fVolumetricCloudDensity = StaticRef<float>(0x8D5388);
+    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8>(0x8D538C);
+    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float>(0x8D5390);
+    static inline auto& m_fVolumetricCloudMaxDistance = StaticRef<float>(0xC6AA58);
+    static inline auto& m_VolumetricCloudsUsedNum = StaticRef<uint32>(0xC6AA5C);
+    static inline auto& ms_cameraRoll = StaticRef<float>(0xC6AA64);
+    static inline auto& IndividualRotation = StaticRef<int32>(0xC6AA6C);
+    static inline auto& CloudRotation = StaticRef<float>(0xC6AA70);
+    static inline auto& ms_vc = StaticRef<tVolumetricClouds>(0xC6AAB0);
+    static inline auto& ms_mf = StaticRef<tMovingFog>(0xC6C158);
+    static inline auto& PlayerCoords = StaticRef<CVector>(0xC6E958); // gVecPlayerCoors
+    static inline auto& CameraCoors = StaticRef<CVector>(0xC6E964);  // gVecCameraCoors
 
     static inline struct DebugSettings {
         struct RenderSettingPair {

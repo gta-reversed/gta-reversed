@@ -10,7 +10,7 @@ class CAccidentManager {
 public:
     CAccident m_Accidents[NUM_ACCIDENTS];
 
-    static CAccidentManager*& gAccidentManager;
+    static inline auto& gAccidentManager = StaticRef<CAccidentManager*>(0xB9B7D0);
 
 public:
     static void InjectHooks();

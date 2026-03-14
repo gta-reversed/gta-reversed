@@ -19,7 +19,7 @@
 #include "FileMgr.h"
 #include "MenuManager.h"
 
-CAEUserRadioTrackManager& AEUserRadioTrackManager = *(CAEUserRadioTrackManager*)0xB6B970;
+auto& AEUserRadioTrackManager = StaticRef<CAEUserRadioTrackManager>(0xB6B970);
 
 static auto audioExtensionTypes = std::to_array<tAudioExtensionType>({
     {".ogg", AUDIO_FILE_TYPE_VORBIS},

@@ -4,14 +4,14 @@
 #include "CustomBuildingDNPipeline.h"
 #include "Clouds.h"
 
-RwIm2DVertex (&cc_vertices)[4] = *(RwIm2DVertex(*)[4])0xC400D8;
-RwImVertexIndex (&cc_indices)[12] = *(RwImVertexIndex(*)[12])0x8D5174; // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
+auto& cc_vertices = StaticRef<RwIm2DVertex[4]>(0xC400D8);
+auto& cc_indices = StaticRef<RwImVertexIndex[12]>(0x8D5174); // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
 
-int32 (&hpX)[180] = *(int32(*)[180])0xC3FE08;
-int32 (&hpY)[180] = *(int32(*)[180])0xC3FB38;
-int32 (&hpS)[180] = *(int32(*)[180])0xC3F868; // speed
+auto& hpX = StaticRef<int32[180]>(0xC3FE08);
+auto& hpY = StaticRef<int32[180]>(0xC3FB38);
+auto& hpS = StaticRef<int32[180]>(0xC3F868); // speed
 
-static inline float& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
+static inline auto& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
 
 static constexpr auto GRAIN_TEXTURE_DIM = 256u; // 256x256
 
@@ -709,8 +709,8 @@ void CPostEffects::InfraredVisionRestoreLightsForHeatObjects() {
 
 // 0x704150
 void CPostEffects::Fog() {
-    static float& s_FogRadius = StaticRef<float>(0xC402E4);
-    static float& s_FogAngle  = StaticRef<float>(0xC402DC);
+    static auto& s_FogRadius = StaticRef<float>(0xC402E4);
+    static auto& s_FogAngle  = StaticRef<float>(0xC402DC);
 
     ImmediateModeRenderStatesStore();
     ImmediateModeRenderStatesSet();
@@ -798,7 +798,7 @@ void CPostEffects::CCTV() {
 
 // 0x7037C0
 void CPostEffects::Grain(int32 strengthMask, bool update) {
-    static uint32& s_NumberOfReseeds = StaticRef<uint32>(0xC4031C);
+    static auto& s_NumberOfReseeds = StaticRef<uint32>(0xC4031C);
     if (update) {
         auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
 
@@ -899,10 +899,10 @@ void CPostEffects::SetSpeedFXManualSpeedCurrentFrame(float value) {
 void CPostEffects::Render() {
     ZoneScoped;
 
-    static int32& s_CurrentStrength    = StaticRef<int32>(0xC40328);
-    static float& s_WaterGreen         = StaticRef<float>(0xC40324);
-    static bool&  s_WaitForOneFrame    = StaticRef<bool>(0xC40321);
-    static bool&  s_SavePhotoToGallery = StaticRef<bool>(0xC40320);
+    static auto& s_CurrentStrength    = StaticRef<int32>(0xC40328);
+    static auto& s_WaterGreen         = StaticRef<float>(0xC40324);
+    static auto& s_WaitForOneFrame    = StaticRef<bool>(0xC40321);
+    static auto& s_SavePhotoToGallery = StaticRef<bool>(0xC40320);
 
     if (m_bDisableAllPostEffect) {
         return;
@@ -915,7 +915,7 @@ void CPostEffects::Render() {
     RwRasterPopContext();
     RsCameraBeginUpdate(Scene.m_pRwCamera);
 
-    float& s_ExtraMult = ScopedStaticRef<float>(0xC4032C, 0xC40330, 1, 0.35f);
+    auto& s_ExtraMult = ScopedStaticRef<float>(0xC4032C, 0xC40330, 1, 0.35f);
 
     if (m_bFog) {
         Fog();

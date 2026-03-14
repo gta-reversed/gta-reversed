@@ -9,18 +9,18 @@
 #include "ModelIndices.h"
 #include "HandShaker.h"
 
-bool& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
-uint32& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
+auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
+auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
 
-static inline std::array<bool, 9> gbExitCam = StaticRef<std::array<bool, 9>>(0xB6EC5C);
+static inline auto& gbExitCam = StaticRef<std::array<bool, 9>>(0xB6EC5C);
 
-static inline CVector& DWCineyCamLastPos = StaticRef<CVector>(0xB6FE8C);
-static inline CVector& DWCineyCamLastUp = StaticRef<CVector>(0xB6FE98);
-static inline CVector& DWCineyCamLastRight = StaticRef<CVector>(0xB6FEA4);
-static inline CVector& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
+static inline auto& DWCineyCamLastPos = StaticRef<CVector>(0xB6FE8C);
+static inline auto& DWCineyCamLastUp = StaticRef<CVector>(0xB6FE98);
+static inline auto& DWCineyCamLastRight = StaticRef<CVector>(0xB6FEA4);
+static inline auto& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
 
-static inline float& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
-static inline float& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
+static inline auto& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
+static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
 // 0x509AE0
 static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
@@ -377,10 +377,10 @@ void CCam::ProcessPedsDeadBaby() {
 
 // 0x50EB70
 void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, float speedVar, float speedVarWanted) {
-    static CVector& v3d_8CCC54   = StaticRef<CVector>(0x8CCC54);
-    static bool&    byte_B6FFDC  = StaticRef<bool>(0xB6FFDC);
-    static CVector& v3d_B6FFC4   = StaticRef<CVector>(0xB6FFC4);
-    static CVector& v3d_B6FFD0   = StaticRef<CVector>(0xB6FFD0);
+    static auto& v3d_8CCC54   = StaticRef<CVector>(0x8CCC54);
+    static auto& byte_B6FFDC  = StaticRef<bool>(0xB6FFDC);
+    static auto& v3d_B6FFC4   = StaticRef<CVector>(0xB6FFC4);
+    static auto& v3d_B6FFD0   = StaticRef<CVector>(0xB6FFD0);
 
     if (m_nMode != MODE_SNIPER_RUNABOUT) {
         m_fFOV = 70.0f;
@@ -487,10 +487,10 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
 
 // 0x517EA0
 void CCam::Process_1stPerson(const CVector& target, float orientation, float speedVar, float speedVarWanted) {
-    static float& s_LastWheelieTime = StaticRef<float>(0x8CCD14);
+    static auto& s_LastWheelieTime = StaticRef<float>(0x8CCD14);
     // Making sure player doesn't see below ground when flipped.
     // Name is made up cuz I found it funny to name it like that.
-    static float& s_GroundFaultProtection = StaticRef<float>(0xB7004C);
+    static auto& s_GroundFaultProtection = StaticRef<float>(0xB7004C);
 
     gbFirstPersonRunThisFrame = true;
 
@@ -713,8 +713,8 @@ void CCam::Process_DW_PlaneSpotterCam(bool) {
 
 // 0x50F3F0 - debug
 void CCam::Process_Editor(const CVector& target, float orientation, float speedVar, float speedVarWanted) {
-    static float& s_LookAtAngle     = StaticRef<float>(0xB6FFE4);
-    static bool&  s_DoRenderShadows = StaticRef<bool>(0xB7295A);
+    static auto& s_LookAtAngle     = StaticRef<float>(0xB6FFE4);
+    static auto& s_DoRenderShadows = StaticRef<bool>(0xB7295A);
 
     if (m_bResetStatics) {
         m_vecSource.Set(796.0f, -937.0f, 40.0f);
@@ -859,9 +859,9 @@ void CCam::Process_M16_1stPerson(const CVector&, float, float, float) {
 
 // 0x511B50
 void CCam::Process_Rocket(const CVector& target, float orientation, float speedVar, float speedVarWanted, bool isHeatSeeking) {
-    static uint32 dword_B6FFF8 = StaticRef<uint32>(0xB6FFF8);
-    static uint32 dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
-    static bool   byte_B70000  = StaticRef<bool>(0xB70000);
+    static auto& dword_B6FFF8 = StaticRef<uint32>(0xB6FFF8);
+    static auto& dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
+    static auto& byte_B70000  = StaticRef<bool>(0xB70000);
 
     if (!m_pCamTargetEntity->GetIsTypePed()) {
         return;

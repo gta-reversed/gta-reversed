@@ -8,7 +8,7 @@
 
 #include "eWeaponType.h"
 
-static inline RwTexture*& gpFinishFlagTex = StaticRef<RwTexture*>(0xC7C718);
+static inline auto& gpFinishFlagTex = StaticRef<RwTexture*>(0xC7C718);
 
 class CSpecialFX {
 public:

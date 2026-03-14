@@ -4,7 +4,7 @@
 
 #include "AEStreamTransformer.h"
 
-CAEStreamTransformer& AEStreamTransformer = *(CAEStreamTransformer*)0xb612d8;
+auto& AEStreamTransformer = StaticRef<CAEStreamTransformer>(0xb612d8);
 
 // 0x4f1750
 void CAEStreamTransformer::Initialise() {

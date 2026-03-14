@@ -46,7 +46,7 @@ public:
 
 public:
     static constexpr int32 NUM_WATER_CREATURE_INFOS = 7;
-    static WaterCreatureInfo(&ms_waterCreatureInfos)[NUM_WATER_CREATURE_INFOS]; // Access using GetCreatureInfo()
+    static inline auto& ms_waterCreatureInfos = StaticRef<WaterCreatureInfo[NUM_WATER_CREATURE_INFOS]>(0x8D3698); // Access using GetCreatureInfo()
     static constexpr float ms_fMaxWaterCreaturesDrawDistance = 60.0F;
     static constexpr float ms_fMaxWaterCreaturesDrawDistanceSquared = ms_fMaxWaterCreaturesDrawDistance * ms_fMaxWaterCreaturesDrawDistance;
 };

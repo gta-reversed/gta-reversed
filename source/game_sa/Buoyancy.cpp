@@ -2,14 +2,7 @@
 
 #include "Buoyancy.h"
 
-cBuoyancy& mod_Buoyancy = *(cBuoyancy*)0xC1C890;
-float& cBuoyancy::fPointVolMultiplier = *(float*)0x8D32C8;
-CBuoyancyCalcStruct& cBuoyancy::calcStruct = *(CBuoyancyCalcStruct*)0xC1C858;
-float(*cBuoyancy::afBoatVolumeDistributionSpeed)[3] = (float(*)[3])0x8D335C;
-float(*cBuoyancy::afBoatVolumeDistributionDinghy)[3] = (float(*)[3])0x8D3338;
-float(*cBuoyancy::afBoatVolumeDistributionSail)[3] = (float(*)[3])0x8D3314;
-float(*cBuoyancy::afBoatVolumeDistribution)[3] = (float(*)[3])0x8D32CC;
-float(*cBuoyancy::afBoatVolumeDistributionCat)[3] = (float(*)[3])0x8D3314; // Catamaran volume distribution, unused in game, as there is no matching vehicle
+auto& mod_Buoyancy = StaticRef<cBuoyancy>(0xC1C890);
 
 void cBuoyancy::InjectHooks()
 {

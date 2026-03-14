@@ -12,18 +12,6 @@
 #include "TaskSimpleClimb.h"
 #include "RealTimeShadowManager.h"
 
-float& CPhysical::DAMPING_LIMIT_IN_FRAME = *(float*)0x8CD7A0;
-float& CPhysical::DAMPING_LIMIT_OF_SPRING_FORCE = *(float*)0x8CD7A4;
-float& CPhysical::PHYSICAL_SHIFT_SPEED_DAMP = *(float*)0x8CD788;
-float& CPhysical::SOFTCOL_SPEED_MULT = *(float*)0x8CD794;
-float& CPhysical::SOFTCOL_SPEED_MULT2 = *(float*)0x8CD798;
-float& CPhysical::SOFTCOL_DEPTH_MIN = *(float*)0x8CD78C;
-float& CPhysical::SOFTCOL_DEPTH_MULT = *(float*)0x8CD790;
-float& CPhysical::SOFTCOL_CARLINE_SPEED_MULT = *(float*)0x8CD79C;
-float& CPhysical::TEST_ADD_AMBIENT_LIGHT_FRAC = *(float*)0x8CD7B8;
-float& CPhysical::HIGHSPEED_ELASTICITY_MULT_COPCAR = *(float*)0x8CD784;
-CVector& CPhysical::fxDirection = *(CVector*)0xB73720;
-
 void CPhysical::InjectHooks()
 {
     RH_ScopedVirtualClass(CPhysical, 0x863BA0, 23);
@@ -3933,7 +3921,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 // 0x54BA60
 bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73710; // TODO | STATICREF
+    static auto& colPoints = StaticRef<CColPoint[32]>(0xB73710);
 
     bool bResult = false;
 
@@ -4450,7 +4438,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 // 0x54CFF0
 bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73C98; // TODO | STATICREF
+    static auto& colPoints = StaticRef<CColPoint[32]>(0xB73C98);
     float fThisDamageIntensity = -1.0f;
     float fEntityDamageIntensity = -1.0f;
 

@@ -21,7 +21,7 @@ uint32 MAX_NUM_CUTSCENE_ITEMS_TO_HIDE = 50;
 uint32 MAX_NUM_CUTSCENE_ATTACHMENTS = 50;
 
 //! Is the cutscene close to finishing (If this is set the camera is already fading in)
-static inline auto& g_bCutSceneFinishing = StaticRef<bool, 0xBC1CF8>();
+static inline auto& g_bCutSceneFinishing = StaticRef<bool>(0xBC1CF8);
 
 // 0x5B0380
 int32 CCutsceneMgr::AddCutsceneHead(CObject* object, int32 arg1) {

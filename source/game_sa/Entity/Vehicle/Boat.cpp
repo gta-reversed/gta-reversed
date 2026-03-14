@@ -7,21 +7,21 @@
 const float SECOND_LOD_DISTANCE = 150.0f; // 0x872188
 
 static const constexpr auto uiNumIndices{ 6u };
-RwImVertexIndex KeepWaterOutIndices[uiNumIndices]; // 0xC27988
+auto& KeepWaterOutIndices = StaticRef<RwImVertexIndex[uiNumIndices]>(0xC27988);
 static const constexpr auto uiNumVertices{ 4u };
-RwIm3DVertex KeepWaterOutVertices[uiNumVertices]; // 0xC278F8
+auto& KeepWaterOutVertices = StaticRef<RwIm3DVertex[uiNumVertices]>(0xC278F8);
 
-float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
+const float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
 
-float BOAT_MOUSE_STEER_SCALE = -0.0035f; // 0x872190
-float BOAT_STEER_DAMP_THRESHOLD = 0.5f; // 0x872194
-float BOAT_STEER_DAMP_BASE = 0.985f; // 0x872198
+const float BOAT_MOUSE_STEER_SCALE = -0.0035f; // 0x872190
+const float BOAT_STEER_DAMP_THRESHOLD = 0.5f; // 0x872194
+const float BOAT_STEER_DAMP_BASE = 0.985f; // 0x872198
 
-float fShapeLength = 0.4f; // 0x8D3944
-float fShapeTime = 0.05f; // 0x8D3948
+const float fShapeLength = 0.4f; // 0x8D3944
+const float fShapeTime = 0.05f; // 0x8D3948
 
-float fRangeMult = 0.6f; // 0x8D394C
-float fTimeMult = 1.2f / CBoat::WAKE_LIFETIME; // 0xC279CC
+auto& fRangeMult = StaticRef<float>(0x8D394C); // 0.6f
+auto& fTimeMult = StaticRef<float>(0xC279CC); // 1.2f / CBoat::WAKE_LIFETIME
 
 int16 nWakeSkipCounters[4]; // 0xC279A4
 int16 nWakeSkipCounterVertex[4]; // 0xC279AC

@@ -49,36 +49,36 @@ constexpr union {
 
 class CGangWars {
 public:
-    static inline int32& ZoneInfoForTraining = *(int32*)0x8A5F40; // -1
-    static inline CVehicle*& pDriveByCar = *(CVehicle**)0x96AB28;
-    static inline std::array<int32, 3>& GangRatingStrength = *(std::array<int32, 3>*)0x96AB2C;
-    static inline std::array<int32, 3>& GangRatings = *(std::array<int32, 3>*)0x96AB38;
-    static inline uint32& FightTimer = *(uint32*)0x96AB44;
-    static inline float& TimeTillNextAttack = *(float*)0x96AB48;
-    static inline int32& Gang2 = *(int32*)0x96AB50;
-    static inline uint32& LastTimeInArea = *(uint32*)0x96AB54;
-    static inline int32& WarFerocity = *(int32*)0x96AB58;
-    static inline float& Provocation = *(float*)0x96AB5C;
-    static inline uint32& TimeStarted = *(uint32*)0x96AB60;
+    static inline auto& ZoneInfoForTraining = StaticRef<int32>(0x8A5F40); // -1
+    static inline auto& pDriveByCar = StaticRef<CVehicle*>(0x96AB28);
+    static inline auto& GangRatingStrength = StaticRef<std::array<int32, 3>>(0x96AB2C);
+    static inline auto& GangRatings = StaticRef<std::array<int32, 3>>(0x96AB38);
+    static inline auto& FightTimer = StaticRef<uint32>(0x96AB44);
+    static inline auto& TimeTillNextAttack = StaticRef<float>(0x96AB48);
+    static inline auto& Gang2 = StaticRef<int32>(0x96AB50);
+    static inline auto& LastTimeInArea = StaticRef<uint32>(0x96AB54);
+    static inline auto& WarFerocity = StaticRef<int32>(0x96AB58);
+    static inline auto& Provocation = StaticRef<float>(0x96AB5C);
+    static inline auto& TimeStarted = StaticRef<uint32>(0x96AB60);
     // State of defending gang war (i.e. fighting for enemy zone)
-    static inline eGangWarState& State = *(eGangWarState*)0x96AB64;
+    static inline auto& State = StaticRef<eGangWarState>(0x96AB64);
     // State of attacking gang war (i.e. fighting for own zone)
-    static inline eGangAttackState& State2 = *(eGangAttackState*)0x96AB4C;
+    static inline auto& State2 = StaticRef<eGangAttackState>(0x96AB4C);
     static inline std::array<int32, 6> aSpecificZones = *(std::array<int32, 6>*)0x96AB68;
-    static inline float& Difficulty = *(float*)0x96AB80;
-    static inline eGangID& Gang1 = *(eGangID*)0x96AB84;
-    static inline CZone*& pZoneToFightOver = *(CZone**)0x96AB88;
-    static inline CZoneInfo*& pZoneInfoToFightOver = *(CZoneInfo**)0x96AB8C;
-    static inline bool& bGangWarsActive = *(bool*)0x96AB90;
-    static inline bool& bTrainingMission = *(bool*)0x96AB91;
-    static inline bool& bPlayerIsCloseby = *(bool*)0x96AB92;
-    static inline bool& bCanTriggerGangWarWhenOnAMission = *(bool*)0x96AB93;
-    static inline int32& NumSpecificZones = *(int32*)0x96AB94;
-    static inline int32& RadarBlip = *(int32*)0x96AB98;
-    static inline float& TerritoryUnderControlPercentage = *(float*)0x96AB9C;
-    static inline bool& bIsPlayerOnAMission = *(bool*)0x96ABA0;
-    static inline CVector& CoorsOfPlayerAtStartOfWar = *(CVector*)0x96ABBC;
-    static inline CVector& PointOfAttack = *(CVector*)0x96ABC8;
+    static inline auto& Difficulty = StaticRef<float>(0x96AB80);
+    static inline auto& Gang1 = StaticRef<eGangID>(0x96AB84);
+    static inline auto& pZoneToFightOver = StaticRef<CZone*>(0x96AB88);
+    static inline auto& pZoneInfoToFightOver = StaticRef<CZoneInfo*>(0x96AB8C);
+    static inline auto& bGangWarsActive = StaticRef<bool>(0x96AB90);
+    static inline auto& bTrainingMission = StaticRef<bool>(0x96AB91);
+    static inline auto& bPlayerIsCloseby = StaticRef<bool>(0x96AB92);
+    static inline auto& bCanTriggerGangWarWhenOnAMission = StaticRef<bool>(0x96AB93);
+    static inline auto& NumSpecificZones = StaticRef<int32>(0x96AB94);
+    static inline auto& RadarBlip = StaticRef<int32>(0x96AB98);
+    static inline auto& TerritoryUnderControlPercentage = StaticRef<float>(0x96AB9C);
+    static inline auto& bIsPlayerOnAMission = StaticRef<bool>(0x96ABA0);
+    static inline auto& CoorsOfPlayerAtStartOfWar = StaticRef<CVector>(0x96ABBC);
+    static inline auto& PointOfAttack = StaticRef<CVector>(0x96ABC8);
 
 public:
     static void InjectHooks();

@@ -180,12 +180,6 @@ T& ScopedStaticRef(uintptr varAddr, uintptr flagsAddr, uint32 flagsMask, T&& ini
     return var;
 }
 
-// TODO: Replace this with the one above
-template<typename T, uintptr Addr>
-T& StaticRef() {
-    return StaticRef<T>(Addr);
-}
-
 template<typename T>
 void SAFE_RELEASE(T*& ptr) { // DirectX stuff `Release()`
     if (ptr) {

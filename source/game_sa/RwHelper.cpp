@@ -36,7 +36,7 @@ void RwHelperInjectHooks() {
 
 // 0x4ABA50
 CEventGlobalGroup* GetEventGlobalGroup() {
-    static CEventGlobalGroup*& globalEvents = *(CEventGlobalGroup**)0xA9AF6C;
+    static auto& globalEvents = StaticRef<CEventGlobalGroup*>(0xA9AF6C);
 
     if (globalEvents)
         return globalEvents;

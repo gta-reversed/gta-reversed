@@ -8,7 +8,7 @@
 /*
  * Breakable plugin static offset
  */
-static inline int32& g_BreakablePlugin = *(int32*)0xBB4238;
+static inline auto& g_BreakablePlugin = StaticRef<int32>(0xBB4238);
 
 enum eBreakablePluginPositionRule : uint32 {
     OBJECT_ORIGIN    = 0,

@@ -3,26 +3,11 @@
 #include "Clouds.h"
 #include "PostEffects.h"
 
-float& CClouds::m_fVolumetricCloudMaxDistance = *reinterpret_cast<float*>(0xC6AA58);
-uint32& CClouds::m_VolumetricCloudsUsedNum = *reinterpret_cast<uint32*>(0xC6AA5C);
+auto& CurrentFogIntensity = StaticRef<float>(0x8D5798);
 
-float& CClouds::ms_cameraRoll = *reinterpret_cast<float*>(0xC6AA64);
-
-int32& CClouds::IndividualRotation = *reinterpret_cast<int32*>(0xC6AA6C);
-float& CClouds::CloudRotation = *reinterpret_cast<float*>(0xC6AA70);
-
-tVolumetricClouds& CClouds::ms_vc = *reinterpret_cast<tVolumetricClouds*>(0xC6AAB0);
-
-tMovingFog& CClouds::ms_mf = *reinterpret_cast<tMovingFog*>(0xC6C158);
-
-CVector& CClouds::PlayerCoords = *reinterpret_cast<CVector*>(0xC6E958); // gVecPlayerCoors
-CVector& CClouds::CameraCoors = *reinterpret_cast<CVector*>(0xC6E964);  // gVecCameraCoors
-
-float& CurrentFogIntensity = *reinterpret_cast<float*>(0x8D5798);
-
-RwTexture*& gpMoonMask = *reinterpret_cast<RwTexture**>(0xC6AA74);
-RwTexture*& gpCloudTex = *reinterpret_cast<RwTexture**>(0xC6AA78);
-RwTexture*& gpCloudMaskTex = *reinterpret_cast<RwTexture**>(0xC6AA78 + 0x4);
+auto& gpMoonMask = StaticRef<RwTexture*>(0xC6AA74);
+auto& gpCloudTex = StaticRef<RwTexture*>(0xC6AA78);
+auto& gpCloudMaskTex = StaticRef<RwTexture*>(0xC6AA7C);
 
 void CClouds::InjectHooks() {
     RH_ScopedClass(CClouds);
@@ -897,7 +882,7 @@ void CClouds::RenderBottomFromHeight() {
 
     auto lowZ = 160.f, highZ = 190.f;
 
-    auto& windShift = StaticRef<float, 0xC6E954>();
+    auto& windShift = StaticRef<float>(0xC6E954);
 
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
@@ -1148,7 +1133,7 @@ void CClouds::VolumetricCloudsRender() {
 
     const auto camPos = TheCamera.GetPosition();
 
-    auto& gfVolumetricCloudFader = StaticRef<float, 0xC6E970>();
+    auto& gfVolumetricCloudFader = StaticRef<float>(0xC6E970);
     if (m_bVolumetricCloudHeightSwitch) {
         const auto delta = CTimer::GetTimeStep() * 4.f;
         if (camPos.z < 220.f) {
@@ -1178,8 +1163,8 @@ void CClouds::VolumetricCloudsRender() {
 
 
     //> 0x71653F
-    auto& gVecCameraCoors = StaticRef<CVector, 0xC6E964>();
-    auto& gVecPlayerCoors = StaticRef<CVector, 0xC6E958>();
+    auto& gVecCameraCoors = StaticRef<CVector>(0xC6E964);
+    auto& gVecPlayerCoors = StaticRef<CVector>(0xC6E958);
 
     const auto bIsCameraOrPlayerPosNotStatic = (camPos != gVecCameraCoors) || (plyrPos != gVecPlayerCoors);
 

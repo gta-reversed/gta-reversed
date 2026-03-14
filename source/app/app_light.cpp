@@ -310,9 +310,9 @@ void SetDirectionalColours(RwRGBAReal* color) {
 // unused
 // 0x735C90
 void SetAmbientColoursToIndicateRoadGroup(int32 idx) {
-    static uint8 (&IndicateR)[8] = *reinterpret_cast<uint8 (*)[8]>(0x8D60D0);
-    static uint8 (&IndicateG)[8] = *reinterpret_cast<uint8 (*)[8]>(0x8D60D8);
-    static uint8 (&IndicateB)[8] = *reinterpret_cast<uint8 (*)[8]>(0x8D60E0);
+    static auto& IndicateR = StaticRef<uint8[8]>(0x8D60D0);
+    static auto& IndicateG = StaticRef<uint8[8]>(0x8D60D8);
+    static auto& IndicateB = StaticRef<uint8[8]>(0x8D60E0);
 
     AmbientLightColour.red   = (float)IndicateR[idx & std::size(IndicateR)] * (1.0f / 255.0f);
     AmbientLightColour.green = (float)IndicateG[idx & std::size(IndicateG)] * (1.0f / 255.0f);
@@ -323,7 +323,7 @@ void SetAmbientColoursToIndicateRoadGroup(int32 idx) {
 // unused
 // 0x735D10
 void SetFullAmbient() {
-    static RwRGBAReal& FullLight = *reinterpret_cast<RwRGBAReal*>(0x8D60C0); // { 1.0f, 1.0f, 1.0f, 1.0f }
+    static auto& FullLight = StaticRef<RwRGBAReal>(0x8D60C0); // { 1.0f, 1.0f, 1.0f, 1.0f }
     RpLightSetColor(pAmbient, &FullLight);
 }
 

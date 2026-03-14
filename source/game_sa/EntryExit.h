@@ -71,9 +71,9 @@ public:
     uint8       m_nNumberOfPeds{};
     CEntryExit* m_pLink{};
 
-    static bool& ms_bWarping;
-    static CObject*& ms_pDoor;
-    static CEntryExit*& ms_spawnPoint;
+    static inline auto& ms_bWarping = StaticRef<bool>(0x96A7B8);
+    static inline auto& ms_pDoor = StaticRef<CObject*>(0x96A7BC);
+    static inline auto& ms_spawnPoint = StaticRef<CEntryExit*>(0x96A7C0);
 
 public:
     static void InjectHooks();

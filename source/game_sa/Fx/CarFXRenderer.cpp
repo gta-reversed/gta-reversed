@@ -3,8 +3,6 @@
 #include "CarFXRenderer.h"
 #include "CustomCarEnvMapPipeline.h"
 
-RwTexture* (&CCarFXRenderer::ms_aDirtTextures)[NUM_DIRT_TEXTURES] = *(RwTexture * (*)[NUM_DIRT_TEXTURES])0xC02BD0;
-
 void CCarFXRenderer::InjectHooks() {
     RH_ScopedClass(CCarFXRenderer);
     RH_ScopedCategory("Fx");
