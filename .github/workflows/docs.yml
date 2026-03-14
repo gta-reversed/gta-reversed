@@ -1,0 +1,75 @@
+name: Deploy Doxygen to GitHub Pages
+
+on:
+  push:
+    branches: "master"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen & Graphviz
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+
+      - name: Create CMake Mock Script
+        run: |
+          cat << 'EOF' > cmake_mock.cmake
+          # Override find_package to mock everything except Doxygen
+          macro(find_package name)
+              if("${name}" STREQUAL "Doxygen")
+                  _find_package(${ARGV})
+              else()
+                  message(STATUS "Mocking find_package for ${name}")
+                  set(${name}_FOUND TRUE)
+                  set(${name}_DIR "")
+              endif()
+          endmacro()
+
+          # Provide dummy interface targets so target_link_libraries() doesn't fail
+          add_library(nlohmann_json::nlohmann_json INTERFACE IMPORTED)
+          add_library(Ogg::ogg INTERFACE IMPORTED)
+          add_library(spdlog::spdlog INTERFACE IMPORTED)
+          add_library(Tracy::TracyClient INTERFACE IMPORTED)
+          add_library(vorbis::vorbis INTERFACE IMPORTED)
+          add_library(imgui::imgui INTERFACE IMPORTED)
+          add_library(libjpeg-turbo::libjpeg-turbo INTERFACE IMPORTED)
+          add_library(SDL3::SDL3 INTERFACE IMPORTED)
+          EOF
+
+      - name: Configure CMake
+        run: cmake -B build -DBUILD_DOC=ON -DCMAKE_PROJECT_INCLUDE=$GITHUB_WORKSPACE/cmake_mock.cmake
+
+      - name: Build Doxygen documentation
+        run: cmake --build build --target doxygen
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './build/doxygen/html'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
