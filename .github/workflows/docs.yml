@@ -2,7 +2,7 @@ name: Deploy Doxygen to GitHub Pages
 
 on:
   push:
-    branches: "master"
+    branches: ["master"]
   workflow_dispatch:
 
 permissions:
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Doxygen
         run: sudo apt-get update && sudo apt-get install -y doxygen
