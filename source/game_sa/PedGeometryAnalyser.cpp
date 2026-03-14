@@ -81,8 +81,8 @@ int32 CPedGeometryAnalyser::ComputeBuildingHitPoints(const CVector& a1, const CV
 }
 
 // 0x5F5D80
-void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector&, CVector&) {
-    NOTSA_UNREACHABLE();
+void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& a2, CVector& a3) {
+    return plugin::Call<0x5F5D80, const CPed&, const CVector&, CVector&>(ped, a2, a3);
 }
 
 // 0x5F3B70
@@ -198,8 +198,8 @@ CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(
 }
 
 // 0x5F3C20
-void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere&) {
-    NOTSA_UNREACHABLE();
+void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere& a3) {
+    return plugin::Call<0x5F3C20, const CPed&, CEntity&, CColSphere&>(ped, entity, a3);
 }
 
 // 0x5F3730
