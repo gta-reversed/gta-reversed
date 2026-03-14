@@ -6,40 +6,39 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedClass(CPedGeometryAnalyser);
     RH_ScopedCategoryGlobal();
 
-    //RH_ScopedInstall(CanPedJumpObstacle, 0x0, { .reversed = false });
-    //RH_ScopedInstall(CanPedJumpObstacle, 0x0, { .reversed = false });
+    RH_ScopedOverloadedInstall(CanPedJumpObstacle, "", 0x5F1B00, bool(*)(const CPed&,const CEntity&), { .reversed = false });
+    RH_ScopedOverloadedInstall(CanPedJumpObstacle, "contacted", 0x5F32D0, bool(*)(const CPed&,const CEntity&,const CVector&,const CVector&), { .reversed = false });
     RH_ScopedInstall(CanPedTargetPed, 0x5F1C40);
     RH_ScopedInstall(CanPedTargetPoint, 0x5F1B70, { .reversed = false });
     RH_ScopedInstall(ComputeBuildingHitPoints, 0x5F1E30, { .reversed = false });
-    //RH_ScopedInstall(ComputeClearTarget, 0x0, { .reversed = false });
-    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
-    //RH_ScopedInstall(ComputeClosestSurfacePoint, 0x0, { .reversed = false });
-    //RH_ScopedInstall(ComputeClosestSurfacePoint, 0x0, { .reversed = false });
-    //RH_ScopedInstall(ComputeEntityBoundingBoxCentre, 0x0, { .reversed = false });
+    RH_ScopedInstall(ComputeClearTarget, 0x5F5D80, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const CVector*,CVector&), { .reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
-    //RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x0, { .reversed = false });
+    RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x5F3650);
     RH_ScopedInstall(ComputeEntityBoundingBoxCornersUncached, 0x5F1FA0, { .reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanes, 0x5F3660, { .reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncached, 0x5F1670);
-    //RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncachedAll, 0x0, { .reversed = false });
-    //RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x0, { .reversed = false });
+    RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncachedAll, 0x5F2B80);
+    RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x5F36A0);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750, { .reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .reversed = false });
-    //RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x0, { .reversed = false });
+    RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .reversed = false });
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .reversed = false });
-    //    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "", 0x0, int32 (*)());
-    //    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "", 0x0, int32 (*)());
-    //    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "", 0x0, int32 (*)());
-    //RH_ScopedInstall(ComputePedHitSide, 0x0, { .reversed = false });
-    //RH_ScopedInstall(ComputePedHitSide, 0x0, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const CVector* point2, const float* x), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, int32 (*)(const CVector& point, CEntity& entity), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .reversed = false });
     RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .reversed = false });
-    //RH_ScopedInstall(ComputeRouteRoundEntityBoundingBox, 0x0, { .reversed = false });
-    //RH_ScopedInstall(ComputeRouteRoundEntityBoundingBox, 0x0, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .reversed = false });
-    //RH_ScopedInstall(GetIsLineOfSightClear, 0x0, { .reversed = false });
-    //RH_ScopedInstall(GetIsLineOfSightClear, 0x0, { .reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .reversed = false });
     RH_ScopedInstall(GetNearestPed, 0x5F3590, { .reversed = false });
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .reversed = false });
     RH_ScopedInstall(IsInAir, 0x5F1CB0, { .reversed = false });
@@ -81,8 +80,9 @@ int32 CPedGeometryAnalyser::ComputeBuildingHitPoints(const CVector& a1, const CV
     return CWorld::ms_iProcessLineNumCrossings;
 }
 
+// 0x5F5D80
 void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector&, CVector&) {
-    assert(false);
+    NOTSA_UNREACHABLE();
 }
 
 // 0x5F3B70
@@ -147,9 +147,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
 
 // 0x5F3660
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, CVector(*outPlanes)[4], float* outPlanesDot) {
-    CVector corners[4];
-    ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
-    ComputeEntityBoundingBoxPlanesUncached(zPos, corners, outPlanes, outPlanesDot);
+    ComputeEntityBoundingBoxPlanesUncachedAll(zPos, entity, outPlanes, outPlanesDot);
 }
 
 // 0x5F1670
@@ -172,14 +170,16 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, co
     }
 }
 
+// 0x5F2B80
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, CVector (*outPlanes)[4], float* outPlanesDot) {
     CVector corners[4];
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(zPos, corners, outPlanes, outPlanesDot);
 }
 
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, CVector*, float*) {
-    assert(false);
+// 0x5F36A0
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, CVector* normals, float* dots) {
+    ComputeEntityBoundingBoxSegmentPlanesUncachedAll(zPos, entity, normals, dots);
 }
 
 // 0x5F1750
@@ -199,7 +199,7 @@ CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(
 
 // 0x5F3C20
 void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere&) {
-    assert(false);
+    NOTSA_UNREACHABLE();
 }
 
 // 0x5F3730
