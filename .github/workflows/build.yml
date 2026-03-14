@@ -37,11 +37,11 @@ jobs:
                   conf: ${{ matrix.conf }}
                   preset: ${{ matrix.preset }}
 
-            - name: Build ${{ matrix.conf }}-${{ matrix.arch }}
+            - name: Build
               shell: cmd
               run: cmake --build build --config ${{ matrix.conf }}
 
-            - name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
+            - name: Upload artifacts
               uses: actions/upload-artifact@v4
               with:
                   name: gta_reversed-${{ matrix.conf }}-${{ matrix.preset }}
