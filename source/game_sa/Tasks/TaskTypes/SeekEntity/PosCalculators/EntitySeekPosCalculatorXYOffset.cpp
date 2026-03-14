@@ -10,6 +10,7 @@ void CEntitySeekPosCalculatorXYOffset::InjectHooks() {
     RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x6946a0);
 }
 
+// 0x6946A0
 void CEntitySeekPosCalculatorXYOffset::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {
     CPedGeometryAnalyser::ComputeClearTarget(seeker, target.GetPosition() + m_offsetXY, outPos);
 }
