@@ -6,11 +6,12 @@
 #include "AEAudioHardware.h"
 #include "AEAmbienceTrackManager.h"
 
+// Used for removed/frontend audio sources
+constexpr CVector AUDIOPOS_SENTINEL{ -1000.0f, -1000.0f, -1000.0f };
+
 // 0x5B9B60
 void CAEScriptAudioEntity::Initialise() {
-    for (auto& link : wavLinks) {
-        link.Init();
-    }
+    rng::for_each(wavLinks, &CAudioLink::Init);
 }
 
 // 0x4EC150
@@ -19,9 +20,9 @@ void CAEScriptAudioEntity::Reset() {
         ClearMissionAudio(i);
     }
     m_Crane                     = nullptr;
-    m_MiniGameOneShotTriggered  = 0;
-    m_InACrane                  = 0;
-    m_MissionSoundEnvelopePhase = 2.0;
+    m_MiniGameOneShotTriggered  = false;
+    m_InACrane                  = false;
+    m_MissionSoundEnvelopePhase = 2.0f;
 }
 
 // 0x0
@@ -30,10 +31,9 @@ void CAEScriptAudioEntity::AddAudioEvent(int32) {
 }
 
 // 0x4EC100
-CVector* CAEScriptAudioEntity::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical) {
+void CAEScriptAudioEntity::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical) {
     wavLinks[sampleId].m_pEntity = physical;
-    wavLinks[sampleId].m_vPosition.Set(-1000.0f, -1000.0f, -1000.0f);
-    return &wavLinks[sampleId].m_vPosition;
+    wavLinks[sampleId].m_vPosition = AUDIOPOS_SENTINEL;
 }
 
 // NOTSA; TODO: make sense of this
@@ -49,9 +49,9 @@ void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
 
     AESoundManager.CancelSoundsInBankSlot(GetBankSlot(sampleId), true);
     auto& wav         = wavLinks[sampleId];
-    wav.m_nBankSlotId = 0;
+    wav.m_nBankSlotId = 0; // NOTE: it is this way originally, maybe needs a FIX_BUGS?
     wav.m_Sound       = nullptr;
-    wav.m_vPosition.Set(-1000.0f, -1000.0f, -1000.0f);
+    wav.m_vPosition   = AUDIOPOS_SENTINEL;
 }
 
 // 0x4EBFE0
@@ -60,21 +60,21 @@ bool CAEScriptAudioEntity::IsMissionAudioSampleFinished(uint8 sampleId) {
         return true;
     }
 
-    if (sampleId < 2) {
+    if (sampleId < WAVLINK_UNK_2) {
         return !wavLinks[sampleId].m_Sound;
     }
     return !AESoundManager.AreSoundsPlayingInBankSlot(GetBankSlot(sampleId));
 }
 
 // 0x4EBF60
-int8 CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
+bool CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
     if (sampleId >= std::size(wavLinks)) {
-        return 1;
+        return true;
     }
 
     auto& wav = wavLinks[sampleId];
     if (wav.m_nBankId < 0) {
-        return 1;
+        return true;
     }
 
     if (wav.m_nBankSlotId < 0) {
@@ -108,7 +108,7 @@ CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
     if (wav.m_pEntity) {
         return &wav.m_pEntity->GetPosition();
     }
-    if (wav.m_vPosition.IsZero() || wav.m_vPosition == CVector{ -1000.0f, -1000.0f, -1000.0f }) {
+    if (wav.m_vPosition.IsZero() || wav.m_vPosition == AUDIOPOS_SENTINEL) {
         return nullptr;
     }
     return &wav.m_vPosition;
@@ -116,7 +116,7 @@ CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
 
 // 0x4EC6D0
 void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
-    if (linkId < 2 || linkId >= 4 || a7 && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
+    if (linkId < WAVLINK_UNK_2 || linkId >= std::size(wavLinks) || a7 && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
         return;
     }
 
@@ -129,7 +129,7 @@ void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVec
             return { physical->GetPosition(), false };
         }
 
-        if (posn.IsZero() || posn == CVector{ -1000.0f, -1000.0f, -1000.0f }) {
+        if (posn.IsZero() || posn == AUDIOPOS_SENTINEL) {
             return { CVector{ 0.0f, 1.0f, 0.0f }, true };
         }
 
@@ -170,7 +170,7 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
     const auto [pos, isFrontend] = [&] -> std::pair<CVector, bool> {
         if (physical) {
             return { physical->GetPosition(), false };
-        } else if (posn == -1000.0f || posn.IsZero()) {
+        } else if (posn == AUDIOPOS_SENTINEL || posn.IsZero()) {
             return { CVector{0.0f, 1.0f, 0.0f}, true };
         } else {
             return { posn, false };
@@ -208,7 +208,7 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
 
     const auto [volume, duck] = [&wav, sampleId] -> std::pair<float, bool> {
         if (wav.m_nAudioEvent == eAudioEvents::AE_UNDEFINED) { // TODO: This is originally 65535, investigate.
-            return { -100.0f, false };
+            return { VOLUME_SILENCE, false };
         }
 
         const auto def = CAEAudioEntity::GetDefaultVolume(eAudioEvents::AE_UNDEFINED);
@@ -221,7 +221,7 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
     const auto [pos, isFrontend] = [&] -> std::pair<CVector, bool> {
         if (wav.m_pEntity) {
             return { wav.m_pEntity->GetPosition(), false };
-        } else if (wav.m_vPosition == -1000.0f || wav.m_vPosition.IsZero()) {
+        } else if (wav.m_vPosition == AUDIOPOS_SENTINEL || wav.m_vPosition.IsZero()) {
             return { CVector{ 0.0f, 1.0f, 0.0f }, true };
         } else {
             return { wav.m_vPosition, false };
@@ -263,7 +263,7 @@ void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents script
     }
     wav.m_nAudioEvent = scriptId;
     wav.m_pEntity     = nullptr;
-    wav.m_vPosition.Set(-1000.0f, -1000.0f, -1000.0f);
+    wav.m_vPosition   = AUDIOPOS_SENTINEL;
 }
 
 // 0x4ECCF0
@@ -895,7 +895,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, const 
 
 // 0x4EE960
 void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, CPhysical* physical, float volume, float speed) {
-    ProcessMissionAudioEvent(eventId, { -1000.0f, -1000.0f, -1000.0f }, physical, volume, speed);
+    ProcessMissionAudioEvent(eventId, AUDIOPOS_SENTINEL, physical, volume, speed);
 }
 
 // 0x4EE940
@@ -962,7 +962,7 @@ void CAEScriptAudioEntity::Service() {
         SND_BANK_GENRL_CRANE_P,
         0,
         AE_SCRIPT_CRANE_ENTER,
-        { -1000.0f, -1000.0f, -1000.0f },
+        AUDIOPOS_SENTINEL,
         m_Crane,
         0.0f,
         1.0f,

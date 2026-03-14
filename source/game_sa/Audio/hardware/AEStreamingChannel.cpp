@@ -226,9 +226,8 @@ void CAEStreamingChannel::PrepareStream(CAEStreamingDecoder* newDecoder, int8 fl
         m_nState = StreamingChannelState::Stopped;
     }
 
-    delete m_pStreamingDecoder;
-    m_pStreamingDecoder = newDecoder;
-    m_bLoopTrack        = flags & TRKFLAG_LOOP_TRACK;
+    delete std::exchange(m_pStreamingDecoder, newDecoder);
+    m_bLoopTrack = flags & TRKFLAG_LOOP_TRACK;
 
     void* audioPtr{};
     DWORD audioBytes{};

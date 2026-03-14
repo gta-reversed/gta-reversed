@@ -25,7 +25,7 @@ void CAEPedAudioEntity::InjectHooks() {
     RH_ScopedInstall(HandleLandingEvent, 0x4E18E0);
     RH_ScopedInstall(HandlePedSwing, 0x4E1A40, { .reversed = false });
     RH_ScopedInstall(HandlePedHit, 0x4E1CC0, { .reversed = false });
-    RH_ScopedInstall(HandlePedJacked, 0x4E2350, { .reversed = false });
+    RH_ScopedInstall(HandlePedJacked, 0x4E2350);
     RH_ScopedInstall(HandleSwimSplash, 0x4E26A0);
     RH_ScopedInstall(HandleSwimWake, 0x4E2790);
     RH_ScopedInstall(PlayShirtFlap, 0x4E2A90);

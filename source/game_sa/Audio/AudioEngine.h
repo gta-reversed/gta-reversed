@@ -126,9 +126,9 @@ public:
     void        ClearMissionAudio(uint8 slotId);
     void        SetMissionAudioPosition(uint8 slotId, CVector& posn);
 
-    CVector* AttachMissionAudioToPed(uint8 slotId, CPed* ped);
-    CVector* AttachMissionAudioToObject(uint8 slotId, CObject* object);
-    CVector* AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical);
+    void AttachMissionAudioToPed(uint8 slotId, CPed* ped);
+    void AttachMissionAudioToObject(uint8 slotId, CObject* object);
+    void AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical);
 
     void SayPedless(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
 
