@@ -15,10 +15,14 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 
 ## Build Instructions
 #### 0. Requirements/Prerequisites
-* **Latest [Visual Studio 2026](https://visualstudio.microsoft.com/en/downloads/)**
+* [Visual Studio 2026](https://visualstudio.microsoft.com/en/downloads/)
 * [Python](https://www.python.org/downloads/) >= 3.x (For Conan)
 * [Conan](https://docs.conan.io/2/installation.html#install-with-pip-recommended) (>= 2.x)
 * [CMake](https://cmake.org/download/) (>= 4.20)
+
+> [!NOTE]
+> Visual Studio 2022 should still work but don't forget to change `compiler.version` to 194 in
+> `conanprofile.txt`
 
 #### 1. Install Python and Conan
 * Install the [latest Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
