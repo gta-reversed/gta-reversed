@@ -6,7 +6,7 @@
 // Original table is located at 0xBB3E00 (NOT `0xBB3DFC`) and is of size 256 (so don't change the size below)
 constexpr size_t SIN_LUT_SIZE = 256;
 constexpr float  SIN_LUT_STEP = TWO_PI / (float)(SIN_LUT_SIZE);
-const auto SIN_LUT = StaticRef<std::array<float, SIN_LUT_SIZE>>(0xBB3E00) = []() {
+const auto& SIN_LUT = StaticRef<std::array<float, SIN_LUT_SIZE>>(0xBB3E00) = []() {
     std::array<float, SIN_LUT_SIZE> lut{};
     for (size_t i = 0; i < SIN_LUT_SIZE; ++i) {
         lut[i] = std::sin((float)(i) * SIN_LUT_STEP);

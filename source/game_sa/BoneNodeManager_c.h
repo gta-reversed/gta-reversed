@@ -9,7 +9,7 @@
 
 class BoneNodeManager_c {
 public:
-    static inline std::array<tBoneInfo, MAX_BONE_NUM>& ms_boneInfos = *(std::array<tBoneInfo, MAX_BONE_NUM>*)0x8D26D0;
+    static inline auto& ms_boneInfos = StaticRef<std::array<tBoneInfo, MAX_BONE_NUM>>(0x8D26D0);
 
 public:
     std::array<BoneNode_c, 128> m_Space;
@@ -30,4 +30,4 @@ public:
 };
 VALIDATE_SIZE(BoneNodeManager_c, 0x4C0C);
 
-static inline BoneNodeManager_c& g_boneNodeMan = *(BoneNodeManager_c*)0xC10820;
+static inline auto& g_boneNodeMan = StaticRef<BoneNodeManager_c>(0xC10820);

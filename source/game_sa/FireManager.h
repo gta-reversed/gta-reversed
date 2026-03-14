@@ -74,4 +74,4 @@ private:
 
 VALIDATE_SIZE(CFireManager, 0x964);
 
-inline static CFireManager& gFireManager = *reinterpret_cast<CFireManager*>(0xB71F80);
+static inline auto& gFireManager = StaticRef<CFireManager>(0xB71F80);

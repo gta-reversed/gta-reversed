@@ -25,9 +25,9 @@ public:
 
     static constexpr auto MAX_BULLET_INFOS{8u};
 
-    static CBulletInfo(&aBulletInfos)[MAX_BULLET_INFOS];
-    static CVector& PlayerSniperBulletStart;
-    static CVector& PlayerSniperBulletEnd;
+    static inline auto& aBulletInfos = StaticRef<CBulletInfo[8]>(0xC88740);
+    static inline auto& PlayerSniperBulletStart = StaticRef<CVector>(0xC888A0);
+    static inline auto& PlayerSniperBulletEnd = StaticRef<CVector>(0xC888AC);
 
 public:
     static void InjectHooks();

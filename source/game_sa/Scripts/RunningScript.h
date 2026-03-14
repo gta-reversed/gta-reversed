@@ -78,7 +78,7 @@ enum eButtonId : uint16 {
     BUTTON_RIGHTSHOCK,
 };
 
-static inline std::array<tScriptParam, 32>& ScriptParams = *(std::array<tScriptParam, 32>*)0xA43C78;
+static inline auto& ScriptParams = StaticRef<std::array<tScriptParam, 32>>(0xA43C78);
 
 enum {
     MAX_STACK_DEPTH = 8,
@@ -250,7 +250,7 @@ public:
     using CommandHandlerFn_t    = OpcodeResult(__thiscall CRunningScript::*)(int32);
     using CommandHandlerTable_t = std::array<CommandHandlerFn_t, 27>;
 
-    static inline CommandHandlerTable_t& s_OriginalCommandHandlerTable = *(CommandHandlerTable_t*)0x8A6168;
+    static inline auto& s_OriginalCommandHandlerTable = StaticRef<CommandHandlerTable_t>(0x8A6168);
 
     // NOTSA: We need to provide our own string buffer for arguments parser - the initial assumption that we can use string_view pointed at instruction pointer didn't work in the end.
     // it's not always null terminated so we have to provide our own buffer for the text. I'm eyeballing the max size so this needs to be enough for now. I can't find any command

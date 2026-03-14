@@ -6,11 +6,6 @@
 #include "TaskComplexDriveWander.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 
-/*
-const float& CCarEnterExit::ms_fMaxSpeed_CanDragPedOut = *(float*)0x0;
-const float& CCarEnterExit::ms_fMaxSpeed_PlayerCanDragPedOut = *(float*)0x0;
-*/
-
 void CCarEnterExit::InjectHooks() {
     RH_ScopedClass(CCarEnterExit);
     RH_ScopedCategoryGlobal();

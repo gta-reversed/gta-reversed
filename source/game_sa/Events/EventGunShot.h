@@ -10,7 +10,7 @@ public:
     CVector  m_endPoint;
     bool     m_bHasNoSound;
 
-    static float& ms_fGunShotSenseRangeForRiot2;
+    static inline auto& ms_fGunShotSenseRangeForRiot2 = StaticRef<float>(0x8A625C);
     static void InjectHooks();
 
     CEventGunShot(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);

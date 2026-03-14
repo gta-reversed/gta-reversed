@@ -8,7 +8,7 @@
 #include "AEUserRadioTrackManager.h"
 #include "AEAudioUtility.h"
 
-CAEAudioHardware& AEAudioHardware = *reinterpret_cast<CAEAudioHardware*>(0xB5F8B8);
+auto& AEAudioHardware = StaticRef<CAEAudioHardware>(0xB5F8B8);
 
 void CAEAudioHardware::InjectHooks() {
     RH_ScopedClass(CAEAudioHardware);

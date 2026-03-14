@@ -324,8 +324,8 @@ void CPlantMgr::SetPlantFriendlyFlagInAtomicMI(CAtomicModelInfo* ami) {
 void CPlantMgr::Update(const CVector& cameraPosition) {
     ZoneScoped;
 
-    static int8& nUpdateEntCache    = *(int8*)0xC09171;
-    static int8& nLocTriSkipCounter = *(int8*)0xC09170;
+    static auto& nUpdateEntCache = StaticRef<int8>(0xC09171);
+    static auto& nLocTriSkipCounter = StaticRef<int8>(0xC09170);
 
     IncrementScanCode();
     CGrassRenderer::SetCurrentScanCode(m_scanCode);
@@ -368,8 +368,8 @@ void CPlantMgr::UpdateAmbientColor() {
 
 // 0x5DB3D0
 float CPlantMgr::CalculateWindBending() {
-    static uint32& calculateTimer = *(uint32*)0xC0916C;
-    static uint16& RandomSeed = *(uint16*)0xC09168;
+    static auto& calculateTimer = StaticRef<uint32>(0xC0916C);
+    static auto& RandomSeed = StaticRef<uint16>(0xC09168);
 
     if ((calculateTimer % 2) == 0) {
         calculateTimer++;

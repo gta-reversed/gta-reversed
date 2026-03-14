@@ -396,9 +396,9 @@ void CMenuManager::PrintMap() {
 
 // 0x574900
 void CMenuManager::PrintStats() {
-    static eStats& currentStatId  = StaticRef<eStats>(0xB794CC);
-    static float&  scrollPos      = StaticRef<float>(0x8CDFF4); // -120.0f
-    static int8&   prevScreenItem = StaticRef<int8>(0x8CDFF8);  // 15
+    static auto& currentStatId  = StaticRef<eStats>(0xB794CC);
+    static auto& scrollPos      = StaticRef<float>(0x8CDFF4); // -120.0f
+    static auto& prevScreenItem = StaticRef<int8>(0x8CDFF8);  // 15
 
     m_nCurrentScreenItem = std::min(m_nCurrentScreenItem, 8);
     // 0x574933
@@ -531,7 +531,7 @@ void CMenuManager::PrintBriefs() {
     }
     CFont::SetJustify(false); // redundant
 
-    static bool& drawArrows = StaticRef<bool>(0x8CDFF9); // true
+    static auto& drawArrows = StaticRef<bool>(0x8CDFF9); // true
 
     if (!m_bMapLoaded)
         return;

@@ -19,15 +19,15 @@ class  CColBox;
 
 class CCollision {
 public:
-    static inline CLinkList<CCollisionData*> &ms_colModelCache = *(CLinkList<CCollisionData*>*)0x96592C;
-    static inline uint32& ms_iProcessLineNumCrossings = *(uint32*)0x9655D0;
-    static inline uint32& ms_collisionInMemory = *(uint32*)0x9655D4;
+    static inline auto& ms_colModelCache = StaticRef<CLinkList<CCollisionData*>>(0x96592C);
+    static inline auto& ms_iProcessLineNumCrossings = StaticRef<uint32>(0x9655D0);
+    static inline auto& ms_collisionInMemory = StaticRef<uint32>(0x9655D4);
 
-    static inline bool& bCamCollideWithVehicles = *(bool*)0x8A5B14;         // = true
-    static inline bool& bCamCollideWithObjects = *(bool*)0x8A5B15;          // = true
-    static inline bool& bCamCollideWithPeds = *(bool*)0x8A5B17;             // = true
-    static inline bool& bCamCollideWithBuildings = *(bool*)0x8A5B16;        // = true
-    static inline float& relVelCamCollisionVehiclesSqr = *(float*)0x8A5B18; // = 0.01f
+    static inline auto& bCamCollideWithVehicles = StaticRef<bool>(0x8A5B14);         // = true
+    static inline auto& bCamCollideWithObjects = StaticRef<bool>(0x8A5B15);          // = true
+    static inline auto& bCamCollideWithPeds = StaticRef<bool>(0x8A5B17);             // = true
+    static inline auto& bCamCollideWithBuildings = StaticRef<bool>(0x8A5B16);        // = true
+    static inline auto& relVelCamCollisionVehiclesSqr = StaticRef<float>(0x8A5B18); // = 0.01f
 
     static inline struct DebugSettings {
         struct ShapeShapeCollision {

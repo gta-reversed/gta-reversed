@@ -2627,19 +2627,19 @@ constexpr size_t COL_CACHE_SIZE = 100;
 using ColCache = std::array<CColCacheEntry, COL_CACHE_SIZE>;
 
 //! Cache used currently
-static inline auto& gpColCache = StaticRef<ColCache*, 0x9655CC>();
+static inline auto& gpColCache = StaticRef<ColCache*>(0x9655CC);
 
 //! Entries in the cache that is used currently
-static inline auto& gColCacheNumEntries = StaticRef<uint32, 0x9655D8>();
+static inline auto& gColCacheNumEntries = StaticRef<uint32>(0x9655D8);
 
 //! Unused
-static inline auto& gpColCache2 = StaticRef<ColCache*, 0x9655C8>();
+static inline auto& gpColCache2 = StaticRef<ColCache*>(0x9655C8);
 
 //! Fuck knows
-static inline auto& gbTryDoubleSidedCollision = StaticRef<bool, 0x9655E4>();
+static inline auto& gbTryDoubleSidedCollision = StaticRef<bool>(0x9655E4);
 
 //! Last "distance" that wasn'plSpCenterDist colliding - result from the binary search
-static inline auto& gLastRadiusUsedInCollisionPreventionOfCamera = StaticRef<float, 0xB6EC6C>();
+static inline auto& gLastRadiusUsedInCollisionPreventionOfCamera = StaticRef<float>(0xB6EC6C);
 
 // 0x415590
 bool CCollision::SphereCastVsBBox(
@@ -2927,8 +2927,9 @@ bool CCollision::CheckCameraCollisionVehicles(
 ) {
     ZoneScoped;
 
-    static auto& gFramesSittingOnTimeOut = StaticRef<int32, 0x9689D4>();
-    static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
+    static auto& gpLastSittingOnEntity   = StaticRef<CEntity*>(0x9689D8);
+    static auto& gFramesSittingOnTimeOut = StaticRef<int32>(0x9689D4);
+    static auto& gFramesToConsiderSittingOnStillTrue = StaticRef<int32>(0x8A5B1C); // 30
 
     bool anyCollided = false;
     for (auto* const entity : CWorld::GetRepeatSector(X, Y).Vehicles) {
@@ -2942,7 +2943,7 @@ bool CCollision::CheckCameraCollisionVehicles(
 
         if (IsThisVehicleSittingOnMe(CWorld::pIgnoreEntity->AsVehicle(), entity)) {
             gpLastSittingOnEntity = entity;
-            gFramesSittingOnTimeOut = 30; // from 0x8A5B1C
+            gFramesSittingOnTimeOut = gFramesToConsiderSittingOnStillTrue;
             continue;
         }
 
@@ -3001,10 +3002,10 @@ bool CCollision::CheckCameraCollisionObjects(
 }
 
 // Ah, yes, the ultimate solution, just use static variables!
-static inline auto& gnBottom = StaticRef<int32, 0x965598>();
-static inline auto& gnTop = StaticRef<int32, 0x965590>();
-static inline auto& gnRight = StaticRef<int32, 0x965594>();
-static inline auto& gnLeft = StaticRef<int32, 0x96559C>();
+static inline auto& gnBottom = StaticRef<int32>(0x965598);
+static inline auto& gnTop = StaticRef<int32>(0x965590);
+static inline auto& gnRight = StaticRef<int32>(0x965594);
+static inline auto& gnLeft = StaticRef<int32>(0x96559C);
 
 // 0x4154A0
 bool CCollision::CheckPeds(

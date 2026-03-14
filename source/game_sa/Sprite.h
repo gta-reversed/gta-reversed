@@ -5,10 +5,10 @@
 
 class CSprite {
 public:
-    static inline float& m_f2DNearScreenZ      = *(float*)0xC4B8D8;
-    static inline float& m_f2DFarScreenZ       = *(float*)0xC4B8D4;
-    static inline float& m_fRecipNearClipPlane = *(float*)0xC4B8D0;
-    static inline bool& m_bFlushSpriteBufferSwitchZTest = *(bool*)0xC6A15C;
+    static inline auto& m_f2DNearScreenZ = StaticRef<float>(0xC4B8D8);
+    static inline auto& m_f2DFarScreenZ = StaticRef<float>(0xC4B8D4);
+    static inline auto& m_fRecipNearClipPlane = StaticRef<float>(0xC4B8D0);
+    static inline auto& m_bFlushSpriteBufferSwitchZTest = StaticRef<bool>(0xC6A15C);
 
 public:
     static void InjectHooks();

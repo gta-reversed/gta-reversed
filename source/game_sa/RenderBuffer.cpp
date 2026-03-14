@@ -2,8 +2,8 @@
 #include "RenderBuffer.hpp"
 
 namespace RenderBuffer {
-auto& s_IndicesToBeStored{ StaticRef<int32, 0xC40410>() };
-auto& s_VerticesToBeStored{ StaticRef<int32, 0xC40414>() };
+auto& s_IndicesToBeStored{ StaticRef<int32>(0xC40410) };
+auto& s_VerticesToBeStored{ StaticRef<int32>(0xC40414) };
 
 const auto IdxBufferSize = (int32)std::size(aTempBufferIndices);
 const auto VtxBufferSize = (int32)std::size(TempBufferVertices.m_3d);
