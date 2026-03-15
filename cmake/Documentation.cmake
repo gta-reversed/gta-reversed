@@ -29,7 +29,6 @@ if (DOXYGEN_FOUND)
         "unused=\\xrefitem unused \\\"Unused\\\" \\\"Unused\\\" "
         "addr=\\par Memory address: "
         "size=\\par Structure size: "
-        "detail=\\n"
     )
 
     doxygen_add_docs(doxygen
