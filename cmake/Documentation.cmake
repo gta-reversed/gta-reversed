@@ -33,7 +33,7 @@ if (DOXYGEN_FOUND)
     )
 
     doxygen_add_docs(doxygen
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/source
         ${PROJECT_SOURCE_DIR}/docs
         ${PROJECT_SOURCE_DIR}/README.md
     )

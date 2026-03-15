@@ -25,8 +25,8 @@ jobs:
 
       - name: Install Doxygen
         run: |
-          DOXYGEN_VERSION="1.16.0"
-          # Doxygen uses underscores for release tags (Release_1_10_0)
+          DOXYGEN_VERSION="1.16.1"
+          # Doxygen uses underscores for release tags
           DOXYGEN_TAG="Release_${DOXYGEN_VERSION//./_}"
           echo "Downloading Doxygen $DOXYGEN_VERSION..."
           wget -q https://github.com/doxygen/doxygen/releases/download/${DOXYGEN_TAG}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
