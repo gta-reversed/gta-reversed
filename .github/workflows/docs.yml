@@ -24,7 +24,18 @@ jobs:
           submodules: recursive
 
       - name: Install Doxygen
-        run: sudo apt-get update && sudo apt-get install -y doxygen
+        run: |
+          DOXYGEN_VERSION="1.16.0"
+          # Doxygen uses underscores for release tags (Release_1_10_0)
+          DOXYGEN_TAG="Release_${DOXYGEN_VERSION//./_}"
+          echo "Downloading Doxygen $DOXYGEN_VERSION..."
+          wget -q https://github.com/doxygen/doxygen/releases/download/${DOXYGEN_TAG}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+          echo "Extracting..."
+          tar -xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+          echo "Installing..."
+          sudo cp doxygen-${DOXYGEN_VERSION}/bin/doxygen /usr/local/bin/
+          # Verify installation
+          doxygen -v
 
       - name: Configure CMake
         run: cmake -B build -DCMAKE_PROJECT_INCLUDE="${{ github.workspace }}/contrib/cmake-mock-for-doxygen.cmake"

@@ -22,8 +22,21 @@ if (DOXYGEN_FOUND)
     set(DOXYGEN_DOT_GRAPH_MAX_NODES 100)
     set(DOXYGEN_MAX_DOT_GRAPH_DEPTH 0)
     set(DOXYGEN_DOT_TRANSPARENT YES)
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
-    doxygen_add_docs(doxygen ${CMAKE_CURRENT_SOURCE_DIR})
+    set(DOXYGEN_ALIASES
+        "notsa=\\xrefitem notsa \\\"NOTSA\\\" \\\"NOTSA\\\" "
+        "unused=\\xrefitem unused \\\"Unused\\\" \\\"Unused\\\" "
+        "addr=\\par Memory address: "
+        "size=\\par Structure size: "
+        "detail=\\n"
+    )
+
+    doxygen_add_docs(doxygen
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/docs
+        ${PROJECT_SOURCE_DIR}/README.md
+    )
 else (DOXYGEN_FOUND)
     message("Doxygen need to be installed to generate the doxygen documentation")
 endif (DOXYGEN_FOUND)
