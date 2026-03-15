@@ -237,7 +237,8 @@ bool psCameraBeginUpdate(RwCamera* camera) {
 
 // 0x745240
 RwCamera* psCameraShowRaster(RwCamera* camera) {
-    auto flags = FrontEndMenuManager.m_bPrefsFrameLimiter || CLoadingScreen::m_bActive ? rwRASTERFLIPWAITVSYNC : rwRASTERFLIPDONTWAIT;
+    // Mobile anyway flags = 0x0
+    auto flags = FrontEndMenuManager.m_bPrefsFrameLimiter || CLoadingScreen::IsActive() ? rwRASTERFLIPWAITVSYNC : rwRASTERFLIPDONTWAIT;
     return RwCameraShowRaster(camera, PSGLOBAL(window), flags);
 }
 

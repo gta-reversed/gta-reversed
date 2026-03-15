@@ -39,22 +39,24 @@ void CLoadingScreen::InjectHooks() {
 }
 
 // 0x5902B0
-void CLoadingScreen::Init(bool unusedFlag, bool loaded) {
+void CLoadingScreen::Init(bool legalScreen, bool dont_reload) {
     if (IsActive()) {
         return;
     }
 
-    if (!loaded) {
+    if (!dont_reload) {
         LoadSplashes(false, false);
     }
 
     m_currDisplayedSplash = -1;
-    m_bActive             = true;
+
     m_timeSinceLastScreen = GetClockTime();
+
+    m_bActive = true;
 }
 
 // 0x58FF10
-void CLoadingScreen::Shutdown() {
+void CLoadingScreen::Shutdown(bool force) {
     m_bActive = false;
     for (auto& splash : m_aSplashes) {
         if (splash.m_pTexture) {
@@ -95,7 +97,7 @@ void CLoadingScreen::RenderSplash() {
 }
 
 // 0x5900B0
-void CLoadingScreen::LoadSplashes(bool starting, bool nvidia) {
+void CLoadingScreen::LoadSplashes(bool starting, uint8 id) {
     CFileMgr::SetDir("MODELS\\TXD\\");
     auto slot = CTxdStore::AddTxdSlot("loadscs");
     CTxdStore::LoadTxd(slot, "loadscs.txd");
@@ -113,12 +115,12 @@ void CLoadingScreen::LoadSplashes(bool starting, bool nvidia) {
     std::iota(std::begin(screenIdx), std::end(screenIdx), 0u); // todo: rng::iota
 
     // exclude 0, title_pcXX.
-    std::shuffle(std::begin(screenIdx) + 1, std::end(screenIdx), std::mt19937{std::random_device{}()});
+    std::shuffle(std::begin(screenIdx) + 1, std::end(screenIdx), std::mt19937{ std::random_device{}() });
 
     char name[20];
     for (auto id = 0u; id < MAX_SPLASHES; id++) {
         if (starting) {
-            sprintf_s(name, nvidia ? "nvidia" : "eax");
+            sprintf_s(name, id ? "nvidia" : "eax");
         } else if (id) {
             sprintf_s(name, "loadsc%d", screenIdx[id]);
         } else {
@@ -141,21 +143,23 @@ void CLoadingScreen::DisplayMessage(const char* message) {
 
 // 0x590240
 void CLoadingScreen::SetLoadingBarMsg(const char* msg1, const char* msg2) {
-    if (msg1)
+    if (msg1) {
         AsciiToGxtChar(msg1, m_LoadingGxtMsg1);
-    else
+    } else {
         m_LoadingGxtMsg1[0] = '\0';
+    }
 
-    if (msg2)
+    if (msg2) {
         AsciiToGxtChar(msg2, m_LoadingGxtMsg2);
-    else
+    } else {
         m_LoadingGxtMsg2[0] = '\0';
+    }
 }
 
 // 0x590280
-float CLoadingScreen::GetClockTime(bool ignorePauseTime) {
+float CLoadingScreen::GetClockTime(bool realTime) {
     float time = (float)GetMillisecondTime() / 1000.0f;
-    return ignorePauseTime ? time : time - m_PauseTime;
+    return realTime ? time : time - m_PauseTime;
 }
 
 // 0x590310
@@ -165,8 +169,9 @@ void CLoadingScreen::Pause() {
 
 // 0x590320
 void CLoadingScreen::Continue() {
-    if (!IsActive())
+    if (!IsActive()) {
         return;
+    }
 
     m_bWantToPause = false;
     if (m_bPaused) {
@@ -198,15 +203,16 @@ void CLoadingScreen::RenderLoadingBar() {
         m_TimeBarAppeared = GetClockTime();
     }
 
-    if (m_bLegalScreen || gfLoadingPercentage <= 0.0f || gfLoadingPercentage >= 100.0f)
+    if (m_bLegalScreen || m_PercentLoaded <= 0.0f || m_PercentLoaded >= 100.0f) {
         return;
+    }
 
     CSprite2d::DrawBarChart(
         SCREEN_STRETCH_X(50.0f),
         SCREEN_STRETCH_FROM_BOTTOM(40.0f),
         (uint16)SCREEN_STRETCH_X(180.0f),
         (uint8)SCREEN_STRETCH_Y(10.0f),
-        gfLoadingPercentage,
+        m_PercentLoaded,
         0,
         false,
         true,
@@ -217,8 +223,9 @@ void CLoadingScreen::RenderLoadingBar() {
 
 // 0x5904D0, inlined
 void CLoadingScreen::DisplayNextSplash() {
-    if (m_currDisplayedSplash == 6 || m_bFading)
+    if (m_currDisplayedSplash == 6 || m_bFading) {
         return;
+    }
 
     m_FadeAlpha = 255;
     if (RwCameraBeginUpdate(Scene.m_pRwCamera)) {
@@ -290,17 +297,23 @@ void CLoadingScreen::DoPCTitleFadeIn() {
 }
 
 // 0x590AC0
-void CLoadingScreen::DoPCScreenChange(uint32 finish) {
+void CLoadingScreen::DoPCScreenChange(bool lastOne, bool change) {
     m_bFading = true;
 
-    if (finish) {
+    if (lastOne) {
         m_bFadeOutCurrSplashToBlack = true;
     } else {
-#ifdef FIX_BUGS // Fix incorrect looping behaviour
-        m_currDisplayedSplash = std::max((m_currDisplayedSplash + 1) % std::size(m_aSplashes), 1u); // 1u = skip copyright screen
-#else
-        m_currDisplayedSplash++;
-#endif
+        // Fix incorrect looping behaviour by WDS?
+        if (notsa::IsFixBugs()) {
+            m_numChunksLoaded = -1;
+            if (change) {
+                if (m_currDisplayedSplash < 1) {
+                    m_currDisplayedSplash++;
+                }
+            }
+        } else {
+            m_currDisplayedSplash++;
+        }
     }
 
     if (!g_FastLoaderConfig.NoFading) {
@@ -314,7 +327,7 @@ void CLoadingScreen::DoPCScreenChange(uint32 finish) {
         float alpha = (float)i * 5.0f;
         m_FadeAlpha = (uint8)alpha;
 
-        if (finish || m_bFadeInNextSplashFromBlack) {
+        if (lastOne || m_bFadeInNextSplashFromBlack) {
             float amplitude = m_bFadeOutCurrSplashToBlack ? (255.0f - alpha) / 255.0f : 1.0f;
             AudioEngine.ServiceLoadingTune(amplitude);
         }
@@ -325,26 +338,27 @@ void CLoadingScreen::DoPCScreenChange(uint32 finish) {
     m_bFadeInNextSplashFromBlack = false;
     m_bFading = false;
 
-    if (finish) {
+    if (lastOne) {
         Shutdown();
     }
 }
 
 // 0x590D00
 void CLoadingScreen::NewChunkLoaded() {
-    if (!IsActive())
+    if (!IsActive()) {
         return;
+    }
 
     ++m_numChunksLoaded;
     if (m_chunkBarAppeared != -1) {
-        gfLoadingPercentage = (float)(m_numChunksLoaded - m_chunkBarAppeared) / (140.0f - (float)m_chunkBarAppeared) * 100.0f;
+        m_PercentLoaded = (float)(m_numChunksLoaded - m_chunkBarAppeared) / (140.0f - (float)m_chunkBarAppeared) * 100.0f;
     }
 
     auto now = GetClockTime();
     auto delta = now - m_timeSinceLastScreen;
 
     if (m_numChunksLoaded == 140) {
-        return DoPCScreenChange((uint32)true);
+        return DoPCScreenChange(true);
     }
 
 #ifdef FIX_BUGS // Fix copyright screen appearing instead of an actual loading screen splash
@@ -356,7 +370,7 @@ void CLoadingScreen::NewChunkLoaded() {
             DisplayPCScreen();
         }
     } else { // New splash screen
-        DoPCScreenChange((uint32)false);
+        DoPCScreenChange(false);
         m_timeSinceLastScreen = now;
 
         if (m_chunkBarAppeared == -1) {
@@ -367,11 +381,103 @@ void CLoadingScreen::NewChunkLoaded() {
 
 // 0x5905E0, unused
 void CLoadingScreen::Update() {
-    plugin::Call<0x5905E0>();
+    float fLoadingTuneFadeVolume;
+
+    // Updating the download progress bar
+    //
+    //   m_PercentLoaded = clamp(
+    //       (clockTime - m_TimeBarAppeared) / (36.0f - (m_TimeBarAppeared - m_TimeStartedLoading)),
+    //       0.0f, 1.0f )
+
+    if (m_TimeBarAppeared > 0.0f) {
+        float clockTime = GetClockTime(false);
+
+        float timePassed = clockTime - m_TimeBarAppeared;
+        float totalTime = 36.0f - (m_TimeBarAppeared - m_TimeStartedLoading);
+        m_PercentLoaded = std::min(timePassed / totalTime, 1.0f);
+    }
+
+    // Processing of splash screens before deleting them
+
+    if (!m_bReadyToDelete) {
+        if (m_bLegalScreen) {
+            // Showing the next splash if the Legal Screen is hanging for more than 5.5 seconds
+
+            float clockTime = GetClockTime(false);
+            if (clockTime - m_TimeStartedLoading > 5.5f) {
+                DisplayNextSplash();
+            }
+        }
+
+        // We are waiting for the deletion signal, the full download and the absence of the current fade
+
+        if (m_bSignalDelete && !m_bFading && m_PercentLoaded >= 1.0f) {
+            m_bReadyToDelete = true;
+
+            m_bFadeOutCurrSplashToBlack = true;
+            StartFading();
+        }
+    }
+
+    // Updating the fade
+
+    if (m_bFading) {
+        float timePassed = GetClockTime(false) - m_StartFadeTime;
+
+        // Fade duration:
+        // 2.0f — for a licensed (legal) screen, with a fade-in of the next splash
+        // or if currDisplayedSplash is not selected yet (== -1)
+        // 0.6f is the standard transition between splashes
+
+        float fadeTime = (m_currDisplayedSplash < 0 || m_bFadeInNextSplashFromBlack || m_bLegalScreen) ? 2.0f : 0.6f;
+
+        if (timePassed > fadeTime) {
+            m_bFading = false;
+            m_FadeAlpha = 0xFF;
+
+            if (m_bLegalScreen && m_bFadeOutCurrSplashToBlack) {
+                // The Legal Screen has completely disappeared - switch to the next splash
+
+                m_bFadeOutCurrSplashToBlack = false;
+                m_bFadeInNextSplashFromBlack = true;
+                m_bLegalScreen = false;
+                DisplayNextSplash();
+            } else {
+                m_bFadeInNextSplashFromBlack = false;
+                m_bFadeOutCurrSplashToBlack = false;
+            }
+        } else {
+            // Linearly interpolate alpha from 0 to 255 in fadeTime seconds
+
+            m_FadeAlpha = (uint8_t)(timePassed / fadeTime * 255.0f);
+        }
+    } else {
+        m_FadeAlpha = 0xFF; // Fade is not working — the screen is completely opaque
+    }
+
+    // The volume of the background music of the download (ServiceLoadingTune)
+
+    if (!m_bLegalScreen) {
+        // fLoadingTuneFadeVolume:
+        // fade-in of the next splash - rises smoothly (0 -> 1)
+        // fade-out of the current splash - fades smoothly (1 -> 0)
+        // otherwise - full volume (1)
+
+        if (m_bFadeInNextSplashFromBlack) {
+            fLoadingTuneFadeVolume = (float)m_FadeAlpha / 255.0f;
+        } else if (m_bFadeOutCurrSplashToBlack) {
+            fLoadingTuneFadeVolume = (255.0f - (float)m_FadeAlpha) / 255.0f;
+        } else {
+            fLoadingTuneFadeVolume = 1.0f;
+        }
+
+        AudioEngine.ServiceLoadingTune(fLoadingTuneFadeVolume);
+    }
 }
 
+// NOTSA
 void CLoadingScreen::SkipCopyrightSplash() {
-    m_currDisplayedSplash  = 0;     // Copyright splash
+    m_currDisplayedSplash = 0; // Copyright splash
 #ifndef FIX_BUGS // Fixed this in DoPCScreenChange
     m_timeSinceLastScreen -= 1000.f; // Decrease timeSinceLastScreen, so it will change immediately
 #endif // !FIX_BUGS
