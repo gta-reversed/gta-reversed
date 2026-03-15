@@ -87,7 +87,7 @@ public:
      * @brief Uncompress animation data (Unless the animation has the keep-compressed flag).
      * @brief Also marks the anim as recently-used in the LRU cache
      * 
-     * @detail This function does a 2 things:
+     * @detail This function does 2 things:
      * @detail - Uncompress anim data  (Unless the animation has the keep-compressed flag)
      * @detail - Since it uses a LRU cache, the hierarchy is put at the front (thus marking it as recently used)
      * @detail So even if the anim is already un-compressed this function should be called
