@@ -599,7 +599,7 @@ void CPed::CreateDeadPedMoney() {
 
 /*!
 * @addr 0x459180
-* @brief Created a pickup close to the ped's position (Using \r CPickups::CreatePickupCoorsCloseToCoors)
+* @brief Created a pickup close to the ped's position (Using CPickups::CreatePickupCoorsCloseToCoors)
 * @param [out] outPickupX, outPickupY, outPickupZ Position of the created pickup.
 */
 void CPed::CreateDeadPedPickupCoors(float& outPickupX, float& outPickupY, float& outPickupZ) {
@@ -607,7 +607,7 @@ void CPed::CreateDeadPedPickupCoors(float& outPickupX, float& outPickupY, float&
 }
 
 /*!
-* @address notsa
+* @notsa
 * @copybrief CPed::CreateDeadPedPickupCoors
 * @param [out] pickupPos Position of the created pickup.
 */
@@ -1064,7 +1064,7 @@ void CPed::RemoveGogglesModel() {
 
 /*!
 * @addr   0x5DF200
-* @return \a weaponType weapon's slot (\r CWeaponInfo::GetWeaponInfo()->slot)
+* @return \a weaponType weapon's slot (CWeaponInfo::GetWeaponInfo()->slot)
 */
 int32 CPed::GetWeaponSlot(eWeaponType weaponType)
 {
@@ -1093,7 +1093,7 @@ void CPed::GrantAmmo(eWeaponType weaponType, uint32 ammo) {
 
 /*!
 * @addr 0x5DF290
-* @brief Im lazy to write it :D Similar to \r CPed::GrantAmmo
+* @brief Im lazy to write it :D Similar to CPed::GrantAmmo
 */
 void CPed::SetAmmo(eWeaponType weaponType, uint32 ammo) {
     const auto wepSlot = GetWeaponSlot(weaponType);
@@ -1342,7 +1342,7 @@ void CPed::RestoreHeadingRateCB(CAnimBlendAssociation* assoc, void* data) {
 
 /*!
 * @addr 0x5DFD90
-* @brief Set random radio station if ped is in car. The station is chosen randomly, and is either `m_nRadio1` or `m_nRadio2` from the ped's \r CPedModelInfo
+* @brief Set random radio station if ped is in car. The station is chosen randomly, and is either `m_nRadio1` or `m_nRadio2` from the ped's CPedModelInfo
 */
 void CPed::SetRadioStation()
 {
@@ -1543,7 +1543,7 @@ void CPed::SetPedDefaultDecisionMaker() {
 
 /*!
 * @addr 0x5E0730
-* @returns If entity is a given range angle relative to our current rotation given by \r limitAngle [-limitAngle, limitAngle]
+* @returns If entity is a given range angle relative to our current rotation given by limitAngle [-limitAngle, limitAngle]
 */
 bool CPed::CanSeeEntity(CEntity* entity, float limitAngle) {
 
@@ -1844,7 +1844,7 @@ bool CPed::IsPedInControl() const
 
 /*!
 * @addr 0x5E3990
-* @brief Remove current weapon's object model. \r modelIndex should be the same as with which the object was created with.
+* @brief Remove current weapon's object model. modelIndex should be the same as with which the object was created with.
 */
 void CPed::RemoveWeaponModel(int32 modelIndex) {
 
@@ -1886,7 +1886,7 @@ void CPed::RemoveWeaponModel(int32 modelIndex) {
 
 /*!
 * @addr 0x5E3A90
-* @brief Creates goggles model for current infrared/night vision. See \r PutOnGoggles.
+* @brief Creates goggles model for current infrared/night vision. See PutOnGoggles.
 */
 void CPed::AddGogglesModel(int32 modelIndex, bool& inOutGogglesState) {
     assert(!m_pGogglesObject); // Make sure it's not created already
@@ -1980,7 +1980,7 @@ eWeaponSkill CPed::GetWeaponSkill(eWeaponType weaponType)
 
 /*!
 * @addr 0x5E3C10
-* @brief Set weapon skill, unless we're a player ped (\r IsPlayer)
+* @brief Set weapon skill, unless we're a player ped (IsPlayer)
 */
 void CPed::SetWeaponSkill(eWeaponType weaponType, eWeaponSkill skill)
 {
@@ -2016,7 +2016,7 @@ void CPed::ClearLookFlag() {
 
 /*!
 * @addr 0x5E3FF0
-* @brief Just calls \r ClearLookFlag
+* @brief Just calls ClearLookFlag
 */
 void CPed::ClearLook() {
     ClearLookFlag();
@@ -2093,7 +2093,7 @@ void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones)
 
 /*!
 * @addr 0x5E01C0
-* @brief Transform \r inOutPos into the given \a bone's space
+* @brief Transform inOutPos into the given \a bone's space
 *
 * @param [in,out] inOutPos The position to be transformed in-place.
 * @param          updateSkinBones If `UpdateRpHAnim` should be called
@@ -3579,7 +3579,7 @@ void CPed::MakeTyresMuddySectorList(PtrListType& ptrList)
 
 /*!
 * @addr  0x6B4200
-* @brief Do sector list processing in a range of -/+2 (Calls \r MakeTyresMuddySectorList)
+* @brief Do sector list processing in a range of -/+2 (Calls MakeTyresMuddySectorList)
 */
 void CPed::DeadPedMakesTyresBloody() {
     const auto& pos = GetPosition();
