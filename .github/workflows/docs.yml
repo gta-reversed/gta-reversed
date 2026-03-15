@@ -2,7 +2,7 @@ name: Deploy Doxygen to GitHub Pages
 
 on:
   push:
-    branches: ["master", "doxygen"]
+    branches: ["master"]
   workflow_dispatch:
 
 permissions:
