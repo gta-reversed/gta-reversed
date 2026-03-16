@@ -414,7 +414,8 @@ void CLoadingScreen::NewChunkLoaded() {
     }
 }
 
-// 0x5905E0, unused
+// 0x5905E0
+// unused
 void CLoadingScreen::Update() {
     // Timing constants
     const float LEGAL_SCREEN_TIMEOUT = 5.5f;
