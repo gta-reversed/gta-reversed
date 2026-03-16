@@ -11,6 +11,20 @@
 
 #include "extensions/Configs/FastLoader.hpp"
 
+// Texture names
+constexpr const char* TXD_SLOT_NAME = "loadsc0";
+constexpr const char* TXD_FILE_PATH = "MODELS\\TXD\\";
+constexpr const char* TXD_FILE_NAME = "loadscs.txd";
+constexpr const char* SPLASH_PREFIX = "loadsc";
+constexpr const char* NVIDIA_LOGO   = "nvidia";
+constexpr const char* EAX_LOGO      = "eax";
+
+#ifdef USE_EU_STUFF
+constexpr const char* LEGAL_SCREEN_TXD = "title_pc_EU";
+#else
+constexpr const char* LEGAL_SCREEN_TXD = "title_pc_US";
+#endif
+
 void CLoadingScreen::InjectHooks() {
     RH_ScopedClass(CLoadingScreen);
     RH_ScopedCategoryGlobal();
@@ -28,7 +42,7 @@ void CLoadingScreen::InjectHooks() {
     RH_ScopedInstall(DisplayNextSplash, 0x5904D0);
     RH_ScopedInstall(StartFading, 0x590530);
     RH_ScopedInstall(DisplayPCScreen, 0x590570);
-    RH_ScopedInstall(Update, 0x5905E0, { .reversed = false });
+    RH_ScopedInstall(Update, 0x5905E0);
     RH_ScopedInstall(DoPCTitleFadeOut, 0x590860);
     RH_ScopedInstall(DoPCTitleFadeIn, 0x590990);
     RH_ScopedInstall(DoPCScreenChange, 0x590AC0);
@@ -45,7 +59,7 @@ void CLoadingScreen::Init(bool legalScreen, bool dontReload) {
     }
 
     if (!dontReload) {
-        LoadSplashes(false, false);
+        LoadSplashes(false, 0);
     }
 
     m_currDisplayedSplash = -1;
@@ -58,13 +72,16 @@ void CLoadingScreen::Init(bool legalScreen, bool dontReload) {
 // 0x58FF10
 void CLoadingScreen::Shutdown(bool force) {
     m_bActive = false;
+
+    // Release splash textures
     for (auto& splash : m_aSplashes) {
         if (splash.m_pTexture) {
             splash.Delete();
         }
     }
 
-    auto slot = CTxdStore::FindTxdSlot("loadscs");
+    // Cleanup TXD
+    auto slot = CTxdStore::FindTxdSlot(TXD_SLOT_NAME);
     if (slot != -1) {
         CTxdStore::RemoveTxd(slot);
         CTxdStore::RemoveTxdSlot(slot);
@@ -73,72 +90,81 @@ void CLoadingScreen::Shutdown(bool force) {
 
 // 0x58FF60
 void CLoadingScreen::RenderSplash() {
+    // Screen dimensions
+    constexpr float SCREEN_MARGIN = 5.0f;
+
     CSprite2d::InitPerFrame();
-    CRect rect(-5.0f, -5.0f, SCREEN_WIDTH + 5.0f, SCREEN_HEIGHT + 5.0f);
+
+    CRect screenRect(
+        -SCREEN_MARGIN,
+        -SCREEN_MARGIN,
+        SCREEN_WIDTH + SCREEN_MARGIN,
+        SCREEN_HEIGHT + SCREEN_MARGIN
+    );
+
     CRGBA color(255, 255, 255, 255);
     RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSCLAMP));
 
     if (m_bFading) {
-        GetCurrentDisplayedSplash().Draw(rect, color);
+        GetCurrentDisplayedSplash().Draw(screenRect, color);
 
         if (m_bFadeInNextSplashFromBlack || m_bFadeOutCurrSplashToBlack) {
             color.Set(0, 0, 0);
-            color.a = (m_bFadeInNextSplashFromBlack) ? 255 - m_FadeAlpha : m_FadeAlpha;
-
-            CSprite2d::DrawRect(rect, color);
+            color.a = m_bFadeInNextSplashFromBlack
+                ? (255 - m_FadeAlpha)
+                : m_FadeAlpha;
+            CSprite2d::DrawRect(screenRect, color);
         } else {
             color.a = 255 - m_FadeAlpha;
-
-            m_aSplashes[m_currDisplayedSplash - 1].Draw(rect, color);
+            m_aSplashes[m_currDisplayedSplash - 1].Draw(screenRect, color);
         }
-    } else if (!m_bReadyToDelete) {
-        GetCurrentDisplayedSplash().Draw(rect, color);
+    } else if (m_bReadyToDelete) {
+        GetCurrentDisplayedSplash().Draw(screenRect, color);
     }
 }
 
 // 0x5900B0
-void CLoadingScreen::LoadSplashes(bool starting, uint8 id) {
-    CFileMgr::SetDir("MODELS\\TXD\\");
-    auto slot = CTxdStore::AddTxdSlot("loadscs");
-    CTxdStore::LoadTxd(slot, "loadscs.txd");
+void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
+    CFileMgr::SetDir(TXD_FILE_PATH);
+
+    auto slot = CTxdStore::AddTxdSlot(TXD_SLOT_NAME);
+    CTxdStore::LoadTxd(slot, TXD_FILE_NAME);
     CTxdStore::AddRef(slot);
     CTxdStore::PushCurrentTxd();
     CTxdStore::SetCurrentTxd(slot);
 
-    // srand affects the global state, can not be omitted.
+    // Initialize RNG
     LARGE_INTEGER pc;
     QueryPerformanceCounter(&pc);
     srand(pc.u.LowPart);
 
     // NOTSA
-    uint8 screenIdx[15];
-    std::iota(std::begin(screenIdx), std::end(screenIdx), 0u); // todo: rng::iota
+    // Generate random splash order
+    std::array<uint8, MAX_SPLASH_COUNT> indices{};
+    std::iota(indices.begin(), indices.end(), 0);
 
     // exclude 0, title_pcXX.
-    std::shuffle(std::begin(screenIdx) + 1, std::end(screenIdx), std::mt19937{ std::random_device{}() });
+    std::shuffle(indices.begin() + 1, indices.end(), std::mt19937{ std::random_device{}() });
 
     char name[20];
-    for (auto id = 0u; id < MAX_SPLASHES; id++) {
-        if (starting) {
-            sprintf_s(name, id ? "nvidia" : "eax");
-        } else if (id) {
-            sprintf_s(name, "loadsc%d", screenIdx[id]);
+    for (auto i = 0u; i < MAX_SPLASH_COUNT; ++i) {
+        if (useSplashId) {
+            std::snprintf(name, sizeof(name), "%s", i ? EAX_LOGO : NVIDIA_LOGO);
+        } else if (id != 0) {
+            std::snprintf(name, sizeof(name), "%s%d", SPLASH_PREFIX, indices[id]);
         } else {
-#ifdef USE_EU_STUFF
-            sprintf_s(name, "title_pc_EU");
-#else
-            sprintf_s(name, "title_pc_US");
-#endif
+            std::snprintf(name, sizeof(name), "%s", LEGAL_SCREEN_TXD);
         }
-        m_aSplashes[id].SetTexture(name);
+        m_aSplashes[i].SetTexture(name);
     }
+
     CTxdStore::PopCurrentTxd();
     CFileMgr::SetDir("");
 }
 
 // 0x590220
 void CLoadingScreen::DisplayMessage(const char* message) {
-    strcpy_s(m_PopUpMessage, message);
+    std::strcpy(m_PopUpMessage, message);
 }
 
 // 0x590240
@@ -228,6 +254,7 @@ void CLoadingScreen::DisplayNextSplash() {
     }
 
     m_FadeAlpha = 255;
+
     if (RwCameraBeginUpdate(Scene.m_pRwCamera)) {
         DefinedState2d();
         RenderSplash();
@@ -235,6 +262,7 @@ void CLoadingScreen::DisplayNextSplash() {
         RwCameraEndUpdate(Scene.m_pRwCamera);
         RsCameraShowRaster(Scene.m_pRwCamera);
     }
+
     m_currDisplayedSplash++;
 }
 
@@ -268,7 +296,7 @@ void CLoadingScreen::DoPCTitleFadeOut() {
     m_bFading = true;
 
     for (auto i = 0; i < 50; i++) {
-        m_FadeAlpha = static_cast<uint8>((float)i * 5.0f);
+        m_FadeAlpha = static_cast<uint8>(i * 5.0f);
         DisplayPCScreen();
     }
 
@@ -283,13 +311,13 @@ void CLoadingScreen::DoPCTitleFadeIn() {
     m_currDisplayedSplash = 0;
     m_bFading = true;
 
-    for (auto i = 200; i > 0; i--) {
+    for (auto i = 200u; i > 0; i--) {
         m_FadeAlpha = 255;
         DisplayPCScreen();
     }
 
-    for (auto i = 50u; i > 0u; i--) {
-        m_FadeAlpha = static_cast<uint8>((float)i * 5.0f);
+    for (auto i = 50u; i > 0; i--) {
+        m_FadeAlpha = static_cast<uint8>(i * 5.0f);
         DisplayPCScreen();
     }
 
@@ -323,16 +351,20 @@ void CLoadingScreen::DoPCScreenChange(bool lastOne, bool change) {
         }
     }
 
-    for (auto i = 0u; i < 50u; i++) {
+    for (auto i = 0u; i < 50; i++) {
         float alpha = (float)i * 5.0f;
         m_FadeAlpha = (uint8)alpha;
 
         if (lastOne || m_bFadeInNextSplashFromBlack) {
-            float amplitude = m_bFadeOutCurrSplashToBlack ? (255.0f - alpha) / 255.0f : 1.0f;
-            AudioEngine.ServiceLoadingTune(amplitude);
+            float amp = (lastOne && m_bFadeOutCurrSplashToBlack)
+                ? ((255.0f - alpha) / 25.0f)
+                : 1.0f;
+            AudioEngine.ServiceLoadingTune(amp);
         }
+
         DisplayPCScreen();
     }
+
     m_FadeAlpha = 255;
     DisplayPCScreen();
     m_bFadeInNextSplashFromBlack = false;
@@ -350,8 +382,11 @@ void CLoadingScreen::NewChunkLoaded() {
     }
 
     ++m_numChunksLoaded;
+
     if (m_chunkBarAppeared != -1) {
-        m_PercentLoaded = (float)(m_numChunksLoaded - m_chunkBarAppeared) / (140.0f - (float)m_chunkBarAppeared) * 100.0f;
+        float sinceLoad = m_TimeBarAppeared - m_TimeStartedLoading;
+        float total     = 36.0f - sinceLoad; // ← 36.0f вычитается
+        m_PercentLoaded = std::min(elapsed / total, 1.0f);
     }
 
     auto now = GetClockTime();
@@ -381,97 +416,69 @@ void CLoadingScreen::NewChunkLoaded() {
 
 // 0x5905E0, unused
 void CLoadingScreen::Update() {
-    float fLoadingTuneFadeVolume;
+    // Timing constants
+    const float LEGAL_SCREEN_TIMEOUT = 5.5f;
+    const float FADE_TIME_STANDARD = 0.6f;
+    const float FADE_TIME_LEGAL = 2.0f;
 
-    // Updating the download progress bar
-    //
-    //   m_PercentLoaded = clamp(
-    //       (clockTime - m_TimeBarAppeared) / (36.0f - (m_TimeBarAppeared - m_TimeStartedLoading)),
-    //       0.0f, 1.0f )
-
+    // Calculate progress
     if (m_TimeBarAppeared > 0.0f) {
-        float clockTime = GetClockTime(false);
-
-        float timePassed = clockTime - m_TimeBarAppeared;
-        float totalTime = 36.0f - (m_TimeBarAppeared - m_TimeStartedLoading);
-        m_PercentLoaded = std::min(timePassed / totalTime, 1.0f);
-    }
-
-    // Processing of splash screens before deleting them
-
-    if (!m_bReadyToDelete) {
-        if (m_bLegalScreen) {
-            // Showing the next splash if the Legal Screen is hanging for more than 5.5 seconds
-
-            float clockTime = GetClockTime(false);
-            if (clockTime - m_TimeStartedLoading > 5.5f) {
-                DisplayNextSplash();
-            }
-        }
-
-        // We are waiting for the deletion signal, the full download and the absence of the current fade
-
-        if (m_bSignalDelete && !m_bFading && m_PercentLoaded >= 1.0f) {
-            m_bReadyToDelete = true;
-
-            m_bFadeOutCurrSplashToBlack = true;
-            StartFading();
+        float elapsed = GetClockTime(false) - m_TimeBarAppeared;
+        float total = m_TimeBarAppeared - m_TimeStartedLoading;
+        if (total > 0.0f) {
+            m_PercentLoaded = std::min(elapsed / total, 1.0f);
         }
     }
 
-    // Updating the fade
+    // Handle deletion queue
+    if (!m_bReadyToDelete && m_bLegalScreen) {
+        if (GetClockTime(false) - m_TimeStartedLoading > LEGAL_SCREEN_TIMEOUT) {
+            DisplayNextSplash();
+        }
+    }
 
+    if (!m_bReadyToDelete && m_bSignalDelete && !m_bFading && m_PercentLoaded >= 1.0f) {
+        m_bReadyToDelete = true;
+        m_bFadeOutCurrSplashToBlack = true;
+        StartFading();
+    }
+
+    // Update fade
     if (m_bFading) {
-        float timePassed = GetClockTime(false) - m_StartFadeTime;
+        float elapsed = GetClockTime(false) - m_StartFadeTime;
+        float duration = (m_currDisplayedSplash < 0 || m_bFadeInNextSplashFromBlack || m_bLegalScreen)
+            ? FADE_TIME_LEGAL
+            : FADE_TIME_STANDARD;
 
-        // Fade duration:
-        // 2.0f — for a licensed (legal) screen, with a fade-in of the next splash
-        // or if currDisplayedSplash is not selected yet (== -1)
-        // 0.6f is the standard transition between splashes
-
-        float fadeTime = (m_currDisplayedSplash < 0 || m_bFadeInNextSplashFromBlack || m_bLegalScreen) ? 2.0f : 0.6f;
-
-        if (timePassed > fadeTime) {
+        if (elapsed > duration) {
             m_bFading = false;
-            m_FadeAlpha = 0xFF;
+            m_FadeAlpha = 255;
 
             if (m_bLegalScreen && m_bFadeOutCurrSplashToBlack) {
-                // The Legal Screen has completely disappeared - switch to the next splash
-
                 m_bFadeOutCurrSplashToBlack = false;
-                m_bFadeInNextSplashFromBlack = true;
                 m_bLegalScreen = false;
+                m_bFadeInNextSplashFromBlack = true;
                 DisplayNextSplash();
             } else {
                 m_bFadeInNextSplashFromBlack = false;
                 m_bFadeOutCurrSplashToBlack = false;
             }
         } else {
-            // Linearly interpolate alpha from 0 to 255 in fadeTime seconds
-
-            m_FadeAlpha = (uint8_t)(timePassed / fadeTime * 255.0f);
+            m_FadeAlpha = static_cast<uint8>((elapsed / duration) * 255.0f);
         }
     } else {
-        m_FadeAlpha = 0xFF; // Fade is not working — the screen is completely opaque
+        m_FadeAlpha = 255;
     }
 
-    // The volume of the background music of the download (ServiceLoadingTune)
-
+    // Update audio
     if (!m_bLegalScreen) {
-        // fLoadingTuneFadeVolume:
-        // fade-in of the next splash - rises smoothly (0 -> 1)
-        // fade-out of the current splash - fades smoothly (1 -> 0)
-        // otherwise - full volume (1)
-
+        float volume = 1.0f;
         if (m_bFadeInNextSplashFromBlack) {
-            fLoadingTuneFadeVolume = (float)m_FadeAlpha / 255.0f;
+            volume = (float)m_FadeAlpha / 255.0f;
         } else if (m_bFadeOutCurrSplashToBlack) {
-            fLoadingTuneFadeVolume = (255.0f - (float)m_FadeAlpha) / 255.0f;
-        } else {
-            fLoadingTuneFadeVolume = 1.0f;
+            volume = (255.0f - (float)m_FadeAlpha) / 255.0f;
         }
-
-        AudioEngine.ServiceLoadingTune(fLoadingTuneFadeVolume);
+        AudioEngine.ServiceLoadingTune(volume);
     }
 }
 

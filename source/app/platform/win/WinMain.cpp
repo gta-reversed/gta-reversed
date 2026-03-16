@@ -162,18 +162,18 @@ bool ProcessGameLogic(INT nCmdShow) {
     // TODO: Move this out from here (It's not platform specific at all)
     switch (gGameState) {
     case GAME_STATE_INITIAL: {
-        const auto ProcessSplash = [](bool isNVidia) {
-            CLoadingScreen::LoadSplashes(true, isNVidia);
+        const auto ProcessSplash = [](uint8 id) {
+            CLoadingScreen::LoadSplashes(true, id);
             CLoadingScreen::Init(true, true);
             CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::DoPCTitleFadeIn();
             CLoadingScreen::Shutdown();
         };
         if (!g_FastLoaderConfig.NoEAX) {
-            ProcessSplash(false);
+            ProcessSplash(0);
         }
         if (!g_FastLoaderConfig.NoNVidia) {
-            ProcessSplash(true);
+            ProcessSplash(1);
         }
         ChangeGameStateTo(GAME_STATE_LOGO);
         break;

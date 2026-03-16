@@ -10,14 +10,14 @@ class CSprite2d;
 
 class CLoadingScreen {
 public:
-    static constexpr size_t MAX_SPLASHES = 7u;
+    static constexpr size_t MAX_SPLASH_COUNT = 7u;
 
 private:
     static inline auto& m_bActive = StaticRef<bool>(0xBAB318);
     static inline auto& m_bWantToPause = StaticRef<bool>(0xBAB319); // unused
     static inline auto& m_bPaused = StaticRef<bool>(0xBAB31A); // unused
     static bool m_bForceShutdown; // unknown, unused
-    static inline auto& m_aSplashes = StaticRef<std::array<CSprite2d, MAX_SPLASHES>>(0xBAB35C);
+    static inline auto& m_aSplashes = StaticRef<std::array<CSprite2d, MAX_SPLASH_COUNT>>(0xBAB35C);
     static inline auto& m_currDisplayedSplash = StaticRef<int32>(0x8D093C);
 
     static inline auto& m_bFading = StaticRef<bool>(0xBAB31C);
@@ -42,7 +42,7 @@ private:
     static inline auto& m_bReadyToDelete = StaticRef<bool>(0xBAB33D);
 
     static inline auto& m_numChunksLoaded = StaticRef<int32>(0x8D0940); // -1
-    // static int32 m_nChunksToLoad; // Added Mobile
+    // static int32 m_nChunksToLoad; // Added in Mobile
     static inline auto& m_chunkBarAppeared = StaticRef<int32>(0x8D0944); // -1
     static inline auto& m_timeSinceLastScreen = StaticRef<float>(0xBAB340);
 
@@ -66,9 +66,9 @@ public:
     static void RenderSplash();
     static void NewChunkLoaded();
 
-    // static void Pump(); // Added Mobile
+    // static void Pump(); // Added in Mobile
 
-    // static void SetChunksToLoad(int32 num, bool AddTo); // Added Mobile
+    // static void SetChunksToLoad(int32 num, bool AddTo); // Added in Mobile
 
     static void DoPCTitleFadeIn();
     static void DoPCTitleFadeOut();
