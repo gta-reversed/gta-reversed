@@ -39,12 +39,12 @@ void CLoadingScreen::InjectHooks() {
 }
 
 // 0x5902B0
-void CLoadingScreen::Init(bool legalScreen, bool dont_reload) {
+void CLoadingScreen::Init(bool legalScreen, bool dontReload) {
     if (IsActive()) {
         return;
     }
 
-    if (!dont_reload) {
+    if (!dontReload) {
         LoadSplashes(false, false);
     }
 
