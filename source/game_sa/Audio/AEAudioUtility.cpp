@@ -110,7 +110,6 @@ uint32 CAEAudioUtility::ConvertFromMSToBytes(uint32 a, uint32 frequency, uint16 
     return value + value % (2 * frequencyMult);
 }
 
-// CHANGED?
 // 0x5B97F0
 void CAEAudioUtility::StaticInitialise() {
     m_sfLogLookup[0][0] = 0.0f;
