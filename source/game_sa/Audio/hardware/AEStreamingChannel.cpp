@@ -570,6 +570,10 @@ void CAEStreamingChannel::Service() {
                 std::memcpy(audioPtr, m_pBuffer, std::min<DWORD>(filledBytes, audioSize));
             }
 
+            // The buffer is locked for at most of CHANNEL_BUFFER_SIZE, DirectSound may lock
+            // less than that amount, provided by audioSize.
+            //
+            // Practically they're always equal but better safe than sorry.
             VERIFY(audioSize >= CHANNEL_BUFFER_SIZE);
             std::memset((uint8*)audioPtr + filledBytes, 0, CHANNEL_BUFFER_SIZE - filledBytes);
             DitherSamples(audioPtr, audioSize);

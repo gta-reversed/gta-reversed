@@ -70,71 +70,48 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
     constexpr CVector posA = { -0.906f, 0.423f, 0.0f }, posB = { 0.906f, 0.423f, 0.0f };
 
     AESoundManager.PlaySound({
-        SND_BANK_SLOT_EXPLOSIONS,
-        4,
-        this,
-        posA,
-        VOLUME_SILENCE,
-        1.0f,
-        speedA,
-        1.0f,
-        0,
-        envFlags,
-        0.0f,
-        0,
-        nullptr,
-        AE_FRONTEND_SELECT
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = 4,
+        .AudioEntity = this,
+        .Pos = posA,
+        .Volume = VOLUME_SILENCE,
+        .Speed = speedA,
+        .Flags = envFlags,
+        .EventID = AE_FRONTEND_SELECT
     });
 
     AESoundManager.PlaySound({
-        SND_BANK_SLOT_EXPLOSIONS,
-        4,
-        this,
-        posB,
-        VOLUME_SILENCE,
-        1.0f,
-        speedB,
-        1.0f, 0,
-        envFlags,
-        0.0f,
-        0,
-        nullptr,
-        AE_FRONTEND_SELECT
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = 4,
+        .AudioEntity = this,
+        .Pos = posB,
+        .Volume = VOLUME_SILENCE,
+        .Speed = speedB,
+        .Flags = envFlags,
+        .EventID = AE_FRONTEND_SELECT
     });
 
     const float volume = CAEAudioEntity::GetDefaultVolume(AE_THUNDER) + std::log10(CWeather::LightningDuration * 0.0375f) * 20.0f;
     AESoundManager.PlaySound({
-        SND_BANK_SLOT_EXPLOSIONS,
-        1,
-        this,
-        posA,
-        volume,
-        1.0f,
-        speedA,
-        1.0f,
-        0,
-        envFlags | SOUND_ROLLED_OFF,
-        0.0f,
-        0,
-        nullptr,
-        AE_FRONTEND_BACK
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = 1,
+        .AudioEntity = this,
+        .Pos = posA,
+        .Volume = volume,
+        .Speed = speedA,
+        .Flags = envFlags | SOUND_ROLLED_OFF,
+        .EventID = AE_FRONTEND_BACK
     });
 
     AESoundManager.PlaySound({
-        SND_BANK_SLOT_EXPLOSIONS,
-        1,
-        this,
-        posB,
-        volume,
-        1.0f,
-        speedB,
-        1.0f,
-        0,
-        envFlags | SOUND_ROLLED_OFF,
-        0.0f,
-        0,
-        nullptr,
-        AE_FRONTEND_BACK
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = 1,
+        .AudioEntity = this,
+        .Pos = posB,
+        .Volume = volume,
+        .Speed = speedB,
+        .Flags = envFlags | SOUND_ROLLED_OFF,
+        .EventID = AE_FRONTEND_BACK
     });
 }
 

@@ -518,11 +518,7 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
             .Pos                = m_pPed->GetPosition(),
             .Volume             = GetDefaultVolume(event),
             .Speed              = 2.0f,
-            .Doppler            = 1.0f,
-            .FrameDelay         = 0,
             .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES,
-            .FrequencyVariance  = 0.0f,
-            .PlayTime           = 0,
             .RegisterWithEntity = m_pPed,
             .EventID            = event,
             .ClientVariable     = static_cast<float>(var)
