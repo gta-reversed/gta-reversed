@@ -178,10 +178,10 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     if (m_bLooped && m_nCurrentBufferOffset) {
         m_nNumLockBytes            = field_68 - m_nCurrentBufferOffset;
         field_6C                   = std::max(field_68, 24'000u) / m_nNumLockBytes + 1;
-        field_24                   = m_nNumLockBytes * field_6C;
-        dsBufferDesc.dwBufferBytes = field_24;
+        m_TotalBufferSize          = m_nNumLockBytes * field_6C;
+        dsBufferDesc.dwBufferBytes = m_TotalBufferSize;
     } else {
-        dsBufferDesc.dwBufferBytes = field_24 = size;
+        dsBufferDesc.dwBufferBytes = m_TotalBufferSize = size;
     }
     dsBufferDesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS
         | (m_IsHardwareMixAvailable ? DSBCAPS_LOCHARDWARE : DSBCAPS_LOCSOFTWARE);
@@ -214,10 +214,10 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
 
     DWORD newPosition{};
     if (m_nCurrentBufferOffset) {
-        std::memcpy((uint8*)audioPtr + field_24 - m_nCurrentBufferOffset, m_pBuffer, m_nCurrentBufferOffset);
+        std::memcpy((uint8*)audioPtr + m_TotalBufferSize - m_nCurrentBufferOffset, m_pBuffer, m_nCurrentBufferOffset);
         m_nNumLoops = m_nCurrentBufferOffset / m_nNumLockBytes + 1;
-        m_dwLockOffset = field_24 - m_nNumLockBytes * m_nNumLoops;
-        newPosition    = field_24 - m_nCurrentBufferOffset;
+        m_dwLockOffset = m_TotalBufferSize - m_nNumLockBytes * m_nNumLoops;
+        newPosition    = m_TotalBufferSize - m_nCurrentBufferOffset;
 
         if (field_6C != m_nNumLoops) {
             for (auto i = 0; i < field_6C - m_nNumLoops; i++) {

@@ -17,7 +17,7 @@ public:
 #endif
 
     char                  _pad10[20];
-    uint32                field_24;
+    uint32                m_TotalBufferSize;
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
     uint32                m_dwStopTime; // unused
