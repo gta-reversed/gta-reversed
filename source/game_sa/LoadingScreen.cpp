@@ -137,7 +137,7 @@ void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
     // NOTSA
     // Generate random splash order
     std::array<uint8, MAX_SPLASH_COUNT> indices{};
-    std::iota(indices.begin(), indices.end(), 0);
+    rng::iota(indices, 0);
 
     // exclude 0, title_pcXX.
     std::shuffle(indices.begin() + 1, indices.end(), std::mt19937{ std::random_device{}() });
