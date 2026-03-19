@@ -19,12 +19,6 @@ constexpr const char* SPLASH_PREFIX = "loadsc";
 constexpr const char* NVIDIA_LOGO   = "nvidia";
 constexpr const char* EAX_LOGO      = "eax";
 
-#ifdef USE_EU_STUFF
-constexpr const char* LEGAL_SCREEN_TXD = "title_pc_EU";
-#else
-constexpr const char* LEGAL_SCREEN_TXD = "title_pc_US";
-#endif
-
 void CLoadingScreen::InjectHooks() {
     RH_ScopedClass(CLoadingScreen);
     RH_ScopedCategoryGlobal();
@@ -153,7 +147,11 @@ void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
         } else if (id != 0) {
             std::snprintf(name, sizeof(name), "%s%d", SPLASH_PREFIX, indices[id]);
         } else {
-            std::snprintf(name, sizeof(name), "%s", LEGAL_SCREEN_TXD);
+#ifdef USE_EU_STUFF
+            sprintf_s(name, "title_pc_EU");
+#else
+            sprintf_s(name, "title_pc_US");
+#endif
         }
         m_aSplashes[i].SetTexture(name);
     }
@@ -376,6 +374,7 @@ void CLoadingScreen::DoPCScreenChange(bool lastOne, bool change) {
 }
 
 // 0x590D00
+// Edit in Mobile
 void CLoadingScreen::NewChunkLoaded() {
     if (!IsActive()) {
         return;
@@ -384,9 +383,10 @@ void CLoadingScreen::NewChunkLoaded() {
     ++m_numChunksLoaded;
 
     if (m_chunkBarAppeared != -1) {
-        float sinceLoad = m_TimeBarAppeared - m_TimeStartedLoading;
-        float total     = 36.0f - sinceLoad; // ← 36.0f вычитается
-        m_PercentLoaded = std::min(elapsed / total, 1.0f);
+        auto loadedSinceAppeared = m_numChunksLoaded - m_chunkBarAppeared;
+        auto totalChunksRemaining = 140 - m_chunkBarAppeared;
+
+        m_PercentLoaded = (float)(loadedSinceAppeared * 100) / totalChunksRemaining;
     }
 
     auto now = GetClockTime();
