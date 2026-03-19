@@ -108,7 +108,7 @@ void DoorDebugModule::RenderWindow() {
     }
 
     static const char* s_DoorNames[] = {
-        "Right Front", "Left Front", "Right Rear", "Left Rear", "Hood", "Trunk"
+        "Bonnet (Hood)", "Boot (Trunk)", "Left Front", "Right Front", "Left Rear", "Right Rear"
     };
 
     static int32 s_SelectedDoor = 0;
