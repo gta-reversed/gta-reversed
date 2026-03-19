@@ -116,12 +116,12 @@ public:
 /*!
  * @brief Running animation of a clump (Usually peds), created from an `CAnimBlendHierarchy`.
  * 
- * @detail The sequence/frames data is copied from `CAnimBlendHierarchy` to `CAnimBlendAssociation` when a clump requests an animation.
- * @detail The instance of `CAnimBlendAssociation` gets destroyed when the ped/clump stops playing the animation.
- * @detail But `CAnimBlendHierarchy` is never destroyed and stays in memory unless `CStreaming` forces the IFP to unload (to create space in memory)
+ * @details The sequence/frames data is copied from `CAnimBlendHierarchy` to `CAnimBlendAssociation` when a clump requests an animation.
+ * @details The instance of `CAnimBlendAssociation` gets destroyed when the ped/clump stops playing the animation.
+ * @details But `CAnimBlendHierarchy` is never destroyed and stays in memory unless `CStreaming` forces the IFP to unload (to create space in memory)
  *
- * @detail A clump can have one, or more, instances of this class. Usually there's only 1 primary animation,
- * @detail but there are also partial animations, which can be played alongside primary animations, like hand gestures or smoking.
+ * @details A clump can have one, or more, instances of this class. Usually there's only 1 primary animation,
+ * @details but there are also partial animations, which can be played alongside primary animations, like hand gestures or smoking.
  */
 class NOTSA_EXPORT_VTABLE CAnimBlendAssociation {
 public:

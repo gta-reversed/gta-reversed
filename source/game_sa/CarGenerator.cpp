@@ -334,7 +334,7 @@ void CCarGenerator::DoInternalProcessing()
     CVisibilityPlugins::SetClumpAlpha(vehicle->m_pRwClump, 0);
     m_nVehicleHandle = GetVehiclePool()->GetRef(vehicle);
 
-    // Originally, R* did a signed comparison between unsigned \r m_nGenerateCount and signed 32bit constant -1.
+    // Originally, R* did a signed comparison between unsigned m_nGenerateCount and signed 32bit constant -1.
     // This made the generated code to always skip the decrementation.
     // However, this bug does not affect the game at all because all cargens created by the script
     // are either disabled or infinite.

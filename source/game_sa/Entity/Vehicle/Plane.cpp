@@ -85,7 +85,7 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         break;
     case MODEL_NEVADA:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.Init(-((2.0f * PI) / 5.0f), 0.0f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
+        leftDoor.Init(-TWO_PI / 5.0f, 0.0f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
         break;
     case MODEL_VORTEX:
         if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1)
