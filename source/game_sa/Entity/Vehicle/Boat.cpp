@@ -116,15 +116,10 @@ CBoat::CBoat(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     rng::fill(m_WakePtCounters, 0.0f);
 
     m_nAmmoInClip = 20;
-    m_BoatDoor.m_axis = AXIS_Y;
     if (m_nModelIndex == MODEL_MARQUIS) {
-        m_BoatDoor.m_openAngle = PI / 10.0F;
-        m_BoatDoor.m_closedAngle = -PI / 10.0F;
-        m_BoatDoor.m_dirn = 4;
+        m_BoatDoor.Init(PI / 10.0F, -PI / 10.0F, DOOR_AXIS_NEG_Y, DOOR_AXIS_Y, DOOR_EXTRA_NONE);
     } else {
-        m_BoatDoor.m_openAngle = TWO_PI / 10.0F;
-        m_BoatDoor.m_closedAngle = -TWO_PI / 10.0F;
-        m_BoatDoor.m_dirn = 3;
+        m_BoatDoor.Init(TWO_PI / 10.0F, -TWO_PI / 10.0F, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_NONE);
     }
 
     m_vehicleAudio.Initialise(this);

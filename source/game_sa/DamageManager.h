@@ -25,11 +25,11 @@ enum eDamageState : int8 {
 //       Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
 // TODO(yukani): change prefix to something else?
 enum ePanelDamageState : uint8 {
-    DAMSTATE_OK             = 0, // Closed
-    DAMSTATE_OPENED         = 1, // Open
-    DAMSTATE_DAMAGED        = 2, // Closed
-    DAMSTATE_OPENED_DAMAGED = 3, // Open
-    DAMSTATE_NOTPRESENT     = 4  // Missing
+    DAMSTATE_OK             = 0, // Closed, DT_DOOR_INTACT 
+    DAMSTATE_OPENED         = 1, // Open, DT_DOOR_SWINGING_FREE
+    DAMSTATE_DAMAGED        = 2, // Closed, DT_DOOR_BASHED
+    DAMSTATE_OPENED_DAMAGED = 3, // Open, DT_DOOR_BASHED_AND_SWINGING_FREE
+    DAMSTATE_NOTPRESENT     = 4  // Missing, DT_DOOR_MISSING
 };
 
 // original name
@@ -45,6 +45,8 @@ enum tComponent : uint8 {
     COMPONENT_DOOR_RF    = 8,
     COMPONENT_DOOR_LR    = 9,
     COMPONENT_DOOR_RR    = 10,
+
+    // ----- CT_PANEL_
     COMPONENT_WING_LF    = 11,
     COMPONENT_WING_RF    = 12,
     COMPONENT_WING_LR    = 13,
@@ -52,6 +54,7 @@ enum tComponent : uint8 {
     COMPONENT_WINDSCREEN = 15,
     COMPONENT_BUMP_FRONT = 16,
     COMPONENT_BUMP_REAR  = 17,
+    // -----
 
     MAX_COMPONENTS = COMPONENT_BUMP_REAR /* cause it starts at 1, not 0 */
 };
