@@ -327,20 +327,14 @@ void CLoadingScreen::DoPCTitleFadeOut() {
 
 // 0x590AC0
 // Edit in Mobile
-void CLoadingScreen::DoPCScreenChange(bool lastOne, bool change) {
+void CLoadingScreen::DoPCScreenChange(bool lastOne) {
     m_bFading = true;
 
     if (lastOne) {
         m_bFadeOutCurrSplashToBlack = true;
     } else {
-        // Fix incorrect looping behaviour by WDS?
-        if (notsa::IsFixBugs()) {
-            m_numChunksLoaded = -1;
-            if (change) {
-                if (m_currDisplayedSplash < 1) {
-                    m_currDisplayedSplash++;
-                }
-            }
+        if (notsa::IsFixBugs()) { // Fix incorrect looping behaviour
+            m_currDisplayedSplash = std::max((m_currDisplayedSplash + 1) % std::size(m_aSplashes), 1u);
         } else {
             m_currDisplayedSplash++;
         }

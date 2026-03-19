@@ -72,7 +72,7 @@ public:
 
     static void DoPCTitleFadeOut();
     static void DoPCTitleFadeIn();
-    static void DoPCScreenChange(bool lastOne, bool change = true);
+    static void DoPCScreenChange(bool lastOne);
 
 private:
     static void DisplayPCScreen();
