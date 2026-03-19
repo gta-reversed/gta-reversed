@@ -37,8 +37,8 @@ void CLoadingScreen::InjectHooks() {
     RH_ScopedInstall(StartFading, 0x590530);
     RH_ScopedInstall(DisplayPCScreen, 0x590570);
     RH_ScopedInstall(Update, 0x5905E0);
-    RH_ScopedInstall(DoPCTitleFadeOut, 0x590860);
-    RH_ScopedInstall(DoPCTitleFadeIn, 0x590990);
+    RH_ScopedInstall(DoPCTitleFadeIn, 0x590860);
+    RH_ScopedInstall(DoPCTitleFadeOut, 0x590990);
     RH_ScopedInstall(DoPCScreenChange, 0x590AC0);
     RH_ScopedInstall(NewChunkLoaded, 0x590D00);
     RH_ScopedInstall(IsActive, 0x744DB5);
@@ -83,6 +83,7 @@ void CLoadingScreen::Shutdown(bool force) {
 }
 
 // 0x58FF60
+// Edit in Mobile
 void CLoadingScreen::RenderSplash() {
     // Screen dimensions
     constexpr float SCREEN_MARGIN = 5.0f;
@@ -272,8 +273,9 @@ void CLoadingScreen::StartFading() {
     m_StartFadeTime = GetClockTime(false);
 }
 
+// inline
 // 0x590570
-void CLoadingScreen::DisplayPCScreen() {
+inline void CLoadingScreen::DisplayPCScreen() {
     if (RwCameraBeginUpdate(Scene.m_pRwCamera)) {
         DefinedState2d();
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
@@ -289,7 +291,7 @@ void CLoadingScreen::DisplayPCScreen() {
 }
 
 // 0x590860
-void CLoadingScreen::DoPCTitleFadeOut() {
+void CLoadingScreen::DoPCTitleFadeIn() {
     m_bFadeInNextSplashFromBlack = true;
     m_currDisplayedSplash = 0;
     m_bFading = true;
@@ -305,7 +307,7 @@ void CLoadingScreen::DoPCTitleFadeOut() {
 }
 
 // 0x590990
-void CLoadingScreen::DoPCTitleFadeIn() {
+void CLoadingScreen::DoPCTitleFadeOut() {
     m_bFadeInNextSplashFromBlack = true;
     m_currDisplayedSplash = 0;
     m_bFading = true;
@@ -324,6 +326,7 @@ void CLoadingScreen::DoPCTitleFadeIn() {
 }
 
 // 0x590AC0
+// Edit in Mobile
 void CLoadingScreen::DoPCScreenChange(bool lastOne, bool change) {
     m_bFading = true;
 

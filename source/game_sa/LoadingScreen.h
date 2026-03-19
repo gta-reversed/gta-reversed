@@ -70,8 +70,8 @@ public:
 
     // static void SetChunksToLoad(int32 num, bool AddTo); // Added in Mobile
 
-    static void DoPCTitleFadeIn();
     static void DoPCTitleFadeOut();
+    static void DoPCTitleFadeIn();
     static void DoPCScreenChange(bool lastOne, bool change = true);
 
 private:

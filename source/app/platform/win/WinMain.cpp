@@ -165,8 +165,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         const auto ProcessSplash = [](uint8 id) {
             CLoadingScreen::LoadSplashes(true, id);
             CLoadingScreen::Init(true, true);
-            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::Shutdown();
         };
         if (!g_FastLoaderConfig.NoEAX) {
@@ -222,7 +222,7 @@ bool ProcessGameLogic(INT nCmdShow) {
         VideoPlayer::Shutdown();
         CLoadingScreen::Init(true, false);
         if (!g_FastLoaderConfig.NoCopyright) {
-            CLoadingScreen::DoPCTitleFadeOut();
+            CLoadingScreen::DoPCTitleFadeIn();
         }
         if (!CGame::InitialiseEssentialsAfterRW()) {
             RsGlobal.quit = true;
@@ -248,7 +248,7 @@ bool ProcessGameLogic(INT nCmdShow) {
         if (g_FastLoaderConfig.NoCopyright) {
             CLoadingScreen::SkipCopyrightSplash();
         } else {
-            CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
         }
         break;
     }
