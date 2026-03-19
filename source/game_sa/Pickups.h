@@ -84,14 +84,14 @@ public:
 
     /*!
      * @brief Our custom Vector based overload
-     * @copydocs CPickups::CreatePickupCoorsCloseToCoors
+     * @copydoc CPickups::CreatePickupCoorsCloseToCoors
      */
     static void CreatePickupCoorsCloseToCoors(const CVector& pos, CVector& createdAtPos) {
         return CreatePickupCoorsCloseToCoors(pos.x, pos.y, pos.z, createdAtPos.x, createdAtPos.y, createdAtPos.z);
     }
     /*!
      * @brief Our custom Vector based overload
-     * @copydocs CPickups::CreatePickupCoorsCloseToCoors
+     * @copydoc CPickups::CreatePickupCoorsCloseToCoors
      */
     static void CreatePickupCoorsCloseToCoors(const CVector& pos, float& x, float& y, float& z) {
         return CreatePickupCoorsCloseToCoors(pos.x, pos.y, pos.z, x, y, z);
