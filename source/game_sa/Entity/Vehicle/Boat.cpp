@@ -740,7 +740,7 @@ void CBoat::PreRender() {
 
             m_BoatDoor.Process(this, m_OldMoveSpeed, m_OldTurnSpeed, vecTransformed);
             CVector vecAxis;
-            vecAxis[m_BoatDoor.m_axis] = m_BoatDoor.m_angle;
+            vecAxis[m_BoatDoor.RetAxes()] = m_BoatDoor.m_angle;
 
             tempMat.SetRotate(vecAxis.x, vecAxis.y, vecAxis.z);
             tempMat.GetPosition() += posCopy;

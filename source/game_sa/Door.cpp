@@ -60,12 +60,13 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
     default:              NOTSA_UNREACHABLE(); break;
     }
 
+    // 0x6F41B2
     float sin = std::sin(m_angle);
     float cos = std::cos(m_angle);
     float ang;
 
     switch (m_axis) {
-    case 0: {
+    case DOOR_AXIS_X: {
         const float newY = sin * vecDirn.z - cos * vecDirn.y;
         const float newZ = sin * vecDirn.y + cos * vecDirn.z;
         vecDirn.y = newY;
@@ -73,11 +74,11 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
         ang = acceleration.Cross(vecDirn).x;
         break;
     }
-    case 1: {
-        ang = sin;
-        break;
+    case DOOR_AXIS_Y: {
+        NOTSA_UNREACHABLE();
+        break; // TODO: Maybe
     }
-    case 2: {
+    case DOOR_AXIS_Z: {
         const float newX = sin * vecDirn.y - cos * vecDirn.x;
         const float newY = sin * vecDirn.x + cos * vecDirn.y;
         vecDirn.x = newX;
@@ -90,6 +91,7 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
         break;
     }
 
+    // 0x6F42A8
     // Angular velocity update
     if (m_dirn & DOOR_EXTRA_CHASSIS) {
         // Cutscene or airborne: use reduced apply rate
@@ -101,18 +103,19 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
         m_angVel += ang;
     }
 
+    // 0x6F42E8
     // Attenuation (damping + spring)
     if (m_dirn & DOOR_EXTRA_CHASSIS) {
         const float rate = (TheCamera.m_bWideScreenOn || (vehicle->IsAutomobile() && !vehicle->AsAutomobile()->m_nNumContactWheels))
             ? DOOR_DAMP_RATE_CHASSIS_CUTSCENE
             : DOOR_DAMP_RATE_CHASSIS;
         m_angVel = std::pow(rate, CTimer::GetTimeStep()) * m_angVel
-                 - CTimer::GetTimeStep() * m_angle * DOOR_SPRING_RATE_CHASSIS;
+            - CTimer::GetTimeStep() * m_angle * DOOR_SPRING_RATE_CHASSIS;
     } else if (vehicle->IsBoat()) {
         m_angVel *= DOOR_DAMP_RATE_BOAT;
     } else if (vehicle->GetModelIndex() == MODEL_FIRELA) {
         m_angVel = DOOR_DAMP_RATE_FIRETRUCK * m_angVel
-                 - CTimer::GetTimeStep() * m_angle * DOOR_SPRING_RATE_FIRETRUCK;
+            - CTimer::GetTimeStep() * m_angle * DOOR_SPRING_RATE_FIRETRUCK;
     } else if (m_dirn & DOOR_EXTRA_LOW_GRAVITY) {
         m_angVel *= DOOR_DAMP_RATE_BONNET;
     } else {
@@ -145,12 +148,14 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
     const bool hitClosed = posOpenRotation ? (m_angle < m_closedAngle) : (m_angle > m_closedAngle);
 
     if (hitOpen) {
+        // 0x6F446E
         m_angVel *= -0.8f; // TODO:: define?
         m_angle = m_openAngle;
         if (!(m_dirn & DOOR_EXTRA_FIXEDSTATE)) {
             m_doorState = DOOR_HIT_MAX_END;
         }
     } else if (hitClosed) {
+        // 0x6F4492
         m_angle = m_closedAngle;
         if ((m_dirn & DOOR_EXTRA_BASED) && !(m_dirn & DOOR_EXTRA_FIXEDSTATE)
             && std::abs(m_angVel) > DOOR_SLAM_SHUT_SPEED) {
@@ -189,12 +194,12 @@ bool CDoor::ProcessImpact(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const 
     }
 
     // Angular velocity along the desired axis
-    float ang = velocity.x; // TODO: Maybe
+    float ang;
     switch (m_axis) {
-    case 0:  ang = acceleration.Cross(direction).x; break;
-    case 1:  /* none */ break;
-    case 2:  ang = acceleration.Cross(direction).z; break;
-    default: NOTSA_UNREACHABLE(); break;
+    case DOOR_AXIS_X: ang = acceleration.Cross(direction).x; break;
+    case DOOR_AXIS_Y: NOTSA_UNREACHABLE(); break; // TODO: Maybe
+    case DOOR_AXIS_Z: ang = acceleration.Cross(direction).z; break;
+    default:          NOTSA_UNREACHABLE(); break;
     }
 
     const float limit = CGeneral::GetRandomNumberInRange(0.75f, 1.5f) * POP_OPEN_DOOR_ACCEL_LIMIT;
