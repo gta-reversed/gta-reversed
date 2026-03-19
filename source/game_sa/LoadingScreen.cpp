@@ -334,7 +334,7 @@ void CLoadingScreen::DoPCScreenChange(bool lastOne) {
         m_bFadeOutCurrSplashToBlack = true;
     } else {
         if (notsa::IsFixBugs()) { // Fix incorrect looping behaviour
-            m_currDisplayedSplash = std::max((m_currDisplayedSplash + 1) % std::size(m_aSplashes), 1u);
+            m_currDisplayedSplash = std::max((m_currDisplayedSplash + 1) % std::size(m_aSplashes), 1u); // 1u = skip copyright screen
         } else {
             m_currDisplayedSplash++;
         }
