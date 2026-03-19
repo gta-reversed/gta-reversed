@@ -11,14 +11,6 @@
 
 #include "extensions/Configs/FastLoader.hpp"
 
-// Texture names
-constexpr const char* TXD_SLOT_NAME = "loadsc0";
-constexpr const char* TXD_FILE_PATH = "MODELS\\TXD\\";
-constexpr const char* TXD_FILE_NAME = "loadscs.txd";
-constexpr const char* SPLASH_PREFIX = "loadsc";
-constexpr const char* NVIDIA_LOGO   = "nvidia";
-constexpr const char* EAX_LOGO      = "eax";
-
 void CLoadingScreen::InjectHooks() {
     RH_ScopedClass(CLoadingScreen);
     RH_ScopedCategoryGlobal();
@@ -74,9 +66,7 @@ void CLoadingScreen::Shutdown(bool force) {
         }
     }
 
-    // Cleanup TXD
-    auto slot = CTxdStore::FindTxdSlot(TXD_SLOT_NAME);
-    if (slot != -1) {
+    if (const auto slot = CTxdStore::FindTxdSlot("loadsc0"); slot != -1) {
         CTxdStore::RemoveTxd(slot);
         CTxdStore::RemoveTxdSlot(slot);
     }
@@ -113,7 +103,7 @@ void CLoadingScreen::RenderSplash() {
             color.a = 255 - m_FadeAlpha;
             m_aSplashes[m_currDisplayedSplash - 1].Draw(screenRect, color);
         }
-    } else if (m_bReadyToDelete) {
+    } else if (!m_bReadyToDelete) {
         GetCurrentDisplayedSplash().Draw(screenRect, color);
     }
 }
@@ -121,10 +111,10 @@ void CLoadingScreen::RenderSplash() {
 // 0x5900B0
 // Edit in Mobile
 void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
-    CFileMgr::SetDir(TXD_FILE_PATH);
+    CFileMgr::SetDir("MODELS\\TXD\\");
 
-    auto slot = CTxdStore::AddTxdSlot(TXD_SLOT_NAME);
-    CTxdStore::LoadTxd(slot, TXD_FILE_NAME);
+    auto slot = CTxdStore::AddTxdSlot("loadsc0");
+    CTxdStore::LoadTxd(slot, "loadscs.txd");
     CTxdStore::AddRef(slot);
     CTxdStore::PushCurrentTxd();
     CTxdStore::SetCurrentTxd(slot);
@@ -143,11 +133,17 @@ void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
     std::shuffle(indices.begin() + 1, indices.end(), std::mt19937{ std::random_device{}() });
 
     char texName[20];
-    for (auto i = 0u; i < MAX_SPLASH_COUNT; ++i) {
+    for (auto i = 0u; i < MAX_SPLASH_COUNT; i++) {
         if (useSplashId) {
-            std::snprintf(texName, sizeof(texName), "%s", id == 1 ? NVIDIA_LOGO : EAX_LOGO);
+            const char* logoName;
+            switch (id) {
+            case 1:  logoName = "nvidia"; break;
+            case 2:  logoName = "eax"; break;
+            default: NOTSA_UNREACHABLE(); break;
+            }
+            std::snprintf(texName, sizeof(texName), "%s", logoName);
         } else if (i != 0) {
-            std::snprintf(texName, sizeof(texName), "%s%d", SPLASH_PREFIX, indices[i]);
+            std::snprintf(texName, sizeof(texName), "%s%d", "loadsc", indices[i]);
         } else {
 #ifdef USE_EU_STUFF
             sprintf_s(texName, "title_pc_EU");
@@ -317,7 +313,7 @@ void CLoadingScreen::DoPCTitleFadeOut() {
         DisplayPCScreen();
     }
 
-    for (auto i = 50u; i > 0; i--) {
+    for (auto i = 50u; i > 0u; i--) {
         m_FadeAlpha = static_cast<uint8>(i * 5.0f);
         DisplayPCScreen();
     }
@@ -347,7 +343,7 @@ void CLoadingScreen::DoPCScreenChange(bool lastOne) {
         }
     }
 
-    for (auto i = 0u; i < 50; i++) {
+    for (auto i = 0u; i < 50u; i++) {
         float alpha = (float)i * 5.0f;
         m_FadeAlpha = (uint8)alpha;
 
