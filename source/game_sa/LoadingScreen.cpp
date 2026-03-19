@@ -118,6 +118,7 @@ void CLoadingScreen::RenderSplash() {
 }
 
 // 0x5900B0
+// Edit in Mobile
 void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
     CFileMgr::SetDir(TXD_FILE_PATH);
 
@@ -140,20 +141,20 @@ void CLoadingScreen::LoadSplashes(bool useSplashId, uint8 id) {
     // exclude 0, title_pcXX.
     std::shuffle(indices.begin() + 1, indices.end(), std::mt19937{ std::random_device{}() });
 
-    char name[20];
+    char texName[20];
     for (auto i = 0u; i < MAX_SPLASH_COUNT; ++i) {
         if (useSplashId) {
-            std::snprintf(name, sizeof(name), "%s", i ? EAX_LOGO : NVIDIA_LOGO);
-        } else if (id != 0) {
-            std::snprintf(name, sizeof(name), "%s%d", SPLASH_PREFIX, indices[id]);
+            std::snprintf(texName, sizeof(texName), "%s", id == 1 ? NVIDIA_LOGO : EAX_LOGO);
+        } else if (i != 0) {
+            std::snprintf(texName, sizeof(texName), "%s%d", SPLASH_PREFIX, indices[i]);
         } else {
 #ifdef USE_EU_STUFF
-            sprintf_s(name, "title_pc_EU");
+            sprintf_s(texName, "title_pc_EU");
 #else
-            sprintf_s(name, "title_pc_US");
+            sprintf_s(texName, "title_pc_US");
 #endif
         }
-        m_aSplashes[i].SetTexture(name);
+        m_aSplashes[i].SetTexture(texName);
     }
 
     CTxdStore::PopCurrentTxd();
@@ -417,10 +418,10 @@ void CLoadingScreen::NewChunkLoaded() {
 // 0x5905E0
 // unused
 void CLoadingScreen::Update() {
-    // Timing constants
-    const float LEGAL_SCREEN_TIMEOUT = 5.5f;
-    const float FADE_TIME_STANDARD = 0.6f;
-    const float FADE_TIME_LEGAL = 2.0f;
+    // Timing constants, defines?
+    constexpr float LEGAL_SCREEN_TIMEOUT = 5.5f;
+    constexpr float FADE_TIME_STANDARD = 0.6f;
+    constexpr float FADE_TIME_LEGAL = 2.0f;
 
     // Calculate progress
     if (m_TimeBarAppeared > 0.0f) {
@@ -439,11 +440,13 @@ void CLoadingScreen::Update() {
     }
 
     if (!m_bReadyToDelete && m_bSignalDelete && !m_bFading && m_PercentLoaded >= 1.0f) {
+        // 0x5906ED
         m_bReadyToDelete = true;
         m_bFadeOutCurrSplashToBlack = true;
         StartFading();
     }
 
+    // 0x590706
     // Update fade
     if (m_bFading) {
         float elapsed = GetClockTime(false) - m_StartFadeTime;
@@ -471,6 +474,7 @@ void CLoadingScreen::Update() {
         m_FadeAlpha = 255;
     }
 
+    // 0x5907D7
     // Update audio
     if (!m_bLegalScreen) {
         float volume = 1.0f;
