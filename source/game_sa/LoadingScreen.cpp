@@ -159,8 +159,8 @@ void CLoadingScreen::LoadSplashes(bool useSplashId, eLoadingLogo id) {
 }
 
 // 0x590220
-void CLoadingScreen::DisplayMessage(const char* message) {
-    std::strcpy(m_PopUpMessage, message);
+void CLoadingScreen::DisplayMessage(const char* msg) {
+    std::strcpy(m_PopUpMessage, msg);
 }
 
 // 0x590240
