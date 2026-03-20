@@ -688,7 +688,7 @@ void CVehicle::RemoveLighting(bool bRemove) {
     DeActivateDirectional();
 }
 
-// 0x871EF0// 0x6D56C0
+// 0x6D56C0
 void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGroup, uint32 animId, float fTime) {
     auto doorComponentId = (int32)doorComponentId_; // silence warns, todo: OpenDoor receives int32, why?
     eDoors iCheckedDoor = [&] {
@@ -741,7 +741,7 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
         } else if (fTime > fAnimStart && fTime < fAnimEnd) {
             const auto fNewRatio = 1.0F - invLerp(fAnimStart, fAnimEnd, fTime);
             const auto fCurRatio = GetDooorAngleOpenRatio(iCheckedDoor);
-            if (fCurRatio < fNewRatio) {
+            if (fCurRatio > fNewRatio) {
                 OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
             }
         }
@@ -758,10 +758,7 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
             OpenDoor(ped, doorComponentId, iCheckedDoor, 0.0F, true);
         } else if (fTime > fAnimStart && fTime < fAnimEnd) {
             const auto fNewRatio = 1.0F - invLerp(fAnimStart, fAnimEnd, fTime);
-            const auto fCurRatio = GetDooorAngleOpenRatio(iCheckedDoor);
-            if (fCurRatio < fNewRatio) {
-                OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
-            }
+            OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
         }
         return;
     }
