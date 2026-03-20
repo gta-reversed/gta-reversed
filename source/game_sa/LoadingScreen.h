@@ -69,7 +69,7 @@ public:
     [[nodiscard]] static bool IsActive() { return m_bActive; } // 0x744DB5
     [[nodiscard]] static bool IsPaused() { return m_bPaused; }
 
-    static void Init(bool legalScreen, bool dontReload);
+    static void Init(bool isLegalScreen, bool isReloadDisabled);
     static void Shutdown(bool force = false);
 
     // static bool Paused(); // unknown

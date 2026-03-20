@@ -39,12 +39,12 @@ void CLoadingScreen::InjectHooks() {
 }
 
 // 0x5902B0
-void CLoadingScreen::Init(bool legalScreen, bool dontReload) {
+void CLoadingScreen::Init(bool isLegalScreen, bool isReloadDisabled) {
     if (IsActive()) {
         return;
     }
 
-    if (!dontReload) {
+    if (!isReloadDisabled) {
         LoadSplashes(false, eLoadingLogo::EAX);
     }
 
@@ -80,12 +80,12 @@ void CLoadingScreen::RenderSplash() {
 
     CSprite2d::InitPerFrame();
 
-    CRect screenRect(
+    const CRect screenRect{
         -SCREEN_MARGIN,
         -SCREEN_MARGIN,
         SCREEN_WIDTH + SCREEN_MARGIN,
         SCREEN_HEIGHT + SCREEN_MARGIN
-    );
+    };
 
     CRGBA color(255, 255, 255, 255);
     RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSCLAMP));
@@ -132,8 +132,8 @@ void CLoadingScreen::LoadSplashes(bool useSplashId, eLoadingLogo id) {
     // exclude 0, title_pcXX.
     std::shuffle(indices.begin() + 1, indices.end(), std::mt19937{ std::random_device{}() });
 
-    char texName[20];
     for (auto i = +eDisplayedSplash::COPYRIGHT; i < +eDisplayedSplash::COUNT; i++) {
+        char texName[20];
         if (useSplashId) {
             const char* logoName;
             switch (id) {
