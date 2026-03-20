@@ -10,7 +10,7 @@ void CTaskSimpleCarOpenDoorFromOutside::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x645EE0);
 
     RH_ScopedInstall(FinishAnimCarOpenDoorFromOutsideCB, 0x646020);
-    RH_ScopedInstall(ComputeAnimID, 0x645FA0);
+    RH_ScopedInstall(ComputeAnimID_ToHook, 0x645FA0);
     RH_ScopedInstall(StartAnim, 0x64AD90);
 
     RH_ScopedVMTInstall(Clone, 0x6499A0);
@@ -58,7 +58,9 @@ void CTaskSimpleCarOpenDoorFromOutside::FinishAnimCarOpenDoorFromOutsideCB(CAnim
     const auto self = static_cast<CTaskSimpleCarOpenDoorFromOutside*>(data);
     self->m_anim = nullptr;
     self->m_finished = true;
-    
+
+    const auto [groupId, animId] = self->ComputeAnimID();
+    self->m_veh->ProcessOpenDoor(nullptr, self->m_door, groupId, animId, 1.0f);
 }
 
 // Originally @ 0x645FA0, but we've modified it a little
@@ -86,9 +88,9 @@ void CTaskSimpleCarOpenDoorFromOutside::ComputeAnimID_ToHook(AssocGroupId& grp, 
 }
 
 // 0x64AD90
-void CTaskSimpleCarOpenDoorFromOutside::StartAnim(CPed* ped) {
+void CTaskSimpleCarOpenDoorFromOutside::StartAnim(const CPed* ped) {
     const auto [groupId, animId] = ComputeAnimID();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 1000.f);
+    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 4.f);
     m_anim->SetFinishCallback(FinishAnimCarOpenDoorFromOutsideCB, this);
 }
 
