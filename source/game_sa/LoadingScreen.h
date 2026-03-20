@@ -6,19 +6,36 @@
 */
 #pragma once
 
+
+enum class eLoadingLogo : uint8 {
+    EAX = 0,
+    NVIDIA = 1
+};
+
+enum class eDisplayedSplash : int32 {
+    NONE = -1,
+
+    COPYRIGHT = 0,
+    SPLASH_1_NO_BAR = 1,
+    SPLASH2,
+    SPLASH3,
+    SPLASH4,
+    SPLASH5,
+    SPLASH6,
+
+    COUNT
+};
+
 class CSprite2d;
 
 class CLoadingScreen {
-public:
-    static constexpr size_t MAX_SPLASH_COUNT = 7u;
-
 private:
     static inline auto& m_bActive = StaticRef<bool>(0xBAB318);
     static inline auto& m_bWantToPause = StaticRef<bool>(0xBAB319); // unused
     static inline auto& m_bPaused = StaticRef<bool>(0xBAB31A); // unused
     static bool m_bForceShutdown; // unknown, unused
-    static inline auto& m_aSplashes = StaticRef<std::array<CSprite2d, MAX_SPLASH_COUNT>>(0xBAB35C);
-    static inline auto& m_currDisplayedSplash = StaticRef<int32>(0x8D093C);
+    static inline auto& m_aSplashes = StaticRef<std::array<CSprite2d, +eDisplayedSplash::COUNT>>(0xBAB35C);
+    static inline auto& m_currDisplayedSplash = StaticRef<eDisplayedSplash>(0x8D093C);
 
     static inline auto& m_bFading = StaticRef<bool>(0xBAB31C);
     static inline auto& m_bLegalScreen = StaticRef<bool>(0xBAB31D);
@@ -47,7 +64,7 @@ private:
     static inline auto& m_timeSinceLastScreen = StaticRef<float>(0xBAB340);
 
 public:
-    static void LoadSplashes(bool use_splash_id, uint8 id);
+    static void LoadSplashes(bool useSplashId, eLoadingLogo id);
 
     [[nodiscard]] static bool IsActive() { return m_bActive; } // 0x744DB5
     [[nodiscard]] static bool IsPaused() { return m_bPaused; }
@@ -90,11 +107,10 @@ private: // NOTSA
     static void InjectHooks();
 
 public:
-    static CSprite2d& GetCurrentDisplayedSplash() { return m_aSplashes[m_currDisplayedSplash]; }
+    static CSprite2d& GetCurrentDisplayedSplash() { return m_aSplashes[+m_currDisplayedSplash]; }
 
     // Skips the copyright splash
     static void SkipCopyrightSplash();
 };
-VALIDATE_SIZE(CLoadingScreen, 0x1);
 
 void LoadingScreen(const char* msg1, const char* msg2 = nullptr, const char* msg3 = nullptr);
