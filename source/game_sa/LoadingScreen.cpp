@@ -80,7 +80,7 @@ void CLoadingScreen::RenderSplash() {
 
     CSprite2d::InitPerFrame();
 
-    constexpr CRect screenRect{
+    const CRect screenRect{
         -SCREEN_MARGIN,
         -SCREEN_MARGIN,
         SCREEN_WIDTH + SCREEN_MARGIN,
