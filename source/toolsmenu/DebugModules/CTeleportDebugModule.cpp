@@ -254,7 +254,7 @@ void TeleportDebugModule::RenderTeleporterWindow() {
         Text("Current Pos: %.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
         if (SameLine(); Button("Copy")) {
             char buf[256];
-            sprintf_s(buf, "%.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
+            notsa::format_to_sz(buf, "{:.3f}, {:.3f}, {:.3f}", pos.x, pos.y, pos.z);
             SetClipboardText(buf);
         }
     }

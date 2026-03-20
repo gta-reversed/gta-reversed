@@ -138,7 +138,7 @@ void CMenuManager::ProcessFileActions() {
             if (CGame::bMissionPackGame) {
                 // Check mission pack file availability
                 CFileMgr::SetDirMyDocuments();
-                sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+                notsa::format_to_sz(gString, "MPACK//MPACK{}//SCR.SCM", CGame::bMissionPackGame);
                 auto file = CFileMgr::OpenFile(gString, "rb");
                 CFileMgr::SetDir(""); // FIX_BUGS
 
@@ -609,7 +609,7 @@ void CMenuManager::ProcessMissionPackNewGame() {
 
     // Scan for available mission packs
     for (auto i = 0u; i < 25u; i++) {
-        sprintf_s(gString, "MPACK//MPACK%d//MPACK.DAT", i);
+        notsa::format_to_sz(gString, "MPACK//MPACK{}//MPACK.DAT", i);
         if (auto file = CFileMgr::OpenFile(gString, "rb")) {
             // MPACK.DAT file format:
             //
@@ -633,11 +633,11 @@ void CMenuManager::ProcessMissionPackNewGame() {
         if (CGame::bMissionPackGame) {
             // Are you sure you want to start a new standard game?
             // All current game progress in this Mission Pack will be lost. Proceed?
-            strncpy_s(screen->m_aItems[0].m_szName, "FESZ_MR", 8u);
+            std::strncpy(screen->m_aItems[0].m_szName, "FESZ_MR", 8u);
         } else {
             // Are you sure you want to start a new game?
             // All current game progress will be lost. Proceed?
-            strncpy_s(screen->m_aItems[0].m_szName, "FESZ_QR", 8u);
+            std::strncpy(screen->m_aItems[0].m_szName, "FESZ_QR", 8u);
         }
     }
 }

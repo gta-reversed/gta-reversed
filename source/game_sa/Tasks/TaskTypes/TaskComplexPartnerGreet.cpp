@@ -22,7 +22,7 @@ CTaskComplexPartnerGreet::CTaskComplexPartnerGreet(const char* commandName, CPed
 {
     m_handShakeType = handShakeType;
     m_taskId = TASK_COMPLEX_PARTNER_GREET;
-    strcpy_s(m_animBlockName, "gangs");
+    std::strcpy(m_animBlockName, "gangs");
 }
 
 CTaskComplexPartnerGreet::CTaskComplexPartnerGreet(const CTaskComplexPartnerGreet& o) :

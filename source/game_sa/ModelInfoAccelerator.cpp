@@ -45,7 +45,7 @@ void CModelInfoAccelerator::GetEntry(CBaseModelInfo** mi, int32* arg1, char* arg
 
 // 0x4C6C20
 bool CModelInfoAccelerator::Begin(const char* filePath) {
-    strcpy_s(m_szFilePath, filePath);
+    std::strcpy(m_szFilePath, filePath);
     if (field_1A)
         return field_1A;
 

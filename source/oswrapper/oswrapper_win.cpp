@@ -61,11 +61,11 @@ int32 OS_FileOpen(OSFileDataArea dataArea, void** pfile, const char* file, OSFil
     }
 
     CHAR path[_MAX_PATH * 2];
-    strcpy_s(path, BasePath);
+    std::strcpy(path, BasePath);
     if (strlen(BasePath) && BasePath[strlen(BasePath) - 1] != '\\') {
-        strcat_s(path, "\\");
+        std::strcat(path, "\\");
     }
-    strcat_s(path, file);
+    std::strcat(path, file);
 
     HANDLE hFile = CreateFileA(path, dwDesiredAccess, dwShareMode, nullptr, dwCreationDisposition, NULL, nullptr);
 
@@ -157,7 +157,7 @@ void OS_SetFilePathOffset(const char* path) {
         BasePath[0] = '\0';
         return;
     }
-    strcpy_s(BasePath, path);
+    std::strcpy(BasePath, path);
 }
 
 // todo: ("2014/09/14: fix priorities and other shit")

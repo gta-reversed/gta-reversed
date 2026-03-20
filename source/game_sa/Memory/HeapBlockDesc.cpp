@@ -36,15 +36,15 @@ void HeapBlockDesc::_DumpBlockInfo() const {
 
     if (self->m_Flags.AllocatedUsingNew) {
         if (self->m_Flags.IsArray)
-            strcpy_s(szInfo, "operator new[]");
+            std::strcpy(szInfo, "operator new[]");
         else
-            strcpy_s(szInfo, "operator new  ");
+            std::strcpy(szInfo, "operator new  ");
         info = szInfo;
     }
 
     if (!self->m_Flags.NoDebugHint) {
         if (szInfo[0])
-            strcat_s(szInfo, " ");
+            std::strcat(szInfo, " ");
 
         if (self->m_Flags.StringDebugInfo)
             sprintf_s(szInfo + strlen(szInfo), "[Hint: %s]", self->m_upDebugInfo); // TODO: fix
@@ -67,13 +67,13 @@ void HeapBlockDesc::_DumpBlockInfo() const {
     }
 #endif
 
-    char szMem[64] = { 0 };
+    std::string dump{};
     for (int32 i = 0; i < 16; ++i) { // todo: magic number (related to m_idStack size?)
-        sprintf_s(szMem + strlen(szMem), 3u, "%02x", ((uint8*)self->_GetBlockData())[i]);
+        std::format_to(std::back_inserter(dump), "{:02x}", ((uint8*)self->_GetBlockData())[i]);
         if (i + 1 != 16) {
-            strcat_s(szMem, " ");
+            dump += ' ';
         }
     }
 
-    // NOTSA_LOG_DEBUG("  {:6s} [{:03d}]: 0x{:08x} {:11d} bytes   ^ 0x{:08x}   < {} >   {}\n", type, p->m_nMemId & 0xFF, p, p->NumBytes, p->m_PrevBlock, szMem, info);
+    // NOTSA_LOG_DEBUG("  {:6s} [{:03d}]: 0x{:08x} {:11d} bytes   ^ 0x{:08x}   < {} >   {}\n", type, p->m_nMemId & 0xFF, p, p->NumBytes, p->m_PrevBlock, dump, info);
 }

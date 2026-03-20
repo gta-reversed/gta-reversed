@@ -204,7 +204,7 @@ void CVehicleModelInfo::SetAnimFile(const char* filename)
     const auto size = strlen(filename) + 1;
     auto name = new char[size];
     m_animBlockFileName = name;
-    strcpy_s(name, size, filename);
+    notsa::string_copy(name, filename, size);
 }
 
 // 0x4C76D0
@@ -480,7 +480,7 @@ char* CVehicleModelInfo::GetCustomCarPlateText()
 
 void CVehicleModelInfo::SetCustomCarPlateText(char* text) {
     if (text) {
-        strcpy_s(m_szPlateText, text); // OG code truncated to 8 chars, but we're not gonna do that (As we want to get errors instead of quietly truncating)
+        std::strcpy(m_szPlateText, text); // OG code truncated to 8 chars, but we're not gonna do that (As we want to get errors instead of quietly truncating)
     } else {
         m_szPlateText[0] = '\0';
     }
@@ -869,7 +869,7 @@ RwTexture* CVehicleModelInfo::FindTextureCB(const char* name)
     }
 
     char buffer[32];
-    strcpy_s(buffer, name);
+    std::strcpy(buffer, name);
     buffer[0] = '#';
     return RwTexDictionaryFindNamedTexture(current, buffer);
 }
@@ -1186,7 +1186,7 @@ void CVehicleModelInfo::AssignRemapTxd(const char* name, int16 txdSlot)
         --iLastIndex;
 
     char buffer[24];
-    strncpy_s(buffer, name, iLastIndex + 1);
+    std::strncpy(buffer, name, iLastIndex + 1);
     buffer[iLastIndex + 1] = '\0';
 
     auto mi = CModelInfo::GetModelInfo(buffer, 400, 630);
@@ -1434,12 +1434,12 @@ void CVehicleModelInfo::LoadVehicleUpgrades()
         case eCarModsLineType::LINK: {
             int32 iModelId1 = -1, iModelId2 = -1;
             char* pLastToken{};
-            auto pToken = strtok_s(line, " \t,", &pLastToken);
+            auto pToken = strtok_r(line, " \t,", &pLastToken);
             if (pToken) {
                 auto pModel1 = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo(pToken, &iModelId1));
                 pModel1->SetupVehicleUpgradeFlags(pToken);
 
-                auto pNextToken = strtok_s(nullptr, " \t,", &pLastToken);
+                auto pNextToken = strtok_r(nullptr, " \t,", &pLastToken);
                 auto pModel2 = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo(pNextToken, &iModelId2));
                 pModel2->SetupVehicleUpgradeFlags(pNextToken);
 
@@ -1449,20 +1449,20 @@ void CVehicleModelInfo::LoadVehicleUpgrades()
         }
 
         case eCarModsLineType::MODS: {
-            auto pToken = strtok_s(line, " \t,", &pLastToken);
+            auto pToken = strtok_r(line, " \t,", &pLastToken);
             if (!pToken)
                 break;
 
             int32 iModelId = -1;
             auto mi = CModelInfo::GetModelInfo(pToken, &iModelId)->AsVehicleModelInfoPtr();
-            auto nextToken = strtok_s(nullptr, " \t,", &pLastToken);
+            auto nextToken = strtok_r(nullptr, " \t,", &pLastToken);
             auto upgrade = mi->m_anUpgrades;
             while (nextToken) {
                 auto ami = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo(nextToken, &iModelId));
                 ami->SetupVehicleUpgradeFlags(nextToken);
                 *upgrade = iModelId;
                 ++upgrade;
-                nextToken = strtok_s(nullptr, " \t,", &pLastToken);
+                nextToken = strtok_r(nullptr, " \t,", &pLastToken);
             }
 
             auto hydraulicsAMI = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo("hydralics", &iModelId));
@@ -1479,9 +1479,9 @@ void CVehicleModelInfo::LoadVehicleUpgrades()
         case eCarModsLineType::WHEEL: {
             int32 iModelId = -1, iWheelSet;
             VERIFY(sscanf_s(line, "%d", &iWheelSet) == 1);
-            RET_IGNORED(strtok_s(line, " \t,", &pLastToken));
+            RET_IGNORED(strtok_r(line, " \t,", &pLastToken));
             char* token;
-            while ((token = strtok_s(nullptr, " \t,", &pLastToken))) {
+            while ((token = strtok_r(nullptr, " \t,", &pLastToken))) {
                 auto wheelMI = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo(token, &iModelId));
                 wheelMI->SetupVehicleUpgradeFlags(token);
                 AddWheelUpgrade(iWheelSet, iModelId);

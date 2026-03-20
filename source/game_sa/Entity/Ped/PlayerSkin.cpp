@@ -59,13 +59,11 @@ RwTexture* CPlayerSkin::GetSkinTexture(const char* name) {
         return skinTexture;
     }
 
-    const char* imagePath;
-    if (!name[0] || !strcmp(name, "$$\"\"")) {
-        imagePath = "models\\generic\\player.bmp";
+    if (!name[0] || !std::strcmp(name, "$$\"\"")) {
+        std::strcpy(gString, "models\\generic\\player.bmp");
     } else {
-        imagePath = "skins\\%s.bmp";
+        notsa::format_to_sz(gString, "skins\\{}.bmp", name);
     }
-    sprintf_s(gString, imagePath, name);
 
     RwImage* image = RtBMPImageRead(gString);
     if (!image) {

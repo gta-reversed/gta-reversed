@@ -644,7 +644,7 @@ bool CPathFind::FindNodeCoorsForScript(CVector& outPos, CNodeAddress addr) {
 // 0x452F40
 void CPathFind::LoadPathFindData(int32 areaId) {
     CTimer::Suspend();
-    sprintf_s(gString, "data\\paths\\nodes%d.dat", areaId);
+    notsa::format_to_sz(gString, "data\\paths\\nodes{}.dat", areaId);
     auto* stream = RwStreamOpen(RwStreamType::rwSTREAMFILENAME, RwStreamAccessType::rwSTREAMREAD, gString);
     LoadPathFindData(stream, areaId);
     CTimer::Resume();

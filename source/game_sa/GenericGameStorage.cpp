@@ -98,7 +98,7 @@ void CGenericGameStorage::ReportError(eBlocks nBlock, eSaveLoadError nError) {
             return "Unknown error: %s";
         }
     };
-    sprintf_s(buffer, GetErrorString(), GetBlockName(nBlock));
+    std::sprintf(buffer, GetErrorString(), GetBlockName(nBlock));
 
     // Yes, they don't do anything with `buffer`
     NOTSA_LOG_ERR(buffer);
@@ -573,7 +573,7 @@ bool CGenericGameStorage::GenericSave() {
         return false;
 	}
 
-    strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
+    std::strncpy(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
     if (CloseFile()) {
         CPad::UpdatePads();
         return true;
@@ -738,7 +738,7 @@ bool CGenericGameStorage::SaveWorkBuffer(bool bIncludeChecksum) {
     if (!CloseFile())
         s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_CLOSE;
 
-    strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
+    std::strncpy(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
 
     ms_bFailed = true;
     return false;
@@ -747,7 +747,7 @@ bool CGenericGameStorage::SaveWorkBuffer(bool bIncludeChecksum) {
 // 0x5D0F50
 uint32 CGenericGameStorage::GetCurrentVersionNumber() {
     char buffer[40]{};
-    sprintf_s(buffer, "%s%s", "Apr 28 2005", "10:28:55");
+    notsa::format_to_sz(buffer, "{}{}", "Apr 28 2005", "10:28:55");
     return CKeyGen::GetKey(buffer);
 }
 
@@ -760,14 +760,14 @@ void CGenericGameStorage::MakeValidSaveName(int32 slot) {
 
     path[257] = 0; // Make sure there's space for the file extension
 
-    strcat_s(path, ".b");
+    std::strcat(path, ".b");
 
     for (auto it = path; *it && *it != '\n'; it++) {
         if (*it == '?')
             *it = ' ';
     }
 
-    strcpy_s(ms_SaveFileName, path);
+    std::strcpy(ms_SaveFileName, path);
 }
 
 // 0x5D0E30
@@ -799,7 +799,7 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     if (fileName) {
-        strcpy_s(ms_LoadFileName, fileName);
+        std::strcpy(ms_LoadFileName, fileName);
         s_PcSaveHelper.GenerateGameFilename(slot, ms_LoadFileNameWithPath);
     }
 

@@ -68,7 +68,7 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
         ePlantField field = ePlantField::NAME;
         CPlantSurfProp* surfProperties = nullptr;
         char* lastToken{};
-        char* surfaceName = strtok_s(line, " \t", &lastToken);
+        char* surfaceName = strtok_r(line, " \t", &lastToken);
 
         CPlantSurfPropPlantData* plant = nullptr;
         do {
@@ -82,7 +82,7 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
                         break;
                     }
                 } else {
-                    sprintf_s(errorMsg, "Unknown surface name '%s' in 'Plants.dat' (line %d)! See Andrzej to fix this.", surfaceName, lineId);
+                    std::sprintf(errorMsg, "Unknown surface name '%s' in 'Plants.dat' (line %d)! See Andrzej to fix this.", surfaceName, lineId);
                 }
                 return false;
             case ePlantField::PCD_ID:
@@ -145,7 +145,7 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
             default:
                 break;
             }
-            surfaceName = strtok_s(nullptr, " \t", &lastToken);
+            surfaceName = strtok_r(nullptr, " \t", &lastToken);
             field = static_cast<ePlantField>(static_cast<int32>(field) + 1);
         } while (surfaceName);
 

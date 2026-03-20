@@ -376,9 +376,21 @@ inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_
 //! Null terminated `std::format_to`. Use inplace of sprintf.
 //! NOTE: Not a complete replacement for std::format_to,
 //! e.g. it doesn't use output iterators. i don't care.
-template<size_t N, class... Args>
-void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
-    *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
+template<size_t BufferSize, class... Args>
+void format_to_sz(char (&out)[BufferSize], std::format_string<Args...> fmt, Args&&... args) {
+    static_assert(BufferSize > 1, "empty strings not allowed");
+    *std::format_to_n(out, BufferSize - 1, fmt, std::forward<Args>(args)...).out = '\0';
+}
+
+//! Null terminated `std::format_to`. Use inplace of sprintf.
+//! NOTE: Not a complete replacement for std::format_to,
+//! e.g. it doesn't use output iterators. i don't care.
+template<class... Args>
+void format_to_sz(char* out, size_t bufferSize, std::format_string<Args...> fmt, Args&&... args) {
+    if (bufferSize <= 1 || !out) {
+        return;
+    }
+    *std::format_to_n(out, bufferSize - 1, fmt, std::forward<Args>(args)...).out = '\0';
 }
 
 //! Reads a pointer as specified type.
@@ -386,15 +398,27 @@ template<typename T> requires std::is_trivially_constructible_v<T>
 T ReadAs(void* ptr) {
     return *static_cast<T*>(ptr);
 }
+
 //! Safe C string copying, use this instead of strcpy.
-inline void string_copy(char* out, const char* from, size_t size) {
-    std::snprintf(out, size, "%s", from);
+inline void string_copy(char* out, const char* from, size_t bufferSize) {
+    if (bufferSize <= 1 || !out || !from) {
+        return;
+    }
+
+    const size_t len     = std::strlen(from);
+    const size_t copyLen = (len < bufferSize) ? len : bufferSize - 1;
+    std::copy_n(from, copyLen, out);
+    out[copyLen] = '\0';
 }
 
 //! Safe C string copying, use this instead of strcpy.
-template<size_t N>
-void string_copy(char (&out)[N], const char* from) {
-    std::snprintf(out, N, "%s", from);
+template<size_t BufferSize>
+void string_copy(char (&out)[BufferSize], const char* from) {
+    static_assert(BufferSize > 1, "empty strings not allowed");
+    const size_t len     = std::strlen(from);
+    const size_t copyLen = (len < BufferSize) ? len : BufferSize - 1;
+    std::copy_n(from, copyLen, out);
+    out[copyLen] = '\0';
 }
 
 // Like clamp, but wraps the number - https://stackoverflow.com/a/64273069/15363969

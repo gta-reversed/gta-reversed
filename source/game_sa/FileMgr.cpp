@@ -53,7 +53,7 @@ char* InitUserDirectories()
         wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), UTF8ToUnicode(absolutePath.string()).c_str());
     } else {
         if (SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, gtaUserDirWide.data()) != S_OK) {
-            strcpy_s(gta_user_dir_path, std::size("data"), "data"); // 2nd param is required or game won't be able to find files!
+            std::strcpy(gta_user_dir_path, "data");
             return gta_user_dir_path;
         }
 
@@ -87,21 +87,21 @@ char* InitUserDirectories()
 
     std::string temp = UnicodeToUTF8(gtaUserDirWide.data());
     if (temp.length() >= PATH_SIZE)
-        strcpy_s(gta_user_dir_path, ".");
+        std::strcpy(gta_user_dir_path, ".");
     else
-        strcpy_s(gta_user_dir_path, temp.c_str());
+        std::strcpy(gta_user_dir_path, temp.c_str());
 
     temp = UnicodeToUTF8(userGalleryDirWide.data());
     if (temp.length() >= PATH_SIZE)
-        strcpy_s(user_gallery_dir_path, ".\\Gallery");
+        std::strcpy(user_gallery_dir_path, ".\\Gallery");
     else
-        strcpy_s(user_gallery_dir_path, temp.c_str());
+        std::strcpy(user_gallery_dir_path, temp.c_str());
 
     temp = UnicodeToUTF8(userTracksDirWide.data());
     if (temp.length() >= PATH_SIZE)
-        strcpy_s(user_tracks_dir_path, ".\\User Tracks");
+        std::strcpy(user_tracks_dir_path, ".\\User Tracks");
     else
-        strcpy_s(user_tracks_dir_path, temp.c_str());
+        std::strcpy(user_tracks_dir_path, temp.c_str());
 
     return gta_user_dir_path;
 }
@@ -126,13 +126,13 @@ void CFileMgr::Initialise()
             if (rootDirUTF8.length() >= (DIRNAMELENGTH - 2))
                 VERIFY(_getcwd(ms_rootDirName, DIRNAMELENGTH));
             else
-                strcpy_s(ms_rootDirName, rootDirUTF8.size() + 1, rootDirUTF8.c_str());
+                std::strcpy(ms_rootDirName, rootDirUTF8.c_str());
         }
     }
     else
         VERIFY(_getcwd(ms_rootDirName, DIRNAMELENGTH));
 
-    ms_rootDirName[strlen(ms_rootDirName)] = '\\';
+    ms_rootDirName[std::strlen(ms_rootDirName)] = '\\';
 }
 
 // 0x538730
@@ -153,7 +153,7 @@ int32 CFileMgr::ChangeDir(const char *path)
             errno = EINVAL;
             return -1;
         }
-        strcat_s(ms_dirName, path);
+        std::strcat(ms_dirName, path);
 
         char *lastPos = strchr(ms_dirName, 0) - 1;
         if (*lastPos != '\\')
@@ -186,7 +186,7 @@ int32 CFileMgr::SetDir(const char *path)
             errno = EINVAL;
             return -1;
         }
-        strcat_s(ms_dirName, destSizeAfterConcat, path);
+        std::strcat(ms_dirName, path);
 
         char *lastPos = strchr(ms_dirName, 0) - 1;
         if (*lastPos != '\\')
@@ -215,7 +215,7 @@ int32 CFileMgr::SetDirMyDocuments()
         return -1;
     }
 
-    strcpy_s(ms_dirName, userDir);
+    std::strcpy(ms_dirName, userDir);
 
     int32 r;
     if (WindowsCharset != CP_UTF8)

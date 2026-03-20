@@ -171,7 +171,7 @@ void LoadGroup(const char* fileName, auto& outModelsInGroup, auto& outNumOfModel
             }
             
             char modelName[256]{};
-            strncpy_s(modelName, begin, end - begin);
+            std::strncpy(modelName, begin, end - begin);
             if (int32 pedModelIdx{ MODEL_INVALID }; CModelInfo::GetModelInfo(modelName, &pedModelIdx)) {
                 assert(pedModelIdx != MODEL_PLAYER);
                 outModelsInGroup[currGrpIdx][npeds++] = pedModelIdx;

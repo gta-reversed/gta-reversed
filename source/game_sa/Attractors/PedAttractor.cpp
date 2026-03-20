@@ -80,7 +80,7 @@ CPedAttractor::CPedAttractor(
     m_QueueDir = CPedAttractorManager::ComputeEffectQueueDir(fx, mat);
     m_UseDir   = CPedAttractorManager::ComputeEffectUseDir(fx, mat);
 
-    strcpy_s(m_ScriptName, fx->m_szScriptName);
+    std::strcpy(m_ScriptName, fx->m_szScriptName);
 }
 
 void CPedAttractor::Shutdown() {
