@@ -44,7 +44,7 @@ private:
     static inline auto& m_FadeAlpha = StaticRef<uint8>(0xBAB320);
     static inline auto& m_StartFadeTime = StaticRef<float>(0xBAB324);
     static inline auto& m_ClockTimeOnPause = StaticRef<float>(0xBAB328); // unused
-    static inline auto& m_PauseTime = StaticRef<float>(0xBAB32C);
+    static inline auto& m_PauseTime = StaticRef<float>(0xBAB32C); // second
 
     static inline auto& m_PercentLoaded = StaticRef<float>(0xBAB330);
     static inline auto& m_TimeStartedLoading = StaticRef<float>(0xBAB334); // unused
@@ -70,7 +70,7 @@ public:
     [[nodiscard]] static bool IsPaused() { return m_bPaused; }
 
     static void Init(bool isLegalScreen, bool isReloadDisabled);
-    static void Shutdown(bool force = false);
+    static void Shutdown(bool isForce = false);
 
     // static bool Paused(); // unknown
     static void Pause();
@@ -89,7 +89,7 @@ public:
 
     static void DoPCTitleFadeOut();
     static void DoPCTitleFadeIn();
-    static void DoPCScreenChange(bool lastOne);
+    static void DoPCScreenChange(bool isLastOne);
 
 private:
     static void DisplayPCScreen();
@@ -100,7 +100,7 @@ private:
 
     static void StartFading();
 
-    [[nodiscard]] static float GetClockTime(bool realTime = true);
+    [[nodiscard]] static float GetClockTime(bool isRealTime = true);
 
 private: // NOTSA
     friend void InjectHooksMain();

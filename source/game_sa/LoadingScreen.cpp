@@ -56,7 +56,7 @@ void CLoadingScreen::Init(bool isLegalScreen, bool isReloadDisabled) {
 }
 
 // 0x58FF10
-void CLoadingScreen::Shutdown(bool force) {
+void CLoadingScreen::Shutdown(bool isForce) {
     m_bActive = false;
 
     // Release splash textures
@@ -80,7 +80,7 @@ void CLoadingScreen::RenderSplash() {
 
     CSprite2d::InitPerFrame();
 
-    const CRect screenRect{
+    constexpr CRect screenRect{
         -SCREEN_MARGIN,
         -SCREEN_MARGIN,
         SCREEN_WIDTH + SCREEN_MARGIN,
@@ -179,9 +179,9 @@ void CLoadingScreen::SetLoadingBarMsg(const char* msg1, const char* msg2) {
 }
 
 // 0x590280
-float CLoadingScreen::GetClockTime(bool realTime) {
-    float time = (float)GetMillisecondTime() / 1000.0f;
-    return realTime ? time : time - m_PauseTime;
+float CLoadingScreen::GetClockTime(bool isRealTime) {
+    const auto secs = (float)(GetMillisecondTime()) / 1000.0f;
+    return isRealTime ? secs : secs - m_PauseTime;
 }
 
 // 0x590310
@@ -325,10 +325,10 @@ void CLoadingScreen::DoPCTitleFadeOut() {
 
 // 0x590AC0
 // Edit in Mobile
-void CLoadingScreen::DoPCScreenChange(bool lastOne) {
+void CLoadingScreen::DoPCScreenChange(bool isLastOne) {
     m_bFading = true;
 
-    if (lastOne) {
+    if (isLastOne) {
         m_bFadeOutCurrSplashToBlack = true;
     } else {
         if (notsa::IsFixBugs()) { // Fix incorrect looping behaviour
@@ -349,8 +349,8 @@ void CLoadingScreen::DoPCScreenChange(bool lastOne) {
         float alpha = (float)i * 5.0f;
         m_FadeAlpha = (uint8)alpha;
 
-        if (lastOne || m_bFadeInNextSplashFromBlack) {
-            float amp = (lastOne && m_bFadeOutCurrSplashToBlack)
+        if (isLastOne || m_bFadeInNextSplashFromBlack) {
+            float amp = (isLastOne && m_bFadeOutCurrSplashToBlack)
                 ? ((255.0f - alpha) / 25.0f)
                 : 1.0f;
             AudioEngine.ServiceLoadingTune(amp);
@@ -364,7 +364,7 @@ void CLoadingScreen::DoPCScreenChange(bool lastOne) {
     m_bFadeInNextSplashFromBlack = false;
     m_bFading = false;
 
-    if (lastOne) {
+    if (isLastOne) {
         Shutdown();
     }
 }
