@@ -6,26 +6,28 @@ namespace notsa {
 namespace debugmodules {
 
 namespace {
-const char* GetDoorAxisName(eDoorAxis axis) {
-    switch (axis) {
-    case DOOR_AXIS_X:     return "+X";
-    case DOOR_AXIS_Y:     return "+Y";
-    case DOOR_AXIS_Z:     return "+Z";
-    case DOOR_AXIS_NEG_X: return "-X";
-    case DOOR_AXIS_NEG_Y: return "-Y";
-    case DOOR_AXIS_NEG_Z: return "-Z";
-    default:              return "Unknown";
+inline std::optional<const char*> EnumToString(eDoorAxis v) {
+    using namespace std::string_view_literals;
+    switch (v) {
+    case DOOR_AXIS_X:     return "AXIS_X";
+    case DOOR_AXIS_Y:     return "AXIS_Y";
+    case DOOR_AXIS_Z:     return "AXIS_Z";
+    case DOOR_AXIS_NEG_X: return "AXIS_NEG_X";
+    case DOOR_AXIS_NEG_Y: return "AXIS_NEG_Y";
+    case DOOR_AXIS_NEG_Z: return "AXIS_NEG_Z";
+    default:              return std::nullopt;
     }
 }
 
-const char* GetDoorStateName(eDoorState state) {
-    switch (state) {
-    case DOOR_NOTHING:     return "Nothing";
-    case DOOR_HIT_MAX_END: return "Hit Max End";
-    case DOOR_HIT_MIN_END: return "Hit Min End";
-    case DOOR_POP_OPEN:    return "Pop Open";
-    case DOOR_SLAM_SHUT:   return "Slam Shut";
-    default:               return "Unknown";
+inline std::optional<const char*> EnumToString(eDoorState v) {
+    using namespace std::string_view_literals;
+    switch (v) {
+    case DOOR_NOTHING:     return "NOTHING";
+    case DOOR_HIT_MAX_END: return "HIT_MAX_END";
+    case DOOR_HIT_MIN_END: return "HIT_MIN_END";
+    case DOOR_POP_OPEN:    return "POP_OPEN";
+    case DOOR_SLAM_SHUT:   return "SLAM_SHUT";
+    default:               return std::nullopt;
     }
 }
 
@@ -51,8 +53,8 @@ void RenderDoorInfo(CDoor& door) {
     }
 
     if (ImGui::CollapsingHeader("State", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::Text("Door State: %s (%d)", GetDoorStateName(door.m_doorState), static_cast<int>(door.m_doorState));
-        ImGui::Text("Axis:       %s (%d)", GetDoorAxisName(door.m_axis), static_cast<int>(door.m_axis));
+        ImGui::Text("Door State: %s (%d)", EnumToString(door.m_doorState), static_cast<int>(door.m_doorState));
+        ImGui::Text("Axis:       %s (%d)", EnumToString(door.m_axis), static_cast<int>(door.m_axis));
         ImGui::Text("Is Closed:  %s", door.IsClosed() ? "Yes" : "No");
         ImGui::Text("Is Fully Open: %s", door.IsFullyOpen() ? "Yes" : "No");
     }
@@ -71,7 +73,7 @@ void RenderDoorInfo(CDoor& door) {
     if (ImGui::CollapsingHeader("Flags")) {
         const uint16 dirn = door.m_dirn;
         ImGui::Text("m_dirn raw: 0x%04X", dirn);
-        ImGui::Text("Direction (axis):  %s", GetDoorAxisName(static_cast<eDoorAxis>(dirn & DOOR_EXTRA_DIRN_MASK)));
+        ImGui::Text("Direction (axis):  %s", EnumToString(static_cast<eDoorAxis>(dirn & DOOR_EXTRA_DIRN_MASK)));
         ImGui::Text("BASED:      %s", (dirn & DOOR_EXTRA_BASED) ? "Yes" : "No");
         ImGui::Text("LOW_GRAVITY:%s", (dirn & DOOR_EXTRA_LOW_GRAVITY) ? "Yes" : "No");
         ImGui::Text("CHASSIS:    %s", (dirn & DOOR_EXTRA_CHASSIS) ? "Yes" : "No");

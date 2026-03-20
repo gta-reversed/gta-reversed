@@ -72,16 +72,19 @@ public:
     bool ProcessImpact(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVector& oldTurnSpeed, Const CVector& offset);
     void Open(float angRatio);
 
-    float RetDoorAngVel() const { return m_angVel; }
-    float RetDoorAngle() const { return m_angle; }
-    float RetAngleWhenClosed() const { return m_closedAngle; }
-    float RetAngleWhenOpen() const { return m_openAngle; }
+    // There was a typo in the names of some functions
+    // it has been corrected: `Ret` has been changed to `Get`
+
+    float GetDoorAngVel() const { return m_angVel; } // RetDoorAngVel
+    float GetDoorAngle() const { return m_angle; } // RetDoorAngle
+    float GetAngleWhenClosed() const { return m_closedAngle; } // RetAngleWhenClosed
+    float GetAngleWhenOpen() const { return m_openAngle; } // RetAngleWhenOpen
     float GetAngleOpenRatio() const;
     bool IsClosed() const;
     bool IsFullyOpen() const;
 
-    eDoorAxis RetAxes() const { return m_axis; }
-    eDoorState RetDoorState() const { return m_doorState; }
+    eDoorAxis GetAxes() const { return m_axis; } // RetAxes
+    eDoorState GetDoorState() const { return m_doorState; } // RetDoorState
 
     void SetExtraWheelPositions(float wheel1, float wheel2, float wheel3, float wheel4) {
         m_openAngle = wheel1;

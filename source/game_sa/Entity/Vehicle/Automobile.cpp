@@ -209,6 +209,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     // Deal with rear doors
     if (modelIndex == MODEL_RHINO) { // For Rhino just hide it
         for (auto door : { DOOR_LEFT_REAR, DOOR_RIGHT_REAR }) {
+            // NOTE(pirulax): Also search for `Rhino` inside `CAutomobile::ProcessEntityCollision`
             m_doors[door].SetExtraWheelPositions(1.f, 1.f, 1.f, 1.f);
         }
 
@@ -268,14 +269,17 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     // 0x6B0F3B
     // Deal with swinging chassis
     if (m_pHandlingData->m_bSwingingChassis) {
-        float maxAngle = 0.02f;
-        if (GetModelIndex() == MODEL_COPCARVG || GetModelIndex() == MODEL_ESPERANT) {
-            maxAngle = 0.03f;
-        } else if (GetModelIndex() == MODEL_STRETCH) {
-            maxAngle = 0.01f;
-        }
-
-        m_swingingChassis.Init(maxAngle * PI, -maxAngle * PI, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_CHASSIS | DOOR_EXTRA_FIXEDSTATE);
+        const auto GetAngleMult = [modelIndex] {
+            switch (modelIndex) {
+            case MODEL_COPCARVG:
+            case MODEL_ESPERANT:
+                return 0.03f;
+            case MODEL_STRETCH:
+                return 0.01f;
+            }
+            return 0.02f;
+        };
+        m_swingingChassis.Init(GetAngleMult() * PI, -GetAngleMult() * PI, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_CHASSIS | DOOR_EXTRA_FIXEDSTATE);
         m_swingingChassis.m_doorState = eDoorState::DOOR_HIT_MAX_END;
     } else if (modelIndex == MODEL_FIRELA) {
         m_swingingChassis.Init(0.1f * PI, -0.1f * PI, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_FIXEDSTATE | DOOR_EXTRA_FIRETRUCK);
@@ -5521,7 +5525,7 @@ CObject* CAutomobile::RemoveBonnetInPedCollision() {
         return nullptr; // Not open/missing
     }
 
-    if (const auto& bonnet = m_doors[eDoors::DOOR_BONNET]; bonnet.RetAngleWhenOpen() * 0.4f >= bonnet.m_angle) { // TODO: CDoor - Probably inlined (IsDoorHalf(ish)Open?)
+    if (const auto& bonnet = m_doors[eDoors::DOOR_BONNET]; bonnet.GetAngleWhenOpen() * 0.4f >= bonnet.m_angle) {
         return nullptr; // Not open enough
     }
 
@@ -5879,7 +5883,7 @@ void CAutomobile::PopBoot() {
 
         CMatrix frameMat{ RwFrameGetMatrix(m_aCarNodes[eCarNodes::CAR_BOOT]) };
         CVector orien{ 0.f, 0.f, 0.f };
-        orien[door.RetAxes()] = door.RetDoorAngle();
+        orien[door.GetAxes()] = door.GetDoorAngle();
         frameMat.SetRotateKeepPos(orien);
         frameMat.UpdateRW();
     }
@@ -5894,7 +5898,7 @@ void CAutomobile::CloseBoot() {
     // Code copy pasted from `PopBoot`:
     CMatrix frameMat{ RwFrameGetMatrix(m_aCarNodes[eCarNodes::CAR_BOOT]) };
     CVector orien{ 0.f, 0.f, 0.f };
-    orien[door.RetAxes()] = door.RetDoorAngle();
+    orien[door.GetAxes()] = door.GetDoorAngle();
     frameMat.SetRotateKeepPos(orien);
     frameMat.UpdateRW();
 }

@@ -63,33 +63,18 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
     // 0x6F41B2
     float sin = std::sin(m_angle);
     float cos = std::cos(m_angle);
-    float ang;
 
-    switch (m_axis) {
-    case DOOR_AXIS_X: {
-        const float newY = sin * vecDirn.z - cos * vecDirn.y;
-        const float newZ = sin * vecDirn.y + cos * vecDirn.z;
-        vecDirn.y = newY;
-        vecDirn.z = newZ;
-        ang = acceleration.Cross(vecDirn).x;
-        break;
-    }
-    case DOOR_AXIS_Y: {
-        NOTSA_UNREACHABLE();
-        break; // TODO: Maybe
-    }
-    case DOOR_AXIS_Z: {
-        const float newX = sin * vecDirn.y - cos * vecDirn.x;
-        const float newY = sin * vecDirn.x + cos * vecDirn.y;
-        vecDirn.x = newX;
-        vecDirn.y = newY;
-        ang = acceleration.Cross(vecDirn).z;
-        break;
-    }
-    default:
-        NOTSA_UNREACHABLE();
-        break;
-    }
+    assert(m_axis != DOOR_AXIS_Y); // Test
+
+    const auto a = (m_axis + 1) % 3;
+    const auto b = (m_axis + 2) % 3;
+
+    const float newA = sin * vecDirn[b] - cos * vecDirn[a];
+    const float newB = sin * vecDirn[a] + cos * vecDirn[b];
+    vecDirn[a] = newA;
+    vecDirn[b] = newB;
+
+    float ang = acceleration.Cross(vecDirn)[m_axis];
 
     // 0x6F42A8
     // Angular velocity update
@@ -123,12 +108,10 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
     }
 
     // Speed limit
-    float capSpeed = CDoor::DOOR_SPEED_MAX_CAPPED;
-    if (m_dirn & DOOR_EXTRA_CHASSIS) {
-        capSpeed = DOOR_SPEED_MAX_CAPPED_CHASSIS;
-    } else if (m_dirn & DOOR_EXTRA_FIRETRUCK) {
-        capSpeed = DOOR_SPEED_MAX_CAPPED_FIRETRUCK;
-    }
+    float capSpeed = (m_dirn & DOOR_EXTRA_CHASSIS) ? DOOR_SPEED_MAX_CAPPED_CHASSIS
+        : (m_dirn & DOOR_EXTRA_FIRETRUCK)          ? DOOR_SPEED_MAX_CAPPED_FIRETRUCK
+                                                   : CDoor::DOOR_SPEED_MAX_CAPPED;
+
     m_angVel = std::clamp(m_angVel, -capSpeed, capSpeed);
 
     // Integration of an angle
@@ -139,11 +122,7 @@ bool CDoor::Process(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const CVecto
     }
 
     // Checking corner angles
-    bool posOpenRotation = true;
-    if (m_openAngle < m_closedAngle) {
-        posOpenRotation = false;
-    }
-
+    const bool posOpenRotation = m_openAngle >= m_closedAngle;
     const bool hitOpen = posOpenRotation ? (m_angle > m_openAngle) : (m_angle < m_openAngle);
     const bool hitClosed = posOpenRotation ? (m_angle < m_closedAngle) : (m_angle > m_closedAngle);
 
@@ -194,18 +173,14 @@ bool CDoor::ProcessImpact(CVehicle* vehicle, Const CVector& oldMoveSpeed, Const 
     }
 
     // Angular velocity along the desired axis
-    float ang;
-    switch (m_axis) {
-    case DOOR_AXIS_X: ang = acceleration.Cross(direction).x; break;
-    case DOOR_AXIS_Y: NOTSA_UNREACHABLE(); break; // TODO: Maybe
-    case DOOR_AXIS_Z: ang = acceleration.Cross(direction).z; break;
-    default:          NOTSA_UNREACHABLE(); break;
-    }
+    assert(m_axis != DOOR_AXIS_Y); // Test
+    const auto cross = acceleration.Cross(direction);
+    float ang = cross[m_axis];
 
     const float limit = CGeneral::GetRandomNumberInRange(0.75f, 1.5f) * POP_OPEN_DOOR_ACCEL_LIMIT;
 
     // Is there enough acceleration to open the door?
-    bool posOpenRotation = m_openAngle >= m_closedAngle;
+    const bool posOpenRotation = m_openAngle >= m_closedAngle;
     if (posOpenRotation) {
         return ang > limit;
     } else {
@@ -245,7 +220,7 @@ bool CDoor::IsClosed() const {
 
 // 0x6F4820
 bool CDoor::IsFullyOpen() const {
-    return std::fabsf(RetAngleWhenOpen()) - 0.5f <= std::fabsf(RetDoorAngle());
+    return std::fabsf(GetAngleWhenOpen()) - 0.5f <= std::fabsf(GetDoorAngle());
 }
 
 // NOTSA
