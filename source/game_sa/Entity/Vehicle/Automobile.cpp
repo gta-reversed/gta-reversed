@@ -6032,7 +6032,7 @@ void CAutomobile::SetBumperDamage(ePanels panelIdx, bool withoutVisualEffect) {
     auto nodeIdx = CDamageManager::GetCarNodeIndexFromPanel(panelIdx);
     auto frame = m_aCarNodes[nodeIdx];
     if (!frame) {
-        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelName()); // R* log
+        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelNameAsString()); // R* log
         return;
     }
 
@@ -6069,7 +6069,6 @@ void CAutomobile::SetPanelDamage(ePanels panel, bool createWindowGlass)
     auto nodeIdx = CDamageManager::GetCarNodeIndexFromPanel(panel);
     auto frame = m_aCarNodes[nodeIdx];
     if (!frame) {
-        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelName()); // Maybe R* log
         return;
     }
 
@@ -6124,7 +6123,7 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
     auto nodeIdx = CDamageManager::GetCarNodeIndexFromDoor(doorIdx);
     auto frame = m_aCarNodes[nodeIdx];
     if (!frame) {
-        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelName()); // R* log
+        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelNameAsString()); // R* log
         return;
     }
 

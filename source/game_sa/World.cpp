@@ -450,7 +450,7 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
                 if (fabsf(pos1.x - pos2.x) < 0.01f
                     && fabsf(pos1.y - pos2.y) < 0.01f
                     && fabsf(pos1.z - pos2.z) < 0.01f) {
-                    NOTSA_LOG_DEBUG("Two {} at position {},{},{}", CModelInfo::GetModelInfo(modelIndex1)->GetModelName(), pos1.x, pos1.y, pos1.z); // R* log
+                    NOTSA_LOG_WARN("Two {} at position {:4f},{:4f},{:4f}", CModelInfo::GetModelInfo(modelIndex1)->GetModelNameAsString(), pos1.x, pos1.y, pos1.z); // R* log
                 }
             }
         }
@@ -1320,7 +1320,7 @@ void CWorld::RemoveFallenPeds() {
         if (vecPedPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
-        NOTSA_LOG_DEBUG("&&&&&&Another ped has fallen through the map&&&&&&&&&& {} {} {}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log
+        NOTSA_LOG_WARN("&&&&&&Another ped has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || ped->IsPlayer()) {
             CNodeAddress pathNodeAddress = ThePaths.FindNodeClosestToCoors(vecPedPos, PATH_TYPE_PED, 1000000.0f, 0, 0, 0, 0, 0);
             if (pathNodeAddress.IsValid()) {
@@ -1350,7 +1350,7 @@ void CWorld::RemoveFallenCars() {
             continue;
         }
 
-        NOTSA_LOG_DEBUG("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {} {} {}", vecPos.x, vecPos.y, vecPos.z); // R* log
+        NOTSA_LOG_WARN("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPos.x, vecPos.y, vecPos.z); // R* log
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
@@ -1550,7 +1550,7 @@ void CWorld::TestForUnusedModels() {
         if (usageModelCounts[i] == 0) {
             CBaseModelInfo* mi = CModelInfo::GetModelInfo(i);
             if (mi) {
-                NOTSA_LOG_DEBUG("{} is not used", mi->GetModelName()); // R* log
+                NOTSA_LOG_WARN("{} is not used", mi->GetModelNameAsString()); // R* log
             }
         }
     }
