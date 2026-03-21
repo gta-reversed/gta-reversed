@@ -49,8 +49,8 @@ void CPedType::LoadPedData() {
         char* nextToken{};
         const auto GetAcquaintance = [=, &nextToken]() -> uint32 {
             uint32 value = 0;
-            RET_IGNORED(strtok_s(line, " ,\t", &nextToken));
-            for (const char* pedTypeName = strtok_s(nullptr, " ,\t", &nextToken); pedTypeName; pedTypeName = strtok_s(nullptr, " ,\t", &nextToken)) {
+            RET_IGNORED(strtok_r(line, " ,\t", &nextToken));
+            for (const char* pedTypeName = strtok_r(nullptr, " ,\t", &nextToken); pedTypeName; pedTypeName = strtok_r(nullptr, " ,\t", &nextToken)) {
                 value |= GetPedFlag(FindPedType(pedTypeName));
             }
             return value;

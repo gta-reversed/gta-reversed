@@ -26,17 +26,15 @@ constexpr auto NO_FOREGROUND_PAUSE = true;
 char* getDvdGamePath() {
     SetErrorMode(SEM_FAILCRITICALERRORS);
 
-    size_t bufferSize = GetLogicalDriveStringsA(0, nullptr);
-    const auto drivesBuffer = new char[bufferSize];
+    const size_t bufferSize = GetLogicalDriveStringsA(0, nullptr);
+    const auto drivesBuffer = std::make_unique<char[]>(bufferSize);
 
-    GetLogicalDriveStringsA(bufferSize, drivesBuffer);
+    GetLogicalDriveStringsA(bufferSize, drivesBuffer.get());
     assert(bufferSize > 0);
 
-    char drivePath[8] = {};
-    char volumeName[MAX_PATH + 1] = {};
-
-    for (const auto* drive = drivesBuffer; *drive; drive += strlen(drive) + 1) {
-        strcpy_s(drivePath, sizeof(drivePath), drive);
+    char drivePath[8]{}, volumeName[MAX_PATH + 1]{};
+    for (const auto* drive = drivesBuffer.get(); *drive; drive += strlen(drive) + 1) {
+        std::strcpy(drivePath, drive);
 
         if (GetDriveTypeA(drivePath) != DRIVE_CDROM) {
             continue;
@@ -46,15 +44,12 @@ char* getDvdGamePath() {
             continue;
         }
 
-        if (strcmp(volumeName, "GTA_SAN_ANDREAS") == 0) {
-            const auto result = new char[strlen(drivePath) + 1];
-            strcpy_s(result, strlen(drivePath) + 1, drivePath);
-            delete[] drivesBuffer;
+        if (!std::strcmp(volumeName, "GTA_SAN_ANDREAS")) {
+            const auto result = new char[std::strlen(drivePath) + 1];
+            std::strcpy(result, drivePath);
             return result;
         }
     }
-
-    delete[] drivesBuffer;
     return nullptr;
 }
 

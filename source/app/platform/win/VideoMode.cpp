@@ -55,8 +55,8 @@ char** GetVideoModeList() {
             }
         }
 
-        gVideoModes[modeId] = (char*)CMemoryMgr::Calloc(100, sizeof(char));                                  // 100 chars
-        sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "%lu X %lu X %lu", vmi.width, vmi.height, vmi.depth); // rwsprintf
+        gVideoModes[modeId] = (RwChar*)CMemoryMgr::Calloc(100, sizeof(RwChar)); // 100 chars
+        notsa::format_to_sz(gVideoModes[modeId], 100 * sizeof(RwChar), "{} X {} X {}", vmi.width, vmi.height, vmi.depth);
 
         VIDEO_MODE_LOG("Available video mode id={:02d}: {}", modeId, gVideoModes[modeId]);
     }

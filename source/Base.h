@@ -10,6 +10,11 @@
 #include <rw/rwplcore.h>
 #include <nlohmann/json.hpp>
 
+#ifdef _MSC_VER
+    // POSIX have strtok_r and it has the same signature&behavior with _s. So just use _r for portability.
+    #define strtok_r strtok_s
+#endif
+
 using json = nlohmann::json;
 
 #include <ranges>

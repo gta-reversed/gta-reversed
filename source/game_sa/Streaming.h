@@ -152,7 +152,7 @@ struct tStreamingFileDesc {
           IsNotPlayerImg(bNotPlayerImg),
           StreamHandle(CdStreamOpen(name))
     {
-        strncpy_s(Name, name, std::size(Name));
+        std::strncpy(Name, name, std::size(Name));
     }
 
     [[nodiscard]] bool IsInUse() const noexcept { return Name[0]; }

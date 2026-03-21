@@ -43,7 +43,7 @@ static inline auto& IsVMNotSelected = StaticRef<RwBool>(0x8D6218);
 /*
 * Dynamic array of video modes with format "width x height x depth"
 */
-static inline auto& gVideoModes = StaticRef<char**>(0xC920D0);
+static inline auto& gVideoModes = StaticRef<RwChar**>(0xC920D0);
 static inline auto& gCurrentGpu = StaticRef<uint32>(0x8D6248);
 static inline auto& gCurrentVideoMode = StaticRef<int32>(0x8D6220);
 

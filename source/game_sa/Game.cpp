@@ -140,7 +140,7 @@ void ValidateVersion() {
 
     static auto& version_name = StaticRef<char[64]>(0xB72C28);
 
-    strncpy_s(version_name, &buf[15], 64u);
+    std::strncpy(version_name, &buf[15], 64u);
     CFileMgr::CloseFile(file);
 }
 
@@ -330,7 +330,7 @@ bool CGame::Init1(char const *datFile) {
     ZoneScoped;
 
     CMaths::InitMathsTables();
-    strcpy_s(aDatFile, datFile);
+    std::strcpy(aDatFile, datFile);
     CPools::Initialise();
     CPlaceable::InitMatrixArray();
     CIniFile::LoadIniFile();

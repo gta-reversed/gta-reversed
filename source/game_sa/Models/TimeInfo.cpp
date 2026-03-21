@@ -17,12 +17,12 @@ void CTimeInfo::InjectHooks() {
 // 0x4C47E0
 CTimeInfo* CTimeInfo::FindOtherTimeModel(const char* modelName) {
     char timeSwitchModelName[24];
-    strcpy_s(timeSwitchModelName, modelName);
+    std::strcpy(timeSwitchModelName, modelName);
 
     char* nightSuffix = strstr(timeSwitchModelName, "_nt");
 
     if (nightSuffix) {
-        strncpy_s(nightSuffix, 4, "_dy", 4);
+        std::strncpy(nightSuffix, "_dy", 4);
     }
     else {
         char* daySuffix = strstr(timeSwitchModelName, "_dy");
@@ -30,7 +30,7 @@ CTimeInfo* CTimeInfo::FindOtherTimeModel(const char* modelName) {
         if (!daySuffix)
             return nullptr;
 
-        strncpy_s(daySuffix, 4, "_nt", 4);
+        std::strncpy(daySuffix, "_nt", 4);
     }
 
     int32 index = 0;

@@ -129,7 +129,7 @@ void CClumpModelInfo::SetAnimFile(const char* filename)
 
     const auto size = strlen(filename) + 1;
     auto name = new char[size];
-    strcpy_s(name, size, filename);
+    notsa::string_copy(name, filename, size);
     m_animFileName = name;
 }
 

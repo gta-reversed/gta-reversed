@@ -48,13 +48,13 @@ void CMenuSystem::SetActiveMenuItem(MenuId id, int8 item) {
 // 0x581C40
 void CMenuSystem::SetColumnHeader(MenuId id, uint8 column, Const char* header) {
     assert(column < MENU_COL_COUNT);
-    strcpy_s(MenuNumber[id]->m_aacColumnHeaders[column], header ? header : "\0");
+    std::strcpy(MenuNumber[id]->m_aacColumnHeaders[column], header ? header : "\0");
 }
 
 // NOTSA
 void CMenuSystem::SetRowTitle(MenuId id, uint8 column, uint8 row, Const char* title) {
     assert(column < MENU_COL_COUNT);
-    strcpy_s(MenuNumber[id]->m_aaacRowTitles[column][row], title ? title : "\0");
+    std::strcpy(MenuNumber[id]->m_aaacRowTitles[column][row], title ? title : "\0");
 }
 
 // 0x582080
@@ -507,7 +507,7 @@ MenuId CMenuSystem::CreateNewMenu(eMenuType type, const char* title, float x, fl
         menu->m_vPosn = { x, y };
         menu->m_bColumnBackground = background != 0;
         if (title) {
-            strcpy_s(menu->m_szTitle, title);
+            std::strcpy(menu->m_szTitle, title);
         } else {
             menu->m_szTitle[0] = '\0';
         }

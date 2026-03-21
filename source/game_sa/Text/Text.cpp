@@ -205,7 +205,7 @@ void CText::Load(bool keepMissionPack) {
     CFileMgr::CloseFile(file);
 
     static char gxtErrText[255]{};
-    strcpy_s(m_szCdErrorText, GxtCharToUTF8(gxtErrText, Get("CDERROR")));
+    std::strcpy(m_szCdErrorText, GxtCharToUTF8(gxtErrText, Get("CDERROR")));
     m_bCdErrorLoaded = true;
 
     CFileMgr::SetDir("");
@@ -297,7 +297,7 @@ void CText::LoadMissionText(const char* mission) {
     CTimer::Resume();
     CFileMgr::SetDir("");
 
-    strncpy_s(m_szMissionName, mission, sizeof(m_szMissionName));
+    std::strncpy(m_szMissionName, mission, sizeof(m_szMissionName));
     m_bIsMissionPackLoaded = true;
 }
 
@@ -315,7 +315,7 @@ void CText::LoadMissionPackText() {
 
     CFileMgr::SetDirMyDocuments();
     char fileName[64];
-    sprintf_s(fileName, "MPACK//MPACK%d//TEXT.GXT", CGame::bMissionPackGame);
+    std::sprintf(fileName, "MPACK//MPACK%d//TEXT.GXT", CGame::bMissionPackGame);
 
     auto file = CFileMgr::OpenFile(fileName, "rb");
     if (!file) {
@@ -362,7 +362,7 @@ void CText::LoadMissionPackText() {
     }
     m_MainKeyArray.Update(m_MissionText.m_data);
     m_bIsMissionPackLoaded = true;
-    strcpy_s(m_szMissionName, "MPNAME");
+    std::strcpy(m_szMissionName, "MPNAME");
     CFileMgr::CloseFile(file);
 }
 
@@ -384,8 +384,7 @@ const GxtChar* CText::Get(const char* key) {
         }
     }
 
-    char buf[32];
-    sprintf_s(buf, "");
+    char buf[32]{};
     AsciiToGxtChar(buf, GxtErrorString);
     return GxtErrorString;
 }

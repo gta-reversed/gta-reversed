@@ -763,9 +763,9 @@ void CMenuManager::CheckForMenuClosing() {
 bool CMenuManager::CheckMissionPackValidMenu() {
     CFileMgr::SetDirMyDocuments();
 
-    sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+    notsa::format_to_sz(gString, "MPACK//MPACK{}//SCR.SCM", CGame::bMissionPackGame);
     auto scr = CFileMgr::OpenFile(gString, "rb");
-    sprintf_s(gString, "MPACK//MPACK%d//TEXT.GXT", CGame::bMissionPackGame);
+    notsa::format_to_sz(gString, "MPACK//MPACK{}//TEXT.GXT", CGame::bMissionPackGame);
     auto gxt = CFileMgr::OpenFile(gString, "rb");
 
     CFileMgr::SetDir("");

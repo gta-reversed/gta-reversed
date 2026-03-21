@@ -76,7 +76,7 @@ struct CustomSpecMapPipeMaterialData {
 
     auto ToBuffer() const {
         SpecMapPipeMaterialDataBuffer b{.Specularity = Specularity};
-        strcpy_s(b.TexName, RwTextureGetName(Texture));
+        std::strcpy(b.TexName, RwTextureGetName(Texture));
         return b;
     }
 };

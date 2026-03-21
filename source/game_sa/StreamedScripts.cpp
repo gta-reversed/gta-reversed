@@ -122,7 +122,7 @@ void CStreamedScripts::ReadStreamedScriptData()
 
 // 0x4706C0
 int32 CStreamedScripts::RegisterScript(const char* scriptName) {
-    strcpy_s(m_aScripts[m_nCountOfScripts].m_Filename, scriptName);
+    std::strcpy(m_aScripts[m_nCountOfScripts].m_Filename, scriptName);
     return m_nCountOfScripts++;
 }
 

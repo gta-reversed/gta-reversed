@@ -23,7 +23,7 @@ void C_PcSave::InjectHooks() {
 
 // 0x619040
 void C_PcSave::SetSaveDirectory(const char* path) {
-    sprintf_s(DefaultPCSaveFileName, "%s\\%s", path, "GTASAsf");
+    notsa::format_to_sz(DefaultPCSaveFileName, "{}\\GTASAsf", path);
 }
 
 // 0x6190A0
@@ -31,7 +31,7 @@ void C_PcSave::GenerateGameFilename(int32 slot, char* out) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     const auto maxSize = std::size(DefaultPCSaveFileName) + std::size(std::to_string(MAX_SAVEGAME_SLOTS)) + std::size(".b") - 2u;
-    sprintf_s(out, maxSize, "%s%i%s", DefaultPCSaveFileName, slot + 1, ".b");
+    notsa::format_to_sz(out, maxSize, "{}{}.b", DefaultPCSaveFileName, slot + 1);
 }
 
 // 0x619140
@@ -74,11 +74,11 @@ void C_PcSave::PopulateSlotInfo() {
             assert(time.wMonth - 1 < 12); // NOTSA
             
             char monthGXTKey[64]{};
-            sprintf_s(monthGXTKey, "MONTH%d", (uint32)time.wMonth);
+            notsa::format_to_sz(monthGXTKey, "MONTH{}", (uint32)time.wMonth);
             assert(time.wMonth - 1 < 12); // NOTSA
 
             char date[128];
-            sprintf_s(date, "%02d %s %04d %02d:%02d:%02d", time.wDay, GxtCharToUTF8(TheText.Get(monthGXTKey)), time.wYear, time.wHour, time.wMinute, time.wSecond);
+            notsa::format_to_sz(date, "{:02d} {} {:04d} {:02d}:{:02d}:{:02d}", time.wDay, GxtCharToUTF8(TheText.Get(monthGXTKey)), time.wYear, time.wHour, time.wMinute, time.wSecond);
             AsciiToGxtChar(date, CGenericGameStorage::ms_SlotSaveDate[i]);
         } else {
             CMessages::InsertNumberInString(TheText.Get("FEC_SLC"), i, -1, -1, -1, -1, -1, CGenericGameStorage::ms_SlotFileName[i]);
