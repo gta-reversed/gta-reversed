@@ -64,6 +64,17 @@ public:
 
     uint32 GetIndex() const;
 
+    
+    inline static std::unordered_map<uint32, std::string> g_HashToStringMap; // NOTSA
+    // NOTSA
+    std::string GetModelNameAsString() {
+        auto it = g_HashToStringMap.find(m_hashKey);
+        if (it != g_HashToStringMap.end()) {
+            return it->second;
+        }
+        return std::to_string(m_hashKey);
+    }
+
 private: // Function implementations
     template<bool Compressed>
     void ICalcTotalTime() {

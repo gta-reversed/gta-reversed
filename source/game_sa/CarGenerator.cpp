@@ -196,14 +196,19 @@ void CCarGenerator::DoInternalProcessing()
     }
     else
     {
+        bool groundFound;
         CVector posn = m_vecPosn;
+        // 0x6F36DF
         if (posn.z > MAP_Z_LOW_LIMIT)
-            posn.z += 1.0f;
+            posn.z += 1.0f; 
         else
             posn.z = 1000.0f;
 
-        if (!CWorld::ProcessVerticalLine(posn, -1000.0f, colPoint, entity, true, false, false, false, false, false, nullptr))
+        groundFound = CWorld::ProcessVerticalLine(posn, -1000.0f, colPoint, entity, true, false, false, false, false, false, nullptr);
+        if (!groundFound) {
+            NOTSA_LOG_WARN("can't find ground z for new car x = {:f} y = {:f}", (float)m_vecPosn.x, (float)m_vecPosn.y); // R* log from III
             return;
+        }
 
         baseZ = colPoint.m_vecPoint.z;
         plate.m_nCarGenId = CTheCarGenerators::GetIndex(this);

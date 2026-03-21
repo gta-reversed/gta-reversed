@@ -124,6 +124,7 @@ int32 CCarCtrl::ChooseCarModelToLoad(int32 groupID) {
             }
         }
     }
+    NOTSA_LOG_DEBUG("No cars of type %d have been declared", groupID); // R* log from III
     return -1;
 }
 

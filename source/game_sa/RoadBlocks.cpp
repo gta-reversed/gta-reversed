@@ -27,8 +27,11 @@ void CRoadBlocks::Init() {
 
     if (notsa::File rbx("data\\paths\\roadblox.dat", "rb"); rbx) {
         rbx.Read(&NumRoadBlocks, sizeof(int32));
-        assert(NumRoadBlocks <= MAX_ROADBLOCKS);
-        rbx.Read(RoadBlockNodes.data(), RoadBlockNodes.size() * sizeof(CNodeAddress));
+        if (NumRoadBlocks <= MAX_ROADBLOCKS) {
+            rbx.Read(RoadBlockNodes.data(), RoadBlockNodes.size() * sizeof(CNodeAddress));
+        } else {
+            NOTSA_LOG_WARN("Not enough room for the potential roadblocks"); // R* log from III
+        }
     } else {
         NOTSA_UNREACHABLE("roadblox.dat couldn't be opened!");
     }

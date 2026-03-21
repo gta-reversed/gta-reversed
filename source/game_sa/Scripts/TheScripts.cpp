@@ -735,6 +735,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
         }
 
         if (entity->GetIsTypeVehicle()) {
+            NOTSA_LOG_DEBUG("Will try to delete a vehicle where a mission entity should be"); // R* log from III
             auto* vehicle = entity->AsVehicle();
             if (vehicle->vehicleFlags.bIsLocked || !vehicle->CanBeDeleted()) {
                 continue;
@@ -760,6 +761,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
 
         if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
+            NOTSA_LOG_DEBUG("Deleted a ped where a mission entity should be"); // R* log from III
         }
     }
     ourColData->m_nNumLines = cdNumLines;

@@ -98,12 +98,14 @@ void CPedStats::LoadPedStats() {
 
 // 0x6088D0
 ePedStats CPedStats::GetPedStatType(const char* statName) {
-  uint16 statIndex = 0;
-  while (strcmp(ms_apPedStats[statIndex].m_acName, statName) != 0) {
-    if (++statIndex >= PED_STATS_COUNT)
-      return ePedStats::SENSIBLE_GUY;
-  }
-  return static_cast<ePedStats>(statIndex);
+    uint16 statIndex = 0;
+    while (strcmp(ms_apPedStats[statIndex].m_acName, statName) != 0) {
+        if (++statIndex >= PED_STATS_COUNT) {
+            NOTSA_LOG_ERR("Can't find requested pedstats type"); // R* log from III
+            return ePedStats::SENSIBLE_GUY;
+        }
+    }
+    return static_cast<ePedStats>(statIndex);
 }
 
 // unused
@@ -114,6 +116,7 @@ CPedStat* CPedStats::GetPedStatInfo(const char* statName) {
             return &ms_apPedStats[statIndex];
         }
     }
+    NOTSA_LOG_ERR("Can't find requested pedstat"); // R* log from III
     return nullptr;
 }
 

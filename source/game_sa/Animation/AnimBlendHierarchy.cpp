@@ -91,6 +91,7 @@ CAnimBlendSequence* CAnimBlendHierarchy::FindSequence(const char* name) const {
 // 0x4CF2D0
 void CAnimBlendHierarchy::SetName(const char* name) {
     m_hashKey = CKeyGen::GetUppercaseKey(name);
+    g_HashToStringMap[m_hashKey] = name; // NOTSA
 }
 
 // 0x4CF4E0

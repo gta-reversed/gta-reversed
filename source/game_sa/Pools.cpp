@@ -90,7 +90,7 @@ void CPools::Initialise() {
 
 // 0x5519F0
 void CPools::ShutDown() {
-    NOTSA_LOG_DEBUG("Shutdown pool started");
+    NOTSA_LOG_DEBUG("Shutdown pool started"); // R* log
     delete std::exchange(ms_pPtrNodeSingleLinkPool, nullptr);
     delete std::exchange(ms_pPtrNodeDoubleLinkPool, nullptr);
     delete std::exchange(ms_pEntryInfoNodePool, nullptr);
@@ -108,7 +108,7 @@ void CPools::ShutDown() {
     delete std::exchange(ms_pTaskAllocatorPool, nullptr);
     delete std::exchange(ms_pPedIntelligencePool, nullptr);
     delete std::exchange(ms_pPedAttractorPool, nullptr);
-    NOTSA_LOG_DEBUG("Shutdown pool done");
+    NOTSA_LOG_DEBUG("Shutdown pool done"); // R* log
 }
 
 // 0x550170
@@ -123,9 +123,9 @@ void CPools::CheckPoolsEmpty() {
             continue;
 
         const auto& objPos = obj.GetPosition();
-        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{:f} {:f} {:f}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
-    NOTSA_LOG_DEBUG("Pools have been cleared!");
+    NOTSA_LOG_DEBUG("Pools have been cleared!"); // R* log
 }
 
 // 0x550050
