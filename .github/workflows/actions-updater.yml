@@ -1,0 +1,38 @@
+name: GitHub Actions Version Updater
+
+on:
+  schedule:
+    - cron:  '0 0 * * 0' # Every sunday
+
+#######
+#
+# NOTE
+#
+#######
+# The workflow secret used in this workflow expires every 366 days (the maximum the org allows)
+# When it expires, one most be generated and added to the repository secrets with the name "ACTIONS_UPDATE_WORKFLOW_SECRET"
+# It should have the following permissions:
+# Contents - Read and write (To Push Changes to the Repository)
+# Workflows - Read and write (To Update GitHub Action workflow files)
+# Pull requests - Read and write (To Create Pull Requests)
+# Metadata - Read-only (Required by Above Permissions)
+#######
+# To add a workflow secret see: https://docs.github.com/en/actions/reference/encrypted-secrets
+# How to create a PAT: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+# For more info see: https://github.com/marketplace/actions/github-actions-version-updater#important-note
+#######
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.ACTIONS_UPDATE_WORKFLOW_SECRET }}
+
+      - name: Run GitHub Actions Version Updater
+        uses: saadmk11/github-actions-version-updater@v0.9.0
+        with:
+          token: ${{ secrets.ACTIONS_UPDATE_WORKFLOW_SECRET }}
+          pull_request_team_reviewers: "Core Contributors"
+          pull_request_labels: "dependencies, automated"
