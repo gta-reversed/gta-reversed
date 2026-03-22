@@ -128,7 +128,7 @@ bool CTheZones::PointLiesWithinZone(const CVector* point, CZone* zone) {
 // Returns eLevelName from position
 eLevelName CTheZones::GetLevelFromPosition(const CVector& point) {
     if (!PointLiesWithinZone(&point, &MapZoneArray[0])) {
-        NOTSA_LOG_WARN("x = {:3f} y = {:3f} z = {:3f}", point.x, point.y, point.z); // R* log from III + VC
+        NOTSA_LOG_DEBUG("x = {:3f} y = {:3f} z = {:3f}", point.x, point.y, point.z); // R* log from III + VC
     }
 
     const auto& mapZones = GetMapZones();

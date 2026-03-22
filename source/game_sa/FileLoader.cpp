@@ -339,7 +339,7 @@ void CFileLoader::LoadCarPathNode(const char* line, int32 objModelIndex, int32 p
 // 0x5373F0
 bool CFileLoader::StartLoadClumpFile(RwStream* stream, uint32 modelIndex) {
     if (!RwStreamFindChunk(stream, rwID_CLUMP, nullptr, nullptr)) {
-        NOTSA_LOG_ERR("FAILED"); // R* log from III
+        NOTSA_LOG_ERR("FAILED: stream 0x{:08x}, modelIndex {}", LOG_PTR(stream), modelIndex); // R* log from III, modificated
         return false;
     }
 
@@ -375,7 +375,7 @@ bool CFileLoader::FinishLoadClumpFile(RwStream* stream, uint32 modelIndex) {
         CVehicleModelInfo::StopUsingCommonVehicleTexDicationary();
 
     if (!clump) {
-        NOTSA_LOG_ERR("FAILED"); // R* log from III
+        NOTSA_LOG_ERR("FAILED: stream 0x{:08x}, modelIndex {}", LOG_PTR(stream), modelIndex); // R* log from III, modificated
         return false;
     }
 

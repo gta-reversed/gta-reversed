@@ -116,7 +116,7 @@ CPedStat* CPedStats::GetPedStatInfo(const char* statName) {
             return &ms_apPedStats[statIndex];
         }
     }
-    NOTSA_LOG_ERR("Can't find requested pedstat"); // R* log from III
+    NOTSA_LOG_ERR("Can't find requested pedstat '{}'", statName); // R* log from III
     return nullptr;
 }
 

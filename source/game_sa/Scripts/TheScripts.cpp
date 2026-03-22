@@ -277,12 +277,18 @@ void CTheScripts::ReadObjectNamesFromScript() {
 // 0x486780
 void CTheScripts::UpdateObjectIndices() {
     // First one is ignored because it's empty.
-    for (auto& obj : UsedObjectArray | std::views::drop(1)) {
+    auto activeObjects = UsedObjectArray
+        | std::views::take(NumberOfUsedObjects)
+        | std::views::drop(1);
+
+    for (auto& obj : activeObjects) {
+        obj.nModelIndex = -1;
         if (!CModelInfo::GetModelInfo(obj.szModelName, &obj.nModelIndex)) {
-            NOTSA_LOG_WARN("Couldn't find %s", obj.szModelName); // R* log from III + VC
+            NOTSA_LOG_WARN("Couldn't find {}", obj.szModelName); // R* log from III + VC
         }
     }
 }
+
 // 0x4867C0
 void CTheScripts::ReadMultiScriptFileOffsetsFromScript() {
     auto* sfi = GetSCMChunk<tSCMScriptFileInfoChunk>();

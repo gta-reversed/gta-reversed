@@ -123,7 +123,7 @@ void CPools::CheckPoolsEmpty() {
             continue;
 
         const auto& objPos = obj.GetPosition();
-        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{:f} {:f} {:f}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors: {:f} {:f} {:f}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
     NOTSA_LOG_DEBUG("Pools have been cleared!"); // R* log
 }

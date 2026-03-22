@@ -82,7 +82,7 @@ bool CTxdStore::StartLoadTxd(int32 index, RwStream* stream) {
     if (texdic) {
         return true;
     } else {
-        NOTSA_LOG_WARN("Failed to load TXD"); // R* log from III
+        NOTSA_LOG_ERR("Failed to load TXD"); // R* log from III
         return false;
     }
 }
@@ -110,7 +110,7 @@ bool CTxdStore::LoadTxd(int32 index, RwStream* stream) {
         SetupTxdParent(index);
         return true;
     } else {
-        NOTSA_LOG_WARN("Failed to load TXD"); // R* log from III
+        NOTSA_LOG_ERR("Failed to load TXD"); // R* log from III
         return false;
     }
 }

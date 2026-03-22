@@ -450,7 +450,7 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
                 if (fabsf(pos1.x - pos2.x) < 0.01f
                     && fabsf(pos1.y - pos2.y) < 0.01f
                     && fabsf(pos1.z - pos2.z) < 0.01f) {
-                        NOTSA_LOG_WARN("Two {} at position {:f},{:f},{:f}", CModelInfo::GetModelInfo(modelIndex1)->GetModelNameAsString(), pos1.x, pos1.y, pos1.z); // R* log
+                    NOTSA_LOG_WARN("Two {} at position {:f},{:f},{:f}", CModelInfo::GetModelInfo(modelIndex1)->GetModelNameAsString(), pos1.x, pos1.y, pos1.z); // R* log
                 }
             }
         }
@@ -1318,7 +1318,7 @@ void CWorld::RemoveFallenPeds() {
         if (vecPedPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
-        NOTSA_LOG_WARN("&&&&&&Another ped has fallen through the map&&&&&&&&&& {:f} {:f} {:f}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log from III
+        NOTSA_LOG_WARN("Another ped has fallen through the map {:f} {:f} {:f}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log from III
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || ped->IsPlayer()) {
             CNodeAddress pathNodeAddress = ThePaths.FindNodeClosestToCoors(vecPedPos, PATH_TYPE_PED, 1000000.0f, 0, 0, 0, 0, 0);
             if (pathNodeAddress.IsValid()) {
@@ -1348,7 +1348,7 @@ void CWorld::RemoveFallenCars() {
             continue;
         }
 
-        NOTSA_LOG_WARN("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {:f} {:f} {:f}", vecPos.x, vecPos.y, vecPos.z); // R* log from III
+        NOTSA_LOG_WARN("Another vehicle has fallen through the map {:f} {:f} {:f}", vecPos.x, vecPos.y, vecPos.z); // R* log from III
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
@@ -2606,7 +2606,7 @@ float CWorld::FindRoofZFor3DCoord(float x, float y, float z, bool* outResult) {
         if (outResult) {
             *outResult = false;
         } else {
-            NOTSA_LOG_WARN("THERE IS NO MAP BELOW THE FOLLOWING COORS: {:f} {:f} {:f}", x, y, z); // R* log, Delete in Mobile
+            NOTSA_LOG_WARN("THERE IS NO MAP BELOW THE FOLLOWING COORS: {} {} {}", x, y, z); // R* log, Delete in Mobile
         }
         return 20.0f;
     }
