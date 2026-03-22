@@ -278,10 +278,11 @@ void CTheScripts::ReadObjectNamesFromScript() {
 void CTheScripts::UpdateObjectIndices() {
     // First one is ignored because it's empty.
     for (auto& obj : UsedObjectArray | std::views::drop(1)) {
-        CModelInfo::GetModelInfo(obj.szModelName, &obj.nModelIndex);
+        if (!CModelInfo::GetModelInfo(obj.szModelName, &obj.nModelIndex)) {
+            NOTSA_LOG_WARN("Couldn't find %s", obj.szModelName); // R* log from III + VC
+        }
     }
 }
-
 // 0x4867C0
 void CTheScripts::ReadMultiScriptFileOffsetsFromScript() {
     auto* sfi = GetSCMChunk<tSCMScriptFileInfoChunk>();

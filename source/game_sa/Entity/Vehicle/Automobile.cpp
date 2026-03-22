@@ -2091,7 +2091,7 @@ void CAutomobile::GetComponentWorldPosition(int32 componentId, CVector& outPos)
     if (frame) {
         outPos = RwFrameGetLTM(m_aCarNodes[componentId])->pos;
     } else {
-        NOTSA_LOG_WARN("CarNode missing: {} {}", m_nModelIndex, componentId); // R* log from III
+        NOTSA_LOG_WARN("CarNode missing: {} {}", m_nModelIndex, componentId); // R* log from III + VC
     }
 }
 
