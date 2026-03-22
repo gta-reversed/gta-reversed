@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include <unordered_set>
+#include <extensions/CommandLine.h>
 
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include "ReversibleHook/ScriptCommand.h"
@@ -84,7 +85,9 @@ void OnInjectionEnd() {
 
     s_RootCategory.OnInjectionEnd();
 
-    WriteHooksToFile("hooks.csv");
+    if (!CommandLine::s_DumpHooksPath.empty()) {
+        WriteHooksToFile(CommandLine::s_DumpHooksPath);
+    }
 }
 
 void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, void* fnOurAddr, size_t nVirtFns, const HookInstallOptions& opt) {
