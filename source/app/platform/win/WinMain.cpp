@@ -18,6 +18,7 @@
 #include "WndProc.h"
 #include "WindowedMode.hpp"
 
+#include <InjectHooksMain.h>
 #include "extensions/Configs/FastLoader.hpp"
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
@@ -492,6 +493,23 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
     return 0; // Msg.wParam
 }
+
+#ifdef NOTSA_STANDALONE
+INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, INT nCmdShow) {
+    #ifdef NOTSA_DUMP_HOOKS_ONLY
+        NOTSA_LOG_INFO("Dumping hooks only, no memory writing will be performed");
+        if (CommandLine::s_DumpHooksPath.empty()) {
+            NOTSA_LOG_ERR("No path provided for dumping hooks, use `--dump-hooks-to` CLI argument");
+            return 1;
+        }
+        InjectHooksMain(GetModuleHandle(nullptr));
+        return 0;
+    #else
+        NOTSA_LOG_ERROR("This executable is meant to be used for dumping hooks only, see `NOTSA_DUMP_HOOKS_ONLY` option");
+        return 1;
+    #endif
+}
+#endif
 
 void InjectWinMainStuff() {
     RH_ScopedCategory("Win");

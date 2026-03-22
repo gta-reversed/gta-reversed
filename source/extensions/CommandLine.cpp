@@ -11,7 +11,7 @@ std::vector<std::string_view> s_UnhookSome{};
 std::vector<std::string_view> s_UnhookExcept{};
 
 /* Path to save the hooks dump file to */
-fs::path s_DumpHooksPath{"hooks.csv"}; // todo: {}
+fs::path s_DumpHooksPath{};
 
 /* Wait for debugger before continuing */
 bool s_WaitForDebugger{ false };

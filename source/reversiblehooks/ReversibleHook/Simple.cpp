@@ -1,4 +1,5 @@
 #include "StdInc.h"
+#include <extensions/CommandLine.h>
 
 #include "Simple.h"
 
@@ -17,6 +18,10 @@ Simple::Simple(
     m_iRealHookedAddress(installAddress),
     m_iHookedBytes(iJmpCodeSize)
 {
+    #ifdef NOTSA_STANDALONE
+        return; /* Don't try to write to memory at all, not needed */
+    #endif
+
     if (stackArguments != -1)
         GenerateECXPreservationThunk(stackArguments);
 
@@ -156,6 +161,7 @@ void Simple::Switch()
     if (m_IsLocked) {
         return;
     }
+#ifndef NOTSA_STANDALONE
     if (m_IsHooked) { // Unhook (make our code jump to the GTA function)
         VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_OriginalFunctionContent, m_iHookedBytes);
         ApplyJumpToGTACode();
@@ -163,10 +169,12 @@ void Simple::Switch()
         VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_HookContent, m_iHookedBytes);
         VirtualCopy((void*)m_iLibFunctionAddress, (void*)&m_LibOriginalFunctionContent, m_iLibHookedBytes);
     }
+#endif
     m_IsHooked = !m_IsHooked;
 }
 
 void Simple::Check() {
+#ifndef NOTSA_STANDALONE
     if (m_IsHooked) {
         CheckLibFnForChangesAndStore((void*)m_LibOriginalFunctionContent);
     } else {
@@ -174,6 +182,7 @@ void Simple::Check() {
             ApplyJumpToGTACode(); // Compiler overwrote it, so we must re-apply the jump
         }
     }
+#endif
 }
 };
 };
