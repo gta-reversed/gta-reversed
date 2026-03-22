@@ -132,7 +132,7 @@ void CFileMgr::Initialise()
     else
         VERIFY(_getcwd(ms_rootDirName, DIRNAMELENGTH));
 
-    ms_rootDirName[std::strlen(ms_rootDirName)] = '\\';
+    std::strcat(ms_rootDirName, "\\");
 }
 
 // 0x538730
@@ -188,9 +188,10 @@ int32 CFileMgr::SetDir(const char *path)
         }
         std::strcat(ms_dirName, path);
 
-        char *lastPos = strchr(ms_dirName, 0) - 1;
-        if (*lastPos != '\\')
-            lastPos[1] = '\\';
+        if (const auto l = std::strchr(ms_dirName, 0) - 1; *l != '\\') {
+            // add a trailing \\ if doesn't have one
+            std::strcat(ms_dirName, "\\");
+        }
     }
 
     int32 r;
