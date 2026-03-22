@@ -64,7 +64,7 @@ public:
     static inline auto& State = StaticRef<eGangWarState>(0x96AB64);
     // State of attacking gang war (i.e. fighting for own zone)
     static inline auto& State2 = StaticRef<eGangAttackState>(0x96AB4C);
-    static inline std::array<int32, 6> aSpecificZones = StaticRef<std::array<int32, 6>>(0x96AB68);
+    static inline auto& aSpecificZones = StaticRef<std::array<int32, 6>>(0x96AB68);
     static inline auto& Difficulty = StaticRef<float>(0x96AB80);
     static inline auto& Gang1 = StaticRef<eGangID>(0x96AB84);
     static inline auto& pZoneToFightOver = StaticRef<CZone*>(0x96AB88);
