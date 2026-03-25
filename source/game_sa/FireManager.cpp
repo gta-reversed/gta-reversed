@@ -119,9 +119,9 @@ bool CFireManager::PlentyFiresAvailable() {
         if (fire.IsActive())
             c++;
         if (c >= 6)
-            return true;
+            return false;
     }
-    return false;
+    return true;
 }
 
 // 0x539450
