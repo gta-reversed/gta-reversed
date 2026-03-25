@@ -484,7 +484,7 @@ uint8 CGlass::CalcAlphaWithNormal(const CVector& normal) {
           camFwd.x - fwdOnNormalProj2x.x
         + camFwd.y - fwdOnNormalProj2x.y
         - camFwd.z + fwdOnNormalProj2x.z
-    ) / SQRT_3;
+    ) / 0.57f;
     return (uint8)(std::pow(factor, 6) * 235.f + 20.f);
 }
 
