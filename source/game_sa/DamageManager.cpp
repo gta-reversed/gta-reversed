@@ -570,8 +570,6 @@ eDoorStatus CDamageManager::GetDoorStatus(eDoors nDoorIdx) const {
 // 0x6C26F0
 eCarNodes CDamageManager::GetCarNodeIndexFromDoor(eDoors door) {
     switch (door) {
-    case eDoors::DOOR_BONNET:
-        return eCarNodes::CAR_BONNET;
     case eDoors::DOOR_BOOT:
         return eCarNodes::CAR_BOOT;
     case eDoors::DOOR_LEFT_FRONT:
