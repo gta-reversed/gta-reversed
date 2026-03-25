@@ -267,7 +267,7 @@ CPed* CPedGroupMembership::GetFirstAvailableMember() {
 eModelID CPedGroupMembership::GetObjectForPedToHold() {
     using namespace ModelIndices;
     return CGeneral::RandomChoiceFromList<eModelID>({ 
-        /* Each has 33% chance (Originally 33/33/34) */
+        /* Each has 1/3 chance (Originally 33/33/34) */
         MI_GANG_SMOKE, 
         MODEL_INVALID, 
         MI_GANG_DRINK 
