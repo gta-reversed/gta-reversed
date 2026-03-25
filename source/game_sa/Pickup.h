@@ -41,8 +41,8 @@ enum ePickupType : uint8 {
 
 enum ePickupPropertyText : int32 {
     PICKUP_PROPERTY_TEXT_CANCEL   = 0, // "Cancel"
-    PICKUP_PROPERTY_TEXT_CANT_BUY = 1, // "You can't by..."
-    PICKUP_PROPERTY_TEXT_CAN_BUY  = 2  // "Press TAB to buy ..."
+    PICKUP_PROPERTY_TEXT_CAN_BUY  = 1, // "Press TAB to buy ..."
+    PICKUP_PROPERTY_TEXT_CANT_BUY = 2, // "You can't by..."
 };
 
 class CPickup {
