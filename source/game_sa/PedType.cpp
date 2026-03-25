@@ -110,13 +110,7 @@ ePedType CPedType::FindPedType(const char* pedTypeName) {
         return static_cast<ePedType>(pedType);
     }
 
-    if (strcmp(pedTypeName, "PLAYER_NETWORK") == 0) {
-        return PED_TYPE_PLAYER_NETWORK;
-    } else if (strcmp(pedTypeName, "PLAYER_UNUSED") == 0) {
-        return PED_TYPE_PLAYER_UNUSED;
-    } else {
-        return PED_TYPE_MISSION8;
-    }
+    return PED_TYPE_COUNT;
 }
 
 // 0x608830
