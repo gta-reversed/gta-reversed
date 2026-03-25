@@ -170,7 +170,7 @@ void CRestart::FindClosestPoliceRestartPoint(CVector point, CVector& outPos, flo
         }
     }
 
-    if (closestIdx < 0) {
+    if (closestIdx >= 0) {
         outPos   = PoliceRestartPoints[closestIdx];
         outAngle = PoliceRestartHeadings[closestIdx];
     } else {
