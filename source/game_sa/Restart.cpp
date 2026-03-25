@@ -134,43 +134,47 @@ void CRestart::FindClosestHospitalRestartPoint(CVector point, CVector& outPos, f
 
 // 0x460A50
 void CRestart::FindClosestPoliceRestartPoint(CVector point, CVector& outPos, float& outAngle) {
-    if (bOverrideRestart) {
-        outPos = OverridePosition;
+    if (std::exchange(bOverrideRestart, false)) {
+        outPos   = OverridePosition;
         outAngle = OverrideHeading;
-        bOverrideRestart = false;
         return;
     }
 
-    if (bOverrideRespawnBasePointForMission) {
+    if (std::exchange(bOverrideRespawnBasePointForMission, false)) {
         point = OverrideRespawnBasePointForMission;
-        bOverrideRespawnBasePointForMission = false;
     }
 
-    if (ExtraPoliceStationRestartRadius <= 0.0f || DistanceBetweenPoints2D(ExtraPoliceStationRestartCoors, point) >= ExtraPoliceStationRestartRadius) {
-        const auto pointLevel = CTheZones::GetLevelFromPosition(point);
-        float closestDist = 99'999.898f; // todo: FLT_MAX
-        int32 closestIdx = -1;
-        for (auto i = 0u; i < NumberOfPoliceRestarts; i++) {
-            if (CStats::GetStatValue(STAT_CITY_UNLOCKED) >= (float)PoliceRestartWhenToUse[i]) {
-                const auto& restartPos = PoliceRestartPoints[i];
-                auto dist = DistanceBetweenPoints(restartPos, point);
-                if (pointLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE && pointLevel != CTheZones::GetLevelFromPosition(restartPos)) {
-                    dist *= 6.0f;
-                }
-                if (dist < closestDist) {
-                    closestDist = dist;
-                    closestIdx = (int32)i;
-                }
-            }
+    if (ExtraPoliceStationRestartRadius > 0.0f && DistanceBetweenPoints2D(ExtraPoliceStationRestartCoors, point) < ExtraPoliceStationRestartRadius) {
+        outPos   = ExtraPoliceStationRestartCoors;
+        outAngle = ExtraPoliceStationRestartHeading;
+        return;
+    }
+
+    const auto pointLevel  = CTheZones::GetLevelFromPosition(point);
+    float      closestDist = 99'999.898f; // todo: FLT_MAX
+    int32      closestIdx  = -1;
+    for (int32 i = 0; i < (int32)(NumberOfPoliceRestarts); i++) {
+        const auto& pos = PoliceRestartPoints[i];
+
+        if (CStats::GetStatValue(STAT_CITY_UNLOCKED) < (float)(PoliceRestartWhenToUse[i])) {
+            continue;
         }
 
-        if (closestIdx >= 0u) {
-            outPos = PoliceRestartPoints[closestIdx];
-            outAngle = PoliceRestartHeadings[closestIdx];
+        auto dist = DistanceBetweenPoints(pos, point);
+        if (pointLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE && pointLevel != CTheZones::GetLevelFromPosition(pos)) {
+            dist *= 6.0f;
         }
+        if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx  = i;
+        }
+    }
+
+    if (closestIdx < 0) {
+        outPos   = PoliceRestartPoints[closestIdx];
+        outAngle = PoliceRestartHeadings[closestIdx];
     } else {
-        outPos = ExtraPoliceStationRestartCoors;
-        outAngle = ExtraPoliceStationRestartHeading;
+        NOTSA_UNREACHABLE(); /* Variables would've been left uninitialized */
     }
 }
 
