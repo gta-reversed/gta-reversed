@@ -2679,8 +2679,8 @@ void CAutomobile::SetupDamageAfterLoad() {
     if (m_aCarNodes[CAR_DOOR_LR]) SetDoorDamage(DOOR_LEFT_REAR, false);
     if (m_aCarNodes[CAR_DOOR_RR]) SetDoorDamage(DOOR_RIGHT_REAR, false);
 
-    if (m_aCarNodes[CAR_WING_LF]) SetPanelDamage(FRONT_LEFT_PANEL, false);
-    if (m_aCarNodes[CAR_WING_RF]) SetPanelDamage(FRONT_RIGHT_PANEL, false);
+    if (m_aCarNodes[CAR_WING_LF]) SetPanelDamage(REAR_LEFT_PANEL, false);
+    if (m_aCarNodes[CAR_WING_RF]) SetPanelDamage(REAR_RIGHT_PANEL, false);
 }
 
 // 0x6A47F0
@@ -4013,7 +4013,7 @@ void CAutomobile::SetRandomDamage(bool bRemoveStuff) {
         ? bRemoveStuff ? FixedRandom(1, 4) : 1 // The 4 here and below comes from MAX_PANELS - 3 (As 3 panels are never damaged, see below)
         : FixedRandom(0, bRemoveStuff ? 4 : 1);
     Process(
-        1 << REAR_LEFT_PANEL | 1 << REAR_RIGHT_PANEL | 1 << WINDSCREEN_PANEL, // These are never damaged
+        1 << FRONT_LEFT_PANEL | 1 << FRONT_RIGHT_PANEL | 1 << WINDSCREEN_PANEL, // These are never damaged
         numPanelsToDmg,
         MAX_PANELS,
         [](auto i)     { return CDamageManager::GetCarNodeIndexFromPanel((ePanels)i); },
@@ -4047,8 +4047,8 @@ void CAutomobile::SetTotalDamage(bool randomness) {
     // Panels
     for (auto i = 0u; i < MAX_PANELS; i++) { // TODO: Maybe use array of panel enums instead?
         switch ((ePanels)i) {
-        case ePanels::REAR_LEFT_PANEL:
-        case ePanels::REAR_RIGHT_PANEL:
+        case ePanels::FRONT_LEFT_PANEL:
+        case ePanels::FRONT_RIGHT_PANEL:
             break;
 
         default: {

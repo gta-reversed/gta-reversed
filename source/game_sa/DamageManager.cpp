@@ -232,9 +232,9 @@ void CDamageManager::SetEngineStatus(uint32 status) {
 // 0x6C26A0
 eCarNodes CDamageManager::GetCarNodeIndexFromPanel(ePanels panel) {
     switch (panel) {
-    case ePanels::FRONT_LEFT_PANEL:
+    case ePanels::REAR_LEFT_PANEL:
         return eCarNodes::CAR_WING_LF;
-    case ePanels::FRONT_RIGHT_PANEL:
+    case ePanels::REAR_RIGHT_PANEL:
         return eCarNodes::CAR_WING_RF;
     case ePanels::WINDSCREEN_PANEL:
         return eCarNodes::CAR_WINDSCREEN;
