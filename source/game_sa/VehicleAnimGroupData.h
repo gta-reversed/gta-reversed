@@ -81,7 +81,15 @@ struct sVehAnimGroupInOutTiming { // TODO: Rename to `sVehAnimGroupOpenCloseTimi
     float OpenIn{};
     float CloseOut{};
 public:
-    float operator[](eInOutTimingMode mode) { return reinterpret_cast<float*>(this)[(size_t)mode]; } // TODO: Get rid of this
+    float operator[](eInOutTimingMode mode) { // TODO: Get rid of this
+        switch (mode) {
+        case OPEN_START:  return OpenIn;
+        case OPEN_STOP:   return CloseIn;
+        case CLOST_START: return OpenOut;
+        case CLOSE_STOP:  return CloseOut;
+        default:          NOTSA_UNREACHABLE();
+        }
+    }
 
     sVehAnimGroupInOutTiming() = default;
 };
