@@ -201,8 +201,10 @@ bool CDamageManager::ProgressDoorDamage(eDoors door, CAutomobile* pAuto) {
     }
 
     /* this original code replaced by SetDoorStatus in upper switch
-    if (door < 6u)
-        m_aDoorsStatus[door] = status;
+    if (door < 6u) {
+        const auto shift = 3u * (unsigned)door;
+        m_nDoorsStatus = (m_nDoorsStatus & ~(7u << shift)) | ((unsigned)status << shift);
+    }
     */
 
     return true;
@@ -290,9 +292,11 @@ void CDamageManager::SetDoorStatus(eDoors door, eDoorStatus status) {
     case eDoors::DOOR_LEFT_FRONT:
     case eDoors::DOOR_RIGHT_FRONT:
     case eDoors::DOOR_LEFT_REAR:
-    case eDoors::DOOR_RIGHT_REAR:
-        m_aDoorsStatus[(unsigned)door] = status;
+    case eDoors::DOOR_RIGHT_REAR: {
+        const auto shift = 3u * (unsigned)door;
+        m_nDoorsStatus = (m_nDoorsStatus & ~(7u << shift)) | ((unsigned)status << shift);
         break;
+    }
     }
 }
 
@@ -561,7 +565,7 @@ eDoorStatus CDamageManager::GetDoorStatus(eDoors nDoorIdx) const {
     case eDoors::DOOR_RIGHT_FRONT:
     case eDoors::DOOR_LEFT_REAR:
     case eDoors::DOOR_RIGHT_REAR:
-        return m_aDoorsStatus[(unsigned)nDoorIdx];
+        return (eDoorStatus)((m_nDoorsStatus >> (3u * (unsigned)nDoorIdx)) & 7u);
     default:
         return eDoorStatus::DAMSTATE_NOTPRESENT;
     }

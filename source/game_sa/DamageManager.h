@@ -123,7 +123,17 @@ public:
     float           m_fWheelDamageEffect;
     uint8           m_nEngineStatus; // 0 - 250
     eCarWheelStatus m_anWheelsStatus[eCarWheel::MAX_CARWHEELS];
-    eDoorStatus     m_aDoorsStatus[eDoors::MAX_DOORS];
+    union {
+        uint32 m_nDoorsStatus; // Index with eDoors (3 bits per door)
+        struct {
+            uint32 bonnet       : 3;
+            uint32 boot         : 3;
+            uint32 leftFront    : 3;
+            uint32 rightFront   : 3;
+            uint32 leftRear     : 3;
+            uint32 rightRear    : 3;
+        } m_doorStates;
+    };
     union {
         /* Great job R*, really could've just used an array here... Ends up to be the same size... */
 
