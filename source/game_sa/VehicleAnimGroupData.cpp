@@ -304,7 +304,7 @@ AssocGroupId CVehicleAnimGroupData::GetGroupForAnim(AssocGroupId groupId, Animat
 
 // 0x645600
 CVector CVehicleAnimGroupData::GetAnimDoorOffset(AssocGroupId groupId, eVehAnimDoorOffset doorId) {
-    return CVehicleAnimGroupData::GetVehicleAnimGroup(groupId).GetDoorOffset(doorId);
+    return CVehicleAnimGroupData::GetVehicleAnimGroup(groupId).ComputeAnimDoorOffsets(doorId);
 }
 
 float CVehicleAnimGroupData::ComputeCriticalBlendTime(AssocGroupId groupId, AnimationId animId) {
