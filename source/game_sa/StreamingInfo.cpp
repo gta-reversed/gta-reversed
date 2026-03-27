@@ -44,10 +44,7 @@ bool CStreamingInfo::GetCdPosnAndSize(CdStreamPos& pos, size_t& size) {
 
 // 0x407560
 bool CStreamingInfo::InList() const {
-    // Yeah, that's partially true
-    // Because the way these lists work, items actually always have both `next` and `prev` defined
-    // So, I guess here they just assume that, and "optimize" the check :D
-    return m_NextIndex != -1 /*notsa => */ && m_PrevIndex != -1;
+    return m_NextIndex != -1;
 }
 
 // 0x407480
