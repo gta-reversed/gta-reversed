@@ -40,12 +40,12 @@ void CSpecialPlateHandler::Find(int32 carGenId, char* outText) {
 
 // 0x6F2D90
 void CSpecialPlateHandler::Add(int32 carGenId, const char* text) {
-    if (m_nCount != PLATES_COUNT) {
-        auto& plateEntry = m_plateTextEntries[m_nCount];
-        plateEntry.m_nCarGenId = carGenId;
-        strcpy_s(plateEntry.m_szPlateText, text);
-        m_nCount++;
+    if (m_nCount == PLATES_COUNT) {
+        return;
     }
+    auto* const pe = &m_plateTextEntries[m_nCount++];
+    pe->m_nCarGenId = carGenId;
+    strcpy_s(pe->m_szPlateText, text);
 }
 
 // unused
