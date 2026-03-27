@@ -74,4 +74,10 @@ inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
     .Description = "Fix multiple issues related to saving unused path areas after missions",
     .Credit      = "Contributors"
 };
+inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits{
+    .Name        = "CCustomCarPlateMgr::GeneratePlateText - Expand plate character range",
+    .Description = "The original game generates plate letters in the range A-W (23 chars) and digits in 0-8 (9 chars). "
+                   "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
+    .Credit      = "j0y"
+};
 };
