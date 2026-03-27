@@ -63,9 +63,9 @@ int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
 
 // 0x470810
 int16 CStreamedScripts::GetProperIndexFromIndexUsedByScript(int16 scmIndex) {
-    for (const auto&& [i, scr] : rngv::enumerate(GetActiveScripts())) {
+    for (const auto&& [i, scr] : rngv::enumerate(m_aScripts)) {
         if (scr.m_IndexUsedByScriptFile == scmIndex) {
-            return i;
+            return (int16)i;
         }
     }
     return -1;
