@@ -45,8 +45,8 @@ public:
     CRunningScript* StartNewStreamedScript(int32 index);
 
     // NOTSA
-    auto GetActiveScripts() {
-        return m_aScripts | rng::views::take(m_nCountOfScripts);
+    auto GetActiveScriptsWithIndex() {
+        return m_aScripts | rngv::enumerate | rngv::take(m_nCountOfScripts);
     }
 };
 VALIDATE_SIZE(CStreamedScripts, 0xA48);
