@@ -30,7 +30,6 @@ void CDamageManager::InjectHooks() {
     RH_ScopedInstall(GetLightStatus, 0x6C2130); 
     RH_ScopedInstall(SetLightStatus, 0x6C2100); 
     RH_ScopedInstall(ResetDamageStatus, 0x6C20E0); 
-    RH_ScopedInstall(GetComponentGroup, 0x6C2040); 
     RH_ScopedInstall(GetCarNodeIndexFromDoor, 0x6C26F0);
     RH_ScopedNamedInstall(GetWheelStatus_Hooked, "GetWheelStatus", 0x6C21B0);
 }
@@ -76,47 +75,85 @@ void CDamageManager::FuckCarCompletely(bool bDontDetachWheel) {
 }
 
 // 0x6C24B0
-bool CDamageManager::ApplyDamage(CAutomobile* vehicle, tComponent compId, float fIntensity, float fColDmgMult) {
-    if (!vehicle->autoFlags.bCanBeVisiblyDamaged)
+// NOTE: This function has been refactored so we can get rid of `GetComponentGroup` (useless function)
+bool CDamageManager::ApplyDamage(CAutomobile* vehicle, tComponent component, float intensity, float fColDmgMult) {
+    if (!vehicle->autoFlags.bCanBeVisiblyDamaged) {
         return false;
-
-    tComponentGroup group{};
-    uint8 relCompIdx{};
-    GetComponentGroup(compId, group, relCompIdx);
-
-    static constexpr float afPanelDamageMultByGroup[] = { 2.5f, 1.25f, 3.2f, 1.4f, 2.5f, 2.8f, 0.5f, 1.2f, 0.87f, 0.2f };
-    fIntensity *= afPanelDamageMultByGroup[(size_t)group];
-    if (compId == tComponent::PANEL_WINDSCREEN)
-        fIntensity *= 0.6f;
-
-    if (fIntensity <= 150.0f)
-        return false;
-
-    switch (group) {
-    case tComponentGroup::COMPGROUP_PANEL: {
-        if (ProgressPanelDamage((ePanels)relCompIdx))
-            vehicle->SetBumperDamage((ePanels)relCompIdx, false);
-        return true;
     }
-    case tComponentGroup::COMPGROUP_WHEEL: {
-        ProgressWheelDamage((eCarWheel)relCompIdx);
+
+    const auto CheckIntensity = [=](float intensityFactor = 1.f) {
+        return intensity * intensityFactor > 150.0f;
+    };
+
+    const auto ApplyPanelDamage = [&](ePanels panel, std::optional<eLights> lightOfPanel = std::nullopt, float intensityFactor = 1.f) {
+        if (!CheckIntensity(intensityFactor)) {
+            return false;
+        }
+        if (lightOfPanel) {
+            SetLightStatus(*lightOfPanel, eLightsState::VEHICLE_LIGHT_SMASHED);
+        }
+        if (ProgressPanelDamage(panel)) {
+            switch (panel) {
+            case ePanels::WINDSCREEN_PANEL:
+            case ePanels::FRONT_BUMPER:
+            case ePanels::REAR_BUMPER:      vehicle->SetBumperDamage(panel, false); break;
+
+            case ePanels::FRONT_LEFT_PANEL:
+            case ePanels::FRONT_RIGHT_PANEL:
+            case ePanels::REAR_LEFT_PANEL:
+            case ePanels::REAR_RIGHT_PANEL:  vehicle->SetPanelDamage(panel, false); break;
+
+            default: NOTSA_UNREACHABLE();
+            }
+        }
         return true;
-    }
-    case tComponentGroup::COMPGROUP_DOOR:
-    case tComponentGroup::COMPGROUP_BONNET:
-    case tComponentGroup::COMPGROUP_BOOT: {
-        if (ProgressDoorDamage((eDoors)relCompIdx, vehicle))
-            vehicle->SetDoorDamage((eDoors)relCompIdx, false);
+    };
+
+    const auto ApplyWheelDamage = [&](eCarWheel wheel, float intensityFactor) {
+        if (!CheckIntensity(intensityFactor)) {
+            return false;
+        }
+        ProgressWheelDamage(wheel);
         return true;
-    }
-    case tComponentGroup::COMPGROUP_LIGHT: {
-        SetLightStatus((eLights)relCompIdx, eLightsState::VEHICLE_LIGHT_SMASHED);
-        if (ProgressPanelDamage((ePanels)relCompIdx))
-            vehicle->SetPanelDamage((ePanels)relCompIdx, false);
+    };
+
+    const auto ApplyDoorDamage = [&](eDoors door, float intensityFactor) {
+        if (!CheckIntensity(intensityFactor)) {
+            return false;
+        }
+        if (ProgressDoorDamage(door, vehicle)) {
+            vehicle->SetDoorDamage(door, false);
+        }
         return true;
-    }
-    default:
-        return true;
+    };
+
+    /* Based on code from `0x6C2040` and `0x6C2514` */
+    /* Intensity values from array at `0x8D32A0` */
+    switch (component) {
+    case tComponent::WHEEL_FRONT_LEFT:  return ApplyWheelDamage(CAR_WHEEL_FRONT_LEFT, 1.25f);
+    case tComponent::WHEEL_FRONT_RIGHT: return ApplyWheelDamage(CAR_WHEEL_FRONT_RIGHT, 1.25f);
+    case tComponent::WHEEL_REAR_LEFT:   return ApplyWheelDamage(CAR_WHEEL_REAR_LEFT, 1.25f);
+    case tComponent::WHEEL_REAR_RIGHT:  return ApplyWheelDamage(CAR_WHEEL_REAR_RIGHT, 1.25f);
+
+    case tComponent::DOOR_BONNET:      return ApplyDoorDamage(eDoors::DOOR_BONNET, 1.40f);
+    case tComponent::DOOR_BOOT:        return ApplyDoorDamage(eDoors::DOOR_BOOT, 2.50f);
+    case tComponent::DOOR_FRONT_LEFT:  return ApplyDoorDamage(eDoors::DOOR_LEFT_FRONT, 3.20f);
+    case tComponent::DOOR_FRONT_RIGHT: return ApplyDoorDamage(eDoors::DOOR_RIGHT_FRONT, 3.20f);
+    case tComponent::DOOR_REAR_LEFT:   return ApplyDoorDamage(eDoors::DOOR_LEFT_REAR, 3.20f);
+    case tComponent::DOOR_REAR_RIGHT:  return ApplyDoorDamage(eDoors::DOOR_RIGHT_REAR, 3.20f);
+
+    case tComponent::PANEL_FRONT_LEFT:  return ApplyPanelDamage(ePanels::FRONT_LEFT_PANEL, eLights::LIGHT_FRONT_LEFT, 2.80f);
+    case tComponent::PANEL_FRONT_RIGHT: return ApplyPanelDamage(ePanels::FRONT_RIGHT_PANEL, eLights::LIGHT_FRONT_RIGHT, 2.80f);
+    case tComponent::PANEL_REAR_LEFT:   return ApplyPanelDamage(ePanels::REAR_LEFT_PANEL, eLights::LIGHT_REAR_RIGHT, 2.80f);
+    case tComponent::PANEL_REAR_RIGHT:  return ApplyPanelDamage(ePanels::REAR_RIGHT_PANEL, eLights::LIGHT_REAR_LEFT, 2.80f);
+
+    case tComponent::PANEL_WINDSCREEN:   return ApplyPanelDamage(ePanels::WINDSCREEN_PANEL, std::nullopt, 2.50f * 0.6f); /* Apply 0.6f factor on top (see 0x6C24F4) */
+    case tComponent::PANEL_FRONT_BUMPER: return ApplyPanelDamage(ePanels::FRONT_BUMPER, std::nullopt, 2.50f);
+    case tComponent::PANEL_REAR_BUMPER:  return ApplyPanelDamage(ePanels::REAR_BUMPER, std::nullopt, 2.50f);
+
+    case tComponent::ENGINE: return CheckIntensity(0.50f);
+
+    default: NOTSA_UNREACHABLE();
     }
 }
 
@@ -341,60 +378,6 @@ void CDamageManager::ResetDamageStatus() {
 
     for (size_t i = 0; i < ePanels::MAX_PANELS; i++)
         SetPanelStatus((ePanels)i, ePanelDamageState::DAMSTATE_OK);
-}
-
-// 0x6C2040
-bool CDamageManager::GetComponentGroup(tComponent nComp, tComponentGroup& outCompGroup, uint8& outComponentRelativeIdx) {
-    outComponentRelativeIdx = (uint8)-2;
-    switch (nComp) {
-    case tComponent::COMPONENT_WHEEL_LF:
-    case tComponent::COMPONENT_WHEEL_RF:
-    case tComponent::COMPONENT_WHEEL_LR:
-    case tComponent::COMPONENT_WHEEL_RR: {
-        outCompGroup = tComponentGroup::COMPGROUP_WHEEL;
-        outComponentRelativeIdx = (uint8)nComp - 1;
-        return true;
-    }
-    case tComponent::COMPONENT_BONNET: {
-        outCompGroup = tComponentGroup::COMPGROUP_BONNET;
-        outComponentRelativeIdx = (uint8)eDoors::DOOR_BONNET;
-        return true;
-    }
-    case tComponent::COMPONENT_BOOT: {
-        outCompGroup = tComponentGroup::COMPGROUP_BOOT;
-        outComponentRelativeIdx = (uint8)eDoors::DOOR_BOOT;
-        return true;
-    }
-    case tComponent::COMPONENT_DOOR_LF:
-    case tComponent::COMPONENT_DOOR_RF:
-    case tComponent::COMPONENT_DOOR_LR:
-    case tComponent::COMPONENT_DOOR_RR: {
-        outCompGroup = tComponentGroup::COMPGROUP_DOOR;
-        outComponentRelativeIdx = (uint8)nComp - (uint8)tComponent::COMPONENT_BONNET;
-        return true;
-    }
-    case tComponent::COMPONENT_WING_LF:
-    case tComponent::COMPONENT_WING_RF:
-    case tComponent::COMPONENT_WING_LR:
-    case tComponent::COMPONENT_WING_RR: 
-    case tComponent::COMPONENT_WINDSCREEN: {
-        outCompGroup = tComponentGroup::COMPGROUP_LIGHT;
-        outComponentRelativeIdx = (uint8)nComp - (uint8)tComponent::COMPONENT_WING_LF;
-        return true;
-    }
-    case tComponent::COMPONENT_BUMP_FRONT:
-    case tComponent::COMPONENT_BUMP_REAR: {
-        outCompGroup = tComponentGroup::COMPGROUP_PANEL;
-        outComponentRelativeIdx = (uint8)nComp - (uint8)tComponent::COMPONENT_WING_LF;
-        return true;
-    }
-    case tComponent::COMPONENT_NA: {
-        outCompGroup = tComponentGroup::COMPGROUP_NA;
-        outComponentRelativeIdx = 0;
-        return true;
-    }
-    }
-    return false;
 }
 
 // NOTSA
