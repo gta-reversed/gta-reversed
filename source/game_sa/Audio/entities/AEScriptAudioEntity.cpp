@@ -147,11 +147,8 @@ void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVec
         .Volume = CAEAudioEntity::GetDefaultVolume(eventId) + volume,
         .RollOffFactor = maxDistance,
         .Speed = speed,
-        .Doppler = 1.0f,
-        .FrameDelay = 0,
         .Flags = SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | (isFrontend ? SOUND_FRONT_END : 0u) | (physical ? SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY : 0u),
         .FrequencyVariance = 0.0f,
-        .PlayTime = 0,
         .RegisterWithEntity = physical,
         .EventID = eventId
     });
@@ -230,10 +227,6 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
         .AudioEntity = this,
         .Pos = pos,
         .Volume = volume,
-        .RollOffFactor = 1.0f,
-        .Speed = 1.0f,
-        .Doppler = 1.0f,
-        .FrameDelay = 0,
         .Flags = SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (isFrontend ? SOUND_FRONT_END : 0u)
             | (duck ? SOUND_IS_DUCKABLE | SOUND_IS_COMPRESSABLE | SOUND_SMOOTH_DUCKING : 0u)
     });
