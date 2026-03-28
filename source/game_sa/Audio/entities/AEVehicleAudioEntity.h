@@ -45,7 +45,7 @@ protected: // Config:
     // Config struct - Obviously this is notsa, but it's necessary for the debug module
     static inline struct Config {
         float      FreqUnderwaterFactor = 0.7f;              // 0x8CBC48
-        tComponent HeliAudioComponent   = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
+        tComponent HeliAudioComponent   = tComponent::PANEL_REAR_RIGHT; //!< 0x8CBD4C - Where audio is placed for helis
 
         float IdRollOffFactor               = 2.f; // 0x8CBC2C
         float RevRollOffFactor              = 2.f; // 0x8CBC30

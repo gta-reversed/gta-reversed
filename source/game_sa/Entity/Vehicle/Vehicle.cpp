@@ -693,10 +693,10 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
     auto doorComponentId = (int32)doorComponentId_; // silence warns, todo: OpenDoor receives int32, why?
     eDoors iCheckedDoor = [&] {
         switch (doorComponentId) {
-        case COMPONENT_DOOR_RF: return DOOR_RIGHT_FRONT;
-        case COMPONENT_DOOR_LR: return DOOR_RIGHT_REAR;
-        case COMPONENT_DOOR_RR: return DOOR_LEFT_FRONT;
-        case COMPONENT_WING_LF: return DOOR_LEFT_REAR;
+        case tComponent::DOOR_FRONT_RIGHT: return DOOR_RIGHT_FRONT;
+        case tComponent::DOOR_REAR_LEFT: return DOOR_RIGHT_REAR;
+        case tComponent::DOOR_REAR_RIGHT: return DOOR_LEFT_FRONT;
+        case tComponent::PANEL_FRONT_LEFT: return DOOR_LEFT_REAR;
         default:
             assert(false); // Shouldn't get here
             return static_cast<eDoors>(fTime);

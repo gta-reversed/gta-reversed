@@ -86,7 +86,7 @@ bool CDamageManager::ApplyDamage(CAutomobile* vehicle, tComponent compId, float 
 
     static constexpr float afPanelDamageMultByGroup[] = { 2.5f, 1.25f, 3.2f, 1.4f, 2.5f, 2.8f, 0.5f, 1.2f, 0.87f, 0.2f };
     fIntensity *= afPanelDamageMultByGroup[(size_t)group];
-    if (compId == tComponent::COMPONENT_WINDSCREEN)
+    if (compId == tComponent::PANEL_WINDSCREEN)
         fIntensity *= 0.6f;
 
     if (fIntensity <= 150.0f)
@@ -251,13 +251,13 @@ eCarNodes CDamageManager::GetCarNodeIndexFromPanel(ePanels panel) {
 eDoorStatus CDamageManager::GetDoorStatus_Component(tComponent doorComp) const {
     /* Enums don't seem to match up... */
     switch (doorComp) {
-    case tComponent::COMPONENT_DOOR_RF:
+    case tComponent::DOOR_FRONT_RIGHT:
         return GetDoorStatus(eDoors::DOOR_RIGHT_FRONT);
-    case tComponent::COMPONENT_DOOR_LR:
+    case tComponent::DOOR_REAR_LEFT:
         return GetDoorStatus(eDoors::DOOR_RIGHT_REAR);
-    case tComponent::COMPONENT_DOOR_RR:
+    case tComponent::DOOR_REAR_RIGHT:
         return GetDoorStatus(eDoors::DOOR_LEFT_FRONT);
-    case tComponent::COMPONENT_WING_LF:
+    case tComponent::PANEL_FRONT_LEFT:
         return GetDoorStatus(eDoors::DOOR_LEFT_REAR);
     default:
         return eDoorStatus::DAMSTATE_NOTPRESENT;
@@ -267,16 +267,16 @@ eDoorStatus CDamageManager::GetDoorStatus_Component(tComponent doorComp) const {
 // 0x6C21E0
 void CDamageManager::SetDoorStatus_Component(tComponent doorComp, eDoorStatus status) {
     switch (doorComp) {
-    case tComponent::COMPONENT_DOOR_RF:
+    case tComponent::DOOR_FRONT_RIGHT:
         SetDoorStatus(eDoors::DOOR_RIGHT_FRONT, status);
         break;
-    case tComponent::COMPONENT_DOOR_LR:
+    case tComponent::DOOR_REAR_LEFT:
         SetDoorStatus(eDoors::DOOR_RIGHT_REAR, status);
         break;
-    case tComponent::COMPONENT_DOOR_RR:
+    case tComponent::DOOR_REAR_RIGHT:
         SetDoorStatus(eDoors::DOOR_LEFT_FRONT, status);
         break;
-    case tComponent::COMPONENT_WING_LF:
+    case tComponent::PANEL_FRONT_LEFT:
         SetDoorStatus(eDoors::DOOR_LEFT_REAR, status);
         break;
     }
