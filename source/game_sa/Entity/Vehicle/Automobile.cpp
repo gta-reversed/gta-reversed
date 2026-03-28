@@ -4195,9 +4195,9 @@ void CAutomobile::SetBusDoorTimer(uint32 timerEndDelta, bool setAsStartedInPast)
 void CAutomobile::ProcessAutoBusDoors() {
     if (m_nBusDoorTimerEnd <= CTimer::GetTimeInMS()) {
         if (m_nBusDoorTimerStart) {
-            static constexpr struct { eDoors door; tComponent comp; uint32 flagMask; } doors[]{
-                { eDoors::DOOR_LEFT_FRONT,  tComponent::DOOR_REAR_RIGHT, 1 }, // TODO: `tComponent::DOOR_REAR_RIGHT` doesn't match up with `DOOR_LEFT_FRONT`
-                { eDoors::DOOR_RIGHT_FRONT, tComponent::DOOR_FRONT_RIGHT, 4 }
+            static constexpr struct { eDoors door; eCarNodes comp; uint32 flagMask; } doors[]{
+                { eDoors::DOOR_LEFT_FRONT,  CAR_DOOR_LF, 1 }, 
+                { eDoors::DOOR_RIGHT_FRONT, CAR_DOOR_RF, 4 }
             };
 
             for (auto&& [door, comp, flagMask] : doors) {
@@ -4212,7 +4212,7 @@ void CAutomobile::ProcessAutoBusDoors() {
     } else if (m_nBusDoorTimerEnd && CTimer::GetTimeInMS() > m_nBusDoorTimerEnd - 500) {
         if (!IsDoorMissing(eDoors::DOOR_LEFT_FRONT) && (m_nGettingInFlags & 1)) {
             const auto OpenThisDoor = [this](float ratio) {
-                OpenDoor(nullptr, tComponent::DOOR_REAR_RIGHT, DOOR_LEFT_FRONT, ratio, true); // TODO: `tComponent::DOOR_REAR_RIGHT` doesn't match up with `DOOR_LEFT_FRONT`
+                OpenDoor(nullptr, CAR_DOOR_LF, DOOR_LEFT_FRONT, ratio, true);
             };
 
             if (IsDoorClosed(eDoors::DOOR_LEFT_FRONT)) {
@@ -4227,7 +4227,7 @@ void CAutomobile::ProcessAutoBusDoors() {
             if (IsDoorClosed(eDoors::DOOR_RIGHT_FRONT)) {
                 m_nBusDoorTimerEnd = CTimer::GetTimeInMS();
             }
-            OpenDoor(nullptr, tComponent::DOOR_FRONT_RIGHT, DOOR_RIGHT_FRONT, 0.f, true);
+            OpenDoor(nullptr, CAR_DOOR_RF, DOOR_RIGHT_FRONT, 0.f, true);
         }
     }
 }
@@ -4499,21 +4499,21 @@ void CAutomobile::PopBootUsingPhysics() {
 void CAutomobile::CloseAllDoors() {
     const auto& mi = *GetVehicleModelInfo();
 
-    const auto CloseDoor = [this](tComponent comp, eDoors door) {
+    const auto CloseDoor = [this](eCarNodes node, eDoors door) {
         if (!IsDoorMissing(door)) {
-            OpenDoor(nullptr, comp, door, 0.f, true);
+            OpenDoor(nullptr, node, door, 0.f, true);
         }
     };
 
     assert(mi.m_nNumDoors > 0);
-    CloseDoor(tComponent::DOOR_REAR_RIGHT, eDoors::DOOR_LEFT_FRONT); // TODO: Again, enums dont seem to match up..
+    CloseDoor(CAR_DOOR_LF, eDoors::DOOR_LEFT_FRONT);
     if (mi.m_nNumDoors > 1) {
-        CloseDoor(tComponent::DOOR_FRONT_RIGHT, eDoors::DOOR_RIGHT_FRONT);
+        CloseDoor(CAR_DOOR_RF, eDoors::DOOR_RIGHT_FRONT);
         if (mi.m_nNumDoors > 2) {
             assert(mi.m_nNumDoors == 4); // Pirulax: May assert, I'm not sure. Let me know if it did.
 
-            CloseDoor(tComponent::PANEL_FRONT_LEFT, eDoors::DOOR_LEFT_REAR); // TODO: Enums dont match at all..
-            CloseDoor(tComponent::DOOR_REAR_LEFT, eDoors::DOOR_RIGHT_REAR);
+            CloseDoor(CAR_DOOR_LR, eDoors::DOOR_LEFT_REAR);
+            CloseDoor(CAR_DOOR_RR, eDoors::DOOR_RIGHT_REAR);
         }
     }
 }

@@ -691,15 +691,13 @@ void CVehicle::RemoveLighting(bool bRemove) {
 // 0x6D56C0
 void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGroup, uint32 animId, float fTime) {
     auto doorComponentId = (int32)doorComponentId_; // silence warns, todo: OpenDoor receives int32, why?
-    eDoors iCheckedDoor = [&] {
+    eDoors iCheckedDoor    = [&] {
         switch (doorComponentId) {
-        case tComponent::DOOR_FRONT_RIGHT: return DOOR_RIGHT_FRONT;
-        case tComponent::DOOR_REAR_LEFT: return DOOR_RIGHT_REAR;
-        case tComponent::DOOR_REAR_RIGHT: return DOOR_LEFT_FRONT;
-        case tComponent::PANEL_FRONT_LEFT: return DOOR_LEFT_REAR;
-        default:
-            assert(false); // Shouldn't get here
-            return static_cast<eDoors>(fTime);
+        case CAR_DOOR_RF: return DOOR_RIGHT_FRONT;
+        case CAR_DOOR_RR: return DOOR_RIGHT_REAR;
+        case CAR_DOOR_LF: return DOOR_LEFT_FRONT;
+        case CAR_DOOR_LR: return DOOR_LEFT_REAR;
+        default:          NOTSA_UNREACHABLE();
         }
     }();
 
