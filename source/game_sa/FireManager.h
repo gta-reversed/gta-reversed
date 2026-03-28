@@ -64,6 +64,13 @@ public:
         return m_aFires[idx];
     }
     auto GetIndexOf(const CFire* fire) const { return std::distance(m_aFires.data(), fire); }
+
+    auto GetActiveFires() {
+        return m_aFires | rngv::filter([](const CFire& fire) {
+            return fire.IsActive();
+        });
+    }
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
