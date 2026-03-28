@@ -69,31 +69,21 @@ void CFireManager::Shutdown() {
 
 // 0x538F10
 uint32 CFireManager::GetNumOfNonScriptFires() {
-    uint32 c = 0;
-    for (CFire& fire : m_aFires)
-        if (fire.IsActive() && !fire.IsScript())
-            c++;
-    return c;
+    return (uint32)(rng::count_if(GetActiveFires(), [] (const CFire& fire) {
+        return !fire.IsScript();
+    }));
 }
 
 // NOTSA
 uint32 CFireManager::GetNumOfFires() {
-    uint32 c = 0;
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive())
-            c++;
-    }
-    return c;
+    return (uint32)(rng::count_if(GetActiveFires(), [] (const CFire&) {return true; }));
 }
 
 // 0x538F40
 CFire* CFireManager::FindNearestFire(const CVector& point, bool bCheckIsBeingExtinguished, bool bCheckWasCreatedByScript) {
     float fNearestDist2DSq = std::numeric_limits<float>::max(); // Izzotop :thinking
     CFire* nearestFire{};
-    for (CFire& fire : m_aFires) {
-        if (!fire.IsActive())
-            continue;
-
+    for (CFire& fire : GetActiveFires()) {
         if (bCheckWasCreatedByScript && fire.IsScript())
             continue;
 
@@ -114,22 +104,18 @@ CFire* CFireManager::FindNearestFire(const CVector& point, bool bCheckIsBeingExt
 
 // 0x539340
 bool CFireManager::PlentyFiresAvailable() {
-    uint32 c = 0;
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive())
-            c++;
-        if (c >= 6)
+    size_t cnt = 0;
+    for (auto& fire : GetActiveFires()) {
+        if (++cnt >= 6) {
             return true;
+        }
     }
     return false;
 }
 
 // 0x539450
 void CFireManager::ExtinguishPoint(CVector point, float fRadius) {
-    for (CFire& fire : m_aFires) {
-        if (!fire.IsActive())
-            continue;
-
+    for (CFire& fire : GetActiveFires()) {
         if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius)
             continue;
 
@@ -141,10 +127,7 @@ void CFireManager::ExtinguishPoint(CVector point, float fRadius) {
 // 0x5394C0
 bool CFireManager::ExtinguishPointWithWater(CVector point, float fRadius, float fWaterStrength) {
     bool bSuccess = false;
-    for (CFire& fire : m_aFires) {
-        if (!fire.IsActive())
-            continue;
-
+    for (CFire& fire : GetActiveFires()) {
         if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius)
             continue;
 
@@ -197,15 +180,10 @@ const CVector& CFireManager::GetScriptFireCoords(int16 fireID) {
 
 // 0x5397F0
 uint32 CFireManager::GetNumFiresInRange(const CVector& point, float fRadius) {
-    uint32 c = 0;
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive() && !fire.IsScript()) {
-            if ((fire.GetPosition() - point).Magnitude2D() <= fRadius) {
-                c++;
-            }
-        }
-    }
-    return c;
+    const auto sqRadius = sq(fRadius);
+    return (uint32)(rng::count_if(GetActiveFires(), [&] (const CFire& fire) {
+        return !fire.IsScript() && (fire.GetPosition() - point).SquaredMagnitude2D() <= sqRadius;
+        }));
 }
 
 // 0x539860
@@ -214,32 +192,22 @@ uint32 CFireManager::GetNumFiresInArea(float minX, float minY, float minZ, float
         {minX, minY, minZ},
         {maxX, maxY, maxZ}
     };
-    uint32 c = 0;
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive() && !fire.IsScript()) {
-            if (boundingBox.IsPointWithin(fire.GetPosition())) {
-                c++;
-            }
-        }
-    }
-    return c;
+    return (uint32)(rng::count_if(GetActiveFires(), [&] (const CFire& fire) {
+        return !fire.IsScript() && boundingBox.IsPointWithin(fire.GetPosition());
+    }));
 }
 
 // 0x539D10
 void CFireManager::DestroyAllFxSystems() {
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive()) {
-            fire.DestroyFx();
-        }
+    for (CFire& fire : GetActiveFires()) {
+        fire.DestroyFx();
     }
 }
 
 // 0x539D50
 void CFireManager::CreateAllFxSystems() {
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive()) {
-            fire.CreateFxSysForStrength(fire.GetPosition(), nullptr);
-        }
+    for (CFire& fire : GetActiveFires()) {
+        fire.CreateFxSysForStrength(fire.GetPosition(), nullptr);
     }
 }
 
@@ -364,9 +332,8 @@ void CFireManager::Update() {
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
-    for (CFire& fire : m_aFires) {
-        if (fire.IsActive())
-            fire.ProcessFire();
+    for (CFire& fire : GetActiveFires()) {
+        fire.ProcessFire();
     }
 
     if (CGameLogic::LaRiotsActiveHere()
