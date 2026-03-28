@@ -165,8 +165,8 @@ struct tStreamingFileDesc {
 VALIDATE_SIZE(tStreamingFileDesc, 0x30);
 
 struct tStreamingChannel {
-    int32               modelIds[16];
-    int32               modelStreamingBufferOffsets[16];
+    std::array<int32, 16> modelIds;
+    std::array<int32, 16> modelStreamingBufferOffsets;
     eChannelState       LoadStatus;
     int32               loadingLevel; // the value gets modified, but it's not used
     CdStreamPos         pos;

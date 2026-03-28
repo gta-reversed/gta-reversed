@@ -176,7 +176,7 @@ struct tHydraulicData {
     // and does NOT apply if numpad keys are pressed (car hopping)
     float m_fSuspensionNormalIdleUpperLimit;
     float m_fSuspensionNormalIdleLowerLimit;
-    float m_aWheelSuspension[4];
+    std::array<float, 4> m_aWheelSuspension;
 };
 
 VALIDATE_SIZE(tHydraulicData, 0x28);
@@ -315,13 +315,13 @@ public:
     uint8             m_nSecondaryColor;
     uint8             m_nTertiaryColor;
     uint8             m_nQuaternaryColor;
-    uint8             m_anExtras[2];
+    std::array<uint8, 2>  m_anExtras;
     std::array<int16, NUM_VEHICLE_UPGRADES> m_anUpgrades;
     float             m_fWheelScale;
     uint16            m_nAlarmState;
     int16             m_nForcedRandomRouteSeed; // if this is non-zero the random wander gets deterministic
     CPed*             m_pDriver;
-    CPed*             m_apPassengers[8]{};
+    std::array<CPed*, 8>  m_apPassengers{};
     uint8             m_nNumPassengers;
     uint8             m_nNumGettingIn;
     uint8             m_nGettingInFlags;
@@ -739,8 +739,8 @@ public:
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
-    auto GetPassengers() const { return std::span{ m_apPassengers, m_nMaxPassengers }; }
-    auto GetMaxPassengerSeats() { return std::span{ m_apPassengers, m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
+    auto GetPassengers() const { return std::span{ m_apPassengers.data(), m_nMaxPassengers }; }
+    auto GetMaxPassengerSeats() { return std::span{ m_apPassengers.data(), m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
     [[nodiscard]] float GetDefaultAirResistance() const {
         if (m_pHandlingData->m_fDragMult <= 0.01f) {

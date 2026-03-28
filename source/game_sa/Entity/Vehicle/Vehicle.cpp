@@ -1414,7 +1414,7 @@ void CVehicle::RemovePassenger(CPed* passenger) {
         return;
     }
 
-    const auto seats = IsTrain() ? m_apPassengers : GetMaxPassengerSeats();
+    const auto seats = IsTrain() ? std::span{ m_apPassengers } : GetMaxPassengerSeats();
     if (const auto seatOfPsgr = rng::find(seats, passenger); seatOfPsgr != seats.end()) {
         CEntity::SafeCleanUpRef(*seatOfPsgr);
         *seatOfPsgr = nullptr;
@@ -1596,7 +1596,7 @@ CPed* CVehicle::SetupPassenger(int32 seatIdx, int32 gangPedType, bool createAsMa
         };
 
         // Not sure why this checks only up to the seat the passenger was added to, but okay.
-        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers, (size_t)seatIdx }, ProcessOccupant)) {
+        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers.data(), (size_t)seatIdx }, ProcessOccupant)) {
             return nullptr;
         }
     }

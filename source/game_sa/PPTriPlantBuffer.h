@@ -34,7 +34,7 @@ constexpr auto MAX_PLANTS = 32u;
 class CPPTriPlantBuffer {
 public:
     int32      m_CurrentIndex;
-    PPTriPlant m_Buffer[MAX_PLANTS];
+    std::array<PPTriPlant, MAX_PLANTS> m_Buffer;
     int32      m_PlantModelsSet;
     std::array<RpAtomic**, 4> m_pPlantModelsTab;
 

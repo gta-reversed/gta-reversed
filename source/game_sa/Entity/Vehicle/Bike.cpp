@@ -555,7 +555,7 @@ void CBike::SetModelIndex(uint32 index) {
 // 0x6B5960
 void CBike::SetupModelNodes() {
     std::ranges::fill(m_aBikeNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aBikeNodes);
+    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aBikeNodes.data());
 }
 
 // 0x6B7080

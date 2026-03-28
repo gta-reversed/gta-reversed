@@ -138,7 +138,7 @@ CBoat::~CBoat() {
 // 0x6F01A0
 void CBoat::SetupModelNodes() {
     rng::fill(m_BoatNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes);
+    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes.data());
 }
 
 // debug function
@@ -504,7 +504,7 @@ void CBoat::FillBoatList() {
 void CBoat::SetModelIndex(uint32 index) {
     CVehicle::SetModelIndex(index);
     rng::fill(m_BoatNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes);
+    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes.data());
 }
 
 // 0x6F1770
