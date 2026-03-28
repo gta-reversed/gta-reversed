@@ -69,34 +69,39 @@ void CFireManager::Shutdown() {
 
 // 0x538F10
 uint32 CFireManager::GetNumOfNonScriptFires() {
-    return (uint32)(rng::count_if(GetActiveFires(), [] (const CFire& fire) {
+    return (uint32)(rng::count_if(GetActiveFires(), [](const CFire& fire) {
         return !fire.IsScript();
     }));
 }
 
 // NOTSA
 uint32 CFireManager::GetNumOfFires() {
-    return (uint32)(rng::count_if(GetActiveFires(), [] (const CFire&) {return true; }));
+    return (uint32)(rng::count_if(GetActiveFires(), [](const CFire&) {
+        return true;
+    }));
 }
 
 // 0x538F40
 CFire* CFireManager::FindNearestFire(const CVector& point, bool bCheckIsBeingExtinguished, bool bCheckWasCreatedByScript) {
-    float fNearestDist2DSq = std::numeric_limits<float>::max(); // Izzotop :thinking
+    float  fNearestDist2DSq = std::numeric_limits<float>::max(); // Izzotop :thinking
     CFire* nearestFire{};
     for (CFire& fire : GetActiveFires()) {
-        if (bCheckWasCreatedByScript && fire.IsScript())
+        if (bCheckWasCreatedByScript && fire.IsScript()) {
             continue;
+        }
 
-        if (bCheckIsBeingExtinguished && fire.IsBeingExtinguished())
+        if (bCheckIsBeingExtinguished && fire.IsBeingExtinguished()) {
             continue;
+        }
 
-        if (fire.GetEntityOnFire() && fire.GetEntityOnFire()->GetIsTypePed())
+        if (fire.GetEntityOnFire() && fire.GetEntityOnFire()->GetIsTypePed()) {
             continue;
+        }
 
         const float fDist2DSq = (fire.GetPosition() - point).SquaredMagnitude2D();
         if (fDist2DSq < fNearestDist2DSq) {
             fNearestDist2DSq = fDist2DSq;
-            nearestFire = &fire;
+            nearestFire      = &fire;
         }
     }
     return nearestFire;
@@ -116,8 +121,9 @@ bool CFireManager::PlentyFiresAvailable() {
 // 0x539450
 void CFireManager::ExtinguishPoint(CVector point, float fRadius) {
     for (CFire& fire : GetActiveFires()) {
-        if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius)
+        if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius) {
             continue;
+        }
 
         fire.SetIsScript(false);
         fire.Extinguish();
@@ -128,8 +134,9 @@ void CFireManager::ExtinguishPoint(CVector point, float fRadius) {
 bool CFireManager::ExtinguishPointWithWater(CVector point, float fRadius, float fWaterStrength) {
     bool bSuccess = false;
     for (CFire& fire : GetActiveFires()) {
-        if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius)
+        if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius) {
             continue;
+        }
 
         fire.ExtinguishWithWater(fWaterStrength);
         bSuccess = true;
@@ -181,18 +188,18 @@ const CVector& CFireManager::GetScriptFireCoords(int16 fireID) {
 // 0x5397F0
 uint32 CFireManager::GetNumFiresInRange(const CVector& point, float fRadius) {
     const auto sqRadius = sq(fRadius);
-    return (uint32)(rng::count_if(GetActiveFires(), [&] (const CFire& fire) {
+    return (uint32)(rng::count_if(GetActiveFires(), [&](const CFire& fire) {
         return !fire.IsScript() && (fire.GetPosition() - point).SquaredMagnitude2D() <= sqRadius;
-        }));
+    }));
 }
 
 // 0x539860
 uint32 CFireManager::GetNumFiresInArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
     CBoundingBox boundingBox{
-        {minX, minY, minZ},
-        {maxX, maxY, maxZ}
+        { minX, minY, minZ },
+        { maxX, maxY, maxZ }
     };
-    return (uint32)(rng::count_if(GetActiveFires(), [&] (const CFire& fire) {
+    return (uint32)(rng::count_if(GetActiveFires(), [&](const CFire& fire) {
         return !fire.IsScript() && boundingBox.IsPointWithin(fire.GetPosition());
     }));
 }
@@ -219,8 +226,9 @@ CFire* CFireManager::GetNextFreeFire(bool bMayExtinguish) {
         }
     }
 
-    if (!bMayExtinguish)
+    if (!bMayExtinguish) {
         return nullptr;
+    }
 
     // At this point there are no inactive fires in the pool
     // So try to extinguish a script / first generation fire
@@ -236,8 +244,9 @@ CFire* CFireManager::GetNextFreeFire(bool bMayExtinguish) {
 
 // 0x539F00
 CFire* CFireManager::StartFire(CVector pos, float size, uint8 unused, CEntity* creator, uint32 nTimeToBurn, int8 nGenerations, uint8 unused_) {
-    if (CWaterLevel::IsPointUnderwaterNoWaves(pos))
+    if (CWaterLevel::IsPointUnderwaterNoWaves(pos)) {
         return nullptr;
+    }
 
     if (CFire* fire = GetNextFreeFire(false)) {
         fire->Start(creator, pos, nTimeToBurn, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, nGenerations));
@@ -252,37 +261,45 @@ CFire* CFireManager::StartFire(CEntity* target, CEntity* creator, float size, ui
     switch (target->GetType()) {
     case ENTITY_TYPE_PED: {
         auto pedTarget = target->AsPed();
-        if (!pedTarget->IsPedInControl())
+        if (!pedTarget->IsPedInControl()) {
             return nullptr;
-        if (pedTarget->m_pFire)
+        }
+        if (pedTarget->m_pFire) {
             return nullptr;
-        if (pedTarget->physicalFlags.bFireProof)
+        }
+        if (pedTarget->physicalFlags.bFireProof) {
             return nullptr;
+        }
         break;
     }
     case ENTITY_TYPE_VEHICLE: {
         auto vehTarget = target->AsVehicle();
-        if (vehTarget->m_pFire)
+        if (vehTarget->m_pFire) {
             return nullptr;
-
-        if (vehTarget->IsAutomobile()) {
-            if (target->AsAutomobile()->m_damageManager.GetEngineStatus() >= 225)
-                return nullptr;
         }
 
-        if (vehTarget->physicalFlags.bFireProof)
+        if (vehTarget->IsAutomobile()) {
+            if (target->AsAutomobile()->m_damageManager.GetEngineStatus() >= 225) {
+                return nullptr;
+            }
+        }
+
+        if (vehTarget->physicalFlags.bFireProof) {
             return nullptr;
+        }
         break;
     }
     case ENTITY_TYPE_OBJECT: {
-        if (target->AsObject()->m_pFire)
+        if (target->AsObject()->m_pFire) {
             return nullptr;
+        }
         break;
     }
     }
 
-    if (auto fire = GetNextFreeFire(false))
+    if (auto fire = GetNextFreeFire(false)) {
         fire->Start(creator, target, lifetime, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, numGenerations));
+    }
 
     return nullptr;
 }
@@ -298,20 +315,23 @@ int32 CFireManager::StartScriptFire(const CVector& pos, CEntity* target, float _
         switch (target->GetType()) {
         case ENTITY_TYPE_PED: {
             auto pedTarget = target->AsPed();
-            if (pedTarget->m_pFire)
+            if (pedTarget->m_pFire) {
                 StopFire(pedTarget->m_pFire);
+            }
             break;
         }
         case ENTITY_TYPE_VEHICLE: {
             auto vehTarget = target->AsVehicle();
-            if (vehTarget->m_pFire)
+            if (vehTarget->m_pFire) {
                 StopFire(vehTarget->m_pFire);
+            }
 
             /* Set engine status for automobiles */
             if (vehTarget->IsAutomobile()) {
                 auto& dmgMgr = vehTarget->AsAutomobile()->m_damageManager;
-                if (dmgMgr.GetEngineStatus() >= 225)
+                if (dmgMgr.GetEngineStatus() >= 225) {
                     dmgMgr.SetEngineStatus(215);
+                }
             }
             break;
         }
@@ -329,27 +349,23 @@ int32 CFireManager::StartScriptFire(const CVector& pos, CEntity* target, float _
 void CFireManager::Update() {
     ZoneScoped;
 
-    if (CReplay::Mode == MODE_PLAYBACK)
+    if (CReplay::Mode == MODE_PLAYBACK) {
         return;
+    }
 
     for (CFire& fire : GetActiveFires()) {
         fire.ProcessFire();
     }
 
     if (CGameLogic::LaRiotsActiveHere()
-     && CTimer::GetTimeInMS() / 500u != CTimer::GetPreviousTimeInMS() / 500u
-    ) {
+        && CTimer::GetTimeInMS() / 500u != CTimer::GetPreviousTimeInMS() / 500u) {
         const float fRandomAngleRad = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
-        const float fRandomDir = CGeneral::GetRandomNumberInRange(35.0f, 60.0f);
-        CVector point = TheCamera.GetPosition() + CVector{
-            std::sin(fRandomAngleRad) * fRandomDir,
-            std::cos(fRandomAngleRad) * fRandomDir,
-            10.0f
-        };
+        const float fRandomDir      = CGeneral::GetRandomNumberInRange(35.0f, 60.0f);
+        CVector     point           = TheCamera.GetPosition() + CVector{ std::sin(fRandomAngleRad) * fRandomDir, std::cos(fRandomAngleRad) * fRandomDir, 10.0f };
 
         CEntity* hitEntity{};
-        bool bHit{};
-        point.z = CWorld::FindGroundZFor3DCoord(point, &bHit, &hitEntity);
+        bool     bHit{};
+        point.z                   = CWorld::FindGroundZFor3DCoord(point, &bHit, &hitEntity);
 
         CVector pointToCamDirNorm = (TheCamera.GetPosition() - point);
         pointToCamDirNorm.Normalise();
@@ -361,14 +377,15 @@ void CFireManager::Update() {
         // TODO: Use the array here
         if (DotProduct(TheCamera.GetForward(), pointToCamDirNorm) > 0.2f || CGeneral::GetRandomNumber() < RAND_MAX / 2) {
             auto fx = g_fxMan.CreateFxSystem("riot_smoke", point, nullptr, true);
-            if (fx)
+            if (fx) {
                 fx->PlayAndKill();
+            }
         } else {
-            StartFire(point, CGeneral::GetRandomNumberInRange(0.5f, 2.5f), true, nullptr, 30000u, 5, 1);
+            StartFire(point, CGeneral::GetRandomNumberInRange(0.5f, 2.5f), true, nullptr, 30'000u, 5, 1);
         }
     }
 
-    auto nFires = (int32)GetNumOfFires();
+    auto nFires                      = (int32)GetNumOfFires();
     bool firesVisited[MAX_NUM_FIRES] = { false }; // Lookup table to see if a fire's strength was already included into a group of fires
     while (nFires > 0) {
         // Repeat until there are no active fires left
@@ -379,10 +396,12 @@ void CFireManager::Update() {
         CFire* strongest{};
         for (size_t i = 0; i < MAX_NUM_FIRES; i++) {
             CFire& fire = m_aFires[i];
-            if (firesVisited[i] || !fire.IsActive())
+            if (firesVisited[i] || !fire.IsActive()) {
                 continue;
-            if (!strongest || strongest->GetStrength() < fire.GetStrength())
+            }
+            if (!strongest || strongest->GetStrength() < fire.GetStrength()) {
                 strongest = &fire;
+            }
         }
 
         // Sum up strengths of all fires (that haven't yet been visited) within 6.0 units range
@@ -390,8 +409,9 @@ void CFireManager::Update() {
         int32 nCombinedCeilStrength{};
         for (size_t i = 0; i < MAX_NUM_FIRES; i++) {
             CFire& fire = m_aFires[i];
-            if (firesVisited[i] || !fire.IsActive())
+            if (firesVisited[i] || !fire.IsActive()) {
                 continue;
+            }
 
             if ((fire.GetPosition() - strongest->GetPosition()).Magnitude2D() < 6.0f) {
                 fCombinedStrength += fire.GetStrength();
@@ -411,7 +431,7 @@ void CFireManager::Update() {
 
             const float fDir = std::min(7.0f, fCombinedStrength - 6.0f + 3.0f);
 
-            CVector shdwPos = strongest->GetPosition();
+            CVector shdwPos  = strongest->GetPosition();
             shdwPos.z += 5.0f;
             const float fColorMult = CGeneral::GetRandomNumberInRange(0.6f, 1.0f);
             {
@@ -483,7 +503,7 @@ void CFireManager::Update() {
 
                 point.z -= 2.0f;
                 CVector camRightNorm = TheCamera.GetRight();
-                camRightNorm.z = 0.0f;
+                camRightNorm.z       = 0.0f;
                 camRightNorm.Normalise();
                 point += camRightNorm * 2.0f;
                 RegisterCorona(strongestId + 2, point);
@@ -492,7 +512,6 @@ void CFireManager::Update() {
                 RegisterCorona(strongestId + 3, point);
             }
         }
-
     }
 }
 
