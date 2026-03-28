@@ -161,7 +161,7 @@ bool CAERadioTrackManager::HasRadioRetuneJustStarted() const {
 
 // 0x4E83E0
 int32* CAERadioTrackManager::GetRadioStationListenTimes() {
-    return m_aListenTimes;
+    return m_aListenTimes.data();
 }
 
 // 0x4E83F0

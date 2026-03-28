@@ -2,8 +2,8 @@
 
 class CKeyboardState {
 public:
-    int16 FKeys[12]{};         //!< F1 - F12 (0-11)
-    int16 standardKeys[256]{}; //!< All other keys with keycode < 0xFF
+    std::array<int16, 12>  FKeys{};         //!< F1 - F12 (0-11)
+    std::array<int16, 256> standardKeys{}; //!< All other keys with keycode < 0xFF
     int16 esc{};               //!< Escape
     int16 insert{};            //!< Insert
     int16 del{};               //!< Delete
