@@ -56,6 +56,7 @@ public:
 
     bool HasTimeToBurn() const;
     bool IsNotInRemovalDistance() const;
+
     auto& GetPosition() const { return m_Position; }
 
     //! Script thing ID
