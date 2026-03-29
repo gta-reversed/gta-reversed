@@ -163,7 +163,7 @@ void FxEmitter_c::CreateParticles(float currentTime, float deltaTime) {
         for (auto step = 0u; counter < (uint32)m_fEmissionIntensity; step = counter) {
             FxPrtMult_c prtMult;
             auto timeSince = (float)step / m_fEmissionIntensity * deltaTime;
-            CreateParticle(emission, mat, nullptr, timeSince, prtMult, 1.2f, m_System->m_createLocal);
+            CreateParticle(emission, *mat, nullptr, timeSince, prtMult, 1.2f, m_System->m_createLocal);
             counter++;
         }
         m_fEmissionIntensity -= m_fEmissionIntensity; // OG shit
