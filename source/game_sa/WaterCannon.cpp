@@ -130,8 +130,7 @@ void CWaterCannon::PushPeds() {
 
             FxPrtMult_c prtInfo{ 1.0f, 1.0f, 1.0f, 0.6f, 0.75f, 0.0f, 0.2f };
 
-            CVector particleVelocity = ped.m_vecMoveSpeed * 0.3f;
-            g_fx.m_SmokeII3expand->AddParticle(pedPosn, particleVelocity, 0.0f, prtInfo, -1.0f, 1.2f, 0.6f, false);
+            g_fx.m_SmokeII3expand->AddParticle(pedPosn, ped.m_vecMoveSpeed * 0.3f, 0.0f, prtInfo, -1.0f, 1.2f, 0.6f, false);
 
             CVector particleVelocity2 = ped.m_vecMoveSpeed * -0.3f;
             particleVelocity2.z += 0.5f;
@@ -222,8 +221,7 @@ void CWaterCannon::Render() {
                         const auto unk = (float)n / CTimer::GetTimeStepInMS();
 
                         g_fx.m_WaterSplash->AddParticle(colPoint.m_vecPoint, velocity0, unk, prtInfo, -1.0f, 1.2f, 0.6f, 0);
-                        CVector velocity1 = velocity0 * 0.6f;
-                        g_fx.m_WaterSplash->AddParticle(colPoint.m_vecPoint, velocity1, unk, prtInfo, -1.0f, 1.2f, 0.6f, 0);
+                        g_fx.m_WaterSplash->AddParticle(colPoint.m_vecPoint, velocity0 * 0.6f, unk, prtInfo, -1.0f, 1.2f, 0.6f, 0);
                     }
 
                     m_Audio.SetSplashInfo(colPoint.m_vecPoint, velocity0.Magnitude());

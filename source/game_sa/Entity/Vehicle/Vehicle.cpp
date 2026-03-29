@@ -4077,11 +4077,13 @@ void CVehicle::AddWaterSplashParticles() {
         const auto v1v2 = vertices[2] - vertices[1];
 
         for (auto i = 1 - (size_t)(CWeather::Rain * -2.f); i > 0; i--) {
-            CVector velocity{0.f, 0.f, 0.f};
-            auto pieceOfShit = vertices[0]
-                + v0v1 * CGeneral::GetRandomNumberInRange(0.f, 1.f)
-                + v1v2 * CGeneral::GetRandomNumberInRange(0.f, 1.f);
-            g_fx.m_Splash->AddParticle(pieceOfShit, velocity, 0.f, fxPrtMult, -1.f, 1.2f, 0.6f, 0u);
+            g_fx.m_Splash->AddParticle(
+                vertices[0]
+                    + v0v1 * CGeneral::GetRandomNumberInRange(0.f, 1.f)
+                    + v1v2 * CGeneral::GetRandomNumberInRange(0.f, 1.f),
+                {},
+                0.f, fxPrtMult, -1.f, 1.2f, 0.6f, 0u
+            );
         }
     }
 }

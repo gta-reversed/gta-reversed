@@ -4834,13 +4834,10 @@ void CAutomobile::dmgDrawCarCollidingParticles(const CVector& position, float fo
 
     // Add smoke
     {
-        FxPrtMult_c prtMult{ 0.4f, 0.4f , 0.4f, 0.6f, 0.4f, 1.f, 1.f };
-        CVector velocity{};
-
         // The higher our speedsq the more particles we create
         const auto numSmokes = std::max(1u, (uint32)((m_vecMoveSpeed * CTimer::GetTimeStep()).Magnitude() * 4.f));
         for (auto i = 0u; i < numSmokes; i++) {
-            g_fx.m_SmokeHuge->AddParticle(fxPos, velocity, 0.f, prtMult, -1.f, 1.2f, 0.6f, 0);
+            g_fx.m_SmokeHuge->AddParticle(fxPos, {}, 0.f, FxPrtMult_c{ 0.4f, 0.4f, 0.4f, 0.6f, 0.4f, 1.f, 1.f }, -1.f, 1.2f, 0.6f, 0);
         }
     }
 
@@ -4924,16 +4921,14 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                         return { 0.f, 0.f, 0.15f, 0.4f, 0.3f, 1.f, 0.3f };
                     }();
                     if (CTimer::GetFrameCounter() % 2 == 0) { // TODO: Don't use frame counter
-                        auto vel = isRcShit
-                            ? CVector::Random({ -0.5f, -0.5f, 0.f }, { 0.5f, 0.5f, 0.4f })
-                            : CVector::Random({ -1.5f, -1.5f, 0.f }, { 1.5f, 1.5f, 1.0f });
-                        auto pos = GetPosition() + (isRcShit
-                            ? CVector::Random({ -0.7f, -0.7f, 0.f }, { 0.7f, 0.7f, 0.f })
-                            : CVector::Random({ -2.0f, -2.0f, 0.f }, { 2.0f, 2.0f, 0.f })
-                        );
                         g_fx.m_SmokeHuge->AddParticle(
-                            pos,
-                            vel,
+                            GetPosition() + (isRcShit
+                                ? CVector::Random({ -0.7f, -0.7f, 0.f }, { 0.7f, 0.7f, 0.f })
+                                : CVector::Random({ -2.0f, -2.0f, 0.f }, { 2.0f, 2.0f, 0.f })
+                            ),
+                            isRcShit
+                                ? CVector::Random({ -0.5f, -0.5f, 0.f }, { 0.5f, 0.5f, 0.4f })
+                                : CVector::Random({ -1.5f, -1.5f, 0.f }, { 1.5f, 1.5f, 1.0f }),
                             0.f,
                             fxPrtMult,
                             -1.f,
