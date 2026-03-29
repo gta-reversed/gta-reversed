@@ -15,7 +15,7 @@ class CEntity;
 class CFireManager {
 public:
     std::array<CFire, MAX_NUM_FIRES> m_aFires;
-    uint32 m_MaxFireGenerationsAllowed;
+    uint32                           m_MaxFireGenerationsAllowed;
 
 public:
     CFireManager();
@@ -25,7 +25,7 @@ public:
 
     uint32 GetNumOfNonScriptFires();
     CFire* FindNearestFire(const CVector& point, bool bCheckWasExtinguished = false, bool bCheckWasCreatedByScript = false);
-    bool PlentyFiresAvailable();
+    bool   PlentyFiresAvailable();
 
     void ExtinguishPoint(CVector point, float fRadiusSq);
     bool ExtinguishPointWithWater(CVector point, float fRadiusSq, float fFireSize);
@@ -39,16 +39,16 @@ public:
     void SetScriptFireAudio(int16 fireId, bool bFlag);
 
     const CVector& GetScriptFireCoords(int16 fireId);
-    uint32 GetNumFiresInRange(const CVector& point, float fRadiusSq);
-    uint32 GetNumFiresInArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
-    CFire* GetNextFreeFire(bool bMayExtinguish); // bAllowDeletingOldFire - allow deleting old fire if no free slots available
+    uint32         GetNumFiresInRange(const CVector& point, float fRadiusSq);
+    uint32         GetNumFiresInArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+    CFire*         GetNextFreeFire(bool bMayExtinguish); // bAllowDeletingOldFire - allow deleting old fire if no free slots available
 
     void CreateAllFxSystems();
     void DestroyAllFxSystems();
 
     CFire* StartFire(CVector pos, float size, uint8 unused, CEntity* creator, uint32 nTimeToBurn, int8 nGenerations, uint8 unused_);
-    CFire* StartFire(CEntity* target, CEntity* creator, _IGNORED_ float size = 0.8f, _IGNORED_ uint8 arg3 = 1, uint32 time = 7000, int8 numGenerations = 0);
-    int32 StartScriptFire(const CVector& point, CEntity* target, _IGNORED_ float arg2, _IGNORED_ uint8 arg3, int8 numGenerations, int32 size);
+    CFire* StartFire(CEntity* target, CEntity* creator, _IGNORED_ float size = 0.8f, _IGNORED_ uint8 arg3 = 1, uint32 time = 7'000, int8 numGenerations = 0);
+    int32  StartScriptFire(const CVector& point, CEntity* target, _IGNORED_ float arg2, _IGNORED_ uint8 arg3, int8 numGenerations, int32 size);
 
     void Update();
 
@@ -57,17 +57,17 @@ public:
     CFire& GetRandomFire();
 
     // NOTSA
-    CFire& Get(size_t idx)
-    {
+    CFire& Get(size_t idx) {
         assert(m_aFires[idx].IsActive());
         return m_aFires[idx];
     }
+
     auto GetIndexOf(const CFire* fire) const { return std::distance(m_aFires.data(), fire); }
 
     auto GetActiveFires(this auto&& self) {
         return self.m_aFires | rngv::filter([](const CFire& fire) {
-            return fire.IsActive();
-        });
+                   return fire.IsActive();
+               });
     }
 
 private:
