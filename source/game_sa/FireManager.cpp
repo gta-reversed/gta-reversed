@@ -198,9 +198,7 @@ uint32 CFireManager::GetNumFiresInArea(float minX, float minY, float minZ, float
 
 // 0x539D10
 void CFireManager::DestroyAllFxSystems() {
-    for (CFire& fire : GetActiveFires()) {
-        fire.DestroyFx();
-    }
+    rng::for_each(GetActiveFires(), &CFire::DestroyFx);
 }
 
 // 0x539D50
