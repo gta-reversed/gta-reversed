@@ -7,10 +7,10 @@
 void CFireManager::InjectHooks() {
     RH_ScopedClass(CFireManager);
     RH_ScopedCategoryGlobal();
-
+     
     RH_ScopedInstall(Constructor, 0x539DA0);
     RH_ScopedInstall(Destructor, 0x538BB0);
-    RH_ScopedInstall(Init, 0x538BC0);
+    /*RH_ScopedInstall(Init, 0x538BC0); - Moved to `CFireManager()` */
     RH_ScopedInstall(Shutdown, 0x539DD0);
     RH_ScopedInstall(GetNumOfNonScriptFires, 0x538F10);
     RH_ScopedInstall(FindNearestFire, 0x538F40);
@@ -36,7 +36,7 @@ void CFireManager::InjectHooks() {
 
 // 0x539DA0
 CFireManager::CFireManager() {
-    Init();
+    m_MaxFireGenerationsAllowed = 1'000'000 - 1; // aka 999'999
 }
 
 CFireManager* CFireManager::Constructor() {
@@ -47,14 +47,6 @@ CFireManager* CFireManager::Constructor() {
 CFireManager* CFireManager::Destructor() {
     this->CFireManager::~CFireManager();
     return this;
-}
-
-// 0x538BC0
-void CFireManager::Init() {
-    for (CFire& fire : m_aFires) {
-        fire.Initialise();
-    }
-    m_nMaxFireGenerationsAllowed = 1'000'000 - 1; // aka 999'999
 }
 
 // 0x539DD0
@@ -150,7 +142,7 @@ bool CFireManager::IsScriptFireExtinguished(int16 id) {
 }
 
 // 0x539700
-void CFireManager::RemoveScriptFire(uint16_t fireID) {
+void CFireManager::RemoveScriptFire(uint16 fireID) {
     CFire& fire = Get(fireID);
     if (fire.IsScript()) {
         fire.SetIsScript(false);
@@ -248,7 +240,7 @@ CFire* CFireManager::StartFire(CVector pos, float size, uint8 unused, CEntity* c
         return nullptr;
     }
     if (CFire* fire = GetNextFreeFire(false)) {
-        fire->Start(creator, pos, nTimeToBurn, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, nGenerations));
+        fire->Start(creator, pos, nTimeToBurn, std::min<uint8>((uint8)m_MaxFireGenerationsAllowed, nGenerations));
         return fire;
     }
     return nullptr;
@@ -296,7 +288,7 @@ CFire* CFireManager::StartFire(CEntity* target, CEntity* creator, float size, ui
     }
 
     if (auto fire = GetNextFreeFire(false)) {
-        fire->Start(creator, target, lifetime, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, numGenerations));
+        fire->Start(creator, target, lifetime, std::min<uint8>((uint8)m_MaxFireGenerationsAllowed, numGenerations));
         return fire;
     }
 
@@ -338,7 +330,7 @@ int32 CFireManager::StartScriptFire(const CVector& pos, CEntity* target, float _
     }
 
     if (auto fire = GetNextFreeFire(true)) {
-        fire->Start(pos, (float)nStrength, target, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, nGenerations));
+        fire->Start(pos, (float)nStrength, target, std::min<uint8>((uint8)m_MaxFireGenerationsAllowed, nGenerations));
         return CTheScripts::GetNewUniqueScriptThingIndex(GetIndexOf(fire), SCRIPT_THING_FIRE);
     }
     return -1;
