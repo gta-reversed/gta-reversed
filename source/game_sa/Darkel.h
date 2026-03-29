@@ -10,7 +10,7 @@
 
 class CVehicle;
 
-enum class eDarkelStatus : uint8 {
+enum class eDarkelStatus : uint16 {
     INITIAL,
     FRENZY_ON_GOING,
     FRENZY_PASSED,
