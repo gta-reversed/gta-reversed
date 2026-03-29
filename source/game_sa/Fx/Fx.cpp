@@ -239,7 +239,7 @@ void Fx_c::AddWood(const CVector& pos, const CVector& direction, int32 amount, f
 }
 
 // 0x49F040
-void Fx_c::AddSparks(const CVector& origin, const CVector& direction, float force, int32 amount, const CVector& across, eSparkType sparksType, float spread, float life) {
+void Fx_c::AddSparks(const CVector& origin, const CVector& direction, float force, int32 amount, CVector across, eSparkType sparksType, float spread, float life) {
     ((void(__thiscall*)(Fx_c*, const CVector&, const CVector&, float, int32, CVector, uint8, float, float))0x49F040)(this, origin, direction, force, amount, across, sparksType, spread, life);
 }
 
@@ -269,32 +269,32 @@ void Fx_c::AddGlass(const CVector& pos, const RwRGBA& color, float scale, int32 
 }
 
 // 0x49FB30
-void Fx_c::AddWheelSpray(CVehicle* vehicle, const CVector& pos, bool bWheelsSpinning, bool bInWater, float lightMult) {
+void Fx_c::AddWheelSpray(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, bool bInWater, float lightMult) {
     ((void(__thiscall*)(Fx_c*, CVehicle*, CVector, uint8, uint8, float))0x49FB30)(this, vehicle, pos, bWheelsSpinning, bInWater, lightMult);
 }
 
 // 0x49FF20
-void Fx_c::AddWheelGrass(CVehicle* vehicle, const CVector& pos, bool bWheelsSpinning, float lightMult) {
+void Fx_c::AddWheelGrass(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult) {
     ((void(__thiscall*)(Fx_c*, CVehicle*, CVector, uint8, float))0x49FF20)(this, vehicle, pos, bWheelsSpinning, lightMult);
 }
 
 // 0x4A0170
-void Fx_c::AddWheelGravel(CVehicle* vehicle, const CVector& pos, bool bWheelsSpinning, float lightMult) {
+void Fx_c::AddWheelGravel(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult) {
     ((void(__thiscall*)(Fx_c*, CVehicle*, CVector, uint8, float))0x4A0170)(this, vehicle, pos, bWheelsSpinning, lightMult);
 }
 
 // 0x4A03C0
-void Fx_c::AddWheelMud(CVehicle* vehicle, const CVector& pos, bool bWheelsSpinning, float lightMult) {
+void Fx_c::AddWheelMud(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult) {
     ((void(__thiscall*)(Fx_c*, CVehicle*, CVector, uint8, float))0x4A03C0)(this, vehicle, pos, bWheelsSpinning, lightMult);
 }
 
 // 0x4A0610
-void Fx_c::AddWheelSand(CVehicle* vehicle, const CVector& pos, bool bWheelsSpinning, float lightMult) {
+void Fx_c::AddWheelSand(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult) {
     ((void(__thiscall*)(Fx_c*, CVehicle*, CVector, uint8, float))0x4A0610)(this, vehicle, pos, bWheelsSpinning, lightMult);
 }
 
 // 0x4A09C0
-void Fx_c::AddWheelDust(CVehicle* vehicle, const CVector& pos, bool bWheelsSpinning, float lightMult) {
+void Fx_c::AddWheelDust(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult) {
     ((void(__thiscall*)(Fx_c*, CVehicle*, CVector, uint8, float))0x4A09C0)(this, vehicle, pos, bWheelsSpinning, lightMult);
 }
 
@@ -374,7 +374,7 @@ void RenderAddTri_(
 // TODO: I honestly think this should be a class method...
 // Although originally it wasnt.
 // NOTE: Method signature changed to use CVector + RwTexCoords instead of raw values for convenience.
-void RenderAddTri(const CVector& pos1, const CVector& pos2, const CVector& pos3, const RwTexCoords& coord1, const RwTexCoords& coord2, const RwTexCoords& coord3, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3) {
+void RenderAddTri(CVector pos1, CVector pos2, CVector pos3, RwTexCoords coord1, RwTexCoords coord2, RwTexCoords coord3, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3) {
     const auto GetVertex = [](unsigned i) {
         return &g_fx.m_pVerts[i];
     };

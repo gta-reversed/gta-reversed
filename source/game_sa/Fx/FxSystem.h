@@ -115,7 +115,7 @@ public:
 
     bool IsVisible();
 
-    void DoFxAudio(const CVector& pos);
+    void DoFxAudio(CVector pos);
     bool Update(RwCamera* camera, float timeDelta);
 
 public:

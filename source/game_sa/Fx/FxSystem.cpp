@@ -381,7 +381,7 @@ void FxSystem_c::ResetBoundingSphere() {
 }
 
 // 0x4AAC90
-void FxSystem_c::DoFxAudio(const CVector& pos) {
+void FxSystem_c::DoFxAudio(CVector pos) {
     constexpr struct { const char* hash; eAudioEvents event; } mapping[] = {
         { "fire",           AE_FIRE               },
         { "fire_med",       AE_FIRE_MEDIUM        },
@@ -399,8 +399,7 @@ void FxSystem_c::DoFxAudio(const CVector& pos) {
     };
     for (auto& [hash, event] : mapping) {
         if (m_SystemBP->GetNameKey() == CKeyGen::GetUppercaseKey(hash)) {
-            auto posCopy = pos;
-            m_FireAE.AddAudioEvent(event, posCopy);
+            m_FireAE.AddAudioEvent(event, pos);
         }
     }
 }
