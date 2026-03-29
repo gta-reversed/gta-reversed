@@ -166,9 +166,7 @@ void FxSystem_c::Kill() {
 
 // 0x4AA400
 void FxSystem_c::AttachToBone(CEntity* entity, eBoneTag boneId) {
-    auto animHier = GetAnimHierarchyFromSkinClump(entity->m_pRwClump);
-    auto index = RpHAnimIDGetIndex(animHier, boneId);
-    m_ParentMatrix = &RpHAnimHierarchyGetMatrixArray(animHier)[index];
+    VERIFY(m_ParentMatrix = entity->GetBoneMatrix(boneId));
 }
 
 auto CanAddParticle() {
@@ -185,7 +183,7 @@ auto CanAddParticle() {
 // 0x4AA440
 void FxSystem_c::AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
     if (CanAddParticle()) {
-        auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
+        const auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
         for (auto& prim : GetPrims()) {
             if (prim->m_bEnabled) {
                 prim->AddParticle(pos, vel, timeSince, fxMults, rotZ, brightness, createLocal);
@@ -198,7 +196,7 @@ void FxSystem_c::AddParticle(const CVector& pos, const CVector& vel, float timeS
 // 0x4AA540
 void FxSystem_c::AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
     if (CanAddParticle()) {
-        auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
+        const auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
         for (auto& prim : GetPrims()) {
             prim->AddParticle(mat, vel, timeSince, fxMults, rotZ, brightness, createLocal);
         }
