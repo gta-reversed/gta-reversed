@@ -247,7 +247,6 @@ CFire* CFireManager::StartFire(CVector pos, float size, uint8 unused, CEntity* c
     if (CWaterLevel::IsPointUnderwaterNoWaves(pos)) {
         return nullptr;
     }
-
     if (CFire* fire = GetNextFreeFire(false)) {
         fire->Start(creator, pos, nTimeToBurn, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, nGenerations));
         return fire;
@@ -257,7 +256,6 @@ CFire* CFireManager::StartFire(CVector pos, float size, uint8 unused, CEntity* c
 
 // 0x53A050
 CFire* CFireManager::StartFire(CEntity* target, CEntity* creator, float size, uint8 unused, uint32 lifetime, int8 numGenerations) {
-    /* Do few checks, and clear `m_pFire` if `target` */
     switch (target->GetType()) {
     case ENTITY_TYPE_PED: {
         auto pedTarget = target->AsPed();
@@ -299,6 +297,7 @@ CFire* CFireManager::StartFire(CEntity* target, CEntity* creator, float size, ui
 
     if (auto fire = GetNextFreeFire(false)) {
         fire->Start(creator, target, lifetime, std::min<uint8>((uint8)m_nMaxFireGenerationsAllowed, numGenerations));
+        return fire;
     }
 
     return nullptr;
