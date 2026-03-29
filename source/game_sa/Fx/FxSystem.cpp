@@ -225,8 +225,8 @@ void FxSystem_c::SetOffsetPos(const CVector& pos) {
 }
 
 // 0x4AA690
-void FxSystem_c::AddOffsetPos(CVector* pos) {
-    RwV3dAdd(&m_LocalMatrix.pos, &m_LocalMatrix.pos, pos);
+void FxSystem_c::AddOffsetPos(const CVector& pos) {
+    RwV3dAdd(&m_LocalMatrix.pos, &m_LocalMatrix.pos, &pos);
     RwMatrixUpdate(&m_LocalMatrix);
 }
 
@@ -247,7 +247,7 @@ void FxSystem_c::SetTimeMult(float mult) {
 }
 
 // 0x4AA730
-void FxSystem_c::SetVelAdd(CVector* velocity) {
+void FxSystem_c::SetVelAdd(const CVector* velocity) {
     m_VelAdd = *velocity;
 }
 
@@ -381,7 +381,7 @@ void FxSystem_c::ResetBoundingSphere() {
 }
 
 // 0x4AAC90
-void FxSystem_c::DoFxAudio(CVector pos) {
+void FxSystem_c::DoFxAudio(const CVector& pos) {
     constexpr struct { const char* hash; eAudioEvents event; } mapping[] = {
         { "fire",           AE_FIRE               },
         { "fire_med",       AE_FIRE_MEDIUM        },
@@ -399,7 +399,8 @@ void FxSystem_c::DoFxAudio(CVector pos) {
     };
     for (auto& [hash, event] : mapping) {
         if (m_SystemBP->GetNameKey() == CKeyGen::GetUppercaseKey(hash)) {
-            m_FireAE.AddAudioEvent(event, pos);
+            auto posCopy = pos;
+            m_FireAE.AddAudioEvent(event, posCopy);
         }
     }
 }
@@ -409,7 +410,7 @@ bool FxSystem_c::IsVisible() {
     FxSphere_c sphere;
     if (GetBoundingSphereWld(&sphere)) {
         FxFrustumInfo_c* info = g_fxMan.GetFrustumInfo();
-        if (!info->IsCollision(&sphere))
+        if (!info->IsCollision(sphere))
             return false;
     }
     return true;

@@ -91,11 +91,11 @@ public:
     void EnablePrim(int32 primIndex, bool enable);
     void SetMatrix(RwMatrix* matrix);
     void SetOffsetPos(const CVector& pos);
-    void AddOffsetPos(CVector* pos);
+    void AddOffsetPos(const CVector& pos);
     void SetConstTime(bool on, float time);
     void SetRateMult(float mult);
     void SetTimeMult(float mult);
-    void SetVelAdd(CVector* velocity);
+    void SetVelAdd(const CVector* velocity);
     void CopyParentMatrix();
     void GetCompositeMatrix(RwMatrix* out);
     eFxSystemPlayStatus GetPlayStatus() const;
@@ -115,7 +115,7 @@ public:
 
     bool IsVisible();
 
-    void DoFxAudio(CVector pos);
+    void DoFxAudio(const CVector& pos);
     bool Update(RwCamera* camera, float timeDelta);
 
 public:

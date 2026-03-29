@@ -14,6 +14,6 @@ public:
     FxSphere_c m_Sphere;
     FxPlane_c  m_Planes[4];
 
-    bool IsCollision(FxSphere_c* sphere);
+    bool IsCollision(FxSphere_c& sphere);
 };
 VALIDATE_SIZE(FxFrustumInfo_c, 0x54);

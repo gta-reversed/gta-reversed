@@ -265,7 +265,7 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
         }
         RwV3dTransformVectors(&vectorsOut, &vectorsIn, 1, wldMat);
         CVector v38;
-        RotateVecIntoVec(&v38, &randomizedAngleVec, &vectorsOut);
+        RotateVecIntoVec(v38, randomizedAngleVec, vectorsOut);
         particle->m_Velocity = v38 * ((CGeneral::GetRandomNumberInRange(0.0f, 2.0f) - 1.0f) * emissionInfo->m_fSpeedBias + emissionInfo->m_Speed);
     }
 
