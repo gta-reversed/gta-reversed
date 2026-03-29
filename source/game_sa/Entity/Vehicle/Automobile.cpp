@@ -4866,7 +4866,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
     const auto SetFxVelocity = [&, this] {
         if (m_pFireParticle) {
             auto bullshit = GetMoveSpeed() * 50.f;
-            m_pFireParticle->SetVelAdd(&bullshit);
+            m_pFireParticle->SetVelAdd(bullshit);
         }
         DecreaseHealthAndProcess();
     };

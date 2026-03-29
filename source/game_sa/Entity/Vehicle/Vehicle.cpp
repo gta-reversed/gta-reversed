@@ -2038,7 +2038,7 @@ void CVehicle::AddDamagedVehicleParticles() {
     if (m_pOverheatParticle) {
         m_pOverheatParticle->SetConstTime(1u, 1.0f - (m_fHealth - 250.0f) / 400.0f);
         CVector velocity = m_vecMoveSpeed * 50.0f;
-        m_pOverheatParticle->SetVelAdd(&velocity);
+        m_pOverheatParticle->SetVelAdd(velocity);
     }
 }
 

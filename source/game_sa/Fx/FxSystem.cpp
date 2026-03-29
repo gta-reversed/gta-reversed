@@ -247,8 +247,8 @@ void FxSystem_c::SetTimeMult(float mult) {
 }
 
 // 0x4AA730
-void FxSystem_c::SetVelAdd(const CVector* velocity) {
-    m_VelAdd = *velocity;
+void FxSystem_c::SetVelAdd(const CVector& velocity) {
+    m_VelAdd = velocity;
 }
 
 // 0x4AA910
@@ -276,7 +276,7 @@ void FxSystem_c::CopyParentMatrix() {
 }
 
 // 0x4AA8C0
-void FxSystem_c::GetCompositeMatrix(RwMatrix* out) {
+void FxSystem_c::GetCompositeMatrix(RwMatrix* out) const {
     if (m_ParentMatrix)
         RwMatrixMultiply(out, &m_LocalMatrix, m_ParentMatrix);
     else
@@ -331,7 +331,7 @@ void FxSystem_c::GetBoundingBox(FxBox_c* out) {
 }
 
 // 0x4AAAD0
-bool FxSystem_c::GetBoundingSphereWld(FxSphere_c* out) {
+bool FxSystem_c::GetBoundingSphereWld(FxSphere_c* out) const {
     if (!m_BoundingSphere)
         return false;
 
@@ -345,7 +345,7 @@ bool FxSystem_c::GetBoundingSphereWld(FxSphere_c* out) {
 }
 
 // 0x4AAB50
-bool FxSystem_c::GetBoundingSphereLcl(FxSphere_c* out) {
+bool FxSystem_c::GetBoundingSphereLcl(FxSphere_c* out) const {
     if (!m_BoundingSphere)
         return false;
 
@@ -405,7 +405,7 @@ void FxSystem_c::DoFxAudio(CVector pos) {
 }
 
 // 0x4AAF30
-bool FxSystem_c::IsVisible() {
+bool FxSystem_c::IsVisible() const {
     FxSphere_c sphere;
     if (GetBoundingSphereWld(&sphere)) {
         FxFrustumInfo_c* info = g_fxMan.GetFrustumInfo();
