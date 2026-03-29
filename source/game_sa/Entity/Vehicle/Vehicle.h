@@ -739,8 +739,8 @@ public:
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
-    auto GetPassengers() const { return std::span{ m_apPassengers.data(), m_nMaxPassengers }; }
-    auto GetMaxPassengerSeats() { return std::span{ m_apPassengers.data(), m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
+    auto GetPassengers() const { return m_apPassengers | rngv::take(m_nMaxPassengers); }
+    auto GetMaxPassengerSeats() { return m_apPassengers | rngv::take(m_nMaxPassengers); } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
     [[nodiscard]] float GetDefaultAirResistance() const {
         if (m_pHandlingData->m_fDragMult <= 0.01f) {
