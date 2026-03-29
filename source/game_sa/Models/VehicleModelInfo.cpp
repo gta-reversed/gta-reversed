@@ -1456,23 +1456,21 @@ void CVehicleModelInfo::LoadVehicleUpgrades()
             int32 iModelId = -1;
             auto mi = CModelInfo::GetModelInfo(pToken, &iModelId)->AsVehicleModelInfoPtr();
             auto nextToken = strtok_s(nullptr, " \t,", &pLastToken);
-            auto upgrade = mi->m_anUpgrades.data();
+            size_t upgradeIdx = 0;
             while (nextToken) {
                 auto ami = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo(nextToken, &iModelId));
                 ami->SetupVehicleUpgradeFlags(nextToken);
-                *upgrade = iModelId;
-                ++upgrade;
+                mi->m_anUpgrades[upgradeIdx++] = iModelId;
                 nextToken = strtok_s(nullptr, " \t,", &pLastToken);
             }
 
             auto hydraulicsAMI = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo("hydralics", &iModelId));
             hydraulicsAMI->SetupVehicleUpgradeFlags("hydralics");
-            *upgrade = iModelId;
-            upgrade++;
+            mi->m_anUpgrades[upgradeIdx++] = iModelId;
 
             auto stereoAMI = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo("stereo", &iModelId));
             stereoAMI->SetupVehicleUpgradeFlags("stereo");
-            *upgrade = iModelId;
+            mi->m_anUpgrades[upgradeIdx] = iModelId;
             break;
         }
 

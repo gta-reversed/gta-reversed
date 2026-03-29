@@ -42,21 +42,21 @@ private:
     uint32 m_NumFramesThisSec;
     uint32 m_FPS; // unused
 
-    std::array<uint32, (size_t)eLoadType::NUM_LOAD_TYPES> m_iStartTimes; // CTimer::GetCurrentTimeInCycles
-    std::array<uint32, (size_t)eLoadType::NUM_LOAD_TYPES> m_iCyclesThisFrame;
-    std::array<uint32, (size_t)eLoadType::NUM_LOAD_TYPES> m_iMaxCycles;
+    std::array<uint32, +eLoadType::NUM_LOAD_TYPES> m_iStartTimes; // CTimer::GetCurrentTimeInCycles
+    std::array<uint32, +eLoadType::NUM_LOAD_TYPES> m_iCyclesThisFrame;
+    std::array<uint32, +eLoadType::NUM_LOAD_TYPES> m_iMaxCycles;
 
-    std::array<float, (size_t)eLoadType::NUM_LOAD_TYPES> m_fSmoothedValues; // unused
+    std::array<float, +eLoadType::NUM_LOAD_TYPES> m_fSmoothedValues; // unused
 
-    std::array<float, (size_t)eLoadType::NUM_LOAD_TYPES> m_fPeakLevels;
+    std::array<float, +eLoadType::NUM_LOAD_TYPES> m_fPeakLevels;
 
-    std::array<float, (size_t)eLoadType::NUM_LOAD_TYPES> m_fNormalizedPeakRangeValues; // unused
+    std::array<float, +eLoadType::NUM_LOAD_TYPES> m_fNormalizedPeakRangeValues; // unused
 
-    std::array<float, (size_t)eLoadType::NUM_LOAD_TYPES> m_fAveragedCyclesThisSecond; // unused
+    std::array<float, +eLoadType::NUM_LOAD_TYPES> m_fAveragedCyclesThisSecond; // unused
 
-    notsa::mdarray<uint32, (size_t)eLoadType::NUM_LOAD_TYPES, 8> m_iCyclesHistory;
+    notsa::mdarray<uint32, +eLoadType::NUM_LOAD_TYPES, 8> m_iCyclesHistory;
 
-    notsa::mdarray<uint8, (size_t)eLoadType::NUM_LOAD_TYPES, 100> m_GraphPoints; // unused
+    notsa::mdarray<uint8, +eLoadType::NUM_LOAD_TYPES, 100> m_GraphPoints; // unused
     int32 m_iCurrentGraphIndex; // unused
 
 public:
