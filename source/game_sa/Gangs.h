@@ -13,7 +13,7 @@ class GangInfo;
 
 class CGangs {
 public:
-    static inline auto& GangAttackWithCops = StaticRef<std::array<bool, 10>>(0xC091E6);
+    static inline auto& GangAttackWithCops = StaticRef<std::array<bool, 10>>(0xC091D2);
     static inline auto& Gang = StaticRef<std::array<CGangInfo, 10>>(0xC091F0);
 
 public:
