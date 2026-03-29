@@ -4,8 +4,7 @@
 
 auto& g_waterCreatureMan = StaticRef<WaterCreatureManager_c>(0xC1DF30);
 
-void WaterCreatureManager_c::InjectHooks()
-{
+void WaterCreatureManager_c::InjectHooks() {
     RH_ScopedClass(WaterCreatureManager_c);
     RH_ScopedCategoryGlobal();
 
@@ -18,152 +17,158 @@ void WaterCreatureManager_c::InjectHooks()
     RH_ScopedInstall(TryToExitGroup, 0x6E45B0);
 }
 
-
-WaterCreatureManager_c::WaterCreatureManager_c() : m_aCreatures(), m_freeList(), m_createdList()
+WaterCreatureManager_c::WaterCreatureManager_c() : m_waterCreatureItems(), m_waterCreaturePool(), m_waterCreatureList()
 {}
 
-bool WaterCreatureManager_c::Init()
-{
-    for (auto i = 0; i < NUM_WATER_CREATURES; ++i)
-        m_freeList.AddItem(&m_aCreatures[i]);
+// 0x6E3F90
+bool WaterCreatureManager_c::Init() {
+    for (auto i = NUM_WATER_CREATURES; i --> 0;) {
+        m_waterCreaturePool.AddItem(&m_waterCreatureItems[i]);
+    }
 
-    m_nLastCreationCheckTime = 0;
+    m_lastUpdateTime = 0;
     return true;
 }
 
-void WaterCreatureManager_c::Exit()
-{
-    auto* pCur = m_createdList.GetHead();
-    while (pCur)
-    {
-        auto* pNext = m_createdList.GetNext(pCur);
-        pCur->Exit();
-        pCur = pNext;
+// 0x6E3FD0
+void WaterCreatureManager_c::Exit() {
+    auto* creature = m_waterCreatureList.GetHead();
+    while (creature) {
+        auto* nextCreature = m_waterCreatureList.GetNext(creature);
+        creature->Exit();
+        creature = nextCreature;
     }
 
-    m_freeList.RemoveAll();
+    m_waterCreaturePool.RemoveAll();
 }
 
-int32 WaterCreatureManager_c::GetRandomWaterCreatureId()
-{
-    auto nRand = CGeneral::GetRandomNumberInRange(0, 100);
-    if (nRand < 80)
-        return CGeneral::GetRandomNumberInRange(0, 3); // Small fish
+// 0x6E4040
+int32 WaterCreatureManager_c::GetRandomWaterCreatureId() {
+    auto randNum = CGeneral::GetRandomNumberInRange(0, 100);
+    if (randNum < 80) {
+        return CGeneral::GetRandomNumberInRange(0, 4); // Small fish
+    }
 
-    if (nRand < 90)
-        return CGeneral::GetRandomNumberInRange(3, 5); // Jelly fish
+    if (randNum < 90) {
+        return CGeneral::GetRandomNumberInRange(3, 6); // Jelly fish
+    }
 
-    if (nRand < 97)
+    if (randNum < 97) {
         return eWaterCreatureType::TURTLE;
+    }
 
     return eWaterCreatureType::DOLPHIN;
 }
 
-void WaterCreatureManager_c::TryToFreeUpWaterCreatures(int32 numToFree)
-{
-    auto* pCur = m_createdList.GetHead();
-    int32 iCounter = 0;
-    while (iCounter < numToFree && pCur)
-    {
-        auto* pNext = m_createdList.GetNext(pCur);
-        if (pCur->m_pObject->m_bOffscreen && pCur->m_pFollowedCreature)
-        {
-            pCur->Exit();
-            ++iCounter;
+// 0x6E40E0
+int32 WaterCreatureManager_c::TryToFreeUpWaterCreatures(int32 numToFree) {
+    auto* creature = m_waterCreatureList.GetHead();
+    int32 numFreed = 0;
+    while (numFreed < numToFree && creature) {
+        auto* nextCreature = m_waterCreatureList.GetNext(creature);
+        if (creature->m_pObject->m_bOffscreen && creature->m_pFollowedCreature) {
+            creature->Exit();
+            ++numFreed;
         }
-        pCur = pNext;
+        creature = nextCreature;
     }
+    return numFreed;
 }
 
-bool WaterCreatureManager_c::CanAddWaterCreatureAtPos(int32 nCreatureType, CVector vecPos)
-{
-    auto* pCur = m_createdList.GetHead();
-    if (!pCur)
+// 0x6E4510
+bool WaterCreatureManager_c::CanAddWaterCreatureAtPos(int32 id, CVector pos) {
+    auto* creature = m_waterCreatureList.GetHead();
+    if (!creature) {
         return true;
+    }
 
-    const auto& info = WaterCreatureManager_c::GetCreatureInfo(nCreatureType); // Originally not assigned by reference, but copied to stack
-    while (pCur)
-    {
-        if (pCur->m_nCreatureType == nCreatureType && !pCur->m_pFollowedCreature)
-        {
-            const auto& vecObjPos = pCur->GetObject()->GetPosition();
-            if (DistanceBetweenPointsSquared(vecObjPos, vecPos) <= info.m_fMinDistFromSameCreature)
+    const auto& creatureInfo = GetCreatureInfo(id); // Originally not assigned by reference, but copied to stack
+    while (creature) {
+        if (creature->m_nCreatureType == id && !creature->m_pFollowedCreature) {
+            const auto& objPos = creature->GetObject()->GetPosition();
+            if (DistanceBetweenPointsSquared(objPos, pos) <= creatureInfo.m_fMinDistFromSameCreature) {
                 return false;
+            }
         }
-        pCur = m_createdList.GetNext(pCur);
+        creature = m_waterCreatureList.GetNext(creature);
     }
     return true;
 }
 
-void WaterCreatureManager_c::TryToExitGroup(WaterCreature_c* pCreature)
-{
-    auto* pExitCreature = pCreature->m_pFollowedCreature ? pCreature->m_pFollowedCreature : pCreature;
-    int32 iCounter = 0;
-    WaterCreature_c* apCreatures[32];
-    auto* pCur = m_createdList.GetHead();
-    while (pCur)
-    {
-        if (pCur == pExitCreature || pCur->m_pFollowedCreature == pExitCreature)
-        {
-            apCreatures[iCounter] = pCur;
-            ++iCounter;
+// 0x6E45B0
+void WaterCreatureManager_c::TryToExitGroup(WaterCreature_c* waterCreature) {
+    auto* leader = waterCreature->m_pFollowedCreature ? waterCreature->m_pFollowedCreature : waterCreature;
+    int32 numCreaturesInGroup = 0;
+    WaterCreature_c* creaturesInGroup[32];
+    auto* creature = m_waterCreatureList.GetHead();
+    while (creature) {
+        if (creature == leader || creature->m_pFollowedCreature == leader) {
+            creaturesInGroup[numCreaturesInGroup] = creature;
+            ++numCreaturesInGroup;
         }
 
-        pCur = m_createdList.GetNext(pCur);
+        creature = m_waterCreatureList.GetNext(creature);
     }
 
-    const auto& vecCamPos = TheCamera.GetPosition();
-    for(int32 i = 0; i < iCounter; ++i)
-        if (DistanceBetweenPointsSquared(vecCamPos, apCreatures[i]->GetObject()->GetPosition()) < WaterCreatureManager_c::ms_fMaxWaterCreaturesDrawDistanceSquared)
+    const auto& camPos = TheCamera.GetPosition();
+    for (int32 i = 0; i < numCreaturesInGroup; ++i) {
+        if (DistanceBetweenPointsSquared(camPos, creaturesInGroup[i]->GetObject()->GetPosition()) < ms_fMaxWaterCreaturesDrawDistanceSquared) {
             return; // Jump out of function if any of the creatures in group aren't out of camera reach.
                     // All fishes in group have to be destroyed at once as no to leave any of them with dangling pointers
+        }
+    }
 
-
-    for (int32 i = 0; i < iCounter; ++i)
-        apCreatures[i]->m_bShouldBeDeleted = true;
+    for (int32 i = 0; i < numCreaturesInGroup; ++i) {
+        creaturesInGroup[i]->m_bShouldBeDeleted = true;
+    }
 }
 
-void WaterCreatureManager_c::Update(float fTimestep) {
+// 0x6E4F10
+void WaterCreatureManager_c::Update(float deltaTime) {
     ZoneScoped;
 
-    if (FindPlayerPed(0)->GetPlayerData()->m_nWaterCoverPerc > 50)
-    {
-        const auto nCurTime = CTimer::GetTimeInMS();
-        if (nCurTime - m_nLastCreationCheckTime > 1000 && m_freeList.GetNumItems() > 0)
-        {
-            m_nLastCreationCheckTime = nCurTime;
-            CVector vecDirection;
-            vecDirection.x = CGeneral::GetRandomNumberInRange(-1.0F, 1.0F);
-            vecDirection.y = CGeneral::GetRandomNumberInRange(-1.0F, 1.0F);
-            vecDirection.z = 0.0F;
-            vecDirection.Normalise();
+    if (FindPlayerPed(0)->GetPlayerData()->m_nWaterCoverPerc > 50) {
+        const auto currTime = CTimer::GetTimeInMS();
 
-            const auto fDist = CGeneral::GetRandomNumberInRange(25.0F, 40.0F);
-            auto vecCreationPos = TheCamera.GetPosition() + vecDirection * fDist;
+        if (currTime - m_lastUpdateTime > 1'000 && m_waterCreaturePool.GetNumItems() > 0) {
+            m_lastUpdateTime = currTime;
 
-            float fWaterDepth, fWaterLevel;
-            if (!TheCamera.IsSphereVisible(vecCreationPos, 3.0F)
-                && CWaterLevel::GetWaterDepth(vecCreationPos, &fWaterDepth, &fWaterLevel, nullptr)
-                && fWaterDepth > 4.5F)
-            {
-                const auto nType = WaterCreatureManager_c::GetRandomWaterCreatureId();
-                if (WaterCreatureManager_c::CanAddWaterCreatureAtPos(nType, vecCreationPos))
-                {
-                    const auto& pInfo = WaterCreatureManager_c::GetCreatureInfo(nType);
-                    uint32 iNumCreated = CGeneral::GetRandomNumberInRange(pInfo.m_nMinCreated, pInfo.m_nMaxCreated);
-                    iNumCreated = std::min(iNumCreated, m_freeList.GetNumItems());
+            CVector direction;
+            direction.x = CGeneral::GetRandomNumberInRange(-1.0F, 1.0F);
+            direction.y = CGeneral::GetRandomNumberInRange(-1.0F, 1.0F);
+            direction.z = 0.0F;
+            direction.Normalise();
 
-                    WaterCreature_c* pGroupLeader = nullptr;
-                    for (uint32 i = 0; i < iNumCreated; ++i)
-                    {
-                        auto* pNewCreature = m_freeList.RemoveHead();
-                        if (pNewCreature->Init(nType, &vecCreationPos, pGroupLeader, fWaterLevel, fWaterDepth))
-                            m_createdList.AddItem(pNewCreature);
-                        else
-                            m_freeList.AddItem(pNewCreature);
+            const auto dist = CGeneral::GetRandomNumberInRange(25.0F, 40.0F);
 
-                        if (!pGroupLeader)
-                            pGroupLeader = pNewCreature;
+            auto creaturePos = TheCamera.GetPosition() + direction * dist;
+
+            float waterZ, waterDepth;
+            if (!TheCamera.IsSphereVisible(creaturePos, 3.0F)
+                && CWaterLevel::GetWaterDepth(creaturePos, &waterDepth, &waterZ, nullptr)
+                && waterDepth > 4.5F) {
+                const auto id = GetRandomWaterCreatureId();
+
+                if (CanAddWaterCreatureAtPos(id, creaturePos)) {
+                    const auto& creatureInfo = GetCreatureInfo(id);
+
+                    uint32 randNumToCreate = CGeneral::GetRandomNumberInRange(creatureInfo.m_nMinCreated, creatureInfo.m_nMaxCreated);
+                    uint32 numToCreate = std::min(randNumToCreate, m_waterCreaturePool.GetNumItems());
+
+                    WaterCreature_c* leader = nullptr;
+
+                    for (uint32 i = 0; i < numToCreate; ++i) {
+                        auto* creature = m_waterCreaturePool.RemoveHead();
+
+                        if (creature->Init(id, &creaturePos, leader, waterZ, waterDepth)) {
+                            m_waterCreatureList.AddItem(creature);
+                        } else {
+                            m_waterCreaturePool.AddItem(creature);
+                        }
+
+                        if (!leader) {
+                            leader = creature;
+                        }
                     }
                 }
             }
@@ -171,22 +176,20 @@ void WaterCreatureManager_c::Update(float fTimestep) {
     }
 
     // Trigger updates
-    auto* pCur = m_createdList.GetHead();
-    while (pCur)
-    {
-        auto* pNext = m_createdList.GetNext(pCur);
-        pCur->Update(fTimestep);
-        pCur = pNext;
+    auto* creature = m_waterCreatureList.GetHead();
+    while (creature) {
+        auto* nextCreature = m_waterCreatureList.GetNext(creature);
+        creature->Update(deltaTime);
+        creature = nextCreature;
     }
 
     // Remove creatures queued for removal
-    pCur = m_createdList.GetHead();
-    while (pCur)
-    {
-        auto* pNext = m_createdList.GetNext(pCur);
-        if (pCur->m_bShouldBeDeleted)
-            pCur->Exit();
-
-        pCur = pNext;
+    creature = m_waterCreatureList.GetHead();
+    while (creature) {
+        auto* nextCreature = m_waterCreatureList.GetNext(creature);
+        if (creature->m_bShouldBeDeleted) {
+            creature->Exit();
+        }
+        creature = nextCreature;
     }
 }
