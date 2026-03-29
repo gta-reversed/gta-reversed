@@ -43,6 +43,7 @@ enum ePedType : uint32 {
 
     PED_TYPE_COUNT // 32
 };
+static_assert(PED_TYPE_COUNT <= sizeof(uint32) * 8); /* NOTE: See `GetPedFlag` */
 
 static constexpr auto s_GangPedTypes = std::to_array({ // TODO: Get rid of this (Use `GetAllGangPedTypes()`)
     PED_TYPE_GANG1,
