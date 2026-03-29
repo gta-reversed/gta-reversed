@@ -15,13 +15,12 @@ class CEntity;
 class CFireManager {
 public:
     std::array<CFire, MAX_NUM_FIRES> m_aFires;
-    uint32 m_nMaxFireGenerationsAllowed;
+    uint32 m_MaxFireGenerationsAllowed;
 
 public:
     CFireManager();
     ~CFireManager() = default; // 0x538BB0
 
-    void Init();
     void Shutdown();
 
     uint32 GetNumOfNonScriptFires();
