@@ -79,7 +79,7 @@ void CClothes::LoadClothesFile() {
         }
 
         char* nextToken{};
-        char* strTag = strtok_s(line, " \t,", &nextToken);
+        char* strTag = strtok_r(line, " \t,", &nextToken);
         if (strTag == nullptr) {
             continue;
         }
@@ -105,7 +105,7 @@ void CClothes::LoadClothesFile() {
         AddRule(static_cast<uint32>(ruleTag));
 
         const auto GetNextArg = [&nextToken]{
-            return strtok_s(NULL, " \t,", &nextToken);
+            return strtok_r(NULL, " \t,", &nextToken);
         };
         switch (ruleTag) {
         case eClothRule::TAG_CUTS:

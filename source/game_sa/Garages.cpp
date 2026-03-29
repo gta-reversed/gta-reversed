@@ -350,7 +350,7 @@ void CGarages::TriggerMessage(const char* tagMsg, int16 numInStr1, uint16 time, 
         || CTimer::GetTimeInMS() < MessageStartTime
         || CTimer::GetTimeInMS() >= MessageEndTime
     ) {
-        strcpy_s(MessageIDString, tagMsg);
+        std::strcpy(MessageIDString, tagMsg);
         MessageStartTime = CTimer::GetTimeInMS();
     } else {
         if (CTimer::GetTimeInMS() - MessageStartTime <= 500)

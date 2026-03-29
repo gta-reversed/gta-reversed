@@ -46,8 +46,8 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     m_bRunInSequence = bRunInSequence;
     m_bOffsetAtEnd = bOffsetPed;
     m_fBlendDelta = blendDelta;
-    strcpy_s(m_animName, animName);
-    strcpy_s(m_animGroupName, animGroupName);
+    std::strcpy(m_animName, animName);
+    std::strcpy(m_animGroupName, animGroupName);
     if (const auto block = CAnimManager::GetAnimationBlock(m_animGroupName)) {
         m_pAnimHierarchy = CAnimManager::GetAnimation(m_animName, block);
     }

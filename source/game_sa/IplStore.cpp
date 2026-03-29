@@ -744,7 +744,7 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
         NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
         return false;
     }
-    memcpy_s(out, rng::size(out), fileNameWithExt + 1, dot - (fileNameWithExt + 1)); // They used a manual loop, but this is better.
+    std::memcpy(out, fileNameWithExt + 1, dot - (fileNameWithExt + 1)); // They used a manual loop, but this is better.
     return true;
 }
 
@@ -758,7 +758,7 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
     }
     const auto isIPLAnInterior = IsIPLAnInterior(iplName);
 
-    strcat_s(iplName, "_stream");
+    std::strcat(iplName, "_stream");
     const auto iplNameLen = strlen(iplName);
 
     ppCurrIplInstance = ppLoadedBuildingsArray;

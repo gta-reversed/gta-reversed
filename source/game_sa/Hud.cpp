@@ -174,7 +174,7 @@ bool CHud::HelpMessageDisplayed() {
 // 0x588F60
 void CHud::SetMessage(const GxtChar* message) {
     if (message) {
-        strncpy_s((char*)m_Message, sizeof(m_Message), AsciiFromGxtChar(message), sizeof(m_Message));
+        std::strncpy((char*)m_Message, AsciiFromGxtChar(message), sizeof(m_Message));
     } else {
         m_Message[0] = '\0';
     }
@@ -187,15 +187,15 @@ void CHud::SetBigMessage(GxtChar* message, eMessageStyle style) {
         return;
     }
 
-    strncpy_s((char*)m_BigMessage[style], sizeof(m_BigMessage[style]), AsciiFromGxtChar(message), sizeof(m_BigMessage[style]));
+    std::strncpy((char*)m_BigMessage[style], AsciiFromGxtChar(message), sizeof(m_BigMessage[style]));
 
     switch (style) {
     case STYLE_WHITE_MIDDLE_SMALLER: {
-        if (strcmp(AsciiFromGxtChar(message), AsciiFromGxtChar(LastBigMessage[STYLE_WHITE_MIDDLE_SMALLER])) != 0) {
+        if (std::strcmp(AsciiFromGxtChar(message), AsciiFromGxtChar(LastBigMessage[STYLE_WHITE_MIDDLE_SMALLER])) != 0) {
             OddJob2OffTimer = 0.0f;
             OddJob2On = 0;
         }
-        strncpy_s((char*)LastBigMessage[style], sizeof(LastBigMessage[style]), AsciiFromGxtChar(message), sizeof(LastBigMessage[style]));
+        std::strncpy((char*)LastBigMessage[style], AsciiFromGxtChar(message), sizeof(LastBigMessage[style]));
         break;
     }
     default: {
@@ -249,21 +249,21 @@ void CHud::SetHelpMessageStatUpdate(eStatUpdateState state, uint16 statId, float
         return;
     }
 
-    std::ranges::fill(m_pHelpMessageToPrint, '\0');
-    std::ranges::fill(m_pLastHelpMessage, '\0');
-    std::ranges::fill(m_pHelpMessage, '\0');
+    rng::fill(m_pHelpMessageToPrint, '\0');
+    rng::fill(m_pLastHelpMessage, '\0');
+    rng::fill(m_pHelpMessage, '\0');
 
     if (m_nHelpMessageState && CMessages::StringCompare(m_pHelpMessage, m_pHelpMessageToPrint, sizeof(m_pHelpMessage)))
         return;
 
-    std::ranges::fill(m_pLastHelpMessage, '\0');
+    rng::fill(m_pLastHelpMessage, '\0');
     m_nHelpMessageState = 0;
     m_bHelpMessageQuick = false;
     m_bHelpMessagePermanent = false;
     m_nHelpMessageStatId = statId;
     m_fHelpMessageStatUpdateValue = diff;
     m_nHelpMessageMaxStatValue = (uint32)max;
-    sprintf_s(gString, state == STAT_UPDATE_INCREASE ? "+" : "-");
+    std::strcpy(gString, state == STAT_UPDATE_INCREASE ? "+" : "-");
     AsciiToGxtChar(gString, m_pHelpMessage);
 }
 
@@ -1399,7 +1399,7 @@ void CHud::DrawAmmo(CPed* ped, int32 x, int32 y, float alpha) {
     const auto& ammoClip = CWeaponInfo::GetWeaponInfo(weapon.m_Type, ped->GetWeaponSkill())->m_nAmmoClip;
 
     if (ammoClip <= 1 || ammoClip >= 1000) {
-        sprintf_s(gString, "%d", totalAmmo);
+        notsa::format_to_sz(gString, "{}", totalAmmo);
     } else {
         uint32 total, current;
 
@@ -1420,7 +1420,7 @@ void CHud::DrawAmmo(CPed* ped, int32 x, int32 y, float alpha) {
 
             current = ammoInClip;
         }
-        sprintf_s(gString, "%d-%d", total, current);
+        notsa::format_to_sz(gString, "{}-{}", total, current);
     }
     AsciiToGxtChar(gString, gGxtString);
 
@@ -1472,7 +1472,7 @@ inline void CHud::DrawClock() {
     CFont::SetRightJustifyWrap(0.0f);
     CFont::SetEdge(2);
     CFont::SetDropColor({0, 0, 0, 255});
-    sprintf_s(ascii, "%02d:%02d", CClock::ms_nGameClockHours, CClock::ms_nGameClockMinutes);
+    notsa::format_to_sz(ascii, "{:02d}:{:02d}", CClock::ms_nGameClockHours, CClock::ms_nGameClockMinutes);
     AsciiToGxtChar(ascii, gxtText);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_GRAY));
     CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), SCREEN_STRETCH_Y(22.0f), gxtText);
@@ -1485,14 +1485,10 @@ inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
 
     if (playerInfo.m_nDisplayMoney < 0) {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_RED, alpha));
-        auto m_nDisplayMoney = playerInfo.m_nDisplayMoney;
-        if (m_nDisplayMoney < 0) {
-            m_nDisplayMoney = -m_nDisplayMoney;
-        }
-        sprintf_s(ascii, "-$%07d", m_nDisplayMoney);
+        notsa::format_to_sz(ascii, "-${:07d}", std::abs(playerInfo.m_nDisplayMoney));
     } else {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_GREEN, alpha));
-        sprintf_s(ascii, "$%08d", std::abs(playerInfo.m_nDisplayMoney));
+        notsa::format_to_sz(ascii, "${:08d}", std::abs(playerInfo.m_nDisplayMoney));
     }
     AsciiToGxtChar(ascii, gxtText);
     CFont::SetProportional(false);

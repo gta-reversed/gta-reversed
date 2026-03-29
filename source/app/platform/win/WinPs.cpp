@@ -339,7 +339,7 @@ char* psPathnameCreate(const char* buffer) {
     const auto pathSize = std::strlen(buffer) + 1u;
     auto path = (char*)CMemoryMgr::Malloc(pathSize);
     if (path) {
-        strcpy_s(path, pathSize, buffer);
+        notsa::string_copy(path, buffer, pathSize);
 
         while (auto ch = std::strchr(path, '/')) {
             *ch = psPathGetSeparator();

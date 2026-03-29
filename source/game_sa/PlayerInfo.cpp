@@ -117,7 +117,7 @@ void CPlayerInfo::DeletePlayerSkin() {
 
 // 0x5717F0
 void CPlayerInfo::SetPlayerSkin(const char* name) {
-    strcpy_s(m_szSkinName, name); // NOTSA: They used `strcpy`, we use `_s` for safety
+    std::strcpy(m_szSkinName, name);
     LoadPlayerSkin();
 }
 
@@ -531,6 +531,6 @@ CPlayerInfo& CPlayerInfo::operator=(const CPlayerInfo& rhs) {
     m_pSkinTexture                     = rhs.m_pSkinTexture;
     m_bParachuteReferenced             = rhs.m_bParachuteReferenced;
     m_nRequireParachuteTimer           = rhs.m_nRequireParachuteTimer;
-    strcpy_s(m_szSkinName, rhs.m_szSkinName);
+    std::strcpy(m_szSkinName, rhs.m_szSkinName);
     return *this;
 }

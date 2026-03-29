@@ -266,8 +266,8 @@ CAnimBlendAssociation* CAnimManager::AddAnimationAndSync(RpClump* clump, CAnimBl
 AnimAssocDefinition* CAnimManager::AddAnimAssocDefinition(const char* groupName, const char* blockName, uint32 modelIndex, uint32 animsCount, AnimDescriptor* descriptor) {
     const auto def = &ms_aAnimAssocDefinitions[ms_numAnimAssocDefinitions++];
 
-    strcpy_s(def->GroupName, groupName);
-    strcpy_s(def->BlockName, blockName);
+    std::strcpy(def->GroupName, groupName);
+    std::strcpy(def->BlockName, blockName);
 
     def->ModelIndex = modelIndex;
     def->NumAnims   = animsCount;
@@ -291,7 +291,7 @@ void CAnimManager::AddAnimToAssocDefinition(AnimAssocDefinition* def, const char
         assert(i < def->NumAnims);
     }
     // `const_cast` is fine here, because it's heap allocated [presumeably]
-    strcpy_s(const_cast<char*>(def->AnimNames[i]), AnimAssocDefinition::ANIM_NAME_BUF_SZ, animName);
+    notsa::string_copy(const_cast<char*>(def->AnimNames[i]), animName, AnimAssocDefinition::ANIM_NAME_BUF_SZ);
 }
 
 // 0x4D3CC0
@@ -332,7 +332,7 @@ int32 CAnimManager::RegisterAnimBlock(const char* name) {
     CAnimBlock* ab = GetAnimationBlock(name);
     if (ab == nullptr) { // Initialize a new anim block
         ab = &ms_aAnimBlocks[ms_numAnimBlocks++];
-        strncpy_s(ab->Name, name, MAX_ANIM_BLOCK_NAME);
+        std::strncpy(ab->Name, name, MAX_ANIM_BLOCK_NAME);
         ab->NumAnims = 0;
         ab->GroupId = GetFirstAssocGroup(name);
         assert(ab->RefCnt == 0);
@@ -603,7 +603,7 @@ auto CAnimManager::GetOrCreateAnimBlock(const char* name, uint32 numAnims) {
     } else { // Create block
         ab = &ms_aAnimBlocks[ms_numAnimBlocks++];
 
-        VERIFY(strncpy_s(ab->Name, name, MAX_ANIM_BLOCK_NAME) == 0);
+        VERIFY(!std::strncpy(ab->Name, name, MAX_ANIM_BLOCK_NAME));
         ab->NumAnims     = numAnims;
         ab->FirstAnimIdx = ms_numAnimations;
         ab->GroupId      = GetFirstAssocGroup(ab->Name);

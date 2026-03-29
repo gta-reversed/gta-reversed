@@ -34,10 +34,10 @@ void COnscreenCounterEntry::ProcessForDisplayCounter(eOnscreenCounter type) {
     switch (type) {
     case eOnscreenCounter::SIMPLE:
     case eOnscreenCounter::LINE:
-        sprintf_s(m_szDisplayedText, "%d", t1);
+        notsa::format_to_sz(m_szDisplayedText, "{}", t1);
         break;
     case eOnscreenCounter::DOUBLE:
-        sprintf_s(m_szDisplayedText, "%d / %d", t1, t2);
+        notsa::format_to_sz(m_szDisplayedText, "{} / {}", t1, t2);
         break;
     }
 }

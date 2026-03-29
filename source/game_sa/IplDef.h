@@ -29,7 +29,7 @@ struct IplDef {
     constexpr IplDef() = default;
 
     IplDef(const char* name) {
-        strcpy_s(this->name, name);
+        std::strcpy(this->name, name);
     }
 };
 VALIDATE_SIZE(IplDef, 0x34);

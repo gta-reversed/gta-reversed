@@ -574,7 +574,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                 break;
                             case PICKUP_PROPERTY_FORSALE:
                                 char labelKey[9];
-                                strncpy_s(labelKey, FindStringForTextIndex((ePickupPropertyText)m_nFlags.nPropertyTextIndex), 9);
+                                std::strncpy(labelKey, FindStringForTextIndex((ePickupPropertyText)m_nFlags.nPropertyTextIndex), 9);
                                 ModifyStringLabelForControlSetting(labelKey);
                                 CMessages::InsertNumberInString(TheText.Get(labelKey), m_nAmmo, 0, 0, 0, 0, 0, gGxtString);
 

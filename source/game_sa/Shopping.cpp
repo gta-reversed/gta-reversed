@@ -257,9 +257,9 @@ bool CShopping::FindSection(FILESTREAM file, const char* sectionName) {
         char* nextToken{};
         if (!strncmp(line, "section", 7u)) {
             counter++;
-            RET_IGNORED(strtok_s(line, " \t", &nextToken));
+            RET_IGNORED(strtok_r(line, " \t", &nextToken));
 
-            if (counter == 1 && !_stricmp(sectionName, strtok_s(nullptr, " \t", &nextToken))) {
+            if (counter == 1 && !_stricmp(sectionName, strtok_r(nullptr, " \t", &nextToken))) {
                 return true;
             }
         } else if (!strncmp(line, "end", 3u) && --counter < 0) {
@@ -360,8 +360,8 @@ const char* CShopping::GetNextSection(FILESTREAM file) {
     }
 
     char* lastToken{};
-    RET_IGNORED(strtok_s(line, " \t", &lastToken));
-    return strtok_s(nullptr, " \t", &lastToken);
+    RET_IGNORED(strtok_r(line, " \t", &lastToken));
+    return strtok_r(nullptr, " \t", &lastToken);
 }
 
 // 0x49AD50
@@ -458,28 +458,28 @@ void CShopping::LoadPrices(const char* sectionName) {
         auto& priceInfo = ms_prices[ms_numPrices];
 
         char* lastToken{};
-        const auto model = strtok_s(line, " \t,", &lastToken);
+        const auto model = strtok_r(line, " \t,", &lastToken);
         priceInfo.key = GetKey(model, ms_priceSectionLoaded);
 
-        const auto nameTag = strtok_s(nullptr, " \t,", &lastToken);
-        strncpy_s(priceInfo.nameTag, nameTag, 8u);
+        const auto nameTag = strtok_r(nullptr, " \t,", &lastToken);
+        std::strncpy(priceInfo.nameTag, nameTag, 8u);
 
         switch (ms_priceSectionLoaded) {
         case PRICE_SECTION_CLOTHES:
         case PRICE_SECTION_HAIRCUTS: {
-            priceInfo.clothes.modelKey = CKeyGen::GetUppercaseKey(strtok_s(nullptr, " \t,", &lastToken));
-            priceInfo.clothes.type = std::atoi(strtok_s(nullptr, " \t,", &lastToken));
+            priceInfo.clothes.modelKey = CKeyGen::GetUppercaseKey(strtok_r(nullptr, " \t,", &lastToken));
+            priceInfo.clothes.type = std::atoi(strtok_r(nullptr, " \t,", &lastToken));
             break;
         }
         case PRICE_SECTION_TATTOOS: {
-            const auto type = strtok_s(nullptr, " \t,", &lastToken);
-            const auto txtkey = strtok_s(nullptr, " \t,", &lastToken);
+            const auto type = strtok_r(nullptr, " \t,", &lastToken);
+            const auto txtkey = strtok_r(nullptr, " \t,", &lastToken);
             priceInfo.tattoos.type1 = (type[0] == '-') ? -1 : std::atoi(type);
             priceInfo.tattoos.texKey = CKeyGen::GetUppercaseKey(txtkey);
             break;
         }
         case PRICE_SECTION_WEAPONS: {
-            priceInfo.weapon.ammo = std::atoi(strtok_s(nullptr, " \t,", &lastToken));
+            priceInfo.weapon.ammo = std::atoi(strtok_r(nullptr, " \t,", &lastToken));
             break;
         }
         default:
@@ -487,9 +487,9 @@ void CShopping::LoadPrices(const char* sectionName) {
         }
 
         for (auto i = 0; i < 4; i++)
-            RET_IGNORED(strtok_s(nullptr, " \t,", &lastToken));
+            RET_IGNORED(strtok_r(nullptr, " \t,", &lastToken));
 
-        priceInfo.price = std::atoi(strtok_s(nullptr, " \t,", &lastToken));
+        priceInfo.price = std::atoi(strtok_r(nullptr, " \t,", &lastToken));
         for (auto& priceModifier : ms_priceModifiers | rng::views::take((size_t)ms_numPriceModifiers)) {
             if (priceInfo.key == priceModifier.key) {
                 priceInfo.price = priceModifier.price;
@@ -512,7 +512,7 @@ void CShopping::LoadShop(const char* sectionName) {
     if (!_stricmp(sectionName, ms_shopLoaded))
         return;
 
-    strcpy_s(ms_shopLoaded, sectionName);
+    std::strcpy(ms_shopLoaded, sectionName);
     CTimer::Suspend();
     ms_numItemsInShop = 0;
 
@@ -538,13 +538,13 @@ void CShopping::LoadShop(const char* sectionName) {
                 break;
 
             char* lastToken{};
-            const auto type = strtok_s(line, " \t", &lastToken);
+            const auto type = strtok_r(line, " \t", &lastToken);
             if (!strcmp("type", type)) {
-                strcpy_s(sectionName, strtok_s(nullptr, " \t", &lastToken));
+                std::strcpy(sectionName, strtok_r(nullptr, " \t", &lastToken));
                 LoadPrices(sectionName);
             } else if (!strcmp("item", type)) {
                 const auto veh = FindPlayerVehicle();
-                const auto model = GetKey(strtok_s(nullptr, " \t", &lastToken), ms_priceSectionLoaded);
+                const auto model = GetKey(strtok_r(nullptr, " \t", &lastToken), ms_priceSectionLoaded);
 
                 if (ms_priceSectionLoaded != PRICE_SECTION_CAR_MODS || IsValidModForVehicle(model, veh)) {
                     ms_shopContents[ms_numItemsInShop++] = model;
@@ -571,20 +571,20 @@ void CShopping::LoadStats() {
                 break;
 
             char* lastToken{};
-            ms_keys[ms_numBuyableItems] = GetKey(strtok_s(line, " \t,", &lastToken), section);
+            ms_keys[ms_numBuyableItems] = GetKey(strtok_r(line, " \t,", &lastToken), section);
             ms_bHasBought[ms_numBuyableItems] = false;
 
-            RET_IGNORED(strtok_s(nullptr, " \t,", &lastToken));
+            RET_IGNORED(strtok_r(nullptr, " \t,", &lastToken));
 
             switch (section) {
             case PRICE_SECTION_CLOTHES:
             case PRICE_SECTION_HAIRCUTS:
             case PRICE_SECTION_TATTOOS:
-                RET_IGNORED(strtok_s(nullptr, " \t,", &lastToken));
+                RET_IGNORED(strtok_r(nullptr, " \t,", &lastToken));
                 [[fallthrough]];
 
             case PRICE_SECTION_WEAPONS:
-                RET_IGNORED(strtok_s(nullptr, " \t,", &lastToken));
+                RET_IGNORED(strtok_r(nullptr, " \t,", &lastToken));
                 break;
             default:
                 break;
@@ -592,8 +592,8 @@ void CShopping::LoadStats() {
 
             for (auto& modifier : ms_statModifiers[ms_numBuyableItems].modifiers) {
                 modifier = {
-                    (int8)GetChangingStatIndex(strtok_s(nullptr, " \t,", &lastToken)),
-                    (int8)std::atoi(strtok_s(nullptr, " \t,", &lastToken))
+                    (int8)GetChangingStatIndex(strtok_r(nullptr, " \t,", &lastToken)),
+                    (int8)std::atoi(strtok_r(nullptr, " \t,", &lastToken))
                 };
             }
 

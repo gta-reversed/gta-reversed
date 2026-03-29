@@ -2025,8 +2025,8 @@ void CStreaming::ReadIniFile() {
             continue;
 
         char* nextToken{};
-        char* attribute = strtok_s(line, " ,\t", &nextToken);
-        char* value = strtok_s(nullptr, " ,\t", &nextToken);
+        char* attribute = strtok_r(line, " ,\t", &nextToken);
+        char* value = strtok_r(nullptr, " ,\t", &nextToken);
         // NOTSA: atoi, atof are replaced by safe analogues
         // todo: FileID errors
         if (_stricmp(attribute, "memory") != 0 || bHasDevkitMemory)
@@ -3744,7 +3744,7 @@ void CStreaming::UpdateForAnimViewer() {
     CVector position{};
     AddModelsToRequestList(position, 0);
     LoadRequestedModels();
-    sprintf_s(gString, "Requested %d, memory size %dK\n", ms_numModelsRequested, 2 * ms_memoryUsedBytes);
+    std::sprintf(gString, "Requested %d, memory size %dK\n", ms_numModelsRequested, 2 * ms_memoryUsedBytes);
 }
 
 // 0x407F80

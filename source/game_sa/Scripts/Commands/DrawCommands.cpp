@@ -106,7 +106,7 @@ void DrawWindow(CRect bounds, const char* header, int32 style) {
     rect->gxt2[0]             = '\0';
     rect->m_Alignment         = eFontAlignment::ALIGN_LEFT;
     rect->m_nTextboxStyle     = style;
-    strncpy_s(rect->gxt1, (stricmp(header, "DUMMY") == 0 ? "\0" : header), 8);
+    std::strncpy(rect->gxt1, (stricmp(header, "DUMMY") == 0 ? "\0" : header), 8);
 }
 
 } // namespace

@@ -47,7 +47,7 @@ void LoadAndLaunchMissionInternal(int32 missionId) {
         size_t bytesRead = 0;
         while (FrontEndMenuManager.CheckMissionPackValidMenu()) {
             CFileMgr::SetDirMyDocuments();
-            sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+            std::sprintf(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
             if (StartScriptFromFile(gString) >= 1) {
                 break;
             }

@@ -1309,7 +1309,7 @@ void CFileLoader::LoadLevel(const char* levelFileName) {
             // but the line is just a static buffer (ms_line) which is modified each time `LoadLine` is called.
             // So if any of the invoked functions call `LoadLine` the path will no longer be valid
             // So in order to prevent this nasty bug we're just going to copy it each time.
-            strcpy_s(pathBuffer, l + id.size() + 1);
+            std::strcpy(pathBuffer, l + id.size() + 1);
             return pathBuffer;
         };
 
@@ -2185,7 +2185,7 @@ void CFileLoader::LoadScene(const char* filename) {
 void CFileLoader::LoadObjectTypes(const char* filename) {
     /* Unused
     char filenameCopy[MAX_PATH]{};
-    strcpy_s(filenameCopy, filename);
+    std::strcpy(filenameCopy, filename);
     */
 
     enum class SectionID {
@@ -2461,6 +2461,6 @@ const char* GetFilename(const char* filepath) {
 // 0x5B3680
 void LoadingScreenLoadingFile(const char* str) {
     const char* screenName = GetFilename(str);
-    sprintf_s(gString, "Loading %s", screenName);
+    notsa::format_to_sz(gString, "Loading {}", screenName);
     LoadingScreen("Loading the Game", gString);
 }

@@ -265,7 +265,7 @@ void CTheZones::CreateZone(
 
     const auto StrCpyUpper = [](auto& dst, auto& src) {
         rng::fill(dst, 0);
-        strcpy_s(dst, src);
+        std::strcpy(dst, src);
         for (auto& ch : dst) {
             if (ch == 0) {
                 break;

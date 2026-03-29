@@ -597,10 +597,10 @@ void CFont::RenderFontBuffer() {
 
 // 0x71A0E0
 float CFont::GetStringWidth(const GxtChar* string, bool full, bool scriptText) {
-    size_t len = CMessages::GetStringLength(string);
-    GxtChar data[400] = { 0 };
+    const size_t len = CMessages::GetStringLength(string);
+    GxtChar data[400]{0};
 
-    strncpy_s((char*)data, sizeof(data), AsciiFromGxtChar(string), len);
+    std::strncpy((char*)data, AsciiFromGxtChar(string), len);
     CMessages::InsertPlayerControlKeysInString(data);
 
     float width = 0.0f;

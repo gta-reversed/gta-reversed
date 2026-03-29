@@ -72,7 +72,7 @@ CEntryExit::CEntryExit(
     }
 
     if (name){
-        strcpy_s(m_szName, name);
+        std::strcpy(m_szName, name);
     } else {
         m_szName[0] = 0;
     }

@@ -137,11 +137,12 @@ tTrackInfo* CAEMP3TrackLoader::GetTrackInfo(uint32 trackId) {
     }();
 
     char* path = new char[length]; // owned by to be ctor'd CAEDataStream.
-    strcpy_s(path, length,
-        std::format("{}AUDIO\\STREAMS\\{}",
-            !m_bStreamingFromDVD ? "" : std::string{m_pszDvdDrivePath},
-            m_paStreamPacks[packId].m_szName
-        ).c_str()
+    notsa::format_to_sz(
+        path,
+        length,
+        "{}AUDIO\\STREAMS\\{}",
+        !m_bStreamingFromDVD ? "" : std::string{ m_pszDvdDrivePath },
+        m_paStreamPacks[packId].m_szName
     );
 
     auto* stream = new CAEDataStream(

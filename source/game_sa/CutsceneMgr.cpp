@@ -31,7 +31,7 @@ int32 CCutsceneMgr::AddCutsceneHead(CObject* object, int32 arg1) {
 // 0x4D5DB0
 void CCutsceneMgr::AppendToNextCutscene(const char* objectName, const char* animName) {
     const auto CopyAndLower = [](auto&& dst, const char* src) {
-        strcpy_s(dst, src);
+        std::strcpy(dst, src);
         _strlwr_s(dst);
     };
 
@@ -323,7 +323,7 @@ bool CCutsceneMgr::IsCutsceneSkipButtonBeingPressed() {
 void CCutsceneMgr::LoadAnimationUncompressed(const char* animName) {
     NOTSA_LOG_DEBUG("Loading uncompressed anim (\"{}\")", animName);
 
-    strcpy_s(ms_aUncompressedCutsceneAnims[ms_numUncompressedCutsceneAnims++], animName);
+    std::strcpy(ms_aUncompressedCutsceneAnims[ms_numUncompressedCutsceneAnims++], animName);
     ms_aUncompressedCutsceneAnims[ms_numUncompressedCutsceneAnims][0] = 0; // Null terminate next
 }
 
@@ -432,7 +432,7 @@ void CCutsceneMgr::LoadCutsceneData_overlay(const char* cutsceneName) {
 
     CStreaming::RemoveUnusedModelsInLoadedList();
     CGame::DrasticTidyUpMemory(true);
-    strcpy_s(ms_cutsceneName, cutsceneName);
+    std::strcpy(ms_cutsceneName, cutsceneName);
     CCutsceneMgr::LoadCutsceneData_preload();
 
     CTimer::Resume();
@@ -631,27 +631,27 @@ bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
         case MODEL: { // 0x5B0B11 
             char* stctx; // strok ctx
 
-            (void)strtok_s(ln, ", ", &stctx); // ignore first value (it was originally a number, but it's unused - maybe model id?)
+            (void)strtok_r(ln, ", ", &stctx); // ignore first value (it was originally a number, but it's unused - maybe model id?)
 
             // Find out model name
             char modelName[1024];
-            strcpy_s(modelName, strtok_s(NULL, ", ", &stctx)); // This will hard crash if no model name is set
+            std::strcpy(modelName, strtok_r(NULL, ", ", &stctx)); // This will hard crash if no model name is set
             _strlwr_s(modelName);
 
             // Start loading anims
             bool first = true;
             for(auto& numObj = ms_numLoadObjectNames; ;numObj++, first = false) {
-                auto pAnimName = strtok_s(NULL, ", ", &stctx);
+                auto pAnimName = strtok_r(NULL, ", ", &stctx);
                 if (!pAnimName) {
                     assert(!first);
                     break;
                 }
                 
                 // Store model name
-                strcpy_s(ms_cLoadObjectName[numObj], modelName);
+                std::strcpy(ms_cLoadObjectName[numObj], modelName);
 
                 // Store anim to use
-                strcpy_s(ms_cLoadAnimName[numObj], pAnimName);
+                std::strcpy(ms_cLoadAnimName[numObj], pAnimName);
                 _strlwr_s(ms_cLoadAnimName[numObj]);
 
                 ms_iModelIndex[numObj]   = first ? MODEL_LOAD_THIS : MODEL_USE_PREV;
@@ -675,7 +675,7 @@ bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
         }
         case UNCOMPRESS: { // 0x5B0D09
             char* ctx;
-            LoadAnimationUncompressed(strtok_s(ln, ", ", &ctx)); // I'm not quite sure what purpose `strtok` serves here, but okay
+            LoadAnimationUncompressed(strtok_r(ln, ", ", &ctx)); // I'm not quite sure what purpose `strtok` serves here, but okay
             break;
         }
         case ATTACH: { // 0x5B0D40
@@ -799,8 +799,8 @@ void CCutsceneMgr::LoadCutsceneData_preload() {
     rng::fill(ms_iModelIndex | rngv::drop(ms_numLoadObjectNames) | rngv::take(ms_numAppendObjectNames), MODEL_LOAD_THIS); // Appended objects are loaded directly
     for (auto i = 0; i < ms_numAppendObjectNames; i++) {
         const auto objId = ms_numLoadObjectNames++;
-        strcpy_s(ms_cLoadObjectName[objId], ms_cAppendObjectName[objId]);
-        strcpy_s(ms_cLoadAnimName[objId], ms_cAppendAnimName[objId]);
+        std::strcpy(ms_cLoadObjectName[objId], ms_cAppendObjectName[objId]);
+        std::strcpy(ms_cLoadAnimName[objId], ms_cAppendAnimName[objId]);
     }
     ms_numAppendObjectNames = 0;
 

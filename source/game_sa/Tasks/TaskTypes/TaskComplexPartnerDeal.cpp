@@ -13,7 +13,7 @@ CTaskComplexPartnerDeal::CTaskComplexPartnerDeal(const char* commandName, CPed* 
     CTaskComplexPartner(commandName, partner, leadSpeaker, distanceMultiplier, true, 1, point)
 {
     m_taskId = TASK_COMPLEX_PARTNER_DEAL;
-    strcpy_s(m_animBlockName, "gangs");
+    std::strcpy(m_animBlockName, "gangs");
 }
 
 CTaskComplexPartnerDeal* CTaskComplexPartnerDeal::Constructor(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, CVector point)

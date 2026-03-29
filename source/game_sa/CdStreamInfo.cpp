@@ -85,7 +85,7 @@ CdStreamHandle CdStreamOpen(const char* lpFileName) {
     if (file == INVALID_HANDLE_VALUE) {
         return 0;
     }
-    strncpy_s(gCdImageNames[idx], lpFileName, MAX_CD_STREAM_IMAGE_NAME_SIZE);
+    std::strncpy(gCdImageNames[idx], lpFileName, MAX_CD_STREAM_IMAGE_NAME_SIZE);
     return (CdStreamHandle)(idx << CD_STREAM_HANDLE_BITS);
 }
 

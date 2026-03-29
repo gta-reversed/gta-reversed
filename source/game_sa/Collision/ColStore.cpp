@@ -74,7 +74,7 @@ int32 CColStore::AddColSlot(const char* name)
     def->m_bProcedural = false;
     def->m_bInterior = false;
     def->m_Area = CRect();
-    strcpy_s(def->name, name);
+    std::strcpy(def->name, name);
     def->m_nModelIdStart = -1;
     def->m_nModelIdEnd = SHRT_MIN;
     def->m_nRefCount = 0;
