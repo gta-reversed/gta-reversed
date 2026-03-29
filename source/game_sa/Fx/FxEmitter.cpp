@@ -42,8 +42,8 @@ void FxEmitter_c::Reset() {
 }
 
 // 0x4A3EA0
-void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
-    return plugin::CallMethod<0x4A3EA0, FxEmitter_c*, CVector*, CVector*, float, FxPrtMult_c*, float, float, bool>(this, pos, vel, timeSince, fxMults, rotZ, brightness,
+void FxEmitter_c::AddParticle(const CVector* pos, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
+    return plugin::CallMethod<0x4A3EA0, FxEmitter_c*, const CVector*, const CVector*, float, const FxPrtMult_c*, float, float, bool>(this, pos, vel, timeSince, fxMults, rotZ, brightness,
                                                                                                                    createLocal);
 
     // todo:
@@ -82,8 +82,8 @@ void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrt
 }
 
 // 0x4A4050
-void FxEmitter_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
-    return plugin::CallMethod<0x4A4050, FxEmitter_c*, RwMatrix*, CVector*, float, FxPrtMult_c*, float, float, bool>(this, mat, vel, timeSince, fxMults, rotZ, brightness,
+void FxEmitter_c::AddParticle(RwMatrix* mat, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
+    return plugin::CallMethod<0x4A4050, FxEmitter_c*, RwMatrix*, const CVector*, float, const FxPrtMult_c*, float, float, bool>(this, mat, vel, timeSince, fxMults, rotZ, brightness,
                                                                                                                     createLocal);
 
     // todo:
@@ -174,7 +174,7 @@ void FxEmitter_c::CreateParticles(float currentTime, float deltaTime) {
 }
 
 // 0x4A2580
-FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatrix* wldMat, CVector* velOverride, float timeSince, FxPrtMult_c* fxMults, float brightness, bool createLocal) {
+FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t* emissionInfo, RwMatrix* wldMat, const CVector* velOverride, float timeSince, const FxPrtMult_c* fxMults, float brightness, bool createLocal) {
     //return plugin::CallMethodAndReturn<FxEmitterPrt_c*, 0x4A2580, FxEmitter_c*, EmissionInfo_t*, RwMatrix*, CVector*, float, FxPrtMult_c*, float, bool>(this, emissionInfo, wldMat, velOverride, timeSince, fxMults, brightness, createLocal);
 
     // todo:

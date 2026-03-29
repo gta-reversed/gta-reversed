@@ -85,8 +85,8 @@ public:
 
     void AttachToBone(CEntity* entity, eBoneTag boneId);
 
-    void AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
-    void AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
+    void AddParticle(const CVector* pos, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
+    void AddParticle(RwMatrix* mat, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
 
     void EnablePrim(int32 primIndex, bool enable);
     void SetMatrix(RwMatrix* matrix);
