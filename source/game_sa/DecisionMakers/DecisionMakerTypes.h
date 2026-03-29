@@ -59,8 +59,8 @@ public:
 
 public:
     int32                                                              m_NoOfDecisionMakers{};
-    std::array<CDecisionMaker, (size_t)eDecisionMakerType::COUNT_TOTAL> m_DecisionMakers{};
-    std::array<int32, EVENT_TOTAL_NUM_EVENTS>                           m_EventIndices{};
+    std::array<CDecisionMaker, +eDecisionMakerType::COUNT_TOTAL> m_DecisionMakers{};
+    std::array<int32, +eEventType::EVENT_TOTAL_NUM_EVENTS>                           m_EventIndices{};
     CDecisionMaker m_DefaultRandomPedDecisionMaker{};
     CDecisionMaker m_DefaultMissionPedDecisionMaker{};
     CDecisionMaker m_DefaultPlayerPedDecisionMaker{};
