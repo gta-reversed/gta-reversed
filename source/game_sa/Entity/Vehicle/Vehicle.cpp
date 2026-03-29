@@ -4035,7 +4035,7 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
     vel0 -= GetRight() * CGeneral::GetRandomNumberInRange(0.3f, 0.7f); // minus
     vel0 += GetUp() * CGeneral::GetRandomNumberInRange(0.8f, 1.2f);
     vel0 *= v12;
-    g_fx.m_BoatSplash->AddParticle(&p0, &vel0, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
+    g_fx.m_BoatSplash->AddParticle(p0, vel0, 0.0f, particleData, -1.0f, 1.2f, 0.6f, false);
 
     CVector p1 = { colMax.x * X_MULT, colMax.y / 2.0f, colMin.z * Z_MULT };
     p1 = m_matrix->TransformPoint(p1);
@@ -4043,7 +4043,7 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
     vel1 += GetRight() * CGeneral::GetRandomNumberInRange(0.3f, 0.7f);  // plus
     vel1 += GetUp() * CGeneral::GetRandomNumberInRange(0.8f, 1.2f);
     vel1 *= v12;
-    g_fx.m_BoatSplash->AddParticle(&p1, &vel1, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
+    g_fx.m_BoatSplash->AddParticle(p1, vel1, 0.0f, particleData, -1.0f, 1.2f, 0.6f, false);
 }
 
 // 0x6DD6F0
@@ -4081,7 +4081,7 @@ void CVehicle::AddWaterSplashParticles() {
             auto pieceOfShit = vertices[0]
                 + v0v1 * CGeneral::GetRandomNumberInRange(0.f, 1.f)
                 + v1v2 * CGeneral::GetRandomNumberInRange(0.f, 1.f);
-            g_fx.m_Splash->AddParticle(&pieceOfShit, &velocity, 0.f, &fxPrtMult, -1.f, 1.2f, 0.6f, 0u);
+            g_fx.m_Splash->AddParticle(pieceOfShit, velocity, 0.f, fxPrtMult, -1.f, 1.2f, 0.6f, 0u);
         }
     }
 }
@@ -4169,7 +4169,7 @@ void CVehicle::AddExhaustParticles() {
             fxPrt.m_fSize = 0.6f;
             firstExhaustFxSystem = g_fx.m_Bubble;
         }
-        firstExhaustFxSystem->AddParticle(&firstExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+        firstExhaustFxSystem->AddParticle(firstExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
         if (bHasDoubleExhaust) {
             FxSystem_c* secondExhaustFxSystem = g_fx.m_SmokeII3expand;
             if (bSecondExhaustSubmergedInWater) {
@@ -4177,7 +4177,7 @@ void CVehicle::AddExhaustParticles() {
                 fxPrt.m_fSize = 0.6f;
                 secondExhaustFxSystem = g_fx.m_Bubble;
             }
-            secondExhaustFxSystem->AddParticle(&secondExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+            secondExhaustFxSystem->AddParticle(secondExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
         }
 
         if (m_GasPedal > 0.5f && m_nCurrentGear < 3) {
@@ -4188,7 +4188,7 @@ void CVehicle::AddExhaustParticles() {
                     fxPrt.m_fSize = 0.6f;
                     secondaryExhaustFxSystem = g_fx.m_Bubble;
                 }
-                secondaryExhaustFxSystem->AddParticle(&firstExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+                secondaryExhaustFxSystem->AddParticle(firstExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
             } else if (bHasDoubleExhaust) {
                 FxSystem_c* secondaryExhaustFxSystem = g_fx.m_SmokeII3expand;
                 if (bSecondExhaustSubmergedInWater) {
@@ -4196,7 +4196,7 @@ void CVehicle::AddExhaustParticles() {
                     fxPrt.m_fSize = 0.6f;
                     secondaryExhaustFxSystem = g_fx.m_Bubble;
                 }
-                secondaryExhaustFxSystem->AddParticle(&secondExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+                secondaryExhaustFxSystem->AddParticle(secondExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
             }
         }
     }

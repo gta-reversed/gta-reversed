@@ -22,8 +22,8 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(PlayAndKill, 0x4AA3D0);
     RH_ScopedInstall(Kill, 0x4AA3F0);
     RH_ScopedInstall(AttachToBone, 0x4AA400);
-    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector*,const CVector*,float,const FxPrtMult_c*,float,float,float,bool), {.reversed = false});
-    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(RwMatrix*,const CVector*,float,const FxPrtMult_c*,float,float,float,bool), {.reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(const RwMatrix&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
     RH_ScopedInstall(EnablePrim, 0x4AA610);
     RH_ScopedInstall(SetMatrix, 0x4AA630);
     RH_ScopedInstall(SetOffsetPos, 0x4AA660);
@@ -183,7 +183,7 @@ auto CanAddParticle() {
 }
 
 // 0x4AA440
-void FxSystem_c::AddParticle(const CVector* pos, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
+void FxSystem_c::AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
     if (CanAddParticle()) {
         auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
         for (auto& prim : GetPrims()) {
@@ -196,7 +196,7 @@ void FxSystem_c::AddParticle(const CVector* pos, const CVector* vel, float timeS
 
 // unused
 // 0x4AA540
-void FxSystem_c::AddParticle(RwMatrix* mat, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
+void FxSystem_c::AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
     if (CanAddParticle()) {
         auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
         for (auto& prim : GetPrims()) {

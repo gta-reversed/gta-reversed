@@ -622,7 +622,7 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
 
         FxPrtMult_c fxPrtMult(1.0f, 1.0f, 1.0f, 0.2f, 0.4f, 0.0f, 0.5f);
         CVector particleVelocity;
-        g_fx.m_Wake->AddParticle(&particlePosition, &particleVelocity, 0.0f, &fxPrtMult, fLimitedRadianAngle, 1.2f, 0.6f, 0);
+        g_fx.m_Wake->AddParticle(particlePosition, particleVelocity, 0.0f, fxPrtMult, fLimitedRadianAngle, 1.2f, 0.6f, 0);
         ped->GetAE().AddAudioEvent(AE_PED_SWIM_WAKE, 0.0f, 1.0f);
 
         if (m_nSwimState == SWIM_SPRINTING) {
@@ -668,7 +668,7 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
 
             static FxPrtMult_c fxPrtMult(1.0f, 1.0f, 1.0f, 0.25f, 0.3f, 0.0f, 0.5f);
             CVector vecParticleVelocity = { 0.0f, 0.0f, 2.0f };
-            g_fx.m_Bubble->AddParticle(bonePos, &vecParticleVelocity, 0.0f, &fxPrtMult, -1.0f, 1.2f, 0.6f, false);
+            g_fx.m_Bubble->AddParticle(*bonePos, vecParticleVelocity, 0.0f, fxPrtMult, -1.0f, 1.2f, 0.6f, false);
         }
         break;
     }

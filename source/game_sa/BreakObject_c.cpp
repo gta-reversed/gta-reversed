@@ -301,7 +301,7 @@ void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, con
         };
 
         auto particle = FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.1f, 0.3f, 0.0f, 0.15f);
-        g_fx.m_SmokeII3expand->AddParticle(&particlePos, &particleVelocity, 0.0f, &particle, -1.0f, 1.2f, 0.6f, 0);
+        g_fx.m_SmokeII3expand->AddParticle(particlePos, particleVelocity, 0.0f, particle, -1.0f, 1.2f, 0.6f, 0);
     }
 
     if (m_AddSparks) {

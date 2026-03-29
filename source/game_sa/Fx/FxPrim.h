@@ -16,8 +16,8 @@ public:
     virtual bool Init(FxPrimBP_c* prim, FxSystem_c* system) = 0;
     virtual void Update(float a2, float a3) = 0;
     virtual void Reset() = 0;
-    virtual void AddParticle(RwMatrix* mat, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) = 0;
-    virtual void AddParticle(const CVector* pos, const CVector* vel, float timeSince, const FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) = 0;
+    virtual void AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) = 0;
+    virtual void AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) = 0;
 
     void Enable(bool enabled);
 };
