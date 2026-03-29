@@ -295,6 +295,13 @@ public:
 
     // NOTSA section
 
+    /*!
+    * @notsa
+    * @param nodeID Node ID of the bone. For peds, see ePedBones
+    * @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
+    */
+    RwMatrix* GetBoneMatrix(RwUInt32 nodeID) const;
+
     // Always returns a non-null value. In case there's no LOD object `this` is returned
     CEntity* FindLastLOD() noexcept;
 

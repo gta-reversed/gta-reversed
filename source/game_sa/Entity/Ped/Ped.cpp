@@ -3634,17 +3634,6 @@ bool CPed::IsFollowerOfGroup(const CPedGroup& group) const {
 }
 
 /*!
-* @notsa
-* @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
-*/
-RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
-    if (const auto h = GetAnimHierarchyFromClump(m_pRwClump)) {
-        return RpHAnimHierarchyGetNodeMatrix(h, bone);
-    }
-    return nullptr;
-}
-
-/*!
 * @addr 0x5E4880
 * @brief Set model index (Also re-inits animblend, MoneyCount, and default decision-marker)
 */
