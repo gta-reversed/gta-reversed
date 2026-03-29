@@ -8,6 +8,26 @@
 #include <game_sa/Timer.h>
 
 namespace notsa {
+/*!
+* @brief By deriving from this class you disallow the moving of it.
+*/
+struct NoMove {
+    NoMove() = default;
+    ~NoMove() = default;
+    NoMove(NoMove&&)              = delete;
+    auto& operator=(NoMove&&)      = delete;
+};
+
+/*!
+ * @brief By deriving from this class you disallow the copying of it.
+ */
+struct NoCopy {
+    NoCopy() = default;
+    ~NoCopy() = default;
+    NoCopy(const NoCopy&)         = delete;
+    auto& operator=(const NoCopy&) = delete;
+};
+
 //template<typename TChar, size_t N>
 //struct basic_static_string {
 //    template<typename YChar>
