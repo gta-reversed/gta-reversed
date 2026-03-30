@@ -366,11 +366,9 @@ void CPostEffects::ScriptCCTVSwitch(bool enable) {
 // 0x701170
 void CPostEffects::ScriptDarknessFilterSwitch(bool enable, int32 alpha) {
     m_bDarknessFilter = enable;
-    if (alpha == 255) {
-        m_DarknessFilterAlpha = m_DarknessFilterAlphaDefault;
-    } else {
-        m_DarknessFilterAlpha = std::clamp(0, alpha, 255);
-    }
+    m_DarknessFilterAlpha = alpha == -1
+        ? m_DarknessFilterAlphaDefault
+        : std::clamp(alpha, 0, 255);
 }
 
 // 0x701160

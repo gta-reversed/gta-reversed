@@ -266,7 +266,12 @@ CPed* CPedGroupMembership::GetFirstAvailableMember() {
 // 0x5F6950
 eModelID CPedGroupMembership::GetObjectForPedToHold() {
     using namespace ModelIndices;
-    return CGeneral::RandomChoiceFromList({ (eModelID)MI_GANG_SMOKE, MODEL_INVALID, (eModelID)MI_GANG_DRINK }); // Each has 33% chance
+    return CGeneral::RandomChoiceFromList<eModelID>({ 
+        /* Each has 1/3 chance (Originally 33/33/34) */
+        MI_GANG_SMOKE, 
+        MODEL_INVALID, 
+        MI_GANG_DRINK 
+    }); 
 }
 
 // NOTSA
