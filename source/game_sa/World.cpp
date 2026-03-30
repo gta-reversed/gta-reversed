@@ -1318,7 +1318,7 @@ void CWorld::RemoveFallenPeds() {
         if (vecPedPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
-        NOTSA_LOG_WARN("Another ped has fallen through the map {:f} {:f} {:f}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log from III
+        NOTSA_LOG_WARN("Another ped {} has fallen through the map at {:f} {:f} {:f}", ped->GetModelInfo()->GetModelNameAsString(), vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log from III + IV
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || ped->IsPlayer()) {
             CNodeAddress pathNodeAddress = ThePaths.FindNodeClosestToCoors(vecPedPos, PATH_TYPE_PED, 1000000.0f, 0, 0, 0, 0, 0);
             if (pathNodeAddress.IsValid()) {
@@ -1348,7 +1348,7 @@ void CWorld::RemoveFallenCars() {
             continue;
         }
 
-        NOTSA_LOG_WARN("Another vehicle has fallen through the map {:f} {:f} {:f}", vecPos.x, vecPos.y, vecPos.z); // R* log from III
+        NOTSA_LOG_WARN("Another vehicle {} has fallen through the map at {:f} {:f} {:f}", vehicle->GetModelInfo()->GetModelNameAsString(), vecPos.x, vecPos.y, vecPos.z); // R* log from III + IV
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
