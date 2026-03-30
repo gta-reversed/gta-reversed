@@ -298,8 +298,7 @@ void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, con
             particlePos,
             { CGeneral::GetRandomNumberInRange(-0.15f, 0.15f), CGeneral::GetRandomNumberInRange(-0.15f, 0.15f), 0.0f },
             0.0f,
-            FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.1f, 0.3f, 0.0f, 0.15f),
-            -1.0f, 1.2f, 0.6f, 0
+            FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.1f, 0.3f, 0.0f, 0.15f)
         );
     }
 

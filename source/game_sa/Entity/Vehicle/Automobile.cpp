@@ -4837,7 +4837,7 @@ void CAutomobile::dmgDrawCarCollidingParticles(const CVector& position, float fo
         // The higher our speedsq the more particles we create
         const auto numSmokes = std::max(1u, (uint32)((m_vecMoveSpeed * CTimer::GetTimeStep()).Magnitude() * 4.f));
         for (auto i = 0u; i < numSmokes; i++) {
-            g_fx.m_SmokeHuge->AddParticle(fxPos, {}, 0.f, FxPrtMult_c{ 0.4f, 0.4f, 0.4f, 0.6f, 0.4f, 1.f, 1.f }, -1.f, 1.2f, 0.6f, 0);
+            g_fx.m_SmokeHuge->AddParticle(fxPos, {}, 0.f, FxPrtMult_c{ 0.4f, 0.4f, 0.4f, 0.6f, 0.4f, 1.f, 1.f });
         }
     }
 
@@ -4930,11 +4930,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                                 ? CVector::Random({ -0.5f, -0.5f, 0.f }, { 0.5f, 0.5f, 0.4f })
                                 : CVector::Random({ -1.5f, -1.5f, 0.f }, { 1.5f, 1.5f, 1.0f }),
                             0.f,
-                            fxPrtMult,
-                            -1.f,
-                            1.2f,
-                            0.6f,
-                            false
+                            fxPrtMult
                         );
                     }
                 }
@@ -5404,7 +5400,7 @@ void CAutomobile::ProcessHarvester()
     if (CLocalisation::Blood() && m_harvesterParticleCounter % 3 == 0) {
         FxPrtMult_c fxPrtMult;
         fxPrtMult.SetUp(0.15f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f);
-        g_fx.m_SmokeII3expand->AddParticle(pos, velocity, 0.0f, fxPrtMult, -1.0f, 1.2f, 0.6f, 0);
+        g_fx.m_SmokeII3expand->AddParticle(pos, velocity, 0.0f, fxPrtMult);
     }
 }
 

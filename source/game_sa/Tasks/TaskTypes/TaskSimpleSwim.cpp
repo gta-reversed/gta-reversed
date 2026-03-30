@@ -620,7 +620,7 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
         float fRadianAngle = CGeneral::GetAngleBetweenPoints(vecPedUp.x, vecPedUp.y, 0.0f, 0.0f);
         float fLimitedRadianAngle = CGeneral::LimitAngle(fRadianAngle) + 180.0f;
 
-        g_fx.m_Wake->AddParticle(particlePosition, {}, 0.0f, FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.2f, 0.4f, 0.0f, 0.5f), fLimitedRadianAngle, 1.2f, 0.6f, 0);
+        g_fx.m_Wake->AddParticle(particlePosition, {}, 0.0f, FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.2f, 0.4f, 0.0f, 0.5f), fLimitedRadianAngle);
         ped->GetAE().AddAudioEvent(AE_PED_SWIM_WAKE, 0.0f, 1.0f);
 
         if (m_nSwimState == SWIM_SPRINTING) {
@@ -665,7 +665,7 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
             CVector* bonePos = static_cast<CVector*>(&RpHAnimHierarchyGetMatrixArray(hier)[BONE_JAW].pos); // FIX_BUGS: Air bubbles from ass :D (BONE_SPINE1)
 
             static FxPrtMult_c fxPrtMult(1.0f, 1.0f, 1.0f, 0.25f, 0.3f, 0.0f, 0.5f);
-            g_fx.m_Bubble->AddParticle(*bonePos, { 0.0f, 0.0f, 2.0f }, 0.0f, fxPrtMult, -1.0f, 1.2f, 0.6f, false);
+            g_fx.m_Bubble->AddParticle(*bonePos, { 0.0f, 0.0f, 2.0f }, 0.0f, fxPrtMult);
         }
         break;
     }

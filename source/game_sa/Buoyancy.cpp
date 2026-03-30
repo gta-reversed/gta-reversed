@@ -293,7 +293,7 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
 
         float fRand = CGeneral::GetRandomNumberInRange(0.0F, 0.5F);
         vecTransformedPoint += (vecSplashDir * fRand);
-        g_fx.m_WaterSplash->AddParticle(vecTransformedPoint, vecSplashDir * fMoveSpeed * 60.0F + vecVelocityModifier, 0.0F, curParticle, -1.0F, 1.2F, 0.6F, 0);
+        g_fx.m_WaterSplash->AddParticle(vecTransformedPoint, vecSplashDir * fMoveSpeed * 60.0F + vecVelocityModifier, 0.0F, curParticle);
     }
 
     if (entity->GetIsTypePed()) {
@@ -312,7 +312,7 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
             else
                 vecPedParticlePos.z += 0.5F;
 
-            g_fx.m_Wake->AddParticle(vecPedParticlePos, {}, 0.0F, curParticle, fPedAngle, 1.2F, 0.6F, 0);
+            g_fx.m_Wake->AddParticle(vecPedParticlePos, {}, 0.0F, curParticle, fPedAngle);
             ped->GetAE().AddAudioEvent(eAudioEvents::AE_PED_SWIM_WAKE);
         }
     }

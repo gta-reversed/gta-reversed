@@ -151,7 +151,7 @@ void CWeapon::AddGunshell(CEntity* creator, CVector& position, const CVector2D& 
     case eWeaponType::WEAPON_SHOTGUN:
         fxprt.SetColor(0.6f, 0.1f, 0.1f);
     }
-    g_fx.m_GunShell->AddParticle(position, { direction.x, direction.y, CGeneral::GetRandomNumberInRange(0.4f, 1.6f) }, 0.0f, fxprt, -1.0f, 1.2f, 0.6f, 0);
+    g_fx.m_GunShell->AddParticle(position, { direction.x, direction.y, CGeneral::GetRandomNumberInRange(0.4f, 1.6f) }, 0.0f, fxprt);
 }
 
 // 0x73A530

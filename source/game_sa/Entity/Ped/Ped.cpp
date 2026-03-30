@@ -3030,7 +3030,7 @@ void CPed::PreRenderAfterTest()
                         pos.x += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
                         pos.y += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
                         pos.z += CGeneral::GetRandomNumberInRange(-0.08f, 0.02f);
-                        g_fx.m_Splash->AddParticle(pos, s * 50.0f, 0.0f, FxPrtMult_c{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f }, -1.0f, 1.2f, 0.6f, false);
+                        g_fx.m_Splash->AddParticle(pos, s * 50.0f, 0.0f, FxPrtMult_c{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f });
                     }
                 }
             }
@@ -3044,7 +3044,7 @@ void CPed::PreRenderAfterTest()
         pos.y += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
         pos.z += CGeneral::GetRandomNumberInRange(-0.8f, 0.2f);
         p.m_Color.alpha *= (float)GetPlayerData()->m_nWetness / 100.0f;
-        g_fx.m_WaterSplash->AddParticle(pos, {}, 0.0f, p, -1.0f, 1.2f, 0.6f, false);
+        g_fx.m_WaterSplash->AddParticle(pos, {}, 0.0f, p);
     }
 
     if (const auto* veh = GetVehicleIfInOne()) {
