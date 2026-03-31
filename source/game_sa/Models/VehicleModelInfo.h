@@ -18,6 +18,8 @@
 #include "eVehicleType.h"
 #include "eCarWheel.h"
 
+#include <extensions/utility.hpp>
+
 class CAnimBlock;
 
 // enum by forkerer (https://github.com/forkerer/)
@@ -242,9 +244,8 @@ public:
     static inline auto& ms_wheelFrameIDs = StaticRef<int32[NUM_WHEELS]>(0x8A7770);
 
     // wheels upgrades data
-    // static int16 ms_upgradeWheels[15][4];
     static constexpr int32 NUM_WHEEL_UPGRADES = 15;
-    static inline auto& ms_upgradeWheels = StaticRef<int16[NUM_WHEEL_UPGRADES][NUM_WHEELS]>(0xB4E3F8);
+    static inline auto& ms_upgradeWheels = StaticRef<notsa::mdarray<int16, NUM_WHEELS, NUM_WHEEL_UPGRADES>>(0xB4E3F8);
 
     // Light states for currently rendered car
     static constexpr int32 NUM_LIGHTS = 4;
