@@ -3291,24 +3291,18 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector&
 // NOTSA: 2 float -> CVector2D
 eCarWheel CVehicle::FindTyreNearestPoint(CVector2D point) {
     const auto relativePt = point - GetPosition2D();
-
-    // Use Forward vector to determine if the point is in front of or behind the vehicle center
     const bool isFront = relativePt.Dot(GetForward()) > 0.f;
 
     if (IsBike()) {
-        // Bikes usually only have a Front and Rear wheel. 
+        // Bikes usually only have a front and rear wheel.
         // We map them to the front/rear wheel slots.
         return isFront ? CAR_WHEEL_FRONT_LEFT : CAR_WHEEL_REAR_LEFT;
     }
 
-    // Use Right vector to determine if the point is to the right or left of the vehicle center
     const bool isRight = relativePt.Dot(GetRight()) > 0.f;
-
-    if (isFront) {
-        return isRight ? CAR_WHEEL_FRONT_RIGHT : CAR_WHEEL_FRONT_LEFT;
-    } else {
-        return isRight ? CAR_WHEEL_REAR_RIGHT : CAR_WHEEL_REAR_LEFT;
-    }
+    return isFront
+        ? isRight ? CAR_WHEEL_FRONT_RIGHT : CAR_WHEEL_FRONT_LEFT
+        : isRight ? CAR_WHEEL_REAR_RIGHT : CAR_WHEEL_REAR_LEFT;
 }
 
 // 0x6D7C90
