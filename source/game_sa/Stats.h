@@ -79,7 +79,7 @@ public:
     static void RegisterMissionAttempted(uint8 missionId);
     static void RegisterMissionPassed(uint8 missionId);
     static bool PopulateFavoriteRadioStationList();
-    static int32* GetFullFavoriteRadioStationList();
+    static const auto& GetFullFavoriteRadioStationList() { return FavoriteRadioStationList; }
     static eRadioID FindMostFavoriteRadioStation();
     static int32 FindLeastFavoriteRadioStation();
     static int32 FindCriminalRatingNumber();

@@ -66,8 +66,7 @@ CAERadioTrackManager::CAERadioTrackManager(int32 hwClientHandle) :
 {
     // All constant value inits are done using member init lists
 
-    // NOTSA: SA gets the list via CStats::GetFullFavoriteRadioStationList() but this way is much more clear.
-    rng::copy(CStats::FavoriteRadioStationList, m_aListenTimes);
+    rng::copy(CStats::GetFullFavoriteRadioStationList(), m_aListenTimes.begin());
 
     for (auto i = 0u; i < RADIO_COUNT; i++) {
         m_nMusicTrackIndexHistory[i].Reset();
@@ -95,7 +94,7 @@ void CAERadioTrackManager::InitialiseRadioStationID(eRadioID id) {
 void CAERadioTrackManager::Reset() {
     m_bInitialised = false;
     m_bDisplayStationName = false;
-    rng::copy(CStats::FavoriteRadioStationList, m_aListenTimes);
+    rng::copy(CStats::GetFullFavoriteRadioStationList(), m_aListenTimes.begin());
 
     rng::for_each(m_nDJBanterIndexHistory, &DJBanterIndexHistory::Reset);
     rng::for_each(m_nAdvertIndexHistory, &AdvertIndexHistory::Reset);
