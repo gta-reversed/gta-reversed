@@ -1414,13 +1414,19 @@ void CVehicle::RemovePassenger(CPed* passenger) {
         return;
     }
 
-    const auto seats = IsTrain() ? std::span{ m_apPassengers } : GetMaxPassengerSeats();
-    if (const auto seatOfPsgr = rng::find(seats, passenger); seatOfPsgr != seats.end()) {
-        CEntity::SafeCleanUpRef(*seatOfPsgr);
-        *seatOfPsgr = nullptr;
+    const auto RemovePassengerFromArray = [&](auto array) { /* array by-value because it's either a span or a view */
+        if (const auto seatOfPsgr = rng::find(array, passenger); seatOfPsgr != array.end()) {
+            CEntity::SafeCleanUpRef(*seatOfPsgr);
+            *seatOfPsgr = nullptr;
 
-        assert(m_nNumPassengers > 0); // NOTSA: Sanity check
-        m_nNumPassengers--;
+            assert(m_nNumPassengers > 0); // NOTSA: Sanity check
+            m_nNumPassengers--;
+        }
+    };
+    if (IsTrain()) {
+        RemovePassengerFromArray(std::span{ m_apPassengers });
+    } else {
+        RemovePassengerFromArray(GetMaxPassengerSeats());
     }
 }
 

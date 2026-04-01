@@ -329,8 +329,8 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
         GetMatrix(), *GetColModel(),
         entity->GetMatrix(), *entity->GetColModel(),
         *(std::array<CColPoint, 32>*)(outColPoints),
-        m_aWheelColPoints,
-        m_aWheelRatios,
+        m_aWheelColPoints.data(),
+        m_aWheelRatios.data(),
         false
     );
 
