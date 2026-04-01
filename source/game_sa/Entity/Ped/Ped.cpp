@@ -834,8 +834,8 @@ void CPed::ClearAimFlag() {
 */
 uint8 CPed::GetLocalDirection(const CVector2D& point) const {
     float angle;
-    for (angle = point.Heading() - m_fCurrentRotation + RadiansToDegrees(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
-    return ((uint8)RadiansToDegrees(angle) / 90) % 4; // See original code below:
+    for (angle = point.Heading() - m_fCurrentRotation + DegreesToRadians(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
+    return (uint8)(((int32)RadiansToDegrees(angle) / 90) % 4); // See original code below:
 
     // Original R* code - Kinda stupid, we just use modulo instead.
     // int32 dir;
