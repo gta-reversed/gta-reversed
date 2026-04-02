@@ -1026,7 +1026,7 @@ bool CPed::CanBeDeleted() {
 bool CPed::CanBeDeletedEvenInVehicle() const {
     switch (GetCreatedBy()) {
     case ePedCreatedBy::PED_MISSION:
-    case ePedCreatedBy::PED_UNKNOWN:
+    case ePedCreatedBy::PED_GAME_MISSION:
         return false;
     }
     return true;
