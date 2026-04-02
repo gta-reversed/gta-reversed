@@ -565,7 +565,7 @@ bool CPed::PedIsReadyForConversation(bool checkLocalPlayerWantedLevel) {
 * @addr 0x455560
 */
 bool CPed::PedCanPickUpPickUp() {
-    return FindPlayerPed(0)->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_USE_MOBILE_PHONE });
+    return !FindPlayerPed(0)->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_USE_MOBILE_PHONE });
 }
 
 /*!
@@ -1019,14 +1019,14 @@ bool CPed::CanBeDeleted() {
 }
 
 /*!
-* @addr 0x5DF100
+* @addr 0x5DF150
 * @brief Check if ped can be deleted even if it's in a vehicle.
 * @returns False only if created by PED_UNKNOWN or PED_MISSION, true otherwise.
 */
 bool CPed::CanBeDeletedEvenInVehicle() const {
     switch (GetCreatedBy()) {
     case ePedCreatedBy::PED_MISSION:
-    case ePedCreatedBy::PED_UNKNOWN:
+    case ePedCreatedBy::PED_GAME_MISSION:
         return false;
     }
     return true;
