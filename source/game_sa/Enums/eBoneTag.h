@@ -56,3 +56,4 @@ enum eBoneTag : int16 {
 
 using eBoneTag16 = notsa::WEnumS16<eBoneTag>;
 using eBoneTag32 = notsa::WEnumS32<eBoneTag>;
+using eBoneTagu32 = notsa::WEnumU32<eBoneTag>;
