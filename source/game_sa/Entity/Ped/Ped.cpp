@@ -2098,7 +2098,7 @@ void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones)
 * @param [in,out] inOutPos The position to be transformed in-place.
 * @param          updateSkinBones If `UpdateRpHAnim` should be called
 */
-void CPed::GetTransformedBonePosition(RwV3d& inOutPos, eBoneTag bone, bool updateSkinBones) { // todo: fix this too!!!
+void CPed::GetTransformedBonePosition(RwV3d& inOutPos, eBoneTagU32 bone, bool updateSkinBones) { // todo: fix this too!!!
     // Pretty much the same as GetBonePosition..
     if (updateSkinBones) {
         if (!bCalledPreRender) {
