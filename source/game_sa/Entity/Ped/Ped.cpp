@@ -832,10 +832,10 @@ void CPed::ClearAimFlag() {
 * @returns Which quadrant a given point is in relative to the ped's rotation. (Google: "Angle quadrants" - https://www.mathstips.com/wp-content/uploads/2014/03/unit-circle.png)
 * @param point Point should be relative to the ped's position. Eg.: point = actualPoint - ped.GetPostion2D()
 */
-uint8 CPed::GetLocalDirection(const CVector2D& point) const {
+int32 CPed::GetLocalDirection(const CVector2D& point) const {
     float angle;
     for (angle = point.Heading() - m_fCurrentRotation + DegreesToRadians(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
-    return (uint8)(((int32)RadiansToDegrees(angle) / 90) % 4); // See original code below:
+    return (((int32)RadiansToDegrees(angle) / 90) % 4); // See original code below:
 
     // Original R* code - Kinda stupid, we just use modulo instead.
     // int32 dir;
