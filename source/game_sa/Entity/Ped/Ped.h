@@ -428,7 +428,7 @@ public:
     bool IsAlive() const;
     void UpdateStatEnteringVehicle();
     void UpdateStatLeavingVehicle();
-    void GetTransformedBonePosition(RwV3d& inOutPos, eBoneTag boneId, bool updateSkinBones = false);
+    void GetTransformedBonePosition(RwV3d& inOutPos, eBoneTagU32 boneId, bool updateSkinBones = false);
     void ReleaseCoverPoint();
     CTaskSimpleHoldEntity* GetHoldingTask();
     CEntity* GetEntityThatThisPedIsHolding();
