@@ -1205,7 +1205,7 @@ float CWeapon::EvaluateTargetForHeatSeekingMissile(CEntity* potentialTarget, con
     const auto potentialTargetDist = (origin - potentialTarget->GetPosition()).Magnitude();
 
     const auto lineDir                   = aimingDir * 250.f;
-    const auto potentialTargetDistToLine = CCollision::DistToLine(origin, origin + aimingDir, potentialTarget->GetPosition());
+    const auto potentialTargetDistToLine = CCollision::DistToLine(origin, origin + lineDir, potentialTarget->GetPosition());
 
     auto ret = std::sqrt(potentialTargetDist) / 10.f + potentialTargetDistToLine / potentialTargetDist;
 
