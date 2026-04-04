@@ -271,7 +271,7 @@ public:
     void SetLod(CEntity* lod) { m_pLod = lod; }
     CEntity* GetLod() { return m_pLod; }
 
-    void AddLodChildren() { m_NumLodChildren++; } // orig AddLodChild
+    void AddLodChildren(); // orig AddLodChild
     void RemoveLodChildren() { m_NumLodChildren--; } // orig RemoveLodChild
     int32 GetNumLodChildren() { return m_NumLodChildren; }
 

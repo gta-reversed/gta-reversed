@@ -250,7 +250,7 @@ void CText::LoadMissionText(const char* mission) {
         }
     }
     if (!missionIdxFound) {
-        NOTSA_UNREACHABLE("Index of the mission {} is not defined.", mission);
+        NOTSA_UNREACHABLE("Index of the mission {} is not defined.", mission); // R* log, modificated
     }
 
     CFileMgr::SetDir("TEXT");

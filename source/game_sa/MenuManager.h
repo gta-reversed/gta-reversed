@@ -342,7 +342,7 @@ public:
     void JumpToGenericMessageScreen(eMenuScreen screen, const char* titleKey, const char* textKey);
 
     void DrawFrontEnd();
-    void DrawBuildInfo();
+    void BuildStatLine();
     void DrawBackground();
     void DrawStandardMenus(bool);
     void DrawWindow(const CRect& coords, const char* key, uint8 color, CRGBA backColor, bool unused, bool background);
