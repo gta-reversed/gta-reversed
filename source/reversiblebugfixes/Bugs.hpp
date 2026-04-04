@@ -74,4 +74,9 @@ inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
     .Description = "Fix multiple issues related to saving unused path areas after missions",
     .Credit      = "Contributors"
 };
+inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits{
+    .Name = "CCustomCarPlateMgr::GeneratePlateText - Fix missing letters/digits in RNG",
+    .Description = "Default RNG used the exclusive `GetRandomNumberInRange`, that is, instead of using all digits [0, 9] it only used [0, 9), same for letters.",
+    .Credit = "j0y"
+};
 };

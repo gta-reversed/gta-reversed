@@ -114,11 +114,13 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
      * @addr 0x407180
      * @param min Minimum value
      * @param max Maximum value. Must be greater than min.
-     * @return A pseudo-random number between min and max, exclusive [min, max).
+     * @return A pseudo-random number between min and max - by default exclusive ( eg.: [min, max) ) 
      */
     template<std::integral T>
-    inline T GetRandomNumberInRange(T min, T max) {
-        return static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max) - 1.f)); // substraction in floating point because integer might underflow (if unsigned)
+    inline T GetRandomNumberInRange(T min, T max, bool inclusive = false) {
+        return inclusive
+            ? static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max) - 1.f)); // substraction in floating point because integer might underflow (if unsigned)
+            : static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max))); // substraction in floating point because integer might underflow (if unsigned)
     }
 
     /**
