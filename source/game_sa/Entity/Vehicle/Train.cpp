@@ -136,7 +136,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
 
 void CTrain::SetupModelNodes() {
     std::ranges::fill(m_aTrainNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aTrainNodes);
+    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aTrainNodes.data());
 }
 
 // 0x6F7440

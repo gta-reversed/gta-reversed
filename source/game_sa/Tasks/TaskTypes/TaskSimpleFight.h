@@ -24,17 +24,17 @@ class NOTSA_EXPORT_VTABLE CMeleeInfo {
 public:
     AssocGroupId m_nAnimGroup;
     float  m_fRanges;
-    float  m_fHit[5];
-    float  m_fChain[5];
-    float  m_fRadius[5];
+    std::array<float, 5> m_fHit;
+    std::array<float, 5> m_fChain;
+    std::array<float, 5> m_fRadius;
     float  m_fGroundLoop;
     int32  ABlockHit;
     int32  ABlockChain;
     uint8  m_nHitLevel;
     int32  m_nDamage;
     int32  field_58;
-    int32  m_Hit[5];
-    int32  m_AltHit[5];
+    std::array<int32, 5> m_Hit;
+    std::array<int32, 5> m_AltHit;
     uint16 m_wFlags;
 };
 VALIDATE_SIZE(CMeleeInfo, 0x88);

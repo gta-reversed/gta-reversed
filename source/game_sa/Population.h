@@ -26,7 +26,7 @@ enum eUpdatePedCounterState {
 // for the most part, pedGroupIds[0] is used, but in some cases
 // it's used like this: pedGroupIds[CPopulation::CurrentWorldZone]
 struct tPedGroupTranslationData {
-    ePopcyclePedGroup pedGroupIds[3]{};
+    std::array<ePopcyclePedGroup, 3> pedGroupIds{};
 };
 VALIDATE_SIZE(tPedGroupTranslationData, 0xC);
 

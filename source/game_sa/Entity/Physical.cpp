@@ -265,6 +265,9 @@ void CPhysical::ProcessCollision() {
             return;
         }
 
+        // TODO:
+        // Refactor this to be a lambda that takes in these variables as parameters,
+        // this way we keep the array reference (so oob checks in debug still work and shit)
         if (GetStatus() == STATUS_GHOST) {
             CColPoint* wheelsColPoints = nullptr;
             float* pfWheelsSuspensionCompression = nullptr;
@@ -274,9 +277,9 @@ void CPhysical::ProcessCollision() {
                 bike->m_aGroundPhysicalPtrs[1] = nullptr;
                 bike->m_aGroundPhysicalPtrs[2] = nullptr;
                 bike->m_aGroundPhysicalPtrs[3] = nullptr;
-                wheelsColPoints = bike->m_aWheelColPoints;
-                pfWheelsSuspensionCompression = bike->m_aWheelRatios;
-                wheelsCollisionPositions = bike->m_aGroundOffsets;
+                wheelsColPoints = bike->m_aWheelColPoints.data();
+                pfWheelsSuspensionCompression = bike->m_aWheelRatios.data();
+                wheelsCollisionPositions = bike->m_aGroundOffsets.data();
             }
             else {
                 automobile->m_apWheelCollisionEntity[0] = nullptr;
