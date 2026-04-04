@@ -6,19 +6,21 @@
 */
 #pragma once
 
+#include <extensions/utility.hpp>
+
 class CEntity;
 class CFire;
 class FxSystem_c;
 
-class CFire {
+class CFire : notsa::NoCopy {
 public:
     static void InjectHooks();
 
     CFire();
-    ~CFire() = default;
+    ~CFire();
+
     CFire* Constructor();
 
-    void Initialise();
     void Start(CEntity* creator, CVector pos, uint32 nTimeToBurn, uint8 nGens);
     void Start(CEntity* creator, CEntity* target, uint32 nTimeToBurn, uint8 nGens);
     void Start(CVector pos, float fStrength, CEntity* target, uint8 nGens); /* For script */
@@ -54,25 +56,27 @@ public:
 
     bool HasTimeToBurn() const;
     bool IsNotInRemovalDistance() const;
+
     auto& GetPosition() const { return m_Position; }
 
     //! Script thing ID
     auto& GetId(this auto&& self) { return self.m_ScriptReferenceIndex; }
 
 private:
-    bool        m_IsActive : 1;
-    bool        m_IsCreatedByScript : 1;
-    bool        m_MakesNoise : 1;
-    bool        m_IsBeingExtinguished : 1;
-    bool        m_IsFirstGeneration : 1;
-    int16       m_ScriptReferenceIndex;
-    CVector     m_Position;
-    CEntity*    m_EntityOnFire;
-    CEntity*    m_EntityStartedFire;
-    uint32      m_TimeToBurn;
-    float       m_Strength;
-    uint8       m_NumGenerationsAllowed;
-    uint8       m_RemovalDist;
-    FxSystem_c* m_FxSystem;
+    /* values taken from 0x538B30 */
+    bool        m_IsActive : 1 { false };
+    bool        m_IsCreatedByScript : 1 { false };
+    bool        m_MakesNoise : 1 { true };
+    bool        m_IsBeingExtinguished : 1 { false };
+    bool        m_IsFirstGeneration : 1 { true };
+    int16       m_ScriptReferenceIndex{ 1 };
+    CVector     m_Position{};
+    CEntity*    m_EntityOnFire{};
+    CEntity*    m_EntityStartedFire{};
+    uint32      m_TimeToBurn{};
+    float       m_Strength{ 1.f };
+    uint8       m_NumGenerationsAllowed{ 100 };
+    uint8       m_RemovalDist{ 60 };
+    FxSystem_c* m_FxSystem{};
 };
 VALIDATE_SIZE(CFire, 0x28);
