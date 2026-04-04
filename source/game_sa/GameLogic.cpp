@@ -39,15 +39,15 @@ void CGameLogic::InjectHooks() {
 }
 
 // 0x4418E0
-float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector vecPoint, CVector vecMoveSpeed, bool ignoreMoveSpeed, CVector& outDistance) {
+// This function controls wanted level escalation near forbidden train crossings (areas locked before story progression).
+float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector point, CVector moveSpeed, bool ignoreMoveSpeed, CVector& outDistance) {
     auto closest = 100'000.0f; // FLT_MAX
 
-    const auto Calculate = [&closest, &vecPoint, &vecMoveSpeed, &outDistance, ignoreMoveSpeed](CVector2D posn) {
-        const auto diff = posn - vecPoint;
-        const auto dist = diff.Magnitude();
-
-        if (((vecPoint * vecMoveSpeed).ComponentwiseSum() > 0.0f || ignoreMoveSpeed) && dist < closest) {
-            outDistance = vecPoint;
+    const auto Calculate = [&closest, &point, &moveSpeed, &outDistance, ignoreMoveSpeed](CVector2D crossing) {
+        const CVector2D dir = crossing - point;
+        const auto dist = dir.Magnitude();
+        if (((dir * CVector2D{moveSpeed}).ComponentwiseSum() > 0.0f || ignoreMoveSpeed) && dist < closest) {
+            outDistance = dir;
             closest = dist;
         }
     };
