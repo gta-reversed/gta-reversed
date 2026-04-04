@@ -2700,8 +2700,9 @@ bool CStreaming::AddToLoadedVehiclesList(int32 modelId) {
 
 // 0x407D50
 int32 CStreaming::GetDefaultCabDriverModel() {
-    static auto& randomIndex = StaticRef<int32>(0x965524); // 0
-    static constexpr int32 ms_aDefaultCabDriverModel[7] = { // 0x8A5AF4 CStreaming::ms_aDefaultCabDriverModel
+    static auto& s_RandomIndex = StaticRef<int32>(0x965524); // 0
+
+    constexpr auto s_DefaultCabDriverModels = std::to_array({ // 0x8A5AF4
         MODEL_BMOCD,
         MODEL_WMYCD1,
         MODEL_SBMOCD,
@@ -2709,16 +2710,18 @@ int32 CStreaming::GetDefaultCabDriverModel() {
         MODEL_VBMOCD,
         MODEL_VWMYCD,
         MODEL_INVALID
-    };
+    });
 
-    const int32& modelId = ms_aDefaultCabDriverModel[randomIndex];
-    if (GetInfo(modelId).m_LoadState == eStreamingLoadState::LOADSTATE_NOT_LOADED) {
-        if (CTheZones::m_CurrLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE) {
-            randomIndex = CGeneral::GetRandomNumberInRange(0, 2 * CTheZones::m_CurrLevel);
-        }
-        return ms_aDefaultCabDriverModel[randomIndex];
+    /* if previously chosen is still loaded, then use that*/
+    if (const auto model = s_DefaultCabDriverModels[s_RandomIndex]; GetInfo(model).m_LoadState != eStreamingLoadState::LOADSTATE_NOT_LOADED) {
+        return model;
     }
-    return modelId;
+
+    /** otherwise chose new model to use */
+    if (CTheZones::m_CurrLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE) {
+        s_RandomIndex = 2 * (CTheZones::m_CurrLevel - 1) + CGeneral::GetRandomNumberInRange(0, 2);
+    }
+    return s_DefaultCabDriverModels[s_RandomIndex];
 }
 
 // 0x407C50
