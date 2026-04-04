@@ -33,43 +33,36 @@ enum ePanelDamageState : uint8 {
 };
 
 // original name
-enum tComponent : uint8 {
-    COMPONENT_NA         = 0,
-    COMPONENT_WHEEL_LF   = 1,
-    COMPONENT_WHEEL_RF   = 2,
-    COMPONENT_WHEEL_LR   = 3,
-    COMPONENT_WHEEL_RR   = 4,
-    COMPONENT_BONNET     = 5,
-    COMPONENT_BOOT       = 6,
-    COMPONENT_DOOR_LF    = 7,
-    COMPONENT_DOOR_RF    = 8,
-    COMPONENT_DOOR_LR    = 9,
-    COMPONENT_DOOR_RR    = 10,
+enum class tComponent {
+    ENGINE             = 0, // NA
 
-    // ----- CT_PANEL_
-    COMPONENT_WING_LF    = 11,
-    COMPONENT_WING_RF    = 12,
-    COMPONENT_WING_LR    = 13,
-    COMPONENT_WING_RR    = 14,
-    COMPONENT_WINDSCREEN = 15,
-    COMPONENT_BUMP_FRONT = 16,
-    COMPONENT_BUMP_REAR  = 17,
-    // -----
+    WHEEL_BEGIN,
+    WHEEL_FRONT_LEFT   = 1, // WHEEL_LF
+    WHEEL_FRONT_RIGHT  = 2, // WHEEL_RF
+    WHEEL_REAR_LEFT    = 3, // WHEEL_LR
+    WHEEL_REAR_RIGHT   = 4, // WHEEL_RR
+    WHEEL_END,
 
-    MAX_COMPONENTS = COMPONENT_BUMP_REAR /* cause it starts at 1, not 0 */
-};
+    DOOR_BEGIN,
+    DOOR_BONNET        = 5,  // BONNET
+    DOOR_BOOT          = 6,  // BOOT
+    DOOR_FRONT_LEFT    = 7,  // DOOR_LF
+    DOOR_FRONT_RIGHT   = 8,  // DOOR_RF
+    DOOR_REAR_LEFT     = 9,  // DOOR_LR
+    DOOR_REAR_RIGHT    = 10, // DOOR_RR
+    DOOR_END,
 
-// original name
-enum tComponentGroup : uint8 {
-    COMPGROUP_PANEL  = 0,
-    COMPGROUP_WHEEL  = 1,
-    COMPGROUP_DOOR   = 2,
-    COMPGROUP_BONNET = 3,
-    COMPGROUP_BOOT   = 4,
-    COMPGROUP_LIGHT  = 5,
-    COMPGROUP_NA     = 6,
+    PANEL_BEGIN,
+    PANEL_FRONT_LEFT   = 11, // WING_LF
+    PANEL_FRONT_RIGHT  = 12, // WING_RF
+    PANEL_REAR_LEFT    = 13, // WING_LR
+    PANEL_REAR_RIGHT   = 14, // WING_RR
+    PANEL_WINDSCREEN   = 15, // WINDSCREEN
+    PANEL_FRONT_BUMPER = 16, // BUMP_FRONT
+    PANEL_REAR_BUMPER  = 17, // BUMP_REAR
+    PANEL_END,
 
-    MAX_COMGROUPS
+    MAX_COMPONENTS
 };
 
 enum eCarWheelStatus : uint8  {
@@ -85,6 +78,7 @@ enum ePanels : uint8 {
     FRONT_RIGHT_PANEL,
     REAR_LEFT_PANEL,
     REAR_RIGHT_PANEL,
+
     WINDSCREEN_PANEL,
     FRONT_BUMPER,
     REAR_BUMPER,
@@ -160,7 +154,7 @@ public:
     void ResetDamageStatus();
     void ResetDamageStatusAndWheelDamage();
     void FuckCarCompletely(bool bDetachWheel);
-    bool ApplyDamage(CAutomobile* vehicle, tComponent compId, float fIntensity, float fColDmgMult);
+    bool ApplyDamage(CAutomobile* vehicle, tComponent component, float intensity, float fColDmgMult);
 
     // Set next level of damage to aero-plane component
     bool ProgressAeroplaneDamage(uint8 nFrameId);
@@ -196,7 +190,6 @@ public:
     // returns -1 if no node for this panel
     static eCarNodes GetCarNodeIndexFromPanel(ePanels panel);
     static eCarNodes GetCarNodeIndexFromDoor(eDoors door);
-    static bool GetComponentGroup(tComponent nComp, tComponentGroup& outCompGroup, uint8& outComponentRelativeIdx);
 
     // NOTSA
     void SetAllWheelsState(eCarWheelStatus state);
