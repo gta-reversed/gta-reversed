@@ -2340,6 +2340,14 @@ void CEntity::UpdateRwMatrix() {
     }
 }
 
+// notsa
+RwMatrix* CEntity::GetBoneMatrix(RwUInt32 nodeID) const {
+    if (const auto h = GetAnimHierarchyFromClump(m_pRwClump)) {
+        return RpHAnimHierarchyGetNodeMatrix(h, nodeID);
+    }
+    return nullptr;
+}
+
 // Traverses the LOD chain to find the last (lowest-detail) LOD entity
 // If the entity has no LOD, it returns itself
 // NOTSA
