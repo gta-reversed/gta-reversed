@@ -2084,7 +2084,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->GetIsTypeVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
                 CPedDamageResponseCalculator pedDamageResponseCalculator{ creator, 1000.f, WEAPON_EXPLOSION, PED_PIECE_TORSO, false };
 
-                CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, pedLocalDir, false, !!ped->bIsTalking };
+                CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, static_cast<uint8>(pedLocalDir), false, !!ped->bIsTalking };
                 if (eventDamage.AffectsPed(ped)) {
                     pedDamageResponseCalculator.ComputeDamageResponse(ped, eventDamage.m_damageResponse, true);
                 } else {
