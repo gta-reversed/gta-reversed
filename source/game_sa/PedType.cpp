@@ -103,20 +103,43 @@ void CPedType::Save() {
 
 // 0x608790
 ePedType CPedType::FindPedType(const char* pedTypeName) {
-    for (int16 pedType = 0; pedType < PED_TYPE_COUNT; pedType++) {
-        if (strcmp(pedTypeName, aPedTypeNames[pedType]) != 0)
-            continue;
-
-        return static_cast<ePedType>(pedType);
-    }
-
-    if (strcmp(pedTypeName, "PLAYER_NETWORK") == 0) {
-        return PED_TYPE_PLAYER_NETWORK;
-    } else if (strcmp(pedTypeName, "PLAYER_UNUSED") == 0) {
-        return PED_TYPE_PLAYER_UNUSED;
-    } else {
-        return PED_TYPE_MISSION8;
-    }
+    static auto s_PedTypeByNameMapping = notsa::make_mapping<std::string_view, ePedType>({
+        { "PLAYER1",        PED_TYPE_PLAYER1        },
+        { "PLAYER2",        PED_TYPE_PLAYER2        },
+        { "PLAYER_NETWORK", PED_TYPE_PLAYER_NETWORK },
+        { "PLAYER_UNUSED",  PED_TYPE_PLAYER_UNUSED  },
+        { "CIVMALE",        PED_TYPE_CIVMALE        },
+        { "CIVFEMALE",      PED_TYPE_CIVFEMALE      },
+        { "COP",            PED_TYPE_COP            },
+        { "GANG1",          PED_TYPE_GANG1          },
+        { "GANG2",          PED_TYPE_GANG2          },
+        { "GANG3",          PED_TYPE_GANG3          },
+        { "GANG4",          PED_TYPE_GANG4          },
+        { "GANG5",          PED_TYPE_GANG5          },
+        { "GANG6",          PED_TYPE_GANG6          },
+        { "GANG7",          PED_TYPE_GANG7          },
+        { "GANG8",          PED_TYPE_GANG8          },
+        { "GANG9",          PED_TYPE_GANG9          },
+        { "GANG10",         PED_TYPE_GANG10         },
+        { "DEALER",         PED_TYPE_DEALER         },
+        { "MEDIC",          PED_TYPE_MEDIC          },
+        { "FIREMAN",        PED_TYPE_FIREMAN        },
+        { "CRIMINAL",       PED_TYPE_CRIMINAL       },
+        { "BUM",            PED_TYPE_BUM            },
+        { "PROSTITUTE",     PED_TYPE_PROSTITUTE     },
+        { "SPECIAL",        PED_TYPE_SPECIAL        },
+        { "MISSION1",       PED_TYPE_MISSION1       },
+        { "MISSION2",       PED_TYPE_MISSION2       },
+        { "MISSION3",       PED_TYPE_MISSION3       },
+        { "MISSION4",       PED_TYPE_MISSION4       },
+        { "MISSION5",       PED_TYPE_MISSION5       },
+        { "MISSION6",       PED_TYPE_MISSION6       },
+        { "MISSION7",       PED_TYPE_MISSION7       },
+        { "MISSION8",       PED_TYPE_MISSION8       },
+    });
+    /* NOTE(pirulax): Original code returned `PED_TYPE_COUNT` as an `invalid value` sentinel, but we don't want to have quiet errors */
+    return notsa::find_value(s_PedTypeByNameMapping, pedTypeName); 
+    /* NOTE(pirulax): There are 2 extra `strcmp`'s after this, but they both check values already present in the mapping above, so they're ok to omit */
 }
 
 // 0x608830
