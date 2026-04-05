@@ -11,6 +11,8 @@
 #include "tFlyingHandlingData.h"
 #include "tBoatHandlingData.h"
 
+const float GAME_AIR_RESISTANCE_MASS = 1000.0f;
+
 enum tVehicleType : int32 {
     VT_LANDSTAL    = 0, // 0x0
     VT_BRAVURA     = 1, // 0x1
