@@ -45,7 +45,7 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(PreRender, 0x6BD090, { .reversed = false });
     RH_ScopedVMTInstall(Teleport, 0x6BCFC0);
     RH_ScopedVMTInstall(ProcessControl, 0x6B9250, { .reversed = false });
-    RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .reversed = false });
+    RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .reversed = true });
     RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0, { .reversed = false });
     RH_ScopedVMTInstall(SetModelIndex, 0x6B8970);
     RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080, { .reversed = true });
@@ -635,7 +635,104 @@ void CBike::Teleport(CVector destination, bool resetRotation) {
 
 // 0x6B8EC0
 void CBike::VehicleDamage(float damageIntensity, eVehicleCollisionComponent component, CEntity* damager, CVector* vecCollisionCoors, CVector* vecCollisionDirection, eWeaponType weapon) {
-    plugin::CallMethod<0x6B8EC0, CBike*, float, eVehicleCollisionComponent, CEntity*, CVector*, CVector*, eWeaponType>(this, damageIntensity, component, damager, vecCollisionCoors, vecCollisionDirection, weapon);
+    // inverted
+    if (damageIntensity > 0.f || m_fDamageIntensity < 1.0f || !vehicleFlags.bCanBeDamaged)
+        return;
+
+    auto playerDamageIntensity = m_fDamageIntensity;
+
+    if (GetStatus() == STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.0f) {
+        playerDamageIntensity *= 0.5f;
+    }
+
+    if (bikeFlags.bOnSideStand && playerDamageIntensity > 20.f) {
+        bikeFlags.bOnSideStand = false;
+    }
+
+    DamageKnockOffRider(this, m_fDamageIntensity, m_nPieceType, m_pDamageEntity, m_vecLastCollisionPosn, m_vecLastCollisionImpactVelocity);
+
+    if (m_pDamageEntity && m_pDamageEntity->GetType() == ENTITY_TYPE_VEHICLE) {
+        m_nLastWeaponDamageType = eWeaponType::WEAPON_RAMMEDBYCAR;
+        m_pLastDamageEntity = m_pDamageEntity;
+        RegisterReference(m_pDamageEntity);
+    }
+
+    // inverted
+    if (physicalFlags.bCollisionProof)
+        return;
+
+    // inverted
+    if (m_pDamageEntity &&
+        GetType() == eEntityType::ENTITY_TYPE_BUILDING &&
+        DotProduct(m_vecLastCollisionImpactVelocity, m_matrix->GetUp()) > 0.6f)
+        return;
+
+    // inverted
+    if (playerDamageIntensity <= 25.0 || GetStatus() == STATUS_WRECKED)
+        return;
+
+    if (!vehicleFlags.bIsLawEnforcer) {
+        auto playerVehicle = FindPlayerVehicle();
+
+        if (playerVehicle &&
+            (CVehicle*)m_pDamageEntity == playerVehicle &&
+            GetStatus() != STATUS_ABANDONED &&
+            playerVehicle->m_vecMoveSpeed.Magnitude() >= m_vecMoveSpeed.Magnitude() &&
+            playerVehicle->m_vecMoveSpeed.Magnitude() > 0.1) {
+            FindPlayerPed()->SetWantedLevelNoDrop(1);
+        }
+    }
+
+    auto collisionDamageForce = (playerDamageIntensity - 25.0f) * m_pHandlingData->m_fCollisionDamageMultiplier;
+
+    if (collisionDamageForce > 0.f) {
+        auto damageVehicle = (CVehicle*)m_pDamageEntity;
+        if (collisionDamageForce > 5.f &&
+            m_pDriver &&
+            m_pDamageEntity &&
+            m_pDamageEntity->GetType() == ENTITY_TYPE_VEHICLE &&
+            (FindPlayerVehicle() != this || damageVehicle->m_nCreatedBy != MISSION_VEHICLE) &&
+            damageVehicle->m_pDriver) {
+            m_pDriver->Say(CTX_GLOBAL_CRASH_BIKE, 0, 1.0, false, false, false);
+        }
+
+        auto vehicleDamageForce = collisionDamageForce;
+
+        if (this == FindPlayerVehicle()) {
+            if (vehicleFlags.bTakeLessDamage) {
+                vehicleDamageForce *= 0.16f;
+            } else {
+                vehicleDamageForce *= 0.5f;
+            }
+        } else if (vehicleFlags.bTakeLessDamage) {
+            vehicleDamageForce *= 0.083f;
+        } else if (damageVehicle && damageVehicle == FindPlayerVehicle()) {
+            vehicleDamageForce *= 0.6f;
+        } else {
+            vehicleDamageForce *= 0.25f;
+        }
+
+        auto currentHealth = m_fHealth;
+        m_fHealth -= vehicleDamageForce;
+
+        if (m_fHealth <= 1.0 && currentHealth > 1.0) {
+            m_fHealth = 1.0f;
+        }
+
+        if (m_fHealth >= 250.f) {
+            return;
+        }
+
+        if (!bikeFlags.bEngineOnFire) {
+            bikeFlags.bEngineOnFire = true;
+            m_BlowUpTimer = 0.f;
+            m_Damager = m_pDamageEntity;
+
+            if (m_pDamageEntity) {
+                RegisterReference(m_pDamageEntity);
+            }
+        }
+    }
 }
 
 // 0x6B89B0
