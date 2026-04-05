@@ -19,18 +19,6 @@
 #define WEAPONINFO_NUM_WEAPONS_WITH_SKILLS 11
 #define WEAPONINFO_NUM_WEAPONS 46
 
-struct CGunAimingOffset {
-    float AimX;
-    float AimZ;
-    float DuckX;
-    float DuckZ;
-    int16 RLoadA;
-    int16 RLoadB;
-    int16 CrouchRLoadA;
-    int16 CrouchRLoadB;
-};
-static inline auto& g_GunAimingOffsets = StaticRef<std::array<CGunAimingOffset, 20>>(0xC8A8A8);
-
 class CWeaponInfo {
     constexpr static auto FIRST_WEAPON_WITH_SKILLS = WEAPON_PISTOL;
     constexpr static auto LAST_WEAPON_WITH_SKILLS  = WEAPON_TEC9;
@@ -43,7 +31,19 @@ class CWeaponInfo {
 
     //! Memory Layout(Assuming vanilla settings): [STD 0 - 47][POOR 47 - 57][PRO 58 - 68][COP 69 - 79]
     static inline auto& aWeaponInfo = StaticRef<CWeaponInfo[NUM_WEAPON_INFOS]>(0xC8AAB8);
-    
+
+    struct tAnimAimOffsets {
+        float AimX;
+        float AimZ;
+        float DuckX;
+        float DuckZ;
+        int16 RLoadA;
+        int16 RLoadB;
+        int16 CrouchRLoadA;
+        int16 CrouchRLoadB;
+    };
+    static inline auto& ms_WeaponAimOffsets = StaticRef<std::array<tAnimAimOffsets, (+ANIM_GROUP_SPRAYCAN + 1) - (+ANIM_GROUP_PYTHON)>>(0xC8A8A8);
+
 public:
     eWeaponFire m_nWeaponFire;
     float       m_fTargetRange; // max targeting range
@@ -146,6 +146,6 @@ public:
         return GetWeaponInfo(ped->GetActiveWeapon().m_Type, skill.value_or(ped->GetWeaponSkill()));
     }
 
-    const auto& GetAimingOffset() const { return g_GunAimingOffsets[m_nAimOffsetIndex]; }
+    const auto& GetAimingOffset() const { return CWeaponInfo::ms_WeaponAimOffsets[m_nAimOffsetIndex]; }
 };
 VALIDATE_SIZE(CWeaponInfo, 0x70);
