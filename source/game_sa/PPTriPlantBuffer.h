@@ -33,10 +33,10 @@ constexpr auto MAX_PLANTS = 32u;
 
 class CPPTriPlantBuffer {
 public:
-    int32      m_CurrentIndex;
+    int32                              m_CurrentIndex;
     std::array<PPTriPlant, MAX_PLANTS> m_Buffer;
-    int32      m_PlantModelsSet;
-    std::array<RpAtomic**, 4> m_pPlantModelsTab;
+    int32                              m_PlantModelsSet;
+    std::array<RpAtomic**, 4>          m_pPlantModelsTab;
 
 public:
     static void InjectHooks();
