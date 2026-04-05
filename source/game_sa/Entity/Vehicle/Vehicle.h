@@ -428,7 +428,7 @@ public:
     static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>>(0xC1CC78);
     static inline auto& ms_forceVehicleLightsOff = StaticRef<bool>(0xC1CC18);
     static inline auto& s_bPlaneGunsEjectShellCasings = StaticRef<bool>(0xC1CC19);
-    static inline auto& m_aSpecialHydraulicData = StaticRef<tHydraulicData[4]>(0xC1CB60);
+    static inline auto& m_aSpecialHydraulicData = StaticRef<std::array<tHydraulicData, 4>>(0xC1CB60);
 
     static constexpr auto Type = VEHICLE_TYPE_IGNORE;
 

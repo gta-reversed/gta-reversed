@@ -51,7 +51,7 @@ auto& DIFF_SPRING_MULT_X = StaticRef<float>(0x8D35B8);           // 0.05f
 auto& DIFF_SPRING_MULT_Y = StaticRef<float>(0x8D35BC);           // 0.05f
 auto& DIFF_SPRING_MULT_Z = StaticRef<float>(0x8D35C0);           // 0.1f
 auto& DIFF_SPRING_COMPRESS_MULT = StaticRef<float>(0x8D35C4);    // 2.0f
-auto& VehicleGunOffset = StaticRef<CVector[14]>(0x8D35D4); // maybe [12]
+auto& VehicleGunOffset = StaticRef<std::array<CVector, 14>>(0x8D35D4); // maybe [12]
 
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
