@@ -145,7 +145,7 @@ void CTaskComplexWanderCop::LookForCarAlarms(CPed* ped) {
 
     float distance = DistanceBetweenPointsSquared(ped->GetPosition(), vehicle->GetPosition());
     if (distance < sq(20.0f)) {
-        FindPlayerPed()->SetWantedLevelNoDrop(1);
+        FindPlayerPed()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
     }
 }
 
@@ -158,9 +158,9 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
         wanted = player->GetPlayerWanted();
     }
 
-    if (wanted && !wanted->m_nWantedLevel && player->m_pVehicle) {
+    if (wanted && !wanted->GetWantedLevel() != eWantedLevel::WANTED_CLEAN && player->m_pVehicle) {
         if (player->m_pVehicle->vehicleFlags.bIsLawEnforcer) {
-            player->SetWantedLevelNoDrop(1);
+            player->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
         }
     }
 }
@@ -206,7 +206,7 @@ void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
 // 0x66B160
 bool CTaskComplexWanderCop::ShouldPursuePlayer(CPed* ped) {
     CWanted* wanted = FindPlayerWanted();
-    if (wanted->m_nWantedLevel <= 0)
+    if (wanted->GetWantedLevel() == eWantedLevel::WANTED_CLEAN)
         return false;
 
     if (m_pSubTask && m_pSubTask->GetTaskType() == TASK_COMPLEX_POLICE_PURSUIT)

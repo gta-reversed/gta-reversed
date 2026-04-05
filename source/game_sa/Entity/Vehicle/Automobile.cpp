@@ -1136,7 +1136,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
 
     eCarMission carMission = m_autoPilot.m_nCarMission;
     CVehicle* playerVehicle = FindPlayerVehicle();
-    if (playerVehicle && playerVehicle != this && FindPlayerWanted()->m_nWantedLevel > 3
+    if (playerVehicle && playerVehicle != this && FindPlayerWanted()->GetWantedLevel() > eWantedLevel::WANTED_LEVEL_3
         && (carMission == MISSION_RAMPLAYER_FARAWAY
             || carMission == MISSION_BLOCKPLAYER_FARAWAY
             || carMission == MISSION_RAMPLAYER_CLOSE
@@ -2319,7 +2319,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     }
 
     if (m_nModelIndex == eModelID::MODEL_VCNMAV) {
-        CWanted::bUseNewsHeliInAdditionToPolice = false;
+        CWanted::UseNewsHeliInAdditionToPolice = false;
     }
 
     if (!bNoExplosion) {
@@ -2938,7 +2938,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                 if (   speedMag >= m_vecMoveSpeed.SquaredMagnitude()
                     && speedMag > sq(0.1f)
                 ) {
-                    FindPlayerPed()->SetWantedLevelNoDrop(1);
+                    FindPlayerPed()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
                 }
             }
         }
@@ -5594,7 +5594,7 @@ void CAutomobile::ScanForCrimes() {
         && plyrveh->m_nAlarmState != -1
         && DistanceBetweenPointsSquared(GetPosition(), plyrveh->GetPosition()) < sq(20.f)
     ) {
-        FindPlayerPed()->SetWantedLevelNoDrop(1);
+        FindPlayerPed()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
     }
 }
 

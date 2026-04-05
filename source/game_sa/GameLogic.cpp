@@ -445,9 +445,9 @@ void CGameLogic::SetPlayerWantedLevelForForbiddenTerritories(bool immediately) {
 
     const auto SetWantedIfInArea = [&](auto* vertices, size_t size) {
         if (IsPointWithinLineArea(vertices, size, coords.x, coords.y)) {
-            ped->SetWantedLevel(4);
+            ped->SetWantedLevel(eWantedLevel::WANTED_LEVEL_4);
             if (immediately) {
-                ped->GetWanted()->m_nLastTimeWantedLevelChanged = 0;
+                ped->GetWanted()->LastTimeWantedLevelChanged = 0;
             }
         }
     };

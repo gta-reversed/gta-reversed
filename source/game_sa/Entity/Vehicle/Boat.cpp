@@ -519,7 +519,7 @@ void CBoat::ProcessControl() {
     }
 
     auto wanted = FindPlayerWanted();
-    if (wanted->m_nWantedLevel > 0 && m_nModelIndex == MODEL_PREDATOR) {
+    if (wanted->GetWantedLevel() > eWantedLevel::WANTED_CLEAN && m_nModelIndex == MODEL_PREDATOR) {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
             auto iCarMission = m_autoPilot.m_nCarMission;

@@ -81,7 +81,7 @@ void CPlayerPed::InjectHooks() {
 
 struct WorkBufferSaveData {
     uint32          ChaosLevel{};
-    uint32          WantedLevel{};
+    eWantedLevel    WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
 };
@@ -95,8 +95,8 @@ bool CPlayerPed::Load() {
     auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
 
     CWanted* wanted = GetPlayerWanted();
-    wanted->m_nChaosLevel = sd.ChaosLevel;
-    wanted->m_nWantedLevel= sd.WantedLevel;
+    wanted->ChaosLevel = sd.ChaosLevel;
+    wanted->WantedLevel= sd.WantedLevel;
 
     *GetPlayerData()->m_pPedClothesDesc = sd.ClothesDesc;
     GetPlayerData()->m_nChosenWeapon   = sd.ChosenWeapon;
@@ -109,8 +109,8 @@ bool CPlayerPed::Save() {
     WorkBufferSaveData saveData{};
 
     CWanted* wanted = GetPlayerWanted();
-    saveData.ChaosLevel = wanted->m_nChaosLevel;
-    saveData.WantedLevel = wanted->m_nWantedLevel;
+    saveData.ChaosLevel = wanted->ChaosLevel;
+    saveData.WantedLevel = wanted->WantedLevel;
     saveData.ChosenWeapon = GetPlayerData()->m_nChosenWeapon;
     saveData.ClothesDesc  = *GetPlayerData()->m_pPedClothesDesc;
 
@@ -443,33 +443,33 @@ void CPlayerPed::Clear3rdPersonMouseTarget() {
 void CPlayerPed::Busted() {
     CWanted* wanted = GetWanted();
     if (wanted) {
-        wanted->m_nChaosLevel = 0;
+        wanted->ChaosLevel = 0;
     }
 }
 
 // 0x41BE60
-uint32 CPlayerPed::GetWantedLevel() const {
+eWantedLevel CPlayerPed::GetWantedLevel() const {
     if (const auto* wanted = GetWanted()) {
-        return wanted->m_nWantedLevel;
+        return wanted->GetWantedLevel();
     }
 
-    return 0;
+    return eWantedLevel::WANTED_CLEAN;
 }
 
 // 0x609F10
-void CPlayerPed::SetWantedLevel(int32 level) {
+void CPlayerPed::SetWantedLevel(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->SetWantedLevel(level);
 }
 
 // 0x609F30
-void CPlayerPed::SetWantedLevelNoDrop(int32 level) {
+void CPlayerPed::SetWantedLevelNoDrop(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->SetWantedLevelNoDrop(level);
 }
 
 // 0x609F50
-void CPlayerPed::CheatWantedLevel(int32 level) {
+void CPlayerPed::CheatWantedLevel(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->CheatWantedLevel(level);
 }

@@ -1127,8 +1127,8 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
     constexpr uint32 NUM_COPS_FOR_WANTED_LEVEL[7]{ 0, 1, 2, 4, 5, 6, 7 };
     constexpr uint32 NUM_CARS_FOR_WANTED_LEVEL[7]{ 0, 0, 0, 1, 1, 2, 2 };
 
-    const auto plyrWantedLvl = FindPlayerWanted()->m_nWantedLevel;
-    assert(plyrWantedLvl <= 6);
+    const auto plyrWantedLvl = FindPlayerWanted()->GetWantedLevel();
+    assert(plyrWantedLvl <= eWantedLevel::WANTED_LEVEL_6);
     
     createAt.z += 1.f;
 

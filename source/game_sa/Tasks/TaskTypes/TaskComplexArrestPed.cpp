@@ -111,7 +111,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
     const notsa::ScopeGuard Have_A_Nice_Day_Sir{
         [this, ped] {
             if (m_PedToArrest && m_PedToArrest->IsPlayer()) {
-                if (FindPlayerWanted()->m_nCopsInPursuit == 1) {
+                if (FindPlayerWanted()->NumCopsInPursuit == 1) {
                     ped->Say(CTX_GLOBAL_SOLO);
                 }
             }

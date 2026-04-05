@@ -287,7 +287,7 @@ void CPlayerInfo::MakePlayerSafe(bool enable, float radius) {
     flags.bCollisionProof = enable;
     flags.bMeleeProof = enable;
     m_PlayerData.m_bCanBeDamaged = !enable;
-    m_PlayerData.m_pWanted->m_bEverybodyBackOff = enable;
+    m_PlayerData.m_pWanted->bEverybodyBackOff = enable;
     m_pPed->GetPadFromPlayer()->bPlayerSafe = enable;
     CWorld::SetAllCarsCanBeDamaged(!enable);
 
