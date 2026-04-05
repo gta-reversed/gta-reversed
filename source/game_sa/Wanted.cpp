@@ -49,7 +49,7 @@ void CWanted::InjectHooks() {
 
 // 0x562390
 void CWanted::Initialise() {
-    bPoliceBackOff  = false;
+    bPoliceBackOff = false;
     bPoliceBackOffGarage = false;
     bEverybodyBackOff = false;
     SetSwatRequired(false);
@@ -208,7 +208,6 @@ int32 CWanted::NumOfHelisRequired() const {
         return 2;
     }
 
-    NOTSA_UNREACHABLE();
     return 0;
 }
 
@@ -407,7 +406,7 @@ void CWanted::RegisterCrime_Immediately(eCrimeType crimeType, const CVector& pos
 
 // 0x562470
 void CWanted::SetWantedLevel(eWantedLevel level) {
-    NOTSA_LOG_DEBUG("SetWantedLevel. New:{}", level); // IV
+    NOTSA_LOG_DEBUG("New:{}", level); // IV
 
     if (CCheat::IsActive(CHEAT_I_DO_AS_I_PLEASE)) {
         return;
