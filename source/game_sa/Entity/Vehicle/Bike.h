@@ -136,7 +136,7 @@ public:
 
     void SetupModelNodes();
     void dmgDrawCarCollidingParticles(const CVector& position, float power, eWeaponType weaponType);
-    static bool DamageKnockOffRider(CVehicle* arg0, float arg1, uint16 arg2, CEntity* arg3, CVector& arg4, CVector& arg5);
+    static bool DamageKnockOffRider(CVehicle* pVehicle, float fIntensity, uint16 arg2, CEntity* arg3, CVector& arg4, CVector& arg5);
     CPed* KnockOffRider(eWeaponType arg0, uint8 arg1, CPed* ped, bool arg3);
     void SetRemoveAnimFlags(CPed* ped);
     void ReduceHornCounter();

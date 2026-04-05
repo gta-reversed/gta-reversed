@@ -38,7 +38,7 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(Fix, 0x6B7050);
     RH_ScopedVMTInstall(BlowUpCar, 0x6BEA10, { .reversed = true });
     RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BF400);
-    RH_ScopedVMTInstall(BurstTyre, 0x6BEB20, { .reversed = false });
+    RH_ScopedVMTInstall(BurstTyre, 0x6BEB20, { .reversed = true });
     RH_ScopedVMTInstall(ProcessControlInputs, 0x6BE310, { .reversed = false });
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6BDEA0);
     RH_ScopedVMTInstall(Render, 0x6BDE20);
@@ -296,7 +296,83 @@ void CBike::ProcessRiderAnims(CPed* rider, CVehicle* vehicle, CRideAnimData* rid
 
 // 0x6BEB20
 bool CBike::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
-    return plugin::CallMethodAndReturn<bool, 0x6BEB20, CBike*, uint8, bool>(this, tyreComponentId, bPhysicalEffect);
+    if (vehicleFlags.bTyresDontBurst)
+        return false;
+
+    if (physicalFlags.bRenderScorched)
+        return false;
+
+    const auto GetCarWheel = [&]() -> eCarWheel {
+        switch (tyreComponentId) {
+        case CAR_PIECE_WHEEL_LF: return CAR_WHEEL_FRONT_LEFT;
+        case CAR_PIECE_WHEEL_RL: return CAR_WHEEL_REAR_LEFT;
+        default: return static_cast<eCarWheel>(tyreComponentId);
+        }
+    };
+
+    auto wheel = GetCarWheel();
+
+    auto burst = false;
+
+    if (!m_nWheelStatus[wheel]) {
+        m_nWheelStatus[wheel] = WHEEL_STATUS_BURST;
+        m_vehicleAudio.AddAudioEvent(AE_TYRE_BURST, 0.0f);
+
+        if (GetStatus() == STATUS_SIMPLE) {
+            CCarCtrl::SwitchVehicleToRealPhysics(this);
+        }
+
+        // 0x8D322C
+        constexpr auto force = 0.02f;
+
+        if (bPhysicalEffect) {
+            ApplyMoveForce(m_matrix->GetRight() * CGeneral::GetRandomNumberInRange(-force, force) * m_fMass);
+            ApplyTurnForce(
+                m_matrix->GetRight() * CGeneral::GetRandomNumberInRange(-force, force) * m_fTurnMass,
+                m_matrix->GetForward()
+            );
+        }
+
+        burst = true;
+    }
+
+    if (!m_pDriver) {
+        return burst;
+    }
+
+    if (tyreComponentId == CAR_PIECE_WHEEL_LF && m_aRatioHistory[0] >= 1.0 && m_aRatioHistory[1] >= 1.0)
+        return burst;
+    if (tyreComponentId != CAR_PIECE_WHEEL_RF || m_aRatioHistory[2] >= 1.0 && m_aRatioHistory[3] >= 1.0)
+        return burst;
+
+    auto magnitude = m_vecMoveSpeed.Magnitude();
+
+    // 0x8D3230
+    constexpr auto pedFallSpeed = 0.3f;
+
+    // 0x8D3234
+    constexpr auto playerFallSpeed = 0.55f;
+    if (magnitude < pedFallSpeed || GetStatus() == STATUS_PLAYER && magnitude < playerFallSpeed) {
+        return burst;
+    }
+
+    if (tyreComponentId == CAR_PIECE_WHEEL_LF) {
+        CEventKnockOffBike driverKnockOffEvent{ this, m_vecMoveSpeed, m_vecLastCollisionImpactVelocity, 0.f, 0.f, 0x31u, 0, 0, nullptr, true, false };
+        m_pDriver->GetEventGroup().Add(&driverKnockOffEvent);
+
+        if (m_apPassengers[0]) {
+            CEventKnockOffBike passengerEvent{ this, m_vecMoveSpeed, m_vecLastCollisionImpactVelocity, 0.f, 0.f, 0x31u, 0, 0, nullptr, false, false };
+            m_apPassengers[0]->GetEventGroup().Add(&passengerEvent);
+        }
+
+        return burst;
+    }
+
+    // 0x8D322C
+    constexpr auto tyreBurstForce = 0.02f;
+    ApplyTurnForce(GetRight() * m_fTurnMass * tyreBurstForce * 2, GetForward());
+
+    return burst;
 }
 
 // 0x6BE310
