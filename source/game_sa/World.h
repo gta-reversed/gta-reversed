@@ -6,10 +6,13 @@
 */
 #pragma once
 
+#include <bit>
+
 #include <extensions/utility.hpp>
 #include "PtrListDoubleLink.h"
 #include "PtrNodeDoubleLink.h"
 #include "Sector.h"
+
 
 class CPedGroup;
 class CPlayerInfo;
@@ -36,9 +39,9 @@ constexpr int32 MAX_SECTORS_X = 120;
 constexpr int32 MAX_SECTORS_Y = 120;
 constexpr int32 MAX_SECTORS = MAX_SECTORS_X * MAX_SECTORS_Y;
 
-constexpr int32 MAX_REPEAT_SECTORS_X = 16;
-constexpr int32 MAX_REPEAT_SECTORS_Y = 16;
-constexpr int32 MAX_REPEAT_SECTORS = MAX_REPEAT_SECTORS_X * MAX_REPEAT_SECTORS_Y;
+constexpr size_t MAX_REPEAT_SECTORS_X = 16;
+constexpr size_t MAX_REPEAT_SECTORS_Y = 16;
+constexpr size_t MAX_REPEAT_SECTORS = MAX_REPEAT_SECTORS_X * MAX_REPEAT_SECTORS_Y;
 
 constexpr int32 MAX_LOD_PTR_LISTS_X = 30;
 constexpr int32 MAX_LOD_PTR_LISTS_Y = 30;
