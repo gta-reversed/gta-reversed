@@ -413,10 +413,14 @@ inline CRepeatSector& CWorld::GetRepeatSector(int32 x, int32 y) {
      * Original code uses `&` instead of `%` to also clear the sign bit.
      * (And no, it's not just a compiler optimization, because it wouldn't emit `&` for signed ints)
      * This is important for positions outside the world boundary to work.
+     * We won't be using `&` because using it on signed int's is technically undefined behaviour,
+     * but `std::abs()` + a cast will work just as well.
+     * We leave the optimization of `%` to a `&` to the compiler, which will do it automatically if the max is a power of 2.
      **/
-    static_assert(std::has_single_bit(MAX_REPEAT_SECTORS_X), "MAX_REPEAT_SECTORS_X should be a power of 2");
-    static_assert(std::has_single_bit(MAX_REPEAT_SECTORS_Y), "MAX_REPEAT_SECTORS_Y should be a power of 2");
-    return CWorld::ms_aRepeatSectors[y & (MAX_REPEAT_SECTORS_Y - 1)][x & (MAX_REPEAT_SECTORS_X - 1)];
+    const auto GetIndexOfSector = [] (int32 coord, size_t max) {
+        return static_cast<size_t>(std::abs(coord)) % max;
+    };
+    return CWorld::ms_aRepeatSectors[GetIndexOfSector(y, MAX_REPEAT_SECTORS_Y)][GetIndexOfSector(x, MAX_REPEAT_SECTORS_X)];
 }
 
 // 0x4072C0
