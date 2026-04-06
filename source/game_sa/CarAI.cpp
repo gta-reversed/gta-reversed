@@ -841,7 +841,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
             const auto vehToPlayerDist2DSq = (FindPlayerCoors() - veh->GetPosition()).SquaredMagnitude2D();
             const auto wntd = FindPlayerWanted();
             if (   vehToPlayerDist2DSq <= sq(13.f) || vehToPlayerDist2DSq >= sq(70.f)
-                || wntd->bEverybodyBackOff
+                || wntd->m_bEverybodyBackOff
                 || veh->vehicleFlags.bIsLawEnforcer && (wntd->GetWantedLevel() == eWantedLevel::WANTED_CLEAN || wntd->PoliceBackOff() || CCullZones::NoPolice())
             ) {
                 TellOccupantsToLeaveCar(veh);

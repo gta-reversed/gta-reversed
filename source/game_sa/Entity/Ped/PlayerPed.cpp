@@ -79,24 +79,27 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
 }
 
-struct WorkBufferSaveData {
+// TODO: To class and create 2 function
+struct CPlayerPedDataSaveStructure {
     uint32          ChaosLevel{};
     eWantedLevel    WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
+    // float          Multiplier{}; // Mobile
 };
-VALIDATE_SIZE(WorkBufferSaveData, 132u);
+
+VALIDATE_SIZE(CPlayerPedDataSaveStructure, 0x84);
 
 // 0x5D46E0
 bool CPlayerPed::Load() {
     CPed::Load();
 
     CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
-    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
+    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<CPlayerPedDataSaveStructure>();
 
     CWanted* wanted = GetPlayerWanted();
-    wanted->ChaosLevel = sd.ChaosLevel;
-    wanted->WantedLevel= sd.WantedLevel;
+    wanted->m_ChaosLevel = sd.ChaosLevel;
+    wanted->m_WantedLevel= sd.WantedLevel;
 
     *GetPlayerData()->m_pPedClothesDesc = sd.ClothesDesc;
     GetPlayerData()->m_nChosenWeapon   = sd.ChosenWeapon;
@@ -106,16 +109,16 @@ bool CPlayerPed::Load() {
 
 // 0x5D57E0
 bool CPlayerPed::Save() {
-    WorkBufferSaveData saveData{};
+    CPlayerPedDataSaveStructure saveData{};
 
     CWanted* wanted = GetPlayerWanted();
-    saveData.ChaosLevel = wanted->ChaosLevel;
-    saveData.WantedLevel = wanted->WantedLevel;
+    saveData.ChaosLevel = wanted->m_ChaosLevel;
+    saveData.WantedLevel = wanted->m_WantedLevel;
     saveData.ChosenWeapon = GetPlayerData()->m_nChosenWeapon;
     saveData.ClothesDesc  = *GetPlayerData()->m_pPedClothesDesc;
 
     CPed::Save();
-    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(WorkBufferSaveData));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CPlayerPedDataSaveStructure));
     CGenericGameStorage::SaveDataToWorkBuffer(saveData);
 
     return true;
@@ -443,7 +446,7 @@ void CPlayerPed::Clear3rdPersonMouseTarget() {
 void CPlayerPed::Busted() {
     CWanted* wanted = GetWanted();
     if (wanted) {
-        wanted->ChaosLevel = 0;
+        wanted->m_ChaosLevel = 0;
     }
 }
 

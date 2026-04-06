@@ -351,7 +351,7 @@ void CPedGroupIntelligence::ComputeDefaultTasks(CPed* ped) {
 
 // 0x5F87A0
 void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
-    if (!FindPlayerWanted()->bEverybodyBackOff) {
+    if (!FindPlayerWanted()->m_bEverybodyBackOff) {
         return;
     }
     if (m_CurrentEvent) {

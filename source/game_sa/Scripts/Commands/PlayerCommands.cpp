@@ -180,7 +180,7 @@ void SetPlayerControl(CPlayerInfo& player, bool state) {
 
 /// SET_POLICE_IGNORE_PLAYER(01F7)
 void SetPoliceIgnorePlayer(CPlayerPed& player, bool state) {
-    player.GetWanted()->bPoliceBackOff = state;
+    player.GetWanted()->m_bPoliceBackOff = state;
     if (state) {
         CWorld::StopAllLawEnforcersInTheirTracks();
     }
@@ -188,7 +188,7 @@ void SetPoliceIgnorePlayer(CPlayerPed& player, bool state) {
 
 /// SET_EVERYONE_IGNORE_PLAYER(03BF)
 void SetEveryoneIgnorePlayer(CPlayerPed& player, bool state) {
-    player.GetWanted()->bEverybodyBackOff = state;
+    player.GetWanted()->m_bEverybodyBackOff = state;
     if (state) {
         CWorld::StopAllLawEnforcersInTheirTracks();
     }

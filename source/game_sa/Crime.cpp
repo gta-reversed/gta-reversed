@@ -62,7 +62,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
     }
 
     const auto plyrWanted = plyrPed->GetPlayerWanted();
-    if (pVictim && plyrWanted->Multiplier >= 0.0) {
+    if (pVictim && plyrWanted->m_Multiplier >= 0.0) {
         const auto& comittedByPos = pCommitedby->GetPosition();
         if ((CLocalisation::GermanGame() && notsa::contains({CRIME_DAMAGE_CAR, CRIME_DAMAGE_COP_CAR, CRIME_SET_PED_ON_FIRE, CRIME_SET_COP_PED_ON_FIRE}, crimeType))
             || CWanted::WorkOutPolicePresence(comittedByPos, FindImmediateDetectionRange(crimeType))) {
