@@ -967,21 +967,27 @@ void CAutomobile::ProcessControl()
         CCarCtrl::ScanForPedDanger(this);
 
     if (handlingFlags.bHydraulicInst && m_vecMoveSpeed.Magnitude() < 0.2f) {
-        auto& hydraulicData = CVehicle::m_aSpecialHydraulicData[m_vehicleSpecialColIndex];
-        if (GetStatus() == STATUS_PHYSICS
-            && (hydraulicData.m_aWheelSuspension[CAR_WHEEL_FRONT_LEFT] > 0.5f && hydraulicData.m_aWheelSuspension[CAR_WHEEL_REAR_LEFT] > 0.5f
-            || hydraulicData.m_aWheelSuspension[CAR_WHEEL_FRONT_RIGHT] > 0.5f && hydraulicData.m_aWheelSuspension[CAR_WHEEL_REAR_RIGHT] > 0.5f
-            )
-            || GetStatus() == STATUS_PLAYER
-            && m_pDriver
-            && m_pDriver->IsPlayer()
-            && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunLeftRight()) > 50.0f
-            && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunUpDown()) < 50.0f
-        ) {
-            float turnSpeedForward = DotProduct(m_vecTurnSpeed, GetForward());
-            const float speedSquared = turnSpeedForward * turnSpeedForward;
-            float speedTimeStep = std::pow(0.985f, CTimer::GetTimeStep()) / (speedSquared * 5.0f + 1.0f);
-            float speed = std::pow(speedTimeStep, CTimer::GetTimeStep());
+        if ([this] {
+            switch (GetStatus()) {
+            case STATUS_PHYSICS: {
+                const auto CheckWheelIsUsingHydraulics = [this](eCarWheel wheel) {
+                    return m_vehicleSpecialColIndex != -1 && m_aSpecialHydraulicData[m_vehicleSpecialColIndex].m_aWheelSuspension[wheel] > 0.5f;
+                };
+                return CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_LEFT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_LEFT)
+                    || CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_RIGHT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_RIGHT);
+            }
+            case STATUS_PLAYER: {
+                return IsDriverAPlayer()
+                    && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunLeftRight()) > 50.0f
+                    && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunUpDown()) < 50.0f;
+            }
+            }
+            return false;
+        }()) {
+            float       turnSpeedForward = DotProduct(m_vecTurnSpeed, GetForward());
+            const float speedSquared     = turnSpeedForward * turnSpeedForward;
+            float       speedTimeStep    = std::pow(0.985f, CTimer::GetTimeStep()) / (speedSquared * 5.0f + 1.0f);
+            float       speed            = std::pow(speedTimeStep, CTimer::GetTimeStep());
             speed *= turnSpeedForward;
             speed -= turnSpeedForward;
 
