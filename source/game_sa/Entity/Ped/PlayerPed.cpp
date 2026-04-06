@@ -82,7 +82,7 @@ void CPlayerPed::InjectHooks() {
 // TODO: To class and create 2 function
 struct CPlayerPedDataSaveStructure {
     uint32          ChaosLevel{};
-    eWantedLevel    WantedLevel{};
+    uint32          WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
     // float          Multiplier{}; // Mobile
