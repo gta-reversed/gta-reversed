@@ -26,7 +26,7 @@ enum eUpdatePedCounterState {
 // for the most part, pedGroupIds[0] is used, but in some cases
 // it's used like this: pedGroupIds[CPopulation::CurrentWorldZone]
 struct tPedGroupTranslationData {
-    ePopcyclePedGroup pedGroupIds[3]{};
+    std::array<ePopcyclePedGroup, 3> pedGroupIds{};
 };
 VALIDATE_SIZE(tPedGroupTranslationData, 0xC);
 
@@ -40,7 +40,7 @@ public:
     static inline auto& m_LoadedBoats = StaticRef<CLoadedCarGroup>(0xC0E998);
     static inline auto& m_InAppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9C8);
     static inline auto& m_AppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9F8);
-    static inline auto& m_LoadedGangCars = StaticRef<CLoadedCarGroup[10]>(0xC0EA28);
+    static inline auto& m_LoadedGangCars = StaticRef<std::array<CLoadedCarGroup, 10>>(0xC0EA28);
     static inline auto& bZoneChangeHasHappened = StaticRef<bool>(0xC0EC22);
     static inline auto& m_CountDownToPedsAtStart = StaticRef<uint8>(0xC0EC23);
     static inline auto& ms_nTotalMissionPeds = StaticRef<uint32>(0xC0EC24);

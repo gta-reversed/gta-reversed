@@ -21,9 +21,9 @@ CVector CTrain::aStationCoors[6] = { // 0x8D48F8
 };
 
 auto& pTrackNodes = StaticRef<CTrainNode*[4]>(0xC38024);
-auto& NumTrackNodes = StaticRef<int32[4]>(0xC38014);
-auto& arrTotalTrackLength = StaticRef<float[4]>(0xC37FEC);
-auto& StationDist = StaticRef<float[6]>(0xC38034);
+auto& NumTrackNodes = StaticRef<std::array<int32, 4>>(0xC38014);
+auto& arrTotalTrackLength = StaticRef<std::array<float, 4>>(0xC37FEC);
+auto& StationDist = StaticRef<std::array<float, 6>>(0xC38034);
 
 void CTrain::InjectHooks() {
     RH_ScopedVirtualClass(CTrain, 0x872370, 66);
@@ -136,7 +136,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
 
 void CTrain::SetupModelNodes() {
     std::ranges::fill(m_aTrainNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aTrainNodes);
+    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aTrainNodes.data());
 }
 
 // 0x6F7440
@@ -156,7 +156,7 @@ void CTrain::InitTrains() {
     };
     for (auto i = 0u; i < std::size(pTrackNodes); ++i) {
         if (!pTrackNodes[i]) {
-            CTrain::ReadAndInterpretTrackFile(filenames[i], pTrackNodes, NumTrackNodes, arrTotalTrackLength, i);
+            CTrain::ReadAndInterpretTrackFile(filenames[i], pTrackNodes, NumTrackNodes.data(), arrTotalTrackLength.data(), i);
         }
     }
 
