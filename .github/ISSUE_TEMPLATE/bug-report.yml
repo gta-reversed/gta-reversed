@@ -13,6 +13,20 @@ body:
     validations:
       required: true
   - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: If applicable, provide any relevant logs or error messages that can help in diagnosing the issue (See `scripts/logs/log.log` in your game folder).
+    validations:
+      required: true
+  - type: textarea
+    id: stacktrace
+    attributes:
+      label: Stacktrace
+      description: If applicable, provide any relevant stacktrace information that can help in diagnosing the issue (See `Debug->Windows->Call Stack` or CTRL+ALT+C in Visual Studio when the issue occurs).
+    validations:
+      required: true
+  - type: textarea
     id: additional
     attributes:
       label: Additional information
