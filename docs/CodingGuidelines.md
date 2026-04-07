@@ -13,7 +13,7 @@ class Foo {
 ```
 * Variables are named in `camelCase` and types in `PascalCase`.
 * Class/struct members and functions are named in `CamelCase`
-* In classes (**not** structs), use `m_` prefix to nonstatic member variables and `ms_` for static members:
+* In classes (**not** structs), use `m_` prefix to member variables:
 ```cpp
 class Foo {
 public:
@@ -23,23 +23,28 @@ private:
     int m_FooCount; // Non-static member variable
 }
 ```
-* For shared variables defined outside a class, use `g_` prefix, and define them in the header:
+* For shared variables outside a class, use `g_` prefix, and define them in the header:
 ```cpp
 // Header-defined shared global
 inline int g_InlineGlobalCounter = 0; // Prefer `inline` over `extern`
 ```
-* For shared variables defined inside a class, use `s_` prefix, and define them in the header:
+* For shared variables in a source file (eg.: `.cpp`), use `s_` prefix:
+```cpp
+// Source-defined shared global
+static int s_StaticGlobalCounter = 0; // Static global variable
+```
+* For shared variables inside a class, use `ms_` prefix, and define them in the header:
 ```cpp
 class Foo {
 public:
-    static inline int s_StaticGlobalCounter = 0; // Static member variable
+    static inline int ms_StaticGlobalCounter = 0; // Static member variable
 }
 ```
 * Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it):
 ```cpp
 class Foo {
 public:
-    static inline auto& s_StaticGlobalCounter = StaticRef<int>(0xDEADBEEF); // Static member variable
+    static inline auto& ms_StaticGlobalCounter = StaticRef<int>(0xDEADBEEF); // Static member variable
 }
 ``` 
 * If some rule about something is not specified here, refer to how it's done in the code
