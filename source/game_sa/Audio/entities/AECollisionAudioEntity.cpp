@@ -106,21 +106,21 @@ eCollisionSoundStatus CAECollisionAudioEntity::GetCollisionSoundStatus(CEntity* 
 // 0x4DB150
 void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float impulseMagnitude, const CVector& posn) {
     const auto ProcessSound = [&](CEntity* eA, CEntity* eB, eSurfaceType sA, eSurfaceType sB) {
-        if (sB >= SURFACE_NUM_TYPES_FOR_COLLISION) {
+        if (sB >= TOTAL_NUM_COLLISION_SURFACE_TYPES) {
             return false;
         }
-        if (sB == SURFACE_UNKNOWN_192 && sA != SURFACE_UNKNOWN_192) {
+        if (sB == AE_SURFACE_TYPE_POOL_BALL && sA != AE_SURFACE_TYPE_POOL_BALL) {
             return false;
         }
-        const auto isMissionScriptSurface = notsa::contains({ SURFACE_UNKNOWN_192, SURFACE_UNKNOWN_193, SURFACE_UNKNOWN_194 }, sB); // 0x4DB23E
+        const auto isMissionScriptSurface = notsa::contains({ AE_SURFACE_TYPE_POOL_BALL, AE_SURFACE_TYPE_BASKETBALL, AE_SURFACE_TYPE_PUNCHBAG }, sB); // 0x4DB23E
         const auto slot = isMissionScriptSurface
             ? SND_BANK_SLOT_MISSION4
             : SND_BANK_SLOT_COLLISIONS;
         if (isMissionScriptSurface) {
             const auto bank = notsa::find_value(notsa::make_mapping<eSurfaceType, eSoundBank>({
-                { SURFACE_UNKNOWN_192, SND_BANK_SCRIPT_POOL_MINIGAME },
-                { SURFACE_UNKNOWN_193, SND_BANK_SCRIPT_BASKETBALL },
-                { SURFACE_UNKNOWN_194, SND_BANK_SCRIPT_GYM },
+                { AE_SURFACE_TYPE_POOL_BALL, SND_BANK_SCRIPT_POOL_MINIGAME },
+                { AE_SURFACE_TYPE_BASKETBALL, SND_BANK_SCRIPT_BASKETBALL },
+                { AE_SURFACE_TYPE_PUNCHBAG, SND_BANK_SCRIPT_GYM },
             }), sB);
             if (!AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
                 return false;
@@ -131,7 +131,7 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntit
             return true;
         }
         auto offset = ((float)(gCollisionLookup[sA].ParamD) * impulseMagnitude) / 100.f;
-        if (sB == SURFACE_UNKNOWN_188 && sA == SURFACE_PED) { // 0x4DB2A6
+        if (sB == AE_SURFACE_TYPE_BMX && sA == SURFACE_PED) { // 0x4DB2A6
             offset *= 10.f;
         }
         offset *= 500.f;
@@ -257,7 +257,7 @@ void CAECollisionAudioEntity::UpdateLoopingCollisionSound(
 
 // 0x4DB7C0
 void CAECollisionAudioEntity::PlayBulletHitCollisionSound(eSurfaceType surface, const CVector& posn, float angleWithColPointNorm) {
-    if (surface >= SURFACE_NUM_TYPES_FOR_COLLISION) {
+    if (surface >= TOTAL_NUM_COLLISION_SURFACE_TYPES) {
         return;
     }
     const auto PlayRandomSound = [&](int32 minID, int32 maxID, float volumeOffset = 0.f, float rollOff = 1.5f) { // 0x4DB9BF
@@ -525,18 +525,18 @@ void CAECollisionAudioEntity::ReportCollision(
             case MODEL_MOLOTOV:
                 return SURFACE_GLASS;
             case MODEL_SATCHEL:
-                return  SURFACE_UNKNOWN_190;
+                return  AE_SURFACE_TYPE_SATCHEL_CHARGE;
             case MODEL_GRENADE:
             case MODEL_BOMB:
             case MODEL_TEARGAS:
-                return SURFACE_UNKNOWN_191;
+                return AE_SURFACE_TYPE_GRENADE;
             }
             const auto eAModelId = eA->GetModelId();
             if (eAModelId == ModelIndices::MI_BASKETBALL) {
-                return SURFACE_UNKNOWN_193;
+                return AE_SURFACE_TYPE_BASKETBALL;
             }
             if (eAModelId == ModelIndices::MI_PUNCHBAG) {
-                return SURFACE_UNKNOWN_194;
+                return AE_SURFACE_TYPE_PUNCHBAG;
             }
             if (eAModelId == ModelIndices::MI_GRASSHOUSE) {
                 return SURFACE_UNBREAKABLE_GLASS;
@@ -545,20 +545,20 @@ void CAECollisionAudioEntity::ReportCollision(
                 return SURFACE_WOOD_SOLID;
             }
             if (eA->GetIsTypePhysical() && eA->AsPhysical()->physicalFlags.bMakeMassTwiceAsBig) {
-                return SURFACE_UNKNOWN_192;
+                return AE_SURFACE_TYPE_POOL_BALL;
             }
             return sA;        
         }
         if (eB && eB->GetIsTypeBuilding() && normal && eA->GetUp().Dot(*normal) > 0.6f) {
             if (eA->AsVehicle()->IsSubBMX()) {
-                return SURFACE_UNKNOWN_188;
+                return AE_SURFACE_TYPE_BMX;
             }
             if (g_surfaceInfos.GetFrictionEffect(sB) != FRICTION_EFFECT_SPARKS) {
                 return SURFACE_RUBBER;
             }
         }
         if (eA->AsVehicle()->IsSubBMX()) {
-            return SURFACE_UNKNOWN_188;
+            return AE_SURFACE_TYPE_BMX;
         }
         return SURFACE_CAR;
     };
