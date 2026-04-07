@@ -36,19 +36,19 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(PlaceOnRoadProperly, 0x6BEEB0, { .reversed = false });
     RH_ScopedInstall(GetCorrectedWorldDoorPosition, 0x6BF230, { .reversed = false });
     RH_ScopedVMTInstall(Fix, 0x6B7050);
-    RH_ScopedVMTInstall(BlowUpCar, 0x6BEA10, { .reversed = true });
+    RH_ScopedVMTInstall(BlowUpCar, 0x6BEA10);
     RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BF400);
-    RH_ScopedVMTInstall(BurstTyre, 0x6BEB20, { .reversed = true });
+    RH_ScopedVMTInstall(BurstTyre, 0x6BEB20);
     RH_ScopedVMTInstall(ProcessControlInputs, 0x6BE310, { .reversed = false });
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6BDEA0);
     RH_ScopedVMTInstall(Render, 0x6BDE20);
     RH_ScopedVMTInstall(PreRender, 0x6BD090, { .reversed = false });
     RH_ScopedVMTInstall(Teleport, 0x6BCFC0);
     RH_ScopedVMTInstall(ProcessControl, 0x6B9250, { .reversed = false });
-    RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .reversed = true });
+    RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0);
     RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0, { .reversed = false });
     RH_ScopedVMTInstall(SetModelIndex, 0x6B8970);
-    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080, { .reversed = true });
+    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080);
     RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B7070);
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .reversed = false });
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0, { .reversed = false });
@@ -302,19 +302,18 @@ bool CBike::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
     if (physicalFlags.bRenderScorched)
         return false;
 
-    const auto GetCarWheel = [&]() -> eCarWheel {
+    const auto wheel = [&]() -> eCarWheel {
         switch (tyreComponentId) {
         case CAR_PIECE_WHEEL_LF: return CAR_WHEEL_FRONT_LEFT;
         case CAR_PIECE_WHEEL_RL: return CAR_WHEEL_REAR_LEFT;
-        default: return static_cast<eCarWheel>(tyreComponentId);
+        default: NOTSA_UNREACHABLE();
         }
-    };
+    }();
 
-    auto wheel = GetCarWheel();
+    bool burst = false;
 
-    auto burst = false;
-
-    if (!m_nWheelStatus[wheel]) {
+    if (m_nWheelStatus[wheel] == WHEEL_STATUS_OK) {
+        burst = true;
         m_nWheelStatus[wheel] = WHEEL_STATUS_BURST;
         m_vehicleAudio.AddAudioEvent(AE_TYRE_BURST, 0.0f);
 
@@ -332,45 +331,73 @@ bool CBike::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
                 m_matrix->GetForward()
             );
         }
-
-        burst = true;
     }
 
-    if (!m_pDriver) {
-        return burst;
-    }
-
-    if (tyreComponentId == CAR_PIECE_WHEEL_LF && m_aRatioHistory[0] >= 1.0 && m_aRatioHistory[1] >= 1.0)
-        return burst;
-    if (tyreComponentId != CAR_PIECE_WHEEL_RF || m_aRatioHistory[2] >= 1.0 && m_aRatioHistory[3] >= 1.0)
-        return burst;
-
-    auto magnitude = m_vecMoveSpeed.Magnitude();
-
-    // 0x8D3230
-    constexpr auto pedFallSpeed = 0.3f;
-
-    // 0x8D3234
-    constexpr auto playerFallSpeed = 0.55f;
-    if (magnitude < pedFallSpeed || GetStatus() == STATUS_PLAYER && magnitude < playerFallSpeed) {
-        return burst;
-    }
-
-    if (tyreComponentId == CAR_PIECE_WHEEL_LF) {
-        CEventKnockOffBike driverKnockOffEvent{ this, m_vecMoveSpeed, m_vecLastCollisionImpactVelocity, 0.f, 0.f, 0x31u, 0, 0, nullptr, true, false };
-        m_pDriver->GetEventGroup().Add(&driverKnockOffEvent);
-
-        if (m_apPassengers[0]) {
-            CEventKnockOffBike passengerEvent{ this, m_vecMoveSpeed, m_vecLastCollisionImpactVelocity, 0.f, 0.f, 0x31u, 0, 0, nullptr, false, false };
-            m_apPassengers[0]->GetEventGroup().Add(&passengerEvent);
+    const auto shouldImpactVehicle = [&] {
+        if (!m_pDriver) {
+            return false;
         }
 
-        return burst;
-    }
+        const auto WereWheelsInAir = [&] (size_t wheelA, size_t wheelB) {
+            return m_aRatioHistory[wheelA] >= 1.0 && m_aRatioHistory[wheelB] >= 1.0;
+        };
 
-    // 0x8D322C
-    constexpr auto tyreBurstForce = 0.02f;
-    ApplyTurnForce(GetRight() * m_fTurnMass * tyreBurstForce * 2, GetForward());
+        switch (tyreComponentId) {
+            case CAR_PIECE_WHEEL_LF: {
+                if (WereWheelsInAir(0, 1)) {
+                    return false;
+                }
+                break;
+            }
+            case CAR_PIECE_WHEEL_RF: {
+                if (WereWheelsInAir(2, 3)) {
+                    return false;
+                }
+                break;
+            }
+            default: NOTSA_UNREACHABLE();
+        }
+
+        auto speed = m_vecMoveSpeed.Magnitude();
+
+        if (speed <= 0.3f) {
+            return false;
+        }
+
+        if (GetStatus() == STATUS_PLAYER && speed <= 0.55f) {
+            return false;
+        }
+
+        return true;
+    }();
+
+    if (shouldImpactVehicle) {
+        if (tyreComponentId == CAR_PIECE_WHEEL_LF) {
+            const auto DoKnockOffEvent = [&] (CPed* ped, bool isDriver) {
+                CEventKnockOffBike event{ this,
+                    m_vecMoveSpeed,
+                    m_vecLastCollisionImpactVelocity,
+                    0.f,
+                    0.f,
+                    0x31u,
+                    0,
+                    0,
+                    nullptr,
+                    isDriver,
+                    false };
+                ped->GetEventGroup().Add(&event);
+            };
+
+            DoKnockOffEvent(m_pDriver, true);
+
+            if (m_apPassengers[0]) {
+                DoKnockOffEvent(m_apPassengers[0], false);
+            }
+        }
+        else {
+            ApplyTurnForce(GetRight() * m_fTurnMass * 0.02f * 2.f, GetForward());
+        }
+    }
 
     return burst;
 }
@@ -575,8 +602,7 @@ void CBike::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     m_fHealth = 0.0f;
     m_wBombTimer = 0;
 
-    const auto& vecPos = GetPosition();
-    TheCamera.CamShake(0.4f, vecPos);
+    TheCamera.CamShake(0.4f, GetPosition());
     KillPedsInVehicle();
 
     m_nOverrideLights = eVehicleOverrideLightsState::NO_CAR_LIGHT_OVERRIDE;
@@ -584,7 +610,7 @@ void CBike::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     vehicleFlags.bLightsOn = false;
     ChangeLawEnforcerState(false);
 
-    CExplosion::AddExplosion(this, damager, eExplosionType::EXPLOSION_CAR, vecPos, 0, 1, -1.0F, bHideExplosion);
+    CExplosion::AddExplosion(this, damager, eExplosionType::EXPLOSION_CAR, GetPosition(), 0, 1, -1.0F, bHideExplosion);
     CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
 }
 
@@ -764,9 +790,10 @@ void CBike::PlayCarHorn() {
     }
 
     m_nCarHornTimer = CGeneral::GetRandomNumber() % 128 - 106; // TODO: GetRandomNumberInRange
+    const auto chance = m_nCarHornTimer % 8;
 
-    if (const auto r = m_nCarHornTimer % 8; r < 4) {
-        if (r >= 2) {
+    if (chance < 4) {
+        if (chance >= 2) {
             if (m_pDriver && m_autoPilot.carCtrlFlags.bHonkAtCar) {
                 m_pDriver->Say(CTX_GLOBAL_BLOCKED);
             }
