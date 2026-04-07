@@ -4,12 +4,12 @@
 #include "CustomBuildingDNPipeline.h"
 #include "Clouds.h"
 
-auto& cc_vertices = StaticRef<RwIm2DVertex[4]>(0xC400D8);
-auto& cc_indices = StaticRef<RwImVertexIndex[12]>(0x8D5174); // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
+auto& cc_vertices = StaticRef<std::array<RwIm2DVertex, 4>>(0xC400D8);
+auto& cc_indices = StaticRef<std::array<RwImVertexIndex, 12>>(0x8D5174); // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
 
-auto& hpX = StaticRef<int32[180]>(0xC3FE08);
-auto& hpY = StaticRef<int32[180]>(0xC3FB38);
-auto& hpS = StaticRef<int32[180]>(0xC3F868); // speed
+auto& hpX = StaticRef<std::array<int32, 180>>(0xC3FE08);
+auto& hpY = StaticRef<std::array<int32, 180>>(0xC3FB38);
+auto& hpS = StaticRef<std::array<int32, 180>>(0xC3F868); // speed
 
 static inline auto& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
 
@@ -366,11 +366,9 @@ void CPostEffects::ScriptCCTVSwitch(bool enable) {
 // 0x701170
 void CPostEffects::ScriptDarknessFilterSwitch(bool enable, int32 alpha) {
     m_bDarknessFilter = enable;
-    if (alpha == 255) {
-        m_DarknessFilterAlpha = m_DarknessFilterAlphaDefault;
-    } else {
-        m_DarknessFilterAlpha = std::clamp(0, alpha, 255);
-    }
+    m_DarknessFilterAlpha = alpha == -1
+        ? m_DarknessFilterAlphaDefault
+        : std::clamp(alpha, 0, 255);
 }
 
 // 0x701160
@@ -598,7 +596,7 @@ void CPostEffects::SetFilterMainColour(RwRaster* raster, RwRGBA color) {
 
     RwRenderStateSet(rwRENDERSTATESRCBLEND,  RWRSTATE(rwBLENDONE));
     RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDDESTALPHA));
-    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices, std::size(cc_vertices), cc_indices, std::size(cc_indices) / 2); // size 4 and 6
+    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices.data(), std::size(cc_vertices), cc_indices.data(), std::size(cc_indices) / 2); // size 4 and 6
 
     RwRenderStateSet(rwRENDERSTATEFOGENABLE,         RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
@@ -869,13 +867,13 @@ void CPostEffects::ColourFilter(RwRGBA pass1, RwRGBA pass2) {
     RwIm2DVertexSetRealRGBA(&cc_vertices[1], pass1.red, pass1.green, pass1.blue, pass1.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[2], pass1.red, pass1.green, pass1.blue, pass1.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[3], pass1.red, pass1.green, pass1.blue, pass1.alpha);
-    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices, std::size(cc_vertices), cc_indices, std::size(cc_indices) / 2); // size 4 and 6
+    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices.data(), std::size(cc_vertices), cc_indices.data(), std::size(cc_indices) / 2); // size 4 and 6
 
     RwIm2DVertexSetRealRGBA(&cc_vertices[0], pass2.red, pass2.green, pass2.blue, pass2.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[1], pass2.red, pass2.green, pass2.blue, pass2.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[2], pass2.red, pass2.green, pass2.blue, pass2.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[3], pass2.red, pass2.green, pass2.blue, pass2.alpha);
-    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices, std::size(cc_vertices), cc_indices, std::size(cc_indices) / 2); // size 4 and 6
+    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices.data(), std::size(cc_vertices), cc_indices.data(), std::size(cc_indices) / 2); // size 4 and 6
 
     RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,   RWRSTATE(TRUE));

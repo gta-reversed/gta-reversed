@@ -122,8 +122,8 @@ class CDamageManager {
 public:
     float           m_fWheelDamageEffect;
     uint8           m_nEngineStatus; // 0 - 250
-    eCarWheelStatus m_anWheelsStatus[eCarWheel::MAX_CARWHEELS];
-    eDoorStatus     m_aDoorsStatus[eDoors::MAX_DOORS];
+    std::array<eCarWheelStatus, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
+    std::array<eDoorStatus, eDoors::MAX_DOORS>            m_aDoorsStatus;
     union {
         /* Great job R*, really could've just used an array here... Ends up to be the same size... */
 

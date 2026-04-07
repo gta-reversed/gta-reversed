@@ -1471,7 +1471,7 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
 
     // Now draw what we have
     if (numVerts > 2) {
-        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, numVerts);
+        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices.data(), numVerts);
     }
 }
 
@@ -1490,7 +1490,7 @@ void CRadar::DrawRadarSectionMap(int32 x, int32 y, CRect rect) {
             RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
 
             CSprite2d::SetVertices(rect, bg, bg, bg, bg);
-            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices.data(), 4);
         }
     }
 }

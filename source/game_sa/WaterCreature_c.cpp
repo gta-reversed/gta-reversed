@@ -84,8 +84,8 @@ bool WaterCreature_c::Init(int32 nType, CVector* vecPos, WaterCreature_c* parent
 
 void WaterCreature_c::Exit()
 {
-    g_waterCreatureMan.m_createdList.RemoveItem(this);
-    g_waterCreatureMan.m_freeList.AddItem(this);
+    g_waterCreatureMan.m_waterCreatureList.RemoveItem(this);
+    g_waterCreatureMan.m_waterCreaturePool.AddItem(this);
     CWorld::Remove(m_pObject);
     delete m_pObject;
     m_pObject = nullptr;

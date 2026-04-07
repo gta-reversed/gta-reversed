@@ -186,7 +186,7 @@ void CTheZones::FillZonesWithGangColours(bool disableRadarGangColors) {
 // Returns pointer to zone by index
 // 0x572590
 CZone* CTheZones::GetNavigationZone(uint16 index) {
-    return &CTheZones::NavigationZoneArray[index];
+    return &GetNavigationZones()[index];
 }
 
 // Returns pointer to zone by index

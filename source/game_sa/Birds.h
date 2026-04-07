@@ -75,15 +75,15 @@ public:
     static inline auto& aBirds = StaticRef<std::array<CBird, 6>>(0xC6A8B0);
     static inline auto& vecBirdShotAt = StaticRef<CVector>(0xC6AA48);
 
-    static float faCreationCoorsX[6];
-    static float faCreationCoorsY[6];
-    static float faCreationCoorsZ[6];
+    static std::array<float, 6>  faCreationCoorsX;
+    static std::array<float, 6>  faCreationCoorsY;
+    static std::array<float, 6>  faCreationCoorsZ;
 
-    static float faRenderCoorsU[8];
-    static float faRenderCoorsV[8];
-    static float faRenderPosY[8];
+    static std::array<float, 8>  faRenderCoorsU;
+    static std::array<float, 8>  faRenderCoorsV;
+    static std::array<float, 8>  faRenderPosY;
 
-    static uint32 auRenderIndices[30];
+    static std::array<uint32, 30> auRenderIndices;
 
 public:
     static void Init();
