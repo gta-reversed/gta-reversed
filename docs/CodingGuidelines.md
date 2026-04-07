@@ -23,19 +23,25 @@ private:
     int m_FooCount; // Non-static member variable
 }
 ```
-* Use `s_` for global variables that are only used in one source file, otherwise use `g_`.
+* For shared variables defined outside a class, use `g_` prefix, and define them in the header:
 ```cpp
-// In a single source file (Foo.cpp)
-static int s_LocalCounter = 0; // Only used in this source file
-
-// Inside a class:
-class Foo {
-    static inline int s_ClassCounter = 0; 
-};
-
-// In a header file or multiple source files (Foo.h)
-inline int g_GlobalCounter = 0; // Used across multiple source files - Use `inline` instead of `extern`
+// Header-defined shared global
+inline int g_InlineGlobalCounter = 0; // Prefer `inline` over `extern`
 ```
+* For shared variables defined inside a class, use `s_` prefix, and define them in the header:
+```cpp
+class Foo {
+public:
+    static inline int s_StaticGlobalCounter = 0; // Static member variable
+}
+```
+* Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it):
+```cpp
+class Foo {
+public:
+    static inline auto& s_StaticGlobalCounter = StaticRef<int>(0xDEADBEEF); // Static member variable
+}
+``` 
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.
