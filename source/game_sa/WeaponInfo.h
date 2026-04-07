@@ -29,7 +29,7 @@ struct CGunAimingOffset {
     int16 CrouchRLoadA;
     int16 CrouchRLoadB;
 };
-static inline auto& g_GunAimingOffsets = StaticRef<CGunAimingOffset[20]>(0xC8A8A8);
+static inline auto& g_GunAimingOffsets = StaticRef<std::array<CGunAimingOffset, 20>>(0xC8A8A8);
 
 class CWeaponInfo {
     constexpr static auto FIRST_WEAPON_WITH_SKILLS = WEAPON_PISTOL;

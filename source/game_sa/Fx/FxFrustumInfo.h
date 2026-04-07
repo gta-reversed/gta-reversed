@@ -12,7 +12,7 @@
 class FxFrustumInfo_c {
 public:
     FxSphere_c m_Sphere;
-    FxPlane_c  m_Planes[4];
+    std::array<FxPlane_c, 4> m_Planes;
 
     bool IsCollision(FxSphere_c* sphere);
 };
