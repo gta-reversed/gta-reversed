@@ -215,7 +215,7 @@ float CTheZones::Calc2DDistanceBetween2Zones(CZone* a, CZone* b) {
         dy = a->m_fY1 - b->m_fY2;
     }
 
-    return (float)(std::sqrt(sq(dx) + sq(dy)));
+    return std::sqrt(sq((float)(dx)) + sq((float)(dy)));
 }
 
 // Initializes CTheZones
