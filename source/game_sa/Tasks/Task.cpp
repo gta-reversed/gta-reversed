@@ -38,3 +38,13 @@ bool CTask::IsGoToTask(CTask* task) {
 bool CTask::IsTaskPtr(CTask* task) {
     return task && GetTaskPool()->IsObjectValid(task);
 }
+
+void CTask::InjectHooks() {
+    RH_ScopedCategory("Tasks");
+    RH_ScopedVirtualClass(CTask, 0x86D48C, 6);
+
+    RH_ScopedInstall(IsTaskPtr, 0x61A4B0);
+    RH_ScopedInstall(operator new, 0x61A5A0);
+    RH_ScopedInstall(operator delete, 0x61A5B0);
+    RH_ScopedVMTInstall(StopTimer, 0x421180);
+}
