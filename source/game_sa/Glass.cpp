@@ -427,7 +427,7 @@ void CGlass::RenderReflectionPolys() {
         RwRenderStateSet(rwRENDERSTATESRCBLEND,      RWRSTATE(rwBLENDSRCALPHA));
         RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDINVSRCALPHA));
 
-        if (RwIm3DTransform(ReflectionPolyVertexBuffer, ReflectionPolyVertexBaseIdx - 1536, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(ReflectionPolyVertexBuffer.data(), ReflectionPolyVertexBaseIdx - 1536, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, &aTempBufferIndices[3072], ReflectionPolyIndexBaseIdx - 3072);
             RwIm3DEnd();
@@ -446,7 +446,7 @@ void CGlass::RenderShatteredPolys() {
         RwRenderStateSet(rwRENDERSTATESRCBLEND,      RWRSTATE(rwBLENDSRCALPHA));
         RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDINVSRCALPHA));
 
-        if (RwIm3DTransform(ShatteredPolyVertexBuffer, ShatteredVerticesBaseIdx - 1024, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(ShatteredPolyVertexBuffer.data(), ShatteredVerticesBaseIdx - 1024, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, &aTempBufferIndices[2048], ShatteredIndicesBaseIdx - 2048);
             RwIm3DEnd();
