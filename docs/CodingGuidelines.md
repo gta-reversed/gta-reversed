@@ -1,26 +1,54 @@
 ### General rules
-
 * Do not change code already written unless it's related to your contribution or absolutely needed.
 * Please check and try to eliminate warnings from your code.
 
 ### Code style
 * 4 space indentation, LF line endings
-* No hungarian notation [It's useless]
-* In classes, use `m_` prefix to nonstatic member variables and `ms_` for static members. Do not use a prefix in structs.
+* No hungarian notation [It's useless]:
+```cpp
+class Foo {
+    int32 m_iPlayerHealth; // Bad
+    int32 m_PlayerHealth; // Good
+}
+```
+* Variables are named in `camelCase` and types in `PascalCase`.
+* Class/struct members and functions are named in `CamelCase`
+* In classes (**not** structs), use `m_` prefix to nonstatic member variables and `ms_` for static members:
+```cpp
+class Foo {
+public:
+    static int ms_TotalFoos; // Static member variable
+
+private:
+    int m_FooCount; // Non-static member variable
+}
+```
 * Use `s_` for global variables that are only used in one source file, otherwise use `g_`.
+```cpp
+// In a single source file (Foo.cpp)
+static int s_LocalCounter = 0; // Only used in this source file
+
+// Inside a class:
+class Foo {
+    static inline int s_ClassCounter = 0; 
+};
+
+// In a header file or multiple source files (Foo.h)
+inline int g_GlobalCounter = 0; // Used across multiple source files - Use `inline` instead of `extern`
+```
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.
+* If a helper doesn't fit into any of the exiting files, see the `extensions` folder
 * Prefer `get`-ters/`set`-ters over raw member access
-* Use range-based for loops as much as possible.
+* Use range-based for loops as much as possible:
+```cpp
+for (auto& element : array); // Good
+for (int i = 0; i < std::size(array); i++); // Bad
+```
 * Use `ranges` versions of `std` functions as much as possible.
 * Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
-* We encourage you to write modern C++, but if that's not your style, please keep the following in mind:
-```cpp
-for (auto& element : array); // <-- GOOD
-
-for (int i = 0; i < std::size(array); i++); // <-- BAD
-```
+* We encourage you to write modern C++, but if that's not your style please adhere to the existing code style of the original game or in the file you're working on.
 * Use `rngv::enumerate` if you need both the index and object.
 ```cpp
 for (auto&& [i, e] : rngv::enumerate(array));
@@ -57,25 +85,22 @@ class Foo {
 #### Types
 * Use `auto` in function bodies if the variables' type is guessable.
 * Guess for enum values [Or at least leave a `TODO` comment]
-* Take care of const correctness [Especially of class methods] (e.g. `const char*` over `char*`)
+* Take care of const correctness [Especially of class methods] (e.g. `const char*` over `char*` or `const CVector&` over `CVector&`)
 * Try to use SA types over RW as much as possible, **except** `RwMatrix`. (e.g. `CVector` for `RwV3d`, `CRGBA` for `RwRGBA`)
-* Use fixed width integer types (e.g. `uint8`, `int32`).
+* Use fixed width integer types (e.g. `uint8`, `int32` over `unsigned char`, `int` etc).
 * Do not use Win32 integer types. [Except for Win32 exclusive code] (e.g. `DWORD` -> `uint32`)
-* For array sizes, etc... prefer using `unsigned` types over `signed` ones
-* Whenever possible use `std::array` over `C-Style` array [as the former has bounds checking in debug mode, and can help us discover many bugs]
+* For array sizes, etc... prefer using `unsigned` types over `signed` (eg.: `size_` whenever possible) ones
+* Whenever possible use `std::array` over `C-Style` array [as the former has bounds checking in debug mode, and can help us discover bugs]
 
 #### Fixing bugs
 Whenever you find a bug, we encourage you to fix it [and/or at least] leave a comment explaining what the bug is.
-Bug fixes should only be active if `notsa::IsFixBugs()` returns `true`.
-If that's not possible [due to code complexity], then wrap into an `#ifdef`:
-```c
-#ifdef FIX_BUGS
-// Bug fixing code here
-#endif
-```
+If you do a bugfix you're required to use `notsa::bugfixes` - this helps documenting and testing these fixes.
+See `reversiblebugfixes/Bugs.hpp` for more info.
+
 #### Using `assert`
 We encourage the usage of `assert` - if you think something may be out-of-bounds, or otherwise bug-prone, make sure to add an `assert`, it can help debugging the code a lot!
 Do **not** add early returns for possible error conditions, use `assert` instead!
+If the original game did early outs for possible error conditions then please also prefer using `assert` instead of just quietly erroring.
 
 ### Handling translated (GXT) text
 * GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
