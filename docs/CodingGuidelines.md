@@ -39,7 +39,7 @@ inline int g_GlobalCounter = 0; // Used across multiple source files - Use `inli
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.
-* If a helper doesn't fit into any of the exiting files, see the `extensions` folder
+* If a helper doesn't fit into any of the existing files, see the `extensions` folder
 * Prefer `get`-ters/`set`-ters over raw member access
 * Use range-based for loops as much as possible:
 ```cpp
