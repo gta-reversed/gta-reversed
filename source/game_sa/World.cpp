@@ -2946,7 +2946,7 @@ bool CWorld::GetIsLineOfSightClear(const CVector& origin, const CVector& target,
                     }
                 }
             } else {
-                for (y = startY; y >= endY; y--) {
+                for (y = startY; y >= endY; y--) { // TODO: Decrements below 0!!
                     if (!ProcessSector(originSectorX, y)) {
                         return false;
                     }

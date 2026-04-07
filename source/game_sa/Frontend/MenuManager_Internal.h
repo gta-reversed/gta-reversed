@@ -243,6 +243,6 @@ inline bool IsSaveSlot(eMenuEntryType slot) {
     return slot >= eMenuEntryType::FIRST_SAVE_SLOT && slot <= eMenuEntryType::MAX_SAVE_SLOT;
 }
 
-static inline auto& aScreens = StaticRef<tMenuScreen[43]>(0x8CE008);
+static inline auto& aScreens = StaticRef<std::array<tMenuScreen, 43>>(0x8CE008);
 extern SpriteFileName FrontEndFilenames[];
 extern tMenuScreen aScreensX[];

@@ -72,9 +72,9 @@ public:
     inline static auto& SnookerTableMin = StaticRef<CVector>(0x8CDF00);
 
     // Use GetSector() to access this array
-    inline static auto& ms_aSectors = StaticRef<CSector[MAX_SECTORS_Y][MAX_SECTORS_X]>(0xB7D0B8);
+    inline static auto& ms_aSectors = StaticRef<notsa::mdarray<CSector, MAX_SECTORS_Y, MAX_SECTORS_X>>(0xB7D0B8);
     // Use GetRepeatSector() to access this array
-    inline static auto& ms_aRepeatSectors = StaticRef<CRepeatSector[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X]>(0xB992B8);
+    inline static auto& ms_aRepeatSectors = StaticRef<notsa::mdarray<CRepeatSector, MAX_REPEAT_SECTORS_Y, MAX_REPEAT_SECTORS_X>>(0xB992B8);
     // Use GetLodPtrList() to access this array
     inline static auto& ms_aLodPtrLists = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
     inline static auto& ms_listMovingEntityPtrs = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
