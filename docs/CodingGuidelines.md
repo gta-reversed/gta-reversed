@@ -89,7 +89,7 @@ class Foo {
 * Try to use SA types over RW as much as possible, **except** `RwMatrix`. (e.g. `CVector` for `RwV3d`, `CRGBA` for `RwRGBA`)
 * Use fixed width integer types (e.g. `uint8`, `int32` over `unsigned char`, `int` etc).
 * Do not use Win32 integer types. [Except for Win32 exclusive code] (e.g. `DWORD` -> `uint32`)
-* For array sizes, etc... prefer using `unsigned` types over `signed` (eg.: `size_` whenever possible) ones
+* For array sizes, etc... prefer using `unsigned` types over `signed` (eg.: `size_t` whenever possible) ones
 * Whenever possible use `std::array` over `C-Style` array [as the former has bounds checking in debug mode, and can help us discover bugs]
 
 #### Fixing bugs
