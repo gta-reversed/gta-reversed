@@ -105,7 +105,7 @@ int32 CTagManager::GetPercentageTaggedInArea(CRect* area) {
         }
     }
     return numTotalTaggable != 0
-        ? static_cast<int32>(static_cast<float>(numTagged) / static_cast<float>(numTotalTaggable) * 100.0F)
+        ? (numTagged * 100) / numTotalTaggable /* Do division without converting to float at all, this isn't how it was done, but it's the same logic... */
         : 0;
 }
 
