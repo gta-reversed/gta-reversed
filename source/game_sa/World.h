@@ -411,7 +411,7 @@ inline CRepeatSector& CWorld::GetRepeatSector(int32 x, int32 y) {
      * Original code uses `&` instead of `%` to also clear the sign bit.
      * (And no, it's not just a compiler optimization, because it wouldn't emit `&` for signed ints)
      * This is important for positions outside the world boundary to work.
-     * We won't be using `&` because using it on signed int's is technically undefined behaviour,
+     * We won't be using `&` because using it on signed ints is technically undefined behaviour,
      * but `std::abs()` + a cast will work just as well.
      * We leave the optimization of `%` to a `&` to the compiler, which will do it automatically if the max is a power of 2.
      **/
