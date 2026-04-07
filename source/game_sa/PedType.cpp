@@ -103,7 +103,7 @@ void CPedType::Save() {
 
 // 0x608790
 ePedType CPedType::FindPedType(const char* pedTypeName) {
-    static auto s_PedTypeByNameMapping = notsa::make_mapping<std::string_view, ePedType>({
+    static const auto s_PedTypeByNameMapping = notsa::make_mapping<std::string_view, ePedType>({
         { "PLAYER1",        PED_TYPE_PLAYER1        },
         { "PLAYER2",        PED_TYPE_PLAYER2        },
         { "PLAYER_NETWORK", PED_TYPE_PLAYER_NETWORK },
