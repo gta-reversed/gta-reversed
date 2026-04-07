@@ -6,8 +6,6 @@
 */
 #pragma once
 
-#include <bit>
-
 #include <extensions/utility.hpp>
 #include "PtrListDoubleLink.h"
 #include "PtrNodeDoubleLink.h"
