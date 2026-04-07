@@ -43,8 +43,13 @@ inline int g_GlobalCounter = 0; // Used across multiple source files - Use `inli
 * Prefer `get`-ters/`set`-ters over raw member access
 * Use range-based for loops as much as possible:
 ```cpp
-for (auto& element : array); // Good
-for (int i = 0; i < std::size(array); i++); // Bad
+for (auto& element : array) { // Good
+    // ...
+} 
+
+for (int i = 0; i < std::size(array); i++) { // Bad
+    // ...
+}
 ```
 * Use `ranges` versions of `std` functions as much as possible.
 * Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
