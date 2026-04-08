@@ -525,7 +525,7 @@ void CAECollisionAudioEntity::ReportCollision(
             case MODEL_MOLOTOV:
                 return SURFACE_GLASS;
             case MODEL_SATCHEL:
-                return  AE_SURFACE_TYPE_SATCHEL_CHARGE;
+                return AE_SURFACE_TYPE_SATCHEL_CHARGE;
             case MODEL_GRENADE:
             case MODEL_BOMB:
             case MODEL_TEARGAS:
