@@ -66,41 +66,35 @@ void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, ColDef* def) {
 }
 
 // 0x411140
-int32 CColStore::AddColSlot(const char* name)
-{
-    auto def = new ColDef();
-    def->m_bActive = false;
-    def->m_bCollisionIsRequired = false;
-    def->m_bProcedural = false;
-    def->m_bInterior = false;
-    def->m_Area = CRect();
+int32 CColStore::AddColSlot(const char* name) {
+    const notsa::ci_string_view namesv{ name };
+
+    auto* const def = new ColDef();
     strcpy_s(def->name, name);
-    def->m_nModelIdStart = -1;
-    def->m_nModelIdEnd = SHRT_MIN;
-    def->m_nRefCount = 0;
-
-    if (!strcmp(name, "procobj") || !strcmp(name, "proc_int") || !strcmp(name, "proc_int2"))
-        def->m_bProcedural = true;
-
-    if (!strncmp(name, "int_la", 6)
-        || !strncmp(name, "int_sf", 6)
-        || !strncmp(name, "int_veg", 7)
-        || !strncmp(name, "int_cont", 8)
-        || !strncmp(name, "gen_int1", 8)
-        || !strncmp(name, "gen_int2", 8)
-        || !strncmp(name, "gen_int3", 8)
-        || !strncmp(name, "gen_int4", 8)
-        || !strncmp(name, "gen_int5", 8)
-        || !strncmp(name, "gen_intb", 8)
-        || !strncmp(name, "savehous", 8)
-        || !strcmp(name, "props")
-        || !strcmp(name, "props2")
-        || !strncmp(name, "levelmap", 8)
-        || !strncmp(name, "stadint", 7))
-    {
-        def->m_bInterior = true;
-    }
-
+    def->m_bActive              = false;
+    def->m_bCollisionIsRequired = false;
+    def->m_Area                 = CRect();
+    def->m_nModelIdStart        = SHRT_MIN;
+    def->m_nModelIdEnd          = -1;
+    def->m_nRefCount            = 0;
+    def->m_bProcedural          = namesv == "procobj"
+        || namesv == "proc_int"
+        || namesv == "proc_int2";
+    def->m_bInterior = namesv.starts_with("int_la")
+        || namesv.starts_with("int_sf")
+        || namesv.starts_with("int_veg")
+        || namesv.starts_with("int_cont")
+        || namesv.starts_with("gen_int1")
+        || namesv.starts_with("gen_int2")
+        || namesv.starts_with("gen_int3")
+        || namesv.starts_with("gen_int4")
+        || namesv.starts_with("gen_int5")
+        || namesv.starts_with("gen_intb")
+        || namesv.starts_with("savehous")
+        || namesv.starts_with("levelmap")
+        || namesv.starts_with("stadint")
+        || namesv == "props"
+        || namesv == "props2";
     return ms_pColPool->GetIndex(def);
 }
 
