@@ -5,7 +5,7 @@ struct CollisionLookupEntry {
     int32 MaxStartAt;             //!< Max start at (in %)
     int32 ParamD;
 };
-static inline constexpr std::array<CollisionLookupEntry, SURFACE_NUM_TYPES_FOR_COLLISION> gCollisionLookup = {{ // No clue what the +16 is for
+static inline constexpr std::array<CollisionLookupEntry, TOTAL_NUM_COLLISION_SURFACE_TYPES> gCollisionLookup = {{ // No clue what the +16 is for
     { 34, 34, 70, 100 },
     { 34, 34, 70, 100 },
     { 34, 34, 70, 100 },

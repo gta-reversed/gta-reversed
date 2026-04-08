@@ -599,11 +599,16 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
         return;
     }
     if (entity && entity->GetIsTypeVehicle()) {
-        surface = entity->AsVehicle()->IsSubBMX()
-            ? (eSurfaceType)(188) // todo: C* Surface
-            : SURFACE_CAR;
+        PlayBulletHitCollisionSound(
+            surface = entity->AsVehicle()->IsSubBMX()
+                ? AE_SURFACE_TYPE_BMX
+                : SURFACE_CAR,
+            posn,
+            angleWithColPointNorm
+        );
+    } else {
+        PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);
     }
-    PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);
 }
 
 // 0x4DA2C0
