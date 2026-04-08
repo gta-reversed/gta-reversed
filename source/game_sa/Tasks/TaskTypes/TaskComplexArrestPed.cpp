@@ -48,12 +48,12 @@ CTask* CTaskComplexArrestPed::CreateNextSubTask(CPed* ped) {
                 : TASK_COMPLEX_SEEK_ENTITY;
         }
 
-        const auto TryProcessPedToArrestFallAndGetUp = [&]() -> std::optional<std::optional<eTaskType>> {
+        const auto TryProcessPedToArrestFallAndGetUp = [&]() -> std::optional<eTaskType> {
             if (auto* const tFallAndGetUp = m_PedToArrest->GetTaskManager().Find<CTaskComplexFallAndGetUp>()) { // 0x690608
                 if (tFallAndGetUp->IsFalling()) {
                     const auto dir = ped->GetPosition() - m_PedToArrest->GetPosition();
                     if (std::fabs(dir.z) > 2.f || sq(3.f) < CVector2D{ dir }.SquaredMagnitude()) { // 0x69066D
-                        return { std::nullopt };
+                        return TASK_NONE;
                     }
                     tFallAndGetUp->SetDownTime(100'000);
                     return TASK_SIMPLE_ARREST_PED;
@@ -72,9 +72,12 @@ CTask* CTaskComplexArrestPed::CreateNextSubTask(CPed* ped) {
                 return TASK_SIMPLE_ARREST_PED;
             }
             if (const auto tt = TryProcessPedToArrestFallAndGetUp()) {
-                return tt->value_or(TASK_COMPLEX_SEEK_ENTITY);
+                return tt != TASK_INVALID
+                    ? *tt
+                    : TASK_COMPLEX_KILL_PED_ON_FOOT;
             }
 
+            // Part of `TryProcessPedToArrestFallAndGetUp`, left it here for completeness sake:
             //if (auto* const tFallAndGetUp = m_PedToArrest->GetTaskManager().Find<CTaskComplexFallAndGetUp>()) { // 0x690608
             //    if (tFallAndGetUp->IsFalling()) {
             //        const auto dir = ped->GetPosition() - m_PedToArrest->GetPosition();
@@ -85,12 +88,13 @@ CTask* CTaskComplexArrestPed::CreateNextSubTask(CPed* ped) {
             //        return TASK_SIMPLE_ARREST_PED;
             //    }
             //}
-            if (ped->IsCop() || !m_PedToArrest->IsPlayer() || !m_PedToArrest->m_pPlayerData->m_pWanted->m_nCopsInPursuit) { // 0x69069C
+            if (ped->IsCop() || !m_PedToArrest->IsPlayer() || !m_PedToArrest->GetPlayerWanted()->m_nCopsInPursuit) { // 0x69069C
                 return TASK_COMPLEX_KILL_PED_ON_FOOT;
             }
             return TASK_FINISHED; // 0x6906D3
         }
         case TASK_COMPLEX_SEEK_ENTITY: { // 0x6904A2
+            // Part of `TryProcessPedToArrestFallAndGetUp`, left it here for completeness sake:
             //if (auto* const tFallAndGetUp = m_PedToArrest->GetTaskManager().Find<CTaskComplexFallAndGetUp>()) { // 0x69048C
             //    if (tFallAndGetUp->IsFalling() && !notsa::cast<CTaskComplexSeekEntity<>>(m_pSubTask)->HasAchievedSeekEntity()) {
             //        const auto dir = ped->GetPosition() - m_PedToArrest->GetPosition();
@@ -100,18 +104,17 @@ CTask* CTaskComplexArrestPed::CreateNextSubTask(CPed* ped) {
             //        }
             //    }
             //}
-            //return TASK_COMPLEX_KILL_PED_ON_FOOT;
             if (notsa::cast<CTaskComplexSeekEntity<>>(m_pSubTask)->HasAchievedSeekEntity()) {
-                if (const auto tt = TryProcessPedToArrestFallAndGetUp(); tt.has_value() && tt->has_value()) {
-                    return **tt;
+                if (const auto tt = TryProcessPedToArrestFallAndGetUp(); tt.has_value() && *tt != TASK_NONE) {
+                    return *tt;
                 }
             }
             return TASK_COMPLEX_KILL_PED_ON_FOOT;
         }
         case TASK_COMPLEX_DRAG_PED_FROM_CAR: { // 0x690448
             if (!notsa::cast<CTaskComplexDragPedFromCar>(m_pSubTask)->ShouldQuitAfterDraggingPedOut()) {
-                if (const auto tt = TryProcessPedToArrestFallAndGetUp(); tt.has_value() && tt->has_value()) {
-                    return **tt;
+                if (const auto tt = TryProcessPedToArrestFallAndGetUp(); tt.has_value() && *tt != TASK_NONE) {
+                    return *tt;
                 }
             }
             return TASK_COMPLEX_KILL_PED_ON_FOOT;
