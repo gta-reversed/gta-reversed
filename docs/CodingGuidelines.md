@@ -116,7 +116,7 @@ See `reversiblebugfixes/Bugs.hpp` for more info.
 #### Using `assert`
 We encourage the usage of `assert` - if you think something may be out-of-bounds, or otherwise bug-prone, make sure to add an `assert`, it can help debugging the code a lot!
 Do **not** add early returns for possible error conditions, use `assert` instead!
-If the original game did early outs for possible error conditions then please also prefer using `assert` instead of just quietly erroring.
+If the original game did early outs for possible unexpected error conditions then please also prefer using `assert` instead of just quietly erroring. Do not use it if the game can handle/recover from that error condition, an error or a warning log is enough.
 
 ### Handling translated (GXT) text
 * GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
