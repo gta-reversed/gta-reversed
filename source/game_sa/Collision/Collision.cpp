@@ -1508,15 +1508,16 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
 
     const auto spBToA = spA.m_vecCenter - spB.m_vecCenter;
     const auto distSq = spBToA.SquaredMagnitude();
- 
+
     if (distSq >= sq(spA.m_fRadius + spB.m_fRadius)) { // Original code did it differently (This way sqrt is only used when there's a collision)
         return false;
     }
 
-    const auto touchDist   = std::max(std::sqrt(distSq) - spB.m_fRadius, 0.f);
-    const auto touchDistSq = sq(touchDist);
+    const auto touchDistUnclamped = std::sqrt(distSq) - spA.m_fRadius;
+    const auto touchDist          = std::max(touchDistUnclamped, 0.f);
+    const auto touchDistSq        = sq(touchDist);
 
-    if (touchDistSq >= maxTouchDistance) { 
+    if (touchDistSq >= maxTouchDistance) {
         return false;
     }
 
@@ -1524,7 +1525,7 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
 
     colPoint.m_vecNormal = spBToA.Normalized();
     colPoint.m_vecPoint  = spA.m_vecCenter - colPoint.m_vecNormal * touchDist;
-    colPoint.m_fDepth    = spA.m_fRadius - touchDist;
+    colPoint.m_fDepth    = spA.m_fRadius - touchDistUnclamped;
 
     colPoint.m_nSurfaceTypeA = spA.m_Surface.m_nMaterial;
     colPoint.m_nPieceTypeA   = spA.m_Surface.m_nPiece;
