@@ -82,13 +82,13 @@ void CPlayerPed::InjectHooks() {
 // TODO: To class and create 2 function
 struct CPlayerPedDataSaveStructure {
     uint32          ChaosLevel{};
-    uint32          WantedLevel{};
+    eWantedLevel    WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
     // float          Multiplier{}; // Mobile
 };
 
-VALIDATE_SIZE(CPlayerPedDataSaveStructure, 0x84);
+VALIDATE_SIZE(CPlayerPedDataSaveStructure, 0x84 /* + 0x4 */);
 
 // 0x5D46E0
 bool CPlayerPed::Load() {
