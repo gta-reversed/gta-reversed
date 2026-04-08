@@ -10,9 +10,6 @@
 #include "Rope.h"
 #include "Ropes.h"
 
-eControlledCrane& CRopes::PlayerControlsCrane = *(eControlledCrane*)0xB76898;
-uint32& CRopes::m_nRopeIdCreationCounter = *(uint32*)0xB781F8;
-
 void CRopes::InjectHooks() {
     RH_ScopedClass(CRopes);
     RH_ScopedCategoryGlobal();

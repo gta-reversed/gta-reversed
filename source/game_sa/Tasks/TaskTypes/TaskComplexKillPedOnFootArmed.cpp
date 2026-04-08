@@ -89,14 +89,14 @@ bool CTaskComplexKillPedOnFootArmed::LineOfSightClearForAttack(CPed* ped) { // p
     // Temporarily disable the target ped vehicle's collision (To ignore it)
     // Perhaps, `CWorld::pIgnoreEntity` could be used?
     const auto targetVeh = m_target->GetVehicleIfInOne();
-    const notsa::ScopeGuard restore{[targetVeh, had = targetVeh && targetVeh->m_bUsesCollision] {
+    const notsa::ScopeGuard restore{[targetVeh, had = targetVeh && targetVeh->GetUsesCollision()] {
         if (targetVeh) {
-            targetVeh->m_bUsesCollision = had;
+            targetVeh->SetUsesCollision(had);
         }
     }};
 
     if (targetVeh) {
-        targetVeh->m_bUsesCollision = false;
+        targetVeh->SetUsesCollision(false);
     }
 
     const auto GetPedHeadPos = [](CPed* headOf) {

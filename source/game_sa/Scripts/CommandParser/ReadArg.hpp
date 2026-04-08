@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <assert.h>
 
+#include <extensions/ci_string.hpp>
 #include "RunningScript.h"
 #include "app_debug.h"
 #include "World.h"
@@ -10,6 +11,7 @@
 #include "Utility.hpp"
 #include "Rect.h"
 #include "Scripted2dEffects.h"
+#include <Pools/Pools.h>
 
 namespace notsa {
 namespace script {
@@ -77,13 +79,6 @@ static_assert(is_script_thing_v<C2dEffect> && !is_script_thing_v<int>);
 };
 
 namespace detail {
-template<typename T>
-concept PooledType =
-    requires { detail::PoolOf<typename std::remove_cvref_t<T>>(); };
-};
-
-namespace detail {
-
 //! Safely cast one arithmetic type to another (Checks for under/overflow in debug mode only), then casts to `T`
 template<typename T, typename F>
 inline T safe_arithmetic_cast(F value) {
@@ -98,6 +93,17 @@ inline T safe_arithmetic_cast(F value) {
 //! Check if `Derived` is derived from `Base` but isn't `Base`
 template<typename Base, typename Derived>
 constexpr auto is_derived_from_but_not_v = std::is_base_of_v<Base, Derived> && !std::is_same_v<Base, Derived>;
+};
+
+//! Script entity (Not necessarily a derivative of `CEntity`, but any pooled type)
+template<typename T>
+struct ScriptEntity {
+    static_assert(!std::is_pointer_v<T> && !std::is_reference_v<T>, "T must be a class type, not a pointer or reference.");
+
+    using EntityType = T;
+
+    EntityType* e;  ///< Pointer to the actual entity (May be null if the handle is invalid)
+    int32       h;  ///< Script handle of the entity
 };
 
 //! Read a value (Possibly from script => increases IP, or return a value (w/o increasing IP)
@@ -119,46 +125,50 @@ inline T Read(CRunningScript* S) {
         return { Read<float>(S), Read<float>(S) };
     } else if constexpr (std::is_same_v<Y, CRect>) {
         return { Read<CVector2D>(S), Read<CVector2D>(S) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
-    } else if constexpr (std::is_same_v<Y, std::string_view>) {
+    } else if constexpr (std::is_same_v<Y, CRGBA>) {
+        return { Read<uint8>(S), Read<uint8>(S), Read<uint8>(S), Read<uint8>(S) };
+    } else if constexpr (std::is_same_v<Y, scm::StringRef>) {
         switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
-            return S->GetGlobal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
+            return scm::StringRef{ S->GetGlobal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>()) };
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return S->GetLocal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
+            return scm::StringRef{ S->GetLocal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>()) };
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::ShortString>(true);
+            return scm::StringRef{ S->GetAtIPFromArray<scm::ShortString>(true) };
         case SCRIPT_PARAM_GLOBAL_LONG_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::LongString>(true);
+            return scm::StringRef{ S->GetAtIPFromArray<scm::LongString>(true) };
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::ShortString>(false);
+            return scm::StringRef{ S->GetAtIPFromArray<scm::ShortString>(false) };
         case SCRIPT_PARAM_LOCAL_LONG_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::LongString>(false);
+            return scm::StringRef{ S->GetAtIPFromArray<scm::LongString>(false) };
 
         case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
-            return S->GetLocal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+            return scm::StringRef{ S->GetLocal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>()) };
         case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
-            return S->GetGlobal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+            return scm::StringRef{ S->GetGlobal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>()) };
 
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
-            return S->GetAtIPAs<scm::ShortString>();
+            return scm::StringRef{ S->GetAtIPAs<scm::ShortString>() };
         case SCRIPT_PARAM_STATIC_LONG_STRING:
-            return S->GetAtIPAs<scm::LongString>();
+            return scm::StringRef{ S->GetAtIPAs<scm::LongString>() };
 
         case SCRIPT_PARAM_STATIC_PASCAL_STRING: {
-            const auto sSize = S->GetAtIPAs<int8>(); // signed size, max size = 127, not 255
-            VERIFY(sSize >= 0);
-            const auto size = (size_t)(sSize);
-            return { &S->GetAtIPAs<char>(true, size), size};
+            const auto size = S->GetAtIPAs<uint8>(); // size is unsigned (I've checked)
+            return scm::StringRef{ &S->GetAtIPAs<char>(true, size), size, size }; // Pascal strings are not null terminated!
         }
         default:
             NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
         }
+    } else if constexpr (std::is_same_v<Y, notsa::ci_string_view>) {
+        return Read<scm::StringRef>(S);
+    } else if constexpr (std::is_same_v<Y, std::string_view>) {
+        return Read<scm::StringRef>(S);
     } else if constexpr (std::is_same_v<T, const char*>) { // Read C-style string (Hacky)
         const auto sv = Read<std::string_view>(S);
         assert(sv.size() < COMMANDS_CHAR_BUFFER_SIZE - 1);
-        // For explaination of why this is done this way, see the comment at CRunningScript::ScriptArgCharBuffers declaration
+        // For explanation of why this is done this way, see the comment at `CRunningScript::ScriptArgCharBuffers` declaration
         auto& buffer = CRunningScript::ScriptArgCharBuffers[CRunningScript::ScriptArgCharNextFreeBuffer++];
         sv.copy(buffer.data(), sv.size());
         buffer[sv.size()] = '\0';
@@ -207,20 +217,29 @@ inline T Read(CRunningScript* S) {
         return static_cast<Y>(Read<std::underlying_type_t<Y>>(S));
     } else if constexpr (std::is_same_v<Y, CPlayerPed>) { // Special case for `CPlayerPed` (As the IDs for it aren't from the pool)
         return FindPlayerPed(Read<int32>(S));
-    } else if constexpr (detail::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
-        T ptr = static_cast<T>(detail::PoolOf<Y>().GetAtRef(Read<int32>(S)));
+    } else if constexpr (notsa::is_specialization_of<Y, ScriptEntity>) {
+        using EntityType = typename Y::EntityType;
+
+        const auto handle = Read<int32>(S);
+        auto entity = static_cast<EntityType*>(::notsa::PoolOf<EntityType>().GetAtRef(handle));
 
     #ifdef NOTSA_DEBUG
-        if (ptr) {
-            if constexpr (detail::is_derived_from_but_not_v<CVehicle, Y>) {
-                assert(Y::Type == ptr->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
-            } else if constexpr (detail::is_derived_from_but_not_v<CTask, Y>) {
-                assert(Y::Type == ptr->GetTaskType());
+        // Asserts for correct type
+        if (entity) {
+            if constexpr (detail::is_derived_from_but_not_v<CVehicle, EntityType>) {
+                assert(EntityType::Type == entity->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
+            } else if constexpr (detail::is_derived_from_but_not_v<CTask, EntityType>) {
+                assert(EntityType::Type == entity->GetTaskType());
             } // TODO: Eventually add this for `CEvent` too
         }
     #endif
 
-        return ptr;
+        return {
+            .e = entity,
+            .h = handle
+        };
+    } else if constexpr (::notsa::PooledType<Y>)  { // Pooled types (CVehicle, CPed, etc)
+        return Read<ScriptEntity<Y>>(S).e;
     } else if constexpr (std::is_same_v<Y, CRunningScript>) { // Just return the script from where this command was invoked from
         return S;
     } else if constexpr (std::is_same_v<Y, CPlayerInfo>) {

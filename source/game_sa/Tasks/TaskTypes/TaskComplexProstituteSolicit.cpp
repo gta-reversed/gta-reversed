@@ -28,7 +28,7 @@ CTaskComplexProstituteSolicit::~CTaskComplexProstituteSolicit() {
     if (!player)
         return;
 
-    CEntity::ClearReference(player->m_pPlayerData->m_pCurrentProstitutePed);
+    CEntity::ClearReference(player->GetPlayerData()->m_pCurrentProstitutePed);
     if (bMoveCameraDown) {
         bMoveCameraDown = false;
     }
@@ -45,7 +45,7 @@ bool CTaskComplexProstituteSolicit::MakeAbortable(CPed* ped, eAbortPriority prio
 
 // 0x661D30
 void CTaskComplexProstituteSolicit::GetRidOfPlayerProstitute() {
-    auto* prostitute = FindPlayerPed()->m_pPlayerData->m_pCurrentProstitutePed;
+    auto* prostitute = FindPlayerPed()->GetPlayerData()->m_pCurrentProstitutePed;
     if (!prostitute)
         return;
 
@@ -130,7 +130,7 @@ bool CTaskComplexProstituteSolicit::IsTaskValid(CPed* prostitute, CPed* ped) {
     if (ped->bIsBeingArrested)
         return false;
 
-    if (ped->m_pPlayerData->m_pCurrentProstitutePed && ped->m_pPlayerData->m_pCurrentProstitutePed != prostitute)
+    if (ped->GetPlayerData()->m_pCurrentProstitutePed && ped->GetPlayerData()->m_pCurrentProstitutePed != prostitute)
         return false;
 
     if (ped->m_pVehicle->GetVehicleAppearance() != VEHICLE_APPEARANCE_AUTOMOBILE)
@@ -178,13 +178,13 @@ CTask* CTaskComplexProstituteSolicit::CreateFirstSubTask(CPed* ped) {
     m_vecVehiclePosn = m_pClient->m_pVehicle->GetPosition();
 
     auto player = FindPlayerPed();
-    m_pClient->m_pPlayerData->m_pCurrentProstitutePed = ped;
-    player->m_pPlayerData->m_pCurrentProstitutePed->RegisterReference(player->m_pPlayerData->m_pCurrentProstitutePed);
+    m_pClient->GetPlayerData()->m_pCurrentProstitutePed = ped;
+    player->GetPlayerData()->m_pCurrentProstitutePed->RegisterReference(player->GetPlayerData()->m_pCurrentProstitutePed);
 
-    if (m_pClient->m_pPlayerData->m_pLastProstituteShagged != ped) {
-        CEntity::SafeCleanUpRef(m_pClient->m_pPlayerData->m_pLastProstituteShagged);
-        m_pClient->m_pPlayerData->m_pLastProstituteShagged = ped;
-        m_pClient->m_pPlayerData->m_pLastProstituteShagged->RegisterReference(m_pClient->m_pPlayerData->m_pLastProstituteShagged);
+    if (m_pClient->GetPlayerData()->m_pLastProstituteShagged != ped) {
+        CEntity::SafeCleanUpRef(m_pClient->GetPlayerData()->m_pLastProstituteShagged);
+        m_pClient->GetPlayerData()->m_pLastProstituteShagged = ped;
+        m_pClient->GetPlayerData()->m_pLastProstituteShagged->RegisterReference(m_pClient->GetPlayerData()->m_pLastProstituteShagged);
     }
 
     return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);

@@ -45,7 +45,7 @@ CTask* CTaskComplexDiveFromAttachedEntityAndGetUp::CreateFirstSubTask(CPed* ped)
     if (const auto attachedTo = ped->m_pAttachedTo) {
         const auto hitSide = (eDirection)CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *attachedTo);
         m_DiveDir = CPedGeometryAnalyser::ComputeEntityDir(*attachedTo, hitSide);
-        if (attachedTo->IsVehicle()
+        if (attachedTo->GetIsTypeVehicle()
          && notsa::contains({ eDirection::BACKWARD, eDirection::FORWARD }, hitSide)
          && m_DiveDir.Dot(attachedTo->GetMoveSpeed()) > 0.f // Same direction
         ) {

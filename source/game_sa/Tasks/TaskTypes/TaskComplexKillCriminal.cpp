@@ -219,7 +219,7 @@ bool CTaskComplexKillCriminal::MakeAbortable(CPed* ped, eAbortPriority priority,
             if (m_Criminal && evSrc == m_Criminal) {
                 return false; // As per 0x68DB32
             }
-            if (!evSrc || !evSrc->IsPed() || evSrc->AsPed()->IsPlayer()) {
+            if (!evSrc || !evSrc->GetIsTypePed() || evSrc->AsPed()->IsPlayer()) {
                 return false;
             }
             const auto evSrcPed = evSrc->AsPed();

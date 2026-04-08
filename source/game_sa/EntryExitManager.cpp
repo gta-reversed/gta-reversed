@@ -167,7 +167,7 @@ void CEntryExitManager::AddEntryExitToStack(CEntryExit* enex) {
 }
 
 /*!
-* @address 0x43FA00
+* @addr 0x43FA00
 * @brief Add a new entry exit
 *
 * @param timeOn If flag `BURGLARY_ACCESS` is not set it's going to define the value of enex->timeOn
@@ -345,7 +345,7 @@ int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags
 // 0x43ED80
 void CEntryExitManager::ResetAreaCodeForVisibleObjects() {
     while (ms_numVisibleEntities) {
-        ms_visibleEntityList[--ms_numVisibleEntities]->m_nAreaCode = (eAreaCodes)ms_oldAreaCode;
+        ms_visibleEntityList[--ms_numVisibleEntities]->SetAreaCode((eAreaCodes)ms_oldAreaCode);
     }
 }
 
@@ -359,9 +359,9 @@ void CEntryExitManager::SetAreaCodeForVisibleObjects() {
     const auto playerPed{ FindPlayerPed() };
 
     for (auto&& entity : std::span{ objsInFrustum, (size_t)numObjsInFrustum }) {
-        if (entity->m_nAreaCode == CGame::currArea && entity != playerPed) {
+        if (entity->GetAreaCode() == CGame::currArea && entity != playerPed) {
             ms_visibleEntityList[ms_numVisibleEntities++] = entity;
-            entity->m_nAreaCode = AREA_CODE_13;
+            entity->SetAreaCode(AREA_CODE_13);
 
             if (ms_numVisibleEntities >= 32) {
                 break;
@@ -445,7 +445,7 @@ bool CEntryExitManager::Save() {
     // Save entry exit stack
     CGenericGameStorage::SaveDataToWorkBuffer(ms_entryExitStackPosn);
     for (auto&& enex : std::span{ ms_entryExitStack, ms_entryExitStackPosn}) {
-        CGenericGameStorage::SaveDataToWorkBuffer((uint16)mp_poolEntryExits->GetIndex(enex));
+        CGenericGameStorage::SaveDataToWorkBuffer<uint16>(mp_poolEntryExits->GetIndex(enex));
     }
 
     // Save entry exits
@@ -458,7 +458,7 @@ bool CEntryExitManager::Save() {
                 data = linkIndex;
             }
         }
-        CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
+        CGenericGameStorage::SaveDataToWorkBuffer<int16>(i); // Enex idx in pool
         CGenericGameStorage::SaveDataToWorkBuffer(enex.m_nFlags);
         CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
     }

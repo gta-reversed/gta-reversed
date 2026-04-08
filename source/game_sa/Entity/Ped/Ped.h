@@ -253,9 +253,13 @@ public:
         bool bTestForShotInVehicle : 1 = false;
         bool bUsedForReplay : 1 = false; // This ped is controlled by replay and should be removed when replay is done.
     };
+
+protected:
     CPedIntelligence*   m_pIntelligence;
     CPlayerPedData*     m_pPlayerData;
     ePedCreatedBy       m_nCreatedBy;
+
+public:
     std::array<AnimBlendFrameData*, TOTAL_PED_NODES> m_apBones; // for Index, see ePedNode - TODO: Name incorrect, should be `m_apNodes` instead.
     AssocGroupId        m_nAnimGroup;
     CVector2D           m_vecAnimMovingShiftLocal;
@@ -264,7 +268,7 @@ public:
     RpClump*            m_pWeaponObject;
     RwFrame*            m_pGunflashObject; // A frame in the Clump `m_pWeaponObject`
     RpClump*            m_pGogglesObject;
-    bool*               m_pGogglesState;           // Stores a pointer to either `CPostEffects::m_bInfraredVision` or `m_bNightVision`, see \r PutOnGoggles and \r AddGogglesModel
+    bool*               m_pGogglesState;           // Stores a pointer to either `CPostEffects::m_bInfraredVision` or `m_bNightVision`, see PutOnGoggles and AddGogglesModel
 
     int16               m_nWeaponGunflashAlphaMP1; // AKA m_nWeaponGunflashStateRightHand
     int16               m_nWeaponGunFlashAlphaProgMP1;
@@ -272,7 +276,7 @@ public:
     int16               m_nWeaponGunFlashAlphaProgMP2;
 
     CPedIK              m_pedIK;
-    int32               field_52C;
+    uint32              m_nAntiSpazTimer;
     ePedState           m_nPedState;
     eMoveState          m_nMoveState;
     int32               m_nSwimmingMoveState; // type is eMoveState and used for swimming in CTaskSimpleSwim::ProcessPed
@@ -316,9 +320,9 @@ public:
     CEntity*            m_pLookTarget;
     float               m_fLookDirection; // In RAD
     int32               m_nWeaponModelId;
-    int32               field_744;
+    uint32              m_nUnconsciousTimer;
     uint32              m_nLookTime;
-    int32               field_74C;
+    uint32              m_nAttackTimer;
     int32               m_nDeathTimeMS; //< Death time in MS (CTimer::GetTimeMS())
     char                m_nBodypartToRemove;
     char                field_755;
@@ -393,7 +397,7 @@ public:
     void SetLookFlag(CEntity* lookingTo, bool likeUnused, bool arg2);
     void SetAimFlag(CEntity* aimingTo);
     void ClearAimFlag();
-    uint8 GetLocalDirection(const CVector2D& point) const;
+    int32 GetLocalDirection(const CVector2D& point) const;
     bool IsPedShootable() const;
     bool UseGroundColModel() const;
     bool CanPedReturnToState() const;
@@ -516,6 +520,11 @@ public:
     void SetStayInSamePlace(bool enable) { bStayInSamePlace = enable; }
     bool IsWearingGoggles() const { return !!m_pGogglesObject; }
 
+    // inlined
+    CPlayerPedData* GetPlayerData() const { return m_pPlayerData; }
+
+    CWanted* GetPlayerWanted() const { return GetPlayerData()->m_pWanted; }
+        
     // NOTSA helpers
     void SetArmour(float v) { m_fArmour = v; }
     void SetWeaponShootingRange(uint8 r) { m_nWeaponShootingRate = r; }
@@ -531,16 +540,16 @@ public:
 
     CPedGroup* GetGroup() const;
     int32 GetGroupId();
-    CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
+        
+    CPedClothesDesc* GetClothesDesc() { return GetPlayerData()->m_pPedClothesDesc; }
 
-    CPedIntelligence* GetIntelligence() { return m_pIntelligence; }
     CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }
-    CTaskManager& GetTaskManager() { return m_pIntelligence->m_TaskMgr; }
-    CTaskManager& GetTaskManager() const { return m_pIntelligence->m_TaskMgr; }
-    CEventGroup& GetEventGroup() { return m_pIntelligence->m_eventGroup; }
-    CEventHandler& GetEventHandler() { return m_pIntelligence->m_eventHandler; }
-    CEventHandlerHistory& GetEventHandlerHistory() { return m_pIntelligence->m_eventHandler.GetHistory(); }
-    CPedStuckChecker& GetStuckChecker() { return m_pIntelligence->m_pedStuckChecker; }
+    CTaskManager& GetTaskManager() { return GetIntelligence()->m_TaskMgr; }
+    CTaskManager& GetTaskManager() const { return GetIntelligence()->m_TaskMgr; }
+    CEventGroup& GetEventGroup() { return GetIntelligence()->m_eventGroup; }
+    CEventHandler& GetEventHandler() { return GetIntelligence()->m_eventHandler; }
+    CEventHandlerHistory& GetEventHandlerHistory() { return GetEventHandler().GetHistory(); }
+    CPedStuckChecker& GetStuckChecker() { return GetIntelligence()->m_pedStuckChecker; }
 
     CWeapon& GetWeaponInSlot(size_t slot) noexcept { return m_aWeapons[slot]; }
     CWeapon& GetWeaponInSlot(eWeaponSlot slot) noexcept { return m_aWeapons[(size_t)slot]; }
@@ -577,6 +586,8 @@ public:
     auto&& GetAE(this auto&& self)    { return self.m_pedAudio; }
     auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeech; }
     auto&& GetWeaponAE(this auto&& self) { return self.m_weaponAudio; }
+
+    CVector GetSeatPositionInVehicle() const;
 
     /*!
      * @notsa
@@ -637,5 +648,6 @@ VALIDATE_SIZE(CPed, 0x79C);
 
 RwObject* SetPedAtomicVisibilityCB(RwObject* rwObject, void* data);
 bool IsPedPointerValid(CPed* ped);
+bool IsPedPointerValid_NotInWorld(CPed* ped);
 bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 offset = 0);
 bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 offset = 0);

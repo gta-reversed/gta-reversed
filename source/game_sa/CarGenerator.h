@@ -6,9 +6,8 @@
 */
 #pragma once
 
-#include "CompressedVector.h"
-
 #include "Vector.h"
+#include "CompressedVector.h"
 
 class CFileCarGenerator {
 public:
@@ -33,13 +32,13 @@ VALIDATE_SIZE(CFileCarGenerator, 0x30);
 
 class CCarGenerator {
 public:
-    int16            m_nModelId;
-    int8             m_nPrimaryColor;
-    int8             m_nSecondaryColor;
-    CompressedVector m_vecPosn;
-    char             m_nAngle;
-    uint8            m_nAlarmChance;    // in percentage 0-100
-    uint8            m_nDoorLockChance; // in percentage 0-100
+    int16                 m_nModelId;
+    int8                  m_nPrimaryColor;
+    int8                  m_nSecondaryColor;
+    CompressedLargeVector m_vecPosn;
+    char                  m_nAngle;
+    uint8                 m_nAlarmChance;    // in percentage 0-100
+    uint8                 m_nDoorLockChance; // in percentage 0-100
 
     union {
         struct {
@@ -62,8 +61,8 @@ public:
     // char             _pad1E[2];
 
 public:
-    static bool& m_bHotdogVendorPositionOffsetInitialized;
-    static CVector& m_HotdogVendorPositionOffset;
+    static inline auto& m_bHotdogVendorPositionOffsetInitialized = StaticRef<bool>(0xC2B974);
+    static inline auto& m_HotdogVendorPositionOffset = StaticRef<CVector>(0xC2B968);
 
 public:
     static void InjectHooks();
@@ -79,6 +78,8 @@ public:
     void SwitchOn();
 
     static uint32 CalcNextGen();
+
+    static CVehicle* CreateVehicle(eModelID model, eVehicleCreatedBy createdBy);
 };
 
 VALIDATE_SIZE(CCarGenerator, 0x20);

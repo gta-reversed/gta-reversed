@@ -20,49 +20,51 @@ enum eWeatherRegion : int16 {
 
 class CWeather {
 public:
-    static float &TrafficLightsBrightness;
-    static bool &bScriptsForceRain;
-    static float &Earthquake;
-    static uint32 &CurrentRainParticleStrength;
-    static uint32 &LightningStartY; // only initialized (0), not used
-    static uint32 &LightningStartX; // only initialized (0), not used
-    static int32 &LightningFlashLastChange;
-    static int32 &WhenToPlayLightningSound;
-    static uint32 &LightningDuration;
-    static uint32 &LightningStart; // frame number
-    static bool &LightningFlash;
-    static bool &LightningBurst;
-    static float &HeadLightsSpectrum;
-    static float &WaterFogFXControl;
-    static float &HeatHazeFXControl;
-    static float &HeatHaze;
-    static float &SunGlare;
-    static float &Rainbow;
-    static float &Wavyness;
-    static float &WindClipped;
-    static CVector &WindDir;
-    static float &Wind;
-    static float &Sandstorm;
-    static float &Rain;
-    static float &InTunnelness;
-    static float &WaterDepth;
-    static float &UnderWaterness;
-    static float &ExtraSunnyness;
-    static float &Foggyness_SF;
-    static float &Foggyness;
-    static float &CloudCoverage;
-    static float &WetRoads;
-    static float &InterpolationValue;
-    static uint32 &WeatherTypeInList;
-    static eWeatherRegion &WeatherRegion;
-    static eWeatherType &ForcedWeatherType;
-    static eWeatherType &NewWeatherType;
-    static eWeatherType &OldWeatherType;
-    static CAEWeatherAudioEntity &m_WeatherAudioEntity;
-    static bool& StreamAfterRainTimer;
+    static inline auto& TrafficLightsBrightness = StaticRef<float>(0xC812A8);
+    static inline auto& bScriptsForceRain = StaticRef<bool>(0xC812AC);
+    static inline auto& Earthquake = StaticRef<float>(0xC81340);
+    static inline auto& CurrentRainParticleStrength = StaticRef<uint32>(0xC812B0);
+    static inline auto& LightningStartY = StaticRef<uint32>(0xC812B4); // only initialized (0), not used
+    static inline auto& LightningStartX = StaticRef<uint32>(0xC812B8); // only initialized (0), not used
+    static inline auto& LightningFlashLastChange = StaticRef<int32>(0xC812BC);
+    static inline auto& WhenToPlayLightningSound = StaticRef<int32>(0xC812C0);
+    static inline auto& LightningDuration = StaticRef<uint32>(0xC812C4);
+    static inline auto& LightningStart = StaticRef<uint32>(0xC812C8); // frame number
+    static inline auto& LightningFlash = StaticRef<bool>(0xC812CC);
+    static inline auto& LightningBurst = StaticRef<bool>(0xC812CD);
+    static inline auto& HeadLightsSpectrum = StaticRef<float>(0xC812D0);
+    static inline auto& WaterFogFXControl = StaticRef<float>(0xC81338);
+    static inline auto& HeatHazeFXControl = StaticRef<float>(0xC812D8);
+    static inline auto& HeatHaze = StaticRef<float>(0xC812DC);
+    static inline auto& SunGlare = StaticRef<float>(0xC812E0);
+    static inline auto& Rainbow = StaticRef<float>(0xC812E4);
+    static inline auto& Wavyness = StaticRef<float>(0xC812E8);
+    static inline auto& WindClipped = StaticRef<float>(0xC812EC);
+    static inline auto& WindDir = StaticRef<CVector>(0xC813E0);
+    static inline auto& Wind = StaticRef<float>(0xC812F0);
+    static inline auto& Sandstorm = StaticRef<float>(0xC812F4);
+    static inline auto& Rain = StaticRef<float>(0xC81324);
+    static inline auto& InTunnelness = StaticRef<float>(0xC81334);
+    static inline auto& WaterDepth = StaticRef<float>(0xC81330);
+    static inline auto& UnderWaterness = StaticRef<float>(0xC8132C);
+    static inline auto& ExtraSunnyness = StaticRef<float>(0xC812F8);
+    static inline auto& Foggyness_SF = StaticRef<float>(0xC812FC);
+    static inline auto& Foggyness = StaticRef<float>(0xC81300);
+    static inline auto& CloudCoverage = StaticRef<float>(0xC81304);
+    static inline auto& WetRoads = StaticRef<float>(0xC81308);
+    static inline auto& InterpolationValue = StaticRef<float>(0xC8130C);
+    static inline auto& WeatherTypeInList = StaticRef<uint32>(0xC81310);
+    static inline auto& WeatherRegion = StaticRef<eWeatherRegion>(0xC81314);
+    static inline auto& ForcedWeatherType = StaticRef<eWeatherType>(0xC81318);
+    static inline auto& NewWeatherType = StaticRef<eWeatherType>(0xC8131C);
+    static inline auto& OldWeatherType = StaticRef<eWeatherType>(0xC81320);
+    static inline auto& m_WeatherAudioEntity = StaticRef<CAEWeatherAudioEntity>(0xC81360);
+    static inline auto& StreamAfterRainTimer = StaticRef<bool>(0x8D5EAC);
 
-    static float(&saTreeWindOffsets)[16];
-    static float(&saBannerWindOffsets)[32];
+    // in entity.cpp:
+
+    static std::array<float, 16> saTreeWindOffsets; // orig WindTabel
+    static std::array<float, 32> saBannerWindOffsets; // orig BannerWindTabel
 
 public:
     static void InjectHooks();
@@ -81,7 +83,7 @@ public:
     static void UpdateInTunnelness();
     /*!
     * @notsa
-    * @detail Based on code @ `0x72A640`
+    * @details Based on code @ `0x72A640`
     * @return The corresponding weather region at a given 2D position, or `WEATHER_REGION_DEFAULT` if no specific region was found
     */
     static eWeatherRegion FindWeatherRegion(CVector2D pos);

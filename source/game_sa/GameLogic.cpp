@@ -91,7 +91,7 @@ void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
             player2->GiveWeapon(weapon, true);
         }
         player1->PickWeaponAllowedFor2Player();
-        player1->m_pPlayerData->m_nChosenWeapon = player1->m_pPlayerData->m_nChosenWeapon;
+        player1->GetPlayerData()->m_nChosenWeapon = player1->GetPlayerData()->m_nChosenWeapon;
     }
 }
 
@@ -357,13 +357,13 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     if (player->m_fHealth <= 0.0f) {
         CStats::UpdateStatsOnRespawn();
     }
-    auto playerData = player->m_pPlayerData;
+    auto playerData = player->GetPlayerData();
     auto playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
     player->physicalFlags.bRenderScorched = false;
     player->m_fArmour = 0.0f;
     player->m_fHealth = static_cast<float>(playerInfo->m_nMaxHealth);
-    player->m_bIsVisible = true;
+    player->SetIsVisible(true);
     player->m_nDeathTimeMS = 0;
     player->bDoBloodyFootprints = false;
     playerData->m_nDrunkenness = 0;
@@ -398,7 +398,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CTheScripts::ClearSpaceForMissionEntity(posn, player);
     CWorld::ClearExcitingStuffFromArea(posn, 4000.0, 1);
     player->RestoreHeadingRate();
-    player->m_nAreaCode = AREA_CODE_NORMAL_WORLD;
+    player->SetAreaCode(AREA_CODE_NORMAL_WORLD);
     player->m_pEnex = 0;
     CEntryExitManager::ms_entryExitStackPosn = 0;
     CGame::currArea = AREA_CODE_NORMAL_WORLD;
@@ -440,7 +440,7 @@ void CGameLogic::SetPlayerWantedLevelForForbiddenTerritories(bool immediately) {
     if ((!immediately && (CTimer::GetFrameCounter() % 32) != 18) || coords.z > 950.0f)
         return;
 
-    if (ped->m_pIntelligence->GetTaskSwim() || ped->GetWantedLevel() >= 4)
+    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= 4)
         return;
 
     const auto SetWantedIfInArea = [&](auto* vertices, size_t size) {
@@ -548,7 +548,7 @@ void CGameLogic::StopPlayerMovingFromDirection(int32 playerId, CVector direction
     if (auto obj = [ped = FindPlayerPed(playerId)]() -> CPhysical* {
         if (ped->IsInVehicle()) {
             return ped->GetVehicleIfInOne();
-        } else if (ped->bIsStanding || ped->m_pIntelligence->GetTaskJetPack()) {
+        } else if (ped->bIsStanding || ped->GetIntelligence()->GetTaskJetPack()) {
             return ped;
         }
 
@@ -591,8 +591,8 @@ void CGameLogic::Update() {
                     CEntity::CleanUpOldReference(driver);
                     driver = nullptr;
 
-                    if (vehicle->m_nStatus != STATUS_WRECKED) {
-                        vehicle->m_nStatus = STATUS_ABANDONED;
+                    if (vehicle->GetStatus() != STATUS_WRECKED) {
+                        vehicle->SetStatus(STATUS_ABANDONED);
                     }
                 } else {
                     vehicle->RemovePassenger(player1Ped);

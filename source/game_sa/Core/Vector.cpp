@@ -25,7 +25,7 @@ void CVector::InjectHooks()
     RH_ScopedInstall(FromMultiply, 0x59C670);
     RH_ScopedInstall(FromMultiply3x3, 0x59C6D0);
     RH_ScopedGlobalOverloadedInstall(CrossProduct, "out", 0x59C730, CVector*(*)(CVector*, CVector*, CVector*));
-    RH_ScopedGlobalOverloadedInstall(DotProduct, "v3d*v3d*", 0x59C6D0, float(*)(CVector*, CVector*));
+    RH_ScopedGlobalOverloadedInstall(DotProduct, "v3d*v3d*", 0x40FDB0, float(*)(CVector*, CVector*));
 }
 
 /*!
@@ -63,7 +63,7 @@ float CVector::Magnitude2D() const
 // Normalises a vector
 void CVector::Normalise()
 {
-    NormaliseAndMag();
+    (void)NormaliseAndMag();
 }
 
 // Normalises a vector and returns length

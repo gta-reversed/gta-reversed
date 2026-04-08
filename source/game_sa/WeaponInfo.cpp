@@ -27,7 +27,6 @@ void CWeaponInfo::InjectHooks() {
 // 0x5BF750
 void CWeaponInfo::Initialise() {
     for (auto& info : aWeaponInfo) {
-        info.m_vecFireOffset = CVector();
         info.m_nWeaponFire = WEAPON_FIRE_MELEE;
         info.m_fTargetRange = 0.0f;
         info.m_fWeaponRange = 0.0f;
@@ -36,7 +35,9 @@ void CWeaponInfo::Initialise() {
         info.m_nSlot = -1;
         info.m_eAnimGroup = ANIM_GROUP_DEFAULT;
         info.m_nAmmoClip = 0;
-        info.m_nSkillLevel = 1;
+        info.m_nDamage = 0;
+        info.m_vecFireOffset = CVector();
+        info.m_nSkillLevel = eWeaponSkill::STD;
         info.m_nReqStatLevel = 0;
         info.m_fAccuracy = 1.0f;
         info.m_fMoveSpeed = 1.0f;
@@ -47,17 +48,19 @@ void CWeaponInfo::Initialise() {
         info.m_fAnimLoop2End = 0.0f;
         info.m_fAnimLoop2Fire = 0.0f;
         info.m_fBreakoutTime = 0.0f;
-        info.m_fSpeed = 0.0f;
+        info.m_Speed = 0.0f;
         info.m_fRadius = 0.0f;
         info.m_fLifespan = 0.0f;
         info.m_fSpread = 0.0f;
         info.m_nAimOffsetIndex = 0;
         info.m_nFlags = 0;
-        info.m_nBaseCombo = 4;
+
+        // Melee data
+        info.m_nBaseCombo = MELEE_COMBO_UNARMED_1;
         info.m_nNumCombos = 1;
     }
 
-    for (auto& offset : g_GunAimingOffsets) {
+    for (auto& offset : ms_WeaponAimOffsets) {
         offset.AimX = 0.0f;
         offset.AimZ = 0.0f;
         offset.DuckX = 0.0f;
@@ -65,6 +68,7 @@ void CWeaponInfo::Initialise() {
         offset.RLoadA = 0;
         offset.RLoadB = 0;
         offset.CrouchRLoadA = 0;
+        offset.CrouchRLoadB = 0;
     }
 
     LoadWeaponData();
@@ -222,13 +226,13 @@ void CWeaponInfo::LoadWeaponData() {
             wi.m_nAmmoClip = ammo;
             wi.m_nDamage = dmg;
             wi.m_vecFireOffset = offset;
-            wi.m_nSkillLevel = (uint32)skillLevel;
+            wi.m_nSkillLevel = skillLevel;
             wi.m_nReqStatLevel = reqStatLevelForSkill;
             wi.m_fAccuracy = accuracy;
             wi.m_fMoveSpeed = moveSpeed;
             wi.m_fBreakoutTime = (float)breakoutTime / 30.f;
             wi.m_nFlags = flags;
-            wi.m_fSpeed = speed;
+            wi.m_Speed = speed;
             wi.m_fLifespan = lifespan;
             wi.m_fSpread = spread;
             wi.m_fRadius = radius;
@@ -257,7 +261,7 @@ void CWeaponInfo::LoadWeaponData() {
 
             if (skillLevel == eWeaponSkill::STD && weaponType != eWeaponType::WEAPON_DETONATOR) {
                 if (modelId1 > 0) {
-                    CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->m_weaponInfo = weaponType;
+                    CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->SetWeaponInfo(weaponType);
                 }
             }
             break;
@@ -271,7 +275,7 @@ void CWeaponInfo::LoadWeaponData() {
 
             VERIFY(sscanf_s(line, "%*s %s %f %f %f %f %d %d %d %d", SCANF_S_STR(stealthAnimGrp), &aimX, &aimZ, &duckX, &duckZ, &RLoadA, &RLoadB, &crouchRLoadA, &crouchRLoadB) == 9);
 
-            g_GunAimingOffsets[CAnimManager::GetAnimationGroupIdByName(stealthAnimGrp) - ANIM_GROUP_PYTHON] = {
+            ms_WeaponAimOffsets[CAnimManager::GetAnimationGroupIdByName(stealthAnimGrp) - ANIM_GROUP_PYTHON] = {
                 .AimX = aimX,
                 .AimZ = aimZ,
 
@@ -329,7 +333,7 @@ void CWeaponInfo::LoadWeaponData() {
                 wi.m_eAnimGroup = CAnimManager::GetAnimationGroupIdByName(stealthAnimGrpName);
 
             if (modelId1 > 0)
-                CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->m_weaponInfo = wType;
+                CModelInfo::GetModelInfo(modelId1)->AsWeaponModelInfoPtr()->SetWeaponInfo(wType);
 
             break;
         }
@@ -431,7 +435,7 @@ AnimationId CWeaponInfo::GetCrouchReloadAnimationID() const {
 
 // 0x743D50
 float CWeaponInfo::GetTargetHeadRange() const {
-    return (float)((uint32)m_nSkillLevel + 2) * m_fWeaponRange / 25.f;
+    return (float)(m_nSkillLevel.get_underlying() + 2) * m_fWeaponRange / 25.f;
 }
 
 // 0x743D70
@@ -442,6 +446,6 @@ uint32 CWeaponInfo::GetWeaponReloadTime() const {
     if (flags.bLongReload)
         return 1000u;
 
-    const auto& ao = g_GunAimingOffsets[m_nAimOffsetIndex];
+    const auto& ao = ms_WeaponAimOffsets[m_nAimOffsetIndex];
     return std::max(400u, (uint32)std::max({ ao.RLoadA, ao.RLoadB, ao.CrouchRLoadA, ao.CrouchRLoadB }) + 100);
 }

@@ -10,16 +10,7 @@
 #include "Shadows.h"
 #include "CarFXRenderer.h"
 
-RwRaster*& CMirrors::pBuffer = *(RwRaster**)0xC7C71C;
-RwRaster*& CMirrors::pZBuffer = *(RwRaster**)0xC7C720;
-bool& CMirrors::bRenderingReflection = *(bool*)0xC7C728;
-bool& CMirrors::d3dRestored = *(bool*)0xC7C729;
-eMirrorType& CMirrors::TypeOfMirror = *(eMirrorType*)0xC7C724;
-uint8& CMirrors::MirrorFlags = *(uint8*)0xC7C618;
-CVector& CMirrors::MirrorNormal = *(CVector*)0xC803D8;
-float& CMirrors::MirrorV = *(float*)0xC7C61C;
-
-bool& bFudgeNow = *(bool*)0xC7C72A;
+auto& bFudgeNow = StaticRef<bool>(0xC7C72A);
 
 /*!
  * Screen positions in Los Santos stadium. Odd job called as "8-Track"
@@ -137,7 +128,7 @@ void CMirrors::RenderMirrorBuffer() {
 
     RwImVertexIndex indices[] = { 0, 1, 2, 0, 2, 3 };
 
-    if (MirrorFlags & CAM_STAIRS_FOR_PLAYER || bFudgeNow) {
+    if (MirrorFlags & eZoneAttributes::STAIRS || bFudgeNow) {
         RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
         RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
@@ -301,7 +292,7 @@ void CMirrors::BeforeConstructRenderList() {
         Init();
     }
 
-    CCullZoneReflection* mirrorAttrs = nullptr;
+    CMirrorAttributeZone* mirrorAttrs = nullptr;
 
     const auto mirrorActive = [&](){
         // Check player is in heli/plane
@@ -317,7 +308,7 @@ void CMirrors::BeforeConstructRenderList() {
             return false;
         }
 
-        if ((mirrorAttrs->flags & CAM_STAIRS_FOR_PLAYER) == 0) {
+        if ((mirrorAttrs->flags & eZoneAttributes::STAIRS) == 0) {
             return true;
         }
 
@@ -331,8 +322,8 @@ void CMirrors::BeforeConstructRenderList() {
         // Actually update cam
         assert(mirrorAttrs);
 
-        MirrorV = mirrorAttrs->cm;
-        MirrorNormal = CVector{ (float)mirrorAttrs->vx, (float)mirrorAttrs->vy, (float)mirrorAttrs->vz } / 100.0f;
+        MirrorV = mirrorAttrs->mirrorV;
+        MirrorNormal = CVector{ (float)mirrorAttrs->mirrorNormalX, (float)mirrorAttrs->mirrorNormalY, (float)mirrorAttrs->mirrorNormalZ } / 100.0f;
         MirrorFlags = mirrorAttrs->flags;
 
         TypeOfMirror = std::fabs(MirrorNormal.z) <= 0.7f ? MIRROR_TYPE_WALL : MIRROR_TYPE_FLOOR;
@@ -341,7 +332,7 @@ void CMirrors::BeforeConstructRenderList() {
         ShutDown();
     }
 
-    if ((MirrorFlags & CAM_STAIRS_FOR_PLAYER) != 0 || bFudgeNow) {
+    if ((MirrorFlags & eZoneAttributes::STAIRS) != 0 || bFudgeNow) {
         CMatrix mat{};
         BuildCameraMatrixForScreens(mat);
         TheCamera.DealWithMirrorBeforeConstructRenderList(mirrorActive, MirrorNormal, MirrorV, &mat);
@@ -372,7 +363,7 @@ void CMirrors::BeforeMainRender() {
         DefinedState();
         RenderScene();
         CVisibilityPlugins::RenderWeaponPedsForPC();
-        CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+        CVisibilityPlugins::ResetWeaponPedsForPC();
         bRenderingReflection = false;
 
         RwCameraEndUpdate(Scene.m_pRwCamera);

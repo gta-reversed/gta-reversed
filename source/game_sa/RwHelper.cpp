@@ -36,7 +36,7 @@ void RwHelperInjectHooks() {
 
 // 0x4ABA50
 CEventGlobalGroup* GetEventGlobalGroup() {
-    static CEventGlobalGroup*& globalEvents = *(CEventGlobalGroup**)0xA9AF6C;
+    static auto& globalEvents = StaticRef<CEventGlobalGroup*>(0xA9AF6C);
 
     if (globalEvents)
         return globalEvents;
@@ -281,7 +281,7 @@ void SkinGetBonePositionsToTable(RpClump* clump, RwV3d* table) {
 // 0x7226D0
 RpAtomic* RemoveRefsCB(RpAtomic* atomic, void* data) {
     UNUSED(data);
-    auto* modelInfo = CVisibilityPlugins::GetAtomicModelInfo(atomic);
+    auto* modelInfo = CVisibilityPlugins::GetModelInfo(atomic);
     modelInfo->RemoveRef();
     return atomic;
 }

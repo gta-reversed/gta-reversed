@@ -24,7 +24,38 @@ constexpr auto NO_FOREGROUND_PAUSE = true;
 
 // 0x747300
 char* getDvdGamePath() {
-    return plugin::CallAndReturn<char*, 0x747300>();
+    SetErrorMode(SEM_FAILCRITICALERRORS);
+
+    size_t bufferSize = GetLogicalDriveStringsA(0, nullptr);
+    const auto drivesBuffer = new char[bufferSize];
+
+    GetLogicalDriveStringsA(bufferSize, drivesBuffer);
+    assert(bufferSize > 0);
+
+    char drivePath[8] = {};
+    char volumeName[MAX_PATH + 1] = {};
+
+    for (const auto* drive = drivesBuffer; *drive; drive += strlen(drive) + 1) {
+        strcpy_s(drivePath, sizeof(drivePath), drive);
+
+        if (GetDriveTypeA(drivePath) != DRIVE_CDROM) {
+            continue;
+        }
+
+        if (!GetVolumeInformationA(drivePath, volumeName, sizeof(volumeName), nullptr, nullptr, nullptr, nullptr, 0)) {
+            continue;
+        }
+
+        if (strcmp(volumeName, "GTA_SAN_ANDREAS") == 0) {
+            const auto result = new char[strlen(drivePath) + 1];
+            strcpy_s(result, strlen(drivePath) + 1, drivePath);
+            delete[] drivesBuffer;
+            return result;
+        }
+    }
+
+    delete[] drivesBuffer;
+    return nullptr;
 }
 
 // 0x746870
@@ -131,18 +162,18 @@ bool ProcessGameLogic(INT nCmdShow) {
     // TODO: Move this out from here (It's not platform specific at all)
     switch (gGameState) {
     case GAME_STATE_INITIAL: {
-        const auto ProcessSplash = [](bool isNVidia) {
-            CLoadingScreen::LoadSplashes(true, isNVidia);
+        const auto ProcessSplash = [](eLoadingLogo id) {
+            CLoadingScreen::LoadSplashes(true, id);
             CLoadingScreen::Init(true, true);
-            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::Shutdown();
         };
         if (!g_FastLoaderConfig.NoEAX) {
-            ProcessSplash(false);
+            ProcessSplash(eLoadingLogo::EAX);
         }
         if (!g_FastLoaderConfig.NoNVidia) {
-            ProcessSplash(true);
+            ProcessSplash(eLoadingLogo::NVIDIA);
         }
         ChangeGameStateTo(GAME_STATE_LOGO);
         break;
@@ -191,7 +222,7 @@ bool ProcessGameLogic(INT nCmdShow) {
         VideoPlayer::Shutdown();
         CLoadingScreen::Init(true, false);
         if (!g_FastLoaderConfig.NoCopyright) {
-            CLoadingScreen::DoPCTitleFadeOut();
+            CLoadingScreen::DoPCTitleFadeIn();
         }
         if (!CGame::InitialiseEssentialsAfterRW()) {
             RsGlobal.quit = true;
@@ -217,7 +248,7 @@ bool ProcessGameLogic(INT nCmdShow) {
         if (g_FastLoaderConfig.NoCopyright) {
             CLoadingScreen::SkipCopyrightSplash();
         } else {
-            CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
         }
         break;
     }

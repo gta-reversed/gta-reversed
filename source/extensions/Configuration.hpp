@@ -35,23 +35,23 @@ public:
     }
 
     void Load(const std::string& fileName) {
-        std::ifstream in(fileName);
+        std::wifstream in(fileName);
         assert(!in.bad());
 
         ParseIniFile(in, m_content);
     }
 
 private:
-    static void ParseIniFile(std::ifstream& file, IniContent& ini) {
-        std::string sectionName{""};
-        std::string line;
+    static void ParseIniFile(std::wifstream& file, IniContent& ini) {
+        std::string sectionName{};
+        std::wstring line{};
         while (std::getline(file, line)) {
-            const auto StripText = [](std::string& s) {
-                s.erase(0, s.find_first_not_of(" \t\n\r\f\v"));
-                s.erase(s.find_last_not_of(" \t\n\r\f\v") + 1);
+            const auto StripText = [](std::wstring& s) {
+                s.erase(0, s.find_first_not_of(L" \t\n\r\f\v"));
+                s.erase(s.find_last_not_of(L" \t\n\r\f\v") + 1);
             };
 
-            if (const auto cf = line.find(';'); cf != std::string::npos) {
+            if (const auto cf = line.find(';'); cf != std::wstring::npos) {
                 line.erase(cf);
             }
 
@@ -60,20 +60,19 @@ private:
             if (line.empty())
                 continue;
 
-            if (line.front() == '[' && line.back() == ']') {
-                sectionName = line.substr(1, line.size() - 2);
+            if (line.front() == L'[' && line.back() == L']') {
+                sectionName = UnicodeToUTF8(line.substr(1, line.size() - 2));
                 continue;
             }
 
-            if (const auto ef = line.find('='); ef != std::string::npos) {
-                auto key = line.substr(0, ef);
-                auto value = line.substr(ef + 1);
+            if (const auto ef = line.find(L'='); ef != std::wstring::npos) {
+                auto wkey = line.substr(0, ef);
+                auto wvalue = line.substr(ef + 1);
 
-                StripText(key);
-                StripText(value);
+                StripText(wkey);
+                StripText(wvalue);
 
-                NOTSA_LOG_DEBUG("key: {} value: {}", key, value);
-                ini[sectionName][std::move(key)] = std::move(value);
+                ini[sectionName][UnicodeToUTF8(wkey)] = UnicodeToUTF8(wvalue);
                 continue;
             }
 
@@ -83,6 +82,21 @@ private:
     }
 } g_ConfigurationMgr;
 
+namespace notsa::detail {
+template<typename T>
+struct unwrap_optional {
+    using type = T;
+};
+
+template<typename T>
+struct unwrap_optional<std::optional<T>> {
+    using type = T;
+};
+
+template<typename T>
+using unwrap_optional_t = unwrap_optional<T>::type;
+};
+
 #define INI_CONFIG_SECTION(name) \
     static constexpr auto IniSectionName = name
 
@@ -91,3 +105,9 @@ private:
 
 #define STORE_INI_CONFIG_VALUE(key_var, _default) \
 	key_var = g_ConfigurationMgr.GetIniValue<decltype(key_var)>(IniSectionName, #key_var).value_or(_default)
+
+#define GET_INI_CONFIG_VALUE_OPT(key, T) \
+    g_ConfigurationMgr.GetIniValue<T>(IniSectionName, key)
+
+#define STORE_INI_CONFIG_VALUE_OPT(key_var) \
+    key_var = g_ConfigurationMgr.GetIniValue<notsa::detail::unwrap_optional_t<decltype(key_var)>>(IniSectionName, #key_var)

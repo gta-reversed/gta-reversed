@@ -105,9 +105,9 @@ void CTaskSimpleArrestPed::StartAnim(CPed* ped) {
     }
 
     if (ped->m_nPedType == PED_TYPE_COP && m_Ped->m_nPedType <= PED_TYPE_PLAYER2) {
-        if (!m_Ped->m_pPlayerData->m_pArrestingCop) {
-            m_Ped->m_pPlayerData->m_pArrestingCop = static_cast<CCopPed*>(ped);
-            m_Ped->m_pPlayerData->m_pArrestingCop->RegisterReference(m_Ped->m_pPlayerData->m_pArrestingCop);
+        if (!m_Ped->GetPlayerData()->m_pArrestingCop) {
+            m_Ped->GetPlayerData()->m_pArrestingCop = static_cast<CCopPed*>(ped);
+            m_Ped->GetPlayerData()->m_pArrestingCop->RegisterReference(m_Ped->GetPlayerData()->m_pArrestingCop);
         }
     }
 

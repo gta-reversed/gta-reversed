@@ -20,58 +20,57 @@ enum {
 struct tRadioSettings {
     static constexpr size_t NUM_TRACKS = 5u;
 
-    std::array<int32, NUM_TRACKS> m_aTrackQueue{-1};
-    int32 m_iCurrentTrackID{-1};
-    int32 m_iPrevTrackID{-1};
-    int32 m_iTrackPlayTime{0};
-    int32 m_iTrackLengthMs{0};
-    int8 m_nTrackFlags{2}; // TODO: enum
-    eRadioID m_nCurrentRadioStation{RADIO_OFF}; // NOTSA init value.
-    int8  m_nBassSet{0};
-    float m_fBassGain{}; // unk. init
-    std::array<int8, NUM_TRACKS> m_aTrackTypes{TYPE_NONE};
-    int8  m_iCurrentTrackType{TYPE_NONE};
-    int8  m_iPrevTrackType{TYPE_NONE};
-    std::array<int8, NUM_TRACKS> m_aTrackIndexes{-1};
-    int8  m_iCurrentTrackIndex{-1};
-    int8  m_iPrevTrackIndex{-1};
-
-    tRadioSettings(eRadioID currentStation = RADIO_OFF)
-        : m_nCurrentRadioStation(currentStation)
-    {}
+    tRadioSettings(eRadioID currentStation = RADIO_OFF) :
+        StationID(currentStation)
+    {
+        rng::fill(TrackQueue, -1);
+        rng::fill(TrackTypes, TYPE_NONE);
+        rng::fill(TrackIndices, -1);
+    }
 
     void Reset() {
-        for (auto i = 0u; i < std::size(m_aTrackQueue); i++) {
-            m_aTrackQueue[i]   = -1;
-            m_aTrackTypes[i]   = TYPE_NONE;
-            m_aTrackIndexes[i] = -1;
-        }
+        *this = {};
     }
 
     void SwitchToNextTrack() {
-        m_iPrevTrackID = m_aTrackQueue.front();
-        m_iPrevTrackType = m_aTrackTypes.front();
-        m_iPrevTrackIndex = m_aTrackIndexes.front();
+        PrevTrackID   = TrackQueue.front();
+        PrevTrackType = TrackTypes.front();
+        PrevTrackIdx  = TrackIndices.front();
 
         const auto Rotate = [](auto& arr, auto invalidValue) {
             std::copy(arr.begin() + 1, arr.end(), arr.begin());
             arr.back() = invalidValue;
         };
-
-        Rotate(m_aTrackQueue,   -1);
-        Rotate(m_aTrackTypes,   TYPE_NONE);
-        Rotate(m_aTrackIndexes, -1);
+        Rotate(TrackQueue,   -1);
+        Rotate(TrackTypes,   TYPE_NONE);
+        Rotate(TrackIndices, -1);
     }
+
+    std::array<int32, NUM_TRACKS> TrackQueue{ -1 };
+    int32                         CurrTrackID{ -1 };
+    int32                         PrevTrackID{ -1 };
+    int32                         PlayTime{ 0 };
+    int32                         TrackLengthMs{ 0 };
+    int8                          TrackFlags{ 2 };        // TODO: enum
+    eRadioID                      StationID{ RADIO_OFF }; // NOTSA init value.
+    eBassSetting                  BassSetting{ eBassSetting::NORMAL };
+    float                         BassGain{}; // unk. init
+    std::array<int8, NUM_TRACKS>  TrackTypes{ TYPE_NONE };
+    int8                          CurrTrackType{ TYPE_NONE };
+    int8                          PrevTrackType{ TYPE_NONE };
+    std::array<int8, NUM_TRACKS>  TrackIndices{ -1 };
+    int8                          CurrTrackIdx{ -1 }; //!< Index into `TrackIndices`
+    int8                          PrevTrackIdx{ -1 }; //!< Index into `TrackIndices`
 };
 VALIDATE_SIZE(tRadioSettings, 0x3C);
 
 struct tRadioState {
-    int32 m_aElapsed[3]{0};
+    std::array<int32, 3> m_aElapsed{0};
     int32 m_iTimeInPauseModeInMs{-1};
     int32 m_iTimeInMs{-1};
     int32 m_iTrackPlayTime{-1};
-    int32 m_aTrackQueue[3]{-1};
-    int8 m_aTrackTypes[3]{TYPE_NONE};
+    std::array<int32, 3> m_aTrackQueue{-1};
+    std::array<int8, 3>  m_aTrackTypes{TYPE_NONE};
     int8 m_nGameClockDays{-1};
     int8 m_nGameClockHours{-1};
 
@@ -132,10 +131,10 @@ public:
     bool            m_bPauseMode{false};
     bool            m_bRetuneJustStarted{false};
     bool            m_bRadioAutoSelect{true};
-    uint8           m_nTracksInARow[RADIO_COUNT]{0};
+    std::array<uint8, RADIO_COUNT>       m_nTracksInARow{};
     uint8           m_nSavedGameClockDays{0xff};
     uint8           m_nSavedGameClockHours{0xff};
-    int32           m_aListenTimes[RADIO_COUNT]{}; // Filled from `CStats::FavoriteRadioStationList`
+    std::array<int32, RADIO_COUNT>       m_aListenTimes{}; // Filled from `CStats::FavoriteRadioStationList`
     uint32          m_nTimeRadioStationRetuned{0};
     uint32          m_nTimeToDisplayRadioName{0};
     uint32          m_nSavedTimeMs{0};
@@ -152,7 +151,7 @@ public:
     float           m_f84{0.0f};
     tRadioSettings  m_RequestedSettings{}; // settings1
     tRadioSettings  m_ActiveSettings{}; // settings2
-    tRadioState     m_aRadioState[RADIO_COUNT]{};
+    std::array<tRadioState, RADIO_COUNT> m_aRadioState{};
     uint32          field_368{0};
     uint8           m_nUserTrackPlayMode{};
 
@@ -166,39 +165,39 @@ public:
     using IdentIndexHistory    = tRadioIndexHistory<int32, IDENT_INDEX_HISTORY_COUNT>;
     using MusicTrackHistory    = tRadioIndexHistory<int8, MUSIC_TRACK_HISTORY_COUNT>;
 
-    static inline DJBanterIndexHistory (&m_nDJBanterIndexHistory)[RADIO_COUNT] = *(DJBanterIndexHistory(*)[RADIO_COUNT])0xB61D78; // 210
-    static inline AdvertIndexHistory (&m_nAdvertIndexHistory)[RADIO_COUNT] = *(AdvertIndexHistory(*)[RADIO_COUNT])0xB620C0;       // 560
-    static inline IdentIndexHistory (&m_nIdentIndexHistory)[RADIO_COUNT] = *(IdentIndexHistory(*)[RADIO_COUNT])0xB62980;          // 112
-    static inline MusicTrackHistory (&m_nMusicTrackIndexHistory)[RADIO_COUNT] = *(MusicTrackHistory(*)[RADIO_COUNT])0xB62B40;   // 280
+    static inline auto& m_nDJBanterIndexHistory = StaticRef<DJBanterIndexHistory[RADIO_COUNT]>(0xB61D78); // 210
+    static inline auto& m_nAdvertIndexHistory = StaticRef<AdvertIndexHistory[RADIO_COUNT]>(0xB620C0);       // 560
+    static inline auto& m_nIdentIndexHistory = StaticRef<IdentIndexHistory[RADIO_COUNT]>(0xB62980);          // 112
+    static inline auto& m_nMusicTrackIndexHistory = StaticRef<MusicTrackHistory[RADIO_COUNT]>(0xB62B40);   // 280
 
-    static uint8& m_nStatsLastHitTimeOutHours;   // = -1;
-    static uint8& m_nStatsLastHitGameClockHours; // = -1;
-    static uint8& m_nStatsLastHitGameClockDays;  // = -1;
-    static uint8& m_nStatsStartedCrash1;         // = 0;
-    static uint8& m_nStatsStartedCat2;           // = 0;
-    static uint8& m_nStatsStartedBadlands;       // = 0;
-    static uint8& m_nStatsPassedVCrash2;         // = 0;
-    static uint8& m_nStatsPassedTruth2;          // = 0;
-    static uint8& m_nStatsPassedSweet2;          // = 0;
-    static uint8& m_nStatsPassedStrap4;          // = 0;
-    static uint8& m_nStatsPassedSCrash1;         // = 0;
-    static uint8& m_nStatsPassedRiot1;           // = 0;
-    static uint8& m_nStatsPassedRyder2;          // = 0;
-    static uint8& m_nStatsPassedMansion2;        // = 0;
-    static uint8& m_nStatsPassedLAFin2;          // = 0;
-    static uint8& m_nStatsPassedFarlie3;         // = 0;
-    static uint8& m_nStatsPassedDesert10;        // = 0;
-    static uint8& m_nStatsPassedDesert8;         // = 0;
-    static uint8& m_nStatsPassedDesert5;         // = 0;
-    static uint8& m_nStatsPassedDesert3;         // = 0;
-    static uint8& m_nStatsPassedDesert1;         // = 0;
-    static uint8& m_nStatsPassedCat1;            // = 0;
-    static uint8& m_nStatsPassedCasino10;        // = 0;
-    static uint8& m_nStatsPassedCasino6;         // = 0;
-    static uint8& m_nStatsPassedCasino3;         // = 0;
-    static uint8& m_nStatsCitiesPassed;          // = 0;
-    static uint8& m_nSpecialDJBanterIndex;       // = -1;
-    static uint8& m_nSpecialDJBanterPending;     // = 3; // ?
+    static inline auto& m_nStatsLastHitTimeOutHours = StaticRef<uint8>(0xB62C58); // = -1;
+    static inline auto& m_nStatsLastHitGameClockHours = StaticRef<uint8>(0xB62C59); // = -1;
+    static inline auto& m_nStatsLastHitGameClockDays = StaticRef<uint8>(0xB62C5A); // = -1;
+    static inline auto& m_nStatsStartedCrash1 = StaticRef<uint8>(0xB62C5B); // = 0;
+    static inline auto& m_nStatsStartedCat2 = StaticRef<uint8>(0xB62C5C); // = 0;
+    static inline auto& m_nStatsStartedBadlands = StaticRef<uint8>(0xB62C5D); // = 0;
+    static inline auto& m_nStatsPassedVCrash2 = StaticRef<uint8>(0xB62C5E); // = 0;
+    static inline auto& m_nStatsPassedTruth2 = StaticRef<uint8>(0xB62C5F); // = 0;
+    static inline auto& m_nStatsPassedSweet2 = StaticRef<uint8>(0xB62C60); // = 0;
+    static inline auto& m_nStatsPassedStrap4 = StaticRef<uint8>(0xB62C61); // = 0;
+    static inline auto& m_nStatsPassedSCrash1 = StaticRef<uint8>(0xB62C62); // = 0;
+    static inline auto& m_nStatsPassedRiot1 = StaticRef<uint8>(0xB62C63); // = 0;
+    static inline auto& m_nStatsPassedRyder2 = StaticRef<uint8>(0xB62C64); // = 0;
+    static inline auto& m_nStatsPassedMansion2 = StaticRef<uint8>(0xB62C65); // = 0;
+    static inline auto& m_nStatsPassedLAFin2 = StaticRef<uint8>(0xB62C66); // = 0;
+    static inline auto& m_nStatsPassedFarlie3 = StaticRef<uint8>(0xB62C67); // = 0;
+    static inline auto& m_nStatsPassedDesert10 = StaticRef<uint8>(0xB62C68); // = 0;
+    static inline auto& m_nStatsPassedDesert8 = StaticRef<uint8>(0xB62C69); // = 0;
+    static inline auto& m_nStatsPassedDesert5 = StaticRef<uint8>(0xB62C6A); // = 0;
+    static inline auto& m_nStatsPassedDesert3 = StaticRef<uint8>(0xB62C6B); // = 0;
+    static inline auto& m_nStatsPassedDesert1 = StaticRef<uint8>(0xB62C6C); // = 0;
+    static inline auto& m_nStatsPassedCat1 = StaticRef<uint8>(0xB62C6D); // = 0;
+    static inline auto& m_nStatsPassedCasino10 = StaticRef<uint8>(0xB62C6E); // = 0;
+    static inline auto& m_nStatsPassedCasino6 = StaticRef<uint8>(0xB62C6F); // = 0;
+    static inline auto& m_nStatsPassedCasino3 = StaticRef<uint8>(0xB62C70); // = 0;
+    static inline auto& m_nStatsCitiesPassed = StaticRef<uint8>(0xB62C71); // = 0;
+    static inline auto& m_nSpecialDJBanterIndex = StaticRef<uint8>(0xB62C72); // = -1;
+    static inline auto& m_nSpecialDJBanterPending = StaticRef<uint8>(0xB62C73); // = 3; // ?
 
 public:
     static void InjectHooks();
@@ -220,7 +219,7 @@ public:
     int32* GetRadioStationListenTimes();
     void   SetRadioAutoRetuneOnOff(bool enable);
     void   SetBassEnhanceOnOff(bool enable);
-    void   SetBassSetting(int8 nBassSet, float fBassGrain);
+    void   SetBassSetting(eBassSetting bassSetting, float bassGrain);
     void   RetuneRadio(eRadioID radioId);
 
     void  DisplayRadioStationName();
@@ -231,8 +230,8 @@ public:
     void StartTrackPlayback();
     void UpdateRadioVolumes();
     void PlayRadioAnnouncement(uint32);
-    void StartRadio(eRadioID id, int8 bassValue, float bassGain, uint8 a5);
-    void StartRadio(tVehicleAudioSettings* settings);
+    void StartRadio(eRadioID id, eBassSetting bassSetting, float bassGain, bool skipTrack);
+    void StartRadio(const tVehicleAudioSettings& settings);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
 
     void Service(int32 playTime);
@@ -261,7 +260,7 @@ protected:
     void CheckForPause();
 
     bool QueueUpTracksForStation(eRadioID id, int8* iTrackCount, int8 radioState, tRadioSettings& settings);
-    bool TrackRadioStation(eRadioID id, uint8 a2);
+    bool TrackRadioStation(eRadioID id, bool skipTrack);
 };
 VALIDATE_SIZE(CAERadioTrackManager, 0x370);
 

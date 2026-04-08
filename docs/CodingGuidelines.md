@@ -16,8 +16,6 @@
 * Use `ranges` versions of `std` functions as much as possible.
 * Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
 * We encourage you to write modern C++, but if that's not your style, please keep the following in mind:
-* Use `ranges` versions of `std` functions as much as possible.
-* Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
 ```cpp
 for (auto& element : array); // <-- GOOD
 
@@ -75,6 +73,9 @@ If that's not possible [due to code complexity], then wrap into an `#ifdef`:
 // Bug fixing code here
 #endif
 ```
+#### Using `assert`
+We encourage the usage of `assert` - if you think something may be out-of-bounds, or otherwise bug-prone, make sure to add an `assert`, it can help debugging the code a lot!
+Do **not** add early returns for possible error conditions, use `assert` instead!
 
 ### Handling translated (GXT) text
 * GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)

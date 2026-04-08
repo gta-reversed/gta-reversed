@@ -60,7 +60,7 @@ void CVehicleRecording::ChangeCarPlaybackToUseAI(CVehicle* vehicle) {
         SetRecordingToPointClosestToCoors(i, vehicle->GetPosition());
         vehicle->physicalFlags.bDisableCollisionForce = false;
         vehicle->ProcessControlCollisionCheck(false);
-        vehicle->m_nStatus = STATUS_PHYSICS;
+        vehicle->SetStatus(STATUS_PHYSICS);
     }
 }
 
@@ -257,12 +257,12 @@ void CVehicleRecording::RestoreInfoForCar(CVehicle* vehicle, const CVehicleState
     RestoreInfoForMatrix(vehicle->GetMatrix(), frame);
     vehicle->ResetTurnSpeed();
     vehicle->m_fSteerAngle = frame.m_bSteeringAngle;
-    vehicle->m_fGasPedal   = frame.m_bGasPedalPower;
-    vehicle->m_fBreakPedal = frame.m_bBreakPedalPower;
+    vehicle->m_GasPedal   = frame.m_bGasPedalPower;
+    vehicle->m_BrakePedal = frame.m_bBreakPedalPower;
     vehicle->vehicleFlags.bIsHandbrakeOn = pause || frame.m_bHandbrakeUsed;
 
     if (pause) {
-        vehicle->m_fSteerAngle = vehicle->m_fGasPedal = vehicle->m_fBreakPedal = 0.0f;
+        vehicle->m_fSteerAngle = vehicle->m_GasPedal = vehicle->m_BrakePedal = 0.0f;
         vehicle->ResetMoveSpeed();
     }
 }
@@ -324,7 +324,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
 
             vehicle->ProcessControlCollisionCheck(false);
             vehicle->RemoveAndAdd();
-            vehicle->UpdateRW();
+            vehicle->UpdateRwMatrix();
             vehicle->UpdateRwFrame();
 
             MarkSurroundingEntitiesForCollisionWithTrain(vehicle->GetPosition(), 5.0f, vehicle, true);

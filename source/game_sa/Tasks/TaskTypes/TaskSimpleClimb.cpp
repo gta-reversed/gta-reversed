@@ -10,22 +10,22 @@
 #include "TaskSimpleClimb_models.h"
 
 
-CColModel& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
-CColModel& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
-CColModel& ms_VaultColModel    = StaticRef<CColModel>(0xC19578);
-CColModel& ms_FindEdgeColModel = StaticRef<CColModel>(0xC195A8);
+auto& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
+auto& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
+auto& ms_VaultColModel    = StaticRef<CColModel>(0xC19578);
+auto& ms_FindEdgeColModel = StaticRef<CColModel>(0xC195A8);
 
-float ms_fHangingOffsetHorz = -0.40f; // 0x8D2F1C
-float ms_fHangingOffsetVert = -1.10f; // 0x8D2F20
+const float ms_fHangingOffsetHorz = -0.40f; // 0x8D2F1C
+const float ms_fHangingOffsetVert = -1.10f; // 0x8D2F20
 
-float ms_fAtEdgeOffsetHorz = -0.40f; // 0x8D2F24
-float ms_fAtEdgeOffsetVert = +0.00f; // 0xC18F78
+const float ms_fAtEdgeOffsetHorz = -0.40f; // 0x8D2F24
+const float ms_fAtEdgeOffsetVert = +0.00f; // 0xC18F78
 
-float ms_fStandUpOffsetHorz = +0.15f; // 0x8D2F28
-float ms_fStandUpOffsetVert = +1.00f; // 0x8D2F2C
+const float ms_fStandUpOffsetHorz = +0.15f; // 0x8D2F28
+const float ms_fStandUpOffsetVert = +1.00f; // 0x8D2F2C
 
-float ms_fVaultOffsetHorz = +0.50f; // 0x8D2F30
-float ms_fVaultOffsetVert = +0.00f; // 0xC18F7C
+const float ms_fVaultOffsetHorz = +0.50f; // 0x8D2F30
+const float ms_fVaultOffsetVert = +0.00f; // 0xC18F7C
 
 void CTaskSimpleClimb::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleClimb, 0x87059C, 9);
@@ -74,12 +74,12 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
         return true;
     }
 
-    if (!m_ClimbEntity || m_ClimbEntity->IsObject() && !m_ClimbEntity->IsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->IsVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
+    if (!m_ClimbEntity || m_ClimbEntity->GetIsTypeObject() && !m_ClimbEntity->GetIsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->GetIsTypeVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
         MakeAbortable(ped);
         return true;
     }
 
-    if (m_ClimbEntity->IsVehicle()) {
+    if (m_ClimbEntity->GetIsTypeVehicle()) {
         ped->m_pEntityIgnoredCollision = m_ClimbEntity;
     }
 
@@ -113,7 +113,7 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
 
         CVector vecClimbEntSpeed{};
         CVector delta = targetPt - ped->GetPosition();
-        if (!m_ClimbEntity->IsStatic() && m_ClimbEntity->IsPhysical()) {
+        if (!m_ClimbEntity->GetIsStatic() && m_ClimbEntity->GetIsTypePhysical()) {
             vecClimbEntSpeed = m_ClimbEntity->AsPhysical()->GetSpeed(targetPt - m_ClimbEntity->GetPosition());
         }
 
@@ -303,12 +303,12 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
             continue;
         }
 
-        if (entity->IsBuilding()
-            || (entity->IsObject()
-                && (entity->IsStatic() || entity->AsObject()->physicalFlags.bDisableCollisionForce)
+        if (entity->GetIsTypeBuilding()
+            || (entity->GetIsTypeObject()
+                && (entity->GetIsStatic() || entity->AsObject()->physicalFlags.bDisableCollisionForce)
                 && !entity->AsObject()->physicalFlags.bInfiniteMass
             )
-            || (entity->IsVehicle()
+            || (entity->GetIsTypeVehicle()
                 && (hasToTestStandup || hasToTestDropOtherSide || (ped->GetIntelligence()->GetTaskSwim() && entity->AsVehicle()->IsSubBoat()) || (entity->AsVehicle()->IsSubTrain() && entity->AsVehicle()->m_vecMoveSpeed.Magnitude2D() < 0.1F))
             )) {
             if (DistanceBetweenPoints(entity->GetBoundCentre(), ped->GetMatrix().TransformPoint(cm->GetBoundCenter())) >= entity->GetModelInfo()->GetColModel()->GetBoundRadius() + cm->GetBoundRadius()) {
@@ -316,14 +316,14 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
             }
 
             int32 numSpheres = -1;
-            if (entity->IsVehicle() && entity->AsVehicle()->IsSubBoat()) {
+            if (entity->GetIsTypeVehicle() && entity->AsVehicle()->IsSubBoat()) {
                 numSpheres                                       = entity->GetColModel()->m_pColData->m_nNumSpheres;
                 entity->GetColModel()->m_pColData->m_nNumSpheres = 0;
             }
 
             if (CCollision::ProcessColModels(*ped->m_matrix, *cm, entity->GetMatrix(), *entity->GetColModel(), CWorld::m_aTempColPts, nullptr, nullptr, false) > 0) {
                 if (hasToTestStandup || hasToTestDropOtherSide) {
-                    if (entity->IsVehicle() && numSpheres > -1) {
+                    if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
 
@@ -332,7 +332,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                 uint8 nColSphereIndex = CWorld::m_aTempColPts[0].m_nPieceTypeA;
 
                 if (nColSphereIndex == 0 || nColSphereIndex == 1 || nColSphereIndex == 2 || nColSphereIndex == 3 || nColSphereIndex == 4 || nColSphereIndex == 10) {
-                    if (entity->IsVehicle() && numSpheres > -1) {
+                    if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
                     return (CEntity*)(1);
@@ -340,17 +340,17 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
                 auto relPosn = CWorld::m_aTempColPts[0].m_vecPoint - outTargetPos;
                 if (nColSphereIndex == 16 || CWorld::m_aTempColPts[0].m_vecPoint.z <= outTargetPos.z && DotProduct(relPosn, ped->GetForward()) >= 0.0f || !g_surfaceInfos.CanClimb(CWorld::m_aTempColPts[0].m_nSurfaceTypeB)) {
-                    if (entity->IsVehicle() && numSpheres > -1) {
+                    if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                         entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                     }
                     continue;
                 }
 
-                int32 fatModifier = ped->m_pPlayerData && !ped->GetIntelligence()->GetTaskSwim() ? (int32)CStats::GetFatAndMuscleModifier(STAT_MOD_0) : 0;
+                int32 fatModifier = ped->GetPlayerData() && !ped->GetIntelligence()->GetTaskSwim() ? (int32)CStats::GetFatAndMuscleModifier(STAT_MOD_0) : 0;
 
                 if (!isLaunch || fatModifier >= 1) {
                     if (nColSphereIndex == 5 || nColSphereIndex == 11 || nColSphereIndex == 17) {
-                        if (entity->IsVehicle() && numSpheres > -1) {
+                        if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                             entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                         }
                         continue;
@@ -358,7 +358,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
 
                     if (fatModifier >= 1 && (!isLaunch || fatModifier >= 2)) {
                         if (nColSphereIndex == 6 || nColSphereIndex == 12 || nColSphereIndex == 18) {
-                            if (entity->IsVehicle() && numSpheres > -1) {
+                            if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                                 entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                             }
                             continue;
@@ -408,10 +408,10 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
                     }
                 }
 
-                if (entity->IsVehicle() && numSpheres > -1) {
+                if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                     entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
                 }
-            } else if (entity->IsVehicle() && numSpheres > -1) {
+            } else if (entity->GetIsTypeVehicle() && numSpheres > -1) {
                 entity->GetColModel()->m_pColData->m_nNumSpheres = numSpheres;
             }
         }
@@ -443,17 +443,17 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
     int32 endSectorX   = CWorld::GetSectorX(outPoint.x + ms_ClimbColModel.GetBoundRadius());
     int32 endSectorY   = CWorld::GetSectorY(outPoint.y + ms_ClimbColModel.GetBoundRadius());
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 y = startSectorY; y <= endSectorY; y++) {
         for (int32 x = startSectorX; x <= endSectorX; x++) {
             const auto ScanToGrabSector = [&]<typename PtrListType>(PtrListType& ptrList) -> CEntity* {
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
-            auto scanResult1 = ScanToGrabSector(GetSector(x, y)->m_buildings);
-            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Objects);
+            auto scanResult1 = ScanToGrabSector(CWorld::GetSector(x, y).Buildings);
+            auto scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Objects);
             if (!scanResult2) {
-                scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Vehicles);
+                scanResult2 = ScanToGrabSector(CWorld::GetRepeatSector(x, y).Vehicles);
             }
 
             if (scanResult1 == (CEntity*)(1) || scanResult2 == (CEntity*)(1)) {
@@ -479,7 +479,7 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
     }
 
     if (collidedEntity) {
-        if (collidedEntity->IsPhysical()) {
+        if (collidedEntity->GetIsTypePhysical()) {
             outClimbPos = Invert(collidedEntity->GetMatrix()).TransformPoint(outClimbPos);
             outClimbAngle -= collidedEntity->GetHeading();
         }
@@ -540,7 +540,7 @@ bool CTaskSimpleClimb::TestForVault(CPed* ped, const CVector& point, float fAngl
     float        angle;
     eSurfaceType surfaceType;
     CVector      pedPos = point + GetClimbOffset3D({ ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert }, fAngle);
-    return !m_ClimbEntity->IsVehicle()
+    return !m_ClimbEntity->GetIsTypeVehicle()
         && !ScanToGrab(ped, climbPos, angle, surfaceType, false, false, true, &pedPos);
 }
 
@@ -585,8 +585,8 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
         CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
         ped->SetMoveState(PEDMOVE_STILL);
         ped->SetMoveAnim();
-        if (ped->m_pPlayerData) {
-            ped->m_pPlayerData->m_fMoveBlendRatio = 0.0f;
+        if (ped->GetPlayerData()) {
+            ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
         }
         if (m_Anim) {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
@@ -611,7 +611,7 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
 
     if (m_Anim) {
         m_Anim->SetDeleteCallback(DeleteAnimCB, this);
-        if (ped->m_pPlayerData && m_Anim->m_Flags & ANIMATION_IS_PLAYING && (m_Anim->m_AnimId == ANIM_ID_CLIMB_PULL || m_Anim->m_AnimId == ANIM_ID_CLIMB_STAND || m_Anim->m_AnimId == ANIM_ID_CLIMB_JUMP_B)) {
+        if (ped->GetPlayerData() && m_Anim->m_Flags & ANIMATION_IS_PLAYING && (m_Anim->m_AnimId == ANIM_ID_CLIMB_PULL || m_Anim->m_AnimId == ANIM_ID_CLIMB_STAND || m_Anim->m_AnimId == ANIM_ID_CLIMB_JUMP_B)) {
             m_Anim->m_Speed = CStats::GetFatAndMuscleModifier(STAT_MOD_1);
         }
     }
@@ -708,7 +708,7 @@ CVector CTaskSimpleClimb::GetClimbOffset3D(CVector2D offset2D, float angle) {
 }
 
 std::pair<CVector, float> CTaskSimpleClimb::GetHandholdPosAndAngleForEntity(CEntity* entity, const CVector& handPos, float handAngle) {
-    if (entity->IsPhysical()) {
+    if (entity->GetIsTypePhysical()) {
         return { entity->GetMatrix().TransformPoint(handPos), handAngle + entity->GetHeading() };
     }
     return { handPos, handAngle };

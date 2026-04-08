@@ -18,7 +18,7 @@ constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E
 
 // Array of TXD slot indices for each radar section's texture
 // Index using y, x (In that order)
-static std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>& gRadarTextures = *(std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>*)0xBA8478;
+static auto& gRadarTextures = StaticRef<std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>>(0xBA8478);
 
 // 0x8D0720
 SpriteFileName CRadar::RadarBlipFileNames[] = {
@@ -258,8 +258,8 @@ void CRadar::DrawLegend(int32 x, int32 y, eRadarSprite blipType) {
         return;
     }
 
-    static auto& legendTraceHeight = StaticRef<eRadarTraceHeight, 0xBAA350>(); // = eRadarTraceHeight::RADAR_TRACE_LOW;
-    static auto& legendTraceTimer  = StaticRef<uint32, 0xBAA354>(); // = CTimer::GetTimeInMS();
+    static auto& legendTraceHeight = StaticRef<eRadarTraceHeight>(0xBAA350); // = eRadarTraceHeight::RADAR_TRACE_LOW;
+    static auto& legendTraceTimer  = StaticRef<uint32>(0xBAA354); // = CTimer::GetTimeInMS();
 
     if (CTimer::GetTimeInMSPauseMode() - legendTraceTimer > 600) {
         legendTraceTimer = CTimer::GetTimeInMSPauseMode();
@@ -603,7 +603,7 @@ bool CRadar::HasThisBlipBeenRevealed(int32 blipIndex) {
  * @returns True if it's allowed to be drawn.
  */
 bool CRadar::DisplayThisBlip(eRadarSprite spriteId, int8 priority) {
-    if (CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->m_nAreaCode == AREA_CODE_NORMAL_WORLD) {
+    if (CGame::CanSeeOutSideFromCurrArea() && FindPlayerPed()->GetAreaCode() == AREA_CODE_NORMAL_WORLD) {
         switch (spriteId) {
         case RADAR_SPRITE_NONE:
         case RADAR_SPRITE_WHITE:
@@ -972,8 +972,8 @@ void CRadar::DrawRotatingRadarSprite(CSprite2d& sprite, float x, float y, float 
 
 // 0x584960
 void CRadar::DrawYouAreHereSprite(float x, float y) {
-    static auto& mapYouAreHereTimer = *(uint32*)0xBAA358;
-    static auto& mapYouAreHereDisplay = *(bool*)0x8D0930;
+    static auto& mapYouAreHereTimer = StaticRef<uint32>(0xBAA358);
+    static auto& mapYouAreHereDisplay = StaticRef<bool>(0x8D0930);
 
     if (CTimer::GetTimeInMSPauseMode() - mapYouAreHereTimer > 700) {
         mapYouAreHereTimer = CTimer::GetTimeInMSPauseMode();
@@ -1289,7 +1289,7 @@ void CRadar::SetMapCentreToPlayerCoords() {
 
     InitFrontEndMap();
 
-    CVector2D posReal = FindPlayerCentreOfWorld_NoInteriorShift(0);
+    CVector2D posReal = FindPlayerCentreOfWorldForMap(0);
 
     if (CTheScripts::HideAllFrontEndMapBlips || CTheScripts::bPlayerIsOffTheMap)
         posReal.Set(0.0f, 0.0f);
@@ -1364,7 +1364,7 @@ void CRadar::Draw3dMarkers() {
                         NOTSA_UNREACHABLE("Couldn't get the pickup!");
                     }
                 }
-                ret.z += (CGame::currArea != 0 || FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD) ? 1.6f : 1.8f;
+                ret.z += (CGame::currArea != 0 || FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD) ? 1.6f : 1.8f;
 
                 return ret;
             }();
@@ -1376,7 +1376,7 @@ void CRadar::Draw3dMarkers() {
             if (CTheScripts::IsPlayerOnAMission() || !FindPlayerPed())
                 break;
 
-            if (!trace.m_bTrackingBlip && FindPlayerPed()->m_nAreaCode != AREA_CODE_NORMAL_WORLD)
+            if (!trace.m_bTrackingBlip && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
                 break;
 
             C3dMarkers::PlaceMarkerSet(coneHandle, MARKER3D_CYLINDER, trace.m_vPosition, 2.0f, 255, 0, 0, 228, 2048u, 0.2f, 0);
@@ -1471,7 +1471,7 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
 
     // Now draw what we have
     if (numVerts > 2) {
-        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, numVerts);
+        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices.data(), numVerts);
     }
 }
 
@@ -1490,15 +1490,15 @@ void CRadar::DrawRadarSectionMap(int32 x, int32 y, CRect rect) {
             RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
 
             CSprite2d::SetVertices(rect, bg, bg, bg, bg);
-            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices.data(), 4);
         }
     }
 }
 
 // 0x586650
 void CRadar::DrawRadarGangOverlay(bool inMenu) {
-    static uint32& g_RadarGangResetOverlay = *(uint32*)0xBAA36C; // bool?
-    static CRect& g_RadarGangOverlay = *(CRect*)0xBAA35C;
+    static auto& g_RadarGangResetOverlay = StaticRef<uint32>(0xBAA36C); // bool?
+    static auto& g_RadarGangOverlay = StaticRef<CRect>(0xBAA35C);
 
     if ((g_RadarGangResetOverlay & 1) == 0) {
         g_RadarGangResetOverlay |= 1u;
@@ -1576,7 +1576,7 @@ void CRadar::DrawRadarMap() {
 
     // Draw green rectangle when in plane
     if (vehicle && vehicle->IsSubPlane() && !ModelIndices::IsVortex(vehicle->m_nModelIndex)) {
-        CVector playerPos = FindPlayerCentreOfWorld_NoInteriorShift(0);
+        CVector playerPos = FindPlayerCentreOfWorldForMap(0);
 
         const auto cSin = cachedSin;
         const auto cCos = cachedCos;
@@ -1607,7 +1607,7 @@ void CRadar::DrawRadarMap() {
 // 0x586B00
 void CRadar::DrawMap() {
     const auto player = FindPlayerPed();
-    const auto mapShouldDrawn = !CGame::currArea && player->m_nAreaCode == 0 && FrontEndMenuManager.m_nRadarMode != 1;
+    const auto mapShouldDrawn = !CGame::currArea && player->GetAreaCode() == AREA_CODE_NORMAL_WORLD && FrontEndMenuManager.m_nRadarMode != 1;
 
     CalculateCachedSinCos();
 
@@ -1643,11 +1643,11 @@ void CRadar::DrawMap() {
 
     vec2DRadarOrigin = []() -> CVector2D {
         if (!CGameLogic::IsCoopGameGoingOn()) [[likely]] {
-            return FindPlayerCentreOfWorld_NoInteriorShift(0);
+            return FindPlayerCentreOfWorldForMap(0);
         } else if (CGameLogic::n2PlayerPedInFocus == eFocusedPlayer::PLAYER2) {
-            return FindPlayerCentreOfWorld_NoInteriorShift(1);
+            return FindPlayerCentreOfWorldForMap(1);
         } else {
-            return (FindPlayerCentreOfWorld_NoInteriorShift(0) + FindPlayerCentreOfWorld_NoInteriorShift(1)) / 2.0f; // Halfway between the two player's positions
+            return (FindPlayerCentreOfWorldForMap(0) + FindPlayerCentreOfWorldForMap(1)) / 2.0f; // Halfway between the two player's positions
         }
     }();
 
@@ -1694,7 +1694,7 @@ void CRadar::DrawCoordBlip(int32 blipIndex, bool isSprite) {
     }
 
     const auto GetHeight = [&] {
-        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorld_NoInteriorShift(PED_TYPE_PLAYER1).z;
+        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorldForMap(PED_TYPE_PLAYER1).z;
 
         if (zDiff > 2.0f) {
             // trace is higher
@@ -1944,8 +1944,10 @@ void CRadar::DrawBlips() {
         }
     }
 
-    const auto GetPlayerMarkerPosition = [] {
-        const auto playerDirection = (FindPlayerCentreOfWorld_NoInteriorShift(0) - vec2DRadarOrigin) / m_radarRange;
+    // FIX_BUGS: Originally 2 player blips both drawing P1's position.
+    // https://github.com/CookiePLMonster/SilentPatch/issues/209
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
+        const auto playerDirection = (FindPlayerCentreOfWorldForMap(playerIndex) - vec2DRadarOrigin) / m_radarRange;
 
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
@@ -1965,7 +1967,7 @@ void CRadar::DrawBlips() {
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
 
-            const auto pos = GetPlayerMarkerPosition();
+            const auto pos = GetPlayerMarkerPosition(notsa::IsFixBugs() ? i : 0);
 
             const auto angle = [] {
                 const auto heading = FindPlayerHeading(0);
@@ -1983,16 +1985,12 @@ void CRadar::DrawBlips() {
                 pos.y,
                 angle,
                 static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #ifdef FIX_BUGS
-                static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)),
-            #else
-                static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #endif
+                (notsa::IsFixBugs() ? static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)) : static_cast<uint32>(SCREEN_STRETCH_X(8.0f))),
                 player->IsHidden() ? CRGBA{50, 50, 50, 255} : CRGBA{255, 255, 255, 255}
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition();
+        const auto pos = GetPlayerMarkerPosition(0);
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }

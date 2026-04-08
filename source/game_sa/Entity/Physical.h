@@ -139,17 +139,17 @@ public:
     float               m_fDynamicLighting;
     CRealTimeShadow*    m_pShadowData;
 
-    static float& DAMPING_LIMIT_IN_FRAME;
-    static float& DAMPING_LIMIT_OF_SPRING_FORCE;
-    static float& PHYSICAL_SHIFT_SPEED_DAMP;
-    static float& SOFTCOL_SPEED_MULT;
-    static float& SOFTCOL_SPEED_MULT2;
-    static float& SOFTCOL_DEPTH_MIN;
-    static float& SOFTCOL_DEPTH_MULT;
-    static float& SOFTCOL_CARLINE_SPEED_MULT;
-    static float& TEST_ADD_AMBIENT_LIGHT_FRAC;
-    static float& HIGHSPEED_ELASTICITY_MULT_COPCAR;
-    static CVector& fxDirection;
+    static inline auto& DAMPING_LIMIT_IN_FRAME = StaticRef<float>(0x8CD7A0);
+    static inline auto& DAMPING_LIMIT_OF_SPRING_FORCE = StaticRef<float>(0x8CD7A4);
+    static inline auto& PHYSICAL_SHIFT_SPEED_DAMP = StaticRef<float>(0x8CD788);
+    static inline auto& SOFTCOL_SPEED_MULT = StaticRef<float>(0x8CD794);
+    static inline auto& SOFTCOL_SPEED_MULT2 = StaticRef<float>(0x8CD798);
+    static inline auto& SOFTCOL_DEPTH_MIN = StaticRef<float>(0x8CD78C);
+    static inline auto& SOFTCOL_DEPTH_MULT = StaticRef<float>(0x8CD790);
+    static inline auto& SOFTCOL_CARLINE_SPEED_MULT = StaticRef<float>(0x8CD79C);
+    static inline auto& TEST_ADD_AMBIENT_LIGHT_FRAC = StaticRef<float>(0x8CD7B8);
+    static inline auto& HIGHSPEED_ELASTICITY_MULT_COPCAR = StaticRef<float>(0x8CD784);
+    static inline auto& fxDirection = StaticRef<CVector>(0xB73720);
 
 public:
     CPhysical();
@@ -158,7 +158,7 @@ public:
     // originally virtual functions
     void Add() override;
     void Remove() override;
-    CRect GetBoundRect() override;
+    CRect GetBoundRect() const override;
     void ProcessControl() override;
     void ProcessCollision() override;
     void ProcessShift() override;
@@ -226,12 +226,12 @@ public:
     bool CheckCollision();
     bool CheckCollision_SimpleCar();
 
-    void     SetMoveSpeedXY(CVector2D v)   { m_vecMoveSpeed = CVector{v.x, v.y, m_vecMoveSpeed.z}; }
-    CVector& GetMoveSpeed()                { return m_vecMoveSpeed; }
-    void     SetVelocity(CVector velocity) { m_vecMoveSpeed = velocity; } // 0x441130
-    void     ResetMoveSpeed()              { SetVelocity(CVector{}); }
+    void  SetMoveSpeedXY(CVector2D v)    { m_vecMoveSpeed = CVector{v.x, v.y, m_vecMoveSpeed.z}; }
+    auto& GetMoveSpeed(this auto&& self) { return self.m_vecMoveSpeed; }
+    void  SetVelocity(CVector velocity)  { m_vecMoveSpeed = velocity; } // 0x441130
+    void  ResetMoveSpeed()               { SetVelocity(CVector{}); }
 
-    CVector& GetTurnSpeed() { return m_vecTurnSpeed; }
+    auto& GetTurnSpeed(this auto&& self) { return self.m_vecTurnSpeed; }
     void ResetTurnSpeed() { m_vecTurnSpeed = CVector(); }
 
     void ResetFrictionMoveSpeed() { m_vecFrictionMoveSpeed = CVector(); }

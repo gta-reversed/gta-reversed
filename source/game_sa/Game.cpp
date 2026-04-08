@@ -138,7 +138,7 @@ void ValidateVersion() {
         NOTSA_UNREACHABLE("Invalid version\npeds.col version text does not start with 'grandtheftauto3'.\nText was '{}'", buf);
     }
 
-    static char(&version_name)[64] = *reinterpret_cast<char(*)[64]>(0xB72C28);
+    static auto& version_name = StaticRef<char[64]>(0xB72C28);
 
     strncpy_s(version_name, &buf[15], 64u);
     CFileMgr::CloseFile(file);
@@ -565,7 +565,7 @@ bool CGame::InitialiseCoreDataAfterRW() {
 
     g_surfaceInfos.Init();
     CPedStats::Initialise();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CVehicleRecording::InitAtStartOfGame();
 
@@ -864,7 +864,7 @@ void CGame::ReInitGameObjectVariables() {
     CRadar::Initialise();
     CCarCtrl::ReInit();
     ThePaths.ReInit();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CDraw::SetFOV(120.0f);
     CDraw::ms_fLODDistance = 500.0f;

@@ -9,18 +9,18 @@
 #include "ModelIndices.h"
 #include "HandShaker.h"
 
-bool& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
-uint32& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
+auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
+auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
 
-static inline std::array<bool, 9> gbExitCam = StaticRef<std::array<bool, 9>>(0xB6EC5C);
+static inline auto& gbExitCam = StaticRef<std::array<bool, 9>>(0xB6EC5C);
 
-static inline CVector& DWCineyCamLastPos = StaticRef<CVector>(0xB6FE8C);
-static inline CVector& DWCineyCamLastUp = StaticRef<CVector>(0xB6FE98);
-static inline CVector& DWCineyCamLastRight = StaticRef<CVector>(0xB6FEA4);
-static inline CVector& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
+static inline auto& DWCineyCamLastPos = StaticRef<CVector>(0xB6FE8C);
+static inline auto& DWCineyCamLastUp = StaticRef<CVector>(0xB6FE98);
+static inline auto& DWCineyCamLastRight = StaticRef<CVector>(0xB6FEA4);
+static inline auto& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
 
-static inline float& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
-static inline float& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
+static inline auto& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
+static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
 // 0x509AE0
 static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
@@ -194,13 +194,13 @@ void CCam::DoCamBump(float horizontal, float vertical) {
 
 // 0x50DD70
 void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree) {
-    m_vecFront  = (src - dest).Normalized();
+    m_vecFront  = (dest - src).Normalized();
     m_vecSource = src;
 
     // What is this thing?
     {
-        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp       = CrossProduct(rightDir, m_vecFront);
+        auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = rightDir.Cross(m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
@@ -212,18 +212,19 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
     RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.4f); // meant to use nearClip here?
     CacheLastSettingsDWCineyCam();
     gLastFrameProcessedDWCineyCam = CTimer::GetFrameCounter();
-    gHandShaker[0].Process(shakeDegree);
 
+    gHandShaker[0].Process(shakeDegree);
     m_vecFront = gHandShaker[0].m_resultMat.TransformVector(m_vecFront);
+    m_vecFront.Normalise();
 
     {
-        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp       = CrossProduct(rightDir, m_vecFront);
+        auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = rightDir.Cross(m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
-        rightDir = CrossProduct(m_vecFront, m_vecUp).Normalized();
-        m_vecUp  = CrossProduct(rightDir, m_vecFront);
+        rightDir = m_vecFront.Cross(m_vecUp).Normalized();
+        m_vecUp  = rightDir.Cross(m_vecFront);
     }
 }
 
@@ -338,7 +339,7 @@ bool CCam::Using3rdPersonMouseCam() const {
 
 // 0x509DC0
 bool CCam::GetWeaponFirstPersonOn() {
-    return m_pCamTargetEntity && m_pCamTargetEntity->IsPed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
+    return m_pCamTargetEntity && m_pCamTargetEntity->GetIsTypePed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
 }
 
 // inlined -- alpha = vertical angle
@@ -376,20 +377,20 @@ void CCam::ProcessPedsDeadBaby() {
 
 // 0x50EB70
 void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, float speedVar, float speedVarWanted) {
-    static CVector& v3d_8CCC54   = StaticRef<CVector>(0x8CCC54);
-    static bool&    byte_B6FFDC  = StaticRef<bool>(0xB6FFDC);
-    static CVector& v3d_B6FFC4   = StaticRef<CVector>(0xB6FFC4);
-    static CVector& v3d_B6FFD0   = StaticRef<CVector>(0xB6FFD0);
+    static auto& v3d_8CCC54   = StaticRef<CVector>(0x8CCC54);
+    static auto& byte_B6FFDC  = StaticRef<bool>(0xB6FFDC);
+    static auto& v3d_B6FFC4   = StaticRef<CVector>(0xB6FFC4);
+    static auto& v3d_B6FFD0   = StaticRef<CVector>(0xB6FFD0);
 
     if (m_nMode != MODE_SNIPER_RUNABOUT) {
         m_fFOV = 70.0f;
     }
 
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
         return;
@@ -486,22 +487,22 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
 
 // 0x517EA0
 void CCam::Process_1stPerson(const CVector& target, float orientation, float speedVar, float speedVarWanted) {
-    static float& s_LastWheelieTime = StaticRef<float>(0x8CCD14);
+    static auto& s_LastWheelieTime = StaticRef<float>(0x8CCD14);
     // Making sure player doesn't see below ground when flipped.
     // Name is made up cuz I found it funny to name it like that.
-    static float& s_GroundFaultProtection = StaticRef<float>(0xB7004C);
+    static auto& s_GroundFaultProtection = StaticRef<float>(0xB7004C);
 
     gbFirstPersonRunThisFrame = true;
 
     m_fFOV = 70.0f;
-    if (!m_pCamTargetEntity->m_pRwObject) {
+    if (!m_pCamTargetEntity->GetRwObject()) {
         return;
     }
 
     if (m_bResetStatics) {
         m_fVerticalAngle   = 0.0f;
         m_fHorizontalAngle = [&] {
-            if (m_pCamTargetEntity->IsPed()) {
+            if (m_pCamTargetEntity->GetIsTypePed()) {
                 return m_pCamTargetEntity->AsPed()->m_fCurrentRotation + DegreesToRadians(90.0f);
             } else {
                 return orientation;
@@ -513,7 +514,7 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
         TheCamera.m_fAvoidTheGeometryProbsTimer = 0.0f;
     }
 
-    if (m_pCamTargetEntity->IsPed()) {
+    if (m_pCamTargetEntity->GetIsTypePed()) {
         m_bResetStatics = false;
         return;
     }
@@ -712,8 +713,8 @@ void CCam::Process_DW_PlaneSpotterCam(bool) {
 
 // 0x50F3F0 - debug
 void CCam::Process_Editor(const CVector& target, float orientation, float speedVar, float speedVarWanted) {
-    static float& s_LookAtAngle     = StaticRef<float>(0xB6FFE4);
-    static bool&  s_DoRenderShadows = StaticRef<bool>(0xB7295A);
+    static auto& s_LookAtAngle     = StaticRef<float>(0xB6FFE4);
+    static auto& s_DoRenderShadows = StaticRef<bool>(0xB7295A);
 
     if (m_bResetStatics) {
         m_vecSource.Set(796.0f, -937.0f, 40.0f);
@@ -858,11 +859,11 @@ void CCam::Process_M16_1stPerson(const CVector&, float, float, float) {
 
 // 0x511B50
 void CCam::Process_Rocket(const CVector& target, float orientation, float speedVar, float speedVarWanted, bool isHeatSeeking) {
-    static uint32 dword_B6FFF8 = StaticRef<uint32>(0xB6FFF8);
-    static uint32 dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
-    static bool   byte_B70000  = StaticRef<bool>(0xB70000);
+    static auto& dword_B6FFF8 = StaticRef<uint32>(0xB6FFF8);
+    static auto& dword_B6FFFC = StaticRef<uint32>(0xB6FFFC);
+    static auto& byte_B70000  = StaticRef<bool>(0xB70000);
 
-    if (!m_pCamTargetEntity->IsPed()) {
+    if (!m_pCamTargetEntity->GetIsTypePed()) {
         return;
     }
 
@@ -880,7 +881,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         dword_B6FFFC                = 0;
         dword_B6FFF8                = 0;
     }
-    m_pCamTargetEntity->UpdateRW();
+    m_pCamTargetEntity->UpdateRwMatrix();
     m_pCamTargetEntity->UpdateRwFrame();
     CVector headPosition{};
     targetPed->GetTransformedBonePosition(headPosition, eBoneTag::BONE_HEAD, true);
@@ -916,7 +917,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
 
     if (isHeatSeeking) {
         auto* player     = FindPlayerPed();
-        auto* playerData = player->m_pPlayerData;
+        auto* playerData = player->GetPlayerData();
         if (!playerData->m_nFireHSMissilePressedTime) {
             playerData->m_nFireHSMissilePressedTime = CTimer::GetTimeInMS();
         }
@@ -934,10 +935,10 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         if (hsTarget && CTimer::GetTimeInMS() - playerData->m_nLastHSMissileLOSTime > 1'000) {
             playerData->m_nLastHSMissileLOSTime = CTimer::GetTimeInMS();
 
-            const auto targetUsesCollision = hsTarget->m_bUsesCollision;
-            const auto playerUsesCollision = player->m_bUsesCollision;
-            hsTarget->m_bUsesCollision     = false;
-            player->m_bUsesCollision       = false;
+            const auto targetUsesCollision = hsTarget->GetUsesCollision();
+            const auto playerUsesCollision = player->GetUsesCollision();
+            hsTarget->SetUsesCollision(false);
+            player->SetUsesCollision(false);
 
             const auto isClear = CWorld::GetIsLineOfSightClear(
                 player->GetPosition(),
@@ -949,8 +950,8 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
                 false,
                 true
             );
-            player->m_bUsesCollision        = playerUsesCollision;
-            hsTarget->m_bUsesCollision      = targetUsesCollision;
+            player->SetUsesCollision(playerUsesCollision);
+            hsTarget->SetUsesCollision(targetUsesCollision);
             playerData->m_bLastHSMissileLOS = isClear;
         }
 
@@ -999,22 +1000,23 @@ bool CCam::Process_WheelCam(const CVector&, float, float, float) {
     return false;
 }
 
+// based on 0x51847C - 0x5184EC
 void CCam::ApplyUnderwaterMotionBlur() {
     static constexpr uint32 UNDERWATER_CAM_BLUR      = 20;    // 0x8CC7A4
     static constexpr float  UNDERWATER_CAM_MAG_LIMIT = 10.0f; // 0x8CC7A8
 
     const auto colorMag = std::sqrt(
-        sq(CTimeCycle::m_CurrentColours.m_fWaterRed) +
-        sq(CTimeCycle::m_CurrentColours.m_fWaterGreen) +
-        sq(CTimeCycle::m_CurrentColours.m_fWaterBlue)
+        sq(CTimeCycle::GetWaterRed()) +
+        sq(CTimeCycle::GetWaterGreen()) +
+        sq(CTimeCycle::GetWaterBlue())
     );
 
     const auto factor = (colorMag <= UNDERWATER_CAM_MAG_LIMIT) ? 1.0f : UNDERWATER_CAM_MAG_LIMIT / colorMag;
 
     TheCamera.SetMotionBlur(
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterRed),
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterGreen),
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterBlue),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterRed()),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterGreen()),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterBlue()),
         UNDERWATER_CAM_BLUR,
         eMotionBlurType::LIGHT_SCENE
     );

@@ -87,7 +87,7 @@ CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
             ped,
             m_fleeFrom,
             3000,
-            m_fleeFrom->m_nStatus == STATUS_PHYSICS
+            m_fleeFrom->GetStatus() == STATUS_PHYSICS
                 ? BONE_HEAD
                 : BONE_UNKNOWN,
             nullptr,

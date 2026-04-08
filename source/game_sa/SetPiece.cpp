@@ -151,7 +151,7 @@ void CSetPiece::Update() {
 
     const auto SetupCar = [this](const CVector2D& spawn, const CVector2D& target, eCarDrivingStyle style, eCarMission mission, uint8 speed, uint32 timeNeeded, bool tempAction = false, bool addSpeed = false) -> CVehicle* {
         if (auto* car = TryToGenerateCopCar(spawn, target)) {
-            car->m_nStatus                         = STATUS_SIMPLE;
+            car->SetStatus(STATUS_SIMPLE);
             car->m_autoPilot.m_nCruiseSpeed        = speed;
             car->m_autoPilot.m_nCarDrivingStyle    = style;
             car->m_autoPilot.m_nCarMission         = mission;

@@ -7,9 +7,6 @@
 #include "CarCtrl.h"
 #include "TheScripts.h"
 
-bool& CCarGenerator::m_bHotdogVendorPositionOffsetInitialized = *reinterpret_cast<bool*>(0xC2B974);
-CVector& CCarGenerator::m_HotdogVendorPositionOffset = *reinterpret_cast<CVector*>(0xC2B968);
-
 void CCarGenerator::InjectHooks()
 {
     RH_ScopedClass(CCarGenerator);
@@ -33,7 +30,7 @@ bool CCarGenerator::CheckForBlockage(int32 modelId) {
     int16 entityCount;
     CEntity* objects[8];
 
-    CVector posn = UncompressLargeVector(m_vecPosn);
+    CVector posn = m_vecPosn;
     CWorld::FindObjectsKindaColliding(posn, radius, true, &entityCount, 8, objects, false, true, true, false, false);
 
     for (auto& obj : std::span{ objects, (size_t)entityCount }) {
@@ -65,7 +62,7 @@ bool CCarGenerator::CheckForBlockage(int32 modelId) {
 bool CCarGenerator::CheckIfWithinRangeOfAnyPlayers()
 {
     bool bVisible = false;
-    CVector relPosn = FindPlayerCentreOfWorld(CWorld::PlayerInFocus) - UncompressLargeVector(m_vecPosn);
+    CVector relPosn = FindPlayerCentreOfWorld(CWorld::PlayerInFocus) - m_vecPosn;
     if (fabs(relPosn.z) > 50.0f)
         return false;
 
@@ -73,7 +70,7 @@ bool CCarGenerator::CheckIfWithinRangeOfAnyPlayers()
         CModelInfo::GetModelInfo(m_nModelId)->AsVehicleModelInfoPtr()->IsBoat() &&
         relPosn.Magnitude2D() < TheCamera.m_fGenerationDistMultiplier * 240.0f)
     {
-        CVector origin = UncompressLargeVector(m_vecPosn);
+        CVector origin = m_vecPosn;
         if (TheCamera.IsSphereVisible(origin, 0.0f) && !COcclusion::IsPositionOccluded(origin, 0.0f))
         {
             bVisible = true;
@@ -92,7 +89,7 @@ bool CCarGenerator::CheckIfWithinRangeOfAnyPlayers()
     if (bWaitUntilFarFromPlayer)
         return false;
 
-    float posnZ = UncompressLargeVector(m_vecPosn).z;
+    float posnZ = m_vecPosn.z;
     if ((CGame::CanSeeOutSideFromCurrArea() && posnZ < 950.0f || !CGame::CanSeeOutSideFromCurrArea() && posnZ >= 950.0f)
         && (relPosn.Magnitude2D() >= TheCamera.m_fGenerationDistMultiplier * 160.0f - 20.0f || bHighPriority)
         && DotProduct2D(FindPlayerSpeed(-1), relPosn) <= 0.0f
@@ -191,7 +188,7 @@ void CCarGenerator::DoInternalProcessing()
             break;
         }
 
-        CVector posn = UncompressLargeVector(m_vecPosn);
+        CVector posn = m_vecPosn;
         baseZ = posn.z;
         if (baseZ <= MAP_Z_LOW_LIMIT)
             baseZ = CWorld::FindGroundZForCoord(posn.x, posn.y);
@@ -199,7 +196,7 @@ void CCarGenerator::DoInternalProcessing()
     }
     else
     {
-        CVector posn = UncompressLargeVector(m_vecPosn);
+        CVector posn = m_vecPosn;
         if (posn.z > MAP_Z_LOW_LIMIT)
             posn.z += 1.0f;
         else
@@ -259,17 +256,17 @@ void CCarGenerator::DoInternalProcessing()
 
     vehicle->SetIsStatic(false);
     vehicle->vehicleFlags.bEngineOn = false;
-    CVector posn = UncompressLargeVector(m_vecPosn);
+    CVector posn = m_vecPosn;
     posn.z = vehicle->GetDistanceFromCentreOfMassToBaseOfModel() + baseZ;
     vehicle->SetPosn(posn);
     vehicle->SetOrientation(0.0f, 0.0f, m_nAngle * (TWO_PI / 256));
-    vehicle->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     vehicle->m_nDoorLock = eCarLock::CARLOCK_UNLOCKED;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = bPlayerHasAlreadyOwnedCar;
     tractorDriverPedType = -1;
 
     if (!nightTime &&
-        (vehicle->m_nModelIndex == MODEL_TRACTOR || vehicle->m_nModelIndex == MODEL_COMBINE))
+        (vehicle->GetModelIndex() == MODEL_TRACTOR || vehicle->GetModelIndex() == MODEL_COMBINE))
     {
         // 0x6F3BF4
 
@@ -290,7 +287,7 @@ void CCarGenerator::DoInternalProcessing()
                     vehicle->m_autoPilot.SetCruiseSpeed(7);
                     vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_CRUISE);
                     vehicle->m_autoPilot.m_startingRouteNode = baseLink;
-                    vehicle->m_nStatus = eEntityStatus::STATUS_PHYSICS;
+                    vehicle->SetStatus(STATUS_PHYSICS);
                     vehicle->vehicleFlags.bNeverUseSmallerRemovalRange = true;
                     bWaitUntilFarFromPlayer = true;
                     tractorDriverPedType = PED_TYPE_CIVMALE;
@@ -337,7 +334,7 @@ void CCarGenerator::DoInternalProcessing()
     CVisibilityPlugins::SetClumpAlpha(vehicle->m_pRwClump, 0);
     m_nVehicleHandle = GetVehiclePool()->GetRef(vehicle);
 
-    // Originally, R* did a signed comparison between unsigned \r m_nGenerateCount and signed 32bit constant -1.
+    // Originally, R* did a signed comparison between unsigned m_nGenerateCount and signed 32bit constant -1.
     // This made the generated code to always skip the decrementation.
     // However, this bug does not affect the game at all because all cargens created by the script
     // are either disabled or infinite.
@@ -370,7 +367,7 @@ void CCarGenerator::Process()
         auto vehicle = GetVehiclePool()->GetAtRef(m_nVehicleHandle);
         if (!vehicle)
             m_nVehicleHandle = -1;
-        else if (vehicle->m_nStatus == eEntityStatus::STATUS_PLAYER)
+        else if (vehicle->GetStatus() == STATUS_PLAYER)
         {
             m_nNextGenTime += 60000;
             m_nVehicleHandle = -1;
@@ -389,7 +386,7 @@ void CCarGenerator::Setup(CVector posn, float angle, int32 modelId, int16 color1
 {
     constexpr float magic = 256.0f / 360.0f; // 0x8722E8 original expression 128.0f / 180.0f
 
-    m_vecPosn = CompressLargeVector(posn);
+    m_vecPosn = posn;
     m_nAngle = (char)(angle * magic);
     m_nModelId = modelId;
     m_nPrimaryColor = (uint8)(color1);
@@ -429,4 +426,40 @@ void CCarGenerator::SwitchOn()
 uint32 CCarGenerator::CalcNextGen()
 {
     return CTimer::GetTimeInMS() + 4;
+}
+
+// notsa
+CVehicle* CCarGenerator::CreateVehicle(eModelID model, eVehicleCreatedBy createdBy) {
+    const auto* mi = CModelInfo::GetModelInfo(model)->AsVehicleModelInfoPtr();
+    switch (const auto vt = mi->m_nVehicleType) {
+    case VEHICLE_TYPE_AUTOMOBILE:
+        return new CAutomobile{model, createdBy, true};
+    case VEHICLE_TYPE_MTRUCK:
+        return new CMonsterTruck{model, createdBy};
+    case VEHICLE_TYPE_QUAD:
+        return new CQuadBike{model, createdBy};
+    case VEHICLE_TYPE_HELI:
+        return new CHeli{model, createdBy};
+    case VEHICLE_TYPE_PLANE:
+        return new CPlane{model, createdBy};
+    case VEHICLE_TYPE_BOAT:
+        return new CBoat{model, createdBy};
+    case VEHICLE_TYPE_BIKE: {
+        auto* bike = new CBike{model, createdBy};
+        bike->bikeFlags.bOnSideStand = true;
+        return bike;
+    }
+    case VEHICLE_TYPE_BMX: {
+        auto* const bmx = new CBmx{model, createdBy};
+        bmx->bikeFlags.bOnSideStand = true;
+        return bmx;
+    }
+    case VEHICLE_TYPE_TRAILER:
+        return new CTrailer{model, createdBy};
+    case VEHICLE_TYPE_TRAIN:
+        return new CTrain{model, createdBy};
+    default:
+        NOTSA_LOG_WARN("Invalid vehicle type ({})", (int32)(vt));
+    }
+    return nullptr;
 }

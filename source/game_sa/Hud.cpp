@@ -1102,7 +1102,7 @@ void CHud::DrawOddJobMessage(bool displayImmediately) {
 void CHud::DrawRadar() {
     if (CEntryExitManager::ms_exitEnterState == EXIT_ENTER_STATE_1 ||
         CEntryExitManager::ms_exitEnterState == EXIT_ENTER_STATE_2 ||
-        FrontEndMenuManager.m_nRadarMode == eRadarMode::OFF ||
+        FrontEndMenuManager.m_nRadarMode == eRadarMode::RADAR_MODE_OFF ||
         (m_ItemToFlash == ITEM_RADAR && EachFrames(8))
     ) {
         return;
@@ -1113,7 +1113,7 @@ void CHud::DrawRadar() {
 
     CRadar::DrawMap();
 
-    if (FrontEndMenuManager.m_nRadarMode == eRadarMode::BLIPS_ONLY) {
+    if (FrontEndMenuManager.m_nRadarMode == eRadarMode::RADAR_MODE_BLIPS_ONLY) {
         CRadar::DrawBlips();
         return;
     }
@@ -1630,7 +1630,7 @@ void CHud::RenderBreathBar(int32 playerId, int32 x, int32 y) {
         (float)y,
         (uint16)SCREEN_STRETCH_X(62.0f),
         (uint8)SCREEN_STRETCH_Y(9.0f),
-        player->m_pPlayerData->m_fBreath / CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 100.0f,
+        player->GetPlayerData()->m_fBreath / CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 100.0f,
         false,
         false,
         true,

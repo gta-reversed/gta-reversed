@@ -3,7 +3,7 @@
 #include "RealTimeShadowManager.h"
 #include "Shadows.h"
 
-CRealTimeShadowManager& g_realTimeShadowMan = *(CRealTimeShadowManager*)0xC40350;
+auto& g_realTimeShadowMan = StaticRef<CRealTimeShadowManager>(0xC40350);
 
 void CRealTimeShadowManager::InjectHooks() {
     RH_ScopedClass(CRealTimeShadowManager);
@@ -130,7 +130,7 @@ CRealTimeShadow& CRealTimeShadowManager::GetRealTimeShadow(CPhysical* physical) 
 
     bool isFirstPlayer{};
 
-    if (!physical->IsPed() || physical->AsPed()->IsPlayer()) {
+    if (!physical->GetIsTypePed() || physical->AsPed()->IsPlayer()) {
         if (FindPlayerPed()->IsInVehicle()) { // Maybe wrong?
             if (FindPlayerPed()->m_pVehicle->GetMoveSpeed().SquaredMagnitude() < sq(0.3f)) {
                 return;
@@ -146,7 +146,7 @@ void CRealTimeShadowManager::DoShadowThisFrame(CPhysical* physical) {
     case FX_QUALITY_VERY_HIGH: // Always render
         break;
     case FX_QUALITY_HIGH: { // Only draw for main player
-        if (physical->IsPed()) {
+        if (physical->GetIsTypePed()) {
             if (physical->AsPed()->m_nPedType == PED_TYPE_PLAYER1) {
                 break;
             }

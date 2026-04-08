@@ -58,7 +58,7 @@ void CGarage::StoreAndRemoveCarsForThisHideOut(CStoredCar* storedCars, int32 max
     auto storedCarIdx{0u};
     for (auto i = pool->GetSize(); i; i--) {
         if (auto vehicle = pool->GetAt(i - 1)) {
-            if (IsPointInsideGarage(vehicle->GetPosition()) && vehicle->m_nCreatedBy != MISSION_VEHICLE) {
+            if (IsPointInsideGarage(vehicle->GetPosition()) && vehicle->GetCreatedBy() != MISSION_VEHICLE) {
                 if (storedCarIdx < static_cast<uint32>(maxSlot) && !EntityHasASphereWayOutsideGarage(vehicle, 1.0f)) {
                     storedCars[storedCarIdx++].StoreCar(vehicle);
                 }

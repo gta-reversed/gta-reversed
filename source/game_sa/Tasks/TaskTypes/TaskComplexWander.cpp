@@ -165,7 +165,7 @@ CTask* CTaskComplexWander::ControlSubTask(CPed* ped) {
             }
         }
 
-        if (ped->m_pIntelligence->m_AnotherStaticCounter > 30) {
+        if (ped->GetIntelligence()->m_AnotherStaticCounter > 30) {
             if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateSubTask(ped, TASK_SIMPLE_SCRATCH_HEAD);
             }

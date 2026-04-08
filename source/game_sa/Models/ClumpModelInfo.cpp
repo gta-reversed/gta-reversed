@@ -318,9 +318,9 @@ RwFrame* CClumpModelInfo::FillFrameArrayCB(RwFrame* frame, void* data)
 
 RwFrame* CClumpModelInfo::GetFrameFromId(RpClump* clump, int32 id)
 {
-    auto searchInfo = tCompSearchStructById(id, nullptr);
-    RwFrameForAllChildren(RpClumpGetFrame(clump), FindFrameFromIdCB, &searchInfo);
-    return searchInfo.m_pFrame;
+    tCompSearchStructById assoc = { id, nullptr };
+    RwFrameForAllChildren(RpClumpGetFrame(clump), FindFrameFromIdCB, &assoc);
+    return assoc.m_pFrame;
 }
 
 RwFrame* CClumpModelInfo::GetFrameFromName(RpClump* clump, const char* name)

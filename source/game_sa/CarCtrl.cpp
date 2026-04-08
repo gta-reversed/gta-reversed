@@ -20,28 +20,8 @@
 
 #include <reversiblebugfixes/Bugs.hpp>
 
-uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
-uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
-uint32& CCarCtrl::NumAmbulancesOnDuty = *(uint32*)0x9690A8;
-uint32& CCarCtrl::NumFireTrucksOnDuty = *(uint32*)0x9690AC;
-uint32& CCarCtrl::MaxNumberOfCarsInUse = *(uint32*)0x8A5B24;
-float& CCarCtrl::CarDensityMultiplier = *(float*)0x8A5B20;
-int32& CCarCtrl::NumRandomCars = *(int32*)0x969094;
-int32& CCarCtrl::NumMissionCars = *(int32*)0x96909C;
-int32& CCarCtrl::NumPermanentVehicles = *(int32*)0x9690A4;
-int32& CCarCtrl::LastTimeAmbulanceCreated = *(int32*)0x9690B0;
-int32& CCarCtrl::LastTimeFireTruckCreated = *(int32*)0x9690B4;
-bool& CCarCtrl::bAllowEmergencyServicesToBeCreated = *(bool*)0x8A5B28;
-bool& CCarCtrl::bCarsGeneratedAroundCamera = *(bool*)0x9690C1;
-int8& CCarCtrl::CountDownToCarsAtStart = *(int8*)0x9690C0;
-float& CCarCtrl::TimeNextMadDriverChaseCreated = *(float*)0x9690BC;
-int32& CCarCtrl::SequenceElements = *(int32*)0x969078;
-int32& CCarCtrl::SequenceRandomOffset = *(int32*)0x969074;
-bool& CCarCtrl::bSequenceOtherWay = *(bool*)0x969070;
-int32& CCarCtrl::LastTimeLawEnforcerCreated = *(int32*)0x9690B8;
-
-CVehicle* (&apCarsToKeep)[2] = *(CVehicle*(*)[2])0x969084;
-uint32 (&aCarsToKeepTime)[2] = *(uint32(*)[2])0x96907C;
+auto& apCarsToKeep = StaticRef<CVehicle*[2]>(0x969084);
+auto& aCarsToKeepTime = StaticRef<std::array<uint32, 2>>(0x96907C);
 
 void CCarCtrl::InjectHooks()
 {
@@ -134,17 +114,14 @@ int32 CCarCtrl::ChooseBoatModel() {
 }
 
 // 0x421900
-int32 CCarCtrl::ChooseCarModelToLoad(int32 arg1) {
-    for (auto i = 0; i < 16; i++) { // TODO: Why 16?
-        const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[i];
-#ifdef FIX_BUGS
-        if (!numCarsInGroup) {
-            continue;
-        }
-#endif
-        const auto model = CPopulation::m_CarGroups[i][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
-        if (!CStreaming::IsModelLoaded(model)) {
-            return model;
+int32 CCarCtrl::ChooseCarModelToLoad(int32 groupID) {
+    const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[groupID];
+    if (numCarsInGroup > 0) {
+        for (auto i = 0; i < 16; i++) { // 16 tries
+            const auto model = CPopulation::m_CarGroups[groupID][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
+            if (!CStreaming::IsModelLoaded(model)) {
+                return model;
+            }
         }
     }
     return -1;
@@ -208,7 +185,7 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         CTheScripts::ClearSpaceForMissionEntity(posn, boat);
         boat->vehicleFlags.bEngineOn = false;
         boat->vehicleFlags.bIsLocked = true;
-        boat->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+        boat->SetStatus(STATUS_ABANDONED);
         JoinCarWithRoadSystem(boat);
 
         boat->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
@@ -248,7 +225,7 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
 
     CTheScripts::ClearSpaceForMissionEntity(posn, vehicle);
     vehicle->vehicleFlags.bIsLocked = true;
-    vehicle->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     JoinCarWithRoadSystem(vehicle);
     vehicle->vehicleFlags.bEngineOn = false;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
@@ -727,7 +704,7 @@ void CCarCtrl::RemoveDistantCars() {
         if (DistanceBetweenPoints(FindPlayerCentreOfWorld(), veh.GetPosition()) >= 54.5f) {
             continue;
         }
-        CRoadBlocks::GenerateRoadBlockCopsForCar(
+        CRoadBlocks::GenerateRoadBlockPedsForCar(
             &veh,
             veh.m_nPedsPositionForRoadBlock,
             veh.IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1

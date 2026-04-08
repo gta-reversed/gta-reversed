@@ -6,7 +6,6 @@
 
 // WMA functions
 HRESULT(__stdcall*& CAEWMADecoder::WMCreateSyncReader)(IUnknown*, DWORD, IWMSyncReader**) = *(HRESULT(__stdcall**)(IUnknown*, DWORD, IWMSyncReader**))0xb6bad8;
-HMODULE& CAEWMADecoder::wmvCoreModule = *(HMODULE*)0xb6bad4;
 
 // 0x502720
 CAEWMADecoder::CAEWMADecoder(CAEDataStream* dataStream) : CAEStreamingDecoder(dataStream) {

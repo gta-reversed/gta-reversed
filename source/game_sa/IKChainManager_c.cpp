@@ -7,7 +7,7 @@
 #include "TaskSimpleIKLookAt.h"
 #include "TaskSimpleIKPointArm.h"
 
-IKChainManager_c& g_ikChainMan = *(IKChainManager_c*)0xC15448;
+auto& g_ikChainMan = StaticRef<IKChainManager_c>(0xC15448);
 
 void IKChainManager_c::InjectHooks() {
     RH_ScopedClass(IKChainManager_c);
@@ -56,7 +56,7 @@ void IKChainManager_c::Reset() {
 // 0x6186D0
 void IKChainManager_c::Update(float timeStep) {
     for (auto s = 0u; s < (uint32)eIKChainSlot::COUNT; s++) {
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
 
         for (auto& chain : m_ActiveList) {
             if (chain.GetIKSlot() != (eIKChainSlot)s) {
@@ -181,7 +181,7 @@ bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
         return false;
     }
 
-    if (!ped->bDontAcceptIKLookAts) {
+    if (ped->bDontAcceptIKLookAts) {
         if (IsLooking(ped)) {
             AbortLookAt(ped);
         }

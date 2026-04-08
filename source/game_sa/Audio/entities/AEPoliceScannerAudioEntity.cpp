@@ -4,25 +4,6 @@
 
 #include "AEAudioHardware.h"
 
-#define NUM_POLICE_SCANNER_SLOTS 5
-
-float& CAEPoliceScannerAudioEntity::s_fVolumeOffset = *(float*)0xB61CF8;
-CAESound*& CAEPoliceScannerAudioEntity::s_pSound = *(CAESound**)0xB61D00;
-uint32& CAEPoliceScannerAudioEntity::s_nAbortPlaybackTime = *(uint32*)0xB61D08;
-uint32& CAEPoliceScannerAudioEntity::s_nPlaybackStartTime = *(uint32*)0xB61D0C;
-int16& CAEPoliceScannerAudioEntity::s_nSectionPlaying = *(int16*)0xB61D04;
-
-int16 (&CAEPoliceScannerAudioEntity::s_SlotState)[NUM_POLICE_SCANNER_SLOTS] = *(int16(*)[NUM_POLICE_SCANNER_SLOTS])0xB61D14;
-tScannerSlot* (&CAEPoliceScannerAudioEntity::s_pCurrentSlots) = *(tScannerSlot*(*))0xB61D10;
-tScannerSlot (&CAEPoliceScannerAudioEntity::s_ScannerSlotFirst)[NUM_POLICE_SCANNER_SLOTS] = *(tScannerSlot (*)[NUM_POLICE_SCANNER_SLOTS])0xB61D34;
-tScannerSlot (&CAEPoliceScannerAudioEntity::s_ScannerSlotSecond)[NUM_POLICE_SCANNER_SLOTS] = *(tScannerSlot (*)[NUM_POLICE_SCANNER_SLOTS])0xB61D20;
-bool& CAEPoliceScannerAudioEntity::s_bStoppingScanner = *(bool*)0xB61CFC;
-bool& CAEPoliceScannerAudioEntity::s_bScannerDisabled = *(bool*)0xB61D4E;
-CAEPoliceScannerAudioEntity::State& CAEPoliceScannerAudioEntity::s_nScannerPlaybackState = *(CAEPoliceScannerAudioEntity::State*)0xB61D4C;
-uint32& CAEPoliceScannerAudioEntity::s_NextNewScannerDialogueTime = *(uint32*)0xB61D50;
-
-CAEPoliceScannerAudioEntity* CAEPoliceScannerAudioEntity::s_pPSControlling = *(CAEPoliceScannerAudioEntity**)0xB61D48;
-
 // 0x4E6E00
 CAEPoliceScannerAudioEntity::~CAEPoliceScannerAudioEntity() {
     if (s_pPSControlling == this && s_nScannerPlaybackState != STATE_INITIAL) {
@@ -59,7 +40,7 @@ void CAEPoliceScannerAudioEntity::AddAudioEvent(eAudioEvents event, eCrimeType c
 // 0x4E6BC0
 void CAEPoliceScannerAudioEntity::PrepSlots() {
     for (auto i = 0; i < NUM_POLICE_SCANNER_SLOTS; i++) {
-        s_SlotState[i] = s_pCurrentSlots[i].IsNotInitialized();
+        s_SlotState[i] = s_pCurrentSlots[i].IsActive();
     }
 }
 
@@ -69,38 +50,30 @@ void CAEPoliceScannerAudioEntity::LoadSlots() {
         return;
     }
 
-    int16 bankSlotId = 33;
     bool canPlay = true;
-
     for (auto i = 0; i < NUM_POLICE_SCANNER_SLOTS; i++) {
+        const auto slot = (eSoundBankSlot)(SND_BANK_SLOT_SCANNER_FIRST + i);
         auto& currentSlot = s_pCurrentSlots[i];
 
-        if (s_SlotState[i])
-        {
+        if (s_SlotState[i]) {
             if (s_SlotState[i] == 2) {
-                bool loaded = AEAudioHardware.IsSoundLoaded(currentSlot.bankId, currentSlot.sfxId, bankSlotId);
-                if (loaded)
+                bool loaded = AEAudioHardware.IsSoundLoaded(currentSlot.Bank, currentSlot.SoundID, slot);
+                if (loaded) {
                     s_SlotState[i] = 3;
-                else
+                } else {
                     canPlay = false;
+                }
             }
-        }
-        else if (currentSlot.IsNotInitialized())
-        {
+        } else if (currentSlot.IsActive()) {
             s_SlotState[i] = 1;
-        }
-        else
-        {
+        } else {
             if (!CStreaming::IsVeryBusy()) {
-                AEAudioHardware.LoadSound(currentSlot.bankId, currentSlot.sfxId, bankSlotId);
+                AEAudioHardware.LoadSound(currentSlot.Bank, currentSlot.SoundID, slot);
                 s_SlotState[i] = 2;
             }
             canPlay = false;
         }
-
-        ++bankSlotId;
     }
-
     if (canPlay) {
         s_nScannerPlaybackState = FOUR;
     }
@@ -149,10 +122,8 @@ void CAEPoliceScannerAudioEntity::FinishedPlayingScannerDialogue() {
     std::ranges::fill(s_SlotState, -1);
     s_SlotState[4] = 1;
 
-    for (auto i = 0; i < NUM_POLICE_SCANNER_SLOTS; i++) {
-        s_ScannerSlotFirst[i].Clear();
-        s_ScannerSlotSecond[i].Clear();
-    }
+    rng::fill(s_ScannerSlotFirst, tScannerSlot{});
+    rng::fill(s_ScannerSlotSecond, tScannerSlot{});
 }
 
 // 0x4E6F60
@@ -203,10 +174,10 @@ void CAEPoliceScannerAudioEntity::PlayLoadedDialogue() {
 
         auto volume = GetDefaultVolume(AE_CRIME_COMMITTED) + s_fVolumeOffset;
         CAESound sound;
-        sound.Initialise(i + 33, s_pCurrentSlots[i].sfxId, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+        sound.Initialise((eSoundBankSlot)(SND_BANK_SLOT_SCANNER_FIRST + i), s_pCurrentSlots[i].SoundID, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         sound.m_ClientVariable = (float)i;
-        sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_UNDUCKABLE;
-        sound.m_nEvent = AE_CRIME_COMMITTED;
+        sound.m_Flags = SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_IS_DUCKABLE;
+        sound.m_Event = AE_CRIME_COMMITTED;
 
         s_pSound = AESoundManager.RequestNewSound(&sound);
         if (s_pSound) {
@@ -276,12 +247,12 @@ void CAEPoliceScannerAudioEntity::UpdateParameters(CAESound* sound, int16 curPla
     }
 
     if (s_bStoppingScanner) {
-        sound->m_fVolume = sound->m_fVolume - 6.0f; // todo: *(float*)&gSpeechContextLookup[366][4]
+        sound->m_Volume = sound->m_Volume - 6.0f; // todo: *(float*)&gSpeechContextLookup[366][4]
         return;
     }
 
-    if (sound->m_nSoundLength > 0 && curPlayPos > sound->m_nSoundLength - 40 && sound->m_nBankSlotId != 37) { // todo: -40 should be replaced with by gSpeechContextLookup[366][2]
-        sound->SetIndividualEnvironment(eSoundEnvironment::SOUND_REQUEST_UPDATES, false);
+    if (sound->m_Length > 0 && curPlayPos > sound->m_Length - 40 && sound->m_BankSlot != 37) { // todo: -40 should be replaced with by gSpeechContextLookup[366][2]
+        sound->SetFlags(eSoundEnvironment::SOUND_REQUEST_UPDATES, false);
         s_pSound = nullptr;
         PlayLoadedDialogue();
         return;

@@ -55,7 +55,7 @@ class CPad {
 public:
     CControllerState NewState;
     CControllerState OldState;
-    int16            SteeringLeftRightBuffer[10];
+    std::array<int16, 10> SteeringLeftRightBuffer;
     int32            DrunkDrivingBufferUsed;
     CControllerState PCTempKeyState;
     CControllerState PCTempJoyState;
@@ -81,7 +81,7 @@ public:
     };
 
     char     ShakeFreq;
-    char     bHornHistory[5];
+    std::array<char, 5> bHornHistory;
     char     iCurrHornHistory;
     char     JustOutOfFrontEnd;
     bool     bApplyBrakes;
@@ -100,18 +100,18 @@ public:
     char    _pad131[3];
 
 public:
-    static CMouseControllerState& TempMouseControllerState;
-    static CMouseControllerState& NewMouseControllerState;
-    static CMouseControllerState& OldMouseControllerState;
+    static inline auto& TempMouseControllerState = StaticRef<CMouseControllerState>(0xB73404);
+    static inline auto& NewMouseControllerState = StaticRef<CMouseControllerState>(0xB73418);
+    static inline auto& OldMouseControllerState = StaticRef<CMouseControllerState>(0xB7342C);
 
-    static CKeyboardState& TempKeyState;
-    static CKeyboardState& OldKeyState;
-    static CKeyboardState& NewKeyState;
+    static inline auto& TempKeyState = StaticRef<CKeyboardState>(0xB72CB0);
+    static inline auto& OldKeyState = StaticRef<CKeyboardState>(0xB72F20);
+    static inline auto& NewKeyState = StaticRef<CKeyboardState>(0xB73190);
 
-    static CPad (&Pads)[MAX_PADS];
+    static inline auto& Pads = StaticRef<CPad[MAX_PADS]>(0xB73458);
 
-    static bool& bInvertLook4Pad;
-    static char& padNumber;
+    static inline auto& bInvertLook4Pad = StaticRef<bool>(0xB73402);
+    static inline auto& padNumber = StaticRef<char>(0xB73400);
 
 public:
     static void InjectHooks();
@@ -249,6 +249,8 @@ public:
     [[nodiscard]] bool IsCtrlPressed() const noexcept                       { return IsLeftCtrlJustDown() || IsRightCtrlJustDown(); }                                        //
     [[nodiscard]] static bool IsRightDown() noexcept                        { return KEY_IS_DOWN(right); }                                                                   //
     [[nodiscard]] static bool IsLeftDown() noexcept                         { return KEY_IS_DOWN(left); }                                                                    //
+    [[nodiscard]] static bool IsUpDown() noexcept                           { return KEY_IS_DOWN(up); }                                                                      //
+    [[nodiscard]] static bool IsDownDown() noexcept                         { return KEY_IS_DOWN(down); }                                                                    //
     [[nodiscard]] static bool IsUpPressed() noexcept                        { return KEY_IS_PRESSED(up); }                                                                   //
     [[nodiscard]] static bool IsDownPressed() noexcept                      { return KEY_IS_PRESSED(down); }                                                                 //
     [[nodiscard]] static bool IsLeftPressed() noexcept                      { return KEY_IS_PRESSED(left); }                                                                 //
@@ -261,9 +263,7 @@ public:
     static bool IsMenuKeyJustPressed() noexcept                             { return KEY_IS_PRESSED(lalt); }                                                                 // 0x744D50
     static bool IsTabJustPressed() noexcept                                 { return KEY_IS_PRESSED(tab); }                                                                  // 0x744D90
     static bool IsEscJustPressed() noexcept                                 { return KEY_IS_PRESSED(esc); }                                                                  // 0x572DB0
-
-    bool IsRadioTrackSkipPressed() { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); } // 0x4E7F20
-    static bool f0x57C360() { return NewKeyState.back && !OldKeyState.back; }       // 0x57C360
+    static bool IsBackspacePressed() noexcept                               { return KEY_IS_PRESSED(back); }                                                                 // 0x57C360
 
     // KEYBOARD END
 
@@ -294,11 +294,11 @@ public:
 
     [[nodiscard]] bool IsDPadLeftJustUp() const noexcept                    { return BUTTON_JUST_UP(DPadLeft); }                                                             //
     [[nodiscard]] bool f0x541170() const noexcept                           { return !DisablePlayerControls && NewState.DPadLeft != 0; }                                     // 0x541170
-    [[nodiscard]] bool f0x57C380() const noexcept                           { return NewState.DPadLeft != 0; }                                                               // 0x57C380
+    [[nodiscard]] bool f0x57C380() const noexcept                           { return BUTTON_IS_DOWN(DPadLeft); }                                                    // 0x57C380
 
     [[nodiscard]] bool IsDPadRightJustUp() const noexcept                   { return BUTTON_JUST_UP(DPadRight); }                                                            //
     [[nodiscard]] bool f0x541150() const noexcept                           { return !DisablePlayerControls && NewState.DPadRight != 0; }                                    // 0x541150
-    [[nodiscard]] bool f0x57C390() const noexcept                           { return NewState.DPadRight != 0; }                                                              // 0x57C390
+    [[nodiscard]] bool f0x57C390() const noexcept                           { return BUTTON_IS_DOWN(DPadRight); }                                                              // 0x57C390
 
     [[nodiscard]] bool IsDPadUpJustUp() const noexcept                      { return BUTTON_JUST_UP(DPadUp); }                                                               // 0x53EE80
     [[nodiscard]] bool IsDPadDownJustUp() const noexcept                    { return BUTTON_JUST_UP(DPadDown); }                                                             // 0x53EEC0
@@ -315,6 +315,9 @@ public:
 
     [[nodiscard]] bool IsRightShoulder2Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder2); }                                                    //
     [[nodiscard]] bool IsRightShoulder2JustUp() const noexcept              { return BUTTON_JUST_UP(RightShoulder2); }                                                       // 0x53EE40
+
+    [[nodiscard]] bool IsRadioTrackSkipJustUp() const noexcept              { return BUTTON_JUST_UP(m_bRadioTrackSkip); }                                                    //
+    [[nodiscard]] bool IsRadioTrackSkipPressed() const noexcept             { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); }                                                 // 0x4E7F20
 
     // returns angle in degrees
     [[nodiscard]] int16 GetLeftStickX() const noexcept                      { return BUTTON_IS_DOWN(LeftStickX); }

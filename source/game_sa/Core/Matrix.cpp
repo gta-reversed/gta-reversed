@@ -11,8 +11,8 @@
 
 uint8* CMatrix::EulerIndices1 = (uint8*)0x866D9C;
 uint8* CMatrix::EulerIndices2 = (uint8*)0x866D94;
-int32& numMatrices = *(int32*)0xB74238;
-CMatrix& gDummyMatrix = *(CMatrix*)0xB74240;
+auto& numMatrices = StaticRef<int32>(0xB74238);
+auto& gDummyMatrix = StaticRef<CMatrix>(0xB74240);
 
 
 void CMatrix::InjectHooks()
@@ -521,6 +521,15 @@ void CMatrix::operator+=(const CMatrix& rvalue)
 void CMatrix::operator*=(const CMatrix& rvalue)
 {
     *this = (*this * rvalue);
+}
+
+CMatrix CMatrix::GetIdentity() {
+    CMatrix m;
+    m.m_right   = CVector{ 1.f, 0.f, 0.f };
+    m.m_forward = CVector{ 0.f, 1.f, 0.f };
+    m.m_up      = CVector{ 0.f, 0.f, 1.f };
+    m.m_pos     = CVector{ 0.f, 0.f, 0.f };
+    return m;
 }
 
 CMatrix operator*(const CMatrix& a, const CMatrix& b)

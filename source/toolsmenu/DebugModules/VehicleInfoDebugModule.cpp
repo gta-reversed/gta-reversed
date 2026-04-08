@@ -89,16 +89,16 @@ void VehicleInfoDebugModule::RenderWindow() {
 
                 auto& door = automobile->m_doors[i];
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", door.m_fAngle);
+                ImGui::Text("%.2f", door.m_angle);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", door.m_fOpenAngle);
+                ImGui::Text("%.2f", door.m_openAngle);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", door.m_fClosedAngle);
+                ImGui::Text("%.2f", door.m_closedAngle);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", door.m_fPrevAngle);
+                ImGui::Text("%.2f", door.m_prevAngle);
             }
 
             ImGui::EndTable();

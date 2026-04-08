@@ -7,7 +7,7 @@
 
 #include "StdInc.h"
 
-static inline bool& bRotateWithNeck = *(bool*)0x8D2354;
+static inline auto& bRotateWithNeck = StaticRef<bool>(0x8D2354);
 
 void CPedIK::InjectHooks() {
     RH_ScopedClass(CPedIK);
@@ -118,30 +118,20 @@ bool CPedIK::PointGunInDirection(float zAngle, float distance, bool flag, float 
 }
 
 // 0x5FDE20
-void CPedIK::PointGunAtPosition(const CVector& posn, float normalize) {
-    const auto weaponAnimOffsetIdx = CWeaponInfo::GetWeaponInfo(m_pPed)->m_nAimOffsetIndex;
-
-    const CVector newRight = [this, weaponAnimOffsetIdx] {
-        if (m_pPed->bIsDucking) {
-            return g_GunAimingOffsets[weaponAnimOffsetIdx].DuckX * m_pPed->GetRight();
-        } else {
-            return g_GunAimingOffsets[weaponAnimOffsetIdx].AimX * m_pPed->GetRight();
-        }
-    }();
-
-    const CVector newUp = [this, weaponAnimOffsetIdx] {
-        if (m_pPed->bIsDucking) {
-            return g_GunAimingOffsets[weaponAnimOffsetIdx].DuckZ * m_pPed->GetUp();
-        } else {
-            return g_GunAimingOffsets[weaponAnimOffsetIdx].AimZ * m_pPed->GetUp();
-        }
-    }();
-
-    const CVector newPos = m_pPed->GetPosition() + newRight + newUp;
-
-    const auto angle = CGeneral::GetRadianAngleBetweenPoints(posn, newPos);
-    const auto dist = DistanceBetweenPoints2D(newPos, posn);
-    PointGunInDirection(angle, CGeneral::GetRadianAngleBetweenPoints(posn.z, dist, newPos.z, 0.0f), false, normalize);
+void CPedIK::PointGunAtPosition(const CVector& aimAt, float normalize) {
+    const auto& offset = CWeaponInfo::GetWeaponInfo(m_pPed)->GetAimingOffset();
+    const auto aimFrom = m_pPed->GetPosition()
+        + (m_pPed->bIsDucking ? offset.DuckX : offset.AimX) * m_pPed->GetRight()
+        + (m_pPed->bIsDucking ? offset.DuckZ : offset.AimZ) * m_pPed->GetUp();
+    PointGunInDirection(
+        CGeneral::GetRadianAngleBetweenPoints(aimAt, aimFrom),
+        CGeneral::GetRadianAngleBetweenPoints(
+            aimAt.z, CVector2D::Dist(aimFrom, aimAt),
+            aimFrom.z, 0.0f
+        ),
+        false,
+        normalize
+    );
 }
 
 // 0x5FE0E0
@@ -176,7 +166,7 @@ void CPedIK::PitchForSlope() {
         };
 
         if (std::abs(m_fSlopePitch) > 0.01f) {
-            if (&m_pPed->GetIntelligence()->m_TaskMgr && m_pPed->GetIntelligence()->m_TaskMgr.GetActiveTask()->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
+            if (&m_pPed->GetIntelligence()->GetTaskManager() && m_pPed->GetIntelligence()->GetTaskManager().GetActiveTask()->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
                 RotateBone(BONE_SPINE, RadiansToDegrees(m_fSlopePitch));
                 m_pPed->bUpdateMatricesRequired = true;
             } else {

@@ -86,8 +86,8 @@ CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(eAudioPedType pt) noexcept :
 CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(CPed* ped) noexcept :
     CAEPedSpeechAudioEntity{}
 {
-    m_pEntity = ped;
-    if (ped->GetModelID() != MODEL_INVALID) {
+    m_Entity = ped;
+    if (ped->GetModelId() != MODEL_INVALID) {
         auto* const mi = ped->GetPedModelInfo();
         m_PedAudioType = mi->m_nPedAudioType;
         switch (m_PedAudioType) {
@@ -108,7 +108,7 @@ CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(CPed* ped) noexcept :
             break;
         }
         }
-        VERIFY(GetSexFromModel(ped->GetModelID()));
+        VERIFY(GetSexFromModel(ped->GetModelId()));
         m_IsInitialized = true;
     }
 }
@@ -225,8 +225,10 @@ void CAEPedSpeechAudioEntity::Service() { // static
     s_bForceAudible = false;
     for (auto&& [i, speech] : rngv::enumerate(s_PedSpeechSlots)) {
         // Waiting for sound to load, and has loaded?
-        if (speech.Status == CAEPedSpeechSlot::eStatus::LOADING && AEAudioHardware.IsSoundLoaded(speech.SoundBankID, speech.SoundID, SND_BANK_SLOT_SPEECH1 + i)) {
-            speech.Status = CAEPedSpeechSlot::eStatus::WAITING;
+        if (speech.Status == CAEPedSpeechSlot::eStatus::LOADING) {
+            if (AEAudioHardware.IsSoundLoaded(speech.SoundBankID, speech.SoundID, (eSoundBankSlot)(SND_BANK_SLOT_SPEECH1 + i))) {
+                speech.Status = CAEPedSpeechSlot::eStatus::WAITING;
+            }
         }
 
         // Sound is now loaded, waiting to be played
@@ -742,7 +744,7 @@ void CAEPedSpeechAudioEntity::LoadAndPlaySpeech(uint32 playbackTimeOffsetMS) {
         return;
     }
 
-    AEAudioHardware.LoadSound(m_BankID, m_SoundID, SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID);
+    AEAudioHardware.LoadSound(m_BankID, m_SoundID, (eSoundBankSlot)(SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID));
     *speech = CAEPedSpeechSlot{
         .Status            = CAEPedSpeechSlot::eStatus::LOADING,
         .AudioEntity       = this,
@@ -938,7 +940,7 @@ int16 CAEPedSpeechAudioEntity::CanWePlayGlobalSpeechContext(eGlobalSpeechContext
 
 // 0x4E6550
 int16 CAEPedSpeechAudioEntity::AddSayEvent(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
-    return I_AddSayEvent<false>(m_pEntity->GetPosition(), audioEvent, gCtx, startTimeDelayMs, probability, overrideSilence, isForceAudible, isFrontEnd);
+    return I_AddSayEvent<false>(m_Entity->GetPosition(), audioEvent, gCtx, startTimeDelayMs, probability, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 // 0x4E68D0
@@ -971,7 +973,7 @@ void CAEPedSpeechAudioEntity::StopCurrentSpeech() {
         return;
     }
 
-    if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
+    if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_Entity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
         tFacial->StopAll();
     }
 
@@ -1087,7 +1089,7 @@ void CAEPedSpeechAudioEntity::AddScriptSayEvent(eAudioEvents audioEvent, eAudioE
     m_IsFrontend      = isFrontEnd;
 
     m_IsForcedAudible = isForceAudible;
-    if (const auto veh = m_pEntity->AsPed()->GetVehicleIfInOne()) {
+    if (const auto veh = m_Entity->AsPed()->GetVehicleIfInOne()) {
         if (veh == FindPlayerVehicle()) {
             m_IsForcedAudible = true;
         }
@@ -1114,7 +1116,7 @@ void CAEPedSpeechAudioEntity::Terminate() {
 
 // 0x4E5CD0
 void CAEPedSpeechAudioEntity::PlayLoadedSound() {
-    return I_PlayLoadedSound<false>(m_pEntity);
+    return I_PlayLoadedSound<false>(m_Entity);
 }
 
 // 0x4E4120
@@ -1220,7 +1222,7 @@ eSoundBank CAEPedSpeechAudioEntity::GetVoiceSoundBank(eGlobalSpeechContext gCtx,
 }
 
 // The templated functions below must be here because
-// due to a cycle dependency with `CPed` they can't be defined in the header
+// due to a cyclic dependency with `CPed` they can't be defined in the header
 
 // 0x4E6550 / 0x4E60D0
 template<bool IsPedless>
@@ -1277,7 +1279,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
             return -1;
         }
 
-        if (!m_pEntity->AsPed()->IsAlive() && !IsGlobalContextPain(gCtx)) { // 0x4E66A7
+        if (!m_Entity->AsPed()->IsAlive() && !IsGlobalContextPain(gCtx)) { // 0x4E66A7
             return -1;
         }
     }
@@ -1292,7 +1294,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
 
     if constexpr (!IsPedless) {
         if (m_PedAudioType == PED_TYPE_PLAYER) {
-            if (FindPlayerPed() != m_pEntity || s_bAPlayerSpeaking && !m_IsPlayingSpeech) {
+            if (FindPlayerPed() != m_Entity || s_bAPlayerSpeaking && !m_IsPlayingSpeech) {
                 return -1;
             }
         }
@@ -1322,7 +1324,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
 
     m_IsFrontend = isFrontEnd;
     if constexpr (!IsPedless) {
-        if (const auto veh = m_pEntity->AsPed()->GetVehicleIfInOne()) {
+        if (const auto veh = m_Entity->AsPed()->GetVehicleIfInOne()) {
             if (veh == FindPlayerVehicle() && gCtx != CTX_GLOBAL_STOMACH_RUMBLE) {
                 m_IsFrontend = true;
             }
@@ -1357,7 +1359,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent<true>(CVector pos, eAudioEvents aud
 // 0x4E3520 / 0x4E4D10
 template<bool IsPedless>
 void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime) {
-    auto* const ped = IsPedless ? nullptr : m_pEntity->AsPed();
+    auto* const ped = IsPedless ? nullptr : m_Entity->AsPed();
     auto* const speech = GetCurrentSpeech();
     if (playTime == -1) { // Sound has finished?
         *speech = {
@@ -1388,21 +1390,21 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
                 }
             }
 
-            if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
+            if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_Entity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
                 tFacial->StopAll();
             }
         }
     } else { // Update sound
         speech->Status = CAEPedSpeechSlot::eStatus::PLAYING;
         if constexpr (IsPedless) {
-            if (!m_IsFrontend || sound->m_nEvent == AE_SPEECH_PED) {
-                sound->SetPosition(m_pEntity->GetPosition());
+            if (!m_IsFrontend || sound->m_Event == AE_SPEECH_PED) {
+                sound->SetPosition(m_Entity->GetPosition());
             }
         } else {
             if (ped->bIsTalking && ped->m_nBodypartToRemove == PED_NODE_HEAD) {
                 sound->StopSound();
             } else if (!m_IsFrontend) {
-                sound->SetPosition(m_pEntity->GetPosition());
+                sound->SetPosition(m_Entity->GetPosition());
             }
         }
     }
@@ -1422,41 +1424,33 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
         return;
     }
 
-    const auto RequestSound = [&](CVector pos, uint32 flags, float volume, float maxDist) {
-        if constexpr (IsPedless) {
-            flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
-        }
-        CAESound s;
-        s.Initialise(
-            SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID,
-            m_SoundID,
-            this,
-            pos,
-            m_IsForcedAudible ? 3.f : volume,
-            maxDist,
-            1.f,
-            1.f,
-            0,
-            (eSoundEnvironment)flags
-        );
-        if constexpr (IsPedless) {
-            s.RegisterWithPhysicalEntity(attachTo);
-            // this->m_AttachedTo = nulllptr; Done by the caller
-        }
-        m_Sound = AESoundManager.RequestNewSound(&s);
+    const auto DoPlaySound = [&](CVector pos, uint32 flags, float volume, float maxDist) {
+        m_Sound = AESoundManager.PlaySound({
+            .BankSlotID         = (eSoundBankSlot)(SND_BANK_SLOT_SPEECH_FIRST + m_PedSpeechSlotID),
+            .SoundID            = m_SoundID,
+            .AudioEntity        = this,
+            .Pos                = pos,
+            .Volume             = m_IsForcedAudible ? 3.f : volume,
+            .RollOffFactor      = maxDist,
+            .Speed              = 1.f,
+            .Doppler            = 1.f,
+            .FrameDelay         = 0,
+            .Flags              = flags,
+            .RegisterWithEntity = IsPedless ? attachTo : nullptr
+        });
     };
 
     if (m_IsFrontend) {
-        RequestSound(
+        DoPlaySound(
             {0.f, 1.f, 0.f},
-            SOUND_UNCOMPRESSABLE | SOUND_UNDUCKABLE | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END,
+            SOUND_IS_COMPRESSABLE | SOUND_IS_DUCKABLE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | SOUND_FRONT_END,
             3.f,
             1.f
         );
     } else {
-        RequestSound(
+        DoPlaySound(
             attachTo->GetPosition(),
-            SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE,
+            SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE,
             IsPedless ? 12.f : m_EventVolume,
             IsPedless ? 3.5f : CAEVehicleAudioEntity::s_pVehicleAudioSettingsForRadio ? 3.f : 2.f
         );
@@ -1472,7 +1466,7 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
             case CTX_GLOBAL_STOMACH_RUMBLE:
                 break;
             default: {
-                notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))->SetRequest(
+                notsa::cast<CTaskComplexFacial>(m_Entity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))->SetRequest(
                     eFacialExpression::TALKING,
                     2800
                 );
@@ -1490,7 +1484,6 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
         m_PedSpeechSlotID = -1;
     }
 }
-
 
 template
 void CAEPedSpeechAudioEntity::I_PlayLoadedSound<true>(CEntity* attachTo);

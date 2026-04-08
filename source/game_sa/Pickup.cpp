@@ -14,7 +14,7 @@ void CPickup::InjectHooks() {
     RH_ScopedInstall(FindTextIndexForString, 0x455500);
     RH_ScopedInstall(GetPosn, 0x4549A0);
     RH_ScopedInstall(GetRidOfObjects, 0x454CF0);
-    RH_ScopedInstall(GiveUsAPickUpObject, 0x4567E0, {.reversed = false}); // <-- broken for now
+    RH_ScopedInstall(GiveUsAPickUpObject, 0x4567E0);
     RH_ScopedInstall(IsVisible, 0x454C70); // <-- something broken about this one
     RH_ScopedInstall(PickUpShouldBeInvisible, 0x454D20);
     RH_ScopedInstall(ProcessGunShot, 0x4588B0);
@@ -64,13 +64,12 @@ const char* CPickup::FindStringForTextIndex(ePickupPropertyText index) {
     switch (index) {
     case PICKUP_PROPERTY_TEXT_CAN_BUY:
         return "PROP_3"; // Press ~k~~PED_ANSWER_PHONE~ to buy this property.
-
     case PICKUP_PROPERTY_TEXT_CANT_BUY:
         return "PROP_4"; // You cannot buy this property yet.
-
     case PICKUP_PROPERTY_TEXT_CANCEL:
-    default:
         return "FESZ_CA"; // Cancel
+    default:
+        NOTSA_UNREACHABLE();
     }
 }
 
@@ -93,73 +92,69 @@ ePickupPropertyText CPickup::FindTextIndexForString(const char* message) {
 void CPickup::GetRidOfObjects() {
     if (m_pObject) {
         CWorld::Remove(m_pObject);
-        delete m_pObject;
-        m_pObject = nullptr;
+        delete std::exchange(m_pObject, nullptr);
     }
 }
 
 // Creates an object (CObject) for pickup. slotIndex - object to replace; use -1 (or any negative value) to create a new object
 // 0x4567E0
-void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
+void CPickup::GiveUsAPickUpObject(CObject*& obj, int32 slotIndex) {
     const auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
-    auto& object = *obj;
-    object = nullptr;
 
     if (CCutsceneMgr::HasLoaded()) {
         return;
     }
 
     if (mi->GetModelType() == MODEL_INFO_WEAPON) {
-        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->m_weaponInfo);
+        CWeaponInfo::GetWeaponInfo(mi->AsWeaponModelInfoPtr()->GetWeaponInfo());
     }
 
     if (slotIndex < 0) {
-        object = CObject::Create(m_nModelIndex, false);
-        return;
+        obj = CObject::Create(m_nModelIndex, false);
+    } else {
+        CPools::MakeSureSlotInObjectPoolIsEmpty(slotIndex);
+        obj = new (slotIndex << 8) CObject(m_nModelIndex, false);
+        if (!obj) {
+            NOTSA_LOG_ERR("Couldn't create an object instance for a new pickup. Something went really wrong!");
+            return;
+        }
+    }
+    obj->m_nObjectType = OBJECT_TYPE_DECORATION;
+    obj->GetPosition() = GetPosn();
+
+    if (obj->m_nModelIndex == MI_OYSTER) {
+        obj->m_bUnderwater = true;
     }
 
-    CPools::MakeSureSlotInObjectPoolIsEmpty(slotIndex);
-    object = new (slotIndex << 8) CObject(m_nModelIndex, false);
-    if (!object) {
-        NOTSA_LOG_DEBUG("NO OBJECT ALLOCATED WHAT THE FUCK");
-        return;
-    }
-
-    object->m_nObjectType = OBJECT_TYPE_DECORATION;
-    object->GetPosition() = GetPosn();
-
-    if (object->m_nModelIndex == MI_OYSTER) {
-        object->m_bUnderwater = true;
-    }
-
-    object->SetOrientation(0.0f, 0.0f, -HALF_PI);
-    object->SetHeading(-HALF_PI);
-    object->UpdateRwFrame();
-    object->physicalFlags.bApplyGravity = false;
-    object->physicalFlags.bExplosionProof = true;
-    object->m_bUsesCollision = false;
-    object->objectFlags.bIsPickup = true;
-    object->objectFlags.b0x02 = object->m_bCollisionProcessed;
-    object->objectFlags.bDoNotRender = PickUpShouldBeInvisible();
-    object->m_bHasPreRenderEffects = true;
-    object->m_bTunnelTransition = true;
-    object->RegisterReference((CEntity**)obj);
+    obj->SetOrientation(0.0f, 0.0f, -HALF_PI);
+    obj->SetHeading(-HALF_PI);
+    obj->UpdateRwFrame();
+    obj->physicalFlags.bApplyGravity = false;
+    obj->physicalFlags.bExplosionProof = true;
+    obj->SetUsesCollision(false);
+    obj->objectFlags.bIsPickup = true;
+    obj->objectFlags.b0x02 = obj->GetCollisionProcessed();
+    obj->objectFlags.bDoNotRender = PickUpShouldBeInvisible();
+    obj->m_bHasPreRenderEffects = true;
+    obj->m_bTunnelTransition = true;
+    CEntity::RegisterReference(obj);
 
     if (m_nModelIndex == MI_PICKUP_BONUS || m_nModelIndex == MI_PICKUP_CLOTHES) {
-        object->m_nBonusValue = m_nAmmo;
+        obj->m_nBonusValue = m_nAmmo;
     } else {
-        object->m_nBonusValue = 0;
+        obj->m_nBonusValue = 0;
     }
 
     switch (m_nPickupType) {
     case PICKUP_IN_SHOP_OUT_OF_STOCK:
-        object->objectFlags.bPickupInShopOutOfStock = true;
-        object->physicalFlags.bRenderScorched = true; // ?
+        obj->objectFlags.bPickupInShopOutOfStock = true;
+        obj->physicalFlags.bRenderScorched = true; // ?
         break;
-
     case PICKUP_PROPERTY_FORSALE:
-        object->objectFlags.bPickupPropertyForSale = true;
-        object->m_wCostValue = m_nAmmo / 5u;
+        obj->objectFlags.bPickupPropertyForSale = true;
+        obj->m_wCostValue = m_nAmmo / 5u;
+        break;
+    default:
         break;
     }
 }
@@ -172,11 +167,9 @@ bool CPickup::IsVisible() {
 
 // 0x454D20
 bool CPickup::PickUpShouldBeInvisible() {
-    const auto IsKillFrenzy = [this] {
-        return CLocalisation::KillFrenzy() && m_nModelIndex == MI_PICKUP_KILLFRENZY && CTheScripts::IsPlayerOnAMission() && CDarkel::FrenzyOnGoing();
-    };
+    const auto isInFrenzy = CLocalisation::KillFrenzy() && m_nModelIndex == MI_PICKUP_KILLFRENZY && CTheScripts::IsPlayerOnAMission() && CDarkel::FrenzyOnGoing();
 
-    if (CCutsceneMgr::IsRunning() && !IsKillFrenzy())
+    if (CCutsceneMgr::IsRunning() && !isInFrenzy)
         return true;
 
     CVector2D lspdPark{+1479.0f, -1658.0f}; // Pershing Square Park
@@ -237,7 +230,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
         if (CTimer::GetTimeInMS() > m_nRegenerationTime) {
             const auto dist = DistanceBetweenPoints(GetPosn(), FindPlayerCoors());
             if (dist > 10.0f || (pt == PICKUP_IN_SHOP && dist > 2.4f)) {
-                GiveUsAPickUpObject(&m_pObject, -1);
+                GiveUsAPickUpObject(m_pObject);
 
                 if (m_pObject) {
                     CWorld::Add(m_pObject);
@@ -256,7 +249,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
     };
 
     if (!m_pObject) {
-        GiveUsAPickUpObject(&m_pObject, -1);
+        GiveUsAPickUpObject(m_pObject);
         if (m_pObject) {
             CWorld::Add(m_pObject);
         }
@@ -270,7 +263,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
             if (CWaterLevel::GetWaterLevel(m_pObject->GetPosition(), level, true)) {
                 m_pObject->GetPosition().z = level + extra;
             }
-            m_pObject->UpdateRW();
+            m_pObject->UpdateRwMatrix();
             m_pObject->UpdateRwFrame();
         };
 
@@ -322,7 +315,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
         case PICKUP_FLOATINGPACKAGE: {
             m_pObject->GetMoveSpeed().z -= CTimer::GetTimeStep() / 1'000.0f;
             m_pObject->GetPosition() += m_pObject->GetMoveSpeed() * CTimer::GetTimeStep();
-            m_pObject->UpdateRW();
+            m_pObject->UpdateRwMatrix();
             m_pObject->UpdateRwFrame();
 
             float level;
@@ -435,10 +428,10 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nFlags.bHelpMessageDisplayed = true;
                                     }
 
-                                    if (!CollectPickupBuffer || CTimer::GetTimeInMS() - player->m_pPlayerData->m_nLastHSMissileLOSTime < 1500) {
+                                    if (!CollectPickupBuffer || CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500) {
                                         return false;
                                     }
-                                } else if (CTimer::GetTimeInMS() - player->m_pPlayerData->m_nLastHSMissileLOSTime < 1500 ||
+                                } else if (CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500 ||
                                            !CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(weapon)) {
                                     CPickups::PlayerOnWeaponPickup = 6;
                                     return false;
@@ -514,7 +507,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             player->GiveDelayedWeapon(weapon, (!m_nFlags.bEmpty) ? AmmoForWeapon_OnStreet[weapon] : 0);
                                         }
 
-                                        if (auto& chosen = player->m_pPlayerData->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
+                                        if (auto& chosen = player->GetPlayerData()->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
                                             chosen = player->GetWeaponSlot(weapon);
                                         }
                                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_WEAPON);
@@ -549,7 +542,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             player->GiveDelayedWeapon(weapon, (m_nFlags.bEmpty) ? 0 : AmmoForWeapon_OnStreet[weapon]);
                                         }
 
-                                        if (auto& chosen = player->m_pPlayerData->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
+                                        if (auto& chosen = player->GetPlayerData()->m_nChosenWeapon; chosen == player->GetWeaponSlot(WEAPON_UNARMED)) {
                                             chosen = player->GetWeaponSlot(weapon);
                                         }
                                     }

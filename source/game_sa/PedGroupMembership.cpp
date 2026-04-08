@@ -18,8 +18,8 @@ void CPedGroupMembership::AddFollower(CPed* ped) {
 
     // Peds in the player's group can't drown
     if (const auto leader = GetLeader()) {
-        if (leader->IsPlayer()) { // same effect as m_pPlayerData, no?
-            assert(leader->m_pPlayerData); // Test above theory
+        if (leader->IsPlayer()) { // same effect as GetPlayerData(), no?
+            assert(leader->GetPlayerData()); // Test above theory
             ped->bDrownsInWater = false;
         }
     }
@@ -210,7 +210,7 @@ void CPedGroupMembership::RemoveMember(int32 memIdx) {
     mem->GetIntelligence()->RestorePedDecisionMakerType();
 
     if (const auto leader = GetLeader()) {
-        if (const auto plyrdat = leader->m_pPlayerData) {
+        if (const auto plyrdat = leader->GetPlayerData()) {
             mem->bDrownsInWater = true;
         }
     }
@@ -266,7 +266,12 @@ CPed* CPedGroupMembership::GetFirstAvailableMember() {
 // 0x5F6950
 eModelID CPedGroupMembership::GetObjectForPedToHold() {
     using namespace ModelIndices;
-    return CGeneral::RandomChoiceFromList({ (eModelID)MI_GANG_SMOKE, MODEL_INVALID, (eModelID)MI_GANG_DRINK }); // Each has 33% chance
+    return CGeneral::RandomChoiceFromList<eModelID>({ 
+        /* Each has 1/3 chance (Originally 33/33/34) */
+        MI_GANG_SMOKE, 
+        MODEL_INVALID, 
+        MI_GANG_DRINK 
+    }); 
 }
 
 // NOTSA

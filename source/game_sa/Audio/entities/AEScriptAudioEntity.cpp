@@ -11,8 +11,8 @@ CAEScriptAudioEntity::CAEScriptAudioEntity() : CAEAudioEntity() {
     m_nLastTimeHornPlayed = 0;
     field_7E = 0;
     field_7C = 0;
-    m_fVolume = 0.0f;
-    m_fSpeed = 1.0f;
+    m_Volume = 0.0f;
+    m_Speed = 1.0f;
     field_7D = 0;
     field_8C = 0.0f;
 }
@@ -30,7 +30,7 @@ void CAEScriptAudioEntity::Reset() {
         ClearMissionAudio(i);
     }
     field_7C = 0;
-    m_pEntity = nullptr;
+    m_Entity = nullptr;
     field_7D = 0;
     field_8C = 2.0f;
 }
@@ -82,9 +82,10 @@ void CAEScriptAudioEntity::PlayMissionBankSound(uint8 sampleId, CVector& posn, C
 
 // event eAudioEvents
 // 0x4EC550
-void CAEScriptAudioEntity::PlayResidentSoundEvent(int16 bankSlotId, int16 bankId, int16 sfxId, uint16 event, CVector& posn, CPhysical* physical, float vol, float speed, int16 playPosn, float maxDistance) {
-    if (!AEAudioHardware.IsSoundBankLoaded(bankId, bankSlotId))
+void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, CVector& posn, CPhysical* physical, float vol, float speed, int16 playPosn, float maxDistance) {
+    if (!AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
         return;
+    }
 
     bool bFrontend = false;
     const auto volume = GetDefaultVolume(static_cast<eAudioEvents>(event)) + vol;
@@ -99,16 +100,22 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(int16 bankSlotId, int16 bankId
         }
     }();
 
-    m_tempSound.Initialise(bankSlotId, sfxId, this, pos, volume, maxDistance, speed, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-    m_tempSound.m_nCurrentPlayPosition = playPosn;
-    m_tempSound.m_nEnvironmentFlags = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE;
-    m_tempSound.SetIndividualEnvironment(SOUND_FRONT_END, bFrontend);
-    if (physical) {
-        m_tempSound.SetIndividualEnvironment(SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, true);
-        m_tempSound.RegisterWithPhysicalEntity(physical);
-    }
-    m_tempSound.m_nEvent = static_cast<eAudioEvents>(event);
-    AESoundManager.RequestNewSound(&m_tempSound);
+    AESoundManager.PlaySound({
+        .BankSlotID         = slot,
+        .SoundID            = sfx,
+        .AudioEntity        = this,
+        .Pos                = pos,
+        .Volume             = volume,
+        .RollOffFactor      = maxDistance,
+        .Speed              = speed,
+        .Doppler            = 1.0f,
+        .FrameDelay         = 0,
+        .Flags              = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (bFrontend ? SOUND_FRONT_END : 0u),
+        .FrequencyVariance  = 0.0f,
+        .PlayTime           = playPosn,
+        .RegisterWithEntity = physical,
+        .EventID            = (eAudioEvents)(event),
+    });
 }
 
 // 0x4EC270
@@ -352,7 +359,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
                 AESoundManager.CancelSoundsInBankSlot(40, 0);
             AEAudioHardware.LoadSoundBank(44, 40);
         }
-        m_pEntity = physical;
+        m_Entity = physical;
         field_7D = 1;
         break;
     case AE_CAS4_FJ:
@@ -374,7 +381,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         if (field_7D) {
             AESoundManager.CancelSoundsInBankSlot(40, 1);
             PlayResidentSoundEvent(40, 44, 3, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
-            m_pEntity = nullptr;
+            m_Entity = nullptr;
             field_7D = 0;
         }
         break;
@@ -722,7 +729,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_GARAGE_DOOR_CLOSING);
         break;
     case AE_CAS9_AD:
-        if (CLocalisation::Blood() && physical && physical->IsPed()) {
+        if (CLocalisation::Blood() && physical && physical->GetIsTypePed()) {
             physical->AsPed()->GetAE().AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, physical, 0, 0, 0);
         }
         break;
@@ -738,8 +745,8 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntityAndPhysical(eventId, this, physical)) {
             PlayResidentSoundEvent(40, 44, 1, eventId, posn, physical, volume, speed, 0, 2.5f);
         }
-        m_fSpeed = speed;
-        m_fVolume = GetDefaultVolume(AE_CRANE_WINCH_MOVE) + volume;
+        m_Speed = speed;
+        m_Volume = GetDefaultVolume(AE_CRANE_WINCH_MOVE) + volume;
         m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
         break;
     default:
@@ -772,7 +779,7 @@ void CAEScriptAudioEntity::Service() {
     if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CRANE_ENTER, this) != 0)
         return;
 
-    PlayResidentSoundEvent(40, 44, 0, AE_SCRIPT_CRANE_ENTER, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
+    PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, 0, AE_SCRIPT_CRANE_ENTER, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
 }
 
 void CAEScriptAudioEntity::InjectHooks() {

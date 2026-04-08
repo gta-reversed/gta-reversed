@@ -74,7 +74,7 @@ CEventKnockOffBike* CEventKnockOffBike::Constructor()
 bool CEventKnockOffBike::AffectsPed(CPed* ped)
 {
     if (ped->IsAlive()) {
-        if (m_vehicle && m_vehicle->m_nStatus == STATUS_GHOST)
+        if (m_vehicle && m_vehicle->GetStatus() == STATUS_GHOST)
             return false;
         if (ped->CantBeKnockedOffBike && !ped->bHasBeenRendered && !m_forceKnockOff)
             return false;
@@ -280,7 +280,7 @@ bool CEventKnockOffBike::SetPedSafePosition(CPed* ped)
 {
     if (m_vehicle->IsBike()) {
         CBike* bike = m_vehicle->AsBike();
-        bike->m_RideAnimData.m_fAnimLean = 0.0f;
+        bike->m_RideAnimData.LeanAngle = 0.0f;
         bike->m_bLeanMatrixCalculated = false;
         ped->SetPedPositionInCar();
     }

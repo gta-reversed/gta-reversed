@@ -435,7 +435,7 @@ auto CDamageManager::GetAllDoorsStatus() const -> std::array<eDoorStatus, MAX_DO
 /*!
 * @notsa
 * @brief Should only be called if the door is present (asserts in debug)
-* @returns If door's state is either \r DAMSTATE_OPENED or \r DAMSTATE_OPENED_DAMAGED
+* @returns If door's state is either DAMSTATE_OPENED or DAMSTATE_OPENED_DAMAGED
 */
 bool CDamageManager::IsDoorOpen(eDoors door) const {
     switch (GetDoorStatus(door)) {
@@ -452,7 +452,7 @@ bool CDamageManager::IsDoorOpen(eDoors door) const {
 /*!
 * @notsa
 * @brief Should only be called if the door is present (asserts in debug)
-* @returns If door's state is either \r DAMSTATE_OK` or \r DAMSTATE_DAMAGED
+* @returns If door's state is either DAMSTATE_OK or DAMSTATE_DAMAGED
 */
 bool CDamageManager::IsDoorClosed(eDoors door) const {
     switch (GetDoorStatus(door)) {
@@ -473,7 +473,7 @@ bool CDamageManager::IsDoorPresent(eDoors door) const {
 /*!
 * @notsa
 * @brief   Checks if door is damaged.
-* @returns Returns if door's state is neither \r DAMSTATE_OK or \r DAMSTATE_OPENED
+* @returns Returns if door's state is neither DAMSTATE_OK or DAMSTATE_OPENED
 */
 bool CDamageManager::IsDoorDamaged(eDoors door) const {
     switch (GetDoorStatus(door)) {

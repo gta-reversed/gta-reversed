@@ -29,7 +29,7 @@ enum eBikeNodes {
 class NOTSA_EXPORT_VTABLE CBike : public CVehicle {
     static constexpr auto NUM_SUSP_LINES = 4;
 public:
-    RwFrame* m_aBikeNodes[BIKE_NUM_NODES];
+    std::array<RwFrame*, BIKE_NUM_NODES>           m_aBikeNodes;
     bool     m_bLeanMatrixCalculated;
     CMatrix  m_mLeanMatrix;
     union {
@@ -50,21 +50,21 @@ public:
     CVector m_vecOldSpeedForPlayback;
     tBikeHandlingData* m_BikeHandling;
     CRideAnimData m_RideAnimData;
-    uint8 m_nWheelStatus[2];
-    CColPoint m_aWheelColPoints[NUM_SUSP_LINES];
-    float m_aWheelRatios[NUM_SUSP_LINES];
-    float m_aRatioHistory[NUM_SUSP_LINES];
-    float m_aWheelCounts[NUM_SUSP_LINES];
+    std::array<uint8, 2>          m_nWheelStatus;
+    std::array<CColPoint, NUM_SUSP_LINES> m_aWheelColPoints;
+    std::array<float, NUM_SUSP_LINES>     m_aWheelRatios;
+    std::array<float, NUM_SUSP_LINES>     m_aRatioHistory;
+    std::array<float, NUM_SUSP_LINES>     m_WheelCounts;
     float m_fBrakeCount;
-    eSkidmarkType m_aWheelSkidmarkType[2];
-    bool m_bWheelBloody[2];
-    bool m_bMoreSkidMarks[2];
-    float m_aWheelPitchAngles[2];
-    float m_aWheelAngularVelocity[2];
-    float m_aWheelSuspensionHeights[2];
-    float m_aWheelOrigHeights[2];
-    float m_fSuspensionLength[NUM_SUSP_LINES];
-    float m_fLineLength[NUM_SUSP_LINES];
+    std::array<eSkidmarkType, 2>  m_aWheelSkidmarkType;
+    std::array<bool, 2>           m_bWheelBloody;
+    std::array<bool, 2>           m_bMoreSkidMarks;
+    std::array<float, 2>          m_aWheelPitchAngles;
+    std::array<float, 2>          m_aWheelAngularVelocity;
+    std::array<float, 2>          m_aWheelSuspensionHeights;
+    std::array<float, 2>          m_aWheelOrigHeights;
+    std::array<float, NUM_SUSP_LINES> m_fSuspensionLength;
+    std::array<float, NUM_SUSP_LINES> m_fLineLength;
     float m_fHeightAboveRoad;
     float m_fExtraTractionMult;
     float m_fSwingArmLength;
@@ -77,16 +77,16 @@ public:
     uint8 m_nFixLeftHand;
     uint8 m_nFixRightHand;
     uint8 m_nTestPedCollision;
-    float m_fPrevSpeed;
+    float m_PrevSpeed;
     float m_BlowUpTimer;
-    CPhysical* m_aGroundPhysicalPtrs[4];
-    CVector m_aGroundOffsets[4];
+    std::array<CPhysical*, 4>     m_aGroundPhysicalPtrs;
+    std::array<CVector, 4>        m_aGroundOffsets;
     CEntity* m_Damager; // Entity That Set Us On Fire
     uint8 m_nNoOfContactWheels;
-    uint8 m_nDriveWheelsOnGround;
-    uint8 m_nDriveWheelsOnGroundLastFrame;
-    float m_fGasPedalAudioRevs;
-    tWheelState m_aWheelState[2];
+    uint8 m_NumDriveWheelsOnGround;
+    uint8 m_NumDriveWheelsOnGroundLastFrame;
+    float m_GasPedalAudioRevs;
+    std::array<tWheelState, 2>    m_WheelStates;
 
     static constexpr auto Type = VEHICLE_TYPE_BIKE;
 
@@ -125,12 +125,12 @@ public:
     bool IsDoorClosedU32(uint32 door) override { return false; }    // 0x6B5940
     bool IsDoorMissingU32(uint32 door) override { return true; }    // 0x6B5950
 
-    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset = nullptr) override { return true; }              // 0x6B7270
-    inline bool IsComponentPresent(int32 componentId) override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
-    CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                       // 0x6B58C0
-    float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                          // 0x6B58B0
-    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; }                                       // 0x6B58A0
-    float FindWheelWidth(bool bRear) override { return 0.15f; }                                                 // 0x6B8940
+    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset) override { return true; }                    // 0x6B7270
+    inline bool IsComponentPresent(int32 componentId) const override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
+    CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                             // 0x6B58C0
+    float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                                // 0x6B58B0
+    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; }                                             // 0x6B58A0
+    float FindWheelWidth(bool bRear) override { return 0.15f; }                                                       // 0x6B8940
 
     virtual bool ProcessAI(uint32& extraHandlingFlags);
 
@@ -162,4 +162,4 @@ public: // NOTSA
     CBike* Destructor() {this->CBike::~CBike(); return this; }
                                                                                     };
 VALIDATE_SIZE(CBike, 0x814);
-VALIDATE_OFFSET(CBike, m_fGasPedalAudioRevs, 0x808);
+VALIDATE_OFFSET(CBike, m_GasPedalAudioRevs, 0x808);

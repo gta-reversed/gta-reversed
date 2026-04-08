@@ -3,35 +3,16 @@
 #include "AEAudioEntity.h"
 
 struct tScannerSlot {
-    int16 bankId;
-    int16 sfxId;
-
-    tScannerSlot() {
-        Clear();
-    }
-
-    void Clear() {
-        bankId = -1;
-        sfxId  = -1;
-    }
+    eSoundBank Bank{SND_BANK_UNK};
+    eSoundID   SoundID{-1};
 
     // bad name?
-    [[nodiscard]] bool IsNotInitialized() const {
-        return bankId < 0 || sfxId < 0;
-    }
-
-    tScannerSlot& operator=(int16 value) {
-        bankId = value;
-        sfxId = value;
-        return *this;
-    }
-
-    tScannerSlot& operator=(const tScannerSlot& right) {
-        bankId = right.bankId;
-        sfxId = right.sfxId;
-        return *this;
+    [[nodiscard]] bool IsActive() const {
+        return Bank < 0 || SoundID < 0;
     }
 };
+
+#define NUM_POLICE_SCANNER_SLOTS 5
 
 class NOTSA_EXPORT_VTABLE CAEPoliceScannerAudioEntity : public CAEAudioEntity {
 public:
@@ -46,22 +27,22 @@ public:
         SEVEN         = 7,
     };
 
-    static float&     s_fVolumeOffset;
-    static bool&      s_bStoppingScanner;
-    static CAESound*& s_pSound;
-    static uint32&    s_nAbortPlaybackTime;
-    static uint32&    s_nPlaybackStartTime;
-    static int16&     s_nSectionPlaying;
+    static inline auto& s_fVolumeOffset = StaticRef<float>(0xB61CF8);
+    static inline auto& s_bStoppingScanner = StaticRef<bool>(0xB61CFC);
+    static inline auto& s_pSound = StaticRef<CAESound*>(0xB61D00);
+    static inline auto& s_nAbortPlaybackTime = StaticRef<uint32>(0xB61D08);
+    static inline auto& s_nPlaybackStartTime = StaticRef<uint32>(0xB61D0C);
+    static inline auto& s_nSectionPlaying = StaticRef<int16>(0xB61D04);
 
-    static int16         (&s_SlotState)[5];
-    static tScannerSlot* (&s_pCurrentSlots);
-    static tScannerSlot  (&s_ScannerSlotFirst)[5];
-    static tScannerSlot  (&s_ScannerSlotSecond)[5];
+    static inline auto& s_SlotState = StaticRef<int16[NUM_POLICE_SCANNER_SLOTS]>(0xB61D14);
+    static inline auto& s_pCurrentSlots = StaticRef<tScannerSlot*>(0xB61D10);
+    static inline auto& s_ScannerSlotFirst = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D34);
+    static inline auto& s_ScannerSlotSecond = StaticRef<tScannerSlot[NUM_POLICE_SCANNER_SLOTS]>(0xB61D20);
 
-    static CAEPoliceScannerAudioEntity* s_pPSControlling;
-    static State&                       s_nScannerPlaybackState;
-    static bool&                        s_bScannerDisabled;
-    static uint32&                      s_NextNewScannerDialogueTime;
+    static inline auto& s_pPSControlling = StaticRef<CAEPoliceScannerAudioEntity*>(0xB61D48);
+    static inline auto& s_nScannerPlaybackState = StaticRef<CAEPoliceScannerAudioEntity::State>(0xB61D4C);
+    static inline auto& s_bScannerDisabled = StaticRef<bool>(0xB61D4E);
+    static inline auto& s_NextNewScannerDialogueTime = StaticRef<uint32>(0xB61D50);
 
 public:
     CAEPoliceScannerAudioEntity() = default; // 0x56DA00

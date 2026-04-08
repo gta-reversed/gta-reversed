@@ -25,16 +25,45 @@ enum ModelInfoType : uint8 {
 };
 
 enum eModelInfoSpecialType : uint8 {
-    TREE = 1,
-    PALM = 2,
-    GLASS_TYPE_1 = 4,
-    GLASS_TYPE_2 = 5,
-    TAG = 6,
-    GARAGE_DOOR = 7,
-    CRANE = 9,
-    UNKNOWN = 10,
+    TREE             = 1,
+    PALM             = 2,
+    GLASS_TYPE_1     = 4,
+    GLASS_TYPE_2     = 5,
+    TAG              = 6,
+    GARAGE_DOOR      = 7,
+    CRANE            = 9,
+    UNKNOWN          = 10,
     BREAKABLE_STATUE = 11,
 };
+
+enum class eVehicleMod : uint8 {
+    // Upgrades
+    UPGRADE_BONNET            = 0,  // 0x0
+    UPGRADE_BONNET_LEFT_RIGHT = 1,  // 0x1
+    UPGRADE_SPOILER           = 2,  // 0x2
+    UPGRADE_WING              = 3,  // 0x3
+    UPGRADE_FRONT_BULLBAR     = 4,  // 0x4
+    UPGRADE_REAR_BULLBAR      = 5,  // 0x5
+    UPGRADE_FRONT_LIGHTS      = 6,  // 0x6
+    UPGRADE_ROOF              = 7,  // 0x7
+    UPGRADE_NITRO             = 8,  // 0x8
+    UPGRADE_HYDRAULICS        = 9,  // 0x9
+    UPGRADE_STEREO            = 10, // 0xA
+
+    // Replacement parts
+    REPLACEMENT_CHASSIS       = 11, // 0xB
+    REPLACEMENT_WHEEL         = 12, // 0xC
+    REPLACEMENT_EXHAUST       = 13, // 0xD
+    REPLACEMENT_FRONT_BUMPER  = 14, // 0xE
+    REPLACEMENT_REAR_BUMPER   = 15, // 0xF
+    REPLACEMENT_MISC          = 16, // 0x10
+
+    // Keep these at the bottom
+    NUM,
+    NUM_BITS_REQUIRED = 5
+};
+NOTSA_WENUM_DEFS_FOR(eVehicleMod);
+static_assert(std::bit_width((+eVehicleMod::NUM)) <= (+eVehicleMod::NUM_BITS_REQUIRED));
 
 class CTimeInfo;
 
@@ -88,7 +117,7 @@ public:
                 struct { // Vehicle flags
                     uint8 bUsesVehDummy : 1;
                     uint8 : 1;
-                    uint8 nCarmodId : 5;
+                    uint8 CarMod : (+eVehicleMod::NUM_BITS_REQUIRED); //!< Value is one of `eVehicleMod`
                     uint8 bUseCommonVehicleDictionary : 1;
                 };
                 struct { // Clump flags
@@ -171,7 +200,23 @@ public:
             m_nAlpha += 16;
     };
     [[nodiscard]] auto GetModelName() const noexcept { return m_nKey; }
-    void SetModelName(const char* modelName) { m_nKey = CKeyGen::GetUppercaseKey(modelName); }
+    void SetModelName(const char* modelName) {
+        m_nKey = CKeyGen::GetUppercaseKey(modelName);
+        g_HashToStringMap[m_nKey] = modelName; // NOTSA
+    }
+
+    inline static std::unordered_map<uint32, std::string> g_HashToStringMap; // NOTSA
+    // TODO:
+    // Normally, the variable `m_modelName[21]` should be implemented in this class after `m_nKey`,
+    // since it exists in III, VC, and Mobile SA, but is missing here.
+    // Furthermore, the debug output from R* when using `GetModelName` clearly implies that it returns the model name, not hashes
+    std::string GetModelNameAsString() {
+        auto it = g_HashToStringMap.find(m_nKey);
+        if (it != g_HashToStringMap.end()) {
+            return it->second;
+        }
+        return std::to_string(m_nKey);
+    }
 
     [[nodiscard]] bool IsSwayInWind1()         const { return nSpecialType == eModelInfoSpecialType::TREE; }               // 0x0800
     [[nodiscard]] bool IsSwayInWind2()         const { return nSpecialType == eModelInfoSpecialType::PALM; }               // 0x1000

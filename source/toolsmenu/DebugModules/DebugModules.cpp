@@ -11,7 +11,8 @@
 #include "Script/MissionDebugModule.h"
 #include "Audio/CutsceneTrackManagerDebugModule.h"
 #include "Audio/AmbienceTrackManagerDebugModule.h"
-#include "Audio/PoliceScannerAudioEntityDebugModule.h"
+#include "Audio/Entities/PoliceScannerAudioEntityDebugModule.h"
+#include "Audio/Entities/VehicleAudioEntityDebugModule.hpp"
 #include "Audio/UserRadioTrackDebugModule.h"
 #include "CStreamingDebugModule.h"
 #include "CPickupsDebugModule.h"
@@ -36,6 +37,10 @@
 #include "TwoDEffectsDebugModule.hpp"
 #include "VehicleInfoDebugModule.h"
 #include "CoverPointsDebugModule.hpp"
+#include "LoadMonitorDebugModule.hpp"
+#include "DoorDebugModule.hpp"
+#include "Audio/SoundManagerDebugModule.hpp"
+#include "Audio/AudioDebugModule.hpp"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
     m_ImCtx(ctx)
@@ -105,6 +110,8 @@ void DebugModules::CreateModules() {
     Add<DarkelDebugModule>();
     Add<CPickupsDebugModule>();
     Add<PoliceScannerAudioEntityDebugModule>();
+    Add<notsa::debugmodules::VehicleAudioEntityDebugModule>();
+    Add<notsa::debugmodules::AudioDebugModule>();
     Add<AmbienceTrackManagerDebugModule>();
     Add<CutsceneTrackManagerDebugModule>();
     Add<UserRadioTrackDebugModule>();
@@ -116,6 +123,9 @@ void DebugModules::CreateModules() {
     Add<notsa::debugmodules::CheckpointsDebugModule>();
     Add<ProcObjectDebugModule>();
     Add<VehicleInfoDebugModule>();
+    Add<notsa::debugmodules::SoundManagerDebugModule>();
+    Add<notsa::debugmodules::LoadMonitorDebugModule>();
+    Add<notsa::debugmodules::DoorDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<notsa::debugmodules::TwoDEffectsDebugModule>(); // Visualization + Extra

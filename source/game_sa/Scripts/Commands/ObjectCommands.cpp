@@ -27,7 +27,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
     object->SetOrientation(CVector{0.0f});
-    object->UpdateRW();
+    object->UpdateRwMatrix();
     object->UpdateRwFrame();
     if (mi->AsLodAtomicModelInfoPtr()) {
         object->SetupBigBuilding();
@@ -99,7 +99,7 @@ void SetObjectScale(CObject& object, float scale) {
 }
 
 void SetObjectCollision(CObject& object, bool enable) {
-    object.m_bUsesCollision = enable;
+    object.SetUsesCollision(enable);
 }
 
 bool DoesObjectHaveThisModel(CObject& object, script::Model model) {

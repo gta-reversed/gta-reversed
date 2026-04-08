@@ -6,16 +6,20 @@
 */
 #pragma once
 
+#include <rwplcore.h>
+
 #include "RenderWare.h"
 #include "FxManager.h"
 
 class CVehicle;
 
-enum FxQuality_e : uint32 {
-    FX_QUALITY_LOW = 0,
-    FX_QUALITY_MEDIUM = 1,
-    FX_QUALITY_HIGH = 2,
+enum FxQuality_e : int32 {
+    FX_QUALITY_LOW       = 0,
+    FX_QUALITY_MEDIUM    = 1,
+    FX_QUALITY_HIGH      = 2,
     FX_QUALITY_VERY_HIGH = 3,
+
+    FX_QUALITY_COUNT
 };
 
 enum eSparkType : uint8 {

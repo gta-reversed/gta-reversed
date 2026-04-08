@@ -23,6 +23,7 @@
 #include "DamageManager.h"
 #include "FxSystem.h"
 #include "Fire.h"
+#include "VisibilityPlugins.h"
 
 #include <Enums/eControllerType.h>
 
@@ -175,7 +176,7 @@ struct tHydraulicData {
     // and does NOT apply if numpad keys are pressed (car hopping)
     float m_fSuspensionNormalIdleUpperLimit;
     float m_fSuspensionNormalIdleLowerLimit;
-    float m_aWheelSuspension[4];
+    std::array<float, 4> m_aWheelSuspension;
 };
 
 VALIDATE_SIZE(tHydraulicData, 0x28);
@@ -314,13 +315,13 @@ public:
     uint8             m_nSecondaryColor;
     uint8             m_nTertiaryColor;
     uint8             m_nQuaternaryColor;
-    uint8             m_anExtras[2];
+    std::array<uint8, 2>  m_anExtras;
     std::array<int16, NUM_VEHICLE_UPGRADES> m_anUpgrades;
     float             m_fWheelScale;
     uint16            m_nAlarmState;
     int16             m_nForcedRandomRouteSeed; // if this is non-zero the random wander gets deterministic
     CPed*             m_pDriver;
-    CPed*             m_apPassengers[8]{};
+    std::array<CPed*, 8>  m_apPassengers{};
     uint8             m_nNumPassengers;
     uint8             m_nNumGettingIn;
     uint8             m_nGettingInFlags;
@@ -334,8 +335,8 @@ public:
     CFire*            m_pFire;
     float             m_fSteerAngle;
     float             m_f2ndSteerAngle; // used for steering 2nd set of wheels or elevators etc..
-    float             m_fGasPedal;
-    float             m_fBreakPedal;
+    float             m_GasPedal;
+    float             m_BrakePedal;
     eVehicleCreatedBy m_nCreatedBy;
     int16             m_nExtendedRemovalRange;        // when game wants to delete a vehicle, it gets min(m_wExtendedRemovalRange, 170.0)
     uint8             m_nBombOnBoard : 3;             // 0 = None
@@ -352,14 +353,14 @@ public:
     uint8            m_nAmmoInClip;                   // Used to make the guns on boat do a reload (20 by default).
     uint8            m_nPacMansCollected;             // initialised, but not used?
     uint8            m_nPedsPositionForRoadBlock;     // 0, 1 or 2
-    uint8            m_nNumCopsForRoadBlock;
+    uint8            m_nNumPedsForRoadBlock;
     float            m_fDirtLevel; // Dirt level of vehicle body texture: 0.0f=fully clean, 15.0f=maximum dirt visible
     uint8            m_nCurrentGear;
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
     float            m_fWheelSpinForAudio;
     float            m_fHealth; // 1000.0f = full health. 0 -> explode
-    CVehicle*        m_pTowingVehicle;
-    CVehicle*        m_pVehicleBeingTowed;
+    CVehicle*        m_pTowingVehicle;            // m_pTractor
+    CVehicle*        m_pVehicleBeingTowed;        // m_pTrailer
     CPed*            m_pWhoInstalledBombOnMe;
     uint32           m_nTimeTillWeNeedThisCar;     // game won't try to delete this car while this time won't reach
     uint32           m_nGunFiringTime;             // last time when gun on vehicle was fired (used on boats)
@@ -383,8 +384,8 @@ public:
     char            field_511;             // initialised, but not used?
     char            field_512;             // initialised, but not used?
     eCarWeapon      m_nVehicleWeaponInUse;
-    uint32          m_nHornCounter;
-    int8            m_nRandomIdRelatedToSiren;
+    uint32          m_HornCounter;
+    int8            m_HornPattern;
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
@@ -404,30 +405,30 @@ public:
         } m_renderLights;
     };
     RwTexture*   m_pCustomCarPlate;
-    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight
+    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight or fSteer
     eVehicleType m_nVehicleType;    // Theory by forkerer:
     eVehicleType m_nVehicleSubType; // Hack to have stuff be 2 classes at once, like vortex which can act like a car and a boat
     int16        m_nPreviousRemapTxd;
     int16        m_nRemapTxd;
     RwTexture*   m_pRemapTexture;
 
-    static float &WHEELSPIN_TARGET_RATE;
-    static float &WHEELSPIN_INAIR_TARGET_RATE;
-    static float &WHEELSPIN_RISE_RATE;
-    static float &WHEELSPIN_FALL_RATE;
-    static float &m_fAirResistanceMult;
-    static float &ms_fRailTrackResistance;
-    static float &ms_fRailTrackResistanceDefault;
-    static bool &bDisableRemoteDetonation;
-    static bool &bDisableRemoteDetonationOnContact;
-    static bool &m_bEnableMouseSteering;
-    static bool &m_bEnableMouseFlying;
-    static inline auto& m_nLastControlInput = *(eControllerType*)0xC1CC04;
-    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>, 0xC1CC08>();
-    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>, 0xC1CC78>();
-    static bool &ms_forceVehicleLightsOff;
-    static bool &s_bPlaneGunsEjectShellCasings;
-    static inline tHydraulicData(&m_aSpecialHydraulicData)[4] = *(tHydraulicData(*)[4])0xC1CB60;
+    static inline auto& WHEELSPIN_TARGET_RATE = StaticRef<float>(0x8D3498);
+    static inline auto& WHEELSPIN_INAIR_TARGET_RATE = StaticRef<float>(0x8D349C);
+    static inline auto& WHEELSPIN_RISE_RATE = StaticRef<float>(0x8D34A0);
+    static inline auto& WHEELSPIN_FALL_RATE = StaticRef<float>(0x8D34A4);
+    static inline auto& m_fAirResistanceMult = StaticRef<float>(0x8D34A8);
+    static inline auto& ms_fRailTrackResistance = StaticRef<float>(0x8D34AC);
+    static inline auto& ms_fRailTrackResistanceDefault = StaticRef<float>(0x8D34B0);
+    static inline auto& bDisableRemoteDetonation = StaticRef<bool>(0xC1CC00);
+    static inline auto& bDisableRemoteDetonationOnContact = StaticRef<bool>(0xC1CC01);
+    static inline auto& m_bEnableMouseSteering = StaticRef<bool>(0xC1CC02);
+    static inline auto& m_bEnableMouseFlying = StaticRef<bool>(0xC1CC03);
+    static inline auto& m_nLastControlInput = StaticRef<eControllerType>(0xC1CC04);
+    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>>(0xC1CC08);
+    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>>(0xC1CC78);
+    static inline auto& ms_forceVehicleLightsOff = StaticRef<bool>(0xC1CC18);
+    static inline auto& s_bPlaneGunsEjectShellCasings = StaticRef<bool>(0xC1CC19);
+    static inline auto& m_aSpecialHydraulicData = StaticRef<std::array<tHydraulicData, 4>>(0xC1CB60);
 
     static constexpr auto Type = VEHICLE_TYPE_IGNORE;
 
@@ -456,7 +457,7 @@ public:
     // component index in m_apModelNodes array
     virtual void GetComponentWorldPosition(int32 componentId, CVector& outPos) { /* Do nothing */ }
     // component index in m_apModelNodes array
-    virtual bool IsComponentPresent(int32 componentId) { return false; }
+    virtual bool IsComponentPresent(int32 componentId) const { return false; }
     virtual void OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) { /* Do nothing */ }
     virtual void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime);
 
@@ -565,13 +566,13 @@ public:
     void ClearGettingOutFlags(uint8 doorId);
     void SetWindowOpenFlag(uint8 doorId);
     void ClearWindowOpenFlag(uint8 doorId);
-    bool SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 componentIndex, int32& resultModelIndex);
+    bool SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 mod, int32& resultModelIndex);
     bool ClearVehicleUpgradeFlags(int32 arg0, int32 componentIndex);
     RpAtomic* CreateUpgradeAtomic(CBaseModelInfo* model, const UpgradePosnDesc* upgradePosn, RwFrame* parentComponent, bool isDamaged);
     void RemoveUpgrade(int32 upgradeId);
     // return upgrade model id or -1 if not present
     int32 GetUpgrade(int32 upgradeId);
-    RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, int16 arg2, bool bDamaged, bool bIsWheel);
+    RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, eAtomicComponentFlag flags, bool bDamaged, bool bIsWheel);
     void AddReplacementUpgrade(int32 modelIndex, int32 nodeId);
     void RemoveReplacementUpgrade(int32 nodeId);
     // return upgrade model id or -1 if not present
@@ -659,6 +660,9 @@ public:
 
     auto GetPassengerIndex(const CPed* ped) const -> std::optional<size_t>;
 
+
+    auto GetHealth() const noexcept { return m_fHealth; }
+
     static void Shutdown();
     static void SetComponentAtomicAlpha(RpAtomic* atomic, int32 alpha);
 
@@ -709,7 +713,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
 
-    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_nStatus == STATUS_WRECKED; }
+    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_info.m_nStatus == STATUS_WRECKED; }
 
     CPlane* AsPlane() { return reinterpret_cast<CPlane*>(this); }
     CHeli*  AsHeli()  { return reinterpret_cast<CHeli*>(this); }
@@ -725,14 +729,18 @@ public: // NOTSA functions
     /// get position of driver seat dummy (World Space)
     CVector GetDriverSeatDummyPositionWS(); // NOTSA
 
+protected:
+    float GetNewSteeringAmt();
+
+public:
     [[nodiscard]] auto GetRopeID() const { return (uint32)&m_nFlags + 1; } // yep, flags + 1
     [[nodiscard]] CVehicleAnimGroup& GetAnimGroup() const;
     [[nodiscard]] AssocGroupId GetAnimGroupId() const;
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
-    auto GetPassengers() const { return std::span{ m_apPassengers, m_nMaxPassengers }; }
-    auto GetMaxPassengerSeats() { return std::span{ m_apPassengers, m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
+    auto GetPassengers() const { return m_apPassengers | rngv::take(m_nMaxPassengers); }
+    auto GetMaxPassengerSeats() { return m_apPassengers | rngv::take(m_nMaxPassengers); } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
     [[nodiscard]] float GetDefaultAirResistance() const {
         if (m_pHandlingData->m_fDragMult <= 0.01f) {
@@ -788,7 +796,6 @@ void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state);
 CVehicle::ReduceVehicleDamage(float &);
 CVehicle::CanUseCameraHeightSetting();
 CVehicle::DoReverseLightEffect(int32, CMatrix&, uint8, uint8, uint32, uint8);
-CVehicle::GetNewSteeringAmt();
 void CVehicle::GetGasTankPosition();
 void CVehicle::SetTappedGasTankVehicle(CEntity* entity);
 bool CVehicle::GetHasDualExhausts() { return (m_pHandlingData->m_nModelFlags >> 13) & 1; // m_bNoExhaust }

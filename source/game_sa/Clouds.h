@@ -21,52 +21,52 @@ constexpr auto SKYP_SEA_HORIZON_Z = -0.1f;
 constexpr auto SKYP_BELOW_HORIZON_Z = -0.3f;
 
 struct tMovingFog {
-    bool    m_bFogSlots[MAX_MOVING_FOG];
-    CVector m_vecPosn[MAX_MOVING_FOG];
-    float   m_fSize[MAX_MOVING_FOG];
-    float   m_fIntensity[MAX_MOVING_FOG];
-    float   m_fMaxIntensity[MAX_MOVING_FOG];
-    CVector m_vecWind;
-    float   m_fSpeed[MAX_MOVING_FOG];
-    int     field_27B4[12];
-    std::array<uint32, 6> m_nPrimIndices;
+    std::array<bool, MAX_MOVING_FOG>    m_bFogSlots;
+    std::array<CVector, MAX_MOVING_FOG> m_vecPosn;
+    std::array<float, MAX_MOVING_FOG>   m_fSize;
+    std::array<float, MAX_MOVING_FOG>   m_fIntensity;
+    std::array<float, MAX_MOVING_FOG>   m_fMaxIntensity;
+    CVector                             m_vecWind;
+    std::array<float, MAX_MOVING_FOG>   m_Speed;
+    std::array<int, 12>                 field_27B4;
+    std::array<uint32, 6>               m_nPrimIndices;
 };
 
 struct tVolumetricClouds {
-    bool       bUsed[MAX_VOLUMETRIC_CLOUDS];
-    bool       bJustCreated[MAX_VOLUMETRIC_CLOUDS];
+    std::array<bool, MAX_VOLUMETRIC_CLOUDS>    bUsed;
+    std::array<bool, MAX_VOLUMETRIC_CLOUDS>    bJustCreated;
 
-    CVector    pos[MAX_VOLUMETRIC_CLOUDS];
-    CVector    size[MAX_VOLUMETRIC_CLOUDS];
+    std::array<CVector, MAX_VOLUMETRIC_CLOUDS> pos;
+    std::array<CVector, MAX_VOLUMETRIC_CLOUDS> size;
 
-    int32      alpha[MAX_VOLUMETRIC_CLOUDS];
+    std::array<int32, MAX_VOLUMETRIC_CLOUDS>   alpha;
 
     RwTexture* texture;
 
-    CVector    quadNormal[3];
+    std::array<CVector, 3> quadNormal;
 
-    float      modelX[18];
-    float      modelY[18];
-    float      modelZ[18];
+    std::array<float, 18> modelX;
+    std::array<float, 18> modelY;
+    std::array<float, 18> modelZ;
 
-    float      modelU[18];
-    float      modelV[18];
+    std::array<float, 18> modelU;
+    std::array<float, 18> modelV;
 };
 
 class CClouds {
 public:
-    static inline auto& m_fVolumetricCloudDensity = StaticRef<float, 0x8D5388>();
-    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8, 0x8D538C>();
-    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float, 0x8D5390>();
-    static float& m_fVolumetricCloudMaxDistance;
-    static uint32& m_VolumetricCloudsUsedNum;
-    static float& ms_cameraRoll;
-    static int32& IndividualRotation;
-    static float& CloudRotation;
-    static tVolumetricClouds& ms_vc;
-    static tMovingFog& ms_mf;
-    static CVector& PlayerCoords;
-    static CVector& CameraCoors;
+    static inline auto& m_fVolumetricCloudDensity = StaticRef<float>(0x8D5388);
+    static inline auto& m_bVolumetricCloudHeightSwitch = StaticRef<int8>(0x8D538C);
+    static inline auto& m_fVolumetricCloudWindMoveFactor = StaticRef<float>(0x8D5390);
+    static inline auto& m_fVolumetricCloudMaxDistance = StaticRef<float>(0xC6AA58);
+    static inline auto& m_VolumetricCloudsUsedNum = StaticRef<uint32>(0xC6AA5C);
+    static inline auto& ms_cameraRoll = StaticRef<float>(0xC6AA64);
+    static inline auto& IndividualRotation = StaticRef<int32>(0xC6AA6C);
+    static inline auto& CloudRotation = StaticRef<float>(0xC6AA70);
+    static inline auto& ms_vc = StaticRef<tVolumetricClouds>(0xC6AAB0);
+    static inline auto& ms_mf = StaticRef<tMovingFog>(0xC6C158);
+    static inline auto& PlayerCoords = StaticRef<CVector>(0xC6E958); // gVecPlayerCoors
+    static inline auto& CameraCoors = StaticRef<CVector>(0xC6E964);  // gVecCameraCoors
 
     static inline struct DebugSettings {
         struct RenderSettingPair {

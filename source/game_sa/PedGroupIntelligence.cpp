@@ -82,7 +82,7 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
         return false;
     }
     if (const auto src = eGrpEvent->GetEvent().GetSourceEntity()) {
-        if (src->IsPed() && m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
+        if (src->GetIsTypePed() && m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
             return false;
         }
     }
@@ -366,7 +366,7 @@ void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
             return;
         }
         const auto src = m_CurrentEvent->GetEvent().GetSourceEntity();
-        if (!src || !src->IsPed()) {
+        if (!src || !src->GetIsTypePed()) {
             return;
         }
         const auto grp = src->AsPed()->GetGroup();
@@ -400,7 +400,7 @@ bool CPedGroupIntelligence::IsCurrentEventValid() {
         const auto event = &m_CurrentEvent->GetEvent();
         if (event->GetEventType() == EVENT_PLAYER_COMMAND_TO_GROUP) {
             if (const auto src = event->GetSourceEntity()) {
-                if (src->IsPed()) {
+                if (src->GetIsTypePed()) {
                     if (m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
                         return false;
                     }

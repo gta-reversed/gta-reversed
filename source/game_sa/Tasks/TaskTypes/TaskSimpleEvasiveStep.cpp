@@ -43,7 +43,7 @@ bool CTaskSimpleEvasiveStep::ProcessPed(CPed* ped) {
         return true;
 
     if (!m_Assoc) {
-        if (m_Entity->m_nStatus == STATUS_SIMPLE) {
+        if (m_Entity->GetStatus() == STATUS_SIMPLE) {
             ped->Say(CTX_GLOBAL_DODGE);
         }
         StartAnim(ped);

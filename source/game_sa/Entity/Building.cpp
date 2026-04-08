@@ -2,8 +2,6 @@
 
 #include "Building.h"
 
-int32& gBuildings = *(int32*)0xB71804;
-
 void CBuilding::InjectHooks()
 {
     RH_ScopedVirtualClass(CBuilding, 0x8585C8, 22);
@@ -15,8 +13,8 @@ void CBuilding::InjectHooks()
 
 CBuilding::CBuilding() : CEntity()
 {
-    m_nType = ENTITY_TYPE_BUILDING;
-    m_bUsesCollision = true;
+    SetTypeBuilding();
+    SetUsesCollision(true);
 }
 
 void* CBuilding::operator new(unsigned size)
@@ -32,8 +30,8 @@ void CBuilding::operator delete(void* data)
 void CBuilding::ReplaceWithNewModel(int32 newModelIndex)
 {
     DeleteRwObject();
-    if (!CModelInfo::GetModelInfo(m_nModelIndex)->m_nRefCount)
-        CStreaming::RemoveModel(m_nModelIndex);
+    if (!CModelInfo::GetModelInfo(GetModelIndex())->m_nRefCount)
+        CStreaming::RemoveModel(GetModelIndex());
 
     m_nModelIndex = newModelIndex;
 }

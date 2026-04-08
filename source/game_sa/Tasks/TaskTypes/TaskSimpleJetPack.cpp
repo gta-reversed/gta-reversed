@@ -141,8 +141,8 @@ bool CTaskSimpleJetPack::ProcessPed(CPed* ped) {
             ped->m_fAimingRotation +=
                 std::sin((float)CTimer::m_snTimeInMilliseconds * 0.0015707964f) * CTimer::GetTimeStep() * JETPACK_TURN_RATE * CGeneral::GetRandomNumberInRange(0.f, 1.f); // TODO: Magic number
 
-            if (ped->m_pPlayerData) {
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.f;
+            if (ped->GetPlayerData()) {
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.f;
             }
         }
         ProcessThrust(ped);
@@ -351,7 +351,7 @@ void CTaskSimpleJetPack::ProcessControlInput(CPlayerPed* player) {
                 player->m_fAimingRotation = std::atan2(walkLeftRight, walkUpDown);
                 m_ThrustAngle = THRUST_MAX_ANGLE * padMoveMag * -0.3515625f; // TODO: Magic
             } else {
-                player->m_pPlayerData->m_fMoveBlendRatio = 0.f;
+                player->GetPlayerData()->m_fMoveBlendRatio = 0.f;
             }
         } else if (walkLeftRight != 0.f) { // 0x67EAA1
             player->m_fAimingRotation = CGeneral::LimitRadianAngle(player->m_fAimingRotation + JETPACK_TURN_RATE * CTimer::GetTimeStep() * walkLeftRight / 128.f);
@@ -415,7 +415,7 @@ void CTaskSimpleJetPack::ProcessControlInput(CPlayerPed* player) {
     }
 
     // 0x67EEA9
-    auto& br = player->m_pPlayerData->m_fMoveBlendRatio;
+    auto& br = player->GetPlayerData()->m_fMoveBlendRatio;
     if (padMoveMag <= 0.f) {
         br = 0.f;
     } else {

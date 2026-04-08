@@ -4,8 +4,8 @@
 #include "InterestingEvents.h"
 #include "HandShaker.h"
 
-CIdleCam& gIdleCam = *(CIdleCam*)0xB6FDA0;
-uint32& gbCineyCamProcessedOnFrame = *(uint32*)0xB6EC40;
+auto& gIdleCam = StaticRef<CIdleCam>(0xB6FDA0);
+auto& gbCineyCamProcessedOnFrame = StaticRef<uint32>(0xB6EC40);
 
 void CIdleCam::InjectHooks() {
     RH_ScopedClass(CIdleCam);
@@ -111,7 +111,7 @@ void CIdleCam::IdleCamGeneralProcess() {
 // 0x50EAE0
 void CIdleCam::GetLookAtPositionOnTarget(const CEntity* target, CVector& outPos) {
     outPos = target->GetPosition();
-    if (target->IsPed()) {
+    if (target->GetIsTypePed()) {
         switch (target->AsPed()->m_nPedType) {
         case PED_TYPE_CIVFEMALE:
         case PED_TYPE_PROSTITUTE:
