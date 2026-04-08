@@ -3502,7 +3502,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
                 CTimer::GetTimeInMS(),
                 WEAPON_RUNOVERBYCAR,
                 PED_PIECE_TORSO,
-                ped.GetLocalDirection(dirToPed),
+                static_cast<uint8>(ped.GetLocalDirection(dirToPed)),
                 false,
                 false
             };
