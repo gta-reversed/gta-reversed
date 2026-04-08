@@ -600,7 +600,7 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
     }
     if (entity && entity->GetIsTypeVehicle()) {
         PlayBulletHitCollisionSound(
-            surface == entity->AsVehicle()->IsSubBMX()
+            entity->AsVehicle()->IsSubBMX()
                 ? AE_SURFACE_TYPE_BMX
                 : SURFACE_CAR,
             posn,
