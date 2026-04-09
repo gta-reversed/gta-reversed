@@ -1204,9 +1204,7 @@ auto CWeapon::GetProjectileType() {
 float CWeapon::EvaluateTargetForHeatSeekingMissile(CEntity* potentialTarget, const CVector& origin, const CVector& aimingDir, float tolerance, bool arePlanesPriority, CEntity* preferredExistingTarget) {
     const auto potentialTargetDist = (origin - potentialTarget->GetPosition()).Magnitude();
 
-    const auto lineDir                   = aimingDir * 250.f;
-    const auto potentialTargetDistToLine = CCollision::DistToLine(origin, origin + lineDir, potentialTarget->GetPosition());
-
+    const auto potentialTargetDistToLine = CCollision::DistToLine(origin, origin + aimingDir * 250.f, potentialTarget->GetPosition());
     auto ret = std::sqrt(potentialTargetDist) / 10.f + potentialTargetDistToLine / potentialTargetDist;
 
     if (potentialTargetDistToLine * tolerance >= potentialTargetDist) {
