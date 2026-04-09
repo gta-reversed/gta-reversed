@@ -101,9 +101,12 @@ CFire* CFireManager::FindNearestFire(const CVector& point, bool bCheckIsBeingExt
 
 // 0x539340
 bool CFireManager::PlentyFiresAvailable() {
-    size_t cnt = 0;
-    for (auto& fire : GetActiveFires()) {
-        if (++cnt >= 6) {
+    size_t inactive = 0;
+    for (auto& fire : m_aFires) {
+        if (fire.IsActive()) {
+            continue;
+        }
+        if (++inactive >= 6) {
             return true;
         }
     }

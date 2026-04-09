@@ -25,7 +25,11 @@ public:
 
     uint32 GetNumOfNonScriptFires();
     CFire* FindNearestFire(const CVector& point, bool bCheckWasExtinguished = false, bool bCheckWasCreatedByScript = false);
-    bool   PlentyFiresAvailable();
+
+    /*!
+     * @return If the number of active fires is a bit less than the maximum allowed
+     */
+    bool PlentyFiresAvailable();
 
     void ExtinguishPoint(CVector point, float fRadiusSq);
     bool ExtinguishPointWithWater(CVector point, float fRadiusSq, float fFireSize);
