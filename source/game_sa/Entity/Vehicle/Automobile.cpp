@@ -973,8 +973,8 @@ void CAutomobile::ProcessControl()
                 const auto CheckWheelIsUsingHydraulics = [this](eCarWheel wheel) {
                     return m_vehicleSpecialColIndex != -1 && m_aSpecialHydraulicData[m_vehicleSpecialColIndex].m_aWheelSuspension[wheel] > 0.5f;
                 };
-                return CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_LEFT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_LEFT)
-                    || CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_RIGHT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_RIGHT);
+                return (CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_LEFT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_LEFT))
+                    || (CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_RIGHT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_RIGHT));
             }
             case STATUS_PLAYER: {
                 return IsDriverAPlayer()
