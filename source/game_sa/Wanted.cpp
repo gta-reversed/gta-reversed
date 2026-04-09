@@ -142,7 +142,7 @@ void CWanted::UpdateWantedLevel() {
     }
 
     if (oldWanted != m_WantedLevel) {
-        m_LastTimeWantedLevelChanged = CTimer::m_snTimeInMilliseconds;
+        m_LastTimeWantedLevelChanged = CTimer::GetTimeInMS();
     }
 
     if (PoliceBackOff()) {
