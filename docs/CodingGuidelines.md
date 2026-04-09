@@ -28,10 +28,10 @@ private:
 // Header-defined shared global
 inline int g_InlineGlobalCounter = 0; // Prefer `inline` over `extern`
 ```
-* For shared variables in a source file (eg.: `.cpp`), use `s_` prefix:
+* For static variables in a source file (eg.: `.cpp`), use `s_` prefix:
 ```cpp
-// Source-defined shared global
-static int s_StaticGlobalCounter = 0; // Static global variable
+// Source-defined static variable
+static int s_StaticGlobalCounter = 0;
 ```
 * For shared variables inside a class, use `ms_` prefix, and define them in the header:
 ```cpp
