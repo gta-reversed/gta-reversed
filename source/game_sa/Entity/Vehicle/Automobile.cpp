@@ -4793,12 +4793,10 @@ bool CAutomobile::IsInAir() {
     if (physicalFlags.bDontApplySpeed) {
         return true;
     }
-
-    if (!physicalFlags.bSubmergedInWater) {
-        return AreAllWheelsNotTouchingGround() && m_vecMoveSpeed.IsZero();
+    if (physicalFlags.bSubmergedInWater) {
+        return false;
     }
-
-    return false;
+    return AreAllWheelsNotTouchingGround() && !m_vecMoveSpeed.IsZero();
 }
 
 // 0x6A6DC0

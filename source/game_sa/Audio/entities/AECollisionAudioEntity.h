@@ -14,8 +14,8 @@ struct tCollisionSound {
     CAESound*             Sound{ nullptr };
     uint32                LoopStopTimeMs{ 0 };
     eCollisionSoundStatus Status{ COLLISION_SOUND_INACTIVE };
-    eSurfaceType          SurfaceA{ SURFACE_NUM_TYPES_FOR_COLLISION }; // ?
-    eSurfaceType          SurfaceB{ SURFACE_NUM_TYPES_FOR_COLLISION }; // ?
+    eSurfaceType          SurfaceA{ TOTAL_NUM_COLLISION_SURFACE_TYPES }; // ?
+    eSurfaceType          SurfaceB{ TOTAL_NUM_COLLISION_SURFACE_TYPES }; // ?
 };
 VALIDATE_SIZE(tCollisionSound, 0x14);
 
@@ -23,10 +23,10 @@ class NOTSA_EXPORT_VTABLE CAECollisionAudioEntity : public CAEAudioEntity {
 public:
     static constexpr auto NUM_ENTRIES = 300u;
 
-    std::array<int16, SURFACE_NUM_TYPES_FOR_COLLISION> m_CollisionSoundIDHistory{ 255 };
-    int16                                    m_LastBulletHitSoundID{ -1 };
-    int32                                    m_NumActiveCollisionSounds{ 0 };
-    std::array<tCollisionSound, NUM_ENTRIES> m_CollisionSoundList{};
+    std::array<int16, TOTAL_NUM_COLLISION_SURFACE_TYPES> m_CollisionSoundIDHistory{ 255 };
+    int16                                                m_LastBulletHitSoundID{ -1 };
+    int32                                                m_NumActiveCollisionSounds{ 0 };
+    std::array<tCollisionSound, NUM_ENTRIES>             m_CollisionSoundList{};
 
 public:
     static void InjectHooks();
