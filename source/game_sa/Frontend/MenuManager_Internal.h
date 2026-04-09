@@ -244,7 +244,7 @@ inline bool IsSaveSlot(eMenuEntryType slot) {
 }
 
 /// Screens data (From 0x8CE008)
-constexpr tMenuScreen aScreens[SCREEN_COUNT] = {
+inline tMenuScreen aScreens[SCREEN_COUNT] = {
     // [0]: SCREEN_STATS
     {
         "FEP_STA",
