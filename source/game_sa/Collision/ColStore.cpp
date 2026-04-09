@@ -74,8 +74,8 @@ int32 CColStore::AddColSlot(const char* name) {
     def->m_bActive              = false;
     def->m_bCollisionIsRequired = false;
     def->m_Area                 = CRect();
-    def->m_nModelIdStart        = SHRT_MIN;
-    def->m_nModelIdEnd          = -1;
+    def->m_nModelIdStart        = SHRT_MAX;
+    def->m_nModelIdEnd          = SHRT_MIN;
     def->m_nRefCount            = 0;
     def->m_bProcedural          = namesv == "procobj"
         || namesv == "proc_int"
