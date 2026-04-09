@@ -310,10 +310,9 @@ bool CBike::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
         }
     }();
 
-    bool burst = false;
+    const auto burst = m_nWheelStatus[wheel] == WHEEL_STATUS_OK;
 
-    if (m_nWheelStatus[wheel] == WHEEL_STATUS_OK) {
-        burst = true;
+    if (burst) {
         m_nWheelStatus[wheel] = WHEEL_STATUS_BURST;
         m_vehicleAudio.AddAudioEvent(AE_TYRE_BURST, 0.0f);
 
