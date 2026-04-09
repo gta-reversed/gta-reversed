@@ -11,7 +11,7 @@ struct CollisionLookupEntry {
     int32    ParamD;                 //!< Some coefficient between surfaces [0-100] used in some cases to determine sound speed (and volume from it) based on velocity
 };
 
-static inline constexpr std::array<CollisionLookupEntry, SURFACE_NUM_TYPES_FOR_COLLISION> gCollisionLookup = {{
+static inline constexpr std::array<CollisionLookupEntry, TOTAL_NUM_COLLISION_SURFACE_TYPES> gCollisionLookup = {{
     { SND_GENRL_COLLISIONS_CONCRETE,       SND_GENRL_COLLISIONS_CONCRETE,       70, 100 }, // [0]   = SURFACE_DEFAULT
     { SND_GENRL_COLLISIONS_CONCRETE,       SND_GENRL_COLLISIONS_CONCRETE,       70, 100 }, // [1]   = SURFACE_TARMAC
     { SND_GENRL_COLLISIONS_CONCRETE,       SND_GENRL_COLLISIONS_CONCRETE,       70, 100 }, // [2]   = SURFACE_TARMAC_FUCKED
