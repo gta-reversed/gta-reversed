@@ -479,12 +479,12 @@ void CGlass::RenderHiLightPolys() {
 // 0x71ACF0
 uint8 CGlass::CalcAlphaWithNormal(const CVector& normal) {
     const auto& camFwd = TheCamera.GetForward();
-    const auto fwdOnNormalProj2x = ProjectVector(camFwd, normal) * 2.f;
+    const auto fwdOnNormalProj2x = camFwd.ProjectOnToNormal(normal) * 2.f;
     const auto factor = ( // TODO: What the fuck is going on here???
           camFwd.x - fwdOnNormalProj2x.x
         + camFwd.y - fwdOnNormalProj2x.y
         - camFwd.z + fwdOnNormalProj2x.z
-    ) / 0.57f;
+    ) / 0.57f; // TODO: Magic number
     return (uint8)(std::pow(factor, 6) * 235.f + 20.f);
 }
 
