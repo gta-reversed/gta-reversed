@@ -143,6 +143,9 @@ void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionMakerType dm) {
     default:
         NOTSA_UNREACHABLE_CASE(type.get()); // Originally this was just an else branch, not sure if there are more types than the enum has...
     }
+
+    m_IsActive[+dm] = false;
+    m_Types[+dm]    = PED_DECISION_MAKER;
 }
 
 // 0x6044C0
