@@ -1513,7 +1513,7 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
         return false;
     }
 
-    const auto touchDistUnclamped = std::sqrt(distSq) - spA.m_fRadius;
+    const auto touchDistUnclamped = std::sqrt(distSq) - spB.m_fRadius;
     const auto touchDist          = std::max(touchDistUnclamped, 0.f);
     const auto touchDistSq        = sq(touchDist);
 
