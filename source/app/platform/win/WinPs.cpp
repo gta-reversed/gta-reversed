@@ -23,7 +23,7 @@
 static inline char gCpuVendor[13] = "GTAReversed!"; // = "UnknownVendr";
 
 #ifndef NOTSA_USE_SDL3 // For SDL we do a `new`
-static auto& PsGlobal = StaticRef<psGlobalType, 0xC8CF88>();
+static auto& PsGlobal = StaticRef<psGlobalType>(0xC8CF88);
 #endif
 
 // 0x7455E0 - Get available videomem
@@ -237,7 +237,8 @@ bool psCameraBeginUpdate(RwCamera* camera) {
 
 // 0x745240
 RwCamera* psCameraShowRaster(RwCamera* camera) {
-    auto flags = FrontEndMenuManager.m_bPrefsFrameLimiter || CLoadingScreen::m_bActive ? rwRASTERFLIPWAITVSYNC : rwRASTERFLIPDONTWAIT;
+    // Mobile anyway flags = 0x0
+    const auto flags = FrontEndMenuManager.m_bPrefsFrameLimiter || CLoadingScreen::IsActive() ? rwRASTERFLIPWAITVSYNC : rwRASTERFLIPDONTWAIT;
     return RwCameraShowRaster(camera, PSGLOBAL(window), flags);
 }
 

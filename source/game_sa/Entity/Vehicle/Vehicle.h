@@ -176,7 +176,7 @@ struct tHydraulicData {
     // and does NOT apply if numpad keys are pressed (car hopping)
     float m_fSuspensionNormalIdleUpperLimit;
     float m_fSuspensionNormalIdleLowerLimit;
-    float m_aWheelSuspension[4];
+    std::array<float, 4> m_aWheelSuspension;
 };
 
 VALIDATE_SIZE(tHydraulicData, 0x28);
@@ -315,13 +315,13 @@ public:
     uint8             m_nSecondaryColor;
     uint8             m_nTertiaryColor;
     uint8             m_nQuaternaryColor;
-    uint8             m_anExtras[2];
+    std::array<uint8, 2>  m_anExtras;
     std::array<int16, NUM_VEHICLE_UPGRADES> m_anUpgrades;
     float             m_fWheelScale;
     uint16            m_nAlarmState;
     int16             m_nForcedRandomRouteSeed; // if this is non-zero the random wander gets deterministic
     CPed*             m_pDriver;
-    CPed*             m_apPassengers[8]{};
+    std::array<CPed*, 8>  m_apPassengers{};
     uint8             m_nNumPassengers;
     uint8             m_nNumGettingIn;
     uint8             m_nGettingInFlags;
@@ -353,7 +353,7 @@ public:
     uint8            m_nAmmoInClip;                   // Used to make the guns on boat do a reload (20 by default).
     uint8            m_nPacMansCollected;             // initialised, but not used?
     uint8            m_nPedsPositionForRoadBlock;     // 0, 1 or 2
-    uint8            m_nNumCopsForRoadBlock;
+    uint8            m_nNumPedsForRoadBlock;
     float            m_fDirtLevel; // Dirt level of vehicle body texture: 0.0f=fully clean, 15.0f=maximum dirt visible
     uint8            m_nCurrentGear;
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
@@ -412,23 +412,23 @@ public:
     int16        m_nRemapTxd;
     RwTexture*   m_pRemapTexture;
 
-    static float &WHEELSPIN_TARGET_RATE;
-    static float &WHEELSPIN_INAIR_TARGET_RATE;
-    static float &WHEELSPIN_RISE_RATE;
-    static float &WHEELSPIN_FALL_RATE;
-    static float &m_fAirResistanceMult;
-    static float &ms_fRailTrackResistance;
-    static float &ms_fRailTrackResistanceDefault;
-    static bool &bDisableRemoteDetonation;
-    static bool &bDisableRemoteDetonationOnContact;
-    static bool &m_bEnableMouseSteering;
-    static bool &m_bEnableMouseFlying;
-    static inline auto& m_nLastControlInput = *(eControllerType*)0xC1CC04;
-    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>, 0xC1CC08>();
-    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>, 0xC1CC78>();
-    static bool &ms_forceVehicleLightsOff;
-    static bool &s_bPlaneGunsEjectShellCasings;
-    static inline tHydraulicData(&m_aSpecialHydraulicData)[4] = *(tHydraulicData(*)[4])0xC1CB60;
+    static inline auto& WHEELSPIN_TARGET_RATE = StaticRef<float>(0x8D3498);
+    static inline auto& WHEELSPIN_INAIR_TARGET_RATE = StaticRef<float>(0x8D349C);
+    static inline auto& WHEELSPIN_RISE_RATE = StaticRef<float>(0x8D34A0);
+    static inline auto& WHEELSPIN_FALL_RATE = StaticRef<float>(0x8D34A4);
+    static inline auto& m_fAirResistanceMult = StaticRef<float>(0x8D34A8);
+    static inline auto& ms_fRailTrackResistance = StaticRef<float>(0x8D34AC);
+    static inline auto& ms_fRailTrackResistanceDefault = StaticRef<float>(0x8D34B0);
+    static inline auto& bDisableRemoteDetonation = StaticRef<bool>(0xC1CC00);
+    static inline auto& bDisableRemoteDetonationOnContact = StaticRef<bool>(0xC1CC01);
+    static inline auto& m_bEnableMouseSteering = StaticRef<bool>(0xC1CC02);
+    static inline auto& m_bEnableMouseFlying = StaticRef<bool>(0xC1CC03);
+    static inline auto& m_nLastControlInput = StaticRef<eControllerType>(0xC1CC04);
+    static inline auto& m_aSpecialColVehicle = StaticRef<std::array<CVehicle*, 4>>(0xC1CC08);
+    static inline auto& m_aSpecialColModel = StaticRef<std::array<CColModel, 4>>(0xC1CC78);
+    static inline auto& ms_forceVehicleLightsOff = StaticRef<bool>(0xC1CC18);
+    static inline auto& s_bPlaneGunsEjectShellCasings = StaticRef<bool>(0xC1CC19);
+    static inline auto& m_aSpecialHydraulicData = StaticRef<std::array<tHydraulicData, 4>>(0xC1CB60);
 
     static constexpr auto Type = VEHICLE_TYPE_IGNORE;
 
@@ -739,8 +739,8 @@ public:
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
-    auto GetPassengers() const { return std::span{ m_apPassengers, m_nMaxPassengers }; }
-    auto GetMaxPassengerSeats() { return std::span{ m_apPassengers, m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
+    auto GetPassengers() const { return m_apPassengers | rngv::take(m_nMaxPassengers); }
+    auto GetMaxPassengerSeats() { return m_apPassengers | rngv::take(m_nMaxPassengers); } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
     [[nodiscard]] float GetDefaultAirResistance() const {
         if (m_pHandlingData->m_fDragMult <= 0.01f) {

@@ -1,7 +1,7 @@
 #include "StdInc.h"
 #include "AEAudioEnvironment.h"
 
-sReverbEnvironment (&gAudioZoneToReverbEnvironmentMap)[NUM_AUDIO_ENVIRONMENTS] = *(sReverbEnvironment(*)[NUM_AUDIO_ENVIRONMENTS])0x8AD670;
+auto& gAudioZoneToReverbEnvironmentMap = StaticRef<sReverbEnvironment[NUM_AUDIO_ENVIRONMENTS]>(0x8AD670);
 
 #include "data/SoundAttenuationTable.h"
 

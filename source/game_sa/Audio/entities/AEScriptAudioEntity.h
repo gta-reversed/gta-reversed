@@ -40,7 +40,7 @@ public:
     float                   m_Volume;
     float                   m_Speed;
     float                   field_8C;
-    CAudioLink              wavLinks[MISSION_AUDIO_COUNT];
+    std::array<CAudioLink, MISSION_AUDIO_COUNT> wavLinks;
     CPhysical*              m_Physical;
     CAEDoorAudioEntity      m_GarageAudio;
     CAEExplosionAudioEntity m_ExplosionAudio;

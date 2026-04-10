@@ -2,8 +2,6 @@
 
 #include "EventGunShot.h"
 
-float& CEventGunShot::ms_fGunShotSenseRangeForRiot2 = *(float*)0x8A625C;
-
 void CEventGunShot::InjectHooks() {
     RH_ScopedVirtualClass(CEventGunShot, 0x85ABE0, 17);
     RH_ScopedCategory("Events");

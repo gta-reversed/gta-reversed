@@ -60,6 +60,8 @@ inline OpcodeResult CollectArgsAndCall(CRunningScript* S, eScriptCommands comman
 //! That is, ones that aren't used anywhere.
 //! If this ever gets called, that means that the command is used after all, and shouldn't be hooked as unimplemented.
 inline auto NotImplemented(CRunningScript& S, eScriptCommands cmd) {
+    (void)(S);
+    (void)(cmd);
     throw command_parser::exceptions::CommandNotImplemented{};
 }
 

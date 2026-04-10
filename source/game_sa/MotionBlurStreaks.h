@@ -11,12 +11,12 @@ class RegisteredMotionBlurStreak;
 class CMotionBlurStreaks {
 public:
     static constexpr uint32 MAX_NUM_MOTIONBLUR_STREAKS = 4; // default 4
-    static CRegisteredMotionBlurStreak(&aStreaks)[MAX_NUM_MOTIONBLUR_STREAKS]; // static CRegisteredMotionBlurStreak aStreaks[4]
+    static inline auto& aStreaks = StaticRef<CRegisteredMotionBlurStreak[MAX_NUM_MOTIONBLUR_STREAKS]>(0xC7CA08); // static CRegisteredMotionBlurStreak aStreaks[4]
 
     static constexpr uint32 NUM_STREAK_VERTICES = 4;
-    static RxObjSpace3DVertex(&aStreakVertices)[NUM_STREAK_VERTICES];
+    static inline auto& aStreakVertices = StaticRef<RxObjSpace3DVertex[NUM_STREAK_VERTICES]>(0xC7C628);
     static constexpr uint32 NUM_STREAK_INDICES = 12;
-    static RxVertexIndex(&aIndices)[NUM_STREAK_INDICES];
+    static inline auto& aIndices = StaticRef<RxVertexIndex[NUM_STREAK_INDICES]>(0xC7C6B8);
 
 public:
     static void InjectHooks();

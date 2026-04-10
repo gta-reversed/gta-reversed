@@ -9,30 +9,6 @@
 
 #include "VisibilityPlugins.h"
 
-RwInt32 CVisibilityPlugins::ms_atomicPluginOffset = -1;
-RwInt32 CVisibilityPlugins::ms_clumpPluginOffset = -1;
-RwInt32 CVisibilityPlugins::ms_framePluginOffset = -1;
-RpAtomicCallBackRender CVisibilityPlugins::ms_defaultRenderer = nullptr;
-RwCamera* CVisibilityPlugins::ms_pCamera = nullptr;
-RwV3d* CVisibilityPlugins::ms_pCameraPosn = nullptr;
-
-float CVisibilityPlugins::ms_vehicleLod0RenderMultiPassDist;
-float CVisibilityPlugins::ms_vehicleLod0Dist;
-float CVisibilityPlugins::ms_vehicleLod1Dist;
-float CVisibilityPlugins::ms_bigVehicleLod0Dist;
-float CVisibilityPlugins::ms_pedLodDist;
-float CVisibilityPlugins::ms_pedFadeDist;
-float CVisibilityPlugins::ms_cullCompsDist;
-float CVisibilityPlugins::ms_cullBigCompsDist;
-
-CLinkList<CVisibilityPlugins::AlphaObjectInfo> CVisibilityPlugins::m_alphaList;
-CLinkList<CVisibilityPlugins::AlphaObjectInfo> CVisibilityPlugins::m_alphaBoatAtomicList;
-CLinkList<CVisibilityPlugins::AlphaObjectInfo> CVisibilityPlugins::m_alphaEntityList;
-CLinkList<CVisibilityPlugins::AlphaObjectInfo> CVisibilityPlugins::m_alphaUnderwaterEntityList;
-CLinkList<CVisibilityPlugins::AlphaObjectInfo> CVisibilityPlugins::m_alphaReallyDrawLastList;
-
-CLinkList<CPed*> CVisibilityPlugins::ms_weaponPedsForPC;
-
 float gVehicleDistanceFromCamera; // 0xC88024
 float gAngleWithHorizontal; // 0xC88020
 

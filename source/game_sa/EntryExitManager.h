@@ -26,15 +26,15 @@ enum ExitEnterState : int32 {
 using CEntryExitsPool = CPool<CEntryExit>;
 class CEntryExitManager {
 public:
-    static inline CEntryExit* (&ms_entryExitStack)[4] = *(CEntryExit*(*)[4])0x96A720;
-    static inline bool& ms_bBurglaryHousesEnabled = *(bool*)0x96A730;
-    static inline int32& ms_oldAreaCode = *(int32*)0x96A734;
-    static inline CEntity* (&ms_visibleEntityList)[32] = *(CEntity * (*)[32])0x96A738;
-    static inline uint32& ms_entryExitStackPosn = *(uint32*)0x96A7C4; // No. of enex's on the stack
-    static inline int8& ms_bDisabled = *(int8*)0x96A7C8;
-    static inline int32& ms_exitEnterState = *(int32*)0x96A7CC; // TODO: Some kind of enum, seems to have values [0, 4]
-    static inline CEntryExit*& mp_Active = *(CEntryExit**)0x96A7D4;
-    static inline int32& ms_numVisibleEntities = *(int32*)0x96A7DC;
+    static inline auto& ms_entryExitStack = StaticRef<CEntryExit*[4]>(0x96A720);
+    static inline auto& ms_bBurglaryHousesEnabled = StaticRef<bool>(0x96A730);
+    static inline auto& ms_oldAreaCode = StaticRef<int32>(0x96A734);
+    static inline auto& ms_visibleEntityList = StaticRef<CEntity*[32]>(0x96A738);
+    static inline auto& ms_entryExitStackPosn = StaticRef<uint32>(0x96A7C4); // No. of enex's on the stack
+    static inline auto& ms_bDisabled = StaticRef<int8>(0x96A7C8);
+    static inline auto& ms_exitEnterState = StaticRef<int32>(0x96A7CC); // TODO: Some kind of enum, seems to have values [0, 4]
+    static inline auto& mp_Active = StaticRef<CEntryExit*>(0x96A7D4);
+    static inline auto& ms_numVisibleEntities = StaticRef<int32>(0x96A7DC);
 
 public:
     static void InjectHooks();

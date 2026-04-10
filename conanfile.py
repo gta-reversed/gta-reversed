@@ -23,6 +23,7 @@ class saRecipe(ConanFile):
     ]
 
     default_options = {
+        "spdlog/*:use_std_fmt": True,
         "with_command_hooks": False,
         "use_sdl3": True
     }

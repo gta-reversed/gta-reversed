@@ -27,9 +27,7 @@
             NOTSA_LOG_WARN("Line: {:?}", _l); \
         } \
     } while (0)
-
-char(&CFileLoader::ms_line)[512] = *reinterpret_cast<char(*)[512]>(0xB71848);
-uint32& gAtomicModelId = *reinterpret_cast<uint32*>(0xB71840);
+auto& gAtomicModelId = StaticRef<uint32>(0xB71840);
 
 void LinkLods(int32 a1);
 
@@ -539,7 +537,7 @@ bool CFileLoader::LoadCollisionFile(uint8* buff, uint32 buffSize, uint8 colId) {
 
 // 0x5B4E60
 void CFileLoader::LoadCollisionFile(const char* filename, uint8 colId) {
-    uint8 (&buffer)[0x8000] = *(uint8(*)[0x8000])0xBC40D8; // 32 kB
+    auto& buffer = StaticRef<uint8[0x8000]>(0xBC40D8); // 32 kB
 
     using namespace ColHelpers;
 
@@ -668,12 +666,12 @@ void CFileLoader::LoadCollisionModel(uint8* buffer, CColModel& cm) {
 
     // Vertices
     if (auto nVertices = *reinterpret_cast<uint32*&>(bufferIt)++) {
-        cd->m_pVertices = (CompressedVector*)CMemoryMgr::Malloc(nVertices * sizeof(CompressedVector));
+        cd->m_pVertices = static_cast<decltype(cd->m_pVertices)>(CMemoryMgr::Malloc(nVertices * sizeof(*cd->m_pVertices)));
 
         // Here they (or the compiler) originally did an unroll (with 4 vertices / iteration)
         // We are going to let the compiler do that.
         for (auto i = 0u; i < nVertices; i++) {
-            cd->m_pVertices[i] = CompressVector(*reinterpret_cast<TVertex*&>(bufferIt)++);
+            cd->m_pVertices[i] = *reinterpret_cast<TVertex*&>(bufferIt)++;
         }
     } else {
         cd->m_pVertices = nullptr;

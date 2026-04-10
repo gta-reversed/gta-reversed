@@ -88,10 +88,10 @@ public:
     uint32        m_nBurnTime;     // time when particles must be stopped
     float         m_fBurnDamage;
 
-    static uint16& nNoTempObjects;
-    static float&  fDistToNearestTree;
-    static bool&   bAircraftCarrierSamSiteDisabled;
-    static bool&   bArea51SamSiteDisabled;
+    static inline auto& nNoTempObjects = StaticRef<uint16>(0xBB4A70);
+    static inline auto& fDistToNearestTree = StaticRef<float>(0x8D0A20);
+    static inline auto& bAircraftCarrierSamSiteDisabled = StaticRef<bool>(0x8D0A24);
+    static inline auto& bArea51SamSiteDisabled = StaticRef<bool>(0xBB4A72);
 
 public:
     CObject();
