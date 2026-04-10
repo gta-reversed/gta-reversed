@@ -6,11 +6,11 @@ class CVehicle;
 struct RwFrame;
 
 class  CBouncingPanel {
-    static float& BOUNCE_SPRING_DAMP_MULT; // 0.95
-    static float& BOUNCE_SPRING_RETURN_MULT; // 0.1
-    static float& BOUNCE_VEL_CHANGE_LIMIT; // 0.1
-    static float& BOUNCE_HANGING_DAMP_MULT; // 0.98
-    static float& BOUNCE_HANGING_RETURN_MULT; // 0.02
+    static inline auto& BOUNCE_SPRING_DAMP_MULT = StaticRef<float>(0x8D3954); // 0.95
+    static inline auto& BOUNCE_SPRING_RETURN_MULT = StaticRef<float>(0x8D3958); // 0.1
+    static inline auto& BOUNCE_VEL_CHANGE_LIMIT = StaticRef<float>(0x8D395C); // 0.1
+    static inline auto& BOUNCE_HANGING_DAMP_MULT = StaticRef<float>(0x8D3960); // 0.98
+    static inline auto& BOUNCE_HANGING_RETURN_MULT = StaticRef<float>(0x8D3964); // 0.02
 
 public:
     uint16 m_nFrameId{(uint16)-1};

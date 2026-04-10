@@ -4,8 +4,8 @@
 #include "AEGlobalWeaponAudioEntity.h"
 #include "AEAudioHardware.h"
 
-CAESound* (&pWaterfall)[3] = *(CAESound * (*)[3])0xB612F0;
-CAESound*& pFogHorn = *(CAESound**)0xB612FC;
+auto& pWaterfall = StaticRef<CAESound*[3]>(0xB612F0);
+auto& pFogHorn = StaticRef<CAESound*>(0xB612FC);
 
 // 0x5075B0
 CAEGlobalWeaponAudioEntity::CAEGlobalWeaponAudioEntity() : CAEWeaponAudioEntity() {

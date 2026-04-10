@@ -8,10 +8,6 @@
 
 #include "Wanted.h"
 
-uint32& CWanted::MaximumWantedLevel = *(uint32*)0x8CDEE4; // 6
-uint32& CWanted::MaximumChaosLevel = *(uint32*)0x8CDEE8;   // 9200; original name nMaximumWantedLevel
-bool& CWanted::bUseNewsHeliInAdditionToPolice = *(bool*)0xB7CB8C;
-
 void CWanted::InjectHooks() {
     RH_ScopedClass(CWanted);
     RH_ScopedCategoryGlobal();

@@ -5,9 +5,6 @@
 #include "TaskComplexInAirAndLand.h"
 #include "TaskSimpleClimb.h"
 
-float CTaskSimpleInAir::ms_fSlowFallThreshold = -0.05F;
-uint32 CTaskSimpleInAir::ms_nMaxSlowFallFrames = 10;
-
 void CTaskSimpleInAir::InjectHooks()
 {
     RH_ScopedVirtualClass(CTaskSimpleInAir, 0x8704D8, 9);

@@ -17,9 +17,10 @@ struct tTrackInfo {
     struct tBeat {
         uint32 m_nTime{};
         uint32 m_nKey{};
-    } m_aBeats[1000];
+    };
+    std::array<tBeat, 1000>   m_aBeats;
 
-    uint32 field_1F40[16];
+    std::array<uint32, 16> field_1F40;
     uint16 field_1F80;
 };
 VALIDATE_SIZE(tTrackInfo, 0x1F84);

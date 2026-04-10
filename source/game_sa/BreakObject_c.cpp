@@ -172,9 +172,9 @@ void BreakObject_c::SetGroupData(const RwMatrix* matrix, const CVector* vecVeloc
 
 // 0x59D7F0
 void BreakObject_c::SetBreakInfo(BreakInfo_t* info, int32 bJustFaces) {
-    static float& ambientRed   = *(float*)0x8D0A0C;  // TODO | STATICREF // = 32.0f;
-    static float& ambientGreen = *(float*)0x8D0A08;  // TODO | STATICREF // = 32.0f;
-    static float& ambientBlue  = *(float*)0x8D0A04;  // TODO | STATICREF // = 32.0f;
+    static auto& ambientRed = StaticRef<float>(0x8D0A0C); // 32.0f
+    static auto& ambientGreen = StaticRef<float>(0x8D0A08); // 32.0f
+    static auto& ambientBlue = StaticRef<float>(0x8D0A04); // 32.0f
 
     m_NumBreakGroups = bJustFaces ? info->m_usNumTriangles : info->m_usNumMaterials;
     m_BreakGroups = new BreakGroup_t[m_NumBreakGroups];
@@ -246,9 +246,9 @@ void BreakObject_c::SetBreakInfo(BreakInfo_t* info, int32 bJustFaces) {
 
 // 0x59DE40
 void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, const CVector* vecNormal, float groundZ) const {
-    static float& dotMultiplier = *(float*)0x8D0A18;   // TODO | STATICREF // = 0.85f;
-    static float& timestepScaling = *(float*)0x8D0A14; // TODO | STATICREF // = 0.05f;
-    static float& velocityScaling = *(float*)0x8D0A10; // TODO | STATICREF // = 0.8f;
+    static auto& dotMultiplier = StaticRef<float>(0x8D0A18);   // 0.85f
+    static auto& timestepScaling = StaticRef<float>(0x8D0A14); // 0.05f
+    static auto& velocityScaling = StaticRef<float>(0x8D0A10); // 0.8f
 
     auto dotProd = DotProduct(group->m_Velocity, *vecNormal) * dotMultiplier;
     CVector velocityChange = *vecNormal;
@@ -401,17 +401,17 @@ void BreakObject_c::Render(bool isDrawLast) const {
         }
 
         for (auto& renderInfo : group.GetRenderInfos()) {
-            RwV3d aVecPos[NUM_BREAK_GROUP_RENDER_INFO];
-            RwV3dTransformPoints(aVecPos, renderInfo.positions, NUM_BREAK_GROUP_RENDER_INFO, &group.m_Matrix);
+            RwV3d vertices[NUM_BREAK_GROUP_RENDER_INFO];
+            RwV3dTransformPoints(vertices, renderInfo.positions.data(), NUM_BREAK_GROUP_RENDER_INFO, &group.m_Matrix);
 
             int32 alpha = group.m_FramesToLive * (m_JustFaces ? 8 : 2);
             alpha = std::min(alpha, 255);
 
-            auto colors = std::to_array(renderInfo.colors);
+            auto colors{ renderInfo.colors };
             std::ranges::for_each(colors, [&](auto& color) { color.a = alpha; });
 
             RenderAddTri(
-                aVecPos[0], aVecPos[1], aVecPos[2],
+                vertices[0], vertices[1], vertices[2],
                 renderInfo.texCoords[0], renderInfo.texCoords[1], renderInfo.texCoords[2],
                 colors[0], colors[1], colors[2]
             );

@@ -55,9 +55,9 @@ public:
         MenuId         m_nAcceptedRow;
     };
 
-    static std::array<bool, MENU_COUNT> (&MenuInUse);
-    static int8&                        CurrentMenuInUse;
-    static uint8&                       num_menus_in_use; // OG name
+    static inline auto& MenuInUse = StaticRef<std::array<bool, CMenuSystem::MENU_COUNT>>(0xBA82E0);
+    static inline auto& CurrentMenuInUse = StaticRef<int8>(0xBA82E2);
+    static inline auto& num_menus_in_use = StaticRef<uint8>(0xBA82E3); // OG name
 
 public:
     static void InjectHooks();

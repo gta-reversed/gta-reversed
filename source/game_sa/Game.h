@@ -14,12 +14,12 @@ class CEntity;
 class CGame {
 public:
     //! Current number of area
-    inline static char (&aDatFile)[32] = *reinterpret_cast<char (*)[32]>(0xB728EC);
-    inline static int32& currLevel = *reinterpret_cast<int32*>(0xB7290C);
-    inline static uint8& bMissionPackGame = *reinterpret_cast<uint8*>(0xB72910);
-    inline static int32& currArea = *reinterpret_cast<int32*>(0xB72914);
-    inline static RwMatrix*& m_pWorkingMatrix1 = *reinterpret_cast<RwMatrix**>(0xB72920);
-    inline static RwMatrix*& m_pWorkingMatrix2 = *reinterpret_cast<RwMatrix**>(0xB72924);
+    static inline auto& aDatFile = StaticRef<char[32]>(0xB728EC);
+    static inline auto& currLevel = StaticRef<int32>(0xB7290C);
+    static inline auto& bMissionPackGame = StaticRef<uint8>(0xB72910);
+    static inline auto& currArea = StaticRef<int32>(0xB72914);
+    static inline auto& m_pWorkingMatrix1 = StaticRef<RwMatrix*>(0xB72920);
+    static inline auto& m_pWorkingMatrix2 = StaticRef<RwMatrix*>(0xB72924);
 
 
 public:
@@ -51,10 +51,10 @@ public:
     static void TidyUpMemory(bool a1, bool clearD3Dmem);
 };
 
-inline static int32& gameTxdSlot = *reinterpret_cast<int32*>(0xB728E8);
-inline static bool& gbLARiots = *reinterpret_cast<bool*>(0xB72958);
-inline static bool& gbLARiots_NoPoliceCars = *reinterpret_cast<bool*>(0xB72959);
-inline static std::array<CColModel, 2>& col1 = *reinterpret_cast<std::array<CColModel, 2>*>(0xC17824);
+static inline auto& gameTxdSlot = StaticRef<int32>(0xB728E8);
+static inline auto& gbLARiots = StaticRef<bool>(0xB72958);
+static inline auto& gbLARiots_NoPoliceCars = StaticRef<bool>(0xB72959);
+static inline auto& col1 = StaticRef<std::array<CColModel, 2>>(0xC17824);
 
 bool MoveMem(void **pMem);
 bool MoveColModelMemory(CColModel &colModel, bool a2);

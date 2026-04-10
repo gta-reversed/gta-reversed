@@ -64,10 +64,10 @@ public:
     CVector                m_vecLastPedPosDuringDamageEntity;
     CEntity*               m_apInterestingEntities[3];
 
-    static float& STEALTH_KILL_RANGE;
-    static float& LIGHT_AI_LEVEL_MAX;
-    static float& flt_8D2384;
-    static float& flt_8D2388;
+    static inline auto& STEALTH_KILL_RANGE = StaticRef<float>(0x8D2398); // 2.5f
+    static inline auto& LIGHT_AI_LEVEL_MAX = StaticRef<float>(0x8D2380); // 0.3f
+    static inline auto& flt_8D2384 = StaticRef<float>(0x8D2384); // 30.0f
+    static inline auto& flt_8D2388 = StaticRef<float>(0x8D2388); // 50.0f
 
 public:
     static void InjectHooks();
