@@ -68,18 +68,17 @@ inline auto NotImplemented(CRunningScript& S, eScriptCommands cmd) {
 template<eScriptCommands Command, auto* CommandFn>
 inline OpcodeResult CommandParser(CRunningScript* S) {
     CRunningScript::ScriptArgCharNextFreeBuffer = 0;
-
-    const auto LogException                     = [S](std::string_view name, std::exception& e) {
-        NOTSA_LOG_ERR("[{}]:[{:#X} + {:#X}]: {} @ {}: {}", S->GetName(), LOG_PTR(S->m_BaseIP), LOG_PTR(S->m_IP - S->m_BaseIP), name, GetScriptCommandName(Command), e.what());
-    };
     try {
         return detail::CollectArgsAndCall(S, Command, CommandFn);
-    } catch (std::invalid_argument& e) {
-        LogException("Invalid argument", e);
-    } catch (command_parser::exceptions::CommandNotImplemented& e) {
-        LogException("Not implemented", e);
+    } catch (const std::exception& e) {
+        NOTSA_LOG_ERR(
+            "Error calling command `{}` in script `{}` at offset {:p}: {}",
+            GetScriptCommandName(Command),
+            S->GetName(),
+            (void*)(S->m_IP - S->m_BaseIP),
+            e.what()
+        );
     }
-
     return OR_ERROR;
 } 
 
