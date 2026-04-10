@@ -55,7 +55,7 @@ class CPad {
 public:
     CControllerState NewState;
     CControllerState OldState;
-    int16            SteeringLeftRightBuffer[10];
+    std::array<int16, 10> SteeringLeftRightBuffer;
     int32            DrunkDrivingBufferUsed;
     CControllerState PCTempKeyState;
     CControllerState PCTempJoyState;
@@ -81,7 +81,7 @@ public:
     };
 
     char     ShakeFreq;
-    char     bHornHistory[5];
+    std::array<char, 5> bHornHistory;
     char     iCurrHornHistory;
     char     JustOutOfFrontEnd;
     bool     bApplyBrakes;

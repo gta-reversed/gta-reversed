@@ -181,7 +181,7 @@ bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
         return false;
     }
 
-    if (!ped->bDontAcceptIKLookAts) {
+    if (ped->bDontAcceptIKLookAts) {
         if (IsLooking(ped)) {
             AbortLookAt(ped);
         }

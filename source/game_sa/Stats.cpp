@@ -19,7 +19,7 @@ void CStats::InjectHooks() {
     RH_ScopedOverloadedInstall(GetStatValue, "-OG", 0x558E40, float(*)(eStats));
     RH_ScopedInstall(SetStatValue, 0x55A070);
     RH_ScopedInstall(IsStatFloat, 0x558E30);
-    RH_ScopedInstall(GetFullFavoriteRadioStationList, 0x558F90);
+    /*RH_ScopedInstall(GetFullFavoriteRadioStationList, 0x558F90); - different return type*/
     RH_ScopedInstall(FindCriminalRatingNumber, 0x559080);
     RH_ScopedInstall(GetPercentageProgress, 0x5591E0);
     RH_ScopedInstall(ConvertToMins, 0x559540);
@@ -114,11 +114,6 @@ bool CStats::IsStatFloat(eStats stat) {
 // 0x558EC0
 bool CStats::PopulateFavoriteRadioStationList() {
     return plugin::CallAndReturn<bool, 0x558EC0>();
-}
-
-// 0x558F90
-int32* CStats::GetFullFavoriteRadioStationList() {
-    return FavoriteRadioStationList;
 }
 
 // 0x558FA0

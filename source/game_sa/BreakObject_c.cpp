@@ -399,17 +399,17 @@ void BreakObject_c::Render(bool isDrawLast) const {
         }
 
         for (auto& renderInfo : group.GetRenderInfos()) {
-            RwV3d aVecPos[NUM_BREAK_GROUP_RENDER_INFO];
-            RwV3dTransformPoints(aVecPos, renderInfo.positions, NUM_BREAK_GROUP_RENDER_INFO, &group.m_Matrix);
+            RwV3d vertices[NUM_BREAK_GROUP_RENDER_INFO];
+            RwV3dTransformPoints(vertices, renderInfo.positions.data(), NUM_BREAK_GROUP_RENDER_INFO, &group.m_Matrix);
 
             int32 alpha = group.m_FramesToLive * (m_JustFaces ? 8 : 2);
             alpha = std::min(alpha, 255);
 
-            auto colors = std::to_array(renderInfo.colors);
+            auto colors{ renderInfo.colors };
             std::ranges::for_each(colors, [&](auto& color) { color.a = alpha; });
 
             RenderAddTri(
-                aVecPos[0], aVecPos[1], aVecPos[2],
+                vertices[0], vertices[1], vertices[2],
                 renderInfo.texCoords[0], renderInfo.texCoords[1], renderInfo.texCoords[2],
                 colors[0], colors[1], colors[2]
             );

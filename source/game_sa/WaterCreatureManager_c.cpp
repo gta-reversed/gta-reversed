@@ -46,11 +46,11 @@ void WaterCreatureManager_c::Exit() {
 int32 WaterCreatureManager_c::GetRandomWaterCreatureId() {
     auto randNum = CGeneral::GetRandomNumberInRange(0, 100);
     if (randNum < 80) {
-        return CGeneral::GetRandomNumberInRange(0, 4); // Small fish
+        return CGeneral::GetRandomNumberInRange(0, 3); // Small fish
     }
 
     if (randNum < 90) {
-        return CGeneral::GetRandomNumberInRange(3, 6); // Jelly fish
+        return CGeneral::GetRandomNumberInRange(3, 5); // Jelly fish
     }
 
     if (randNum < 97) {

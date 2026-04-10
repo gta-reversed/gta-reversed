@@ -67,8 +67,9 @@ const char* CPickup::FindStringForTextIndex(ePickupPropertyText index) {
     case PICKUP_PROPERTY_TEXT_CANT_BUY:
         return "PROP_4"; // You cannot buy this property yet.
     case PICKUP_PROPERTY_TEXT_CANCEL:
-    default:
         return "FESZ_CA"; // Cancel
+    default:
+        NOTSA_UNREACHABLE();
     }
 }
 

@@ -141,14 +141,14 @@ void CSprite2d::DrawWithBilinearOffset(const CRect& posn, const CRGBA& color)
     RwRaster* raster = RwTextureGetRaster(m_pTexture);
     OffsetTexCoordForBilinearFiltering(static_cast<float>(RwRasterGetWidth(raster)), static_cast<float>(RwRasterGetHeight(raster)));
     SetRenderState();
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
 void CSprite2d::Draw(const CRect& posn, const CRGBA& color, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4)
 {
     SetVertices(posn, color, color, color, color, u1, v1, u2, v2, u3, v3, u4, v4);
     SetRenderState();
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
 }
 
@@ -156,7 +156,7 @@ void CSprite2d::Draw(const CRect& posn, const CRGBA& color1, const CRGBA& color2
 {
     SetVertices(posn, color1, color2, color3, color4);
     SetRenderState();
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
 }
 
@@ -164,7 +164,7 @@ void CSprite2d::Draw(float x1, float y1, float x2, float y2, float x3, float y3,
 {
     SetVertices(x1, y1, x2, y2, x3, y3, x4, y4, color, color, color, color);
     SetRenderState();
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
 }
 
@@ -253,7 +253,7 @@ void CSprite2d::SetVertices(float x1, float y1, float x2, float y2, float x3, fl
 void CSprite2d::SetVertices(const CRect& posn, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4,
     float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4)
 {
-    SetVertices(maVertices, posn, color1, color2, color3, color4, u1, v1, u2, v2, u3, v3, u4, v4);
+    SetVertices(maVertices.data(), posn, color1, color2, color3, color4, u1, v1, u2, v2, u3, v3, u4, v4);
 }
 
 void CSprite2d::SetVertices(int32 numVerts, const CVector2D* posn, const CVector2D* texCoors, const CRGBA& color)
@@ -334,21 +334,21 @@ void CSprite2d::DrawRect(const CRect& posn, const CRGBA& color) {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
     SetVertices(posn, color, color, color, color);
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(color.a != 255));
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
 }
 
 // this could be used for drawing textured rectangle (use SetRenderState() before this)
 void CSprite2d::DrawTxRect(const CRect& posn, const CRGBA& color) {
     CSprite2d::SetVertices(posn, color, color, color, color);
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
 // draw non-textured rectangle, with setupable corners' colors.
 void CSprite2d::DrawRect(const CRect& posn, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4) {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
     SetVertices(posn, color1, color2, color3, color4);
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
 // draws non-textured rectangle with default blending states
@@ -366,7 +366,7 @@ void CSprite2d::DrawAnyRect(float x1, float y1, float x2, float y2, float x3, fl
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
     else
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
 // draws a triangle with rotation (degrees)
@@ -399,7 +399,7 @@ void CSprite2d::DrawCircleAtNearClip(const CVector2D& posn, float size, const CR
             RwIm2DVertexSetU(&maVertices[l], (c + 1.f) * 0.5f, RecipNearClip);
             RwIm2DVertexSetV(&maVertices[l], (s + 1.f) * 0.5f, RecipNearClip);
         }
-        RwIm2DRenderTriangle(maVertices, 3, 2, 1, 0);
+        RwIm2DRenderTriangle(maVertices.data(), 3, 2, 1, 0);
     }
 }
 
@@ -433,7 +433,7 @@ void CSprite2d::Draw2DPolygon(float x1, float y1, float x2, float y2, float x3, 
     else
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
 
-    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
 // draws progress line. Progress is a value in ranges 0 - 100.

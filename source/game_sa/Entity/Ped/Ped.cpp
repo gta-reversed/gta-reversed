@@ -565,7 +565,7 @@ bool CPed::PedIsReadyForConversation(bool checkLocalPlayerWantedLevel) {
 * @addr 0x455560
 */
 bool CPed::PedCanPickUpPickUp() {
-    return FindPlayerPed(0)->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_USE_MOBILE_PHONE });
+    return !FindPlayerPed(0)->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_USE_MOBILE_PHONE });
 }
 
 /*!
@@ -832,10 +832,10 @@ void CPed::ClearAimFlag() {
 * @returns Which quadrant a given point is in relative to the ped's rotation. (Google: "Angle quadrants" - https://www.mathstips.com/wp-content/uploads/2014/03/unit-circle.png)
 * @param point Point should be relative to the ped's position. Eg.: point = actualPoint - ped.GetPostion2D()
 */
-uint8 CPed::GetLocalDirection(const CVector2D& point) const {
+int32 CPed::GetLocalDirection(const CVector2D& point) const {
     float angle;
-    for (angle = point.Heading() - m_fCurrentRotation + RadiansToDegrees(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
-    return ((uint8)RadiansToDegrees(angle) / 90) % 4; // See original code below:
+    for (angle = point.Heading() - m_fCurrentRotation + DegreesToRadians(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
+    return (((int32)RadiansToDegrees(angle) / 90) % 4); // See original code below:
 
     // Original R* code - Kinda stupid, we just use modulo instead.
     // int32 dir;
@@ -1019,14 +1019,14 @@ bool CPed::CanBeDeleted() {
 }
 
 /*!
-* @addr 0x5DF100
+* @addr 0x5DF150
 * @brief Check if ped can be deleted even if it's in a vehicle.
 * @returns False only if created by PED_UNKNOWN or PED_MISSION, true otherwise.
 */
 bool CPed::CanBeDeletedEvenInVehicle() const {
     switch (GetCreatedBy()) {
     case ePedCreatedBy::PED_MISSION:
-    case ePedCreatedBy::PED_UNKNOWN:
+    case ePedCreatedBy::PED_GAME_MISSION:
         return false;
     }
     return true;

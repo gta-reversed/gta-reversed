@@ -9,7 +9,7 @@
 
 #include "Fx.h"
 
-static auto& TempVertexBuffer = StaticRef<RxObjSpace3DVertex[4]>(0xC4D958);
+static auto& TempVertexBuffer = StaticRef<std::array<RxObjSpace3DVertex, 4>>(0xC4D958);
 
 auto& g_fx = StaticRef<Fx_c>(0xA9AE00);
 

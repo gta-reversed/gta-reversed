@@ -10,6 +10,32 @@ body:
     attributes:
       label: Expected and current behavior
       description: Concise description of the the behavior you expect and the one that actually occurs.
+      validations:
+        required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        If applicable, provide any relevant logs or error messages that can help in diagnosing the issue (See `scripts/logs/log.log` in your game folder)
+        You can paste it down below, or if it's too long, upload it as an attachment.
+      value: |
+        <details>
+        <summary>Click to expand</summary>
+
+        ```text
+        Paste logs over this line
+        ```
+        </details>
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: stacktrace
+    attributes:
+      label: Stacktrace
+      description: If applicable, provide any relevant stacktrace information that can help in diagnosing the issue (See `Debug->Windows->Call Stack` or CTRL+ALT+C in Visual Studio when the issue occurs).
+      value: "N/A"
     validations:
       required: true
   - type: textarea
