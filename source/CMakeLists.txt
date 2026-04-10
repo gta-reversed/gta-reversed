@@ -58,7 +58,7 @@ else()
 endif()
 
 
-add_library(${RE_PROJECT_LIB_NAME})
+add_library(${RE_PROJECT_LIB_NAME} MODULE)
 target_sources(${RE_PROJECT_LIB_NAME} 
     PRIVATE
         ${SOURCE_FILES_LIST}
