@@ -8,7 +8,7 @@ const int32 NUM_ACCIDENTS = 16;
 
 class CAccidentManager {
 public:
-    CAccident m_Accidents[NUM_ACCIDENTS];
+    std::array<CAccident, NUM_ACCIDENTS> m_Accidents;
 
     static inline auto& gAccidentManager = StaticRef<CAccidentManager*>(0xB9B7D0);
 

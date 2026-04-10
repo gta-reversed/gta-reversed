@@ -52,7 +52,7 @@ using AEPakID = int16;
 
 struct AEPakLookup {
     char   BaseFilename[12];
-    uint32 FileCopyLSNs[10];
+    std::array<uint32, 10> FileCopyLSNs;
 };
 VALIDATE_SIZE(AEPakLookup, 0x34);
 

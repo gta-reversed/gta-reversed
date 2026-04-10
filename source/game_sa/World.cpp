@@ -271,8 +271,8 @@ void CWorld::ClearScanCodes() {
         }
     }
 
-    for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
-        for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
+    for (int32 y = 0; y < (int32)(MAX_REPEAT_SECTORS_Y); y++) {
+        for (int32 x = 0; x < (int32)(MAX_REPEAT_SECTORS_X); x++) {
             auto& rs = GetRepeatSector(x, y);
             ProcessList(rs.Vehicles);
             ProcessList(rs.Peds);
@@ -423,8 +423,8 @@ void CWorld::RemoveStaticObjects() {
         }
     }
 
-    for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
-        for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
+    for (auto y = 0; y < (int32)(MAX_REPEAT_SECTORS_Y); y++) {
+        for (auto x = 0; x < (int32)(MAX_REPEAT_SECTORS_X); x++) {
             ProcessList(GetRepeatSector(x, y).Objects);
         }
     }
@@ -704,8 +704,8 @@ void CWorld::ShutDown() {
     };
 
     const auto IterateRepeatSectorsLists = [](auto&& fn) {
-        for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
-            for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
+        for (auto y = 0; y < (int32)(MAX_REPEAT_SECTORS_Y); y++) {
+            for (auto x = 0; x < (int32)(MAX_REPEAT_SECTORS_X); x++) {
                 auto& sector = GetRepeatSector(x, y);
                 fn(sector.Vehicles, x, y, "Vehicles");
                 fn(sector.Peds, x, y, "Peds");
@@ -1903,7 +1903,7 @@ bool CWorld::ProcessVerticalLine(const CVector& origin, float distance, CColPoin
     const int32 secX = GetSectorX(origin.x), secY = GetSectorY(origin.y);
     return ProcessVerticalLineSector(
         GetSector(secX, secY),
-        GetRepeatSector(secX % MAX_REPEAT_SECTORS_X, secY % MAX_REPEAT_SECTORS_Y),
+        GetRepeatSector(secX, secY),
         CColLine{ origin, CVector{origin.x, origin.y, distance} },
         outColPoint, outEntity, buildings, vehicles, peds, objects, dummies, doSeeThroughCheck, outCollPoly
     );
@@ -2084,7 +2084,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->GetIsTypeVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
                 CPedDamageResponseCalculator pedDamageResponseCalculator{ creator, 1000.f, WEAPON_EXPLOSION, PED_PIECE_TORSO, false };
 
-                CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, pedLocalDir, false, !!ped->bIsTalking };
+                CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, static_cast<uint8>(pedLocalDir), false, !!ped->bIsTalking };
                 if (eventDamage.AffectsPed(ped)) {
                     pedDamageResponseCalculator.ComputeDamageResponse(ped, eventDamage.m_damageResponse, true);
                 } else {
@@ -2946,7 +2946,7 @@ bool CWorld::GetIsLineOfSightClear(const CVector& origin, const CVector& target,
                     }
                 }
             } else {
-                for (y = startY; y >= endY; y--) {
+                for (y = startY; y >= endY; y--) { // TODO: Decrements below 0!!
                     if (!ProcessSector(originSectorX, y)) {
                         return false;
                     }

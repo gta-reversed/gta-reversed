@@ -51,7 +51,7 @@ auto& DIFF_SPRING_MULT_X = StaticRef<float>(0x8D35B8);           // 0.05f
 auto& DIFF_SPRING_MULT_Y = StaticRef<float>(0x8D35BC);           // 0.05f
 auto& DIFF_SPRING_MULT_Z = StaticRef<float>(0x8D35C0);           // 0.1f
 auto& DIFF_SPRING_COMPRESS_MULT = StaticRef<float>(0x8D35C4);    // 2.0f
-auto& VehicleGunOffset = StaticRef<CVector[14]>(0x8D35D4); // maybe [12]
+auto& VehicleGunOffset = StaticRef<std::array<CVector, 14>>(0x8D35D4); // maybe [12]
 
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
@@ -1414,13 +1414,19 @@ void CVehicle::RemovePassenger(CPed* passenger) {
         return;
     }
 
-    const auto seats = IsTrain() ? m_apPassengers : GetMaxPassengerSeats();
-    if (const auto seatOfPsgr = rng::find(seats, passenger); seatOfPsgr != seats.end()) {
-        CEntity::SafeCleanUpRef(*seatOfPsgr);
-        *seatOfPsgr = nullptr;
+    const auto RemovePassengerFromArray = [&](auto array) { /* array by-value because it's either a span or a view */
+        if (const auto seatOfPsgr = rng::find(array, passenger); seatOfPsgr != array.end()) {
+            CEntity::SafeCleanUpRef(*seatOfPsgr);
+            *seatOfPsgr = nullptr;
 
-        assert(m_nNumPassengers > 0); // NOTSA: Sanity check
-        m_nNumPassengers--;
+            assert(m_nNumPassengers > 0); // NOTSA: Sanity check
+            m_nNumPassengers--;
+        }
+    };
+    if (IsTrain()) {
+        RemovePassengerFromArray(std::span{ m_apPassengers });
+    } else {
+        RemovePassengerFromArray(GetMaxPassengerSeats());
     }
 }
 
@@ -1596,7 +1602,7 @@ CPed* CVehicle::SetupPassenger(int32 seatIdx, int32 gangPedType, bool createAsMa
         };
 
         // Not sure why this checks only up to the seat the passenger was added to, but okay.
-        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers, (size_t)seatIdx }, ProcessOccupant)) {
+        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers.data(), (size_t)seatIdx }, ProcessOccupant)) {
             return nullptr;
         }
     }
@@ -3501,7 +3507,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
                 CTimer::GetTimeInMS(),
                 WEAPON_RUNOVERBYCAR,
                 PED_PIECE_TORSO,
-                ped.GetLocalDirection(dirToPed),
+                static_cast<uint8>(ped.GetLocalDirection(dirToPed)),
                 false,
                 false
             };
@@ -4572,10 +4578,9 @@ void CVehicle::DoDriveByShootings() {
 
 // NOTSA
 bool CVehicle::AreAnyOfPassengersFollowerOfGroup(const CPedGroup& group) {
-    const auto end = m_apPassengers + m_nMaxPassengers;
-    return std::find_if(m_apPassengers, end, [&](CPed* passenger) {
+    return rng::any_of(GetMaxPassengerSeats(), [&](CPed* passenger) {
         return group.GetMembership().IsFollower(passenger);
-    }) != end;
+    });
 }
 
 /*!

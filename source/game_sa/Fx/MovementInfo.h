@@ -5,7 +5,7 @@
 struct MovementInfo_t {
     CVector m_Pos;
     CVector m_Vel;
-    float   m_Rot[4];
+    std::array<float, 4> m_Rot;
     bool    m_bHasFloatInfo;
     bool    m_bHasUnderwaterInfo;
 

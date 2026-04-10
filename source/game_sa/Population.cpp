@@ -351,7 +351,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
 
     const auto pedType = CModelInfo::GetPedModelInfo(modelId)->GetPedType();
 
-    if (NameIsAnyOf("COPST", "COPLOOK", "BROWSE")) {
+    if (NameIsAnyOf("COPSIT", "COPLOOK", "BROWSE")) {
         return pedType == PED_TYPE_COP;
     }
 
@@ -423,7 +423,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
     }
 
     if (NameIsAnyOf("STRIPM")) {
-        return pedType != PED_TYPE_CIVFEMALE;
+        return pedType == PED_TYPE_CIVFEMALE;
     }
 
     return false;
