@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include "RunningScript.h"
 #include "TheScripts.h"
 #include "UpsideDownCarCheck.h"
 #include "Lines.h"
