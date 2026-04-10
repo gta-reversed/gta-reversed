@@ -186,7 +186,7 @@ void CDecisionMakerTypes::LoadEventIndices(EventIndicesArray& out, const char* f
             out[index] = count++;
         }
     }
-    NOTSA_LOG_DEBUG("Loaded `{}` event indcies", count);
+    NOTSA_LOG_DEBUG("Loaded `{}` event indices", count);
     CFileMgr::CloseFile(file);
 }
 

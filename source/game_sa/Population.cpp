@@ -1672,7 +1672,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
                 );
 
             if (usePoliceModel) {
-                decisionMaker = eDecisionMakerType::PED_COP; // TODO: Shouldn't this be local to this iteration instead? Right now this will presist into all futher iterations...
+                decisionMaker = eDecisionMakerType::PED_COP; // TODO: Shouldn't this be local to this iteration instead? Right now this will persist into all further iterations...
             }
 
             switch (model) {
