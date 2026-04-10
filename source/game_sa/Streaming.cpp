@@ -2700,7 +2700,7 @@ bool CStreaming::AddToLoadedVehiclesList(int32 modelId) {
 
 // 0x407D50
 int32 CStreaming::GetDefaultCabDriverModel() {
-    constexpr auto s_DefaultCabDriverModels = std::to_array({ // 0x8A5AF4
+    constexpr static auto s_DefaultCabDriverModels = std::to_array({ // 0x8A5AF4
         MODEL_BMOCD,
         MODEL_WMYCD1,
         MODEL_SBMOCD,
