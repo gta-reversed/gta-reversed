@@ -753,7 +753,7 @@ int32 CPopulation::FindNumberOfPedsWeCanPlaceOnBenches() {
     const int32 base = CGame::CanSeeOutSideFromCurrArea()
         ? (int32)(std::floor(std::min((float)(MaxNumberOfPedsInUse), CPopCycle::m_NumOther_Peds)) * PedDensityMultiplier * FindPedDensityMultiplierCullZone())
         : (int32)(NumberOfPedsInUseInterior);
-    return base - ms_nNumCivMale - ms_nNumCivFemale + 2;
+    return base - (int32)(ms_nNumCivMale) - (int32)(ms_nNumCivFemale) + 2;
 }
 
 // 0x6122C0
