@@ -50,6 +50,7 @@ public:
     static void FinalShutdown();
     static void TidyUpMemory(bool a1, bool clearD3Dmem);
     static eAreaCodes GetCurrentAreaCode() { return currArea; }
+    static eAreaCodes GetPlayerOrCurrentAreaCode();
 };
 
 static inline auto& gameTxdSlot = StaticRef<int32>(0xB728E8);
