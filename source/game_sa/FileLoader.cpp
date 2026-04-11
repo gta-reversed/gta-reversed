@@ -1207,7 +1207,7 @@ void CFileLoader::LoadEntryExit(const char* line) {
         unused,
         exit.x, exit.y, exit.z,
         exitAngle,
-        area,
+        static_cast<eAreaCodes>(area),
         (CEntryExit::eFlags)flags,
         skyColor,
         timeOn,

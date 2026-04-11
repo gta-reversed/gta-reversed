@@ -109,7 +109,7 @@ protected:
 
     uint16     m_ScanCode;
     uint8      m_IplIndex;
-    eAreaCodes m_AreaCode;
+    eAreaCodesS8 m_AreaCode;
 
     union {
         int32    m_nLodIndex; // -1 - without LOD model

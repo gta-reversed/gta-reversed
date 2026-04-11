@@ -182,7 +182,7 @@ int32 CEntryExitManager::AddOne(
     float entranceRangeX, float entranceRangeY, float entranceRangeZ /*unused*/,
     float exitX, float exitY, float exitZ,
     float exitAngle,
-    int32 area,
+    eAreaCodes area,
     CEntryExit::eFlags flags,
     int32 skyColor,
     int32 timeOn, int32 timeOff,
