@@ -49,14 +49,14 @@ VALIDATE_SIZE(t2dEffectRoadsignStreamData, 88);
 struct t2dEffectEnExStreamData {
     static constexpr auto SizeOfRequiredFields = 44 - 4;
 
-    float  EnterAngle;
-    RwV2d  Radius;
-    RwV3d  ExitPos;
-    float  ExitAngle;
-    int16  InteriorId;
-    int8   Flags1;
-    int8   SkyColor;
-    RwChar InteriorName[8];
+    float         EnterAngle;
+    RwV2d         Radius;
+    RwV3d         ExitPos;
+    float         ExitAngle;
+    eAreaCodesS16 InteriorId;
+    int8          Flags1;
+    int8          SkyColor;
+    RwChar        InteriorName[8];
 
     // vvv optional fields vvv
     uint8  TimeOn;
