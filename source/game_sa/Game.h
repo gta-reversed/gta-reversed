@@ -49,6 +49,7 @@ public:
     static void DrasticTidyUpMemory(bool a1);
     static void FinalShutdown();
     static void TidyUpMemory(bool a1, bool clearD3Dmem);
+    static eAreaCodes GetCurrentAreaCode() { return currArea; }
 };
 
 static inline auto& gameTxdSlot = StaticRef<int32>(0xB728E8);
