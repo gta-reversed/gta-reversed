@@ -56,7 +56,7 @@ void SetIfCollisionIsRequired(const CVector2D& vecPos, ColDef* def) {
 
 // 0x410470
 void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, ColDef* def) {
-    if ((CColStore::ms_nRequiredCollisionArea != AREA_CODE_NORMAL_WORLD) && def->m_bInterior) {
+    if ((CColStore::ms_nRequiredCollisionArea != AREA_CODE_NORMAL_WORLD) != def->m_bInterior) {
         return;
     }
     if (!def->m_Area.IsPointInside(vecPos, -80.0F)) {
