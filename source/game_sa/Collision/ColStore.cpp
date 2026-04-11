@@ -45,7 +45,7 @@ void CColStore::Shutdown()
 
 // 0x4103D0
 void SetIfCollisionIsRequired(const CVector2D& vecPos, ColDef* def) {
-    if (CColStore::ms_nRequiredCollisionArea == AREA_CODE_NORMAL_WORLD && def->m_bInterior) {
+    if (CColStore::ms_EntityAreaCode == AREA_CODE_NORMAL_WORLD && def->m_bInterior) {
         return;
     }
     if (!def->m_Area.IsPointInside(vecPos)) {
@@ -56,7 +56,7 @@ void SetIfCollisionIsRequired(const CVector2D& vecPos, ColDef* def) {
 
 // 0x410470
 void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, ColDef* def) {
-    if ((CColStore::ms_nRequiredCollisionArea != AREA_CODE_NORMAL_WORLD) != def->m_bInterior) {
+    if ((CColStore::ms_EntityAreaCode != AREA_CODE_NORMAL_WORLD) != def->m_bInterior) {
         return;
     }
     if (!def->m_Area.IsPointInside(vecPos, -80.0F)) {
@@ -319,7 +319,7 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         if (!entity || entity->AsPhysical()->physicalFlags.b15 || entity->AsPhysical()->physicalFlags.bDontApplySpeed)
             continue;
 
-        ms_nRequiredCollisionArea = entity->GetAreaCode();
+        ms_EntityAreaCode = entity->GetAreaCode();
         ms_pQuadTree->ForAllMatching(entity->GetPosition(), SetIfCollisionIsRequiredReducedBB);
     }
 
@@ -412,10 +412,10 @@ void CColStore::RequestCollision(const CVector& pos, eAreaCodes areaCode)
 
 // 0x4104E0
 void CColStore::SetCollisionRequired(const CVector& pos, eAreaCodes areaCode) {
-    ms_nRequiredCollisionArea = areaCode == AREA_CODE_NONE
+    ms_EntityAreaCode = areaCode == AREA_CODE_NONE
         ? CGame::GetPlayerOrCurrentAreaCode()
         : areaCode;
-    if (ms_nRequiredCollisionArea == CGame::GetCurrentAreaCode()) {
+    if (ms_EntityAreaCode == CGame::GetCurrentAreaCode()) {
         ms_pQuadTree->ForAllMatching(pos, SetIfCollisionIsRequired);
     } else {
         ms_pQuadTree->ForAllMatching(pos, SetIfCollisionIsRequiredReducedBB);
