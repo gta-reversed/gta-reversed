@@ -3,6 +3,7 @@
 #include "Rect.h"
 #include "Vector.h"
 #include "Pool.h"
+#include <Enums/eAreaCodes.h>
 
 // thanks to jte for reversing this
 struct ColDef {
@@ -26,7 +27,7 @@ class CColStore {
 public:
     static inline auto& ms_vecCollisionNeeded = StaticRef<CVector>(0x965580);
     static inline auto& ms_bCollisionNeeded = StaticRef<bool>(0x965558);
-    static inline auto& ms_nRequiredCollisionArea = StaticRef<int32>(0x965554);
+    static inline auto& ms_nRequiredCollisionArea = StaticRef<eAreaCodesS32>(0x965554);
 
 public:
     static void InjectHooks();
@@ -42,7 +43,7 @@ public:
     static void EnsureCollisionIsInMemory(const CVector& pos);
     static CRect* GetBoundingBox(int32 colSlot);
     static void IncludeModelIndex(int32 colSlot, int32 modelId);
-    static bool HasCollisionLoaded(const CVector& pos, int32 areaCode);
+    static bool HasCollisionLoaded(const CVector& pos, eAreaCodes areaCode);
     static void LoadAllBoundingBoxes();
     static void LoadAllCollision();
     static void LoadCol(int32 colSlot, const char* filename);
@@ -52,8 +53,8 @@ public:
     static void RemoveCol(int32 colSlot);
     static void RemoveColSlot(int32 colSlot);
     static void RemoveRef(int32 colNum);
-    static void RequestCollision(const CVector& pos, int32 areaCode);
-    static void SetCollisionRequired(const CVector& pos, int32 areaCode);
+    static void RequestCollision(const CVector& pos, eAreaCodes areaCode);
+    static void SetCollisionRequired(const CVector& pos, eAreaCodes areaCode);
 
     static ColDef* GetInSlot(int32 slot);
     static CColPool* GetPool();

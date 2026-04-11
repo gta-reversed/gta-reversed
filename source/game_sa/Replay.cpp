@@ -778,7 +778,7 @@ void CReplay::RestoreStuffFromMem() {
     CWeather::NewWeatherType = NewWeatherType;
     CWeather::InterpolationValue = WeatherInterpolationValue;
 
-    CGame::currArea = static_cast<int8>(CurrArea);
+    CGame::currArea = static_cast<eAreaCodes>(CurrArea);
     CPopulation::ms_nNumCivMale = ms_nNumCivMale_Stored;
     CPopulation::ms_nNumCivFemale = ms_nNumCivFemale_Stored;
     CPopulation::ms_nNumCop = ms_nNumCop_Stored;
@@ -1199,7 +1199,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             TheCamera.m_fCamShakeForce = miscPacket.camShakeForce;
             CSpecialFX::bVideoCam = miscPacket.camConfig.videoCam;
             CSpecialFX::bLiftCam = miscPacket.camConfig.liftCam;
-            CGame::currArea = miscPacket.currArea;
+            CGame::currArea = static_cast<eAreaCodes>(miscPacket.currArea);
             break;
         }
         case REPLAY_PACKET_DELETED_VEH: {
