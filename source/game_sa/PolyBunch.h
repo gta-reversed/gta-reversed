@@ -10,11 +10,11 @@
 
 class CPolyBunch {
 public:
-    CVector      m_avecPosn[7];
-    CPolyBunch*  m_pNext;
-    int16        m_wNumVerts; // 100% it's signed
-    uint8        m_aU[7]; /// Divide by 200 to get the actual coords
-    uint8        m_aV[7]; /// // Divide by 200 to get the actual coords
+    std::array<CVector, 7> m_avecPosn;
+    CPolyBunch*            m_pNext;
+    int16                  m_wNumVerts; // 100% it's signed
+    std::array<uint8, 7>   m_aU; /// Divide by 200 to get the actual coords
+    std::array<uint8, 7>   m_aV; /// // Divide by 200 to get the actual coords
 
     auto GetVerts() const { return m_avecPosn | rng::views::take((size_t)m_wNumVerts); }
 };

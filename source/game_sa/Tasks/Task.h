@@ -27,6 +27,8 @@ class NOTSA_EXPORT_VTABLE CTask {
     friend class CTaskComplex;
 
 public:
+    static void InjectHooks();
+
     static bool IsGoToTask(CTask* task);
     static bool IsTaskPtr(CTask* task);
 

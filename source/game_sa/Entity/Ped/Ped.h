@@ -397,7 +397,7 @@ public:
     void SetLookFlag(CEntity* lookingTo, bool likeUnused, bool arg2);
     void SetAimFlag(CEntity* aimingTo);
     void ClearAimFlag();
-    uint8 GetLocalDirection(const CVector2D& point) const;
+    int32 GetLocalDirection(const CVector2D& point) const;
     bool IsPedShootable() const;
     bool UseGroundColModel() const;
     bool CanPedReturnToState() const;

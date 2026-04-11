@@ -19,16 +19,16 @@ public:
     static inline auto& PanePolyPositions = StaticRef<CVector2D[4][3]>(0x8D5CD8);
     static inline auto& ReflectionPolyVertexBaseIdx = StaticRef<int32>(0xC71B18);
     static inline auto& ReflectionPolyIndexBaseIdx = StaticRef<int32>(0xC71B1C);
-    static inline auto& ReflectionPolyVertexBuffer = StaticRef<RxObjSpace3DLitVertex[1706]>(0xC5B158);
-    static inline auto& ShatteredPolyVertexBuffer = StaticRef<RxObjSpace3DLitVertex[512]>(0xC56958);
+    static inline auto& ReflectionPolyVertexBuffer = StaticRef<std::array<RxObjSpace3DLitVertex, 1706>>(0xC5B158);
+    static inline auto& ShatteredPolyVertexBuffer = StaticRef<std::array<RxObjSpace3DLitVertex, 512>>(0xC56958);
     static inline auto& ShatteredVerticesBaseIdx = StaticRef<int32>(0xC71B20);
     static inline auto& ShatteredIndicesBaseIdx = StaticRef<int32>(0xC71B24);
     static inline auto& H1iLightPolyVerticesIdx = StaticRef<uint32>(0xC71B28);
     static inline auto& HiLightPolyIndicesIdx = StaticRef<int32>(0xC71B2C);
-    static inline auto& PanePolyCenterPositions = StaticRef<CVector2D[5]>(0xC71B30);
+    static inline auto& PanePolyCenterPositions = StaticRef<std::array<CVector2D, 5>>(0xC71B30);
     static inline auto& apEntitiesToBeRendered = StaticRef<CEntity*[32]>(0xC71B58);
     static inline auto& NumGlassEntities = StaticRef<uint32>(0xC71BD8);
-    static inline auto& aGlassPanes = StaticRef<CFallingGlassPane[44]>(0xC71BF8);
+    static inline auto& aGlassPanes = StaticRef<std::array<CFallingGlassPane, 44>>(0xC71BF8);
     static inline auto& LastColCheckMS = StaticRef<uint32>(0xC72FA8);
 
 public:
