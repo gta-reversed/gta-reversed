@@ -1,5 +1,7 @@
 #pragma once
 
+#include <extensions/WEnum.hpp>
+
 // Each area code can have one or more interiors.
 // For more info, check https://wiki.mtasa.com/wiki/Interior_IDs
 enum eAreaCodes : uint8 {
@@ -23,3 +25,4 @@ enum eAreaCodes : uint8 {
     AREA_CODE_17,
     AREA_CODE_18,
 };
+NOTSA_WENUM_DEFS_FOR(eAreaCodes);
