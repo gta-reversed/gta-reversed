@@ -5402,9 +5402,7 @@ void CAutomobile::ProcessHarvester()
     }
     m_harvesterParticleCounter--;
     if (CLocalisation::Blood() && m_harvesterParticleCounter % 3 == 0) {
-        FxPrtMult_c fxPrtMult;
-        fxPrtMult.SetUp(0.15f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f);
-        g_fx.m_SmokeII3expand->AddParticle(pos, velocity, 0.0f, fxPrtMult);
+        g_fx.m_SmokeII3expand->AddParticle(pos, velocity, 0.0f, { 0.15f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f });
     }
 }
 
