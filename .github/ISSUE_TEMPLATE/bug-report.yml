@@ -9,9 +9,9 @@ body:
     id: expected
     attributes:
       label: Expected and current behavior
-      description: Concise description of the the behavior you expect and the one that actually occurs.
-      validations:
-        required: true
+      description: Concise description of the behavior you expect and the one that actually occurs.
+    validations:
+      required: true
   - type: textarea
     id: logs
     attributes:
@@ -34,7 +34,9 @@ body:
     id: stacktrace
     attributes:
       label: Stacktrace
-      description: If applicable, provide any relevant stacktrace information that can help in diagnosing the issue (See `Debug->Windows->Call Stack` or CTRL+ALT+C in Visual Studio when the issue occurs).
+      description: |
+        If applicable, provide any relevant stacktrace information that can help in diagnosing the issue
+        (See `Debug->Windows->Call Stack` or CTRL+ALT+C in Visual Studio when the issue occurs).
       value: "N/A"
     validations:
       required: true
