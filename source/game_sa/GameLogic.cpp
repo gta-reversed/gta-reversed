@@ -43,7 +43,7 @@ float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector point, CVector mo
     auto closest         = 100'000.0f; // FLT_MAX
 
     const auto Calculate = [&closest, &point, &moveSpeed, &outDistance, ignoreMoveSpeed](CVector2D crossing) {
-        const CVector2D dir2D  = crossing - point;
+        const CVector2D dir2D  = crossing - CVector2D{ point };
         const auto      dist2D = dir2D.Magnitude();
 
         // In vanilla code both `crossing` and `moveSpeed` were 3D, with the crossing's position `z` being assigned `0` ...
