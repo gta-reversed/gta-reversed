@@ -28,7 +28,7 @@ public:
     CFire* FindNearestFire(const CVector& point, bool bCheckWasExtinguished = false, bool bCheckWasCreatedByScript = false);
 
     /*!
-     * @return If the number of active fires is a bit less than the maximum allowed
+     * @return True when there are enough free or reusable fire slots available for allocation (i.e. according to a similar slot-availability logic used by `GetNextFreeFire`).
      */
     bool PlentyFiresAvailable();
 
