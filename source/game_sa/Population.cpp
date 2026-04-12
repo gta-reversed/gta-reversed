@@ -750,17 +750,10 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
 
 // 0x612240
 int32 CPopulation::FindNumberOfPedsWeCanPlaceOnBenches() {
-    const auto baseNum = [] {
-        if (CGame::CanSeeOutSideFromCurrArea()) {
-            return NumberOfPedsInUseInterior;
-        }
-        return (uint32)(
-              std::floor(std::min((float)MaxNumberOfPedsInUse, CPopCycle::m_NumOther_Peds))
-            * PedDensityMultiplier
-            * FindPedDensityMultiplierCullZone()
-        );
-    }();
-    return baseNum - ms_nNumCivMale - ms_nNumCivFemale + 2;
+    const int32 base = CGame::CanSeeOutSideFromCurrArea()
+        ? (int32)(std::floor(std::min((float)(MaxNumberOfPedsInUse), CPopCycle::m_NumOther_Peds)) * PedDensityMultiplier * FindPedDensityMultiplierCullZone())
+        : (int32)(NumberOfPedsInUseInterior);
+    return base - (int32)(ms_nNumCivMale) - (int32)(ms_nNumCivFemale) + 2;
 }
 
 // 0x6122C0
