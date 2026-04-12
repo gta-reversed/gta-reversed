@@ -1,6 +1,6 @@
 name: Bug Report
 description: Report bugs in the code
-labels: ["bug"]
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
