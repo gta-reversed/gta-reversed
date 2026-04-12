@@ -159,7 +159,7 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntit
                 AddCollisionSoundToList(entityA, entityB, sA, sB, sound, COLLISION_SOUND_ONE_SHOT);
             }
         };
-        const auto maxStartAt = gCollisionLookup[sB].MaxStartAt;
+        const auto maxStartAt = gCollisionLookup[sB].MaxStartAtPercentage;
         if (startAt > maxStartAt) { // 0x4DB32D
             PlaySound(CAEAudioUtility::AudioLog10((float)(100 - startAt) / (float)(100 - maxStartAt)) * 20.f, maxStartAt);
         } else {
@@ -215,13 +215,13 @@ void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntit
     const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
     const auto GetSoundID = [&]() -> eSoundID { // 0x4DB6AF
         if (g_surfaceInfos.IsAudioGrass(surfaceA) || g_surfaceInfos.IsAudioGrass(surfaceB)) {
-            return 0;
+            return SND_GENRL_COLLISIONS_GRASS_SKID;
         } else if (g_surfaceInfos.IsAudioWater(surfaceA) || g_surfaceInfos.IsAudioWater(surfaceB)) {
-            return 3;
+            return SND_GENRL_COLLISIONS_WATER_LOOP;
         } else if (g_surfaceInfos.IsAudioMetal(surfaceA) || g_surfaceInfos.IsAudioMetal(surfaceB)) {
-            return 2;
+            return SND_GENRL_COLLISIONS_METAL_SCRAPE;
         } else {
-            return 1;
+            return SND_GENRL_COLLISIONS_GRAVEL_SKID;
         }
     };
     if (auto* const sound = AESoundManager.PlaySound({
