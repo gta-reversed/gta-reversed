@@ -19,7 +19,7 @@ public:
 public:
     static void InjectHooks();
 
-    static void Initialise();   
+    static void Initialise();
 
     static bool Load();
     static bool Save();
