@@ -6,24 +6,27 @@
 */
 #pragma once
 
-#include "ePedType.h"
+#include <Base.h>
+#include <Enums/ePedType.h>
+#include <Enums/eWeaponType.h>
+#include <Enums/eModelID.h>
 
 class CPed;
-class GangInfo;
+class CGangInfo;
 
 class CGangs {
 public:
     static inline auto& GangAttackWithCops = StaticRef<std::array<bool, 10>>(0xC091E0);
-    static inline auto& Gang = StaticRef<std::array<CGangInfo, 10>>(0xC091F0);
+    static inline auto& Gang               = StaticRef<std::array<CGangInfo, 10>>(0xC091F0);
 
 public:
     static void InjectHooks();
 
-    static void Initialise();   
+    static void Initialise();
 
-    static bool Load();
-    static bool Save();
-    static void SetGangWeapons(int16 gangId, eWeaponType weapId1, eWeaponType weapId2, eWeaponType weapId3);
+    static bool     Load();
+    static bool     Save();
+    static void     SetGangWeapons(int16 gangId, eWeaponType weapId1, eWeaponType weapId2, eWeaponType weapId3);
     static eModelID ChooseGangPedModel(eGangID gangId);
 
     static bool GetWillAttackPlayerWithCops(ePedType pedType);
