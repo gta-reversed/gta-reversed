@@ -419,9 +419,9 @@ void CEntity::PreRender() {
     if (!mi->HasBeenPreRendered()) {
         mi->SetHasBeenPreRendered(true);
 
-        if (ami && ami->m_pRwObject) {
-            if (RpMatFXAtomicQueryEffects(ami->m_pRwAtomic) && RpAtomicGetGeometry(ami->m_pRwAtomic)) {
-                RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->m_pRwAtomic), MaterialUpdateUVAnimCB, nullptr);
+        if (ami && ami->GetRwObject()) {
+            if (RpMatFXAtomicQueryEffects(ami->GetRpAtomic()) && RpAtomicGetGeometry(ami->GetRpAtomic())) {
+                RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->GetRpAtomic()), MaterialUpdateUVAnimCB, nullptr);
             }
         }
 
@@ -429,9 +429,9 @@ void CEntity::PreRender() {
 
         // PC Only
         if (ami) {
-            CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwAtomic, false);
+            CCustomBuildingDNPipeline::PreRenderUpdate(ami->GetRpAtomic(), false);
         } else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
-            CCustomBuildingDNPipeline::PreRenderUpdate(mi->m_pRwClump, false);
+            CCustomBuildingDNPipeline::PreRenderUpdate(static_cast<CClumpModelInfo*>(mi)->GetRpClump(), false);
         }
         // PC Only
     }

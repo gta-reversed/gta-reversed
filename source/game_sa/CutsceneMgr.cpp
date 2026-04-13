@@ -111,9 +111,9 @@ CCutsceneObject* CCutsceneMgr::CreateCutsceneObject(eModelID modelId) {
 
     // Create col model for it (If cutscene object)
     if (IsModelIDForCutScene(modelId)) {
-        const auto mi = CModelInfo::GetModelInfo(modelId);
+        const auto mi = static_cast<CClumpModelInfo*>(CModelInfo::GetModelInfo(modelId));
         mi->SetColModel(&CTempColModels::ms_colModelCutObj[modelId - MODEL_CUTOBJ01]);
-        UpdateCutsceneObjectBoundingBox(mi->m_pRwClump, modelId);
+        UpdateCutsceneObjectBoundingBox(mi->GetRpClump(), modelId);
     }
 
     // Actually create the object now

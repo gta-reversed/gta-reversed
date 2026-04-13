@@ -2447,7 +2447,7 @@ void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
 
     CopyObjectsCB_TargetClump = m_pRwClump;
     RwFrameForAllObjects(
-        CClumpModelInfo::GetFrameFromId(GetModelInfo()->m_pRwClump, frameId),
+        CClumpModelInfo::GetFrameFromId(GetModelInfo()->GetRpClump(), frameId),
         CopyObjectsCB,
         frameOfUpgrade
     );

@@ -2527,7 +2527,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, float posX, floa
         if (!IsPointInCircle2D(entityPos, { posX, posY }, std::min(drawDistanceRadius, radius)))
             continue;
 
-        if (modelInfo->m_pRwObject && !entity->m_pRwObject)
+        if (modelInfo->GetRwObject() && !entity->m_pRwObject)
             entity->CreateRwObject();
 
         RequestModel(entity->m_nModelIndex, streamingflags);
@@ -2561,7 +2561,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, int32 streamingF
         if (timeInfo && !CClock::GetIsTimeInRange(timeInfo->GetTimeOn(), timeInfo->GetTimeOff()))
             continue;
 
-        if (modelInfo->m_pRwObject && !entity->m_pRwObject)
+        if (modelInfo->GetRwObject() && !entity->m_pRwObject)
             entity->CreateRwObject();
 
         RequestModel(entity->m_nModelIndex, streamingFlags);
@@ -2832,7 +2832,7 @@ void CStreaming::Init2() {
     for (int32 i = 0; i < TOTAL_DFF_MODEL_IDS; i++) {
         const int32 modelId = DFFToModelId(i);
         CONST auto mi = CModelInfo::GetModelInfo(modelId);
-        if (mi && mi->m_pRwObject) {
+        if (mi && mi->GetRwObject()) {
             CStreamingInfo& streamingInfo = GetInfo(modelId);
             streamingInfo.ClearAllFlags();
             streamingInfo.SetFlags(STREAMING_GAME_REQUIRED);

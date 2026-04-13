@@ -456,7 +456,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
             fDrawDistanceRadius *= ms_lowLodDistScale;
     }
 
-    if (!baseModelInfo->m_pRwObject) {
+    if (!baseModelInfo->GetRwObject()) {
         if (entity->GetLod() && entity->GetLod()->GetNumLodChildren() > 1u &&
             fFadingDistance + fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius)
         {
@@ -465,10 +465,10 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
         }
     }
 
-    if (!baseModelInfo->m_pRwObject || (fFadingDistance + fDistance - MAX_FADING_DISTANCE >= fDrawDistanceRadius)) {
+    if (!baseModelInfo->GetRwObject() || (fFadingDistance + fDistance - MAX_FADING_DISTANCE >= fDrawDistanceRadius)) {
         if (entity->m_bDontStream)
             return RENDERER_INVISIBLE;
-        if (baseModelInfo->m_pRwObject && fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius) {
+        if (baseModelInfo->GetRwObject() && fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius) {
             if (!entity->GetRwObject()) {
                 entity->CreateRwObject();
                 if (!entity->GetRwObject())
@@ -597,13 +597,13 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
             int32 otherTimeModel = modelTimeInfo->GetOtherTimeModel();
             if (CClock::GetIsTimeInRange(modelTimeInfo->GetTimeOn(), modelTimeInfo->GetTimeOff()))
             {
-                if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject) {
+                if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject()) {
                     baseModelInfo->m_nAlpha = 255;
                 }
             }
             else
             {
-                if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject)
+                if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject())
                 {
                     entity->DeleteRwObject();
                     return RENDERER_INVISIBLE;
@@ -671,12 +671,12 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
         int32 otherTimeModel = timeInfo->GetOtherTimeModel();
         if (CClock::GetIsTimeInRange(timeInfo->GetTimeOn(), timeInfo->GetTimeOff()))
         {
-            if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject)
+            if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject())
                 baseModelInfo->m_nAlpha = 255;
         }
         else
         {
-            if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject) {
+            if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject()) {
                 entity->DeleteRwObject();
                 return RENDERER_INVISIBLE;
             }

@@ -931,7 +931,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    if (!CModelInfo::GetModelInfo(MODEL_MALE01)->m_pRwObject) {
+    if (!CModelInfo::GetModelInfo(MODEL_MALE01)->GetRwObject()) {
         NOTSA_LOG_DEBUG("Didn't create ped, because `MODEL_MALE01` has no RW object!");
         return nullptr;
     }
@@ -1246,7 +1246,7 @@ CPed* CPopulation::AddPedInCar(
         }
 
         const auto FixIfInvalid = [&](eModelID model, bool checkRWObj = false) {
-            return model != MODEL_INVALID && (!checkRWObj || CModelInfo::GetPedModelInfo(model)->m_pRwObject)
+            return model != MODEL_INVALID && (!checkRWObj || CModelInfo::GetPedModelInfo(model)->GetRwObject())
                 ? model
                 : MODEL_MALE01;
         };
@@ -1366,7 +1366,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
     }
 
     const auto CreatePed = [&](ePedType ptype, eModelID model) -> CPed* {
-        if (!CModelInfo::GetPedModelInfo(model)->m_pRwObject) {
+        if (!CModelInfo::GetPedModelInfo(model)->GetRwObject()) {
             return nullptr;
         }
         return AddPed(ptype, model, placeAt, true);
