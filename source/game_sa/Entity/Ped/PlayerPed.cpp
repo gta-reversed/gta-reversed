@@ -249,9 +249,9 @@ void CPlayerPed::ReApplyMoveAnims() {
         ANIM_ID_WALK_START
     };
     for (const AnimationId& id : anims) {
-        if (CAnimBlendAssociation* anim = RpAnimBlendClumpGetAssociation(m_pRwClump, id)) {
+        if (CAnimBlendAssociation* anim = RpAnimBlendClumpGetAssociation(GetRpClump(), id)) {
             if (anim->GetHashKey() != CAnimManager::GetAnimAssociation(m_nAnimGroup, id)->GetHashKey()) {
-                CAnimBlendAssociation* addedAnim = CAnimManager::AddAnimation(m_pRwClump, m_nAnimGroup, id);
+                CAnimBlendAssociation* addedAnim = CAnimManager::AddAnimation(GetRpClump(), m_nAnimGroup, id);
                 addedAnim->m_BlendDelta = anim->m_BlendDelta;
                 addedAnim->m_BlendAmount = anim->m_BlendAmount;
 
@@ -743,7 +743,7 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
         GetPlayerData()->m_bFreeAiming = false;
 
 
-    if (auto anim = RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_FIRE))
+    if (auto anim = RpAnimBlendClumpGetAssociation(GetRpClump(), ANIM_ID_FIRE))
         anim->m_Flags |= ANIMATION_IS_PLAYING & ANIMATION_IS_FINISH_AUTO_REMOVE;
 
     TheCamera.ClearPlayerWeaponMode();

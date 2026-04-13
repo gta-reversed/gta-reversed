@@ -921,7 +921,7 @@ bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size
         entity->SetCurrentScanCode() ;
 
         if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete
-            && entity->m_pRwObject
+            && entity->GetRwObject()
             && GetInfo(entity->m_nModelIndex).InList()
             && FindPlayerPed()->m_pContactEntity != entity
         ) {
@@ -958,7 +958,7 @@ bool CStreaming::DeleteRwObjectsNotInFrustumInSectorList(PtrListType& list, size
         entity->SetCurrentScanCode() ;
 
         if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete
-            && entity->m_pRwObject
+            && entity->GetRwObject()
             && (!entity->IsVisible() || entity->m_bOffscreen)
             && GetInfo(entity->m_nModelIndex).InList()
         ) {
@@ -2527,7 +2527,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, float posX, floa
         if (!IsPointInCircle2D(entityPos, { posX, posY }, std::min(drawDistanceRadius, radius)))
             continue;
 
-        if (modelInfo->GetRwObject() && !entity->m_pRwObject)
+        if (modelInfo->GetRwObject() && !entity->GetRwObject())
             entity->CreateRwObject();
 
         RequestModel(entity->m_nModelIndex, streamingflags);
@@ -2561,7 +2561,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, int32 streamingF
         if (timeInfo && !CClock::GetIsTimeInRange(timeInfo->GetTimeOn(), timeInfo->GetTimeOff()))
             continue;
 
-        if (modelInfo->GetRwObject() && !entity->m_pRwObject)
+        if (modelInfo->GetRwObject() && !entity->GetRwObject())
             entity->CreateRwObject();
 
         RequestModel(entity->m_nModelIndex, streamingFlags);
@@ -2920,7 +2920,7 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
 template<typename PtrListType>
 void CStreaming::InstanceLoadedModelsInSectorList(PtrListType& list) {
     for (auto* const entity : list) {
-        if (entity->IsInCurrentArea() && !entity->m_pRwObject) {
+        if (entity->IsInCurrentArea() && !entity->GetRwObject()) {
             entity->CreateRwObject();
         }
     }

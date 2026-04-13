@@ -60,7 +60,7 @@ void CTaskSimplePlayHandSignalAnim::StartAnim(CPed* ped) {
     // Pointing / weapon logic
     //
     if (ped->GetEntityThatThisPedIsHolding() || g_ikChainMan.IsArmPointing(eIKArm::IK_ARM_RIGHT, ped) || ped->GetActiveWeapon().m_Type != eWeaponType::WEAPON_UNARMED) {
-        m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_HANDSIGNALL, animId, m_AnimBlenDelta);
+        m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_HANDSIGNALL, animId, m_AnimBlenDelta);
         m_pAnim->SetFinishCallback(CTaskSimpleAnim::FinishRunAnimCB, this);
 
         if (m_PlayerIdlesAnimBlockId == -1) {
@@ -75,7 +75,7 @@ void CTaskSimplePlayHandSignalAnim::StartAnim(CPed* ped) {
 
         CWorld::Add(m_LeftHand);
         auto* animHierarchy = CAnimManager::GetAnimAssociation(ANIM_GROUP_LHAND, m_PlayerIdlesAnimBlockId)->m_BlendHier;
-        CAnimManager::AddAnimation(m_LeftHand->m_pRwClump, animHierarchy, 0);
+        CAnimManager::AddAnimation(m_LeftHand->GetRpClump(), animHierarchy, 0);
         ++CObject::nNoTempObjects;
         return;
     }
@@ -83,7 +83,7 @@ void CTaskSimplePlayHandSignalAnim::StartAnim(CPed* ped) {
     //
     // Both arms logic
     //
-    m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_HANDSIGNAL, animId, m_AnimBlenDelta);
+    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_HANDSIGNAL, animId, m_AnimBlenDelta);
     m_pAnim->SetFinishCallback(CTaskSimpleAnim::FinishRunAnimCB, this);
     if (m_PlayerIdlesAnimBlockId == -1) {
         return;
@@ -94,7 +94,7 @@ void CTaskSimplePlayHandSignalAnim::StartAnim(CPed* ped) {
         if (handObj) {
             CWorld::Add(handObj);
             CAnimManager::AddAnimation(
-                handObj->m_pRwClump,
+                handObj->GetRpClump(),
                 CAnimManager::GetAnimAssociation(ANIM_GROUP_LHAND, m_PlayerIdlesAnimBlockId)->GetAnimHierarchy(),
                 0
             );

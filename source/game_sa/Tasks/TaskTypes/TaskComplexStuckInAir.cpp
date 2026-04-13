@@ -39,7 +39,7 @@ CTask* CTaskComplexStuckInAir::ControlSubTask(CPed* ped) {
         }
         ped->bIsInTheAir = false; // 0x67BFC2
         for (int32 i = ANIM_ID_JUMP_LAUNCH; i <= ANIM_ID_FALL_GLIDE; i++) {
-            if (auto* const a = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, static_cast<AnimationId>(i))) {
+            if (auto* const a = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), static_cast<AnimationId>(i))) {
                 if (a->GetBlendAmount() > 0.f && a->GetBlendDelta() >= 0.f) {
                     a->SetBlendDelta(-8.f);
                 }

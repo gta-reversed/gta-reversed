@@ -31,12 +31,12 @@ bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVeloci
     if (!object->GetRwObject() || RwObjectGetType(object->GetRwObject()) != rpATOMIC)
         return false;
 
-    auto* info = BREAKABLEPLG(RpAtomicGetGeometry(object->m_pRwAtomic), m_pBreakableInfo);
+    auto* info = BREAKABLEPLG(RpAtomicGetGeometry(object->GetRpAtomic()), m_pBreakableInfo);
     if (!info)
         return false;
 
     SetBreakInfo(info, bJustFaces);
-    auto ltm = RwFrameGetLTM(RpAtomicGetFrame(object->m_pRwAtomic));
+    auto ltm = RwFrameGetLTM(RpAtomicGetFrame(object->GetRpAtomic()));
     SetGroupData(ltm, velocity, fVelocityRand);
 
     m_JustFaces = bJustFaces;
