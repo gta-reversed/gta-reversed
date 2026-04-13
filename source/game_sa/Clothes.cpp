@@ -147,7 +147,7 @@ void CClothes::ConstructPedModel(uint32 modelId, CPedClothesDesc& newClothes, co
 
     auto modelInfo = CModelInfo::GetModelInfo(modelId)->AsPedModelInfoPtr();
     auto txd = CTxdStore::ms_pTxdPool->GetAt(modelInfo->m_nTxdIndex);
-    auto skinnedClump = CClothesBuilder::CreateSkinnedClump(modelInfo->m_pRwClump, txd->m_pRwDictionary, newClothes, oldClothes, bCutscenePlayer);
+    auto skinnedClump = CClothesBuilder::CreateSkinnedClump(modelInfo->GetRpClump(), txd->m_pRwDictionary, newClothes, oldClothes, bCutscenePlayer);
     if (skinnedClump) {
         RequestMotionGroupAnims();
         modelInfo->AddTexDictionaryRef();
