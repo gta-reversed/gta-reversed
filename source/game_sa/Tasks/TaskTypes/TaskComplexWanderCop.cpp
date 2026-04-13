@@ -169,21 +169,23 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
 void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
     CPed* criminalPed = nullptr;
     for (auto& entity : ped->GetIntelligence()->m_pedScanner.GetEntities<CEntity>()) {
-        criminalPed = entity.AsPed();
-        if (!criminalPed)
+        CPed* const candidate = entity.AsPed();
+        if (!candidate)
             continue;
 
-        auto pedType = criminalPed->m_nPedType;
-        if (pedType >= PED_TYPE_GANG1 && pedType <= PED_TYPE_GANG10 || pedType == PED_TYPE_CRIMINAL && criminalPed != m_pLastCriminalPedLookedFor) {
-            CTask* activeTask = criminalPed->GetTaskManager().GetActiveTask();
+        auto pedType = candidate->m_nPedType;
+        if (pedType >= PED_TYPE_GANG1 && pedType <= PED_TYPE_GANG10 || pedType == PED_TYPE_CRIMINAL && candidate != m_pLastCriminalPedLookedFor) {
+            CTask* activeTask = candidate->GetTaskManager().GetActiveTask();
             if (activeTask && activeTask->GetTaskType() == GetTaskType()) {
-                const auto& criminalPos = criminalPed->GetPosition();
+                const auto& criminalPos = candidate->GetPosition();
                 const auto& pedPos = ped->GetPosition();
                 CVector distance = criminalPos - pedPos;
                 if (distance.SquaredMagnitude() < sq(10.0f)) {
                     const float dot = DotProduct(distance, ped->GetForward());
-                    if (dot > 0.0f && CWorld::GetIsLineOfSightClear(pedPos, criminalPos, true, false, false, true, false, false, false))
+                    if (dot > 0.0f && CWorld::GetIsLineOfSightClear(pedPos, criminalPos, true, false, false, true, false, false, false)) {
+                        criminalPed = candidate;
                         break;
+                    }
                 }
             }
         }
