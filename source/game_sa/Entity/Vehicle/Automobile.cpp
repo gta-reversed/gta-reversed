@@ -2337,7 +2337,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     physicalFlags.bRenderScorched = true;
     m_nTimeWhenBlowedUp      = CTimer::GetTimeInMS();
 
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
     m_damageManager.FuckCarCompletely(false);
 
     const auto isRcShit = (bFixBugs || !bIsForCutScene)
@@ -2651,7 +2651,7 @@ void CAutomobile::Fix() {
     vehicleFlags.bIsDamaged = false;
 
     // Hide all DAM state atomics
-    RpClumpForAllAtomics(m_pRwClump, CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
+    RpClumpForAllAtomics(GetRpClump(), CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
 
     // Reset rotation of some nodes
     for (auto i = (size_t)CAR_DOOR_RF; i < (size_t)CAR_NUM_NODES; i++) {
@@ -3435,7 +3435,7 @@ bool CAutomobile::Load() {
 // 0x6A0770
 void CAutomobile::SetupModelNodes() {
     std::ranges::fill(m_aCarNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aCarNodes.data());
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_aCarNodes.data());
 }
 
 // 0x6A07A0

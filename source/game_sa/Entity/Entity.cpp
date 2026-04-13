@@ -294,7 +294,7 @@ void CEntity::CreateRwObject() {
         if (CTagManager::IsTag(this)) {
             CTagManager::ResetAlpha(this);
         }
-        CCustomBuildingDNPipeline::PreRenderUpdate(m_pRwAtomic, true);
+        CCustomBuildingDNPipeline::PreRenderUpdate(GetRpAtomic(), true);
         break;
     case rpCLUMP:
         if (mi->bIsRoad) {
@@ -311,8 +311,8 @@ void CEntity::CreateRwObject() {
 
             // Synchronize LOD animation timing
             if (GetLod() && GetLod()->GetRwObject() && RwObjectGetType(GetLod()->GetRwObject()) == rpCLUMP) {
-                if (auto* pLodAssoc = RpAnimBlendClumpGetFirstAssociation(GetLod()->m_pRwClump)) {
-                    if (auto* pAssoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump)) {
+                if (auto* pLodAssoc = RpAnimBlendClumpGetFirstAssociation(GetLod()->GetRpClump())) {
+                    if (auto* pAssoc = RpAnimBlendClumpGetFirstAssociation(GetRpClump())) {
                         pAssoc->SetCurrentTime(pLodAssoc->m_CurrentTime);
                     }
                 }
@@ -327,7 +327,7 @@ void CEntity::CreateRwObject() {
     CreateEffects();
 
     // Determine lighting requirement
-    auto* usedAtomic = RwObjectGetType(GetRwObject()) == rpATOMIC ? m_pRwAtomic : GetFirstAtomic(m_pRwClump);
+    auto* usedAtomic = RwObjectGetType(GetRwObject()) == rpATOMIC ? GetRpAtomic() : GetFirstAtomic(GetRpClump());
 
     if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(usedAtomic)) {
         m_bLightObject = true;
@@ -344,18 +344,18 @@ void CEntity::DeleteRwObject() {
 
     switch (RwObjectGetType(GetRwObject())) {
     case rpATOMIC:
-        if (auto* frame = RpAtomicGetFrame(m_pRwAtomic)) {
-            RpAtomicDestroy(m_pRwAtomic);
+        if (auto* frame = RpAtomicGetFrame(GetRpAtomic())) {
+            RpAtomicDestroy(GetRpAtomic());
             RwFrameDestroy(frame);
         }
         break;
     case rpCLUMP:
 #ifdef SA_SKINNED_PEDS
-        if (IsClumpSkinned(m_pRwClump)) {
-            RpClumpForAllAtomics(m_pRwClump, AtomicRemoveAnimFromSkinCB, nullptr);
+        if (IsClumpSkinned(GetRpClump())) {
+            RpClumpForAllAtomics(GetRpClump(), AtomicRemoveAnimFromSkinCB, nullptr);
         }
 #endif
-        RpClumpDestroy(m_pRwClump);
+        RpClumpDestroy(GetRpClump());
         break;
     }
 
@@ -419,7 +419,7 @@ void CEntity::PreRender() {
     if (!mi->HasBeenPreRendered()) {
         mi->SetHasBeenPreRendered(true);
 
-        if (ami && ami->GetRwObject()) {
+        if (ami && ami->GetRpAtomic()) {
             if (RpMatFXAtomicQueryEffects(ami->GetRpAtomic()) && RpAtomicGetGeometry(ami->GetRpAtomic())) {
                 RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->GetRpAtomic()), MaterialUpdateUVAnimCB, nullptr);
             }
@@ -641,7 +641,7 @@ void CEntity::Render() {
     }
 
     if (RwObjectGetType(GetRwObject()) == rpATOMIC && CTagManager::IsTag(this)) {
-        CTagManager::RenderTagForPC(m_pRwAtomic);
+        CTagManager::RenderTagForPC(GetRpAtomic());
         return;
     }
 
@@ -656,9 +656,9 @@ void CEntity::Render() {
     m_bImBeingRendered = true;
 
     if (RwObjectGetType(GetRwObject()) == rpATOMIC) {
-        RpAtomicRender(m_pRwAtomic);
+        RpAtomicRender(GetRpAtomic());
     } else {
-        RpClumpRender(m_pRwClump);
+        RpClumpRender(GetRpClump());
     }
 
     CStreaming::RenderEntity(m_pStreamingLink);
@@ -709,9 +709,9 @@ void CEntity::UpdateRwFrame() {
 // Updates the bone matrices for a skinned (animated) clump
 // 0x532B20
 void CEntity::UpdateRpHAnim() {
-    if (const auto atomic = GetFirstAtomic(m_pRwClump)) {
+    if (const auto atomic = GetFirstAtomic(GetRpClump())) {
         if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic)) && !m_bDontUpdateHierarchy) {
-            RpHAnimHierarchyUpdateMatrices(GetAnimHierarchyFromSkinClump(m_pRwClump));
+            RpHAnimHierarchyUpdateMatrices(GetAnimHierarchyFromSkinClump(GetRpClump()));
         }
     }
 }
@@ -909,10 +909,10 @@ void CEntity::SetRwObjectAlpha(int32 alpha) {
 
     switch (RwObjectGetType(GetRwObject())) {
     case rpATOMIC:
-        RpGeometryForAllMaterials(RpAtomicGetGeometry(m_pRwAtomic), SetCompAlphaCB, (void*)alpha);
+        RpGeometryForAllMaterials(RpAtomicGetGeometry(GetRpAtomic()), SetCompAlphaCB, (void*)alpha);
         break;
     case rpCLUMP:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicAlpha, (void*)alpha);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicAlpha, (void*)alpha);
         break;
     }
 }
@@ -1565,7 +1565,7 @@ void CEntity::UpdateAnim() {
         return;
     }
 
-    if (!RpAnimBlendClumpGetFirstAssociation(m_pRwClump)) {
+    if (!RpAnimBlendClumpGetFirstAssociation(GetRpClump())) {
         return;
     }
 
@@ -1583,7 +1583,7 @@ void CEntity::UpdateAnim() {
         fStep = CTimer::GetTimeStepInSeconds();
     }
 
-    RpAnimBlendClumpUpdateAnimations(m_pRwClump, fStep, bOnScreen);
+    RpAnimBlendClumpUpdateAnimations(GetRpClump(), fStep, bOnScreen);
 }
 
 // Checks if the entity is currently visible on screen
@@ -2337,6 +2337,19 @@ void CEntity::UpdateRwMatrix() {
         m_matrix->UpdateRwMatrix(parentMatrix);
     } else {
         m_placement.UpdateRwMatrix(parentMatrix);
+    }
+}
+
+// notsa
+RpAtomic* CEntity::GetRpAtomicOrFirstAtomicOfClump() const noexcept {
+    const auto obj = GetRwObject();
+    if (!obj) {
+        return nullptr;
+    }
+    switch (const auto type = RwObjectGetType(obj)) {
+    case rpATOMIC: return GetRpAtomic();                /* If we're an atomic, use that */
+    case rpCLUMP:  return GetFirstAtomic(GetRpClump()); /* Otherwise use the first atomic of the clump */
+    default:       NOTSA_UNREACHABLE_CASE(type);        /* Invalid type */
     }
 }
 

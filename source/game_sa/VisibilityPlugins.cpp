@@ -579,9 +579,9 @@ void CVisibilityPlugins::RenderEntity(void* obj, float dist) {
         }
         bool bLightingSetup = entity->SetupLighting();
         if (RwObjectGetType(entity->GetRwObject()) == rpATOMIC) {
-            RenderFadingAtomic(mi, entity->m_pRwAtomic, alpha);
+            RenderFadingAtomic(mi, entity->GetRpAtomic(), alpha);
         } else {
-            RenderFadingClump(mi, entity->m_pRwClump, alpha);
+            RenderFadingClump(mi, entity->GetRpClump(), alpha);
         }
         entity->RemoveLighting(bLightingSetup);
         entity->m_bImBeingRendered = false;
@@ -1016,7 +1016,7 @@ void CVisibilityPlugins::RenderWeaponPedsForPC() {
         if (ped && ped->m_pWeaponObject) {
             ped->SetupLighting();
             const CWeapon& activeWeapon = ped->GetActiveWeapon();
-            RpHAnimHierarchy* pRpAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+            RpHAnimHierarchy* pRpAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->GetRpClump());
             const int32 boneID = activeWeapon.m_Type != WEAPON_PARACHUTE ? BONE_R_HAND : BONE_SPINE1;
             int32 animIDIndex = RpHAnimIDGetIndex(pRpAnimHierarchy, boneID);
             RwMatrix* pRightHandMatrix = &RpHAnimHierarchyGetMatrixArray(pRpAnimHierarchy)[animIDIndex];

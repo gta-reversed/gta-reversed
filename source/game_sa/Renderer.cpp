@@ -112,7 +112,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
     bool bSetupLighting = entity->SetupLighting();
     auto* vehicle = entity->AsVehicle();
     if (entity->GetIsTypeVehicle()) {
-        CVisibilityPlugins::SetupVehicleVariables(entity->m_pRwClump);
+        CVisibilityPlugins::SetupVehicleVariables(entity->GetRpClump());
         CVisibilityPlugins::InitAlphaAtomicList();
         vehicle->RenderDriverAndPassengers();
         vehicle->SetupRender();
@@ -356,7 +356,7 @@ void CRenderer::RenderEverythingBarRoads() {
             continue;
 
         bool bInserted = false;
-        if (entity->GetIsTypeVehicle() || (entity->GetIsTypePed() && CVisibilityPlugins::GetClumpAlpha(entity->m_pRwClump) != 255)) {
+        if (entity->GetIsTypeVehicle() || (entity->GetIsTypePed() && CVisibilityPlugins::GetClumpAlpha(entity->GetRpClump()) != 255)) {
             // todo: R* nice check | or we missed smth here?
             if (entity->GetIsTypeVehicle()) {
                 bool bInsertIntoSortedList = false;
@@ -365,7 +365,7 @@ void CRenderer::RenderEverythingBarRoads() {
                     const auto& lookDirection = TheCamera.GetLookDirection();
                     if (camMode == MODE_WHEELCAM || camMode == MODE_1STPERSON &&
                         lookDirection != LOOKING_DIRECTION_FORWARD && lookDirection != LOOKING_DIRECTION_UNKNOWN_1 ||
-                        CVisibilityPlugins::GetClumpAlpha(entity->m_pRwClump) != 255
+                        CVisibilityPlugins::GetClumpAlpha(entity->GetRpClump()) != 255
                     )
                     {
                         bInsertIntoSortedList = true;

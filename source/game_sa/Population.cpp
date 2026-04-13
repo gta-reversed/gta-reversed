@@ -707,7 +707,7 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
     }
 
     // If we've faded the ped completely out, remove it
-    if (ped->bFadeOut && CVisibilityPlugins::GetClumpAlpha(ped->m_pRwClump) == 0) {
+    if (ped->bFadeOut && CVisibilityPlugins::GetClumpAlpha(ped->GetRpClump()) == 0) {
         RemovePed(ped);
         return;
     }
@@ -957,7 +957,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    CVisibilityPlugins::SetClumpAlpha(ped->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(ped->GetRpClump(), 0);
 
     return ped;
 }
@@ -1164,7 +1164,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
 
             // Now, update the RW matrix too
             if (veh->GetRwObject()) {
-                vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->m_pRwClump)));
+                vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->GetRpClump())));
             }
 
             CCarCtrl::JoinCarWithRoadSystem(veh);
@@ -1376,7 +1376,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
     if (!husb) {
         return;
     }
-    CVisibilityPlugins::SetClumpAlpha(husb->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(husb->GetRpClump(), 0);
 
     const auto wifey = CreatePed(PED_TYPE_CIVFEMALE, wifeyModelId);
     if (!wifey) {
@@ -1405,7 +1405,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
         wifey->GetColModel()->GetBoundRadius(),
         { husb, wifey }
     )) {
-        CVisibilityPlugins::SetClumpAlpha(wifey->m_pRwClump, 0); // All good
+        CVisibilityPlugins::SetClumpAlpha(wifey->GetRpClump(), 0); // All good
     }  else { // Blocked by something
         RemovePed(wifey);
         RemovePed(husb);

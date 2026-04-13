@@ -181,9 +181,9 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
         && victim->GetTaskManager().GetSimplestActiveTask()->GetTaskType() == TASK_SIMPLE_DEAD
     ) {
         const auto floorHitAnim = CAnimManager::BlendAnimation(
-            victim->m_pRwClump,
+            victim->GetRpClump(),
             ANIM_GROUP_DEFAULT,
-            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_IS_FRONT)
+            RpAnimBlendClumpGetFirstAssociation(victim->GetRpClump(), ANIMATION_IS_FRONT)
                 ? ANIM_ID_FLOOR_HIT_F
                 : ANIM_ID_FLOOR_HIT
         );
@@ -223,10 +223,10 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
         case ANIM_ID_SHOT_LEFTP:
         case ANIM_ID_SHOT_PARTIAL_B:
         case ANIM_ID_SHOT_RIGHTP: { //> 0x73A769 - Inverted
-            auto anim = RpAnimBlendClumpGetAssociation(victim->m_pRwClump, eventDmg.m_nAnimID);
+            auto anim = RpAnimBlendClumpGetAssociation(victim->GetRpClump(), eventDmg.m_nAnimID);
             if (!anim) {
                 anim = CAnimManager::AddAnimation(
-                    victim->m_pRwClump,
+                    victim->GetRpClump(),
                     (AssocGroupId)eventDmg.m_nAnimGroup,
                     (AnimationId)eventDmg.m_nAnimID
                 );
@@ -244,7 +244,7 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
             break;
         default: { //< 0x73A7B5
             const auto a = CAnimManager::BlendAnimation(
-                victim->m_pRwClump,
+                victim->GetRpClump(),
                 (AssocGroupId)eventDmg.m_nAnimGroup,
                 (AnimationId)eventDmg.m_nAnimID,
                 eventDmg.m_fAnimBlend
@@ -1067,11 +1067,11 @@ void CWeapon::Update(CPed* owner) {
             };
             if (wi->flags.bReload && (!owner->IsPlayer() || !FindPlayerInfo().m_bFastReload)) { // 0x73DCCE
                 auto animRLoad = RpAnimBlendClumpGetAssociation(
-                    owner->m_pRwClump,
+                    owner->GetRpClump(),
                     ANIM_ID_RELOAD //(wi->m_Flags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
                 );
                 if (!animRLoad) {
-                    animRLoad = RpAnimBlendClumpGetAssociation(owner->m_pRwClump, wi->GetCrouchReloadAnimationID());
+                    animRLoad = RpAnimBlendClumpGetAssociation(owner->GetRpClump(), wi->GetCrouchReloadAnimationID());
                 }
                 if (animRLoad) { // 0x73DD30
                     ProcessReloadAudioIf([&](uint32 rloadMs, eAudioEvents ae) {
@@ -2001,7 +2001,7 @@ void FireOneInstantHitRound(const CVector& startPoint, const CVector& endPoint, 
             if (!notsa::contains({ PEDSTATE_DIE, PEDSTATE_DEAD }, hitPed->GetPedState())) {
                 const auto pedHitDir = hitPed->GetLocalDirection(startPoint - hitPed->GetPosition2D());
                 CAnimManager::AddAnimation(
-                    hitPed->m_pRwClump,
+                    hitPed->GetRpClump(),
                     ANIM_GROUP_DEFAULT,
                     std::to_array({ANIM_ID_SHOT_PARTIAL, ANIM_ID_SHOT_LEFTP, ANIM_ID_SHOT_PARTIAL_B, ANIM_ID_SHOT_RIGHTP})[pedHitDir]
                 );

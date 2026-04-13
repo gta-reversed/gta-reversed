@@ -107,13 +107,10 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
     SetAreaCode(dummyObj->GetAreaCode());
     m_bRenderDamaged = dummyObj->m_bRenderDamaged;
 
-    if (GetRwObject()) {
-        auto* atomic = m_pRwAtomic;
-        if (RwObjectGetType(GetRwObject()) != rpATOMIC)
-            atomic = GetFirstAtomic(m_pRwClump);
-
-        if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(atomic))
+    if (auto* const atomic = GetRpAtomicOrFirstAtomicOfClump()) {
+        if (!CCustomBuildingRenderer::IsCBPCPipelineAttached(atomic)) {
             m_bLightObject = true;
+        }
     }
 }
 
@@ -533,9 +530,9 @@ void CObject::PreRender() {
 
     if (GetRwObject() && RwObjectGetType(GetRwObject()) == rpCLUMP && objectFlags.bFadingIn)
     {
-        auto iAlpha = CVisibilityPlugins::GetClumpAlpha(m_pRwClump) - 16;
+        auto iAlpha = CVisibilityPlugins::GetClumpAlpha(GetRpClump()) - 16;
         iAlpha = std::max(0, iAlpha);
-        CVisibilityPlugins::SetClumpAlpha(m_pRwClump, iAlpha);
+        CVisibilityPlugins::SetClumpAlpha(GetRpClump(), iAlpha);
     }
 
     CEntity::PreRender();
