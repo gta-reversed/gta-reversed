@@ -73,9 +73,6 @@ bool CTaskComplexCarSlowBeDraggedOut::MakeAbortable(CPed* ped, eAbortPriority pr
 
 // 0x64C810
 CTask* CTaskComplexCarSlowBeDraggedOut::CreateNextSubTask(CPed* ped) {
-    if (!ped->IsInVehicle()) {
-        return nullptr;
-    }
     return CreateSubTask([this, ped] {
         switch (m_pSubTask->GetTaskType()) {
         case TASK_SIMPLE_CAR_FALL_OUT:                 return TASK_SIMPLE_CAR_SET_PED_OUT;
