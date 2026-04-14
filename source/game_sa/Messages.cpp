@@ -378,14 +378,15 @@ uint32 CMessages::GetStringLength(const GxtChar* string) {
 // Copies string src to dest
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
+    if (len == 0) {
+        return;
+    }
+
     if (src) {
-        GxtCharStrcpy(dest, src);
-        dest[len - 1] = 0; // Ensure null termination at specified length
+        std::strncpy((char*)dest, AsciiFromGxtChar(src), len - 1);
+        dest[len - 1] = '\0';
     } else {
-        // Handling of NULL
-        if (len > 0) {
-            dest[0] = 0;
-        }
+        dest[0] = 0;
     }
 }
 
