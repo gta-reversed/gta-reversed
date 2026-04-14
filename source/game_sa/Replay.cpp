@@ -94,7 +94,7 @@ void CReplay::Update() {
     if (CTimer::GetIsCodePaused() || CTimer::GetIsUserPaused())
         return;
 
-    static uint32& s_FrameRecordCounter = *reinterpret_cast<uint32*>(0x97FB40); // STATICREF
+    static auto& s_FrameRecordCounter = StaticRef<uint32>(0x97FB40);
     if (Mode == MODE_PLAYBACK) {
         PlayBackThisFrame();
     } else if (CTimer::GetTimeInMS() - s_FrameRecordCounter > 26) {
@@ -570,9 +570,9 @@ void CReplay::ProcessReplayCamera() {
 // 0x45D760
 void CReplay::ProcessLookAroundCam() {
     if (bAllowLookAroundCam) {
-        static float& playerCameraDistance = *(float*)0x97FAD4;
-        static float& playerCameraDirAngle = *(float*)0x97FADC;
-        static float& viewAngle = *(float*)0x97FAD8;
+        static auto& playerCameraDistance = StaticRef<float>(0x97FAD4);
+        static auto& playerCameraDirAngle = StaticRef<float>(0x97FADC);
+        static auto& viewAngle = StaticRef<float>(0x97FAD8);
 
         const auto& pad = CPad::GetPad();
         auto steer = pad->NewMouseControllerState.m_AmountMoved / 200.0f;
@@ -597,7 +597,7 @@ void CReplay::ProcessLookAroundCam() {
             FramesActiveLookAroundCam = 60;
         }
 
-        static bool& s_FrameActiveLookAroundCamReset = *(bool*)0x97f66d;
+        static auto& s_FrameActiveLookAroundCamReset = StaticRef<bool>(0x97f66d);
         if (s_FrameActiveLookAroundCamReset) {
             FramesActiveLookAroundCam = 0;
         } else if (FramesActiveLookAroundCam) {
@@ -778,7 +778,7 @@ void CReplay::RestoreStuffFromMem() {
     CWeather::NewWeatherType = NewWeatherType;
     CWeather::InterpolationValue = WeatherInterpolationValue;
 
-    CGame::currArea = static_cast<int8>(CurrArea);
+    CGame::currArea = static_cast<eAreaCodes>(CurrArea);
     CPopulation::ms_nNumCivMale = ms_nNumCivMale_Stored;
     CPopulation::ms_nNumCivFemale = ms_nNumCivFemale_Stored;
     CPopulation::ms_nNumCop = ms_nNumCop_Stored;
@@ -1199,7 +1199,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             TheCamera.m_fCamShakeForce = miscPacket.camShakeForce;
             CSpecialFX::bVideoCam = miscPacket.camConfig.videoCam;
             CSpecialFX::bLiftCam = miscPacket.camConfig.liftCam;
-            CGame::currArea = miscPacket.currArea;
+            CGame::currArea = static_cast<eAreaCodes>(miscPacket.currArea);
             break;
         }
         case REPLAY_PACKET_DELETED_VEH: {

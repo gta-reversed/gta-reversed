@@ -138,7 +138,7 @@ void ValidateVersion() {
         NOTSA_UNREACHABLE("Invalid version\npeds.col version text does not start with 'grandtheftauto3'.\nText was '{}'", buf);
     }
 
-    static char(&version_name)[64] = *reinterpret_cast<char(*)[64]>(0xB72C28);
+    static auto& version_name = StaticRef<char[64]>(0xB72C28);
 
     strncpy_s(version_name, &buf[15], 64u);
     CFileMgr::CloseFile(file);
@@ -184,6 +184,14 @@ void CGame::TidyUpMemory(bool a1, bool clearD3Dmem) {
     if (FindPlayerPed(PED_TYPE_PLAYER1) && clearD3Dmem) {
         DrasticTidyUpMemory(a1);
     }
+}
+
+// notsa
+eAreaCodes CGame::GetPlayerOrCurrentAreaCode() {
+    auto* const player = FindPlayerPed();
+    return player
+        ? player->GetAreaCode()
+        : GetCurrentAreaCode();
 }
 
 // 0x53C810

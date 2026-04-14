@@ -11,11 +11,7 @@
 #include "ClothesBuilder.h"
 #include "PedClothesDesc.h"
 
-int32& CClothes::ms_clothesImageId = *(int32*)0xBC12F8;
-uint32& CClothes::ms_numRuleTags = *(uint32*)0xBC12FC;
-uint32 (&CClothes::ms_clothesRules)[600] = *(uint32(*)[600])0xBC1300;
-
-CPedClothesDesc& PlayerClothes = *(CPedClothesDesc*)0xBC1C78;
+auto& PlayerClothes = StaticRef<CPedClothesDesc>(0xBC1C78);
 
 void CClothes::InjectHooks() {
     RH_ScopedClass(CClothes);
@@ -88,16 +84,6 @@ void CClothes::LoadClothesFile() {
             continue;
         }
 
-        enum class eClothRule : uint8_t {
-            TAG_CUTS,
-            TAG_SETC,
-            TAG_TEX,
-            TAG_HIDE,
-            TAG_END_IGNORE,
-            TAG_IGNORE,
-            TAG_END_EXCLUSIVE,
-            TAG_EXCLUSIVE
-        };
         const eClothRule ruleTag = [&](){
             constexpr struct {const char* name; eClothRule rule;} map[]{
                 {"CUTS", eClothRule::TAG_CUTS},

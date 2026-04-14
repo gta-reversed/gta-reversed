@@ -2,10 +2,6 @@
 
 #include "MotionBlurStreaks.h"
 
-CRegisteredMotionBlurStreak(&CMotionBlurStreaks::aStreaks)[MAX_NUM_MOTIONBLUR_STREAKS] = *(CRegisteredMotionBlurStreak(*)[MAX_NUM_MOTIONBLUR_STREAKS])0xC7CA08;
-RxObjSpace3DVertex(&CMotionBlurStreaks::aStreakVertices)[NUM_STREAK_VERTICES] = *(RxObjSpace3DVertex(*)[NUM_STREAK_VERTICES])0xC7C628;
-RxVertexIndex(&CMotionBlurStreaks::aIndices)[NUM_STREAK_INDICES] = *(RxVertexIndex(*)[NUM_STREAK_INDICES])0xC7C6B8;
-
 void CMotionBlurStreaks::InjectHooks()
 {
     RH_ScopedClass(CMotionBlurStreaks);

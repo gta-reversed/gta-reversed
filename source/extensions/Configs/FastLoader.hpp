@@ -38,10 +38,7 @@ inline struct FastLoaderConfig {
     //! `slot` can have the same values as `SaveGameToLoad`
     bool StartGame(int32 slot) {
         const auto CheckIfSaveFileExists = [](int32 slot) {
-            CFileMgr::SetDirMyDocuments();
-            const bool exists = std::filesystem::exists(std::format("GTASAsf{}.b", slot));
-            CFileMgr::ChangeDir("");
-            return exists;
+            return std::filesystem::exists(std::filesystem::path(InitUserDirectories()) / std::format("GTASAsf{}.b", slot));
         };
 
         if (slot == -1) { // Find first valid slot and load that

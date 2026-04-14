@@ -2,7 +2,7 @@
 
 #include "InterestingEvents.h"
 
-CInterestingEvents& g_InterestingEvents = *(CInterestingEvents*)0xC0B058;
+auto& g_InterestingEvents = StaticRef<CInterestingEvents>(0xC0B058);
 
 /*
  * Commented hooks aren't tested.
@@ -21,17 +21,14 @@ void CInterestingEvents::InjectHooks() {
 }
 
 // 0x6023A0
-CInterestingEvents::CInterestingEvents() {
+CInterestingEvents::CInterestingEvents()
+{
     m_nFlags = 0;
     m_b2 = true;
     m_b4 = true;
     m_b8 = true;
 
-    m_fRadius = 30.f;
-    m_nLastScanTimeUpdate = 0;
-    m_nInterestingEvent = -1;
-    m_LastFrameUpdateMs = CTimer::GetFrameCounter() - 1;
-    std::memset(m_Events, 0, sizeof(m_Events));
+    /* Everything missing from here is initialized in the header */
 
     const auto SetOptions = [=](auto index, auto priority, auto delay, uint32 end = 0) {
         m_nPriorities[index] = priority;
@@ -97,8 +94,8 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
     NOTSA_LOG_DEBUG("type={}, model={}", (int32)(type), entity->m_nModelIndex);
 
     const auto& camPos = CCamera::GetActiveCamera().m_vecSource;
-    if (m_LastFrameUpdateMs != CTimer::GetFrameCounter()) {
-        m_LastFrameUpdateMs = CTimer::GetFrameCounter();
+    if (m_CurrentFrameCounter != CTimer::GetFrameCounter()) {
+        m_CurrentFrameCounter = CTimer::GetFrameCounter();
 
         CPlayerPed* player = FindPlayerPed();
         const auto& playerPos = player->GetPosition();
@@ -163,8 +160,8 @@ void CInterestingEvents::ScanForNearbyEntities() {
     m_nLastScanTimeUpdate = CTimer::GetTimeInMS();
 
     CPlayerPed* player = FindPlayerPed();
-    if (m_LastFrameUpdateMs != CTimer::GetFrameCounter()) {
-        m_LastFrameUpdateMs = CTimer::GetFrameCounter();
+    if (m_CurrentFrameCounter != CTimer::GetFrameCounter()) {
+        m_CurrentFrameCounter = CTimer::GetFrameCounter();
         const auto& camPos = CCamera::GetActiveCamera().m_vecSource, playerPos = player->GetPosition();
         vec148 = playerPos - camPos;
         vec148.z = 0.f;
@@ -188,14 +185,14 @@ void CInterestingEvents::ScanForNearbyEntities() {
     assert(v2 == endSectorX);
     assert(v3 == endSectorY);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     player->SetCurrentScanCode();
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
+            auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
 
-            for (auto* const ped : rs->Peds) {
+            for (auto* const ped : rs.Peds) {
                 if (ped->IsScanCodeCurrent())
                     continue;
 
@@ -229,7 +226,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
             }
 
-            for (auto* const vehicle : rs->Vehicles) {
+            for (auto* const vehicle : rs.Vehicles) {
                 if (vehicle->IsScanCodeCurrent())
                     continue;
 

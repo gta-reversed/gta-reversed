@@ -29,7 +29,7 @@ CTaskComplexSequence::CTaskComplexSequence(const CTaskComplexSequence& o) :
     m_RepeatMode{o.m_RepeatMode},
     m_CurrTaskIdx{o.m_CurrTaskIdx}
 {
-    rng::transform(o.m_Tasks, m_Tasks, [](CTask* t){
+    rng::transform(o.m_Tasks, m_Tasks.begin(), [] (CTask* t) {
         return t ? t->Clone() : nullptr;
     });
 }

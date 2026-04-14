@@ -162,18 +162,18 @@ bool ProcessGameLogic(INT nCmdShow) {
     // TODO: Move this out from here (It's not platform specific at all)
     switch (gGameState) {
     case GAME_STATE_INITIAL: {
-        const auto ProcessSplash = [](bool isNVidia) {
-            CLoadingScreen::LoadSplashes(true, isNVidia);
+        const auto ProcessSplash = [](eLoadingLogo id) {
+            CLoadingScreen::LoadSplashes(true, id);
             CLoadingScreen::Init(true, true);
-            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::Shutdown();
         };
         if (!g_FastLoaderConfig.NoEAX) {
-            ProcessSplash(false);
+            ProcessSplash(eLoadingLogo::EAX);
         }
         if (!g_FastLoaderConfig.NoNVidia) {
-            ProcessSplash(true);
+            ProcessSplash(eLoadingLogo::NVIDIA);
         }
         ChangeGameStateTo(GAME_STATE_LOGO);
         break;
@@ -222,7 +222,7 @@ bool ProcessGameLogic(INT nCmdShow) {
         VideoPlayer::Shutdown();
         CLoadingScreen::Init(true, false);
         if (!g_FastLoaderConfig.NoCopyright) {
-            CLoadingScreen::DoPCTitleFadeOut();
+            CLoadingScreen::DoPCTitleFadeIn();
         }
         if (!CGame::InitialiseEssentialsAfterRW()) {
             RsGlobal.quit = true;
@@ -248,7 +248,7 @@ bool ProcessGameLogic(INT nCmdShow) {
         if (g_FastLoaderConfig.NoCopyright) {
             CLoadingScreen::SkipCopyrightSplash();
         } else {
-            CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
         }
         break;
     }

@@ -11,6 +11,13 @@ void CPedClothesDesc::InjectHooks() {
     RH_ScopedInstall(GetIsWearingBalaclava, 0x5A7950);
     RH_ScopedInstall(HasVisibleNewHairCut, 0x5A7970);
     RH_ScopedInstall(HasVisibleTattoo, 0x5A79D0);
+
+    RH_ScopedOverloadedInstall(SetModel, "modelHash", 0x5A7910, void(CPedClothesDesc::*)(uint32, eClothesModelPart));
+    RH_ScopedOverloadedInstall(SetModel, "modelName", 0x5A7920, void(CPedClothesDesc::*)(const char*, eClothesModelPart));
+    // TODO: Seems like this function can't be hooked because texturePart doesn't seem to be passed on the stack, but in edx...
+    // TODO: We could make it work, but it's not worth the effort. (by: Pirulax)
+    //RH_ScopedOverloadedInstall(SetTextureAndModel, "hash", 0x5A8050, void(CPedClothesDesc::*)(uint32, uint32, eClothesTexturePart));
+    //RH_ScopedOverloadedInstall(SetTextureAndModel, "name", 0x5A8080, void(CPedClothesDesc::*)(const char*, const char*, eClothesTexturePart));
 }
 
 CPedClothesDesc::CPedClothesDesc() {
@@ -71,7 +78,7 @@ bool CPedClothesDesc::HasVisibleNewHairCut(int32 type) {
 bool CPedClothesDesc::HasVisibleTattoo() {
     // NOTE: Android: CLOTHES_TEX_TATTOOS1 = 4, CLOTHES_TEX_TATTOOS9 = 12
     for (int i = eClothesTexturePart::CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= eClothesTexturePart::CLOTHES_TEXTURE_UPPER_BACK; ++i) {
-        if (m_anTextureKeys[i] != 0) return true;
+        if (m_anTextureKeys[i]) return true;
     }
 
     return false;
@@ -79,11 +86,23 @@ bool CPedClothesDesc::HasVisibleTattoo() {
 
 // 0x5A8050
 void CPedClothesDesc::SetTextureAndModel(uint32 texture, uint32 model, eClothesTexturePart texturePart) {
-    plugin::CallMethod<0x5A8050, CPedClothesDesc*, uint32, uint32, eClothesTexturePart>(this, texture, model, texturePart);
+    assert(texturePart < CLOTHES_TEXTURE_TOTAL);
+
+    m_anTextureKeys[texturePart] = texture;
+
+    if (const auto modelPart = CClothes::GetTextureDependency(texturePart); modelPart != CLOTHES_MODEL_UNAVAILABLE) {
+        m_anModelKeys[modelPart] = model;
+    }
 }
 
 // 0x5A8080
 void CPedClothesDesc::SetTextureAndModel(const char* textureName, const char* modelName, eClothesTexturePart texturePart) {
-    plugin::CallMethod<0x5A8080, CPedClothesDesc*, const char*, const char*, eClothesTexturePart>(this, textureName, modelName, texturePart);
+    assert(texturePart < CLOTHES_TEXTURE_TOTAL);
+
+    m_anTextureKeys[texturePart] = CKeyGen::GetUppercaseKey(textureName);
+
+    if (const auto modelPart = CClothes::GetTextureDependency(texturePart); modelPart != CLOTHES_MODEL_UNAVAILABLE) {
+        m_anModelKeys[modelPart] = CKeyGen::GetUppercaseKey(modelName);
+    }
 }
 

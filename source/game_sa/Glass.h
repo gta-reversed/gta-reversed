@@ -16,20 +16,20 @@ enum class ePaneType : uint32 {
 
 class CGlass {
 public:
-    static CVector2D (&PanePolyPositions)[4][3];
-    static int32& ReflectionPolyVertexBaseIdx;
-    static int32& ReflectionPolyIndexBaseIdx;
-    static RxObjSpace3DLitVertex(&ReflectionPolyVertexBuffer)[1706];
-    static RxObjSpace3DLitVertex(&ShatteredPolyVertexBuffer)[512];
-    static int32& ShatteredVerticesBaseIdx;
-    static int32& ShatteredIndicesBaseIdx;
-    static uint32& H1iLightPolyVerticesIdx;
-    static int32& HiLightPolyIndicesIdx;
-    static CVector2D (&PanePolyCenterPositions)[5];
-    static CEntity*(&apEntitiesToBeRendered)[32];
-    static inline uint32& NumGlassEntities = *(uint32*)0xC71BD8;
-    static CFallingGlassPane (&aGlassPanes)[44];
-    static uint32& LastColCheckMS;
+    static inline auto& PanePolyPositions = StaticRef<CVector2D[4][3]>(0x8D5CD8);
+    static inline auto& ReflectionPolyVertexBaseIdx = StaticRef<int32>(0xC71B18);
+    static inline auto& ReflectionPolyIndexBaseIdx = StaticRef<int32>(0xC71B1C);
+    static inline auto& ReflectionPolyVertexBuffer = StaticRef<std::array<RxObjSpace3DLitVertex, 1706>>(0xC5B158);
+    static inline auto& ShatteredPolyVertexBuffer = StaticRef<std::array<RxObjSpace3DLitVertex, 512>>(0xC56958);
+    static inline auto& ShatteredVerticesBaseIdx = StaticRef<int32>(0xC71B20);
+    static inline auto& ShatteredIndicesBaseIdx = StaticRef<int32>(0xC71B24);
+    static inline auto& H1iLightPolyVerticesIdx = StaticRef<uint32>(0xC71B28);
+    static inline auto& HiLightPolyIndicesIdx = StaticRef<int32>(0xC71B2C);
+    static inline auto& PanePolyCenterPositions = StaticRef<std::array<CVector2D, 5>>(0xC71B30);
+    static inline auto& apEntitiesToBeRendered = StaticRef<CEntity*[32]>(0xC71B58);
+    static inline auto& NumGlassEntities = StaticRef<uint32>(0xC71BD8);
+    static inline auto& aGlassPanes = StaticRef<std::array<CFallingGlassPane, 44>>(0xC71BF8);
+    static inline auto& LastColCheckMS = StaticRef<uint32>(0xC72FA8);
 
 public:
     static void InjectHooks();

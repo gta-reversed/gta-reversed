@@ -4,14 +4,14 @@
 #include "CustomBuildingDNPipeline.h"
 #include "Clouds.h"
 
-RwIm2DVertex (&cc_vertices)[4] = *(RwIm2DVertex(*)[4])0xC400D8;
-RwImVertexIndex (&cc_indices)[12] = *(RwImVertexIndex(*)[12])0x8D5174; // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
+auto& cc_vertices = StaticRef<std::array<RwIm2DVertex, 4>>(0xC400D8);
+auto& cc_indices = StaticRef<std::array<RwImVertexIndex, 12>>(0x8D5174); // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
 
-int32 (&hpX)[180] = *(int32(*)[180])0xC3FE08;
-int32 (&hpY)[180] = *(int32(*)[180])0xC3FB38;
-int32 (&hpS)[180] = *(int32(*)[180])0xC3F868; // speed
+auto& hpX = StaticRef<std::array<int32, 180>>(0xC3FE08);
+auto& hpY = StaticRef<std::array<int32, 180>>(0xC3FB38);
+auto& hpS = StaticRef<std::array<int32, 180>>(0xC3F868); // speed
 
-static inline float& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
+static inline auto& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
 
 static constexpr auto GRAIN_TEXTURE_DIM = 256u; // 256x256
 
@@ -366,11 +366,9 @@ void CPostEffects::ScriptCCTVSwitch(bool enable) {
 // 0x701170
 void CPostEffects::ScriptDarknessFilterSwitch(bool enable, int32 alpha) {
     m_bDarknessFilter = enable;
-    if (alpha == 255) {
-        m_DarknessFilterAlpha = m_DarknessFilterAlphaDefault;
-    } else {
-        m_DarknessFilterAlpha = std::clamp(0, alpha, 255);
-    }
+    m_DarknessFilterAlpha = alpha == -1
+        ? m_DarknessFilterAlphaDefault
+        : std::clamp(alpha, 0, 255);
 }
 
 // 0x701160
@@ -598,7 +596,7 @@ void CPostEffects::SetFilterMainColour(RwRaster* raster, RwRGBA color) {
 
     RwRenderStateSet(rwRENDERSTATESRCBLEND,  RWRSTATE(rwBLENDONE));
     RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDDESTALPHA));
-    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices, std::size(cc_vertices), cc_indices, std::size(cc_indices) / 2); // size 4 and 6
+    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices.data(), std::size(cc_vertices), cc_indices.data(), std::size(cc_indices) / 2); // size 4 and 6
 
     RwRenderStateSet(rwRENDERSTATEFOGENABLE,         RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
@@ -709,8 +707,8 @@ void CPostEffects::InfraredVisionRestoreLightsForHeatObjects() {
 
 // 0x704150
 void CPostEffects::Fog() {
-    static float& s_FogRadius = StaticRef<float>(0xC402E4);
-    static float& s_FogAngle  = StaticRef<float>(0xC402DC);
+    static auto& s_FogRadius = StaticRef<float>(0xC402E4);
+    static auto& s_FogAngle  = StaticRef<float>(0xC402DC);
 
     ImmediateModeRenderStatesStore();
     ImmediateModeRenderStatesSet();
@@ -798,7 +796,7 @@ void CPostEffects::CCTV() {
 
 // 0x7037C0
 void CPostEffects::Grain(int32 strengthMask, bool update) {
-    static uint32& s_NumberOfReseeds = StaticRef<uint32>(0xC4031C);
+    static auto& s_NumberOfReseeds = StaticRef<uint32>(0xC4031C);
     if (update) {
         auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
 
@@ -869,13 +867,13 @@ void CPostEffects::ColourFilter(RwRGBA pass1, RwRGBA pass2) {
     RwIm2DVertexSetRealRGBA(&cc_vertices[1], pass1.red, pass1.green, pass1.blue, pass1.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[2], pass1.red, pass1.green, pass1.blue, pass1.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[3], pass1.red, pass1.green, pass1.blue, pass1.alpha);
-    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices, std::size(cc_vertices), cc_indices, std::size(cc_indices) / 2); // size 4 and 6
+    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices.data(), std::size(cc_vertices), cc_indices.data(), std::size(cc_indices) / 2); // size 4 and 6
 
     RwIm2DVertexSetRealRGBA(&cc_vertices[0], pass2.red, pass2.green, pass2.blue, pass2.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[1], pass2.red, pass2.green, pass2.blue, pass2.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[2], pass2.red, pass2.green, pass2.blue, pass2.alpha);
     RwIm2DVertexSetRealRGBA(&cc_vertices[3], pass2.red, pass2.green, pass2.blue, pass2.alpha);
-    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices, std::size(cc_vertices), cc_indices, std::size(cc_indices) / 2); // size 4 and 6
+    RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, cc_vertices.data(), std::size(cc_vertices), cc_indices.data(), std::size(cc_indices) / 2); // size 4 and 6
 
     RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,   RWRSTATE(TRUE));
@@ -899,10 +897,10 @@ void CPostEffects::SetSpeedFXManualSpeedCurrentFrame(float value) {
 void CPostEffects::Render() {
     ZoneScoped;
 
-    static int32& s_CurrentStrength    = StaticRef<int32>(0xC40328);
-    static float& s_WaterGreen         = StaticRef<float>(0xC40324);
-    static bool&  s_WaitForOneFrame    = StaticRef<bool>(0xC40321);
-    static bool&  s_SavePhotoToGallery = StaticRef<bool>(0xC40320);
+    static auto& s_CurrentStrength    = StaticRef<int32>(0xC40328);
+    static auto& s_WaterGreen         = StaticRef<float>(0xC40324);
+    static auto& s_WaitForOneFrame    = StaticRef<bool>(0xC40321);
+    static auto& s_SavePhotoToGallery = StaticRef<bool>(0xC40320);
 
     if (m_bDisableAllPostEffect) {
         return;
@@ -915,7 +913,7 @@ void CPostEffects::Render() {
     RwRasterPopContext();
     RsCameraBeginUpdate(Scene.m_pRwCamera);
 
-    float& s_ExtraMult = ScopedStaticRef<float>(0xC4032C, 0xC40330, 1, 0.35f);
+    auto& s_ExtraMult = ScopedStaticRef<float>(0xC4032C, 0xC40330, 1, 0.35f);
 
     if (m_bFog) {
         Fog();

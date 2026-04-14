@@ -51,9 +51,9 @@ public:
     CAEPoliceScannerAudioEntity m_PoliceScannerAudio;
     bool                        m_bLeavePlayerAlone;
 
-    static uint32 &MaximumWantedLevel;
-    static uint32 &MaximumChaosLevel;
-    static bool &bUseNewsHeliInAdditionToPolice;
+    static inline auto& MaximumWantedLevel = StaticRef<uint32>(0x8CDEE4); // 6
+    static inline auto& MaximumChaosLevel = StaticRef<uint32>(0x8CDEE8); // 9200; original name nMaximumWantedLevel
+    static inline auto& bUseNewsHeliInAdditionToPolice = StaticRef<bool>(0xB7CB8C);
 
 public:
     static void InjectHooks();

@@ -3,10 +3,6 @@
 #include "ColStore.h"
 #include "TheScripts.h"
 
-CVector& CColStore::ms_vecCollisionNeeded = *(CVector*)0x965580;
-bool& CColStore::ms_bCollisionNeeded = *(bool*)0x965558;
-int32 CColStore::ms_nRequiredCollisionArea = *(int32*)0x965554;
-
 auto& ms_pColPool = StaticRef<CColPool*>(0x965560);
 
 using ColTreeNode  = CQuadTreeNode<ColDef*>;
@@ -49,7 +45,7 @@ void CColStore::Shutdown()
 
 // 0x4103D0
 void SetIfCollisionIsRequired(const CVector2D& vecPos, ColDef* def) {
-    if (!CColStore::ms_nRequiredCollisionArea && def->m_bInterior) {
+    if (CColStore::ms_EntityAreaCode == AREA_CODE_NORMAL_WORLD && def->m_bInterior) {
         return;
     }
     if (!def->m_Area.IsPointInside(vecPos)) {
@@ -60,51 +56,45 @@ void SetIfCollisionIsRequired(const CVector2D& vecPos, ColDef* def) {
 
 // 0x410470
 void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, ColDef* def) {
-    if (!def->m_Area.IsPointInside(vecPos, -80.0F)) {
+    if ((CColStore::ms_EntityAreaCode != AREA_CODE_NORMAL_WORLD) != def->m_bInterior) {
         return;
     }
-    if (!CColStore::ms_nRequiredCollisionArea && def->m_bInterior) {
+    if (!def->m_Area.IsPointInside(vecPos, -80.0F)) {
         return;
     }
     def->m_bCollisionIsRequired = true;
 }
 
 // 0x411140
-int32 CColStore::AddColSlot(const char* name)
-{
-    auto def = new ColDef();
-    def->m_bActive = false;
-    def->m_bCollisionIsRequired = false;
-    def->m_bProcedural = false;
-    def->m_bInterior = false;
-    def->m_Area = CRect();
+int32 CColStore::AddColSlot(const char* name) {
+    const notsa::ci_string_view namesv{ name };
+
+    auto* const def = new ColDef();
     strcpy_s(def->name, name);
-    def->m_nModelIdStart = -1;
-    def->m_nModelIdEnd = SHRT_MIN;
-    def->m_nRefCount = 0;
-
-    if (!strcmp(name, "procobj") || !strcmp(name, "proc_int") || !strcmp(name, "proc_int2"))
-        def->m_bProcedural = true;
-
-    if (!strncmp(name, "int_la", 6)
-        || !strncmp(name, "int_sf", 6)
-        || !strncmp(name, "int_veg", 7)
-        || !strncmp(name, "int_cont", 8)
-        || !strncmp(name, "gen_int1", 8)
-        || !strncmp(name, "gen_int2", 8)
-        || !strncmp(name, "gen_int3", 8)
-        || !strncmp(name, "gen_int4", 8)
-        || !strncmp(name, "gen_int5", 8)
-        || !strncmp(name, "gen_intb", 8)
-        || !strncmp(name, "savehous", 8)
-        || !strcmp(name, "props")
-        || !strcmp(name, "props2")
-        || !strncmp(name, "levelmap", 8)
-        || !strncmp(name, "stadint", 7))
-    {
-        def->m_bInterior = true;
-    }
-
+    def->m_bActive              = false;
+    def->m_bCollisionIsRequired = false;
+    def->m_Area                 = CRect();
+    def->m_nModelIdStart        = SHRT_MAX;
+    def->m_nModelIdEnd          = SHRT_MIN;
+    def->m_nRefCount            = 0;
+    def->m_bProcedural          = namesv == "procobj"
+        || namesv == "proc_int"
+        || namesv == "proc_int2";
+    def->m_bInterior = namesv.starts_with("int_la")
+        || namesv.starts_with("int_sf")
+        || namesv.starts_with("int_veg")
+        || namesv.starts_with("int_cont")
+        || namesv.starts_with("gen_int1")
+        || namesv.starts_with("gen_int2")
+        || namesv.starts_with("gen_int3")
+        || namesv.starts_with("gen_int4")
+        || namesv.starts_with("gen_int5")
+        || namesv.starts_with("gen_intb")
+        || namesv.starts_with("savehous")
+        || namesv.starts_with("levelmap")
+        || namesv.starts_with("stadint")
+        || namesv == "props"
+        || namesv == "props2";
     return ms_pColPool->GetIndex(def);
 }
 
@@ -161,12 +151,10 @@ void CColStore::EnsureCollisionIsInMemory(const CVector& pos)
 {
     if (CStreaming::ms_disableStreaming)
         return;
-
-    auto* player = FindPlayerPed();
-    const auto area = player ? player->GetAreaCode() : CGame::currArea;
-    if (area != CGame::currArea)
+    const auto area = CGame::GetPlayerOrCurrentAreaCode();
+    if (area != CGame::GetCurrentAreaCode()) {
         return;
-
+    }
     SetCollisionRequired(pos, area);
     for (auto i = 1u; i < ms_pColPool->GetSize(); i++) {
         auto* def = ms_pColPool->GetAt(i);
@@ -206,7 +194,7 @@ void CColStore::IncludeModelIndex(int32 colSlot, int32 modelId)
 }
 
 // 0x410CE0
-bool CColStore::HasCollisionLoaded(const CVector& pos, int32 areaCode)
+bool CColStore::HasCollisionLoaded(const CVector& pos, eAreaCodes areaCode)
 {
     SetCollisionRequired(pos, areaCode);
     auto foundInd = -1;
@@ -302,9 +290,9 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         }
     }
 
-    SetCollisionRequired(pos, -1);
+    SetCollisionRequired(pos, AREA_CODE_NONE);
     if (ms_bCollisionNeeded)
-        SetCollisionRequired(ms_vecCollisionNeeded, CGame::currArea);
+        SetCollisionRequired(ms_vecCollisionNeeded, CGame::GetCurrentAreaCode());
 
     for (auto& obj : CTheScripts::MissionCleanUp.m_Objects)
     {
@@ -325,7 +313,7 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         if (!entity || entity->AsPhysical()->physicalFlags.b15 || entity->AsPhysical()->physicalFlags.bDontApplySpeed)
             continue;
 
-        ms_nRequiredCollisionArea = entity->GetAreaCode();
+        ms_EntityAreaCode = entity->GetAreaCode();
         ms_pQuadTree->ForAllMatching(entity->GetPosition(), SetIfCollisionIsRequiredReducedBB);
     }
 
@@ -401,7 +389,7 @@ void CColStore::RemoveRef(int32 colNum)
 }
 
 // 0x410C00
-void CColStore::RequestCollision(const CVector& pos, int32 areaCode)
+void CColStore::RequestCollision(const CVector& pos, eAreaCodes areaCode)
 {
     SetCollisionRequired(pos, areaCode);
     for (auto i = 1u; i < ms_pColPool->GetSize(); i++) {
@@ -417,19 +405,15 @@ void CColStore::RequestCollision(const CVector& pos, int32 areaCode)
 }
 
 // 0x4104E0
-void CColStore::SetCollisionRequired(const CVector& pos, int32 areaCode)
-{
-    auto usedArea = areaCode;
-    if (areaCode == -1) {
-        auto* player = FindPlayerPed();
-        usedArea = player ? player->GetAreaCode() : CGame::currArea;
-    }
-
-    ms_nRequiredCollisionArea = usedArea;
-    if (usedArea == CGame::currArea)
+void CColStore::SetCollisionRequired(const CVector& pos, eAreaCodes areaCode) {
+    ms_EntityAreaCode = areaCode == AREA_CODE_NONE
+        ? CGame::GetPlayerOrCurrentAreaCode()
+        : areaCode;
+    if (ms_EntityAreaCode == CGame::GetCurrentAreaCode()) {
         ms_pQuadTree->ForAllMatching(pos, SetIfCollisionIsRequired);
-    else
+    } else {
         ms_pQuadTree->ForAllMatching(pos, SetIfCollisionIsRequiredReducedBB);
+    }
 }
 
 ColDef* CColStore::GetInSlot(int32 slot) {

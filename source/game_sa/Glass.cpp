@@ -4,20 +4,6 @@
 #include "FallingGlassPane.h"
 #include "Shadows.h"
 
-CVector2D (&CGlass::PanePolyPositions)[4][3] = *(CVector2D(*)[4][3])0x8D5CD8;
-int32& CGlass::ReflectionPolyVertexBaseIdx = *(int32*)0xC71B18;
-int32& CGlass::ReflectionPolyIndexBaseIdx = *(int32*)0xC71B1C;
-RxObjSpace3DLitVertex (&CGlass::ReflectionPolyVertexBuffer)[1706] = *(RxObjSpace3DLitVertex(*)[1706])0xC5B158;
-RxObjSpace3DLitVertex (&CGlass::ShatteredPolyVertexBuffer)[512] = *(RxObjSpace3DLitVertex(*)[512])0xC56958;
-int32& CGlass::ShatteredVerticesBaseIdx = *(int32*)0xC71B20;
-int32& CGlass::ShatteredIndicesBaseIdx = *(int32*)0xC71B24;
-uint32& CGlass::H1iLightPolyVerticesIdx = *(uint32*)0xC71B28;
-int32& CGlass::HiLightPolyIndicesIdx = *(int32*)0xC71B2C;
-CVector2D (&CGlass::PanePolyCenterPositions)[5] = *(CVector2D(*)[5])0xC71B30;
-CEntity* (&CGlass::apEntitiesToBeRendered)[32] = *(CEntity * (*)[32])0xC71B58;
-CFallingGlassPane (&CGlass::aGlassPanes)[44] = *(CFallingGlassPane(*)[44])0xC71BF8;
-uint32& CGlass::LastColCheckMS = *(uint32*)0xC72FA8;
-
 void CGlass::InjectHooks() {
     RH_ScopedClass(CGlass);
     RH_ScopedCategoryGlobal();
@@ -65,14 +51,14 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
     const int32 endSectorX   = std::min(CWorld::GetSectorX(point.x + 30.f), MAX_SECTORS_X - 1);
     const int32 endSectorY   = std::min(CWorld::GetSectorY(point.y + 30.f), MAX_SECTORS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     float maxDist = 20.f;
     CEntity* entity{};
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            FindWindowSectorList(GetRepeatSector(sectorX, sectorY)->Objects, maxDist, entity, point);
-            FindWindowSectorList(GetSector(sectorX, sectorY)->m_dummies, maxDist, entity, point);
+            FindWindowSectorList(CWorld::GetRepeatSector(sectorX, sectorY).Objects, maxDist, entity, point);
+            FindWindowSectorList(CWorld::GetSector(sectorX, sectorY).Dummies, maxDist, entity, point);
         }
     }
     return entity && !entity->GetIsTypeDummy() && entity->AsObject()->objectFlags.bHasBrokenGlass;
@@ -119,7 +105,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     for (auto t = 0; t < 2; t++) { // t - triangle idx
         const auto& tri = triangles[glassTriIdx + t];
         for (auto v = 0; v < 3; v++) { // v - vertex idx of this triangle
-            triVertices[t * 3 + v] =vehMat.TransformPoint(UncompressVector(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]));
+            triVertices[t * 3 + v] = vehMat.TransformPoint(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]);
         }
     }
 
@@ -216,7 +202,7 @@ void CGlass::WindowRespondsToCollision(CEntity* entity, float fDamageIntensity, 
     if (const auto cd = object->GetColModel()->m_pColData; cd && cd->m_nNumTriangles == 2) {
         // Object space vertices
         CVector verticesOS[4];
-        rng::transform(std::span{ cd->m_pVertices, 4 }, verticesOS, UncompressVector);
+        rng::copy(std::span{ cd->m_pVertices, 4 }, verticesOS);
 
         const auto [minZ, maxZ] = FindMinMaxZOfVertices(verticesOS);
 
@@ -441,7 +427,7 @@ void CGlass::RenderReflectionPolys() {
         RwRenderStateSet(rwRENDERSTATESRCBLEND,      RWRSTATE(rwBLENDSRCALPHA));
         RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDINVSRCALPHA));
 
-        if (RwIm3DTransform(ReflectionPolyVertexBuffer, ReflectionPolyVertexBaseIdx - 1536, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(ReflectionPolyVertexBuffer.data(), ReflectionPolyVertexBaseIdx - 1536, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, &aTempBufferIndices[3072], ReflectionPolyIndexBaseIdx - 3072);
             RwIm3DEnd();
@@ -460,7 +446,7 @@ void CGlass::RenderShatteredPolys() {
         RwRenderStateSet(rwRENDERSTATESRCBLEND,      RWRSTATE(rwBLENDSRCALPHA));
         RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDINVSRCALPHA));
 
-        if (RwIm3DTransform(ShatteredPolyVertexBuffer, ShatteredVerticesBaseIdx - 1024, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(ShatteredPolyVertexBuffer.data(), ShatteredVerticesBaseIdx - 1024, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, &aTempBufferIndices[2048], ShatteredIndicesBaseIdx - 2048);
             RwIm3DEnd();
@@ -576,7 +562,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
 
         CVector verticesObjSpace[4];
         for (auto i = 0u; i < std::size(verticesObjSpace); ++i) {
-            verticesObjSpace[i] = UncompressVector(colData->m_pVertices[i]);
+            verticesObjSpace[i] = colData->m_pVertices[i];
         }
 
         const auto [minZ, maxZ] = FindMinMaxZOfVertices(verticesObjSpace);

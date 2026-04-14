@@ -2,7 +2,7 @@
 
 #include "Garages.h"
 
-static uint32& LastUpdatedGarageId = *(uint32*)0x96EA78;
+static auto& LastUpdatedGarageId = StaticRef<uint32>(0x96EA78);
 
 void CGarages::InjectHooks() {
     RH_ScopedClass(CGarages);

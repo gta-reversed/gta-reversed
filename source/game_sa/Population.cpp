@@ -33,35 +33,6 @@
 #define POP_LOG_DEBUG(...)
 #endif
 
-float& CPopulation::PedDensityMultiplier = *(float*)0x8D2530;
-int32& CPopulation::m_AllRandomPedsThisType = *(int32*)0x8D2534;
-uint32& CPopulation::MaxNumberOfPedsInUse = *(uint32*)0x8D2538;
-uint32& CPopulation::NumberOfPedsInUseInterior = *(uint32*)0x8D253C;
-CLoadedCarGroup& CPopulation::m_LoadedBoats = *(CLoadedCarGroup*)0xC0E998;
-CLoadedCarGroup& CPopulation::m_InAppropriateLoadedCars = *(CLoadedCarGroup*)0xC0E9C8;
-CLoadedCarGroup& CPopulation::m_AppropriateLoadedCars = *(CLoadedCarGroup*)0xC0E9F8;
-CLoadedCarGroup (&CPopulation::m_LoadedGangCars)[10] = *(CLoadedCarGroup(*)[10])0xC0EA28;
-bool& CPopulation::bZoneChangeHasHappened = *(bool*)0xC0EC22;
-uint8& CPopulation::m_CountDownToPedsAtStart = *(uint8*)0xC0EC23;
-uint32& CPopulation::ms_nTotalMissionPeds = *(uint32*)0xC0EC24;
-uint32& CPopulation::ms_nTotalPeds = *(uint32*)0xC0EC28;
-uint32& CPopulation::ms_nTotalGangPeds = *(uint32*)0xC0EC2C;
-uint32& CPopulation::ms_nTotalCivPeds = *(uint32*)0xC0EC30;
-uint32& CPopulation::ms_nTotalCarPassengerPeds = *(uint32*)0xC0EC34;
-uint32& CPopulation::ms_nNumDealers = *(uint32*)0xC0EC38;
-std::array<uint32, TOTAL_GANGS>& CPopulation::ms_nNumGang = *(std::array<uint32, TOTAL_GANGS>*)0xC0EC3C;
-uint32& CPopulation::ms_nNumEmergency = *(uint32*)0xC0EC64;
-uint32& CPopulation::ms_nNumCop = *(uint32*)0xC0EC68;
-uint32& CPopulation::ms_nNumCivFemale = *(uint32*)0xC0EC6C;
-uint32& CPopulation::ms_nNumCivMale = *(uint32*)0xC0EC70;
-bool& CPopulation::m_bDontCreateRandomGangMembers = *(bool*)0xC0FCB2;
-bool& CPopulation::m_bOnlyCreateRandomGangMembers = *(bool*)0xC0FCB3;
-bool& CPopulation::m_bDontCreateRandomCops = *(bool*)0xC0FCB4;
-bool& CPopulation::m_bMoreCarsAndFewerPeds = *(bool*)0xC0FCB5;
-bool& CPopulation::bInPoliceStation = *(bool*)0xC0FCB6;
-uint32& CPopulation::NumMiamiViceCops = *(uint32*)0xC0FCB8;
-uint32& CPopulation::CurrentWorldZone = *(uint32*)0xC0FCBC;
-
 void CPopulation::InjectHooks() {
     RH_ScopedClass(CPopulation);
     RH_ScopedCategoryGlobal();
@@ -380,7 +351,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
 
     const auto pedType = CModelInfo::GetPedModelInfo(modelId)->GetPedType();
 
-    if (NameIsAnyOf("COPST", "COPLOOK", "BROWSE")) {
+    if (NameIsAnyOf("COPSIT", "COPLOOK", "BROWSE")) {
         return pedType == PED_TYPE_COP;
     }
 
@@ -452,7 +423,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
     }
 
     if (NameIsAnyOf("STRIPM")) {
-        return pedType != PED_TYPE_CIVFEMALE;
+        return pedType == PED_TYPE_CIVFEMALE;
     }
 
     return false;
@@ -779,17 +750,10 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
 
 // 0x612240
 int32 CPopulation::FindNumberOfPedsWeCanPlaceOnBenches() {
-    const auto baseNum = [] {
-        if (CGame::CanSeeOutSideFromCurrArea()) {
-            return NumberOfPedsInUseInterior;
-        }
-        return (uint32)(
-              std::floor(std::min((float)MaxNumberOfPedsInUse, CPopCycle::m_NumOther_Peds))
-            * PedDensityMultiplier
-            * FindPedDensityMultiplierCullZone()
-        );
-    }();
-    return baseNum - ms_nNumCivMale - ms_nNumCivFemale + 2;
+    const int32 base = CGame::CanSeeOutSideFromCurrArea()
+        ? (int32)(std::floor(std::min((float)(MaxNumberOfPedsInUse), CPopCycle::m_NumOther_Peds)) * PedDensityMultiplier * FindPedDensityMultiplierCullZone())
+        : (int32)(NumberOfPedsInUseInterior);
+    return base - (int32)(ms_nNumCivMale) - (int32)(ms_nNumCivFemale) + 2;
 }
 
 // 0x6122C0
@@ -827,7 +791,7 @@ bool CPopulation::TestSafeForRealObject(CDummyObject* obj) {
     return CWorld::IterateSectorsOverlappedByRect(
         CRect{ obj->GetBoundCentre(), objCM->GetBoundRadius()},
         [&](int32 x, int32 y) {
-            for (auto* const entity : GetRepeatSector(x, y)->Vehicles) {
+            for (auto* const entity : CWorld::GetRepeatSector(x, y).Vehicles) {
                 if (CCollision::ProcessColModels(
                     objMat, *objCM,
                     entity->GetMatrix(), *entity->GetColModel(),

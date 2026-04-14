@@ -92,7 +92,7 @@ void CPickups::AddToCollectedPickupsArray(int32 pickupIndex) {
 
 /*!
  * @addr 0x458A80
- * @brief Created a pickup close to pos (\r inX, \r inY, \r inZ)
+ * @brief Created a pickup close to pos (inX, inY, inZ)
  *
  * @param [out] outX, outY, outZ Created pickup's position
  */
@@ -639,7 +639,7 @@ void CPickups::Update() {
 
         if (pickup.m_nFlags.bVisible = pickup.IsVisible()) {
             if (!pickup.m_nFlags.bDisabled && !pickup.m_pObject) {
-                pickup.GiveUsAPickUpObject(&pickup.m_pObject, -1);
+                pickup.GiveUsAPickUpObject(pickup.m_pObject);
 
                 if (auto& obj = pickup.m_pObject; obj) {
                     CWorld::Add(obj);

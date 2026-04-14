@@ -166,7 +166,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(Dress, 0x5E0130);
     RH_ScopedInstall(IsPlayer, 0x5DF8F0);
     RH_ScopedInstall(GetBikeRidingSkill, 0x5DF510);
-    RH_ScopedInstall(SetPedPositionInCar, 0x5DF910, { .reversed = false });
+    RH_ScopedInstall(SetPedPositionInCar, 0x5DF910);
     RH_ScopedInstall(SetRadioStation, 0x5DFD90);
     RH_ScopedInstall(PositionAttachedPed, 0x5DFDF0, { .reversed = false });
     RH_ScopedInstall(ResetGunFlashAlpha, 0x5DF4E0);
@@ -565,7 +565,7 @@ bool CPed::PedIsReadyForConversation(bool checkLocalPlayerWantedLevel) {
 * @addr 0x455560
 */
 bool CPed::PedCanPickUpPickUp() {
-    return FindPlayerPed(0)->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_USE_MOBILE_PHONE });
+    return !FindPlayerPed(0)->GetTaskManager().FindActiveTaskFromList({ TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_USE_MOBILE_PHONE });
 }
 
 /*!
@@ -599,7 +599,7 @@ void CPed::CreateDeadPedMoney() {
 
 /*!
 * @addr 0x459180
-* @brief Created a pickup close to the ped's position (Using \r CPickups::CreatePickupCoorsCloseToCoors)
+* @brief Created a pickup close to the ped's position (Using CPickups::CreatePickupCoorsCloseToCoors)
 * @param [out] outPickupX, outPickupY, outPickupZ Position of the created pickup.
 */
 void CPed::CreateDeadPedPickupCoors(float& outPickupX, float& outPickupY, float& outPickupZ) {
@@ -607,7 +607,7 @@ void CPed::CreateDeadPedPickupCoors(float& outPickupX, float& outPickupY, float&
 }
 
 /*!
-* @address notsa
+* @notsa
 * @copybrief CPed::CreateDeadPedPickupCoors
 * @param [out] pickupPos Position of the created pickup.
 */
@@ -832,10 +832,10 @@ void CPed::ClearAimFlag() {
 * @returns Which quadrant a given point is in relative to the ped's rotation. (Google: "Angle quadrants" - https://www.mathstips.com/wp-content/uploads/2014/03/unit-circle.png)
 * @param point Point should be relative to the ped's position. Eg.: point = actualPoint - ped.GetPostion2D()
 */
-uint8 CPed::GetLocalDirection(const CVector2D& point) const {
+int32 CPed::GetLocalDirection(const CVector2D& point) const {
     float angle;
-    for (angle = point.Heading() - m_fCurrentRotation + RadiansToDegrees(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
-    return ((uint8)RadiansToDegrees(angle) / 90) % 4; // See original code below:
+    for (angle = point.Heading() - m_fCurrentRotation + DegreesToRadians(45.0f); angle < 0.0f; angle += TWO_PI); // TODO: This is quite stupid as well..
+    return (((int32)RadiansToDegrees(angle) / 90) % 4); // See original code below:
 
     // Original R* code - Kinda stupid, we just use modulo instead.
     // int32 dir;
@@ -1019,14 +1019,14 @@ bool CPed::CanBeDeleted() {
 }
 
 /*!
-* @addr 0x5DF100
+* @addr 0x5DF150
 * @brief Check if ped can be deleted even if it's in a vehicle.
 * @returns False only if created by PED_UNKNOWN or PED_MISSION, true otherwise.
 */
 bool CPed::CanBeDeletedEvenInVehicle() const {
     switch (GetCreatedBy()) {
     case ePedCreatedBy::PED_MISSION:
-    case ePedCreatedBy::PED_UNKNOWN:
+    case ePedCreatedBy::PED_GAME_MISSION:
         return false;
     }
     return true;
@@ -1064,7 +1064,7 @@ void CPed::RemoveGogglesModel() {
 
 /*!
 * @addr   0x5DF200
-* @return \a weaponType weapon's slot (\r CWeaponInfo::GetWeaponInfo()->slot)
+* @return \a weaponType weapon's slot (CWeaponInfo::GetWeaponInfo()->slot)
 */
 int32 CPed::GetWeaponSlot(eWeaponType weaponType)
 {
@@ -1093,7 +1093,7 @@ void CPed::GrantAmmo(eWeaponType weaponType, uint32 ammo) {
 
 /*!
 * @addr 0x5DF290
-* @brief Im lazy to write it :D Similar to \r CPed::GrantAmmo
+* @brief Im lazy to write it :D Similar to CPed::GrantAmmo
 */
 void CPed::SetAmmo(eWeaponType weaponType, uint32 ammo) {
     const auto wepSlot = GetWeaponSlot(weaponType);
@@ -1265,7 +1265,61 @@ bool CPed::IsPlayer() const
 * @addr 0x5DF910
 */
 void CPed::SetPedPositionInCar() {
-    ((void(__thiscall *)(CPed*))0x5DF910)(this);
+    if (CReplay::Mode == MODE_PLAYBACK) {
+        return;
+    }
+
+    assert(IsInVehicle());
+
+    CVector seatLocalPos = GetSeatPositionInVehicle();
+    CMatrix vehMat = m_pVehicle->GetMatrix();
+    CMatrix tempMat;
+    const float heading = m_pVehicle->GetHeading();
+
+    if (m_pVehicle->IsBike()) {
+        auto* bike = (CBike*)m_pVehicle;
+        bike->CalculateLeanMatrix();
+        vehMat = bike->m_mLeanMatrix;
+    } else if (m_pVehicle->GetModelIndex() == MODEL_COMBINE) { // 532 ?
+        float chassisPosZ = 0.0f;
+        auto  autoMobile  = (CAutomobile*)m_pVehicle;
+
+        if (autoMobile->m_aCarNodes[CAR_CHASSIS]) {
+            tempMat.Attach(RwFrameGetMatrix(autoMobile->m_aCarNodes[CAR_CHASSIS]), false);
+            chassisPosZ = tempMat.GetPosition().z;
+            tempMat.Detach();
+        }
+
+        tempMat.SetTranslate({ 0.0f, 0.0f, -chassisPosZ });
+        tempMat.RotateY(autoMobile->m_fDoomVerticalRotation); // AKA GunOrientation ?
+        tempMat.SetTranslateOnly({ 0.0f, 0.0f, chassisPosZ });
+        vehMat *= tempMat;
+    }
+
+    vehMat.GetPosition() += vehMat.TransformVector(seatLocalPos);
+    tempMat.SetUnity();
+
+    if (m_pVehicle->m_pHandlingData->GetAnimGroupId() == 13) { // ?
+        if (this == m_pVehicle->m_apPassengers[1]) {
+            m_fCurrentRotation = heading - HALF_PI;
+            tempMat.SetTranslate({ 0.0f, 0.0f, 0.0f });
+            tempMat.RotateZ(-HALF_PI);
+            tempMat.SetTranslateOnly({ 0.0f, 0.6f, 0.0f });
+            vehMat *= tempMat;
+        } else if (this == m_pVehicle->m_apPassengers[2]) {
+            m_fCurrentRotation = heading + HALF_PI;
+            tempMat.SetTranslate({ 0.0f, 0.0f, 0.0f });
+            tempMat.RotateZ(HALF_PI);
+            vehMat *= tempMat;
+        } else {
+            m_fCurrentRotation = heading;
+        }
+    } else {
+        m_fCurrentRotation = heading;
+    }
+
+    m_fAimingRotation = m_fCurrentRotation;
+    SetMatrix(vehMat);
 }
 
 /*!
@@ -1288,7 +1342,7 @@ void CPed::RestoreHeadingRateCB(CAnimBlendAssociation* assoc, void* data) {
 
 /*!
 * @addr 0x5DFD90
-* @brief Set random radio station if ped is in car. The station is chosen randomly, and is either `m_nRadio1` or `m_nRadio2` from the ped's \r CPedModelInfo
+* @brief Set random radio station if ped is in car. The station is chosen randomly, and is either `m_nRadio1` or `m_nRadio2` from the ped's CPedModelInfo
 */
 void CPed::SetRadioStation()
 {
@@ -1489,7 +1543,7 @@ void CPed::SetPedDefaultDecisionMaker() {
 
 /*!
 * @addr 0x5E0730
-* @returns If entity is a given range angle relative to our current rotation given by \r limitAngle [-limitAngle, limitAngle]
+* @returns If entity is a given range angle relative to our current rotation given by limitAngle [-limitAngle, limitAngle]
 */
 bool CPed::CanSeeEntity(CEntity* entity, float limitAngle) {
 
@@ -1790,7 +1844,7 @@ bool CPed::IsPedInControl() const
 
 /*!
 * @addr 0x5E3990
-* @brief Remove current weapon's object model. \r modelIndex should be the same as with which the object was created with.
+* @brief Remove current weapon's object model. modelIndex should be the same as with which the object was created with.
 */
 void CPed::RemoveWeaponModel(int32 modelIndex) {
 
@@ -1832,7 +1886,7 @@ void CPed::RemoveWeaponModel(int32 modelIndex) {
 
 /*!
 * @addr 0x5E3A90
-* @brief Creates goggles model for current infrared/night vision. See \r PutOnGoggles.
+* @brief Creates goggles model for current infrared/night vision. See PutOnGoggles.
 */
 void CPed::AddGogglesModel(int32 modelIndex, bool& inOutGogglesState) {
     assert(!m_pGogglesObject); // Make sure it's not created already
@@ -1926,7 +1980,7 @@ eWeaponSkill CPed::GetWeaponSkill(eWeaponType weaponType)
 
 /*!
 * @addr 0x5E3C10
-* @brief Set weapon skill, unless we're a player ped (\r IsPlayer)
+* @brief Set weapon skill, unless we're a player ped (IsPlayer)
 */
 void CPed::SetWeaponSkill(eWeaponType weaponType, eWeaponSkill skill)
 {
@@ -1962,7 +2016,7 @@ void CPed::ClearLookFlag() {
 
 /*!
 * @addr 0x5E3FF0
-* @brief Just calls \r ClearLookFlag
+* @brief Just calls ClearLookFlag
 */
 void CPed::ClearLook() {
     ClearLookFlag();
@@ -2039,7 +2093,7 @@ void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones)
 
 /*!
 * @addr 0x5E01C0
-* @brief Transform \r inOutPos into the given \a bone's space
+* @brief Transform inOutPos into the given \a bone's space
 *
 * @param [in,out] inOutPos The position to be transformed in-place.
 * @param          updateSkinBones If `UpdateRpHAnim` should be called
@@ -3525,7 +3579,7 @@ void CPed::MakeTyresMuddySectorList(PtrListType& ptrList)
 
 /*!
 * @addr  0x6B4200
-* @brief Do sector list processing in a range of -/+2 (Calls \r MakeTyresMuddySectorList)
+* @brief Do sector list processing in a range of -/+2 (Calls MakeTyresMuddySectorList)
 */
 void CPed::DeadPedMakesTyresBloody() {
     const auto& pos = GetPosition();
@@ -3534,11 +3588,11 @@ void CPed::DeadPedMakesTyresBloody() {
     const auto endSectorX   = std::min(CWorld::GetLodSectorX(pos.x + 2.0f), MAX_LOD_PTR_LISTS_X - 1);
     const auto endSectorY   = std::min(CWorld::GetLodSectorY(pos.y + 2.0f), MAX_LOD_PTR_LISTS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 sy = startSectorY; sy <= endSectorY; ++sy) {
         for (int32 sx = startSectorX; sx <= endSectorX; ++sx) {
-            MakeTyresMuddySectorList(GetRepeatSector(sx, sy)->Vehicles);
+            MakeTyresMuddySectorList(CWorld::GetRepeatSector(sx, sy).Vehicles);
         }
     }
 }
@@ -3941,6 +3995,33 @@ int32 CPed::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint)
 // NOTSA
 bool CPed::IsInVehicleAsPassenger() const noexcept {
     return bInVehicle && m_pVehicle && m_pVehicle->m_pDriver != this;
+}
+
+// NOTSA
+CVector CPed::GetSeatPositionInVehicle() const {
+    auto* mi = m_pVehicle->GetVehicleModelInfo();
+    if (this == m_pVehicle->GetDriver()) {
+        CVector pos = mi->GetFrontSeatPosn();
+
+        if (!m_pVehicle->IsBoat() && !m_pVehicle->IsBike()) {
+            pos.x = -pos.x;
+        }
+
+        if (m_pVehicle->IsSubBMX()) {
+            pos.z -= (0.001f * std::abs(m_pVehicle->AsBmx()->m_fControlJump));
+        }
+
+        return pos;
+    } else if (this == m_pVehicle->m_apPassengers[0]) {
+        return m_pVehicle->IsBike() || m_pVehicle->IsSubQuad() ? mi->GetBackSeatPosn() : mi->GetFrontSeatPosn();
+    } else if (this == m_pVehicle->m_apPassengers[1]) {
+        CVector pos   = mi->GetBackSeatPosn();
+        pos.x = -pos.x;
+        return pos;
+    } else if (this == m_pVehicle->m_apPassengers[2]) {
+        return mi->GetBackSeatPosn();
+    }
+    return mi->GetFrontSeatPosn(); /* Default to front seat position */
 }
 
 bool CPed::IsJoggingOrFaster() const {

@@ -170,17 +170,17 @@ void CEntity::Add(const CRect& rect) {
         });
     } else {
         CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
-            auto* const s = GetSector(x, y);
-            auto* const rs = GetRepeatSector(x, y);
+            auto& s = CWorld::GetSector(x, y);
+            auto& rs = CWorld::GetRepeatSector(x, y);
             const auto  ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
                 list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
             switch (GetType()) {
-            case ENTITY_TYPE_DUMMY:    ProcessAddItem(s->m_dummies); break;
-            case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs->Vehicles); break;
-            case ENTITY_TYPE_PED:      ProcessAddItem(rs->Peds); break;
-            case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs->Objects); break;
-            case ENTITY_TYPE_BUILDING: ProcessAddItem(s->m_buildings); break;
+            case ENTITY_TYPE_DUMMY:    ProcessAddItem(s.Dummies); break;
+            case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs.Vehicles); break;
+            case ENTITY_TYPE_PED:      ProcessAddItem(rs.Peds); break;
+            case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs.Objects); break;
+            case ENTITY_TYPE_BUILDING: ProcessAddItem(s.Buildings); break;
             }
             return true;
         });
@@ -212,17 +212,17 @@ void CEntity::Remove() {
         });
     } else {
         CWorld::IterateSectorsOverlappedByRect({ usedRect }, [&](int32 x, int32 y) {
-            auto* const s = GetSector(x, y);
-            auto* const rs = GetRepeatSector(x, y);
+            auto& s = CWorld::GetSector(x, y);
+            auto& rs = CWorld::GetRepeatSector(x, y);
             const auto  ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
                 list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
             };
             switch (GetType()) {
-            case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s->m_dummies); break;
-            case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs->Vehicles); break;
-            case ENTITY_TYPE_PED:      ProcessDeleteItem(rs->Peds); break;
-            case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs->Objects); break;
-            case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s->m_buildings); break;
+            case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s.Dummies); break;
+            case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs.Vehicles); break;
+            case ENTITY_TYPE_PED:      ProcessDeleteItem(rs.Peds); break;
+            case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs.Objects); break;
+            case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s.Buildings); break;
             }
             return true;
         });
@@ -2387,11 +2387,11 @@ RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
 // indicating if it has already been processed in the current frame
 // NOTSA
 bool CEntity::IsScanCodeCurrent() const {
-    return GetScanCode() == GetCurrentScanCode();
+    return GetScanCode() == CWorld::GetCurrentScanCode();
 }
 
 // Sets the entity's scan code to the current global scan code
 // NOTSA
 void CEntity::SetCurrentScanCode() {
-    SetScanCode(GetCurrentScanCode());
+    SetScanCode(CWorld::GetCurrentScanCode());
 }

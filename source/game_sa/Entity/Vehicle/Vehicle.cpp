@@ -27,44 +27,31 @@
 #include "Shadows.h"
 #include "PedClothesDesc.h"
 
-uint32& planeRotorDmgTimeMS = *(uint32*)0xC1CC1C;
-float& CVehicle::WHEELSPIN_TARGET_RATE = *(float*)0x8D3498;          // 1.0f
-float& CVehicle::WHEELSPIN_INAIR_TARGET_RATE = *(float*)0x8D349C;    // 10.0f
-float& CVehicle::WHEELSPIN_RISE_RATE = *(float*)0x8D34A0;            // 0.95f
-float& CVehicle::WHEELSPIN_FALL_RATE = *(float*)0x8D34A4;            // 0.7f
-float& CVehicle::m_fAirResistanceMult = *(float*)0x8D34A8;           // 2.5f
-float& CVehicle::ms_fRailTrackResistance = *(float*)0x8D34AC;        // 0.003f
-float& CVehicle::ms_fRailTrackResistanceDefault = *(float*)0x8D34B0; // 0.003f
-bool& CVehicle::bDisableRemoteDetonation = *(bool*)0xC1CC00;
-bool& CVehicle::bDisableRemoteDetonationOnContact = *(bool*)0xC1CC01;
-bool& CVehicle::m_bEnableMouseSteering = *(bool*)0xC1CC02;
-bool& CVehicle::m_bEnableMouseFlying = *(bool*)0xC1CC03;
-bool& CVehicle::ms_forceVehicleLightsOff = *(bool*)0xC1CC18;
-bool& CVehicle::s_bPlaneGunsEjectShellCasings = *(bool*)0xC1CC19;
+auto& planeRotorDmgTimeMS = StaticRef<uint32>(0xC1CC1C);
 
-float& fBurstTyreMod = *(float*)0x8D34B4;                // 0.13f
-float& fBurstSpeedMax = *(float*)0x8D34B8;               // 0.3f
-float& CAR_NOS_EXTRA_SKID_LOSS = *(float*)0x8D34BC;      // 0.9f
-float& WS_TRAC_FRAC_LIMIT = *(float*)0x8D34C0;           // 0.3f
-float& WS_ALREADY_SPINNING_LOSS = *(float*)0x8D34C4;     // 0.2f
-float& fBurstBikeTyreMod = *(float*)0x8D34C8;            // 0.05f
-float& fBurstBikeSpeedMax = *(float*)0x8D34CC;           // 0.12f
-float& fTweakBikeWheelTurnForce = *(float*)0x8D34D0;     // 2.0f
-float& AUTOGYRO_ROTORSPIN_MULT = *(float*)0x8D34D4;      // 0.006f
-float& AUTOGYRO_ROTORSPIN_MULTLIMIT = *(float*)0x8D34D8; // 0.25f
-float& AUTOGYRO_ROTORSPIN_DAMP = *(float*)0x8D34DC;      // 0.997f
-float& AUTOGYRO_ROTORLIFT_MULT = *(float*)0x8D34E0;      // 4.5f
-float& AUTOGYRO_ROTORLIFT_FALLOFF = *(float*)0x8D34E4;   // 0.75f
-float& AUTOGYRO_ROTORTILT_ANGLE = *(float*)0x8D34E8;     // 0.25f
-float& ROTOR_SEMI_THICKNESS = *(float*)0x8D34EC;         // 0.05f
+auto& fBurstTyreMod = StaticRef<float>(0x8D34B4);                // 0.13f
+auto& fBurstSpeedMax = StaticRef<float>(0x8D34B8);               // 0.3f
+auto& CAR_NOS_EXTRA_SKID_LOSS = StaticRef<float>(0x8D34BC);      // 0.9f
+auto& WS_TRAC_FRAC_LIMIT = StaticRef<float>(0x8D34C0);           // 0.3f
+auto& WS_ALREADY_SPINNING_LOSS = StaticRef<float>(0x8D34C4);     // 0.2f
+auto& fBurstBikeTyreMod = StaticRef<float>(0x8D34C8);            // 0.05f
+auto& fBurstBikeSpeedMax = StaticRef<float>(0x8D34CC);           // 0.12f
+auto& fTweakBikeWheelTurnForce = StaticRef<float>(0x8D34D0);     // 2.0f
+auto& AUTOGYRO_ROTORSPIN_MULT = StaticRef<float>(0x8D34D4);      // 0.006f
+auto& AUTOGYRO_ROTORSPIN_MULTLIMIT = StaticRef<float>(0x8D34D8); // 0.25f
+auto& AUTOGYRO_ROTORSPIN_DAMP = StaticRef<float>(0x8D34DC);      // 0.997f
+auto& AUTOGYRO_ROTORLIFT_MULT = StaticRef<float>(0x8D34E0);      // 4.5f
+auto& AUTOGYRO_ROTORLIFT_FALLOFF = StaticRef<float>(0x8D34E4);   // 0.75f
+auto& AUTOGYRO_ROTORTILT_ANGLE = StaticRef<float>(0x8D34E8);     // 0.25f
+auto& ROTOR_SEMI_THICKNESS = StaticRef<float>(0x8D34EC);         // 0.05f
 float* gfSpeedMult = (float*)0x8D34F8;                   // float fSpeedMult[5] = { 0.8f, 0.75f, 0.85f, 0.9f, 0.85f, 0.85f }
-float& fDamagePosSpeedShift = *(float*)0x8D3510;         // 0.4f
-float& DIFF_LIMIT = *(float*)0x8D35B4;                   // 0.8f
-float& DIFF_SPRING_MULT_X = *(float*)0x8D35B8;           // 0.05f
-float& DIFF_SPRING_MULT_Y = *(float*)0x8D35BC;           // 0.05f
-float& DIFF_SPRING_MULT_Z = *(float*)0x8D35C0;           // 0.1f
-float& DIFF_SPRING_COMPRESS_MULT = *(float*)0x8D35C4;    // 2.0f
-CVector (&VehicleGunOffset)[14] = *(CVector(*)[14])0x8D35D4; // maybe [12]
+auto& fDamagePosSpeedShift = StaticRef<float>(0x8D3510);         // 0.4f
+auto& DIFF_LIMIT = StaticRef<float>(0x8D35B4);                   // 0.8f
+auto& DIFF_SPRING_MULT_X = StaticRef<float>(0x8D35B8);           // 0.05f
+auto& DIFF_SPRING_MULT_Y = StaticRef<float>(0x8D35BC);           // 0.05f
+auto& DIFF_SPRING_MULT_Z = StaticRef<float>(0x8D35C0);           // 0.1f
+auto& DIFF_SPRING_COMPRESS_MULT = StaticRef<float>(0x8D35C4);    // 2.0f
+auto& VehicleGunOffset = StaticRef<std::array<CVector, 14>>(0x8D35D4); // maybe [12]
 
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
@@ -105,6 +92,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(SetCollisionLighting, 0x6D0CA0);
     RH_ScopedInstall(UpdateLightingFromStoredPolys, 0x6D0CC0);
     RH_ScopedInstall(CalculateLightingFromCollision, 0x6D0CF0);
+    RH_ScopedInstall(ResetAfterRender, 0x6D0E20);
     RH_ScopedInstall(ProcessWheel, 0x6D6C00);
     RH_ScopedInstall(ApplyBoatWaterResistance, 0x6D2740);
     RH_ScopedInstall(ProcessBoatControl, 0x6DBCE0);
@@ -700,7 +688,7 @@ void CVehicle::RemoveLighting(bool bRemove) {
     DeActivateDirectional();
 }
 
-// 0x871EF0// 0x6D56C0
+// 0x6D56C0
 void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGroup, uint32 animId, float fTime) {
     auto doorComponentId = (int32)doorComponentId_; // silence warns, todo: OpenDoor receives int32, why?
     eDoors iCheckedDoor = [&] {
@@ -753,7 +741,7 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
         } else if (fTime > fAnimStart && fTime < fAnimEnd) {
             const auto fNewRatio = 1.0F - invLerp(fAnimStart, fAnimEnd, fTime);
             const auto fCurRatio = GetDooorAngleOpenRatio(iCheckedDoor);
-            if (fCurRatio < fNewRatio) {
+            if (fCurRatio > fNewRatio) {
                 OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
             }
         }
@@ -770,10 +758,7 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
             OpenDoor(ped, doorComponentId, iCheckedDoor, 0.0F, true);
         } else if (fTime > fAnimStart && fTime < fAnimEnd) {
             const auto fNewRatio = 1.0F - invLerp(fAnimStart, fAnimEnd, fTime);
-            const auto fCurRatio = GetDooorAngleOpenRatio(iCheckedDoor);
-            if (fCurRatio < fNewRatio) {
-                OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
-            }
+            OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
         }
         return;
     }
@@ -1429,13 +1414,19 @@ void CVehicle::RemovePassenger(CPed* passenger) {
         return;
     }
 
-    const auto seats = IsTrain() ? m_apPassengers : GetMaxPassengerSeats();
-    if (const auto seatOfPsgr = rng::find(seats, passenger); seatOfPsgr != seats.end()) {
-        CEntity::SafeCleanUpRef(*seatOfPsgr);
-        *seatOfPsgr = nullptr;
+    const auto RemovePassengerFromArray = [&](auto array) { /* array by-value because it's either a span or a view */
+        if (const auto seatOfPsgr = rng::find(array, passenger); seatOfPsgr != array.end()) {
+            CEntity::SafeCleanUpRef(*seatOfPsgr);
+            *seatOfPsgr = nullptr;
 
-        assert(m_nNumPassengers > 0); // NOTSA: Sanity check
-        m_nNumPassengers--;
+            assert(m_nNumPassengers > 0); // NOTSA: Sanity check
+            m_nNumPassengers--;
+        }
+    };
+    if (IsTrain()) {
+        RemovePassengerFromArray(std::span{ m_apPassengers });
+    } else {
+        RemovePassengerFromArray(GetMaxPassengerSeats());
     }
 }
 
@@ -1611,7 +1602,7 @@ CPed* CVehicle::SetupPassenger(int32 seatIdx, int32 gangPedType, bool createAsMa
         };
 
         // Not sure why this checks only up to the seat the passenger was added to, but okay.
-        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers, (size_t)seatIdx }, ProcessOccupant)) {
+        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers.data(), (size_t)seatIdx }, ProcessOccupant)) {
             return nullptr;
         }
     }
@@ -2297,7 +2288,7 @@ RwFrame* RemoveObjectsCB(RwFrame* frame, void* data) {
 }
 
 // 0x6D3450
-static auto& CopyObjectsCB_TargetClump = *(RpClump**)0xC1CB58;
+static auto& CopyObjectsCB_TargetClump = StaticRef<RpClump*>(0xC1CB58);
 RwObject* CopyObjectsCB(RwObject* object, void* data) {
     const auto frame = (RwFrame*)data;
 
@@ -3172,9 +3163,9 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
                             int8 wheelId, float* wheelSpeed,
                             tWheelState* wheelState, uint16 wheelStatus
 ) {
-    static bool& bBraking = *(bool*)0xC1CDAE; // false
-    static bool& bDriving = *(bool*)0xC1CDAD; // false
-    static bool& bAlreadySkidding = *(bool*)0xC1CDAC; // false
+    static auto& bBraking = StaticRef<bool>(0xC1CDAE); // false
+    static auto& bDriving = StaticRef<bool>(0xC1CDAD); // false
+    static auto& bAlreadySkidding = StaticRef<bool>(0xC1CDAC); // false
 
     float right = 0.0f;
     float fwd = 0.0f;
@@ -3511,7 +3502,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
                 CTimer::GetTimeInMS(),
                 WEAPON_RUNOVERBYCAR,
                 PED_PIECE_TORSO,
-                ped.GetLocalDirection(dirToPed),
+                static_cast<uint8>(ped.GetLocalDirection(dirToPed)),
                 false,
                 false
             };
@@ -4502,17 +4493,17 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 
     bool collided = false;
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect(CRect{ m_matrix->TransformPoint(pos), radius }, [&](int32 x, int32 y) {
         const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list, float damage) {
             return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
-        auto* const s = GetSector(x, y);
-        auto* const rs = GetRepeatSector(x, y);
-        collided |= ProcessSector(s->m_buildings, damageMult);
-        collided |= ProcessSector(rs->Vehicles, damageMult);
-        collided |= ProcessSector(rs->Peds, 0.0);
-        collided |= ProcessSector(rs->Objects, damageMult);
+        auto& s = CWorld::GetSector(x, y);
+        auto& rs = CWorld::GetRepeatSector(x, y);
+        collided |= ProcessSector(s.Buildings, damageMult);
+        collided |= ProcessSector(rs.Vehicles, damageMult);
+        collided |= ProcessSector(rs.Peds, 0.0f);
+        collided |= ProcessSector(rs.Objects, damageMult);
         return 1;
     });
 
@@ -4582,10 +4573,9 @@ void CVehicle::DoDriveByShootings() {
 
 // NOTSA
 bool CVehicle::AreAnyOfPassengersFollowerOfGroup(const CPedGroup& group) {
-    const auto end = m_apPassengers + m_nMaxPassengers;
-    return std::find_if(m_apPassengers, end, [&](CPed* passenger) {
+    return rng::any_of(GetMaxPassengerSeats(), [&](CPed* passenger) {
         return group.GetMembership().IsFollower(passenger);
-    }) != end;
+    });
 }
 
 /*!

@@ -17,7 +17,7 @@ void CEscalator::InjectHooks() {
 // 0x717860
 void CEscalator::SwitchOff() {
     // debug leftover
-    // static bool& deletingEscalator = StaticRef<bool>(0xC6E98C);
+    // static auto& deletingEscalator = StaticRef<bool>(0xC6E98C);
 
     if (!m_StepObjectsCreated) {
         return;

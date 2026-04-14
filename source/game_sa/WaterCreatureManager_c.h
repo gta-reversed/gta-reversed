@@ -2,53 +2,69 @@
 
 #include "WaterCreature_c.h"
 
-struct WaterCreatureInfo {
+// WaterCreatureInfo_t
+struct tWaterCreatureInfo {
     uint16* m_pModelId;
+
     uint8 m_nMinCreated;
     uint8 m_nMaxCreated;
-    uint16 m_wUnkn;
+
     float m_fMinSpawnDepth;
     float m_fMinDistFromSameCreature;
+
     float m_fMinDistFromFollowed;
     float m_fMaxDistFromFollowed;
+
     float m_fMinSpeed;
     float m_fMaxSpeed;
+
     float m_fMaxHeadingChange;
     float m_fChanceToRandomizeRotation;
+
     float m_Speed;
 };
-VALIDATE_SIZE(WaterCreatureInfo, 0x2C);
+VALIDATE_SIZE(tWaterCreatureInfo, 0x2C);
 
 class WaterCreatureManager_c {
 public:
-    WaterCreatureManager_c();
-
-public:
     static constexpr int32 NUM_WATER_CREATURES = 128;
-    WaterCreature_c m_aCreatures[NUM_WATER_CREATURES];
-    TList_c<WaterCreature_c> m_freeList;
-    TList_c<WaterCreature_c> m_createdList;
-    int32 m_nLastCreationCheckTime;
+    static constexpr int32 NUM_WATER_CREATURE_INFOS = 7;
+
+    static constexpr float ms_fMaxWaterCreaturesDrawDistance        = 60.0F;
+    static constexpr float ms_fMaxWaterCreaturesDrawDistanceSquared = sq(ms_fMaxWaterCreaturesDrawDistance);
+
+private:
+    static inline auto& ms_waterCreatureInfos = StaticRef<tWaterCreatureInfo[NUM_WATER_CREATURE_INFOS]>(0x8D3698); // Access using GetCreatureInfo()
+
+    WaterCreature_c m_waterCreatureItems[NUM_WATER_CREATURES];
+    TList_c<WaterCreature_c> m_waterCreaturePool;
+    TList_c<WaterCreature_c> m_waterCreatureList;
+
+    int32 m_lastUpdateTime;
 
 public:
-    static void InjectHooks();
+    WaterCreatureManager_c();
+    ~WaterCreatureManager_c();
 
     bool Init();
     void Exit();
-    int32 GetRandomWaterCreatureId();
-    void TryToFreeUpWaterCreatures(int32 numToFree);
-    bool CanAddWaterCreatureAtPos(int32 nCreatureType, CVector vecPos);
-    void TryToExitGroup(WaterCreature_c* pCreature);
-    void Update(float fTimestep);
 
-public:
-    static const WaterCreatureInfo& GetCreatureInfo(int32 nType) { return ms_waterCreatureInfos[nType]; }
+    void Update(float deltaTime);
 
-public:
-    static constexpr int32 NUM_WATER_CREATURE_INFOS = 7;
-    static WaterCreatureInfo(&ms_waterCreatureInfos)[NUM_WATER_CREATURE_INFOS]; // Access using GetCreatureInfo()
-    static constexpr float ms_fMaxWaterCreaturesDrawDistance = 60.0F;
-    static constexpr float ms_fMaxWaterCreaturesDrawDistanceSquared = ms_fMaxWaterCreaturesDrawDistance * ms_fMaxWaterCreaturesDrawDistance;
+    int32 TryToFreeUpWaterCreatures(int32 numToFree);
+
+private:
+    int32 GetRandomWaterCreatureId(); // eWaterCreatureType
+    bool CanAddWaterCreatureAtPos(int32 id, CVector pos);
+    void TryToExitGroup(WaterCreature_c* waterCreature);
+
+public: // NOTSA
+    static const tWaterCreatureInfo& GetCreatureInfo(uint32/*eWaterCreatureType*/ type) { return ms_waterCreatureInfos[type]; }
+
+private:
+    friend WaterCreature_c;
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 extern WaterCreatureManager_c& g_waterCreatureMan;

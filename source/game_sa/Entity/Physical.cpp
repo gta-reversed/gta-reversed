@@ -12,18 +12,6 @@
 #include "TaskSimpleClimb.h"
 #include "RealTimeShadowManager.h"
 
-float& CPhysical::DAMPING_LIMIT_IN_FRAME = *(float*)0x8CD7A0;
-float& CPhysical::DAMPING_LIMIT_OF_SPRING_FORCE = *(float*)0x8CD7A4;
-float& CPhysical::PHYSICAL_SHIFT_SPEED_DAMP = *(float*)0x8CD788;
-float& CPhysical::SOFTCOL_SPEED_MULT = *(float*)0x8CD794;
-float& CPhysical::SOFTCOL_SPEED_MULT2 = *(float*)0x8CD798;
-float& CPhysical::SOFTCOL_DEPTH_MIN = *(float*)0x8CD78C;
-float& CPhysical::SOFTCOL_DEPTH_MULT = *(float*)0x8CD790;
-float& CPhysical::SOFTCOL_CARLINE_SPEED_MULT = *(float*)0x8CD79C;
-float& CPhysical::TEST_ADD_AMBIENT_LIGHT_FRAC = *(float*)0x8CD7B8;
-float& CPhysical::HIGHSPEED_ELASTICITY_MULT_COPCAR = *(float*)0x8CD784;
-CVector& CPhysical::fxDirection = *(CVector*)0xB73720;
-
 void CPhysical::InjectHooks()
 {
     RH_ScopedVirtualClass(CPhysical, 0x863BA0, 23);
@@ -171,13 +159,13 @@ void CPhysical::Add()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->Vehicles;
+                list = &repeatSector.Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector->Peds;
+                list = &repeatSector.Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->Objects;
+                list = &repeatSector.Objects;
                 break;
             }
 
@@ -277,6 +265,9 @@ void CPhysical::ProcessCollision() {
             return;
         }
 
+        // TODO:
+        // Refactor this to be a lambda that takes in these variables as parameters,
+        // this way we keep the array reference (so oob checks in debug still work and shit)
         if (GetStatus() == STATUS_GHOST) {
             CColPoint* wheelsColPoints = nullptr;
             float* pfWheelsSuspensionCompression = nullptr;
@@ -286,9 +277,9 @@ void CPhysical::ProcessCollision() {
                 bike->m_aGroundPhysicalPtrs[1] = nullptr;
                 bike->m_aGroundPhysicalPtrs[2] = nullptr;
                 bike->m_aGroundPhysicalPtrs[3] = nullptr;
-                wheelsColPoints = bike->m_aWheelColPoints;
-                pfWheelsSuspensionCompression = bike->m_aWheelRatios;
-                wheelsCollisionPositions = bike->m_aGroundOffsets;
+                wheelsColPoints = bike->m_aWheelColPoints.data();
+                pfWheelsSuspensionCompression = bike->m_aWheelRatios.data();
+                wheelsCollisionPositions = bike->m_aGroundOffsets.data();
             }
             else {
                 automobile->m_apWheelCollisionEntity[0] = nullptr;
@@ -510,7 +501,7 @@ void CPhysical::ProcessShift() {
         CMatrix oldEntityMatrix(*m_matrix);
         ApplySpeed();
         m_matrix->Reorthogonalise();
-        CWorld::IncrementCurrentScanCode();
+        CWorld::AdvanceCurrentScanCode();
 
         bool bShifted = false;
         if (GetIsTypeVehicle())
@@ -532,7 +523,7 @@ void CPhysical::ProcessShift() {
         physicalFlags.bProcessingShift = false;
 
         if (bShifted || GetIsTypeVehicle()) {
-            CWorld::IncrementCurrentScanCode();
+            CWorld::AdvanceCurrentScanCode();
             bool bShifted2 = false;
             int32 startSectorX = CWorld::GetSectorX(boundingBox.left);
             int32 startSectorY = CWorld::GetSectorY(boundingBox.bottom);
@@ -2091,12 +2082,12 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
         }
     };
 
-    CSector* s = GetSector(sectorX, sectorY);
-    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
-    ProcessSectorList(s->m_buildings);
-    ProcessSectorList(rs->Vehicles);
-    ProcessSectorList(rs->Peds);
-    ProcessSectorList(rs->Objects);
+    auto& s = CWorld::GetSector(sectorX, sectorY);
+    auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
+    ProcessSectorList(s.Buildings);
+    ProcessSectorList(rs.Vehicles);
+    ProcessSectorList(rs.Peds);
+    ProcessSectorList(rs.Objects);
 
     if (totalAcceptableColPoints == 0) {
         return false;
@@ -3933,7 +3924,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 // 0x54BA60
 bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73710; // TODO | STATICREF
+    static auto& colPoints = StaticRef<std::array<CColPoint, 32>>(0xB73710);
 
     bool bResult = false;
 
@@ -4435,12 +4426,12 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
         }
         return false;
     };
-    CSector* s = GetSector(sectorX, sectorY);
-    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
-    if (   ProcessSectorList(s->m_buildings)
-        || ProcessSectorList(rs->Vehicles)
-        || ProcessSectorList(rs->Peds)
-        || ProcessSectorList(rs->Objects)
+    auto& s = CWorld::GetSector(sectorX, sectorY);
+    auto& rs = CWorld::GetRepeatSector(sectorX, sectorY);
+    if (   ProcessSectorList(s.Buildings)
+        || ProcessSectorList(rs.Vehicles)
+        || ProcessSectorList(rs.Peds)
+        || ProcessSectorList(rs.Objects)
     ) {
         return true;
     }
@@ -4450,7 +4441,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 // 0x54CFF0
 bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73C98; // TODO | STATICREF
+    static auto& colPoints = StaticRef<std::array<CColPoint, 32>>(0xB73C98);
     float fThisDamageIntensity = -1.0f;
     float fEntityDamageIntensity = -1.0f;
 
@@ -4737,7 +4728,7 @@ bool CPhysical::CheckCollision()
         }
     }
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     CRect boundRect = GetBoundRect();
     int32 startSectorX = CWorld::GetSectorX(boundRect.left);
@@ -4757,7 +4748,7 @@ bool CPhysical::CheckCollision()
 bool CPhysical::CheckCollision_SimpleCar()
 {
     SetCollisionProcessed(false);
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
     if (!entryInfoNode)
         return false;

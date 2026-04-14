@@ -8,36 +8,7 @@
 #include "AEAudioUtility.h"
 #include "AEAudioEnvironment.h"
 
-CAERadioTrackManager& AERadioTrackManager = *(CAERadioTrackManager*)0x8CB6F8;
-
-uint8& CAERadioTrackManager::m_nStatsLastHitTimeOutHours = *(uint8*)0xB62C58;
-uint8& CAERadioTrackManager::m_nStatsLastHitGameClockHours = *(uint8*)0xB62C59;
-uint8& CAERadioTrackManager::m_nStatsLastHitGameClockDays = *(uint8*)0xB62C5A;
-uint8& CAERadioTrackManager::m_nStatsStartedCrash1 = *(uint8*)0xB62C5B;
-uint8& CAERadioTrackManager::m_nStatsStartedCat2 = *(uint8*)0xB62C5C;
-uint8& CAERadioTrackManager::m_nStatsStartedBadlands = *(uint8*)0xB62C5D;
-uint8& CAERadioTrackManager::m_nStatsPassedVCrash2 = *(uint8*)0xB62C5E;
-uint8& CAERadioTrackManager::m_nStatsPassedTruth2 = *(uint8*)0xB62C5F;
-uint8& CAERadioTrackManager::m_nStatsPassedSweet2 = *(uint8*)0xB62C60;
-uint8& CAERadioTrackManager::m_nStatsPassedStrap4 = *(uint8*)0xB62C61;
-uint8& CAERadioTrackManager::m_nStatsPassedSCrash1 = *(uint8*)0xB62C62;
-uint8& CAERadioTrackManager::m_nStatsPassedRiot1 = *(uint8*)0xB62C63;
-uint8& CAERadioTrackManager::m_nStatsPassedRyder2 = *(uint8*)0xB62C64;
-uint8& CAERadioTrackManager::m_nStatsPassedMansion2 = *(uint8*)0xB62C65;
-uint8& CAERadioTrackManager::m_nStatsPassedLAFin2 = *(uint8*)0xB62C66;
-uint8& CAERadioTrackManager::m_nStatsPassedFarlie3 = *(uint8*)0xB62C67;
-uint8& CAERadioTrackManager::m_nStatsPassedDesert10 = *(uint8*)0xB62C68;
-uint8& CAERadioTrackManager::m_nStatsPassedDesert8 = *(uint8*)0xB62C69;
-uint8& CAERadioTrackManager::m_nStatsPassedDesert5 = *(uint8*)0xB62C6A;
-uint8& CAERadioTrackManager::m_nStatsPassedDesert3 = *(uint8*)0xB62C6B;
-uint8& CAERadioTrackManager::m_nStatsPassedDesert1 = *(uint8*)0xB62C6C;
-uint8& CAERadioTrackManager::m_nStatsPassedCat1 = *(uint8*)0xB62C6D;
-uint8& CAERadioTrackManager::m_nStatsPassedCasino10 = *(uint8*)0xB62C6E;
-uint8& CAERadioTrackManager::m_nStatsPassedCasino6 = *(uint8*)0xB62C6F;
-uint8& CAERadioTrackManager::m_nStatsPassedCasino3 = *(uint8*)0xB62C70;
-uint8& CAERadioTrackManager::m_nStatsCitiesPassed = *(uint8*)0xB62C71;
-uint8& CAERadioTrackManager::m_nSpecialDJBanterIndex = *(uint8*)0xB62C72;
-uint8& CAERadioTrackManager::m_nSpecialDJBanterPending = *(uint8*)0xB62C73;
+auto& AERadioTrackManager = StaticRef<CAERadioTrackManager>(0x8CB6F8);
 
 void CAERadioTrackManager::InjectHooks() {
     RH_ScopedClass(CAERadioTrackManager);
@@ -95,8 +66,7 @@ CAERadioTrackManager::CAERadioTrackManager(int32 hwClientHandle) :
 {
     // All constant value inits are done using member init lists
 
-    // NOTSA: SA gets the list via CStats::GetFullFavoriteRadioStationList() but this way is much more clear.
-    rng::copy(CStats::FavoriteRadioStationList, m_aListenTimes);
+    rng::copy(CStats::GetFullFavoriteRadioStationList(), m_aListenTimes.begin());
 
     for (auto i = 0u; i < RADIO_COUNT; i++) {
         m_nMusicTrackIndexHistory[i].Reset();
@@ -124,7 +94,7 @@ void CAERadioTrackManager::InitialiseRadioStationID(eRadioID id) {
 void CAERadioTrackManager::Reset() {
     m_bInitialised = false;
     m_bDisplayStationName = false;
-    rng::copy(CStats::FavoriteRadioStationList, m_aListenTimes);
+    rng::copy(CStats::GetFullFavoriteRadioStationList(), m_aListenTimes.begin());
 
     rng::for_each(m_nDJBanterIndexHistory, &DJBanterIndexHistory::Reset);
     rng::for_each(m_nAdvertIndexHistory, &AdvertIndexHistory::Reset);
@@ -190,7 +160,7 @@ bool CAERadioTrackManager::HasRadioRetuneJustStarted() const {
 
 // 0x4E83E0
 int32* CAERadioTrackManager::GetRadioStationListenTimes() {
-    return m_aListenTimes;
+    return m_aListenTimes.data();
 }
 
 // 0x4E83F0

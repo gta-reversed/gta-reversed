@@ -324,8 +324,8 @@ void CPlantMgr::SetPlantFriendlyFlagInAtomicMI(CAtomicModelInfo* ami) {
 void CPlantMgr::Update(const CVector& cameraPosition) {
     ZoneScoped;
 
-    static int8& nUpdateEntCache    = *(int8*)0xC09171;
-    static int8& nLocTriSkipCounter = *(int8*)0xC09170;
+    static auto& nUpdateEntCache = StaticRef<int8>(0xC09171);
+    static auto& nLocTriSkipCounter = StaticRef<int8>(0xC09170);
 
     IncrementScanCode();
     CGrassRenderer::SetCurrentScanCode(m_scanCode);
@@ -368,8 +368,8 @@ void CPlantMgr::UpdateAmbientColor() {
 
 // 0x5DB3D0
 float CPlantMgr::CalculateWindBending() {
-    static uint32& calculateTimer = *(uint32*)0xC0916C;
-    static uint16& RandomSeed = *(uint16*)0xC09168;
+    static auto& calculateTimer = StaticRef<uint32>(0xC0916C);
+    static auto& RandomSeed = StaticRef<uint16>(0xC09168);
 
     if ((calculateTimer % 2) == 0) {
         calculateTimer++;
@@ -531,9 +531,9 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     if (!CPlantMgr::m_UnusedColEntListHead)
         return;
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
-        for (auto* const item : GetSector(x, y)->m_buildings) {
+        for (auto* const item : CWorld::GetSector(x, y).Buildings) {
             if (item->m_bIsProcObject || item->IsScanCodeCurrent() || !item->IsInCurrentArea())
                 continue;
 
