@@ -223,13 +223,13 @@ eCarMission CCarAI::FindPoliceCarMissionForWantedLevel() {
 int32 CCarAI::FindPoliceCarSpeedForWantedLevel(CVehicle* vehicle) {
     const auto& maxVelocity = vehicle->m_pHandlingData->m_transmissionData.m_MaxFlatVelocity;
     switch (FindPlayerWanted()->GetWantedLevel()) {
-    case 0:  return CGeneral::GetRandomNumberInRange<int32>(12, 16);
-    case 1:  return 25;
-    case 2:  return 34;
-    case 3:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 0.90f);
-    case 4:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.20f);
-    case 5:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.25f);
-    case 6:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.30f);
+    case eWantedLevel::WANTED_CLEAN:    return CGeneral::GetRandomNumberInRange<int32>(12, 16);
+    case eWantedLevel::WANTED_LEVEL_1:  return 25;
+    case eWantedLevel::WANTED_LEVEL_2:  return 34;
+    case eWantedLevel::WANTED_LEVEL_3:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 0.90f);
+    case eWantedLevel::WANTED_LEVEL_4:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.20f);
+    case eWantedLevel::WANTED_LEVEL_5:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.25f);
+    case eWantedLevel::WANTED_LEVEL_6:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.30f);
     default: NOTSA_UNREACHABLE();
     }
 }

@@ -145,7 +145,7 @@ void AlterPlayerWantedLevelNoDrop(CPlayerPed& player, eWantedLevel level) {
 
 /// IS_WANTED_LEVEL_GREATER(010F)
 bool IsWantedLevelGreater(CPlayerPed& player, eWantedLevel level) {
-    return (int32)player.GetWanted()->GetWantedLevel() > level;
+    return player.GetWanted()->GetWantedLevel() > level;
 }
 
 /// CLEAR_WANTED_LEVEL(0110)

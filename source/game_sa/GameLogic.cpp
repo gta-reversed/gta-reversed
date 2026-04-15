@@ -440,7 +440,7 @@ void CGameLogic::SetPlayerWantedLevelForForbiddenTerritories(bool immediately) {
     if ((!immediately && (CTimer::GetFrameCounter() % 32) != 18) || coords.z > 950.0f)
         return;
 
-    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= 4)
+    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= eWantedLevel::WANTED_LEVEL_4)
         return;
 
     const auto SetWantedIfInArea = [&](auto* vertices, size_t size) {
@@ -717,20 +717,13 @@ void CGameLogic::Update() {
                 if (!player1.m_bGetOutOfJailFree) {
                     const auto fee = [&] {
                         switch (player1Ped->GetWantedLevel()) {
-                        case 1:
-                            return 100;
-                        case 2:
-                            return 200;
-                        case 3:
-                            return 400;
-                        case 4:
-                            return 600;
-                        case 5:
-                            return 900;
-                        case 6:
-                            return 1500;
-                        default:
-                            NOTSA_UNREACHABLE(); // NOTSA, SA returns 100.
+                        case eWantedLevel::WANTED_LEVEL_1: return 100;
+                        case eWantedLevel::WANTED_LEVEL_2: return 200;
+                        case eWantedLevel::WANTED_LEVEL_3: return 400;
+                        case eWantedLevel::WANTED_LEVEL_4: return 600;
+                        case eWantedLevel::WANTED_LEVEL_5: return 900;
+                        case eWantedLevel::WANTED_LEVEL_6: return 1500;
+                        default:                           NOTSA_UNREACHABLE(); // NOTSA, SA returns 100.
                         }
                     }();
                     PunishPlayer(fee);

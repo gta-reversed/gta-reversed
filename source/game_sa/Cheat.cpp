@@ -886,8 +886,8 @@ void CCheat::WantedLevelUpCheat() {
     if (!player)
         return;
 
-    uint8 level = player->GetWantedLevel();
-    player->CheatWantedLevel((eWantedLevel)(std::min(level + 2, 6)));
+    const auto level = player->GetWantedLevel();
+    player->CheatWantedLevel((eWantedLevel)(std::min(+level + +eWantedLevel::WANTED_LEVEL_2, +eWantedLevel::WANTED_LEVEL_6)));
 }
 
 // refactored

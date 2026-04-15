@@ -96,37 +96,37 @@ void CWanted::UpdateWantedLevel() {
     const auto oldWanted = m_WantedLevel;
 
     if (m_ChaosLevel >= 4600) {
-        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(eWantedLevel::WANTED_LEVEL_6 - oldWanted));
+        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(+eWantedLevel::WANTED_LEVEL_6 - +oldWanted));
         m_WantedLevel         = eWantedLevel::WANTED_LEVEL_6;
         m_ChanceOnRoadBlock   = 30;
         m_MaxCopsInPursuit    = 10;
         m_MaxCopCarsInPursuit = 3;
     } else if (m_ChaosLevel >= 2400) {
-        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(eWantedLevel::WANTED_LEVEL_5 - oldWanted));
+        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(+eWantedLevel::WANTED_LEVEL_5 - +oldWanted));
         m_WantedLevel         = eWantedLevel::WANTED_LEVEL_5;
         m_ChanceOnRoadBlock   = 24;
         m_MaxCopsInPursuit    = 8;
         m_MaxCopCarsInPursuit = 3;
     } else if (m_ChaosLevel >= 1200) {
-        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(eWantedLevel::WANTED_LEVEL_4 - oldWanted));
+        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(+eWantedLevel::WANTED_LEVEL_4 - +oldWanted));
         m_WantedLevel         = eWantedLevel::WANTED_LEVEL_4;
         m_ChanceOnRoadBlock   = 18;
         m_MaxCopsInPursuit    = 6;
         m_MaxCopCarsInPursuit = 2;
     } else if (m_ChaosLevel >= 550) {
-        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(eWantedLevel::WANTED_LEVEL_3 - oldWanted));
+        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(+eWantedLevel::WANTED_LEVEL_3 - +oldWanted));
         m_WantedLevel         = eWantedLevel::WANTED_LEVEL_3;
         m_ChanceOnRoadBlock   = 12;
         m_MaxCopsInPursuit    = 4;
         m_MaxCopCarsInPursuit = 2;
     } else if (m_ChaosLevel >= 180) {
-        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(eWantedLevel::WANTED_LEVEL_2 - oldWanted));
+        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(+eWantedLevel::WANTED_LEVEL_2 - +oldWanted));
         m_WantedLevel         = eWantedLevel::WANTED_LEVEL_2;
         m_ChanceOnRoadBlock   = 0;
         m_MaxCopsInPursuit    = 3;
         m_MaxCopCarsInPursuit = 2;
     } else if (m_ChaosLevel >= 50) {
-        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(eWantedLevel::WANTED_LEVEL_1 - oldWanted));
+        CStats::IncrementStat(eStats::STAT_TOTAL_NUMBER_OF_WANTED_STARS_ATTAINED, (float)(+eWantedLevel::WANTED_LEVEL_1 - +oldWanted));
         m_WantedLevel         = eWantedLevel::WANTED_LEVEL_1;
         m_ChanceOnRoadBlock   = 0;
         m_MaxCopsInPursuit    = 1;

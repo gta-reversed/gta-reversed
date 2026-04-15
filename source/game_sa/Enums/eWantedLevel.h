@@ -1,6 +1,6 @@
 #pragma once
 
-enum eWantedLevel : uint32 {
+enum class eWantedLevel : uint32 {
     WANTED_CLEAN = 0,
     WANTED_LEVEL_1,
     WANTED_LEVEL_2,
