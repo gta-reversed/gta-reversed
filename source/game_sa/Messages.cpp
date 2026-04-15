@@ -386,7 +386,7 @@ void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
         const auto srcAscii = AsciiFromGxtChar(src);
         const auto copyLen  = std::min<size_t>(std::strlen(srcAscii), len - 1u);
 
-        std::strncpy(reinterpret_cast<char*>(dest), srcAscii, copyLen);
+        std::memcpy(dest, srcAscii, copyLen);
         dest[copyLen] = '\0';
     } else {
         dest[0] = '\0';
