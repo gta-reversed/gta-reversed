@@ -2052,17 +2052,6 @@ typedef enum RwCriterionCoreID RwCriterionCoreID;
  ***/
 enum RwPlatformID {
     rwID_PCD3D7 = 1,   // PC D3D7
-    rwID_PCOGL = 2,
-    rwID_MAC = 3,
-    rwID_PS2 = 4,
-    rwID_XBOX = 5,
-    rwID_GAMECUBE = 6,
-    rwID_SOFTRAS = 7,
-    rwID_PCD3D8 = 8,
-    rwID_PCD3D9 = 9,
-    rwID_ES2_DXT = 10,
-    rwID_ES2_PVR = 11,
-    rwID_ES2_ATC = 12,
     rwID_PCOGL = 2,    // PC OpenGL
     rwID_MAC = 3,      // Mac
     rwID_PS2 = 4,      // PS2, aka rwID_SKY
