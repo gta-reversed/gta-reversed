@@ -2051,7 +2051,7 @@ typedef enum RwCriterionCoreID RwCriterionCoreID;
  ***                 YOU ARE ADDING A NEW ONE, APPEND IT!
  ***/
 enum RwPlatformID {
-    rwID_PCD3D7 = 1,
+    rwID_PCD3D7 = 1,   // PC D3D7
     rwID_PCOGL = 2,
     rwID_MAC = 3,
     rwID_PS2 = 4,
@@ -2063,7 +2063,18 @@ enum RwPlatformID {
     rwID_ES2_DXT = 10,
     rwID_ES2_PVR = 11,
     rwID_ES2_ATC = 12,
-    rwID_ES2_UNC = 13,
+    rwID_PCOGL = 2,    // PC OpenGL
+    rwID_MAC = 3,      // Mac
+    rwID_PS2 = 4,      // PS2, aka rwID_SKY
+    rwID_XBOX = 5,     // XBOX
+    rwID_GAMECUBE = 6, // GameCube
+    rwID_SOFTRAS = 7,  // Software rasterizer
+    rwID_PCD3D8 = 8,   // PC D3D8
+    rwID_PCD3D9 = 9,   // PC D3D9
+    rwID_ES2_DXT = 10, // GLES 2.0 DXT (like NV Tegra)
+    rwID_ES2_PVR = 11, // GLES 2.0 PVR (iOS, PowerVR)
+    rwID_ES2_ATC = 12, // GLES 2.0 ATC (like Adreno)
+    rwID_ES2_UNC = 13, // GLES 2.0 Uncompressed
     rwPLATFROMIDFORCEENUMSIZEINT = RWFORCEENUMSIZEINT,
 };
 typedef enum RwPlatformID RwPlatformID;
