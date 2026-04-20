@@ -475,17 +475,26 @@ void CGlass::RenderHiLightPolys() {
     }
 }
 
-// (CVector*)
 // 0x71ACF0
 uint8 CGlass::CalcAlphaWithNormal(const CVector& normal) {
     const auto& camFwd = TheCamera.GetForward();
-    const auto fwdOnNormalProj2x = camFwd.ProjectOnToNormal(normal) * 2.f;
-    const auto factor = ( // TODO: What the fuck is going on here???
-          camFwd.x - fwdOnNormalProj2x.x
-        + camFwd.y - fwdOnNormalProj2x.y
-        - camFwd.z + fwdOnNormalProj2x.z
-    ) / 0.57f; // TODO: Magic number
-    return (uint8)(std::pow(factor, 6) * 235.f + 20.f);
+
+    // reflect(I, N) = I - 2 * project(I, N)
+    const auto reflect = camFwd - 2.0f * camFwd.ProjectOnToNormal(normal);
+
+    // Original code uses a hardcoded value of 0.57 for the light direction vector,
+    // which is approximately the normalized value of (1, 1, -1).
+    // We use the normalized vector for better accuracy.
+    constexpr static const auto LightDir = notsa::IsFixBugs()
+        ? CVector{ 1.0f, 1.0f, -1.0f }.Normalized()
+        : CVector{ 1.0f, 1.0f, -1.0f } * 0.57f;
+    
+    // We don't clamp to 0 here to match the vanilla's behavior where negative
+    // dot products result on positive highlights since we power it by 6.
+    const auto specular = reflect.Dot(LightDir);
+    
+    // This gives a range of [20, 255] for specular values in [0, 1].
+    return static_cast<uint8>(std::pow(specular, 6.0f) * 235.0f + 20.0f);
 }
 
 // 0x71ACD0
