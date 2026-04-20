@@ -1612,6 +1612,8 @@ float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const {
 // in references.cpp
 // 0x571A00
 void CEntity::CleanUpOldReference(CEntity** entity) {
+    assert(*entity == this); // IV
+
     auto lastnextp = &m_pReferences;
     for (auto ref = m_pReferences; ref; ref = ref->m_pNext) {
         if (ref->m_ppEntity == entity) {
@@ -2395,6 +2397,21 @@ RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
     RpMaterialGetColor(material)->alpha = (RwUInt8)(uintptr)data;
     return material;
 }
+
+// header
+void CEntity::AddLodChildren() {
+    assert(m_NumLodChildren < 255); // IV
+
+    // IV
+    if (m_NumLodChildren >= 255) {
+        CVector pos = GetPosition();
+
+        // assert
+        NOTSA_LOG_ERR("{} ({:f} {:f} {:f}) has too many LOD children", GetModelInfo()->GetModelNameAsString(), pos.x, pos.y, pos.z);
+    }
+
+    m_NumLodChildren++;
+} 
 
 // Checks if the entity's scan code matches the current global scan code,
 // indicating if it has already been processed in the current frame

@@ -2093,8 +2093,11 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
 // 0x6A2210
 void CAutomobile::GetComponentWorldPosition(int32 componentId, CVector& outPos)
 {
-    if (m_aCarNodes[componentId]) {
+    auto frame = m_aCarNodes[componentId];
+    if (frame) {
         outPos = RwFrameGetLTM(m_aCarNodes[componentId])->pos;
+    } else {
+        NOTSA_LOG_WARN("CarNode missing: {} {}", m_nModelIndex, componentId); // R* log from III + VC
     }
 }
 
@@ -6040,7 +6043,7 @@ void CAutomobile::SetBumperDamage(ePanels panelIdx, bool withoutVisualEffect) {
     auto nodeIdx = CDamageManager::GetCarNodeIndexFromPanel(panelIdx);
     auto frame = m_aCarNodes[nodeIdx];
     if (!frame) {
-        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelNameAsString()); // R* log
+        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelNameAsString()); // R* log from III + VC
         return;
     }
 
@@ -6131,7 +6134,7 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
     auto nodeIdx = CDamageManager::GetCarNodeIndexFromDoor(doorIdx);
     auto frame = m_aCarNodes[nodeIdx];
     if (!frame) {
-        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelNameAsString()); // R* log
+        NOTSA_LOG_WARN("Trying to damage component {} of {}", (int32)nodeIdx, CModelInfo::GetModelInfo(m_nModelIndex)->GetModelNameAsString()); // R* log from III + VC
         return;
     }
 

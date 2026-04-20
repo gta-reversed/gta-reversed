@@ -64,6 +64,8 @@ public:
 
     uint32 GetIndex() const;
 
+    std::string_view GetModelNameAsString(); // NOTSA
+
 private: // Function implementations
     template<bool Compressed>
     void ICalcTotalTime() {

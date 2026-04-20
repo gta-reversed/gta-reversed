@@ -338,8 +338,12 @@ void CFileLoader::LoadCarPathNode(const char* line, int32 objModelIndex, int32 p
 
 // 0x5373F0
 bool CFileLoader::StartLoadClumpFile(RwStream* stream, uint32 modelIndex) {
-    if (!RwStreamFindChunk(stream, rwID_CLUMP, nullptr, nullptr))
+    if (!RwStreamFindChunk(stream, rwID_CLUMP, nullptr, nullptr)) {
+        NOTSA_LOG_ERR("FAILED: stream 0x{:08x}, modelIndex {}", LOG_PTR(stream), modelIndex); // R* log from III, modificated
         return false;
+    }
+
+    NOTSA_LOG_TRACE("Start loading {}", CModelInfo::GetModelInfo(modelIndex)->GetModelNameAsString()); // R* log from III
 
     CBaseModelInfo* mi = CModelInfo::GetModelInfo(modelIndex);
     bool isVehicle = mi->GetModelType() == MODEL_INFO_VEHICLE;
@@ -357,6 +361,8 @@ bool CFileLoader::StartLoadClumpFile(RwStream* stream, uint32 modelIndex) {
 
 // 0x537450
 bool CFileLoader::FinishLoadClumpFile(RwStream* stream, uint32 modelIndex) {
+    NOTSA_LOG_TRACE("Finish loading {}", CModelInfo::GetModelInfo(modelIndex)->GetModelNameAsString()); // R* log from III
+
     auto mi = static_cast<CClumpModelInfo*>(CModelInfo::GetModelInfo(modelIndex));
     bool isVehicle = mi->GetModelType() == MODEL_INFO_VEHICLE;
 
@@ -368,8 +374,10 @@ bool CFileLoader::FinishLoadClumpFile(RwStream* stream, uint32 modelIndex) {
     if (isVehicle)
         CVehicleModelInfo::StopUsingCommonVehicleTexDicationary();
 
-    if (!clump)
+    if (!clump) {
+        NOTSA_LOG_ERR("FAILED: stream 0x{:08x}, modelIndex {}", LOG_PTR(stream), modelIndex); // R* log from III, modificated
         return false;
+    }
 
     mi->SetClump(clump);
     return true;
@@ -543,6 +551,7 @@ void CFileLoader::LoadCollisionFile(const char* filename, uint8 colId) {
 
     FileHeader header{};
 
+    NOTSA_LOG_TRACE("Loading collision file {}", filename); // R* log from III
     auto f = CFileMgr::OpenFile(filename, "rb");
     while (CFileMgr::Read(f, &header.info, sizeof(header.info))) {
 
@@ -555,9 +564,14 @@ void CFileLoader::LoadCollisionFile(const char* filename, uint8 colId) {
         CFileMgr::Read(f, buffer, header.GetDataSize());
 
         const auto mi = CModelInfo::GetModelInfo(header.modelName, nullptr);
-        if (!mi || !mi->bIsLod)
+        if (!mi) {
+            NOTSA_LOG_DEBUG("colmodel {} can't find a modelinfo", filename); // R* log from III
             continue;
-
+        }
+        if (!mi->bIsLod) {
+            continue;
+        }
+        
         if (!mi->GetColModel()) {// TODO: Perhaps this should be in `CModelInfo` ? Like `GetColModel(bool bCreate = false)` or something
             mi->SetColModel(new CColModel, true);
         }
@@ -2208,6 +2222,7 @@ void CFileLoader::LoadObjectTypes(const char* filename) {
     int32 nPathEntryIndex{ -1 }, pathHeaderId{};
     int32 pathType{};
 
+    NOTSA_LOG_TRACE("Loading object types from {}...", filename); // R* log from III
     auto file = CFileMgr::OpenFile(filename, "rb");
     for (const char* line = LoadLine(file); line; line = LoadLine(file)) {
         if (!line[0])

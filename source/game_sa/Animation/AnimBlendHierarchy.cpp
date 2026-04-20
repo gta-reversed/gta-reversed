@@ -2,6 +2,8 @@
 
 #include "AnimBlendHierarchy.h"
 
+static std::unordered_map<uint32, std::string> g_HashToStringMap; // NOTSA
+
 void CAnimBlendHierarchy::InjectHooks() {
     RH_ScopedClass(CAnimBlendHierarchy);
     RH_ScopedCategory("Animation");
@@ -91,6 +93,7 @@ CAnimBlendSequence* CAnimBlendHierarchy::FindSequence(const char* name) const {
 // 0x4CF2D0
 void CAnimBlendHierarchy::SetName(const char* name) {
     m_hashKey = CKeyGen::GetUppercaseKey(name);
+    g_HashToStringMap[m_hashKey] = name; // NOTSA
 }
 
 // 0x4CF4E0
@@ -189,4 +192,13 @@ void CAnimBlendHierarchy::SetNumSequences(size_t n) {
 
 uint32 CAnimBlendHierarchy::GetIndex() const {
     return CAnimManager::GetAnimIndex(this);
+}
+
+// NOTSA
+std::string_view CAnimBlendHierarchy::GetModelNameAsString() {
+    const auto it = g_HashToStringMap.find(m_hashKey);
+    if (it != g_HashToStringMap.end()) {
+        return it->second;
+    }
+    return (g_HashToStringMap[m_hashKey] = std::format("hash:{}", m_hashKey));
 }

@@ -176,10 +176,14 @@ CCoverPoint* CCover::GetFree() {
 // 0x698F30
 // NOTE: Original function didn't return the (possibly) created point, we do
 CCoverPoint* CCover::AddCoverPoint(CCoverPoint::eType type, CEntity* coverEntity, const CVector* pos, CCoverPoint::eUsage usage, CCoverPoint::Dir dir) {
+    assert(coverEntity != nullptr); // R* from IV
+    // assert(pos != nullptr); // R* from IV
+
     // `POINTONMAP` is tied to a building, thus both variables are supposed to be set
     assert(type == CCoverPoint::eType::POINTONMAP || !!pos != !!coverEntity && "Only either `position` or `coverEntity` must be set"); 
 
     if (m_NumPoints >= m_Points.size()) {
+        assert(!"Cover point added to unknown pool"); // R* from IV
         return nullptr;
     }
 
