@@ -490,7 +490,7 @@ uint8 CGlass::CalcAlphaWithNormal(const CVector& normal) {
         : CVector{ 1.0f, 1.0f, -1.0f } * 0.57f;
     
     // We don't clamp to 0 here to match the vanilla's behavior where negative
-    // dot products result on positive highlights since we power it by 6.
+    // dot products result in positive highlights since we power it by 6.
     const auto specular = reflect.Dot(LightDir);
     
     // This gives a range of [20, 255] for specular values in [0, 1].
