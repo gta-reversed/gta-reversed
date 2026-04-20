@@ -7,7 +7,7 @@
 * No hungarian notation [It's useless]:
 ```cpp
 class Foo {
-    int32 m_iPlayerHealth; // Bad
+    int32 m_iPlayerHealth; // Bad, bazdmeg!
     int32 m_PlayerHealth; // Good
 }
 ```
@@ -40,13 +40,19 @@ public:
     static inline int ms_StaticGlobalCounter = 0; // Static member variable
 }
 ```
-* Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it):
+* Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it and made `constexpr`):
 ```cpp
 class Foo {
 public:
-    static inline auto& ms_StaticGlobalCounter = StaticRef<int>(0xDEADBEEF); // Static member variable
+    static inline auto& ms_StaticGlobalCounter = StaticRef<int32>(0xDEADBEEF); // Static member variable
 }
 ``` 
+* If a static variable only referenced in one function, define it in the body.
+```cpp
+void foo() {
+    static inline auto& s_FooStatic = StaticRef<int32>(0xDEADBEEF);
+}
+```
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.
@@ -74,14 +80,14 @@ for (auto&& [i, e] : rngv::enumerate(array));
 // Bad
 for (auto i = 0u; i < m_numThings; i++);
 
-// Good
+// Good -- feasible for contiguous buffers.
 for (auto& thing : std::span{ m_things, m_numThings });
-// Also good
+// Good -- applicable for every kind of range (linked lists, maps, etc.)
 for (auto& thing : m_things | rng::views::take(m_numThings));
 
 // ^ If these funcs are called more than once, make a helper function in the header. Like below:
 auto GetActiveThings() {
-    return std::span{ m_things, m_numThings }
+    return m_things | rng::views::take(m_numThings);
 }
 ```
 * Use `f` in float literals [As omitting it would make them a `double`] (e.g. `1.0f`)
@@ -148,7 +154,7 @@ const auto dist2D = GetDistance2D();
 * Use fixed width integer types (e.g. `uint8`, `int32` over `unsigned char`, `int` etc).
 * Do not use Win32 integer types. [Except for Win32 exclusive code] (e.g. `DWORD` -> `uint32`)
 * For array sizes, etc... prefer using `unsigned` (u) types over `signed` ones (eg.: `uint32` over `int32`). If possible use `size_t`.
-* Whenever possible use `std::array` over `C-Style` array [as the former has bounds checking in debug mode, and can help us discover bugs]
+* Whenever possible use `std::array` over C style arrays [as the former has bounds checking in debug mode, and can help us discover bugs]
 
 ### Usage of `auto`
 * Use `auto` in function bodies if the variables' type is guessable.
@@ -180,11 +186,11 @@ See `reversiblebugfixes/Bugs.hpp` for more info.
 
 # Using `assert`
 We encourage the usage of `assert` - if you think something may be out-of-bounds, or otherwise bug-prone, make sure to add an `assert`, it can help debugging the code a lot!
-Do **not** add early returns for possible error conditions, use `assert` instead!
-If the original game did early outs for possible unexpected error conditions then please also prefer using `assert` instead of just quietly erroring. Do not use it if the game can handle/recover from that error condition, an error or a warning log is enough.
+
+Do **not** add early returns for possible error conditions, use `assert` instead! If the original game did early outs for possible unexpected error conditions then please also prefer using `assert` instead of just quietly erroring. Do not use it if the game can handle/recover from that error condition, an error or a warning log is enough.
 
 ### Handling translated (GXT) text
-* GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
+* GXT code page is a partial superset of ASCII, it's surjective (onto) except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
 * GXT encoded characters are 1-byte long and strings are null-terminated. They can be used in `char` typed C copy/compare functions.
 * Do not assume anything other than above for GXT strings.
 * Use `AsciiToGxtChar` and `GxtCharToUTF8` for safely converting. UTF-8 strings should be safe to print and manipulate in general.
