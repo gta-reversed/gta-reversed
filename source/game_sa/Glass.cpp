@@ -485,7 +485,7 @@ uint8 CGlass::CalcAlphaWithNormal(const CVector& normal) {
     // Original code uses a hardcoded value of 0.57 for the light direction vector,
     // which is approximately the normalized value of (1, 1, -1).
     // We use the normalized vector for better accuracy.
-    constexpr static const auto LightDir = notsa::IsFixBugs()
+    static const auto LightDir = notsa::IsFixBugs()
         ? CVector{ 1.0f, 1.0f, -1.0f }.Normalized()
         : CVector{ 1.0f, 1.0f, -1.0f } * 0.57f;
     
