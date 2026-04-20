@@ -119,7 +119,7 @@ void CTaskSimpleCarCloseDoorFromOutside::StartAnim(CPed const* ped) {
         m_animHasFinished = true;
     } else {
         const auto [grpId, animId] = ComputeAnimID_Helper();
-        m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 1000.f);
+        m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 1000.f);
         m_anim->SetFinishCallback(FinishAnimCarCloseDoorFromOutsideCB, this);
     }
 }

@@ -31,7 +31,7 @@ void CTaskSimpleTired::StartAnim(CPed* ped) {
     m_TiredDurationMs_Copy = m_TiredDurationMs;
     m_AnimHasStarted = true;
     m_TiredAnim = CAnimManager::BlendAnimation(
-        ped->m_pRwClump,
+        ped->GetRpClump(),
         FindPlayerPed() == ped && CClothes::GetDefaultPlayerMotionGroup() == ANIM_GROUP_FAT ? ANIM_GROUP_FAT_TIRED : ANIM_GROUP_DEFAULT,
         ANIM_ID_IDLE_TIRED,
         4.f
@@ -40,7 +40,7 @@ void CTaskSimpleTired::StartAnim(CPed* ped) {
 
 // 0x630FF0
 bool CTaskSimpleTired::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    if (m_TiredAnim && m_TiredAnim == RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_IDLE_TIRED)) {
+    if (m_TiredAnim && m_TiredAnim == RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_IDLE_TIRED)) {
         m_TiredAnim->m_BlendDelta = -4.f;
     }
     return true;

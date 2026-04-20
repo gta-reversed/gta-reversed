@@ -163,7 +163,7 @@ void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPosit
             ped->bCrouchWhenShooting      = !isSpecialCop || pedsPositionsType != 2;
             ped->bCullExtraFarAway        = true;
             CEntity::RegisterReference(ped->m_pVehicle = vehicle);
-            CVisibilityPlugins::SetClumpAlpha(ped->m_pRwClump, 0);
+            CVisibilityPlugins::SetClumpAlpha(ped->GetRpClump(), 0);
 
             if (pedType != PED_TYPE_COP) {
                 const auto weapon = CGangs::Gang[pedType - PED_TYPE_GANG1].GetRandomWeapon(false);

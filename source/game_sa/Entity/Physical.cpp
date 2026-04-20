@@ -265,6 +265,9 @@ void CPhysical::ProcessCollision() {
             return;
         }
 
+        // TODO:
+        // Refactor this to be a lambda that takes in these variables as parameters,
+        // this way we keep the array reference (so oob checks in debug still work and shit)
         if (GetStatus() == STATUS_GHOST) {
             CColPoint* wheelsColPoints = nullptr;
             float* pfWheelsSuspensionCompression = nullptr;
@@ -274,9 +277,9 @@ void CPhysical::ProcessCollision() {
                 bike->m_aGroundPhysicalPtrs[1] = nullptr;
                 bike->m_aGroundPhysicalPtrs[2] = nullptr;
                 bike->m_aGroundPhysicalPtrs[3] = nullptr;
-                wheelsColPoints = bike->m_aWheelColPoints;
-                pfWheelsSuspensionCompression = bike->m_aWheelRatios;
-                wheelsCollisionPositions = bike->m_aGroundOffsets;
+                wheelsColPoints = bike->m_aWheelColPoints.data();
+                pfWheelsSuspensionCompression = bike->m_aWheelRatios.data();
+                wheelsCollisionPositions = bike->m_aGroundOffsets.data();
             }
             else {
                 automobile->m_apWheelCollisionEntity[0] = nullptr;
@@ -3921,7 +3924,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 // 0x54BA60
 bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 {
-    static auto& colPoints = StaticRef<CColPoint[32]>(0xB73710);
+    static auto& colPoints = StaticRef<std::array<CColPoint, 32>>(0xB73710);
 
     bool bResult = false;
 
@@ -4438,7 +4441,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 // 0x54CFF0
 bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector)
 {
-    static auto& colPoints = StaticRef<CColPoint[32]>(0xB73C98);
+    static auto& colPoints = StaticRef<std::array<CColPoint, 32>>(0xB73C98);
     float fThisDamageIntensity = -1.0f;
     float fEntityDamageIntensity = -1.0f;
 

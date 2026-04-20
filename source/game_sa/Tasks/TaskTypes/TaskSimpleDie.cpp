@@ -48,9 +48,9 @@ CTaskSimpleDie::~CTaskSimpleDie() {
 // 0x637520
 void CTaskSimpleDie::StartAnim(CPed* ped) {
     if (m_animHierarchy)
-        m_animAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_animHierarchy, m_animFlags, m_blendDelta);
+        m_animAssociation = CAnimManager::BlendAnimation(ped->GetRpClump(), m_animHierarchy, m_animFlags, m_blendDelta);
     else
-        m_animAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_animGroupId, m_animId, m_blendDelta);
+        m_animAssociation = CAnimManager::BlendAnimation(ped->GetRpClump(), m_animGroupId, m_animId, m_blendDelta);
 
     m_animAssociation->SetFinishCallback(FinishAnimDieCB, this);
     m_animAssociation->m_Flags &=   ANIMATION_CAN_EXTRACT_X_VELOCITY | ANIMATION_CAN_EXTRACT_VELOCITY

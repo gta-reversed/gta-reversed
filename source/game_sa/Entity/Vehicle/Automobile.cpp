@@ -967,21 +967,27 @@ void CAutomobile::ProcessControl()
         CCarCtrl::ScanForPedDanger(this);
 
     if (handlingFlags.bHydraulicInst && m_vecMoveSpeed.Magnitude() < 0.2f) {
-        auto& hydraulicData = CVehicle::m_aSpecialHydraulicData[m_vehicleSpecialColIndex];
-        if (GetStatus() == STATUS_PHYSICS
-            && (hydraulicData.m_aWheelSuspension[CAR_WHEEL_FRONT_LEFT] > 0.5f && hydraulicData.m_aWheelSuspension[CAR_WHEEL_REAR_LEFT] > 0.5f
-            || hydraulicData.m_aWheelSuspension[CAR_WHEEL_FRONT_RIGHT] > 0.5f && hydraulicData.m_aWheelSuspension[CAR_WHEEL_REAR_RIGHT] > 0.5f
-            )
-            || GetStatus() == STATUS_PLAYER
-            && m_pDriver
-            && m_pDriver->IsPlayer()
-            && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunLeftRight()) > 50.0f
-            && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunUpDown()) < 50.0f
-        ) {
-            float turnSpeedForward = DotProduct(m_vecTurnSpeed, GetForward());
-            const float speedSquared = turnSpeedForward * turnSpeedForward;
-            float speedTimeStep = std::pow(0.985f, CTimer::GetTimeStep()) / (speedSquared * 5.0f + 1.0f);
-            float speed = std::pow(speedTimeStep, CTimer::GetTimeStep());
+        if ([this] {
+            switch (GetStatus()) {
+            case STATUS_PHYSICS: {
+                const auto CheckWheelIsUsingHydraulics = [this](eCarWheel wheel) {
+                    return m_vehicleSpecialColIndex != -1 && m_aSpecialHydraulicData[m_vehicleSpecialColIndex].m_aWheelSuspension[wheel] > 0.5f;
+                };
+                return (CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_LEFT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_LEFT))
+                    || (CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_RIGHT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_RIGHT));
+            }
+            case STATUS_PLAYER: {
+                return IsDriverAPlayer()
+                    && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunLeftRight()) > 50.0f
+                    && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunUpDown()) < 50.0f;
+            }
+            }
+            return false;
+        }()) {
+            float       turnSpeedForward = DotProduct(m_vecTurnSpeed, GetForward());
+            const float speedSquared     = turnSpeedForward * turnSpeedForward;
+            float       speedTimeStep    = std::pow(0.985f, CTimer::GetTimeStep()) / (speedSquared * 5.0f + 1.0f);
+            float       speed            = std::pow(speedTimeStep, CTimer::GetTimeStep());
             speed *= turnSpeedForward;
             speed -= turnSpeedForward;
 
@@ -2331,7 +2337,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     physicalFlags.bRenderScorched = true;
     m_nTimeWhenBlowedUp      = CTimer::GetTimeInMS();
 
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
     m_damageManager.FuckCarCompletely(false);
 
     const auto isRcShit = (bFixBugs || !bIsForCutScene)
@@ -2645,7 +2651,7 @@ void CAutomobile::Fix() {
     vehicleFlags.bIsDamaged = false;
 
     // Hide all DAM state atomics
-    RpClumpForAllAtomics(m_pRwClump, CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
+    RpClumpForAllAtomics(GetRpClump(), CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
 
     // Reset rotation of some nodes
     for (auto i = (size_t)CAR_DOOR_RF; i < (size_t)CAR_NUM_NODES; i++) {
@@ -3429,7 +3435,7 @@ bool CAutomobile::Load() {
 // 0x6A0770
 void CAutomobile::SetupModelNodes() {
     std::ranges::fill(m_aCarNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aCarNodes.data());
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_aCarNodes.data());
 }
 
 // 0x6A07A0
@@ -3901,7 +3907,7 @@ void CAutomobile::SetHeliOrientation(float angle) {
 
 // 0x6A2460
 void CAutomobile::ClearHeliOrientation() {
-    m_fForcedOrientation = 0.0f;
+    m_fForcedOrientation = -1.0f;
 }
 
 // 0x6A2470
@@ -4793,12 +4799,10 @@ bool CAutomobile::IsInAir() {
     if (physicalFlags.bDontApplySpeed) {
         return true;
     }
-
-    if (!physicalFlags.bSubmergedInWater) {
-        return AreAllWheelsNotTouchingGround() && m_vecMoveSpeed.IsZero();
+    if (physicalFlags.bSubmergedInWater) {
+        return false;
     }
-
-    return false;
+    return AreAllWheelsNotTouchingGround() && !m_vecMoveSpeed.IsZero();
 }
 
 // 0x6A6DC0
@@ -4834,13 +4838,10 @@ void CAutomobile::dmgDrawCarCollidingParticles(const CVector& position, float fo
 
     // Add smoke
     {
-        FxPrtMult_c prtMult{ 0.4f, 0.4f , 0.4f, 0.6f, 0.4f, 1.f, 1.f };
-        CVector velocity{};
-
         // The higher our speedsq the more particles we create
         const auto numSmokes = std::max(1u, (uint32)((m_vecMoveSpeed * CTimer::GetTimeStep()).Magnitude() * 4.f));
         for (auto i = 0u; i < numSmokes; i++) {
-            g_fx.m_SmokeHuge->AddParticle(&fxPos, &velocity, 0.f, &prtMult, -1.f, 1.2f, 0.6f, 0);
+            g_fx.m_SmokeHuge->AddParticle(fxPos, {}, 0.f, FxPrtMult_c{ 0.4f, 0.4f, 0.4f, 0.6f, 0.4f, 1.f, 1.f });
         }
     }
 
@@ -4866,7 +4867,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
     const auto SetFxVelocity = [&, this] {
         if (m_pFireParticle) {
             auto bullshit = GetMoveSpeed() * 50.f;
-            m_pFireParticle->SetVelAdd(&bullshit);
+            m_pFireParticle->SetVelAdd(bullshit);
         }
         DecreaseHealthAndProcess();
     };
@@ -4924,22 +4925,16 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                         return { 0.f, 0.f, 0.15f, 0.4f, 0.3f, 1.f, 0.3f };
                     }();
                     if (CTimer::GetFrameCounter() % 2 == 0) { // TODO: Don't use frame counter
-                        auto vel = isRcShit
-                            ? CVector::Random({ -0.5f, -0.5f, 0.f }, { 0.5f, 0.5f, 0.4f })
-                            : CVector::Random({ -1.5f, -1.5f, 0.f }, { 1.5f, 1.5f, 1.0f });
-                        auto pos = GetPosition() + (isRcShit
-                            ? CVector::Random({ -0.7f, -0.7f, 0.f }, { 0.7f, 0.7f, 0.f })
-                            : CVector::Random({ -2.0f, -2.0f, 0.f }, { 2.0f, 2.0f, 0.f })
-                        );
                         g_fx.m_SmokeHuge->AddParticle(
-                            &pos,
-                            &vel,
+                            GetPosition() + (isRcShit
+                                ? CVector::Random({ -0.7f, -0.7f, 0.f }, { 0.7f, 0.7f, 0.f })
+                                : CVector::Random({ -2.0f, -2.0f, 0.f }, { 2.0f, 2.0f, 0.f })
+                            ),
+                            isRcShit
+                                ? CVector::Random({ -0.5f, -0.5f, 0.f }, { 0.5f, 0.5f, 0.4f })
+                                : CVector::Random({ -1.5f, -1.5f, 0.f }, { 1.5f, 1.5f, 1.0f }),
                             0.f,
-                            &fxPrtMult,
-                            -1.f,
-                            1.2f,
-                            0.6f,
-                            false
+                            fxPrtMult
                         );
                     }
                 }
@@ -5407,9 +5402,7 @@ void CAutomobile::ProcessHarvester()
     }
     m_harvesterParticleCounter--;
     if (CLocalisation::Blood() && m_harvesterParticleCounter % 3 == 0) {
-        FxPrtMult_c fxPrtMult;
-        fxPrtMult.SetUp(0.15f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f);
-        g_fx.m_SmokeII3expand->AddParticle(&pos, &velocity, 0.0f, &fxPrtMult, -1.0f, 1.2f, 0.6f, 0);
+        g_fx.m_SmokeII3expand->AddParticle(pos, velocity, 0.0f, { 0.15f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f });
     }
 }
 

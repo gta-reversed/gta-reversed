@@ -329,8 +329,8 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
         GetMatrix(), *GetColModel(),
         entity->GetMatrix(), *entity->GetColModel(),
         *(std::array<CColPoint, 32>*)(outColPoints),
-        m_aWheelColPoints,
-        m_aWheelRatios,
+        m_aWheelColPoints.data(),
+        m_aWheelRatios.data(),
         false
     );
 
@@ -555,7 +555,7 @@ void CBike::SetModelIndex(uint32 index) {
 // 0x6B5960
 void CBike::SetupModelNodes() {
     std::ranges::fill(m_aBikeNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aBikeNodes);
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_aBikeNodes.data());
 }
 
 // 0x6B7080

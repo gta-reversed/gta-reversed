@@ -182,6 +182,14 @@ void CGame::TidyUpMemory(bool a1, bool clearD3Dmem) {
     }
 }
 
+// notsa
+eAreaCodes CGame::GetPlayerOrCurrentAreaCode() {
+    auto* const player = FindPlayerPed();
+    return player
+        ? player->GetAreaCode()
+        : GetCurrentAreaCode();
+}
+
 // 0x53C810
 void CGame::DrasticTidyUpMemory(bool a1) {
     D3DResourceSystem::TidyUpD3DTextures(100);

@@ -348,7 +348,7 @@ bool FxManager_c::ShouldCreate(FxSystemBP_c* system, const RwMatrix& transform, 
     RwV3dTransformPoints(&pointsOut.m_vecCenter, reinterpret_cast<const RwV3d*>(system->m_BoundingSphere), 1, curr);
     pointsOut.m_fRadius = system->m_BoundingSphere->m_fRadius;
     FxRwMatrixDestroy(curr);
-    return GetFrustumInfo()->IsCollision(&pointsOut) != 0;
+    return GetFrustumInfo()->IsCollision(pointsOut) != 0;
 }
 
 // 0x4A95C0
