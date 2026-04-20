@@ -1120,13 +1120,13 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
     constexpr uint32 NUM_COPS_FOR_WANTED_LEVEL[7]{ 0, 1, 2, 4, 5, 6, 7 };
     constexpr uint32 NUM_CARS_FOR_WANTED_LEVEL[7]{ 0, 0, 0, 1, 1, 2, 2 };
 
-    const auto plyrWantedLvl = FindPlayerWanted()->m_nWantedLevel;
-    assert(plyrWantedLvl <= 6);
+    const auto plyrWantedLvl = FindPlayerWanted()->GetWantedLevel();
+    assert(plyrWantedLvl <= eWantedLevel::WANTED_LEVEL_6);
     
     createAt.z += 1.f;
 
     // Create cop cars
-    if (auto numOfCars = NUM_CARS_FOR_WANTED_LEVEL[plyrWantedLvl]) {
+    if (auto numOfCars = NUM_CARS_FOR_WANTED_LEVEL[+plyrWantedLvl]) {
         CNodeAddress createPosNodes[3]{};
         createPosNodes[0] = ThePaths.FindNthNodeClosestToCoors(
             createAt,
@@ -1177,7 +1177,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
     }
 
     // Create cop peds
-    if (auto numOfCopPeds = NUM_COPS_FOR_WANTED_LEVEL[plyrWantedLvl]) {
+    if (auto numOfCopPeds = NUM_COPS_FOR_WANTED_LEVEL[+plyrWantedLvl]) {
         for (int32 i{}; i < 20; i++) { // int32 angleOffset = 0; angleOffset > -20; angleOffset--
             const auto heading   = CGeneral::GetRandomNumberInRange(0.f, (float)(i) * 0.4f) - (float)(i) * 0.2f + createaWithHeading;
             auto       copPedPos = CVector{ CVector2D{createAt} + CVector2D{sin(heading), cos(heading)} *CGeneral::GetRandomNumberInRange(8.f, 10.f), createAt.z };
@@ -1207,7 +1207,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
 
             CWorld::Add(ped);
 
-            if (plyrWantedLvl > 1) {
+            if (plyrWantedLvl > eWantedLevel::WANTED_LEVEL_1) {
                 ped->GiveWeapon(WEAPON_PISTOL, 30000, true);
                 ped->SetCurrentWeapon(WEAPON_PISTOL);
             }

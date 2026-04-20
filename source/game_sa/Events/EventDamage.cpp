@@ -215,19 +215,19 @@ void CEventDamage::ReportCriminalEvent(CPed* ped) {
         bool bPoliceCareAboutCrime = CPedType::PoliceDontCareAboutCrimesAgainstPedType(ped->m_nPedType);
         if (m_weaponType <= WEAPON_CHAINSAW) {
             auto crimeType = ped->m_nPedType == PED_TYPE_COP ? CRIME_DAMAGED_COP : CRIME_DAMAGED_PED;
-            FindPlayerWanted()->RegisterCrime(crimeType, m_pSourceEntity->GetPosition(), ped, bPoliceCareAboutCrime);
+            FindPlayerWanted()->RegisterCrime(crimeType, m_pSourceEntity->GetPosition(), (uint32)ped, bPoliceCareAboutCrime);
             return;
         }
 
         if (m_weaponType <= WEAPON_DETONATOR || m_weaponType == WEAPON_SPRAYCAN) {
             auto crimeType = ped->m_nPedType == PED_TYPE_COP ? CRIME_DAMAGE_COP_CAR : CRIME_DAMAGE_CAR;
-            FindPlayerWanted()->RegisterCrime(crimeType, m_pSourceEntity->GetPosition(), ped, bPoliceCareAboutCrime);
+            FindPlayerWanted()->RegisterCrime(crimeType, m_pSourceEntity->GetPosition(), (uint32)ped, bPoliceCareAboutCrime);
             return;
         }
 
         if (m_weaponType == WEAPON_RAMMEDBYCAR || m_weaponType == WEAPON_RUNOVERBYCAR) {
             auto crimeType = ped->m_nPedType == PED_TYPE_COP ? CRIME_KILL_COP_PED_WITH_CAR : CRIME_KILL_PED_WITH_CAR;
-            FindPlayerWanted()->RegisterCrime(crimeType, m_pSourceEntity->GetPosition(), ped, bPoliceCareAboutCrime);
+            FindPlayerWanted()->RegisterCrime(crimeType, m_pSourceEntity->GetPosition(), (uint32)ped, bPoliceCareAboutCrime);
             return;
         }
     }

@@ -536,7 +536,7 @@ bool CPed::PedIsReadyForConversation(bool checkLocalPlayerWantedLevel) {
         return false;
     }
 
-    if (checkLocalPlayerWantedLevel && FindPlayerPed()->GetWanted()->m_nWantedLevel) {
+    if (checkLocalPlayerWantedLevel && FindPlayerPed()->GetWanted()->GetWantedLevel() != eWantedLevel::WANTED_CLEAN) {
         return false;
     }
 

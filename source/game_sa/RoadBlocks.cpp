@@ -206,7 +206,7 @@ void CRoadBlocks::GenerateRoadBlockPedsForCar(CVehicle* vehicle, int32 pedsPosit
 void CRoadBlocks::GenerateRoadBlocks() {
     ZoneScoped;
 
-    if (FindPlayerWanted()->m_nChanceOnRoadBlock && FindPlayerVehicle()) {
+    if (FindPlayerWanted()->m_ChanceOnRoadBlock && FindPlayerVehicle()) {
         if (!GenerateDynamicRoadBlocks) {
             rng::fill(InOrOut, true);
             GenerateDynamicRoadBlocks = true;
@@ -236,7 +236,7 @@ void CRoadBlocks::GenerateRoadBlocks() {
             }
             InOrOut[counter2] = true;
 
-            if (CGeneral::GetRandomNumberInRange(128u) >= FindPlayerWanted()->m_nChanceOnRoadBlock) {
+            if (CGeneral::GetRandomNumberInRange(128u) >= FindPlayerWanted()->m_ChanceOnRoadBlock) {
                 continue;
             }
 

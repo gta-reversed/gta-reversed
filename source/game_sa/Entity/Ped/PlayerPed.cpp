@@ -76,24 +76,27 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
 }
 
-struct WorkBufferSaveData {
+// TODO: To class and create 2 function
+struct CPlayerPedDataSaveStructure {
     uint32          ChaosLevel{};
-    uint32          WantedLevel{};
+    eWantedLevel    WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
+    // float          Multiplier{}; // Mobile
 };
-VALIDATE_SIZE(WorkBufferSaveData, 132u);
+
+VALIDATE_SIZE(CPlayerPedDataSaveStructure, 0x84 /* + 0x4 */);
 
 // 0x5D46E0
 bool CPlayerPed::Load() {
     CPed::Load();
 
     CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
-    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
+    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<CPlayerPedDataSaveStructure>();
 
     CWanted* wanted = GetPlayerWanted();
-    wanted->m_nChaosLevel = sd.ChaosLevel;
-    wanted->m_nWantedLevel= sd.WantedLevel;
+    wanted->m_ChaosLevel = sd.ChaosLevel;
+    wanted->m_WantedLevel= sd.WantedLevel;
 
     *GetPlayerData()->m_pPedClothesDesc = sd.ClothesDesc;
     GetPlayerData()->m_nChosenWeapon   = sd.ChosenWeapon;
@@ -103,16 +106,16 @@ bool CPlayerPed::Load() {
 
 // 0x5D57E0
 bool CPlayerPed::Save() {
-    WorkBufferSaveData saveData{};
+    CPlayerPedDataSaveStructure saveData{};
 
     CWanted* wanted = GetPlayerWanted();
-    saveData.ChaosLevel = wanted->m_nChaosLevel;
-    saveData.WantedLevel = wanted->m_nWantedLevel;
+    saveData.ChaosLevel = wanted->m_ChaosLevel;
+    saveData.WantedLevel = wanted->m_WantedLevel;
     saveData.ChosenWeapon = GetPlayerData()->m_nChosenWeapon;
     saveData.ClothesDesc  = *GetPlayerData()->m_pPedClothesDesc;
 
     CPed::Save();
-    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(WorkBufferSaveData));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CPlayerPedDataSaveStructure));
     CGenericGameStorage::SaveDataToWorkBuffer(saveData);
 
     return true;
@@ -440,33 +443,33 @@ void CPlayerPed::Clear3rdPersonMouseTarget() {
 void CPlayerPed::Busted() {
     CWanted* wanted = GetWanted();
     if (wanted) {
-        wanted->m_nChaosLevel = 0;
+        wanted->m_ChaosLevel = 0;
     }
 }
 
 // 0x41BE60
-uint32 CPlayerPed::GetWantedLevel() const {
+eWantedLevel CPlayerPed::GetWantedLevel() const {
     if (const auto* wanted = GetWanted()) {
-        return wanted->m_nWantedLevel;
+        return wanted->GetWantedLevel();
     }
 
-    return 0;
+    return eWantedLevel::WANTED_CLEAN;
 }
 
 // 0x609F10
-void CPlayerPed::SetWantedLevel(int32 level) {
+void CPlayerPed::SetWantedLevel(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->SetWantedLevel(level);
 }
 
 // 0x609F30
-void CPlayerPed::SetWantedLevelNoDrop(int32 level) {
+void CPlayerPed::SetWantedLevelNoDrop(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->SetWantedLevelNoDrop(level);
 }
 
 // 0x609F50
-void CPlayerPed::CheatWantedLevel(int32 level) {
+void CPlayerPed::CheatWantedLevel(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->CheatWantedLevel(level);
 }

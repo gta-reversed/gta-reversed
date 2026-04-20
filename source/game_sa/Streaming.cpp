@@ -3109,7 +3109,7 @@ void CStreaming::StreamCopModels(eLevelName level) {
 
     // Maybe load a cop bike..
     auto* wanted = FindPlayerWanted();
-    if (wanted && wanted->m_nWantedLevel < 3
+    if (wanted && wanted->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_3
         && level != eLevelName::LEVEL_NAME_COUNTRY_SIDE
         && !m_bDisableCopBikes
     ) {
@@ -3391,7 +3391,7 @@ void CStreaming::StreamVehiclesAndPeds() {
         SetModelIsDeletable(MODEL_POLMAV);
     } else {
         RequestModel(MODEL_POLMAV, STREAMING_GAME_REQUIRED);
-        if (wanted->NumOfHelisRequired() > 1 && CWanted::bUseNewsHeliInAdditionToPolice)
+        if (wanted->NumOfHelisRequired() > 1 && CWanted::UseNewsHeliInAdditionToPolice)
             RequestModel(MODEL_VCNMAV, STREAMING_GAME_REQUIRED);
         else
             SetModelIsDeletable(MODEL_VCNMAV);

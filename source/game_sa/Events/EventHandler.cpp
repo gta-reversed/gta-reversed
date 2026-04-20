@@ -801,7 +801,7 @@ void CEventHandler::ComputeCopCarBeingStolenResponse(CEventCopCarBeingStolen* e,
             return nullptr;
         }
         if (e->m_hijacker->IsPlayer()) {
-            FindPlayerWanted()->SetWantedLevelNoDrop(1);
+            FindPlayerWanted()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
         }
         return new CTaskComplexLeaveCar{ e->m_vehicle, 0, 0, true, false };
     }();
