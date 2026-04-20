@@ -133,7 +133,7 @@ inline bool IKChainManager_c::CanAccept(CPed* pPed, float range) const {
     }
 
     {
-        const auto distSqr = (pPed->GetPosition() - TheCamera.GetPosition()).Magnitude();
+        const auto distSqr = (pPed->GetPosition() - TheCamera.GetPosition()).SquaredMagnitude();
         if (distSqr > sq(range)) {
             return false;
         }
