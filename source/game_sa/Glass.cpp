@@ -479,7 +479,7 @@ void CGlass::RenderHiLightPolys() {
 uint8 CGlass::CalcAlphaWithNormal(const CVector& normal) {
     const auto& camFwd = TheCamera.GetForward();
 
-    // reflect(I, N) = I - 2 * project(I, N) wher `N` is assumed to be normalized (eg.: unit vector)
+    // reflect(I, N) = I - 2 * project(I, N) where `N` is assumed to be normalized (eg.: unit vector)
     const auto reflect = camFwd - 2.0f * camFwd.ProjectOnToNormal(normal);
 
     // Original code uses a hardcoded value of 0.57 for the light direction vector,
