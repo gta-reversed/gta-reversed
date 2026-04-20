@@ -2700,22 +2700,30 @@ bool CStreaming::AddToLoadedVehiclesList(int32 modelId) {
 
 // 0x407D50
 int32 CStreaming::GetDefaultCabDriverModel() {
+    // Available models for each level, 2 models each
     constexpr static auto s_DefaultCabDriverModels = std::to_array({ // 0x8A5AF4
+        // Los Santos        
         MODEL_BMOCD,
         MODEL_WMYCD1,
+
+        // San Fierro
         MODEL_SBMOCD,
         MODEL_SWMOCD,
+
+        // Las Venturas
         MODEL_VBMOCD,
         MODEL_VWMYCD
     });
+
+    // Last index into the above array used to choose model for cab driver
     static auto& s_LastRandomIndex = StaticRef<int32>(0x965524); // Default: 0
 
-    /* if previously chosen is still loaded, then use that*/
+    // If previously choosen model is still loaded, then use that
     if (const auto model = s_DefaultCabDriverModels[s_LastRandomIndex]; GetInfo(model).m_LoadState != eStreamingLoadState::LOADSTATE_NOT_LOADED) {
         return model;
     }
 
-    /** otherwise chose new model to use */
+    //  Otherwise choose new model to use
     if (CTheZones::m_CurrLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE) {
         s_LastRandomIndex = 2 * (CTheZones::m_CurrLevel - 1) + CGeneral::GetRandomNumberInRange(0, 2);
     }
