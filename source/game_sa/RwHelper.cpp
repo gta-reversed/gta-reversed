@@ -126,11 +126,13 @@ RwFrame* GetFirstChild(RwFrame* frame) {
 
 // 0x734AB0
 RpHAnimHierarchy* GetAnimHierarchyFromFrame(RwFrame* frame) {
+    assert(frame);
     return ((RpHAnimHierarchy * (__cdecl*)(RwFrame*))0x734AB0)(frame);
 }
 
 // 0x734B10
 RpHAnimHierarchy* GetAnimHierarchyFromClump(RpClump* clump) {
+    assert(clump);
     return GetAnimHierarchyFromFrame(RpClumpGetFrame(clump));
 }
 
