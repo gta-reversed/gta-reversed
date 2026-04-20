@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include <rwplcore.h>
+
 #include "RenderWare.h"
 #include "FxManager.h"
 

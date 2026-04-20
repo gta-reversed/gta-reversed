@@ -18,9 +18,9 @@ constexpr auto SKIDMARK_NUM_PARTS{ 16u };
  * Doesn't exist in Android IDB
  */
 struct CSkidmark {
-    CVector        m_vPosn[SKIDMARK_NUM_PARTS];
-    float          m_partDirX[SKIDMARK_NUM_PARTS];
-    float          m_partDirY[SKIDMARK_NUM_PARTS];
+    std::array<CVector, SKIDMARK_NUM_PARTS> m_vPosn;
+    std::array<float, SKIDMARK_NUM_PARTS>   m_partDirX;
+    std::array<float, SKIDMARK_NUM_PARTS>   m_partDirY;
     uint32         m_nId;                       // Unique ID, usually the vehicle pointer
     uint32         m_lastDisappearTimeUpdateMs; // Last time it got updated
     uint32         m_fadeBeginMs;               // Begins fading at this tick

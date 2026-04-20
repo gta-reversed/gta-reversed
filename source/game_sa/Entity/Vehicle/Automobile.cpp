@@ -967,21 +967,27 @@ void CAutomobile::ProcessControl()
         CCarCtrl::ScanForPedDanger(this);
 
     if (handlingFlags.bHydraulicInst && m_vecMoveSpeed.Magnitude() < 0.2f) {
-        auto& hydraulicData = CVehicle::m_aSpecialHydraulicData[m_vehicleSpecialColIndex];
-        if (GetStatus() == STATUS_PHYSICS
-            && (hydraulicData.m_aWheelSuspension[CAR_WHEEL_FRONT_LEFT] > 0.5f && hydraulicData.m_aWheelSuspension[CAR_WHEEL_REAR_LEFT] > 0.5f
-            || hydraulicData.m_aWheelSuspension[CAR_WHEEL_FRONT_RIGHT] > 0.5f && hydraulicData.m_aWheelSuspension[CAR_WHEEL_REAR_RIGHT] > 0.5f
-            )
-            || GetStatus() == STATUS_PLAYER
-            && m_pDriver
-            && m_pDriver->IsPlayer()
-            && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunLeftRight()) > 50.0f
-            && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunUpDown()) < 50.0f
-        ) {
-            float turnSpeedForward = DotProduct(m_vecTurnSpeed, GetForward());
-            const float speedSquared = turnSpeedForward * turnSpeedForward;
-            float speedTimeStep = std::pow(0.985f, CTimer::GetTimeStep()) / (speedSquared * 5.0f + 1.0f);
-            float speed = std::pow(speedTimeStep, CTimer::GetTimeStep());
+        if ([this] {
+            switch (GetStatus()) {
+            case STATUS_PHYSICS: {
+                const auto CheckWheelIsUsingHydraulics = [this](eCarWheel wheel) {
+                    return m_vehicleSpecialColIndex != -1 && m_aSpecialHydraulicData[m_vehicleSpecialColIndex].m_aWheelSuspension[wheel] > 0.5f;
+                };
+                return (CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_LEFT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_LEFT))
+                    || (CheckWheelIsUsingHydraulics(CAR_WHEEL_FRONT_RIGHT) && CheckWheelIsUsingHydraulics(CAR_WHEEL_REAR_RIGHT));
+            }
+            case STATUS_PLAYER: {
+                return IsDriverAPlayer()
+                    && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunLeftRight()) > 50.0f
+                    && std::fabs((float)m_pDriver->AsPlayer()->GetPadFromPlayer()->GetCarGunUpDown()) < 50.0f;
+            }
+            }
+            return false;
+        }()) {
+            float       turnSpeedForward = DotProduct(m_vecTurnSpeed, GetForward());
+            const float speedSquared     = turnSpeedForward * turnSpeedForward;
+            float       speedTimeStep    = std::pow(0.985f, CTimer::GetTimeStep()) / (speedSquared * 5.0f + 1.0f);
+            float       speed            = std::pow(speedTimeStep, CTimer::GetTimeStep());
             speed *= turnSpeedForward;
             speed -= turnSpeedForward;
 
@@ -2331,7 +2337,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     physicalFlags.bRenderScorched = true;
     m_nTimeWhenBlowedUp      = CTimer::GetTimeInMS();
 
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES);
     m_damageManager.FuckCarCompletely(false);
 
     const auto isRcShit = (bFixBugs || !bIsForCutScene)
@@ -2645,7 +2651,7 @@ void CAutomobile::Fix() {
     vehicleFlags.bIsDamaged = false;
 
     // Hide all DAM state atomics
-    RpClumpForAllAtomics(m_pRwClump, CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
+    RpClumpForAllAtomics(GetRpClump(), CVehicleModelInfo::HideAllComponentsAtomicCB, (void*)eAtomicComponentFlag::ATOMIC_DAMAGED);
 
     // Reset rotation of some nodes
     for (auto i = (size_t)CAR_DOOR_RF; i < (size_t)CAR_NUM_NODES; i++) {
@@ -3429,7 +3435,7 @@ bool CAutomobile::Load() {
 // 0x6A0770
 void CAutomobile::SetupModelNodes() {
     std::ranges::fill(m_aCarNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aCarNodes.data());
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_aCarNodes.data());
 }
 
 // 0x6A07A0
@@ -3901,7 +3907,7 @@ void CAutomobile::SetHeliOrientation(float angle) {
 
 // 0x6A2460
 void CAutomobile::ClearHeliOrientation() {
-    m_fForcedOrientation = 0.0f;
+    m_fForcedOrientation = -1.0f;
 }
 
 // 0x6A2470
@@ -4793,12 +4799,10 @@ bool CAutomobile::IsInAir() {
     if (physicalFlags.bDontApplySpeed) {
         return true;
     }
-
-    if (!physicalFlags.bSubmergedInWater) {
-        return AreAllWheelsNotTouchingGround() && m_vecMoveSpeed.IsZero();
+    if (physicalFlags.bSubmergedInWater) {
+        return false;
     }
-
-    return false;
+    return AreAllWheelsNotTouchingGround() && !m_vecMoveSpeed.IsZero();
 }
 
 // 0x6A6DC0

@@ -2040,7 +2040,7 @@ auto WarpCharIntoCar(CPed& ped, CVehicle& veh) {
  * @param {float} animSpeed
  */
 auto SetCharAnimSpeed(CPed& ped, const char* animName, float speed) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         anim->SetSpeed(speed);
     }
 }
@@ -2846,7 +2846,7 @@ auto SetCharDecisionMaker(CPed& ped, int32 scriptHandleOfDM) { // TODO: Use `Scr
  * @param {string} animationName
  */
 auto IsCharPlayingAnim(CPed& ped, const char* animName) {
-    return RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName) != nullptr;
+    return RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName) != nullptr;
 }
 
 /*
@@ -2862,7 +2862,7 @@ auto IsCharPlayingAnim(CPed& ped, const char* animName) {
  * @param {bool} flag
  */
 auto SetCharAnimPlayingFlag(CPed& ped, const char* animName, bool started) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         anim->SetFlag(ANIMATION_IS_PLAYING, started);
     }
 }
@@ -2881,7 +2881,7 @@ auto SetCharAnimPlayingFlag(CPed& ped, const char* animName, bool started) {
  * @returns {float} time
  */
 auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         return anim->m_CurrentTime / anim->m_BlendHier->m_fTotalTime;
     }
     return 0.f;
@@ -2900,7 +2900,7 @@ auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
  * @param {float} time
  */
 auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         anim->SetCurrentTime(progress * anim->m_BlendHier->m_fTotalTime);
     }
 }
@@ -2920,7 +2920,7 @@ auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
  * @returns {float} totalTime
  */
 auto GetCharAnimTotalTime(CPed& ped, const char* animName) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         return anim->m_BlendHier->m_fTotalTime * 1000.f;
     }
     return 0.f;

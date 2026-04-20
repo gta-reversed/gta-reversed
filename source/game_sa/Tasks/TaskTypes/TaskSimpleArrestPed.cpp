@@ -92,7 +92,7 @@ bool CTaskSimpleArrestPed::ProcessPed(CPed* ped) {
 
 // 0x68B7E0
 void CTaskSimpleArrestPed::StartAnim(CPed* ped) {
-    m_Assoc = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_ARRESTGUN, 4.0f);
+    m_Assoc = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_ARRESTGUN, 4.0f);
     m_Assoc->SetFlag(ANIMATION_IS_PLAYING, true);
     m_Assoc->SetDeleteCallback(FinishAnimArrestPedCB, this);
 

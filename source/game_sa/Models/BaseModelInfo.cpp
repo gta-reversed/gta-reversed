@@ -175,11 +175,11 @@ void CBaseModelInfo::DeleteCollisionModel() {
 C2dEffect* CBaseModelInfo::Get2dEffect(int32 index) const {
     auto uiStoredEffectsCount = m_n2dfxCount;
     RpGeometry* geometry = nullptr;
-    if (m_pRwObject) {
+    if (GetRwObject()) {
         if (GetRwModelType() == rpATOMIC) {
-            geometry = RpAtomicGetGeometry(m_pRwAtomic);
+            geometry = RpAtomicGetGeometry(GetRpAtomic());
         } else if (GetRwModelType() == rpCLUMP) {
-            auto atomic = Get2DEffectAtomic(m_pRwClump);
+            auto atomic = Get2DEffectAtomic(GetRpClump());
             if (atomic) {
                 geometry = RpAtomicGetGeometry(atomic);
             }

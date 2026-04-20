@@ -14,9 +14,6 @@
 #include "EntryExitManager.h"
 #include "MBlur.h"
 
-auto& abTempNeverLeavesGroup = StaticRef<bool[7]>(0xC0BC08);
-auto& gPlayIdlesAnimBlockIndex = StaticRef<int32>(0xC0BC10);
-
 bool CPlayerPed::bDebugPlayerInvincible;
 bool CPlayerPed::bDebugTargeting;
 bool CPlayerPed::bDebugTapToTarget;
@@ -252,9 +249,9 @@ void CPlayerPed::ReApplyMoveAnims() {
         ANIM_ID_WALK_START
     };
     for (const AnimationId& id : anims) {
-        if (CAnimBlendAssociation* anim = RpAnimBlendClumpGetAssociation(m_pRwClump, id)) {
+        if (CAnimBlendAssociation* anim = RpAnimBlendClumpGetAssociation(GetRpClump(), id)) {
             if (anim->GetHashKey() != CAnimManager::GetAnimAssociation(m_nAnimGroup, id)->GetHashKey()) {
-                CAnimBlendAssociation* addedAnim = CAnimManager::AddAnimation(m_pRwClump, m_nAnimGroup, id);
+                CAnimBlendAssociation* addedAnim = CAnimManager::AddAnimation(GetRpClump(), m_nAnimGroup, id);
                 addedAnim->m_BlendDelta = anim->m_BlendDelta;
                 addedAnim->m_BlendAmount = anim->m_BlendAmount;
 
@@ -746,7 +743,7 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
         GetPlayerData()->m_bFreeAiming = false;
 
 
-    if (auto anim = RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_FIRE))
+    if (auto anim = RpAnimBlendClumpGetAssociation(GetRpClump(), ANIM_ID_FIRE))
         anim->m_Flags |= ANIMATION_IS_PLAYING & ANIMATION_IS_FINISH_AUTO_REMOVE;
 
     TheCamera.ClearPlayerWeaponMode();
@@ -1156,10 +1153,10 @@ void CPlayerPed::ProcessControl() {
         m_nLookTime = 0;
         float lookDir = CGeneral::LimitRadianAngle(atan2(-activeCam.m_vecFront.x, activeCam.m_vecFront.y));
         float angle = fabs(lookDir - m_fCurrentRotation);
-        if (m_nPedState != PEDSTATE_ATTACK && angle > RadiansToDegrees(30) && angle < RadiansToDegrees(330)) {
-            if (angle > RadiansToDegrees(150) && angle < RadiansToDegrees(210)) {
-                float dir1 = CGeneral::LimitRadianAngle(m_fCurrentRotation - RadiansToDegrees(150));
-                float dir2 = CGeneral::LimitRadianAngle(m_fCurrentRotation + RadiansToDegrees(150));
+        if (m_nPedState != PEDSTATE_ATTACK && angle > DegreesToRadians(30.0f) && angle < DegreesToRadians(330.0f)) {
+            if (angle > DegreesToRadians(150.0f) && angle < DegreesToRadians(210.0f)) {
+                float dir1 = CGeneral::LimitRadianAngle(m_fCurrentRotation - DegreesToRadians(150.0f));
+                float dir2 = CGeneral::LimitRadianAngle(m_fCurrentRotation + DegreesToRadians(150.0f));
                 lookDir = dir1;
                 if (m_fLookDirection != 999'999.f && !bIsDucking) {
                     if (fabs(dir2 - m_fLookDirection) <= fabs(dir1 - m_fLookDirection))

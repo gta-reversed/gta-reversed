@@ -42,7 +42,7 @@ bool CTaskSimpleTurn180::ProcessPed(CPed* ped) {
 
     if (!m_anim) {
         ped->m_fHeadingChangeRate = 0.f;
-        m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_TURN_180, 4.f);
+        m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_TURN_180, 4.f);
         m_anim->SetFinishCallback(FinishAnimTurn180CB, this);
     }
 

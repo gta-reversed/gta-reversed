@@ -351,7 +351,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
 
     const auto pedType = CModelInfo::GetPedModelInfo(modelId)->GetPedType();
 
-    if (NameIsAnyOf("COPST", "COPLOOK", "BROWSE")) {
+    if (NameIsAnyOf("COPSIT", "COPLOOK", "BROWSE")) {
         return pedType == PED_TYPE_COP;
     }
 
@@ -423,7 +423,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
     }
 
     if (NameIsAnyOf("STRIPM")) {
-        return pedType != PED_TYPE_CIVFEMALE;
+        return pedType == PED_TYPE_CIVFEMALE;
     }
 
     return false;
@@ -707,7 +707,7 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
     }
 
     // If we've faded the ped completely out, remove it
-    if (ped->bFadeOut && CVisibilityPlugins::GetClumpAlpha(ped->m_pRwClump) == 0) {
+    if (ped->bFadeOut && CVisibilityPlugins::GetClumpAlpha(ped->GetRpClump()) == 0) {
         RemovePed(ped);
         return;
     }
@@ -750,17 +750,10 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
 
 // 0x612240
 int32 CPopulation::FindNumberOfPedsWeCanPlaceOnBenches() {
-    const auto baseNum = [] {
-        if (CGame::CanSeeOutSideFromCurrArea()) {
-            return NumberOfPedsInUseInterior;
-        }
-        return (uint32)(
-              std::floor(std::min((float)MaxNumberOfPedsInUse, CPopCycle::m_NumOther_Peds))
-            * PedDensityMultiplier
-            * FindPedDensityMultiplierCullZone()
-        );
-    }();
-    return baseNum - ms_nNumCivMale - ms_nNumCivFemale + 2;
+    const int32 base = CGame::CanSeeOutSideFromCurrArea()
+        ? (int32)(std::floor(std::min((float)(MaxNumberOfPedsInUse), CPopCycle::m_NumOther_Peds)) * PedDensityMultiplier * FindPedDensityMultiplierCullZone())
+        : (int32)(NumberOfPedsInUseInterior);
+    return base - (int32)(ms_nNumCivMale) - (int32)(ms_nNumCivFemale) + 2;
 }
 
 // 0x6122C0
@@ -938,7 +931,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    if (!CModelInfo::GetModelInfo(MODEL_MALE01)->m_pRwObject) {
+    if (!CModelInfo::GetModelInfo(MODEL_MALE01)->GetRwObject()) {
         NOTSA_LOG_DEBUG("Didn't create ped, because `MODEL_MALE01` has no RW object!");
         return nullptr;
     }
@@ -964,7 +957,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    CVisibilityPlugins::SetClumpAlpha(ped->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(ped->GetRpClump(), 0);
 
     return ped;
 }
@@ -1171,7 +1164,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
 
             // Now, update the RW matrix too
             if (veh->GetRwObject()) {
-                vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->m_pRwClump)));
+                vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->GetRpClump())));
             }
 
             CCarCtrl::JoinCarWithRoadSystem(veh);
@@ -1253,7 +1246,7 @@ CPed* CPopulation::AddPedInCar(
         }
 
         const auto FixIfInvalid = [&](eModelID model, bool checkRWObj = false) {
-            return model != MODEL_INVALID && (!checkRWObj || CModelInfo::GetPedModelInfo(model)->m_pRwObject)
+            return model != MODEL_INVALID && (!checkRWObj || CModelInfo::GetPedModelInfo(model)->GetRwObject())
                 ? model
                 : MODEL_MALE01;
         };
@@ -1373,7 +1366,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
     }
 
     const auto CreatePed = [&](ePedType ptype, eModelID model) -> CPed* {
-        if (!CModelInfo::GetPedModelInfo(model)->m_pRwObject) {
+        if (!CModelInfo::GetPedModelInfo(model)->GetRwObject()) {
             return nullptr;
         }
         return AddPed(ptype, model, placeAt, true);
@@ -1383,7 +1376,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
     if (!husb) {
         return;
     }
-    CVisibilityPlugins::SetClumpAlpha(husb->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(husb->GetRpClump(), 0);
 
     const auto wifey = CreatePed(PED_TYPE_CIVFEMALE, wifeyModelId);
     if (!wifey) {
@@ -1412,7 +1405,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
         wifey->GetColModel()->GetBoundRadius(),
         { husb, wifey }
     )) {
-        CVisibilityPlugins::SetClumpAlpha(wifey->m_pRwClump, 0); // All good
+        CVisibilityPlugins::SetClumpAlpha(wifey->GetRpClump(), 0); // All good
     }  else { // Blocked by something
         RemovePed(wifey);
         RemovePed(husb);

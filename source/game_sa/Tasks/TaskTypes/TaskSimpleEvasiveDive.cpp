@@ -51,7 +51,7 @@ bool CTaskSimpleEvasiveDive::ProcessPed(CPed* ped) {
 void CTaskSimpleEvasiveDive::StartAnim(CPed* ped) {
     ped->Say(CTX_GLOBAL_DODGE);
 
-    m_DiveAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_EV_DIVE, 8.0f);
+    m_DiveAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_EV_DIVE, 8.0f);
     m_DiveAnim->SetFinishCallback(FinishAnimEvasiveDiveCB, this);
 
     if (m_EvadeVeh && ped->IsCop()) {
