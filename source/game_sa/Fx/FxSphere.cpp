@@ -39,7 +39,7 @@ void FxSphere_c::operator delete(void* data, bool32 bUseGlobalHeep) {
 
 // 0x4A9FC0
 bool FxSphere_c::IsCollision(const FxSphere_c& sphere) const {
-    return std::powf(m_fRadius + sphere.m_fRadius, 2) > (sphere.m_vecCenter - m_vecCenter).SquaredMagnitude();
+    return sq(m_fRadius + sphere.m_fRadius) > (sphere.m_vecCenter - m_vecCenter).SquaredMagnitude();
 }
 
 // 0x4AA010

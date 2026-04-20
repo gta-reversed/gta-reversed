@@ -300,7 +300,7 @@ public:
 
     /*!
     * @notsa
-    * @param nodeID Node ID of the bone. For peds, see ePedBones
+    * @param nodeID Node ID of the bone. For peds, see eBoneTag
     * @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
     */
     RwMatrix* GetBoneMatrix(RwUInt32 nodeID) const;

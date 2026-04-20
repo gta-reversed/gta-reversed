@@ -2342,6 +2342,7 @@ void CEntity::UpdateRwMatrix() {
 
 // notsa
 RwMatrix* CEntity::GetBoneMatrix(RwUInt32 nodeID) const {
+    assert(m_pRwObject && RwObjectGetType(m_pRwObject) == rpCLUMP);
     if (const auto h = GetAnimHierarchyFromClump(m_pRwClump)) {
         return RpHAnimHierarchyGetNodeMatrix(h, nodeID);
     }
