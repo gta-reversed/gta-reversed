@@ -1,5 +1,5 @@
 #include "PedToPlayerConversations.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CPedToPlayerConversations::InjectHooks() {
     RH_ScopedClass(CPedToPlayerConversations);

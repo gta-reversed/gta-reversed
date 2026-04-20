@@ -1,8 +1,7 @@
 #include "StdInc.h"
-#include "IKChain_c.h"
-#include "BoneNodeManager_c.h"
+#include "IKChain.h"
+#include "BoneNodeManager.h"
 #include "Enums/eIKChainSlot.h"
-
 
 void IKChain_c::InjectHooks() {
     RH_ScopedClass(IKChain_c);
@@ -11,25 +10,28 @@ void IKChain_c::InjectHooks() {
     RH_ScopedInstall(Init, 0x618370);
     RH_ScopedInstall(Exit, 0x617870);
     RH_ScopedInstall(Update, 0x6184B0);
-    RH_ScopedInstall(IsAtTarget, 0x617F30);
-    RH_ScopedInstall(IsFacingTarget, 0x617E60);
-    RH_ScopedInstall(UpdateTarget, 0x617E50);
-    RH_ScopedInstall(UpdateOffset, 0x617E20);
-    RH_ScopedInstall(ClampLimits, 0x618520);
-    RH_ScopedInstall(UpdateEntity, 0x617E00);
-    RH_ScopedInstall(GetBoneNodeFromTag, 0x617C60);
-    RH_ScopedInstall(GetPriority, 0x617C50);
-    RH_ScopedInstall(SetOffsetPos, 0x617C30);
-    RH_ScopedInstall(SetOffsetBoneTag, 0x617C20);
-    RH_ScopedInstall(SetBlend, 0x617C10);
     RH_ScopedInstall(MoveBonesToTarget, 0x6178B0);
-    RH_ScopedInstall(SetupBones, 0x617CA0);
+    RH_ScopedInstall(SetBlend, 0x617C10);
+    RH_ScopedInstall(SetOffsetBoneTag, 0x617C20);
+    RH_ScopedInstall(SetOffsetPos, 0x617C30);
+    RH_ScopedInstall(ClampLimits, 0x618520);
     RH_ScopedInstall(GetLimits, 0x618590);
+    RH_ScopedInstall(SetLimits, 0x6185E0);
+    RH_ScopedInstall(GetBoneSpeed, 0x618630);
+    RH_ScopedInstall(SetBoneSpeed, 0x618680);
+    RH_ScopedInstall(GetPriority, 0x617C50);
+    RH_ScopedInstall(GetBoneNodeFromTag, 0x617C60);
+    RH_ScopedInstall(SetupBones, 0x617CA0);
+    RH_ScopedInstall(UpdateEntity, 0x617E00);
+    RH_ScopedInstall(UpdateOffset, 0x617E20);
+    RH_ScopedInstall(UpdateTarget, 0x617E50);
+    RH_ScopedInstall(IsFacingTarget, 0x617E60);
+    RH_ScopedInstall(IsAtTarget, 0x617F30);
 }
 
 // 0x618370
 bool IKChain_c::Init(
-    const char*  name,
+    const char*  name, // unused
     eIKChainSlot ikSlot,
     CPed*        ped,
     eBoneTag32   effectorBone,
@@ -39,7 +41,7 @@ bool IKChain_c::Init(
     eBoneTag32   offsetBone,
     RwV3d        offsetPos,
     float        speed,
-    int8         priority
+    int32        priority
 ) {
     m_Ped = ped;
 
@@ -86,8 +88,8 @@ void IKChain_c::Exit() {
 }
 
 // 0x6184B0
-void IKChain_c::Update(float timeStep) {
-    UNUSED(timeStep);
+void IKChain_c::Update(float deltaTime) {
+    UNUSED(deltaTime);
 
     m_PivotBoneMatrix = m_Ped->GetBoneMatrix(m_PivotBone);
     GetBones()[m_BonesCount - 1]->CalcWldMat(m_PivotBoneMatrix);
@@ -98,12 +100,12 @@ void IKChain_c::Update(float timeStep) {
 }
 
 // 0x617F30
-bool IKChain_c::IsAtTarget(float maxDist, float* outDist) const {
-    const auto dist = (m_OffsetPosWS - GetBones().front()->GetPosition()).Magnitude();
-    if (outDist) {
-        *outDist = dist;
+bool IKChain_c::IsAtTarget(float range, float* dist) const {
+    const auto len = (m_OffsetPosWS - GetBones().front()->GetPosition()).Magnitude();
+    if (dist) {
+        *dist = len;
     }
-    return dist <= maxDist && m_Blend > 0.98f;
+    return len <= range && m_Blend > 0.98f;
 }
 
 // 0x617E60
@@ -122,23 +124,23 @@ bool IKChain_c::IsFacingTarget() const {
 }
 
 // 0x617E50
-void IKChain_c::UpdateTarget(bool bUpdate) {
-    m_UpdateTarget = bUpdate;
+void IKChain_c::UpdateTarget(bool update) {
+    m_UpdateTarget = update;
 }
 
 // 0x617E20
-void IKChain_c::UpdateOffset(eBoneTag32 offsetBone, CVector offsetPosn) {
+void IKChain_c::UpdateOffset(eBoneTag32 offsetBone, RwV3d offsetPos) {
     m_OffsetBone = offsetBone;
-    m_OffsetPos  = offsetPosn;
+    m_OffsetPos = offsetPos;
 }
 
 // 0x618520
-void IKChain_c::ClampLimits(eBoneTag32 boneTag, bool LimitX, bool LimitY, bool LimitZ, bool UseCurrentLimits) {
-    auto& bone = *GetBoneNodeFromTag(boneTag);
-    if (UseCurrentLimits) {
-        bone.ClampLimitsCurrent(LimitX, LimitY, LimitZ);
+void IKChain_c::ClampLimits(eBoneTag32 boneTag, bool limitX, bool limitY, bool limitZ, bool current) {
+    auto& boneNode = *GetBoneNodeFromTag(boneTag);
+    if (current) {
+        boneNode.ClampLimitsCurrent(limitX, limitY, limitZ);
     } else {
-        bone.ClampLimitsDefault(LimitX, LimitY, LimitZ);
+        boneNode.ClampLimitsDefault(limitX, limitY, limitZ);
     }
 }
 
@@ -148,10 +150,11 @@ void IKChain_c::UpdateEntity(CEntity* entity) {
     m_TargetEntity = entity;
 }
 
+// inline
 // 0x617C60
-BoneNode_c* IKChain_c::GetBoneNodeFromTag(eBoneTag32 tag) {
-    const auto it = rng::find_if(GetBones(), [tag](auto&& b) {
-        return b->GetBoneTag() == tag;
+inline BoneNode_c* IKChain_c::GetBoneNodeFromTag(eBoneTag32 boneTag) {
+    const auto it = rng::find_if(GetBones(), [boneTag](auto&& b) {
+        return b->GetBoneTag() == boneTag;
     });
     return it != GetBones().end()
         ? *it
@@ -164,8 +167,8 @@ int8 IKChain_c::GetPriority() const {
 }
 
 // 0x617C30
-void IKChain_c::SetOffsetPos(CVector value) {
-    m_OffsetPos = value;
+void IKChain_c::SetOffsetPos(RwV3d offsetPos) {
+    m_OffsetPos = offsetPos;
 }
 
 // 0x617C20
@@ -174,8 +177,8 @@ void IKChain_c::SetOffsetBoneTag(eBoneTag32 offsetBone) {
 }
 
 // 0x617C10
-void IKChain_c::SetBlend(float value) {
-    m_Blend = value;
+void IKChain_c::SetBlend(float blend) {
+    m_Blend = blend;
 }
 
 // 0x6178B0
@@ -192,7 +195,7 @@ void IKChain_c::MoveBonesToTarget() {
                 if (mat) {
                     RwV3d transformed;
                     RwV3dTransformVector(&transformed, &m_OffsetPos, mat);
-                    m_OffsetPosWS += transformed;
+                    m_OffsetPosWS = m_OffsetPosWS + transformed;
                 }
             }
         } else {
@@ -257,7 +260,9 @@ void IKChain_c::MoveBonesToTarget() {
 }
 
 // 0x617CA0
-void IKChain_c::SetupBones(eBoneTag32 effectorBone, CVector effectorPos, eBoneTag32 pivotBone, AnimBlendFrameData* frames) {
+void IKChain_c::SetupBones(eBoneTag32 effectorBone, RwV3d effectorPos, eBoneTag32 pivotBone, AnimBlendFrameData* frames) {
+    UNUSED(effectorPos);
+
     m_PivotBoneMatrix = m_Ped->GetBoneMatrix(pivotBone);
     m_PivotBone       = pivotBone;
 
@@ -265,7 +270,7 @@ void IKChain_c::SetupBones(eBoneTag32 effectorBone, CVector effectorPos, eBoneTa
         return BoneNodeManager_c::ms_boneInfos[BoneNode_c::GetIdFromBoneTag(b)].m_prev;
     };
 
-    // Allocate bone nodes we use (Going from effector -> pivot)
+    // Allocate bone nodes we use (Going from effectorBoneTag -> pivotBoneTag)
     BoneNode_c* bones[MAX_BONE_NUM];
     m_BonesCount = 0;
     for (auto boneIt = effectorBone; boneIt != pivotBone; boneIt = GetBoneLinkPrev(boneIt)) {
@@ -291,7 +296,25 @@ void IKChain_c::SetupBones(eBoneTag32 effectorBone, CVector effectorPos, eBoneTa
     }
 }
 
+// unused
+// 0x6185E0
+void IKChain_c::SetLimits(eBoneTag32 boneTag, eRotationAxis axis, float min, float max) {
+    GetBoneNodeFromTag(boneTag)->SetLimits(axis, min, max);
+}
+
+// unused
+// 0x618630
+float IKChain_c::GetBoneSpeed(eBoneTag32 boneTag) {
+    return GetBoneNodeFromTag(boneTag)->GetSpeed();
+}
+
+// unused
+// 0x618680
+void IKChain_c::SetBoneSpeed(eBoneTag32 boneTag, float speed) {
+    GetBoneNodeFromTag(boneTag)->SetSpeed(speed);
+}
+
 // 0x618590
-void IKChain_c::GetLimits(eBoneTag32 boneTag, eRotationAxis axis, float& outMin, float& outMax) {
-    GetBoneNodeFromTag(boneTag)->GetLimits(axis, outMin, outMax);
+void IKChain_c::GetLimits(eBoneTag32 boneTag, eRotationAxis axis, float& min, float& max) {
+    GetBoneNodeFromTag(boneTag)->GetLimits(axis, min, max);
 }

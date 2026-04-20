@@ -21,7 +21,7 @@
 #include "RideAnims.h"
 #include "Rope.h"
 #include "Ropes.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskComplexEnterCarAsPassenger.h"
 #include "Shadows.h"
