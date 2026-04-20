@@ -22,8 +22,8 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(PlayAndKill, 0x4AA3D0);
     RH_ScopedInstall(Kill, 0x4AA3F0);
     RH_ScopedInstall(AttachToBone, 0x4AA400);
-    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(CVector*,CVector*,float,FxPrtMult_c*,float,float,float,bool), {.reversed = false});
-    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(RwMatrix*,CVector*,float,FxPrtMult_c*,float,float,float,bool), {.reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(const RwMatrix&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
     RH_ScopedInstall(EnablePrim, 0x4AA610);
     RH_ScopedInstall(SetMatrix, 0x4AA630);
     RH_ScopedInstall(SetOffsetPos, 0x4AA660);
@@ -166,9 +166,7 @@ void FxSystem_c::Kill() {
 
 // 0x4AA400
 void FxSystem_c::AttachToBone(CEntity* entity, eBoneTag boneId) {
-    auto animHier = GetAnimHierarchyFromSkinClump(entity->GetRpClump());
-    auto index = RpHAnimIDGetIndex(animHier, boneId);
-    m_ParentMatrix = &RpHAnimHierarchyGetMatrixArray(animHier)[index];
+    VERIFY(m_ParentMatrix = entity->GetBoneMatrix(boneId));
 }
 
 auto CanAddParticle() {
@@ -183,9 +181,9 @@ auto CanAddParticle() {
 }
 
 // 0x4AA440
-void FxSystem_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
+void FxSystem_c::AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
     if (CanAddParticle()) {
-        auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
+        const auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
         for (auto& prim : GetPrims()) {
             if (prim->m_bEnabled) {
                 prim->AddParticle(pos, vel, timeSince, fxMults, rotZ, brightness, createLocal);
@@ -196,9 +194,9 @@ void FxSystem_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtM
 
 // unused
 // 0x4AA540
-void FxSystem_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
+void FxSystem_c::AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal) {
     if (CanAddParticle()) {
-        auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
+        const auto brightness = lightMult < lightMultLimit ? 1.0f - lightMultLimit + lightMult : 1.0f;
         for (auto& prim : GetPrims()) {
             prim->AddParticle(mat, vel, timeSince, fxMults, rotZ, brightness, createLocal);
         }
@@ -225,8 +223,8 @@ void FxSystem_c::SetOffsetPos(const CVector& pos) {
 }
 
 // 0x4AA690
-void FxSystem_c::AddOffsetPos(CVector* pos) {
-    RwV3dAdd(&m_LocalMatrix.pos, &m_LocalMatrix.pos, pos);
+void FxSystem_c::AddOffsetPos(const CVector& pos) {
+    RwV3dAdd(&m_LocalMatrix.pos, &m_LocalMatrix.pos, &pos);
     RwMatrixUpdate(&m_LocalMatrix);
 }
 
@@ -247,8 +245,8 @@ void FxSystem_c::SetTimeMult(float mult) {
 }
 
 // 0x4AA730
-void FxSystem_c::SetVelAdd(CVector* velocity) {
-    m_VelAdd = *velocity;
+void FxSystem_c::SetVelAdd(const CVector& velocity) {
+    m_VelAdd = velocity;
 }
 
 // 0x4AA910
@@ -276,7 +274,7 @@ void FxSystem_c::CopyParentMatrix() {
 }
 
 // 0x4AA8C0
-void FxSystem_c::GetCompositeMatrix(RwMatrix* out) {
+void FxSystem_c::GetCompositeMatrix(RwMatrix* out) const {
     if (m_ParentMatrix)
         RwMatrixMultiply(out, &m_LocalMatrix, m_ParentMatrix);
     else
@@ -331,7 +329,7 @@ void FxSystem_c::GetBoundingBox(FxBox_c* out) {
 }
 
 // 0x4AAAD0
-bool FxSystem_c::GetBoundingSphereWld(FxSphere_c* out) {
+bool FxSystem_c::GetBoundingSphereWld(FxSphere_c* out) const {
     if (!m_BoundingSphere)
         return false;
 
@@ -345,7 +343,7 @@ bool FxSystem_c::GetBoundingSphereWld(FxSphere_c* out) {
 }
 
 // 0x4AAB50
-bool FxSystem_c::GetBoundingSphereLcl(FxSphere_c* out) {
+bool FxSystem_c::GetBoundingSphereLcl(FxSphere_c* out) const {
     if (!m_BoundingSphere)
         return false;
 
@@ -405,11 +403,11 @@ void FxSystem_c::DoFxAudio(CVector pos) {
 }
 
 // 0x4AAF30
-bool FxSystem_c::IsVisible() {
+bool FxSystem_c::IsVisible() const {
     FxSphere_c sphere;
     if (GetBoundingSphereWld(&sphere)) {
         FxFrustumInfo_c* info = g_fxMan.GetFrustumInfo();
-        if (!info->IsCollision(&sphere))
+        if (!info->IsCollision(sphere))
             return false;
     }
     return true;

@@ -298,6 +298,13 @@ public:
 
     // NOTSA section
 
+    /*!
+    * @notsa
+    * @param nodeID Node ID of the bone. For peds, see eBoneTag
+    * @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
+    */
+    RwMatrix* GetBoneMatrix(RwUInt32 nodeID) const;
+
     RwObject* GetRwObject() const noexcept { return m_pRwObject; }
     RpClump*  GetRpClump()  const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpCLUMP); return reinterpret_cast<RpClump*>(m_pRwObject); }
     RpAtomic* GetRpAtomic() const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpATOMIC); return reinterpret_cast<RpAtomic*>(m_pRwObject); }

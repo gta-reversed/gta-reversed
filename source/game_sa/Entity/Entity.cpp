@@ -2341,6 +2341,14 @@ void CEntity::UpdateRwMatrix() {
 }
 
 // notsa
+RwMatrix* CEntity::GetBoneMatrix(RwUInt32 nodeID) const {
+    if (const auto h = GetAnimHierarchyFromClump(GetRpClump())) {
+        return RpHAnimHierarchyGetNodeMatrix(h, nodeID);
+    }
+    return nullptr;
+}
+
+// notsa
 RpAtomic* CEntity::GetRpAtomicOrFirstAtomicOfClump() const noexcept {
     const auto obj = GetRwObject();
     if (!obj) {
