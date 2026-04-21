@@ -111,6 +111,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
 
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
+    .
     /
     toolsmenu/
     game_sa/
