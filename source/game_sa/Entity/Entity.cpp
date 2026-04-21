@@ -232,8 +232,8 @@ void CEntity::Remove() {
 // Sets the entity's model by index and then creates its RenderWare object
 // 0x532AE0
 void CEntity::SetModelIndex(uint32 index) {
-    CEntity::SetModelIndexNoCreate(index);
-    CEntity::CreateRwObject();
+    SetModelIndexNoCreate(index);
+    CreateRwObject();
 }
 
 // Sets the entity's model by index without creating its RenderWare object
@@ -2392,7 +2392,7 @@ bool CEntity::ProcessScan() {
 // 0x533290
 RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data) {
     auto geometry = RpAtomicGetGeometry(atomic);
-    RpGeometrySetFlags(geometry, rpGEOMETRYMODULATEMATERIALCOLOR);
+    RpGeometrySetFlags(geometry, RpGeometryGetFlags(geometry) | rpGEOMETRYMODULATEMATERIALCOLOR);
     RpGeometryForAllMaterials(geometry, SetCompAlphaCB, data);
     return atomic;
 }

@@ -1447,7 +1447,8 @@ void CStreaming::RequestModel(int32 modelId, int32 streamingFlags) {
         ++ms_numModelsRequested;
         if (streamingFlags & STREAMING_PRIORITY_REQUEST)
             ++ms_numPriorityRequests;
-
+        
+        info.ClearAllFlags();
         info.SetFlags(streamingFlags);
         info.m_LoadState = LOADSTATE_REQUESTED;
         break;
