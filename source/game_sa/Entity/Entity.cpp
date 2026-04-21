@@ -903,17 +903,14 @@ void CEntity::PreRenderForGlassWindow() {
 // Sets the alpha transparency for all materials of the entity's RenderWare object
 // 0x5332C0
 void CEntity::SetRwObjectAlpha(int32 alpha) {
-    if (!GetRwObject()) {
+    auto* const object = GetRwObject();
+    if (!object) {
         return;
     }
-
-    switch (RwObjectGetType(GetRwObject())) {
-    case rpATOMIC:
-        RpGeometryForAllMaterials(RpAtomicGetGeometry(GetRpAtomic()), SetCompAlphaCB, (void*)alpha);
-        break;
-    case rpCLUMP:
-        RpClumpForAllAtomics(GetRpClump(), SetAtomicAlpha, (void*)alpha);
-        break;
+    switch (const auto type = RwObjectGetType(object)) {
+    case rpATOMIC: SetAtomicAlpha(GetRpAtomic(), (void*)(alpha)); break;
+    case rpCLUMP:  RpClumpForAllAtomics(GetRpClump(), SetAtomicAlpha, (void*)alpha); break;
+    default:       NOTSA_UNREACHABLE_CASE(type);
     }
 }
 
