@@ -2389,7 +2389,7 @@ bool CEntity::ProcessScan() {
 // 0x533290
 RpAtomic* SetAtomicAlpha(RpAtomic* atomic, void* data) {
     auto geometry = RpAtomicGetGeometry(atomic);
-    RpGeometrySetFlags(geometry, rpGEOMETRYMODULATEMATERIALCOLOR);
+    RpGeometrySetFlags(geometry, RpGeometryGetFlags(geometry) | rpGEOMETRYMODULATEMATERIALCOLOR);
     RpGeometryForAllMaterials(geometry, SetCompAlphaCB, data);
     return atomic;
 }
