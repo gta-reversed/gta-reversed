@@ -37,7 +37,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
     {
         if (ped->m_nPedType != PED_TYPE_COP
             || GetEventType() != EVENT_ATTRACTOR
-            || !FindPlayerWanted()->m_nWantedLevel
+            || FindPlayerWanted()->GetWantedLevel() == eWantedLevel::WANTED_CLEAN
             && m_2dEffect->m_nAttractorType == PED_ATTRACTOR_TRIGGER_SCRIPT
             && CPopulation::PedMICanBeCreatedAtThisAttractor(ped->GetModelId(), m_2dEffect->m_szScriptName))
         {

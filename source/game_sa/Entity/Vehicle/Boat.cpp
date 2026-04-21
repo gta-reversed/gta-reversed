@@ -138,7 +138,7 @@ CBoat::~CBoat() {
 // 0x6F01A0
 void CBoat::SetupModelNodes() {
     rng::fill(m_BoatNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes.data());
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_BoatNodes.data());
 }
 
 // debug function
@@ -504,7 +504,7 @@ void CBoat::FillBoatList() {
 void CBoat::SetModelIndex(uint32 index) {
     CVehicle::SetModelIndex(index);
     rng::fill(m_BoatNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes.data());
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_BoatNodes.data());
 }
 
 // 0x6F1770
@@ -519,7 +519,7 @@ void CBoat::ProcessControl() {
     }
 
     auto wanted = FindPlayerWanted();
-    if (wanted->m_nWantedLevel > 0 && m_nModelIndex == MODEL_PREDATOR) {
+    if (wanted->GetWantedLevel() > eWantedLevel::WANTED_CLEAN && m_nModelIndex == MODEL_PREDATOR) {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
             auto iCarMission = m_autoPilot.m_nCarMission;
@@ -1018,7 +1018,7 @@ void CBoat::BlowUpCar(CEntity* culprit, bool inACutscene) {
 
     physicalFlags.bRenderScorched = true;
     SetStatus(STATUS_WRECKED);
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
     m_vecMoveSpeed.z += 0.13F;
     m_fHealth = 0.0F;
     m_wBombTimer = 0;

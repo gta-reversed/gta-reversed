@@ -707,7 +707,7 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
     }
 
     // If we've faded the ped completely out, remove it
-    if (ped->bFadeOut && CVisibilityPlugins::GetClumpAlpha(ped->m_pRwClump) == 0) {
+    if (ped->bFadeOut && CVisibilityPlugins::GetClumpAlpha(ped->GetRpClump()) == 0) {
         RemovePed(ped);
         return;
     }
@@ -931,7 +931,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    if (!CModelInfo::GetModelInfo(MODEL_MALE01)->m_pRwObject) {
+    if (!CModelInfo::GetModelInfo(MODEL_MALE01)->GetRwObject()) {
         NOTSA_LOG_DEBUG("Didn't create ped, because `MODEL_MALE01` has no RW object!");
         return nullptr;
     }
@@ -957,7 +957,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    CVisibilityPlugins::SetClumpAlpha(ped->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(ped->GetRpClump(), 0);
 
     return ped;
 }
@@ -1120,13 +1120,13 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
     constexpr uint32 NUM_COPS_FOR_WANTED_LEVEL[7]{ 0, 1, 2, 4, 5, 6, 7 };
     constexpr uint32 NUM_CARS_FOR_WANTED_LEVEL[7]{ 0, 0, 0, 1, 1, 2, 2 };
 
-    const auto plyrWantedLvl = FindPlayerWanted()->m_nWantedLevel;
-    assert(plyrWantedLvl <= 6);
+    const auto plyrWantedLvl = FindPlayerWanted()->GetWantedLevel();
+    assert(plyrWantedLvl <= eWantedLevel::WANTED_LEVEL_6);
     
     createAt.z += 1.f;
 
     // Create cop cars
-    if (auto numOfCars = NUM_CARS_FOR_WANTED_LEVEL[plyrWantedLvl]) {
+    if (auto numOfCars = NUM_CARS_FOR_WANTED_LEVEL[+plyrWantedLvl]) {
         CNodeAddress createPosNodes[3]{};
         createPosNodes[0] = ThePaths.FindNthNodeClosestToCoors(
             createAt,
@@ -1164,7 +1164,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
 
             // Now, update the RW matrix too
             if (veh->GetRwObject()) {
-                vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->m_pRwClump)));
+                vehMat.UpdateRwMatrix(RwFrameGetMatrix(RpClumpGetFrame(veh->GetRpClump())));
             }
 
             CCarCtrl::JoinCarWithRoadSystem(veh);
@@ -1177,7 +1177,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
     }
 
     // Create cop peds
-    if (auto numOfCopPeds = NUM_COPS_FOR_WANTED_LEVEL[plyrWantedLvl]) {
+    if (auto numOfCopPeds = NUM_COPS_FOR_WANTED_LEVEL[+plyrWantedLvl]) {
         for (int32 i{}; i < 20; i++) { // int32 angleOffset = 0; angleOffset > -20; angleOffset--
             const auto heading   = CGeneral::GetRandomNumberInRange(0.f, (float)(i) * 0.4f) - (float)(i) * 0.2f + createaWithHeading;
             auto       copPedPos = CVector{ CVector2D{createAt} + CVector2D{sin(heading), cos(heading)} *CGeneral::GetRandomNumberInRange(8.f, 10.f), createAt.z };
@@ -1207,7 +1207,7 @@ void CPopulation::CreateWaitingCoppers(CVector createAt, float createaWithHeadin
 
             CWorld::Add(ped);
 
-            if (plyrWantedLvl > 1) {
+            if (plyrWantedLvl > eWantedLevel::WANTED_LEVEL_1) {
                 ped->GiveWeapon(WEAPON_PISTOL, 30000, true);
                 ped->SetCurrentWeapon(WEAPON_PISTOL);
             }
@@ -1246,7 +1246,7 @@ CPed* CPopulation::AddPedInCar(
         }
 
         const auto FixIfInvalid = [&](eModelID model, bool checkRWObj = false) {
-            return model != MODEL_INVALID && (!checkRWObj || CModelInfo::GetPedModelInfo(model)->m_pRwObject)
+            return model != MODEL_INVALID && (!checkRWObj || CModelInfo::GetPedModelInfo(model)->GetRwObject())
                 ? model
                 : MODEL_MALE01;
         };
@@ -1366,7 +1366,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
     }
 
     const auto CreatePed = [&](ePedType ptype, eModelID model) -> CPed* {
-        if (!CModelInfo::GetPedModelInfo(model)->m_pRwObject) {
+        if (!CModelInfo::GetPedModelInfo(model)->GetRwObject()) {
             return nullptr;
         }
         return AddPed(ptype, model, placeAt, true);
@@ -1376,7 +1376,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
     if (!husb) {
         return;
     }
-    CVisibilityPlugins::SetClumpAlpha(husb->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(husb->GetRpClump(), 0);
 
     const auto wifey = CreatePed(PED_TYPE_CIVFEMALE, wifeyModelId);
     if (!wifey) {
@@ -1405,7 +1405,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
         wifey->GetColModel()->GetBoundRadius(),
         { husb, wifey }
     )) {
-        CVisibilityPlugins::SetClumpAlpha(wifey->m_pRwClump, 0); // All good
+        CVisibilityPlugins::SetClumpAlpha(wifey->GetRpClump(), 0); // All good
     }  else { // Blocked by something
         RemovePed(wifey);
         RemovePed(husb);

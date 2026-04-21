@@ -19,8 +19,8 @@ public:
     // NOTSA
     FxSphere_c(CVector center, float radius) : CSphere(center, radius), m_nNumPlanesPassed(0) {}
 
-    inline bool  IsCollision(FxSphere_c* sphere) const;
-    inline float GetDistToPlane(FxPlane_c* plane) const;
+    inline bool  IsCollision(const FxSphere_c& sphere) const;
+    inline float GetDistToPlane(const FxPlane_c& plane) const;
 };
 
 VALIDATE_SIZE(FxSphere_c, 0x14);

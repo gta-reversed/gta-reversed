@@ -2372,7 +2372,7 @@ float GetNearestDistanceOfPedSphereToCameraNearClip(CPed* ped) {
     const auto mi = ped->GetPedModelInfo();
 
     // Calculate hit colmodel
-    mi->AnimatePedColModelSkinnedWorld(ped->m_pRwClump);
+    mi->AnimatePedColModelSkinnedWorld(ped->GetRpClump());
     const auto hitCM = mi->m_pHitColModel;
     assert(hitCM->GetData()->m_nNumSpheres == 12); // In theory it should have 12 spheres
 

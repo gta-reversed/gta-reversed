@@ -130,8 +130,8 @@ uint8 CTagManager::GetAlpha(RpAtomic* atomic)
 
 uint8 CTagManager::GetAlpha(CEntity* entity)
 {
-    if (entity->m_pRwAtomic)
-        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->m_pRwAtomic));
+    if (entity->GetRpAtomic())
+        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->GetRpAtomic()));
 
     auto tag = FindTagDesc(entity);
     assert(tag); // Originally the function would access uninitialized memory, by clearing EAX and dereferencing pointer to [EAX + 0x4] right after that
@@ -148,8 +148,8 @@ void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha)
 // 0x49CEC0
 void CTagManager::SetAlpha(CEntity* entity, uint8 ucAlpha)
 {
-    if (entity->m_pRwAtomic)
-        SetAlpha(entity->m_pRwAtomic, ucAlpha);
+    if (entity->GetRpAtomic())
+        SetAlpha(entity->GetRpAtomic(), ucAlpha);
 
     auto tagDesc = FindTagDesc(entity);
     auto bChangedState = false;
@@ -169,11 +169,11 @@ void CTagManager::SetAlpha(CEntity* entity, uint8 ucAlpha)
 
 void CTagManager::ResetAlpha(CEntity* entity)
 {
-    if (!entity->m_pRwAtomic)
+    if (!entity->GetRpAtomic())
         return;
 
     auto tagDesc = FindTagDesc(entity);
-    SetAlpha(entity->m_pRwAtomic, tagDesc->m_nAlpha);
+    SetAlpha(entity->GetRpAtomic(), tagDesc->m_nAlpha);
 }
 
 // 0x49CFE0
@@ -182,8 +182,8 @@ void CTagManager::SetAlphaInArea(CRect* area, uint8 ucAlpha)
     for (int32 i = ms_numTags - 1; i >= 0; --i) {
         auto& tagDesc = ms_tagDesc[i];
         auto vecPos = CVector2D(tagDesc.m_pEntity->GetPosition());
-        if (area->IsPointInside(vecPos) && tagDesc.m_pEntity->m_pRwAtomic) {
-            SetAlpha(tagDesc.m_pEntity->m_pRwAtomic, ucAlpha);
+        if (area->IsPointInside(vecPos) && tagDesc.m_pEntity->GetRpAtomic()) {
+            SetAlpha(tagDesc.m_pEntity->GetRpAtomic(), ucAlpha);
             tagDesc.m_nAlpha = ucAlpha;
         }
     }

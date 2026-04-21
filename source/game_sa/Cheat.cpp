@@ -628,7 +628,7 @@ void CCheat::NinjaCheat() {
 // 0x4396c0
 void CCheat::NotWantedCheat() {
     CPlayerPed* player = FindPlayerPed();
-    player->CheatWantedLevel(0);
+    player->CheatWantedLevel(eWantedLevel::WANTED_CLEAN);
     player->bWantedByPolice = false;
     Toggle(CHEAT_I_DO_AS_I_PLEASE);
 }
@@ -870,13 +870,13 @@ void CCheat::VillagePeopleCheat() {
 // 0x4396f0
 void CCheat::WantedCheat() {
     CPlayerPed* player = FindPlayerPed();
-    player->CheatWantedLevel(6);
+    player->CheatWantedLevel(eWantedLevel::WANTED_LEVEL_6);
 }
 
 // 0x438f20
 void CCheat::WantedLevelDownCheat() {
     CPlayerPed* player = FindPlayerPed();
-    player->CheatWantedLevel(0);
+    player->CheatWantedLevel(eWantedLevel::WANTED_CLEAN);
 }
 
 // 0x438e90
@@ -886,8 +886,8 @@ void CCheat::WantedLevelUpCheat() {
     if (!player)
         return;
 
-    uint8 level = player->GetWantedLevel();
-    player->CheatWantedLevel(std::min(level + 2, 6));
+    const auto level = player->GetWantedLevel();
+    player->CheatWantedLevel((eWantedLevel)(std::min(+level + +eWantedLevel::WANTED_LEVEL_2, +eWantedLevel::WANTED_LEVEL_6)));
 }
 
 // refactored
