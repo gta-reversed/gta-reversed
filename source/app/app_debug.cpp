@@ -220,7 +220,7 @@ notsa::Logging::Logging() {
 }
 
 notsa::Logging::~Logging() {
-    //spdlog::shutdown();
+    //spdlog::shutdown(); // some kind of deadlock occurs and it never shuts down
 }
 
 auto notsa::Logging::Create(std::string name, std::optional<spdlog::level::level_enum> level) -> notsa::log_ptr {

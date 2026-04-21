@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "config.h"
+#include <cstdlib>
 
 #include "extensions/CommandLine.h"
 #include "extensions/Configuration.hpp"
@@ -7,11 +8,14 @@
 
 void InjectHooksMain(HMODULE hThisDLL);
 
-void DisplayConsole()
-{
+void DisplayConsole() {
+    // Support UTF-8 IO for Windows Terminal. (or CMD if a supported font is used)
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
+
     if (AllocConsole()) {
         FILESTREAM fs{};
-        VERIFY(freopen_s(&fs, "CONIN$",  "r", stdin)  == NOERROR);
+        VERIFY(freopen_s(&fs, "CONIN$", "r", stdin) == NOERROR);
         VERIFY(freopen_s(&fs, "CONOUT$", "w", stdout) == NOERROR);
         VERIFY(freopen_s(&fs, "CONOUT$", "w", stderr) == NOERROR);
     }
@@ -47,7 +51,7 @@ static void ApplyCommandLineHookSettings() {
         case SetCatOrItemStateResult::NotFound: return "not found";
         case SetCatOrItemStateResult::Locked:   return "locked";
         case SetCatOrItemStateResult::Done:     return "done";
-        default: NOTSA_UNREACHABLE();
+        default:                                NOTSA_UNREACHABLE();
         }
     };
 
@@ -80,29 +84,23 @@ static void ApplyCommandLineHookSettings() {
     }
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
-{
-    switch (ul_reason_for_call)
-    {
-    case DLL_PROCESS_ATTACH:
-    {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+    switch (ul_reason_for_call) {
+    case DLL_PROCESS_ATTACH: {
         // Fail if RenderWare has already been started
-        if (*(RwCamera**)0xC1703C)
-        {
+        if (*(RwCamera**)0xC1703C) {
             MessageBox(NULL, "gta_reversed failed to load (RenderWare has already been started)", "Error", MB_ICONERROR | MB_OK);
             return FALSE;
         }
 
         std::setlocale(LC_ALL, "en_US.UTF-8");
-        // Support UTF-8 IO for Windows Terminal. (or CMD if a supported font is used)
-        SetConsoleCP(CP_UTF8);
-        SetConsoleOutputCP(CP_UTF8);
 
         DisplayConsole();
         CommandLine::Load(__argc, __argv);
 
-        if (CommandLine::waitForDebugger)
+        if (CommandLine::s_WaitForDebugger) {
             WaitForDebugger();
+        }
 
         LoadConfigurations();
 

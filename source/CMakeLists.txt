@@ -3,9 +3,17 @@
 #--------------------------------------------------------------------
 option(${RE_PROJECT}_WITH_OPENAL "Use OpenAL" OFF)
 option(${RE_PROJECT}_WITH_SDL3 "Use SDL3" OFF)
+option(${RE_PROJECT}_STANDALONE "Build standalone executable" OFF)
+option(${RE_PROJECT}_DUMP_HOOKS_ONLY "Dump hooks only" OFF)
 
 if (${RE_PROJECT}_WITH_SDL3)
     add_compile_definitions(NOTSA_USE_SDL3)
+endif()
+if (${RE_PROJECT}_STANDALONE)
+    add_compile_definitions(NOTSA_STANDALONE)
+endif()
+if (${RE_PROJECT}_DUMP_HOOKS_ONLY)
+    add_compile_definitions(NOTSA_DUMP_HOOKS_ONLY)
 endif()
 
 #--------------------------------------------------------------------
@@ -50,8 +58,11 @@ else()
     list(REMOVE_ITEM SOURCE_FILES_LIST ${OPENAL_FILES})
 endif()
 
-
-add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
+if (${RE_PROJECT}_STANDALONE)
+    add_executable(${RE_PROJECT_LIB_NAME} WIN32 ${SOURCE_FILES_LIST})
+else()
+    add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
+endif()
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/INCREMENTAL>"
 )
@@ -59,9 +70,15 @@ target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/ZI;/W3;/wd4200;/wd4251;/wd4275;/wd4996;/wd26495;/wd26812;/wd28159>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;-Wno-switch>"
 )
+
+if (${RE_PROJECT}_STANDALONE) 
+    set(TARGET_SUFFIX ".exe")
+else()
+    set(TARGET_SUFFIX ".asi")
+endif()
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
-    SUFFIX ".asi"
+    SUFFIX "${TARGET_SUFFIX}"
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
