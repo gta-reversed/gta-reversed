@@ -118,6 +118,6 @@ namespace detail {
     private:
         DWORD  m_initialProtect{};
         LPVOID m_addr{};
-        DWORD  m_sz{};
+        SIZE_T m_sz{};
     };
 }; // namespace detail
