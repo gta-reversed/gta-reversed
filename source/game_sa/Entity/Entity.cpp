@@ -908,9 +908,7 @@ void CEntity::SetRwObjectAlpha(int32 alpha) {
     }
 
     switch (RwObjectGetType(GetRwObject())) {
-        auto* const geometry = RpAtomicGetGeometry(GetRpAtomic());
-        RpGeometrySetFlags(geometry, RpGeometryGetFlags(geometry) | rpGEOMETRYMODULATEMATERIALCOLOR);
-        RpGeometryForAllMaterials(geometry, SetCompAlphaCB, (void*)alpha);
+    SetAtomicAlpha(GetRpAtomic(), (void*)(alpha));
         break;
     }
     case rpCLUMP:
