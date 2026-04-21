@@ -908,7 +908,7 @@ void CEntity::SetRwObjectAlpha(int32 alpha) {
     }
 
     switch (RwObjectGetType(GetRwObject())) {
-    SetAtomicAlpha(GetRpAtomic(), (void*)(alpha));
+        SetAtomicAlpha(GetRpAtomic(), (void*)(alpha));
         break;
     }
     case rpCLUMP:
