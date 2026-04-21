@@ -2009,7 +2009,7 @@ void CPed::ClearLookFlag() {
         m_pedIK.bTorsoUsed = false;
     }
 
-    m_nLookTime = CTimer::GetTimeInMS() + (IsPlayer() ? 4000 : 2000);
+    m_nLookTime = CTimer::GetTimeInMS() + (IsPlayer() ? 2000 : 4000);
 
     // .. } while ((PEDSTATE_LOOK_HEADING || PEDSTATE_LOOK_ENTITY) && bIsLooking), but `bIsLooking` will never be true at this point.
 }
