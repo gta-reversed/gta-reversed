@@ -1924,8 +1924,8 @@ bool CStreaming::ProcessLoadingChannel(int32 chIdx) {
 
                 if (info.IsLoadingFinishing()) {
                     ch.LoadStatus = eChannelState::STARTED;
-                    ch.modelStreamingBufferOffsets[i] = bufferOffsetInSectors;
-                    ch.modelIds[i] = modelId;
+                    ch.modelStreamingBufferOffsets[0] = bufferOffsetInSectors;
+                    ch.modelIds[0] = modelId;
                     if (i == 0)
                         continue;
                 }
