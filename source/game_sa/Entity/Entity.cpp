@@ -232,8 +232,8 @@ void CEntity::Remove() {
 // Sets the entity's model by index and then creates its RenderWare object
 // 0x532AE0
 void CEntity::SetModelIndex(uint32 index) {
-    CEntity::SetModelIndexNoCreate(index);
-    CEntity::CreateRwObject();
+    SetModelIndexNoCreate(index);
+    CreateRwObject();
 }
 
 // Sets the entity's model by index without creating its RenderWare object
