@@ -389,6 +389,10 @@ struct D3D9ProxyDevice {
             Real_SetViewport = VoidToFunctionPtr<D3D9Device_SetViewport_Type>(vmt[D3D9Device_SetViewport_VMT_Index]);
         }
 
+        // NOTE: Wine has this VMT write-protected, unlike Windows.
+        const auto vmtSize = (std::max(D3D9Device_Reset_VMT_Index, D3D9Device_SetViewport_VMT_Index) + 1) * sizeof(void*);
+        ::detail::ScopedVirtualProtectModify m{ vmt, vmtSize, PAGE_EXECUTE_READWRITE };
+
         // Overwrite vmt entries
         vmt[D3D9Device_Reset_VMT_Index]       = FunctionToVoidPtr(&Proxy_Reset);
         vmt[D3D9Device_SetViewport_VMT_Index] = FunctionToVoidPtr(&Proxy_SetViewport);
