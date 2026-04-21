@@ -391,7 +391,7 @@ struct D3D9ProxyDevice {
 
         // NOTE: Wine has this VMT write-protected, unlike Windows.
         const auto vmtSize = (std::max(D3D9Device_Reset_VMT_Index, D3D9Device_SetViewport_VMT_Index) + 1) * sizeof(void*);
-        notsa::ScopedVirtualProtectModify _{ vmt, vmtSize, PAGE_EXECUTE_READWRITE };
+        [[maybe_unused]] notsa::ScopedVirtualProtectModify _{ vmt, vmtSize, PAGE_EXECUTE_READWRITE };
 
         // Overwrite vmt entries
         vmt[D3D9Device_Reset_VMT_Index]       = FunctionToVoidPtr(&Proxy_Reset);
