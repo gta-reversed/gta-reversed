@@ -3005,13 +3005,13 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
 
             switch (collisionComponent) {
             case eVehicleCollisionComponent::BONNET:
-                ApplyDamageToComponent(tComponent::COMPONENT_BONNET);
+                ApplyDamageToComponent(tComponent::DOOR_BONNET);
                 break;
             case eVehicleCollisionComponent::BOOT:
-                ApplyDamageToComponent(tComponent::COMPONENT_BOOT);
+                ApplyDamageToComponent(tComponent::DOOR_BOOT);
                 break;
             case eVehicleCollisionComponent::BUMP_FRONT: {
-                ApplyDamageToComponent(tComponent::COMPONENT_BUMP_FRONT);
+                ApplyDamageToComponent(tComponent::PANEL_FRONT_BUMPER);
 
                 const auto localDir       = GetCollisionPointLocalDirection();
                 const auto colDirDotRight = DotProduct(*vecCollisionDirection, m_matrix->GetRight());
@@ -3020,69 +3020,69 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                 if (   localDir > 0.7f // [0, 45] deg
                     || localDir > 0.5f && colDirDotRight < -0.5f && m_fMass * 0.35f < calcDmgIntensity
                 ) {
-                    ApplyDamageToComponent(tComponent::COMPONENT_WING_RF);
+                    ApplyDamageToComponent(tComponent::PANEL_FRONT_RIGHT);
                 } else if (
                        localDir > -0.7f // [90, 135] deg
                     || localDir > -0.5f && colDirDotRight > 0.5f && m_fMass * 0.35f < calcDmgIntensity
                 ) {
-                    ApplyDamageToComponent(tComponent::COMPONENT_WING_LF);
+                    ApplyDamageToComponent(tComponent::PANEL_FRONT_LEFT);
                 }
 
                 // Possibly apply bonnet damage if front bumper is not `ok`
                 if (   m_damageManager.GetPanelStatus(ePanels::FRONT_BUMPER) != DAMSTATE_OK && m_fMass * 0.2f < calcDmgIntensity
                     || weapon < WEAPON_LAST_WEAPON && (CGeneral::GetRandomNumber() % 3 == 0) // If it was a weapon, apply damage by randomly
                 ) {
-                    ApplyDamageToComponent(tComponent::COMPONENT_BONNET);
+                    ApplyDamageToComponent(tComponent::DOOR_BONNET);
                 }
 
                 // Possibly apply windscreen damage if front bumper is `damaged`
                 if (m_damageManager.GetPanelStatus(ePanels::FRONT_BUMPER) >= DAMSTATE_DAMAGED && m_fMass * 0.2f < calcDmgIntensity) {
-                    ApplyDamageToComponent(tComponent::COMPONENT_WINDSCREEN);
+                    ApplyDamageToComponent(tComponent::PANEL_WINDSCREEN);
                 }
                 break;
             }
             case eVehicleCollisionComponent::BUMP_REAR: {
-                ApplyDamageToComponent(tComponent::COMPONENT_BUMP_REAR);
+                ApplyDamageToComponent(tComponent::PANEL_REAR_BUMPER);
 
                 const auto localDir = GetCollisionPointLocalDirection();
 
                 // If this is a van possibly apply damage to the rear doors
                 if (vehicleFlags.bIsVan && m_fMass * 0.35f < calcDmgIntensity) {
                     if (localDir > 0.1f) { // [-90, -85] deg
-                        ApplyDamageToComponent(tComponent::COMPONENT_DOOR_RR);
+                        ApplyDamageToComponent(tComponent::DOOR_REAR_RIGHT);
                     } else if (localDir < -0.1f) { // [-95, -90]
-                        ApplyDamageToComponent(tComponent::COMPONENT_DOOR_LR);
+                        ApplyDamageToComponent(tComponent::DOOR_REAR_LEFT);
                     }
                 }
 
                 // Possibly apply damage to boot if not already damaged
                 if (m_damageManager.GetPanelStatus(ePanels::REAR_BUMPER) < DAMSTATE_DAMAGED) {
-                    ApplyDamageToComponent(tComponent::COMPONENT_BOOT);
+                    ApplyDamageToComponent(tComponent::DOOR_BOOT);
                 }
 
 
                 break;
             }
             case eVehicleCollisionComponent::DOOR_LF:
-                ApplyDamageToComponent(tComponent::COMPONENT_DOOR_LF);
+                ApplyDamageToComponent(tComponent::DOOR_FRONT_LEFT);
                 break;
             case eVehicleCollisionComponent::DOOR_RF:
-                ApplyDamageToComponent(tComponent::COMPONENT_DOOR_RF);
+                ApplyDamageToComponent(tComponent::DOOR_FRONT_RIGHT);
                 break;
             case eVehicleCollisionComponent::DOOR_LR:
-                ApplyDamageToComponent(tComponent::COMPONENT_DOOR_LR);
+                ApplyDamageToComponent(tComponent::DOOR_REAR_LEFT);
                 break;
             case eVehicleCollisionComponent::DOOR_RR:
-                ApplyDamageToComponent(tComponent::COMPONENT_DOOR_RR);
+                ApplyDamageToComponent(tComponent::DOOR_REAR_RIGHT);
                 break;
             case eVehicleCollisionComponent::WING_LF:
-                ApplyDamageToComponent(tComponent::COMPONENT_WING_LF);
+                ApplyDamageToComponent(tComponent::PANEL_FRONT_LEFT);
                 break;
             case eVehicleCollisionComponent::WING_RF:
-                ApplyDamageToComponent(tComponent::COMPONENT_WING_RF);
+                ApplyDamageToComponent(tComponent::PANEL_FRONT_RIGHT);
                 break;
             case eVehicleCollisionComponent::WINDSCREEN:
-                ApplyDamageToComponent(tComponent::COMPONENT_WINDSCREEN);
+                ApplyDamageToComponent(tComponent::PANEL_WINDSCREEN);
                 break;
             case eVehicleCollisionComponent::DEFAULT:
             case eVehicleCollisionComponent::WING_LR:
@@ -4201,9 +4201,9 @@ void CAutomobile::SetBusDoorTimer(uint32 timerEndDelta, bool setAsStartedInPast)
 void CAutomobile::ProcessAutoBusDoors() {
     if (m_nBusDoorTimerEnd <= CTimer::GetTimeInMS()) {
         if (m_nBusDoorTimerStart) {
-            static constexpr struct { eDoors door; tComponent comp; uint32 flagMask; } doors[]{
-                { eDoors::DOOR_LEFT_FRONT,  tComponent::COMPONENT_DOOR_RR, 1 }, // TODO: `COMPONENT_DOOR_RR` doesn't match up with `DOOR_LEFT_FRONT`
-                { eDoors::DOOR_RIGHT_FRONT, tComponent::COMPONENT_DOOR_RF, 4 }
+            static constexpr struct { eDoors door; eCarNodes comp; uint32 flagMask; } doors[]{
+                { eDoors::DOOR_LEFT_FRONT,  CAR_DOOR_LF, 1 }, 
+                { eDoors::DOOR_RIGHT_FRONT, CAR_DOOR_RF, 4 }
             };
 
             for (auto&& [door, comp, flagMask] : doors) {
@@ -4218,7 +4218,7 @@ void CAutomobile::ProcessAutoBusDoors() {
     } else if (m_nBusDoorTimerEnd && CTimer::GetTimeInMS() > m_nBusDoorTimerEnd - 500) {
         if (!IsDoorMissing(eDoors::DOOR_LEFT_FRONT) && (m_nGettingInFlags & 1)) {
             const auto OpenThisDoor = [this](float ratio) {
-                OpenDoor(nullptr, COMPONENT_DOOR_RR, DOOR_LEFT_FRONT, ratio, true); // TODO: `COMPONENT_DOOR_RR` doesn't match up with `DOOR_LEFT_FRONT`
+                OpenDoor(nullptr, CAR_DOOR_LF, DOOR_LEFT_FRONT, ratio, true);
             };
 
             if (IsDoorClosed(eDoors::DOOR_LEFT_FRONT)) {
@@ -4233,7 +4233,7 @@ void CAutomobile::ProcessAutoBusDoors() {
             if (IsDoorClosed(eDoors::DOOR_RIGHT_FRONT)) {
                 m_nBusDoorTimerEnd = CTimer::GetTimeInMS();
             }
-            OpenDoor(nullptr, COMPONENT_DOOR_RF, DOOR_RIGHT_FRONT, 0.f, true);
+            OpenDoor(nullptr, CAR_DOOR_RF, DOOR_RIGHT_FRONT, 0.f, true);
         }
     }
 }
@@ -4505,21 +4505,21 @@ void CAutomobile::PopBootUsingPhysics() {
 void CAutomobile::CloseAllDoors() {
     const auto& mi = *GetVehicleModelInfo();
 
-    const auto CloseDoor = [this](tComponent comp, eDoors door) {
+    const auto CloseDoor = [this](eCarNodes node, eDoors door) {
         if (!IsDoorMissing(door)) {
-            OpenDoor(nullptr, comp, door, 0.f, true);
+            OpenDoor(nullptr, node, door, 0.f, true);
         }
     };
 
     assert(mi.m_nNumDoors > 0);
-    CloseDoor(tComponent::COMPONENT_DOOR_RR, eDoors::DOOR_LEFT_FRONT); // TODO: Again, enums dont seem to match up..
+    CloseDoor(CAR_DOOR_LF, eDoors::DOOR_LEFT_FRONT);
     if (mi.m_nNumDoors > 1) {
-        CloseDoor(tComponent::COMPONENT_DOOR_RF, eDoors::DOOR_RIGHT_FRONT);
+        CloseDoor(CAR_DOOR_RF, eDoors::DOOR_RIGHT_FRONT);
         if (mi.m_nNumDoors > 2) {
             assert(mi.m_nNumDoors == 4); // Pirulax: May assert, I'm not sure. Let me know if it did.
 
-            CloseDoor(tComponent::COMPONENT_WING_LF, eDoors::DOOR_LEFT_REAR); // TODO: Enums dont match at all..
-            CloseDoor(tComponent::COMPONENT_DOOR_LR, eDoors::DOOR_RIGHT_REAR);
+            CloseDoor(CAR_DOOR_LR, eDoors::DOOR_LEFT_REAR);
+            CloseDoor(CAR_DOOR_RR, eDoors::DOOR_RIGHT_REAR);
         }
     }
 }
