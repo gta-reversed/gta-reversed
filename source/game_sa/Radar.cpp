@@ -18,7 +18,7 @@ constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E
 
 // Array of TXD slot indices for each radar section's texture
 // Index using y, x (In that order)
-static std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>& gRadarTextures = *(std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>*)0xBA8478;
+static auto& gRadarTextures = StaticRef<std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>>(0xBA8478);
 
 // 0x8D0720
 SpriteFileName CRadar::RadarBlipFileNames[] = {
@@ -258,8 +258,8 @@ void CRadar::DrawLegend(int32 x, int32 y, eRadarSprite blipType) {
         return;
     }
 
-    static auto& legendTraceHeight = StaticRef<eRadarTraceHeight, 0xBAA350>(); // = eRadarTraceHeight::RADAR_TRACE_LOW;
-    static auto& legendTraceTimer  = StaticRef<uint32, 0xBAA354>(); // = CTimer::GetTimeInMS();
+    static auto& legendTraceHeight = StaticRef<eRadarTraceHeight>(0xBAA350); // = eRadarTraceHeight::RADAR_TRACE_LOW;
+    static auto& legendTraceTimer  = StaticRef<uint32>(0xBAA354); // = CTimer::GetTimeInMS();
 
     if (CTimer::GetTimeInMSPauseMode() - legendTraceTimer > 600) {
         legendTraceTimer = CTimer::GetTimeInMSPauseMode();
@@ -972,8 +972,8 @@ void CRadar::DrawRotatingRadarSprite(CSprite2d& sprite, float x, float y, float 
 
 // 0x584960
 void CRadar::DrawYouAreHereSprite(float x, float y) {
-    static auto& mapYouAreHereTimer = *(uint32*)0xBAA358;
-    static auto& mapYouAreHereDisplay = *(bool*)0x8D0930;
+    static auto& mapYouAreHereTimer = StaticRef<uint32>(0xBAA358);
+    static auto& mapYouAreHereDisplay = StaticRef<bool>(0x8D0930);
 
     if (CTimer::GetTimeInMSPauseMode() - mapYouAreHereTimer > 700) {
         mapYouAreHereTimer = CTimer::GetTimeInMSPauseMode();
@@ -1471,7 +1471,7 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
 
     // Now draw what we have
     if (numVerts > 2) {
-        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, numVerts);
+        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices.data(), numVerts);
     }
 }
 
@@ -1490,15 +1490,15 @@ void CRadar::DrawRadarSectionMap(int32 x, int32 y, CRect rect) {
             RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
 
             CSprite2d::SetVertices(rect, bg, bg, bg, bg);
-            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, 4);
+            RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices.data(), 4);
         }
     }
 }
 
 // 0x586650
 void CRadar::DrawRadarGangOverlay(bool inMenu) {
-    static uint32& g_RadarGangResetOverlay = *(uint32*)0xBAA36C; // bool?
-    static CRect& g_RadarGangOverlay = *(CRect*)0xBAA35C;
+    static auto& g_RadarGangResetOverlay = StaticRef<uint32>(0xBAA36C); // bool?
+    static auto& g_RadarGangOverlay = StaticRef<CRect>(0xBAA35C);
 
     if ((g_RadarGangResetOverlay & 1) == 0) {
         g_RadarGangResetOverlay |= 1u;
@@ -1944,8 +1944,10 @@ void CRadar::DrawBlips() {
         }
     }
 
-    const auto GetPlayerMarkerPosition = [] {
-        const auto playerDirection = (FindPlayerCentreOfWorldForMap(0) - vec2DRadarOrigin) / m_radarRange;
+    // FIX_BUGS: Originally 2 player blips both drawing P1's position.
+    // https://github.com/CookiePLMonster/SilentPatch/issues/209
+    const auto GetPlayerMarkerPosition = [](int32 playerIndex = 0) {
+        const auto playerDirection = (FindPlayerCentreOfWorldForMap(playerIndex) - vec2DRadarOrigin) / m_radarRange;
 
         CVector2D rotatedPos = {
             cachedSin * playerDirection.y + cachedCos * playerDirection.x,
@@ -1965,7 +1967,7 @@ void CRadar::DrawBlips() {
             if (auto veh = FindPlayerVehicle(i); veh && veh->IsSubPlane() && !ModelIndices::IsVortex(veh->m_nModelIndex))
                 continue;
 
-            const auto pos = GetPlayerMarkerPosition();
+            const auto pos = GetPlayerMarkerPosition(notsa::IsFixBugs() ? i : 0);
 
             const auto angle = [] {
                 const auto heading = FindPlayerHeading(0);
@@ -1983,16 +1985,12 @@ void CRadar::DrawBlips() {
                 pos.y,
                 angle,
                 static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #ifdef FIX_BUGS
-                static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)),
-            #else
-                static_cast<uint32>(SCREEN_STRETCH_X(8.0f)),
-            #endif
+                (notsa::IsFixBugs() ? static_cast<uint32>(SCREEN_STRETCH_Y(8.0f)) : static_cast<uint32>(SCREEN_STRETCH_X(8.0f))),
                 player->IsHidden() ? CRGBA{50, 50, 50, 255} : CRGBA{255, 255, 255, 255}
             );
         }
     } else {
-        const auto pos = GetPlayerMarkerPosition();
+        const auto pos = GetPlayerMarkerPosition(0);
         DrawYouAreHereSprite(pos.x, pos.y);
     }
 }

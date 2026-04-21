@@ -101,6 +101,7 @@ struct tEffectLight {
 VALIDATE_SIZE(tEffectLight, 0x30);
 
 struct tEffectParticle {
+    static inline constexpr e2dEffectType Type = EFFECT_PARTICLE;
     char m_szName[24];
 };
 VALIDATE_SIZE(tEffectParticle, 0x18);
@@ -126,7 +127,7 @@ struct tEffectEnEx {
     RwV2d m_vecRadius;
     RwV3d m_vecExitPosn;
     float m_fExitAngle;
-    int16 m_nInteriorId;
+    eAreaCodesS16 m_nInteriorId;
     uint8 m_nFlags1;
     uint8 m_nSkyColor;
     char  m_szInteriorName[8];
@@ -156,7 +157,7 @@ struct tEffectRoadsign {
     RwV2d              m_vecSize;
     RwV3d              m_vecRotation;
     CRoadsignAttrFlags m_nFlags;
-    char*              m_pText; // size is 64
+    RwChar*            m_pText; // 4 x (16 characters) = 64 bytes
     RpAtomic*          m_pAtomic;
 };
 VALIDATE_SIZE(tEffectRoadsign, 0x20);
@@ -254,8 +255,8 @@ struct C2dEffect : public C2dEffectBase {
     };
 
 public:
-    static uint32& g2dEffectPluginOffset;
-    static uint32& ms_nTxdSlot;
+    static inline auto& ms_nTxdSlot = StaticRef<int32>(0x8D4948);
+    static inline auto& g2dEffectPluginOffset = StaticRef<uint32>(0xC3A1E0);
 
     template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
     static To* DynCast(From* p) {
@@ -283,16 +284,6 @@ public:
     static void DestroyAtomic(RpAtomic* atomic);
 };
 VALIDATE_SIZE(C2dEffect, 0x40);
-
-// RW PLUGIN
-struct t2dEffectPluginEntry {
-    uint32    m_nObjCount;
-    C2dEffect m_pObjects[16]; // Size not real, it's decided on runtime, 16 is written here only to see the objects in debugger without issues
-};
-struct t2dEffectPlugin {
-    t2dEffectPluginEntry* m_pEffectEntries;
-};
-VALIDATE_SIZE(t2dEffectPlugin, 0x4);
 
 #define C2DEFFECTPLG(geometry, var) \
     (RWPLUGINOFFSET(t2dEffectPlugin, geometry, C2dEffect::g2dEffectPluginOffset)->var)

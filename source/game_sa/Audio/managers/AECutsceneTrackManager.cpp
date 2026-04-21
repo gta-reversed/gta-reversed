@@ -4,7 +4,7 @@
 #include "AEAudioHardware.h"
 #include "CutSceneStreamsPC.h"
 
-CAECutsceneTrackManager& AECutsceneTrackManager = *(CAECutsceneTrackManager*)0x8AE554;
+auto& AECutsceneTrackManager = StaticRef<CAECutsceneTrackManager>(0x8AE554);
 
 void CAECutsceneTrackManager::InjectHooks() {
     RH_ScopedClass(CAECutsceneTrackManager);
@@ -154,7 +154,7 @@ void CAECutsceneTrackManager::PreloadCutsceneTrack(int16 trackId, bool wait) {
 
 // 0x4DC130
 void CAECutsceneTrackManager::PreloadBeatTrack(int16 trackId, bool wait) {
-    static int16 (&gBeatTrackLookup)[14] = *(int16(*)[14])0x8AE538;
+    static auto& gBeatTrackLookup = StaticRef<std::array<int16, 14>>(0x8AE538);
 
     PreloadCutsceneTrack(gBeatTrackLookup[trackId], wait);
 }

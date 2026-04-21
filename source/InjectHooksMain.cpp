@@ -915,6 +915,8 @@ void InjectHooksMain() {
     Plant();
 
     const auto Tasks = []() {
+        CTask::InjectHooks();
+
         const auto Allocators = [] {
             const auto PedGroup = [] {
                 CPedGroupDefaultTaskAllocatorFollowAnyMeans::InjectHooks();

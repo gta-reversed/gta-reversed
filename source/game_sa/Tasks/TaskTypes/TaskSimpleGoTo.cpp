@@ -4,8 +4,6 @@
 
 #include "IKChainManager_c.h"
 
-float& CTaskSimpleGoTo::ms_fLookAtThresholdDotProduct = *(float*)0xC18D48;
-
 void CTaskSimpleGoTo::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleGoTo, 0x86fd1c, 9);
     RH_ScopedCategory("Tasks/TaskTypes");

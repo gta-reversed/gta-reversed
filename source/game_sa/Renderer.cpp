@@ -14,29 +14,8 @@
 #include "CarFXRenderer.h"
 
 #include "toolsmenu/UIRenderer.h"
-
-bool& CRenderer::ms_bRenderTunnels = *(bool*)0xB745C0;
-bool& CRenderer::ms_bRenderOutsideTunnels = *(bool*)0xB745C1;
-tRenderListEntry*& CRenderer::ms_pLodDontRenderList = *(tRenderListEntry**)0xB745CC;
-tRenderListEntry*& CRenderer::ms_pLodRenderList = *(tRenderListEntry**)0xB745D0;
-CVehicle*& CRenderer::m_pFirstPersonVehicle = *(CVehicle**)0xB745D4;
-CEntity* (&CRenderer::ms_aInVisibleEntityPtrs)[MAX_INVISIBLE_ENTITY_PTRS] = *(CEntity*(*)[MAX_INVISIBLE_ENTITY_PTRS])0xB745D8;
-CEntity* (&CRenderer::ms_aVisibleSuperLodPtrs)[MAX_VISIBLE_SUPERLOD_PTRS] = *(CEntity*(*)[MAX_VISIBLE_SUPERLOD_PTRS])0xB74830;
-CEntity* (&CRenderer::ms_aVisibleLodPtrs)[MAX_VISIBLE_LOD_PTRS] = *(CEntity*(*)[MAX_VISIBLE_LOD_PTRS])0xB748F8;
-CEntity* (&CRenderer::ms_aVisibleEntityPtrs)[MAX_VISIBLE_ENTITY_PTRS] = *(CEntity*(*)[MAX_VISIBLE_ENTITY_PTRS])0xB75898;
-int32& CRenderer::ms_nNoOfVisibleSuperLods = *(int32*)0xB76838;
-int32& CRenderer::ms_nNoOfInVisibleEntities = *(int32*)0xB7683C;
-int32& CRenderer::ms_nNoOfVisibleLods = *(int32*)0xB76840;
-int32& CRenderer::ms_nNoOfVisibleEntities = *(int32*)0xB76844;
-float& CRenderer::ms_fFarClipPlane = *(float*)0xB76848;
-float& CRenderer::ms_fCameraHeading = *(float*)0xB7684C;
-bool& CRenderer::m_loadingPriority = *(bool*)0xB76850;
-bool& CRenderer::ms_bInTheSky = *(bool*)0xB76851;
-CVector& CRenderer::ms_vecCameraPosition = *(CVector*)0xB76870;
-float& CRenderer::ms_lodDistScale = *(float*)0x8CD800;
-float& CRenderer::ms_lowLodDistScale = *(float*)0x8CD804;
-uint32& gnRendererModelRequestFlags = *(uint32*)0xB745C4;
-CEntity**& gpOutEntitiesForGetObjectsInFrustum = *(CEntity***)0xB76854;
+auto& gnRendererModelRequestFlags = StaticRef<uint32>(0xB745C4);
+auto& gpOutEntitiesForGetObjectsInFrustum = StaticRef<CEntity**>(0xB76854);
 
 void CRenderer::InjectHooks()
 {
@@ -133,7 +112,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
     bool bSetupLighting = entity->SetupLighting();
     auto* vehicle = entity->AsVehicle();
     if (entity->GetIsTypeVehicle()) {
-        CVisibilityPlugins::SetupVehicleVariables(entity->m_pRwClump);
+        CVisibilityPlugins::SetupVehicleVariables(entity->GetRpClump());
         CVisibilityPlugins::InitAlphaAtomicList();
         vehicle->RenderDriverAndPassengers();
         vehicle->SetupRender();
@@ -377,7 +356,7 @@ void CRenderer::RenderEverythingBarRoads() {
             continue;
 
         bool bInserted = false;
-        if (entity->GetIsTypeVehicle() || (entity->GetIsTypePed() && CVisibilityPlugins::GetClumpAlpha(entity->m_pRwClump) != 255)) {
+        if (entity->GetIsTypeVehicle() || (entity->GetIsTypePed() && CVisibilityPlugins::GetClumpAlpha(entity->GetRpClump()) != 255)) {
             // todo: R* nice check | or we missed smth here?
             if (entity->GetIsTypeVehicle()) {
                 bool bInsertIntoSortedList = false;
@@ -386,7 +365,7 @@ void CRenderer::RenderEverythingBarRoads() {
                     const auto& lookDirection = TheCamera.GetLookDirection();
                     if (camMode == MODE_WHEELCAM || camMode == MODE_1STPERSON &&
                         lookDirection != LOOKING_DIRECTION_FORWARD && lookDirection != LOOKING_DIRECTION_UNKNOWN_1 ||
-                        CVisibilityPlugins::GetClumpAlpha(entity->m_pRwClump) != 255
+                        CVisibilityPlugins::GetClumpAlpha(entity->GetRpClump()) != 255
                     )
                     {
                         bInsertIntoSortedList = true;
@@ -477,7 +456,7 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
             fDrawDistanceRadius *= ms_lowLodDistScale;
     }
 
-    if (!baseModelInfo->m_pRwObject) {
+    if (!baseModelInfo->GetRwObject()) {
         if (entity->GetLod() && entity->GetLod()->GetNumLodChildren() > 1u &&
             fFadingDistance + fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius)
         {
@@ -486,10 +465,10 @@ int32 CRenderer::SetupMapEntityVisibility(CEntity* entity, CBaseModelInfo* baseM
         }
     }
 
-    if (!baseModelInfo->m_pRwObject || (fFadingDistance + fDistance - MAX_FADING_DISTANCE >= fDrawDistanceRadius)) {
+    if (!baseModelInfo->GetRwObject() || (fFadingDistance + fDistance - MAX_FADING_DISTANCE >= fDrawDistanceRadius)) {
         if (entity->m_bDontStream)
             return RENDERER_INVISIBLE;
-        if (baseModelInfo->m_pRwObject && fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius) {
+        if (baseModelInfo->GetRwObject() && fDistance - MAX_FADING_DISTANCE < fDrawDistanceRadius) {
             if (!entity->GetRwObject()) {
                 entity->CreateRwObject();
                 if (!entity->GetRwObject())
@@ -618,13 +597,13 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
             int32 otherTimeModel = modelTimeInfo->GetOtherTimeModel();
             if (CClock::GetIsTimeInRange(modelTimeInfo->GetTimeOn(), modelTimeInfo->GetTimeOff()))
             {
-                if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject) {
+                if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject()) {
                     baseModelInfo->m_nAlpha = 255;
                 }
             }
             else
             {
-                if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject)
+                if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject())
                 {
                     entity->DeleteRwObject();
                     return RENDERER_INVISIBLE;
@@ -692,12 +671,12 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
         int32 otherTimeModel = timeInfo->GetOtherTimeModel();
         if (CClock::GetIsTimeInRange(timeInfo->GetTimeOn(), timeInfo->GetTimeOff()))
         {
-            if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject)
+            if (otherTimeModel != -1 && CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject())
                 baseModelInfo->m_nAlpha = 255;
         }
         else
         {
-            if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->m_pRwObject) {
+            if (otherTimeModel == -1 || CModelInfo::GetModelInfo(otherTimeModel)->GetRwObject()) {
                 entity->DeleteRwObject();
                 return RENDERER_INVISIBLE;
             }
@@ -1025,8 +1004,8 @@ void CRenderer::ScanWorld() {
 
     CWorld::AdvanceCurrentScanCode();
 
-    static CVector& lastCameraPosition = *(CVector*)0xB76888; //TODO | STATICREF
-    static CVector& lastCameraForward = *(CVector*)0xB7687C; //TODO | STATICREF
+    static auto& lastCameraPosition = StaticRef<CVector>(0xB76888);
+    static auto& lastCameraForward = StaticRef<CVector>(0xB7687C);
 
     CVector distance = TheCamera.GetPosition() - lastCameraPosition;
     static bool bUnusedBool = false;

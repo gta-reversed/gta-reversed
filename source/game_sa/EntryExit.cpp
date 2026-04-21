@@ -11,10 +11,6 @@
 #include "Object.h"
 #include "Interior/InteriorManager_c.h"
 
-bool& CEntryExit::ms_bWarping = *(bool*)0x96A7B8;
-CObject*& CEntryExit::ms_pDoor = *(CObject**)0x96A7BC;
-CEntryExit*& CEntryExit::ms_spawnPoint = *(CEntryExit**)0x96A7C0;
-
 void CEntryExit::InjectHooks() {
     RH_ScopedClass(CEntryExit);
     RH_ScopedCategoryGlobal();
@@ -39,7 +35,7 @@ CEntryExit::CEntryExit(
     float entranceAngleDeg,
     CVector exit,
     float exitAngle,
-    int32 area,
+    eAreaCodes area,
     CEntryExit::eFlags flags,
     int32 skyColor,
     int32 timeOn, int32 timeOff,
@@ -54,7 +50,7 @@ CEntryExit::CEntryExit(
         center.y + entranceRange.y / 2.f,
     },
     m_vecExitPos{ exit + CVector{ 0.f, 0.f, 1.f } },
-    m_nArea{ (uint8)area },
+    m_nArea{ area },
     m_nNumberOfPeds{ (uint8)numberOfPeds },
     m_fExitAngle{ exitAngle },
     m_nSkyColor{ (uint8)skyColor },

@@ -2,9 +2,6 @@
 
 #include "BrightLights.h"
 
-uint32& CBrightLights::NumBrightLights = *(uint32*)0xC7C6FC;
-tBrightLight (&CBrightLights::aBrightLights)[MAX_NUM_BRIGHTLIGHTS] = *(tBrightLight(*)[MAX_NUM_BRIGHTLIGHTS])0xC7CB58;
-
 void CBrightLights::InjectHooks() {
     RH_ScopedClass(CBrightLights);
     RH_ScopedCategoryGlobal();

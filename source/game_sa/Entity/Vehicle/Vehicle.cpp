@@ -27,44 +27,31 @@
 #include "Shadows.h"
 #include "PedClothesDesc.h"
 
-uint32& planeRotorDmgTimeMS = *(uint32*)0xC1CC1C;
-float& CVehicle::WHEELSPIN_TARGET_RATE = *(float*)0x8D3498;          // 1.0f
-float& CVehicle::WHEELSPIN_INAIR_TARGET_RATE = *(float*)0x8D349C;    // 10.0f
-float& CVehicle::WHEELSPIN_RISE_RATE = *(float*)0x8D34A0;            // 0.95f
-float& CVehicle::WHEELSPIN_FALL_RATE = *(float*)0x8D34A4;            // 0.7f
-float& CVehicle::m_fAirResistanceMult = *(float*)0x8D34A8;           // 2.5f
-float& CVehicle::ms_fRailTrackResistance = *(float*)0x8D34AC;        // 0.003f
-float& CVehicle::ms_fRailTrackResistanceDefault = *(float*)0x8D34B0; // 0.003f
-bool& CVehicle::bDisableRemoteDetonation = *(bool*)0xC1CC00;
-bool& CVehicle::bDisableRemoteDetonationOnContact = *(bool*)0xC1CC01;
-bool& CVehicle::m_bEnableMouseSteering = *(bool*)0xC1CC02;
-bool& CVehicle::m_bEnableMouseFlying = *(bool*)0xC1CC03;
-bool& CVehicle::ms_forceVehicleLightsOff = *(bool*)0xC1CC18;
-bool& CVehicle::s_bPlaneGunsEjectShellCasings = *(bool*)0xC1CC19;
+auto& planeRotorDmgTimeMS = StaticRef<uint32>(0xC1CC1C);
 
-float& fBurstTyreMod = *(float*)0x8D34B4;                // 0.13f
-float& fBurstSpeedMax = *(float*)0x8D34B8;               // 0.3f
-float& CAR_NOS_EXTRA_SKID_LOSS = *(float*)0x8D34BC;      // 0.9f
-float& WS_TRAC_FRAC_LIMIT = *(float*)0x8D34C0;           // 0.3f
-float& WS_ALREADY_SPINNING_LOSS = *(float*)0x8D34C4;     // 0.2f
-float& fBurstBikeTyreMod = *(float*)0x8D34C8;            // 0.05f
-float& fBurstBikeSpeedMax = *(float*)0x8D34CC;           // 0.12f
-float& fTweakBikeWheelTurnForce = *(float*)0x8D34D0;     // 2.0f
-float& AUTOGYRO_ROTORSPIN_MULT = *(float*)0x8D34D4;      // 0.006f
-float& AUTOGYRO_ROTORSPIN_MULTLIMIT = *(float*)0x8D34D8; // 0.25f
-float& AUTOGYRO_ROTORSPIN_DAMP = *(float*)0x8D34DC;      // 0.997f
-float& AUTOGYRO_ROTORLIFT_MULT = *(float*)0x8D34E0;      // 4.5f
-float& AUTOGYRO_ROTORLIFT_FALLOFF = *(float*)0x8D34E4;   // 0.75f
-float& AUTOGYRO_ROTORTILT_ANGLE = *(float*)0x8D34E8;     // 0.25f
-float& ROTOR_SEMI_THICKNESS = *(float*)0x8D34EC;         // 0.05f
+auto& fBurstTyreMod = StaticRef<float>(0x8D34B4);                // 0.13f
+auto& fBurstSpeedMax = StaticRef<float>(0x8D34B8);               // 0.3f
+auto& CAR_NOS_EXTRA_SKID_LOSS = StaticRef<float>(0x8D34BC);      // 0.9f
+auto& WS_TRAC_FRAC_LIMIT = StaticRef<float>(0x8D34C0);           // 0.3f
+auto& WS_ALREADY_SPINNING_LOSS = StaticRef<float>(0x8D34C4);     // 0.2f
+auto& fBurstBikeTyreMod = StaticRef<float>(0x8D34C8);            // 0.05f
+auto& fBurstBikeSpeedMax = StaticRef<float>(0x8D34CC);           // 0.12f
+auto& fTweakBikeWheelTurnForce = StaticRef<float>(0x8D34D0);     // 2.0f
+auto& AUTOGYRO_ROTORSPIN_MULT = StaticRef<float>(0x8D34D4);      // 0.006f
+auto& AUTOGYRO_ROTORSPIN_MULTLIMIT = StaticRef<float>(0x8D34D8); // 0.25f
+auto& AUTOGYRO_ROTORSPIN_DAMP = StaticRef<float>(0x8D34DC);      // 0.997f
+auto& AUTOGYRO_ROTORLIFT_MULT = StaticRef<float>(0x8D34E0);      // 4.5f
+auto& AUTOGYRO_ROTORLIFT_FALLOFF = StaticRef<float>(0x8D34E4);   // 0.75f
+auto& AUTOGYRO_ROTORTILT_ANGLE = StaticRef<float>(0x8D34E8);     // 0.25f
+auto& ROTOR_SEMI_THICKNESS = StaticRef<float>(0x8D34EC);         // 0.05f
 float* gfSpeedMult = (float*)0x8D34F8;                   // float fSpeedMult[5] = { 0.8f, 0.75f, 0.85f, 0.9f, 0.85f, 0.85f }
-float& fDamagePosSpeedShift = *(float*)0x8D3510;         // 0.4f
-float& DIFF_LIMIT = *(float*)0x8D35B4;                   // 0.8f
-float& DIFF_SPRING_MULT_X = *(float*)0x8D35B8;           // 0.05f
-float& DIFF_SPRING_MULT_Y = *(float*)0x8D35BC;           // 0.05f
-float& DIFF_SPRING_MULT_Z = *(float*)0x8D35C0;           // 0.1f
-float& DIFF_SPRING_COMPRESS_MULT = *(float*)0x8D35C4;    // 2.0f
-CVector (&VehicleGunOffset)[14] = *(CVector(*)[14])0x8D35D4; // maybe [12]
+auto& fDamagePosSpeedShift = StaticRef<float>(0x8D3510);         // 0.4f
+auto& DIFF_LIMIT = StaticRef<float>(0x8D35B4);                   // 0.8f
+auto& DIFF_SPRING_MULT_X = StaticRef<float>(0x8D35B8);           // 0.05f
+auto& DIFF_SPRING_MULT_Y = StaticRef<float>(0x8D35BC);           // 0.05f
+auto& DIFF_SPRING_MULT_Z = StaticRef<float>(0x8D35C0);           // 0.1f
+auto& DIFF_SPRING_COMPRESS_MULT = StaticRef<float>(0x8D35C4);    // 2.0f
+auto& VehicleGunOffset = StaticRef<std::array<CVector, 14>>(0x8D35D4); // maybe [12]
 
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
@@ -701,7 +688,7 @@ void CVehicle::RemoveLighting(bool bRemove) {
     DeActivateDirectional();
 }
 
-// 0x871EF0// 0x6D56C0
+// 0x6D56C0
 void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGroup, uint32 animId, float fTime) {
     auto doorComponentId = (int32)doorComponentId_; // silence warns, todo: OpenDoor receives int32, why?
     eDoors iCheckedDoor = [&] {
@@ -754,7 +741,7 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
         } else if (fTime > fAnimStart && fTime < fAnimEnd) {
             const auto fNewRatio = 1.0F - invLerp(fAnimStart, fAnimEnd, fTime);
             const auto fCurRatio = GetDooorAngleOpenRatio(iCheckedDoor);
-            if (fCurRatio < fNewRatio) {
+            if (fCurRatio > fNewRatio) {
                 OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
             }
         }
@@ -771,10 +758,7 @@ void CVehicle::ProcessOpenDoor(CPed* ped, uint32 doorComponentId_, uint32 animGr
             OpenDoor(ped, doorComponentId, iCheckedDoor, 0.0F, true);
         } else if (fTime > fAnimStart && fTime < fAnimEnd) {
             const auto fNewRatio = 1.0F - invLerp(fAnimStart, fAnimEnd, fTime);
-            const auto fCurRatio = GetDooorAngleOpenRatio(iCheckedDoor);
-            if (fCurRatio < fNewRatio) {
-                OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
-            }
+            OpenDoor(ped, doorComponentId, iCheckedDoor, fNewRatio, true);
         }
         return;
     }
@@ -915,9 +899,9 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
     if (m_bOffscreen || !driver->IsPlayer())
         return;
 
-    auto* radioTuneAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_CAR_TUNE_RADIO);
+    auto* radioTuneAnim = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), ANIM_ID_CAR_TUNE_RADIO);
     if (blend) {
-        radioTuneAnim = CAnimManager::BlendAnimation(driver->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CAR_TUNE_RADIO, 4.0F);
+        radioTuneAnim = CAnimManager::BlendAnimation(driver->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CAR_TUNE_RADIO, 4.0F);
     }
 
     if (radioTuneAnim)
@@ -945,14 +929,14 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
     }
 
     // 0x6DF620
-    auto* idleAnim      = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, usedAnims->idle);
-    auto* lookLeftAnim  = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, usedAnims->left);
-    auto* lookRightAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, usedAnims->right);
-    auto* lookBackAnim  = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, usedAnims->back);
+    auto* idleAnim      = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), usedAnims->idle);
+    auto* lookLeftAnim  = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), usedAnims->left);
+    auto* lookRightAnim = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), usedAnims->right);
+    auto* lookBackAnim  = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), usedAnims->back);
 
     if (!idleAnim) {
-        if (RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_CAR_SIT)) {
-            CAnimManager::BlendAnimation(driver->m_pRwClump, ANIM_GROUP_DEFAULT, usedAnims->idle, 4.0F);
+        if (RpAnimBlendClumpGetAssociation(driver->GetRpClump(), ANIM_ID_CAR_SIT)) {
+            CAnimManager::BlendAnimation(driver->GetRpClump(), ANIM_GROUP_DEFAULT, usedAnims->idle, 4.0F);
         }
         return;
     }
@@ -968,10 +952,10 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
     }
 
     // 0x6DF6DA
-    auto* driveByAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_DRIVEBY_L);
-    if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_DRIVEBY_R);
-    if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_DRIVEBYL_L);
-    if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_DRIVEBYL_R);
+    auto* driveByAnim = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), ANIM_ID_DRIVEBY_L);
+    if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), ANIM_ID_DRIVEBY_R);
+    if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), ANIM_ID_DRIVEBYL_L);
+    if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->GetRpClump(), ANIM_ID_DRIVEBYL_R);
 
     if (!vehicleFlags.bLowVehicle
         && m_GasPedal < 0.0F
@@ -983,7 +967,7 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
             || CCamera::GetActiveCamera().m_nDirectionWasLooking != eLookingDirection::LOOKING_DIRECTION_BEHIND)
             && (!lookBackAnim || lookBackAnim->m_BlendAmount < 1.0F && lookBackAnim->m_BlendDelta <= 0.0F)
         ) {
-            CAnimManager::BlendAnimation(driver->m_pRwClump, ANIM_GROUP_DEFAULT, usedAnims->back, 4.0F);
+            CAnimManager::BlendAnimation(driver->GetRpClump(), ANIM_GROUP_DEFAULT, usedAnims->back, 4.0F);
         }
         return;
     }
@@ -1007,7 +991,7 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
             lookRightAnim->m_BlendAmount = fUsedAngle;
             lookRightAnim->m_BlendDelta  = 0.0F;
         } else {
-            CAnimManager::BlendAnimation(driver->m_pRwClump, ANIM_GROUP_DEFAULT, usedAnims->right, 4.0F);
+            CAnimManager::BlendAnimation(driver->GetRpClump(), ANIM_GROUP_DEFAULT, usedAnims->right, 4.0F);
         }
     } else {
         if (lookRightAnim) {
@@ -1018,7 +1002,7 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
             lookLeftAnim->m_BlendAmount = fUsedAngle;
             lookLeftAnim->m_BlendDelta = 0.0F;
         } else {
-            CAnimManager::BlendAnimation(driver->m_pRwClump, ANIM_GROUP_DEFAULT, usedAnims->left, 4.0F);
+            CAnimManager::BlendAnimation(driver->GetRpClump(), ANIM_GROUP_DEFAULT, usedAnims->left, 4.0F);
         }
     }
 
@@ -1430,13 +1414,19 @@ void CVehicle::RemovePassenger(CPed* passenger) {
         return;
     }
 
-    const auto seats = IsTrain() ? m_apPassengers : GetMaxPassengerSeats();
-    if (const auto seatOfPsgr = rng::find(seats, passenger); seatOfPsgr != seats.end()) {
-        CEntity::SafeCleanUpRef(*seatOfPsgr);
-        *seatOfPsgr = nullptr;
+    const auto RemovePassengerFromArray = [&](auto array) { /* array by-value because it's either a span or a view */
+        if (const auto seatOfPsgr = rng::find(array, passenger); seatOfPsgr != array.end()) {
+            CEntity::SafeCleanUpRef(*seatOfPsgr);
+            *seatOfPsgr = nullptr;
 
-        assert(m_nNumPassengers > 0); // NOTSA: Sanity check
-        m_nNumPassengers--;
+            assert(m_nNumPassengers > 0); // NOTSA: Sanity check
+            m_nNumPassengers--;
+        }
+    };
+    if (IsTrain()) {
+        RemovePassengerFromArray(std::span{ m_apPassengers });
+    } else {
+        RemovePassengerFromArray(GetMaxPassengerSeats());
     }
 }
 
@@ -1612,7 +1602,7 @@ CPed* CVehicle::SetupPassenger(int32 seatIdx, int32 gangPedType, bool createAsMa
         };
 
         // Not sure why this checks only up to the seat the passenger was added to, but okay.
-        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers, (size_t)seatIdx }, ProcessOccupant)) {
+        if (!ProcessOccupant(m_pDriver) || !rng::all_of(std::span{ m_apPassengers.data(), (size_t)seatIdx }, ProcessOccupant)) {
             return nullptr;
         }
     }
@@ -1985,7 +1975,7 @@ CVector CVehicle::GetDummyPosition(eVehicleDummy dummy, bool bWorldSpace) {
 // 0x6D2980
 void CVehicle::UpdateClumpAlpha() {
     const auto GetAlphaToSet = [this] {
-        const auto curr = CVisibilityPlugins::GetClumpAlpha(m_pRwClump);
+        const auto curr = CVisibilityPlugins::GetClumpAlpha(GetRpClump());
         if (vehicleFlags.bFadeOut) {
             return std::max(0, curr - 8);
         } else if (curr < 255) {
@@ -1993,7 +1983,7 @@ void CVehicle::UpdateClumpAlpha() {
         }
         return 255;
     };
-    CVisibilityPlugins::SetClumpAlpha(m_pRwClump, GetAlphaToSet());
+    CVisibilityPlugins::SetClumpAlpha(GetRpClump(), GetAlphaToSet());
 }
 
 // 0x6D29E0
@@ -2033,8 +2023,8 @@ void CVehicle::AddDamagedVehicleParticles() {
     }
 
     RwMatrix* matrix = nullptr;
-    if (m_pRwAtomic) {
-        matrix = RwFrameGetMatrix(RpAtomicGetFrame(m_pRwAtomic));
+    if (GetRpAtomic()) {
+        matrix = RwFrameGetMatrix(RpAtomicGetFrame(GetRpAtomic()));
     }
 
     if (!m_pOverheatParticle && matrix) {
@@ -2054,7 +2044,7 @@ void CVehicle::AddDamagedVehicleParticles() {
     if (m_pOverheatParticle) {
         m_pOverheatParticle->SetConstTime(1u, 1.0f - (m_fHealth - 250.0f) / 400.0f);
         CVector velocity = m_vecMoveSpeed * 50.0f;
-        m_pOverheatParticle->SetVelAdd(&velocity);
+        m_pOverheatParticle->SetVelAdd(velocity);
     }
 }
 
@@ -2150,7 +2140,7 @@ void CVehicle::ClearGettingOutFlags(uint8 doorId) {
 
 // 0x6D3080
 void CVehicle::SetWindowOpenFlag(uint8 doorId) {
-    auto frameFromId = CClumpModelInfo::GetFrameFromId(m_pRwClump, doorId);
+    auto frameFromId = CClumpModelInfo::GetFrameFromId(GetRpClump(), doorId);
     if (frameFromId) {
         RwFrameForAllObjects(frameFromId, CVehicleModelInfo::SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA);
     }
@@ -2158,7 +2148,7 @@ void CVehicle::SetWindowOpenFlag(uint8 doorId) {
 
 // 0x6D30B0
 void CVehicle::ClearWindowOpenFlag(uint8 doorId) {
-    auto frameFromId = CClumpModelInfo::GetFrameFromId(m_pRwClump, doorId);
+    auto frameFromId = CClumpModelInfo::GetFrameFromId(GetRpClump(), doorId);
     if (frameFromId) {
         RwFrameForAllObjects(frameFromId, CVehicleModelInfo::ClearAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA);
     }
@@ -2298,7 +2288,7 @@ RwFrame* RemoveObjectsCB(RwFrame* frame, void* data) {
 }
 
 // 0x6D3450
-static auto& CopyObjectsCB_TargetClump = *(RpClump**)0xC1CB58;
+static auto& CopyObjectsCB_TargetClump = StaticRef<RpClump*>(0xC1CB58);
 RwObject* CopyObjectsCB(RwObject* object, void* data) {
     const auto frame = (RwFrame*)data;
 
@@ -2358,7 +2348,7 @@ RpAtomic* CVehicle::CreateUpgradeAtomic(CBaseModelInfo* mi, const UpgradePosnDes
     RwMatrixUpdate(mat);
 
     // Update us and parent frame
-    RpClumpAddAtomic(m_pRwClump, atomic);
+    RpClumpAddAtomic(GetRpClump(), atomic);
     RwFrameAddChild(parentComponent, frame);
 
     mi->AddRef();
@@ -2375,13 +2365,13 @@ RpAtomic* CVehicle::CreateUpgradeAtomic(CBaseModelInfo* mi, const UpgradePosnDes
 
 // 0x6D3630
 void CVehicle::RemoveUpgrade(int32 upgradeId) {
-    RpClumpForAllAtomics(m_pRwClump, RemoveUpgradeCB, &upgradeId);
+    RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, &upgradeId);
 }
 
 // 0x6D3650
 int32 CVehicle::GetUpgrade(int32 upgradeId) {
     struct { int32 upgradeId; RpAtomic* atomic; } data = { upgradeId, nullptr };
-    RpClumpForAllAtomics(m_pRwClump, FindUpgradeCB, &data);
+    RpClumpForAllAtomics(GetRpClump(), FindUpgradeCB, &data);
     if (data.atomic) {
         return CVisibilityPlugins::GetModelInfoIndex(data.atomic);
     }
@@ -2419,7 +2409,7 @@ RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentF
     mi->AddRef();
 
     // Update us and parent frame
-    RpClumpAddAtomic(m_pRwClump, atomic);
+    RpClumpAddAtomic(GetRpClump(), atomic);
 
     if (bIsWheel) {
         const auto mat = RwFrameGetMatrix(frame);
@@ -2451,13 +2441,13 @@ void CVehicle::AddReplacementUpgrade(int32 modelIndex, int32 nodeId) {
 
 // 0x6D39E0
 void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
-    auto frameOfUpgrade = CClumpModelInfo::GetFrameFromId(m_pRwClump, frameId);
+    auto frameOfUpgrade = CClumpModelInfo::GetFrameFromId(GetRpClump(), frameId);
     RwFrameForAllObjects(frameOfUpgrade, RemoveObjectsCB, &frameOfUpgrade);
     RwFrameForAllChildren(frameOfUpgrade, RemoveObjectsCB, &frameOfUpgrade);
 
-    CopyObjectsCB_TargetClump = m_pRwClump;
+    CopyObjectsCB_TargetClump = GetRpClump();
     RwFrameForAllObjects(
-        CClumpModelInfo::GetFrameFromId(GetModelInfo()->m_pRwClump, frameId),
+        CClumpModelInfo::GetFrameFromId(GetModelInfo()->GetRpClump(), frameId),
         CopyObjectsCB,
         frameOfUpgrade
     );
@@ -2465,7 +2455,7 @@ void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
 
 // 0x6D3A50
 int32 CVehicle::GetReplacementUpgrade(int32 nodeId) {
-    auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, nodeId);
+    auto frame = CClumpModelInfo::GetFrameFromId(GetRpClump(), nodeId);
     tCompSearchStructById data = { nodeId, nullptr };
     RwFrameForAllObjects(frame, FindReplacementUpgradeCB, &data);
     if (data.m_pFrame)
@@ -2476,7 +2466,7 @@ int32 CVehicle::GetReplacementUpgrade(int32 nodeId) {
 
 // 0x6D3AB0
 void CVehicle::RemoveAllUpgrades() {
-    RpClumpForAllAtomics(m_pRwClump, RemoveAllUpgradesCB, nullptr);
+    RpClumpForAllAtomics(GetRpClump(), RemoveAllUpgradesCB, nullptr);
     m_anUpgrades.fill(-1);
 }
 
@@ -2845,7 +2835,7 @@ void CVehicle::DoPlaneGunFireFX(CWeapon* weapon, CVector& particlePos, CVector& 
                 part = g_fxMan.CreateFxSystem(
                     "gunflash",
                     CVector{0.f, 0.f, 0.f},
-                    RwFrameGetMatrix(RpClumpGetFrame(m_pRwClump)),
+                    RwFrameGetMatrix(RpClumpGetFrame(GetRpClump())),
                     false
                 );
             }
@@ -3162,7 +3152,7 @@ void CVehicle::SetupRender() {
 
     CVehicleModelInfo::SetupLightFlags(this);
     CVehicleModelInfo::ms_pRemapTexture = m_pRemapTexture;
-    CVehicleModelInfo::SetEditableMaterials(m_pRwClump);
+    CVehicleModelInfo::SetEditableMaterials(GetRpClump());
 }
 
 // 0x6D6C00
@@ -3173,9 +3163,9 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
                             int8 wheelId, float* wheelSpeed,
                             tWheelState* wheelState, uint16 wheelStatus
 ) {
-    static bool& bBraking = *(bool*)0xC1CDAE; // false
-    static bool& bDriving = *(bool*)0xC1CDAD; // false
-    static bool& bAlreadySkidding = *(bool*)0xC1CDAC; // false
+    static auto& bBraking = StaticRef<bool>(0xC1CDAE); // false
+    static auto& bDriving = StaticRef<bool>(0xC1CDAD); // false
+    static auto& bAlreadySkidding = StaticRef<bool>(0xC1CDAC); // false
 
     float right = 0.0f;
     float fwd = 0.0f;
@@ -3475,7 +3465,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
         entity->SetCurrentScanCode();
 
         auto entityCM = entity->GetIsTypePed()
-            ? entity->GetModelInfo()->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->m_pRwClump)
+            ? entity->GetModelInfo()->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->GetRpClump())
             : entity->GetColModel();
 
         if (!entityCM) {
@@ -3512,7 +3502,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
                 CTimer::GetTimeInMS(),
                 WEAPON_RUNOVERBYCAR,
                 PED_PIECE_TORSO,
-                ped.GetLocalDirection(dirToPed),
+                static_cast<uint8>(ped.GetLocalDirection(dirToPed)),
                 false,
                 false
             };
@@ -4051,7 +4041,7 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
     vel0 -= GetRight() * CGeneral::GetRandomNumberInRange(0.3f, 0.7f); // minus
     vel0 += GetUp() * CGeneral::GetRandomNumberInRange(0.8f, 1.2f);
     vel0 *= v12;
-    g_fx.m_BoatSplash->AddParticle(&p0, &vel0, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
+    g_fx.m_BoatSplash->AddParticle(p0, vel0, 0.0f, particleData);
 
     CVector p1 = { colMax.x * X_MULT, colMax.y / 2.0f, colMin.z * Z_MULT };
     p1 = m_matrix->TransformPoint(p1);
@@ -4059,7 +4049,7 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
     vel1 += GetRight() * CGeneral::GetRandomNumberInRange(0.3f, 0.7f);  // plus
     vel1 += GetUp() * CGeneral::GetRandomNumberInRange(0.8f, 1.2f);
     vel1 *= v12;
-    g_fx.m_BoatSplash->AddParticle(&p1, &vel1, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
+    g_fx.m_BoatSplash->AddParticle(p1, vel1, 0.0f, particleData);
 }
 
 // 0x6DD6F0
@@ -4093,11 +4083,13 @@ void CVehicle::AddWaterSplashParticles() {
         const auto v1v2 = vertices[2] - vertices[1];
 
         for (auto i = 1 - (size_t)(CWeather::Rain * -2.f); i > 0; i--) {
-            CVector velocity{0.f, 0.f, 0.f};
-            auto pieceOfShit = vertices[0]
-                + v0v1 * CGeneral::GetRandomNumberInRange(0.f, 1.f)
-                + v1v2 * CGeneral::GetRandomNumberInRange(0.f, 1.f);
-            g_fx.m_Splash->AddParticle(&pieceOfShit, &velocity, 0.f, &fxPrtMult, -1.f, 1.2f, 0.6f, 0u);
+            g_fx.m_Splash->AddParticle(
+                vertices[0]
+                    + v0v1 * CGeneral::GetRandomNumberInRange(0.f, 1.f)
+                    + v1v2 * CGeneral::GetRandomNumberInRange(0.f, 1.f),
+                {},
+                0.f, fxPrtMult
+            );
         }
     }
 }
@@ -4185,7 +4177,7 @@ void CVehicle::AddExhaustParticles() {
             fxPrt.m_fSize = 0.6f;
             firstExhaustFxSystem = g_fx.m_Bubble;
         }
-        firstExhaustFxSystem->AddParticle(&firstExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+        firstExhaustFxSystem->AddParticle(firstExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness);
         if (bHasDoubleExhaust) {
             FxSystem_c* secondExhaustFxSystem = g_fx.m_SmokeII3expand;
             if (bSecondExhaustSubmergedInWater) {
@@ -4193,7 +4185,7 @@ void CVehicle::AddExhaustParticles() {
                 fxPrt.m_fSize = 0.6f;
                 secondExhaustFxSystem = g_fx.m_Bubble;
             }
-            secondExhaustFxSystem->AddParticle(&secondExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+            secondExhaustFxSystem->AddParticle(secondExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness);
         }
 
         if (m_GasPedal > 0.5f && m_nCurrentGear < 3) {
@@ -4204,7 +4196,7 @@ void CVehicle::AddExhaustParticles() {
                     fxPrt.m_fSize = 0.6f;
                     secondaryExhaustFxSystem = g_fx.m_Bubble;
                 }
-                secondaryExhaustFxSystem->AddParticle(&firstExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+                secondaryExhaustFxSystem->AddParticle(firstExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness);
             } else if (bHasDoubleExhaust) {
                 FxSystem_c* secondaryExhaustFxSystem = g_fx.m_SmokeII3expand;
                 if (bSecondExhaustSubmergedInWater) {
@@ -4212,7 +4204,7 @@ void CVehicle::AddExhaustParticles() {
                     fxPrt.m_fSize = 0.6f;
                     secondaryExhaustFxSystem = g_fx.m_Bubble;
                 }
-                secondaryExhaustFxSystem->AddParticle(&secondExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
+                secondaryExhaustFxSystem->AddParticle(secondExhaustPos, vecParticleVelocity, 0.0f, fxPrt, -1.0f, m_fContactSurfaceBrightness);
             }
         }
     }
@@ -4583,10 +4575,9 @@ void CVehicle::DoDriveByShootings() {
 
 // NOTSA
 bool CVehicle::AreAnyOfPassengersFollowerOfGroup(const CPedGroup& group) {
-    const auto end = m_apPassengers + m_nMaxPassengers;
-    return std::find_if(m_apPassengers, end, [&](CPed* passenger) {
+    return rng::any_of(GetMaxPassengerSeats(), [&](CPed* passenger) {
         return group.GetMembership().IsFollower(passenger);
-    }) != end;
+    });
 }
 
 /*!

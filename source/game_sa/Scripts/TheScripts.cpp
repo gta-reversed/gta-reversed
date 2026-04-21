@@ -16,7 +16,7 @@
 
 #include "extensions/File.hpp"
 
-static inline auto& ScriptsArray = *(std::array<CRunningScript, MAX_NUM_SCRIPTS>*)0xA8B430;
+static inline auto& ScriptsArray = StaticRef<std::array<CRunningScript, MAX_NUM_SCRIPTS>>(0xA8B430);
 
 void CTheScripts::InjectHooks() {
     // Has to have these, because there seems to be something going on with the variable init order
@@ -1081,7 +1081,7 @@ bool CTheScripts::IsPedStopped(CPed* ped) {
         return false;
     }
     if (ped->IsPlayer()) {
-        if (RpAnimBlendClumpGetAssociation(ped->m_pRwClump, { ANIM_ID_RUN_STOP, ANIM_ID_RUN_STOPR, ANIM_ID_JUMP_LAUNCH, ANIM_ID_JUMP_GLIDE })) {
+        if (RpAnimBlendClumpGetAssociation(ped->GetRpClump(), { ANIM_ID_RUN_STOP, ANIM_ID_RUN_STOPR, ANIM_ID_JUMP_LAUNCH, ANIM_ID_JUMP_GLIDE })) {
             return false;
         }
     }

@@ -37,6 +37,8 @@
 #include "TwoDEffectsDebugModule.hpp"
 #include "VehicleInfoDebugModule.h"
 #include "CoverPointsDebugModule.hpp"
+#include "LoadMonitorDebugModule.hpp"
+#include "DoorDebugModule.hpp"
 #include "Audio/SoundManagerDebugModule.hpp"
 #include "Audio/AudioDebugModule.hpp"
 
@@ -122,6 +124,8 @@ void DebugModules::CreateModules() {
     Add<ProcObjectDebugModule>();
     Add<VehicleInfoDebugModule>();
     Add<notsa::debugmodules::SoundManagerDebugModule>();
+    Add<notsa::debugmodules::LoadMonitorDebugModule>();
+    Add<notsa::debugmodules::DoorDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<notsa::debugmodules::TwoDEffectsDebugModule>(); // Visualization + Extra

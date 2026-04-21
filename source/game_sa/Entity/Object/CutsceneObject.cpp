@@ -6,8 +6,6 @@
 #include "Shadows.h"
 #include "CarFXRenderer.h"
 
-char* (&CCutsceneObject::ms_sCutsceneVehNames)[NUM_CUTSCENE_VEHS] = *(char* (*)[NUM_CUTSCENE_VEHS])0x8D0F68;
-
 void CCutsceneObject::InjectHooks() {
     RH_ScopedVirtualClass(CCutsceneObject, 0x868A60, 23);
     RH_ScopedCategory("Entity/Object");
@@ -41,11 +39,11 @@ CCutsceneObject::CCutsceneObject() : CObject() {
 void CCutsceneObject::SetModelIndex(unsigned index) {
     CEntity::SetModelIndex(index);
     if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
-        RpAnimBlendClumpInit(m_pRwClump);
-        auto* animData = RpAnimBlendClumpGetData(m_pRwClump);
+        RpAnimBlendClumpInit(GetRpClump());
+        auto* animData = RpAnimBlendClumpGetData(GetRpClump());
         animData->m_PedPosition = &m_vecMoveSpeed;
         animData->m_FrameDatas->HasZVelocity = true;
-        CCutsceneObject::SetupCarPipeAtomicsForClump(index, m_pRwClump);
+        CCutsceneObject::SetupCarPipeAtomicsForClump(index, GetRpClump());
     }
     GetModelInfo()->m_nAlpha = 0xFF;
 }
@@ -60,7 +58,7 @@ void CCutsceneObject::ProcessControl() {
     CPhysical::ProcessControl(); // exactly CPhysical
     if (m_pAttachToFrame) {
         if (m_pAttachmentObject) {
-            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->m_pRwClump);
+            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->GetRpClump());
             auto* matArr = RpHAnimHierarchyGetMatrixArray(hierarchy);
             const auto boneMat = CMatrix(&matArr[m_nAttachBone], false);
             *static_cast<CMatrix*>(m_matrix) = boneMat;
@@ -88,7 +86,7 @@ void CCutsceneObject::ProcessControl() {
 void CCutsceneObject::PreRender() {
     if (m_pAttachToFrame) {
         if (m_pAttachmentObject) {
-            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->m_pRwClump);
+            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->GetRpClump());
             auto* matArr = RpHAnimHierarchyGetMatrixArray(hierarchy);
             const auto boneMat = CMatrix(&matArr[m_nAttachBone], false);
             *static_cast<CMatrix*>(m_matrix) = boneMat;
@@ -99,10 +97,10 @@ void CCutsceneObject::PreRender() {
         }
 
         if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
-            const auto* firstAtomic = GetFirstAtomic(m_pRwClump);
+            const auto* firstAtomic = GetFirstAtomic(GetRpClump());
             if (firstAtomic) {
                 if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(firstAtomic))) {
-                    auto* animData = RpAnimBlendClumpGetData(m_pRwClump);
+                    auto* animData = RpAnimBlendClumpGetData(GetRpClump());
                     auto* morphTarget = RpGeometryGetMorphTarget(RpAtomicGetGeometry(firstAtomic), 0);
                     auto* sphere = RpMorphTargetGetBoundingSphere(morphTarget);
                     sphere->center = animData->m_FrameDatas[0].BonePos;
@@ -128,7 +126,7 @@ void CCutsceneObject::PreRender() {
     }
 
     if (m_nModelIndex == MODEL_CSPLAY) {
-        CPed::ShoulderBoneRotation(m_pRwClump);
+        CPed::ShoulderBoneRotation(GetRpClump());
         m_bDontUpdateHierarchy = true;
     }
 
@@ -160,8 +158,8 @@ void CCutsceneObject::RemoveLighting(bool bRemove) {
 
 // 0x5B1AB0
 void CCutsceneObject::SetupCarPipeAtomicsForClump(unsigned modelId, RpClump* clump) {
-    static bool& bCarPipeAtomicsInitialized = *(bool*)0xBC4058;                              // TODO | STATICREF // = false;
-    static uint32(&anHashKeys)[NUM_CUTSCENE_VEHS] = *(uint32(*)[NUM_CUTSCENE_VEHS])0xBC4040; // TODO | STATICREF
+    static auto& bCarPipeAtomicsInitialized = StaticRef<bool>(0xBC4058); // false
+    static auto& anHashKeys = StaticRef<uint32[NUM_CUTSCENE_VEHS]>(0xBC4040);
 
     if (!bCarPipeAtomicsInitialized) {
         bCarPipeAtomicsInitialized = true;

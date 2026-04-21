@@ -99,7 +99,7 @@ void CEventKnockOffBike::ReportCriminalEvent(CPed* ped)
 {
     if (IsCriminalEvent()) {
         if (ped->m_nPedType == PED_TYPE_COP && m_ped && m_ped->IsPlayer())
-            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_DAMAGE_COP_CAR, ped->GetPosition(), ped, false);
+            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_DAMAGE_COP_CAR, ped->GetPosition(), (uint32)ped, false);
     }
 }
 

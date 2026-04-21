@@ -39,11 +39,6 @@
 #include <TaskComplexGoToCarDoorAndStandStill.h>
 #include "TaskSimplePickUpEntity.h"
 
-float& CPedIntelligence::STEALTH_KILL_RANGE = *reinterpret_cast<float*>(0x8D2398); // 2.5f
-float& CPedIntelligence::LIGHT_AI_LEVEL_MAX = *reinterpret_cast<float*>(0x8D2380); // 0.3f
-float& CPedIntelligence::flt_8D2384 = *reinterpret_cast<float*>(0x8D2384); // 30.0f
-float& CPedIntelligence::flt_8D2388 = *reinterpret_cast<float*>(0x8D2388); // 50.0f
-
 void CPedIntelligence::InjectHooks()
 {
     RH_ScopedClass(CPedIntelligence);
@@ -345,7 +340,7 @@ bool CPedIntelligence::GetUsingParachute() {
         return false;
     }
 
-    auto animAssoc = RpAnimBlendClumpGetFirstAssociation(m_pPed->m_pRwClump, ANIMATION_IS_PARTIAL);
+    auto animAssoc = RpAnimBlendClumpGetFirstAssociation(m_pPed->GetRpClump(), ANIMATION_IS_PARTIAL);
     if (!animAssoc) {
         return false;
     }
@@ -542,7 +537,7 @@ void CPedIntelligence::SetEffectInUse(C2dEffect* effect) {
 
 // 0x6018F0
 void CPedIntelligence::ProcessAfterProcCol() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     auto* activeSimplestTask = m_TaskMgr.GetSimplestActiveTask();
     if (activeSimplestTask && activeSimplestTask->IsSimple()) {
@@ -562,12 +557,12 @@ void CPedIntelligence::ProcessAfterProcCol() {
 
     m_pPed->bCalledPreRender = 0;
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x6019B0
 void CPedIntelligence::ProcessAfterPreRender() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     CTask* secondaryTask = m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM);
     if (secondaryTask && secondaryTask->IsSimple())
@@ -591,7 +586,7 @@ void CPedIntelligence::ProcessAfterPreRender() {
     CWeapon* activeWeapon = &m_pPed->GetActiveWeapon();
     if (activeWeapon->m_Type == WEAPON_MOLOTOV && activeWeapon->m_FxSystem)
     {
-        RpHAnimHierarchy* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
+        RpHAnimHierarchy* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->GetRpClump());
         int32 animIDIndex = RpHAnimIDGetIndex(animHierarchy, 24); // 24 = BONE_R_HAND? - "BONE_R" xDDD
         RwMatrix* matrixArray = RpHAnimHierarchyGetMatrixArray(animHierarchy);
 
@@ -614,7 +609,7 @@ void CPedIntelligence::ProcessAfterPreRender() {
         }
     }
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x601BB0
@@ -922,7 +917,7 @@ void CPedIntelligence::ProcessStaticCounter() {
 
 // 0x6073A0
 void CPedIntelligence::ProcessFirst() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     ProcessStaticCounter();
     if (!m_pedStuckChecker.TestPedStuck(m_pPed, &m_eventGroup))
@@ -948,12 +943,12 @@ void CPedIntelligence::ProcessFirst() {
     }
     m_pPed->bMoveAnimSpeedHasBeenSetByTask = false;
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x608260
 void CPedIntelligence::Process() {
-    g_LoadMonitor.StartTimer(0);
+    g_LoadMonitor.StartTimer(eLoadType::PED_AI);
 
     m_vehicleScanner.ScanForVehiclesInRange(*m_pPed);
     m_pedScanner.ScanForPedsInRange(*m_pPed);
@@ -963,7 +958,7 @@ void CPedIntelligence::Process() {
     GetPlayerRelationshipRecorder().RecordRelationshipWithPlayer(m_pPed);
     LookAtInterestingEntities();
 
-    g_LoadMonitor.EndTimer(0);
+    g_LoadMonitor.EndTimer(eLoadType::PED_AI);
 }
 
 // 0x4B85B0

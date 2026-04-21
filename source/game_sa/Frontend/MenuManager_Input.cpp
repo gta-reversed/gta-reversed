@@ -20,7 +20,7 @@ void CMenuManager::UserInput() {
     static constexpr auto SLIDER_ACTIONS     = { MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
     static constexpr auto specialScreens     = { SCREEN_AUDIO_SETTINGS, SCREEN_USER_TRACKS_OPTIONS, SCREEN_DISPLAY_SETTINGS, SCREEN_DISPLAY_ADVANCED, SCREEN_CONTROLLER_SETUP, SCREEN_MOUSE_SETTINGS };
     static constexpr auto specialMenuActions = { MENU_ACTION_BACK, MENU_ACTION_MENU, MENU_ACTION_CTRLS_JOYPAD, MENU_ACTION_CTRLS_FOOT, MENU_ACTION_CTRLS_CAR, MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_RADIO_STATION, MENU_ACTION_RESET_CFG, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
-    static int8 oldOption                    = -99; // 0x8CE005
+    static auto& oldOption = StaticRef<int8>(0x8CE005); // -99
 
     // Early return conditions
     if (m_bScanningUserTracks || m_ControllerError != eControllerError::NONE) {
@@ -299,7 +299,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
             eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
 
             // Audio feedback based on menu type and status
-            if ((!m_isPreInitialised && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
+            if (m_isPreInitialised || !IsSaveSlot(menuType) || GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             } else {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);

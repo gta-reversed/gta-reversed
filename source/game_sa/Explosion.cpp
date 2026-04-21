@@ -6,9 +6,6 @@
 #include "InterestingEvents.h"
 #include "Shadows.h"
 
-CAEExplosionAudioEntity& CExplosion::m_ExplosionAudioEntity = *(CAEExplosionAudioEntity*)0xC888D0;
-CExplosion (&CExplosion::aExplosions)[16] = *(CExplosion(*)[16])0xC88950;
-
 void CExplosion::InjectHooks() {
     RH_ScopedClass(CExplosion);
     RH_ScopedCategoryGlobal();
@@ -458,8 +455,8 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_MOLOTOV: {
                 const CVector& pos = exp.m_vecPosition;
                 CWorld::SetPedsOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetWorldOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetCarsOnFire(pos.x, pos.y, pos.z, 0.1f, exp.m_pCreator);
+                CWorld::SetWorldOnFire(pos, 6.0f, exp.m_pCreator);
+                CWorld::SetCarsOnFire(pos, 0.1f, exp.m_pCreator);
 
                 if (exp.m_nActiveCounter < 10 && exp.m_nActiveCounter == 1) {
                     CEntity* hitEntity;

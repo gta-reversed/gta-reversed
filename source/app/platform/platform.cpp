@@ -37,8 +37,8 @@ void RsInjectHooks() {
     RH_ScopedGlobalInstall(RsRwInitialize, 0x619C90);
 }
 
-static std::array<uint8, 256>& KeysShifted = *(std::array<uint8, 256>*)0x8D2D00;
-static std::array<uint8, 256>& KeysNormal = *(std::array<uint8, 256>*)0x8D2C00;
+static auto& KeysShifted = StaticRef<std::array<uint8, 256>>(0x8D2D00);
+static auto& KeysNormal = StaticRef<std::array<uint8, 256>>(0x8D2C00);
 
 // 0x6193F0
 uint8 RsKeyFromScanCode(uint8 scan, int32 shiftKeyDown) {

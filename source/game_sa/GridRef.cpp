@@ -3,7 +3,7 @@
 #include "GridRef.h"
 
 // todo: remove magic numbers
-char (&GridRefList)[10][10][32] = *reinterpret_cast<char (*)[10][10][32]>(0xC72FB0);
+auto& GridRefList = StaticRef<char[10][10][32]>(0xC72FB0);
 
 void CGridRef::InjectHooks() {
     RH_ScopedClass(CGridRef);

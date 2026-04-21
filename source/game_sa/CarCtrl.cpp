@@ -20,28 +20,8 @@
 
 #include <reversiblebugfixes/Bugs.hpp>
 
-uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
-uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
-uint32& CCarCtrl::NumAmbulancesOnDuty = *(uint32*)0x9690A8;
-uint32& CCarCtrl::NumFireTrucksOnDuty = *(uint32*)0x9690AC;
-uint32& CCarCtrl::MaxNumberOfCarsInUse = *(uint32*)0x8A5B24;
-float& CCarCtrl::CarDensityMultiplier = *(float*)0x8A5B20;
-int32& CCarCtrl::NumRandomCars = *(int32*)0x969094;
-int32& CCarCtrl::NumMissionCars = *(int32*)0x96909C;
-int32& CCarCtrl::NumPermanentVehicles = *(int32*)0x9690A4;
-int32& CCarCtrl::LastTimeAmbulanceCreated = *(int32*)0x9690B0;
-int32& CCarCtrl::LastTimeFireTruckCreated = *(int32*)0x9690B4;
-bool& CCarCtrl::bAllowEmergencyServicesToBeCreated = *(bool*)0x8A5B28;
-bool& CCarCtrl::bCarsGeneratedAroundCamera = *(bool*)0x9690C1;
-int8& CCarCtrl::CountDownToCarsAtStart = *(int8*)0x9690C0;
-float& CCarCtrl::TimeNextMadDriverChaseCreated = *(float*)0x9690BC;
-int32& CCarCtrl::SequenceElements = *(int32*)0x969078;
-int32& CCarCtrl::SequenceRandomOffset = *(int32*)0x969074;
-bool& CCarCtrl::bSequenceOtherWay = *(bool*)0x969070;
-int32& CCarCtrl::LastTimeLawEnforcerCreated = *(int32*)0x9690B8;
-
-CVehicle* (&apCarsToKeep)[2] = *(CVehicle*(*)[2])0x969084;
-uint32 (&aCarsToKeepTime)[2] = *(uint32(*)[2])0x96907C;
+auto& apCarsToKeep = StaticRef<CVehicle*[2]>(0x969084);
+auto& aCarsToKeepTime = StaticRef<std::array<uint32, 2>>(0x96907C);
 
 void CCarCtrl::InjectHooks()
 {
@@ -724,7 +704,7 @@ void CCarCtrl::RemoveDistantCars() {
         if (DistanceBetweenPoints(FindPlayerCentreOfWorld(), veh.GetPosition()) >= 54.5f) {
             continue;
         }
-        CRoadBlocks::GenerateRoadBlockCopsForCar(
+        CRoadBlocks::GenerateRoadBlockPedsForCar(
             &veh,
             veh.m_nPedsPositionForRoadBlock,
             veh.IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1

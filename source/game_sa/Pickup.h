@@ -6,8 +6,8 @@
 */
 #pragma once
 
-#include "CompressedVector.h"
 #include "Vector.h"
+#include "CompressedVector.h"
 
 class CObject;
 class CVehicle;
@@ -41,21 +41,21 @@ enum ePickupType : uint8 {
 
 enum ePickupPropertyText : int32 {
     PICKUP_PROPERTY_TEXT_CANCEL   = 0, // "Cancel"
-    PICKUP_PROPERTY_TEXT_CANT_BUY = 1, // "You can't by..."
-    PICKUP_PROPERTY_TEXT_CAN_BUY  = 2  // "Press TAB to buy ..."
+    PICKUP_PROPERTY_TEXT_CAN_BUY  = 1, // "Press TAB to buy ..."
+    PICKUP_PROPERTY_TEXT_CANT_BUY = 2, // "You can't buy..."
 };
 
 class CPickup {
 public:
-    float            m_fRevenueValue;
-    CObject*         m_pObject;
-    uint32           m_nAmmo;
-    uint32           m_nRegenerationTime;
-    CompressedVector m_vecPos;
-    uint16           m_nMoneyPerDay;
-    int16            m_nModelIndex;
-    int16            m_nReferenceIndex;
-    ePickupType      m_nPickupType;
+    float                 m_fRevenueValue;
+    CObject*              m_pObject;
+    uint32                m_nAmmo;
+    uint32                m_nRegenerationTime;
+    CompressedLargeVector m_vecPos;
+    uint16                m_nMoneyPerDay;
+    int16                 m_nModelIndex;
+    int16                 m_nReferenceIndex;
+    ePickupType           m_nPickupType;
     struct {
         uint8 bDisabled : 1; // waiting for regeneration
         uint8 bEmpty : 1;    // no ammo
@@ -67,22 +67,22 @@ public:
 public:
     static void InjectHooks();
 
-    void SetPosn(CVector posn) { m_vecPos = CompressLargeVector(posn); } // 0x454960
-    [[nodiscard]] CVector GetPosn() const { return UncompressLargeVector(m_vecPos); } // 0x4549A0
+    void SetPosn(CVector posn) { m_vecPos = posn; } // 0x454960
+    [[nodiscard]] CVector GetPosn() const { return m_vecPos; } // 0x4549A0
     [[nodiscard]] CVector2D GetPosn2D() const { return GetPosn(); };    // NOTSA
-    [[nodiscard]] float GetXCoord() const { return m_vecPos.x / 8.0f; } // 0x4549F0
-    [[nodiscard]] float GetYCoord() const { return m_vecPos.y / 8.0f; } // 0x454A10
-    [[nodiscard]] float GetZCoord() const { return m_vecPos.z / 8.0f; } // 0x454A30
-    void SetXCoord(float coord) { m_vecPos.x = static_cast<int16>(coord * 8.0f); }
-    void SetYCoord(float coord) { m_vecPos.y = static_cast<int16>(coord * 8.0f); }
-    void SetZCoord(float coord) { m_vecPos.z = static_cast<int16>(coord * 8.0f); }
+    [[nodiscard]] float GetXCoord() const { return m_vecPos.x; } // 0x4549F0
+    [[nodiscard]] float GetYCoord() const { return m_vecPos.y; } // 0x454A10
+    [[nodiscard]] float GetZCoord() const { return m_vecPos.z; } // 0x454A30
+    void SetXCoord(float coord) { m_vecPos.x = coord; }
+    void SetYCoord(float coord) { m_vecPos.y = coord; }
+    void SetZCoord(float coord) { m_vecPos.z = coord; }
 
     void ExtractAmmoFromPickup(CPlayerPed* player);
     [[nodiscard]] bool IsVisible();
     void GetRidOfObjects();
     bool PickUpShouldBeInvisible();
     void Remove();
-    void GiveUsAPickUpObject(CObject** obj, int32 slotIndex);
+    void GiveUsAPickUpObject(CObject*& obj, int32 slotIndex = -1);
     bool Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId);
     void ProcessGunShot(const CVector& origin, const CVector& target);
 

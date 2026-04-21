@@ -39,9 +39,6 @@ const GUID BYTESTREAM_CONTENT_TYPE = {0xfc358289, 0x3cb6, 0x460c, {0xa4, 0x24, 0
 const IID MFAttributes = {0x2cd2d921, 0xc447, 0x44a7, {0xa1, 0x3c, 0x4a, 0xda, 0xbf, 0xc2, 0x47, 0xe3}};
 } // namespace MFID
 
-// QuickTime is replaced with MediaFoundation
-bool& CAEMFDecoder::quickTimeInitialized = *(bool*)0xb61d70;
-
 // MediaFoundation pointers
 HMODULE CAEMFDecoder::mfPlatModule = nullptr;
 HMODULE CAEMFDecoder::mfReadWriteModule = nullptr;

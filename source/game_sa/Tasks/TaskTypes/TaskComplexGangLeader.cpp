@@ -226,8 +226,8 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     }
 
     if (m_exhaleTimer.IsOutOfTime()) { // 0x6624C1
-        if (ped->m_pRwClump) {
-            if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump))) {
+        if (ped->GetRpClump()) {
+            if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->GetRpClump()))) {
                 if (const auto fx = g_fxMan.CreateFxSystem("exhale", CVector{ 0.f, 0.1f, 0.f }, matrix)) {
                     fx->AttachToBone(ped, eBoneTag::BONE_HEAD);
                     fx->PlayAndKill();
@@ -304,7 +304,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         DRNKBR_PRTL_F,
         SMKCIG_PRTL_F,
     };
-    const auto GetAnim = [ped](AnimationId id) { return RpAnimBlendClumpGetAssociation(ped->m_pRwClump, id); };
+    const auto GetAnim = [ped](AnimationId id) { return RpAnimBlendClumpGetAssociation(ped->GetRpClump(), id); };
     const CAnimBlendAssociation* anims[]{
         GetAnim(ANIM_ID_DRNKBR_PRTL),
         GetAnim(ANIM_ID_SMKCIG_PRTL),

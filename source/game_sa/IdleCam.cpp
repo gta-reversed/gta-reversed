@@ -4,8 +4,8 @@
 #include "InterestingEvents.h"
 #include "HandShaker.h"
 
-CIdleCam& gIdleCam = *(CIdleCam*)0xB6FDA0;
-uint32& gbCineyCamProcessedOnFrame = *(uint32*)0xB6EC40;
+auto& gIdleCam = StaticRef<CIdleCam>(0xB6FDA0);
+auto& gbCineyCamProcessedOnFrame = StaticRef<uint32>(0xB6EC40);
 
 void CIdleCam::InjectHooks() {
     RH_ScopedClass(CIdleCam);

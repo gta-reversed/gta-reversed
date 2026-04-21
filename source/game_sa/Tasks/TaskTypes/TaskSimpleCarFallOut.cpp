@@ -43,7 +43,7 @@ void CTaskSimpleCarFallOut::StartAnim(const CPed* ped) {
     CCarEnterExit::RemoveCarSitAnim(ped);
 
     const auto [animGrp, animId] = ComputeAnimID();
-    m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, animGrp, animId, 1000.0f);
+    m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), animGrp, animId, 1000.0f);
     m_Anim->SetFinishCallback(FinishAnimFallOutCB, this);
 }
 

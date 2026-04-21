@@ -121,7 +121,7 @@ void CWorld::InjectHooks() {
     RH_ScopedGlobalInstall(FindPlayerTrain, 0x56E160);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld, 0x56E250);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
-    RH_ScopedGlobalInstall(FindPlayerCentreOfWorldForMap, 0x56E400, {.reversed=false});
+    RH_ScopedGlobalInstall(FindPlayerCentreOfWorldForMap, 0x56E400);
     RH_ScopedGlobalInstall(FindPlayerHeading, 0x56E450);
     RH_ScopedGlobalInstall(FindPlayerPed, 0x56E210);
     RH_ScopedGlobalInstall(FindPlayerVehicle, 0x56E0D0);
@@ -257,7 +257,7 @@ void CWorld::ProcessPedsAfterPreRender() {
 
 // 0x563470
 void CWorld::ClearScanCodes() {
-    const auto ProcessList = []<typename PtrListType>(PtrListType list) {
+    const auto ProcessList = []<typename PtrListType>(PtrListType& list) {
         for (auto* const entity : list) {
             entity->SetScanCode(0);
         }
@@ -271,8 +271,8 @@ void CWorld::ClearScanCodes() {
         }
     }
 
-    for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
-        for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
+    for (int32 y = 0; y < (int32)(MAX_REPEAT_SECTORS_Y); y++) {
+        for (int32 x = 0; x < (int32)(MAX_REPEAT_SECTORS_X); x++) {
             auto& rs = GetRepeatSector(x, y);
             ProcessList(rs.Vehicles);
             ProcessList(rs.Peds);
@@ -423,8 +423,8 @@ void CWorld::RemoveStaticObjects() {
         }
     }
 
-    for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
-        for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
+    for (auto y = 0; y < (int32)(MAX_REPEAT_SECTORS_Y); y++) {
+        for (auto x = 0; x < (int32)(MAX_REPEAT_SECTORS_X); x++) {
             ProcessList(GetRepeatSector(x, y).Objects);
         }
     }
@@ -450,7 +450,7 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
                 if (fabsf(pos1.x - pos2.x) < 0.01f
                     && fabsf(pos1.y - pos2.y) < 0.01f
                     && fabsf(pos1.z - pos2.z) < 0.01f) {
-                    NOTSA_LOG_DEBUG("Two {} at position {},{},{}", CModelInfo::GetModelInfo(modelIndex1)->GetModelName(), pos1.x, pos1.y, pos1.z); // R* log
+                    NOTSA_LOG_WARN("Two {} at position {:4f},{:4f},{:4f}", CModelInfo::GetModelInfo(modelIndex1)->GetModelNameAsString(), pos1.x, pos1.y, pos1.z); // R* log
                 }
             }
         }
@@ -704,8 +704,8 @@ void CWorld::ShutDown() {
     };
 
     const auto IterateRepeatSectorsLists = [](auto&& fn) {
-        for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
-            for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
+        for (auto y = 0; y < (int32)(MAX_REPEAT_SECTORS_Y); y++) {
+            for (auto x = 0; x < (int32)(MAX_REPEAT_SECTORS_X); x++) {
                 auto& sector = GetRepeatSector(x, y);
                 fn(sector.Vehicles, x, y, "Vehicles");
                 fn(sector.Peds, x, y, "Peds");
@@ -1237,11 +1237,11 @@ void CWorld::SetPedsChoking(float x, float y, float z, float radius, CEntity* ga
 
 // 0x5659F0
 // NOTE: Radius is treated as a cuboid with the height of 10, width and length of 2 * radius
-void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fireCreator) {
+void CWorld::SetCarsOnFire(CVector pos, float radius, CEntity* fireCreator) {
     // NOTSA - Originally it was some abs() macro crap, we ain't gonna do it like that
     const CBoundingBox bb{
-        { x - radius, y - radius, z - 5.f },
-        { x + radius, y + radius, z + 5.f }
+        { pos.x - radius, pos.y - radius, pos.z - 5.f },
+        { pos.x + radius, pos.y + radius, pos.z + 5.f }
     };
     for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
         if (CVehicle* vehicle = GetVehiclePool()->GetAt(i - 1)) {
@@ -1265,14 +1265,14 @@ void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fir
 }
 
 // 0x565B70
-int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState) {
+eSprayPaintState CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool processTagAlphaState) {
     constexpr static int16 SPRAY_ALPHA_CHANGE = 8; // 0x8CDEF0
 
     CEntity* objects[15]{};
     int16 count{};
     FindObjectsInRange(posn, radius, false, &count, (uint16)std::size(objects), objects, true, false, false, false, false);
     if (count <= 0) {
-        return 0;
+        return eSprayPaintState::NOT_FOUND;
     }
 
     bool hasChangedAlphaTo255{}, hasFoundTag{};
@@ -1302,10 +1302,10 @@ int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool
     }
 
     if (hasChangedAlphaTo255) {
-        return 2;
+        return eSprayPaintState::PAINTED;
     }
 
-    return hasFoundTag ? 1 : 0;
+    return hasFoundTag ? eSprayPaintState::DISCOVERED : eSprayPaintState::NOT_FOUND;
 }
 
 // 0x565CB0
@@ -1320,7 +1320,7 @@ void CWorld::RemoveFallenPeds() {
         if (vecPedPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
-        NOTSA_LOG_DEBUG("&&&&&&Another ped has fallen through the map&&&&&&&&&& {} {} {}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log
+        NOTSA_LOG_WARN("&&&&&&Another ped has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || ped->IsPlayer()) {
             CNodeAddress pathNodeAddress = ThePaths.FindNodeClosestToCoors(vecPedPos, PATH_TYPE_PED, 1000000.0f, 0, 0, 0, 0, 0);
             if (pathNodeAddress.IsValid()) {
@@ -1350,7 +1350,7 @@ void CWorld::RemoveFallenCars() {
             continue;
         }
 
-        NOTSA_LOG_DEBUG("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {} {} {}", vecPos.x, vecPos.y, vecPos.z); // R* log
+        NOTSA_LOG_WARN("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPos.x, vecPos.y, vecPos.z); // R* log
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
@@ -1550,7 +1550,7 @@ void CWorld::TestForUnusedModels() {
         if (usageModelCounts[i] == 0) {
             CBaseModelInfo* mi = CModelInfo::GetModelInfo(i);
             if (mi) {
-                NOTSA_LOG_DEBUG("{} is not used", mi->GetModelName()); // R* log
+                NOTSA_LOG_WARN("{} is not used", mi->GetModelNameAsString()); // R* log
             }
         }
     }
@@ -1700,7 +1700,7 @@ CPed* CWorld::FindUnsuspectingTargetPed(CVector point, CVector playerPosn) {
 // 0x566EE0
 template<typename PtrListType>
 bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& colLine, CColPoint& outColPoint, float& minTouchDistance, CEntity*& outEntity, bool doSeeThroughCheck, bool doIgnoreCameraCheck, bool doShootThroughCheck) {
-    if (!ptrList.m_node) {
+    if (!ptrList.m_Head) {
         return false;
     }
 
@@ -1795,7 +1795,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
                 || ped->m_pAttachedTo
                 || (bIncludeDeadPeds && !ped->IsAlive())
                 || (bIncludeBikers && ped->bTestForShotInVehicle)) {
-                ProcessColModel(CModelInfo::GetModelInfo(entity->m_nModelIndex)->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->m_pRwClump));
+                ProcessColModel(CModelInfo::GetModelInfo(entity->m_nModelIndex)->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->GetRpClump()));
             }
             break;
         }
@@ -1903,7 +1903,7 @@ bool CWorld::ProcessVerticalLine(const CVector& origin, float distance, CColPoin
     const int32 secX = GetSectorX(origin.x), secY = GetSectorY(origin.y);
     return ProcessVerticalLineSector(
         GetSector(secX, secY),
-        GetRepeatSector(secX % MAX_REPEAT_SECTORS_X, secY % MAX_REPEAT_SECTORS_Y),
+        GetRepeatSector(secX, secY),
         CColLine{ origin, CVector{origin.x, origin.y, distance} },
         outColPoint, outEntity, buildings, vehicles, peds, objects, dummies, doSeeThroughCheck, outCollPoly
     );
@@ -2084,7 +2084,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             if (const auto attachedTo = ped->m_pAttachedTo; attachedTo && attachedTo->GetIsTypeVehicle() && attachedTo->GetStatus() == STATUS_WRECKED) {
                 CPedDamageResponseCalculator pedDamageResponseCalculator{ creator, 1000.f, WEAPON_EXPLOSION, PED_PIECE_TORSO, false };
 
-                CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, pedLocalDir, false, !!ped->bIsTalking };
+                CEventDamage eventDamage{ creator, CTimer::GetTimeInMS(), WEAPON_EXPLOSION, PED_PIECE_TORSO, static_cast<uint8>(pedLocalDir), false, !!ped->bIsTalking };
                 if (eventDamage.AffectsPed(ped)) {
                     pedDamageResponseCalculator.ComputeDamageResponse(ped, eventDamage.m_damageResponse, true);
                 } else {
@@ -2239,7 +2239,7 @@ void CWorld::Process() {
         obj->ProcessControlLogic();
     }
 
-    g_LoadMonitor.StartTimer(true);
+    g_LoadMonitor.StartTimer(eLoadType::COLLISION);
     if (CReplay::Mode == MODE_PLAYBACK) {
         ZoneScopedN("Update entity RW");
 
@@ -2331,7 +2331,7 @@ void CWorld::Process() {
             });
         }
     }
-    g_LoadMonitor.EndTimer(true);
+    g_LoadMonitor.EndTimer(eLoadType::COLLISION);
 
     CVehicleRecording::SaveOrRetrieveDataForThisFrame();
     g_ikChainMan.Update(CTimer::GetTimeStepInSeconds());
@@ -2946,7 +2946,7 @@ bool CWorld::GetIsLineOfSightClear(const CVector& origin, const CVector& target,
                     }
                 }
             } else {
-                for (y = startY; y >= endY; y--) {
+                for (y = startY; y >= endY; y--) { // TODO: Decrements below 0!!
                     if (!ProcessSector(originSectorX, y)) {
                         return false;
                     }
@@ -3077,10 +3077,10 @@ void CWorld::TriggerExplosion(const CVector& point, float radius, float visibleD
 }
 
 // 0x56B910
-void CWorld::SetWorldOnFire(float x, float y, float z, float radius, CEntity* fireCreator) {
-    if (TestSphereAgainstWorld({ x, y, z }, radius, nullptr, true, false, false, true, false, false)) {
-        if (!gFireManager.GetNumFiresInRange({ x, y, z }, 2.f)) {
-            gFireManager.StartFire({ x, y, z }, 0.8f, 1u, nullptr, 7'000u, 100u, 1u);
+void CWorld::SetWorldOnFire(CVector pos, float radius, CEntity* fireCreator) {
+    if (TestSphereAgainstWorld(pos, radius, nullptr, true, false, false, true, false, false)) {
+        if (!gFireManager.GetNumFiresInRange(pos, 2.f)) {
+            gFireManager.StartFire(pos, 0.8f, 1u, nullptr, 7'000u, 100u, 1u);
         }
     }
 }
