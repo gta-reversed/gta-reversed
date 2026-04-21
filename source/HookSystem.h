@@ -98,7 +98,7 @@ void HookInstall(DWORD installAddress, T addressToJumpTo, int iJmpCodeSize = 5)
 
 namespace notsa {
     // Change protection of memory pages, and automatically rollback on scope exit
-    struct [[maybe_unused]] ScopedVirtualProtectModify {
+    struct [[nodiscard]] ScopedVirtualProtectModify {
         ScopedVirtualProtectModify(LPVOID address, SIZE_T sz, DWORD newProtect = PAGE_EXECUTE_READWRITE) :
         m_addr{ address },
         m_sz{ sz }
