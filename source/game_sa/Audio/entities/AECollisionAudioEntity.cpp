@@ -215,7 +215,8 @@ void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntit
     const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
     const auto GetSoundIDForSurface = [&](eSurfaceType surface) -> std::optional<eSoundID> { // 0x4DB6AF
         assert(surface < TOTAL_NUM_COLLISION_SURFACE_TYPES);
-
+        
+        // FIX(#1406):
         // This fixes an OOB access in the original code,
         // Namely, originally for BMX `AE_SURFACE_TYPE_BMX` was passed in,
         // but it's not an actual surface type, but a special case for sound selection.
