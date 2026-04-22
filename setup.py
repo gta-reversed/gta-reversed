@@ -16,7 +16,7 @@ try:
     if sys.platform == "linux":
         args.profile = "conanprofile-wine.txt"
         preset = f'conan-{args.buildconf.lower()}'
-        extcfg = "-DGTASA_UNITY_BUILD=ON -DGTASA_NO_EDIT_AND_CONTINUE=ON"
+        extcfg = f'-DGTASA_UNITY_BUILD={"ON" if not args.no_unity_build else "OFF"} -DGTASA_NO_EDIT_AND_CONTINUE=ON'
         genpath = ""
 
     if args.build:
