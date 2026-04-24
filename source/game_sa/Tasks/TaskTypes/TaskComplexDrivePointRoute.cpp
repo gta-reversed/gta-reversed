@@ -54,7 +54,7 @@ CTask* CTaskComplexDrivePointRoute::CreateTaskForCurrentPoint() const {
 
 // 0x63CF90
 CTask* CTaskComplexDrivePointRoute::CreateNextSubTask(CPed* ped) {
-    if (m_currPtIdx++ == m_route->m_NumEntries) {
+    if (++m_currPtIdx >= m_route->m_NumEntries) {
         return nullptr;
     }
 

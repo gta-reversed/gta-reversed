@@ -93,13 +93,13 @@ CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
         switch (m_pSubTask->GetTaskType()) {
         case TASK_SIMPLE_PAUSE:
         case TASK_SIMPLE_FIGHT_CTRL: {
-            if (ped->bStayInSamePlace) { // Inverted
-                return m_PauseTimer != -1 && CTimer::GetTimeInMS() - m_PauseTimer > 3000
-                    ? TASK_FINISHED
-                    : TASK_SIMPLE_PAUSE;
+            if (!ped->bStayInSamePlace) {
+                CalculateSearchPositionAndRanges(ped);
+                return TASK_COMPLEX_SEEK_ENTITY;
             }
-            CalculateSearchPositionAndRanges(ped);
-            return TASK_COMPLEX_SEEK_ENTITY;
+            return m_PauseTimer != -1 && CTimer::GetTimeInMS() - m_PauseTimer > 3000
+                ? TASK_FINISHED
+                : TASK_SIMPLE_PAUSE;
         }
         case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x62DC70
             CalculateSearchPositionAndRanges(ped);
@@ -128,7 +128,7 @@ CTask* CTaskComplexDestroyCarMelee::CreateFirstSubTask(CPed* ped) {
 
     const auto& pedPos = ped->GetPosition();
 
-    if (IsPointInSphere(pedPos, m_VehToDestroy->GetPosition(), m_MaxArriveRange)) {
+    if (!IsPointInSphere(pedPos, m_VehToDestroy->GetPosition(), m_MaxArriveRange)) {
         return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
     }
 

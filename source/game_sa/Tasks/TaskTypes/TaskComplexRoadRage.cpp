@@ -59,7 +59,7 @@ CTask* CTaskComplexRoadRage::CreateSubTask(eTaskType taskType, CPed* ped) {
             ped->m_pVehicle,
             20'000,
             1'000,
-            m_rageWith->m_pVehicle->GetModelInfo()->GetColModel()->GetBoundRadius() + 1.f,
+            m_rageWith->m_pVehicle ? m_rageWith->m_pVehicle->GetModelInfo()->GetColModel()->GetBoundRadius() + 1.f : 1.f,
             2.f,
             2.f,
             true,
@@ -96,11 +96,11 @@ CTask* CTaskComplexRoadRage::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);
     case TASK_COMPLEX_LEAVE_CAR:
         return CreateSubTask(
-            ped->bInVehicle // Ternary inverted
-                ? TASK_FINISHED
-                : TASK_COMPLEX_TURN_TO_FACE_ENTITY,
+            !ped->bInVehicle
+                ? TASK_COMPLEX_TURN_TO_FACE_ENTITY
+                : TASK_FINISHED,
             ped
-        ); 
+        );
     case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
         if (ped->m_pVehicle) {
             ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE);
@@ -127,7 +127,7 @@ CTask* CTaskComplexRoadRage::CreateFirstSubTask(CPed* ped) {
     }
 
     // Maybe give ped a weapon
-    if (ped->IsGangster()) { // Inverted
+    if (!ped->IsGangster()) {
         ped->GiveDelayedWeapon(WEAPON_PISTOL, 2000u);
         ped->SetCurrentWeapon(WEAPON_PISTOL);
     } else if (CGeneral::DoCoinFlip()) {
