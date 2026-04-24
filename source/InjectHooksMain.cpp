@@ -155,7 +155,7 @@
 #include "Shadows.h"
 #include "ShadowCamera.h"
 #include "VehicleRecording.h"
-#include "Birds.h"
+#include "Renderer/Birds.h"
 #include "Hud.h"
 #include "CarFXRenderer.h"
 #include "Curves.h"
