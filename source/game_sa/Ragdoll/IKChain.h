@@ -20,14 +20,14 @@ public:
     IKChain_c() = default;
     ~IKChain_c() = default;
 
-    bool Init(const char* name, eIKChainSlot ikSlot, CPed* ped, eBoneTag32 effectorBone, RwV3d effectorPos, eBoneTag32 pivotBone, CEntity* entity, eBoneTag32 offsetBone, RwV3d offsetPos, float speed, int32 priority);
+    bool Init(const char* name, eIKChainSlot ikSlot, CPed* ped, eBoneTag32 effectorBone, CVector effectorPos, eBoneTag32 pivotBone, CEntity* entity, eBoneTag32 offsetBone, CVector offsetPos, float speed, int32 priority);
     void Exit();
 
     void Update(float deltaTime);
 
     void SetBlend(float blend);
     void SetOffsetBoneTag(eBoneTag32 offsetBone);
-    void SetOffsetPos(RwV3d offsetPos);
+    void SetOffsetPos(CVector offsetPos);
 
     void ClampLimits(eBoneTag32 boneTag, bool axisX, bool axisY, bool axisZ, bool current);
     void GetLimits(eBoneTag32 boneTag, eRotationAxis axis, float& min, float& max);
@@ -39,11 +39,11 @@ public:
     int8 GetPriority() const;
 
     void UpdateEntity(CEntity* entity);
-    void UpdateOffset(eBoneTag32 offsetBone, RwV3d offsetPos);
+    void UpdateOffset(eBoneTag32 offsetBone, CVector offsetPos);
     void UpdateTarget(bool update);
 
     bool IsFacingTarget() const;
-    bool IsAtTarget(float range, float* dist) const;
+    bool IsAtTarget(float range, float* outDist) const;
     CPed* GetParentPed() const { return m_Ped; }
 
     // notsa section
@@ -57,7 +57,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void SetupBones(eBoneTag32 effectorBone, RwV3d effectorPos, eBoneTag32 pivotBone, AnimBlendFrameData* frames);
+    void SetupBones(eBoneTag32 effectorBone, CVector effectorPos, eBoneTag32 pivotBone, AnimBlendFrameData* frames);
     void MoveBonesToTarget();
 
     BoneNode_c* GetBoneNodeFromTag(eBoneTag32 boneTag);
@@ -75,18 +75,18 @@ private:
     float                        m_Blend{};
 
     eBoneTag16                   m_EffectorBone{};
-    RwV3d                        m_EffectorPos{};
+    CVector                      m_EffectorPos{};
     eBoneTag16                   m_PivotBone{};
     notsa::EntityRef<>           m_TargetEntity{};
     eBoneTag32                   m_OffsetBone{};   //!< Offset bone
-    RwV3d                        m_OffsetPos{};    //!< - If `m_TargetEntity` is set:
+    CVector                      m_OffsetPos{};    //!< - If `m_TargetEntity` is set:
                                                    //!<   - And `m_OffsetBone` is set too: This is a position relative to that bone
                                                    //!<   - Otherwise this is an object-space value, otherwise it's a world-space value.
                                                    //!< - Otherwise:
                                                    //!    - It's a word-space offset
     float                        m_Speed{};        //!< IK animation speed
 
-    RwV3d                        m_OffsetPosWS{};  //!< World-space offset (Calculated from `m_OffsetPos`, see `MoveBonesToTarget`)
+    CVector                      m_OffsetPosWS{};  //!< World-space offset (Calculated from `m_OffsetPos`, see `MoveBonesToTarget`)
     bool                         m_UpdateTarget{}; //!< Whenever the target was updated, and we need to re-calculate stuff related to them
     notsa::WEnumS8<eIKChainSlot> m_IKSlot{};       //!< The IK slot we're in
     int8                         m_Priority{};

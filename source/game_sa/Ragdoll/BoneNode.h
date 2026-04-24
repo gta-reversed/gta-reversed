@@ -37,8 +37,8 @@ public:
     void BlendKeyframe(float blend);
 
 private:
-    static void QuatToEuler(const RtQuat& quat, RwV3d& angles);
-    static void EulerToQuat(const RwV3d& angles, RtQuat& quat);
+    static void QuatToEuler(const RtQuat& quat, CVector& outAngles);
+    static void EulerToQuat(const CVector& angles, RtQuat& outQuat);
 
     static eBoneTag32 GetIdFromBoneTag(eBoneTag32 bone);
 
@@ -63,15 +63,15 @@ private:
     eBoneTag32               m_BoneTag;
     RpHAnimBlendInterpFrame* m_InterpFrame;
     RtQuat                   m_Orientation; 
-    RwV3d                    m_Pos;
+    CVector                  m_Pos;
 
     BoneNode_c*              m_Parent;
     TList_c<BoneNode_c>      m_Childs;
 
     RwMatrix                 m_WorldMat;
 
-    CVector                  m_LimitMin; // RwV3d
-    CVector                  m_LimitMax; // RwV3d
+    CVector                  m_LimitMin;
+    CVector                  m_LimitMax;
 
     float                    m_Speed;
 };

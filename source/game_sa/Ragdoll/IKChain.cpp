@@ -35,11 +35,11 @@ bool IKChain_c::Init(
     eIKChainSlot ikSlot,
     CPed*        ped,
     eBoneTag32   effectorBone,
-    RwV3d        effectorPos,
+    CVector        effectorPos,
     eBoneTag32   pivotBone,
     CEntity*     entity,
     eBoneTag32   offsetBone,
-    RwV3d        offsetPos,
+    CVector        offsetPos,
     float        speed,
     int32        priority
 ) {
@@ -100,10 +100,10 @@ void IKChain_c::Update(float deltaTime) {
 }
 
 // 0x617F30
-bool IKChain_c::IsAtTarget(float range, float* dist) const {
+bool IKChain_c::IsAtTarget(float range, float* outDist) const {
     const auto len = (m_OffsetPosWS - GetBones().front()->GetPosition()).Magnitude();
-    if (dist) {
-        *dist = len;
+    if (outDist) {
+        *outDist = len;
     }
     return len <= range && m_Blend > 0.98f;
 }
@@ -112,11 +112,11 @@ bool IKChain_c::IsAtTarget(float range, float* dist) const {
 bool IKChain_c::IsFacingTarget() const {
     // Genuine cancer :D
 
-    RwV3d targetPos;
+    CVector targetPos;
     RwV3dTransformVector(&targetPos, &m_EffectorPos, &GetBones().front()->GetMatrix());
     RwV3dNormalize(&targetPos, &targetPos);
 
-    RwV3d dir;
+    CVector dir;
     RwV3dSub(&dir, &m_OffsetPosWS, &targetPos);
     RwV3dNormalize(&dir, &dir);
 
@@ -129,7 +129,7 @@ void IKChain_c::UpdateTarget(bool update) {
 }
 
 // 0x617E20
-void IKChain_c::UpdateOffset(eBoneTag32 offsetBone, RwV3d offsetPos) {
+void IKChain_c::UpdateOffset(eBoneTag32 offsetBone, CVector offsetPos) {
     m_OffsetBone = offsetBone;
     m_OffsetPos = offsetPos;
 }
@@ -167,7 +167,7 @@ int8 IKChain_c::GetPriority() const {
 }
 
 // 0x617C30
-void IKChain_c::SetOffsetPos(RwV3d offsetPos) {
+void IKChain_c::SetOffsetPos(CVector offsetPos) {
     m_OffsetPos = offsetPos;
 }
 
@@ -193,9 +193,9 @@ void IKChain_c::MoveBonesToTarget() {
             } else {
                 m_OffsetPosWS = m_TargetEntity->AsPed()->GetBonePosition((eBoneTag)m_OffsetBone);
                 if (mat) {
-                    RwV3d transformed;
+                    CVector transformed;
                     RwV3dTransformVector(&transformed, &m_OffsetPos, mat);
-                    m_OffsetPosWS = m_OffsetPosWS + transformed;
+                    m_OffsetPosWS += transformed;
                 }
             }
         } else {
@@ -212,7 +212,7 @@ void IKChain_c::MoveBonesToTarget() {
 
     const auto rootBone = bones.front();
     for (auto&& bone : bones) {
-        RwV3d transformedBonePos;
+        CVector transformedBonePos;
         RwV3dTransformVector(&transformedBonePos, &m_EffectorPos, &rootBone->GetMatrix()); // Not sure why it's transformed every iteration..
 
         CVector dirBoneToRoot = transformedBonePos + (rootBone->GetPosition() - bone->GetPosition());
@@ -250,7 +250,7 @@ void IKChain_c::MoveBonesToTarget() {
         }
 
         CVector cross = CrossProduct(dirBoneToRoot, dirBoneToOffset);
-        RwV3d axis;
+        CVector axis;
         RtQuatTransformVectors(&axis, &cross, 1, &quat);
         RtQuatRotate(reinterpret_cast<RtQuat*>(&bone->GetOrientation()), &axis, RadiansToDegrees(bone->GetSpeed() * std::acos(dot) * m_Speed), rwCOMBINEPOSTCONCAT);
 
@@ -260,20 +260,20 @@ void IKChain_c::MoveBonesToTarget() {
 }
 
 // 0x617CA0
-void IKChain_c::SetupBones(eBoneTag32 effectorBone, RwV3d effectorPos, eBoneTag32 pivotBone, AnimBlendFrameData* frames) {
+void IKChain_c::SetupBones(eBoneTag32 effector, CVector effectorPos, eBoneTag32 pivot, AnimBlendFrameData* frames) {
     UNUSED(effectorPos);
 
-    m_PivotBoneMatrix = m_Ped->GetBoneMatrix(pivotBone);
-    m_PivotBone       = pivotBone;
+    m_PivotBoneMatrix = m_Ped->GetBoneMatrix(pivot);
+    m_PivotBone       = pivot;
 
     const auto GetBoneLinkPrev = [](eBoneTag32 b) {
         return BoneNodeManager_c::ms_boneInfos[BoneNode_c::GetIdFromBoneTag(b)].m_prev;
     };
 
-    // Allocate bone nodes we use (Going from effectorBoneTag -> pivotBoneTag)
+    // Allocate bone nodes we use (Going from effectorBone -> pivotBone)
     BoneNode_c* bones[MAX_BONE_NUM];
     m_BonesCount = 0;
-    for (auto boneIt = effectorBone; boneIt != pivotBone; boneIt = GetBoneLinkPrev(boneIt)) {
+    for (auto boneIt = effector; boneIt != pivot; boneIt = GetBoneLinkPrev(boneIt)) {
         const auto node = g_boneNodeMan.GetBoneNode();
         node->Init(boneIt, frames[RpHAnimIDGetIndex(&m_Ped->GetAnimHierarchy(), (RwInt32)boneIt)].KeyFrame);
         bones[m_BonesCount++] = node;

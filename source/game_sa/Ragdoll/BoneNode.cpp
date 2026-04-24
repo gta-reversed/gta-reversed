@@ -63,7 +63,7 @@ void BoneNode_c::InitLimits() {
 // degrees → radians → half-angles → quaternion
 // Tait-Bryan XYZ convention
 // 0x6171F0
-void BoneNode_c::EulerToQuat(const RwV3d& angles, RtQuat& quat) {
+void BoneNode_c::EulerToQuat(const CVector& angles, RtQuat& outQuat) {
     const CVector halfRadAngles = {
         DegreesToRadians(angles.x) / 2.f,
         DegreesToRadians(angles.y) / 2.f,
@@ -89,25 +89,25 @@ void BoneNode_c::EulerToQuat(const RwV3d& angles, RtQuat& quat) {
                                 q.imag.y * q.imag.y +
                                 q.imag.z * q.imag.z +
                                 q.real   * q.real);
-    quat.imag.x     = q.imag.x / magnitude;
-    quat.imag.y     = q.imag.y / magnitude;
-    quat.imag.z     = q.imag.z / magnitude;
-    quat.real       = q.real / magnitude;
+    outQuat.imag.x     = q.imag.x / magnitude;
+    outQuat.imag.y     = q.imag.y / magnitude;
+    outQuat.imag.z     = q.imag.z / magnitude;
+    outQuat.real       = q.real / magnitude;
 }
 
 // 0x617080
-void BoneNode_c::QuatToEuler(const RtQuat& quat, RwV3d& angles) {
+void BoneNode_c::QuatToEuler(const RtQuat& quat, CVector& outAngles) {
     // refactor this fuck
     const auto v9 = 2.0f * (quat.imag.x * quat.imag.z - quat.imag.y * quat.real);
     const auto v10 = std::sqrt(1.0f - sq(v9));
 
-    angles.y = RadiansToDegrees(std::atan2(2.0f * (quat.imag.y * quat.real - quat.imag.x * quat.imag.z), v10));
+    outAngles.y = RadiansToDegrees(std::atan2(2.0f * (quat.imag.y * quat.real - quat.imag.x * quat.imag.z), v10));
     if (std::abs(v9) == 1.0f) {
-        angles.x = RadiansToDegrees(std::atan2(-2.0f * (quat.imag.y * quat.imag.z - quat.imag.x * quat.real), 1.0f - 2.0f * (sq(quat.imag.x) + sq(quat.imag.z))));
-        angles.z = RadiansToDegrees(0.0f);
+        outAngles.x = RadiansToDegrees(std::atan2(-2.0f * (quat.imag.y * quat.imag.z - quat.imag.x * quat.real), 1.0f - 2.0f * (sq(quat.imag.x) + sq(quat.imag.z))));
+        outAngles.z = RadiansToDegrees(0.0f);
     } else {
-        angles.x = RadiansToDegrees(std::atan2(2.0f * (quat.imag.x * quat.real + quat.imag.y * quat.imag.z) / v10, (1.0f - 2.0f * (sq(quat.imag.x) + sq(quat.imag.y))) / v10));
-        angles.z = RadiansToDegrees(std::atan2(2.0f * (quat.imag.z * quat.real + quat.imag.x * quat.imag.y) / v10, (1.0f - 2.0f * (sq(quat.imag.y) + sq(quat.imag.z))) / v10));
+        outAngles.x = RadiansToDegrees(std::atan2(2.0f * (quat.imag.x * quat.real + quat.imag.y * quat.imag.z) / v10, (1.0f - 2.0f * (sq(quat.imag.x) + sq(quat.imag.y))) / v10));
+        outAngles.z = RadiansToDegrees(std::atan2(2.0f * (quat.imag.z * quat.real + quat.imag.x * quat.imag.y) / v10, (1.0f - 2.0f * (sq(quat.imag.y) + sq(quat.imag.z))) / v10));
     }
 }
 
@@ -125,11 +125,11 @@ inline eBoneTag32 BoneNode_c::GetIdFromBoneTag(eBoneTag32 bone) {
 // Empty in Android
 // 0x6175D0
 void BoneNode_c::ClampLimitsCurrent(bool limitX, bool limitY, bool limitZ) {
-    static bool testSkipClampCurrent = StaticRef<bool>(0x8D2BD1); // true
+    static bool s_TestSkipClampCurrent = StaticRef<bool>(0x8D2BD1); // true
 
-    if (!testSkipClampCurrent) {
-        RwV3d angles;
-        BoneNode_c::QuatToEuler(m_Orientation, angles);
+    if (!s_TestSkipClampCurrent) {
+        CVector angles;
+        QuatToEuler(m_Orientation, angles);
         if (limitX) {
             m_LimitMax.x = angles.x;
             m_LimitMin.x = angles.x;
@@ -148,9 +148,9 @@ void BoneNode_c::ClampLimitsCurrent(bool limitX, bool limitY, bool limitZ) {
 // Empty in Android
 // 0x617530
 void BoneNode_c::ClampLimitsDefault(bool limitX, bool limitY, bool limitZ) {
-    static bool testSkipClampDefault = StaticRef<bool>(0x8D2BD0); // true
+    static bool s_TestSkipClampDefault = StaticRef<bool>(0x8D2BD0); // true
 
-    if (!testSkipClampDefault) {
+    if (!s_TestSkipClampDefault) {
         const auto id = GetIdFromBoneTag(m_BoneTag);
         const auto& boneInfo = BoneNodeManager_c::ms_boneInfos[id];
 
@@ -172,7 +172,7 @@ void BoneNode_c::ClampLimitsDefault(bool limitX, bool limitY, bool limitZ) {
 // argument (float blend) - ignored
 // 0x617650
 void BoneNode_c::Limit(float blend) {
-    RwV3d angles{};
+    CVector angles{};
     QuatToEuler(m_Orientation, angles);
 
     angles.x = std::clamp(angles.x, m_LimitMin.x, m_LimitMax.x);
@@ -221,9 +221,9 @@ void BoneNode_c::SetLimits(eRotationAxis axis, float min, float max) {
 }
 
 // 0x616BF0
-void BoneNode_c::GetLimits(eRotationAxis axis, float& min, float& max) const {
-    min = m_LimitMin[axis];
-    max = m_LimitMax[axis];
+void BoneNode_c::GetLimits(eRotationAxis axis, float& outMin, float& outMax) const {
+    outMin = m_LimitMin[axis];
+    outMax = m_LimitMax[axis];
 }
 
 // 0x616BD0

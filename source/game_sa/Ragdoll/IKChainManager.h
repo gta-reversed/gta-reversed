@@ -30,11 +30,11 @@ public:
         eIKChainSlot ikSlot,
         CPed*        ped,
         eBoneTag32   effectorBone,
-        RwV3d        effectorOffset,
+        CVector      effectorOffset,
         eBoneTag32   pivotBone,
         CEntity*     entity,
         eBoneTag32   offsetBone,
-        RwV3d        offset,
+        CVector      offset,
         float        speed,
         int32        priority = 3
     );
@@ -106,13 +106,13 @@ public:
      * @addr 0x6182B0
      * @brief Check if the ped's arm is pointing towards something
     */
-    static bool IsArmPointing(eIKArm arm, CPed* ped);
+    static bool __stdcall IsArmPointing(eIKArm arm, CPed* ped);
 
     /*!
      * @addr 0x6182F0
      * @brief Abort the arm pointing of a ped
     */
-    static void AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
+    static void __stdcall AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
 
     /*!
      * @addr 0x618330

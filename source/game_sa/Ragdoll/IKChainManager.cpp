@@ -84,11 +84,11 @@ IKChain_c* IKChainManager_c::AddIKChain(
     eIKChainSlot ikSlot,
     CPed*        ped,
     eBoneTag32   effectorBone,
-    RwV3d        effectorOffset,
+    CVector      effectorOffset,
     eBoneTag32   pivotBone,
     CEntity*     entity,
     eBoneTag32   offsetBone,
-    RwV3d        offset,
+    CVector      offset,
     float        speed,
     int32        priority
 ) {
@@ -110,21 +110,22 @@ void IKChainManager_c::RemoveIKChain(IKChain_c* chain) {
 }
 
 // 0x618800
-inline bool IKChainManager_c::CanAccept(CPed* pPed, float range) const {
-    if (!pPed->GetRwMatrix()) {
+inline bool IKChainManager_c::CanAccept(CPed* ped, float range) const {
+    static auto& s_MaxRange = StaticRef<float>(0x866BEC); // 999.0f
+
+    if (!ped->GetRwMatrix()) {
         return false;
     }
 
-    if (!pPed->IsAlive()) {
+    if (!ped->IsAlive()) {
         return false;
     }
 
-    if (!pPed->GetIsOnScreen()) {
+    if (!ped->GetIsOnScreen()) {
         return false;
     }
 
-    static auto& s_fMaxRange = StaticRef<float>(0x83e690); // 999.0f
-    if (range >= s_fMaxRange) {
+    if (range >= s_MaxRange) {
         return true;
     }
 
@@ -132,14 +133,11 @@ inline bool IKChainManager_c::CanAccept(CPed* pPed, float range) const {
         return true;
     }
 
-    {
-        const auto distSqr = (pPed->GetPosition() - TheCamera.GetPosition()).SquaredMagnitude();
-        if (distSqr > sq(range)) {
-            return false;
-        }
+    if ((ped->GetPosition() - TheCamera.GetPosition()).SquaredMagnitude() <= sq(range)) {
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 // NOTSA
@@ -280,13 +278,13 @@ void IKChainManager_c::LookAt(
 }
 
 // 0x6182B0
-bool IKChainManager_c::IsArmPointing(eIKArm arm, CPed* ped) {
+bool __stdcall IKChainManager_c::IsArmPointing(eIKArm arm, CPed* ped) {
     const auto mgr = GetPedIKManagerTask(ped);
     return mgr && mgr->GetTaskAtSlot(IKArmToIKSlot(arm));
 }
 
 // 0x6182F0
-void IKChainManager_c::AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime) {
+void __stdcall IKChainManager_c::AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime) {
     const auto mgr = GetPedIKManagerTask(ped);
     if (const auto lookAt = notsa::dyn_cast_if_present<CTaskSimpleIKChain>(mgr->GetTaskAtSlot(IKArmToIKSlot(arm)))) {
         lookAt->BlendOut(blendOutTime);
