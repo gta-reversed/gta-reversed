@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
-#include "../Birds.h"
-#include "../Clouds.h"
+#include "Birds.h"
+#include "Clouds.h"
 
 /*
 These spawn in a formation like this:

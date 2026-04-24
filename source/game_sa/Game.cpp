@@ -27,7 +27,7 @@
 #include "Skidmarks.h"
 #include "CarCtrl.h"
 #include "TagManager.h"
-#include "Clouds.h"
+#include "Renderer/Clouds.h"
 #include "StuntJumpManager.h"
 #include "CustomCarPlateMgr.h"
 #include "TaskSimpleFight.h"
