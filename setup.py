@@ -14,7 +14,7 @@ try:
     )
 
     subprocess.run(
-        f'cmake --preset default{'-unity' if not args.no_unity_build else ''} {SCRIPT_DIR}',
+        f'cmake --preset default{"-unity" if not args.no_unity_build else ""} {SCRIPT_DIR}',
         shell=True, check=True
     )
 except subprocess.CalledProcessError as e:

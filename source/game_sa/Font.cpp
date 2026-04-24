@@ -10,10 +10,10 @@
 
 #include "eLanguage.h"
 
-auto& FontRenderStateBuf = StaticRef<CFontChar[9]>(0xC716B0);
+auto& FontRenderStateBuf = StaticRef<std::array<CFontChar, 9>>(0xC716B0);
 auto& pEmptyChar = StaticRef<CFontChar*>(0xC716A8);
 
-auto& gFontData = StaticRef<tFontData[2]>(0xC718B0);
+auto& gFontData = StaticRef<std::array<tFontData, 2>>(0xC718B0);
 
 void CFont::InjectHooks() {
     RH_ScopedClass(CFont);

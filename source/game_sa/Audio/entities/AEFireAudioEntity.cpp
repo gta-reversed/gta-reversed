@@ -4,7 +4,7 @@
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
-auto& gfFireFrequencyVariations = StaticRef<float[5]>(0x8AE598);
+auto& gfFireFrequencyVariations = StaticRef<std::array<float, 5>>(0x8AE598);
 
 // 0x4DCF20
 void CAEFireAudioEntity::Initialise(FxSystem_c* system) {

@@ -187,7 +187,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
     rng::sort(m_FxInRange, [&](const InRange2DFx& a, const InRange2DFx& b) {
         for (auto i = 0; i < specs->SpecsCount; i++) {
             const auto spec = &specs->Specs[i];
-            std::partial_ordering o;
+            auto o = std::partial_ordering::equivalent;
             switch (spec->ColumnIndex) {
             case 0: o = a.TblIdx <=> b.TblIdx;             break; // #
             case 1:                                        break; // Color (not sortable)
@@ -195,7 +195,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
             case 3: o = a.DistToPlayer <=> b.DistToPlayer; break; // Distance
             case 4: o = a.Entity <=> b.Entity;             break; // Entity
             }
-            if (o != 0) {
+            if (o != std::partial_ordering::equivalent) {
                 return spec->SortDirection == ImGuiSortDirection_Ascending
                     ? o < 0
                     : o > 0;

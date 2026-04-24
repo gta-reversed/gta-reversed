@@ -31,12 +31,12 @@ bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVeloci
     if (!object->GetRwObject() || RwObjectGetType(object->GetRwObject()) != rpATOMIC)
         return false;
 
-    auto* info = BREAKABLEPLG(RpAtomicGetGeometry(object->m_pRwAtomic), m_pBreakableInfo);
+    auto* info = BREAKABLEPLG(RpAtomicGetGeometry(object->GetRpAtomic()), m_pBreakableInfo);
     if (!info)
         return false;
 
     SetBreakInfo(info, bJustFaces);
-    auto ltm = RwFrameGetLTM(RpAtomicGetFrame(object->m_pRwAtomic));
+    auto ltm = RwFrameGetLTM(RpAtomicGetFrame(object->GetRpAtomic()));
     SetGroupData(ltm, velocity, fVelocityRand);
 
     m_JustFaces = bJustFaces;
@@ -294,14 +294,12 @@ void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, con
         particlePos.x += CGeneral::GetRandomNumberInRange(-0.5f, 0.5f);
         particlePos.y += CGeneral::GetRandomNumberInRange(-0.5f, 0.5f);
 
-        CVector particleVelocity = {
-            CGeneral::GetRandomNumberInRange(-0.15f, 0.15f),
-            CGeneral::GetRandomNumberInRange(-0.15f, 0.15f),
+        g_fx.m_SmokeII3expand->AddParticle(
+            particlePos,
+            { CGeneral::GetRandomNumberInRange(-0.15f, 0.15f), CGeneral::GetRandomNumberInRange(-0.15f, 0.15f), 0.0f },
             0.0f,
-        };
-
-        auto particle = FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.1f, 0.3f, 0.0f, 0.15f);
-        g_fx.m_SmokeII3expand->AddParticle(&particlePos, &particleVelocity, 0.0f, &particle, -1.0f, 1.2f, 0.6f, 0);
+            FxPrtMult_c(1.0f, 1.0f, 1.0f, 0.1f, 0.3f, 0.0f, 0.15f)
+        );
     }
 
     if (m_AddSparks) {
@@ -401,17 +399,17 @@ void BreakObject_c::Render(bool isDrawLast) const {
         }
 
         for (auto& renderInfo : group.GetRenderInfos()) {
-            RwV3d aVecPos[NUM_BREAK_GROUP_RENDER_INFO];
-            RwV3dTransformPoints(aVecPos, renderInfo.positions, NUM_BREAK_GROUP_RENDER_INFO, &group.m_Matrix);
+            RwV3d vertices[NUM_BREAK_GROUP_RENDER_INFO];
+            RwV3dTransformPoints(vertices, renderInfo.positions.data(), NUM_BREAK_GROUP_RENDER_INFO, &group.m_Matrix);
 
             int32 alpha = group.m_FramesToLive * (m_JustFaces ? 8 : 2);
             alpha = std::min(alpha, 255);
 
-            auto colors = std::to_array(renderInfo.colors);
+            auto colors{ renderInfo.colors };
             std::ranges::for_each(colors, [&](auto& color) { color.a = alpha; });
 
             RenderAddTri(
-                aVecPos[0], aVecPos[1], aVecPos[2],
+                vertices[0], vertices[1], vertices[2],
                 renderInfo.texCoords[0], renderInfo.texCoords[1], renderInfo.texCoords[2],
                 colors[0], colors[1], colors[2]
             );

@@ -5,10 +5,10 @@ env:
     CL: /MP
 
     # Path to the CMake build directory.
-    build: '${{ github.workspace }}/build'
+    build: "${{ github.workspace }}/build"
 
 # Triggers the workflow on push or pull request events for all branches.
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 permissions:
     contents: read
@@ -17,66 +17,32 @@ jobs:
     build:
         permissions:
             contents: read # for actions/checkout to fetch code
-            security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-
-        runs-on: ${{ matrix.os }}
-
         strategy:
             fail-fast: false
             matrix:
-                os: [ windows-2025-vs2026 ]
-                arch: [ x86 ]
-                conf: [ Debug, Release ]
-                preset: [ NoUnity, Unity ]
-
+                os: [windows-2025-vs2026]
+                arch: [x86]
+                conf: [Debug, Release]
+                preset: [NoUnity, Unity]
+        runs-on: ${{ matrix.os }}
         steps:
-            -   name: Checkout
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 1
-                    submodules: recursive
+            - name: Checkout
+              uses: actions/checkout@v6
 
-            -   name: Setup Python
-                uses: actions/setup-python@v4
-                with:
-                    python-version: '3.x'
+            - name: Setup CMake using Conan
+              uses: ./.github/actions/setup-cmake
+              with:
+                  os: ${{ matrix.os }}
+                  arch: ${{ matrix.arch }}
+                  conf: ${{ matrix.conf }}
+                  preset: ${{ matrix.preset }}
 
-            -   name: Install Conan via Python
-                shell: cmd
-                run: |
-                    python -m pip install --upgrade pip
-                    python -m pip install conan
+            - name: Build
+              shell: cmd
+              run: cmake --build build --config ${{ matrix.conf }}
 
-            -   name: Setup ${{ matrix.conf }}-${{ matrix.arch }}
-                shell: cmd
-                run: |
-                    conan profile detect
-                    python setup.py --buildconf ${{ matrix.conf }} ${{ matrix.preset == 'NoUnity' && '--no-unity-build' || '' }}
-
-            -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
-                shell: cmd
-                run: cmake --build build --config ${{ matrix.conf }}
-
-            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-                uses: actions/upload-artifact@v4
-                with:
-                    name: gta_reversed-${{ matrix.conf }}-${{ matrix.preset }}
-                    path: bin/${{ matrix.conf }}
-
-            -   name: Initialize MSVC Code Analysis
-                uses: microsoft/msvc-code-analysis-action@v0.1.1
-                # Provide a unique ID to access the sarif output path
-                id: run-analysis
-                with:
-                    cmakeBuildDirectory: ${{ env.build }}
-                    # Ruleset file that will determine what checks will be run
-                    ruleset: NativeRecommendedRules.ruleset
-                    buildConfiguration: ${{ matrix.conf }}
-                    # Exclude external libraries from analysis
-                    ignoredPaths: ${{ github.workspace }}/libs
-
-                # Upload SARIF file to GitHub Code Scanning Alerts
-            -   name: Upload SARIF to GitHub
-                uses: github/codeql-action/upload-sarif@v3
-                with:
-                    sarif_file: ${{ steps.run-analysis.outputs.sarif }}
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: gta_reversed-${{ matrix.conf }}-${{ matrix.preset }}
+                  path: bin/${{ matrix.conf }}

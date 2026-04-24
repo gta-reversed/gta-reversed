@@ -38,8 +38,8 @@ struct tUserList_Child {
 VALIDATE_SIZE(tUserList_Child, 0x8);
 
 struct tUserList {
-    int32 m_UserTypes[4]{ -1 };
-    int32 m_UserTypesByPedType[4]{ -1 };
+    std::array<int32, 4> m_UserTypes{ -1, -1, -1, -1 };
+    std::array<int32, 4> m_UserTypesByPedType{ -1, -1, -1, -1 };
     bool  m_bUseList{};
 };
 VALIDATE_SIZE(tUserList, 0x24);
