@@ -254,7 +254,7 @@
 #include "Clock.h"
 #include "Clothes.h"
 #include "ClothesBuilder.h"
-#include "Coronas.h"
+#include "Renderer/Coronas.h"
 #include "Cover.h"
 #include "Cranes.h"
 #include "CrimeBeingQd.h"
