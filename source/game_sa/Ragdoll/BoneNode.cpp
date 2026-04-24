@@ -1,6 +1,7 @@
 #include "StdInc.h"
-#include "BoneNode_c.h"
-#include "BoneNodeManager_c.h"
+
+#include "BoneNode.h"
+#include "BoneNodeManager.h"
 
 #include "rtslerp.h"
 
@@ -29,12 +30,12 @@ void BoneNode_c::InjectHooks() {
 }
 
 // 0x6177B0
-bool BoneNode_c::Init(int32 boneTag, RpHAnimBlendInterpFrame* interpFrame) {
-    m_BoneTag     = static_cast<eBoneTag>(boneTag);
+bool BoneNode_c::Init(eBoneTag32 boneTag, RpHAnimBlendInterpFrame* interpFrame) {
+    m_BoneTag = boneTag;
     m_InterpFrame = interpFrame;
     m_Orientation = interpFrame->q;
-    m_Pos         = interpFrame->t;
-    m_Parent      = nullptr;
+    m_Pos = interpFrame->t;
+    m_Parent = nullptr;
 
     m_Childs.RemoveAll();
     InitLimits();
@@ -50,38 +51,52 @@ void BoneNode_c::InitLimits() {
     assert(id != -1);
     const auto& boneInfo = BoneNodeManager_c::ms_boneInfos[id]; // Possible out of bounds when `id` = -1 (they don't check for -1) | unnecessary copying
 
-    m_LimitMin.x = boneInfo.m_Max.x - boneInfo.m_Min.x;
-    m_LimitMin.y = boneInfo.m_Max.y - boneInfo.m_Min.z;
-    m_LimitMin.z = boneInfo.m_Max.z - boneInfo.m_ABC.y;
+    m_LimitMin.x = boneInfo.m_PosRots.x - boneInfo.m_LimitsX.x;
+    m_LimitMin.y = boneInfo.m_PosRots.y - boneInfo.m_LimitsY.x;
+    m_LimitMin.z = boneInfo.m_PosRots.z - boneInfo.m_LimitsZ.x;
 
-    m_LimitMax.x = boneInfo.m_Min.y + boneInfo.m_Max.x;
-    m_LimitMax.y = boneInfo.m_ABC.x + boneInfo.m_Max.y;
-    m_LimitMax.z = boneInfo.m_ABC.z + boneInfo.m_Max.z;
+    m_LimitMax.x = boneInfo.m_LimitsX.y + boneInfo.m_PosRots.x;
+    m_LimitMax.y = boneInfo.m_LimitsY.y + boneInfo.m_PosRots.y;
+    m_LimitMax.z = boneInfo.m_LimitsZ.y + boneInfo.m_PosRots.z;
 }
 
+// degrees → radians → half-angles → quaternion
+// Tait-Bryan XYZ convention
 // 0x6171F0
-void BoneNode_c::EulerToQuat(const CVector& angles, RtQuat& quat) {
+void BoneNode_c::EulerToQuat(const RwV3d& angles, RtQuat& quat) {
     const CVector halfRadAngles = {
         DegreesToRadians(angles.x) / 2.f,
         DegreesToRadians(angles.y) / 2.f,
         DegreesToRadians(angles.z) / 2.f
     };
-
-    float cr = std::cos(halfRadAngles.x);
-    float sr = std::sin(halfRadAngles.x);
-    float cp = std::cos(halfRadAngles.y);
-    float sp = std::sin(halfRadAngles.y);
-    float cy = std::cos(halfRadAngles.z);
-    float sy = std::sin(halfRadAngles.z);
-
-    quat.real = cr * cp * cy + sr * sp * sy;
-    quat.imag.x = sr * cp * cy - cr * sp * sy;
-    quat.imag.y = cr * sp * cy + sr * cp * sy;
-    quat.imag.z = cr * cp * sy - sr * sp * cy;
+ 
+    const float cx = std::cos(halfRadAngles.x), sx = std::sin(halfRadAngles.x);
+    const float cy = std::cos(halfRadAngles.y), sy = std::sin(halfRadAngles.y);
+    const float cz = std::cos(halfRadAngles.z), sz = std::sin(halfRadAngles.z);
+ 
+    // quaternion component products
+    const float cc = cx * cz, cs = cx * sz;
+    const float sc = sx * cz, ss = sx * sz;
+ 
+    RtQuat q;
+    q.imag.x = sc * cy - cs * sy;
+    q.imag.y = cc * sy + ss * cy;
+    q.imag.z = cs * cy - sc * sy;
+    q.real   = cc * cy + ss * sy;
+ 
+    // normalise and store back into quat
+    const float magnitude = std::sqrt(q.imag.x * q.imag.x +
+                                q.imag.y * q.imag.y +
+                                q.imag.z * q.imag.z +
+                                q.real   * q.real);
+    quat.imag.x     = q.imag.x / magnitude;
+    quat.imag.y     = q.imag.y / magnitude;
+    quat.imag.z     = q.imag.z / magnitude;
+    quat.real       = q.real / magnitude;
 }
 
 // 0x617080
-void BoneNode_c::QuatToEuler(const RtQuat& quat, CVector& angles) {
+void BoneNode_c::QuatToEuler(const RtQuat& quat, RwV3d& angles) {
     // refactor this fuck
     const auto v9 = 2.0f * (quat.imag.x * quat.imag.z - quat.imag.y * quat.real);
     const auto v10 = std::sqrt(1.0f - sq(v9));
@@ -96,85 +111,88 @@ void BoneNode_c::QuatToEuler(const RtQuat& quat, CVector& angles) {
     }
 }
 
+// inline
 // 0x617050
-int32 BoneNode_c::GetIdFromBoneTag(eBoneTag32 bone) {
+inline eBoneTag32 BoneNode_c::GetIdFromBoneTag(eBoneTag32 bone) {
     for (auto i = 0u; i < BoneNodeManager_c::ms_boneInfos.size(); i++) {
         if (BoneNodeManager_c::ms_boneInfos[i].m_current == bone) {
-            return i;
+            return (eBoneTag)i;
         }
     }
-    return -1;
+    return BONE_UNKNOWN;
 }
 
 // Empty in Android
 // 0x6175D0
-void BoneNode_c::ClampLimitsCurrent(bool LimitX, bool LimitY, bool LimitZ) {
-    if (*(bool*)0x8D2BD1) // always true
-        return;
+void BoneNode_c::ClampLimitsCurrent(bool limitX, bool limitY, bool limitZ) {
+    static bool testSkipClampCurrent = StaticRef<bool>(0x8D2BD1); // true
 
-    CVector angles;
-    BoneNode_c::QuatToEuler(m_Orientation, angles);
-    if (LimitX) {
-        m_LimitMax.x = angles.x;
-        m_LimitMin.x = angles.x;
-    }
-    if (LimitY) {
-        m_LimitMax.y = angles.y;
-        m_LimitMin.y = angles.y;
-    }
-    if (LimitZ) {
-        m_LimitMax.z = angles.z;
-        m_LimitMin.z = angles.z;
+    if (!testSkipClampCurrent) {
+        RwV3d angles;
+        BoneNode_c::QuatToEuler(m_Orientation, angles);
+        if (limitX) {
+            m_LimitMax.x = angles.x;
+            m_LimitMin.x = angles.x;
+        }
+        if (limitY) {
+            m_LimitMax.y = angles.y;
+            m_LimitMin.y = angles.y;
+        }
+        if (limitZ) {
+            m_LimitMax.z = angles.z;
+            m_LimitMin.z = angles.z;
+        }
     }
 }
 
 // Empty in Android
 // 0x617530
-void BoneNode_c::ClampLimitsDefault(bool LimitX, bool LimitY, bool LimitZ) {
-    if (*(bool*)0x8D2BD0) // always true
-        return;
+void BoneNode_c::ClampLimitsDefault(bool limitX, bool limitY, bool limitZ) {
+    static bool testSkipClampDefault = StaticRef<bool>(0x8D2BD0); // true
 
-    const auto id = GetIdFromBoneTag(m_BoneTag);
-    const auto& boneInfo = BoneNodeManager_c::ms_boneInfos[id];
+    if (!testSkipClampDefault) {
+        const auto id = GetIdFromBoneTag(m_BoneTag);
+        const auto& boneInfo = BoneNodeManager_c::ms_boneInfos[id];
 
-    if (LimitX) {
-        m_LimitMax.x = boneInfo.m_Min.x;
-        m_LimitMin.x = boneInfo.m_Min.x;
-    }
-    if (LimitY) {
-        m_LimitMax.y = boneInfo.m_Min.y;
-        m_LimitMin.y = boneInfo.m_Min.y;
-    }
-    if (LimitZ) {
-        m_LimitMax.z = boneInfo.m_Min.z;
-        m_LimitMin.z = boneInfo.m_Min.z;
+        if (limitX) {
+            m_LimitMax.x = boneInfo.m_LimitsX.x;
+            m_LimitMin.x = boneInfo.m_LimitsX.x;
+        }
+        if (limitY) {
+            m_LimitMax.y = boneInfo.m_LimitsX.y;
+            m_LimitMin.y = boneInfo.m_LimitsX.y;
+        }
+        if (limitZ) {
+            m_LimitMax.z = boneInfo.m_LimitsY.x;
+            m_LimitMin.z = boneInfo.m_LimitsY.x;
+        }
     }
 }
 
 // argument (float blend) - ignored
 // 0x617650
 void BoneNode_c::Limit(float blend) {
-    CVector eulerOrientation{};
+    RwV3d angles{};
+    QuatToEuler(m_Orientation, angles);
 
-    BoneNode_c::QuatToEuler(m_Orientation, eulerOrientation);
+    angles.x = std::clamp(angles.x, m_LimitMin.x, m_LimitMax.x);
+    angles.y = std::clamp(angles.y, m_LimitMin.y, m_LimitMax.y);
 
-    eulerOrientation.x = std::clamp(eulerOrientation.x, m_LimitMin.x, m_LimitMax.x);
-    eulerOrientation.y = std::clamp(eulerOrientation.y, m_LimitMin.y, m_LimitMax.y);
-
-    float clampZMin = m_LimitMin.z;
-    float clampZMax = m_LimitMax.z;
+    float minZ = m_LimitMin.z;
+    float maxZ = m_LimitMax.z;
 
     if (m_BoneTag == eBoneTag::BONE_HEAD) {
-        float maxHeadZ = BoneNodeManager_c::ms_boneInfos[GetIdFromBoneTag(eBoneTag::BONE_HEAD)].m_Max.z;
-        float multy = std::max(std::abs(eulerOrientation.x) / -45.0f + 1.0f, 0.0f);
+        float boneOffset = BoneNodeManager_c::ms_boneInfos[GetIdFromBoneTag(eBoneTag::BONE_HEAD)].m_PosRots.z;
 
-        clampZMin = maxHeadZ + (m_LimitMin.z - maxHeadZ) * multy;
-        clampZMax = maxHeadZ + (m_LimitMax.z - maxHeadZ) * multy;
+        // Scale the Z range toward boneOffset as angleX approaches 45°
+        const float factor = std::max(std::abs(angles.x) / -45.0f + 1.0f, 0.0f);
+        minZ = (minZ - boneOffset) * factor + boneOffset;
+        maxZ = (maxZ - boneOffset) * factor + boneOffset;
     }
 
-    eulerOrientation.z = std::clamp(eulerOrientation.z, clampZMin, clampZMax);
+    angles.z = std::clamp(angles.z, minZ, maxZ);
 
-    BoneNode_c::EulerToQuat(eulerOrientation, m_Orientation);
+    EulerToQuat(angles, m_Orientation);
 }
 
 // 0x616E30
@@ -198,14 +216,14 @@ void BoneNode_c::SetSpeed(float speed) {
 
 // 0x616C50
 void BoneNode_c::SetLimits(eRotationAxis axis, float min, float max) {
-     m_LimitMin[axis] = min;
-     m_LimitMax[axis] = max;
+    m_LimitMin[axis] = min;
+    m_LimitMax[axis] = max;
 }
 
 // 0x616BF0
-void BoneNode_c::GetLimits(eRotationAxis axis, float& outMin, float& outMax) const {
-    outMin = m_LimitMin[axis];
-    outMax = m_LimitMax[axis];
+void BoneNode_c::GetLimits(eRotationAxis axis, float& min, float& max) const {
+    min = m_LimitMin[axis];
+    max = m_LimitMax[axis];
 }
 
 // 0x616BD0
@@ -218,7 +236,7 @@ void BoneNode_c::AddChild(BoneNode_c* children) {
 void BoneNode_c::CalcWldMat(const RwMatrix* boneMatrix) {
     RwMatrix rotMatrix = [this] {
         CMatrix mat{};
-        mat.SetRotate(CQuaternion{m_Orientation});
+        mat.SetRotate(CQuaternion{ m_Orientation });
         mat.GetPosition() = m_Pos;
         return mat.ToRwMatrix();
     }();
