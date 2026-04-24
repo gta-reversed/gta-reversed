@@ -3,18 +3,18 @@
 
 class NOTSA_EXPORT_VTABLE CAEStaticChannel : public CAEAudioChannel {
 public:
-    bool   m_bNeedData;
+    bool   m_OverwriteIntroWhenWrapped; // originally m_bNeedData
     bool   m_bUnkn2;
     bool   m_bNeedsSynch;
     bool   m_bUnkn4;
-    int32  m_nCurrentBufferOffset;
-    uint32 field_68;
-    int32  field_6C;
+    int32  m_LoopStartOffset; // offset to the part that looped section starts
+    uint32 m_LoopEndOffset;
+    int32  m_TotalLoops; // number of loops to fill the buffer
     uint32 m_nSyncTime;
     int32  m_CurrentBufferOffsetMs;
-    int32  m_dwLockOffset;
-    int32  m_nNumLockBytes;
-    uint16 m_nNumLoops;
+    int32  m_IntroOverwriteOffset;
+    int32  m_LoopedBytes;
+    uint16 m_NumLoopsCoverIntro; // number of loops that fill one intro section. refer `CAEStaticChannel::SetAudioBuffer`
     uint16 field_82;
     void*  m_pBuffer;
     uint16 field_88;
