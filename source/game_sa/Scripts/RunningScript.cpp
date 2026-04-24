@@ -20,7 +20,7 @@ static notsa::log_ptr logger;
 
 #include "CommandParser/Parser.hpp"
 #include "CommandParser/LUTGenerator.hpp"
-#include "ReversibleHooks/ReversibleHook/ScriptCommand.h"
+#include "reversiblehooks/ReversibleHook/ScriptCommand.h"
 
 #include "Commands/Commands.hpp"
 #ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS // TODO: Add premake/cmake option for this define
