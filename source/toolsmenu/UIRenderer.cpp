@@ -163,86 +163,26 @@ void UIRenderer::Render3D() {
     m_DebugModules.Render3D();
 }
 
+#include "toolsmenu/DebugModules/CTeleportDebugModule.h"
 void UIRenderer::DebugCode() {
     CPad* pad = CPad::GetPad();
-
-    const auto player = FindPlayerPed();
 
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
-    if (pad->IsStandardKeyJustPressed('8')) {
-        player->GetTaskManager().SetTask(
-            new CTaskComplexFollowNodeRoute{
-                PEDMOVE_SPRINT,
-                CVector{0.f, 0.f, 10.f}
-            },
-            TASK_PRIMARY_PRIMARY
-        );
-        NOTSA_LOG_DEBUG("GOING!");
-        //CPointRoute route{};
-        //
-        //const auto r = 10.f;
-        //const auto totalAngle = PI * 2.f;
-        //for (auto a = 0.f; a < totalAngle; a += totalAngle / 8.f) {
-        //    route.AddPoints(player->GetPosition() + CVector{std::cosf(a), std::sinf(a), 0.f} *r);
-        //}
-        //
-        //player->GetTaskManager().SetTask(
-        //    new CTaskComplexFollowPointRoute{
-        //        PEDMOVE_SPRINT,
-        //        route,
-        //        CTaskComplexFollowPointRoute::Mode::ONE_WAY,
-        //        3.f,
-        //        3.f,
-        //        false,
-        //        true,
-        //        true
-        //    },
-        //    TASK_PRIMARY_PRIMARY
-        //);
-    }
-
-    if (pad->IsStandardKeyJustPressed('J')) {
-        CCheat::JetpackCheat();
-    }
-
-    if (pad->IsStandardKeyJustPressed('9')) {
-        if (const auto veh = FindPlayerVehicle()) {
-            veh->Fix();
-            veh->AsAutomobile()->SetRandomDamage(true);
-        }
-    }
-
-    if (pad->IsStandardKeyJustPressed('2')) {
-        CCheat::MoneyArmourHealthCheat();
-    }
-    if (pad->IsStandardKeyJustPressed('3')) {
-        CCheat::VehicleCheat(MODEL_INFERNUS);
-    }
-    if (pad->IsStandardKeyJustDown('8')) {
-        TheCamera.AddShakeSimple(10000.f, 1, 10.f);
-        NOTSA_LOG_DEBUG("Hey");
-    }
-    if (pad->IsStandardKeyJustPressed('5')) {
-        if (const auto veh = FindPlayerVehicle()) {
-            player->GetTaskManager().SetTask(
-                new CTaskComplexCarDriveWander{veh, eCarDrivingStyle::DRIVING_STYLE_PLOUGH_THROUGH, 100.f},
-                TASK_PRIMARY_PRIMARY
-            );
-        }
-    }
-    if (pad->IsStandardKeyJustPressed('6')) {
-        FindPlayerPed()->SetWantedLevel(eWantedLevel::WANTED_LEVEL_4);
-        CCheat::VehicleCheat(MODEL_SANCHEZ);
-        CCheat::MoneyArmourHealthCheat();
-        CCheat::HealthCheat();
-    }
-
     if (pad->IsStandardKeyJustPressed('T')) {
-        CCheat::VehicleCheat(MODEL_BUFFALO);
-        CCheat::WantedLevelUpCheat();
-        CCheat::WantedLevelUpCheat();
+        TeleportDebugModule::TeleportTo({2011.840f, -2478.842f, 13.539f}, eAreaCodes::AREA_CODE_NORMAL_WORLD);
+    }
+
+    static int i = 0;
+    if (pad->IsStandardKeyJustPressed('P')) {
+        switch (i++ % 4) {
+        case 0: CCheat::VehicleCheat(MODEL_SHAMAL); break;
+        case 1: CCheat::VehicleCheat(MODEL_HYDRA); break;
+        case 2: CCheat::VehicleCheat(MODEL_AT400); break;
+        case 3: CCheat::VehicleCheat(MODEL_ANDROM); break;
+        default: NOTSA_UNREACHABLE("fucku");
+        }
     }
 }
 }; // namespace ui
