@@ -56,26 +56,26 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         return;
     }
 
-    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)) {
-        AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)) {
         return;
     }
 
     m_nThunderFrequencyVariationCounter = (m_nThunderFrequencyVariationCounter + 1) % std::size(s_ThunderFreqVariation);
 
-    const float speedA   = s_ThunderFreqVariation[m_nThunderFrequencyVariationCounter] * 0.35636002f;
-    const float speedB   = s_ThunderFreqVariation[m_nThunderFrequencyVariationCounter] * 0.4f;
-    const auto  envFlags = SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES;
+    // The pitch of the left side is two semitones lower to create stereo effect.
+    constexpr float pitchDiff = 0.8908987181403393f; // 2^(-2/12)
+    constexpr auto envFlags   = SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES;
+    const float speedLeft     = s_ThunderFreqVariation[m_nThunderFrequencyVariationCounter] * 0.4f * pitchDiff;
+    const float speedRight    = s_ThunderFreqVariation[m_nThunderFrequencyVariationCounter] * 0.4f;
 
-    constexpr CVector posA = { -0.906f, 0.423f, 0.0f }, posB = { 0.906f, 0.423f, 0.0f };
-
+    constexpr CVector posLeft = { -0.906f, 0.423f, 0.0f }, posRight = { 0.906f, 0.423f, 0.0f };
     AESoundManager.PlaySound({
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
         .SoundID = 4,
         .AudioEntity = this,
-        .Pos = posA,
+        .Pos = posLeft,
         .Volume = VOLUME_SILENCE,
-        .Speed = speedA,
+        .Speed = speedLeft,
         .Flags = envFlags,
         .EventID = AE_FRONTEND_SELECT
     });
@@ -84,9 +84,9 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
         .SoundID = 4,
         .AudioEntity = this,
-        .Pos = posB,
+        .Pos = posRight,
         .Volume = VOLUME_SILENCE,
-        .Speed = speedB,
+        .Speed = speedRight,
         .Flags = envFlags,
         .EventID = AE_FRONTEND_SELECT
     });
@@ -96,9 +96,9 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
         .SoundID = 1,
         .AudioEntity = this,
-        .Pos = posA,
+        .Pos = posLeft,
         .Volume = volume,
-        .Speed = speedA,
+        .Speed = speedLeft,
         .Flags = envFlags | SOUND_ROLLED_OFF,
         .EventID = AE_FRONTEND_BACK
     });
@@ -107,9 +107,9 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
         .SoundID = 1,
         .AudioEntity = this,
-        .Pos = posB,
+        .Pos = posRight,
         .Volume = volume,
-        .Speed = speedB,
+        .Speed = speedRight,
         .Flags = envFlags | SOUND_ROLLED_OFF,
         .EventID = AE_FRONTEND_BACK
     });
@@ -117,8 +117,6 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
 
 // 0x505A00
 void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    //plugin::CallMethod<0x505A00, CAEWeatherAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
-
     if (curPlayPos <= 0) {
         return;
     }
@@ -371,7 +369,7 @@ void CAEWeatherAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(StaticInitialise, 0x5B9A70);
     RH_ScopedInstall(StaticReset, 0x5052B0);
-    RH_ScopedInstall(AddAudioEvent, 0x506800, { .reversed = true });
+    RH_ScopedInstall(AddAudioEvent, 0x506800);
     RH_ScopedVMTInstall(UpdateParameters, 0x505A00);
     RH_ScopedInstall(Service, 0x5052F0);
 }

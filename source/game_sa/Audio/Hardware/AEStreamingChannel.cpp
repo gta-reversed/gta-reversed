@@ -33,12 +33,14 @@ CAEStreamingChannel::~CAEStreamingChannel() {
 void CAEStreamingChannel::Initialise() {
     VERIFY(SUCCEEDED(CoInitialize(nullptr)));
 
-    DSBUFFERDESC bufferDesc{ .guid3DAlgorithm = GUID_NULL };
-    bufferDesc.lpwfxFormat       = &m_WaveFormat;
-    bufferDesc.dwSize            = 36;
-    bufferDesc.dwBufferBytes     = 2 * CHANNEL_BUFFER_SIZE;
-    bufferDesc.dwReserved        = 0;
-    bufferDesc.dwFlags           = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLFX | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE;
+    const DSBUFFERDESC bufferDesc{
+        .dwSize          = 36,
+        .dwFlags         = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLFX | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE,
+        .dwBufferBytes   = 2 * CHANNEL_BUFFER_SIZE,
+        .dwReserved      = 0,
+        .lpwfxFormat     = &m_WaveFormat,
+        .guid3DAlgorithm = GUID_NULL,
+    };
     m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
     m_WaveFormat.cbSize          = 0;
     m_WaveFormat.nChannels       = 2;
@@ -62,11 +64,12 @@ void CAEStreamingChannel::Initialise() {
 
 // 0x4F1C70
 void CAEStreamingChannel::InitialiseSilence() {
-    DSBUFFERDESC bufferDesc{};
-    bufferDesc.dwSize        = 36;
-    bufferDesc.lpwfxFormat   = &m_WaveFormat;
-    bufferDesc.dwBufferBytes = 0x8000;
-    bufferDesc.dwFlags       = DSBCAPS_GLOBALFOCUS | DSBCAPS_LOCSOFTWARE;
+    const DSBUFFERDESC bufferDesc{
+        .dwSize        = sizeof(DSBUFFERDESC),
+        .dwFlags       = DSBCAPS_GLOBALFOCUS | DSBCAPS_LOCSOFTWARE,
+        .dwBufferBytes = 0x8000,
+        .lpwfxFormat   = &m_WaveFormat
+    };
 
     if (SUCCEEDED(m_pDirectSound->CreateSoundBuffer(&bufferDesc, &m_pSilenceBuffer, 0))) {
         void *audioPtr;

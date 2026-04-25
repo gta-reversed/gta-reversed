@@ -97,6 +97,13 @@ uint64 CAEAudioUtility::GetCurrentTimeInMS() {
     const auto nowMs = time_point_cast<milliseconds>(high_resolution_clock::now());
     const auto value = duration_cast<milliseconds>(nowMs.time_since_epoch());
     return static_cast<uint64>(value.count()) - startTimeMs;
+
+#if 0
+    // For some reason this doesn't work (original code):
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return counter.QuadPart / SampleFrequency.QuadPart * 1000 - startTimeMs;
+#endif
 }
 
 // 0x4d9ef0
