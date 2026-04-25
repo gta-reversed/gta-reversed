@@ -49,25 +49,25 @@ void CAEAudioChannel::InjectHooks() {
 
 // 0x4D7890
 CAEAudioChannel::CAEAudioChannel(IDirectSound* directSound, uint16 channelId, uint32 samplesPerSec, uint16 bitsPerSample) {
-    m_pDirectSound               = directSound;
-    m_nChannelId                 = channelId;
-    m_nFlags                     = 0;
-    m_nBufferStatus              = 0;
-    m_nFrequency                 = samplesPerSec;
-    m_nOriginalFrequency         = samplesPerSec;
-    m_Volume                     = VOLUME_SILENCE;
-    m_pDirectSoundBuffer         = nullptr;
-    m_pDirectSound3DBuffer       = nullptr;
-    m_bPaused                    = false;
-    m_bLooped                    = false;
-    m_bShouldStop                = false;
-    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
-    m_WaveFormat.nChannels       = 1;
-    m_WaveFormat.nSamplesPerSec  = samplesPerSec;
-    m_WaveFormat.nAvgBytesPerSec = samplesPerSec * (bitsPerSample / 8);
-    m_WaveFormat.nBlockAlign     = 2;
-    m_WaveFormat.wBitsPerSample  = bitsPerSample;
-    m_WaveFormat.cbSize          = 0;
+    m_pDirectSound                   = directSound;
+    m_nChannelId                     = channelId;
+    m_nFlags                         = 0;
+    m_nBufferStatus                  = 0;
+    m_nFrequency                     = samplesPerSec;
+    m_nOriginalFrequency             = samplesPerSec;
+    m_Volume                         = VOLUME_SILENCE;
+    m_pDirectSoundBuffer             = nullptr;
+    m_pDirectSound3DBuffer           = nullptr;
+    m_bPaused                        = false;
+    m_bLooped                        = false;
+    m_bShouldStop                    = false;
+    GetWaveFormat()->wFormatTag      = WAVE_FORMAT_PCM;
+    GetWaveFormat()->nChannels       = 1;
+    GetWaveFormat()->nSamplesPerSec  = samplesPerSec;
+    GetWaveFormat()->nAvgBytesPerSec = samplesPerSec * (bitsPerSample / 8);
+    GetWaveFormat()->nBlockAlign     = 2;
+    GetWaveFormat()->wBitsPerSample  = bitsPerSample;
+    GetWaveFormat()->cbSize          = 0;
 }
 
 // 0x4D7910
@@ -164,12 +164,12 @@ uint32 CAEAudioChannel::GetCurrentPlaybackPosition() const {
 
 // 0x4D79D0
 uint32 CAEAudioChannel::ConvertFromBytesToMS(uint32 bytes) const {
-    return CAEAudioUtility::ConvertFromBytesToMS(bytes, m_WaveFormat.nSamplesPerSec, m_WaveFormat.nChannels);
+    return CAEAudioUtility::ConvertFromBytesToMS(bytes, GetWaveFormat()->nSamplesPerSec, GetWaveFormat()->nChannels);
 }
 
 // 0x4D79F0
 uint32 CAEAudioChannel::ConvertFromMsToBytes(uint32 ms) const {
-    return CAEAudioUtility::ConvertFromMSToBytes(ms, m_WaveFormat.nSamplesPerSec, m_WaveFormat.nChannels);
+    return CAEAudioUtility::ConvertFromMSToBytes(ms, GetWaveFormat()->nSamplesPerSec, GetWaveFormat()->nChannels);
 }
 
 // 0x4D7A50

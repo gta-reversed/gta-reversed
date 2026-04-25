@@ -35,19 +35,19 @@ void CAEStreamingChannel::Initialise() {
 
     DSBUFFERDESC bufferDesc{};
     bufferDesc.guid3DAlgorithm   = GUID_NULL;
-    bufferDesc.lpwfxFormat       = &m_WaveFormat;
+    bufferDesc.lpwfxFormat       = GetWaveFormat();
     bufferDesc.dwSize            = 36;
     bufferDesc.dwBufferBytes     = 2 * CHANNEL_BUFFER_SIZE;
     bufferDesc.dwReserved        = 0;
     bufferDesc.dwFlags           = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLFX | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE;
 
-    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
-    m_WaveFormat.cbSize          = 0;
-    m_WaveFormat.nChannels       = 2;
-    m_WaveFormat.wBitsPerSample  = 16;
-    m_WaveFormat.nSamplesPerSec  = 48'000;
-    m_WaveFormat.nAvgBytesPerSec = 192'000;
-    m_WaveFormat.nBlockAlign     = 4;
+    wFormatTag      = WAVE_FORMAT_PCM;
+    cbSize          = 0;
+    nChannels       = 2;
+    wBitsPerSample  = 16;
+    nSamplesPerSec  = 48'000;
+    nAvgBytesPerSec = 192'000;
+    nBlockAlign     = 4;
 
     if (SUCCEEDED(m_pDirectSound->CreateSoundBuffer(
         &bufferDesc,
@@ -55,7 +55,7 @@ void CAEStreamingChannel::Initialise() {
         0
     ))) {
         m_bInitialized = true;
-        SetOriginalFrequency(m_WaveFormat.nSamplesPerSec);
+        SetOriginalFrequency(GetWaveFormat()->nSamplesPerSec);
         m_pBuffer = m_aBuffer;
         m_bLooped = true;
     }
@@ -66,7 +66,7 @@ void CAEStreamingChannel::Initialise() {
 void CAEStreamingChannel::InitialiseSilence() {
     DSBUFFERDESC bufferDesc{};
     bufferDesc.dwSize        = 36;
-    bufferDesc.lpwfxFormat   = &m_WaveFormat;
+    bufferDesc.lpwfxFormat   = GetWaveFormat();
     bufferDesc.dwBufferBytes = 0x8000;
     bufferDesc.dwFlags       = DSBCAPS_GLOBALFOCUS | DSBCAPS_LOCSOFTWARE;
 

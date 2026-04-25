@@ -16,7 +16,7 @@ public:
     IDirectSound3DBuffer* m_pDirectSound3DBuffer;
 #endif
 
-    char                  _pad10[20];
+    uint8                 _pad10[20];
     uint32                m_TotalBufferSize;
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
@@ -30,9 +30,19 @@ public:
     bool                  m_bLooped;
     bool                  m_bShouldStop;
     bool                  m_bShouldPlay; // unused
-    WAVEFORMATEX          m_WaveFormat;
+
+    // WAVEFORMATEX inlined here because of custom alignment
+    WORD                  wFormatTag;
+    WORD                  nChannels;
+    DWORD                 nSamplesPerSec;
+    DWORD                 nAvgBytesPerSec;
+    WORD                  nBlockAlign;
+    WORD                  wBitsPerSample;
+    WORD                  cbSize;
+
+    uint16 __pad59;
 #ifdef USE_DSOUND
-    uint8 __pad;
+    uint8 __pad60;
     union {
         struct {
             bool Bit0x1 : 1;
@@ -73,13 +83,17 @@ public:
     bool SetReverbAndDepth(uint32 reverbEnv, uint32 depth);
     void SetNotInRoom(bool onStreet); // 0 - frontend, 1 - world
 
+    // NOTSA/TODO
+    auto GetWaveFormat() { return reinterpret_cast<LPWAVEFORMATEX>(&wFormatTag); }
+    auto GetWaveFormat() const { return reinterpret_cast<LPCWAVEFORMATEX>(&wFormatTag); }
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
 };
 #pragma pack(pop)
-VALIDATE_SIZE(CAEAudioChannel, 0x5E);
+VALIDATE_SIZE(CAEAudioChannel, 0x60);
 VALIDATE_OFFSET(CAEAudioChannel, m_pDirectSound, 0x4);
 VALIDATE_OFFSET(CAEAudioChannel, m_nChannelId, 0x3A);
 

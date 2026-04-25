@@ -61,6 +61,7 @@ void CAEStaticChannel::Service() {
             0
         )));
 
+        // BUG: We lock for m_LoopedBytes but copy m_NumLoopsCoverIntro * m_LoopedBytes.
         for (auto i = 0u; i < m_NumLoopsCoverIntro; i++) {
             memcpy(
                 &ppvAudioPtr1[i * m_LoopedBytes],
@@ -179,17 +180,17 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     field_88                    = f88;
     field_8C                    = f8c;
 
-    m_WaveFormat.nAvgBytesPerSec = sizeof(int16) * frequency;
-    m_WaveFormat.nSamplesPerSec  = frequency;
-    m_WaveFormat.cbSize          = 0;
-    m_WaveFormat.nChannels       = 1;
-    m_WaveFormat.wBitsPerSample  = sizeof(int16) * 8;
-    m_WaveFormat.nBlockAlign     = sizeof(int16);
-    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
+    GetWaveFormat()->nAvgBytesPerSec = sizeof(int16) * frequency;
+    GetWaveFormat()->nSamplesPerSec  = frequency;
+    GetWaveFormat()->cbSize          = 0;
+    GetWaveFormat()->nChannels       = 1;
+    GetWaveFormat()->wBitsPerSample  = sizeof(int16) * 8;
+    GetWaveFormat()->nBlockAlign     = sizeof(int16);
+    GetWaveFormat()->wFormatTag      = WAVE_FORMAT_PCM;
 
     if (loopOffsetInSamples != -1) {
         m_bLooped         = true;
-        m_LoopStartOffset = loopOffsetInSamples * m_WaveFormat.wBitsPerSample;
+        m_LoopStartOffset = loopOffsetInSamples * sizeof(int16);
         m_LoopEndOffset   = size;
     }
 
@@ -202,10 +203,10 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     } else {
         dsBufferDesc.dwBufferBytes = m_TotalBufferSize = size;
     }
-    dsBufferDesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS
+    dsBufferDesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLVOLUME | DSBCAPS_TRUEPLAYPOSITION
         | (m_IsHardwareMixAvailable ? DSBCAPS_LOCHARDWARE : DSBCAPS_LOCSOFTWARE);
     dsBufferDesc.dwReserved  = 0;
-    dsBufferDesc.lpwfxFormat = &m_WaveFormat;
+    dsBufferDesc.lpwfxFormat = GetWaveFormat();
 
     m_nOriginalFrequency     = frequency;
     m_nFrequency             = frequency;
@@ -237,7 +238,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
         // manual approaches (e.g. two seperate buffers and playing the loop after intro ends) are not viable because
         // we would had CPU deal with audio thread all the time.
         std::memcpy((uint8*)audioPtr + m_TotalBufferSize - m_LoopStartOffset, m_pBuffer, m_LoopStartOffset);
-        m_NumLoopsCoverIntro    = m_LoopStartOffset / m_LoopedBytes + 1;
+        m_NumLoopsCoverIntro = m_LoopStartOffset / m_LoopedBytes + 1;
 
         // This points to where `Service` should start to overwrite the looped samples.
         // Why not just use m_TotalBufferSize - m_LoopStartOffset?
@@ -246,7 +247,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
         // 1.) End up playing the remnants of the intro samples, the reason of adding 1 above.
         // 2.) Overshooting the DSound buffer and crashing the game, the reason of this calculation.
         m_IntroOverwriteOffset = m_TotalBufferSize - m_LoopedBytes * m_NumLoopsCoverIntro;
-        newPosition    = m_TotalBufferSize - m_LoopStartOffset;
+        newPosition            = m_TotalBufferSize - m_LoopStartOffset;
 
         if (m_NumLoopsCoverIntro != m_TotalLoops) {
             for (auto i = 0; i < m_TotalLoops - m_NumLoopsCoverIntro; i++) {

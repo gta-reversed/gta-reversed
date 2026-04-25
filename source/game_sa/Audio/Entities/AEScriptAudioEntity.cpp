@@ -204,7 +204,7 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
             return { VOLUME_SILENCE, false };
         }
 
-        const auto def = CAEAudioEntity::GetDefaultVolume(wav.m_nAudioEvent);
+        const auto def = CAEAudioEntity::GetDefaultVolume((eAudioEvents)wav.m_nAudioEvent);
         return {
             (sampleId < 2 && def == -128.0f) ? 6.0f : def,
             sampleId < 2
