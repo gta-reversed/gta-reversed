@@ -104,7 +104,7 @@ void CAEAudioChannel::SetFrequencyScalingFactor(float factor) {
         if (m_pDirectSoundBuffer) {
             const auto curPos = GetCurrentPlaybackPosition();
             if (curPos != 0) {
-                m_pDirectSoundBuffer->SetVolume(-10000);
+                m_pDirectSoundBuffer->SetVolume(DSBVOLUME_MIN);
             }
 
             m_pDirectSoundBuffer->Play(0, 0, m_bLooped);

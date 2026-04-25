@@ -197,7 +197,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
         m_LoopEndOffset   = size;
     }
 
-    DSBUFFERDESC dsBufferDesc{ .dwSize = sizeof(DSBUFFERDESC) }; // guid already set to zero
+    DSBUFFERDESC dsBufferDesc{ .dwSize = sizeof(DSBUFFERDESC), .guid3DAlgorithm = GUID_NULL };
     if (m_bLooped && m_LoopStartOffset) {
         m_LoopedBytes              = m_LoopEndOffset - m_LoopStartOffset;
         m_TotalLoops               = std::max(m_LoopEndOffset, 24'000u) / m_LoopedBytes + 1;
@@ -206,7 +206,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     } else {
         dsBufferDesc.dwBufferBytes = m_TotalBufferSize = size;
     }
-    dsBufferDesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLVOLUME | DSBCAPS_TRUEPLAYPOSITION
+    dsBufferDesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS
         | (m_IsHardwareMixAvailable ? DSBCAPS_LOCHARDWARE : DSBCAPS_LOCSOFTWARE);
     dsBufferDesc.dwReserved  = 0;
     dsBufferDesc.lpwfxFormat = &m_WaveFormat;
@@ -262,7 +262,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
                 );
             }
         }
-        m_CurrentBufferOffsetMs     = ConvertFromBytesToMS(m_LoopStartOffset);
+        m_CurrentBufferOffsetMs     = static_cast<int16>(ConvertFromBytesToMS(m_LoopStartOffset));
         m_OverwriteIntroWhenWrapped = true;
     } else {
         std::memcpy(audioPtr, m_pBuffer, size);
