@@ -106,14 +106,16 @@ uint64 CAEAudioUtility::GetCurrentTimeInMS() {
 #endif
 }
 
-// 0x4d9ef0
+// 0x4D9EF0
+// Assumes 16-bit samples
 uint32 CAEAudioUtility::ConvertFromBytesToMS(uint32 lengthInBytes, uint32 sampleRate, uint16 numChannels) {
-    return static_cast<uint32>(std::floor(lengthInBytes / (float(sampleRate * numChannels) / 500.0f)));
+    return static_cast<uint32>(std::floor(lengthInBytes / (float(sampleRate * numChannels * sizeof(int16)) / 1000.0f)));
 }
 
-// 0x4d9f40
+// 0x4D9F40
+// Assumes 16-bit samples
 uint32 CAEAudioUtility::ConvertFromMSToBytes(uint32 a, uint32 frequency, uint16 frequencyMult) {
-    const auto value = static_cast<uint32>(std::floor(a * float(frequency * frequencyMult) / 500.0f));
+    const auto value = static_cast<uint32>(std::floor(a * float(frequency * frequencyMult * sizeof(int16)) / 1000.0f));
     return value + value % (2 * frequencyMult);
 }
 

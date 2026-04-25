@@ -25,7 +25,7 @@ public:
     bool                  m_bPaused;
     uint8                 field_39; // unused
     uint16                m_nChannelId;
-    uint32                m_nFrequency;
+    uint32                m_nFrequency; //< i.e. samplesPerSec
     uint32                m_nOriginalFrequency;
     bool                  m_bLooped;
     bool                  m_bShouldStop;

@@ -312,23 +312,24 @@ int32 CAEStreamingChannel::UpdatePlayTime() {
 
     DWORD currentPlayCursor;
     m_pDirectSoundBuffer->GetCurrentPosition(&currentPlayCursor, nullptr);
-    const auto freqFactor = m_nFrequency / 250.f;
-    const auto upperLimit = 393216.f / freqFactor; //TODO: Magic number (393.216 khz can be found often with oscilators / clock generators, also that's 0x60000 in hex)
-    const auto curStep    = currentPlayCursor / freqFactor;
-    if ((uint32(freqFactor) / 0x60000) > 0) {
+
+    const auto bytesPerMs  = m_nFrequency / 250.f; // = sample rate * 2 channels (stereo) * 2 bytes (int16) / 1000
+    const auto bufferLenMs = float(CHANNEL_BUFFER_SIZE) / bytesPerMs; // total buffers length in milliseconds
+    const auto curPosMs    = currentPlayCursor / bytesPerMs;
+    if ((uint32(bytesPerMs) / CHANNEL_BUFFER_SIZE) > 0) {
         if (m_lastWrittenSlot == 1) {
-            m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - (2 * upperLimit));
+            m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curPosMs - (2 * bufferLenMs));
         } else {
-            m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - upperLimit);
+            m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curPosMs - bufferLenMs);
         }
     } else if (m_lastWrittenSlot == 0) {
-        m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - upperLimit);
+        m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curPosMs - bufferLenMs);
     } else {
-        m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep);
+        m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curPosMs);
     }
 
-    if (m_nPlayTime >= upperLimit) {
-        m_nPlayTime -= static_cast<int32>(upperLimit);
+    if (m_nPlayTime >= bufferLenMs) {
+        m_nPlayTime -= static_cast<int32>(bufferLenMs);
     }
 
     m_nLastUpdateTime = CAEAudioUtility::GetCurrentTimeInMS();
