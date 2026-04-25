@@ -18,7 +18,7 @@ void CAEStaticChannel::InjectHooks() {
     RH_ScopedVMTInstall(SynchPlayback, 0x4F1040);
     RH_ScopedVMTInstall(Stop, 0x4F0FB0);
 
-    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = false}); // check
+    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = true}); // check
 }
 
 CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
@@ -180,13 +180,13 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     field_88                    = f88;
     field_8C                    = f8c;
 
-    GetWaveFormat()->nAvgBytesPerSec = sizeof(int16) * frequency;
-    GetWaveFormat()->nSamplesPerSec  = frequency;
-    GetWaveFormat()->cbSize          = 0;
-    GetWaveFormat()->nChannels       = 1;
-    GetWaveFormat()->wBitsPerSample  = sizeof(int16) * 8;
-    GetWaveFormat()->nBlockAlign     = sizeof(int16);
-    GetWaveFormat()->wFormatTag      = WAVE_FORMAT_PCM;
+    m_WaveFormat.nAvgBytesPerSec = sizeof(int16) * frequency;
+    m_WaveFormat.nSamplesPerSec  = frequency;
+    m_WaveFormat.cbSize          = 0;
+    m_WaveFormat.nChannels       = 1;
+    m_WaveFormat.wBitsPerSample  = sizeof(int16) * 8;
+    m_WaveFormat.nBlockAlign     = sizeof(int16);
+    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
 
     if (loopOffsetInSamples != -1) {
         m_bLooped         = true;
@@ -206,7 +206,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     dsBufferDesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLVOLUME | DSBCAPS_TRUEPLAYPOSITION
         | (m_IsHardwareMixAvailable ? DSBCAPS_LOCHARDWARE : DSBCAPS_LOCSOFTWARE);
     dsBufferDesc.dwReserved  = 0;
-    dsBufferDesc.lpwfxFormat = GetWaveFormat();
+    dsBufferDesc.lpwfxFormat = &m_WaveFormat;
 
     m_nOriginalFrequency     = frequency;
     m_nFrequency             = frequency;

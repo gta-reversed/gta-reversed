@@ -30,19 +30,11 @@ public:
     bool                  m_bLooped;
     bool                  m_bShouldStop;
     bool                  m_bShouldPlay; // unused
-
-    // WAVEFORMATEX inlined here because of custom alignment
-    WORD                  wFormatTag;
-    WORD                  nChannels;
-    DWORD                 nSamplesPerSec;
-    DWORD                 nAvgBytesPerSec;
-    WORD                  nBlockAlign;
-    WORD                  wBitsPerSample;
-    WORD                  cbSize;
+    WAVEFORMATEX          m_WaveFormat;
 
     uint16 __pad59;
 #ifdef USE_DSOUND
-    uint8 __pad60;
+    uint8 __pad5b;
     union {
         struct {
             bool Bit0x1 : 1;
@@ -82,10 +74,6 @@ public:
     // Those 2 require DirectSound EAX 4.0 extensions or some alternative to be available in project
     bool SetReverbAndDepth(uint32 reverbEnv, uint32 depth);
     void SetNotInRoom(bool onStreet); // 0 - frontend, 1 - world
-
-    // NOTSA/TODO
-    auto GetWaveFormat() { return reinterpret_cast<LPWAVEFORMATEX>(&wFormatTag); }
-    auto GetWaveFormat() const { return reinterpret_cast<LPCWAVEFORMATEX>(&wFormatTag); }
 
 private:
     friend void InjectHooksMain();
