@@ -5,7 +5,7 @@
 #include "app_game.h"
 #include "platform.h"
 
-#include "Clouds.h"
+#include "Renderer/Clouds.h"
 #include "CarFXRenderer.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
