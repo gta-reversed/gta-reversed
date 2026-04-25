@@ -4,6 +4,8 @@
 
 #include "Vector.h"
 
+class CAEStaticChannel;
+
 #pragma pack(push, 1)
 class NOTSA_EXPORT_VTABLE CAEAudioChannel {
 public:
@@ -52,7 +54,7 @@ public:
     virtual bool   IsSoundPlaying() = 0;
     virtual int16  GetPlayTime() = 0;
     virtual uint16 GetLength() = 0;
-    virtual void   Play(int16, int8, float) = 0;
+    virtual void   Play(int16 pos, int8 flags, float speed) = 0;
     virtual void   SynchPlayback() = 0;
     virtual void   Stop() = 0;
     virtual void   SetFrequencyScalingFactor(float factor);
@@ -75,6 +77,9 @@ public:
     bool SetReverbAndDepth(uint32 reverbEnv, uint32 depth);
     void SetNotInRoom(bool onStreet); // 0 - frontend, 1 - world
 
+    // NOTSA Helpers
+    auto AsStatic() { return reinterpret_cast<CAEStaticChannel*>(this); }
+    auto AsStatic() const { return reinterpret_cast<const CAEStaticChannel*>(this); }
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

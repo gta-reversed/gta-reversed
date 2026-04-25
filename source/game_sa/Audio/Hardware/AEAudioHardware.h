@@ -13,17 +13,17 @@
 union CAEAudioHardwarePlayFlags {
     uint16 m_nFlags{};
     struct {
-        uint16 m_bIsFrontend : 1;
-        uint16 m_bIsUncompressable : 1;
-        uint16 m_bIsUnduckable : 1;
-        uint16 m_bIsStartPercentage : 1;
-        uint16 m_bIsMusicMastered : 1;
-        uint16 : 1;
-        uint16 m_bIsRolledOff : 1;
-        uint16 m_bIsSmoothDucking : 1;
+        uint16 m_bIsFrontend : 1;        // 1
+        uint16 m_bIsUncompressable : 1;  // 2
+        uint16 m_bIsUnduckable : 1;      // 4
+        uint16 m_bIsStartPercentage : 1; // 8
+        uint16 m_bIsMusicMastered : 1;   // 16
+        uint16 : 1;                      // 32
+        uint16 m_bIsRolledOff : 1;       // 64
+        uint16 m_bIsSmoothDucking : 1;   // 128
 
-        uint16 m_bIsForcedFront : 1;
-        uint16 m_IsPausable : 1;
+        uint16 m_bIsForcedFront : 1;     // 256
+        uint16 m_IsPausable : 1;         // 512
     };
 
     void CopyFromAESound(const CAESound& sound) {
@@ -113,7 +113,7 @@ public:
 
     int16 AllocateChannels(uint16 numChannels);
 
-    void PlaySound(int16 channel, uint16 channelSlot, uint16 soundIdInSlot, uint16 bankSlot, int16 playPosition, int16 flags, float speed);
+    void PlaySound(int16 channel, uint16 channelSlot, eSoundID soundIdInSlot, eSoundBankSlot bankSlot, int16 playPosition, CAEAudioHardwarePlayFlags flags, float speed);
     uint16 GetNumAvailableChannels() const;
     void GetChannelPlayTimes(int16 channel, int16* playTimes);
     void SetChannelVolume(int16 channel, uint16 channelId, float volume, uint8 unused);
