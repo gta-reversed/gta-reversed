@@ -19,7 +19,7 @@ void CAEStaticChannel::InjectHooks() {
     RH_ScopedVMTInstall(SynchPlayback, 0x4F1040);
     RH_ScopedVMTInstall(Stop, 0x4F0FB0);
 
-    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = true}); // check
+    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40);
 }
 
 CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
@@ -159,7 +159,7 @@ void CAEStaticChannel::Stop() {
 
 // 0x4F0C40 -- broken, loops aren't correct. test with molotovs
 // Mobile(OpenAL, 0x485360): bool(OALBuffer* buffer, uint16 soundID, int16 bankSlotID, int16 loopStartOffset, uint16 sampleRate);
-bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffsetInSamples, uint16 frequency) {
+bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint32 size, int16 f88, int16 f8c, int16 loopOffsetInSamples, uint16 frequency) {
     if (!size || !frequency) {
         NOTSA_LOG_ERR("Invalid params for SetAudioBuffer: size={}, freq={}", size, frequency);
         assert(false);
@@ -230,6 +230,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
 
     DWORD newPosition{};
     if (m_LoopStartOffset) {
+        NOTSA_LOG_DEBUG("looped audio with unlooped offset: offset={} bytes {} samples", m_LoopStartOffset, loopOffsetInSamples);
         // SA fills the looped audio with offset as this:
         //
         // 0                                                    m_TotalBufferSize
@@ -267,6 +268,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     } else {
         std::memcpy(audioPtr, m_pBuffer, size);
         if (size < m_nLengthInBytes) {
+            // NOTE: can't happen since we set `m_nLengthInBytes = size` above
             std::memset((uint8*)audioPtr + size, 0, m_nLengthInBytes - size);
         }
         m_OverwriteIntroWhenWrapped = false;

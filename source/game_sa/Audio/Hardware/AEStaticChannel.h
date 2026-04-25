@@ -33,7 +33,7 @@ public:
     void   SynchPlayback() override;
     void   Stop() override;
 
-    bool SetAudioBuffer(void* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency);
+    bool SetAudioBuffer(void* buffer, uint32 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency);
 
 private:
     friend void InjectHooksMain();
