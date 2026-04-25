@@ -5,6 +5,7 @@
 #include "AEAudioUtility.h"
 
 #include "AESmoothFadeThread.h"
+#include "app_debug.h"
 
 void CAEStaticChannel::InjectHooks() {
     RH_ScopedVirtualClass(CAEStaticChannel, 0x85F3CC, 9);
@@ -160,6 +161,8 @@ void CAEStaticChannel::Stop() {
 // Mobile(OpenAL, 0x485360): bool(OALBuffer* buffer, uint16 soundID, int16 bankSlotID, int16 loopStartOffset, uint16 sampleRate);
 bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffsetInSamples, uint16 frequency) {
     if (!size || !frequency) {
+        NOTSA_LOG_ERR("Invalid params for SetAudioBuffer: size={}, freq={}", size, frequency);
+        assert(false);
         return false;
     }
 
@@ -211,16 +214,17 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint16 size, int16 f88, int1
     m_nOriginalFrequency     = frequency;
     m_nFrequency             = frequency;
 
-    if (const auto hr = m_pDirectSound->CreateSoundBuffer(&dsBufferDesc, &m_pDirectSoundBuffer, nullptr); FAILED(hr)) {
-        NOTSA_LOG_ERR("Couldn't create DSOUND buffer ec={:08X}", (uint32)hr);
+    if (const auto r = m_pDirectSound->CreateSoundBuffer(&dsBufferDesc, &m_pDirectSoundBuffer, nullptr); FAILED(r)) {
+        NOTSA_LOG_ERR("Couldn't create DSOUND buffer ec={:08X}", (uint32)r);
         return false;
     }
     ++g_numSoundChannelsUsed;
 
     void* audioPtr{};
     DWORD audioBytes{};
-    if (FAILED(m_pDirectSoundBuffer->Lock(0, m_nLengthInBytes, &audioPtr, &audioBytes, nullptr, nullptr, DSBLOCK_ENTIREBUFFER))) {
+    if (const auto r = m_pDirectSoundBuffer->Lock(0, m_nLengthInBytes, &audioPtr, &audioBytes, nullptr, nullptr, DSBLOCK_ENTIREBUFFER); FAILED(r)) {
         SAFE_RELEASE(m_pDirectSoundBuffer);
+        NOTSA_LOG_ERR("Locking the DSOUND buffer failed ec={:08X}", (uint32)r);
         return false;
     }
 
