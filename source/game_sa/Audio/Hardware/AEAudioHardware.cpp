@@ -243,7 +243,7 @@ void CAEAudioHardware::Terminate() {
 
 // 0x4D86B0
 void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID soundIdInSlot, eSoundBankSlot bankSlot, int16 playPosition, CAEAudioHardwarePlayFlags flags, float speed) {
-    NOTSA_LOG_DEBUG("PlaySound {} {} {} {} {} {:016b} {}", channel, channelSlot, soundIdInSlot, bankSlot, playPosition, flags.m_nFlags, speed);
+    NOTSA_LOG_TRACE("PlaySound {} {} {} {} {} {:016b} {}", channel, channelSlot, soundIdInSlot, bankSlot, playPosition, flags.m_nFlags, speed);
 
     if (channel < 0 || channelSlot >= m_anNumChannelsInSlot[channel]) {
         return;

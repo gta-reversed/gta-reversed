@@ -13,17 +13,18 @@
 union CAEAudioHardwarePlayFlags {
     uint16 m_nFlags{};
     struct {
-        uint16 m_bIsFrontend : 1;        // 1
-        uint16 m_bIsUncompressable : 1;  // 2
-        uint16 m_bIsUnduckable : 1;      // 4
-        uint16 m_bIsStartPercentage : 1; // 8
-        uint16 m_bIsMusicMastered : 1;   // 16
-        uint16 : 1;                      // 32
-        uint16 m_bIsRolledOff : 1;       // 64
-        uint16 m_bIsSmoothDucking : 1;   // 128
-
-        uint16 m_bIsForcedFront : 1;     // 256
-        uint16 m_IsPausable : 1;         // 512
+        // byte 1
+        bool m_bIsFrontend : 1;        // 0x1
+        bool m_bIsUncompressable : 1;  // 0x2
+        bool m_bIsUnduckable : 1;      // 0x4
+        bool m_bIsStartPercentage : 1; // 0x8
+        bool m_bIsMusicMastered : 1;   // 0x10
+        bool : 1;                      // 0x20
+        bool m_bIsRolledOff : 1;       // 0x40
+        bool m_bIsSmoothDucking : 1;   // 0x80
+        // byte 2
+        bool m_bIsForcedFront : 1;     // 0x100
+        bool m_IsPausable : 1;         // 0x200
     };
 
     void CopyFromAESound(const CAESound& sound) {

@@ -163,27 +163,12 @@ void UIRenderer::Render3D() {
     m_DebugModules.Render3D();
 }
 
-#include "toolsmenu/DebugModules/CTeleportDebugModule.h"
 void UIRenderer::DebugCode() {
-    CPad* pad = CPad::GetPad();
+    [[maybe_unused]] CPad* pad = CPad::GetPad();
 
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
-    if (pad->IsStandardKeyJustPressed('T')) {
-        TeleportDebugModule::TeleportTo({2011.840f, -2478.842f, 13.539f}, eAreaCodes::AREA_CODE_NORMAL_WORLD);
-    }
-
-    static int i = 0;
-    if (pad->IsStandardKeyJustPressed('P')) {
-        switch (i++ % 4) {
-        case 0: CCheat::VehicleCheat(MODEL_SHAMAL); break;
-        case 1: CCheat::VehicleCheat(MODEL_HYDRA); break;
-        case 2: CCheat::VehicleCheat(MODEL_AT400); break;
-        case 3: CCheat::VehicleCheat(MODEL_ANDROM); break;
-        default: NOTSA_UNREACHABLE("fucku");
-        }
-    }
 }
 }; // namespace ui
 }; // namespace notsa

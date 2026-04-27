@@ -230,7 +230,7 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint32 size, int16 f88, int1
 
     DWORD newPosition{};
     if (m_LoopStartOffset) {
-        NOTSA_LOG_DEBUG("looped audio with unlooped offset: offset={} bytes {} samples", m_LoopStartOffset, loopOffsetInSamples);
+        NOTSA_LOG_TRACE("looped audio with unlooped offset: offset={} bytes {} samples", m_LoopStartOffset, loopOffsetInSamples);
         // SA fills the looped audio with offset as this:
         //
         // 0                                                    m_TotalBufferSize
