@@ -258,8 +258,8 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID sou
     }
 
     const auto loopOffset = m_pMP3BankLoader->GetLoopOffset(soundIdInSlot, bankSlot);
-    if (channel + channelSlot > MAX_NUM_AUDIO_CHANNELS) {
-        NOTSA_LOG_ERR("channel + channelSlot <= 64 (MAX_NUM_AUDIO_CHANNELS) failed: {}", channel + channelSlot);
+    if (channel + channelSlot >= MAX_NUM_AUDIO_CHANNELS) {
+        NOTSA_LOG_ERR("channel + channelSlot < 64 (MAX_NUM_AUDIO_CHANNELS) failed: {}", channel + channelSlot);
         assert(false);
         return;
     }
