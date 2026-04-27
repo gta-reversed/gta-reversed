@@ -25,7 +25,7 @@ public:
     uint32                m_dwStopTime; // unused
     float                 m_Volume;
     bool                  m_bPaused;
-    uint8                 field_39; // unused
+    uint8                 __pad;
     uint16                m_nChannelId;
     uint32                m_nFrequency; //< i.e. samplesPerSec
     uint32                m_nOriginalFrequency;

@@ -40,7 +40,7 @@ public:
     float                                       m_CraneVolume{};
     float                                       m_CraneFrequencyScaling{ 1.0f };
     float                                       m_MissionSoundEnvelopePhase{};
-    std::array<CAudioLink, MISSION_AUDIO_COUNT> wavLinks{};
+    std::array<CAudioLink, MISSION_AUDIO_COUNT> m_WavLinks{};
     CPhysical*                                  m_Crane{};
     CAEDoorAudioEntity                          m_DoorAudioEntity{};
     CAEExplosionAudioEntity                     m_ExplosionAudioEntity{};

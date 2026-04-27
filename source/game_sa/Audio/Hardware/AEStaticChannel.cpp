@@ -25,7 +25,7 @@ void CAEStaticChannel::InjectHooks() {
 CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
     CAEAudioChannel(pDirectSound, channelId, samplesPerSec, bitsPerSample),
     m_OverwriteIntroWhenWrapped(false),
-    m_bNeedsSynch(false),
+    m_bShouldPlay(false),
     m_IsHardwareMixAvailable(hardwareMixAvailable)
 {
 }
@@ -89,7 +89,7 @@ bool CAEStaticChannel::IsSoundPlaying() {
     if (!m_pDirectSoundBuffer)
         return false;
 
-    if (m_bPaused || m_bNeedsSynch)
+    if (m_bPaused || m_bShouldPlay)
         return true;
 
     return CAEAudioChannel::IsBufferPlaying();
@@ -112,21 +112,21 @@ uint16 CAEStaticChannel::GetLength() {
 // 0x4F0BD0
 void CAEStaticChannel::Play(int16 timeInMs, int8 unused, float scalingFactor) {
     if (m_bLooped && m_LoopStartOffset != 0 || !timeInMs) {
-        m_bUnkn2 = false;
+        m_bNeedFade = false;
     } else {
         m_pDirectSoundBuffer->SetCurrentPosition(ConvertFromMsToBytes(timeInMs));
-        m_bUnkn2 = true;
+        m_bNeedFade = true;
     }
-    m_bNeedsSynch = true;
+    m_bShouldPlay = true;
     m_bPaused = scalingFactor == 0.0f;
 }
 
 // 0x4F1040
 void CAEStaticChannel::SynchPlayback() {
-    if (!m_pDirectSoundBuffer || !m_bNeedsSynch || m_bPaused)
+    if (!m_pDirectSoundBuffer || !m_bShouldPlay || m_bPaused)
         return;
 
-    if (m_bUnkn2) {
+    if (m_bNeedFade) {
         m_pDirectSoundBuffer->SetVolume(DSBVOLUME_MIN);
         if (!AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, m_Volume, -2, false)) {
             const auto dwVolume = static_cast<LONG>(m_Volume * 100.0F);
@@ -136,7 +136,7 @@ void CAEStaticChannel::SynchPlayback() {
 
     m_pDirectSoundBuffer->Play(0, 0, m_bLooped);
     m_nSyncTime = CTimer::GetTimeInMS();
-    m_bNeedsSynch = false;
+    m_bShouldPlay = false;
 }
 
 // 0x4F0FB0
@@ -159,7 +159,7 @@ void CAEStaticChannel::Stop() {
 
 // 0x4F0C40 -- broken, loops aren't correct. test with molotovs
 // Mobile(OpenAL, 0x485360): bool(OALBuffer* buffer, uint16 soundID, int16 bankSlotID, int16 loopStartOffset, uint16 sampleRate);
-bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint32 size, int16 f88, int16 f8c, int16 loopOffsetInSamples, uint16 frequency) {
+bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint32 size, int16 soundId, int16 bankSlotId, int16 loopOffsetInSamples, uint16 frequency) {
     if (!size || !frequency) {
         NOTSA_LOG_ERR("Invalid params for SetAudioBuffer: size={}, freq={}", size, frequency);
         assert(false);
@@ -180,8 +180,8 @@ bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint32 size, int16 f88, int1
     m_bPaused                   = false;
     m_TotalLoops                = 0;
     m_nLengthInBytes            = size;
-    field_88                    = f88;
-    field_8C                    = f8c;
+    m_SoundID                   = soundId;
+    m_BankSlotID                = bankSlotId;
 
     m_WaveFormat.nAvgBytesPerSec = sizeof(int16) * frequency;
     m_WaveFormat.nSamplesPerSec  = frequency;

@@ -37,7 +37,7 @@ private:
 
     ALuint                  m_sourceId{ 0 };
     OALSourceType           m_type{ OALSourceType::OST_Uninitialized };
-    uint32                  field_14;
+    uint32                  __pad;
     OALBuffer*              m_oalBuffer{ nullptr };
     HeapPtrArray<OALBuffer> m_queuedBuffers{};
     uint32                  m_posOffset{ 0 };

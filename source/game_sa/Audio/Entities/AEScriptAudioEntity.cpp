@@ -11,7 +11,7 @@ constexpr CVector AUDIOPOS_SENTINEL{ -1000.0f, -1000.0f, -1000.0f };
 
 // 0x5B9B60
 void CAEScriptAudioEntity::Initialise() {
-    rng::for_each(wavLinks, &CAudioLink::Init);
+    rng::for_each(m_WavLinks, &CAudioLink::Init);
 }
 
 // 0x4EC150
@@ -32,8 +32,8 @@ void CAEScriptAudioEntity::AddAudioEvent(int32) {
 
 // 0x4EC100
 void CAEScriptAudioEntity::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical) {
-    wavLinks[sampleId].m_pEntity = physical;
-    wavLinks[sampleId].m_vPosition = AUDIOPOS_SENTINEL;
+    m_WavLinks[sampleId].m_pEntity = physical;
+    m_WavLinks[sampleId].m_vPosition = AUDIOPOS_SENTINEL;
 }
 
 // NOTSA; TODO: make sense of this
@@ -43,12 +43,12 @@ static eSoundBankSlot GetMissionBankSlot(uint8 sampleId) {
 
 // 0x4EC040
 void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
-    if (sampleId >= std::size(wavLinks)) {
+    if (sampleId >= std::size(m_WavLinks)) {
         return;
     }
 
     AESoundManager.CancelSoundsInBankSlot(GetMissionBankSlot(sampleId), true);
-    auto& wav         = wavLinks[sampleId];
+    auto& wav         = m_WavLinks[sampleId];
     wav.m_nBankSlotId = 0; // NOTE: it is this way originally, maybe needs a FIX_BUGS?
     wav.m_Sound       = nullptr;
     wav.m_vPosition   = AUDIOPOS_SENTINEL;
@@ -56,23 +56,23 @@ void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
 
 // 0x4EBFE0
 bool CAEScriptAudioEntity::IsMissionAudioSampleFinished(uint8 sampleId) {
-    if (sampleId >= std::size(wavLinks)) {
+    if (sampleId >= std::size(m_WavLinks)) {
         return true;
     }
 
     if (sampleId < WAVLINK_UNK_2) {
-        return !wavLinks[sampleId].m_Sound;
+        return !m_WavLinks[sampleId].m_Sound;
     }
     return !AESoundManager.AreSoundsPlayingInBankSlot(GetMissionBankSlot(sampleId));
 }
 
 // 0x4EBF60
 bool CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
-    if (sampleId >= std::size(wavLinks)) {
+    if (sampleId >= std::size(m_WavLinks)) {
         return true;
     }
 
-    auto& wav = wavLinks[sampleId];
+    auto& wav = m_WavLinks[sampleId];
     if (wav.m_nBankId < 0) {
         return true;
     }
@@ -93,18 +93,18 @@ bool CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
 
 // 0x4EC020
 int32 CAEScriptAudioEntity::GetMissionAudioEvent(uint8 sampleId) {
-    return wavLinks[sampleId].m_nAudioEvent;
+    return m_WavLinks[sampleId].m_nAudioEvent;
 }
 
 // 0x4EC0C0
 void CAEScriptAudioEntity::SetMissionAudioPosition(uint8 sampleId, const CVector& posn) {
-    wavLinks[sampleId].m_vPosition = posn;
-    wavLinks[sampleId].m_pEntity = nullptr;
+    m_WavLinks[sampleId].m_vPosition = posn;
+    m_WavLinks[sampleId].m_pEntity = nullptr;
 }
 
 // 0x4EC4D0
 CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
-    auto& wav = wavLinks[sampleId];
+    auto& wav = m_WavLinks[sampleId];
     if (wav.m_pEntity) {
         return &wav.m_pEntity->GetPosition();
     }
@@ -116,11 +116,11 @@ CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
 
 // 0x4EC6D0
 void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
-    if (linkId < WAVLINK_UNK_2 || linkId >= std::size(wavLinks) || a7 && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
+    if (linkId < WAVLINK_UNK_2 || linkId >= std::size(m_WavLinks) || a7 && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
         return;
     }
 
-    if (!AEAudioHardware.IsSoundBankLoaded(wavLinks[linkId].m_nBankId, GetMissionBankSlot(linkId))) {
+    if (!AEAudioHardware.IsSoundBankLoaded(m_WavLinks[linkId].m_nBankId, GetMissionBankSlot(linkId))) {
         return;
     }
 
@@ -190,7 +190,7 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
     if (sampleId >= 4) {
         return;
     }
-    auto& wav = wavLinks[sampleId];
+    auto& wav = m_WavLinks[sampleId];
 
     if (wav.m_nBankId < 0 || wav.m_nBankSlotId < 0 || !GetMissionAudioLoadingStatus(sampleId)) {
         return;
@@ -230,11 +230,11 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
 
 // 0x4EC190
 void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId) {
-    if (slotId >= std::size(wavLinks) || !IsMissionAudioSampleFinished(slotId)) {
+    if (slotId >= std::size(m_WavLinks) || !IsMissionAudioSampleFinished(slotId)) {
         return;
     }
 
-    auto&         wav = wavLinks[slotId];
+    auto&         wav = m_WavLinks[slotId];
     eSoundBankS32 bank{};
     if (!CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(
         scriptId,
@@ -244,7 +244,7 @@ void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents script
     )) {
         return;
     }
-    wav.m_nBankId = bank; // @TODO: get rid of this
+    wav.m_nBankId = bank; // TODO: get rid of this
 
     if (wav.m_nBankSlotId < 0) {
         AEAudioHardware.LoadSoundBank(bank, GetMissionBankSlot(slotId));
@@ -900,7 +900,7 @@ void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
         return;
     }
 
-    for (auto& wav : wavLinks) {
+    for (auto& wav : m_WavLinks) {
         if (wav.m_Sound == sound) {
             if (playTime == -1) {
                 wav.m_Sound = nullptr;
