@@ -316,7 +316,7 @@ int32 CAEStreamingChannel::UpdatePlayTime() {
     const auto bytesPerMs  = m_nFrequency / 250.f; // = sample rate * 2 channels (stereo) * 2 bytes (int16) / 1000
     const auto bufferLenMs = float(CHANNEL_BUFFER_SIZE) / bytesPerMs; // total buffers length in milliseconds
     const auto curPosMs    = currentPlayCursor / bytesPerMs;
-    if ((uint32(bytesPerMs) / CHANNEL_BUFFER_SIZE) > 0) {
+    if ((uint32(currentPlayCursor) / CHANNEL_BUFFER_SIZE) > 0) {
         if (m_lastWrittenSlot == 1) {
             m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curPosMs - (2 * bufferLenMs));
         } else {
