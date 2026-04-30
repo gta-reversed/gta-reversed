@@ -355,6 +355,9 @@ CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
     if (p.RegisterWithEntity) {
         p.Flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
     }
+    for (float x : {p.Volume, p.RollOffFactor, p.Speed, p.Doppler, p.FrequencyVariance}) {
+        assert(std::isfinite(x));
+    }
     CAESound s;
     s.Initialise(
         p.BankSlotID,
