@@ -94,7 +94,7 @@ float CAEAudioUtility::AudioLog10(float p) {
 // 0x4D9E80
 uint64 CAEAudioUtility::GetCurrentTimeInMS() {
     using namespace std::chrono;
-    const auto nowMs = time_point_cast<milliseconds>(high_resolution_clock::now());
+    const auto nowMs = time_point_cast<milliseconds>(steady_clock::now());
     const auto value = duration_cast<milliseconds>(nowMs.time_since_epoch());
     return static_cast<uint64>(value.count()) - startTimeMs;
 
