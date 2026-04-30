@@ -224,7 +224,7 @@ public:
 
     void  DisplayRadioStationName();
     const GxtChar* GetRadioStationName(eRadioID id);
-    void  GetRadioStationNameKey(eRadioID id, char* outStr);
+    void GetRadioStationNameKey(eRadioID id, char(&outStr)[8]);
     static bool IsVehicleRadioActive();
 
     void StartTrackPlayback();

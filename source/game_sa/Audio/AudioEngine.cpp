@@ -56,7 +56,7 @@ void CAudioEngine::InjectHooks() {
     RH_ScopedInstall(GetCurrentRadioStationID, 0x507040);
     RH_ScopedInstall(StopRadio, 0x506F70);
     RH_ScopedInstall(DisplayRadioStationName, 0x507030);
-    RH_ScopedInstall(GetRadioStationNameKey, 0x507010);
+    RH_ScopedInstall(GetRadioStationNameKey, 0x507010, {.locked = true}); // see CAERadioTrackManager::InjectHooks at GetRadioStationNameKey
     RH_ScopedInstall(GetRadioStationName, 0x507000);
     RH_ScopedInstall(HasRadioRetuneJustStarted, 0x506FE0);
     RH_ScopedInstall(IsRadioOn, 0x506FD0);
@@ -797,7 +797,7 @@ const GxtChar* CAudioEngine::GetRadioStationName(eRadioID id) {
 }
 
 // 0x507010
-void CAudioEngine::GetRadioStationNameKey(eRadioID id, char* outStr) {
+void CAudioEngine::GetRadioStationNameKey(eRadioID id, char(&outStr)[8]) {
     AERadioTrackManager.GetRadioStationNameKey(id, outStr);
 }
 

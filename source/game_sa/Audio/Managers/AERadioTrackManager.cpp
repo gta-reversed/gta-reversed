@@ -46,7 +46,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(GetCurrentRadioStationID, 0x4E83F0);
     RH_ScopedInstall(GetRadioStationListenTimes, 0x4E83E0);
     RH_ScopedInstall(GetRadioStationName, 0x4E9E10);
-    RH_ScopedInstall(GetRadioStationNameKey, 0x4E8380);
+    RH_ScopedInstall(GetRadioStationNameKey, 0x4E8380, { .locked = true }); // different prototype, tho maybe char(&)[8] works as char*?
     RH_ScopedInstall(HasRadioRetuneJustStarted, 0x4E8370);
     RH_ScopedInstall(StopRadio, 0x4E9820, { .reversed = false });
     RH_ScopedInstall(IsRadioOn, 0x4E8350, { .reversed = true });
@@ -258,8 +258,8 @@ void CAERadioTrackManager::DisplayRadioStationName() {
 
 // 0x4E9E10
 const GxtChar* CAERadioTrackManager::GetRadioStationName(eRadioID id) {
-    if (id <= 0) {
-        NOTSA_UNREACHABLE();
+    if (id <= RADIO_EMERGENCY_AA) {
+        assert(id == RADIO_EMERGENCY_AA); // Only emergency radio is expected
         return nullptr;
     }
 
@@ -269,17 +269,17 @@ const GxtChar* CAERadioTrackManager::GetRadioStationName(eRadioID id) {
 }
 
 // 0x4E8380
-void CAERadioTrackManager::GetRadioStationNameKey(eRadioID id, char* outStr) {
+void CAERadioTrackManager::GetRadioStationNameKey(eRadioID id, char(&outStr)[8]) {
     switch (id) {
     case RADIO_OFF:
-        *std::format_to_n(outStr, 7u, "FEA_NON").out = '\0';
+        notsa::string_copy(outStr, "FEA_NON");
         break;
     case RADIO_USER_TRACKS:
-        *std::format_to_n(outStr, 7u, "FEA_MP3").out = '\0';
+        notsa::string_copy(outStr, "FEA_MP3");
         break;
     default:
         assert(0 <= id && id < RADIO_USER_TRACKS);
-        *std::format_to_n(outStr, 7u, "FEA_R{:d}", (int32)id - 1).out = '\0';
+        notsa::format_to_sz(outStr, "FEA_R{:d}", (int32)id - 1);
         break;
     }
 }
