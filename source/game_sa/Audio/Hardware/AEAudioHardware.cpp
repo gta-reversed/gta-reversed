@@ -264,8 +264,8 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID sou
         return;
     }
 
-    auto chan = m_aChannels[channel + channelSlot];
-    if (!chan->AsStatic()->SetAudioBuffer(
+    auto* chan = GetStaticChannel(channel, channelSlot);
+    if (!chan->SetAudioBuffer(
         buffer,
         size,
         soundIdInSlot,
@@ -277,7 +277,7 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID sou
         return;
     }
 
-    const uint32 length = chan->AsStatic()->GetLength();
+    const uint32 length = chan->GetLength();
     auto playPos        = std::max<int16>(playPosition, 0);
     if (flags.m_bIsStartPercentage && playPosition > 0) {
         playPos = static_cast<int16>(std::floor((float)playPos / 100.0f * (float)length));

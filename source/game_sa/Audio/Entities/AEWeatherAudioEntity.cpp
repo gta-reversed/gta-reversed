@@ -71,7 +71,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
     constexpr CVector posLeft = { -0.906f, 0.423f, 0.0f }, posRight = { 0.906f, 0.423f, 0.0f };
     AESoundManager.PlaySound({
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
-        .SoundID = 4,
+        .SoundID = SND_GENRL_EXPLOSIONS_NEAR_L,
         .AudioEntity = this,
         .Pos = posLeft,
         .Volume = VOLUME_SILENCE,
@@ -82,7 +82,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
 
     AESoundManager.PlaySound({
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
-        .SoundID = 4,
+        .SoundID = SND_GENRL_EXPLOSIONS_NEAR_L,
         .AudioEntity = this,
         .Pos = posRight,
         .Volume = VOLUME_SILENCE,
@@ -94,7 +94,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
     const float volume = CAEAudioEntity::GetDefaultVolume(AE_THUNDER) + std::log10(CWeather::LightningDuration * 0.0375f) * 20.0f;
     AESoundManager.PlaySound({
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
-        .SoundID = 1,
+        .SoundID = SND_GENRL_EXPLOSIONS_DISTANT_L,
         .AudioEntity = this,
         .Pos = posLeft,
         .Volume = volume,
@@ -105,7 +105,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
 
     AESoundManager.PlaySound({
         .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
-        .SoundID = 1,
+        .SoundID = SND_GENRL_EXPLOSIONS_DISTANT_L,
         .AudioEntity = this,
         .Pos = posRight,
         .Volume = volume,

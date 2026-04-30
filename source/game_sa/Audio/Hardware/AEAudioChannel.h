@@ -76,10 +76,6 @@ public:
     // Those 2 require DirectSound EAX 4.0 extensions or some alternative to be available in project
     bool SetReverbAndDepth(uint32 reverbEnv, uint32 depth);
     void SetNotInRoom(bool onStreet); // 0 - frontend, 1 - world
-
-    // NOTSA Helpers
-    auto AsStatic() { return reinterpret_cast<CAEStaticChannel*>(this); }
-    auto AsStatic() const { return reinterpret_cast<const CAEStaticChannel*>(this); }
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

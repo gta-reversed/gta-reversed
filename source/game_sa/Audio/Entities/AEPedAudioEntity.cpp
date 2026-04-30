@@ -594,7 +594,7 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
         AEAudioHardware.LoadSoundBank(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
         return;
     }
-    Sound(0 /*?*/, nextPlayTime, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
+    Sound(SND_BANK_FEET_GENERIC, nextPlayTime, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
 }
 
 // 0x4E26A0

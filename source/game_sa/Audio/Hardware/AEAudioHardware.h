@@ -39,6 +39,7 @@ union CAEAudioHardwarePlayFlags {
         m_IsPausable         = m_bIsFrontend && sound.IsUnpausable();
     }
 };
+VALIDATE_SIZE(CAEAudioHardwarePlayFlags, 0x2);
 
 class CAEStreamingChannel;
 class CAEMP3TrackLoader;
@@ -186,6 +187,11 @@ public:
 
     // notsa
     const CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
+    CAEStaticChannel* GetStaticChannel(int16 channel, uint16 channelId) {
+        assert(channel >= 0 && channelId < m_anNumChannelsInSlot[channel]);
+        assert(channel + channelId != 0); // channel #0 is a streaming channel!
+        return reinterpret_cast<CAEStaticChannel*>(m_aChannels[channel + channelId]);
+    }
 
 private:
     auto GetChannels() const { return std::span{m_aChannels, m_nNumChannels}; }
