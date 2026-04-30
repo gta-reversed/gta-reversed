@@ -157,7 +157,7 @@ void CAEStaticChannel::Stop() {
     }
 }
 
-// 0x4F0C40 -- broken, loops aren't correct. test with molotovs
+// 0x4F0C40
 // Mobile(OpenAL, 0x485360): bool(OALBuffer* buffer, uint16 soundID, int16 bankSlotID, int16 loopStartOffset, uint16 sampleRate);
 bool CAEStaticChannel::SetAudioBuffer(void* buffer, uint32 size, int16 soundId, int16 bankSlotId, int16 loopOffsetInSamples, uint16 frequency) {
     if (!size || !frequency) {

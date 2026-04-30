@@ -7,10 +7,11 @@
 #include "AEAudioUtility.h"
 
 enum class eWeatherEvent {
-    THUNDER    = 1,
-    CITY_NOISE = 3,
-    UNK_4      = 4,
-    UNK_5      = 5,
+    THUNDER         = 1,
+    THUNDER_ROLLOFF = 2,
+    CITY_NOISE      = 3,
+    UNK_4           = 4,
+    UNK_5           = 5,
 };
 
 
@@ -77,7 +78,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .Volume = VOLUME_SILENCE,
         .Speed = speedLeft,
         .Flags = envFlags,
-        .EventID = AE_FRONTEND_SELECT
+        .EventID = +eWeatherEvent::THUNDER
     });
 
     AESoundManager.PlaySound({
@@ -88,7 +89,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .Volume = VOLUME_SILENCE,
         .Speed = speedRight,
         .Flags = envFlags,
-        .EventID = AE_FRONTEND_SELECT
+        .EventID = +eWeatherEvent::THUNDER
     });
 
     const float volume = CAEAudioEntity::GetDefaultVolume(AE_THUNDER) + std::log10(CWeather::LightningDuration * 0.0375f) * 20.0f;
@@ -100,7 +101,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .Volume = volume,
         .Speed = speedLeft,
         .Flags = envFlags | SOUND_ROLLED_OFF,
-        .EventID = AE_FRONTEND_BACK
+        .EventID = +eWeatherEvent::THUNDER_ROLLOFF
     });
 
     AESoundManager.PlaySound({
@@ -111,7 +112,7 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         .Volume = volume,
         .Speed = speedRight,
         .Flags = envFlags | SOUND_ROLLED_OFF,
-        .EventID = AE_FRONTEND_BACK
+        .EventID = +eWeatherEvent::THUNDER_ROLLOFF
     });
 }
 

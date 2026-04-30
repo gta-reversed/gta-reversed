@@ -46,7 +46,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(GetCurrentRadioStationID, 0x4E83F0);
     RH_ScopedInstall(GetRadioStationListenTimes, 0x4E83E0);
     RH_ScopedInstall(GetRadioStationName, 0x4E9E10);
-    RH_ScopedInstall(GetRadioStationNameKey, 0x4E8380, { .locked = true }); // different prototype, tho maybe char(&)[8] works as char*?
+    RH_ScopedInstall(GetRadioStationNameKey, 0x4E8380);
     RH_ScopedInstall(HasRadioRetuneJustStarted, 0x4E8370);
     RH_ScopedInstall(StopRadio, 0x4E9820, { .reversed = false });
     RH_ScopedInstall(IsRadioOn, 0x4E8350, { .reversed = true });
