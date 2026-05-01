@@ -260,8 +260,8 @@ bool CAEUserRadioTrackManager::IsShortcut(const char* path) {
 }
 
 // 0x4f3330
-uint8 CAEUserRadioTrackManager::GetUserTrackPlayMode() {
-    return (uint8)FrontEndMenuManager.m_RadioMode;
+eRadioMode CAEUserRadioTrackManager::GetUserTrackPlayMode() {
+    return FrontEndMenuManager.m_RadioMode;
 }
 
 // 0x4f4a20

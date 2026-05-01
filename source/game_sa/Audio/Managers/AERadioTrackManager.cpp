@@ -17,7 +17,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(Load, 0x5D40E0);
     RH_ScopedInstall(Save, 0x5D3EE0);
     RH_ScopedInstall(Initialise, 0x5B9390);
-    RH_ScopedInstall(Service, 0x4EB9A0, { .reversed = false });
+    RH_ScopedInstall(Service, 0x4EB9A0);
     RH_ScopedInstall(DisplayRadioStationName, 0x4E9E50);
     RH_ScopedInstall(CheckForStationRetune, 0x4EB660, { .reversed = false });
     RH_ScopedInstall(CheckForPause, 0x4EA590);
@@ -105,7 +105,7 @@ void CAERadioTrackManager::Reset() {
     m_RequestedSettings = m_ActiveSettings = tRadioSettings{CAEAudioUtility::GetRandomRadioStation()};
     m_nStationsListed = m_nStationsListDown = 0;
     m_nTimeRadioStationRetuned = m_nTimeToDisplayRadioName = 0;
-    m_prev = field_60 = 0;
+    m_prev = m_PlayBeginTime = 0;
     m_nRetuneStartedTime = 0;
     m_bEnabledInPauseMode = false;
     m_nSavedGameClockDays = m_nSavedGameClockHours = -1;
@@ -375,7 +375,7 @@ void CAERadioTrackManager::CheckForTrackConcatenation() {
             AEUserRadioTrackManager.SetUserTrackIndex(m_ActiveSettings.m_aTrackQueue.front());
 
             m_ActiveSettings.m_aTrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
-            m_ActiveSettings.m_aTrackTypes[1] = TYPE_USER_TRACK;
+            m_ActiveSettings.m_aTrackTypes[1] = eTrackType::USER_TRACK;
             m_ActiveSettings.m_aTrackIndexes[1] = m_ActiveSettings.m_aTrackQueue[1];
 
             AEAudioHardware.PlayTrack(
@@ -634,8 +634,8 @@ bool CAERadioTrackManager::TrackRadioStation(eRadioID id, bool skipTrack) {
 }
 
 // 0x4EA670
-bool CAERadioTrackManager::QueueUpTracksForStation(eRadioID id, int8* iTrackCount, int8 radioState, tRadioSettings& settings) {
-    return plugin::CallMethodAndReturn<bool, 0x4EA670, CAERadioTrackManager*, int8, int8*, int8, tRadioSettings&>(this, id, iTrackCount, radioState, settings);
+bool CAERadioTrackManager::QueueUpTracksForStation(eRadioID id, int8* iTrackCount, eTrackType trackType, tRadioSettings& settings) {
+    return plugin::CallMethodAndReturn<bool, 0x4EA670, CAERadioTrackManager*, int8, int8*, eTrackType, tRadioSettings&>(this, id, iTrackCount, trackType, settings);
 }
 
 // 0x4E9820
@@ -673,7 +673,7 @@ void CAERadioTrackManager::ChooseTracksForStation(eRadioID id) {
     int8 trackCount = 0;
 
     for (auto i = 0u; i < tRadioSettings::NUM_TRACKS; i++) {
-        m_RequestedSettings.TrackTypes[i] = TYPE_NONE;
+        m_RequestedSettings.TrackTypes[i] = eTrackType::NONE;
         m_RequestedSettings.TrackQueue[i] = -1;
         m_RequestedSettings.TrackIndices[i] = -1;
     }
@@ -681,65 +681,65 @@ void CAERadioTrackManager::ChooseTracksForStation(eRadioID id) {
     if (!CAEAudioUtility::ResolveProbability(0.95f)) {
         if (id) {
             if (CAEAudioUtility::ResolveProbability(0.5f))
-                QueueUpTracksForStation(id, &trackCount, TYPE_INDENT, m_RequestedSettings);
+                QueueUpTracksForStation(id, &trackCount, eTrackType::INDENT, m_RequestedSettings);
 
-            if (!QueueUpTracksForStation(id, &trackCount, TYPE_DJ_BANTER, m_RequestedSettings))
-                QueueUpTracksForStation(id, &trackCount, TYPE_ADVERT, m_RequestedSettings);
+            if (!QueueUpTracksForStation(id, &trackCount, eTrackType::DJ_BANTER, m_RequestedSettings))
+                QueueUpTracksForStation(id, &trackCount, eTrackType::ADVERT, m_RequestedSettings);
 
             if (id == RADIO_USER_TRACKS) {
-                QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, TYPE_TRACK, m_RequestedSettings);
+                QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, eTrackType::TRACK, m_RequestedSettings);
                 return;
             }
         } else {
-            QueueUpTracksForStation(RADIO_EMERGENCY_AA, &trackCount, TYPE_DJ_BANTER, m_RequestedSettings);
+            QueueUpTracksForStation(RADIO_EMERGENCY_AA, &trackCount, eTrackType::DJ_BANTER, m_RequestedSettings);
         }
-        QueueUpTracksForStation(id, &trackCount, TYPE_INTRO, m_RequestedSettings);
+        QueueUpTracksForStation(id, &trackCount, eTrackType::INTRO, m_RequestedSettings);
         return;
     }
 
     if (id == RADIO_USER_TRACKS) {
-        QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, TYPE_TRACK, m_RequestedSettings);
-        QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, TYPE_TRACK, m_RequestedSettings);
+        QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, eTrackType::TRACK, m_RequestedSettings);
+        QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, eTrackType::TRACK, m_RequestedSettings);
         if (!FrontEndMenuManager.m_RadioMode && CAEAudioUtility::ResolveProbability(0.17f)) {
-            QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, TYPE_ADVERT, m_RequestedSettings);
+            QueueUpTracksForStation(RADIO_USER_TRACKS, &trackCount, eTrackType::ADVERT, m_RequestedSettings);
         }
         return;
     }
 
     if (CAEAudioUtility::ResolveProbability(0.9f)) {
-        QueueUpTracksForStation(id, &trackCount, TYPE_TRACK, m_RequestedSettings);
+        QueueUpTracksForStation(id, &trackCount, eTrackType::TRACK, m_RequestedSettings);
         return;
     }
 
     if (CAEAudioUtility::ResolveProbability(0.5f)) {
         if (CAEAudioUtility::ResolveProbability(0.5f)) {
-            QueueUpTracksForStation(id, &trackCount, TYPE_INDENT, m_RequestedSettings);
+            QueueUpTracksForStation(id, &trackCount, eTrackType::INDENT, m_RequestedSettings);
         }
-        QueueUpTracksForStation(id, &trackCount, TYPE_INTRO, m_RequestedSettings);
+        QueueUpTracksForStation(id, &trackCount, eTrackType::INTRO, m_RequestedSettings);
         return;
     }
 
-    QueueUpTracksForStation(id, &trackCount, TYPE_OUTRO, m_RequestedSettings);
+    QueueUpTracksForStation(id, &trackCount, eTrackType::OUTRO, m_RequestedSettings);
     AddMusicTrackIndexToHistory(id, m_RequestedSettings.TrackIndices[trackCount - 1]);
 
     if (id == RADIO_EMERGENCY_AA) {
-        QueueUpTracksForStation(id, &trackCount, TYPE_DJ_BANTER, m_RequestedSettings);
+        QueueUpTracksForStation(id, &trackCount, eTrackType::DJ_BANTER, m_RequestedSettings);
         return;
     }
 
     if (CAEAudioUtility::ResolveProbability(0.5f)) {
         if (CAEAudioUtility::ResolveProbability(0.5f)) {
-            QueueUpTracksForStation(id, &trackCount, TYPE_INDENT, m_RequestedSettings);
+            QueueUpTracksForStation(id, &trackCount, eTrackType::INDENT, m_RequestedSettings);
         }
-        QueueUpTracksForStation(id, &trackCount, TYPE_INTRO, m_RequestedSettings);
+        QueueUpTracksForStation(id, &trackCount, eTrackType::INTRO, m_RequestedSettings);
         return;
     }
 
     if (CAEAudioUtility::ResolveProbability(0.5f))
-        QueueUpTracksForStation(id, &trackCount, TYPE_INDENT, m_RequestedSettings);
+        QueueUpTracksForStation(id, &trackCount, eTrackType::INDENT, m_RequestedSettings);
 
-    if (!QueueUpTracksForStation(id, &trackCount, TYPE_DJ_BANTER, m_RequestedSettings))
-        QueueUpTracksForStation(id, &trackCount, TYPE_ADVERT, m_RequestedSettings);
+    if (!QueueUpTracksForStation(id, &trackCount, eTrackType::DJ_BANTER, m_RequestedSettings))
+        QueueUpTracksForStation(id, &trackCount, eTrackType::ADVERT, m_RequestedSettings);
 }
 
 // 0x4E8E40
@@ -804,7 +804,171 @@ void CAERadioTrackManager::CheckForPause() {
 
 // 0x4EB9A0
 void CAERadioTrackManager::Service(int32 playTime) {
-    plugin::CallMethod<0x4EB9A0, CAERadioTrackManager*, int32>(this, playTime);
+    m_ActiveSettings.PlayTime = playTime;
+    m_ActiveSettings.TrackLengthMs = AEAudioHardware.GetTrackLengthMs();
+    m_ActiveSettings.CurrTrackID = AEAudioHardware.GetPlayingTrackID();
+
+    if (CTimer::GetIsPaused()) {
+        CheckForStationRetuneDuringPause();
+    } else {
+        CheckForMissionStatsChanges();
+        CheckForStationRetune();
+    }
+
+    if (m_bInitialised && m_nMode == eRadioTrackMode::RADIO_STOPPED) {
+        if (m_RequestedSettings.StationID == eRadioID::RADIO_OFF) {
+            m_ActiveSettings = m_RequestedSettings;
+            m_bInitialised = false;
+
+            const auto vs = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
+
+            if (vs && (vs->RadioType != eAERadioType::AE_RT_CIVILIAN || notsa::contains({eAERadioType::AE_RT_EMERGENCY, eAERadioType::AE_RT_UNKNOWN}, vs->RadioType))) {
+                m_bDisplayStationName = true;
+            }
+        } else if (!CAudioEngine::IsAmbienceTrackActive()) {
+            m_ActiveSettings = m_RequestedSettings;
+            m_nMode = eRadioTrackMode::RADIO_STARTING;
+            if (IsVehicleRadioActive()) {
+                m_bDisplayStationName = true;
+            }
+            m_bInitialised = false;
+        }
+    }
+
+    enum
+    {
+        PLAYTIME_FOR_USERTRAK_ADVERT = -8,
+        PLAYTIME_UNK_MIN7 = -7,
+        PLAYTIME_UNK_MIN6 = -6,
+        PLAYTIME_FOR_RETUNE = -2,
+    };
+
+    auto& as = m_ActiveSettings;
+
+    const auto AddToHistory = [this, &as](eTrackType type, int8 index, int32 queue) {
+        switch (type) {
+            case eTrackType::INTRO:
+            case eTrackType::TRACK:
+            case eTrackType::OUTRO:
+            case eTrackType::USER_TRACK:
+                AddMusicTrackIndexToHistory(as.StationID, index);
+                break;
+            case eTrackType::ADVERT:
+                AddAdvertIndexToHistory(as.StationID, queue);
+                break;
+            case eTrackType::DJ_BANTER:
+                AddDJBanterIndexToHistory(as.StationID, queue);
+                break;
+            case eTrackType::INDENT:
+                AddIdentIndexToHistory(as.StationID, queue);
+                break;
+            case eTrackType::NONE:
+                break;
+            default:
+                NOTSA_UNREACHABLE("unexpected track type: {}", type);
+        }
+        as.CurrTrackType = type;
+        as.CurrTrackIdx = index;
+    };
+
+    switch (m_nMode) {
+    case eRadioTrackMode::RADIO_STARTING:
+        as.PlayTime = std::max(as.PlayTime, 0);
+        AEAudioHardware.SetBassSetting(m_bBassEnhance ? as.BassSetting : eBassSetting::NORMAL, as.BassGain);
+        AEAudioHardware.PlayTrack(
+            as.TrackQueue[0],
+            as.TrackQueue[1],
+            as.PlayTime,
+            as.TrackFlags,
+            as.TrackTypes[0] == eTrackType::USER_TRACK,
+            as.TrackTypes[1] == eTrackType::USER_TRACK
+        );
+        m_nMode = eRadioTrackMode::RADIO_WAITING_TO_PLAY;
+        break;
+    case eRadioTrackMode::RADIO_WAITING_TO_PLAY:
+        if (as.PlayTime == PLAYTIME_FOR_RETUNE) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
+            StartTrackPlayback();
+            m_PlayBeginTime = CTimer::GetTimeInMS();
+            m_aRadioState[as.StationID].m_iTimeInPauseModeInMs = CTimer::GetTimeInMSPauseMode();
+            m_nMode = eRadioTrackMode::RADIO_PLAYING;
+        } else if (as.PlayTime == PLAYTIME_FOR_USERTRAK_ADVERT) {
+            const auto curTrack = as.CurrTrackID;
+            const auto nextTrack = as.TrackQueue[1];
+            if (curTrack == nextTrack || curTrack == as.TrackQueue[0] && nextTrack == -1) {
+                as.TrackQueue[0] = ChooseAdvertIndex(RADIO_USER_TRACKS);
+                as.TrackTypes[0] = eTrackType::ADVERT;
+                as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
+                as.TrackTypes[1] = eTrackType::USER_TRACK;
+                as.TrackIndices[1] = as.TrackQueue[1];
+                m_nMode = eRadioTrackMode::RADIO_STARTING;
+            }
+        }
+        break;
+    case eRadioTrackMode::RADIO_PLAYING:
+        if (as.StationID == RADIO_USER_TRACKS && as.PlayTime == PLAYTIME_UNK_MIN6) {
+            const auto nextTrack = as.TrackQueue[1];
+            if (AEAudioHardware.GetActiveTrackID() != as.TrackQueue[0] || nextTrack == -1) {
+                as.TrackQueue[0] = AEUserRadioTrackManager.SelectUserTrackIndex();
+                as.TrackTypes[0] = eTrackType::USER_TRACK;
+                as.TrackIndices[0] =  as.TrackQueue[0];
+                as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
+                as.TrackTypes[1] = eTrackType::USER_TRACK;
+                as.TrackIndices[1] =  as.TrackQueue[1];
+            } else {
+                as.TrackQueue[0] = nextTrack;
+                as.TrackTypes[0] = as.TrackTypes[1];
+                as.TrackIndices[0] =  as.TrackIndices[1];
+                as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
+                as.TrackTypes[1] = eTrackType::USER_TRACK;
+                as.TrackIndices[1] =  as.TrackQueue[1];
+            }
+            m_nMode = eRadioTrackMode::RADIO_STARTING;
+        }
+
+        if (as.TrackQueue[0] == as.CurrTrackID) {
+            AddToHistory(as.TrackTypes[0], as.TrackIndices[0], as.TrackQueue[0]);
+        } else if (as.PrevTrackID == as.CurrTrackID) {
+            AddToHistory(as.PrevTrackType, as.PrevTrackIdx, as.PrevTrackID);
+        }
+
+        if (as.StationID == RADIO_USER_TRACKS
+            && (as.TrackTypes[0] == eTrackType::USER_TRACK || AEUserRadioTrackManager.GetUserTrackPlayMode() == eRadioMode::RADIO_MODE_RADIO))
+        {
+            if (CPad::GetPad()->IsRadioTrackSkipPressed()) {
+                StopRadio(nullptr, true);
+                while (m_nMode != eRadioTrackMode::RADIO_STOPPED || m_bInitialised || m_nStationsListed || m_nStationsListDown) {
+                    Service(AEAudioHardware.GetTrackPlayTime()); // wtf
+                    AEAudioHardware.Service();
+                }
+                StartRadio(as.StationID, as.BassSetting, as.BassGain, true);
+            }
+        }
+        CheckForPause();
+        UpdateRadioVolumes();
+        CheckForTrackConcatenation();
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
+        break;
+    case eRadioTrackMode::RADIO_STOPPING:
+    case eRadioTrackMode::RADIO_STOPPING_CHANNELS_STOPPED:
+        AEAudioHardware.StopTrack();
+        m_nMode = eRadioTrackMode::RADIO_WAITING_TO_STOP;
+        break;
+    case eRadioTrackMode::RADIO_STOPPING_SILENCED:
+        m_nMode = eRadioTrackMode::RADIO_STOPPING_CHANNELS_STOPPED;
+        break;
+    case eRadioTrackMode::RADIO_WAITING_TO_STOP:
+        if (as.PlayTime == PLAYTIME_UNK_MIN6 || as.PlayTime == PLAYTIME_FOR_USERTRAK_ADVERT) {
+            m_nMode = eRadioTrackMode::RADIO_STOPPED;
+        } else if (as.PlayTime == PLAYTIME_UNK_MIN7 || as.PlayTime == PLAYTIME_FOR_RETUNE) {
+            AEAudioHardware.StopTrack();
+        }
+        break;
+    case eRadioTrackMode::RADIO_STOPPED:
+        return;
+    default:
+        NOTSA_UNREACHABLE("unexpected radio track mgr state: {}", m_nMode);
+    }
 }
 
 // 0x5D40E0
