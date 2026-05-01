@@ -6,6 +6,7 @@
 #include "AEAudioEnvironment.h"
 #include "AEStaticChannel.h"
 #include "AEUserRadioTrackManager.h"
+#include "AEAudioUtility.h"
 
 auto& AEAudioHardware = StaticRef<CAEAudioHardware>(0xB5F8B8);
 
@@ -31,7 +32,7 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(StopSound, 0x4D88E0);
     RH_ScopedInstall(SetChannelPosition, 0x4D8920);
     RH_ScopedInstall(SetChannelFrequencyScalingFactor, 0x4D8960);
-    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990, { .reversed = false });
+    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990);
     RH_ScopedInstall(UpdateReverbEnvironment, 0x4D8DA0);
     RH_ScopedInstall(GetSoundHeadroom, 0x4D8E30);
     RH_ScopedInstall(EnableEffectsLoading, 0x4D8E40);
@@ -68,6 +69,7 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(Terminate, 0x4D97A0);
     RH_ScopedInstall(Service, 0x4D9870);
     RH_ScopedInstall(Initialise, 0x4D9930);
+    RH_ScopedInstall(PlaySound, 0x4D86B0);
 }
 
 // 0x4D83E0
@@ -129,8 +131,17 @@ bool CAEAudioHardware::Initialise() {
         m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_IsHardwareMixAvailable, 44'100, 16);
     }
 
-    m_pStreamingChannel->SetVolume(-100.0f);
-    m_awChannelFlags[0] = 55; // todo: flag
+    m_pStreamingChannel->SetVolume(VOLUME_SILENCE);
+    m_awChannelFlags[0] = {
+        .bIsSecondary   = true,
+        .bUnduckable    = true,
+        .bClampVolToNeg = true,
+        .unk0x8         = false,
+        .bIsMusic       = true,
+        .bIsNotStream   = true,
+        .bFadeNearEnd   = false,
+        .bSlowFadeout   = false,
+    };
 
     if (FrontEndMenuManager.m_bTracksAutoScan) {
         AEUserRadioTrackManager.ScanUserTracks();
@@ -239,8 +250,56 @@ void CAEAudioHardware::Terminate() {
     SAFE_RELEASE(m_pDSDevice);
 }
 
-void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, uint16 soundIdInSlot, uint16 bankSlot, int16 playPosition, int16 flags, float speed) {
-    plugin::CallMethod<0x4D86B0, CAEAudioHardware*, int16, uint16, uint16, uint16, int16, int16, float>(this, channel, channelSlot, soundIdInSlot, bankSlot, playPosition, flags, speed);
+// 0x4D86B0
+void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID soundIdInSlot, eSoundBankSlot bankSlot, int16 playPosition, CAEAudioHardwarePlayFlags flags, float speed) {
+    NOTSA_LOG_TRACE("PlaySound {} {} {} {} {} {:016b} {}", channel, channelSlot, soundIdInSlot, bankSlot, playPosition, flags.m_nFlags, speed);
+
+    if (channel < 0 || channelSlot >= m_anNumChannelsInSlot[channel]) {
+        return;
+    }
+
+    uint32 size{};
+    uint16 sampleRate{};
+    const auto buffer = m_pMP3BankLoader->GetSoundBuffer(soundIdInSlot, bankSlot, size, sampleRate);
+    if (!buffer) {
+        NOTSA_LOG_ERR("couldn't get the buffer!");
+        return;
+    }
+
+    const auto loopOffset = m_pMP3BankLoader->GetLoopOffset(soundIdInSlot, bankSlot);
+    if (channel + channelSlot >= MAX_NUM_AUDIO_CHANNELS) {
+        NOTSA_LOG_ERR("channel + channelSlot < 64 (MAX_NUM_AUDIO_CHANNELS) failed: {}", channel + channelSlot);
+        assert(false);
+        return;
+    }
+
+    auto* chan = GetStaticChannel(channel, channelSlot);
+    if (!chan->SetAudioBuffer(
+        buffer,
+        size,
+        soundIdInSlot,
+        bankSlot,
+        loopOffset,
+        sampleRate
+    )) {
+        NOTSA_UNREACHABLE("Setting audio buffer failed!");
+        return;
+    }
+
+    const uint32 length = chan->GetLength();
+    auto playPos        = std::max<int16>(playPosition, 0);
+    if (flags.m_bIsStartPercentage && playPosition > 0) {
+        playPos = static_cast<int16>(std::floor((float)playPos / 100.0f * (float)length));
+    }
+    assert(std::in_range<int16>(length));
+    playPos = std::min<int16>(playPos, length);
+
+    // TODO: Does this get any other value than 1?
+    if (m_n3dEffectsQueryResult & 0xFF) {
+        chan->SetNotInRoom(!flags.m_IsPausable);
+    }
+
+    chan->Play(playPos, static_cast<int8>(flags.m_nFlags), speed); // TODO: flags for every override
 }
 
 // 0x5B9340
@@ -372,7 +431,104 @@ void CAEAudioHardware::SetChannelFrequencyScalingFactor(int16 channel, uint16 ch
 
 // 0x4D8990
 void CAEAudioHardware::RescaleChannelVolumes() {
-    return plugin::Call<0x4D8990, CAEAudioHardware*>(this);
+    float maxVolumeGlobal{}, maxVolumeSecondary{};
+    bool  isMaxGlobalSlowFadeout{}, isMaxSecondarySlowFadeout{};
+    for (auto&& [chan, volume, flag] : rngv::zip(GetChannels(), m_afChannelVolumes, m_awChannelFlags)) {
+        if (!chan || chan->GetPlayTime() == -1) {
+            volume = VOLUME_SILENCE;
+            continue;
+        }
+
+        if (volume > maxVolumeGlobal) {
+            maxVolumeGlobal        = volume;
+            isMaxGlobalSlowFadeout = flag.bSlowFadeout;
+        }
+        if (flag.bIsSecondary && volume > maxVolumeSecondary) {
+            maxVolumeSecondary        = volume;
+            isMaxSecondarySlowFadeout = flag.bSlowFadeout;
+        }
+    }
+
+    if (maxVolumeGlobal < m_PrevMaxVolumeGlobal) {
+        if (m_IsMaxGlobalSlowFadeout) {
+            if (const auto v7 = m_PrevMaxVolumeGlobal - 0.5f; v7 > maxVolumeGlobal) {
+                maxVolumeGlobal        = v7;
+                isMaxGlobalSlowFadeout = true;
+            }
+        } else if (const auto v8 = m_PrevMaxVolumeGlobal - 1.2f; v8 > maxVolumeGlobal) {
+            maxVolumeGlobal = v8;
+        }
+    }
+    if (maxVolumeSecondary < m_PrevMaxVolumeSecondary) {
+        if (m_IsMaxSecondarySlowFadeout) {
+            if (const auto v7 = m_PrevMaxVolumeSecondary - 0.5f; v7 > maxVolumeSecondary) {
+                maxVolumeSecondary        = v7;
+                isMaxSecondarySlowFadeout = true;
+            }
+        } else if (const auto v8 = m_PrevMaxVolumeSecondary - 1.2f; v8 > maxVolumeSecondary) {
+            maxVolumeSecondary = v8;
+        }
+    }
+
+    float accumDuckable{}, accumUnduckable{};
+    for (auto&& [chan, volume, flag, linearVol] : rngv::zip(GetChannels(), m_afChannelVolumes, m_awChannelFlags, m_afChannelVolumeLinear)) {
+        if (flag.bClampVolToNeg) {
+            volume = std::min(volume, 0.0f);
+        } else {
+            volume -= flag.bIsSecondary ? maxVolumeSecondary : maxVolumeGlobal;
+        }
+        linearVol = std::pow(10.0f, volume / 20.0f); // convert dB -> linear amplitude
+
+        if (flag.bUnduckable) {
+            accumUnduckable += linearVol;
+        }
+
+        if (!flag.bFadeNearEnd || !chan || chan->GetPlayTime() < 0) {
+            accumDuckable += linearVol;
+            continue;
+        }
+
+        const auto len = chan->GetLength();
+        // Lower volume as it gets close to ending
+        const auto scaledVolume = (len - chan->GetPlayTime()) * linearVol / len;
+
+        if (scaledVolume >= 0.0f) {
+            accumDuckable += std::min(scaledVolume, linearVol); // scaled volume can't get louder than the original
+        }
+    }
+    m_PrevMaxVolumeGlobal       = maxVolumeGlobal;
+    m_PrevMaxVolumeSecondary    = maxVolumeSecondary;
+    m_IsMaxGlobalSlowFadeout    = isMaxGlobalSlowFadeout;
+    m_IsMaxSecondarySlowFadeout = isMaxSecondarySlowFadeout;
+
+    // Make duckable sounds quieter when unduckable ones become louder
+    const float balancedDuckableVolume = [&] {
+        if (accumDuckable == 0.0f) {
+            return 0.0f;
+        }
+        return std::min((6.4f - accumUnduckable * 0.8f) * 16383.0f / accumDuckable, 16383.0f);
+    }();
+
+    for (auto&& [chan, flag, linearVol, freq] : rngv::zip(GetChannels(), m_awChannelFlags, m_afChannelVolumeLinear, m_afChannelsFrqScalingFactor)) {
+        linearVol *= flag.bUnduckable ? 16383.0f : balancedDuckableVolume;
+        if (flag.bIsMusic) {
+            linearVol *= m_fMusicFaderScalingFactor * m_fMusicMasterScalingFactor;
+        } else {
+            linearVol *= m_fEffectsFaderScalingFactor * m_fEffectMasterScalingFactor;
+        }
+        linearVol *= flag.bIsNotStream ? m_fNonStreamFaderScalingFactor : m_fStreamFaderScalingFactor;
+
+        if (linearVol == 0.0f && chan) {
+            chan->SetVolume(VOLUME_SILENCE);
+        } else if (chan) {
+            chan->SetVolume(20.0f * CAEAudioUtility::AudioLog10(linearVol / 16383.0f));
+        }
+
+        if (chan) {
+            chan->SetFrequencyScalingFactor(freq);
+        }
+    }
+
 }
 
 // 0x4D8DA0
@@ -534,7 +690,7 @@ void CAEAudioHardware::DisableBassEq() {
 }
 
 // 0x4D9500
-void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, int16 flags) {
+void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, tAudioChannelFlags flags) {
     if (channel >= 0 && channelId < m_anNumChannelsInSlot[channel])
         m_awChannelFlags[channel + channelId] = flags;
 }

@@ -4,6 +4,7 @@
 
 #include "AEAudioEnvironment.h"
 #include "AEAudioHardware.h"
+#include "AEAudioUtility.h"
 
 #include <DebugModules/Audio/SoundManagerDebugModule.hpp>
 #include <UIRenderer.h>
@@ -284,7 +285,7 @@ void CAESoundManager::Service() {
         CAEAudioHardwarePlayFlags flags{};
         flags.CopyFromAESound(sound);
 
-        AEAudioHardware.PlaySound(m_AudioHardwareHandle, chN, sound.m_SoundID, sound.m_BankSlot, sound.m_PlayTime, flags.m_nFlags, sound.GetSpeed());
+        AEAudioHardware.PlaySound(m_AudioHardwareHandle, chN, sound.m_SoundID, sound.m_BankSlot, sound.m_PlayTime, flags, sound.GetSpeed());
         AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, chN, sound.m_ListenerVolume, 0);
         AEAudioHardware.SetChannelPosition(m_AudioHardwareHandle, chN, sound.GetRelativePosition(), 0);
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, chN, freqFactor);
@@ -308,7 +309,7 @@ void CAESoundManager::Service() {
             auto slomoFactor = sound.GetSlowMoFrequencyScalingFactor();
             AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, i, freq * slomoFactor);
         } else {
-            AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, i, -100.0F, 0);
+            AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, i, VOLUME_SILENCE, 0);
             AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, i, 0.0F);
         }
         AEAudioHardware.SetChannelPosition(m_AudioHardwareHandle, i, sound.GetRelativePosition(), 0);
@@ -353,6 +354,9 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
 CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
     if (p.RegisterWithEntity) {
         p.Flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
+    }
+    for (float x : {p.Volume, p.RollOffFactor, p.Speed, p.Doppler, p.FrequencyVariance}) {
+        assert(std::isfinite(x));
     }
     CAESound s;
     s.Initialise(

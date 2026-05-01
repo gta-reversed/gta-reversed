@@ -218,17 +218,16 @@ int32 CAEUserRadioTrackManager::SelectUserTrackIndex() const {
         switch (FrontEndMenuManager.m_RadioMode) {
         case USER_TRACK_PLAY_RADIO:
         case USER_TRACK_PLAY_RANDOM: {
-            if (m_nUserTracksCount == 1)
+            if (m_nUserTracksCount == 1) {
                 return FrontEndMenuManager.m_UserTrackIndex = 1;
-            else {
-                int32 index;
-
-                do
-                    index = static_cast<int32>(CAEAudioUtility::GetRandomNumberInRange(0, m_nUserTracksCount - 1));
-                while (index == FrontEndMenuManager.m_UserTrackIndex);
-
-                return FrontEndMenuManager.m_UserTrackIndex = index;
             }
+            int32 index;
+
+            do {
+                index = static_cast<int32>(CAEAudioUtility::GetRandomNumberInRange(0, m_nUserTracksCount - 1));
+            } while (index == FrontEndMenuManager.m_UserTrackIndex);
+
+            return FrontEndMenuManager.m_UserTrackIndex = index;
         }
         case USER_TRACK_PLAY_SEQUENTAL: {
             return FrontEndMenuManager.m_UserTrackIndex = (FrontEndMenuManager.m_UserTrackIndex + 1) % m_nUserTracksCount;
@@ -261,42 +260,37 @@ bool CAEUserRadioTrackManager::IsShortcut(const char* path) {
 }
 
 // 0x4f3330
-uint8 CAEUserRadioTrackManager::GetUserTrackPlayMode() {
-    return (uint8)FrontEndMenuManager.m_RadioMode;
+eRadioMode CAEUserRadioTrackManager::GetUserTrackPlayMode() {
+    return FrontEndMenuManager.m_RadioMode;
 }
 
 // 0x4f4a20
 DWORD __stdcall CAEUserRadioTrackManager::WriteUserTracksThread(CAEUserRadioTrackManager* self) {
     VERIFY(SUCCEEDED(CoInitialize(nullptr)));
-
-    // Open sa-ufiles.dat
     CFileMgr::SetDirMyDocuments();
 
+    // Open sa-ufiles.dat
     if (const auto ufiles = CFileMgr::OpenFile("sa-ufiles.dat", "wb")) {
         size_t dummy{};
         std::vector<tUserTracksInfo> offsets;
 
         // Retrieve all user tracks info
-        int32 amountOfTracks = self->WriteUserTracksFile(fs::path(CFileMgr::ms_dirName) / "User Tracks", dummy, ufiles, offsets, 0);
+        const auto amountOfTracks = self->WriteUserTracksFile(fs::path(CFileMgr::ms_dirName) / "User Tracks", dummy, ufiles, offsets, 0);
         CFileMgr::CloseFile(ufiles);
+        NOTSA_LOG_DEBUG("Got {} tracks", amountOfTracks);
 
         // Open sa-utrax.dat containing the offsets
         if (const auto utrax = CFileMgr::OpenFile("sa-utrax.dat", "wb")) {
-            if (amountOfTracks > 0)
+            if (amountOfTracks > 0) {
                 CFileMgr::Write(utrax, offsets.data(), amountOfTracks * sizeof(tUserTracksInfo));
-
-            // SA: Game duplicates the entry if there is only one?
-            if (amountOfTracks == 1)
-                CFileMgr::Write(utrax, offsets.data(), sizeof(tUserTracksInfo));
-
+            }
             CFileMgr::CloseFile(utrax);
 
             FrontEndMenuManager.m_UserTrackIndex = 0;
             self->m_nUserTracksScanState = USER_TRACK_SCAN_COMPLETE;
-
-            CoUninitialize();
         } else {
             // NOTSA(MikuAuahDark): GTASA doesn't check if sa-utrax.dat fails to open
+            NOTSA_LOG_ERR("sa-utrax.dat couldn't be opened!");
             self->m_nUserTracksScanState = USER_TRACK_SCAN_ERROR;
         }
     } else {
@@ -304,7 +298,7 @@ DWORD __stdcall CAEUserRadioTrackManager::WriteUserTracksThread(CAEUserRadioTrac
     }
 
     // Read user tracks back
-    self->m_bUserTracksLoaded = self->ReadUserTracks();
+    self->m_bUserTracksLoaded     = self->ReadUserTracks();
     self->m_bUserTracksLoadedCopy = self->m_bUserTracksLoaded;
 
     CFileMgr::SetDir("");
@@ -320,29 +314,39 @@ int32 CAEUserRadioTrackManager::WriteUserTracksFile(const char* dir, size_t& cur
 
 int32 CAEUserRadioTrackManager::WriteUserTracksFile(const std::wstring& dir, size_t& currentLength, auto file, std::vector<tUserTracksInfo>& offsets, int32 depth) {
     // Limit folder scan to 16 folders deep
-    if (depth >= 15 || !fs::exists(dir))
+    if (depth >= 15) {
+        NOTSA_LOG_ERR("User Tracks folder, or another folder that has a shortcut there, have depth more than 16! Aborting loading tracks from there.");
         return 0;
+    }
+
+    if (!fs::exists(dir)) {
+        NOTSA_LOG_ERR("A shortcut points to an inexistent folder! {}", UnicodeToUTF8(dir));
+        return 0;
+    }
 
     int32 numTracks{};
-    for (auto& entry : fs::directory_iterator(dir)) {
+    for (const auto& entry : fs::directory_iterator(dir)) {
         if (fs::is_directory(entry)) {
-            // NOTE: STD can also do recursive search, maybe use that?
+            // TODO: STD can also do recursive search, maybe use that?
             numTracks += WriteUserTracksFile(entry.path(), currentLength, file, offsets, depth + 1);
             continue;
         }
 
         auto path = entry.path();
 #ifdef WIN32
-        if (path.extension() == ".lnk")
+        if (path.extension() == ".lnk") {
             path = ResolveShortcut(path.wstring());
+            NOTSA_LOG_DEBUG("Resolved utrax path from shortcut: {}", path.string());
+        }
 #endif
 
         // TODO: symlink
         if (!fs::is_regular_file(path))
             continue;
 
-        // if shortcut was a directory.
+        // a shortcut to a directory
         if (fs::is_directory(path)) {
+            NOTSA_LOG_DEBUG("Resolving tracks for dir: {}", path.string());
             numTracks += WriteUserTracksFile(path, currentLength, file, offsets, depth + 1);
             continue;
         }
@@ -356,6 +360,8 @@ int32 CAEUserRadioTrackManager::WriteUserTracksFile(const std::wstring& dir, siz
             offsets.push_back({currentLength, pathLen, fileType});
             currentLength += pathLen;
             numTracks++;
+        } else {
+            NOTSA_LOG_DEBUG("Invalid audio file type: {}", path.string());
         }
     }
 
@@ -372,6 +378,7 @@ char* CAEUserRadioTrackManager::ResolveShortcut(const char* path) {
     return result;
 }
 
+// NOTSA
 std::wstring CAEUserRadioTrackManager::ResolveShortcut(const std::wstring& path) {
     IShellLinkW* shellLink{};
     IPersistFile* persistFile{};

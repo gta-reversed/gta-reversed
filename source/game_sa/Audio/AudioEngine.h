@@ -97,7 +97,7 @@ public:
     void SetRadioBassSetting(eBassSetting bassSetting);
     bool HasRadioRetuneJustStarted();
     const GxtChar* GetRadioStationName(eRadioID id);
-    void GetRadioStationNameKey(eRadioID id, char* outStr);
+    void GetRadioStationNameKey(eRadioID id, char(&outStr)[8]);
     int32* GetRadioStationListenTimes();
     void DisplayRadioStationName();
     eRadioID GetCurrentRadioStationID();
@@ -118,17 +118,17 @@ public:
     void PreloadBeatTrack(int16 trackId);
     void StopAmbienceTrack(bool a1);
     static bool DoesAmbienceTrackOverrideRadio();
-    void        PreloadMissionAudio(uint8 slotId, int32 scriptSlotAudioEvent);
-    int8        GetMissionAudioLoadingStatus(uint8 slotId);
+    void        PreloadMissionAudio(uint8 slotId, eAudioEvents scriptSlotAudioEvent);
+    bool        GetMissionAudioLoadingStatus(uint8 slotId);
     void PlayLoadedMissionAudio(uint8 slotId);
     int32       GetMissionAudioEvent(uint8 slotId);
     CVector*    GetMissionAudioPosition(uint8 slotId);
     void        ClearMissionAudio(uint8 slotId);
     void        SetMissionAudioPosition(uint8 slotId, CVector& posn);
 
-    CVector* AttachMissionAudioToPed(uint8 slotId, CPed* ped);
-    CVector* AttachMissionAudioToObject(uint8 slotId, CObject* object);
-    CVector* AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical);
+    void AttachMissionAudioToPed(uint8 slotId, CPed* ped);
+    void AttachMissionAudioToObject(uint8 slotId, CObject* object);
+    void AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical);
 
     void SayPedless(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
 

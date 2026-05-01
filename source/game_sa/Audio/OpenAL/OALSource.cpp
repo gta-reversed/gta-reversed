@@ -7,8 +7,7 @@ OALSource::~OALSource() {
         if (m_sourceId)
             alSourcei(m_sourceId, AL_BUFFER, 0);
 
-        m_oalBuffer->Release();
-        m_oalBuffer = nullptr;
+        std::exchange(m_oalBuffer, nullptr)->Release();
     }
 
     if (m_sourceId) {
@@ -52,7 +51,7 @@ void OALSource::SetStream() {
 void OALSource::SetData(void* data, uint32 size, uint32 frequency, uint32 channels) {
     const auto buffer = new OALBuffer(data, size, frequency, channels);
     SetBuffer(buffer);
-    buffer->Release(); // ???
+    buffer->Release();
 }
 
 void OALSource::SetBuffer(OALBuffer* buffer) {

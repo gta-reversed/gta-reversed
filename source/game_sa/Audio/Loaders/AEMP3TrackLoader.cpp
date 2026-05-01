@@ -92,15 +92,9 @@ bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
 // 0x4E09F0
 bool CAEMP3TrackLoader::LoadTrackLookupTable(void) {
     // NOTSA: Originally Win32 file API was used.
-    auto* fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "r");
+    auto* fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "rb");
     if (!fp) {
-        // Win32 API creates a file if it doesn't exists, and reads 0 bytes.
-        fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "w");
-        fclose(fp);
-
-        // NOTSA: Originally (tTrackLookup*)CMemoryMgr::Malloc(0), return value is implementation-dependent.
-        m_paTrackLookups = nullptr;
-        m_nTrackCount = 0;
+        NOTSA_LOG_CRIT("Couldn't open traklkup.dat");
         return false;
     }
 
@@ -110,12 +104,14 @@ bool CAEMP3TrackLoader::LoadTrackLookupTable(void) {
     const auto numPacks = size / sizeof(tTrackLookup);
     rewind(fp);
 
+    NOTSA_LOG_CRIT("file size: {}, numpaks: {}", size, numPacks);
+
     m_paTrackLookups = (tTrackLookup*)CMemoryMgr::Malloc(size);
     m_nTrackCount = numPacks;
 
     // NOTE: Win32 API outputs number of bytes read, most likely checking is unnecessary.
-    fread(m_paTrackLookups, sizeof(tTrackLookup), numPacks, fp);
-
+    const auto rd = fread(m_paTrackLookups, sizeof(tTrackLookup), numPacks, fp);
+    NOTSA_LOG_CRIT("read: {}", rd);
     fclose(fp);
     return true;
 }
