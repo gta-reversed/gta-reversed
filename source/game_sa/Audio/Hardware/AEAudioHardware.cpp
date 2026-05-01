@@ -32,7 +32,7 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(StopSound, 0x4D88E0);
     RH_ScopedInstall(SetChannelPosition, 0x4D8920);
     RH_ScopedInstall(SetChannelFrequencyScalingFactor, 0x4D8960);
-    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990, { .reversed = false });
+    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990);
     RH_ScopedInstall(UpdateReverbEnvironment, 0x4D8DA0);
     RH_ScopedInstall(GetSoundHeadroom, 0x4D8E30);
     RH_ScopedInstall(EnableEffectsLoading, 0x4D8E40);
@@ -132,7 +132,16 @@ bool CAEAudioHardware::Initialise() {
     }
 
     m_pStreamingChannel->SetVolume(VOLUME_SILENCE);
-    m_awChannelFlags[0] = 55; // todo: flag
+    m_awChannelFlags[0] = {
+        .bIsSecondary   = true,
+        .bUnduckable    = true,
+        .bClampVolToNeg = true,
+        .unk0x8         = false,
+        .bIsMusic       = true,
+        .bIsNotStream   = true,
+        .bFadeNearEnd   = false,
+        .bSlowFadeout   = false,
+    };
 
     if (FrontEndMenuManager.m_bTracksAutoScan) {
         AEUserRadioTrackManager.ScanUserTracks();
@@ -422,7 +431,104 @@ void CAEAudioHardware::SetChannelFrequencyScalingFactor(int16 channel, uint16 ch
 
 // 0x4D8990
 void CAEAudioHardware::RescaleChannelVolumes() {
-    return plugin::Call<0x4D8990, CAEAudioHardware*>(this);
+    float maxVolumeGlobal{}, maxVolumeSecondary{};
+    bool  isMaxGlobalSlowFadeout{}, isMaxSecondarySlowFadeout{};
+    for (auto&& [chan, volume, flag] : rngv::zip(GetChannels(), m_afChannelVolumes, m_awChannelFlags)) {
+        if (!chan || chan->GetPlayTime() == -1) {
+            volume = VOLUME_SILENCE;
+            continue;
+        }
+
+        if (volume > maxVolumeGlobal) {
+            maxVolumeGlobal        = volume;
+            isMaxGlobalSlowFadeout = flag.bSlowFadeout;
+        }
+        if (flag.bIsSecondary && volume > maxVolumeSecondary) {
+            maxVolumeSecondary        = volume;
+            isMaxSecondarySlowFadeout = flag.bSlowFadeout;
+        }
+    }
+
+    if (maxVolumeGlobal < m_PrevMaxVolumeGlobal) {
+        if (m_IsMaxGlobalSlowFadeout) {
+            if (const auto v7 = m_PrevMaxVolumeGlobal - 0.5f; v7 > maxVolumeGlobal) {
+                maxVolumeGlobal        = v7;
+                isMaxGlobalSlowFadeout = true;
+            }
+        } else if (const auto v8 = m_PrevMaxVolumeGlobal - 1.2f; v8 > maxVolumeGlobal) {
+            maxVolumeGlobal = v8;
+        }
+    }
+    if (maxVolumeSecondary < m_PrevMaxVolumeSecondary) {
+        if (m_IsMaxSecondarySlowFadeout) {
+            if (const auto v7 = m_PrevMaxVolumeSecondary - 0.5f; v7 > maxVolumeSecondary) {
+                maxVolumeSecondary        = v7;
+                isMaxSecondarySlowFadeout = true;
+            }
+        } else if (const auto v8 = m_PrevMaxVolumeSecondary - 1.2f; v8 > maxVolumeSecondary) {
+            maxVolumeSecondary = v8;
+        }
+    }
+
+    float accumDuckable{}, accumUnduckable{};
+    for (auto&& [chan, volume, flag, linearVol] : rngv::zip(GetChannels(), m_afChannelVolumes, m_awChannelFlags, m_afChannelVolumeLinear)) {
+        if (flag.bClampVolToNeg) {
+            volume = std::min(volume, 0.0f);
+        } else {
+            volume -= flag.bIsSecondary ? maxVolumeSecondary : maxVolumeGlobal;
+        }
+        linearVol = std::pow(10.0f, volume / 20.0f); // convert dB -> linear amplitude
+
+        if (flag.bUnduckable) {
+            accumUnduckable += linearVol;
+        }
+
+        if (!flag.bFadeNearEnd || !chan || chan->GetPlayTime() < 0) {
+            accumDuckable += linearVol;
+            continue;
+        }
+
+        const auto len = chan->GetLength();
+        // Lower volume as it gets close to ending
+        const auto scaledVolume = (len - chan->GetPlayTime()) * linearVol / len;
+
+        if (scaledVolume >= 0.0f) {
+            accumDuckable += std::min(scaledVolume, linearVol); // scaled volume can't get louder than the original
+        }
+    }
+    m_PrevMaxVolumeGlobal       = maxVolumeGlobal;
+    m_PrevMaxVolumeSecondary    = maxVolumeSecondary;
+    m_IsMaxGlobalSlowFadeout    = isMaxGlobalSlowFadeout;
+    m_IsMaxSecondarySlowFadeout = isMaxSecondarySlowFadeout;
+
+    // Make duckable sounds quieter when unduckable ones become louder
+    const float balancedDuckableVolume = [&] {
+        if (accumDuckable == 0.0f) {
+            return 0.0f;
+        }
+        return std::min((6.4f - accumUnduckable * 0.8f) * 16383.0f / accumDuckable, 16383.0f);
+    }();
+
+    for (auto&& [chan, flag, linearVol, freq] : rngv::zip(GetChannels(), m_awChannelFlags, m_afChannelVolumeLinear, m_afChannelsFrqScalingFactor)) {
+        linearVol *= flag.bUnduckable ? 16383.0f : balancedDuckableVolume;
+        if (flag.bIsMusic) {
+            linearVol *= m_fMusicFaderScalingFactor * m_fMusicMasterScalingFactor;
+        } else {
+            linearVol *= m_fEffectsFaderScalingFactor * m_fEffectMasterScalingFactor;
+        }
+        linearVol *= flag.bIsNotStream ? m_fNonStreamFaderScalingFactor : m_fStreamFaderScalingFactor;
+
+        if (linearVol == 0.0f && chan) {
+            chan->SetVolume(VOLUME_SILENCE);
+        } else if (chan) {
+            chan->SetVolume(20.0f * CAEAudioUtility::AudioLog10(linearVol / 16383.0f));
+        }
+
+        if (chan) {
+            chan->SetFrequencyScalingFactor(freq);
+        }
+    }
+
 }
 
 // 0x4D8DA0
@@ -584,7 +690,7 @@ void CAEAudioHardware::DisableBassEq() {
 }
 
 // 0x4D9500
-void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, int16 flags) {
+void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, tAudioChannelFlags flags) {
     if (channel >= 0 && channelId < m_anNumChannelsInSlot[channel])
         m_awChannelFlags[channel + channelId] = flags;
 }

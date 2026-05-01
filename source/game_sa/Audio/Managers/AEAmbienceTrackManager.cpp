@@ -430,7 +430,20 @@ void CAEAmbienceTrackManager::StopAmbienceTrack() {
 void CAEAmbienceTrackManager::StartTrackPlayback() const {
     AEAudioHardware.DisableBassEq();
     AEAudioHardware.SetChannelVolume(m_HwClientHandle, 0, m_Volume, 0);
-    AEAudioHardware.SetChannelFlags(m_HwClientHandle, 0, 33);
+    AEAudioHardware.SetChannelFlags(
+        m_HwClientHandle,
+        0,
+        tAudioChannelFlags{
+            .bIsSecondary   = true,
+            .bUnduckable    = false,
+            .bClampVolToNeg = false,
+            .unk0x8         = false,
+            .bIsMusic       = false,
+            .bIsNotStream   = true,
+            .bFadeNearEnd   = false,
+            .bSlowFadeout   = false,
+        }
+    );
     AEAudioHardware.StartTrackPlayback();
 }
 

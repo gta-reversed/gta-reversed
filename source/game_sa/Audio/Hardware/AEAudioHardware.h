@@ -47,22 +47,41 @@ class CAEMP3BankLoader;
 class CAEAudioChannel;
 class tBeatInfo;
 
+// NOTSA name
+union tAudioChannelFlags {
+    uint16 value{};
+    struct {
+        // byte 1
+        bool bIsSecondary : 1;   // 0x01 -- Channel's volume is rescaled via a seperate group. For ambient, radio and cutscene tracks
+        bool bUnduckable : 1;    // 0x02 -- Sounds can not be "ducked", e.g. ambient sounds get silent while a dialogue plays
+        bool bClampVolToNeg : 1; // 0x04 -- Clamps the volume (-inf, 0]
+        bool unk0x8 : 1;         // 0x08
+        bool bIsMusic : 1;       // 0x10 -- not sure
+        bool bIsNotStream : 1;   // 0x20 -- not sure
+        bool bFadeNearEnd : 1;   // 0x40 -- Fade audio based on how close to finishing, used for one-shot audio e.g. explosions etc?
+        bool bSlowFadeout : 1;   // 0x80
+        // byte 2
+        /* ... unk ... */
+    };
+};
+VALIDATE_SIZE(tAudioChannelFlags, 0x2);
+
 class CAEAudioHardware {
 public:
     bool                    m_bInitialised{};
     bool                    m_bDisableEffectsLoading{};
-    uint8                   m_prev{};
-    uint8                   field_3{};
+    bool                    m_IsMaxSecondarySlowFadeout{};
+    bool                    m_IsMaxGlobalSlowFadeout{};
     bool                    m_IsHardwareMixAvailable{};
     uint8                   m_nReverbEnvironment{ (uint8)-1};
-    int16                   m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
+    tAudioChannelFlags      m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
     uint16                  field_86{};
     int32                   m_nReverbDepth{ -10000 };
     uint16                  m_nNumAvailableChannels{};
     uint16                  m_nNumChannels{};
     uint16                  m_anNumChannelsInSlot[MAX_NUM_AUDIO_CHANNELS]{};
     float                   m_afChannelVolumes[MAX_NUM_AUDIO_CHANNELS]{}; // -1000.f
-    float                   m_afUnkn[MAX_NUM_AUDIO_CHANNELS]{};
+    float                   m_afChannelVolumeLinear[MAX_NUM_AUDIO_CHANNELS]{};
     float                   m_afChannelsFrqScalingFactor[MAX_NUM_AUDIO_CHANNELS]{};
 
     float                   m_fMusicMasterScalingFactor{ 1.f };
@@ -74,8 +93,8 @@ public:
     float                   m_fNonStreamFaderScalingFactor{ 1.f };
     float                   m_fStreamFaderScalingFactor{ 1.f };
 
-    float                   field_428{};
-    float                   field_42C{};
+    float                   m_PrevMaxVolumeSecondary{};
+    float                   m_PrevMaxVolumeGlobal{};
     tVirtualChannelSettings m_VirtualChannelSettings{};
     //union { // TODO: Get rid of the union, and use `m_VirtualChannelSettings` directly
     //    struct {
@@ -158,7 +177,7 @@ public:
     void EnableBassEq();
     void DisableBassEq();
 
-    void SetChannelFlags(int16 channel, uint16 channelId, int16 flags);
+    void SetChannelFlags(int16 channel, uint16 channelId, tAudioChannelFlags flags);
 
     void SetMusicMasterScalingFactor(float factor);
     float GetMusicMasterScalingFactor() const;

@@ -439,7 +439,20 @@ void CAERadioTrackManager::CheckForStationRetuneDuringPause() {
 
 // 0x4EA640
 void CAERadioTrackManager::StartTrackPlayback() {
-    AEAudioHardware.SetChannelFlags(m_HwClientHandle, 0, 55);
+    AEAudioHardware.SetChannelFlags(
+        m_HwClientHandle,
+        0,
+        tAudioChannelFlags{
+            .bIsSecondary   = true,
+            .bUnduckable    = true,
+            .bClampVolToNeg = true,
+            .unk0x8         = false,
+            .bIsMusic       = true,
+            .bIsNotStream   = true,
+            .bFadeNearEnd   = false,
+            .bSlowFadeout   = false,
+        }
+    );
     AEAudioHardware.StartTrackPlayback();
     UpdateRadioVolumes();
 }
