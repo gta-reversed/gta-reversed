@@ -257,7 +257,7 @@ void CAudioEngine::RetuneRadio(eRadioID radioId) {
 }
 
 // 0x5072A0
-int8 CAudioEngine::GetMissionAudioLoadingStatus(uint8 sampleId) {
+bool CAudioEngine::GetMissionAudioLoadingStatus(uint8 sampleId) {
     return m_ScriptAE.GetMissionAudioLoadingStatus(sampleId);
 }
 

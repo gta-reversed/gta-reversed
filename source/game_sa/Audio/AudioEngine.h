@@ -119,7 +119,7 @@ public:
     void StopAmbienceTrack(bool a1);
     static bool DoesAmbienceTrackOverrideRadio();
     void        PreloadMissionAudio(uint8 slotId, eAudioEvents scriptSlotAudioEvent);
-    int8        GetMissionAudioLoadingStatus(uint8 slotId);
+    bool        GetMissionAudioLoadingStatus(uint8 slotId);
     void PlayLoadedMissionAudio(uint8 slotId);
     int32       GetMissionAudioEvent(uint8 slotId);
     CVector*    GetMissionAudioPosition(uint8 slotId);
