@@ -499,7 +499,6 @@ void CAEStreamingChannel::Service() {
             } else {
                 m_lStoppingFrameCount = 0;
                 if (m_nState == StreamingChannelState::Stopped) {
-                    // label 8:
                     m_pDirectSoundBuffer->Stop();
                 }
             }

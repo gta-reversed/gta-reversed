@@ -38,7 +38,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(ChooseAdvertIndex, 0x4E9570, { .reversed = false });
     RH_ScopedInstall(ChooseIdentIndex, 0x4E94C0, { .reversed = false });
     RH_ScopedInstall(ChooseMusicTrackIndex, 0x4EA270, { .reversed = false });
-    RH_ScopedInstall(ChooseTalkRadioShow, 0x4E8E40, { .reversed = false });
+    RH_ScopedInstall(ChooseTalkRadioShow, 0x4E8E40);
     RH_ScopedInstall(CheckForMissionStatsChanges, 0x4E8410);
     RH_ScopedInstall(StartTrackPlayback, 0x4EA640);
     RH_ScopedInstall(UpdateRadioVolumes, 0x4EA010);
@@ -817,7 +817,96 @@ void CAERadioTrackManager::ChooseTracksForStation(eRadioID id) {
 
 // 0x4E8E40
 int8 CAERadioTrackManager::ChooseTalkRadioShow() {
-    return plugin::CallAndReturn<int8, 0x4E8E40>();
+    static auto& s_Blacklist = StaticRef<std::array<int8, 256>>(0xB62C1C);
+
+    std::array<int8, 32> availableShows{};
+    size_t numOptions{};
+    rng::fill(availableShows, -1);
+
+    if (CStats::GetStatValue(STAT_RYDERS_MISSION_ROBBING_UNCLE_SAM_ACCOMPLISHED) != 0.0f && CStats::GetStatValue(STAT_MIKE_TORENO_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 14;
+    } else if (CStats::GetStatValue(STAT_ARCHITECTURAL_ESPIONAGE_MISSION_ACCOMPLISHED) != 0.0f) {
+        availableShows[numOptions++] = 15;
+    }
+
+    if (CStats::GetStatValue(STAT_JIZZY_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 12;
+    } else if (CStats::GetStatValue(STAT_ARCHITECTURAL_ESPIONAGE_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 13;
+    }
+
+    if (CStats::GetStatValue(STAT_SMALL_TOWN_BANK_MISSION_ACCOMPLISHED) != 0.0f && CStats::GetStatValue(STAT_PHOTO_OPPORTUNITY_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 6;
+    }
+
+    if (CStats::GetStatValue(STAT_DRIVE_THRU_MISSION_ACCOMPLISHED) != 0.0f && CStats::GetStatValue(STAT_REUNITING_THE_FAMILIES_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 3;
+    } else if (CStats::GetStatValue(STAT_PHOTO_OPPORTUNITY_MISSION_ACCOMPLISHED) != 0.0f && CStats::GetStatValue(STAT_DON_PEYOTE_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 4;
+    } else if (CStats::GetStatValue(STAT_DON_PEYOTE_MISSION_ACCOMPLISHED) != 0.0f) {
+        availableShows[numOptions++] = 5;
+    }
+
+    if (CStats::GetStatValue(STAT_LOCAL_LIQUOR_STORE_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 7;
+    } else {
+        availableShows[numOptions++] = 8;
+    }
+
+    if (CStats::GetStatValue(STAT_BADLANDS_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 9;
+    } else if (CStats::GetStatValue(STAT_555_WE_TIP_MISSION_ACCOMPLISHED) == 0.0f && CStats::GetStatValue(STAT_PLAYING_TIME) == 0.0f) {
+        availableShows[numOptions++] = 10;
+    } else if (CStats::GetStatValue(STAT_PLAYING_TIME) != 0.0f) {
+        availableShows[numOptions++] = 11;
+    }
+
+    availableShows[numOptions++] = CStats::GetStatValue(STAT_HIDDEN_PACKAGES_FOUND) == 0.0f ? 27 : 28;
+    availableShows[numOptions++] = CStats::GetStatValue(STAT_TAGS_SPRAYED) == 0.0f ? 29 : 30;
+
+    if (CStats::GetStatValue(STAT_LEAST_FAVORITE_GANG) == 0.0f) {
+        availableShows[numOptions++] = 0;
+    } else if (CStats::GetStatValue(STAT_GANG_MEMBERS_WASTED) != 0.0f && CStats::GetStatValue(STAT_CRIMINALS_WASTED) == 0.0f) {
+        availableShows[numOptions++] = 1;
+    } else if (CStats::GetStatValue(STAT_MOST_FAVORITE_RADIO_STATION) != 0.0f) {
+        availableShows[numOptions++] = 2;
+    }
+
+    if (CStats::GetStatValue(STAT_DRIVE_THRU_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 16;
+    } else if (CStats::GetStatValue(STAT_MANAGEMENT_ISSUES_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 17;
+    } else if (CStats::GetStatValue(STAT_LEAST_FAVORITE_GANG) == 0.0f) {
+        availableShows[numOptions++] = 18;
+    } else if (CStats::GetStatValue(STAT_555_WE_TIP_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 19;
+    } else if (CStats::GetStatValue(STAT_YAY_KA_BOOM_BOOM_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 20;
+    } else if (CStats::GetStatValue(STAT_FISH_IN_A_BARREL_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 21;
+    } else if (CStats::GetStatValue(STAT_BREAKING_THE_BANK_AT_CALIGULAS_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 22;
+    } else if (CStats::GetStatValue(STAT_A_HOME_IN_THE_HILLS_MISSION_ACCOMPLISHED) == 0.0f) {
+        availableShows[numOptions++] = 23;
+    } else if (CStats::GetStatValue(STAT_MAYBE_SET_RIOT_MODE) == 0.0f) {
+        availableShows[numOptions++] = 24;
+    } else if (CStats::GetStatValue(STAT_CITY_UNLOCKED) != 4.0f) {
+        availableShows[numOptions++] = 25;
+    } else {
+        availableShows[numOptions++] = 26;
+    }
+
+    // NOTSA: Original logic was, find random entry -> check if it's blacklisted -> return if not, otherwise repeat.
+    std::span shows{availableShows.data(), numOptions};
+    rng::shuffle(shows, std::mt19937{ std::random_device{}() });
+
+    for (int8 show : shows) {
+        if (!rng::contains(s_Blacklist | rngv::take(numOptions - 1), show)) {
+            // it's not already played? so we return
+            return show;
+        }
+    }
+    NOTSA_UNREACHABLE("no show left!");
 }
 
 // 0x4E96C0
