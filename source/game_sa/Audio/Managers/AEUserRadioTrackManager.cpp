@@ -321,6 +321,7 @@ int32 CAEUserRadioTrackManager::WriteUserTracksFile(const std::wstring& dir, siz
 
     if (!fs::exists(dir)) {
         NOTSA_LOG_ERR("A shortcut points to an inexistent folder! {}", UnicodeToUTF8(dir));
+        return 0;
     }
 
     int32 numTracks{};
