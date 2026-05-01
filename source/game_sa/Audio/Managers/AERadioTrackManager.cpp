@@ -41,7 +41,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(ChooseTalkRadioShow, 0x4E8E40, { .reversed = false });
     RH_ScopedInstall(CheckForMissionStatsChanges, 0x4E8410);
     RH_ScopedInstall(StartTrackPlayback, 0x4EA640);
-    RH_ScopedInstall(UpdateRadioVolumes, 0x4EA010, { .reversed = false });
+    RH_ScopedInstall(UpdateRadioVolumes, 0x4EA010);
     RH_ScopedInstall(PlayRadioAnnouncement, 0x4E8400);
     RH_ScopedInstall(GetCurrentRadioStationID, 0x4E83F0);
     RH_ScopedInstall(GetRadioStationListenTimes, 0x4E83E0);
@@ -114,7 +114,7 @@ void CAERadioTrackManager::Reset() {
     m_nSpecialDJBanterPending = 3; // todo: enum
     m_nSpecialDJBanterIndex = -1;
     m_bPauseMode = m_bRetuneJustStarted = false;
-    m_f80 = m_f84 = 0.0f;
+    m_RadioDuckedVolume = m_RadioDuckFadeRate = 0.0f;
     ResetStatistics();
 }
 
@@ -546,12 +546,6 @@ void CAERadioTrackManager::StartTrackPlayback() {
 
 // 0x4EA010
 void CAERadioTrackManager::UpdateRadioVolumes() {
-    plugin::CallMethod<0x4EA010, CAERadioTrackManager*>(this);
-
-    /*
-    const auto fEffectsScalingFactor = AEAudioHardware.GetEffectsMasterScalingFactor();
-    const auto fMusicScalingFactor = AEAudioHardware.GetMusicMasterScalingFactor();
-
     auto volume = -4.0f;
     if (!CTimer::GetIsPaused() || !m_bEnabledInPauseMode) {
         if (CTimer::GetIsSlowMotionActive()) {
@@ -560,62 +554,54 @@ void CAERadioTrackManager::UpdateRadioVolumes() {
         else if (TheCamera.m_bWideScreenOn) {
             volume = -16.0f;
         }
-        else if (fEffectsScalingFactor > 0.0f && fMusicScalingFactor > 0.0f) {
+        else if (AEAudioHardware.GetEffectsMasterScalingFactor() > 0.0f && AEAudioHardware.GetMusicMasterScalingFactor() > 0.0f) {
             if (!CAEPedSpeechAudioEntity::s_bForceAudible) {
-                auto audioEvent = 0;
-                while (true) {
-                    if (!AudioEngine.IsMissionAudioSampleFinished(audioEvent) && AudioEngine.GetMissionAudioEvent(audioEvent) != 0xFFFF) {
-                        auto missionAudioPosition = AudioEngine.GetMissionAudioPosition(audioEvent);
-                        if (!missionAudioPosition)
-                            break;
+                uint8 audio = 0;
+                for (; audio < 2; audio++) {
+                    if (!AudioEngine.IsMissionAudioSampleFinished(audio) && AudioEngine.GetMissionAudioEvent(audio) != -1) {
+                        const auto missionAudioPosition = AudioEngine.GetMissionAudioPosition(audio);
 
-                        CAEAudioEnvironment::GetPositionRelativeToCamera(v9, missionAudioPosition);
-                        if (CVector::Magnitude(&v9) <= 15.0f)
+                        // If there's no position OR it's within 15.0f, recalculate and break
+                        if (!missionAudioPosition || CAEAudioEnvironment::GetPositionRelativeToCamera(*missionAudioPosition).Magnitude() <= 15.0f) {
+                            const auto musicScale  = AEAudioHardware.GetMusicMasterScalingFactor();
+                            const auto effectScale = AEAudioHardware.GetEffectsMasterScalingFactor();
+                            m_RadioDuckedVolume = std::min(CAEAudioUtility::AudioLog10(effectScale / musicScale) * 20.0f - 9.0f, 0.0f);
+                            m_RadioDuckFadeRate = -0.02f * m_RadioDuckedVolume;
+                            volume = m_RadioDuckedVolume - 4.0f;
                             break;
+                        }
                     }
-                    if (++audioEvent >= 2) {
-                        if (m_f80 >= 0.0f)
-                            goto LABEL_22;
+                }
 
-                        auto v4 = m_f84 + m_f80;
-                        if (v4 >= 0.0f)
-                            v4 = 0.0f;
-                        m_f80 = v4;
-                        goto LABEL_21;
+                // no recalculation happened
+                if (audio >= 2) {
+                    if (m_RadioDuckedVolume < 0.0f) {
+                        m_RadioDuckedVolume = std::min(m_RadioDuckedVolume + m_RadioDuckFadeRate, 0.0f);
+                        volume = m_RadioDuckedVolume - 4.0f;
                     }
                 }
             }
-
-            volumea = fEffectsScalingFactor;
-            if (__FYL2X__(volumea / fMusicScalingFactor, 0.30102999566398119802) * 20.0f - 9.0f >= 0.0f) {
-                v4 = 0.0f;
-            } else {
-                volumeb = fEffectsScalingFactor;
-                v4 = __FYL2X__(volumeb / fMusicScalingFactor, 0.30102999566398119802) * 20.0f - 9.0f;
-            }
-            m_f80 = v4;
-            m_f84 = -0.02 * v4;
-        LABEL_21:
-            volume = v4 - 4.0f;
         }
-    LABEL_22:
-        if (AudioEngine.IsAmbienceRadioActive())
-            volume = volume - 20.0f;
+        if (AudioEngine.IsAmbienceRadioActive()) {
+            volume -= 20.0f;
+        }
     }
 
-    if (m_bBassEnhance && m_ActiveSettings.m_BassSetting) {
-        switch (m_ActiveSettings.m_BassSetting) {
-        case 1:
+    if (m_bBassEnhance) {
+        switch (m_ActiveSettings.BassSetting) {
+        case eBassSetting::BOOST:
             volume -= 2.0f;
             break;
-        case 2:
+        case eBassSetting::CUT:
             volume += 1.5f;
             break;
+        case eBassSetting::NORMAL:
+            break;
+        default:
+            NOTSA_UNREACHABLE("unexpected bass setting: {}", m_ActiveSettings.BassSetting);
         }
     }
-
-    AEAudioHardware.SetChannelVolume(m_nChannel, 0, volume, 0);
-    */
+    AEAudioHardware.SetChannelVolume(m_HwClientHandle, 0, volume, 0);
 }
 
 // 0x4E8400

@@ -147,8 +147,8 @@ public:
     int32           m_nSavedRadioStationId{-1};         // TODO: convert to eRadioID after finished reversing
     int32           m_iRadioStationMenuRequest{ -1 };   // <-
     int32           m_iRadioStationScriptRequest{ -1 }; // <-
-    float           m_f80{0.0f}; // 80 and 84 volume related fields. See ::UpdateRadioVolumes
-    float           m_f84{0.0f};
+    float           m_RadioDuckedVolume{}; // Reduces radio volume if mission audio is nearby
+    float           m_RadioDuckFadeRate{}; // Rate of recovery of ducked radio volume
     tRadioSettings  m_RequestedSettings{}; // settings1
     tRadioSettings  m_ActiveSettings{}; // settings2
     std::array<tRadioState, RADIO_COUNT> m_aRadioState{};
