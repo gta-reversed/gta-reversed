@@ -3772,13 +3772,13 @@ void CAEVehicleAudioEntity::ProcessGenericJet(bool engineOn, tVehicleParams& par
     case MODEL_SHAMAL:
         volMaxThrust     = 0.0f; // TODO: 0xB6B9F4, i read zero all the time so left there. not sure though
         volRearBase      = 8.0f;
-        distantJetVolume = -100.0f;
+        distantJetVolume = VOLUME_SILENCE;
         volFrontBase     = 8.0f;
         break;
     case MODEL_HYDRA:
         volMaxThrust     = 0.0f; // TODO: 0xB6B9F8, i read zero all the time so left there. not sure though
         volRearBase      = 8.0f;
-        distantJetVolume = -100.0f;
+        distantJetVolume = VOLUME_SILENCE;
         volFrontBase     = 8.0f;
         break;
     case MODEL_AT400:
