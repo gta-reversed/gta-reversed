@@ -691,9 +691,15 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
     std::array<CEntity*, 16> colEntities{};
     int16                    numColliding{};
 
+    auto* ourModelInfo = ourEntity->GetModelInfo();
+    auto* ourColModel  = ourModelInfo ? ourModelInfo->GetColModel() : nullptr;
+    if (!ourColModel) {
+        return;
+    }
+
     CWorld::FindObjectsKindaColliding(
         pos,
-        ourEntity->GetModelInfo()->GetColModel()->GetBoundRadius(),
+        ourColModel->GetBoundRadius(),
         false,
         &numColliding,
         (int16)colEntities.max_size(),
@@ -719,11 +725,17 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
         }
 
         std::array<CColPoint, 32> colPoints{};
+        auto* entityModelInfo = entity->GetModelInfo();
+        auto* entityColModel = entityModelInfo ? entityModelInfo->GetColModel() : nullptr;
+        if (!entityColModel) {
+            continue;
+        }
+
         const auto                numCollisions = CCollision::ProcessColModels(
             ourEntity->GetMatrix(),
-            *ourEntity->GetColModel(),
+            *ourColModel,
             entity->GetMatrix(),
-            *entity->GetColModel(),
+            *entityColModel,
             colPoints,
             nullptr,
             nullptr,
