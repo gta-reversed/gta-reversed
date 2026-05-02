@@ -251,6 +251,9 @@ void CAEVehicleAudioEntity::Terminate() {
         return;
     }
 
+    // Cancel all sounds owned by this entity to prevent use-after-free in CAESoundManager::Service
+    AESoundManager.CancelSoundsOwnedByAudioEntity(this, true);
+
     // Stop sounds
     PlayTrainBrakeSound(-1);
     rng::for_each(m_EngineSounds, GracefullyStopSound, &tEngineSound::Sound);

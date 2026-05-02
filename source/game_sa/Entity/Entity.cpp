@@ -1453,7 +1453,10 @@ CColModel* CEntity::GetColModel() const {
         }
     }
 
-    return GetModelInfo()->GetColModel();
+    if (const auto* mi = GetModelInfo()) {
+        return mi->GetColModel();
+    }
+    return nullptr;
 }
 
 // Calculates the four corner points of the 2D projection of the entity's
