@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include <extensions/utility.hpp>
+#include <reversiblebugfixes/Bugs.hpp>
 
 #include "AECollisionAudioEntity.h"
 #include "AEAudioHardware.h"
@@ -213,44 +214,60 @@ std::pair<float, float> CAECollisionAudioEntity::GetLoopingCollisionSoundVolumeA
 // 0x4DB450
 void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float force, const CVector& pos, bool isForceLooping) {
     const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
-    const auto GetSoundIDForSurface = [&](eSurfaceType surface) -> std::optional<eSoundID> { // 0x4DB6AF
-        assert(surface < TOTAL_NUM_COLLISION_SURFACE_TYPES);
-        
-        // FIX(#1406):
-        // This fixes an OOB access in the original code,
-        // Namely, originally for BMX `AE_SURFACE_TYPE_BMX` was passed in,
-        // but it's not an actual surface type, but a special case for sound selection.
-        // This is also the reason why we use optionals, to mostly preserve the original game logic.
-        // That is, if either of the surfaces is any of the ones below the same sound will be played as originally
-        // if both are invalid, then the gravel skid sound will be played, which is the original fallback sound.
-        if (surface < TOTAL_NUM_SURFACE_TYPES) {
-            return std::nullopt;
-        }
 
-        // Vanilla logic
-        if (g_surfaceInfos.IsAudioGrass(surface)) {
-            return SND_GENRL_COLLISIONS_GRASS_SKID;
-        } else if (g_surfaceInfos.IsAudioWater(surface)) {
-            return SND_GENRL_COLLISIONS_WATER_LOOP;
-        } else if (g_surfaceInfos.IsAudioMetal(surface)) {
-            return SND_GENRL_COLLISIONS_METAL_SCRAPE;
-        }
-
-        // Return nullopt here to try checking the other surface too,
-        // or, if neither are valid we play `SND_GENRL_COLLISIONS_GRAVEL_SKID` (as they did originally)
-        return std::nullopt;
-    };
-    if (auto* const sound = AESoundManager.PlaySound({
+    const auto PlaySound = [&](eSoundID soundID) {
+        if (auto* const sound = AESoundManager.PlaySound({
             .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
-            .SoundID       = GetSoundIDForSurface(surfaceA).value_or(GetSoundIDForSurface(surfaceB).value_or(SND_GENRL_COLLISIONS_GRAVEL_SKID)),
+            .SoundID       = soundID,
             .AudioEntity   = this,
             .Pos           = pos,
             .Volume        = volume,
             .RollOffFactor = 2.f,
             .Speed         = std::max(speed, 0.75f) * 0.8f,
             .Flags         = SOUND_REQUEST_UPDATES,
-    })) {
-        AddCollisionSoundToList(entityA, entityB, surfaceA, surfaceB, sound, COLLISION_SOUND_LOOPING);
+            })
+        ) {
+            AddCollisionSoundToList(entityA, entityB, surfaceA, surfaceB, sound, COLLISION_SOUND_LOOPING);
+        }
+    };
+
+    // FIX(#1406):
+    // This fixes an OOB access in the original code,
+    // Namely, originally for BMX `AE_SURFACE_TYPE_BMX` was passed in,
+    // but it's not an actual surface type, but a special case for sound selection.
+
+    // If both surfaces are valid we preserve the original logic...
+    if (!notsa::bugfixes::CAECollisionAudioEntity_PlayLoopingCollisionSound_InvalidSurfaceType || (surfaceA < TOTAL_NUM_SURFACE_TYPES && surfaceB < TOTAL_NUM_SURFACE_TYPES)) {
+        if (g_surfaceInfos.IsAudioGrass(surfaceA) || g_surfaceInfos.IsAudioGrass(surfaceB)) {
+            PlaySound(SND_GENRL_COLLISIONS_GRASS_SKID);
+        } else if (g_surfaceInfos.IsAudioWater(surfaceA) || g_surfaceInfos.IsAudioWater(surfaceB)) {
+            PlaySound(SND_GENRL_COLLISIONS_WATER_LOOP);
+        } else if (g_surfaceInfos.IsAudioMetal(surfaceA) || g_surfaceInfos.IsAudioMetal(surfaceB)) {
+            PlaySound(SND_GENRL_COLLISIONS_METAL_SCRAPE);
+        } else {
+            PlaySound(SND_GENRL_COLLISIONS_GRAVEL_SKID);
+        }
+    } else {
+        const auto GetSoundIDForSurface = [&](eSurfaceType surface) -> std::optional<eSoundID> { // 0x4DB6AF
+            assert(surface < TOTAL_NUM_COLLISION_SURFACE_TYPES && "Expected `AE_SURFACE_TYPE_*` - Any other values are a bug");
+            if (surface < TOTAL_NUM_SURFACE_TYPES) {
+                if (g_surfaceInfos.IsAudioGrass(surface)) {
+                    return SND_GENRL_COLLISIONS_GRASS_SKID;
+                } else if (g_surfaceInfos.IsAudioWater(surface)) {
+                    return SND_GENRL_COLLISIONS_WATER_LOOP;
+                } else if (g_surfaceInfos.IsAudioMetal(surface)) {
+                    return SND_GENRL_COLLISIONS_METAL_SCRAPE;
+                }
+            }
+            return std::nullopt;
+        };
+        if (const auto soundOfSurfaceA = GetSoundIDForSurface(surfaceA)) {
+            PlaySound(*soundOfSurfaceA);
+        } else if (const auto soundOfSurfaceB = GetSoundIDForSurface(surfaceB)) {
+            PlaySound(*soundOfSurfaceB);
+        } else {
+            PlaySound(SND_GENRL_COLLISIONS_GRAVEL_SKID);
+        }
     }
 }
 
