@@ -3,6 +3,7 @@
 #include "app.h"
 #include "FileMgr.h"
 #include "MemoryMgr.h"
+#include "extensions/File.hpp"
 
 void CAEMP3TrackLoader::InjectHooks() {
     RH_ScopedClass(CAEMP3TrackLoader);
@@ -43,76 +44,55 @@ bool CAEMP3TrackLoader::Initialise() {
     m_bStreamingFromDVD = false;
 
     // NOTSA: Originally used a heap allocated string and strcpy/strcat to make paths.
-
     // Firstly try loading locally.
     const auto localPath = std::format("AUDIO\\STREAMS\\{}", m_paStreamPacks[0].m_szName);
-    if (auto file = CFileMgr::OpenFile(localPath.c_str(), "r")) {
+    if (notsa::File audiofp(localPath.c_str(), "r"); audiofp) {
         m_bInitialised = true;
         m_bStreamingFromDVD = false;
-
-        CFileMgr::CloseFile(file);
         return true;
     }
 
-    // Try loading from a DVD.    
+    // Try loading from a DVD.
+    NOTSA_LOG_INFO("Audio files couldn't be found in the local installation, will try looking for a GTASA DVD.");
     return IsCurrentAudioStreamAvailable();
 }
 
 // 0x4E0970
 bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
-    // NOTSA: Originally Win32 file API was used.
-    auto* fp = fopen("AUDIO\\CONFIG\\STRMPAKS.DAT", "r");
-    if (!fp) {
-        // Win32 API creates a file if it doesn't exists, and reads 0 bytes.
-        fp = fopen("AUDIO\\CONFIG\\STRMPAKS.DAT", "w");
-        fclose(fp);
+    notsa::File strmpaks("AUDIO\\CONFIG\\STRMPAKS.DAT", "rb");
 
+    if (!strmpaks) {
         // NOTSA: Originally (StreamPack*)CMemoryMgr::Malloc(0), return value is implementation-dependent.
         m_paStreamPacks = nullptr;
         m_nStreamPackCount = 0;
         return false;
     }
 
-    // Get file size.
-    fseek(fp, 0, SEEK_END);
-    const auto size = ftell(fp);
-    const auto numPacks = size / sizeof(StreamPack);
-    rewind(fp);
-
+    const auto size = strmpaks.GetTotalSize();
     m_paStreamPacks = (StreamPack*)CMemoryMgr::Malloc(size);
-    m_nStreamPackCount = numPacks;
+    m_nStreamPackCount = size / sizeof(StreamPack);
 
     // NOTE: Win32 API outputs number of bytes read, most likely checking is unnecessary.
-    fread(m_paStreamPacks, sizeof(StreamPack), numPacks, fp);
-
-    fclose(fp);
+    NOTSA_LOG_DEBUG("read: {}", strmpaks.Read(m_paStreamPacks, size));
     return true;
 }
 
 // 0x4E09F0
 bool CAEMP3TrackLoader::LoadTrackLookupTable(void) {
     // NOTSA: Originally Win32 file API was used.
-    auto* fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "rb");
-    if (!fp) {
-        NOTSA_LOG_CRIT("Couldn't open traklkup.dat");
+    notsa::File traklkup("AUDIO\\CONFIG\\TRAKLKUP.DAT", "rb");
+    if (!traklkup) {
+        NOTSA_LOG_ERR("Couldn't open traklkup.dat");
         return false;
     }
 
-    // Get file size.
-    fseek(fp, 0, SEEK_END);
-    const auto size = ftell(fp);
-    const auto numPacks = size / sizeof(tTrackLookup);
-    rewind(fp);
-
-    NOTSA_LOG_CRIT("file size: {}, numpaks: {}", size, numPacks);
-
+    const auto size = traklkup.GetTotalSize();
     m_paTrackLookups = (tTrackLookup*)CMemoryMgr::Malloc(size);
-    m_nTrackCount = numPacks;
+    m_nTrackCount = size / sizeof(tTrackLookup);
+    NOTSA_LOG_DEBUG("file size: {}, numpaks: {}", size, m_nTrackCount);
 
     // NOTE: Win32 API outputs number of bytes read, most likely checking is unnecessary.
-    const auto rd = fread(m_paTrackLookups, sizeof(tTrackLookup), numPacks, fp);
-    NOTSA_LOG_CRIT("read: {}", rd);
-    fclose(fp);
+    NOTSA_LOG_DEBUG("read: {}", traklkup.Read(m_paTrackLookups, size));
     return true;
 }
 
@@ -160,15 +140,15 @@ tTrackInfo* CAEMP3TrackLoader::GetTrackInfo(uint32 trackId) {
 bool CAEMP3TrackLoader::IsCurrentAudioStreamAvailable() {
     if (m_pszDvdDrivePath = getDvdGamePath()) {
         const auto dvdPath = std::format("{}\\AUDIO\\STREAMS\\{}", getDvdGamePath(), m_paStreamPacks[0].m_szName);
-        if (auto file = CFileMgr::OpenFile(dvdPath.c_str(), "r")) {
+        if (notsa::File dvdfp(dvdPath.c_str(), "r"); dvdfp) {
+            NOTSA_LOG_INFO("Game will use the audio files from the GTASA DVD.");
             m_bInitialised = true;
             m_bStreamingFromDVD = true;
-
-            CFileMgr::CloseFile(file);
             return true;
         }
     }
 
+    NOTSA_LOG_ERR("Audio files are missing!");
     m_bStreamingFromDVD = false;
     return false;
 }

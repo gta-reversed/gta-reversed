@@ -1033,6 +1033,12 @@ void CAERadioTrackManager::Service(int32 playTime) {
         as.CurrTrackIdx = index;
     };
 
+    const auto QueueUserTrackForNext = [&] {
+        as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
+        as.TrackTypes[1] = eTrackType::USER_TRACK;
+        as.TrackIndices[1] =  as.TrackQueue[1];
+    };
+
     switch (m_nMode) {
     case eRadioTrackMode::RADIO_STARTING:
         as.PlayTime = std::max(as.PlayTime, 0);
@@ -1060,9 +1066,7 @@ void CAERadioTrackManager::Service(int32 playTime) {
             if (curTrack == nextTrack || curTrack == as.TrackQueue[0] && nextTrack == -1) {
                 as.TrackQueue[0] = ChooseAdvertIndex(RADIO_USER_TRACKS);
                 as.TrackTypes[0] = eTrackType::ADVERT;
-                as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
-                as.TrackTypes[1] = eTrackType::USER_TRACK;
-                as.TrackIndices[1] = as.TrackQueue[1];
+                QueueUserTrackForNext();
                 m_nMode = eRadioTrackMode::RADIO_STARTING;
             }
         }
@@ -1073,17 +1077,13 @@ void CAERadioTrackManager::Service(int32 playTime) {
             if (AEAudioHardware.GetActiveTrackID() != as.TrackQueue[0] || nextTrack == -1) {
                 as.TrackQueue[0] = AEUserRadioTrackManager.SelectUserTrackIndex();
                 as.TrackTypes[0] = eTrackType::USER_TRACK;
-                as.TrackIndices[0] =  as.TrackQueue[0];
-                as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
-                as.TrackTypes[1] = eTrackType::USER_TRACK;
-                as.TrackIndices[1] =  as.TrackQueue[1];
+                as.TrackIndices[0] = as.TrackQueue[0];
+                QueueUserTrackForNext();
             } else {
                 as.TrackQueue[0] = nextTrack;
                 as.TrackTypes[0] = as.TrackTypes[1];
-                as.TrackIndices[0] =  as.TrackIndices[1];
-                as.TrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
-                as.TrackTypes[1] = eTrackType::USER_TRACK;
-                as.TrackIndices[1] =  as.TrackQueue[1];
+                as.TrackIndices[0] = as.TrackIndices[1];
+                QueueUserTrackForNext();
             }
             m_nMode = eRadioTrackMode::RADIO_STARTING;
         }

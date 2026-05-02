@@ -431,6 +431,7 @@ void CAEAudioHardware::SetChannelFrequencyScalingFactor(int16 channel, uint16 ch
 
 // 0x4D8990
 void CAEAudioHardware::RescaleChannelVolumes() {
+    // TODO: Whole prev max volume logic is FPS-dependent
     float maxVolumeGlobal{}, maxVolumeSecondary{};
     bool  isMaxGlobalSlowFadeout{}, isMaxSecondarySlowFadeout{};
     for (auto&& [chan, volume, flag] : rngv::zip(GetChannels(), m_afChannelVolumes, m_awChannelFlags)) {
@@ -502,12 +503,7 @@ void CAEAudioHardware::RescaleChannelVolumes() {
     m_IsMaxSecondarySlowFadeout = isMaxSecondarySlowFadeout;
 
     // Make duckable sounds quieter when unduckable ones become louder
-    const float balancedDuckableVolume = [&] {
-        if (accumDuckable == 0.0f) {
-            return 0.0f;
-        }
-        return std::min((6.4f - accumUnduckable * 0.8f) * 16383.0f / accumDuckable, 16383.0f);
-    }();
+    const float balancedDuckableVolume = accumDuckable == 0.0f ? 0.0f : std::min((6.4f - accumUnduckable * 0.8f) * 16383.0f / accumDuckable, 16383.0f);
 
     for (auto&& [chan, flag, linearVol, freq] : rngv::zip(GetChannels(), m_awChannelFlags, m_afChannelVolumeLinear, m_afChannelsFrqScalingFactor)) {
         linearVol *= flag.bUnduckable ? 16383.0f : balancedDuckableVolume;

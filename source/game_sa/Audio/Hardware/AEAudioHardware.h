@@ -52,14 +52,14 @@ union tAudioChannelFlags {
     uint16 value{};
     struct {
         // byte 1
-        bool bIsSecondary : 1;   // 0x01 -- Channel's volume is rescaled via a seperate group. For ambient, radio and cutscene tracks
-        bool bUnduckable : 1;    // 0x02 -- Sounds can not be "ducked", e.g. ambient sounds get silent while a dialogue plays
-        bool bClampVolToNeg : 1; // 0x04 -- Clamps the volume (-inf, 0]
-        bool unk0x8 : 1;         // 0x08
-        bool bIsMusic : 1;       // 0x10 -- not sure
-        bool bIsNotStream : 1;   // 0x20 -- not sure
-        bool bFadeNearEnd : 1;   // 0x40 -- Fade audio based on how close to finishing, used for one-shot audio e.g. explosions etc?
-        bool bSlowFadeout : 1;   // 0x80
+        bool bIsSecondary : 1;   //< 0x01 -- Channel's volume is rescaled via a seperate group. For ambient, radio and cutscene tracks
+        bool bUnduckable : 1;    //< 0x02 -- Sounds can not be "ducked", e.g. ambient sounds get silent while a dialogue plays
+        bool bClampVolToNeg : 1; //< 0x04 -- Clamps the volume (-inf, 0]
+        bool unk0x8 : 1;         //< 0x08
+        bool bIsMusic : 1;       //< 0x10 -- not sure
+        bool bIsNotStream : 1;   //< 0x20 -- not sure
+        bool bFadeNearEnd : 1;   //< 0x40 -- Fade audio based on how close to finishing, used for one-shot audio e.g. explosions etc?
+        bool bSlowFadeout : 1;   //< 0x80
         // byte 2
         /* ... unk ... */
     };
