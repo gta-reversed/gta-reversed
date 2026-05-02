@@ -88,7 +88,7 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
         UpdateDir(ped);
         UpdatePathNodes(ped, m_nDir, m_LastNode, m_NextNode, m_nDir);
 
-        if (m_NextNode.m_wAreaId == m_LastNode.m_wAreaId || m_NextNode.m_wNodeId == m_LastNode.m_wNodeId) {
+        if (m_NextNode.m_wAreaId == m_LastNode.m_wAreaId && m_NextNode.m_wNodeId == m_LastNode.m_wNodeId) {
             CVector outTargetPos;
             ComputeTargetPos(ped, outTargetPos, m_NextNode);
 

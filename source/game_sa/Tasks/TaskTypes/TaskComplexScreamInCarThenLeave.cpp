@@ -53,13 +53,13 @@ CTask* CTaskComplexScreamInCarThenLeave::CreateSubTask(eTaskType taskType, CPed*
     case TASK_SIMPLE_CAR_DRIVE: {
         m_timer.Start(5000);
         return new CTaskSimpleCarDrive{ m_veh };
+    }
     case TASK_FINISHED: {
         ped->GetTaskManager().SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
         return nullptr;
     }
     default:
         NOTSA_UNREACHABLE();
-    }
     }
 }
 

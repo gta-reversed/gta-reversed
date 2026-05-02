@@ -47,7 +47,7 @@ CTask* CTaskComplexLeaveCarAndFlee::CreateSubTask(eTaskType taskType) {
     switch (taskType) {
     case TASK_COMPLEX_SMART_FLEE_POINT:
         return new CTaskComplexSmartFleePoint{
-            m_waitForCarToSlowDown // Inverted
+            !m_waitForCarToSlowDown
                 ? m_fleePoint
                 : m_veh->GetPosition(),
             false,
