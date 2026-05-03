@@ -564,13 +564,7 @@ void CGame::Initialise(const char* datFile) {
 // 0x5BFA90
 bool CGame::InitialiseCoreDataAfterRW() {
     CTempColModels::Initialise();
-    gHandlingDataMgr.LoadHandlingData();
-    gHandlingDataMgr.field_0 = 0.1f;
-    gHandlingDataMgr.fWheelFriction = 0.9f;
-    gHandlingDataMgr.field_8 = 1.0f;
-    gHandlingDataMgr.field_C = 0.8f;
-    gHandlingDataMgr.field_10 = 0.98f;
-
+    gHandlingDataMgr.Initialise();
     g_surfaceInfos.Init();
     CPedStats::Initialise();
     CTimeCycle::Initialise(false);
