@@ -45,24 +45,24 @@ CTaskComplexLeaveCarAndFlee::~CTaskComplexLeaveCarAndFlee() {
 // 0x63C0A0
 CTask* CTaskComplexLeaveCarAndFlee::CreateSubTask(eTaskType taskType) {
     switch (taskType) {
-    case TASK_COMPLEX_SMART_FLEE_POINT:
+    case TASK_COMPLEX_SMART_FLEE_POINT: // 0x63C177
         return new CTaskComplexSmartFleePoint{
             m_waitForCarToSlowDown // Inverted
-                ? m_fleePoint
-                : m_veh->GetPosition(),
+                ? m_veh->GetPosition()
+                : m_fleePoint,
             false,
             60.f,
             1000000
         };
-    case TASK_COMPLEX_LEAVE_CAR:
+    case TASK_COMPLEX_LEAVE_CAR: // 0x63C12E
         return new CTaskComplexLeaveCar{
             m_veh,
-            (int32)m_door,
+            (int32)(m_door),
             m_fleeDelayMs,
             m_waitForCarToSlowDown,
             true
         };
-    case TASK_SIMPLE_GO_TO_POINT:
+    case TASK_SIMPLE_GO_TO_POINT: // 0x63C0E6
         return new CTaskSimpleGoToPoint{ PEDMOVE_RUN, m_fleePoint };
     case TASK_FINISHED:
         return nullptr;

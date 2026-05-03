@@ -121,19 +121,14 @@ CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
 // 0x62DB20
 CTask* CTaskComplexDestroyCarMelee::CreateFirstSubTask(CPed* ped) {
     m_HasNewTarget = false;
-
     // CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_nType); // unused
-
     CalculateSearchPositionAndRanges(ped);
-
     const auto& pedPos = ped->GetPosition();
-
     if (IsPointInSphere(pedPos, m_VehToDestroy->GetPosition(), m_MaxArriveRange)) {
-        return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
+        ped->m_fAimingRotation = CGeneral::GetRadianAngleBetweenPoints(m_VehPos, pedPos);
+        return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
     }
-
-    ped->m_fAimingRotation = CGeneral::GetRadianAngleBetweenPoints(m_VehPos, pedPos);
-    return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
+    return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
 }
 
 // 0x62DDB0
