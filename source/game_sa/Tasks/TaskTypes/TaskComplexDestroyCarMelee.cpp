@@ -165,10 +165,9 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
 
 // 0x6289F0
 void CTaskComplexDestroyCarMelee::CalculateSearchPositionAndRanges(CPed* ped) {
-    m_MaxAtkRange
-        = m_MaxArriveRange
-        = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
-    m_MaxAtkAngleRad = (m_VehToDestroy->GetPosition2D() - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
+    m_MaxAtkRange = m_MaxArriveRange = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
+    m_VehPos                         = m_VehToDestroy->GetPosition();
+    m_MaxAtkAngleRad                 = (CVector2D{ m_VehPos } - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
 }
 
 // 0x628A70
