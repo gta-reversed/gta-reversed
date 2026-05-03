@@ -41,7 +41,7 @@ bool CAESoundManager::Initialise() {
         return false;
     }
 
-    // REFACTOR: Garbage data olmaması adına diziler value-initialize ediliyor.
+    // REFACTOR: Initialize arrays to avoid garbage data
     m_PhysicallyPlayingSoundList = new tSoundReference[m_NumAllocatedPhysicalChannels];
     m_ChannelPosition            = new int16[m_NumAllocatedPhysicalChannels]();
     m_PrioritisedSoundList       = new tSoundReference[m_NumAllocatedPhysicalChannels];
@@ -125,7 +125,7 @@ void CAESoundManager::Service() {
             continue;
         }
 
-        // REFACTOR: Taşmayı (Integer Overflow) engellemek için işlem öncesi float tipine cast ediliyor
+        // REFACTOR: Cast to float before division to prevent integer overflow
         const float playTimeF = static_cast<float>(sound.m_PlayTime);
         const float lengthsF  = static_cast<float>(m_VirtualChannelSoundLengths[i]);
         sound.m_PlayTime      = static_cast<uint16>((playTimeF * lengthsF) / 100.0f);
@@ -200,12 +200,12 @@ void CAESoundManager::Service() {
             continue;
         }
 
-        // REFACTOR: 0x4F04CE ve 0x4F04EB mantığı dizinin dışına çıkmayı (UB) engelleyecek şekilde yeniden yazıldı.
+        // REFACTOR: Rewrote logic from 0x4F04CE and 0x4F04EB to prevent out-of-bounds access (UB)
         int16 chN = m_NumAllocatedPhysicalChannels - 1;
         for (; chN >= numPrioritisedSounds; chN--) {
             auto refB = m_PrioritisedSoundList[chN];
             if (refB == -1) {
-                continue; // Eğer slot boşsa geç
+                continue; // Skip if slot is empty
             }
 
             const auto& soundB = m_VirtuallyPlayingSoundList[refB];
@@ -405,7 +405,7 @@ int16 CAESoundManager::AreSoundsOfThisEventPlayingForThisEntity(int16 eventId, C
 
 // 0x4EF5D0
 int16 CAESoundManager::AreSoundsOfThisEventPlayingForThisEntityAndPhysical(int16 eventId, CAEAudioEntity* audioEntity, CPhysical* physical) {
-    // REFACTOR: 'bool' tipi int16 döndüren fonksiyonda eSoundPlayingStatus taşıyordu. Veri kaybını önlemek için tür int16 yapıldı.
+    // REFACTOR: Function returned 'bool' but had eSoundPlayingStatus to prevent data loss, changed return type to int16
     int16 nPlaying = eSoundPlayingStatus::SOUND_NOT_PLAYING;
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
         if (!sound.IsActive() || sound.m_Event != eventId || sound.m_AudioEntity != audioEntity || sound.m_PhysicalEntity != physical) {

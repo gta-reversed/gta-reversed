@@ -16,7 +16,7 @@ auto& m_pAudioEventVolumes = StaticRef<int8*>(0xBD00F8); // Use `GetDefaultVolum
 
 // NOTSA: Cancel all sounds owned by this entity to prevent use-after-free
 CAEAudioEntity::~CAEAudioEntity() {
-    // Sadece ses yöneticisi tam olarak başlatıldıysa sesleri iptal et.
+    // Cancel sounds only if audio manager is fully initialized
     if (AESoundManager.m_NumAllocatedPhysicalChannels > 0) {
         AESoundManager.CancelSoundsOwnedByAudioEntity(this, true);
     }
@@ -27,12 +27,12 @@ bool CAEAudioEntity::StaticInitialise() {
     auto file = CFileMgr::OpenFile("AUDIO\\CONFIG\\EVENTVOL.DAT", "r");
     if (!file) {
         NOTSA_LOG_WARN("[AudioEngine] Failed to open EVENTVOL.DAT");
-        return false; // REFACTOR: Dosya açılamadıysa null pointer'ı kapatmaya çalışma.
+        return false; // REFACTOR: Don't try to close null pointer if file couldn't be opened
     }
 
     m_pAudioEventVolumes = new int8[EVENT_VOLUMES_BUFFER_SIZE];
     
-    // REFACTOR: Okuma başarısız olursa ayrılan belleği serbest bırak (Memory leak önlendi).
+    // REFACTOR: Free allocated memory if read fails (prevent memory leak)
     if (CFileMgr::Read(file, m_pAudioEventVolumes, EVENT_VOLUMES_BUFFER_SIZE) != EVENT_VOLUMES_BUFFER_SIZE) {
         NOTSA_LOG_WARN("[AudioEngine] Failed to read EVENTVOL.DAT");
         delete[] m_pAudioEventVolumes;
