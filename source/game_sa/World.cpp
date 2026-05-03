@@ -1350,7 +1350,7 @@ void CWorld::RemoveFallenCars() {
             continue;
         }
 
-        NOTSA_LOG_WARN("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPos.x, vecPos.y, vecPos.z); // R* log
+        NOTSA_LOG_WARN("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f} [Model:{:d} CreatedBy:{:d} Status:{:d}]", vecPos.x, vecPos.y, vecPos.z, vehicle->m_nModelIndex, static_cast<int>(vehicle->GetCreatedBy()), static_cast<int>(vehicle->m_nVehicleType)); // R* log
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
@@ -1370,7 +1370,8 @@ void CWorld::RemoveFallenCars() {
                 const auto pathNodePos = ThePaths.GetPathNode(pathNodeAddress)->GetPosition();
                 vehicle->Teleport(pathNodePos + CVector(0, 0, 3), true);
             } else {
-                vehicle->Teleport(CVector(vecPos.x, vecPos.y, 0), true);
+                const float groundZ = CWorld::FindGroundZForCoord(vecPos.x, vecPos.y);
+                vehicle->Teleport(CVector(vecPos.x, vecPos.y, groundZ + 3.0f), true);
             }
             vehicle->ResetMoveSpeed();
         } else {

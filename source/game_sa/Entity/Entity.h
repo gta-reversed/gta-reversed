@@ -315,7 +315,12 @@ public:
 
     CBaseModelInfo* GetModelInfo() const;
 
-    CCollisionData* GetColData() { return GetColModel()->m_pColData; }
+    CCollisionData* GetColData() {
+        if (const auto* cm = GetColModel()) {
+            return cm->m_pColData;
+        }
+        return nullptr;
+    }
 
     // Wrapper around the mess called `CleanUpOldReference`
     // Takes in `ref` (which is usually a member variable),
