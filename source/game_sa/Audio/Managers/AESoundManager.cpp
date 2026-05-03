@@ -215,7 +215,7 @@ void CAESoundManager::Service() {
             if (sound.GetPlayPhysically() <= soundB.GetPlayPhysically()) {
                 continue;
             }
-            break; // Araya eklenecek ideal slot bulundu!
+            break; // Found ideal slot to insert into!
         }
 
         // 0x4F0529 - Insert at given index

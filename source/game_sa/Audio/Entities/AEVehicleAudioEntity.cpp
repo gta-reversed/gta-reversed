@@ -1953,7 +1953,7 @@ void CAEVehicleAudioEntity::GetHornState(bool* out, tVehicleParams& params) cons
     *out = GetHornState(params);
 }
 
-// Code for 0x4F61E0 (But return value directly instead of taking it as an arg...Ö
+// Code for 0x4F61E0 (But return value directly instead of taking it as an argument)
 bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
     if (m_IsWreckedVehicle) {
         return false;
