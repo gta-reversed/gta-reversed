@@ -142,7 +142,7 @@ void CTaskSimpleUseGun::RemoveStanceAnims(CPed* ped, float x) {
         ANIM_ID_GUNMOVE_BWD,
         ANIM_ID_GUNMOVE_R,
     }) {
-        if (const auto a = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), animId)) {
+        if (const auto a = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, animId)) {
             a->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
             pedHasStanceAnims = true;
         }
@@ -156,7 +156,7 @@ void CTaskSimpleUseGun::RemoveStanceAnims(CPed* ped, float x) {
     }
 
     const auto DoBlendAnimAndStart = [ped](AnimationId animId) {
-        const auto animWalk = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, animId);
+        const auto animWalk = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, animId);
         animWalk->SetFlag(ANIMATION_IS_PLAYING);
     };
 
@@ -184,7 +184,7 @@ void CTaskSimpleUseGun::RemoveStanceAnims(CPed* ped, float x) {
         case ANIM_GROUP_PLAYERROCKETM:
             break;
         default:
-            CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_GUN_2_IDLE, 8.f);
+            CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_GUN_2_IDLE, 8.f);
         }
     }
 }
@@ -403,7 +403,7 @@ bool CTaskSimpleUseGun::MakeAbortable(CPed* ped, eAbortPriority priority, const 
     }
     RemoveStanceAnims(ped, -4.f);
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
-        CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
+        CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
     }
     if (m_Anim) {
         if (priority == ABORT_PRIORITY_IMMEDIATE) {
@@ -605,11 +605,11 @@ void CTaskSimpleUseGun::Reset(CPed* ped, CEntity* targetEntity, CVector targetPo
 // 0x61E3F0
 void CTaskSimpleUseGun::SetMoveAnim(CPed* ped) {
     const auto
-        animGunStand   = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_GUN_STAND),
-        animGunMoveFwd = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_GUNMOVE_FWD),
-        animGunMoveL   = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_GUNMOVE_L),
-        animGunMoveBwd = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_GUNMOVE_BWD),
-        animGunMoveR   = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_GUNMOVE_R);
+        animGunStand   = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_GUN_STAND),
+        animGunMoveFwd = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_GUNMOVE_FWD),
+        animGunMoveL   = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_GUNMOVE_L),
+        animGunMoveBwd = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_GUNMOVE_BWD),
+        animGunMoveR   = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_GUNMOVE_R);
 
     // 0x61E444
     if (ped->bIsDucking) {
@@ -636,7 +636,7 @@ void CTaskSimpleUseGun::SetMoveAnim(CPed* ped) {
         : 0.f;
 
     const auto DoBlendAnim = [ped](AnimationId animId, float blendDelta) {
-        return CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, animId, blendDelta);
+        return CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, animId, blendDelta);
     };
 
     // 0x61E505
@@ -709,7 +709,7 @@ void CTaskSimpleUseGun::SetMoveAnim(CPed* ped) {
 
         // If new anim doesn't exists, create it
         if (!toAnim) {
-            toAnim = CAnimManager::AddAnimation(ped->GetRpClump(),ANIM_GROUP_DEFAULT, toAnimId);
+            toAnim = CAnimManager::AddAnimation(ped->m_pRwClump,ANIM_GROUP_DEFAULT, toAnimId);
         }
 
         // Set params of the anim we're transitioning to
@@ -783,7 +783,7 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
         }
 
         m_Anim = CAnimManager::BlendAnimation( // 0x62503A
-            ped->GetRpClump(),
+            ped->m_pRwClump,
             m_WeaponInfo->m_eAnimGroup,
             ped->bIsDucking && m_WeaponInfo->flags.bCrouchFire
                 ? ANIM_ID_CROUCHFIRE
@@ -812,7 +812,7 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
 
         if (m_BurstShots > 0) { // 0x625196 - Inverted
             m_Anim = CAnimManager::BlendAnimation( // 0x62511C
-                ped->GetRpClump(),
+                ped->m_pRwClump,
                 m_WeaponInfo->m_eAnimGroup,
                 ped->bIsDucking && m_WeaponInfo->flags.bCrouchFire
                     ? ANIM_ID_CROUCHRELOAD
@@ -833,8 +833,8 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
             return;
         }
         m_Anim = CAnimManager::BlendAnimation( // 0x6251DC
-            ped->GetRpClump(),
-            CTaskSimpleFight::m_aComboData[12].m_nAnimGroup,
+            ped->m_pRwClump,
+            CTaskSimpleFight::m_aComboData[0].m_nAnimGroup,
             ped->bIsDucking
                 ? ANIM_ID_FIGHT_2
                 : ANIM_ID_FIGHT_1
