@@ -168,8 +168,10 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
 // notsa, code from `LookForCriminals`
 CPed* CTaskComplexWanderCop::FindNearestCriminal(CPed* ped) const {
     for (auto& candidate : ped->GetIntelligence()->m_pedScanner.GetEntities<CPed>()) {
-        if (!candidate.IsGangster() || !(candidate.m_nPedType == PED_TYPE_CRIMINAL && &candidate != m_pLastCriminalPedLookedFor)) {
-            continue;
+        if (!candidate.IsGangster()) {
+            if (candidate.m_nPedType != PED_TYPE_CRIMINAL || &candidate == m_pLastCriminalPedLookedFor) {
+                continue;
+            }
         }
 
         if (auto* const tActive = candidate.GetTaskManager().GetActiveTask(); !tActive || tActive->GetTaskType() != GetTaskType()) {
