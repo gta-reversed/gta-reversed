@@ -48,8 +48,6 @@ CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWa
 }
 
 // 0x674140
-
-
 CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
     return plugin::CallMethodAndReturn<CTask*, 0x674140, CTaskComplexWander*, CPed*>(this, ped); // untested
 
@@ -88,11 +86,11 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
         UpdateDir(ped);
         UpdatePathNodes(ped, m_nDir, m_LastNode, m_NextNode, m_nDir);
 
-        if (m_NextNode.m_wAreaId == m_LastNode.m_wAreaId || m_NextNode.m_wNodeId == m_LastNode.m_wNodeId) {
+        if (m_NextNode == m_LastNode) { // Inverted
             CVector outTargetPos;
-            ComputeTargetPos(ped, outTargetPos, m_NextNode);
+            ComputeTargetPos(ped, outTargetPos, m_NextNode); // 0x6743C8 (this is here out-of-order, but I guess it doesn't matter)
 
-            auto* sequence = new CTaskComplexSequence();
+            auto* sequence = new CTaskComplexSequence(); // 0x6742DA
             sequence->AddTask(new CTaskSimpleStandStill(500, false, false, 8.0f));
             sequence->AddTask(new CTaskSimpleRunAnim(ped->m_nAnimGroup, ANIM_ID_ROADCROSS, 4.0F, false));
             sequence->AddTask(new CTaskSimpleScratchHead());
@@ -100,18 +98,19 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
             return sequence;
         }
 
-        if (!ValidNodes())
+        if (!ValidNodes()) {
             return new CTaskSimpleScratchHead();
+        }
 
         if (m_bWanderSensibly) {
             if (ThePaths.TestForPedTrafficLight(m_LastNode, m_NextNode)) {
                 return CreateSubTask(ped, TASK_COMPLEX_OBSERVE_TRAFFIC_LIGHTS_AND_ACHIEVE_HEADING);
             }
-
             if (ThePaths.TestCrossesRoad(m_LastNode, m_NextNode)) {
-                return new CTaskComplexCrossRoadLookAndAchieveHeading(2000, ComputeTargetHeading(ped));
+                return CreateSubTask(ped, TASK_COMPLEX_CROSS_ROAD_LOOK_AND_ACHIEVE_HEADING);
             }
         }
+
         return CreateSubTask(ped, TASK_SIMPLE_GO_TO_POINT);
 
     case TASK_COMPLEX_IN_AIR_AND_LAND:
@@ -277,12 +276,7 @@ void CTaskComplexWander::ComputeTargetPos(const CPed* ped, CVector& outTargetPos
 
 // 0x669F30
 bool CTaskComplexWander::ValidNodes() const {
-    if (m_NextNode.IsValid() && m_LastNode.IsValid()) {
-        if (m_NextNode.m_wAreaId != m_LastNode.m_wAreaId || m_NextNode.m_wNodeId != m_LastNode.m_wNodeId) {
-            return true;
-        }
-    }
-    return false;
+    return m_NextNode.IsValid() && m_LastNode.IsValid() && m_NextNode != m_LastNode;
 }
 
 // 0x674560
