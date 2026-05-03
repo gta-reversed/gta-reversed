@@ -27,9 +27,7 @@
             NOTSA_LOG_WARN("Line: {:?}", _l); \
         } \
     } while (0)
-
-char(&CFileLoader::ms_line)[512] = *reinterpret_cast<char(*)[512]>(0xB71848);
-uint32& gAtomicModelId = *reinterpret_cast<uint32*>(0xB71840);
+auto& gAtomicModelId = StaticRef<uint32>(0xB71840);
 
 void LinkLods(int32 a1);
 
@@ -170,7 +168,7 @@ bool CFileLoader::LoadAtomicFile(RwStream* stream, uint32 modelId) {
         RpClumpDestroy(pReadClump);
     }
 
-    if (mi && !mi->m_pRwObject) // FIX_BUGS: V1004 The 'mi' pointer was used unsafely after it was verified against nullptr.
+    if (mi && !mi->GetRwObject()) // FIX_BUGS: V1004 The 'mi' pointer was used unsafely after it was verified against nullptr.
         return false;
 
     if (bUseCommonVehicleTexDictionary)
@@ -539,7 +537,7 @@ bool CFileLoader::LoadCollisionFile(uint8* buff, uint32 buffSize, uint8 colId) {
 
 // 0x5B4E60
 void CFileLoader::LoadCollisionFile(const char* filename, uint8 colId) {
-    uint8 (&buffer)[0x8000] = *(uint8(*)[0x8000])0xBC40D8; // 32 kB
+    auto& buffer = StaticRef<uint8[0x8000]>(0xBC40D8); // 32 kB
 
     using namespace ColHelpers;
 
@@ -1209,7 +1207,7 @@ void CFileLoader::LoadEntryExit(const char* line) {
         unused,
         exit.x, exit.y, exit.z,
         exitAngle,
-        area,
+        static_cast<eAreaCodes>(area),
         (CEntryExit::eFlags)flags,
         skyColor,
         timeOn,

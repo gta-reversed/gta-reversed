@@ -4,6 +4,7 @@
 #include <CommandParser/Parser.hpp>
 #include <extensions/Shapes/AngledRect.hpp>
 #include "Utility.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 #include <TaskTypes/TaskComplexDie.h>
 #include <TaskTypes/TaskSimpleCarSetPedInAsDriver.h>
@@ -351,10 +352,8 @@ auto SetCharRotation(CPed& ped, CVector angles) {
  * @param {Char} self
  * @param {bool} state
  */
-auto SetCharAllowedToDuck(CPed& ped, CVector rotdeg) {
-    CWorld::Remove(&ped);
-    ped.SetOrientation(rotdeg * DegreesToRadians(1.f)); // degrees => radians
-    CWorld::Add(&ped);
+auto SetCharAllowedToDuck(CPed& ped, bool bCanDuck) {
+    ped.bNotAllowedToDuck = !bCanDuck;
 }
 
 /*
@@ -510,6 +509,10 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
  */
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
+
+    if (!veh) {
+        throw std::invalid_argument("Char is not in a vehicle");
+    }
 
     if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
         // Unstore previous (If it still exists)
@@ -1829,8 +1832,8 @@ auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civi
  * @param {Char} self
  * @param {model_char} modelId
  */
-auto IsCharModel(CPed& ped, int8 accuracy) {
-    ped.m_nWeaponAccuracy = accuracy;
+auto IsCharModel(CPed& ped, eModelID modelId) {
+    return ped.m_nModelIndex == modelId;
 }
 
 /*
@@ -2037,7 +2040,7 @@ auto WarpCharIntoCar(CPed& ped, CVehicle& veh) {
  * @param {float} animSpeed
  */
 auto SetCharAnimSpeed(CPed& ped, const char* animName, float speed) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         anim->SetSpeed(speed);
     }
 }
@@ -2843,7 +2846,7 @@ auto SetCharDecisionMaker(CPed& ped, int32 scriptHandleOfDM) { // TODO: Use `Scr
  * @param {string} animationName
  */
 auto IsCharPlayingAnim(CPed& ped, const char* animName) {
-    return RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName) != nullptr;
+    return RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName) != nullptr;
 }
 
 /*
@@ -2859,7 +2862,7 @@ auto IsCharPlayingAnim(CPed& ped, const char* animName) {
  * @param {bool} flag
  */
 auto SetCharAnimPlayingFlag(CPed& ped, const char* animName, bool started) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         anim->SetFlag(ANIMATION_IS_PLAYING, started);
     }
 }
@@ -2878,7 +2881,7 @@ auto SetCharAnimPlayingFlag(CPed& ped, const char* animName, bool started) {
  * @returns {float} time
  */
 auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         return anim->m_CurrentTime / anim->m_BlendHier->m_fTotalTime;
     }
     return 0.f;
@@ -2897,7 +2900,7 @@ auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
  * @param {float} time
  */
 auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         anim->SetCurrentTime(progress * anim->m_BlendHier->m_fTotalTime);
     }
 }
@@ -2917,7 +2920,7 @@ auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
  * @returns {float} totalTime
  */
 auto GetCharAnimTotalTime(CPed& ped, const char* animName) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped.GetRpClump(), animName)) {
         return anim->m_BlendHier->m_fTotalTime * 1000.f;
     }
     return 0.f;
@@ -3455,15 +3458,13 @@ bool IsCharAttachedToAnyCar(CPed* ped) {
  * 
  * @returns {Car} handle
  */
-CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
-    if (!ped->GetIsTypeVehicle()) {
-        return nullptr;
-    }
-    return ped->m_pAttachedTo->AsVehicle();
+CVehicle* StoreCarCharIsAttachedToNoSave(CPed& ped) {
+    auto* const attachedTo = ped.m_pAttachedTo;
+    return attachedTo && attachedTo->GetIsTypeVehicle()
+        ? attachedTo->AsVehicle()
+        : nullptr;
 }
-};
 
-// 0x46BCEA - COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY
 /*
  * @opcode 0792
  * @command CLEAR_CHAR_TASKS_IMMEDIATELY
@@ -4040,6 +4041,7 @@ void ClearCharTasksImmediately(CPed& ped) {
 //void ClearLookAt(CPed& self) {
     //NOTSA_UNREACHABLE("Not implemented");
 //}
+}; // namespace
 
 void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Char");

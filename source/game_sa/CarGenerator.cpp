@@ -7,9 +7,6 @@
 #include "CarCtrl.h"
 #include "TheScripts.h"
 
-bool& CCarGenerator::m_bHotdogVendorPositionOffsetInitialized = *reinterpret_cast<bool*>(0xC2B974);
-CVector& CCarGenerator::m_HotdogVendorPositionOffset = *reinterpret_cast<CVector*>(0xC2B968);
-
 void CCarGenerator::InjectHooks()
 {
     RH_ScopedClass(CCarGenerator);
@@ -334,10 +331,10 @@ void CCarGenerator::DoInternalProcessing()
         m_nPrimaryColor = vehicle->m_nPrimaryColor;
         m_nSecondaryColor = vehicle->m_nSecondaryColor;
     }
-    CVisibilityPlugins::SetClumpAlpha(vehicle->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(vehicle->GetRpClump(), 0);
     m_nVehicleHandle = GetVehiclePool()->GetRef(vehicle);
 
-    // Originally, R* did a signed comparison between unsigned \r m_nGenerateCount and signed 32bit constant -1.
+    // Originally, R* did a signed comparison between unsigned m_nGenerateCount and signed 32bit constant -1.
     // This made the generated code to always skip the decrementation.
     // However, this bug does not affect the game at all because all cargens created by the script
     // are either disabled or infinite.

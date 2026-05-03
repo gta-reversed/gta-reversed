@@ -41,8 +41,8 @@ enum ePickupType : uint8 {
 
 enum ePickupPropertyText : int32 {
     PICKUP_PROPERTY_TEXT_CANCEL   = 0, // "Cancel"
-    PICKUP_PROPERTY_TEXT_CANT_BUY = 1, // "You can't by..."
-    PICKUP_PROPERTY_TEXT_CAN_BUY  = 2  // "Press TAB to buy ..."
+    PICKUP_PROPERTY_TEXT_CAN_BUY  = 1, // "Press TAB to buy ..."
+    PICKUP_PROPERTY_TEXT_CANT_BUY = 2, // "You can't buy..."
 };
 
 class CPickup {
@@ -82,7 +82,7 @@ public:
     void GetRidOfObjects();
     bool PickUpShouldBeInvisible();
     void Remove();
-    void GiveUsAPickUpObject(CObject** obj, int32 slotIndex);
+    void GiveUsAPickUpObject(CObject*& obj, int32 slotIndex = -1);
     bool Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId);
     void ProcessGunShot(const CVector& origin, const CVector& target);
 

@@ -268,7 +268,7 @@ public:
     RpClump*            m_pWeaponObject;
     RwFrame*            m_pGunflashObject; // A frame in the Clump `m_pWeaponObject`
     RpClump*            m_pGogglesObject;
-    bool*               m_pGogglesState;           // Stores a pointer to either `CPostEffects::m_bInfraredVision` or `m_bNightVision`, see \r PutOnGoggles and \r AddGogglesModel
+    bool*               m_pGogglesState;           // Stores a pointer to either `CPostEffects::m_bInfraredVision` or `m_bNightVision`, see PutOnGoggles and AddGogglesModel
 
     int16               m_nWeaponGunflashAlphaMP1; // AKA m_nWeaponGunflashStateRightHand
     int16               m_nWeaponGunFlashAlphaProgMP1;
@@ -397,7 +397,7 @@ public:
     void SetLookFlag(CEntity* lookingTo, bool likeUnused, bool arg2);
     void SetAimFlag(CEntity* aimingTo);
     void ClearAimFlag();
-    uint8 GetLocalDirection(const CVector2D& point) const;
+    int32 GetLocalDirection(const CVector2D& point) const;
     bool IsPedShootable() const;
     bool UseGroundColModel() const;
     bool CanPedReturnToState() const;
@@ -428,7 +428,7 @@ public:
     bool IsAlive() const;
     void UpdateStatEnteringVehicle();
     void UpdateStatLeavingVehicle();
-    void GetTransformedBonePosition(RwV3d& inOutPos, eBoneTag boneId, bool updateSkinBones = false);
+    void GetTransformedBonePosition(RwV3d& inOutPos, eBoneTagU32 boneId, bool updateSkinBones = false);
     void ReleaseCoverPoint();
     CTaskSimpleHoldEntity* GetHoldingTask();
     CEntity* GetEntityThatThisPedIsHolding();
@@ -574,7 +574,6 @@ public:
     CPlayerPed*    AsPlayer()    { return reinterpret_cast<CPlayerPed*>(this); }
 
     bool IsFollowerOfGroup(const CPedGroup& group) const;
-    RwMatrix* GetBoneMatrix(eBoneTag bone) const;
     void CreateDeadPedPickupCoors(CVector& pickupPos);
     RpHAnimHierarchy& GetAnimHierarchy() const;
     CAnimBlendClumpData& GetAnimBlendData() const;
@@ -586,6 +585,8 @@ public:
     auto&& GetAE(this auto&& self)    { return self.m_pedAudio; }
     auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeech; }
     auto&& GetWeaponAE(this auto&& self) { return self.m_weaponAudio; }
+
+    CVector GetSeatPositionInVehicle() const;
 
     /*!
      * @notsa

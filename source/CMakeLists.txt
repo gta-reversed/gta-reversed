@@ -56,7 +56,7 @@ target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/INCREMENTAL>"
 )
 target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
-    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/ZI;/W3;/wd4251;/wd4275;/wd4996;/wd26495;/wd26812;/wd28159>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/W3;/wd4200;/wd4251;/wd4275;/wd4996;/wd26495;/wd26812;/wd28159>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;-Wno-switch>"
 )
 set_target_properties(${RE_PROJECT_LIB_NAME}
@@ -111,6 +111,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
 
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
+    .
     /
     toolsmenu/
     game_sa/

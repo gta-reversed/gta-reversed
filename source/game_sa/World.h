@@ -11,6 +11,7 @@
 #include "PtrNodeDoubleLink.h"
 #include "Sector.h"
 
+
 class CPedGroup;
 class CPlayerInfo;
 class CColPoint;
@@ -36,9 +37,9 @@ constexpr int32 MAX_SECTORS_X = 120;
 constexpr int32 MAX_SECTORS_Y = 120;
 constexpr int32 MAX_SECTORS = MAX_SECTORS_X * MAX_SECTORS_Y;
 
-constexpr int32 MAX_REPEAT_SECTORS_X = 16;
-constexpr int32 MAX_REPEAT_SECTORS_Y = 16;
-constexpr int32 MAX_REPEAT_SECTORS = MAX_REPEAT_SECTORS_X * MAX_REPEAT_SECTORS_Y;
+constexpr size_t MAX_REPEAT_SECTORS_X = 16;
+constexpr size_t MAX_REPEAT_SECTORS_Y = 16;
+constexpr size_t MAX_REPEAT_SECTORS = MAX_REPEAT_SECTORS_X * MAX_REPEAT_SECTORS_Y;
 
 constexpr int32 MAX_LOD_PTR_LISTS_X = 30;
 constexpr int32 MAX_LOD_PTR_LISTS_Y = 30;
@@ -71,9 +72,9 @@ public:
     inline static auto& SnookerTableMin = StaticRef<CVector>(0x8CDF00);
 
     // Use GetSector() to access this array
-    inline static auto& ms_aSectors = StaticRef<CSector[MAX_SECTORS_Y][MAX_SECTORS_X]>(0xB7D0B8);
+    inline static auto& ms_aSectors = StaticRef<notsa::mdarray<CSector, MAX_SECTORS_Y, MAX_SECTORS_X>>(0xB7D0B8);
     // Use GetRepeatSector() to access this array
-    inline static auto& ms_aRepeatSectors = StaticRef<CRepeatSector[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X]>(0xB992B8);
+    inline static auto& ms_aRepeatSectors = StaticRef<notsa::mdarray<CRepeatSector, MAX_REPEAT_SECTORS_Y, MAX_REPEAT_SECTORS_X>>(0xB992B8);
     // Use GetLodPtrList() to access this array
     inline static auto& ms_aLodPtrLists = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
     inline static auto& ms_listMovingEntityPtrs = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
@@ -409,7 +410,18 @@ inline CSector& CWorld::GetSector(int32 x, int32 y) {
 
 // 0x4072A0
 inline CRepeatSector& CWorld::GetRepeatSector(int32 x, int32 y) {
-    return CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
+    /**
+     * Original code uses `&` instead of `%` to also clear the sign bit.
+     * (And no, it's not just a compiler optimization, because it wouldn't emit `&` for signed ints)
+     * This is important for positions outside the world boundary to work.
+     * We won't be using `&` because using it on signed ints is technically undefined behaviour,
+     * but `std::abs()` + a cast will work just as well.
+     * We leave the optimization of `%` to a `&` to the compiler, which will do it automatically if the max is a power of 2.
+     **/
+    const auto GetIndexOfSector = [] (int32 coord, size_t max) {
+        return static_cast<size_t>(std::abs(coord)) % max;
+    };
+    return CWorld::ms_aRepeatSectors[GetIndexOfSector(y, MAX_REPEAT_SECTORS_Y)][GetIndexOfSector(x, MAX_REPEAT_SECTORS_X)];
 }
 
 // 0x4072C0

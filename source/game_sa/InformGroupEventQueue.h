@@ -7,7 +7,7 @@ class CPedGroup;
 
 class CInformGroupEventQueue {
 public:
-    static inline std::array<CInformGroupEvent, 8>& ms_informGroupEvents = StaticRef<std::array<CInformGroupEvent, 8>>(0xA9B018);
+    static inline auto& ms_informGroupEvents = StaticRef<std::array<CInformGroupEvent, 8>>(0xA9B018);
 
 public:
     static void InjectHooks();

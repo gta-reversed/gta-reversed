@@ -176,73 +176,73 @@ public:
         }
     };
 
-    inline static eReplayMode& Mode = *reinterpret_cast<eReplayMode*>(0xA43088);
-    inline static bool& bReplayEnabled = *reinterpret_cast<bool*>(0x8A6160);
-    inline static bool& bPlayingBackFromFile = *reinterpret_cast<bool*>(0x97FAE1);
-    inline static bool& bAllowLookAroundCam = *reinterpret_cast<bool*>(0x97FAE0);
-    inline static bool& bDoLoadSceneWhenDone = *reinterpret_cast<bool*>(0x97FACC);
-    inline static bool& bIsUsingRemoteCar = *reinterpret_cast<bool*>(0x97F66D);
+    static inline auto& Mode = StaticRef<eReplayMode>(0xA43088);
+    static inline auto& bReplayEnabled = StaticRef<bool>(0x8A6160);
+    static inline auto& bPlayingBackFromFile = StaticRef<bool>(0x97FAE1);
+    static inline auto& bAllowLookAroundCam = StaticRef<bool>(0x97FAE0);
+    static inline auto& bDoLoadSceneWhenDone = StaticRef<bool>(0x97FACC);
+    static inline auto& bIsUsingRemoteCar = StaticRef<bool>(0x97F66D);
 
-    inline static void*& pReferences = *reinterpret_cast<void**>(0x97FB0C);
-    inline static void*& pPickups = *reinterpret_cast<void**>(0x97FB08);
-    inline static void*& pEmptyReferences = *reinterpret_cast<void**>(0x97FB04);
-    inline static void*& pWorld1 = *reinterpret_cast<void**>(0x97FB00);
-    inline static CCamera*& pStoredCam = *reinterpret_cast<CCamera**>(0x97FAF8);
-    inline static void*& pRadarBlips = *reinterpret_cast<void**>(0x97FAF4);
+    static inline auto& pReferences = StaticRef<void*>(0x97FB0C);
+    static inline auto& pPickups = StaticRef<void*>(0x97FB08);
+    static inline auto& pEmptyReferences = StaticRef<void*>(0x97FB04);
+    static inline auto& pWorld1 = StaticRef<void*>(0x97FB00);
+    static inline auto& pStoredCam = StaticRef<CCamera*>(0x97FAF8);
+    static inline auto& pRadarBlips = StaticRef<void*>(0x97FAF4);
 
-    inline static uint32& Time1 = *reinterpret_cast<uint32*>(0x97FB60);
-    inline static uint32& Time2 = *reinterpret_cast<uint32*>(0x97FB5C);
-    inline static uint32& Time3 = *reinterpret_cast<uint32*>(0x97FB58);
-    inline static uint32& Time4 = *reinterpret_cast<uint32*>(0x97FB54);
-    inline static uint32& Time5 = *reinterpret_cast<uint32*>(0x97FB50);
-    inline static uint32& Time6 = *reinterpret_cast<uint32*>(0x97FB4C);
-    inline static uint32& Time7 = *reinterpret_cast<uint32*>(0x97FB48);
-    inline static uint32& Frame = *reinterpret_cast<uint32*>(0x97FB44);
-    inline static float& TimeStepNonClipped = *reinterpret_cast<float*>(0x97FB34);
-    inline static float& TimeStep = *reinterpret_cast<float*>(0x97FB38);
-    inline static float& TimeScale = *reinterpret_cast<float*>(0x97FB3C);
+    static inline auto& Time1 = StaticRef<uint32>(0x97FB60);
+    static inline auto& Time2 = StaticRef<uint32>(0x97FB5C);
+    static inline auto& Time3 = StaticRef<uint32>(0x97FB58);
+    static inline auto& Time4 = StaticRef<uint32>(0x97FB54);
+    static inline auto& Time5 = StaticRef<uint32>(0x97FB50);
+    static inline auto& Time6 = StaticRef<uint32>(0x97FB4C);
+    static inline auto& Time7 = StaticRef<uint32>(0x97FB48);
+    static inline auto& Frame = StaticRef<uint32>(0x97FB44);
+    static inline auto& TimeStepNonClipped = StaticRef<float>(0x97FB34);
+    static inline auto& TimeStep = StaticRef<float>(0x97FB38);
+    static inline auto& TimeScale = StaticRef<float>(0x97FB3C);
 
     // these are overwritten when OldWeatherType changes for some reason
     // they have no unreversed xref anyways so it's fine.
-    // inline static uint8& ClockHours = *reinterpret_cast<uint8*>(0x97FAEF);
-    // inline static uint8& ClockMinutes = *reinterpret_cast<uint8*>(0x97FAEE);
+    // inline static auto& ClockHours = StaticRef<uint8>(0x97FAEF);
+    // inline static auto& ClockMinutes = StaticRef<uint8>(0x97FAEE);
     inline static uint8 ClockHours{};
     inline static uint8 ClockMinutes{};
 
-    inline static eWeatherType& OldWeatherType = *reinterpret_cast<eWeatherType*>(0x97FAEC);
-    inline static eWeatherType& NewWeatherType = *reinterpret_cast<eWeatherType*>(0x97FAE8);
-    inline static float& WeatherInterpolationValue = *reinterpret_cast<float*>(0x97FAE4);
+    static inline auto& OldWeatherType = StaticRef<eWeatherType>(0x97FAEC);
+    static inline auto& NewWeatherType = StaticRef<eWeatherType>(0x97FAE8);
+    static inline auto& WeatherInterpolationValue = StaticRef<float>(0x97FAE4);
 
-    inline static uint32& ms_nNumCivMale_Stored = *reinterpret_cast<uint32*>(0x97FAB4);
-    inline static uint32& ms_nNumCivFemale_Stored = *reinterpret_cast<uint32*>(0x97FAB0);
-    inline static uint32& ms_nNumCop_Stored = *reinterpret_cast<uint32*>(0x97FAAC);
-    inline static uint32& ms_nNumEmergency_Stored = *reinterpret_cast<uint32*>(0x97FAA8);
-    inline static uint32& ms_nNumDealers_Stored = *reinterpret_cast<uint32*>(0x97FA7C);
-    inline static uint32& ms_nTotalCarPassengerPeds_Stored = *reinterpret_cast<uint32*>(0x97FA78);
-    inline static uint32& ms_nTotalCivPeds_Stored = *reinterpret_cast<uint32*>(0x97FA74);
-    inline static uint32& ms_nTotalGangPeds_Stored = *reinterpret_cast<uint32*>(0x97FA70);
-    inline static uint32& ms_nTotalPeds_Stored = *reinterpret_cast<uint32*>(0x97FA6C);
-    inline static uint32& ms_nTotalMissionPeds_Stored = *reinterpret_cast<uint32*>(0x97FA68);
-    inline static std::array<uint32, TOTAL_GANGS>& ms_nNumGang_Stored = *reinterpret_cast<std::array<uint32, TOTAL_GANGS>*>(0x97FA80);
+    static inline auto& ms_nNumCivMale_Stored = StaticRef<uint32>(0x97FAB4);
+    static inline auto& ms_nNumCivFemale_Stored = StaticRef<uint32>(0x97FAB0);
+    static inline auto& ms_nNumCop_Stored = StaticRef<uint32>(0x97FAAC);
+    static inline auto& ms_nNumEmergency_Stored = StaticRef<uint32>(0x97FAA8);
+    static inline auto& ms_nNumDealers_Stored = StaticRef<uint32>(0x97FA7C);
+    static inline auto& ms_nTotalCarPassengerPeds_Stored = StaticRef<uint32>(0x97FA78);
+    static inline auto& ms_nTotalCivPeds_Stored = StaticRef<uint32>(0x97FA74);
+    static inline auto& ms_nTotalGangPeds_Stored = StaticRef<uint32>(0x97FA70);
+    static inline auto& ms_nTotalPeds_Stored = StaticRef<uint32>(0x97FA6C);
+    static inline auto& ms_nTotalMissionPeds_Stored = StaticRef<uint32>(0x97FA68);
+    static inline auto& ms_nNumGang_Stored = StaticRef<std::array<uint32, TOTAL_GANGS>>(0x97FA80);
 
-    inline static CPlayerInfo& PlayerInfo = *reinterpret_cast<CPlayerInfo*>(0xA430B0);
+    static inline auto& PlayerInfo = StaticRef<CPlayerInfo>(0xA430B0);
 
-    inline static std::array<int32, 140>& m_PedPoolConversion = *reinterpret_cast<std::array<int32, 140>*>(0x97F838);
-    inline static std::array<int32, 110>& m_VehiclePoolConversion = *reinterpret_cast<std::array<int32, 110>*>(0x97F680);
+    static inline auto& m_PedPoolConversion = StaticRef<std::array<int32, 140>>(0x97F838);
+    static inline auto& m_VehiclePoolConversion = StaticRef<std::array<int32, 110>>(0x97F680);
 
-    inline static CVector_Reversed& CameraFocus = *reinterpret_cast<CVector_Reversed*>(0x97F670);
-    inline static CVector_Reversed& CameraFixed = *reinterpret_cast<CVector_Reversed*>(0x97FB24);
-    inline static CVector_Reversed& LoadScene = *reinterpret_cast<CVector_Reversed*>(0x97FAC0);
-    inline static eReplayCamMode& CameraMode = *reinterpret_cast<eReplayCamMode*>(0x97FB30);
-    inline static int32& FramesActiveLookAroundCam = *reinterpret_cast<int32*>(0x97FAD0);
-    inline static eRadioID& OldRadioStation = *reinterpret_cast<eRadioID*>(0x97FABC);
-    inline static int8& CurrArea = *reinterpret_cast<int8*>(0x97FAB8);
-    inline static std::array<eReplayBufferStatus, NUM_REPLAY_BUFFERS>& BufferStatus = *reinterpret_cast<std::array<eReplayBufferStatus, NUM_REPLAY_BUFFERS>*>(0x97FB7C);
+    static inline auto& CameraFocus = StaticRef<CVector_Reversed>(0x97F670);
+    static inline auto& CameraFixed = StaticRef<CVector_Reversed>(0x97FB24);
+    static inline auto& LoadScene = StaticRef<CVector_Reversed>(0x97FAC0);
+    static inline auto& CameraMode = StaticRef<eReplayCamMode>(0x97FB30);
+    static inline auto& FramesActiveLookAroundCam = StaticRef<int32>(0x97FAD0);
+    static inline auto& OldRadioStation = StaticRef<eRadioID>(0x97FABC);
+    static inline auto& CurrArea = StaticRef<int8>(0x97FAB8);
+    static inline auto& BufferStatus = StaticRef<std::array<eReplayBufferStatus, NUM_REPLAY_BUFFERS>>(0x97FB7C);
 
-    inline static std::array<tReplayBuffer, NUM_REPLAY_BUFFERS>& Buffers = *reinterpret_cast<std::array<tReplayBuffer, NUM_REPLAY_BUFFERS>*>(0x97FB88);
+    static inline auto& Buffers = StaticRef<std::array<tReplayBuffer, NUM_REPLAY_BUFFERS>>(0x97FB88);
 
-    inline static CAddressInReplayBuffer& Playback = *reinterpret_cast<CAddressInReplayBuffer*>(0x97FB64);
-    inline static CAddressInReplayBuffer& Record = *reinterpret_cast<CAddressInReplayBuffer*>(0x97FB70);
+    static inline auto& Playback = StaticRef<CAddressInReplayBuffer>(0x97FB64);
+    static inline auto& Record = StaticRef<CAddressInReplayBuffer>(0x97FB70);
 
 public:
     static void InjectHooks();

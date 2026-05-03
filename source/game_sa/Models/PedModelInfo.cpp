@@ -37,8 +37,8 @@ void CPedModelInfo::SetClump(RpClump* clump) {
     if (!m_pHitColModel)
         CPedModelInfo::CreateHitColModelSkinned(clump);
 
-    RpClumpForAllAtomics(m_pRwClump, CClumpModelInfo::SetAtomicRendererCB, CVisibilityPlugins::RenderPedCB);
-    GetAnimHierarchyFromClump(m_pRwClump); // Unused? Or indirectly passes through EAX somehow?
+    RpClumpForAllAtomics(GetRpClump(), CClumpModelInfo::SetAtomicRendererCB, CVisibilityPlugins::RenderPedCB);
+    GetAnimHierarchyFromClump(GetRpClump()); // Unused? Or indirectly passes through EAX somehow?
 }
 
 // 0x4C6D40

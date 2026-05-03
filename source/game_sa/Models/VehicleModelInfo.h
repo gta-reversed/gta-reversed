@@ -18,6 +18,8 @@
 #include "eVehicleType.h"
 #include "eCarWheel.h"
 
+#include <extensions/utility.hpp>
+
 class CAnimBlock;
 
 // enum by forkerer (https://github.com/forkerer/)
@@ -161,14 +163,14 @@ public:
         static constexpr int32 NUM_EXTRAS = 6;
 
     public:
-        CVector         m_avDummyPos[NUM_DUMMIES];
-        UpgradePosnDesc m_aUpgrades[NUM_UPGRADES];
-        RpAtomic*       m_apExtras[NUM_EXTRAS];
+        std::array<CVector, NUM_DUMMIES>         m_avDummyPos;
+        std::array<UpgradePosnDesc, NUM_UPGRADES> m_aUpgrades;
+        std::array<RpAtomic*, NUM_EXTRAS>         m_apExtras;
         uint8           m_nNumExtras;
         uint32          m_nMaskComponentsDamagable;
 
     public:
-        static inline CPool<CVehicleStructure>*& m_pInfoPool = *(CPool<CVehicleStructure>**)0xB4E680;
+        static inline auto& m_pInfoPool = StaticRef<CPool<CVehicleStructure>*>(0xB4E680);
 
     public: // Helpers
         [[nodiscard]] bool IsDummyActive(eVehicleDummy dummy) const {
@@ -182,19 +184,19 @@ public:
     } * m_pVehicleStruct;
 
     char        field_60[464];
-    RpMaterial* m_apDirtMaterials[32];
-    uint8       m_anPrimaryColors[8];
-    uint8       m_anSecondaryColors[8];
-    uint8       m_anTertiaryColors[8];
-    uint8       m_anQuaternaryColors[8];
+    std::array<RpMaterial*, 32> m_apDirtMaterials;
+    std::array<uint8, 8>        m_anPrimaryColors;
+    std::array<uint8, 8>        m_anSecondaryColors;
+    std::array<uint8, 8>        m_anTertiaryColors;
+    std::array<uint8, 8>        m_anQuaternaryColors;
     uint8       m_nNumColorVariations;
     uint8       m_nLastColorVariation;
     uint8       m_nCurrentPrimaryColor;
     uint8       m_nCurrentSecondaryColor;
     uint8       m_nCurrentTertiaryColor;
     uint8       m_nCurrentQuaternaryColor;
-    int16       m_anUpgrades[18];
-    int16       m_anRemapTxds[4];
+    std::array<int16, 18> m_anUpgrades;
+    std::array<int16, 4>  m_anRemapTxds;
 
     union {
         CAnimBlock* m_pAnimBlock;
@@ -202,10 +204,10 @@ public:
         uint32 m_nAnimBlockIndex;
     };
 
-    static class CLinkedUpgradeList {
+    class CLinkedUpgradeList {
     public:
-        int16 m_anUpgrade1[30];
-        int16 m_anUpgrade2[30];
+        std::array<int16, 30> m_anUpgrade1;
+        std::array<int16, 30> m_anUpgrade2;
         uint32 m_nLinksCount;
 
     public:
@@ -213,53 +215,54 @@ public:
         void AddUpgradeLink(int16 upgrade1, int16 upgrade2);
         // find linked upgrade for this upgrade. In this case upgrade param could be upgrade1 or upgrade2
         int16 FindOtherUpgrade(int16 upgrade);
-    } & ms_linkedUpgrades;
+    };
+
+    static inline auto& ms_linkedUpgrades = StaticRef<CLinkedUpgradeList>(0xB4E6D8);
 
     // vehicle components description tables
     // static RwObjectNameIdAssocation ms_vehicleDescs[12];
     static constexpr int32 NUM_VEHICLE_MODEL_DESCS = 12;
-    static RwObjectNameIdAssocation* (&ms_vehicleDescs)[NUM_VEHICLE_MODEL_DESCS]; // use eVehicleType to access
+    static inline auto& ms_vehicleDescs = StaticRef<RwObjectNameIdAssocation*[NUM_VEHICLE_MODEL_DESCS]>(0x8A7740); // use eVehicleType to access
 
     // remap texture
-    static RwTexture*(&ms_pRemapTexture);
+    static inline auto& ms_pRemapTexture = StaticRef<RwTexture*>(0xB4E47C);
     // vehiclelights128 texture
-    static RwTexture*(&ms_pLightsTexture);
+    static inline auto& ms_pLightsTexture = StaticRef<RwTexture*>(0xB4E68C);
     // vehiclelightson128 texture
-    static RwTexture*(&ms_pLightsOnTexture);
+    static inline auto& ms_pLightsOnTexture = StaticRef<RwTexture*>(0xB4E690);
 
     // color of currently rendered car
     // static uint8 ms_currentCol[4];
     static constexpr int32 NUM_CURRENT_COLORS = 4;
-    static uint8 (&ms_currentCol)[NUM_CURRENT_COLORS];
+    static inline auto& ms_currentCol = StaticRef<uint8[NUM_CURRENT_COLORS]>(0xB4E3F0);
 
     // number of wheel upgrades available
     // static int16 ms_numWheelUpgrades[4];
     static constexpr int32 NUM_WHEELS = 4;
-    static int16 (&ms_numWheelUpgrades)[NUM_WHEELS];
+    static inline auto& ms_numWheelUpgrades = StaticRef<int16[NUM_WHEELS]>(0xB4E470);
 
-    static int32 (&ms_wheelFrameIDs)[NUM_WHEELS];
+    static inline auto& ms_wheelFrameIDs = StaticRef<int32[NUM_WHEELS]>(0x8A7770);
 
     // wheels upgrades data
-    // static int16 ms_upgradeWheels[15][4];
     static constexpr int32 NUM_WHEEL_UPGRADES = 15;
-    static int16 (&ms_upgradeWheels)[NUM_WHEEL_UPGRADES][NUM_WHEELS];
+    static inline auto& ms_upgradeWheels = StaticRef<notsa::mdarray<int16, NUM_WHEELS, NUM_WHEEL_UPGRADES>>(0xB4E3F8);
 
     // Light states for currently rendered car
     static constexpr int32 NUM_LIGHTS = 4;
-    static uint8 (&ms_lightsOn)[NUM_LIGHTS];
+    static inline auto& ms_lightsOn = StaticRef<uint8[NUM_LIGHTS]>(0xB4E3E8);
 
     // extras ids for next-spawned car
     // static char ms_compsUsed[2];
     static constexpr int32 NUM_COMPS_USAGE = 2;
-    static inline int8(&ms_compsUsed)[NUM_COMPS_USAGE] = *(int8(*)[NUM_COMPS_USAGE])0xB4E478;
-    static inline int8(&ms_compsToUse)[NUM_COMPS_USAGE] = *(int8(*)[NUM_COMPS_USAGE])0x8A6458;
+    static inline auto& ms_compsUsed = StaticRef<int8[NUM_COMPS_USAGE]>(0xB4E478);
+    static inline auto& ms_compsToUse = StaticRef<int8[NUM_COMPS_USAGE]>(0x8A6458);
 
     // vehicle colours from carcols.dat
     // static CRGBA ms_vehicleColourTable[128];
     static constexpr int32 NUM_VEHICLE_COLORS = 128;
-    static CRGBA (&ms_vehicleColourTable)[NUM_VEHICLE_COLORS];
+    static inline auto& ms_vehicleColourTable = StaticRef<CRGBA[NUM_VEHICLE_COLORS]>(0xB4E480);
 
-    static RwTextureCallBackFind& SavedTextureFindCallback;
+    static inline auto& SavedTextureFindCallback = StaticRef<RwTextureCallBackFind>(0xB4E6A0);
 
 public:
     static void InjectHooks();
@@ -404,6 +407,10 @@ public:
     static void LoadVehicleUpgrades();
     // loads 'white' texture
     static void LoadEnvironmentMaps();
+
+    // inlined in Android
+    const CVector& GetFrontSeatPosn() { return m_pVehicleStruct->m_avDummyPos[IsBoat() ? 0 : 4]; } // TODO: 0/4 ?
+    const CVector& GetBackSeatPosn() { return m_pVehicleStruct->m_avDummyPos[5]; } // TODO: 5 ?
 
     // Helpers
     // ctrl+c, ctrl+v from CVehicle

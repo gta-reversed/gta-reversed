@@ -84,7 +84,7 @@ VALIDATE_SIZE(CPathIntersectionInfo, 0x1);
 
 class CCarPathLink { // "Navi Nodes"
 public:
-    FixedVector2D<int16, 8.f>  m_posn;
+    FixedVector2D<int16, 8.f>  m_posn;                       ///< Position of this node in world coordinates (compressed)
     CNodeAddress               m_attachedTo;                 ///< Identifies the target node a navi node is attached to.
     FixedVector2D<int8, 100.f> m_dir;                        ///< This is a normalized vector pointing towards the [above mentioned] target node, thus defining the general direction of the path segment.
     FixedFloat<int8, 16.f>     m_nPathNodeWidth;             ///< Usually a copy of the linked node's path width (byte)
@@ -119,7 +119,7 @@ VALIDATE_SIZE(CCarPathLink, 0xE);
 
 class CPathNode {
 public:
-    CPathNode *           m_next, *m_prev;
+    CPathNode            *m_next, *m_prev;
     CompressedLargeVector m_vPos;
     int16                 m_totalDistFromOrigin; /// Sum of linkLength's up to this node. Using this the current hash bucket (in `m_pathFindHashTable`) can be obtained by `% std::size(m_pathFindHashTable)`. Used in `DoPathSearch`. `SHRT_MAX - 1` by default.
     int16                 m_wBaseLinkId;
@@ -220,11 +220,11 @@ public:
     float                  m_loadAreaRequestMaxY;
 
 public:
-    static inline int32&  InteriorIDBeingBuilt = *(int32*)0x96EF88;
-    static inline bool&   bInteriorBeingBuilt = *(bool*)0x96F031;
-    static inline uint32& NumNodesGiven = *(uint32*)0x96EF80;
-    static inline int32&  NumLinksToExteriorNodes = *(int32*)0x96EAB8;
-    static inline int32&  NewInteriorSlot = *(int32*)0x96EF84;
+    static inline auto& InteriorIDBeingBuilt = StaticRef<int32>(0x96EF88);
+    static inline auto& bInteriorBeingBuilt = StaticRef<bool>(0x96F031);
+    static inline auto& NumNodesGiven = StaticRef<uint32>(0x96EF80);
+    static inline auto& NumLinksToExteriorNodes = StaticRef<int32>(0x96EAB8);
+    static inline auto& NewInteriorSlot = StaticRef<int32>(0x96EF84);
 
 public:
     static void InjectHooks();
@@ -455,6 +455,8 @@ public:
     bool Save();
 
     CPathNode* GetPathNode(CNodeAddress address);
+
+    CCarPathLinkAddress GetNaviLink(uint16 area, uint16 linkId) const;
 
     inline CCarPathLink& GetCarPathLink(const CCarPathLinkAddress& address) {
         assert(address.m_wAreaId < NUM_TOTAL_PATH_NODE_AREAS);

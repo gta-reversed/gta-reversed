@@ -22,27 +22,27 @@ public:
 
     static_assert(MAX_CARS_IN_SAFEHOUSE >= MAX_CARS_IN_IMPOUND); // Impound vehicles are stored in safehouses too
 
-    static inline CStoredCar (&aCarsInSafeHouse)[MAX_NUM_SAFEHOUSES][MAX_CARS_IN_SAFEHOUSE] = *(CStoredCar(*)[20][4])0x96ABD8; // NOTE: This was originally (incorrectly) at 0x96ABD4, so watch out!
-    static inline CGarage    (&aGarages)[MAX_NUM_GARAGES] = *(CGarage(*)[50])0x96C048;
-    static inline char       (&MessageIDString)[8] = *(char (*)[8])0x96C014;
-    static inline int32&     LastGaragePlayerWasIn = *(int32*)0x96BFDC; // garage id
-    static inline int32&     LastTimeHelpMessage = *(int32*)0x96BFE0;
-    static inline bool&      bCamShouldBeOutside = *(bool*)0x96BFE4;
-    static inline int32&     CrushedCarId = *(int32*)0x96BFE8;
-    static inline int32      (&CarTypesCollected)[MAX_CARS_IN_SAFEHOUSE] = *(int32(*)[4])0x96BFEC;
-    static inline int32&     PoliceCarsCollected = *(int32*)0x96BFFC;
-    static inline int32&     BankVansCollected = *(int32*)0x96C000;
-    static inline int32&     CarsCollected = *(int32*)0x96C004;
-    static inline bool&      NoResprays = *(bool*)0x96C008;
-    static inline int8&      RespraysAreFree = *(int8*)0x96C009;
-    static inline int8&      BombsAreFree = *(int8*)0x96C00A;
-    static inline int8&      PlayerInGarage = *(int8*)0x96C00B;
-    static inline int32&     MessageNumberInString = *(int32*)0x96C00C;
-    static inline int32&     MessageNumberInString2 = *(int32*)0x96C010;
-    static inline uint32&    MessageEndTime = *(uint32*)0x96C01C;
-    static inline uint32&    MessageStartTime = *(uint32*)0x96C020;
-    static inline uint32&    NumGarages = *(uint32*)0x96C024;
-    static inline CGarage*&  pOldToGarageWeAreIn = *(CGarage**)0x96BFD8;
+    static inline auto& aCarsInSafeHouse = StaticRef<CStoredCar[MAX_NUM_SAFEHOUSES][MAX_CARS_IN_SAFEHOUSE]>(0x96ABD8); // NOTE: This was originally (incorrectly) at 0x96ABD4, so watch out!
+    static inline auto& aGarages = StaticRef<CGarage[MAX_NUM_GARAGES]>(0x96C048);
+    static inline auto& MessageIDString = StaticRef<char[8]>(0x96C014);
+    static inline auto& LastGaragePlayerWasIn = StaticRef<int32>(0x96BFDC);
+    static inline auto& LastTimeHelpMessage = StaticRef<int32>(0x96BFE0);
+    static inline auto& bCamShouldBeOutside = StaticRef<bool>(0x96BFE4);
+    static inline auto& CrushedCarId = StaticRef<int32>(0x96BFE8);
+    static inline auto& CarTypesCollected = StaticRef<int32[MAX_CARS_IN_SAFEHOUSE]>(0x96BFEC);
+    static inline auto& PoliceCarsCollected = StaticRef<int32>(0x96BFFC);
+    static inline auto& BankVansCollected = StaticRef<int32>(0x96C000);
+    static inline auto& CarsCollected = StaticRef<int32>(0x96C004);
+    static inline auto& NoResprays = StaticRef<bool>(0x96C008);
+    static inline auto& RespraysAreFree = StaticRef<int8>(0x96C009);
+    static inline auto& BombsAreFree = StaticRef<int8>(0x96C00A);
+    static inline auto& PlayerInGarage = StaticRef<int8>(0x96C00B);
+    static inline auto& MessageNumberInString = StaticRef<int32>(0x96C00C);
+    static inline auto& MessageNumberInString2 = StaticRef<int32>(0x96C010);
+    static inline auto& MessageEndTime = StaticRef<uint32>(0x96C01C);
+    static inline auto& MessageStartTime = StaticRef<uint32>(0x96C020);
+    static inline auto& NumGarages = StaticRef<int32>(0x96C024);
+    static inline auto& pOldToGarageWeAreIn = StaticRef<CGarage*>(0x96BFD8);
 
 public:
     static void InjectHooks();

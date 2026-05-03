@@ -52,7 +52,7 @@ public:
 VALIDATE_SIZE(CFontChar, 0x30);
 
 struct tFontData {
-    uint8 m_propValues[208];
+    std::array<uint8, 208> m_propValues;
     uint8 m_spaceValue;
     uint8 m_unpropValue;
 };
@@ -89,36 +89,36 @@ public:
     static constexpr size_t MAX_FONT_SPRITES = 2;
     static constexpr size_t MAX_FONT_BUTTON_SPRITES = 15;
 
-    static CFontChar& RenderState;
+    static inline auto& RenderState = StaticRef<CFontChar>(0xC71AA0);
     // font textures array
-    static CSprite2d (&Sprite)[MAX_FONT_SPRITES];
+    static inline auto& Sprite = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
     // button textures array
-    static CSprite2d (&ButtonSprite)[MAX_FONT_BUTTON_SPRITES];
-    static eExtraFontSymbol& PS2Symbol;
-    static bool& m_bNewLine;
-    static CRGBA& m_Color;
-    static CVector2D& m_Scale;
-    static float& m_fSlant;
-    static CVector2D& m_fSlantRefPoint;
-    static bool& m_bFontJustify;
-    static bool& m_bFontCentreAlign;
-    static bool& m_bFontRightAlign;
-    static bool& m_bFontBackground;
-    static bool& m_bEnlargeBackgroundBox;
-    static bool& m_bFontPropOn;
-    static bool& m_bFontIsBlip;
-    static float& m_fFontAlpha;
-    static CRGBA& m_FontBackgroundColor;
-    static float& m_fWrapx;
-    static float& m_fFontCentreSize;
-    static float& m_fRightJustifyWrap;
-    static uint8& m_FontTextureId;
-    static uint8& m_FontStyle;
-    static uint8& m_nFontShadow;
-    static CRGBA& m_FontDropColor;
-    static uint8& m_nFontOutlineSize;
-    static uint8& m_nFontOutline;
-    static uint8& m_nFontOutlineOrShadow;
+    static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
+    static inline auto& PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
+    static inline auto& m_bNewLine = StaticRef<bool>(0xC71A55);
+    static inline auto& m_Color = StaticRef<CRGBA>(0xC71A60);
+    static inline auto& m_Scale = StaticRef<CVector2D>(0xC71A64);
+    static inline auto& m_fSlant = StaticRef<float>(0xC71A6C);
+    static inline auto& m_fSlantRefPoint = StaticRef<CVector2D>(0xC71A70);
+    static inline auto& m_bFontJustify = StaticRef<bool>(0xC71A78);
+    static inline auto& m_bFontCentreAlign = StaticRef<bool>(0xC71A79);
+    static inline auto& m_bFontRightAlign = StaticRef<bool>(0xC71A7A);
+    static inline auto& m_bFontBackground = StaticRef<bool>(0xC71A7B);
+    static inline auto& m_bEnlargeBackgroundBox = StaticRef<bool>(0xC71A7C);
+    static inline auto& m_bFontPropOn = StaticRef<bool>(0xC71A7D);
+    static inline auto& m_bFontIsBlip = StaticRef<bool>(0xC71A7E);
+    static inline auto& m_fFontAlpha = StaticRef<float>(0xC71A80);
+    static inline auto& m_FontBackgroundColor = StaticRef<CRGBA>(0xC71A84);
+    static inline auto& m_fWrapx = StaticRef<float>(0xC71A88);
+    static inline auto& m_fFontCentreSize = StaticRef<float>(0xC71A8C);
+    static inline auto& m_fRightJustifyWrap = StaticRef<float>(0xC71A90);
+    static inline auto& m_FontTextureId = StaticRef<uint8>(0xC71A94);
+    static inline auto& m_FontStyle = StaticRef<uint8>(0xC71A95);
+    static inline auto& m_nFontShadow = StaticRef<uint8>(0xC71A96);
+    static inline auto& m_FontDropColor = StaticRef<CRGBA>(0xC71A97);
+    static inline auto& m_nFontOutlineSize = StaticRef<uint8>(0xC71A9B);
+    static inline auto& m_nFontOutline = StaticRef<uint8>(0xC71A9C);
+    static inline auto& m_nFontOutlineOrShadow = StaticRef<uint8>(0xC71A9C);
 
 public:
     static void InjectHooks();

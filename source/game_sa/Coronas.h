@@ -20,19 +20,20 @@ struct CFlareDefinition {
 
 class CCoronas {
 public:
-    static inline float LightsMult = 1.0f; // 0x8D4B5C
-    static inline float SunScreenX, SunScreenY; // 0xC3E028, 0xC3E02C
+    static inline auto& LightsMult = StaticRef<float>(0x8D4B5C); // 1.0f
+    static inline auto& SunScreenX = StaticRef<float>(0xC3E028);
+    static inline auto& SunScreenY = StaticRef<float>(0xC3E02C);
     // are there any obstacles between sun and camera
-    static inline bool SunBlockedByClouds; // 0xC3E030
+    static inline auto& SunBlockedByClouds = StaticRef<bool>(0xC3E030);
     // frame counter for immediate corona brightness updates after camera turn (3-frame duration).
-    static inline int32 bChangeBrightnessImmediately; // 0xC3E034
+    static inline auto& bChangeBrightnessImmediately = StaticRef<int32>(0xC3E034);
     // coronas intensity multiplier
     // this is used to control moon size when you shooting it with sniper
-    static inline uint32 MoonSize = 3; // 0x8D4B60
+    static inline auto& MoonSize = StaticRef<uint32>(0x8D4B60); // 3
     // num of registered coronas in frame
-    static inline uint32 NumCoronas; // 0xC3E038
+    static inline auto& NumCoronas = StaticRef<uint32>(0xC3E038);
 
-    static inline std::array<CRegisteredCorona, MAX_NUM_CORONAS> aCoronas; // 0xC3E058
+    static inline auto& aCoronas = StaticRef<std::array<CRegisteredCorona, MAX_NUM_CORONAS>>(0xC3E058);
    
     inline static struct { // NOTSA
         bool DisableWetRoadReflections;
@@ -80,4 +81,4 @@ public:
     static CRegisteredCorona* GetFree();
 };
 
-inline std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT> gpCoronaTexture; // 0xC3E000, in source file
+inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT>>(0xC3E000); // in source file

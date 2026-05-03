@@ -5,8 +5,6 @@
 #include <CustomCarEnvMapPipeline.h>
 #include <PipelinesCommon.hpp>
 
-RxPipeline*& CCustomBuildingPipeline::ObjPipeline = *(RxPipeline**)0xC02C68;
-
 constexpr auto PLUGIN_ID = 0x53F2009C;
 
 void CCustomBuildingPipeline::InjectHooks() {
