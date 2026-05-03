@@ -32,31 +32,58 @@ public:
     */
     AngledRect(CVector2D a, CVector2D b, float widthAndDir) :
         m_a{ a },
-        m_b{ b },
-        m_dirBtoA{ (b - a).Normalized(&m_height) },
-        m_dirDtoA{ widthAndDir >= 0 ? m_dirBtoA.GetPerpLeft() : m_dirBtoA.GetPerpRight() },
+        m_dirAB{ (b - a).Normalized(&m_height) },
+        m_dirAD{ widthAndDir >= 0 ? m_dirAB.GetPerpLeft() : m_dirAB.GetPerpRight() },
         m_width{ std::abs(widthAndDir) }
     {
+        DoDebugChecks();
+    }
+
+    /*!
+    * @param a      The A corner
+    * @param dirAB  Unit vector a -> b
+    * @param lenAB  Distance beetween corners a <-> b
+    * @param dirAD  -||-
+    * @param lenAD  -||-
+    */
+    AngledRect(CVector2D a, CVector2D dirAB, float lenAB, CVector2D dirAD, float lenAD) :
+        m_a{a},
+        m_dirAB{dirAB},
+        m_dirAD{dirAD},
+        m_width{lenAD},
+        m_height{lenAB}
+    {
+        DoDebugChecks();
     }
 
     auto GetCornerA() const { return m_a; }
-    auto GetCornerB() const { return m_b; }
-    auto GetCornerC() const { return m_b + m_dirDtoA * m_width; }
-    auto GetCornerD() const { return m_a + m_dirDtoA * m_width; }
+    auto GetCornerB() const { return GetCornerA() + m_dirAB * m_height; }
+    auto GetCornerC() const { return GetCornerB() + m_dirAD * m_width; }
+    auto GetCornerD() const { return GetCornerA() + m_dirAD * m_width; }
     auto GetCorners() const { return std::to_array({ GetCornerA(), GetCornerB(), GetCornerC(), GetCornerD() }); }
 
     //! Check if a point is within this quad
-    bool IsPointWithin(const CVector2D& pos) const;
+    //! @param pos       The point
+    //! @param tolerance Makes the rect larger/smaller in each direction [This way the point might be considered to be within even if it wouldn't be otherwise]
+    bool IsPointWithin(const CVector2D& pt, float tolerance = 0.f) const;
 
     //! Draw wireframe of this quad (Must set-up render states beforehands!)
     void DrawWireFrame(CRGBA color, float z, const CMatrix& transform = CMatrix::Unity()) const;
 
     //! Highlight this rect with markers in each corner
     void HighlightWithMarkers(const CMatrix& transform = CMatrix::Unity()) const;
+
 private:
-    CVector2D m_a{}, m_b{};             //< Corner A and B 
-    CVector2D m_dirBtoA{}, m_dirDtoA{}; //< Directions to/from corners `C -> A` is the same as `B -> D`
-    float     m_width{}, m_height{};    //< Width and height (both always positive)
+    void DoDebugChecks() {
+        assert(m_width > 0.f);
+        assert(m_height > 0.f);
+        assert(m_dirAB.IsUnitVector());
+        assert(m_dirAD.IsUnitVector());
+    }
+private:
+    CVector2D m_a;               //< Corner A and B 
+    CVector2D m_dirAB, m_dirAD;  //< Unit vectors - directions to/from corners `C -> A` is the same as `B -> D`
+    float     m_width, m_height; //< Width and height (both always positive)
 };
 };
 }; // namespace notsa

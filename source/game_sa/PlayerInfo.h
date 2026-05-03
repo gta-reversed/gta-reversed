@@ -121,6 +121,8 @@ public:
     [[nodiscard]] bool IsRestartingAfterDeath() const;
     [[nodiscard]] bool IsPlayerInRemoteMode() const;
 
+    bool DeductMoney(uint32 amount);
+
     CVector GetPos() const;
     CVector GetSpeed() const;
 
