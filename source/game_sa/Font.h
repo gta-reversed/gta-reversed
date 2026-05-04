@@ -85,44 +85,6 @@ NOTSA_WENUM_DEFS_FOR(eFontStyle);
 
 class CFont {
 public:
-    // static variables
-    static constexpr size_t MAX_FONT_SPRITES = 2;
-    static constexpr size_t MAX_FONT_BUTTON_SPRITES = 15;
-
-    static inline auto& RenderState = StaticRef<CFontChar>(0xC71AA0);
-    // font textures array
-    static inline auto& Sprite = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
-    // button textures array
-    static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
-    static inline auto& PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
-    static inline auto& m_bNewLine = StaticRef<bool>(0xC71A55);
-    static inline auto& m_Color = StaticRef<CRGBA>(0xC71A60);
-    static inline auto& m_Scale = StaticRef<CVector2D>(0xC71A64);
-    static inline auto& m_fSlant = StaticRef<float>(0xC71A6C);
-    static inline auto& m_fSlantRefPoint = StaticRef<CVector2D>(0xC71A70);
-    static inline auto& m_bFontJustify = StaticRef<bool>(0xC71A78);
-    static inline auto& m_bFontCentreAlign = StaticRef<bool>(0xC71A79);
-    static inline auto& m_bFontRightAlign = StaticRef<bool>(0xC71A7A);
-    static inline auto& m_bFontBackground = StaticRef<bool>(0xC71A7B);
-    static inline auto& m_bEnlargeBackgroundBox = StaticRef<bool>(0xC71A7C);
-    static inline auto& m_bFontPropOn = StaticRef<bool>(0xC71A7D);
-    static inline auto& m_bFontIsBlip = StaticRef<bool>(0xC71A7E);
-    static inline auto& m_fFontAlpha = StaticRef<float>(0xC71A80);
-    static inline auto& m_FontBackgroundColor = StaticRef<CRGBA>(0xC71A84);
-    static inline auto& m_fWrapx = StaticRef<float>(0xC71A88);
-    static inline auto& m_fFontCentreSize = StaticRef<float>(0xC71A8C);
-    static inline auto& m_fRightJustifyWrap = StaticRef<float>(0xC71A90);
-    static inline auto& m_FontTextureId = StaticRef<uint8>(0xC71A94);
-    static inline auto& m_FontStyle = StaticRef<uint8>(0xC71A95);
-    static inline auto& m_nFontShadow = StaticRef<uint8>(0xC71A96);
-    static inline auto& m_FontDropColor = StaticRef<CRGBA>(0xC71A97);
-    static inline auto& m_nFontOutlineSize = StaticRef<uint8>(0xC71A9B);
-    static inline auto& m_nFontOutline = StaticRef<uint8>(0xC71A9C);
-    static inline auto& m_nFontOutlineOrShadow = StaticRef<uint8>(0xC71A9C);
-
-public:
-    static void InjectHooks();
-
     static void Initialise();
     static void LoadFontValues();
     static void Shutdown();
@@ -161,6 +123,47 @@ public:
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);
     static uint8 FindSubFontCharacter(uint8 letterId, uint8 fontStyle);
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
+
+private:
+    friend float GetLetterIdPropValue(uint8);
+
+    static constexpr size_t MAX_FONT_SPRITES = 2;
+    static constexpr size_t MAX_FONT_BUTTON_SPRITES = 15;
+
+    static inline auto& RenderState = StaticRef<CFontChar>(0xC71AA0);
+    // font textures array
+    static inline auto& Sprite = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
+    // button textures array
+    static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
+    static inline auto& PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
+    static inline auto& m_bNewLine = StaticRef<bool>(0xC71A55);
+    static inline auto& m_Color = StaticRef<CRGBA>(0xC71A60);
+    static inline auto& m_Scale = StaticRef<CVector2D>(0xC71A64);
+    static inline auto& m_fSlant = StaticRef<float>(0xC71A6C);
+    static inline auto& m_fSlantRefPoint = StaticRef<CVector2D>(0xC71A70);
+    static inline auto& m_bFontJustify = StaticRef<bool>(0xC71A78);
+    static inline auto& m_bFontCentreAlign = StaticRef<bool>(0xC71A79);
+    static inline auto& m_bFontRightAlign = StaticRef<bool>(0xC71A7A);
+    static inline auto& m_bFontBackground = StaticRef<bool>(0xC71A7B);
+    static inline auto& m_bEnlargeBackgroundBox = StaticRef<bool>(0xC71A7C);
+    static inline auto& m_bFontPropOn = StaticRef<bool>(0xC71A7D);
+    static inline auto& m_bFontIsBlip = StaticRef<bool>(0xC71A7E);
+    static inline auto& m_fFontAlpha = StaticRef<float>(0xC71A80);
+    static inline auto& m_FontBackgroundColor = StaticRef<CRGBA>(0xC71A84);
+    static inline auto& m_fWrapx = StaticRef<float>(0xC71A88);
+    static inline auto& m_fFontCentreSize = StaticRef<float>(0xC71A8C);
+    static inline auto& m_fRightJustifyWrap = StaticRef<float>(0xC71A90);
+    static inline auto& m_FontTextureId = StaticRef<uint8>(0xC71A94);
+    static inline auto& m_FontStyle = StaticRef<uint8>(0xC71A95);
+    static inline auto& m_nFontShadow = StaticRef<uint8>(0xC71A96);
+    static inline auto& m_FontDropColor = StaticRef<CRGBA>(0xC71A97);
+    static inline auto& m_nFontOutlineSize = StaticRef<uint8>(0xC71A9B);
+    static inline auto& m_nFontOutline = StaticRef<uint8>(0xC71A9C);
+    static inline auto& m_nFontOutlineOrShadow = StaticRef<uint8>(0xC71A9C);
 };
 
 static void ReadFontsDat();
