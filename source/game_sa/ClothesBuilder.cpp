@@ -281,8 +281,8 @@ void CClothesBuilder::ConstructGeometryArray(RpGeometry** out, uint32* modelName
             CStreaming::LoadRequestedModels();
         }
 
-        *out = BlendGeometry(mi->m_pRwClump, "normal", "fat", "ripped", normal, fatness, strength);
-        StoreBoneArray(mi->m_pRwClump, i);
+        *out = BlendGeometry(mi->GetRpClump(), "normal", "fat", "ripped", normal, fatness, strength);
+        StoreBoneArray(mi->GetRpClump(), i);
         CStreaming::RemoveModel(modelIdx);
     }
 }

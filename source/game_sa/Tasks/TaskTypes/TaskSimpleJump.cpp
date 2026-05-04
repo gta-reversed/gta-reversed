@@ -118,11 +118,11 @@ bool CTaskSimpleJump::CheckIfJumpBlocked(CPed* ped) {
 void CTaskSimpleJump::Launch(CPed* ped) {
     float fHorizontalJumpSpeed = 0.1F;
 
-    auto pSprintAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_SPRINT);
+    auto pSprintAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_SPRINT);
     if (pSprintAnim)
         fHorizontalJumpSpeed = lerp(0.17F, 0.22F, pSprintAnim->m_BlendAmount);
     else {
-        auto pRunAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_RUN);
+        auto pRunAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_RUN);
         if (pRunAnim)
             fHorizontalJumpSpeed = lerp(0.1F, 0.17F, pRunAnim->m_BlendAmount);
     }
@@ -158,14 +158,14 @@ void CTaskSimpleJump::Launch(CPed* ped) {
 
     if (!m_pClimbEntity) {
         if (m_bClimbJump) {
-            auto anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP, 8.0F);
+            auto anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP, 8.0F);
             anim->m_Flags |= ANIMATION_IS_FINISH_AUTO_REMOVE;
         } else
-            CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_JUMP_GLIDE, 8.0F);
+            CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_JUMP_GLIDE, 8.0F);
     }
 
     if (ped->bDoBloodyFootprints && CLocalisation::Blood()) {
-        auto hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+        auto hier = GetAnimHierarchyFromSkinClump(ped->GetRpClump());
         CVector v;
         RwV3dTransformPoints(&v, &v, 1, &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, ped->m_apBones[PED_NODE_LEFT_FOOT]->BoneTag)]);
 
@@ -190,9 +190,9 @@ void CTaskSimpleJump::Launch(CPed* ped) {
 
 // 0x67D7A0
 bool CTaskSimpleJump::StartLaunchAnim(CPed* ped) {
-    m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_JUMP_LAUNCH);
+    m_pAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_JUMP_LAUNCH);
     if (!m_pAnim)
-        m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_JUMP_LAUNCH_R);
+        m_pAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_JUMP_LAUNCH_R);
     if (m_pAnim)
         return false;
 
@@ -202,11 +202,11 @@ bool CTaskSimpleJump::StartLaunchAnim(CPed* ped) {
         return false;
     }
 
-    auto moveAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_SPRINT);
+    auto moveAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_SPRINT);
     if (!moveAnim || moveAnim->m_BlendAmount < 0.3F)
-        moveAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_RUN);
+        moveAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_RUN);
     if (!moveAnim || moveAnim->m_BlendAmount < 0.3F)
-        moveAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_WALK);
+        moveAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_WALK);
 
     float fMoveAnimBlendAmount = 0.0F;
     if (moveAnim && moveAnim->m_BlendAmount > 0.3F) {
@@ -215,7 +215,7 @@ bool CTaskSimpleJump::StartLaunchAnim(CPed* ped) {
             fMoveAnimBlendAmount -= 1.0F;
     }
 
-    m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, fMoveAnimBlendAmount >= 0.5F ? ANIM_ID_JUMP_LAUNCH_R : ANIM_ID_JUMP_LAUNCH, 8.0F);
+    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, fMoveAnimBlendAmount >= 0.5F ? ANIM_ID_JUMP_LAUNCH_R : ANIM_ID_JUMP_LAUNCH, 8.0F);
 
     if (ped->GetPlayerData())
         m_pAnim->m_Speed = CStats::GetFatAndMuscleModifier(STAT_MOD_2);

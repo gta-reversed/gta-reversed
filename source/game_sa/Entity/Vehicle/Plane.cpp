@@ -184,7 +184,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         // m_nType = m_nType & 7 | STATUS_WRECKED;
         physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
-        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
+        CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
         m_damageManager.FuckCarCompletely(false);
         if (m_nModelIndex != MODEL_RCBARON) {
             CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
@@ -418,8 +418,8 @@ void CPlane::ProcessControl() {
         m_pSmokeParticle->GetCompositeMatrix(&out);
         CVector velocity = -m_vecMoveSpeed * 5.0f;
         auto particleData = FxPrtMult_c(0.0f, 0.0f, 0.0f, 0.2f, 1.0f, 1.0f, 0.1f);
-        g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.00f, &particleData, -1.0f, 1.2f, 0.6f, false);
-        g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.05f, &particleData, -1.0f, 1.2f, 0.6f, false);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.00f, particleData);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.05f, particleData);
         if (m_nSmokeTimer <= 0 || vehicleFlags.bIsDrowning) {
             m_pSmokeParticle->Kill();
             m_pSmokeParticle = nullptr;
