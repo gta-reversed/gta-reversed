@@ -454,13 +454,13 @@ void CAERadioTrackManager::CheckForStationRetune() {
     }
 
     eRadioID newStation = static_cast<eRadioID>(m_nStationsListed % 256 + m_RequestedSettings.StationID);
-    // todo: better way to rewind?
-    if (newStation > 0) {
+    // wrap the radios in range of Playback FM (id 1) to Radio off. (id 13)
+    if (newStation > RADIO_EMERGENCY_AA) {
         if (newStation >= RADIO_COUNT) {
-            newStation = static_cast<eRadioID>(newStation - 13);
+            newStation = static_cast<eRadioID>(newStation - RADIO_COUNT + RADIO_CLASSIC_HIP_HOP);
         }
     } else {
-        newStation = static_cast<eRadioID>(newStation + 13);
+        newStation = static_cast<eRadioID>(newStation + RADIO_COUNT - RADIO_CLASSIC_HIP_HOP);
     }
 
     const auto Start = [this, newStation]() {
