@@ -417,17 +417,18 @@ void CFont::SetColor(CRGBA color) {
 // 0x719490
 void CFont::SetFontStyle(eFontStyle style) {
     switch (style) {
-    case eFontStyle::FONT_PRICEDOWN:
-        m_FontTextureId = 1;
-        m_FontStyle     = 1;
-        break;
+    case eFontStyle::FONT_GOTHIC:
     case eFontStyle::FONT_MENU:
-        m_FontTextureId = 0;
-        m_FontStyle     = 2;
+        m_FontTextureName  = eFontTextureName::FONT2;
+        m_FontTextureStyle = (style == eFontStyle::FONT_MENU) ? eFontTextureStyle::MENU : eFontTextureStyle::SUBTITLES_AND_GOTHIC;
+        break;
+    case eFontStyle::FONT_SUBTITLES:
+    case eFontStyle::FONT_PRICEDOWN:
+        m_FontTextureName = eFontTextureName::FONT1;
+        m_FontTextureStyle = (style == eFontStyle::FONT_PRICEDOWN) ? eFontTextureStyle::PRICEDOWN : eFontTextureStyle::SUBTITLES_AND_GOTHIC;
         break;
     default:
-        m_FontTextureId = static_cast<uint8>(style);
-        m_FontStyle     = 0;
+        NOTSA_UNREACHABLE("invalid font style {}", style);
     }
 }
 
@@ -666,8 +667,8 @@ float CFont::GetCharacterSize(uint8 letterId) {
         propValueIdx = 0;
     }
 
-    if (m_FontStyle) {
-        propValueIdx = FindSubFontCharacter(letterId, m_FontStyle);
+    if (m_FontTextureStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
+        propValueIdx = FindSubFontCharacter(letterId, m_FontTextureStyle);
     } else if (propValueIdx == 145) {
         propValueIdx = '@';
     } else if (propValueIdx > 155) {
@@ -675,9 +676,9 @@ float CFont::GetCharacterSize(uint8 letterId) {
     }
 
     if (m_bFontPropOn) {
-        return ((float)gFontData[m_FontTextureId].m_propValues[propValueIdx] + (float)m_nFontOutlineSize) * m_Scale.x;
+        return ((float)gFontData[+m_FontTextureName].m_propValues[propValueIdx] + (float)m_nFontOutlineSize) * m_Scale.x;
     } else {
-        return ((float)gFontData[m_FontTextureId].m_unpropValue + (float)m_nFontOutlineSize) * m_Scale.x;
+        return ((float)gFontData[+m_FontTextureName].m_unpropValue + (float)m_nFontOutlineSize) * m_Scale.x;
     }
 }
 
@@ -689,8 +690,8 @@ float CFont::GetHeight(bool a1) {
 }
 
 // 0x7192C0
-uint8 CFont::FindSubFontCharacter(uint8 letterId, uint8 fontStyle) {
-    if (fontStyle == 1) { // eFontStyle::FONT_PRICEDOWN
+uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
+    if (style == eFontTextureStyle::PRICEDOWN) {
         switch (letterId) {
         case 1:  return 208;
         case 4:  return 93;

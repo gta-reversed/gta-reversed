@@ -83,6 +83,19 @@ enum eFontStyle : uint8 {
 };
 NOTSA_WENUM_DEFS_FOR(eFontStyle);
 
+// NOTSA -- refer to MODELS/FONTS.TXD
+enum class eFontTextureName : uint8 {
+    FONT2 = 0, // Gothic and Menu
+    FONT1 = 1, // Subtitles and Pricedown
+};
+
+// NOTSA -- retarded
+enum class eFontTextureStyle : uint8 {
+    SUBTITLES_AND_GOTHIC = 0,
+    PRICEDOWN = 1,
+    MENU = 2,
+};
+
 class CFont {
 public:
     static void Initialise();
@@ -122,7 +135,7 @@ public:
     static void PrintString(float x, float y, const GxtChar* text);
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);
-    static uint8 FindSubFontCharacter(uint8 letterId, uint8 fontStyle);
+    static uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle fontStyle);
 
 private:
     friend void InjectHooksMain();
@@ -157,8 +170,14 @@ private:
     static inline auto& m_fWrapx = StaticRef<float>(0xC71A88);
     static inline auto& m_fFontCentreSize = StaticRef<float>(0xC71A8C);
     static inline auto& m_fRightJustifyWrap = StaticRef<float>(0xC71A90);
-    static inline auto& m_FontTextureId = StaticRef<uint8>(0xC71A94);
-    static inline auto& m_FontStyle = StaticRef<uint8>(0xC71A95);
+    static inline auto& m_FontTextureName = StaticRef<eFontTextureName>(0xC71A94); // refer to the enum type
+
+    // This looks like it's about the "index" of the font in the texture image. (there are two for each font1/2)
+    // Both subtitles and gothic (both are the first font in the images) have 0,
+    // Logically pricedown and menu would have 1 but pricedown is 1 and menu is 2.
+    // I guess they wanted to differentiate fonts to check in `FindSubFontCharacter`. Not the brightest choice.
+    static inline auto& m_FontTextureStyle = StaticRef<eFontTextureStyle>(0xC71A95);
+
     static inline auto& m_nFontShadow = StaticRef<uint8>(0xC71A96);
     static inline auto& m_FontDropColor = StaticRef<CRGBA>(0xC71A97);
     static inline auto& m_nFontOutlineSize = StaticRef<uint8>(0xC71A9B);
