@@ -105,32 +105,66 @@ public:
     // Get next ' ' character in a string
     static char* GetNextSpace(char* string);
     static char* ParseToken(char* text, CRGBA& color, bool isBlip, char* tag);
-    static void SetScale(float w, float h);
-    static void SetScaleForCurrentLanguage(float w, float h);
-    static void SetSlantRefPoint(float x, float y);
-    static void SetSlant(float value);
-    static void SetColor(CRGBA color);
-    static void SetFontStyle(eFontStyle style);
-    static void SetWrapx(float value);
-    static void SetCentreSize(float value);
-    static void SetRightJustifyWrap(float value);
-    static void SetAlphaFade(float alpha);
-    static void SetDropColor(CRGBA color);
-    static void SetDropShadowPosition(int16 value);
-    static void SetEdge(int8 value);
-    static void SetProportional(bool on);
-    static void SetBackground(bool enable, bool includeWrap);
-    static void SetBackgroundColor(CRGBA color);
-    static void SetJustify(bool on);
-    static void SetOrientation(eFontAlignment alignment);
     static void InitPerFrame();
-    static void RenderFontBuffer();
     static float GetHeight(bool a1 = false);
     static float GetStringWidth(const GxtChar* string, bool full, bool scriptText);
+
+    // STYLING
+    static void SetScaleForCurrentLanguage(float w, float h);
+    static void SetColor(CRGBA color);
+    static void SetFontStyle(eFontStyle style);
+    static void SetDropColor(CRGBA color);
+
+    static void SetScale(float w, float h) { m_Scale.Set(w, h); } // 0x719380
+    static void SetSlantRefPoint(float x, float y) { m_fSlantRefPoint.Set(x, y); } // Set text rotation point (0x719400)
+    static void SetSlant(float value) { m_fSlant = value; } // Set text rotation angle (0x719420)
+    static void SetWrapx(float value) { m_fWrapx = value; } // Set line width at right (0x7194D0)
+    static void SetCentreSize(float value) { m_fFontCentreSize = value; } // Set line width at center (0x7194E0)
+    static void SetRightJustifyWrap(float value) { m_fRightJustifyWrap = value; } // 0x7194F0
+    static void SetAlphaFade(float alpha) { m_fFontAlpha = alpha; } // Like a 'global' font alpha, multiplied with each text alpha (from SetColor) (0x719500)
+    static void SetProportional(bool on) { m_bFontPropOn = on; } // Toggles character proportions in text (0x7195B0)
+    static void SetBackgroundColor(CRGBA color) { m_FontBackgroundColor = color; } // Sets background color (0x7195E0)
+    static void SetJustify(bool on) { m_bFontJustify = on; } // 0x719600
+
+    // Set shadow size (0x719570)
+    static void SetDropShadowPosition(uint8 value) {
+        m_nFontOutlineSize = m_nFontOutlineOrShadow = 0;
+        m_nFontShadow      = value;
+    }
+
+    // Set outline size (0x719590)
+    static void SetEdge(int8 value) {
+        m_nFontShadow      = 0;
+        m_nFontOutlineSize = m_nFontOutlineOrShadow = value;
+    }
+
+    // Setups text background (0x7195C0)
+    static void SetBackground(bool enable, bool includeWrap) {
+        m_bFontBackground       = enable;
+        m_bEnlargeBackgroundBox = includeWrap;
+    }
+
+    // 0x719610
+    static void SetOrientation(eFontAlignment alignment) {
+        m_bFontCentreAlign = alignment == eFontAlignment::ALIGN_CENTER;
+        m_bFontRightAlign  = alignment == eFontAlignment::ALIGN_RIGHT;
+    }
+
+    // RENDERING
+
+    // 0x71A5E0
+    static int16 GetNumberLines(float x, float y, const GxtChar* text) {
+        return ProcessCurrentString(false, x, y, text);
+    }
+
+    // 0x71A600
+    static int16 ProcessStringToDisplay(float x, float y, const GxtChar* text) {
+        return ProcessCurrentString(true, x, y, text);
+    }
+
+    static void RenderFontBuffer();
     static void DrawFonts();
     static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
-    static int16 GetNumberLines(float x, float y, const GxtChar* text);
-    static int16 ProcessStringToDisplay(float x, float y, const GxtChar* text);
     static void GetTextRect(CRect* rect, float x, float y, const GxtChar* text);
     static void PrintString(float x, float y, const GxtChar* text);
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);

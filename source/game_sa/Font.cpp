@@ -370,11 +370,6 @@ char* CFont::ParseToken(char* text, CRGBA& color, bool isBlip, char* tag) {
     return next + (*next ? 1 : 2);
 }
 
-// Text scaling
-// 0x719380
-void CFont::SetScale(float w, float h) {
-    m_Scale.Set(w, h);
-}
 
 // Text scaling depends on current language
 // 0x7193A0
@@ -389,18 +384,6 @@ void CFont::SetScaleForCurrentLanguage(float w, float h) {
     default:
         m_Scale.Set(w, h);
     }
-}
-
-// Set text rotation point
-// 0x719400
-void CFont::SetSlantRefPoint(float x, float y) {
-    m_fSlantRefPoint.Set(x, y);
-}
-
-// Set text rotation angle
-// 0x719420
-void CFont::SetSlant(float value) {
-    m_fSlant = value;
 }
 
 // Set text color
@@ -432,29 +415,6 @@ void CFont::SetFontStyle(eFontStyle style) {
     }
 }
 
-// Set line width at right
-// 0x7194D0
-void CFont::SetWrapx(float value) {
-    m_fWrapx = value;
-}
-
-// Set line width at center
-// 0x7194E0
-void CFont::SetCentreSize(float value) {
-    m_fFontCentreSize = value;
-}
-
-// 0x7194F0
-void CFont::SetRightJustifyWrap(float value) {
-    m_fRightJustifyWrap = value;
-}
-
-// Like a 'global' font alpha, multiplied with each text alpha (from SetColor)
-// 0x719500
-void CFont::SetAlphaFade(float alpha) {
-    m_fFontAlpha = alpha;
-}
-
 // Drop color is used for text shadow and text outline
 // 0x719510
 void CFont::SetDropColor(CRGBA color) {
@@ -463,52 +423,6 @@ void CFont::SetDropColor(CRGBA color) {
     if (m_fFontAlpha < 255.0f) {
         m_FontDropColor.a = (uint8)(float(m_Color.a) * m_fFontAlpha);
     }
-}
-
-// Set shadow size
-// 0x719570
-void CFont::SetDropShadowPosition(int16 value) {
-    m_nFontOutlineSize     = 0;
-    m_nFontOutlineOrShadow = 0;
-    m_nFontShadow          = (uint8)value;
-}
-
-// Set outline size
-// 0x719590
-void CFont::SetEdge(int8 value) {
-    m_nFontShadow          = 0;
-    m_nFontOutlineSize     = value;
-    m_nFontOutlineOrShadow = value;
-}
-
-// Toggles character proportions in text
-// 0x7195B0
-void CFont::SetProportional(bool on) {
-    m_bFontPropOn = on;
-}
-
-// Setups text background
-// 0x7195C0
-void CFont::SetBackground(bool enable, bool includeWrap) {
-    m_bFontBackground       = enable;
-    m_bEnlargeBackgroundBox = includeWrap;
-}
-
-// Sets background color
-// 0x7195E0
-void CFont::SetBackgroundColor(CRGBA color) {
-    m_FontBackgroundColor = color;
-}
-
-// 0x719600
-void CFont::SetJustify(bool on) {
-    m_bFontJustify = on;
-}
-
-// 0x719610
-void CFont::SetOrientation(eFontAlignment alignment) {
-    m_bFontCentreAlign = alignment == eFontAlignment::ALIGN_CENTER;
-    m_bFontRightAlign  = alignment == eFontAlignment::ALIGN_RIGHT;
 }
 
 // Need to call this each frame
@@ -591,16 +505,6 @@ void CFont::DrawFonts() {
 // 0x71A220
 int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* text) {
     return plugin::CallAndReturn<int16, 0x71A220, bool, float, float, const GxtChar*>(print, x, y, text);
-}
-
-// 0x71A5E0
-int16 CFont::GetNumberLines(float x, float y, const GxtChar* text) {
-    return ProcessCurrentString(false, x, y, text);
-}
-
-// 0x71A600
-int16 CFont::ProcessStringToDisplay(float x, float y, const GxtChar* text) {
-    return ProcessCurrentString(true, x, y, text);
 }
 
 // 0x71A620
