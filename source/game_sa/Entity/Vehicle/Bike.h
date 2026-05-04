@@ -29,7 +29,7 @@ enum eBikeNodes {
 class NOTSA_EXPORT_VTABLE CBike : public CVehicle {
     static constexpr auto NUM_SUSP_LINES = 4;
 public:
-    RwFrame* m_aBikeNodes[BIKE_NUM_NODES];
+    std::array<RwFrame*, BIKE_NUM_NODES>           m_aBikeNodes;
     bool     m_bLeanMatrixCalculated;
     CMatrix  m_mLeanMatrix;
     union {
@@ -50,21 +50,21 @@ public:
     CVector m_vecOldSpeedForPlayback;
     tBikeHandlingData* m_BikeHandling;
     CRideAnimData m_RideAnimData;
-    uint8 m_nWheelStatus[2];
-    CColPoint m_aWheelColPoints[NUM_SUSP_LINES];
-    float m_aWheelRatios[NUM_SUSP_LINES];
-    float m_aRatioHistory[NUM_SUSP_LINES];
-    float m_WheelCounts[NUM_SUSP_LINES];
+    std::array<uint8, 2>          m_nWheelStatus;
+    std::array<CColPoint, NUM_SUSP_LINES> m_aWheelColPoints;
+    std::array<float, NUM_SUSP_LINES>     m_aWheelRatios;
+    std::array<float, NUM_SUSP_LINES>     m_aRatioHistory;
+    std::array<float, NUM_SUSP_LINES>     m_WheelCounts;
     float m_fBrakeCount;
-    eSkidmarkType m_aWheelSkidmarkType[2];
-    bool m_bWheelBloody[2];
-    bool m_bMoreSkidMarks[2];
-    float m_aWheelPitchAngles[2];
-    float m_aWheelAngularVelocity[2];
-    float m_aWheelSuspensionHeights[2];
-    float m_aWheelOrigHeights[2];
-    float m_fSuspensionLength[NUM_SUSP_LINES];
-    float m_fLineLength[NUM_SUSP_LINES];
+    std::array<eSkidmarkType, 2>  m_aWheelSkidmarkType;
+    std::array<bool, 2>           m_bWheelBloody;
+    std::array<bool, 2>           m_bMoreSkidMarks;
+    std::array<float, 2>          m_aWheelPitchAngles;
+    std::array<float, 2>          m_aWheelAngularVelocity;
+    std::array<float, 2>          m_aWheelSuspensionHeights;
+    std::array<float, 2>          m_aWheelOrigHeights;
+    std::array<float, NUM_SUSP_LINES> m_fSuspensionLength;
+    std::array<float, NUM_SUSP_LINES> m_fLineLength;
     float m_fHeightAboveRoad;
     float m_fExtraTractionMult;
     float m_fSwingArmLength;
@@ -79,14 +79,14 @@ public:
     uint8 m_nTestPedCollision;
     float m_PrevSpeed;
     float m_BlowUpTimer;
-    CPhysical* m_aGroundPhysicalPtrs[4];
-    CVector m_aGroundOffsets[4];
+    std::array<CPhysical*, 4>     m_aGroundPhysicalPtrs;
+    std::array<CVector, 4>        m_aGroundOffsets;
     CEntity* m_Damager; // Entity That Set Us On Fire
     uint8 m_nNoOfContactWheels;
     uint8 m_NumDriveWheelsOnGround;
     uint8 m_NumDriveWheelsOnGroundLastFrame;
     float m_GasPedalAudioRevs;
-    tWheelState m_WheelStates[2];
+    std::array<tWheelState, 2>    m_WheelStates;
 
     static constexpr auto Type = VEHICLE_TYPE_BIKE;
 

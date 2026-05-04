@@ -453,7 +453,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                             if (mi == MI_PICKUP_HEALTH && (float)playerInfo.m_nMaxHealth - 0.2f < player->m_fHealth)
                                 return false;
 
-                            if (mi == MI_PICKUP_BRIBE && playerWantedLevel == 0)
+                            if (mi == MI_PICKUP_BRIBE && playerWantedLevel == eWantedLevel::WANTED_CLEAN)
                                 return false;
 
                             if (mi == MI_PICKUP_KILLFRENZY && (CTheScripts::IsPlayerOnAMission() || CDarkel::FrenzyOnGoing() || !CLocalisation::KillFrenzy()))

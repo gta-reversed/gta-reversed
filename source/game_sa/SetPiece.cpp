@@ -193,7 +193,7 @@ void CSetPiece::Update() {
     switch (m_nType) {
     case SETPIECE_2CARS_SLOW_SPEED:
     case SETPIECE_2CARS_MEDIUM_SPEED: {
-        if (FindPlayerPed()->GetWantedLevel() < 1 || FindPlayerVehicle()) {
+        if (FindPlayerPed()->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_1 || FindPlayerVehicle()) {
             break;
         }
 
@@ -226,7 +226,7 @@ void CSetPiece::Update() {
         break;
     }
     case SETPIECE_1CAR_QUICK_SPEED: {
-        if (FindPlayerPed()->GetWantedLevel() < 2 || !FindPlayerVehicle()) {
+        if (FindPlayerPed()->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_2 || !FindPlayerVehicle()) {
             break;
         }
 
@@ -234,7 +234,7 @@ void CSetPiece::Update() {
         break;
     }
     case SETPIECE_1CAR_MEDIUM_SPEED: {
-        if (const auto* p = FindPlayerPed(); p->GetWantedLevel() < 2 || !FindPlayerVehicle()) {
+        if (const auto* p = FindPlayerPed(); p->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_2 || !FindPlayerVehicle()) {
             break;
         }
 
@@ -242,7 +242,7 @@ void CSetPiece::Update() {
         break;
     }
     case SETPIECE_1PED:
-        if (FindPlayerPed()->GetWantedLevel() < 1 && FindPlayerVehicle()) {
+        if (FindPlayerPed()->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_1 && FindPlayerVehicle()) {
             break;
         }
 
@@ -252,7 +252,7 @@ void CSetPiece::Update() {
         m_nLastGenerationTime = CTimer::GetTimeInMS();
         break;
     case SETPIECE_2PEDS: {
-        if (FindPlayerPed()->GetWantedLevel() < 1 && FindPlayerVehicle()) {
+        if (FindPlayerPed()->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_1 && FindPlayerVehicle()) {
             break;
         }
 
@@ -270,7 +270,7 @@ void CSetPiece::Update() {
         break;
     }
     case SETPIECE_2CARS_QUICK_SPEED_BEFORE_HIT: {
-        if (FindPlayerPed()->GetWantedLevel() < 2 && FindPlayerVehicle()) {
+        if (FindPlayerPed()->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_2 && FindPlayerVehicle()) {
             break;
         }
 
@@ -280,7 +280,7 @@ void CSetPiece::Update() {
         break;
     }
     case SETPIECE_2CARS_QUICK_SPEED: {
-        if (FindPlayerPed()->GetWantedLevel() < 2 && FindPlayerVehicle()) {
+        if (FindPlayerPed()->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_2 && FindPlayerVehicle()) {
             break;
         }
 

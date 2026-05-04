@@ -334,7 +334,7 @@ void CCarGenerator::DoInternalProcessing()
         m_nPrimaryColor = vehicle->m_nPrimaryColor;
         m_nSecondaryColor = vehicle->m_nSecondaryColor;
     }
-    CVisibilityPlugins::SetClumpAlpha(vehicle->m_pRwClump, 0);
+    CVisibilityPlugins::SetClumpAlpha(vehicle->GetRpClump(), 0);
     m_nVehicleHandle = GetVehiclePool()->GetRef(vehicle);
 
     // Originally, R* did a signed comparison between unsigned m_nGenerateCount and signed 32bit constant -1.

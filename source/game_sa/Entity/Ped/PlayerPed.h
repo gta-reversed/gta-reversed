@@ -54,10 +54,10 @@ public:
     void Clear3rdPersonMouseTarget();
     // GetWanted()->m_nWantedLevel = 0;
     void Busted();
-    uint32 GetWantedLevel() const;
-    void SetWantedLevel(int32 level);
-    void SetWantedLevelNoDrop(int32 level);
-    void CheatWantedLevel(int32 level);
+    eWantedLevel GetWantedLevel() const;
+    void SetWantedLevel(eWantedLevel level);
+    void SetWantedLevelNoDrop(eWantedLevel level);
+    void CheatWantedLevel(eWantedLevel level);
     bool CanIKReachThisTarget(CVector posn, CWeapon* weapon, bool arg2);
     CPlayerInfo* GetPlayerInfoForThisPlayerPed();
     void DoStuffToGoOnFire();
@@ -118,7 +118,7 @@ public:
 
 VALIDATE_SIZE(CPlayerPed, 0x7A4);
 
-extern bool (&abTempNeverLeavesGroup)[7];
-extern int32& gPlayIdlesAnimBlockIndex;
+static inline auto& abTempNeverLeavesGroup = StaticRef<std::array<bool, 7>>(0xC0BC08);
+static inline auto& gPlayIdlesAnimBlockIndex = StaticRef<int32>(0xC0BC10);
 
 bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2);

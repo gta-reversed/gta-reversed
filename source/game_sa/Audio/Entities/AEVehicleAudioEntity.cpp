@@ -2720,7 +2720,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
         vp.NumDriveWheelsOnGround          = b->m_NumDriveWheelsOnGround;
         vp.NumDriveWheelsOnGroundLastFrame = b->m_NumDriveWheelsOnGroundLastFrame;
         vp.GasPedalAudioRevs               = &b->m_GasPedalAudioRevs;
-        vp.WheelState                      = b->m_WheelStates;
+        vp.WheelState                      = b->m_WheelStates.data();
         vp.PrevSpeed                       = b->m_PrevSpeed;
     } else if (vp.Vehicle->IsAutomobile()) {
         auto* const a = vp.Vehicle->AsAutomobile();

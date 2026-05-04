@@ -44,7 +44,7 @@ void cTransmission::DisplayGearRatios()
 // 0x6D0460
 void cTransmission::InitGearRatios()
 {
-    memset(m_aGears, 0, sizeof(m_aGears));
+    m_aGears.fill({});
     float averageHalfGearVelocity = 0.5f * m_MaxVelocity / m_nNumberOfGears;
     float maxGearVelocity = m_MaxVelocity - averageHalfGearVelocity;
     for (uint8 i = 1; i <= m_nNumberOfGears; i++)

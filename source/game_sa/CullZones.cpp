@@ -212,7 +212,7 @@ void CCullZones::Update() {
         if (!bMilitaryZonesDisabled && (CurrentFlags_Player & eZoneAttributes::MILITARY_ZONE) != 0) {
             auto player = FindPlayerPed();
             if (player->IsAlive()) {
-                player->SetWantedLevelNoDrop(5);
+                player->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_5);
             }
         }
     }

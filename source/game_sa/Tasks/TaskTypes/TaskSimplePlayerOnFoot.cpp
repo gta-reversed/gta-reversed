@@ -54,7 +54,7 @@ bool CTaskSimplePlayerOnFoot::MakeAbortable(CPed* ped, eAbortPriority priority, 
     bool abortable = false;
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
         ped->GetPlayerData()->m_fMoveBlendRatio = 0.0f;
-        CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
+        CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
         abortable = true;
     }
     else if (priority == ABORT_PRIORITY_URGENT) {
@@ -212,7 +212,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 fightCommand = 11;
             }
 
-            CAnimBlendAssociation* animAssoc = RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_KILL_PARTIAL);
+            CAnimBlendAssociation* animAssoc = RpAnimBlendClumpGetAssociation(player->GetRpClump(), ANIM_ID_KILL_PARTIAL);
             if (animAssoc) {
                 animAssoc->m_BlendAmount = -2.0f;
             }
@@ -248,15 +248,15 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 if (player->bIsDucking) {
                     CTaskSimpleDuck* duckTask = intelligence->GetTaskDuck(true);
                     if (duckTask && duckTask->IsTaskInUseByOtherTasks()) {
-                        animAssociation = RpAnimBlendClumpGetFirstAssociation(player->m_pRwClump);
+                        animAssociation = RpAnimBlendClumpGetFirstAssociation(player->GetRpClump());
                     } else {
-                        animAssociation = CAnimManager::BlendAnimation(player->m_pRwClump, weaponInfo->m_eAnimGroup, ANIM_ID_KILL_PARTIAL, 8.0f);
+                        animAssociation = CAnimManager::BlendAnimation(player->GetRpClump(), weaponInfo->m_eAnimGroup, ANIM_ID_KILL_PARTIAL, 8.0f);
                     }
                 } else {
-                    animAssociation = CAnimManager::BlendAnimation(player->m_pRwClump, weaponInfo->m_eAnimGroup, ANIM_ID_KILL_PARTIAL, 8.0f);
+                    animAssociation = CAnimManager::BlendAnimation(player->GetRpClump(), weaponInfo->m_eAnimGroup, ANIM_ID_KILL_PARTIAL, 8.0f);
                 }
             } else {
-                animAssociation = RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_KILL_PARTIAL);
+                animAssociation = RpAnimBlendClumpGetAssociation(player->GetRpClump(), ANIM_ID_KILL_PARTIAL);
                 if (animAssociation) {
                     animAssociation->m_BlendAmount = -2.0f;
                 }
@@ -455,17 +455,17 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
             AssocGroupId animGroupId = weaponInfo->m_eAnimGroup;
             AnimationId crouchReloadAnimID = weaponInfo->flags.bReload ? ANIM_ID_RELOAD : ANIM_ID_WALK;
             if (!player->bIsDucking) {
-                if (!RpAnimBlendClumpGetAssociation(player->m_pRwClump, crouchReloadAnimID)) {
-                    CAnimManager::BlendAnimation(player->m_pRwClump, animGroupId, crouchReloadAnimID, 4.0f);
+                if (!RpAnimBlendClumpGetAssociation(player->GetRpClump(), crouchReloadAnimID)) {
+                    CAnimManager::BlendAnimation(player->GetRpClump(), animGroupId, crouchReloadAnimID, 4.0f);
                 }
             } else {
                 auto duckTask = (CTaskSimpleDuck*)intelligence->GetTaskDuck(true);
                 if (weaponInfo->GetCrouchReloadAnimationID() && gbUnknown_8D2FE8 && duckTask) {
                     if (!duckTask->IsTaskInUseByOtherTasks()) {
                         crouchReloadAnimID = weaponInfo->GetCrouchReloadAnimationID();
-                        if (!RpAnimBlendClumpGetAssociation(player->m_pRwClump, crouchReloadAnimID)) {
+                        if (!RpAnimBlendClumpGetAssociation(player->GetRpClump(), crouchReloadAnimID)) {
                             crouchReloadAnimID = weaponInfo->GetCrouchReloadAnimationID();
-                            CAnimManager::BlendAnimation(player->m_pRwClump, animGroupId, crouchReloadAnimID, 4.0f);
+                            CAnimManager::BlendAnimation(player->GetRpClump(), animGroupId, crouchReloadAnimID, 4.0f);
                         }
                     }
                 }
@@ -703,7 +703,7 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
         if (playerIdlesAnimBlock->IsLoaded) {
             CStreaming::SetModelIsDeletable(IFPToModelId(m_PlayerIdlesAnimBlockId));
             CAnimBlendAssociation* animAssoc = nullptr;
-            for (animAssoc = RpAnimBlendClumpGetFirstAssociation(player->m_pRwClump); animAssoc; animAssoc = RpAnimBlendGetNextAssociation(animAssoc)) {
+            for (animAssoc = RpAnimBlendClumpGetFirstAssociation(player->GetRpClump()); animAssoc; animAssoc = RpAnimBlendGetNextAssociation(animAssoc)) {
                 if (animAssoc->m_Flags & ANIMATION_200) {
                     animAssoc->m_BlendDelta = -8.0f;
                 }
@@ -722,7 +722,7 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
     if (!(player->bIsLooking && player->bIsRestoringLook) && touchTimeDelta - gLastTouchTimeDelta > 20000) {
         // Check if the player already has any anims from the idle anim block playing already
         bool anyIdleAnims = false;
-        RpAnimBlendClumpForEachAssociation(player->m_pRwClump, [&](CAnimBlendAssociation* a) {
+        RpAnimBlendClumpForEachAssociation(player->GetRpClump(), [&](CAnimBlendAssociation* a) {
             if (CAnimManager::IsAnimInBlock(a->GetHier(), playerIdlesAnimBlock)) {
                 anyIdleAnims = true;
                 return false;
@@ -747,7 +747,7 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
                 {ANIM_ID_STRLEG, ANIM_GROUP_PLAYIDLES},
             };
             auto animation = animations[randomNumber];
-            CAnimBlendAssociation* animNewAssoc = CAnimManager::BlendAnimation(player->m_pRwClump, animation.assoc, animation.animId, 8.0f);
+            CAnimBlendAssociation* animNewAssoc = CAnimManager::BlendAnimation(player->GetRpClump(), animation.assoc, animation.animId, 8.0f);
             animNewAssoc->m_Flags |= ANIMATION_200;
             gLastTouchTimeDelta = touchTimeDelta;
             gLastRandomNumberForIdleAnimationID = randomNumber;
@@ -866,7 +866,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
                 if (pedMoveBlendRatio <= 0.5f) {
                     return;
                 }
-                auto pNewAnimation = CAnimManager::BlendAnimation(player->m_pRwClump, player->m_nAnimGroup, ANIM_ID_RUN, gDuckAnimBlendData);
+                auto pNewAnimation = CAnimManager::BlendAnimation(player->GetRpClump(), player->m_nAnimGroup, ANIM_ID_RUN, gDuckAnimBlendData);
                 pNewAnimation->m_Flags |= ANIMATION_IS_PLAYING;
                 player->GetPlayerData()->m_fMoveBlendRatio = 1.5f;
                 pedMoveState = PEDMOVE_RUN;
@@ -874,7 +874,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
                 if (pedMoveBlendRatio <= 0.5f) {
                     return;
                 }
-                auto pNewAnimation = CAnimManager::BlendAnimation(player->m_pRwClump, player->m_nAnimGroup, ANIM_ID_WALK, gDuckAnimBlendData);
+                auto pNewAnimation = CAnimManager::BlendAnimation(player->GetRpClump(), player->m_nAnimGroup, ANIM_ID_WALK, gDuckAnimBlendData);
                 pNewAnimation->m_Flags |= ANIMATION_IS_PLAYING;
                 player->GetPlayerData()->m_fMoveBlendRatio = 1.5f;
                 pedMoveState = PEDMOVE_WALK;
@@ -882,7 +882,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
             player->m_nMoveState = pedMoveState;
             player->m_nSwimmingMoveState = pedMoveState;
         } else if (pedMoveBlendRatio > 0.5f) {
-            auto pNewAnimation = CAnimManager::BlendAnimation(player->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_GUNMOVE_FWD, gDuckAnimBlendData);
+            auto pNewAnimation = CAnimManager::BlendAnimation(player->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_GUNMOVE_FWD, gDuckAnimBlendData);
             pNewAnimation->m_Flags |= ANIMATION_IS_PLAYING;
             player->GetPlayerData()->m_fMoveBlendRatio = 1.0f;
             moveSpeed.x = 1.0f;
@@ -987,8 +987,8 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
     player->SetRealMoveAnim();
     // What is the point of calling RpAnimBlendClumpGetAssociation here?
     // Nvm, let's keep it.
-    RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_IDLE_ARMED);
-    RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_IDLE_CHAT);
+    RpAnimBlendClumpGetAssociation(player->GetRpClump(), ANIM_ID_IDLE_ARMED);
+    RpAnimBlendClumpGetAssociation(player->GetRpClump(), ANIM_ID_IDLE_CHAT);
 
     if (bAvoidJumpingAndDucking) {
         PlayIdleAnimations(player);

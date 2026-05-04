@@ -131,13 +131,12 @@ public:
             };
         };
     };
+
     CColModel* m_pColModel;     // 20
     float      m_fDrawDistance; // 24
-    union {
-        RwObject* m_pRwObject;
-        RpClump*  m_pRwClump;
-        RpAtomic* m_pRwAtomic;
-    };
+
+protected:
+    RwObject* m_pRwObject; //< Use GetRpClump()/GetRpAtomic() to access
 
 public:
     CBaseModelInfo();
@@ -227,6 +226,11 @@ public:
         AddRef();
         return inst;
     }
+
+
+    RwObject* GetRwObject() const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == GetRwModelType()); return m_pRwObject; }
+    RpClump*  GetRpClump()  const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpCLUMP); return reinterpret_cast<RpClump*>(m_pRwObject); }
+    RpAtomic* GetRpAtomic() const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpATOMIC); return reinterpret_cast<RpAtomic*>(m_pRwObject); }
 
 private:
     friend void InjectHooksMain();

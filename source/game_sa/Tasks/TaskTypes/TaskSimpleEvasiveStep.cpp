@@ -53,7 +53,7 @@ bool CTaskSimpleEvasiveStep::ProcessPed(CPed* ped) {
 
 // 0x655EA0
 void CTaskSimpleEvasiveStep::StartAnim(CPed* ped) {
-    m_Assoc = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_EV_STEP, 8.0f);
+    m_Assoc = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_EV_STEP, 8.0f);
     m_Assoc->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, false);
     m_Assoc->SetFinishCallback(FinishAnimEvasiveStepCB, this);
 }

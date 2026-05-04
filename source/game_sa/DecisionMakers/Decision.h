@@ -32,9 +32,9 @@ public:
     constexpr static auto MAX_NUM_CHOICES   = 0x6;  // 6
 
 public:
-    eTaskType m_Tasks[MAX_NUM_CHOICES];
-    uint8     m_Probs[MAX_NUM_CHOICES][4]; // 4 different relationships : see eDecisionRelationship
-    bool      m_Bools[2][MAX_NUM_CHOICES]; // 2 different types : see eDecisionTypes
+    notsa::mdarray<eTaskType, MAX_NUM_CHOICES>    m_Tasks;
+    notsa::mdarray<uint8, MAX_NUM_CHOICES, 4>     m_Probs; // 4 different relationships : see eDecisionRelationship
+    notsa::mdarray<bool, 2, MAX_NUM_CHOICES>      m_Bools; // 2 different types : see eDecisionTypes
 
 public:
     static void InjectHooks();
