@@ -21,7 +21,7 @@ void CFont::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x5BA690);
     RH_ScopedInstall(Shutdown, 0x7189B0);
-    RH_ScopedInstall(PrintChar, 0x718A10, { .reversed = false });
+    RH_ScopedInstall(PrintChar, 0x718A10);
     RH_ScopedInstall(ParseToken, 0x718F00);
 
     // styling functions
@@ -180,18 +180,13 @@ void CFont::Shutdown() {
 // this adds a single character into rendering buffer
 // 0x718A10
 void CFont::PrintChar(float x, float y, char character) {
-    return plugin::Call<0x718A10, float, float, char>(x, y, character);
-
-    // todo: check the fucking uv values
-
     // out of screen
     if (x < 0.0f || x > SCREEN_WIDTH || y < 0.0f || y > SCREEN_HEIGHT)
         return;
 
     if (PS2Symbol) {
         // extra symbol to be drawn (e.g. PS2 buttons)
-
-        CRect rt = {
+        const CRect rt{
             x,
             2.0f * RenderState.m_fHeight + y,
             17.0f * RenderState.m_fHeight + x,
@@ -199,104 +194,101 @@ void CFont::PrintChar(float x, float y, char character) {
         };
 
         ButtonSprite[PS2Symbol].Draw(rt, { 255, 255, 255, RenderState.m_color.a });
-
         return;
     }
 
-    if (!character || character == '?') {
-        float propValue = GetLetterIdPropValue(character) / 32.0f;
-        bool zeroed = false;
+    bool zeroed{};
+    uint8 letter = character;
 
-        if (RenderState.m_nFontStyle == 1 && character == 208) {
-            character = 0;
-            zeroed = true;
-        }
+    if (!letter || letter == '?') {
+        letter = 0;
+        zeroed = true;
+        character = 0;
+    }
 
-        //auto v1 = (character >> 4);
-        //auto u1 = (character & 0xf) / 16.0f;
+    if (RenderState.m_nFontStyle == 1 && letter == 0xD0) {
+        letter = 0;
+        zeroed = true;
+    }
 
-        auto propval = propValue / 32.0f;
+    const auto u1 = (letter % 16) / 16.0f;
+    const auto v_base = (letter / 16);
 
-        if (RenderState.m_wFontTexture && RenderState.m_wFontTexture != 1) {
-            if (!zeroed) {
-                CRect rt = {
-                    y,
-                    x,
-                    32.0f * propValue * RenderState.m_fWidth + x,
-                    16.0f * RenderState.m_fHeight + y,
-                };
-
-                float u1 = (character & 0xF) / 16.0f;
-                float v1 = (character >> 4) / 16.0f;
-                float u2 = propval / 16.0f + u1;
-                float v2 = v1;
-                float u3 = u1;
-                float v3 = v1 + 0.0625f;
-                float u4 = u2 - 0.0001f;
-                float v4 = v3 - 0.0001f;
-
-                CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
-            }
-
-            return;
-        }
+    if (RenderState.m_wFontTexture >= 2) { // IDA: if (m_wFontTexture < 2) [else branch]
+        float v18 = v_base / 16.0f;
 
         if (!zeroed) {
-            CRect rt;
+            const auto propValue = GetLetterIdPropValue(character) / 32.0f;
+            const CRect rt{
+                x,
+                y,
+                32.0f * propValue * RenderState.m_fWidth + x,
+                16.0f * RenderState.m_fHeight + y
+            };
+            const auto u2 = (propValue / 16.0f) + u1;
+            const auto v2 = v18;
+            const auto u3 = u1;
+            const auto v3 = v18 + 0.0625f;
+            const auto u4 = u2 - 0.0001f;
+            const auto v4 = v3 - 0.0001f;
+            CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v18, u2, v2, u3, v3, u4, v4);
+        }
+        return;
+    }
 
-            rt.left = x;
+    const auto v19 = v_base / 12.8f;
+    if (!zeroed) {
+        CRect rt{};
+        rt.left = x;
 
-            if (RenderState.m_fSlant == 0.0f) {
-                rt.bottom = y;
-                rt.right = 32.0f * RenderState.m_fWidth + x;
+        if (RenderState.m_fSlant == 0.0f) {
+            rt.bottom = y;
+            rt.right = 32.0f * RenderState.m_fWidth + x;
 
-                if (character < 0xC0) {
-                    rt.top = 20.0f * RenderState.m_fHeight + y;
+            if (letter < 0xC0) {
+                rt.top = 20.0f * RenderState.m_fHeight + y;
 
-                    float u1 = (character & 0xF) / 16.0f;
-                    float v1 = (character >> 4) / 12.8f + 0.0021f;
-                    float u2 = u1 + 0.0615f;
-                    float v2 = v1;
-                    float u3 = u1;
-                    float v3 = v2 - 0.0021f;
-                    float u4 = u2;
-                    float v4 = v2 - 0.0021f;
-
-                    CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
-                }
-                else {
-                    rt.top = 16.0f * RenderState.m_fHeight + y;
-
-                    float u1 = (character & 0xF) / 16.0f;
-                    float v1 = (character >> 4) / 12.8f + 0.0021f;
-                    float u2 = u1 + 0.0615f;
-                    float v2 = v1;
-                    float u3 = u1;
-                    float v3 = v2 - 0.016f;
-                    float u4 = u2;
-                    float v4 = v2 - 0.015f;
-
-                    CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
-                }
+                const auto v1 = v19 + 0.0021f;
+                const auto u2 = u1 + 0.0615f; // u1 + 0.0625 - 0.001
+                const auto v2 = v1;
+                const auto u3 = u1;
+                const auto v3 = v19 + 0.076025f; // v19 + 0.078125 - 0.0021
+                const auto u4 = u2;
+                const auto v4 = v3;
+                CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
             }
             else {
-                rt.bottom = y + 0.015f;
-                rt.right = 32.0f * RenderState.m_fWidth + x;
-                rt.top = 20.0f * RenderState.m_fHeight + y + 0.015f;
+                rt.top = 16.0f * RenderState.m_fHeight + y;
 
-                float u1 = (character & 0xF) / 16.0f;
-                float v1 = (character >> 4) / 12.8f + 0.00055f;
-                float u2 = u1 + 0.0615f;
-                float v2 = (character >> 4) / 12.8f + 0.078125f;
-                float u3 = u1;
-                float v3 = v2 - 0.016f;
-                float u4 = u2;
-                float v4 = v2 - 0.015f;
-
+                const auto v7 = v19 + 0.078125f;
+                const auto v1 = v19 + 0.0021f;
+                const auto u2 = u1 + 0.0615f;
+                const auto v2 = v1;
+                const auto u3 = u1;
+                const auto v3 = v7 - 0.016f;
+                const auto u4 = u2;
+                const auto v4 = v7 - 0.015f;
                 CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
             }
         }
+        else { // Slant != 0.0f
+            rt.bottom = y + 0.015f;
+            rt.right = 32.0f * RenderState.m_fWidth + x;
+            rt.top = 20.0f * RenderState.m_fHeight + y + 0.015f;
+
+            float v8 = v19 + 0.078125f;
+
+            float v1 = v19 + 0.00055f;
+            float u2 = u1 + 0.0615f;
+            float v2 = v19 + 0.0121f;
+            float u3 = u1;
+            float v3 = v8 - 0.009f;
+            float u4 = u2;
+            float v4 = v8 + 0.0079f; // v8 - 0.0021 + 0.01
+            CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
+        }
     }
+
 }
 
 // Tags processing
