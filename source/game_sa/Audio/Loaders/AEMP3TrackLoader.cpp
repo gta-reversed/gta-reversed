@@ -63,6 +63,7 @@ bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
 
     if (!strmpaks) {
         // NOTSA: Originally (StreamPack*)CMemoryMgr::Malloc(0), return value is implementation-dependent.
+        NOTSA_LOG_ERR("Couldn't open strmpaks.dat");
         m_paStreamPacks = nullptr;
         m_nStreamPackCount = 0;
         return false;
