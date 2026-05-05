@@ -257,7 +257,7 @@ void CAudioEngine::RetuneRadio(eRadioID radioId) {
 }
 
 // 0x5072A0
-int8 CAudioEngine::GetMissionAudioLoadingStatus(uint8 sampleId) {
+bool CAudioEngine::GetMissionAudioLoadingStatus(uint8 sampleId) {
     return m_ScriptAE.GetMissionAudioLoadingStatus(sampleId);
 }
 
@@ -520,7 +520,7 @@ bool CAudioEngine::IsAmbienceRadioActive() {
 }
 
 // 0x507290
-void CAudioEngine::PreloadMissionAudio(uint8 slotId, int32 scriptSlotAudioEvent) {
+void CAudioEngine::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptSlotAudioEvent) {
     m_ScriptAE.PreloadMissionAudio(slotId, scriptSlotAudioEvent);
 }
 
@@ -550,18 +550,18 @@ void CAudioEngine::SetMissionAudioPosition(uint8 slotId, CVector& posn) {
 }
 
 // 0x507310
-CVector* CAudioEngine::AttachMissionAudioToPed(uint8 slotId, CPed* ped) {
-    return m_ScriptAE.AttachMissionAudioToPhysical(slotId, ped);
+void CAudioEngine::AttachMissionAudioToPed(uint8 slotId, CPed* ped) {
+    m_ScriptAE.AttachMissionAudioToPhysical(slotId, ped);
 }
 
 // 0x507320
-CVector* CAudioEngine::AttachMissionAudioToObject(uint8 slotId, CObject* object) {
-    return m_ScriptAE.AttachMissionAudioToPhysical(slotId, object);
+void CAudioEngine::AttachMissionAudioToObject(uint8 slotId, CObject* object) {
+    m_ScriptAE.AttachMissionAudioToPhysical(slotId, object);
 }
 
 // 0x507330
-CVector* CAudioEngine::AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical) {
-    return m_ScriptAE.AttachMissionAudioToPhysical(slotId, physical);
+void CAudioEngine::AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical) {
+    m_ScriptAE.AttachMissionAudioToPhysical(slotId, physical);
 }
 
 // 0x5073C0
@@ -797,7 +797,7 @@ const GxtChar* CAudioEngine::GetRadioStationName(eRadioID id) {
 }
 
 // 0x507010
-void CAudioEngine::GetRadioStationNameKey(eRadioID id, char* outStr) {
+void CAudioEngine::GetRadioStationNameKey(eRadioID id, char(&outStr)[8]) {
     AERadioTrackManager.GetRadioStationNameKey(id, outStr);
 }
 

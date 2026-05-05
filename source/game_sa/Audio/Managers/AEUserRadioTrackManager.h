@@ -45,7 +45,7 @@ public:
 
     eAudioFileType       GetAudioFileType(const char* filename);
     bool                 IsShortcut(const char* path);
-    uint8                GetUserTrackPlayMode();
+    eRadioMode           GetUserTrackPlayMode();
 
 private:
     static DWORD __stdcall WriteUserTracksThread(CAEUserRadioTrackManager* self);

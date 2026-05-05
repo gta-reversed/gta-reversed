@@ -6,23 +6,22 @@ using HeapPtrArray = std::vector<std::unique_ptr<T, Deleter>, Alloc>;
 // This class has to be heap allocated! (with `new`)
 class OALBase {
 public:
-    // Number of living `OALBase` object instances.
-    static inline uint32 livingCount{};
-
-    // To be garbage collected OpenAL objects.
-    static inline HeapPtrArray<OALBase> trashCan{};
-
-    uint32 m_refCount;
-
-public:
-    // NOTSA: possibly inlined in SA.
     OALBase();
-
     virtual ~OALBase();
+
+    virtual void AddRef() { ++m_RefCount; }
     virtual void Release();
 
-    // NOTSA
-    virtual void AddRef();
+protected:
+    uint32 m_RefCount;
+
+private:
+    // Number of living `OALBase` object instances.
+    static inline uint32 s_LivingCount{};
+
+    // To be garbage-collected OpenAL objects.
+    static inline HeapPtrArray<OALBase> s_TrashCan{};
+    static inline void*                 s_TrashMutex{};
 };
 
 bool OALCheckErrors(std::string_view file, int32 line);

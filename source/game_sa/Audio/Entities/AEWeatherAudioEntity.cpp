@@ -7,10 +7,11 @@
 #include "AEAudioUtility.h"
 
 enum class eWeatherEvent {
-    THUNDER    = 1,
-    CITY_NOISE = 3,
-    UNK_4      = 4,
-    UNK_5      = 5,
+    THUNDER         = 1,
+    THUNDER_ROLLOFF = 2,
+    CITY_NOISE      = 3,
+    UNK_4           = 4,
+    UNK_5           = 5,
 };
 
 
@@ -32,7 +33,7 @@ void CAEWeatherAudioEntity::StaticInitialise() {
 
 // 0x5052B0
 void CAEWeatherAudioEntity::StaticReset() {
-    m_sfRainVolume = -100.0f;
+    m_sfRainVolume = VOLUME_SILENCE;
 
     if (m_sRainSoundL.IsActive()) {
         m_sRainSoundL.StopSoundAndForget();
@@ -43,15 +44,80 @@ void CAEWeatherAudioEntity::StaticReset() {
     }
 }
 
-// 0x506800, see discord gists channel
+// 0x506800
 void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
-    plugin::CallMethod<0x506800, CAEWeatherAudioEntity*, eAudioEvents>(this, event);
+    static constexpr float s_ThunderFreqVariation[] = { 1.15f, 1.0f, 0.85f }; // 0x8CC300
+
+    // NOTE(izzotop): always skips this check because only calls in CWeather::Update with event = AE_THUNDER
+    if (event != AE_THUNDER) {
+        return;
+    }
+
+    if (!CGame::CanSeeOutSideFromCurrArea() || CCullZones::PlayerNoRain() || CCullZones::CamNoRain()) {
+        return;
+    }
+
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)) {
+        return;
+    }
+
+    m_nThunderFrequencyVariationCounter = (m_nThunderFrequencyVariationCounter + 1) % std::size(s_ThunderFreqVariation);
+
+    // The pitch of the left side is two semitones lower to create stereo effect.
+    constexpr float pitchDiff = 0.8908987181403393f; // 2^(-2/12)
+    constexpr auto envFlags   = SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES;
+    const float speedLeft     = s_ThunderFreqVariation[m_nThunderFrequencyVariationCounter] * 0.4f * pitchDiff;
+    const float speedRight    = s_ThunderFreqVariation[m_nThunderFrequencyVariationCounter] * 0.4f;
+
+    constexpr CVector posLeft = { -0.906f, 0.423f, 0.0f }, posRight = { 0.906f, 0.423f, 0.0f };
+    AESoundManager.PlaySound({
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = SND_GENRL_EXPLOSIONS_NEAR_L,
+        .AudioEntity = this,
+        .Pos = posLeft,
+        .Volume = VOLUME_SILENCE,
+        .Speed = speedLeft,
+        .Flags = envFlags,
+        .EventID = +eWeatherEvent::THUNDER
+    });
+
+    AESoundManager.PlaySound({
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = SND_GENRL_EXPLOSIONS_NEAR_L,
+        .AudioEntity = this,
+        .Pos = posRight,
+        .Volume = VOLUME_SILENCE,
+        .Speed = speedRight,
+        .Flags = envFlags,
+        .EventID = +eWeatherEvent::THUNDER
+    });
+
+    const float volume = CAEAudioEntity::GetDefaultVolume(AE_THUNDER) + std::log10(CWeather::LightningDuration * 0.0375f) * 20.0f;
+    AESoundManager.PlaySound({
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = SND_GENRL_EXPLOSIONS_DISTANT_L,
+        .AudioEntity = this,
+        .Pos = posLeft,
+        .Volume = volume,
+        .Speed = speedLeft,
+        .Flags = envFlags | SOUND_ROLLED_OFF,
+        .EventID = +eWeatherEvent::THUNDER_ROLLOFF
+    });
+
+    AESoundManager.PlaySound({
+        .BankSlotID = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID = SND_GENRL_EXPLOSIONS_DISTANT_L,
+        .AudioEntity = this,
+        .Pos = posRight,
+        .Volume = volume,
+        .Speed = speedRight,
+        .Flags = envFlags | SOUND_ROLLED_OFF,
+        .EventID = +eWeatherEvent::THUNDER_ROLLOFF
+    });
 }
 
 // 0x505A00
 void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    //plugin::CallMethod<0x505A00, CAEWeatherAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
-
     if (curPlayPos <= 0) {
         return;
     }
@@ -291,7 +357,7 @@ void CAEWeatherAudioEntity::Service() {
         }
     };
     if (CWeather::Rain <= 0.f || CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || !CGame::CanSeeOutSideFromCurrArea()) { // 0x5055A3
-        UpdateRainSounds(-100.0f);
+        UpdateRainSounds(VOLUME_SILENCE);
     } else { // 0x5055D5
         m_sfRainVolume = std::max(m_sfRainVolume, -50.f);
         UpdateRainSounds(GetDefaultVolume(AE_RAIN) + CAEAudioUtility::AudioLog10(std::max(CWeather::Rain - 0.2f, 0.f) / 0.8f) * 20.f);
@@ -304,7 +370,7 @@ void CAEWeatherAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(StaticInitialise, 0x5B9A70);
     RH_ScopedInstall(StaticReset, 0x5052B0);
-    RH_ScopedInstall(AddAudioEvent, 0x506800, { .reversed = false });
+    RH_ScopedInstall(AddAudioEvent, 0x506800);
     RH_ScopedVMTInstall(UpdateParameters, 0x505A00);
     RH_ScopedInstall(Service, 0x5052F0);
 }

@@ -226,7 +226,7 @@ void CAEDataStream::InjectHooks() {
     // IStream implementation. These depend on functions above so most of them don't have to be locked.
     RH_ScopedInstall(Read, 0x4dc320);
     RH_ScopedOverloadedInstall(Seek, "istream", 0x4dc340, HRESULT(__stdcall CAEDataStream::*)(LARGE_INTEGER, DWORD, ULARGE_INTEGER*));
-    RH_ScopedInstall(Stat, 0x4dc3a0, {.locked = false}); // Uses CFileMgr::GetTotalSize
+    RH_ScopedInstall(Stat, 0x4dc3a0); // Uses CFileMgr::GetTotalSize
     RH_ScopedInstall(QueryInterface, 0x4dc410);
     RH_ScopedInstall(AddRef, 0x4dc460);
     RH_ScopedInstall(Write, 0x4dc4d0);
