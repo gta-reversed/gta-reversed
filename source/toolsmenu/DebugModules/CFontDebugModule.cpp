@@ -85,7 +85,7 @@ void FontDebugModule::RenderWindow() {
             CFont::SetSlantRefPoint(m_SlantRef.x, m_SlantRef.y);
             CFont::SetSlant(m_Slant);
             CFont::SetWrapx(SCREEN_SCALE_X(m_Wrapx));
-            CFont::SetCentreSize(m_CenterSize);
+            CFont::SetCentreSize(SCREEN_SCALE_X(m_CenterSize));
             CFont::SetAlphaFade(m_AlphaFade);
             CFont::SetProportional(m_Proportional);
             CFont::SetJustify(m_Justify);

@@ -478,7 +478,7 @@ void CFont::RenderFontBuffer() {
     float x   = RenderState.m_vPosn.x;
     float y   = RenderState.m_vPosn.y;
 
-    auto* textPtr = s_RenderFontBuffer.GetTop()->GetText();
+    const auto* textPtr = s_RenderFontBuffer.GetTop()->GetText();
     while (textPtr < s_RenderEndPtr) {
         if (*textPtr == '\0') {
             CFontChar* nextState = s_RenderFontBuffer.FindNext(textPtr);
@@ -499,7 +499,7 @@ void CFont::RenderFontBuffer() {
         PS2Symbol = EXSYMBOL_NONE;
 
         while (*textPtr == '~' && PS2Symbol == EXSYMBOL_NONE) {
-            textPtr = const_cast<GxtChar*>(ParseToken(textPtr, col, RenderState.m_bContainImages, nullptr));
+            textPtr = ParseToken(textPtr, col, RenderState.m_bContainImages, nullptr);
             if (!RenderState.m_bContainImages) {
                 RenderState.m_color = col;
             }
@@ -743,20 +743,20 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
 }
 
 // 0x71A620
-void CFont::GetTextRect(CRect* rect, float x, float y, const GxtChar* text) {
+void CFont::GetTextRect(CRect& rect, float x, float y, const GxtChar* text) {
     if (m_bFontCentreAlign) {
-        rect->left  = x - (m_fFontCentreSize / 2.0f + 4.0f);
-        rect->right = m_fFontCentreSize / 2.0f + x + 4.0f;
+        rect.left  = x - (m_fFontCentreSize / 2.0f + 4.0f);
+        rect.right = m_fFontCentreSize / 2.0f + x + 4.0f;
     } else if (m_bFontRightAlign) {
-        rect->left  = m_fRightJustifyWrap - 4.0f;
-        rect->right = x;
+        rect.left  = m_fRightJustifyWrap - 4.0f;
+        rect.right = x + 4.0f;
     } else {
-        rect->left  = x - 4.0f;
-        rect->right = m_fWrapx + 4.0f;
+        rect.left  = x - 4.0f;
+        rect.right = m_fWrapx + 4.0f;
     }
 
-    rect->top    = y - 4.0f;
-    rect->bottom = y + 4.0f + GetHeight() * (float)GetNumberLines(x, y, text);
+    rect.top    = y - 4.0f;
+    rect.bottom = y + 4.0f + GetHeight() * (float)GetNumberLines(x, y, text);
 }
 
 // 0x71A700
@@ -768,7 +768,7 @@ void CFont::PrintString(float x, float y, const GxtChar* text) {
     if (m_bFontBackground) {
         CRect rt{};
         RenderState.m_color = m_Color;
-        GetTextRect(&rt, x, y, text);
+        GetTextRect(rt, x, y, text);
 
         if (m_bEnlargeBackgroundBox) {
             rt.left -= 1.0f;
@@ -875,6 +875,7 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
 
             if (!m_bFontIsBlip && PS2Symbol == EXSYMBOL_NONE) {
                 m_Color.r = savedColor.r;
+                m_Color.g = savedColor.g;
                 m_Color.b = savedColor.b;
             }
             PS2Symbol = EXSYMBOL_NONE;

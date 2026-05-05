@@ -169,7 +169,7 @@ public:
     static void RenderFontBuffer();
     static void DrawFonts();
     static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
-    static void GetTextRect(CRect* rect, float x, float y, const GxtChar* text);
+    static void GetTextRect(CRect& rect, float x, float y, const GxtChar* text);
     static void PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap);
     static void PrintString(float x, float y, const GxtChar* text);
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);
