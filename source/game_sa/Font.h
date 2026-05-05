@@ -106,7 +106,7 @@ public:
     static void PrintChar(float x, float y, char character);
     // Get next ' ' character in a string
     static char* GetNextSpace(char* string);
-    static char* ParseToken(char* text, CRGBA& color, bool isBlip, char* tag);
+    static const GxtChar* ParseToken(const GxtChar* text, CRGBA& color, bool isBlip, GxtChar* tag);
     static void InitPerFrame();
     static float GetHeight(bool a1 = false);
     static float GetStringWidth(const GxtChar* string, bool full, bool scriptText);
@@ -168,6 +168,7 @@ public:
     static void DrawFonts();
     static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
     static void GetTextRect(CRect* rect, float x, float y, const GxtChar* text);
+    static void PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap);
     static void PrintString(float x, float y, const GxtChar* text);
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);

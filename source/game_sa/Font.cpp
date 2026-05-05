@@ -259,9 +259,9 @@ void CFont::PrintChar(float x, float y, char character) {
 
 // Tags processing
 // 0x718F00
-char* CFont::ParseToken(char* text, CRGBA& color, bool isBlip, char* tag) {
+const GxtChar* CFont::ParseToken(const GxtChar* text, CRGBA& color, bool isBlip, GxtChar* tag) {
     // info about tokens: https://gtamods.com/wiki/GXT#Tokens
-    char* next            = ++text;
+    const GxtChar* next   = ++text;
 
     const auto ApplyStyle = [&](eHudColours hudColor) {
         if (!isBlip) {
@@ -498,7 +498,7 @@ void CFont::RenderFontBuffer() {
         PS2Symbol = EXSYMBOL_NONE;
 
         while (*textPtr == '~' && PS2Symbol == EXSYMBOL_NONE) {
-            textPtr = (uint8_t*)ParseToken((char*)textPtr, col, RenderState.m_bContainImages, nullptr);
+            textPtr = const_cast<GxtChar*>(ParseToken(textPtr, col, RenderState.m_bContainImages, nullptr));
             if (!RenderState.m_bContainImages) {
                 RenderState.m_color = col;
             }
@@ -615,8 +615,128 @@ void CFont::DrawFonts() {
 }
 
 // 0x71A220
+// 0x71A220
 int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* text) {
-    return plugin::CallAndReturn<int16, 0x71A220, bool, float, float, const GxtChar*>(print, x, y, text);
+    // state variables per each line
+    bool           isFirstWordInLine{}; // we check this so if even the first word doesn't fit to the line we don't break infinitely.
+    GxtChar        tag{};               // this makes using old tags (colors etc) work even if we line breaked in middle
+    float          width{};             // running total width of line, including the char currently being processed.
+    float          processedWidth{};    // same as `width` except doesn't include the current one
+    const GxtChar* lineStart{};         // points to the first char to be printed at the new line
+    int16          spaceCount{};        // for font justifing
+
+    GxtChar        savedTagBuffer[256]{};
+    const auto ResetForNextLine = [&]() {
+        width             = (m_bFontCentreAlign || m_bFontRightAlign) ? 0.0f : x;
+        processedWidth    = 0.0f;
+        isFirstWordInLine = true;
+        tag               = 0;
+        lineStart         = text;
+        spaceCount        = 0;
+    };
+    ResetForNextLine();
+
+    auto numLines{ 0 };
+    while (*text) {
+        PS2Symbol              = EXSYMBOL_NONE;
+        const auto stringWidth = GetStringWidth(text, false, false);
+
+        if (*text == '~') {
+            CRGBA outColor{};
+            text = ParseToken(text, outColor, true, &tag);
+        }
+
+        const auto wrapLimit = [x] {
+            if (m_bFontCentreAlign) {
+                return m_fFontCentreSize;
+            } else if (m_bFontRightAlign) {
+                return x - m_fRightJustifyWrap;
+            } else {
+                return m_fWrapx;
+            }
+        }();
+
+        const auto totalWidth = stringWidth + width;
+        if ((totalWidth <= wrapLimit || isFirstWordInLine) && !m_bNewLine) {
+            width = totalWidth;
+
+            for (GxtChar ch = *text; ch != ' '; ch = *++text) {
+                if (ch == '\0' || ch == '~') {
+                    break;
+                }
+            }
+
+            if (*text) {
+                if (!isFirstWordInLine) {
+                    spaceCount++;
+                }
+                if (*text != '~') {
+                    text++;
+                    width += GetCharacterSize('\0');
+                }
+                processedWidth    = width;
+                isFirstWordInLine = false;
+                continue;
+            }
+
+            const auto drawX = [x, width] {
+                if (m_bFontCentreAlign) {
+                    return x - width / 2.0f;
+                } else if (m_bFontRightAlign) {
+                    return x - width;
+                } else {
+                    return x;
+                }
+            }();
+
+            numLines++;
+            if (print) {
+                PrintString(drawX, y, lineStart, text, 0.0f);
+            }
+            continue;
+        }
+
+        if (PS2Symbol) {
+            text -= 3;
+        }
+
+        const GxtChar* printEnd = m_bNewLine ? text - 3 : text;
+
+        float drawX{ x }, wrap{};
+        if (m_bFontJustify) {
+            if (!m_bFontCentreAlign && spaceCount > 0) {
+                wrap = (m_fWrapx - processedWidth) / (float)spaceCount;
+            }
+        } else if (m_bFontCentreAlign) {
+            drawX = x - width / 2.0f;
+        } else if (m_bFontRightAlign) {
+            drawX = x - (width - GetCharacterSize(0));
+        }
+
+        numLines++;
+        if (print) {
+            PrintString(drawX, y, lineStart, printEnd, wrap);
+        }
+
+        if (tag) {
+            // read the saved tag from previous line to not forget its formatting
+
+            // we can't directly put to savedTagBuffer because in text may overlap with it, thus making the memcpy UB!
+            notsa::format_to_sz(gString, "~{}~", tag);
+            CMessages::StringCopy(reinterpret_cast<GxtChar*>(gString + 3), text, std::size(gString) - 4);
+            CMessages::StringCopy(savedTagBuffer, GxtCharFromAscii(gString), std::size(savedTagBuffer));
+            text = savedTagBuffer;
+        }
+
+        m_bNewLine = false;
+        y += m_Scale.y * 18.0f;
+        ResetForNextLine();
+    }
+
+    if (print) {
+        SetColor(m_Color);
+    }
+    return numLines;
 }
 
 // 0x71A620
@@ -661,6 +781,11 @@ void CFont::PrintString(float x, float y, const GxtChar* text) {
     }
 
     ProcessStringToDisplay(x, y, text);
+}
+
+// 0x71A700
+void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap) {
+    NOTSA_UNREACHABLE();
 }
 
 // 0x71A820
@@ -833,11 +958,12 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(RenderFontBuffer, 0x719840);
     RH_ScopedInstall(GetStringWidth, 0x71A0E0);
     RH_ScopedInstall(DrawFonts, 0x71A210);
-    RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = false });
+    RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = true });
     RH_ScopedInstall(GetNumberLines, 0x71A5E0);
     RH_ScopedInstall(ProcessStringToDisplay, 0x71A600);
     RH_ScopedInstall(GetTextRect, 0x71A620);
-    RH_ScopedInstall(PrintString, 0x71A700);
+    RH_ScopedOverloadedInstall(PrintString, "null-terminated", 0x71A700, void(*)(float, float, const GxtChar*));
+    RH_ScopedOverloadedInstall(PrintString, "ranged", 0x719B40, void(*)(float, float, const GxtChar*, const GxtChar*, float), {.reversed = false});
     RH_ScopedInstall(PrintStringFromBottom, 0x71A820);
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
