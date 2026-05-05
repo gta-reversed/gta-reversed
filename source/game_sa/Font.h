@@ -20,52 +20,6 @@ enum class eFontTextureStyle : uint8 {
     MENU = 2,
 };
 
-// todo: move
-struct CFontChar {
-    uint8             m_cLetter;
-    uint8             m_dLetter;
-    CVector2D         m_vPosn;
-    float             m_fWidth;
-    float             m_fHeight;
-    CRGBA             m_color;
-    float             m_fWrap;
-    float             m_fSlant;
-    CVector2D         m_vSlanRefPoint;
-    bool              m_bContainImages;
-    eFontTextureStyle m_nFontStyle;
-    bool              m_bPropOn;
-    uint16            m_wFontTexture;
-    uint8             m_nOutline;
-
-public:
-    // NOTSA
-    GxtChar* GetText() { return reinterpret_cast<GxtChar*>(this + 1); }
-    // 0x718E50
-    void Set(const CFontChar* setup) {
-        m_cLetter        = setup->m_cLetter;
-        m_dLetter        = setup->m_dLetter;
-        m_vPosn          = setup->m_vPosn;
-        m_fWidth         = setup->m_fWidth;
-        m_fHeight        = setup->m_fHeight;
-        m_color          = setup->m_color;
-        m_fWrap          = setup->m_fWrap;
-        m_fSlant         = setup->m_fSlant;
-        m_vSlanRefPoint  = setup->m_vSlanRefPoint;
-        m_bContainImages = setup->m_bContainImages;
-        m_nFontStyle     = setup->m_nFontStyle;
-        m_bPropOn        = setup->m_bPropOn;
-        m_wFontTexture   = setup->m_wFontTexture;
-        m_nOutline       = setup->m_nOutline;
-    }
-};
-VALIDATE_SIZE(CFontChar, 0x30);
-
-struct tFontData {
-    std::array<uint8, 208> m_propValues;
-    uint8 m_spaceValue;
-    uint8 m_unpropValue;
-};
-
 enum eExtraFontSymbol : uint8 {
     EXSYMBOL_NONE       = 0, // invalid
     EXSYMBOL_DPAD_UP    = 1,
@@ -94,8 +48,56 @@ NOTSA_WENUM_DEFS_FOR(eFontStyle);
 
 // NOTSA -- refer to MODELS/FONTS.TXD
 enum class eFontTextureName : uint8 {
-    FONT2 = 0, // Gothic and Menu
-    FONT1 = 1, // Subtitles and Pricedown
+    FONT2      = 0, // Gothic and Menu
+    FONT1      = 1, // Subtitles and Pricedown
+    FONT_UNK_2 = 2,
+};
+NOTSA_WENUM_DEFS_FOR(eFontTextureName);
+
+// todo: move
+struct CFontChar {
+    uint8               m_cLetter;
+    uint8               m_dLetter;
+    CVector2D           m_vPosn;
+    float               m_fWidth;
+    float               m_fHeight;
+    CRGBA               m_color;
+    float               m_fWrap;
+    float               m_fSlant;
+    CVector2D           m_vSlanRefPoint;
+    bool                m_bContainImages;
+    eFontTextureStyle   m_nFontStyle;
+    bool                m_bPropOn;
+    uint16              m_wFontTexture;
+    uint8               m_nOutline;
+
+public:
+    // NOTSA
+    GxtChar* GetText() { return reinterpret_cast<GxtChar*>(this + 1); }
+    // 0x718E50
+    void Set(const CFontChar* setup) {
+        m_cLetter        = setup->m_cLetter;
+        m_dLetter        = setup->m_dLetter;
+        m_vPosn          = setup->m_vPosn;
+        m_fWidth         = setup->m_fWidth;
+        m_fHeight        = setup->m_fHeight;
+        m_color          = setup->m_color;
+        m_fWrap          = setup->m_fWrap;
+        m_fSlant         = setup->m_fSlant;
+        m_vSlanRefPoint  = setup->m_vSlanRefPoint;
+        m_bContainImages = setup->m_bContainImages;
+        m_nFontStyle     = setup->m_nFontStyle;
+        m_bPropOn        = setup->m_bPropOn;
+        m_wFontTexture   = setup->m_wFontTexture;
+        m_nOutline       = setup->m_nOutline;
+    }
+};
+VALIDATE_SIZE(CFontChar, 0x30);
+
+struct tFontData {
+    std::array<uint8, 208> m_propValues;
+    uint8 m_spaceValue;
+    uint8 m_unpropValue;
 };
 
 class CFont {
