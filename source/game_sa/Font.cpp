@@ -505,7 +505,7 @@ void CFont::RenderFontBuffer() {
         }
 
         // ASCII offset usually starts at space (32)
-        auto letter = *textPtr - 32;
+        uint8 letter = *textPtr - 32;
         auto charID = letter;
         if (RenderState.m_nFontStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
             charID = FindSubFontCharacter(letter, RenderState.m_nFontStyle);
@@ -562,7 +562,7 @@ void CFont::RenderFontBuffer() {
 // 0x71A0E0
 float CFont::GetStringWidth(const GxtChar* string, bool full, bool scriptText) {
     GxtChar data[400]{};
-    strncpy_s((char*)data, sizeof(data), AsciiFromGxtChar(string), CMessages::GetStringLength(string));
+    CMessages::StringCopy(data, string, std::size(data));
     CMessages::InsertPlayerControlKeysInString(data);
 
     float width{};
@@ -595,7 +595,7 @@ float CFont::GetStringWidth(const GxtChar* string, bool full, bool scriptText) {
                 return width;
             }
 
-            const auto upper = *pStr++ - 0x20;
+            const uint8 upper = *pStr++ - 0x20;
             if (scriptText) {
                 width += GetScriptLetterSize(upper);
             } else {
@@ -831,7 +831,7 @@ float CFont::GetHeight(bool a1) {
 }
 
 // 0x7192C0
-uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
+uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
     if (style == eFontTextureStyle::PRICEDOWN) {
         switch (letterId) {
         case 1:  return 208;
@@ -848,7 +848,7 @@ uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
         return 10;
     }
     if (letterId >= 16 && letterId <= 25) {
-        return letterId - 128;
+        return letterId + 128;
     }
     if (letterId == 31) {
         return 91;
@@ -887,9 +887,9 @@ float GetScriptLetterSize(uint8 letterId) {
     const auto subFontChar = [letterId, style] {
         switch (style) {
         case FONT_MENU:
-            return CFont::FindSubFontCharacter(letterId, eFontTextureStyle::MENU);
+            return FindSubFontCharacter(letterId, eFontTextureStyle::MENU);
         case FONT_PRICEDOWN:
-            return CFont::FindSubFontCharacter(letterId, eFontTextureStyle::PRICEDOWN);
+            return FindSubFontCharacter(letterId, eFontTextureStyle::PRICEDOWN);
         default:
             break;
         }
@@ -919,6 +919,11 @@ float GetLetterIdPropValue(uint8 letterId) {
     const uint8 id = (letterId != '?') ? letterId : 0;
 
     if (CFont::RenderState.m_bPropOn) {
+        /*
+        if (id >= std::size(gFontData[0].m_propValues)) {
+            NOTSA_LOG_CRIT("this shouldn't have happened!");
+            return 0.0f;
+        }*/
         return gFontData[CFont::RenderState.m_wFontTexture].m_propValues[id];
     } else {
         return gFontData[CFont::RenderState.m_wFontTexture].m_unpropValue;
@@ -931,8 +936,6 @@ void CFont::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x5BA690);
     RH_ScopedInstall(Shutdown, 0x7189B0);
-    RH_ScopedInstall(PrintChar, 0x718A10);
-    RH_ScopedInstall(ParseToken, 0x718F00);
 
     // styling functions
     RH_ScopedInstall(SetScale, 0x719380);
@@ -955,10 +958,12 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(SetOrientation, 0x719610);
 
     RH_ScopedInstall(InitPerFrame, 0x719800);
+    RH_ScopedInstall(PrintChar, 0x718A10);
+    RH_ScopedInstall(ParseToken, 0x718F00, {.locked = true});
     RH_ScopedInstall(RenderFontBuffer, 0x719840);
-    RH_ScopedInstall(GetStringWidth, 0x71A0E0);
+    RH_ScopedInstall(GetStringWidth, 0x71A0E0, {.reversed = true});
     RH_ScopedInstall(DrawFonts, 0x71A210);
-    RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = true });
+    RH_ScopedInstall(ProcessCurrentString, 0x71A220);
     RH_ScopedInstall(GetNumberLines, 0x71A5E0);
     RH_ScopedInstall(ProcessStringToDisplay, 0x71A600);
     RH_ScopedInstall(GetTextRect, 0x71A620);
@@ -967,7 +972,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(PrintStringFromBottom, 0x71A820);
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
-    RH_ScopedInstall(FindSubFontCharacter, 0x7192C0);
+    RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0, {.reversed = false}); // hangs up the game for some reason
     RH_ScopedGlobalInstall(GetScriptLetterSize, 0x719670);
     RH_ScopedGlobalInstall(GetLetterIdPropValue, 0x718770);
 }

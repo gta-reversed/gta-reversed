@@ -16,18 +16,23 @@ void FontDebugModule::RenderWindow() {
     }
 
     static eFontStyle m_FontStyle{};
-    static RwRGBAReal m_Color{1.0f,1.0f,1.0f,1.0f}, m_DropColor{1.0f,1.0f,1.0f,1.0f}, m_BackgroundColor{1.0f,1.0f,1.0f,1.0f};
-    static CVector2D m_Scale{1.0f, 1.0f}, m_SlantRef{}, m_DrawPos{};
-    static float m_Slant{}, m_Wrapx{}, m_CenterSize{}, m_AlphaFade{};
-    static bool m_Proportional{}, m_Justify{}, m_BackgroundEnabled{}, m_BackgroundInclWrap{}, m_Draw{}, m_IgnoreSettings{};
+    static RwRGBAReal m_Color{1.0f,1.0f,1.0f,1.0f}, m_DropColor{0.0f,0.0f,0.0f,1.0f}, m_BackgroundColor{0.0f,0.0f,0.0f,0.5f};
+    static CVector2D m_Scale{1.0f, 1.0f}, m_SlantRef{}, m_DrawPos{110.0f, 50.0f};
+    static float m_Slant{}, m_Wrapx{}, m_CenterSize{}, m_AlphaFade{255.0f};
+    static bool m_Proportional{true}, m_Justify{}, m_BackgroundEnabled{}, m_BackgroundInclWrap{}, m_Draw{}, m_IgnoreSettings{};
     static int m_DropShadowPos{}, m_Edge{};
     static eFontAlignment m_Alignment{};
 
-    static GxtChar m_Text[256]{};
+    static GxtChar m_Text[256];
+    // People on the streets will talk to Carl.~n~You can respond to these comments: Use ~k~~CONVERSATION_NO~ for a negative reply or use ~k~~CONVERSATION_YES~ to reply positively
 
     BeginGroup();
     Checkbox("Draw", &m_Draw); SameLine(); Checkbox("Ignore settings", &m_IgnoreSettings);
     InputText("Text to print", (char*)m_Text, std::size(m_Text));
+    SameLine();
+    if (Button("I'm feeling lucky")) {
+        strcpy((char*)m_Text, (char*)TheText.m_MainKeyArray.m_data[CGeneral::GetRandomNumberInRange(0u, TheText.m_MainKeyArray.m_size)].string);
+    }
     InputFloat2("Position", (float*)&m_DrawPos, "%.2f");
     Separator();
     if (BeginCombo("Font style", FONT_STYLE_STRING[+m_FontStyle])) {
@@ -62,7 +67,7 @@ void FontDebugModule::RenderWindow() {
     InputFloat("Slant", &m_Slant, 0.0f, 0.0f, "%.2f");
     InputFloat("Wrap X", &m_Wrapx, 0.0f, 0.0f, "%.2f");
     InputFloat("Center size", &m_CenterSize, 0.0f, 0.0f, "%.2f");
-    SliderFloat("Alpha fade", &m_AlphaFade, 0.0f, 256.0f, "%.2f");
+    SliderFloat("Alpha fade", &m_AlphaFade, 0.0f, 255.0f, "%.2f");
     Checkbox("Proportional", &m_Proportional);
     Checkbox("Justify", &m_Justify);
     Checkbox("Bg enabled", &m_BackgroundEnabled); SameLine();
@@ -86,7 +91,9 @@ void FontDebugModule::RenderWindow() {
             CFont::SetJustify(m_Justify);
             CFont::SetBackground(m_BackgroundEnabled, m_BackgroundInclWrap);
             CFont::SetDropShadowPosition(m_DropShadowPos);
-            CFont::SetEdge(m_Edge);
+            if (!m_DropShadowPos) {
+                CFont::SetEdge(m_Edge);
+            }
             CFont::SetFontStyle(m_FontStyle);
             CFont::SetOrientation(m_Alignment);
             CFont::SetColor(m_Color);

@@ -172,7 +172,6 @@ public:
     static void PrintString(float x, float y, const GxtChar* text);
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);
-    static uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle fontStyle);
 
 private:
     friend void InjectHooksMain();
@@ -225,3 +224,4 @@ private:
 static void ReadFontsDat();
 static float GetScriptLetterSize(uint8 letterId);
 static float GetLetterIdPropValue(uint8 letterId);
+static uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle fontStyle);
