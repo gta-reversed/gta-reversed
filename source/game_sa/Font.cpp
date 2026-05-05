@@ -703,14 +703,16 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
         const GxtChar* printEnd = m_bNewLine ? text - 3 : text;
 
         float drawX{ x }, wrap{};
-        if (m_bFontJustify) {
-            if (!m_bFontCentreAlign && spaceCount > 0) {
+        if (m_bFontJustify && !m_bFontCentreAlign) {
+            if (spaceCount > 0) {
                 wrap = (m_fWrapx - processedWidth) / (float)spaceCount;
             }
-        } else if (m_bFontCentreAlign) {
+        }
+
+        if (m_bFontCentreAlign) {
             drawX = x - width / 2.0f;
         } else if (m_bFontRightAlign) {
-            drawX = x - (width - GetCharacterSize(0));
+            drawX = x - (width - GetCharacterSize('\0'));
         }
 
         numLines++;
@@ -721,10 +723,10 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
         if (tag) {
             // read the saved tag from previous line to not forget its formatting
 
-            // we can't directly put to savedTagBuffer because in text may overlap with it, thus making the memcpy UB!
-            notsa::format_to_sz(gString, "~{}~", tag);
-            CMessages::StringCopy(reinterpret_cast<GxtChar*>(gString + 3), text, std::size(gString) - 4);
-            CMessages::StringCopy(savedTagBuffer, GxtCharFromAscii(gString), std::size(savedTagBuffer));
+            savedTagBuffer[0] = '~';
+            savedTagBuffer[1] = tag;
+            savedTagBuffer[2] = '~';
+            CMessages::StringCopy(savedTagBuffer + 3, text, std::size(savedTagBuffer) - 3);
             text = savedTagBuffer;
         }
 
