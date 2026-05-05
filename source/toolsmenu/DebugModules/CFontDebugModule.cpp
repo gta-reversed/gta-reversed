@@ -74,8 +74,8 @@ void FontDebugModule::RenderWindow() {
     Checkbox("Bg incl. wrap", &m_BackgroundInclWrap);
     InputInt("Drop shadow pos (disables edge)", &m_DropShadowPos);
     InputInt("Edge (disables drop shadow)", &m_Edge);
-    m_DropShadowPos %= 256;
-    m_Edge %= 256;
+    m_DropShadowPos &= 255;
+    m_Edge &= 255;
 
     if (m_Draw) {
         if (!m_IgnoreSettings) {
