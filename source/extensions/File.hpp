@@ -28,7 +28,6 @@ public:
     auto GetErrorReadWrite() const { return CFileMgr::GetErrorReadWrite(m_file); }
     void SeekNextLine() { CFileMgr::SeekNextLine(m_file); }
 
-    FILESTREAM GetHandle() { return m_file; }
 private:
     FILESTREAM m_file{};
 };
