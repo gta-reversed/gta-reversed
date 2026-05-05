@@ -4,12 +4,11 @@
     https://github.com/DK22Pac/plugin-sdk
     Do not delete this comment block. Respect others' work!
 */
-#include "Base.h"
 #include "StdInc.h"
 
 #include "Font.h"
 
-#include "app_debug.h"
+#include "TheScripts.h"
 #include "eLanguage.h"
 
 class RenderFontBuffer {
@@ -756,7 +755,38 @@ uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
 
 // 0x719670, original name unknown
 float GetScriptLetterSize(uint8 letterId) {
-    return plugin::CallAndReturn<float, 0x719670, uint8>(letterId);
+    letterId = (letterId != '?') ? letterId : 0;
+    const auto i = CTheScripts::NumberOfIntroTextLinesThisFrame;
+
+    const auto style = CTheScripts::IntroTextLines[i].FontStyle;
+    const auto subFontChar = [letterId, style] {
+        switch (style) {
+        case FONT_MENU:
+            return CFont::FindSubFontCharacter(letterId, eFontTextureStyle::MENU);
+        case FONT_PRICEDOWN:
+            return CFont::FindSubFontCharacter(letterId, eFontTextureStyle::PRICEDOWN);
+        default:
+            break;
+        }
+
+        if (letterId == 145) {
+            return (uint8)'@';
+        } else if (letterId > 155) {
+            return (uint8)0;
+        } else {
+            return letterId;
+        }
+    }();
+
+    const auto fontWidth = [style, subFontChar, i] {
+        if (CTheScripts::IntroTextLines[i].IsProportional) {
+            return gFontData[style].m_propValues[subFontChar];
+        } else {
+            return gFontData[style].m_unpropValue;
+        }
+    }();
+
+    return CTheScripts::IntroTextLines[i].Scale.x * (fontWidth + CTheScripts::IntroTextLines[i].TextEdge);
 }
 
 // 0x718770
@@ -800,7 +830,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(SetOrientation, 0x719610);
 
     RH_ScopedInstall(InitPerFrame, 0x719800);
-    RH_ScopedInstall(RenderFontBuffer, 0x719840, { .reversed = true });
+    RH_ScopedInstall(RenderFontBuffer, 0x719840);
     RH_ScopedInstall(GetStringWidth, 0x71A0E0);
     RH_ScopedInstall(DrawFonts, 0x71A210);
     RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = false });
@@ -811,7 +841,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(PrintStringFromBottom, 0x71A820);
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
-    // Install("", "GetScriptLetterSize", 0x719670, &GetScriptLetterSize);
-    RH_ScopedInstall(FindSubFontCharacter, 0x7192C0, { .reversed = false });
+    RH_ScopedInstall(FindSubFontCharacter, 0x7192C0);
+    RH_ScopedGlobalInstall(GetScriptLetterSize, 0x719670);
     RH_ScopedGlobalInstall(GetLetterIdPropValue, 0x718770);
 }
