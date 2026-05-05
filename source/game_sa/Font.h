@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include "GxtChar.h"
 #include "RGBA.h"
 #include "eFontAlignment.h"
 #include <extensions/WEnum.hpp>
@@ -37,9 +38,10 @@ struct CFontChar {
     uint8             m_nOutline;
 
 public:
+    // NOTSA
+    GxtChar* GetText() { return reinterpret_cast<GxtChar*>(this + 1); }
     // 0x718E50
     void Set(const CFontChar* setup) {
-        NOTSA_LOG_ERR("fuckuuu");
         m_cLetter        = setup->m_cLetter;
         m_dLetter        = setup->m_dLetter;
         m_vPosn          = setup->m_vPosn;

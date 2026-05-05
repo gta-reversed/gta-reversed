@@ -4,14 +4,34 @@
     https://github.com/DK22Pac/plugin-sdk
     Do not delete this comment block. Respect others' work!
 */
+#include "Base.h"
 #include "StdInc.h"
 
 #include "Font.h"
 
+#include "app_debug.h"
 #include "eLanguage.h"
 
-auto& FontRenderStateBuf = StaticRef<std::array<CFontChar, 9>>(0xC716B0);
-auto& pEmptyChar = StaticRef<CFontChar*>(0xC716A8);
+class RenderFontBuffer {
+public:
+    // Render font buffer is laid in memory like this:
+    // [ CFontChar struct (config) ] 'H' 'e' 'l' 'l' 'o' '\0' [ PAD ] [ next CFontChar struct ] ...
+    // ^~~ &s_RenderFontBuffer[0]    ^~ `->GetText()`    ^    ^~ Align for the next struct
+    //                                                   |~ Terminator
+    CFontChar* GetTop() { return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[0]); }
+
+    CFontChar* FindNext(void* p) {
+        if (*static_cast<GxtChar*>(p) != '\0') {
+            NOTSA_UNREACHABLE("expected null terminator to calculate the next fontchar");
+        }
+        const auto next = ((uintptr)p + 4) & ~3; // align to 4 bytes
+        return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[next - (uintptr)m_UnderlyingBuffer.data()]);
+    }
+private:
+    std::array<std::byte, 512> m_UnderlyingBuffer{}; // Not an array of CFontChars, refer to RenderFontBuffer
+};
+auto& s_RenderFontBuffer = StaticRef<RenderFontBuffer>(0xC716B0);
+auto& s_RenderEndPtr = StaticRef<void*>(0xC716A8); // Points to the end of queued font renders at s_RenderFontBuffer
 
 auto& gFontData = StaticRef<std::array<tFontData, 2>>(0xC718B0);
 
@@ -436,7 +456,7 @@ void CFont::InitPerFrame() {
     m_bNewLine                 = false;
     PS2Symbol                  = EXSYMBOL_NONE;
     RenderState.m_wFontTexture = 0;                  // todo: -1
-    pEmptyChar                 = &FontRenderStateBuf[0]; // FontRenderStatePointer.pRenderState
+    s_RenderEndPtr             = s_RenderFontBuffer.GetTop();
 
     CSprite::InitSpriteBuffer();
 }
@@ -444,7 +464,7 @@ void CFont::InitPerFrame() {
 // Draw text we have in buffer
 // 0x719840
 void CFont::RenderFontBuffer() {
-    if (pEmptyChar == &FontRenderStateBuf[0]) {
+    if (s_RenderFontBuffer.GetTop() == s_RenderEndPtr) {
         // nothing to render
         return;
     }
@@ -452,23 +472,18 @@ void CFont::RenderFontBuffer() {
     Sprite[RenderState.m_wFontTexture].SetRenderState();
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
 
-    RenderState.Set(&FontRenderStateBuf[0]);
+    RenderState.Set(s_RenderFontBuffer.GetTop());
 
     CRGBA col = RenderState.m_color;
     float x   = RenderState.m_vPosn.x;
     float y   = RenderState.m_vPosn.y;
 
-    // That font render state buffer is laid in memory like this:
-    // [ CFontChar struct (config) ] 'H' 'e' 'l' 'l' 'o' '\0' [ PAD ] [ next CFontChar struct ] ...
-    // ^~~ &FontRenderStateBuf[0]    ^~ `textPtr`        ^    ^~ Align for the next struct
-    //                                                   |~ Terminator
-    uint8_t* textPtr = (uint8_t*)(&FontRenderStateBuf[1]);
-    while (textPtr < (uint8_t*)pEmptyChar) {
+    auto* textPtr = s_RenderFontBuffer.GetTop()->GetText();
+    while (textPtr < s_RenderEndPtr) {
         if (*textPtr == '\0') {
-            // 4-byte align in pad so we get the next struct. TODO refactor
-            CFontChar* nextState = (CFontChar*)(((uintptr_t)(textPtr + 1) + 3) & ~3);
+            CFontChar* nextState = s_RenderFontBuffer.FindNext(textPtr);
 
-            if ((uint8_t*)nextState >= (uint8_t*)pEmptyChar) {
+            if (nextState >= s_RenderEndPtr) {
                 break;
             }
 
@@ -477,8 +492,7 @@ void CFont::RenderFontBuffer() {
             x   = RenderState.m_vPosn.x;
             col = RenderState.m_color;
 
-            // advance to the next text
-            textPtr = (uint8_t*)(nextState + 1);
+            textPtr = nextState->GetText();
             continue;
         }
 
@@ -492,9 +506,8 @@ void CFont::RenderFontBuffer() {
         }
 
         // ASCII offset usually starts at space (32)
-        uint8_t letter = *textPtr - 32;
-        uint8_t charID = letter;
-
+        auto letter = *textPtr - 32;
+        auto charID = letter;
         if (RenderState.m_nFontStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
             charID = FindSubFontCharacter(letter, RenderState.m_nFontStyle);
             letter = charID;
@@ -504,8 +517,6 @@ void CFont::RenderFontBuffer() {
             } else if (letter > 155) {
                 letter = 0;
             }
-
-            charID = letter;
         }
 
         if (RenderState.m_fSlant != 0.0f) {
@@ -520,18 +531,7 @@ void CFont::RenderFontBuffer() {
         if (PS2Symbol != EXSYMBOL_NONE) {
             x += (RenderState.m_fHeight * 17.0f) + RenderState.m_nOutline;
         } else {
-            uint8_t propID = charID;
-            if (charID == '?') {
-                propID = 0;
-            }
-
-            float charWidth;
-            if (RenderState.m_bPropOn) {
-                charWidth = gFontData[RenderState.m_wFontTexture].m_propValues[propID];
-            } else {
-                charWidth = gFontData[RenderState.m_wFontTexture].m_unpropValue;
-            }
-
+            const auto charWidth = GetLetterIdPropValue(charID);
             x += (charWidth + RenderState.m_nOutline) * RenderState.m_fWidth;
         }
 
@@ -557,7 +557,7 @@ void CFont::RenderFontBuffer() {
     CSprite2d::RenderVertexBuffer();
 
     // reset for the next frame
-    pEmptyChar = &FontRenderStateBuf[0];
+    s_RenderEndPtr = s_RenderFontBuffer.GetTop();
 }
 
 // 0x71A0E0
