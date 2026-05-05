@@ -156,7 +156,7 @@ void CFont::PrintChar(float x, float y, char character) {
         character = 0;
     }
 
-    if (RenderState.m_nFontStyle == 1 && letter == 0xD0) {
+    if (RenderState.m_nFontStyle == eFontTextureStyle::PRICEDOWN && letter == 0xD0) {
         letter = 0;
         zeroed = true;
     }
@@ -435,7 +435,7 @@ void CFont::InitPerFrame() {
     m_nFontShadow              = 0;
     m_bNewLine                 = false;
     PS2Symbol                  = EXSYMBOL_NONE;
-    RenderState.m_wFontTexture = 0;                      // todo: -1
+    RenderState.m_wFontTexture = 0;                  // todo: -1
     pEmptyChar                 = &FontRenderStateBuf[0]; // FontRenderStatePointer.pRenderState
 
     CSprite::InitSpriteBuffer();
@@ -444,7 +444,120 @@ void CFont::InitPerFrame() {
 // Draw text we have in buffer
 // 0x719840
 void CFont::RenderFontBuffer() {
-    plugin::Call<0x719840>();
+    if (pEmptyChar == &FontRenderStateBuf[0]) {
+        // nothing to render
+        return;
+    }
+
+    Sprite[RenderState.m_wFontTexture].SetRenderState();
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+
+    RenderState.Set(&FontRenderStateBuf[0]);
+
+    CRGBA col = RenderState.m_color;
+    float x   = RenderState.m_vPosn.x;
+    float y   = RenderState.m_vPosn.y;
+
+    // That font render state buffer is laid in memory like this:
+    // [ CFontChar struct (config) ] 'H' 'e' 'l' 'l' 'o' '\0' [ PAD ] [ next CFontChar struct ] ...
+    // ^~~ &FontRenderStateBuf[0]    ^~ `textPtr`        ^    ^~ Align for the next struct
+    //                                                   |~ Terminator
+    uint8_t* textPtr = (uint8_t*)(&FontRenderStateBuf[1]);
+    while (textPtr < (uint8_t*)pEmptyChar) {
+        if (*textPtr == '\0') {
+            // 4-byte align in pad so we get the next struct. TODO refactor
+            CFontChar* nextState = (CFontChar*)(((uintptr_t)(textPtr + 1) + 3) & ~3);
+
+            if ((uint8_t*)nextState >= (uint8_t*)pEmptyChar) {
+                break;
+            }
+
+            RenderState.Set(nextState);
+            y   = RenderState.m_vPosn.y;
+            x   = RenderState.m_vPosn.x;
+            col = RenderState.m_color;
+
+            // advance to the next text
+            textPtr = (uint8_t*)(nextState + 1);
+            continue;
+        }
+
+        PS2Symbol = EXSYMBOL_NONE;
+
+        while (*textPtr == '~' && PS2Symbol == EXSYMBOL_NONE) {
+            textPtr = (uint8_t*)ParseToken((char*)textPtr, col, RenderState.m_bContainImages, nullptr);
+            if (!RenderState.m_bContainImages) {
+                RenderState.m_color = col;
+            }
+        }
+
+        // ASCII offset usually starts at space (32)
+        uint8_t letter = *textPtr - 32;
+        uint8_t charID = letter;
+
+        if (RenderState.m_nFontStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
+            charID = FindSubFontCharacter(letter, RenderState.m_nFontStyle);
+            letter = charID;
+        } else {
+            if (letter == 145) {
+                letter = 64;
+            } else if (letter > 155) {
+                letter = 0;
+            }
+
+            charID = letter;
+        }
+
+        if (RenderState.m_fSlant != 0.0f) {
+            y = (RenderState.m_vSlanRefPoint.x - x) * RenderState.m_fSlant + RenderState.m_vSlanRefPoint.y;
+        }
+
+        if (PS2Symbol == EXSYMBOL_NONE || !RenderState.m_bContainImages) {
+            PrintChar(x, y, letter);
+            charID = letter;
+        }
+
+        if (PS2Symbol != EXSYMBOL_NONE) {
+            x += (RenderState.m_fHeight * 17.0f) + RenderState.m_nOutline;
+        } else {
+            uint8_t propID = charID;
+            if (charID == '?') {
+                propID = 0;
+            }
+
+            float charWidth;
+            if (RenderState.m_bPropOn) {
+                charWidth = gFontData[RenderState.m_wFontTexture].m_propValues[propID];
+            } else {
+                charWidth = gFontData[RenderState.m_wFontTexture].m_unpropValue;
+            }
+
+            x += (charWidth + RenderState.m_nOutline) * RenderState.m_fWidth;
+        }
+
+        // apply wrap spacing if invalid
+        if (!charID) {
+            x += RenderState.m_fWrap;
+        }
+
+        if (*textPtr) {
+            if (PS2Symbol != EXSYMBOL_NONE) {
+                PS2Symbol = EXSYMBOL_NONE;
+                Sprite[RenderState.m_wFontTexture].SetRenderState();
+            } else {
+                textPtr++;
+            }
+        } else if (PS2Symbol != EXSYMBOL_NONE) {
+            PS2Symbol = EXSYMBOL_NONE;
+            Sprite[RenderState.m_wFontTexture].SetRenderState();
+        }
+    }
+
+    CSprite::FlushSpriteBuffer();
+    CSprite2d::RenderVertexBuffer();
+
+    // reset for the next frame
+    pEmptyChar = &FontRenderStateBuf[0];
 }
 
 // 0x71A0E0
@@ -687,7 +800,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(SetOrientation, 0x719610);
 
     RH_ScopedInstall(InitPerFrame, 0x719800);
-    RH_ScopedInstall(RenderFontBuffer, 0x719840, { .reversed = false });
+    RH_ScopedInstall(RenderFontBuffer, 0x719840, { .reversed = true });
     RH_ScopedInstall(GetStringWidth, 0x71A0E0);
     RH_ScopedInstall(DrawFonts, 0x71A210);
     RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = false });
