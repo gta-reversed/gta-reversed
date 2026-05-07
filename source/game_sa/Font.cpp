@@ -538,9 +538,12 @@ void CFont::SetDropShadowPosition(int16 value) {
 // Set outline size
 // 0x719590
 void CFont::SetEdge(int8 value) {
+    // NOTE: Mobile version
+    const auto edgeValue = (CFont::m_nUsingJapaneseLanguage && value > 1) ? 1 : value;
+
     m_nFontShadow = 0;
-    m_nFontOutlineSize = value;
-    m_nFontOutlineOrShadow = value;
+    m_nFontOutlineSize = edgeValue;
+    m_nFontOutlineOrShadow = edgeValue;
 }
 
 // Toggles character proportions in text

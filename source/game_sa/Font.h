@@ -120,6 +120,8 @@ public:
     static inline auto& m_nFontOutline = StaticRef<uint8>(0xC71A9C);
     static inline auto& m_nFontOutlineOrShadow = StaticRef<uint8>(0xC71A9C);
 
+    // In Mobile
+    static inline int8 m_nUsingJapaneseLanguage = {0};
 public:
     static void InjectHooks();
 
