@@ -122,6 +122,9 @@ public:
 
     // In Mobile
     static inline int8 m_nUsingJapaneseLanguage = {0};
+    static inline int8 m_nUsingRussianLanguage = {0};
+    static inline int8 m_nUsingKoreanLanguage = {0};
+    static inline int8 m_nUsingEFIGSLanguage = {0};
 public:
     static void InjectHooks();
 
