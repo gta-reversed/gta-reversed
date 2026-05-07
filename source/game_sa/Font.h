@@ -135,6 +135,7 @@ public:
     // Get next ' ' character in a string
     static char* GetNextSpace(char* string);
     static char* ParseToken(char* text, CRGBA& color, bool isBlip, char* tag);
+    static void SetScale(float w); // In Mobile
     static void SetScale(float w, float h);
     static void SetScaleForCurrentLanguage(float w, float h);
     static void SetSlantRefPoint(float x, float y);

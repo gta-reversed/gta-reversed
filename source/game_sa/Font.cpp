@@ -439,6 +439,11 @@ void CFont::SetScale(float w, float h) {
     m_Scale.Set(w, h);
 }
 
+// In Mobile
+void CFont::SetScale(float w) {
+    m_Scale.Set(w * 0.54f, w);
+}
+
 // Text scaling depends on current language
 // 0x7193A0
 void CFont::SetScaleForCurrentLanguage(float w, float h) {
