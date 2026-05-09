@@ -19,8 +19,8 @@ public:
     //                                                   |~ Terminator
     CFontChar* GetTop() { return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[0]); }
 
-    CFontChar* FindNext(void* p) {
-        if (*static_cast<GxtChar*>(p) != '\0') {
+    CFontChar* FindNext(const void* p) {
+        if (*static_cast<const GxtChar*>(p) != '\0') {
             NOTSA_UNREACHABLE("expected null terminator to calculate the next fontchar");
         }
         const auto next = ((uintptr)p + 4) & ~3; // align to 4 bytes
