@@ -13,6 +13,8 @@
 
 class CSprite2d;
 
+// TODO: put these font "specifiers" into a different header
+
 // NOTSA -- retarded
 enum class eFontTextureStyle : uint8 {
     SUBTITLES_AND_GOTHIC = 0,
@@ -63,8 +65,8 @@ struct CFontChar {
     float               m_fHeight;
     CRGBA               m_color;
     float               m_fWrap;
-    float               m_fSlant;
-    CVector2D           m_vSlanRefPoint;
+    float               Slope;
+    CVector2D           SlopeRef;
     bool                m_bContainImages;
     eFontTextureStyle   m_nFontStyle;
     bool                m_bPropOn;
@@ -74,23 +76,8 @@ struct CFontChar {
 public:
     // NOTSA
     GxtChar* GetText() { return reinterpret_cast<GxtChar*>(this + 1); }
-    // 0x718E50
-    void Set(const CFontChar* setup) {
-        m_cLetter        = setup->m_cLetter;
-        m_dLetter        = setup->m_dLetter;
-        m_vPosn          = setup->m_vPosn;
-        m_fWidth         = setup->m_fWidth;
-        m_fHeight        = setup->m_fHeight;
-        m_color          = setup->m_color;
-        m_fWrap          = setup->m_fWrap;
-        m_fSlant         = setup->m_fSlant;
-        m_vSlanRefPoint  = setup->m_vSlanRefPoint;
-        m_bContainImages = setup->m_bContainImages;
-        m_nFontStyle     = setup->m_nFontStyle;
-        m_bPropOn        = setup->m_bPropOn;
-        m_wFontTexture   = setup->m_wFontTexture;
-        m_nOutline       = setup->m_nOutline;
-    }
+
+    void Set(const CFontChar* setup) { *this = *setup; } // 0x718E50
 };
 VALIDATE_SIZE(CFontChar, 0x30);
 
@@ -99,6 +86,61 @@ struct tFontData {
     uint8 m_spaceValue;
     uint8 m_unpropValue;
 };
+
+// initialize values from CFont::Initialise
+struct CFontDetails {
+    CRGBA Color{255, 255, 255, 0};
+    CVector2D Scale{1.0f, 1.0f};
+    float Slope{0.0f};
+    CVector2D SlopeRef{SCREEN_WIDTH, 0.0f};
+    bool Justify{false};
+    bool Centre{false};
+    bool RightJustify{false};
+    bool Background{false};
+    bool BackgroundOutline{false};
+    bool Proportional{true};
+    bool Shadow{/*?*/};
+    float AlphaFade{255.0f};
+    CRGBA BackgroundColor{128, 128, 128, 128};
+    float WrapEnd{SCREEN_WIDTH};
+    float CentreX{SCREEN_WIDTH};
+    float RightJustifyWrap{0.0f};
+    eFontTextureName FontTextureName{eFontTextureName::FONT2}; // The 'style' -- refer to the enum type
+
+    // This looks like it's about the "index" of the font in the texture image. (there are two for each font1/2)
+    // Both subtitles and gothic (both are the first font in the images) have 0,
+    // Logically pricedown and menu would have 1 but pricedown is 1 and menu is 2.
+    // I guess they wanted to differentiate fonts to check in `FindSubFontCharacter`. Not the brightest choice.
+    eFontTextureStyle FontTextureStyle{eFontTextureStyle::SUBTITLES_AND_GOTHIC}; // The 'extra font'
+
+    uint8 DropAmount{0};
+    CRGBA DropColor{/*uninit*/};
+    uint8 EdgeAmount{0};
+    uint8 EdgeSpace{/*uninit*/};
+};
+VALIDATE_SIZE(CFontDetails, 0x40);
+VALIDATE_OFFSET(CFontDetails, Color, 0x0);
+VALIDATE_OFFSET(CFontDetails, Scale, 0x4);
+VALIDATE_OFFSET(CFontDetails, Slope, 0xC);
+VALIDATE_OFFSET(CFontDetails, SlopeRef, 0x10);
+VALIDATE_OFFSET(CFontDetails, Justify, 0x18);
+VALIDATE_OFFSET(CFontDetails, Centre, 0x19);
+VALIDATE_OFFSET(CFontDetails, RightJustify, 0x1A);
+VALIDATE_OFFSET(CFontDetails, Background, 0x1B);
+VALIDATE_OFFSET(CFontDetails, BackgroundOutline, 0x1C);
+VALIDATE_OFFSET(CFontDetails, Proportional, 0x1D);
+VALIDATE_OFFSET(CFontDetails, Shadow, 0x1E);
+VALIDATE_OFFSET(CFontDetails, AlphaFade, 0x20);
+VALIDATE_OFFSET(CFontDetails, BackgroundColor, 0x24);
+VALIDATE_OFFSET(CFontDetails, WrapEnd, 0x28);
+VALIDATE_OFFSET(CFontDetails, CentreX, 0x2C);
+VALIDATE_OFFSET(CFontDetails, RightJustifyWrap, 0x30);
+VALIDATE_OFFSET(CFontDetails, FontTextureName, 0x34);
+VALIDATE_OFFSET(CFontDetails, FontTextureStyle, 0x35);
+VALIDATE_OFFSET(CFontDetails, DropAmount, 0x36);
+VALIDATE_OFFSET(CFontDetails, DropColor, 0x37);
+VALIDATE_OFFSET(CFontDetails, EdgeAmount, 0x3B);
+VALIDATE_OFFSET(CFontDetails, EdgeSpace, 0x3C);
 
 class CFont {
 public:
@@ -119,39 +161,39 @@ public:
     static void SetFontStyle(eFontStyle style);
     static void SetDropColor(CRGBA color);
 
-    static void SetScale(float w, float h) { m_Scale.Set(w, h); } // 0x719380
-    static void SetSlantRefPoint(float x, float y) { m_fSlantRefPoint.Set(x, y); } // Set text rotation point (0x719400)
-    static void SetSlant(float value) { m_fSlant = value; } // Set text rotation angle (0x719420)
-    static void SetWrapx(float value) { m_fWrapx = value; } // Set line width at right (0x7194D0)
-    static void SetCentreSize(float value) { m_fFontCentreSize = value; } // Set line width at center (0x7194E0)
-    static void SetRightJustifyWrap(float value) { m_fRightJustifyWrap = value; } // 0x7194F0
-    static void SetAlphaFade(float alpha) { m_fFontAlpha = alpha; } // Like a 'global' font alpha, multiplied with each text alpha (from SetColor) (0x719500)
-    static void SetProportional(bool on) { m_bFontPropOn = on; } // Toggles character proportions in text (0x7195B0)
-    static void SetBackgroundColor(CRGBA color) { m_FontBackgroundColor = color; } // Sets background color (0x7195E0)
-    static void SetJustify(bool on) { m_bFontJustify = on; } // 0x719600
+    static void SetScale(float w, float h) { m_Details.Scale.Set(w, h); } // 0x719380
+    static void SetSlantRefPoint(float x, float y) { m_Details.SlopeRef.Set(x, y); } // Set text rotation point (0x719400)
+    static void SetSlant(float value) { m_Details.Slope = value; } // Set text rotation angle (0x719420)
+    static void SetWrapx(float value) { m_Details.WrapEnd = value; } // Set line width at right (0x7194D0)
+    static void SetCentreSize(float value) { m_Details.CentreX = value; } // Set line width at center (0x7194E0)
+    static void SetRightJustifyWrap(float value) { m_Details.RightJustifyWrap = value; } // 0x7194F0
+    static void SetAlphaFade(float alpha) { m_Details.AlphaFade = alpha; } // Like a 'global' font alpha, multiplied with each text alpha (from SetColor) (0x719500)
+    static void SetProportional(bool on) { m_Details.Proportional = on; } // Toggles character proportions in text (0x7195B0)
+    static void SetBackgroundColor(CRGBA color) { m_Details.BackgroundColor = color; } // Sets background color (0x7195E0)
+    static void SetJustify(bool on) { m_Details.Justify = on; } // 0x719600
 
-    // Set shadow size (0x719570)
+   // Set shadow size (0x719570)
     static void SetDropShadowPosition(uint8 value) {
-        m_nFontOutlineSize = m_nFontOutlineOrShadow = 0;
-        m_nFontShadow      = value;
+        m_Details.EdgeAmount = m_Details.EdgeSpace = 0;
+        m_Details.DropAmount = value;
     }
 
     // Set outline size (0x719590)
     static void SetEdge(int8 value) {
-        m_nFontShadow      = 0;
-        m_nFontOutlineSize = m_nFontOutlineOrShadow = value;
+        m_Details.DropAmount = 0;
+        m_Details.EdgeAmount = m_Details.EdgeSpace = value;
     }
 
     // Setups text background (0x7195C0)
     static void SetBackground(bool enable, bool includeWrap) {
-        m_bFontBackground       = enable;
-        m_bEnlargeBackgroundBox = includeWrap;
+        m_Details.Background        = enable;
+        m_Details.BackgroundOutline = includeWrap;
     }
 
     // 0x719610
     static void SetOrientation(eFontAlignment alignment) {
-        m_bFontCentreAlign = alignment == eFontAlignment::ALIGN_CENTER;
-        m_bFontRightAlign  = alignment == eFontAlignment::ALIGN_RIGHT;
+        m_Details.Centre       = alignment == eFontAlignment::ALIGN_CENTER;
+        m_Details.RightJustify = alignment == eFontAlignment::ALIGN_RIGHT;
     }
 
     // RENDERING
@@ -192,35 +234,8 @@ private:
     static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
     static inline auto& PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
     static inline auto& m_bNewLine = StaticRef<bool>(0xC71A55);
-    static inline auto& m_Color = StaticRef<CRGBA>(0xC71A60);
-    static inline auto& m_Scale = StaticRef<CVector2D>(0xC71A64);
-    static inline auto& m_fSlant = StaticRef<float>(0xC71A6C);
-    static inline auto& m_fSlantRefPoint = StaticRef<CVector2D>(0xC71A70);
-    static inline auto& m_bFontJustify = StaticRef<bool>(0xC71A78);
-    static inline auto& m_bFontCentreAlign = StaticRef<bool>(0xC71A79);
-    static inline auto& m_bFontRightAlign = StaticRef<bool>(0xC71A7A);
-    static inline auto& m_bFontBackground = StaticRef<bool>(0xC71A7B);
-    static inline auto& m_bEnlargeBackgroundBox = StaticRef<bool>(0xC71A7C);
-    static inline auto& m_bFontPropOn = StaticRef<bool>(0xC71A7D);
-    static inline auto& m_bFontIsBlip = StaticRef<bool>(0xC71A7E);
-    static inline auto& m_fFontAlpha = StaticRef<float>(0xC71A80);
-    static inline auto& m_FontBackgroundColor = StaticRef<CRGBA>(0xC71A84);
-    static inline auto& m_fWrapx = StaticRef<float>(0xC71A88);
-    static inline auto& m_fFontCentreSize = StaticRef<float>(0xC71A8C);
-    static inline auto& m_fRightJustifyWrap = StaticRef<float>(0xC71A90);
-    static inline auto& m_FontTextureName = StaticRef<eFontTextureName>(0xC71A94); // refer to the enum type
 
-    // This looks like it's about the "index" of the font in the texture image. (there are two for each font1/2)
-    // Both subtitles and gothic (both are the first font in the images) have 0,
-    // Logically pricedown and menu would have 1 but pricedown is 1 and menu is 2.
-    // I guess they wanted to differentiate fonts to check in `FindSubFontCharacter`. Not the brightest choice.
-    static inline auto& m_FontTextureStyle = StaticRef<eFontTextureStyle>(0xC71A95);
-
-    static inline auto& m_nFontShadow = StaticRef<uint8>(0xC71A96);
-    static inline auto& m_FontDropColor = StaticRef<CRGBA>(0xC71A97);
-    static inline auto& m_nFontOutlineSize = StaticRef<uint8>(0xC71A9B);
-    static inline auto& m_nFontOutline = StaticRef<uint8>(0xC71A9C);
-    static inline auto& m_nFontOutlineOrShadow = StaticRef<uint8>(0xC71A9C);
+    static inline auto& m_Details = StaticRef<CFontDetails>(0xC71A60);
 };
 
 static void ReadFontsDat();
