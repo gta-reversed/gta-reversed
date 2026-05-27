@@ -100,8 +100,8 @@ public:
             uint32 bTouchingWater : 1;
             uint32 bCanBeCollidedWith : 1;
             uint32 bRenderScorched : 1;
-            uint32 b31 : 1;
-            uint32 b32 : 1;
+            uint32 bDoorHitEndStop : 1;
+            uint32 bCarriedByRope : 1;
         } physicalFlags;
         uint32 m_nPhysicalFlags;
     };

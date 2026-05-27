@@ -225,7 +225,7 @@ void CPhysical::ProcessControl()
 
     if (GetStatus() != STATUS_SIMPLE)
     {
-        physicalFlags.b31 = false;
+        physicalFlags.bDoorHitEndStop = false;
         physicalFlags.bOnSolidSurface = false;
         m_nNumEntitiesCollided = 0;
         m_nPieceType = 0;
@@ -2490,7 +2490,7 @@ void CPhysical::ApplySpeed()
         ApplyTurnSpeed();
         m_vecTurnSpeed.z = -0.2f * m_vecTurnSpeed.z;
         CTimer::UpdateTimeStep(fOldTimeStep - fNewTimeStep);
-        physicalFlags.b31 = true;
+        physicalFlags.bDoorHitEndStop = true;
     }
     ApplyMoveSpeed();
     ApplyTurnSpeed();
@@ -2551,7 +2551,7 @@ void CPhysical::ApplyFriction()
 
     auto* vehicle = AsVehicle();
     if (GetIsTypeVehicle() && vehicle->IsBike()
-        && !physicalFlags.b32 && GetStatus() == STATUS_ABANDONED
+        && !physicalFlags.bCarriedByRope && GetStatus() == STATUS_ABANDONED
         && fabs(GetUp().z) < 0.707f
         && 0.05f * 0.05f > m_vecMoveSpeed.SquaredMagnitude() && 0.01f * 0.01f > m_vecTurnSpeed.SquaredMagnitude())
     {
