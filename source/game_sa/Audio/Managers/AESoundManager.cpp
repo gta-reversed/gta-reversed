@@ -355,6 +355,7 @@ CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
     if (p.RegisterWithEntity) {
         p.Flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
     }
+    // TODO: remove when we make sure all calls are good
     for (float x : {p.Volume, p.RollOffFactor, p.Speed, p.Doppler, p.FrequencyVariance}) {
         assert(std::isfinite(x));
     }

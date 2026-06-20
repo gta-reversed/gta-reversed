@@ -235,6 +235,9 @@ void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents script
     }
 
     auto&         wav = m_WavLinks[slotId];
+    // TODO: GetBankAndSoundFromScriptSlotAudioEvent writes to a i32 var bank, but m_nBankId is i16
+    // make sure every occurrence of GetBankAndSoundFromScriptSlotAudioEvent is reversed and convert it into
+    // i16, to get rid of wenums here.
     eSoundBankS32 bank{};
     if (!CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(
         scriptId,
@@ -244,7 +247,7 @@ void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents script
     )) {
         return;
     }
-    wav.m_nBankId = bank; // TODO: get rid of this
+    wav.m_nBankId = bank;
 
     if (wav.m_nBankSlotId < 0) {
         AEAudioHardware.LoadSoundBank(bank, GetMissionBankSlot(slotId));
