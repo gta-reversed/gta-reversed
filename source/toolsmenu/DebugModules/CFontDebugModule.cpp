@@ -2,7 +2,6 @@
 
 #include "CFontDebugModule.h"
 #include "imgui.h"
-#include "Timer.h"
 
 using namespace ImGui;
 
@@ -15,15 +14,6 @@ void FontDebugModule::RenderWindow() {
         return;
     }
 
-    static eFontStyle m_FontStyle{};
-    static RwRGBAReal m_Color{1.0f,1.0f,1.0f,1.0f}, m_DropColor{0.0f,0.0f,0.0f,1.0f}, m_BackgroundColor{0.0f,0.0f,0.0f,0.5f};
-    static CVector2D m_Scale{1.0f, 1.0f}, m_SlantRef{}, m_DrawPos{110.0f, 50.0f};
-    static float m_Slant{}, m_Wrapx{}, m_CenterSize{}, m_AlphaFade{255.0f};
-    static bool m_Proportional{true}, m_Justify{}, m_BackgroundEnabled{}, m_BackgroundInclWrap{}, m_Draw{}, m_IgnoreSettings{};
-    static int m_DropShadowPos{}, m_Edge{};
-    static eFontAlignment m_Alignment{};
-
-    static GxtChar m_Text[256];
     // People on the streets will talk to Carl.~n~You can respond to these comments: Use ~k~~CONVERSATION_NO~ for a negative reply or use ~k~~CONVERSATION_YES~ to reply positively
 
     BeginGroup();

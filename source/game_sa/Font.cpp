@@ -627,15 +627,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
             text = ParseToken(text, outColor, true, &tag);
         }
 
-        const auto wrapLimit = [x] {
-            if (m_Details.Centre) {
-                return m_Details.CentreX;
-            } else if (m_Details.RightJustify) {
-                return x - m_Details.RightJustifyWrap;
-            } else {
-                return m_Details.WrapEnd;
-            }
-        }();
+        const auto wrapLimit = m_Details.Centre ? m_Details.CentreX : (m_Details.RightJustify ? x - m_Details.RightJustifyWrap : m_Details.WrapEnd);
 
         const auto totalWidth = stringWidth + width;
         if ((totalWidth <= wrapLimit || isFirstWordInLine) && !m_bNewLine) {
@@ -660,15 +652,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
                 continue;
             }
 
-            const auto drawX = [x, width] {
-                if (m_Details.Centre) {
-                    return x - width / 2.0f;
-                } else if (m_Details.RightJustify) {
-                    return x - width;
-                } else {
-                    return x;
-                }
-            }();
+            const auto drawX = m_Details.Centre ? x - width / 2.0f : (m_Details.RightJustify ? x - width : x);
 
             numLines++;
             if (print) {

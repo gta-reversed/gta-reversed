@@ -161,16 +161,16 @@ public:
     static void SetFontStyle(eFontStyle style);
     static void SetDropColor(CRGBA color);
 
-    static void SetScale(float w, float h) { m_Details.Scale.Set(w, h); } // 0x719380
-    static void SetSlantRefPoint(float x, float y) { m_Details.SlopeRef.Set(x, y); } // Set text rotation point (0x719400)
-    static void SetSlant(float value) { m_Details.Slope = value; } // Set text rotation angle (0x719420)
-    static void SetWrapx(float value) { m_Details.WrapEnd = value; } // Set line width at right (0x7194D0)
-    static void SetCentreSize(float value) { m_Details.CentreX = value; } // Set line width at center (0x7194E0)
-    static void SetRightJustifyWrap(float value) { m_Details.RightJustifyWrap = value; } // 0x7194F0
-    static void SetAlphaFade(float alpha) { m_Details.AlphaFade = alpha; } // Like a 'global' font alpha, multiplied with each text alpha (from SetColor) (0x719500)
-    static void SetProportional(bool on) { m_Details.Proportional = on; } // Toggles character proportions in text (0x7195B0)
-    static void SetBackgroundColor(CRGBA color) { m_Details.BackgroundColor = color; } // Sets background color (0x7195E0)
-    static void SetJustify(bool on) { m_Details.Justify = on; } // 0x719600
+    static void SetScale(float w, float h) { m_Details.Scale.Set(w, h); } /** 0x719380 */
+    static void SetSlantRefPoint(float x, float y) { m_Details.SlopeRef.Set(x, y); } /** Set text rotation point (0x719400) */
+    static void SetSlant(float value) { m_Details.Slope = value; } /** Set text rotation angle (0x719420) */
+    static void SetWrapx(float value) { m_Details.WrapEnd = value; } /** Set line width at right (0x7194D0) */
+    static void SetCentreSize(float value) { m_Details.CentreX = value; } /** Set line width at center (0x7194E0) */
+    static void SetRightJustifyWrap(float value) { m_Details.RightJustifyWrap = value; } /** 0x7194F0 */
+    static void SetAlphaFade(float alpha) { m_Details.AlphaFade = alpha; } /** Like a 'global' font alpha, multiplied with each text alpha (from SetColor) (0x719500) */
+    static void SetProportional(bool on) { m_Details.Proportional = on; } /** Toggles character proportions in text (0x7195B0) */
+    static void SetBackgroundColor(CRGBA color) { m_Details.BackgroundColor = color; } /** Sets background color (0x7195E0) */
+    static void SetJustify(bool on) { m_Details.Justify = on; } /** 0x719600 */
 
    // Set shadow size (0x719570)
     static void SetDropShadowPosition(uint8 value) {
