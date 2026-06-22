@@ -123,7 +123,8 @@ uint32 CAEAudioUtility::ConvertFromMSToBytes(uint32 a, uint32 frequency, uint16 
 void CAEAudioUtility::StaticInitialise() {
     m_sfLogLookup[0][0] = 0.0f;
     m_sfLogLookup[0][1] = -100.0f;
-    m_sfLogLookup[1][0] = 0.00001f;
+    m_sfLogLookup[1][0] = 10e-5f;
+    m_sfLogLookup[1][1] = -5.0f;
 
     for (size_t i = 2; i < std::size(m_sfLogLookup); i++) {
         const float v       = 10.0f / std::pow(1.2f, static_cast<float>(std::size(m_sfLogLookup) - i - 1));

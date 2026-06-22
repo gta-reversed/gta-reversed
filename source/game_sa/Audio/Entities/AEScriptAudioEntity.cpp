@@ -36,7 +36,7 @@ void CAEScriptAudioEntity::AttachMissionAudioToPhysical(uint8 sampleId, CPhysica
     m_WavLinks[sampleId].m_vPosition = AUDIOPOS_SENTINEL;
 }
 
-// NOTSA; TODO: make sense of this
+// NOTSA
 static eSoundBankSlot GetMissionBankSlot(uint8 sampleId) {
     return static_cast<eSoundBankSlot>(SND_BANK_SLOT_MISSION1 + sampleId);
 }
@@ -49,7 +49,11 @@ void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
 
     AESoundManager.CancelSoundsInBankSlot(GetMissionBankSlot(sampleId), true);
     auto& wav         = m_WavLinks[sampleId];
-    wav.m_nBankSlotId = 0; // NOTE: it is this way originally, maybe needs a FIX_BUGS?
+
+    // TODO: bankSlotId < 0 is the validity check so it should've been -1 or something
+    // it is this way originally, maybe needs a FIX_BUGS?
+    wav.m_nBankSlotId = 0;
+
     wav.m_Sound       = nullptr;
     wav.m_vPosition   = AUDIOPOS_SENTINEL;
 }
@@ -899,6 +903,8 @@ void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, const C
 // 0x4EC970
 // -1 to delete the sound
 void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
+    // partially reversed, the code here should be fine
+#if 0
     if (!sound) {
         return;
     }
@@ -938,9 +944,8 @@ void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
         if (wav.m_nAudioEvent != AE_SCRIPT_GYM_RUNNING_MACHINE_START) {
             break;
         }
-
-        NOTSA_UNREACHABLE("partially reversed");
     }
+#endif
 }
 
 // 0x4EC900

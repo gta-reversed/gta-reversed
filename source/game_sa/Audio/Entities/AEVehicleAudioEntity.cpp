@@ -3767,7 +3767,7 @@ void CAEVehicleAudioEntity::ProcessGenericJet(bool engineOn, tVehicleParams& par
         return;
     }
 
-    float volFrontBase{}, volMaxThrust{}, volRearBase{}, distantJetVolume;
+    float volFrontBase{}, volMaxThrust{}, volRearBase{}, distantJetVolume{};
     switch (params.Vehicle->m_nModelIndex) {
     case MODEL_SHAMAL:
         volMaxThrust     = 0.0f; // TODO: 0xB6B9F4, i read zero all the time so left there. not sure though
