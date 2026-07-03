@@ -1418,16 +1418,15 @@ void CFileLoader::LoadLevel(const char* levelFileName) {
 // IPL -> OCCL
 // 0x5B4C80
 void CFileLoader::LoadOcclusionVolume(const char* line, const char* filename) {
-    float fRotX = 0.0F, fRotY = 0.0F;
-    uint32 nFlags = 0;
-    float fCenterX, fCenterY, fBottomZ, fWidth, fLength, fHeight, fRotZ;
-    VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %d ", &fCenterX, &fCenterY, &fBottomZ, &fWidth, &fLength, &fHeight, &fRotX, &fRotY, &fRotZ, &nFlags) == 10);
+    uint32 flags = 0;
+    float centerX, centerY, bottomZ, width, length, height, rotZ, rotY = 0.f, rotX = 0.f;
+    VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %d ", &centerX, &centerY, &bottomZ, &width, &length, &height, &rotZ, &rotY, &rotX, &flags) == 10); // yes, it's z, y, x
     COcclusion::AddOne(
-        fCenterX, fCenterY, fHeight * 0.5F + fBottomZ,
-        fWidth, fLength, fHeight,
-        fRotX, fRotY, fRotZ,
-        nFlags,
-        std::string_view{filename}.ends_with("int.ipl")
+        centerX, centerY, height * 0.5F + bottomZ,
+        width, length, height,
+        rotZ, rotY, rotX,
+        flags,
+        std::string_view{ filename }.ends_with("int.ipl")
     );
 }
 

@@ -26,6 +26,8 @@ public:
     bool NearCamera() const;
     int16 SetNext(int16 next);
     int16 GetNext() const { return m_NextIndex; }
+    CVector GetRotation() const noexcept { return { m_RotX, m_RotY, m_RotZ }; }
+    CVector GetSize() const noexcept { return { m_Width, m_Length, m_Height }; }
 
 public:
     FixedVector<int16, 4.f> m_Center{};
@@ -39,8 +41,11 @@ public:
     FixedFloat<int16, 4.f> m_Width;
     FixedFloat<int16, 4.f> m_Height;
 
-    FixedVector<uint8, 256.f / TWO_PI> m_Rot{};
-    
+    // As usual, some R* dev from 2003 decided to swap the order of rotations as well :D
+    FixedFloat<int8, 4.f> m_RotZ;
+    FixedFloat<int8, 4.f> m_RotY;
+    FixedFloat<int8, 4.f> m_RotX;
+
     struct {
         int16 m_NextIndex : 15;
         int16 m_DontStream : 1;
