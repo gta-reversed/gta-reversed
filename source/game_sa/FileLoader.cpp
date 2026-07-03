@@ -1420,7 +1420,7 @@ void CFileLoader::LoadLevel(const char* levelFileName) {
 void CFileLoader::LoadOcclusionVolume(const char* line, const char* filename) {
     uint32 flags = 0;
     float centerX, centerY, bottomZ, width, length, height, rotZ, rotY = 0.f, rotX = 0.f;
-    VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %d ", &centerX, &centerY, &bottomZ, &width, &length, &height, &rotZ, &rotY, &rotX, &flags) == 10); // yes, it's z, y, x
+    VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %u ", &centerX, &centerY, &bottomZ, &width, &length, &height, &rotZ, &rotY, &rotX, &flags) == 10); // yes, it's z, y, x, BUGFIX: Using %u instead of %d
     COcclusion::AddOne(
         centerX, centerY, height * 0.5F + bottomZ,
         width, length, height,
