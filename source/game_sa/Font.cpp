@@ -51,21 +51,21 @@ void CFont::LoadFontValues() {
         }
 
         const auto attr = std::string_view{attrib};
-        if (attr.starts_with("[TOTAL_FONTS]")) {
+        if (attr == "[TOTAL_FONTS]") {
             auto nextLine = CFileLoader::LoadLine(file);
 
             VERIFY(sscanf_s(nextLine, "%d", &totalFonts) == 1);
-        } else if (attr.starts_with("[FONT_ID]")) {
+        } else if (attr == "[FONT_ID]") {
             auto nextLine = CFileLoader::LoadLine(file);
 
             VERIFY(sscanf_s(nextLine, "%d", &fontId) == 1);
-        } else if (attr.starts_with("[REPLACEMENT_SPACE_CHAR]")) {
+        } else if (attr == "[REPLACEMENT_SPACE_CHAR]") {
             auto  nextLine = CFileLoader::LoadLine(file);
             uint8 spaceValue;
 
             VERIFY(sscanf_s(nextLine, "%hhu", &spaceValue) == 1);
             gFontData[fontId].m_spaceValue = spaceValue;
-        } else if (attr.starts_with("[PROP]")) {
+        } else if (attr == "[PROP]") {
             for (int32 i = 0; i < 26; i++) {
                 auto  nextLine = CFileLoader::LoadLine(file);
                 int32 propValues[8]{};
@@ -79,7 +79,7 @@ void CFont::LoadFontValues() {
                     gFontData[fontId].m_propValues[i * 8 + j] = propValues[j];
                 }
             }
-        } else if (attr.starts_with("[UNPROP]")) {
+        } else if (attr == "[UNPROP]") {
             auto   nextLine = CFileLoader::LoadLine(file);
             uint32 unpropValue;
 
