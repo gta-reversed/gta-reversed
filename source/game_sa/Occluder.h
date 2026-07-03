@@ -42,9 +42,9 @@ public:
     FixedFloat<int16, 4.f> m_Height;
 
     // As usual, some R* dev from 2003 decided to swap the order of rotations as well :D
-    FixedFloat<int8, 4.f> m_RotZ;
-    FixedFloat<int8, 4.f> m_RotY;
-    FixedFloat<int8, 4.f> m_RotX;
+    FixedFloat<int8, 256.f / TWO_PI> m_RotZ;
+    FixedFloat<int8, 256.f / TWO_PI> m_RotY;
+    FixedFloat<int8, 256.f / TWO_PI> m_RotX;
 
     struct {
         int16 m_NextIndex : 15;
