@@ -1,4 +1,7 @@
 #include "StdInc.h"
+
+#include <reversiblebugfixes/Bugs.hpp>
+
 #include "TaskComplexLeaveCarAndFlee.h"
 #include "TaskComplexSmartFleePoint.h"
 #include "TaskComplexLeaveCar.h"
@@ -47,7 +50,7 @@ CTask* CTaskComplexLeaveCarAndFlee::CreateSubTask(eTaskType taskType) {
     switch (taskType) {
     case TASK_COMPLEX_SMART_FLEE_POINT: // 0x63C177
         return new CTaskComplexSmartFleePoint{
-            m_waitForCarToSlowDown // Inverted
+            m_waitForCarToSlowDown && (!notsa::bugfixes::CTaskComplexLeaveCarAndFlee_MissingNullCheckForVehicleOnFlee || m_veh ) // Inverted
                 ? m_veh->GetPosition()
                 : m_fleePoint,
             false,
