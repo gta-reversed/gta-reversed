@@ -55,7 +55,7 @@ CTask* CTaskComplexLeaveCarAndFlee::CreateSubTask(eTaskType taskType) {
                 : m_fleePoint,
             false,
             60.f,
-            1000000
+            1'000'000
         };
     case TASK_COMPLEX_LEAVE_CAR: // 0x63C12E
         return new CTaskComplexLeaveCar{
