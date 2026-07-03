@@ -525,7 +525,7 @@
 #include "extensions/CommandLine.h"
 #include <RenderBuffer.hpp>
 
-#include "ReversibleHooks/RootHookCategory.h"
+#include "reversiblehooks/RootHookCategory.h"
 
 #include "WindowedMode.hpp"
 

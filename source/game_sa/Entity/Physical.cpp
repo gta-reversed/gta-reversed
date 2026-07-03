@@ -225,7 +225,7 @@ void CPhysical::ProcessControl()
 
     if (GetStatus() != STATUS_SIMPLE)
     {
-        physicalFlags.b31 = false;
+        physicalFlags.bDoorHitEndStop = false;
         physicalFlags.bOnSolidSurface = false;
         m_nNumEntitiesCollided = 0;
         m_nPieceType = 0;
@@ -355,12 +355,12 @@ void CPhysical::ProcessCollision() {
             m_matrix->Reorthogonalise();
             physicalFlags.bProcessingShift = false;
             physicalFlags.bSkipLineCol = false;
-            physicalFlags.b17 = true;
+            physicalFlags.bForceHitReturnFalse = true;
             bool bOldUsesCollision = GetUsesCollision();
             SetUsesCollision(false);
             if (!CheckCollision())
             {
-                physicalFlags.b17 = false;
+                physicalFlags.bForceHitReturnFalse = false;
                 SetUsesCollision(bOldUsesCollision);
                 if (GetIsTypeVehicle())
                     vehicle->vehicleFlags.bVehicleColProcessed = true;
@@ -374,7 +374,7 @@ void CPhysical::ProcessCollision() {
                 return;
             }
             SetUsesCollision(bOldUsesCollision);
-            physicalFlags.b17 = false;
+            physicalFlags.bForceHitReturnFalse = false;
             *static_cast<CMatrix*>(m_matrix) = oldEntityMatrix;
             m_vecMoveSpeed = vecOldMoveSpeed;
             if (GetIsTypeVehicle() && vehicle->vehicleFlags.bIsLawEnforcer)
@@ -556,7 +556,7 @@ void CPhysical::ProcessShift() {
 // 0x54DEC0
 bool CPhysical::TestCollision(bool bApplySpeed) {
     CMatrix entityMatrix(*m_matrix);
-    physicalFlags.b17 = true;
+    physicalFlags.bForceHitReturnFalse = true;
     physicalFlags.bSkipLineCol = true;
     bool bOldUsesCollision = GetUsesCollision();
     SetUsesCollision(false);
@@ -573,7 +573,7 @@ bool CPhysical::TestCollision(bool bApplySpeed) {
 
     bool bCheckCollision = CheckCollision();
     SetUsesCollision(bOldUsesCollision);
-    physicalFlags.b17 = false;
+    physicalFlags.bForceHitReturnFalse = false;
     physicalFlags.bSkipLineCol = false;
     *(CMatrix*)m_matrix = entityMatrix;
     if (bTestForBlockedPositions)
@@ -2490,7 +2490,7 @@ void CPhysical::ApplySpeed()
         ApplyTurnSpeed();
         m_vecTurnSpeed.z = -0.2f * m_vecTurnSpeed.z;
         CTimer::UpdateTimeStep(fOldTimeStep - fNewTimeStep);
-        physicalFlags.b31 = true;
+        physicalFlags.bDoorHitEndStop = true;
     }
     ApplyMoveSpeed();
     ApplyTurnSpeed();
@@ -2551,7 +2551,7 @@ void CPhysical::ApplyFriction()
 
     auto* vehicle = AsVehicle();
     if (GetIsTypeVehicle() && vehicle->IsBike()
-        && !physicalFlags.b32 && GetStatus() == STATUS_ABANDONED
+        && !physicalFlags.bCarriedByRope && GetStatus() == STATUS_ABANDONED
         && fabs(GetUp().z) < 0.707f
         && 0.05f * 0.05f > m_vecMoveSpeed.SquaredMagnitude() && 0.01f * 0.01f > m_vecTurnSpeed.SquaredMagnitude())
     {
@@ -4018,7 +4018,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                 if (!bCollisionDisabled) // if collision is enabled then
                 {
                     int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                    if (physicalFlags.b17 && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
+                    if (physicalFlags.bForceHitReturnFalse && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
                         return true;
                     }
                     if (!totalColPointsToProcess && m_pEntityIgnoredCollision == entity && this == FindPlayerPed()) {
@@ -4707,7 +4707,7 @@ bool CPhysical::CheckCollision()
     if (GetIsTypePed())
     {
         CPed* ped = AsPed();
-        if (!m_pAttachedTo && !physicalFlags.b17 && !physicalFlags.bProcessingShift && !physicalFlags.bSkipLineCol) {
+        if (!m_pAttachedTo && !physicalFlags.bForceHitReturnFalse && !physicalFlags.bProcessingShift && !physicalFlags.bSkipLineCol) {
             ped->m_standingOnEntity = nullptr;
             if (ped->bIsStanding) {
                 ped->bIsStanding = false;

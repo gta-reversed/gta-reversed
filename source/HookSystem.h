@@ -95,3 +95,29 @@ void HookInstall(DWORD installAddress, T addressToJumpTo, int iJmpCodeSize = 5)
     }
     VirtualProtect((void*)installAddress, maxBytesToProtect, dwProtect[0], &dwProtect[1]);
 }
+
+namespace notsa {
+    // Change protection of memory pages, and automatically rollback on scope exit
+    struct [[nodiscard]] ScopedVirtualProtectModify {
+        ScopedVirtualProtectModify(LPVOID address, SIZE_T sz, DWORD newProtect = PAGE_EXECUTE_READWRITE) :
+        m_addr{ address },
+        m_sz{ sz }
+        {
+            if (VirtualProtect(address, sz, newProtect, &m_initialProtect) == 0) {
+                NOTSA_UNREACHABLE("VirtualProtect failed");
+            }
+        }
+
+        ~ScopedVirtualProtectModify() {
+            DWORD oldProtect{};
+            if (VirtualProtect(m_addr, m_sz, m_initialProtect, &oldProtect) == 0) {
+                NOTSA_UNREACHABLE("VirtualProtect undo failed");
+            }
+        }
+
+    private:
+        DWORD  m_initialProtect{};
+        LPVOID m_addr{};
+        SIZE_T m_sz{};
+    };
+}; // namespace detail
