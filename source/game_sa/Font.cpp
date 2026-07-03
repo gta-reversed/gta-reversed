@@ -424,7 +424,7 @@ void CFont::SetDropColor(CRGBA color) {
     m_Details.DropColor = color;
 
     if (m_Details.AlphaFade < 255.0f) {
-        m_Details.DropColor.a = (uint8)(float(m_Details.Color.a) * m_Details.AlphaFade);
+        m_Details.DropColor.a = (uint8)(float(color.a) * m_Details.AlphaFade / 255.0f);
     }
 }
 
