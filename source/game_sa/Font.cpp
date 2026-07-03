@@ -50,21 +50,22 @@ void CFont::LoadFontValues() {
             continue;
         }
 
-        if (!memcmp(attrib, "[TOTAL_FONTS]", 14)) {
+        const auto attr = std::string_view{attrib};
+        if (attr.starts_with("[TOTAL_FONTS]")) {
             auto nextLine = CFileLoader::LoadLine(file);
 
             VERIFY(sscanf_s(nextLine, "%d", &totalFonts) == 1);
-        } else if (!memcmp(attrib, "[FONT_ID]", 10)) {
+        } else if (attr.starts_with("[FONT_ID]")) {
             auto nextLine = CFileLoader::LoadLine(file);
 
             VERIFY(sscanf_s(nextLine, "%d", &fontId) == 1);
-        } else if (!memcmp(attrib, "[REPLACEMENT_SPACE_CHAR]", 25)) {
+        } else if (attr.starts_with("[REPLACEMENT_SPACE_CHAR]")) {
             auto  nextLine = CFileLoader::LoadLine(file);
             uint8 spaceValue;
 
             VERIFY(sscanf_s(nextLine, "%hhu", &spaceValue) == 1);
             gFontData[fontId].m_spaceValue = spaceValue;
-        } else if (!memcmp(attrib, "[PROP]", 7)) {
+        } else if (attr.starts_with("[PROP]")) {
             for (int32 i = 0; i < 26; i++) {
                 auto  nextLine = CFileLoader::LoadLine(file);
                 int32 propValues[8]{};
@@ -78,7 +79,7 @@ void CFont::LoadFontValues() {
                     gFontData[fontId].m_propValues[i * 8 + j] = propValues[j];
                 }
             }
-        } else if (!memcmp(attrib, "[UNPROP]", 9)) {
+        } else if (attr.starts_with("[UNPROP]")) {
             auto   nextLine = CFileLoader::LoadLine(file);
             uint32 unpropValue;
 
@@ -162,11 +163,11 @@ void CFont::PrintChar(float x, float y, char character) {
     }
 
     const auto u1     = (letter % 16) / 16.0f;
-    const auto v_base = (letter / 16);
+    const auto vBase  = (letter / 16);
 
     if (RenderState.m_wFontTexture >= +eFontTextureName::FONT_UNK_2) {
         NOTSA_LOG_ERR("weird texture {}, for print char {}", RenderState.m_wFontTexture, character);
-        float v18 = v_base / 16.0f;
+        float v18 = vBase / 16.0f;
 
         if (!zeroed) {
             const auto  propValue = GetLetterIdPropValue(character) / 32.0f;
@@ -187,7 +188,7 @@ void CFont::PrintChar(float x, float y, char character) {
         return;
     }
 
-    const auto v19 = v_base / 12.8f;
+    const auto v19 = vBase / 12.8f;
     if (!zeroed) {
         CRect rt{};
         rt.left = x;
@@ -365,8 +366,9 @@ const GxtChar* CFont::ParseToken(const GxtChar* text, CRGBA& color, bool isBlip,
 
     if (*next != '~') {
         // skip text to the next '~' character.
-        for (; *next && *next != '~'; next++)
-            ;
+        while (*next && *next != '~') {
+            ++next;
+        }
     }
     return next + (*next ? 1 : 2);
 }
@@ -562,8 +564,9 @@ float CFont::GetStringWidth(const GxtChar* string, bool full, bool scriptText) {
             auto* next = pStr + 1;
 
             if (*next != '~') {
-                for (; *next && *next != '~'; next++)
-                    ;
+                while (*next && *next != '~') {
+                    ++next;
+                }
             }
 
             pStr = next + 1;
@@ -817,11 +820,11 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     // Set up the next character to be rendered
     auto* next             = reinterpret_cast<CFontChar*>(s_RenderEndPtr);
     next->m_fWidth         = m_Details.Scale.x;
-    next->m_fHeight         = m_Details.Scale.y;
+    next->m_fHeight        = m_Details.Scale.y;
     next->m_color          = m_Details.Color;
     next->m_fWrap          = wrap;
-    next->Slope         = m_Details.Slope;
-    next->SlopeRef    = m_Details.SlopeRef;
+    next->Slope            = m_Details.Slope;
+    next->SlopeRef         = m_Details.SlopeRef;
     next->m_nFontStyle     = m_Details.FontTextureStyle;
     next->m_bPropOn        = m_Details.Proportional;
     next->m_wFontTexture   = +m_Details.FontTextureName; // TODO
@@ -957,6 +960,20 @@ uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
     return letterId;
 }
 
+// NOTSA
+static float GetLetterIdPropValue(uint8 letterId, bool propCond, uint16 style) {
+    if (propCond) {
+        return gFontData[style].m_propValues[letterId];
+    } else {
+        return gFontData[style].m_unpropValue;
+    }
+}
+
+// 0x718770
+float GetLetterIdPropValue(uint8 letterId) {
+    return GetLetterIdPropValue((letterId != '?') ? letterId : 0, CFont::RenderState.m_bPropOn, CFont::RenderState.m_wFontTexture);
+}
+
 // 0x719670, original name unknown
 float GetScriptLetterSize(uint8 letterId) {
     letterId = (letterId != '?') ? letterId : 0;
@@ -982,26 +999,8 @@ float GetScriptLetterSize(uint8 letterId) {
         }
     }();
 
-    const auto fontWidth = [style, subFontChar, i] {
-        if (CTheScripts::IntroTextLines[i].IsProportional) {
-            return gFontData[style].m_propValues[subFontChar];
-        } else {
-            return gFontData[style].m_unpropValue;
-        }
-    }();
-
+    const auto fontWidth = GetLetterIdPropValue(subFontChar, CTheScripts::IntroTextLines[i].IsProportional, style);
     return CTheScripts::IntroTextLines[i].Scale.x * (fontWidth + CTheScripts::IntroTextLines[i].TextEdge);
-}
-
-// 0x718770
-float GetLetterIdPropValue(uint8 letterId) {
-    const uint8 id = (letterId != '?') ? letterId : 0;
-
-    if (CFont::RenderState.m_bPropOn) {
-        return gFontData[CFont::RenderState.m_wFontTexture].m_propValues[id];
-    } else {
-        return gFontData[CFont::RenderState.m_wFontTexture].m_unpropValue;
-    }
 }
 
 void CFont::InjectHooks() {
@@ -1048,5 +1047,5 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
     RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0, {.reversed = false}); // hangs up the game for some reason
     RH_ScopedGlobalInstall(GetScriptLetterSize, 0x719670);
-    RH_ScopedGlobalInstall(GetLetterIdPropValue, 0x718770);
+    RH_ScopedGlobalOverloadedInstall(GetLetterIdPropValue, "", 0x718770, float(*)(uint8));
 }
