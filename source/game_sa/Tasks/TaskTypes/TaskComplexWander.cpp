@@ -89,13 +89,12 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
         if (m_NextNode == m_LastNode) { // Inverted
             CVector outTargetPos;
             ComputeTargetPos(ped, outTargetPos, m_NextNode); // 0x6743C8 (this is here out-of-order, but I guess it doesn't matter)
-
-            auto* sequence = new CTaskComplexSequence(); // 0x6742DA
-            sequence->AddTask(new CTaskSimpleStandStill(500, false, false, 8.0f));
-            sequence->AddTask(new CTaskSimpleRunAnim(ped->m_nAnimGroup, ANIM_ID_ROADCROSS, 4.0F, false));
-            sequence->AddTask(new CTaskSimpleScratchHead());
-            sequence->AddTask(new CTaskSimpleGoToPoint(m_nMoveState, outTargetPos, m_fTargetRadius, false, false));
-            return sequence;
+            return new CTaskComplexSequence{ // 0x6742DA
+                new CTaskSimpleStandStill(500, false, false, 8.0f),
+                new CTaskSimpleRunAnim(ped->m_nAnimGroup, ANIM_ID_ROADCROSS, 4.0F, false),
+                new CTaskSimpleScratchHead(),
+                new CTaskSimpleGoToPoint(m_nMoveState, outTargetPos, m_fTargetRadius, false, false),
+            };
         }
 
         if (!ValidNodes()) {
