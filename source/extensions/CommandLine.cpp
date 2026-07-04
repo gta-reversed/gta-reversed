@@ -66,8 +66,10 @@ void ProcessArgument(const char* arg) {
 }
 
 void CommandLine::Load(int argc, char** argv) {
+    NOTSA_LOG_DEBUG("[Command Line]: Loading arguments");
     for (auto& arg : std::span{ argv, (size_t)(argc) } | rngv::drop(1)) { // Skip first 'argument' which is the exec path.
         ProcessArgument(arg);
     }
+    NOTSA_LOG_DEBUG("[Command Line]: Arguments loaded");
 }
 } // namespace CommandLine

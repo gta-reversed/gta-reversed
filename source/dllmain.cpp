@@ -2,24 +2,12 @@
 #include "config.h"
 #include <cstdlib>
 
+#include "WinPlatform.h"
 #include "extensions/CommandLine.h"
 #include "extensions/Configuration.hpp"
 #include "reversiblehooks/RootHookCategory.h"
 
 void InjectHooksMain(HMODULE hThisDLL);
-
-void DisplayConsole() {
-    // Support UTF-8 IO for Windows Terminal. (or CMD if a supported font is used)
-    SetConsoleCP(CP_UTF8);
-    SetConsoleOutputCP(CP_UTF8);
-
-    if (AllocConsole()) {
-        FILESTREAM fs{};
-        VERIFY(freopen_s(&fs, "CONIN$", "r", stdin) == NOERROR);
-        VERIFY(freopen_s(&fs, "CONOUT$", "w", stdout) == NOERROR);
-        VERIFY(freopen_s(&fs, "CONOUT$", "w", stderr) == NOERROR);
-    }
-}
 
 void WaitForDebugger() {
     while (!::IsDebuggerPresent()) {

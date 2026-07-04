@@ -133,6 +133,19 @@ BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk) {
     return *ck != rsNULL;
 }
 
+void DisplayConsole() {
+    // Support UTF-8 IO for Windows Terminal. (or CMD if a supported font is used)
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
+
+    if (AllocConsole()) {
+        FILESTREAM fs{};
+        VERIFY(freopen_s(&fs, "CONIN$", "r", stdin) == NOERROR);
+        VERIFY(freopen_s(&fs, "CONOUT$", "w", stdout) == NOERROR);
+        VERIFY(freopen_s(&fs, "CONOUT$", "w", stderr) == NOERROR);
+    }
+}
+
 void WinPsInjectHooks();
 void Win32InjectHooks() {
     RH_ScopedCategory("Win");
