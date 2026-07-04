@@ -2,8 +2,8 @@
 #include "AEBankLoader.h"
 
 struct tVirtualChannelSettings {
-    eSoundBankSlot BankSlotIDs[300]{};
-    eSoundID       SoundIDs[300]{};
+    std::array<eSoundBankSlot, 300> BankSlotIDs{};
+    std::array<eSoundID, 300>       SoundIDs{};
 
     tVirtualChannelSettings() {
         rng::fill(BankSlotIDs, SND_BANK_SLOT_NONE);

@@ -64,12 +64,12 @@ public:
         };
         uint16 m_nFlags{};
     };
-    eAreaCodes  m_nArea{};
-    uint8       m_nSkyColor{};
-    uint8       m_nTimeOn{};
-    uint8       m_nTimeOff{};
-    uint8       m_nNumberOfPeds{};
-    CEntryExit* m_pLink{};
+    eAreaCodesS8 m_nArea{};
+    uint8        m_nSkyColor{};
+    uint8        m_nTimeOn{};
+    uint8        m_nTimeOff{};
+    uint8        m_nNumberOfPeds{};
+    CEntryExit*  m_pLink{};
 
     static inline auto& ms_bWarping = StaticRef<bool>(0x96A7B8);
     static inline auto& ms_pDoor = StaticRef<CObject*>(0x96A7BC);
@@ -86,7 +86,7 @@ public:
         float entranceAngle,
         CVector exit,
         float exitAngle,
-        int32 area,
+        eAreaCodes area,
         CEntryExit::eFlags flags,
         int32 skyColor,
         int32 timeOn, int32 timeOff,

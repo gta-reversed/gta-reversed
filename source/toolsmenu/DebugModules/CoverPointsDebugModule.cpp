@@ -109,13 +109,13 @@ void CoverPointsDebugModule::RenderCoverPointsTable() {
     rng::sort(m_CptsInRange, [&](const InRangeCoverPoint& a, const InRangeCoverPoint& b) {
         for (auto i = 0; i < specs->SpecsCount; i++) {
             const auto spec = &specs->Specs[i];
-            std::partial_ordering o;
+            auto o = std::partial_ordering::equivalent;
             switch (spec->ColumnIndex) {
             case 0: o = a.TblIdx <=> b.TblIdx;                               break; // #
             case 1: o = a.CoverPoint->GetType() <=> a.CoverPoint->GetType(); break; // Type
             case 2: o = a.DistToPlayer <=> b.DistToPlayer;                   break; // Distance
             }
-            if (o != 0) {
+            if (o != std::partial_ordering::equivalent) {
                 return spec->SortDirection == ImGuiSortDirection_Ascending
                     ? o < 0
                     : o > 0;

@@ -18,6 +18,8 @@
 #include "eVehicleType.h"
 #include "eCarWheel.h"
 
+#include <extensions/utility.hpp>
+
 class CAnimBlock;
 
 // enum by forkerer (https://github.com/forkerer/)
@@ -161,9 +163,9 @@ public:
         static constexpr int32 NUM_EXTRAS = 6;
 
     public:
-        CVector         m_avDummyPos[NUM_DUMMIES];
-        UpgradePosnDesc m_aUpgrades[NUM_UPGRADES];
-        RpAtomic*       m_apExtras[NUM_EXTRAS];
+        std::array<CVector, NUM_DUMMIES>         m_avDummyPos;
+        std::array<UpgradePosnDesc, NUM_UPGRADES> m_aUpgrades;
+        std::array<RpAtomic*, NUM_EXTRAS>         m_apExtras;
         uint8           m_nNumExtras;
         uint32          m_nMaskComponentsDamagable;
 
@@ -182,19 +184,19 @@ public:
     } * m_pVehicleStruct;
 
     char        field_60[464];
-    RpMaterial* m_apDirtMaterials[32];
-    uint8       m_anPrimaryColors[8];
-    uint8       m_anSecondaryColors[8];
-    uint8       m_anTertiaryColors[8];
-    uint8       m_anQuaternaryColors[8];
+    std::array<RpMaterial*, 32> m_apDirtMaterials;
+    std::array<uint8, 8>        m_anPrimaryColors;
+    std::array<uint8, 8>        m_anSecondaryColors;
+    std::array<uint8, 8>        m_anTertiaryColors;
+    std::array<uint8, 8>        m_anQuaternaryColors;
     uint8       m_nNumColorVariations;
     uint8       m_nLastColorVariation;
     uint8       m_nCurrentPrimaryColor;
     uint8       m_nCurrentSecondaryColor;
     uint8       m_nCurrentTertiaryColor;
     uint8       m_nCurrentQuaternaryColor;
-    int16       m_anUpgrades[18];
-    int16       m_anRemapTxds[4];
+    std::array<int16, 18> m_anUpgrades;
+    std::array<int16, 4>  m_anRemapTxds;
 
     union {
         CAnimBlock* m_pAnimBlock;
@@ -204,8 +206,8 @@ public:
 
     class CLinkedUpgradeList {
     public:
-        int16 m_anUpgrade1[30];
-        int16 m_anUpgrade2[30];
+        std::array<int16, 30> m_anUpgrade1;
+        std::array<int16, 30> m_anUpgrade2;
         uint32 m_nLinksCount;
 
     public:
@@ -242,9 +244,8 @@ public:
     static inline auto& ms_wheelFrameIDs = StaticRef<int32[NUM_WHEELS]>(0x8A7770);
 
     // wheels upgrades data
-    // static int16 ms_upgradeWheels[15][4];
     static constexpr int32 NUM_WHEEL_UPGRADES = 15;
-    static inline auto& ms_upgradeWheels = StaticRef<int16[NUM_WHEEL_UPGRADES][NUM_WHEELS]>(0xB4E3F8);
+    static inline auto& ms_upgradeWheels = StaticRef<notsa::mdarray<int16, NUM_WHEELS, NUM_WHEEL_UPGRADES>>(0xB4E3F8);
 
     // Light states for currently rendered car
     static constexpr int32 NUM_LIGHTS = 4;

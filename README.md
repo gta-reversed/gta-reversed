@@ -9,7 +9,7 @@ Please join our community Discord: [GTA Groupies](https://discord.gg/FG8XJ5Npqe)
 Building this project will result in a DLL file that can be injected into GTA:SA using any ASI loader out there. After the DLL file has been injected, the ingame functions will be replaced by the reversed ones. The game will behave the same. Now if we make any changes to the reversed code, it will take effect in the game. The goal is to keep reversing until we have the entire game reversed to compile a standalone executable.
 
 ## Progress
-The progress of reversed classes can be tracked [here](docs/ReversedClasses.MD). (needs to be updated)
+The progress of reversed classes can be tracked [here](docs/ReversedClasses.md). (needs to be updated)
 We currently estimate that about 50-60% of the code is done.
 Since this project is done as a hobby, and worked on at irregular intervals, **there's no time estimate on when it'll be finished.**
 

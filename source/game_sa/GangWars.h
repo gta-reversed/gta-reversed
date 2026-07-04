@@ -130,6 +130,9 @@ public:
     static void Update();
     static void UpdateTerritoryUnderControlPercentage();
 
+    // notsa
+    static auto GetSpecificZones() { return aSpecificZones | rngv::take(NumSpecificZones); }
+
 private:
     static eBlipColour GetGangColor(int32 gang);
 };

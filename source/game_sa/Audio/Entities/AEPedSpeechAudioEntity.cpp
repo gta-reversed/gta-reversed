@@ -536,11 +536,11 @@ eCJMood CAEPedSpeechAudioEntity::GetCurrentCJMood() {
         }
     };
 
-    if (FindPlayerWanted()->GetWantedLevel() > 3) { // 0x4E5537
+    if (FindPlayerWanted()->GetWantedLevel() > eWantedLevel::WANTED_LEVEL_3) { // 0x4E5537
         return DeriveMood(MOOD_PR);
     }
 
-    if (FindPlayerWanted()->GetWantedLevel() > 1) { // 0x4E554B
+    if (FindPlayerWanted()->GetWantedLevel() > eWantedLevel::WANTED_LEVEL_1) { // 0x4E554B
         return DeriveMood(MOOD_AR);
     }
 

@@ -16,7 +16,7 @@ enum eBreakablePluginPositionRule : uint32 {
 };
 
 struct BreakInfoTriangle {
-    uint16 vertIndex[3];
+    std::array<uint16, 3> vertIndex;
 };
 
 struct BreakInfoColor {

@@ -48,7 +48,7 @@ void CShinyTexts::Render() {
     uiTempBufferVerticesStored = 0;
 
     RwTexture* texture{};
-    for (CRegisteredShinyText& text : std::span{ aShinyTexts, NumShinyTexts }) {
+    for (CRegisteredShinyText& text : GetShinyTexts()) {
         if (uiTempBufferIndicesStored > TOTAL_TEMP_BUFFER_INDICES - 64u ||
             uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_3DVERTICES - 64u
         )

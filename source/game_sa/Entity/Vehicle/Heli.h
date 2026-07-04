@@ -43,7 +43,7 @@ struct tHeliLight {
     uint32  m_nCoronaIndex;
     bool    field_24; // unknown flag
     bool    m_bDrawShadow;
-    CVector m_vecUseless[3]; // m_aSearchLightHistory
+    std::array<CVector, 3> m_vecUseless; // m_aSearchLightHistory
 
     void Init() {
         m_vecOrigin = CVector{};

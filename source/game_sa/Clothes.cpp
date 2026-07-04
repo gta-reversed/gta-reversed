@@ -147,7 +147,7 @@ void CClothes::ConstructPedModel(uint32 modelId, CPedClothesDesc& newClothes, co
 
     auto modelInfo = CModelInfo::GetModelInfo(modelId)->AsPedModelInfoPtr();
     auto txd = CTxdStore::ms_pTxdPool->GetAt(modelInfo->m_nTxdIndex);
-    auto skinnedClump = CClothesBuilder::CreateSkinnedClump(modelInfo->m_pRwClump, txd->m_pRwDictionary, newClothes, oldClothes, bCutscenePlayer);
+    auto skinnedClump = CClothesBuilder::CreateSkinnedClump(modelInfo->GetRpClump(), txd->m_pRwDictionary, newClothes, oldClothes, bCutscenePlayer);
     if (skinnedClump) {
         RequestMotionGroupAnims();
         modelInfo->AddTexDictionaryRef();
@@ -192,7 +192,7 @@ void CClothes::RebuildPlayerIfNeeded(CPlayerPed* player) {
 
 // 0x5A82C0
 void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
-    auto assoc = RpAnimBlendClumpExtractAssociations(player->m_pRwClump);
+    auto assoc = RpAnimBlendClumpExtractAssociations(player->GetRpClump());
     auto task = player->GetIntelligence()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK);
     if (task)
         task->MakeAbortable(player, ABORT_PRIORITY_IMMEDIATE, nullptr);
@@ -206,7 +206,7 @@ void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
 
     ConstructPedModel(player->GetModelIndex(), *player->GetPlayerData()->m_pPedClothesDesc, &PlayerClothes, 0);
     player->Dress();
-    RpAnimBlendClumpGiveAssociations(player->m_pRwClump, assoc);
+    RpAnimBlendClumpGiveAssociations(player->GetRpClump(), assoc);
     PlayerClothes = *player->GetPlayerData()->m_pPedClothesDesc;
 }
 

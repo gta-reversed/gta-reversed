@@ -104,19 +104,19 @@ public:
 
     static inline auto& m_CurrentColours = StaticRef<CColourSet>(0xB7C4A0);
 
-    static inline auto& m_aBoxes = StaticRef<CTimeCycleBox[20]>(0xB7C550);
+    static inline auto& m_aBoxes = StaticRef<std::array<CTimeCycleBox, 20>>(0xB7C550);
     static inline auto& m_NumBoxes = StaticRef<uint32>(0xB7C480);
 
     static inline auto& m_CurrentStoredValue = StaticRef<uint32>(0xB79FD0);
-    static inline auto& m_VectorToSun = StaticRef<CVector[16]>(0xB7CA50);
+    static inline auto& m_VectorToSun = StaticRef<std::array<CVector, 16>>(0xB7CA50);
 
     // TODO: CVector2D?
-    static inline auto& m_fShadowFrontX = StaticRef<float[16]>(0xB79F90);
-    static inline auto& m_fShadowFrontY = StaticRef<float[16]>(0xB79F50);
-    static inline auto& m_fShadowSideX = StaticRef<float[16]>(0xB79F10);
-    static inline auto& m_fShadowSideY = StaticRef<float[16]>(0xB79ED0);
-    static inline auto& m_fShadowDisplacementX = StaticRef<float[16]>(0xB79E90);
-    static inline auto& m_fShadowDisplacementY = StaticRef<float[16]>(0xB79E50);
+    static inline auto& m_fShadowFrontX = StaticRef<std::array<float, 16>>(0xB79F90);
+    static inline auto& m_fShadowFrontY = StaticRef<std::array<float, 16>>(0xB79F50);
+    static inline auto& m_fShadowSideX = StaticRef<std::array<float, 16>>(0xB79F10);
+    static inline auto& m_fShadowSideY = StaticRef<std::array<float, 16>>(0xB79ED0);
+    static inline auto& m_fShadowDisplacementX = StaticRef<std::array<float, 16>>(0xB79E90);
+    static inline auto& m_fShadowDisplacementY = StaticRef<std::array<float, 16>>(0xB79E50);
 
     static inline auto& m_FogReduction = StaticRef<int32>(0xB79E48);
 
@@ -242,7 +242,7 @@ public: // NOTSA
     static float SumOfCurrentRGB1() { return m_CurrentColours.m_fPostFx1Blue + m_CurrentColours.m_fPostFx1Green + m_CurrentColours.m_fPostFx1Red; }
     static float SumOfCurrentRGB2() { return m_CurrentColours.m_fPostFx2Blue + m_CurrentColours.m_fPostFx2Green + m_CurrentColours.m_fPostFx2Red; }
 
-    static auto GetBoxes() { return std::span{ m_aBoxes, m_NumBoxes}; }
+    static auto GetBoxes() { return m_aBoxes | rngv::take(m_NumBoxes); }
     static bool ShouldIgnoreSky() {
         return (
             m_nSkyTopRed[m_ExtraColour][m_ExtraColourWeatherType]   == 0 &&

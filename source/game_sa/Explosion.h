@@ -53,7 +53,7 @@ public:
     float          m_fFuelSpeed[NUM_FUEL];
 
     static inline auto& m_ExplosionAudioEntity = StaticRef<CAEExplosionAudioEntity>(0xC888D0);
-    static inline auto& aExplosions = StaticRef<CExplosion[16]>(0xC88950);
+    static inline auto& aExplosions = StaticRef<std::array<CExplosion, 16>>(0xC88950);
 
 public:
     static void InjectHooks();

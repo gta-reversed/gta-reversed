@@ -165,8 +165,8 @@ struct tStreamingFileDesc {
 VALIDATE_SIZE(tStreamingFileDesc, 0x30);
 
 struct tStreamingChannel {
-    int32               modelIds[16];
-    int32               modelStreamingBufferOffsets[16];
+    std::array<int32, 16> modelIds;
+    std::array<int32, 16> modelStreamingBufferOffsets;
     eChannelState       LoadStatus;
     int32               loadingLevel; // the value gets modified, but it's not used
     CdStreamPos         pos;
@@ -189,15 +189,15 @@ public:
 
     // Default models for each level (see eLevelNames):
 
-    static inline auto& ms_aDefaultCopCarModel = StaticRef<int32[5]>(0x8A5A8C); // Last one is bike cop, not matching any level name
-    static inline auto& ms_aDefaultCopModel = StaticRef<int32[5]>(0x8A5AA0); // Last one is bike cop, not matching any level name
+    static inline auto& ms_aDefaultCopCarModel = StaticRef<std::array<int32, 5>>(0x8A5A8C); // Last one is bike cop, not matching any level name
+    static inline auto& ms_aDefaultCopModel = StaticRef<std::array<int32, 5>>(0x8A5AA0); // Last one is bike cop, not matching any level name
 
     static inline auto& ms_nTimePassedSinceLastCopBikeStreamedIn = StaticRef<uint32>(0x9654C0);
 
-    static inline auto& ms_aDefaultAmbulanceModel = StaticRef<int32[4]>(0x8A5AB4);
-    static inline auto& ms_aDefaultMedicModel = StaticRef<int32[4]>(0x8A5AC4);
-    static inline auto& ms_aDefaultFireEngineModel = StaticRef<int32[4]>(0x8A5AD4);
-    static inline auto& ms_aDefaultFiremanModel = StaticRef<int32[4]>(0x8A5AE4);
+    static inline auto& ms_aDefaultAmbulanceModel = StaticRef<std::array<int32, 4>>(0x8A5AB4);
+    static inline auto& ms_aDefaultMedicModel = StaticRef<std::array<int32, 4>>(0x8A5AC4);
+    static inline auto& ms_aDefaultFireEngineModel = StaticRef<std::array<int32, 4>>(0x8A5AD4);
+    static inline auto& ms_aDefaultFiremanModel = StaticRef<std::array<int32, 4>>(0x8A5AE4);
 
     // Default models for current level
     static inline auto& ms_DefaultCopBikeModel = StaticRef<int32>(0x8A5A9C);
@@ -207,7 +207,7 @@ public:
     static inline auto& ms_files = StaticRef<tStreamingFileDesc[TOTAL_IMG_ARCHIVES]>(0x8E48D8);
     static inline auto& ms_bLoadingBigModel = StaticRef<bool>(0x8E4A58);
     // There are only two channels within CStreaming::ms_channel
-    static inline auto& ms_channel = StaticRef<tStreamingChannel[2]>(0x8E4A60);
+    static inline auto& ms_channel = StaticRef<std::array<tStreamingChannel, 2>>(0x8E4A60);
     static inline auto& ms_channelError = StaticRef<int32>(0x8E4B90);
     static inline auto& m_bHarvesterModelsRequested = StaticRef<bool>(0x8E4B9C);
     static inline auto& m_bStreamHarvesterModelsThisFrame = StaticRef<bool>(0x8E4B9D);
@@ -237,14 +237,14 @@ public:
     static inline auto& ms_startLoadedList = StaticRef<CStreamingInfo*>(0x8E4C60);
 
     static inline auto& ms_lastImageRead = StaticRef<int32>(0x8E4C64); // initialized but not used?
-    static inline auto& ms_imageOffsets = StaticRef<int32[6]>(0x8E4C8C); // initialized but never used?
+    static inline auto& ms_imageOffsets = StaticRef<std::array<int32, 6>>(0x8E4C8C); // initialized but never used?
 
     static inline auto& ms_bEnableRequestListPurge = StaticRef<bool>(0x8E4CA4);
     static inline auto& ms_streamingBufferSize = StaticRef<uint32>(0x8E4CA8);
     static inline auto& ms_pStreamingBuffer = StaticRef<uint8*[2]>(0x8E4CAC);
     static inline auto& ms_memoryUsedBytes = StaticRef<uint32>(0x8E4CB4);
     static inline auto& ms_numModelsRequested = StaticRef<int32>(0x8E4CB8);
-    static inline auto& ms_aInfoForModel = StaticRef<CStreamingInfo[26316]>(0x8E4CC0);
+    static inline auto& ms_aInfoForModel = StaticRef<std::array<CStreamingInfo, 26316>>(0x8E4CC0);
     static inline auto& ms_disableStreaming = StaticRef<bool>(0x9654B0);
     static inline auto& ms_bIsInitialised = StaticRef<int32>(0x9654B8);
     static inline auto& m_bBoatsNeeded = StaticRef<bool>(0x9654BC);
@@ -399,6 +399,6 @@ public:
     static bool IsModelLoaded(int32 model) { return ms_aInfoForModel[model].m_LoadState == eStreamingLoadState::LOADSTATE_LOADED; }
     static CStreamingInfo& GetInfo(int32 modelId) { assert(modelId >= 0); return ms_aInfoForModel[modelId]; }
     static bool IsRequestListEmpty() { return ms_pEndRequestedList->GetPrev() == ms_pStartRequestedList; }
-    static ptrdiff_t GetModelFromInfo(const CStreamingInfo* info) { return info - CStreaming::ms_aInfoForModel; }
+    static ptrdiff_t GetModelFromInfo(const CStreamingInfo* info) { return notsa::array_indexof(ms_aInfoForModel, info); }
     static auto GetLoadedPeds() { return ms_pedsLoaded | rng::views::take(ms_numPedsLoaded); }
 };

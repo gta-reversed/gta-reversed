@@ -181,7 +181,7 @@ void CGenericGameStorage::DoGameSpecificStuffBeforeSave() {
     CGameLogic::PassTime(6 * 60);
     FindPlayerInfo().m_nNumHoursDidntEat = 0;
     FindPlayerPed()->ResetSprintEnergy();
-    FindPlayerPed()->SetWantedLevel(0);
+    FindPlayerPed()->SetWantedLevel(eWantedLevel::WANTED_CLEAN);
     CGame::TidyUpMemory(true, false);
 }
 

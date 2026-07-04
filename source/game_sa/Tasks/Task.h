@@ -27,6 +27,8 @@ class NOTSA_EXPORT_VTABLE CTask {
     friend class CTaskComplex;
 
 public:
+    static void InjectHooks();
+
     static bool IsGoToTask(CTask* task);
     static bool IsTaskPtr(CTask* task);
 
@@ -74,7 +76,7 @@ public:
     //! @return The parent of this task. The parent is always of base type `CTaskComplex` (Because only complex tasks can have sub-tasks)
     auto GetParent() const { return m_Parent; }
 
-    //! @breif Clone a task and check if it's of the specified type
+    //! @brief Clone a task and check if it's of the specified type
     template<Task T>
     static T* CloneIfIs(CTask* t) {
         return t && notsa::isa<T>(t)

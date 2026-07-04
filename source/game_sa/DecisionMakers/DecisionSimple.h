@@ -8,8 +8,8 @@
 
 class CDecisionSimple {
 public:
-    eTaskType  m_anTasks[6];
-    float      m_afChances[6];
+    std::array<eTaskType, 6> m_anTasks;
+    std::array<float, 6>     m_afChances;
     uint32     m_nCount; // tasks count (max 6)
 
 public:

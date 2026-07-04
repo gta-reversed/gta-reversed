@@ -58,7 +58,7 @@ CTask* CTaskComplexEvasiveDiveAndGetUp::CreateSubTask(eTaskType taskType) {
 bool CTaskComplexEvasiveDiveAndGetUp::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     const auto subTaskAborted = m_pSubTask->MakeAbortable(ped, priority, event);
     if (subTaskAborted && priority == ABORT_PRIORITY_IMMEDIATE) {
-        if (const auto anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_EV_DIVE)) {
+        if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_EV_DIVE)) {
             anim->SetBlendDelta(-1000.f);
         }
     }

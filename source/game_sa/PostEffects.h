@@ -136,7 +136,7 @@ public:
 
     static inline auto& m_bGrainEnable = StaticRef<bool>(0xC402B4);
     static inline auto& m_pGrainRaster = StaticRef<RwRaster*>(0xC402B0);
-    static inline auto& m_grainStrength = StaticRef<char[2]>(0x8D5094);
+    static inline auto& m_grainStrength = StaticRef<std::array<char, 2>>(0x8D5094);
 
     static inline auto& m_bCCTV = StaticRef<bool>(0xC402C5);
     static inline auto& m_CCTVcol = StaticRef<CRGBA>(0x8D50FC); // { 64, 0, 0, 0 }

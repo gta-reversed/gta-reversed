@@ -340,7 +340,7 @@ bool CPedIntelligence::GetUsingParachute() {
         return false;
     }
 
-    auto animAssoc = RpAnimBlendClumpGetFirstAssociation(m_pPed->m_pRwClump, ANIMATION_IS_PARTIAL);
+    auto animAssoc = RpAnimBlendClumpGetFirstAssociation(m_pPed->GetRpClump(), ANIMATION_IS_PARTIAL);
     if (!animAssoc) {
         return false;
     }
@@ -586,7 +586,7 @@ void CPedIntelligence::ProcessAfterPreRender() {
     CWeapon* activeWeapon = &m_pPed->GetActiveWeapon();
     if (activeWeapon->m_Type == WEAPON_MOLOTOV && activeWeapon->m_FxSystem)
     {
-        RpHAnimHierarchy* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
+        RpHAnimHierarchy* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->GetRpClump());
         int32 animIDIndex = RpHAnimIDGetIndex(animHierarchy, 24); // 24 = BONE_R_HAND? - "BONE_R" xDDD
         RwMatrix* matrixArray = RpHAnimHierarchyGetMatrixArray(animHierarchy);
 

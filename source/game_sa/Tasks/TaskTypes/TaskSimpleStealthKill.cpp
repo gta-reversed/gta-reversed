@@ -109,7 +109,7 @@ void CTaskSimpleStealthKill::ManageAnim(CPed* ped) {
         return;
     }
 
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_animGrpId, [&, this] {
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_animGrpId, [&, this] {
         if (m_bKeepTargetAlive) {
             return ANIM_ID_KILL_KNIFE_PLAYER;
         }

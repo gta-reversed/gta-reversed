@@ -396,7 +396,7 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
         return;
     }
 
-    const auto hier = GetAnimHierarchyFromSkinClump(m_pCamTargetEntity->m_pRwClump);
+    const auto hier = GetAnimHierarchyFromSkinClump(m_pCamTargetEntity->GetRpClump());
     const auto aIdx = RpHAnimIDGetIndex(hier, ConvertPedNode2BoneTag(2)); // todo: enum
     auto&      aMat = RpHAnimHierarchyGetMatrixArray(hier)[aIdx];
     auto*      targetPed = m_pCamTargetEntity->AsPed();

@@ -2,6 +2,7 @@
 #include <extensions/CommandLine.h>
 
 #include <reversiblehooks/ReversibleHook/Virtual.h>
+#include "HookSystem.h"
 
 namespace ReversibleHooks {
 namespace ReversibleHook {
@@ -37,7 +38,8 @@ void Virtual::Switch() {
     // Redirect VTBL entries
     const auto pfn = m_pfns[m_IsHooked ? OUR : GTA];
     for (const auto vtbl : m_vtbls) {
-        detail::ScopedVirtualProtectModify m{ &vtbl[m_fnIdx], sizeof(pfn), PAGE_EXECUTE_READWRITE }; // Make sure we have permissions writing here...
+        // Make sure we have permissions writing here...
+        [[maybe_unused]] notsa::ScopedVirtualProtectModify _{ &vtbl[m_fnIdx], sizeof(pfn), PAGE_EXECUTE_READWRITE };
         vtbl[m_fnIdx] = pfn;
     }
 

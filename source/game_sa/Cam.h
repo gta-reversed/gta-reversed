@@ -116,9 +116,9 @@ public:
     CVector   m_vecSource;
     CVector   m_vecSourceBeforeLookBehind;
     CVector   m_vecUp;
-    CVector   m_avecPreviousVectors[2];
-    CVector   m_avecTargetHistoryPos[4];
-    uint32    m_anTargetHistoryTime[4];
+    std::array<CVector, 2> m_avecPreviousVectors;
+    std::array<CVector, 4> m_avecTargetHistoryPos;
+    std::array<uint32, 4>  m_anTargetHistoryTime;
     uint32    m_nCurrentHistoryPoints;
     CEntity*  m_pCamTargetEntity; // Owner entity. e.g.: player
     float     m_fCameraDistance;

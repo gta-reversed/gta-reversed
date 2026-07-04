@@ -137,7 +137,7 @@ void CReplay::EnableReplays() {
 void CReplay::StorePedAnimation(CPed* ped, CStoredAnimationState& state) {
     float blendValue{};
     CAnimBlendAssociation* second{};
-    const auto main = RpAnimBlendClumpGetMainAssociation(ped->m_pRwClump, &second, &blendValue);
+    const auto main = RpAnimBlendClumpGetMainAssociation(ped->GetRpClump(), &second, &blendValue);
     if (main) {
         state[0] = AnimationState::Make(main->m_AnimId, main->m_CurrentTime, main->m_Speed, static_cast<uint8>(main->m_AnimGroupId));
     } else {
@@ -150,7 +150,7 @@ void CReplay::StorePedAnimation(CPed* ped, CStoredAnimationState& state) {
         state[1] = AnimationState::MakeBlend(ANIM_ID_WALK, 0.0f, 0.0f, 0, 0.0f);
     }
 
-    const auto partial = RpAnimBlendClumpGetMainPartialAssociation(ped->m_pRwClump);
+    const auto partial = RpAnimBlendClumpGetMainPartialAssociation(ped->GetRpClump());
     if (partial && partial->m_AnimId >= ANIM_ID_WALK) {
         state[2] = AnimationState::MakeBlend(partial->m_AnimId, partial->m_CurrentTime, partial->m_Speed, static_cast<uint8>(partial->m_AnimGroupId), partial->m_BlendAmount);
     } else {
@@ -200,12 +200,12 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
     if (auto first = state[0]; first.m_nAnimId > 3u) {
         auto animBlock = CAnimManager::GetAssocGroups()[first.m_nGroupId1].m_AnimBlock;
         if (animBlock && animBlock->IsLoaded) {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)first.m_nGroupId1, (AnimationId)first.m_nAnimId, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), (AssocGroupId)first.m_nGroupId1, (AnimationId)first.m_nAnimId, 100.0f);
         } else {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_WALK, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_WALK, 100.0f);
         }
     } else {
-        anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, (AnimationId)first.m_nAnimId, 100.0f);
+        anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, (AnimationId)first.m_nAnimId, 100.0f);
     }
     anim->SetCurrentTime(state[0].m_nTime / ANIM_TIME_COMPRESS_VALUE);
     anim->SetSpeed(state[0].m_nSpeed / ANIM_SPEED_COMPRESS_VALUE);
@@ -215,9 +215,9 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
     anim = nullptr;
     if (auto second = state[1]; second.m_nGroupId1 && second.m_nAnimId && CAnimManager::GetAssocGroups()[second.m_nGroupId2].m_NumAnims > 0) {
         if (second.m_nAnimId > 3u) {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)second.m_nGroupId2, (AnimationId)second.m_nAnimId, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), (AssocGroupId)second.m_nGroupId2, (AnimationId)second.m_nAnimId, 100.0f);
         } else {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, (AnimationId)second.m_nAnimId, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, (AnimationId)second.m_nAnimId, 100.0f);
         }
 
         if (anim) {
@@ -228,11 +228,11 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
         }
     }
 
-    RpAnimBlendClumpRemoveAssociations(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
+    RpAnimBlendClumpRemoveAssociations(ped->GetRpClump(), ANIMATION_IS_PARTIAL);
     if (auto third = state[2]; third.m_nGroupId1 && third.m_nAnimId) {
         if (/*third.m_nGroupId1 >= 0 &&*/ third.m_nAnimId != 3u) {
             if (auto animBlock = CAnimManager::GetAssocGroups()[third.m_nGroupId2].m_AnimBlock; animBlock && animBlock->IsLoaded) {
-                anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)third.m_nGroupId2, (AnimationId)third.m_nAnimId, 1000.0f);
+                anim = CAnimManager::BlendAnimation(ped->GetRpClump(), (AssocGroupId)third.m_nGroupId2, (AnimationId)third.m_nAnimId, 1000.0f);
 
                 anim->SetCurrentTime(third.m_nTime / ANIM_TIME_COMPRESS_VALUE);
                 anim->SetSpeed(third.m_nSpeed / ANIM_SPEED_COMPRESS_VALUE);
@@ -778,7 +778,7 @@ void CReplay::RestoreStuffFromMem() {
     CWeather::NewWeatherType = NewWeatherType;
     CWeather::InterpolationValue = WeatherInterpolationValue;
 
-    CGame::currArea = static_cast<int8>(CurrArea);
+    CGame::currArea = static_cast<eAreaCodes>(CurrArea);
     CPopulation::ms_nNumCivMale = ms_nNumCivMale_Stored;
     CPopulation::ms_nNumCivFemale = ms_nNumCivFemale_Stored;
     CPopulation::ms_nNumCop = ms_nNumCop_Stored;
@@ -1199,7 +1199,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             TheCamera.m_fCamShakeForce = miscPacket.camShakeForce;
             CSpecialFX::bVideoCam = miscPacket.camConfig.videoCam;
             CSpecialFX::bLiftCam = miscPacket.camConfig.liftCam;
-            CGame::currArea = miscPacket.currArea;
+            CGame::currArea = static_cast<eAreaCodes>(miscPacket.currArea);
             break;
         }
         case REPLAY_PACKET_DELETED_VEH: {

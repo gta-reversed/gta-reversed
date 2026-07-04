@@ -43,6 +43,7 @@ enum ePedType : uint32 {
 
     PED_TYPE_COUNT // 32
 };
+static_assert(PED_TYPE_COUNT <= sizeof(uint32) * 8); /* NOTE: See `GetPedFlag` */
 
 static constexpr auto s_GangPedTypes = std::to_array({ // TODO: Get rid of this (Use `GetAllGangPedTypes()`)
     PED_TYPE_GANG1,
@@ -125,39 +126,3 @@ inline eGangID GetGangOfPedType(ePedType ptype) {
     default:              NOTSA_UNREACHABLE();
     }
 }
-
-// 0x8D23B8
-constexpr const char* aPedTypeNames[PED_TYPE_COUNT] = {
-    "PLAYER1",
-    "PLAYER2",
-    "PLAYER_NETWORK",
-    "PLAYER_UNUSED",
-    "CIVMALE",
-    "CIVFEMALE",
-    "COP",
-    "GANG1",
-    "GANG2",
-    "GANG3",
-    "GANG4",
-    "GANG5",
-    "GANG6",
-    "GANG7",
-    "GANG8",
-    "GANG9",
-    "GANG10",
-    "DEALER",
-    "MEDIC",
-    "FIREMAN",
-    "CRIMINAL",
-    "BUM",
-    "PROSTITUTE",
-    "SPECIAL",
-    "MISSION1",
-    "MISSION2",
-    "MISSION3",
-    "MISSION4",
-    "MISSION5",
-    "MISSION6",
-    "MISSION7",
-    "MISSION8",
-};

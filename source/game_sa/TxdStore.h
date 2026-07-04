@@ -47,7 +47,7 @@ public:
     static inline auto& ms_lastSlotFound = StaticRef<int32>(0xC88014);
     // variables list is not finished. Need to make CPools before.
 
-    static inline auto& defaultTxds = StaticRef<int16[4]>(0xC88004);
+    static inline auto& defaultTxds = StaticRef<std::array<int16, 4>>(0xC88004);
 
 public:
     static void InjectHooks();

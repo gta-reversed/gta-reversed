@@ -131,7 +131,7 @@ void CSkidmark::Render() const {
     LittleTest();
 
     if (RwIm3DTransform(TempBufferVertices.m_3d, 2 * m_nNumParts + 2, nullptr, rwIM3D_VERTEXUV)) {
-        RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, CSkidmarks::m_aIndices, 6 * m_nNumParts);
+        RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, CSkidmarks::m_aIndices.data(), 6 * m_nNumParts);
         RwIm3DEnd();
     }
 }

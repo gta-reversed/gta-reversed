@@ -89,12 +89,12 @@ public:
     static inline auto& BigMessageInUse = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3C0);
     static inline auto& BigMessageX = StaticRef<float[NUM_MESSAGE_STYLES]>(0xBAA3DC);
 
-    static inline auto& Sprites = StaticRef<CSprite2d[6]>(0xBAB1FC);
+    static inline auto& Sprites = StaticRef<std::array<CSprite2d, 6>>(0xBAB1FC);
 
     static inline auto& TimerMainCounterHideState = StaticRef<int16>(0xBAA388);
     static inline auto& TimerMainCounterWasDisplayed = StaticRef<bool>(0xBAA38A);
-    static inline auto& TimerCounterHideState = StaticRef<int16[4]>(0xBAA38C);
-    static inline auto& TimerCounterWasDisplayed = StaticRef<int16[4]>(0xBAA394);
+    static inline auto& TimerCounterHideState = StaticRef<std::array<int16, 4>>(0xBAA38C);
+    static inline auto& TimerCounterWasDisplayed = StaticRef<std::array<int16, 4>>(0xBAA394);
 
     static inline auto& OddJob2OffTimer = StaticRef<float>(0xBAA398);
     static inline auto& OddJob2XOffset = StaticRef<float>(0xBAA39C);

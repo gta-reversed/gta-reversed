@@ -216,7 +216,7 @@ bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
 
 template<size_t N>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
-    assert(dst.Cap == src.Cap);
+    assert(dst.Cap >= src.Cap);
     strncpy(dst.Data, src.Data, N);
 }
 };

@@ -210,7 +210,7 @@ public:
     uint16          m_nAvoidTheGeometryProbsDirn{};
     float           m_fWideScreenReductionAmount{};
     float           m_fStartingFOVForInterPol{};
-    CCam            m_aCams[3]{}; /* 2 = debug cam */
+    std::array<CCam, 3>            m_aCams{}; /* 2 = debug cam */
     CGarage*        m_pToGarageWeAreIn{};
     CGarage*        m_pToGarageWeAreInForHackAvoidFirstPerson{};
     CQueuedMode     m_PlayerMode{};
@@ -242,7 +242,7 @@ public:
     RwCamera*       m_pRwCamera{};
     CEntity*        m_pTargetEntity{};
     CEntity*        m_pAttachedEntity{};
-    CCamPathSplines m_aPathArray[4]{};
+    std::array<CCamPathSplines, 4> m_aPathArray{};
     bool            m_bMirrorActive{};
     bool            m_bResetOldMatrix{};
     CMatrix         m_mCameraMatrix{ CMatrix::Identity() };
@@ -251,11 +251,11 @@ public:
     CMatrix         m_mMatInverse{};
     CMatrix         m_mMatMirrorInverse{};
     CMatrix         m_mMatMirror{};
-    CVector         m_avecFrustumNormals[4]{};
-    CVector         m_avecFrustumWorldNormals[4]{};
-    CVector         m_avecFrustumWorldNormals_Mirror[4]{};
-    float           m_fFrustumPlaneOffsets[4]{};
-    float           m_fFrustumPlaneOffsets_Mirror[4]{};
+    std::array<CVector, 4> m_avecFrustumNormals{};
+    std::array<CVector, 4> m_avecFrustumWorldNormals{};
+    std::array<CVector, 4> m_avecFrustumWorldNormals_Mirror{};
+    std::array<float, 4>   m_fFrustumPlaneOffsets{};
+    std::array<float, 4>   m_fFrustumPlaneOffsets_Mirror{};
     CVector         m_vecRightFrustumNormal{};  //!< unused?
     CVector         m_vecBottomFrustumNormal{}; //!< unused?
     CVector         m_vecTopFrustumNormal{};    //!< unused?

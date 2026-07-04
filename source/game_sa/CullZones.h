@@ -158,8 +158,8 @@ public:
     static inline auto& bMilitaryZonesDisabled = StaticRef<bool>(0xC87ACD);
 
     static inline auto& aAttributeZones = StaticRef<CAttributeZone[1'300]>(0xC81F50);
-    static inline auto& aTunnelAttributeZones = StaticRef<CAttributeZone[40]>(0xC81C80);
-    static inline auto& aMirrorAttributeZones = StaticRef<CMirrorAttributeZone[72]>(0xC815C0);
+    static inline auto& aTunnelAttributeZones = StaticRef<std::array<CAttributeZone, 40>>(0xC81C80);
+    static inline auto& aMirrorAttributeZones = StaticRef<std::array<CMirrorAttributeZone, 72>>(0xC815C0);
 
     static inline auto& bRenderCullzones = StaticRef<bool>(0xC87ACC); // unused
 

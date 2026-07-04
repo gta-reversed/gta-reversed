@@ -74,15 +74,15 @@ private:
 
 private:
     eSoundBankSlotS16 m_BankSlot{};
-    eSoundID          m_SoundIDs[NUM_SOUNDS]{};
-    CAEAudioEntity*   m_AudioEntity{};
-    int16             m_IsInUse{};
-    int16             m_SoundsLengths[NUM_SOUNDS]{};
-    uint16            m_SwapTimeMin{};
-    uint16            m_SwapTimeMax{};
-    uint32            m_TimeToSwapSoundsMs{};
-    bool              m_IsPlayingFirstSound{};
-    int16             m_SoundPlayPercentages[NUM_SOUNDS]{}; // 0 - 99%
-    CAESound*         m_Sounds[NUM_SOUNDS]{};
+    std::array<eSoundID, NUM_SOUNDS>  m_SoundIDs{};
+    CAEAudioEntity*                   m_AudioEntity{};
+    int16                             m_IsInUse{};
+    std::array<int16, NUM_SOUNDS>     m_SoundsLengths{};
+    uint16                            m_SwapTimeMin{};
+    uint16                            m_SwapTimeMax{};
+    uint32                            m_TimeToSwapSoundsMs{};
+    bool                              m_IsPlayingFirstSound{};
+    std::array<int16, NUM_SOUNDS>     m_SoundPlayPercentages{}; // 0 - 99%
+    std::array<CAESound*, NUM_SOUNDS> m_Sounds{};
 };
 VALIDATE_SIZE(CAETwinLoopSoundEntity, 0xA8);

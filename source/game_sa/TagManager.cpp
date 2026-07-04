@@ -94,21 +94,19 @@ int32 CTagManager::GetPercentageTagged()
 }
 
 // 0x49D0B0
-int32 CTagManager::GetPercentageTaggedInArea(CRect* area)
-{
-    int32 iTotalTags = 0;
-    int32 iTagged = 0;
-    for (int32 i = ms_numTags - 1; i >= 0; --i) {
-        auto& tagDesc = ms_tagDesc[i];
-        auto vecPos = CVector2D(tagDesc.m_pEntity->GetPosition());
-        if (area->IsPointInside(vecPos)) {
-            ++iTotalTags;
-            if (tagDesc.m_nAlpha > ALPHA_TAGGED)
-                ++iTagged;
+int32 CTagManager::GetPercentageTaggedInArea(CRect* area) {
+    int32 numTotalTaggable = 0, numTagged = 0;
+    for (auto& tag : ms_tagDesc) {
+        if (area->IsPointInside(CVector2D(tag.m_pEntity->GetPosition()))) {
+            ++numTotalTaggable;
+            if (tag.m_nAlpha > ALPHA_TAGGED) {
+                ++numTagged;
+            }
         }
     }
-
-    return static_cast<int32>(static_cast<float>(iTagged) / static_cast<float>(iTotalTags) * 100.0F);
+    return numTotalTaggable != 0
+        ? (numTagged * 100) / numTotalTaggable /* Do division without converting to float at all, this isn't how it was done, but it's the same logic... */
+        : 0;
 }
 
 // 0x49CDE0
@@ -132,8 +130,8 @@ uint8 CTagManager::GetAlpha(RpAtomic* atomic)
 
 uint8 CTagManager::GetAlpha(CEntity* entity)
 {
-    if (entity->m_pRwAtomic)
-        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->m_pRwAtomic));
+    if (entity->GetRpAtomic())
+        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->GetRpAtomic()));
 
     auto tag = FindTagDesc(entity);
     assert(tag); // Originally the function would access uninitialized memory, by clearing EAX and dereferencing pointer to [EAX + 0x4] right after that
@@ -150,8 +148,8 @@ void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha)
 // 0x49CEC0
 void CTagManager::SetAlpha(CEntity* entity, uint8 ucAlpha)
 {
-    if (entity->m_pRwAtomic)
-        SetAlpha(entity->m_pRwAtomic, ucAlpha);
+    if (entity->GetRpAtomic())
+        SetAlpha(entity->GetRpAtomic(), ucAlpha);
 
     auto tagDesc = FindTagDesc(entity);
     auto bChangedState = false;
@@ -171,11 +169,11 @@ void CTagManager::SetAlpha(CEntity* entity, uint8 ucAlpha)
 
 void CTagManager::ResetAlpha(CEntity* entity)
 {
-    if (!entity->m_pRwAtomic)
+    if (!entity->GetRpAtomic())
         return;
 
     auto tagDesc = FindTagDesc(entity);
-    SetAlpha(entity->m_pRwAtomic, tagDesc->m_nAlpha);
+    SetAlpha(entity->GetRpAtomic(), tagDesc->m_nAlpha);
 }
 
 // 0x49CFE0
@@ -184,8 +182,8 @@ void CTagManager::SetAlphaInArea(CRect* area, uint8 ucAlpha)
     for (int32 i = ms_numTags - 1; i >= 0; --i) {
         auto& tagDesc = ms_tagDesc[i];
         auto vecPos = CVector2D(tagDesc.m_pEntity->GetPosition());
-        if (area->IsPointInside(vecPos) && tagDesc.m_pEntity->m_pRwAtomic) {
-            SetAlpha(tagDesc.m_pEntity->m_pRwAtomic, ucAlpha);
+        if (area->IsPointInside(vecPos) && tagDesc.m_pEntity->GetRpAtomic()) {
+            SetAlpha(tagDesc.m_pEntity->GetRpAtomic(), ucAlpha);
             tagDesc.m_nAlpha = ucAlpha;
         }
     }

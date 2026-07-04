@@ -310,9 +310,9 @@ void SetDirectionalColours(RwRGBAReal* color) {
 // unused
 // 0x735C90
 void SetAmbientColoursToIndicateRoadGroup(int32 idx) {
-    static auto& IndicateR = StaticRef<uint8[8]>(0x8D60D0);
-    static auto& IndicateG = StaticRef<uint8[8]>(0x8D60D8);
-    static auto& IndicateB = StaticRef<uint8[8]>(0x8D60E0);
+    static auto& IndicateR = StaticRef<std::array<uint8, 8>>(0x8D60D0);
+    static auto& IndicateG = StaticRef<std::array<uint8, 8>>(0x8D60D8);
+    static auto& IndicateB = StaticRef<std::array<uint8, 8>>(0x8D60E0);
 
     AmbientLightColour.red   = (float)IndicateR[idx & std::size(IndicateR)] * (1.0f / 255.0f);
     AmbientLightColour.green = (float)IndicateG[idx & std::size(IndicateG)] * (1.0f / 255.0f);

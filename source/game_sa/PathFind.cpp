@@ -983,21 +983,22 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
     float        scoreOfClosest{std::numeric_limits<float>::max()};
     for (auto areaId{ 0u }; areaId < NUM_TOTAL_PATH_NODE_AREAS; areaId++) {
         for (const auto& node : GetPathNodesInArea(areaId, nodeType)) { // NOTE: Function takes care of checking whenever the area is loaded
-            const auto dirToNodeUN = pos - node.GetPosition();
+            const auto playerToNodeDirection = node.GetPosition() - pos;
 
-            const auto dotScore = (abs(dirToNodeUN) * CVector { 1.f, 1.f, 3.f }).ComponentwiseSum();
+            const auto dotScore = (abs(playerToNodeDirection) * CVector { 1.f, 1.f, 3.f }).ComponentwiseSum();
             if (dotScore >= scoreOfClosest) {
                 continue;
             }
 
-            const auto score = dotScore - (dir.Dot(CVector2D{ dirToNodeUN }.Normalized()) - 1.f) * 20.f;
-            if (score <= scoreOfClosest) {
-                scoreOfClosest = score;
-                closest = node.GetAddress();
+            const auto score = dotScore - (dir.Dot(CVector2D{ playerToNodeDirection }.Normalized()) - 1.f) * 20.f;
+            if (score > scoreOfClosest) {
+                continue;
             }
+
+            scoreOfClosest = score;
+            closest = node.GetAddress();
         }
     }
-
     return closest;
 }
 

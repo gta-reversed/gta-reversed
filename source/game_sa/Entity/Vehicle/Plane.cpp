@@ -75,26 +75,17 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     case MODEL_HYDRA:
     case MODEL_RUSTLER:
     case MODEL_CROPDUST:
-        m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK); // todo: add func(openAngle, closedAngle, axis, dir)
-        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 1;
-        leftDoor.m_dirn = 19;
+        m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
+        leftDoor.Init((3.0f * PI) / 5.0f, 0.0f, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
         break;
     case MODEL_SHAMAL:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_openAngle = -((3.0f * PI) / 4.0f);
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 1;
-        leftDoor.m_dirn = 18;
+        leftDoor.Init(-((3.0f * PI) / 4.0f), 0.0f, DOOR_AXIS_Z, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LF]), 0);
         break;
     case MODEL_NEVADA:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_openAngle = -((2.0f * PI) / 5.0f);
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 2;
-        leftDoor.m_dirn = 20;
+        leftDoor.Init(-TWO_PI / 5.0f, 0.0f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
         break;
     case MODEL_VORTEX:
         if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1)
@@ -102,10 +93,7 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         break;
     case MODEL_STUNT:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 1;
-        leftDoor.m_dirn = 19;
+        leftDoor.Init((3.0f * PI) / 5.0f, 0.0f, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LB]), 0);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_RB]), 0);
         break;
@@ -196,7 +184,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         // m_nType = m_nType & 7 | STATUS_WRECKED;
         physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
-        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
+        CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
         m_damageManager.FuckCarCompletely(false);
         if (m_nModelIndex != MODEL_RCBARON) {
             CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
@@ -430,8 +418,8 @@ void CPlane::ProcessControl() {
         m_pSmokeParticle->GetCompositeMatrix(&out);
         CVector velocity = -m_vecMoveSpeed * 5.0f;
         auto particleData = FxPrtMult_c(0.0f, 0.0f, 0.0f, 0.2f, 1.0f, 1.0f, 0.1f);
-        g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.00f, &particleData, -1.0f, 1.2f, 0.6f, false);
-        g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.05f, &particleData, -1.0f, 1.2f, 0.6f, false);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.00f, particleData);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.05f, particleData);
         if (m_nSmokeTimer <= 0 || vehicleFlags.bIsDrowning) {
             m_pSmokeParticle->Kill();
             m_pSmokeParticle = nullptr;

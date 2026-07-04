@@ -7,7 +7,7 @@ class CVector;
 class CWaterCannons {
 public:
     static constexpr uint32 MAX_WATER_CANNONS = 3;
-    static inline auto& aCannons = StaticRef<CWaterCannon[3]>(0xC80740);
+    static inline auto& aCannons = StaticRef<std::array<CWaterCannon, 3>>(0xC80740);
 
 public:
     static void InjectHooks();

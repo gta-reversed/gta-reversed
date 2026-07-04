@@ -28,7 +28,7 @@ public:
 
     HANDLE           m_threadHandle;
     DWORD            m_dwThreadId;
-    tSmoothFadeEntry m_aEntries[NUM_SMOOTHFADE_ENTRIES];
+    std::array<tSmoothFadeEntry, NUM_SMOOTHFADE_ENTRIES> m_aEntries;
     bool             m_bInitialized;
     bool             m_bActive;
     uint16           m_numRequests;

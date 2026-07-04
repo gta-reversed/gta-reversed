@@ -21,36 +21,36 @@ constexpr auto SKYP_SEA_HORIZON_Z = -0.1f;
 constexpr auto SKYP_BELOW_HORIZON_Z = -0.3f;
 
 struct tMovingFog {
-    bool    m_bFogSlots[MAX_MOVING_FOG];
-    CVector m_vecPosn[MAX_MOVING_FOG];
-    float   m_fSize[MAX_MOVING_FOG];
-    float   m_fIntensity[MAX_MOVING_FOG];
-    float   m_fMaxIntensity[MAX_MOVING_FOG];
-    CVector m_vecWind;
-    float   m_Speed[MAX_MOVING_FOG];
-    int     field_27B4[12];
-    std::array<uint32, 6> m_nPrimIndices;
+    std::array<bool, MAX_MOVING_FOG>    m_bFogSlots;
+    std::array<CVector, MAX_MOVING_FOG> m_vecPosn;
+    std::array<float, MAX_MOVING_FOG>   m_fSize;
+    std::array<float, MAX_MOVING_FOG>   m_fIntensity;
+    std::array<float, MAX_MOVING_FOG>   m_fMaxIntensity;
+    CVector                             m_vecWind;
+    std::array<float, MAX_MOVING_FOG>   m_Speed;
+    std::array<int, 12>                 field_27B4;
+    std::array<uint32, 6>               m_nPrimIndices;
 };
 
 struct tVolumetricClouds {
-    bool       bUsed[MAX_VOLUMETRIC_CLOUDS];
-    bool       bJustCreated[MAX_VOLUMETRIC_CLOUDS];
+    std::array<bool, MAX_VOLUMETRIC_CLOUDS>    bUsed;
+    std::array<bool, MAX_VOLUMETRIC_CLOUDS>    bJustCreated;
 
-    CVector    pos[MAX_VOLUMETRIC_CLOUDS];
-    CVector    size[MAX_VOLUMETRIC_CLOUDS];
+    std::array<CVector, MAX_VOLUMETRIC_CLOUDS> pos;
+    std::array<CVector, MAX_VOLUMETRIC_CLOUDS> size;
 
-    int32      alpha[MAX_VOLUMETRIC_CLOUDS];
+    std::array<int32, MAX_VOLUMETRIC_CLOUDS>   alpha;
 
     RwTexture* texture;
 
-    CVector    quadNormal[3];
+    std::array<CVector, 3> quadNormal;
 
-    float      modelX[18];
-    float      modelY[18];
-    float      modelZ[18];
+    std::array<float, 18> modelX;
+    std::array<float, 18> modelY;
+    std::array<float, 18> modelZ;
 
-    float      modelU[18];
-    float      modelV[18];
+    std::array<float, 18> modelU;
+    std::array<float, 18> modelV;
 };
 
 class CClouds {

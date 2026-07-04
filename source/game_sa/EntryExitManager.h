@@ -48,7 +48,7 @@ public:
                         float entranceAngle, float entranceRangeX, float entranceRangeY,
                         float fUnused,
                         float exitX, float exitY, float exitZ,
-                        float exitAngle, int32 area, CEntryExit::eFlags flags, int32 skyColor, int32 timeOn, int32 timeOff, int32 numberOfPeds, const char* name);
+                        float exitAngle, eAreaCodes area, CEntryExit::eFlags flags, int32 skyColor, int32 timeOn, int32 timeOff, int32 numberOfPeds, const char* name);
     static void AddEntryExitToStack(CEntryExit* entryExit);
     static void DeleteOne(int32 index);
     static CObject* FindNearestDoor(const CEntryExit& exit, float radius);

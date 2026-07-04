@@ -167,7 +167,7 @@ void CEntryExitManager::AddEntryExitToStack(CEntryExit* enex) {
 }
 
 /*!
-* @address 0x43FA00
+* @addr 0x43FA00
 * @brief Add a new entry exit
 *
 * @param timeOn If flag `BURGLARY_ACCESS` is not set it's going to define the value of enex->timeOn
@@ -182,7 +182,7 @@ int32 CEntryExitManager::AddOne(
     float entranceRangeX, float entranceRangeY, float entranceRangeZ /*unused*/,
     float exitX, float exitY, float exitZ,
     float exitAngle,
-    int32 area,
+    eAreaCodes area,
     CEntryExit::eFlags flags,
     int32 skyColor,
     int32 timeOn, int32 timeOff,

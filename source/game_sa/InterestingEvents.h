@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Timer.h>
+
 constexpr int8 MAX_INTERESTING_EVENTS = 8;
 
 struct TInterestingEvent {
@@ -44,10 +46,10 @@ public:
         MAX_INTERESTING_EVENT_TYPES,
     };
 
-    TInterestingEvent m_Events[MAX_INTERESTING_EVENTS];
-    uint8             m_nPriorities[MAX_INTERESTING_EVENT_TYPES]; // not sure
-    uint16            m_nDelays[MAX_INTERESTING_EVENT_TYPES];     // delays for update (e.g. GetInterestingEvent)
-    uint32            m_nEndsOfTime[MAX_INTERESTING_EVENT_TYPES];
+    std::array<TInterestingEvent, (size_t)MAX_INTERESTING_EVENTS> m_Events{};
+    std::array<uint8, MAX_INTERESTING_EVENT_TYPES>                m_nPriorities{}; // not sure
+    std::array<uint16, MAX_INTERESTING_EVENT_TYPES>               m_nDelays{};     // delays for update (e.g. GetInterestingEvent)
+    std::array<uint32, MAX_INTERESTING_EVENT_TYPES>               m_nEndsOfTime{};
     union {
         struct {
             uint8 m_b1 : 1;
@@ -55,14 +57,14 @@ public:
             uint8 m_b4 : 1;
             uint8 m_b8 : 1;
         };
-        uint8         m_nFlags;
+        uint8         m_nFlags{};
     };
-    uint32            m_LastFrameUpdateMs;
-    uint32            m_nLastScanTimeUpdate;
-    float             m_fRadius;
-    CVector           m_vecCenter;
-    CVector           vec148;
-    int8              m_nInterestingEvent;
+    uint32            m_CurrentFrameCounter{CTimer::GetFrameCounter() - 1};
+    uint32            m_nLastScanTimeUpdate{};
+    float             m_fRadius{30.f};
+    CVector           m_vecCenter{};
+    CVector           vec148{};
+    int8              m_nInterestingEvent{-1};
 
 public:
     static void InjectHooks();

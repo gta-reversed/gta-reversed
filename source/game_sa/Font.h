@@ -52,7 +52,7 @@ public:
 VALIDATE_SIZE(CFontChar, 0x30);
 
 struct tFontData {
-    uint8 m_propValues[208];
+    std::array<uint8, 208> m_propValues;
     uint8 m_spaceValue;
     uint8 m_unpropValue;
 };

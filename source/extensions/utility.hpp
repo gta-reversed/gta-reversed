@@ -97,6 +97,16 @@ ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = 
         : defaultIdx;
 }
 
+/*!
+* @brief Get index of item by iterator
+*/
+template<typename T, size_t N>
+size_t array_indexof(const std::array<T, N>& array, const T* item) {
+    const auto idx = rng::distance(array.data(), item);
+    assert(idx >= 0 && static_cast<size_t>(idx) < array.size());
+    return static_cast<size_t>(idx);
+}
+
 //! [mostly] Works like C#'s `??` (null coalescing operator) or GCC's `?:`
 template<typename T>
 T coalesce(T a, T b) {

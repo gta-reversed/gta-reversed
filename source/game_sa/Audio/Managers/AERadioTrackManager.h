@@ -65,12 +65,12 @@ struct tRadioSettings {
 VALIDATE_SIZE(tRadioSettings, 0x3C);
 
 struct tRadioState {
-    int32 m_aElapsed[3]{0};
+    std::array<int32, 3> m_aElapsed{0};
     int32 m_iTimeInPauseModeInMs{-1};
     int32 m_iTimeInMs{-1};
     int32 m_iTrackPlayTime{-1};
-    int32 m_aTrackQueue[3]{-1};
-    int8 m_aTrackTypes[3]{TYPE_NONE};
+    std::array<int32, 3> m_aTrackQueue{-1};
+    std::array<int8, 3>  m_aTrackTypes{TYPE_NONE};
     int8 m_nGameClockDays{-1};
     int8 m_nGameClockHours{-1};
 
@@ -131,10 +131,10 @@ public:
     bool            m_bPauseMode{false};
     bool            m_bRetuneJustStarted{false};
     bool            m_bRadioAutoSelect{true};
-    uint8           m_nTracksInARow[RADIO_COUNT]{0};
+    std::array<uint8, RADIO_COUNT>       m_nTracksInARow{};
     uint8           m_nSavedGameClockDays{0xff};
     uint8           m_nSavedGameClockHours{0xff};
-    int32           m_aListenTimes[RADIO_COUNT]{}; // Filled from `CStats::FavoriteRadioStationList`
+    std::array<int32, RADIO_COUNT>       m_aListenTimes{}; // Filled from `CStats::FavoriteRadioStationList`
     uint32          m_nTimeRadioStationRetuned{0};
     uint32          m_nTimeToDisplayRadioName{0};
     uint32          m_nSavedTimeMs{0};
@@ -151,7 +151,7 @@ public:
     float           m_f84{0.0f};
     tRadioSettings  m_RequestedSettings{}; // settings1
     tRadioSettings  m_ActiveSettings{}; // settings2
-    tRadioState     m_aRadioState[RADIO_COUNT]{};
+    std::array<tRadioState, RADIO_COUNT> m_aRadioState{};
     uint32          field_368{0};
     uint8           m_nUserTrackPlayMode{};
 
