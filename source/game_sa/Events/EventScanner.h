@@ -58,7 +58,7 @@ public:
     CSexyPedScanner                   m_sexyPedScanner;
     CNearbyFireScanner                m_nearbyFireScanner;
 
-    static inline uint32 m_sDeadPedWalkingTimer = *(uint32*)0xC0B038;
+    static inline auto& m_sDeadPedWalkingTimer = StaticRef<uint32>(0xC0B038);
 
 public:
     CEventScanner();

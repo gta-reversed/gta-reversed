@@ -21,7 +21,6 @@ try:
     
     preset = f'default{"-unity" if not args.no_unity_build else ""}'
     genpath = SCRIPT_DIR # FIXME: CMake errors with Ninja: "Does not match the generator used previously: Unix Makefiles"
-    extcfg = ""
     if sys.platform == "linux":
         args.profile = "conanprofile-wine.txt"
         preset = f'conan-{args.buildconf.lower()}'
@@ -42,7 +41,7 @@ try:
     
     options = ' '.join([f"-D{key}={'ON' if value else 'OFF'}" for key, value in defines.items()])
     subprocess.run(
-        f'cmake {options} --preset {preset} {genpath} {extcfg}',
+        f'cmake --preset {preset} {genpath} {options}',
         shell=True, check=True
     )
 except subprocess.CalledProcessError as e:
