@@ -7,7 +7,7 @@ AP.add_argument("--build", action="store_true", help="build instead of setting u
 AP.add_argument("--no-unity-build", action="store_true", help="disable unity build")
 AP.add_argument("--buildconf", default="Debug", choices=["Debug", "Release", "RelWithDebInfo"], help="cmake compilation type")
 AP.add_argument("--standalone", default=False, action="store_true", help="Build standalone executable instead of .asi plugin (for debugging purposes)")
-AP.add_argument("--dump-hooks-only", default=False, action="store_true", help="Don't try to write to memory at all, just dump the hooks that would be applied (for debugging purposes) and exit")
+AP.add_argument("--dump-hooks-only", default=False, action="store_true", help="Don't try to write to memory at all, just dump the hooks that would be applied (for debugging purposes) and exit - To provide a path use the `--dump-hooks-to` argument to on the resulting executable")
 AP.add_argument("--profile", default="conanprofile.txt", help="custom profile")
 args = AP.parse_args()
 
