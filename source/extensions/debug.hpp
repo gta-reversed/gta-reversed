@@ -9,18 +9,18 @@
 
 namespace notsa {
 namespace debug {
-bool IsDebuggerPresent() {
+inline bool IsDebuggerPresent() {
     return ::IsDebuggerPresent();
 }
 
-void WaitForDebugger() {
+inline void WaitForDebugger() {
     while (!IsDebuggerPresent()) {
         NOTSA_LOG_INFO("[debug] Waiting for debugger\n");
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
-void DisplayConsole() {
+inline void DisplayConsole() {
     // Support UTF-8 IO for Windows Terminal. (or CMD if a supported font is used)
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);

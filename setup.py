@@ -11,6 +11,10 @@ AP.add_argument("--dump-hooks-only", default=False, action="store_true", help="D
 AP.add_argument("--profile", default="conanprofile.txt", help="custom profile")
 args = AP.parse_args()
 
+if not args.standalone and args.dump_hooks_only:
+    AP.error("The --dump-hooks-only option can only be used with the --standalone option")
+    exit(1)
+
 try:
     # defines passed to cmake via -D<key>=<value> arguments
     defines: dict[str, bool] = {

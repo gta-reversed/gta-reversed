@@ -9,7 +9,6 @@
 #include "app/app_debug.h"
 #include <rw/rwplcore.h>
 #include <nlohmann/json.hpp>
-#include <extensions/CommandLine.h>
 
 using json = nlohmann::json;
 
@@ -158,12 +157,12 @@ template<typename... Ts>
 */
 template<typename T>
 T& StaticRef(uintptr addr) {
-    #ifdef NOTSA_DUMP_HOOKS_ONLY
-        alignas(alignof(T)) static uint8 buf[sizeof(T)];
-        return *reinterpret_cast<T*>(buf);
-    #else
-        return *reinterpret_cast<T*>(addr);
-    #endif
+#ifdef NOTSA_DUMP_HOOKS_ONLY
+    alignas(alignof(T)) static uint8 buf[sizeof(T)]{};
+    return *reinterpret_cast<T*>(buf);
+#else
+    return *reinterpret_cast<T*>(addr);
+#endif
 }
 
 /*!

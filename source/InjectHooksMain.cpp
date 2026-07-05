@@ -535,7 +535,7 @@ void InjectHooksMain() {
     /**
     * We have `NOTSA_STANDALONE` macro to be able to dump all hooks without actually writing to memory,
     * it is used by the CI to automatically update the docs.
-    * So don't do anything game releated here if that macro is set.
+    * So don't do anything game related here if that macro is set.
     **/
 
     #ifndef NOTSA_STANDALONE
