@@ -4,17 +4,11 @@
 
 #include "WinPlatform.h"
 #include "extensions/CommandLine.h"
+#include "extensions/debug.hpp"
 #include "extensions/Configuration.hpp"
 #include "reversiblehooks/RootHookCategory.h"
 
 void InjectHooksMain(HMODULE hThisDLL);
-
-void WaitForDebugger() {
-    while (!::IsDebuggerPresent()) {
-        printf("Debugger not present\n");
-        ::Sleep(100);
-    }
-}
 
 static constexpr auto DEFAULT_INI_FILENAME = "gta-reversed.ini";
 
@@ -83,11 +77,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
         std::setlocale(LC_ALL, "en_US.UTF-8");
 
-        DisplayConsole();
         CommandLine::Load(__argc, __argv);
-
+        notsa::debug::DisplayConsole();
         if (CommandLine::s_WaitForDebugger) {
-            WaitForDebugger();
+            notsa::debug::WaitForDebugger();
         }
 
         LoadConfigurations();
