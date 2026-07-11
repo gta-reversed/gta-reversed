@@ -9,7 +9,7 @@ void CGangs::InjectHooks() {
     RH_ScopedInstall(Load, 0x5D3A90);
     RH_ScopedInstall(Save, 0x5D3A60);
     RH_ScopedInstall(SetGangWeapons, 0x5DE550);
-    RH_ScopedInstall(ChooseGangPedModel, 0x5DE5A0, { .reversed = false });
+    RH_ScopedInstall(ChooseGangPedModel, 0x5DE5A0);
     RH_ScopedInstall(GetWillAttackPlayerWithCops, 0x5DE500);
     RH_ScopedInstall(SetWillAttackPlayerWithCops, 0x5DE4E0);
     RH_ScopedInstall(SetGangPedModelOverride, 0x5DE580);
@@ -49,32 +49,27 @@ void CGangs::SetGangWeapons(int16 gangId, eWeaponType weapId1, eWeaponType weapI
 
 // 0x5DE5A0
 eModelID CGangs::ChooseGangPedModel(eGangID gangId) {
-    return plugin::CallAndReturn<eModelID, 0x5DE5A0, eGangID>(gangId);
-    /*
-    // see sub_406E80
+    const auto pedGroup = CPopulation::GetGangGroupId(gangId, CPopulation::CurrentWorldZone);
+
+    // A gang with a forced ped model simply uses the first model of its group
     if (Gang[gangId].m_nPedModelOverride != -1) {
-        return CPopulation::m_PedGroups[0][21 * CPopulation::m_TranslationArray[18].pedGroupIds[2 * gangId + CPopulation::CurrentWorldZone + gangId]];
+        return (eModelID)(uint16)CPopulation::m_PedGroups[pedGroup][0];
     }
 
-    CCarCtrl::InitSequence(CPopulation::m_nNumPedsInGroup[CPopulation::m_TranslationArray[gangId + 18].pedGroupIds[0]]);
-    if (CPopulation::m_nNumPedsInGroup[CPopulation::m_TranslationArray[gangId + 18].pedGroupIds[0]] <= 0) {
-        return -1;
+    // NOTE: The original sizes the random sequence using world zone 0, but looks the model up using the current world zone
+    const auto numPeds = CPopulation::m_nNumPedsInGroup[CPopulation::GetGangGroupId(gangId, 0)];
+    CCarCtrl::InitSequence(numPeds);
+    if (numPeds == 0) {
+        return MODEL_INVALID;
     }
 
-    int v1 = 0;
-    int v2 = gangId;
-    int SequenceElement;
-    while (1) {
-        SequenceElement = CCarCtrl::FindSequenceElement(v1);
-        auto id = CPopulation::m_PedGroups[0][21 * CPopulation::m_TranslationArray[v2 + 18].pedGroupIds[CPopulation::CurrentWorldZone] + SequenceElement];
-        if (CStreaming::GetInfo(id).IsLoaded())
-            break;
-
-        if (++v1 >= CPopulation::m_nNumPedsInGroup[CPopulation::m_TranslationArray[gangId + 18].pedGroupIds[0]])
-            return MODEL_INVALID;
+    for (auto i = 0; i < numPeds; i++) {
+        const auto model = (uint16)CPopulation::m_PedGroups[pedGroup][CCarCtrl::FindSequenceElement(i)];
+        if (CStreaming::IsModelLoaded(model)) {
+            return (eModelID)model;
+        }
     }
-    return CPopulation::m_PedGroups[0][21 * CPopulation::m_TranslationArray[18].pedGroupIds[CPopulation::CurrentWorldZone + v2 * 3] + SequenceElement];
-    */
+    return MODEL_INVALID;
 }
 
 // unused (0x5DE500)
