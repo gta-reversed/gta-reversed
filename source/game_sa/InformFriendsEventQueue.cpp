@@ -50,8 +50,7 @@ bool CInformFriendsEventQueue::Add(CPed* ped, CEvent* event) {
     freeField->m_Ped   = ped;
     CEntity::SafeRegisterRef(freeField->m_Ped);
     freeField->m_Event = event;
-    // Signed cast to match the original `ftol` (casting the negative random to `uint32` is UB)
-    freeField->m_Time  = CTimer::GetTimeInMS() - static_cast<int32>(CGeneral::GetRandomNumberInRange(-500.0f, 0.0f)) + 300;
+    freeField->m_Time  = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(300u, 800u);
     return true;
 }
 
