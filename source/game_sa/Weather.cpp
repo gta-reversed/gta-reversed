@@ -268,50 +268,22 @@ void CWeather::Update() {
 void CWeather::UpdateInTunnelness() {
     ZoneScoped;
 
-    // Tunnel entrance reference points (originally lazily-initialised function-local statics @ 0xC81430, 0xC81424)
-    static const CVector s_TunnelPoint1{ 85.0f, -1020.0f, 0.0f };
-    static const CVector s_TunnelPoint2{ 1683.0f, -1956.0f, 0.0f };
+    static const CVector s_TunnelPoint1{ 85.0f, -1020.0f, 0.0f }; // 0xC81430
+    static const CVector s_TunnelPoint2{ 1683.0f, -1956.0f, 0.0f }; // 0xC81424
 
     float target = 0.0f;
     if (CCullZones::CurrentFlags_Camera & 0x2000) { // TODO: Unnamed tunnel-related eZoneAttributes flag (bit 0x2000)
-        target = 1.0f;
-
-        // Build a line from the camera position going 100 units along its forward direction (on the XY plane)
-        const auto& camPos = TheCamera.GetPosition();
-        const CVector from{ camPos.x, camPos.y, 0.0f };
-
-        CVector dir;
-        if (TheCamera.m_matrix) {
-            const auto& fwd = TheCamera.GetForward();
-            dir = CVector{ fwd.x, fwd.y, 0.0f };
-        } else {
-            const auto heading = TheCamera.m_placement.m_fHeading;
-            dir = CVector{ -std::sin(heading), std::cos(heading), 0.0f };
-        }
-        dir.Normalise();
-
-        const CVector to = from + dir * 100.0f;
-
-        // Tunnelness ramps down as the forward line gets closer to a tunnel entrance
-        float dist = 100.0f;
-        if (const auto d = CCollision::DistToLine(from, to, s_TunnelPoint1); d <= 100.0f) {
-            dist = d;
-        }
-        if (const auto d = CCollision::DistToLine(from, to, s_TunnelPoint2); d <= dist) {
-            dist = d;
-        }
-        if (dist * 0.01f <= 1.0f) {
-            target = dist * 0.01f;
-        }
+        const CVector from{ CVector2D{ TheCamera.GetPosition() } };
+        const CVector to = from + CVector{ CVector2D{ TheCamera.GetForwardVector() }.Normalized() } * 100.0f;
+        const auto dist = std::min({
+            CCollision::DistToLine(from, to, s_TunnelPoint1),
+            CCollision::DistToLine(from, to, s_TunnelPoint2),
+            100.0f,
+        });
+        target = std::min(1.0f, dist / 100.0f);
     }
 
-    // Smoothly approach the target value
-    const float step = CTimer::GetTimeStep() * 0.01f;
-    if (step <= std::abs(target - InTunnelness)) {
-        InTunnelness += (target - InTunnelness >= 0.0f) ? step : -step;
-    } else {
-        InTunnelness = target;
-    }
+    InTunnelness = notsa::step_to(InTunnelness, target, CTimer::GetTimeStep() * 0.01f);
 }
 
 // Based on 0x72A640
