@@ -11,7 +11,7 @@
 #include "tPickupMessage.h"
 #include "Radar.h"
 #include "Shadows.h"
-#include "Coronas.h"
+#include "Renderer/Coronas.h"
 #include "TaskSimpleJetPack.h"
 
 using namespace ModelIndices;
