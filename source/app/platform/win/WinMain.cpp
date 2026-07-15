@@ -20,6 +20,7 @@
 
 #include <InjectHooksMain.h>
 #include "extensions/Configs/FastLoader.hpp"
+#include <extensions/CommandLine.h>
 #include <extensions/debug.hpp>
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
