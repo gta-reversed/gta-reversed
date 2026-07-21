@@ -16,7 +16,7 @@ void CTaskComplexWanderCop::InjectHooks() {
     RH_ScopedVMTInstall(ScanForStuff, 0x6702B0);
     RH_ScopedInstall(LookForCarAlarms, 0x66B1B0);
     RH_ScopedInstall(LookForStolenCopCars, 0x66B290);
-    RH_ScopedInstall(LookForCriminals, 0x66B300);
+    RH_ScopedInstall(LookForCriminalsToChase, 0x66B300);
     RH_ScopedInstall(ShouldPursuePlayer, 0x66B160);
 }
 CTaskComplexWanderCop* CTaskComplexWanderCop::Constructor(eMoveState moveState, uint8 dir) { this->CTaskComplexWanderCop::CTaskComplexWanderCop(moveState, dir); return this; }
@@ -129,7 +129,7 @@ void CTaskComplexWanderCop::ScanForStuff(CPed* ped) {
         }
 
         if (CTimer::GetTimeInMS() >= m_nTimePassedSinceLastLookedForCriminals) {
-            LookForCriminals(ped);
+            LookForCriminalsToChase(ped);
         }
     }
 }
@@ -166,7 +166,7 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
 }
 
 // 0x66B300
-void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
+void CTaskComplexWanderCop::LookForCriminalsToChase(CPed* ped) {
     CPed* criminalPed = nullptr;
     for (auto& entity : ped->GetIntelligence()->m_pedScanner.GetEntities<CEntity>()) {
         criminalPed = entity.AsPed();
