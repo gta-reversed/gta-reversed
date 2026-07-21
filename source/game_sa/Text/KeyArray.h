@@ -1,7 +1,7 @@
 #pragma once
 
 struct CKeyEntry {
-    const GxtChar* string; // relative to TKEY block; need to call update after reading
+    const GxtChar* string; // relative to TKEY block; need to call update after reading - Pirulax: What the fuck do you mean?
     uint32      hash;      // name hash
 };
 

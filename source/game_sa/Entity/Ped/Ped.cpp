@@ -1589,7 +1589,7 @@ bool CPed::PositionAnyPedOutOfCollision() {
 
     // Find 2 points furthest away from us:
     // - One that is colliding with a vehicle, (vehiclePoint)
-    // - One that isn't colliding with one. (noCollPoint)
+    // - One that isn't colliding with anything (noCollPoint)
     // Neither point should be colliding with a building or ped.
     auto testPoint{ GetPosition() };
     for (auto y = 0; y < 15; y++) {
@@ -3696,7 +3696,7 @@ void CPed::ProcessControl()
 
 /*!
 * @addr 0x5E4110
-* @brief Set player's position (Also resets move/turn speed, and cancels all tasks)
+* @brief Set ped's position (Also resets move/turn speed, and cancels all tasks)
 */
 void CPed::Teleport(CVector destination, bool resetRotation) {
     UNUSED(resetRotation);

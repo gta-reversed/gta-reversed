@@ -103,6 +103,18 @@ inline void CRect::StretchToPoint(float x, float y)
         top = y;
 }
 
+float CRect::DistSqToPt(CVector2D pt) {
+    const auto DistSq1D = [](float min, float max, float p) {
+        if (p >= min && p <= max) {
+            return 0.f; // Pt is in bounds on this axis
+        }
+        return p >= min // Return distance to closest bounding point on axis
+            ? sq(p - max) 
+            : sq(p - min);
+    };
+    return DistSq1D(left, right, pt.x) + DistSq1D(bottom, top, pt.y);
+}
+
 bool CRect::DoConstrainPoint(CVector2D& pt) const {
     auto hasConstrained = false;
 

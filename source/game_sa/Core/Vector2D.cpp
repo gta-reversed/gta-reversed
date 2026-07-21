@@ -18,6 +18,11 @@ void CVector2D::InjectHooks() {
     RH_ScopedInstall(operator=, 0x43E110);
 }
 
+CVector2D CVector2D::Random(float min, float max) {
+    const auto Rand = [=] { return CGeneral::GetRandomNumberInRange(min, max); };
+    return {Rand(), Rand()};
+}
+
 CVector2D::CVector2D(const CVector& v3) :
     CVector2D{v3.x, v3.y}
 {
@@ -51,4 +56,8 @@ CVector2D CVector2D::RotatedBy(float rad) const {
 
 bool CVector2D::ApproxEqualTo(CVector2D o, float epsilon) {
     return approxEqual(x, o.x, epsilon) && approxEqual(y, o.y, epsilon);
+}
+
+bool CVector2D::IsUnitVector() const {
+    return approxEqual(SquaredMagnitude(), 1.f, 0.000002f);
 }

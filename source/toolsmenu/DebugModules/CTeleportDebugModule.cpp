@@ -52,9 +52,10 @@ static CVector GetPositionWithGroundHeight(const CVector2D& pos) {
 }
 
 // Teleport to exact coordinates
-void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
+void TeleportDebugModule::TeleportTo(CVector pos, eAreaCodes areaCode) {
     CStreaming::LoadSceneCollision(pos);
     CStreaming::LoadScene(pos);
+    CStreaming::LoadAllRequestedModels(false);
 
     auto player = FindPlayerPed();
     player->SetAreaCode(areaCode);
@@ -65,6 +66,7 @@ void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
     if (auto vehicle = FindPlayerVehicle()) {
         vehicle->Teleport(pos, true);
     } else {
+        player->PositionAnyPedOutOfCollision();
         player->Teleport(pos, true);
     }
 
@@ -76,13 +78,17 @@ void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
     }
 }
 
+void TeleportDebugModule::TeleportToGround(CVector2D pos, eAreaCodes areaCode) {
+    TeleportTo(GetPositionWithGroundHeight(pos), areaCode);
+}
+
 void TeleportDebugModule::DoTeleportTo(CVector pos, eAreaCodes areaCode) {
     // Save previous location for teleporting back.
     m_PrevLocation.Pos      = FindPlayerPed()->GetPosition();
     m_PrevLocation.AreaCode = FindPlayerPed()->GetAreaCode();
     m_PrevLocation.IsSelected = true; // mark the position is saved.
 
-    TeleportDebugModule::TeleportTo(pos, areaCode);
+    TeleportTo(pos, areaCode);
 }
 
 void TeleportDebugModule::RenderSavedPositions() {
@@ -251,11 +257,11 @@ void TeleportDebugModule::RenderTeleporterWindow() {
     // Current position display
     {
         const auto pos = FindPlayerCoors();
-        Text("Current Pos: %.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
+        char posText[256];
+        sprintf_s(posText, "%.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
+        Text("Current Pos: %s", posText);
         if (SameLine(); Button("Copy")) {
-            char buf[256];
-            sprintf_s(buf, "%.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
-            SetClipboardText(buf);
+            SetClipboardText(posText);
         }
     }
 
@@ -296,7 +302,7 @@ void TeleportDebugModule::ProcessShortcuts() {
             }
         }
 
-        return;
+        break;
     }
 }
 
