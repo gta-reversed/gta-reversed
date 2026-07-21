@@ -65,14 +65,14 @@ void CClumpModelInfo::Shutdown()
 // 0x4C4E70
 void CClumpModelInfo::DeleteRwObject()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    auto atomic = Get2DEffectAtomic(m_pRwClump);
-    if (atomic)
+    if (auto* const atomic = Get2DEffectAtomic(GetRpClump())) {
         m_n2dfxCount -= RpGeometryGet2dFxCount(RpAtomicGetGeometry(atomic));
+    }
 
-    RpClumpDestroy(m_pRwClump);
+    RpClumpDestroy(GetRpClump());
     m_pRwObject = nullptr;
 
     CBaseModelInfo::RemoveTexDictionaryRef();
@@ -86,11 +86,11 @@ void CClumpModelInfo::DeleteRwObject()
 
 RwObject* CClumpModelInfo::CreateInstance()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return nullptr;
 
     CBaseModelInfo::AddRef();
-    auto clonedClump = RpClumpClone(m_pRwClump);
+    auto clonedClump = RpClumpClone(GetRpClump());
     auto atomic = GetFirstAtomic(clonedClump);
     if (atomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic)) && !bHasComplexHierarchy) {
         auto hierarchy = GetAnimHierarchyFromClump(clonedClump);
@@ -113,7 +113,7 @@ RwObject* CClumpModelInfo::CreateInstance()
 
 RwObject* CClumpModelInfo::CreateInstance(RwMatrix* matrix)
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return nullptr;
 
     auto clump = CreateInstance();
@@ -159,36 +159,36 @@ CBox* CClumpModelInfo::GetBoundingBox()
 // 0x4C4F70
 void CClumpModelInfo::SetClump(RpClump* clump)
 {
-    if (m_pRwObject) {
-        if (auto atomic = Get2DEffectAtomic(m_pRwClump))
+    if (GetRwObject()) {
+        if (auto atomic = Get2DEffectAtomic(GetRpClump()))
             m_n2dfxCount -= RpGeometryGet2dFxCount(RpAtomicGetGeometry(atomic));
     }
 
-    m_pRwClump = clump;
-    if (m_pRwClump) {
-        if (auto atomic = Get2DEffectAtomic(m_pRwClump))
+    m_pRwObject = reinterpret_cast<RwObject*>(clump);
+    if (GetRpClump()) {
+        if (auto atomic = Get2DEffectAtomic(GetRpClump()))
             m_n2dfxCount += RpGeometryGet2dFxCount(RpAtomicGetGeometry(atomic));
     }
 
-    CVisibilityPlugins::SetClumpModelInfo(m_pRwClump, this);
+    CVisibilityPlugins::SetClumpModelInfo(GetRpClump(), this);
     CBaseModelInfo::AddTexDictionaryRef();
 
     auto iAnimIndex = GetAnimFileIndex();
     if (iAnimIndex != -1)
         CAnimManager::AddAnimBlockRef(iAnimIndex);
 
-    RpClumpForAllAtomics(m_pRwClump, AtomicSetupLightingCB, this);
-    auto firstAtomic = GetFirstAtomic(m_pRwClump);
+    RpClumpForAllAtomics(GetRpClump(), AtomicSetupLightingCB, this);
+    auto firstAtomic = GetFirstAtomic(GetRpClump());
     if (firstAtomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(firstAtomic))) {
         if (bHasComplexHierarchy) {
-            RpClumpForAllAtomics(m_pRwClump, SetHierarchyForSkinAtomic, nullptr);
+            RpClumpForAllAtomics(GetRpClump(), SetHierarchyForSkinAtomic, nullptr);
         }
         else {
             auto sphere = RpMorphTargetGetBoundingSphere(RpGeometryGetMorphTarget(RpAtomicGetGeometry(firstAtomic), 0));
             sphere->radius *= 1.2F;
 
-            auto hierarchy = GetAnimHierarchyFromClump(m_pRwClump);
-            RpClumpForAllAtomics(m_pRwClump, SetHierarchyForSkinAtomic, hierarchy);
+            auto hierarchy = GetAnimHierarchyFromClump(GetRpClump());
+            RpClumpForAllAtomics(GetRpClump(), SetHierarchyForSkinAtomic, hierarchy);
 
             auto geometry = RpAtomicGetGeometry(firstAtomic);
             auto skin = RpSkinGeometryGetSkin(geometry);
@@ -215,7 +215,7 @@ void CClumpModelInfo::SetFrameIds(RwObjectNameIdAssocation* data) {
     while (curComponent->m_pName) {
         if ((curComponent->m_dwFlags & 1) == 0) {
             auto searchInfo = tCompSearchStructByName(curComponent->m_pName, nullptr);
-            RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), FindFrameFromNameWithoutIdCB, &searchInfo);
+            RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), FindFrameFromNameWithoutIdCB, &searchInfo);
             if (searchInfo.m_pFrame)
                 CVisibilityPlugins::SetFrameHierarchyId(searchInfo.m_pFrame, curComponent->m_dwHierarchyId);
         }

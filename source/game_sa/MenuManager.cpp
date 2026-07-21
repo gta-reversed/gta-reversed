@@ -18,7 +18,7 @@
 #include "Hud.h"
 #include "ControllerConfigManager.h"
 
-CMenuManager& FrontEndMenuManager = *(CMenuManager*)0xBA6748;
+auto& FrontEndMenuManager = StaticRef<CMenuManager>(0xBA6748);
 
 CMenuManager& GetMenu() {
     return FrontEndMenuManager;
@@ -572,7 +572,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
 
 // 0x573E70
 uint32 CMenuManager::GetNumberOfMenuOptions() {
-    static int32& s_PrevScreen = *(int32*)0x8CDFF0;
+    static auto& s_PrevScreen = StaticRef<int32>(0x8CDFF0);
 
     if (m_nCurrentScreen == SCREEN_MAP || m_nCurrentScreen == SCREEN_BRIEF) {
         return 2;
@@ -901,7 +901,7 @@ void CMenuManager::SaveStatsToFile() {
             auto valFormatted = (char*)val;
 
             // todo. xref: CStats::ConstructStatLine, PrintStats
-            static uint16& unk = *reinterpret_cast<uint16*>(0xB794CC);
+            static auto& unk = StaticRef<uint16>(0xB794CC);
             if (unk) { // stat line formatted in percents?
                 sprintf_s(valFormatted, 5u, "%0.0f%%", std::min(atoi(val) / 10.0f, 100.0f)); // max length: "100%\0"
             }

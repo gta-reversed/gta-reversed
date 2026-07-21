@@ -117,7 +117,7 @@ eModelID CLoadedCarGroup::PickLeastUsedModel(int32 maxTimesUsed) {
 
     const auto GetMI = [](auto model) { return CModelInfo::GetVehicleModelInfo(model); };
     const auto ret = rng::min(GetAllModels(), [&](int16 modelA, int16 modelB) {
-        const auto miA = GetMI(modelA), miB = GetMI(modelA);
+        const auto miA = GetMI(modelA), miB = GetMI(modelB);
         if (miA->m_nRefCount < miB->m_nRefCount) { // Primary sort criteria is `m_nRefCount`
             return true;
         }

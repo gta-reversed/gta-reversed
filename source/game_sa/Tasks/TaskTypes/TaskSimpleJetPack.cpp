@@ -162,7 +162,7 @@ void CTaskSimpleJetPack::RenderJetPack(CPed* ped) {
         // Update JetPack matrix
         {
             const auto jpMat = RwFrameGetMatrix(jp);
-            *jpMat = RpHAnimHierarchyGetMatrixArray(GetAnimHierarchyFromSkinClump(ped->m_pRwClump))[PED_NODE_LEFT_ARM]; // TODO/NOTE: Not sure abt the enum
+            *jpMat = RpHAnimHierarchyGetMatrixArray(GetAnimHierarchyFromSkinClump(ped->GetRpClump()))[PED_NODE_LEFT_ARM]; // TODO/NOTE: Not sure abt the enum
             RwMatrixTranslate(jpMat, &JETPACK_POS_OFFSET, rwCOMBINEPRECONCAT);
             RwMatrixRotate(jpMat, &JETPACK_ROT_AXIS, 90.f, rwCOMBINEPRECONCAT);
         }
@@ -303,7 +303,7 @@ bool CTaskSimpleJetPack::ProcessAnims(CPed* ped) {
             ped->AsPlayer()->SetRealMoveAnim();
         }
     } else {
-        CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 4.f);
+        CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 4.f);
         ped->SetMoveState(PEDMOVE_STILL);
     }
 
@@ -462,8 +462,8 @@ void CTaskSimpleJetPack::DoJetPackEffect(CPed* ped) {
         ? std::min(m_FxKeyTime + 0.1f, 1.f)
         : std::max(m_FxKeyTime - 0.1f, 0.f);
     const auto ProcessFx = [&, this](FxSystem_c*& fx, const char* jbFrameName) {
-        if (ped->m_pRwClump && !fx) {
-            if (fx = g_fxMan.CreateFxSystem("jetpack", CVector{}, RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump)))) {
+        if (ped->GetRpClump() && !fx) {
+            if (fx = g_fxMan.CreateFxSystem("jetpack", CVector{}, RwFrameGetMatrix(RpClumpGetFrame(ped->GetRpClump())))) {
                 fx->Play();
                 fx->SetLocalParticles(true);
                 fx->CopyParentMatrix();

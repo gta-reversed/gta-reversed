@@ -115,7 +115,7 @@ void CoverPointsDebugModule::RenderCoverPointsTable() {
             case 1: o = a.CoverPoint->GetType() <=> a.CoverPoint->GetType(); break; // Type
             case 2: o = a.DistToPlayer <=> b.DistToPlayer;                   break; // Distance
             }
-            if (o != 0) {
+            if (o != std::partial_ordering::equivalent) {
                 return spec->SortDirection == ImGuiSortDirection_Ascending
                     ? o < 0
                     : o > 0;

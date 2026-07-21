@@ -51,7 +51,7 @@ bool CTaskSimpleGiveCPR::ProcessPed(CPed* ped) {
         return true;
     } else {
         if (!m_pAnim) {
-            m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_MEDIC, ANIM_ID_CPR, 4.0F);
+            m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_MEDIC, ANIM_ID_CPR, 4.0F);
             m_pAnim->SetFinishCallback(FinishGiveCPRAnimCB, this);
         }
         return false;

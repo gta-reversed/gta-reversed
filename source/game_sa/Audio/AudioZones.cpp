@@ -30,10 +30,7 @@ void CAudioZones::RegisterAudioBox(char name[8], int32 id, bool isActive, CVecto
     strcpy_s(audioZoneBox.m_szName, name);
     audioZoneBox.m_IsActive = isActive; // TODO: m_nFlags field has only 1 flag - Active or inactive and takes only 1 bit. Although gta uses 2 bytes for this, but how is the idea to define this single flag so as not to be confused in the future
     audioZoneBox.m_nAudioZone = id;
-    audioZoneBox.m_Box = CompressedBox{
-        .m_vecMin = CompressLargeVector(min),
-        .m_vecMax = CompressLargeVector(max),
-    };
+    audioZoneBox.m_Box = CompressedBox{ .m_vecMin = min, .m_vecMax = max };
     m_aBoxes[m_NumBoxes++] = audioZoneBox;
 }
 

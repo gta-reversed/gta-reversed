@@ -55,23 +55,23 @@ class CGenericGameStorage {
     };
         
 public:
-    static inline uint32& ms_WorkBufferSize = *(uint32*)0x8D2BE0;
-    static inline char(&ms_SaveFileNameJustSaved)[MAX_PATH] = *(char(*)[MAX_PATH])0xC16030;
-    static inline char(&ms_SaveFileName)[256] = *(char(*)[256])0xC16DB8;
-    static inline char(&ms_LoadFileName)[104] = *(char(*)[104])0xC15FC8;
-    static inline char(&ms_LoadFileNameWithPath)[104] = *(char(*)[104])0xC15F60;
-    static inline uint32& ms_CheckSum = *(uint32*)0xC16134;
-    static inline uint8*& ms_WorkBuffer = *(uint8**)0xC16EE8;
-    static inline int32& ms_WorkBufferPos = *(int32*)0xC16EEC;
-    static inline FILE*& ms_FileHandle = *(FILE**)0xC16EF0;
-    static inline uint32& ms_FilePos = *(uint32*)0xC16EF4;
-    static inline uint32& ms_FileSize = *(uint32*)0xC16EF8;
-    static inline bool& ms_bFailed = *(bool*)0xC16EFC;
-    static inline bool& ms_bLoading = *(bool*)0xC16EFD;
+    static inline auto& ms_WorkBufferSize = StaticRef<uint32>(0x8D2BE0);
+    static inline auto& ms_SaveFileNameJustSaved = StaticRef<char[MAX_PATH]>(0xC16030);
+    static inline auto& ms_SaveFileName = StaticRef<char[256]>(0xC16DB8);
+    static inline auto& ms_LoadFileName = StaticRef<char[104]>(0xC15FC8);
+    static inline auto& ms_LoadFileNameWithPath = StaticRef<char[104]>(0xC15F60);
+    static inline auto& ms_CheckSum = StaticRef<uint32>(0xC16134);
+    static inline auto& ms_WorkBuffer = StaticRef<uint8*>(0xC16EE8);
+    static inline auto& ms_WorkBufferPos = StaticRef<int32>(0xC16EEC);
+    static inline auto& ms_FileHandle = StaticRef<FILE*>(0xC16EF0);
+    static inline auto& ms_FilePos = StaticRef<uint32>(0xC16EF4);
+    static inline auto& ms_FileSize = StaticRef<uint32>(0xC16EF8);
+    static inline auto& ms_bFailed = StaticRef<bool>(0xC16EFC);
+    static inline auto& ms_bLoading = StaticRef<bool>(0xC16EFD);
     static inline const char ms_BlockTagName[] = "BLOCK";
-    static inline std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>& ms_SlotSaveDate = StaticRef<std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>, 0xC16138>();
-    static inline std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>& ms_SlotFileName = StaticRef<std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>, 0xC16368>();
-    static inline std::array<eSlotState, MAX_SAVEGAME_SLOTS>& ms_Slots = StaticRef<std::array<eSlotState, MAX_SAVEGAME_SLOTS>, 0xC16EBC>();
+    static inline auto& ms_SlotSaveDate = StaticRef<std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>>(0xC16138);
+    static inline auto& ms_SlotFileName = StaticRef<std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>>(0xC16368);
+    static inline auto& ms_Slots = StaticRef<std::array<eSlotState, MAX_SAVEGAME_SLOTS>>(0xC16EBC);
 
 public:
     static void InjectHooks();

@@ -193,42 +193,42 @@ class CPopCycle {
 public:
     
 public:
-    static inline float& m_NumOther_Cars = *(float*)0xC0BC30;
-    static inline float& m_NumCops_Cars = *(float*)0xC0BC34;
-    static inline float& m_NumGangs_Cars = *(float*)0xC0BC38;
-    static inline float& m_NumDealers_Cars = *(float*)0xC0BC3C;
-    static inline float& m_NumOther_Peds = *(float*)0xC0BC40;
-    static inline float& m_NumCops_Peds = *(float*)0xC0BC44;
-    static inline float& m_NumGangs_Peds = *(float*)0xC0BC48;
-    static inline float& m_fPercOther = *(float*)0xC0BC4C;
-    static inline float& m_fPercCops = *(float*)0xC0BC50;
-    static inline float& m_fPercGangs = *(float*)0xC0BC54;
-    static inline float& m_fPercDealers = *(float*)0xC0BC58;
-    static inline bool& m_bCurrentZoneIsGangArea = *(bool*)0xC0BC5C;
-    static inline float& m_fCurrentZoneDodgyness = *(float*)0xC0BC60;
-    static inline CZone*& m_pCurrZone = *(CZone**)0xC0BC64;
-    static inline CZoneInfo*& m_pCurrZoneInfo = *(CZoneInfo**)0xC0BC68;
+    static inline auto& m_NumOther_Cars = StaticRef<float>(0xC0BC30);
+    static inline auto& m_NumCops_Cars = StaticRef<float>(0xC0BC34);
+    static inline auto& m_NumGangs_Cars = StaticRef<float>(0xC0BC38);
+    static inline auto& m_NumDealers_Cars = StaticRef<float>(0xC0BC3C);
+    static inline auto& m_NumOther_Peds = StaticRef<float>(0xC0BC40);
+    static inline auto& m_NumCops_Peds = StaticRef<float>(0xC0BC44);
+    static inline auto& m_NumGangs_Peds = StaticRef<float>(0xC0BC48);
+    static inline auto& m_fPercOther = StaticRef<float>(0xC0BC4C);
+    static inline auto& m_fPercCops = StaticRef<float>(0xC0BC50);
+    static inline auto& m_fPercGangs = StaticRef<float>(0xC0BC54);
+    static inline auto& m_fPercDealers = StaticRef<float>(0xC0BC58);
+    static inline auto& m_bCurrentZoneIsGangArea = StaticRef<bool>(0xC0BC5C);
+    static inline auto& m_fCurrentZoneDodgyness = StaticRef<float>(0xC0BC60);
+    static inline auto& m_pCurrZone = StaticRef<CZone*>(0xC0BC64);
+    static inline auto& m_pCurrZoneInfo = StaticRef<CZoneInfo*>(0xC0BC68);
 
     //! Same as `m_pCurrZoneInfo->zonePopulationType`
-    static inline int32& m_nCurrentZoneType = *(int32*)0xC0BC6C;
+    static inline auto& m_nCurrentZoneType = StaticRef<int32>(0xC0BC6C);
 
-    static inline int32& m_nCurrentTimeOfWeek = *(int32*)0xC0BC70;
-    static inline int32& m_nCurrentTimeIndex = *(int32*)0xC0BC74;
-    static inline float& m_NumDealers_Peds = *(float*)0xC0E978;
+    static inline auto& m_nCurrentTimeOfWeek = StaticRef<int32>(0xC0BC70);
+    static inline auto& m_nCurrentTimeIndex = StaticRef<int32>(0xC0BC74);
+    static inline auto& m_NumDealers_Peds = StaticRef<float>(0xC0E978);
 
     static constexpr auto PERC_DATA_TIME_RESOLUTION_HR = 2;
 
     // TODO: Eventually use an array of structs instead of 7x 4 dimensional arrays....
     using PercDataArray = uint8[24 / PERC_DATA_TIME_RESOLUTION_HR /*time resolution (hr)*/][2 /*weekday and weekend*/][(uint32)(eZonePopulationType::COUNT)];
-    static inline PercDataArray& m_nPercOther = *(PercDataArray*)0xC0DE38;
-    static inline PercDataArray& m_nPercCops = *(PercDataArray*)0xC0E018;
-    static inline PercDataArray& m_nPercGang = *(PercDataArray*)0xC0E1F8;
-    static inline PercDataArray& m_nPercDealers = *(PercDataArray*)0xC0E3D8;
-    static inline PercDataArray& m_nMaxNumCars = *(PercDataArray*)0xC0E5B8;
-    static inline PercDataArray& m_nMaxNumPeds = *(PercDataArray*)0xC0E798;
+    static inline auto& m_nPercOther = StaticRef<PercDataArray>(0xC0DE38);
+    static inline auto& m_nPercCops = StaticRef<PercDataArray>(0xC0E018);
+    static inline auto& m_nPercGang = StaticRef<PercDataArray>(0xC0E1F8);
+    static inline auto& m_nPercDealers = StaticRef<PercDataArray>(0xC0E3D8);
+    static inline auto& m_nMaxNumCars = StaticRef<PercDataArray>(0xC0E5B8);
+    static inline auto& m_nMaxNumPeds = StaticRef<PercDataArray>(0xC0E798);
 
     //! See `Initialise` for more info about this array.
-    static inline uint8 (&m_nPercTypeGroup)[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS] = *(uint8(*)[12][2][20][18])0xC0BC78;
+    static inline auto& m_nPercTypeGroup = StaticRef<uint8[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS]>(0xC0BC78);
 
     static void InjectHooks();
 

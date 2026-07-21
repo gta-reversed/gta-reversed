@@ -62,8 +62,8 @@ enum eMemoryId {
     MEM_32                   = 32,
 };
 
-static inline char (&s_MemoryHeapBuffer)[16384] = *(char (*)[16384])0xC8E0C8;
-static inline std::array<CMemoryHeap, 3>& g_Heaps = *(std::array<CMemoryHeap, 3>*)0xC87B40;
+static inline auto& s_MemoryHeapBuffer = StaticRef<char[16384]>(0xC8E0C8);
+static inline auto& g_Heaps = StaticRef<std::array<CMemoryHeap, 3>>(0xC87B40);
 
 // todo fixed stack
 template <typename _Type, uint32 _nSize> class CStack {
@@ -99,7 +99,7 @@ public:
     static inline int32  m_blocksUsed = *(int32*)0xC87B30;
     static inline int32* m_pMemUsedArray = *(int32**)0xC87B18;
     static inline int32  m_id = *(int32*)0xC87B1C;
-    static inline CStack<int32, 16>& m_idStack = *(CStack<int32, 16>*)0xC87C18;
+    static inline auto& m_idStack = StaticRef<CStack<int32, 16>>(0xC87C18);
     static int8  m_largeAllocation;
     static int8  m_minLargeAllocation;
     static bool  m_bMallocHintDebugging;

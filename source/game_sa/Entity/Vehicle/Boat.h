@@ -39,7 +39,7 @@ public:
         uint8 bLockedToXY : 1; // is anchored
     } m_nBoatFlags;
 
-    RwFrame* m_BoatNodes[BOAT_NUM_NODES];
+    std::array<RwFrame*, BOAT_NUM_NODES> m_BoatNodes;
     CDoor m_BoatDoor;
 
     tBoatHandlingData* m_BoatHandling;
@@ -55,7 +55,7 @@ public:
     CVector m_OldMoveSpeed; // m_OldMoveSpeed = m_vecMoveForce + m_vecFrictionMoveForce
     CVector m_OldTurnSpeed; // m_OldTurnSpeed = m_vecTurnForce + m_vecFrictionTurnForce
 
-    FxSystem_c* m_fxSysProp[2];
+    std::array<FxSystem_c*, 2>  m_fxSysProp;
     CVector m_fxBuoyancyForce; // { 0.0f, 0.0f, DampingPower }
 
     uint8 m_CurrentField; // unused
@@ -65,9 +65,9 @@ public:
     float m_PrevVolume; // 0.0f - not in water
 
     uint16 m_NumWakeCoords;
-    CVector2D m_WakeCoords[32];
-    float m_WakePtCounters[32];
-    uint8 m_WakeBoatSpeed[32]; // m_WakeBoatSpeed[i] = boat->m_vecMoveForce.Magnitude() * 100.0f;
+    std::array<CVector2D, 32>   m_WakeCoords;
+    std::array<float, 32>       m_WakePtCounters;
+    std::array<uint8, 32>       m_WakeBoatSpeed; // m_WakeBoatSpeed[i] = boat->m_vecMoveForce.Magnitude() * 100.0f;
 
     static constexpr int32 NUM_WAKE_GEN_BOATS = 4;
 

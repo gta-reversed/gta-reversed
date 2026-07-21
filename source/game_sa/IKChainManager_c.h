@@ -134,7 +134,7 @@ public:
     bool IsFacingTarget(CPed* ped, eIKChainSlot slot) const;
 
 public:
-    IKChain_c          m_IKChains[32]{};
+    std::array<IKChain_c, 32> m_IKChains{};
     TList_c<IKChain_c> m_ActiveList{};
     TList_c<IKChain_c> m_FreeList{};
 };

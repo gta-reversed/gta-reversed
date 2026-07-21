@@ -130,9 +130,9 @@ public:
     static constexpr float FORKLIFT_COL_ANGLE_MULT = 0.0006f;
     static constexpr float DOZER_COL_ANGLE_MULT    = 0.0002f;
     static constexpr float ROLL_ONTO_WHEELS_FORCE  = 0.0025f;
-    static bool&           m_sAllTaxiLights;
-    static CVector&        vecHunterGunPos; // { 0.0f, 4.8f, -1.3f }
-    static CMatrix*        matW2B;
+    static inline auto& m_sAllTaxiLights = StaticRef<bool>(0xC1BFD0);
+    static inline auto& vecHunterGunPos = StaticRef<CVector>(0x8D3394); // { 0.0f, 4.8f, -1.3f }
+    static inline auto& matW2B = StaticRef<CMatrix>(0xC1C220);
 
     static constexpr auto Type = VEHICLE_TYPE_AUTOMOBILE;
 

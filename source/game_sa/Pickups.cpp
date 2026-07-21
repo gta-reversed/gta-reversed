@@ -92,7 +92,7 @@ void CPickups::AddToCollectedPickupsArray(int32 pickupIndex) {
 
 /*!
  * @addr 0x458A80
- * @brief Created a pickup close to pos (\r inX, \r inY, \r inZ)
+ * @brief Created a pickup close to pos (inX, inY, inZ)
  *
  * @param [out] outX, outY, outZ Created pickup's position
  */
@@ -348,8 +348,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     }
 
     if (modelId == MI_PICKUP_BRIBE) {
-        auto wantedLevel = std::max(0u, FindPlayerPed()->GetWantedLevel() - 1);
-        FindPlayerPed(0)->SetWantedLevel(wantedLevel);
+        auto wantedLevel = std::max(+eWantedLevel::WANTED_CLEAN, +FindPlayerPed()->GetWantedLevel() - +eWantedLevel::WANTED_LEVEL_1);
+        FindPlayerPed(0)->SetWantedLevel((eWantedLevel)wantedLevel);
         CStats::IncrementStat(STAT_NUMBER_OF_POLICE_BRIBES, 1.0f);
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_INFO);
         return true;
@@ -639,7 +639,7 @@ void CPickups::Update() {
 
         if (pickup.m_nFlags.bVisible = pickup.IsVisible()) {
             if (!pickup.m_nFlags.bDisabled && !pickup.m_pObject) {
-                pickup.GiveUsAPickUpObject(&pickup.m_pObject, -1);
+                pickup.GiveUsAPickUpObject(pickup.m_pObject);
 
                 if (auto& obj = pickup.m_pObject; obj) {
                     CWorld::Add(obj);

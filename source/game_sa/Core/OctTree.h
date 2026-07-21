@@ -20,9 +20,9 @@ public:
     uint32 m_nBlueComponent;
 
 public:
-    static bool&            ms_bFailed;
-    static uint32&          ms_level;
-    static COctTreePool&    ms_octTreePool;
+    static inline auto& ms_bFailed = StaticRef<bool>(0xBC12DC);
+    static inline auto& ms_level = StaticRef<uint32>(0xBC12E0);
+    static inline auto& ms_octTreePool = StaticRef<COctTreePool>(0xBC12E4);
 
 public:
     COctTree();

@@ -4,7 +4,7 @@
 #include "PostEffects.h"
 #include "Shadows.h"
 
-int &TunnelWeather = *(int*)0x8CDEE0; // 9 = WEATHER_FOGGY_SF, unchanged
+auto& TunnelWeather = StaticRef<int>(0x8CDEE0); // 9 = WEATHER_FOGGY_SF, unchanged
 
 void CTimeCycle::InjectHooks() {
     RH_ScopedClass(CTimeCycle);
@@ -598,7 +598,7 @@ void CTimeCycle::FindTimeCycleBox(
     *curr          = nullptr;
     *interpolation = 0.0f;
 
-    for (auto& v : std::span{ m_aBoxes, m_NumBoxes }) {
+    for (auto& v : GetBoxes()) {
         if (isLOD && v.LodDistMult == 32.f) { // 0x560013
             continue;
         }

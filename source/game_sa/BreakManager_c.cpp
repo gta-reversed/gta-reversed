@@ -2,7 +2,7 @@
 
 #include "BreakManager_c.h"
 
-BreakManager_c& g_breakMan = *(BreakManager_c*)0xBB4240;
+auto& g_breakMan = StaticRef<BreakManager_c>(0xBB4240);
 
 void BreakManager_c::InjectHooks() {
     RH_ScopedClass(BreakManager_c);

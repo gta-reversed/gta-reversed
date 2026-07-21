@@ -269,24 +269,29 @@ bool CPools::LoadVehiclePool() {
 
 // 0x550080
 void CPools::MakeSureSlotInObjectPoolIsEmpty(int32 slot) {
-    if (GetObjectPool()->IsFreeSlotAtIndex(slot))
-        return;
-
-    auto* obj = GetObjectPool()->GetAt(slot);
-    if (obj->IsTemporary()) {
-        CWorld::Remove(obj);
-        delete obj;
-    } else if (CProjectileInfo::RemoveIfThisIsAProjectile(obj)) {
-        auto newObj = new CObject(obj->m_nModelIndex, false);
-        CWorld::Remove(obj);
-        *newObj = *obj;
-        CWorld::Add(newObj);
-
-        obj->m_pRwObject = nullptr;
-        delete obj;
-
-        newObj->m_pReferences = nullptr;
-    }
+    // All code paths to this function are unreachable
+    // The only caller is `CPickup::GiveUsAPickUpObject`, 
+    // but all calls of it pass `-1` as the slot, so this function is never actually used.
+    // The implementation is messy, as it acceses `m_pRwObject` of the Entity, which is no good.
+    NOTSA_UNREACHABLE();
+    //if (GetObjectPool()->IsFreeSlotAtIndex(slot))
+    //    return;
+    //
+    //auto* obj = GetObjectPool()->GetAt(slot);
+    //if (obj->IsTemporary()) {
+    //    CWorld::Remove(obj);
+    //    delete obj;
+    //} else if (CProjectileInfo::RemoveIfThisIsAProjectile(obj)) {
+    //    auto newObj = new CObject(obj->m_nModelIndex, false);
+    //    CWorld::Remove(obj);
+    //    *newObj = *obj;
+    //    CWorld::Add(newObj);
+    //
+    //    obj->m_pRwObject = nullptr;
+    //    delete obj;
+    //
+    //    newObj->m_pReferences = nullptr;
+    //}
 }
 
 // 0x5D0880

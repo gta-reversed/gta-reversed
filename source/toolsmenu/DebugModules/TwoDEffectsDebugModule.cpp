@@ -195,7 +195,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
             case 3: o = a.DistToPlayer <=> b.DistToPlayer; break; // Distance
             case 4: o = a.Entity <=> b.Entity;             break; // Entity
             }
-            if (o != 0) {
+            if (o != std::partial_ordering::equivalent) {
                 return spec->SortDirection == ImGuiSortDirection_Ascending
                     ? o < 0
                     : o > 0;

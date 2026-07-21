@@ -16,7 +16,7 @@ extern RwInt32& gCollisionPluginOffset;
 
 class CCollisionPlugin {
 public:
-    static CClumpModelInfo*& ms_currentModel;
+    static inline auto& ms_currentModel = StaticRef<CClumpModelInfo*>(0x9689E0);
 
 public:
     static void InjectHooks();

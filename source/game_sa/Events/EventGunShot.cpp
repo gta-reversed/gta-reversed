@@ -2,8 +2,6 @@
 
 #include "EventGunShot.h"
 
-float& CEventGunShot::ms_fGunShotSenseRangeForRiot2 = *(float*)0x8A625C;
-
 void CEventGunShot::InjectHooks() {
     RH_ScopedVirtualClass(CEventGunShot, 0x85ABE0, 17);
     RH_ScopedCategory("Events");
@@ -40,7 +38,7 @@ bool CEventGunShot::AffectsPed(CPed* ped) {
 
     if (!ped->IsInVehicleThatHasADriver()) {
         CWanted* playerWanted = FindPlayerWanted();
-        if (ped->m_nPedType == PED_TYPE_COP && playerWanted->m_nWantedLevel > 0) {
+        if (ped->m_nPedType == PED_TYPE_COP && playerWanted->GetWantedLevel() > eWantedLevel::WANTED_CLEAN) {
             CCopPed* cop = static_cast<CCopPed*>(ped);
             if (playerWanted->IsInPursuit(cop) || playerWanted->CanCopJoinPursuit(cop)) {
                 if (m_firedBy != FindPlayerPed())

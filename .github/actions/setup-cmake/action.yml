@@ -1,0 +1,39 @@
+name: Setup CMake using Conan
+description: A workflow to setup CMake using Conan, which can be used as a dependency for other workflows.
+
+inputs:
+    os:
+        description: "The operating system to use for the setup. [Values: windows-2025-vs2026]"
+        required: true
+        default: "windows-2025-vs2026"
+    arch:
+        description: "The architecture to use for the setup. [Values: x86]"
+        required: true
+        default: "x86"
+    conf:
+        description: "The build configuration to use for the setup. [Values: Debug, Release]"
+        required: true
+    preset:
+        description: "The preset to use for the setup. [Values: NoUnity, Unity]"
+        required: true
+        default: "NoUnity"
+
+runs:
+    using: "composite"
+    steps:
+        - name: Setup Python
+          uses: actions/setup-python@v4
+          with:
+              python-version: "3.x"
+
+        - name: Install Conan via Python
+          shell: cmd
+          run: |
+              python -m pip install --upgrade pip
+              python -m pip install conan
+
+        - name: Setup CMake using Conan
+          shell: cmd
+          run: |
+              conan profile detect
+              python setup.py --buildconf ${{ matrix.conf }} ${{ matrix.preset == 'NoUnity' && '--no-unity-build' || '' }}

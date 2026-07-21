@@ -52,8 +52,8 @@ public:
     float          m_fFuelOffsetDistance[NUM_FUEL];
     float          m_fFuelSpeed[NUM_FUEL];
 
-    static CAEExplosionAudioEntity& m_ExplosionAudioEntity;
-    static CExplosion (&aExplosions)[16];
+    static inline auto& m_ExplosionAudioEntity = StaticRef<CAEExplosionAudioEntity>(0xC888D0);
+    static inline auto& aExplosions = StaticRef<std::array<CExplosion, 16>>(0xC88950);
 
 public:
     static void InjectHooks();

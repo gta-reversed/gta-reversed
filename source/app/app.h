@@ -16,16 +16,16 @@
 
 void AppInjectHooks();
 
-static inline int32& gGameState = *(int32*)0xC8D4C0;
+static inline auto& gGameState = StaticRef<int32>(0xC8D4C0);
 
 //! NOTSA (We wanna have this wrapper for debugging)
 void ChangeGameStateTo(eGameState newgs);
 
-static inline bool& ForegroundApp = *(bool*)0x8D621C;
+static inline auto& ForegroundApp = StaticRef<bool>(0x8D621C);
 
-static inline RwRGBA& gColourTop    = *(RwRGBA*)0xB72CA0;
-static inline RwRGBA& gColourBottom = *(RwRGBA*)0xB72CA4;
-static inline float&  gHorZ = *(float*)0xB72C6C;
+static inline auto& gColourTop = StaticRef<RwRGBA>(0xB72CA0);
+static inline auto& gColourBottom = StaticRef<RwRGBA>(0xB72CA4);
+static inline auto& gHorZ = StaticRef<float>(0xB72C6C);
 
 extern RsEventStatus AppEventHandler(RsEvent event, void* param);
 extern bool PluginAttach();

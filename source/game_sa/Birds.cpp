@@ -3,10 +3,6 @@
 #include "Birds.h"
 #include "Clouds.h"
 
-bool& CBirds::bHasBirdBeenShot = *(bool*)0xC6A8A0;
-uint32& CBirds::uiNumberOfBirds = *(uint32*)0xC6A8A4;
-CVector& CBirds::vecBirdShotAt = *(CVector*)0xC6AA48;
-
 /*
 These spawn in a formation like this:
     4           5
@@ -14,15 +10,15 @@ These spawn in a formation like this:
           2
        6           3
 */
-float CBirds::faCreationCoorsX[6] = { 0.0f, -1.0f, 2.0f, -3.0f, 1.0f, -2.0f }; // 0x8D5250
-float CBirds::faCreationCoorsY[6] = { 0.0f, -1.0f, -2.0f, 1.0f, 1.0f, -2.0f }; // 0x8D5268
-float CBirds::faCreationCoorsZ[6] = { 0.0f, 0.5f, 1.0f, 0.7f, 2.0f, 1.2f };    // 0x8D5280
+std::array<float, 6> CBirds::faCreationCoorsX = { 0.0f, -1.0f, 2.0f, -3.0f, 1.0f, -2.0f }; // 0x8D5250
+std::array<float, 6> CBirds::faCreationCoorsY = { 0.0f, -1.0f, -2.0f, 1.0f, 1.0f, -2.0f }; // 0x8D5268
+std::array<float, 6> CBirds::faCreationCoorsZ = { 0.0f, 0.5f, 1.0f, 0.7f, 2.0f, 1.2f };    // 0x8D5280
 
-float CBirds::faRenderCoorsU[8] = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f }; // 0x8D52B8
-float CBirds::faRenderCoorsV[8] = { 0.5f, 0.5f, 0.75f, 0.75f, 1.0f, 1.0f, 1.0f, 0.5f }; // 0x8D5298
-float CBirds::faRenderPosY[8] = { 0.25f, -0.25f, 0.25f, -0.25f, 0.0f, -0.25f, -0.35f, -0.35f }; // 0x8D52D8;
+std::array<float, 8> CBirds::faRenderCoorsU = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f }; // 0x8D52B8
+std::array<float, 8> CBirds::faRenderCoorsV = { 0.5f, 0.5f, 0.75f, 0.75f, 1.0f, 1.0f, 1.0f, 0.5f }; // 0x8D5298
+std::array<float, 8> CBirds::faRenderPosY = { 0.25f, -0.25f, 0.25f, -0.25f, 0.0f, -0.25f, -0.35f, -0.35f }; // 0x8D52D8;
 
-uint32 CBirds::auRenderIndices[30] = { 0, 3, 1, 0, 2, 3, 2, 4, 5, 2, 5, 3, 0, 1, 3, 0, 3, 2, 2, 5, 4, 2, 3, 5, 0, 6, 7, 0, 7, 6 }; // 0x8D52F8
+std::array<uint32, 30> CBirds::auRenderIndices = { 0, 3, 1, 0, 2, 3, 2, 4, 5, 2, 5, 3, 0, 1, 3, 0, 3, 2, 2, 5, 4, 2, 3, 5, 0, 6, 7, 0, 7, 6 }; // 0x8D52F8
 
 void CBirds::InjectHooks() {
     RH_ScopedClass(CBirds);

@@ -10,21 +10,21 @@
 #include <reversiblebugfixes/Bugs.hpp>
 
 // TODO: Move into the class itself
-CVector& s_pathsNeededPosn = *(CVector*)0x977B70;
-bool&    s_bLoadPathsNeeded  = *(bool*)0x96F030;
+auto& s_pathsNeededPosn = StaticRef<CVector>(0x977B70);
+auto& s_bLoadPathsNeeded = StaticRef<bool>(0x96F030);
 
 // TODO: Remove this and use a stack array or smth..
-std::array<bool, NUM_PATH_MAP_AREAS>& ToBeStreamed = *(std::array<bool, NUM_PATH_MAP_AREAS>*)0x96EFD0;
+auto& ToBeStreamed = StaticRef<std::array<bool, NUM_PATH_MAP_AREAS>>(0x96EFD0);
 
-std::array<float, 64>& XCoorGiven = *(std::array<float, 64>*)0x96EE80;
-std::array<float, 64>& YCoorGiven = *(std::array<float, 64>*)0x96ED80;
-std::array<float, 64>& ZCoorGiven = *(std::array<float, 64>*)0x96EC80;
-std::array<std::array<int8, 8>, 64>& ConnectsToGiven = *(std::array<std::array<int8, 8>, 64>*)0x96EAC0;
+auto& XCoorGiven = StaticRef<std::array<float, 64>>(0x96EE80);
+auto& YCoorGiven = StaticRef<std::array<float, 64>>(0x96ED80);
+auto& ZCoorGiven = StaticRef<std::array<float, 64>>(0x96EC80);
+auto& ConnectsToGiven = StaticRef<std::array<std::array<int8, 8>, 64>>(0x96EAC0);
 
-std::array<int32, NUM_PATH_INTERIOR_AREAS>& aInteriorNodeLinkedToExterior = *(std::array<int32, NUM_PATH_INTERIOR_AREAS>*)0x96EA98;
-std::array<CNodeAddress, NUM_PATH_INTERIOR_AREAS>& aExteriorNodeLinkedTo = *(std::array<CNodeAddress, NUM_PATH_INTERIOR_AREAS>*)0x977B7C;
+auto& aInteriorNodeLinkedToExterior = StaticRef<std::array<int32, NUM_PATH_INTERIOR_AREAS>>(0x96EA98);
+auto& aExteriorNodeLinkedTo = StaticRef<std::array<CNodeAddress, NUM_PATH_INTERIOR_AREAS>>(0x977B7C);
 
-std::array<CNodeAddress, 5000>& aNodesToBeCleared = *(std::array<CNodeAddress, 5000>*)0x972CD0;
+auto& aNodesToBeCleared = StaticRef<std::array<CNodeAddress, 5000>>(0x972CD0);
 
 void CPathFind::InjectHooks() {
     RH_ScopedClass(CPathFind);
@@ -627,6 +627,13 @@ CPathNode* CPathFind::GetPathNode(CNodeAddress address) {
     return &m_pPathNodes[address.m_wAreaId][address.m_wNodeId];
 }
 
+// notsa
+CCarPathLinkAddress CPathFind::GetNaviLink(uint16 area, uint16 linkId) const {
+    assert(area < NUM_PATH_MAP_AREAS);
+    assert(linkId < m_anNumAddresses[area]);
+    return m_pNaviLinks[area][linkId];
+}
+
 // NOTSA
 bool CPathFind::FindNodeCoorsForScript(CVector& outPos, CNodeAddress addr) {
     bool valid{};
@@ -976,21 +983,22 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
     float        scoreOfClosest{std::numeric_limits<float>::max()};
     for (auto areaId{ 0u }; areaId < NUM_TOTAL_PATH_NODE_AREAS; areaId++) {
         for (const auto& node : GetPathNodesInArea(areaId, nodeType)) { // NOTE: Function takes care of checking whenever the area is loaded
-            const auto dirToNodeUN = pos - node.GetPosition();
+            const auto playerToNodeDirection = node.GetPosition() - pos;
 
-            const auto dotScore = (abs(dirToNodeUN) * CVector { 1.f, 1.f, 3.f }).ComponentwiseSum();
+            const auto dotScore = (abs(playerToNodeDirection) * CVector { 1.f, 1.f, 3.f }).ComponentwiseSum();
             if (dotScore >= scoreOfClosest) {
                 continue;
             }
 
-            const auto score = dotScore - (dir.Dot(CVector2D{ dirToNodeUN }.Normalized()) - 1.f) * 20.f;
-            if (score <= scoreOfClosest) {
-                scoreOfClosest = score;
-                closest = node.GetAddress();
+            const auto score = dotScore - (dir.Dot(CVector2D{ playerToNodeDirection }.Normalized()) - 1.f) * 20.f;
+            if (score > scoreOfClosest) {
+                continue;
             }
+
+            scoreOfClosest = score;
+            closest = node.GetAddress();
         }
     }
-
     return closest;
 }
 

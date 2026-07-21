@@ -11,7 +11,7 @@
 
 class CDecisionMaker {
 public:
-    CDecision m_aDecisions[DM_TOTAL_NUM_EVENTS];
+    std::array<CDecision, DM_TOTAL_NUM_EVENTS> m_aDecisions;
 
 public:
     static void InjectHooks();

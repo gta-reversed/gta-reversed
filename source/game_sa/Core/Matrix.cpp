@@ -11,8 +11,8 @@
 
 uint8* CMatrix::EulerIndices1 = (uint8*)0x866D9C;
 uint8* CMatrix::EulerIndices2 = (uint8*)0x866D94;
-int32& numMatrices = *(int32*)0xB74238;
-CMatrix& gDummyMatrix = *(CMatrix*)0xB74240;
+auto& numMatrices = StaticRef<int32>(0xB74238);
+auto& gDummyMatrix = StaticRef<CMatrix>(0xB74240);
 
 
 void CMatrix::InjectHooks()

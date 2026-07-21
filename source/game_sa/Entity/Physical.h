@@ -82,10 +82,10 @@ public:
             uint32 bProcessCollisionEvenIfStationary : 1; // ref @ 0x6F5CF0
             uint32 bSkipLineCol : 1;                               // only used for peds
             uint32 bDontApplySpeed : 1;
-            uint32 b15 : 1;
+            uint32 bDontLoadCollision : 1;
             uint32 bProcessingShift : 1;
 
-            uint32 b17 : 1;
+            uint32 bForceHitReturnFalse : 1;
             uint32 bDisableSimpleCollision : 1; // ref @ CPhysical::ProcessCollision
             uint32 bBulletProof : 1;
             uint32 bFireProof : 1;
@@ -100,8 +100,8 @@ public:
             uint32 bTouchingWater : 1;
             uint32 bCanBeCollidedWith : 1;
             uint32 bRenderScorched : 1;
-            uint32 b31 : 1;
-            uint32 b32 : 1;
+            uint32 bDoorHitEndStop : 1;
+            uint32 bCarriedByRope : 1;
         } physicalFlags;
         uint32 m_nPhysicalFlags;
     };
@@ -139,17 +139,17 @@ public:
     float               m_fDynamicLighting;
     CRealTimeShadow*    m_pShadowData;
 
-    static float& DAMPING_LIMIT_IN_FRAME;
-    static float& DAMPING_LIMIT_OF_SPRING_FORCE;
-    static float& PHYSICAL_SHIFT_SPEED_DAMP;
-    static float& SOFTCOL_SPEED_MULT;
-    static float& SOFTCOL_SPEED_MULT2;
-    static float& SOFTCOL_DEPTH_MIN;
-    static float& SOFTCOL_DEPTH_MULT;
-    static float& SOFTCOL_CARLINE_SPEED_MULT;
-    static float& TEST_ADD_AMBIENT_LIGHT_FRAC;
-    static float& HIGHSPEED_ELASTICITY_MULT_COPCAR;
-    static CVector& fxDirection;
+    static inline auto& DAMPING_LIMIT_IN_FRAME = StaticRef<float>(0x8CD7A0);
+    static inline auto& DAMPING_LIMIT_OF_SPRING_FORCE = StaticRef<float>(0x8CD7A4);
+    static inline auto& PHYSICAL_SHIFT_SPEED_DAMP = StaticRef<float>(0x8CD788);
+    static inline auto& SOFTCOL_SPEED_MULT = StaticRef<float>(0x8CD794);
+    static inline auto& SOFTCOL_SPEED_MULT2 = StaticRef<float>(0x8CD798);
+    static inline auto& SOFTCOL_DEPTH_MIN = StaticRef<float>(0x8CD78C);
+    static inline auto& SOFTCOL_DEPTH_MULT = StaticRef<float>(0x8CD790);
+    static inline auto& SOFTCOL_CARLINE_SPEED_MULT = StaticRef<float>(0x8CD79C);
+    static inline auto& TEST_ADD_AMBIENT_LIGHT_FRAC = StaticRef<float>(0x8CD7B8);
+    static inline auto& HIGHSPEED_ELASTICITY_MULT_COPCAR = StaticRef<float>(0x8CD784);
+    static inline auto& fxDirection = StaticRef<CVector>(0xB73720);
 
 public:
     CPhysical();

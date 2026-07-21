@@ -21,7 +21,7 @@ uint32 MAX_NUM_CUTSCENE_ITEMS_TO_HIDE = 50;
 uint32 MAX_NUM_CUTSCENE_ATTACHMENTS = 50;
 
 //! Is the cutscene close to finishing (If this is set the camera is already fading in)
-static inline auto& g_bCutSceneFinishing = StaticRef<bool, 0xBC1CF8>();
+static inline auto& g_bCutSceneFinishing = StaticRef<bool>(0xBC1CF8);
 
 // 0x5B0380
 int32 CCutsceneMgr::AddCutsceneHead(CObject* object, int32 arg1) {
@@ -44,19 +44,19 @@ void CCutsceneMgr::AppendToNextCutscene(const char* objectName, const char* anim
 // 0x5B0450
 void CCutsceneMgr::AttachObjectToBone(CCutsceneObject* attachment, CCutsceneObject* object, int32 boneId) {
     attachment->m_pAttachmentObject = object;
-    attachment->m_nAttachBone       = RpHAnimIDGetIndex(GetAnimHierarchyFromSkinClump(object->m_pRwClump), boneId);
+    attachment->m_nAttachBone       = RpHAnimIDGetIndex(GetAnimHierarchyFromSkinClump(object->GetRpClump()), boneId);
 }
 
 // 0x5B0480
 void CCutsceneMgr::AttachObjectToFrame(CCutsceneObject* attachment, CEntity* object, const char* frameName) {
     attachment->m_pAttachmentObject = nullptr;
-    attachment->m_pAttachToFrame    = RpAnimBlendClumpFindFrame(object->m_pRwClump, frameName)->Frame;
+    attachment->m_pAttachToFrame    = RpAnimBlendClumpFindFrame(object->GetRpClump(), frameName)->Frame;
 }
 
 // 0x5B04B0
 void CCutsceneMgr::AttachObjectToParent(CCutsceneObject* attachment, CEntity* object) {
     attachment->m_pAttachmentObject = nullptr;
-    attachment->m_pAttachToFrame    = RpClumpGetFrame(object->m_pRwClump);
+    attachment->m_pAttachToFrame    = RpClumpGetFrame(object->GetRpClump());
 }
 
 // 0x4D5E20
@@ -111,9 +111,9 @@ CCutsceneObject* CCutsceneMgr::CreateCutsceneObject(eModelID modelId) {
 
     // Create col model for it (If cutscene object)
     if (IsModelIDForCutScene(modelId)) {
-        const auto mi = CModelInfo::GetModelInfo(modelId);
+        const auto mi = static_cast<CClumpModelInfo*>(CModelInfo::GetModelInfo(modelId));
         mi->SetColModel(&CTempColModels::ms_colModelCutObj[modelId - MODEL_CUTOBJ01]);
-        UpdateCutsceneObjectBoundingBox(mi->m_pRwClump, modelId);
+        UpdateCutsceneObjectBoundingBox(mi->GetRpClump(), modelId);
     }
 
     // Actually create the object now
@@ -387,14 +387,14 @@ void CCutsceneMgr::LoadCutsceneData_loading() {
 
             // If it's a skinned object, we use bone indencies
             const auto csobj = ms_pCutsceneObjects[objIdx];
-            if (const auto atomic = GetFirstAtomic(csobj->m_pRwClump); atomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) {
+            if (const auto atomic = GetFirstAtomic(csobj->GetRpClump()); atomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) {
                 const auto nodeIdx = notsa::ston<uint32>({ csfx.m_szObjectPart }); // Obj Part is just an node index in this case
-                const auto hier = GetAnimHierarchyFromSkinClump(csobj->m_pRwClump);
+                const auto hier = GetAnimHierarchyFromSkinClump(csobj->GetRpClump());
                 return &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, nodeIdx)];
             }
 
             // If not skinned, it's the name of a frame
-            if (const auto frame = CClumpModelInfo::GetFrameFromName(csobj->m_pRwClump, csfx.m_szObjectPart)) {
+            if (const auto frame = CClumpModelInfo::GetFrameFromName(csobj->GetRpClump(), csfx.m_szObjectPart)) {
                 return RwFrameGetMatrix(frame);
             } else {
                 NOTSA_LOG_DEBUG("Part(\"{}\") of object not found", csfx.m_szObjectPart);
@@ -892,7 +892,7 @@ void CCutsceneMgr::SetCutsceneAnim(const char* animName, CObject* object) {
     cpyOfTheAnim->SetFlag(ANIMATION_CAN_EXTRACT_VELOCITY, true);
     cpyOfTheAnim->Start(0.f);
 
-    const auto blendData = RpAnimBlendClumpGetData(object->m_pRwClump);
+    const auto blendData = RpAnimBlendClumpGetData(object->GetRpClump());
     blendData->m_AnimList.Prepend(&cpyOfTheAnim->m_Link);
 
     if (cpyOfTheAnim->m_BlendHier->m_bKeepCompressed) {
@@ -923,7 +923,7 @@ void CCutsceneMgr::SetupCutsceneToStart() {
             csobj->SetPosn(pos);
         };
 
-        if (const auto anim = RpAnimBlendClumpGetFirstAssociation(csobj->m_pRwClump)) {
+        if (const auto anim = RpAnimBlendClumpGetFirstAssociation(csobj->GetRpClump())) {
             if (csobj->m_pAttachToFrame) {
                 anim->SetFlag(ANIMATION_CAN_EXTRACT_VELOCITY, false);
                 anim->SetFlag(ANIMATION_IS_PLAYING, true);
@@ -1062,7 +1062,7 @@ void CCutsceneMgr::Update_overlay() {
         // Update cutscene specific model bounding boxes
         for (const auto csobj : ms_pCutsceneObjects | rngv::take(ms_numCutsceneObjs)) {
             if (IsModelIDForCutScene(csobj->GetModelId())) {
-                UpdateCutsceneObjectBoundingBox(csobj->m_pRwClump, csobj->GetModelId());
+                UpdateCutsceneObjectBoundingBox(csobj->GetRpClump(), csobj->GetModelId());
             }
         }
 

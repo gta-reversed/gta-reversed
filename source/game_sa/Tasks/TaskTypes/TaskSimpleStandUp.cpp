@@ -45,7 +45,7 @@ void CTaskSimpleStandUp::FinishAnimStandUpCB(CAnimBlendAssociation* anim, void* 
 
 // 0x631410
 void CTaskSimpleStandUp::StartAnim(CPed* ped) {
-    const auto SetAnim = [this, ped](auto grpId, auto animId) { m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 4.f); };
+    const auto SetAnim = [this, ped](auto grpId, auto animId) { m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 4.f); };
     if (m_sitAfterStep) {
         SetAnim(ANIM_GROUP_ATTRACTORS, ANIM_ID_STEPSIT_OUT);
     } else {

@@ -18,14 +18,14 @@ enum eMirrorType : uint8 {
 
 class CMirrors {
 public:
-    static RwRaster*& pBuffer;
-    static RwRaster*& pZBuffer;
-    static bool&      bRenderingReflection;
-    static bool&      d3dRestored;
-    static eMirrorType& TypeOfMirror;
-    static uint8&     MirrorFlags;
-    static float&     MirrorV;
-    static CVector&   MirrorNormal;
+    static inline auto& pBuffer = StaticRef<RwRaster*>(0xC7C71C);
+    static inline auto& pZBuffer = StaticRef<RwRaster*>(0xC7C720);
+    static inline auto& bRenderingReflection = StaticRef<bool>(0xC7C728);
+    static inline auto& d3dRestored = StaticRef<bool>(0xC7C729);
+    static inline auto& TypeOfMirror = StaticRef<eMirrorType>(0xC7C724);
+    static inline auto& MirrorFlags = StaticRef<uint8>(0xC7C618);
+    static inline auto& MirrorV = StaticRef<float>(0xC7C61C);
+    static inline auto& MirrorNormal = StaticRef<CVector>(0xC803D8);
 
 public:
     static void InjectHooks();

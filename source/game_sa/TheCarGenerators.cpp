@@ -3,12 +3,6 @@
 #include "TheCarGenerators.h"
 #include "CarGenerator.h"
 
-uint8& CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = *reinterpret_cast<uint8*>(0xC279D0);
-uint8& CTheCarGenerators::ProcessCounter = *reinterpret_cast<uint8*>(0xC279D1);
-uint32& CTheCarGenerators::NumOfCarGenerators = *reinterpret_cast<uint32*>(0xC279D4);
-CSpecialPlateHandler& CTheCarGenerators::m_SpecialPlateHandler = *reinterpret_cast<CSpecialPlateHandler*>(0xC279D8);
-CCarGenerator(&CTheCarGenerators::CarGeneratorArray)[NUM_CAR_GENERATORS] = *reinterpret_cast<CCarGenerator(*)[NUM_CAR_GENERATORS]>(0xC27AD0);
-
 void CTheCarGenerators::InjectHooks()
 {
     RH_ScopedClass(CTheCarGenerators);

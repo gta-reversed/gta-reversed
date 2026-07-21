@@ -56,7 +56,7 @@ void CTaskSimpleCarJumpOut::FinishAnimCarJumpOutCB(CAnimBlendAssociation* anim, 
 // 0x64BF00
 void CTaskSimpleCarJumpOut::StartAnim(const CPed* ped) {
     const auto [groupId, animId] = ComputeAnimID();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 8.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), groupId, animId, 8.f);
     m_anim->SetFinishCallback(FinishAnimCarJumpOutCB, this);
 }
 

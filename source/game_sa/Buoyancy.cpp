@@ -2,14 +2,7 @@
 
 #include "Buoyancy.h"
 
-cBuoyancy& mod_Buoyancy = *(cBuoyancy*)0xC1C890;
-float& cBuoyancy::fPointVolMultiplier = *(float*)0x8D32C8;
-CBuoyancyCalcStruct& cBuoyancy::calcStruct = *(CBuoyancyCalcStruct*)0xC1C858;
-float(*cBuoyancy::afBoatVolumeDistributionSpeed)[3] = (float(*)[3])0x8D335C;
-float(*cBuoyancy::afBoatVolumeDistributionDinghy)[3] = (float(*)[3])0x8D3338;
-float(*cBuoyancy::afBoatVolumeDistributionSail)[3] = (float(*)[3])0x8D3314;
-float(*cBuoyancy::afBoatVolumeDistribution)[3] = (float(*)[3])0x8D32CC;
-float(*cBuoyancy::afBoatVolumeDistributionCat)[3] = (float(*)[3])0x8D3314; // Catamaran volume distribution, unused in game, as there is no matching vehicle
+auto& mod_Buoyancy = StaticRef<cBuoyancy>(0xC1C890);
 
 void cBuoyancy::InjectHooks()
 {
@@ -298,10 +291,9 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
         vecSplashDir.z = 0.0F;
         vecSplashDir.Normalise();
 
-        auto vecVelocity = vecSplashDir * fMoveSpeed * 60.0F + vecVelocityModifier;
         float fRand = CGeneral::GetRandomNumberInRange(0.0F, 0.5F);
         vecTransformedPoint += (vecSplashDir * fRand);
-        g_fx.m_WaterSplash->AddParticle(&vecTransformedPoint, &vecVelocity, 0.0F, &curParticle, -1.0F, 1.2F, 0.6F, 0);
+        g_fx.m_WaterSplash->AddParticle(vecTransformedPoint, vecSplashDir * fMoveSpeed * 60.0F + vecVelocityModifier, 0.0F, curParticle);
     }
 
     if (entity->GetIsTypePed()) {
@@ -313,7 +305,6 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
             fPedAngle = CGeneral::LimitAngle(fPedAngle) + 180.0F;
 
             curParticle = FxPrtMult_c(1.0F, 1.0F, 1.0F, 0.2F, 0.4F, 0.0F, 0.5F);
-            auto vecPedVelocity = CVector(0.0F, 0.0F, 0.0F);
             auto vecPedParticlePos = entity->GetPosition() + (vecPedForward * 0.4F);
 
             if (ped->GetPlayerData())
@@ -321,7 +312,7 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
             else
                 vecPedParticlePos.z += 0.5F;
 
-            g_fx.m_Wake->AddParticle(&vecPedParticlePos, &vecPedVelocity, 0.0F, &curParticle, fPedAngle, 1.2F, 0.6F, 0);
+            g_fx.m_Wake->AddParticle(vecPedParticlePos, {}, 0.0F, curParticle, fPedAngle);
             ped->GetAE().AddAudioEvent(eAudioEvents::AE_PED_SWIM_WAKE);
         }
     }

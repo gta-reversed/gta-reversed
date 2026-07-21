@@ -9,20 +9,20 @@
 class CClock {
 public:
     static uint8 daysInMonth[12];
-    static bool& bClockHasBeenStored;
-    static uint16& ms_Stored_nGameClockSeconds;
-    static uint8& ms_Stored_nGameClockMinutes;
-    static uint8& ms_Stored_nGameClockHours;
-    static uint8& ms_Stored_nGameClockDays;
-    static uint8& ms_Stored_nGameClockMonths;
-    static uint8& CurrentDay;
-    static uint16& ms_nGameClockSeconds;
-    static uint8& ms_nGameClockMinutes;
-    static uint8& ms_nGameClockHours;
-    static uint8& ms_nGameClockDays;
-    static uint8& ms_nGameClockMonth;
-    static uint32& ms_nLastClockTick;
-    static uint32& ms_nMillisecondsPerGameMinute;
+    static inline auto& bClockHasBeenStored = StaticRef<bool>(0xB70144);
+    static inline auto& ms_Stored_nGameClockSeconds = StaticRef<uint16>(0xB70148);
+    static inline auto& ms_Stored_nGameClockMinutes = StaticRef<uint8>(0xB7014A);
+    static inline auto& ms_Stored_nGameClockHours = StaticRef<uint8>(0xB7014B);
+    static inline auto& ms_Stored_nGameClockDays = StaticRef<uint8>(0xB7014C);
+    static inline auto& ms_Stored_nGameClockMonths = StaticRef<uint8>(0xB7014D);
+    static inline auto& CurrentDay = StaticRef<uint8>(0xB7014E);
+    static inline auto& ms_nGameClockSeconds = StaticRef<uint16>(0xB70150);
+    static inline auto& ms_nGameClockMinutes = StaticRef<uint8>(0xB70152);
+    static inline auto& ms_nGameClockHours = StaticRef<uint8>(0xB70153);
+    static inline auto& ms_nGameClockDays = StaticRef<uint8>(0xB70154);
+    static inline auto& ms_nGameClockMonth = StaticRef<uint8>(0xB70155);
+    static inline auto& ms_nLastClockTick = StaticRef<uint32>(0xB70158);
+    static inline auto& ms_nMillisecondsPerGameMinute = StaticRef<uint32>(0xB7015C);
 
     static inline bool gbFreezeTime;
 

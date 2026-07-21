@@ -2,8 +2,6 @@
 
 #include "PedShelterAttractor.h"
 
-// SArray& CPedShelterAttractor::ms_displacements = *(SArray*)0xC0986C;
-
 // 0x5EF420
 CVector CPedShelterAttractor::GetDisplacement(int32 pedId) {
     return plugin::CallAndReturn<CVector, 0x5EF420, int32>(pedId);

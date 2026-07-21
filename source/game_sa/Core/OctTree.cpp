@@ -1,11 +1,7 @@
 #include "StdInc.h"
 
 #include "OctTree.h"
-
-bool& COctTree::ms_bFailed = *(bool*)0xBC12DC;
-uint32& COctTree::ms_level = *(uint32*)0xBC12E0;
-COctTreePool& COctTree::ms_octTreePool = *(COctTreePool*)0xBC12E4;
-COctTree*& gpTmpOctTree = *(COctTree**)0xBC12D8;
+auto& gpTmpOctTree = StaticRef<COctTree*>(0xBC12D8);
 
 // 0x5A6DB0
 COctTree::COctTree() {

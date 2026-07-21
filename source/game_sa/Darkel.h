@@ -10,7 +10,7 @@
 
 class CVehicle;
 
-enum class eDarkelStatus {
+enum class eDarkelStatus : uint16 {
     INITIAL,
     FRENZY_ON_GOING,
     FRENZY_PASSED,
@@ -20,22 +20,22 @@ enum class eDarkelStatus {
 
 class CDarkel {
 public:
-    inline static std::array<int16[2], 800>& RegisteredKills = *reinterpret_cast<std::array<int16[2], 800>*>(0x969A50);
-    inline static const GxtChar*& pStartMessage = *reinterpret_cast<const GxtChar**>(0x96A6D0);
-    inline static uint32& AmmoInterruptedWeapon = *reinterpret_cast<uint32*>(0x96A6D4);
-    inline static eWeaponType& InterruptedWeaponType = *reinterpret_cast<eWeaponType*>(0x96A6D8);
-    inline static eWeaponType& InterruptedWeaponTypeSelected = *reinterpret_cast<eWeaponType*>(0x96A6DC);
-    inline static uint32& TimeOfFrenzyStart = *reinterpret_cast<uint32*>(0x96A6E0);
-    inline static int32& PreviousTime = *reinterpret_cast<int32*>(0x96A6E4);
-    inline static int32& TimeLimit = *reinterpret_cast<int32*>(0x96A6E8);
-    inline static int32& KillsNeeded = *reinterpret_cast<int32*>(0x96A6EC);
-    inline static std::array<int32, 4>& ModelToKill = *reinterpret_cast<std::array<int32, 4>*>(0x96A6F0);
-    inline static eWeaponType& WeaponType = *reinterpret_cast<eWeaponType*>(0x96A700);
-    inline static eDarkelStatus& Status = *reinterpret_cast<eDarkelStatus*>(0x96A704);
+    static inline auto& RegisteredKills = StaticRef<std::array<int16[2], 800>>(0x969A50);
+    static inline auto& pStartMessage = StaticRef<const GxtChar*>(0x96A6D0);
+    static inline auto& AmmoInterruptedWeapon = StaticRef<uint32>(0x96A6D4);
+    static inline auto& InterruptedWeaponType = StaticRef<eWeaponType>(0x96A6D8);
+    static inline auto& InterruptedWeaponTypeSelected = StaticRef<eWeaponType>(0x96A6DC);
+    static inline auto& TimeOfFrenzyStart = StaticRef<uint32>(0x96A6E0);
+    static inline auto& PreviousTime = StaticRef<int32>(0x96A6E4);
+    static inline auto& TimeLimit = StaticRef<int32>(0x96A6E8);
+    static inline auto& KillsNeeded = StaticRef<int32>(0x96A6EC);
+    static inline auto& ModelToKill = StaticRef<std::array<int32, 4>>(0x96A6F0);
+    static inline auto& WeaponType = StaticRef<eWeaponType>(0x96A700);
+    static inline auto& Status = StaticRef<eDarkelStatus>(0x96A704);
 
-    inline static bool& bHeadShotRequired = *(bool*)0x969A49;
-    inline static bool& bStandardSoundAndMessages = *(bool*)0x969A4A;
-    inline static bool& bProperKillFrenzy = *(bool*)0x969A48;
+    static inline auto& bHeadShotRequired = StaticRef<bool>(0x969A49);
+    static inline auto& bStandardSoundAndMessages = StaticRef<bool>(0x969A4A);
+    static inline auto& bProperKillFrenzy = StaticRef<bool>(0x969A48);
 
 public:
     static void InjectHooks();

@@ -259,9 +259,9 @@ void CMenuManager::DrawBackground() {
 
     // 0x57BC19
     if (m_bScanningUserTracks) {
-        static bool updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
-        static int32 progressDir = StaticRef<int32>(0x8CDFFC); // -1
-        static int32 progressPos = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
+        static auto& updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
+        static auto& progressDir = StaticRef<int32>(0x8CDFFC); // -1
+        static auto& progressPos = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
 
         if (!bScanningUserTracks) {
             bScanningUserTracks = true;
@@ -412,7 +412,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
         CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(40.0f));
         CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
-        CFont::SetScaleForCurrentLanguage(StretchX(0.5f), StretchY(1.2f));
+        CFont::SetScaleForCurrentLanguage(StretchX(0.49f), StretchY(1.2f));
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetEdge(2);
         CFont::SetDropColor(MENU_BG);

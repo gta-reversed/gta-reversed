@@ -9,7 +9,8 @@
 #include "CrimeBeingQd.h"
 #include "AEPoliceScannerAudioEntity.h"
 
-#include "eCrimeType.h"
+#include "Enums/eWantedLevel.h"
+#include "Enums/eCrimeType.h"
 
 class CPed;
 class CCopPed;
@@ -18,17 +19,18 @@ class CWanted {
 public:
     static constexpr auto MAX_COPS_IN_PURSUIT{ 10u };
 
-    uint32 m_nChaosLevel;
-    uint32 m_nChaosLevelBeforeParole;
-    uint32 m_nLastTimeWantedDecreased;
-    uint32 m_nLastTimeWantedLevelChanged;
-    uint32 m_nTimeOfParole;
-    float  m_fMultiplier; // New crimes have their wanted level contribution multiplied by this
-    uint8  m_nCopsInPursuit;
-    uint8  m_nMaxCopsInPursuit;
-    uint8  m_nMaxCopCarsInPursuit;
-    uint8  m_nCopsBeatingSuspect;
-    uint16 m_nChanceOnRoadBlock;
+    uint32 m_ChaosLevel; // m_nWantedLevel
+    uint32 m_ChaosLevelBeforeParole; // m_nWantedLevelBeforeParole
+    uint32 m_LastTimeWantedDecreased;
+    uint32 m_LastTimeWantedLevelChanged;
+    uint32 m_TimeOfParole;
+    float  m_Multiplier; // New crimes have their wanted level contribution multiplied by this
+    uint8  m_NumCopsInPursuit; // m_nCopsInPursuit
+    uint8  m_MaxCopsInPursuit;
+    uint8  m_MaxCopCarsInPursuit;
+
+    uint8  m_CopsBeatingSuspect;
+    uint16 m_ChanceOnRoadBlock;
 
     union {
         struct {
@@ -39,64 +41,82 @@ public:
             uint8 m_bFbiRequired : 1;         // streaming required vehicle stuff can be overrided
             uint8 m_bArmyRequired : 1;
         };
-        uint8 m_nFlags;
+        uint8 m_Flags;
     };
-    uint32                      m_nCurrentChaseTime;
-    uint32                      m_nCurrentChaseTimeCounter;
-    bool                        m_bTimeCounting; // todo: good name
-    uint32                      m_nWantedLevel;
-    uint32                      m_nWantedLevelBeforeParole;
-    CCrimeBeingQd               m_CrimesBeingQd[16]; // Crimes Being Queued
-    CCopPed*                    m_pCopsInPursuit[MAX_COPS_IN_PURSUIT];
-    CAEPoliceScannerAudioEntity m_PoliceScannerAudio;
-    bool                        m_bLeavePlayerAlone;
+    uint32                      m_CurrentChaseTime;
+    uint32                      m_CurrentChaseTimeCounter;
+    bool                        m_TimeCounting; // todo: good name
 
-    static uint32 &MaximumWantedLevel;
-    static uint32 &MaximumChaosLevel;
-    static bool &bUseNewsHeliInAdditionToPolice;
+    eWantedLevel                m_WantedLevel;
+    eWantedLevel                m_WantedLevelBeforeParole;
+
+    CCrimeBeingQd               m_CrimesBeingQd[16]; // Crimes Being Queued
+
+    CCopPed*                    m_CopsInPursuit[MAX_COPS_IN_PURSUIT];
+
+    CAEPoliceScannerAudioEntity m_PoliceScannerAudioEntity;
+
+private:
+    bool                        m_StoredPoliceBackOff;
 
 public:
-    static void InjectHooks();
+    static inline auto& MaximumWantedLevel = StaticRef<eWantedLevel>(0x8CDEE4); // 6
+    static inline auto& MaximumChaosLevel = StaticRef<uint32>(0x8CDEE8); // 9200; nMaximumWantedLevel
+    static inline auto& UseNewsHeliInAdditionToPolice = StaticRef<bool>(0xB7CB8C);
 
+public:
     void Initialise();
-    void Reset();
     static void InitialiseStaticVariables();
-
+    void Reset();
+    void Update();
     void UpdateWantedLevel();
-    static void SetMaximumWantedLevel(int32 level);
+    void RegisterCrime(eCrimeType crimeType, const CVector& pos, uint32 IdKey, bool policeDontReallyCare);
+    void RegisterCrime_Immediately(eCrimeType crimeType, const CVector& pos, uint32 IdKey, bool policeDontReallyCare);
+
+    void SetWantedLevel(eWantedLevel newLev);
+    void CheatWantedLevel(eWantedLevel newLev);
+    void SetWantedLevelNoDrop(eWantedLevel newLev);
+    void ClearWantedLevelAndGoOnParole();
+
+    static void SetMaximumWantedLevel(eWantedLevel newMaxLev);
+
+    [[nodiscard]] eWantedLevel GetWantedLevel() const { return m_WantedLevel; }
+
+    void SetSwatRequired(bool s) { m_bSwatRequired = s; }
+    void SetFbiRequired(bool s) { m_bFbiRequired = s; }
+    void SetArmyRequired(bool s) { m_bArmyRequired = s; }
+
     [[nodiscard]] bool AreMiamiViceRequired() const;
     [[nodiscard]] bool AreSwatRequired() const;
     [[nodiscard]] bool AreFbiRequired() const;
     [[nodiscard]] bool AreArmyRequired() const;
     [[nodiscard]] int32 NumOfHelisRequired() const;
-    static void ResetPolicePursuit();
-    void ClearQdCrimes();
-    bool AddCrimeToQ(eCrimeType crimeType, int32 crimeId, const CVector& posn, bool bAlreadyReported, bool bPoliceDontReallyCare);
-    void ReportCrimeNow(eCrimeType crimeType, const CVector& posn, bool bPoliceDontReallyCare);
-    static void RemovePursuitCop(CCopPed* cop, CCopPed** copsArray, uint8& copsCounter);
-    bool IsInPursuit(CCopPed* cop);
-    static void UpdateEachFrame();
-    void RegisterCrime(eCrimeType crimeType, const CVector& posn, CPed* ped, bool bPoliceDontReallyCare);
-    void RegisterCrime_Immediately(eCrimeType crimeType, const CVector& posn, CPed* ped, bool bPoliceDontReallyCare);
-    void SetWantedLevel(uint32 level);
-    [[nodiscard]] uint32 GetWantedLevel() const { return m_nWantedLevel; }
-    void CheatWantedLevel(uint32 level);
-    void SetWantedLevelNoDrop(uint32 level);
-    void ClearWantedLevelAndGoOnParole();
-    static int32 WorkOutPolicePresence(CVector posn, float radius);
-    void UpdateCrimesQ();
-    bool IsClosestCop(CCopPed* ped, int32 numCopsToCheck);
-    static CCopPed* ComputePursuitCopToDisplace(CCopPed* cop, CCopPed** copsArray);
-    void RemovePursuitCop(CCopPed* cop);
-    void RemoveExcessPursuitCops();
-    void Update();
-    static bool CanCopJoinPursuit(CCopPed* target, uint8 maxCopsCount, CCopPed** copsArray, uint8& copsCounter);
-    bool CanCopJoinPursuit(CCopPed* cop);
-    bool SetPursuitCop(CCopPed* cop);
+    void ResetPolicePursuit();
+    [[nodiscard]] bool PoliceBackOff() const { return m_bPoliceBackOff || m_bPoliceBackOffGarage || m_bEverybodyBackOff; }
 
-    // NOTSA
-    // Same with ((this->m_nFlags & 7) != 0)
-    [[nodiscard]] bool BackOff() const { return m_bEverybodyBackOff || m_bPoliceBackOff || m_bPoliceBackOffGarage; }
+    void ClearQdCrimes();
+    bool AddCrimeToQ(eCrimeType crimeType, uint32 crimeId, const CVector& coors, bool alreadyReported, bool policeDontReallyCare);
+    void UpdateCrimesQ();
+    void ReportCrimeNow(eCrimeType crimeType, const CVector& coors, bool policeDontReallyCare);
+
+    bool CanCopJoinPursuit(CCopPed* copPed);
+    bool SetPursuitCop(CCopPed* copPed);
+    void RemovePursuitCop(CCopPed* copPed);
+    bool IsInPursuit(CCopPed* copPed);
+    void RemoveExcessPursuitCops();
+    static int32 WorkOutPolicePresence(CVector coors, float radius);
+    static void UpdateEachFrame();
+
+    bool IsClosestCop(CPed* ped, const int32 closest) const;
+
+private:
+    static bool CanCopJoinPursuit(CCopPed* copPed, uint8 maxCopsInPursuit, CCopPed** copsInPursuitArray, uint8& copsInPursuit);
+    static CCopPed* ComputePursuitCopToDisplace(CCopPed* copPed, CCopPed** copsInPursuitArray);
+    static void RemovePursuitCop(CCopPed* copPed, CCopPed** copsInPursuitArray, uint8& copsInPursuit);
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 VALIDATE_SIZE(CWanted, 0x29C);

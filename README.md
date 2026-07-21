@@ -9,16 +9,20 @@ Please join our community Discord: [GTA Groupies](https://discord.gg/FG8XJ5Npqe)
 Building this project will result in a DLL file that can be injected into GTA:SA using any ASI loader out there. After the DLL file has been injected, the ingame functions will be replaced by the reversed ones. The game will behave the same. Now if we make any changes to the reversed code, it will take effect in the game. The goal is to keep reversing until we have the entire game reversed to compile a standalone executable.
 
 ## Progress
-The progress of reversed classes can be tracked [here](docs/ReversedClasses.MD). (needs to be updated)
+The progress of reversed classes can be tracked [here](docs/ReversedClasses.md). (needs to be updated)
 We currently estimate that about 50-60% of the code is done.
 Since this project is done as a hobby, and worked on at irregular intervals, **there's no time estimate on when it'll be finished.**
 
 ## Build Instructions
 #### 0. Requirements/Prerequisites
-* **Latest [Visual Studio 2022](https://visualstudio.microsoft.com/en/downloads/)**
+* [Visual Studio 2026](https://visualstudio.microsoft.com/en/downloads/)
 * [Python](https://www.python.org/downloads/) >= 3.x (For Conan)
 * [Conan](https://docs.conan.io/2/installation.html#install-with-pip-recommended) (>= 2.x)
-* [CMake](https://cmake.org/download/)
+* [CMake](https://cmake.org/download/) (>= 4.20)
+
+> [!NOTE]
+> Visual Studio 2022 should still work but don't forget to change `compiler.version` to 194 in
+> `conanprofile.txt`
 
 #### 1. Install Python and Conan
 * Install the [latest Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
@@ -27,7 +31,7 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 
 #### 2. Setting up VS
 0) Run the setup script with `python setup.py`. Use `--help` for more info.
-1) Open the generated VS solution at `build/GTASA.sln`, alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
+1) Open the generated VS solution at `build/GTASA.sln` (Or `build/GTASA.slnx`), alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
 2) You can also type `cmake --build build` to build in command line.
 
 ### 3. Set up the game and ASI

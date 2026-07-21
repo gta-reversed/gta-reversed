@@ -131,13 +131,12 @@ public:
             };
         };
     };
+
     CColModel* m_pColModel;     // 20
     float      m_fDrawDistance; // 24
-    union {
-        RwObject* m_pRwObject;
-        RpClump*  m_pRwClump;
-        RpAtomic* m_pRwAtomic;
-    };
+
+protected:
+    RwObject* m_pRwObject; //< Use GetRpClump()/GetRpAtomic() to access
 
 public:
     CBaseModelInfo();
@@ -200,7 +199,23 @@ public:
             m_nAlpha += 16;
     };
     [[nodiscard]] auto GetModelName() const noexcept { return m_nKey; }
-    void SetModelName(const char* modelName) { m_nKey = CKeyGen::GetUppercaseKey(modelName); }
+    void SetModelName(const char* modelName) {
+        m_nKey = CKeyGen::GetUppercaseKey(modelName);
+        g_HashToStringMap[m_nKey] = modelName; // NOTSA
+    }
+
+    inline static std::unordered_map<uint32, std::string> g_HashToStringMap; // NOTSA
+    // TODO:
+    // Normally, the variable `m_modelName[21]` should be implemented in this class after `m_nKey`,
+    // since it exists in III, VC, and Mobile SA, but is missing here.
+    // Furthermore, the debug output from R* when using `GetModelName` clearly implies that it returns the model name, not hashes
+    std::string GetModelNameAsString() {
+        auto it = g_HashToStringMap.find(m_nKey);
+        if (it != g_HashToStringMap.end()) {
+            return it->second;
+        }
+        return std::to_string(m_nKey);
+    }
 
     [[nodiscard]] bool IsSwayInWind1()         const { return nSpecialType == eModelInfoSpecialType::TREE; }               // 0x0800
     [[nodiscard]] bool IsSwayInWind2()         const { return nSpecialType == eModelInfoSpecialType::PALM; }               // 0x1000
@@ -221,6 +236,11 @@ public:
         AddRef();
         return inst;
     }
+
+
+    RwObject* GetRwObject() const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == GetRwModelType()); return m_pRwObject; }
+    RpClump*  GetRpClump()  const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpCLUMP); return reinterpret_cast<RpClump*>(m_pRwObject); }
+    RpAtomic* GetRpAtomic() const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpATOMIC); return reinterpret_cast<RpAtomic*>(m_pRwObject); }
 
 private:
     friend void InjectHooksMain();

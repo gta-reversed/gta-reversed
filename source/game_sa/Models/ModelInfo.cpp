@@ -10,19 +10,16 @@
 #include "ModelInfo.h"
 #include "TempColModels.h"
 
-CBaseModelInfo *(&CModelInfo::ms_modelInfoPtrs)[NUM_MODEL_INFOS] = *(CBaseModelInfo*(*)[NUM_MODEL_INFOS])0xA9B0C8;
-int32& CModelInfo::ms_lastPositionSearched = *(int32*)0xAAE948;
-
-CStore<CAtomicModelInfo, CModelInfo::NUM_ATOMIC_MODEL_INFOS>& CModelInfo::ms_atomicModelInfoStore = *(CStore<CAtomicModelInfo, NUM_ATOMIC_MODEL_INFOS>*)0xAAE950;
-CStore<CDamageAtomicModelInfo, CModelInfo::NUM_DAMAGE_ATOMIC_MODEL_INFOS>& CModelInfo::ms_damageAtomicModelInfoStore = *(CStore<CDamageAtomicModelInfo, NUM_DAMAGE_ATOMIC_MODEL_INFOS>*)0xB1BF58;
-CStore<CLodAtomicModelInfo, CModelInfo::NUM_LOD_ATOMIC_MODEL_INFOS>& CModelInfo::ms_lodAtomicModelInfoStore = *(CStore<CLodAtomicModelInfo, NUM_LOD_ATOMIC_MODEL_INFOS>*)0xB1C934;
-CStore<CTimeModelInfo, CModelInfo::NUM_TIME_MODEL_INFOS>& CModelInfo::ms_timeModelInfoStore = *(CStore<CTimeModelInfo, NUM_TIME_MODEL_INFOS>*)0xB1C960;
-CStore<CLodTimeModelInfo, CModelInfo::NUM_LOD_TIME_MODEL_INFOS>& CModelInfo::ms_lodTimeModelInfoStore = *(CStore<CLodTimeModelInfo, NUM_LOD_TIME_MODEL_INFOS>*)0xB1E128;
-CStore<CWeaponModelInfo, CModelInfo::NUM_WEAPON_MODEL_INFOS>& CModelInfo::ms_weaponModelInfoStore = *(CStore<CWeaponModelInfo, NUM_WEAPON_MODEL_INFOS>*)0xB1E158;
-CStore<CClumpModelInfo, CModelInfo::NUM_CLUMP_MODEL_INFOS>& CModelInfo::ms_clumpModelInfoStore = *(CStore<CClumpModelInfo, NUM_CLUMP_MODEL_INFOS>*)0xB1E958;
-CStore<CVehicleModelInfo, CModelInfo::NUM_VEHICLE_MODEL_INFOS>& CModelInfo::ms_vehicleModelInfoStore = *(CStore<CVehicleModelInfo, NUM_VEHICLE_MODEL_INFOS>*)0xB1F650;
-CStore<CPedModelInfo, CModelInfo::NUM_PED_MODEL_INFOS>& CModelInfo::ms_pedModelInfoStore = *(CStore<CPedModelInfo, NUM_PED_MODEL_INFOS>*)0xB478F8;
-CStore<C2dEffect, CModelInfo::NUM_2DFX_INFOS>& CModelInfo::ms_2dFXInfoStore = *(CStore<C2dEffect, NUM_2DFX_INFOS>*)0xB4C2D8;
+auto& CModelInfo::ms_atomicModelInfoStore = StaticRef<CStore<CAtomicModelInfo, NUM_ATOMIC_MODEL_INFOS>>(0xAAE950);
+auto& CModelInfo::ms_damageAtomicModelInfoStore = StaticRef<CStore<CDamageAtomicModelInfo, NUM_DAMAGE_ATOMIC_MODEL_INFOS>>(0xB1BF58);
+auto& CModelInfo::ms_lodAtomicModelInfoStore = StaticRef<CStore<CLodAtomicModelInfo, NUM_LOD_ATOMIC_MODEL_INFOS>>(0xB1C934);
+auto& CModelInfo::ms_timeModelInfoStore = StaticRef<CStore<CTimeModelInfo, NUM_TIME_MODEL_INFOS>>(0xB1C960);
+auto& CModelInfo::ms_lodTimeModelInfoStore = StaticRef<CStore<CLodTimeModelInfo, NUM_LOD_TIME_MODEL_INFOS>>(0xB1E128);
+auto& CModelInfo::ms_weaponModelInfoStore = StaticRef<CStore<CWeaponModelInfo, NUM_WEAPON_MODEL_INFOS>>(0xB1E158);
+auto& CModelInfo::ms_clumpModelInfoStore = StaticRef<CStore<CClumpModelInfo, NUM_CLUMP_MODEL_INFOS>>(0xB1E958);
+auto& CModelInfo::ms_vehicleModelInfoStore = StaticRef<CStore<CVehicleModelInfo, NUM_VEHICLE_MODEL_INFOS>>(0xB1F650);
+auto& CModelInfo::ms_pedModelInfoStore = StaticRef<CStore<CPedModelInfo, NUM_PED_MODEL_INFOS>>(0xB478F8);
+auto& CModelInfo::ms_2dFXInfoStore = StaticRef<CStore<C2dEffect, NUM_2DFX_INFOS>>(0xB4C2D8);
 
 void CModelInfo::InjectHooks()
 {

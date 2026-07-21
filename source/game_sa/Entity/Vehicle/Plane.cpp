@@ -4,25 +4,12 @@
 #include "CarCtrl.h"
 #include "FireManager.h"
 
-int32& CPlane::GenPlane_ModelIndex = *(int32*)0xC1CAD8;
-uint32& CPlane::GenPlane_Status = *(uint32*)0xC1CADC;
-uint32& CPlane::GenPlane_LastTimeGenerated = *(uint32*)0xC1CAE0;
-
-bool& CPlane::GenPlane_Active = *(bool*)0x8D33BC;                 // true
-float& CPlane::ANDROM_COL_ANGLE_MULT = *(float*)0x8D33C0;         // 0.00015f
-uint16& CPlane::HARRIER_NOZZLE_ROTATE_LIMIT = *(uint16*)0x8D33C4; // 5000
-uint16& CPlane::HARRIER_NOZZLE_SWITCH_LIMIT = *(uint16*)0x8D33C8; // 3000
-float& CPlane::PLANE_MIN_PROP_SPEED = *(float*)0x8D33CC;          // 0.05f
-float& CPlane::PLANE_STD_PROP_SPEED = *(float*)0x8D33D0;          // 0.18f
-float& CPlane::PLANE_MAX_PROP_SPEED = *(float*)0x8D33D4;          // 0.34f
-float& CPlane::PLANE_ROC_PROP_SPEED = *(float*)0x8D33D8;          // 0.01f
-
-float& HARRIER_NOZZLE_ROTATERATE = *(float*)0x8D33DC;       // 25.0f
-float& PLANE_DAMAGE_WAVE_COUNTER_VAR = *(float*)0x8D33E0;   // 0.75f
-float& PLANE_DAMAGE_THRESHHOLD = *(float*)0x8D33E4;         // 500.0f
-float& PLANE_DAMAGE_SCALE_MASS = *(float*)0x8D33E8;         // 10000.0f
-float& PLANE_DAMAGE_DESTROY_THRESHHOLD = *(float*)0x8D33EC; // 5000.0f
-CVector& vecRCBaronGunPos = *(CVector*)0x8D33F0;            // <0.0f, 0.45f, 0.0f>
+auto& HARRIER_NOZZLE_ROTATERATE = StaticRef<float>(0x8D33DC);       // 25.0f
+auto& PLANE_DAMAGE_WAVE_COUNTER_VAR = StaticRef<float>(0x8D33E0);   // 0.75f
+auto& PLANE_DAMAGE_THRESHHOLD = StaticRef<float>(0x8D33E4);         // 500.0f
+auto& PLANE_DAMAGE_SCALE_MASS = StaticRef<float>(0x8D33E8);         // 10000.0f
+auto& PLANE_DAMAGE_DESTROY_THRESHHOLD = StaticRef<float>(0x8D33EC); // 5000.0f
+auto& vecRCBaronGunPos = StaticRef<CVector>(0x8D33F0);            // <0.0f, 0.45f, 0.0f>
 
 void CPlane::InjectHooks() {
     RH_ScopedVirtualClass(CPlane, 0x871948, 71);
@@ -88,26 +75,17 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     case MODEL_HYDRA:
     case MODEL_RUSTLER:
     case MODEL_CROPDUST:
-        m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK); // todo: add func(openAngle, closedAngle, axis, dir)
-        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 1;
-        leftDoor.m_dirn = 19;
+        m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
+        leftDoor.Init((3.0f * PI) / 5.0f, 0.0f, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
         break;
     case MODEL_SHAMAL:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_openAngle = -((3.0f * PI) / 4.0f);
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 1;
-        leftDoor.m_dirn = 18;
+        leftDoor.Init(-((3.0f * PI) / 4.0f), 0.0f, DOOR_AXIS_Z, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LF]), 0);
         break;
     case MODEL_NEVADA:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_openAngle = -((2.0f * PI) / 5.0f);
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 2;
-        leftDoor.m_dirn = 20;
+        leftDoor.Init(-TWO_PI / 5.0f, 0.0f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
         break;
     case MODEL_VORTEX:
         if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1)
@@ -115,10 +93,7 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         break;
     case MODEL_STUNT:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        leftDoor.m_openAngle = (3.0f * PI) / 5.0f;
-        leftDoor.m_closedAngle = 0.0f;
-        leftDoor.m_axis = 1;
-        leftDoor.m_dirn = 19;
+        leftDoor.Init((3.0f * PI) / 5.0f, 0.0f, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_LB]), 0);
         rwObjectSetFlags(GetFirstObject(m_aCarNodes[PLANE_WHEEL_RB]), 0);
         break;
@@ -209,7 +184,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         // m_nType = m_nType & 7 | STATUS_WRECKED;
         physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
-        CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
+        CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
         m_damageManager.FuckCarCompletely(false);
         if (m_nModelIndex != MODEL_RCBARON) {
             CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
@@ -443,8 +418,8 @@ void CPlane::ProcessControl() {
         m_pSmokeParticle->GetCompositeMatrix(&out);
         CVector velocity = -m_vecMoveSpeed * 5.0f;
         auto particleData = FxPrtMult_c(0.0f, 0.0f, 0.0f, 0.2f, 1.0f, 1.0f, 0.1f);
-        g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.00f, &particleData, -1.0f, 1.2f, 0.6f, false);
-        g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.05f, &particleData, -1.0f, 1.2f, 0.6f, false);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.00f, particleData);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.05f, particleData);
         if (m_nSmokeTimer <= 0 || vehicleFlags.bIsDrowning) {
             m_pSmokeParticle->Kill();
             m_pSmokeParticle = nullptr;

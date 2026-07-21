@@ -7,21 +7,21 @@
 const float SECOND_LOD_DISTANCE = 150.0f; // 0x872188
 
 static const constexpr auto uiNumIndices{ 6u };
-RwImVertexIndex KeepWaterOutIndices[uiNumIndices]; // 0xC27988
+auto& KeepWaterOutIndices = StaticRef<RwImVertexIndex[uiNumIndices]>(0xC27988);
 static const constexpr auto uiNumVertices{ 4u };
-RwIm3DVertex KeepWaterOutVertices[uiNumVertices]; // 0xC278F8
+auto& KeepWaterOutVertices = StaticRef<RwIm3DVertex[uiNumVertices]>(0xC278F8);
 
-float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
+const float BOAT_STEER_SMOOTH_RATE = 0.2f; // 0x87218C
 
-float BOAT_MOUSE_STEER_SCALE = -0.0035f; // 0x872190
-float BOAT_STEER_DAMP_THRESHOLD = 0.5f; // 0x872194
-float BOAT_STEER_DAMP_BASE = 0.985f; // 0x872198
+const float BOAT_MOUSE_STEER_SCALE = -0.0035f; // 0x872190
+const float BOAT_STEER_DAMP_THRESHOLD = 0.5f; // 0x872194
+const float BOAT_STEER_DAMP_BASE = 0.985f; // 0x872198
 
-float fShapeLength = 0.4f; // 0x8D3944
-float fShapeTime = 0.05f; // 0x8D3948
+const float fShapeLength = 0.4f; // 0x8D3944
+const float fShapeTime = 0.05f; // 0x8D3948
 
-float fRangeMult = 0.6f; // 0x8D394C
-float fTimeMult = 1.2f / CBoat::WAKE_LIFETIME; // 0xC279CC
+auto& fRangeMult = StaticRef<float>(0x8D394C); // 0.6f
+auto& fTimeMult = StaticRef<float>(0xC279CC); // 1.2f / CBoat::WAKE_LIFETIME
 
 int16 nWakeSkipCounters[4]; // 0xC279A4
 int16 nWakeSkipCounterVertex[4]; // 0xC279AC
@@ -116,15 +116,10 @@ CBoat::CBoat(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     rng::fill(m_WakePtCounters, 0.0f);
 
     m_nAmmoInClip = 20;
-    m_BoatDoor.m_axis = AXIS_Y;
     if (m_nModelIndex == MODEL_MARQUIS) {
-        m_BoatDoor.m_openAngle = PI / 10.0F;
-        m_BoatDoor.m_closedAngle = -PI / 10.0F;
-        m_BoatDoor.m_dirn = 4;
+        m_BoatDoor.Init(PI / 10.0F, -PI / 10.0F, DOOR_AXIS_NEG_Y, DOOR_AXIS_Y, DOOR_EXTRA_NONE);
     } else {
-        m_BoatDoor.m_openAngle = TWO_PI / 10.0F;
-        m_BoatDoor.m_closedAngle = -TWO_PI / 10.0F;
-        m_BoatDoor.m_dirn = 3;
+        m_BoatDoor.Init(TWO_PI / 10.0F, -TWO_PI / 10.0F, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_NONE);
     }
 
     m_vehicleAudio.Initialise(this);
@@ -143,7 +138,7 @@ CBoat::~CBoat() {
 // 0x6F01A0
 void CBoat::SetupModelNodes() {
     rng::fill(m_BoatNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes);
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_BoatNodes.data());
 }
 
 // debug function
@@ -509,7 +504,7 @@ void CBoat::FillBoatList() {
 void CBoat::SetModelIndex(uint32 index) {
     CVehicle::SetModelIndex(index);
     rng::fill(m_BoatNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_BoatNodes);
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_BoatNodes.data());
 }
 
 // 0x6F1770
@@ -524,7 +519,7 @@ void CBoat::ProcessControl() {
     }
 
     auto wanted = FindPlayerWanted();
-    if (wanted->m_nWantedLevel > 0 && m_nModelIndex == MODEL_PREDATOR) {
+    if (wanted->GetWantedLevel() > eWantedLevel::WANTED_CLEAN && m_nModelIndex == MODEL_PREDATOR) {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
             auto iCarMission = m_autoPilot.m_nCarMission;
@@ -745,7 +740,7 @@ void CBoat::PreRender() {
 
             m_BoatDoor.Process(this, m_OldMoveSpeed, m_OldTurnSpeed, vecTransformed);
             CVector vecAxis;
-            vecAxis[m_BoatDoor.m_axis] = m_BoatDoor.m_angle;
+            vecAxis[m_BoatDoor.GetAxes()] = m_BoatDoor.m_angle;
 
             tempMat.SetRotate(vecAxis.x, vecAxis.y, vecAxis.z);
             tempMat.GetPosition() += posCopy;
@@ -1023,7 +1018,7 @@ void CBoat::BlowUpCar(CEntity* culprit, bool inACutscene) {
 
     physicalFlags.bRenderScorched = true;
     SetStatus(STATUS_WRECKED);
-    CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
     m_vecMoveSpeed.z += 0.13F;
     m_fHealth = 0.0F;
     m_wBombTimer = 0;

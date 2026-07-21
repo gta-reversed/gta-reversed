@@ -44,13 +44,13 @@ void cTransmission::DisplayGearRatios()
 // 0x6D0460
 void cTransmission::InitGearRatios()
 {
-    memset(m_aGears, 0, sizeof(m_aGears));
+    m_aGears.fill({});
     float averageHalfGearVelocity = 0.5f * m_MaxVelocity / m_nNumberOfGears;
     float maxGearVelocity = m_MaxVelocity - averageHalfGearVelocity;
     for (uint8 i = 1; i <= m_nNumberOfGears; i++)
     {
-        static tTransmissionGear*& gear = *(tTransmissionGear**)0xC1CB34; // TODO | STATICREF // = nullptr;
-        static tTransmissionGear*& previousGear = *(tTransmissionGear**)0xC1CB30; // TODO | STATICREF // = nullptr;
+        static auto& gear = StaticRef<tTransmissionGear*>(0xC1CB34); // nullptr
+        static auto& previousGear = StaticRef<tTransmissionGear*>(0xC1CB30); // nullptr
         gear = &m_aGears[i];
         previousGear = &m_aGears[i - 1];
         gear->MaxVelocity = (static_cast<float>(i) * maxGearVelocity / m_nNumberOfGears) + averageHalfGearVelocity;
@@ -92,9 +92,9 @@ void cTransmission::CalculateGearForSimpleCar(float speed, uint8& currentGear)
 // 0x6D05E0
 float cTransmission::CalculateDriveAcceleration(const float& gasPedal, uint8& currentGear, float& gearChangeCount, float& velocity, float* a6, float* a7, uint8 allWheelsOnGround, uint8 handlingCheat)
 {
-    static float& cheatMultiplier = *(float*)0xC1CB3C;      // TODO | STATICREF // = 0.0f;
-    static float& driveAcceleration = *(float*)0xC1CB38;    // TODO | STATICREF // = 0.0f;
-    static float& currentVelocity = *(float*)0xC1CB40;      // TODO | STATICREF // = 0.0f;
+    static auto& cheatMultiplier = StaticRef<float>(0xC1CB3C); // 0.0f
+    static auto& driveAcceleration = StaticRef<float>(0xC1CB38); // 0.0f
+    static auto& currentVelocity = StaticRef<float>(0xC1CB40); // 0.0f
     currentVelocity = velocity;
     if (currentVelocity < m_MaxReverseVelocity)
         return 0.0f;

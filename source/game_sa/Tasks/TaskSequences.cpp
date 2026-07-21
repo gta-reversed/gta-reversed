@@ -1,9 +1,5 @@
 #include "StdInc.h"
 
-int32& CTaskSequences::ms_iActiveSequence = *(int32*)0x8D2E98; // -1
-CTaskComplexSequence (&CTaskSequences::ms_taskSequence)[NUM_SEQUENCES] = *(CTaskComplexSequence(*)[NUM_SEQUENCES])0xC178F0;
-bool (&CTaskSequences::ms_bIsOpened)[NUM_SEQUENCES] = *(bool(*)[64])0xC17898;
-
 void CTaskSequences::InjectHooks() {
     RH_ScopedClass(CTaskSequences);
     RH_ScopedCategory("Tasks");

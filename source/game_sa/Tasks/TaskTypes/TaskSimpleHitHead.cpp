@@ -62,7 +62,7 @@ bool CTaskSimpleHitHead::ProcessPed(CPed* ped) {
         return true;
 
     if (!m_pAnim) {
-        m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_HIT_WALL, 8.0F);
+        m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_HIT_WALL, 8.0F);
         m_pAnim->SetFinishCallback(FinishAnimCB, this);
     }
 

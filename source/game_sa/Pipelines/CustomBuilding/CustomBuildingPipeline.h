@@ -2,7 +2,7 @@
 
 class CCustomBuildingPipeline {
 public:
-    static RxPipeline*& ObjPipeline;
+    static inline auto& ObjPipeline = StaticRef<RxPipeline*>(0xC02C68);
 
 public:
     static void InjectHooks();

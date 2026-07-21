@@ -14,10 +14,6 @@
 #include "EntryExitManager.h"
 #include "MBlur.h"
 
-bool (&abTempNeverLeavesGroup)[7] = *(bool (*)[7])0xC0BC08;
-int32& gPlayIdlesAnimBlockIndex = *(int32*)0xC0BC10;
-bool& CPlayerPed::bHasDisplayedPlayerQuitEnterCarHelpText = *(bool*)0xC0BC15;
-
 bool CPlayerPed::bDebugPlayerInvincible;
 bool CPlayerPed::bDebugTargeting;
 bool CPlayerPed::bDebugTapToTarget;
@@ -80,24 +76,27 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
 }
 
-struct WorkBufferSaveData {
+// TODO: To class and create 2 function
+struct CPlayerPedDataSaveStructure {
     uint32          ChaosLevel{};
-    uint32          WantedLevel{};
+    eWantedLevel    WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
+    // float          Multiplier{}; // Mobile
 };
-VALIDATE_SIZE(WorkBufferSaveData, 132u);
+
+VALIDATE_SIZE(CPlayerPedDataSaveStructure, 0x84 /* + 0x4 */);
 
 // 0x5D46E0
 bool CPlayerPed::Load() {
     CPed::Load();
 
     CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
-    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
+    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<CPlayerPedDataSaveStructure>();
 
     CWanted* wanted = GetPlayerWanted();
-    wanted->m_nChaosLevel = sd.ChaosLevel;
-    wanted->m_nWantedLevel= sd.WantedLevel;
+    wanted->m_ChaosLevel = sd.ChaosLevel;
+    wanted->m_WantedLevel= sd.WantedLevel;
 
     *GetPlayerData()->m_pPedClothesDesc = sd.ClothesDesc;
     GetPlayerData()->m_nChosenWeapon   = sd.ChosenWeapon;
@@ -107,16 +106,16 @@ bool CPlayerPed::Load() {
 
 // 0x5D57E0
 bool CPlayerPed::Save() {
-    WorkBufferSaveData saveData{};
+    CPlayerPedDataSaveStructure saveData{};
 
     CWanted* wanted = GetPlayerWanted();
-    saveData.ChaosLevel = wanted->m_nChaosLevel;
-    saveData.WantedLevel = wanted->m_nWantedLevel;
+    saveData.ChaosLevel = wanted->m_ChaosLevel;
+    saveData.WantedLevel = wanted->m_WantedLevel;
     saveData.ChosenWeapon = GetPlayerData()->m_nChosenWeapon;
     saveData.ClothesDesc  = *GetPlayerData()->m_pPedClothesDesc;
 
     CPed::Save();
-    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(WorkBufferSaveData));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CPlayerPedDataSaveStructure));
     CGenericGameStorage::SaveDataToWorkBuffer(saveData);
 
     return true;
@@ -253,9 +252,9 @@ void CPlayerPed::ReApplyMoveAnims() {
         ANIM_ID_WALK_START
     };
     for (const AnimationId& id : anims) {
-        if (CAnimBlendAssociation* anim = RpAnimBlendClumpGetAssociation(m_pRwClump, id)) {
+        if (CAnimBlendAssociation* anim = RpAnimBlendClumpGetAssociation(GetRpClump(), id)) {
             if (anim->GetHashKey() != CAnimManager::GetAnimAssociation(m_nAnimGroup, id)->GetHashKey()) {
-                CAnimBlendAssociation* addedAnim = CAnimManager::AddAnimation(m_pRwClump, m_nAnimGroup, id);
+                CAnimBlendAssociation* addedAnim = CAnimManager::AddAnimation(GetRpClump(), m_nAnimGroup, id);
                 addedAnim->m_BlendDelta = anim->m_BlendDelta;
                 addedAnim->m_BlendAmount = anim->m_BlendAmount;
 
@@ -444,33 +443,33 @@ void CPlayerPed::Clear3rdPersonMouseTarget() {
 void CPlayerPed::Busted() {
     CWanted* wanted = GetWanted();
     if (wanted) {
-        wanted->m_nChaosLevel = 0;
+        wanted->m_ChaosLevel = 0;
     }
 }
 
 // 0x41BE60
-uint32 CPlayerPed::GetWantedLevel() const {
+eWantedLevel CPlayerPed::GetWantedLevel() const {
     if (const auto* wanted = GetWanted()) {
-        return wanted->m_nWantedLevel;
+        return wanted->GetWantedLevel();
     }
 
-    return 0;
+    return eWantedLevel::WANTED_CLEAN;
 }
 
 // 0x609F10
-void CPlayerPed::SetWantedLevel(int32 level) {
+void CPlayerPed::SetWantedLevel(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->SetWantedLevel(level);
 }
 
 // 0x609F30
-void CPlayerPed::SetWantedLevelNoDrop(int32 level) {
+void CPlayerPed::SetWantedLevelNoDrop(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->SetWantedLevelNoDrop(level);
 }
 
 // 0x609F50
-void CPlayerPed::CheatWantedLevel(int32 level) {
+void CPlayerPed::CheatWantedLevel(eWantedLevel level) {
     CWanted* wanted = GetWanted();
     wanted->CheatWantedLevel(level);
 }
@@ -747,7 +746,7 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
         GetPlayerData()->m_bFreeAiming = false;
 
 
-    if (auto anim = RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_FIRE))
+    if (auto anim = RpAnimBlendClumpGetAssociation(GetRpClump(), ANIM_ID_FIRE))
         anim->m_Flags |= ANIMATION_IS_PLAYING & ANIMATION_IS_FINISH_AUTO_REMOVE;
 
     TheCamera.ClearPlayerWeaponMode();
@@ -920,7 +919,7 @@ void CPlayerPed::MakeChangesForNewWeapon(uint32 weaponSlot) {
         MakeChangesForNewWeapon(GetWeaponInSlot(weaponSlot).m_Type);
 }
 
-static auto& PLAYER_MAX_TARGET_VIEW_ANGLE = *(float*)0x8D243C; // 140.0f
+static auto& PLAYER_MAX_TARGET_VIEW_ANGLE = StaticRef<float>(0x8D243C); // 140.0f
 
 // 0x60D020
 void CPlayerPed::EvaluateTarget(CEntity* target, CEntity *& outTarget, float & outTargetPriority, float maxDistance, float compensationRotRad, bool arg5) {
@@ -1157,10 +1156,10 @@ void CPlayerPed::ProcessControl() {
         m_nLookTime = 0;
         float lookDir = CGeneral::LimitRadianAngle(atan2(-activeCam.m_vecFront.x, activeCam.m_vecFront.y));
         float angle = fabs(lookDir - m_fCurrentRotation);
-        if (m_nPedState != PEDSTATE_ATTACK && angle > RadiansToDegrees(30) && angle < RadiansToDegrees(330)) {
-            if (angle > RadiansToDegrees(150) && angle < RadiansToDegrees(210)) {
-                float dir1 = CGeneral::LimitRadianAngle(m_fCurrentRotation - RadiansToDegrees(150));
-                float dir2 = CGeneral::LimitRadianAngle(m_fCurrentRotation + RadiansToDegrees(150));
+        if (m_nPedState != PEDSTATE_ATTACK && angle > DegreesToRadians(30.0f) && angle < DegreesToRadians(330.0f)) {
+            if (angle > DegreesToRadians(150.0f) && angle < DegreesToRadians(210.0f)) {
+                float dir1 = CGeneral::LimitRadianAngle(m_fCurrentRotation - DegreesToRadians(150.0f));
+                float dir2 = CGeneral::LimitRadianAngle(m_fCurrentRotation + DegreesToRadians(150.0f));
                 lookDir = dir1;
                 if (m_fLookDirection != 999'999.f && !bIsDucking) {
                     if (fabs(dir2 - m_fLookDirection) <= fabs(dir1 - m_fLookDirection))

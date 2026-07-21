@@ -2,8 +2,7 @@
 
 #include "MonsterTruck.h"
 
-float& CMonsterTruck::DUMPER_COL_ANGLEMULT = *(float*)0x8D33A8;
-float& fWheelExtensionRate = *(float*)0x8D33AC;
+auto& fWheelExtensionRate = StaticRef<float>(0x8D33AC);
 
 void CMonsterTruck::InjectHooks() {
     RH_ScopedVirtualClass(CMonsterTruck, 0x8717d8, 71);

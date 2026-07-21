@@ -150,7 +150,7 @@ RwTexture* CCustomCarEnvMapPipeline::GetFxEnvTexture(RpMaterial* material) {
 
 // TODO: Hacky shit
 //RwTexture* GetFXMatEnvTexture(RpMaterial* material) { // Can't use `RpMatFXMaterialGetEnvMapTexture` because it loops thru and checks extra stuff... 
-//    const auto MatFXMaterialDataOffset = StaticRef<RwUInt32>(0xC9AB74);
+//    const auto& MatFXMaterialDataOffset = StaticRef<RwUInt32>(0xC9AB74);
 //    auto** const data = *RWPLUGINOFFSET(RwTexture**, material, MatFXMaterialDataOffset);
 //    return *(data + 1); // data[0].data.envMap;
 //}

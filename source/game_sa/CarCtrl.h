@@ -22,26 +22,26 @@ constexpr auto TIME_COPS_WAIT_TO_EXIT_AFTER_STOPPING = 2500;
 
 class CCarCtrl {
 public:
-    static inline bool& bCarIsBeingCreated = *(bool*)0x9690CC;
-    static uint32& NumLawEnforcerCars;
-    static uint32& NumParkedCars;
-    static uint32& NumAmbulancesOnDuty;
-    static uint32& NumFireTrucksOnDuty;
-    static uint32& MaxNumberOfCarsInUse;
-    static float& CarDensityMultiplier;
-    static int32& NumRandomCars;
-    static int32& NumMissionCars;
-    static int32& NumPermanentVehicles;
-    static int32& LastTimeAmbulanceCreated;
-    static int32& LastTimeFireTruckCreated;
-    static bool& bAllowEmergencyServicesToBeCreated;
-    static bool& bCarsGeneratedAroundCamera;
-    static int8& CountDownToCarsAtStart;
-    static float& TimeNextMadDriverChaseCreated;
-    static int32& SequenceElements;
-    static int32& SequenceRandomOffset;
-    static bool& bSequenceOtherWay;
-    static int32& LastTimeLawEnforcerCreated;
+    static inline auto& bCarIsBeingCreated = StaticRef<bool>(0x9690CC);
+    static inline auto& NumLawEnforcerCars = StaticRef<uint32>(0x969098);
+    static inline auto& NumParkedCars = StaticRef<uint32>(0x9690A0);
+    static inline auto& NumAmbulancesOnDuty = StaticRef<uint32>(0x9690A8);
+    static inline auto& NumFireTrucksOnDuty = StaticRef<uint32>(0x9690AC);
+    static inline auto& MaxNumberOfCarsInUse = StaticRef<uint32>(0x8A5B24);
+    static inline auto& CarDensityMultiplier = StaticRef<float>(0x8A5B20);
+    static inline auto& NumRandomCars = StaticRef<int32>(0x969094);
+    static inline auto& NumMissionCars = StaticRef<int32>(0x96909C);
+    static inline auto& NumPermanentVehicles = StaticRef<int32>(0x9690A4);
+    static inline auto& LastTimeAmbulanceCreated = StaticRef<int32>(0x9690B0);
+    static inline auto& LastTimeFireTruckCreated = StaticRef<int32>(0x9690B4);
+    static inline auto& bAllowEmergencyServicesToBeCreated = StaticRef<bool>(0x8A5B28);
+    static inline auto& bCarsGeneratedAroundCamera = StaticRef<bool>(0x9690C1);
+    static inline auto& CountDownToCarsAtStart = StaticRef<int8>(0x9690C0);
+    static inline auto& TimeNextMadDriverChaseCreated = StaticRef<float>(0x9690BC);
+    static inline auto& SequenceElements = StaticRef<int32>(0x969078);
+    static inline auto& SequenceRandomOffset = StaticRef<int32>(0x969074);
+    static inline auto& bSequenceOtherWay = StaticRef<bool>(0x969070);
+    static inline auto& LastTimeLawEnforcerCreated = StaticRef<int32>(0x9690B8);
 
 public:
     static void InjectHooks();

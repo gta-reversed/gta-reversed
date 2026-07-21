@@ -13,7 +13,7 @@ class CPed;
 
 class CPedAcquaintanceScanner {
 public:
-    static float& ms_fThresholdDotProduct;
+    static inline auto& ms_fThresholdDotProduct = StaticRef<float>(0xC0B034);
 
     CTaskTimer m_timer;
     bool m_bScanAllowedScriptPed;

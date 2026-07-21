@@ -11,17 +11,6 @@
 
 #include <Extensions/ci_string.hpp>
 
-// Variables
-eLevelName& CTheZones::m_CurrLevel = *(eLevelName*)0xBA6718;
-
-int32& CTheZones::ZonesRevealed = *(int32*)0xBA372C;
-int16& CTheZones::TotalNumberOfMapZones = *(int16*)0xBA1900;
-CZone (&CTheZones::NavigationZoneArray)[380] = *(CZone(*)[380])0xBA3798;
-
-int16& CTheZones::TotalNumberOfNavigationZones = *(int16*)0xBA3794;
-CZone (&CTheZones::MapZoneArray)[39] = *(CZone(*)[39])0xBA1908;
-
-int16& CTheZones::TotalNumberOfZoneInfos = *(int16*)0xBA1DE8;
 
 void CTheZones::InjectHooks() {
     RH_ScopedClass(CTheZones);
@@ -197,7 +186,7 @@ void CTheZones::FillZonesWithGangColours(bool disableRadarGangColors) {
 // Returns pointer to zone by index
 // 0x572590
 CZone* CTheZones::GetNavigationZone(uint16 index) {
-    return &CTheZones::NavigationZoneArray[index];
+    return &GetNavigationZones()[index];
 }
 
 // Returns pointer to zone by index
@@ -208,7 +197,7 @@ CZone* CTheZones::GetMapZone(uint16 index) {
 
 // 0x5725b0
 float CTheZones::Calc2DDistanceBetween2Zones(CZone* a, CZone* b) {
-    int16 dx, dy;
+    int32 dx, dy;
 
     if (a->m_fX1 <= b->m_fX2) {
         dx = a->m_fX2 >= b->m_fX1
@@ -226,7 +215,7 @@ float CTheZones::Calc2DDistanceBetween2Zones(CZone* a, CZone* b) {
         dy = a->m_fY1 - b->m_fY2;
     }
 
-    return (float)std::sqrt(sq(dx) + sq(dy));
+    return std::sqrt(sq((float)(dx)) + sq((float)(dy)));
 }
 
 // Initializes CTheZones

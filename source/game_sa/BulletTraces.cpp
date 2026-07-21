@@ -1,8 +1,6 @@
 #include "StdInc.h"
 #include "BulletTraces.h"
 
-CBulletTrace (&CBulletTraces::aTraces)[16] = *(CBulletTrace(*)[16])0xC7C748;
-
 void CBulletTraces::InjectHooks()
 {
     RH_ScopedClass(CBulletTraces);

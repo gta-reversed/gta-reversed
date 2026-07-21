@@ -85,4 +85,4 @@ private:
 };
 VALIDATE_SIZE(CText, 0xA90);
 
-static inline CText& TheText = *(CText*)0xC1B340;
+static inline auto& TheText = StaticRef<CText>(0xC1B340);

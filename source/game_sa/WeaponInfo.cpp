@@ -60,7 +60,7 @@ void CWeaponInfo::Initialise() {
         info.m_nNumCombos = 1;
     }
 
-    for (auto& offset : g_GunAimingOffsets) {
+    for (auto& offset : ms_WeaponAimOffsets) {
         offset.AimX = 0.0f;
         offset.AimZ = 0.0f;
         offset.DuckX = 0.0f;
@@ -275,7 +275,7 @@ void CWeaponInfo::LoadWeaponData() {
 
             VERIFY(sscanf_s(line, "%*s %s %f %f %f %f %d %d %d %d", SCANF_S_STR(stealthAnimGrp), &aimX, &aimZ, &duckX, &duckZ, &RLoadA, &RLoadB, &crouchRLoadA, &crouchRLoadB) == 9);
 
-            g_GunAimingOffsets[CAnimManager::GetAnimationGroupIdByName(stealthAnimGrp) - ANIM_GROUP_PYTHON] = {
+            ms_WeaponAimOffsets[CAnimManager::GetAnimationGroupIdByName(stealthAnimGrp) - ANIM_GROUP_PYTHON] = {
                 .AimX = aimX,
                 .AimZ = aimZ,
 
@@ -446,6 +446,6 @@ uint32 CWeaponInfo::GetWeaponReloadTime() const {
     if (flags.bLongReload)
         return 1000u;
 
-    const auto& ao = g_GunAimingOffsets[m_nAimOffsetIndex];
+    const auto& ao = ms_WeaponAimOffsets[m_nAimOffsetIndex];
     return std::max(400u, (uint32)std::max({ ao.RLoadA, ao.RLoadB, ao.CrouchRLoadA, ao.CrouchRLoadB }) + 100);
 }

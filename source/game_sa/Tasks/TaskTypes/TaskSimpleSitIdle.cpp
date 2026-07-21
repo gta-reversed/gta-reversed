@@ -33,7 +33,7 @@ CTaskSimpleSitIdle::CTaskSimpleSitIdle(const CTaskSimpleSitIdle& o) :
 void CTaskSimpleSitIdle::StartAnim(CPed* ped) {
     m_animStartedTimer.Start(m_durationMs);
 
-    const auto StartAnim = [this, ped](auto grpId, auto animId) { m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 256.f); };
+    const auto StartAnim = [this, ped](auto grpId, auto animId) { m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 256.f); };
     if (m_bSitAfterStep) {
         StartAnim(ANIM_GROUP_ATTRACTORS, ANIM_ID_STEPSIT_LOOP);
     } else {

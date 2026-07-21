@@ -12,18 +12,6 @@
 #include "TaskSimpleClimb.h"
 #include "RealTimeShadowManager.h"
 
-float& CPhysical::DAMPING_LIMIT_IN_FRAME = *(float*)0x8CD7A0;
-float& CPhysical::DAMPING_LIMIT_OF_SPRING_FORCE = *(float*)0x8CD7A4;
-float& CPhysical::PHYSICAL_SHIFT_SPEED_DAMP = *(float*)0x8CD788;
-float& CPhysical::SOFTCOL_SPEED_MULT = *(float*)0x8CD794;
-float& CPhysical::SOFTCOL_SPEED_MULT2 = *(float*)0x8CD798;
-float& CPhysical::SOFTCOL_DEPTH_MIN = *(float*)0x8CD78C;
-float& CPhysical::SOFTCOL_DEPTH_MULT = *(float*)0x8CD790;
-float& CPhysical::SOFTCOL_CARLINE_SPEED_MULT = *(float*)0x8CD79C;
-float& CPhysical::TEST_ADD_AMBIENT_LIGHT_FRAC = *(float*)0x8CD7B8;
-float& CPhysical::HIGHSPEED_ELASTICITY_MULT_COPCAR = *(float*)0x8CD784;
-CVector& CPhysical::fxDirection = *(CVector*)0xB73720;
-
 void CPhysical::InjectHooks()
 {
     RH_ScopedVirtualClass(CPhysical, 0x863BA0, 23);
@@ -237,7 +225,7 @@ void CPhysical::ProcessControl()
 
     if (GetStatus() != STATUS_SIMPLE)
     {
-        physicalFlags.b31 = false;
+        physicalFlags.bDoorHitEndStop = false;
         physicalFlags.bOnSolidSurface = false;
         m_nNumEntitiesCollided = 0;
         m_nPieceType = 0;
@@ -277,6 +265,9 @@ void CPhysical::ProcessCollision() {
             return;
         }
 
+        // TODO:
+        // Refactor this to be a lambda that takes in these variables as parameters,
+        // this way we keep the array reference (so oob checks in debug still work and shit)
         if (GetStatus() == STATUS_GHOST) {
             CColPoint* wheelsColPoints = nullptr;
             float* pfWheelsSuspensionCompression = nullptr;
@@ -286,9 +277,9 @@ void CPhysical::ProcessCollision() {
                 bike->m_aGroundPhysicalPtrs[1] = nullptr;
                 bike->m_aGroundPhysicalPtrs[2] = nullptr;
                 bike->m_aGroundPhysicalPtrs[3] = nullptr;
-                wheelsColPoints = bike->m_aWheelColPoints;
-                pfWheelsSuspensionCompression = bike->m_aWheelRatios;
-                wheelsCollisionPositions = bike->m_aGroundOffsets;
+                wheelsColPoints = bike->m_aWheelColPoints.data();
+                pfWheelsSuspensionCompression = bike->m_aWheelRatios.data();
+                wheelsCollisionPositions = bike->m_aGroundOffsets.data();
             }
             else {
                 automobile->m_apWheelCollisionEntity[0] = nullptr;
@@ -364,12 +355,12 @@ void CPhysical::ProcessCollision() {
             m_matrix->Reorthogonalise();
             physicalFlags.bProcessingShift = false;
             physicalFlags.bSkipLineCol = false;
-            physicalFlags.b17 = true;
+            physicalFlags.bForceHitReturnFalse = true;
             bool bOldUsesCollision = GetUsesCollision();
             SetUsesCollision(false);
             if (!CheckCollision())
             {
-                physicalFlags.b17 = false;
+                physicalFlags.bForceHitReturnFalse = false;
                 SetUsesCollision(bOldUsesCollision);
                 if (GetIsTypeVehicle())
                     vehicle->vehicleFlags.bVehicleColProcessed = true;
@@ -383,7 +374,7 @@ void CPhysical::ProcessCollision() {
                 return;
             }
             SetUsesCollision(bOldUsesCollision);
-            physicalFlags.b17 = false;
+            physicalFlags.bForceHitReturnFalse = false;
             *static_cast<CMatrix*>(m_matrix) = oldEntityMatrix;
             m_vecMoveSpeed = vecOldMoveSpeed;
             if (GetIsTypeVehicle() && vehicle->vehicleFlags.bIsLawEnforcer)
@@ -565,7 +556,7 @@ void CPhysical::ProcessShift() {
 // 0x54DEC0
 bool CPhysical::TestCollision(bool bApplySpeed) {
     CMatrix entityMatrix(*m_matrix);
-    physicalFlags.b17 = true;
+    physicalFlags.bForceHitReturnFalse = true;
     physicalFlags.bSkipLineCol = true;
     bool bOldUsesCollision = GetUsesCollision();
     SetUsesCollision(false);
@@ -582,7 +573,7 @@ bool CPhysical::TestCollision(bool bApplySpeed) {
 
     bool bCheckCollision = CheckCollision();
     SetUsesCollision(bOldUsesCollision);
-    physicalFlags.b17 = false;
+    physicalFlags.bForceHitReturnFalse = false;
     physicalFlags.bSkipLineCol = false;
     *(CMatrix*)m_matrix = entityMatrix;
     if (bTestForBlockedPositions)
@@ -2499,7 +2490,7 @@ void CPhysical::ApplySpeed()
         ApplyTurnSpeed();
         m_vecTurnSpeed.z = -0.2f * m_vecTurnSpeed.z;
         CTimer::UpdateTimeStep(fOldTimeStep - fNewTimeStep);
-        physicalFlags.b31 = true;
+        physicalFlags.bDoorHitEndStop = true;
     }
     ApplyMoveSpeed();
     ApplyTurnSpeed();
@@ -2560,7 +2551,7 @@ void CPhysical::ApplyFriction()
 
     auto* vehicle = AsVehicle();
     if (GetIsTypeVehicle() && vehicle->IsBike()
-        && !physicalFlags.b32 && GetStatus() == STATUS_ABANDONED
+        && !physicalFlags.bCarriedByRope && GetStatus() == STATUS_ABANDONED
         && fabs(GetUp().z) < 0.707f
         && 0.05f * 0.05f > m_vecMoveSpeed.SquaredMagnitude() && 0.01f * 0.01f > m_vecTurnSpeed.SquaredMagnitude())
     {
@@ -3933,7 +3924,7 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
 // 0x54BA60
 bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73710; // TODO | STATICREF
+    static auto& colPoints = StaticRef<std::array<CColPoint, 32>>(0xB73710);
 
     bool bResult = false;
 
@@ -4027,7 +4018,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                 if (!bCollisionDisabled) // if collision is enabled then
                 {
                     int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                    if (physicalFlags.b17 && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
+                    if (physicalFlags.bForceHitReturnFalse && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
                         return true;
                     }
                     if (!totalColPointsToProcess && m_pEntityIgnoredCollision == entity && this == FindPlayerPed()) {
@@ -4450,7 +4441,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
 // 0x54CFF0
 bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector)
 {
-    static CColPoint(&colPoints)[32] = *(CColPoint(*)[32])0xB73C98; // TODO | STATICREF
+    static auto& colPoints = StaticRef<std::array<CColPoint, 32>>(0xB73C98);
     float fThisDamageIntensity = -1.0f;
     float fEntityDamageIntensity = -1.0f;
 
@@ -4716,7 +4707,7 @@ bool CPhysical::CheckCollision()
     if (GetIsTypePed())
     {
         CPed* ped = AsPed();
-        if (!m_pAttachedTo && !physicalFlags.b17 && !physicalFlags.bProcessingShift && !physicalFlags.bSkipLineCol) {
+        if (!m_pAttachedTo && !physicalFlags.bForceHitReturnFalse && !physicalFlags.bProcessingShift && !physicalFlags.bSkipLineCol) {
             ped->m_standingOnEntity = nullptr;
             if (ped->bIsStanding) {
                 ped->bIsStanding = false;

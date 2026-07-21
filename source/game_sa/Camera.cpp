@@ -7,25 +7,18 @@
 #include "TaskSimpleDuck.h"
 #include "Hud.h"
 
-float& CCamera::m_f3rdPersonCHairMultY = *reinterpret_cast<float*>(0xB6EC10); ///< Where the player will be on the screen in relative coords when quick aiming
-float& CCamera::m_f3rdPersonCHairMultX = *reinterpret_cast<float*>(0xB6EC14);
-float& CCamera::m_fMouseAccelVertical = *reinterpret_cast<float*>(0xB6EC18);
-float& CCamera::m_fMouseAccelHorzntl = *reinterpret_cast<float*>(0xB6EC1C);
-bool& CCamera::m_bUseMouse3rdPerson = *reinterpret_cast<bool*>(0xB6EC2E);
-bool& CCamera::bDidWeProcessAnyCinemaCam = *reinterpret_cast<bool*>(0xB6EC2D);
-
-CCamera& TheCamera = *reinterpret_cast<CCamera*>(0xB6F028);
-bool& gbModelViewer = *reinterpret_cast<bool*>(0xBA6728);
-int8& gbCineyCamMessageDisplayed = *(int8*)0x8CC381; // 2
-int32& gCameraDirection = *(int32*)0x8CC384;         // 3
-eCamMode& gCameraMode = *(eCamMode*)0x8CC388;        // -1
-uint32& gLastTime2PlayerCameraWasOK = *(uint32*)0xB6EC24;    // 0
-uint32& gLastTime2PlayerCameraCollided = *(uint32*)0xB6EC28; // 0
-bool& gPlayerPedVisible = *(bool*)0x8CC380; // true
-uint8& gCurCamColVars = *(uint8*)0x8CCB80;
-float& gCurDistForCam = *(float*)0x8CCB84;
-float*& gpCamColVars = *(float**)0xB6FE88;
-float (&gCamColVars)[28][6] = *(float (*)[28][6])0x8CC8E0;
+auto& TheCamera = StaticRef<CCamera>(0xB6F028);
+auto& gbModelViewer = StaticRef<bool>(0xBA6728);
+auto& gbCineyCamMessageDisplayed = StaticRef<int8>(0x8CC381); // 2
+auto& gCameraDirection = StaticRef<int32>(0x8CC384);         // 3
+auto& gCameraMode = StaticRef<eCamMode>(0x8CC388);        // -1
+auto& gLastTime2PlayerCameraWasOK = StaticRef<uint32>(0xB6EC24);    // 0
+auto& gLastTime2PlayerCameraCollided = StaticRef<uint32>(0xB6EC28); // 0
+auto& gPlayerPedVisible = StaticRef<bool>(0x8CC380); // true
+auto& gCurCamColVars = StaticRef<uint8>(0x8CCB80);
+auto& gCurDistForCam = StaticRef<float>(0x8CCB84);
+auto& gpCamColVars = StaticRef<float*>(0xB6FE88);
+auto& gCamColVars = StaticRef<float[28][6]>(0x8CC8E0);
 
 CCam& CCamera::GetActiveCamera() {
     return TheCamera.m_aCams[TheCamera.m_nActiveCam];
@@ -397,7 +390,7 @@ float CCamera::Find3rdPersonQuickAimPitch() const {
     // https://mathworld.wolfram.com/images/eps-svg/SOHCAHTOA_500.svg
     const auto adjacent = (0.5f - m_f3rdPersonCHairMultY) * 2.f;
     const auto opposite = std::tan(DegreesToRadians(cam.m_fFOV / 2.0f)) * adjacent;
-    const auto relAngle = cam.m_fVerticalAngle - std::atan(opposite / CDraw::ms_fAspectRatio);
+    const auto relAngle = cam.m_fVerticalAngle + std::atan(opposite / CDraw::ms_fAspectRatio);
     return -relAngle; // Flip it
 }
 
@@ -802,7 +795,7 @@ void CCamera::SetNearClipScript(float nearClip) {
 }
 
 // 0x50BFB0
-void CCamera::SetNewPlayerWeaponMode(eCamMode mode, int16 maxZoom, int16 minZoom) {
+void CCamera::SetNewPlayerWeaponMode(eCamMode mode, int16 minZoom, int16 maxZoom) {
     m_PlayerWeaponMode.m_nMode     = mode;
     m_PlayerWeaponMode.m_nMinZoom  = minZoom;
     m_PlayerWeaponMode.m_nMaxZoom  = maxZoom;
@@ -1575,10 +1568,10 @@ void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVect
 
 // 0x514B80
 float CCamera::CalculateGroundHeight(eGroundHeightType type) {
-    static auto& lastCalcCamPos    = StaticRef<CVector, 0xB70034>();
-    static auto& exactGroundHeight = StaticRef<float, 0xB70030>();
-    static auto& bbTopZ            = StaticRef<float, 0xB7002C>();
-    static auto& bbBottomZ         = StaticRef<float, 0xB70028>();
+    static auto& lastCalcCamPos    = StaticRef<CVector>(0xB70034);
+    static auto& exactGroundHeight = StaticRef<float>(0xB70030);
+    static auto& bbTopZ            = StaticRef<float>(0xB7002C);
+    static auto& bbBottomZ         = StaticRef<float>(0xB70028);
 
     const auto& camPos = GetPosition();
 
@@ -1629,7 +1622,7 @@ void CCamera::ImproveNearClip(CVehicle* vehicle, CPed* ped, CVector* source, CVe
     return plugin::CallMethod<0x516B20, CCamera*, CVehicle*, CPed*, CVector*, CVector*>(this, vehicle, ped, source, targPosn);
 }
 
-static CMatrix& preMirrorMat = *(CMatrix*)0xB6FE40;
+static auto& preMirrorMat = StaticRef<CMatrix>(0xB6FE40);
 
 // 0x51A560
 void CCamera::SetCameraUpForMirror() {

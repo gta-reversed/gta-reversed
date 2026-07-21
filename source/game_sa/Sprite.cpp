@@ -16,7 +16,7 @@ void CSprite::InjectHooks() {
     RH_ScopedOverloadedInstall(Set4Vertices2D, "CRect", 0x70E1C0, void (*)(RwIm2DVertex*, const CRect&, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
     // RH_ScopedOverloadedInstall(Set4Vertices2D, "1", 0x70E2D0, void (*)(RwD3D9Vertex*, float, float, float, float, float, float, float, float, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
     RH_ScopedInstall(RenderOneXLUSprite, 0x70D000, { .reversed = false });
-    RH_ScopedInstall(RenderOneXLUSprite_Triangle, 0x70D320, { .reversed = false });
+    RH_ScopedInstall(RenderOneXLUSprite_Triangle, 0x70D320);
     RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490, { .reversed = false });
     RH_ScopedInstall(RenderOneXLUSprite2D, 0x70F540);
     RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0, { .reversed = false });
@@ -147,8 +147,51 @@ void CSprite::RenderOneXLUSprite(CVector pos, CVector2D halfSize, uint8 r, uint8
 }
 
 // 0x70D320
-void CSprite::RenderOneXLUSprite_Triangle(float, float, float, float, float, float, float, uint8, uint8, uint8, int16, float, uint8) {
-    assert(false);
+void CSprite::RenderOneXLUSprite_Triangle(CVector2D screen1, CVector2D screen2, CVector2D screen3, float screenZ, uint8 r, uint8 g, uint8 b, int16 intensity, float recipZ, uint8 alpha) {
+    if (screenZ < 1.3f) {
+        return;
+    }
+    const uint32 factor = static_cast<uint32>(std::min(255.0f * (screenZ - 1.3f), 255.0f));
+    const uint32 R      = (factor * r) >> 8;
+    const uint32 G      = (factor * g) >> 8;
+    const uint32 B      = (factor * b) >> 8;
+    const uint32 depthI = (factor * intensity) >> 8;
+
+    const auto emissiveColor = CRGBA{
+        static_cast<uint8>(((R & 0xff) * depthI) >> 8),
+        static_cast<uint8>(((G & 0xff) * depthI) >> 8),
+        static_cast<uint8>(((B & 0xff) * depthI) >> 8),
+        alpha
+    }.ToIntARGB();
+
+    const auto z  = (RwIm2DGetFarScreenZ() - RwIm2DGetNearScreenZ())
+        * (screenZ - CDraw::ms_fNearClipZ)
+        * CDraw::ms_fFarClipZ
+        / ((CDraw::ms_fFarClipZ - CDraw::ms_fNearClipZ) * screenZ)
+        + RwIm2DGetNearScreenZ();
+
+    s_XLUSpriteVertices[0] = {
+        .x = screen1.x,
+        .y = screen1.y,
+        .z = z,
+        .rhw = recipZ,
+        .emissiveColor = emissiveColor
+    };
+    s_XLUSpriteVertices[1] = {
+        .x = screen2.x,
+        .y = screen2.y,
+        .z = z,
+        .rhw = recipZ,
+        .emissiveColor = emissiveColor
+    };
+    s_XLUSpriteVertices[2] = {
+        .x = screen3.x,
+        .y = screen3.y,
+        .z = z,
+        .rhw = recipZ,
+        .emissiveColor = emissiveColor
+    };
+    RwIm2DRenderPrimitive(rwPRIMTYPETRILIST, s_XLUSpriteVertices.data(), 3);
 }
 
 // 0x70D490

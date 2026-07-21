@@ -17,7 +17,7 @@ public:
     }
 
 private:
-    static inline std::array<CEscalator, NUM_ESCALATORS>& aEscalators = StaticRef<std::array<CEscalator, NUM_ESCALATORS>>(0xC6E9A8);
+    static inline auto& aEscalators = StaticRef<std::array<CEscalator, NUM_ESCALATORS>>(0xC6E9A8);
 
 private:
     friend void InjectHooksMain();

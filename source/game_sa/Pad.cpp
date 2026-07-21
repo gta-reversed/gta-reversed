@@ -21,22 +21,10 @@
 
 
 // mouse states 
-CMouseControllerState& CPad::TempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
-CMouseControllerState& CPad::NewMouseControllerState = *(CMouseControllerState*)0xB73418;
-CMouseControllerState& CPad::OldMouseControllerState = *(CMouseControllerState*)0xB7342C;
 
-CKeyboardState& CPad::TempKeyState = *(CKeyboardState*)0xB72CB0;
-CKeyboardState& CPad::OldKeyState = *(CKeyboardState*)0xB72F20;
-CKeyboardState& CPad::NewKeyState = *(CKeyboardState*)0xB73190;
-
-CPad (&CPad::Pads)[MAX_PADS] = *(CPad(*)[MAX_PADS])0xB73458;
-
-bool& CPad::bInvertLook4Pad = *(bool*)0xB73402;
-char& CPad::padNumber = *(char*)0xB73400;
-
-static bool& byte_B73403 = *(bool*)0xB73403; // TODO: Find out what modifies this, as it has no value by default..
-static bool& byte_8CD782 = *(bool*)0x8CD782; // true by default, left here for documentation purposes, as it's used in multiple CPad functions
-static char& byte_B73401 = *(char*)0xB73401; // unused, unknown
+static auto& byte_B73403 = StaticRef<bool>(0xB73403); // TODO: Find out what modifies this, as it has no value by default..
+static auto& byte_8CD782 = StaticRef<bool>(0x8CD782); // true by default, left here for documentation purposes, as it's used in multiple CPad functions
+static auto& byte_B73401 = StaticRef<char>(0xB73401); // unused, unknown
 
 void CPad::InjectHooks() {
     RH_ScopedClass(CPad);
@@ -1317,7 +1305,7 @@ int32 CPad::sub_541290() {
 
 // 0x540A40
 bool CPad::sub_540A40() {
-    static int16 oldfStickX = 0; // 0xB73704
+    static auto& oldfStickX = StaticRef<int16>(0xB73704); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (!leftStickX && oldfStickX > leftStickX) {
@@ -1331,7 +1319,7 @@ bool CPad::sub_540A40() {
 
 // 0x540A10
 bool CPad::sub_540A10() {
-    static int16 oldfStickX = 0; // 0xB73700
+    static auto& oldfStickX = StaticRef<int16>(0xB73700); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (!leftStickX && oldfStickX < leftStickX) {
@@ -1345,7 +1333,7 @@ bool CPad::sub_540A10() {
 
 // 0x540950
 bool CPad::GetAnaloguePadUp() {
-    static int16 oldfStickY = 0; // 0xB736F0
+    static auto& oldfStickY = StaticRef<int16>(0xB736F0); // 0
     auto leftStickY = GetPad()->GetLeftStickY();
 
     if (leftStickY < -15 && oldfStickY >= -5) {
@@ -1359,7 +1347,7 @@ bool CPad::GetAnaloguePadUp() {
 
 // 0x5409B0
 bool CPad::GetAnaloguePadLeft() {
-    static int16 oldfStickX = 0; // 0xB736F8
+    static auto& oldfStickX = StaticRef<int16>(0xB736F8); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (leftStickX < -15 && oldfStickX >= -5) {
@@ -1373,7 +1361,7 @@ bool CPad::GetAnaloguePadLeft() {
 
 // 0x5409E0
 bool CPad::GetAnaloguePadRight() {
-    static int16 oldfStickX = 0; // 0xB736FC
+    static auto& oldfStickX = StaticRef<int16>(0xB736FC); // 0
     auto leftStickX = GetPad()->GetLeftStickX();
 
     if (leftStickX > 15 && oldfStickX <= 5) {
@@ -1387,7 +1375,7 @@ bool CPad::GetAnaloguePadRight() {
 
 // 0x540980
 bool CPad::GetAnaloguePadDown() {
-    static int16 oldfStickY = 0; // 0xB736F4
+    static auto& oldfStickY = StaticRef<int16>(0xB736F4); // 0
     auto leftStickY = GetPad()->GetLeftStickY();
 
     if (leftStickY > 15 && oldfStickY <= 5) {
@@ -1438,7 +1426,7 @@ int GetCurrentKeyPressed(RsKeyCodes& keys) {
 
 #ifndef NOTSA_USE_SDL3
 IDirectInputDevice8* DIReleaseMouse() { // todo: wininput
-    return plugin::CallAndReturn<IDirectInputDevice8*, 0x746F70>();
+    return plugin::CallAndReturn<IDirectInputDevice8*>(0x746F70);
 }
 
 void InitialiseMouse(bool exclusive) {

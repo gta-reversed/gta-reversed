@@ -43,4 +43,4 @@ public:
 };
 VALIDATE_SIZE(ProcObjectMan_c, 0x4C14);
 
-static inline ProcObjectMan_c& g_procObjMan = *reinterpret_cast<ProcObjectMan_c*>(0xBB7CB0);
+static inline auto& g_procObjMan = StaticRef<ProcObjectMan_c>(0xBB7CB0);

@@ -4,7 +4,7 @@
 
 class CPlayerSkin {
 public:
-    static int32&    m_txdSlot;
+    static inline auto& m_txdSlot = StaticRef<int32>(0xC3F03C);
 
 public:
     static void InjectHooks();

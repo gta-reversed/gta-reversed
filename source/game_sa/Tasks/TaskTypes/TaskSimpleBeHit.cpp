@@ -107,13 +107,13 @@ void CTaskSimpleBeHit::StartAnim(CPed* ped) {
 
     // Check if anim exists/create it
     if (m_bAnimAdded) { // Inverted
-        m_Anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, m_nAnimId);
+        m_Anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), m_nAnimId);
         if (!m_Anim) {
             m_bIsFinished = true;
             return;
         }
     } else {
-        m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_nAnimGroup, m_nAnimId, 8.f);
+        m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_nAnimGroup, m_nAnimId, 8.f);
         m_Anim->SetCurrentTime(0.f);
         m_bAnimAdded = true;
     }

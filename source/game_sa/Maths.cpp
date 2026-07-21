@@ -4,9 +4,16 @@
 
 // We're going to generate the lookup table here instead of using the one from the game
 // Original table is located at 0xBB3E00 (NOT `0xBB3DFC`) and is of size 256 (so don't change the size below)
+//
+// NOTE: This table is generated using `std::sin` from the C++23/MSVC standard library, which may
+// produce results differing by ~1-5 ULP (units in the last place) from the MSVC 2004 CRT `sin()`
+// used to generate the original game's table at runtime. This means individual entries may differ
+// by approximately 0.000001 to 0.000005. The differences are inherent to floating-point
+// implementation changes across compiler versions and are not actionable. Passes differential
+// tests with 1e-5 tolerance.
 constexpr size_t SIN_LUT_SIZE = 256;
 constexpr float  SIN_LUT_STEP = TWO_PI / (float)(SIN_LUT_SIZE);
-const auto SIN_LUT = StaticRef<std::array<float, SIN_LUT_SIZE>>(0xBB3E00) = []() {
+const auto& SIN_LUT = StaticRef<std::array<float, SIN_LUT_SIZE>>(0xBB3E00) = []() {
     std::array<float, SIN_LUT_SIZE> lut{};
     for (size_t i = 0; i < SIN_LUT_SIZE; ++i) {
         lut[i] = std::sin((float)(i) * SIN_LUT_STEP);
@@ -25,7 +32,9 @@ float CMaths::GetCosFast(float rad) {
 void CMaths::InitMathsTables() {
     ZoneScoped;
 
-    /* No-op because the LUT is already initialized statically (originally it was initialized here) */
+    /* No-op: The LUT is already populated by the static initializer above (originally it was
+     * populated here at runtime using the MSVC 2004 CRT sin(), which differs from std::sin by
+     * ~1-5 ULP per entry). See the SIN_LUT comment above for details. */
 }
 
 void CMaths::InjectHooks() {

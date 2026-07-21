@@ -117,6 +117,7 @@ template<typename... Ts>
 #define NOTSA_UNREACHABLE(...) UNREACHABLE_INTRINSIC()
 #endif
 #define NOTSA_UNUSED_FUNCTION() NOTSA_UNREACHABLE("Unused Function")
+#define NOTSA_UNREACHABLE_CASE(val) NOTSA_UNREACHABLE("Unreachable switch case with value: {}", val)
 
 #ifdef _DEBUG
 #define NOTSA_DEBUG_BREAK() __debugbreak()
@@ -178,12 +179,6 @@ T& ScopedStaticRef(uintptr varAddr, uintptr flagsAddr, uint32 flagsMask, T&& ini
         var    = initVal;
     }
     return var;
-}
-
-// TODO: Replace this with the one above
-template<typename T, uintptr Addr>
-T& StaticRef() {
-    return StaticRef<T>(Addr);
 }
 
 template<typename T>

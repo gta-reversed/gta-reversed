@@ -42,8 +42,8 @@ class CDecisionMakerTypes {
 public:
     static constexpr auto NUM_TYPES = 20u;
 
-    static inline auto& ScriptReferenceIndex = *(std::array<uint16, NUM_TYPES>*)0xC0AFF4;
-    static inline auto& m_IsActive          = *(std::array<bool, NUM_TYPES>*)0xC0B01C;
+    static inline auto& ScriptReferenceIndex = StaticRef<std::array<uint16, NUM_TYPES>>(0xC0AFF4);
+    static inline auto& m_IsActive = StaticRef<std::array<bool, NUM_TYPES>>(0xC0B01C);
 
     static void InjectHooks();
 
@@ -58,9 +58,9 @@ public:
     void LoadEventIndices();
 
 public:
-    int32          m_NoOfDecisionMakers{};
-    CDecisionMaker m_DecisionMakers[+eDecisionMakerType::COUNT_TOTAL]{};
-    int32          m_EventIndices[+eEventType::EVENT_TOTAL_NUM_EVENTS]{};
+    int32                                                              m_NoOfDecisionMakers{};
+    std::array<CDecisionMaker, +eDecisionMakerType::COUNT_TOTAL> m_DecisionMakers{};
+    std::array<int32, +eEventType::EVENT_TOTAL_NUM_EVENTS>                           m_EventIndices{};
     CDecisionMaker m_DefaultRandomPedDecisionMaker{};
     CDecisionMaker m_DefaultMissionPedDecisionMaker{};
     CDecisionMaker m_DefaultPlayerPedDecisionMaker{};

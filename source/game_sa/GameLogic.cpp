@@ -39,26 +39,29 @@ void CGameLogic::InjectHooks() {
 }
 
 // 0x4418E0
-float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector vecPoint, CVector vecMoveSpeed, bool ignoreMoveSpeed, CVector& outDistance) {
-    auto closest = 100'000.0f; // FLT_MAX
+float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector point, CVector moveSpeed, bool ignoreMoveSpeed, CVector& outDistance) {
+    auto closest         = 100'000.0f; // FLT_MAX
 
-    const auto Calculate = [&closest, &vecPoint, &vecMoveSpeed, &outDistance, ignoreMoveSpeed](CVector2D posn) {
-        const auto diff = posn - vecPoint;
-        const auto dist = diff.Magnitude();
+    const auto Calculate = [&closest, &point, &moveSpeed, &outDistance, ignoreMoveSpeed](CVector2D crossing) {
+        const CVector2D dir2D  = crossing - CVector2D{ point };
+        const auto      dist2D = dir2D.Magnitude();
 
-        if (((vecPoint * vecMoveSpeed).ComponentwiseSum() > 0.0f || ignoreMoveSpeed) && dist < closest) {
-            outDistance = vecPoint;
-            closest = dist;
+        // In vanilla code both `crossing` and `moveSpeed` were 3D, with the crossing's position `z` being assigned `0` ...
+        // But that affects the whole logic, because the dot product will more likely than not be negative (because of `dir` always having negative Z).
+        // So, instead of doing a 3D dot-product with a `moveSpeed` that has a `z` component of `0`, we just do a 2D dot product.
+        if (dist2D < closest && (ignoreMoveSpeed || dir2D.Dot(CVector2D{ moveSpeed }) > 0.0f)) {
+            outDistance = CVector{ dir2D, 0.f }; // Original code here used `z = -point.z` but that doesn't make much sense, so we're just going to set it to 0
+            closest     = dist2D;
         }
     };
 
     const auto cityUnlocked = CStats::GetStatValue(STAT_CITY_UNLOCKED);
     if (cityUnlocked == 0.0f) {
-        Calculate(CVector2D{82.0f, -1021.0f});  // LS-SF; Flint Country
+        Calculate({ 82.0f, -1021.0f }); // LS-SF; Flint Country
     } else if (cityUnlocked == 1.0f) {
-        Calculate(CVector2D{-1568.0f, 537.0f}); // SF-LV; Downtown
+        Calculate({ -1568.0f, 537.0f }); // SF-LV; Downtown
     } else if (cityUnlocked < 1.0f) {
-        Calculate(CVector2D{2270.0f,  277.0f}); // Not a train crossing; top left side of Palomino Creek, LS
+        Calculate({ 2270.0f, 277.0f }); // Not a train crossing; top left side of Palomino Creek, LS
     }
 
     return closest;
@@ -440,14 +443,14 @@ void CGameLogic::SetPlayerWantedLevelForForbiddenTerritories(bool immediately) {
     if ((!immediately && (CTimer::GetFrameCounter() % 32) != 18) || coords.z > 950.0f)
         return;
 
-    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= 4)
+    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= eWantedLevel::WANTED_LEVEL_4)
         return;
 
     const auto SetWantedIfInArea = [&](auto* vertices, size_t size) {
         if (IsPointWithinLineArea(vertices, size, coords.x, coords.y)) {
-            ped->SetWantedLevel(4);
+            ped->SetWantedLevel(eWantedLevel::WANTED_LEVEL_4);
             if (immediately) {
-                ped->GetWanted()->m_nLastTimeWantedLevelChanged = 0;
+                ped->GetWanted()->m_LastTimeWantedLevelChanged = 0;
             }
         }
     };
@@ -717,20 +720,13 @@ void CGameLogic::Update() {
                 if (!player1.m_bGetOutOfJailFree) {
                     const auto fee = [&] {
                         switch (player1Ped->GetWantedLevel()) {
-                        case 1:
-                            return 100;
-                        case 2:
-                            return 200;
-                        case 3:
-                            return 400;
-                        case 4:
-                            return 600;
-                        case 5:
-                            return 900;
-                        case 6:
-                            return 1500;
-                        default:
-                            NOTSA_UNREACHABLE(); // NOTSA, SA returns 100.
+                        case eWantedLevel::WANTED_LEVEL_1: return 100;
+                        case eWantedLevel::WANTED_LEVEL_2: return 200;
+                        case eWantedLevel::WANTED_LEVEL_3: return 400;
+                        case eWantedLevel::WANTED_LEVEL_4: return 600;
+                        case eWantedLevel::WANTED_LEVEL_5: return 900;
+                        case eWantedLevel::WANTED_LEVEL_6: return 1500;
+                        default:                           NOTSA_UNREACHABLE(); // NOTSA, SA returns 100.
                         }
                     }();
                     PunishPlayer(fee);

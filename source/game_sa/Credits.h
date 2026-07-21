@@ -8,8 +8,8 @@
 
 class CCredits {
 public:
-    static uint32& CreditsStartTime;
-    static bool& bCreditsGoing;
+    static inline auto& CreditsStartTime = StaticRef<uint32>(0xC6E978);
+    static inline auto& bCreditsGoing = StaticRef<bool>(0xC6E97C);
 
 public:
     static void InjectHooks();

@@ -52,14 +52,14 @@ void CAtomicModelInfo::Init()
 // 0x4C4440
 void CAtomicModelInfo::DeleteRwObject()
 {
-    if (!m_pRwAtomic)
+    if (!GetRpAtomic())
         return;
 
-    auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(m_pRwAtomic));
+    auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(GetRpAtomic()));
     m_n2dfxCount -= uiEffectsCount;
 
-    auto frame = RpAtomicGetFrame(m_pRwAtomic);
-    RpAtomicDestroy(m_pRwAtomic);
+    auto frame = RpAtomicGetFrame(GetRpAtomic());
+    RpAtomicDestroy(GetRpAtomic());
     RwFrameDestroy(frame);
     m_pRwObject = nullptr;
 
@@ -71,11 +71,11 @@ void CAtomicModelInfo::DeleteRwObject()
 
 RwObject* CAtomicModelInfo::CreateInstance()
 {
-    if (!m_pRwObject)
+    if (!GetRpAtomic())
         return nullptr;
 
     CBaseModelInfo::AddRef();
-    auto clonedAtomic = RpAtomicClone(m_pRwAtomic);
+    auto clonedAtomic = RpAtomicClone(GetRpAtomic());
     auto frame = RwFrameCreate();
     RpAtomicSetFrame(clonedAtomic, frame);
     CBaseModelInfo::RemoveRef();
@@ -85,11 +85,11 @@ RwObject* CAtomicModelInfo::CreateInstance()
 
 RwObject* CAtomicModelInfo::CreateInstance(RwMatrix* matrix)
 {
-    if (!m_pRwObject)
+    if (!GetRpAtomic())
         return nullptr;
 
     CBaseModelInfo::AddRef();
-    auto clonedAtomic = RpAtomicClone(m_pRwAtomic);
+    auto clonedAtomic = RpAtomicClone(GetRpAtomic());
     auto frame = RwFrameCreate();
     memcpy(RwFrameGetMatrix(frame), matrix, sizeof(RwMatrix));
     RpAtomicSetFrame(clonedAtomic, frame);
@@ -102,12 +102,12 @@ RwObject* CAtomicModelInfo::CreateInstance(RwMatrix* matrix)
 void CAtomicModelInfo::SetAtomic(RpAtomic* atomic)
 {
     if (m_pRwObject) {
-        auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(m_pRwAtomic));
+        auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(GetRpAtomic()));
         m_n2dfxCount -= uiEffectsCount;
     }
 
-    m_pRwAtomic = atomic;
-    auto uiNewEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(m_pRwAtomic));
+    m_pRwObject            = reinterpret_cast<RwObject*>(atomic);
+    auto uiNewEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(GetRpAtomic()));
     m_n2dfxCount += uiNewEffectsCount;
 
     CBaseModelInfo::AddTexDictionaryRef();
@@ -115,21 +115,23 @@ void CAtomicModelInfo::SetAtomic(RpAtomic* atomic)
     if (iAnimIndex != -1)
         CAnimManager::AddAnimBlockRef(iAnimIndex);
 
-    if (CCustomBuildingRenderer::IsCBPCPipelineAttached(m_pRwAtomic))
-        CCustomBuildingRenderer::AtomicSetup(m_pRwAtomic);
-    else if (CCarFXRenderer::IsCCPCPipelineAttached(m_pRwAtomic))
-        CCarFXRenderer::SetCustomFXAtomicRenderPipelinesVMICB(m_pRwAtomic, nullptr);
+    if (CCustomBuildingRenderer::IsCBPCPipelineAttached(GetRpAtomic()))
+        CCustomBuildingRenderer::AtomicSetup(GetRpAtomic());
+    else if (CCarFXRenderer::IsCCPCPipelineAttached(GetRpAtomic()))
+        CCarFXRenderer::SetCustomFXAtomicRenderPipelinesVMICB(GetRpAtomic(), nullptr);
 
     if (!bTagDisabled && IsTagModel())
-        CTagManager::SetupAtomic(m_pRwAtomic);
+        CTagManager::SetupAtomic(GetRpAtomic());
 
     SetHasBeenPreRendered(true);
-}RpAtomic* CAtomicModelInfo::GetAtomicFromDistance(float distance)
+}
+
+RpAtomic* CAtomicModelInfo::GetAtomicFromDistance(float distance)
 {
     if (TheCamera.m_fLODDistMultiplier * m_fDrawDistance <= distance)
         return nullptr;
 
-    return m_pRwAtomic;
+    return GetRpAtomic();
 }
 
 void CAtomicModelInfo::SetupVehicleUpgradeFlags(const char* name)

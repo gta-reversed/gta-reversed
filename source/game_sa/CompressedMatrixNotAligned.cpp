@@ -13,8 +13,8 @@ void CCompressedMatrixNotAligned::InjectHooks()
 
 void CCompressedMatrixNotAligned::DecompressIntoFullMatrix(CMatrix& matrix) const
 {
-    matrix.GetRight() = m_vecRight.Decompress();
-    matrix.GetForward() = m_vecForward.Decompress();
+    matrix.GetRight() = m_vecRight;
+    matrix.GetForward() = m_vecForward;
     matrix.GetUp() = CrossProduct(matrix.GetRight(), matrix.GetForward());
     matrix.GetPosition() = m_vecPos;
     matrix.Reorthogonalise();

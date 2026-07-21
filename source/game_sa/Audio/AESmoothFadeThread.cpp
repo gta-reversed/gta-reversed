@@ -4,7 +4,7 @@
 #include "AEAudioChannel.h"
 #include "AEAudioUtility.h"
 
-CAESmoothFadeThread& AESmoothFadeThread = *(CAESmoothFadeThread*)0xB608D0;
+auto& AESmoothFadeThread = StaticRef<CAESmoothFadeThread>(0xB608D0);
 
 void CAESmoothFadeThread::InjectHooks() {
     RH_ScopedClass(CAESmoothFadeThread);

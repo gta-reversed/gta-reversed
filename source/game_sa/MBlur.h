@@ -9,7 +9,7 @@ public:
     static bool ms_bJustInitialised;
     static bool ms_bScaledBlur;
     static bool BlurOn;
-    static inline float& Drunkness = *(float*)0xC73C58;
+    static inline auto& Drunkness = StaticRef<float>(0xC73C58);
 
     static int32 pBufVertCount;
 

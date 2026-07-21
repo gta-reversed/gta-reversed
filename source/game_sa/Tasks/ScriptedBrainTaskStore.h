@@ -26,7 +26,7 @@ VALIDATE_SIZE(CScriptedBrainTaskEntry, 0x10);
 
 class CScriptedBrainTaskStore {
 public:
-    static CScriptedBrainTaskEntry(&ms_entries)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES];
+    static inline auto& ms_entries = StaticRef<CScriptedBrainTaskEntry[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES]>(0xC188F0);
 
     static void InjectHooks();
 
