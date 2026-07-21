@@ -165,42 +165,55 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
     }
 }
 
-// 0x66B300
-void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
-    CPed* criminalPed = nullptr;
-    for (auto& entity : ped->GetIntelligence()->m_pedScanner.GetEntities<CEntity>()) {
-        criminalPed = entity.AsPed();
-        if (!criminalPed)
-            continue;
-
-        auto pedType = criminalPed->m_nPedType;
-        if (pedType >= PED_TYPE_GANG1 && pedType <= PED_TYPE_GANG10 || pedType == PED_TYPE_CRIMINAL && criminalPed != m_pLastCriminalPedLookedFor) {
-            CTask* activeTask = criminalPed->GetTaskManager().GetActiveTask();
-            if (activeTask && activeTask->GetTaskType() == GetTaskType()) {
-                const auto& criminalPos = criminalPed->GetPosition();
-                const auto& pedPos = ped->GetPosition();
-                CVector distance = criminalPos - pedPos;
-                if (distance.SquaredMagnitude() < sq(10.0f)) {
-                    const float dot = DotProduct(distance, ped->GetForward());
-                    if (dot > 0.0f && CWorld::GetIsLineOfSightClear(pedPos, criminalPos, true, false, false, true, false, false, false))
-                        break;
-                }
+// notsa, code from `LookForCriminals`
+CPed* CTaskComplexWanderCop::FindNearestCriminal(CPed* ped) const {
+    for (auto& candidate : ped->GetIntelligence()->m_pedScanner.GetEntities<CPed>()) {
+        if (!candidate.IsGangster()) {
+            if (candidate.m_nPedType != PED_TYPE_CRIMINAL || &candidate == m_pLastCriminalPedLookedFor) {
+                continue;
             }
         }
+
+        if (auto* const tActive = candidate.GetTaskManager().GetActiveTask(); !tActive || tActive->GetTaskType() != GetTaskType()) {
+            continue;
+        }
+
+        const auto& criminalPos = candidate.GetPosition();
+        const auto& pedPos      = ped->GetPosition();
+        CVector     distance    = criminalPos - pedPos;
+        if (distance.SquaredMagnitude() >= sq(10.0f)) {
+            continue;
+        }
+
+        if ((distance).Dot(ped->GetForward()) <= 0.f) {
+            continue;
+        }
+
+        if (!CWorld::GetIsLineOfSightClear(pedPos, criminalPos, true, false, false, true, false, false, false)) {
+            continue;
+        }
+
+        return &candidate;
+    }
+    return nullptr;
+}
+
+// 0x66B300
+void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
+    auto* const criminal = FindNearestCriminal(ped);
+    if (!criminal) {
+        return;
     }
 
-    if (!criminalPed)
-        return;
-
-    CEventPedToChase eventPedToChase(criminalPed);
+    CEventPedToChase eventPedToChase(criminal);
     ped->GetEventGroup().Add(&eventPedToChase, false);
 
     CEventPedToFlee eventPedToFlee(ped);
-    criminalPed->GetEventGroup().Add(&eventPedToFlee, false);
+    criminal->GetEventGroup().Add(&eventPedToFlee, false);
 
     // 30 seconds wait for next check
     m_nTimePassedSinceLastLookedForCriminals = CTimer::GetTimeInMS() + 30'000;
-    m_pLastCriminalPedLookedFor = criminalPed;
+    m_pLastCriminalPedLookedFor              = criminal;
 }
 
 // 0x66B160

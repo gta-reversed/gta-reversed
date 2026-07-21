@@ -48,7 +48,7 @@ CTaskComplexCarDrive::CTaskComplexCarDrive(CVehicle* vehicle, float speed, eMode
 }
 
 CTaskComplexCarDrive::CTaskComplexCarDrive(const CTaskComplexCarDrive& o) :
-    CTaskComplexCarDrive{ m_Veh, m_CruiseSpeed, m_DesiredCarModel, m_CarDrivingStyle }
+    CTaskComplexCarDrive{ o.m_Veh, o.m_CruiseSpeed, o.m_DesiredCarModel, o.m_CarDrivingStyle }
 {
     m_bAsDriver = o.m_bAsDriver;
 }

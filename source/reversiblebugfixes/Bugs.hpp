@@ -80,6 +80,11 @@ inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLetter
                    "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
     .Credit      = "j0y"
 };
+inline const ReversibleBugFix CTaskComplexLeaveCarAndFlee_MissingNullCheckForVehicleOnFlee{
+    .Name        = "CTaskComplexLeaveCarAndFlee - Missing null check for vehicle on flee",
+    .Description = "Fix missing null check for vehicle in CTaskComplexLeaveCarAndFlee",
+    .Credit      = "Pirulax"
+};
 inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_InvalidSurfaceType{
     .Name        = "CAECollisionAudioEntity::PlayLoopingCollisionSound - Invalid surface type causing OOB",
     .Description = "The surface type passed in could've been an `AE_SURFACE_TYPE_*` which when passed to `g_surfaceInfos` causes an OOB. "
