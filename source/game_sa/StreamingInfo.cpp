@@ -44,9 +44,12 @@ bool CStreamingInfo::GetCdPosnAndSize(CdStreamPos& pos, size_t& size) {
 
 // 0x407560
 bool CStreamingInfo::InList() const {
-    // Yeah, that's partially true
-    // Because the way these lists work, items actually always have both `next` and `prev` defined
-    // So, I guess here they just assume that, and "optimize" the check :D
+    assert(m_NextIndex == -1 || m_PrevIndex != -1 && "Entries in the info list must have both a valid next and prev index");
+
+    // These lists work by having a pre-defined begin/end sentinels (they're stored in `CStreaming`).
+    // Hence, every entry in the list (except these sentinels) must have a valid `prev`
+    // and `next` index. They weren't checking for `prev` because it shouldn't be `-1` by definition iff `next` isn't `-1`.
+    // I've added the extra check, just in case (Though the above assert will catch it before this in debug mode)
     return m_NextIndex != -1 /*notsa => */ && m_PrevIndex != -1;
 }
 
