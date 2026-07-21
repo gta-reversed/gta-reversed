@@ -160,13 +160,7 @@ auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
 
 // COMMAND_TERMINATE_THIS_SCRIPT
 auto TerminateThisScript(CRunningScript& S) { // 0x04E 
-    if (S.m_ThisMustBeTheOnlyMissionRunning) {
-        CTheScripts::bAlreadyRunningAMissionScript = false;
-    }
-    S.RemoveScriptFromList(&CTheScripts::pActiveScripts);
-    S.AddScriptToList(&CTheScripts::pIdleScripts);
-    S.ShutdownThisScript();
-    return OR_WAIT;
+    CTheScripts::TerminateScript(S);
 }
 
 auto StartNewScript(CRunningScript& S, int32 offset) { // 0x04F
@@ -199,7 +193,7 @@ void DebugOff() {
 
 auto Wait(CRunningScript& S, uint32 duration) {
     S.m_WakeTime = CTimer::GetTimeInMS() + duration;
-    return OR_WAIT;
+    return OR_INTERRUPT;
 }
 
 auto Nop() {
