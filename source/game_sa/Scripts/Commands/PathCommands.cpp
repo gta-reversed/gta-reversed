@@ -77,6 +77,14 @@ void SwitchPedRoadsBackToOriginal(float xA, float yA, float zA, float xB, float 
     ThePaths.SwitchPedRoadsOffInArea(xMin, xMax, yMin, yMax, zMin, zMax, false, true);
 }
 
+/// GET_CLOSEST_CAR_NODE
+//auto GetClosestCarNode() {
+//}
+
+
+/// GET_CLOSEST_CAR_NODE_WITH_HEADING
+//auto GetClosestCarNodeWithHeading(CVehicle& vehicle) {
+//}
 };
 
 void notsa::script::commands::path::RegisterHandlers() {
@@ -88,4 +96,6 @@ void notsa::script::commands::path::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_PED_ROADS_ON, SwitchPedRoadsOn);
     REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_PED_ROADS_OFF, SwitchPedRoadsOff);
     REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_PED_ROADS_BACK_TO_ORIGINAL, SwitchPedRoadsBackToOriginal);
+    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_CAR_NODE, GetClosestCarNode);
+    // REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_CAR_NODE_WITH_HEADING, GetClosestCarNodeWithHeading);
 }

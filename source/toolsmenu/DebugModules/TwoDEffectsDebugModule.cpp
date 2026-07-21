@@ -187,7 +187,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
     rng::sort(m_FxInRange, [&](const InRange2DFx& a, const InRange2DFx& b) {
         for (auto i = 0; i < specs->SpecsCount; i++) {
             const auto spec = &specs->Specs[i];
-            auto o = std::partial_ordering::equivalent;
+            auto o{std::partial_ordering::unordered};
             switch (spec->ColumnIndex) {
             case 0: o = a.TblIdx <=> b.TblIdx;             break; // #
             case 1:                                        break; // Color (not sortable)

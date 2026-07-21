@@ -229,7 +229,7 @@ int16 CGarages::FindGarageForObject(CObject* obj) {
 }
 
 // 0x447680
-int16 CGarages::FindGarageIndex(char* name) {
+int16 CGarages::FindGarageIndex(const char* name) {
     for (auto i = 0; i < NumGarages; i++) {
         if (_stricmp(name, GetGarage(i).m_anName) == 0)
             return i;

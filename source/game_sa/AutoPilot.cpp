@@ -57,8 +57,21 @@ void CAutoPilot::SetCarMission(eCarMission carMission, uint32 timeOffsetMs) {
     m_nTimeToStartMission = CTimer::GetTimeInMS() + timeOffsetMs;
 }
 
+// 0x463490
+// Pirulax: Not sure about the name, apparently it was `SetCarMission`, but it conflicts with the other overload we already had
+void CAutoPilot::SetCarMissionFromScript(eCarMission mission) {
+    if (!notsa::contains({ MISSION_PLANE_CRASH_AND_BURN, MISSION_HELI_CRASH_AND_BURN }, m_nCarMission)) {
+        m_nCarMission = mission;
+    }
+}
+
 // notsa
 void CAutoPilot::SetTempAction(eAutoPilotTempAction action, uint32 durMs) {
     m_nTempAction = action;
     m_nTempActionTime = CTimer::GetTimeInMS() + durMs;
+}
+
+// notsa
+void CAutoPilot::SetTargetEntity(CVehicle* target) {
+    CEntity::ChangeEntityReference(m_TargetEntity, target);
 }
