@@ -48,4 +48,7 @@ void Win32InjectHooks();
 BOOL GTATranslateShiftKey(RsKeyCodes*);
 BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk);
 
+// notsa
+void DisplayConsole();
+
 #define IDI_MAIN_ICON                   1042

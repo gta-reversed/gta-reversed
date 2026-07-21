@@ -9,11 +9,11 @@
 #include "RenderWare.h"
 #include "Vector.h"
 #include "Vector2D.h"
+#include <PedClothesDesc.h>
 
 class CEntity;
 class CPed;
 class CCopPed;
-class CPedClothesDesc;
 class CWanted;
 
 class CPlayerPedData {

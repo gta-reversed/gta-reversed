@@ -6,18 +6,30 @@ AP = argparse.ArgumentParser(description="gta-reversed project setup script")
 AP.add_argument("--build", action="store_true", help="build instead of setting up & configuring")
 AP.add_argument("--no-unity-build", action="store_true", help="disable unity build")
 AP.add_argument("--buildconf", default="Debug", choices=["Debug", "Release", "RelWithDebInfo"], help="cmake compilation type")
+AP.add_argument("--standalone", default=False, action="store_true", help="Build standalone executable instead of .asi plugin (for debugging purposes)")
+AP.add_argument("--dump-hooks-only", default=False, action="store_true", help="Don't try to write to memory at all, just dump the hooks that would be applied (for debugging purposes) and exit - To provide a path use the `--dump-hooks-to` argument to on the resulting executable")
 AP.add_argument("--profile", default="conanprofile.txt", help="custom profile")
 args = AP.parse_args()
 
+if not args.standalone and args.dump_hooks_only:
+    AP.error("The --dump-hooks-only option can only be used with the --standalone option")
+    exit(1)
+
 try:
+    # defines passed to cmake via -D<key>=<value> arguments
+    defines: dict[str, bool] = {
+        "GTASA_STANDALONE": args.standalone,
+        "GTASA_DUMP_HOOKS_ONLY": args.dump_hooks_only,
+        "GTASA_UNITY_BUILD": not args.no_unity_build
+    }
+    
     preset = f'default{"-unity" if not args.no_unity_build else ""}'
     genpath = SCRIPT_DIR # FIXME: CMake errors with Ninja: "Does not match the generator used previously: Unix Makefiles"
-    extcfg = ""
     if sys.platform == "linux":
         args.profile = "conanprofile-wine.txt"
         preset = f'conan-{args.buildconf.lower()}'
-        extcfg = f'-DGTASA_UNITY_BUILD={"ON" if not args.no_unity_build else "OFF"} -DGTASA_NO_EDIT_AND_CONTINUE=ON'
         genpath = ""
+        defines["GTASA_NO_EDIT_AND_CONTINUE"] = True
 
     if args.build:
         subprocess.run(
@@ -30,9 +42,10 @@ try:
         f'conan install {SCRIPT_DIR} --build missing -s build_type="{args.buildconf}" --profile {SCRIPT_DIR}/{args.profile}',
         shell=True, check=True
     )
-
+    
+    options = ' '.join([f"-D{key}={'ON' if value else 'OFF'}" for key, value in defines.items()])
     subprocess.run(
-        f'cmake --preset {preset} {genpath} {extcfg}',
+        f'cmake --preset {preset} {genpath} {options}',
         shell=True, check=True
     )
 except subprocess.CalledProcessError as e:

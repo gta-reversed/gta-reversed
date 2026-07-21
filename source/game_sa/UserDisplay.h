@@ -6,14 +6,14 @@
 */
 #pragma once
 
-class CPlaceName;
-#include "OnscreenTimer.h"
-class CCurrentVehicle;
+#include <OnscreenTimer.h>
+#include <CurrentVehicle.h>
+#include <PlaceName.h>
 
 class CUserDisplay {
 public:
-    static inline auto& PlaceName = StaticRef<CPlaceName>(0xBA18F4);
-    static inline auto& OnscnTimer = StaticRef<COnscreenTimer>(0xBA1788);
+    static inline auto& PlaceName      = StaticRef<CPlaceName>(0xBA18F4);
+    static inline auto& OnscnTimer     = StaticRef<COnscreenTimer>(0xBA1788);
     static inline auto& CurrentVehicle = StaticRef<CCurrentVehicle>(0xBA18FC);
 
 public:

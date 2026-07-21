@@ -6,8 +6,8 @@
 */
 #pragma once
 
-class CCarGenerator;
-class CSpecialPlateHandler;
+#include <CarGenerator.h>
+#include <SpecialPlateHandler.h>
 
 static constexpr int32 NUM_CAR_GENERATORS = 500;
 

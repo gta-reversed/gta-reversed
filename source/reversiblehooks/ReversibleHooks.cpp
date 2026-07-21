@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include <unordered_set>
+#include <extensions/CommandLine.h>
 
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include "ReversibleHook/ScriptCommand.h"
@@ -84,10 +85,15 @@ void OnInjectionEnd() {
 
     s_RootCategory.OnInjectionEnd();
 
-    WriteHooksToFile("hooks.csv");
+    if (!CommandLine::s_DumpHooksPath.empty()) {
+        WriteHooksToFile(CommandLine::s_DumpHooksPath);
+    }
 }
 
 void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, void* fnOurAddr, size_t nVirtFns, const HookInstallOptions& opt) {
+#ifdef NOTSA_STANDALONE
+    const auto fnVTblIdx = -1;
+#else
     // Find fn index in vtbl
     const auto spanGTAVTbl = std::span{ vtblGTA, nVirtFns };
     const auto iter = rng::find(spanGTAVTbl, fnGTAAddr);
@@ -99,6 +105,7 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
         NOTSA_UNREACHABLE("{}: Couldn't find function [{} @ {}] in vtable\n", category, fnName, fnGTAAddr);
     }
     const auto fnVTblIdx = (size_t)rng::distance(spanGTAVTbl.begin(), iter);
+#endif
 
     // Make sure vtable entries correspond to GTA's layout
     //assert(vtblOur[fnVTblIdx] == fnOurAddr); // Doesn't work because the compiler generates thunks in debug mode
