@@ -197,7 +197,7 @@ CZone* CTheZones::GetMapZone(uint16 index) {
 
 // 0x5725b0
 float CTheZones::Calc2DDistanceBetween2Zones(CZone* a, CZone* b) {
-    int16 dx, dy;
+    int32 dx, dy;
 
     if (a->m_fX1 <= b->m_fX2) {
         dx = a->m_fX2 >= b->m_fX1
@@ -215,7 +215,7 @@ float CTheZones::Calc2DDistanceBetween2Zones(CZone* a, CZone* b) {
         dy = a->m_fY1 - b->m_fY2;
     }
 
-    return (float)std::sqrt(sq(dx) + sq(dy));
+    return std::sqrt(sq((float)(dx)) + sq((float)(dy)));
 }
 
 // Initializes CTheZones

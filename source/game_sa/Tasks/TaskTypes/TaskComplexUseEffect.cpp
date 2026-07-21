@@ -90,7 +90,7 @@ CTask* CTaskComplexUseEffect::CreateFirstSubTask(CPed* ped) {
 // 0x632570
 CTask* CTaskComplexUseEffect::ControlSubTask(CPed* ped) {
     if (ped->IsCop()) {
-        if (const auto w = FindPlayerWanted(); w->m_nWantedLevel && w->CanCopJoinPursuit(ped->AsCop())) {
+        if (const auto w = FindPlayerWanted(); w->GetWantedLevel() != eWantedLevel::WANTED_CLEAN && w->CanCopJoinPursuit(ped->AsCop())) {
             if (m_pSubTask->MakeAbortable(ped)) {
                 GetPedAttractorManager()->DeRegisterPed(m_Ped, m_PedAttractor);
                 return nullptr;

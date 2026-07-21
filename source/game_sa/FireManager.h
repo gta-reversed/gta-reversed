@@ -26,6 +26,10 @@ public:
 
     uint32 GetNumOfNonScriptFires();
     CFire* FindNearestFire(const CVector& point, bool bCheckWasExtinguished = false, bool bCheckWasCreatedByScript = false);
+
+    /*!
+     * @return True when there are enough free or reusable fire slots available for allocation (i.e. according to a similar slot-availability logic used by `GetNextFreeFire`).
+     */
     bool PlentyFiresAvailable();
 
     void ExtinguishPoint(CVector point, float fRadiusSq);

@@ -1795,7 +1795,7 @@ bool CWorld::ProcessLineOfSightSectorList(PtrListType& ptrList, const CColLine& 
                 || ped->m_pAttachedTo
                 || (bIncludeDeadPeds && !ped->IsAlive())
                 || (bIncludeBikers && ped->bTestForShotInVehicle)) {
-                ProcessColModel(CModelInfo::GetModelInfo(entity->m_nModelIndex)->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->m_pRwClump));
+                ProcessColModel(CModelInfo::GetModelInfo(entity->m_nModelIndex)->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->GetRpClump()));
             }
             break;
         }

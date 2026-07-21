@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-#include <ObjIdl.h>
+#include <objidl.h>
 
 class CAEDataStream : public IStream {
 public:

@@ -31,7 +31,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(RenderRainStreaks, 0x72AF70);
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
     RH_ScopedInstall(Update, 0x72B850, { .reversed = false });
-    RH_ScopedInstall(UpdateInTunnelness, 0x72B630, { .reversed = false });
+    RH_ScopedInstall(UpdateInTunnelness, 0x72B630);
     //RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, true, { .reversed = false }); // bad
     RH_ScopedInstall(IsRainy, 0x4ABF50);
 }
@@ -73,10 +73,7 @@ void CWeather::AddSandStormParticles() {
     position.y += CGeneral::GetRandomNumberInRange(0.0f, 40.0f) - 20.0f;
     position.z += CGeneral::GetRandomNumberInRange(0.0f, 7.00f) - 2.00f;
 
-    CVector velocity = CWeather::WindDir * 25.0f;
-
-    auto prtInfo = FxPrtMult_c(0.67f, 0.65f, 0.55f, 0.25f, 1.0f, 0.0f, 0.2f);
-    g_fx.m_Sand2->AddParticle(&position, &velocity, 0.0f, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
+    g_fx.m_Sand2->AddParticle(position, CWeather::WindDir * 25.0f, 0.0f, FxPrtMult_c(0.67f, 0.65f, 0.55f, 0.25f, 1.0f, 0.0f, 0.2f));
 }
 
 // 0x72A520
@@ -269,7 +266,24 @@ void CWeather::Update() {
 
 // 0x72B630
 void CWeather::UpdateInTunnelness() {
-    plugin::Call<0x72B630>();
+    ZoneScoped;
+
+    static const CVector s_TunnelPoint1{ 85.0f, -1020.0f, 0.0f }; // 0xC81430
+    static const CVector s_TunnelPoint2{ 1683.0f, -1956.0f, 0.0f }; // 0xC81424
+
+    float target = 0.0f;
+    if (CCullZones::CurrentFlags_Camera & 0x2000) { // TODO: Unnamed tunnel-related eZoneAttributes flag (bit 0x2000)
+        const CVector from{ CVector2D{ TheCamera.GetPosition() } };
+        const CVector to = from + CVector{ CVector2D{ TheCamera.GetForwardVector() }.Normalized() } * 100.0f;
+        const auto dist = std::min({
+            CCollision::DistToLine(from, to, s_TunnelPoint1),
+            CCollision::DistToLine(from, to, s_TunnelPoint2),
+            100.0f,
+        });
+        target = std::min(1.0f, dist / 100.0f);
+    }
+
+    InTunnelness = notsa::step_to(InTunnelness, target, CTimer::GetTimeStep() * 0.01f);
 }
 
 // Based on 0x72A640

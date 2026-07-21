@@ -246,20 +246,20 @@ void CVehicleModelInfo::SetAtomicRenderCallbacks()
 {
     switch (m_nVehicleType) {
     case VEHICLE_TYPE_TRAIN:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_Train, nullptr);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_Train, nullptr);
         break;
     case VEHICLE_TYPE_PLANE:
     case VEHICLE_TYPE_FPLANE:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_Plane, nullptr);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_Plane, nullptr);
         break;
     case VEHICLE_TYPE_BOAT:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_Boat, m_pRwClump);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_Boat, GetRpClump());
         break;
     case VEHICLE_TYPE_HELI:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_RealHeli, m_pRwClump);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_RealHeli, GetRpClump());
         break;
     default:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB, m_pRwClump);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB, GetRpClump());
         break;
     }
 }
@@ -302,7 +302,7 @@ void CVehicleModelInfo::SetVehicleComponentFlags(RwFrame* component, uint32 flag
 
 void CVehicleModelInfo::GetWheelPosn(int32 wheel, CVector& outVec, bool local) const
 {
-    auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, ms_wheelFrameIDs[wheel]);
+    auto frame = CClumpModelInfo::GetFrameFromId(GetRpClump(), ms_wheelFrameIDs[wheel]);
 
     if (m_nVehicleType != VEHICLE_TYPE_PLANE || local)
         outVec = *RwMatrixGetPos(RwFrameGetMatrix(frame));
@@ -322,7 +322,7 @@ void CVehicleModelInfo::GetWheelPosn(int32 wheel, CVector& outVec, bool local) c
 
 bool CVehicleModelInfo::GetOriginalCompPosition(CVector& outVec, int32 component)
 {
-    auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, component);
+    auto frame = CClumpModelInfo::GetFrameFromId(GetRpClump(), component);
     if (!frame)
         return false;
 
@@ -459,7 +459,7 @@ void CVehicleModelInfo::AddRemap(int32 txd)
 
 void CVehicleModelInfo::SetRenderPipelines()
 {
-    CCarFXRenderer::CustomCarPipeClumpSetup(m_pRwClump);
+    CCarFXRenderer::CustomCarPipeClumpSetup(GetRpClump());
     if (carFrame)
         return;
 
@@ -497,7 +497,7 @@ void CVehicleModelInfo::ReduceMaterialsInVehicle()
     matList.materials = new RpMaterial*[matList.space];
 
     // CTimer::GetCurrentTimeInCycles(); // unused code used for performance diagnostics i guess
-    RpClumpForAllAtomics(m_pRwClump, StoreAtomicUsedMaterialsCB, &matList);
+    RpClumpForAllAtomics(GetRpClump(), StoreAtomicUsedMaterialsCB, &matList);
     for (int32 i = 0; i < m_pVehicleStruct->m_nNumExtras; ++i)
         StoreAtomicUsedMaterialsCB(m_pVehicleStruct->m_apExtras[i], &matList);
 
@@ -505,7 +505,7 @@ void CVehicleModelInfo::ReduceMaterialsInVehicle()
     // CTimer::GetCyclesPerMillisecond();
     _rpMaterialListDeinitialize(&matList);
     CMemoryMgr::ReleaseScratchPad();
-    CVisibilityPlugins::ClearClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_UNIQUE_MATERIALS);
+    CVisibilityPlugins::ClearClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_UNIQUE_MATERIALS);
 }
 
 void CVehicleModelInfo::SetCarCustomPlate()
@@ -517,26 +517,26 @@ void CVehicleModelInfo::SetCarCustomPlate()
     char plateBuffer[8 + 1] = "DEFAULT";
 
     CCustomCarPlateMgr::GeneratePlateText(plateBuffer, sizeof(plateBuffer) - 1);
-    if (auto* material = CCustomCarPlateMgr::SetupClump(m_pRwClump, plateBuffer, m_nPlateType)) {
+    if (auto* material = CCustomCarPlateMgr::SetupClump(GetRpClump(), plateBuffer, m_nPlateType)) {
         m_pPlateMaterial = material;
     }
 }
 
 void CVehicleModelInfo::DisableEnvMap()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    RpClumpForAllAtomics(m_pRwClump, SetEnvironmentMapAtomicCB, (void*)0xFFFF);
+    RpClumpForAllAtomics(GetRpClump(), SetEnvironmentMapAtomicCB, (void*)0xFFFF);
 }
 
 void CVehicleModelInfo::SetEnvMapCoeff(float coeff)
 {
     auto iUsedCoeff = static_cast<int32>(floor(coeff * 1000.0F));
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    RpClumpForAllAtomics(m_pRwClump, SetEnvMapCoeffAtomicCB, (void*)iUsedCoeff);
+    RpClumpForAllAtomics(GetRpClump(), SetEnvMapCoeffAtomicCB, (void*)iUsedCoeff);
 }
 
 int32 CVehicleModelInfo::GetNumDoors()
@@ -556,7 +556,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
 
         if (flags.bIsDummy || flags.bIsExtra || flags.bIsUpgrade) {
             auto searchStruct = tCompSearchStructByName(nameIdAssoc->m_pName, nullptr);
-            RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromNameWithoutIdCB, &searchStruct);
+            RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), CClumpModelInfo::FindFrameFromNameWithoutIdCB, &searchStruct);
             if (searchStruct.m_pFrame) {
                 if (flags.bIsDummy) {
                     auto& vecDummyPos = GetModelDummyPosition(static_cast<eVehicleDummy>(nameIdAssoc->m_dwHierarchyId));
@@ -580,7 +580,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
                 }
                 else {
                     auto atomic = reinterpret_cast<RpAtomic*>(GetFirstObject(searchStruct.m_pFrame));
-                    RpClumpRemoveAtomic(m_pRwClump, atomic);
+                    RpClumpRemoveAtomic(GetRpClump(), atomic);
                     RwFrameRemoveChild(searchStruct.m_pFrame);
                     SetVehicleComponentFlags(searchStruct.m_pFrame, nameIdAssoc->m_dwFlags);
                     m_pVehicleStruct->m_apExtras[m_pVehicleStruct->m_nNumExtras] = atomic;
@@ -591,7 +591,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
 
         if (flags.bIsMainWheel || flags.bIsTrainFrontBogie) {
             auto searchStruct = tCompSearchStructById(nameIdAssoc->m_dwHierarchyId, nullptr);
-            RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
+            RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
             if (searchStruct.m_pFrame) {
                 auto frame = searchStruct.m_pFrame;
                 auto bNoChild = false;
@@ -625,7 +625,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
         }
 
         auto searchStruct = tCompSearchStructById(nameIdAssoc->m_dwHierarchyId, nullptr);
-        RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
+        RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
         if (!searchStruct.m_pFrame) {
             nameIdAssoc++;
             continue;
@@ -658,7 +658,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
                 else {
                     auto pClone = RpAtomicClone(mainWheelAtomic);
                     RpAtomicSetFrame(pClone, frame);
-                    RpClumpAddAtomic(m_pRwClump, pClone);
+                    RpClumpAddAtomic(GetRpClump(), pClone);
                     if (nameIdAssoc->m_dwHierarchyId != CAR_WHEEL_RF
                         && nameIdAssoc->m_dwHierarchyId != CAR_WHEEL_LF
                         && handling.m_bDoubleRwheels) {
@@ -674,7 +674,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
                         *RwMatrixGetAt(matrix)    = { 0.0F, 0.0F, 1.0F };
                         *RwMatrixGetPos(matrix)   = { fOffset, 0.0F, 0.0F };
                         matrix->flags |= (rwMATRIXINTERNALIDENTITY | rwMATRIXTYPEORTHONORMAL);
-                        RpClumpAddAtomic(m_pRwClump, clone2);
+                        RpClumpAddAtomic(GetRpClump(), clone2);
                         CVisibilityPlugins::SetAtomicRenderCallback(clone2, CVisibilityPlugins::RenderWheelAtomicCB);
                     }
                 }
@@ -683,7 +683,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
         else if (flags.bIsTrainRearBogie && pTrainBogieAtomic) {
             auto pClone = RpAtomicClone(pTrainBogieAtomic);
             RpAtomicSetFrame(pClone, frame);
-            RpClumpAddAtomic(m_pRwClump, pClone);
+            RpClumpAddAtomic(GetRpClump(), pClone);
             CVisibilityPlugins::SetAtomicRenderCallback(pClone, CVisibilityPlugins::RenderWheelAtomicCB);
         }
 

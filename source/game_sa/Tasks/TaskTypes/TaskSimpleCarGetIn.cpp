@@ -79,7 +79,7 @@ void CTaskSimpleCarGetIn::StartAnim(CPed const* ped) {
         return std::make_tuple(grpId, animId);
     }();
     
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 4.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 4.f);
     m_anim->SetFinishCallback(FinishAnimCarGetInCB, this);
     
     /*

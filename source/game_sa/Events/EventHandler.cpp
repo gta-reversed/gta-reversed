@@ -801,7 +801,7 @@ void CEventHandler::ComputeCopCarBeingStolenResponse(CEventCopCarBeingStolen* e,
             return nullptr;
         }
         if (e->m_hijacker->IsPlayer()) {
-            FindPlayerWanted()->SetWantedLevelNoDrop(1);
+            FindPlayerWanted()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
         }
         return new CTaskComplexLeaveCar{ e->m_vehicle, 0, 0, true, false };
     }();
@@ -993,7 +993,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                 e->m_fAnimBlend = 4.f;
                 e->m_fAnimSpeed = 1.f;
                 e->m_nAnimGroup = ANIM_GROUP_DEFAULT;
-                if (const auto a = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_IS_FRONT)) { // 0x4C094E
+                if (const auto a = RpAnimBlendClumpGetFirstAssociation(m_Ped->GetRpClump(), ANIMATION_IS_FRONT)) { // 0x4C094E
                     e->m_nAnimID = ANIM_ID_FLOOR_HIT_F;
                     return DoDieMaybeFall();
                 }
@@ -1005,7 +1005,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     if (tgup->m_bHasPedGotUp) {
                         return DoDieMaybeFall();
                     }
-                    e->m_nAnimID = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_IS_FRONT)
+                    e->m_nAnimID = RpAnimBlendClumpGetFirstAssociation(m_Ped->GetRpClump(), ANIMATION_IS_FRONT)
                         ? ANIM_ID_FLOOR_HIT_F
                         : ANIM_ID_FLOOR_HIT;
                     
@@ -1070,14 +1070,14 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                 if (CAnimManager::GetAnimAssociation(e->m_nAnimGroup, e->m_nAnimID)->m_Flags & ANIMATION_DONT_ADD_TO_PARTIAL_BLEND) { // 0x4C04B7
                     if (!e->GetAnimAdded()) {
                         if (!notsa::contains({ANIM_ID_SHOT_PARTIAL, ANIM_ID_SHOT_LEFTP, ANIM_ID_SHOT_PARTIAL_B, ANIM_ID_SHOT_RIGHTP}, e->m_nAnimID)) {
-                            const auto a = CAnimManager::BlendAnimation(m_Ped->m_pRwClump, e->m_nAnimGroup, e->m_nAnimID, e->m_fAnimBlend);
+                            const auto a = CAnimManager::BlendAnimation(m_Ped->GetRpClump(), e->m_nAnimGroup, e->m_nAnimID, e->m_fAnimBlend);
                             a->SetSpeed(e->m_fAnimSpeed);
                             a->SetCurrentTime(0.f);
                             e->m_bAnimAdded = true;
                         } else {
-                            auto a = RpAnimBlendClumpGetAssociation(m_Ped->m_pRwClump, e->GetAnimId()); // 0x4C04DE
+                            auto a = RpAnimBlendClumpGetAssociation(m_Ped->GetRpClump(), e->GetAnimId()); // 0x4C04DE
                             if (!a) {
-                                a = CAnimManager::BlendAnimation(m_Ped->m_pRwClump, e->GetAnimGroup(), e->GetAnimId());
+                                a = CAnimManager::BlendAnimation(m_Ped->GetRpClump(), e->GetAnimGroup(), e->GetAnimId());
                             }
                             a->SetBlend(0.f, e->m_fAnimBlend);
                             a->SetSpeed(e->m_fAnimSpeed);

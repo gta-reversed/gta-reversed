@@ -91,25 +91,25 @@ public:
     [[nodiscard]] FxQuality_e GetFxQuality() const;
 
     void AddBlood(const CVector& origin, const CVector& direction, int32 amount, float arg3);
-    void AddWood(CVector& origin, CVector& direction, int32 amount, float arg3);
+    void AddWood(const CVector& origin, const CVector& direction, int32 amount, float arg3);
     void AddSparks(const CVector& origin, const CVector& direction, float force, int32 amount, CVector across, eSparkType sparksType, float spread, float life);
     void AddTyreBurst(const CVector& posn, const CVector& velocity);
     void AddBulletImpact(const CVector& posn, const CVector& direction, int32 bulletFxType, int32 amount, float arg4);
-    void AddPunchImpact(CVector& posn, CVector& velocity, int32 arg2);
-    void AddDebris(CVector& posn, RwRGBA& color, float scale, int32 amount);
-    void AddGlass(CVector& posn, RwRGBA& color, float scale, int32 amount);
+    void AddPunchImpact(const CVector& posn, const CVector& velocity, int32 arg2);
+    void AddDebris(const CVector& posn, const RwRGBA& color, float scale, int32 amount);
+    void AddGlass(const CVector& posn, const RwRGBA& color, float scale, int32 amount);
     void AddWheelSpray(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, bool bInWater, float lightMult);
     void AddWheelGrass(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult);
     void AddWheelGravel(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult);
     void AddWheelMud(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult);
     void AddWheelSand(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult);
     void AddWheelDust(CVehicle* vehicle, CVector pos, bool bWheelsSpinning, float lightMult);
-    void TriggerWaterHydrant(CVector& posn);
+    void TriggerWaterHydrant(const CVector& posn);
     void TriggerGunshot(CEntity* entity, const CVector& origin, const CVector& target, bool doGunflash);
-    void TriggerTankFire(CVector& origin, CVector& target);
-    void TriggerWaterSplash(CVector& posn);
-    void TriggerBulletSplash(CVector& posn);
-    void TriggerFootSplash(CVector& posn);
+    void TriggerTankFire(const CVector& origin, const CVector& target);
+    void TriggerWaterSplash(const CVector& posn);
+    void TriggerBulletSplash(const CVector& posn);
+    void TriggerFootSplash(const CVector& posn);
 };
 VALIDATE_SIZE(Fx_c, 0x70);
 
@@ -132,7 +132,7 @@ void RenderAddTri(
     const CRGBA& color1, const CRGBA& color2, const CRGBA& color3
 );
 void RenderEnd();
-void RotateVecIntoVec(RwV3d* vecRes, RwV3d* vec, RwV3d* vecAlign);
-void RotateVecAboutVec(RwV3d* vecRes, RwV3d* vec, RwV3d* axis, float angle);
+void RotateVecIntoVec(RwV3d& vecRes, const RwV3d& vec, const RwV3d& vecAlign);
+void RotateVecAboutVec(RwV3d& vecRes, const RwV3d& vec, const RwV3d& axis, float angle);
 
 extern Fx_c& g_fx;

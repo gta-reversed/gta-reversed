@@ -570,19 +570,12 @@ eDoorStatus CDamageManager::GetDoorStatus(eDoors nDoorIdx) const {
 // 0x6C26F0
 eCarNodes CDamageManager::GetCarNodeIndexFromDoor(eDoors door) {
     switch (door) {
-    case eDoors::DOOR_BONNET:
-        return eCarNodes::CAR_BONNET;
-    case eDoors::DOOR_BOOT:
-        return eCarNodes::CAR_BOOT;
-    case eDoors::DOOR_LEFT_FRONT:
-        return eCarNodes::CAR_DOOR_LF;
-    case eDoors::DOOR_RIGHT_FRONT:
-        return eCarNodes::CAR_DOOR_RF;
-    case eDoors::DOOR_LEFT_REAR:
-        return eCarNodes::CAR_DOOR_LR;
-    case eDoors::DOOR_RIGHT_REAR:
-        return eCarNodes::CAR_DOOR_RR;
-    default:
-        return (eCarNodes)-1;
+    case eDoors::DOOR_BONNET:      return eCarNodes::CAR_BONNET;
+    case eDoors::DOOR_BOOT:        return eCarNodes::CAR_BOOT;
+    case eDoors::DOOR_LEFT_FRONT:  return eCarNodes::CAR_DOOR_LF;
+    case eDoors::DOOR_RIGHT_FRONT: return eCarNodes::CAR_DOOR_RF;
+    case eDoors::DOOR_LEFT_REAR:   return eCarNodes::CAR_DOOR_LR;
+    case eDoors::DOOR_RIGHT_REAR:  return eCarNodes::CAR_DOOR_RR;
+    default:                       NOTSA_UNREACHABLE_CASE(+door); /* notsa: originally `return -1` */
     }
 }

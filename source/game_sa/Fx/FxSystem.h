@@ -85,27 +85,27 @@ public:
 
     void AttachToBone(CEntity* entity, eBoneTag boneId);
 
-    void AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
-    void AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
+    void AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ = -1.0f, float lightMult = 1.2f, float lightMultLimit = 0.6f, bool createLocal = false);
+    void AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ = -1.0f, float lightMult = 1.2f, float lightMultLimit = 0.6f, bool createLocal = false);
 
     void EnablePrim(int32 primIndex, bool enable);
     void SetMatrix(RwMatrix* matrix);
     void SetOffsetPos(const CVector& pos);
-    void AddOffsetPos(CVector* pos);
+    void AddOffsetPos(const CVector& pos);
     void SetConstTime(bool on, float time);
     void SetRateMult(float mult);
     void SetTimeMult(float mult);
-    void SetVelAdd(CVector* velocity);
+    void SetVelAdd(const CVector& velocity);
     void CopyParentMatrix();
-    void GetCompositeMatrix(RwMatrix* out);
+    void GetCompositeMatrix(RwMatrix* out) const;
     eFxSystemPlayStatus GetPlayStatus() const;
 
     uint32 ForAllParticles(void(*callback)(Particle_c *, int32, FxBox_c**), FxBox_c* data);
     static void UpdateBoundingBoxCB(Particle_c* particle, int32 arg1, FxBox_c** data);
 
     void GetBoundingBox(FxBox_c* out);
-    bool GetBoundingSphereWld(FxSphere_c* out);
-    bool GetBoundingSphereLcl(FxSphere_c* out);
+    bool GetBoundingSphereWld(FxSphere_c* out) const;
+    bool GetBoundingSphereLcl(FxSphere_c* out) const;
     void SetBoundingSphere(FxSphere_c* sphere);
     void ResetBoundingSphere();
 
@@ -113,7 +113,7 @@ public:
     void SetZTestEnable(bool enable);
     void SetMustCreatePrts(bool enable);
 
-    bool IsVisible();
+    bool IsVisible() const;
 
     void DoFxAudio(CVector pos);
     bool Update(RwCamera* camera, float timeDelta);

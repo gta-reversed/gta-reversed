@@ -192,7 +192,7 @@ bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
         return false;
     }
 
-    return !RpAnimBlendClumpGetAssociation(ped->m_pRwClump, {
+    return !RpAnimBlendClumpGetAssociation(ped->GetRpClump(), {
         ANIM_ID_DRNKBR_PRTL,
         ANIM_ID_SMKCIG_PRTL,
         ANIM_ID_DRNKBR_PRTL_F,

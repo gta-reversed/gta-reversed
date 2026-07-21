@@ -74,7 +74,7 @@ bool CPedIK::PointGunInDirection(float zAngle, float distance, bool flag, float 
     bTorsoUsed = true;
 
     const auto angle = CGeneral::LimitRadianAngle(zAngle - m_pPed->m_fCurrentRotation);
-    const auto hier  = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
+    const auto hier  = GetAnimHierarchyFromSkinClump(m_pPed->GetRpClump());
     const auto index = RpHAnimIDGetIndex(hier, m_pPed->m_apBones[PED_NODE_RIGHT_CLAVICLE]->BoneTag);
 
     // unused code
@@ -136,8 +136,8 @@ void CPedIK::PointGunAtPosition(const CVector& aimAt, float normalize) {
 
 // 0x5FE0E0
 void CPedIK::PitchForSlope() {
-    const auto clumpData = RpAnimBlendClumpGetData(m_pPed->m_pRwClump);
-    const auto hier = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
+    const auto clumpData = RpAnimBlendClumpGetData(m_pPed->GetRpClump());
+    const auto hier = GetAnimHierarchyFromSkinClump(m_pPed->GetRpClump());
 
     if (std::abs(m_fBodyRoll) > 0.01f) {
         m_fBodyRoll = std::clamp(m_fBodyRoll, DegreesToRadians(-30.0f), DegreesToRadians(30.0f));

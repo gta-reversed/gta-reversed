@@ -119,7 +119,7 @@ void CTaskSimpleCarGetOut::StartAnim(const CPed* ped) {
     CCarEnterExit::RemoveCarSitAnim(ped);
 
     const auto [groupId, animId] = ComputeAnimID();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 1000.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), groupId, animId, 1000.f);
     m_anim->SetFinishCallback(FinishAnimCarGetOutCB, this);
 }
 

@@ -348,8 +348,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     }
 
     if (modelId == MI_PICKUP_BRIBE) {
-        auto wantedLevel = std::max(0u, FindPlayerPed()->GetWantedLevel() - 1);
-        FindPlayerPed(0)->SetWantedLevel(wantedLevel);
+        auto wantedLevel = std::max(+eWantedLevel::WANTED_CLEAN, +FindPlayerPed()->GetWantedLevel() - +eWantedLevel::WANTED_LEVEL_1);
+        FindPlayerPed(0)->SetWantedLevel((eWantedLevel)wantedLevel);
         CStats::IncrementStat(STAT_NUMBER_OF_POLICE_BRIBES, 1.0f);
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_INFO);
         return true;

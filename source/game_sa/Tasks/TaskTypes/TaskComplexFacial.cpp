@@ -74,10 +74,10 @@ CTask* CTaskComplexFacial::ControlSubTask(CPed* ped) {
         return new CTaskSimplePause{ 5'000 };
     }
 
-    if (RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_IDLE_CHAT)) {
+    if (RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_IDLE_CHAT)) {
         m_RequestB         = eFacialExpression::NONE;
         m_TalkingLastFrame = true;
-        return RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_FACTALK)
+        return RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_FACTALK)
             ? m_pSubTask
             : new CTaskSimpleFacial{ eFacialExpression::TALKING, 0 };
     }

@@ -91,7 +91,7 @@ void CTaskSimpleCarAlign::StartAnim(CPed* ped) {
         }
     }();
     m_anim = CAnimManager::BlendAnimation(
-        ped->m_pRwClump,
+        ped->GetRpClump(),
         m_veh->GetAnimGroup().GetGroup(animId),
         animId,
         4.f
