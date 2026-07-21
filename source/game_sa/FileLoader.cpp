@@ -29,7 +29,7 @@
     } while (0)
 auto& gAtomicModelId = StaticRef<uint32>(0xB71840);
 
-void LinkLods(int32 a1);
+void LinkLods(int32 numRelatedIPLs);
 
 void CFileLoader::InjectHooks() {
     RH_ScopedClass(CFileLoader);
@@ -202,16 +202,19 @@ RpClump* CFileLoader::LoadAtomicFile2Return(const char* filename) {
     return clump;
 }
 
-// NOTSA
+// NOTSA - Finds the first character that is NOT whitespace or null
 char* CFileLoader::FindFirstNonNullOrWS(char* it) {
-    // Have to cast to uint8, because signed ASCII is retarded
-    for (; *it && (uint8)*it <= (uint8)' '; it++);
+    while (*it && static_cast<uint8_t>(*it) <= ' ') {
+        ++it;
+    }
     return it;
 }
 
 // NOTSA
 char* CFileLoader::FindFirstNullOrWS(char* it) {
-    for (; *it && *it > ' '; it++);
+    while (*it && static_cast<uint8_t>(*it) > ' ') {
+        ++it;
+    }
     return it;
 }
 
@@ -2138,7 +2141,7 @@ void CFileLoader::LoadScene(const char* filename) {
 
         } else {
             const auto FindSectionID = [&] {
-                static const struct { std::string_view name; SectionID id; } mapping[]{
+                constexpr struct { std::string_view name; SectionID id; } mapping[]{
                     { "path", SectionID::PATH },
                     { "inst", SectionID::INST },
                     { "mult", SectionID::MULT },
@@ -2286,7 +2289,7 @@ void CFileLoader::LoadObjectTypes(const char* filename) {
             // Find out next section
 
             const auto FindSectionID = [&] {
-                static const struct { std::string_view name; SectionID id; } mapping[]{
+                constexpr struct { std::string_view name; SectionID id; } mapping[]{
                     { "objs", SectionID::OBJS },
                     { "tobj", SectionID::TOBJ },
                     { "weap", SectionID::WEAP },
