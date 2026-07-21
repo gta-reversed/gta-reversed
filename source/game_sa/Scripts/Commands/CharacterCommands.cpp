@@ -2134,6 +2134,7 @@ auto WarpCharIntoCarAsPassenger(CPed& ped, CVehicle& veh, int32 psgrSeatIdx) {
     CTaskSimpleCarSetPedInAsPassenger{ &veh, (eTargetDoor)(psgrSeatIdx), true }.ProcessPed(&ped); // Warp ped into car
 }
 
+// helper
 bool HasPedSittingInCarTask(CPed& ped) {
     return ped.GetTaskManager().IsSimplestActiveTaskOfType({ TASK_SIMPLE_CAR_DRIVE, TASK_SIMPLE_GANG_DRIVEBY });
 }
