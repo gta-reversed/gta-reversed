@@ -33,7 +33,7 @@ CTask* Clone() const override { return new CTaskComplexWanderCop(m_nMoveState, m
 
     void LookForCarAlarms(CPed* ped);
     void LookForStolenCopCars(CPed* ped);
-    void LookForCriminals(CPed* ped);
+    void LookForCriminalsToChase(CPed* ped);
     bool ShouldPursuePlayer(CPed* ped);
 
 private:

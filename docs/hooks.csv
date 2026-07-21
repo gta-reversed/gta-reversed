@@ -6050,7 +6050,7 @@ CTaskComplexWanderCop,ControlSubTask,0x00674D80,1,0,1
 CTaskComplexWanderCop,CreateFirstSubTask,0x00674750,1,0,1
 CTaskComplexWanderCop,CreateNextSubTask,0x00674860,1,0,1
 CTaskComplexWanderCop,LookForCarAlarms,0x0066B1B0,1,0,0
-CTaskComplexWanderCop,LookForCriminals,0x0066B300,1,0,0
+CTaskComplexWanderCop,LookForCriminalsToChase,0x0066B300,1,0,0
 CTaskComplexWanderCop,LookForStolenCopCars,0x0066B290,1,0,0
 CTaskComplexWanderCop,ScanForStuff,0x006702B0,1,0,1
 CTaskComplexWanderCop,ShouldPursuePlayer,0x0066B160,1,0,0
