@@ -218,8 +218,8 @@ bool IsSecondCarColor(CVehicle& veh, int32 color) {
     return veh.m_nSecondaryColor == color;
 }
 
-MultiRet<uint8, uint8> GetExtraCarColors(CVehicle& veh) {
-    return { veh.m_nTertiaryColor, veh.m_nQuaternaryColor };
+auto GetExtraCarColors(CVehicle& veh) {
+    return notsa::script::return_multiple(veh.m_nTertiaryColor, veh.m_nQuaternaryColor);
 }
 
 /*
