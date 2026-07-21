@@ -49,7 +49,7 @@ float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector point, CVector mo
         // In vanilla code both `crossing` and `moveSpeed` were 3D, with the crossing's position `z` being assigned `0` ...
         // But that affects the whole logic, because the dot product will more likely than not be negative (because of `dir` always having negative Z).
         // So, instead of doing a 3D dot-product with a `moveSpeed` that has a `z` component of `0`, we just do a 2D dot product.
-        if ((dir2D.Dot(CVector2D{ moveSpeed }) > 0.0f || ignoreMoveSpeed) && dist2D < closest) {
+        if (dist2D < closest && (ignoreMoveSpeed || dir2D.Dot(CVector2D{ moveSpeed }) > 0.0f)) {
             outDistance = CVector{ dir2D, 0.f }; // Original code here used `z = -point.z` but that doesn't make much sense, so we're just going to set it to 0
             closest     = dist2D;
         }
