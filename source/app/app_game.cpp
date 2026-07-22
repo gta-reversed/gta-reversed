@@ -120,8 +120,13 @@ void RenderEffects() {
     CVehicleRecording::Render();
     CPointLights::RenderFogEffect();
     CRenderer::RenderFirstPersonVehicle();
-    CPostEffects::Render();
 
+#if defined(BUILD_PC) && !defined(BUILD_ANDROID)
+    CPostEffects::Render();
+#elif defined(BUILD_ANDROID)
+    CPostEffects::MobileRender();
+#endif
+    
     notsa::ui::UIRenderer::GetSingleton().Render3D();
 }
 
