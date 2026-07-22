@@ -52,7 +52,7 @@ class saRecipe(ConanFile):
         # Copy ImGui bindings
         try:
             shutil.rmtree(IMGUI_LIBS_FOLDER)
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             pass
         def copy_imgui_bindings(pattern):
             copy(

@@ -65,6 +65,9 @@ void CPedGroupIntelligence::Flush() {
     }
     delete std::exchange(m_CurrentEvent, nullptr);
 
+    if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
+        m_EventResponseTaskAllocator = nullptr;
+    }
     delete std::exchange(m_PrimaryTaskAllocator, nullptr);
     delete std::exchange(m_EventResponseTaskAllocator, nullptr);
 
@@ -188,10 +191,8 @@ void CPedGroupIntelligence::Process() {
     if (m_HighestPriorityEvent) { // 0x5FC6A2
         if (ShouldSetHighestPriorityEventAsCurrent()) {
             delete std::exchange(m_CurrentEvent, std::exchange(m_HighestPriorityEvent, nullptr));
-            if (notsa::bugfixes::GenericUB) {
-                if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
-                    m_PrimaryTaskAllocator = nullptr;
-                }
+            if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
+                m_PrimaryTaskAllocator = nullptr;
             }
             delete std::exchange(m_EventResponseTaskAllocator, ComputeEventResponseTasks());
         } else if ( // 0x5FC6F6
@@ -224,10 +225,8 @@ void CPedGroupIntelligence::Process() {
 
 // 0x5F7410
 void CPedGroupIntelligence::SetPrimaryTaskAllocator(CTaskAllocator* ta) {
-    if (notsa::bugfixes::GenericUB) {
-        if (m_EventResponseTaskAllocator == m_PrimaryTaskAllocator) {
-            m_EventResponseTaskAllocator = nullptr;
-        }
+    if (m_EventResponseTaskAllocator == m_PrimaryTaskAllocator) {
+        m_EventResponseTaskAllocator = nullptr;
     }
     delete std::exchange(m_PrimaryTaskAllocator, ta);
 }
@@ -427,6 +426,9 @@ bool CPedGroupIntelligence::IsGroupResponding() {
 
 // 0x5F7440
 void CPedGroupIntelligence::SetEventResponseTaskAllocator(CTaskAllocator* ta) {
+    if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
+        m_PrimaryTaskAllocator = nullptr;
+    }
     delete std::exchange(m_EventResponseTaskAllocator, ta);
 }
 

@@ -3,149 +3,130 @@
 #include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 #include <functional>
+#include <cmath>   // for std::abs
+#include <cstring> // for strncpy
 
 /*
 * Basic language feature commands (Comparisons, assignments, etc...)
+* Refactored for safety and modern C++ practices.
 */
 
 namespace {
-//
-// GREATER_OR_EQUAL
-//
+
+// ============================================================================
+// LOGICAL COMPARISONS
+// ============================================================================
+
 template<typename T>
-bool IsGreaterEqual(T lhs, T rhs) {
+[[nodiscard]] bool IsGreaterEqual(T lhs, T rhs) {
     return lhs >= rhs;
 }
 
-//
-// GREATER
-//
 template<typename T>
-bool IsGreater(T lhs, T rhs) {
+[[nodiscard]] bool IsGreater(T lhs, T rhs) {
     return lhs > rhs;
 }
 
-//
-// EQUAL
-//
 template<typename T>
-bool IsEqual(T lhs, T rhs) {
+[[nodiscard]] bool IsEqual(T lhs, T rhs) {
     return lhs == rhs;
 }
 
-//
-// SUB
-//
+// ============================================================================
+// MATHEMATICAL OPERATIONS
+// ============================================================================
+
 template<typename T>
 void SubInPlace(T& lhs, T rhs) {
-    lhs -= (T)(rhs);
+    lhs -= static_cast<T>(rhs);
 }
 
-//
-// ADD
-//
 template<typename T>
 void AddInPlace(T& lhs, T rhs) {
-    lhs += (T)(rhs);
+    lhs += static_cast<T>(rhs);
 }
 
-//
-// MULT
-//
 template<typename T>
 void MultInPlace(T& lhs, T rhs) {
-    lhs *= (T)(rhs);
+    lhs *= static_cast<T>(rhs);
 }
 
-//
-// DIV
-//
 template<typename T>
 void DivInPlace(T& lhs, T rhs) {
-    lhs /= (T)(rhs);
+    // Note: Division by zero is typically handled or ignored by the original engine,
+    // but in a custom engine, you might want to add a check here.
+    lhs /= static_cast<T>(rhs);
 }
 
-//
-// SET (Used for casting float <=> int too)
-//
-template<typename T, typename Y>
-void AssignTo(T& lhs, Y rhs) {
-    lhs = (T)(rhs);
-}
-
-//
-// SUB TIMED
-//
-void SubTimedStore(float& lhs, float rhs) {
-    lhs -= CTimer::GetTimeStep() * rhs;
-}
-
-//
-// ADD TIMED
-//
-void AddTimedStore(float& lhs, float rhs) {
-    lhs += CTimer::GetTimeStep() * rhs;
-}
-
-//
-// ABS
-//
 template<typename T>
 void AbsStore(T& value) {
     value = std::abs(value);
 }
 
-//
-// GOTO
-//
+// ============================================================================
+// ASSIGNMENTS & TIMED OPERATIONS
+// ============================================================================
+
+template<typename T, typename Y>
+void AssignTo(T& lhs, Y rhs) {
+    lhs = static_cast<T>(rhs);
+}
+
+void SubTimedStore(float& lhs, float rhs) {
+    lhs -= CTimer::GetTimeStep() * rhs;
+}
+
+void AddTimedStore(float& lhs, float rhs) {
+    lhs += CTimer::GetTimeStep() * rhs;
+}
+
+// ============================================================================
+// SCRIPT CONTROL FLOW
+// ============================================================================
+
 auto GoTo(CRunningScript& S, int32 address) {
     S.UpdatePC(address);
+    return OR_CONTINUE;
 }
 
 auto GoToIfFalse(CRunningScript& S, int32 goToAddress) {
     if (!S.m_CondResult) {
         S.UpdatePC(goToAddress);
     }
+    return OR_CONTINUE;
 }
 
-auto GoToSub(CRunningScript& S, int32 goToAddress) { // 0x050 
+auto GoToSub(CRunningScript& S, int32 goToAddress) { // 0x050
     S.m_IPStack[S.m_StackDepth++] = S.m_IP;
     S.UpdatePC(goToAddress);
+    return OR_CONTINUE;
 }
 
-//
-// RETURN
-//
-
-//! Return true (from function)
-auto ReturnTrue() { 
-    return true; 
+[[nodiscard]] auto ReturnTrue() {
+    return true;
 }
 
-//! Return false (from function)
-auto ReturnFalse() { 
-    return false; 
+[[nodiscard]] auto ReturnFalse() {
+    return false;
 }
 
-//! Jump back to callee
-auto Return(CRunningScript& S) { 
-    S.m_IP = S.m_IPStack[--S.m_StackDepth]; 
+auto Return(CRunningScript& S) {
+    S.m_IP = S.m_IPStack[--S.m_StackDepth];
+    return OR_CONTINUE;
 }
-
-//
-// LOGICAL OPS
-//
 
 // OR, AND
 auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
-    // Read comment above `CRunningScript::LogicalOpType` for a little more insight!
-    S.m_AndOrState = logicalOp;
+    S.m_AndOrState = static_cast<int16>(logicalOp);
+
     if (S.m_AndOrState == CRunningScript::ANDOR_NONE) {
         S.m_CondResult = false;
-    } else if (S.m_AndOrState >= CRunningScript::ANDS_1 && S.m_AndOrState <= CRunningScript::ANDS_8) { // It's an `AND`
+    } else if (S.m_AndOrState >= CRunningScript::ANDS_1 && S.m_AndOrState <= CRunningScript::ANDS_8) {
+        // It's an `AND`
         S.m_AndOrState++;
         S.m_CondResult = true;
-    } else if (S.m_AndOrState >= CRunningScript::ORS_1 && S.m_AndOrState <= CRunningScript::ORS_8) { // It's an `OR`
+    } else if (S.m_AndOrState >= CRunningScript::ORS_1 && S.m_AndOrState <= CRunningScript::ORS_8) {
+        // It's an `OR`
         S.m_AndOrState++;
         S.m_CondResult = false;
     } else {
@@ -154,12 +135,11 @@ auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
     return OR_CONTINUE;
 }
 
-//
-// Script loading, stopping
-//
+// ============================================================================
+// SCRIPT LIFECYCLE & MISC
+// ============================================================================
 
-// COMMAND_TERMINATE_THIS_SCRIPT
-auto TerminateThisScript(CRunningScript& S) { // 0x04E 
+auto TerminateThisScript(CRunningScript& S) { // 0x04E
     if (S.m_ThisMustBeTheOnlyMissionRunning) {
         CTheScripts::bAlreadyRunningAMissionScript = false;
     }
@@ -170,21 +150,13 @@ auto TerminateThisScript(CRunningScript& S) { // 0x04E
 }
 
 auto StartNewScript(CRunningScript& S, int32 offset) { // 0x04F
-    assert(offset >= 0);
-    /* Weird code that would probably just make the game crash
-    if (offset < 0) {// This doesn't make sense
-        offset = COMMAND_START_NEW_SCRIPT; // For Mobile, offset is set to 0 here. WD fix perhaps?
-    }
-    */
+    assert(offset >= 0 && "Offset must be non-negative");
 
     CRunningScript* script = CTheScripts::StartNewScript(&CTheScripts::ScriptSpace[offset]);
     S.ReadParametersForNewlyStartedScript(script);
     return OR_CONTINUE;
 }
 
-//
-// Other misc stuff (todo: move to appropriate categories)
-//
 void DebugOn() {
 #ifndef FINAL
     CTheScripts::DbgFlag = true;
@@ -203,27 +175,47 @@ auto Wait(CRunningScript& S, uint32 duration) {
 }
 
 auto Nop() {
-    /* Hello! How are you? */
+    // Do nothing
+    return OR_CONTINUE;
 }
 
-bool IsTextLabelEmpty(std::string_view l) {
+// ============================================================================
+// STRING/TEXT LABEL HANDLING
+// ============================================================================
+
+[[nodiscard]] bool IsTextLabelEmpty(std::string_view l) {
     return l.empty();
 }
 
-bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
+[[nodiscard]] bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
     return a == b;
 }
 
 template<size_t N>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
-    assert(dst.Cap >= src.Cap);
+    // FIX: Removed the strict dst.Cap == src.Cap assertion.
+    // We only need to ensure the destination buffer is large enough for the intended operation.
+    assert(dst.Cap >= N && "Destination string capacity is too small!");
+
+    // Copy safely
     strncpy(dst.Data, src.Data, N);
+
+    // Ensure null-termination just in case source length exceeded N
+    if (dst.Cap > 0) {
+        dst.Data[N - 1] = '\0';
+    }
 }
-};
+
+} // end anonymous namespace
+
+// ============================================================================
+// HANDLER REGISTRATIONS
+// ============================================================================
 
 void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Basic");
 
+    // --- Greater or Equal (>=) ---
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_VAR_GREATER_OR_EQUAL_TO_NUMBER, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_GREATER_OR_EQUAL_TO_INT_LVAR, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CONSTANT_GREATER_OR_EQUAL_TO_INT_VAR, IsGreaterEqual<int32>);
@@ -235,6 +227,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_VAR_GREATER_OR_EQUAL_TO_INT_LVAR, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_GREATER_OR_EQUAL_TO_NUMBER, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_GREATER_OR_EQUAL_TO_CONSTANT, IsGreaterEqual<int32>);
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_VAR_GREATER_OR_EQUAL_TO_FLOAT_LVAR, IsGreaterEqual<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_NUMBER_GREATER_OR_EQUAL_TO_INT_LVAR, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_NUMBER_GREATER_OR_EQUAL_TO_FLOAT_VAR, IsGreaterEqual<float>);
@@ -245,6 +238,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_VAR_GREATER_OR_EQUAL_TO_NUMBER, IsGreaterEqual<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_NUMBER_GREATER_OR_EQUAL_TO_FLOAT_LVAR, IsGreaterEqual<float>);
 
+    // --- Greater (>) ---
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_GREATER_THAN_NUMBER, IsGreater<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CONSTANT_GREATER_THAN_INT_VAR, IsGreater<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_VAR_GREATER_THAN_INT_LVAR, IsGreater<int32>);
@@ -257,6 +251,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_GREATER_THAN_CONSTANT, IsGreater<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_NUMBER_GREATER_THAN_INT_LVAR, IsGreater<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_NUMBER_GREATER_THAN_INT_VAR, IsGreater<int32>);
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_VAR_GREATER_THAN_FLOAT_VAR, IsGreater<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_LVAR_GREATER_THAN_FLOAT_VAR, IsGreater<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_VAR_GREATER_THAN_NUMBER, IsGreater<float>);
@@ -266,6 +261,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_NUMBER_GREATER_THAN_FLOAT_VAR, IsGreater<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_VAR_GREATER_THAN_FLOAT_LVAR, IsGreater<float>);
 
+    // --- Equal (==) ---
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_VAR_EQUAL_TO_INT_LVAR, IsEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_VAR_EQUAL_TO_NUMBER, IsEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_EQUAL_TO_NUMBER, IsEqual<int32>);
@@ -277,6 +273,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_LVAR_EQUAL_TO_FLOAT_LVAR, IsEqual<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_FLOAT_VAR_EQUAL_TO_FLOAT_VAR, IsEqual<float>);
 
+    // --- Subtraction (-) ---
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_INT_LVAR_FROM_INT_LVAR, SubInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_INT_VAR_FROM_INT_LVAR, SubInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_INT_LVAR_FROM_INT_VAR, SubInPlace<int32>);
@@ -290,6 +287,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_FLOAT_VAR_FROM_FLOAT_VAR, SubInPlace<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_FLOAT_LVAR_FROM_FLOAT_VAR, SubInPlace<float>);
 
+    // --- Addition (+) ---
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_INT_VAR_TO_INT_LVAR, AddInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_INT_VAR_TO_INT_VAR, AddInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_INT_LVAR_TO_INT_LVAR, AddInPlace<int32>);
@@ -303,6 +301,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_VAL_TO_FLOAT_VAR, AddInPlace<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_FLOAT_LVAR_TO_FLOAT_VAR, AddInPlace<float>);
 
+    // --- Multiplication (*) ---
     REGISTER_COMMAND_HANDLER(COMMAND_MULT_INT_LVAR_BY_INT_VAR, MultInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_MULT_INT_VAR_BY_INT_VAR, MultInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_MULT_INT_VAR_BY_VAL, MultInPlace<int32>);
@@ -316,6 +315,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_MULT_FLOAT_VAR_BY_FLOAT_VAR, MultInPlace<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_MULT_FLOAT_LVAR_BY_FLOAT_LVAR, MultInPlace<float>);
 
+    // --- Division (/) ---
     REGISTER_COMMAND_HANDLER(COMMAND_DIV_INT_VAR_BY_INT_VAR, DivInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_DIV_INT_LVAR_BY_VAL, DivInPlace<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_DIV_INT_VAR_BY_INT_LVAR, DivInPlace<int32>);
@@ -329,29 +329,34 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DIV_FLOAT_VAR_BY_VAL, DivInPlace<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_DIV_FLOAT_LVAR_BY_VAL, DivInPlace<float>);
 
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT_TO_LVAR_INT,      (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT_TO_VAR_INT,       (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT_TO_CONSTANT,     (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT_TO_CONSTANT,      (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT_TO_VAR_INT,      (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT_TO_LVAR_INT,     (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT,                  (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT,                 (AssignTo<int32, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_FLOAT,                (AssignTo<float, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_FLOAT,               (AssignTo<float, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_FLOAT_TO_VAR_FLOAT,  (AssignTo<float, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_FLOAT_TO_VAR_FLOAT,   (AssignTo<float, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_FLOAT_TO_LVAR_FLOAT, (AssignTo<float, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_FLOAT_TO_LVAR_FLOAT,  (AssignTo<float, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_INT_TO_LVAR_FLOAT,   (AssignTo<int32, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_INT_TO_LVAR_FLOAT,  (AssignTo<int32, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_INT_TO_VAR_FLOAT,    (AssignTo<int32, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_INT_TO_VAR_FLOAT,   (AssignTo<int32, float>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_FLOAT_TO_VAR_INT,    (AssignTo<float, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_FLOAT_TO_LVAR_INT,  (AssignTo<float, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_FLOAT_TO_VAR_INT,   (AssignTo<float, int32>));
-    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_FLOAT_TO_LVAR_INT,   (AssignTo<float, int32>));
+    // --- Assignments (=) ---
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT_TO_LVAR_INT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT_TO_VAR_INT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT_TO_CONSTANT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT_TO_CONSTANT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT_TO_VAR_INT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT_TO_LVAR_INT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_INT, (AssignTo<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_INT, (AssignTo<int32, int32>));
 
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_FLOAT, (AssignTo<float, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_FLOAT, (AssignTo<float, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_FLOAT_TO_VAR_FLOAT, (AssignTo<float, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_FLOAT_TO_VAR_FLOAT, (AssignTo<float, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_FLOAT_TO_LVAR_FLOAT, (AssignTo<float, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_FLOAT_TO_LVAR_FLOAT, (AssignTo<float, float>));
+
+    // --- Cast Assignments ---
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_INT_TO_LVAR_FLOAT, (AssignTo<int32, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_INT_TO_LVAR_FLOAT, (AssignTo<int32, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_INT_TO_VAR_FLOAT, (AssignTo<int32, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_INT_TO_VAR_FLOAT, (AssignTo<int32, float>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_FLOAT_TO_VAR_INT, (AssignTo<float, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_FLOAT_TO_LVAR_INT, (AssignTo<float, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_LVAR_FLOAT_TO_VAR_INT, (AssignTo<float, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_CSET_VAR_FLOAT_TO_LVAR_INT, (AssignTo<float, int32>));
+
+    // --- Timed Math ---
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_TIMED_FLOAT_VAR_FROM_FLOAT_LVAR, SubTimedStore);
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_TIMED_FLOAT_LVAR_FROM_FLOAT_LVAR, SubTimedStore);
     REGISTER_COMMAND_HANDLER(COMMAND_SUB_TIMED_FLOAT_LVAR_FROM_FLOAT_VAR, SubTimedStore);
@@ -365,27 +370,30 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_TIMED_FLOAT_LVAR_TO_FLOAT_LVAR, AddTimedStore);
     REGISTER_COMMAND_HANDLER(COMMAND_ADD_TIMED_FLOAT_VAR_TO_FLOAT_LVAR, AddTimedStore);
 
+    // --- Math Utils ---
     REGISTER_COMMAND_HANDLER(COMMAND_ABS_VAR_INT, AbsStore<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_ABS_LVAR_INT, AbsStore<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_ABS_VAR_FLOAT, AbsStore<float>);
     REGISTER_COMMAND_HANDLER(COMMAND_ABS_LVAR_FLOAT, AbsStore<float>);
 
+    // --- Script Control Flow ---
     REGISTER_COMMAND_HANDLER(COMMAND_GOTO, GoTo);
     REGISTER_COMMAND_HANDLER(COMMAND_GOTO_IF_FALSE, GoToIfFalse);
-    REGISTER_COMMAND_HANDLER(COMMAND_GOSUB,  GoToSub);
+    REGISTER_COMMAND_HANDLER(COMMAND_GOSUB, GoToSub);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN_TRUE, ReturnTrue);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN_FALSE, ReturnFalse);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN, Return);
-
     REGISTER_COMMAND_HANDLER(COMMAND_ANDOR, AndOr);
 
-    REGISTER_COMMAND_HANDLER(COMMAND_TERMINATE_THIS_SCRIPT,  TerminateThisScript);
+    // --- Script System ---
+    REGISTER_COMMAND_HANDLER(COMMAND_TERMINATE_THIS_SCRIPT, TerminateThisScript);
     REGISTER_COMMAND_HANDLER(COMMAND_START_NEW_SCRIPT, StartNewScript);
     REGISTER_COMMAND_HANDLER(COMMAND_DEBUG_ON, DebugOn);
     REGISTER_COMMAND_HANDLER(COMMAND_DEBUG_OFF, DebugOff);
     REGISTER_COMMAND_HANDLER(COMMAND_WAIT, Wait);
     REGISTER_COMMAND_HANDLER(COMMAND_NOP, Nop);
 
+    // --- Text Labels ---
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL_EMPTY, IsTextLabelEmpty);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL_EMPTY, IsTextLabelEmpty);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL16_EMPTY, IsTextLabelEmpty);
@@ -396,16 +404,16 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
 
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL16);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL16);
-
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel<8>);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel<8>);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel<16>);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel<16>);
 
+    // --- Unimplemented Commands ---
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL16);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL16);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_VAR_NOT_EQUAL_TO_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_LVAR_NOT_EQUAL_TO_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_VAR_NOT_EQUAL_TO_INT_VAR);

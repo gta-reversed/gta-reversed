@@ -834,7 +834,7 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
         }
         m_Anim = CAnimManager::BlendAnimation( // 0x6251DC
             ped->GetRpClump(),
-            CTaskSimpleFight::m_aComboData[12].m_nAnimGroup,
+            CTaskSimpleFight::m_aComboData[0].m_nAnimGroup,
             ped->bIsDucking
                 ? ANIM_ID_FIGHT_2
                 : ANIM_ID_FIGHT_1

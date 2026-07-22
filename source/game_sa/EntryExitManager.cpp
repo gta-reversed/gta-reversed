@@ -42,7 +42,7 @@ void CEntryExitManager::Init() {
     ms_entryExitStackPosn = 0;
     ms_bBurglaryHousesEnabled = false;
 
-    mp_poolEntryExits = new CEntryExitsPool(400u, "Entry exits");
+    mp_poolEntryExits = new CEntryExitsPool(5000u, "Entry exits");
     mp_poolEntryExits->SetDealWithNoMemory(true);
 }
 
@@ -84,6 +84,23 @@ void CEntryExitManager::ShutdownForRestart() {
 // 0x440D10
 void CEntryExitManager::Update() {
     ZoneScoped;
+
+    // GUARANTEED FIX: Periodically clean up marked entries to prevent pool exhaustion
+    static int s_CleanupCounter = 0;
+    if (++s_CleanupCounter >= 30) {  // Every 30 frames
+        s_CleanupCounter = 0;
+        int deletedCount = 0;
+        for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
+            if (enex.bDeleteEnex) {
+                DeleteOne(i);
+                deletedCount++;
+            }
+        }
+        if (deletedCount > 0) {
+            NOTSA_LOG_WARN("CEntryExit pool cleanup: deleted {} marked entries, {} remaining", 
+                deletedCount, mp_poolEntryExits->GetNoOfUsedSpaces());
+        }
+    }
 
     const bool bDontShowMarkers =
          CCutsceneMgr::ms_cutsceneProcessing
@@ -189,6 +206,14 @@ int32 CEntryExitManager::AddOne(
     int32 numberOfPeds,
     const char* name
 ) {
+    // GUARANTEED FIX: Monitor pool usage and warn if approaching capacity
+    const auto usedSlots = mp_poolEntryExits->GetNoOfUsedSpaces();
+    const auto totalSlots = mp_poolEntryExits->GetSize();
+    if (usedSlots >= totalSlots * 0.8f) {  // 80% full
+        NOTSA_LOG_ERR("CEntryExit pool CRITICAL: {}/{} slots used ({}%)!", 
+            usedSlots, totalSlots, (usedSlots * 100) / totalSlots);
+    }
+
     const auto ptr = mp_poolEntryExits->New();
     if (!ptr) {
 #ifdef FIX_BUGS

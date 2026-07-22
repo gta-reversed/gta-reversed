@@ -7,7 +7,6 @@
 #pragma once
 
 #include "AESound.h"
-
 #include "eAudioEvents.h"
 
 class CEntity;
@@ -19,7 +18,7 @@ public:
 
 protected:
     CAEAudioEntity() = default;
-    ~CAEAudioEntity() = default;
+    ~CAEAudioEntity(); // Non-virtual - original game doesn't use polymorphic destruction
 
 public:
     virtual void UpdateParameters(CAESound* sound, int16 curPlayPos) { /* Empty on purpose */ };

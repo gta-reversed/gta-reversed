@@ -1,7 +1,5 @@
 #include "StdInc.h"
-
 #include "AESoundManager.h"
-
 #include "AEAudioEnvironment.h"
 #include "AEAudioHardware.h"
 
@@ -43,9 +41,9 @@ bool CAESoundManager::Initialise() {
         return false;
     }
 
-    // BUG? There's some int16 weird logic in the original code, I simplified it to what's actually used i think
+    // REFACTOR: Initialize arrays to avoid garbage data
     m_PhysicallyPlayingSoundList = new tSoundReference[m_NumAllocatedPhysicalChannels];
-    m_ChannelPosition            = new int16[m_NumAllocatedPhysicalChannels];
+    m_ChannelPosition            = new int16[m_NumAllocatedPhysicalChannels]();
     m_PrioritisedSoundList       = new tSoundReference[m_NumAllocatedPhysicalChannels];
 
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
@@ -54,6 +52,7 @@ bool CAESoundManager::Initialise() {
     }
 
     std::fill_n(m_PhysicallyPlayingSoundList, m_NumAllocatedPhysicalChannels, -1);
+    std::fill_n(m_PrioritisedSoundList, m_NumAllocatedPhysicalChannels, -1);
 
     m_TimeLastCalled         = CTimer::GetTimeInMS();
     m_WasGamePausedLastFrame = false;
@@ -66,13 +65,9 @@ bool CAESoundManager::Initialise() {
 
 // 0x4EFAA0
 void CAESoundManager::Terminate() {
-    delete[] m_PhysicallyPlayingSoundList;
-    delete[] m_ChannelPosition;
-    delete[] m_PrioritisedSoundList;
-
-    m_PhysicallyPlayingSoundList = nullptr;
-    m_ChannelPosition            = nullptr;
-    m_PrioritisedSoundList       = nullptr;
+    delete[] std::exchange(m_PhysicallyPlayingSoundList, nullptr);
+    delete[] std::exchange(m_ChannelPosition, nullptr);
+    delete[] std::exchange(m_PrioritisedSoundList, nullptr);
 }
 
 // 0x4EF4D0
@@ -81,7 +76,6 @@ void CAESoundManager::Reset() {
         if (!sound.IsActive()) {
             continue;
         }
-
         sound.StopSound();
     }
 }
@@ -131,8 +125,10 @@ void CAESoundManager::Service() {
             continue;
         }
 
-        //sound.m_PlayTime *= uint16(static_cast<float>(m_aSoundLengths[i]) / 100.0F);
-        sound.m_PlayTime = static_cast<uint16>((float)(sound.m_PlayTime * m_VirtualChannelSoundLengths[i]) / 100.0f);
+        // REFACTOR: Cast to float before division to prevent integer overflow
+        const float playTimeF = static_cast<float>(sound.m_PlayTime);
+        const float lengthsF  = static_cast<float>(m_VirtualChannelSoundLengths[i]);
+        sound.m_PlayTime      = static_cast<uint16>((playTimeF * lengthsF) / 100.0f);
     }
 
     // 0x4F016D - Stop sounds that turned inactive
@@ -140,7 +136,7 @@ void CAESoundManager::Service() {
         if (ref == -1) {
             continue;
         }
-        auto& sound                  = m_VirtuallyPlayingSoundList[ref];
+        auto& sound = m_VirtuallyPlayingSoundList[ref];
         sound.m_PlayTime = m_ChannelPosition[i];
         if (sound.m_HasRequestedStopped) {
             AEAudioHardware.StopSound(m_AudioHardwareHandle, i);
@@ -204,34 +200,30 @@ void CAESoundManager::Service() {
             continue;
         }
 
+        // REFACTOR: Rewrote logic from 0x4F04CE and 0x4F04EB to prevent out-of-bounds access (UB)
         int16 chN = m_NumAllocatedPhysicalChannels - 1;
-
-        // 0x4F04CE - Find last slot in use
-        for (; chN > numPrioritisedSounds; chN--) {
-            if (GetPrioritisedSoundList()[chN] != -1) {
-                break;
-            }
-        }
-
-        // 0x4F04EB - Find where to insert
         for (; chN >= numPrioritisedSounds; chN--) {
-            const auto& soundB = m_VirtuallyPlayingSoundList[m_PrioritisedSoundList[chN]];
+            auto refB = m_PrioritisedSoundList[chN];
+            if (refB == -1) {
+                continue; // Skip if slot is empty
+            }
+
+            const auto& soundB = m_VirtuallyPlayingSoundList[refB];
             if (sound.m_ListenerVolume >= soundB.m_ListenerVolume) {
                 continue;
             }
             if (sound.GetPlayPhysically() <= soundB.GetPlayPhysically()) {
                 continue;
             }
-            break;
+            break; // Found ideal slot to insert into!
         }
 
         // 0x4F0529 - Insert at given index
         if (chN != m_NumAllocatedPhysicalChannels - 1) {
             // Shift to right
-            for (auto i = m_NumAllocatedPhysicalChannels - 1; i > chN + 1; --i) {
-                m_PrioritisedSoundList[i] = m_PrioritisedSoundList[i - 1];
+            for (auto j = m_NumAllocatedPhysicalChannels - 1; j > chN + 1; --j) {
+                m_PrioritisedSoundList[j] = m_PrioritisedSoundList[j - 1];
             }
-
             // Insert
             m_PrioritisedSoundList[chN + 1] = i;
         }
@@ -277,7 +269,7 @@ void CAESoundManager::Service() {
 
         m_PhysicallyPlayingSoundList[chN] = ref;
         auto& sound                       = m_VirtuallyPlayingSoundList[ref];
-        sound.m_IsPhysicallyPlaying               = true;
+        sound.m_IsPhysicallyPlaying       = true;
 
         const auto freqFactor = sound.GetRelativePlaybackFrequencyWithDoppler() * sound.GetSlowMoFrequencyScalingFactor();
 
@@ -337,6 +329,9 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
     if (s) {
         *s = *pSound;
         pSound->UnregisterWithPhysicalEntity();
+        if (s->m_PhysicalEntity && s->IsLifespanTiedToPhysicalEntity()) {
+            s->RegisterWithPhysicalEntity(s->m_PhysicalEntity);
+        }
         s->NewVPSLEntry();
         AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_SoundID, s->m_BankSlot);
     }
@@ -410,7 +405,8 @@ int16 CAESoundManager::AreSoundsOfThisEventPlayingForThisEntity(int16 eventId, C
 
 // 0x4EF5D0
 int16 CAESoundManager::AreSoundsOfThisEventPlayingForThisEntityAndPhysical(int16 eventId, CAEAudioEntity* audioEntity, CPhysical* physical) {
-    bool nPlaying = eSoundPlayingStatus::SOUND_NOT_PLAYING;
+    // REFACTOR: Function returned 'bool' but had eSoundPlayingStatus to prevent data loss, changed return type to int16
+    int16 nPlaying = eSoundPlayingStatus::SOUND_NOT_PLAYING;
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
         if (!sound.IsActive() || sound.m_Event != eventId || sound.m_AudioEntity != audioEntity || sound.m_PhysicalEntity != physical) {
             continue;
@@ -466,7 +462,9 @@ void CAESoundManager::CancelSoundsOwnedByAudioEntity(CAEAudioEntity* audioEntity
         }
         if (bFullStop) {
             sound.StopSoundAndForget();
+            sound.m_IsInUse = false; // Immediately mark inactive to prevent 1-frame artifact in Service()
         } else {
+            sound.m_AudioEntity = nullptr; // StopSound doesn't clear this, must do it manually to prevent use-after-free
             sound.StopSound();
         }
     }
