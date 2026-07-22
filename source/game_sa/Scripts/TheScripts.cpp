@@ -1344,14 +1344,14 @@ void CTheScripts::Save() {
     auto* lastScript           = pActiveScripts;
     for (auto* s = pActiveScripts; s; s = s->m_pNext) {
         lastScript = s;
-        if (!s->m_IsExternal && s->m_ExternalType == -1) {
+        if (!s->m_IsExternal && s->m_ScriptBrainType == -1) {
             numNonExternalScripts++;
         }
     }
     CGenericGameStorage::SaveDataToWorkBuffer(numNonExternalScripts);
 
     for (auto* s = lastScript; s; s = s->m_pPrev) {
-        if (s->m_IsExternal || s->m_ExternalType != -1) {
+        if (s->m_IsExternal || s->m_ScriptBrainType != -1) {
             continue;
         }
 
@@ -1527,8 +1527,8 @@ void CTheScripts::ProcessWaitingForScriptBrainArray() {
         }
 
         switch (const auto t = ScriptsForBrains.m_aScriptForBrains[e.m_ScriptBrainIndex].m_TypeOfBrain) {
-        case 0: // TODO: enum
-        case 3: // for peds?
+        case CScriptsForBrains::PED_STREAMED:
+        case CScriptsForBrains::CODE_PED:
         {
             auto*      ped = e.m_pEntity->AsPed();
             const auto idx = ScriptsForBrains.m_aScriptForBrains[ped->m_StreamedScriptBrainToLoad].m_StreamedScriptIndex;
@@ -1544,12 +1544,12 @@ void CTheScripts::ProcessWaitingForScriptBrainArray() {
             }
             break;
         }
-        case 1:
-        case 4: // for objects?
+        case CScriptsForBrains::OBJECT_STREAMED:
+        case CScriptsForBrains::CODE_OBJECT:
         {
             auto* obj = e.m_pEntity->AsObject();
 
-            switch (obj->objectFlags.b0x100000_0x200000) {
+            switch (obj->objectFlags.bScriptBrainStatus) {
             case 1:
                 if (!ScriptsForBrains.IsObjectWithinBrainActivationRange(obj, FindPlayerCentreOfWorld()))
                     break;

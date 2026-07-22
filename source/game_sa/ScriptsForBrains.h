@@ -29,6 +29,15 @@ struct tScriptForBrains {
 
 class CScriptsForBrains {
 public:
+    enum {
+        PED_STREAMED = 0,
+        OBJECT_STREAMED,
+        PED_GENERATOR_STREAMED,
+        CODE_PED,
+        CODE_OBJECT,
+        CODE_ATTRACTOR_PED
+    };
+
     std::array<tScriptForBrains, 70> m_aScriptForBrains;
 
 public:
@@ -36,10 +45,10 @@ public:
 
     void Init();
 
-    void AddNewScriptBrain(int16 ImgIndex, int16 Model, uint16 priority, int8 attachType, int8 Type, float Radius);
-    void AddNewStreamedScriptBrainForCodeUse(int16 a2, char* a3, int8 attachtype);
+    void AddNewScriptBrain(int16 streamedScriptIndex, int16 pedModelOrPedGeneratorIndex, uint16 percentage, int8 brainType, int8 objectGroupingId, float objectActivationRange);
+    void AddNewStreamedScriptBrainForCodeUse(int16 streamedScriptIndex, const char* scriptName, int8 brainType);
 
-    void CheckIfNewEntityNeedsScript(CEntity* entity, int8 attachType, void* unused);
+    void CheckIfNewEntityNeedsScript(CEntity* entity, int8 brainType, void* unused);
 
     int16 GetIndexOfScriptBrainWithThisName(const char* name, int8 type);
 
@@ -50,9 +59,9 @@ public:
     void RequestAttractorScriptBrainWithThisName(const char* name);
 
     void StartAttractorScriptBrainWithThisName(const char* name, CPed* ped, bool bHasAScriptBrain);
-    void StartNewStreamedScriptBrain(uint8 index, CEntity* entity, bool bHasAScriptBrain);
-    void StartOrRequestNewStreamedScriptBrain(uint8 index, CEntity* entity, int8 attachType, bool bAddToWaitingArray);
-    void StartOrRequestNewStreamedScriptBrainWithThisName(const char* name, CEntity* entity, int8 attachType);
+    void StartNewStreamedScriptBrain(uint8 index, CEntity* entity, bool bPedCreatedAtAttractor);
+    void StartOrRequestNewStreamedScriptBrain(uint8 index, CEntity* entity, int8 brainType, bool bFirstTime);
+    void StartOrRequestNewStreamedScriptBrainWithThisName(const char* name, CEntity* entity, int8 brainType);
 
     void SwitchAllObjectBrainsWithThisID(int8 ID, bool bStatus);
 };
