@@ -24,12 +24,12 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* out) {
     if (CenterOnScreen.z < -150.0F || CenterOnScreen.z > 300.0F) {
         return false;
     }
-    const auto size = CVector{m_Width, m_Length, m_Height};
+    const auto size = GetSize();
 
     out->m_DistToCam = (uint16)(CenterOnScreen.z - size.Magnitude());
 
     CMatrix transform{};
-    transform.SetRotate(m_Rot);
+    transform.SetRotate(GetRotation());
 
     MinXInOccluder = 999999.88F;
     MinYInOccluder = 999999.88F;
