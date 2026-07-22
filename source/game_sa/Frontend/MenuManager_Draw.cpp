@@ -98,8 +98,8 @@ void CMenuManager::DrawFrontEnd() {
     DrawBackground();
 }
 
-// NOTSA
-void CMenuManager::DrawBuildInfo() {
+// NOTSA - roughly speaking, a modified function from III
+void CMenuManager::BuildStatLine() {
     std::string buildInfo = BUILD_NAME_FULL;
     buildInfo += std::format(" / RW {}.{}.{}.{}.{}",
         (0xF & RwEngineGetVersion() >> 16),
@@ -210,7 +210,7 @@ void CMenuManager::DrawBackground() {
     }
 
 #ifdef USE_BUILD_INFORMATION
-    DrawBuildInfo();
+    BuildStatLine();
 #endif
 
     // 0x57BA42

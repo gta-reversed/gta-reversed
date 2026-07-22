@@ -8,6 +8,8 @@
 
 #include "BaseModelInfo.h"
 
+static std::unordered_map<uint32, std::string> g_HashToStringMap; // NOTSA
+
 void CBaseModelInfo::InjectHooks() {
     RH_ScopedVirtualClass(CBaseModelInfo, 0x85BB9C, 15);
     RH_ScopedCategory("Models");
@@ -217,4 +219,18 @@ void SetBaseModelInfoFlags(CBaseModelInfo* modelInfo, uint32 flags) {
 
 void CBaseModelInfo::SetBaseModelInfoFlags(uint32 flags) {
     ::SetBaseModelInfoFlags(this, flags);
+}
+
+void CBaseModelInfo::SetModelName(const char* modelName) {
+    m_nKey = CKeyGen::GetUppercaseKey(modelName);
+    g_HashToStringMap[m_nKey] = modelName; // NOTSA
+}
+
+// NOTSA
+std::string_view CBaseModelInfo::GetModelNameAsString() {
+    const auto it = g_HashToStringMap.find(m_nKey);
+    if (it != g_HashToStringMap.end()) {
+        return it->second;
+    }
+    return (g_HashToStringMap[m_nKey] = std::format("hash:{}", m_nKey));
 }

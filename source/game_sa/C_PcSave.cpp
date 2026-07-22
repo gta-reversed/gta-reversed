@@ -27,7 +27,7 @@ void C_PcSave::SetSaveDirectory(const char* path) {
 }
 
 // 0x6190A0
-void C_PcSave::GenerateGameFilename(int32 slot, char* out) {
+inline void C_PcSave::GenerateGameFilename(int32 slot, char* out) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     const auto maxSize = std::size(DefaultPCSaveFileName) + std::size(std::to_string(MAX_SAVEGAME_SLOTS)) + std::size(".b") - 2u;

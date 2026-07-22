@@ -277,8 +277,15 @@ void CTheScripts::ReadObjectNamesFromScript() {
 // 0x486780
 void CTheScripts::UpdateObjectIndices() {
     // First one is ignored because it's empty.
-    for (auto& obj : UsedObjectArray | std::views::drop(1)) {
-        CModelInfo::GetModelInfo(obj.szModelName, &obj.nModelIndex);
+    auto activeObjects = UsedObjectArray
+        | std::views::take(NumberOfUsedObjects)
+        | std::views::drop(1);
+
+    for (auto& obj : activeObjects) {
+        obj.nModelIndex = -1;
+        if (!CModelInfo::GetModelInfo(obj.szModelName, &obj.nModelIndex)) {
+            NOTSA_LOG_WARN("Couldn't find {}", obj.szModelName); // R* log from III + VC
+        }
     }
 }
 
@@ -735,6 +742,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
         }
 
         if (entity->GetIsTypeVehicle()) {
+            NOTSA_LOG_DEBUG("Will try to delete a vehicle where a mission entity should be"); // R* log from III
             auto* vehicle = entity->AsVehicle();
             if (vehicle->vehicleFlags.bIsLocked || !vehicle->CanBeDeleted()) {
                 continue;
@@ -760,6 +768,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
 
         if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
+            NOTSA_LOG_DEBUG("Deleted a ped where a mission entity should be"); // R* log from III
         }
     }
     ourColData->m_nNumLines = cdNumLines;
