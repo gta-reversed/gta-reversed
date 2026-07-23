@@ -99,6 +99,14 @@ class CVehicle;
 class CPedStat;
 class CPedStats;
 
+// Values of `CPed::CantBeKnockedOffBike` (how hard it is to knock this ped off a bike)
+enum eCantBeKnockedOffBike : uint8 {
+    CANT_BE_KNOCKED_OFF_DEFAULT       = 0, // resistance scales with the ped's bike riding skill
+    CANT_BE_KNOCKED_OFF_NEVER         = 1, // never knocked off
+    CANT_BE_KNOCKED_OFF_ALWAYS_NORMAL = 2, // knocked off regardless of riding skill
+    CANT_BE_KNOCKED_OFF_ALWAYS_HARD   = 3, // knocked off even at a much lower impact force
+};
+
 class NOTSA_EXPORT_VTABLE CPed : public CPhysical {
 public:
     using Ref = notsa::EntityRef<CPed>;
@@ -222,7 +230,7 @@ public:
         bool bWaitingForScriptBrainToLoad : 1 = false;
         bool bHasGroupDriveTask : 1 = false;
         bool bCanExitCar : 1 = true;
-        bool CantBeKnockedOffBike : 2 = false; // (harder for mission peds)   normal(also for mission peds)
+        uint8 CantBeKnockedOffBike : 2 = CANT_BE_KNOCKED_OFF_DEFAULT; // 2-bit value, see eCantBeKnockedOffBike (was mis-typed as `bool`)
         bool bHasBeenRendered : 1 = false;
         bool bIsCached : 1 = false;
         bool bPushOtherPeds : 1 = false;   // GETS RESET EVERY FRAME - SET IN TASK: want to push other peds around (eg. leader of a group or ped trying to get in a car)
