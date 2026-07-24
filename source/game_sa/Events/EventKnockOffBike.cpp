@@ -52,6 +52,7 @@ CEventKnockOffBike::CEventKnockOffBike()
     m_vehicle = nullptr;
 }
 
+// 0x4AFE70
 CEventKnockOffBike::~CEventKnockOffBike()
 {
     CEntity::SafeCleanUpRef(m_vehicle);
