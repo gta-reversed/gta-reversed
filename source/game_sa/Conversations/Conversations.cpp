@@ -133,7 +133,7 @@ bool CConversations::IsConversationAtNode(const char* pName, CPed* pPed) {
 }
 
 // 0x43A810
-void CConversations::AwkwardSay(int32 whatToSay, CPed* speaker) {
+void CConversations::AwkwardSay(eAudioEvents whatToSay, CPed* speaker) {
     AudioEngine.PreloadMissionAudio(0, whatToSay);
     AudioEngine.AttachMissionAudioToPed(0, speaker);
     m_AwkwardSayStatus = eAwkwardSayStatus::LOADING;

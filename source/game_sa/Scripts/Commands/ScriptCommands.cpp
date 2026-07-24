@@ -45,7 +45,7 @@ void LoadSceneInDirection(CVector point, float heading) {
     CTimer::Update();
 }
 
-void LoadMissionAudio(uint32 slotId, int32 sampleId) {
+void LoadMissionAudio(uint32 slotId, eAudioEvents sampleId) {
     AudioEngine.PreloadMissionAudio(slotId - 1, sampleId);
 }
 

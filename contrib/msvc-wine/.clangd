@@ -52,3 +52,6 @@ Diagnostics:
     - "member_function_call_bad_type"
     - "ovl_no_viable_member_function_in_call"
     - "typecheck_comparison_of_distinct_pointers"
+
+Completion:
+  HeaderInsertion: Never

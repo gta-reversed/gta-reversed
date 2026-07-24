@@ -47,6 +47,7 @@ char* getDvdGamePath() {
         }
 
         if (strcmp(volumeName, "GTA_SAN_ANDREAS") == 0) {
+            NOTSA_LOG_DEBUG("Found GTASA DVD inserted at drive {}", drivePath);
             const auto result = new char[strlen(drivePath) + 1];
             strcpy_s(result, strlen(drivePath) + 1, drivePath);
             delete[] drivesBuffer;
