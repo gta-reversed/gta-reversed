@@ -1,5 +1,7 @@
 #include "StdInc.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 #include "TagManager.h"
 #include "Garages.h"
 
@@ -40,9 +42,10 @@ void CTagManager::Init() {
 // 0x49CC60
 void CTagManager::ShutdownForRestart()
 {
-    for (int32 i = ms_numTags; i > 0; --i)
-        ms_tagDesc[i].m_nAlpha = 0;
-
+    rng::fill(ms_tagDesc, tTagDesc{});
+    if (notsa::bugfixes::CTagManager_MissingTagCountResetOnShutdown) {
+        ms_numTags = 0;
+    }
     ms_numTagged = 0;
 }
 
