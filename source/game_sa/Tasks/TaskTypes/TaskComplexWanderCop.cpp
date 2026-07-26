@@ -166,7 +166,7 @@ void CTaskComplexWanderCop::LookForStolenCopCars(CPed* ped) {
 }
 
 // notsa, code from `LookForCriminals`
-CPed* CTaskComplexWanderCop::FindNearestCriminal(CPed* ped) const {
+CPed* CTaskComplexWanderCop::FindFirstCriminalInSight(CPed* ped) const {
     for (auto& candidate : ped->GetIntelligence()->m_pedScanner.GetEntities<CPed>()) {
         if (!candidate.IsGangster()) {
             if (candidate.m_nPedType != PED_TYPE_CRIMINAL || &candidate == m_pLastCriminalPedLookedFor) {
@@ -178,9 +178,9 @@ CPed* CTaskComplexWanderCop::FindNearestCriminal(CPed* ped) const {
             continue;
         }
 
-        const auto& criminalPos = candidate.GetPosition();
-        const auto& pedPos      = ped->GetPosition();
-        CVector     distance    = criminalPos - pedPos;
+        const auto& candidatePos = candidate.GetPosition();
+        const auto& pedPos       = ped->GetPosition();
+        CVector     distance     = candidatePos - pedPos;
         if (distance.SquaredMagnitude() >= sq(10.0f)) {
             continue;
         }
@@ -189,7 +189,7 @@ CPed* CTaskComplexWanderCop::FindNearestCriminal(CPed* ped) const {
             continue;
         }
 
-        if (!CWorld::GetIsLineOfSightClear(pedPos, criminalPos, true, false, false, true, false, false, false)) {
+        if (!CWorld::GetIsLineOfSightClear(pedPos, candidatePos, true, false, false, true, false, false, false)) {
             continue;
         }
 
@@ -200,7 +200,7 @@ CPed* CTaskComplexWanderCop::FindNearestCriminal(CPed* ped) const {
 
 // 0x66B300
 void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
-    auto* const criminal = FindNearestCriminal(ped);
+    auto* const criminal = FindFirstCriminalInSight(ped);
     if (!criminal) {
         return;
     }

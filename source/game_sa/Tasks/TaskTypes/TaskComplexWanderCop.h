@@ -37,7 +37,7 @@ CTask* Clone() const override { return new CTaskComplexWanderCop(m_nMoveState, m
     bool ShouldPursuePlayer(CPed* ped);
 
 private:
-    CPed* FindNearestCriminal(CPed* ped) const;
+    CPed* FindFirstCriminalInSight(CPed* ped) const;
 
 private:
     friend void InjectHooksMain();
