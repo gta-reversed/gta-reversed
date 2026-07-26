@@ -1,9 +1,20 @@
+import argparse
 from contextlib import contextmanager
 import csv
 import datetime
 import tkinter.filedialog as tkFileDialog
 from dataclasses import dataclass
 from typing import Any
+
+ap = argparse.ArgumentParser(description="Generate a Markdown file with reversed classes stats from hooks.csv")
+ap.add_argument("--input", default=None, help="Path to the hooks.csv file (if not provided, a file dialog will be shown to select the input file)")
+ap.add_argument("--output", default=None, help="Path to the output Markdown file (if not provided, a file dialog will be shown to select the output location)")
+args = ap.parse_args()
+
+if args.input is None:
+    args.input = tkFileDialog.askopenfilename(title='Please select the hooks.csv file')
+if args.output is None:
+    args.output = tkFileDialog.asksaveasfilename(title='Please select the output MD file location', defaultextension=".md")
 
 @dataclass
 class Klass:
@@ -26,11 +37,8 @@ class Klass:
         return self.num_not_reversed == 0
 
 def main():
-    hooks_csv_path = tkFileDialog.askopenfilename(title='Please select the hooks.csv file')
-    output_md  = tkFileDialog.asksaveasfilename(title='Please select the output MD file location', defaultextension=".md")
-
     klass_info : dict[str, Klass] = {}
-    with open(hooks_csv_path, "r", encoding='utf8') as hooksf:
+    with open(args.input, "r", encoding='utf8') as hooksf:
         for r in csv.DictReader(hooksf):
             name: str = r["class"]
             klass_info.setdefault(name, Klass(name, 0, 0)).process_row(r)
@@ -47,7 +55,7 @@ def main():
             partially.append(klass)
     num_total_klass = len(partially) + len(completely) + len(not_at_all)
 
-    with open(output_md, "w", encoding="utf8", newline='\n') as outf:
+    with open(args.output, "w", encoding="utf8", newline='\n') as outf:
         outf.write(f"# Reversed Classes [As of {datetime.datetime.now(datetime.timezone.utc).strftime('%b %d, %Y, %H:%M:%S')} UTC]\n")
 
         outf.write("## Disclaimer\n")

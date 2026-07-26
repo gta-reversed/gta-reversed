@@ -1,9 +1,9 @@
-# Reversed Classes [As of Feb 11, 2026, 21:43:15 UTC]
+# Reversed Classes [As of Jul 27, 2026, 18:06:31 UTC]
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
-## Stats (7965 functions, 700 classes)
+## Stats (7997 functions, 700 classes)
 
-#### Completely reversed classes (556/700) [79%]
+#### Completely reversed classes (580/700) [83%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -21,6 +21,7 @@ The percentages and the number of classes shown here may not be completely accur
 - IKChain_c (17)<br />
 - IKChainManager_c (17)<br />
 - CdStream (9)<br />
+- CWorld (94)<br />
 - CWindModifiers (2)<br />
 - CWeaponInfo (10)<br />
 - CWaterCannons (4)<br />
@@ -44,10 +45,13 @@ The percentages and the number of classes shown here may not be completely accur
 - CStreamingInfo (7)<br />
 - CStreaming (94)<br />
 - CStencilShadowObject (3)<br />
-- CStats (33)<br />
+- CStats (32)<br />
+- CSprite2d (33)<br />
 - CSpecialPlateHandler (4)<br />
+- CSpecialFX (7)<br />
 - CSkidmarks (7)<br />
 - CSimpleVariablesSaveStructure (2)<br />
+- CShotInfo (5)<br />
 - CShopping (30)<br />
 - CShinyTexts (4)<br />
 - CSetPieces (5)<br />
@@ -63,6 +67,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CPlaneTrails (4)<br />
 - CPlaneTrail (3)<br />
 - CPlaceName (2)<br />
+- CPickup (12)<br />
 - CPedType (13)<br />
 - CPedTaskPair (1)<br />
 - CPedStats (4)<br />
@@ -72,7 +77,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CPedGroups (2)<br />
 - CPedGroupMembership (18)<br />
 - CPedGroupIntelligence (26)<br />
-- CPedClothesDesc (5)<br />
+- CPedClothesDesc (7)<br />
 - CPedAttractorManager (14)<br />
 - CPathNode (1)<br />
 - CPad (75)<br />
@@ -88,8 +93,11 @@ The percentages and the number of classes shown here may not be completely accur
 - CMirrors (8)<br />
 - CMessages (28)<br />
 - CLocalisation (18)<br />
+- CLoadingScreen (20)<br />
 - CLoadedCarGroup (8)<br />
+- CLoadMonitor (7)<br />
 - CKeyboardState (1)<br />
+- CIplStore (34)<br />
 - CIniFile (1)<br />
 - CInformGroupEventQueue (4)<br />
 - CInformGroupEvent (3)<br />
@@ -98,10 +106,13 @@ The percentages and the number of classes shown here may not be completely accur
 - CHandShaker (3)<br />
 - CGridRef (5)<br />
 - CGlass (19)<br />
+- CGeneral (9)<br />
 - CGarages (21)<br />
 - CGarage (4)<br />
+- CGangs (8)<br />
 - CGamma (2)<br />
 - CGameLogic (27)<br />
+- CGame (22)<br />
 - CFireManager (24)<br />
 - CFire (5)<br />
 - CFileMgr (17)<br />
@@ -112,6 +123,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CEscalator (5)<br />
 - CEntryExitManager (18)<br />
 - CDraw (2)<br />
+- CDoor (6)<br />
 - CDirectory (10)<br />
 - CDebug (1)<br />
 - CDarkel (19)<br />
@@ -238,7 +250,8 @@ The percentages and the number of classes shown here may not be completely accur
 - CTrailer (13)<br />
 - CHeli (11)<br />
 - CBoat (23)<br />
-- Fx_c (3)<br />
+- CAutomobile (99)<br />
+- Fx_c (8)<br />
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
@@ -268,7 +281,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CAEUserRadioTrackManager (15)<br />
 - CAESoundManager (14)<br />
 - CAECutsceneTrackManager (8)<br />
-- CAEAudioChannel (10)<br />
+- CAEAudioChannel (12)<br />
 - CAudioZones (5)<br />
 - CAudioEngine (82)<br />
 - CAEStreamThread (14)<br />
@@ -276,27 +289,9 @@ The percentages and the number of classes shown here may not be completely accur
 - CAESmoothFadeThread (10)<br />
 - CAEAudioUtility (11)<br />
 - CAEAudioEnvironment (6)<br />
-- CCopPed (7)<br />
-- CObject (48)<br />
-- CHandObject (3)<br />
-- CCutsceneObject (6)<br />
-- CDummyObject (2)<br />
-- CDummy (1)<br />
-- CCivilianPed (3)<br />
-- CPlaceable (16)<br />
-- CEntity (70)<br />
-- CBuilding (2)<br />
-- CAnimatedBuilding (3)<br />
-- CTempColModels (2)<br />
-- CCollisionData (8)<br />
-- CColTrianglePlane (2)<br />
-- CColStore (23)<br />
-- CColSphere (5)<br />
-- CColModel (9)<br />
-- CColLine (1)<br />
-- CColAccel (11)<br />
-- CBox (2)<br />
+- CEntitySeekPosCalculatorXYOffset (1)<br />
 - CEntitySeekPosCalculatorStandard (1)<br />
+- CEntitySeekPosCalculatorRadiusAngleOffset (1)<br />
 - CEntitySeekPosCalculatorFixedPos (1)<br />
 - CTaskComplexSeekEntityStandard (9)<br />
 - CTaskComplexSeekEntityRadiusAngleOffset (9)<br />
@@ -311,6 +306,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskSimpleTurn180 (6)<br />
 - CTaskSimpleTired (3)<br />
 - CTaskSimpleThrowProjectile (9)<br />
+- CTaskSimpleThrowControl (6)<br />
 - CTaskSimpleSwim (11)<br />
 - CTaskSimpleStealthKill (7)<br />
 - CTaskSimpleStandUp (8)<br />
@@ -417,6 +413,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexUseAttractor (7)<br />
 - CTaskComplexTurnToFaceEntityOrCoord (9)<br />
 - CTaskComplexTreatAccident (7)<br />
+- CTaskComplexTrackEntity (11)<br />
 - CTaskComplexStuckInAir (6)<br />
 - CTaskComplexStealCar (8)<br />
 - CTaskComplexStareAtPed (7)<br />
@@ -460,6 +457,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexGoToBoatSteeringWheel (6)<br />
 - CTaskComplexGetUpAndStandStill (5)<br />
 - CTaskComplexGetOnBoatSeat (8)<br />
+- CTaskComplexGangLeader (13)<br />
 - CTaskComplexFollowPointRoute (13)<br />
 - CTaskComplexFollowPedFootsteps (1)<br />
 - CTaskComplexFollowNodeRoute (19)<br />
@@ -484,6 +482,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexDieInCar (6)<br />
 - CTaskComplexDie (5)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
+- CTaskComplexDestroyCarArmed (10)<br />
 - CTaskComplexCopInCar (9)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
 - CTaskComplexCarDriveMission (5)<br />
@@ -503,15 +502,38 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskAllocatorAttack (5)<br />
 - CTaskManager (18)<br />
 - CTaskComplexSequence (13)<br />
+- CTask (4)<br />
 - CScriptedBrainTaskStore (4)<br />
 - CScriptedBrainTaskEntry (1)<br />
 - CPedScriptedTaskRecordData (8)<br />
 - CPedScriptedTaskRecord (5)<br />
+- CCopPed (7)<br />
+- CObject (48)<br />
+- CHandObject (3)<br />
+- CCutsceneObject (6)<br />
+- CDummyObject (2)<br />
+- CDummy (1)<br />
+- CCivilianPed (3)<br />
+- CPlaceable (16)<br />
+- CPhysical (56)<br />
+- CEntity (70)<br />
+- CBuilding (2)<br />
+- CAnimatedBuilding (3)<br />
+- CTempColModels (2)<br />
+- CCollisionData (8)<br />
+- CColTrianglePlane (2)<br />
+- CColStore (23)<br />
+- CColSphere (5)<br />
+- CColModel (9)<br />
+- CColLine (1)<br />
+- CColAccel (11)<br />
+- CBox (2)<br />
 - RtAnim (1)<br />
 - PipelinePlugin (3)<br />
 - NodeNamePlugin (3)<br />
 - JPegPlugin (5)<br />
 - CCollisionPlugin (2)<br />
+- C2dEffect (14)<br />
 - BreakablePlugin (6)<br />
 - ProcSurfaceInfo_c (4)<br />
 - ProcObjectMan_c (8)<br />
@@ -536,6 +558,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CAnimBlendHierarchy (16)<br />
 - CAnimBlendClumpData (6)<br />
 - CAnimBlendAssociation (20)<br />
+- CAnimBlendAssocGroup (15)<br />
 - CTheScripts (69)<br />
 - CStreamedScripts (12)<br />
 - InteriorManager_c (21)<br />
@@ -545,6 +568,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CShadowCamera (19)<br />
 - CRealTimeShadow (8)<br />
 - VideoPlayer (6)<br />
+- Light (27)<br />
 - Input (5)<br />
 - Game (12)<br />
 - App (7)<br />
@@ -557,7 +581,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CCustomCarEnvMapPipeline (37)<br />
 - CCustomBuildingDNPipeline (14)<br />
 - RwCore (4)<br />
-- WindowedModeHooks (3)<br />
+- CDecisionMakerTypesFileLoader (7)<br />
 - Common (9)<br />
 - CPedAttractorPedPlacer (1)<br />
 - CCarAI (25)<br />
@@ -565,50 +589,42 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (135/700) [19%]
+#### Partially reversed classes (117/700) [17%]
 
 <details>
-<summary>See list of classes</summary>- CWorld (92/93) [99%]<br />
-- CWeather (9/13) [69%]<br />
+<summary>See list of classes</summary>- C_PcSave (4/5) [80%]<br />
+- CWeather (10/13) [77%]<br />
 - CWeaponEffects (8/9) [89%]<br />
 - CWeapon (35/41) [85%]<br />
 - CWaterLevel (25/30) [83%]<br />
 - CStencilShadows (9/13) [69%]<br />
-- CSprite2d (32/33) [97%]<br />
-- CSprite (8/15) [53%]<br />
-- CSpecialFX (4/7) [57%]<br />
-- CShotInfo (1/5) [20%]<br />
+- CSprite (9/15) [60%]<br />
 - CRopes (9/11) [82%]<br />
 - CRope (5/7) [71%]<br />
+- CRoadBlocks (7/8) [88%]<br />
 - CPostEffects (35/38) [92%]<br />
 - CPopulation (64/66) [97%]<br />
 - CPopCycle (14/15) [93%]<br />
 - CPools (16/19) [84%]<br />
-- CPlayerInfo (24/28) [86%]<br />
+- CPlayerInfo (25/28) [89%]<br />
 - CPickups (35/37) [95%]<br />
-- CPickup (11/12) [92%]<br />
 - CPedList (3/7) [43%]<br />
 - CPedGroupPlacer (1/4) [25%]<br />
 - CPedGroup (10/12) [83%]<br />
-- CPedGeometryAnalyser (6/20) [30%]<br />
+- CPedGeometryAnalyser (9/38) [24%]<br />
 - CPedDamageResponseCalculator (2/7) [29%]<br />
 - CPathFind (54/56) [96%]<br />
 - CMenuSystem (20/21) [95%]<br />
 - CMenuManager (60/61) [98%]<br />
-- CLoadingScreen (19/20) [95%]<br />
-- CIplStore (33/34) [97%]<br />
 - CInterestingEvents (2/7) [29%]<br />
 - CGenericGameStorage (5/19) [26%]<br />
-- CGeneral (8/9) [89%]<br />
-- CGangs (7/8) [88%]<br />
 - CGangWars (32/35) [91%]<br />
-- CGame (21/22) [95%]<br />
 - CFormation (1/9) [11%]<br />
 - CFont (32/36) [89%]<br />
 - CEntryExit (10/11) [91%]<br />
-- CDoor (4/6) [67%]<br />
+- CEntityScanner (3/4) [75%]<br />
 - CCustomBuildingRenderer (3/7) [43%]<br />
-- CCollision (1/59) [2%]<br />
+- CCollision (58/59) [98%]<br />
 - CClouds (20/21) [95%]<br />
 - CClothesBuilder (15/23) [65%]<br />
 - CClothes (10/11) [91%]<br />
@@ -618,14 +634,13 @@ The percentages and the number of classes shown here may not be completely accur
 - CGroupEventHandler (30/32) [94%]<br />
 - CEventHandler (69/72) [96%]<br />
 - CBaseModelInfo (33/34) [97%]<br />
-- CVehicle (137/141) [97%]<br />
+- CVehicle (140/142) [99%]<br />
 - CTrain (20/40) [50%]<br />
 - CQuadBike (11/12) [92%]<br />
 - CPlane (14/23) [61%]<br />
 - CMonsterTruck (5/11) [45%]<br />
 - CBmx (7/10) [70%]<br />
 - CBike (21/40) [52%]<br />
-- CAutomobile (97/99) [98%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxManager_c (24/25) [96%]<br />
@@ -642,12 +657,8 @@ The percentages and the number of classes shown here may not be completely accur
 - CAEStreamingChannel (21/24) [88%]<br />
 - CAEStaticChannel (7/8) [88%]<br />
 - CAEAudioHardware (53/54) [98%]<br />
-- CPlayerPed (50/51) [98%]<br />
-- CPed (136/145) [94%]<br />
-- CPhysical (54/56) [96%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
-- CTaskSimpleThrowControl (5/6) [83%]<br />
 - CTaskSimpleRunNamedAnim (4/7) [57%]<br />
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
@@ -663,7 +674,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexWaitForBus (2/7) [29%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractorSprint (2/4) [50%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
-- CTaskComplexTrackEntity (8/11) [73%]<br />
 - CTaskComplexSunbathe (2/8) [25%]<br />
 - CTaskComplexSmartFleePoint (2/12) [17%]<br />
 - CTaskComplexSignalAtPed (4/7) [57%]<br />
@@ -678,11 +688,9 @@ The percentages and the number of classes shown here may not be completely accur
 - CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7) [43%]<br />
 - CTaskComplexGoToPointAiming (5/8) [62%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
-- CTaskComplexGangLeader (2/13) [15%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
 - CTaskComplexDragPedFromCar (1/2) [50%]<br />
-- CTaskComplexDestroyCarArmed (8/10) [80%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
@@ -690,32 +698,24 @@ The percentages and the number of classes shown here may not be completely accur
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
 - CPedGroupDefaultTaskAllocatorRandom (1/2) [50%]<br />
 - CTaskAllocatorKillThreatsBasic (5/6) [83%]<br />
-- RpAnimBlend (38/43) [88%]<br />
-- C2dEffect (13/14) [93%]<br />
-- CAnimBlendAssocGroup (14/15) [93%]<br />
+- CPlayerPed (50/51) [98%]<br />
+- CPed (137/145) [94%]<br />
+- RpAnimBlend (42/43) [98%]<br />
 - CScripted2dEffects (4/5) [80%]<br />
 - CScriptResourceManager (1/4) [25%]<br />
 - CRunningScript (24/39) [62%]<br />
 - InteriorGroup_c (2/24) [8%]<br />
 - CShadows (21/31) [68%]<br />
 - CRealTimeShadowManager (5/7) [71%]<br />
-- Light (26/27) [96%]<br />
-- CDecisionMakerTypesFileLoader (6/7) [86%]<br />
 - CConversations (10/11) [91%]<br />
 - CCam (14/44) [32%]<br />
 
 </details>
 
-#### Not-at-all reversed classes (9/700) [1%]
+#### Not-at-all reversed classes (3/700) [0%]
 
 <details>
-<summary>See list of classes</summary>- C_PcSave (5)<br />
-- CRoadBlocks (8)<br />
-- CLoadMonitor (6)<br />
-- CEntityScanner (2)<br />
-- CEntitySeekPosCalculatorXYOffset (1)<br />
-- CEntitySeekPosCalculatorRadiusAngleOffset (1)<br />
-- CTaskComplexGangFollower (7)<br />
+<summary>See list of classes</summary>- CTaskComplexGangFollower (7)<br />
 - Interior_c (52)<br />
 - FurnitureSubGroup_c (3)<br />
 
