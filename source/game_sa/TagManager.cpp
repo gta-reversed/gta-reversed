@@ -42,10 +42,17 @@ void CTagManager::Init() {
 // 0x49CC60
 void CTagManager::ShutdownForRestart()
 {
+#if 0
+    // Doing this here breaks the game, so i'll just leave it as it was originally...
     rng::fill(ms_tagDesc, tTagDesc{});
     if (notsa::bugfixes::CTagManager_MissingTagCountResetOnShutdown) {
         ms_numTags = 0;
     }
+#else
+    for (auto& tag : ms_tagDesc) {
+        tag.m_nAlpha = 0;
+    }
+#endif
     ms_numTagged = 0;
 }
 
