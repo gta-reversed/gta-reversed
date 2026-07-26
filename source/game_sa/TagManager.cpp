@@ -86,11 +86,13 @@ tTagDesc* CTagManager::FindTagDesc(CEntity* entity)
 }
 
 // 0x49CCE0
-bool CTagManager::IsTag(const CEntity* entity)
-{
+bool CTagManager::IsTag(const CEntity* entity) {
+    assert(entity);
+
     auto mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
-    if (mi->GetRwModelType() != rpATOMIC)
+    if (mi->GetRwModelType() != rpATOMIC) {
         return false;
+    }
 
     return mi->IsTagModel() && !mi->AsAtomicModelInfoPtr()->bTagDisabled;
 }
