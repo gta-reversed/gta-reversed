@@ -173,13 +173,18 @@ void CTagManager::SetAlpha(CEntity* entity, uint8 alphaToSet) {
     }
 }
 
-void CTagManager::ResetAlpha(CEntity* entity)
-{
-    if (!entity->GetRpAtomic())
-        return;
+void CTagManager::ResetAlpha(CEntity* entity) {
+    assert(IsTag(entity));
 
-    auto tagDesc = FindTagDesc(entity);
-    SetAlpha(entity->GetRpAtomic(), tagDesc->m_nAlpha);
+    auto* const atomicOfEntity = entity->GetRpAtomic();
+    if (!atomicOfEntity) {
+        return;
+    }
+    auto* const tagOfEntity = FindTagDesc(entity);
+    if (!tagOfEntity) {
+        return;
+    }
+    SetAlpha(atomicOfEntity, tagOfEntity->m_nAlpha);
 }
 
 // 0x49CFE0
