@@ -150,24 +150,26 @@ void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha)
 }
 
 // 0x49CEC0
-void CTagManager::SetAlpha(CEntity* entity, uint8 ucAlpha)
-{
-    if (entity->GetRpAtomic())
-        SetAlpha(entity->GetRpAtomic(), ucAlpha);
+void CTagManager::SetAlpha(CEntity* entity, uint8 alphaToSet) {
+    assert(IsTag(entity));
 
-    auto tagDesc = FindTagDesc(entity);
-    auto bChangedState = false;
-    if (ucAlpha > ALPHA_TAGGED && tagDesc->m_nAlpha <= ALPHA_TAGGED)
-        bChangedState = true;
+    if (auto* const atomicOfEntity = entity->GetRpAtomic()) {
+        SetAlpha(atomicOfEntity, alphaToSet);
+    }
 
-    tagDesc->m_nAlpha = ucAlpha;
+    auto* const tag          = FindTagDesc(entity);
+
+    const auto justGotTagged = alphaToSet > ALPHA_TAGGED && tag->m_nAlpha <= ALPHA_TAGGED;
+
+    tag->m_nAlpha            = alphaToSet;
     UpdateNumTagged();
 
-    if (bChangedState && !TheCamera.m_bWideScreenOn) {
-        if (ms_numTagged == ms_numTags)
-            CGarages::TriggerMessage("TAG_ALL", -1, 5000u, -1);
-        else
-            CGarages::TriggerMessage("TAG_ONE", ms_numTagged, 5000u, ms_numTags);
+    if (justGotTagged && !TheCamera.m_bWideScreenOn) {
+        if (ms_numTagged == ms_numTags) {
+            CGarages::TriggerMessage("TAG_ALL", -1, 5'000u, -1);
+        } else {
+            CGarages::TriggerMessage("TAG_ONE", ms_numTagged, 5'000u, ms_numTags);
+        }
     }
 }
 
