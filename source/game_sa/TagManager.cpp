@@ -72,10 +72,8 @@ void CTagManager::AddTag(CEntity* entity)
 }
 
 // 0x49CCB0
-tTagDesc* CTagManager::FindTagDesc(CEntity* entity)
-{
-    if (!ms_numTags)
-        return nullptr;
+tTagDesc* CTagManager::FindTagDesc(CEntity* entity) {
+    assert(entity);
 
     for (auto& tag : GetTags()) {
         if (tag.m_pEntity == entity) {
