@@ -65,11 +65,10 @@ const CVector& CTagManager::GetTagPos(int32 idx)
 // 0x49CC90
 void CTagManager::AddTag(CEntity* entity)
 {
-    auto& tag = ms_tagDesc[ms_numTags];
-    tag.m_pEntity = entity;
-    tag.m_nAlpha = 0;
+    assert(entity);
+    assert(IsTag(entity) && "Must be a tag entity");
 
-    ms_numTags++;
+    ms_tagDesc[ms_numTags++] = tTagDesc{ entity, 0 };
 }
 
 // 0x49CCB0
