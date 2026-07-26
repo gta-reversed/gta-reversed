@@ -566,6 +566,8 @@ public:
     static void DrawDebugAngledCube(const CVector& inf, const CVector& sup, const CVector2D& rotSup, const CVector2D& rotInf);
     static void DrawScriptSpritesAndRectangles(bool drawBeforeFade);
 
+    static void TerminateScript(CRunningScript& S);
+
     // NOTSA
     template<typename ChunkT = tSCMChunkHeader>
         requires std::is_base_of_v<tSCMChunkHeader, ChunkT>

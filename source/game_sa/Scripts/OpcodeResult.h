@@ -1,8 +1,8 @@
 #pragma once
 
+/** This enum pretty much follows CLEO's `OpcodeResult` enum  */
 enum OpcodeResult : int8 {
+    OR_INTERRUPT = 1,
     OR_CONTINUE = 0,
-    OR_WAIT = 1,
-    OR_INTERRUPT = -1,
-    OR_IMPLEMENTED_YET = -2 // NOTSA
+    OR_ERROR = -1,
 };

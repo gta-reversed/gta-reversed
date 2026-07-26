@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include "RunningScript.h"
 #include "TheScripts.h"
 #include "UpsideDownCarCheck.h"
 #include "Lines.h"
@@ -896,7 +897,7 @@ int32 CTheScripts::GetUniqueScriptThingIndex(int32 playerGroup, eScriptThingType
     case SCRIPT_THING_PED_GROUP:
         return playerGroup | (CPedGroups::ScriptReferenceIndex[playerGroup] << 16);
     default:
-        return OR_INTERRUPT;
+        return -1;
     }
 }
 
@@ -1429,12 +1430,21 @@ void CTheScripts::Process() {
 
     CLoadingScreen::NewChunkLoaded();
 
-    for (CRunningScript* it = pActiveScripts, *next{}; it; it = next) {
-        next = it->m_pNext;
+    for (CRunningScript* script = pActiveScripts, *next{}; script; script = next) {
+        next = script->m_pNext;
 
-        it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
-        it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
-        it->Process();
+        script->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
+        script->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
+
+        switch (script->Process()) {
+        case OR_ERROR: {
+            NOTSA_LOG_CRIT("Terminating script `{}` because of an error - See logs for more information", script->GetName());
+            TerminateScript(*script);
+            break;
+        }
+        default:
+            continue;
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();
@@ -1793,6 +1803,17 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             NOTSA_UNREACHABLE("Unknown script-rect type ({})", (int32)(rt.m_nType));
         }
     }
+}
+
+// notsa
+// based on `COMMAND_TERMINATE_THIS_SCRIPT`
+void CTheScripts::TerminateScript(CRunningScript& S) {
+    if (S.m_ThisMustBeTheOnlyMissionRunning) {
+        CTheScripts::bAlreadyRunningAMissionScript = false;
+    }
+    S.RemoveScriptFromList(&CTheScripts::pActiveScripts);
+    S.AddScriptToList(&CTheScripts::pIdleScripts);
+    S.ShutdownThisScript();
 }
 
 // Usage:
