@@ -77,8 +77,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
         std::setlocale(LC_ALL, "en_US.UTF-8");
 
-        CommandLine::Load(__argc, __argv);
         notsa::debug::DisplayConsole();
+        CommandLine::Load(__argc, __argv);
         if (CommandLine::s_WaitForDebugger) {
             notsa::debug::WaitForDebugger();
         }

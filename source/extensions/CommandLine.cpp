@@ -52,7 +52,7 @@ void ProcessArgument(std::string_view arg) {
                 s_UnhookSome.emplace_back(std::move(hook));
             }
         }
-    } else if (arg.starts_with("--dump-hooks-to")) {
+    } else if (arg.starts_with("--dump-hooks-to=")) {
         if (const auto eqPos = arg.find('='); eqPos != std::string_view::npos) {
             s_DumpHooksPath = arg.substr(eqPos + 1);
         } else {
