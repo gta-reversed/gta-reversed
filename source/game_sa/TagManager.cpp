@@ -229,9 +229,8 @@ void CTagManager::Save()
 }
 
 // 0x5D3DA0
-void CTagManager::Load()
-{
-#if FIX_BUGS
+void CTagManager::Load() {
+#if 0 // FIX_BUGS - NOTE(Pirulax): I've tested, and it breaks the tags (Just try the "tagging the turf" mission), so I guess just leave it as-is
     // TODO: Verify if there are no side effects due to this fix - it's done the same way on android but I'm not sure why this worked even without reading the data to ms_numTags
     // The loop below always iterated the proper amount of times, so i assume the tags are loaded at some point before save is loaded, and we already have all the tags initialized
     CGenericGameStorage::LoadDataFromWorkBuffer(ms_numTags);
