@@ -2022,10 +2022,9 @@ void CVehicle::AddDamagedVehicleParticles() {
         return;
     }
 
-    RwMatrix* matrix = nullptr;
-    if (GetRpAtomic()) {
-        matrix = RwFrameGetMatrix(RpAtomicGetFrame(GetRpAtomic()));
-    }
+    auto* const matrix = GetRpClump()
+        ? RwFrameGetMatrix(RpClumpGetFrame(GetRpClump()))
+        : nullptr;
 
     if (!m_pOverheatParticle && matrix) {
         m_pOverheatParticle = g_fxMan.CreateFxSystem(
