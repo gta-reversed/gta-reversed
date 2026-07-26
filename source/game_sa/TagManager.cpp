@@ -130,13 +130,17 @@ uint8 CTagManager::GetAlpha(RpAtomic* atomic)
 
 uint8 CTagManager::GetAlpha(CEntity* entity)
 {
-    if (entity->GetRpAtomic())
+    assert(IsTag(entity));
+
+    if (entity->GetRpAtomic()) {
         return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->GetRpAtomic()));
+    }
 
-    auto tag = FindTagDesc(entity);
-    assert(tag); // Originally the function would access uninitialized memory, by clearing EAX and dereferencing pointer to [EAX + 0x4] right after that
-
-    return tag->m_nAlpha;
+    auto* const desc = FindTagDesc(entity);
+    if (!desc) {
+        return 0;
+    }
+    return desc->m_nAlpha;
 }
 
 // 0x49CD30
