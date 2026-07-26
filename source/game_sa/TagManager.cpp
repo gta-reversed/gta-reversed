@@ -5,8 +5,7 @@
 #include "TagManager.h"
 #include "Garages.h"
 
-void CTagManager::InjectHooks()
-{
+void CTagManager::InjectHooks() {
     RH_ScopedClass(CTagManager);
     RH_ScopedCategoryGlobal();
 
@@ -35,13 +34,12 @@ void CTagManager::InjectHooks()
 void CTagManager::Init() {
     ZoneScoped;
 
-    ms_numTags = 0;
+    ms_numTags   = 0;
     ms_numTagged = 0;
 }
 
 // 0x49CC60
-void CTagManager::ShutdownForRestart()
-{
+void CTagManager::ShutdownForRestart() {
 #if 0
     // Doing this here breaks the game, so i'll just leave it as it was originally...
     rng::fill(ms_tagDesc, tTagDesc{});
@@ -57,14 +55,12 @@ void CTagManager::ShutdownForRestart()
 }
 
 // 0x49CEA0
-const CVector& CTagManager::GetTagPos(int32 idx)
-{
+const CVector& CTagManager::GetTagPos(int32 idx) {
     return GetTags()[idx].m_pEntity->GetPosition();
 }
 
 // 0x49CC90
-void CTagManager::AddTag(CEntity* entity)
-{
+void CTagManager::AddTag(CEntity* entity) {
     assert(entity);
     assert(IsTag(entity) && "Must be a tag entity");
 
@@ -96,8 +92,7 @@ bool CTagManager::IsTag(const CEntity* entity) {
 }
 
 // 0x49CDA0
-int32 CTagManager::GetPercentageTagged()
-{
+int32 CTagManager::GetPercentageTagged() {
     return static_cast<int32>(static_cast<float>(ms_numTagged) / static_cast<float>(ms_numTags) * 100.0F);
 }
 
@@ -116,20 +111,17 @@ int32 CTagManager::GetPercentageTaggedInArea(const CRect& area) {
 }
 
 // 0x49CDE0
-void CTagManager::UpdateNumTagged()
-{
+void CTagManager::UpdateNumTagged() {
     ms_numTagged = rng::count_if(GetTags(), [](const tTagDesc& tag) {
         return tag.m_nAlpha > ALPHA_TAGGED;
     });
 }
 
-uint8 CTagManager::GetAlpha(RpAtomic* atomic)
-{
+uint8 CTagManager::GetAlpha(RpAtomic* atomic) {
     return static_cast<uint8>(CVisibilityPlugins::GetUserValue(atomic));
 }
 
-uint8 CTagManager::GetAlpha(CEntity* entity)
-{
+uint8 CTagManager::GetAlpha(CEntity* entity) {
     assert(IsTag(entity));
 
     if (entity->GetRpAtomic()) {
@@ -137,15 +129,16 @@ uint8 CTagManager::GetAlpha(CEntity* entity)
     }
 
     auto* const desc = FindTagDesc(entity);
-    if (!desc) {
-        return 0;
+    if (notsa::bugfixes::GenericCrashing) {
+        if (!desc) {
+            return 0;
+        }
     }
     return desc->m_nAlpha;
 }
 
 // 0x49CD30
-void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha)
-{
+void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha) {
     CVisibilityPlugins::SetUserValue(atomic, ucAlpha);
 }
 
@@ -158,6 +151,11 @@ void CTagManager::SetAlpha(CEntity* entity, uint8 alphaToSet) {
     }
 
     auto* const tag          = FindTagDesc(entity);
+    if (notsa::bugfixes::GenericCrashing) {
+        if (!tag) {
+            return;
+        }
+    }
 
     const auto justGotTagged = alphaToSet > ALPHA_TAGGED && tag->m_nAlpha <= ALPHA_TAGGED;
 
@@ -181,19 +179,22 @@ void CTagManager::ResetAlpha(CEntity* entity) {
         return;
     }
     auto* const tagOfEntity = FindTagDesc(entity);
-    if (!tagOfEntity) {
-        return;
+    if (notsa::bugfixes::GenericCrashing) {
+        if (!tagOfEntity) {
+            return;
+        }
     }
     SetAlpha(atomicOfEntity, tagOfEntity->m_nAlpha);
 }
 
 // 0x49CFE0
-void CTagManager::SetAlphaInArea(const CRect& area, uint8 alphaToSet)
-{
+void CTagManager::SetAlphaInArea(const CRect& area, uint8 alphaToSet) {
     for (auto& tag : GetTagsInArea(area)) {
         auto* const atomicOfTag = tag.m_pEntity->GetRpAtomic();
-        if (!atomicOfTag) {
-            continue;
+        if (notsa::bugfixes::GenericCrashing) {
+            if (!atomicOfTag) {
+                continue;
+            }
         }
         SetAlpha(atomicOfTag, alphaToSet);
         tag.m_nAlpha = alphaToSet;
@@ -217,27 +218,24 @@ CEntity* CTagManager::GetNearestTag(const CVector& nearestToPoint) {
 }
 
 // 0x49CE10
-void CTagManager::SetupAtomic(RpAtomic* atomic)
-{
-    auto geometry = RpAtomicGetGeometry(atomic);
-    auto material = RpGeometryGetMaterial(geometry, 1);
+void CTagManager::SetupAtomic(RpAtomic* atomic) {
+    auto geometry      = RpAtomicGetGeometry(atomic);
+    auto material      = RpGeometryGetMaterial(geometry, 1);
     material->pipeline = ms_pPipeline;
     RpGeometrySetFlags(geometry, RpGeometryGetFlags(geometry) | rpGEOMETRYMODULATEMATERIALCOLOR);
     SetAlpha(atomic, 0);
 }
 
 // 0x49CE40
-void CTagManager::RenderTagForPC(RpAtomic* atomic)
-{
-    auto geometry = RpAtomicGetGeometry(atomic);
-    auto material = RpGeometryGetMaterial(geometry, 1);
-    material->color.alpha = GetAlpha(atomic);
+void CTagManager::RenderTagForPC(RpAtomic* atomic) {
+    auto geometry                       = RpAtomicGetGeometry(atomic);
+    auto material                       = RpGeometryGetMaterial(geometry, 1);
+    RpMaterialGetColor(material)->alpha = GetAlpha(atomic);
     RpAtomicRender(atomic);
 }
 
 // 0x5D3D60
-void CTagManager::Save()
-{
+void CTagManager::Save() {
     CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags);
 
     for (auto& tag : GetTags()) {
