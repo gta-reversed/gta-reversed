@@ -9,6 +9,10 @@ on:
        - 'contrib/hooks2md.py'
        - '.github/**'
 
+concurrency:
+  group: update-re-progress
+  cancel-in-progress: true
+
 #
 # NOTE #
 #
