@@ -1,7 +1,8 @@
 #pragma once
 
+#include <array>
 #include <span>
-#include <Base.h>
+#include <Base.h
 
 #include "RenderWare.h"
 

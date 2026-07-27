@@ -191,10 +191,8 @@ void CTagManager::ResetAlpha(CEntity* entity) {
 void CTagManager::SetAlphaInArea(const CRect& area, uint8 alphaToSet) {
     for (auto& tag : GetTagsInArea(area)) {
         auto* const atomicOfTag = tag.m_pEntity->GetRpAtomic();
-        if (notsa::bugfixes::GenericCrashing) {
-            if (!atomicOfTag) {
-                continue;
-            }
+        if (!atomicOfTag) {
+            continue;
         }
         SetAlpha(atomicOfTag, alphaToSet);
         tag.m_nAlpha = alphaToSet;
