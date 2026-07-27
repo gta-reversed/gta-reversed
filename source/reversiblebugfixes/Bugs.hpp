@@ -83,7 +83,7 @@ inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLetter
 inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_InvalidSurfaceType{
     .Name        = "CAECollisionAudioEntity::PlayLoopingCollisionSound - Invalid surface type causing OOB",
     .Description = "The surface type passed in could've been an `AE_SURFACE_TYPE_*` which when passed to `g_surfaceInfos` causes an OOB. "
-    "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
+                   "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
 inline const ReversibleBugFix CTagManager_MissingTagCountResetOnShutdown{
