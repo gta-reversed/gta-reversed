@@ -106,6 +106,7 @@ enum eCantBeKnockedOffBike : uint8 {
     CANT_BE_KNOCKED_OFF_ALWAYS_NORMAL = 2, // knocked off regardless of riding skill
     CANT_BE_KNOCKED_OFF_ALWAYS_HARD   = 3, // knocked off even at a much lower impact force
 };
+static_assert(CANT_BE_KNOCKED_OFF_ALWAYS_HARD <= 0b11, "eCantBeKnockedOffBike must fit in the 2-bit CantBeKnockedOffBike field");
 
 class NOTSA_EXPORT_VTABLE CPed : public CPhysical {
 public:

@@ -196,21 +196,21 @@ bool CBike::DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16
 
     // A ped already reacting to a hit isn't also knocked off (cops are exempt)
     if (const auto task = driver->GetIntelligence()->GetTaskManager().GetActiveTask()) {
-        if (task->GetTaskType() == TASK_SIMPLE_BE_HIT && driver->m_nPedType != PED_TYPE_COP) {
+        if (task->GetTaskType() == TASK_SIMPLE_BE_HIT && !driver->IsCop()) {
             return false;
         }
     }
 
     const auto& mat = *vehicle->m_matrix;
-    const auto fwdDot   = DotProduct(mat.GetForward(), collisionImpactVelocity);
-    const auto upDot    = DotProduct(mat.GetUp(), collisionImpactVelocity);
-    const auto rightDot = DotProduct(mat.GetRight(), collisionImpactVelocity);
+    const auto impactFwdMag   = mat.GetForward().Dot(collisionImpactVelocity);
+    const auto impactUpMag    = mat.GetUp().Dot(collisionImpactVelocity);
+    const auto impactRightMag = mat.GetRight().Dot(collisionImpactVelocity);
 
     // Per-axis weighting of the impact
     auto fwdWeight = 0.6f;
-    if (std::abs(fwdDot) > 0.85f) {
+    if (std::abs(impactFwdMag) > 0.85f) {
         const auto vertical = collisionImpactVelocity.z < 0.85f ? 0.0f : collisionImpactVelocity.z;
-        fwdWeight = 7.0f * vertical * vertical + 0.6f;
+        fwdWeight = 7.0f * sq(vertical) + 0.6f;
     }
     if (mat.GetUp().z < 0.0f) { // bike lying on its side / upside down
         fwdWeight = 5.0f;
@@ -227,14 +227,14 @@ bool CBike::DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16
         upWeight  *= 0.75f;
     }
 
-    if (fwdDot > 0.0f) {
+    if (impactFwdMag > 0.0f) {
         fwdWeight *= 1.0f - driver->GetBikeRidingSkill() * 0.6f;
     }
 
-    force *= std::abs(fwdDot) * fwdWeight
-           + std::max(upDot, 0.0f) * upWeight
-           + std::abs(rightDot) * 0.45f
-           - std::min(upDot, 0.0f) * backWeight;
+    force *= std::abs(impactFwdMag) * fwdWeight
+           + std::max(impactUpMag, 0.0f) * upWeight
+           + std::abs(impactRightMag) * 0.45f
+           - std::min(impactUpMag, 0.0f) * backWeight;
 
     // Don't knock the player off while they're on stairs
     if (driver->IsPlayer() && CCullZones::CamStairsForPlayer() && CCullZones::FindZoneWithStairsAttributeForPlayer()) {
@@ -242,7 +242,7 @@ bool CBike::DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16
     }
 
     // ALWAYS_HARD peds come off at a much lower force threshold
-    if (force <= 75.0f && (driver->CantBeKnockedOffBike != CANT_BE_KNOCKED_OFF_ALWAYS_HARD || force <= 20.0f)) {
+    if (force <= (driver->CantBeKnockedOffBike == CANT_BE_KNOCKED_OFF_ALWAYS_HARD ? 20.0f : 75.0f)) {
         return false;
     }
 
@@ -254,22 +254,16 @@ bool CBike::DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16
         return false;
     }
 
-    const CVector2D localDir{ -collisionImpactVelocity.x, -collisionImpactVelocity.y };
-    constexpr int32 DIR_NOT_SET = -10;
-    auto knockOffDir = DIR_NOT_SET;
+    // The driver (guaranteed present here) is thrown off, and so is the passenger, both reacting with the driver's facing
+    const auto knockOffDir = (uint8)driver->GetLocalDirection(-CVector2D{ collisionImpactVelocity });
 
-    // Both driver and passenger are thrown off; each reacts using its own facing
-    {
-        knockOffDir = driver->GetLocalDirection(localDir);
-        auto ev = CEventKnockOffBike{ vehicle, vehicle->m_vecMoveSpeed, collisionImpactVelocity, damageIntensity, 0.05f * force, KNOCK_OFF_TYPE_SKIDBACKFRONT, (uint8)knockOffDir, 0, nullptr, true, false };
-        driver->GetEventGroup().Add(&ev);
-    }
+    driver->GetEventGroup().Add(CEventKnockOffBike{
+        vehicle, vehicle->m_vecMoveSpeed, collisionImpactVelocity, damageIntensity, 0.05f * force, KNOCK_OFF_TYPE_SKIDBACKFRONT, knockOffDir, 0, nullptr, true, false
+    });
     if (passenger) {
-        if (knockOffDir == DIR_NOT_SET) {
-            knockOffDir = passenger->GetLocalDirection(localDir);
-        }
-        auto ev = CEventKnockOffBike{ vehicle, vehicle->m_vecMoveSpeed, collisionImpactVelocity, damageIntensity, 0.05f * force, KNOCK_OFF_TYPE_SKIDBACKFRONT, (uint8)knockOffDir, 0, nullptr, false, false };
-        passenger->GetEventGroup().Add(&ev);
+        passenger->GetEventGroup().Add(CEventKnockOffBike{
+            vehicle, vehicle->m_vecMoveSpeed, collisionImpactVelocity, damageIntensity, 0.05f * force, KNOCK_OFF_TYPE_SKIDBACKFRONT, knockOffDir, 0, nullptr, false, false
+        });
     }
     return true;
 }
