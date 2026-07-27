@@ -60,7 +60,7 @@ public:
      * @return A view of all tags that are in the given area (With valid entity pointers)
      */
     static auto GetTagsInArea(const CRect& area) {
-        return GetTags() | std::views::filter([&area] (const tTagDesc& tag) {
+        return GetTags() | std::views::filter([area] (const tTagDesc& tag) {
             return area.IsPointInside(tag.m_pEntity->GetPosition2D());
         });
     }
