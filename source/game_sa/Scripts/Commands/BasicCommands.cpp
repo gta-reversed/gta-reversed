@@ -216,10 +216,12 @@ bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
     return a == b;
 }
 
-template<size_t N>
+template<size_t MaxNumToCopy>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
     assert(dst.Cap >= src.Cap);
-    strncpy(dst.Data, src.Data, N);
+    assert(dst.Cap >= MaxNumToCopy);
+
+    strncpy(dst.Data, src.Data, MaxNumToCopy);
 }
 };
 
