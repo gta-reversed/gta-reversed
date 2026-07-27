@@ -48,7 +48,7 @@ void CTagManager::ShutdownForRestart() {
     }
 #else
     for (auto& tag : ms_tagDesc) {
-        tag.m_nAlpha = 0;
+        tag.Alpha = 0;
     }
 #endif
     ms_numTagged = 0;
@@ -56,7 +56,7 @@ void CTagManager::ShutdownForRestart() {
 
 // 0x49CEA0
 const CVector& CTagManager::GetTagPos(int32 idx) {
-    return GetTags()[idx].m_pEntity->GetPosition();
+    return GetTags()[idx].Entity->GetPosition();
 }
 
 // 0x49CC90
@@ -69,7 +69,7 @@ void CTagManager::AddTag(CEntity& entity) {
 // 0x49CCB0
 tTagDesc* CTagManager::FindTagDesc(const CEntity& entity) {
     for (auto& tag : GetTags()) {
-        if (tag.m_pEntity == &entity) {
+        if (tag.Entity == &entity) {
             return &tag;
         }
     }
@@ -96,7 +96,7 @@ int32 CTagManager::GetPercentageTaggedInArea(const CRect& area) {
     int32 numTotalTaggable = 0, numTagged = 0;
     for (auto& tag : GetTagsInArea(area)) {
         ++numTotalTaggable;
-        if (tag.m_nAlpha > ALPHA_TAGGED) {
+        if (tag.Alpha > ALPHA_TAGGED) {
             ++numTagged;
         }
     }
@@ -108,7 +108,7 @@ int32 CTagManager::GetPercentageTaggedInArea(const CRect& area) {
 // 0x49CDE0
 void CTagManager::UpdateNumTagged() {
     ms_numTagged = rng::count_if(GetTags(), [](const tTagDesc& tag) {
-        return tag.m_nAlpha > ALPHA_TAGGED;
+        return tag.Alpha > ALPHA_TAGGED;
     });
 }
 
@@ -129,7 +129,7 @@ uint8 CTagManager::GetAlpha(const CEntity& entity) {
             return 0;
         }
     }
-    return desc->m_nAlpha;
+    return desc->Alpha;
 }
 
 // 0x49CD30
@@ -152,9 +152,8 @@ void CTagManager::SetAlpha(CEntity& entity, uint8 alphaToSet) {
         }
     }
 
-    const auto justGotTagged = alphaToSet > ALPHA_TAGGED && tag->m_nAlpha <= ALPHA_TAGGED;
-
-    tag->m_nAlpha            = alphaToSet;
+    const auto justGotTagged = alphaToSet > ALPHA_TAGGED && tag->Alpha <= ALPHA_TAGGED;
+    tag->Alpha               = alphaToSet;
     UpdateNumTagged();
 
     if (justGotTagged && !TheCamera.m_bWideScreenOn) {
@@ -179,19 +178,19 @@ void CTagManager::ResetAlpha(const CEntity& entity) {
             return;
         }
     }
-    SetAlpha(*atomicOfEntity, tagOfEntity->m_nAlpha);
+    SetAlpha(*atomicOfEntity, tagOfEntity->Alpha);
 }
 
 // 0x49CFE0
 void CTagManager::SetAlphaInArea(const CRect& area, uint8 alphaToSet) {
     for (auto& tag : GetTagsInArea(area)) {
-        auto* const atomicOfTag = tag.m_pEntity->GetRpAtomic();
+        auto* const atomicOfTag = tag.Entity->GetRpAtomic();
         if (!atomicOfTag) {
             continue;
         }
         SetAlpha(*atomicOfTag, alphaToSet);
-        tag.m_nAlpha = alphaToSet;
-    }
+        tag.Alpha = alphaToSet;
+    }           
     UpdateNumTagged();
 }
 
@@ -200,13 +199,13 @@ CEntity* CTagManager::GetNearestTag(const CVector& nearestToPoint) {
     tTagDesc* closest         = nullptr;
     float     closestDist2DSq = RwRealMAXVAL;
     for (auto& tag : GetTags()) {
-        if (const auto dist2DSq = CVector2D::DistSqr(nearestToPoint, tag.m_pEntity->GetPosition2D()); dist2DSq < closestDist2DSq) {
+        if (const auto dist2DSq = CVector2D::DistSqr(nearestToPoint, tag.Entity->GetPosition2D()); dist2DSq < closestDist2DSq) {
             closestDist2DSq = dist2DSq;
             closest         = &tag;
         }
     }
     return closest
-        ? closest->m_pEntity
+        ? closest->Entity
         : nullptr; // BUGFIX(Pirulax): Original caller site does handle nullptr just fine, they just kinda forgot to return null if there are no tags at all xD
 }
 
@@ -232,7 +231,7 @@ void CTagManager::Save() {
     CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags);
 
     for (const auto& tag : GetTags()) {
-        CGenericGameStorage::SaveDataToWorkBuffer(tag.m_nAlpha);
+        CGenericGameStorage::SaveDataToWorkBuffer(tag.Alpha);
     }
 }
 
@@ -247,7 +246,7 @@ void CTagManager::Load() {
 #endif
 
     for (auto& tag : GetTags()) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(tag.m_nAlpha);
+        CGenericGameStorage::LoadDataFromWorkBuffer(tag.Alpha);
     }
 
     NOTSA_LOG_DEBUG("Loaded {} tags", ms_numTags);

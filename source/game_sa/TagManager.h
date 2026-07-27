@@ -4,16 +4,16 @@
 #include <span>
 
 #include <Base.h>
-#include <Vector.h>
-#include <Entity.h>
-#include <RenderWare.h>
 
-class CEntity;
-class CRect;
+#include "Vector.h"
+#include "Entity.h"
+#include "Rect.h"
+
+struct RpAtomic;
 
 struct tTagDesc {
-    CEntity* m_pEntity;
-    uint8    m_nAlpha;
+    CEntity* Entity; //!< The physical tag entity (Pretty much just a model with a single atomic and material)
+    uint8    Alpha; //!< The alpha value of the tag (0-255)
 };
 
 class CTagManager {
@@ -61,7 +61,7 @@ public:
      */
     static auto GetTagsInArea(const CRect& area) {
         return GetTags() | std::views::filter([area] (const tTagDesc& tag) {
-            return area.IsPointInside(tag.m_pEntity->GetPosition2D());
+            return area.IsPointInside(tag.Entity->GetPosition2D());
         });
     }
 
