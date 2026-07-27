@@ -61,7 +61,7 @@ jobs:
           os: windows-2025-vs2026
           arch: x86
           conf: Debug # Builds faster, and there's functionally no difference in this case
-          preset: NoUnity
+          preset: Unity
           dump_hooks_only: true
       
       - name: Build standalone executable
