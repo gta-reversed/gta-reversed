@@ -16,7 +16,7 @@ Virtual::Virtual(
     Base{ name, HookType::Virtual, reversed },
     m_vtbls{ vtblGTA, vtblOur }, // Should be in the same order as the indexers: GTA, OUR
     m_fnIdx{ fnIdx },
-#ifdef NOTSA_STANDALONE
+#ifdef NOTSA_STANDALONE // TODO: We should take both addreses as arguments, and search for the function index ourself, so we can use this in standalone mode as well
     m_simpleHook{ name, NULL, nullptr }
 #else
     m_simpleHook{ name, (uint32)(vtblGTA[fnIdx]), vtblOur[fnIdx] }

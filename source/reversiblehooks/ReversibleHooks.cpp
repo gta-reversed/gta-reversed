@@ -142,7 +142,7 @@ void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
 void WriteHooksToFile(const std::filesystem::path& file) {
     const auto path = std::filesystem::weakly_canonical(file);
     if (std::ofstream of{ file }) {
-        of << "class,fn_name,address,reversed,locked,is_virtual\n";
+        of << "class,fn_name,address,reversed,locked,type\n";
         s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
             using namespace ReversibleHook;
             for (const auto& item : cat.Items()) {

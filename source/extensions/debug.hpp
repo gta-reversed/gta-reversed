@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <debugapi.h>
+#include <cstdio>
 
 
 namespace notsa {
