@@ -3,7 +3,7 @@ name: Update progress tracking docs
 on:
   push:
      branches:
-       - main
+       - master
      paths:
        - 'source/**'
        - 'contrib/hooks2md.py'
