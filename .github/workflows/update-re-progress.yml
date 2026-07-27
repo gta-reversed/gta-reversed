@@ -77,12 +77,30 @@ jobs:
           cat logs/log.log
           echo "::endgroup::"
 
+      - name: Check if hooks.csv has changed
+        id: check-hooks-csv
+        shell: bash
+        run: |
+          if git diff --ignore-all-space --exit-code docs/hooks.csv; then
+            echo "No changes in hooks.csv, skipping update of ReversedClasses.md"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes detected in hooks.csv"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Update ReversedClasses.md
-        shell: cmd
+        if: steps.check-hooks-csv.outputs.has_changes == 'true'
+        shell: bash
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           python contrib/hooks2md.py --input docs/hooks.csv --output docs/ReversedClasses.md
 
       - name: Commit and push changes
+        if: steps.check-hooks-csv.outputs.has_changes == 'true'
+        shell: bash
         run: |
             git add docs/ReversedClasses.md docs/hooks.csv
             git commit -m "ci: Update progress tracking docs [skip ci]"

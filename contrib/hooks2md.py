@@ -2,9 +2,13 @@ import argparse
 from contextlib import contextmanager
 import csv
 import datetime
+import os
 import tkinter.filedialog as tkFileDialog
 from dataclasses import dataclass
 from typing import Any
+
+GITHUB_SHA = os.environ.get("GITHUB_SHA", "unknown")
+GITHUB_REPO_URL = os.environ.get("GITHUB_REPOSITORY_URL")
 
 ap = argparse.ArgumentParser(description="Generate a Markdown file with reversed classes stats from hooks.csv")
 ap.add_argument("--input", default=None, help="Path to the hooks.csv file (if not provided, a file dialog will be shown to select the input file)")
@@ -56,7 +60,10 @@ def main():
     num_total_klass = len(partially) + len(completely) + len(not_at_all)
 
     with open(args.output, "w", encoding="utf8", newline='\n') as outf:
-        outf.write(f"# Reversed Classes [As of {datetime.datetime.now(datetime.timezone.utc).strftime('%b %d, %Y, %H:%M:%S')} UTC]\n")
+        outf.write("# Reversed Classes progress\n")
+        outf.write("This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.\n\n")
+        outf.write(f"Last update was at {datetime.datetime.now(datetime.timezone.utc).strftime('%b %d, %Y at %H:%M:%S')} UTC triggered by [{GITHUB_SHA}]({GITHUB_REPO_URL}/commit/{GITHUB_SHA}) \n")
+        outf.write("\n")
 
         outf.write("## Disclaimer\n")
         outf.write(
