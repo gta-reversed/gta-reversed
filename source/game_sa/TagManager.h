@@ -2,12 +2,11 @@
 
 #include <array>
 #include <span>
-#include <Base.h
 
-#include "RenderWare.h"
-
+#include <Base.h>
 #include <Vector.h>
 #include <Entity.h>
+#include <RenderWare.h>
 
 class CEntity;
 class CRect;
@@ -34,18 +33,18 @@ public:
     static void           Init();
     static void           ShutdownForRestart();
     static const CVector& GetTagPos(int32 idx);
-    static void           AddTag(CEntity* entity);
-    static bool           IsTag(const CEntity* entity);
+    static void           AddTag(CEntity& entity);
+    static bool           IsTag(const CEntity& entity);
     static int32          GetPercentageTaggedInArea(const CRect& area);
     static int32          GetPercentageTagged();
     static void           UpdateNumTagged();
-    static uint8          GetAlpha(CEntity* entity);
-    static void           SetAlpha(CEntity* entity, uint8 ucAlpha);
-    static void           SetAlphaInArea(const CRect& area, uint8 ucAlpha);
-    static void           ResetAlpha(CEntity* entity);
-    static CEntity*       GetNearestTag(const CVector& vecPos);
-    static void           SetupAtomic(RpAtomic* atomic);
-    static void           RenderTagForPC(RpAtomic* atomic);
+    static uint8          GetAlpha(const CEntity& entity);
+    static void           SetAlpha(CEntity& entity, uint8 alphaToSet);
+    static void           SetAlphaInArea(const CRect& area, uint8 alphaToSet);
+    static void           ResetAlpha(const CEntity& entity);
+    static CEntity*       GetNearestTag(const CVector& nearestToPoint);
+    static void           SetupAtomic(RpAtomic& atomic);
+    static void           RenderTagForPC(RpAtomic& atomic);
     static void           Save();
     static void           Load();
 
@@ -67,7 +66,7 @@ public:
     }
 
 private:
-    static void      SetAlpha(RpAtomic* atomic, uint8 ucAlpha);
-    static uint8     GetAlpha(RpAtomic* atomic);
-    static tTagDesc* FindTagDesc(CEntity* entity);
+    static void      SetAlpha(RpAtomic& atomic, uint8 alphaToSet);
+    static uint8     GetAlpha(const RpAtomic& atomic);
+    static tTagDesc* FindTagDesc(const CEntity& entity);
 };

@@ -15,10 +15,10 @@ void CTagManager::InjectHooks() {
     RH_ScopedInstall(AddTag, 0x49CC90);
     RH_ScopedInstall(FindTagDesc, 0x49CCB0);
     RH_ScopedInstall(IsTag, 0x49CCE0);
-    RH_ScopedOverloadedInstall(SetAlpha, "RpAtomic", 0x49CD30, void(*)(RpAtomic*, uint8));
-    RH_ScopedOverloadedInstall(SetAlpha, "Entity", 0x49CEC0, void (*)(CEntity*, uint8));
-    RH_ScopedOverloadedInstall(GetAlpha, "RpAtomic", 0x49CD40, uint8(*)(RpAtomic*));
-    RH_ScopedOverloadedInstall(GetAlpha, "Entity", 0x49CF90, uint8(*)(CEntity*));
+    RH_ScopedOverloadedInstall(SetAlpha, "RpAtomic", 0x49CD30, void(*)(RpAtomic&, uint8));
+    RH_ScopedOverloadedInstall(SetAlpha, "Entity", 0x49CEC0, void (*)(CEntity&, uint8));
+    RH_ScopedOverloadedInstall(GetAlpha, "RpAtomic", 0x49CD40, uint8(*)(const RpAtomic&));
+    RH_ScopedOverloadedInstall(GetAlpha, "Entity", 0x49CF90, uint8(*)(const CEntity&));
     RH_ScopedInstall(GetPercentageTagged, 0x49CDA0);
     RH_ScopedInstall(GetPercentageTaggedInArea, 0x49D0B0);
     RH_ScopedInstall(UpdateNumTagged, 0x49CDE0);
@@ -60,19 +60,16 @@ const CVector& CTagManager::GetTagPos(int32 idx) {
 }
 
 // 0x49CC90
-void CTagManager::AddTag(CEntity* entity) {
-    assert(entity);
+void CTagManager::AddTag(CEntity& entity) {
     assert(IsTag(entity) && "Must be a tag entity");
 
-    ms_tagDesc[ms_numTags++] = tTagDesc{ entity, 0 };
+    ms_tagDesc[ms_numTags++] = tTagDesc{ &entity, 0 };
 }
 
 // 0x49CCB0
-tTagDesc* CTagManager::FindTagDesc(CEntity* entity) {
-    assert(entity);
-
+tTagDesc* CTagManager::FindTagDesc(const CEntity& entity) {
     for (auto& tag : GetTags()) {
-        if (tag.m_pEntity == entity) {
+        if (tag.m_pEntity == &entity) {
             return &tag;
         }
     }
@@ -80,10 +77,8 @@ tTagDesc* CTagManager::FindTagDesc(CEntity* entity) {
 }
 
 // 0x49CCE0
-bool CTagManager::IsTag(const CEntity* entity) {
-    assert(entity);
-
-    auto mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
+bool CTagManager::IsTag(const CEntity& entity) {
+    auto mi = entity.GetModelInfo();
     if (mi->GetRwModelType() != rpATOMIC) {
         return false;
     }
@@ -117,15 +112,15 @@ void CTagManager::UpdateNumTagged() {
     });
 }
 
-uint8 CTagManager::GetAlpha(RpAtomic* atomic) {
-    return static_cast<uint8>(CVisibilityPlugins::GetUserValue(atomic));
+uint8 CTagManager::GetAlpha(const RpAtomic& atomic) {
+    return static_cast<uint8>(CVisibilityPlugins::GetUserValue(&atomic));
 }
 
-uint8 CTagManager::GetAlpha(CEntity* entity) {
+uint8 CTagManager::GetAlpha(const CEntity& entity) {
     assert(IsTag(entity));
 
-    if (entity->GetRpAtomic()) {
-        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->GetRpAtomic()));
+    if (entity.GetRpAtomic()) {
+        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity.GetRpAtomic()));
     }
 
     auto* const desc = FindTagDesc(entity);
@@ -138,19 +133,19 @@ uint8 CTagManager::GetAlpha(CEntity* entity) {
 }
 
 // 0x49CD30
-void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha) {
-    CVisibilityPlugins::SetUserValue(atomic, ucAlpha);
+void CTagManager::SetAlpha(RpAtomic& atomic, uint8 alphaToSet) {
+    CVisibilityPlugins::SetUserValue(&atomic, alphaToSet);
 }
 
 // 0x49CEC0
-void CTagManager::SetAlpha(CEntity* entity, uint8 alphaToSet) {
+void CTagManager::SetAlpha(CEntity& entity, uint8 alphaToSet) {
     assert(IsTag(entity));
 
-    if (auto* const atomicOfEntity = entity->GetRpAtomic()) {
-        SetAlpha(atomicOfEntity, alphaToSet);
+    if (auto* const atomicOfEntity = entity.GetRpAtomic()) {
+        SetAlpha(*atomicOfEntity, alphaToSet);
     }
 
-    auto* const tag          = FindTagDesc(entity);
+    auto* const tag = FindTagDesc(entity);
     if (notsa::bugfixes::GenericCrashing) {
         if (!tag) {
             return;
@@ -171,10 +166,10 @@ void CTagManager::SetAlpha(CEntity* entity, uint8 alphaToSet) {
     }
 }
 
-void CTagManager::ResetAlpha(CEntity* entity) {
+void CTagManager::ResetAlpha(const CEntity& entity) {
     assert(IsTag(entity));
 
-    auto* const atomicOfEntity = entity->GetRpAtomic();
+    auto* const atomicOfEntity = entity.GetRpAtomic();
     if (!atomicOfEntity) {
         return;
     }
@@ -184,7 +179,7 @@ void CTagManager::ResetAlpha(CEntity* entity) {
             return;
         }
     }
-    SetAlpha(atomicOfEntity, tagOfEntity->m_nAlpha);
+    SetAlpha(*atomicOfEntity, tagOfEntity->m_nAlpha);
 }
 
 // 0x49CFE0
@@ -194,7 +189,7 @@ void CTagManager::SetAlphaInArea(const CRect& area, uint8 alphaToSet) {
         if (!atomicOfTag) {
             continue;
         }
-        SetAlpha(atomicOfTag, alphaToSet);
+        SetAlpha(*atomicOfTag, alphaToSet);
         tag.m_nAlpha = alphaToSet;
     }
     UpdateNumTagged();
@@ -216,8 +211,8 @@ CEntity* CTagManager::GetNearestTag(const CVector& nearestToPoint) {
 }
 
 // 0x49CE10
-void CTagManager::SetupAtomic(RpAtomic* atomic) {
-    auto geometry      = RpAtomicGetGeometry(atomic);
+void CTagManager::SetupAtomic(RpAtomic& atomic) {
+    auto geometry      = RpAtomicGetGeometry(&atomic);
     auto material      = RpGeometryGetMaterial(geometry, 1);
     material->pipeline = ms_pPipeline;
     RpGeometrySetFlags(geometry, RpGeometryGetFlags(geometry) | rpGEOMETRYMODULATEMATERIALCOLOR);
@@ -225,18 +220,18 @@ void CTagManager::SetupAtomic(RpAtomic* atomic) {
 }
 
 // 0x49CE40
-void CTagManager::RenderTagForPC(RpAtomic* atomic) {
-    auto geometry                       = RpAtomicGetGeometry(atomic);
+void CTagManager::RenderTagForPC(RpAtomic& atomic) {
+    auto geometry                       = RpAtomicGetGeometry(&atomic);
     auto material                       = RpGeometryGetMaterial(geometry, 1);
     RpMaterialGetColor(material)->alpha = GetAlpha(atomic);
-    RpAtomicRender(atomic);
+    RpAtomicRender(&atomic);
 }
 
 // 0x5D3D60
 void CTagManager::Save() {
     CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags);
 
-    for (auto& tag : GetTags()) {
+    for (const auto& tag : GetTags()) {
         CGenericGameStorage::SaveDataToWorkBuffer(tag.m_nAlpha);
     }
 }
