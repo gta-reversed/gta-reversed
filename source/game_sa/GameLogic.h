@@ -72,7 +72,23 @@ public:
 public:
     static void InjectHooks();
 
-    static float CalcDistanceToForbiddenTrainCrossing(CVector vecPoint, CVector vecMoveSpeed, bool ignoreMoveSpeed, CVector& outDistance);
+    /*!
+     * @addr 0x4418E0
+     * @brief Calculates the distance to a forbidden train crossing from a given point.
+     *
+     * @param point The position to calculate distance from.
+     * @param moveSpeed The movement velocity vector.
+     * @param ignoreMoveSpeed If true, the `moveSpeed` parameter is ignored in the calculation.
+     * @param outDistance Output parameter that is updated only when a forbidden crossing is found
+     *        (that is, when the returned distance is less than the no-crossing sentinel value).
+     *        It contains the 2D displacement vector from `point` to the chosen forbidden crossing,
+     *        computed in the XY plane with `z` set to `0`.
+     *
+     * @return The scalar distance to the forbidden train crossing, or the no-crossing sentinel
+     *         value if none was found. `outDistance` is only valid when the returned distance is
+     *         less than the no-crossing sentinel value.
+     */
+    static float CalcDistanceToForbiddenTrainCrossing(CVector point, CVector moveSpeed, bool ignoreMoveSpeed, CVector& outDistance);
     static void ClearSkip(bool afterMission);
     static void DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons);
     static void StorePedsWeapons(CPed* ped);

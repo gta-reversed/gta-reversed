@@ -173,7 +173,7 @@ void CObject::operator delete(void* obj, int32 poolRef) {
 // 0x5A0760
 void CObject::SetIsStatic(bool isStatic) {
     CEntity::SetIsStatic(isStatic);
-    physicalFlags.b31 = false;
+    physicalFlags.bDoorHitEndStop = false;
     if (!isStatic && (physicalFlags.bDisableMoveForce && m_fDoorStartAngle < -1000.0F)) {
         m_fDoorStartAngle = GetHeading();
     }
