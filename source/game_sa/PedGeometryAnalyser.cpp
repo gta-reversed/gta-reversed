@@ -9,7 +9,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(CanPedJumpObstacle, "LoS", 0x5F1B00, bool(*)(const CPed&,const CEntity&));
     RH_ScopedOverloadedInstall(CanPedJumpObstacle, "Contacted", 0x5F32D0, bool(*)(const CPed&,const CEntity&,const CVector&,const CVector&));
     RH_ScopedInstall(CanPedTargetPed, 0x5F1C40);
-    RH_ScopedInstall(CanPedTargetPoint, 0x5F1B70, { .reversed = false });
+    RH_ScopedInstall(CanPedTargetPoint, 0x5F1B70);
     RH_ScopedInstall(ComputeBuildingHitPoints, 0x5F1E30, { .reversed = false });
     RH_ScopedInstall(ComputeClearTarget, 0x5F5D80, { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
@@ -125,17 +125,34 @@ bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& en
 }
 
 // 0x5F1C40
-bool CPedGeometryAnalyser::CanPedTargetPed(CPed& ped, CPed& targetPed, bool checkDirection) {
+bool CPedGeometryAnalyser::CanPedTargetPed(CPed& ped, CPed& targetPed, bool useDirectionTest) {
     return CanPedTargetPoint(
         ped,
         targetPed.GetPosition() + CVector{ 0.f, 0.f, targetPed.GetTaskManager().GetTaskSecondary(TASK_SECONDARY_DUCK) ? -0.25f : 0.75f }, // 0.75f - 1.f = -0.25f
-        checkDirection
+        useDirectionTest
     );
 }
 
 // 0x5F1B70
-bool CPedGeometryAnalyser::CanPedTargetPoint(const CPed& ped, const CVector& a2, bool a3) {
-    return plugin::CallMethodAndReturn<bool, 0x5F1B70>(&ped, &a2, a3);
+bool CPedGeometryAnalyser::CanPedTargetPoint(const CPed& ped, const CVector& targetPt, bool useDirectionTest) {
+    const auto dir = targetPt - ped.GetPosition();
+    if (useDirectionTest && dir.Dot(ped.GetForward()) < 0.f) {
+        return false;
+    }
+    if (dir.SquaredMagnitude() > sq(40.f)) {
+        return false;
+    }
+    return CWorld::GetIsLineOfSightClear(
+        ped.GetPosition() + CVector{ 0.f, 0.f, 0.75f },
+        targetPt,
+        true,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false
+    );
 }
 
 // 0x5F1E30
