@@ -180,12 +180,12 @@ CPed* CTaskComplexWanderCop::FindFirstCriminalInSight(CPed* ped) const {
 
         const auto& candidatePos = candidate.GetPosition();
         const auto& pedPos       = ped->GetPosition();
-        CVector     distance     = candidatePos - pedPos;
+        const auto  distance     = candidatePos - pedPos;
         if (distance.SquaredMagnitude() >= sq(10.0f)) {
             continue;
         }
 
-        if ((distance).Dot(ped->GetForward()) <= 0.f) {
+        if (distance.Dot(ped->GetForward()) <= 0.f) {
             continue;
         }
 
