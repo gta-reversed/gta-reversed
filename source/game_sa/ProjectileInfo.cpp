@@ -2,6 +2,11 @@
 
 #include "ProjectileInfo.h"
 
+#include "Entity/Object/Projectile.h"
+#include "Radar.h"
+#include "World.h"
+#include "Pools/Pools.h"
+
 void CProjectileInfo::InjectHooks() {
     RH_ScopedClass(CProjectileInfo);
     RH_ScopedCategoryGlobal();
@@ -15,7 +20,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .reversed = false });
     RH_ScopedInstall(RemoveProjectile, 0x7388F0, { .reversed = false });
     RH_ScopedInstall(Update, 0x738B20, { .reversed = false });
-    RH_ScopedInstall(IsProjectileInRange, 0x739860, { .reversed = false });
+    RH_ScopedInstall(IsProjectileInRange, 0x739860);
     RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .reversed = false });
     RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40, { .reversed = false });
     RH_ScopedInstall(RemoveFXSystem, 0x737B80, { .reversed = false });
@@ -63,7 +68,35 @@ void CProjectileInfo::Update() {
 
 // 0x739860
 bool CProjectileInfo::IsProjectileInRange(float x1, float x2, float y1, float y2, float z1, float z2, bool bDestroy) {
-    return plugin::CallAndReturn<bool, 0x739860, float, float, float, float, float, float, bool>(x1, x2, y1, y2, z1, z2, bDestroy);
+    bool found = false;
+    for (auto&& [info, proj] : rngv::zip(gaProjectileInfo, ms_apProjectile)) {
+        if (!info.m_bActive) {
+            continue;
+        }
+
+        // Only thrown/launched projectiles (grenade, teargas, molotov, rockets)
+        if (info.m_nWeaponType < WEAPON_GRENADE || info.m_nWeaponType > WEAPON_ROCKET_HS) {
+            continue;
+        }
+
+        const auto& pos = proj->GetPosition();
+        if (pos.x < x1 || pos.x > x2 || pos.y < y1 || pos.y > y2 || pos.z < z1 || pos.z > z2) {
+            continue;
+        }
+
+        found = true;
+        if (bDestroy) {
+            info.m_bActive = false;
+            if (info.m_pFxSystem) {
+                info.m_pFxSystem->Kill();
+                info.m_pFxSystem = nullptr;
+            }
+            CRadar::ClearBlipForEntity(BLIP_OBJECT, GetObjectPool()->GetRef(proj));
+            CWorld::Remove(proj);
+            delete proj;
+        }
+    }
+    return found;
 }
 
 // 0x7399B0

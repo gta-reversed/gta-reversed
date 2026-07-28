@@ -7,11 +7,12 @@
 #pragma once
 
 #include "eWeaponType.h"
+#include "Base.h"
 
 class CProjectile;
 class FxSystem_c;
 
-extern uint32 MAX_PROJECTILES; // default 32
+constexpr uint32 MAX_PROJECTILES = 32;
 
 class CProjectileInfo {
 public:
@@ -25,7 +26,7 @@ public:
     FxSystem_c* m_pFxSystem;
 
 public:
-    static CProjectile **ms_apProjectile; // static CProjectile *ms_apProjectile[MAX_PROJECTILES]
+    static inline auto& ms_apProjectile = StaticRef<std::array<CProjectile*, MAX_PROJECTILES>>(0xC89110); // CProjectile* ms_apProjectile[MAX_PROJECTILES]
 
     static void InjectHooks();
 
@@ -38,10 +39,11 @@ public:
     static void RemoveDetonatorProjectiles();
     static void RemoveProjectile(CProjectileInfo* projectileInfo, CProjectile* projectileObject);
     static void Update();
-    static bool IsProjectileInRange(float x1, float y1, float z1, float x2, float y2, float z2, bool bDestroy);
+    static bool IsProjectileInRange(float x1, float x2, float y1, float y2, float z1, float z2, bool bDestroy);
     static void RemoveAllProjectiles();
     static bool RemoveIfThisIsAProjectile(CObject* object);
 };
+VALIDATE_SIZE(CProjectileInfo, 0x24);
 
-extern uint32 MAX_PROJECTILE_INFOS; // default 32
-extern CProjectileInfo *gaProjectileInfo; // CProjectileInfo gaProjectileInfo[MAX_PROJECTILE_INFOS]
+constexpr uint32 MAX_PROJECTILE_INFOS = 32;
+inline auto& gaProjectileInfo = StaticRef<std::array<CProjectileInfo, MAX_PROJECTILE_INFOS>>(0xC891A8); // CProjectileInfo gaProjectileInfo[MAX_PROJECTILE_INFOS]
