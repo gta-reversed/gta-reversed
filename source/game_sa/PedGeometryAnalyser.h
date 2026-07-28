@@ -31,7 +31,7 @@ public:
     static bool CanPedTargetPed(CPed& ped, CPed& targetPed, bool useDirectionTest);
     static bool CanPedTargetPoint(const CPed& ped, const CVector& targetPt, bool useDirectionTest);
 
-    static int32 ComputeBuildingHitPoints(const CVector& a1, const CVector& a2);
+    static int32 ComputeBuildingHitPoints(const CVector& start, const CVector& target);
     
     static void ComputeClearTarget(const CPed& ped, const CVector&, CVector&);
 
