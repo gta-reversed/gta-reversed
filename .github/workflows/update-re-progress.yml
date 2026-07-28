@@ -1,0 +1,107 @@
+name: Update progress tracking docs
+
+on:
+  push:
+     branches:
+       - master
+     paths:
+       - 'source/**'
+       - 'contrib/hooks2md.py'
+       - '.github/**'
+
+concurrency:
+  group: update-re-progress
+  cancel-in-progress: true
+
+#
+# NOTE #
+#
+# This workflow requires a GitHub App to be created and installed on the repository, with the following permissions:
+# - Read and write contents
+# This is because it needs to push to the master branch directly, which is not possible with a normal GitHub token because it's a protected branch.
+# So, we need the following: 
+# - APP_CLIENT_ID - As a repository **variable**
+# - APP_PRIVATE_KEY - As a repository **secret** (The .pem file)
+# - The app to be installed in the repository with "contents: read/write" permissions.
+#
+
+# All required permissions are granted to the bot already, the workflow itself does not need any additional permissions.
+permissions: {}
+
+jobs:
+  update-re-progress:
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      
+      - name: Setup Git user for GitHub App
+        run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+          gh auth setup-git
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+
+      - name: Setup project using CMake
+        uses: ./.github/actions/setup-cmake
+        with:
+          os: windows-2025-vs2026
+          arch: x86
+          conf: Debug # Builds faster, and there's functionally no difference in this case
+          preset: Unity
+          dump_hooks_only: true
+      
+      - name: Build standalone executable
+        shell: cmd
+        run: |
+          cmake --build build --config Debug
+
+      - name: Update hooks.csv
+        shell: bash
+        run: |
+          ./bin/Debug/gta_reversed.exe --dump-hooks-to=docs/hooks.csv
+          echo "::group::Standalone logs (logs/log.log)"
+          cat logs/log.log
+          echo "::endgroup::"
+
+      - name: Check if hooks.csv has changed
+        id: check-hooks-csv
+        shell: bash
+        run: |
+          if git diff --ignore-all-space --exit-code docs/hooks.csv; then
+            echo "No changes in hooks.csv, skipping update of ReversedClasses.md"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes detected in hooks.csv"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update ReversedClasses.md
+        if: steps.check-hooks-csv.outputs.has_changes == 'true'
+        shell: bash
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          python contrib/hooks2md.py --input docs/hooks.csv --output docs/ReversedClasses.md
+
+      - name: Commit and push changes
+        if: steps.check-hooks-csv.outputs.has_changes == 'true'
+        shell: bash
+        run: |
+            git add docs/ReversedClasses.md docs/hooks.csv
+            git commit -m "ci: Update progress tracking docs [skip ci]"
+            git push
