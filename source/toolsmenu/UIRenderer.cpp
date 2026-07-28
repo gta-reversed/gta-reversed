@@ -171,6 +171,30 @@ void UIRenderer::DebugCode() {
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
+    if (pad->IsStandardKeyJustPressed('P')) {
+        CColPoint cp;
+        CEntity* e;
+        CWorld::ProcessLineOfSight(
+            player->GetPosition(),
+            player->GetPosition() + player->GetForward() * 5.f,
+            cp,
+            e,
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+        );
+        if (e) {
+            NOTSA_LOG_DEBUG("CanPedJumpObstacle: {}", CPedGeometryAnalyser::CanPedJumpObstacle(*player, *e, cp.m_vecNormal, cp.m_vecPoint));
+        } else {
+            NOTSA_LOG_WARN("No entity");
+        }
+    }
+
     if (pad->IsStandardKeyJustPressed('8')) {
         player->GetTaskManager().SetTask(
             new CTaskComplexFollowNodeRoute{
