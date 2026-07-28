@@ -1,5 +1,7 @@
 #include <StdInc.h>
 
+#include <string.h>
+
 #include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 #include <functional>
@@ -214,10 +216,13 @@ bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
     return a == b;
 }
 
-template<size_t N>
+template<size_t MaxNumToCopy>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
     assert(dst.Cap >= src.Cap);
-    strncpy(dst.Data, src.Data, N);
+    assert(dst.Cap >= MaxNumToCopy);
+    assert(src.IsNullTerminated());
+
+    strncpy(dst.Data, src.Data, MaxNumToCopy);
 }
 };
 

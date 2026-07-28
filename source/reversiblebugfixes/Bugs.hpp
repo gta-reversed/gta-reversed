@@ -77,8 +77,13 @@ inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
 inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits{
     .Name        = "CCustomCarPlateMgr::GeneratePlateText - Expand plate character range",
     .Description = "The original game generates plate letters in the range A-W (23 chars) and digits in 0-8 (9 chars). "
-                   "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
+    "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
     .Credit      = "j0y"
+};
+inline const ReversibleBugFix CTaskComplexLeaveCarAndFlee_MissingNullCheckForVehicleOnFlee{
+    .Name        = "CTaskComplexLeaveCarAndFlee - Missing null check for vehicle on flee",
+    .Description = "Fix missing null check for vehicle in CTaskComplexLeaveCarAndFlee",
+    .Credit      = "Pirulax"
 };
 inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_InvalidSurfaceType{
     .Name        = "CAECollisionAudioEntity::PlayLoopingCollisionSound - Invalid surface type causing OOB",

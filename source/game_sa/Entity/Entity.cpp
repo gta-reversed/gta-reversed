@@ -255,7 +255,7 @@ void CEntity::SetModelIndexNoCreate(uint32 index) {
 
     auto ami = mi->AsAtomicModelInfoPtr();
     if (ami && !ami->bTagDisabled && ami->IsTagModel()) {
-        CTagManager::AddTag(this);
+        CTagManager::AddTag(*this);
     }
 }
 
@@ -291,8 +291,8 @@ void CEntity::CreateRwObject() {
     // Handle different RenderWare object types
     switch (RwObjectGetType(GetRwObject())) {
     case rpATOMIC:
-        if (CTagManager::IsTag(this)) {
-            CTagManager::ResetAlpha(this);
+        if (CTagManager::IsTag(*this)) {
+            CTagManager::ResetAlpha(*this);
         }
         CCustomBuildingDNPipeline::PreRenderUpdate(GetRpAtomic(), true);
         break;
@@ -640,8 +640,8 @@ void CEntity::Render() {
         return;
     }
 
-    if (RwObjectGetType(GetRwObject()) == rpATOMIC && CTagManager::IsTag(this)) {
-        CTagManager::RenderTagForPC(GetRpAtomic());
+    if (RwObjectGetType(GetRwObject()) == rpATOMIC && CTagManager::IsTag(*this)) {
+        CTagManager::RenderTagForPC(*GetRpAtomic());
         return;
     }
 
