@@ -220,6 +220,7 @@ template<size_t MaxNumToCopy>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
     assert(dst.Cap >= src.Cap);
     assert(dst.Cap >= MaxNumToCopy);
+    assert(src.IsNullTerminated());
 
     strncpy(dst.Data, src.Data, MaxNumToCopy);
 }
