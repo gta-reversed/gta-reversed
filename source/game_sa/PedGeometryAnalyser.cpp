@@ -7,7 +7,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedOverloadedInstall(CanPedJumpObstacle, "LoS", 0x5F1B00, bool(*)(const CPed&,const CEntity&));
-    RH_ScopedOverloadedInstall(CanPedJumpObstacle, "contacted", 0x5F32D0, bool(*)(const CPed&,const CEntity&,const CVector&,const CVector&), { .reversed = false });
+    RH_ScopedOverloadedInstall(CanPedJumpObstacle, "Contacted", 0x5F32D0, bool(*)(const CPed&,const CEntity&,const CVector&,const CVector&));
     RH_ScopedInstall(CanPedTargetPed, 0x5F1C40);
     RH_ScopedInstall(CanPedTargetPoint, 0x5F1B70, { .reversed = false });
     RH_ScopedInstall(ComputeBuildingHitPoints, 0x5F1E30, { .reversed = false });
@@ -46,14 +46,82 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .reversed = false });
 }
 
+// notsa, common code
+bool CanPedJumpObstacleLoSCheck(CVector pedPos, CVector jmpDir, const CEntity& entity) {
+    return CWorld::GetIsLineOfSightClear(
+        pedPos,
+        pedPos + jmpDir,
+        true,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+    );
+}
+
 // 0x5F1B00
 bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& entity) {
-    return plugin::CallAndReturn<bool, 0x5F1B00, CPed const&, CEntity const&>(ped, entity);
+    if (entity.m_bIsTempBuilding) {
+        return false;
+    }
+    return CanPedJumpObstacleLoSCheck(ped.GetPosition(), ped.GetForward(), entity);
 }
 
 // 0x5F32D0
 bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& entity, const CVector& contactNormal, const CVector& contactPos) {
-    return plugin::CallAndReturn<bool, 0x5F32D0, CPed const&, CEntity const&, CVector const&, CVector const&>(ped, entity, contactNormal, contactPos);
+    if (entity.m_bIsTempBuilding) {
+        return false;
+    }
+    if (g_surfaceInfos.IsShallowWater(ped.m_nContactSurface)) {
+        return true;
+    }
+
+    const auto CheckCanJumpFrom = [&ped, &entity](const CVector& jumpFrom, CVector dir) -> bool {
+        if (!CanPedJumpObstacleLoSCheck(jumpFrom, dir, entity)) { // 0x5F34EA
+            return false;
+        }
+        bool onGround = false;
+        const auto groundZ = CWorld::FindGroundZFor3DCoord(jumpFrom + dir * 3.f, &onGround, nullptr);
+        return onGround && (jumpFrom.z - groundZ) < 3.0f; // 0x5F3555
+    };
+
+    if (contactNormal.z <= 0.17f) { // 0x5F34A0
+        if (!CPedGroups::IsInPlayersGroup(&ped)) { // 0x5F3494
+            return CheckCanJumpFrom(
+                ped.GetPosition() + CVector{ 0.f, 0.f, 0.15f },
+                ped.GetForward()
+            );
+        }
+        return CheckCanJumpFrom(ped.GetPosition(), ped.GetForward()); // 0x5F34BE
+    }
+
+    if (contactNormal.z > 0.9f) {
+        return false; // 0x5F3361
+    }
+
+    const auto* const pedCM = ped.GetColModel();
+    if (!pedCM) { // BUGFIX
+        return false;
+    }
+    CVector from = ped.GetPosition();
+    from.z += pedCM->GetBoundCenter().z - pedCM->GetBoundRadius() * contactNormal.z;
+    const auto normMag = contactNormal.Magnitude();
+    if (contactNormal.z <= 0.5f) {
+        return CheckCanJumpFrom( // 0x5F3465
+            from,
+            ped.GetForward() * (normMag + pedCM->GetBoundRadius() + 1.f) // 0x5F346B, 0x5F347E, 0x5F3488 (+1.f for addition)
+        );
+    }
+    return CheckCanJumpFrom( // 0x5F33BC
+        from,
+        -CVector{ contactNormal, 0.f } * (              // Yes I simplified this quite a bit, but the effect is the same
+                (1.f / normMag)                         // 0x5F33CA - Normalize vector
+            * (normMag + pedCM->GetBoundRadius() + 1.f) // 0x5F33F3, 0x5F3401, 0x5F340E (+1.f for addition)
+            * std::min(2.f / normMag, 4.f)              // 0x5F3419
+        )
+    );
 }
 
 // 0x5F1C40
