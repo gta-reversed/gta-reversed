@@ -32,8 +32,16 @@ public:
     static bool CanPedTargetPoint(const CPed& ped, const CVector& targetPt, bool useDirectionTest);
 
     static int32 ComputeBuildingHitPoints(const CVector& start, const CVector& target);
-    
-    static void ComputeClearTarget(const CPed& ped, const CVector&, CVector&);
+
+    /*!
+     * @addr 0x5F5D80
+     * @brief Computes a clear target point for the given ped and target point.
+     * @brief That is a point that is not blocked by any entities and is within a certain distance from the target point.
+     * @param ped The ped for which to compute the clear target point.
+     * @param target The target point to compute the clear target point for.
+     * @param outTargetClear The computed clear target point.
+     */
+    static void ComputeClearTarget(const CPed& ped, const CVector& target, CVector& outTarget);
 
     static bool ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& point);
     static bool ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point);
@@ -85,4 +93,7 @@ public:
     static WanderPathClearness IsWanderPathClear(const CVector& from, const CVector& to, float maxHeightChange, int32 maxSamples);
 
     static bool LiesInsideBoundingBox(const CPed& ped, const CVector& posn, CEntity& entity);
+
+private:
+    static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0);
 };
