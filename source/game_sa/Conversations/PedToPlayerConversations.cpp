@@ -1,4 +1,5 @@
 #include "PedToPlayerConversations.h"
+
 #include "IKChainManager_c.h"
 
 void CPedToPlayerConversations::InjectHooks() {

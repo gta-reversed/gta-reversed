@@ -3,11 +3,12 @@
 #include "Base.h"
 #include "eBoneTag.h"
 
-struct tBoneInfo {
-    eBoneTag m_current; // This bone
-    eBoneTag m_prev;    // Previous connected bone
-    CVector   m_Max;
-    CVector   m_Min;
-    CVector   m_ABC;
+struct BoneInfo_t {
+    eBoneTag BoneTag;       // This bone
+    eBoneTag ParentBoneTag; // Previous connected bone
+    CVector  PoseRots;      //!< No clue
+    float    MinX, MaxX;    //!< Limits on the X axis
+    float    MinY, MaxY;    //!< Limits on the Y axis
+    float    MinZ, MaxZ;    //!< Limits on the Z axis
 };
-VALIDATE_SIZE(tBoneInfo, 0x28);
+VALIDATE_SIZE(BoneInfo_t, 0x28);
