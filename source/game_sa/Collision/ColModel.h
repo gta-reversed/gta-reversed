@@ -50,9 +50,9 @@ public:
     // HELPERS
     [[nodiscard]] auto GetTriCount() const noexcept     { return m_pColData ? m_pColData->m_nNumTriangles : 0u; }
     [[nodiscard]] float GetBoundRadius() const noexcept { return m_boundSphere.m_fRadius; }
-    auto& GetBoundCenter() { return m_boundSphere.m_vecCenter; }
-    auto& GetBoundingBox() { return m_boundBox; }
-    auto& GetBoundingSphere() { return m_boundSphere; }
+    auto& GetBoundCenter(this auto&& self) { return self.m_boundSphere.m_vecCenter; }
+    auto& GetBoundingBox(this auto&& self) { return self.m_boundBox; }
+    auto& GetBoundingSphere(this auto&& self) { return self.m_boundSphere; }
     CCollisionData* GetData() const { return m_pColData; }
 };
 
