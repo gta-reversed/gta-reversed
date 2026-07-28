@@ -1278,7 +1278,7 @@ eSprayPaintState CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float r
     bool hasChangedAlphaTo255{}, hasFoundTag{};
     for (auto i = 0; i < count; i++) {
         auto entity = objects[i];
-        if (!CTagManager::IsTag(entity)) {
+        if (!CTagManager::IsTag(*entity)) {
             continue;
         }
 
@@ -1289,7 +1289,7 @@ eSprayPaintState CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float r
         // Note: Original code has U.B. if `processTagAlphaState` is false, because `newAlpha` isn't assigned a meaningful value
         // But the only place this function is called has set `processTagAlphaState` to true, so..
         uint8 newAlpha{ 0 };
-        uint8 currAlpha = CTagManager::GetAlpha(entity);
+        uint8 currAlpha = CTagManager::GetAlpha(*entity);
         if (processTagAlphaState) {
             newAlpha = (uint8)std::min((size_t)(currAlpha + SPRAY_ALPHA_CHANGE), 255u);
         }
@@ -1298,7 +1298,7 @@ eSprayPaintState CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float r
             hasChangedAlphaTo255 = true;
         }
 
-        CTagManager::SetAlpha(entity, newAlpha);
+        CTagManager::SetAlpha(*entity, newAlpha);
     }
 
     if (hasChangedAlphaTo255) {

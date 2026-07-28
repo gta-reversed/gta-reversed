@@ -615,4 +615,4 @@ public:
 
 VALIDATE_SIZE(CPathFind, 0x3C80);
 
-static inline CPathFind& ThePaths = *(CPathFind*)(0x96F050);
+static inline auto& ThePaths = StaticRef<CPathFind>(0x96F050);

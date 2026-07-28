@@ -33,7 +33,7 @@ bool CRope::DoControlsApply() const {
 void CRope::ReleasePickedUpObject() {
     if (m_pRopeAttachObject) {
         m_pRopeAttachObject->AsPhysical()->physicalFlags.bAttachedToEntity = false;
-        m_pRopeAttachObject->AsPhysical()->physicalFlags.b32 = false;
+        m_pRopeAttachObject->AsPhysical()->physicalFlags.bCarriedByRope = false;
         m_pRopeAttachObject = nullptr;
     }
     m_pAttachedEntity->SetUsesCollision(true);
