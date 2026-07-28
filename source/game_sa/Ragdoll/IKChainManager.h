@@ -1,7 +1,7 @@
 #pragma once
 
 #include "List_c.h"
-#include "IKChain_c.h"
+#include "IKChain.h"
 
 #include "Enums/eIKChainSlot.h"
 #include "Enums/eIKArm.h"

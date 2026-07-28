@@ -6,7 +6,7 @@
 
 #include <extensions/WEnum.hpp>
 #include "ListItem_c.h"
-#include "BoneNode_c.h"
+#include "BoneNode.h"
 
 #include "Enums/eIKChainSlot.h"
 

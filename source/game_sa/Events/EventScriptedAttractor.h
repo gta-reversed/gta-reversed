@@ -4,7 +4,7 @@
 
 #include "EventEditableResponse.h"
 #include "EventAttractor.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 
 class NOTSA_EXPORT_VTABLE CEventScriptedAttractor : public CEventAttractor {

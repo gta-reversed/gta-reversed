@@ -1,8 +1,8 @@
 #include "StdInc.h"
 
-#include "IKChainManager_c.h"
-#include "IKChain_c.h"
-#include "BoneNodeManager_c.h"
+#include "IKChainManager.h"
+#include "IKChain.h"
+#include "BoneNodeManager.h"
 
 #include "TaskSimpleIKManager.h"
 #include "TaskSimpleIKLookAt.h"

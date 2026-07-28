@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
-#include "IKChain_c.h"
-#include "BoneNodeManager_c.h"
+#include "IKChain.h"
+#include "BoneNodeManager.h"
 
 #include "Enums/eIKChainSlot.h"
 

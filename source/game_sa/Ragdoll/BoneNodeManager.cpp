@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include "BoneNodeManager_c.h"
+#include "BoneNodeManager.h"
 
 void BoneNodeManager_c::InjectHooks() {
     RH_ScopedClass(BoneNodeManager_c);

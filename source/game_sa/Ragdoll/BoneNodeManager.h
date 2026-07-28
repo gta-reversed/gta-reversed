@@ -4,8 +4,8 @@
 
 #include "List_c.h"
 #include "ListItem_c.h"
-#include "BoneNode_c.h"
-#include "tBoneInfo.h"
+#include "BoneNode.h"
+#include "Ragdoll/BoneInfo.h"
 
 class BoneNodeManager_c {
 private:

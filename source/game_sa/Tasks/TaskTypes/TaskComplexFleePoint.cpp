@@ -6,7 +6,7 @@
 #include "TaskComplexSequence.h"
 #include "TaskSimpleRunAnim.h"
 #include "TaskSimpleTired.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskComplexFleePoint::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexFleePoint, 0x86f6cc, 11);

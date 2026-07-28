@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
-#include "BoneNode_c.h"
-#include "BoneNodeManager_c.h"
+#include "BoneNode.h"
+#include "BoneNodeManager.h"
 
 #include "rtslerp.h"
 

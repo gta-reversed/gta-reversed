@@ -8,7 +8,7 @@
 #include "TaskComplexJump.h"
 #include "TaskComplexUseGoggles.h"
 #include "TaskSimpleStealthKill.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleFight.h"
 #include "TaskSimpleDuck.h"

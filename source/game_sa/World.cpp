@@ -7,7 +7,7 @@
 #include "StdInc.h"
 
 #include "World.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "FireManager.h"
 #include "CarCtrl.h"
 #include "TagManager.h"

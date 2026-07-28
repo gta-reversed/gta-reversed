@@ -2,7 +2,7 @@
 
 #include "TaskSimpleGoTo.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleGoTo::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleGoTo, 0x86fd1c, 9);

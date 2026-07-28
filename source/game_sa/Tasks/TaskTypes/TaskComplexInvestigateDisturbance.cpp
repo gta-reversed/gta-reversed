@@ -7,7 +7,7 @@
 #include "SeekEntity/PosCalculators/EntitySeekPosCalculatorFixedPos.h"
 #include "TaskComplexGoToPointAndStandStill.h"
 
-#include <IKChainManager_c.h>
+#include <Ragdoll/IKChainManager.h>
 
 void CTaskComplexInvestigateDisturbance::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexInvestigateDisturbance, 0x870010, 11);
