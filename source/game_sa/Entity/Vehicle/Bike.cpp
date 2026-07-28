@@ -201,10 +201,9 @@ bool CBike::DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16
         }
     }
 
-    const auto& mat = *vehicle->m_matrix;
-    const auto impactFwdMag   = mat.GetForward().Dot(collisionImpactVelocity);
-    const auto impactUpMag    = mat.GetUp().Dot(collisionImpactVelocity);
-    const auto impactRightMag = mat.GetRight().Dot(collisionImpactVelocity);
+    const auto impactFwdMag   = vehicle->GetForward().Dot(collisionImpactVelocity);
+    const auto impactUpMag    = vehicle->GetUp().Dot(collisionImpactVelocity);
+    const auto impactRightMag = vehicle->GetRight().Dot(collisionImpactVelocity);
 
     // Per-axis weighting of the impact
     auto fwdWeight = 0.6f;
@@ -212,7 +211,7 @@ bool CBike::DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16
         const auto vertical = collisionImpactVelocity.z < 0.85f ? 0.0f : collisionImpactVelocity.z;
         fwdWeight = 7.0f * sq(vertical) + 0.6f;
     }
-    if (mat.GetUp().z < 0.0f) { // bike lying on its side / upside down
+    if (vehicle->GetUp().z < 0.0f) { // bike lying on its side / upside down
         fwdWeight = 5.0f;
     }
 
