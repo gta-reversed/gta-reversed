@@ -121,19 +121,14 @@ CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
 // 0x62DB20
 CTask* CTaskComplexDestroyCarMelee::CreateFirstSubTask(CPed* ped) {
     m_HasNewTarget = false;
-
     // CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_nType); // unused
-
     CalculateSearchPositionAndRanges(ped);
-
     const auto& pedPos = ped->GetPosition();
-
     if (IsPointInSphere(pedPos, m_VehToDestroy->GetPosition(), m_MaxArriveRange)) {
-        return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
+        ped->m_fAimingRotation = CGeneral::GetRadianAngleBetweenPoints(m_VehPos, pedPos);
+        return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
     }
-
-    ped->m_fAimingRotation = CGeneral::GetRadianAngleBetweenPoints(m_VehPos, pedPos);
-    return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
+    return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
 }
 
 // 0x62DDB0
@@ -170,10 +165,9 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
 
 // 0x6289F0
 void CTaskComplexDestroyCarMelee::CalculateSearchPositionAndRanges(CPed* ped) {
-    m_MaxAtkRange
-        = m_MaxArriveRange
-        = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
-    m_MaxAtkAngleRad = (m_VehToDestroy->GetPosition2D() - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
+    m_MaxAtkRange = m_MaxArriveRange = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
+    m_VehPos                         = m_VehToDestroy->GetPosition();
+    m_MaxAtkAngleRad                 = (CVector2D{ m_VehPos } - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
 }
 
 // 0x628A70
