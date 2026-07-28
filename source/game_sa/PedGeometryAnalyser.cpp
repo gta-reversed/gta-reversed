@@ -11,7 +11,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(CanPedTargetPed, 0x5F1C40);
     RH_ScopedInstall(CanPedTargetPoint, 0x5F1B70);
     RH_ScopedInstall(ComputeBuildingHitPoints, 0x5F1E30);
-    RH_ScopedInstall(ComputeClearTarget, 0x5F5D80, { .reversed = false });
+    RH_ScopedInstall(ComputeClearTarget, 0x5F5D80);
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&), { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const CVector*,CVector&), { .reversed = false });
@@ -165,8 +165,47 @@ int32 CPedGeometryAnalyser::ComputeBuildingHitPoints(const CVector& start, const
 }
 
 // 0x5F5D80
-void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& a2, CVector& a3) {
-    return plugin::Call<0x5F5D80, const CPed&, const CVector&, CVector&>(ped, a2, a3);
+void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& target, CVector& outTargetClear) {
+    constexpr auto MAX_DIST_SQ = sq(5.f);
+
+    // Start from the target point
+    outTargetClear = target;
+
+    // Check if any entities are in the way and adjust the target point accordingly
+    const auto ProcessLineOfSightForEntity = [&](CEntity& e){
+        if (CVector::DistSqr(e.GetPosition(), outTargetClear) >= MAX_DIST_SQ) {
+            return;
+        }
+        if (!LiesInsideBoundingBox(ped, outTargetClear, e)) {
+            return;
+        }
+        float depth;
+        if (!GetIsLineOfSightClear(ped, outTargetClear, e, depth)) {
+            return;
+        }
+        outTargetClear -= (outTargetClear - ped.GetPosition()).Normalized() * (ms_fPedNominalRadius + depth);
+    };
+    rng::for_each(ped.GetIntelligence()->GetVehicleScanner().GetEntities<CVehicle>(), ProcessLineOfSightForEntity); // 0x5F5DD0
+    rng::for_each(ped.GetIntelligence()->GetPedScanner().GetEntities<CPed>(), ProcessLineOfSightForEntity); // 0x5F5EE0
+
+    // Step away from the target point until we are clear of any entities
+    // But never change the direction relative to the ped
+    const auto steppingDir = (ped.GetPosition() - outTargetClear).Normalized() * ms_fPedNominalRadius;
+    const auto steps       = (int32)(5.f / ms_fPedNominalRadius) + 1;
+    for (auto step = 0; step < steps; step++) { // 0x5F5FDD
+        const auto stepDir = (ped.GetPosition() - outTargetClear);
+        if (stepDir.SquaredMagnitude() >= MAX_DIST_SQ) { // Too far?
+            break;
+        }
+        if (stepDir.Dot(steppingDir) < 0.f) { // Direction changed relative to the ped?
+            break;
+        }
+        if (ComputeBuildingHitPoints(ped.GetPosition(), outTargetClear) % 2 != 1) { // Clear?
+            break;
+        }
+        outTargetClear += steppingDir; // Still not clear, so go further back
+    }
+    /* we really could return false here, but okay */
 }
 
 // 0x5F3B70
@@ -209,7 +248,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentreUncached(float zPos, co
     center.y += corners[3].y;
 
     center.x *= 0.25f;
-    center.y *= 0.25f;
+    center.y *= 0.25f; 
 }
 
 // 0x5F3B40
