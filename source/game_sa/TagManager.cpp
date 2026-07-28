@@ -1,10 +1,11 @@
 #include "StdInc.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 #include "TagManager.h"
 #include "Garages.h"
 
-void CTagManager::InjectHooks()
-{
+void CTagManager::InjectHooks() {
     RH_ScopedClass(CTagManager);
     RH_ScopedCategoryGlobal();
 
@@ -14,10 +15,10 @@ void CTagManager::InjectHooks()
     RH_ScopedInstall(AddTag, 0x49CC90);
     RH_ScopedInstall(FindTagDesc, 0x49CCB0);
     RH_ScopedInstall(IsTag, 0x49CCE0);
-    RH_ScopedOverloadedInstall(SetAlpha, "RpAtomic", 0x49CD30, void(*)(RpAtomic*, uint8));
-    RH_ScopedOverloadedInstall(SetAlpha, "Entity", 0x49CEC0, void (*)(CEntity*, uint8));
-    RH_ScopedOverloadedInstall(GetAlpha, "RpAtomic", 0x49CD40, uint8(*)(RpAtomic*));
-    RH_ScopedOverloadedInstall(GetAlpha, "Entity", 0x49CF90, uint8(*)(CEntity*));
+    RH_ScopedOverloadedInstall(SetAlpha, "RpAtomic", 0x49CD30, void(*)(RpAtomic&, uint8));
+    RH_ScopedOverloadedInstall(SetAlpha, "Entity", 0x49CEC0, void (*)(CEntity&, uint8));
+    RH_ScopedOverloadedInstall(GetAlpha, "RpAtomic", 0x49CD40, uint8(*)(const RpAtomic&));
+    RH_ScopedOverloadedInstall(GetAlpha, "Entity", 0x49CF90, uint8(*)(const CEntity&));
     RH_ScopedInstall(GetPercentageTagged, 0x49CDA0);
     RH_ScopedInstall(GetPercentageTaggedInArea, 0x49D0B0);
     RH_ScopedInstall(UpdateNumTagged, 0x49CDE0);
@@ -33,75 +34,71 @@ void CTagManager::InjectHooks()
 void CTagManager::Init() {
     ZoneScoped;
 
-    ms_numTags = 0;
+    ms_numTags   = 0;
     ms_numTagged = 0;
 }
 
 // 0x49CC60
-void CTagManager::ShutdownForRestart()
-{
-    for (int32 i = ms_numTags; i > 0; --i)
-        ms_tagDesc[i].m_nAlpha = 0;
-
+void CTagManager::ShutdownForRestart() {
+#if 0
+    // Doing this here breaks the game, so i'll just leave it as it was originally...
+    rng::fill(ms_tagDesc, tTagDesc{});
+    if (notsa::bugfixes::CTagManager_MissingTagCountResetOnShutdown) {
+        ms_numTags = 0;
+    }
+#else
+    for (auto& tag : ms_tagDesc) {
+        tag.Alpha = 0;
+    }
+#endif
     ms_numTagged = 0;
 }
 
 // 0x49CEA0
-CVector& CTagManager::GetTagPos(int32 iTag)
-{
-    return ms_tagDesc[iTag].m_pEntity->GetPosition();
+const CVector& CTagManager::GetTagPos(int32 idx) {
+    return GetTags()[idx].Entity->GetPosition();
 }
 
 // 0x49CC90
-void CTagManager::AddTag(CEntity* entity)
-{
-    auto& tag = ms_tagDesc[ms_numTags];
-    tag.m_pEntity = entity;
-    tag.m_nAlpha = 0;
+void CTagManager::AddTag(CEntity& entity) {
+    assert(IsTag(entity) && "Must be a tag entity");
 
-    ms_numTags++;
+    ms_tagDesc[ms_numTags++] = tTagDesc{ &entity, 0 };
 }
 
 // 0x49CCB0
-tTagDesc* CTagManager::FindTagDesc(CEntity* entity)
-{
-    if (!ms_numTags)
-        return nullptr;
-
-    for (int32 i = ms_numTags - 1; i >= 0; --i) {
-        auto tagDesc = &ms_tagDesc[i];
-        if (tagDesc->m_pEntity == entity)
-            return tagDesc;
+tTagDesc* CTagManager::FindTagDesc(const CEntity& entity) {
+    for (auto& tag : GetTags()) {
+        if (tag.Entity == &entity) {
+            return &tag;
+        }
     }
-
+    NOTSA_LOG_WARN("CTagManager::FindTagDesc: Couldn't find tag desc for entity %p - This shouldn't happen! Perhaps corrupted savefile?", LOG_PTR(&entity));
     return nullptr;
 }
 
 // 0x49CCE0
-bool CTagManager::IsTag(const CEntity* entity)
-{
-    auto mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
-    if (mi->GetRwModelType() != rpATOMIC)
+bool CTagManager::IsTag(const CEntity& entity) {
+    auto mi = entity.GetModelInfo();
+    if (mi->GetRwModelType() != rpATOMIC) {
         return false;
+    }
 
     return mi->IsTagModel() && !mi->AsAtomicModelInfoPtr()->bTagDisabled;
 }
 
 // 0x49CDA0
-int32 CTagManager::GetPercentageTagged()
-{
+int32 CTagManager::GetPercentageTagged() {
     return static_cast<int32>(static_cast<float>(ms_numTagged) / static_cast<float>(ms_numTags) * 100.0F);
 }
 
 // 0x49D0B0
-int32 CTagManager::GetPercentageTaggedInArea(CRect* area) {
+int32 CTagManager::GetPercentageTaggedInArea(const CRect& area) {
     int32 numTotalTaggable = 0, numTagged = 0;
-    for (auto& tag : ms_tagDesc) {
-        if (area->IsPointInside(CVector2D(tag.m_pEntity->GetPosition()))) {
-            ++numTotalTaggable;
-            if (tag.m_nAlpha > ALPHA_TAGGED) {
-                ++numTagged;
-            }
+    for (auto& tag : GetTagsInArea(area)) {
+        ++numTotalTaggable;
+        if (tag.Alpha > ALPHA_TAGGED) {
+            ++numTagged;
         }
     }
     return numTotalTaggable != 0
@@ -110,140 +107,138 @@ int32 CTagManager::GetPercentageTaggedInArea(CRect* area) {
 }
 
 // 0x49CDE0
-void CTagManager::UpdateNumTagged()
-{
-    ms_numTagged = 0;
-    if (!ms_numTags)
-        return;
+void CTagManager::UpdateNumTagged() {
+    ms_numTagged = rng::count_if(GetTags(), [](const tTagDesc& tag) {
+        return tag.Alpha > ALPHA_TAGGED;
+    });
+}
 
-    for (int32 i = ms_numTags - 1; i >= 0; --i) {
-        auto& tagDesc = ms_tagDesc[i];
-        if (tagDesc.m_nAlpha > ALPHA_TAGGED)
-            ms_numTagged++;
+uint8 CTagManager::GetAlpha(const RpAtomic& atomic) {
+    return static_cast<uint8>(CVisibilityPlugins::GetUserValue(&atomic));
+}
+
+uint8 CTagManager::GetAlpha(const CEntity& entity) {
+    assert(IsTag(entity));
+
+    if (entity.GetRpAtomic()) {
+        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity.GetRpAtomic()));
     }
-}
 
-uint8 CTagManager::GetAlpha(RpAtomic* atomic)
-{
-    return static_cast<uint8>(CVisibilityPlugins::GetUserValue(atomic));
-}
-
-uint8 CTagManager::GetAlpha(CEntity* entity)
-{
-    if (entity->GetRpAtomic())
-        return static_cast<uint8>(CVisibilityPlugins::GetUserValue(entity->GetRpAtomic()));
-
-    auto tag = FindTagDesc(entity);
-    assert(tag); // Originally the function would access uninitialized memory, by clearing EAX and dereferencing pointer to [EAX + 0x4] right after that
-
-    return tag->m_nAlpha;
+    auto* const desc = FindTagDesc(entity);
+    if (notsa::bugfixes::GenericCrashing) {
+        if (!desc) {
+            return 0;
+        }
+    }
+    return desc->Alpha;
 }
 
 // 0x49CD30
-void CTagManager::SetAlpha(RpAtomic* atomic, uint8 ucAlpha)
-{
-    CVisibilityPlugins::SetUserValue(atomic, ucAlpha);
+void CTagManager::SetAlpha(RpAtomic& atomic, uint8 alphaToSet) {
+    CVisibilityPlugins::SetUserValue(&atomic, alphaToSet);
 }
 
 // 0x49CEC0
-void CTagManager::SetAlpha(CEntity* entity, uint8 ucAlpha)
-{
-    if (entity->GetRpAtomic())
-        SetAlpha(entity->GetRpAtomic(), ucAlpha);
+void CTagManager::SetAlpha(CEntity& entity, uint8 alphaToSet) {
+    assert(IsTag(entity));
 
-    auto tagDesc = FindTagDesc(entity);
-    auto bChangedState = false;
-    if (ucAlpha > ALPHA_TAGGED && tagDesc->m_nAlpha <= ALPHA_TAGGED)
-        bChangedState = true;
-
-    tagDesc->m_nAlpha = ucAlpha;
-    UpdateNumTagged();
-
-    if (bChangedState && !TheCamera.m_bWideScreenOn) {
-        if (ms_numTagged == ms_numTags)
-            CGarages::TriggerMessage("TAG_ALL", -1, 5000u, -1);
-        else
-            CGarages::TriggerMessage("TAG_ONE", ms_numTagged, 5000u, ms_numTags);
+    if (auto* const atomicOfEntity = entity.GetRpAtomic()) {
+        SetAlpha(*atomicOfEntity, alphaToSet);
     }
-}
 
-void CTagManager::ResetAlpha(CEntity* entity)
-{
-    if (!entity->GetRpAtomic())
-        return;
-
-    auto tagDesc = FindTagDesc(entity);
-    SetAlpha(entity->GetRpAtomic(), tagDesc->m_nAlpha);
-}
-
-// 0x49CFE0
-void CTagManager::SetAlphaInArea(CRect* area, uint8 ucAlpha)
-{
-    for (int32 i = ms_numTags - 1; i >= 0; --i) {
-        auto& tagDesc = ms_tagDesc[i];
-        auto vecPos = CVector2D(tagDesc.m_pEntity->GetPosition());
-        if (area->IsPointInside(vecPos) && tagDesc.m_pEntity->GetRpAtomic()) {
-            SetAlpha(tagDesc.m_pEntity->GetRpAtomic(), ucAlpha);
-            tagDesc.m_nAlpha = ucAlpha;
+    auto* const tag = FindTagDesc(entity);
+    if (notsa::bugfixes::GenericCrashing) {
+        if (!tag) {
+            return;
         }
     }
 
+    const auto justGotTagged = alphaToSet > ALPHA_TAGGED && tag->Alpha <= ALPHA_TAGGED;
+    tag->Alpha               = alphaToSet;
+    UpdateNumTagged();
+
+    if (justGotTagged && !TheCamera.m_bWideScreenOn) {
+        if (ms_numTagged == ms_numTags) {
+            CGarages::TriggerMessage("TAG_ALL", -1, 5'000u, -1);
+        } else {
+            CGarages::TriggerMessage("TAG_ONE", ms_numTagged, 5'000u, ms_numTags);
+        }
+    }
+}
+
+void CTagManager::ResetAlpha(const CEntity& entity) {
+    assert(IsTag(entity));
+
+    auto* const atomicOfEntity = entity.GetRpAtomic();
+    if (!atomicOfEntity) {
+        return;
+    }
+    auto* const tagOfEntity = FindTagDesc(entity);
+    if (notsa::bugfixes::GenericCrashing) {
+        if (!tagOfEntity) {
+            return;
+        }
+    }
+    SetAlpha(*atomicOfEntity, tagOfEntity->Alpha);
+}
+
+// 0x49CFE0
+void CTagManager::SetAlphaInArea(const CRect& area, uint8 alphaToSet) {
+    for (auto& tag : GetTagsInArea(area)) {
+        auto* const atomicOfTag = tag.Entity->GetRpAtomic();
+        if (!atomicOfTag) {
+            continue;
+        }
+        SetAlpha(*atomicOfTag, alphaToSet);
+        tag.Alpha = alphaToSet;
+    }           
     UpdateNumTagged();
 }
 
 // 0x49D160
-CEntity* CTagManager::GetNearestTag(const CVector& vecPos)
-{
-    auto vecPosUsed = CVector2D(vecPos.x, vecPos.y);
-    int32 iClosestInd = -1;
-    float fMinDist = RwRealMAXVAL;
-    for (int32 i = ms_numTags - 1; i >= 0; --i) {
-        auto& tagDesc = ms_tagDesc[i];
-        auto vecTagPos = CVector2D(tagDesc.m_pEntity->GetPosition());
-        auto fDist = (vecPosUsed - vecTagPos).SquaredMagnitude();
-        if (fDist < fMinDist) {
-            fMinDist = fDist;
-            iClosestInd = i;
+CEntity* CTagManager::GetNearestTag(const CVector& nearestToPoint) {
+    tTagDesc* closest         = nullptr;
+    float     closestDist2DSq = RwRealMAXVAL;
+    for (auto& tag : GetTags()) {
+        if (const auto dist2DSq = CVector2D::DistSqr(nearestToPoint, tag.Entity->GetPosition2D()); dist2DSq < closestDist2DSq) {
+            closestDist2DSq = dist2DSq;
+            closest         = &tag;
         }
     }
-
-    assert(iClosestInd != -1);
-    return ms_tagDesc[iClosestInd].m_pEntity;
+    return closest
+        ? closest->Entity
+        : nullptr; // BUGFIX(Pirulax): Original caller site does handle nullptr just fine, they just kinda forgot to return null if there are no tags at all xD
 }
 
 // 0x49CE10
-void CTagManager::SetupAtomic(RpAtomic* atomic)
-{
-    auto geometry = RpAtomicGetGeometry(atomic);
-    auto material = RpGeometryGetMaterial(geometry, 1);
+void CTagManager::SetupAtomic(RpAtomic& atomic) {
+    auto geometry      = RpAtomicGetGeometry(&atomic);
+    auto material      = RpGeometryGetMaterial(geometry, 1);
     material->pipeline = ms_pPipeline;
     RpGeometrySetFlags(geometry, RpGeometryGetFlags(geometry) | rpGEOMETRYMODULATEMATERIALCOLOR);
     SetAlpha(atomic, 0);
 }
 
 // 0x49CE40
-void CTagManager::RenderTagForPC(RpAtomic* atomic)
-{
-    auto geometry = RpAtomicGetGeometry(atomic);
-    auto material = RpGeometryGetMaterial(geometry, 1);
-    material->color.alpha = GetAlpha(atomic);
-    RpAtomicRender(atomic);
+void CTagManager::RenderTagForPC(RpAtomic& atomic) {
+    auto geometry                       = RpAtomicGetGeometry(&atomic);
+    auto material                       = RpGeometryGetMaterial(geometry, 1);
+    RpMaterialGetColor(material)->alpha = GetAlpha(atomic);
+    RpAtomicRender(&atomic);
 }
 
 // 0x5D3D60
-void CTagManager::Save()
-{
+void CTagManager::Save() {
     CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags);
 
-    for (auto i = 0; i < ms_numTags; ++i) {
-        CGenericGameStorage::SaveDataToWorkBuffer(ms_tagDesc[i].m_nAlpha);
+    for (const auto& tag : GetTags()) {
+        CGenericGameStorage::SaveDataToWorkBuffer(tag.Alpha);
     }
 }
 
 // 0x5D3DA0
-void CTagManager::Load()
-{
-#if FIX_BUGS
+void CTagManager::Load() {
+#if 0 // FIX_BUGS - NOTE(Pirulax): I've tested, and it breaks the tags (Just try the "tagging the turf" mission), so I guess just leave it as-is
     // TODO: Verify if there are no side effects due to this fix - it's done the same way on android but I'm not sure why this worked even without reading the data to ms_numTags
     // The loop below always iterated the proper amount of times, so i assume the tags are loaded at some point before save is loaded, and we already have all the tags initialized
     CGenericGameStorage::LoadDataFromWorkBuffer(ms_numTags);
@@ -251,7 +246,9 @@ void CTagManager::Load()
     CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags); // Yeah, original also saves into buffer instead of loading
 #endif
 
-    for (auto i = 0; i < ms_numTags; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(ms_tagDesc[i].m_nAlpha);
+    for (auto& tag : GetTags()) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(tag.Alpha);
     }
+
+    NOTSA_LOG_DEBUG("Loaded {} tags", ms_numTags);
 }
