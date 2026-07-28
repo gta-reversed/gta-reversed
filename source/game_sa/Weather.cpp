@@ -31,7 +31,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(RenderRainStreaks, 0x72AF70);
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
     RH_ScopedInstall(Update, 0x72B850, { .reversed = false });
-    RH_ScopedInstall(UpdateInTunnelness, 0x72B630, { .reversed = false });
+    RH_ScopedInstall(UpdateInTunnelness, 0x72B630);
     //RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, true, { .reversed = false }); // bad
     RH_ScopedInstall(IsRainy, 0x4ABF50);
 }
@@ -266,7 +266,24 @@ void CWeather::Update() {
 
 // 0x72B630
 void CWeather::UpdateInTunnelness() {
-    plugin::Call<0x72B630>();
+    ZoneScoped;
+
+    static const CVector s_TunnelPoint1{ 85.0f, -1020.0f, 0.0f }; // 0xC81430
+    static const CVector s_TunnelPoint2{ 1683.0f, -1956.0f, 0.0f }; // 0xC81424
+
+    float target = 0.0f;
+    if (CCullZones::CurrentFlags_Camera & 0x2000) { // TODO: Unnamed tunnel-related eZoneAttributes flag (bit 0x2000)
+        const CVector from{ CVector2D{ TheCamera.GetPosition() } };
+        const CVector to = from + CVector{ CVector2D{ TheCamera.GetForwardVector() }.Normalized() } * 100.0f;
+        const auto dist = std::min({
+            CCollision::DistToLine(from, to, s_TunnelPoint1),
+            CCollision::DistToLine(from, to, s_TunnelPoint2),
+            100.0f,
+        });
+        target = std::min(1.0f, dist / 100.0f);
+    }
+
+    InTunnelness = notsa::step_to(InTunnelness, target, CTimer::GetTimeStep() * 0.01f);
 }
 
 // Based on 0x72A640

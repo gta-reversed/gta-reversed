@@ -86,9 +86,4 @@ inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_
                    "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
-inline const ReversibleBugFix CTagManager_MissingTagCountResetOnShutdown{
-    .Name        = "CTagManager::ShutdownForRestart - Missing reset of tag count to zero",
-    .Description = "N/A",
-    .Credit      = "Pirulax"
-};
 };
