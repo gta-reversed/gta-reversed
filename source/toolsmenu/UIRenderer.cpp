@@ -172,15 +172,16 @@ void UIRenderer::DebugCode() {
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
-    static CColLine line;
+    static std::array<CVector, 4> corners;
+
 
     constexpr auto RED     = 0xFF0000FF; // red
     constexpr auto WHITE   = 0xFFFFFFFF; // white
     constexpr auto MAGENTA = 0xFF00FFFF; // magenta
 
-    CSphere{ line.m_vecStart, 0.25f }.DrawWireFrame({ RED }, CMatrix::Unity());
-    line.DrawWireFrame({ WHITE });
-    CSphere{ line.m_vecEnd, 0.25f }.DrawWireFrame({ MAGENTA }, CMatrix::Unity());
+    for (auto& corner : corners) {
+        CSphere{ corner, 1.f }.DrawWireFrame({ RED }, CMatrix::Unity());
+    }
 
     if (pad->IsStandardKeyJustPressed('P')) {
         CColPoint cp;
@@ -201,15 +202,14 @@ void UIRenderer::DebugCode() {
         );
         if (e) {
             e->AsPhysical()->ApplyMoveForce(e->GetUp() * 100.f);
-            CVector pt;
-            if (!CPedGeometryAnalyser::ComputeClosestSurfacePoint(
-                    player->GetPosition(),
-                    *e,
-                    pt
+            if (CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(
+                player->GetPosition().z,
+                *e,
+                corners
             )) {
-                NOTSA_LOG_WARN("No point");
+                NOTSA_LOG_WARN("OK");
             } else {
-                line = CColLine{ player->GetPosition(), pt};
+                NOTSA_LOG_WARN("No corners");
             }
         } else {
             NOTSA_LOG_WARN("No entity");

@@ -47,10 +47,20 @@ void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     CLines::RenderLineNoClipping(v21, v61, colorRGBA, colorRGBA);
 }
 
+// notsa
 auto CSphere::GetTransformed(const CMatrix& transform) const -> CSphere {
     return { transform.TransformPoint(m_vecCenter), m_fRadius };
 }
 
+// notsa
+auto CSphere::GetBoundingBox() const -> CBox {
+    return {
+        m_vecCenter - CVector{ m_fRadius },
+        m_vecCenter + CVector{ m_fRadius }
+    };
+}
+
+// notsa
 auto TransformObject(const CSphere& sp, const CMatrix& transform) -> CSphere {
     return { transform.TransformPoint(sp.m_vecCenter), sp.m_fRadius };
 }
