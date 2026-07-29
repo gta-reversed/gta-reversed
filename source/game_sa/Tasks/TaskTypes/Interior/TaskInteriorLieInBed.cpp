@@ -58,14 +58,14 @@ CTaskInteriorLieInBed::~CTaskInteriorLieInBed() {
 
 // 0x675FC0
 void CTaskInteriorLieInBed::FinishAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskInteriorLieInBed>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskInteriorLieInBed>(static_cast<CTask*>(data));
 
-    self->m_PrevAnimId = (AnimationId)anim->m_nAnimId;
+    self->m_PrevAnimId = anim->GetAnimId();
 
     if (self->m_PrevAnimId == self->GetAnimIdInSeq(AnimSeqIdx::GET_OUT) // Last animation in the sequence
      || self->m_TaskAborting && self->m_PrevAnimId == (AnimationId)self->m_BaseAnimId
     ) { 
-        anim->m_fBlendDelta = -1000.f;
+        anim->SetBlendDelta(-1000.f);
         self->m_LastAnimFinished = true;
     }
 
@@ -76,7 +76,7 @@ void CTaskInteriorLieInBed::FinishAnimCB(CAnimBlendAssociation* anim, void* data
 bool CTaskInteriorLieInBed::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
         if (m_Anim) {
-            m_Anim->m_fBlendDelta = -1000.f;
+            m_Anim->SetBlendDelta(-1000.f);
             m_Anim->SetDefaultFinishCallback();
             m_Anim = nullptr;
         }
@@ -91,13 +91,13 @@ bool CTaskInteriorLieInBed::MakeAbortable(CPed* ped, eAbortPriority priority, CE
 // 0x6772E0
 bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
     const auto currAnimId = m_Anim
-        ? (AnimationId)m_Anim->m_nAnimId
+        ? (AnimationId)m_Anim->GetAnimId()
         : ANIM_ID_UNDEFINED;
 
     ped->SetMoveState(PEDMOVE_STILL);
 
     if (m_LastAnimFinished) {
-        if (!RpAnimBlendClumpGetAssociation(ped->m_pRwClump, GetAnimIdInSeq(AnimSeqIdx::GET_OUT))) { // Check if last anim has really finished
+        if (!RpAnimBlendClumpGetAssociation(ped->GetRpClump(), GetAnimIdInSeq(AnimSeqIdx::GET_OUT))) { // Check if last anim has really finished
             ped->GetIntelligence()->GetEventScanner().GetAcquaintanceScanner().SetOnlyScriptPedAllowed();
             return true;
         }
@@ -106,7 +106,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
     const auto CreateNextAnim = [&, this](AnimSeqIdx seqIdx, float blendDelta = 1000.f) {
         m_Anim->SetDefaultFinishCallback();
         
-        m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_INT_HOUSE, GetAnimIdInSeq(seqIdx), blendDelta);
+        m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_INT_HOUSE, GetAnimIdInSeq(seqIdx), blendDelta);
         m_Anim->SetFinishCallback(FinishAnimCB, this);
 
         m_UpdatePedPos = true;
@@ -121,14 +121,14 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
         assert(m_Anim);
 
         if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::GET_IN)) {
-            m_Anim->m_fBlendDelta = -8.f;
+            m_Anim->SetBlendDelta(-8.f);
         } else if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::LOOP)) {
             if (!m_UpdatePedPos) {
                 CreateNextAnim(AnimSeqIdx::GET_OUT);
                 return false;
             }
         } else if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::GET_OUT)) {
-            m_Anim->m_fBlendDelta = 3.f;
+            m_Anim->SetBlendDelta(3.f);
         }
     }
 
@@ -146,7 +146,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
                     NOTSA_UNREACHABLE();
                 }
             }();
-            const auto animOffsetWS = *ped->m_matrix * animOffsetOS; // Transform to world space
+            const auto animOffsetWS = ped->m_matrix->TransformPoint(animOffsetOS); // Transform to world space
             ped->SetPosn({ animOffsetWS.x, animOffsetWS.y, ped->GetPosition().z });
             if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::LOOP)) {
                 ped->m_fAimingRotation = ped->m_fCurrentRotation = CGeneral::LimitRadianAngle(ped->m_fCurrentRotation + PI);
@@ -162,7 +162,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
 
         // Update ped's anim shift and rotation
         if (currAnimId != GetAnimIdInSeq(AnimSeqIdx::GET_OUT)) {
-            auto pedToIntDir           = m_IntInfo->m_position - ped->GetPosition();
+            auto pedToIntDir           = m_IntInfo->Pos - ped->GetPosition();
             const auto pedToIntMag     = pedToIntDir.NormaliseAndMag();
             const auto pedToIntShiftWS = pedToIntDir * std::min(pedToIntMag, 0.2f);
 
@@ -173,7 +173,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
                 pedToIntShiftWS.Dot(ped->GetForward()),
             };
 
-            ped->m_fAimingRotation = m_IntInfo->m_targetPoint.Heading();
+            ped->m_fAimingRotation = m_IntInfo->Dir.Heading();
         }
     } else if (InteriorManager_c::AreAnimsLoaded(ANIM_GROUP_DEFAULT)) { // Create animation
         const auto CreateNextAnimAndStartTimer = [&, this](AnimSeqIdx offset, float blendDelta = 1000.f) {
