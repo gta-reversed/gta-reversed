@@ -2677,7 +2677,7 @@ void CEventHandler::ComputeVehiclePotentialCollisionResponse(CEventPotentialGetR
         }
         const CVector pedPos{m_Ped->GetPosition()};
 
-        CVector vehBB[4];
+        std::array<CVector, 4> vehBB{};
         CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(pedPos.z, *e->m_Vehicle, vehBB);
 
         CVector vehBBPlanes[4];
