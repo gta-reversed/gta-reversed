@@ -14,11 +14,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeClearTarget, 0x5F5D80);
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&));
-<<<<<<< HEAD
-    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const CVector*,CVector&), { .Reversed = false });
-=======
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const std::array<CVector, 4>&,CVector&), { .Reversed = false });
->>>>>>> 6a09343ab (re(CPedGeometryAnalyser): Refactor usages of `CVector[4]` to `std::array<CVector, 4>`)
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
     RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x5F3650);
@@ -29,27 +25,6 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x5F36A0);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750, { .Reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
-<<<<<<< HEAD
-    RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .Reversed = false });
-    RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .Reversed = false });
-    RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const CVector* point2, const float* x), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, int32 (*)(const CVector& point, CEntity& entity), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .Reversed = false });
-    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .Reversed = false });
-    RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .Reversed = false });
-    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .Reversed = false });
-    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .Reversed = false });
-    RH_ScopedInstall(GetNearestPed, 0x5F3590, { .Reversed = false });
-    RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .Reversed = false });
-    RH_ScopedInstall(IsInAir, 0x5F1CB0, { .Reversed = false });
-    RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .Reversed = false });
-    RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .Reversed = false });
-=======
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .Reversed = false });
     RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .Reversed = false });
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .Reversed = false });
@@ -69,7 +44,6 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(IsInAir, 0x5F1CB0, { .Reversed = false });
     RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .Reversed = false });
     RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .Reversed = false });
->>>>>>> 6a09343ab (re(CPedGeometryAnalyser): Refactor usages of `CVector[4]` to `std::array<CVector, 4>`)
 }
 
 // notsa, common code
