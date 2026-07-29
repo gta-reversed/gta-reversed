@@ -36,15 +36,15 @@ void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     CVector v61 = center;
     v61.y -= m_fRadius;
 
-    const auto colorARGB = color.ToIntARGB();
-    CLines::RenderLineNoClipping(v13, v32, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v13, v41, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v32, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v41, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v13, v52, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v13, v61, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v52, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v61, colorARGB, colorARGB);
+    const auto colorRGBA = color.ToInt();
+    CLines::RenderLineNoClipping(v13, v32, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v13, v41, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v21, v32, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v21, v41, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v13, v52, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v13, v61, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v21, v52, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v21, v61, colorRGBA, colorRGBA);
 }
 
 auto CSphere::GetTransformed(const CMatrix& transform) const -> CSphere {
