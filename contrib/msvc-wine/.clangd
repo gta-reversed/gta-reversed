@@ -1,0 +1,54 @@
+CompileFlags:
+  CompilationDatabase: "."
+  Remove:
+    - "/Yu*"    # Remove MSVC 'Use PCH'
+    - "/Yc*"    # Remove MSVC 'Create PCH'
+    - "/Fp*"    # Remove MSVC 'PCH File'
+  Add:
+    - "-I."
+    - "-Isource" # This allows #include "StdInc.h" to work from anywhere
+
+    - "-D_X86_"
+    - "-D_WIN32"
+    - "-DWIN32"
+    - "-D_WINDOWS"
+    - "-D_CRT_SECURE_NO_WARNINGS"
+
+    - "--driver-mode=cl"
+    - "--target=i686-pc-windows-msvc"
+    - "-fms-compatibility"
+    - "-fms-extensions"
+    - "-std=c++2c"
+    - "-D__clangd__"
+
+    - "-D_MSC_EXTENSIONS"
+    - "-D_MT"        # Multi-threaded runtime
+    - "-D_CPPRTTI"   # Run-time type information enabled
+    - "-D_CPPUNWIND" # Exception handling enabled
+
+    - "-D_M_IX86=600"
+    - "-D_M_IX86_FP=2"
+
+    # TODO: take care of these
+    - "-U__clang__"
+    - "-U__llvm__"
+
+    - "-isystem/opt/msvc/vc/tools/msvc/14.50.35717/include"
+    - "-isystem/opt/msvc/kits/10/include/10.0.26100.0/ucrt"
+    - "-isystem/opt/msvc/kits/10/include/10.0.26100.0/shared"
+    - "-isystem/opt/msvc/kits/10/include/10.0.26100.0/um"
+    - "-isystem/opt/msvc/kits/10/include/10.0.26100.0/winrt"
+
+Diagnostics:
+  UnusedIncludes: None
+  Suppress:
+    - "module_odr_violation_function"
+    - "redefinition"
+    - "microsoft-explicit-constructor-call"
+    - "pp_including_mainfile_in_preamble"
+    - "logical-op-parentheses"
+    - "switch"
+    - "init_conversion_failed"
+    - "member_function_call_bad_type"
+    - "ovl_no_viable_member_function_in_call"
+    - "typecheck_comparison_of_distinct_pointers"

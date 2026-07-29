@@ -505,7 +505,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
     }
 
     const auto ProcessEntity = [](CPhysical* e) {
-        if (e->m_pAttachedTo || e->physicalFlags.bDontApplySpeed || e->physicalFlags.b15) {
+        if (e->m_pAttachedTo || e->physicalFlags.bDontApplySpeed || e->physicalFlags.bDontLoadCollision) {
             return;
         }
         ms_currentIPLAreaCode = e->GetAreaCode();

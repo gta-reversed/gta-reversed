@@ -796,8 +796,8 @@ bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* target, CWeapon* weapon) {
 
     if (weapon->m_Type == eWeaponType::WEAPON_SPRAYCAN) {
         if (target->GetIsTypeBuilding()) {
-            if (CTagManager::IsTag(target)) {
-                if (CTagManager::GetAlpha(target) == 255) { // they probably used -1
+            if (CTagManager::IsTag(*target)) {
+                if (CTagManager::GetAlpha(*target) == 255) { // they probably used -1
                     return true;
                 }
             }

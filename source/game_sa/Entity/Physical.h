@@ -82,10 +82,10 @@ public:
             uint32 bProcessCollisionEvenIfStationary : 1; // ref @ 0x6F5CF0
             uint32 bSkipLineCol : 1;                               // only used for peds
             uint32 bDontApplySpeed : 1;
-            uint32 b15 : 1;
+            uint32 bDontLoadCollision : 1;
             uint32 bProcessingShift : 1;
 
-            uint32 b17 : 1;
+            uint32 bForceHitReturnFalse : 1;
             uint32 bDisableSimpleCollision : 1; // ref @ CPhysical::ProcessCollision
             uint32 bBulletProof : 1;
             uint32 bFireProof : 1;
@@ -100,8 +100,8 @@ public:
             uint32 bTouchingWater : 1;
             uint32 bCanBeCollidedWith : 1;
             uint32 bRenderScorched : 1;
-            uint32 b31 : 1;
-            uint32 b32 : 1;
+            uint32 bDoorHitEndStop : 1;
+            uint32 bCarriedByRope : 1;
         } physicalFlags;
         uint32 m_nPhysicalFlags;
     };
