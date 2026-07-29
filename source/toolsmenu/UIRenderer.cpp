@@ -26,6 +26,7 @@
 
 #include <Windows.h>
 #include "DebugModules/DebugModules.h"
+#include <Lines.h>
 
 namespace notsa {
 namespace ui {
@@ -171,11 +172,21 @@ void UIRenderer::DebugCode() {
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
+    static CColLine line;
+
+    constexpr auto RED     = 0xFF0000FF; // red
+    constexpr auto WHITE   = 0xFFFFFFFF; // white
+    constexpr auto MAGENTA = 0xFF00FFFF; // magenta
+
+    CSphere{ line.m_vecStart, 0.25f }.DrawWireFrame({ RED }, CMatrix::Unity());
+    line.DrawWireFrame({ WHITE });
+    CSphere{ line.m_vecEnd, 0.25f }.DrawWireFrame({ MAGENTA }, CMatrix::Unity());
+
     if (pad->IsStandardKeyJustPressed('P')) {
         CColPoint cp;
         CEntity* e;
         CWorld::ProcessLineOfSight(
-            player->GetPosition(),
+            player->GetPosition() + player->GetForward() * 1.f,
             player->GetPosition() + player->GetForward() * 5.f,
             cp,
             e,
@@ -189,7 +200,17 @@ void UIRenderer::DebugCode() {
             false
         );
         if (e) {
-            NOTSA_LOG_DEBUG("CanPedJumpObstacle: {}", CPedGeometryAnalyser::CanPedJumpObstacle(*player, *e, cp.m_vecNormal, cp.m_vecPoint));
+            e->AsPhysical()->ApplyMoveForce(e->GetUp() * 100.f);
+            CVector pt;
+            if (!CPedGeometryAnalyser::ComputeClosestSurfacePoint(
+                    player->GetPosition(),
+                    *e,
+                    pt
+            )) {
+                NOTSA_LOG_WARN("No point");
+            } else {
+                line = CColLine{ player->GetPosition(), pt};
+            }
         } else {
             NOTSA_LOG_WARN("No entity");
         }

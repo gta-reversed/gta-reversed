@@ -14,7 +14,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeClearTarget, 0x5F5D80);
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&));
-    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const std::array<CVector, 4>&,CVector&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const std::array<CVector, 4>&,CVector&));
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
     RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x5F3650);
@@ -225,10 +225,25 @@ bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEnti
 
 // 0x5F2C10
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& point) {
-    //float closestPtDist3DSq = FLT_MAX;
-    //for ()
+    //
+    // NOTE:
+    // The code below is adapted to use `CCollision::GetClosestPtOnLine` instead of duplicating it
+    // which also clamps the point to the line segment, so the redudant code at the end of the function
+    // was eliminated.
+    //
 
-    return plugin::CallAndReturn<bool, 0x5F2C10, const CVector&, const std::array<CVector, 4>&, CVector&>(posn, corners, point);
+    float closestPtDist3DSq = FLT_MAX;
+    for (uint32 i = 0; i < corners.size(); i++) {
+        const auto& curr = corners[i];
+        const auto& next = corners[(i + 1) % corners.size()];
+        const auto  closest = CCollision::GetClosestPtOnLine(curr, next, posn);
+        const auto  distSq  = (closest - posn).SquaredMagnitude();
+        if (distSq < closestPtDist3DSq) {
+            closestPtDist3DSq = distSq;
+            point             = closest;
+        }
+    }
+    return closestPtDist3DSq != FLT_MAX; // This is same as the original code
 }
 
 // inlined into CPedGeometryAnalyser::ComputeEntityBoundingSphere

@@ -45,6 +45,15 @@ public:
 
     static bool ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& point);
     static bool ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point);
+
+    /*!
+     * @addr 0x5F2C10
+     * @brief Get the closest point to `posn` on the side of a polygon defined by `corners`.
+     * @param posn The point to find the closest point to.
+     * @param corners The corners of the polygon, in order
+     * @param point The closest point on the polygon to `posn`.
+     * @return True if there was a point within 
+     */
     static bool ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& point);
 
     static void ComputeEntityBoundingBoxCentre(float zPos, CEntity& entity, CVector& center);
