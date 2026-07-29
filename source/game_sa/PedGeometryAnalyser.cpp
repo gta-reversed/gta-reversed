@@ -13,7 +13,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeBuildingHitPoints, 0x5F1E30);
     RH_ScopedInstall(ComputeClearTarget, 0x5F5D80);
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
-    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&));
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const CVector*,CVector&), { .reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
@@ -218,7 +218,9 @@ bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& 
 
 // 0x5F36F0
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point) {
-    return plugin::CallAndReturn<bool, 0x5F36F0, const CVector&, CEntity&, CVector&>(posn, entity, point);
+    CVector corners[4];
+    CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
+    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, point);
 }
 
 // 0x5F2C10
