@@ -14,7 +14,11 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeClearTarget, 0x5F5D80);
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&));
+<<<<<<< HEAD
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const CVector*,CVector&), { .Reversed = false });
+=======
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const std::array<CVector, 4>&,CVector&), { .Reversed = false });
+>>>>>>> 6a09343ab (re(CPedGeometryAnalyser): Refactor usages of `CVector[4]` to `std::array<CVector, 4>`)
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
     RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x5F3650);
@@ -25,6 +29,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x5F36A0);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750, { .Reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
+<<<<<<< HEAD
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .Reversed = false });
     RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .Reversed = false });
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .Reversed = false });
@@ -44,6 +49,27 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(IsInAir, 0x5F1CB0, { .Reversed = false });
     RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .Reversed = false });
     RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .Reversed = false });
+=======
+    RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .Reversed = false });
+    RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .Reversed = false });
+    RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .Reversed = false });
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.Reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const std::array<CVector, 4>& point2, const float* x), {.Reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, int32 (*)(const CVector& point, CEntity& entity), {.Reversed = false});
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .Reversed = false });
+    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .Reversed = false });
+    RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .Reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .Reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .Reversed = false });
+    RH_ScopedInstall(GetNearestPed, 0x5F3590, { .Reversed = false });
+    RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .Reversed = false });
+    RH_ScopedInstall(IsInAir, 0x5F1CB0, { .Reversed = false });
+    RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .Reversed = false });
+    RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .Reversed = false });
+>>>>>>> 6a09343ab (re(CPedGeometryAnalyser): Refactor usages of `CVector[4]` to `std::array<CVector, 4>`)
 }
 
 // notsa, common code
@@ -210,7 +236,7 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
 
 // 0x5F3B70
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& point) {
-    CVector corners[4];
+    std::array<CVector, 4> corners;
     const auto& posn = ped.GetPosition();
     ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
     return ComputeClosestSurfacePoint(posn, corners, point);
@@ -218,14 +244,17 @@ bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& 
 
 // 0x5F36F0
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point) {
-    CVector corners[4];
+    std::array<CVector, 4> corners;
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
     return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, point);
 }
 
 // 0x5F2C10
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const CVector* corners, CVector& point) {
-    return plugin::CallAndReturn<bool, 0x5F2C10, const CVector&, const CVector*, CVector&>(posn, corners, point);
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& point) {
+    //float closestPtDist3DSq = FLT_MAX;
+    //for ()
+
+    return plugin::CallAndReturn<bool, 0x5F2C10, const CVector&, const std::array<CVector, 4>&, CVector&>(posn, corners, point);
 }
 
 // inlined into CPedGeometryAnalyser::ComputeEntityBoundingSphere
@@ -234,7 +263,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentre(float zPos, CEntity& e
 }
 
 // 0x5F1600
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentreUncached(float zPos, const CVector* corners, CVector& center) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentreUncached(float zPos, const std::array<CVector, 4>& corners, CVector& center) {
     center.Set(0.0f, 0.0f, zPos);
 
     center.x = corners[0].x;
@@ -255,19 +284,19 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentreUncached(float zPos, co
 
 // 0x5F3B40
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentreUncachedAll(float zPos, CEntity& entity, CVector& center) {
-    CVector corners[4];
+    std::array<CVector, 4> corners{};
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     ComputeEntityBoundingBoxCentreUncached(zPos, corners, center);
 }
 
 // 0x5F3650
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, CVector* corners) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, std::array<CVector, 4>& corners) {
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
 }
 
 // 0x5F1FA0
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, CVector* corners) {
-    plugin::Call<0x5F1FA0, float, CEntity&, void*>(zPos, entity, corners);
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners) {
+    plugin::Call<0x5F1FA0>(zPos, &entity, &corners);
 }
 
 // 0x5F3660
@@ -276,7 +305,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& e
 }
 
 // 0x5F1670
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, const CVector* corners, CVector(*outPlanes)[4], float* outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, CVector(*outPlanes)[4], float* outPlanesDot) {
     const CVector* corner2 = &corners[3];
     for (auto i = 0; i < 4; i++) {
         const CVector& corner = corners[i];
@@ -297,7 +326,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, co
 
 // 0x5F2B80
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, CVector (*outPlanes)[4], float* outPlanesDot) {
-    CVector corners[4];
+    std::array<CVector, 4> corners{};
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(zPos, corners, outPlanes, outPlanesDot);
 }
@@ -308,13 +337,13 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEn
 }
 
 // 0x5F1750
-CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const CVector* corners, CVector& center, CVector* a3, float* a4) {
-    return plugin::CallAndReturn<CVector*, 0x5F1750, const CVector*, CVector&, CVector*, float*>(corners, center, a3, a4);
+CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, CVector* a3, float* a4) {
+    return plugin::CallAndReturn<CVector*, 0x5F1750>(&corners, &center, a3, a4);
 }
 
 // 0x5F2BC0
 CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, CVector* a3, float* a4) {
-    CVector corners[4];
+    std::array<CVector, 4> corners{};
     CVector center;
 
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
@@ -354,8 +383,8 @@ int32 CPedGeometryAnalyser::ComputeEntityHitSide(const CPed& ped, CEntity& entit
 }
 
 // 0x5F1450
-int32 CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point1, const CVector* point2, const float* x) {
-    return plugin::CallAndReturn<int32, 0x5F1450, const CVector&, const CVector*, const float*>(point1, point2, x);
+int32 CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& point2, const float* x) {
+    return plugin::CallAndReturn<int32, 0x5F1450, const CVector&, const std::array<CVector, 4>&, const float*>(point1, point2, x);
 }
 
 // 0x5F3AC0

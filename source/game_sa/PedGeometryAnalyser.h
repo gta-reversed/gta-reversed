@@ -45,18 +45,18 @@ public:
 
     static bool ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& point);
     static bool ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point);
-    static bool ComputeClosestSurfacePoint(const CVector& posn, const CVector* corners, CVector& point);
+    static bool ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& point);
 
     static void ComputeEntityBoundingBoxCentre(float zPos, CEntity& entity, CVector& center);
-    static void ComputeEntityBoundingBoxCentreUncached(float zPos, const CVector* corners, CVector& center);
+    static void ComputeEntityBoundingBoxCentreUncached(float zPos, const std::array<CVector, 4>& corners, CVector& center);
     static void ComputeEntityBoundingBoxCentreUncachedAll(float zPos, CEntity& entity, CVector& center);
-    static void ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, CVector* corners);
-    static void ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, CVector* corners);
+    static void ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
+    static void ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
     static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, CVector(*outPlanes)[4], float* outPlanesDot);
-    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const CVector* corners, CVector(*outPlanes)[4], float* outPlanesDot);
+    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, CVector(*outPlanes)[4], float* outPlanesDot);
     static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, CVector (*outPlanes)[4], float* outPlanesDot);
     static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, CVector*, float*);
-    static CVector* ComputeEntityBoundingBoxSegmentPlanesUncached(const CVector* corners, CVector& center, CVector* a3, float* a4);
+    static CVector* ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, CVector* a3, float* a4);
     static CVector* ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, CVector* a3, float* a4);
     static void ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere&);
 
@@ -65,7 +65,7 @@ public:
     static CVector ComputeEntityDir(const CEntity& entity, eDirection dir);
     static CVector* ComputeEntityDirs(const CEntity& entity, CVector* posn);
     static int32 ComputeEntityHitSide(const CPed& ped, CEntity& entity); // Returns `eDirection`
-    static int32 ComputeEntityHitSide(const CVector& point1, const CVector* point2, const float* x); // Returns `eDirection`
+    static int32 ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& point2, const float* x); // Returns `eDirection`
     static int32 ComputeEntityHitSide(const CVector& point, CEntity& entity); // Returns `eDirection`
     static int32 ComputePedHitSide(const CPed& ped, const CPhysical& physical);
     static int32 ComputePedHitSide(const CPed& ped, const CVector& posn);
