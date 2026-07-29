@@ -87,7 +87,7 @@ public:
     bool GetBoundingBox(FurnitureEntity_c* entity, CVector* a3);
     void ResetTiles();
     CObject* PlaceObject(uint8 isStealable, Furniture_c* furniture, float offsetX, float offsetY, float offsetZ, float rotationZ);
-    FurnitureEntity_c* GetFurnitureEntity(CEntity*);
+    FurnitureEntity_c* GetFurnitureEntity(const CEntity& entity);
     bool IsPtInside(const CVector& pt, CVector bias = {});
     void CalcMatrix(CVector* translation);
     void Furnish();

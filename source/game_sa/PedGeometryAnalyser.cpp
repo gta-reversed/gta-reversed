@@ -1,5 +1,5 @@
 #include "StdInc.h"
-
+#include <Interior/InteriorManager_c.h>
 #include "PedGeometryAnalyser.h"
 
 void CPedGeometryAnalyser::InjectHooks() {
@@ -18,7 +18,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
     RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x5F3650);
-    RH_ScopedInstall(ComputeEntityBoundingBoxCornersUncached, 0x5F1FA0, { .reversed = false });
+    RH_ScopedInstall(ComputeEntityBoundingBoxCornersUncached, 0x5F1FA0);
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanes, 0x5F3660, { .reversed = false });
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncached, 0x5F1670);
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncachedAll, 0x5F2B80);
@@ -284,8 +284,180 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(float zPos, CEntity& 
 }
 
 // 0x5F1FA0
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners) {
-    plugin::Call<0x5F1FA0>(zPos, &entity, &corners);
+bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners) {
+    if (entity.GetIsTypeBuilding() && entity.m_bIsTempBuilding) {
+        if (g_interiorMan.GetBoundingBox(entity, corners.data())) {
+            for (auto& corner : corners) {
+                corner.z = zPos;
+            }
+            return true;
+        }
+    }
+
+    CVector min{ FLT_MAX }, max{ FLT_MIN };
+    const auto&       matrix   = entity.GetMatrix();
+    const auto* const entityCM = entity.GetColModel();
+    if (!entityCM) {
+        return false; // BUGFIX
+    }
+    const auto* const entityCD = entityCM->GetData();
+    if (!entityCD) {
+        return false; // BUGFIX
+    }
+    if (entity.GetIsTypeObject() && entityCM && entityCM->GetBoundingBox().GetHeight() > 6.f && (entityCD->GetBoxes().size() || entityCD->GetSpheres().size())) {
+        const auto ProcessBoxForBB = [
+            &matrix,
+            &min,
+            &max,
+            minAllowedZ = zPos - 1.f,
+            maxAllowedZ = zPos + 1.f
+        ](const CBox& box) {
+            const auto bmin = box.m_vecMin,
+                       bmax = box.m_vecMax;
+
+            // Check intersection on Z axis in world-space
+            // Can't do this the other way around, because the
+            // I've simplified this, because there's no reason to transpose anything other than the Z axis
+            {
+                const auto TransformObjecToWorldSpaceZ = [&matrix](float z) -> float {
+                    return (z + matrix.GetPosition().z) * matrix.GetUp().z;
+                };
+                const auto bminZ = TransformObjecToWorldSpaceZ(bmin.z);
+                const auto bmaxZ = TransformObjecToWorldSpaceZ(bmax.z);
+
+                //
+                // This is the original code, it makes no sense, so I've simplified
+                // 
+                //if (bminZ < minAllowedZ && bmaxZ < minAllowedZ) { // NB: What's the point of testing min.z too, if max.z is supposed to be higher?
+                //    continue;
+                //}
+                //
+                //if (bminZ > maxAllowedZ && bmaxZ > maxAllowedZ) { // NB: What's the point of testing max.z too, if min.z is supposed to be lower?
+                //    continue;
+                //}
+
+                assert(bmax.z >= bmin.z);
+                if (bmax.z < minAllowedZ || bmin.z > maxAllowedZ) {
+                    return;
+                }
+            }
+
+            min.x = std::min(min.x, bmin.x);
+            min.y = std::min(min.y, bmin.y);
+            min.z = std::min(min.z, bmin.z);
+
+            max.x = std::max(max.x, bmax.x);
+            max.y = std::max(max.y, bmax.y);
+            max.z = std::max(max.z, bmax.z);
+        };
+
+        for (const auto& box : entityCD->GetBoxes()) {
+            ProcessBoxForBB(box);
+        }
+        for (const auto& sphere : entityCD->GetSpheres()) {
+            ProcessBoxForBB(sphere.GetBoundingBox());
+        }
+    } else {
+        const auto& bb = entityCM->GetBoundingBox();
+        min            = bb.m_vecMin;
+        max            = bb.m_vecMax;
+    }
+
+    min -= CVector{ ms_fPedNominalRadius }; // 0x5F23D7
+    max += CVector{ ms_fPedNominalRadius }; // 0x5F23FB
+
+    const auto halfExtent   = (max - min) * 0.5f; // 0x5F246C
+
+    // Code below is combined code of all the `if` branches found below
+    // And after 0x5F28F8
+    const auto CalculateBB  = [&](
+        CVector   principal, float extP,
+        CVector2D axisA,     float extA,
+        CVector2D axisB,     float extB
+    ) {
+        //
+        // We're using the Separating Axis Theorem (SAT) to calculate the bounding box corners
+        // It works by projecting the two axes of the bounding box onto a new 2D grid,
+        // which is defined by the principal axis and its perpendicular vector.
+        // This approach differs a bit from the original code, as they've instead used the bb's two axes as the new grid,
+        // but the result is the same.
+        // I've spent a whole day on figuring this shit out, and I'm mad. Good night. (P)
+        // 
+        // ▲ Perpendicular Vector (V)
+        // │                      * 
+        // │                     / \
+        // │               av   /   \    bv 
+        // │                   /     \  
+        // │                  /       \
+        // │                 *         * 
+        // │                  \       /  
+        // │               au  \     /   bu
+        // │                    \   /    
+        // │                     \ /
+        // └──────────────────────*──────────────────────► Principal Axis (U)
+        //
+
+        // Our grid's vectors (Originally axisA and axisB, but it's simpler like this)
+        const auto u = CVector2D{ principal }.Normalized();
+        const auto v = u.GetPerpRight();
+
+        // Project Axis A (Width) onto our new 2D U/V grid
+        const auto au = std::abs(u.Dot(axisA) * extA);
+        const auto av = std::abs(v.Dot(axisA) * extA);
+
+        // Project Axis B (Length) onto our new 2D U/V grid
+        const auto bu = std::abs(u.Dot(axisB) * extB);
+        const auto bv = std::abs(v.Dot(axisB) * extB);
+
+        // Calculate Separating Axis Theorem (SAT)
+        const auto extentU = std::abs(au) + std::abs(bu);
+        const auto extentV = std::abs(av) + std::abs(bv);
+
+        // Center of the bounding box in world-space
+        const CVector2D center  = matrix.TransformPoint((min + max) * 0.5f);
+
+        // Calculate the offsets along the U and V axes
+        const CVector2D offsetU = u * extentU,
+                        offsetV = v * extentV;
+
+        // Calculate the two extreme points along the principal axis
+        const CVector2D ptA     = center + (principal * extP),
+                        ptB     = center - (principal * extP);
+
+        // Calculate the four corners of the bounding box in world-space
+        corners[0]              = CVector{ptA + offsetU - offsetV, zPos };
+        corners[1]              = CVector{ptB - offsetU - offsetV, zPos };
+        corners[2]              = CVector{ptB - offsetU + offsetV, zPos };
+        corners[3]              = CVector{ptA + offsetU + offsetV, zPos };
+    };
+
+    // 0x5F24E5 - Weights used to select the dominant axis for the bounding box calculation 
+    const auto weightX = 2.f * halfExtent.x * CVector2D{ matrix.GetRight() }.SquaredMagnitude(),
+               weightY = 2.f * halfExtent.y * CVector2D{ matrix.GetForward() }.SquaredMagnitude(),
+               weightZ = 2.f * halfExtent.z * CVector2D{ matrix.GetUp() }.SquaredMagnitude();
+
+    // Based on the weights, select the axis we want to work on
+    if (weightY > weightX && weightY > weightZ) { // 0x5F2523 (Inverted) - Dominant Y Axis
+        CalculateBB(
+            matrix.GetForward(), halfExtent.y,
+            matrix.GetRight(), halfExtent.x,
+            matrix.GetUp(), halfExtent.z
+        );
+    } else if (weightX <= weightZ) { // 0x5F268A - Dominant Z Axis
+        CalculateBB(
+            matrix.GetUp(), halfExtent.z,
+            matrix.GetRight(), halfExtent.x,
+            matrix.GetForward(), halfExtent.y
+        );
+    } else { // 0x5F26A8 - Dominant X Axis
+        CalculateBB(
+            matrix.GetRight(), halfExtent.x,
+            matrix.GetForward(), halfExtent.y,
+            matrix.GetUp(), halfExtent.z
+        );
+    }
+
+    return true; // 0x5F1FEF
 }
 
 // 0x5F3660
