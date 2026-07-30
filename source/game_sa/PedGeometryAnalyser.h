@@ -67,7 +67,7 @@ public:
     static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
     static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
     static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
-    static void ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere&);
+    static void ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere& out);
 
     static int32 ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& posn);
 
