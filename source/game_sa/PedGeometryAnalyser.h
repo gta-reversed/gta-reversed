@@ -61,12 +61,12 @@ public:
     static void ComputeEntityBoundingBoxCentreUncachedAll(float zPos, CEntity& entity, CVector& center);
     static void ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
     static bool ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
-    static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, CVector(*outPlanes)[4], float* outPlanesDot);
-    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, CVector(*outPlanes)[4], float* outPlanesDot);
-    static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, CVector (*outPlanes)[4], float* outPlanesDot);
-    static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, CVector*, float*);
-    static CVector* ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, CVector* a3, float* a4);
-    static CVector* ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, CVector* a3, float* a4);
+    static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
     static void ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere&);
 
     static int32 ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& posn);

@@ -49,12 +49,12 @@ CTask* CTaskComplexDiveFromAttachedEntityAndGetUp::CreateFirstSubTask(CPed* ped)
          && notsa::contains({ eDirection::BACKWARD, eDirection::FORWARD }, hitSide)
          && m_DiveDir.Dot(attachedTo->GetMoveSpeed()) > 0.f // Same direction
         ) {
-            CVector bb[4];
-            float   bbPlanesDot[4];
+            std::array<CVector, 4> bb{};
+            std::array<float, 4> bbPlanesDot{};
             CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(
                 ped->GetPosition().z,
                 *attachedTo,
-                &bb,
+                bb,
                 bbPlanesDot
             );
             const auto GetPlaneDot = [&, pedPos = ped->GetPosition()](int32 i) {
