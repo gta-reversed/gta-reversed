@@ -1,14 +1,12 @@
 # Hook registration requirements for reversed classes
 
-For every new reversed class added under `source/game_sa/**`:
+For every new reversed **in-game** class added under `source/game_sa/**`:
 
-1. Declare `static void InjectHooks();` in the class declaration.
-2. Register the class in `/home/runner/work/gta-reversed/gta-reversed/source/InjectHooksMain.cpp` by adding `ClassName::InjectHooks();` inside `InjectHooksMain()`.
-
-`friend void InjectHooksMain();` is only expected when `InjectHooksMain()` must access private hook wrappers. Do not add this friend declaration when it is not needed.
+1. There must be `static void InjectHooks();` in the class declaration.
+2. `InjectHooksMain()` at `/home/runner/work/gta-reversed/gta-reversed/source/InjectHooksMain.cpp` must call `ClassName::InjectHooks();`.
 
 ## PR review checklist
 
-- [ ] New class under `source/game_sa/**` declares `static void InjectHooks();`.
+- [ ] In-game reversed class has `static void InjectHooks();`.
 - [ ] `InjectHooksMain()` in `source/InjectHooksMain.cpp` contains a matching `ClassName::InjectHooks();` call.
 - [ ] `friend void InjectHooksMain();` is present only when private hook-wrapper access is required.
