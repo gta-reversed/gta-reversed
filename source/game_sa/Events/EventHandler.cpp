@@ -2001,13 +2001,13 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                 DoLookAt(plyr, 2'000);
                 return {
                     e->m_movestate == PEDMOVE_SPRINT
-                        ? new CTaskComplexHitResponse{(eDirection)plyrHitSide}
+                        ? new CTaskComplexHitResponse{plyrHitSide}
                         : nullptr,
                     new CTaskSimpleSay{CTX_GLOBAL_BUMP}
                 };
             }
             return { // 0x4B90DF
-                new CTaskComplexFallAndGetUp{plyrHitSide, false},
+                new CTaskComplexFallAndGetUp{(int32)plyrHitSide, false},
                 nullptr
             };
         }
@@ -2845,7 +2845,7 @@ void CEventHandler::ComputeWaterCannonResponse(CEventHitByWaterCannon* e, CTask*
         if (const auto speed = m_Ped->GetMoveSpeed().Magnitude2D(); speed >= 0.2f) {
             m_Ped->SetMoveSpeedXY(0.2f / speed * CVector2D{m_Ped->GetMoveSpeed()});
         }
-        return new CTaskComplexFallAndGetUp{ CPedGeometryAnalyser::ComputePedHitSide(*m_Ped, e->m_moveSpeed), 0 };
+        return new CTaskComplexFallAndGetUp{ (int32)CPedGeometryAnalyser::ComputePedHitSide(*m_Ped, e->m_moveSpeed), 0 };
     }();
 }
 

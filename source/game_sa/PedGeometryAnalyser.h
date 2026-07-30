@@ -84,8 +84,15 @@ public:
     static eDirection ComputeEntityHitSide(const CPed& ped, CEntity& entity);
     static eDirection ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& segmentPlaneNormals, const std::array<float, 4>& segmentPlaneDots);
     static eDirection ComputeEntityHitSide(const CVector& point, CEntity& entity);
-    static int32 ComputePedHitSide(const CPed& ped, const CPhysical& physical);
-    static int32 ComputePedHitSide(const CPed& ped, const CVector& posn);
+    static eDirection ComputePedHitSide(const CPed& ped, const CPhysical& physical);
+
+    /*!
+     * @param ped The ped that was hit.
+     * @param hitDir The direction of the hit.
+     * @return The side of the ped that was most likely hit by the given velocity vector, or `eDirection::FORWARD` as a fallback.
+     */
+    static eDirection ComputePedHitSide(const CPed& ped, const CVector& hitDir);
+
     static int32 ComputePedShotSide(const CPed& ped, const CVector& posn);
 
     static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, CEntity& entity, const CVector& posn, CPointRoute& pointRoute, int32 a5);
