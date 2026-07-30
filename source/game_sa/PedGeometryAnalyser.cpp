@@ -26,7 +26,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20);
-    RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeMoveDirToAvoidEntity, "OG", 0x5F3730, void(*)(const CPed&, CEntity&, CVector&));
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.reversed = false});
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const std::array<CVector, 4>& point2, const float* x), {.reversed = false});
@@ -425,10 +425,10 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
                         ptB     = center - (principal * extP);
 
         // Calculate the four corners of the bounding box in world-space
-        corners[0]              = CVector{ptA + offsetU - offsetV, zPos };
-        corners[1]              = CVector{ptB - offsetU - offsetV, zPos };
-        corners[2]              = CVector{ptB - offsetU + offsetV, zPos };
-        corners[3]              = CVector{ptA + offsetU + offsetV, zPos };
+        corners[0]              = CVector{ ptA + offsetU - offsetV, zPos }; // Top Left
+        corners[1]              = CVector{ ptB - offsetU - offsetV, zPos }; // Bottom Left
+        corners[2]              = CVector{ ptB - offsetU + offsetV, zPos }; // Bottom Right
+        corners[3]              = CVector{ ptA + offsetU + offsetV, zPos }; // Top Right
     };
 
     // 0x5F24E5 - Weights used to select the dominant axis for the bounding box calculation 
@@ -542,8 +542,32 @@ void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity&
 }
 
 // 0x5F3730
-int32 CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& outDirToAvoidEntity) {
-    return plugin::CallAndReturn<int32, 0x5F3730, const CPed&, CEntity&, CVector&>(ped, entity, outDirToAvoidEntity);
+void CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& outDirToAvoidEntity) {
+    outDirToAvoidEntity = ComputeMoveDirToAvoidEntity(ped, entity);
+}
+
+// notsa, code from 0x5F3730
+CVector CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity) {
+    std::array<CVector, 4> planes{};
+    std::array<float, 4>   planesDot{};
+    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, planes, planesDot);
+    const auto GetDotProductOnPlane = [&] (int32 i) {
+        return planes[i].Dot(ped.GetPosition()) + planesDot[i];
+    };
+
+    const auto planeA = GetDotProductOnPlane(1);
+    if (planeA > 0.f) {
+        return planes[1];
+    }
+
+    const auto planeB = GetDotProductOnPlane(3);
+    if (planeB > 0.f) {
+        return planes[3];
+    }
+
+    return planeA <= planeB
+        ? planes[1]
+        : planes[3];
 }
 
 //! @notsa
