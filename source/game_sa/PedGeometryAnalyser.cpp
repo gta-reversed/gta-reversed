@@ -461,7 +461,7 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
 }
 
 // 0x5F3660
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, CVector(*outPlanes)[4], float* outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot) {
     ComputeEntityBoundingBoxPlanesUncachedAll(zPos, entity, outPlanes, outPlanesDot);
 }
 
@@ -489,30 +489,29 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, co
 }
 
 // 0x5F2B80
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, CVector (*outPlanes)[4], float* outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot) {
     std::array<CVector, 4> corners{};
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(zPos, corners, outPlanes, outPlanesDot);
 }
 
 // 0x5F36A0
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, CVector* normals, float* dots) {
-    ComputeEntityBoundingBoxSegmentPlanesUncachedAll(zPos, entity, normals, dots);
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
+    ComputeEntityBoundingBoxSegmentPlanesUncachedAll(zPos, entity, outNormals, outPlanesDot);
 }
 
 // 0x5F1750
-CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, CVector* a3, float* a4) {
-    return plugin::CallAndReturn<CVector*, 0x5F1750>(&corners, &center, a3, a4);
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
+    return plugin::Call<0x5F1750>(&corners, &center, &outNormals, &outPlanesDot);
 }
 
 // 0x5F2BC0
-CVector* CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, CVector* a3, float* a4) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
     std::array<CVector, 4> corners{};
     CVector center;
-
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     ComputeEntityBoundingBoxCentreUncached(zPos, corners, center);
-    return ComputeEntityBoundingBoxSegmentPlanesUncached(corners, center, a3, a4);
+    ComputeEntityBoundingBoxSegmentPlanesUncached(corners, center, outNormals, outPlanesDot);
 }
 
 // 0x5F3C20

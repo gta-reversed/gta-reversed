@@ -68,15 +68,15 @@ bool CEventVehicleCollision::AffectsPed(CPed* ped)
             if (!m_vehicle->m_pTowingVehicle && !m_vehicle->m_pVehicleBeingTowed)
                 return false;
 
-            CVector boundingBoxPlanes[4];
-            float planes_D[4];
-            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(ped->GetPosition().z, *m_vehicle, &boundingBoxPlanes, planes_D);
+            std::array<CVector, 4> bbPlanes{};
+            std::array<float, 4> bbPlaneDots{};
+            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(ped->GetPosition().z, *m_vehicle, bbPlanes, bbPlaneDots);
             int32 targetPointInPlanes = 0, pedInPlanes = 0;
             for (int32 i = 0; i < 4; i++) {
-                CVector& plane = boundingBoxPlanes[i];
-                if (DotProduct(pGoToTask->m_vecTargetPoint, plane) + planes_D[i] < 0.0f)
+                CVector& plane = bbPlanes[i];
+                if (DotProduct(pGoToTask->m_vecTargetPoint, plane) + bbPlaneDots[i] < 0.0f)
                     ++targetPointInPlanes;
-                if (DotProduct(ped->GetPosition(), plane) + planes_D[i] < 0.0f)
+                if (DotProduct(ped->GetPosition(), plane) + bbPlaneDots[i] < 0.0f)
                     ++pedInPlanes;
             }
             if (targetPointInPlanes != 4 && pedInPlanes != 4)

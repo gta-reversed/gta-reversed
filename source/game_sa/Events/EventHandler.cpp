@@ -2680,9 +2680,9 @@ void CEventHandler::ComputeVehiclePotentialCollisionResponse(CEventPotentialGetR
         std::array<CVector, 4> vehBB{};
         CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(pedPos.z, *e->m_Vehicle, vehBB);
 
-        CVector vehBBPlanes[4];
-        float vehBBPlanesDot[4];
-        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(pedPos.z, *e->m_Vehicle, &vehBBPlanes, vehBBPlanesDot);
+        std::array<CVector, 4> vehBBPlanes{};
+        std::array<float, 4>   vehBBPlanesDot{};
+        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(pedPos.z, *e->m_Vehicle, vehBBPlanes, vehBBPlanesDot);
 
         CVector dirToAvoidVehicle;
         CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(*m_Ped, *e->m_Vehicle, dirToAvoidVehicle);
