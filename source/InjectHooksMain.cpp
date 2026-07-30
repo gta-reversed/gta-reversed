@@ -513,6 +513,7 @@
 #include "EventAreaCodes.h"
 #include "EventLeaderEntryExit.h"
 #include "Formation.h"
+#include "ProjectileInfo.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 
@@ -834,6 +835,7 @@ void InjectHooksMain() {
     CCustomBuildingDNPipeline::InjectHooks();
     CCustomCarEnvMapPipeline::InjectHooks();
     CConversations::InjectHooks();
+    CProjectileInfo::InjectHooks();
 
     const auto Pools = [] {
         CPools::InjectHooks();

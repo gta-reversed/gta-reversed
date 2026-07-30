@@ -27,8 +27,6 @@ public:
 public:
     static CProjectile **ms_apProjectile; // static CProjectile *ms_apProjectile[MAX_PROJECTILES]
 
-    static void InjectHooks();
-
     static void Initialise();
     static void Shutdown();
     void RemoveFXSystem(bool bInstantly);
@@ -41,6 +39,10 @@ public:
     static bool IsProjectileInRange(float x1, float y1, float z1, float x2, float y2, float z2, bool bDestroy);
     static void RemoveAllProjectiles();
     static bool RemoveIfThisIsAProjectile(CObject* object);
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 extern uint32 MAX_PROJECTILE_INFOS; // default 32
