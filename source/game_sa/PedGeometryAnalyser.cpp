@@ -31,8 +31,8 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, eDirection(*)(const CPed&, CEntity&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, eDirection(*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, eDirection(*)(const CVector&, CEntity&));
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&));
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, eDirection(*)(const CPed&,const CPhysical&));
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, eDirection(*)(const CPed&,const CVector&));
     RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
@@ -624,13 +624,27 @@ eDirection CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point, CEnt
 }
 
 // 0x5F3640
-int32 CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CPhysical& physical) {
+eDirection CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CPhysical& physical) {
     return ComputePedHitSide(ped, physical.m_vecMoveSpeed);
 }
 
 // 0x5F1E70
-int32 CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CVector& posn) {
-    return plugin::CallAndReturn<int32, 0x5F1E70, const CPed&, const CVector&>(ped, posn);
+eDirection CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CVector& hitDir) {
+    std::array<CVector, 4> dirs{};
+    ComputeEntityDirs(ped, dirs); // NOTE/BUG: It returns non-normalized vectors, so if the ped is scaled, the hit side may be wrong.
+
+    // Side with the most similar direction to the hit velocity is the side that was hit
+    const auto normal = -hitDir.Normalized();
+    float      max    = FLT_MIN;
+    eDirection dir    = eDirection::FORWARD;
+    for (size_t i = 0; i < dirs.size(); i++) {
+        const auto dot = dirs[i].Dot(normal);
+        if (dot > max) {
+            max = dot;
+            dir = (eDirection)(i);
+        }
+    }
+    return dir;
 }
 
 // 0x5F13F0
