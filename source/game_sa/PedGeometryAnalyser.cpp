@@ -466,22 +466,25 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& e
 }
 
 // 0x5F1670
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, CVector(*outPlanes)[4], float* outPlanesDot) {
-    const CVector* corner2 = &corners[3];
-    for (auto i = 0; i < 4; i++) {
-        const CVector& corner = corners[i];
-        CVector& plane = (*outPlanes)[i];
-        CVector direction = corner - *corner2;
-        direction.Normalise();
-        plane.x = direction.y;
-        plane.y = -direction.x;
-        plane.z = 0.0f;
-        // point-normal plane equation:
-        // ax + by + cz + d = 0
-        // d = - n . P
-        outPlanesDot[i] = -DotProduct(plane, *corner2);
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot) {
+    const auto N = corners.size();
 
-        corner2 = &corner;
+    UNUSED(zPos);
+
+    for (size_t i = 0; i < corners.size(); i++) {
+        const CVector2D prev = corners[(i + N - 1) % N];
+        const CVector2D curr = corners[i];
+
+        // Normal vector of the plane is perpendicular to the edge of the bounding box, pointing outwards
+        const CVector2D normal = (curr - prev).GetPerpRight().Normalized();
+
+        // Store the normal vector of the plane
+        outPlanes[i] = CVector{ normal, 0.f };
+
+        // point-normal plane equation:
+        // ax + by + d = 0
+        // d = - n . P
+        outPlanesDot[i] = -normal.Dot(prev);
     }
 }
 
