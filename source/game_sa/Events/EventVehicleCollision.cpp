@@ -63,8 +63,7 @@ bool CEventVehicleCollision::AffectsPed(CPed* ped)
     CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
     if (pSimplestActiveTask && CTask::IsGoToTask(pSimplestActiveTask)) {
         auto* pGoToTask = static_cast<CTaskSimpleGoTo*>(pSimplestActiveTask);
-        int32 hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *m_vehicle);
-        if (hitSide == CPedGeometryAnalyser::ComputeEntityHitSide(pGoToTask->m_vecTargetPoint, *m_vehicle)) {
+        if (CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *m_vehicle) == CPedGeometryAnalyser::ComputeEntityHitSide(pGoToTask->m_vecTargetPoint, *m_vehicle)) {
             if (!m_vehicle->m_pTowingVehicle && !m_vehicle->m_pVehicleBeingTowed)
                 return false;
 
