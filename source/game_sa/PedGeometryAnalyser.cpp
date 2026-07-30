@@ -28,7 +28,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20);
     RH_ScopedOverloadedInstall(ComputeMoveDirToAvoidEntity, "OG", 0x5F3730, void(*)(const CPed&, CEntity&, CVector&));
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500);
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, eDirection(*)(const CPed&, CEntity&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, eDirection(*)(const CPed&, CEntity&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, eDirection(*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, eDirection(*)(const CVector&, CEntity&));
     RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .reversed = false });
