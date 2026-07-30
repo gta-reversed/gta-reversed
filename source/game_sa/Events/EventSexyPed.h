@@ -4,7 +4,7 @@
 
 #include <Enums/eTaskType.h>
 #include "EventEditableResponse.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 
 class NOTSA_EXPORT_VTABLE CEventSexyPed : public CEventEditableResponse {

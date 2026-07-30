@@ -1,5 +1,5 @@
 #include "StdInc.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "ModelIndices.h"
 #include "EventPassObject.h"
 #include "EventGroupEvent.h"

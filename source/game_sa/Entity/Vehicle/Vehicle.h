@@ -113,6 +113,8 @@ enum eCarPiece {
     CAR_PIECE_BIKEWHEEL_F = 17,
     CAR_PIECE_BIKEWHEEL_R = 18,
     CAR_PIECE_WINDSCREEN  = 19,
+
+    CAR_PIECE_FIRST_WHEEL = CAR_PIECE_WHEEL_LF,
 };
 constexpr inline eCarPiece eCarPiece_WheelPieces[]{ CAR_PIECE_WHEEL_LF, CAR_PIECE_WHEEL_RF, CAR_PIECE_WHEEL_RL, CAR_PIECE_WHEEL_RR };
 
@@ -612,7 +614,13 @@ public:
                       float adhesion, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, uint16 wheelStatus);
     void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
                           float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
-    eCarWheel FindTyreNearestPoint(CVector2D point);
+    enum class eNearestCarWheel {
+        FRONT_LEFT  = +CAR_PIECE_WHEEL_LF - +CAR_PIECE_FIRST_WHEEL,
+        FRONT_RIGHT = +CAR_PIECE_WHEEL_RF - +CAR_PIECE_FIRST_WHEEL,
+        REAR_LEFT   = +CAR_PIECE_WHEEL_RL - +CAR_PIECE_FIRST_WHEEL,
+        REAR_RIGHT  = +CAR_PIECE_WHEEL_RR - +CAR_PIECE_FIRST_WHEEL,
+    };
+    eNearestCarWheel FindTyreNearestPoint(CVector2D point);
     void InflictDamage(CEntity* damager, eWeaponType weapon, float intensity, CVector coords);
     void KillPedsGettingInVehicle();
     bool UsesSiren();

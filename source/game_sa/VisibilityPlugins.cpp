@@ -478,7 +478,7 @@ int32 CVisibilityPlugins::GetModelInfoIndex(RpAtomic* atomic) {
 }
 
 // 0x7323A0
-uint16 CVisibilityPlugins::GetUserValue(RpAtomic* atomic) {
+uint16 CVisibilityPlugins::GetUserValue(const RpAtomic* atomic) {
     return ATOMICPLG_FLAGS(atomic);
 }
 

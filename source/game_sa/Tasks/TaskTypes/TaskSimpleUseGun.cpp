@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskSimpleUseGun.h"
 #include "TaskSimpleGetUp.h"
 #include "TaskSimpleDuck.h"

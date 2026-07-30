@@ -2,7 +2,7 @@
 
 #include "EventHandler.h"
 #include "InterestingEvents.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "PedStats.h"
 
 #include "Tasks/TaskTypes/TaskComplexFacial.h"

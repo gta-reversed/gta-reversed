@@ -1,5 +1,7 @@
 #include "StdInc.h"
 
+#include <extensions/CommandLine.h>
+
 // Audio
 // -- General
 #include "AEAudioEnvironment.h"
@@ -137,10 +139,10 @@
 #include "InteriorManager_c.h"
 #include "Checkpoint.h"
 #include "Checkpoints.h"
-#include "IKChain_c.h"
-#include "IKChainManager_c.h"
-#include "BoneNode_c.h"
-#include "BoneNodeManager_c.h"
+#include "Ragdoll/IKChain.h"
+#include "Ragdoll/IKChainManager.h"
+#include "Ragdoll/BoneNode.h"
+#include "Ragdoll/BoneNodeManager.h"
 #include "TheScripts.h"
 #include "RunningScript.h"
 #include "Scripted2dEffects.h"
@@ -292,6 +294,7 @@
 #include "TaskSimpleGiveCPR.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 #include "TaskComplexDriveFireTruck.h"
+#include "Interior/TaskInteriorLieInBed.h"
 #include "TaskSimpleSwim.h"
 #include "TaskComplexWalkRoundObject.h"
 #include "TaskSimplePause.h"
@@ -530,13 +533,22 @@
 #include "WindowedMode.hpp"
 
 void InjectHooksMain() {
-    HookInstall(0x53E230, &Render2dStuff);   // [ImGui] This one shouldn't be reversible, it contains imgui debug menu logic, and makes game unplayable without
-    HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
-    HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
+    /**
+    * We have `NOTSA_STANDALONE` macro to be able to dump all hooks without actually writing to memory,
+    * it is used by the CI to automatically update the docs.
+    * So don't do anything game related here if that macro is set.
+    **/
 
-#ifdef NOTSA_WINDOWED_MODE
-    notsa::InjectWindowedModeHooks();
-#endif
+    #ifndef NOTSA_STANDALONE
+        HookInstall(0x53E230, &Render2dStuff);   // [ImGui] This one shouldn't be reversible, it contains imgui debug menu logic, and makes game unplayable without
+        HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
+        HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
+
+        #ifdef NOTSA_WINDOWED_MODE
+            notsa::InjectWindowedModeHooks();
+        #endif
+    #endif
+
     CDoor::InjectHooks();
     CControllerConfigManager::InjectHooks();
     CFormation::InjectHooks();
@@ -944,7 +956,7 @@ void InjectHooksMain() {
             CTaskInteriorBeInOffice::InjectHooks();
             CTaskInteriorBeInShop::InjectHooks();
             CTaskInteriorGoToInfo::InjectHooks();
-        // CTaskInteriorLieInBed::InjectHooks();
+            CTaskInteriorLieInBed::InjectHooks();
             CTaskInteriorShopKeeper::InjectHooks();
             CTaskInteriorSitAtDesk::InjectHooks();
         // CTaskInteriorSitInChair::InjectHooks();
