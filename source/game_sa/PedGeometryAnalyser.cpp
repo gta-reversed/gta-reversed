@@ -23,7 +23,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncached, 0x5F1670);
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncachedAll, 0x5F2B80);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x5F36A0);
-    RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750, { .reversed = false });
+    RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .reversed = false });
     RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .reversed = false });
@@ -502,7 +502,17 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEn
 
 // 0x5F1750
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
-    return plugin::Call<0x5F1750>(&corners, &center, &outNormals, &outPlanesDot);
+    const auto center2D = CVector2D{ center };
+    for (size_t i = 0; i < corners.size(); i++) {
+        const auto corner2D = CVector2D{ corners[i] };
+        const auto normal2D = (corner2D - center2D).GetPerpLeft();
+        outNormals[i]       = CVector{ normal2D, 0.f };
+
+        // point-normal plane equation:
+        // ax + by + d = 0
+        // d = - n . P
+        outPlanesDot[i] = -normal2D.Dot(corner2D);
+    }
 }
 
 // 0x5F2BC0
