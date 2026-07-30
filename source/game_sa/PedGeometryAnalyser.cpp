@@ -26,24 +26,24 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20);
-    RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .Reversed = false });
-    RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const std::array<CVector, 4>& point2, const float* x), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, int32 (*)(const CVector& point, CEntity& entity), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .Reversed = false });
-    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .Reversed = false });
-    RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .Reversed = false });
-    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .Reversed = false });
-    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .Reversed = false });
-    RH_ScopedInstall(GetNearestPed, 0x5F3590, { .Reversed = false });
-    RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .Reversed = false });
-    RH_ScopedInstall(IsInAir, 0x5F1CB0, { .Reversed = false });
-    RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .Reversed = false });
-    RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .Reversed = false });
+    RH_ScopedOverloadedInstall(ComputeMoveDirToAvoidEntity, "OG", 0x5F3730, void(*)(const CPed&, CEntity&, CVector&));
+    RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const std::array<CVector, 4>& point2, const float* x), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, int32 (*)(const CVector& point, CEntity& entity), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .reversed = false });
+    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
+    RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .reversed = false });
+    RH_ScopedInstall(GetNearestPed, 0x5F3590, { .reversed = false });
+    RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .reversed = false });
+    RH_ScopedInstall(IsInAir, 0x5F1CB0, { .reversed = false });
+    RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .reversed = false });
+    RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .reversed = false });
 }
 
 // notsa, common code
@@ -410,10 +410,10 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
                         ptB     = center - (principal * extP);
 
         // Calculate the four corners of the bounding box in world-space
-        corners[0]              = CVector{ptA + offsetU - offsetV, zPos };
-        corners[1]              = CVector{ptB - offsetU - offsetV, zPos };
-        corners[2]              = CVector{ptB - offsetU + offsetV, zPos };
-        corners[3]              = CVector{ptA + offsetU + offsetV, zPos };
+        corners[0]              = CVector{ ptA + offsetU - offsetV, zPos }; // Top Left
+        corners[1]              = CVector{ ptB - offsetU - offsetV, zPos }; // Bottom Left
+        corners[2]              = CVector{ ptB - offsetU + offsetV, zPos }; // Bottom Right
+        corners[3]              = CVector{ ptA + offsetU + offsetV, zPos }; // Top Right
     };
 
     // 0x5F24E5 - Weights used to select the dominant axis for the bounding box calculation 
@@ -527,8 +527,32 @@ void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity&
 }
 
 // 0x5F3730
-int32 CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& outDirToAvoidEntity) {
-    return plugin::CallAndReturn<int32, 0x5F3730, const CPed&, CEntity&, CVector&>(ped, entity, outDirToAvoidEntity);
+void CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& outDirToAvoidEntity) {
+    outDirToAvoidEntity = ComputeMoveDirToAvoidEntity(ped, entity);
+}
+
+// notsa, code from 0x5F3730
+CVector CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity) {
+    std::array<CVector, 4> planes{};
+    std::array<float, 4>   planesDot{};
+    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, planes, planesDot);
+    const auto GetDotProductOnPlane = [&] (int32 i) {
+        return planes[i].Dot(ped.GetPosition()) + planesDot[i];
+    };
+
+    const auto planeA = GetDotProductOnPlane(1);
+    if (planeA > 0.f) {
+        return planes[1];
+    }
+
+    const auto planeB = GetDotProductOnPlane(3);
+    if (planeB > 0.f) {
+        return planes[3];
+    }
+
+    return planeA <= planeB
+        ? planes[1]
+        : planes[3];
 }
 
 //! @notsa
