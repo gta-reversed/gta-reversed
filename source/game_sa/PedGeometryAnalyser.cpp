@@ -19,7 +19,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
     RH_ScopedInstall(ComputeEntityBoundingBoxCorners, 0x5F3650);
     RH_ScopedInstall(ComputeEntityBoundingBoxCornersUncached, 0x5F1FA0);
-    RH_ScopedInstall(ComputeEntityBoundingBoxPlanes, 0x5F3660, { .reversed = false });
+    RH_ScopedInstall(ComputeEntityBoundingBoxPlanes, 0x5F3660);
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncached, 0x5F1670);
     RH_ScopedInstall(ComputeEntityBoundingBoxPlanesUncachedAll, 0x5F2B80);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x5F36A0);
