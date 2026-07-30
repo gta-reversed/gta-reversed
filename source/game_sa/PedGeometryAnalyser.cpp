@@ -25,7 +25,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanes, 0x5F36A0);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncached, 0x5F1750);
     RH_ScopedInstall(ComputeEntityBoundingBoxSegmentPlanesUncachedAll, 0x5F2BC0);
-    RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20, { .reversed = false });
+    RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20);
     RH_ScopedInstall(ComputeMoveDirToAvoidEntity, 0x5F3730, { .reversed = false });
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500, { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.reversed = false});
@@ -525,8 +525,20 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(floa
 }
 
 // 0x5F3C20
-void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere& a3) {
-    return plugin::Call<0x5F3C20, const CPed&, CEntity&, CColSphere&>(ped, entity, a3);
+void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere& out) {
+    CVector                center{};
+    std::array<CVector, 4> corners{};
+    const auto             zPos = ped.GetPosition().z;
+    ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
+    //ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners); // Why?
+    ComputeEntityBoundingBoxCentreUncached(zPos, corners, center);
+
+    float radiusSq = 0.f;
+    for (const auto& corner : corners) {
+        radiusSq = std::max(radiusSq, (corner - center).SquaredMagnitude2D()); // z is same for all, so we can just ignore it
+    }
+
+    out.Set(std::sqrt(radiusSq), center);
 }
 
 // 0x5F3730
