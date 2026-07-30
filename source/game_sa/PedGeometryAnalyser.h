@@ -73,7 +73,7 @@ public:
     static CVector ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity);
 
     static CVector ComputeEntityDir(const CEntity& entity, eDirection dir);
-    static CVector* ComputeEntityDirs(const CEntity& entity, CVector* posn);
+    static void ComputeEntityDirs(const CEntity& entity, std::array<CVector, 4>& outDirs);
     static int32 ComputeEntityHitSide(const CPed& ped, CEntity& entity); // Returns `eDirection`
     static int32 ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& point2, const float* x); // Returns `eDirection`
     static int32 ComputeEntityHitSide(const CVector& point, CEntity& entity); // Returns `eDirection`
