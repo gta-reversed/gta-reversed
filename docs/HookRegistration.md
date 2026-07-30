@@ -3,7 +3,7 @@
 For every new reversed **in-game** class added under `source/game_sa/**`:
 
 1. There must be `static void InjectHooks();` in the class declaration.
-2. `InjectHooksMain()` at `/home/runner/work/gta-reversed/gta-reversed/source/InjectHooksMain.cpp` must call `ClassName::InjectHooks();`.
+2. `InjectHooksMain()` at `source/InjectHooksMain.cpp` must call `ClassName::InjectHooks();`.
 
 ## PR review checklist
 
