@@ -75,7 +75,15 @@ public:
     static CVector ComputeEntityDir(const CEntity& entity, eDirection dir);
     static void ComputeEntityDirs(const CEntity& entity, std::array<CVector, 4>& outDirs);
     static int32 ComputeEntityHitSide(const CPed& ped, CEntity& entity); // Returns `eDirection`
-    static int32 ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& point2, const float* x); // Returns `eDirection`
+
+    /*!
+     * @addr 0x5F1450
+     * @param point The final point after the hit, outside the bounging box of the entity
+     * @param segmentPlaneNormals The normals of the planes of the bounding box segments of the entity
+     * @param segmentPlaneDots The dot products of the planes of the bounding box segments of the entity
+     * @return The side where the hit came from to end up at point after passing the bounding box of the entity (so, for example, if the point is in front, then the value returned will be `eDirection::LEFT`).
+     */
+    static eDirection ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& segmentPlaneNormals, const std::array<float, 4>& segmentPlaneDots);
     static int32 ComputeEntityHitSide(const CVector& point, CEntity& entity); // Returns `eDirection`
     static int32 ComputePedHitSide(const CPed& ped, const CPhysical& physical);
     static int32 ComputePedHitSide(const CPed& ped, const CVector& posn);

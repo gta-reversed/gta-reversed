@@ -28,8 +28,8 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20);
     RH_ScopedOverloadedInstall(ComputeMoveDirToAvoidEntity, "OG", 0x5F3730, void(*)(const CPed&, CEntity&, CVector&));
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500);
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, int32 (*)(const CPed& ped, CEntity& entity), {.reversed = false});
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, int32 (*)(const CVector& point1, const std::array<CVector, 4>& point2, const float* x), {.reversed = false});
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, eDirection(*)(const CPed&, CEntity&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, eDirection(*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, int32 (*)(const CVector& point, CEntity& entity), {.reversed = false});
     RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .reversed = false });
     RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .reversed = false });
@@ -597,8 +597,22 @@ int32 CPedGeometryAnalyser::ComputeEntityHitSide(const CPed& ped, CEntity& entit
 }
 
 // 0x5F1450
-int32 CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point1, const std::array<CVector, 4>& point2, const float* x) {
-    return plugin::CallAndReturn<int32, 0x5F1450, const CVector&, const std::array<CVector, 4>&, const float*>(point1, point2, x);
+eDirection CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point, const std::array<CVector, 4>& segmentPlaneNormals, const std::array<float, 4>& segmentPlaneDots) {
+    const auto N = segmentPlaneNormals.size();
+
+    for (size_t curr = 0; curr < N; curr++) {
+        const auto prev = (curr + N - 1) % N;
+
+        const auto GetDotProductOnPlane = [&](int32 i) {
+            return segmentPlaneNormals[i].Dot(point) + segmentPlaneDots[i];
+        };
+
+        if (GetDotProductOnPlane(prev) >= 0.f && GetDotProductOnPlane(curr) < 0.f) {
+            return (eDirection)(curr);
+        }
+    }
+
+    return eDirection::FORWARD;
 }
 
 // 0x5F3AC0
