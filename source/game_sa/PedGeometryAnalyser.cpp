@@ -31,7 +31,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, eDirection(*)(const CPed&, CEntity&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, eDirection(*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, eDirection(*)(const CVector&, CEntity&));
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, int32(*)(const CPed&,const CPhysical&));
     RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, int32(*)(const CPed&,const CVector&), { .reversed = false });
     RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
@@ -530,7 +530,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity&
     std::array<CVector, 4> corners{};
     const auto             zPos = ped.GetPosition().z;
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
-    //ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners); // Why?
+    //ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners); // NOTE: These functions are inlined from another one, that's why it was doing this... I won't be.
     ComputeEntityBoundingBoxCentreUncached(zPos, corners, center);
 
     float radiusSq = 0.f;
