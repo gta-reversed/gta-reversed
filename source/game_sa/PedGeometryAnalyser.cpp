@@ -33,7 +33,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, eDirection(*)(const CVector&, CEntity&));
     RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, eDirection(*)(const CPed&,const CPhysical&));
     RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, eDirection(*)(const CPed&,const CVector&));
-    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0, { .reversed = false });
+    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0);
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "1", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .reversed = false });
@@ -648,8 +648,12 @@ eDirection CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CVecto
 }
 
 // 0x5F13F0
-int32 CPedGeometryAnalyser::ComputePedShotSide(const CPed& ped, const CVector& posn) {
-    return plugin::CallAndReturn<int32, 0x5F13F0, const CPed&, const CVector&>(ped, posn);
+eDirection CPedGeometryAnalyser::ComputePedShotSide(const CPed& ped, const CVector& posn) {
+    auto angle = (posn - ped.GetPosition()).Heading() - ped.m_fCurrentRotation + PI / 4.f;
+    if (angle < 0.f) {
+        angle += TWO_PI;
+    }
+    return (eDirection)(((int32)(angle / (PI / 2.f))) % 4);
 }
 
 // 0x5F6110

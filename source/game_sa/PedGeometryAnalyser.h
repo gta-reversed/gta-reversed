@@ -93,7 +93,7 @@ public:
      */
     static eDirection ComputePedHitSide(const CPed& ped, const CVector& hitDir);
 
-    static int32 ComputePedShotSide(const CPed& ped, const CVector& posn);
+    static eDirection ComputePedShotSide(const CPed& ped, const CVector& posn);
 
     static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, CEntity& entity, const CVector& posn, CPointRoute& pointRoute, int32 a5);
     static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, const CVector& a2, CEntity& entity, const CVector& a4, CPointRoute& pointRoute, int32 a6);
