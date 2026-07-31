@@ -131,7 +131,7 @@ public:
     CVector             m_vecLastCollisionPosn;
     uint16              m_nPieceType;
     CPhysical*          m_pAttachedTo;
-    CVector             m_vecAttachOffset;
+    CVector                         m_vecAttachOffset; //!< Position of the the attached entity in it's own local space (See `PositionAttachedEntity`)
     CVector             m_vecAttachedEntityRotation;
     CQuaternion         m_qAttachedEntityRotation;
     CEntity*            m_pEntityIgnoredCollision;
@@ -232,6 +232,7 @@ public:
     void  ResetMoveSpeed()               { SetVelocity(CVector{}); }
 
     auto& GetTurnSpeed(this auto&& self) { return self.m_vecTurnSpeed; }
+    void SetTurnSpeed(CVector speed) { m_vecTurnSpeed = speed; }
     void ResetTurnSpeed() { m_vecTurnSpeed = CVector(); }
 
     void ResetFrictionMoveSpeed() { m_vecFrictionMoveSpeed = CVector(); }

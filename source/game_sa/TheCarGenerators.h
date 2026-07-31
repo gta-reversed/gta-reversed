@@ -22,8 +22,20 @@ public:
 public:
     static void InjectHooks();
 
-    static int32 CreateCarGenerator(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 forceSpawn, uint8 alarmChances, uint8 doorLockChances,
-                                         uint16 minDelay, uint16 maxDelay, uint8 iplId, bool ignorePopulationLimit);
+    static int32 CreateCarGenerator(
+        CVector posn,
+        float   angle,
+        int32   modelId,
+        uint8   primaryColor,
+        uint8   secondaryColor,
+        bool    isHighPriority,
+        uint8   chanceOfAlarm,
+        uint8   chanceOfDoorLock,
+        uint16  minDelay,
+        uint16  maxDelay,
+        uint8   iplId,
+        bool    ignorePopulationLimit
+    );
     static void Init();
     static void Load();
     static void Process();
