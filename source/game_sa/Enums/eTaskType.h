@@ -982,5 +982,5 @@ inline std::optional<const char*> EnumToString(eTaskType taskType) {
     default:
         return std::nullopt;
     }
-#undef CASE_FOR
+#undef ECASE
 }

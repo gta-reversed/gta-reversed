@@ -12,13 +12,17 @@ public:
     void RenderMenuEntry() override;
     void Update() override;
 
+    //! Teleport player [and it's group] to the exact position
+    static void TeleportTo(CVector pos, eAreaCodes areaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD);
+
+    //! Similar to `TeleportTo`, but finds the ground position
+    static void TeleportToGround(CVector2D pos, eAreaCodes areaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD);
+
     json Serialize() const final override { return *this; }
     void Deserialize(const json& j) final override;
     std::string_view GetID() const final { return "TeleportDebugModule"; }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(TeleportDebugModule, m_IsOpen, m_SavedLocations);
-
-    static void TeleportTo(const CVector& pos, eAreaCodes areaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD);
 
 private:
     void DoTeleportTo(CVector pos, eAreaCodes areaCode);

@@ -435,18 +435,19 @@ bool CGangWars::PedStreamedInForThisGang(eGangID gangId) {
 
 // 0x443A20
 bool CGangWars::PickStreamedInPedForThisGang(eGangID gangId, int32& outPedId) {
-    auto groupId = CPopulation::GetGangGroupId(gangId);
-    auto numPeds = CPopulation::GetNumPedsInGroup(groupId);
-    if (groupId <= 0)
+    const auto groupId = CPopulation::GetGangGroupId(gangId);
+    const auto numModelsInGroup = CPopulation::GetNumPedsInGroup(groupId);
+    if (groupId <= 0) {
         return false;
+    }
 
-    auto& x = *reinterpret_cast<int32*>(&CGarages::aCarsInSafeHouse[0][0].m_vPosn.x); // ?
-    for (auto i = 0; i < numPeds; i++) {
-        x = (x + 1) % numPeds;
-        outPedId = CPopulation::GetPedGroupModelId(groupId, x);
-
-        if (CStreaming::IsModelLoaded(outPedId))
+    auto& slotToTry = StaticRef<int32, 0x96ABD4>();
+    for (auto i = 0; i < numModelsInGroup; i++) {
+        slotToTry = (slotToTry + 1) % numModelsInGroup;
+        outPedId  = CPopulation::GetPedGroupModelId(groupId, slotToTry);
+        if (CStreaming::IsModelLoaded(outPedId)) {
             return true;
+        }
     }
 
     return false;

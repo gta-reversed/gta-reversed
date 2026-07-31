@@ -182,6 +182,16 @@ constexpr auto IsFixBugs() {
 #endif
 }
 
+//! Functor to check if `value` is null
+//! Useful for rng::any_of/all_of, etc...
+struct is_nullptr {
+    template<typename T>
+        requires(std::is_pointer_v<T>)
+    bool operator()(T value) {
+        return value == nullptr;
+    }
+};
+
 template<rng::input_range R, typename T_Ptr = rng::range_value_t<R>>
     requires std::is_pointer_v<T_Ptr> 
 auto SpatialQuery(R&& r, CVector distToPos, T_Ptr ignored, T_Ptr closest = nullptr) {
@@ -324,6 +334,21 @@ constexpr rng::range_value_t<R> min_default(R&& r, rng::range_value_t<R> default
 }
 
 /*!
+* Shift range by `shiftBy` positions.
+* @param r       The range to shift within
+* @param shiftBy Number of positions to shift by. If positive elements are shifted to the right[towards end of the range], otherwise to the left [towards beginning of the range]
+*/
+template<rng::input_range R, class Proj = std::identity>
+auto shift(R&& r, ptrdiff_t shiftBy) {
+    using IterDiff = std::iter_difference_t<rng::iterator_t<R>>;
+    if (shiftBy >= 0) {
+        std::shift_right(rng::begin(r), rng::end(r), (IterDiff)shiftBy);
+    } else {
+        std::shift_left(rng::begin(r), rng::end(r), (IterDiff)std::abs(shiftBy));
+    }
+}
+
+/*!
 * @brief Helper functor - to be used as projection to `ranges` functions - to cast a value into another type.
 *
 * @tparam O - Type to cast to
@@ -369,7 +394,7 @@ static constexpr void IterateFunction(auto&& functor) {
     [&] <std::size_t... Idx>(std::index_sequence<Idx...>) {
         (functor.template operator()<Start + Idx>(), ...);
     }(std::make_index_sequence<std::min(ChunkSize, Stop - Start)>{});
-
+     
     // Continue recursing if there's anything left
     if constexpr (Stop - Start > ChunkSize) {
         IterateFunction<Start + ChunkSize, Stop, ChunkSize>(functor);

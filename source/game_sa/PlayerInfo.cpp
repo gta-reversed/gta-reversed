@@ -440,6 +440,14 @@ bool CPlayerInfo::IsPlayerInRemoteMode() const {
     return m_pRemoteVehicle || m_bAfterRemoteVehicleExplosion;
 }
 
+bool CPlayerInfo::DeductMoney(uint32 amount) {
+    if (m_nMoney < (int32)amount) {
+        return false;
+    }
+    m_nMoney -= (int32)amount;
+    return true;
+}
+
 // 0x56DFB0
 // Return occupied vehicle's (if in any) or player's ped position
 CVector CPlayerInfo::GetPos() const {
