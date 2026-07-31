@@ -5,7 +5,7 @@
 #include "MovingThings.h"
 #include "BreakManager_c.h"
 #include "PlantMgr.h"
-#include "Clouds.h"
+#include "Renderer/Clouds.h"
 #include "PostEffects.h"
 #include "Shadows.h"
 #include "CarFXRenderer.h"
