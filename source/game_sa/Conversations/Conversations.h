@@ -54,7 +54,7 @@ public:
     static bool                 IsConversationGoingOn();
     static CConversationForPed* FindConversationForPed(CPed* ped);
     static bool                 IsConversationAtNode(const char* pName, CPed* pPed);
-    static void                 AwkwardSay(int32 whatToSay, CPed* speaker);
+    static void                 AwkwardSay(eAudioEvents whatToSay, CPed* speaker);
     static void                 EnableConversation(CPed* ped, bool enabled);
     static void                 StartSettingUpConversation(CPed* ped);
     static void                 DoneSettingUpConversation(bool bSuppressSubtitles);

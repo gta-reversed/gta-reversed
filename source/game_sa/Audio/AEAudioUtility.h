@@ -4,6 +4,8 @@
 
 class CVehicle;
 
+static constexpr float VOLUME_SILENCE = -100.0f;
+
 class CAEAudioUtility {
 public:
     static void      StaticInitialise();
@@ -40,9 +42,6 @@ public:
     static eRadioID GetRandomRadioStation() {
         return static_cast<eRadioID>(GetRandomNumberInRange(1, RADIO_COUNT - 1));
     }
-
-private:
-    static inline auto& m_sfLogLookup = StaticRef<float[50][2]>(0xb61100);
 
 private:
     friend void InjectHooksMain();

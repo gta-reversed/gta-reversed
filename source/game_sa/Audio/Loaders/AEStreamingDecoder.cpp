@@ -19,8 +19,7 @@ void CAEStreamingDecoder::operator delete(void* mem) {
 CAEStreamingDecoder::~CAEStreamingDecoder() {
     // The game checks if dataStream is nullptr, but
     // deleting null pointer is perfectly safe.
-    delete m_dataStream;
-    m_dataStream = nullptr;
+    delete std::exchange(m_dataStream, nullptr);
 }
 
 void CAEStreamingDecoder::InjectHooks() {
