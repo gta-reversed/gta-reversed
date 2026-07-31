@@ -167,6 +167,9 @@ void CClock::NormaliseGameClock() {
  * @addr  0x52D0B0
  */
 void CClock::OffsetClockByADay(uint32 timeDirection) {
+    assert(ms_Stored_nGameClockMonths <= 12); // R* from IV
+    assert(ms_nGameClockDays <= daysInMonth[ms_Stored_nGameClockMonths - 1]); // R* from IV
+
     if (timeDirection == 0) {
         ms_nGameClockDays--;
 
@@ -210,6 +213,8 @@ void CClock::OffsetClockByADay(uint32 timeDirection) {
  * @addr  0x52D150
  */
 void CClock::SetGameClock(uint8 hours, uint8 minutes, uint8 day) {
+    assert(day < 7); // R* from IV
+
     ms_nLastClockTick = CTimer::GetTimeInMS();
     ms_nGameClockHours = hours;
     ms_nGameClockMinutes = minutes;

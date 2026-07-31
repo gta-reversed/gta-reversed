@@ -450,7 +450,7 @@ void CWorld::TestForBuildingsOnTopOfEachOther(PtrListType& ptrList) {
                 if (fabsf(pos1.x - pos2.x) < 0.01f
                     && fabsf(pos1.y - pos2.y) < 0.01f
                     && fabsf(pos1.z - pos2.z) < 0.01f) {
-                    NOTSA_LOG_WARN("Two {} at position {:4f},{:4f},{:4f}", CModelInfo::GetModelInfo(modelIndex1)->GetModelNameAsString(), pos1.x, pos1.y, pos1.z); // R* log
+                    NOTSA_LOG_WARN("Two {} at position {:f},{:f},{:f}", CModelInfo::GetModelInfo(modelIndex1)->GetModelNameAsString(), pos1.x, pos1.y, pos1.z); // R* log
                 }
             }
         }
@@ -733,9 +733,7 @@ void CWorld::ShutDown() {
             if (!list.IsEmpty()) {
                 sprintf_s(gString, "%s overlap list %d,%d not empty\n", listName, x, y);
                 list.Flush();
-#ifdef _DEBUG
-                NOTSA_LOG_DEBUG(gString); // Lets also print this string
-#endif
+                NOTSA_LOG_DEBUG(gString); // R* log
             }
         };
         IterateRepeatSectorsLists(MakeSureListIsEmpty);
@@ -1320,7 +1318,7 @@ void CWorld::RemoveFallenPeds() {
         if (vecPedPos.z > MAP_Z_LOW_LIMIT) {
             continue;
         }
-        NOTSA_LOG_WARN("&&&&&&Another ped has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log
+        NOTSA_LOG_WARN("Another ped {} has fallen through the map at {:f} {:f} {:f}", ped->GetModelInfo()->GetModelNameAsString(), vecPedPos.x, vecPedPos.y, vecPedPos.z); // R* log from III + IV
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || ped->IsPlayer()) {
             CNodeAddress pathNodeAddress = ThePaths.FindNodeClosestToCoors(vecPedPos, PATH_TYPE_PED, 1000000.0f, 0, 0, 0, 0, 0);
             if (pathNodeAddress.IsValid()) {
@@ -1350,7 +1348,7 @@ void CWorld::RemoveFallenCars() {
             continue;
         }
 
-        NOTSA_LOG_WARN("&&&&&&Another vehicle has fallen through the map&&&&&&&&&& {:4f} {:4f} {:4f}", vecPos.x, vecPos.y, vecPos.z); // R* log
+        NOTSA_LOG_WARN("Another vehicle {} has fallen through the map at {:f} {:f} {:f}", vehicle->GetModelInfo()->GetModelNameAsString(), vecPos.x, vecPos.y, vecPos.z); // R* log from III + IV
 
         const auto ShouldWeKeepIt = [vehicle]() {
             if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched) {
@@ -1488,7 +1486,7 @@ void CWorld::PrintCarChanges() {
                 continue;
             }
 
-            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]); // Delete in Mobile, R* log
+            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", i, MINow, s_aModelIndexes[i]); // R* log, Delete in Mobile
             s_aModelIndexes[i] = MINow;
         }
     }
@@ -2608,7 +2606,7 @@ float CWorld::FindRoofZFor3DCoord(float x, float y, float z, bool* outResult) {
         if (outResult) {
             *outResult = false;
         } else {
-            NOTSA_LOG_DEBUG("THERE IS NO MAP BELOW THE FOLLOWING COORS:{} {} {}. (FindGroundZFor3DCoord)", x, y, z); // R* triggered
+            NOTSA_LOG_WARN("THERE IS NO MAP BELOW THE FOLLOWING COORS: {} {} {}", x, y, z); // R* log, Delete in Mobile
         }
         return 20.0f;
     }

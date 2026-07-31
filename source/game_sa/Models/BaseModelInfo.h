@@ -199,23 +199,13 @@ public:
             m_nAlpha += 16;
     };
     [[nodiscard]] auto GetModelName() const noexcept { return m_nKey; }
-    void SetModelName(const char* modelName) {
-        m_nKey = CKeyGen::GetUppercaseKey(modelName);
-        g_HashToStringMap[m_nKey] = modelName; // NOTSA
-    }
+    void SetModelName(const char* modelName);
 
-    inline static std::unordered_map<uint32, std::string> g_HashToStringMap; // NOTSA
     // TODO:
     // Normally, the variable `m_modelName[21]` should be implemented in this class after `m_nKey`,
     // since it exists in III, VC, and Mobile SA, but is missing here.
     // Furthermore, the debug output from R* when using `GetModelName` clearly implies that it returns the model name, not hashes
-    std::string GetModelNameAsString() {
-        auto it = g_HashToStringMap.find(m_nKey);
-        if (it != g_HashToStringMap.end()) {
-            return it->second;
-        }
-        return std::to_string(m_nKey);
-    }
+    std::string_view GetModelNameAsString();
 
     [[nodiscard]] bool IsSwayInWind1()         const { return nSpecialType == eModelInfoSpecialType::TREE; }               // 0x0800
     [[nodiscard]] bool IsSwayInWind2()         const { return nSpecialType == eModelInfoSpecialType::PALM; }               // 0x1000
