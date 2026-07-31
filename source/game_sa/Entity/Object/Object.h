@@ -19,6 +19,13 @@ enum eObjectType {
     OBJECT_MISSION2        = 6
 };
 
+enum eObjectScriptBrainStatus {
+    OBJECT_DOESNT_USE_SCRIPT_BRAIN          = 0x0,
+    OBJECT_SCRIPT_BRAIN_NOT_LOADED          = 0x1,
+    OBJECT_WAITING_FOR_SCRIPT_BRAIN_TO_LOAD = 0x2,
+    OBJECT_RUNNING_SCRIPT_BRAIN             = 0x3
+};
+
 class CDummyObject;
 class CFire;
 
@@ -52,7 +59,7 @@ public:
             uint32 bIsScaled : 1;
             uint32 bCanBeAttachedToMagnet : 1;
             uint32 bDamaged : 1;
-            uint32 b0x100000_0x200000 : 2; // something something scripts for brains
+            eObjectScriptBrainStatus bScriptBrainStatus : 2;
             uint32 bFadingIn : 1; // works only for objects with type 2 (OBJECT_MISSION)
             uint32 bAffectedByColBrightness : 1;
 
