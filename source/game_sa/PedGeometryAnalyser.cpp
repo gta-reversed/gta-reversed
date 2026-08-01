@@ -2,6 +2,17 @@
 #include <Interior/InteriorManager_c.h>
 #include "PedGeometryAnalyser.h"
 
+/* Clarifications *
+ *
+ * Normals used in this code all point outwards
+ * The winding order is counter-clockwise:
+ * - Top Left
+ * - Bottom Left
+ * - Bottom Right
+ * - Top Right
+ */
+
+
 void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedClass(CPedGeometryAnalyser);
     RH_ScopedCategoryGlobal();
@@ -35,7 +46,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, eDirection(*)(const CPed&,const CVector&));
     RH_ScopedInstall(ComputePedShotSide, 0x5F13F0);
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "Entity", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32));
-    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32), { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .reversed = false });
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .reversed = false });
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .reversed = false });
@@ -662,8 +673,335 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
 }
 
 // 0x5F3DD0
-int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, const CVector& a2, CEntity& entity, const CVector& a4, CPointRoute& pointRoute, int32 a6){
-    return plugin::CallAndReturn<int32, 0x5F3DD0, const CPed&, const CVector&, CEntity&, const CVector&, CPointRoute&, int32>(ped, a2, entity, a4, pointRoute, a6);
+int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, const CVector& from, CEntity& entity, const CVector& to, CPointRoute& outRoute, int32 forceDirection) {
+    outRoute.Clear();
+
+    const auto prevPedNominalRadius = std::exchange(ms_fPedNominalRadius, 0.175f);
+    const auto zPos                 = ped.GetPosition().z;
+     
+    std::array<CVector, 4> bbCorners;
+    ComputeEntityBoundingBoxCorners(zPos, entity, bbCorners);
+
+    std::array<CVector, 4> bbPlanes;
+    std::array<float, 4>   bbPlanesDot;
+    ComputeEntityBoundingBoxPlanes(zPos, entity, bbPlanes, bbPlanesDot);
+
+    ms_fPedNominalRadius = prevPedNominalRadius;
+
+    // Calculates `n . P0 + d` - the distance from the point to the plane along the plane's normal
+    // If this distance is positive, the point lies above the plane, otherwise below it
+    const auto GetPointDistanceToPlane = [&](int32 pl, CVector pos) {
+        return bbPlanes[pl].Dot(pos) + bbPlanesDot[pl];
+    };
+
+    // Check if we need to go around the entity at all,
+    // If both start and target are in front of the same plane then there's no need
+    for (size_t pl = 0; pl < bbPlanes.size(); pl++) { // 0x5F3E95
+        const auto IsPosInFrontOfPlane = [&, pl](CVector pos) {
+            return GetPointDistanceToPlane(pl, pos) > 0.f;
+        };
+        if (IsPosInFrontOfPlane(from) && IsPosInFrontOfPlane(to)) {
+            return 0;
+        }
+    }
+
+    // Check if start and target can be approached without having to go around the entity
+    if (ComputeEntityHitSide(to, bbPlanes, bbPlanesDot) == ComputeEntityHitSide(from, bbPlanes, bbPlanesDot)) { // 0x5F3FDD
+        return 0;
+    }
+
+    // Calculate the intersection point of a line with a plane
+    const auto GetLineIntersectionWithPlane = [&](int32 pl, CVector origin, CVector lineDir) {
+        // t = - (n . P0 + d) / (n . dir)
+        // we want to find the point on the line that intersects the plane, so we can use the parametric equation of the line:
+        // P(t) = P0 + dir * t
+        const auto t = -GetPointDistanceToPlane(pl, origin) / bbPlanes[pl].Dot(lineDir);
+        return origin + lineDir * t;
+    };
+
+    // Calculate points to be on the planes of the entity's bounding box
+    CVector fromOnPlane = from,
+            toOnPlane   = to;
+    {
+        const auto GetMoveDirectionIntersectionWithPlane = [&, moveDir = (to - from).Normalized()](int32 pl) {
+            return GetLineIntersectionWithPlane(pl, from, moveDir);
+        };
+
+        bool hasPlaneWithNoCrossings = false;
+        for (int32 pl = 0; pl < 4; pl++) { // 0x5F4118
+            constexpr auto EDGE_TRESHOLD = 0.2f;
+
+            //
+            // For completeness, the original code:
+            //
+            //enum {
+            //    RELPOS_BELOW = -1,
+            //    RELPOS_EDGE  = 0,
+            //    RELPOS_ABOVE = 1,
+            //};
+            //const auto GetRelativePositionToPlane = [&, pl](float dot) { // 0x5F412E, 0x5F4180
+            //    if (dot > +EDGE_TRESHOLD) {
+            //        return RELPOS_ABOVE;
+            //    }
+            //    if (dot < -EDGE_TRESHOLD) {
+            //        return RELPOS_BELOW;
+            //    }
+            //    return RELPOS_EDGE;
+            //};
+            //
+            //const auto toDotOnPlane   = GetDotProductOnPlane(pl, to),
+            //           fromDotOnPlane = GetDotProductOnPlane(pl, from);
+            //
+            //const auto toRelPos     = GetRelativePositionToPlane(toDot),
+            //           fromRelPos   = GetRelativePositionToPlane(fromDot);
+            //
+            //// Check if we've crossed the plane
+            //if (fromRelPos == RELPOS_BELOW) { // 0x5F41A7
+            //    if (toRelPos == RELPOS_ABOVE) {
+            //        to = GetIntersectionOnPlane(pl, start, moveDir);
+            //    }
+            //}
+            //else if (toRelPos == RELPOS_BELOW) { // 0x5F41B0
+            //    if (fromRelPos == RELPOS_ABOVE) {
+            //        from = GetIntersectionOnPlane(pl, start, moveDir);
+            //    }
+            //} else { // No crossing of the plane
+            //    hasPlaneWithNoCrossings = true;
+            //
+            //    // Adjust points that are currently below to be on exactly on the plane
+            //    const auto CalculateOffsetToPlane = [&](float dot) {
+            //        return bbPlanes[pl] * (EDGE_TRESHOLD - dot);
+            //    };
+            //    if (fromRelPos == RELPOS_EDGE) { // 0x5F41BA
+            //        from += CalculateOffsetToPlane(fromDot); // Move point
+            //    }
+            //    if (toRelPos == RELPOS_EDGE) { // 0x5F41FE
+            //        to += CalculateOffsetToPlane(toDot);
+            //    }
+            //}
+
+            const auto IsAbove = [](float dot) {
+                return dot > EDGE_TRESHOLD;
+            };
+            const auto IsBelow = [](float dot) {
+                return dot < -EDGE_TRESHOLD;
+            };
+            const auto IsOnEdge = [](float dot) {
+                return std::abs(dot) <= EDGE_TRESHOLD;
+            };
+
+            const auto toDot   = GetPointDistanceToPlane(pl, toOnPlane),
+                       fromDot = GetPointDistanceToPlane(pl, fromOnPlane);
+
+            if (IsBelow(fromDot) && IsAbove(toDot)) {                    // Crosses plane to -> from
+                toOnPlane = GetMoveDirectionIntersectionWithPlane(pl);   // 0x5F428E - Move target to the intersection point on the plane
+            } else if (IsAbove(fromDot) && IsBelow(toDot)) {             // Crosses plane from -> to
+                fromOnPlane = GetMoveDirectionIntersectionWithPlane(pl); // 0x5F4337 - Move start to the intersection point on the plane
+            } else if (!IsBelow(fromDot) && !IsBelow(toDot)) {           // 0x5F41B8
+                hasPlaneWithNoCrossings = true;
+
+                // Adjust points that are currently considered to be on the edge to instead be within treshold
+                const auto GetOffsetToPlane = [&](float amount) {
+                    return bbPlanes[pl] * (EDGE_TRESHOLD - amount);
+                };
+                if (IsOnEdge(toDot)) {
+                    toOnPlane += GetOffsetToPlane(toDot); // 0x5F41C2
+                }
+                if (IsOnEdge(fromDot)) {
+                    fromOnPlane += GetOffsetToPlane(fromDot); // 0x5F420A
+                }
+            }
+        }
+
+        // In case there's a plane where neither start nor target are below the plane
+        // we may be able to go straight to the target without having to go around the entity at all (if we don't intersect the bound sphere)
+        // Otherwise we calculate the 2 new points where we intersect the entity's bounding sphere (if we intersct the bound sphere)
+        // and generate the route for going around that part
+        // (We don't intersect any other part of the entity, other than the sphere)
+        if (!hasPlaneWithNoCrossings) { // 0x5F43AE
+            float      distSq;
+            const auto dir2D = (CVector2D{ from } - CVector2D{ to }).Normalized(&distSq);
+            if (distSq == 0.f) { // Yeah, just about time to check this lol
+                return 0;        // start == end
+            }
+            CColSphere sp;
+            ComputeEntityBoundingSphere(ped, entity, sp);
+            if (!sp.IntersectRay(from, CVector{ dir2D, 0.f }, fromOnPlane, toOnPlane)) {
+                return 0; // No intersect on the sphere, so we can actually go start -> target without having to go around
+            }
+        }
+    }
+
+    // This is pretty much another pass of the algorithm above but more strict (no edges)
+    // This now sticks the positions exactly onto the entity's bounding box,
+    // instead of just the planes
+    int32 fromPlane = -1,
+          toPlane   = -1;
+    {
+        const auto moveDir                               = (toOnPlane - fromOnPlane).Normalized(); // 0x5F4485
+        const auto GetMoveDirectionIntersectionWithPlane = [&, origin = fromOnPlane](int32 pl) {
+            return GetLineIntersectionWithPlane(pl, origin, moveDir);
+        };
+        for (int32 pl = 0; pl < 4; pl++) { // 0x5F4537
+            const auto fromDot = GetPointDistanceToPlane(pl, fromOnPlane),
+                       toDot   = GetPointDistanceToPlane(pl, toOnPlane);
+            if (toDot > 0.f && fromDot < 0.f) { // 0x5F4637 - , `to` is above, `from` is below
+                toPlane   = pl;
+                toOnPlane = GetMoveDirectionIntersectionWithPlane(pl);
+            }
+            if (fromDot > 0.f && toDot < 0.f) { // 0x5F4576 - `from` is above, `to` is below
+                fromPlane   = pl;
+                fromOnPlane = GetMoveDirectionIntersectionWithPlane(pl);
+            }
+        }
+    }
+    if (fromPlane == -1 || toPlane == -1) { // 0x5F4DA8
+        return 0;
+    }
+
+    // Build the route from the corner's of the planes the calculated points lie on
+    const auto BuildRoute = [&](int32 planeFrom, int32 planeTo, int32 dir) {
+        CPointRoute r{}; // We're using this instead of a simple array for the added functionality
+        r.Add(from);
+        const int32 a = (planeFrom + 4) % 4,
+                    b = (planeTo + 4) % 4;
+        for (int32 i = a; i != b; i = (i + 4 + dir) % 4) { // 0x5F4E2A
+            r.Add(bbCorners[i]);
+        }
+        r.Add(to);
+        return r;
+    };
+    const auto routeL     = BuildRoute(fromPlane - 1, toPlane - 1, -1),
+               routeR     = BuildRoute(fromPlane, toPlane, 1);
+
+    // Pre-process route before returning
+    const auto PreProcess = [&](int32 ret, const CPointRoute& result) { // Code from 0x5F5828
+        assert(result.GetSize() > 2);                                   // `from` and `to` are always included, so we need at least 3 points to have a valid route
+
+        outRoute = result;
+        if (ComputeEntityHitSide(from, entity) == ComputeEntityHitSide(outRoute[0], entity)) { // Pop start if it's not necessary
+            outRoute.PopFront();                                                               // 0x5F59D4
+        }
+        outRoute.PopBack(); // 0x5F5A11 - `to` always goes
+        return ret;
+    };
+
+    switch (forceDirection) {
+    case 0: { // 0x5F4FE9 - If no direction is forced, calculate both, and use shortest viable route
+        CVector bbCenter;
+        ComputeEntityBoundingBoxCentreUncached(zPos, bbCorners, bbCenter);
+        const auto bbCenter2D   = CVector2D{ bbCenter };
+
+        const auto ProcessRoute = [&](const CPointRoute& route) {
+            struct ProcessedRoute {
+                size_t   LastProcessedPoint{ 1 };
+                CEntity* BlockedByEntity{};
+            };
+            if (route.GetSize() < 2) {
+                return ProcessedRoute{};
+            }
+            ProcessedRoute res{};
+            for (res.LastProcessedPoint = 1; res.LastProcessedPoint < route.GetSize(); res.LastProcessedPoint++) {
+                const auto &curr = route[res.LastProcessedPoint],
+                           &prev = route[res.LastProcessedPoint - 1];
+                const auto dir   = (curr - prev).Normalized();
+
+                // Check if LoS is blocked by entities other than `ped` or `entity` itself
+                const auto CheckLoSIsBlocked = [&](const CVector2D& origin, const CVector2D& target) {
+                    CColPoint cp{};
+                    if (!CWorld::ProcessLineOfSight(
+                            CVector{ origin, zPos },
+                            CVector{ target, zPos },
+                            cp,
+                            res.BlockedByEntity,
+                            true,
+                            true,
+                            true,
+                            true,
+                            false,
+                            false,
+                            false,
+                            false
+                        )) {
+                        return false;
+                    }
+                    if (res.BlockedByEntity == &entity || res.BlockedByEntity == &ped) {
+                        res.BlockedByEntity = nullptr;
+                        return false;
+                    }
+                    return true;
+                };
+                if (!CheckLoSIsBlocked(curr, prev)) { // 0x5F51FC, 0x5F54CF
+                    // I've re-ordered the code a little, so it's a bit out of order now
+                    // this way the shit below is calculated conditionally
+                    const CVector2D curr2D = curr, // 0x5F50C3, 0x5F5393
+                        prev2D             = prev;
+
+                    CVector2D offset2D     = CVector2D{ dir } * 0.5f;
+                    if (curr2D.Dot(curr2D - bbCenter2D) < 0.f) { // 0x5F5137, 0x5F5407
+                        offset2D = -offset2D;
+                    }
+
+                    if (!CheckLoSIsBlocked(prev + offset2D, curr + offset2D)) {
+                        continue; // Not blocked by anything, so off we go
+                    }
+                }
+
+                // LoS is blocked by an entity other than `ped` or `entity` itself
+                if (res.BlockedByEntity->GetIsTypePed()) { // 0x5F5280, 0x5F555B
+                    const auto* hitPed = res.BlockedByEntity->AsPed();
+                    if (hitPed->m_nMoveState != PEDMOVE_STILL) {
+                        if (dir.Dot(hitPed->GetForward()) > 0.f) { // 0x5F52AE, 0x5F558E
+                            continue;                              // The ped is going the same direction as us, so they aren't an issue
+                        }
+                    }
+                }
+
+                // The entity we've hit is an issue, we stop now
+
+                break;
+            }
+            return res;
+        };
+
+        const auto routeProcessedA         = ProcessRoute(routeL),
+                   routeProcessedB         = ProcessRoute(routeR);
+
+        const auto isRouteClearA           = !routeProcessedA.BlockedByEntity,
+                   isRouteClearB           = !routeProcessedB.BlockedByEntity;
+
+        const auto PreProcessShortestRoute = [&]() {
+            return routeL.GetLengthSq() < routeR.GetLengthSq() // Calculated at 0x5F562B, 0x5F5673
+                ? PreProcess(1, routeL)                        // 0x5F5718
+                : PreProcess(2, routeR);                       // 0x5F57B6
+        };
+
+        if (isRouteClearA) {
+            if (isRouteClearB) {
+                return PreProcessShortestRoute(); // 0x5F5711
+            }
+            return PreProcess(1, routeL); // 0x5F56F9
+        }
+        if (isRouteClearB) {
+            return PreProcess(2, routeR); // 0x5F56C9
+        }
+        if (routeProcessedA.LastProcessedPoint == 1 && routeProcessedB.LastProcessedPoint > 1) {
+            return PreProcess(2, routeR); // 0x5F56E0
+        }
+        if (routeProcessedA.LastProcessedPoint > 1 && routeProcessedB.LastProcessedPoint == 1) {
+            return PreProcess(1, routeL); // 0x5F56F5
+        }
+        if (routeProcessedA.BlockedByEntity == routeProcessedB.BlockedByEntity) {
+            return PreProcessShortestRoute(); // 0x5F5704
+        }
+        return routeProcessedB.BlockedByEntity->GetBoundRadius() > routeProcessedA.BlockedByEntity->GetBoundRadius()
+            ? PreProcess(1, routeL)  // 0x5F574E
+            : PreProcess(2, routeR); // 0x5F5747
+    }
+    case 1:  return PreProcess(1, routeL); // 0x5F575C - Use L route
+    case 2:  return PreProcess(2, routeR); // 0x5F57AD - Use R route
+    default: NOTSA_UNREACHABLE_CASE(forceDirection);
+    }
 }
 
 // 0x5F1890
