@@ -172,15 +172,29 @@ void UIRenderer::DebugCode() {
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
-    static std::array<CVector, 4> corners;
+    static CPointRoute route;
 
 
     constexpr auto RED     = 0xFF0000FF; // red
     constexpr auto WHITE   = 0xFFFFFFFF; // white
     constexpr auto MAGENTA = 0xFF00FFFF; // magenta
+    constexpr auto BLUE    = 0x0000FFFF; // blue
 
-    for (auto& corner : corners) {
-        CSphere{ corner, 1.f }.DrawWireFrame({ RED }, CMatrix::Unity());
+    const uint32 colors[]      = { RED, WHITE, MAGENTA, BLUE };
+    for (size_t i = 0; i < route.GetSize(); i++) {
+        CSphere{ route[i], 1.f}.DrawWireFrame({ colors[i]}, CMatrix::Unity());
+        CLines::RenderLineNoClipping(
+            route[i],
+            route[(i + 1) % route.GetSize()],
+            WHITE,
+            BLUE
+        );
+        CLines::RenderLineNoClipping(
+            route[i],
+            player->GetPosition(),
+            WHITE,
+            BLUE
+        );
     }
 
     if (pad->IsStandardKeyJustPressed('P')) {
@@ -202,15 +216,15 @@ void UIRenderer::DebugCode() {
         );
         if (e) {
             e->AsPhysical()->ApplyMoveForce(e->GetUp() * 100.f);
-            if (CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(
-                player->GetPosition().z,
+            const auto res = CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(
+                *player,
                 *e,
-                corners
-            )) {
-                NOTSA_LOG_WARN("OK");
-            } else {
-                NOTSA_LOG_WARN("No corners");
-            }
+                player->GetPosition() + player->GetForward() * 20.f,
+                route,
+                0
+            );
+            NOTSA_LOG_WARN("result is {}", res);
+            
         } else {
             NOTSA_LOG_WARN("No entity");
         }

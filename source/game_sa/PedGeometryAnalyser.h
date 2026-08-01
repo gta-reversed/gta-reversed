@@ -106,8 +106,30 @@ public:
 
     static eDirection ComputePedShotSide(const CPed& ped, const CVector& posn);
 
-    static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, CEntity& entity, const CVector& target, CPointRoute& route, int32 forceDirection);
-    static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, const CVector& a2, CEntity& entity, const CVector& a4, CPointRoute& pointRoute, int32 a6);
+    /*!
+     * @addr 0x5F6110
+     * @brief Calculate `route` around the bounding box of `entity` from `ped` to `target`
+     * @param ped Ped that is trying to reach the target
+     * @param entity Entity to go around the bounding box of
+     * @param target Target point to reach
+     * @param route Calculated route around the bounding box of the entity
+     * @param forceDirection Direction to use, `0` => no force, `1` => force left, `2` => force right
+     * @return The route used, 0 => none, no viable route, 1 => left, 2 => right
+     */
+    static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, CEntity& entity, const CVector& target, CPointRoute& outRoute, int32 forceDirection);
+
+    /*!
+    * @addr 0x5F3DD0
+    * @brief Calculate `route` around the bounding box of `entity` from `ped` to `target`
+    * @param ped Ped that is trying to reach the target
+    * @param start Starting point of the ped (usually ped's position)
+    * @param entity Entity to go around the bounding box of
+    * @param target Target point to reach
+    * @param route Calculated route around the bounding box of the entity
+    * @param forceDirection Direction to use, `0` => no force, `1` => force left, `2` => force right
+    * @return The route used, 0 => none, no viable route, 1 => left, 2 => right
+    */
+    static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, const CVector& start, CEntity& entity, const CVector& target, CPointRoute& outRoute, int32 forceDirection);
 
     static bool ComputeRouteRoundSphere(const CPed& ped, const CColSphere& sphere, const CVector& a3, const CVector& a4, CVector& a5, CVector& a6);
 
