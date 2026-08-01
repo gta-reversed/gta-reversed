@@ -131,7 +131,19 @@ public:
     */
     static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, const CVector& start, CEntity& entity, const CVector& target, CPointRoute& outRoute, int32 forceDirection);
 
-    static bool ComputeRouteRoundSphere(const CPed& ped, const CColSphere& sphere, const CVector& a3, const CVector& a4, CVector& a5, CVector& a6);
+    /*!
+     * @addr 0x5F1890
+     * @brief Calculate a route around a sphere from `start` to `target` for the given ped.
+     * @brief Usually used by having static `start` and `target` positions, and as the ped moves `outDetourTarget` is updated
+     * @param ped Ped that is trying to reach the target
+     * @param sphere Sphere to go around
+     * @param start Starting position of the route
+     * @param target Target position of the route
+     * @param outNewStart New starting position after adjusting for the sphere (In case `start` was inside the sphere)
+     * @param outDetourTarget Detour target position to go around the sphere
+     * @return True if a detour is needed, false otherwise
+     */
+    static bool ComputeRouteRoundSphere(const CPed& ped, const CColSphere& sphere, const CVector& start, const CVector& target, CVector& outNewStart, CVector& outDetourTarget);
 
     static bool GetIsLineOfSightClear(const CPed& ped, const CVector& a2, CEntity& entity, float& a4);
     static bool GetIsLineOfSightClear(const CVector& a1, const CVector& a2, CEntity& a3);

@@ -1,6 +1,7 @@
 #include "StdInc.h"
 #include <Interior/InteriorManager_c.h>
 #include "PedGeometryAnalyser.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 /* Clarifications *
  *
@@ -47,7 +48,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputePedShotSide, 0x5F13F0);
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "Entity", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32));
-    RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890, { .reversed = false });
+    RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890);
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .reversed = false });
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .reversed = false });
     RH_ScopedInstall(GetNearestPed, 0x5F3590, { .reversed = false });
@@ -1005,8 +1006,49 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
 }
 
 // 0x5F1890
-bool CPedGeometryAnalyser::ComputeRouteRoundSphere(const CPed& ped, const CColSphere& sphere, const CVector& a3, const CVector& a4, CVector& a5, CVector& a6) {
-    return plugin::CallAndReturn<bool, 0x5F1890, const CPed&, const CColSphere&, const CVector&, const CVector&, CVector&, CVector&>(ped, sphere, a3, a4, a5, a6);
+bool CPedGeometryAnalyser::ComputeRouteRoundSphere(const CPed& ped, const CColSphere& sphere, const CVector& start, const CVector& target, CVector& outNewTarget, CVector& outDetourTarget) {
+    outNewTarget = target;
+
+    // If the start point is inside the sphere, we first need to move the target to the edge of the sphere, so we can go around it
+    if (sphere.IntersectPoint(start)) {
+        if (CVector intersectA, intersectB; sphere.IntersectRay(start, (target - start).Normalized(), intersectA, intersectB)) {
+            outNewTarget = intersectB;
+        }
+    }
+
+    float distPedToStart;
+    const auto moveDir = (outNewTarget - ped.GetPosition()).Normalized(&distPedToStart);
+
+    // If we now don't intersect the sphere, we can go straight to the target without having to go around it
+    // (Ignoring further intersections that may be on the same ray, but not on the line segment from ped to target)
+    if (CVector intersectIn, intersectOut; !sphere.IntersectRay(outNewTarget, moveDir, intersectIn, intersectOut) || sq(distPedToStart) < (intersectIn - ped.GetPosition()).SquaredMagnitude()) {
+        outDetourTarget = outNewTarget;
+        return false;
+    }
+
+    // If the move diretion of the ped intersects the sphere,
+    // a detour has to be calculated on the edge closest to the ped
+    // such that the ped can go around the sphere without intersecting it
+    if (CVector a, b; sphere.IntersectRay(ped.GetPosition(), moveDir, a, b)) {
+        if (notsa::bugfixes::CPedGeometryAnalyser_ComputeRouteRoundSphere_IncorrectDetourPosition) {
+            const auto halfway = (a + b) * 0.5f;
+            const auto dir     = (halfway - CVector2D{ sphere.m_vecCenter }).Normalized();
+            outDetourTarget    = CVector{ CVector2D{ sphere.m_vecCenter } + dir * sphere.m_fRadius, halfway.z };
+        } else {
+            const auto pt   = ped.GetPosition() + (sphere.m_vecCenter - ped.GetPosition()).ProjectOnToNormal(moveDir);
+            const auto dir  = (pt - sphere.m_vecCenter).Normalized();
+            outDetourTarget = sphere.m_vecCenter + dir * sphere.m_fRadius;
+        }
+        return true;
+    }
+
+    // NOTE/BUG (Pirulax):
+    // This is kinda ambigous, because `start -> target` may be intersecting the sphere, but
+    // since we've modified `outNewTarget` to be on the edge of the sphere,
+    // we may not intersect it anymore, but we still need to go around it.
+    // So, perhaps here we should do:
+    // `outDetourTarget = outNewTarget`;
+    return true;
 }
 
 // 0x5F5A30

@@ -91,4 +91,9 @@ inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_
                    "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CPedGeometryAnalyser_ComputeRouteRoundSphere_IncorrectDetourPosition{
+    .Name        = "CPedGeometryAnalyser::ComputeRouteRoundSphere - Incorrect detour position",
+    .Description = "Fix incorrect calculation of detour position in `CPedGeometryAnalyser::ComputeRouteRoundSphere` due to the direction being calculated in 3D instead of 2D (Sometimes giving points that would lead the ped to go into the sphere, instead of around it)",
+    .Credit      = "Pirulax"
+};
 };
