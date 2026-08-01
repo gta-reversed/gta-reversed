@@ -27,6 +27,7 @@
 #include <Windows.h>
 #include "DebugModules/DebugModules.h"
 #include <Lines.h>
+#include <PedGeometryAnalyser.h>
 
 namespace notsa {
 namespace ui {
@@ -162,6 +163,7 @@ void UIRenderer::Render3D() {
     ZoneScoped;
 
     m_DebugModules.Render3D();
+
 }
 
 void UIRenderer::DebugCode() {
@@ -172,32 +174,35 @@ void UIRenderer::DebugCode() {
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
-    static CPointRoute route;
 
+    static bool hasDetour;
+    static CVector from, to, newTo, detour;
+    static CColSphere sphere;
 
     constexpr auto RED     = 0xFF0000FF; // red
     constexpr auto WHITE   = 0xFFFFFFFF; // white
     constexpr auto MAGENTA = 0xFF00FFFF; // magenta
     constexpr auto BLUE    = 0x0000FFFF; // blue
 
-    const uint32 colors[]      = { RED, WHITE, MAGENTA, BLUE };
-    for (size_t i = 0; i < route.GetSize(); i++) {
-        CSphere{ route[i], 1.f}.DrawWireFrame({ colors[i]}, CMatrix::Unity());
-        CLines::RenderLineNoClipping(
-            route[i],
-            route[(i + 1) % route.GetSize()],
-            WHITE,
-            BLUE
-        );
-        CLines::RenderLineNoClipping(
-            route[i],
-            player->GetPosition(),
-            WHITE,
-            BLUE
-        );
+    sphere.DrawWireFrame(WHITE, CMatrix::Unity(), 32);
+
+    CLines::RenderLineNoClipping(from, newTo, RED, RED);
+    CSphere{ from, 0.25f}.DrawWireFrame(RED, CMatrix::Unity(), 16);
+    if (hasDetour) {
+        CLines::RenderLineNoClipping(newTo, detour, MAGENTA, MAGENTA);
+        CSphere{ detour, 0.25f }.DrawWireFrame(MAGENTA, CMatrix::Unity(), 16);
     }
+    CLines::RenderLineNoClipping(hasDetour ? detour : newTo, to, BLUE, BLUE);
+    CSphere{ newTo, 0.25f }.DrawWireFrame(WHITE, CMatrix::Unity(), 16);
+    CSphere{ to, 0.25f }.DrawWireFrame(BLUE, CMatrix::Unity(), 16);
 
     if (pad->IsStandardKeyJustPressed('P')) {
+        from      = player->GetPosition() + player->GetForward();
+        to        = from + player->GetForward() * 15.f;
+        sphere    = CColSphere{ player->GetPosition() + player->GetForward() * 5.f + player->GetUp() * 0.25f, 2.f};
+        
+        NOTSA_LOG_WARN("result is {}", hasDetour);
+
         CColPoint cp;
         CEntity* e;
         CWorld::ProcessLineOfSight(
@@ -215,19 +220,22 @@ void UIRenderer::DebugCode() {
             false
         );
         if (e) {
-            e->AsPhysical()->ApplyMoveForce(e->GetUp() * 100.f);
-            const auto res = CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(
-                *player,
-                *e,
-                player->GetPosition() + player->GetForward() * 20.f,
-                route,
-                0
-            );
-            NOTSA_LOG_WARN("result is {}", res);
+            
             
         } else {
             NOTSA_LOG_WARN("No entity");
         }
+    }
+
+    if (player) {
+        hasDetour = CPedGeometryAnalyser::ComputeRouteRoundSphere(
+            *player,
+            sphere,
+            from,
+            to,
+            newTo,
+            detour
+        );
     }
 
     if (pad->IsStandardKeyJustPressed('8')) {
