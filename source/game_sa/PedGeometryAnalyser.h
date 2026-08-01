@@ -18,6 +18,17 @@ class CPointRoute : public notsa::Route<CVector> {
 public:
     static void* operator new(uint32 size);
     static void operator delete(void* ptr, size_t sz);
+
+    /*!
+     * @return Squared length of the route.
+     */
+    auto GetLengthSq() const noexcept {
+        float distSq = 0.f;
+        for (size_t i = 1; i < GetSize(); i++) {
+            distSq += ((*this)[i - 1] - (*this)[i]).SquaredMagnitude();
+        }
+        return distSq;
+    }
 };
 VALIDATE_SIZE(CPointRoute, 0x64);
 
