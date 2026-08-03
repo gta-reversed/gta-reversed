@@ -49,7 +49,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "Entity", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890);
-    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&), { .reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&));
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .reversed = false });
     RH_ScopedInstall(GetNearestPed, 0x5F3590, { .reversed = false });
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .reversed = false });
@@ -1052,8 +1052,74 @@ bool CPedGeometryAnalyser::ComputeRouteRoundSphere(const CPed& ped, const CColSp
 }
 
 // 0x5F5A30
-bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector& a2, CEntity& entity, float& a4) {
-    return plugin::CallAndReturn<bool, 0x5F5A30, const CPed&, const CVector&, CEntity&, float&>(ped, a2, entity, a4);
+bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector& target, CEntity& entity, float& outIntersectionLength) {
+    const auto moveDir = (target - ped.GetPosition()).Normalized();
+
+    // Check if we intersect the bounding sphere of the entity at all
+    {
+        CColSphere sp;
+        ComputeEntityBoundingSphere(ped, entity, sp);
+        if (CVector a, b; !sp.IntersectRay(ped.GetPosition(), moveDir, a, b)) {
+        return true;
+        }
+    }
+
+    outIntersectionLength = 0.f;
+
+    std::array<CVector, 4> bbPlanes{};
+    std::array<float, 4> bbPlaneDots{};
+    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, bbPlanes, bbPlaneDots);
+
+    // Calculate intersection points of the line with the planes of the entity's bounding box
+    auto onPlaneStart  = ped.GetPosition(),
+         onPlaneTarget = target;
+
+    for (const auto& [plane, planeDot] : rngv::zip(bbPlanes, bbPlaneDots)) {
+        // Calculate the intersection point of a line with a plane
+        const auto GetMoveLinePointOnPlane = [&](float dist) -> std::optional<CVector> {
+            if (const auto distOnLine = plane.Dot(moveDir); distOnLine > 0.0001f) {
+                // t = - (n . P0 + d) / (n . dir)
+                // we want to find the point on the line that intersects the plane, so we can use the parametric equation of the line:
+                // P(t) = P0 + dir * t
+                const auto t = -dist / distOnLine;
+                return onPlaneStart + moveDir * t;
+            }
+            return std::nullopt;
+        };
+
+        // Calculates `n . P0 + d` - the distance from the point to the plane along the plane's normal
+        const auto GetPointDistanceToPlane = [&](CVector pos) {
+            return plane.Dot(pos) + planeDot;
+        };
+
+        const auto startDistToPlane = GetPointDistanceToPlane(onPlaneStart),
+                   targetDistToPlane   = GetPointDistanceToPlane(onPlaneTarget);
+
+        const auto IsAbove = [](float sdist) {
+            return sdist > ms_fPedNominalRadius;
+        };
+        const auto IsBelow = [](float sdist) {
+            return sdist < -ms_fPedNominalRadius;
+        };
+
+        // Both are above or on the edge of the plane, so we can go straight to the target without having to go around
+        if (IsAbove(startDistToPlane) && IsAbove(targetDistToPlane)) {
+            return true;
+        }
+        
+        // Check if we cross the plane, and if so, move the point that is below the plane to be on the plane
+        if (IsBelow(startDistToPlane) && IsAbove(targetDistToPlane)) { // start is below
+            if (const auto pt = GetMoveLinePointOnPlane(startDistToPlane)) {
+                onPlaneTarget = *pt; // 0x5F5C97
+            }
+        } else if (IsAbove(startDistToPlane) && IsBelow(targetDistToPlane)) { // target is below
+            if (const auto pt = GetMoveLinePointOnPlane(targetDistToPlane)) {
+                onPlaneStart = *pt; // 0x5F5C39
+            }
+        }
+    }
+    outIntersectionLength = (onPlaneTarget - onPlaneStart).Magnitude();
+    return false;
 }
 
 // 0x5F2F00

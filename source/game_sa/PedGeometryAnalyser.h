@@ -145,7 +145,17 @@ public:
      */
     static bool ComputeRouteRoundSphere(const CPed& ped, const CColSphere& sphere, const CVector& start, const CVector& target, CVector& outNewStart, CVector& outDetourTarget);
 
-    static bool GetIsLineOfSightClear(const CPed& ped, const CVector& a2, CEntity& entity, float& a4);
+    /*!
+     * @addr 0x5F5A30
+     * @brief Check if line of sight is blocked by `entity` between `ped` and `target`.
+     * @note Does a pretty basic bounding box check, so it may return false positives, but never false negatives.
+     * @param ped Ped from which the line of sight is checked
+     * @param target Target position to check the line of sight to
+     * @param entity Entity we want to check if it blocks the line of sight
+     * @param outIntersectionLength Length of the intersection if blocked
+     * @return True if the line of sight is clear, false otherwise
+     */
+    static bool GetIsLineOfSightClear(const CPed& ped, const CVector& target, CEntity& entity, float& outIntersectionLength);
     static bool GetIsLineOfSightClear(const CVector& a1, const CVector& a2, CEntity& a3);
     static CPed* GetNearestPed(const CVector& point);
 
