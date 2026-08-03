@@ -6,8 +6,6 @@
 */
 #include "StdInc.h"
 
-#include "extensions/enumerate.hpp"
-
 #include "Pickups.h"
 #include "Garages.h"
 #include "tPickupMessage.h"
@@ -94,7 +92,7 @@ void CPickups::AddToCollectedPickupsArray(int32 pickupIndex) {
 
 /*!
  * @addr 0x458A80
- * @brief Created a pickup close to pos (\r inX, \r inY, \r inZ)
+ * @brief Created a pickup close to pos (inX, inY, inZ)
  *
  * @param [out] outX, outY, outZ Created pickup's position
  */
@@ -170,9 +168,9 @@ void CPickups::DoCollectableEffects(CEntity* entity) {
             40.0f,
             CORONATYPE_TORUS,
             FLARETYPE_NONE,
-            false,
-            false,
-            0,
+            eCoronaReflType::CORREFL_NONE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
             0.0f,
             false,
             1.5f,
@@ -225,9 +223,9 @@ void CPickups::DoMineEffects(CEntity* entity) {
             40.0f,
             CORONATYPE_TORUS,
             FLARETYPE_NONE,
-            false,
-            false,
-            0,
+            eCoronaReflType::CORREFL_NONE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
             0.0f,
             false,
             1.5f,
@@ -318,8 +316,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     auto* ped = FindPlayerPed(playerId);
 
     if (modelId == MI_PICKUP_ADRENALINE) {
-        ped->m_pPlayerData->m_bAdrenaline = true;
-        ped->m_pPlayerData->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
+        ped->GetPlayerData()->m_bAdrenaline = true;
+        ped->GetPlayerData()->m_nAdrenalineEndTime = CTimer::GetTimeInMS() + 20'000;
         ped->ResetSprintEnergy();
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_ADRENALINE);
         return true;
@@ -350,8 +348,8 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
     }
 
     if (modelId == MI_PICKUP_BRIBE) {
-        auto wantedLevel = std::max(0u, FindPlayerPed()->GetWantedLevel() - 1);
-        FindPlayerPed(0)->SetWantedLevel(wantedLevel);
+        auto wantedLevel = std::max(+eWantedLevel::WANTED_CLEAN, +FindPlayerPed()->GetWantedLevel() - +eWantedLevel::WANTED_LEVEL_1);
+        FindPlayerPed(0)->SetWantedLevel((eWantedLevel)wantedLevel);
         CStats::IncrementStat(STAT_NUMBER_OF_POLICE_BRIBES, 1.0f);
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_INFO);
         return true;
@@ -464,7 +462,7 @@ void CPickups::PictureTaken() {
     std::optional<size_t> capturedPickup{};
     auto lastFoundDist = 999'999.88f; // maybe FLT_MAX
 
-    for (auto&& [i, pickup] : notsa::enumerate(aPickUps)) {
+    for (auto&& [i, pickup] : rngv::enumerate(aPickUps)) {
         if (pickup.m_nPickupType != PICKUP_SNAPSHOT)
             continue;
 
@@ -512,7 +510,7 @@ bool CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(eWeaponType weaponType)
 
 // 0x456DE0
 void CPickups::RemoveMissionPickUps() {
-    for (auto&& [i, pickup] : notsa::enumerate(aPickUps)) {
+    for (auto&& [i, pickup] : rngv::enumerate(aPickUps)) {
         switch (pickup.m_nPickupType) {
         case PICKUP_ONCE_FOR_MISSION: {
             CRadar::ClearBlipForEntity(BLIP_PICKUP, GetUniquePickupIndex(i).num);
@@ -641,7 +639,7 @@ void CPickups::Update() {
 
         if (pickup.m_nFlags.bVisible = pickup.IsVisible()) {
             if (!pickup.m_nFlags.bDisabled && !pickup.m_pObject) {
-                pickup.GiveUsAPickUpObject(&pickup.m_pObject, -1);
+                pickup.GiveUsAPickUpObject(pickup.m_pObject);
 
                 if (auto& obj = pickup.m_pObject; obj) {
                     CWorld::Add(obj);
@@ -718,7 +716,7 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
     }
 
     if (auto mi = CModelInfo::GetModelInfo(modelId); mi->GetModelType() == MODEL_INFO_WEAPON) {
-        return mi->AsWeaponModelInfoPtr()->m_weaponInfo;
+        return mi->AsWeaponModelInfoPtr()->GetWeaponInfo();
     }
 
     return WEAPON_UNARMED;

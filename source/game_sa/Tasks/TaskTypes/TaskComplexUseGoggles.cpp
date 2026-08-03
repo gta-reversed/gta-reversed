@@ -22,7 +22,7 @@ CTask* CTaskComplexUseGoggles::CreateNextSubTask(CPed* ped) {
 
 // 0x634F90
 CTask* CTaskComplexUseGoggles::CreateFirstSubTask(CPed* ped) {
-    ped->m_pPlayerData->m_bDontAllowWeaponChange = true;
+    ped->GetPlayerData()->m_bDontAllowWeaponChange = true;
 
     const char* taskName = ped->m_pGogglesObject ? "GogglesOff" : "GogglesOn";
     const eTaskType taskType = ped->m_pGogglesObject ? TASK_SIMPLE_GOGGLES_OFF : TASK_SIMPLE_GOGGLES_ON;
@@ -32,16 +32,16 @@ CTask* CTaskComplexUseGoggles::CreateFirstSubTask(CPed* ped) {
 
 // 0x635050
 CTask* CTaskComplexUseGoggles::ControlSubTask(CPed* ped) {
-    if (ped->m_pPlayerData) {
-        ped->m_pPlayerData->m_bDontAllowWeaponChange = true; // FIX_BUGS: V595 The 'ped->m_pPlayerData' pointer was utilized before it was verified against nullptr.
-        ped->m_pPlayerData->m_bPlayerSprintDisabled = true;
-        ped->m_pPlayerData->m_fTimeCanRun = std::max(ped->m_pPlayerData->m_fTimeCanRun, 0.0f);
+    if (ped->GetPlayerData()) {
+        ped->GetPlayerData()->m_bDontAllowWeaponChange = true; // FIX_BUGS: V595 The 'ped->GetPlayerData()' pointer was utilized before it was verified against nullptr.
+        ped->GetPlayerData()->m_bPlayerSprintDisabled = true;
+        ped->GetPlayerData()->m_fTimeCanRun = std::max(ped->GetPlayerData()->m_fTimeCanRun, 0.0f);
 
         auto* task = ped->GetIntelligence()->FindTaskByType(TASK_SIMPLE_PLAYER_ON_FOOT);
         if (task)
             static_cast<CTaskSimplePlayerOnFoot*>(task)->PlayerControlZelda(ped->AsPlayer(), true);
 
-        ped->m_pPlayerData->m_bPlayerSprintDisabled = false;
+        ped->GetPlayerData()->m_bPlayerSprintDisabled = false;
     }
 
     return m_pSubTask;

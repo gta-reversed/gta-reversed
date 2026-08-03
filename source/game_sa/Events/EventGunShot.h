@@ -10,7 +10,7 @@ public:
     CVector  m_endPoint;
     bool     m_bHasNoSound;
 
-    static float& ms_fGunShotSenseRangeForRiot2;
+    static inline auto& ms_fGunShotSenseRangeForRiot2 = StaticRef<float>(0x8A625C);
     static void InjectHooks();
 
     CEventGunShot(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);
@@ -26,7 +26,7 @@ public:
     bool TakesPriorityOver(const CEvent& refEvent) override;
     float GetLocalSoundLevel() override { return m_bHasNoSound ? 0.0f : 160.0f; }
     bool CanBeInterruptedBySameEvent() override { return true; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
     CEventGunShot* Constructor(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);
 };

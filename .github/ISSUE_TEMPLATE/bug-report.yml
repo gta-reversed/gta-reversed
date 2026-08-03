@@ -1,35 +1,66 @@
 name: Bug Report
 description: Report bugs in the code
-labels: ["bug"]
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
-      value: "Before opening a new issue, please search existing issues:  https://github.com/gta-reversed/gta-reversed-modern/issues"
+      value: "Before opening a new issue, please search existing issues:  https://github.com/gta-reversed/gta-reversed/issues"
   - type: textarea
     id: expected
     attributes:
       label: Expected and current behavior
-      description: Concise description of the the behavior you expect and the one that actually occurs.
+      description: Concise description of the behavior you expect and the one that actually occurs.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        If applicable, provide any relevant logs or error messages that can help in diagnosing the issue (See `scripts/logs/log.log` in your game folder)
+        You can paste it down below, or if it's too long, upload it as an attachment.
+      value: |
+        <details>
+        <summary>Click to expand</summary>
+
+        ```text
+        Paste logs over this line
+        ```
+        </details>
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: stacktrace
+    attributes:
+      label: Stacktrace
+      description: |
+        If applicable, provide any relevant stacktrace information that can help in diagnosing the issue
+        (See `Debug->Windows->Call Stack` or CTRL+ALT+C in Visual Studio when the issue occurs).
+      value: "N/A"
     validations:
       required: true
   - type: textarea
     id: additional
     attributes:
       label: Additional information
-      description: If you have anything else to add that you consider to be useful, please type it here.
+      description: |
+        If you have anything else to add that you consider to be useful, please type it here.
     validations:
       required: false
   - type: textarea
     id: steps
     attributes:
       label: Steps to reproduce
-      description: Provide clear and concise steps for us to reliably reproduce this issue.
+      description: |
+        Provide clear and concise steps for us to reliably reproduce this issue.
     validations:
       required: true
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots/Videos
-      description: Provide a screenshot and/or video demonstrating the issue being experienced.
+      description: |
+        Provide a screenshot and/or video demonstrating the issue being experienced.
     validations:
       required: false

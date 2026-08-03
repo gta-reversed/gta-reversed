@@ -23,6 +23,6 @@ public:
     void ReportCriminalEvent(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_AimedBy; }
     bool TakesPriorityOver(const CEvent& refEvent) override;
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 };
 VALIDATE_SIZE(CEventGunAimedAt, 0x18);

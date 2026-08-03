@@ -13,9 +13,9 @@ class CRegisteredMotionBlurStreak {
 public:
     uint32  m_nId;
     CRGBA   m_color;
-    CVector m_avecLeftPoints[3];
-    CVector m_avecRightPoints[3];
-    bool    m_acRenderHistory[3];
+    std::array<CVector, 3> m_avecLeftPoints;
+    std::array<CVector, 3> m_avecRightPoints;
+    std::array<bool, 3>    m_acRenderHistory;
 
 public:
     static void InjectHooks();

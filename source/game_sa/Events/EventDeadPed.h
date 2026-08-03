@@ -19,7 +19,7 @@ public:
     bool AffectsPed(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_ped; }
     float GetLocalSoundLevel() override { return 60.0f; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
     auto GetDeadPed() const { return m_ped; }
 };

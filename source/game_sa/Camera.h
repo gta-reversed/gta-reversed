@@ -210,7 +210,7 @@ public:
     uint16          m_nAvoidTheGeometryProbsDirn{};
     float           m_fWideScreenReductionAmount{};
     float           m_fStartingFOVForInterPol{};
-    CCam            m_aCams[3]{}; /* 2 = debug cam */
+    std::array<CCam, 3>            m_aCams{}; /* 2 = debug cam */
     CGarage*        m_pToGarageWeAreIn{};
     CGarage*        m_pToGarageWeAreInForHackAvoidFirstPerson{};
     CQueuedMode     m_PlayerMode{};
@@ -242,7 +242,7 @@ public:
     RwCamera*       m_pRwCamera{};
     CEntity*        m_pTargetEntity{};
     CEntity*        m_pAttachedEntity{};
-    CCamPathSplines m_aPathArray[4]{};
+    std::array<CCamPathSplines, 4> m_aPathArray{};
     bool            m_bMirrorActive{};
     bool            m_bResetOldMatrix{};
     CMatrix         m_mCameraMatrix{ CMatrix::Identity() };
@@ -251,11 +251,11 @@ public:
     CMatrix         m_mMatInverse{};
     CMatrix         m_mMatMirrorInverse{};
     CMatrix         m_mMatMirror{};
-    CVector         m_avecFrustumNormals[4]{};
-    CVector         m_avecFrustumWorldNormals[4]{};
-    CVector         m_avecFrustumWorldNormals_Mirror[4]{};
-    float           m_fFrustumPlaneOffsets[4]{};
-    float           m_fFrustumPlaneOffsets_Mirror[4]{};
+    std::array<CVector, 4> m_avecFrustumNormals{};
+    std::array<CVector, 4> m_avecFrustumWorldNormals{};
+    std::array<CVector, 4> m_avecFrustumWorldNormals_Mirror{};
+    std::array<float, 4>   m_fFrustumPlaneOffsets{};
+    std::array<float, 4>   m_fFrustumPlaneOffsets_Mirror{};
     CVector         m_vecRightFrustumNormal{};  //!< unused?
     CVector         m_vecBottomFrustumNormal{}; //!< unused?
     CVector         m_vecTopFrustumNormal{};    //!< unused?
@@ -331,12 +331,12 @@ public:
     int32           field_D70{};
     int32           field_D74{};
 
-    static float &m_f3rdPersonCHairMultY;
-    static float &m_f3rdPersonCHairMultX;
-    static float &m_fMouseAccelVertical;
-    static float &m_fMouseAccelHorzntl;
-    static bool &m_bUseMouse3rdPerson;
-    static bool &bDidWeProcessAnyCinemaCam;
+    static inline auto& m_f3rdPersonCHairMultY = StaticRef<float>(0xB6EC10);
+    static inline auto& m_f3rdPersonCHairMultX = StaticRef<float>(0xB6EC14);
+    static inline auto& m_fMouseAccelVertical = StaticRef<float>(0xB6EC18);
+    static inline auto& m_fMouseAccelHorzntl = StaticRef<float>(0xB6EC1C);
+    static inline auto& m_bUseMouse3rdPerson = StaticRef<bool>(0xB6EC2E);
+    static inline auto& bDidWeProcessAnyCinemaCam = StaticRef<bool>(0xB6EC2D);
 
 public:
     static void InjectHooks();
@@ -531,7 +531,7 @@ extern uint32& gLastTime2PlayerCameraWasOK;
 extern uint32& gLastTime2PlayerCameraCollided;
 extern float*& gpCamColVars;
 extern float (&gCamColVars)[28][6];
-static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>, 0x9655A0>();
-static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32, 0x9655DC>();
+static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>>(0x9655A0);
+static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32>(0x9655DC);
 
 void CamShakeNoPos(CCamera* camera, float strength);

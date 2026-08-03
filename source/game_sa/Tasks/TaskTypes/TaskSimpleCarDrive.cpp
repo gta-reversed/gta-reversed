@@ -1,7 +1,7 @@
 #include "StdInc.h"
 #include "TaskSimpleCarDrive.h"
 #include "TaskUtilityLineUpPedWithCar.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleCarDrive::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleCarDrive, 0x86E904, 9);
@@ -92,7 +92,7 @@ void CTaskSimpleCarDrive::TriggerIK(CPed* ped) const {
     case MISSION_RAMCAR_FARAWAY:
     case MISSION_RAMCAR_CLOSE: {
         if (const auto vehTargetCar = m_pVehicle->m_autoPilot.m_TargetEntity) {
-            if (vehTargetCar->IsVehicle()) {
+            if (vehTargetCar->GetIsTypeVehicle()) {
                 if (const auto driver = vehTargetCar->m_pDriver) { // Make ped look at target car or it's driver (if any)
                     g_ikChainMan.LookAt("DriveCar", ped, driver, 3000, BONE_HEAD, nullptr, false, 0.25f, 500, 3, false);
                 } else {

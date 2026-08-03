@@ -12,7 +12,7 @@ public:
     int32                  m_nTotalDownTime; // TODO: uint32?
     uint32                 m_nCurrentDownTime;
 
-    static uint32& m_nMaxPlayerDownTime;
+    static inline auto& m_nMaxPlayerDownTime = StaticRef<uint32>(0x8D2EF4);
 
 public:
     static constexpr auto Type = TASK_SIMPLE_FALL;
@@ -29,6 +29,8 @@ public:
     bool StartAnim(CPed* ped);
     void ProcessFall(CPed* ped);
     static void FinishFallAnimCB(CAnimBlendAssociation* anim, void* data); // data is CTaskSimpleFall
+
+    auto IsFinished() const { return m_bIsFinished; }
 
 private:
     friend void InjectHooksMain();

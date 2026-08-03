@@ -1,5 +1,5 @@
 #pragma once
 
-#include <windows.h>
+#include "winincl.h"
 
 LRESULT CreateVidModeSelectDialog(HINSTANCE hInst, HWND hWnd);

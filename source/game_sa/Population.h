@@ -26,54 +26,54 @@ enum eUpdatePedCounterState {
 // for the most part, pedGroupIds[0] is used, but in some cases
 // it's used like this: pedGroupIds[CPopulation::CurrentWorldZone]
 struct tPedGroupTranslationData {
-    ePopcyclePedGroup pedGroupIds[3]{};
+    std::array<ePopcyclePedGroup, 3> pedGroupIds{};
 };
 VALIDATE_SIZE(tPedGroupTranslationData, 0xC);
 
 class CPopulation {
 public:
-    static float&  PedDensityMultiplier;
-    static int32&  m_AllRandomPedsThisType;
-    static uint32& MaxNumberOfPedsInUse;
-    static uint32& NumberOfPedsInUseInterior;
-    static inline tPedGroupTranslationData (&m_TranslationArray)[POPCYCLE_TOTAL_GROUPS] = *(tPedGroupTranslationData(*)[33])0x8D2540;
-    static CLoadedCarGroup&          m_LoadedBoats;
-    static CLoadedCarGroup&          m_InAppropriateLoadedCars;
-    static CLoadedCarGroup&          m_AppropriateLoadedCars;
-    static CLoadedCarGroup           (&m_LoadedGangCars)[10];
-    static bool&                     bZoneChangeHasHappened;
-    static uint8&                    m_CountDownToPedsAtStart;
-    static uint32&                   ms_nTotalMissionPeds;
-    static uint32&                   ms_nTotalPeds;
-    static uint32&                   ms_nTotalGangPeds;
-    static uint32&                   ms_nTotalCivPeds;
-    static uint32&                   ms_nTotalCarPassengerPeds;
-    static uint32&                   ms_nNumDealers;
-    static std::array<uint32, TOTAL_GANGS>& ms_nNumGang;
-    static uint32& ms_nNumEmergency;
-    static uint32& ms_nNumCop;
-    static uint32& ms_nNumCivFemale;
-    static uint32& ms_nNumCivMale;
+    static inline auto& PedDensityMultiplier = StaticRef<float>(0x8D2530);
+    static inline auto& m_AllRandomPedsThisType = StaticRef<int32>(0x8D2534);
+    static inline auto& MaxNumberOfPedsInUse = StaticRef<uint32>(0x8D2538);
+    static inline auto& NumberOfPedsInUseInterior = StaticRef<uint32>(0x8D253C);
+    static inline auto& m_TranslationArray = StaticRef<tPedGroupTranslationData[POPCYCLE_TOTAL_GROUPS]>(0x8D2540);
+    static inline auto& m_LoadedBoats = StaticRef<CLoadedCarGroup>(0xC0E998);
+    static inline auto& m_InAppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9C8);
+    static inline auto& m_AppropriateLoadedCars = StaticRef<CLoadedCarGroup>(0xC0E9F8);
+    static inline auto& m_LoadedGangCars = StaticRef<std::array<CLoadedCarGroup, 10>>(0xC0EA28);
+    static inline auto& bZoneChangeHasHappened = StaticRef<bool>(0xC0EC22);
+    static inline auto& m_CountDownToPedsAtStart = StaticRef<uint8>(0xC0EC23);
+    static inline auto& ms_nTotalMissionPeds = StaticRef<uint32>(0xC0EC24);
+    static inline auto& ms_nTotalPeds = StaticRef<uint32>(0xC0EC28);
+    static inline auto& ms_nTotalGangPeds = StaticRef<uint32>(0xC0EC2C);
+    static inline auto& ms_nTotalCivPeds = StaticRef<uint32>(0xC0EC30);
+    static inline auto& ms_nTotalCarPassengerPeds = StaticRef<uint32>(0xC0EC34);
+    static inline auto& ms_nNumDealers = StaticRef<uint32>(0xC0EC38);
+    static inline auto& ms_nNumGang = StaticRef<std::array<uint32, TOTAL_GANGS>>(0xC0EC3C);
+    static inline auto& ms_nNumEmergency = StaticRef<uint32>(0xC0EC64);
+    static inline auto& ms_nNumCop = StaticRef<uint32>(0xC0EC68);
+    static inline auto& ms_nNumCivFemale = StaticRef<uint32>(0xC0EC6C);
+    static inline auto& ms_nNumCivMale = StaticRef<uint32>(0xC0EC70);
     static const uint16 m_DefaultModelIDForUnusedSlot = 2000; // means not loaded
-    static bool&   m_bDontCreateRandomGangMembers;
-    static bool&   m_bOnlyCreateRandomGangMembers;
-    static bool&   m_bDontCreateRandomCops;
-    static bool&   m_bMoreCarsAndFewerPeds;
-    static bool&   bInPoliceStation;
-    static uint32& NumMiamiViceCops;
-    static uint32& CurrentWorldZone;
+    static inline auto& m_bDontCreateRandomGangMembers = StaticRef<bool>(0xC0FCB2);
+    static inline auto& m_bOnlyCreateRandomGangMembers = StaticRef<bool>(0xC0FCB3);
+    static inline auto& m_bDontCreateRandomCops = StaticRef<bool>(0xC0FCB4);
+    static inline auto& m_bMoreCarsAndFewerPeds = StaticRef<bool>(0xC0FCB5);
+    static inline auto& bInPoliceStation = StaticRef<bool>(0xC0FCB6);
+    static inline auto& NumMiamiViceCops = StaticRef<uint32>(0xC0FCB8);
+    static inline auto& CurrentWorldZone = StaticRef<uint32>(0xC0FCBC);
 
     //! Number of model IDs in each corresponding car group
-    static inline auto& m_nNumCarsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_CARGROUPS)>, 0xC0EC78>();
+    static inline auto& m_nNumCarsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_CARGROUPS)>>(0xC0EC78);
 
     //! Car model IDs in each corresponding car group
-    static inline auto& m_CarGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_CARGROUPS), 23>, 0xC0ED38>();
+    static inline auto& m_CarGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_CARGROUPS), 23>>(0xC0ED38);
 
     //! Number of model IDs in each corresponding ped group
-    static inline auto& m_nNumPedsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS)>, 0xC0ECC0>();
+    static inline auto& m_nNumPedsInGroup = StaticRef<std::array<uint16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS)>>(0xC0ECC0);
 
     //! Ped model IDs in each corresponding ped group
-    static inline auto& m_PedGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS), 21>, 0xC0F358>();
+    static inline auto& m_PedGroups       = StaticRef<notsa::mdarray<int16, (size_t)(POPCYCLE_TOTAL_PEDGROUPS), 21>>(0xC0F358);
 
 public:
     static void InjectHooks();

@@ -16,16 +16,20 @@
 
 #include "extensions/File.hpp"
 
+static inline auto& ScriptsArray = StaticRef<std::array<CRunningScript, MAX_NUM_SCRIPTS>>(0xA8B430);
+
 void CTheScripts::InjectHooks() {
+#ifndef NOTSA_STANDALONE
     // Has to have these, because there seems to be something going on with the variable init order
     // For now I just changed it to use static addresses, not sure whats going on..
     assert((void*)0xA49960 == (void*)&MainSCMBlock[0]);
     assert((void*)(0xA7A6A0) == (void*)&MissionBlock[0]);
+#endif
 
     RH_ScopedClass(CTheScripts);
     RH_ScopedCategory("Scripts");
 
-    RH_ScopedInstall(Init, 0x468D50, {.enabled = false });
+    RH_ScopedInstall(Init, 0x468D50);
     RH_ScopedInstall(InitialiseAllConnectLodObjects, 0x470960);
     RH_ScopedInstall(InitialiseConnectLodObjects, 0x470940);
     RH_ScopedInstall(InitialiseSpecialAnimGroupsAttachedToCharModels, 0x474730);
@@ -134,6 +138,7 @@ void CTheScripts::Init() {
             notsa::format_to_sz(scrFile, "MPACK//MPACK{:d}//SCR.SCM", CGame::bMissionPackGame);
 
             if (auto f = notsa::File(scrFile, "rb"); f && f.Read(ScriptSpace.data(), MAIN_SCRIPT_SIZE) >= 1) {
+                TheText.Load(false);
                 break;
             }
         }
@@ -263,7 +268,7 @@ void CTheScripts::ReadObjectNamesFromScript() {
     NumberOfUsedObjects = usedObjs->m_NumberOfUsedObjects;
     assert(NumberOfUsedObjects < std::size(UsedObjectArray));
 
-    for (auto&& [i, name] : notsa::enumerate(usedObjs->GetObjectNames())) {
+    for (auto&& [i, name] : rngv::enumerate(usedObjs->GetObjectNames())) {
         UsedObjectArray[i].nModelIndex = 0; // To be updated via UpdateObjectIndices.
         std::memcpy(UsedObjectArray[i].szModelName, name, sizeof(name));
 
@@ -295,7 +300,7 @@ void CTheScripts::ReadMultiScriptFileOffsetsFromScript() {
     NumberOfMissionScripts                     = sfi->m_NumberOfMissionScripts;
     LargestNumberOfMissionScriptLocalVariables = sfi->m_LargestNumberOfMissionScriptLocalVars;
 
-    for (const auto&& [i, missionOffset] : notsa::enumerate(sfi->GetMissionOffsets())) {
+    for (const auto&& [i, missionOffset] : rngv::enumerate(sfi->GetMissionOffsets())) {
         MultiScriptArray[i] = missionOffset;
     }
 }
@@ -396,7 +401,7 @@ uint32 CTheScripts::AddScriptSphere(uint32 id, CVector posn, float radius) {
 
 // 0x481140
 void CTheScripts::AddToBuildingSwapArray(CBuilding* building, int32 oldModelId, int32 newModelId) {
-    if (building->m_nIplIndex)
+    if (building->GetIplIndex())
         return;
 
     for (auto& swap : BuildingSwapArray) {
@@ -420,7 +425,7 @@ void CTheScripts::AddToBuildingSwapArray(CBuilding* building, int32 oldModelId, 
 
 // 0x481200
 void CTheScripts::AddToInvisibilitySwapArray(CEntity* entity, bool visible) {
-    if (entity->m_nIplIndex)
+    if (entity->GetIplIndex())
         return;
 
     const auto is = rng::find(InvisibilitySettingArray, entity);
@@ -711,7 +716,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
     const auto cdNumLines = std::exchange(ourColData->m_nNumLines, 0);
 
     for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
-        if (!entity || entity == ourEntity || (entity->IsPed() && entity->AsPed()->IsInVehicle())) {
+        if (!entity || entity == ourEntity || (entity->GetIsTypePed() && entity->AsPed()->IsInVehicle())) {
             continue;
         }
 
@@ -731,7 +736,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             continue;
         }
 
-        if (entity->IsVehicle()) {
+        if (entity->GetIsTypeVehicle()) {
             auto* vehicle = entity->AsVehicle();
             if (vehicle->vehicleFlags.bIsLocked || !vehicle->CanBeDeleted()) {
                 continue;
@@ -755,7 +760,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             delete vehicle;
         }
 
-        if (entity->IsPed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
+        if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
         }
     }
@@ -806,7 +811,7 @@ int32 CTheScripts::GetActualScriptThingIndex(int32 ref, eScriptThingType type) {
         }
         break;
     case SCRIPT_THING_FIRE:
-        if (const auto& f = gFireManager.Get(idx); f.IsScript() && f.m_nScriptReferenceIndex == id) {
+        if (const auto& f = gFireManager.Get(idx); f.IsScript() && f.GetId() == id) {
             return idx;
         }
         break;
@@ -817,7 +822,7 @@ int32 CTheScripts::GetActualScriptThingIndex(int32 ref, eScriptThingType type) {
         break;
     case SCRIPT_THING_DECISION_MAKER:
         CDecisionMakerTypes::GetInstance();
-        if (CDecisionMakerTypes::m_bIsActive[idx] && CDecisionMakerTypes::ScriptReferenceIndex[idx] == id) {
+        if (CDecisionMakerTypes::m_IsActive[idx] && CDecisionMakerTypes::ScriptReferenceIndex[idx] == id) {
             return idx;
         }
         break;
@@ -858,7 +863,7 @@ int32 CTheScripts::GetNewUniqueScriptThingIndex(int32 index, eScriptThingType ty
         ScriptSequenceTaskArray[index].m_bUsed = true;
         return NewUniqueId(ScriptSequenceTaskArray[index].m_nId);
     case eScriptThingType::SCRIPT_THING_FIRE:
-        return NewUniqueId(gFireManager.m_aFires[index].m_nScriptReferenceIndex);
+        return NewUniqueId(gFireManager.m_aFires[index].GetId());
     case eScriptThingType::SCRIPT_THING_2D_EFFECT:
         return NewUniqueId(CScripted2dEffects::ScriptReferenceIndex[index]);
     case eScriptThingType::SCRIPT_THING_DECISION_MAKER:
@@ -1010,7 +1015,7 @@ void CTheScripts::RemoveThisPed(CPed* ped) {
         }
     }
 
-    const auto isMissionChar = ped->m_nCreatedBy == ePedCreatedBy::PED_MISSION;
+    const auto isMissionChar = ped->GetCreatedBy() == ePedCreatedBy::PED_MISSION;
 
     CWorld::RemoveReferencesToDeletedObject(ped);
     delete ped;
@@ -1050,7 +1055,9 @@ CRunningScript* CTheScripts::StartNewScript(uint8* startIP, uint16 index) {
 
     script->RemoveScriptFromList(&pIdleScripts);
     script->Init();
-    script->SetCurrentIp(startIP);
+    if (startIP) { // NOTSA/BUGFIX: `IP` is initialized to null already, so no need to set it again (As it causes an assert)
+        script->SetCurrentIp(startIP);
+    }
     script->AddScriptToList(&pActiveScripts);
     script->SetActive(true);
 
@@ -1076,7 +1083,7 @@ bool CTheScripts::IsPedStopped(CPed* ped) {
         return false;
     }
     if (ped->IsPlayer()) {
-        if (RpAnimBlendClumpGetAssociation(ped->m_pRwClump, { ANIM_ID_RUN_STOP, ANIM_ID_RUN_STOPR, ANIM_ID_JUMP_LAUNCH, ANIM_ID_JUMP_GLIDE })) {
+        if (RpAnimBlendClumpGetAssociation(ped->GetRpClump(), { ANIM_ID_RUN_STOP, ANIM_ID_RUN_STOPR, ANIM_ID_JUMP_LAUNCH, ANIM_ID_JUMP_GLIDE })) {
             return false;
         }
     }
@@ -1159,32 +1166,32 @@ void CTheScripts::Load() {
         case ScriptSavedObjectType::INVISIBLE:
             // Not saved by the game, but the logic is still there
             if (is) {
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         case ScriptSavedObjectType::BUILDING:
             is = nullptr;
             if (auto* obj = GetBuildingPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible     = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         case ScriptSavedObjectType::OBJECT:
             is = nullptr;
             if (auto* obj = GetObjectPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible     = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         case ScriptSavedObjectType::DUMMY:
             is = nullptr;
             if (auto* obj = GetDummyPool()->GetAt(poolRef)) {
                 is                   = obj;
-                is->m_bUsesCollision = false;
-                is->m_bIsVisible     = false;
+                is->SetUsesCollision(false);
+                is->SetIsVisible(false);
             }
             break;
         default:
@@ -1339,14 +1346,14 @@ void CTheScripts::Save() {
     auto* lastScript           = pActiveScripts;
     for (auto* s = pActiveScripts; s; s = s->m_pNext) {
         lastScript = s;
-        if (!s->m_bIsExternal && s->m_nExternalType == -1) {
+        if (!s->m_IsExternal && s->m_ExternalType == -1) {
             numNonExternalScripts++;
         }
     }
     CGenericGameStorage::SaveDataToWorkBuffer(numNonExternalScripts);
 
     for (auto* s = lastScript; s; s = s->m_pPrev) {
-        if (s->m_bIsExternal || s->m_nExternalType != -1) {
+        if (s->m_IsExternal || s->m_ExternalType != -1) {
             continue;
         }
 
@@ -1424,15 +1431,12 @@ void CTheScripts::Process() {
 
     CLoadingScreen::NewChunkLoaded();
 
-    for (auto it = pActiveScripts; it;) {
-        const auto next = it->m_pNext;
+    for (CRunningScript* it = pActiveScripts, *next{}; it; it = next) {
+        next = it->m_pNext;
 
-        for (auto& t : it->m_anTimers) {
-            t += timeStepMS;
-        }
+        it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
+        it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
-
-        it = next;
     }
 
     CLoadingScreen::NewChunkLoaded();
@@ -1503,7 +1507,7 @@ void CTheScripts::ProcessAllSearchLights() {
             entity->m_matrix->RotateX(rotX);
             entity->m_matrix->RotateZ(rotZ);
             entity->GetPosition() += prevPos;
-            entity->UpdateRW();
+            entity->UpdateRwMatrix();
             entity->UpdateRwFrame();
         };
 
@@ -1579,8 +1583,8 @@ void CTheScripts::UndoEntityInvisibilitySettings() {
             continue;
         }
 
-        is->m_bIsVisible = true;
-        is->m_bUsesCollision = true;
+        is->SetIsVisible(true);
+        is->SetUsesCollision(true);
 
         is = nullptr; // Remove from the array.
     }
@@ -1730,9 +1734,10 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
         if (rt.m_bDrawBeforeFade != drawBeforeFade) {
             continue;
         }
-
         switch (rt.m_nType) {
-        case eScriptRectangleType::TYPE_1:
+        case eScriptRectangleType::INACTIVE:
+            break;
+        case eScriptRectangleType::TITLE_AND_MESSAGE:
             FrontEndMenuManager.DrawWindowedText(
                 rt.cornerA.x, rt.cornerA.y,
                 rt.cornerB.x, // ?
@@ -1741,7 +1746,7 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
                 rt.m_Alignment
             );
             break;
-        case eScriptRectangleType::TYPE_2:
+        case eScriptRectangleType::TEXT:
             FrontEndMenuManager.DrawWindow(
                 CRect{ rt.cornerA, rt.cornerB },
                 rt.gxt1,
@@ -1751,19 +1756,19 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
                 true
             );
             break;
-        case eScriptRectangleType::TYPE_3:
+        case eScriptRectangleType::MONOCOLOR:
             CSprite2d::DrawRect(
                 CRect{ rt.cornerA, rt.cornerB },
                 rt.m_nTransparentColor
             );
             break;
-        case eScriptRectangleType::TYPE_4:
+        case eScriptRectangleType::TEXTURED:
             ScriptSprites[rt.m_nTextureId].Draw(
                 CRect{ rt.cornerA, rt.cornerB },
                 rt.m_nTransparentColor
             );
             break;
-        case eScriptRectangleType::TYPE_5: {
+        case eScriptRectangleType::MONOCOLOR_ANGLED: {
             // mid: Vector that points to the middle of line A-B from A.
             // vAM: A to mid.
             const auto mid = (rt.cornerA + rt.cornerB) / 2.0f;
@@ -1787,7 +1792,7 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             break;
         }
         default:
-            break;
+            NOTSA_UNREACHABLE("Unknown script-rect type ({})", (int32)(rt.m_nType));
         }
     }
 }
@@ -1952,7 +1957,7 @@ void CTheScripts::RenderTheScriptDebugLines() {
 void CTheScripts::RenderAllSearchLights() {
     ZoneScoped;
 
-    for (const auto&& [i, light] : notsa::enumerate(ScriptSearchLightArray)) {
+    for (const auto&& [i, light] : rngv::enumerate(ScriptSearchLightArray)) {
         if (!light.IsActive()) {
             continue;
         }
@@ -2001,8 +2006,8 @@ bool CTheScripts::ScriptAttachAnimGroupToCharModel(int32 modelId, const char* if
 void CTheScripts::ScriptConnectLodsFunction(int32 lodRef1, int32 lodRef2) {
     auto obj1 = GetObjectPool()->GetAtRef(lodRef1), obj2 = GetObjectPool()->GetAtRef(lodRef2);
 
-    obj1->m_pLod = obj2;
-    ++obj2->m_nNumLodChildren;
+    obj1->SetLod(obj2);
+    obj2->AddLodChildren();
     CWorld::Remove(obj2);
     obj2->SetupBigBuilding();
     CWorld::Add(obj2);

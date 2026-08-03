@@ -4,17 +4,17 @@
 #include "eScriptCommands.h"
 #include "RunningScript.h"
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 namespace ReversibleHooks {
 namespace ReversibleHook {
 struct ScriptCommand : Base {
-    ScriptCommand(eScriptCommands command, bool locked = false, bool enabledByDefault = true) :
-        Base{ std::string{::notsa::script::GetScriptCommandName(command)}, Base::HookType::ScriptCommand, locked },
+    ScriptCommand(eScriptCommands command, bool reversed = true, bool enabledByDefault = true) :
+        Base{ std::string{::notsa::script::GetScriptCommandName(command)}, Base::HookType::ScriptCommand, reversed },
         m_cmd{command},
         m_originalHandler{CRunningScript::CustomCommandHandlerOf(command)}
     {
-        m_bIsHooked = true; // Enabled by default
-        if (m_bIsHooked && !enabledByDefault) {
+        m_IsHooked = true; // Enabled by default
+        if (m_IsHooked && !enabledByDefault) {
             Switch(); // Uninstall it
         }
     }
@@ -24,8 +24,8 @@ struct ScriptCommand : Base {
     void Switch() override {
         using namespace ::notsa::script;
 
-        m_bIsHooked = !m_bIsHooked;
-        CRunningScript::CustomCommandHandlerOf(m_cmd) = m_bIsHooked ? m_originalHandler : nullptr;
+        m_IsHooked = !m_IsHooked;
+        CRunningScript::CustomCommandHandlerOf(m_cmd) = m_IsHooked ? m_originalHandler : nullptr;
     }
 
     void        Check() override { /* nop */ }

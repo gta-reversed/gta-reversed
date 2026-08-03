@@ -13,8 +13,11 @@ class CEntity;
 
 enum ePointLightType : uint8 {
     PLTYPE_POINTLIGHT = 0,
-    PLTYPE_SPOTLIGHT = 1,
-    PLTYPE_DARKLIGHT = 2,
+    PLTYPE_DIRECTIONAL,
+    PLTYPE_ANTILIGHT,
+    PLTYPE_ONLYFOGEFFECT_ALWAYS,
+    PLTYPE_ONLYFOGEFFECT,
+    PLTYPE_SMOG
 };
 
 class CPointLight {
@@ -36,12 +39,12 @@ static constexpr auto MAX_POINT_LIGHTS = 32;
 
 class CPointLights {
 public:
-    static inline uint32& NumLights = *(uint32*)0xC3F0D0; // num of registered lights in frame
-    static inline CPointLight (&aLights)[MAX_POINT_LIGHTS] = *(CPointLight(*)[MAX_POINT_LIGHTS])0xC3F0E0;
+    static inline auto& NumLights = StaticRef<uint32>(0xC3F0D0); // num of registered lights in frame
+    static inline auto& aLights = StaticRef<CPointLight[MAX_POINT_LIGHTS]>(0xC3F0E0);
 
-    static inline float (&aCachedMapReadResults)[MAX_POINT_LIGHTS] = *(float(*)[MAX_POINT_LIGHTS])0xC3F050;
-    static inline int32& NextCachedValue = *(int32*)0xC3F0D4;
-    static inline CVector (&aCachedMapReads)[MAX_POINT_LIGHTS] = *(CVector(*)[MAX_POINT_LIGHTS])0xC3F6E0;
+    static inline auto& aCachedMapReadResults = StaticRef<float[MAX_POINT_LIGHTS]>(0xC3F050);
+    static inline auto& NextCachedValue = StaticRef<int32>(0xC3F0D4);
+    static inline auto& aCachedMapReads = StaticRef<CVector[MAX_POINT_LIGHTS]>(0xC3F6E0);
 
 public:
     static void  Init();

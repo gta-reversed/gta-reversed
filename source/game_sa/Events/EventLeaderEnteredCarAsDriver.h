@@ -25,7 +25,7 @@ public:
     bool AffectsPedGroup(CPedGroup* pedGroup) override;
     bool TakesPriorityOver(const CEvent& refEvent) override  { return true; }
     bool CanBeInterruptedBySameEvent() override  { return true; }
-    CEventLeaderEnteredCarAsDriver* CloneEditable() override  { return new CEventLeaderEnteredCarAsDriver(m_vehicle); }
+    CEventLeaderEnteredCarAsDriver* CloneEditable() const noexcept override  { return new CEventLeaderEnteredCarAsDriver(m_vehicle); }
 
 private:
     CEventLeaderEnteredCarAsDriver* Constructor(CVehicle* vehicle);

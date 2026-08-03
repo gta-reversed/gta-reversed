@@ -14,8 +14,8 @@
 /*!
  * @brief Represents the animation of a single node (bone)
  *
- * @detail An animation can move one or more nodes (bones).
- * @detail Each node has a sequence (that contain key-frames)
+ * @details An animation can move one or more nodes (bones).
+ * @details Each node has a sequence (that contain key-frames)
  */
 class CAnimBlendNode {
 public:

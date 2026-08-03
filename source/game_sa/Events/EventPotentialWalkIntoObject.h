@@ -28,7 +28,7 @@ public:
 
     eEventType GetEventType() const override { return EVENT_POTENTIAL_WALK_INTO_OBJECT; }
     bool TakesPriorityOver(const CEvent& refEvent) override { return true; }
-    CEventPotentialWalkIntoObject* CloneEditable() override { return new CEventPotentialWalkIntoObject(m_object, m_moveState); }
+    CEventPotentialWalkIntoObject* CloneEditable() const noexcept override { return new CEventPotentialWalkIntoObject(m_object, m_moveState); }
     int32 GetEventPriority() const override { return 27; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;

@@ -12,14 +12,14 @@ void CEventObjectCollision::InjectHooks()
 }
 
 // 0x4ACCF0
-CEventObjectCollision::CEventObjectCollision(int16 pieceType, float damageIntensity, CObject* object, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState)
+CEventObjectCollision::CEventObjectCollision(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState)
 {
     m_pieceType = pieceType;
     m_moveState = moveState;
     m_damageIntensity = damageIntensity;
     m_object = object;
-    m_impactNormal = *collisionImpactVelocity;
-    m_impactPos = *collisionPos;
+    m_impactNormal = collisionImpactVelocity;
+    m_impactPos = collisionPos;
     CEntity::SafeRegisterRef(m_object);
 }
 
@@ -29,7 +29,7 @@ CEventObjectCollision::~CEventObjectCollision()
 }
 
 // 0x4ACCF0
-CEventObjectCollision* CEventObjectCollision::Constructor(int16 pieceType, float damageIntensity, CObject* object, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState)
+CEventObjectCollision* CEventObjectCollision::Constructor(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState)
 {
     this->CEventObjectCollision::CEventObjectCollision(pieceType, damageIntensity, object, collisionImpactVelocity, collisionPos, moveState);
     return this;

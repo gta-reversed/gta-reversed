@@ -56,7 +56,7 @@ CTask* CTaskComplexUseWaterCannon::ControlSubTask(CPed* ped)
 {
     if (m_pSubTask->GetTaskType() == TASK_SIMPLE_CAR_DRIVE)
     {
-        if (ped->m_pVehicle->m_nStatus == STATUS_PHYSICS && m_pFire->IsActive())
+        if (ped->m_pVehicle->GetStatus() == STATUS_PHYSICS && m_pFire->IsActive())
             ped->m_pVehicle->AsAutomobile()->FireTruckControl(m_pFire);
         else
             return new CTaskSimpleCarDriveTimed(ped->m_pVehicle, 0);

@@ -8,12 +8,11 @@ typedef uint32 SurfaceId;
 
 class SurfaceInfos_c {
 public:
-    float m_adhesiveLimits[6][6];
+    notsa::mdarray<float, 6, 6>                         m_adhesiveLimits;
     // fuck c*, they did shit
     // sizeof of this class exactly 0x8F4, but then they enable *magic*
     // and do m_surfaces[id < 195]
-    // todo: std::array<SurfaceInfo_c, TOTAL_NUM_SURFACE_TYPES> m_surfaces;
-    SurfaceInfo_c m_surfaces[TOTAL_NUM_SURFACE_TYPES];
+    std::array<SurfaceInfo_c, TOTAL_NUM_SURFACE_TYPES>  m_surfaces;
 
     static constexpr const char* cDefaultName = "DEFAULT"; // 0x85C658 😏
 
@@ -77,4 +76,4 @@ public:
 };
 VALIDATE_SIZE(SurfaceInfos_c, 0x8F4);
 
-inline static SurfaceInfos_c& g_surfaceInfos = *reinterpret_cast<SurfaceInfos_c*>(0xB79538);
+static inline auto& g_surfaceInfos = StaticRef<SurfaceInfos_c>(0xB79538);

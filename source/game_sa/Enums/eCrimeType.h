@@ -24,5 +24,6 @@ enum eCrimeType : uint32 {
     CRIME_DESTROY_VEHICLE = 20,
     CRIME_HIT_CAR = 21,
     CRIME_AIM_GUN = 22,
-    MAX_CRIMES = 23
+
+    MAX_CRIMES
 };

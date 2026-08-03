@@ -109,6 +109,6 @@ void CTaskInteriorSitAtDesk::StartAnim(CPed* ped, AnimationId animId, float blen
     if (m_Anim) {
         m_Anim->SetDefaultFinishCallback();
     }
-    m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_INT_OFFICE, animId, blendDelta);
+    m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_INT_OFFICE, animId, blendDelta);
     m_Anim->SetFinishCallback(FinishAnimCB, this);
 }

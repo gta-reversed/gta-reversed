@@ -17,7 +17,7 @@ bool CTaskSimpleDrownInCar::ProcessPed(CPed* ped) {
 
     if (ped == FindPlayerPed()) {
         CStats::IncrementStat(STAT_TIMES_DROWNED, 1.0f);
-        ped->m_pVehicle->m_nStatus = STATUS_FORCED_STOP;
+        ped->m_pVehicle->SetStatus(STATUS_FORCED_STOP);
     }
 
     CEventDeath event(true);

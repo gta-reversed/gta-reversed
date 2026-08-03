@@ -20,9 +20,9 @@ public:
         uint8 m_nFlags;
     };
 
-    static inline float ms_NoRailingVerticalForce   = 4.5f; // 0x8D2F10
-    static inline float ms_OverRailingVerticalForce = 9.0f; // 0x8D2F14
-    static inline float ms_LateralForceMagnitude    = 6.0f; // 0x8D2F18
+    static inline auto& ms_NoRailingVerticalForce   = StaticRef<float>(0x8D2F10); // 4.5f
+    static inline auto& ms_OverRailingVerticalForce = StaticRef<float>(0x8D2F14); // 9.0f
+    static inline auto& ms_LateralForceMagnitude    = StaticRef<float>(0x8D2F18); // 6.0f
 
 public:
     static constexpr auto Type = TASK_COMPLEX_FALL_TO_DEATH;

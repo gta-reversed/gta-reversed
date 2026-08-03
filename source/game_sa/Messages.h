@@ -65,9 +65,9 @@ struct tPreviousBrief {
 
 class CMessages {
 public:
-    static inline std::array<tPreviousBrief, 20>& PreviousBriefs = *(std::array<tPreviousBrief, 20>*)0xC1A570;
-    static inline std::array<tMessage, 8>& BriefMessages = *(std::array<tMessage, 8>*)0xC1A7F0;
-    static inline std::array<tBigMessage, 7>& BIGMessages = *(std::array<tBigMessage, 7>*)0xC1A970; // (for each text style)
+    static inline auto& PreviousBriefs = StaticRef<std::array<tPreviousBrief, 20>>(0xC1A570);
+    static inline auto& BriefMessages = StaticRef<std::array<tMessage, 8>>(0xC1A7F0);
+    static inline auto& BIGMessages = StaticRef<std::array<tBigMessage, 7>>(0xC1A970); // (for each text style)
 
 public:
     static void InjectHooks();

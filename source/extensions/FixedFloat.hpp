@@ -14,6 +14,7 @@ public:
 
     //! Construct from a pre-compressed value
     //! Be (very) careful when using this constructor, as mixing up this and the float version will cause bugs...
+    // TODO: Maybe use tag-based constructors, because this is kinda bug-prone....
     template<std::integral Y>
     explicit constexpr FixedFloat(Y x) : value(x) {}
 

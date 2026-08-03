@@ -33,19 +33,13 @@ CEventVehicleHitAndRun* CEventVehicleHitAndRun::Constructor(CPed* victim, CVehic
     return this;
 }
 
-// 0x4B7100
-CEvent* CEventVehicleHitAndRun::Clone()
-{
-    return new CEventVehicleHitAndRun(m_victim, m_vehicle);
-}
-
 // 0x4B27D0
 void CEventVehicleHitAndRun::ReportCriminalEvent(CPed* ped)
 {
     if (IsCriminalEvent()) {
         if (m_victim->m_nPedType == PED_TYPE_COP)
-            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_KILL_COP_PED_WITH_CAR, m_vehicle->GetPosition(), m_vehicle->m_pDriver, false);
+            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_KILL_COP_PED_WITH_CAR, m_vehicle->GetPosition(), (uint32)m_vehicle->m_pDriver, false);
         else
-            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_KILL_PED_WITH_CAR, m_vehicle->GetPosition(), m_vehicle->m_pDriver, false);
+            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_KILL_PED_WITH_CAR, m_vehicle->GetPosition(), (uint32)m_vehicle->m_pDriver, false);
     }
 }

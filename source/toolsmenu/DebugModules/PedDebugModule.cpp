@@ -5,9 +5,8 @@
 #include <optional>
 #include <format>
 
-#include "extensions/enumerate.hpp"
 #include "PedDebugModule.h"
-#include "Pools.h"
+#include <Pools/Pools.h>
 #include "TaskManager.h"
 #include "Hud.h"
 #include "Lines.h"
@@ -170,8 +169,8 @@ void ProcessTask(CTask* task, std::optional<size_t> idx) {
 
     const auto DoTreeNode = [&] {
         return idx // If set, this is a root task
-            ? TreeNodeEx(task, ImGuiTreeNodeFlags_DefaultOpen, "%i: %s", (int)*idx, GetTaskTypeName(taskType)) // For root tasks show index, eventually as a string from `ePrimaryTasks` and `eSecondaryTask`
-            : TreeNodeEx(GetTaskTypeName(taskType), ImGuiTreeNodeFlags_DefaultOpen);
+            ? TreeNodeEx(task, ImGuiTreeNodeFlags_DefaultOpen, "%i: %s", (int)*idx, EnumToString(taskType)) // For root tasks show index, eventually as a string from `ePrimaryTasks` and `eSecondaryTask`
+            : TreeNodeEx(EnumToString(taskType).value_or("<unknown>"), ImGuiTreeNodeFlags_DefaultOpen);
     };
 
     PushID((int)taskType);
@@ -187,7 +186,7 @@ void ProcessTask(CTask* task, std::optional<size_t> idx) {
 //! Process category, eg.: secondary or primary
 void ProcessTaskCategory(const char* label, const auto& tasks) {
     if (TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-        for (const auto& [idx, task] : notsa::enumerate(tasks)) {
+        for (const auto& [idx, task] : rngv::enumerate(tasks)) {
             if (task) {
                 ProcessTask(task, idx);
             }
@@ -304,7 +303,7 @@ void PedDebugModule::RenderWindow() {
             };
 
             if (!CalcScreenCoors(ped.GetBonePosition(BONE_HEAD) + ped.GetRightVector() * 0.5f, pi.posScreen)) {
-                DEV_LOG("Failed to calculate on-screen coords of ped");
+                NOTSA_LOG_DEBUG("Failed to calculate on-screen coords of ped");
                 return std::nullopt;
             }
                

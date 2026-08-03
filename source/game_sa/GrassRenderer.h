@@ -6,10 +6,10 @@ class CVector;
 
 class CGrassRenderer {
 public:
-    static inline float& m_windBending = *(float*)0xC02DB8;
-    static inline float& m_closeDist = *(float*)0xC02DBC;
-    static inline CVector& m_vecCameraPos = *(CVector*)0xC02DDC;
-    static inline float& m_farDist = *(float*)0x8D132C; // 10.0f
+    static inline auto& m_windBending = StaticRef<float>(0xC02DB8);
+    static inline auto& m_closeDist = StaticRef<float>(0xC02DBC);
+    static inline auto& m_vecCameraPos = StaticRef<CVector>(0xC02DDC);
+    static inline auto& m_farDist = StaticRef<float>(0x8D132C); // 10.0f
 
 public:
     static void InjectHooks();

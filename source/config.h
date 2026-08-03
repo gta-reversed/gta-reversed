@@ -20,9 +20,6 @@
 // Extensions
 #define EXT_FAST_LOADER
 
-// do not uncomment -- doesn't work rn
-// #define USE_OPENAL
-
 #endif // !BAREBONES
 
 #ifdef BUILD_PC

@@ -7,6 +7,9 @@
 #pragma once
 
 #include "AnimSequenceFrames.h"
+#include <Enums/eBoneTag.h>
+
+#undef MoveMemory
 
 /*!
  * @brief Animation key-frames of a single node (bone)
@@ -53,7 +56,7 @@ public:
     /*!
      * @brief Get the `n`th key-frame (Use this only for un-compressed anims (if `!IsCompressed()`))
      * @brief The true return type is `KeyFrameTrans*` (if `HasTranslation()`) or `KeyFrame*`, 
-     * @brier The former is just returned for convenience.
+     * @brief The former is just returned for convenience.
      * @param n The index of the key-frame
      * @return The `n`th key-frame
     */
@@ -69,7 +72,7 @@ public:
     /*!
     * @brief Get the `n`th key-frame (Use this only for compressed anims (if `IsCompressed()`))
     * @brief The true return type is `KeyFrameTransCompressed*` (if `HasTranslation()`) or `KeyFrameCompressed*`, 
-    * @brier The former is just returned for convenience.
+    * @brief The former is just returned for convenience.
     * @param n The index of the key-frame
     * @return The `n`th key-frame
     */

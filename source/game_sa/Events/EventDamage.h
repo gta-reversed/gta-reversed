@@ -1,13 +1,15 @@
 #pragma once
 
 #include "PedDamageResponse.h"
-#include "Entity.h"
-#include "Enums\eWeaponType.h"
-#include "Enums\eEventType.h"
+#include "Enums/eWeaponType.h"
+#include "Enums/eEventType.h"
 #include "Event.h"
+#include "EventEditableResponse.h"
 
-enum ePedPieceTypes;
+class CEntity;
 class CPedDamageResponseCalculator;
+class CPed;
+class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEventDamage : public CEventEditableResponse {
 public:
@@ -48,7 +50,7 @@ public:
     float GetLocalSoundLevel() override { return 55.0f; } // 0x4AD930;
     bool DoInformVehicleOccupants(CPed* ped) override;
     bool CanBeInterruptedBySameEvent() override { return true; } // 0x4AD940;
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
     void From(const CEventDamage& event);
     void ProcessDamage(CPed* ped);

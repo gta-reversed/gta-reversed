@@ -5,14 +5,14 @@
 #include "ClothesBuilder.h"
 #include "PedClothesDesc.h"
 
-CDirectory& playerImg = *(CDirectory*)0xBC12C0;
-CDirectory::DirectoryInfo& playerImgEntries = *(CDirectory::DirectoryInfo*)0xBBCDC8;
+auto& playerImg = StaticRef<CDirectory>(0xBC12C0);
+auto& playerImgEntries = StaticRef<CDirectory::DirectoryInfo>(0xBBCDC8);
 
-auto& gBoneIndices = StaticRef<notsa::mdarray<int16, 10, 64>, 0xBBC8C8>();
+auto& gBoneIndices = StaticRef<notsa::mdarray<int16, 10, 64>>(0xBBC8C8);
 
-auto& ms_ratiosHaveChanged  = StaticRef<bool, 0x8D0AA4>();
-auto& ms_geometryHasChanged = StaticRef<bool, 0x8D0AA5>();
-auto& ms_textureHasChanged  = StaticRef<bool, 0x8D0AA6>();
+auto& ms_ratiosHaveChanged  = StaticRef<bool>(0x8D0AA4);
+auto& ms_geometryHasChanged = StaticRef<bool>(0x8D0AA5);
+auto& ms_textureHasChanged  = StaticRef<bool>(0x8D0AA6);
 
 void CClothesBuilder::InjectHooks() {
     RH_ScopedClass(CClothesBuilder);
@@ -70,7 +70,7 @@ int32 CClothesBuilder::RequestTexture(uint32 txdNameKey) {
         return -1;
     }
 
-    auto& defaultTxdIdx = StaticRef<uint32, 0xBC12D0>();
+    auto& defaultTxdIdx = StaticRef<uint32>(0xBC12D0);
     const auto defaultTxd = CTxdStore::defaultTxds[defaultTxdIdx];
     defaultTxdIdx = (defaultTxdIdx + 1) % 4;
 
@@ -178,7 +178,7 @@ RpGeometry* BlendGeometry(RpClump* clump, std::pair<const char*, float> (&&frame
         float            r; // Blend ratio
     } fds[N];
     auto& out = fds[0];
-    for (auto&& [i, v] : notsa::enumerate(frameNamesRatios)) {
+    for (auto&& [i, v] : rngv::enumerate(frameNamesRatios)) {
         const auto a  = GetAtomicWithName(clump, v.first);
         const auto g  = RpAtomicGetGeometry(a);
         const auto s  = RpSkinGeometryGetSkin(g);
@@ -281,8 +281,8 @@ void CClothesBuilder::ConstructGeometryArray(RpGeometry** out, uint32* modelName
             CStreaming::LoadRequestedModels();
         }
 
-        *out = BlendGeometry(mi->m_pRwClump, "normal", "fat", "ripped", normal, fatness, strength);
-        StoreBoneArray(mi->m_pRwClump, i);
+        *out = BlendGeometry(mi->GetRpClump(), "normal", "fat", "ripped", normal, fatness, strength);
+        StoreBoneArray(mi->GetRpClump(), i);
         CStreaming::RemoveModel(modelIdx);
     }
 }
@@ -297,7 +297,7 @@ void CClothesBuilder::DestroySkinArrays(RwMatrixWeights* weights, RwUInt32* bone
 
 // 0x5A56E0
 void CClothesBuilder::BuildBoneIndexConversionTable(uint8* pTable, RpHAnimHierarchy* hier, int32 index) {
-    for (const auto [tableIdx, boneId] : notsa::enumerate(gBoneIndices[index])) {
+    for (const auto [tableIdx, boneId] : rngv::enumerate(gBoneIndices[index])) {
         if (boneId == -1) {
             break;
         }

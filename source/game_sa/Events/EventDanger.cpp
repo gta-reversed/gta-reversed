@@ -37,7 +37,7 @@ bool CEventDanger::AffectsPed(CPed* ped) {
 
 // 0x4B54E0
 bool CEventDanger::AffectsPedGroup(CPedGroup* pedGroup) {
-    if (GetSourceEntity() && GetSourceEntity()->IsPed()) {
+    if (GetSourceEntity() && GetSourceEntity()->GetIsTypePed()) {
         CPed* leader = pedGroup->GetMembership().GetLeader();
         if (leader) {
             CVector2D distance = leader->GetPosition() - m_dangerFrom->GetPosition();
@@ -49,7 +49,7 @@ bool CEventDanger::AffectsPedGroup(CPedGroup* pedGroup) {
 
 // 0x4B2700
 CEntity* CEventDanger::GetSourceEntity() const {
-    if (m_dangerFrom && !m_dangerFrom->IsPed() && m_dangerFrom->IsVehicle()) {
+    if (m_dangerFrom && !m_dangerFrom->GetIsTypePed() && m_dangerFrom->GetIsTypeVehicle()) {
         CVehicle* vehicle = m_dangerFrom->AsVehicle();
         if (vehicle->m_pDriver)
             return vehicle->m_pDriver;

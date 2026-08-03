@@ -8,8 +8,8 @@ constexpr auto MAX_NUM_CHECKPOINTS{ 32u };
 
 class CCheckpoints {
 public:
-    static inline uint32& NumActiveCPts = *(uint32*)0xC7C6D4; // not used, only initialised (0)
-    static inline std::array<CCheckpoint, 32>& m_aCheckPtArray = *(std::array<CCheckpoint, 32>*)0xC7F158;
+    static inline auto& NumActiveCPts = StaticRef<uint32>(0xC7C6D4); // not used, only initialised (0)
+    static inline auto& m_aCheckPtArray = StaticRef<std::array<CCheckpoint, 32>>(0xC7F158);
 
 public:
     static void InjectHooks();

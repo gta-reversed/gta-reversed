@@ -29,7 +29,7 @@ CTaskComplexSequence::CTaskComplexSequence(const CTaskComplexSequence& o) :
     m_RepeatMode{o.m_RepeatMode},
     m_CurrTaskIdx{o.m_CurrTaskIdx}
 {
-    rng::transform(o.m_Tasks, m_Tasks, [](CTask* t){
+    rng::transform(o.m_Tasks, m_Tasks.begin(), [] (CTask* t) {
         return t ? t->Clone() : nullptr;
     });
 }
@@ -84,7 +84,7 @@ void CTaskComplexSequence::AddTask(CTask* task) {
     }
 
     delete task;
-    DEV_LOG("Failed to add task to sequence");
+    NOTSA_LOG_DEBUG("Failed to add task to sequence");
 }
 
 // 0x632D50
@@ -92,7 +92,7 @@ void CTaskComplexSequence::AddTask(int32 sequenceIdx, CTask* task) {
     assert(task);
     if (sequenceIdx >= (int32)std::size(m_Tasks)) {
         delete task;
-        DEV_LOG("Failed to add task to sequence");
+        NOTSA_LOG_DEBUG("Failed to add task to sequence");
     } else {
         delete m_Tasks[sequenceIdx];
         m_Tasks[sequenceIdx] = task;

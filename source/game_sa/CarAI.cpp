@@ -87,7 +87,7 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenge
     }
     vehicle->vehicleFlags.bOccupantsHaveBeenGenerated = true;
 
-    switch (vehicle->m_nModelIndex) {
+    switch (vehicle->GetModelIndex()) {
     case MODEL_ENFORCER:
     case MODEL_FBIRANCH: {
         vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
@@ -97,7 +97,7 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenge
         break;
     }
     case MODEL_PREDATOR: {
-        if (FindPlayerPed()->GetWantedLevel() > 1) {
+        if (FindPlayerPed()->GetWantedLevel() > eWantedLevel::WANTED_LEVEL_1) {
             const auto drvr = vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
             CTaskSimpleCarSetPedOut{ vehicle, TARGET_DOOR_DRIVER, true }.ProcessPed(drvr);
             drvr->AttachPedToEntity(vehicle, CVector(0.f, 0.f, 0.f), 0, TWO_PI, WEAPON_PISTOL);
@@ -122,12 +122,12 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenge
     case MODEL_COPCARRU: {
         const auto drvr = vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
         const auto plyrWantedLvl = FindPlayerPed()->GetWantedLevel();
-        if (plyrWantedLvl > 1) {
+        if (plyrWantedLvl > eWantedLevel::WANTED_LEVEL_1) {
             // The player's in some serious gourmet shit now... Let's give the cop a partner too!
             const auto psgr = vehicle->SetupPassenger(0, PED_TYPE_NONE, false, false);
 
             // Give one of them a weapon
-            if (plyrWantedLvl > 2) {
+            if (plyrWantedLvl > eWantedLevel::WANTED_LEVEL_2) {
                 if (CGeneral::RandomBool(25.0f)) {
                     drvr->GiveDelayedWeapon(WEAPON_SHOTGUN, 1000);
                 } else if (CGeneral::RandomBool(25.0f)) {
@@ -161,7 +161,7 @@ void CCarAI::BackToCruisingIfNoWantedLevel(CVehicle* vehicle) {
     }
 
     CWanted* wanted = FindPlayerWanted();
-    if (wanted->m_nWantedLevel > 0 && !wanted->BackOff() && !CCullZones::NoPolice()) {
+    if (wanted->GetWantedLevel() > eWantedLevel::WANTED_CLEAN && !wanted->PoliceBackOff() && !CCullZones::NoPolice()) {
         return;
     }
 
@@ -194,7 +194,7 @@ eCarMission CCarAI::FindPoliceBikeMissionForWantedLevel() {
 eCarMission CCarAI::FindPoliceBoatMissionForWantedLevel() {
     if (FindPlayerVehicle()) {
         const auto level = FindPlayerWanted()->GetWantedLevel();
-        return 2 <= level && level <= 6
+        return eWantedLevel::WANTED_LEVEL_2 <= level && level <= eWantedLevel::WANTED_LEVEL_6
             ? MISSION_BOAT_ATTACKPLAYER
             : MISSION_BLOCKPLAYER_FARAWAY;
     }
@@ -204,14 +204,14 @@ eCarMission CCarAI::FindPoliceBoatMissionForWantedLevel() {
 // 0x41C9D0
 eCarMission CCarAI::FindPoliceCarMissionForWantedLevel() {
     float chance = 100.f;
-    switch (FindPlayerWanted()->m_nWantedLevel) {
-    case 0:
-    case 1:  return MISSION_BLOCKPLAYER_FARAWAY;
-    case 2:  chance = 75.f; break; // rand() % 4 != 3
-    case 3:  chance = 50.f; break; // rand() % 4 < 2
-    case 4:
-    case 5:
-    case 6:  chance = 25.f; break; // rand() % 4 == 0
+    switch (FindPlayerWanted()->GetWantedLevel()) {
+    case eWantedLevel::WANTED_CLEAN:
+    case eWantedLevel::WANTED_LEVEL_1: return MISSION_BLOCKPLAYER_FARAWAY;
+    case eWantedLevel::WANTED_LEVEL_2: chance = 75.f; break; // rand() % 4 != 3
+    case eWantedLevel::WANTED_LEVEL_3: chance = 50.f; break; // rand() % 4 < 2
+    case eWantedLevel::WANTED_LEVEL_4:
+    case eWantedLevel::WANTED_LEVEL_5:
+    case eWantedLevel::WANTED_LEVEL_6: chance = 25.f; break; // rand() % 4 == 0
     default: NOTSA_UNREACHABLE();
     }
     return CGeneral::RandomBool(chance)
@@ -222,14 +222,14 @@ eCarMission CCarAI::FindPoliceCarMissionForWantedLevel() {
 // 0x41CAA0
 int32 CCarAI::FindPoliceCarSpeedForWantedLevel(CVehicle* vehicle) {
     const auto& maxVelocity = vehicle->m_pHandlingData->m_transmissionData.m_MaxFlatVelocity;
-    switch (FindPlayerWanted()->m_nWantedLevel) {
-    case 0:  return CGeneral::GetRandomNumberInRange<int32>(12, 16);
-    case 1:  return 25;
-    case 2:  return 34;
-    case 3:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 0.90f);
-    case 4:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.20f);
-    case 5:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.25f);
-    case 6:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.30f);
+    switch (FindPlayerWanted()->GetWantedLevel()) {
+    case eWantedLevel::WANTED_CLEAN:    return CGeneral::GetRandomNumberInRange<int32>(12, 16);
+    case eWantedLevel::WANTED_LEVEL_1:  return 25;
+    case eWantedLevel::WANTED_LEVEL_2:  return 34;
+    case eWantedLevel::WANTED_LEVEL_3:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 0.90f);
+    case eWantedLevel::WANTED_LEVEL_4:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.20f);
+    case eWantedLevel::WANTED_LEVEL_5:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.25f);
+    case eWantedLevel::WANTED_LEVEL_6:  return (int32)(maxVelocity * GAME_SPEED_TO_CAR_AI_SPEED * 1.30f);
     default: NOTSA_UNREACHABLE();
     }
 }
@@ -471,7 +471,7 @@ void CCarAI::MellowOutChaseSpeed(CVehicle* vehicle) {
     const auto plyrToVehDist3D = (vehicle->GetPosition() - FindPlayerCoors()).Magnitude();
     const auto desiredSpeed    = [&]() -> uint32 {
         switch (FindPlayerWanted()->GetWantedLevel()) {
-        case 1: { // 0x41D438
+        case eWantedLevel::WANTED_LEVEL_1: { // 0x41D438
             if (isPlayerInVeh) {
                 if (plyrToVehDist3D < 10.0f) {
                     return 15;
@@ -487,7 +487,7 @@ void CCarAI::MellowOutChaseSpeed(CVehicle* vehicle) {
             }
             return 25;
         }
-        case 2: {
+        case eWantedLevel::WANTED_LEVEL_2: {
             if (isPlayerInVeh) {
                 if (plyrToVehDist3D < 10.0f) {
                     return 27;
@@ -518,13 +518,13 @@ void CCarAI::MellowOutChaseSpeedBoat(CVehicle* vehicle) {
     assert(vehicle->IsBoat());
     vehicle->m_autoPilot.m_nCruiseSpeed = []{
         switch (FindPlayerWanted()->GetWantedLevel()) {
-        case 0:  return 8;
-        case 1:  return 10;
-        case 2:  return 15;
-        case 3:  return 20;
-        case 4:  return 25;
-        case 5:  return 30;
-        case 6:  return 40;
+        case eWantedLevel::WANTED_CLEAN:    return 8;
+        case eWantedLevel::WANTED_LEVEL_1:  return 10;
+        case eWantedLevel::WANTED_LEVEL_2:  return 15;
+        case eWantedLevel::WANTED_LEVEL_3:  return 20;
+        case eWantedLevel::WANTED_LEVEL_4:  return 25;
+        case eWantedLevel::WANTED_LEVEL_5:  return 30;
+        case eWantedLevel::WANTED_LEVEL_6:  return 40;
         default: NOTSA_UNREACHABLE();
         }
     }();
@@ -602,7 +602,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
     if (ap->m_nCarMission == MISSION_PLANE_ATTACK_PLAYER_POLICE) { // 0x41DAA0
         const auto wntd = FindPlayerWanted();
-        if (wntd->m_nWantedLevel < 3 || !FindPlayerVehicle()) {
+        if (wntd->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_3 || !FindPlayerVehicle()) {
             ap->m_vecDestinationCoors = CVector{-6'000.f, -10'000.f, 500.f};
         }
     }
@@ -657,7 +657,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
             if (sq(FindSwitchDistanceFar(veh)) < vehPlyrDist2DSq) { // 0x41DD4F | 0x41E13A
                 if (!CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, FindPlayerCoors(), true, false)) {
                     ap->m_nCarMission               = MISSION_RAMPLAYER_FARAWAY;
-                    veh->m_nHornCounter             = 0;
+                    veh->m_HornCounter             = 0;
                     veh->vehicleFlags.bSirenOrAlarm = false;
                 }
                 if (veh->vehicleFlags.bIsLawEnforcer) {
@@ -691,11 +691,11 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 || plyrVeh->GetMoveSpeed().SquaredMagnitude() < maxSpeedSq && veh->m_nCopsInCarTimer > 2500
                     ) {
                         if (veh->vehicleFlags.bIsLawEnforcer) { // 0x41DED4 | 0x41E23F
-                            if ((veh->GetModelID() != MODEL_RHINO || veh->m_nRandomSeed > 10'000) && vehPlyrDist2DSq <= sq(10.f)) { // 0x41DEE1 | 0x41E254
+                            if ((veh->GetModelId() != MODEL_RHINO || veh->m_nRandomSeed > 10'000) && vehPlyrDist2DSq <= sq(10.f)) { // 0x41DEE1 | 0x41E254
                                 TellOccupantsToLeaveCar(veh);
                                 ap->SetCruiseSpeed(0);
                                 ap->SetCarMission(MISSION_NONE);
-                                if (plyr->GetWantedLevel() <= 1) {
+                                if (plyr->GetWantedLevel() <= eWantedLevel::WANTED_LEVEL_1) {
                                     veh->vehicleFlags.bSirenOrAlarm = false;
                                 }
                             }
@@ -813,7 +813,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
             if ((veh->GetPosition() - ap->m_TargetEntity->GetPosition()).SquaredMagnitude2D() >= sq(FindSwitchDistanceClose(veh))) {
                 veh->vehicleFlags.bSirenOrAlarm = false;
-                veh->m_nHornCounter             = 0;
+                veh->m_HornCounter              = 0;
                 CCarCtrl::JoinCarWithRoadSystem(veh);
             }
 
@@ -842,7 +842,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
             const auto wntd = FindPlayerWanted();
             if (   vehToPlayerDist2DSq <= sq(13.f) || vehToPlayerDist2DSq >= sq(70.f)
                 || wntd->m_bEverybodyBackOff
-                || veh->vehicleFlags.bIsLawEnforcer && (wntd->GetWantedLevel() == 0 || wntd->BackOff() || CCullZones::NoPolice())
+                || veh->vehicleFlags.bIsLawEnforcer && (wntd->GetWantedLevel() == eWantedLevel::WANTED_CLEAN || wntd->PoliceBackOff() || CCullZones::NoPolice())
             ) {
                 TellOccupantsToLeaveCar(veh);
                 ap->SetCarMission(MISSION_STOP_FOREVER);
@@ -901,14 +901,14 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                     veh->m_nCopsInCarTimer = 0;
                 }
 
-                if ((!plyrVeh || plyrVeh->IsUpsideDown() || veh->m_nCopsInCarTimer >= (veh->GetModelID() == MODEL_COPBIKE ? 2500 : 20'000)) && veh->vehicleFlags.bIsLawEnforcer && vehToPlyrDist2DSq <= sq(10.f)) {
+                if ((!plyrVeh || plyrVeh->IsUpsideDown() || veh->m_nCopsInCarTimer >= (veh->GetModelId() == MODEL_COPBIKE ? 2500 : 20'000)) && veh->vehicleFlags.bIsLawEnforcer && vehToPlyrDist2DSq <= sq(10.f)) {
                     TellOccupantsToLeaveCar(veh);
                     ap->ClearCarMission();
                     ap->SetCruiseSpeed(0);
-                    if (FindPlayerWanted()->GetWantedLevel() <= 1) {
+                    if (FindPlayerWanted()->GetWantedLevel() <= eWantedLevel::WANTED_LEVEL_1) {
                         veh->vehicleFlags.bSirenOrAlarm = false;
                     }
-                } else if (veh->GetModelID() == MODEL_COPBIKE && veh->m_pDriver) {
+                } else if (veh->GetModelId() == MODEL_COPBIKE && veh->m_pDriver) {
                     const auto tUseSeq = notsa::dyn_cast_if_present<CTaskComplexSequence>(veh->m_pDriver->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY));
                     if (!tUseSeq || (!tUseSeq->Contains(TASK_COMPLEX_ENTER_CAR_AS_DRIVER)) && !tUseSeq->Contains(TASK_SIMPLE_GANG_DRIVEBY)) { 
                         veh->m_pDriver->GetEventGroup().Add(
@@ -925,7 +925,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 }
             } else if (!CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, FindPlayerCoors())) {
                 veh->vehicleFlags.bSirenOrAlarm = false;
-                veh->m_nHornCounter             = 0;
+                veh->m_HornCounter              = 0;
                 ap->SetCarMission(MISSION_APPROACHPLAYER_FARAWAY);
             }
 
@@ -1042,7 +1042,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 break;
             }
 
-            if (FindPlayerWanted()->GetWantedLevel() <= 0 || CCullZones::NoPolice()) {
+            if (FindPlayerWanted()->GetWantedLevel() <= eWantedLevel::WANTED_CLEAN || CCullZones::NoPolice()) {
                 break;
             }
 
@@ -1070,7 +1070,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
                 ap->SetCruiseSpeed(0);
                 ap->ClearCarMission();
-                if (FindPlayerWanted()->GetWantedLevel() <= 1) {
+                if (FindPlayerWanted()->GetWantedLevel() <= eWantedLevel::WANTED_LEVEL_1) {
                     veh->vehicleFlags.bSirenOrAlarm = false;
                 }
             }
@@ -1090,8 +1090,8 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
     // 0x41E2A5 [It's actually here, not inside the switch]
     if (veh->vehicleFlags.bIsLawEnforcer) {
-        if (FindPlayerWanted()->GetWantedLevel() >= 1) {
-            if (CCullZones::CurrentFlags_Player & eZoneAttributes::CAM_CLOSE_IN_FOR_PLAYER) {
+        if (FindPlayerWanted()->GetWantedLevel() >= eWantedLevel::WANTED_LEVEL_1) {
+            if (CCullZones::CamCloseInForPlayer()) {
                 TellOccupantsToLeaveCar(veh);
                 ap->SetCarMission(MISSION_NONE);
                 ap->SetCruiseSpeed(0);
@@ -1262,7 +1262,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
     //> 0x4203C1
     if (veh->vehicleFlags.bSirenOrAlarm && ((uint8)veh->m_nRandomSeed ^ (uint8)rand()) == 0xAD) {
-        veh->m_nHornCounter = 45;
+        veh->m_HornCounter = 45;
     }
 
     //> 0x4203F0 - Handle speed mult change based on time
@@ -1281,7 +1281,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
     }();
 
     //> 0x420445 - Handle player changing water/land vehicles while being chased
-    if (veh->vehicleFlags.bIsLawEnforcer && FindPlayerWanted()->GetWantedLevel() > 0) {
+    if (veh->vehicleFlags.bIsLawEnforcer && FindPlayerWanted()->GetWantedLevel() > eWantedLevel::WANTED_CLEAN) {
         if (plyrVeh) {
             switch (plyrVeh->GetVehicleAppearance()) {
             case VEHICLE_APPEARANCE_AUTOMOBILE:

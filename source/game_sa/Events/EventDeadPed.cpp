@@ -2,7 +2,7 @@
 
 #include "EventDeadPed.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 // 0x4ADEA0
 CEventDeadPed::CEventDeadPed(CPed* ped, bool bUnknown, uint32 deathTimeInMs) : CEventEditableResponse() {
@@ -38,7 +38,7 @@ bool CEventDeadPed::AffectsPed(CPed* ped) {
 }
 
 // 0x4B6E70
-CEventEditableResponse* CEventDeadPed::CloneEditable() {
+CEventEditableResponse* CEventDeadPed::CloneEditable() const noexcept {
     return new CEventDeadPed(m_ped, field_18, m_deathTimeInMs);
 
 }

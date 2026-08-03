@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Vector.h"
+#include "Enums/eSurfaceType.h"
 
 struct tColLighting {
     union {

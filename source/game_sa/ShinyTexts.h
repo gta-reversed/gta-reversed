@@ -33,8 +33,8 @@ VALIDATE_SIZE(CRegisteredShinyText, 0x58);
 
 class CShinyTexts {
 public:
-    static uint32& NumShinyTexts;
-    static CRegisteredShinyText (&aShinyTexts)[MAX_SHINYTEXTS];
+    static inline auto& NumShinyTexts = StaticRef<uint32>(0xC7C6F8);
+    static inline auto& aShinyTexts = StaticRef<std::array<CRegisteredShinyText, 32>>(0xC7D258);
 
 public:
     static void InjectHooks();
@@ -50,4 +50,6 @@ public:
         float u4, float v4,
         bool alwaysTrue, uint8 red, uint8 green, uint8 blue, float maxDistance
     );
+
+    static auto GetShinyTexts() { return aShinyTexts | rngv::take(NumShinyTexts); }
 };

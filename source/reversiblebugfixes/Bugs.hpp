@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./ReversibleBugFix.hpp"
+#include "ReversibleBugFix.hpp"
 
 /*!
 * This is where the bugs are defined.
@@ -20,12 +20,21 @@ inline const ReversibleBugFix GenericCrashing{
     .Description = "Fixes bugs that cause null ptr access, and similar anomalies crashing the game",
     .Credit      = "Contributors"
 };
+inline const ReversibleBugFix GenericUB{
+    .Name        = "Generic undefined behaviour (Use-after-free, etc)",
+    .Description = "Fixes game crashes/bugs",
+    .Credit      = "Contributors"
+};
 inline const ReversibleBugFix GenericOOB{
     .Name        = "Generic out-of-bounds bugs",
     .Description = "Fixes generic out-of-bounds bugs across the codebase",
     .Credit      = "Contributors"
 };
-
+inline const ReversibleBugFix GenericFrameRate{
+    .Name        = "Generic framerate related bugs",
+    .Description = "Fixes parts of code to not be framerate dependent",
+    .Credit      = "Contributors"
+};
 
 //
 // Other bugs
@@ -48,6 +57,38 @@ inline const ReversibleBugFix AESound_UpdatePlayTime_DivisionByZero{
 inline const ReversibleBugFix CCarCtrl_RemoveDistantCars_UseAfterFree{
     .Name        = "CCarCtrl::RemoveDistantCars Use-After-Free",
     .Description = "Fix user-after-free of vehicles (possibly) deleted by PossiblyRemoveVehicle",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CAEVehicleAudioEntity_PlayBicycleSound_VolumeFix{
+    .Name        = "CAEVehicleAudioEntity::PlayBicycleSound Volume fix",
+    .Description = "Original code didn't account for event base volume",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CAEVehicleAudioEntity_PlayAircraftSound_VolumeFix{
+    .Name        = "CAEVehicleAudioEntity::PlayAircraftSound Volume fix",
+    .Description = "Original code didn't account for event base volume",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
+    .Name        = "CPathFind::SwitchRoadsOffInArea Stray-Areas",
+    .Description = "Fix multiple issues related to saving unused path areas after missions",
+    .Credit      = "Contributors"
+};
+inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits{
+    .Name        = "CCustomCarPlateMgr::GeneratePlateText - Expand plate character range",
+    .Description = "The original game generates plate letters in the range A-W (23 chars) and digits in 0-8 (9 chars). "
+    "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
+    .Credit      = "j0y"
+};
+inline const ReversibleBugFix CTaskComplexLeaveCarAndFlee_MissingNullCheckForVehicleOnFlee{
+    .Name        = "CTaskComplexLeaveCarAndFlee - Missing null check for vehicle on flee",
+    .Description = "Fix missing null check for vehicle in CTaskComplexLeaveCarAndFlee",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_InvalidSurfaceType{
+    .Name        = "CAECollisionAudioEntity::PlayLoopingCollisionSound - Invalid surface type causing OOB",
+    .Description = "The surface type passed in could've been an `AE_SURFACE_TYPE_*` which when passed to `g_surfaceInfos` causes an OOB. "
+                   "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
 };

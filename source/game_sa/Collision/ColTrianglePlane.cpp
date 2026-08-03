@@ -14,9 +14,9 @@ void CColTrianglePlane::InjectHooks()
 
 CColTrianglePlane::CColTrianglePlane(const CColTriangle& tri, const CompressedVector* vertices) :
     CColTrianglePlane{
-        UncompressVector(vertices[tri.vA]),
-        UncompressVector(vertices[tri.vB]),
-        UncompressVector(vertices[tri.vC])
+        vertices[tri.vA],
+        vertices[tri.vB],
+        vertices[tri.vC]
     }
 {
 }

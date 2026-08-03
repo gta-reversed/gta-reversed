@@ -8,7 +8,7 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexSmartFleeEntity : public CTaskComplex {
 public:
-    CEntity*   fleeFrom{};                      /// Entity to flee from
+    CEntity*   m_fleeFrom{};                    /// Entity to flee from
     CVector    m_pos{};                         /// The current position to flee from (It's the entity's position with some tolerance, see `m_posCheckTimer`)
     int32      m_time{};                        /// The time in which we have to flee
     float      m_safeDistance{};                /// Distance from entity in which we're safe (thus task ends)

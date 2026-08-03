@@ -12,6 +12,13 @@
 
 using json = nlohmann::json;
 
+#include <ranges>
+namespace rng = std::ranges;
+namespace rngv = std::views;
+
+#include <filesystem>
+namespace fs = std::filesystem;
+
 #define PLUGIN_API
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
@@ -105,11 +112,12 @@ template<typename... Ts>
 // Since all the code here is perfectly valid, so the compiler might
 // still complain that, for example, the function doesn't return on all code paths, etc
 #define IMPL_NOTSA_UNREACHABLE_FMT_ARGS(...) std::format(__VA_ARGS__)
-#define NOTSA_UNREACHABLE(...) do { notsa::unreachable(__FUNCTION__, __FILE__, __LINE__ __VA_OPT__(,IMPL_NOTSA_UNREACHABLE_FMT_ARGS(__VA_ARGS__))); } while (false)
+#define NOTSA_UNREACHABLE(...) do { ::notsa::unreachable(__FUNCTION__, __FILE__, __LINE__ __VA_OPT__(,IMPL_NOTSA_UNREACHABLE_FMT_ARGS(__VA_ARGS__))); } while (false)
 #else 
 #define NOTSA_UNREACHABLE(...) UNREACHABLE_INTRINSIC()
 #endif
 #define NOTSA_UNUSED_FUNCTION() NOTSA_UNREACHABLE("Unused Function")
+#define NOTSA_UNREACHABLE_CASE(val) NOTSA_UNREACHABLE("Unreachable switch case with value: {}", val)
 
 #ifdef _DEBUG
 #define NOTSA_DEBUG_BREAK() __debugbreak()
@@ -149,7 +157,17 @@ template<typename... Ts>
 */
 template<typename T>
 T& StaticRef(uintptr addr) {
+#ifdef NOTSA_DUMP_HOOKS_ONLY
+    // NOTE/BUG:
+    // In NOTSA_DUMP_HOOKS_ONLY, StaticRef() returns a single per-type static buffer for all addresses.
+    // That aliases unrelated globals of the same type (e.g., many StaticRef<int32>(...)), so writes intended for one address will overwrite the dummy storage for another.
+    // This can corrupt state during hook registration and make dump output unreliable/non-deterministic.
+    // It can be easily fixed by putting the address in the template too, but we're not doing that yet because I guess it would impact compile times + it'd be a big diff in terms of code for now
+    alignas(alignof(T)) static uint8 buf[sizeof(T)]{};
+    return *reinterpret_cast<T*>(buf);
+#else
     return *reinterpret_cast<T*>(addr);
+#endif
 }
 
 /*!
@@ -173,12 +191,6 @@ T& ScopedStaticRef(uintptr varAddr, uintptr flagsAddr, uint32 flagsMask, T&& ini
     return var;
 }
 
-// TODO: Replace this with the one above
-template<typename T, uintptr Addr>
-T& StaticRef() {
-    return StaticRef<T>(Addr);
-}
-
 template<typename T>
 void SAFE_RELEASE(T*& ptr) { // DirectX stuff `Release()`
     if (ptr) {
@@ -186,6 +198,24 @@ void SAFE_RELEASE(T*& ptr) { // DirectX stuff `Release()`
         ptr = nullptr;
     }
 }
+
+// std::format support for enums
+// either using `EnumToString`, or using the enum name and value as a fallback
+template<typename Enum>
+    requires std::is_enum_v<Enum>
+struct std::formatter<Enum> : std::formatter<std::string> {
+    auto format(Enum e, format_context& ctx) const {
+        if constexpr (requires { EnumToString(e); }) {
+            if (const auto name = EnumToString(e)) {
+                return formatter<string>::format(*name, ctx);
+            }
+        }
+        return formatter<string>::format(
+            std::format("{} ({})", typeid(Enum).name(), static_cast<std::underlying_type_t<Enum>>(e)),
+            ctx
+        );
+    }
+};
 
 #define _IGNORED_
 #define _CAN_BE_NULL_

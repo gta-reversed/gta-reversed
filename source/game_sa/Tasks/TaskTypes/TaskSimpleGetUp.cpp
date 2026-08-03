@@ -101,7 +101,7 @@ bool CTaskSimpleGetUp::StartAnim(CPed* ped) {
     ) {
         auto& entity = ped->m_pEntityIgnoredCollision;
         if (!entity
-            || !entity->IsVehicle()
+            || !entity->GetIsTypeVehicle()
             || entity->AsVehicle()->IsBike()
             || entity->AsVehicle()->IsSubQuad()
             || !IsVehiclePointerValid(entity->AsVehicle())
@@ -120,9 +120,9 @@ bool CTaskSimpleGetUp::StartAnim(CPed* ped) {
             ped->m_pEntityIgnoredCollision = nullptr;
 
             m_Anim = CAnimManager::BlendAnimation(
-                ped->m_pRwClump,
+                ped->GetRpClump(),
                 ANIM_GROUP_DEFAULT,
-                RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_GETUP_FRONT : ANIM_ID_GETUP_0,
+                RpAnimBlendClumpGetFirstAssociation(ped->GetRpClump(), ANIMATION_IS_FRONT) ? ANIM_ID_GETUP_FRONT : ANIM_ID_GETUP_0,
                 1000.0F
             );
 

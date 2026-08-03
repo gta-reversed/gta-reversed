@@ -1,0 +1,128 @@
+#include <StdInc.h>
+
+#include "Commands.hpp"
+#include <CommandParser/Parser.hpp>
+
+/*!
+* Various draw commands
+*/
+
+namespace {
+
+/// DRAW_SPRITE(038D)
+void DrawSprite(int32 slot, float x, float y, float width, float height, CRGBA color) {
+    assert(slot > 0 && slot <= MAX_NUM_SCRIPT_SPRITES);
+
+    auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
+    
+    rect->m_nType             = eScriptRectangleType::TEXTURED;
+    rect->m_nTextureId        = slot - 1;
+    rect->cornerA             = { SCREEN_STRETCH_X(x - width * 0.5f), SCREEN_STRETCH_Y(y - height * 0.5f) };
+    rect->cornerB             = { SCREEN_STRETCH_X(x + width * 0.5f), SCREEN_STRETCH_Y(y + height * 0.5f) };
+    rect->m_nAngle            = 0.0f;
+    rect->m_nTransparentColor = color;
+    rect->gxt1[0]             = '\0';
+}
+
+/// DRAW_RECT(038E)
+void DrawRect(float x, float y, float width, float height, CRGBA color) {
+    auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
+    
+    rect->m_nType             = eScriptRectangleType::MONOCOLOR;
+    rect->m_nTextureId        = -1;
+    rect->cornerA             = { SCREEN_STRETCH_X(x - width * 0.5f), SCREEN_STRETCH_Y(y - height * 0.5f) };
+    rect->cornerB             = { SCREEN_STRETCH_X(x + width * 0.5f), SCREEN_STRETCH_Y(y + height * 0.5f) };
+    rect->m_nAngle            = 0.0f;
+    rect->m_nTransparentColor = color;
+    rect->gxt1[0]             = '\0';
+}
+
+/// LOAD_SPRITE(038F)
+void LoadSprite(int32 slot, const char* spriteName) {
+    char lowered[16]{ 0 };
+    for (auto i = 0; i < std::size(lowered) - 1 && spriteName[i] != '\0'; i++) {
+        lowered[i] = tolower(spriteName[i]);
+    }
+
+    auto slotTxd = CTxdStore::FindTxdSlot("script");
+    CTxdStore::PushCurrentTxd();
+    CTxdStore::SetCurrentTxd(slotTxd);
+    assert(slot > 0 && slot <= MAX_NUM_SCRIPT_SPRITES); // script slot is 1-based
+    CTheScripts::ScriptSprites[slot - 1].SetTexture(lowered);
+    CTxdStore::PopCurrentTxd();
+}
+
+/// LOAD_TEXTURE_DICTIONARY(0390)
+void LoadTextureDictionary(CRunningScript& S, const char* txdName) {
+    std::string path = std::format("models\\txd\\{}.txd", txdName);
+
+    const auto slot = CTxdStore::FindOrAddTxdSlot("script");
+
+    CTxdStore::LoadTxd(slot, path.c_str());
+    CTxdStore::AddRef(slot);
+    if (S.m_UsesMissionCleanup) {
+        CTheScripts::MissionCleanUp.AddEntityToList(1, MISSION_CLEANUP_ENTITY_TYPE_TXD);
+    }
+}
+
+/// REMOVE_TEXTURE_DICTIONARY(0391)
+void RemoveTextureDictionary(CRunningScript& S) {
+    CTheScripts::RemoveScriptTextureDictionary();
+    if (S.m_UsesMissionCleanup) {
+        CTheScripts::MissionCleanUp.RemoveEntityFromList(1, MISSION_CLEANUP_ENTITY_TYPE_TXD);
+    }
+}
+
+/// SET_SPRITES_DRAW_BEFORE_FADE(03E3)
+void SetSpritesDrawBeforeFade(bool enabled) {
+    CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame].m_bDrawBeforeFade = enabled;
+}
+
+/// DRAW_SPRITE_WITH_ROTATION(074B)
+void DrawSpriteWithRotation(int32 slot, float x, float y, float width, float height, float angle, CRGBA color) {
+    assert(slot > 0 && slot <= MAX_NUM_SCRIPT_SPRITES);
+
+    auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
+    
+    rect->m_nType             = eScriptRectangleType::MONOCOLOR_ANGLED;
+    rect->m_nTextureId        = slot - 1;
+    rect->cornerA             = { SCREEN_STRETCH_X(x - width * 0.5f), SCREEN_STRETCH_Y(y - height * 0.5f) };
+    rect->cornerB             = { SCREEN_STRETCH_X(x + width * 0.5f), SCREEN_STRETCH_Y(y + height * 0.5f) };
+    rect->m_nAngle            = DegreesToRadians(angle);
+    rect->m_nTransparentColor = color;
+    rect->gxt1[0]             = '\0';
+}
+
+/// DRAW_WINDOW(0937)
+void DrawWindow(CRect bounds, const char* header, int32 style) {
+    auto* const rect = &CTheScripts::IntroRectangles[CTheScripts::NumberOfIntroRectanglesThisFrame++];
+    
+    rect->cornerA             = { SCREEN_STRETCH_X(bounds.left), SCREEN_STRETCH_Y(bounds.top) };
+    rect->cornerB             = { SCREEN_STRETCH_X(bounds.right), SCREEN_STRETCH_Y(bounds.bottom) };
+    rect->m_nType             = eScriptRectangleType::TEXT;
+    rect->m_nTextureId        = -1;
+    rect->m_nAngle            = 0.0f;
+    rect->m_nTransparentColor = CRGBA{ 0, 0, 0, 190 };
+    rect->gxt2[0]             = '\0';
+    rect->m_Alignment         = eFontAlignment::ALIGN_LEFT;
+    rect->m_nTextboxStyle     = style;
+    strncpy_s(rect->gxt1, (stricmp(header, "DUMMY") == 0 ? "\0" : header), 8);
+}
+
+} // namespace
+
+void notsa::script::commands::draw::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Draw");
+
+    REGISTER_COMMAND_HANDLER(COMMAND_DRAW_SPRITE, DrawSprite);
+    REGISTER_COMMAND_HANDLER(COMMAND_DRAW_SPRITE_WITH_ROTATION, DrawSpriteWithRotation);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOAD_SPRITE, LoadSprite);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOAD_TEXTURE_DICTIONARY, LoadTextureDictionary);
+    REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_TEXTURE_DICTIONARY, RemoveTextureDictionary);
+    REGISTER_COMMAND_HANDLER(COMMAND_DRAW_RECT, DrawRect);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_SPRITES_DRAW_BEFORE_FADE, SetSpritesDrawBeforeFade);
+    REGISTER_COMMAND_HANDLER(COMMAND_DRAW_WINDOW, DrawWindow);
+
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_COLOUR);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT);
+}

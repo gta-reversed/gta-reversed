@@ -98,7 +98,7 @@ bool CTaskSimpleCreateCarAndGetIn::ProcessPed(CPed* ped) {
         task.ProcessPed(ped);
     }
  
-    if (!m_CreatedVeh->IsStatic()) {
+    if (!m_CreatedVeh->GetIsStatic()) {
         return false;
     }
 

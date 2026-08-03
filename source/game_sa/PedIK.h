@@ -56,7 +56,7 @@ public:
     static inline const CVector XaxisIK = CVector(1.0f, 0.0f, 0.0f); // 0x8D232C
     static inline const CVector YaxisIK = CVector(0.0f, 1.0f, 0.0f); // 0x8D2338
     static inline const CVector ZaxisIK = CVector(0.0f, 0.0f, 1.0f); // 0x8D2344
-    static inline LimbMovementInfo& ms_torsoInfo = *(LimbMovementInfo*)0x8D22E4;
+    static inline auto& ms_torsoInfo = StaticRef<LimbMovementInfo>(0x8D22E4);
 
 public:
     static void InjectHooks();

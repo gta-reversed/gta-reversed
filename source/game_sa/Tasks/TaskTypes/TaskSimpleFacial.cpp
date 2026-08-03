@@ -42,7 +42,7 @@ AnimationId CTaskSimpleFacial::GetAnimId(eFacialExpression expression) {
 
 // 0x692E50
 bool CTaskSimpleFacial::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, GetAnimId(m_Type))) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), GetAnimId(m_Type))) {
         anim->m_BlendDelta = -4.0f;
     }
     return true;
@@ -51,9 +51,9 @@ bool CTaskSimpleFacial::MakeAbortable(CPed* ped, eAbortPriority priority, const 
 // 0x692E80
 bool CTaskSimpleFacial::ProcessPed(CPed* ped) {
     const auto animId = CTaskSimpleFacial::GetAnimId(m_Type);
-    const auto anim  = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, animId);
+    const auto anim  = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), animId);
 
-    if (RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_FACTALK)) {
+    if (RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_FACTALK)) {
         if (animId == ANIM_ID_FACTALK) {
             if (CGeneral::GetRandomNumberInRange(0, 100) < 40) {
                 anim->SetSpeed(CGeneral::GetRandomNumberInRange(0.5f, 3.0f));
@@ -69,7 +69,7 @@ bool CTaskSimpleFacial::ProcessPed(CPed* ped) {
 
     if (!m_Timer.IsStarted()) {
         if (!anim) {
-            CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, animId, 4.0f);
+            CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, animId, 4.0f);
             m_Timer.Start(m_Duration);
             return false;
         }

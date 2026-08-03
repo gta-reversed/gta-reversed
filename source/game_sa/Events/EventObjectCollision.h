@@ -23,17 +23,17 @@ public:
 public:
     static void InjectHooks();
 
-    CEventObjectCollision(int16 pieceType, float damageIntensity, CObject* object, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState);
+    CEventObjectCollision(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState);
     ~CEventObjectCollision() override;
 
     eEventType GetEventType() const override { return EVENT_OBJECT_COLLISION; }
     bool TakesPriorityOver(const CEvent& refEvent) override { return true; }
     int32 GetEventPriority() const override { return 57; }
     int32 GetLifeTime() override { return 0; }
-    CEventObjectCollision* Clone() override { return new CEventObjectCollision(m_pieceType, m_damageIntensity, m_object, &m_impactNormal, &m_impactPos, m_moveState); }
+    CEventObjectCollision* Clone() const noexcept override { return new CEventObjectCollision(m_pieceType, m_damageIntensity, m_object, m_impactNormal, m_impactPos, m_moveState); }
     bool AffectsPed(CPed* ped) override;
 
 private:
-    CEventObjectCollision* Constructor(int16 pieceType, float damageIntensity, CObject* object, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState);
+    CEventObjectCollision* Constructor(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState);
 };
 VALIDATE_SIZE(CEventObjectCollision, 0x30);

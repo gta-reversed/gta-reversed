@@ -13,8 +13,3 @@ CEventDeath::CEventDeath(bool bDrowning) : CEvent() {
     m_bDrowning = bDrowning;
     m_deathTimeInMs = CTimer::GetTimeInMS();
 }
-
-// 0x4B6E30
-CEvent* CEventDeath::Clone() {
-    return new CEventDeath(m_bDrowning, m_deathTimeInMs);
-}

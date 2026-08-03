@@ -7,10 +7,12 @@
 #pragma once
 
 #include <concepts>
-
+#include <PedGroup.h>
 #include "PedTaskPair.h"
-
+#include "DecisionMakers/DecisionMakerTypes.h"
+#include <TaskManager.h>
 #include "Tasks/TaskTypes/TaskSimpleNone.h"
+#include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorType.h"
 
 class CPed;
 class CTask;
@@ -20,15 +22,6 @@ class CTaskAllocator;
 class CEvent;
 class CPedGroup;
 class CEventGroupEvent;
-
-enum class ePedGroupDefaultTaskAllocatorType : uint32 {
-    FOLLOW_ANY_MEANS,
-    FOLLOW_LIMITED,
-    STAND_STILL,
-    CHAT,
-    SIT_IN_LEADER_CAR,
-    RANDOM,
-};
 
 class CPedGroupIntelligence {
     using PedTaskPairs = std::array<CPedTaskPair, TOTAL_PED_GROUP_MEMBERS>;
@@ -49,7 +42,7 @@ public:
     //! @notsa
     CPedTaskPair*  GetPedsTaskPair(CPed* ped, PedTaskPairs& taskPairs) const;
 
-    CTask*         GetTask(CPed* ped, PedTaskPairs& taskPairs);
+    CTask*         GetTask(CPed* ped, PedTaskPairs& taskPairs) const;
     CTask*         GetTaskMain(CPed* ped);
     CTask*         GetTaskDefault(CPed* ped);
     CTask*         GetTaskScriptCommand(CPed* ped);
@@ -63,11 +56,10 @@ public:
     void ReportAllBarScriptTasksFinished();
     void ReportAllTasksFinished(PedTaskPairs& taskPairs);
     //void ReportAllTasksFinished();
-    bool ReportFinishedTask(const CPed* ped, const CTask* task, CPedTaskPair* taskpair);
+    bool ReportFinishedTask(const CPed* ped, const CTask* task, PedTaskPairs& taskpair);
     bool ReportFinishedTask(const CPed* ped, const CTask* task);
-    void SetDefaultTask(CPed* ped, const CTask* task);
-    void SetDefaultTaskAllocator(CPedGroupDefaultTaskAllocator const* PedGroupDefaultTaskAllocator);
-    void SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType nPedGroupTaskAllocator);
+    void SetDefaultTaskAllocator(const CPedGroupDefaultTaskAllocator& ta);
+    void SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType taType);
 
     /*!
     * @addr 0x5F8510
@@ -81,18 +73,17 @@ public:
         const CTask& mainTask,
         bool         hasSecondaryTask = false,
 
-        const CTask& secondaryTask = CTaskSimpleNone{},
-        int32        slot = -1
+        const CTask&   secondaryTask = CTaskSimpleNone{},
+        eSecondaryTask slot          = TASK_SECONDARY_INVALID
     );
     //! @notsa
     void SetEventResponseTask(CPed* ped, const CTask& task) { SetEventResponseTask(ped, true, task); }
-    void SetEventResponseTaskAllocator(CTaskAllocator* a);
-    void SetGroupDecisionMakerType(int32 t);
-    void SetPrimaryTaskAllocator(CTaskAllocator* taskAllocator);
-    void SetScriptCommandTask(CPed* ped, const CTask* task);
+    void SetEventResponseTaskAllocator(CTaskAllocator* ta);
+    void SetGroupDecisionMakerType(eDecisionMakerType t) { m_DecisionMakerType = t; }
+    void SetPrimaryTaskAllocator(CTaskAllocator* ta);
 
-    auto GetOldEvent()     { return m_pOldEventGroupEvent; }
-    auto GetCurrentEvent() { return m_pEventGroupEvent; }
+    auto GetCurrentEvent()         { return m_CurrentEvent; }
+    auto GetHighestPriorityEvent() { return m_HighestPriorityEvent; }
 
     template<std::derived_from<CEvent> T>
     auto AddEvent(T event) { // TODO: Remove in final
@@ -100,7 +91,18 @@ public:
     }
 
     //! `task` shouldn't be `new`-d, but rather stack allocated!
-    void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot = -1, bool force = false);
+    void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, eSecondaryTask slot = TASK_SECONDARY_INVALID, bool force = false) const;
+    void SetDefaultTask(CPed* ped, const CTask& task);
+    void SetScriptCommandTask(CPed* ped, const CTask& task);
+
+    auto&& GetPedTaskPairs(this auto&& self)          { return self.m_PedTaskPairs; }
+    auto&& GetSecondaryPedTaskPairs(this auto&& self) { return self.m_SecondaryPedTaskPairs; }
+    auto&& GetDefaultPedTaskPairs(this auto&& self)   { return self.m_DefaultPedTaskPairs; }
+
+    auto&& GetPedGroup(this auto&& self) { return *self.m_pPedGroup; }
+
+private:
+    bool ShouldSetHighestPriorityEventAsCurrent();
 
 private: // Wrappers for hooks
     // 0x5F7250
@@ -110,17 +112,17 @@ private: // Wrappers for hooks
     }
 
 private:
-    CPedGroup*                     m_pPedGroup{};
-    CEventGroupEvent*              m_pOldEventGroupEvent{};
-    CEventGroupEvent*              m_pEventGroupEvent{};
-    PedTaskPairs                   m_PedTaskPairs{};
-    PedTaskPairs                   m_SecondaryPedTaskPairs{};
-    PedTaskPairs                   m_ScriptCommandPedTaskPairs{};
-    PedTaskPairs                   m_DefaultPedTaskPairs{};
-    CPedGroupDefaultTaskAllocator* m_DefaultTaskAllocator{};
-    CTaskAllocator*                m_PrimaryTaskAllocator{};
-    CTaskAllocator*                m_EventResponseTaskAllocator{};
-    int32                          m_DecisionMakerType{-1};
-    int32                          m_TaskSeqId{-1}; // Used in CTaskSequences::ms_taskSequence
+    CPedGroup*                           m_pPedGroup{};
+    CEventGroupEvent*                    m_CurrentEvent{};
+    CEventGroupEvent*                    m_HighestPriorityEvent{};
+    PedTaskPairs                         m_PedTaskPairs{};
+    PedTaskPairs                         m_SecondaryPedTaskPairs{};
+    PedTaskPairs                         m_ScriptCommandPedTaskPairs{};
+    PedTaskPairs                         m_DefaultPedTaskPairs{};
+    const CPedGroupDefaultTaskAllocator* m_DefaultTaskAllocator{};
+    CTaskAllocator*                      m_PrimaryTaskAllocator{};
+    CTaskAllocator*                      m_EventResponseTaskAllocator{};
+    eDecisionMakerType                   m_DecisionMakerType{ eDecisionMakerType::UNKNOWN };
+    int32                                m_TaskSeqId{ -1 }; // Used in CTaskSequences::ms_taskSequence
 };
 VALIDATE_SIZE(CPedGroupIntelligence, 0x2A0);

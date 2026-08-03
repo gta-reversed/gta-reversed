@@ -3,9 +3,6 @@
 #include "IniFile.h"
 #include "CarCtrl.h"
 
-float& CIniFile::PedNumberMultiplier = *(float*)0x8CDF14;
-float& CIniFile::CarNumberMultiplier = *(float*)0x8CDF18;
-
 void CIniFile::InjectHooks() {
     RH_ScopedClass(CIniFile);
     RH_ScopedCategoryGlobal();

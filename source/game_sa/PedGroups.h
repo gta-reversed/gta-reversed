@@ -6,16 +6,18 @@
 */
 #pragma once
 
+#include "Base.h"
+#include "PedGroup.h"
+
 class CPed;
-class CPedGroup;
 
 class CPedGroups {
 public:
-    static inline std::array<uint16, 8>& ScriptReferenceIndex = *reinterpret_cast<std::array<uint16, 8>*>(0xC098D0);
-    static inline std::array<char, 8>& ms_activeGroups = *reinterpret_cast<std::array<char, 8>*>(0xC098E0);
-    static inline bool& ms_bIsPlayerOnAMission = *reinterpret_cast<bool*>(0xC098E8);
-    static inline uint32& ms_iNoOfPlayerKills = *reinterpret_cast<uint32*>(0xC098EC);
-    static inline std::array<CPedGroup, 8>& ms_groups = *reinterpret_cast<std::array<CPedGroup, 8>*>(0xC09920);
+    static inline auto& ScriptReferenceIndex = StaticRef<std::array<uint16, 8>>(0xC098D0);
+    static inline auto& ms_activeGroups = StaticRef<std::array<char, 8>>(0xC098E0);
+    static inline auto& ms_bIsPlayerOnAMission = StaticRef<bool>(0xC098E8);
+    static inline auto& ms_iNoOfPlayerKills = StaticRef<uint32>(0xC098EC);
+    static inline auto& ms_groups = StaticRef<std::array<CPedGroup, 8>>(0xC09920);
 
 public:
     static void InjectHooks();
@@ -42,4 +44,10 @@ public:
 
     // inlined
     static CPedGroup& GetGroup(int32 groupId);
+
+    static auto GetActiveGroupsWithIDs() {
+        return ms_groups
+            | rngv::enumerate
+            | rngv::filter([](auto&& p) { return ms_activeGroups[std::get<0>(p)]; });
+    }
 };

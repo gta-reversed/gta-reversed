@@ -27,4 +27,4 @@ public:
 
 VALIDATE_SIZE(CHandShaker, 0x94);
 
-static inline std::array<CHandShaker, NUM_HANDSHAKERS>& gHandShaker = StaticRef<std::array<CHandShaker, NUM_HANDSHAKERS>>(0xB6ECA0);
+static inline auto& gHandShaker = StaticRef<std::array<CHandShaker, NUM_HANDSHAKERS>>(0xB6ECA0);

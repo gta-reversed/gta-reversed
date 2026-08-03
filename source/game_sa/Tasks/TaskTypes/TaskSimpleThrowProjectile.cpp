@@ -80,7 +80,7 @@ void CTaskSimpleThrowProjectile::FinishAnimThrowProjectileCB(CAnimBlendAssociati
 // 0x6259E0
 void CTaskSimpleThrowProjectile::StartAnim(CPed* ped) {
     const auto StartAnim = [&, this](AnimationId animId, float blendDelta) {
-        VERIFY(m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->GetActiveWeapon().GetWeaponInfo().m_eAnimGroup, animId, blendDelta));
+        VERIFY(m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->GetActiveWeapon().GetWeaponInfo().m_eAnimGroup, animId, blendDelta));
         m_Anim->SetFinishCallback(FinishAnimThrowProjectileCB, this);
     };
 
@@ -149,7 +149,7 @@ bool CTaskSimpleThrowProjectile::ProcessPed(CPed* ped) {
                     m_ButtonCounter = CTimer::GetTimeInMS() - m_ButtonCounter;
                 }
                 m_ButtonCounter = std::min(m_ButtonCounter, 533u);
-                ped->m_pPlayerData->m_fAttackButtonCounter = (float)m_ButtonCounter / 20.f;
+                ped->GetPlayerData()->m_fAttackButtonCounter = (float)m_ButtonCounter / 20.f;
             }
 
             if (m_TargetEntity) {

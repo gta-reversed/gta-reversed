@@ -19,7 +19,7 @@ public:
         uint8 m_GoToFlags;
     };
 
-    static float& ms_fLookAtThresholdDotProduct;
+    static inline auto& ms_fLookAtThresholdDotProduct = StaticRef<float>(0xC18D48);
 
 public:
     CTaskSimpleGoTo(eMoveState moveState, const CVector& targetPoint, float fRadius);

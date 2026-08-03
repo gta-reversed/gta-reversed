@@ -28,7 +28,7 @@ void CAnimBlendAssocGroup::InjectHooks() {
     RH_ScopedOverloadedInstall(CopyAnimation, "Name", 0x4CE0B0, CAnimBlendAssociation *(CAnimBlendAssocGroup::*)(const char*));
     RH_ScopedOverloadedInstall(CopyAnimation, "AnimationId", 0x4CE130, CAnimBlendAssociation *(CAnimBlendAssocGroup::*)(AnimationId));
     RH_ScopedInstall(GetAnimationId, 0x4CE1B0);
-    RH_ScopedOverloadedInstall(CreateAssociations, "1", 0x4CE220, void(CAnimBlendAssocGroup::*)(const char*), { .reversed = false });
+    RH_ScopedOverloadedInstall(CreateAssociations, "1", 0x4CE220, void(CAnimBlendAssocGroup::*)(const char*));
     RH_ScopedOverloadedInstall(CreateAssociations, "2", 0x4CE6E0, void(CAnimBlendAssocGroup::*)(const char*, RpClump*, const char**, uint32));
     RH_ScopedOverloadedInstall(CreateAssociations, "3", 0x4CE3B0, void(CAnimBlendAssocGroup::*)(const char*, const char*, const char*, uint32));
     //RH_ScopedOverloadedInstall(CreateAssociations, "", 0x4CE5C0, void(CAnimBlendAssocGroup::*)(const char*, RpClump*), { .reversed = false });

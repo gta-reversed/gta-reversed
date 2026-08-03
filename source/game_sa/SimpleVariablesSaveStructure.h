@@ -49,7 +49,7 @@ public:
     uint32       m_nWaterConfiguration;
     bool         m_bLARiots;
     bool         m_bLARiots_NoPoliceCar;
-    uint32       m_nMaximumWantedLevel;
+    eWantedLevel m_nMaximumWantedLevel;
     uint32       m_nMaxChaos;
     bool         m_bFrenchGame;
     bool         m_bGermanGame;

@@ -164,7 +164,7 @@ void CStuntJumpManager::Update() {
         const auto ended = failed
             || plyrInfo->m_nPlayerState != PLAYERSTATE_PLAYING
             || !plyr->bInVehicle
-            || plyrVeh->m_nStatus == STATUS_WRECKED
+            || plyrVeh->GetStatus() == STATUS_WRECKED
             || plyrVeh->vehicleFlags.bIsDrowning
             || plyrVeh->physicalFlags.bSubmergedInWater;
         if (ended) {
@@ -249,7 +249,7 @@ void ResetAllJumps() {
 void StuntJumpTestCode() {
     CPad* pad = CPad::GetPad(0);
     if (pad->IsStandardKeyJustDown('1')) {
-        DEV_LOG("ResetAllJumps");
+        NOTSA_LOG_DEBUG("ResetAllJumps");
         ResetAllJumps();
     }
     if (pad->IsStandardKeyJustDown('2')) {

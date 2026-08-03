@@ -46,19 +46,19 @@ CTaskComplexPartner* CTaskComplexPartner::Constructor(const char* commandName, C
 }
 
 CTask* CTaskComplexPartner::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x683AD0, CTask*, CPed*>(this, ped);
+    return plugin::CallMethodAndReturn<CTask*, 0x683AD0, CTaskComplexPartner*, CPed*>(this, ped);
 }
 
 CTask* CTaskComplexPartner::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x681F20, CTask*, CPed*>(this, ped);
+    return plugin::CallMethodAndReturn<CTask*, 0x681F20, CTaskComplexPartner*, CPed*>(this, ped);
 }
 
 CTask* CTaskComplexPartner::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6840D0, CTask*, CPed*>(this, ped);
+    return plugin::CallMethodAndReturn<CTask*, 0x6840D0, CTaskComplexPartner*, CPed*>(this, ped);
 }
 
 void CTaskComplexPartner::StreamRequiredAnims() {
-    return plugin::CallMethod<0x682310, CTask*>(this);
+    return plugin::CallMethod<0x682310, CTaskComplexPartner*>(this);
 }
 
 void CTaskComplexPartner::RemoveStreamedAnims() {

@@ -25,7 +25,7 @@ void CVector::InjectHooks()
     RH_ScopedInstall(FromMultiply, 0x59C670);
     RH_ScopedInstall(FromMultiply3x3, 0x59C6D0);
     RH_ScopedGlobalOverloadedInstall(CrossProduct, "out", 0x59C730, CVector*(*)(CVector*, CVector*, CVector*));
-    RH_ScopedGlobalOverloadedInstall(DotProduct, "v3d*v3d*", 0x59C6D0, float(*)(CVector*, CVector*));
+    RH_ScopedGlobalOverloadedInstall(DotProduct, "v3d*v3d*", 0x40FDB0, float(*)(CVector*, CVector*));
 }
 
 /*!
@@ -63,7 +63,7 @@ float CVector::Magnitude2D() const
 // Normalises a vector
 void CVector::Normalise()
 {
-    NormaliseAndMag();
+    (void)NormaliseAndMag();
 }
 
 // Normalises a vector and returns length
@@ -167,10 +167,6 @@ void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector) {
 
 void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector) {
     *this = matrix.TransformVector(vector);
-}
-
-CVector CVector::Average(const CVector* begin, const CVector* end) {
-    return std::accumulate(begin, end, CVector{}) / (float)std::distance(begin, end);
 }
 
 float CVector::Heading(bool limitAngle) const {

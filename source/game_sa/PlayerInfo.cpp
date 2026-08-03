@@ -134,8 +134,8 @@ void CPlayerInfo::Process(uint32 playerIndex) {
 }
 
 // 0x56F4E0
-void CPlayerInfo::FindClosestCarSectorList(CPtrList& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
-    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrList&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
+void CPlayerInfo::FindClosestCarSectorList(CPtrListDoubleLink<CVehicle*>& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
+    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrListDoubleLink<CVehicle*>&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
 }
 
 // 0x56F330
@@ -322,10 +322,10 @@ void CPlayerInfo::PlayerFailedCriticalMission() {
 // 0x56E610
 void CPlayerInfo::WorkOutEnergyFromHunger() {
 
-    static bool& s_lastTimeHungryStateProcessedInitialized = *(bool*)0xB9B8F4; // TODO | STATICREF // = false;
-    static uint8& s_lastTimeHungryStateProcessed = *(uint8*)0xB9B8F2;            // TODO | STATICREF
-    static int8& s_LastHungryState = *(int8*)0xB9B8F1;                         // TODO | STATICREF
-    static bool& s_bHungryMessageShown = *(bool*)0xB9B8F0;                     // TODO | STATICREF
+    static auto& s_lastTimeHungryStateProcessedInitialized = StaticRef<bool>(0xB9B8F4); // false
+    static auto& s_lastTimeHungryStateProcessed = StaticRef<uint8>(0xB9B8F2);
+    static auto& s_LastHungryState = StaticRef<int8>(0xB9B8F1);
+    static auto& s_bHungryMessageShown = StaticRef<bool>(0xB9B8F0);
 
     if (CCheat::IsActive(CHEAT_NEVER_GET_HUNGRY)) {
         return;

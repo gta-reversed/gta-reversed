@@ -21,7 +21,7 @@ public:
     CVector    m_impactPos;
 
 public:
-    CEventBuildingCollision(int16 pieceType, float damageIntensity, CBuilding* building, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState);
+    CEventBuildingCollision(int16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState);
     ~CEventBuildingCollision() override;
 
     eEventType GetEventType() const override { return EVENT_BUILDING_COLLISION; }
@@ -29,7 +29,7 @@ public:
     bool CanBeInterruptedBySameEvent() override { return true; }
     int32 GetEventPriority() const override { return 59; }
     int32 GetLifeTime() override { return 0; }
-    CEventBuildingCollision* Clone() override { return new CEventBuildingCollision(m_pieceType, m_damageIntensity, m_building, &m_impactNormal, &m_impactPos, m_moveState); }
+    CEventBuildingCollision* Clone() const noexcept override { return new CEventBuildingCollision(m_pieceType, m_damageIntensity, m_building, m_impactNormal, m_impactPos, m_moveState); }
     bool AffectsPed(CPed* ped) override;
 
     static bool CanTreatBuildingAsObject(CBuilding* building);
@@ -38,7 +38,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CEventBuildingCollision* Constructor(int16 pieceType, float damageIntensity, CBuilding* building, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState);
+    CEventBuildingCollision* Constructor(int16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState);
 
 };
 VALIDATE_SIZE(CEventBuildingCollision, 0x30);

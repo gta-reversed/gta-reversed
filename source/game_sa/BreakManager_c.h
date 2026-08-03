@@ -9,7 +9,7 @@ class CVector;
 
 class BreakManager_c {
 public:
-    BreakObject_c m_aObjects[64];
+    std::array<BreakObject_c, 64> m_aObjects;
 
 public:
     static void InjectHooks();

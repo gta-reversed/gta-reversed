@@ -10,9 +10,6 @@
 #include "Rope.h"
 #include "Ropes.h"
 
-eControlledCrane& CRopes::PlayerControlsCrane = *(eControlledCrane*)0xB76898;
-uint32& CRopes::m_nRopeIdCreationCounter = *(uint32*)0xB781F8;
-
 void CRopes::InjectHooks() {
     RH_ScopedClass(CRopes);
     RH_ScopedCategoryGlobal();
@@ -115,7 +112,7 @@ bool CRopes::IsCarriedByRope(CPhysical* entity) {
         return false;
 
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE && rope.m_pAttachedEntity == entity)
+        if (rope.m_nType != eRopeType::NONE && rope.m_pRopeAttachObject == entity)
             return true;
     }
     return false;

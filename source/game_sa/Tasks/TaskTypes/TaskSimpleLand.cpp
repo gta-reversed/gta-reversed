@@ -41,7 +41,7 @@ bool CTaskSimpleLand::ProcessPed(CPed* ped) {
         if (!bNoAnimation) {
             AnimationId aAnimIds[3] = { ANIM_ID_WALK, ANIM_ID_RUN, ANIM_ID_SPRINT };
             for (auto animId : aAnimIds) {
-                m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, animId);
+                m_pAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), animId);
                 if (m_pAnim)
                     m_pAnim->SetCurrentTime(0.0F);
             }
@@ -52,7 +52,7 @@ bool CTaskSimpleLand::ProcessPed(CPed* ped) {
         return true;
     } else {
         if (!m_pAnim && !bNoAnimation) {
-            m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, m_nAnimId, 100.0F);
+            m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, m_nAnimId, 100.0F);
             m_pAnim->SetFinishCallback(CTaskSimpleLand::FinishAnimCB, this);
         }
 

@@ -53,6 +53,8 @@ public:
     void ForceStopMove();
     bool StopFireGun() const;
     void SetDuckTimer(uint16 time);
+    auto GetControlType() const { return m_DuckControlType; }
+    bool SetControlType(eDuckControlType controlType);
 
     CTask* Clone() const override { return new CTaskSimpleDuck{ *this }; }
     eTaskType GetTaskType() const override { return Type; }

@@ -2,7 +2,7 @@
 
 #include "cHandlingDataMgr.h"
 
-char (&VehicleNames)[210][14] = *(char(*)[210][14])0x8D3978;
+auto& VehicleNames = StaticRef<char[210][14]>(0x8D3978);
 
 //! 0xC2B9B4 - Used for acceleration conversion from file to game units
 constexpr auto ACCEL_CONST = 1.f / sq(50.f); // This number 50 seems to be coming up a lot...;
@@ -224,7 +224,7 @@ void cHandlingDataMgr::LoadHandlingData() {
             NOTSA_UNREACHABLE("Failed to process handling. [Line: {}; #Tokens Read: {}]", nline, ret);
         }
     }
-    DEV_LOG("Successfully loaded {}x handlings for {}x vehicles!", nLoadedHandlings, nLoadedVehHandlings);
+    NOTSA_LOG_DEBUG("Successfully loaded {}x handlings for {}x vehicles!", nLoadedHandlings, nLoadedVehHandlings);
 }
 
 // 0x005BF3D0
@@ -275,7 +275,7 @@ bool cHandlingDataMgr::HasRearWheelDrive(uint8 handlingId) {
 // get handling id by name
 // 0x6F4FD0
 int32 cHandlingDataMgr::GetHandlingId(const char* nameToFind) {
-    for (auto [id, name] : notsa::enumerate(VehicleNames)) {
+    for (auto [id, name] : rngv::enumerate(VehicleNames)) {
         if (!strcmp(name, nameToFind)) {
             return id;
         }
@@ -368,6 +368,6 @@ int32 cHandlingDataMgr::FindExactWord(const char* name, const char* nameTable, u
             return i;
         }
     }
-    DEV_LOG("Vehicle name not found in table: {}", name);
+    NOTSA_LOG_DEBUG("Vehicle name not found in table: {}", name);
     return -1;
 }

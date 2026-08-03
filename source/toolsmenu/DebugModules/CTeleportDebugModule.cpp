@@ -12,7 +12,6 @@
 #include <string_view>
 #include <chrono>
 #include "Radar.h"
-#include "extensions/enumerate.hpp"
 
 using namespace ImGui;
 
@@ -58,7 +57,7 @@ void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
     CStreaming::LoadScene(pos);
 
     auto player = FindPlayerPed();
-    player->m_nAreaCode = areaCode;
+    player->SetAreaCode(areaCode);
     CGame::currArea = areaCode;
     CStreaming::RemoveBuildingsNotInArea(areaCode);
     CTimeCycle::StopExtraColour(false);
@@ -80,7 +79,7 @@ void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
 void TeleportDebugModule::DoTeleportTo(CVector pos, eAreaCodes areaCode) {
     // Save previous location for teleporting back.
     m_PrevLocation.Pos      = FindPlayerPed()->GetPosition();
-    m_PrevLocation.AreaCode = FindPlayerPed()->m_nAreaCode;
+    m_PrevLocation.AreaCode = FindPlayerPed()->GetAreaCode();
     m_PrevLocation.IsSelected = true; // mark the position is saved.
 
     TeleportDebugModule::TeleportTo(pos, areaCode);
@@ -237,7 +236,7 @@ void TeleportDebugModule::RenderTeleporterWindow() {
     SameLine(AlignRight(36.0f));
     if (Button("Save", { 36.0f, 19.0f })) {
         const auto posToSave{ GetIO().KeyCtrl ? FindPlayerPed()->GetPosition() : GetPositionWithGroundHeight(m_Input.Pos) };
-        const auto areaToSave{ GetIO().KeyCtrl ? FindPlayerPed()->m_nAreaCode : static_cast<eAreaCodes>(m_Input.AreaCode) };
+        const auto areaToSave{ GetIO().KeyCtrl ? FindPlayerPed()->GetAreaCode() : static_cast<eAreaCodes>(m_Input.AreaCode) };
         const auto nameToSave{ m_Input.Name[0] ? m_Input.Name : ((areaToSave == AREA_CODE_NORMAL_WORLD) ? GxtCharToUTF8(CTheZones::GetZoneName(posToSave)) : "<Unnamed>")};
 
         // Either use given name or current zone name
@@ -290,7 +289,7 @@ void TeleportDebugModule::ProcessShortcuts() {
         }
 
         // Find `i`th visible element and teleport to it
-        for (auto&& [itemIdx, loc] : notsa::enumerate(GetVisibleItems())) {
+        for (auto&& [itemIdx, loc] : rngv::enumerate(GetVisibleItems())) {
             if (k == itemIdx) {
                 DoTeleportTo(loc.FindGroundZ ? GetPositionWithGroundHeight(loc.Pos) : loc.Pos, loc.AreaCode);
                 break;

@@ -36,43 +36,59 @@ class CPed;
 
 class CGameLogic {
 public:
-    inline static std::array<CWeapon, NUM_WEAPON_SLOTS>& SavedWeapons = *reinterpret_cast<std::array<CWeapon, NUM_WEAPON_SLOTS>*>(0x96A9B8);
+    static inline auto& SavedWeapons = StaticRef<std::array<CWeapon, NUM_WEAPON_SLOTS>>(0x96A9B8);
 
-    inline static std::array<float, 16>& AfterDeathStartPointOrientations = *reinterpret_cast<std::array<float, 16>*>(0x96A850);
-    inline static std::array<CVector, 16>& AfterDeathStartPoints = *reinterpret_cast<std::array<CVector, 16>*>(0x96A8E0);
+    static inline auto& AfterDeathStartPointOrientations = StaticRef<std::array<float, 16>>(0x96A850);
+    static inline auto& AfterDeathStartPoints = StaticRef<std::array<CVector, 16>>(0x96A8E0);
 
-    inline static CVector& SkipPosition = *reinterpret_cast<CVector*>(0x96A8D4);
-    inline static float& SkipHeading = *reinterpret_cast<float*>(0x96A8A4);
+    static inline auto& SkipPosition = StaticRef<CVector>(0x96A8D4);
+    static inline auto& SkipHeading = StaticRef<float>(0x96A8A4);
 
-    static inline int32& nPrintFocusHelpCounter = *reinterpret_cast<int32*>(0x96A8B8);
-    static inline int32& nPrintFocusHelpTimer = *reinterpret_cast<int32*>(0x96A8B4);
-    static inline float& f2PlayerStartHeading = *reinterpret_cast<float*>(0x96A840);
-    static inline CVector& vec2PlayerStartLocation = *reinterpret_cast<CVector*>(0x96A9AC);
-    static inline bool& bPlayersCanBeInSeparateCars = *reinterpret_cast<bool*>(0x96A8B3);
-    static inline bool& bPlayersCannotTargetEachOther = *reinterpret_cast<bool*>(0x96A8B2);
+    static inline auto& nPrintFocusHelpCounter = StaticRef<int32>(0x96A8B8);
+    static inline auto& nPrintFocusHelpTimer = StaticRef<int32>(0x96A8B4);
+    static inline auto& f2PlayerStartHeading = StaticRef<float>(0x96A840);
+    static inline auto& vec2PlayerStartLocation = StaticRef<CVector>(0x96A9AC);
+    static inline auto& bPlayersCanBeInSeparateCars = StaticRef<bool>(0x96A8B3);
+    static inline auto& bPlayersCannotTargetEachOther = StaticRef<bool>(0x96A8B2);
 
-    static inline int32& NumAfterDeathStartPoints = *reinterpret_cast<int32*>(0x96A890);
+    static inline auto& NumAfterDeathStartPoints = StaticRef<int32>(0x96A890);
 
-    static inline bool& SkipToBeFinishedByScript = *reinterpret_cast<bool*>(0x96A894);
-    static inline CVehicle*& SkipVehicle = *reinterpret_cast<CVehicle**>(0x96A898);
-    static inline uint32& SkipTimer = *reinterpret_cast<uint32*>(0x96A89C);
-    static inline eSkipState& SkipState = *reinterpret_cast<eSkipState*>(0x96A8A0);
+    static inline auto& SkipToBeFinishedByScript = StaticRef<bool>(0x96A894);
+    static inline auto& SkipVehicle = StaticRef<CVehicle*>(0x96A898);
+    static inline auto& SkipTimer = StaticRef<uint32>(0x96A89C);
+    static inline auto& SkipState = StaticRef<eSkipState>(0x96A8A0);
 
-    static inline bool& bScriptCoopGameGoingOn = *reinterpret_cast<bool*>(0x96A8A8);
-    static inline int32& TimeOfLastEvent = *reinterpret_cast<int32*>(0x96A8AC);
-    static inline eGameLogicState& GameState = *reinterpret_cast<eGameLogicState*>(0x96A8B0);
-    static inline int32& ActivePlayers = *reinterpret_cast<int32*>(0x96A8B1);
+    static inline auto& bScriptCoopGameGoingOn = StaticRef<bool>(0x96A8A8);
+    static inline auto& TimeOfLastEvent = StaticRef<int32>(0x96A8AC);
+    static inline auto& GameState = StaticRef<eGameLogicState>(0x96A8B0);
+    static inline auto& ActivePlayers = StaticRef<int32>(0x96A8B1);
 
-    static inline bool& bPenaltyForDeathApplies = *reinterpret_cast<bool*>(0x8A5E48);
-    static inline bool& bPenaltyForArrestApplies = *reinterpret_cast<bool*>(0x8A5E49);
-    static inline bool& bLimitPlayerDistance = *reinterpret_cast<bool*>(0x8A5E4A);
-    static inline float& MaxPlayerDistance = *reinterpret_cast<float*>(0x8A5E4C);  // default 20.0
-    static inline eFocusedPlayer& n2PlayerPedInFocus = *reinterpret_cast<eFocusedPlayer*>(0x8A5E50); // default eFocusedPlayer::NONE
+    static inline auto& bPenaltyForDeathApplies = StaticRef<bool>(0x8A5E48);
+    static inline auto& bPenaltyForArrestApplies = StaticRef<bool>(0x8A5E49);
+    static inline auto& bLimitPlayerDistance = StaticRef<bool>(0x8A5E4A);
+    static inline auto& MaxPlayerDistance = StaticRef<float>(0x8A5E4C);  // default 20.0
+    static inline auto& n2PlayerPedInFocus = StaticRef<eFocusedPlayer>(0x8A5E50); // default eFocusedPlayer::NONE
 
 public:
     static void InjectHooks();
 
-    static float CalcDistanceToForbiddenTrainCrossing(CVector vecPoint, CVector vecMoveSpeed, bool ignoreMoveSpeed, CVector& outDistance);
+    /*!
+     * @addr 0x4418E0
+     * @brief Calculates the distance to a forbidden train crossing from a given point.
+     *
+     * @param point The position to calculate distance from.
+     * @param moveSpeed The movement velocity vector.
+     * @param ignoreMoveSpeed If true, the `moveSpeed` parameter is ignored in the calculation.
+     * @param outDistance Output parameter that is updated only when a forbidden crossing is found
+     *        (that is, when the returned distance is less than the no-crossing sentinel value).
+     *        It contains the 2D displacement vector from `point` to the chosen forbidden crossing,
+     *        computed in the XY plane with `z` set to `0`.
+     *
+     * @return The scalar distance to the forbidden train crossing, or the no-crossing sentinel
+     *         value if none was found. `outDistance` is only valid when the returned distance is
+     *         less than the no-crossing sentinel value.
+     */
+    static float CalcDistanceToForbiddenTrainCrossing(CVector point, CVector moveSpeed, bool ignoreMoveSpeed, CVector& outDistance);
     static void ClearSkip(bool afterMission);
     static void DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons);
     static void StorePedsWeapons(CPed* ped);

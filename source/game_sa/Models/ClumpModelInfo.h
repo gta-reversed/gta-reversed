@@ -20,6 +20,7 @@ struct tCompSearchStructByName {
     inline tCompSearchStructByName(const char* name, RwFrame* frame) : m_pName(name), m_pFrame(frame) {}
 };
 
+// RwObjectIdAssoc
 struct tCompSearchStructById {
     int32    m_nId;
     RwFrame* m_pFrame;

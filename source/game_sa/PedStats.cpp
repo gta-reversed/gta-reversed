@@ -2,9 +2,9 @@
 
 #include "PedStats.h"
 
-constexpr uint16 PED_STATS_COUNT = 43;
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 
-CPedStat*& CPedStats::ms_apPedStats = *(CPedStat**)0xC0BBEC;
+constexpr uint16 PED_STATS_COUNT = 43;
 
 void CPedStats::InjectHooks() {
     RH_ScopedClass(CPedStats);

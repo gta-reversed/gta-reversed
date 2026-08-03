@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-CScriptedBrainTaskEntry(&CScriptedBrainTaskStore::ms_entries)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES] = *(CScriptedBrainTaskEntry(*)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES])0xC188F0;
-
 void CScriptedBrainTaskEntry::InjectHooks()
 {
     RH_ScopedClass(CScriptedBrainTaskEntry);

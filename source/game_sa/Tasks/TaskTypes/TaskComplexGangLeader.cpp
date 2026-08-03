@@ -1,5 +1,5 @@
 #include "StdInc.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "ModelIndices.h"
 #include "EventPassObject.h"
 #include "EventGroupEvent.h"
@@ -137,7 +137,7 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
 CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     const auto [closestPed, distSq] = group->GetMembership().GetMemberClosestTo(ped);
     if (closestPed && sq(4.f) >= distSq) {
-        if (!closestPed->IsPed()) {
+        if (!closestPed->GetIsTypePed()) {
             return closestPed;
         }
     }
@@ -149,7 +149,7 @@ CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     float distSq{};
     if (const auto closestPed = group->GetClosestGroupPed(ped, &distSq)) {
         if (distSq < sq(4.f)) {
-            if (!closestPed->IsPed()) {
+            if (!closestPed->GetIsTypePed()) {
                 return closestPed;
             }
         }
@@ -226,8 +226,8 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     }
 
     if (m_exhaleTimer.IsOutOfTime()) { // 0x6624C1
-        if (ped->m_pRwClump) {
-            if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump))) {
+        if (ped->GetRpClump()) {
+            if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->GetRpClump()))) {
                 if (const auto fx = g_fxMan.CreateFxSystem("exhale", CVector{ 0.f, 0.1f, 0.f }, matrix)) {
                     fx->AttachToBone(ped, eBoneTag::BONE_HEAD);
                     fx->PlayAndKill();
@@ -304,7 +304,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         DRNKBR_PRTL_F,
         SMKCIG_PRTL_F,
     };
-    const auto GetAnim = [ped](AnimationId id) { return RpAnimBlendClumpGetAssociation(ped->m_pRwClump, id); };
+    const auto GetAnim = [ped](AnimationId id) { return RpAnimBlendClumpGetAssociation(ped->GetRpClump(), id); };
     const CAnimBlendAssociation* anims[]{
         GetAnim(ANIM_ID_DRNKBR_PRTL),
         GetAnim(ANIM_ID_SMKCIG_PRTL),
@@ -467,7 +467,7 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
                 m_gang->GetMembership().AddFollower(&scannedPed);
             }
 
-            // Find a member close enough to the scanned ped, and make the partners
+            // Find a member close enough to the scanned ped, and make them partners
             if (const auto [closestMem, distSq] = m_gang->GetMembership().GetMemberClosestTo(&scannedPed); // 0x65E61F
                 closestMem && sq(10.f) >= distSq && distSq >= sq(4.f)
             ) {           

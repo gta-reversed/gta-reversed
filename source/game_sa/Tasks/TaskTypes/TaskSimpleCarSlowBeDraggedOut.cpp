@@ -49,7 +49,7 @@ void CTaskSimpleCarSlowBeDraggedOut::StartAnim(CPed* ped) {
     CCarEnterExit::RemoveCarSitAnim(ped);
 
     const auto [animGroup, animId] = ComputeAnimID();
-    m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, animGroup, animId, 1000.f);
+    m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), animGroup, animId, 1000.f);
     m_Anim->SetFinishCallback(FinishAnimCarSlowBeDraggedOutCB, this);
     m_FrontAnim = m_Anim->HasFlag(ANIMATION_IS_FRONT);
 }
@@ -74,9 +74,9 @@ bool CTaskSimpleCarSlowBeDraggedOut::ProcessPed(CPed* ped) {
         return true;
     }
     if (m_HasAnimFinished) {
-        if (!RpAnimBlendClumpGetAssociation(ped->m_pRwClump, { ANIM_ID_FLOOR_HIT_F, ANIM_ID_FLOOR_HIT })) {
+        if (!RpAnimBlendClumpGetAssociation(ped->GetRpClump(), { ANIM_ID_FLOOR_HIT_F, ANIM_ID_FLOOR_HIT })) {
             CAnimManager::BlendAnimation(
-                ped->m_pRwClump,
+                ped->GetRpClump(),
                 ANIM_GROUP_DEFAULT,
                 m_FrontAnim
                     ? ANIM_ID_FLOOR_HIT_F
@@ -112,7 +112,7 @@ bool CTaskSimpleCarSlowBeDraggedOut::SetPedPosition(CPed* ped) {
             m_LineUpUtility->ProcessPed(ped, m_Vehicle, m_Anim);
         } else { // NOTE: I removed some weird assignment to `m_Anim` that was nulled afterwards... Maybe it was important.
             const auto [animGrp, animId] = ComputeAnimID();
-            if (const auto anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, animId)) {
+            if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), animId)) {
                 m_LineUpUtility->ProcessPed(ped, m_Vehicle, anim);
             }
         }

@@ -14,14 +14,14 @@ void CEventBuildingCollision::InjectHooks()
 }
 
 // 0x4ACF00
-CEventBuildingCollision::CEventBuildingCollision(int16 pieceType, float damageIntensity, CBuilding* building, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState)
+CEventBuildingCollision::CEventBuildingCollision(int16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState)
 {
     m_pieceType = pieceType;
     m_moveState = moveState;
     m_damageIntensity = damageIntensity;
     m_building = building;
-    m_impactNormal = *collisionImpactVelocity;
-    m_impactPos = *collisionPos;
+    m_impactNormal = collisionImpactVelocity;
+    m_impactPos = collisionPos;
     CEntity::SafeRegisterRef(m_building);
 }
 
@@ -31,7 +31,7 @@ CEventBuildingCollision::~CEventBuildingCollision()
 }
 
 // 0x4ACF00
-CEventBuildingCollision* CEventBuildingCollision::Constructor(int16 pieceType, float damageIntensity, CBuilding* building, CVector* collisionImpactVelocity, CVector* collisionPos, int16 moveState)
+CEventBuildingCollision* CEventBuildingCollision::Constructor(int16 pieceType, float damageIntensity, CBuilding* building, const CVector& collisionImpactVelocity, const CVector& collisionPos, int16 moveState)
 {
     this->CEventBuildingCollision::CEventBuildingCollision(pieceType, damageIntensity, building, collisionImpactVelocity, collisionPos, moveState);
     return this;

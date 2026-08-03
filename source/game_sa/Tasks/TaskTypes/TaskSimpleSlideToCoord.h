@@ -9,7 +9,7 @@ class NOTSA_EXPORT_VTABLE CTaskSimpleSlideToCoord : public CTaskSimpleRunNamedAn
 public:
     CVector m_SlideToPos;
     float   m_fAimingRotation; // Heading
-    float   m_fSpeed;
+    float   m_Speed;
     bool    m_bFirstTime : 1;
     bool    m_bRunningAnim : 1;
     int32   m_Timer;

@@ -1,0 +1,28 @@
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+  misc-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -modernize-use-trailing-return-type
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: 'source/.*'
+
+FormatStyle: file
+
+AnalyzeTemporaryDtors: false
+
+CheckOptions:
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase

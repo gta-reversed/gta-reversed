@@ -1,13 +1,13 @@
 #include "StdInc.h"
 
-#include "./TaskComplexInvestigateDisturbance.h"
-#include "./TaskSimpleScratchHead.h"
-#include "./TaskSimpleRunAnim.h"
-#include "./SeekEntity/TaskComplexSeekEntity.h"
-#include "./SeekEntity/PosCalculators/EntitySeekPosCalculatorFixedPos.h"
-#include "./TaskComplexGoToPointAndStandStill.h"
+#include "TaskComplexInvestigateDisturbance.h"
+#include "TaskSimpleScratchHead.h"
+#include "TaskSimpleRunAnim.h"
+#include "SeekEntity/TaskComplexSeekEntity.h"
+#include "SeekEntity/PosCalculators/EntitySeekPosCalculatorFixedPos.h"
+#include "TaskComplexGoToPointAndStandStill.h"
 
-#include <IKChainManager_c.h>
+#include <Ragdoll/IKChainManager.h>
 
 void CTaskComplexInvestigateDisturbance::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexInvestigateDisturbance, 0x870010, 11);

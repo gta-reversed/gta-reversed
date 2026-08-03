@@ -5,12 +5,6 @@
 #include "app_light.h"
 #include "CarFXRenderer.h"
 
-enum MaterialFlags {
-    MF_HAS_SHINE_CAM   = 1 << 0,
-    MF_HAS_SHINE_WAVE  = 1 << 1,
-    MF_HAS_SPECULARITY = 1 << 2,
-};
-
 void CCustomCarEnvMapPipeline::InjectHooks() {
     RH_ScopedClass(CCustomCarEnvMapPipeline);
     RH_ScopedCategory("Pipelines");
@@ -61,12 +55,12 @@ void CCustomCarEnvMapPipeline::InjectHooks() {
 bool CCustomCarEnvMapPipeline::RegisterPlugin() {
     ms_envMapPluginOffset = RpMaterialRegisterPlugin(4, rwID_ENVMAPPLUGIN, pluginEnvMatConstructorCB, pluginEnvMatDestructorCB, pluginEnvMatCopyConstructorCB);
     if (ms_envMapPluginOffset < 0) {
-        DEV_LOG("Failed to register Env Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Env Map Plugin");
         return false;
     }
     if (RpMaterialRegisterPluginStream(rwID_ENVMAPPLUGIN, pluginEnvMatStreamReadCB, pluginEnvMatStreamWriteCB, pluginEnvMatStreamGetSizeCB) < 0) {
         ms_envMapPluginOffset = -1;
-        DEV_LOG("Failed to register Env Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Env Map Plugin");
         return false;
     }
 
@@ -74,18 +68,18 @@ bool CCustomCarEnvMapPipeline::RegisterPlugin() {
 
     ms_envMapAtmPluginOffset = RpAtomicRegisterPlugin(4, rwID_ENVMAPATMPLUGIN, pluginEnvAtmConstructorCB, pluginEnvAtmDestructorCB, pluginEnvAtmCopyConstructorCB);
     if (ms_envMapAtmPluginOffset < 0) {
-        DEV_LOG("Failed to register Env Map Atm Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Env Map Atm Plugin");
         return false;
     }
 
     ms_specularMapPluginOffset = RpMaterialRegisterPlugin(4, rwID_SPECMAPATMPLUGIN, pluginSpecMatConstructorCB, pluginSpecMatDestructorCB, pluginSpecMatCopyConstructorCB);
     if (ms_specularMapPluginOffset < 0) {
-        DEV_LOG("Failed to register Specular Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Specular Map Plugin");
         return false;
     }
     if (RpMaterialRegisterPluginStream(rwID_SPECMAPATMPLUGIN, pluginSpecMatStreamReadCB, pluginSpecMatStreamWriteCB, pluginSpecMatStreamGetSizeCB) < 0) {
         ms_specularMapPluginOffset = -1;
-        DEV_LOG("Failed to register Specular Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Specular Map Plugin");
         return false;
     }
 
@@ -144,7 +138,7 @@ void CCustomCarEnvMapPipeline::PreRenderUpdate() {
 
 // 0x5DA560
 RpMaterial* CCustomCarEnvMapPipeline::CustomPipeMaterialSetup(RpMaterial* material, void* data) {
-    uint32 flags{};
+    RwUInt32 flags{};
     if (RpMatFXMaterialGetEffects(material) == rpMATFXEFFECTENVMAP) {
         SetFxEnvTexture(material, nullptr);
     }
@@ -158,7 +152,7 @@ RpMaterial* CCustomCarEnvMapPipeline::CustomPipeMaterialSetup(RpMaterial* materi
     if (GetFxSpecSpecularity(material) != 0.0f && GetFxSpecTexture(material)) {
         flags |= MF_HAS_SPECULARITY;
     }
-    material->surfaceProps.specular = std::bit_cast<float>(flags); // According to the docs, `specular` isn't used, so I guess that explains it?
+    SetMaterialFlags(material, flags);
     return material;
 }
 
@@ -220,11 +214,11 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
     _rwD3D9EnableClippingIfNeeded(atomic, type);
 
     const auto atmFlags = CVisibilityPlugins::GetAtomicId(atomic);
-    const auto noReflections = (atmFlags & (ATOMIC_IS_BLOWN_UP | ATOMIC_DISABLE_REFLECTIONS)) != 0;
+    const auto noReflections = (atmFlags & (ATOMIC_PIPE_NO_EXTRA_PASSES_LOD | ATOMIC_UNIQUE_MATERIALS)) != 0;
 
     // Fixed blown up car rendering ("DarkVehiclesFix")
     // Credit: SilentPatch
-    const auto isBlownUp = notsa::IsFixBugs() && (atmFlags & ATOMIC_IS_BLOWN_UP) && !(RpLightGetFlags(pDirect) & rpLIGHTLIGHTATOMICS);
+    const auto isBlownUp = notsa::IsFixBugs() && (atmFlags & ATOMIC_PIPE_NO_EXTRA_PASSES_LOD) && !(RpLightGetFlags(pDirect) & rpLIGHTLIGHTATOMICS);
 
     DWORD isLightingEnabled = 0;
     RwD3D9GetRenderState(D3DRS_LIGHTING, &isLightingEnabled);
@@ -259,10 +253,10 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
     for (RwUInt32 i = 0; i < header->numMeshes; i++) { // 0x5D99E9
         auto* const mesh  = &meshes[i];
         auto* const mat   = mesh->material;
-        const auto  matFlags = std::bit_cast<RwUInt32>(mat->surfaceProps.specular); // I guess they reuse this for storing the flags?
+        const auto  matFlags = GetMaterialFlags(mat);
 
         // Calculate spec and power & set render states
-        const auto useSpecular = isLightingEnabled && (matFlags & 4) && (g_fx.GetFxQuality() >= FX_QUALITY_HIGH || !noReflections); // Specular lighting enabled?
+        const auto useSpecular = isLightingEnabled && (matFlags & MF_HAS_SPECULARITY) && (g_fx.GetFxQuality() >= FX_QUALITY_HIGH || !noReflections); // Specular lighting enabled?
         float spec, power;
         if (useSpecular && !isBlownUp) { // 0x5D9A7F - 0x5D9B25 (Inverted if)
             const auto specularity = GetFxSpecSpecularity(mat);
@@ -335,10 +329,12 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
             RwD3D9SetTextureStageState(1, D3DTSS_COLORARG0, D3DTA_CURRENT);
             RwD3D9SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
             RwD3D9SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+
             RwD3D9SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_SELECTARG2);
             RwD3D9SetTextureStageState(1, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
             RwD3D9SetTextureStageState(1, D3DTSS_ALPHAARG2, D3DTA_CURRENT);
-            RwD3D9SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACENORMAL | 1);
+
+            RwD3D9SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, 1 | D3DTSS_TCI_CAMERASPACENORMAL);
             RwD3D9SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_PROJECTED | D3DTTFF_COUNT3);
 
             RwD3D9SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE);
@@ -525,4 +521,13 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
     RwD3D9SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
     RwD3D9SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | 1);
     RwD3D9SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, NULL);
+}
+
+// According to the docs, `specular` isn't used, so I guess that they've just reused it for the flags
+RwUInt32 CCustomCarEnvMapPipeline::GetMaterialFlags(RpMaterial* material) {
+    return std::bit_cast<RwUInt32>(RpMaterialGetSurfaceProperties(material)->specular);
+}
+
+void CCustomCarEnvMapPipeline::SetMaterialFlags(RpMaterial* material, RwUInt32 flags) {
+    RpMaterialGetSurfaceProperties(material)->specular = std::bit_cast<RwReal>(flags);
 }

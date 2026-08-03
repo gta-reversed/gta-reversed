@@ -2,7 +2,7 @@
 
 class CPed;
 class CEntity;
-class C2dEffectPedAttractor;
+struct C2dEffectPedAttractor;
 
 class CPedAttractorPedPlacer {
 public:

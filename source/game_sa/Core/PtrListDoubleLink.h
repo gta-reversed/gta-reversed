@@ -6,27 +6,98 @@
 */
 #pragma once
 
-#include "PtrList.h"
+#include "PtrNode.h"
 #include "PtrNodeDoubleLink.h"
+#include "PtrList.h"
 
-class CPtrListDoubleLink : public CPtrList {
+namespace notsa {
+namespace details {
+template<typename ItemType>
+struct PtrListDoubleLinkTraits {
+    using NodeType = CPtrNodeDoubleLink<ItemType>;
+
+    static NodeType* AddNode(NodeType*& head, NodeType* node) {
+        assert(node);
+        assert(!head || IsNodeValid(*head));
+        assert(IsNodeValid(*node));
+
+        NodeType* next = node->Next = std::exchange(head, node);
+        if (next) {
+            assert(next->Prev == nullptr && "Head node must have no `prev`");
+            next->Prev = node;
+        }
+        node->Prev = nullptr;
+        return node;
+    }
+
+    static NodeType* UnlinkNode(NodeType*& head, NodeType* node, NodeType* prev) {
+        assert(node);
+        assert(node->Prev == prev && "Incorrect `prev` value");
+        assert(head && "Can't remove node from empty list");
+        assert(!prev || IsNodeValid(*prev));
+        assert(IsNodeValid(*head));
+        assert(IsNodeValid(*node));
+
+        NodeType* next = node->Next;
+
+        if (next) {
+            assert(next->Prev == node);
+            next->Prev = prev;
+        }
+
+        if (head == node) {
+            assert(!prev && "Head node must have no `prev`");
+            head = next;
+        } else {
+            assert(prev && "All nodes other than the `head` must have a valid `prev`!");
+            assert(prev->Next == node);
+            prev->Next = next;
+        }
+
+        return next;
+    }
+
+    static bool IsNodeValid(const NodeType& node) requires std::is_pointer_v<ItemType> {
+        if (!GetPtrNodeDoubleLinkPool()->IsObjectValid(reinterpret_cast<const CPtrNodeDoubleLink<void*>*>(&node))) {
+            return false;
+        }
+        if (!node.IsItemValid()) {
+            return false;
+        }
+        return true;
+    }
+};
+}; // namespace details
+}; // namespace notsa
+
+/*!
+* @brief A list of double-linked nodes
+*/
+template<typename ItemType>
+class CPtrListDoubleLink : public CPtrList<notsa::details::PtrListDoubleLinkTraits<ItemType>> {
+    using Base = CPtrList<notsa::details::PtrListDoubleLinkTraits<ItemType>>;
+
 public:
-    CPtrListDoubleLink() { m_node->m_item = nullptr; }
-    ~CPtrListDoubleLink() { Flush(); }
+    using NodeType = typename Base::NodeType;
 
-    static void InjectHooks();
-
-    void Flush();
-    CPtrNodeDoubleLink* AddItem(void* item);
-    void DeleteItem(void* item);
+public:
+    using Base::CPtrList;
 
     /*!
-    * @brief Most likely inlined in the final exe, this code is used in multiple places
-    * @brief Use this only on the head link, not on the link to be removed
+    * @brief Delete the specified node from the list
+    * @warning Invalidates `node`, make sure to pre-fetch `next` from it beforehand!
+    * @return Node following the removed node (that is `node->next`)
     */
-    void DeleteNode(CPtrNodeDoubleLink* node);
+    NodeType* DeleteNode(NodeType* node) {
+        return Base::DeleteNode(node, node->Prev);
+    }
 
-    CPtrNodeDoubleLink* GetNode() const { return reinterpret_cast<CPtrNodeDoubleLink*>(m_node); }
+    /*!
+    * @brief Remove the specified node from the list
+    * @note Doesn't invalidate (delete) the node, only removes it from the list
+    * @return Node following the removed node (that is `node->next`)
+    */
+    NodeType* UnlinkNode(NodeType* node) {
+        return Base::Traits::UnlinkNode(this->m_Head, node, node->Prev);
+    }
 };
-
-VALIDATE_SIZE(CPtrListDoubleLink, 0x4);

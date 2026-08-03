@@ -5,6 +5,7 @@
 #include <string>
 #include <filesystem>
 
+#include "HookSystem.h"
 #include <Enums/eScriptCommands.h>
 #include "ReversibleHook/Base.h"
 
@@ -75,11 +76,11 @@
     ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, fnAddr, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
 
 #define RH_ScopedVMTOverloadedInstall(fn, suffix, fnGTAAddr, addrCast, ...) \
-    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 // Install a hook on a virtual function. To use it, `RH_ScopedVirtualClass` must be used instead of `RH_ScopedClass`
 #define RH_ScopedVMTInstall(fn, fnGTAAddr, ...) \
-    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 //! Install a script hook
 #define RH_ScopedInstallScriptCommand(cmd) \
@@ -118,31 +119,6 @@ namespace ReversibleHooks {
     SetCatOrItemStateResult SetCategoryOrItemStateByPath(std::string_view path, bool enabled);
 
     namespace detail {
-        // Change protection of memory pages, and automatically rollback on scope exit
-        struct ScopedVirtualProtectModify {
-            ScopedVirtualProtectModify(LPVOID address, SIZE_T sz, DWORD newProtect = PAGE_EXECUTE_READWRITE) :
-                m_addr{ address },
-                m_sz{ sz }
-            {
-                if (VirtualProtect(address, sz, newProtect, &m_initialProtect) == 0) {
-                    assert(0); // Failed
-                }
-            }
-
-            ~ScopedVirtualProtectModify() {
-                DWORD oldProtect{};
-                if (VirtualProtect(m_addr, m_sz, m_initialProtect, &oldProtect) == 0) {
-                    assert(0); // Failed
-                }
-            }
-
-        private:
-            DWORD  m_initialProtect{};
-            LPVOID m_addr{};
-            DWORD  m_sz{};
-        };
-
-
         void HookInstall(std::string_view category, std::string fnName, uint32 installAddress, void* addressToJumpTo, HookInstallOptions&& opt);
 
         /*void HookSwitch(std::shared_ptr<SReversibleHook> pHook);
@@ -155,7 +131,7 @@ namespace ReversibleHooks {
 
     template <typename T>
     static void Install(std::string_view category, std::string fnName, DWORD installAddress, T addressToJumpTo, HookInstallOptions&& opt = {}) {
-        auto ptr = FunctionPointerToVoidP(addressToJumpTo);
+        auto ptr = FunctionToVoidPtr(addressToJumpTo);
         detail::HookInstall(category, std::move(fnName), installAddress, ptr, std::move(opt));
     }
 

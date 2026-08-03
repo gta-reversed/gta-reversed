@@ -65,7 +65,7 @@ enum eIPL : uint8 {
 
 class CFileLoader {
 public:
-    static char (&ms_line)[512];
+    static inline auto& ms_line = StaticRef<char[512]>(0xB71848);
 
 public:
     static void InjectHooks();

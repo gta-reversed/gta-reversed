@@ -3,7 +3,7 @@
 #include "EventEditableResponse.h"
 
 #include "PedType.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CEventEditableResponse::InjectHooks() {
     RH_ScopedVirtualClass(CEventEditableResponse, 0x85AB80, 17);
@@ -36,7 +36,7 @@ CEventEditableResponse* CEventEditableResponse::Constructor() {
 }
 
 // 0x420ED0
-CEvent* CEventEditableResponse::Clone() {
+CEvent* CEventEditableResponse::Clone() const noexcept {
     CEventEditableResponse* clone = CloneEditable();
     clone->m_TaskId               = m_TaskId;
     clone->m_FacialExpressionType = m_FacialExpressionType;
@@ -93,8 +93,8 @@ void CEventEditableResponse::InformRespectedFriends(CPed* ped) {
                 continue;
             }
 
-            CPlayerPedData* playerData = FindPlayerPed(0)->m_pPlayerData;
-            if (playerData->m_pWanted && playerData->m_pWanted->m_nWantedLevel) {
+            CPlayerPedData* playerData = FindPlayerPed(0)->GetPlayerData();
+            if (playerData->m_pWanted && playerData->m_pWanted->GetWantedLevel() != eWantedLevel::WANTED_CLEAN) {
                 continue;
             }
         } else {
@@ -140,7 +140,7 @@ void CEventEditableResponse::InformGroup(CPed* ped) {
 void CEventEditableResponse::TriggerLookAt(CPed* ped) const {
     CEntity* sourceEntity = GetSourceEntity();
     if (sourceEntity) {
-        if (sourceEntity->IsPed()) {
+        if (sourceEntity->GetIsTypePed()) {
             g_ikChainMan.LookAt("CEventEditableResponse", ped, sourceEntity->AsPed(), 2'000, BONE_HEAD, nullptr, true, 0.25f, 500, 3, false);
             return;
         }

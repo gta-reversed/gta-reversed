@@ -2,7 +2,7 @@
 
 #include "RpAnimBlend.h"
 
-static uint32& ClumpOffset = *(uint32*)0xB5F878;
+static auto& ClumpOffset = StaticRef<uint32>(0xB5F878);
 
 CAnimBlendClumpData*& RpAnimBlendClumpGetData(RpClump* clump) {
     return *RWPLUGINOFFSET(CAnimBlendClumpData*, clump, ClumpOffset);

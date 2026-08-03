@@ -9,6 +9,7 @@
 #include "Sphere.h"
 #include "ColPoint.h"
 #include "ColSurface.h"
+#include "eSurfaceType.h"
 
 class CColSphere : public CSphere {
 public:

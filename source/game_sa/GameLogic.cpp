@@ -4,7 +4,6 @@
 #include "Garages.h"
 #include "PedClothesDesc.h"
 #include "PostEffects.h"
-#include <extensions/enumerate.hpp>
 
 void CGameLogic::InjectHooks() {
     RH_ScopedClass(CGameLogic);
@@ -40,26 +39,29 @@ void CGameLogic::InjectHooks() {
 }
 
 // 0x4418E0
-float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector vecPoint, CVector vecMoveSpeed, bool ignoreMoveSpeed, CVector& outDistance) {
-    auto closest = 100'000.0f; // FLT_MAX
+float CGameLogic::CalcDistanceToForbiddenTrainCrossing(CVector point, CVector moveSpeed, bool ignoreMoveSpeed, CVector& outDistance) {
+    auto closest         = 100'000.0f; // FLT_MAX
 
-    const auto Calculate = [&closest, &vecPoint, &vecMoveSpeed, &outDistance, ignoreMoveSpeed](CVector2D posn) {
-        const auto diff = posn - vecPoint;
-        const auto dist = diff.Magnitude();
+    const auto Calculate = [&closest, &point, &moveSpeed, &outDistance, ignoreMoveSpeed](CVector2D crossing) {
+        const CVector2D dir2D  = crossing - CVector2D{ point };
+        const auto      dist2D = dir2D.Magnitude();
 
-        if (((vecPoint * vecMoveSpeed).ComponentwiseSum() > 0.0f || ignoreMoveSpeed) && dist < closest) {
-            outDistance = vecPoint;
-            closest = dist;
+        // In vanilla code both `crossing` and `moveSpeed` were 3D, with the crossing's position `z` being assigned `0` ...
+        // But that affects the whole logic, because the dot product will more likely than not be negative (because of `dir` always having negative Z).
+        // So, instead of doing a 3D dot-product with a `moveSpeed` that has a `z` component of `0`, we just do a 2D dot product.
+        if (dist2D < closest && (ignoreMoveSpeed || dir2D.Dot(CVector2D{ moveSpeed }) > 0.0f)) {
+            outDistance = CVector{ dir2D, 0.f }; // Original code here used `z = -point.z` but that doesn't make much sense, so we're just going to set it to 0
+            closest     = dist2D;
         }
     };
 
     const auto cityUnlocked = CStats::GetStatValue(STAT_CITY_UNLOCKED);
     if (cityUnlocked == 0.0f) {
-        Calculate(CVector2D{82.0f, -1021.0f});  // LS-SF; Flint Country
+        Calculate({ 82.0f, -1021.0f }); // LS-SF; Flint Country
     } else if (cityUnlocked == 1.0f) {
-        Calculate(CVector2D{-1568.0f, 537.0f}); // SF-LV; Downtown
+        Calculate({ -1568.0f, 537.0f }); // SF-LV; Downtown
     } else if (cityUnlocked < 1.0f) {
-        Calculate(CVector2D{2270.0f,  277.0f}); // Not a train crossing; top left side of Palomino Creek, LS
+        Calculate({ 2270.0f, 277.0f }); // Not a train crossing; top left side of Palomino Creek, LS
     }
 
     return closest;
@@ -92,7 +94,7 @@ void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
             player2->GiveWeapon(weapon, true);
         }
         player1->PickWeaponAllowedFor2Player();
-        player1->m_pPlayerData->m_nChosenWeapon = player1->m_pPlayerData->m_nChosenWeapon;
+        player1->GetPlayerData()->m_nChosenWeapon = player1->GetPlayerData()->m_nChosenWeapon;
     }
 }
 
@@ -201,7 +203,7 @@ bool CGameLogic::IsPlayerUse2PlayerControls(CPed* ped) {
 
 // 0x4416E0
 bool CGameLogic::IsPointWithinLineArea(const CVector* points, uint32 numPoints, float x, float y) {
-    for (auto&& [i, point] : notsa::enumerate(std::span{points, numPoints})) {
+    for (auto&& [i, point] : rngv::enumerate(std::span{points, numPoints})) {
         const auto nextPoint = (i != numPoints - 1) ? points[i + 1] : points[0];
         if (CCollision::Test2DLineAgainst2DLine(x, y, 1'000'000.0f, 0.0f, point.x, point.y, nextPoint.x - point.x, nextPoint.y - point.y))
             return true;
@@ -358,13 +360,13 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     if (player->m_fHealth <= 0.0f) {
         CStats::UpdateStatsOnRespawn();
     }
-    auto playerData = player->m_pPlayerData;
+    auto playerData = player->GetPlayerData();
     auto playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
     player->physicalFlags.bRenderScorched = false;
     player->m_fArmour = 0.0f;
     player->m_fHealth = static_cast<float>(playerInfo->m_nMaxHealth);
-    player->m_bIsVisible = true;
+    player->SetIsVisible(true);
     player->m_nDeathTimeMS = 0;
     player->bDoBloodyFootprints = false;
     playerData->m_nDrunkenness = 0;
@@ -373,10 +375,9 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     playerData->m_nDrugLevel = 0;
     player->ClearAdrenaline();
     player->ResetSprintEnergy();
-    if (auto& fire = player->m_pFire) {
-        fire->createdByScript = false;
+    if (auto* const fire = std::exchange(player->m_pFire, nullptr)) {
+        fire->SetIsScript(false);
         fire->Extinguish();
-        fire = nullptr;
     }
     player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;
@@ -400,7 +401,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CTheScripts::ClearSpaceForMissionEntity(posn, player);
     CWorld::ClearExcitingStuffFromArea(posn, 4000.0, 1);
     player->RestoreHeadingRate();
-    player->m_nAreaCode = AREA_CODE_NORMAL_WORLD;
+    player->SetAreaCode(AREA_CODE_NORMAL_WORLD);
     player->m_pEnex = 0;
     CEntryExitManager::ms_entryExitStackPosn = 0;
     CGame::currArea = AREA_CODE_NORMAL_WORLD;
@@ -442,14 +443,14 @@ void CGameLogic::SetPlayerWantedLevelForForbiddenTerritories(bool immediately) {
     if ((!immediately && (CTimer::GetFrameCounter() % 32) != 18) || coords.z > 950.0f)
         return;
 
-    if (ped->m_pIntelligence->GetTaskSwim() || ped->GetWantedLevel() >= 4)
+    if (ped->GetIntelligence()->GetTaskSwim() || ped->GetWantedLevel() >= eWantedLevel::WANTED_LEVEL_4)
         return;
 
     const auto SetWantedIfInArea = [&](auto* vertices, size_t size) {
         if (IsPointWithinLineArea(vertices, size, coords.x, coords.y)) {
-            ped->SetWantedLevel(4);
+            ped->SetWantedLevel(eWantedLevel::WANTED_LEVEL_4);
             if (immediately) {
-                ped->GetWanted()->m_nLastTimeWantedLevelChanged = 0;
+                ped->GetWanted()->m_LastTimeWantedLevelChanged = 0;
             }
         }
     };
@@ -550,7 +551,7 @@ void CGameLogic::StopPlayerMovingFromDirection(int32 playerId, CVector direction
     if (auto obj = [ped = FindPlayerPed(playerId)]() -> CPhysical* {
         if (ped->IsInVehicle()) {
             return ped->GetVehicleIfInOne();
-        } else if (ped->bIsStanding || ped->m_pIntelligence->GetTaskJetPack()) {
+        } else if (ped->bIsStanding || ped->GetIntelligence()->GetTaskJetPack()) {
             return ped;
         }
 
@@ -593,8 +594,8 @@ void CGameLogic::Update() {
                     CEntity::CleanUpOldReference(driver);
                     driver = nullptr;
 
-                    if (vehicle->m_nStatus != STATUS_WRECKED) {
-                        vehicle->m_nStatus = STATUS_ABANDONED;
+                    if (vehicle->GetStatus() != STATUS_WRECKED) {
+                        vehicle->SetStatus(STATUS_ABANDONED);
                     }
                 } else {
                     vehicle->RemovePassenger(player1Ped);
@@ -719,20 +720,13 @@ void CGameLogic::Update() {
                 if (!player1.m_bGetOutOfJailFree) {
                     const auto fee = [&] {
                         switch (player1Ped->GetWantedLevel()) {
-                        case 1:
-                            return 100;
-                        case 2:
-                            return 200;
-                        case 3:
-                            return 400;
-                        case 4:
-                            return 600;
-                        case 5:
-                            return 900;
-                        case 6:
-                            return 1500;
-                        default:
-                            NOTSA_UNREACHABLE(); // NOTSA, SA returns 100.
+                        case eWantedLevel::WANTED_LEVEL_1: return 100;
+                        case eWantedLevel::WANTED_LEVEL_2: return 200;
+                        case eWantedLevel::WANTED_LEVEL_3: return 400;
+                        case eWantedLevel::WANTED_LEVEL_4: return 600;
+                        case eWantedLevel::WANTED_LEVEL_5: return 900;
+                        case eWantedLevel::WANTED_LEVEL_6: return 1500;
+                        default:                           NOTSA_UNREACHABLE(); // NOTSA, SA returns 100.
                         }
                     }();
                     PunishPlayer(fee);
@@ -787,7 +781,7 @@ void CGameLogic::Update() {
         UpdateSkip();
         Process();
     } else {
-        static float& lastPlayerDistance = *(float*)(0x96AB24);
+        static float& lastPlayerDistance = StaticRef<float>(0x96AB24);
         const auto dist = DistanceBetweenPoints2D(FindPlayerCoors(PED_TYPE_PLAYER1), FindPlayerCoors(PED_TYPE_PLAYER2));
 
         const auto UpdateTimerAndLastDistance = [&dist] {

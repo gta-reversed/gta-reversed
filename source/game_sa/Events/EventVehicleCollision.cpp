@@ -41,12 +41,6 @@ CEventVehicleCollision* CEventVehicleCollision::Constructor(int16 pieceType, flo
     return this;
 }
 
-// 0x4B6BC0
-CEvent* CEventVehicleCollision::Clone()
-{
-    return new CEventVehicleCollision(m_pieceType, m_fDamageIntensity, m_vehicle, m_impactNormal, m_impactPos, m_moveState, VEHICLE_EVADE_NONE);
-}
-
 // 0x4B2EE0
 bool CEventVehicleCollision::AffectsPed(CPed* ped)
 {

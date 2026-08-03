@@ -1,35 +1,50 @@
 #include "StdInc.h"
+#include <extensions/CommandLine.h>
 
-#include <extensions/enumerate.hpp>
 #include <reversiblehooks/ReversibleHook/Virtual.h>
+#include "HookSystem.h"
 
-namespace ReversibleHooks{
-namespace ReversibleHook{
-Virtual::Virtual(std::string fnName, void** vtblGTA, void** vtblOur, size_t fnIdx) :
-    Base{ fnName, HookType::Virtual },
-    m_vtbls{vtblGTA, vtblOur}, // Should be in the same order as the indexers: GTA, OUR
+namespace ReversibleHooks {
+namespace ReversibleHook {
+Virtual::Virtual(
+    std::string name,
+    void**      vtblGTA,
+    void**      vtblOur,
+    size_t      fnIdx,
+    bool        reversed
+) :
+    Base{ name, HookType::Virtual, reversed },
+    m_vtbls{ vtblGTA, vtblOur }, // Should be in the same order as the indexers: GTA, OUR
     m_fnIdx{ fnIdx },
-    m_simpleHook{ std::move(fnName), (uint32)vtblGTA[fnIdx], vtblOur[fnIdx]} // Making sure this has a name too, for debugging purposes..
+#ifdef NOTSA_STANDALONE // TODO: We should take both addreses as arguments, and search for the function index ourself, so we can use this in standalone mode as well
+    m_simpleHook{ name, NULL, nullptr }
+#else
+    m_simpleHook{ name, (uint32)(vtblGTA[fnIdx]), vtblOur[fnIdx] }
+#endif
 {
-    for (const auto [i, vtbl] : notsa::enumerate(m_vtbls)) {
+#ifndef NOTSA_STANDALONE
+    for (const auto [i, vtbl] : rngv::enumerate(m_vtbls)) {
         m_pfns[i] = vtbl[fnIdx];
     }
+#endif
 
     Switch();
-};
+}
 
-void Virtual::Switch()
-{
-    m_bIsHooked = !m_bIsHooked;
+void Virtual::Switch() {
+    m_IsHooked = !m_IsHooked;
 
+#ifndef NOTSA_STANDALONE
     // Redirect VTBL entries
-    const auto pfn = m_pfns[m_bIsHooked ? OUR : GTA];
+    const auto pfn = m_pfns[m_IsHooked ? OUR : GTA];
     for (const auto vtbl : m_vtbls) {
-        detail::ScopedVirtualProtectModify m{ &vtbl[m_fnIdx], sizeof(pfn), PAGE_EXECUTE_READWRITE }; // Make sure we have permissions writing here...
+        // Make sure we have permissions writing here...
+        [[maybe_unused]] notsa::ScopedVirtualProtectModify _{ &vtbl[m_fnIdx], sizeof(pfn), PAGE_EXECUTE_READWRITE };
         vtbl[m_fnIdx] = pfn;
     }
 
-    m_simpleHook.State(m_bIsHooked);
+    m_simpleHook.State(m_IsHooked);
+#endif
 }
 };
 };

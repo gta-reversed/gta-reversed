@@ -141,8 +141,8 @@ bool CTaskSimpleJetPack::ProcessPed(CPed* ped) {
             ped->m_fAimingRotation +=
                 std::sin((float)CTimer::m_snTimeInMilliseconds * 0.0015707964f) * CTimer::GetTimeStep() * JETPACK_TURN_RATE * CGeneral::GetRandomNumberInRange(0.f, 1.f); // TODO: Magic number
 
-            if (ped->m_pPlayerData) {
-                ped->m_pPlayerData->m_fMoveBlendRatio = 0.f;
+            if (ped->GetPlayerData()) {
+                ped->GetPlayerData()->m_fMoveBlendRatio = 0.f;
             }
         }
         ProcessThrust(ped);
@@ -162,7 +162,7 @@ void CTaskSimpleJetPack::RenderJetPack(CPed* ped) {
         // Update JetPack matrix
         {
             const auto jpMat = RwFrameGetMatrix(jp);
-            *jpMat = RpHAnimHierarchyGetMatrixArray(GetAnimHierarchyFromSkinClump(ped->m_pRwClump))[PED_NODE_LEFT_ARM]; // TODO/NOTE: Not sure abt the enum
+            *jpMat = RpHAnimHierarchyGetMatrixArray(GetAnimHierarchyFromSkinClump(ped->GetRpClump()))[PED_NODE_LEFT_ARM]; // TODO/NOTE: Not sure abt the enum
             RwMatrixTranslate(jpMat, &JETPACK_POS_OFFSET, rwCOMBINEPRECONCAT);
             RwMatrixRotate(jpMat, &JETPACK_ROT_AXIS, 90.f, rwCOMBINEPRECONCAT);
         }
@@ -303,7 +303,7 @@ bool CTaskSimpleJetPack::ProcessAnims(CPed* ped) {
             ped->AsPlayer()->SetRealMoveAnim();
         }
     } else {
-        CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 4.f);
+        CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 4.f);
         ped->SetMoveState(PEDMOVE_STILL);
     }
 
@@ -351,7 +351,7 @@ void CTaskSimpleJetPack::ProcessControlInput(CPlayerPed* player) {
                 player->m_fAimingRotation = std::atan2(walkLeftRight, walkUpDown);
                 m_ThrustAngle = THRUST_MAX_ANGLE * padMoveMag * -0.3515625f; // TODO: Magic
             } else {
-                player->m_pPlayerData->m_fMoveBlendRatio = 0.f;
+                player->GetPlayerData()->m_fMoveBlendRatio = 0.f;
             }
         } else if (walkLeftRight != 0.f) { // 0x67EAA1
             player->m_fAimingRotation = CGeneral::LimitRadianAngle(player->m_fAimingRotation + JETPACK_TURN_RATE * CTimer::GetTimeStep() * walkLeftRight / 128.f);
@@ -415,7 +415,7 @@ void CTaskSimpleJetPack::ProcessControlInput(CPlayerPed* player) {
     }
 
     // 0x67EEA9
-    auto& br = player->m_pPlayerData->m_fMoveBlendRatio;
+    auto& br = player->GetPlayerData()->m_fMoveBlendRatio;
     if (padMoveMag <= 0.f) {
         br = 0.f;
     } else {
@@ -462,8 +462,8 @@ void CTaskSimpleJetPack::DoJetPackEffect(CPed* ped) {
         ? std::min(m_FxKeyTime + 0.1f, 1.f)
         : std::max(m_FxKeyTime - 0.1f, 0.f);
     const auto ProcessFx = [&, this](FxSystem_c*& fx, const char* jbFrameName) {
-        if (ped->m_pRwClump && !fx) {
-            if (fx = g_fxMan.CreateFxSystem("jetpack", CVector{}, RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump)))) {
+        if (ped->GetRpClump() && !fx) {
+            if (fx = g_fxMan.CreateFxSystem("jetpack", CVector{}, RwFrameGetMatrix(RpClumpGetFrame(ped->GetRpClump())))) {
                 fx->Play();
                 fx->SetLocalParticles(true);
                 fx->CopyParentMatrix();

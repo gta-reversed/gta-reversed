@@ -6,11 +6,6 @@
 #include "TaskComplexDriveWander.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 
-/*
-const float& CCarEnterExit::ms_fMaxSpeed_CanDragPedOut = *(float*)0x0;
-const float& CCarEnterExit::ms_fMaxSpeed_PlayerCanDragPedOut = *(float*)0x0;
-*/
-
 void CCarEnterExit::InjectHooks() {
     RH_ScopedClass(CCarEnterExit);
     RH_ScopedCategoryGlobal();
@@ -54,7 +49,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
     const auto [grpId, animId] = [&]() -> std::pair<AssocGroupId, AnimationId> {
         if (bAsDriver) { // Inverted
             if (const auto data = const_cast<CVehicle*>(vehicle)->GetRideAnimData()) {
-                return { data->m_nAnimGroup, ANIM_ID_BIKE_RIDE };
+                return { data->AnimGroup, ANIM_ID_BIKE_RIDE };
             } else if (vehicle->IsBoat()) {
                 if (vehicle->m_pHandlingData->m_bSitInBoat) {
                     return { ANIM_GROUP_DEFAULT, ANIM_ID_DRIVE_BOAT };
@@ -66,7 +61,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
             return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SIT };
         } else {
             if (const auto data = const_cast<CVehicle*>(vehicle)->GetRideAnimData()) {
-                return { data->m_nAnimGroup, ANIM_ID_BIKE_RIDE };
+                return { data->AnimGroup, ANIM_ID_BIKE_RIDE };
             } else if (vehicle->vehicleFlags.bLowVehicle) {
                 return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SITPLO };
             }
@@ -74,7 +69,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
             return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SITP };
         }
     }();
-    CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 1000.f);
+    CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 1000.f);
     ped->StopNonPartialAnims();
 }
 
@@ -259,7 +254,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
                 if (DotProduct2D(vehicle->GetRight(), ped->GetForward()) > 0 // On the left
                  && DotProduct2D(vehicle->GetForward(), ped->GetForward()) > std::cos(PI / 6.f)
                 ) {
-                    if ((ped->IsPlayer() && ped->m_pPlayerData->m_fMoveBlendRatio > 1.5f && doorId == 0) 
+                    if ((ped->IsPlayer() && ped->GetPlayerData()->m_fMoveBlendRatio > 1.5f && doorId == 0) 
                     || (!ped->IsPlayer() && ped->m_nPedType != PED_TYPE_COP && ped->m_nMoveState == PEDMOVE_RUN && ped->m_pStats->m_nTemper > 65 && doorId == 0)
                     ) {
                         // 18 here is probably either from eBikeNodes or eQuadNodes, not sure?
@@ -485,7 +480,7 @@ bool CCarEnterExit::IsClearToDriveAway(const CVehicle* vehicle) {
 
 // 0x651210
 bool CCarEnterExit::IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, const CVehicle* vehicle, const CVector& pos) {
-    if (vehicle->m_nModelIndex == eModelID::MODEL_AT400) {
+    if (vehicle->GetModelIndex() == eModelID::MODEL_AT400) {
         return false;
     }
 
@@ -521,7 +516,7 @@ bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId
 
 // 0x64EEC0
 bool CCarEnterExit::IsVehicleHealthy(const CVehicle* vehicle) {
-    return vehicle->m_nStatus != STATUS_WRECKED;
+    return vehicle->GetStatus() != STATUS_WRECKED;
 }
 
 // 0x6510D0
@@ -541,7 +536,7 @@ bool CCarEnterExit::IsVehicleStealable(const CVehicle* vehicle, const CPed* ped)
     }
 
     if (ped->m_pVehicle != vehicle) {
-        switch (vehicle->m_nCreatedBy) {
+        switch (vehicle->GetCreatedBy()) {
         case RANDOM_VEHICLE:
         case PARKED_VEHICLE:
             break;
@@ -614,8 +609,8 @@ void CCarEnterExit::MakeUndraggedPassengerPedsLeaveCar(const CVehicle* targetVeh
 void CCarEnterExit::QuitEnteringCar(CPed* ped, CVehicle* vehicle, int32 doorId, bool bCarWasBeingJacked) {
     RemoveGetInAnims(ped);
     ped->RestartNonPartialAnims();
-    if (!RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_IDLE)) {
-        CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
+    if (!RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_IDLE)) {
+        CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
     }
 
     if (bCarWasBeingJacked) {
@@ -651,21 +646,21 @@ void CCarEnterExit::QuitEnteringCar(CPed* ped, CVehicle* vehicle, int32 doorId, 
             break;
         }
     }
-    ped->m_bUsesCollision = false;
+    ped->SetUsesCollision(false);
 }
 
 // 0x64F680
 void CCarEnterExit::RemoveCarSitAnim(const CPed* ped) {
-    for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_SECONDARY_TASK_ANIM); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_SECONDARY_TASK_ANIM)) {
+    for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->GetRpClump(), ANIMATION_SECONDARY_TASK_ANIM); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_SECONDARY_TASK_ANIM)) {
         anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
         anim->m_BlendDelta = -1000.f;
     }
-    CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0);
+    CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0);
 }
 
 // 0x64F6E0
 void CCarEnterExit::RemoveGetInAnims(const CPed* ped) {
-    for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_PARTIAL); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_IS_PARTIAL)) {
+    for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->GetRpClump(), ANIMATION_IS_PARTIAL); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_IS_PARTIAL)) {
         anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
         anim->m_BlendDelta = -1000.f;
     }

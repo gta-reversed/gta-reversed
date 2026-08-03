@@ -13,7 +13,7 @@ public:
 
     eEventType GetEventType() const override { return EVENT_ACQUAINTANCE_PED_HATE; }
     int32 GetEventPriority() const override { return 26; }
-    CEventEditableResponse* CloneEditable() override { return new CEventAcquaintancePedHate(m_AcquaintancePed); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventAcquaintancePedHate(m_AcquaintancePed); }
 
 public:
     friend class CEventAcquaintancePed;

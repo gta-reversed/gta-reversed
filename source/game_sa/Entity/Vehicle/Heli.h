@@ -43,7 +43,7 @@ struct tHeliLight {
     uint32  m_nCoronaIndex;
     bool    field_24; // unknown flag
     bool    m_bDrawShadow;
-    CVector m_vecUseless[3]; // m_aSearchLightHistory
+    std::array<CVector, 3> m_vecUseless; // m_aSearchLightHistory
 
     void Init() {
         m_vecOrigin = CVector{};
@@ -90,12 +90,12 @@ public:
     bool         m_bSearchLightEnabled;
     float        field_A14;
 
-    static inline bool& bPoliceHelisAllowed                   = *(bool*)0x8D338C; // 1
-    static inline uint32& TestForNewRandomHelisTimer          = *(uint32*)0xC1C960;
-    static inline std::array<CHeli*, 2>& pHelis               = *(std::array<CHeli*, 2>*)0xC1C964;
-    static inline uint32& NumberOfSearchLights                = *(uint32*)0xC1C96C;
-    static inline bool& bHeliControlsCheat                    = *(bool*)0xC1C970;
-    static inline std::array<tHeliLight, 4>& HeliSearchLights = *(std::array<tHeliLight, 4>*)0xC1C990;
+    static inline auto& bPoliceHelisAllowed = StaticRef<bool>(0x8D338C); // 1
+    static inline auto& TestForNewRandomHelisTimer = StaticRef<uint32>(0xC1C960);
+    static inline auto& pHelis = StaticRef<std::array<CHeli*, 2>>(0xC1C964);
+    static inline auto& NumberOfSearchLights = StaticRef<uint32>(0xC1C96C);
+    static inline auto& bHeliControlsCheat = StaticRef<bool>(0xC1C970);
+    static inline auto& HeliSearchLights = StaticRef<std::array<tHeliLight, 4>>(0xC1C990);
 
     static constexpr auto Type = VEHICLE_TYPE_HELI;
 

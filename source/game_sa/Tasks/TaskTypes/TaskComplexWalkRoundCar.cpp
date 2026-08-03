@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
-#include "./TaskComplexFollowPointRoute.h"
-#include "./TaskComplexWalkRoundCar.h"
+#include "TaskComplexFollowPointRoute.h"
+#include "TaskComplexWalkRoundCar.h"
 
 void CTaskComplexWalkRoundCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWalkRoundCar, 0x86f308, 11);

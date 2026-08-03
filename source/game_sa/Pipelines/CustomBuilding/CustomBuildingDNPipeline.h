@@ -21,9 +21,9 @@ VALIDATE_SIZE(ExtraVertColour, 12); // 24 on Android
 
 class CCustomBuildingDNPipeline {
 public:
-    static inline float& m_fDNBalanceParam = *(float*)0x8D12C0; // 1.0f
-    static inline uint32& ms_extraVertColourPluginOffset = *(uint32*)0x8D12BC; // -1
-    static inline RxPipeline*& ObjPipeline = *(RxPipeline**)0xC02C1C;
+    static inline auto& m_fDNBalanceParam = StaticRef<float>(0x8D12C0); // 1.0f
+    static inline auto& ms_extraVertColourPluginOffset = StaticRef<uint32>(0x8D12BC); // -1
+    static inline auto& ObjPipeline = StaticRef<RxPipeline*>(0xC02C1C);
     static bool& m_bCameraChange;
     static uint32& m_AtmDNWorkingIndex;
 
@@ -40,7 +40,7 @@ public:
     static uint32 UsesThisPipeline(RpAtomic* atomic);
     static RwBool CustomPipeInstanceCB(void* object, RwResEntry* resEntry, RxD3D9AllInOneInstanceCallBack instanceCallback);
     static void PreRenderUpdate(RpAtomic* atomic, bool ignoreDNBalanceParam);
-    static RpAtomic* PreRenderUpdateRpAtomicCB(RpAtomic* atomic, void* data);
+    static void PreRenderUpdate(RpClump* clump, bool ignoreDNBalanceParam);
 
     static void*     pluginExtraVertColourConstructorCB(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
     static void*     pluginExtraVertColourDestructorCB(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);

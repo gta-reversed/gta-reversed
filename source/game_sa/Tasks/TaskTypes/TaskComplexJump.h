@@ -8,20 +8,18 @@
 
 #include "TaskComplex.h"
 
-enum eComplexJumpType : uint32 {
-    COMPLEX_JUMP_TYPE_JUMP  = 0,
-    COMPLEX_JUMP_TYPE_CLIMB = 1
-};
-
 class NOTSA_EXPORT_VTABLE CTaskComplexJump : public CTaskComplex {
 public:
-    eComplexJumpType m_nType;
-    bool             m_bHighJump;
+    enum class eForceClimb : int32 {
+        DISABLE = -1,
+        OK      = 0,
+        FORCE   = 1
+    };
 
 public:
     static constexpr auto Type = TASK_COMPLEX_JUMP;
 
-    explicit CTaskComplexJump(eComplexJumpType type);
+    explicit CTaskComplexJump(eForceClimb forceClimb = CTaskComplexJump::eForceClimb::OK);
     ~CTaskComplexJump() override = default;
 
     eTaskType GetTaskType() const override { return Type; }
@@ -35,10 +33,14 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexJump* Constructor(eComplexJumpType jumpType);
+    CTaskComplexJump* Constructor(eForceClimb jumpType);
 
 
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
+ 
+public:
+    eForceClimb m_ForceClimb;
+    bool        m_UsePlayerLaunchForce;
 };
 
 VALIDATE_SIZE(CTaskComplexJump, 0x14);

@@ -8,10 +8,17 @@
     "include": ["./ConanPresets.json"],
     "configurePresets": [
         {
-            "name": "conan-default-unity",
+            "name": "default-unity",
             "inherits": "conan-default",
             "cacheVariables": {
                 "GTASA_UNITY_BUILD": "ON"
+            }
+        },
+        {
+            "name": "default",
+            "inherits": "conan-default",
+            "cacheVariables": {
+                "GTASA_UNITY_BUILD": "OFF"
             }
         }
     ]
