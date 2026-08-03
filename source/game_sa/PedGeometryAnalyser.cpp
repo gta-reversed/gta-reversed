@@ -57,7 +57,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(GetNearestPed, 0x5F3590);
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970);
     RH_ScopedInstall(IsInAir, 0x5F1CB0);
-    RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .reversed = false });
+    RH_ScopedInstall(IsWanderPathClear, 0x5F2F70);
     RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .reversed = false });
 }
 
@@ -1228,8 +1228,80 @@ bool CPedGeometryAnalyser::IsInAir(const CPed& ped) {
 }
 
 // 0x5F2F70
-CPedGeometryAnalyser::WanderPathClearness CPedGeometryAnalyser::IsWanderPathClear(const CVector& from, const CVector& to, float maxHeightChange, int32 maxSamples) {
-    return plugin::CallAndReturn<WanderPathClearness, 0x5F2F70, const CVector&, const CVector&, float, int32>(from, to, maxHeightChange, maxSamples);
+auto CPedGeometryAnalyser::IsWanderPathClear(const CVector& start, const CVector& target, float maxHeightChange, int32 maxSamples) -> WanderPathClearness {
+    if (std::abs(start.z - target.z) > maxHeightChange) {
+        return WanderPathClearness::BLOCKED_HEIGHT;
+    }
+
+    const auto [lowestZ, highestZ] = std::minmax(start.z, target.z);
+    const auto start2D             = CVector2D{ start },
+               target2D            = CVector2D{ target };
+
+    if (!CWorld::GetIsLineOfSightClear(
+            CVector{ start2D, lowestZ },
+            CVector{ target2D, lowestZ },
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        )) {
+        return WanderPathClearness::BLOCKED_LOS;
+    }
+
+    const auto [dir, dist] = (target - start).NormalizedAndMag();
+    const auto numSamples  = std::min((int32)(dist), maxSamples);
+
+    if (numSamples == 0) {
+        return WanderPathClearness::CLEAR;
+    }
+
+    const auto CheckHasGround = [&](const CVector& origin, float endZ, float* outGroundZ = nullptr) {
+        CEntity*   e;
+        CColPoint  cp;
+        const auto hasHit = CWorld::ProcessVerticalLine(
+            origin,
+            endZ,
+            cp,
+            e,
+            true
+        );
+        if (outGroundZ) {
+            *outGroundZ = hasHit ? cp.m_vecPoint.z : endZ;
+        }
+        return hasHit;
+    };
+
+    // Walk path in steps, check for water
+    if (numSamples >= 2) {
+        for (int32 i = 1; i <= numSamples; i++) {
+            const auto curr = start + dir * (float)(i);
+            if (float waterZ; CWaterLevel::GetWaterLevel(curr, waterZ, false)) {
+                if (!CheckHasGround(CVector{ curr, waterZ }, highestZ)) {
+                    return WanderPathClearness::BLOCKED_WATER;
+                }
+            }
+        }
+    }
+
+    // Check if the start point is on the ground
+    if (!CheckHasGround(start, start.z + 5.f)) {
+        return WanderPathClearness::BLOCKED_SHARP_DROP;
+    }
+
+    // Walk the path, and check for sharp drops
+    if (numSamples >= 2) {
+        for (int32 i = 1; i <= numSamples; i++) {
+            const auto curr = CVector{ start2D + CVector2D{ dir } * (float)(i), lowestZ + 0.5f };
+            if (float groundZ; !CheckHasGround(curr, curr.z - 2.f, &groundZ) || std::abs(curr.z - groundZ) > 1.f) { // NOTE: Why not use `maxHeightChange` here for checking the diff?
+                return WanderPathClearness::BLOCKED_SHARP_DROP;
+            }
+        }
+    }
+
+    return WanderPathClearness::CLEAR;
 }
 
 // 0x5F3880
