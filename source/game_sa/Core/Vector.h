@@ -49,6 +49,13 @@ public:
         return cpy;
     }
 
+    // Get normalized copy of this vector, and it's magnitude
+    auto NormalizedAndMag() const noexcept {
+        CVector     cpy = *this;
+        const float mag = cpy.NormaliseAndMag();
+        return std::make_pair(cpy, mag);
+    }
+
     /// Perform a dot product with this and `o`, returning the result
     auto Dot(const CVector& o) const -> float;
 

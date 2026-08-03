@@ -28,9 +28,9 @@ public:
     static void ShutdownMatrixArray();
     static void InitMatrixArray();
 
-    CVector GetRightVector();
-    CVector GetForwardVector();
-    CVector GetUpVector();
+    CVector GetRightVector() const noexcept;
+    CVector GetForwardVector() const noexcept;
+    CVector GetUpVector() const noexcept;
 
     void FreeStaticMatrix();
     void SetPosn(float x, float y, float z);

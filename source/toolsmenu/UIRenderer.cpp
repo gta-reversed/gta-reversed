@@ -26,6 +26,8 @@
 
 #include <Windows.h>
 #include "DebugModules/DebugModules.h"
+#include <Lines.h>
+#include <PedGeometryAnalyser.h>
 
 namespace notsa {
 namespace ui {
@@ -161,6 +163,7 @@ void UIRenderer::Render3D() {
     ZoneScoped;
 
     m_DebugModules.Render3D();
+
 }
 
 void UIRenderer::DebugCode() {
@@ -170,6 +173,55 @@ void UIRenderer::DebugCode() {
 
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
+
+
+    static bool hasDetour;
+    static CVector start, target;
+    static CEntity* entity;
+
+    if (entity) {
+        float length;
+        const auto result = CPedGeometryAnalyser::GetIsLineOfSightClear(
+            *player,
+            target,
+            *entity,
+            length
+        );
+        NOTSA_LOG_INFO("LOS is {}, length {}", result, length);
+    }
+
+    if (pad->IsStandardKeyJustPressed('P')) {
+        start      = player->GetPosition() + player->GetForward();
+        target        = start + player->GetForward() * 15.f;
+        //sphere    = CColSphere{ player->GetPosition() + player->GetForward() * 5.f + player->GetUp() * 0.25f, 2.f};
+        
+        
+        NOTSA_LOG_WARN("result is {}", hasDetour);
+
+        CColPoint cp;
+        CEntity* e;
+        CWorld::ProcessLineOfSight(
+            player->GetPosition() + player->GetForward() * 1.f,
+            player->GetPosition() + player->GetForward() * 5.f,
+            cp,
+            e,
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+        );
+        if (e) {
+            entity = e;
+            
+        } else {
+            NOTSA_LOG_WARN("No entity");
+        }
+    }
+
 
     if (pad->IsStandardKeyJustPressed('8')) {
         player->GetTaskManager().SetTask(
