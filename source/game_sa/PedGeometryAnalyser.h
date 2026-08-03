@@ -197,7 +197,14 @@ public:
      */
     static auto IsWanderPathClear(const CVector& start, const CVector& target, float maxHeightChange, int32 maxSamples) -> WanderPathClearness;
 
-    static bool LiesInsideBoundingBox(const CPed& ped, const CVector& posn, CEntity& entity);
+    /*!
+     * @addr 0x5F3880
+     * @param ped The ped to check with
+     * @param pos Position to check if it's inside the entity's bounding box
+     * @param entity Entity to check against
+     * @return If `ped` is within `entity`'s bounding box at `pos`
+     */
+    static bool LiesInsideBoundingBox(const CPed& ped, const CVector& pos, CEntity& entity);
 
 private:
     static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0);

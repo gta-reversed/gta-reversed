@@ -58,7 +58,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970);
     RH_ScopedInstall(IsInAir, 0x5F1CB0);
     RH_ScopedInstall(IsWanderPathClear, 0x5F2F70);
-    RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .reversed = false });
+    RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880);
 }
 
 // notsa, common code
@@ -1305,8 +1305,22 @@ auto CPedGeometryAnalyser::IsWanderPathClear(const CVector& start, const CVector
 }
 
 // 0x5F3880
-bool CPedGeometryAnalyser::LiesInsideBoundingBox(const CPed& ped, const CVector& posn, CEntity& entity) {
-    return plugin::CallAndReturn<bool, 0x5F3880, const CPed&, const CVector&, CEntity&>(ped, posn, entity);
+bool CPedGeometryAnalyser::LiesInsideBoundingBox(const CPed& ped, const CVector& pos, CEntity& entity) {
+    if (CVector::DistSqr(entity.GetPosition(), pos) >= sq(entity.GetBoundRadius())) {
+        return false;
+    }
+
+    std::array<CVector, 4> bbPlanes{};
+    std::array<float, 4> bbPlaneDs{};
+    ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlanes, bbPlaneDs);
+
+    for (size_t i = 0; i < bbPlanes.size(); i++) {
+        if (bbPlanes[i].Dot(pos) + bbPlaneDs[i] > 0.f) {
+            return false; // Point lies in front of the plane, so it can't be in the bounding box
+        }
+    }
+
+    return true;
 }
 
 // 0x41B7C0
