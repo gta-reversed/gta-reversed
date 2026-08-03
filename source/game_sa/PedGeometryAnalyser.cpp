@@ -224,26 +224,41 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
 }
 
 // 0x5F3B70
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& point) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
     const auto& posn = ped.GetPosition();
     ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
-    return ComputeClosestSurfacePoint(posn, corners, point);
+    return ComputeClosestSurfacePoint(posn, corners, outPoint);
 }
 
 // 0x5F36F0
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
-    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, point);
+    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, outPoint);
 }
 
 // 0x5F2C10
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& point) {
-    //float closestPtDist3DSq = FLT_MAX;
-    //for ()
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& outPoint) {
+    //
+    // NOTE:
+    // The code below is adapted to use `CCollision::GetClosestPtOnLine` instead of duplicating it
+    // which also clamps the point to the line segment, so the redudant code at the end of the function
+    // was eliminated.
+    //
 
-    return plugin::CallAndReturn<bool, 0x5F2C10, const CVector&, const std::array<CVector, 4>&, CVector&>(posn, corners, point);
+    float closestPtDist3DSq = FLT_MAX;
+    for (uint32 i = 0; i < corners.size(); i++) {
+        const auto& curr = corners[i];
+        const auto& next = corners[(i + 1) % corners.size()];
+        const auto  closest = CCollision::GetClosestPtOnLine(curr, next, posn);
+        const auto  distSq  = (closest - posn).SquaredMagnitude();
+        if (distSq < closestPtDist3DSq) {
+            closestPtDist3DSq = distSq;
+            outPoint          = closest;
+        }
+    }
+    return closestPtDist3DSq != FLT_MAX; // This is same as the original code
 }
 
 // inlined into CPedGeometryAnalyser::ComputeEntityBoundingSphere
