@@ -246,11 +246,11 @@ void CTaskComplexGoToCarDoorAndStandStill::ComputeRouteToDoor(const CPed& ped) {
 
     const CVector pedPos = ped.GetPosition();
 
-    std::array<CVector, 4> vehBBPlanes{};
-    std::array<float, 4>   vehBBPlanesDot{};
-    CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(pedPos.z, *m_Vehicle, vehBBPlanes, vehBBPlanesDot);
+    std::array<CVector, 4> vehBBPlaneNormals{};
+    std::array<float, 4>   vehBBplaneDs{};
+    CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(pedPos.z, *m_Vehicle, vehBBPlaneNormals, vehBBplaneDs);
     const auto CalculatePositionOnPlane = [&](CVector pos, eDirection dir) {
-        return pos - pos.ProjectOnToNormal(vehBBPlanes[+dir], vehBBPlanesDot[+dir]);
+        return pos - pos.ProjectOnToNormal(vehBBPlaneNormals[+dir], vehBBplaneDs[+dir]);
     };
 
     const auto pedPosOnBBPlane  = CalculatePositionOnPlane(pedPos, CPedGeometryAnalyser::ComputeEntityHitSide(pedPos, *m_Vehicle));
