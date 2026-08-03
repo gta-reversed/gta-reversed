@@ -120,6 +120,7 @@
 #include "EntryExitManager.h"
 #include "ObjectSaveStructure.h"
 #include "PedStats.h"
+#include "MentalState.h"
 #include "TrafficLights.h"
 #include "CurrentVehicle.h"
 #include "PlaceName.h"
@@ -797,6 +798,7 @@ void InjectHooksMain() {
     CDecisionMakerTypes::InjectHooks();
     CDecisionMakerTypesFileLoader::InjectHooks();
     CPedStats::InjectHooks();
+    CMentalState::InjectHooks();
     CCarGenerator::InjectHooks();
     CTheCarGenerators::InjectHooks();
     CCullZones::InjectHooks();
