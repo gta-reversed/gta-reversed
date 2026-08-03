@@ -167,6 +167,12 @@ public:
      * @return True if the line of sight is clear, false otherwise
      */
     static bool GetIsLineOfSightClear(const CVector& start, const CVector& target, CEntity& entity);
+
+    /*!
+     * @addr 0x5F3590
+     * @param point
+     * @return Pointer to the nearest ped to `point`, or nullptr if no ped is found
+     */
     static CPed* GetNearestPed(const CVector& point);
 
     static bool   IsEntityBlockingTarget(CEntity* entity, const CVector& point, float distance);
