@@ -27,8 +27,8 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(CanPedTargetPoint, 0x5F1B70);
     RH_ScopedInstall(ComputeBuildingHitPoints, 0x5F1E30);
     RH_ScopedInstall(ComputeClearTarget, 0x5F5D80);
-    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed& ped, CEntity& entity, CVector& point));
-    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "posn", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&));
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "ped", 0x5F3B70, bool (*)(const CPed&, CEntity&, CVector&));
+    RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "pos", 0x5F36F0, bool(*)(const CVector&,CEntity&,CVector&));
     RH_ScopedOverloadedInstall(ComputeClosestSurfacePoint, "rect", 0x5F2C10, bool(*)(const CVector&,const std::array<CVector, 4>&,CVector&));
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncached, 0x5F1600);
     RH_ScopedInstall(ComputeEntityBoundingBoxCentreUncachedAll, 0x5F3B40);
@@ -47,7 +47,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, eDirection(*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&));
     RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, eDirection(*)(const CVector&, CEntity&));
     RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, eDirection(*)(const CPed&,const CPhysical&));
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "posn", 0x5F1E70, eDirection(*)(const CPed&,const CVector&));
+    RH_ScopedOverloadedInstall(ComputePedHitSide, "pos", 0x5F1E70, eDirection(*)(const CPed&,const CVector&));
     RH_ScopedInstall(ComputePedShotSide, 0x5F13F0);
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "Entity", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32));
@@ -226,20 +226,20 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
 // 0x5F3B70
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
-    const auto& posn = ped.GetPosition();
-    ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
-    return ComputeClosestSurfacePoint(posn, corners, outPoint);
+    const auto& pos = ped.GetPosition();
+    ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
+    return ComputeClosestSurfacePoint(pos, corners, outPoint);
 }
 
 // 0x5F36F0
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& outPoint) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& pos, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
-    CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
-    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, outPoint);
+    CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
+    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(pos, corners, outPoint);
 }
 
 // 0x5F2C10
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& outPoint) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& pos, const std::array<CVector, 4>& corners, CVector& outPoint) {
     //
     // NOTE:
     // The code below is adapted to use `CCollision::GetClosestPtOnLine` instead of duplicating it
@@ -251,8 +251,8 @@ bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const
     for (uint32 i = 0; i < corners.size(); i++) {
         const auto& curr = corners[i];
         const auto& next = corners[(i + 1) % corners.size()];
-        const auto  closest = CCollision::GetClosestPtOnLine(curr, next, posn);
-        const auto  distSq  = (closest - posn).SquaredMagnitude();
+        const auto  closest = CCollision::GetClosestPtOnLine(curr, next, pos);
+        const auto  distSq  = (closest - pos).SquaredMagnitude();
         if (distSq < closestPtDist3DSq) {
             closestPtDist3DSq = distSq;
             outPoint          = closest;
@@ -476,12 +476,12 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
 }
 
 // 0x5F3660
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot) {
-    ComputeEntityBoundingBoxPlanesUncachedAll(zPos, entity, outPlanes, outPlanesDot);
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs) {
+    ComputeEntityBoundingBoxPlanesUncachedAll(zPos, entity, outPlaneNormals, outPlaneDs);
 }
 
 // 0x5F1670
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs) {
     const auto N = corners.size();
 
     UNUSED(zPos);
@@ -494,49 +494,49 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(float zPos, co
         const CVector2D normal = (curr - prev).GetPerpRight().Normalized();
 
         // Store the normal vector of the plane
-        outPlanes[i] = CVector{ normal, 0.f };
+        outPlaneNormals[i] = CVector{ normal, 0.f };
 
         // point-normal plane equation:
         // ax + by + d = 0
         // d = - n . P
-        outPlanesDot[i] = -normal.Dot(prev);
+        outPlaneDs[i] = -normal.Dot(prev);
     }
 }
 
 // 0x5F2B80
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs) {
     std::array<CVector, 4> corners{};
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
-    CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(zPos, corners, outPlanes, outPlanesDot);
+    CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncached(zPos, corners, outPlaneNormals, outPlaneDs);
 }
 
 // 0x5F36A0
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
-    ComputeEntityBoundingBoxSegmentPlanesUncachedAll(zPos, entity, outNormals, outPlanesDot);
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs) {
+    ComputeEntityBoundingBoxSegmentPlanesUncachedAll(zPos, entity, outSegPlaneNormals, outPlaneDs);
 }
 
 // 0x5F1750
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs) {
     const auto center2D = CVector2D{ center };
     for (size_t i = 0; i < corners.size(); i++) {
         const auto corner2D = CVector2D{ corners[i] };
         const auto normal2D = (corner2D - center2D).GetPerpLeft();
-        outNormals[i]       = CVector{ normal2D, 0.f };
+        outSegPlaneNormals[i]       = CVector{ normal2D, 0.f };
 
         // point-normal plane equation:
         // ax + by + d = 0
         // d = - n . P
-        outPlanesDot[i] = -normal2D.Dot(corner2D);
+        outPlaneDs[i] = -normal2D.Dot(corner2D);
     }
 }
 
 // 0x5F2BC0
-void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot) {
+void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs) {
     std::array<CVector, 4> corners{};
     CVector center;
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     ComputeEntityBoundingBoxCentreUncached(zPos, corners, center);
-    ComputeEntityBoundingBoxSegmentPlanesUncached(corners, center, outNormals, outPlanesDot);
+    ComputeEntityBoundingBoxSegmentPlanesUncached(corners, center, outSegPlaneNormals, outPlaneDs);
 }
 
 // 0x5F3C20
@@ -563,26 +563,26 @@ void CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity&
 
 // notsa, code from 0x5F3730
 CVector CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity) {
-    std::array<CVector, 4> planes{};
-    std::array<float, 4>   planesDot{};
-    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, planes, planesDot);
+    std::array<CVector, 4> planeNormals{};
+    std::array<float, 4>   planeDs{};
+    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, planeNormals, planeDs);
     const auto GetDotProductOnPlane = [&] (int32 i) {
-        return planes[i].Dot(ped.GetPosition()) + planesDot[i];
+        return planeNormals[i].Dot(ped.GetPosition()) + planeDs[i];
     };
 
     const auto planeA = GetDotProductOnPlane(1);
     if (planeA > 0.f) {
-        return planes[1];
+        return planeNormals[1];
     }
 
     const auto planeB = GetDotProductOnPlane(3);
     if (planeB > 0.f) {
-        return planes[3];
+        return planeNormals[3];
     }
 
     return planeA <= planeB
-        ? planes[1]
-        : planes[3];
+        ? planeNormals[1]
+        : planeNormals[3];
 }
 
 //! @notsa
@@ -633,9 +633,9 @@ eDirection CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point, cons
 // 0x5F3AC0
 eDirection CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point, CEntity& entity) {
     std::array<CVector, 4> planeNormals{};
-    std::array<float, 4>   planeDots{};
-    ComputeEntityBoundingBoxSegmentPlanes(point.z, entity, planeNormals, planeDots);
-    return ComputeEntityHitSide(point, planeNormals, planeDots);
+    std::array<float, 4>   planeDs{};
+    ComputeEntityBoundingBoxSegmentPlanes(point.z, entity, planeNormals, planeDs);
+    return ComputeEntityHitSide(point, planeNormals, planeDs);
 }
 
 // 0x5F3640
@@ -663,8 +663,8 @@ eDirection CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CVecto
 }
 
 // 0x5F13F0
-eDirection CPedGeometryAnalyser::ComputePedShotSide(const CPed& ped, const CVector& posn) {
-    auto angle = (posn - ped.GetPosition()).Heading() - ped.m_fCurrentRotation + PI / 4.f;
+eDirection CPedGeometryAnalyser::ComputePedShotSide(const CPed& ped, const CVector& pos) {
+    auto angle = (pos - ped.GetPosition()).Heading() - ped.m_fCurrentRotation + PI / 4.f;
     if (angle < 0.f) {
         angle += TWO_PI;
     }
@@ -686,21 +686,21 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
     std::array<CVector, 4> bbCorners;
     ComputeEntityBoundingBoxCorners(zPos, entity, bbCorners);
 
-    std::array<CVector, 4> bbPlanes;
-    std::array<float, 4>   bbPlanesDot;
-    ComputeEntityBoundingBoxPlanes(zPos, entity, bbPlanes, bbPlanesDot);
+    std::array<CVector, 4> bbPlaneNormals;
+    std::array<float, 4>   bbPlaneDs;
+    ComputeEntityBoundingBoxPlanes(zPos, entity, bbPlaneNormals, bbPlaneDs);
 
     ms_fPedNominalRadius = prevPedNominalRadius;
 
     // Calculates `n . P0 + d` - the distance from the point to the plane along the plane's normal
     // If this distance is positive, the point lies above the plane, otherwise below it
     const auto GetPointDistanceToPlane = [&](int32 pl, CVector pos) {
-        return bbPlanes[pl].Dot(pos) + bbPlanesDot[pl];
+        return bbPlaneNormals[pl].Dot(pos) + bbPlaneDs[pl];
     };
 
     // Check if we need to go around the entity at all,
     // If both start and target are in front of the same plane then there's no need
-    for (size_t pl = 0; pl < bbPlanes.size(); pl++) { // 0x5F3E95
+    for (size_t pl = 0; pl < bbPlaneNormals.size(); pl++) { // 0x5F3E95
         const auto IsPosInFrontOfPlane = [&, pl](CVector pos) {
             return GetPointDistanceToPlane(pl, pos) > 0.f;
         };
@@ -710,7 +710,7 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
     }
 
     // Check if start and target can be approached without having to go around the entity
-    if (ComputeEntityHitSide(to, bbPlanes, bbPlanesDot) == ComputeEntityHitSide(from, bbPlanes, bbPlanesDot)) { // 0x5F3FDD
+    if (ComputeEntityHitSide(to, bbPlaneNormals, bbPlaneDs) == ComputeEntityHitSide(from, bbPlaneNormals, bbPlaneDs)) { // 0x5F3FDD
         return 0;
     }
 
@@ -719,7 +719,7 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
         // t = - (n . P0 + d) / (n . dir)
         // we want to find the point on the line that intersects the plane, so we can use the parametric equation of the line:
         // P(t) = P0 + dir * t
-        const auto t = -GetPointDistanceToPlane(pl, origin) / bbPlanes[pl].Dot(lineDir);
+        const auto t = -GetPointDistanceToPlane(pl, origin) / bbPlaneNormals[pl].Dot(lineDir);
         return origin + lineDir * t;
     };
 
@@ -774,7 +774,7 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
             //
             //    // Adjust points that are currently below to be on exactly on the plane
             //    const auto CalculateOffsetToPlane = [&](float dot) {
-            //        return bbPlanes[pl] * (EDGE_TRESHOLD - dot);
+            //        return bbPlaneNormals[pl] * (EDGE_TRESHOLD - dot);
             //    };
             //    if (fromRelPos == RELPOS_EDGE) { // 0x5F41BA
             //        from += CalculateOffsetToPlane(fromDot); // Move point
@@ -806,7 +806,7 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
 
                 // Adjust points that are currently considered to be on the edge to instead be within treshold
                 const auto GetOffsetToPlane = [&](float amount) {
-                    return bbPlanes[pl] * (EDGE_TRESHOLD - amount);
+                    return bbPlaneNormals[pl] * (EDGE_TRESHOLD - amount);
                 };
                 if (IsOnEdge(toDot)) {
                     toOnPlane += GetOffsetToPlane(toDot); // 0x5F41C2
@@ -1069,15 +1069,15 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
 
     outIntersectionLength = 0.f;
 
-    std::array<CVector, 4> bbPlanes{};
-    std::array<float, 4> bbPlaneDots{};
-    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, bbPlanes, bbPlaneDots);
+    std::array<CVector, 4> bbPlaneNormals{};
+    std::array<float, 4> bbPlaneDs{};
+    ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, bbPlaneNormals, bbPlaneDs);
 
     // Calculate intersection points of the line with the planes of the entity's bounding box
     auto onPlaneStart  = ped.GetPosition(),
          onPlaneTarget = target;
 
-    for (const auto& [plane, planeDot] : rngv::zip(bbPlanes, bbPlaneDots)) {
+    for (const auto& [plane, planeDot] : rngv::zip(bbPlaneNormals, bbPlaneDs)) {
         // Calculate the intersection point of a line with a plane
         const auto GetMoveLinePointOnPlane = [&](float dist) -> std::optional<CVector> {
             if (const auto distOnLine = plane.Dot(moveDir); distOnLine > 0.0001f) {
@@ -1098,6 +1098,7 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
         const auto startDistToPlane = GetPointDistanceToPlane(onPlaneStart),
                    targetDistToPlane   = GetPointDistanceToPlane(onPlaneTarget);
 
+        // I'll be using this, instead of whatever the fuck they did, because that's just ugly
         const auto IsAbove = [](float sdist) {
             return sdist > ms_fPedNominalRadius;
         };
@@ -1153,9 +1154,9 @@ CPed* CPedGeometryAnalyser::GetNearestPed(const CVector& point) {
 
 // 0x5F3970
 bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity& entity, const CVector& point, float radius) {
-    std::array<CVector, 4> bbPlanes{};
+    std::array<CVector, 4> bbPlaneNormals{};
     std::array<float, 4> bbPlaneDs{};
-    ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlanes, bbPlaneDs);
+    ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlaneNormals, bbPlaneDs);
 
     const auto dir = point - entity.GetPosition();
     if (std::abs(dir.z) > 3.f) {
@@ -1171,8 +1172,8 @@ bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity& entity, const CVector
         }
     }
 
-    for (size_t i = 0; i < bbPlanes.size(); i++) {
-        if (bbPlanes[i].Dot(point) + bbPlaneDs[i] > 0.f) {
+    for (size_t i = 0; i < bbPlaneNormals.size(); i++) {
+        if (bbPlaneNormals[i].Dot(point) + bbPlaneDs[i] > 0.f) {
             return false; // Point lies in front of the plane, so it can't be in the bounding box
         }
     }
@@ -1310,12 +1311,12 @@ bool CPedGeometryAnalyser::LiesInsideBoundingBox(const CPed& ped, const CVector&
         return false;
     }
 
-    std::array<CVector, 4> bbPlanes{};
+    std::array<CVector, 4> bbPlaneNormals{};
     std::array<float, 4> bbPlaneDs{};
-    ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlanes, bbPlaneDs);
+    ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlaneNormals, bbPlaneDs);
 
-    for (size_t i = 0; i < bbPlanes.size(); i++) {
-        if (bbPlanes[i].Dot(pos) + bbPlaneDs[i] > 0.f) {
+    for (size_t i = 0; i < bbPlaneNormals.size(); i++) {
+        if (bbPlaneNormals[i].Dot(pos) + bbPlaneDs[i] > 0.f) {
             return false; // Point lies in front of the plane, so it can't be in the bounding box
         }
     }

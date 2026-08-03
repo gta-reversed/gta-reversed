@@ -125,24 +125,25 @@ public:
     /*!
      * @addr 0x5F36F0
      * @brief Computes the closest point on the surface of an entity to a given point.
-     * @param posn Position for which to compute the closest surface point.
+     * @param pos Position for which to compute the closest surface point.
      * @param entity Entity to compute the closest surface point on.
      * @param [out] outPoint Computed closest surface point.
-        * @return Whenever the closest surface point is successfully computed.
+     * @return Whenever the closest surface point is successfully computed.
      */
-    static bool ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& outPoint);
+    static bool ComputeClosestSurfacePoint(const CVector& pos, CEntity& entity, CVector& outPoint);
 
     /*!
      * @addr 0x5F2C10
-     * @brief Get the closest point to `posn` on the side of a polygon defined by `corners`.
-     * @param posn The point to find the closest point to.
+     * @brief Get the closest point to `pos` on the side of a polygon defined by `corners`.
+     * @param pos The point to find the closest point to.
      * @param corners The corners of the polygon, in order
-     * @param [out] outPoint The closest point on the polygon to `posn`.
+     * @param [out] outPoint The closest point on the polygon to `pos`.
      * @return Whenever the closest surface point is successfully computed.
      */
-    static bool ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& outPoint);
+    static bool ComputeClosestSurfacePoint(const CVector& pos, const std::array<CVector, 4>& corners, CVector& outPoint);
 
-    /*! @brief Compute the center point of an entity bounding box at a specified Z.
+    /*! 
+     * @brief Compute the center point of an entity bounding box at a specified Z.
      * @param zPos Z coordinate to apply to the computed center.
      * @param entity Entity whose bounds are used.
      * @param [out] center Computed center point.
@@ -191,30 +192,30 @@ public:
      * @brief Compute outward planes of an entity bounding box.
      * @param zPos Z coordinate used for corner generation.
      * @param entity Entity whose bounds are used.
-     * @param [out] outPlanes Plane normals.
-     * @param [out] outPlanesDot Plane dot constants.
+     * @param [out] outPlaneNormals Plane normals.
+     * @param [out] outPlaneDs Plane dot constants.
      */
-    static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F1670
      * @brief Compute outward planes for provided bounding corners.
      * @param zPos Unused in this implementation.
      * @param corners Bounding corners in winding order.
-     * @param [out] outPlanes Plane normals.
-     * @param [out] outPlanesDot Plane dot constants.
+     * @param [out] outPlaneNormals Plane normals.
+     * @param [out] outPlaneDs Plane dot constants.
      */
-    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F2B80
      * @brief Compute bounding planes directly from entity model data.
      * @param zPos Z coordinate used for corner generation.
      * @param entity Entity whose bounds are used.
-     * @param [out] outPlanes Plane normals.
-     * @param [out] outPlanesDot Plane dot constants.
+     * @param [out] outPlaneNormals Plane normals.
+     * @param [out] outPlaneDs Plane dot constants.
      */
-    static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlanes, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F36A0
@@ -222,9 +223,9 @@ public:
      * @param zPos Z coordinate used for corner generation.
      * @param entity Entity whose bounds are used.
      * @param [out] outNormals Segment-plane normals.
-     * @param [out] outPlanesDot Plane dot constants.
+     * @param [out] outPlaneDs Plane dot constants.
      */
-    static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F1750
@@ -232,9 +233,9 @@ public:
      * @param corners Bounding corners in winding order.
      * @param center Bounding-box center.
      * @param [out] outNormals Segment-plane normals.
-     * @param [out] outPlanesDot Plane dot constants.
+     * @param [out] outPlaneDs Plane dot constants.
      */
-    static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F2BC0
@@ -242,9 +243,9 @@ public:
      * @param zPos Z coordinate used for corner generation.
      * @param entity Entity whose bounds are used.
      * @param [out] outNormals Segment-plane normals.
-     * @param [out] outPlanesDot Plane dot constants.
+     * @param [out] outPlaneDs Plane dot constants.
      */
-    static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outNormals, std::array<float, 4>& outPlanesDot);
+    static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F3C20
@@ -340,10 +341,10 @@ public:
      * @addr 0x5F13F0
      * @brief Determine shot side from a world-space position.
      * @param ped Ped that was shot.
-     * @param posn World-space shot source position.
+     * @param pos World-space shot source position.
      * @return Side classification on ped.
      */
-    static eDirection ComputePedShotSide(const CPed& ped, const CVector& posn);
+    static eDirection ComputePedShotSide(const CPed& ped, const CVector& pos);
 
     /*!
      * @addr 0x5F6110
