@@ -193,7 +193,7 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
             return;
         }
         float depth;
-        if (!GetIsLineOfSightClear(ped, outTargetClear, e, depth)) {
+        if (GetIsLineOfSightClear(ped, outTargetClear, e, depth)) {
             return;
         }
         outTargetClear -= (outTargetClear - ped.GetPosition()).Normalized() * (ms_fPedNominalRadius + depth);
