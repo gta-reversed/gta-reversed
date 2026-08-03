@@ -175,7 +175,7 @@ public:
      */
     static CPed* GetNearestPed(const CVector& point);
 
-    static bool   IsEntityBlockingTarget(CEntity* entity, const CVector& point, float distance);
+    static bool   IsEntityBlockingTarget(CEntity& entity, const CVector& point, float distance);
     static bool   IsInAir(const CPed& ped);
 
     enum class WanderPathClearness : uint32 {

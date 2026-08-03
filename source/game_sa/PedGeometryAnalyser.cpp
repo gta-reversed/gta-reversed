@@ -52,7 +52,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&));
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&));
     RH_ScopedInstall(GetNearestPed, 0x5F3590);
-    RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .reversed = false });
+    RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970);
     RH_ScopedInstall(IsInAir, 0x5F1CB0, { .reversed = false });
     RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .reversed = false });
     RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .reversed = false });
@@ -1149,8 +1149,32 @@ CPed* CPedGeometryAnalyser::GetNearestPed(const CVector& point) {
 }
 
 // 0x5F3970
-bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity* entity, const CVector& point, float distance) {
-    return plugin::CallAndReturn<bool, 0x5F3970, CEntity*, const CVector&, float>(entity, point, distance);
+bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity& entity, const CVector& point, float radius) {
+    std::array<CVector, 4> bbPlanes{};
+    std::array<float, 4> bbPlaneDs{};
+    ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlanes, bbPlaneDs);
+
+    const auto dir = point - entity.GetPosition();
+    if (std::abs(dir.z) > 3.f) {
+        return false;
+    }
+    if (notsa::bugfixes::CPedGeometryAnalyser_IsEntityBlockingTarget_IncorrectRadiusCheck) {
+        if (sq(entity.GetBoundRadius() + radius) < CVector2D{ dir }.SquaredMagnitude()) { 
+            return false;
+        }
+    } else {
+        if (sq(entity.GetBoundRadius()) + sq(radius) < CVector2D{ dir }.Magnitude()) {
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < bbPlanes.size(); i++) {
+        if (bbPlanes[i].Dot(point) + bbPlaneDs[i] > 0.f) {
+            return false; // Point lies in front of the plane, so it can't be in the bounding box
+        }
+    }
+
+    return true;
 }
 
 // 0x5F1CB0
