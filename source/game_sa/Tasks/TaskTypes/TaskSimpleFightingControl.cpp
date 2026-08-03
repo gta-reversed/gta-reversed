@@ -91,7 +91,7 @@ int16 CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
     case ENTITY_TYPE_VEHICLE: {
         std::array<CVector, 4> planeNormals{};
         std::array<float, 4>   planeDs{};
-        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(targetPos.z, *m_target, planeNormals, planeDs);
+        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(targetPos.z, *m_target, planeNormals, planeDs);
 
         const auto hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(pedPos, *m_target);
         if ((DotProduct(planeNormals[+hitSide], pedPos) + planeDs[+hitSide]) >= 0.7f) {

@@ -150,23 +150,7 @@ public:
      */
     static void ComputeEntityBoundingBoxCentre(float zPos, CEntity& entity, CVector& center);
 
-    /*!
-     * @addr 0x5F1600
-     * @brief Compute the center of a 4-corner bounding polygon at a specified Z.
-     * @param zPos Z coordinate to apply to the computed center.
-     * @param corners Bounding corners in winding order.
-     * @param [out] center Computed center point.
-     */
-    static void ComputeEntityBoundingBoxCentreUncached(float zPos, const std::array<CVector, 4>& corners, CVector& center);
-
-    /*!
-     * @addr 0x5F3B40
-     * @brief Compute an entity bounding-box center without using cached data.
-     * @param zPos Z coordinate to apply to the computed center.
-     * @param entity Entity whose bounds are used.
-     * @param [out] center Computed center point.
-     */
-    static void ComputeEntityBoundingBoxCentreUncachedAll(float zPos, CEntity& entity, CVector& center);
+    
 
     /*!
      * @addr 0x5F3650
@@ -176,16 +160,6 @@ public:
      * @param [out] corners Computed bounding-box corners.
      */
     static void ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
-
-    /*!
-     * @addr 0x5F1FA0
-     * @brief Compute entity bounding-box corners from current model data.
-     * @param zPos Z coordinate applied to all corners.
-     * @param entity Entity whose bounds are used.
-     * @param [out] corners Computed bounding-box corners.
-     * @return Whenever corners can be computed.
-     */
-    static bool ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
 
     /*!
      * @addr 0x5F3660
@@ -198,26 +172,6 @@ public:
     static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
-     * @addr 0x5F1670
-     * @brief Compute outward planes for provided bounding corners.
-     * @param zPos Unused in this implementation.
-     * @param corners Bounding corners in winding order.
-     * @param [out] outPlaneNormals Plane normals.
-     * @param [out] outPlaneDs Plane dot constants.
-     */
-    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
-
-    /*!
-     * @addr 0x5F2B80
-     * @brief Compute bounding planes directly from entity model data.
-     * @param zPos Z coordinate used for corner generation.
-     * @param entity Entity whose bounds are used.
-     * @param [out] outPlaneNormals Plane normals.
-     * @param [out] outPlaneDs Plane dot constants.
-     */
-    static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
-
-    /*!
      * @addr 0x5F36A0
      * @brief Compute segment planes from entity bounds, using center-to-corner lines.
      * @param zPos Z coordinate used for corner generation.
@@ -226,26 +180,6 @@ public:
      * @param [out] outPlaneDs Plane dot constants.
      */
     static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
-
-    /*!
-     * @addr 0x5F1750
-     * @brief Compute segment planes from explicit corners and center.
-     * @param corners Bounding corners in winding order.
-     * @param center Bounding-box center.
-     * @param [out] outNormals Segment-plane normals.
-     * @param [out] outPlaneDs Plane dot constants.
-     */
-    static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
-
-    /*!
-     * @addr 0x5F2BC0
-     * @brief Compute segment planes directly from entity model data.
-     * @param zPos Z coordinate used for corner generation.
-     * @param entity Entity whose bounds are used.
-     * @param [out] outNormals Segment-plane normals.
-     * @param [out] outPlaneDs Plane dot constants.
-     */
-    static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
     /*!
      * @addr 0x5F3C20
@@ -458,13 +392,89 @@ public:
 
     /*!
      * @addr 0x5F3880
-    * @brief Check if a position lies within an entity's 2D bounding box planes.
+     * @brief Check if a position lies within an entity's 2D bounding box planes.
      * @param ped The ped to check with
      * @param pos Position to check if it's inside the entity's bounding box
      * @param entity Entity to check against
      * @return If `ped` is within `entity`'s bounding box at `pos`
      */
     static bool LiesInsideBoundingBox(const CPed& ped, const CVector& pos, CEntity& entity);
+
+private:
+    /*!
+    * @addr 0x5F1750
+    * @brief Compute segment planes from explicit corners and center.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param corners Bounding corners in winding order.
+    * @param center Bounding-box center.
+    * @param [out] outNormals Segment-plane normals.
+    * @param [out] outPlaneDs Plane dot constants.
+    */
+    static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
+
+    /*!
+    * @addr 0x5F1600
+    * @brief Compute the center of a 4-corner bounding polygon at a specified Z.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param zPos Z coordinate to apply to the computed center.
+    * @param corners Bounding corners in winding order.
+    * @param [out] center Computed center point.
+    */
+    static void ComputeEntityBoundingBoxCentreUncached(float zPos, const std::array<CVector, 4>& corners, CVector& center);
+
+    /*!
+    * @addr 0x5F3B40
+    * @brief Compute an entity bounding-box center without using cached data.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param zPos Z coordinate to apply to the computed center.
+    * @param entity Entity whose bounds are used.
+    * @param [out] center Computed center point.
+    */
+    static void ComputeEntityBoundingBoxCentreUncachedAll(float zPos, CEntity& entity, CVector& center);
+
+    /*!
+    * @addr 0x5F1FA0
+    * @brief Compute entity bounding-box corners from current model data.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param zPos Z coordinate applied to all corners.
+    * @param entity Entity whose bounds are used.
+    * @param [out] corners Computed bounding-box corners.
+    * @return Whenever corners can be computed.
+    */
+    static bool ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
+
+    /*!
+    * @addr 0x5F1670
+    * @brief Compute outward planes for provided bounding corners.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param zPos Unused in this implementation.
+    * @param corners Bounding corners in winding order.
+    * @param [out] outPlaneNormals Plane normals.
+    * @param [out] outPlaneDs Plane dot constants.
+    */
+    static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
+
+    /*!
+    * @addr 0x5F2B80
+    * @brief Compute bounding planes directly from entity model data.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param zPos Z coordinate used for corner generation.
+    * @param entity Entity whose bounds are used.
+    * @param [out] outPlaneNormals Plane normals.
+    * @param [out] outPlaneDs Plane dot constants.
+    */
+    static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
+
+    /*!
+    * @addr 0x5F2BC0
+    * @brief Compute segment planes directly from entity model data.
+    * @note For calls outside this class use the wrapper function without "uncached" in the name
+    * @param zPos Z coordinate used for corner generation.
+    * @param entity Entity whose bounds are used.
+    * @param [out] outNormals Segment-plane normals.
+    * @param [out] outPlaneDs Plane dot constants.
+    */
+    static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
 private:
     static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0);

@@ -51,7 +51,7 @@ CTask* CTaskComplexDiveFromAttachedEntityAndGetUp::CreateFirstSubTask(CPed* ped)
         ) {
             std::array<CVector, 4> bbPlaneNormals{};
             std::array<float, 4> bbplaneDs{};
-            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(
+            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(
                 ped->GetPosition().z,
                 *attachedTo,
                 bbPlaneNormals,
