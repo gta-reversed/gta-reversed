@@ -136,7 +136,7 @@ public:
      * @addr 0x5F2C10
      * @brief Get the closest point to `pos` on the side of a polygon defined by `corners`.
      * @param pos The point to find the closest point to.
-     * @param corners The corners of the polygon, in order
+     * @param corners The corners of the polygon, in order (Order same as the `eDirection` enum)
      * @param [out] outPoint The closest point on the polygon to `pos`.
      * @return Whenever the closest surface point is successfully computed.
      */
@@ -150,14 +150,12 @@ public:
      */
     static void ComputeEntityBoundingBoxCentre(float zPos, CEntity& entity, CVector& center);
 
-    
-
     /*!
      * @addr 0x5F3650
      * @brief Compute entity bounding-box corners at the specified Z.
      * @param zPos Z coordinate applied to all corners.
      * @param entity Entity whose bounds are used.
-     * @param [out] corners Computed bounding-box corners.
+     * @param [out] corners Computed bounding-box corners. (Order same as the `eDirection` enum)
      */
     static void ComputeEntityBoundingBoxCorners(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
 
@@ -166,8 +164,8 @@ public:
      * @brief Compute outward planes of an entity bounding box.
      * @param zPos Z coordinate used for corner generation.
      * @param entity Entity whose bounds are used.
-     * @param [out] outPlaneNormals Plane normals.
-     * @param [out] outPlaneDs Plane dot constants.
+     * @param [out] outPlaneNormals Plane normals. (Order same as the `eDirection` enum)
+     * @param [out] outPlaneDs Plane dot constants. (Order same as the `eDirection` enum)
      */
     static void ComputeEntityBoundingBoxPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
@@ -176,8 +174,8 @@ public:
      * @brief Compute segment planes from entity bounds, using center-to-corner lines.
      * @param zPos Z coordinate used for corner generation.
      * @param entity Entity whose bounds are used.
-     * @param [out] outNormals Segment-plane normals.
-     * @param [out] outPlaneDs Plane dot constants.
+     * @param [out] outNormals Segment-plane normals. (Order same as the `eDirection` enum)
+     * @param [out] outPlaneDs Plane dot constants. (Order same as the `eDirection` enum)
      */
     static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
@@ -405,10 +403,10 @@ private:
     * @addr 0x5F1750
     * @brief Compute segment planes from explicit corners and center.
     * @note For calls outside this class use the wrapper function without "uncached" in the name
-    * @param corners Bounding corners in winding order.
+    * @param corners Bounding corners in winding order. (Order same as the `eDirection` enum)
     * @param center Bounding-box center.
-    * @param [out] outNormals Segment-plane normals.
-    * @param [out] outPlaneDs Plane dot constants.
+    * @param [out] outNormals Segment-plane normals. (Order same as the `eDirection` enum)
+    * @param [out] outPlaneDs Plane dot constants. (Order same as the `eDirection` enum)
     */
     static void ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
@@ -417,7 +415,7 @@ private:
     * @brief Compute the center of a 4-corner bounding polygon at a specified Z.
     * @note For calls outside this class use the wrapper function without "uncached" in the name
     * @param zPos Z coordinate to apply to the computed center.
-    * @param corners Bounding corners in winding order.
+    * @param corners Bounding corners in winding order. (Order same as the `eDirection` enum)
     * @param [out] center Computed center point.
     */
     static void ComputeEntityBoundingBoxCentreUncached(float zPos, const std::array<CVector, 4>& corners, CVector& center);
@@ -438,7 +436,7 @@ private:
     * @note For calls outside this class use the wrapper function without "uncached" in the name
     * @param zPos Z coordinate applied to all corners.
     * @param entity Entity whose bounds are used.
-    * @param [out] corners Computed bounding-box corners.
+    * @param [out] corners Computed bounding-box corners. (Order same as the `eDirection` enum)
     * @return Whenever corners can be computed.
     */
     static bool ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners);
@@ -448,9 +446,9 @@ private:
     * @brief Compute outward planes for provided bounding corners.
     * @note For calls outside this class use the wrapper function without "uncached" in the name
     * @param zPos Unused in this implementation.
-    * @param corners Bounding corners in winding order.
-    * @param [out] outPlaneNormals Plane normals.
-    * @param [out] outPlaneDs Plane dot constants.
+    * @param corners Bounding corners in winding order. (Order same as the `eDirection` enum)
+    * @param [out] outPlaneNormals Plane normals. (Order same as the `eDirection` enum)
+    * @param [out] outPlaneDs Plane dot constants. (Order same as the `eDirection` enum)
     */
     static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const std::array<CVector, 4>& corners, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
@@ -460,8 +458,8 @@ private:
     * @note For calls outside this class use the wrapper function without "uncached" in the name
     * @param zPos Z coordinate used for corner generation.
     * @param entity Entity whose bounds are used.
-    * @param [out] outPlaneNormals Plane normals.
-    * @param [out] outPlaneDs Plane dot constants.
+    * @param [out] outPlaneNormals Plane normals. (Order same as the `eDirection` enum)
+    * @param [out] outPlaneDs Plane dot constants. (Order same as the `eDirection` enum)
     */
     static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outPlaneNormals, std::array<float, 4>& outPlaneDs);
 
@@ -472,7 +470,7 @@ private:
     * @param zPos Z coordinate used for corner generation.
     * @param entity Entity whose bounds are used.
     * @param [out] outNormals Segment-plane normals.
-    * @param [out] outPlaneDs Plane dot constants.
+    * @param [out] outPlaneDs Plane dot constants. (Order same as the `eDirection` enum)
     */
     static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
