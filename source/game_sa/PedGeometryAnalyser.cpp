@@ -51,7 +51,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890);
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&));
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&));
-    RH_ScopedInstall(GetNearestPed, 0x5F3590, { .reversed = false });
+    RH_ScopedInstall(GetNearestPed, 0x5F3590);
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .reversed = false });
     RH_ScopedInstall(IsInAir, 0x5F1CB0, { .reversed = false });
     RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .reversed = false });
@@ -1123,13 +1123,29 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
 }
 
 // 0x5F2F00
-bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CVector& a1, const CVector& a2, CEntity& a3) {
-    return plugin::CallAndReturn<bool, 0x5F2F00, const CVector&, const CVector&, CEntity&>(a1, a2, a3);
+bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CVector& start, const CVector& target, CEntity& entity) {
+    auto* const cm = entity.GetColModel(); // BUGFIX: Check for null
+    return cm && CCollision::TestLineOfSight(
+        CColLine{ start, target },
+        entity.GetMatrix(),
+        *cm,
+        false,
+        false
+    );
 }
 
 // 0x5F3590
 CPed* CPedGeometryAnalyser::GetNearestPed(const CVector& point) {
-    return plugin::CallAndReturn<CPed*, 0x5F3590, const CVector&>(point);
+    float minDistSq{ FLT_MAX };
+    CPed* nearest{};
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        const auto distSq = (ped.GetPosition() - point).SquaredMagnitude();
+        if (distSq < minDistSq) {
+            minDistSq = distSq;
+            nearest   = &ped;
+        }
+    }
+    return nearest;
 }
 
 // 0x5F3970
