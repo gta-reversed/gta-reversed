@@ -185,7 +185,17 @@ public:
         BLOCKED_SHARP_DROP,
         CLEAR,
     };
-    static WanderPathClearness IsWanderPathClear(const CVector& from, const CVector& to, float maxHeightChange, int32 maxSamples);
+
+    /*!
+     * @addr 0x5F2F70
+     * @brief Walk along the path and check for water and sharp drops
+     * @param start Starting position of the path
+     * @param target Target position of the path
+     * @param maxHeightChange Maximum allowed height change between samples
+     * @param maxSamples Maximum number of samples to check along the path (This right now translates to raw distance) (0, 1 - does very basic checks, 2 or more - does more thorough checks, like drops and water)
+     * @return The clearness status of the path, see @ref WanderPathClearness for more details
+     */
+    static auto IsWanderPathClear(const CVector& start, const CVector& target, float maxHeightChange, int32 maxSamples) -> WanderPathClearness;
 
     static bool LiesInsideBoundingBox(const CPed& ped, const CVector& posn, CEntity& entity);
 
