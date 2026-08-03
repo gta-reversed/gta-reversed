@@ -95,12 +95,12 @@ bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& en
         if (!CanPedJumpObstacleLoSCheck(jumpFrom, dir, entity)) { // 0x5F34EA
             return false;
         }
-        bool onGround = false;
-        const auto groundZ = CWorld::FindGroundZFor3DCoord(jumpFrom + dir * 3.f, &onGround, nullptr);
+        bool       onGround = false;
+        const auto groundZ  = CWorld::FindGroundZFor3DCoord(jumpFrom + dir * 3.f, &onGround, nullptr);
         return onGround && (jumpFrom.z - groundZ) < 3.0f; // 0x5F3555
     };
 
-    if (contactNormal.z <= 0.17f) { // 0x5F34A0
+    if (contactNormal.z <= 0.17f) {                // 0x5F34A0
         if (!CPedGroups::IsInPlayersGroup(&ped)) { // 0x5F3494
             return CheckCanJumpFrom(
                 ped.GetPosition() + CVector{ 0.f, 0.f, 0.15f },
@@ -130,7 +130,7 @@ bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& en
     return CheckCanJumpFrom( // 0x5F33BC
         from,
         -CVector{ contactNormal, 0.f } * (              // Yes I simplified this quite a bit, but the effect is the same
-                (1.f / normMag)                         // 0x5F33CA - Normalize vector
+            (1.f / normMag)                             // 0x5F33CA - Normalize vector
             * (normMag + pedCM->GetBoundRadius() + 1.f) // 0x5F33F3, 0x5F3401, 0x5F340E (+1.f for addition)
             * std::min(2.f / normMag, 4.f)              // 0x5F3419
         )
@@ -171,7 +171,7 @@ bool CPedGeometryAnalyser::CanPedTargetPoint(const CPed& ped, const CVector& tar
 // 0x5F1E30
 // unused
 int32 CPedGeometryAnalyser::ComputeBuildingHitPoints(const CVector& start, const CVector& target) {
-    CEntity *e;
+    CEntity*  e;
     CColPoint cp;
     CWorld::ProcessLineOfSight(start, target, cp, e, true, false, false, false, true, false, false, false);
     return CWorld::ms_iProcessLineNumCrossings;
@@ -185,7 +185,7 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
     outTargetClear = target;
 
     // Check if any entities are in the way and adjust the target point accordingly
-    const auto ProcessLineOfSightForEntity = [&](CEntity& e){
+    const auto ProcessLineOfSightForEntity = [&](CEntity& e) {
         if (CVector::DistSqr(e.GetPosition(), outTargetClear) >= MAX_DIST_SQ) {
             return;
         }
@@ -199,7 +199,7 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
         outTargetClear -= (outTargetClear - ped.GetPosition()).Normalized() * (ms_fPedNominalRadius + depth);
     };
     rng::for_each(ped.GetIntelligence()->GetVehicleScanner().GetEntities<CVehicle>(), ProcessLineOfSightForEntity); // 0x5F5DD0
-    rng::for_each(ped.GetIntelligence()->GetPedScanner().GetEntities<CPed>(), ProcessLineOfSightForEntity); // 0x5F5EE0
+    rng::for_each(ped.GetIntelligence()->GetPedScanner().GetEntities<CPed>(), ProcessLineOfSightForEntity);         // 0x5F5EE0
 
     // Step away from the target point until we are clear of any entities
     // But never change the direction relative to the ped
@@ -224,7 +224,7 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
 // 0x5F3B70
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
-    const auto& pos = ped.GetPosition();
+    const auto&            pos = ped.GetPosition();
     ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
     return ComputeClosestSurfacePoint(pos, corners, outPoint);
 }
@@ -247,8 +247,8 @@ bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& pos, const 
 
     float closestPtDist3DSq = FLT_MAX;
     for (uint32 i = 0; i < corners.size(); i++) {
-        const auto& curr = corners[i];
-        const auto& next = corners[(i + 1) % corners.size()];
+        const auto& curr    = corners[i];
+        const auto& next    = corners[(i + 1) % corners.size()];
         const auto  closest = CCollision::GetClosestPtOnLine(curr, next, pos);
         const auto  distSq  = (closest - pos).SquaredMagnitude();
         if (distSq < closestPtDist3DSq) {
@@ -281,7 +281,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCentreUncached(float zPos, co
     center.y += corners[3].y;
 
     center.x *= 0.25f;
-    center.y *= 0.25f; 
+    center.y *= 0.25f;
 }
 
 // 0x5F3B40
@@ -307,7 +307,7 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
         }
     }
 
-    CVector min{ FLT_MAX }, max{ FLT_MIN };
+    CVector           min{ FLT_MAX }, max{ FLT_MIN };
     const auto&       matrix   = entity.GetMatrix();
     const auto* const entityCM = entity.GetColModel();
     if (!entityCM) {
@@ -318,13 +318,11 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
         return false; // BUGFIX
     }
     if (entity.GetIsTypeObject() && entityCM && entityCM->GetBoundingBox().GetHeight() > 6.f && (entityCD->GetBoxes().size() || entityCD->GetSpheres().size())) {
-        const auto ProcessBoxForBB = [
-            &matrix,
-            &min,
-            &max,
-            minAllowedZ = zPos - 1.f,
-            maxAllowedZ = zPos + 1.f
-        ](const CBox& box) {
+        const auto ProcessBoxForBB = [&matrix,
+                                      &min,
+                                      &max,
+                                      minAllowedZ = zPos - 1.f,
+                                      maxAllowedZ = zPos + 1.f](const CBox& box) {
             const auto bmin = box.m_vecMin,
                        bmax = box.m_vecMax;
 
@@ -340,7 +338,7 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
 
                 //
                 // This is the original code, it makes no sense, so I've simplified
-                // 
+                //
                 //if (bminZ < minAllowedZ && bmaxZ < minAllowedZ) { // NB: What's the point of testing min.z too, if max.z is supposed to be higher?
                 //    continue;
                 //}
@@ -379,15 +377,13 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
     min -= CVector{ ms_fPedNominalRadius }; // 0x5F23D7
     max += CVector{ ms_fPedNominalRadius }; // 0x5F23FB
 
-    const auto halfExtent   = (max - min) * 0.5f; // 0x5F246C
+    const auto halfExtent = (max - min) * 0.5f; // 0x5F246C
 
     // Code below is combined code of all the `if` branches found below
     // And after 0x5F28F8
-    const auto CalculateBB  = [&](
-        CVector   principal, float extP,
-        CVector2D axisA,     float extA,
-        CVector2D axisB,     float extB
-    ) {
+    const auto CalculateBB = [&](
+                                 CVector principal, float extP, CVector2D axisA, float extA, CVector2D axisB, float extB
+                             ) {
         //
         // We're using the Separating Axis Theorem (SAT) to calculate the bounding box corners
         // It works by projecting the two axes of the bounding box onto a new 2D grid,
@@ -395,17 +391,17 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
         // This approach differs a bit from the original code, as they've instead used the bb's two axes as the new grid,
         // but the result is the same.
         // I've spent a whole day on figuring this shit out, and I'm mad. Good night. (P)
-        // 
+        //
         // ▲ Perpendicular Vector (V)
-        // │                      * 
+        // │                      *
         // │                     / \
-        // │               av   /   \    bv 
+        // │               av   /   \    bv
         // │                   /     \  
         // │                  /       \
-        // │                 *         * 
-        // │                  \       /  
+        // │                 *         *
+        // │                  \       /
         // │               au  \     /   bu
-        // │                    \   /    
+        // │                    \   /
         // │                     \ /
         // └──────────────────────*──────────────────────► Principal Axis (U)
         //
@@ -427,24 +423,24 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
         const auto extentV = std::abs(av) + std::abs(bv);
 
         // Center of the bounding box in world-space
-        const CVector2D center  = matrix.TransformPoint((min + max) * 0.5f);
+        const CVector2D center = matrix.TransformPoint((min + max) * 0.5f);
 
         // Calculate the offsets along the U and V axes
         const CVector2D offsetU = u * extentU,
                         offsetV = v * extentV;
 
         // Calculate the two extreme points along the principal axis
-        const CVector2D ptA     = center + (principal * extP),
-                        ptB     = center - (principal * extP);
+        const CVector2D ptA = center + (principal * extP),
+                        ptB = center - (principal * extP);
 
         // Calculate the four corners of the bounding box in world-space
-        corners[0]              = CVector{ ptA + offsetU - offsetV, zPos }; // Top Left
-        corners[1]              = CVector{ ptB - offsetU - offsetV, zPos }; // Bottom Left
-        corners[2]              = CVector{ ptB - offsetU + offsetV, zPos }; // Bottom Right
-        corners[3]              = CVector{ ptA + offsetU + offsetV, zPos }; // Top Right
+        corners[0] = CVector{ ptA + offsetU - offsetV, zPos }; // Top Left
+        corners[1] = CVector{ ptB - offsetU - offsetV, zPos }; // Bottom Left
+        corners[2] = CVector{ ptB - offsetU + offsetV, zPos }; // Bottom Right
+        corners[3] = CVector{ ptA + offsetU + offsetV, zPos }; // Top Right
     };
 
-    // 0x5F24E5 - Weights used to select the dominant axis for the bounding box calculation 
+    // 0x5F24E5 - Weights used to select the dominant axis for the bounding box calculation
     const auto weightX = 2.f * halfExtent.x * CVector2D{ matrix.GetRight() }.SquaredMagnitude(),
                weightY = 2.f * halfExtent.y * CVector2D{ matrix.GetForward() }.SquaredMagnitude(),
                weightZ = 2.f * halfExtent.z * CVector2D{ matrix.GetUp() }.SquaredMagnitude();
@@ -452,21 +448,15 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
     // Based on the weights, select the axis we want to work on
     if (weightY > weightX && weightY > weightZ) { // 0x5F2523 (Inverted) - Dominant Y Axis
         CalculateBB(
-            matrix.GetForward(), halfExtent.y,
-            matrix.GetRight(), halfExtent.x,
-            matrix.GetUp(), halfExtent.z
+            matrix.GetForward(), halfExtent.y, matrix.GetRight(), halfExtent.x, matrix.GetUp(), halfExtent.z
         );
     } else if (weightX <= weightZ) { // 0x5F268A - Dominant Z Axis
         CalculateBB(
-            matrix.GetUp(), halfExtent.z,
-            matrix.GetRight(), halfExtent.x,
-            matrix.GetForward(), halfExtent.y
+            matrix.GetUp(), halfExtent.z, matrix.GetRight(), halfExtent.x, matrix.GetForward(), halfExtent.y
         );
     } else { // 0x5F26A8 - Dominant X Axis
         CalculateBB(
-            matrix.GetRight(), halfExtent.x,
-            matrix.GetForward(), halfExtent.y,
-            matrix.GetUp(), halfExtent.z
+            matrix.GetRight(), halfExtent.x, matrix.GetForward(), halfExtent.y, matrix.GetUp(), halfExtent.z
         );
     }
 
@@ -517,9 +507,9 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEn
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const std::array<CVector, 4>& corners, CVector& center, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs) {
     const auto center2D = CVector2D{ center };
     for (size_t i = 0; i < corners.size(); i++) {
-        const auto corner2D = CVector2D{ corners[i] };
-        const auto normal2D = (corner2D - center2D).GetPerpLeft();
-        outSegPlaneNormals[i]       = CVector{ normal2D, 0.f };
+        const auto corner2D   = CVector2D{ corners[i] };
+        const auto normal2D   = (corner2D - center2D).GetPerpLeft();
+        outSegPlaneNormals[i] = CVector{ normal2D, 0.f };
 
         // point-normal plane equation:
         // ax + by + d = 0
@@ -531,7 +521,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncached(const s
 // 0x5F2BC0
 void CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs) {
     std::array<CVector, 4> corners{};
-    CVector center;
+    CVector                center;
     ComputeEntityBoundingBoxCornersUncached(zPos, entity, corners);
     ComputeEntityBoundingBoxCentreUncached(zPos, corners, center);
     ComputeEntityBoundingBoxSegmentPlanesUncached(corners, center, outSegPlaneNormals, outPlaneDs);
@@ -564,7 +554,7 @@ CVector CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEnti
     std::array<CVector, 4> planeNormals{};
     std::array<float, 4>   planeDs{};
     ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, planeNormals, planeDs);
-    const auto GetDotProductOnPlane = [&] (int32 i) {
+    const auto GetDotProductOnPlane = [&](int32 i) {
         return planeNormals[i].Dot(ped.GetPosition()) + planeDs[i];
     };
 
@@ -614,7 +604,7 @@ eDirection CPedGeometryAnalyser::ComputeEntityHitSide(const CVector& point, cons
     const auto N = segmentPlaneNormals.size();
 
     for (size_t curr = 0; curr < N; curr++) {
-        const auto prev = (curr + N - 1) % N;
+        const auto prev                 = (curr + N - 1) % N;
 
         const auto GetDotProductOnPlane = [&](int32 i) {
             return segmentPlaneNormals[i].Dot(point) + segmentPlaneDots[i];
@@ -680,7 +670,7 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
 
     const auto prevPedNominalRadius = std::exchange(ms_fPedNominalRadius, 0.175f);
     const auto zPos                 = ped.GetPosition().z;
-     
+
     std::array<CVector, 4> bbCorners;
     ComputeEntityBoundingBoxCorners(zPos, entity, bbCorners);
 
@@ -873,8 +863,8 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
         r.Add(to);
         return r;
     };
-    const auto routeL     = BuildRoute(fromPlane - 1, toPlane - 1, -1),
-               routeR     = BuildRoute(fromPlane, toPlane, 1);
+    const auto routeL = BuildRoute(fromPlane - 1, toPlane - 1, -1),
+               routeR = BuildRoute(fromPlane, toPlane, 1);
 
     // Pre-process route before returning
     const auto PreProcess = [&](int32 ret, const CPointRoute& result) { // Code from 0x5F5828
@@ -1017,7 +1007,7 @@ bool CPedGeometryAnalyser::ComputeRouteRoundSphere(const CPed& ped, const CColSp
         }
     }
 
-    float distPedToStart;
+    float      distPedToStart;
     const auto moveDir = (outNewTarget - ped.GetPosition()).Normalized(&distPedToStart);
 
     // If we now don't intersect the sphere, we can go straight to the target without having to go around it
@@ -1061,14 +1051,14 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
         CColSphere sp;
         ComputeEntityBoundingSphere(ped, entity, sp);
         if (CVector a, b; !sp.IntersectRay(ped.GetPosition(), moveDir, a, b)) {
-        return true;
+            return true;
         }
     }
 
     outIntersectionLength = 0.f;
 
     std::array<CVector, 4> bbPlaneNormals{};
-    std::array<float, 4> bbPlaneDs{};
+    std::array<float, 4>   bbPlaneDs{};
     ComputeEntityBoundingBoxPlanes(ped.GetPosition().z, entity, bbPlaneNormals, bbPlaneDs);
 
     // Calculate intersection points of the line with the planes of the entity's bounding box
@@ -1093,8 +1083,8 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
             return plane.Dot(pos) + planeDot;
         };
 
-        const auto startDistToPlane = GetPointDistanceToPlane(onPlaneStart),
-                   targetDistToPlane   = GetPointDistanceToPlane(onPlaneTarget);
+        const auto startDistToPlane  = GetPointDistanceToPlane(onPlaneStart),
+                   targetDistToPlane = GetPointDistanceToPlane(onPlaneTarget);
 
         // I'll be using this, instead of whatever the fuck they did, because that's just ugly
         const auto IsAbove = [](float sdist) {
@@ -1108,7 +1098,7 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
         if (IsAbove(startDistToPlane) && IsAbove(targetDistToPlane)) {
             return true;
         }
-        
+
         // Check if we cross the plane, and if so, move the point that is below the plane to be on the plane
         if (IsBelow(startDistToPlane) && IsAbove(targetDistToPlane)) { // start is below
             if (const auto pt = GetMoveLinePointOnPlane(startDistToPlane)) {
@@ -1127,13 +1117,7 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
 // 0x5F2F00
 bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CVector& start, const CVector& target, CEntity& entity) {
     auto* const cm = entity.GetColModel(); // BUGFIX: Check for null
-    return cm && CCollision::TestLineOfSight(
-        CColLine{ start, target },
-        entity.GetMatrix(),
-        *cm,
-        false,
-        false
-    );
+    return cm && CCollision::TestLineOfSight(CColLine{ start, target }, entity.GetMatrix(), *cm, false, false);
 }
 
 // 0x5F3590
@@ -1153,7 +1137,7 @@ CPed* CPedGeometryAnalyser::GetNearestPed(const CVector& point) {
 // 0x5F3970
 bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity& entity, const CVector& point, float radius) {
     std::array<CVector, 4> bbPlaneNormals{};
-    std::array<float, 4> bbPlaneDs{};
+    std::array<float, 4>   bbPlaneDs{};
     ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlaneNormals, bbPlaneDs);
 
     const auto dir = point - entity.GetPosition();
@@ -1161,7 +1145,7 @@ bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity& entity, const CVector
         return false;
     }
     if (notsa::bugfixes::CPedGeometryAnalyser_IsEntityBlockingTarget_IncorrectRadiusCheck) {
-        if (sq(entity.GetBoundRadius() + radius) < CVector2D{ dir }.SquaredMagnitude()) { 
+        if (sq(entity.GetBoundRadius() + radius) < CVector2D{ dir }.SquaredMagnitude()) {
             return false;
         }
     } else {
@@ -1310,7 +1294,7 @@ bool CPedGeometryAnalyser::LiesInsideBoundingBox(const CPed& ped, const CVector&
     }
 
     std::array<CVector, 4> bbPlaneNormals{};
-    std::array<float, 4> bbPlaneDs{};
+    std::array<float, 4>   bbPlaneDs{};
     ComputeEntityBoundingBoxPlanes(entity.GetPosition().z, entity, bbPlaneNormals, bbPlaneDs);
 
     for (size_t i = 0; i < bbPlaneNormals.size(); i++) {
