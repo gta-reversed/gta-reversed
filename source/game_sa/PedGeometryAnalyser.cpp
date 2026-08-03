@@ -50,7 +50,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890);
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "ped", 0x5F5A30, bool(*)(const CPed&,const CVector&,CEntity&,float&));
-    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&), { .reversed = false });
+    RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&));
     RH_ScopedInstall(GetNearestPed, 0x5F3590, { .reversed = false });
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970, { .reversed = false });
     RH_ScopedInstall(IsInAir, 0x5F1CB0, { .reversed = false });
