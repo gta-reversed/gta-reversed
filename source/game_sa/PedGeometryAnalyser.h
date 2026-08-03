@@ -156,7 +156,17 @@ public:
      * @return True if the line of sight is clear, false otherwise
      */
     static bool GetIsLineOfSightClear(const CPed& ped, const CVector& target, CEntity& entity, float& outIntersectionLength);
-    static bool GetIsLineOfSightClear(const CVector& a1, const CVector& a2, CEntity& a3);
+
+    /*!
+     * @addr 0x5F2F00
+     * @brief Check if line of sight is blocked by `entity` between `start` and `target`.
+     * @note Does a pretty accurate collision mesh check
+     * @param start LoS start position
+     * @param target LoS target position
+     * @param entity Entity we want to check if it blocks the line of sight
+     * @return True if the line of sight is clear, false otherwise
+     */
+    static bool GetIsLineOfSightClear(const CVector& start, const CVector& target, CEntity& entity);
     static CPed* GetNearestPed(const CVector& point);
 
     static bool   IsEntityBlockingTarget(CEntity* entity, const CVector& point, float distance);
