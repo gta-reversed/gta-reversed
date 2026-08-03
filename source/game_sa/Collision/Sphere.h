@@ -29,7 +29,7 @@ public:
     *
     * @param transform Transformation matrix to be used
     * @param color     Color of the lines used
-    * @param res       Resolution of the wireframe - The higher, the  more lines will be drawn, but the smoother the sphere will look (min 4, max is about 32)
+    * @param res       Resolution of the wireframe - The higher, the  more lines will be drawn, but the smoother the sphere will look (increases the number of verticies exponentially) [min 3, max around 32, due to the render buffer being about 4096 indices]
     */
     void DrawWireFrame(CRGBA color, const CMatrix& transform, size_t resolution = 16) const;
 

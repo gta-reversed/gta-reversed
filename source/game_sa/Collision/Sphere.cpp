@@ -16,6 +16,8 @@ bool CSphere::IsPointWithin(const CVector& p) const {
 
 // NOTSA
 void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform, size_t resolution) const {
+    assert(resolution > 3 && "Resolution must be greater than 3 to draw a sphere wireframe!");
+
     RenderBuffer::ClearRenderBuffer();
 
     // Generate vertices
