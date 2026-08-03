@@ -176,30 +176,25 @@ void UIRenderer::DebugCode() {
 
 
     static bool hasDetour;
-    static CVector from, to, newTo, detour;
-    static CColSphere sphere;
+    static CVector start, target;
+    static CEntity* entity;
 
-    constexpr auto RED     = 0xFF0000FF; // red
-    constexpr auto WHITE   = 0xFFFFFFFF; // white
-    constexpr auto MAGENTA = 0xFF00FFFF; // magenta
-    constexpr auto BLUE    = 0x0000FFFF; // blue
-
-    sphere.DrawWireFrame(WHITE, CMatrix::Unity(), 32);
-
-    CLines::RenderLineNoClipping(from, newTo, RED, RED);
-    CSphere{ from, 0.25f}.DrawWireFrame(RED, CMatrix::Unity(), 16);
-    if (hasDetour) {
-        CLines::RenderLineNoClipping(newTo, detour, MAGENTA, MAGENTA);
-        CSphere{ detour, 0.25f }.DrawWireFrame(MAGENTA, CMatrix::Unity(), 16);
+    if (entity) {
+        float length;
+        const auto result = CPedGeometryAnalyser::GetIsLineOfSightClear(
+            *player,
+            target,
+            *entity,
+            length
+        );
+        NOTSA_LOG_INFO("LOS is {}, length {}", result, length);
     }
-    CLines::RenderLineNoClipping(hasDetour ? detour : newTo, to, BLUE, BLUE);
-    CSphere{ newTo, 0.25f }.DrawWireFrame(WHITE, CMatrix::Unity(), 16);
-    CSphere{ to, 0.25f }.DrawWireFrame(BLUE, CMatrix::Unity(), 16);
 
     if (pad->IsStandardKeyJustPressed('P')) {
-        from      = player->GetPosition() + player->GetForward();
-        to        = from + player->GetForward() * 15.f;
-        sphere    = CColSphere{ player->GetPosition() + player->GetForward() * 5.f + player->GetUp() * 0.25f, 2.f};
+        start      = player->GetPosition() + player->GetForward();
+        target        = start + player->GetForward() * 15.f;
+        //sphere    = CColSphere{ player->GetPosition() + player->GetForward() * 5.f + player->GetUp() * 0.25f, 2.f};
+        
         
         NOTSA_LOG_WARN("result is {}", hasDetour);
 
@@ -220,23 +215,13 @@ void UIRenderer::DebugCode() {
             false
         );
         if (e) {
-            
+            entity = e;
             
         } else {
             NOTSA_LOG_WARN("No entity");
         }
     }
 
-    if (player) {
-        hasDetour = CPedGeometryAnalyser::ComputeRouteRoundSphere(
-            *player,
-            sphere,
-            from,
-            to,
-            newTo,
-            detour
-        );
-    }
 
     if (pad->IsStandardKeyJustPressed('8')) {
         player->GetTaskManager().SetTask(
