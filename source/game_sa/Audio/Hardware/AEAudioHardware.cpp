@@ -104,9 +104,9 @@ bool CAEAudioHardware::Initialise() {
     m_dsCaps.dwSize = sizeof(DSCAPS);
     m_pDSDevice->GetCaps(&m_dsCaps);
 
-    if (FAILED(m_pDSDevice->SetCooperativeLevel(PSGLOBAL(window), DSSCL_PRIORITY))
-        || !InitDirectSoundListener(2, 48'000, 16))
+    if (FAILED(m_pDSDevice->SetCooperativeLevel(PSGLOBAL(window), DSSCL_PRIORITY)) || !InitDirectSoundListener(2, 48'000, 16)) {
         return false;
+    }
 
     m_pDSDevice->GetSpeakerConfig((LPDWORD)&m_nSpeakerConfig);
 

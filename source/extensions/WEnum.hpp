@@ -13,8 +13,6 @@ namespace notsa {
 template<typename Enum, typename StoreAs>
     requires(std::is_integral_v<StoreAs>)
 struct WEnum {
-    StoreAs m_Value;
-
     //! Implicitly convert from the enum value
     constexpr WEnum(Enum e = {}) noexcept : m_Value{static_cast<StoreAs>(e)} { }
 
@@ -37,6 +35,12 @@ struct WEnum {
 
     //! Get underlaying value as a reference
     constexpr StoreAs& get_underlying_ref() noexcept { return m_Value; }
+
+    //! Convert to underlaying type
+    friend constexpr auto operator+(WEnum e) { return e.get_underlying(); }
+
+private:
+    StoreAs m_Value;
 };
 
 // std::format support for `WEnum`
