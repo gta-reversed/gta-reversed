@@ -6,16 +6,14 @@
 #include <Tasks/TaskTypes/TaskSimpleClimb.h>
 #include <Tasks/TaskTypes/TaskComplexJump.h>
 
-/* Clarifications *
- *
+/**
+ * 
+ * [Notes]
+ * 
+ * Arrays with normals/distances (ds)/corner positions used in the code can be indexed with the `eDirection` enum
  * Normals used in this code all point outwards
- * The winding order is counter-clockwise:
- * - Top Left
- * - Bottom Left
- * - Bottom Right
- * - Top Right
- */
-
+ * The winding order is counter-clockwise, same as the `eDirection` enum
+ **/
 
 void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedClass(CPedGeometryAnalyser);
