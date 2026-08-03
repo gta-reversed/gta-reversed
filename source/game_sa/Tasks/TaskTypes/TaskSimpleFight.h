@@ -157,8 +157,8 @@ public:
     bool FindTargetOnGround(CPed* ped);
 
     bool          ControlFight(CEntity* entity, eMeleeCommandS8 command);
-    void          FightHitObj(CPed* attacker, CObject* victim, CVector& hitPt, CVector& hitDelta, int16 hitPieceType, uint8 hitSurfaceType);
-    void          FightHitCar(CPed* attacker, CVehicle* victim, CVector& hitPt, CVector& hitDelta, int16 hitPieceType, uint8 hitSurfaceType);
+    void          FightHitObj(CPed* attacker, CObject* victim, CVector& hitPt, CVector& hitDelta, int16 hitPieceType, eSurfaceType hitSurfaceType);
+    void          FightHitCar(CPed* attacker, CVehicle* victim, CVector& hitPt, CVector& hitDelta, int16 hitPieceType, eSurfaceType hitSurfaceType);
     CPed*         FightHitPed(CPed* attacker, CPed* victim, CVector& hitPt, CVector& hitDelta, int16 hitPieceType);
     eMeleeCommand FightStrike(CPed* ped, CVector& posn);
     void          FightSetUpCol(float radius);

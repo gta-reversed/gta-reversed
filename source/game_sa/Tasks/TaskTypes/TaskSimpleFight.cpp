@@ -3,6 +3,7 @@
 #include "TaskSimpleGetUp.h"
 #include <Events/EventVehicleDamage.h>
 #include <Fx/Fx.h>
+#include <PedStats.h>
 
 constexpr static int32 AE_DOUBLE_HIT_DELAYS_MS[]{ 300, 400, 500 }; // 0x8D2E3C
 
@@ -93,7 +94,7 @@ bool CTaskSimpleFight::MakeAbortable(CPed* ped, eAbortPriority priority, const C
         }
 
         if (ped && ped->IsPlayer()) {
-            ped->m_pPlayerData->m_vecFightMovement = {0.f, 0.f};
+            ped->GetPlayerData()->m_vecFightMovement = {0.f, 0.f};
             SetPlayerMoveAnim(ped->AsPlayer());
         }
 
@@ -213,7 +214,7 @@ void CTaskSimpleFight::BlendOutIdleAnim(CPed* ped, float blendDelta) {
     m_IdleAnim->SetDefaultDeleteCallback();
     if (m_IdleAnim->GetBlendAmount() > 0.f && m_IdleAnim->GetBlendDelta() >= 0.f) {
         CAnimManager::BlendAnimation(
-            ped->m_pRwClump,
+            ped->GetRpClump(),
             ped->m_nAnimGroup,
             ANIM_ID_IDLE,
             blendDelta
@@ -546,14 +547,14 @@ bool CTaskSimpleFight::FindTargetOnGround(CPed * ped) {
 
 // 0x61C9B0
 void CTaskSimpleFight::SetPlayerMoveAnim(CPlayerPed* player) {
-    auto* const currMov = &player->m_pPlayerData->m_vecFightMovement;
+    auto* const currMov = &player->GetPlayerData()->m_vecFightMovement;
 
     // If not moving anymore, blend out all anims
     if (   m_NextCmd == eMeleeCommand::IDLE && m_ComboSet == eMeleeCombo::IDLE
         || currMov->SquaredMagnitude() <= sq(0.1f)
     ) {
         const auto BlendOutAnim = [&](AnimationId animId) {
-            if (auto* const a = RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_FIGHTSH_FWD)) {
+            if (auto* const a = RpAnimBlendClumpGetAssociation(player->GetRpClump(), ANIM_ID_FIGHTSH_FWD)) {
                 a->SetBlendDelta(-8.f);
             }
         };
@@ -570,12 +571,12 @@ void CTaskSimpleFight::SetPlayerMoveAnim(CPlayerPed* player) {
     }
 
     const auto UpdateFightAnims = [&](AnimationId toBlendOutAnimId, AnimationId toBlendInAnimId, float toBlendInBlendDelta) {
-        if (auto* const a = RpAnimBlendClumpGetAssociation(player->m_pRwClump, toBlendOutAnimId)) {
+        if (auto* const a = RpAnimBlendClumpGetAssociation(player->GetRpClump(), toBlendOutAnimId)) {
             a->SetBlendDelta(0.f);
         }
-        auto* toBlendIn = RpAnimBlendClumpGetAssociation(player->m_pRwClump, toBlendInAnimId);
+        auto* toBlendIn = RpAnimBlendClumpGetAssociation(player->GetRpClump(), toBlendInAnimId);
         if (!toBlendIn) {
-            toBlendIn = CAnimManager::AddAnimation(player->m_pRwClump, ANIM_GROUP_DEFAULT, toBlendInAnimId);
+            toBlendIn = CAnimManager::AddAnimation(player->GetRpClump(), ANIM_GROUP_DEFAULT, toBlendInAnimId);
         }
         toBlendIn->SetBlendDelta(toBlendInBlendDelta);
     };
@@ -614,16 +615,16 @@ bool CTaskSimpleFight::ControlFight(CEntity * newTarget,  eMeleeCommandS8 comman
 }
 
 // 0x61D400
-void CTaskSimpleFight::FightHitObj(CPed* attacker, CObject* victim, CVector& hitPt, CVector& hitDir, int16 hitPieceType, uint8 hitSurfaceType) {
+void CTaskSimpleFight::FightHitObj(CPed* attacker, CObject* victim, CVector& hitPt, CVector& hitDir, int16 hitPieceType, eSurfaceType hitSurfaceType) {
     if (   victim->m_nColDamageEffect < 200
         && !victim->physicalFlags.bDisableCollisionForce
         && victim->m_pObjectInfo->m_fColDamageMultiplier < 99.9f
     ) {
-        if (victim->IsStatic() && victim->m_pObjectInfo->m_fUprootLimit <= 0.f) {
+        if (victim->GetIsStatic() && victim->m_pObjectInfo->m_fUprootLimit <= 0.f) {
             victim->SetIsStatic(false);
             victim->AddToMovingList();
         }
-        if (!victim->IsStatic()) {
+        if (!victim->GetIsStatic()) {
             victim->ApplyForce(
                 hitDir * (victim->physicalFlags.bMakeMassTwiceAsBig ? -0.1f : -0.5f),
                 hitPt - victim->GetPosition(),
@@ -654,7 +655,7 @@ void CTaskSimpleFight::FightHitObj(CPed* attacker, CObject* victim, CVector& hit
 }
 
 // 0x61D0B0
-void CTaskSimpleFight::FightHitCar(CPed* attacker, CVehicle* victim, CVector& hitPt, CVector& hitDir, int16 hitPieceType, uint8 hitSurfaceType) {
+void CTaskSimpleFight::FightHitCar(CPed* attacker, CVehicle* victim, CVector& hitPt, CVector& hitDir, int16 hitPieceType, eSurfaceType hitSurfaceType) {
     const auto attackerWeaponType = attacker->GetActiveWeapon().GetType();
 
     const auto strikeDmg         = GetStrikeDamage(attacker);
@@ -727,7 +728,7 @@ CPed* CTaskSimpleFight::FightHitPed(CPed * attacker, CPed * victim, CVector & hi
     auto* const combo = &GetCurrentComboData();
 
     const auto AddAudioEventForMove = [&](int32 delay) {
-        attacker->GetAE().AddAudioEvent(combo->AltHitSound[+m_CurrentMove], -9.f, 1.f, victim, 0, 0, delay);
+        attacker->GetAE().AddAudioEvent(combo->AltHitSound[+m_CurrentMove], -9.f, 1.f, victim, eSurfaceType::SURFACE_DEFAULT, 0, delay);
     };
 
     // 0x61CC04
@@ -962,7 +963,7 @@ float CTaskSimpleFight::GetRange() const {
 float CTaskSimpleFight::GetStrikeDamage(CPed * attacker) {
     const auto baseDmg = (float)m_aComboData[MeleeCombo2MeleeDataIdx(m_ComboSet)].Damage[+m_CurrentMove];
     if (attacker->IsPlayer()) {
-        return attacker->m_pPlayerData->m_bAdrenaline
+        return attacker->GetPlayerData()->m_bAdrenaline
             ? 50.f
             : CStats::GetFatAndMuscleModifier(STAT_MOD_4) * baseDmg;
     }
@@ -972,6 +973,6 @@ float CTaskSimpleFight::GetStrikeDamage(CPed * attacker) {
     case WEAPON_UNARMED:
         return baseDmg;
     default:
-        return baseDmg * attacker->m_pStats->m_fAttackStrength;
+        return baseDmg * attacker->GetPedStats().m_fAttackStrength;
     }
 }

@@ -482,7 +482,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
         TheCamera.Using1stPersonWeaponMode()) {
         if (!pad->GetTarget() && !player->m_pAttachedTo || player->GetPlayerData()->m_nChosenWeapon != player->m_nActiveWeaponSlot || player->m_nMoveState == PEDMOVE_SPRINT ||
             !TheCamera.Using1stPersonWeaponMode()) {
-            if ((player->m_pTargetedObject || player->m_pPlayerData->m_bFreeAiming) && intelligence->GetTaskFighting()) {
+            if ((player->m_pTargetedObject || player->GetPlayerData()->m_bFreeAiming) && intelligence->GetTaskFighting()) {
                 intelligence->GetTaskFighting()->ControlFight(
                     nullptr,
                     playerData->m_vecFightMovement.y >= -0.5

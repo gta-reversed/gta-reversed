@@ -833,7 +833,7 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
             return;
         }
         m_Anim = CAnimManager::BlendAnimation( // 0x6251DC
-            ped->m_pRwClump,
+            ped->GetRpClump(),
             // TODO BUG
             CTaskSimpleFight::m_aComboData[+eMeleeCombo::CHAINSAW].AnimGroup, // No clue what the fuck the chainsaw has to do with the pistol
             //CTaskSimpleFight::GetComboData(eMeleeCombo::PISTOL_WHIP).AnimGroup,  // use this
