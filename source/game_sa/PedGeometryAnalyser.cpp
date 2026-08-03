@@ -224,22 +224,22 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
 }
 
 // 0x5F3B70
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& point) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
     const auto& posn = ped.GetPosition();
     ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
-    return ComputeClosestSurfacePoint(posn, corners, point);
+    return ComputeClosestSurfacePoint(posn, corners, outPoint);
 }
 
 // 0x5F36F0
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& point) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
     CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(posn.z, entity, corners);
-    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, point);
+    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(posn, corners, outPoint);
 }
 
 // 0x5F2C10
-bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& point) {
+bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const std::array<CVector, 4>& corners, CVector& outPoint) {
     //
     // NOTE:
     // The code below is adapted to use `CCollision::GetClosestPtOnLine` instead of duplicating it
@@ -255,7 +255,7 @@ bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& posn, const
         const auto  distSq  = (closest - posn).SquaredMagnitude();
         if (distSq < closestPtDist3DSq) {
             closestPtDist3DSq = distSq;
-            point             = closest;
+            outPoint          = closest;
         }
     }
     return closestPtDist3DSq != FLT_MAX; // This is same as the original code
