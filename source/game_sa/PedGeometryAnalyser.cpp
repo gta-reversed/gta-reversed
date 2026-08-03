@@ -3,6 +3,9 @@
 #include "PedGeometryAnalyser.h"
 #include <reversiblebugfixes/Bugs.hpp>
 
+#include <Tasks/TaskTypes/TaskSimpleClimb.h>
+#include <Tasks/TaskTypes/TaskComplexJump.h>
+
 /* Clarifications *
  *
  * Normals used in this code all point outwards
@@ -53,7 +56,7 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedOverloadedInstall(GetIsLineOfSightClear, "v3d", 0x5F2F00, bool(*)(const CVector&,const CVector&,CEntity&));
     RH_ScopedInstall(GetNearestPed, 0x5F3590);
     RH_ScopedInstall(IsEntityBlockingTarget, 0x5F3970);
-    RH_ScopedInstall(IsInAir, 0x5F1CB0, { .reversed = false });
+    RH_ScopedInstall(IsInAir, 0x5F1CB0);
     RH_ScopedInstall(IsWanderPathClear, 0x5F2F70, { .reversed = false });
     RH_ScopedInstall(LiesInsideBoundingBox, 0x5F3880, { .reversed = false });
 }
@@ -1179,7 +1182,49 @@ bool CPedGeometryAnalyser::IsEntityBlockingTarget(CEntity& entity, const CVector
 
 // 0x5F1CB0
 bool CPedGeometryAnalyser::IsInAir(const CPed& ped) {
-    return plugin::CallAndReturn<bool, 0x5F1CB0, const CPed&>(ped);
+    if (ped.bInVehicle) {
+        return false;
+    }
+    if (ped.GetTaskManager().GetActiveTask()) {
+        if (ped.GetIntelligence()->GetTaskSwim() || ped.GetIntelligence()->GetTaskJetPack()) {
+            return false;
+        }
+        if (ped.GetTaskManager().GetSimplestActiveTaskAs<CTaskSimpleClimb>()) {
+            return false;
+        }
+    }
+
+    CColPoint  cp;
+    CEntity*   e;
+    const auto isOnGround = CWorld::ProcessVerticalLine(
+        ped.GetPosition(),
+        ped.GetPosition().z - 1.5f,
+        cp,
+        e,
+        true,
+        true,
+        false,
+        true,
+        false,
+        false,
+        nullptr
+    );
+
+    if (!isOnGround && !ped.GetTaskManager().GetActiveTaskAs<CTaskComplexJump>()) {
+        return !!CWorld::TestSphereAgainstWorld(
+            ped.GetPosition(),
+            0.15f,
+            &ped,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+        );
+    }
+
+    return !isOnGround;
 }
 
 // 0x5F2F70
