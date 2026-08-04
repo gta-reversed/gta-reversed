@@ -3,6 +3,17 @@
 #include "PlayerRelationshipRecorder.h"
 #include "TaskCategories.h"
 
+void CPlayerRelationshipRecorder::InjectHooks() {
+    RH_ScopedClass(CPlayerRelationshipRecorder);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(Flush, 0x61A2A0);
+    RH_ScopedInstall(ClearRelationshipWithPlayer, 0x61A150);
+    RH_ScopedInstall(AddRelationship, 0x61A180);
+    RH_ScopedInstall(GetRelationshipWithPlayer, 0x61A1A0);
+    RH_ScopedInstall(RecordRelationshipWithPlayer, 0x61A1D0, { .reversed = false });
+}
+
 // 0x61A130
 CPlayerRelationshipRecorder::CPlayerRelationshipRecorder() {
     Flush();

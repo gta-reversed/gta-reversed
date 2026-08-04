@@ -8,6 +8,19 @@
 
 #include "PointLights.h"
 
+void CPointLights::InjectHooks() {
+    RH_ScopedClass(CPointLights);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(Init, 0x6FFB40, { .reversed = false });
+    RH_ScopedInstall(GenerateLightsAffectingObject, 0x6FFBB0, { .reversed = false });
+    RH_ScopedInstall(GetLightMultiplier, 0x6FFE70, { .reversed = false });
+    RH_ScopedInstall(RemoveLightsAffectingObject, 0x6FFFE0, { .reversed = false });
+    RH_ScopedInstall(ProcessVerticalLineUsingCache, 0x6FFFF0, { .reversed = false });
+    RH_ScopedInstall(AddLight, 0x7000E0, { .reversed = false });
+    RH_ScopedInstall(RenderFogEffect, 0x7002D0, { .reversed = false });
+}
+
 // 0x6FFB40
 void CPointLights::Init() {
     plugin::Call<0x6FFB40>();

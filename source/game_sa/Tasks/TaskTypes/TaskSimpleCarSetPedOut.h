@@ -33,5 +33,7 @@ public:
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return false; }
     bool ProcessPed(CPed* ped) override;
 
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskSimpleCarSetPedOut, 0x18);

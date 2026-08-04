@@ -8,6 +8,26 @@
 #include "TaskComplexCarDrive.h"
 // #include "TaskComplexTurnToFaceEntityOrCoord.h"
 
+void CTaskComplexProstituteSolicit::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexProstituteSolicit, 0x86fb88, 11);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x661A60);
+    RH_ScopedInstall(Destructor, 0x661AF0);
+
+    RH_ScopedGlobalInstall(IsTaskValid, 0x661BB0);
+    RH_ScopedGlobalInstall(GetRidOfPlayerProstitute, 0x661D30);
+
+    RH_ScopedInstall(CreateSubTask, 0x666360, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x6622F0);
+    RH_ScopedVMTInstall(GetTaskType, 0x661AE0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x661B80);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x666780, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6666A0, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6669D0, { .reversed = false });
+}
+
 // 0x661A60
 CTaskComplexProstituteSolicit::CTaskComplexProstituteSolicit(CPed* client) : CTaskComplex() {
     m_nLastSavedTime = 0;

@@ -36,5 +36,21 @@ public:
     CTask* Clone() const override { return new CTaskSimpleCarSetPedInAsPassenger{*this}; }  // 0x649D90
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return false; }
     bool ProcessPed(CPed* ped) override;
+
+public:
+    static void InjectHooks();
+
+private: // Wrappers for hooks
+    // 0x646FE0
+    CTaskSimpleCarSetPedInAsPassenger* Constructor(CVehicle * pTargetVehicle, int32 nTargetDoor, CTaskUtilityLineUpPedWithCar * pUtility) {
+        this->CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(pTargetVehicle, nTargetDoor, pUtility);
+        return this;
+    }
+
+    // 0x647080
+    CTaskSimpleCarSetPedInAsPassenger* Destructor() {
+        this->CTaskSimpleCarSetPedInAsPassenger::~CTaskSimpleCarSetPedInAsPassenger();
+        return this;
+    }
 };
 VALIDATE_SIZE(CTaskSimpleCarSetPedInAsPassenger, 0x20);
