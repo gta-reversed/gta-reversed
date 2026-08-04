@@ -16,4 +16,7 @@ public:
     eWanderType GetWanderType() override { return WANDER_TYPE_CRIMINAL; } // 0x48E6F0
     void LookForCarsToSteal(CPed* ped);     // 0x66B4F0
     void ScanForStuff(CPed* ped) override;  // 0x670350
+
+public:
+    static void InjectHooks();
 };

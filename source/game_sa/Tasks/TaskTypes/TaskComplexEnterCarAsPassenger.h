@@ -18,6 +18,21 @@ public:
 
     eTaskType GetTaskType() const override { return Type; }
     CTask* Clone() const override { return new CTaskComplexEnterCarAsPassenger{*this}; } // 0x6437F0
-};
 
+public:
+    static void InjectHooks();
+
+private: // Wrappers for hooks
+    // 0x640340
+    CTaskComplexEnterCarAsPassenger* Constructor(CVehicle* vehicle, int32 doorFrameId, bool bCarryOnAfterFallingOff) {
+        this->CTaskComplexEnterCarAsPassenger::CTaskComplexEnterCarAsPassenger(vehicle, doorFrameId, bCarryOnAfterFallingOff);
+        return this;
+    }
+
+    // 0x640380
+    CTaskComplexEnterCarAsPassenger* Destructor() {
+        this->CTaskComplexEnterCarAsPassenger::~CTaskComplexEnterCarAsPassenger();
+        return this;
+    }
+};
 VALIDATE_SIZE(CTaskComplexEnterCarAsPassenger, 0x50);

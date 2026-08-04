@@ -25,6 +25,9 @@ public:
 
     void UpdateChoke(CPed* victim, CPed* attacker, bool bIsTeargas);
 
+public:
+    static void InjectHooks();
+
 private: // Wrappers for hooks
     // 0x6202C0
     CTaskSimpleChoking* Constructor(CPed* attacker, uint8 isTeargas) {

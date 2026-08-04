@@ -19,6 +19,7 @@ public:
     CTask* ControlSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
 
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskComplexDragPedFromCar, 0x54);
-extern void CTaskComplexDragPedFromCar__InjectHooks();

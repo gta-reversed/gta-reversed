@@ -2,12 +2,17 @@
 
 #include "TaskComplexDragPedFromCar.h"
 
-void CTaskComplexDragPedFromCar__InjectHooks() {
-    RH_ScopedVirtualClass(CTaskComplexDragPedFromCar, 0x86EB6C, 11);
+void CTaskComplexDragPedFromCar::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexDragPedFromCar, 0x86eb6c, 12);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedVMTInstall(ControlSubTask, 0x640530);
+    RH_ScopedInstall(Constructor, 0x640430);
+    RH_ScopedInstall(Destructor, 0x6404D0);
+
+    RH_ScopedVMTInstall(Clone, 0x643950, { .reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x6404C0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x640530);
 }
 
 // 0x640430
@@ -23,8 +28,6 @@ CTaskComplexDragPedFromCar::~CTaskComplexDragPedFromCar() {
 }
 
 // 0x640530
-
-
 CTask* CTaskComplexDragPedFromCar::ControlSubTask(CPed* ped) {
     if (m_NumGettingInSet)
         return CTaskComplexEnterCar::ControlSubTask(ped);

@@ -13,5 +13,15 @@ public:
     CTask* Clone() const override { return new CTaskSimpleNone(); }
     bool MakeAbortable(class CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return true; }
     bool ProcessPed(CPed* ped) override { return true; }
+
+public:
+    static void InjectHooks();
+
+private: // Wrappers for hooks
+    // 0x4636E0
+    CTaskSimpleNone* Destructor() {
+        this->CTaskSimpleNone::~CTaskSimpleNone();
+        return this;
+    }
 };
 VALIDATE_SIZE(CTaskSimpleNone, 0x8);
