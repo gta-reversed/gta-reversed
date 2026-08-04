@@ -1,6 +1,7 @@
 #include "StdInc.h"
 #include <extensions/CommandLine.h>
 
+#include <reversiblehooks/HooksUtility.hpp>
 #include "Simple.h"
 
 namespace ReversibleHooks{
@@ -98,8 +99,7 @@ bool Simple::CheckLibFnForChangesAndStore(void* expected) {
 }
 
 void Simple::ApplyJumpToGTACode() {
-    using namespace ReversibleHooks::detail;
-    VirtualCopy((void*)m_iLibFunctionAddress, (void*)&m_LibHookContent, m_iLibHookedBytes);
+    Utility::VirtualCopy((void*)m_iLibFunctionAddress, (void*)&m_LibHookContent, m_iLibHookedBytes);
 }
 
 /*
@@ -163,11 +163,11 @@ void Simple::Switch()
     }
 #ifndef NOTSA_STANDALONE
     if (m_IsHooked) { // Unhook (make our code jump to the GTA function)
-        VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_OriginalFunctionContent, m_iHookedBytes);
+        Utility::VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_OriginalFunctionContent, m_iHookedBytes);
         ApplyJumpToGTACode();
     } else { // Hook (make the GTA function jump to ours)
-        VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_HookContent, m_iHookedBytes);
-        VirtualCopy((void*)m_iLibFunctionAddress, (void*)&m_LibOriginalFunctionContent, m_iLibHookedBytes);
+        Utility::VirtualCopy((void*)m_iRealHookedAddress, (void*)&m_HookContent, m_iHookedBytes);
+        Utility::VirtualCopy((void*)m_iLibFunctionAddress, (void*)&m_LibOriginalFunctionContent, m_iLibHookedBytes);
     }
 #endif
     m_IsHooked = !m_IsHooked;

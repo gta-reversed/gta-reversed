@@ -4,45 +4,37 @@
 
 #include <vector>
 #include <string>
-#include "Base.h"
-#include <reversiblehooks/ReversibleHook/Simple.h>
 
-namespace ReversibleHooks{
-namespace ReversibleHook{
+#include "Base.h"
+#include "Simple.h"
+#include "VMTRedirect.h"
+
+#include <reversiblehooks/VMTInfo.h>
+
+namespace ReversibleHooks {
+namespace ReversibleHook {
+/*!
+ * @brief Handles hooking of virtual functions, including both direct calls and calls that use the VMT.
+ */
 struct Virtual : public Base {
     Virtual(
         std::string name,
-        void** vtblGTA,
-        void** vtblOur,
-        size_t fnIdx,
-        bool reversed = true
+        void**      fnVMTEntryOur,
+        void**      fnVMTEntryGTA,
+        bool        reversed = true
     );
     ~Virtual() override = default;
 
     void        Switch() override;
-    void        Check() override { m_simpleHook.Check(); }
+    void        Check() override { m_DirectCallHook.Check(); m_VirtualDispatchHook.Check(); }
     const char* Symbol() const override { return "V"; }
 
-    auto GetHookGTAAddress() const { return m_pfns[GTA]; }
-    auto GetHookOurAddress() const { return m_pfns[OUR]; }
+    auto        GetHookGTAAddress() const { return m_DirectCallHook.GetHookGTAAddress(); }
+    auto        GetHookOurAddress() const { return m_DirectCallHook.GetHookOurAddress(); }
 
 private:
-    // Use these values for indexing below arrays
-    constexpr static auto GTA = 0u;
-    constexpr static auto OUR = 1u;
-
-    //! Original function pointers
-    void* m_pfns[2]{};
-
-    //! vtables
-    void** m_vtbls[2]{};
-
-    //! Function index in vtable
-    size_t m_fnIdx{};
-
-    //! This makes sure direct calls (so not thru the vtbl) are also hooked properly
-    Simple m_simpleHook;
+    Simple      m_DirectCallHook;     //!< For direct calls (Eg.: Explicit calls like `Class::VirtualFunction()`)
+    VMTRedirect m_VirtualDispatchHook; //!< For calls that use the VMT (Eg.: `object->VirtualFunction()`)
 };
-
-};
-};
+}; // namespace ReversibleHook
+}; // namespace ReversibleHooks

@@ -17,7 +17,8 @@ struct Base {
     enum class HookType { // Sadly can't use `Type` alone as it's some function..
         Simple,
         Virtual,
-        ScriptCommand
+        ScriptCommand,
+        VMTRedirect
     };
 
     Base(std::string fnName, HookType type, bool reversed = true) :

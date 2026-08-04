@@ -21,7 +21,8 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWander, 0x86FE84, 15);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x66F450);
+    RH_ScopedConstructorInstall(0x66F450, "", {}, eMoveState, uint8, bool, float);
+
     RH_ScopedVMTInstall(CreateNextSubTask, 0x674140, { .reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6740E0);
     RH_ScopedVMTInstall(ControlSubTask, 0x674C30);
@@ -36,7 +37,10 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedOverloadedInstall(ScanForBlockedNode, "1", 0x66F4C0, bool(CTaskComplexWander::*)(const CVector&, CEntity*));
     RH_ScopedInstall(GetWanderTaskByPedType, 0x673D00);
 }
-CTaskComplexWander* CTaskComplexWander::Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) { this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius); return this; }
+CTaskComplexWander* CTaskComplexWander::Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) {
+    this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius);
+    return this;
+}
 
 // 0x66F450
 CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) : CTaskComplex() {

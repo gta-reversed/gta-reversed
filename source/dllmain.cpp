@@ -14,6 +14,9 @@ static constexpr auto DEFAULT_INI_FILENAME = "gta-reversed.ini";
 
 #include "extensions/Configs/FastLoader.hpp"
 #include "extensions/Configs/Miscellaneous.hpp"
+#include "dllmain.h"
+
+HANDLE s_HandleOfDLL{};
 
 void LoadConfigurations() {
     // Firstly load the INI into the memory.
@@ -68,7 +71,9 @@ static void ApplyCommandLineHookSettings() {
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
-    case DLL_PROCESS_ATTACH: {
+        case DLL_PROCESS_ATTACH: {
+        s_HandleOfDLL = hModule;
+
         // Fail if RenderWare has already been started
         if (*(RwCamera**)0xC1703C) {
             MessageBox(NULL, "gta_reversed failed to load (RenderWare has already been started)", "Error", MB_ICONERROR | MB_OK);
@@ -97,4 +102,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
         break;
     }
     return TRUE;
+}
+
+HMODULE notsa::GetDLLHandle() {
+    return s_HandleOfDLL;
 }
