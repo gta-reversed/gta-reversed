@@ -79,12 +79,28 @@
     ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 // Install a hook on a virtual function. To use it, `RH_ScopedVirtualClass` must be used instead of `RH_ScopedClass`
+#define RH_ScopedNamedVMTInstall(fn, fnName, fnGTAAddr, ...) \
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+
+// Install a hook on a virtual function. To use it, `RH_ScopedVirtualClass` must be used instead of `RH_ScopedClass`
 #define RH_ScopedVMTInstall(fn, fnGTAAddr, ...) \
-    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    RH_ScopedNamedVMTInstall(fn, #fn, fnGTAAddr __VA_OPT__(,) __VA_ARGS__)
 
 //! Install a script hook
 #define RH_ScopedInstallScriptCommand(cmd) \
     ReversibleHooks::InstallScriptCommand(RHCurrentCat.name + "/" + RHCurrentScopeName.name, cmd)
+
+// Install constructor (possibly overloaded)
+#define RH_ScopedConstructorInstall(fnAddr, suffix, opts, ...) \
+    ReversibleHooks::InstallConstructor<RHCurrentNS __VA_OPT__(,) __VA_ARGS__>(RHCurrentCat.name + "/" + RHCurrentScopeName.name, suffix, fnAddr, opts)
+
+// Install a virtual destructor hook
+#define RH_ScopedVMTDestructorInstall(fnGTAAddr, ...) \
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "Destructor", pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, pGTAVTbl[0], nVirtFns __VA_OPT__(,) __VA_ARGS__)
+
+// Install classic destructor hook (For virtual ones use RH_ScopedDestructorInstall)
+#define RH_ScopedDestructorInstall(fnAddr, ...) \
+    RH_ScopedNamedGlobalInstall(ReversibleHooks::detail::DestructorWrapper<RHCurrentNS>::Destruct, "Destructor", fnAddr __VA_OPT__(,) __VA_ARGS__)
 
 //#define RH_ScopedVMTAddressChange(fn, fnGTAAddr, ...) \
 //    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, FunctionPointerToVoidP(fnGTAAddr), nVirtFns __VA_OPT__(,) __VA_ARGS__)
@@ -127,15 +143,55 @@ namespace ReversibleHooks {
         void VirtualCopy(void* dst, void* src, size_t nbytes);
 
         void** GetVTableAddress(std::string_view name);
+
+        template<typename T, typename... Args>
+        struct ConstructorWrapper : protected T {
+            using T::T;
+
+            T* Construct(Args... args) {
+                this->ConstructorWrapper::ConstructorWrapper(std::forward<Args>(args)...);
+                return static_cast<T*>(this);
+            }
+        };
+
+        template<typename T>
+        struct DestructorWrapper : protected T {
+            T* Destruct() {
+                this->T::~T();
+                return static_cast<T*>(this);
+            }
+        };
+
+        template<typename T>
+        struct VirtualDestructorWrapper : protected T {
+            T* Destruct() {
+                this->T::~T();
+                return static_cast<T*>(this);
+            }
+        };
     };
 
     template <typename T>
-    static void Install(std::string_view category, std::string fnName, DWORD installAddress, T addressToJumpTo, HookInstallOptions&& opt = {}) {
+    static void Install(std::string_view category, std::string fnName, DWORD installAddress, T addressToJumpTo, HookInstallOptions opt = {}) {
         auto ptr = FunctionToVoidPtr(addressToJumpTo);
         detail::HookInstall(category, std::move(fnName), installAddress, ptr, std::move(opt));
     }
 
     void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, void* fnOurAddr, size_t nVirtFns, const HookInstallOptions& opt = {});
+
+    template<typename T, typename... Args>
+    void InstallConstructor(std::string_view category, std::string_view suffix, DWORD installAddress, bool isVirtual, HookInstallOptions opt = {}) {
+        std::string name = "Constructor";
+        if (!suffix.empty()) {
+            name += "-" + std::string(suffix);
+        }
+        Install(category, std::move(name), installAddress, &detail::ConstructorWrapper<T, Args...>::Construct, std::move(opt));
+    }
+
+    template<typename T>
+    void InstallDestructor(std::string_view category, uint32 installAddress, HookInstallOptions opt = {}) {
+        Install(category, "Destructor", installAddress, &detail::DestructorWrapper<T>::Destruct, std::move(opt));
+    }
 
     /*!
     * @param category Category's path, eg.: "Global/"

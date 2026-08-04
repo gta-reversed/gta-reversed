@@ -36,8 +36,8 @@ void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
     RH_ScopedCategory("Entity/Ped");
 
-    RH_ScopedInstall(Constructor, 0x5E8030);
-    RH_ScopedInstall(Destructor, 0x5E8620);
+    RH_ScopedConstructorInstall(0x5E8030, "", {}, ePedType);
+    RH_ScopedVMTDestructorInstall(0x5E8620);
 
     RH_ScopedInstall(RequestDelayedWeapon, 0x5E8910);
     RH_ScopedInstall(DettachPedFromEntity, 0x5E7EC0);
