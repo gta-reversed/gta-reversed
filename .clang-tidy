@@ -17,8 +17,6 @@ HeaderFilterRegex: 'source/.*'
 
 FormatStyle: file
 
-AnalyzeTemporaryDtors: false
-
 CheckOptions:
   - key:             modernize-use-nullptr.NullMacros
     value:           'NULL'
