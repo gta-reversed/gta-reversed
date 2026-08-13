@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          submodules: recursive
 
       - name: Install Doxygen
         run: |
