@@ -94,12 +94,12 @@ void CMenuSystem::GetMenuPosition(MenuId id, float* outX, float* outY) {
 }
 
 // 0x5807C0
-MenuId CMenuSystem::CheckForAccept(MenuId id) {
+int8 CMenuSystem::CheckForAccept(MenuId id) {
     return MenuInUse[id] ? MenuNumber[id]->m_nAcceptedRow : MENU_UNDEFINED;
 }
 
 // 0x5807E0
-MenuId CMenuSystem::CheckForSelected(MenuId id) {
+int8 CMenuSystem::CheckForSelected(MenuId id) {
     return MenuInUse[id] ? MenuNumber[id]->m_nSelectedRow : MENU_UNDEFINED;
 }
 
@@ -147,7 +147,7 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
     }
 
-    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsReturnJustPressed()) {
+    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsEnterJustPressed()) {
         if (!CTimer::GetIsPaused())
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
 
@@ -186,10 +186,10 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     }
 
     if (menu->m_nSelectedRow < 0) {
-        auto m_nNumRows = menu->m_nNumRows;
+        menu->m_nSelectedRow = menu->m_nNumRows;
         do {
             menu->m_nSelectedRow -= 1;
-        } while ((!menu->m_abRowSelectable[m_nNumRows] || !menu->m_aaacRowTitles[0][m_nNumRows][0]) && m_nNumRows >= 0);
+        } while ((!menu->m_abRowSelectable[menu->m_nSelectedRow] || !menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) && menu->m_nSelectedRow >= 0);
     }
 
     if (menu->m_nSelectedRow >= menu->m_nNumRows) {
@@ -214,7 +214,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
     auto menu = MenuNumber[id];
     auto pad = CPad::GetPad();
 
-    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsReturnJustPressed()) {
+    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsEnterJustPressed()) {
         if (menu->m_abRowSelectable[menu->m_nSelectedRow])
             menu->m_nAcceptedRow = menu->m_nSelectedRow;
     }

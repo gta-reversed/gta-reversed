@@ -51,8 +51,8 @@ public:
         float          m_afColumnWidth[MENU_COL_COUNT];
         CVector2D      m_vPosn;
         bool           m_bColumnBackground;
-        MenuId         m_nSelectedRow;
-        MenuId         m_nAcceptedRow;
+        int8           m_nSelectedRow;
+        int8           m_nAcceptedRow;
     };
 
     static inline auto& MenuInUse = StaticRef<std::array<bool, CMenuSystem::MENU_COUNT>>(0xBA82E0);
@@ -65,8 +65,8 @@ public:
     static void Initialise();
     static void Process(int8 menu = MENU_UNDEFINED);
 
-    static MenuId CheckForAccept(MenuId id);
-    static MenuId CheckForSelected(MenuId id);
+    static int8 CheckForAccept(MenuId id);
+    static int8 CheckForSelected(MenuId id);
 
     static void Input(MenuId id);
     static void InputStandardMenu(MenuId id);
