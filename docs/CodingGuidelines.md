@@ -86,7 +86,7 @@ auto GetActiveThings() {
 ```
 * Use `f` in float literals [As omitting it would make them a `double`] (e.g. `1.0f`)
 * Use `std` library for generic functions like `min`, `max`, `lerp`, etc...
-* `CVector` is interchangible with 3 floats [As is `CVector2D` with 2 floats] for function args
+* `CVector` is interchangeable with 3 floats [As is `CVector2D` with 2 floats] for function args
 * Use lambdas for repetitive procedures in functions
 * Use `constexpr` variables instead of macros
 * Use `static inline` instead of `extern` and `static` in headers:
