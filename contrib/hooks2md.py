@@ -79,8 +79,9 @@ def main():
         outf.write(f"## Stats ({sum(k.num_fn for k in klass_info.values())} functions, {len(klass_info)} classes)\n")
 
         def write_header(title: str, klasses: list[Klass]):
+            ratio = len(klasses) / num_total_klass if num_total_klass else 0
             outf.write("\n")
-            outf.write(f"#### {title} ({len(klasses)}/{num_total_klass}) [{len(klasses) / num_total_klass:.0%}]\n")
+            outf.write(f"#### {title} ({len(klasses)}/{num_total_klass}) [{ratio:.0%}]\n")
             outf.write("\n")
 
         @contextmanager
