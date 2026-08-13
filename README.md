@@ -45,7 +45,7 @@ Alternatively, you can install them by yourself:
     * [ASI Loader](https://gtaforums.com/topic/523982-relopensrc-silents-asi-loader/)
     * Mouse Fix (**dinput8.dll**) [Can be found in the zip in the `contrib` folder]
 
-    You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed-modern/blob/master/contrib/plugins.zip).
+    You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed/blob/master/contrib/plugins.zip).
 
 ### Other plugins
 Using other (than the ones we've tested) plugins is strongly discouraged and we provide __**no support**__.
@@ -60,7 +60,7 @@ Before you start writing code, please make sure to read the [coding guidelines](
 * If you intend to add non-vanilla features please first consult with us, so you don't waste your time.
 
 ### What to work on?
-Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/discussions/402) for some inspiration ;)
+Check out [this discussion](https://github.com/gta-reversed/gta-reversed/discussions/402) for some inspiration ;)
 
 ### Debugging
 0) Make sure the latest DLL is in the `scripts` folder of your GTASA installation - Skip this step if you've used `contrib/install.py` (As it uses symlinks!)
