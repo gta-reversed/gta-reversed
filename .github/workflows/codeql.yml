@@ -49,11 +49,9 @@ jobs:
         include:
         - language: c-cpp
           build-mode: manual
-          arch: x86
           conf: Debug
         - language: c-cpp
           build-mode: manual
-          arch: x86
           conf: Release
         - language: actions
           build-mode: none
@@ -101,7 +99,6 @@ jobs:
       if: matrix.language == 'c-cpp'
       with:
           conf: ${{ matrix.conf }}
-          arch: ${{ matrix.arch }}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

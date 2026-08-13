@@ -31,8 +31,6 @@ jobs:
             - name: Setup CMake using Conan
               uses: ./.github/actions/setup-cmake
               with:
-                  os: ${{ matrix.os }}
-                  arch: x86
                   conf: ${{ matrix.conf }}
                   preset: Unity # Builds faster, and analysis results are the same
 

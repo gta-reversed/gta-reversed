@@ -21,7 +21,6 @@ jobs:
             fail-fast: false
             matrix:
                 os: [windows-2025-vs2026]
-                arch: [x86]
                 conf: [Debug, Release]
                 preset: [NoUnity, Unity]
         runs-on: ${{ matrix.os }}
@@ -32,8 +31,6 @@ jobs:
             - name: Setup CMake using Conan
               uses: ./.github/actions/setup-cmake
               with:
-                  os: ${{ matrix.os }}
-                  arch: ${{ matrix.arch }}
                   conf: ${{ matrix.conf }}
                   preset: ${{ matrix.preset }}
 

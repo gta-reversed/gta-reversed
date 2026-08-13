@@ -65,8 +65,6 @@ jobs:
       - name: Setup project using CMake
         uses: ./.github/actions/setup-cmake
         with:
-          os: windows-2025-vs2026
-          arch: x86
           conf: Debug # Builds faster, and there's functionally no difference in this case
           preset: Unity
           dump_hooks_only: true
