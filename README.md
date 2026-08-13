@@ -53,7 +53,7 @@ Using other (than the ones we've tested) plugins is strongly discouraged and we 
 ## Contributing
 
 ### Coding/Contributing Guidelines
-Before you start writing code, please make sure to read the [coding guidelines](docs/CodingGuidelines.MD) for this project. Consider these points before opening a PR:
+Before you start writing code, please make sure to read the [coding guidelines](docs/CodingGuidelines.md) for this project. Consider these points before opening a PR:
 
 * Follow the coding guidelines, it exists for a reason.
 * Try to focus your changes onto single subject, do not create PRs that cover many things at once. This is because it's hard to properly test and review such PRs.
