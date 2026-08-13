@@ -92,9 +92,9 @@ auto GetActiveThings() {
 * Use `static inline` instead of `extern` and `static` in headers:
 ```cpp
 class Foo {
-    static uint32& m_FooCount; // Bad
+    static uint32& ms_FooCount; // Bad
 
-    static inline auto& m_FooCount = StaticRef<uint32, 0xDEADBEEF>(); // Good
+    static inline auto& ms_FooCount = StaticRef<uint32>(0xDEADBEEF); // Good
 }
 ```
 
