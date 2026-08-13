@@ -17,7 +17,7 @@ void AsciiToGxtChar(const char* src, GxtChar* dst);
  * @param   src        pointer to null-terminated source string
  * @param   size       size of the `out` buffer
  * @param   offset     start position
- * @return  pointer to static var containing null-terminated ASCII string
+ * @return  `out`, holding the null-terminated UTF-8 string
  */
 char* GxtCharToUTF8(char* out, const GxtChar* src, size_t size, size_t offset = 0);
 
@@ -26,6 +26,7 @@ char* GxtCharToUTF8(char (&out)[N], const GxtChar* src, size_t offset = 0) {
     return GxtCharToUTF8(out, src, N, offset);
 }
 
+// uses a shared static buffer, the returned string is overwritten by the next call
 inline const char* GxtCharToUTF8(const GxtChar* src, size_t offset = 0) {
     static char utf8Text[255];
     return GxtCharToUTF8(utf8Text, src, std::size(utf8Text), offset);
