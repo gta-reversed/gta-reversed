@@ -3,7 +3,6 @@ from contextlib import contextmanager
 import csv
 import datetime
 import os
-import tkinter.filedialog as tkFileDialog
 from dataclasses import dataclass
 from typing import Any
 
@@ -15,10 +14,13 @@ ap.add_argument("--input", default=None, help="Path to the hooks.csv file (if no
 ap.add_argument("--output", default=None, help="Path to the output Markdown file (if not provided, a file dialog will be shown to select the output location)")
 args = ap.parse_args()
 
-if args.input is None:
-    args.input = tkFileDialog.askopenfilename(title='Please select the hooks.csv file')
-if args.output is None:
-    args.output = tkFileDialog.asksaveasfilename(title='Please select the output MD file location', defaultextension=".md")
+if args.input is None or args.output is None:
+    import tkinter.filedialog as tkFileDialog # only needed for the dialogs, and it's not always installed
+
+    if args.input is None:
+        args.input = tkFileDialog.askopenfilename(title='Please select the hooks.csv file')
+    if args.output is None:
+        args.output = tkFileDialog.asksaveasfilename(title='Please select the output MD file location', defaultextension=".md")
 
 @dataclass
 class Klass:
