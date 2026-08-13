@@ -32,9 +32,9 @@ jobs:
               uses: ./.github/actions/setup-cmake
               with:
                   os: ${{ matrix.os }}
-                  arch: ${{ matrix.arch }}
+                  arch: x86
                   conf: ${{ matrix.conf }}
-                  preset: ${{ matrix.preset }}
+                  preset: Unity # Builds faster, and analysis results are the same
 
             - name: Initialize MSVC Code Analysis
               uses: microsoft/msvc-code-analysis-action@v0.1.1
