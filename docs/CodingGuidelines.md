@@ -9,7 +9,7 @@
 class Foo {
     int32 m_iPlayerHealth; // Bad
     int32 m_PlayerHealth; // Good
-}
+};
 ```
 * Variables are named in `camelCase` and types in `PascalCase`.
 * Class/struct members and functions are named in `CamelCase`
@@ -21,7 +21,7 @@ public:
 
 private:
     int m_FooCount; // Non-static member variable
-}
+};
 ```
 * For shared variables outside a class, use `g_` prefix, and define them in the header:
 ```cpp
@@ -38,14 +38,14 @@ static int s_StaticGlobalCounter = 0;
 class Foo {
 public:
     static inline int ms_StaticGlobalCounter = 0; // Static member variable
-}
+};
 ```
 * Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it):
 ```cpp
 class Foo {
 public:
     static inline auto& ms_StaticGlobalCounter = StaticRef<int>(0xDEADBEEF); // Static member variable
-}
+};
 ``` 
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
@@ -81,7 +81,7 @@ for (auto& thing : m_things | rng::views::take(m_numThings));
 
 // ^ If these funcs are called more than once, make a helper function in the header. Like below:
 auto GetActiveThings() {
-    return std::span{ m_things, m_numThings }
+    return std::span{ m_things, m_numThings };
 }
 ```
 * Use `f` in float literals [As omitting it would make them a `double`] (e.g. `1.0f`)
@@ -95,7 +95,7 @@ class Foo {
     static uint32& ms_FooCount; // Bad
 
     static inline auto& ms_FooCount = StaticRef<uint32>(0xDEADBEEF); // Good
-}
+};
 ```
 
 #### Types
