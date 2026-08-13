@@ -35,10 +35,6 @@ class Klass:
     @property
     def num_fn(self):
         return self.num_not_reversed + self.num_reversed
-    
-    @property
-    def is_completely_reversed(self):
-        return self.num_not_reversed == 0
 
 def main():
     klass_info : dict[str, Klass] = {}
