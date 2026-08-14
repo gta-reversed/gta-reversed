@@ -330,7 +330,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
     const auto pad                       = CPad::GetPad(m_nPlayerNumber);
 
-    const auto GetMouseWorldPosScreenPos = [this] {
+    const auto GET_MOUSE_WORLD_POS_SCREEN_POS = [this] {
         auto radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
         return CRadar::TransformRadarPointToScreenSpace(radar);
@@ -365,9 +365,7 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         return;
     }
 
-    const auto panDelayPassed = [] {
-        return CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_LastActionTime > 20;
-    };
+    const auto panDelayPassed = CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_LastActionTime > 20;
 
     m_bDrawingMap                 = true;
 
@@ -404,8 +402,8 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
     // 0x57747D - If the legend options menu is open, don't process map controls
     if (m_nSysMenu < 0) {
         // 0x577483 - Waypoint blip toggle (Circle / RMB / T key)
-        if ((pad->NewState.ButtonCircle && !pad->OldState.ButtonCircle)
-            || (CPad::IsMouseRButtonPressed() && !CPad::NewMouseControllerState.isMouseLeftButtonPressed)
+        if (pad->IsCirclePressed()
+            || (CPad::IsMouseRButtonPressed() && !CPad::IsMouseLButton())
             || pad->IsStandardKeyJustPressed('T')
             || pad->IsStandardKeyJustPressed('t')) {
             if (!CTheScripts::HideAllFrontEndMapBlips && !CTheScripts::bPlayerIsOffTheMap) {
@@ -428,50 +426,52 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         }
 
         // 0x5775E5 - Zoom in (LeftShoulder2 only / wheel up / PgUp)
-        if ((pad->NewState.LeftShoulder2 && !pad->NewState.RightShoulder2)
-            || CPad::NewMouseControllerState.isMouseWheelMovedUp
-            || CPad::NewKeyState.pgup) {
-            if (panDelayPassed()) {
+        if ((pad->IsLeftShoulder2() && !pad->IsRightShoulder2())
+            || CPad::IsMouseWheelUp()
+            || CPad::IsPgUpDown()) {
+            if (panDelayPassed) {
                 if (m_fMapZoom >= 1100.0f) {
                     m_fMapZoom = 1100.0f;
                 } else {
+                    // TODO: Frame-rate dependent
                     m_fMapZoom += 7.0f;
-                    if (CPad::NewMouseControllerState.isMouseWheelMovedUp) {
+                    if (CPad::IsMouseWheelUp()) {
                         m_fMapZoom += 21.0f;
                     }
                     m_vMapOrigin.x -= relCenterX * m_fMapZoom - distToCenterX;
                     m_vMapOrigin.y -= relCenterY * m_fMapZoom - distToCenterY;
                 }
-                auto screen = GetMouseWorldPosScreenPos();
+                auto screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                 while (screen.x > MAP_VIEW_RIGHT) {
                     m_vMousePos.x -= 1.0f;
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                 }
                 while (screen.x < MAP_VIEW_LEFT) {
                     m_vMousePos.x += 1.0f;
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                 }
                 while (screen.y < MAP_VIEW_TOP) {
                     m_vMousePos.y -= 1.0f;
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                 }
                 while (screen.y > MAP_VIEW_BOTTOM) {
                     m_vMousePos.y += 1.0f;
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                 }
             }
         }
 
         // 0x577918 - Zoom out (RightShoulder2 only / wheel down / PgDn)
-        if ((pad->NewState.RightShoulder2 && !pad->NewState.LeftShoulder2)
-            || CPad::NewMouseControllerState.isMouseWheelMovedDown
-            || CPad::NewKeyState.pgdn) {
-            if (panDelayPassed()) {
+        if ((pad->IsRightShoulder2() && !pad->IsLeftShoulder2())
+            || CPad::IsMouseWheelDown()
+            || CPad::IsPgDnDown()) {
+            if (panDelayPassed) {
                 if (m_fMapZoom <= 300.0f) {
                     m_fMapZoom = 300.0f;
                 } else {
+                    // TODO: Frame-rate dependent
                     m_fMapZoom -= 7.0f;
-                    if (CPad::NewMouseControllerState.isMouseWheelMovedDown) {
+                    if (CPad::IsMouseWheelDown()) {
                         m_fMapZoom -= 21.0f;
                     }
                     m_vMapOrigin.x -= relCenterX * m_fMapZoom - distToCenterX;
@@ -481,28 +481,28 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         }
 
         // 0x5779FE - Compute marker pos in map-screen space
-        auto screen = GetMouseWorldPosScreenPos();
+        auto screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
 
         // 0x577A55 - Read directional input (keyboard / analog sticks / DPad)
         int16 panX = 0;
         int16 panY = 0;
-        if (CPad::NewKeyState.up) {
+        if (CPad::IsUpDown()) {
             panY = -128;
         }
-        if (CPad::NewKeyState.down) {
+        if (CPad::IsDownDown()) {
             panY = 128;
         }
-        if (CPad::NewKeyState.left) {
+        if (CPad::IsLeftDown()) {
             panX = -128;
         }
-        if (CPad::NewKeyState.right) {
+        if (CPad::IsRightDown()) {
             panX = 128;
         }
-        if (pad->NewState.LeftStickX) {
-            panX = pad->NewState.LeftStickX;
+        if (pad->GetLeftStickX()) {
+            panX = pad->GetLeftStickX();
         }
-        if (pad->NewState.LeftStickY) {
-            panY = pad->NewState.LeftStickY;
+        if (pad->GetLeftStickY()) {
+            panY = pad->GetLeftStickY();
         }
         if (pad->NewState.DPadUp) {
             panY = static_cast<int16>(pad->NewState.DPadUp * -0.6f);
@@ -529,8 +529,8 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
             if (m_nMousePosX > StretchX(MAP_FRAME_LEFT) && m_nMousePosX < StretchX(MAP_FRAME_RIGHT)
                 && m_nMousePosY > StretchY(MAP_FRAME_TOP) && m_nMousePosY < StretchY(MAP_FRAME_BOTTOM)) {
                 // 0x577CE4 - Cursor inside the map area
-                screen = GetMouseWorldPosScreenPos();
-                if (CPad::NewMouseControllerState.isMouseLeftButtonPressed) {
+                screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                if (CPad::IsMouseLButton()) {
                     // 0x577D43 - LMB held: pan according to cursor offset from screen centre
                     markerFreeFromEdge = true;
                     if (m_nMousePosX < RsGlobal.maximumWidth / 2) {
@@ -548,19 +548,19 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     markerTrackMouse = true;
                     while (StretchX(screen.x) > float(m_nMousePosX) && screen.x > MAP_VIEW_LEFT) {
                         m_vMousePos.x -= 14.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
                     while (StretchX(screen.x) < float(m_nMousePosX) && screen.x < MAP_VIEW_RIGHT) {
                         m_vMousePos.x += 14.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
                     while (StretchY(screen.y) > float(m_nMousePosY) && screen.y > MAP_VIEW_TOP) {
                         m_vMousePos.y += 14.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
                     while (StretchY(screen.y) < float(m_nMousePosY) && screen.y < MAP_VIEW_BOTTOM) {
                         m_vMousePos.y -= 14.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
                 }
             }
@@ -570,57 +570,57 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
             // 0x577E10 - Move the map origin / marker
             if (panX > 0) {
                 if (mapRight > MAP_FRAME_RIGHT && screen.x >= MAP_CENTER_X && markerFreeFromEdge) {
-                    if (panDelayPassed()) {
+                    if (panDelayPassed) {
                         m_vMapOrigin.x -= float(panX) * PAN_STRIDE;
                     }
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     while (mapRight > MAP_FRAME_RIGHT && screen.x < MAP_CENTER_X) {
                         m_vMousePos.x += 1.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
-                } else if (panDelayPassed() && screen.x < MAP_VIEW_RIGHT) {
+                } else if (panDelayPassed && screen.x < MAP_VIEW_RIGHT) {
                     m_vMousePos.x += float(panX) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
                 }
             }
             if (panX < 0) {
                 if (mapLeft < MAP_FRAME_LEFT && screen.x <= MAP_CENTER_X && markerFreeFromEdge) {
-                    if (panDelayPassed()) {
+                    if (panDelayPassed) {
                         m_vMapOrigin.x += float(-panX) * PAN_STRIDE;
                     }
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     while (mapLeft < MAP_FRAME_LEFT && screen.x > MAP_CENTER_X) {
                         m_vMousePos.x -= 1.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
-                } else if (panDelayPassed() && screen.x > MAP_VIEW_LEFT) {
+                } else if (panDelayPassed && screen.x > MAP_VIEW_LEFT) {
                     m_vMousePos.x += float(panX) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
                 }
             }
             if (panY > 0) {
                 if (mapTop > MAP_FRAME_BOTTOM && screen.y >= MAP_CENTER_Y && markerFreeFromEdge) {
-                    if (panDelayPassed()) {
+                    if (panDelayPassed) {
                         m_vMapOrigin.y -= float(panY) * PAN_STRIDE;
                     }
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     while (mapTop > MAP_FRAME_BOTTOM && screen.y < MAP_CENTER_Y) {
                         m_vMousePos.y -= 1.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
-                } else if (panDelayPassed() && screen.y < MAP_VIEW_BOTTOM) {
+                } else if (panDelayPassed && screen.y < MAP_VIEW_BOTTOM) {
                     m_vMousePos.y -= float(panY) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
                 }
             }
             if (panY < 0) {
                 if (mapBottom < MAP_FRAME_TOP && screen.y <= MAP_CENTER_Y && markerFreeFromEdge) {
-                    if (panDelayPassed()) {
+                    if (panDelayPassed) {
                         m_vMapOrigin.y += float(-panY) * PAN_STRIDE;
                     }
-                    screen = GetMouseWorldPosScreenPos();
+                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     while (mapBottom < MAP_FRAME_TOP && screen.y > MAP_CENTER_Y) {
                         m_vMousePos.y += 1.0f;
-                        screen = GetMouseWorldPosScreenPos();
+                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
                     }
-                } else if (panDelayPassed() && screen.y > MAP_VIEW_TOP) {
+                } else if (panDelayPassed && screen.y > MAP_VIEW_TOP) {
                     m_vMousePos.y -= float(panY) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
                 }
             }
@@ -648,11 +648,11 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
     }
 
     // NOTSA: Rebuild the ON/OFF column of the legend options menu from the current blip prefs
-    const auto InsertBlipToggleRows = [this] {
-        const auto OnOff = [](bool on) {
-            return (char*)(on ? "FEM_ON" : "FEM_OFF");
+    const auto INSERT_BLIP_TOGGLE_ROWS = [this] {
+        const auto ON_OFF = [](bool on) {
+            return on ? "FEM_ON" : "FEM_OFF";
         };
-        CMenuSystem::InsertMenu(m_nSysMenu, 1, nullptr, OnOff(m_ShowLocationsBlips), OnOff(m_ShowContactsBlips), OnOff(m_ShowMissionBlips), OnOff(m_ShowOtherBlips), OnOff(m_ShowGangAreaBlips));
+        CMenuSystem::InsertMenu(m_nSysMenu, 1, nullptr, ON_OFF(m_ShowLocationsBlips), ON_OFF(m_ShowContactsBlips), ON_OFF(m_ShowMissionBlips), ON_OFF(m_ShowOtherBlips), ON_OFF(m_ShowGangAreaBlips));
     };
 
     // 0x578877 - Open the legend options menu (Space held)
@@ -669,8 +669,8 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
             true,
             eFontAlignment::ALIGN_LEFT
         );
-        CMenuSystem::InsertMenu(m_nSysMenu, 0, nullptr, (char*)"FED_BL1", (char*)"FED_BL2", (char*)"FED_BL3", (char*)"FED_BL4", (char*)"FED_BL5");
-        InsertBlipToggleRows();
+        CMenuSystem::InsertMenu(m_nSysMenu, 0, nullptr, "FED_BL1", "FED_BL2", "FED_BL3", "FED_BL4", "FED_BL5");
+        INSERT_BLIP_TOGGLE_ROWS();
     }
 
     // 0x578A36 - Legend options menu is open
@@ -678,12 +678,12 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         const auto item = CMenuSystem::CheckForAccept(m_nSysMenu);
         if (item >= 0) {
             m_abPrefsMapBlips[item] = !m_abPrefsMapBlips[item];
-            InsertBlipToggleRows();
+            INSERT_BLIP_TOGGLE_ROWS();
             const auto selected = CMenuSystem::CheckForSelected(m_nSysMenu);
             CMenuSystem::SetActiveMenuItem(m_nSysMenu, selected == 4 ? 0 : selected + 1);
         }
         // 0x578B8F - Close the menu once Space is fully released
-        if (!CPad::NewKeyState.standardKeys[' '] && !CPad::OldKeyState.standardKeys[' ']) {
+        if (pad->IsStandardKeyUp(' ')) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
             CMenuSystem::SwitchOffMenu(m_nSysMenu);
             m_nSysMenu = CMenuSystem::MENU_UNDEFINED;
@@ -695,7 +695,7 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         m_bMapLegend = !m_bMapLegend;
     }
 
-    if (panDelayPassed()) {
+    if (panDelayPassed) {
         FrontEndMenuManager.m_LastActionTime = CTimer::GetTimeInMSPauseMode();
     }
     m_bDrawingMap = false;

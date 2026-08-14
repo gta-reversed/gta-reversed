@@ -147,7 +147,7 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
     }
 
-    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsEnterJustPressed()) {
+    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && pad->IsEnterJustPressed()) {
         if (!CTimer::GetIsPaused())
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
 
@@ -214,7 +214,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
     auto menu = MenuNumber[id];
     auto pad = CPad::GetPad();
 
-    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsEnterJustPressed()) {
+    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && pad->IsEnterJustPressed()) {
         if (menu->m_abRowSelectable[menu->m_nSelectedRow])
             menu->m_nAcceptedRow = menu->m_nSelectedRow;
     }
@@ -608,7 +608,7 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
 
 // Insert menu column
 // 0x581E00
-void CMenuSystem::InsertMenu(MenuId id, uint8 column, char* colHeader, char* row0, char* row1, char* row2, char* row3, char* row4, char* row5, char* row6, char* row7, char* row8, char* row9, char* row10, char* row11) {
+void CMenuSystem::InsertMenu(MenuId id, uint8 column, const char* colHeader, const char* row0, const char* row1, const char* row2, const char* row3, const char* row4, const char* row5, const char* row6, const char* row7, const char* row8, const char* row9, const char* row10, const char* row11) {
     assert(column < MENU_COL_COUNT);
     auto* menu = MenuNumber[id];
 
