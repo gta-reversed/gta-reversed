@@ -9,6 +9,8 @@
 #include "VideoMode.h" // todo
 #include "ControllerConfigManager.h"
 #include "extensions/Configs/FastLoader.hpp"
+#include "extensions/utility.hpp"
+#include "reversiblebugfixes/Bugs.hpp"
 
 /*!
  * @addr 0x57FD70
@@ -365,7 +367,10 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         return;
     }
 
-    const auto panDelayPassed = CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_LastActionTime > 20;
+    // Original tick rate for map pan/zoom: one step every 20ms of wall-clock time
+    constexpr auto PAN_TICK_MS = 20;
+
+    const auto panDelayPassed = CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_LastActionTime > PAN_TICK_MS;
 
     m_bDrawingMap                 = true;
 
@@ -433,10 +438,19 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                 if (m_fMapZoom >= 1100.0f) {
                     m_fMapZoom = 1100.0f;
                 } else {
-                    // TODO: Frame-rate dependent
-                    m_fMapZoom += 7.0f;
-                    if (CPad::IsMouseWheelUp()) {
-                        m_fMapZoom += 21.0f;
+                    if (notsa::bugfixes::GenericFrameRate) {
+                        // Scale step by elapsed wall-clock ms so the zoom rate is framerate-independent.
+                        // divide by PAN_TICK_MS to match the original +7 per 20ms tick.
+                        const float frameTickScale = float(CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_LastActionTime) / PAN_TICK_MS;
+                        m_fMapZoom += 7.0f * frameTickScale;
+                        if (CPad::IsMouseWheelUp()) {
+                            m_fMapZoom += 21.0f * frameTickScale;
+                        }
+                    } else {
+                        m_fMapZoom += 7.0f;
+                        if (CPad::IsMouseWheelUp()) {
+                            m_fMapZoom += 21.0f;
+                        }
                     }
                     m_vMapOrigin.x -= relCenterX * m_fMapZoom - distToCenterX;
                     m_vMapOrigin.y -= relCenterY * m_fMapZoom - distToCenterY;
@@ -469,10 +483,19 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                 if (m_fMapZoom <= 300.0f) {
                     m_fMapZoom = 300.0f;
                 } else {
-                    // TODO: Frame-rate dependent
-                    m_fMapZoom -= 7.0f;
-                    if (CPad::IsMouseWheelDown()) {
-                        m_fMapZoom -= 21.0f;
+                    if (notsa::bugfixes::GenericFrameRate) {
+                        // Scale step by elapsed wall-clock ms so the zoom rate is framerate-independent.
+                        // divide by PAN_TICK_MS to match the original +7 per 20ms tick.
+                        const float frameTickScale = float(CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_LastActionTime) / PAN_TICK_MS;
+                        m_fMapZoom -= 7.0f * frameTickScale;
+                        if (CPad::IsMouseWheelDown()) {
+                            m_fMapZoom -= 21.0f * frameTickScale;
+                        }
+                    } else {
+                        m_fMapZoom -= 7.0f;
+                        if (CPad::IsMouseWheelDown()) {
+                            m_fMapZoom -= 21.0f;
+                        }
                     }
                     m_vMapOrigin.x -= relCenterX * m_fMapZoom - distToCenterX;
                     m_vMapOrigin.y -= relCenterY * m_fMapZoom - distToCenterY;
