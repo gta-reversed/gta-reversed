@@ -9,7 +9,6 @@
 #include "VideoMode.h" // todo
 #include "ControllerConfigManager.h"
 #include "extensions/Configs/FastLoader.hpp"
-#include "extensions/utility.hpp"
 #include "reversiblebugfixes/Bugs.hpp"
 
 /*!
