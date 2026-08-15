@@ -331,7 +331,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
     const auto pad                       = CPad::GetPad(m_nPlayerNumber);
 
-    const auto GET_MOUSE_WORLD_POS_SCREEN_POS = [this] {
+    const auto GetMouseWorldPosScreenPos = [this] {
         auto radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
         return CRadar::TransformRadarPointToScreenSpace(radar);
@@ -454,22 +454,22 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     m_vMapOrigin.x -= relCenterX * m_fMapZoom - distToCenterX;
                     m_vMapOrigin.y -= relCenterY * m_fMapZoom - distToCenterY;
                 }
-                auto screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                auto screen = GetMouseWorldPosScreenPos();
                 while (screen.x > MAP_VIEW_RIGHT) {
                     m_vMousePos.x -= 1.0f;
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                 }
                 while (screen.x < MAP_VIEW_LEFT) {
                     m_vMousePos.x += 1.0f;
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                 }
                 while (screen.y < MAP_VIEW_TOP) {
                     m_vMousePos.y -= 1.0f;
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                 }
                 while (screen.y > MAP_VIEW_BOTTOM) {
                     m_vMousePos.y += 1.0f;
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                 }
             }
         }
@@ -503,24 +503,41 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         }
 
         // 0x5779FE - Compute marker pos in map-screen space
-        auto screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+        auto screen = GetMouseWorldPosScreenPos();
 
         // 0x577A55 - Read directional input (keyboard / analog sticks / DPad)
         int16 panX = 0;
         int16 panY = 0;
-
-        if (CPad::IsUpDown())    panY = -128;
-        if (CPad::IsDownDown())  panY =  128;
-        if (CPad::IsLeftDown())  panX = -128;
-        if (CPad::IsRightDown()) panX =  128;
-
-        if (auto x = pad->GetLeftStickX()) panX = x;
-        if (auto y = pad->GetLeftStickY()) panY = y;
-
-        if (pad->NewState.DPadUp)    panY = -static_cast<int16>(pad->NewState.DPadUp    * 0.6f);
-        if (pad->NewState.DPadDown)  panY =  static_cast<int16>(pad->NewState.DPadDown  * 0.6f);
-        if (pad->NewState.DPadLeft)  panX = -static_cast<int16>(pad->NewState.DPadLeft  * 0.6f);
-        if (pad->NewState.DPadRight) panX =  static_cast<int16>(pad->NewState.DPadRight * 0.6f);
+        if (CPad::IsUpDown()) {
+            panY = -128;
+        }
+        if (CPad::IsDownDown()) {
+            panY = 128;
+        }
+        if (CPad::IsLeftDown()) {
+            panX = -128;
+        }
+        if (CPad::IsRightDown()) {
+            panX = 128;
+        }
+        if (pad->GetLeftStickX()) {
+            panX = pad->GetLeftStickX();
+        }
+        if (pad->GetLeftStickY()) {
+            panY = pad->GetLeftStickY();
+        }
+        if (pad->NewState.DPadUp) {
+            panY = static_cast<int16>(pad->NewState.DPadUp * -0.6f);
+        }
+        if (pad->NewState.DPadDown) {
+            panY = static_cast<int16>(pad->NewState.DPadDown * 0.6f);
+        }
+        if (pad->NewState.DPadLeft) {
+            panX = static_cast<int16>(pad->NewState.DPadLeft * -0.6f);
+        }
+        if (pad->NewState.DPadRight) {
+            panX = static_cast<int16>(pad->NewState.DPadRight * 0.6f);
+        }
 
         // 0x577C50 - Pan the map
         int8 edgePanMultiplier  = 2;
@@ -534,7 +551,7 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
             if (m_nMousePosX > StretchX(MAP_FRAME_LEFT) && m_nMousePosX < StretchX(MAP_FRAME_RIGHT)
                 && m_nMousePosY > StretchY(MAP_FRAME_TOP) && m_nMousePosY < StretchY(MAP_FRAME_BOTTOM)) {
                 // 0x577CE4 - Cursor inside the map area
-                screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                screen = GetMouseWorldPosScreenPos();
                 if (CPad::IsMouseLButton()) {
                     // 0x577D43 - LMB held: pan according to cursor offset from screen centre
                     markerFreeFromEdge = true;
@@ -553,19 +570,19 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     markerTrackMouse = true;
                     while (StretchX(screen.x) > float(m_nMousePosX) && screen.x > MAP_VIEW_LEFT) {
                         m_vMousePos.x -= 14.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                     while (StretchX(screen.x) < float(m_nMousePosX) && screen.x < MAP_VIEW_RIGHT) {
                         m_vMousePos.x += 14.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                     while (StretchY(screen.y) > float(m_nMousePosY) && screen.y > MAP_VIEW_TOP) {
                         m_vMousePos.y += 14.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                     while (StretchY(screen.y) < float(m_nMousePosY) && screen.y < MAP_VIEW_BOTTOM) {
                         m_vMousePos.y -= 14.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                 }
             }
@@ -578,10 +595,10 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     if (panDelayPassed) {
                         m_vMapOrigin.x -= float(panX) * PAN_STRIDE;
                     }
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                     while (mapRight > MAP_FRAME_RIGHT && screen.x < MAP_CENTER_X) {
                         m_vMousePos.x += 1.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                 } else if (panDelayPassed && screen.x < MAP_VIEW_RIGHT) {
                     m_vMousePos.x += float(panX) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
@@ -592,10 +609,10 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     if (panDelayPassed) {
                         m_vMapOrigin.x += float(-panX) * PAN_STRIDE;
                     }
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                     while (mapLeft < MAP_FRAME_LEFT && screen.x > MAP_CENTER_X) {
                         m_vMousePos.x -= 1.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                 } else if (panDelayPassed && screen.x > MAP_VIEW_LEFT) {
                     m_vMousePos.x += float(panX) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
@@ -606,10 +623,10 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     if (panDelayPassed) {
                         m_vMapOrigin.y -= float(panY) * PAN_STRIDE;
                     }
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                     while (mapTop > MAP_FRAME_BOTTOM && screen.y < MAP_CENTER_Y) {
                         m_vMousePos.y -= 1.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                 } else if (panDelayPassed && screen.y < MAP_VIEW_BOTTOM) {
                     m_vMousePos.y -= float(panY) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
@@ -620,10 +637,10 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
                     if (panDelayPassed) {
                         m_vMapOrigin.y += float(-panY) * PAN_STRIDE;
                     }
-                    screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                    screen = GetMouseWorldPosScreenPos();
                     while (mapBottom < MAP_FRAME_TOP && screen.y > MAP_CENTER_Y) {
                         m_vMousePos.y += 1.0f;
-                        screen = GET_MOUSE_WORLD_POS_SCREEN_POS();
+                        screen = GetMouseWorldPosScreenPos();
                     }
                 } else if (panDelayPassed && screen.y > MAP_VIEW_TOP) {
                     m_vMousePos.y -= float(panY) * float(7 * edgePanMultiplier) * PAN_AXIS_SCALE;
