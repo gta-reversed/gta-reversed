@@ -509,36 +509,19 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
         // 0x577A55 - Read directional input (keyboard / analog sticks / DPad)
         int16 panX = 0;
         int16 panY = 0;
-        if (CPad::IsUpDown()) {
-            panY = -128;
-        }
-        if (CPad::IsDownDown()) {
-            panY = 128;
-        }
-        if (CPad::IsLeftDown()) {
-            panX = -128;
-        }
-        if (CPad::IsRightDown()) {
-            panX = 128;
-        }
-        if (pad->GetLeftStickX()) {
-            panX = pad->GetLeftStickX();
-        }
-        if (pad->GetLeftStickY()) {
-            panY = pad->GetLeftStickY();
-        }
-        if (pad->NewState.DPadUp) {
-            panY = static_cast<int16>(pad->NewState.DPadUp * -0.6f);
-        }
-        if (pad->NewState.DPadDown) {
-            panY = static_cast<int16>(pad->NewState.DPadDown * 0.6f);
-        }
-        if (pad->NewState.DPadLeft) {
-            panX = static_cast<int16>(pad->NewState.DPadLeft * -0.6f);
-        }
-        if (pad->NewState.DPadRight) {
-            panX = static_cast<int16>(pad->NewState.DPadRight * 0.6f);
-        }
+
+        if (CPad::IsUpDown())    panY = -128;
+        if (CPad::IsDownDown())  panY =  128;
+        if (CPad::IsLeftDown())  panX = -128;
+        if (CPad::IsRightDown()) panX =  128;
+
+        if (auto x = pad->GetLeftStickX()) panX = x;
+        if (auto y = pad->GetLeftStickY()) panY = y;
+
+        if (pad->NewState.DPadUp)    panY = -static_cast<int16>(pad->NewState.DPadUp    * 0.6f);
+        if (pad->NewState.DPadDown)  panY =  static_cast<int16>(pad->NewState.DPadDown  * 0.6f);
+        if (pad->NewState.DPadLeft)  panX = -static_cast<int16>(pad->NewState.DPadLeft  * 0.6f);
+        if (pad->NewState.DPadRight) panX =  static_cast<int16>(pad->NewState.DPadRight * 0.6f);
 
         // 0x577C50 - Pan the map
         int8 edgePanMultiplier  = 2;
