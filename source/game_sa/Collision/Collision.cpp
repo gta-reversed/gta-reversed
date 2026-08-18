@@ -306,13 +306,13 @@ bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CCo
         const auto distSq = dir.SquaredMagnitude();
         if (distSq < minDistSq) {
             const auto dist = std::sqrt(distSq);
-            if (dist >= sph.m_fRadius) { // Original: strict `fVar2 < param_1[3]` — dist must be < radius
+            if (dist >= sph.m_fRadius) {
                 return false;
             }
 
             colp.m_vecNormal     = dir / dist; // Normalize vector
             colp.m_vecPoint      = p;
-            colp.m_fDepth        = sph.m_fRadius - dist; // Original: `param_3[10] = param_1[3] - fVar2`
+            colp.m_fDepth        = sph.m_fRadius - dist;
 
             colp.m_nSurfaceTypeA = sph.m_Surface.m_nMaterial;
             colp.m_nLightingA    = sph.m_Surface.m_nLighting;
@@ -1517,7 +1517,7 @@ bool CCollision::ProcessSphereSphere(const CColSphere& spA, const CColSphere& sp
         return false;
     }
 
-    if (touchDist >= spA.m_fRadius) { // Original: strict `dist < radiusA`
+    if (touchDist >= spA.m_fRadius) {
         return false;
     }
 
@@ -1627,7 +1627,7 @@ bool CCollision::ProcessSphereTriangle(
         return false;
     }
 
-    // Check if it's within the sphere (Original: strict `touchDist < radius`)
+    // Check if it's within the sphere
     if (touchDistSq >= sq(sphere.m_fRadius)) {
         return false;
     }
@@ -2241,7 +2241,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                         if (ProcessSphereSphere(sphereAinB, sphereB, cp, minTouchDist)) {
                             const auto cpInA{ transformBtoA.TransformPoint(cp.m_vecPoint) };
                             const auto hitK = std::sqrt(std::max(0.0f, sq(disk.m_fRadius) - sq(cpInA.y - disk.m_vecCenter.y) - sq(cpInA.x - disk.m_vecCenter.x))) + cpInA.z;
-                            if (maxTouchDistances[diskIdx] <= hitK) { // Original: strict `(*local_e4 <= fVar2)` no epsilon
+                            if (maxTouchDistances[diskIdx] <= hitK) { // Original: strict <=, no epsilon
                                 maxTouchDistances[diskIdx] = hitK;
                                 thisLineCP                 = cp;
                                 thisLineCP.m_nSurfaceTypeA = disk.m_Surface.m_nMaterial;
