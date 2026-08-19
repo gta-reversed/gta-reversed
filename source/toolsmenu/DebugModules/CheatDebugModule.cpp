@@ -1,24 +1,30 @@
 #include "StdInc.h"
 
 #include <imgui.h>
-#include <imgui_internal.h>
 
 #include "CheatDebugModule.h"
+#include <app/platform/win/WindowedMode.hpp>
 
 void CheatDebugModule::RenderMenuEntry() {
     notsa::ui::DoNestedMenuIL({ "Settings" }, [&] {
         ImGui::MenuItem("Cheats", nullptr, &m_IsOpen);
     });
+    notsa::ui::DoNestedMenuIL({ "Settings", "Game" }, [&] {
+        ImGui::Checkbox("No VSync", &m_NoVSync);
+    });
 }
 
 void CheatDebugModule::Update() {
-    if (!m_GodMode) {
-        return;
+    if (m_GodMode) {
+        if (const auto plyr = FindPlayerPed()) {
+            plyr->m_fHealth = plyr->m_fMaxHealth;
+            plyr->m_fArmour = 100.f;
+        }
     }
-    if (const auto plyr = FindPlayerPed()) {
-        plyr->m_fHealth = plyr->m_fMaxHealth;
-        plyr->m_fArmour = 100.f;
-    }
+
+    // This has to be called pre-render, as we can't call `D3D9Device::Reset()` mid-frame
+    // (Also, debug module deserialization will read in the value too)
+    notsa::SetNoVSync(m_NoVSync);
 }
 
 void CheatDebugModule::RenderWindow() {

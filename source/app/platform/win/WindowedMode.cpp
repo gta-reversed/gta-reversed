@@ -15,7 +15,6 @@
 #define NUMPIXELFORMATS     11
 #define MAX_PIXEL_FORMATS   128
 
-
 HRESULT DXCHECK(HRESULT hr) {
     VERIFY(SUCCEEDED(hr));
     return hr;
@@ -100,7 +99,9 @@ struct _rxD3D9DisplayMode
     RwInt32             flags;
 };
 
-
+namespace notsa {
+    bool s_NoVsync = false;
+};
 
 auto& _RwD3D9RasterExtOffset             = StaticRef<RwInt32>(0xB4E9E0); /* Raster extension offset */
 auto& StencilClearValue                  = StaticRef<RwUInt32>(0xC97C44);
@@ -135,10 +136,6 @@ auto& D3D9RestoreDeviceCallback          = StaticRef<rwD3D9DeviceRestoreCallBack
 
 static RwBool EnableFullScreenDialogBoxMode = FALSE;
 
-
-const auto D3D9DeviceReleaseVideoMemory  = plugin::CallAndReturn<RwBool, 0x7F7F70>;
-const auto _rwD3D9SetDepthStencilSurface = plugin::Call<0x7F5EF0, LPSURFACE>;
-const auto _rwD3D9SetRenderTarget        = plugin::CallAndReturn<RwBool, 0x7F5F20, RwUInt32, LPSURFACE>;
 
 namespace notsa::WindowedMode {
 bool bWindowed        = true;
@@ -264,7 +261,9 @@ void AdjustPresentParams(D3DPRESENT_PARAMETERS* pp) {
 
     pp->Windowed = TRUE;
 
-    pp->PresentationInterval       = 0;
+    pp->PresentationInterval       = notsa::s_NoVsync
+        ? D3DPRESENT_INTERVAL_IMMEDIATE
+        : D3DPRESENT_INTERVAL_DEFAULT;
     pp->FullScreen_RefreshRateInHz = 0;
     pp->EnableAutoDepthStencil     = TRUE;
     pp->BackBufferFormat           = gGameState == GAME_STATE_IDLE
@@ -345,9 +344,9 @@ struct D3D9ProxyDevice {
     static inline D3D9Device_Reset_Type Real_Reset{};
     static inline constexpr auto D3D9Device_Reset_VMT_Index = 16;
     static HRESULT __stdcall Proxy_Reset(LPDIRECT3DDEVICE9 self, D3DPRESENT_PARAMETERS* pp) {
-        //if (bWindowed) {
-        //    AdjustPresentParams(pp);
-        //}
+        if (bWindowed) {
+            AdjustPresentParams(pp);
+        }
 
         ImGui_ImplDX9_InvalidateDeviceObjects();
 
@@ -490,6 +489,10 @@ void AdjustVideoModeOnResize(int32 w, int32 h) {
 };
 
 namespace RenderWare {
+const auto D3D9DeviceReleaseVideoMemory  = plugin::CallAndReturn<RwBool, 0x7F7F70>;
+const auto _rwD3D9SetDepthStencilSurface = plugin::Call<0x7F5EF0, LPSURFACE>;
+const auto _rwD3D9SetRenderTarget        = plugin::CallAndReturn<RwBool, 0x7F5F20, RwUInt32, LPSURFACE>;
+
 /****************************************************************************
 rwD3D9FindDepth
 
@@ -532,7 +535,9 @@ _rxD3D9VideoMemoryRasterListRestore
 Release all the video memory
 
 */
-const auto _rxD3D9VideoMemoryRasterListRestore = plugin::CallAndReturn<RwBool, 0x4CC970>;
+RwBool _rxD3D9VideoMemoryRasterListRestore() {
+    return plugin::CallAndReturn<RwBool, 0x4CC970>();
+}
 
 /****************************************************************************
 _rwD3D9DynamicVertexBufferRestore
@@ -540,7 +545,9 @@ _rwD3D9DynamicVertexBufferRestore
 Purpose:   Restore all video memory Dinamic vertex buffers
 
 */
-const auto _rwD3D9DynamicVertexBufferRestore = plugin::CallAndReturn<RwBool, 0x7F58D0>;
+RwBool _rwD3D9DynamicVertexBufferRestore() {
+    return plugin::CallAndReturn<RwBool, 0x7F58D0>();
+}
 
 
 /****************************************************************************
@@ -549,7 +556,9 @@ _rwD3D9RenderStateReset
 On entry   :
 On exit    :
 */
-const auto _rwD3D9RenderStateReset = plugin::Call<0x7FD100>;
+void _rwD3D9RenderStateReset() {
+    plugin::Call<0x7FD100>();
+}
 
 /****************************************************************************
 D3D9RestoreCacheLights
@@ -595,7 +604,9 @@ _rwD3D9Im2DRenderOpen
 
 On exit    : TRUE on succes
 */
-const auto _rwD3D9Im2DRenderOpen = plugin::CallAndReturn<RwBool, 0x7FB480>;
+RwBool _rwD3D9Im2DRenderOpen() {
+    return plugin::CallAndReturn<RwBool, 0x7FB480>();
+}
 
 /****************************************************************************
 _rwD3D9Im3DRenderOpen
@@ -603,7 +614,9 @@ _rwD3D9Im3DRenderOpen
 On entry   :
 On exit    :
 */
-const auto _rwD3D9Im3DRenderOpen = plugin::CallAndReturn<RwBool, 0x80E020>;
+RwBool _rwD3D9Im3DRenderOpen() {
+    return plugin::CallAndReturn<RwBool, 0x80E020>();
+}
 
 /****************************************************************************
 rwD3D9DeviceRestoreVideoMemory
@@ -1593,12 +1606,9 @@ D3D9SetPresentParameters(const D3DDISPLAYMODE *mode,
             mode->RefreshRate,
             FullScreenRefreshRateInHz);
 
-#ifdef LOCK_AT_VSYNC
-        Present.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
-#else
-        Present.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-#endif
-
+        Present.PresentationInterval = notsa::s_NoVsync
+            ? D3DPRESENT_INTERVAL_IMMEDIATE
+            : D3DPRESENT_INTERVAL_ONE;
         Present.BackBufferWidth = mode->Width;
         Present.BackBufferHeight = mode->Height;
 
@@ -1616,11 +1626,9 @@ D3D9SetPresentParameters(const D3DDISPLAYMODE *mode,
         Present.FullScreen_RefreshRateInHz = 0;
 
         /* As fast as we can */
-#ifdef LOCK_AT_VSYNC
-        Present.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
-#else
-        Present.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-#endif
+        Present.PresentationInterval = notsa::s_NoVsync
+            ? D3DPRESENT_INTERVAL_IMMEDIATE
+            : D3DPRESENT_INTERVAL_ONE;
 
         /* Check window size */
         GetWindowRect(WindowHandle, &rect);
@@ -1875,6 +1883,31 @@ D3D9SetPresentParameters(const D3DDISPLAYMODE *mode,
     }
 
     RWRETURNVOID();
+}
+};
+
+namespace notsa {
+bool SetNoVSync(bool enabled) {
+    if (std::exchange(notsa::s_NoVsync, enabled) == enabled) {
+        return false; // Same value set already
+    }
+    Present.PresentationInterval = s_NoVsync
+        ? D3DPRESENT_INTERVAL_IMMEDIATE
+        : D3DPRESENT_INTERVAL_DEFAULT;
+    notsa::WindowedMode::AdjustPresentParams(&Present);
+    if (!RenderWare::D3D9DeviceReleaseVideoMemory()) {
+        return false;
+    }
+    if (FAILED(GetD3D9Device()->TestCooperativeLevel())) {
+        return false;
+    }
+    if (FAILED(GetD3D9Device()->Reset(&Present))) {
+        return false;
+    }
+    if (!RenderWare::D3D9DeviceRestoreVideoMemory()) {
+        return false;
+    }
+    return true;
 }
 };
 
