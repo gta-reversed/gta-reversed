@@ -28,8 +28,6 @@ public:
 public:
     static inline auto& ms_apProjectile = StaticRef<std::array<CProjectile*, MAX_PROJECTILES>>(0xC89110);
 
-    static void InjectHooks();
-
     static void Initialise();
     static void Shutdown();
     void RemoveFXSystem(bool bInstantly);
@@ -42,6 +40,10 @@ public:
     static bool IsProjectileInRange(float x1, float x2, float y1, float y2, float z1, float z2, bool bDestroy);
     static void RemoveAllProjectiles();
     static bool RemoveIfThisIsAProjectile(CObject* object);
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CProjectileInfo, 0x24);
 

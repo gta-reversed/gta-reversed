@@ -1149,6 +1149,18 @@ CRadar,StreamRadarSections-xy,0x00584C50,1,0,S
 CRadar,TransformRadarPointToRealWorldSpace,0x005835A0,1,0,S
 CRadar,TransformRadarPointToScreenSpace,0x00583480,1,0,S
 CRadar,TransformRealWorldPointToRadarSpace,0x00583530,1,0,S
+CProjectileInfo,AddProjectile,0x00737C80,0,1,S
+CProjectileInfo,GetProjectileInfo,0x00737BF0,0,1,S
+CProjectileInfo,Initialise,0x00737B40,0,1,S
+CProjectileInfo,IsProjectileInRange,0x00739860,1,0,S
+CProjectileInfo,RemoveAllProjectiles,0x007399B0,0,1,S
+CProjectileInfo,RemoveDetonatorProjectiles,0x00738860,0,1,S
+CProjectileInfo,RemoveFXSystem,0x00737B80,0,1,S
+CProjectileInfo,RemoveIfThisIsAProjectile,0x00739A40,0,1,S
+CProjectileInfo,RemoveNotAdd,0x00737C00,0,1,S
+CProjectileInfo,RemoveProjectile,0x007388F0,0,1,S
+CProjectileInfo,Shutdown,0x00737BC0,0,1,S
+CProjectileInfo,Update,0x00738B20,0,1,S
 CPostEffects,CCTV,0x00702F40,1,0,S
 CPostEffects,Close,0x007010C0,1,0,S
 CPostEffects,ColourFilter,0x00703650,1,0,S
@@ -1816,7 +1828,7 @@ CMenuSystem,SetActiveMenuItem,0x005820C0,1,0,S
 CMenuSystem,SetColumnOrientation,0x00582080,1,0,S
 CMenuSystem,SetColumnWidth,0x00582050,1,0,S
 CMenuSystem,SwitchOffMenu,0x00580750,1,0,S
-CMenuManager,AdditionalOptionInput,0x005773D0,0,1,S
+CMenuManager,AdditionalOptionInput,0x005773D0,1,0,S
 CMenuManager,CentreMousePointer,0x0057C520,1,0,S
 CMenuManager,CheckCodesForControls,0x0057DB20,1,0,S
 CMenuManager,CheckForMenuClosing,0x00576B70,1,1,S

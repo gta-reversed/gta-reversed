@@ -241,6 +241,7 @@ public:
 
     [[nodiscard]] bool IsStandardKeyJustDown(uint8 key) const noexcept      { return NewKeyState.standardKeys[key] && OldKeyState.standardKeys[key]; }                       //
     [[nodiscard]] bool IsStandardKeyJustPressed(uint8 key) const noexcept   { return NewKeyState.standardKeys[key] && !OldKeyState.standardKeys[key]; }                      // 0x4D59B0
+    [[nodiscard]] bool IsStandardKeyUp(uint8 key) const noexcept            { return !NewKeyState.standardKeys[key] && !OldKeyState.standardKeys[key]; }                     //
     [[nodiscard]] bool IsLeftCtrlJustPressed() const noexcept               { return KEY_IS_PRESSED(lctrl); }                                                                //
     [[nodiscard]] bool IsRightCtrlJustPressed() const noexcept              { return KEY_IS_PRESSED(rctrl); }                                                                //
     [[nodiscard]] bool IsCtrlJustDown() const noexcept                      { return IsLeftCtrlJustPressed() || IsRightCtrlJustPressed(); }                                  //
@@ -251,6 +252,8 @@ public:
     [[nodiscard]] static bool IsLeftDown() noexcept                         { return KEY_IS_DOWN(left); }                                                                    //
     [[nodiscard]] static bool IsUpDown() noexcept                           { return KEY_IS_DOWN(up); }                                                                      //
     [[nodiscard]] static bool IsDownDown() noexcept                         { return KEY_IS_DOWN(down); }                                                                    //
+    [[nodiscard]] static bool IsPgUpDown() noexcept                         { return KEY_IS_DOWN(pgup); }                                                                    //
+    [[nodiscard]] static bool IsPgDnDown() noexcept                         { return KEY_IS_DOWN(pgdn); }                                                                    //
     [[nodiscard]] static bool IsUpPressed() noexcept                        { return KEY_IS_PRESSED(up); }                                                                   //
     [[nodiscard]] static bool IsDownPressed() noexcept                      { return KEY_IS_PRESSED(down); }                                                                 //
     [[nodiscard]] static bool IsLeftPressed() noexcept                      { return KEY_IS_PRESSED(left); }                                                                 //
@@ -309,12 +312,14 @@ public:
 
     [[nodiscard]] bool IsLeftShoulder2JustUp() const noexcept               { return BUTTON_JUST_UP(LeftShoulder2); }                                                        // 0x53EE00
     [[nodiscard]] bool IsLeftShoulder2Pressed() const noexcept              { return BUTTON_IS_PRESSED(LeftShoulder2); }                                                     // 0x53EDE0
+    [[nodiscard]] bool IsLeftShoulder2() const noexcept                     { return BUTTON_IS_DOWN(LeftShoulder2); }                                                        //
 
     [[nodiscard]] bool IsRightShoulder1Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder1); }                                                    // 0x53EE20
     [[nodiscard]] bool IsRightShoulder1Up() const noexcept                  { return BUTTON_JUST_UP(RightShoulder1); }                                                       //
 
     [[nodiscard]] bool IsRightShoulder2Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder2); }                                                    //
     [[nodiscard]] bool IsRightShoulder2JustUp() const noexcept              { return BUTTON_JUST_UP(RightShoulder2); }                                                       // 0x53EE40
+    [[nodiscard]] bool IsRightShoulder2() const noexcept                    { return BUTTON_IS_DOWN(RightShoulder2); }                                                       //
 
     [[nodiscard]] bool IsRadioTrackSkipJustUp() const noexcept              { return BUTTON_JUST_UP(m_bRadioTrackSkip); }                                                    //
     [[nodiscard]] bool IsRadioTrackSkipPressed() const noexcept             { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); }                                                 // 0x4E7F20

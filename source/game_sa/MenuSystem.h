@@ -51,8 +51,8 @@ public:
         float          m_afColumnWidth[MENU_COL_COUNT];
         CVector2D      m_vPosn;
         bool           m_bColumnBackground;
-        MenuId         m_nSelectedRow;
-        MenuId         m_nAcceptedRow;
+        int8           m_nSelectedRow;
+        int8           m_nAcceptedRow;
     };
 
     static inline auto& MenuInUse = StaticRef<std::array<bool, CMenuSystem::MENU_COUNT>>(0xBA82E0);
@@ -65,8 +65,8 @@ public:
     static void Initialise();
     static void Process(int8 menu = MENU_UNDEFINED);
 
-    static MenuId CheckForAccept(MenuId id);
-    static MenuId CheckForSelected(MenuId id);
+    static int8 CheckForAccept(MenuId id);
+    static int8 CheckForSelected(MenuId id);
 
     static void Input(MenuId id);
     static void InputStandardMenu(MenuId id);
@@ -78,9 +78,9 @@ public:
     static MenuId CreateNewMenu(eMenuType type, const char* title, float x, float y, float width, uint8 columns, bool interactive, bool background, eFontAlignment alignment);
     static void ActivateItems(MenuId id, bool b1, bool b2, bool b3, bool b4, bool b5, bool b6, bool b7, bool b8, bool b9, bool b10, bool b11, bool b12);
     static void ActivateOneItem(MenuId id, uint8 rowId, bool enable);
-    static void InsertMenu(MenuId id, uint8 column, char* colHeader, char* row0 = nullptr, char* row1 = nullptr, char* row2 = nullptr, char* row3 = nullptr,
-                           char* row4 = nullptr, char* row5 = nullptr, char* row6 = nullptr, char* row7 = nullptr, char* row8 = nullptr, char* row9 = nullptr,
-                           char* row10 = nullptr, char* row11 = nullptr);
+    static void InsertMenu(MenuId id, uint8 column, const char* colHeader, const char* row0 = nullptr, const char* row1 = nullptr, const char* row2 = nullptr, const char* row3 = nullptr,
+                           const char* row4 = nullptr, const char* row5 = nullptr, const char* row6 = nullptr, const char* row7 = nullptr, const char* row8 = nullptr, const char* row9 = nullptr,
+                           const char* row10 = nullptr, const char* row11 = nullptr);
     static void FillGridWithCarColours(MenuId id);
 
     static void HighlightOneItem(MenuId id, uint8 item, bool bought);
