@@ -7,8 +7,11 @@ env:
     # Path to the CMake build directory.
     build: "${{ github.workspace }}/build"
 
-# Triggers the workflow on push or pull request events for all branches.
-on: [push, pull_request]
+# Triggers on pushes to master and on pull requests (a branch with an open PR would be analyzed twice otherwise).
+on:
+    push:
+        branches: [master]
+    pull_request:
 
 permissions:
     contents: read
@@ -31,10 +34,8 @@ jobs:
             - name: Setup CMake using Conan
               uses: ./.github/actions/setup-cmake
               with:
-                  os: ${{ matrix.os }}
-                  arch: ${{ matrix.arch }}
                   conf: ${{ matrix.conf }}
-                  preset: ${{ matrix.preset }}
+                  preset: Unity # Builds faster, and analysis results are the same
 
             - name: Initialize MSVC Code Analysis
               uses: microsoft/msvc-code-analysis-action@v0.1.1
@@ -49,6 +50,6 @@ jobs:
 
               # Upload SARIF file to GitHub Code Scanning Alerts
             - name: Upload SARIF to GitHub
-              uses: github/codeql-action/upload-sarif@v3
+              uses: github/codeql-action/upload-sarif@v4
               with:
                   sarif_file: ${{ steps.analysis.outputs.sarif }}

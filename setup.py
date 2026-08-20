@@ -13,7 +13,6 @@ args = AP.parse_args()
 
 if not args.standalone and args.dump_hooks_only:
     AP.error("The --dump-hooks-only option can only be used with the --standalone option")
-    exit(1)
 
 try:
     # defines passed to cmake via -D<key>=<value> arguments

@@ -3,22 +3,24 @@ from contextlib import contextmanager
 import csv
 import datetime
 import os
-import tkinter.filedialog as tkFileDialog
 from dataclasses import dataclass
 from typing import Any
 
 GITHUB_SHA = os.environ.get("GITHUB_SHA", "unknown")
-GITHUB_REPO_URL = os.environ.get("GITHUB_REPO_URL")
+GITHUB_REPO_URL = os.environ.get("GITHUB_REPO_URL", "https://github.com/gta-reversed/gta-reversed")
 
 ap = argparse.ArgumentParser(description="Generate a Markdown file with reversed classes stats from hooks.csv")
 ap.add_argument("--input", default=None, help="Path to the hooks.csv file (if not provided, a file dialog will be shown to select the input file)")
 ap.add_argument("--output", default=None, help="Path to the output Markdown file (if not provided, a file dialog will be shown to select the output location)")
 args = ap.parse_args()
 
-if args.input is None:
-    args.input = tkFileDialog.askopenfilename(title='Please select the hooks.csv file')
-if args.output is None:
-    args.output = tkFileDialog.asksaveasfilename(title='Please select the output MD file location', defaultextension=".md")
+if args.input is None or args.output is None:
+    import tkinter.filedialog as tkFileDialog # only needed for the dialogs, and it's not always installed
+
+    if args.input is None:
+        args.input = tkFileDialog.askopenfilename(title='Please select the hooks.csv file')
+    if args.output is None:
+        args.output = tkFileDialog.asksaveasfilename(title='Please select the output MD file location', defaultextension=".md")
 
 @dataclass
 class Klass:
@@ -35,10 +37,6 @@ class Klass:
     @property
     def num_fn(self):
         return self.num_not_reversed + self.num_reversed
-    
-    @property
-    def is_completely_reversed(self):
-        return self.num_not_reversed == 0
 
 def main():
     klass_info : dict[str, Klass] = {}
@@ -79,8 +77,9 @@ def main():
         outf.write(f"## Stats ({sum(k.num_fn for k in klass_info.values())} functions, {len(klass_info)} classes)\n")
 
         def write_header(title: str, klasses: list[Klass]):
+            ratio = len(klasses) / num_total_klass if num_total_klass else 0
             outf.write("\n")
-            outf.write(f"#### {title} ({len(klasses)}/{num_total_klass}) [{len(klasses) / num_total_klass:.0%}]\n")
+            outf.write(f"#### {title} ({len(klasses)}/{num_total_klass}) [{ratio:.0%}]\n")
             outf.write("\n")
 
         @contextmanager

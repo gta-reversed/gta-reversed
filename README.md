@@ -9,7 +9,7 @@ Please join our community Discord: [GTA Groupies](https://discord.gg/FG8XJ5Npqe)
 Building this project will result in a DLL file that can be injected into GTA:SA using any ASI loader out there. After the DLL file has been injected, the ingame functions will be replaced by the reversed ones. The game will behave the same. Now if we make any changes to the reversed code, it will take effect in the game. The goal is to keep reversing until we have the entire game reversed to compile a standalone executable.
 
 ## Progress
-The progress of reversed classes can be tracked [here](docs/ReversedClasses.md). (needs to be updated)
+The progress of reversed classes can be tracked [here](docs/ReversedClasses.md), it's regenerated automatically whenever the hooks change.
 We currently estimate that about 50-60% of the code is done.
 Since this project is done as a hobby, and worked on at irregular intervals, **there's no time estimate on when it'll be finished.**
 
@@ -18,7 +18,7 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 * [Visual Studio 2026](https://visualstudio.microsoft.com/en/downloads/)
 * [Python](https://www.python.org/downloads/) >= 3.x (For Conan)
 * [Conan](https://docs.conan.io/2/installation.html#install-with-pip-recommended) (>= 2.x)
-* [CMake](https://cmake.org/download/) (>= 4.20)
+* [CMake](https://cmake.org/download/) (>= 3.23)
 
 > [!NOTE]
 > Visual Studio 2022 should still work but don't forget to change `compiler.version` to 194 in
@@ -45,7 +45,7 @@ Alternatively, you can install them by yourself:
     * [ASI Loader](https://gtaforums.com/topic/523982-relopensrc-silents-asi-loader/)
     * Mouse Fix (**dinput8.dll**) [Can be found in the zip in the `contrib` folder]
 
-    You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed-modern/blob/master/contrib/plugins.zip).
+    You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed/blob/master/contrib/plugins.zip).
 
 ### Other plugins
 Using other (than the ones we've tested) plugins is strongly discouraged and we provide __**no support**__.
@@ -53,14 +53,14 @@ Using other (than the ones we've tested) plugins is strongly discouraged and we 
 ## Contributing
 
 ### Coding/Contributing Guidelines
-Before you start writing code, please make sure to read the [coding guidelines](docs/CodingGuidelines.MD) for this project. Consider these points before opening a PR:
+Before you start writing code, please make sure to read the [coding guidelines](docs/CodingGuidelines.md) for this project. Consider these points before opening a PR:
 
 * Follow the coding guidelines, it exists for a reason.
 * Try to focus your changes onto single subject, do not create PRs that cover many things at once. This is because it's hard to properly test and review such PRs.
 * If you intend to add non-vanilla features please first consult with us, so you don't waste your time.
 
 ### What to work on?
-Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/discussions/402) for some inspiration ;)
+Check out [this discussion](https://github.com/gta-reversed/gta-reversed/discussions/402) for some inspiration ;)
 
 ### Debugging
 0) Make sure the latest DLL is in the `scripts` folder of your GTASA installation - Skip this step if you've used `contrib/install.py` (As it uses symlinks!)

@@ -17,12 +17,10 @@ HeaderFilterRegex: 'source/.*'
 
 FormatStyle: file
 
-AnalyzeTemporaryDtors: false
-
 CheckOptions:
   - key:             modernize-use-nullptr.NullMacros
     value:           'NULL'
   - key:             readability-identifier-naming.VariableCase
-    value:           lower_case
+    value:           camelBack
   - key:             readability-identifier-naming.ClassCase
     value:           CamelCase

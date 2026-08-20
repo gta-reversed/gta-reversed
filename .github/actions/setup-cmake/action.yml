@@ -2,14 +2,6 @@ name: Setup CMake using Conan
 description: A workflow to setup CMake using Conan, which can be used as a dependency for other workflows.
 
 inputs:
-    os:
-        description: "The operating system to use for the setup. [Values: windows-2025-vs2026]"
-        required: true
-        default: "windows-2025-vs2026"
-    arch:
-        description: "The architecture to use for the setup. [Values: x86]"
-        required: true
-        default: "x86"
     conf:
         description: "The build configuration to use for the setup. [Values: Debug, Release]"
         required: true
