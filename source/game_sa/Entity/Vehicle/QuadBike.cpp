@@ -17,7 +17,7 @@ void CQuadBike::InjectHooks() {
     RH_ScopedVMTInstall(GetRideAnimData, 0x6CDC90);
     RH_ScopedVMTInstall(PreRender, 0x6CEAD0);
     RH_ScopedVMTInstall(ProcessAI, 0x6CE460);
-    RH_ScopedVMTInstall(ProcessControl, 0x6CDCC0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessControl, 0x6CDCC0, { .Reversed = false });
     RH_ScopedVMTInstall(ProcessControlInputs, 0x6CE020);
     RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6CE280);
     RH_ScopedVMTInstall(ProcessSuspension, 0x6CE270);

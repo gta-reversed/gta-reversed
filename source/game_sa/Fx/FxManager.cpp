@@ -26,7 +26,7 @@ void FxManager_c::InjectHooks() {
     RH_ScopedInstall(Init, 0x4A98E0);
     RH_ScopedInstall(Exit, 0x4A9A10);
     RH_ScopedInstall(DestroyFxSystem, 0x4A9810);
-    RH_ScopedInstall(DestroyAllFxSystems, 0x4A98B0, {.reversed = false}); // <-- broken for some reason?
+    RH_ScopedInstall(DestroyAllFxSystems, 0x4A98B0, {.Reversed = false}); // <-- broken for some reason?
     RH_ScopedInstall(Update, 0x4A9A80);
     RH_ScopedInstall(LoadFxProject, 0x5C2420);
     RH_ScopedInstall(UnloadFxProject, 0x4A9AE0);

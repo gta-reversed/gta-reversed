@@ -18,10 +18,10 @@ void CRopes::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x556B10);
     RH_ScopedInstall(Update, 0x558D70);
     RH_ScopedInstall(Render, 0x556AE0);
-    RH_ScopedInstall(RegisterRope, 0x556B40, { .reversed = false });
+    RH_ScopedInstall(RegisterRope, 0x556B40, { .Reversed = false });
     RH_ScopedInstall(FindPickupHeight, 0x556760);
     RH_ScopedInstall(FindRope, 0x556000);
-    RH_ScopedInstall(FindCoorsAlongRope, 0x555E40, { .reversed = false });
+    RH_ScopedInstall(FindCoorsAlongRope, 0x555E40, { .Reversed = false });
     RH_ScopedInstall(CreateRopeForSwatPed, 0x558D10);
     RH_ScopedInstall(IsCarriedByRope, 0x555F80);
     RH_ScopedInstall(SetSpeedOfTopNode, 0x555DF0);

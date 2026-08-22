@@ -9,7 +9,6 @@
 
 #include "FileMgr.h"
 
-#include "HookSystem.h"
 #include "extensions/Configs/Miscellaneous.hpp"
 
 auto& user_tracks_dir_path = StaticRef<char[256]>(0xc92168);
@@ -360,18 +359,18 @@ void CFileMgr::InjectHooks()
     RH_ScopedInstall(Initialise, 0x5386f0);
     RH_ScopedInstall(ChangeDir, 0x538730);
     RH_ScopedInstall(SetDir, 0x5387D0);
-    RH_ScopedInstall(SetDirMyDocuments, 0x538860, { .locked = true });
-    RH_ScopedInstall(LoadFile, 0x538890, { .locked = true });
-    RH_ScopedInstall(OpenFile, 0x538900, { .locked = true });
-    RH_ScopedInstall(OpenFileForWriting, 0x538910, { .locked = true });
-    RH_ScopedInstall(OpenFileForAppending, 0x538930, { .locked = true });
-    RH_ScopedInstall(Read, 0x538950, { .locked = true });
-    RH_ScopedInstall(Write, 0x538970, { .locked = true });
-    RH_ScopedInstall(Seek, 0x538990, { .locked = true });
-    RH_ScopedInstall(ReadLine, 0x5389b0, { .locked = true });
-    RH_ScopedInstall(CloseFile, 0x5389d0, { .locked = true });
-    RH_ScopedInstall(GetTotalSize, 0x5389e0, { .locked = true });
-    RH_ScopedInstall(Tell, 0x538a20, { .locked = true });
-    RH_ScopedInstall(GetErrorReadWrite, 0x538a50, { .locked = true });
+    RH_ScopedInstall(SetDirMyDocuments, 0x538860, { .Locked = true });
+    RH_ScopedInstall(LoadFile, 0x538890, { .Locked = true });
+    RH_ScopedInstall(OpenFile, 0x538900, { .Locked = true });
+    RH_ScopedInstall(OpenFileForWriting, 0x538910, { .Locked = true });
+    RH_ScopedInstall(OpenFileForAppending, 0x538930, { .Locked = true });
+    RH_ScopedInstall(Read, 0x538950, { .Locked = true });
+    RH_ScopedInstall(Write, 0x538970, { .Locked = true });
+    RH_ScopedInstall(Seek, 0x538990, { .Locked = true });
+    RH_ScopedInstall(ReadLine, 0x5389b0, { .Locked = true });
+    RH_ScopedInstall(CloseFile, 0x5389d0, { .Locked = true });
+    RH_ScopedInstall(GetTotalSize, 0x5389e0, { .Locked = true });
+    RH_ScopedInstall(Tell, 0x538a20, { .Locked = true });
+    RH_ScopedInstall(GetErrorReadWrite, 0x538a50, { .Locked = true });
     RH_ScopedGlobalInstall(InitUserDirectories, 0x744fb0);
 }

@@ -416,7 +416,7 @@ void CAEUserRadioTrackManager::InjectHooks() {
     RH_ScopedInstall(LoadUserTrack, 0x4f35f0);
     RH_ScopedInstall(GetUserTrackPlayMode, 0x4f3330);
     RH_ScopedInstall(SetUserTrackIndex, 0x4f3340);
-    RH_ScopedOverloadedInstall(WriteUserTracksFile, "", 0x4f4690, int32(CAEUserRadioTrackManager::*)(const char*, size_t&, FILE*, std::vector<tUserTracksInfo>&, int32), {.locked=true});
-    RH_ScopedInstall(WriteUserTracksThread, 0x4f4a20, {.locked=true});
+    RH_ScopedOverloadedInstall(WriteUserTracksFile, "", 0x4f4690, int32(CAEUserRadioTrackManager::*)(const char*, size_t&, FILE*, std::vector<tUserTracksInfo>&, int32), {.Locked =true});
+    RH_ScopedInstall(WriteUserTracksThread, 0x4f4a20, {.Locked =true});
     RH_ScopedInstall(ScanUserTracks, 0x4f4ba0);
 }

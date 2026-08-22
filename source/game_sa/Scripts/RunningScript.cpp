@@ -20,7 +20,7 @@ static notsa::log_ptr logger;
 
 #include "CommandParser/Parser.hpp"
 #include "CommandParser/LUTGenerator.hpp"
-#include "reversiblehooks/ReversibleHook/ScriptCommand.h"
+#include "reversiblehooks/ReversibleHook/ScriptCommandHook.h"
 
 #include "Commands/Commands.hpp"
 #ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS // TODO: Add premake/cmake option for this define
@@ -47,40 +47,40 @@ void CRunningScript::InjectHooks() {
     RH_ScopedInstall(Init, 0x4648E0);
     RH_ScopedInstall(GetCorrectPedModelIndexForEmergencyServiceType, 0x464F50);
 
-    RH_ScopedInstall(PlayAnimScriptCommand, 0x470150, { .reversed = false });
-    RH_ScopedInstall(LocateCarCommand, 0x487A20, { .reversed = false });
-    RH_ScopedInstall(LocateCharCommand, 0x486D80, { .reversed = false });
-    RH_ScopedInstall(LocateObjectCommand, 0x487D10, { .reversed = false });
-    RH_ScopedInstall(LocateCharCarCommand, 0x487420, { .reversed = false });
-    RH_ScopedInstall(LocateCharCharCommand, 0x4870F0, { .reversed = false });
-    RH_ScopedInstall(LocateCharObjectCommand, 0x487720, { .reversed = false });
-    RH_ScopedInstall(CarInAreaCheckCommand, 0x488EC0, { .reversed = false });
-    RH_ScopedInstall(CharInAreaCheckCommand, 0x488B50, { .reversed = false });
-    RH_ScopedInstall(ObjectInAreaCheckCommand, 0x489150, { .reversed = false });
-    RH_ScopedInstall(CharInAngledAreaCheckCommand, 0x487F60, { .reversed = false });
-    RH_ScopedInstall(FlameInAngledAreaCheckCommand, 0x488780, { .reversed = false });
-    RH_ScopedInstall(ObjectInAngledAreaCheckCommand, 0x4883F0, { .reversed = false });
-    RH_ScopedInstall(CollectParameters, 0x464080, { .stackArguments = 1 });
-    RH_ScopedInstall(CollectNextParameterWithoutIncreasingPC, 0x464250, { .stackArguments = 0 });
-    RH_ScopedInstall(StoreParameters, 0x464370, { .stackArguments = 1 });
-    RH_ScopedInstall(ReadArrayInformation, 0x463CF0, { .stackArguments = 3 });
-    RH_ScopedInstall(ReadParametersForNewlyStartedScript, 0x464500, { .stackArguments = 1 });
-    RH_ScopedInstall(ReadTextLabelFromScript, 0x463D50, { .stackArguments = 2 });
-    RH_ScopedInstall(GetIndexOfGlobalVariable, 0x464700, { .stackArguments = 0 });
+    RH_ScopedInstall(PlayAnimScriptCommand, 0x470150, { .Reversed = false });
+    RH_ScopedInstall(LocateCarCommand, 0x487A20, { .Reversed = false });
+    RH_ScopedInstall(LocateCharCommand, 0x486D80, { .Reversed = false });
+    RH_ScopedInstall(LocateObjectCommand, 0x487D10, { .Reversed = false });
+    RH_ScopedInstall(LocateCharCarCommand, 0x487420, { .Reversed = false });
+    RH_ScopedInstall(LocateCharCharCommand, 0x4870F0, { .Reversed = false });
+    RH_ScopedInstall(LocateCharObjectCommand, 0x487720, { .Reversed = false });
+    RH_ScopedInstall(CarInAreaCheckCommand, 0x488EC0, { .Reversed = false });
+    RH_ScopedInstall(CharInAreaCheckCommand, 0x488B50, { .Reversed = false });
+    RH_ScopedInstall(ObjectInAreaCheckCommand, 0x489150, { .Reversed = false });
+    RH_ScopedInstall(CharInAngledAreaCheckCommand, 0x487F60, { .Reversed = false });
+    RH_ScopedInstall(FlameInAngledAreaCheckCommand, 0x488780, { .Reversed = false });
+    RH_ScopedInstall(ObjectInAngledAreaCheckCommand, 0x4883F0, { .Reversed = false });
+    RH_ScopedInstall(CollectParameters, 0x464080, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(CollectNextParameterWithoutIncreasingPC, 0x464250, { .StackArgumentsToPreserve = 0, .PreserveRegisters = true });
+    RH_ScopedInstall(StoreParameters, 0x464370, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(ReadArrayInformation, 0x463CF0, { .StackArgumentsToPreserve = 3, .PreserveRegisters = true });
+    RH_ScopedInstall(ReadParametersForNewlyStartedScript, 0x464500, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(ReadTextLabelFromScript, 0x463D50, { .StackArgumentsToPreserve = 2, .PreserveRegisters = true });
+    RH_ScopedInstall(GetIndexOfGlobalVariable, 0x464700, { .StackArgumentsToPreserve = 0, .PreserveRegisters = true });
     RH_ScopedInstall(GetPadState, 0x485B10);
-    RH_ScopedInstall(GetPointerToLocalVariable, 0x463CA0, { .stackArguments = 1 });
-    RH_ScopedInstall(GetPointerToLocalArrayElement, 0x463CC0, { .stackArguments = 3 });
-    RH_ScopedInstall(GetPointerToScriptVariable, 0x464790, { .stackArguments = 1 });
+    RH_ScopedInstall(GetPointerToLocalVariable, 0x463CA0, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(GetPointerToLocalArrayElement, 0x463CC0, { .StackArgumentsToPreserve = 3, .PreserveRegisters = true });
+    RH_ScopedInstall(GetPointerToScriptVariable, 0x464790, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
     RH_ScopedInstall(DoDeathArrestCheck, 0x485A50);
     RH_ScopedInstall(SetCharCoordinates, 0x464DC0);
-    RH_ScopedInstall(AddScriptToList, 0x464C00, { .stackArguments = 1 });
-    RH_ScopedInstall(RemoveScriptFromList, 0x464BD0, { .stackArguments = 1 });
-    RH_ScopedInstall(ShutdownThisScript, 0x465AA0, { .reversed = false });
+    RH_ScopedInstall(AddScriptToList, 0x464C00, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(RemoveScriptFromList, 0x464BD0, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(ShutdownThisScript, 0x465AA0, { .Reversed = false });
     RH_ScopedInstall(IsPedDead, 0x464D70);
     RH_ScopedInstall(ThisIsAValidRandomPed, 0x489490);
-    RH_ScopedInstall(ScriptTaskPickUpObject, 0x46AF50, { .reversed = false });
-    RH_ScopedInstall(UpdateCompareFlag, 0x4859D0, { .stackArguments = 1 });
-    RH_ScopedInstall(UpdatePC, 0x464DA0, { .stackArguments = 1 });
+    RH_ScopedInstall(ScriptTaskPickUpObject, 0x46AF50, { .Reversed = false });
+    RH_ScopedInstall(UpdateCompareFlag, 0x4859D0, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
+    RH_ScopedInstall(UpdatePC, 0x464DA0, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true });
     RH_ScopedInstall(ProcessOneCommand, 0x469EB0);
     RH_ScopedInstall(Process, 0x469F00);
     RH_ScopedOverloadedInstall(GivePedScriptedTask, "OG", 0x465C20, void(CRunningScript::*)(int32, CTask*, int32));

@@ -29,7 +29,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0);
     RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0);
     RH_ScopedInstall(ImmediateModeRenderStatesSet, 0x700D70);
-    RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0, {.locked = true}); // EAX is overriden when unhooked for some reason
+    RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0, {.Locked = true}); // EAX is overriden when unhooked for some reason
     RH_ScopedInstall(ImmediateModeRenderStatesReStore, 0x700E00);
     RH_ScopedInstall(ScriptCCTVSwitch, 0x7011B0);
     RH_ScopedInstall(ScriptDarknessFilterSwitch, 0x701170);
@@ -39,7 +39,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(ScriptResetForEffects, 0x7010F0);
     RH_ScopedInstall(UnderWaterRipple, 0x7039C0);
     RH_ScopedInstall(HeatHazeFXInit, 0x701450);
-    RH_ScopedInstall(HeatHazeFX, 0x701780, { .reversed = false });
+    RH_ScopedInstall(HeatHazeFX, 0x701780, { .Reversed = false });
     RH_ScopedInstall(IsVisionFXActive, 0x7034F0);
     RH_ScopedInstall(NightVision, 0x7011C0);
     RH_ScopedInstall(NightVisionSetLights, 0x7012E0);
@@ -51,10 +51,10 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(Fog, 0x704150);
     RH_ScopedInstall(CCTV, 0x702F40);
     RH_ScopedInstall(Grain, 0x7037C0);
-    RH_ScopedInstall(SpeedFX, 0x7030A0, { .reversed = false });
+    RH_ScopedInstall(SpeedFX, 0x7030A0, { .Reversed = false });
     RH_ScopedInstall(DarknessFilter, 0x702F00);
     RH_ScopedInstall(ColourFilter, 0x703650);
-    RH_ScopedInstall(Radiosity, 0x702080, { .reversed = false });
+    RH_ScopedInstall(Radiosity, 0x702080, { .Reversed = false });
     RH_ScopedInstall(SetSpeedFXManualSpeedCurrentFrame, 0x700BE0);
     RH_ScopedInstall(Render, 0x7046E0);
 }

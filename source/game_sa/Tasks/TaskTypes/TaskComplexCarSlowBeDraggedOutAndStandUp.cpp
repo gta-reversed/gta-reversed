@@ -8,13 +8,13 @@ void CTaskComplexCarSlowBeDraggedOutAndStandUp::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x648620);
     RH_ScopedInstall(Destructor, 0x648690);
-    RH_ScopedInstall(CreateSubTask, 0x648710, { .reversed = false });
-    RH_ScopedInstall(Clone, 0x64A190, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x648710, { .Reversed = false });
+    RH_ScopedInstall(Clone, 0x64A190, { .Reversed = false });
     RH_ScopedInstall(GetTaskType, 0x648680);
-    RH_ScopedInstall(MakeAbortable, 0x6486F0, { .reversed = false });
-    RH_ScopedInstall(CreateNextSubTask, 0x6488F0, { .reversed = false });
-    RH_ScopedInstall(CreateFirstSubTask, 0x648A10, { .reversed = false });
-    RH_ScopedInstall(ControlSubTask, 0x648B80, { .reversed = false });
+    RH_ScopedInstall(MakeAbortable, 0x6486F0, { .Reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x6488F0, { .Reversed = false });
+    RH_ScopedInstall(CreateFirstSubTask, 0x648A10, { .Reversed = false });
+    RH_ScopedInstall(ControlSubTask, 0x648B80, { .Reversed = false });
 }
 
 // 0x648620

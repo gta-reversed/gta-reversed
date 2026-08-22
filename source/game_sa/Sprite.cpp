@@ -15,14 +15,14 @@ void CSprite::InjectHooks() {
     RH_ScopedInstall(CalcHorizonCoors, 0x70E3E0);
     RH_ScopedOverloadedInstall(Set4Vertices2D, "CRect", 0x70E1C0, void (*)(RwIm2DVertex*, const CRect&, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
     // RH_ScopedOverloadedInstall(Set4Vertices2D, "1", 0x70E2D0, void (*)(RwD3D9Vertex*, float, float, float, float, float, float, float, float, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
-    RH_ScopedInstall(RenderOneXLUSprite, 0x70D000, { .reversed = false });
+    RH_ScopedInstall(RenderOneXLUSprite, 0x70D000, { .Reversed = false });
     RH_ScopedInstall(RenderOneXLUSprite_Triangle, 0x70D320);
-    RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490, { .reversed = false });
+    RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490, { .Reversed = false });
     RH_ScopedInstall(RenderOneXLUSprite2D, 0x70F540);
-    RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0, { .reversed = false });
-    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780, { .reversed = false });
-    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Dimension, 0x70EAB0, { .reversed = false });
-    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_2Colours, 0x70EDE0, { .reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0, { .Reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780, { .Reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Dimension, 0x70EAB0, { .Reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_2Colours, 0x70EDE0, { .Reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite2D, 0x70F440);
 }
 

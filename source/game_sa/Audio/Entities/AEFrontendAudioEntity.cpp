@@ -812,8 +812,8 @@ void CAEFrontendAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x5B9AB0);
     RH_ScopedInstall(Reset, 0x4DD440);
-    RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .reversed = false });
+    RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .Reversed = false });
     RH_ScopedInstall(IsRadioTuneSoundActive, 0x4DD480);
     RH_ScopedInstall(IsLoadingTuneActive, 0x4DD470);
-    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .Reversed = false });
 }

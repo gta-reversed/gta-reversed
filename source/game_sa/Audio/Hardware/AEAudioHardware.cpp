@@ -31,7 +31,7 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(StopSound, 0x4D88E0);
     RH_ScopedInstall(SetChannelPosition, 0x4D8920);
     RH_ScopedInstall(SetChannelFrequencyScalingFactor, 0x4D8960);
-    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990, { .reversed = false });
+    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990, { .Reversed = false });
     RH_ScopedInstall(UpdateReverbEnvironment, 0x4D8DA0);
     RH_ScopedInstall(GetSoundHeadroom, 0x4D8E30);
     RH_ScopedInstall(EnableEffectsLoading, 0x4D8E40);

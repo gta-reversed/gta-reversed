@@ -17,6 +17,7 @@ project(GTASA C CXX)
 set(RE_PROJECT GTASA)
 set(RE_PROJECT_LIB_NAME gta_reversed)
 set(RE_PROJECT_APP_NAME gta_reversed_app)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(${RE_PROJECT}_NO_EDIT_AND_CONTINUE "Disable Edit&Continue" OFF)
 

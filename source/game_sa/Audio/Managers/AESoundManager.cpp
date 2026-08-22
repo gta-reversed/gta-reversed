@@ -342,7 +342,7 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
     }
 
 #ifdef NOTSA_DEBUG
-    notsa::ui::UIRenderer::GetSingleton().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
+    notsa::ui::UIRenderer::GetInstance().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
         .StackTrace = std::stacktrace::current()
     });
 #endif

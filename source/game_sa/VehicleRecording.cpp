@@ -415,7 +415,7 @@ void CVehicleRecording::InjectHooks() {
     RH_ScopedInstall(Init, 0x459390);
     RH_ScopedInstall(InitAtStartOfGame, 0x45A1B0);
     RH_ScopedInstall(ShutDown, 0x459400);
-    RH_ScopedInstall(Render, 0x459F70, {.locked = true});
+    RH_ScopedInstall(Render, 0x459F70);
     RH_ScopedInstall(ChangeCarPlaybackToUseAI, 0x45A360);
     RH_ScopedInstall(FindIndexWithFileNameNumber, 0x459FF0);
     RH_ScopedInstall(InterpolateInfoForCar, 0x459B30);

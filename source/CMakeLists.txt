@@ -1,3 +1,5 @@
+include(FetchContent)
+
 #--------------------------------------------------------------------
 # Game features
 #--------------------------------------------------------------------
@@ -92,6 +94,15 @@ target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 #--------------------------------------------------------------------
 # Add dependencies
 #--------------------------------------------------------------------
+
+# Adding this here as it has no Conan-center package, and it's header-only
+FetchContent_Declare(
+    imfilebrowser
+    GIT_REPOSITORY https://github.com/AirGuanZ/imgui-filebrowser
+    GIT_TAG        47a1884
+)
+FetchContent_MakeAvailable(imfilebrowser)
+
 macro(add_dependency)
     foreach (target ${ARGV})
         find_package(${target} REQUIRED)
@@ -111,6 +122,7 @@ add_dependency(
     imgui
     libjpeg-turbo
     SDL3
+    boost
 )
 
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
@@ -127,8 +139,8 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     strmiids
     d3d9
     SDL3::SDL3
+    boost::boost
 )
-
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     .
@@ -188,6 +200,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     oswrapper
 
     libs/imgui
+    ${imfilebrowser_SOURCE_DIR}
 )
 
 target_sources(${RE_PROJECT_LIB_NAME} PRIVATE

@@ -526,14 +526,15 @@
 #include <RealTimeShadowManager.h>
 
 #include "extensions/utility.hpp"
-#include "extensions/CommandLine.h"
 #include <RenderBuffer.hpp>
 
-#include "reversiblehooks/RootHookCategory.h"
-
+#ifndef NOTSA_STANDALONE
 #include "WindowedMode.hpp"
+#endif
 
 void InjectHooksMain() {
+    const auto now = std::chrono::high_resolution_clock::now();
+
     /**
     * We have `NOTSA_STANDALONE` macro to be able to dump all hooks without actually writing to memory,
     * it is used by the CI to automatically update the docs.
@@ -541,10 +542,6 @@ void InjectHooksMain() {
     **/
 
     #ifndef NOTSA_STANDALONE
-        HookInstall(0x53E230, &Render2dStuff);   // [ImGui] This one shouldn't be reversible, it contains imgui debug menu logic, and makes game unplayable without
-        HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
-        HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
-
         #ifdef NOTSA_WINDOWED_MODE
             notsa::InjectWindowedModeHooks();
         #endif
@@ -1459,13 +1456,12 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
+
+    NOTSA_LOG_INFO("InjectedHooksMain(): Finished in {} ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count());
+
+    CommandLine::PostHooksInjected();
+
 #if _DEBUG
     CCurves::TestCurves();
 #endif
-}
-
-void InjectHooksMain(HMODULE hThisDLL) {
-    ReversibleHooks::OnInjectionBegin(hThisDLL);
-    InjectHooksMain();
-    ReversibleHooks::OnInjectionEnd();
 }

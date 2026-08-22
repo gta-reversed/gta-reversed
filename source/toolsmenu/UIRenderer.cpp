@@ -107,7 +107,7 @@ void UIRenderer::PreRenderUpdate() {
 
     m_DebugModules.PreRenderUpdate();
     DebugCode();
-    ReversibleHooks::CheckAll();
+    ReversibleHooks::RHManager::GetInstance().CheckAll();
 
     if (ImGui::IsKeyChordPressed(ImGuiKey_F7, ImGuiInputFlags_RouteAlways) || CPad::GetPad()->IsFKeyJustDown(FKEY7)) {
         SetIsActive(!m_InputActive);
@@ -122,7 +122,7 @@ void UIRenderer::DrawLoop() {
     ZoneScoped;
 
     if (m_ReInitRequested) {
-        ResetSingleton(); // This will destruct the current object so we gotta stop here.
+        RecrateInstance(); // This will destruct the current object so we gotta stop here.
         return;
     }
 

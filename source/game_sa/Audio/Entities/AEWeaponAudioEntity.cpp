@@ -515,7 +515,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
     if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS, true)) {
         return;
     }
-    PlayStealthKillSound(SND_BANK_SLOT_COLLISIONS, 471, 0.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_OUT);
+    PlayStealthKillSound(SND_BANK_SLOT_COLLISIONS, 47, 0.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_OUT);
 }
 
 // 0x503910

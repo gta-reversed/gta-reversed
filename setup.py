@@ -3,6 +3,7 @@ import subprocess, argparse, os, sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 AP = argparse.ArgumentParser(description="gta-reversed project setup script")
+AP.add_argument("--tracy", default=False, action="store_true", help="Enable Tracy profiler")
 AP.add_argument("--build", action="store_true", help="build instead of setting up & configuring")
 AP.add_argument("--no-unity-build", action="store_true", help="disable unity build")
 AP.add_argument("--buildconf", default="Debug", choices=["Debug", "Release", "RelWithDebInfo"], help="cmake compilation type")
@@ -38,18 +39,24 @@ try:
         )
         exit(0)
 
+    conan_opts = {
+        'tracy/*:enable': args.tracy
+    }
+    conan_opts_str = ' '.join([f'-o {key}={value}' for key, value in conan_opts.items()])
+    print(f"Running conan install with options: {conan_opts_str}")
     subprocess.run(
-        f'conan install {SCRIPT_DIR} --build missing -s build_type="{args.buildconf}" --profile {SCRIPT_DIR}/{args.profile}',
+        f'conan install {SCRIPT_DIR} --build missing -s build_type="{args.buildconf}" --profile {SCRIPT_DIR}/{args.profile} {conan_opts_str}',
         shell=True, check=True
     )
     
-    options = ' '.join([f"-D{key}={'ON' if value else 'OFF'}" for key, value in defines.items()])
+    cmake_opts = ' '.join([f"-D{key}={'ON' if value else 'OFF'}" for key, value in defines.items()])
+    print(f"Running cmake with options: {cmake_opts}")
     subprocess.run(
-        f'cmake --preset {preset} {genpath} {options}',
+        f'cmake --preset {preset} {genpath} {cmake_opts}',
         shell=True, check=True
     )
 except subprocess.CalledProcessError as e:
     print(f'Installation failed with error code {e.returncode}!')
     exit(e.returncode)
 else:
-    print(f'Installation is done!')
+    print('Installation is done!')

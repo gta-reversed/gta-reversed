@@ -6,17 +6,17 @@ void CScriptsForBrains::InjectHooks() {
     RH_ScopedClass(CScriptsForBrains);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Init, 0x46A8C0, {.reversed = false});
-    //RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900, {.reversed = false});
-    //RH_ScopedInstall(AddNewScriptBrain, 0x46A930, {.reversed = false});
-    //RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0, {.reversed = false});
+    RH_ScopedInstall(Init, 0x46A8C0, {.Reversed = false});
+    //RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900, {.Reversed = false});
+    //RH_ScopedInstall(AddNewScriptBrain, 0x46A930, {.Reversed = false});
+    //RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0, {.Reversed = false});
     RH_ScopedInstall(GetIndexOfScriptBrainWithThisName, 0x46AA30);
     RH_ScopedInstall(HasAttractorScriptBrainWithThisNameLoaded, 0x46AB20);
-    //RH_ScopedInstall(StartNewStreamedScriptBrain, 0x46B270, {.reversed = false});
+    //RH_ScopedInstall(StartNewStreamedScriptBrain, 0x46B270, {.Reversed = false});
     RH_ScopedInstall(StartAttractorScriptBrainWithThisName, 0x46B390);
-    RH_ScopedInstall(StartOrRequestNewStreamedScriptBrain, 0x46CD80, {.reversed = false});
-    //RH_ScopedInstall(StartOrRequestNewStreamedScriptBrainWithThisName, 0x46CED0, {.reversed = false});
-    RH_ScopedInstall(IsObjectWithinBrainActivationRange, 0x46B3D0, {.reversed=false});
+    RH_ScopedInstall(StartOrRequestNewStreamedScriptBrain, 0x46CD80, {.Reversed = false});
+    //RH_ScopedInstall(StartOrRequestNewStreamedScriptBrainWithThisName, 0x46CED0, {.Reversed = false});
+    RH_ScopedInstall(IsObjectWithinBrainActivationRange, 0x46B3D0, {.Reversed = false});
 }
 
 

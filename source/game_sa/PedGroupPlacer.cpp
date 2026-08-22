@@ -4,9 +4,9 @@ void CPedGroupPlacer::InjectHooks() {
     RH_ScopedClass(CPedGroupPlacer);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(PlaceFormationGroup, 0x5FC9B0, {.reversed = false});
-    RH_ScopedInstall(PlaceChatGroup, 0x5FCE80, {.reversed = false});
-    RH_ScopedInstall(PlaceRandomGroup, 0x5FD330, {.reversed = false});
+    RH_ScopedInstall(PlaceFormationGroup, 0x5FC9B0, {.Reversed = false});
+    RH_ScopedInstall(PlaceChatGroup, 0x5FCE80, {.Reversed = false});
+    RH_ScopedInstall(PlaceRandomGroup, 0x5FD330, {.Reversed = false});
     RH_ScopedInstall(PlaceGroup, 0x5FD810);
 }
 

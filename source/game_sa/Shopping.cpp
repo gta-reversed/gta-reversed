@@ -37,10 +37,10 @@ void CShopping::InjectHooks() {
     RH_ScopedInstall(Save, 0x5D3DE0);
 
     // address?
-    // RH_ScopedInstall(AddPriceModifier, 0x0, { .reversed = false });
-    // RH_ScopedInstall(AddPriceModifier, 0x0, { .reversed = false });
-    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .reversed = false });
-    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .reversed = false });
+    // RH_ScopedInstall(AddPriceModifier, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(AddPriceModifier, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .Reversed = false });
 
     // unused
     RH_ScopedInstall(SetCurrentProperty, 0x49B1F0);

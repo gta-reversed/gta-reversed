@@ -13,15 +13,22 @@
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "WinInput.h"
 #include "WinPlatform.h"
-#include "WndProc.h"
-#include "WindowedMode.hpp"
 
-#include <InjectHooksMain.h>
 #include "extensions/Configs/FastLoader.hpp"
+
+#ifndef NOTSA_USE_SDL3
+#include "WinInput.h"
+#include "WndProc.h"
+#endif
+
+#ifdef NOTSA_STANDALONE
+#include <InjectHooksMain.h>
 #include <extensions/CommandLine.h>
 #include <extensions/debug.hpp>
+#endif
+
+#include <toolsmenu/UIRenderer.h>
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
 
@@ -133,6 +140,7 @@ bool IsForegroundApp() {
 
 // Code from winmain, 0x748DCF
 bool ProcessGameLogic(INT nCmdShow) {
+    ZoneScoped;
     if (RsGlobal.quit || FrontEndMenuManager.m_bStartGameLoading) {
         return false;
     }
@@ -160,11 +168,11 @@ bool ProcessGameLogic(INT nCmdShow) {
         return true;
     }
 
-    FrameMark;
-
     // TODO: Move this out from here (It's not platform specific at all)
     switch (gGameState) {
     case GAME_STATE_INITIAL: {
+        ZoneScopedN("INITIAL");
+
         const auto ProcessSplash = [](eLoadingLogo id) {
             CLoadingScreen::LoadSplashes(true, id);
             CLoadingScreen::Init(true, true);
@@ -182,6 +190,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         break;
     }
     case GAME_STATE_LOGO: {
+        ZoneScopedN("LOGO");
+
         if (!g_FastLoaderConfig.NoLogo) {
             if (!Windowed) {
                 VideoPlayer::Play(nCmdShow, "movies\\Logo.mpg");
@@ -192,6 +202,8 @@ bool ProcessGameLogic(INT nCmdShow) {
     }
     case GAME_STATE_PLAYING_LOGO:
     case GAME_STATE_PLAYING_INTRO: { // 0x748B17
+        ZoneScopedN("PLAYING_LOGO & PLAYING_INTRO");
+
         CPad::UpdatePads();
         auto* pad = CPad::GetPad();
         if (   Windowed
@@ -214,6 +226,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         break;
     }
     case GAME_STATE_TITLE: {
+        ZoneScopedN("TITLE");
+
         if (!g_FastLoaderConfig.NoTitleOrIntro) {
             VideoPlayer::Shutdown();
             VideoPlayer::Play(nCmdShow, FrontEndMenuManager.GetMovieFileName());
@@ -222,6 +236,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         break;
     }
     case GAME_STATE_FRONTEND_LOADING: {
+        ZoneScopedN("FRONTEND_LOADING");
+
         VideoPlayer::Shutdown();
         CLoadingScreen::Init(true, false);
         if (!g_FastLoaderConfig.NoCopyright) {
@@ -241,6 +257,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {
+        ZoneScopedN("FRONTEND_LOADED");
+
         FrontEndMenuManager.m_bActivateMenuNextFrame = true;
         FrontEndMenuManager.m_bMainMenuSwitch = true;
         if (IsVMNotSelected) {
@@ -256,6 +274,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         break;
     }
     case GAME_STATE_FRONTEND_IDLE: { // 0x748CB2
+        ZoneScopedN("FRONTEND_IDLE");
+
         WINDOWPLACEMENT wndpl{ .length = sizeof(WINDOWPLACEMENT) };
         VERIFY(GetWindowPlacement(PSGLOBAL(window), &wndpl));
         if (g_FastLoaderConfig.ShouldLoadSaveGame()) {
@@ -277,6 +297,8 @@ bool ProcessGameLogic(INT nCmdShow) {
         NOTSA_SWCFALLTHRU; // Fall down and start loading
     }
     case GAME_STATE_LOADING_STARTED: {
+        ZoneScopedN("LOADING_STARTED");
+
         if (!g_FastLoaderConfig.NoLoadingTune) {
             AudioEngine.StartLoadingTune();
         }
@@ -289,9 +311,12 @@ bool ProcessGameLogic(INT nCmdShow) {
 
         break;
     }
-    case GAME_STATE_IDLE: {
-        if (!RwInitialized)
+    case GAME_STATE_IDLE: { // 0x748AA1
+        ZoneScopedN("IDLE");
+
+        if (!RwInitialized) {
             break;
+        }
 
         auto v9_1 = 1000.0f / (float)RsGlobal.frameLimit;
         auto v9_2 = (float)CTimer::GetCurrentTimeInCycles() / (float)CTimer::GetCyclesPerMillisecond();
@@ -322,7 +347,9 @@ void MainLoop(INT nCmdShow) {
         gamma.Init();
 
         // Game logic main loop
-        while (ProcessGameLogic(nCmdShow));
+        while (ProcessGameLogic(nCmdShow)) {
+            FrameMark;
+        }
 
         // 0x748DDA
         RwInitialized = false;
@@ -449,6 +476,7 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam1, 2u);
 
     UpdateWindow(PSGLOBAL(window));
+
 #ifdef NOTSA_USE_SDL3
     SDL_SetWindowFocusable(sdlWnd, true);
     SDL_SetWindowPosition(sdlWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -469,8 +497,12 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
     SetErrorMode(SEM_FAILCRITICALERRORS);
 
+    notsa::ui::UIRenderer::CreateInstance();
+
     // 0x7489FB
     MainLoop(nCmdShow);
+
+    notsa::ui::UIRenderer::DestroyInstance();
 
     // if game is loaded, shut it down
     if (gGameState == GAME_STATE_IDLE) {
@@ -498,20 +530,34 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
 #ifdef NOTSA_STANDALONE
 INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, INT nCmdShow) {
-    notsa::debug::DisplayConsole();
     CommandLine::Load(__argc, __argv);
     if (CommandLine::s_WaitForDebugger) {
         notsa::debug::WaitForDebugger();
     }
+
+    notsa::debug::DisplayConsole();
+    notsa::debug::LoadSymbols();
+    notsa::Logging::CreateInstance();
+    notsa::ScopeGuard cleanupLogging{ [] {
+        notsa::Logging::DestroyInstance();
+        notsa::debug::UnloadSymbols();
+    } };
+
 #ifdef NOTSA_DUMP_HOOKS_ONLY
+    ReversibleHooks::RHManager::CreateInstance();
+    notsa::ScopeGuard cleanupRH{ [] {
+        ReversibleHooks::RHManager::DestroyInstance();
+    }};
+
     NOTSA_LOG_INFO("Dumping hooks only, no memory writing will be performed");
-    if (CommandLine::s_DumpHooksPath.empty()) {
-        NOTSA_LOG_ERR("No path provided for dumping hooks, use `--dump-hooks-to` CLI argument");
-        return 1;
-    }
-    InjectHooksMain(GetModuleHandle(nullptr)); // this will call injecthooks which then ends up dumping the data
+
+    InjectHooksMain(); // This will also end up calling the CLI to dump the hooks
+
     return 0;
 #else
+    notsa::ui::UIRenderer::CreateInstance();
+    // code..
+    notsa::ui::UIRenderer::CreateInstance();
     NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_DUMP_HOOKS_ONLY` option");
     return 1;
 #endif
@@ -526,11 +572,11 @@ void InjectWinMainStuff() {
     RH_ScopedGlobalInstall(IsAlreadyRunning, 0x7468E0);
 
     // Unhooking these 2 after the game has started will do nothing
-    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.locked = true});
-    RH_ScopedGlobalInstall(MessageLoop, 0x746870, {.locked = true});
+    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.Locked = true});
+    RH_ScopedGlobalInstall(MessageLoop, 0x746870, {.Locked = true});
 
 #ifndef NOTSA_USE_SDL3
     RH_ScopedGlobalInstall(Win32_InitApplication, 0x7486A0);
-    RH_ScopedGlobalInstall(Win32_InitInstance, 0x745560, {.locked = true});
+    RH_ScopedGlobalInstall(Win32_InitInstance, 0x745560, {.Locked = true});
 #endif
 }

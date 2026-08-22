@@ -59,7 +59,7 @@ public:
     /*!
     * @brief Initializes pool, owning memory
     ****/
-    CPool(size_t capacity, const char* name) :
+    CPool(size_t capacity, const char* name = "Unspecified") :
         m_Storage{ new StorageType[capacity] },
         m_SlotState{ new SlotState[capacity] },
         m_Capacity{ capacity },
@@ -110,11 +110,18 @@ public:
     * @brief Shut down pool, deallocate
     */
     void Flush() {
+        // notsa: Call destructors for all valid objects
+        //DestroyObjects();
+
+        // Fill in memory so dangling pointers are more obvious
         DoFill(NOMANSLAND_FILL);
+
+        // Only now free memory
         if (m_OwnsAllocations) {
             delete[] std::exchange(m_Storage, nullptr);
             delete[] std::exchange(m_SlotState, nullptr);
         }
+
         m_Capacity         = 0;
         m_LastFreeSlot     = -1;
         m_OwnsAllocations  = false;
@@ -123,9 +130,13 @@ public:
 
     // Clears pool
     void Clear() {
+        // notsa: Call destructors for all valid objects
+        DestroyObjects();
+
         for (auto i = 0; i < m_Capacity; i++) {
             m_SlotState[i].IsEmpty = true;
         }
+
         DoFill(DEADLAND_FILL);
     }
 
@@ -385,6 +396,14 @@ protected:
 
         // No free slots
         return -1;
+    }
+
+    void DestroyObjects() {
+        if constexpr (notsa::IsFixBugs()) {
+            for (auto& v : GetAllValid()) {
+                std::destroy_at(&v);
+            }
+        }
     }
 
 private:

@@ -10,9 +10,9 @@ void CTaskComplexSignalAtPed::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x662140);
     RH_ScopedVMTInstall(GetTaskType, 0x660AA0);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x660B30, {.reversed = false});
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x660CC0, {.reversed = false});
-    RH_ScopedVMTInstall(ControlSubTask, 0x660D80, {.reversed = false});
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x660B30, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x660CC0, {.Reversed = false});
+    RH_ScopedVMTInstall(ControlSubTask, 0x660D80, {.Reversed = false});
 }
 
 // 0x660A30

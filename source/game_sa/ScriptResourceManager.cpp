@@ -7,11 +7,11 @@ void CScriptResourceManager::InjectHooks() {
     RH_ScopedCategory("Scripts");
 
     RH_ScopedInstall(Initialise, 0x470480);
-    RH_ScopedInstall(AddToResourceManager, 0x4704B0, { .reversed = false });
-    RH_ScopedInstall(RemoveFromResourceManager, 0x470510, { .reversed = false });
-    RH_ScopedInstall(HasResourceBeenRequested, 0x470620, { .reversed = false });
-    //RH_ScopedInstall(Load, 0x0, { .reversed = false });
-    //RH_ScopedInstall(Save, 0x0, { .reversed = false });
+    RH_ScopedInstall(AddToResourceManager, 0x4704B0, { .Reversed = false });
+    RH_ScopedInstall(RemoveFromResourceManager, 0x470510, { .Reversed = false });
+    RH_ScopedInstall(HasResourceBeenRequested, 0x470620, { .Reversed = false });
+    //RH_ScopedInstall(Load, 0x0, { .Reversed = false });
+    //RH_ScopedInstall(Save, 0x0, { .Reversed = false });
 }
 
 // 0x470480

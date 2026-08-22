@@ -8,17 +8,17 @@ void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x631F80);
     RH_ScopedInstall(Destructor, 0x632050);
 
-    //RH_ScopedGlobalInstall(CanSunbathe, 0x632140, { .reversed = false });
-    //RH_ScopedGlobalInstall(ShouldLoadSunbatheAnims, 0x632190, { .reversed = false });
+    //RH_ScopedGlobalInstall(CanSunbathe, 0x632140, { .Reversed = false });
+    //RH_ScopedGlobalInstall(ShouldLoadSunbatheAnims, 0x632190, { .Reversed = false });
 
-    //RH_ScopedInstall(CreateSubTask, 0x638290, { .reversed = false });
+    //RH_ScopedInstall(CreateSubTask, 0x638290, { .Reversed = false });
 
-    RH_ScopedVMTInstall(Clone, 0x6366A0, { .reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x632040, { .reversed = false });
-    RH_ScopedVMTInstall(MakeAbortable, 0x6320F0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x6366A0, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x632040, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x6320F0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
 
 }
 

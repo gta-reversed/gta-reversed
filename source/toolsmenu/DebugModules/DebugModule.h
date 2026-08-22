@@ -33,6 +33,9 @@ public:
     //! Restore state from serialization
     virtual void Deserialize(const json&) { /*nothing*/ };
 
+    //! Called after immediately after the module has been deserialized
+    virtual void OnDeserialized() { /*nothing*/ }
+
     //! Get the ID of this module (Used for serialization)
     virtual std::string_view GetID() const { return ""; }
 };

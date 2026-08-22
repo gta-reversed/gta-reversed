@@ -24,7 +24,7 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
 
 // 0x6043A0
 void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionTypes dm) {
-    return plugin::Call<0x6043A0>(dm);
+    return plugin::CallMethod<0x6043A0>(this, dm);
 }
 
 // 0x606F80

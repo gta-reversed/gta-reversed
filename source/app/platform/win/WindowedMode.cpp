@@ -3,12 +3,13 @@
 #ifdef NOTSA_WINDOWED_MODE
 
 #include "WindowedMode.hpp"
-#include <HookSystem.h>
 #include "PostEffects.h"
 
 #include "winincl.h"
 #include <SDL3/SDL.h>
 #include <bindings/imgui_impl_dx9.h>
+
+#include <reversiblehooks/HooksUtility.hpp>
 
 #define MINZBUFFERVALUE 0.0f
 #define MAXZBUFFERVALUE 1.0f
@@ -385,17 +386,17 @@ struct D3D9ProxyDevice {
 
         // Save original pointers
         if (!std::exchange(Initialized, true)) {
-            Real_Reset       = VoidToFunctionPtr<D3D9Device_Reset_Type>(vmt[D3D9Device_Reset_VMT_Index]);
-            Real_SetViewport = VoidToFunctionPtr<D3D9Device_SetViewport_Type>(vmt[D3D9Device_SetViewport_VMT_Index]);
+            Real_Reset       = ReversibleHooks::Utility::VoidToFunctionPtr<D3D9Device_Reset_Type>(vmt[D3D9Device_Reset_VMT_Index]);
+            Real_SetViewport = ReversibleHooks::Utility::VoidToFunctionPtr<D3D9Device_SetViewport_Type>(vmt[D3D9Device_SetViewport_VMT_Index]);
         }
 
         // NOTE: Wine has this VMT write-protected, unlike Windows.
         const auto vmtSize = (std::max(D3D9Device_Reset_VMT_Index, D3D9Device_SetViewport_VMT_Index) + 1) * sizeof(void*);
-        [[maybe_unused]] notsa::ScopedVirtualProtectModify _{ vmt, vmtSize, PAGE_EXECUTE_READWRITE };
+        ReversibleHooks::Utility::ScopedVirtualProtectModify _{ vmt, vmtSize, PAGE_EXECUTE_READWRITE };
 
         // Overwrite vmt entries
-        vmt[D3D9Device_Reset_VMT_Index]       = FunctionToVoidPtr(&Proxy_Reset);
-        vmt[D3D9Device_SetViewport_VMT_Index] = FunctionToVoidPtr(&Proxy_SetViewport);
+        vmt[D3D9Device_Reset_VMT_Index]       = ReversibleHooks::Utility::FunctionToVoidPtr(&Proxy_Reset);
+        vmt[D3D9Device_SetViewport_VMT_Index] = ReversibleHooks::Utility::FunctionToVoidPtr(&Proxy_SetViewport);
     }
 };
 

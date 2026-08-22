@@ -42,12 +42,12 @@ void CWaterLevel::InjectHooks() {
 
     RH_ScopedOverloadedInstall(GetWaterLevel, "", 0x6EB690, bool(*)(float, float, float, float&, uint8, CVector*));
     RH_ScopedGlobalInstall(SetUpWaterFog, 0x6EA9F0);
-    RH_ScopedGlobalInstall(FindNearestWaterAndItsFlow, 0x6E9D70, { .reversed = false });
-    RH_ScopedGlobalInstall(GetWaterLevelNoWaves, 0x6E8580, { .reversed = false });
-    RH_ScopedGlobalInstall(RenderWaterFog, 0x6E7760, { .reversed = false });
+    RH_ScopedGlobalInstall(FindNearestWaterAndItsFlow, 0x6E9D70, { .Reversed = false });
+    RH_ScopedGlobalInstall(GetWaterLevelNoWaves, 0x6E8580, { .Reversed = false });
+    RH_ScopedGlobalInstall(RenderWaterFog, 0x6E7760, { .Reversed = false });
     RH_ScopedGlobalInstall(CalculateWavesOnlyForCoordinate, 0x6E6EF0);
-    RH_ScopedGlobalInstall(RenderWater, 0x6EF650, { .reversed = false });
-    RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0, { .reversed = false });
+    RH_ScopedGlobalInstall(RenderWater, 0x6EF650, { .Reversed = false });
+    RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0, { .Reversed = false });
     RH_ScopedGlobalInstall(SetCameraRange, 0x6E9C80);
 }
 
