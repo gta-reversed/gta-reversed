@@ -100,7 +100,7 @@ CTask* CTaskComplexWalkAlongsidePed::ControlSubTask(CPed* ped) {
     const auto pedPos       = ped->GetPosition();
 
     const auto pedWalkAnim       = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_WALK);
-    const auto targetPedWalkAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_WALK);
+    const auto targetPedWalkAnim = RpAnimBlendClumpGetAssociation(m_TargetPed->GetRpClump(), ANIM_ID_WALK);
 
     const auto isTargetMoving = notsa::contains({PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT}, m_TargetPed->GetIntelligence()->GetMoveStateFromGoToTask());
 
