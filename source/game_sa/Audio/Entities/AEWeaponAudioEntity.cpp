@@ -357,7 +357,7 @@ void CAEWeaponAudioEntity::PlayGunSounds(
     m_LastGunFireTimeMs = CTimer::GetTimeInMS();
 
     auto baseVolume = GetDefaultVolume(audioEvent) + volumeOffsetdB;
-    auto [baseRollOffFactor, baseSpeed] = [&]() -> std::pair<float, float> {
+    const auto [baseRollOffFactor, baseSpeed] = [&]() -> std::pair<float, float> {
         switch (audioEvent) {
         case AE_WEAPON_FIRE_PLANE: {
             m_LastWeaponPlaneFrequencyIndex = (m_LastWeaponPlaneFrequencyIndex + 1) % 2;
@@ -425,12 +425,11 @@ void CAEWeaponAudioEntity::PlayGunSounds(
             baseVolume    -= 3.f;
             frontEndVolume = baseVolume + CAEAudioEnvironment::GetDistanceAttenuation(dist);
         } else if (dist < (12.f / baseRollOffFactor)) {
-            const auto t   = ((12.f / baseRollOffFactor) - dist) / (12.f / baseRollOffFactor) - (5.f / baseRollOffFactor);
+            const auto t   = ((12.f / baseRollOffFactor) - dist) / ((12.f / baseRollOffFactor) - (5.f / baseRollOffFactor));
             frontEndVolume = baseVolume + CAEAudioEnvironment::GetDistanceAttenuation(dist) + std::log10f(t * (SQRT_2 / 2.f)) * 20.f;
-            baseVolume    += std::log10f(((1.f - t) * 0.2929f) + (SQRT_2 / 2.f)) * 20.f;
+            baseVolume     += std::log10f(((1.f - t) * 0.2929f) + (SQRT_2 / 2.f)) * 20.f;
         }
     }
-
     const auto PlayMainSound = [
         &,
         mainSoundSpeed = (CAEAudioUtility::GetRandomNumberInRange(-0.02f, 0.02f) + 1.f) * baseSpeed

@@ -9,7 +9,7 @@ void CAEBankLoader::InjectHooks() {
     RH_ScopedInstall(GetBankLookup, 0x4E01B0);
     RH_ScopedInstall(LoadBankLookupFile, 0x4DFBD0);
     RH_ScopedInstall(LoadBankSlotFile, 0x4E0590);
-    RH_ScopedInstall(LoadSFXPakLookupFile, 0x4DFC70, {.reversed = true});
+    RH_ScopedInstall(LoadSFXPakLookupFile, 0x4DFC70);
     RH_ScopedInstall(CalculateBankSlotsInfosOffsets, 0x4DFBA0);
 }
 

@@ -1770,7 +1770,7 @@ void CPed::ProcessBuoyancy()
         if (CWaterLevel::GetWaterLevel(vecSplashPos, fWaterZ, true, nullptr)) {
             vecSplashPos.z = fWaterZ;
             g_fx.TriggerWaterSplash(vecSplashPos);
-            AudioEngine.ReportWaterSplash(this, -100.0F, true);
+            AudioEngine.ReportWaterSplash(this, VOLUME_SILENCE, true);
         }
     }
 
