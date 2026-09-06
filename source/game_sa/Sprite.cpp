@@ -22,7 +22,7 @@ void CSprite::InjectHooks() {
     RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0);
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780);
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Dimension, 0x70EAB0);
-    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_2Colours, 0x70EDE0, { .reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_2Colours, 0x70EDE0);
     RH_ScopedInstall(RenderBufferedOneXLUSprite2D, 0x70F440);
 }
 
@@ -589,8 +589,89 @@ void CSprite::RenderBufferedOneXLUSprite_Rotate_Dimension(CVector pos, CVector2D
 }
 
 // 0x70EDE0
-void CSprite::RenderBufferedOneXLUSprite_Rotate_2Colours(float, float, float, float, float, uint8, uint8, uint8, uint8, uint8, uint8, float, float, float, float, uint8) {
-    assert(false);
+void CSprite::RenderBufferedOneXLUSprite_Rotate_2Colours(float x, float y, float z, float w, float h, uint8 r1, uint8 g1, uint8 b1, uint8 r2, uint8 g2, uint8 b2, float rotFactorX, float rotFactorY, float rz, float rotation, uint8 alpha) {
+    const float fSin = std::sin(rotation);
+    const float fCos = std::cos(rotation);
+    const float negCosMinSin = -fCos - fSin;
+    const float sinMinCos    =  fSin - fCos;
+    const float cosPlusSin   =  fCos + fSin;
+    const float cosMinSin    =  fCos - fSin;
+
+    const float xs[4] = {
+        static_cast<float>(negCosMinSin * w + x),
+        static_cast<float>(sinMinCos * w + x),
+        static_cast<float>(cosPlusSin * w + x),
+        static_cast<float>(cosMinSin * w + x),
+    };
+    const float ys[4] = {
+        static_cast<float>(sinMinCos * h + y),
+        static_cast<float>(cosPlusSin * h + y),
+        static_cast<float>(cosMinSin * h + y),
+        static_cast<float>(negCosMinSin * h + y),
+    };
+
+    // At least one corner must be inside the screen rect
+    const auto maxX = static_cast<float>(RsGlobal.maximumWidth);
+    const auto maxY = static_cast<float>(RsGlobal.maximumHeight);
+    if ((xs[0] < 0.0f && xs[1] < 0.0f && xs[2] < 0.0f && xs[3] < 0.0f)
+        || (ys[0] < 0.0f && ys[1] < 0.0f && ys[2] < 0.0f && ys[3] < 0.0f)
+        || (xs[0] > maxX && xs[1] > maxX && xs[2] > maxX && xs[3] > maxX)
+        || (ys[0] > maxY && ys[1] > maxY && ys[2] > maxY && ys[3] > maxY)) {
+        return;
+    }
+
+    m_bFlushSpriteBufferSwitchZTest = false;
+
+    const auto zB = (z - CDraw::ms_fNearClipZ)
+        * (m_f2DFarScreenZ - m_f2DNearScreenZ)
+        * CDraw::ms_fFarClipZ
+        / ((CDraw::ms_fFarClipZ - CDraw::ms_fNearClipZ) * z)
+        + m_f2DNearScreenZ;
+
+    // Per-vertex color lerp factor along the rotated (rotFactorX, rotFactorY) axis, clamped to [0, 1].
+    // The original rounds with x87 FISTP (round-to-nearest), hence std::lround over a plain cast.
+    const auto lerpColor = [&](float t) {
+        t = std::clamp(t, 0.0f, 1.0f);
+        return CRGBA{
+            static_cast<uint8>(std::lround(r2 * (1.0f - t) + r1 * t)),
+            static_cast<uint8>(std::lround(g2 * (1.0f - t) + g1 * t)),
+            static_cast<uint8>(std::lround(b2 * (1.0f - t) + b1 * t)),
+            alpha
+        }.ToIntARGB();
+    };
+    const uint32 colors[4] = {
+        lerpColor((sinMinCos * rotFactorY + negCosMinSin * rotFactorX + 1.0f) * 0.5f),
+        lerpColor((cosPlusSin * rotFactorY + sinMinCos * rotFactorX + 1.0f) * 0.5f),
+        lerpColor((cosMinSin * rotFactorY + cosPlusSin * rotFactorX + 1.0f) * 0.5f),
+        lerpColor((negCosMinSin * rotFactorY + cosMinSin * rotFactorX + 1.0f) * 0.5f),
+    };
+
+    constexpr float u[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    constexpr float v[4] = { 0.0f, 1.0f, 1.0f, 0.0f };
+    auto* vertices = &TempBufferVertices.m_2d[4 * nSpriteBufferIndex];
+    for (auto i = 0u; i < 4u; i++) {
+        vertices[i] = {
+            .x             = xs[i],
+            .y             = ys[i],
+            .z             = zB,
+            .rhw           = rz,
+            .emissiveColor = colors[i],
+            .u             = u[i],
+            .v             = v[i],
+        };
+    }
+
+    auto* indices = &aTempBufferIndices[6 * nSpriteBufferIndex];
+    indices[0] = 4 * nSpriteBufferIndex;
+    indices[1] = 4 * nSpriteBufferIndex + 1;
+    indices[2] = 4 * nSpriteBufferIndex + 2;
+    indices[3] = 4 * nSpriteBufferIndex + 3;
+    indices[4] = 4 * nSpriteBufferIndex;
+    indices[5] = 4 * nSpriteBufferIndex + 2;
+    nSpriteBufferIndex++;
+    if (nSpriteBufferIndex >= 384) {
+        CSprite::FlushSpriteBuffer();
+    }
 }
 
 // 0x70F440
