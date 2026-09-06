@@ -79,7 +79,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
     RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400);
     RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0);
-    RH_ScopedInstall(LookBehind, 0x520690, { .reversed = false });
+    RH_ScopedInstall(LookBehind, 0x520690);
     RH_ScopedInstall(LookRight, 0x520E40, { .reversed = false });
     RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
@@ -452,7 +452,144 @@ void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, con
 
 // 0x520690
 void CCam::LookBehind() {
-    NOTSA_UNREACHABLE();
+    static auto& gStoredTargetPos                    = StaticRef<CVector>(0xB6F018);
+    static auto& gNumEntitiesRegisteredForCollision  = StaticRef<uint32>(0xB6FC70);
+    static auto& g_aEntitiesRegisteredForCollision   = StaticRef<CEntity*[16]>(0xB6FC74);
+    static auto& gDistOverOneFrame                   = StaticRef<float>(0xB6F0FC);
+
+    CEntity* const entity     = m_pCamTargetEntity;
+    const auto     entityType = entity->GetType();
+
+    const bool isBehindCamVehicle =
+        (m_nMode == MODE_CAM_ON_A_STRING || m_nMode == MODE_BEHINDBOAT || m_nMode == MODE_BEHINDCAR)
+        && entityType == ENTITY_TYPE_VEHICLE;
+    const bool isFirstPersonVehicle = m_nMode == MODE_1STPERSON && entityType == ENTITY_TYPE_VEHICLE;
+
+    if (!isBehindCamVehicle && !isFirstPersonVehicle && entityType != ENTITY_TYPE_PED) {
+        return;
+    }
+
+    const CVector entityPos = entity->GetPosition();
+    m_vecSourceBeforeLookBehind = m_vecSource;
+    m_vecFront = CVector(entityPos - m_vecSource);
+
+    if (isBehindCamVehicle) {
+        m_vecSource = gStoredTargetPos;
+        m_bLookingBehind = true;
+
+        const float distAway =
+            (m_nMode == MODE_CAM_ON_A_STRING) ? m_fCaMaxDistance : 15.5f;
+
+        if (!entity->m_matrix) {
+            entity->AllocateMatrix();
+            entity->m_placement.UpdateMatrix(entity->m_matrix);
+        }
+        m_vecSource.x = entity->GetMatrix().GetForward().x;
+        m_vecSource.y = entity->GetMatrix().GetForward().y;
+        m_vecSource.z = entity->GetMatrix().GetForward().z + 0.2f;
+
+        m_vecSource.x = gStoredTargetPos.x + distAway * m_vecSource.x;
+        m_vecSource.y = gStoredTargetPos.y + distAway * m_vecSource.y;
+        m_vecSource.z = gStoredTargetPos.z + distAway * m_vecSource.z;
+
+        CWorld::pIgnoreEntity = (CEntity*)entity;
+        gNumEntitiesRegisteredForCollision = 0;
+        TheCamera.CameraVehicleModeSpecialCases((CVehicle*)entity);
+        TheCamera.CameraColDetAndReact(&m_vecSource, &gStoredTargetPos);
+
+        m_vecFront = CVector(entity->GetPosition() - m_vecSource);
+        GetVectorsReadyForRW();
+        TheCamera.ImproveNearClip((CVehicle*)entity, nullptr, &m_vecSource, &gStoredTargetPos);
+        CWorld::pIgnoreEntity = nullptr;
+    }
+
+    if (isFirstPersonVehicle) {
+        m_bLookingBehind = true;
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
+
+        if (!entity->m_matrix) {
+            entity->AllocateMatrix();
+            entity->m_placement.UpdateMatrix(entity->m_matrix);
+        }
+        m_vecFront = entity->GetMatrix().GetForward();
+        m_vecFront.Normalise();
+
+        if (entity->AsVehicle()->m_nVehicleType == VEHICLE_TYPE_BOAT) {
+            m_vecSourceBeforeLookBehind.z -= 2.0f;
+        }
+
+        const auto appearance = entity->AsVehicle()->GetVehicleAppearance();
+        if (appearance == VEHICLE_APPEARANCE_BIKE) {
+            m_vecSource += m_vecFront * 2.3f;
+            m_vecFront = -m_vecFront;
+            GetVectorsReadyForRW();
+        } else if (appearance == VEHICLE_APPEARANCE_HELI) {
+            if (!entity->m_matrix) {
+                entity->AllocateMatrix();
+                entity->m_placement.UpdateMatrix(entity->m_matrix);
+            }
+            m_vecFront = entity->GetMatrix().GetUp() * -1.0f;
+            m_vecUp    = entity->GetMatrix().GetForward();
+            m_vecSource += m_vecFront * 0.25f;
+        } else {
+            m_vecSource += m_vecFront * 0.25f;
+            m_vecFront = -m_vecFront;
+        }
+    }
+
+    if (entityType == ENTITY_TYPE_PED) {
+        static auto& gZoomAddSourceZBack      = StaticRef<float[4]>(0x8CCE3C);
+        static auto& gZoomAddTargetZBack      = StaticRef<float[4]>(0x8CCE30);
+        static auto& gZoomLerpBackSwim        = StaticRef<float[4]>(0x8CCE24);
+        static auto& gZoomAddSourceZBackSwim  = StaticRef<float[4]>(0x8CCE18);
+
+        CVector target = entityPos;
+
+        m_vecSource.Set(-std::cos(m_fHorizontalAngle), -std::sin(m_fHorizontalAngle), 0.0f);
+        m_vecSource.z = 0.3f - m_vecSource.Dot(entity->AsPed()->field_578);
+        m_vecSource.Normalise();
+
+        float dist = 2.0f + gDistOverOneFrame;
+        if (dist < 0.6f) {
+            dist = 0.6f;
+        }
+        m_vecSource = target + m_vecSource * dist;
+
+        const float      srcAddZ = gZoomAddSourceZBack[TheCamera.m_nPedZoom];
+        target.z += gZoomAddTargetZBack[TheCamera.m_nPedZoom];
+
+        if (entity->AsPed()->m_pIntelligence->GetTaskSwim()) {
+            m_vecSource = target + (target - m_vecSource) * gZoomLerpBackSwim[TheCamera.m_nPedZoom];
+            m_vecSource.z += gZoomAddSourceZBackSwim[TheCamera.m_nPedZoom];
+        }
+        m_vecSource.z += srcAddZ;
+
+        TheCamera.HandleCameraMotionForDucking((CPed*)entity, &m_vecSource, &target, false);
+        gNumEntitiesRegisteredForCollision = 0;
+
+        if (m_pCamTargetEntity) {
+            const auto* holdTask = entity->AsPed()->m_pIntelligence->GetTaskHold(false);
+            if (holdTask && holdTask->m_pEntityToHold) {
+                g_aEntitiesRegisteredForCollision[gNumEntitiesRegisteredForCollision] = holdTask->m_pEntityToHold;
+                gNumEntitiesRegisteredForCollision++;
+            }
+        }
+
+        CCollision::bCamCollideWithVehicles = true;
+        CCollision::bCamCollideWithObjects  = true;
+        CCollision::bCamCollideWithPeds     = true;
+
+        TheCamera.CameraColDetAndReact(&m_vecSource, &target);
+        m_vecFront = target - m_vecSource;
+        GetVectorsReadyForRW();
+        TheCamera.ImproveNearClip(nullptr, (CPed*)entity, &m_vecSource, &target);
+
+        if (TheCamera.m_nPedZoom == 1 && RwCameraGetNearClipPlane(Scene.m_pRwCamera) > 0.05f) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
+        }
+    }
+
+    GetVectorsReadyForRW();
 }
 
 // 0x520E40
