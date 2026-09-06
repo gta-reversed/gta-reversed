@@ -20,7 +20,7 @@ void CSprite::InjectHooks() {
     RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490);
     RH_ScopedInstall(RenderOneXLUSprite2D, 0x70F540);
     RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0);
-    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780, { .reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780);
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Dimension, 0x70EAB0, { .reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_2Colours, 0x70EDE0, { .reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite2D, 0x70F440);
@@ -444,7 +444,73 @@ void CSprite::RenderBufferedOneXLUSprite(CVector pos, CVector2D size, uint8 r, u
 
 // 0x70E780
 void CSprite::RenderBufferedOneXLUSprite_Rotate_Aspect(float x, float y, float z, float w, float h, uint8 r, uint8 g, uint8 b, int16 intensity, float recipNearZ, float angle, uint8 a12) {
-    plugin::Call<0x70E780, float, float, float, float, float, uint8, uint8, uint8, int16, float, float, uint8>(x, y, z, w, h, r, g, b, intensity, recipNearZ, angle, a12);
+    const float fSin = std::sin(angle);
+    const float fCos = std::cos(angle);
+
+    const float xs[4] = {
+        static_cast<float>((-fCos - fSin) * w + x),
+        static_cast<float>((fSin - fCos) * w + x),
+        static_cast<float>((fCos + fSin) * w + x),
+        static_cast<float>(w * (fCos - fSin) + x),
+    };
+    const float ys[4] = {
+        static_cast<float>((fSin - fCos) * h + y),
+        static_cast<float>((fCos + fSin) * h + y),
+        static_cast<float>((fCos - fSin) * h + y),
+        static_cast<float>((-fCos - fSin) * h + y),
+    };
+
+    // At least one corner must be inside the screen rect
+    const auto maxX = static_cast<float>(RsGlobal.maximumWidth);
+    const auto maxY = static_cast<float>(RsGlobal.maximumHeight);
+    if ((xs[0] < 0.0f && xs[1] < 0.0f && xs[2] < 0.0f && xs[3] < 0.0f)
+        || (ys[0] < 0.0f && ys[1] < 0.0f && ys[2] < 0.0f && ys[3] < 0.0f)
+        || (xs[0] > maxX && xs[1] > maxX && xs[2] > maxX && xs[3] > maxX)
+        || (ys[0] > maxY && ys[1] > maxY && ys[2] > maxY && ys[3] > maxY)) {
+        return;
+    }
+
+    m_bFlushSpriteBufferSwitchZTest = false;
+
+    const auto zB = (z - CDraw::ms_fNearClipZ)
+        * (m_f2DFarScreenZ - m_f2DNearScreenZ)
+        * CDraw::ms_fFarClipZ
+        / ((CDraw::ms_fFarClipZ - CDraw::ms_fNearClipZ) * z)
+        + m_f2DNearScreenZ;
+
+    const auto emissiveColor = CRGBA{
+        static_cast<uint8>((uint32(r) * intensity) >> 8),
+        static_cast<uint8>((uint32(g) * intensity) >> 8),
+        static_cast<uint8>((uint32(b) * intensity) >> 8),
+        a12
+    }.ToIntARGB();
+
+    constexpr float u[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    constexpr float v[4] = { 0.0f, 1.0f, 1.0f, 0.0f };
+    auto* vertices = &TempBufferVertices.m_2d[4 * nSpriteBufferIndex];
+    for (auto i = 0u; i < 4u; i++) {
+        vertices[i] = {
+            .x             = xs[i],
+            .y             = ys[i],
+            .z             = zB,
+            .rhw           = recipNearZ,
+            .emissiveColor = emissiveColor,
+            .u             = u[i],
+            .v             = v[i],
+        };
+    }
+
+    auto* indices = &aTempBufferIndices[6 * nSpriteBufferIndex];
+    indices[0] = 4 * nSpriteBufferIndex;
+    indices[1] = 4 * nSpriteBufferIndex + 1;
+    indices[2] = 4 * nSpriteBufferIndex + 2;
+    indices[3] = 4 * nSpriteBufferIndex + 3;
+    indices[4] = 4 * nSpriteBufferIndex;
+    indices[5] = 4 * nSpriteBufferIndex + 2;
+    nSpriteBufferIndex++;
+    if (nSpriteBufferIndex >= 384) {
+        CSprite::FlushSpriteBuffer();
+    }
 }
 
 void CSprite::RenderBufferedOneXLUSprite_Rotate_Dimension(CVector pos, CVector2D size, uint8 r, uint8 g, uint8 b, int16 intensity, float rz, float rotation, uint8 a) {
