@@ -17,7 +17,7 @@ void CSprite::InjectHooks() {
     // RH_ScopedOverloadedInstall(Set4Vertices2D, "1", 0x70E2D0, void (*)(RwD3D9Vertex*, float, float, float, float, float, float, float, float, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
     RH_ScopedInstall(RenderOneXLUSprite, 0x70D000);
     RH_ScopedInstall(RenderOneXLUSprite_Triangle, 0x70D320);
-    RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490, { .reversed = false });
+    RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490);
     RH_ScopedInstall(RenderOneXLUSprite2D, 0x70F540);
     RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0, { .reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780, { .reversed = false });
@@ -259,7 +259,73 @@ void CSprite::RenderOneXLUSprite_Triangle(CVector2D screen1, CVector2D screen2, 
 
 // 0x70D490
 void CSprite::RenderOneXLUSprite_Rotate_Aspect(CVector pos, CVector2D size, uint8 r, uint8 g, uint8 b, int16 intensity, float rz, float rotation, uint8 alpha) {
-    plugin::Call<0x70D490>(pos, size, r, g, b, intensity, rz, rotation, alpha);
+    if (pos.z < 1.3f) {
+        return;
+    }
+
+    // Fade both the colour and intensity between z = 1.3 and z = 2.3.
+    if (pos.z < 2.3f) {
+        const auto factor = static_cast<int32>(255.0f * (pos.z - 1.3f));
+        r = static_cast<uint8>((r * factor) >> 8);
+        g = static_cast<uint8>((g * factor) >> 8);
+        b = static_cast<uint8>((b * factor) >> 8);
+        intensity = static_cast<int16>((intensity * factor) >> 8);
+    }
+
+    const float fSin = std::sin(rotation);
+    const float fCos = std::cos(rotation);
+
+    const float x[4] = {
+        (-fCos - fSin) * size.x + pos.x,
+        (fSin - fCos) * size.x + pos.x,
+        (fCos + fSin) * size.x + pos.x,
+        size.x * (fCos - fSin) + pos.x,
+    };
+    const float y[4] = {
+        (fSin - fCos) * size.y + pos.y,
+        (fCos + fSin) * size.y + pos.y,
+        (fCos - fSin) * size.y + pos.y,
+        (-fCos - fSin) * size.y + pos.y,
+    };
+
+    // Cull only when all corners lie beyond the same screen edge.
+    const auto maxX = static_cast<float>(RsGlobal.maximumWidth);
+    const auto maxY = static_cast<float>(RsGlobal.maximumHeight);
+    if ((x[0] < 0.0f && x[1] < 0.0f && x[2] < 0.0f && x[3] < 0.0f)
+        || (y[0] < 0.0f && y[1] < 0.0f && y[2] < 0.0f && y[3] < 0.0f)
+        || (x[0] > maxX && x[1] > maxX && x[2] > maxX && x[3] > maxX)
+        || (y[0] > maxY && y[1] > maxY && y[2] > maxY && y[3] > maxY)) {
+        return;
+    }
+
+    const auto z = (pos.z - CDraw::ms_fNearClipZ)
+        * (RWSRCGLOBAL(dOpenDevice).zBufferFar - RWSRCGLOBAL(dOpenDevice).zBufferNear)
+        * CDraw::ms_fFarClipZ
+        / ((CDraw::ms_fFarClipZ - CDraw::ms_fNearClipZ) * pos.z)
+        + RWSRCGLOBAL(dOpenDevice).zBufferNear;
+
+    const auto emissiveColor = CRGBA{
+        static_cast<uint8>((int32(r) * intensity) >> 8),
+        static_cast<uint8>((int32(g) * intensity) >> 8),
+        static_cast<uint8>((int32(b) * intensity) >> 8),
+        alpha
+    }.ToIntARGB();
+
+    constexpr float u[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    constexpr float v[4] = { 0.0f, 1.0f, 1.0f, 0.0f };
+    for (auto i = 0u; i < 4u; i++) {
+        s_XLUSpriteVertices[i] = {
+            .x             = x[i],
+            .y             = y[i],
+            .z             = z,
+            .rhw           = rz,
+            .emissiveColor = emissiveColor,
+            .u             = u[i],
+            .v             = v[i],
+        };
+    }
+
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, s_XLUSpriteVertices.data(), 4);
 }
 
 // Android
