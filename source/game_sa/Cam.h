@@ -146,7 +146,7 @@ public:
     bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     bool LookBehind();
-    void LookRight(bool bLookRight);
+    bool LookRight(bool bLookRight);
     bool RotCamIfInFrontCar(const CVector&, float);
     bool Using3rdPersonMouseCam() const;
     bool GetWeaponFirstPersonOn();
