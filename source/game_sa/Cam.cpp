@@ -23,6 +23,8 @@ static inline auto& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
 static inline auto& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
 static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
+static bool IsLampPost(eModelID modelId);
+
 // 0x509AE0
 static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
     const auto valueToTargetDiff = [&] {
@@ -72,7 +74,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(DoCamBump, 0x50CB30);
     RH_ScopedInstall(Finalise_DW_CineyCams, 0x50DD70);
     RH_ScopedInstall(GetCoreDataForDWCineyCamMode, 0x517130);
-    RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0, { .reversed = false });
+    RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0);
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
     RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
     RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400);
@@ -275,8 +277,46 @@ void CCam::GetCoreDataForDWCineyCamMode(
 }
 
 // 0x5161A0
-void CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, const CVector& vecSource) {
-    NOTSA_UNREACHABLE();
+bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, CVector& outPos) {
+    int16    count{};
+    CEntity* entities[16];
+    CWorld::FindObjectsInRange(vecTarget, 30.0f, true, &count, 0xF, entities, false, false, false, true, true);
+
+    CEntity* winner{};
+    float    closestDistDiff = 10000.0f;
+    for (int32 i = 0; i < count; i++) {
+        CEntity* entity = entities[i];
+        if (!entity->m_bIsStatic && !entity->m_bIsStaticWaitingForCollision) {
+            continue;
+        }
+        if (!entity->m_matrix) {
+            entity->AllocateMatrix();
+            entity->m_placement.UpdateMatrix(entity->m_matrix);
+        }
+        if (entity->GetUp().z <= 0.9f) {
+            continue;
+        }
+        if (!IsLampPost((eModelID)entity->GetModelIndex())) {
+            continue;
+        }
+
+        const auto dist = DistanceBetweenPoints2D(entity->GetPosition(), vecTarget);
+        if (dist <= 5.0f || std::abs(17.0f - dist) >= closestDistDiff) {
+            continue;
+        }
+
+        const CVector topPos = entity->GetMatrix().TransformPoint(entity->GetColModel()->m_boundBox.m_vecMax);
+        CVector      dir     = topPos - vecTarget;
+        dir.Normalise();
+        if (!CWorld::GetIsLineOfSightClear(topPos, dir + vecTarget, true, false, false, false, false, true, true)) {
+            continue;
+        }
+
+        winner          = entity;
+        outPos          = topPos;
+        closestDistDiff = std::abs(17.0f - dist);
+    }
+    return winner != nullptr;
 }
 
 // 0x509CE0
