@@ -5,6 +5,11 @@
 #include "TaskSimpleGangDriveBy.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleDuck.h"
+#include "TaskSimpleSwim.h"
+#include "PedModelInfo.h"
+#include "Scene.h"
+#include "Collision.h"
+#include "WaterLevel.h"
 #include "Hud.h"
 
 auto& TheCamera = StaticRef<CCamera>(0xB6F028);
@@ -121,7 +126,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .reversed = false });
-    RH_ScopedInstall(ImproveNearClip, 0x516B20, { .reversed = false });
+    RH_ScopedInstall(ImproveNearClip, 0x516B20);
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
     RH_ScopedInstall(ConeCastCollisionResolve, 0x51A5D0);
@@ -1652,7 +1657,65 @@ void CCamera::CalculateDerivedValues(bool bForMirror, bool bOriented) {
 
 // 0x516B20
 void CCamera::ImproveNearClip(CVehicle* vehicle, CPed* ped, CVector* source, CVector* targPosn) {
-    return plugin::CallMethod<0x516B20, CCamera*, CVehicle*, CPed*, CVector*, CVector*>(this, vehicle, ped, source, targPosn);
+    const float distSrcToTarg = (*source - *targPosn).Magnitude();
+    if (distSrcToTarg > 10.0f) {
+        if (const float nearClip = gCurDistForCam; RwCameraGetNearClipPlane(Scene.m_pRwCamera) < nearClip) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
+        }
+    }
+
+    if (vehicle) {
+        if (vehicle->IsSubHeli() || vehicle->IsSubPlane()) {
+            if (gCurDistForCam <= 0.3f) {
+                if (vehicle->IsSubHeli()) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.1f);
+                }
+            } else if (GetRoughDistanceToGround() > 10.0f) {
+                if (const float nearClip = std::min(distSrcToTarg * 0.1f, 5.0f * gCurDistForCam);
+                    RwCameraGetNearClipPlane(Scene.m_pRwCamera) < nearClip
+                ) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
+                }
+            }
+        }
+    } else if (ped) {
+        if (ped->bIsStanding) {
+            auto* const modelInfo = ped->GetModelInfo()->AsPedModelInfoPtr();
+            auto* const colModel  = modelInfo->AnimatePedColModelSkinnedWorld(ped->GetRpClump());
+            const auto& front     = m_aCams[m_nActiveCam].m_vecFront;
+            const float planeDist = front.Dot(m_aCams[m_nActiveCam].m_vecSource);
+
+            float minDist = 1000000.0f;
+            for (const auto& sphere : std::span{ colModel->GetData()->m_pSpheres, CPedModelInfo::NUM_PED_COL_NODE_INFOS }) {
+                float dist = sphere.m_vecCenter.Dot(front) - planeDist - sphere.m_fRadius;
+                if (sphere.m_Surface.m_nPiece == 9) {
+                    dist -= sphere.m_fRadius;
+                }
+                if (dist < minDist) {
+                    minDist = dist;
+                }
+            }
+            minDist = std::clamp(minDist, 0.02f, 0.3f);
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, (float)(int32)(minDist * 100.0f) * 0.01f);
+        } else if (const auto* swimTask = ped->GetIntelligence()->GetTaskSwim()) {
+            float waterLevel = 0.0f;
+            const bool hasWaterLevel = CWaterLevel::GetWaterLevel(source->x, source->y, source->z, waterLevel, false, nullptr);
+            if ((hasWaterLevel && std::fabs(waterLevel - source->z) < 0.3f) || (swimTask->m_nSwimState == SWIM_UNDERWATER_SPRINTING && m_nPedZoom == 1)) {
+                RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.1f);
+            }
+        } else if (ped->GetIntelligence()->GetUsingParachute() || ped->GetIntelligence()->GetTaskJetPack()) {
+            if (GetRoughDistanceToGround() > 10.0f) {
+                if (const float nearClip = std::min(distSrcToTarg * 0.3f, 2.0f * gCurDistForCam);
+                    nearClip > RwCameraGetNearClipPlane(Scene.m_pRwCamera)
+                ) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
+                }
+            }
+        }
+    }
+
+    float nearest = 1000000.0f;
+    CCollision::CheckPeds(*source, m_aCams[m_nActiveCam].m_vecFront, nearest);
 }
 
 static auto& preMirrorMat = StaticRef<CMatrix>(0xB6FE40);
