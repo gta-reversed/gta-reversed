@@ -107,7 +107,43 @@ void CFormation::GenerateGatherDestinations(CPedList& pedList, CPed* ped) {
 
 // 0x69A770
 void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicle* veh) {
-    plugin::Call<0x69A770, CPedList&, CVehicle*>(pedList, veh);
+    const auto* mi = CModelInfo::GetModelInfo(veh->m_nModelIndex)->AsVehicleModelInfoPtr();
+    const float sideOffset = mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].x + 1.5f;
+    const float length     = mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].y
+                           - mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN].y; // Negative for regular cars
+
+    CVector side = veh->m_matrix->m_right;
+    side.Normalise();
+    CVector fwd = veh->m_matrix->m_forward;
+    fwd.Normalise();
+    side *= sideOffset;
+
+    m_Destinations.m_Count = 0;
+    rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+
+    const auto count       = (int32)pedList.m_count;
+    const int32 backCount  = count / 2;
+    const int32 frontCount = count - backCount;
+
+    const auto& center = veh->GetPosition();
+    for (int32 i = 0; i < backCount; i++) {
+        CVector pt = center - side;
+        if (backCount != 0) {
+            pt += fwd * length * (0.5f - (float)i / (float)backCount);
+        }
+        if (m_Destinations.m_Count < 24) {
+            m_Destinations.m_Points[m_Destinations.m_Count++] = pt;
+        }
+    }
+    for (int32 i = 0; i < frontCount; i++) {
+        CVector pt = center + side;
+        if (frontCount != 0) {
+            pt += fwd * length * (0.5f - (float)i / (float)frontCount);
+        }
+        if (m_Destinations.m_Count < 24) {
+            m_Destinations.m_Points[m_Destinations.m_Count++] = pt;
+        }
+    }
 }
 
 // 0x69B240
@@ -138,7 +174,7 @@ void CFormation::InjectHooks() {
     RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0);
     RH_ScopedGlobalInstall(FindCoverPointsBehindBox, 0x699FF0);
     RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620);
-    RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770, { .reversed = false });
+    RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770);
     RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .reversed = false });
     RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0, { .reversed = false });
     RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700, { .reversed = false });
