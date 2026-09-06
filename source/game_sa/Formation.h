@@ -16,8 +16,8 @@ class CMatrix;
 
 class CFormation {
 public:
-    static inline auto& m_aFinalPedLinkToDestinations = StaticRef<std::array<int32, TOTAL_PED_GROUP_MEMBERS>>(0xC1A4DC);
-    static inline auto& m_aPedLinkToDestinations      = StaticRef<std::array<int32, TOTAL_PED_GROUP_MEMBERS>>(0xC1A2C0);
+    static inline auto& m_aPedLinkToDestinations      = StaticRef<std::array<int32, TOTAL_PED_GROUP_MEMBERS>>(0xC1A4DC);
+    static inline auto& m_aFinalPedLinkToDestinations = StaticRef<std::array<int32, TOTAL_PED_GROUP_MEMBERS>>(0xC1A2C0);
     static inline auto& m_Destinations                = StaticRef<CPointList>(0xC1A318);
     static inline auto& m_DestinationPeds             = StaticRef<CPedList>(0xC1A458);
     static inline auto& m_Peds                        = StaticRef<CPedList>(0xC1A4D8);
