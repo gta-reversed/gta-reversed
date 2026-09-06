@@ -68,7 +68,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0, { .reversed = false });
     RH_ScopedInstall(LookBehind, 0x520690, { .reversed = false });
     RH_ScopedInstall(LookRight, 0x520E40, { .reversed = false });
-    RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0, { .reversed = false });
+    RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .reversed = false });
@@ -328,8 +328,72 @@ void CCam::LookRight(bool bLookRight) {
 }
 
 // 0x50A4F0
-void CCam::RotCamIfInFrontCar(const CVector&, float) {
-    NOTSA_UNREACHABLE();
+void CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
+    auto* ent = m_pCamTargetEntity;
+    if (ent->GetType() != ENTITY_TYPE_VEHICLE) {
+        return;
+    }
+    auto* veh = static_cast<CVehicle*>(ent);
+
+    const auto& speed = veh->GetMoveSpeed();
+    if (speed.SquaredMagnitude() > 0.0036f) {
+        orientation = CGeneral::GetATanOfXY(-speed.x, speed.y) - DegreesToRadians(90.0f);
+    }
+
+    const float dist = DistanceBetweenPoints2D(m_vecSource, target);
+    float delta = orientation - m_fHorizontalAngle;
+    while (delta > DegreesToRadians(180.0f)) {
+        delta -= DegreesToRadians(360.0f);
+    }
+    while (delta < -DegreesToRadians(180.0f)) {
+        delta += DegreesToRadians(360.0f);
+    }
+    if (std::fabs(delta) > DegreesToRadians(20.0f)
+        && DotProduct(veh->GetMatrix().GetForward(), speed) > 0.1f
+        && !TheCamera.m_bTransitionState) {
+        m_bFixingBeta = true;
+    }
+
+    const auto pad = CPad::GetPad(0);
+    if (!pad->GetLookBehindForCar() && !pad->GetLookBehindForPed() && !pad->GetLookLeft() && !pad->GetLookRight() && m_nDirectionWasLooking != 3) {
+        TheCamera.m_bCamDirectlyBehind = true;
+    }
+
+    if (!m_bFixingBeta && !TheCamera.m_bUseTransitionBeta && !TheCamera.m_bCamDirectlyBehind && !TheCamera.m_bCamDirectlyInFront) {
+        return;
+    }
+
+    bool wasRequested = false;
+    if ((TheCamera.m_bCamDirectlyBehind || TheCamera.m_bCamDirectlyInFront || TheCamera.m_bUseTransitionBeta) && &TheCamera.GetActiveCam() == this) {
+        wasRequested = true;
+    }
+    if (m_bFixingBeta || wasRequested) {
+        WellBufferMe(orientation, m_fHorizontalAngle, m_fBetaSpeed, 0.1f, 0.003f, true);
+        if (TheCamera.m_bCamDirectlyBehind && &TheCamera.GetActiveCam() == this) {
+            m_fHorizontalAngle = orientation;
+        }
+        if (TheCamera.m_bCamDirectlyInFront && &TheCamera.GetActiveCam() == this) {
+            m_fHorizontalAngle = orientation + DegreesToRadians(180.0f);
+        }
+        if (TheCamera.m_bUseTransitionBeta && &TheCamera.GetActiveCam() == this) {
+            m_fHorizontalAngle = m_fTransitionBeta;
+        }
+        m_vecSource.x = target.x + std::cos(m_fHorizontalAngle) * dist;
+        m_vecSource.y = target.y + std::sin(m_fHorizontalAngle) * dist;
+
+        delta = orientation - m_fHorizontalAngle;
+        while (delta > DegreesToRadians(180.0f)) {
+            delta -= DegreesToRadians(360.0f);
+        }
+        while (delta < -DegreesToRadians(180.0f)) {
+            delta += DegreesToRadians(360.0f);
+        }
+        if (std::fabs(delta) < DegreesToRadians(2.0f)) {
+            m_bFixingBeta = false;
+        }
+    }
+    TheCamera.m_bCamDirectlyBehind = false;
+    TheCamera.m_bCamDirectlyInFront  = false;
 }
 
 // 0x50A850
