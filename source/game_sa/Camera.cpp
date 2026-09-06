@@ -112,7 +112,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
     RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .Reversed = false });
     RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090, { .Reversed = false });
-    RH_ScopedInstall(VectorMoveLinear, 0x50D160, { .Reversed = false });
+    RH_ScopedInstall(VectorMoveLinear, 0x50D160);
     RH_ScopedInstall(VectorTrackLinear, 0x50D1D0, { .Reversed = false });
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
     RH_ScopedInstall(InitialiseScriptableComponents, 0x50D2D0);
@@ -1276,7 +1276,12 @@ void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, 
 
 // 0x50D160
 void CCamera::VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase) {
-    plugin::CallMethod<0x50D160, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bMoveLinearWithEase);
+    const float time = (float)CTimer::GetTimeInMS();
+    m_fMoveLinearStartTime = time;
+    m_fMoveLinearEndTime   = time + duration;
+    m_vecMoveLinearPosnStart = *from;
+    m_vecMoveLinearPosnEnd   = *to;
+    m_bMoveLinearWithEase    = bMoveLinearWithEase;
 }
 
 // 0x50D1D0
