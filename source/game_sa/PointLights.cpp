@@ -8,6 +8,55 @@
 
 #include "PointLights.h"
 
+// Extra directional lights appended to the world this frame (up to 4 outdoors, 6 in interiors)
+static inline auto& s_ExtraDirectionalLights         = StaticRef<std::array<RpLight*, 6>>(0xC886F0);
+static inline auto& s_ExtraDirectionalLightStrengths = StaticRef<std::array<float, 6>>(0xC8867C);
+static inline auto& s_NumExtraDirLightsInWorld       = StaticRef<int32>(0xC88708);
+
+// 0x735840
+static void AddAnExtraDirectionalLight(RpWorld* world, float dirx, float diry, float dirz, float red, float green, float blue) {
+    const float strength = std::max({ red, green, blue });
+    const int32 nLights  = CGame::currArea != AREA_CODE_NORMAL_WORLD ? 6 : 4;
+
+    int32 slot;
+    if (s_NumExtraDirLightsInWorld < nLights) {
+        slot = s_NumExtraDirLightsInWorld;
+    } else {
+        slot  = -1;
+        float weakest = strength;
+        for (int32 i = 0; i < nLights; i++) {
+            if (s_ExtraDirectionalLightStrengths[i] < weakest) {
+                weakest = s_ExtraDirectionalLightStrengths[i];
+                slot    = i;
+            }
+        }
+    }
+    if (slot < 0) {
+        return;
+    }
+
+    const RwRGBAReal color{ red, green, blue };
+    auto*            light = s_ExtraDirectionalLights[slot];
+    RpLightSetColor(light, &color);
+
+    const auto frame                           = RpLightGetFrame(light);
+    RwMatrixGetAt(RwFrameGetMatrix(frame))     = { -dirx, -diry, -dirz };
+    RwMatrixUpdate(RwFrameGetMatrix(frame));
+    RwFrameUpdateObjects(frame);
+    RpLightSetFlags(light, rpLIGHTLIGHTATOMICS);
+
+    s_ExtraDirectionalLightStrengths[slot] = strength;
+    s_NumExtraDirLightsInWorld             = std::min(s_NumExtraDirLightsInWorld + 1, nLights);
+}
+
+// 0x7359E0
+static void RemoveExtraDirectionalLights(RpWorld* world) {
+    for (const auto light : s_ExtraDirectionalLights) {
+        RpLightSetFlags(light, 0);
+    }
+    s_NumExtraDirLightsInWorld = 0;
+}
+
 // 0x6FFB40
 void CPointLights::Init() {
     rng::fill(aCachedMapReadResults, 0.0f);
@@ -17,7 +66,53 @@ void CPointLights::Init() {
 
 // 0x6FFBB0
 float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* totalLighting, CEntity* entity) {
-    return plugin::CallAndReturn<float, 0x6FFBB0, const CVector*, float*, CEntity*>(point, totalLighting, entity);
+    float antilightMult = 1.0f;
+    for (const auto& light : GetActiveLights()) {
+        if (light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
+            continue;
+        }
+        const CVector delta = light.m_vecPosn - *point;
+        const float   rad   = light.m_fRadius;
+        if (-rad >= delta.x || delta.x >= rad || -rad >= delta.y || delta.y >= rad || -rad >= delta.z || delta.z >= rad) {
+            continue;
+        }
+        const float dist = delta.Magnitude();
+        if (dist >= rad) {
+            continue;
+        }
+
+        const float ratio = dist / rad;
+        if (light.m_nType == PLTYPE_ANTILIGHT) {
+            antilightMult *= ratio;
+            continue;
+        }
+
+        if (totalLighting) {
+            const float f = (1.0f - ratio) * (1.0f / 3.0f);
+            *totalLighting += f * light.m_fColorRed;
+            *totalLighting += f * light.m_fColorGreen;
+            *totalLighting += f * light.m_fColorBlue;
+        }
+
+        float intensity = ratio >= 0.5f ? 1.0f - ((ratio - 0.5f) + (ratio - 0.5f)) : 1.0f;
+        if (dist == 0.0f) {
+            continue;
+        }
+        const float invDist = 1.0f / dist;
+        if (light.m_nType == PLTYPE_DIRECTIONAL && light.m_pEntityToLight != entity) {
+            const float dot = -(delta.x * invDist * light.m_vecDirection.x
+                              + delta.y * invDist * light.m_vecDirection.y
+                              + invDist * delta.z * light.m_vecDirection.z) - 0.5f;
+            intensity *= std::max(dot + dot, 0.0f);
+        }
+        if (intensity > 0.0f) {
+            AddAnExtraDirectionalLight(Scene.m_pRpWorld, delta.x * invDist, delta.y * invDist, invDist * delta.z,
+                intensity * light.m_fColorRed,
+                intensity * light.m_fColorGreen,
+                intensity * light.m_fColorBlue);
+        }
+    }
+    return antilightMult;
 }
 
 // 0x6FFE70
@@ -51,7 +146,7 @@ float CPointLights::GetLightMultiplier(const CVector* point) {
 
 // 0x6FFFE0
 void CPointLights::RemoveLightsAffectingObject() {
-    plugin::Call<0x6FFFE0>();
+    RemoveExtraDirectionalLights(Scene.m_pRpWorld);
 }
 
 // 0x6FFFF0
