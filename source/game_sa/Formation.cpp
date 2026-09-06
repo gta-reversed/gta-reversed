@@ -185,7 +185,44 @@ void CFormation::DistributeDestinations_CoverPoints(const CPedList& pedlist, CVe
 
 // 0x69B700
 void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
-    plugin::Call<0x69B700>(&pedList);
+    m_Peds = pedList;
+    if (m_Peds.m_count == 0) {
+        return;
+    }
+    rng::fill(m_aFinalPedLinkToDestinations, -1);
+
+    const auto count = (int32)pedList.m_count;
+    std::array<int32, 30> remainingForTarget;
+    const int32 maxPerTarget = std::max(2, (int32)std::ceil((double)count / (double)(int32)m_DestinationPeds.m_count));
+    for (int32 enemyIdx = 0; enemyIdx < (int32)m_DestinationPeds.m_count; enemyIdx++) {
+        remainingForTarget[enemyIdx] = maxPerTarget;
+    }
+
+    int32 bestEnemyIdx = 0; // Not reset per iteration, same as the original
+    int32 bestPedIdx   = 0;
+    for (int32 assigned = 0; assigned < count; assigned++) {
+        float bestDist = 999999.9f;
+        for (int32 pedIdx = 0; pedIdx < count; pedIdx++) {
+            if (m_aFinalPedLinkToDestinations[pedIdx] >= 0) {
+                continue;
+            }
+            for (int32 enemyIdx = 0; enemyIdx < (int32)m_DestinationPeds.m_count; enemyIdx++) {
+                if (remainingForTarget[enemyIdx] <= 0) {
+                    continue;
+                }
+                const auto& ep = m_DestinationPeds.m_peds[enemyIdx]->GetPosition();
+                const auto& pp = m_Peds.m_peds[pedIdx]->GetPosition();
+                const float dist = DistanceBetweenPoints2D({ pp.x, pp.y }, { ep.x, ep.y });
+                if (dist < bestDist) {
+                    bestEnemyIdx = enemyIdx;
+                    bestPedIdx   = pedIdx;
+                    bestDist     = dist;
+                }
+            }
+        }
+        m_aFinalPedLinkToDestinations[bestPedIdx] = bestEnemyIdx;
+        remainingForTarget[bestEnemyIdx]--;
+    }
 }
 
 // 0x69B860
@@ -204,6 +241,6 @@ void CFormation::InjectHooks() {
     RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770);
     RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .reversed = false });
     RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0);
-    RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700, { .reversed = false });
+    RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700);
     RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .reversed = false });
 }
