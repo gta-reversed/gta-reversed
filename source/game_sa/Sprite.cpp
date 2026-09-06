@@ -15,7 +15,7 @@ void CSprite::InjectHooks() {
     RH_ScopedInstall(CalcHorizonCoors, 0x70E3E0);
     RH_ScopedOverloadedInstall(Set4Vertices2D, "CRect", 0x70E1C0, void (*)(RwIm2DVertex*, const CRect&, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
     // RH_ScopedOverloadedInstall(Set4Vertices2D, "1", 0x70E2D0, void (*)(RwD3D9Vertex*, float, float, float, float, float, float, float, float, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
-    RH_ScopedInstall(RenderOneXLUSprite, 0x70D000, { .reversed = false });
+    RH_ScopedInstall(RenderOneXLUSprite, 0x70D000);
     RH_ScopedInstall(RenderOneXLUSprite_Triangle, 0x70D320);
     RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490, { .reversed = false });
     RH_ScopedInstall(RenderOneXLUSprite2D, 0x70F540);
@@ -143,7 +143,70 @@ void CSprite::Set4Vertices2D(RwD3D9Vertex*, float, float, float, float, float, f
 
 // 0x70D000
 void CSprite::RenderOneXLUSprite(CVector pos, CVector2D halfSize, uint8 r, uint8 g, uint8 b, int16 intensity, float rhw, uint8 a, uint8 udir, uint8 vdir) {
-    plugin::Call<0x70D000>(pos, halfSize, r, g, b, intensity, rhw, a, udir, vdir);
+    float x[4] = { pos.x - halfSize.x, pos.x - halfSize.x, pos.x + halfSize.x, pos.x + halfSize.x };
+    float y[4] = { pos.y - halfSize.y, pos.y + halfSize.y, pos.y + halfSize.y, pos.y - halfSize.y };
+    float u[4];
+    float v[4];
+
+    if (udir) {
+        u[0] = u[1] = 1.0f; u[2] = u[3] = 0.0f;
+    } else {
+        u[0] = u[1] = 0.0f; u[2] = u[3] = 1.0f;
+    }
+    if (vdir) {
+        v[0] = v[3] = 1.0f; v[1] = v[2] = 0.0f;
+    } else {
+        v[0] = v[3] = 0.0f; v[1] = v[2] = 1.0f;
+    }
+
+    // Screen-clamp the quad, adjusting texcoords accordingly (0.5 = 1 / (2 * halfSize) scale)
+    const auto maxX = static_cast<float>(RsGlobal.maximumWidth);
+    const auto maxY = static_cast<float>(RsGlobal.maximumHeight);
+    for (auto i = 0u; i < 4u; i++) {
+        if (x[i] < 0.0f) {
+            u[i] = x[i] / halfSize.x * 0.5f;
+            x[i] = 0.0f;
+        }
+        if (x[i] > maxX) {
+            u[i] = 1.0f - (x[i] - maxX) * 0.5f / halfSize.x;
+            x[i] = maxX;
+        }
+        if (y[i] < 0.0f) {
+            v[i] = y[i] / halfSize.y * 0.5f;
+            y[i] = 0.0f;
+        }
+        if (y[i] > maxY) {
+            v[i] = 1.0f - (y[i] - maxY) * 0.5f / halfSize.y;
+            y[i] = maxY;
+        }
+    }
+
+    const auto z = (pos.z - CDraw::ms_fNearClipZ)
+        * (RWSRCGLOBAL(dOpenDevice).zBufferFar - RWSRCGLOBAL(dOpenDevice).zBufferNear)
+        * CDraw::ms_fFarClipZ
+        / ((CDraw::ms_fFarClipZ - CDraw::ms_fNearClipZ) * pos.z)
+        + RWSRCGLOBAL(dOpenDevice).zBufferNear;
+
+    const auto emissiveColor = CRGBA{
+        static_cast<uint8>((uint32(r) * intensity) >> 8),
+        static_cast<uint8>((uint32(g) * intensity) >> 8),
+        static_cast<uint8>((uint32(b) * intensity) >> 8),
+        a
+    }.ToIntARGB();
+
+    for (auto i = 0u; i < 4u; i++) {
+        s_XLUSpriteVertices[i] = {
+            .x             = x[i],
+            .y             = y[i],
+            .z             = z,
+            .rhw           = rhw,
+            .emissiveColor = emissiveColor,
+            .u             = u[i],
+            .v             = v[i],
+        };
+    }
+
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, s_XLUSpriteVertices.data(), 4);
 }
 
 // 0x70D320
