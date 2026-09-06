@@ -8,6 +8,11 @@
 #include "InterestingEvents.h"
 #include "ModelIndices.h"
 #include "HandShaker.h"
+#include "General.h"
+#include "CullZones.h"
+#include "cHandlingDataMgr.h"
+#include "ModelInfo.h"
+#include "VehicleModelInfo.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -76,6 +81,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(GetCoreDataForDWCineyCamMode, 0x517130);
     RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0);
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
+    RH_ScopedInstall(GetBoatHandlingCamHeight, 0x509CA0);
     RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
     RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400);
     RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0);
@@ -448,6 +454,23 @@ void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, con
     prevBeta   = beta;
     prevAlpha  = alpha;
     prevFov    = fov;
+}
+
+// 0x509CA0
+bool CCam::GetBoatHandlingCamHeight(float* outCamHeight) {
+    if (!m_pCamTargetEntity) {
+        return false;
+    }
+
+    const auto* boatHandling = gHandlingDataMgr.GetBoatPointer(
+        CModelInfo::GetVehicleModelInfo(m_pCamTargetEntity->m_nModelIndex)->m_nHandlingId
+    );
+    if (!boatHandling) {
+        return false;
+    }
+
+    *outCamHeight = boatHandling->m_fLookLRBehindCamHeight;
+    return true;
 }
 
 // 0x520690
