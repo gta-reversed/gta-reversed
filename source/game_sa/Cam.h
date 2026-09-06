@@ -144,7 +144,7 @@ public:
     void Get_TwoPlayer_AimVector(CVector&);
     bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
-    void LookBehind();
+    bool LookBehind();
     void LookRight(bool bLookRight);
     bool RotCamIfInFrontCar(const CVector&, float);
     bool Using3rdPersonMouseCam() const;
