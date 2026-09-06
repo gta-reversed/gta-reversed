@@ -4,6 +4,7 @@
 #include "AEMP3BankLoader.h"
 #include "AEMP3TrackLoader.h"
 #include "AEAudioEnvironment.h"
+#include "AEAudioUtility.h"
 #include "AEStaticChannel.h"
 #include "AEUserRadioTrackManager.h"
 
@@ -31,7 +32,7 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(StopSound, 0x4D88E0);
     RH_ScopedInstall(SetChannelPosition, 0x4D8920);
     RH_ScopedInstall(SetChannelFrequencyScalingFactor, 0x4D8960);
-    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990, { .reversed = false });
+    RH_ScopedInstall(RescaleChannelVolumes, 0x4D8990);
     RH_ScopedInstall(UpdateReverbEnvironment, 0x4D8DA0);
     RH_ScopedInstall(GetSoundHeadroom, 0x4D8E30);
     RH_ScopedInstall(EnableEffectsLoading, 0x4D8E40);
@@ -371,8 +372,139 @@ void CAEAudioHardware::SetChannelFrequencyScalingFactor(int16 channel, uint16 ch
 }
 
 // 0x4D8990
+// Recompute all channel gains and push them to the hardware. Runs in 3 passes:
+//  1. Mark idle channels as silent (-100.0f) and find the loudest active volume
+//     per group (global + secondary).
+//  2. Normalize each channel's volume by its group max (or clamp it to <= 0),
+//     convert it to a linear gain (10 ^ (dB / 20)) and accumulate the sums used
+//     for headroom control (channels near their end only count their remaining play time).
+//  3. Scale the gains by the master scale and category faders, convert back to
+//     dB (20 * log10) and push volume + frequency scaling to the hardware.
+// Between passes 1 and 2 each group max is released toward the previous frame's
+// value (0.5 step if that frame was slow-fadeout, else 1.2), so ducked volumes
+// fade back in instead of popping.
 void CAEAudioHardware::RescaleChannelVolumes() {
-    return plugin::Call<0x4D8990, CAEAudioHardware*>(this);
+    float maxVolumeGlobal           = 0.0f;  // [ESP+0x18]
+    float maxVolumeSecondary        = 0.0f;  // [ESP+0x14]
+    float scaleSum                  = 0.0f;  // [ESP+0x1C]
+    float fullSum                   = 0.0f;  // [ESP+0x24]
+    bool  isMaxGlobalSlowFadeout    = false; // [ESP+0x13]
+    bool  isMaxSecondarySlowFadeout = false; // [ESP+0x12]
+
+    for (auto&& [i, ch] : rngv::enumerate(GetChannels())) {
+        if (!ch || ch->GetPlayTime() == -1) {
+            m_afChannelVolumes[i] = -100.0f;
+        } else {
+            if (maxVolumeGlobal < m_afChannelVolumes[i]) {
+                maxVolumeGlobal        = m_afChannelVolumes[i];
+                isMaxGlobalSlowFadeout = (m_awChannelFlags[i] & FLAG_SLOW_FADEOUT) != 0;
+            }
+            if ((m_awChannelFlags[i] & FLAG_SECONDARY_GROUP) && maxVolumeSecondary < m_afChannelVolumes[i]) {
+                maxVolumeSecondary        = m_afChannelVolumes[i];
+                isMaxSecondarySlowFadeout = (m_awChannelFlags[i] & FLAG_SLOW_FADEOUT) != 0;
+            }
+        }
+    }
+
+    // Release the group maxima toward the previous frame's values (ducking fade-out)
+    if (maxVolumeGlobal < m_PrevMaxVolumeGlobal) {
+        if (m_PrevMaxGlobalSlowFadeout) {
+            const float vol = m_PrevMaxVolumeGlobal - 0.5f;
+            if (vol > maxVolumeGlobal) {
+                maxVolumeGlobal        = vol;
+                isMaxGlobalSlowFadeout = true;
+            }
+        } else {
+            const float vol = m_PrevMaxVolumeGlobal - 1.2f;
+            if (vol > maxVolumeGlobal) {
+                maxVolumeGlobal = vol;
+            }
+        }
+    }
+
+    if (maxVolumeSecondary < m_PrevMaxVolumeSecondary) {
+        if (m_PrevMaxSecondarySlowFadeout) {
+            const float vol = m_PrevMaxVolumeSecondary - 0.5f;
+            if (vol > maxVolumeSecondary) {
+                maxVolumeSecondary        = vol;
+                isMaxSecondarySlowFadeout = true;
+            }
+        } else {
+            const float vol = m_PrevMaxVolumeSecondary - 1.2f;
+            if (vol > maxVolumeSecondary) {
+                maxVolumeSecondary = vol;
+            }
+        }
+    }
+
+    for (auto&& [i, ch] : rngv::enumerate(GetChannels())) {
+        const auto flags = m_awChannelFlags[i];
+        auto&      vol   = m_afChannelVolumes[i];
+
+        if (flags & FLAG_CLAMP_VOL_TO_NEG) {
+            vol = vol < 0.0f ? vol : 0.0f;
+        } else if (flags & FLAG_SECONDARY_GROUP) {
+            vol -= maxVolumeSecondary;
+        } else {
+            vol -= maxVolumeGlobal;
+        }
+
+        // NOTE: `pow` in double precision on purpose - the original computes it on the
+        // x87 FPU in temp-real precision (`FLD qword [10.0]` @ 0x4D8B58).
+        m_ChannelGains[i] = static_cast<float>(std::pow(10.0, vol * 0.05f));
+
+        if (flags & FLAG_UNDUCKABLE) {
+            fullSum += m_ChannelGains[i];
+        } else if ((flags & FLAG_FADE_NEAR_END) && ch && ch->GetPlayTime() >= 0) {
+            // NOTE: `GetPlayTime()` is called twice on purpose (0x4D8B9A / 0x4D8BBB) -
+            // it reads live playback state, so caching it would deviate from the original.
+            // NOTE: `static_cast<int16>` reproduces the original's MOVSX sign-extension (0x4D8BB2).
+            const auto  length    = static_cast<int16>(ch->GetLength());
+            const auto  playTime  = ch->GetPlayTime();
+            const float remaining = static_cast<float>(length - playTime) * m_ChannelGains[i] / static_cast<float>(length);
+            scaleSum += remaining < 0.0f ? 0.0f : std::min(remaining, m_ChannelGains[i]);
+        } else {
+            scaleSum += m_ChannelGains[i];
+        }
+    }
+
+    m_PrevMaxVolumeGlobal         = maxVolumeGlobal;
+    m_PrevMaxVolumeSecondary      = maxVolumeSecondary;
+    m_PrevMaxSecondarySlowFadeout = isMaxSecondarySlowFadeout;
+    m_PrevMaxGlobalSlowFadeout    = isMaxGlobalSlowFadeout;
+
+    // NOTE: Operation order matters - the original does FSUBR -> FMUL -> FDIV, so
+    // reassociating `(6.4f - fullSum * 0.8f) * 16383.0f / scaleSum` changes the result.
+    // NOTE: Exact `== 0.0f` compare on purpose - matches the original's FCOMP against 0.0.
+    const float masterScale = scaleSum == 0.0f
+        ? 0.0f
+        : std::min((6.4f - fullSum * 0.8f) * 16383.0f / scaleSum, 16383.0f);
+
+    for (auto&& [i, ch] : rngv::enumerate(GetChannels())) {
+        const auto flags = m_awChannelFlags[i];
+        auto&      gain  = m_ChannelGains[i];
+
+        gain *= (flags & FLAG_UNDUCKABLE) ? 16383.0f : masterScale;
+
+        if (flags & FLAG_IS_MUSIC) {
+            gain *= m_fMusicMasterScalingFactor * m_fMusicFaderScalingFactor;
+        } else {
+            gain *= m_fEffectMasterScalingFactor * m_fEffectsFaderScalingFactor;
+        }
+
+        gain *= (flags & FLAG_IS_NOT_STREAM) ? m_fNonStreamFaderScalingFactor : m_fStreamFaderScalingFactor;
+
+        if (ch) {
+            // NOTE: Exact `== 0.0f` compare on purpose - the original does FCOMP against
+            // 0.0 and sends NaN gains down the log path.
+            if (gain == 0.0f) {
+                ch->SetVolume(-100.0f);
+            } else {
+                ch->SetVolume(20.0f * CAEAudioUtility::AudioLog10(gain * (1.0f / 16383.0f)));
+            }
+            ch->SetFrequencyScalingFactor(m_afChannelsFrqScalingFactor[i]);
+        }
+    }
 }
 
 // 0x4D8DA0
