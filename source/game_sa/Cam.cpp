@@ -51,6 +51,16 @@ static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, 
     valueToChange += std::min(CTimer::GetTimeStep(), 10.0f) * speedSoFar;
 }
 
+// 0x509BE0
+static void WrapAngle(float& angle) {
+    while (angle >= DegreesToRadians(180.0f)) {
+        angle -= DegreesToRadians(360.0f);
+    }
+    while (angle < DegreesToRadians(-180.0f)) {
+        angle += DegreesToRadians(360.0f);
+    }
+}
+
 void CCam::InjectHooks() {
     RH_ScopedClass(CCam);
     RH_ScopedCategory("Camera");
@@ -65,7 +75,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
     RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
     RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400, { .reversed = false });
-    RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0, { .reversed = false });
+    RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0);
     RH_ScopedInstall(LookBehind, 0x520690, { .reversed = false });
     RH_ScopedInstall(LookRight, 0x520E40, { .reversed = false });
     RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
@@ -100,6 +110,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_WheelCam, 0x512110, { .reversed = false });
 
     RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
+    RH_ScopedGlobalInstall(WrapAngle, 0x509BE0);
 }
 
 // 0x517730
@@ -313,8 +324,65 @@ bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const
 }
 
 // 0x509DF0
-void CCam::KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&) {
-    NOTSA_UNREACHABLE();
+void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, const CVector& up, const float& alpha, const float& beta, const float& fov) {
+    static CVector prevSource;
+    static CVector prevTarget;
+    static CVector prevUp;
+    static float  prevBeta;
+    static float  prevAlpha;
+    static float  prevFov;
+    static uint32 staticsInitialized;
+
+    if ((staticsInitialized & 1) == 0) {
+        prevSource = source;
+        staticsInitialized |= 1;
+    }
+    if ((staticsInitialized & 2) == 0) {
+        prevTarget = target;
+        staticsInitialized |= 2;
+    }
+    if ((staticsInitialized & 4) == 0) {
+        prevUp = up;
+        staticsInitialized |= 4;
+    }
+
+    float prevBetaVal = prevBeta;
+    if ((staticsInitialized & 8) == 0) {
+        staticsInitialized |= 8;
+        prevBetaVal = beta;
+    }
+    if ((staticsInitialized & 0x10) == 0) {
+        prevAlpha = alpha;
+        staticsInitialized |= 0x10;
+    }
+    float prevFovVal = prevFov;
+    if ((staticsInitialized & 0x20) == 0) {
+        staticsInitialized |= 0x20;
+        prevFovVal = fov;
+    }
+
+    if (TheCamera.m_bJust_Switched) {
+        prevSource = source;
+        prevTarget = target;
+        prevUp     = up;
+    }
+
+    m_vecSourceSpeedOverOneFrame = source - prevSource;
+    m_vecTargetSpeedOverOneFrame = target - prevTarget;
+    m_vecUpOverOneFrame          = up - prevUp;
+
+    m_fFovSpeedOverOneFrame = fov - prevFovVal;
+    m_fBetaSpeedOverOneFrame = beta - prevBetaVal;
+    WrapAngle(m_fBetaSpeedOverOneFrame);
+    m_fAlphaSpeedOverOneFrame = alpha - prevAlpha;
+    WrapAngle(m_fAlphaSpeedOverOneFrame);
+
+    prevSource = source;
+    prevTarget = target;
+    prevUp     = up;
+    prevBeta   = beta;
+    prevAlpha  = alpha;
+    prevFov    = fov;
 }
 
 // 0x520690
