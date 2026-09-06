@@ -24,6 +24,7 @@ auto& gCurCamColVars = StaticRef<uint8>(0x8CCB80);
 auto& gCurDistForCam = StaticRef<float>(0x8CCB84);
 auto& gpCamColVars = StaticRef<float*>(0xB6FE88);
 auto& gCamColVars = StaticRef<float[28][6]>(0x8CC8E0);
+static auto& gLastRadiusUsedInCollisionPreventionOfCamera = StaticRef<float>(0xB6EC6C);
 
 CCam& CCamera::GetActiveCamera() {
     return TheCamera.m_aCams[TheCamera.m_nActiveCam];
@@ -131,7 +132,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
     RH_ScopedInstall(ConeCastCollisionResolve, 0x51A5D0);
     RH_ScopedInstall(TryToStartNewCamMode, 0x51E560, { .reversed = false });
-    RH_ScopedInstall(CameraColDetAndReact, 0x520190, { .reversed = false });
+    RH_ScopedInstall(CameraColDetAndReact, 0x520190);
     RH_ScopedInstall(CamControl, 0x527FA0, { .reversed = false });
     RH_ScopedInstall(Process, 0x52B730, { .reversed = false });
     RH_ScopedInstall(DeleteCutSceneCamDataMemory, 0x5B24A0);
@@ -1758,7 +1759,93 @@ bool CCamera::TryToStartNewCamMode(int32 camSequence) {
 
 // 0x520190
 void CCamera::CameraColDetAndReact(CVector* source, CVector* target) {
-    plugin::CallMethod<0x520190, CCamera*, CVector*, CVector*>(this, source, target);
+    static auto& gCamColLastSrcPos   = StaticRef<CVector>(0xB700DC);
+    static auto& gCamColStateFlags   = StaticRef<uint32>(0xB700E8);
+    static auto& gCamColMinExtent    = StaticRef<float>(0xB700EC);
+    static auto& gCamColCachedModel  = StaticRef<int32>(0xB700F0);
+
+    const CVector delta = *source - *target;
+    const float   dist  = delta.Magnitude();
+    float         radius     = dist * gpCamColVars[0] * 0.2939f;
+
+    const auto    ignoreEntity   = CWorld::pIgnoreEntity;
+    const auto*   ignoreVehicle  = (ignoreEntity && gCurCamColVars > 9 && ignoreEntity->GetIsTypeVehicle())
+        ? ignoreEntity->AsVehicle()
+        : nullptr;
+    const bool    isIgnoredBike  = ignoreVehicle && ignoreVehicle->IsBike();
+
+    if (ignoreVehicle) {
+        float fVar;
+        if (ignoreVehicle->IsSubAutomobile()) {
+            if (gCamColCachedModel != ignoreEntity->GetModelIndex()) {
+                gCamColMinExtent = 100.0f;
+                if (const auto* colData = ignoreEntity->GetColModel()->GetData()) {
+                    for (int32 i = 0; i < colData->m_nNumSpheres; i++) {
+                        const auto& sphere = colData->m_pSpheres[i];
+                        gCamColMinExtent   = std::min(gCamColMinExtent, sphere.m_vecCenter.z - sphere.m_fRadius);
+                    }
+                }
+                gCamColCachedModel = ignoreEntity->GetModelIndex();
+            }
+            if (!ignoreEntity->m_matrix) {
+                ignoreEntity->AllocateMatrix();
+                ignoreEntity->m_placement.UpdateMatrix(ignoreEntity->m_matrix);
+            }
+            const auto& entityMat = ignoreEntity->GetMatrix();
+            fVar = (*target - entityMat.GetPosition()).Dot(entityMat.GetUp()) - gCamColMinExtent;
+            if (fVar < 0.2f) {
+                fVar = 0.2f;
+            }
+        } else {
+            const auto& boundingBox = ignoreEntity->GetColModel()->m_boundBox;
+            fVar = std::min(((boundingBox.m_vecMax.x - boundingBox.m_vecMin.x) * 0.5f,
+                             (boundingBox.m_vecMax.y - boundingBox.m_vecMin.y) * 0.5f),
+                            (boundingBox.m_vecMax.z - boundingBox.m_vecMin.z) * 0.5f);
+        }
+        radius = (fVar > gpCamColVars[1]) ? std::min(radius, gpCamColVars[1])
+                                          : std::min(radius, fVar);
+    }
+    radius = std::max(std::min(radius, gpCamColVars[1]), 0.65f);
+
+    float minDist = gpCamColVars[2];
+    if (gCurCamColVars < 10) {
+        minDist = (gCurCamColVars < 4 ? 0.18f : 0.3f) / dist;
+    }
+    if (isIgnoredBike) {
+        minDist = 0.05f;
+    }
+    CVector solvePos{};
+
+    gLastRadiusUsedInCollisionPreventionOfCamera = radius;
+
+    float outDist = 1.0f;
+    if (ConeCastCollisionResolve(*source, *target, solvePos, radius, minDist, outDist)) {
+        if (outDist < gpCamColVars[3]) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, gpCamColVars[4]);
+        }
+    }
+
+    if (outDist >= gCurDistForCam) {
+        if (!(gCamColStateFlags & 1)) {
+            gCamColStateFlags |= 1;
+            gCamColLastSrcPos = CVector{};
+        }
+        if ((*source - gCamColLastSrcPos).SquaredMagnitude() > 0.01f * 0.01f) {
+            gCurDistForCam += std::min((outDist - gCurDistForCam) * CTimer::GetTimeStep() * gpCamColVars[5], 0.05f);
+        }
+        gCamColLastSrcPos = *source;
+    } else {
+        gCurDistForCam = outDist;
+    }
+    if (gCurDistForCam > 1.0f) {
+        gCurDistForCam = 1.0f;
+    }
+
+    *source = *target + delta * gCurDistForCam;
+
+    if (isIgnoredBike && gCurDistForCam < 0.5f) {
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
+    }
 }
 
 // 0x527FA0
