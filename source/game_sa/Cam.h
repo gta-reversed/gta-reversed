@@ -138,6 +138,7 @@ public:
     void CacheLastSettingsDWCineyCam();
     void DoCamBump(float horizontal, float vertical);
     void Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree);
+    bool GetBoatHandlingCamHeight(float* outCamHeight);
     void GetCoreDataForDWCineyCamMode(CEntity*& entity, CVehicle*& vehicle, CVector& dest, CVector& src, CVector& targetUp, CVector& targetRight, CVector& targetFwd, CVector& targetVel, float& targetSpeed, CVector& targetAngVel, float& targetAngSpeed, CColSphere& colSphere);
     bool GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, CVector& outPos);
     void GetVectorsReadyForRW();
