@@ -407,6 +407,7 @@ void CAEAudioHardware::RescaleChannelVolumes() {
     }
 
     // Release the group maxima toward the previous frame's values (ducking fade-out)
+    // TODO: FPS dependent logic
     if (maxVolumeGlobal < m_PrevMaxVolumeGlobal) {
         if (m_PrevMaxGlobalSlowFadeout) {
             const float vol = m_PrevMaxVolumeGlobal - 0.5f;
@@ -422,6 +423,7 @@ void CAEAudioHardware::RescaleChannelVolumes() {
         }
     }
 
+    // TODO: FPS dependent logic
     if (maxVolumeSecondary < m_PrevMaxVolumeSecondary) {
         if (m_PrevMaxSecondarySlowFadeout) {
             const float vol = m_PrevMaxVolumeSecondary - 0.5f;
@@ -442,7 +444,7 @@ void CAEAudioHardware::RescaleChannelVolumes() {
         auto&      vol   = m_afChannelVolumes[i];
 
         if (flags & FLAG_CLAMP_VOL_TO_NEG) {
-            vol = vol < 0.0f ? vol : 0.0f;
+            vol = std::min(vol, 0.0f);
         } else if (flags & FLAG_SECONDARY_GROUP) {
             vol -= maxVolumeSecondary;
         } else {
