@@ -146,7 +146,7 @@ public:
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
     void LookRight(bool bLookRight);
-    void RotCamIfInFrontCar(const CVector&, float);
+    bool RotCamIfInFrontCar(const CVector&, float);
     bool Using3rdPersonMouseCam() const;
     bool GetWeaponFirstPersonOn();
     void ClipAlpha();
