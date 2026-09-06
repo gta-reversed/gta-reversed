@@ -86,7 +86,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400);
     RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0);
     RH_ScopedInstall(LookBehind, 0x520690);
-    RH_ScopedInstall(LookRight, 0x520E40, { .reversed = false });
+    RH_ScopedInstall(LookRight, 0x520E40);
     RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
@@ -617,7 +617,126 @@ void CCam::LookBehind() {
 
 // 0x520E40
 void CCam::LookRight(bool bLookRight) {
-    NOTSA_UNREACHABLE();
+    static auto& gNumEntitiesRegisteredForCollision = StaticRef<uint32>(0xB6FC70);
+
+    CEntity* const entity     = m_pCamTargetEntity;
+    const auto     entityType = entity->GetType();
+
+    const bool isBehindCamVehicle =
+        (m_nMode == MODE_CAM_ON_A_STRING || m_nMode == MODE_BEHINDBOAT || m_nMode == MODE_BEHINDCAR)
+        && entityType == ENTITY_TYPE_VEHICLE;
+    const bool isFirstPersonVehicle = m_nMode == MODE_1STPERSON && entityType == ENTITY_TYPE_VEHICLE;
+
+    float sideMult = 1.0f;
+    if (!bLookRight) {
+        m_bLookingLeft  = true;
+        sideMult = -1.0f;
+    } else {
+        m_bLookingRight = true;
+    }
+
+    if (isBehindCamVehicle) {
+        CVector targetPos = entity->GetPosition();
+
+        float dist = 9.0f;
+        if (m_nMode == MODE_CAM_ON_A_STRING) {
+            dist = m_fCaMaxDistance;
+        } else if (m_nMode == MODE_BEHINDBOAT) {
+            float boatCamHeight = 0.0f;
+            if (GetBoatHandlingCamHeight(&boatCamHeight) && !CCullZones::Cam1stPersonForPlayer()) {
+                m_vecSource.z = targetPos.z + boatCamHeight;
+            }
+        }
+
+        if (!entity->m_matrix) {
+            entity->AllocateMatrix();
+            entity->m_placement.UpdateMatrix(entity->m_matrix);
+        }
+        CVector fwd = entity->GetMatrix().GetForward();
+        fwd.Normalise();
+
+        const float halfPi = 1.5707964f;
+        const float angle  = CGeneral::GetATanOfXY(fwd.x, fwd.y) + sideMult * halfPi;
+        m_vecSource.x = targetPos.x + dist * std::cos(angle);
+        m_vecSource.y = targetPos.y + dist * std::sin(angle);
+
+        const auto* colModel = entity->GetColModel();
+        const float sourceZBeforeCollision = m_vecSource.z;
+
+        CWorld::pIgnoreEntity              = entity;
+        gNumEntitiesRegisteredForCollision = 0;
+        TheCamera.CameraVehicleModeSpecialCases(entity->AsVehicle());
+        TheCamera.CameraColDetAndReact(&m_vecSource, &targetPos);
+        CWorld::pIgnoreEntity = nullptr;
+
+        targetPos = entity->GetPosition();
+
+        const float sideZ = !bLookRight
+            ? colModel->m_boundBox.m_vecMax.x * entity->GetMatrix().GetRight().z
+            : entity->GetMatrix().GetRight().z * colModel->m_boundBox.m_vecMin.x;
+        float z = targetPos.z + sideZ + colModel->m_boundBox.m_vecMax.z * entity->GetMatrix().GetUp().z;
+
+        const float zMax = std::max(z, m_vecTargetCoorsForFudgeInter.z);
+        float newZ = sourceZBeforeCollision;
+        if (zMax + 0.1f <= sourceZBeforeCollision) {
+            newZ = zMax + 0.1f;
+        }
+        if (newZ <= m_vecSource.z) {
+            newZ = m_vecSource.z;
+        }
+        m_vecSource.z = newZ;
+
+        m_vecFront = targetPos - m_vecSource;
+        m_vecFront.z += 1.1f;
+        if (m_nMode == MODE_BEHINDBOAT) {
+            m_vecFront.z += 1.2f;
+        }
+        GetVectorsReadyForRW();
+        return;
+    }
+
+    if (isFirstPersonVehicle) {
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
+
+        if (!entity->m_matrix) {
+            entity->AllocateMatrix();
+            entity->m_placement.UpdateMatrix(entity->m_matrix);
+        }
+
+        if (entity->AsVehicle()->m_nVehicleType == VEHICLE_TYPE_BOAT) {
+            if (auto* driver = entity->AsVehicle()->m_pDriver) {
+                CVector neckPos{};
+                driver->SetPedPositionInCar();
+                driver->UpdateRwMatrix();
+                driver->UpdateRwFrame();
+                driver->UpdateRpHAnim();
+                driver->GetBonePosition(&neckPos, BONE_NECK, true);
+                neckPos += entity->GetMatrix().GetRight() * (bLookRight ? 0.7f : 0.3f);
+                neckPos += entity->GetMatrix().GetUp() * 0.2f;
+                m_vecSource = neckPos;
+            } else {
+                m_vecSource.z -= 0.5f;
+            }
+        }
+
+        if (entity->AsVehicle()->m_nVehicleType != VEHICLE_TYPE_BIKE) {
+            m_vecSource -= entity->GetMatrix().GetRight() * 0.35f;
+        }
+
+        m_vecUp = entity->GetMatrix().GetUp();
+        m_vecUp.Normalise();
+
+        m_vecFront = entity->GetMatrix().GetForward();
+        m_vecFront.Normalise();
+
+        m_vecFront = !bLookRight ? CrossProduct(m_vecUp, m_vecFront)
+                                 : CrossProduct(m_vecFront, m_vecUp);
+        m_vecFront.Normalise();
+
+        if (entity->AsVehicle()->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) {
+            m_vecSource -= m_vecFront * 1.45f;
+        }
+    }
 }
 
 // 0x50A4F0
