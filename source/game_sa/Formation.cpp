@@ -303,7 +303,53 @@ void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
 
 // 0x69B860
 void CFormation::FindCoverPoints(CVector pos, float radius) {
-    plugin::Call<0x69B860, CVector, float>(pos, radius);
+    m_Destinations.m_Count = 0;
+    rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+
+    const auto* vehPool = GetVehiclePool();
+    for (auto i = vehPool->GetSize(); i --> 0;) {
+        auto* veh = vehPool->GetAt(i);
+        if (!veh || veh->m_pFire) {
+            continue;
+        }
+        if (veh->GetMoveSpeed().Magnitude() >= 0.005f) {
+            continue;
+        }
+        const auto* mi  = CModelInfo::GetModelInfo(veh->m_nModelIndex)->AsVehicleModelInfoPtr();
+        const auto* vsm = mi->m_pVehicleStruct;
+        if (vsm->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].z >= 1.5f) {
+            continue;
+        }
+        CPointList points;
+        FindCoverPointsBehindBox(
+            &points,
+            pos,
+            veh->m_matrix,
+            vsm->m_avDummyPos[DUMMY_LIGHT_FRONT_SECONDARY],
+            vsm->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN],
+            vsm->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN],
+            radius
+        );
+        for (uint32 j = 0; j < points.m_Count; j++) {
+            m_Destinations.AddPoint(points.m_Points[j]);
+        }
+    }
+
+    const auto* objPool = GetObjectPool();
+    for (auto i = objPool->GetSize(); i --> 0;) {
+        auto* obj = objPool->GetAt(i);
+        if (!obj || obj->m_matrix->m_up.z <= 0.95f) {
+            continue;
+        }
+        if (!obj->CanBeUsedToTakeCoverBehind()) {
+            continue;
+        }
+        const auto& objPos = obj->GetPosition();
+        const CVector dir  = objPos - pos;
+        if (DistanceBetweenPoints2D({ objPos.x, objPos.y }, { pos.x, pos.y }) < radius) {
+            m_Destinations.AddPoint(objPos + dir.Normalized());
+        }
+    }
 }
 
 void CFormation::InjectHooks() {
@@ -318,5 +364,5 @@ void CFormation::InjectHooks() {
     RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240);
     RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0);
     RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700);
-    RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .reversed = false });
+    RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860);
 }
