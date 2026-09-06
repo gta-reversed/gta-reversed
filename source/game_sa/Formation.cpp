@@ -153,7 +153,34 @@ void CFormation::DistributeDestinations(CPedList& pedList) {
 
 // 0x69B5B0
 void CFormation::DistributeDestinations_CoverPoints(const CPedList& pedlist, CVector pos) {
-    return plugin::Call<0x69B5B0, const CPedList&, CVector>(pedlist, pos);
+    m_Peds = pedlist;
+    if (m_Peds.m_count == 0) {
+        return;
+    }
+    rng::fill(m_aPedLinkToDestinations, -1);
+    for (int32 destIdx = 0; destIdx < (int32)m_Destinations.m_Count; destIdx++) {
+        int32 bestPedIdx = -1;
+        float bestScore  = 0.4f;
+        const auto& pt   = m_Destinations.m_Points[destIdx];
+        const float destToPos = DistanceBetweenPoints2D({ pt.x, pt.y }, { pos.x, pos.y });
+        for (int32 pedIdx = 0; pedIdx < (int32)m_Peds.m_count; pedIdx++) {
+            if (m_aPedLinkToDestinations[pedIdx] >= 0) {
+                continue;
+            }
+            const auto& pp = m_Peds.m_peds[pedIdx]->GetPosition();
+            const float pedToPos = DistanceBetweenPoints2D({ pp.x, pp.y }, { pos.x, pos.y });
+            if (destToPos <= pedToPos + 1.0f) {
+                const float score = 1.0f - ((DistanceBetweenPoints2D({ pp.x, pp.y }, { pt.x, pt.y }) + destToPos) - pedToPos) / pedToPos;
+                if (bestScore < score) {
+                    bestPedIdx = pedIdx;
+                    bestScore  = score;
+                }
+            }
+        }
+        if (bestPedIdx >= 0) {
+            m_aPedLinkToDestinations[bestPedIdx] = destIdx;
+        }
+    }
 }
 
 // 0x69B700
@@ -176,7 +203,7 @@ void CFormation::InjectHooks() {
     RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620);
     RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770);
     RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0, { .reversed = false });
+    RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0);
     RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700, { .reversed = false });
     RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .reversed = false });
 }
