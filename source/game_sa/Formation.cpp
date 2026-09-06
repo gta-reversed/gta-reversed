@@ -146,9 +146,85 @@ void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicl
     }
 }
 
+// 0x69B1B0
+static int32 FindNearestUnclaimedDestination(CVector pt, float& totalCost) {
+    int32 best     = -1;
+    float bestDist = 10000000.0f;
+    for (int32 i = 0; i < (int32)CFormation::m_Destinations.m_Count; i++) {
+        if (CFormation::m_Destinations.m_PointHasBeenClaimed[i]) {
+            continue;
+        }
+        const float dist = (CFormation::m_Destinations.m_Points[i] - pt).Magnitude();
+        if (dist < bestDist) {
+            best     = i;
+            bestDist = dist;
+        }
+    }
+    totalCost = bestDist + totalCost;
+    return best;
+}
+
 // 0x69B240
 void CFormation::DistributeDestinations(CPedList& pedList) {
-    plugin::Call<0x69B240>(&pedList);
+    m_Peds = pedList;
+    if (m_Peds.m_count == 0) {
+        return;
+    }
+    const auto count = (int32)m_Peds.m_count;
+
+    CVector destCentre{};
+    for (int32 i = 0; i < (int32)m_Destinations.m_Count; i++) {
+        destCentre += m_Destinations.m_Points[i];
+    }
+    destCentre = destCentre * (1.0f / (float)m_Destinations.m_Count);
+
+    CVector pedCentre{};
+    std::array<CVector, 24> pts{};
+    int32 numPts = 0;
+    for (int32 i = 0; i < count; i++) {
+        const auto& pp = m_Peds.m_peds[i]->GetPosition();
+        if (numPts < 24) {
+            pts[numPts++] = pp;
+        }
+        pedCentre += pp;
+    }
+    pedCentre = pedCentre * (1.0f / (float)count);
+
+    float destCentreDeviation = 0.0f;
+    for (int32 i = 0; i < (int32)m_Destinations.m_Count; i++) {
+        destCentreDeviation += (m_Destinations.m_Points[i] - destCentre).Magnitude();
+    }
+    destCentreDeviation /= (float)m_Destinations.m_Count;
+
+    float pedCentreDeviation = 0.0f;
+    for (int32 i = 0; i < count; i++) {
+        pedCentreDeviation += (pts[i] - pedCentre).Magnitude();
+    }
+    pedCentreDeviation /= (float)count;
+
+    destCentreDeviation = std::max(destCentreDeviation, 1.0f);
+    pedCentreDeviation  = std::max(pedCentreDeviation, 1.0f);
+
+    const float scale = destCentreDeviation / pedCentreDeviation;
+    for (int32 i = 0; i < count; i++) {
+        pts[i] = (pts[i] - pedCentre) * scale + destCentre;
+    }
+
+    float bestCost = 999999.9f;
+    for (int32 trial = 0; trial < count; trial++) {
+        rng::fill_n(m_aFinalPedLinkToDestinations.begin(), 7, -1);
+        rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+        float cost = 0.0f;
+        for (int32 i = 0; i < count; i++) {
+            const int32 dest = FindNearestUnclaimedDestination(pts[i], cost);
+            m_aFinalPedLinkToDestinations[i] = dest;
+            m_Destinations.m_PointHasBeenClaimed[dest] = true;
+        }
+        if (cost < bestCost) {
+            std::copy_n(m_aFinalPedLinkToDestinations.begin(), count, m_aPedLinkToDestinations.begin());
+            bestCost = cost;
+        }
+    }
 }
 
 // 0x69B5B0
@@ -239,7 +315,7 @@ void CFormation::InjectHooks() {
     RH_ScopedGlobalInstall(FindCoverPointsBehindBox, 0x699FF0);
     RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620);
     RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770);
-    RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .reversed = false });
+    RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240);
     RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0);
     RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700);
     RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .reversed = false });
