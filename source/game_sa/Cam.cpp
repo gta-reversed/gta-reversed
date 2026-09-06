@@ -69,7 +69,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(LookBehind, 0x520690, { .Reversed = false });
     RH_ScopedInstall(LookRight, 0x520E40, { .Reversed = false });
     RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0, { .Reversed = false });
-    RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850, { .Reversed = false });
+    RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .Reversed = false });
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .Reversed = false });
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250, { .Reversed = false });
