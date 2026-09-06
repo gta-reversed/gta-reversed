@@ -10,7 +10,9 @@
 
 // 0x6FFB40
 void CPointLights::Init() {
-    plugin::Call<0x6FFB40>();
+    rng::fill(aCachedMapReadResults, 0.0f);
+    NextCachedValue = 0;
+    rng::fill(aCachedMapReads, CVector{});
 }
 
 // 0x6FFBB0
