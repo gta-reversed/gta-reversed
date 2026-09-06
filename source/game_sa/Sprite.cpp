@@ -17,7 +17,7 @@ void CSprite::InjectHooks() {
     // RH_ScopedOverloadedInstall(Set4Vertices2D, "1", 0x70E2D0, void (*)(RwD3D9Vertex*, float, float, float, float, float, float, float, float, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&));
     RH_ScopedInstall(RenderOneXLUSprite, 0x70D000);
     RH_ScopedInstall(RenderOneXLUSprite_Triangle, 0x70D320);
-    RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490, { .reversed = false });
+    RH_ScopedInstall(RenderOneXLUSprite_Rotate_Aspect, 0x70D490);
     RH_ScopedInstall(RenderOneXLUSprite2D, 0x70F540);
     RH_ScopedInstall(RenderBufferedOneXLUSprite, 0x70E4A0, { .reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780, { .reversed = false });
@@ -259,7 +259,78 @@ void CSprite::RenderOneXLUSprite_Triangle(CVector2D screen1, CVector2D screen2, 
 
 // 0x70D490
 void CSprite::RenderOneXLUSprite_Rotate_Aspect(CVector pos, CVector2D size, uint8 r, uint8 g, uint8 b, int16 intensity, float rz, float rotation, uint8 alpha) {
-    plugin::Call<0x70D490>(pos, size, r, g, b, intensity, rz, rotation, alpha);
+    if (pos.z < 1.3f) {
+        return;
+    }
+
+    // Colors and intensity are faded out between z=2.3 and z=1.3 (culled below)
+    uint32 R = r;
+    uint32 G = g;
+    uint32 B = b;
+    auto   fadeIntensity = intensity;
+    if (pos.z < 2.3f) {
+        const uint32 factor = static_cast<uint32>(std::min(255.0f * (pos.z - 1.3f), 255.0f));
+        R = (R * factor) >> 8;
+        G = (G * factor) >> 8;
+        B = (B * factor) >> 8;
+        fadeIntensity = static_cast<int16>((static_cast<uint32>(intensity * factor)) >> 8);
+    }
+
+    const float fSin = std::sin(rotation);
+    const float fCos = std::cos(rotation);
+
+    const float x[4] = {
+        static_cast<float>((-fCos - fSin) * size.x + pos.x),
+        static_cast<float>((fSin - fCos) * size.x + pos.x),
+        static_cast<float>((fCos + fSin) * size.x + pos.x),
+        static_cast<float>(size.x * (fCos - fSin) + pos.x),
+    };
+    const float y[4] = {
+        static_cast<float>((fSin - fCos) * size.y + pos.y),
+        static_cast<float>((fCos + fSin) * size.y + pos.y),
+        static_cast<float>((fCos - fSin) * size.y + pos.y),
+        static_cast<float>((-fCos - fSin) * size.y + pos.y),
+    };
+
+    // At least one corner must be inside the screen rect
+    const auto maxX = static_cast<float>(RsGlobal.maximumWidth);
+    const auto maxY = static_cast<float>(RsGlobal.maximumHeight);
+    if ((x[0] < 0.0f && x[1] < 0.0f && x[2] < 0.0f && x[3] < 0.0f)
+        || (y[0] < 0.0f && y[1] < 0.0f && y[2] < 0.0f && y[3] < 0.0f)
+        || (x[0] > maxX && x[1] > maxX && x[2] > maxX && x[3] > maxX)
+        || (y[0] > maxY && y[1] > maxY && y[2] > maxY && y[3] > maxY)) {
+        return;
+    }
+
+    const auto z = (pos.z - CDraw::ms_fNearClipZ)
+        * (RWSRCGLOBAL(dOpenDevice).zBufferFar - RWSRCGLOBAL(dOpenDevice).zBufferNear)
+        * CDraw::ms_fFarClipZ
+        / ((CDraw::ms_fFarClipZ - CDraw::ms_fNearClipZ) * pos.z)
+        + RWSRCGLOBAL(dOpenDevice).zBufferNear;
+
+    const auto depthI = static_cast<int32>(fadeIntensity);
+    const auto emissiveColor = CRGBA{
+        static_cast<uint8>(((R & 0xff) * depthI) >> 8),
+        static_cast<uint8>(((G & 0xff) * depthI) >> 8),
+        static_cast<uint8>(((B & 0xff) * depthI) >> 8),
+        alpha
+    }.ToIntARGB();
+
+    constexpr float u[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    constexpr float v[4] = { 0.0f, 1.0f, 1.0f, 0.0f };
+    for (auto i = 0u; i < 4u; i++) {
+        s_XLUSpriteVertices[i] = {
+            .x             = x[i],
+            .y             = y[i],
+            .z             = z,
+            .rhw           = rz,
+            .emissiveColor = emissiveColor,
+            .u             = u[i],
+            .v             = v[i],
+        };
+    }
+
+    RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, s_XLUSpriteVertices.data(), 4);
 }
 
 // Android
