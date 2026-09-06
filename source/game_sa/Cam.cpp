@@ -11,6 +11,7 @@
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
+static inline auto& gDWCineyCamSceneEndTime = StaticRef<uint32>(0x8CCBA4);
 
 static inline auto& gbExitCam = StaticRef<std::array<bool, 9>>(0xB6EC5C);
 
@@ -74,7 +75,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0, { .reversed = false });
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
     RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
-    RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400, { .reversed = false });
+    RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400);
     RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0);
     RH_ScopedInstall(LookBehind, 0x520690, { .reversed = false });
     RH_ScopedInstall(LookRight, 0x520E40, { .reversed = false });
@@ -319,7 +320,31 @@ void CCam::Get_TwoPlayer_AimVector(CVector& out) {
 
 // 0x517400
 bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck) {
-    NOTSA_UNREACHABLE();
+    if (gbExitCam[camId]) {
+        return true;
+    }
+
+    static constexpr float aMinDists[MODE_SYPHON_CRIM_IN_FRONT - MODE_FOLLOW_PED_WITH_BIND + 1] = { 3.0f, 3.0f, 1.0f, 3.0f, 5.0f, 3.0f, 3.0f, 3.0f, 3.0f };
+    static constexpr float aMaxDists[MODE_SYPHON_CRIM_IN_FRONT - MODE_FOLLOW_PED_WITH_BIND + 1] = { 185.0f, 100.0f, 100.0f, 100.0f, 30.0f, 30.0f, 100.0f, 100.0f, 100.0f };
+
+    const auto dist         = (dst - src).Magnitude();
+    const bool isWithinBand = dist >= aMinDists[camId - MODE_FOLLOW_PED_WITH_BIND]
+                           && dist <= aMaxDists[camId - MODE_FOLLOW_PED_WITH_BIND];
+
+    bool isLosClear = true;
+    if (lineOfSightCheck) {
+        CWorld::pIgnoreEntity = m_pCamTargetEntity;
+        CColPoint colPoint{};
+        CEntity*  hitEntity{};
+        isLosClear = !CWorld::ProcessLineOfSight(dst, src, colPoint, hitEntity, true, true, false, false, false, false, false, false);
+        CWorld::pIgnoreEntity = nullptr;
+    }
+
+    if (camId >= MODE_FOLLOW_PED_WITH_BIND && camId <= MODE_SYPHON_CRIM_IN_FRONT) {
+        if (!isWithinBand || !isLosClear || CTimer::GetTimeInMS() > gDWCineyCamSceneEndTime) {
+            return true;
+        }
+    }
     return false;
 }
 
