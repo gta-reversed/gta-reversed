@@ -13,9 +13,9 @@ void CPointLights::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x6FFB40);
-    RH_ScopedInstall(GenerateLightsAffectingObject, 0x6FFBB0, { .reversed = false });
+    RH_ScopedInstall(GenerateLightsAffectingObject, 0x6FFBB0);
     RH_ScopedInstall(GetLightMultiplier, 0x6FFE70);
-    RH_ScopedInstall(RemoveLightsAffectingObject, 0x6FFFE0, { .reversed = false });
+    RH_ScopedInstall(RemoveLightsAffectingObject, 0x6FFFE0);
     RH_ScopedInstall(ProcessVerticalLineUsingCache, 0x6FFFF0);
     RH_ScopedInstall(AddLight, 0x7000E0);
     RH_ScopedInstall(RenderFogEffect, 0x7002D0, { .reversed = false });
@@ -30,7 +30,50 @@ void CPointLights::Init() {
 
 // 0x6FFBB0
 float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* totalLighting, CEntity* entity) {
-    return plugin::CallAndReturn<float, 0x6FFBB0, const CVector*, float*, CEntity*>(point, totalLighting, entity);
+    float antilightMult = 1.0f;
+    for (const auto& light : GetActiveLights()) {
+        if (light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
+            continue;
+        }
+        const CVector delta = light.m_vecPosn - *point;
+        const float   rad   = light.m_fRadius;
+        if (-rad >= delta.x || delta.x >= rad || -rad >= delta.y || delta.y >= rad || -rad >= delta.z || delta.z >= rad) {
+            continue;
+        }
+        const float dist = delta.Magnitude();
+        if (dist >= rad) {
+            continue;
+        }
+
+        const float ratio = dist / rad;
+        if (light.m_nType == PLTYPE_ANTILIGHT) {
+            antilightMult *= ratio;
+            continue;
+        }
+
+        if (totalLighting) {
+            *totalLighting += (1.0f - ratio) * light.m_fColorRed   * (1.0f / 3.0f);
+            *totalLighting += (1.0f - ratio) * light.m_fColorGreen * (1.0f / 3.0f);
+            *totalLighting += (1.0f - ratio) * light.m_fColorBlue  * (1.0f / 3.0f);
+        }
+
+        float intensity = ratio >= 0.5f ? 1.0f - ((ratio - 0.5f) + (ratio - 0.5f)) : 1.0f;
+        if (dist == 0.0f) {
+            continue;
+        }
+        const CVector dir = delta * (1.0f / dist);
+        if (light.m_nType == PLTYPE_DIRECTIONAL && light.m_pEntityToLight != entity) {
+            const float dot = -DotProduct(dir, light.m_vecDirection) - 0.5f;
+            intensity *= std::max(dot + dot, 0.0f);
+        }
+        if (intensity > 0.0f) {
+            AddAnExtraDirectionalLight(Scene.m_pRpWorld, dir.x, dir.y, dir.z,
+                intensity * light.m_fColorRed,
+                intensity * light.m_fColorGreen,
+                intensity * light.m_fColorBlue);
+        }
+    }
+    return antilightMult;
 }
 
 // 0x6FFE70
@@ -64,7 +107,7 @@ float CPointLights::GetLightMultiplier(const CVector* point) {
 
 // 0x6FFFE0
 void CPointLights::RemoveLightsAffectingObject() {
-    plugin::Call<0x6FFFE0>();
+    RemoveExtraDirectionalLights(Scene.m_pRpWorld);
 }
 
 // 0x6FFFF0
