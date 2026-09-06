@@ -47,6 +47,8 @@ public:
     static inline auto& aCachedMapReads = StaticRef<CVector[MAX_POINT_LIGHTS]>(0xC3F6E0);
 
 public:
+    static void InjectHooks();
+
     static void  Init();
     static float GenerateLightsAffectingObject(const CVector* point, float* totalLighting, CEntity* entity);
     static float GetLightMultiplier(const CVector* point);
