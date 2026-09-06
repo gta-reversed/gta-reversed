@@ -16,7 +16,7 @@ void CPointLights::InjectHooks() {
     RH_ScopedInstall(GenerateLightsAffectingObject, 0x6FFBB0, { .reversed = false });
     RH_ScopedInstall(GetLightMultiplier, 0x6FFE70, { .reversed = false });
     RH_ScopedInstall(RemoveLightsAffectingObject, 0x6FFFE0, { .reversed = false });
-    RH_ScopedInstall(ProcessVerticalLineUsingCache, 0x6FFFF0, { .reversed = false });
+    RH_ScopedInstall(ProcessVerticalLineUsingCache, 0x6FFFF0);
     RH_ScopedInstall(AddLight, 0x7000E0);
     RH_ScopedInstall(RenderFogEffect, 0x7002D0, { .reversed = false });
 }
@@ -45,7 +45,25 @@ void CPointLights::RemoveLightsAffectingObject() {
 
 // 0x6FFFF0
 bool CPointLights::ProcessVerticalLineUsingCache(CVector point, float* outZ) {
-    return plugin::CallAndReturn<bool, 0x6FFFF0, CVector, float*>(point, outZ);
+    for (auto&& [i, cached] : rngv::enumerate(aCachedMapReads)) {
+        if (cached.x == point.x && cached.y == point.y && cached.z == point.z) {
+            *outZ = aCachedMapReadResults[i];
+            return true;
+        }
+    }
+
+    CColPoint colPoint;
+    CEntity*  entity;
+    if (!CWorld::ProcessVerticalLine(point, point.z - 20.0f, colPoint, entity, true, false, false, false, true, false, nullptr)) {
+        return false;
+    }
+
+    aCachedMapReadResults[NextCachedValue] = colPoint.m_vecPoint.z;
+    aCachedMapReads[NextCachedValue]       = point;
+    NextCachedValue                        = (NextCachedValue + 1) % MAX_POINT_LIGHTS;
+
+    *outZ = colPoint.m_vecPoint.z;
+    return true;
 }
 
 // 0x7000E0
