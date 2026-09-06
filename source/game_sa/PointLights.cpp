@@ -22,7 +22,31 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
 
 // 0x6FFE70
 float CPointLights::GetLightMultiplier(const CVector* point) {
-    return plugin::CallAndReturn<float, 0x6FFE70, const CVector*>(point);
+    float antilightMult = 1.0f;
+    float lightSum      = 0.0f;
+    for (const auto& light : GetActiveLights()) {
+        if (light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
+            continue;
+        }
+        const CVector delta = light.m_vecPosn - *point;
+        const float   rad   = light.m_fRadius;
+        if (-rad >= delta.x || delta.x >= rad || -rad >= delta.y || delta.y >= rad || -rad >= delta.z || delta.z >= rad) {
+            continue;
+        }
+        const float dist = delta.Magnitude();
+        if (dist >= rad) {
+            continue;
+        }
+        const float ratio = dist / rad;
+        if (light.m_nType == PLTYPE_ANTILIGHT) {
+            antilightMult *= ratio;
+        } else {
+            lightSum += (1.0f - ratio) * light.m_fColorRed   * (1.0f / 3.0f)
+                      + (1.0f - ratio) * light.m_fColorGreen * (1.0f / 3.0f)
+                      + (1.0f - ratio) * light.m_fColorBlue  * (1.0f / 3.0f);
+        }
+    }
+    return antilightMult + lightSum;
 }
 
 // 0x6FFFE0
