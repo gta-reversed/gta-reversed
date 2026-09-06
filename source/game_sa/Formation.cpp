@@ -3,12 +3,23 @@
 
 // 0x699F50
 void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed) {
-    return plugin::Call<0x699F50, CPed*, CPed**>(ped, pOutTargetPed);
+    for (int32 i = 0; i < (int32)m_Peds.m_count; i++) {
+        if (m_Peds.m_peds[i] == ped && m_aPedLinkToDestinations[i] >= 0) {
+            *pOutTargetPed = m_DestinationPeds.m_peds[m_aPedLinkToDestinations[i]];
+            return;
+        }
+    }
 }
 
 // 0x699FA0
 bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* out) {
-    return plugin::CallAndReturn<bool, 0x699FA0>(ped, out);
+    for (int32 i = 0; i < 24; i++) {
+        if (m_Peds.m_peds[i] == ped && m_aPedLinkToDestinations[i] >= 0) {
+            *out = m_Destinations.m_Points[m_aPedLinkToDestinations[i]];
+            return true;
+        }
+    }
+    return false;
 }
 
 // 0x699FF0
@@ -98,8 +109,8 @@ void CFormation::InjectHooks() {
     RH_ScopedClass(CFormation);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedGlobalInstall(ReturnTargetPedForPed, 0x699F50, { .reversed = false });
-    RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0, { .reversed = false });
+    RH_ScopedGlobalInstall(ReturnTargetPedForPed, 0x699F50);
+    RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0);
     RH_ScopedGlobalInstall(FindCoverPointsBehindBox, 0x699FF0);
     RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620, { .reversed = false });
     RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770, { .reversed = false });
