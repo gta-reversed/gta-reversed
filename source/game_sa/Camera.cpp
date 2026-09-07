@@ -125,7 +125,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
     RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
-    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
+    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60);
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0);
     RH_ScopedOverloadedInstall(IsSphereVisible, "Matrix", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*));
     RH_ScopedInstall(ImproveNearClip, 0x516B20);
@@ -1783,7 +1783,24 @@ float CCamera::CalculateGroundHeight(eGroundHeightType type) {
 
 // 0x514D60
 void CCamera::CalculateFrustumPlanes(bool bForMirror) {
-    plugin::CallMethod<0x514D60, CCamera*, bool>(this, bForMirror);
+    // The executable uses this approximate half-degree conversion constant.
+    const float angle = CDraw::ms_fFOV * 0.00872638915f;
+    const float cosine = std::cos(angle);
+    const float sine = std::sin(angle);
+    const float aspect = (float)RsGlobal.maximumHeight / (float)RsGlobal.maximumWidth;
+    m_avecFrustumNormals[0] = {cosine, -sine, 0.0f};
+    m_avecFrustumNormals[1] = {-cosine, -sine, 0.0f};
+    m_avecFrustumNormals[2] = {0.0f, -(aspect * sine), -(aspect * cosine)};
+    m_avecFrustumNormals[3] = {0.0f, -(aspect * sine), aspect * cosine};
+
+    auto& normals = bForMirror ? m_avecFrustumWorldNormals_Mirror : m_avecFrustumWorldNormals;
+    auto& offsets = bForMirror ? m_fFrustumPlaneOffsets_Mirror : m_fFrustumPlaneOffsets;
+    TransformVectors(normals.data(), (int32)normals.size(), m_mCameraMatrix, m_avecFrustumNormals.data());
+    const auto& position = GetPosition();
+    for (size_t i = 0; i < normals.size(); i++) {
+        const auto& normal = normals[i];
+        offsets[i] = normal.x * position.x + normal.z * position.z + normal.y * position.y;
+    }
 }
 
 // 0x5150E0
