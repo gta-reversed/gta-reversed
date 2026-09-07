@@ -61,6 +61,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(FinishCutscene, 0x514950);
     RH_ScopedInstall(LerpFOV, 0x50D280);
     RH_ScopedInstall(UpdateAimingCoors, 0x50CB10);
+    RH_ScopedInstall(UpdateSoundDistances, 0x515BD0);
     RH_ScopedInstall(SetColVarsAimWeapon, 0x50CBF0);
     RH_ScopedInstall(ClearPlayerWeaponMode, 0x50AB10);
     RH_ScopedInstall(DontProcessObbeCinemaCamera, 0x50AB40);
@@ -1208,7 +1209,25 @@ void CCamera::UpdateAimingCoors(const CVector& aimingTargetCoors) {
 
 // 0x515BD0
 void CCamera::UpdateSoundDistances() {
-    plugin::CallMethod<0x515BD0, CCamera*>(this);
+    const auto mode = m_aCams[m_nActiveCam].m_nMode;
+    const bool firstPerson = notsa::contains({
+        MODE_1STPERSON, MODE_SNIPER, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT,
+        MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT,
+        MODE_1STPERSON_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_M16_1STPERSON,
+        MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS
+    }, mode);
+    const auto source = m_mCameraMatrix.GetForward() * (firstPerson && m_pTargetEntity->IsPed() ? 0.5f : 5.0f) + GetPosition();
+    const auto frame = CTimer::GetFrameCounter() % 12;
+    if (frame == 0) {
+        m_fSoundDistUpAsReadOld = m_fSoundDistUpAsRead;
+        CColPoint collision{};
+        CEntity* hitEntity{};
+        m_fSoundDistUpAsRead = CWorld::ProcessVerticalLine(source, source.z + 20.0f, collision, hitEntity, true, false, false, false, true, false)
+            ? collision.m_vecPoint.z - source.z
+            : 20.0f;
+    }
+    const float blend = (float)(frame + 1) * (1.0f / 12.0f);
+    m_fSoundDistUp = blend * m_fSoundDistUpAsRead + (1.0f - blend) * m_fSoundDistUpAsReadOld;
 }
 
 // unused
