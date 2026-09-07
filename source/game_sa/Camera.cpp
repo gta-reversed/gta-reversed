@@ -116,7 +116,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(IsExtraEntityToIgnore, 0x50CE80);
     RH_ScopedInstall(ConsiderPedAsDucking, 0x50CEB0);
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
-    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .reversed = false });
+    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0);
     RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090);
     RH_ScopedInstall(VectorMoveLinear, 0x50D160);
     RH_ScopedInstall(VectorTrackLinear, 0x50D1D0);
@@ -1339,7 +1339,24 @@ void CCamera::ResetDuckingSystem(CPed* ped) {
 // arg5 always used as false
 // 0x50CFA0
 void CCamera::HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool arg5) {
-    plugin::CallMethod<0x50CFA0, CCamera*, CPed*, CVector*, CVector*, bool>(this, ped, source, targPosn, arg5);
+    static auto& stationaryHeight = StaticRef<float>(0x8CCB94);
+    static auto& movingHeight = StaticRef<float>(0x8CCB98);
+
+    float targetFactor = 0.0f;
+    if (ConsiderPedAsDucking(ped)) {
+        targetFactor = ped->m_vecMoveSpeed.SquaredMagnitude() <= sq(0.001f)
+            ? stationaryHeight - 1.0f
+            : movingHeight - 0.5f;
+    }
+    if (!arg5) {
+        m_fDuckCamMotionFactor += CTimer::GetTimeStep() * 0.1f * (targetFactor - m_fDuckCamMotionFactor);
+    }
+    if (source) {
+        source->z += m_fDuckCamMotionFactor;
+    }
+    if (targPosn) {
+        targPosn->z += m_fDuckCamMotionFactor;
+    }
 }
 
 // arg5 always used as false
