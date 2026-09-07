@@ -98,7 +98,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_AttachedCam, 0x512B10);
     RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50, { .reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810, { .reversed = false });
-    RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510, { .reversed = false });
+    RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510);
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0);
     RH_ScopedInstall(Process_DW_BirdyCam, 0x51B850, { .reversed = false });
     RH_ScopedInstall(Process_DW_CamManCam, 0x51B120, { .reversed = false });
@@ -1135,7 +1135,48 @@ void CCam::Process_Cam_TwoPlayer_InCarAndShooting() {
 
 // 0x513510
 void CCam::Process_Cam_TwoPlayer_Separate_Cars() {
-    NOTSA_UNREACHABLE();
+    static auto& blendSpeed = StaticRef<float>(0x8CCCB4);
+    m_fFOV = 80.0f;
+    auto* car1 = FindPlayerPed(0)->m_pVehicle;
+    auto* car2 = FindPlayerPed(1)->m_pVehicle;
+    const auto& position1 = car1->GetPosition();
+    const auto& position2 = car2->GetPosition();
+    const auto direction = (position2 - position1).Normalized();
+    auto source1 = position1 - direction * 6.0f;
+    auto source2 = position2 + direction * 6.0f;
+    source1.z += car1->GetModelInfo()->GetColModel()->GetBoundingBox().m_vecMax.z + 1.0f;
+    source2.z += car2->GetModelInfo()->GetColModel()->GetBoundingBox().m_vecMax.z + 1.0f;
+    const auto front1 = (position2 - source1).Normalized();
+    const auto front2 = (position1 - source2).Normalized();
+    CVector side{source1.y - source2.y, source2.x - source1.x, 0.0f};
+    side.Normalise();
+    side.z = -0.1f;
+    side.Normalise();
+
+    const float angle = m_fTwoPlayerFocusBlend * PI;
+    const float sine = std::sin(angle);
+    const float blend = (std::cos(angle) + 1.0f) * 0.5f;
+    const float distance = DistanceBetweenPoints(position1, position2);
+    m_vecSource = source1 * blend + source2 * (1.0f - blend) - side * sine * distance * 0.75f;
+    m_vecFront = ((front1 * blend + front2 * (1.0f - blend)) * (1.0f - sine) + side * sine).Normalized();
+    m_vecTargetCoorsForFudgeInter = m_nTwoPlayerFocus == 0 ? position2 : position1;
+    m_vecUp = {0.0f, 0.0f, 1.0f};
+    m_vecFront.Normalise();
+    const auto left = CrossProduct(m_vecUp, m_vecFront).Normalized();
+    m_vecUp = CrossProduct(m_vecFront, left).Normalized();
+
+    auto* focusedCar = FindPlayerPed(m_nTwoPlayerFocus)->m_pVehicle;
+    auto* otherCar = FindPlayerPed((m_nTwoPlayerFocus - 1) & 1)->m_pVehicle;
+    const auto horizontalFront = CVector{m_vecFront.x, m_vecFront.y, 0.0f}.Normalized();
+    const float focusedSpeed = DotProduct(horizontalFront, focusedCar->m_vecMoveSpeed);
+    if (focusedSpeed < -0.13f && focusedSpeed < DotProduct(-horizontalFront, otherCar->m_vecMoveSpeed)) {
+        m_nTwoPlayerFocus = (m_nTwoPlayerFocus - 1) & 1;
+    }
+    if (m_nTwoPlayerFocus == 0) {
+        m_fTwoPlayerFocusBlend = std::max(m_fTwoPlayerFocusBlend - CTimer::GetTimeStep() * blendSpeed, 0.0f);
+    } else {
+        m_fTwoPlayerFocusBlend = std::min(m_fTwoPlayerFocusBlend + CTimer::GetTimeStep() * blendSpeed, 1.0f);
+    }
 }
 
 // 0x513BE0
