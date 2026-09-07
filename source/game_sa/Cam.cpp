@@ -95,7 +95,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70, { .Reversed = false });
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
     RH_ScopedInstall(Process_AimWeapon, 0x521500, { .Reversed = false });
-    RH_ScopedInstall(Process_AttachedCam, 0x512B10, { .Reversed = false });
+    RH_ScopedInstall(Process_AttachedCam, 0x512B10);
     RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50, { .Reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810, { .Reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510, { .Reversed = false });
@@ -1109,7 +1109,24 @@ void CCam::Process_AimWeapon(const CVector&, float, float, float) {
 
 // 0x512B10
 void CCam::Process_AttachedCam() {
-    NOTSA_UNREACHABLE();
+    m_fFOV = 70.0f;
+    const float tilt = DegreesToRadians(TheCamera.m_fAttachedCamAngle);
+    auto* attached = TheCamera.m_pAttachedEntity;
+    m_vecSource = attached->GetMatrix().TransformVector(TheCamera.m_vecAttachedCamOffset) + attached->GetPosition();
+    if (TheCamera.m_bLookingAtVector) {
+        m_vecFront = attached->GetMatrix().TransformVector(TheCamera.m_vecAttachedCamLookAt) + attached->GetPosition() - m_vecSource;
+    } else {
+        m_vecFront = TheCamera.m_pTargetEntity->GetPosition() - m_vecSource;
+    }
+    m_vecFront.Normalise();
+    const auto right = CrossProduct(m_vecFront, CVector{0.0f, 0.0f, 1.0f}).Normalized();
+    const auto up = CrossProduct(right, m_vecFront).Normalized();
+
+    if (float waterLevel{}; CWaterLevel::GetWaterLevel(m_vecSource, waterLevel, true) && m_vecSource.z < waterLevel - 0.3f) {
+        ApplyUnderwaterMotionBlur();
+    }
+    m_vecUp = up * std::cos(tilt) + right * std::sin(tilt);
+    CWorld::pIgnoreEntity = nullptr;
 }
 
 // 0x525E50
@@ -1769,8 +1786,8 @@ bool CCam::Process_WheelCam(const CVector&, float, float, float) {
 
 // based on 0x51847C - 0x5184EC
 void CCam::ApplyUnderwaterMotionBlur() {
-    static constexpr uint32 UNDERWATER_CAM_BLUR      = 20;    // 0x8CC7A4
-    static constexpr float  UNDERWATER_CAM_MAG_LIMIT = 10.0f; // 0x8CC7A8
+    static auto& UNDERWATER_CAM_BLUR      = StaticRef<int32>(0x8CC7A4);
+    static auto& UNDERWATER_CAM_MAG_LIMIT = StaticRef<float>(0x8CC7A8);
 
     const auto colorMag = std::sqrt(
         sq(CTimeCycle::GetWaterRed()) +
