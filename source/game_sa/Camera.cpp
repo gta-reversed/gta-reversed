@@ -11,6 +11,7 @@
 #include "Collision.h"
 #include "WaterLevel.h"
 #include "Hud.h"
+#include "HandShaker.h"
 
 auto& TheCamera = StaticRef<CCamera>(0xB6F028);
 auto& gbModelViewer = StaticRef<bool>(0xBA6728);
@@ -146,7 +147,7 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "1", 0x5164A0, void(CCamera::*)());
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float));
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)());
-    //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "Intensity", 0x516560, void(CCamera::*)(float));
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
 }
@@ -1656,8 +1657,44 @@ void CCamera::ProcessShake() {
 
 // shakeIntensity not used
 // 0x516560
-CVector* CCamera::ProcessShake(float intensity) {
-    return plugin::CallMethodAndReturn<CVector*, 0x516560, CCamera*, float>(this, intensity);
+void CCamera::ProcessShake(float intensity) {
+    static auto& initialized = StaticRef<bool>(0xB70048);
+    auto& cam = m_aCams[m_nActiveCam];
+    if (!initialized) {
+        for (size_t i = 1; i < gHandShaker.size(); i++) {
+            auto& shaker = gHandShaker[i];
+            shaker.m_lim = {0.02f, 0.02f, i == 2 ? 0.04f : 0.01f};
+            shaker.m_motion = {0.0002f, 0.0002f, 0.0001f};
+            shaker.m_slow = {1.3f, 1.3f, 1.4f};
+            shaker.m_scaleReactionMin = 0.3f;
+            shaker.m_scaleReactionMax = 1.0f;
+        }
+        gHandShaker[1].m_twitchFreq = 15;
+        gHandShaker[1].m_twitchVel = 0.001f;
+        gHandShaker[2].m_twitchFreq = 20;
+        gHandShaker[2].m_twitchVel = 0.001f;
+        gHandShaker[3].m_twitchFreq = 10;
+        gHandShaker[3].m_twitchVel = 0.0005f;
+        gHandShaker[4].m_twitchFreq = 20;
+        gHandShaker[4].m_twitchVel = 0.002f;
+        gHandShaker[5].m_twitchFreq = 2;
+        gHandShaker[5].m_twitchVel = 0.003f;
+        initialized = true;
+    }
+
+    auto& shaker = gHandShaker[m_nShakeType];
+    shaker.Process(m_fShakeIntensity);
+    const float roll = shaker.m_ang.z * m_fShakeIntensity;
+    cam.m_vecFront = shaker.m_resultMat.InverseTransformVector(cam.m_vecFront);
+    cam.m_vecFront.Normalise();
+    cam.m_vecUp = {std::sin(roll), 0.0f, std::cos(roll)};
+    auto right = CrossProduct(cam.m_vecFront, cam.m_vecUp).Normalized();
+    cam.m_vecUp = CrossProduct(right, cam.m_vecFront);
+    if (cam.m_vecFront.x == 0.0f && cam.m_vecFront.y == 0.0f) {
+        cam.m_vecFront.x = cam.m_vecFront.y = 0.0001f;
+    }
+    right = CrossProduct(cam.m_vecFront, cam.m_vecUp).Normalized();
+    cam.m_vecUp = CrossProduct(right, cam.m_vecFront);
 }
 
 // inlined - 0x52B845
