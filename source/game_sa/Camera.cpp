@@ -1164,7 +1164,30 @@ void CCamera::TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType sw
 
 // 0x50C910
 void CCamera::TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float tilt, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
-    plugin::CallMethod<0x50C910, CCamera*, CEntity*, CEntity*, CVector*, CVector*, float, eSwitchType, int32>(this, target, attached, attachedCamOffset, attachedCamLookAt, tilt, switchType, whoIsInControlOfTheCamera);
+    if (whoIsInControlOfTheCamera == 2 && m_nWhoIsInControlOfTheCamera == 1) {
+        return;
+    }
+    m_nWhoIsInControlOfTheCamera = whoIsInControlOfTheCamera;
+    if (!attached) {
+        attached = FindPlayerVehicle();
+        if (!attached) {
+            attached = FindPlayerPed();
+        }
+    }
+    if (target) {
+        CEntity::ChangeEntityReference(m_pTargetEntity, target);
+        m_bLookingAtVector = false;
+    } else {
+        m_bLookingAtVector = true;
+        m_vecAttachedCamLookAt = *attachedCamLookAt != *attachedCamOffset ? *attachedCamLookAt : CVector{};
+    }
+    m_vecAttachedCamOffset = *attachedCamOffset == CVector{} ? CVector{0.0f, 0.0f, 2.0f} : *attachedCamOffset;
+    m_fAttachedCamAngle = tilt;
+    CEntity::ChangeEntityReference(m_pAttachedEntity, attached);
+    m_nModeToGoTo = MODE_ATTACHCAM;
+    m_nTypeOfSwitch = switchType;
+    m_bLookingAtPlayer = false;
+    m_bStartInterScript = true;
 }
 
 // 0x50CAE0
