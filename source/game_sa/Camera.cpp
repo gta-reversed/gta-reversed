@@ -126,7 +126,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
-    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .reversed = false });
+    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0);
     RH_ScopedInstall(ImproveNearClip, 0x516B20);
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
@@ -1747,7 +1747,26 @@ void CCamera::CalculateFrustumPlanes(bool bForMirror) {
 
 // 0x5150E0
 void CCamera::CalculateDerivedValues(bool bForMirror, bool bOriented) {
-    return plugin::CallMethod<0x5150E0, CCamera*, bool, bool>(this, bForMirror, bOriented);
+    m_mMatInverse = Invert(m_mCameraMatrix);
+    CalculateFrustumPlanes(bForMirror);
+
+    auto& forward = m_mCameraMatrix.GetForward();
+    if (forward.x == 0.0f && forward.y == 0.0f) {
+        forward.x = 0.0001f;
+    } else if (bOriented) {
+        m_fOrientation = std::atan2(forward.x, forward.y);
+    }
+
+    m_fCamFrontXNorm = forward.x;
+    m_fCamFrontYNorm = forward.y;
+    const float length = std::sqrt(sq(forward.x) + sq(forward.y));
+    if (length == 0.0f) {
+        m_fCamFrontXNorm = 1.0f;
+    } else {
+        const float inverseLength = 1.0f / length;
+        m_fCamFrontXNorm *= inverseLength;
+        m_fCamFrontYNorm *= inverseLength;
+    }
 }
 
 // 0x516B20
