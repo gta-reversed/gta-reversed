@@ -117,7 +117,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(ConsiderPedAsDucking, 0x50CEB0);
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
     RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .reversed = false });
-    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090, { .reversed = false });
+    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090);
     RH_ScopedInstall(VectorMoveLinear, 0x50D160);
     RH_ScopedInstall(VectorTrackLinear, 0x50D1D0);
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
@@ -1345,7 +1345,16 @@ void CCamera::HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* 
 // arg5 always used as false
 // 0x50D090
 void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, CVector* targPosn, bool arg5) {
-    plugin::CallMethod<0x50D090, CCamera*, CPed*, CVector*, CVector*, bool>(this, ped, source, targPosn, arg5);
+    const float targetFactor = ConsiderPedAsDucking(ped) ? -0.35f : 0.0f;
+    if (!arg5) {
+        m_fDuckAimCamMotionFactor += CTimer::GetTimeStep() * 0.13f * (targetFactor - m_fDuckAimCamMotionFactor);
+    }
+    if (source) {
+        source->z += m_fDuckAimCamMotionFactor;
+    }
+    if (targPosn) {
+        targPosn->z += m_fDuckAimCamMotionFactor;
+    }
 }
 
 // 0x50D160
