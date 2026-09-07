@@ -127,6 +127,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0);
+    RH_ScopedOverloadedInstall(IsSphereVisible, "Matrix", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*));
     RH_ScopedInstall(ImproveNearClip, 0x516B20);
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
@@ -1297,7 +1298,24 @@ bool CCamera::IsExtraEntityToIgnore(CEntity* entity) {
 
 // 0x420C40
 bool CCamera::IsSphereVisible(const CVector& origin, float radius, RwMatrix* transformMatrix) {
-    return plugin::CallMethodAndReturn<bool, 0x420C40, CCamera*, const CVector&, float, RwMatrix*>(this, origin, radius, transformMatrix);
+    CVector point = origin;
+    RwV3dTransformPoints(&point, &point, 1, transformMatrix);
+    if (point.y + radius < CDraw::ms_fNearClipZ || point.y - radius > CDraw::ms_fFarClipZ) {
+        return false;
+    }
+    for (size_t i = 0; i < 2; i++) {
+        const auto& normal = m_avecFrustumNormals[i];
+        if (point.x * normal.x + point.y * normal.y > radius) {
+            return false;
+        }
+    }
+    for (size_t i = 2; i < 4; i++) {
+        const auto& normal = m_avecFrustumNormals[i];
+        if (point.z * normal.z + point.y * normal.y > radius) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // 0x420D40 - NOTE: Function has no hook
