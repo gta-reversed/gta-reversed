@@ -1637,7 +1637,6 @@ void CCamera::ProcessFOVLerp(float ratio) {
         : ratio;
     m_fFOVNew = (m_fZoomOutFactor - m_fZoomInFactor) * t + m_fZoomInFactor;
 }
-}
 
 // 0x5164A0
 void CCamera::ProcessVectorMoveLinear() {
