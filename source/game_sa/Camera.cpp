@@ -83,7 +83,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(GetLookingLRBFirstPerson, 0x50AE60);
     RH_ScopedInstall(GetLookDirection, 0x50AE90);
     RH_ScopedInstall(GetLookingForwardFirstPerson, 0x50AED0);
-    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0, { .reversed = false });
+    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0);
     RH_ScopedInstall(CalculateMirroredMatrix, 0x50B380);
     RH_ScopedInstall(DealWithMirrorBeforeConstructRenderList, 0x50B510);
     RH_ScopedInstall(ProcessFade, 0x50B5D0);
@@ -513,7 +513,68 @@ float CCamera::GetRoughDistanceToGround() {
 
 // 0x50AFA0
 void CCamera::CopyCameraMatrixToRWCam(bool bUpdateMatrix) {
-    return plugin::CallMethod<0x50AFA0, CCamera*, bool>(this, bUpdateMatrix);
+    static auto& gPrevCamRight = StaticRef<CVector>(0xB6FF90);
+    static auto& gPrevCamUp    = StaticRef<CVector>(0xB6FF9C);
+    static auto& gPrevCamAt    = StaticRef<CVector>(0xB6FFA8);
+    static auto& gPrevCamPos   = StaticRef<CVector>(0xB6FFB4);
+    static auto& gPrevCamInit  = StaticRef<uint32>(0xB6FFC0);
+
+    RwFrame*  frame  = RwCameraGetFrame(m_pRwCamera);
+    RwMatrix* matrix = RwFrameGetMatrix(frame);
+
+    if (!bUpdateMatrix) {
+        m_mCameraMatrixOld.UpdateMatrix(matrix);
+    }
+
+    matrix->pos    = m_mCameraMatrix.GetPosition();
+    matrix->at     = m_mCameraMatrix.GetForward();
+    matrix->up     = m_mCameraMatrix.GetUp();
+    matrix->right  = m_mCameraMatrix.GetRight();
+
+    if (!(gPrevCamInit & 1)) {
+        gPrevCamInit |= 1;
+        gPrevCamPos = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+    if (!(gPrevCamInit & 2)) {
+        gPrevCamInit |= 2;
+        gPrevCamAt = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+    if (!(gPrevCamInit & 4)) {
+        gPrevCamInit |= 4;
+        gPrevCamUp = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+    if (!(gPrevCamInit & 8)) {
+        gPrevCamInit |= 8;
+        gPrevCamRight = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+
+    const float snapDist = 9.9999997e-06f;
+    if ((gPrevCamPos - matrix->pos).SquaredMagnitude() < snapDist * snapDist) {
+        matrix->pos = gPrevCamPos;
+    }
+    if ((gPrevCamAt - matrix->at).SquaredMagnitude() < snapDist * snapDist) {
+        matrix->at = gPrevCamAt;
+    }
+    if ((gPrevCamUp - matrix->up).SquaredMagnitude() < snapDist * snapDist) {
+        matrix->up = gPrevCamUp;
+    }
+    if ((gPrevCamRight - matrix->right).SquaredMagnitude() < snapDist * snapDist) {
+        matrix->right = gPrevCamRight;
+    }
+
+    gPrevCamPos   = matrix->pos;
+    gPrevCamAt    = matrix->at;
+    gPrevCamUp    = matrix->up;
+    gPrevCamRight = matrix->right;
+
+    RwMatrixUpdate(matrix);
+    RwFrameUpdateObjects(frame);
+    RwFrameOrthoNormalize(frame);
+
+    if (m_bResetOldMatrix && !bUpdateMatrix) {
+        m_mCameraMatrixOld.UpdateMatrix(matrix);
+        m_bResetOldMatrix = false;
+    }
 }
 
 // 0x50B380
@@ -1128,7 +1189,14 @@ void CCamera::UpdateSoundDistances() {
 // unused
 // 0x50CB90
 void CCamera::SetNearClipBasedOnPedCollision(float arg2) {
-    plugin::CallMethod<0x50CB90, CCamera*, float>(this, arg2);
+    static auto& gSqrDistanceToNearestPed = StaticRef<float>(0xB6EC68);
+
+    const float minClip = gpCamColVars[4];
+    float nearClip = std::sqrt(arg2) / gSqrDistanceToNearestPed * 0.25f * (0.3f - minClip) + minClip;
+    if (nearClip < minClip) {
+        nearClip = minClip;
+    }
+    RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
 }
 
 // TODO: eAimingType
