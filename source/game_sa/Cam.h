@@ -169,7 +169,7 @@ public:
     void Process_DW_HeliChaseCam(bool);
     void Process_DW_PlaneCam1(bool);
     void Process_DW_PlaneCam2(bool);
-    void Process_DW_PlaneCam3(bool);
+    bool Process_DW_PlaneCam3(bool);
     void Process_DW_PlaneSpotterCam(bool);
     void Process_Editor(const CVector& target, float orientation, float speedVar, float speedVarWanted);
     void Process_Fixed(const CVector& target, float orientation, float speedVar, float speedVarWanted);

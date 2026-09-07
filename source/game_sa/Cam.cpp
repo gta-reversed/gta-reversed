@@ -105,7 +105,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_DW_HeliChaseCam, 0x51A740, { .reversed = false });
     RH_ScopedInstall(Process_DW_PlaneCam1, 0x51C760, { .reversed = false });
     RH_ScopedInstall(Process_DW_PlaneCam2, 0x51CC30, { .reversed = false });
-    RH_ScopedInstall(Process_DW_PlaneCam3, 0x51D100, { .reversed = false });
+    RH_ScopedInstall(Process_DW_PlaneCam3, 0x51D100);
     RH_ScopedInstall(Process_DW_PlaneSpotterCam, 0x51C250, { .reversed = false });
     RH_ScopedInstall(Process_Editor, 0x50F3F0);
     RH_ScopedInstall(Process_Fixed, 0x51D470);
@@ -1178,8 +1178,89 @@ void CCam::Process_DW_PlaneCam2(bool) {
 }
 
 // 0x51D100
-void CCam::Process_DW_PlaneCam3(bool) {
-    NOTSA_UNREACHABLE();
+bool CCam::Process_DW_PlaneCam3(bool) {
+    static auto& lastCamMode       = StaticRef<int32>(0x8CC488);
+    static auto& sceneStartTime    = StaticRef<uint32>(0x8CCBA0);
+    static auto& sceneDuration     = StaticRef<uint32>(0x8CCBC8);
+    static auto& maxClearFrames    = StaticRef<int32>(0x8CCDE0);
+    static auto& heightOffset      = StaticRef<float>(0x8CCDE4);
+    static auto& forwardOffset     = StaticRef<float>(0x8CCDE8);
+    static auto& minHeight         = StaticRef<float>(0x8CCDEC);
+    static auto& exitCam           = StaticRef<bool>(0xB6EC78);
+    static auto& clearFrames       = StaticRef<int32>(0xB700D4);
+    static auto& staticsInitialized = StaticRef<uint32>(0xB700D8);
+
+    TheCamera.m_bUseNearClipScript = false;
+    if (!m_pCamTargetEntity || !m_pCamTargetEntity->IsVehicle()) {
+        return false;
+    }
+
+    CEntity* entity{};
+    CVehicle* vehicle{};
+    CVector dst, src, targetUp, targetRight, targetFwd, targetVel, targetAngVel;
+    float targetSpeed{}, targetAngSpeed{};
+    CColSphere colSphere{};
+    GetCoreDataForDWCineyCamMode(
+        entity, vehicle, dst, src, targetUp, targetRight, targetFwd,
+        targetVel, targetSpeed, targetAngVel, targetAngSpeed, colSphere
+    );
+
+    if (dst.z < minHeight) {
+        exitCam = true;
+        return false;
+    }
+
+    const auto now = CTimer::GetTimeInMS();
+    if (lastCamMode != MODE_DW_PLANECAM3 || gLastFrameProcessedDWCineyCam < CTimer::GetFrameCounter() - 1u) {
+        lastCamMode = MODE_DW_PLANECAM3;
+        gDWCineyCamSceneEndTime = now + sceneDuration;
+        exitCam = false;
+        sceneStartTime = now;
+
+        CColPoint colPoint{};
+        CEntity* hitEntity{};
+        CWorld::pIgnoreEntity = entity;
+        const auto obstructed = CWorld::ProcessLineOfSight(dst, src, colPoint, hitEntity, true, true, false, false, false, false, false, false);
+        CWorld::pIgnoreEntity = nullptr;
+        if (obstructed) {
+            exitCam = true;
+            return false;
+        }
+    }
+
+    const auto t = static_cast<float>(static_cast<int32>(now - sceneStartTime))
+                 / static_cast<float>(static_cast<int32>(gDWCineyCamSceneEndTime - sceneStartTime));
+    const auto& bounds = entity->GetColModel()->GetBoundingBox();
+    forwardOffset = (bounds.m_vecMax.y - bounds.m_vecMin.y) * 0.5f;
+    forwardOffset += forwardOffset;
+    src = dst + targetFwd * forwardOffset + targetUp * heightOffset;
+
+    CColPoint colPoint{};
+    CEntity* hitEntity{};
+    CWorld::pIgnoreEntity = entity;
+    const auto obstructed = CWorld::ProcessLineOfSight(dst, src, colPoint, hitEntity, true, true, false, false, false, false, false, false);
+    CWorld::pIgnoreEntity = nullptr;
+
+    if (!(staticsInitialized & 1)) {
+        staticsInitialized |= 1;
+        clearFrames = maxClearFrames;
+    }
+    if (obstructed) {
+        if (clearFrames-- == 0) {
+            exitCam = true;
+            return false;
+        }
+    } else if (clearFrames++ > maxClearFrames) {
+        // The original compares before incrementing, allowing maxClearFrames + 1.
+        clearFrames = maxClearFrames;
+    }
+
+    if (IsTimeToExitThisDWCineyCamMode(MODE_SYPHON_CRIM_IN_FRONT, src, dst, t, false)) {
+        exitCam = true;
+        return false;
+    }
+    Finalise_DW_CineyCams(src, dst, 0.0f, 70.0f, 5.0f, 1.0f);
+    return true;
 }
 
 // 0x51C250
