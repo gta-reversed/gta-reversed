@@ -95,7 +95,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70, { .reversed = false });
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
     RH_ScopedInstall(Process_AimWeapon, 0x521500, { .reversed = false });
-    RH_ScopedInstall(Process_AttachedCam, 0x512B10, { .reversed = false });
+    RH_ScopedInstall(Process_AttachedCam, 0x512B10);
     RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50, { .reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810, { .reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510, { .reversed = false });
@@ -1103,7 +1103,24 @@ void CCam::Process_AimWeapon(const CVector&, float, float, float) {
 
 // 0x512B10
 void CCam::Process_AttachedCam() {
-    NOTSA_UNREACHABLE();
+    m_fFOV = 70.0f;
+    const float tilt = DegreesToRadians(TheCamera.m_fAttachedCamAngle);
+    auto* attached = TheCamera.m_pAttachedEntity;
+    m_vecSource = attached->GetMatrix().TransformVector(TheCamera.m_vecAttachedCamOffset) + attached->GetPosition();
+    if (TheCamera.m_bLookingAtVector) {
+        m_vecFront = attached->GetMatrix().TransformVector(TheCamera.m_vecAttachedCamLookAt) + attached->GetPosition() - m_vecSource;
+    } else {
+        m_vecFront = TheCamera.m_pTargetEntity->GetPosition() - m_vecSource;
+    }
+    m_vecFront.Normalise();
+    const auto right = CrossProduct(m_vecFront, CVector{0.0f, 0.0f, 1.0f}).Normalized();
+    const auto up = CrossProduct(right, m_vecFront).Normalized();
+
+    if (float waterLevel{}; CWaterLevel::GetWaterLevel(m_vecSource, waterLevel, true) && m_vecSource.z < waterLevel - 0.3f) {
+        ApplyUnderwaterMotionBlur();
+    }
+    m_vecUp = up * std::cos(tilt) + right * std::sin(tilt);
+    CWorld::pIgnoreEntity = nullptr;
 }
 
 // 0x525E50
