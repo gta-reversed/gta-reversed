@@ -137,7 +137,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(CamControl, 0x527FA0, { .reversed = false });
     RH_ScopedInstall(Process, 0x52B730, { .reversed = false });
     RH_ScopedInstall(DeleteCutSceneCamDataMemory, 0x5B24A0);
-    RH_ScopedInstall(LoadPathSplines, 0x5B24D0, { .reversed = false });
+    RH_ScopedInstall(LoadPathSplines, 0x5B24D0);
     RH_ScopedInstall(Init, 0x5BC520);
 
     RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "0", 0x50D350, void(CCamera::*)(float));
@@ -2034,7 +2034,35 @@ void CCamera::DeleteCutSceneCamDataMemory() {
 
 // 0x5B24D0
 void CCamera::LoadPathSplines(FILE* file) {
-    plugin::CallMethod<0x5B24D0, CCamera*>(this);
+    DeleteCutSceneCamDataMemory();
+    int32 pathIndex = -1;
+    int32 linesRemaining = 0;
+    bool expectCount = true;
+    float* output = nullptr;
+    for (auto* line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
+        if (*line == '#' || *line == '\0') {
+            continue;
+        }
+        if (linesRemaining != 0) {
+            --linesRemaining;
+            for (auto* token = std::strtok(line, ", \t"); token; token = std::strtok(nullptr, ", \t")) {
+                *output++ = (float)std::atof(token);
+            }
+        } else if (expectCount) {
+            if (++pathIndex >= (int32)m_aPathArray.size()) {
+                return;
+            }
+            sscanf(line, "%d", &linesRemaining);
+            const auto floatsPerLine = pathIndex < 2 ? 4 : 10;
+            auto*& data = m_aPathArray[pathIndex].m_pArrPathData;
+            data = static_cast<float*>(::operator new((linesRemaining * floatsPerLine + 1) * sizeof(float)));
+            data[0] = (float)linesRemaining;
+            output = data + 1;
+            expectCount = false;
+        } else if (*line == ';') {
+            expectCount = true;
+        }
+    }
 }
 
 // 0x50AB50
