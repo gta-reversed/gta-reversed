@@ -1423,7 +1423,7 @@ bool CCam::Process_DW_PlaneCam2(bool) {
         clearFrames = maxClearFrames;
     }
 
-    if (IsTimeToExitThisDWCineyCamMode(MODE_SYPHON_CRIM_IN_FRONT, src, dst, t, false)) {
+    if (IsTimeToExitThisDWCineyCamMode(MODE_IM_THE_PASSENGER_WOOWOO, src, dst, t, false)) {
         exitCam = true;
         return false;
     }
