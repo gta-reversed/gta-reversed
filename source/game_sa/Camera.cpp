@@ -104,7 +104,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910);
     RH_ScopedInstall(TakeControlWithSpline, 0x50CAE0);
     RH_ScopedInstall(SetCamCollisionVarDataSet, 0x50CB60);
-    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .Reversed = false });
+    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90);
     RH_ScopedInstall(SetColVarsPed, 0x50CC50);
     RH_ScopedInstall(SetColVarsVehicle, 0x50CCA0);
     RH_ScopedInstall(StartTransitionWhenNotFinishedInter, 0x515BC0);
@@ -1192,8 +1192,11 @@ void CCamera::UpdateSoundDistances() {
 void CCamera::SetNearClipBasedOnPedCollision(float arg2) {
     static auto& gSqrDistanceToNearestPed = StaticRef<float>(0xB6EC68);
 
+    static auto& distanceScale = StaticRef<float>(0x8CCC84);
+    static auto& maxClip = StaticRef<float>(0x8CCC80);
+
     const float minClip = gpCamColVars[4];
-    float nearClip = std::sqrt(arg2) / gSqrDistanceToNearestPed * 0.25f * (0.3f - minClip) + minClip;
+    float nearClip = std::sqrt(arg2) / gSqrDistanceToNearestPed * distanceScale * (maxClip - minClip) + minClip;
     if (nearClip < minClip) {
         nearClip = minClip;
     }
