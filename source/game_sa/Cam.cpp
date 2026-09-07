@@ -116,7 +116,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_M16_1stPerson, 0x5105C0, { .reversed = false });
     RH_ScopedInstall(Process_Rocket, 0x511B50);
     RH_ScopedInstall(Process_SpecialFixedForSyphon, 0x517500, { .reversed = false });
-    RH_ScopedInstall(Process_WheelCam, 0x512110, { .reversed = false });
+    RH_ScopedInstall(Process_WheelCam, 0x512110);
 
     RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
     RH_ScopedGlobalInstall(WrapAngle, 0x509BE0);
@@ -1766,8 +1766,83 @@ void CCam::Process_SpecialFixedForSyphon(const CVector&, float, float, float) {
 
 // 0x512110
 bool CCam::Process_WheelCam(const CVector&, float, float, float) {
-    NOTSA_UNREACHABLE();
-    return false;
+    static auto& sideOffset = StaticRef<float>(0x8CC7DC);
+    static auto& bikeSideOffset = StaticRef<float>(0x8CC7E0);
+    static auto& boatSideOffset = StaticRef<float>(0x8CCC60);
+    static auto& boatForwardOffset = StaticRef<float>(0x8CCC64);
+    static auto& boatHeightOffset = StaticRef<float>(0x8CCC68);
+    static auto& predatorSideOffset = StaticRef<float>(0x8CCC6C);
+    static auto& predatorForwardOffset = StaticRef<float>(0x8CCC70);
+    static auto& predatorHeightOffset = StaticRef<float>(0x8CCC74);
+    static auto& boatUpScale = StaticRef<float>(0x8CCCA0);
+    static auto& boatForwardScale = StaticRef<float>(0x8CCCA4);
+    static auto& rollFrequency = StaticRef<float>(0x8631C4);
+
+    m_fFOV = 70.0f;
+    auto* entity = m_pCamTargetEntity;
+    CVector offset;
+    if (entity->IsPed()) {
+        m_vecSource = entity->GetMatrix().TransformVector({-0.3f, -0.5f, 0.1f}) + entity->GetPosition();
+        m_vecFront = {1.0f, 0.0f, 0.0f};
+    } else {
+        offset = {entity->GetColModel()->GetBoundingBox().m_vecMin.x - sideOffset, -2.3f, 0.3f};
+        m_vecSource = entity->GetMatrix().TransformPoint(offset);
+        m_vecFront = entity->GetMatrix().GetForward();
+    }
+
+    CVector right, up;
+    auto* vehicle = entity->IsVehicle() ? entity->AsVehicle() : nullptr;
+    if (vehicle && (vehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_HELI || vehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_PLANE)) {
+        right = entity->GetMatrix().GetRight();
+        up = entity->GetMatrix().GetUp();
+        offset.x = -1.55f;
+        m_vecSource = entity->GetMatrix().TransformPoint(offset);
+    } else if (vehicle && vehicle->IsBoat()) {
+        right = CrossProduct(m_vecFront, CVector{0.0f, 0.0f, 1.0f}).Normalized();
+        up = CrossProduct(right, m_vecFront).Normalized();
+        if (vehicle->m_pDriver) {
+            CVector head{};
+            vehicle->m_pDriver->GetBonePosition(&head, BONE_HEAD, true);
+            head += vehicle->m_vecMoveSpeed * CTimer::GetTimeStep() + right * boatSideOffset;
+            head += vehicle->GetMatrix().GetForward() * boatForwardOffset;
+            head.z += boatHeightOffset;
+            if (vehicle->m_nModelIndex == MODEL_PREDATOR) {
+                head += right * predatorSideOffset;
+                head += vehicle->GetMatrix().GetForward() * boatForwardScale * predatorForwardOffset;
+                head.z += boatUpScale * predatorHeightOffset;
+            }
+            m_vecSource = head;
+        } else {
+            m_vecSource.z += boatHeightOffset + boatHeightOffset;
+        }
+    } else if (vehicle && vehicle->IsBike()) {
+        right = entity->GetMatrix().GetRight();
+        up = {0.0f, 0.0f, 1.0f};
+        m_vecFront = CrossProduct(m_vecUp, right).Normalized();
+        offset.x += sideOffset - bikeSideOffset;
+        m_vecSource = entity->GetPosition() + right * offset.x + m_vecFront * offset.y + m_vecUp * offset.z;
+    } else {
+        if (vehicle && vehicle->IsTrain() && DotProduct(vehicle->m_vecMoveSpeed, m_vecFront) < 0.0f) {
+            m_vecFront = -m_vecFront;
+        }
+        right = CrossProduct(m_vecFront, CVector{0.0f, 0.0f, 1.0f}).Normalized();
+        up = CrossProduct(right, m_vecFront).Normalized();
+    }
+
+    if (float waterLevel{}; CWaterLevel::GetWaterLevel(m_vecSource, waterLevel, true) && m_vecSource.z < waterLevel - 0.3f) {
+        ApplyUnderwaterMotionBlur();
+    }
+    const float roll = std::cos((CTimer::GetTimeInMS() & 0x1FFFF) * rollFrequency) * 0.4f;
+    m_vecUp = up * std::cos(roll) + right * std::sin(roll);
+    m_vecFront.Normalise();
+    m_vecUp.Normalise();
+
+    CColPoint collision{};
+    CEntity* hitEntity{};
+    CWorld::pIgnoreEntity = entity;
+    const bool obstructed = CWorld::ProcessLineOfSight(m_vecSource, entity->GetPosition(), collision, hitEntity, true, false, false, true, false, false, true, false);
+    CWorld::pIgnoreEntity = nullptr;
+    return !obstructed;
 }
 
 // based on 0x51847C - 0x5184EC
