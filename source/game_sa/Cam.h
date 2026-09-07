@@ -98,8 +98,14 @@ public:
     float     m_fBeta_Targeting;
     float     m_fX_Targetting;
     float     m_fY_Targetting;
-    CVehicle* m_pCarWeAreFocussingOn;
-    CVehicle* m_pCarWeAreFocussingOnI;
+    union {
+        CVehicle* m_pCarWeAreFocussingOn;
+        int32     m_nTwoPlayerFocus;
+    };
+    union {
+        CVehicle* m_pCarWeAreFocussingOnI;
+        float     m_fTwoPlayerFocusBlend;
+    };
     float     m_fCamBumpedHorz;
     float     m_fCamBumpedVert;
     uint32    m_nCamBumpedTime; // TODO: Probably float
