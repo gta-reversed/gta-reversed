@@ -299,6 +299,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .reversed = false });
+    RH_ScopedInstall(ProcessArrestCamFirstPerson, 0x512EF0);
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250);
     RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70);
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
@@ -1049,6 +1050,50 @@ void CCam::ClipBeta() {
 // 0x526FC0
 void CCam::Process() {
     NOTSA_UNREACHABLE();
+}
+
+// 0x512EF0
+bool CCam::ProcessArrestCamFirstPerson(CPed* cop, bool firstFrame) {
+    if (firstFrame && (float)CGeneral::GetRandomNumber() * StaticRef<float>(0x858C7C) > StaticRef<float>(0x858F50)) {
+        return false;
+    }
+    auto* target = TheCamera.m_pTargetEntity;
+    if (!target->IsPed() || !cop) {
+        return false;
+    }
+    const auto t = std::clamp(((float)CTimer::GetTimeInMS() - StaticRef<float>(0xB6EC60) - StaticRef<float>(0xB70024)) / StaticRef<float>(0x8CCCB0), 0.0f, 1.0f);
+    auto& moving = StaticRef<bool>(0xB70020);
+    moving = t < 1.0f || !moving;
+    auto& initialized = StaticRef<uint8>(0xB7001C);
+    if (!(initialized & 1)) {
+        initialized |= 1;
+        StaticRef<CVector>(0xB70010).Reset();
+    }
+    if (!(initialized & 2)) {
+        initialized |= 2;
+        StaticRef<CVector>(0xB70004) = {0.0f, 0.0f, -0.5f};
+    }
+    const auto oldSource = m_vecSource;
+    m_vecSource = target->GetPosition() + StaticRef<CVector>(0xB70004);
+    m_fFOV = 100.0f;
+    auto* hierarchy = GetAnimHierarchyFromSkinClump(cop->GetRpClump());
+    const auto index = RpHAnimIDGetIndex(hierarchy, BONE_HEAD);
+    const auto& matrix = RpHAnimHierarchyGetMatrixArray(hierarchy)[index];
+    CVector lookAt = matrix.pos;
+    lookAt.z += StaticRef<float>(0x8CCCAC) - StaticRef<float>(0x8CCCA8) * t;
+    m_vecFront = (lookAt - m_vecSource).Normalized();
+    const auto right = CrossProduct(m_vecFront, CVector{0.0f, 0.0f, 1.0f}).Normalized();
+    m_vecUp = CrossProduct(right, m_vecFront);
+    if (firstFrame) {
+        if (!CWorld::GetIsLineOfSightClear(m_vecSource, lookAt, true, true, false, true, false, false, true)) {
+            return false;
+        }
+        if (!CWorld::GetIsLineOfSightClear(m_vecSource, lookAt, true, false, false, true, false, false, false)) {
+            m_vecSource = oldSource;
+        }
+    }
+    target->SetIsVisible(false);
+    return true;
 }
 
 // 0x518500
