@@ -244,7 +244,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0);
     RH_ScopedInstall(Process_DW_BirdyCam, 0x51B850);
     RH_ScopedInstall(Process_DW_CamManCam, 0x51B120);
-    RH_ScopedInstall(Process_DW_HeliChaseCam, 0x51A740, { .reversed = false });
+    RH_ScopedInstall(Process_DW_HeliChaseCam, 0x51A740);
     RH_ScopedInstall(Process_DW_PlaneCam1, 0x51C760);
     RH_ScopedInstall(Process_DW_PlaneCam2, 0x51CC30);
     RH_ScopedInstall(Process_DW_PlaneCam3, 0x51D100);
@@ -1695,8 +1695,160 @@ bool CCam::Process_DW_CamManCam(bool) {
 }
 
 // 0x51A740
-void CCam::Process_DW_HeliChaseCam(bool) {
-    NOTSA_UNREACHABLE();
+bool CCam::Process_DW_HeliChaseCam(bool) {
+    auto& state = StaticRef<DWHeliChaseState>(0xB6FEC0);
+    auto& lastMode = StaticRef<int32>(0x8CC488);
+    auto& startTime = StaticRef<uint32>(0x8CCBA0);
+    auto& exitCam = StaticRef<bool>(0xB6EC70);
+    auto& obstructionPosition = StaticRef<CVector>(0xB70058);
+    auto& obstructionFrames = StaticRef<int32>(0x8CCD24);
+    TheCamera.m_bUseNearClipScript = false;
+    // The original consumes a random number to select from a single configuration.
+    CGeneral::GetRandomNumber();
+    if (!m_pCamTargetEntity || !m_pCamTargetEntity->IsVehicle()) {
+        return false;
+    }
+    CEntity* entity{};
+    CVehicle* vehicle{};
+    CVector target, source, up, right, forward, velocity, angularVelocity;
+    float speed{}, angularSpeed{};
+    CColSphere sphere{};
+    GetCoreDataForDWCineyCamMode(entity, vehicle, target, source, up, right, forward, velocity, speed, angularVelocity, angularSpeed, sphere);
+    const auto now = CTimer::GetTimeInMS();
+    if (lastMode != MODE_DW_HELI_CHASE || gLastFrameProcessedDWCineyCam < CTimer::GetFrameCounter() - 1u) {
+        lastMode = MODE_DW_HELI_CHASE;
+        startTime = now;
+        gDWCineyCamSceneEndTime = now + StaticRef<uint32>(0x8CCBA8);
+        exitCam = false;
+        state.SetDefaults();
+        state.Randomise();
+        gHandShaker[0].Reset();
+
+        bool found = false;
+        for (int32 i = 0; i < state.searchAttempts; i++) {
+            state.start = target - forward * state.backwardDistance;
+            state.end = target + forward * state.forwardDistance;
+            state.start.z += state.height;
+            state.end.z += state.height;
+            const auto startSide = CGeneral::GetRandomNumber() < 0x3FFF ? -1.0f : 1.0f;
+            const auto endSide = CGeneral::GetRandomNumber() < 0x3FFF ? -1.0f : 1.0f;
+            const CVector horizontalRight{right.x, right.y, 0.0f};
+            state.start += horizontalRight * state.sideDistance * startSide;
+            state.end += horizontalRight * state.sideDistance * endSide;
+            if (CWorld::TestSphereAgainstWorld(state.start, state.searchSphereRadius, nullptr, true, true, false, false, false, false)) {
+                continue;
+            }
+            CColPoint collision{};
+            CEntity* hitEntity{};
+            CWorld::pIgnoreEntity = entity;
+            const auto obstructed = CWorld::ProcessLineOfSight(target, state.start, collision, hitEntity, true, true, false, false, false, false, false, false);
+            CWorld::pIgnoreEntity = nullptr;
+            if (!obstructed) {
+                state.skipZoomIn = CGeneral::GetRandomNumber() < 0x3FFF;
+                state.zoomingOut = CGeneral::GetRandomNumber() < 0x3FFF;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            state.targetFrozen = state.sourceObstructed = state.targetObstructed = state.skipZoomIn = state.zoomingOut = false;
+            state.FOVRange = state.wideFOV - state.closeFOV;
+            state.clearFrames = state.maxClearFrames;
+            state.frozenFrames = state.maxFrozenFrames;
+            exitCam = true;
+            return false;
+        }
+    }
+    if (exitCam) {
+        return false;
+    }
+
+    const auto t = (float)(int32)(now - startTime) / (float)(int32)(gDWCineyCamSceneEndTime - startTime);
+    source = state.start + (state.end - state.start) * t;
+    target += forward * (speed * state.lookAhead) + forward;
+    const auto distance2D = (target - source).Magnitude2D();
+    if (distance2D < state.minimumDistance) {
+        const auto direction = (target - source) / distance2D;
+        source.x = target.x - direction.x * state.minimumDistance;
+        source.y = target.y - direction.y * state.minimumDistance;
+    }
+    const auto smoothFraction = [](float fraction) {
+        return (1.0f + std::sin(DegreesToRadians(270.0f - fraction * 180.0f))) * 0.5f;
+    };
+    auto fov = state.closeFOV;
+    if (t < state.zoomInFraction && !state.skipZoomIn) {
+        fov = lerp(state.wideFOV, state.closeFOV, smoothFraction(t / state.zoomInFraction));
+    }
+    const auto distance = (source - target).Magnitude();
+    if (distance > state.zoomDistanceStart) {
+        const auto fraction = std::clamp((distance - state.zoomDistanceStart) / (state.zoomDistanceEnd - state.zoomDistanceStart), 0.0f, 1.0f);
+        fov -= smoothFraction(fraction) * state.distanceFOVReduction;
+    }
+    const auto roll = t * state.roll;
+
+    if (state.sourceObstructed || CWorld::TestSphereAgainstWorld(source, StaticRef<float>(0x8CCD28), nullptr, true, true, false, false, false, false)) {
+        StaticRef<uint32>(0xB70064) |= 1;
+        if (!state.sourceObstructed) {
+            obstructionPosition = source;
+            state.sourceObstructed = true;
+            obstructionFrames = 100;
+        }
+        if (obstructionFrames < 0) {
+            --obstructionFrames;
+            exitCam = true;
+            return false;
+        }
+        source = obstructionPosition + (source - obstructionPosition) * StaticRef<float>(0x8CCD20);
+        --obstructionFrames;
+    }
+
+    if (!state.targetFrozen) {
+        CColPoint collision{};
+        CEntity* hitEntity{};
+        CWorld::pIgnoreEntity = entity;
+        const auto obstructed = CWorld::ProcessLineOfSight(target, source, collision, hitEntity, true, true, false, false, false, false, false, false);
+        CWorld::pIgnoreEntity = nullptr;
+        if (obstructed) {
+            state.targetObstructed = true;
+            if (!state.zoomingOut && state.clearFrames < state.maxClearFrames / 4) {
+                state.zoomOutStartFOV = fov;
+                state.zoomingOut = true;
+                state.zoomOutStartTime = now;
+                state.zoomOutEndTime = now + state.zoomOutDuration;
+            }
+            if (state.clearFrames-- == 0) {
+                state.frozenTarget = target;
+                state.targetFrozen = true;
+            }
+        } else {
+            state.clearFrames = std::min(state.clearFrames + 1, state.maxClearFrames);
+        }
+    } else {
+        target = state.frozenTarget;
+        if (state.frozenFrames-- == 0) {
+            exitCam = true;
+            return false;
+        }
+    }
+    if (!state.zoomingOut && t >= state.zoomOutFraction) {
+        state.zoomOutStartFOV = fov;
+        state.zoomingOut = true;
+        state.zoomOutStartTime = now;
+        state.zoomOutEndTime = now + state.zoomOutDuration;
+    }
+    if (state.zoomingOut) {
+        const auto fraction = std::clamp(
+            ((float)(int32)now - (float)(int32)state.zoomOutStartTime) / ((float)(int32)state.zoomOutEndTime - (float)(int32)state.zoomOutStartTime),
+            0.0f, 1.0f
+        );
+        fov = lerp(state.zoomOutStartFOV, state.wideFOV, smoothFraction(fraction));
+    }
+    if (IsTimeToExitThisDWCineyCamMode(MODE_FOLLOW_PED_WITH_BIND, source, target, t, false)) {
+        exitCam = true;
+        return false;
+    }
+    Finalise_DW_CineyCams(source, target, roll, fov, state.nearClip, 1.0f);
+    return true;
 }
 
 // 0x51C760
