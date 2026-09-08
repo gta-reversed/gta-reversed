@@ -2391,7 +2391,190 @@ void CCamera::CameraColDetAndReact(CVector* source, CVector* target) {
 
 // 0x527FA0
 void CCamera::CamControl() {
-    plugin::CallMethod<0x527FA0, CCamera*>(this); // good luck warrior!
+    auto& activeCam = m_aCams[m_nActiveCam];
+    const auto previousMode = activeCam.m_nMode;
+
+    // These flags are frame-local.  The original routine clears them before it
+    // decides which of the regular, scripted, or cinematic camera paths to use.
+    m_bObbeCinematicPedCamOn = false;
+    m_bObbeCinematicCarCamOn = false;
+    m_bUseTransitionBeta = false;
+    m_bUseSpecialFovTrain = false;
+    m_bJustCameOutOfGarage = false;
+    m_bTargetJustCameOffTrain = false;
+    m_bInATunnelAndABigVehicle = false;
+    m_bJustJumpedOutOf1stPersonBecauseOfTarget = false;
+    m_nExtraEntitiesCount = 0;
+
+    if (!activeCam.m_pCamTargetEntity && !m_pTargetEntity) {
+        CEntity::ChangeEntityReference(m_pTargetEntity, FindPlayerEntity());
+    }
+
+    ++m_nZoneCullFrameNumWereAt;
+    if (m_nZoneCullFrameNumWereAt > m_nCheckCullZoneThisNumFrames) {
+        m_nZoneCullFrameNumWereAt = 1;
+    }
+    m_bCullZoneChecksOn = m_nZoneCullFrameNumWereAt == m_nCheckCullZoneThisNumFrames;
+    if (m_bCullZoneChecksOn) {
+        m_bFailedCullZoneTestPreviously = CCullZones::CamCloseInForPlayer();
+    }
+
+    if (!m_pTargetEntity) {
+        return;
+    }
+
+    // A paused camera still has to retain its target, but none of the mode
+    // selection or interpolation state is advanced while paused or idle.
+    if (CTimer::GetIsPaused() || m_bIdleOn) {
+        return;
+    }
+
+    auto* player = FindPlayerPed();
+    const bool targetIsVehicle = m_pTargetEntity->GetIsTypeVehicle();
+    const bool targetIsPed = m_pTargetEntity->GetIsTypePed();
+    eCamMode requestedMode = m_nModeToGoTo;
+    bool jumpCut = false;
+
+    if (targetIsVehicle) {
+        auto* vehicle = m_pTargetEntity->AsVehicle();
+        const auto appearance = vehicle->GetVehicleAppearance();
+
+        CameraVehicleModeSpecialCases(vehicle);
+        SetColVarsVehicle(static_cast<eVehicleType>(appearance), m_nCarZoom);
+        m_bObbeCinematicCarCamOn = m_nCarZoom == 4 && m_nWhoIsInControlOfTheCamera != 1;
+
+        if (vehicle->IsBoat() && vehicle->GetModelIndex() != MODEL_SKIMMER) {
+            requestedMode = MODE_BEHINDBOAT;
+        } else {
+            requestedMode = MODE_CAM_ON_A_STRING;
+        }
+
+        // Zoom index zero is the vehicle first-person view.  Index four is the
+        // cinematic/top-down slot; the latter is suppressed by camera cull
+        // zones in the retail game.
+        if (m_nCarZoom == 0 && !m_bPlayerIsInGarage && !m_bDisableFirstPersonInCar) {
+            requestedMode = MODE_1STPERSON;
+        } else if (m_nCarZoom == 4 && !m_bPlayerIsInGarage && !m_bFailedCullZoneTestPreviously) {
+            requestedMode = MODE_TOPDOWN;
+        }
+
+        if (CCullZones::Cam1stPersonForPlayer() && !m_bPlayerIsInGarage) {
+            requestedMode = MODE_1STPERSON;
+            m_bInATunnelAndABigVehicle = true;
+        }
+
+        if (requestedMode == MODE_TOPDOWN && (CCullZones::Cam1stPersonForPlayer() || CCullZones::CamNoRain() || CCullZones::PlayerNoRain())) {
+            requestedMode = MODE_1STPERSON;
+        }
+
+        if (m_bUseScriptZoomValueCar) {
+            m_fCarZoomSmoothed += (m_fCarZoomValueScript - m_fCarZoomSmoothed) * 0.12f * CTimer::GetTimeStep();
+        } else if (m_bFailedCullZoneTestPreviously) {
+            m_fCarZoomSmoothed += (-0.65f - m_fCarZoomSmoothed) * 0.12f * CTimer::GetTimeStep();
+        }
+
+        // Boats use the dedicated follow mode, except for the Skimmer which is
+        // treated as a car by the original mode selector.
+        if (vehicle->IsBoat() && vehicle->GetModelIndex() == MODEL_SKIMMER) {
+            requestedMode = MODE_CAM_ON_A_STRING;
+        }
+    } else if (targetIsPed) {
+        auto* ped = m_pTargetEntity->AsPed();
+        CameraPedModeSpecialCases();
+        SetColVarsPed(ped->m_nPedType, m_nPedZoom);
+        requestedMode = MODE_FOLLOWPED;
+
+        if (m_nPedZoom == 0 && (m_bLookingAtPlayer || m_bEnable1rstPersonCamCntrlsScript)) {
+            requestedMode = MODE_1STPERSON;
+        } else if (m_nPedZoom == 4 && !m_bFailedCullZoneTestPreviously) {
+            requestedMode = MODE_TOP_DOWN_PED;
+        }
+
+        if (Using1stPersonWeaponMode() && !m_bFailedCullZoneTestPreviously) {
+            requestedMode = m_PlayerWeaponMode.m_nMode;
+            CameraPedAimModeSpecialCases(ped);
+        }
+
+        if (m_bUseScriptZoomValuePed) {
+            m_fPedZoomSmoothed += (m_fPedZoomValueScript - m_fPedZoomSmoothed) * 0.12f * CTimer::GetTimeStep();
+        } else if (m_bFailedCullZoneTestPreviously) {
+            m_fPedZoomSmoothed += (0.5f - m_fPedZoomSmoothed) * 0.12f * CTimer::GetTimeStep();
+        }
+
+        if (requestedMode == MODE_TOP_DOWN_PED && (CCullZones::Cam1stPersonForPlayer() || CCullZones::CamNoRain() || CCullZones::PlayerNoRain())) {
+            requestedMode = MODE_FOLLOWPED;
+        }
+
+        if (player && player->m_nPedState == PEDSTATE_DEAD) {
+            requestedMode = MODE_PED_DEAD_BABY;
+            jumpCut = true;
+        }
+    }
+
+    if (gbModelViewer) {
+        requestedMode = MODE_MODELVIEW;
+        jumpCut = true;
+    }
+
+    // Script-controlled cameras must obey the requested mode, even when the
+    // target is not the player.  RestoreWithJumpCut sets this flag explicitly.
+    if (!m_bLookingAtPlayer && m_nWhoIsInControlOfTheCamera != 0) {
+        requestedMode = m_nModeToGoTo;
+    }
+    if (m_bLookingAtVector && m_nWhoIsInControlOfTheCamera != 0) {
+        requestedMode = m_nModeToGoTo;
+    }
+
+    if (m_bRestoreByJumpCut) {
+        requestedMode = m_nModeToGoTo;
+        jumpCut = true;
+        m_bRestoreByJumpCut = false;
+    }
+
+    const auto requiresJumpCut = [](eCamMode mode) {
+        return notsa::contains({
+            MODE_TOPDOWN, MODE_TOP_DOWN_PED, MODE_1STPERSON,
+            MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_M16_1STPERSON,
+            MODE_HELICANNON_1STPERSON, MODE_CAMERA,
+            MODE_ARRESTCAM_ONE, MODE_ARRESTCAM_TWO,
+            MODE_LIGHTHOUSE, MODE_PED_DEAD_BABY
+        }, mode);
+    };
+    jumpCut |= m_bLookingAtPlayer && requiresJumpCut(requestedMode);
+
+    if (requestedMode == MODE_NONE) {
+        requestedMode = targetIsVehicle ? MODE_CAM_ON_A_STRING : MODE_FOLLOWPED;
+    }
+
+    if (requestedMode != previousMode) {
+        if (jumpCut) {
+            activeCam.Init();
+            activeCam.m_nMode = requestedMode;
+            activeCam.m_bCamLookingAtVector = m_bLookingAtVector;
+            activeCam.m_vecCamFixedModeVector = m_vecFixedModeVector;
+            activeCam.m_vecCamFixedModeSource = m_vecFixedModeSource;
+            activeCam.m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
+            CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
+            m_bTransitionState = false;
+            m_bJust_Switched = true;
+        } else if (!m_bWaitForInterpolToFinish) {
+            if (m_bTransitionState) {
+                StartTransitionWhenNotFinishedInter(requestedMode);
+            } else {
+                StartTransition(requestedMode);
+            }
+        }
+    } else if (activeCam.m_pCamTargetEntity != m_pTargetEntity && (m_bPlayerIsInGarage || !m_bLookingAtPlayer)) {
+        CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
+    }
+
+    if (player) {
+        const bool firstPerson = notsa::contains({
+            MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER,
+            MODE_M16_1STPERSON, MODE_HELICANNON_1STPERSON, MODE_CAMERA
+        }, activeCam.m_nMode);
+        player->bIsVisible = !firstPerson || !targetIsPed;
+    }
 }
 
 // 0x5B24A0
