@@ -33,6 +33,38 @@ static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
 static bool IsLampPost(eModelID modelId);
 
+// 0x515D80
+static bool GetArrestCameraPosition(CEntity* target, CPed* cop, const CVector& lookAt, CVector& source) {
+    if (!target || !cop) {
+        return false;
+    }
+    auto position = cop->GetPosition();
+    auto direction = lookAt - position;
+    const auto side = CrossProduct(direction, CVector{0.0f, 0.0f, 1.0f}).Normalized();
+    position += side * StaticRef<float>(0x8CC8CC);
+    direction.Normalise();
+    if (direction.z < -0.7071f) {
+        direction.z = -0.7071f;
+        const auto scale = direction.Magnitude2D() * StaticRef<float>(0x8631E4);
+        if (scale > 0.0f) {
+            direction.x /= scale;
+            direction.y /= scale;
+        }
+        direction.Normalise();
+    } else if (direction.z > 0.0f) {
+        direction.z = 0.0f;
+        direction.Normalise();
+    }
+    auto displacement = lookAt - (position - direction * StaticRef<float>(0x8CC8C8));
+    const auto distance = displacement.Magnitude();
+    const auto minimumDistance = StaticRef<float>(0x8CC8D4);
+    if (distance > 0.0f && distance < minimumDistance) {
+        displacement *= minimumDistance / distance;
+    }
+    source = lookAt - displacement;
+    return true;
+}
+
 // 0x513220
 static bool CanSeeBothPlayers(CVector source) {
     gCurCamColVars = 5;
@@ -226,6 +258,7 @@ void CCam::InjectHooks() {
     RH_ScopedClass(CCam);
     RH_ScopedCategory("Camera");
     RH_ScopedGlobalInstall(CanSeeBothPlayers, 0x513220);
+    RH_ScopedGlobalInstall(GetArrestCameraPosition, 0x515D80);
 
     RH_ScopedInstall(Constructor, 0x517730);
     RH_ScopedInstall(Init, 0x50E490);
