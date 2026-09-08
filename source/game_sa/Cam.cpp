@@ -91,7 +91,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .reversed = false });
-    RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250, { .reversed = false });
+    RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250);
     RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70, { .reversed = false });
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
     RH_ScopedInstall(Process_AimWeapon, 0x521500, { .reversed = false });
@@ -848,7 +848,65 @@ void CCam::ProcessArrestCamOne() {
 
 // 0x519250
 void CCam::ProcessPedsDeadBaby() {
-    NOTSA_UNREACHABLE();
+    static auto& initialHeight = StaticRef<float>(0x8CC804);
+    static auto& riseSpeed = StaticRef<float>(0x8CC808);
+    static auto& swayDistance = StaticRef<float>(0x8CC80C);
+    static auto& swayPeriod = StaticRef<float>(0x8CC810);
+    static auto& swayAngle = StaticRef<float>(0x8CC814);
+    static auto& startTime = StaticRef<uint32>(0xB6F094);
+    static auto& unusedTime = StaticRef<float>(0xB70054);
+    static auto& unusedValue = StaticRef<float>(0xB70050);
+
+    auto* entity = TheCamera.m_pTargetEntity;
+    CVector target;
+    if (entity->IsPed()) {
+        entity->AsPed()->GetBonePosition(&target, BONE_SPINE1, true);
+    } else if (entity->IsVehicle()) {
+        target = entity->GetPosition();
+        target.z += entity->GetColModel()->GetBoundingBox().m_vecMax.z;
+    } else {
+        return;
+    }
+
+    CVector source;
+    if (m_bResetStatics) {
+        unusedTime = (float)CTimer::GetTimeInMS();
+        startTime = CTimer::GetTimeInMS();
+        unusedValue = 0.0f;
+        source = target;
+        source.z += initialHeight;
+        float waterLevel{};
+        if (CWaterLevel::GetWaterLevelNoWaves(source, &waterLevel) && source.z < waterLevel + 1.5f) {
+            source.z = waterLevel + 1.5f;
+        }
+        auto right = CrossProduct(entity->GetMatrix().GetForward(), CVector{0.0f, 0.0f, 1.0f});
+        right.z = 0.0f;
+        right.Normalise();
+        m_vecFront = (target - source).Normalized();
+        m_vecUp = CrossProduct(right, m_vecFront).Normalized();
+        m_bResetStatics = false;
+    } else {
+        source = m_vecSource;
+        if (!CWorld::TestSphereAgainstWorld(source + CVector{0.0f, 0.0f, 0.2f}, 0.3f, entity, true, true, false, true, false, true)) {
+            source.z += CTimer::GetTimeStep() * riseSpeed;
+        }
+        auto right = CrossProduct(entity->GetMatrix().GetForward(), CVector{0.0f, 0.0f, 1.0f});
+        right.z = 0.0f;
+        right.Normalise();
+        const float elapsed = (float)(CTimer::GetTimeInMS() - startTime);
+        auto desiredSource = target + right * swayDistance * (std::min(elapsed, 1000.0f) * 0.001f * std::sin(elapsed / swayPeriod));
+        desiredSource.z = source.z;
+        const auto movement = (desiredSource - source).Normalized();
+        if (!CWorld::TestSphereAgainstWorld(source + movement * 0.2f, 0.3f, entity, true, true, false, true, false, true)) {
+            source = desiredSource;
+        }
+        m_vecFront = CVector{0.0f, 0.0f, -1.0f} + right * swayAngle * (std::min(elapsed, 2000.0f) * 0.0005f) * std::cos(elapsed / swayPeriod);
+        m_vecFront.Normalise();
+        m_vecUp = CrossProduct(right, m_vecFront).Normalized();
+    }
+    m_vecSource = source;
+    TheCamera.AvoidTheGeometry(&source, &target, &m_vecSource, m_fFOV);
+    TheCamera.m_bMoveCamToAvoidGeom = false;
 }
 
 // 0x50EB70
