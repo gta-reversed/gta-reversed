@@ -540,13 +540,13 @@ tBlipHandle CRadar::SetShortRangeCoordBlip(eBlipType type, CVector posn, eBlipCo
 /*!
  * @brief Creates a new coordinate blip (i.e. tracing blip with no sprite) bound to an entity.
  * @param type Type
- * @param entityHandle Opaque entity handle? (CEntity*?)
- * @param arg2 Unknown argument (Unused)
+ * @param entityHandle Opaque entity handle - usually pool ref
+ * @param color (unused)
  * @param blipDisplay Display option
  * @addr 0x5839A0
  * @returns Handle of the blip created.
  */
-tBlipHandle CRadar::SetEntityBlip(eBlipType type, int32 entityHandle, uint32 arg2, eBlipDisplay blipDisplay) {
+tBlipHandle CRadar::SetEntityBlip(eBlipType type, int32 entityHandle, uint32 color, eBlipDisplay blipDisplay) {
     if (const auto index = FindTraceNotTrackingBlipIndex(); index != -1) {
         auto& t = ms_RadarTrace[index];
 

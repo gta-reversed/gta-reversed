@@ -2230,9 +2230,7 @@ bool CAutomobile::IsDoorFullyOpenU32(uint32 door) {
     case 10: return IsDoorFullyOpen(DOOR_LEFT_FRONT);
     case 11: return IsDoorFullyOpen(DOOR_LEFT_REAR);
     case 18: return false;
-    default:
-        assert(0); // Prevent usage mistakes - There's is an eDoors overload, and if an int literal is used instead of the enum this function will be called incorrectly.
-        return false;
+    default: NOTSA_UNREACHABLE("There's is an `eDoors` overload, and if an int literal is used instead of the enum this function will be called incorrectly.");
     }
 }
 
@@ -4772,7 +4770,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
 
 /*!
 * @addr 0x6A6010
-* @brief Returns `roll` in DEGREES
+* @brief Returns `roll` (rotation around y axis)  in DEGREES
 */
 float CAutomobile::GetCarRoll() {
     const auto& right = m_matrix->GetRight();
@@ -4784,7 +4782,7 @@ float CAutomobile::GetCarRoll() {
 
 /*!
 * @addr 0x6A6050
-* @brief Returns `pitch` in RADIANS
+* @brief Returns `pitch` (rotation around x axis) in RADIANS
 */
 float CAutomobile::GetCarPitch() {
     const auto& fwd = m_matrix->GetForward();
