@@ -18,6 +18,8 @@
 #include "TaskSimpleGangDriveBy.h"
 #include "TaskSimpleArrestPed.h"
 #include "TaskSimpleClimb.h"
+#include "TaskSimpleUseGun.h"
+#include "PedClothesDesc.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -305,7 +307,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250);
     RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70);
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
-    RH_ScopedInstall(Process_AimWeapon, 0x521500, { .reversed = false });
+    RH_ScopedInstall(Process_AimWeapon, 0x521500);
     RH_ScopedInstall(Process_AttachedCam, 0x512B10);
     RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50);
     RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810);
@@ -1872,8 +1874,349 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
 }
 
 // 0x521500
-void CCam::Process_AimWeapon(const CVector&, float, float, float) {
-    NOTSA_UNREACHABLE();
+void CCam::Process_AimWeapon(const CVector& target, float, float, float) {
+    static auto& initialized = StaticRef<uint8>(0xB70110);
+    static auto& bufferedTarget = StaticRef<CVector>(0xB70104);
+    static auto& meleePitch = StaticRef<float>(0xB70100);
+    static auto& meleeYaw = StaticRef<float>(0xB700FC);
+    static auto& meleeSideTimer = StaticRef<float>(0xB700F8);
+    static auto& meleeTargetBlend = StaticRef<float>(0xB700F4);
+    static auto& manualRotation = StaticRef<bool>(0xB6EC44);
+    static auto& timeWithoutInput = StaticRef<int32>(0xB6EC48);
+    static auto& lastTargetPressed = StaticRef<uint32>(0xB6EC4C);
+    static auto& recenterHeading = StaticRef<float>(0x8CC530);
+    if (!(initialized & 1)) {
+        initialized |= 1;
+        bufferedTarget.Reset();
+    }
+    if (!m_pCamTargetEntity->IsPed() || !m_pCamTargetEntity->AsPed()->IsPlayer()) {
+        return;
+    }
+    auto* ped = m_pCamTargetEntity->AsPed();
+    auto* intelligence = ped->GetIntelligence();
+    auto* gunTask = intelligence->GetTaskUseGun();
+    auto* weapon = gunTask ? gunTask->m_WeaponInfo : CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_Type, eWeaponSkill::STD);
+    auto* vehicle = ped->bInVehicle ? ped->m_pVehicle : nullptr;
+    const bool driver = vehicle && vehicle->m_pDriver == ped;
+    int32 aimingType{};
+    if (ped->bInVehicle) {
+        aimingType = vehicle && (vehicle->m_nVehicleType == VEHICLE_TYPE_BIKE || vehicle->m_nVehicleSubType == VEHICLE_TYPE_QUAD) ? 1 : 2;
+    } else if (intelligence->GetTaskJetPack()) {
+        aimingType = 1;
+    } else if (ped->GetActiveWeapon().IsTypeMelee()) {
+        aimingType = 3;
+    }
+    const auto& settings = StaticRef<std::array<std::array<float, 7>, 4>>(0x8CC4C0)[aimingType];
+    const auto timeStep = CTimer::GetTimeStep();
+    const auto weaponType = ped->GetActiveWeapon().m_Type;
+    auto wantedFOV = 70.0f;
+    if (weaponType == WEAPON_AK47 || weaponType == WEAPON_M4) {
+        wantedFOV = StaticRef<float>(0x8CC4B4);
+    } else if (weaponType == WEAPON_COUNTRYRIFLE) {
+        wantedFOV = StaticRef<float>(0x8CC4B8);
+    }
+    if (!TheCamera.m_bTransitionState) {
+        if (m_bResetStatics && weaponType != WEAPON_COUNTRYRIFLE) {
+            m_fFOV = wantedFOV;
+        } else {
+            const auto step = timeStep * StaticRef<float>(0x862F1C);
+            m_fFOV = m_fFOV + step < wantedFOV ? m_fFOV + step : std::max(m_fFOV - step, wantedFOV);
+        }
+    }
+    const bool melee = weapon->m_nWeaponFire == WEAPON_FIRE_MELEE;
+    float pitchOffset, yawOffset;
+    if (melee) {
+        if (!(initialized & 2)) {
+            initialized |= 2;
+            meleePitch = StaticRef<float>(0x862F20);
+        }
+        if (!(initialized & 4)) {
+            initialized |= 4;
+            meleeYaw = StaticRef<float>(0x862F24);
+        }
+        auto pitch = StaticRef<float>(0x862F20);
+        auto yaw = StaticRef<float>(0x862F24);
+        float blend{};
+        if (intelligence->GetTaskFighting() && ped->m_nMoveState < PEDMOVE_WALK && ped->m_pTargetedObject) {
+            if (meleeSideTimer > timeStep) {
+                meleeSideTimer -= timeStep;
+            } else if (meleeSideTimer < -timeStep) {
+                meleeSideTimer += timeStep;
+            } else {
+                const auto origin = ped->GetPosition() + CVector{0.0f, 0.0f, 0.75f};
+                auto side = CrossProduct(ped->m_pTargetedObject->GetPosition() - ped->GetPosition(), CVector{0.0f, 0.0f, 1.0f});
+                side *= 2.0f / std::max(0.7f, side.Magnitude());
+                meleeSideTimer = CWorld::GetIsLineOfSightClear(origin, origin + side, true, true, false, true, false, true, true) ? 100.0f : -100.0f;
+            }
+            if (meleeSideTimer >= 0.0f) {
+                pitch = StaticRef<float>(0x862F28);
+                yaw = StaticRef<float>(0x862F2C);
+                blend = 1.0f;
+            }
+        }
+        if (m_bResetStatics) {
+            meleePitch = pitch;
+            meleeYaw = yaw;
+            meleeTargetBlend = 0.0f;
+        } else if (!TheCamera.m_bTransitionState) {
+            const auto damping = std::pow(StaticRef<float>(0x862F30), timeStep);
+            meleePitch = meleePitch * damping + pitch * (1.0f - damping);
+            meleeYaw = meleeYaw * damping + yaw * (1.0f - damping);
+            meleeTargetBlend = meleeTargetBlend * damping + blend * (1.0f - damping);
+        }
+        pitchOffset = DegreesToRadians(meleePitch);
+        yawOffset = DegreesToRadians(meleeYaw);
+    } else {
+        meleeTargetBlend = 0.0f;
+        const auto halfFOV = std::tan(DegreesToRadians(m_fFOV * 0.5f));
+        yawOffset = std::atan((CCamera::m_f3rdPersonCHairMultX - 0.5f) * 2.0f * halfFOV);
+        pitchOffset = std::atan((0.5f - CCamera::m_f3rdPersonCHairMultY) * 2.0f * halfFOV / CDraw::ms_fAspectRatio);
+    }
+    if (m_bResetStatics) {
+        TheCamera.ResetDuckingSystem(ped);
+        m_bRotating = false;
+        m_bCollisionChecksOn = true;
+        m_fAlphaSpeed = m_fBetaSpeed = 0.0f;
+        manualRotation = true;
+        timeWithoutInput = 60000;
+        recenterHeading = -1001.0f;
+        lastTargetPressed = 0;
+        if (!CCamera::m_bUseMouse3rdPerson || ped->m_pTargetedObject) {
+            m_fVerticalAngle = settings[3];
+            if (vehicle) {
+                m_fHorizontalAngle = ped->m_fCurrentRotation - HALF_PI - yawOffset;
+                m_fVerticalAngle += std::asin(std::clamp(ped->GetMatrix().GetForward().z, -1.0f, 1.0f));
+            } else if (!ped->m_pTargetedObject) {
+                m_fHorizontalAngle = ped->m_fCurrentRotation - HALF_PI + yawOffset;
+                if (ped->bIsStanding) {
+                    m_fVerticalAngle -= std::asin(std::clamp(DotProduct(ped->field_578, ped->GetMatrix().GetForward()), -1.0f, 1.0f));
+                    if (weaponType == WEAPON_EXTINGUISHER) {
+                        m_fVerticalAngle += StaticRef<float>(0x8D610C);
+                    }
+                }
+            }
+        }
+    }
+    auto& forcedStep = StaticRef<float>(0xA44498);
+    const auto forcedHeading = StaticRef<float>(0xA4449C);
+    if (forcedStep > 0.0f) {
+        auto delta = m_fHorizontalAngle - forcedHeading;
+        if (delta < 0.0f) {
+            delta += TWO_PI;
+        }
+        if (delta < forcedStep || TWO_PI - delta < forcedStep) {
+            m_fHorizontalAngle = forcedHeading;
+            forcedStep = 0.0f;
+        } else {
+            m_fHorizontalAngle += delta <= TWO_PI - delta ? -forcedStep : forcedStep;
+        }
+    }
+
+    auto lookAt = target;
+    ped->UpdateRpHAnim();
+    lookAt.z = ped->GetPosition().z + 0.5f + settings[4];
+    if (m_fFOV < 70.0f) {
+        lookAt.z += std::min((70.0f - m_fFOV) / (70.0f - StaticRef<float>(0x8CC4B4)), 1.0f) * StaticRef<float>(0x858B1C);
+    }
+    const auto heightOffset = lookAt.z - target.z;
+    auto sideDistance = 0.2f;
+    if (!weapon->flags.bAimWithArm && ped->GetPlayerData()->m_pPedClothesDesc->HasVisibleNewHairCut(1)) {
+        sideDistance = 0.3f;
+    } else if (m_fFOV < 70.0f) {
+        sideDistance += std::min((70.0f - m_fFOV) / (70.0f - StaticRef<float>(0x8CC4B8)), 1.0f) * StaticRef<float>(0x858B1C);
+    }
+    if (StaticRef<bool>(0x8CCE64)) {
+        const auto right = CrossProduct(m_vecFront, m_vecUp);
+        const auto alignment = std::clamp(DotProduct(right, ped->GetMatrix().GetRight()), 0.0f, 1.0f);
+        lookAt += right * ((1.0f - std::acos(alignment) * StaticRef<float>(0x858FB8)) * sideDistance);
+    } else {
+        lookAt += ped->GetMatrix().GetRight() * sideDistance;
+    }
+    if (auto* locked = ped->m_pTargetedObject) {
+        CVector position;
+        if (locked->IsPed() && !melee) {
+            locked->AsPed()->GetBonePosition(&position, BONE_SPINE1, true);
+        } else {
+            position = locked->GetPosition();
+        }
+        if (melee) {
+            position.z += heightOffset * StaticRef<float>(0x8CCE60);
+        }
+        if (!m_bResetStatics && intelligence->GetTaskFighting()) {
+            const auto damping = std::pow(StaticRef<float>(0x8CC39C), timeStep);
+            bufferedTarget = bufferedTarget * damping + position * (1.0f - damping);
+        } else {
+            bufferedTarget = position;
+        }
+    }
+
+    auto* pad = CPad::GetPad(0);
+    if (ped->m_pTargetedObject) {
+        const auto delta = bufferedTarget - lookAt;
+        auto pitch = std::atan2(delta.z, delta.Magnitude2D());
+        if (melee) {
+            pitch *= std::cos(yawOffset);
+        } else {
+            const auto distance = std::min((lookAt - m_vecSource).Magnitude(), settings[0]);
+            const auto scale = (delta.Magnitude() + distance) / delta.Magnitude();
+            pitchOffset *= scale;
+            yawOffset *= scale;
+        }
+        auto yaw = std::atan2(-delta.x, delta.y) - HALF_PI + yawOffset;
+        pitch -= pitchOffset;
+        if (pitch < -PI) {
+            pitch += TWO_PI;
+        } else if (pitch > PI) {
+            pitch -= TWO_PI;
+        }
+        const auto step = m_bResetStatics ? 1000.0f : timeStep * StaticRef<float>(0x8CC4A4);
+        m_fVerticalAngle += std::clamp(pitch - m_fVerticalAngle, -step, step);
+        auto yawDelta = yaw - m_fHorizontalAngle;
+        if (yawDelta > PI) {
+            yaw -= TWO_PI;
+        } else if (yawDelta < -PI) {
+            yaw += TWO_PI;
+        }
+        m_fHorizontalAngle += std::clamp(yaw - m_fHorizontalAngle, -step, step);
+        m_fAlphaSpeed = m_fBetaSpeed = 0.0f;
+    } else {
+        const auto mouse = pad->NewMouseControllerState.GetAmountMouseMoved();
+        const auto fovScale = m_fFOV / 80.0f;
+        if (CCamera::m_bUseMouse3rdPerson && !pad->DisablePlayerControls && !mouse.IsZero()) {
+            m_fHorizontalAngle += mouse.x * -3.0f * fovScale * CCamera::m_fMouseAccelHorzntl;
+            m_fVerticalAngle += mouse.y * 4.0f * fovScale * CCamera::m_fMouseAccelVertical;
+            m_fAlphaSpeed = m_fBetaSpeed = 0.0f;
+        } else {
+            const auto h = (float)-pad->LookAroundLeftRight(ped);
+            const auto v = (float)pad->LookAroundUpDown(ped);
+            const auto sensitivity = sq(StaticRef<float>(0x8CC4A0));
+            auto horizontal = fovScale * StaticRef<float>(0x859B50) * std::abs(h) * h * timeStep * sensitivity;
+            auto vertical = fovScale * StaticRef<float>(0x8631AC) * std::abs(v) * v * timeStep * sensitivity;
+            const auto damping = std::pow(StaticRef<float>(std::abs(h) < 2.0f && std::abs(v) < 2.0f ? 0x8CCE58 : 0x8CCE5C), timeStep);
+            horizontal = m_fBetaSpeed = horizontal * (1.0f - damping) + m_fBetaSpeed * damping;
+            vertical = m_fAlphaSpeed = vertical * (1.0f - damping) + m_fAlphaSpeed * damping;
+            if (vehicle && !driver && pad->GetEnterTargeting()) {
+                const auto now = CTimer::GetTimeInMS();
+                if ((float)(now - lastTargetPressed) < StaticRef<float>(0x8CCE54)) {
+                    horizontal = PI;
+                    vertical = 0.0f;
+                } else {
+                    lastTargetPressed = now;
+                }
+            } else if (driver) {
+                if (h == 0.0f && v == 0.0f) {
+                    if (!pad->GetWeapon(ped)) {
+                        timeWithoutInput += (int32)(timeStep * StaticRef<float>(0x858B38) * StaticRef<float>(0x858C4C));
+                    }
+                } else {
+                    timeWithoutInput = 0;
+                }
+                if (timeWithoutInput > StaticRef<int32>(0x8CC534)) {
+                    manualRotation = false;
+                    recenterHeading = ped->m_fCurrentRotation - HALF_PI + yawOffset;
+                } else if (timeWithoutInput > StaticRef<int32>(0x8CC538)) {
+                    auto delta = ped->m_fCurrentRotation - HALF_PI - yawOffset - m_fHorizontalAngle;
+                    if (delta > TWO_PI) {
+                        delta -= TWO_PI;
+                    } else if (delta < StaticRef<float>(0x863234)) {
+                        delta += TWO_PI;
+                    }
+                    if (delta < StaticRef<float>(0x858F20)) {
+                        recenterHeading = ped->m_fCurrentRotation - HALF_PI + yawOffset;
+                        timeWithoutInput = StaticRef<int32>(0x8CC534) + 1;
+                        manualRotation = false;
+                    } else {
+                        manualRotation = true;
+                    }
+                } else {
+                    manualRotation = true;
+                    if (pad->GetWeapon(ped)) {
+                        timeWithoutInput = 0;
+                    }
+                }
+            }
+            if (manualRotation) {
+                recenterHeading = -1001.0f;
+                m_fHorizontalAngle += horizontal;
+                m_fVerticalAngle += vertical;
+            } else {
+                if (recenterHeading < StaticRef<float>(0x859948)) {
+                    recenterHeading = ped->m_fCurrentRotation - HALF_PI;
+                }
+                if (!weapon->flags.bAimWithArm && !melee) {
+                    const auto heading = recenterHeading + HALF_PI;
+                    ped->m_fAimingRotation = ped->m_fCurrentRotation = heading;
+                    ped->SetHeading(heading);
+                    ped->UpdateRwMatrix();
+                }
+                auto step = timeStep * StaticRef<float>(0x8CC4A8);
+                auto deadZone = 0.0f;
+                if (driver) {
+                    step *= StaticRef<float>(0x8CC4AC);
+                    deadZone = StaticRef<float>(0x8CC4B0);
+                }
+                const auto GetCorrection = [&](float desired, float current) {
+                    auto delta = desired - current;
+                    if (delta > PI) {
+                        delta -= TWO_PI;
+                    } else if (delta < -PI) {
+                        delta += TWO_PI;
+                    }
+                    return delta > deadZone ? delta - deadZone : delta < -deadZone ? delta + deadZone : 0.0f;
+                };
+                const auto correction = GetCorrection(recenterHeading - yawOffset, m_fHorizontalAngle);
+                if (std::abs(correction) < step) {
+                    manualRotation = true;
+                }
+                m_fHorizontalAngle += std::clamp(correction, -step, step);
+                if (driver) {
+                    const auto pitch = std::asin(std::clamp(ped->GetMatrix().GetForward().z, -1.0f, 1.0f)) + settings[3];
+                    m_fVerticalAngle += std::clamp(GetCorrection(pitch, m_fVerticalAngle), -step, step);
+                } else {
+                    m_fVerticalAngle += vertical;
+                }
+            }
+        }
+    }
+    ClipBeta();
+    m_fVerticalAngle = std::clamp(m_fVerticalAngle, -settings[6], settings[5]);
+    const auto distancePitch = m_fVerticalAngle > 0.0f ? std::min(settings[2] * m_fVerticalAngle, HALF_PI) : m_fVerticalAngle;
+    const auto distance = std::cos(distancePitch) * settings[1] + settings[0];
+    m_vecFront = {-std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle), -std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle), std::sin(m_fVerticalAngle)};
+    m_vecSource = lookAt - m_vecFront * distance;
+    TheCamera.HandleCameraMotionForDuckingDuringAim(ped, &m_vecSource, &lookAt, false);
+    m_vecTargetCoorsForFudgeInter = lookAt;
+    CCamera::SetColVarsAimWeapon(aimingType);
+    if (gCameraDirection == 3) {
+        TheCamera.CameraGenericModeSpecialCases(ped);
+        TheCamera.CameraPedAimModeSpecialCases(ped);
+        TheCamera.CameraColDetAndReact(&m_vecSource, &lookAt);
+        TheCamera.ImproveNearClip(nullptr, ped, &m_vecSource, &lookAt);
+    }
+    TheCamera.m_bCamDirectlyBehind = TheCamera.m_bCamDirectlyInFront = false;
+    if (meleeTargetBlend > 0.0f && ped->m_pTargetedObject) {
+        const auto blend = meleeTargetBlend * 0.5f;
+        m_vecFront = (lookAt * (1.0f - blend) + bufferedTarget * blend - m_vecSource).Normalized();
+    }
+    GetVectorsReadyForRW();
+    if ((!weapon->flags.bAimWithArm || ped->bIsDucking) && !melee && !ped->bInVehicle) {
+        float heading = -1000.0f;
+        if (weaponType == WEAPON_SPRAYCAN) {
+            heading = std::atan2(-m_vecFront.x, m_vecFront.y) - yawOffset;
+        } else if (ped->m_pTargetedObject) {
+            const auto delta = ped->m_pTargetedObject->GetPosition() - ped->GetPosition();
+            heading = std::atan2(-delta.x, delta.y);
+        } else if (manualRotation) {
+            heading = std::atan2(-m_vecFront.x, m_vecFront.y) - yawOffset;
+        }
+        if (heading > -100.0f) {
+            ped->m_fCurrentRotation = ped->m_fAimingRotation = heading + StaticRef<float>(0x862F18);
+            ped->SetHeading(heading);
+            ped->UpdateRwMatrix();
+        }
+        TheCamera.m_pTargetEntity->AsPed()->GetPlayerData()->m_fLookPitch = TheCamera.Find3rdPersonQuickAimPitch();
+    }
+    m_bResetStatics = false;
 }
 
 // 0x512B10
