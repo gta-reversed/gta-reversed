@@ -360,161 +360,182 @@ void MainLoop(INT nCmdShow) {
 
 }
 
+void MainLoopWithSEH(INT nCmdShow) {
+    __try {
+        MainLoop(nCmdShow);
+    } __except (notsa::Win32::ExceptionHandler(GetExceptionInformation())) {
+        NOTSA_LOG_CRIT("Exception in `MainLoop`, exiting...");
+    }
+}
+
+INT WinMainSEHWrapper(std::invocable auto&& fn, const char* where) {
+    __try {
+        return std::invoke(fn);
+    } __except (notsa::Win32::ExceptionHandler(GetExceptionInformation())) {
+        NOTSA_LOG_CRIT("Exception in `{}`, exiting...", where);
+        exit(1);
+    }
+}
+
 // 0x748710
 INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, INT nCmdShow) {
-    SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0u, nullptr, 2);
-    if (IsAlreadyRunning()) {
-        return false;
-    }
+    return WinMainSEHWrapper([&]() -> INT {
+        SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0u, nullptr, 2);
+        if (IsAlreadyRunning()) {
+            return false;
+        }
 
-    if (rsEVENTERROR == RsEventHandler(rsINITIALIZE, nullptr)) {
-        return false;
-    }
+        if (rsEVENTERROR == RsEventHandler(rsINITIALIZE, nullptr)) {
+            return false;
+        }
 
-#ifdef NOTSA_USE_SDL3
-    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC)) {
-        NOTSA_UNREACHABLE("Failed to initialize SDL: {}", SDL_GetError());
-        return -1;
-    }
-#else
-    if (!Win32_InitApplication(instance)) {
-        return false;
-    }
-#endif
+    #ifdef NOTSA_USE_SDL3
+        if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC)) {
+            NOTSA_UNREACHABLE("Failed to initialize SDL: {}", SDL_GetError());
+            return -1;
+        }
+    #else
+        if (!Win32_InitApplication(instance)) {
+            return false;
+        }
+    #endif
 
-    char** argv = __argv;
-    int    argc = __argc;
-    for (int i = 0; i < argc; i++) {
-        RsEventHandler(rsPREINITCOMMANDLINE, argv[i]);
-    }
+        char** argv = __argv;
+        int    argc = __argc;
+        for (int i = 0; i < argc; i++) {
+            RsEventHandler(rsPREINITCOMMANDLINE, argv[i]);
+        }
 
-    // Dirty fix for crash in crt when trying to free cmd line args
-    // Yeah we leak memory, but who cares
-    // Crash was in `uninitialize_allocated_io_buffers` (`C:\Program Files (x86)\Windows Kits\10\Source\<Win 10 SDK Version>\ucrt\internal\initialization.cpp`)
-    __argc  = 0;
-    __argv  = nullptr;
-    __wargv = nullptr;
+        // Dirty fix for crash in crt when trying to free cmd line args
+        // Yeah we leak memory, but who cares
+        // Crash was in `uninitialize_allocated_io_buffers` (`C:\Program Files (x86)\Windows Kits\10\Source\<Win 10 SDK Version>\ucrt\internal\initialization.cpp`)
+        __argc  = 0;
+        __argv  = nullptr;
+        __wargv = nullptr;
 
-#ifdef NOTSA_USE_SDL3
-    SDL_Window* sdlWnd = SDL_CreateWindow(
-        APP_CLASS,
-        APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT,
-        SDL_WINDOW_RESIZABLE  //| SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS// | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS
-    );
-    PSGLOBAL(sdlWindow) = sdlWnd;
-    PSGLOBAL(window) = (HWND)(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWnd), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL)); // NOTE/TODO: Hacky, but required due to RW
-#else
-    PSGLOBAL(window) = Win32_InitInstance(instance);
-#endif
+    #ifdef NOTSA_USE_SDL3
+        SDL_Window* sdlWnd = SDL_CreateWindow(
+            APP_CLASS,
+            APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT,
+            SDL_WINDOW_RESIZABLE  //| SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS// | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS
+        );
+        PSGLOBAL(sdlWindow) = sdlWnd;
+        PSGLOBAL(window) = (HWND)(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWnd), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL)); // NOTE/TODO: Hacky, but required due to RW
+    #else
+        PSGLOBAL(window) = Win32_InitInstance(instance);
+    #endif
 
-    if (!PSGLOBAL(window)) {
-        return false;
-    }
-    PSGLOBAL(instance) = instance; // Not used anywhere, just set here
+        if (!PSGLOBAL(window)) {
+            return false;
+        }
+        PSGLOBAL(instance) = instance; // Not used anywhere, just set here
 
-    // 0x7487CF
-#ifndef NOTSA_USE_SDL3
-    VERIFY(WinInput::Initialise());
-#endif
-    ControlsManager.ReinitControls();
+        // 0x7487CF
+    #ifndef NOTSA_USE_SDL3
+        VERIFY(WinInput::Initialise());
+    #endif
+        ControlsManager.ReinitControls();
 
-    // 0x748847
-    if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {
+        // 0x748847
+        if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {
+            DestroyWindow(PSGLOBAL(window));
+            RsEventHandler(rsTERMINATE, nullptr);
+            return false;
+        }
+
+        // 0x7488EE
+        for (auto i = 0; i < argc; i++) {
+            RsEventHandler(rsCOMMANDLINE, argv[i]);
+        }
+
+    #ifndef NOTSA_USE_SDL3
+        if (MultipleSubSystems || PSGLOBAL(fullScreen)) {
+            SetWindowLongPtr(PSGLOBAL(window), GWL_STYLE, (LONG_PTR)WS_POPUP);
+            SetWindowPos(PSGLOBAL(window), nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+        }
+    #endif
+
+        RwRect rect{ 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
+        RsEventHandler(rsCAMERASIZE, &rect);
+
+        SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 0u, nullptr, 2u);
+        SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0u, nullptr, 2u);
+        SystemParametersInfo(SPI_SETLOWPOWERACTIVE, 0u, nullptr, 2u);
+        STICKYKEYS pvParam { .cbSize = sizeof(STICKYKEYS) };
+        SystemParametersInfo(SPI_GETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam, 2u);
+        STICKYKEYS pvParam1 = { .cbSize = sizeof(STICKYKEYS), .dwFlags = SKF_TWOKEYSOFF };
+        SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam1, 2u);
+
+        UpdateWindow(PSGLOBAL(window));
+    #ifdef NOTSA_USE_SDL3
+        SDL_SetWindowFocusable(sdlWnd, true);
+        SDL_SetWindowPosition(sdlWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        SDL_RaiseWindow(sdlWnd);
+    #else
+        ShowWindow(PSGLOBAL(window), nCmdShow);
+    #endif
+
+        // 0x748995
+        CFileMgr::SetDirMyDocuments();
+        if (auto* file = CFileMgr::OpenFile("gta_sa.set", "rb")) {
+            if (!ControlsManager.LoadSettings(file)) {
+                ControlsManager.ReinitControls();
+            }
+            CFileMgr::CloseFile(file);
+        }
+        CFileMgr::SetDir("");
+
+        SetErrorMode(SEM_FAILCRITICALERRORS);
+
+        // 0x7489FB
+        MainLoopWithSEH(nCmdShow);
+
+        // if game is loaded, shut it down
+        if (gGameState == GAME_STATE_IDLE) {
+            CGame::Shutdown();
+        }
+
+        // now quit 0x748E75
+        AudioEngine.Shutdown();
+        FreeVideoModeList();
+        RsEventHandler(rsRWTERMINATE, nullptr);
         DestroyWindow(PSGLOBAL(window));
         RsEventHandler(rsTERMINATE, nullptr);
-        return false;
-    }
+        free(argv);
+        ShowCursor(true);
 
-    // 0x7488EE
-    for (auto i = 0; i < argc; i++) {
-        RsEventHandler(rsCOMMANDLINE, argv[i]);
-    }
+        SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam, 2u);
+        SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1u, nullptr, 2u); // TODO: GUID_VIDEO_POWERDOWN_TIMEOUT
+        SystemParametersInfo(SPI_SETLOWPOWERACTIVE, 1u, nullptr, 2u);
+        SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 1u, nullptr, 2u);
+        // nullsub_0x72F3C0()
+        SetErrorMode(0);
 
-#ifndef NOTSA_USE_SDL3
-    if (MultipleSubSystems || PSGLOBAL(fullScreen)) {
-        SetWindowLongPtr(PSGLOBAL(window), GWL_STYLE, (LONG_PTR)WS_POPUP);
-        SetWindowPos(PSGLOBAL(window), nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
-    }
-#endif
-
-    RwRect rect{ 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
-    RsEventHandler(rsCAMERASIZE, &rect);
-
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 0u, nullptr, 2u);
-    SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0u, nullptr, 2u);
-    SystemParametersInfo(SPI_SETLOWPOWERACTIVE, 0u, nullptr, 2u);
-    STICKYKEYS pvParam { .cbSize = sizeof(STICKYKEYS) };
-    SystemParametersInfo(SPI_GETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam, 2u);
-    STICKYKEYS pvParam1 = { .cbSize = sizeof(STICKYKEYS), .dwFlags = SKF_TWOKEYSOFF };
-    SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam1, 2u);
-
-    UpdateWindow(PSGLOBAL(window));
-#ifdef NOTSA_USE_SDL3
-    SDL_SetWindowFocusable(sdlWnd, true);
-    SDL_SetWindowPosition(sdlWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    SDL_RaiseWindow(sdlWnd);
-#else
-    ShowWindow(PSGLOBAL(window), nCmdShow);
-#endif
-
-    // 0x748995
-    CFileMgr::SetDirMyDocuments();
-    if (auto* file = CFileMgr::OpenFile("gta_sa.set", "rb")) {
-        if (!ControlsManager.LoadSettings(file)) {
-            ControlsManager.ReinitControls();
-        }
-        CFileMgr::CloseFile(file);
-    }
-    CFileMgr::SetDir("");
-
-    SetErrorMode(SEM_FAILCRITICALERRORS);
-
-    // 0x7489FB
-    MainLoop(nCmdShow);
-
-    // if game is loaded, shut it down
-    if (gGameState == GAME_STATE_IDLE) {
-        CGame::Shutdown();
-    }
-
-    // now quit 0x748E75
-    AudioEngine.Shutdown();
-    FreeVideoModeList();
-    RsEventHandler(rsRWTERMINATE, nullptr);
-    DestroyWindow(PSGLOBAL(window));
-    RsEventHandler(rsTERMINATE, nullptr);
-    free(argv);
-    ShowCursor(true);
-
-    SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam, 2u);
-    SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1u, nullptr, 2u); // TODO: GUID_VIDEO_POWERDOWN_TIMEOUT
-    SystemParametersInfo(SPI_SETLOWPOWERACTIVE, 1u, nullptr, 2u);
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 1u, nullptr, 2u);
-    // nullsub_0x72F3C0()
-    SetErrorMode(0);
-
-    return 0; // Msg.wParam
+        return 0; // Msg.wParam
+    }, "WinMain");
 }
 
 #ifdef NOTSA_STANDALONE
 INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, INT nCmdShow) {
-    notsa::debug::DisplayConsole();
-    CommandLine::Load(__argc, __argv);
-    if (CommandLine::s_WaitForDebugger) {
-        notsa::debug::WaitForDebugger();
-    }
+    return WinMainSEHWrapper([&] () -> INT {
+        notsa::debug::DisplayConsole();
+        CommandLine::Load(__argc, __argv);
+        if (CommandLine::s_WaitForDebugger) {
+            notsa::debug::WaitForDebugger();
+        }
 #ifdef NOTSA_DUMP_HOOKS_ONLY
-    NOTSA_LOG_INFO("Dumping hooks only, no memory writing will be performed");
-    if (CommandLine::s_DumpHooksPath.empty()) {
-        NOTSA_LOG_ERR("No path provided for dumping hooks, use `--dump-hooks-to` CLI argument");
-        return 1;
-    }
-    InjectHooksMain(GetModuleHandle(nullptr)); // this will call injecthooks which then ends up dumping the data
-    return 0;
+        NOTSA_LOG_INFO("Dumping hooks only, no memory writing will be performed");
+        if (CommandLine::s_DumpHooksPath.empty()) {
+            NOTSA_LOG_ERR("No path provided for dumping hooks, use `--dump-hooks-to` CLI argument");
+            return 1;
+        }
+        InjectHooksMain(GetModuleHandle(nullptr)); // this will call injecthooks which then ends up dumping the data
+        return 0;
 #else
-    NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_DUMP_HOOKS_ONLY` option");
-    return 1;
+        NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_DUMP_HOOKS_ONLY` option");
+        return 1;
 #endif
+    }, "WinMain");
 }
 #endif
 

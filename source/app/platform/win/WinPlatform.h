@@ -43,9 +43,15 @@ inline auto& anisotropySupportedByGFX = StaticRef<bool>(0xC87FFC);
 inline auto& isForeground = StaticRef<bool>(0xC920EC);
 inline auto& Windowed = StaticRef<bool>(0xC920CC);
 
-void Win32InjectHooks();
 
 BOOL GTATranslateShiftKey(RsKeyCodes*);
 BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk);
+
+namespace notsa {
+namespace Win32 {
+void InjectHooks();
+DWORD ExceptionHandler(PEXCEPTION_POINTERS pExceptionPointers);
+};
+};
 
 #define IDI_MAIN_ICON                   1042

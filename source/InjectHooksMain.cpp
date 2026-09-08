@@ -1434,7 +1434,7 @@ void InjectHooksMain() {
         VideoPlayer::InjectHooks();
         Securom::InjectHooks();
         AppInjectHooks();
-        Win32InjectHooks();
+        notsa::Win32::InjectHooks();
         RsInjectHooks();
         VideoModeInjectHooks();
     };
