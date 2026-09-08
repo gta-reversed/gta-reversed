@@ -221,6 +221,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(DoCamBump, 0x50CB30);
     RH_ScopedInstall(Finalise_DW_CineyCams, 0x50DD70);
     RH_ScopedInstall(GetCoreDataForDWCineyCamMode, 0x517130);
+    RH_ScopedInstall(GetTwoPlayerCameraPosition, 0x5132D0);
     RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0);
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
     RH_ScopedInstall(GetBoatHandlingCamHeight, 0x509CA0);
@@ -1366,6 +1367,20 @@ void CCam::Process_AttachedCam() {
     }
     m_vecUp = up * std::cos(tilt) + right * std::sin(tilt);
     CWorld::pIgnoreEntity = nullptr;
+}
+
+// 0x5132D0
+void CCam::GetTwoPlayerCameraPosition(float beta, CVector& source, CVector& front, CVector& target) {
+    front = {-std::cos(beta) * std::cos(m_fVerticalAngle), -std::sin(beta) * std::cos(m_fVerticalAngle), std::sin(m_fVerticalAngle)};
+    const auto horizontalFront = CVector{front.x, front.y, 0.0f}.Normalized();
+    const auto& first = FindPlayerPed(PED_TYPE_PLAYER1)->GetPosition();
+    const auto& second = FindPlayerPed(PED_TYPE_PLAYER2)->GetPosition();
+    const auto distance = (first - second).Magnitude() * 0.67f + 7.0f;
+    const auto separation = CVector{first.x - second.x, first.y - second.y, 0.0f}.Normalized();
+    const auto weight = 0.5f - DotProduct(separation, horizontalFront) * 0.25f;
+    target = first * weight + second * (1.0f - weight);
+    source = target - front * distance;
+    source.z += distance * 0.1f;
 }
 
 // 0x525E50

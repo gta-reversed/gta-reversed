@@ -150,6 +150,7 @@ public:
     bool GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, CVector& outPos);
     void GetVectorsReadyForRW();
     void Get_TwoPlayer_AimVector(CVector&);
+    void GetTwoPlayerCameraPosition(float beta, CVector& source, CVector& front, CVector& target);
     bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
