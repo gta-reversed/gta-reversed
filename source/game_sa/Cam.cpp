@@ -115,7 +115,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_FollowPed_SA, 0x522D40, { .reversed = false });
     RH_ScopedInstall(Process_M16_1stPerson, 0x5105C0, { .reversed = false });
     RH_ScopedInstall(Process_Rocket, 0x511B50);
-    RH_ScopedInstall(Process_SpecialFixedForSyphon, 0x517500, { .reversed = false });
+    RH_ScopedInstall(Process_SpecialFixedForSyphon, 0x517500);
     RH_ScopedInstall(Process_WheelCam, 0x512110);
 
     RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
@@ -1904,8 +1904,34 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
 }
 
 // 0x517500
-void CCam::Process_SpecialFixedForSyphon(const CVector&, float, float, float) {
-    NOTSA_UNREACHABLE();
+void CCam::Process_SpecialFixedForSyphon(const CVector& target, float, float, float) {
+    m_vecSource = m_vecCamFixedModeSource;
+    m_vecTargetCoorsForFudgeInter = target;
+    m_vecTargetCoorsForFudgeInter.z += m_fSyphonModeTargetZOffSet;
+    m_vecFront = target - m_vecSource;
+    const auto fixedSource = m_vecCamFixedModeSource;
+    TheCamera.AvoidTheGeometry(&fixedSource, &m_vecTargetCoorsForFudgeInter, &m_vecSource, m_fFOV);
+    m_vecFront.z += m_fSyphonModeTargetZOffSet;
+    GetVectorsReadyForRW();
+    m_vecUp += m_vecCamFixedModeUpOffSet;
+    m_vecUp.Normalise();
+    const auto right = CrossProduct(m_vecUp, m_vecFront).Normalized();
+    m_vecFront = CrossProduct(right, m_vecUp).Normalized();
+    m_fFOV = 70.0f;
+
+    if (m_pCamTargetEntity && m_pCamTargetEntity->IsPed()) {
+        auto* ped = m_pCamTargetEntity->AsPed();
+        if (ped->m_pTargetedObject) {
+            const auto* weapon = CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_Type, ped->GetWeaponSkill());
+            if (weapon && (!weapon->flags.bAimWithArm || ped->bIsDucking) && (int32)weapon->m_nWeaponFire != 0) {
+                const auto direction = ped->m_pTargetedObject->GetPosition() - ped->GetPosition();
+                const float heading = std::atan2(-direction.x, direction.y);
+                ped->m_fAimingRotation = ped->m_fCurrentRotation = heading;
+                ped->SetHeading(heading);
+                ped->UpdateRwMatrix();
+            }
+        }
+    }
 }
 
 // 0x512110
