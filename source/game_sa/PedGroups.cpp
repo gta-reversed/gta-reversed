@@ -102,8 +102,8 @@ void CPedGroups::Process() {
 }
 
 // 0x5F7F10
-bool CPedGroups::IsInPlayersGroup(CPed* ped) {
-    return plugin::CallAndReturn<bool, 0x5F7F10, CPed*>(ped);
+bool CPedGroups::IsInPlayersGroup(const CPed* ped) {
+    return plugin::CallAndReturn<bool, 0x5F7F10, const CPed*>(ped);
 }
 
 CPedGroup& CPedGroups::GetGroup(int32 groupId) {

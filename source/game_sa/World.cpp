@@ -1412,19 +1412,27 @@ void CWorld::UseDetonator(CPed* creator) {
 // 0x566140
 // Find first entity colliding with the sphere
 template<typename PtrListType>
-CEntity* CWorld::TestSphereAgainstSectorList(PtrListType& ptrList, CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool doCameraIgnoreCheck) {
+CEntity* CWorld::TestSphereAgainstSectorList(PtrListType& ptrList, CVector sphereCenter, float sphereRadius, const CEntity* ignoreEntity, bool doCameraIgnoreCheck) {
     if (ptrList.IsEmpty()) {
         return nullptr;
     }
 
     CColModel      sphereColModel{};
     CCollisionData sphereColData{};
+    CColSphere     csphere{
+        { 0.f, 0.f, 0.f },
+        sphereRadius
+    };
 
     sphereColModel.m_pColData = &sphereColData;
     sphereColModel.m_boundBox = { {-sphereRadius, -sphereRadius, -sphereRadius}, {sphereRadius, sphereRadius, sphereRadius} };
-    sphereColModel.m_boundSphere = { {}, sphereRadius };
+    sphereColModel.m_boundSphere = csphere;
 
-    CColSphere csphere{ {}, sphereRadius };
+    // Make sure CColModel destructor doesn't try to delete our local variable
+    notsa::ScopeGuard guard{ [&] {
+        sphereColModel.m_pColData = nullptr;
+    } };
+
     sphereColData.m_nNumSpheres = 1;
     sphereColData.m_pSpheres = &csphere;
 
@@ -1453,12 +1461,10 @@ CEntity* CWorld::TestSphereAgainstSectorList(PtrListType& ptrList, CVector spher
         }
 
         if (CCollision::ProcessColModels(sphereMatrix, sphereColModel, entity->GetMatrix(), entityColModel, gaTempSphereColPoints, nullptr, nullptr, false)) {
-            sphereColModel.m_pColData = nullptr; // Make sure CColModel destructor doesn't try to delete our local variable
             return entity;
         }
     }
 
-    sphereColModel.m_pColData = nullptr; // Make sure CColModel destructor doesn't try to delete our local variable
     return nullptr;
 }
 
@@ -2728,7 +2734,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
 }
 
 // 0x569E20
-CEntity* CWorld::TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doCameraIgnoreCheck) {
+CEntity* CWorld::TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius, const CEntity* ignoreEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doCameraIgnoreCheck) {
     const int32 startSectorX = GetSectorX(sphereCenter.x - sphereRadius);
     const int32 startSectorY = GetSectorY(sphereCenter.y - sphereRadius);
     const int32 endSectorX = GetSectorX(sphereCenter.x + sphereRadius);

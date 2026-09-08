@@ -286,7 +286,8 @@ void CTaskComplexAvoidOtherPedWhileWandering::ComputeAvoidSphere(CPed* ped, CCol
 
 // 0x66A7B0
 bool CTaskComplexAvoidOtherPedWhileWandering::ComputeRouteRoundSphere(CPed* ped, CColSphere& spToAvoid) {
-    CVector start = m_StartPt, target = m_TargetPt;
+    CVector start = m_StartPt,
+            target = m_TargetPt;
     start.z = target.z = spToAvoid.m_vecCenter.z = ped->GetPosition().z; // NOTE: Changes sphere's center.z!
     return CPedGeometryAnalyser::ComputeRouteRoundSphere(
         *ped,

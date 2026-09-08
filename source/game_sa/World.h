@@ -203,9 +203,9 @@ public:
 
     static void RemoveStaticObjects();
 
-    static CEntity* TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doCameraIgnoreCheck);
+    static CEntity* TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius, const CEntity* ignoreEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doCameraIgnoreCheck);
     template<typename PtrListType>
-    static CEntity* TestSphereAgainstSectorList(PtrListType& ptrList, CVector sphereCenter, float sphereRadius, CEntity* ignoreEntity, bool doCameraIgnoreCheck);
+    static CEntity* TestSphereAgainstSectorList(PtrListType& ptrList, CVector sphereCenter, float sphereRadius, const CEntity* ignoreEntity, bool doCameraIgnoreCheck);
 
     static void TestForBuildingsOnTopOfEachOther();
     template<typename PtrListType>

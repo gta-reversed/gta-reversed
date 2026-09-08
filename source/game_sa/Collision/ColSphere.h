@@ -35,11 +35,11 @@ public:
 
     CColSphere(const CVector& center, float radius) : CSphere(center, radius){};
 
-    void Set(float radius, const CVector& center, eSurfaceType material, uint8 pieceType = 0, tColLighting lighting = tColLighting{0xFF});
-    bool IntersectRay(const CVector& rayOrigin, const CVector& direction, CVector& intersectPoint1, CVector& intersectPoint2);
-    bool IntersectEdge(const CVector& startPoint, const CVector& endPoint, CVector& intersectPoint1, CVector& intersectPoint2);
-    bool IntersectSphere(const CColSphere& right) const;
-    bool IntersectPoint(const CVector& point);
+    void Set(float radius, const CVector& center, eSurfaceType material = SURFACE_DEFAULT, uint8 pieceType = 0, tColLighting lighting = tColLighting{0xFF});
+    bool IntersectRay(const CVector& rayOrigin, const CVector& direction, CVector& intersectPoint1, CVector& intersectPoint2) const noexcept;
+    bool IntersectEdge(const CVector& startPoint, const CVector& endPoint, CVector& intersectPoint1, CVector& intersectPoint2) const noexcept;
+    bool IntersectSphere(const CColSphere& right) const noexcept;
+    bool IntersectPoint(const CVector& point) const noexcept;
 
     auto GetSurfaceType() const { return m_Surface.m_nMaterial; }
 
