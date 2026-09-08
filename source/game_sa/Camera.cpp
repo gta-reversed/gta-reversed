@@ -135,10 +135,10 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
     RH_ScopedInstall(ConeCastCollisionResolve, 0x51A5D0);
-    RH_ScopedInstall(TryToStartNewCamMode, 0x51E560, { .reversed = false });
+    RH_ScopedInstall(TryToStartNewCamMode, 0x51E560);
     RH_ScopedInstall(CameraColDetAndReact, 0x520190);
-    RH_ScopedInstall(CamControl, 0x527FA0, { .reversed = false });
-    RH_ScopedInstall(Process, 0x52B730, { .reversed = false });
+    RH_ScopedInstall(CamControl, 0x527FA0);
+    RH_ScopedInstall(Process, 0x52B730);
     RH_ScopedInstall(DeleteCutSceneCamDataMemory, 0x5B24A0);
     RH_ScopedInstall(LoadPathSplines, 0x5B24D0);
     RH_ScopedInstall(Init, 0x5BC520);
@@ -1733,7 +1733,232 @@ void CCamera::ProcessScriptedCommands() {
 void CCamera::Process() {
     ZoneScoped;
 
-    plugin::CallMethod<0x52B730, CCamera*>(this);
+    constexpr float playerMinDist = 1.3f;
+    auto& activeCam = m_aCams[m_nActiveCam];
+    auto& otherCam = m_aCams[(m_nActiveCam + 1) % 2];
+
+    m_bJust_Switched = false;
+    m_vecRealPreviousCameraPosition = GetPosition();
+
+    if (m_bLookingAtPlayer || m_bTargetJustBeenOnTrain || m_nWhoIsInControlOfTheCamera == 2) {
+        UpdateTargetEntity();
+    }
+    if (!m_pTargetEntity) {
+        CEntity::ChangeEntityReference(m_pTargetEntity, FindPlayerPed());
+    }
+    if (!activeCam.m_pCamTargetEntity) {
+        CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
+    }
+    if (!otherCam.m_pCamTargetEntity) {
+        CEntity::ChangeEntityReference(otherCam.m_pCamTargetEntity, m_pTargetEntity);
+    }
+
+    CamControl();
+    ProcessScriptedCommands();
+
+    if (m_bFading) {
+        ProcessFade();
+    }
+    if (m_bMusicFading) {
+        ProcessMusicFade();
+    }
+    if (m_bWideScreenOn) {
+        ProcessWideScreenOn();
+    }
+
+    // The game resets the clip plane before each camera mode has a chance to
+    // tighten it.  Script and collision code then apply their overrides.
+    if (Scene.m_pRwCamera) {
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.3f);
+    }
+
+    const auto betaOf = [](const CVector& front) {
+        return front.x == 0.0f && front.y == 0.0f
+            ? 0.0f
+            : CGeneral::GetATanOfXY(front.x, front.y);
+    };
+    const float oldBeta = betaOf(activeCam.m_vecFront);
+
+    activeCam.Process();
+
+    if (m_fStartShakeTime <= static_cast<float>(CTimer::GetTimeInMS()) && m_fEndShakeTime >= static_cast<float>(CTimer::GetTimeInMS())) {
+        ProcessShake();
+    }
+
+    const float newBeta = betaOf(activeCam.m_vecFront);
+    if (m_bTransitionState && CTimer::GetTimeInMS() > m_nTimeTransitionStart + m_nTransitionDuration) {
+        m_bTransitionState = false;
+        m_bDoingSpecialInterp = false;
+        m_bWaitForInterpolToFinish = false;
+    }
+
+    if (m_bUseNearClipScript && Scene.m_pRwCamera) {
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, m_fNearClipScript);
+    }
+
+    float deltaBeta = newBeta - oldBeta;
+    while (deltaBeta >= PI) {
+        deltaBeta -= 2.0f * PI;
+    }
+    while (deltaBeta < -PI) {
+        deltaBeta += 2.0f * PI;
+    }
+    if (std::abs(deltaBeta) > 0.3f) {
+        m_bJust_Switched = true;
+    }
+
+    CVector camSource{};
+    CVector camFront{};
+    CVector camUp{};
+    CVector camRight{};
+    CVector target = activeCam.m_vecTargetCoorsForFudgeInter;
+    float fov = activeCam.m_fFOV;
+
+    const auto smoothStep = [](float value) {
+        return 0.5f - 0.5f * std::cos(value * PI);
+    };
+    const auto interpolate = [](const CVector& from, const CVector& to, float amount) {
+        return from + (to - from) * amount;
+    };
+
+    if (m_bTransitionState && activeCam.m_nDirectionWasLooking == LOOKING_DIRECTION_FORWARD) {
+        const auto elapsed = CTimer::GetTimeInMS() - m_nTimeTransitionStart;
+        const auto transitionDuration = std::max<uint32>(m_nTransitionDuration, 1);
+        const auto targetDuration = std::max<uint32>(m_nTransitionDurationTargetCoors, 1);
+        const float fraction = std::min(static_cast<float>(elapsed) / transitionDuration, 1.0f);
+        const float fractionTarget = std::clamp(static_cast<float>(elapsed) / targetDuration, 0.0f, 1.0f);
+
+        if (fractionTarget <= m_fFractionInterToStopMovingTarget) {
+            const float amount = m_fFractionInterToStopMovingTarget == 0.0f
+                ? 0.0f
+                : smoothStep((m_fFractionInterToStopMovingTarget - fractionTarget) / m_fFractionInterToStopMovingTarget);
+            m_vecTargetWhenInterPol = m_vecStartingTargetForInterPol + m_vecTargetSpeedAtStartInter * amount;
+            target = m_vecTargetWhenInterPol;
+        } else {
+            const float amount = m_fFractionInterToStopCatchUpTarget == 0.0f
+                ? 0.0f
+                : smoothStep((fractionTarget - m_fFractionInterToStopMovingTarget) / m_fFractionInterToStopCatchUpTarget);
+            if (m_fFractionInterToStopMovingTarget == 0.0f) {
+                m_vecTargetWhenInterPol = m_vecStartingTargetForInterPol;
+            }
+            target = interpolate(m_vecTargetWhenInterPol, activeCam.m_vecTargetCoorsForFudgeInter, amount);
+        }
+
+        if (fraction <= m_fFractionInterToStopMoving) {
+            const float amount = m_fFractionInterToStopMoving == 0.0f
+                ? 0.0f
+                : smoothStep((m_fFractionInterToStopMoving - fraction) / m_fFractionInterToStopMoving);
+            camSource = m_vecStartingSourceForInterPol + m_vecSourceSpeedAtStartInter * amount;
+            camUp = m_vecStartingUpForInterPol + m_vecUpSpeedAtStartInter * amount;
+            fov = m_fStartingFOVForInterPol + m_fFOVSpeedAtStartInter * amount;
+        } else {
+            const float amount = m_fFractionInterToStopCatchUp == 0.0f
+                ? 0.0f
+                : smoothStep((fraction - m_fFractionInterToStopMoving) / m_fFractionInterToStopCatchUp);
+            camSource = interpolate(m_vecSourceWhenInterPol, activeCam.m_vecSource, amount);
+            camUp = interpolate(m_vecUpWhenInterPol, activeCam.m_vecUp, amount);
+            fov = m_fFOVWhenInterPol + (activeCam.m_fFOV - m_fFOVWhenInterPol) * amount;
+        }
+
+        if (m_bLookingAtPlayer && (camSource - target).Magnitude2D() < playerMinDist) {
+            auto horizontal = camSource - target;
+            const float beta = CGeneral::GetATanOfXY(horizontal.x, horizontal.y);
+            camSource.x = target.x + playerMinDist * std::cos(beta);
+            camSource.y = target.y + playerMinDist * std::sin(beta);
+        }
+
+        camFront = target - camSource;
+        if (camFront.SquaredMagnitude() > 0.0f) {
+            camFront.Normalise();
+        } else {
+            camFront = activeCam.m_vecFront;
+        }
+        if (m_bLookingAtPlayer) {
+            camUp = { 0.0f, 0.0f, 1.0f };
+        }
+        if (camUp.SquaredMagnitude() > 0.0f) {
+            camUp.Normalise();
+        } else {
+            camUp = { 0.0f, 0.0f, 1.0f };
+        }
+        if (activeCam.m_nMode == MODE_TOPDOWN || activeCam.m_nMode == MODE_TOP_DOWN_PED) {
+            camRight = CVector(-1.0f, 0.0f, 0.0f);
+            camUp = CrossProduct(camFront, camRight).Normalized();
+        } else {
+            camRight = CrossProduct(camFront, camUp).Normalized();
+            camUp = CrossProduct(camRight, camFront).Normalized();
+        }
+
+        const auto dist = camSource - target;
+        activeCam.KeepTrackOfTheSpeed(
+            camSource,
+            target,
+            camUp,
+            CGeneral::GetATanOfXY(dist.Magnitude2D(), dist.z),
+            CGeneral::GetATanOfXY(dist.x, dist.y),
+            fov
+        );
+    } else {
+        camSource = activeCam.m_vecSource;
+        camFront = activeCam.m_vecFront;
+        camUp = activeCam.m_vecUp;
+        if (m_bMoveCamToAvoidGeom) {
+            camSource += m_vecClearGeometryVec;
+            camFront = activeCam.m_vecTargetCoorsForFudgeInter - camSource;
+            if (camFront.SquaredMagnitude() > 0.0f) {
+                camFront.Normalise();
+            }
+            camRight = CrossProduct(camFront, camUp).Normalized();
+            camUp = CrossProduct(camRight, camFront).Normalized();
+        }
+    }
+
+    if (m_bTransitionState && !m_bLookingAtVector && m_bLookingAtPlayer && !CCullZones::CamStairsForPlayer() && !m_bPlayerIsInGarage && m_pTargetEntity) {
+        CColPoint collision{};
+        CEntity* hitEntity{};
+        if (CWorld::ProcessLineOfSight(m_pTargetEntity->GetPosition(), camSource, collision, hitEntity, true, false, false, true, false, false, true, false)) {
+            camSource = collision.m_vecPoint;
+            if (Scene.m_pRwCamera) {
+                RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
+            }
+        }
+    }
+
+    if (camFront.SquaredMagnitude() > 0.0f) {
+        camFront.Normalise();
+    }
+    if (camUp.SquaredMagnitude() > 0.0f) {
+        camUp.Normalise();
+    }
+    camRight = CrossProduct(camUp, camFront).Normalized();
+    camUp = CrossProduct(camRight, camFront).Normalized();
+
+    m_mCameraMatrix.GetRight() = camRight;
+    m_mCameraMatrix.GetForward() = camFront;
+    m_mCameraMatrix.GetUp() = camUp;
+    m_mCameraMatrix.GetPosition() = camSource;
+    m_vecGameCamPos = camSource;
+
+    CDraw::SetFOV(fov);
+    CalculateDerivedValues(false, true);
+    CopyCameraMatrixToRWCam(false);
+    UpdateSoundDistances();
+
+    if (m_bJustInitialized || m_bJust_Switched) {
+        m_vecPreviousCameraPosition = GetPosition();
+        m_bJustInitialized = false;
+    }
+    m_fCameraSpeedSoFar += (GetPosition() - m_vecPreviousCameraPosition).Magnitude();
+    ++m_nNumFramesSoFar;
+    if (m_nNumFramesSoFar == m_nWorkOutSpeedThisNumFrames) {
+        m_fCameraAverageSpeed = m_fCameraSpeedSoFar / static_cast<float>(m_nWorkOutSpeedThisNumFrames);
+        m_fCameraSpeedSoFar = 0.0f;
+        m_nNumFramesSoFar = 0;
+    }
+    m_vecPreviousCameraPosition = GetPosition();
+
+    m_bCameraJustRestored = false;
+    m_bMoveCamToAvoidGeom = false;
 }
 
 // 0x514860
