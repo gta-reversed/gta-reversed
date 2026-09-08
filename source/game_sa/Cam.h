@@ -173,7 +173,7 @@ public:
     void Process_Cam_TwoPlayer_Separate_Cars_TopDown();
     bool Process_DW_BirdyCam(bool);
     bool Process_DW_CamManCam(bool);
-    void Process_DW_HeliChaseCam(bool);
+    bool Process_DW_HeliChaseCam(bool);
     bool Process_DW_PlaneCam1(bool);
     bool Process_DW_PlaneCam2(bool);
     bool Process_DW_PlaneCam3(bool);
