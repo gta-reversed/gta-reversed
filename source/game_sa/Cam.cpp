@@ -16,6 +16,7 @@
 #include "ControllerConfigManager.h"
 #include "GameLogic.h"
 #include "TaskSimpleGangDriveBy.h"
+#include "TaskSimpleArrestPed.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -298,7 +299,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
-    RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .reversed = false });
+    RH_ScopedInstall(ProcessArrestCamOne, 0x518500);
     RH_ScopedInstall(ProcessArrestCamFirstPerson, 0x512EF0);
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250);
     RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70);
@@ -1097,8 +1098,181 @@ bool CCam::ProcessArrestCamFirstPerson(CPed* cop, bool firstFrame) {
 }
 
 // 0x518500
-void CCam::ProcessArrestCamOne() {
-    NOTSA_UNREACHABLE();
+bool CCam::ProcessArrestCamOne() {
+    static auto& mode = StaticRef<int32>(0xB6EC58);
+    // These globals share storage with the cinematic camera exit flags.
+    static auto& cameraCop = StaticRef<CPed*>(0xB6EC5C);
+    static auto& firstPersonStartTime = StaticRef<float>(0xB6EC60);
+
+    m_fFOV = 45.0f;
+    auto* target = TheCamera.m_pTargetEntity;
+    const auto GetArrestingCop = []() -> CPed* {
+        auto* player = FindPlayerPed();
+        return player ? player->GetPlayerData()->m_pArrestingCop : nullptr;
+    };
+    if (!m_bResetStatics && mode == 1) {
+        target->SetIsVisible(false);
+        return ProcessArrestCamFirstPerson(GetArrestingCop(), false);
+    }
+    if (m_bResetStatics) {
+        mode = 0;
+    }
+
+    CPed* ped{};
+    CVector lookAt;
+    if (target->IsPed()) {
+        ped = target->AsPed();
+    } else if (target->IsVehicle()) {
+        auto* driver = target->AsVehicle()->m_pDriver;
+        if (driver && driver->IsPlayer()) {
+            ped = driver;
+        }
+    } else {
+        return false;
+    }
+    if (ped) {
+        ped->GetBonePosition(&lookAt, BONE_SPINE1, true);
+    } else {
+        lookAt = target->GetPosition();
+    }
+
+    const auto Finalise = [&](const CVector& source) {
+        m_vecSource = source;
+        const auto beforeCollision = m_vecSource;
+        TheCamera.AvoidTheGeometry(&beforeCollision, &lookAt, &m_vecSource, m_fFOV);
+        m_vecFront = (lookAt - m_vecSource).Normalized();
+        m_vecUp = {0.0f, 0.0f, 1.0f};
+        const auto right = CrossProduct(m_vecFront, m_vecUp).Normalized();
+        m_vecUp = CrossProduct(right, m_vecFront);
+    };
+    CVector source{};
+    if (m_bResetStatics) {
+        auto* cop = GetArrestingCop();
+        std::array<int32, 6> choices{-1, -1, -1, -1, -1, -1};
+        const auto randomScale = StaticRef<float>(0x858C7C);
+        if (target->IsPed()) {
+            choices = cop && (float)CGeneral::GetRandomNumber() * randomScale > 0.5f
+                ? std::array<int32, 6>{1, 2, 3, 2, 8, -1}
+                : std::array<int32, 6>{1, 3, 2, 8, -1, -1};
+        } else {
+            choices = cop && (float)CGeneral::GetRandomNumber() * randomScale > 0.65f
+                ? std::array<int32, 6>{2, 8, 3, 2, -1, -1}
+                : std::array<int32, 6>{8, 3, 2, -1, -1, -1};
+        }
+        if (!StaticRef<bool>(0xBAADC0)) {
+            CMessages::AddBigMessage(TheText.Get("BUSTED"), 5000, static_cast<eMessageStyle>(2));
+        }
+        bool found{};
+        for (const auto choice : choices) {
+            if (mode || choice < 1) {
+                break;
+            }
+            cameraCop = nullptr;
+            switch (choice) {
+            case 1:
+                firstPersonStartTime = (float)CTimer::GetTimeInMS();
+                if (ProcessArrestCamFirstPerson(cop, true)) {
+                    target->SetIsVisible(false);
+                    mode = 1;
+                    m_bResetStatics = false;
+                    return true;
+                }
+                break;
+            case 2:
+            case 3:
+                if (cop) {
+                    found = choice == 2
+                        ? GetArrestCameraPosition(target, cop, lookAt, source)
+                        : GetArrestCameraPositionOnGround(target, cop, lookAt, source);
+                    cameraCop = cop;
+                    cop = nullptr;
+                } else if (ped) {
+                    for (auto* entity : ped->GetIntelligence()->GetPedScanner().m_apEntities) {
+                        if (!entity) {
+                            continue;
+                        }
+                        auto* candidate = entity->AsPed();
+                        auto* task = static_cast<CTaskSimpleArrestPed*>(candidate->GetTaskManager().FindActiveTaskByType(TASK_SIMPLE_ARREST_PED));
+                        if (task && task->m_Ped == FindPlayerPed()) {
+                            // Both choices use the standing helper for a scanned cop.
+                            found = GetArrestCameraPosition(target, candidate, lookAt, source);
+                            if (found) {
+                                cameraCop = candidate;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+            case 8:
+                found = GetLookFromLampPostPos(target, cop, lookAt, source);
+                break;
+            }
+            if (found) {
+                if (cameraCop) {
+                    CEntity::RegisterReference(cameraCop);
+                }
+                mode = choice;
+                if (mode == 3) {
+                    const auto random = (float)CGeneral::GetRandomNumber() * randomScale * 5.0f;
+                    mode = random < 1.0f ? 3 : random < 2.0f ? 4 : random < 3.0f ? 5 : random < 4.0f ? 6 : 7;
+                }
+            }
+        }
+        Finalise(source);
+        if (mode) {
+            m_bResetStatics = false;
+        }
+        return true;
+    }
+
+    bool moved{};
+    if (mode == 2 && cameraCop) {
+        moved = GetArrestCameraPosition(target, cameraCop, lookAt, source);
+        source.z = std::min(source.z, m_vecSource.z + CTimer::GetTimeStep() * StaticRef<float>(0x8CC7EC));
+    } else if (mode >= 4 && mode <= 7) {
+        source = m_vecSource;
+        m_vecFront = (lookAt - source).Normalized();
+        m_vecUp = {0.0f, 0.0f, 1.0f};
+        auto side = CrossProduct(m_vecFront, m_vecUp).Normalized();
+        if (mode == 6 || mode == 7) {
+            side = -side;
+        }
+        if (!CWorld::TestSphereAgainstWorld(source + side * 0.5f, 0.4f, target, true, true, false, true, false, true)) {
+            source += side * StaticRef<float>(0x8CC7E4) * CTimer::GetTimeStep();
+            if (mode == 5 || mode == 7) {
+                source.z += CTimer::GetTimeStep() * StaticRef<float>(0x8CC7E8);
+            } else {
+                bool foundGround{};
+                const auto ground = CWorld::FindGroundZFor3DCoord(source.x, source.y, source.z, &foundGround, nullptr);
+                if (foundGround) {
+                    source.z = ground + StaticRef<float>(0x8CC7F8);
+                }
+            }
+            moved = true;
+        }
+    } else if (mode == 8) {
+        source = m_vecSource;
+        m_vecFront = lookAt - source;
+        m_vecFront.z = 0.0f;
+        m_vecFront.Normalise();
+        m_vecUp = {0.0f, 0.0f, 1.0f};
+        const auto side = CrossProduct(m_vecFront, m_vecUp).Normalized();
+        m_vecFront = lookAt - source + side * StaticRef<float>(0x8CC7FC);
+        m_vecFront.z = 0.0f;
+        m_vecFront.Normalise();
+        if (!CWorld::TestSphereAgainstWorld(source + m_vecFront * 0.5f, 0.4f, target, true, true, false, true, false, true)) {
+            source += m_vecFront * StaticRef<float>(0x8CC800) * CTimer::GetTimeStep();
+            moved = true;
+        }
+    }
+    if (moved) {
+        Finalise(source);
+    } else {
+        const auto beforeCollision = m_vecSource;
+        TheCamera.AvoidTheGeometry(&beforeCollision, &lookAt, &m_vecSource, m_fFOV);
+    }
+    return true;
 }
 
 // 0x519250
