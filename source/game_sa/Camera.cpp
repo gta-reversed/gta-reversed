@@ -127,6 +127,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
     RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
+    RH_ScopedInstall(AvoidTheGeometry, 0x514030);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60);
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0);
     RH_ScopedOverloadedInstall(IsSphereVisible, "Matrix", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*));
@@ -1838,6 +1839,94 @@ float CCamera::CalculateGroundHeight(eGroundHeightType type) {
     case eGroundHeightType::ENTITY_BB_BOTTOM:    return bbBottomZ;
     default:                                     NOTSA_UNREACHABLE();
     }
+}
+
+// 0x514030
+void CCamera::AvoidTheGeometry(const CVector* source, const CVector* target, CVector* output, float FOV) {
+    static auto& checkOtherEntities = StaticRef<bool>(0xB6EC65);
+    static auto& nearClipOffset = StaticRef<float>(0x8CC38C);
+    static auto& minimumNearClip = StaticRef<float>(0x8CC390);
+    static auto& timerDamping = StaticRef<float>(0x8CC81C);
+    static auto& sphereScale = StaticRef<float>(0x8CC820);
+    static auto& motionFactor = StaticRef<float>(0xB6EC38);
+    static auto& motionSpeed = StaticRef<float>(0xB6EC3C);
+
+    const auto delta = *target - *source;
+    m_vecClearGeometryVec = {};
+    const auto horizontalDistance = delta.Magnitude2D();
+    const auto& forward = m_mCameraMatrix.GetForward();
+    const float heading = delta.x == 0.0f && delta.y == 0.0f
+        ? CGeneral::GetATanOfXY(forward.x, forward.y)
+        : CGeneral::GetATanOfXY(delta.x, delta.y);
+    const float pitch = horizontalDistance == 0.0f && delta.z == 0.0f
+        ? 0.0f
+        : CGeneral::GetATanOfXY(horizontalDistance, delta.z);
+    CVector direction{std::cos(heading) * std::cos(pitch), std::sin(heading) * std::cos(pitch), std::sin(pitch)};
+    *output = *target - direction * delta.Magnitude();
+    direction.Normalise();
+
+    CColPoint collision{};
+    CEntity* hitEntity{};
+    CWorld::pIgnoreEntity = m_pTargetEntity;
+    if (CWorld::ProcessLineOfSight(*target, *output, collision, hitEntity, true, false, false, true, false, false, true, false)) {
+        *output = collision.m_vecPoint;
+        const auto firstCollision = *output;
+        if (checkOtherEntities && CWorld::ProcessLineOfSight(*output, *target, collision, hitEntity, false, true, true, true, false, false, true, false)) {
+            const float nearClip = RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+            if (DistanceBetweenPoints(*output, collision.m_vecPoint) < nearClip) {
+                *output = collision.m_vecPoint;
+            } else if (DistanceBetweenPoints(*output, firstCollision) < nearClip) {
+                *output = firstCollision;
+            }
+        }
+    }
+    CWorld::pIgnoreEntity = nullptr;
+    if (FindPlayerPed()) {
+        const float nearClip = DistanceBetweenPoints(*target, *output) - nearClipOffset;
+        if (nearClip < RwCameraGetNearClipPlane(Scene.m_pRwCamera)) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, std::max(nearClip, minimumNearClip));
+        }
+    }
+
+    const float nearClip = RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    const float radius = nearClip * std::tan(DegreesToRadians(FOV) * 0.5f) * CDraw::ms_fAspectRatio * sphereScale;
+    const auto sphereCenter = *output + direction * nearClip;
+    float desiredMotion = 0.0f;
+    if (CWorld::TestSphereAgainstWorld(sphereCenter, radius, nullptr, true, false, false, true, false, true)) {
+        const auto& point = gaTempSphereColPoints[0];
+        auto displacement = point.m_vecPoint - sphereCenter;
+        const float collisionDistance = DotProduct(point.m_vecPoint - *output, direction);
+        if (collisionDistance > minimumNearClip && collisionDistance < 0.9f) {
+            if (collisionDistance < RwCameraGetNearClipPlane(Scene.m_pRwCamera)) {
+                RwCameraSetNearClipPlane(Scene.m_pRwCamera, collisionDistance);
+            }
+        } else if (collisionDistance < minimumNearClip) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, minimumNearClip);
+        }
+        const float penetration = radius - displacement.Magnitude();
+        displacement.Normalise();
+        auto normal = point.m_vecNormal.Normalized();
+        if (DotProduct(normal, -displacement) < 0.0f) {
+            normal = -normal;
+        }
+        desiredMotion = 1.0f;
+        m_vecClearGeometryVec = normal * DotProduct(-displacement * penetration, normal);
+        if (m_pTargetEntity && m_pTargetEntity->IsPed() && RwCameraGetNearClipPlane(Scene.m_pRwCamera) < minimumNearClip + minimumNearClip) {
+            const float facing = DotProduct(normal, m_pTargetEntity->GetMatrix().GetForward());
+            if (facing < 0.0f) {
+                m_fAvoidTheGeometryProbsTimer = std::max(m_fAvoidTheGeometryProbsTimer, 0.0f) + CTimer::GetTimeStep();
+            } else if (facing > 0.5f) {
+                m_fAvoidTheGeometryProbsTimer = std::min(m_fAvoidTheGeometryProbsTimer, 0.0f) - CTimer::GetTimeStep();
+            }
+            if (m_nAvoidTheGeometryProbsDirn == 0) {
+                m_nAvoidTheGeometryProbsDirn = CrossProduct(m_pTargetEntity->GetPosition() - *output, normal).z <= 0.0f ? 1 : (uint16)-1;
+            }
+        }
+    }
+    m_fAvoidTheGeometryProbsTimer *= std::pow(timerDamping, CTimer::GetTimeStep());
+    WellBufferMe(desiredMotion, motionFactor, motionSpeed, 0.2f, 0.05f, false);
+    m_vecClearGeometryVec *= motionFactor;
+    m_bMoveCamToAvoidGeom = true;
 }
 
 // 0x514D60

@@ -18,6 +18,7 @@ class CPed;
 class CVehicle;
 
 extern bool& gbFirstPersonRunThisFrame;
+void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle);
 
 class CCam {
 public:
