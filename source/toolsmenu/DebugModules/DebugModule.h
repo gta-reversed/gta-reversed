@@ -8,6 +8,22 @@
 #include <imgui.h>
 #include "../Utility.h" // TODO Remove this and add it individually to all places this headear is included in
 
+// TODO: This really isn't the appropriate place for this
+namespace notsa::events {
+struct OnGameInit {
+    enum class Stage {
+        PRE,
+        S1,
+        S2,
+        POST
+    } stage;
+    std::string_view datFile;
+};
+
+struct OnGameShutdown {
+};
+};
+
 class DebugModule {
 public:
     virtual ~DebugModule() = default;
@@ -26,6 +42,10 @@ public:
 
     //! Module's entry in the main menu should be rendered here
     virtual void RenderMenuEntry() = 0;
+
+    //! Handle events
+    virtual void HandleEvent(const notsa::events::OnGameInit&) {}
+    virtual void HandleEvent(const notsa::events::OnGameShutdown&) {}
 
     //! Serialize the state of this tool
     virtual json Serialize() const { return {}; };
