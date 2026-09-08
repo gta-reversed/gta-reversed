@@ -384,12 +384,12 @@ void CAEAudioHardware::SetChannelFrequencyScalingFactor(int16 channel, uint16 ch
 // value (0.5 step if that frame was slow-fadeout, else 1.2), so ducked volumes
 // fade back in instead of popping.
 void CAEAudioHardware::RescaleChannelVolumes() {
-    float maxVolumeGlobal           = 0.0f;  // [ESP+0x18]
-    float maxVolumeSecondary        = 0.0f;  // [ESP+0x14]
-    float scaleSum                  = 0.0f;  // [ESP+0x1C]
-    float fullSum                   = 0.0f;  // [ESP+0x24]
-    bool  isMaxGlobalSlowFadeout    = false; // [ESP+0x13]
-    bool  isMaxSecondarySlowFadeout = false; // [ESP+0x12]
+    float maxVolumeGlobal           = 0.0f;
+    float maxVolumeSecondary        = 0.0f;
+    float scaleSum                  = 0.0f;
+    float fullSum                   = 0.0f;
+    bool  isMaxGlobalSlowFadeout    = false;
+    bool  isMaxSecondarySlowFadeout = false;
 
     for (auto&& [i, ch] : rngv::enumerate(GetChannels())) {
         if (!ch || ch->GetPlayTime() == -1) {
