@@ -168,7 +168,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510);
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0);
     RH_ScopedInstall(Process_DW_BirdyCam, 0x51B850, { .reversed = false });
-    RH_ScopedInstall(Process_DW_CamManCam, 0x51B120, { .reversed = false });
+    RH_ScopedInstall(Process_DW_CamManCam, 0x51B120);
     RH_ScopedInstall(Process_DW_HeliChaseCam, 0x51A740, { .reversed = false });
     RH_ScopedInstall(Process_DW_PlaneCam1, 0x51C760);
     RH_ScopedInstall(Process_DW_PlaneCam2, 0x51CC30);
@@ -1386,8 +1386,112 @@ void CCam::Process_DW_BirdyCam(bool) {
 }
 
 // 0x51B120
-void CCam::Process_DW_CamManCam(bool) {
-    NOTSA_UNREACHABLE();
+bool CCam::Process_DW_CamManCam(bool) {
+    auto& lastCamMode = StaticRef<int32>(0x8CC488);
+    auto& sceneStartTime = StaticRef<uint32>(0x8CCBA0);
+    auto& cameraPosition = StaticRef<CVector>(0xB70068);
+    auto& clearFrames = StaticRef<int32>(0xB70074);
+    auto& initialized = StaticRef<uint32>(0xB70078);
+    auto& exitCam = StaticRef<bool>(0xB6EC71);
+    const auto maxClearFrames = StaticRef<int32>(0x8CCD58);
+
+    TheCamera.m_bUseNearClipScript = false;
+    if (!m_pCamTargetEntity || !m_pCamTargetEntity->IsVehicle()) {
+        return false;
+    }
+    CEntity* entity{};
+    CVehicle* vehicle{};
+    CVector target, source, up, right, forward, velocity, angularVelocity;
+    float speed{}, angularSpeed{};
+    CColSphere sphere{};
+    GetCoreDataForDWCineyCamMode(entity, vehicle, target, source, up, right, forward, velocity, speed, angularVelocity, angularSpeed, sphere);
+    const auto now = CTimer::GetTimeInMS();
+    initialized |= 1;
+    if (!(initialized & 2)) {
+        initialized |= 2;
+        clearFrames = maxClearFrames;
+    }
+    if (lastCamMode != MODE_DW_CAM_MAN || gLastFrameProcessedDWCineyCam < CTimer::GetFrameCounter() - 1u) {
+        lastCamMode = MODE_DW_CAM_MAN;
+        gDWCineyCamSceneEndTime = now + StaticRef<uint32>(0x8CCBAC);
+        sceneStartTime = now;
+        clearFrames = maxClearFrames;
+        exitCam = false;
+        gHandShaker[0].Reset();
+
+        const auto searchRadius = StaticRef<float>(0x8CCD54);
+        const auto searchCentre = target + forward * searchRadius;
+        CEntity* candidates[16];
+        int16 count{};
+        CWorld::FindObjectsInRange(searchCentre, searchRadius, true, &count, 15, candidates, false, false, false, true, true);
+        bool found = false;
+        float closestDistance = 10000.0f;
+        for (int16 i = 0; i < count; i++) {
+            auto* candidate = candidates[i];
+            if (!candidate->m_bIsStatic && !candidate->m_bIsStaticWaitingForCollision) {
+                continue;
+            }
+            if (candidate->GetMatrix().GetUp().z <= 0.9f || !IsLampPost((eModelID)candidate->GetModelIndex())) {
+                continue;
+            }
+            const auto distance = (candidate->GetPosition() - target).Magnitude2D();
+            if (distance >= closestDistance || distance <= StaticRef<float>(0x8CCD50)) {
+                continue;
+            }
+            const auto& bounds = candidate->GetColModel()->m_boundBox;
+            auto position = candidate->GetMatrix().TransformPoint(bounds.m_vecMax);
+            position.z -= bounds.m_vecMax.z;
+            position.z += bounds.m_vecMin.z * 0.5f;
+            const auto nearTarget = target + (position - target).Normalized();
+            // The executable compares a constant here, rather than the direction's height.
+            if (std::abs(StaticRef<double>(0x859EF8)) >= StaticRef<float>(0x8CCD4C)
+                || !CWorld::GetIsLineOfSightClear(position, nearTarget, true, false, false, false, false, true, true)) {
+                continue;
+            }
+            found = true;
+            closestDistance = distance;
+            source = cameraPosition = position;
+        }
+        if (!found) {
+            exitCam = true;
+            return false;
+        }
+    }
+
+    const auto t = (float)(int32)(now - sceneStartTime) / (float)(int32)(gDWCineyCamSceneEndTime - sceneStartTime);
+    if (!exitCam) {
+        source = cameraPosition + (target - cameraPosition).Normalized() * StaticRef<float>(0x8CCD48);
+    }
+    const auto distanceFraction = std::clamp((target - source).Magnitude() / StaticRef<float>(0x8CCD44), 0.0f, 1.0f);
+    const auto distanceBlend = (1.0f + std::sin(DegreesToRadians(270.0f - distanceFraction * 180.0f))) * 0.5f;
+    auto fov = lerp(StaticRef<float>(0x8CCD3C), StaticRef<float>(0x8CCD40), distanceBlend);
+    const auto introDuration = StaticRef<float>(0x8CCD38);
+    if (t < introDuration) {
+        const auto introFraction = std::clamp(t / introDuration, 0.0f, 1.0f);
+        const auto introBlend = (1.0f + std::sin(DegreesToRadians(270.0f - introFraction * 180.0f))) * 0.5f;
+        fov = lerp(StaticRef<float>(0x8CCD34), fov, introBlend);
+    }
+    if (IsTimeToExitThisDWCineyCamMode(MODE_CHRIS, source, target, t, false)) {
+        exitCam = true;
+        return false;
+    }
+
+    CColPoint collision{};
+    CEntity* hitEntity{};
+    CWorld::pIgnoreEntity = entity;
+    const auto obstructed = CWorld::ProcessLineOfSight(target, source, collision, hitEntity, true, true, false, false, false, false, false, false);
+    CWorld::pIgnoreEntity = nullptr;
+    if (obstructed) {
+        if (clearFrames-- == 0) {
+            exitCam = true;
+            return false;
+        }
+    } else if (clearFrames++ > maxClearFrames) {
+        clearFrames = maxClearFrames;
+    }
+    const auto shake = std::clamp(std::max(velocity.Magnitude() * StaticRef<float>(0x8CCD30), StaticRef<float>(0x8CCD2C)), 0.0f, 1.0f);
+    Finalise_DW_CineyCams(source, target, 0.0f, fov, 10.0f - fov * (1.0f / 70.0f) * 9.7f, shake);
+    return true;
 }
 
 // 0x51A740
