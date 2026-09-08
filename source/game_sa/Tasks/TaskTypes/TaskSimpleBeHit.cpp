@@ -79,26 +79,26 @@ void CTaskSimpleBeHit::StartAnim(CPed* ped) {
         std::tie(m_nAnimGroup, m_nAnimId) = [this]() -> std::tuple<AssocGroupId, AnimationId> {
             if (m_nDirn == 0 && m_Attacker) {
                 const auto fighting = m_Attacker->GetIntelligence()->GetTaskFighting();
-                if (fighting && fighting->m_nComboSet >= 4 && fighting->m_nCurrentMove <= 2) {
-                    return {
-                        (AssocGroupId)fighting->m_aComboData[fighting->m_nComboSet - 4].m_nAnimGroup,
-                        (AnimationId)(fighting->m_nCurrentMove + (int)ANIM_ID_FIGHT_HIT_1),
-                    };
+                if (   fighting
+                    && fighting->GetCurrentComboSet() >= eMeleeCombo::UNARMED_1
+                    && fighting->GetMove() <= eMeleeMove::ATTACK3
+                ) {
+                    return { fighting->GetComboAnimGroupID(), fighting->GetMoveAnimID() };
                 }
             }
-
             return {
                 m_nAnimGroup,
                 [this] {
                     if (m_eHitZone == PED_PIECE_TORSO) {
                          return ANIM_ID_HIT_FRONT;
                     }
-
                     switch (m_nDirn) {
-                    case 1: return ANIM_ID_HIT_L;
-                    case 2: return ANIM_ID_HIT_BACK;
-                    case 3: return ANIM_ID_HIT_R;
-                    default: return m_nDirn <= 5 ? ANIM_ID_HIT_FRONT : ANIM_ID_HIT_WALK;
+                    case 1:  return ANIM_ID_HIT_L;
+                    case 2:  return ANIM_ID_HIT_BACK;
+                    case 3:  return ANIM_ID_HIT_R;
+                    default: return m_nDirn <= 5
+                        ? ANIM_ID_HIT_FRONT
+                        : ANIM_ID_HIT_WALK;
                     }
                 }()
             };

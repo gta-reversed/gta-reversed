@@ -87,7 +87,7 @@ public:
     float        m_fAccuracy;       // modify accuracy of weapon
     float        m_fMoveSpeed;      // how fast can move with weapon
 
-    // Could probably pack this into a struct like AnimLoopInfo, and use an array.
+    // Could probably pack these 2 into a struct like AnimLoopInfo, and use an array.
     float        m_fAnimLoopStart;  // start of animation loop
     float        m_fAnimLoopEnd;    // end of animation loop
     float        m_fAnimLoopFire;   // time in animation when weapon should be fired
@@ -102,7 +102,7 @@ public:
     float        m_fLifespan;       // time taken for shot to dissipate
     float        m_fSpread;         // angle inside which shots are created
     uint16       m_nAimOffsetIndex; // index into array of aiming offsets
-    uint8        m_nBaseCombo;      // base combo for this melee weapon
+    eMeleeComboS8 m_nBaseCombo;      // base combo for this melee weapon
     uint8        m_nNumCombos;      // how many further combos are available
 
 public:
