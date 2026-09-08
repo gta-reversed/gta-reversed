@@ -93,6 +93,16 @@ struct DWHeliChaseState {
         clearFrames = maxClearFrames;
         frozenFrames = maxFrozenFrames;
     }
+
+    // 0x50E090
+    void Randomise() {
+        const auto randomScale = StaticRef<float>(0x858C7C);
+        forwardDistance *= (float)CGeneral::GetRandomNumber() * randomScale * 1.4f + 0.1f;
+        backwardDistance *= (float)CGeneral::GetRandomNumber() * randomScale * 0.5f + 0.5f;
+        height *= (float)CGeneral::GetRandomNumber() * randomScale * 0.5f + 0.5f;
+        sideDistance *= (float)CGeneral::GetRandomNumber() * randomScale * 0.5f + 0.5f;
+        zoomInFraction *= (float)CGeneral::GetRandomNumber() * randomScale * 1.5f + 0.5f;
+    }
 };
 
 // 0x5B2330
