@@ -31,6 +31,70 @@ static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
 static bool IsLampPost(eModelID modelId);
 
+struct DWHeliChaseState {
+    CVector end;
+    CVector start;
+    float forwardDistance;
+    float backwardDistance;
+    float height;
+    float sideDistance;
+    float zoomInFraction;
+    float wideFOV;
+    float closeFOV;
+    float lookAhead;
+    float roll;
+    float nearClip;
+    bool targetFrozen;
+    int32 frozenFrames;
+    int32 maxFrozenFrames;
+    CVector frozenTarget;
+    int32 searchAttempts;
+    bool sourceObstructed;
+    int32 maxClearFrames;
+    int32 clearFrames;
+    float zoomDistanceStart;
+    float zoomDistanceEnd;
+    float distanceFOVReduction;
+    float minimumDistance;
+    float searchSphereRadius;
+    float FOVRange;
+    bool targetObstructed;
+    bool skipZoomIn;
+    float zoomOutStartFOV;
+    bool zoomingOut;
+    uint32 zoomOutStartTime;
+    uint32 zoomOutEndTime;
+    float zoomOutFraction;
+    uint32 zoomOutDuration;
+
+    // 0x50E180
+    void SetDefaults() {
+        forwardDistance = sideDistance = 50.0f;
+        backwardDistance = 30.0f;
+        height = 55.0f;
+        zoomInFraction = 0.05f;
+        wideFOV = 70.0f;
+        closeFOV = 22.0f;
+        lookAhead = 1.0f;
+        roll = 0.0f;
+        nearClip = 10.0f;
+        maxFrozenFrames = 30;
+        searchAttempts = 8;
+        maxClearFrames = 60;
+        zoomDistanceStart = 100.0f;
+        zoomDistanceEnd = 110.0f;
+        distanceFOVReduction = 10.0f;
+        minimumDistance = 5.0f;
+        searchSphereRadius = 12.0f;
+        zoomOutFraction = 0.75f;
+        zoomOutDuration = 4000;
+        targetFrozen = sourceObstructed = targetObstructed = skipZoomIn = zoomingOut = false;
+        FOVRange = wideFOV - closeFOV;
+        clearFrames = maxClearFrames;
+        frozenFrames = maxFrozenFrames;
+    }
+};
+
 // 0x5B2330
 static void FindSplinePathPositionFloat(float* output, const float* spline, float time, uint32* marker) {
     static auto& minimumSegmentTime = StaticRef<float>(0x8D0F80);
