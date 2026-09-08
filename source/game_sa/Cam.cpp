@@ -62,6 +62,41 @@ static void FindSplinePathPositionFloat(float* output, const float* spline, floa
     }
 }
 
+// 0x5B2090
+static void FindSplinePathPositionVector(CVector* output, const float* spline, float time, uint32* marker) {
+    static auto& minimumSegmentTime = StaticRef<float>(0x8D0F80);
+    const auto count = (uint32)spline[0];
+    const float duration = (spline[*marker] - spline[*marker - 10]) * 1000.0f;
+    const float endTime = spline[(count - 1) * 10 + 1] * 1000.0f;
+    if (time < endTime) {
+        if ((*marker - 1) / 10 > count) {
+            *marker = (count - 1) * 10 + 1;
+        } else if (duration <= minimumSegmentTime) {
+            *marker += 10;
+            if ((*marker - 1) / 10 > count) {
+                *marker = (count - 1) * 10 + 1;
+            }
+        }
+    }
+    const auto index = *marker;
+    // The vector evaluator retains the duration from before advancing the marker.
+    float t = std::clamp((time - spline[index - 10] * 1000.0f) / duration, 0.0f, 1.0f);
+    if (time > endTime) {
+        t = 1.0f;
+    }
+    const CVector start{spline[index - 9], spline[index - 8], spline[index - 7]};
+    const CVector end{spline[index + 1], spline[index + 2], spline[index + 3]};
+    const CVector control1{spline[index - 3], spline[index - 2], spline[index - 1]};
+    const CVector control2{spline[index + 4], spline[index + 5], spline[index + 6]};
+    if (control1 == start) {
+        *output = (end - start) * t + start;
+    } else {
+        const float s = 1.0f - t;
+        *output = start * (s * s * s) + end * (t * t * t) + (control1 * (t * s * s) + control2 * (s * t * t)) * 3.0f;
+    }
+    *output += TheCamera.m_vecCutSceneOffset;
+}
+
 // 0x509AE0
 void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
     const auto valueToTargetDiff = [&] {
@@ -153,6 +188,7 @@ void CCam::InjectHooks() {
     RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
     RH_ScopedGlobalInstall(WrapAngle, 0x509BE0);
     RH_ScopedGlobalInstall(FindSplinePathPositionFloat, 0x5B2330);
+    RH_ScopedGlobalInstall(FindSplinePathPositionVector, 0x5B2090);
 }
 
 // 0x517730
