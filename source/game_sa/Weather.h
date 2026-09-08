@@ -59,7 +59,7 @@ public:
     static inline auto& NewWeatherType = StaticRef<eWeatherType>(0xC8131C);
     static inline auto& OldWeatherType = StaticRef<eWeatherType>(0xC81320);
     static inline auto& m_WeatherAudioEntity = StaticRef<CAEWeatherAudioEntity>(0xC81360);
-    static inline auto& StreamAfterRainTimer = StaticRef<bool>(0x8D5EAC);
+    static inline auto& StreamAfterRainTimer = StaticRef<int32>(0x8D5EAC);
 
     // in entity.cpp:
 
