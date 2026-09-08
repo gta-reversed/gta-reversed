@@ -176,7 +176,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_DW_PlaneSpotterCam, 0x51C250);
     RH_ScopedInstall(Process_Editor, 0x50F3F0);
     RH_ScopedInstall(Process_Fixed, 0x51D470);
-    RH_ScopedInstall(Process_FlyBy, 0x5B25F0, { .reversed = false });
+    RH_ScopedInstall(Process_FlyBy, 0x5B25F0);
     RH_ScopedInstall(Process_FollowCar_SA, 0x5245B0, { .reversed = false });
     RH_ScopedInstall(Process_FollowPedWithMouse, 0x50F970, { .reversed = false });
     RH_ScopedInstall(Process_FollowPed_SA, 0x522D40, { .reversed = false });
@@ -1875,7 +1875,77 @@ void CCam::Process_Fixed(const CVector& target, float orientation, float speedVa
 
 // 0x5B25F0
 void CCam::Process_FlyBy(const CVector&, float, float, float) {
-    NOTSA_UNREACHABLE();
+    static auto& fov = StaticRef<float>(0xBC4074);
+    static auto& firstFov = StaticRef<float>(0xBC4078);
+    static auto& targetMarker = StaticRef<uint32>(0xBC407C);
+    static auto& sourceMarker = StaticRef<uint32>(0xBC4080);
+    static auto& fovMarker = StaticRef<uint32>(0xBC4084);
+    static auto& upMarker = StaticRef<uint32>(0xBC4088);
+
+    if (TheCamera.m_bCutsceneFinished) {
+        return;
+    }
+    const auto* fovPath = TheCamera.m_aPathArray[0].m_pArrPathData;
+    const auto* upPath = TheCamera.m_aPathArray[1].m_pArrPathData;
+    const auto* sourcePath = TheCamera.m_aPathArray[2].m_pArrPathData;
+    const auto* targetPath = TheCamera.m_aPathArray[3].m_pArrPathData;
+    m_vecUp = {0.0f, 0.0f, 1.0f};
+    if (!TheCamera.m_bStartingSpline) {
+        m_fTimeElapsedFloat = 0.0f;
+        m_nFinishTime = (uint32)(sourcePath[((int32)sourcePath[0] - 1) * 10 + 1] * 1000.0f);
+        upMarker = fovMarker = 5;
+        sourceMarker = targetMarker = 11;
+        TheCamera.m_bStartingSpline = true;
+        firstFov = fov = fovPath[2];
+    } else {
+        m_fTimeElapsedFloat += CTimer::GetTimeStepNonClipped() * 0.02f * 1000.0f;
+    }
+    const float time = (float)(uint32)m_fTimeElapsedFloat;
+    const bool finished = time >= (float)m_nFinishTime;
+    if (finished) {
+        sourceMarker = ((uint32)sourcePath[0] - 1) * 10 + 1;
+        targetMarker = ((uint32)targetPath[0] - 1) * 10 + 1;
+        upMarker = ((uint32)upPath[0] - 1) * 4 + 1;
+        fovMarker = ((uint32)fovPath[0] - 1) * 4 + 1;
+    } else {
+        TheCamera.m_fPositionAlongSpline = time / (float)m_nFinishTime;
+        while (time >= (sourcePath[sourceMarker] - sourcePath[1]) * 1000.0f) {
+            sourceMarker += 10;
+        }
+    }
+    FindSplinePathPositionVector(&m_vecSource, sourcePath, time, &sourceMarker);
+    if (!finished) {
+        while (time >= (targetPath[targetMarker] - targetPath[1]) * 1000.0f) {
+            targetMarker += 10;
+        }
+    }
+    FindSplinePathPositionVector(&m_vecFront, targetPath, time, &targetMarker);
+    if (!finished) {
+        while (time >= (upPath[upMarker] - upPath[1]) * 1000.0f) {
+            upMarker += 4;
+        }
+    }
+    float upAngle{};
+    FindSplinePathPositionFloat(&upAngle, upPath, time, &upMarker);
+    upAngle = DegreesToRadians(upAngle) + HALF_PI;
+    m_vecUp.x = std::cos(upAngle);
+    m_vecUp.z = std::sin(upAngle);
+    if (!finished) {
+        while (time >= (fovPath[fovMarker] - fovPath[1]) * 1000.0f) {
+            fovMarker += 4;
+        }
+    }
+    FindSplinePathPositionFloat(&fov, fovPath, time, &fovMarker);
+    if (finished) {
+        TheCamera.m_fPositionAlongSpline = 1.0f;
+        sourceMarker = targetMarker = upMarker = fovMarker = 0;
+    }
+    m_vecTargetCoorsForFudgeInter = m_vecFront;
+    m_vecFront -= m_vecSource;
+    m_vecFront.Normalise();
+    const auto left = CrossProduct(m_vecUp, m_vecFront);
+    m_vecUp = CrossProduct(m_vecFront, left).Normalized();
+    m_fFOV = fov;
 }
 
 // 0x5245B0
