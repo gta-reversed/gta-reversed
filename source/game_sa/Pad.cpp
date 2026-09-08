@@ -104,6 +104,7 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(LookAroundLeftRight, 0x540BD0);
     RH_ScopedInstall(LookAroundUpDown, 0x540CC0);
     RH_ScopedInstall(LookAroundLeftRightOnPC, 0x540E80);
+    RH_ScopedInstall(LookAroundUpDownOnPC, 0x540F80);
     RH_ScopedInstall(GetAnaloguePadUp, 0x540950);
     RH_ScopedInstall(GetAnaloguePadLeft, 0x5409B0);
     RH_ScopedInstall(GetAnaloguePadRight, 0x5409E0);
@@ -1277,6 +1278,18 @@ int16 CPad::LookAroundUpDown(CPed* ped) noexcept {
 // 0x540E80
 int16 CPad::LookAroundLeftRightOnPC() const {
     const auto axis = static_cast<float>(GetPad(0)->NewState.RightStickX);
+    if (std::abs(axis) > 100.0f && (DisablePlayerControls || !NewState.ShockButtonR)) {
+        return static_cast<int16>(axis + (axis > 0.0f ? -50.0f : 50.0f));
+    }
+    if (TheCamera.m_aCams[0].Using3rdPersonMouseCam() && std::abs(axis) > 50.0f) {
+        return static_cast<int16>((axis + (axis > 0.0f ? -50.0f : 50.0f)) * 0.5f);
+    }
+    return 0;
+}
+
+// 0x540F80
+int16 CPad::LookAroundUpDownOnPC() const {
+    const auto axis = static_cast<float>(GetPad(0)->NewState.RightStickY) * (bInvertLook4Pad ? -1.0f : 1.0f);
     if (std::abs(axis) > 100.0f && (DisablePlayerControls || !NewState.ShockButtonR)) {
         return static_cast<int16>(axis + (axis > 0.0f ? -50.0f : 50.0f));
     }
