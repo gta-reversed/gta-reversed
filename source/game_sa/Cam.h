@@ -171,7 +171,7 @@ public:
     void Process_Cam_TwoPlayer_InCarAndShooting();
     void Process_Cam_TwoPlayer_Separate_Cars();
     void Process_Cam_TwoPlayer_Separate_Cars_TopDown();
-    void Process_DW_BirdyCam(bool);
+    bool Process_DW_BirdyCam(bool);
     bool Process_DW_CamManCam(bool);
     void Process_DW_HeliChaseCam(bool);
     bool Process_DW_PlaneCam1(bool);
