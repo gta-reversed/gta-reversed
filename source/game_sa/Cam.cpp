@@ -15,6 +15,7 @@
 #include "VehicleModelInfo.h"
 #include "ControllerConfigManager.h"
 #include "GameLogic.h"
+#include "TaskSimpleGangDriveBy.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -251,7 +252,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_AimWeapon, 0x521500, { .reversed = false });
     RH_ScopedInstall(Process_AttachedCam, 0x512B10);
     RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50);
-    RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810, { .reversed = false });
+    RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810);
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510);
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0);
     RH_ScopedInstall(Process_DW_BirdyCam, 0x51B850);
@@ -1540,7 +1541,142 @@ void CCam::Process_Cam_TwoPlayer() {
 
 // 0x519810
 void CCam::Process_Cam_TwoPlayer_InCarAndShooting() {
-    NOTSA_UNREACHABLE();
+    if (!m_pCamTargetEntity->IsVehicle()) {
+        return;
+    }
+    auto* first = FindPlayerPed(PED_TYPE_PLAYER1);
+    auto* vehicle = first->m_pVehicle;
+    auto target = vehicle->GetPosition();
+    const auto heading = vehicle->GetHeading() - HALF_PI;
+    const auto firstDriving = vehicle->m_pDriver == first;
+    auto* shooter = firstDriving ? FindPlayerPed(PED_TYPE_PLAYER2) : first;
+    auto* pad = CPad::GetPad(firstDriving ? 1 : 0);
+    const auto timeStep = CTimer::GetTimeStep();
+    const auto forwardSpeed = DotProduct(vehicle->GetMoveSpeed(), vehicle->GetMatrix().GetForward());
+    if ((vehicle->IsSubAutomobile() || vehicle->IsSubBike()) && forwardSpeed > StaticRef<float>(0x8CC540)) {
+        m_fFOV += (forwardSpeed - StaticRef<float>(0x8CC540)) * timeStep;
+    }
+    if (m_fFOV > 70.0f) {
+        m_fFOV = (m_fFOV - 70.0f) * std::pow(StaticRef<float>(0x8CC544), timeStep) + 70.0f;
+    }
+    m_fFOV = std::clamp(m_fFOV, 70.0f, 100.0f);
+
+    const auto horizontal = (float)pad->AimWeaponLeftRight(shooter);
+    const auto vertical = -(float)pad->AimWeaponUpDown(shooter);
+    const auto inputScale = StaticRef<float>(0x862F8C);
+    const auto fovScale = m_fFOV / 80.0f;
+    m_fX_Targetting += fovScale / 14.0f * std::abs(horizontal) * timeStep * inputScale * inputScale * horizontal;
+    m_fY_Targetting += fovScale * (3.0f / 70.0f) * std::abs(vertical) * timeStep * inputScale * inputScale * vertical;
+    auto& weapon = shooter->GetActiveWeapon();
+    const auto& weaponInfo = weapon.GetWeaponInfo(shooter);
+    float targetX{}, targetY{};
+    auto* aimEntity = CWeapon::FindNearestTargetEntityWithScreenCoors(m_fX_Targetting, m_fY_Targetting, weaponInfo.m_fWeaponRange * 2.0f, shooter->GetPosition(), &targetX, &targetY);
+    if (aimEntity && std::abs(horizontal) < StaticRef<float>(0x858BB0) && std::abs(vertical) < StaticRef<float>(0x858BB0)) {
+        const auto blend = 1.0f - std::pow(StaticRef<float>(0x862F90), timeStep);
+        const auto maxStep = timeStep * StaticRef<float>(0x862F94);
+        m_fX_Targetting += std::clamp((targetX - m_fX_Targetting) * blend, -maxStep, maxStep);
+        m_fY_Targetting += std::clamp((targetY - m_fY_Targetting) * blend, -maxStep, maxStep);
+    }
+    const auto horizontalOverflow = m_fX_Targetting - std::clamp(m_fX_Targetting, -0.9f, 0.9f);
+    m_fX_Targetting = std::clamp(m_fX_Targetting, -0.9f, 0.9f);
+    const auto verticalOverflow = m_fY_Targetting - std::clamp(m_fY_Targetting, -0.9f, 0.9f);
+    m_fY_Targetting = std::clamp(m_fY_Targetting, -0.9f, 0.9f);
+    m_fVerticalAngle -= verticalOverflow * timeStep * StaticRef<float>(0x862F6C);
+    if (std::abs(horizontal) < 1.0f && std::abs(vertical) < 1.0f && !aimEntity) {
+        const CVector2D displacement{m_fX_Targetting, m_fY_Targetting + 0.4f};
+        const auto distance = displacement.Magnitude();
+        const auto step = timeStep * StaticRef<float>(0x858F44);
+        if (step > distance) {
+            m_fX_Targetting = 0.0f;
+            m_fY_Targetting = -0.4f;
+        } else {
+            m_fX_Targetting -= step / distance * displacement.x;
+            m_fY_Targetting -= step / distance * displacement.y;
+        }
+    }
+
+    const auto& bounds = vehicle->GetColModel()->m_boundBox;
+    auto maxDistance = StaticRef<float>(0x862F60) + std::abs(bounds.m_vecMin.y) * 2.0f;
+    auto desiredPitch = StaticRef<float>(0x862F68);
+    if (vehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_HELI && vehicle->GetStatus() != STATUS_REMOTE_CONTROLLED) {
+        target += vehicle->GetMatrix().GetUp() * StaticRef<float>(0x8CC53C) * bounds.m_vecMax.z;
+    } else {
+        const auto height = StaticRef<float>(0x8CC600) * bounds.m_vecMax.z - StaticRef<float>(0x8CC608);
+        if (height > 0.0f) {
+            target.z += height;
+            maxDistance += height;
+            desiredPitch += StaticRef<float>(0x8CCD1C) / maxDistance * height;
+        }
+    }
+    m_fCaMinDistance = maxDistance * 0.9f;
+    maxDistance += StaticRef<float>(0x862F64);
+    m_fCaMaxDistance = maxDistance;
+    const auto displacement = m_vecSource - target;
+    auto distance = displacement.Magnitude2D();
+    m_fDistanceBeforeChanges = distance;
+    if (distance < (float)StaticRef<double>(0x8631F8)) {
+        distance = StaticRef<float>(0x858F44);
+    }
+    m_fHorizontalAngle = std::atan2(displacement.x, -displacement.y) - HALF_PI;
+    if (distance > maxDistance || distance < m_fCaMinDistance) {
+        const auto scale = (distance > maxDistance ? maxDistance : m_fCaMinDistance) / distance;
+        m_vecSource.x = target.x + displacement.x * scale;
+        m_vecSource.y = target.y + displacement.y * scale;
+    }
+    const auto& velocity = vehicle->GetMoveSpeed();
+    if (velocity.SquaredMagnitude() > 0.0001f) {
+        const auto pitch = std::atan2(velocity.z, velocity.Magnitude2D());
+        const auto speedScale = vehicle->IsSubHeli() ? StaticRef<float>(0x862F88) : StaticRef<float>(0x862F7C);
+        desiredPitch += std::min((velocity.Magnitude() - 0.01f) * speedScale, 1.0f) * pitch;
+        const auto damping = std::pow(StaticRef<float>(0x862F78), timeStep);
+        m_fVerticalAngle = damping * m_fVerticalAngle + (1.0f - damping) * desiredPitch;
+    }
+    const auto minPitch = vehicle->IsSubHeli() ? StaticRef<float>(0x862F80) : StaticRef<float>(0x862F70);
+    const auto maxPitch = vehicle->IsSubHeli() ? StaticRef<float>(0x862F84) : StaticRef<float>(0x862F74);
+    m_fVerticalAngle = std::clamp(m_fVerticalAngle, minPitch, maxPitch);
+    m_vecSource.z = target.z - std::sin(m_fVerticalAngle) * maxDistance;
+    RotCamIfInFrontCar(target, heading);
+    m_vecTargetCoorsForFudgeInter = target;
+    auto source = m_vecSource;
+    TheCamera.AvoidTheGeometry(&source, &m_vecTargetCoorsForFudgeInter, &m_vecSource, m_fFOV);
+    const auto offset = m_vecSource - target;
+    m_vecSource.x = target.x + std::cos(horizontalOverflow) * offset.x + std::sin(horizontalOverflow) * offset.y;
+    m_vecSource.y = target.y + std::cos(horizontalOverflow) * offset.y - std::sin(horizontalOverflow) * offset.x;
+    m_vecFront = target - m_vecSource;
+    m_bResetStatics = false;
+    GetVectorsReadyForRW();
+
+    if (!vehicle->CanPedLeanOut(shooter)) {
+        weapon.Update(shooter);
+    }
+    if (!pad->GetCarGunFired() || vehicle->CanPedLeanOut(shooter) || weapon.IsTypeMelee() || weapon.GetState() != WEAPONSTATE_READY) {
+        return;
+    }
+    CVector aimPosition;
+    if (aimEntity) {
+        aimPosition = aimEntity->GetPosition();
+    } else {
+        const auto right = CrossProduct(m_vecFront, m_vecUp);
+        const auto tanFOV = std::tan(DegreesToRadians(m_fFOV) * 0.5f);
+        aimPosition = m_vecSource + (m_vecFront + right * (m_fX_Targetting * tanFOV) - m_vecUp * (tanFOV / CDraw::ms_fAspectRatio * m_fY_Targetting)) * (weaponInfo.m_fWeaponRange * 3.0f);
+    }
+    const auto aimDirection = aimPosition - m_vecSource;
+    auto relativeHeading = std::atan2(-aimDirection.x, aimDirection.y) - vehicle->GetHeading();
+    if (relativeHeading > PI) {
+        relativeHeading -= TWO_PI;
+    } else if (relativeHeading < -PI) {
+        relativeHeading += TWO_PI;
+    }
+    relativeHeading += DegreesToRadians(45.0f);
+    if (relativeHeading < 0.0f) {
+        relativeHeading += TWO_PI;
+    }
+    CTaskSimpleGangDriveBy driveBy{nullptr, nullptr, 100.0f, 100, eDrivebyStyle::AI_ALL_DIRN, shooter != vehicle->m_apPassengers[1]};
+    driveBy.m_pWeaponInfo = &weapon.GetWeaponInfo(shooter);
+    driveBy.m_nFakeShootDirn = (int8)(relativeHeading * StaticRef<float>(0x858FB8));
+    // CTaskSimpleGangDriveBy::FireGun is implemented in the original task code.
+    plugin::CallMethod<0x627CC0, CTaskSimpleGangDriveBy*, CPed*>(&driveBy, shooter);
+    CamShakeNoPos(&TheCamera, StaticRef<float>(0x8CCD18));
 }
 
 // 0x513510
