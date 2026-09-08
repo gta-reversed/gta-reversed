@@ -149,6 +149,7 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float));
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)());
     RH_ScopedOverloadedInstall(ProcessShake, "Intensity", 0x516560, void(CCamera::*)(float));
+    RH_ScopedOverloadedInstall(ProcessShake, "Timed", 0x51A6F0, void(CCamera::*)());
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
 }
@@ -1671,7 +1672,10 @@ void CCamera::ProcessVectorMoveLinear() {
 // unused
 // 0x51A6F0
 void CCamera::ProcessShake() {
-    plugin::CallMethod<0x51A6F0, CCamera*>(this);
+    const float now = (float)CTimer::GetTimeInMS();
+    if (now <= m_fEndShakeTime) {
+        ProcessShake((now - m_fStartShakeTime) / (m_fEndShakeTime - m_fStartShakeTime));
+    }
 }
 
 // shakeIntensity not used
