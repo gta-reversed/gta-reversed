@@ -12,6 +12,8 @@
 class CPed;
 
 class CPedGroups {
+	enum { MAX_NUM_GROUPS = 8 }; // Android
+
 public:
     static inline auto& ScriptReferenceIndex = StaticRef<std::array<uint16, 8>>(0xC098D0);
     static inline auto& ms_activeGroups = StaticRef<std::array<char, 8>>(0xC098E0);
