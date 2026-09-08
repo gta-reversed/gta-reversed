@@ -17,6 +17,7 @@
 #include "GameLogic.h"
 #include "TaskSimpleGangDriveBy.h"
 #include "TaskSimpleArrestPed.h"
+#include "TaskSimpleClimb.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -298,7 +299,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(LookRight, 0x520E40);
     RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
     RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
-    RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
+    RH_ScopedInstall(Process, 0x526FC0);
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500);
     RH_ScopedInstall(ProcessArrestCamFirstPerson, 0x512EF0);
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250);
@@ -1050,7 +1051,251 @@ void CCam::ClipBeta() {
 
 // 0x526FC0
 void CCam::Process() {
-    NOTSA_UNREACHABLE();
+    auto& idleTime = gIdleCam.m_IdleTickerFrames;
+    auto& idleFlags = StaticRef<uint8>(0xC0B184);
+    if ((float)idleTime <= gIdleCam.m_TimeControlsIdleForIdleToKickIn) {
+        idleFlags &= ~1;
+    }
+    if (TheCamera.GetActiveCam().m_nMode != MODE_FOLLOWPED) {
+        idleFlags &= ~1;
+        idleTime = 0;
+    }
+    if (!m_pCamTargetEntity) {
+        m_pCamTargetEntity = TheCamera.m_pTargetEntity;
+        CEntity::RegisterReference(m_pCamTargetEntity);
+    }
+    if (gCrossHair[CrossHairId(0)].m_bClearImmediately) {
+        auto* player = FindPlayerPed();
+        if (!player || !player->m_pVehicle || player->m_pVehicle->m_nModelIndex != MODEL_HYDRA) {
+            CWeaponEffects::ClearCrossHairImmediately(CrossHairId(0));
+        }
+    }
+    if (++m_nFrameNumWereAt > m_nDoCollisionCheckEveryNumOfFrames) {
+        m_nFrameNumWereAt = 1;
+    }
+    m_bCollisionChecksOn = m_nFrameNumWereAt == m_nDoCollisionChecksOnFrameNum;
+
+    auto* pad = CPad::GetPad(0);
+    CVector target;
+    float orientation{}, speedWanted{};
+    if (m_bCamLookingAtVector) {
+        target = m_vecCamFixedModeVector;
+    } else {
+        auto* entity = m_pCamTargetEntity;
+        target = entity->GetPosition();
+        if (entity->IsVehicle()) {
+            auto forward = entity->GetMatrix().GetForward();
+            orientation = forward.x == 0.0f && forward.y == 0.0f ? 0.0f : CGeneral::GetATanOfXY(forward.x, forward.y);
+            forward.z = 0.0f;
+            forward.Normalise();
+            const auto length = forward.Magnitude2D();
+            if (length != 0.0f) {
+                forward /= length;
+            }
+            const auto speed = entity->AsVehicle()->GetMoveSpeed();
+            const float x = forward.x * speed.x, y = forward.y * speed.y;
+            const auto magnitude = std::sqrt(x * x + y * y);
+            speedWanted = x + y > 0.0f
+                ? std::min(magnitude * StaticRef<float>(0x86325C), 1.0f)
+                : -std::min(magnitude * StaticRef<float>(0x863258), 0.5f);
+            m_fSpeedVar = m_fSpeedVar * StaticRef<float>(0x863250) + speedWanted * StaticRef<float>(0x863254);
+            if (m_nDirectionWasLooking != 3 && (!pad->GetLookBehindForCar() || pad->GetLookLeft() || pad->GetLookRight())) {
+                TheCamera.m_bCamDirectlyBehind = true;
+            }
+        } else {
+            if (entity == FindPlayerPed()) {
+                auto* player = FindPlayerPed();
+                if (auto* climb = player->GetIntelligence()->GetTaskClimb()) {
+                    climb->GetCameraTargetPos(player, target);
+                }
+                auto& previous = StaticRef<CVector>(0x8CCC3C);
+                auto& velocity = StaticRef<CVector>(0xB6EC7C);
+                const auto timeStep = CTimer::GetTimeStep();
+                if ((previous - target).SquaredMagnitude() > 9.0f || timeStep < 0.2f || Using3rdPersonMouseCam()
+                    || TheCamera.m_bCamDirectlyBehind || TheCamera.m_bCamDirectlyInFront) {
+                    velocity.Reset();
+                } else if (player->GetIntelligence()->GetTaskFighting() && m_nMode == MODE_AIMWEAPON) {
+                    const auto damping = std::pow(StaticRef<float>(0x8CC39C), timeStep);
+                    target = previous * damping + target * (1.0f - damping);
+                    velocity.Reset();
+                } else {
+                    const auto positionDamping = std::pow(StaticRef<float>(0x8CC394), timeStep);
+                    const auto velocityDamping = std::pow(StaticRef<float>(0x8CC398), timeStep);
+                    const auto height = target.z;
+                    target = target * (1.0f - positionDamping) + (previous + velocity * timeStep) * positionDamping;
+                    target.z = height;
+                    velocity = velocity * velocityDamping + (target - previous) * ((1.0f - velocityDamping) / std::max(1.0f, timeStep));
+                }
+                velocity.z = 0.0f;
+                previous = target;
+            }
+            const auto& forward = entity->GetMatrix().GetForward();
+            orientation = forward.x == 0.0f && forward.y == 0.0f ? 0.0f : CGeneral::GetATanOfXY(forward.x, forward.y);
+            m_fSpeedVar = 0.0f;
+        }
+    }
+
+    m_nDirectionWasLooking = gCameraDirection;
+    gCameraDirection = 3;
+    if (this == &TheCamera.GetActiveCam()) {
+        if ((m_nMode == MODE_CAM_ON_A_STRING || m_nMode == MODE_1STPERSON || m_nMode == MODE_BEHINDBOAT || m_nMode == MODE_BEHINDCAR)
+            && m_pCamTargetEntity->IsVehicle()) {
+            const auto appearance = m_pCamTargetEntity->AsVehicle()->GetVehicleAppearance();
+            const bool aircraft = appearance == VEHICLE_APPEARANCE_HELI || appearance == VEHICLE_APPEARANCE_PLANE;
+            if (pad->GetLookBehindForCar()) {
+                gCameraDirection = 0;
+            } else if (pad->GetLookLeft() && !aircraft) {
+                gCameraDirection = 1;
+            } else if (pad->GetLookRight() && !aircraft) {
+                gCameraDirection = 2;
+            }
+            if (gCameraDirection != 3) {
+                TheCamera.m_bTransitionState = false;
+                TheCamera.m_bDoingSpecialInterp = false;
+                TheCamera.m_bWaitForInterpolToFinish = false;
+            }
+            if (m_nDirectionWasLooking != gCameraDirection) {
+                TheCamera.m_bJust_Switched = true;
+            }
+        } else if (m_nMode == MODE_FOLLOWPED && m_pCamTargetEntity->IsPed() && pad->GetLookBehindForPed()) {
+            gCameraDirection = 0;
+            if (m_nDirectionWasLooking != 0 && !TheCamera.m_bTransitionState) {
+                TheCamera.m_bJust_Switched = true;
+            }
+        } else if (m_nMode == MODE_FOLLOWPED || m_nMode == MODE_AIMWEAPON) {
+            if (m_nDirectionWasLooking != 3) {
+                StaticRef<float>(0x8CCB84) = 1.0f;
+            }
+        }
+    }
+    if (TheCamera.m_bJust_Switched) {
+        StaticRef<float>(0x8CCB84) = 1.0f;
+        TheCamera.m_bResetOldMatrix = true;
+    }
+    if (m_nMode != MODE_BEHINDCAR && m_nMode != MODE_CAM_ON_A_STRING && m_nMode != MODE_BEHINDBOAT
+        && m_nMode != MODE_1STPERSON && m_nMode != MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
+        CPostEffects::m_bSpeedFXUserFlagCurrentFrame = false;
+    }
+    gbFirstPersonRunThisFrame = false;
+    switch (m_nMode) {
+    case MODE_BEHINDCAR:
+    case MODE_CAM_ON_A_STRING:
+    case MODE_BEHINDBOAT:
+        Process_FollowCar_SA(target, orientation, m_fSpeedVar, speedWanted, false);
+        break;
+    case MODE_FOLLOWPED:
+        if (!CCamera::m_bUseMouse3rdPerson || StaticRef<bool>(0x8CCF00)) {
+            Process_FollowPed_SA(target, orientation, m_fSpeedVar, speedWanted, false);
+        } else {
+            Process_FollowPedWithMouse(target, orientation, m_fSpeedVar, speedWanted);
+        }
+        break;
+    case MODE_SNIPER:
+    case MODE_M16_1STPERSON:
+    case MODE_HELICANNON_1STPERSON:
+    case MODE_CAMERA:
+        Process_M16_1stPerson(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_ROCKETLAUNCHER:
+    case MODE_ROCKETLAUNCHER_HS:
+        Process_Rocket(target, orientation, m_fSpeedVar, speedWanted, m_nMode == MODE_ROCKETLAUNCHER_HS);
+        break;
+    case MODE_WHEELCAM:
+        Process_WheelCam(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_FIXED:
+        Process_Fixed(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_1STPERSON:
+        Process_1stPerson(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_FLYBY:
+        Process_FlyBy(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_PED_DEAD_BABY:
+        ProcessPedsDeadBaby();
+        TheCamera.m_bPlayerIsInGarage = false;
+        TheCamera.m_bJustCameOutOfGarage = false;
+        break;
+    case MODE_ARRESTCAM_ONE:
+        ProcessArrestCamOne();
+        break;
+    case MODE_ARRESTCAM_TWO:
+        break;
+    case MODE_SPECIAL_FIXED_FOR_SYPHON:
+        Process_SpecialFixedForSyphon(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_SNIPER_RUNABOUT:
+    case MODE_ROCKETLAUNCHER_RUNABOUT:
+    case MODE_1STPERSON_RUNABOUT:
+    case MODE_M16_1STPERSON_RUNABOUT:
+    case MODE_FIGHT_CAM_RUNABOUT:
+    case MODE_ROCKETLAUNCHER_RUNABOUT_HS:
+        Process_1rstPersonPedOnPC(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_EDITOR:
+        Process_Editor(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_ATTACHCAM: Process_AttachedCam(); break;
+    case MODE_TWOPLAYER: Process_Cam_TwoPlayer(); break;
+    case MODE_TWOPLAYER_IN_CAR_AND_SHOOTING: Process_Cam_TwoPlayer_InCarAndShooting(); break;
+    case MODE_TWOPLAYER_SEPARATE_CARS: Process_Cam_TwoPlayer_Separate_Cars(); break;
+    case MODE_TWOPLAYER_SEPARATE_CARS_TOPDOWN: Process_Cam_TwoPlayer_Separate_Cars_TopDown(); break;
+    case MODE_AIMWEAPON:
+    case MODE_AIMWEAPON_FROMCAR:
+    case MODE_AIMWEAPON_ATTACHED:
+        Process_AimWeapon(target, orientation, m_fSpeedVar, speedWanted);
+        break;
+    case MODE_DW_HELI_CHASE: Process_DW_HeliChaseCam(false); break;
+    case MODE_DW_CAM_MAN: Process_DW_CamManCam(false); break;
+    case MODE_DW_BIRDY: Process_DW_BirdyCam(false); break;
+    case MODE_DW_PLANE_SPOTTER: Process_DW_PlaneSpotterCam(false); break;
+    case MODE_DW_DOG_FIGHT:
+    case MODE_DW_FISH:
+        TheCamera.m_bUseNearClipScript = false;
+        break;
+    case MODE_DW_PLANECAM1: Process_DW_PlaneCam1(false); break;
+    case MODE_DW_PLANECAM2: Process_DW_PlaneCam2(false); break;
+    case MODE_DW_PLANECAM3: Process_DW_PlaneCam3(false); break;
+    default:
+        m_vecSource.Reset();
+        m_vecFront = {0.0f, 1.0f, 0.0f};
+        m_vecUp = {0.0f, 0.0f, 1.0f};
+        break;
+    }
+    if (m_nMode < MODE_DW_HELI_CHASE || m_nMode > MODE_DW_PLANECAM3) {
+        StaticRef<int32>(0x8CC488) = -1;
+    }
+    gCameraMode = m_nMode;
+    const auto delta = m_vecSource - m_vecTargetCoorsForFudgeInter;
+    m_fTrueBeta = CGeneral::GetATanOfXY(delta.x, delta.y);
+    m_fTrueAlpha = CGeneral::GetATanOfXY(delta.Magnitude2D(), delta.z);
+    if (!TheCamera.m_bTransitionState) {
+        KeepTrackOfTheSpeed(m_vecSource, m_vecTargetCoorsForFudgeInter, m_vecUp, m_fTrueAlpha, m_fTrueBeta, m_fFOV);
+    }
+    m_vecSourceBeforeLookBehind = m_vecSource;
+    m_bLookingRight = m_bLookingLeft = m_bLookingBehind = false;
+    if (this == &TheCamera.GetActiveCam()) {
+        switch (gCameraDirection) {
+        case 0: LookBehind(); break;
+        case 1: LookRight(false); break;
+        case 2: LookRight(true); break;
+        }
+        m_nDirectionWasLooking = gCameraDirection;
+    }
+    if (TheCamera.m_bFOVLerpProcessed) {
+        m_fFOV = TheCamera.m_fFOVNew;
+        TheCamera.m_bFOVLerpProcessed = false;
+    }
+    if (TheCamera.m_bVecMoveLinearProcessed) {
+        m_vecSource = TheCamera.m_vecMoveLinear;
+        TheCamera.m_bVecMoveLinearProcessed = false;
+    }
+    if (TheCamera.m_bVecTrackLinearProcessed) {
+        m_vecFront = (TheCamera.m_vecTrackLinear - m_vecSource).Normalized();
+        GetVectorsReadyForRW();
+        TheCamera.m_bVecTrackLinearProcessed = false;
+    }
 }
 
 // 0x512EF0
