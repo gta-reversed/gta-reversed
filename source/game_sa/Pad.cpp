@@ -103,6 +103,7 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
     RH_ScopedInstall(LookAroundLeftRight, 0x540BD0);
     RH_ScopedInstall(LookAroundUpDown, 0x540CC0);
+    RH_ScopedInstall(LookAroundLeftRightOnPC, 0x540E80);
     RH_ScopedInstall(GetAnaloguePadUp, 0x540950);
     RH_ScopedInstall(GetAnaloguePadLeft, 0x5409B0);
     RH_ScopedInstall(GetAnaloguePadRight, 0x5409E0);
@@ -1271,6 +1272,18 @@ int16 CPad::LookAroundUpDown(CPed* ped) noexcept {
 
     constexpr auto UNK = 1.3763441f;
     return static_cast<int16>((static_cast<float>(s1) + (s1 < 0 ? 35.0f : -35.0f)) * UNK);
+}
+
+// 0x540E80
+int16 CPad::LookAroundLeftRightOnPC() const {
+    const auto axis = static_cast<float>(GetPad(0)->NewState.RightStickX);
+    if (std::abs(axis) > 100.0f && (DisablePlayerControls || !NewState.ShockButtonR)) {
+        return static_cast<int16>(axis + (axis > 0.0f ? -50.0f : 50.0f));
+    }
+    if (TheCamera.m_aCams[0].Using3rdPersonMouseCam() && std::abs(axis) > 50.0f) {
+        return static_cast<int16>((axis + (axis > 0.0f ? -50.0f : 50.0f)) * 0.5f);
+    }
+    return 0;
 }
 
 // 0x541290
