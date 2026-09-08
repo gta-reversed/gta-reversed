@@ -22,6 +22,7 @@
 #include "PedClothesDesc.h"
 #include "TaskSimpleSwim.h"
 #include "TaskComplexEnterCarAsDriver.h"
+#include "TaskComplexProstituteSolicit.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -339,7 +340,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_Editor, 0x50F3F0);
     RH_ScopedInstall(Process_Fixed, 0x51D470);
     RH_ScopedInstall(Process_FlyBy, 0x5B25F0);
-    RH_ScopedInstall(Process_FollowCar_SA, 0x5245B0, { .reversed = false });
+    RH_ScopedInstall(Process_FollowCar_SA, 0x5245B0);
     RH_ScopedInstall(Process_FollowPedWithMouse, 0x50F970);
     RH_ScopedInstall(Process_FollowPed_SA, 0x522D40);
     RH_ScopedInstall(Process_M16_1stPerson, 0x5105C0);
@@ -3625,8 +3626,348 @@ void CCam::Process_FlyBy(const CVector&, float, float, float) {
 }
 
 // 0x5245B0
-void CCam::Process_FollowCar_SA(const CVector&, float, float, float, bool) {
-    NOTSA_UNREACHABLE();
+void CCam::Process_FollowCar_SA(const CVector& target, float, float, float, bool preserveAngles) {
+    if (!m_pCamTargetEntity->IsVehicle()) {
+        return;
+    }
+    auto* vehicle = m_pCamTargetEntity->AsVehicle();
+    auto* pad = CPad::GetPad(vehicle->m_pDriver && vehicle->m_pDriver->m_nPedType == PED_TYPE_PLAYER2 ? 1 : 0);
+    auto lookAt = target;
+    TheCamera.ApplyVehicleCameraTweaks(vehicle);
+    const auto model = vehicle->m_nModelIndex;
+    const auto type = vehicle->m_nVehicleType;
+    const auto subtype = vehicle->m_nVehicleSubType;
+    const auto appearance = vehicle->GetVehicleAppearance();
+    const bool remoteControlled = vehicle->GetStatus() == STATUS_REMOTE_CONTROLLED;
+    uint32 category{};
+    if (model == MODEL_RCBANDIT || model == MODEL_RCBARON || model == MODEL_RCTIGER || model == MODEL_RCCAM) {
+        category = 5;
+    } else if (model == MODEL_RCRAIDER || model == MODEL_RCGOBLIN) {
+        category = 6;
+    } else if (type == VEHICLE_TYPE_BIKE || subtype == VEHICLE_TYPE_QUAD) {
+        category = 1;
+    } else if (subtype == VEHICLE_TYPE_HELI) {
+        category = 2;
+    } else if (subtype == VEHICLE_TYPE_PLANE) {
+        if (model == MODEL_HYDRA && vehicle->AsAutomobile()->m_wMiscComponentAngle >= StaticRef<int32>(0x8D33C8)) {
+            category = 2;
+        } else {
+            category = model == MODEL_VORTEX ? 0 : 3;
+        }
+    } else if (subtype == VEHICLE_TYPE_BOAT) {
+        category = 4;
+    }
+    const auto& settings = StaticRef<std::array<std::array<float, 15>, 7>>(0x8CC600)[category];
+    const auto timeStep = CTimer::GetTimeStep();
+    auto distance = TheCamera.m_fCarZoomSmoothed + settings[1];
+    int32 zoomIndex{};
+    TheCamera.GetArrPosForVehicleType(static_cast<eVehicleType>(appearance), zoomIndex);
+    float pitchOffset{};
+    if (remoteControlled || TheCamera.m_nCarZoom == 2) {
+        pitchOffset = StaticRef<std::array<float, 5>>(0x8CC430)[zoomIndex];
+    } else if (TheCamera.m_nCarZoom == 1) {
+        pitchOffset = StaticRef<std::array<float, 5>>(0x8CC41C)[zoomIndex];
+    } else if (TheCamera.m_nCarZoom == 3) {
+        pitchOffset = StaticRef<std::array<float, 5>>(0x8CC444)[zoomIndex];
+    }
+    const auto& bounds = vehicle->GetColModel()->GetBoundingBox();
+    auto height = bounds.m_vecMax.z;
+    auto length = std::abs(bounds.m_vecMin.y) * 2.0f;
+    auto& passengerBlend = StaticRef<float>(0xB7011C);
+    if (auto* trailer = vehicle->m_pVehicleBeingTowed) {
+        if (passengerBlend < 1.0f) {
+            passengerBlend = std::min(passengerBlend + timeStep * StaticRef<float>(0x8CCEE8), 1.0f);
+        }
+        const auto& trailerBounds = trailer->GetColModel()->GetBoundingBox();
+        length += (trailerBounds.m_vecMax - trailerBounds.m_vecMin).Magnitude() * StaticRef<float>(0x8CCEE4) * passengerBlend;
+        height += (std::max(trailerBounds.m_vecMax.z, height) - height) * passengerBlend;
+        const auto blend = passengerBlend * 0.5f;
+        lookAt = lookAt * (1.0f - blend) + trailer->GetPosition() * blend;
+    } else if (subtype == VEHICLE_TYPE_BIKE || subtype == VEHICLE_TYPE_QUAD) {
+        if (vehicle->m_apPassengers[0]) {
+            if (passengerBlend < 1.0f) {
+                passengerBlend = std::min(passengerBlend + timeStep * StaticRef<float>(0x8CCEE8), 1.0f);
+            }
+        } else if (passengerBlend > 0.0f) {
+            passengerBlend = std::max(passengerBlend - timeStep * StaticRef<float>(0x8CCEE8), 0.0f);
+        }
+        height += StaticRef<float>(0x8CCEE0) * passengerBlend;
+    } else {
+        passengerBlend = 0.0f;
+    }
+    distance += TheCamera.m_fCurrentTweakDistance * length;
+    const auto minimumDistance = TheCamera.m_fCurrentTweakDistance * length * settings[3];
+    const auto& matrix = vehicle->GetMatrix();
+    if (appearance == VEHICLE_APPEARANCE_HELI && !remoteControlled) {
+        lookAt += matrix.GetUp() * StaticRef<float>(0x8CC53C) * height;
+    } else {
+        const auto heightOffset = height * settings[0] - settings[2];
+        if (heightOffset > 0.0f) {
+            lookAt.z += heightOffset;
+            distance += heightOffset;
+            pitchOffset += StaticRef<float>(0x8CCEDC) / distance * heightOffset;
+        }
+    }
+    lookAt.z *= TheCamera.m_fCurrentTweakAltitude;
+    pitchOffset += TheCamera.m_fCurrentTweakAngle;
+    auto historyDistance = settings[4];
+    if (TheCamera.m_nCarZoom == 1 && category <= 1) {
+        historyDistance *= 0.65f;
+    }
+    historyDistance = std::max(historyDistance, distance);
+    m_fCaMaxDistance = distance;
+    m_fCaMinDistance = 3.5f;
+    const auto speed = vehicle->GetMoveSpeed();
+    if (m_bResetStatics) {
+        m_fFOV = 70.0f;
+    } else {
+        const auto forwardSpeed = DotProduct(speed, matrix.GetForward());
+        if ((subtype == VEHICLE_TYPE_AUTOMOBILE || subtype == VEHICLE_TYPE_BIKE) && forwardSpeed > StaticRef<float>(0x8CC540)) {
+            m_fFOV += (forwardSpeed - StaticRef<float>(0x8CC540)) * timeStep;
+        }
+        if (m_fFOV > 70.0f) {
+            m_fFOV = (m_fFOV - 70.0f) * std::pow(StaticRef<float>(0x8CC544), timeStep) + 70.0f;
+        }
+        m_fFOV = std::clamp(m_fFOV, 70.0f, 100.0f);
+    }
+    if (m_bResetStatics || TheCamera.m_bCamDirectlyBehind || TheCamera.m_bCamDirectlyInFront) {
+        m_bResetStatics = m_bRotating = false;
+        m_bCollisionChecksOn = true;
+        TheCamera.m_bResetOldMatrix = true;
+        if (!TheCamera.m_bJustCameOutOfGarage && !preserveAngles) {
+            m_fVerticalAngle = 0.0f;
+            m_fHorizontalAngle = vehicle->GetHeading() - HALF_PI;
+            if (TheCamera.m_bCamDirectlyInFront) {
+                m_fHorizontalAngle += PI;
+            }
+        }
+        m_fBetaSpeed = m_fAlphaSpeed = 0.0f;
+        m_fDistance = 1000.0f;
+        m_vecFront = {-std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle), -std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle), std::sin(m_fVerticalAngle)};
+        m_avecTargetHistoryPos[0] = lookAt - m_vecFront * historyDistance;
+        m_anTargetHistoryTime[0] = CTimer::GetTimeInMS();
+        m_avecTargetHistoryPos[1] = lookAt - m_vecFront * distance;
+        m_nCurrentHistoryPoints = 0;
+        if (!TheCamera.m_bJustCameOutOfGarage && !preserveAngles) {
+            m_fVerticalAngle = -pitchOffset;
+        }
+    }
+    m_vecFront = (lookAt - m_avecTargetHistoryPos[0]).Normalized();
+    const auto previousLength = (lookAt - m_avecTargetHistoryPos[1]).Magnitude();
+    auto heading = std::atan2(-m_vecFront.x, m_vecFront.y) - HALF_PI;
+    if (heading < -PI) {
+        heading += TWO_PI;
+    }
+    auto movementHeading = heading;
+    if (speed.Magnitude2D() > StaticRef<float>(0x858B38)) {
+        movementHeading = std::atan2(-speed.x, speed.y) - HALF_PI;
+    }
+    if (movementHeading > heading + PI) {
+        movementHeading -= TWO_PI;
+    } else if (movementHeading < heading - PI) {
+        movementHeading += TWO_PI;
+    }
+    const auto lateralSpeed = speed - m_vecFront * DotProduct(speed, m_vecFront);
+    const auto turnFraction = std::min(timeStep * settings[10] * lateralSpeed.Magnitude(), 1.0f);
+    const auto turnStep = timeStep * settings[11];
+    heading += std::clamp((movementHeading - heading) * turnFraction, -turnStep, turnStep);
+    if (heading > m_fHorizontalAngle + PI) {
+        heading -= TWO_PI;
+    } else if (heading < m_fHorizontalAngle - PI) {
+        heading += TWO_PI;
+    }
+    const auto headingVelocity = (heading - m_fHorizontalAngle) / std::max(timeStep, 1.0f);
+    const auto pitch = std::asin(std::clamp(m_vecFront.z, -1.0f, 1.0f));
+    if (previousLength < distance && minimumDistance < distance) {
+        distance = std::max(minimumDistance, previousLength);
+    }
+    auto upperLimit = settings[13];
+    const auto lowerLimit = settings[14];
+    // The contact counters belong to the bike and automobile layouts respectively.
+    const auto contactWheels = [&]() -> uint8 {
+        if (type == VEHICLE_TYPE_BIKE) {
+            return vehicle->AsBike()->m_nNoOfContactWheels;
+        }
+        if (type == VEHICLE_TYPE_AUTOMOBILE || subtype == VEHICLE_TYPE_PLANE) {
+            return vehicle->AsAutomobile()->m_nNumContactWheels;
+        }
+        return 0;
+    }();
+    if (speed.SquaredMagnitude() < StaticRef<float>(0x863244) && (type != VEHICLE_TYPE_BIKE || contactWheels >= 4)
+        && subtype != VEHICLE_TYPE_HELI && (subtype != VEHICLE_TYPE_PLANE || contactWheels != 0)) {
+        const auto side = CrossProduct(matrix.GetForward(), CVector{0.0f, 0.0f, 1.0f}).Normalized();
+        const auto up = CrossProduct(side, matrix.GetForward()).Normalized();
+        if (DotProduct(up, m_vecFront) > 0.0f) {
+            const auto heightAboveRoad = lookAt.z - vehicle->GetPosition().z + vehicle->GetHeightAboveRoad();
+            const auto relativeHeading = m_fHorizontalAngle - (vehicle->GetHeading() - HALF_PI);
+            const auto angle = std::asin(std::abs(std::sin(relativeHeading)));
+            const auto cornerAngle = std::atan2(bounds.m_vecMax.x, -bounds.m_vecMin.y);
+            const auto clearance = angle > cornerAngle
+                ? (StaticRef<float>(0x8CCED8) + bounds.m_vecMax.x) / std::cos(std::max(0.0f, HALF_PI - angle))
+                : (StaticRef<float>(0x8CCED4) - bounds.m_vecMin.y) / std::cos(angle);
+            upperLimit = std::atan2(heightAboveRoad, clearance * StaticRef<float>(0x8CCED0))
+                + std::atan2(matrix.GetForward().z, matrix.GetForward().Magnitude2D()) * std::cos(relativeHeading);
+            if (type == VEHICLE_TYPE_AUTOMOBILE && contactWheels > 1 && std::abs(DotProduct(vehicle->GetTurnSpeed(), matrix.GetForward())) < 0.05f) {
+                upperLimit += std::atan2(matrix.GetRight().z, matrix.GetRight().Magnitude2D()) * std::cos(relativeHeading + HALF_PI);
+            }
+        }
+    }
+    auto desiredPitch = std::clamp(pitch - pitchOffset, -lowerLimit, upperLimit);
+    const auto pitchStep = timeStep * settings[6];
+    const auto pitchCorrection = std::clamp((desiredPitch - m_fVerticalAngle) * (1.0f - std::pow(settings[5], timeStep)), -pitchStep, pitchStep);
+    auto horizontal = (float)-pad->LookAroundLeftRight(nullptr);
+    auto vertical = CCamera::m_bUseMouse3rdPerson ? 0.0f : (float)pad->LookAroundUpDown(nullptr);
+    const auto fovScale = m_fFOV / 80.0f;
+    const auto sensitivity = sq(StaticRef<float>(0x8CC4A0));
+    horizontal *= fovScale * StaticRef<float>(0x859B50) * std::abs(horizontal) * sensitivity;
+    vertical *= fovScale * StaticRef<float>(0x8631AC) * std::abs(vertical) * sensitivity;
+    bool fixPitch = true;
+    switch (model) {
+    case MODEL_PACKER:
+    case MODEL_DOZER:
+    case MODEL_DUMPER:
+    case MODEL_CEMENT:
+    case MODEL_ANDROM:
+    case MODEL_HYDRA:
+    case MODEL_TOWTRUCK:
+    case MODEL_FORKLIFT:
+    case MODEL_TRACTOR:
+        vertical = 0.0f;
+        break;
+    default:
+        if (model == MODEL_RCTIGER || (type == VEHICLE_TYPE_AUTOMOBILE && vehicle->handlingFlags.bHydraulicInst)) {
+            horizontal = vertical = 0.0f;
+        } else {
+            fixPitch = false;
+        }
+        break;
+    }
+    if (gCameraDirection != 3) {
+        horizontal = vertical = 0.0f;
+    }
+    if (category == 0 && std::abs((float)pad->GetSteeringUpDown()) > StaticRef<float>(0x858BB0) && vehicle->m_pDriver) {
+        auto* task = vehicle->m_pDriver->GetTaskManager().GetActiveTask();
+        if (task && task->GetTaskType() != TASK_COMPLEX_LEAVE_CAR) {
+            const auto input = (float)pad->GetSteeringUpDown();
+            vertical += fovScale * StaticRef<float>(0x8631AC) * std::abs(input) * input * sensitivity * 0.5f;
+        }
+    }
+    if (vertical > 0.0f) {
+        vertical *= 0.5f;
+    }
+    auto& mouseTimer = StaticRef<float>(0xB70118);
+    bool mouseControls{};
+    if (CCamera::m_bUseMouse3rdPerson && !pad->DisablePlayerControls) {
+        const auto mouse = pad->NewMouseControllerState.GetAmountMouseMoved();
+        const auto mouseVertical = mouse.y * 2.0f;
+        const auto mouseHorizontal = mouse.x * StaticRef<float>(0x858B18);
+        const auto mouseSteering = subtype == VEHICLE_TYPE_PLANE || subtype == VEHICLE_TYPE_HELI ? CVehicle::m_bEnableMouseFlying : CVehicle::m_bEnableMouseSteering;
+        if ((mouseHorizontal != 0.0f || mouseVertical != 0.0f) && (pad->NewState.m_bVehicleMouseLook || !mouseSteering)) {
+            vertical = mouseVertical * fovScale * CCamera::m_fMouseAccelHorzntl;
+            horizontal = mouseHorizontal * fovScale * CCamera::m_fMouseAccelHorzntl;
+            m_fBetaSpeed = m_fAlphaSpeed = 0.0f;
+            desiredPitch = m_fVerticalAngle;
+            mouseTimer = StaticRef<float>(0x8CCECC) * StaticRef<float>(0x858B40);
+            mouseControls = true;
+        } else if (mouseTimer > 0.0f) {
+            desiredPitch = m_fVerticalAngle;
+            m_fBetaSpeed = m_fAlphaSpeed = 0.0f;
+            horizontal = vertical = 0.0f;
+            mouseTimer = std::max(0.0f, mouseTimer - timeStep);
+            mouseControls = true;
+        }
+    }
+    if (auto* passenger = vehicle->m_apPassengers[0]) {
+        auto* task = passenger->GetTaskManager().GetActiveTask();
+        if (task && task->GetTaskType() == TASK_COMPLEX_PROSTITUTE_SOLICIT && static_cast<CTaskComplexProstituteSolicit*>(task)->bMoveCameraDown) {
+            vertical = m_fVerticalAngle < upperLimit - StaticRef<float>(0x8CCEC8) ? timeStep * StaticRef<float>(0x8CCEC4) : 0.0f;
+        }
+    }
+    auto& pitchFixed = StaticRef<bool>(0xB70114);
+    if (fixPitch) {
+        if (gCameraMode != MODE_CAM_ON_A_STRING) {
+            pitchFixed = false;
+        }
+        if (!pitchFixed && std::abs(pitchOffset + m_fVerticalAngle) > 0.05f) {
+            vertical = (-pitchOffset - m_fVerticalAngle) * StaticRef<float>(0x8CCEC0);
+        } else {
+            pitchFixed = true;
+        }
+    }
+    horizontal *= settings[12];
+    vertical *= settings[12];
+    const auto damping = std::pow(settings[8], timeStep);
+    m_fBetaSpeed = damping * m_fBetaSpeed + (1.0f - damping) * std::clamp(horizontal + headingVelocity, -settings[9], settings[9]);
+    if (std::abs(m_fBetaSpeed) < StaticRef<float>(0x8CCEBC)) {
+        m_fBetaSpeed = 0.0f;
+    }
+    if (!mouseControls) {
+        horizontal = timeStep * m_fBetaSpeed;
+    }
+    m_fHorizontalAngle += horizontal;
+    if (TheCamera.m_bJustCameOutOfGarage) {
+        m_fHorizontalAngle = CGeneral::GetATanOfXY(m_vecFront.x, m_vecFront.y) + PI;
+    }
+    ClipBeta();
+    if (category < 2 && desiredPitch < m_fVerticalAngle && distance <= previousLength
+        && (type == VEHICLE_TYPE_AUTOMOBILE || type == VEHICLE_TYPE_BIKE) && contactWheels > 1) {
+        vertical += (desiredPitch - m_fVerticalAngle) * StaticRef<float>(0x8CCEB8);
+    }
+    m_fAlphaSpeed = damping * m_fAlphaSpeed + (1.0f - damping) * vertical;
+    const auto maxVerticalSpeed = vertical > 0.0f ? settings[9] * 0.5f : settings[9];
+    m_fAlphaSpeed = std::clamp(m_fAlphaSpeed, -maxVerticalSpeed, maxVerticalSpeed);
+    if (std::abs(m_fAlphaSpeed) < StaticRef<float>(0x8CCEB4)) {
+        m_fAlphaSpeed = 0.0f;
+    }
+    auto correction = vertical;
+    if (!mouseControls) {
+        vertical = timeStep * m_fAlphaSpeed;
+        correction = pitchCorrection;
+    }
+    desiredPitch += vertical;
+    m_fVerticalAngle += correction;
+    if (m_fVerticalAngle > upperLimit || m_fVerticalAngle < -lowerLimit) {
+        m_fVerticalAngle = std::clamp(m_fVerticalAngle, -lowerLimit, upperLimit);
+        m_fAlphaSpeed = 0.0f;
+    }
+    auto& previousPitch = StaticRef<float>(0x8CCEB0);
+    auto& previousHeading = StaticRef<float>(0x8CCEA8);
+    if (std::abs(previousPitch - m_fVerticalAngle) < StaticRef<float>(0x8CCEAC)) {
+        m_fVerticalAngle = previousPitch;
+    }
+    previousPitch = m_fVerticalAngle;
+    if (std::abs(previousHeading - m_fHorizontalAngle) < StaticRef<float>(0x8CCEA4)) {
+        m_fHorizontalAngle = previousHeading;
+    }
+    previousHeading = m_fHorizontalAngle;
+    m_vecFront = {-std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle), -std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle), std::sin(m_fVerticalAngle)};
+    RoundCamCoordinates(m_vecSource, 4);
+    GetVectorsReadyForRW();
+    TheCamera.m_bCamDirectlyBehind = TheCamera.m_bCamDirectlyInFront = false;
+    m_vecSource = lookAt - m_vecFront * distance;
+    m_vecTargetCoorsForFudgeInter = lookAt;
+    m_avecTargetHistoryPos[2] = m_avecTargetHistoryPos[0];
+    const auto historyPitch = desiredPitch + pitchOffset;
+    const CVector historyFront{-std::cos(m_fHorizontalAngle) * std::cos(historyPitch), -std::sin(m_fHorizontalAngle) * std::cos(historyPitch), std::sin(historyPitch)};
+    m_avecTargetHistoryPos[0] = lookAt - historyFront * historyDistance;
+    m_avecTargetHistoryPos[1] = lookAt - historyFront * distance;
+    CCamera::SetColVarsVehicle(static_cast<eVehicleType>(category), TheCamera.m_nCarZoom);
+    if (gCameraDirection == 3) {
+        TheCamera.m_nExtraEntitiesCount = 0;
+        CWorld::pIgnoreEntity = vehicle;
+        TheCamera.CameraVehicleModeSpecialCases(vehicle);
+        if (vehicle->bIsBig) {
+            StaticRef<bool>(0x9655E5) = true;
+        }
+        TheCamera.CameraColDetAndReact(&m_vecSource, &lookAt);
+        TheCamera.ImproveNearClip(vehicle, nullptr, &m_vecSource, &lookAt);
+        CWorld::pIgnoreEntity = nullptr;
+        RoundCamCoordinates(m_vecSource, 4);
+    }
+    TheCamera.m_bCamDirectlyBehind = TheCamera.m_bCamDirectlyInFront = false;
+    RoundCamCoordinates(m_vecSource, 4);
+    GetVectorsReadyForRW();
+    StaticRef<CVector>(0xB6F018) = lookAt;
 }
 
 // 0x50F970
