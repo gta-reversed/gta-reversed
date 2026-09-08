@@ -49,6 +49,9 @@ void CDirectory::Init(int32 capacity, DirectoryInfo* entries) {
 // 0x532310
 void CDirectory::AddItem(const DirectoryInfo& dirInfo) {
     if (m_nNumEntries < m_nCapacity) {
+        for (auto i = 0u; i --> m_nNumEntries;) {
+            NOTSA_LOG_DEBUG("{}", m_pEntries[i].Name); // R* log from III
+        }
 #ifdef FIX_BUGS
         // don't add if already exists
         uint32 size;

@@ -89,7 +89,10 @@ public:
     // return -1 if model is not a vehicle model otherwise returns vehicle model type
     static int32 IsVehicleModelType(int32 index);
 
-    static CBaseModelInfo* GetModelInfo(int32 index) { return ms_modelInfoPtrs[index]; }
+    static CBaseModelInfo* GetModelInfo(int32 index) {
+        // assert(index >= 0 && index <= NUM_MODEL_INFOS); // R* from IV, TODO:
+        return ms_modelInfoPtrs[index];
+    }
     static auto GetPedModelInfo(int32 index) { return GetModelInfo(index)->AsPedModelInfoPtr(); }
     static auto GetVehicleModelInfo(int32 index) { return GetModelInfo(index)->AsVehicleModelInfoPtr(); }
     static void SetModelInfo(int32 index, CBaseModelInfo* pInfo) { ms_modelInfoPtrs[index] = pInfo; }

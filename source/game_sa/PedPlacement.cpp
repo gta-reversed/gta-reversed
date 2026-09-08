@@ -34,7 +34,8 @@ std::pair<CVector, bool> CPedPlacement::FindZCoorForPed(CVector pos) {
     if (highestZ >= MAP_Z_LOW_LIMIT + 1.0f) {
         return {CVector{pos, highestZ + 1.f}, true};
     }
-    return {pos, false};
+    NOTSA_LOG_ERR("BAD MAP: Ped looking for z-coordinate and no land to stand on"); // R* log from III
+    return { pos, false };
 }
 
 // 0x616860

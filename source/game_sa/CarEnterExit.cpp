@@ -723,6 +723,9 @@ void CCarEnterExit::SetAnimOffsetForEnterOrExitVehicle() {
 
 // 0x650280
 bool CCarEnterExit::SetPedInCarDirect(CPed* ped, CVehicle* vehicle, int32 doorId, bool bAsDriver) {
+    assert(ped != nullptr); // R* from IV
+    assert(vehicle != nullptr); // R* from IV
+
     if (bAsDriver) {
         // Warp ped into vehicle
         CTaskSimpleCarSetPedInAsDriver task{ vehicle };
