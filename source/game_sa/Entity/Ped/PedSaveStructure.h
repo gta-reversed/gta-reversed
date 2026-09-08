@@ -6,6 +6,9 @@
 
 class CPedSaveStructure {
 public:
+    static void InjectHooks();
+
+public:
     CVector       m_pos;
     float         m_health;
     float         m_armor;

@@ -4,7 +4,22 @@
 #include "TaskComplexWanderStandard.h"
 #include "Ragdoll/IKChainManager.h"
 
-// TODO: Inject Hooks
+void CTaskComplexBeInCouple::InjectHooks() {
+    RH_ScopedClass(CTaskComplexBeInCouple);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x6836F0);
+    RH_ScopedInstall(Destructor, 0x683780);
+
+    RH_ScopedGlobalInstall(AbortArmIK, 0x6837F0);
+
+    RH_ScopedVMTInstall(Clone, 0x6839C0);
+    RH_ScopedVMTInstall(GetTaskType, 0x683770);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6847C0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x684840, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6837E0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x684930, { .reversed = false });
+}
 
 // 0x6836F0
 CTaskComplexBeInCouple::CTaskComplexBeInCouple(

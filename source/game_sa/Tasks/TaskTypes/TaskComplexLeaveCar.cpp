@@ -3,6 +3,25 @@
 #include "TaskComplexLeaveCar.h"
 
 void CTaskComplexLeaveCar::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexLeaveCar, 0x86e828, 11);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedOverloadedInstall(Constructor, "1", 0x62F1A0, CTaskComplexLeaveCar*(CTaskComplexLeaveCar::*)(CVehicle*, int32, int32));
+    RH_ScopedOverloadedInstall(Constructor, "2", 0x63B8C0, CTaskComplexLeaveCar*(CTaskComplexLeaveCar::*)(CVehicle *, int32, int32, bool, bool));
+    RH_ScopedInstall(Destructor, 0x63B970);
+
+    RH_ScopedInstall(ComputeTargetDoor, 0x63BAB0, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x641530, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x63D9E0);
+    RH_ScopedVMTInstall(GetTaskType, 0x63B960);
+    RH_ScopedVMTInstall(MakeAbortable, 0x641100, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6419F0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x641FC0, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6421B0, { .reversed = false });
+}
+
+void CTaskComplexLeaveCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexLeaveCar, 0x86E828, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 }

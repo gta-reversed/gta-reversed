@@ -19,3 +19,14 @@ CTaskComplexEnterCarAsPassenger::CTaskComplexEnterCarAsPassenger(const CTaskComp
 {
     m_MoveState = o.m_MoveState;
 }
+
+void CTaskComplexEnterCarAsPassenger::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexEnterCarAsPassenger, 0x86eadc, 12);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x640340);
+    RH_ScopedInstall(Destructor, 0x640380);
+
+    RH_ScopedVMTInstall(Clone, 0x6437F0);
+    RH_ScopedVMTInstall(GetTaskType, 0x640370);
+}

@@ -2,13 +2,6 @@
 
 #include "EntitySeekPosCalculatorStandard.h"
 
-void CEntitySeekPosCalculatorStandard::InjectHooks() {
-    RH_ScopedVirtualClass(CEntitySeekPosCalculatorStandard, 0x859DC4, 2);
-    RH_ScopedCategory("Tasks/TaskTypes/SeekPosCalculators");
-
-    RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x46af20);
-}
-
 /*
 // 0x46AC10
 CEntitySeekPosCalculatorStandard::CEntitySeekPosCalculatorStandard(CEntity* entity, int32 time, int32 a3, float radius, float a5, float a6, bool a7, bool a8) : CTaskComplex() {
@@ -18,4 +11,11 @@ CEntitySeekPosCalculatorStandard::CEntitySeekPosCalculatorStandard(CEntity* enti
 
 void CEntitySeekPosCalculatorStandard::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {
     outPos = target.GetPosition();
+}
+
+void CEntitySeekPosCalculatorStandard::InjectHooks() {
+    RH_ScopedVirtualClass(CEntitySeekPosCalculatorStandard, 0x859DC4, 2);
+    RH_ScopedCategory("Tasks/TaskTypes/SeekPosCalculators");
+
+    RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x46af20);
 }

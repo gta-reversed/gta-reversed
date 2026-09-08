@@ -3,9 +3,20 @@
 #include "TaskComplexKillPedOnFoot.h"
 
 void CTaskComplexKillPedOnFoot::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskComplexKillPedOnFoot, 0x86D894, 11);
+    RH_ScopedVirtualClass(CTaskComplexKillPedOnFoot, 0x86d894, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
+
     RH_ScopedInstall(Constructor, 0x620E30);
+    RH_ScopedInstall(Destructor, 0x620EF0);
+
+    RH_ScopedInstall(CreateSubTask, 0x625E70, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x623370);
+    RH_ScopedVMTInstall(GetTaskType, 0x620EE0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x625E40, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x62B150, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x62B490, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x626260, { .reversed = false });
 }
 
 CTaskComplexKillPedOnFoot::CTaskComplexKillPedOnFoot(
