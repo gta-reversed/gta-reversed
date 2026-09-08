@@ -14,6 +14,7 @@
 #include "ModelInfo.h"
 #include "VehicleModelInfo.h"
 #include "ControllerConfigManager.h"
+#include "GameLogic.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -249,7 +250,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
     RH_ScopedInstall(Process_AimWeapon, 0x521500, { .reversed = false });
     RH_ScopedInstall(Process_AttachedCam, 0x512B10);
-    RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50, { .reversed = false });
+    RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50);
     RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810, { .reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510);
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0);
@@ -1395,7 +1396,146 @@ void CCam::GetTwoPlayerCameraPosition(float beta, CVector& source, CVector& fron
 
 // 0x525E50
 void CCam::Process_Cam_TwoPlayer() {
-    NOTSA_UNREACHABLE();
+    auto& focus = CGameLogic::n2PlayerPedInFocus;
+    auto* first = FindPlayerPed(PED_TYPE_PLAYER1);
+    auto* second = FindPlayerPed(PED_TYPE_PLAYER2);
+    if (CPad::GetPad(0)->CycleCameraModeJustDown()) {
+        focus = focus == eFocusedPlayer::PLAYER1 ? eFocusedPlayer::NONE : eFocusedPlayer::PLAYER1;
+    } else if (CPad::GetPad(1)->CycleCameraModeJustDown()) {
+        focus = focus == eFocusedPlayer::PLAYER2 ? eFocusedPlayer::NONE : eFocusedPlayer::PLAYER2;
+    }
+    if (focus == eFocusedPlayer::PLAYER1 || focus == eFocusedPlayer::PLAYER2) {
+        auto* player = focus == eFocusedPlayer::PLAYER1 ? first : second;
+        if (player->bInVehicle && player->m_pVehicle) {
+            m_pCamTargetEntity = player->m_pVehicle;
+            Process_FollowCar_SA(player->m_pVehicle->GetPosition(), 0.0f, 0.0f, 0.0f, false);
+            m_pCamTargetEntity = first;
+        } else {
+            if (player == second) {
+                m_pCamTargetEntity = second;
+            }
+            Process_FollowPed_SA(player->GetPosition(), 0.0f, 0.0f, 0.0f, false);
+            if (player == second) {
+                m_pCamTargetEntity = first;
+            }
+        }
+        m_bResetStatics = false;
+        return;
+    }
+
+    auto& lastClearTime = StaticRef<uint32>(0xB6EC24);
+    auto& lastObstructionTime = StaticRef<uint32>(0xB6EC28);
+    const auto now = CTimer::GetTimeInMS();
+    const auto timeStep = CTimer::GetTimeStep();
+    m_fVerticalAngle = DegreesToRadians(-30.0f);
+    m_fAlphaSpeed = 0.0f;
+    CVector candidateSource, candidateFront;
+    float candidateBeta{};
+    int32 candidate = 0;
+    for (; candidate < 21; candidate++) {
+        const auto offset = (float)((candidate + 1) / 2) * 0.15f;
+        candidateBeta = m_fHorizontalAngle + (candidate & 1 ? offset : -offset);
+        GetTwoPlayerCameraPosition(candidateBeta, candidateSource, candidateFront, m_vecTargetCoorsForFudgeInter);
+        if (CanSeeBothPlayers(candidateSource)) {
+            lastClearTime = now;
+            break;
+        }
+    }
+    if (candidate == 21) {
+        candidateBeta = m_fHorizontalAngle;
+    }
+    if (candidate > 0) {
+        lastObstructionTime = now;
+    }
+    if (m_bResetStatics) {
+        m_fHorizontalAngle = candidateBeta;
+    }
+    const auto relativeAngle = [](float angle, float reference) {
+        if (angle > reference + PI) {
+            return angle - TWO_PI;
+        }
+        if (angle < reference - PI) {
+            return angle + TWO_PI;
+        }
+        return angle;
+    };
+    const auto desiredBeta = relativeAngle(candidateBeta, m_fHorizontalAngle);
+    const auto correctedBeta = m_fHorizontalAngle + std::clamp((desiredBeta - m_fHorizontalAngle) * 0.2f, -0.1f, 0.1f);
+    float movementRotation{};
+    if (candidate == 0 && now >= lastObstructionTime + 1000) {
+        const auto movement = first->GetMoveSpeed() + second->GetMoveSpeed();
+        if (movement.SquaredMagnitude() > 0.01f) {
+            const auto movementHeading = relativeAngle(std::atan2(-movement.x, movement.y) - HALF_PI, correctedBeta);
+            const auto blend = std::min(movement.Magnitude() * StaticRef<float>(0x8CC5E8) * timeStep, 1.0f);
+            const auto maxRotation = StaticRef<float>(0x8CC5EC) * timeStep;
+            movementRotation = std::clamp((movementHeading - correctedBeta) * blend, -maxRotation, maxRotation);
+            if (movementRotation > 0.01f) {
+                candidateBeta += 0.15f;
+            } else if (movementRotation < 0.01f) {
+                candidateBeta -= 0.15f;
+            }
+        } else {
+            candidateBeta -= 0.15f;
+        }
+        if (std::abs(movementRotation) > 0.01f) {
+            GetTwoPlayerCameraPosition(candidateBeta, candidateSource, candidateFront, m_vecTargetCoorsForFudgeInter);
+            if (!CanSeeBothPlayers(candidateSource)) {
+                if (movementRotation * m_fBetaSpeed > 0.0f) {
+                    m_fBetaSpeed = 0.0f;
+                }
+                lastObstructionTime = now;
+                movementRotation = 0.0f;
+            }
+        }
+    }
+    auto desiredSpeed = (relativeAngle(correctedBeta + movementRotation, m_fHorizontalAngle) - m_fHorizontalAngle) / std::max(timeStep, 1.0f);
+    const auto damping = std::pow(StaticRef<float>(0x8CC5E0), timeStep);
+    if (candidate == 0 && now >= lastObstructionTime + 1000) {
+        const auto input = std::clamp(
+            -(float)CPad::GetPad(0)->AimWeaponLeftRight(first) - (float)CPad::GetPad(1)->AimWeaponLeftRight(second),
+            StaticRef<float>(0x85F3C4), StaticRef<float>(0x858BF4)
+        );
+        const auto inputScale = StaticRef<float>(0x8CC4A0);
+        auto rotation = m_fFOV / 80.0f / 14.0f * std::abs(input) * inputScale * inputScale * input;
+        if (rotation > 0.01f) {
+            candidateBeta += 0.15f;
+        } else if (rotation < 0.01f) {
+            candidateBeta -= 0.15f;
+        }
+        if (std::abs(rotation) > 0.01f) {
+            GetTwoPlayerCameraPosition(candidateBeta, candidateSource, candidateFront, m_vecTargetCoorsForFudgeInter);
+            if (!CanSeeBothPlayers(candidateSource)) {
+                if (rotation * m_fBetaSpeed > 0.0f) {
+                    m_fBetaSpeed = 0.0f;
+                }
+                lastObstructionTime = now;
+                rotation = 0.0f;
+            }
+        }
+        desiredSpeed += rotation;
+    }
+    const auto maxSpeed = StaticRef<float>(0x8CC5E4);
+    m_fBetaSpeed = damping * m_fBetaSpeed + (1.0f - damping) * std::clamp(desiredSpeed, -maxSpeed, maxSpeed);
+    m_fHorizontalAngle += m_fBetaSpeed * timeStep;
+    GetTwoPlayerCameraPosition(m_fHorizontalAngle, m_vecSource, m_vecFront, m_vecTargetCoorsForFudgeInter);
+    if (candidate == 21 && now - lastClearTime > 500) {
+        gCurCamColVars = 5;
+        CColPoint collision{};
+        CEntity* hitEntity{};
+        if (CWorld::ProcessLineOfSight(m_vecTargetCoorsForFudgeInter, m_vecSource, collision, hitEntity, true, false, false, false, false, true, true, false)) {
+            m_vecSource = collision.m_vecPoint;
+        }
+        if ((uint32)CGameLogic::nPrintFocusHelpTimer < now && CGameLogic::nPrintFocusHelpCounter < 6) {
+            CHud::SetHelpMessage(TheText.Get("WRN2_2P"), false, false, false);
+            CGameLogic::nPrintFocusHelpTimer = now + 60000;
+            ++CGameLogic::nPrintFocusHelpCounter;
+        }
+    }
+    m_vecFront.Normalise();
+    const auto right = CrossProduct(CVector{0.0f, 0.0f, 1.0f}, m_vecFront).Normalized();
+    m_vecUp = CrossProduct(m_vecFront, right).Normalized();
+    m_fFOV = 70.0f;
+    m_bResetStatics = false;
 }
 
 // 0x519810
