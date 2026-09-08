@@ -31,6 +31,15 @@ static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
 static bool IsLampPost(eModelID modelId);
 
+// 0x513220
+static bool CanSeeBothPlayers(CVector source) {
+    gCurCamColVars = 5;
+    CColPoint collision{};
+    CEntity* hitEntity{};
+    return !CWorld::ProcessLineOfSight(source, FindPlayerPed(PED_TYPE_PLAYER1)->GetPosition(), collision, hitEntity, true, false, false, false, false, true, true, false)
+        && !CWorld::ProcessLineOfSight(source, FindPlayerPed(PED_TYPE_PLAYER2)->GetPosition(), collision, hitEntity, true, false, false, false, false, true, true, false);
+}
+
 struct DWHeliChaseState {
     CVector end;
     CVector start;
@@ -214,6 +223,7 @@ static void WrapAngle(float& angle) {
 void CCam::InjectHooks() {
     RH_ScopedClass(CCam);
     RH_ScopedCategory("Camera");
+    RH_ScopedGlobalInstall(CanSeeBothPlayers, 0x513220);
 
     RH_ScopedInstall(Constructor, 0x517730);
     RH_ScopedInstall(Init, 0x50E490);
