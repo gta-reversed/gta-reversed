@@ -30,6 +30,38 @@ static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
 static bool IsLampPost(eModelID modelId);
 
+// 0x5B2330
+static void FindSplinePathPositionFloat(float* output, const float* spline, float time, uint32* marker) {
+    static auto& minimumSegmentTime = StaticRef<float>(0x8D0F80);
+    const auto count = (uint32)spline[0];
+    const float duration = (spline[*marker] - spline[*marker - 4]) * 1000.0f;
+    const float endTime = spline[(count - 1) * 4 + 1] * 1000.0f;
+    if (time < endTime) {
+        if ((*marker - 1) / 4 > count) {
+            *marker = (count - 1) * 4 + 1;
+        } else if (duration <= minimumSegmentTime) {
+            *marker += 4;
+            if ((*marker - 1) / 4 > count) {
+                *marker = (count - 1) * 4 + 1;
+            }
+        }
+    }
+    const auto index = *marker;
+    float t = std::clamp((time - spline[index - 4] * 1000.0f) / ((spline[index] - spline[index - 4]) * 1000.0f), 0.0f, 1.0f);
+    if (time > endTime) {
+        t = 1.0f;
+    }
+    const float start = spline[index - 3];
+    const float control = spline[index - 1];
+    const float end = spline[index + 1];
+    if (control == start) {
+        *output = (end - start) * t + start;
+    } else {
+        const float s = 1.0f - t;
+        *output = s * s * s * start + (control * s * s * 3.0f + (spline[index + 2] * s * 3.0f + end * t) * t) * t;
+    }
+}
+
 // 0x509AE0
 void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
     const auto valueToTargetDiff = [&] {
@@ -120,6 +152,7 @@ void CCam::InjectHooks() {
 
     RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
     RH_ScopedGlobalInstall(WrapAngle, 0x509BE0);
+    RH_ScopedGlobalInstall(FindSplinePathPositionFloat, 0x5B2330);
 }
 
 // 0x517730
