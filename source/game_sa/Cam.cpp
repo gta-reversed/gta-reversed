@@ -65,6 +65,25 @@ static bool GetArrestCameraPosition(CEntity* target, CPed* cop, const CVector& l
     return true;
 }
 
+// 0x516010
+static bool GetArrestCameraPositionOnGround(CEntity* target, CPed* cop, const CVector& lookAt, CVector& source) {
+    if (!target || !cop) {
+        return false;
+    }
+    auto direction = lookAt - cop->GetPosition();
+    direction.z = 0.0f;
+    direction.Normalise();
+    source = lookAt + direction * StaticRef<float>(0x8CC7F0);
+    source += CrossProduct(direction, CVector{0.0f, 0.0f, 1.0f}) * StaticRef<float>(0x8CC7F4);
+    source.z = lookAt.z + 5.0f;
+    bool foundGround{};
+    const auto ground = CWorld::FindGroundZFor3DCoord(source.x, source.y, source.z, &foundGround, nullptr);
+    if (foundGround) {
+        source.z = ground + StaticRef<float>(0x8CC7F8);
+    }
+    return true;
+}
+
 // 0x513220
 static bool CanSeeBothPlayers(CVector source) {
     gCurCamColVars = 5;
@@ -259,6 +278,7 @@ void CCam::InjectHooks() {
     RH_ScopedCategory("Camera");
     RH_ScopedGlobalInstall(CanSeeBothPlayers, 0x513220);
     RH_ScopedGlobalInstall(GetArrestCameraPosition, 0x515D80);
+    RH_ScopedGlobalInstall(GetArrestCameraPositionOnGround, 0x516010);
 
     RH_ScopedInstall(Constructor, 0x517730);
     RH_ScopedInstall(Init, 0x50E490);
