@@ -2073,7 +2073,229 @@ bool CCamera::ConeCastCollisionResolve(const CVector& pos, const CVector& lookAt
 
 // 0x51E560
 bool CCamera::TryToStartNewCamMode(int32 camSequence) {
-    return plugin::CallMethodAndReturn<bool, 0x51E560, CCamera*, int32>(this, camSequence);
+    if (camSequence < 0) {
+        return true;
+    }
+
+    const auto player = FindPlayerPed();
+    const auto playerEntity = FindPlayerEntity();
+    const auto playerVehicle = FindPlayerVehicle();
+    const auto playerPos = [&] {
+        return playerEntity ? playerEntity->GetPosition() : CVector{};
+    };
+    const auto playerSpeed = [&] {
+        auto speed = FindPlayerSpeed();
+        speed.z = 0.0f;
+        speed.Normalise();
+        return speed;
+    };
+    const auto isBoatExceptSkimmer = [&] {
+        return playerVehicle && playerVehicle->IsBoat() && playerVehicle->GetModelIndex() != MODEL_SKIMMER;
+    };
+    const auto setFixed = [&](const CVector& source) {
+        SetCamPositionForFixedMode(source, CVector{});
+        TakeControl(playerEntity, MODE_FIXED, eSwitchType::JUMPCUT, 2);
+        return true;
+    };
+    const auto findGroundOrRoof = [](CVector& position) {
+        bool found{};
+        auto height = CWorld::FindGroundZFor3DCoord(position, &found);
+        if (found) {
+            position.z = height;
+            return true;
+        }
+        height = CWorld::FindRoofZFor3DCoord(position.x, position.y, position.z, &found);
+        if (found) {
+            position.z = height;
+        }
+        return found;
+    };
+
+    switch (camSequence) {
+    case 0: { // Wheel camera
+        if (!playerVehicle || (isBoatExceptSkimmer() || playerVehicle->GetModelIndex() == MODEL_RHINO)) {
+            return false;
+        }
+        const auto target = playerVehicle->GetMatrix().TransformVector(CVector{-1.4f, -2.3f, 0.3f}) + playerVehicle->GetPosition();
+        if (!CWorld::GetIsLineOfSightClear(playerVehicle->GetPosition(), target, true, false, false, false, false, false, false)) {
+            return false;
+        }
+        TakeControl(playerVehicle, MODE_WHEELCAM, eSwitchType::JUMPCUT, 2);
+        return true;
+    }
+    case 1:
+    case 2:
+    case 3:
+    case 5: {
+        if (isBoatExceptSkimmer()) {
+            return false;
+        }
+
+        const auto speed = playerSpeed();
+        auto cameraPosition = playerPos();
+        const auto distance = camSequence == 1 ? 20.0f : camSequence == 2 ? 16.0f : 30.0f;
+        const auto side = camSequence == 1 ? 3.0f : camSequence == 2 ? 2.5f : camSequence == 3 ? 8.0f : 6.0f;
+        cameraPosition += speed * distance;
+        cameraPosition += CVector{speed.y, -speed.x, 0.0f} * side;
+
+        const auto height = camSequence == 1 ? 1.5f : camSequence == 2 ? 0.5f : camSequence == 3 ? 16.0f : 3.5f;
+        if (findGroundOrRoof(cameraPosition)) {
+            cameraPosition.z += height;
+        } else {
+            cameraPosition.z += height;
+        }
+        if (!CWorld::GetIsLineOfSightClear(playerPos(), cameraPosition, true, false, false, false, false, false, false)) {
+            return false;
+        }
+
+        auto forward = playerPos() - cameraPosition;
+        forward.z = 0.0f;
+        const auto horizontalDistance = forward.Magnitude();
+        const auto maxDistance = camSequence == 1 ? 40.0f : camSequence == 2 ? 29.0f : 0.0f;
+        if (maxDistance > 0.0f && horizontalDistance > maxDistance && DotProduct(FindPlayerSpeed(), forward) > 0.0f) {
+            return false;
+        }
+        const auto minDistance = camSequence == 1 ? 2.5f : camSequence == 2 ? 2.0f : 0.0f;
+        if (minDistance > 0.0f && horizontalDistance < minDistance) {
+            return true;
+        }
+        return setFixed(cameraPosition);
+    }
+    case 6:
+        TakeControl(playerEntity, MODE_1STPERSON, eSwitchType::JUMPCUT, 2);
+        return true;
+    case 7:
+    case 8: { // Cop-car chase and wheel chase
+        if (!player || !playerVehicle || isBoatExceptSkimmer() || player->m_pWanted->GetWantedLevel() < 1) {
+            return false;
+        }
+
+        const auto playerPosition = playerPos();
+        for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+            if (vehicle.GetStatus() != STATUS_SIMPLE || &vehicle == playerVehicle || !vehicle.IsAutomobile() || !vehicle.vehicleFlags.bIsLawEnforcer) {
+                continue;
+            }
+            const auto delta = vehicle.GetPosition() - playerPosition;
+            if (delta.Magnitude() >= 30.0f) {
+                continue;
+            }
+            if (DotProduct(delta, playerVehicle->GetForward()) >= 0.0f
+                || DotProduct(vehicle.GetForward(), playerVehicle->GetForward()) <= 0.8f) {
+                continue;
+            }
+            if (camSequence == 8) {
+                const auto wheelTarget = vehicle.GetMatrix().TransformVector(CVector{-1.4f, -2.3f, 0.3f}) + vehicle.GetPosition();
+                if (!CWorld::GetIsLineOfSightClear(vehicle.GetPosition(), wheelTarget, true, false, false, false, false, false, false)) {
+                    continue;
+                }
+                TakeControl(&vehicle, MODE_WHEELCAM, eSwitchType::JUMPCUT, 2);
+            } else {
+                TakeControl(&vehicle, MODE_CAM_ON_A_STRING, eSwitchType::JUMPCUT, 2);
+            }
+            return true;
+        }
+        return false;
+    }
+    case 0xF: {
+        if (!playerEntity) {
+            return false;
+        }
+        auto cameraPosition = playerPos() + playerSpeed() * 34.0f;
+        cameraPosition.z = playerPos().z + 0.5f + (playerVehicle && playerVehicle->GetStatus() == STATUS_PHYSICS ? 1.0f : 0.0f);
+        if (!CWorld::GetIsLineOfSightClear(playerPos(), cameraPosition, true, false, false, false, false, false, false)) {
+            return false;
+        }
+        const auto distance = (playerPos() - cameraPosition).Magnitude();
+        if (distance > 44.0f) {
+            return false;
+        }
+        if (distance < 3.0f) {
+            return true;
+        }
+        return setFixed(cameraPosition);
+    }
+    case 0x10:
+    case 0x11:
+    case 0x12:
+    case 0x13: {
+        if (!playerEntity) {
+            return false;
+        }
+        auto speed = playerSpeed();
+        const auto angle = CGeneral::GetATanOfXY(speed.x, speed.y)
+            + DegreesToRadians(camSequence == 0x10 ? 60.0f : camSequence == 0x11 ? 190.0f : camSequence == 0x12 ? 145.0f : 28.0f);
+        speed += CVector{std::cos(angle), std::sin(angle), 0.0f};
+        speed.Normalise();
+
+        auto cameraPosition = playerPos();
+        cameraPosition += speed * (camSequence == 0x10 ? 30.0f : camSequence == 0x11 ? 25.0f : camSequence == 0x12 ? 15.0f : 12.5f);
+        if (camSequence == 0x12) {
+            cameraPosition.z += playerVehicle && playerVehicle->IsBoat() ? 23.0f : -23.0f;
+        } else if (camSequence == 0x13) {
+            cameraPosition.z += playerVehicle && playerVehicle->IsBoat() ? 4.0f : -1.0f;
+        } else {
+            cameraPosition.z += camSequence == 0x10 ? -5.5f : -1.0f;
+        }
+
+        bool foundGround{};
+        const auto ground = CWorld::FindRoofZFor3DCoord(cameraPosition.x, cameraPosition.y, cameraPosition.z + 5.0f, &foundGround);
+        if (foundGround) {
+            cameraPosition.z = ground + 0.5f;
+        } else {
+            float water{};
+            if (CWaterLevel::GetWaterLevelNoWaves(cameraPosition, &water) && cameraPosition.z < water + (playerVehicle && playerVehicle->IsBoat() ? -2.0f : 1.0f)) {
+                cameraPosition.z = water + (playerVehicle && playerVehicle->IsBoat() ? -2.0f : 1.0f);
+            }
+        }
+        if (!CWorld::GetIsLineOfSightClear(playerPos(), cameraPosition, true, false, false, false, false, false, false)) {
+            return false;
+        }
+
+        const auto distance = (playerPos() - cameraPosition).Magnitude();
+        const auto maxDistance = camSequence == 0x10 || camSequence == 0x11 ? 50.0f : camSequence == 0x12 ? 57.0f : 36.0f;
+        if (distance > maxDistance || (camSequence == 0x11 && DotProduct(FindPlayerSpeed(), playerPos() - cameraPosition) > 0.0f)) {
+            return false;
+        }
+        const auto minDistance = camSequence == 0x10 ? 3.0f : camSequence == 0x11 ? 2.0f : camSequence == 0x12 ? 1.0f : 2.0f;
+        if (distance < minDistance) {
+            return true;
+        }
+        return setFixed(cameraPosition);
+    }
+    case 0x14:
+    case 0x15:
+    case 0x16:
+    case 0x17:
+    case 0x1A:
+    case 0x1B:
+    case 0x1C: {
+        auto& cam = GetActiveCam();
+        const auto started = [&] {
+            switch (camSequence) {
+            case 0x14: return cam.Process_DW_HeliChaseCam(false);
+            case 0x15: return cam.Process_DW_CamManCam(false);
+            case 0x16: return cam.Process_DW_BirdyCam(false);
+            case 0x17: return cam.Process_DW_PlaneSpotterCam(false);
+            case 0x1A: return cam.Process_DW_PlaneCam1(false);
+            case 0x1B: return cam.Process_DW_PlaneCam2(false);
+            default:   return cam.Process_DW_PlaneCam3(false);
+            }
+        }();
+        if (!started) {
+            return false;
+        }
+        TakeControl(playerEntity, static_cast<eCamMode>(camSequence + 0x24), eSwitchType::JUMPCUT, 2);
+        return true;
+    }
+    case 0x18:
+    case 0x19:
+        return false;
+    case 0x1D:
+        TakeControl(playerEntity, MODE_CAM_ON_A_STRING, eSwitchType::JUMPCUT, 2);
+        return true;
+    default:
+        return false;
+    }
 }
 
 // 0x520190
