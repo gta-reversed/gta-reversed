@@ -14,7 +14,7 @@
 #include "BulletInfo.h"
 #include "InterestingEvents.h"
 #include "Shadows.h"
-#include "Birds.h"
+#include "Renderer/Birds.h"
 
 //float& PELLET_COL_SCALE_RATIO_MULT = *(float*)0x8D6128; // 1.3
 

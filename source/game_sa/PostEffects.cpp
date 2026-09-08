@@ -2,7 +2,7 @@
 
 #include "PostEffects.h"
 #include "CustomBuildingDNPipeline.h"
-#include "Clouds.h"
+#include "Renderer/Clouds.h"
 
 auto& cc_vertices = StaticRef<std::array<RwIm2DVertex, 4>>(0xC400D8);
 auto& cc_indices = StaticRef<std::array<RwImVertexIndex, 12>>(0x8D5174); // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
