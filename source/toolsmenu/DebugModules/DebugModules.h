@@ -14,7 +14,10 @@ public:
     //! Pre-Render updates
     void PreRenderUpdate();
 
-    //! Process stuff (Including rendering)
+    //! Render ImGui, don't use this to render anything other than 2D (it will not be visible)
+    void RenderImGui();
+
+    //! Render 2D
     void Render2D();
 
     //! Process 3D rendering

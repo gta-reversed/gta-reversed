@@ -99,26 +99,7 @@ void UIRenderer::SetIsActive(bool active) {
 #endif
 }
 
-void UIRenderer::PreRenderUpdate() {
-    ZoneScoped;
-
-    m_ImIO->DeltaTime   = CTimer::GetTimeStepInSeconds();
-    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after ImGui was already initialized
-
-    m_DebugModules.PreRenderUpdate();
-    DebugCode();
-    ReversibleHooks::CheckAll();
-
-    if (ImGui::IsKeyChordPressed(ImGuiKey_F7, ImGuiInputFlags_RouteAlways) || CPad::GetPad()->IsFKeyJustDown(FKEY7)) {
-        SetIsActive(!m_InputActive);
-    }
-}
-
-void UIRenderer::PostRenderUpdate() {
-    //m_ImIO->NavActive = m_InputActive; // ImGUI clears `NavActive` every frame, so have to set it here.
-}
-
-void UIRenderer::DrawLoop() {
+void UIRenderer::PreRender() {
     ZoneScoped;
 
     if (m_ReInitRequested) {
@@ -126,35 +107,57 @@ void UIRenderer::DrawLoop() {
         return;
     }
 
-    PreRenderUpdate();
+    m_ImIO->DeltaTime   = CTimer::GetTimeStepInSeconds();
+    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after ImGui was already initialized
+
+    m_DebugModules.PreRenderUpdate();
+
+    DebugCode();
+    ReversibleHooks::CheckAll();
+
+    if (ImGui::IsKeyChordPressed(ImGuiKey_F7, ImGuiInputFlags_RouteAlways) || CPad::GetPad()->IsFKeyJustDown(FKEY7)) {
+        SetIsActive(!m_InputActive);
+    }
+
+    RenderImGui();
+}
+
+void UIRenderer::RenderImGui() {
+    ZoneScoped;
+
 #ifdef NOTSA_USE_SDL3
     ImGui_ImplSDL3_NewFrame();
 #else
     ImGui_ImplWin32_NewFrame();
 #endif
+
     ImGui_ImplDX9_NewFrame();
+
     ImGui::NewFrame();
-
-    Render2D();
-
-    ImGui::EndFrame();
-    ImGui::Render();
-    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-    //ImGui_ImplDX9_InvalidateDeviceObjects();
-
-    PostRenderUpdate();
-
-    // Update and Render additional Platform Windows
-    if (m_ImIO->ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
+    {
+        m_DebugModules.RenderImGui();
     }
+    ImGui::EndFrame();
 }
 
 void UIRenderer::Render2D() {
-    ZoneScoped;
+    // Draw anything that needs to be drawn before ImGui
+    {
+        m_DebugModules.Render2D();
+    }
 
-    m_DebugModules.Render2D();
+    // Draw ImGui last, so it's on top
+    {
+        ImGui::Render();
+        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    }
+}
+
+void UIRenderer::PostRender() {
+    if (m_ImIO->ConfigFlags & ImGuiConfigFlags_ViewportsEnable) { // Update additional viewports
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
 }
 
 void UIRenderer::Render3D() {

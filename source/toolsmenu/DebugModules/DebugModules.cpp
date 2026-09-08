@@ -65,7 +65,7 @@ void DebugModules::PreRenderUpdate() {
     }
 }
 
-void DebugModules::Render2D() {
+void DebugModules::RenderImGui() {
     ImGui::BeginMainMenuBar();
     for (auto& module : m_Modules) {
         module->RenderMenuEntry();
@@ -75,6 +75,12 @@ void DebugModules::Render2D() {
 
     for (auto& module : m_Modules) {
         module->RenderWindow();
+    }
+}
+
+void DebugModules::Render2D() {
+    for (auto& module : m_Modules) {
+        module->Render2D();
     }
 }
 
@@ -91,7 +97,6 @@ void DebugModules::CreateModules() {
     Add<TeleportDebugModule>();
     Add<SpawnerDebugModule>();
     Add<MissionDebugModule>();
-    Add<CheatDebugModule>();
 
     // "Settings" menu
     Add<HooksDebugModule>();
@@ -135,6 +140,7 @@ void DebugModules::CreateModules() {
     Add<COcclusionDebugModule>(); // Visualization + Extra
     Add<AudioZonesDebugModule>(); // Visualization + Extra
     Add<notsa::debugmodules::ImGuiDebugModule>(); // Stats + Extra
+    Add<CheatDebugModule>(); // Tools + Settings
 
     // Restore state of modules
     DoDeserializeModules();

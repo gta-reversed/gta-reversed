@@ -121,8 +121,6 @@ void RenderEffects() {
     CPointLights::RenderFogEffect();
     CRenderer::RenderFirstPersonVehicle();
     CPostEffects::Render();
-
-    notsa::ui::UIRenderer::GetSingleton().Render3D();
 }
 
 // 0x53DF40
@@ -302,6 +300,10 @@ void Idle(void* param) {
     g_LastTickTime = v2 / CTimer::GetCyclesPerMillisecond();
     */
 
+    auto* const ui = &notsa::ui::UIRenderer::GetSingleton();
+
+    ui->PreRender();
+
     CTimer::Update();
     CSprite2d::InitPerFrame();
     CFont::InitPerFrame();
@@ -309,6 +311,7 @@ void Idle(void* param) {
     CGame::Process();
     AudioEngine.Service();
     SetLightsWithTimeOfDayColour(Scene.m_pRpWorld);
+
     if (!param) {
         return;
     }
@@ -362,6 +365,7 @@ void Idle(void* param) {
         CVisibilityPlugins::RenderWeaponPedsForPC();
         CVisibilityPlugins::ResetWeaponPedsForPC();
         RenderEffects();
+        ui->Render3D();
         if (TheCamera.m_nBlurType == eMotionBlurType::NONE || TheCamera.m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
             if (TheCamera.m_fScreenReductionPercentage > 0.0f) {
                 TheCamera.SetMotionBlurAlpha(150);
@@ -380,12 +384,10 @@ void Idle(void* param) {
     CCredits::Render();
     CDebug::DebugDisplayTextBuffer();
     FlushObrsPrintfs();
-
-    // NOTSA: ImGui menu draw loop
-    notsa::ui::UIRenderer::GetSingleton().DrawLoop();
-
-    RwCameraEndUpdate(Scene.m_pRwCamera);
-    RsCameraShowRaster(Scene.m_pRwCamera);
+    ui->Render2D();
+    RwCameraEndUpdate(Scene.m_pRwCamera); // EndScene
+    RsCameraShowRaster(Scene.m_pRwCamera); // Present
+    ui->PostRender();
 }
 
 // 0x53E770
@@ -437,9 +439,6 @@ void FrontendIdle() {
         CFont::DrawFonts();
         CDebug::DebugDisplayTextBuffer();
         FlushObrsPrintfs();
-
-        // NOTSA: ImGui menu draw loop
-        notsa::ui::UIRenderer::GetSingleton().DrawLoop();
 
         RwCameraEndUpdate(Scene.m_pRwCamera);
         RsCameraShowRaster(Scene.m_pRwCamera);

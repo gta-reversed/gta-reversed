@@ -8,9 +8,10 @@ public:
     void RenderMenuEntry() override;
     void Update() override;
 
-    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CheatDebugModule, m_IsOpen);
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CheatDebugModule, m_IsOpen, m_NoVSync);
 
 private:
     bool m_IsOpen{ false };
     bool m_GodMode{};
+    bool m_NoVSync{};
 };
