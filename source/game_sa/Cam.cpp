@@ -159,7 +159,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process, 0x526FC0, { .reversed = false });
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .reversed = false });
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250);
-    RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70, { .reversed = false });
+    RH_ScopedInstall(Process_1rstPersonPedOnPC, 0x50EB70);
     RH_ScopedInstall(Process_1stPerson, 0x517EA0);
     RH_ScopedInstall(Process_AimWeapon, 0x521500, { .reversed = false });
     RH_ScopedInstall(Process_AttachedCam, 0x512B10);
@@ -985,6 +985,9 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
     static auto& v3d_B6FFC4   = StaticRef<CVector>(0xB6FFC4);
     static auto& v3d_B6FFD0   = StaticRef<CVector>(0xB6FFD0);
 
+    StaticRef<uint32>(0xB6FFE0) |= 1;
+    TheCamera.m_b1rstPersonRunCloseToAWall = false;
+
     if (m_nMode != MODE_SNIPER_RUNABOUT) {
         m_fFOV = 70.0f;
     }
@@ -1036,7 +1039,9 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
 
         m_vecSource = targetPed->GetMatrix().TransformPoint(m_vecBufferedPlayerBodyOffset);
     } else {
-        const auto targetFwd = targetPed->GetForward().Normalized();
+        auto targetFwd = targetPed->GetForward();
+        targetFwd.z = 0.0f;
+        targetFwd.Normalise();
         const auto mag       = (pointIn - v3d_B6FFC4).Magnitude2D();
 
         m_vecSource = targetFwd * mag * 1.23f + targetPed->GetPosition() + CVector{ 0.0f, 0.0f, 0.59f };
@@ -1049,43 +1054,81 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
     const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
+    float verticalInput = amountMouseMoved.y * 4.0f;
 
     if (!amountMouseMoved.IsZero()) {
         m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
         m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
-        const auto hv = (float)-pad1->LookAroundLeftRight(targetPed);
-        const auto vv = (float)pad1->LookAroundUpDown(targetPed);
+        const auto hv = (float)-pad1->LookAroundLeftRightOnPC();
+        const auto vv = (float)pad1->LookAroundUpDownOnPC();
+        verticalInput = vv;
 
         m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
         m_fVerticalAngle += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
     }
-    ClipBeta();
-    ClipAlpha();
+    if (m_fHorizontalAngle > PI) {
+        m_fHorizontalAngle -= TWO_PI;
+    } else if (m_fHorizontalAngle < -PI) {
+        m_fHorizontalAngle += TWO_PI;
+    }
+    m_fVerticalAngle = std::clamp(m_fVerticalAngle, DegreesToRadians(-89.5f), DegreesToRadians(60.0f));
 
     if (const auto* a = targetPed->m_pAttachedTo; targetPed->IsPlayer() && a) {
-        // enum?
+        float baseHeading = verticalInput;
         switch (targetPed->m_fTurretAngleA) {
         case 0u:
-            m_fHorizontalAngle -= a->GetHeading() + DegreesToRadians(90.0f);
+            baseHeading = a->GetHeading() + DegreesToRadians(90.0f);
             break;
         case 1u:
-            m_fHorizontalAngle -= a->GetHeading() + DegreesToRadians(180.0f);
+            baseHeading = a->GetHeading() + DegreesToRadians(180.0f);
             break;
         case 2u:
-            m_fHorizontalAngle -= a->GetHeading() + DegreesToRadians(-90.0f);
+            baseHeading = a->GetHeading() + DegreesToRadians(-90.0f);
             break;
         case 3u:
-            m_fHorizontalAngle -= a->GetHeading();
+            baseHeading = a->GetHeading();
             break;
         default:
-            // NOTE(yukani): If this is fired, gimme a call. 0x50F0ED
-            NOTSA_UNREACHABLE();
             break;
         }
 
-        // ...
+        auto relativeHeading = m_fHorizontalAngle - baseHeading;
+        if (relativeHeading > PI) {
+            relativeHeading -= TWO_PI;
+        } else if (relativeHeading < -PI) {
+            relativeHeading += TWO_PI;
+        }
+        m_fHorizontalAngle = baseHeading + std::clamp(relativeHeading, -targetPed->m_fTurretAngleB, targetPed->m_fTurretAngleB);
     }
+
+    const CVector lookAt = m_vecSource + CVector{
+        std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle),
+        std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle),
+        std::sin(m_fVerticalAngle)
+    } * 3.0f;
+    m_vecFront = (lookAt - m_vecSource).Normalized();
+    m_vecSource += m_vecFront * 0.4f;
+    TheCamera.m_fAlphaForPlayerAnim1rstPerson = m_fVerticalAngle;
+    GetVectorsReadyForRW();
+
+    auto* player = TheCamera.m_pTargetEntity->AsPed();
+    player->m_fCurrentRotation = player->m_fAimingRotation = std::atan2(-m_vecFront.x, m_vecFront.y);
+    player->SetHeading(player->m_fCurrentRotation);
+    player->UpdateRwMatrix();
+
+    if (m_nMode == MODE_SNIPER_RUNABOUT) {
+        const auto zoomFactor = (CTimer::GetTimeStep() * 255.0f + 10000.0f) * 0.0001f;
+        if (pad1->SniperZoomOut()) {
+            m_fFOV *= zoomFactor;
+        } else if (pad1->SniperZoomIn()) {
+            m_fFOV /= zoomFactor;
+        }
+        TheCamera.SetMotionBlur(180, 255, 180, 120, eMotionBlurType::SNIPER);
+        m_fFOV = std::clamp(m_fFOV, 15.0f, 70.0f);
+    }
+    m_bResetStatics = false;
+    RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.05f);
 }
 
 // 0x517EA0
