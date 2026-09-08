@@ -859,7 +859,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
     CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
 
     CRect textRect;
-    CFont::GetTextRect(&textRect, x, y, TheText.Get(message));
+    CFont::GetTextRect(textRect, x, y, TheText.Get(message));
     textRect.left -= 4.0f;
     textRect.bottom += StretchY(22.0f);
     CSprite2d::DrawRect(textRect, MENU_BG);

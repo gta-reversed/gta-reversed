@@ -75,6 +75,7 @@ public:
     auto& GetMissionName() const { return m_szMissionName; }
 
 private:
+    friend class FontDebugModule;
     friend class TextDebugModule;
     friend void InjectHooksMain();
     static void InjectHooks();
