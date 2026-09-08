@@ -178,7 +178,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_Fixed, 0x51D470);
     RH_ScopedInstall(Process_FlyBy, 0x5B25F0);
     RH_ScopedInstall(Process_FollowCar_SA, 0x5245B0, { .reversed = false });
-    RH_ScopedInstall(Process_FollowPedWithMouse, 0x50F970, { .reversed = false });
+    RH_ScopedInstall(Process_FollowPedWithMouse, 0x50F970);
     RH_ScopedInstall(Process_FollowPed_SA, 0x522D40, { .reversed = false });
     RH_ScopedInstall(Process_M16_1stPerson, 0x5105C0, { .reversed = false });
     RH_ScopedInstall(Process_Rocket, 0x511B50);
@@ -2226,8 +2226,137 @@ void CCam::Process_FollowCar_SA(const CVector&, float, float, float, bool) {
 }
 
 // 0x50F970
-void CCam::Process_FollowPedWithMouse(const CVector&, float, float, float) {
-    NOTSA_UNREACHABLE();
+void CCam::Process_FollowPedWithMouse(const CVector& target, float orientation, float, float) {
+    m_fFOV = 70.0f;
+    if (!m_pCamTargetEntity->IsPed()) {
+        return;
+    }
+    auto* pad = CPad::GetPad(0);
+    if (m_bResetStatics) {
+        m_bRotating = false;
+        m_bCollisionChecksOn = true;
+        pad->ClearMouseHistory();
+        m_bResetStatics = false;
+    }
+    const auto* vehicle = FindPlayerVehicle();
+    const auto onTrain = vehicle && vehicle->IsTrain();
+    const auto cameraTarget = target + CVector{0.0f, 0.0f, StaticRef<float>(0x8CC7D0)};
+    float horizontal{}, vertical{};
+    if (pad->bPlayerSafe) {
+        const auto direction = (m_vecSource - cameraTarget).Normalized();
+        horizontal = (direction.z >= -0.9f ? std::atan2(direction.y, direction.x) : orientation + PI) - m_fHorizontalAngle;
+    } else {
+        const auto mouse = CPad::NewMouseControllerState.GetAmountMouseMoved();
+        const auto fovScale = m_fFOV / 80.0f;
+        if (mouse.IsZero() || pad->DisablePlayerControls) {
+            horizontal = fovScale / 14.0f * CTimer::GetTimeStep() * StaticRef<float>(0x8CC7CC) * -(float)pad->LookAroundLeftRightOnPC();
+            vertical = fovScale * (3.0f / 70.0f) * CTimer::GetTimeStep() * (float)pad->LookAroundUpDownOnPC() * StaticRef<float>(0x8CC7CC);
+        } else {
+            horizontal = CCamera::m_fMouseAccelHorzntl * fovScale * mouse.x * -2.5f;
+            vertical = fovScale * mouse.y * 4.0f * CCamera::m_fMouseAccelVertical;
+        }
+    }
+    const auto fadingOut = TheCamera.m_bFading && TheCamera.m_nFadeInOutFlag == eFadeFlag::FADE_OUT;
+    if ((fadingOut && CDraw::FadeValue > StaticRef<uint32>(0x8CC7D4)) || CDraw::FadeValue > 200 || pad->bPlayerSafe) {
+        vertical = std::clamp(StaticRef<float>(0x8CC7D8) - m_fVerticalAngle, -0.05f, 0.05f);
+    }
+    m_fHorizontalAngle += horizontal;
+    m_fVerticalAngle += vertical;
+    if (m_fHorizontalAngle > PI) {
+        m_fHorizontalAngle -= TWO_PI;
+    } else if (m_fHorizontalAngle < -PI) {
+        m_fHorizontalAngle += TWO_PI;
+    }
+    m_fVerticalAngle = std::clamp(m_fVerticalAngle, DegreesToRadians(-89.5f), DegreesToRadians(45.0f));
+    const auto distanceAngle = m_fVerticalAngle <= 0.0f
+        ? m_fVerticalAngle
+        : std::min(StaticRef<float>(0x8CC7C8) * m_fVerticalAngle, HALF_PI);
+    const auto desiredDistance = std::cos(distanceAngle) * StaticRef<float>(0x8CC7C4) + StaticRef<float>(0x8CC7C0);
+    if (TheCamera.m_bUseTransitionBeta) {
+        m_fHorizontalAngle = m_fTransitionBeta;
+    }
+    if (TheCamera.m_bCamDirectlyBehind) {
+        m_fHorizontalAngle = TheCamera.m_fPedOrientForBehindOrInFront + PI;
+    }
+    if (TheCamera.m_bCamDirectlyInFront) {
+        m_fHorizontalAngle = TheCamera.m_fPedOrientForBehindOrInFront;
+    }
+    if (onTrain) {
+        m_fHorizontalAngle = orientation;
+    }
+    m_vecFront = {
+        -std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle),
+        -std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle),
+        std::sin(m_fVerticalAngle)
+    };
+    m_vecSource = cameraTarget - m_vecFront * desiredDistance;
+    m_vecTargetCoorsForFudgeInter = cameraTarget;
+
+    CColPoint collision{};
+    CEntity* hitEntity{};
+    CWorld::pIgnoreEntity = m_pCamTargetEntity;
+    if (CWorld::ProcessLineOfSight(cameraTarget, m_vecSource, collision, hitEntity, true, true, true, true, false, false, true, false)) {
+        const auto hitDistance = (cameraTarget - collision.m_vecPoint).Magnitude();
+        if (!hitEntity->IsPed() || desiredDistance - hitDistance <= 0.4f) {
+            m_vecSource = collision.m_vecPoint;
+            if (hitDistance < 0.6f) {
+                RwCameraSetNearClipPlane(Scene.m_pRwCamera, std::max(hitDistance - 0.3f, 0.05f));
+            }
+        } else {
+            const auto hitPosition = collision.m_vecPoint;
+            if (CWorld::ProcessLineOfSight(hitPosition, m_vecSource, collision, hitEntity, true, true, true, true, false, false, true, false)) {
+                const auto nextHitDistance = (cameraTarget - collision.m_vecPoint).Magnitude();
+                m_vecSource = collision.m_vecPoint;
+                if (nextHitDistance < 0.6f) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, std::max(nextHitDistance - 0.3f, 0.05f));
+                }
+            } else {
+                RwCameraSetNearClipPlane(Scene.m_pRwCamera, std::min(desiredDistance - hitDistance - 0.35f, 0.9f));
+            }
+        }
+    }
+    CWorld::pIgnoreEntity = nullptr;
+
+    const auto radiusScale = std::tan(DegreesToRadians(m_fFOV) * 0.5f) * CDraw::ms_fAspectRatio * 1.1f;
+    auto nearClip = RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    auto* obstruction = CWorld::TestSphereAgainstWorld(m_vecSource + m_vecFront * nearClip, nearClip * radiusScale, nullptr, true, true, false, true, false, false);
+    for (int32 i = 0; i < 6 && obstruction; i++) {
+        const auto displacement = gaTempSphereColPoints[0].m_vecPoint - m_vecSource;
+        const auto perpendicular = displacement - m_vecFront * DotProduct(displacement, m_vecFront);
+        const auto newClip = std::max(std::min(perpendicular.Magnitude() / radiusScale, nearClip), 0.1f);
+        if (newClip < nearClip) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, newClip);
+        }
+        if (newClip == 0.1f) {
+            m_vecSource += (cameraTarget - m_vecSource) * 0.3f;
+        }
+        nearClip = RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+        obstruction = CWorld::TestSphereAgainstWorld(m_vecSource + m_vecFront * nearClip, nearClip * radiusScale, nullptr, true, true, false, true, false, false);
+    }
+
+    const auto distance = (cameraTarget - m_vecSource).Magnitude();
+    if (m_fDistance > distance) {
+        m_fDistance = distance;
+    } else {
+        const auto damping = std::pow(0.92f, CTimer::GetTimeStep());
+        m_fDistance = damping * m_fDistance + (1.0f - damping) * distance;
+        if (distance > 0.05f) {
+            m_vecSource = cameraTarget + (m_vecSource - cameraTarget) * (m_fDistance / distance);
+        }
+        const auto maxNearClip = m_fDistance - StaticRef<float>(0x8CC38C);
+        if (maxNearClip < RwCameraGetNearClipPlane(Scene.m_pRwCamera)) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, std::max(maxNearClip, 0.1f));
+        }
+    }
+    TheCamera.m_bCamDirectlyBehind = false;
+    TheCamera.m_bCamDirectlyInFront = false;
+    GetVectorsReadyForRW();
+    if (fadingOut && CDraw::FadeValue > 128) {
+        auto* player = TheCamera.m_pTargetEntity->AsPed();
+        player->m_fCurrentRotation = player->m_fAimingRotation = std::atan2(-m_vecFront.x, m_vecFront.y);
+        player->SetHeading(player->m_fCurrentRotation);
+        player->UpdateRwMatrix();
+    }
 }
 
 // 0x522D40
