@@ -106,7 +106,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_DW_PlaneCam1, 0x51C760);
     RH_ScopedInstall(Process_DW_PlaneCam2, 0x51CC30);
     RH_ScopedInstall(Process_DW_PlaneCam3, 0x51D100);
-    RH_ScopedInstall(Process_DW_PlaneSpotterCam, 0x51C250, { .reversed = false });
+    RH_ScopedInstall(Process_DW_PlaneSpotterCam, 0x51C250);
     RH_ScopedInstall(Process_Editor, 0x50F3F0);
     RH_ScopedInstall(Process_Fixed, 0x51D470);
     RH_ScopedInstall(Process_FlyBy, 0x5B25F0, { .reversed = false });
@@ -1518,8 +1518,111 @@ bool CCam::Process_DW_PlaneCam3(bool) {
 }
 
 // 0x51C250
-void CCam::Process_DW_PlaneSpotterCam(bool) {
-    NOTSA_UNREACHABLE();
+bool CCam::Process_DW_PlaneSpotterCam(bool) {
+    static auto& lastCamMode = StaticRef<int32>(0x8CC488);
+    static auto& sceneStartTime = StaticRef<uint32>(0x8CCBA0);
+    static auto& sceneDuration = StaticRef<uint32>(0x8CCBB4);
+    static auto& maxClearFrames = StaticRef<int32>(0x8CCD78);
+    static auto& zoomStartFraction = StaticRef<float>(0x8CCD7C);
+    static auto& initialFov = StaticRef<float>(0x8CCD80);
+    static auto& distantFov = StaticRef<float>(0x8CCD84);
+    static auto& zoomDistance = StaticRef<float>(0x8CCD88);
+    static auto& searchDistance = StaticRef<float>(0x8CCD8C);
+    static auto& searchDepth = StaticRef<float>(0x8CCD90);
+    static auto& searchAttempts = StaticRef<int32>(0x8CCD94);
+    static auto& clearFrames = StaticRef<int32>(0xB7009C);
+    static auto& startingFov = StaticRef<float>(0xB700A0);
+    static auto& useZoom = StaticRef<bool>(0xB700A4);
+    static auto& cameraPosition = StaticRef<CVector>(0xB700A8);
+    static auto& initialized = StaticRef<uint32>(0xB700B4);
+    static auto& exitCam = StaticRef<bool>(0xB6EC73);
+
+    TheCamera.m_bUseNearClipScript = false;
+    if (!m_pCamTargetEntity || !m_pCamTargetEntity->IsVehicle()) {
+        return false;
+    }
+    CEntity* entity{};
+    CVehicle* vehicle{};
+    CVector target, source, up, right, forward, velocity, angularVelocity;
+    float speed{}, angularSpeed{};
+    CColSphere sphere{};
+    GetCoreDataForDWCineyCamMode(entity, vehicle, target, source, up, right, forward, velocity, speed, angularVelocity, angularSpeed, sphere);
+    const auto now = CTimer::GetTimeInMS();
+    initialized |= 1;
+    if (lastCamMode != MODE_DW_PLANE_SPOTTER || gLastFrameProcessedDWCineyCam < CTimer::GetFrameCounter() - 1u) {
+        lastCamMode = MODE_DW_PLANE_SPOTTER;
+        gDWCineyCamSceneEndTime = now + sceneDuration;
+        exitCam = false;
+        sceneStartTime = now;
+        if (searchAttempts > 0) {
+            bool found = false;
+            for (int32 i = 0; i < searchAttempts; i++) {
+                source = target;
+                source.z -= searchDepth;
+                source.x += CGeneral::GetRandomNumberInRange(searchDistance * 0.5f, searchDistance);
+                source.y += CGeneral::GetRandomNumberInRange(searchDistance * 0.5f, searchDistance);
+                CColPoint collision{};
+                CEntity* hitEntity{};
+                CWorld::pIgnoreEntity = entity;
+                found = CWorld::ProcessLineOfSight(target, source, collision, hitEntity, true, true, false, false, false, false, false, false);
+                CWorld::pIgnoreEntity = nullptr;
+                if (found) {
+                    cameraPosition = collision.m_vecPoint;
+                    cameraPosition.z += 2.0f;
+                    break;
+                }
+            }
+            if (!found) {
+                exitCam = true;
+                return false;
+            }
+        }
+        useZoom = CGeneral::GetRandomNumber() < 0x3FFF;
+    }
+
+    const float t = (float)(int32)(now - sceneStartTime) / (float)(int32)(gDWCineyCamSceneEndTime - sceneStartTime);
+    source = cameraPosition;
+    if ((source - target).Magnitude2D() < 5.0f) {
+        exitCam = true;
+        return false;
+    }
+    const auto ease = [](float ratio) {
+        return (std::sin(DegreesToRadians(270.0f - std::clamp(ratio, 0.0f, 1.0f) * 180.0f)) + 1.0f) * 0.5f;
+    };
+    float fov = 70.0f;
+    if (useZoom) {
+        fov = (distantFov - initialFov) * ease(DistanceBetweenPoints(target, source) / zoomDistance) + initialFov;
+        if (t < zoomStartFraction) {
+            if (!(initialized & 2)) {
+                initialized |= 2;
+                startingFov = initialFov;
+            }
+            fov = (fov - startingFov) * ease(t / zoomStartFraction) + startingFov;
+        }
+    }
+    CColPoint collision{};
+    CEntity* hitEntity{};
+    CWorld::pIgnoreEntity = entity;
+    const bool obstructed = CWorld::ProcessLineOfSight(target, source, collision, hitEntity, true, true, false, false, false, false, false, false);
+    CWorld::pIgnoreEntity = nullptr;
+    if (!(initialized & 4)) {
+        initialized |= 4;
+        clearFrames = maxClearFrames;
+    }
+    if (obstructed) {
+        if (clearFrames-- == 0) {
+            exitCam = true;
+            return false;
+        }
+    } else if (clearFrames++ > maxClearFrames) {
+        clearFrames = maxClearFrames;
+    }
+    if (IsTimeToExitThisDWCineyCamMode(MODE_PLAYER_FALLEN_WATER, source, target, t, false)) {
+        exitCam = true;
+        return false;
+    }
+    Finalise_DW_CineyCams(source, target, 0.0f, fov, 10.0f - fov * (1.0f / 70.0f) * 9.7f, 1.0f);
+    return true;
 }
 
 // 0x50F3F0 - debug
