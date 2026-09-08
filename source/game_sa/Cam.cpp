@@ -13,6 +13,7 @@
 #include "cHandlingDataMgr.h"
 #include "ModelInfo.h"
 #include "VehicleModelInfo.h"
+#include "ControllerConfigManager.h"
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -180,7 +181,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_FollowCar_SA, 0x5245B0, { .reversed = false });
     RH_ScopedInstall(Process_FollowPedWithMouse, 0x50F970);
     RH_ScopedInstall(Process_FollowPed_SA, 0x522D40, { .reversed = false });
-    RH_ScopedInstall(Process_M16_1stPerson, 0x5105C0, { .reversed = false });
+    RH_ScopedInstall(Process_M16_1stPerson, 0x5105C0);
     RH_ScopedInstall(Process_Rocket, 0x511B50);
     RH_ScopedInstall(Process_SpecialFixedForSyphon, 0x517500);
     RH_ScopedInstall(Process_WheelCam, 0x512110);
@@ -2366,7 +2367,248 @@ void CCam::Process_FollowPed_SA(const CVector&, float, float, float, bool) {
 
 // 0x5105C0
 void CCam::Process_M16_1stPerson(const CVector&, float, float, float) {
-    NOTSA_UNREACHABLE();
+    if (!m_pCamTargetEntity->IsPed()) {
+        return;
+    }
+    auto* ped = m_pCamTargetEntity->AsPed();
+    auto* pad = CPad::GetPad(0);
+    const auto attached = ped->IsPlayer() && ped->m_pAttachedTo;
+    auto& targetFOV = StaticRef<float>(0xB6FFE8);
+    auto& blocked = StaticRef<bool>(0xB6FFF4);
+    auto& attachedHeading = CTheScripts::fCameraHeadingWhenPlayerIsAttached;
+    auto& headingStep = CTheScripts::fCameraHeadingStepWhenPlayerIsAttached;
+    const auto timeStep = CTimer::GetTimeStep();
+
+    if (m_bResetStatics) {
+        if (!CCamera::m_bUseMouse3rdPerson || ped->m_pPlayerData || attached) {
+            m_fHorizontalAngle = attached ? attachedHeading : ped->m_fCurrentRotation - HALF_PI;
+            m_fVerticalAngle = 0.0f;
+        }
+        targetFOV = m_fFOV;
+        m_fInitialPlayerOrientation = ped->m_fCurrentRotation - HALF_PI;
+        m_bResetStatics = false;
+        blocked = false;
+        StaticRef<float>(0xB6FFEC) = 0.0f;
+        StaticRef<float>(0xB6FFF0) = 0.0f;
+        m_bCollisionChecksOn = true;
+        m_fFOVSpeed = m_fAlphaSpeed = m_fBetaSpeed = 0.0f;
+    }
+
+    if (m_nMode == MODE_SNIPER || m_nMode == MODE_CAMERA) {
+        const auto zoomInButton = ControlsManager.GetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN);
+        const auto zoomOutButton = ControlsManager.GetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT);
+        const auto wheel = CPad::NewMouseControllerState.m_fWheelMoved;
+        const auto wheelFactor = (std::abs(wheel) * 7.0f + 10000.0f) * 0.0001f;
+        bool wheelZoom = false;
+        if ((wheel > 0.0f && (int32)zoomOutButton == 4) || (wheel < 0.0f && (int32)zoomOutButton == 5)) {
+            targetFOV *= wheelFactor;
+            wheelZoom = true;
+        } else if ((wheel > 0.0f && (int32)zoomInButton == 4) || (wheel < 0.0f && (int32)zoomInButton == 5)) {
+            targetFOV /= wheelFactor;
+            wheelZoom = true;
+        }
+        const auto zoomFactor = (timeStep * 255.0f + 10000.0f) * 0.0001f;
+        if (pad->SniperZoomOut() && !wheelZoom) {
+            targetFOV = m_fFOV *= zoomFactor;
+            m_fFOVSpeed = 0.0f;
+        } else if (pad->SniperZoomIn() && !wheelZoom) {
+            targetFOV = m_fFOV /= zoomFactor;
+            m_fFOVSpeed = 0.0f;
+        } else if (std::abs(targetFOV - m_fFOV) > 0.5f) {
+            WellBufferMe(targetFOV, m_fFOV, m_fFOVSpeed, 0.5f, 0.25f, false);
+        } else {
+            m_fFOVSpeed = 0.0f;
+        }
+        m_fFOV = std::min(m_fFOV, 70.0f);
+        if (targetFOV > 70.0f) {
+            targetFOV = 70.0f;
+        } else {
+            const auto minFOV = m_nMode == MODE_CAMERA ? 3.0f : 15.0f;
+            m_fFOV = std::max(m_fFOV, minFOV);
+            targetFOV = std::max(targetFOV, minFOV);
+        }
+        TheCamera.SetMotionBlur(180, 255, 180, 120, eMotionBlurType::SNIPER);
+    } else {
+        m_fFOV = 70.0f;
+    }
+
+    if (attached && headingStep > (float)StaticRef<double>(0x859EF8)) {
+        auto delta = m_fHorizontalAngle - attachedHeading;
+        if (delta < 0.0f) {
+            delta += TWO_PI;
+        }
+        if (delta < headingStep || TWO_PI - delta < headingStep) {
+            m_fHorizontalAngle = attachedHeading;
+            headingStep = 0.0f;
+        } else {
+            m_fHorizontalAngle += delta <= TWO_PI - delta ? -headingStep : headingStep;
+        }
+    }
+
+    const auto mouse = CPad::NewMouseControllerState.GetAmountMouseMoved();
+    const auto fovScale = m_fFOV / 80.0f;
+    float horizontal{}, vertical{};
+    if (mouse.IsZero()) {
+        const auto h = -(float)pad->LookAroundLeftRight(ped);
+        const auto v = (float)pad->LookAroundUpDown(ped);
+        if (attached) {
+            horizontal = fovScale * 0.04f * std::abs(h / 128.0f) * timeStep * (h / 128.0f);
+            vertical = fovScale * StaticRef<float>(0x8631C0) * std::abs(v / 128.0f) * timeStep * (v / 128.0f);
+        } else {
+            horizontal = fovScale / 17.5f * h * h * 0.0001f * timeStep * (h < 0.0f ? -1.0f : 1.0f);
+            vertical = fovScale / 14.0f * v * v / 22500.0f * timeStep * (v < 0.0f ? -1.0f : 1.0f);
+        }
+        const auto dampingBase = std::abs(h) < 2.0f && std::abs(v) < 2.0f ? StaticRef<float>(0x8CCC94) : StaticRef<float>(0x8CCC98);
+        const auto damping = std::pow(dampingBase, timeStep);
+        horizontal = m_fBetaSpeed = damping * m_fBetaSpeed + (1.0f - damping) * horizontal;
+        vertical = m_fAlphaSpeed = damping * m_fAlphaSpeed + (1.0f - damping) * vertical;
+    } else {
+        if (!pad->DisablePlayerControls && !pad->JustOutOfFrontEnd && timeStep > 0.0f) {
+            horizontal = fovScale * CCamera::m_fMouseAccelHorzntl * mouse.x * -3.0f;
+            vertical = fovScale * CCamera::m_fMouseAccelVertical * mouse.y * 3.0f;
+        }
+        m_fAlphaSpeed = m_fBetaSpeed = 0.0f;
+    }
+    m_fHorizontalAngle += horizontal;
+    m_fVerticalAngle += vertical;
+    if (m_fHorizontalAngle > PI) {
+        m_fHorizontalAngle -= TWO_PI;
+    } else if (m_fHorizontalAngle < -PI) {
+        m_fHorizontalAngle += TWO_PI;
+    }
+
+    const auto now = CTimer::GetTimeInMS();
+    if ((int32)m_nCamBumpedTime > 0) {
+        const auto wave = std::cos((float)(now - m_nCamBumpedTime) / (float)StaticRef<int32>(0x8CC474) * TWO_PI);
+        m_fHorizontalAngle += StaticRef<float>(0x8CC480) * wave * m_fCamBumpedHorz;
+        m_fVerticalAngle += wave * m_fCamBumpedVert * StaticRef<float>(0x8CC480);
+        const auto damping = std::pow(StaticRef<float>(0x8CC47C), timeStep);
+        m_fCamBumpedHorz *= damping;
+        m_fCamBumpedVert *= damping;
+        if (now > m_nCamBumpedTime + StaticRef<uint32>(0x8CC478)) {
+            m_nCamBumpedTime = 0;
+        }
+    }
+
+    auto forwardOffset = ped->bIsDucking ? 0.8f : 0.3f;
+    if (attached) {
+        auto* parent = ped->m_pAttachedTo;
+        const auto& matrix = parent->GetMatrix();
+        auto baseHeading = parent->GetHeading();
+        float pitchComponent{};
+        switch (ped->m_fTurretAngleA) {
+        case 1:
+            pitchComponent = -matrix.GetRight().z;
+            break;
+        case 2:
+            pitchComponent = -matrix.GetForward().z;
+            baseHeading += HALF_PI;
+            break;
+        case 3:
+            pitchComponent = matrix.GetRight().z;
+            baseHeading -= PI;
+            break;
+        default:
+            pitchComponent = matrix.GetForward().z;
+            baseHeading -= HALF_PI;
+            break;
+        }
+        const auto basePitch = std::asin(std::clamp(pitchComponent, -1.0f, 1.0f));
+        ped->PositionAttachedPed();
+        ped->UpdateRwMatrix();
+        ped->UpdateRwFrame();
+        ped->UpdateRpHAnim();
+
+        auto upOffset = 0.1f;
+        auto upperLimit = DegreesToRadians(60.0f);
+        auto lowerLimit = DegreesToRadians(85.5f);
+        if (parent->IsVehicle() && parent->AsVehicle()->IsBike()) {
+            upOffset = forwardOffset = 0.0f;
+            upperLimit = lowerLimit = ped->m_nTurretPosnMode;
+        }
+        CVector head{};
+        ped->GetTransformedBonePosition(head, BONE_HEAD, true);
+        m_vecSource = head + ped->GetMatrix().GetUp() * upOffset - ped->GetMatrix().GetForward() * forwardOffset;
+
+        auto delta = baseHeading - m_fHorizontalAngle;
+        if (delta > PI) {
+            baseHeading -= TWO_PI;
+        } else if (delta < -PI) {
+            baseHeading += TWO_PI;
+        }
+        delta = baseHeading - m_fHorizontalAngle;
+        const auto softLimit = ped->m_fTurretAngleB * 0.75f;
+        const auto margin = ped->m_fTurretAngleB * 0.25f;
+        if (delta > softLimit || delta < -softLimit) {
+            const auto excess = delta > softLimit ? delta - softLimit : delta + softLimit;
+            const auto correction = std::max(timeStep * 0.05f * std::abs(excess), std::abs(excess) - margin);
+            if (parent->IsVehicle() && parent->AsVehicle()->IsSubHeli()) {
+                auto* heli = parent->AsVehicle()->AsHeli();
+                if (heli->m_fForcedOrientation > 0.0f) {
+                    heli->SetHeliOrientation(heli->m_fForcedOrientation - timeStep * excess * 0.1f);
+                }
+            }
+            m_fHorizontalAngle += excess < 0.0f ? -correction : correction;
+        }
+        if (m_fVerticalAngle > basePitch + upperLimit * 0.75f) {
+            const auto excess = m_fVerticalAngle - basePitch - upperLimit * 0.75f;
+            m_fVerticalAngle -= std::max(timeStep * 0.05f * excess, excess - upperLimit * 0.25f);
+        }
+        if (m_fVerticalAngle < basePitch - lowerLimit * 0.75f) {
+            const auto excess = basePitch - m_fVerticalAngle - lowerLimit * 0.75f;
+            m_fVerticalAngle += std::max(timeStep * 0.05f * excess, excess - lowerLimit * 0.25f);
+        }
+    } else {
+        m_fVerticalAngle = std::clamp(m_fVerticalAngle, DegreesToRadians(-85.5f), DegreesToRadians(60.0f));
+        ped->UpdateRwMatrix();
+        ped->UpdateRwFrame();
+        ped->UpdateRpHAnim();
+        CVector head{};
+        ped->GetTransformedBonePosition(head, BONE_HEAD, true);
+        m_vecSource = head + CVector{0.0f, 0.0f, 0.1f};
+        const auto& matrix = ped->GetMatrix();
+        const auto offset = ped->bIsDucking
+            ? matrix.GetForward() * StaticRef<float>(0x8CC7BC) + matrix.GetRight() * StaticRef<float>(0x8CC7B8)
+            : matrix.GetForward() * forwardOffset;
+        m_vecSource.x -= offset.x;
+        m_vecSource.y -= offset.y;
+    }
+
+    const auto pitchLimit = StaticRef<float>(0x8CCC90);
+    m_fVerticalAngle = std::clamp(m_fVerticalAngle, -pitchLimit, pitchLimit);
+    m_vecFront = {
+        -std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle),
+        -std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle),
+        std::sin(m_fVerticalAngle)
+    };
+    const auto lookAt = m_vecSource + m_vecFront * 3.0f;
+    m_vecSource += m_vecFront * 0.4f;
+    if (m_bCollisionChecksOn) {
+        blocked = !CWorld::GetIsLineOfSightClear(lookAt, m_vecSource, true, true, false, true, false, true, true);
+        for (const auto side : {1.0f, -1.0f}) {
+            if (blocked) {
+                break;
+            }
+            const auto beta = m_fHorizontalAngle + side * StaticRef<float>(0x8631B8);
+            const auto alpha = m_fVerticalAngle - StaticRef<float>(0x8631B4);
+            const auto probe = m_vecSource + CVector{
+                std::cos(beta) * std::cos(alpha),
+                std::sin(beta) * std::cos(alpha),
+                std::sin(alpha)
+            } * 3.0f;
+            blocked = !CWorld::GetIsLineOfSightClear(probe, m_vecSource, true, true, false, true, false, true, true);
+        }
+        if (blocked) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.3f);
+        }
+    }
+    if (!blocked && m_nMode == MODE_CAMERA) {
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, ((15.0f - std::min(m_fFOV, 15.0f)) * 0.15f + 1.0f) * 0.3f);
+    }
+    m_vecSource -= m_vecFront * 0.4f;
+    GetVectorsReadyForRW();
+    auto* player = TheCamera.m_pTargetEntity->AsPed();
+    player->m_fCurrentRotation = player->m_fAimingRotation = std::atan2(-m_vecFront.x, m_vecFront.y);
 }
 
 // 0x511B50
