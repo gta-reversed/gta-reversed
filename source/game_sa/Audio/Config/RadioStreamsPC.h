@@ -5,6 +5,9 @@
 
 #define NOTRACK 1922
 
+//! Number of story DJ banters per station in `gRadioDJBanterMission`
+constexpr auto NUM_MISSION_DJ_BANTERS = 22;
+
 int32 gRadioNumMusicTracksPerStation[] = {
    2,  // Emergency
    12, // Playback FM
@@ -394,7 +397,8 @@ int32 gnRadioStationRestrictedAdverts[][23] = {
    },
 };
 
-int32 gRadioDJBanterBC[][2] = {
+// 0x8C8BF0 - played once when a story banter is pending
+int32 gRadioDJBanterPending[][2] = {
    { // Emergency
        NOTRACK, NOTRACK,
    },
@@ -433,7 +437,8 @@ int32 gRadioDJBanterBC[][2] = {
    },
 };
 
-int32 gRadioDJBanterTN[][2] = {
+// 0x8C8E30 - 22:00..02:00
+int32 gRadioDJBanterNight[][2] = {
    { // Emergency
        39,      59,
    },
@@ -472,7 +477,8 @@ int32 gRadioDJBanterTN[][2] = {
    },
 };
 
-int32 gRadioDJBanterGN[][2] = {
+// 0x8C8CB0 - fallback, used when no other list yields a line
+int32 gRadioDJBanterGeneric[][2] = {
    { // Emergency
        0,      38,
    },
@@ -510,3 +516,298 @@ int32 gRadioDJBanterGN[][2] = {
        NOTRACK, NOTRACK,
    },
 };
+
+// 0x8C8C50 - story banter, indexed by `m_nSpecialDJBanterIndex`
+int32 gRadioDJBanterSpecial[][2] = {
+   { // Emergency
+       NOTRACK, NOTRACK,
+   },
+   { // Playback FM
+       186,     187,
+   },
+   { // K Rose
+       316,     317,
+   },
+   { // K-DST
+       471,     472,
+   },
+   { // Bounce FM
+       768,     769,
+   },
+   { // SF-UR
+       947,     948,
+   },
+   { // Radio Los Santos
+       1062,    1063,
+   },
+   { // Radio X
+       1214,    1215,
+   },
+   { // CSR 103.9
+       1361,    1362,
+   },
+   { // K-Jah West
+       1491,    1492,
+   },
+   { // Master Sounds 98.3
+       1652,    1653,
+   },
+   { // WCTR
+       NOTRACK, NOTRACK,
+   },
+};
+
+// 0x8C8D70 - 18:00..20:00
+int32 gRadioDJBanterEvening[][2] = {
+   { // Emergency
+       NOTRACK, NOTRACK,
+   },
+   { // Playback FM
+       206,     207,
+   },
+   { // K Rose
+       NOTRACK, NOTRACK,
+   },
+   { // K-DST
+       488,     489,
+   },
+   { // Bounce FM
+       805,     806,
+   },
+   { // SF-UR
+       972,     974,
+   },
+   { // Radio Los Santos
+       1086,    1087,
+   },
+   { // Radio X
+       1235,    1236,
+   },
+   { // CSR 103.9
+       1380,    1380,
+   },
+   { // K-Jah West
+       1519,    1520,
+   },
+   { // Master Sounds 98.3
+       1686,    1687,
+   },
+   { // WCTR
+       NOTRACK, NOTRACK,
+   },
+};
+
+// 0x8C8DD0 - 06:00..08:00
+int32 gRadioDJBanterMorning[][2] = {
+   { // Emergency
+       NOTRACK, NOTRACK,
+   },
+   { // Playback FM
+       208,     209,
+   },
+   { // K Rose
+       345,     346,
+   },
+   { // K-DST
+       490,     492,
+   },
+   { // Bounce FM
+       807,     809,
+   },
+   { // SF-UR
+       975,     977,
+   },
+   { // Radio Los Santos
+       1088,    1089,
+   },
+   { // Radio X
+       1237,    1238,
+   },
+   { // CSR 103.9
+       1381,    1382,
+   },
+   { // K-Jah West
+       1521,    1522,
+   },
+   { // Master Sounds 98.3
+       1688,    1689,
+   },
+   { // WCTR
+       NOTRACK, NOTRACK,
+   },
+};
+
+// 0x8C8E90 - forecast is RAINY
+int32 gRadioDJBanterRain[][2] = {
+   { // Emergency
+       NOTRACK, NOTRACK,
+   },
+   { // Playback FM
+       215,     217,
+   },
+   { // K Rose
+       351,     353,
+   },
+   { // K-DST
+       498,     499,
+   },
+   { // Bounce FM
+       815,     816,
+   },
+   { // SF-UR
+       NOTRACK, NOTRACK,
+   },
+   { // Radio Los Santos
+       1094,    1097,
+   },
+   { // Radio X
+       1243,    1245,
+   },
+   { // CSR 103.9
+       1387,    1388,
+   },
+   { // K-Jah West
+       1527,    1529,
+   },
+   { // Master Sounds 98.3
+       1695,    1696,
+   },
+   { // WCTR
+       NOTRACK, NOTRACK,
+   },
+};
+
+// 0x8C8EF0 - forecast is EXTRASUNNY. Unreachable in the original game, see `ChooseDJBanterIndex`
+int32 gRadioDJBanterHeat[][2] = {
+   { // Emergency
+       NOTRACK, NOTRACK,
+   },
+   { // Playback FM
+       218,     219,
+   },
+   { // K Rose
+       354,     355,
+   },
+   { // K-DST
+       500,     501,
+   },
+   { // Bounce FM
+       817,     818,
+   },
+   { // SF-UR
+       NOTRACK, NOTRACK,
+   },
+   { // Radio Los Santos
+       1098,    1099,
+   },
+   { // Radio X
+       1246,    1247,
+   },
+   { // CSR 103.9
+       1389,    1390,
+   },
+   { // K-Jah West
+       1530,    1531,
+   },
+   { // Master Sounds 98.3
+       1697,    1697,
+   },
+   { // WCTR
+       NOTRACK, NOTRACK,
+   },
+};
+
+// 0x8C8F50 - forecast is FOGGY
+int32 gRadioDJBanterFog[][2] = {
+   { // Emergency
+       NOTRACK, NOTRACK,
+   },
+   { // Playback FM
+       212,     214,
+   },
+   { // K Rose
+       349,     350,
+   },
+   { // K-DST
+       496,     497,
+   },
+   { // Bounce FM
+       812,     814,
+   },
+   { // SF-UR
+       NOTRACK, NOTRACK,
+   },
+   { // Radio Los Santos
+       1092,    1093,
+   },
+   { // Radio X
+       1241,    1242,
+   },
+   { // CSR 103.9
+       1385,    1386,
+   },
+   { // K-Jah West
+       1525,    1526,
+   },
+   { // Master Sounds 98.3
+       1692,    1694,
+   },
+   { // WCTR
+       NOTRACK, NOTRACK,
+   },
+};
+
+// 0x8CB280 - story banter per mission stat, indexed by `m_nSpecialDJBanterIndex` (0..21)
+int32 gRadioDJBanterMission[][NUM_MISSION_DJ_BANTERS] = {
+   { // Emergency
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+   { // Playback FM
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+   { // K Rose
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,     -1,     -1,     -1,     -1,    344,    341,    343,     -1,    340,     -1,
+   },
+   { // K-DST
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,    487,     -1,     -1,
+           -1,     -1,     -1,    485,     -1,     -1,    486,     -1,     -1,     -1,     -1,
+   },
+   { // Bounce FM
+           -1,     -1,     -1,     -1,     -1,    803,     -1,     -1,     -1,     -1,     -1,
+          804,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+   { // SF-UR
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+   { // Radio Los Santos
+           -1,     -1,     -1,   1082,     -1,     -1,     -1,     -1,     -1,     -1,   1084,
+           -1,     -1,   1085,     -1,   1083,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+   { // Radio X
+         1232,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,     -1,   1234,     -1,     -1,     -1,   1233,     -1,   1231,     -1,     -1,
+   },
+   { // CSR 103.9
+           -1,     -1,     -1,     -1,     -1,     -1,   1377,     -1,     -1,   1379,     -1,
+           -1,     -1,     -1,     -1,     -1,     -1,   1378,     -1,     -1,     -1,     -1,
+   },
+   { // K-Jah West
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,   1516,     -1,     -1,     -1,
+         1518,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+   { // Master Sounds 98.3
+           -1,   1683,   1684,     -1,   1681,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,   1682,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,   1685,
+   },
+   { // WCTR
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+           -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,
+   },
+};
+
+// 0x8C8B88 - range the adverts are picked from; the game never changes it
+int32 gRadioAdvertRange[2] = { 66, 134 };
