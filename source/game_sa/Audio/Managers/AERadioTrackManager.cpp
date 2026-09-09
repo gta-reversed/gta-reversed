@@ -32,12 +32,12 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(TrackRadioStation, 0x4EAC30, { .reversed = false });
     RH_ScopedInstall(ChooseTracksForStation, 0x4EB180);
     RH_ScopedInstall(CheckForTrackConcatenation, 0x4EA930, { .reversed = false });
-    RH_ScopedInstall(QueueUpTracksForStation, 0x4EA670, { .reversed = false });
-    RH_ScopedInstall(ChooseDJBanterIndex, 0x4EA2D0, { .reversed = false });
-    RH_ScopedInstall(ChooseDJBanterIndexFromList, 0x4E95E0, { .reversed = false });
-    RH_ScopedInstall(ChooseAdvertIndex, 0x4E9570, { .reversed = false });
-    RH_ScopedInstall(ChooseIdentIndex, 0x4E94C0, { .reversed = false });
-    RH_ScopedInstall(ChooseMusicTrackIndex, 0x4EA270, { .reversed = false });
+    RH_ScopedInstall(QueueUpTracksForStation, 0x4EA670);
+    RH_ScopedInstall(ChooseDJBanterIndex, 0x4EA2D0);
+    RH_ScopedInstall(ChooseDJBanterIndexFromList, 0x4E95E0);
+    RH_ScopedInstall(ChooseAdvertIndex, 0x4E9570);
+    RH_ScopedInstall(ChooseIdentIndex, 0x4E94C0);
+    RH_ScopedInstall(ChooseMusicTrackIndex, 0x4EA270);
     RH_ScopedInstall(ChooseTalkRadioShow, 0x4E8E40, { .reversed = false });
     RH_ScopedInstall(CheckForMissionStatsChanges, 0x4E8410);
     RH_ScopedInstall(StartTrackPlayback, 0x4EA640);
@@ -622,7 +622,83 @@ bool CAERadioTrackManager::TrackRadioStation(eRadioID id, bool skipTrack) {
 
 // 0x4EA670
 bool CAERadioTrackManager::QueueUpTracksForStation(eRadioID id, int8* iTrackCount, int8 radioState, tRadioSettings& settings) {
-    return plugin::CallMethodAndReturn<bool, 0x4EA670, CAERadioTrackManager*, int8, int8*, int8, tRadioSettings&>(this, id, iTrackCount, radioState, settings);
+    // Spoken entries take up a single slot, and a missing one aborts the whole entry
+    const auto PushSpoken = [&](int32 trackID, int8 type) {
+        settings.TrackQueue[*iTrackCount] = trackID;
+        if (trackID == -1) {
+            return false;
+        }
+        settings.TrackTypes[*iTrackCount] = type;
+        (*iTrackCount)++;
+        return true;
+    };
+
+    // Music is queued a whole song at a time, so every part of it carries the same track index
+    const auto PushMusic = [&](int32 trackID, int8 type, int8 musicIdx) {
+        settings.TrackIndices[*iTrackCount] = musicIdx;
+        settings.TrackQueue[*iTrackCount]   = trackID;
+        settings.TrackTypes[*iTrackCount]   = type;
+        (*iTrackCount)++;
+    };
+
+    const auto Outro = [&](int8 musicIdx) {
+        return CAEAudioUtility::GetRandomNumberInRange<int32>(gRadioMusicOutros[id][musicIdx][0], gRadioMusicOutros[id][musicIdx][1]);
+    };
+
+    switch (radioState) {
+    case TYPE_INDENT: {
+        if (id == RADIO_USER_TRACKS) {
+            return false;
+        }
+        return PushSpoken(ChooseIdentIndex(id), TYPE_INDENT);
+    }
+    case TYPE_ADVERT: { // Unlike the others this one can't come up empty
+        settings.TrackQueue[*iTrackCount] = ChooseAdvertIndex(id);
+        settings.TrackTypes[*iTrackCount] = TYPE_ADVERT;
+        (*iTrackCount)++;
+        return true;
+    }
+    case TYPE_DJ_BANTER: {
+        if (id == RADIO_USER_TRACKS) {
+            return false;
+        }
+        return PushSpoken(ChooseDJBanterIndex(id), TYPE_DJ_BANTER);
+    }
+    case TYPE_INTRO: { // The full song: DJ intro, body, outro
+        if (id == RADIO_USER_TRACKS) {
+            return false;
+        }
+        const auto idx = ChooseMusicTrackIndex(id);
+        PushMusic(CAEAudioUtility::GetRandomNumberInRange<int32>(gRadioMusicIntros[id][idx][0], gRadioMusicIntros[id][idx][1]), TYPE_INTRO, idx);
+        PushMusic(gRadioMusicTracks[id][idx], TYPE_TRACK, idx);
+        PushMusic(Outro(idx), TYPE_OUTRO, idx);
+        return true;
+    }
+    case TYPE_TRACK: { // Same song, joined after the intro
+        if (id == RADIO_USER_TRACKS) {
+            const auto userTrack = AEUserRadioTrackManager.SelectUserTrackIndex();
+            settings.TrackQueue[*iTrackCount]   = userTrack;
+            settings.TrackTypes[*iTrackCount]   = TYPE_USER_TRACK;
+            settings.TrackIndices[*iTrackCount] = (int8)userTrack;
+            (*iTrackCount)++;
+            return true;
+        }
+        const auto idx = ChooseMusicTrackIndex(id);
+        PushMusic(gRadioMusicTracks[id][idx], TYPE_TRACK, idx);
+        PushMusic(Outro(idx), TYPE_OUTRO, idx);
+        return true;
+    }
+    case TYPE_OUTRO: { // Only the tail end of it
+        if (id == RADIO_USER_TRACKS) {
+            return false;
+        }
+        const auto idx = ChooseMusicTrackIndex(id);
+        PushMusic(Outro(idx), TYPE_OUTRO, idx);
+        return true;
+    }
+    default:
+        return true;
+    }
 }
 
 // 0x4E9820
@@ -632,27 +708,177 @@ void CAERadioTrackManager::StopRadio(tVehicleAudioSettings* settings, bool durin
 
 // 0x4E94C0
 int32 CAERadioTrackManager::ChooseIdentIndex(eRadioID id) {
-    return plugin::CallAndReturn<int32, 0x4E94C0, CAERadioTrackManager*, int8>(this, id);
+    const auto& range = gRadioIdents[id];
+    if (range[0] == NOTRACK) {
+        return -1;
+    }
+
+    // The history is only as deep as the list has room for, otherwise we'd never find a free index
+    const auto depth = std::max(0, std::min<int32>(range[1] - range[0] - 1, IDENT_INDEX_HISTORY_COUNT));
+    const auto history = m_nIdentIndexHistory[id].indices | rngv::take(depth);
+
+    while (true) {
+        const auto idx = CAEAudioUtility::GetRandomNumberInRange<int32>(range[0], range[1]);
+
+        // Radio Los Santos keeps this ident off the air until the mission has been passed
+        if (id == RADIO_MODERN_HIP_HOP && idx == 1100 && CStats::GetStatValue(STAT_ARE_YOU_GOING_TO_SAN_FIERRO_MISSION_ACCOMPLISHED) == 0.0f) {
+            continue;
+        }
+
+        if (rng::find(history, idx) == rng::end(history)) {
+            return idx;
+        }
+    }
 }
 
 // 0x4E9570
 int32 CAERadioTrackManager::ChooseAdvertIndex(eRadioID id) {
-    return plugin::CallAndReturn<int32, 0x4E9570, CAERadioTrackManager*, int8>(this, id);
+    while (true) {
+        const auto idx = CAEAudioUtility::GetRandomNumberInRange<int32>(gRadioAdvertRange[0], gRadioAdvertRange[1]);
+
+        if (rng::contains(gnRadioStationRestrictedAdverts[id], idx)) { // This advert isn't meant for this station
+            continue;
+        }
+        if (!rng::contains(m_nAdvertIndexHistory[id].indices, idx)) {  // ...and it hasn't been on recently
+            return idx;
+        }
+    }
 }
 
 // 0x4EA270
 int8 CAERadioTrackManager::ChooseMusicTrackIndex(eRadioID id) {
-    return plugin::CallAndReturn<int8, 0x4EA270, CAERadioTrackManager*, int8>(this, id);
+    if (id == RADIO_TALK) {
+        return ChooseTalkRadioShow();
+    }
+
+    const auto numTracks = gRadioNumMusicTracksPerStation[id];
+
+    // See `ChooseIdentIndex` - a station with 2 tracks or less has no history at all
+    const auto depth = std::max(0, std::min<int32>(numTracks - 2, MUSIC_TRACK_HISTORY_COUNT));
+    const auto history = m_nMusicTrackIndexHistory[id].indices | rngv::take(depth);
+
+    while (true) {
+        const auto idx = (int8)CAEAudioUtility::GetRandomNumberInRange<int32>(0, numTracks - 1);
+        if (rng::find(history, idx) == rng::end(history)) {
+            return idx;
+        }
+    }
 }
 
 // 0x4EA2D0
 int32 CAERadioTrackManager::ChooseDJBanterIndex(eRadioID id) {
-    return plugin::CallAndReturn<int32, 0x4EA2D0, CAERadioTrackManager*, int8>(this, id);
+    //
+    // A pending story banter beats everything else, as long as it hasn't been on already
+    //
+    auto story = -1;
+    switch (m_nSpecialDJBanterPending) {
+    case 0:
+        story = gRadioDJBanterPending[id][0];
+        break;
+    case 1:
+        // The second line is skipped for stations that only recorded one
+        if (m_nSpecialDJBanterIndex == 0 || (m_nSpecialDJBanterIndex == 1 && gRadioDJBanterSpecial[id][0] != gRadioDJBanterSpecial[id][1])) {
+            story = gRadioDJBanterSpecial[id][m_nSpecialDJBanterIndex];
+        }
+        break;
+    case 2:
+        story = gRadioDJBanterMission[id][m_nSpecialDJBanterIndex];
+        break;
+    }
+    if (story != NOTRACK && story >= 0 && !rng::contains(m_nDJBanterIndexHistory[id].indices, story)) {
+        return story;
+    }
+
+    // The police scanner has no DJ, it swaps its whole list out during the riots instead
+    if (id == RADIO_EMERGENCY_AA) {
+        return ChooseDJBanterIndexFromList(id, CGameLogic::LaRiotsActiveHere() ? gRadioDJBanterNight : gRadioDJBanterGeneric);
+    }
+
+    // 40% of the time the DJ keeps quiet and the caller puts an advert on instead
+    if (!CAEAudioUtility::ResolveProbability(0.6f)) {
+        return -1;
+    }
+
+    const auto hour = CClock::ms_nGameClockHours;
+    if (CGame::currArea != AREA_CODE_NORMAL_WORLD) { // No banter while the player is inside
+        return -1;
+    }
+
+    const auto TryList = [&](int32 (*list)[2]) {
+        return CAEAudioUtility::ResolveProbability(0.5f)
+            ? ChooseDJBanterIndexFromList(id, list)
+            : -1;
+    };
+
+    //
+    // Weather lines are about the *forecast* three steps out, not the weather right now
+    //
+    const auto Forecast = [](eWeatherType type) { return CWeather::ForecastWeather(type, 3); };
+
+    if (Forecast(WEATHER_RAINY_COUNTRYSIDE) || Forecast(WEATHER_RAINY_SF)) {
+        if (const auto idx = TryList(gRadioDJBanterRain); idx != -1) {
+            return idx;
+        }
+    } else if (
+           (Forecast(WEATHER_EXTRASUNNY_LA) || Forecast(WEATHER_EXTRASUNNY_SMOG_LA) || Forecast(WEATHER_EXTRASUNNY_COUNTRYSIDE)
+         || Forecast(WEATHER_EXTRASUNNY_SF) || Forecast(WEATHER_EXTRASUNNY_VEGAS)   || Forecast(WEATHER_EXTRASUNNY_DESERT))
+        && (hour >= 8 && hour < 6) // BUG (R*): No hour satisfies this, so the heat lines never make it to air
+    ) {
+        if (const auto idx = TryList(gRadioDJBanterHeat); idx != -1) {
+            return idx;
+        }
+    } else if (Forecast(WEATHER_FOGGY_SF)) {
+        if (const auto idx = TryList(gRadioDJBanterFog); idx != -1) {
+            return idx;
+        }
+    }
+
+    //
+    // Then the time of day, each list only 30% of the time
+    //
+    int32 (*timeOfDay)[2] = nullptr;
+    if (hour >= 6 && hour <= 8) {
+        timeOfDay = gRadioDJBanterMorning;
+    } else if (hour >= 18 && hour <= 20) {
+        timeOfDay = gRadioDJBanterEvening;
+    } else if (hour >= 22 || hour <= 2) {
+        timeOfDay = gRadioDJBanterNight;
+    }
+    if (timeOfDay && CAEAudioUtility::ResolveProbability(0.3f)) {
+        if (const auto idx = ChooseDJBanterIndexFromList(id, timeOfDay); idx != -1) {
+            return idx;
+        }
+    }
+
+    return ChooseDJBanterIndexFromList(id, gRadioDJBanterGeneric);
 }
 
 // 0x4E95E0
-int32 CAERadioTrackManager::ChooseDJBanterIndexFromList(eRadioID id, int32** list) {
-    return plugin::CallMethodAndReturn<int32, 0x4E95E0, CAERadioTrackManager*, eRadioID, int32**>(this, id, list);
+int32 CAERadioTrackManager::ChooseDJBanterIndexFromList(eRadioID id, int32 (*list)[2]) {
+    const auto& range = list[id];
+    if (range[0] == NOTRACK) {
+        return -1;
+    }
+
+    // Unlike the other pickers this one walks the list from a random point instead of re-rolling
+    const auto count = range[1] - range[0] + 1;
+    const auto first = CAEAudioUtility::GetRandomNumberInRange<int32>(0, count - 1);
+    if (count < 1) {
+        return -1;
+    }
+
+    // The depth is always measured on the generic list, whichever list we're actually picking from
+    const auto& generic = gRadioDJBanterGeneric[id];
+    const auto  depth   = std::max(0, std::min<int32>(generic[1] - generic[0] - 1, DJBANTER_INDEX_HISTORY_COUNT));
+    const auto  history = m_nDJBanterIndexHistory[id].indices | rngv::take(depth);
+
+    for (auto i = 0; i < count; i++) {
+        const auto idx = range[0] + (first + i) % count;
+        if (rng::find(history, idx) == rng::end(history)) {
+            return idx;
+        }
+    }
+    return -1;
 }
 
 // 0x4EB180
