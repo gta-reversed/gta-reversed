@@ -21,7 +21,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(DisplayRadioStationName, 0x4E9E50);
     RH_ScopedInstall(CheckForStationRetune, 0x4EB660, { .reversed = false });
     RH_ScopedInstall(CheckForPause, 0x4EA590);
-    RH_ScopedInstall(IsVehicleRadioActive, 0x4E9800, { .reversed = false });
+    RH_ScopedInstall(IsVehicleRadioActive, 0x4E9800);
     RH_ScopedInstall(AddDJBanterIndexToHistory, 0x4E97B0);
     RH_ScopedInstall(AddAdvertIndexToHistory, 0x4E9760);
     RH_ScopedInstall(AddIdentIndexToHistory, 0x4E9720);
@@ -31,7 +31,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(CheckForStationRetuneDuringPause, 0x4EB890);
     RH_ScopedInstall(TrackRadioStation, 0x4EAC30, { .reversed = false });
     RH_ScopedInstall(ChooseTracksForStation, 0x4EB180);
-    RH_ScopedInstall(CheckForTrackConcatenation, 0x4EA930, { .reversed = false });
+    RH_ScopedInstall(CheckForTrackConcatenation, 0x4EA930);
     RH_ScopedInstall(QueueUpTracksForStation, 0x4EA670);
     RH_ScopedInstall(ChooseDJBanterIndex, 0x4EA2D0);
     RH_ScopedInstall(ChooseDJBanterIndexFromList, 0x4E95E0);
@@ -367,43 +367,95 @@ void CAERadioTrackManager::CheckForMissionStatsChanges() {
 
 // 0x4EA930
 void CAERadioTrackManager::CheckForTrackConcatenation() {
-    plugin::CallMethod<0x4EA930, CAERadioTrackManager*>(this);
-    /*
-    const auto utPlayMode = AEUserRadioTrackManager.GetUserTrackPlayMode();
-    if (m_ActiveSettings.m_nCurrentRadioStation == RADIO_USER_TRACKS && utPlayMode != 0) {
-        if (utPlayMode == 2 && m_ActiveSettings.m_iTrackPlayTime != -4) { // ???
-            AEUserRadioTrackManager.SetUserTrackIndex(m_ActiveSettings.m_aTrackQueue.front());
+    // Slot 0 is whatever is on air, so anything queued up goes in after it
+    auto trackCount = (int8)1;
 
-            m_ActiveSettings.m_aTrackQueue[1] = AEUserRadioTrackManager.SelectUserTrackIndex();
-            m_ActiveSettings.m_aTrackTypes[1] = TYPE_USER_TRACK;
-            m_ActiveSettings.m_aTrackIndexes[1] = m_ActiveSettings.m_aTrackQueue[1];
+    const auto PlayQueuedPair = [this] {
+        AEAudioHardware.PlayTrack(
+            m_ActiveSettings.TrackQueue[0],
+            m_ActiveSettings.TrackQueue[1],
+            0u,
+            m_ActiveSettings.TrackFlags,
+            m_ActiveSettings.TrackTypes[0] == TYPE_USER_TRACK,
+            m_ActiveSettings.TrackTypes[1] == TYPE_USER_TRACK
+        );
+    };
 
-            AEAudioHardware.PlayTrack(
-                m_ActiveSettings.m_aTrackQueue[0],
-                m_ActiveSettings.m_aTrackQueue[1],
-                0u,
-                m_ActiveSettings.m_nTrackFlags,
-                m_ActiveSettings.m_aTrackTypes[0] == TYPE_USER_TRACK,
-                m_ActiveSettings.m_aTrackTypes[1] == TYPE_USER_TRACK // always true?
-            );
-        }
-        m_nUserTrackPlayMode = AEUserRadioTrackManager.GetUserTrackPlayMode();
-    }
+    // Switching the MP3 player in or out of random mode has to re-pick what comes next
+    if (m_ActiveSettings.StationID == RADIO_USER_TRACKS) {
+        const auto prevMode = m_nUserTrackPlayMode;
+        if (prevMode != AEUserRadioTrackManager.GetUserTrackPlayMode()) {
+            if ((prevMode == 2 || AEUserRadioTrackManager.GetUserTrackPlayMode() == 2) && m_ActiveSettings.PlayTime != -4) {
+                AEUserRadioTrackManager.SetUserTrackIndex(m_ActiveSettings.TrackQueue[0]);
 
-    const auto nextTrack = m_ActiveSettings.m_aTrackQueue[1];
-    if (AEAudioHardware.GetActiveTrackID() == nextTrack && nextTrack >= 0) {
-        m_ActiveSettings.SwitchToNextTrack();
+                m_ActiveSettings.TrackQueue[1]   = AEUserRadioTrackManager.SelectUserTrackIndex();
+                m_ActiveSettings.TrackTypes[1]   = TYPE_USER_TRACK;
+                m_ActiveSettings.TrackIndices[1] = (int8)m_ActiveSettings.TrackQueue[1];
+                trackCount = 2;
 
-        if (m_ActiveSettings.m_aTrackQueue[1] == -1) {
-            const auto radioId = m_ActiveSettings.m_nCurrentRadioStation;
-            if (radioId == RADIO_USER_TRACKS) {
-                if (!FrontEndMenuManager.m_nRadioMode && CAEAudioUtility::ResolveProbability(0.17f)) {
-                    m_ActiveSettings.m_aTrackQueue
-                }
+                PlayQueuedPair();
             }
+            m_nUserTrackPlayMode = AEUserRadioTrackManager.GetUserTrackPlayMode();
         }
     }
-    */
+
+    // Everything below only happens once the hardware has moved on to the track we lined up
+    const auto nextTrack = m_ActiveSettings.TrackQueue[1];
+    if (AEAudioHardware.GetActiveTrackID() != nextTrack || nextTrack < 0) {
+        return;
+    }
+    m_ActiveSettings.SwitchToNextTrack();
+
+    if (m_ActiveSettings.TrackQueue[1] == -1) { // Queue ran dry, top it back up
+        const auto id = m_ActiveSettings.StationID;
+        if (id == RADIO_USER_TRACKS) {
+            if (!FrontEndMenuManager.m_RadioMode && CAEAudioUtility::ResolveProbability(0.17f)) {
+                m_ActiveSettings.TrackQueue[trackCount] = ChooseAdvertIndex(RADIO_USER_TRACKS);
+                m_ActiveSettings.TrackTypes[trackCount] = TYPE_ADVERT;
+                trackCount++;
+            }
+            for (auto i = 0; i < 2; i++) { // Two ahead, so there's always something to cross into
+                const auto userTrack = AEUserRadioTrackManager.SelectUserTrackIndex();
+                m_ActiveSettings.TrackQueue[trackCount]   = userTrack;
+                m_ActiveSettings.TrackTypes[trackCount]   = TYPE_USER_TRACK;
+                m_ActiveSettings.TrackIndices[trackCount] = (int8)userTrack;
+                trackCount++;
+            }
+        } else {
+            auto next = TYPE_INTRO;
+
+            switch (m_ActiveSettings.TrackTypes[0]) {
+            case TYPE_INTRO:
+            case TYPE_TRACK:
+            case TYPE_OUTRO: { // A song just finished, so something may go in between
+                if (id == RADIO_EMERGENCY_AA) {
+                    next = TYPE_DJ_BANTER;
+                    break;
+                }
+                // Two songs back to back is as far as it goes before the DJ or an advert breaks them up
+                if (m_nTracksInARow[id] < 2 && CAEAudioUtility::ResolveProbability(0.5f)) {
+                    if (CAEAudioUtility::ResolveProbability(0.5f)) {
+                        QueueUpTracksForStation(id, &trackCount, TYPE_INDENT, m_ActiveSettings);
+                    }
+                    break;
+                }
+                if (CAEAudioUtility::ResolveProbability(0.5f)) {
+                    QueueUpTracksForStation(id, &trackCount, TYPE_INDENT, m_ActiveSettings);
+                }
+                if (QueueUpTracksForStation(id, &trackCount, TYPE_DJ_BANTER, m_ActiveSettings)) {
+                    PlayQueuedPair();
+                    return;
+                }
+                next = TYPE_ADVERT;
+                break;
+            }
+            }
+
+            QueueUpTracksForStation(id, &trackCount, next, m_ActiveSettings);
+        }
+    }
+
+    PlayQueuedPair();
 }
 
 // 0x4EB660
