@@ -1,0 +1,88 @@
+name: Setup project via Conan
+description: A workflow to setup (and optionally build) the project using Conan and CMake
+
+inputs:
+  host_profile:
+    description: "Conan (host) profile to use. [Values: See `conan/profiles` folder]"
+    type: string
+    required: false
+    default: "windows-msvc"
+  arch:
+    description: "The architecture to use for the setup. [Values: x86]"
+    type: string
+    required: true
+    default: "x86"
+    options:
+      - x86
+  conf:
+    description: "The build configuration to use for the setup. [Values: Debug, Release]"
+    required: true
+    options:
+      - Debug
+      - Release
+  unity_build:
+    description: "Enable or disable Unity build. [Values: true, false]"
+    type: boolean
+    required: false
+    default: false
+  standalone:
+    description: "Standalone (exe instead of dll) build mode [Values: false, dump_hooks_only]"
+    type: string
+    required: false
+    default: "false"
+    options:
+      - "false"
+      - "dump_hooks_only"
+  build:
+    description: "Whether to build the project after setting up CMake and Conan. [Values: true, false]"
+    type: boolean
+    required: false
+    default: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Conan
+      uses: conan-io/setup-conan@v1
+      with:
+        profile_detect: true
+        cache_packages: true
+
+    - name: Setup Conan profiles
+      shell: bash
+      run: |
+          # Name of the dynamic host profile (This defines what the target system is)
+          CI_HOST_PROFILE_NAME="ci_host_profile"
+
+          # Generate a dynamic host profile for Conan based on the inputs provided to the action
+          cat << EOF > ./conan/profiles/$CI_HOST_PROFILE_NAME
+            include(${{ inputs.host_profile }}.txt)
+
+            [settings]
+            build_type=${{ inputs.conf }}
+            arch=${{ inputs.arch }}
+
+            [options]
+            &:unity_build=${{ inputs.unity_build == 'true' && 'True' || 'False' }}
+            &:standalone=${{ inputs.standalone == 'false' && 'False' || inputs.standalone }}
+          EOF
+
+          # Name of the build profile (This defines what the runner is)
+          CI_BUILD_PROFILE_NAME="ci_build_profile"
+
+          # Install it to the Conan
+          conan config install ./conan/
+
+          # Make Conan use the generated profiles
+          echo "CONAN_DEFAULT_PROFILE=$CI_HOST_PROFILE_NAME" >> $GITHUB_ENV
+
+    - name: Setup project dependencies via Conan
+      shell: cmd # Must use `cmd`, because `bash` doesn't have msvc in PATH
+      run: >
+        conan install . --build=missing
+
+    - name: Setup dependencies and build project using Conan
+      if: ${{ inputs.build == 'true' }}
+      shell: cmd  # Must use `cmd`, because `bash` doesn't have msvc in PATH
+      run: >
+        conan build .

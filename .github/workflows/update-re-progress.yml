@@ -64,19 +64,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
 
-      - name: Setup project using CMake
-        uses: ./.github/actions/setup-cmake
+      - name: Setup and build project using Conan
+        uses: ./.github/actions/conan
         with:
-          os: windows-2025-vs2026
-          arch: x86
-          conf: Debug # Builds faster, and there's functionally no difference in this case
-          preset: Unity
-          dump_hooks_only: true
-      
-      - name: Build standalone executable
-        shell: cmd
-        run: |
-          cmake --build build --config Debug
+          conf: Debug # Builds faster (and there's functionally no difference in this case)
+          unity_build: true # Builds faster
+          standalone: dump_hooks_only
+          build: true
 
       - name: Update hooks.csv
         shell: bash

@@ -1,11 +1,4 @@
-[settings]
-arch=x86
-build_type=Debug
-compiler=msvc
-compiler.cppstd=23
-compiler.runtime=static
-compiler.version=194
-os=Windows
+include(../../conan/profiles/windows-msvc.txt)
 
 [options]
 # Disable libusb in SDL3 — it uses MSBuild (.vcxproj) which we don't have

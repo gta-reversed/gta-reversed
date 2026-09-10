@@ -503,7 +503,7 @@ INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, I
     if (CommandLine::s_WaitForDebugger) {
         notsa::debug::WaitForDebugger();
     }
-#ifdef NOTSA_DUMP_HOOKS_ONLY
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
     NOTSA_LOG_INFO("Dumping hooks only, no memory writing will be performed");
     if (CommandLine::s_DumpHooksPath.empty()) {
         NOTSA_LOG_ERR("No path provided for dumping hooks, use `--dump-hooks-to` CLI argument");
@@ -512,7 +512,7 @@ INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, I
     InjectHooksMain(GetModuleHandle(nullptr)); // this will call injecthooks which then ends up dumping the data
     return 0;
 #else
-    NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_DUMP_HOOKS_ONLY` option");
+    NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_STANDALONE_DUMP_HOOKS_ONLY` option");
     return 1;
 #endif
 }
