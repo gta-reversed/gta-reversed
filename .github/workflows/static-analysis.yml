@@ -28,14 +28,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup and build project using Conan
+      - name: Setup project via Conan
         uses: ./.github/actions/conan
         with:
           conf: ${{ matrix.conf }}
 
       - name: Setup CMake
         shell: cmd
-        run: cmake --preset conan-default --config ${{ matrix.conf }}
+        run: cmake --preset conan-default
 
       - name: Initialize MSVC Code Analysis
         uses: microsoft/msvc-code-analysis-action@v0.1.1
