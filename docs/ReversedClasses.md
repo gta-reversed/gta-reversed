@@ -1,13 +1,13 @@
 # Reversed Classes progress
 This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.
 
-Last update was at Aug 19, 2026 at 09:13:31 UTC triggered by [7a95a39da90295ba89619679010c0a16c9ce92e5](https://github.com/gta-reversed/gta-reversed/commit/7a95a39da90295ba89619679010c0a16c9ce92e5) 
+Last update was at Sep 08, 2026 at 11:43:31 UTC triggered by [4c5619750e9b9afc2308c114845269e1989637ac](https://github.com/gta-reversed/gta-reversed/commit/4c5619750e9b9afc2308c114845269e1989637ac) 
 
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (8014 functions, 701 classes)
 
-#### Completely reversed classes (582/701) [83%]
+#### Completely reversed classes (583/701) [83%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -287,6 +287,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CAEUserRadioTrackManager (15)<br />
 - CAESoundManager (14)<br />
 - CAECutsceneTrackManager (8)<br />
+- CAEAudioHardware (54)<br />
 - CAEAudioChannel (12)<br />
 - CAudioZones (5)<br />
 - CAudioEngine (82)<br />
@@ -595,7 +596,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (116/701) [17%]
+#### Partially reversed classes (115/701) [16%]
 
 <details>
 <summary>See list of classes</summary>- C_PcSave (4/5) [80%]<br />
@@ -661,7 +662,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CAEAmbienceTrackManager (6/7) [86%]<br />
 - CAEStreamingChannel (21/24) [88%]<br />
 - CAEStaticChannel (7/8) [88%]<br />
-- CAEAudioHardware (53/54) [98%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
 - CTaskSimpleRunNamedAnim (4/7) [57%]<br />

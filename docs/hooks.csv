@@ -4720,7 +4720,7 @@ CAEAudioHardware,PauseAllSounds,0x004D95F0,1,0,S
 CAEAudioHardware,PlayTrack,0x004D8F10,1,0,S
 CAEAudioHardware,Query3DSoundEffects,0x004D8490,1,0,S
 CAEAudioHardware,RequestVirtualChannelSoundInfo,0x004D8E60,1,0,S
-CAEAudioHardware,RescaleChannelVolumes,0x004D8990,0,1,S
+CAEAudioHardware,RescaleChannelVolumes,0x004D8990,1,0,S
 CAEAudioHardware,ResumeAllSounds,0x004D9630,1,0,S
 CAEAudioHardware,Service,0x004D9870,1,0,S
 CAEAudioHardware,SetBassSetting,0x004D94A0,1,0,S
