@@ -18,6 +18,7 @@ class CPed;
 class CVehicle;
 
 extern bool& gbFirstPersonRunThisFrame;
+void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle);
 
 class CCam {
 public:
@@ -98,8 +99,14 @@ public:
     float     m_fBeta_Targeting;
     float     m_fX_Targetting;
     float     m_fY_Targetting;
-    CVehicle* m_pCarWeAreFocussingOn;
-    CVehicle* m_pCarWeAreFocussingOnI;
+    union {
+        CVehicle* m_pCarWeAreFocussingOn;
+        int32     m_nTwoPlayerFocus;
+    };
+    union {
+        CVehicle* m_pCarWeAreFocussingOnI;
+        float     m_fTwoPlayerFocusBlend;
+    };
     float     m_fCamBumpedHorz;
     float     m_fCamBumpedVert;
     uint32    m_nCamBumpedTime; // TODO: Probably float
@@ -138,10 +145,12 @@ public:
     void CacheLastSettingsDWCineyCam();
     void DoCamBump(float horizontal, float vertical);
     void Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree);
+    bool GetBoatHandlingCamHeight(float* outCamHeight);
     void GetCoreDataForDWCineyCamMode(CEntity*& entity, CVehicle*& vehicle, CVector& dest, CVector& src, CVector& targetUp, CVector& targetRight, CVector& targetFwd, CVector& targetVel, float& targetSpeed, CVector& targetAngVel, float& targetAngSpeed, CColSphere& colSphere);
-    void GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, const CVector& vecSource);
+    bool GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, CVector& outPos);
     void GetVectorsReadyForRW();
     void Get_TwoPlayer_AimVector(CVector&);
+    void GetTwoPlayerCameraPosition(float beta, CVector& source, CVector& front, CVector& target);
     bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
@@ -153,7 +162,8 @@ public:
     void ClipBeta();
 
     void Process();
-    void ProcessArrestCamOne();
+    bool ProcessArrestCamOne();
+    bool ProcessArrestCamFirstPerson(CPed* cop, bool firstFrame);
     void ProcessPedsDeadBaby();
     void Process_1rstPersonPedOnPC(const CVector&, float, float, float);
     void Process_1stPerson(const CVector&, float, float, float);
@@ -163,13 +173,13 @@ public:
     void Process_Cam_TwoPlayer_InCarAndShooting();
     void Process_Cam_TwoPlayer_Separate_Cars();
     void Process_Cam_TwoPlayer_Separate_Cars_TopDown();
-    void Process_DW_BirdyCam(bool);
-    void Process_DW_CamManCam(bool);
-    void Process_DW_HeliChaseCam(bool);
-    void Process_DW_PlaneCam1(bool);
-    void Process_DW_PlaneCam2(bool);
-    void Process_DW_PlaneCam3(bool);
-    void Process_DW_PlaneSpotterCam(bool);
+    bool Process_DW_BirdyCam(bool);
+    bool Process_DW_CamManCam(bool);
+    bool Process_DW_HeliChaseCam(bool);
+    bool Process_DW_PlaneCam1(bool);
+    bool Process_DW_PlaneCam2(bool);
+    bool Process_DW_PlaneCam3(bool);
+    bool Process_DW_PlaneSpotterCam(bool);
     void Process_Editor(const CVector& target, float orientation, float speedVar, float speedVarWanted);
     void Process_Fixed(const CVector& target, float orientation, float speedVar, float speedVarWanted);
     void Process_FlyBy(const CVector& target, float orientation, float speedVar, float speedVarWanted);
