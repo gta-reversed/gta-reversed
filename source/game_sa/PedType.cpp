@@ -137,8 +137,9 @@ ePedType CPedType::FindPedType(const char* pedTypeName) {
         { "MISSION7",       PED_TYPE_MISSION7       },
         { "MISSION8",       PED_TYPE_MISSION8       },
     });
-    /* NOTE(pirulax): Original code returned `PED_TYPE_COUNT` as an `invalid value` sentinel, but we don't want to have quiet errors */
-    return notsa::find_value(s_PedTypeByNameMapping, pedTypeName); 
+    /* Return `PED_TYPE_COUNT` for unknown names, just like the original. Callers handle it
+       (e.g. `GetPedFlag(PED_TYPE_COUNT)` returns `0`). */
+    return notsa::find_value_or(s_PedTypeByNameMapping, pedTypeName, PED_TYPE_COUNT);
     /* NOTE(pirulax): There are 2 extra `strcmp`'s after this, but they both check values already present in the mapping above, so they're ok to omit */
 }
 
