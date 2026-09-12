@@ -364,7 +364,7 @@ void cHandlingDataMgr::ConvertBikeDataToGameUnits(tBikeHandlingData* bikeHandlin
 int32 cHandlingDataMgr::FindExactWord(const char* name, const char* nameTable, uint32 entrySize, uint32 entryCount) {
     for (auto i = 0u; i < entryCount; i++) {
         const auto entry = &nameTable[entrySize * i];
-        if (!strncmp(name, entry, strlen(entry))) {
+        if (!strcmp(name, entry)) {
             return i;
         }
     }
