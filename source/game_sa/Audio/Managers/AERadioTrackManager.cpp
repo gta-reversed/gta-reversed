@@ -19,7 +19,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5B9390);
     RH_ScopedInstall(Service, 0x4EB9A0, { .reversed = false });
     RH_ScopedInstall(DisplayRadioStationName, 0x4E9E50);
-    RH_ScopedInstall(CheckForStationRetune, 0x4EB660, { .reversed = false });
+    RH_ScopedInstall(CheckForStationRetune, 0x4EB660);
     RH_ScopedInstall(CheckForPause, 0x4EA590);
     RH_ScopedInstall(IsVehicleRadioActive, 0x4E9800, { .reversed = false });
     RH_ScopedInstall(AddDJBanterIndexToHistory, 0x4E97B0);
@@ -408,7 +408,115 @@ void CAERadioTrackManager::CheckForTrackConcatenation() {
 
 // 0x4EB660
 void CAERadioTrackManager::CheckForStationRetune() {
-    plugin::CallMethod<0x4EB660, CAERadioTrackManager*>(this);
+    if (!m_ActiveSettings.StationID) {
+        return;
+    }
+
+    m_bRetuneJustStarted = false;
+
+    bool bAllowRetune = true;
+
+    if (m_nMode >= eRadioTrackMode::RADIO_STOPPING &&
+        !m_bInitialised &&
+        !m_nStationsListed &&
+        !m_nStationsListDown &&
+        m_ActiveSettings.StationID != RADIO_OFF)
+    {
+        bAllowRetune = false;
+    }
+
+    if (AudioEngine.GetCutsceneTrackStatus()) {
+        bAllowRetune = false;
+    }
+
+    auto pAudioSettings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
+    if ((!pAudioSettings ||
+        pAudioSettings->RadioType ||
+        pAudioSettings->RadioType == AE_RT_EMERGENCY ||
+        pAudioSettings->RadioType == AE_RT_UNKNOWN) &&
+        CReplay::Mode != 1) {
+        bAllowRetune = false;
+    }
+
+    if (bAllowRetune) {
+        if (pAudioSettings->RadioType) {
+            return;
+        }
+
+        if (m_iRadioStationScriptRequest >= 0) {
+            m_nStationsListDown = m_nStationsListed;
+            m_nStationsListed = m_iRadioStationScriptRequest - m_RequestedSettings.StationID;
+            m_iRadioStationScriptRequest = -1;
+
+            m_bDisplayStationName = true;
+            m_nRetuneStartedTime = CTimer::m_snTimeInMilliseconds;
+            m_bRetuneJustStarted = true;
+        } else {
+            CPad* pPad = CPad::GetPad(0);
+
+            if (pPad->NextStationJustUp()) {
+                m_nStationsListDown = m_nStationsListed;
+                m_nStationsListed++;
+
+                m_bDisplayStationName = true;
+                m_nRetuneStartedTime = CTimer::m_snTimeInMilliseconds;
+                m_bRetuneJustStarted = true;
+            } else if (pPad->LastStationJustUp()) {
+                m_nStationsListDown = m_nStationsListed;
+                m_nStationsListed--;
+
+                m_bDisplayStationName = true;
+                m_nRetuneStartedTime = CTimer::m_snTimeInMilliseconds;
+                m_bRetuneJustStarted = true;
+            }
+        }
+    }
+
+    if (m_nStationsListed == 0) {
+        if (m_nStationsListDown == 0) {
+            return;
+        }
+    }
+
+    int8 requestStation = m_RequestedSettings.StationID + m_nStationsListed;
+
+    if (requestStation > RADIO_EMERGENCY_AA) {
+        if (requestStation >= RADIO_COUNT) {
+            requestStation -= RADIO_COUNT - 1;
+        }
+    } else {
+        requestStation += RADIO_COUNT - 1;
+    }
+
+    if (requestStation == RADIO_OFF || requestStation == RADIO_USER_TRACKS && !AEUserRadioTrackManager.m_nUserTracksCount) {
+        StopRadio(nullptr, false);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_OFF);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
+        StartRadio((eRadioID)requestStation, m_ActiveSettings.BassSetting, m_ActiveSettings.BassGain, false);
+        m_nStationsListed = 0;
+        m_nStationsListDown = 0;
+        return;
+    }
+
+    if (m_ActiveSettings.StationID == RADIO_OFF) {
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON);
+        m_ActiveSettings.StationID = RADIO_INVALID;
+    } else {
+        StopRadio(nullptr, false);
+    }
+
+    AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_START);
+
+    if (CTimer::m_snTimeInMilliseconds > m_nRetuneStartedTime + 1'500)
+    {
+        uint32 playDelayThreshold = (TheCamera.m_fCameraAverageSpeed <= 0.9f) ? 2'000 : 4'000;
+
+        if (CTimer::m_snTimeInMilliseconds > m_nTimeRadioStationRetuned + playDelayThreshold) {
+            StartRadio((eRadioID)requestStation, m_ActiveSettings.BassSetting, m_ActiveSettings.BassGain, false);
+            m_nStationsListed = 0;
+            m_nStationsListDown = 0;
+        }
+    }
 }
 
 // 0x4EB890
