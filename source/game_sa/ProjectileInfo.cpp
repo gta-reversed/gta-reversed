@@ -23,7 +23,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(Update, 0x738B20, { .reversed = false });
     RH_ScopedInstall(IsProjectileInRange, 0x739860);
     RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .reversed = false });
-    RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40, { .reversed = false });
+    RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40);
     RH_ScopedInstall(RemoveFXSystem, 0x737B80, { .reversed = false });
 }
 
@@ -106,7 +106,25 @@ void CProjectileInfo::RemoveAllProjectiles() {
 
 // 0x739A40
 bool CProjectileInfo::RemoveIfThisIsAProjectile(CObject* object) {
-    return plugin::CallAndReturn<bool, 0x739A40, CObject*>(object);
+    for (auto&& [info, projectile] : rngv::zip(ms_aProjectileInfo, ms_apProjectile)) {
+        if (projectile != object || !info.m_bActive) {
+            continue;
+        }
+
+        info.m_bActive = false;
+
+        if (info.m_pFxSystem) {
+            info.m_pFxSystem->Kill();
+            info.m_pFxSystem = nullptr;
+        }
+
+        CRadar::ClearBlipForEntity(BLIP_OBJECT, GetObjectPool()->GetRef(projectile));
+        CWorld::Remove(projectile);
+        delete projectile;
+        projectile = nullptr;
+        return true;
+    }
+    return false;
 }
 
 // 0x737B80
