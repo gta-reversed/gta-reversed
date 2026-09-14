@@ -90,7 +90,7 @@ void CTaskSimpleCarOpenDoorFromOutside::ComputeAnimID_ToHook(AssocGroupId& grp, 
 // 0x64AD90
 void CTaskSimpleCarOpenDoorFromOutside::StartAnim(const CPed* ped) {
     const auto [groupId, animId] = ComputeAnimID();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 4.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), groupId, animId, 4.f);
     m_anim->SetFinishCallback(FinishAnimCarOpenDoorFromOutsideCB, this);
 }
 

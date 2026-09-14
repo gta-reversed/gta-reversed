@@ -61,7 +61,7 @@ void CFire::ExtinguishWithWater(float fWaterStrength) {
     };
     FxPrtMult_c prtMult{ 1.0f, 1.0f, 1.0f, 0.6f, 0.75f, 0.0f, 0.4f };
     const auto AddParticle = [&](CVector velocity) {
-        g_fx.m_SmokeII3expand->AddParticle(&particlePos, &velocity, 0.0f, &prtMult, -1.0f, 1.2f, 0.6f, false);
+        g_fx.m_SmokeII3expand->AddParticle(particlePos, velocity, 0.0f, prtMult);
     };
     /* The two particles only differ in velocity */
     AddParticle({ 0.0f, 0.0f, 0.8f });
@@ -331,7 +331,7 @@ void CFire::ProcessFire() {
             if (veh.IsSubBMX()) {
                 player->DoStuffToGoOnFire();
                 gFireManager.StartFire(player, m_EntityStartedFire, 0.8f, true, 7000, 100);
-                veh.BurstTyre(veh.FindTyreNearestPoint(m_Position) + CAR_PIECE_WHEEL_LF, false);
+                veh.BurstTyre(CAR_PIECE_FIRST_WHEEL + +veh.FindTyreNearestPoint(m_Position), false);
             } else {
                 gFireManager.StartFire(&veh, m_EntityStartedFire, 0.8f, true, 7000, 100);
             }

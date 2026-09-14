@@ -159,7 +159,7 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
     case TASK_COMPLEX_POLICE_PURSUIT: {
         const auto tSubTaskPursit = notsa::cast<CTaskComplexPolicePursuit>(m_pSubTask);
 
-        if (!FindPlayerWanted()->m_nWantedLevel) {
+        if (FindPlayerWanted()->GetWantedLevel() == eWantedLevel::WANTED_CLEAN) {
             return CreateSubTask(TASK_FINISHED, ped);
         }
 
@@ -196,7 +196,7 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
         if (ped->IsInVehicle()) {
             ped->m_pVehicle->ChangeLawEnforcerState(true);
             m_flag0x4 = false;
-            m_bIsSuspectInCar = ped->bInVehicle;
+            m_bIsSuspectInCar = m_Suspect->bInVehicle;
             return CreateSubTask(TASK_COMPLEX_CAR_DRIVE_MISSION, ped);
         } else {
             return CreateSubTask(TASK_COMPLEX_POLICE_PURSUIT, ped);
@@ -334,7 +334,7 @@ CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
 
         m_flag0x2 = false;
         m_flag0x4 = false;
-        m_bIsSuspectInCar = ped->bInVehicle;
+        m_bIsSuspectInCar = m_Suspect->bInVehicle;
         return CreateSubTask(TASK_COMPLEX_CAR_DRIVE_MISSION, ped);
     }
     default:

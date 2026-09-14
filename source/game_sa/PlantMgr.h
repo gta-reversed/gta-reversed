@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Vector.h"
+#include <PlantColEntEntry.h>
+#include <PlantLocTri.h>
 
 class CEntity;
-class CPlantColEntEntry;
-class CPlantLocTri;
 
 constexpr auto MAX_NUM_PLANT_TRIANGLES           = 256;
 constexpr auto MAX_NUM_PROC_OBJECTS              = 40;

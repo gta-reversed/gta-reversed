@@ -150,7 +150,7 @@ public:
     static void ClearClumpForAllAtomicsFlag(RpClump* clump, int32 id);
     static int32 GetAtomicId(RpAtomic* atomic);
     static void SetUserValue(RpAtomic* atomic, uint16 value);
-    static uint16 GetUserValue(RpAtomic* atomic);
+    static uint16 GetUserValue(const RpAtomic* atomic);
 
     static void  SetFrameHierarchyId(RwFrame* frame, int32 id);
     static int32 GetFrameHierarchyId(RwFrame* frame);

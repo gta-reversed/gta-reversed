@@ -24,13 +24,13 @@ void CTaskInteriorBeInHouse::InjectHooks() {
 
 // 0x674FC0
 CTaskInteriorBeInHouse::CTaskInteriorBeInHouse(InteriorGroup_c* intGrp) :
-    m_intGrp{intGrp}
+    m_IntGrp{intGrp}
 {
 }
 
 // NOTSA
 CTaskInteriorBeInHouse::CTaskInteriorBeInHouse(const CTaskInteriorBeInHouse& o) :
-    CTaskInteriorBeInHouse{o.m_intGrp}
+    CTaskInteriorBeInHouse{o.m_IntGrp}
 {
 }
 
@@ -38,55 +38,51 @@ CTaskInteriorBeInHouse::CTaskInteriorBeInHouse(const CTaskInteriorBeInHouse& o) 
 void CTaskInteriorBeInHouse::GetInfoForPedToUse(CPed* ped, int32* outDuration) {
     using enum eInteriorInfoType;
 
-    const auto [chanceA, chanceB] = [&]() -> std::tuple<int32, int32> {
-        if (ped->IsGangster()) {
-            return { 0, 100 };
-        }
-        return { 90, 10 };
-        }();
+    const auto chanceA = ped->IsGangster() ? 0 : 90,
+               chanceB = ped->IsGangster() ? 100 : 10;
 
-        const auto FindInterior = [this](std::initializer_list<eInteriorInfoType> types) {
-            for (auto type : types) {
-                if (m_intGrp->FindInteriorInfo(type, &m_intInfo, &m_int)) {
-                    return true;
-                }
-            }
-            return false;
-            };
-
-        *outDuration = -1;
-
-        const auto rndChance0To100 = CGeneral::GetRandomNumberInRange(0, 100);
-        if (rndChance0To100 < chanceA) {
-            if (CGeneral::DoCoinFlip()) {
-                FindInterior({ UNK_4, UNK_3 });
-            } else {
-                FindInterior({ UNK_3, UNK_4 });
+    const auto FindInterior = [this](std::initializer_list<eInteriorInfoType> types) {
+        for (auto type : types) {
+            if (m_IntGrp->FindInteriorInfo(type, &m_IntInfo, &m_Int)) {
+                return true;
             }
         }
-        if (m_intInfo) {
+        return false;
+    };
+
+    *outDuration = -1;
+
+    const auto rndChance0To100 = CGeneral::GetRandomNumberInRange(0, 100);
+    if (rndChance0To100 < chanceA) {
+        if (CGeneral::DoCoinFlip()) {
+            FindInterior({ UNK_4, UNK_3 });
+        } else {
+            FindInterior({ UNK_3, UNK_4 });
+        }
+    }
+    if (m_IntInfo) {
+        return;
+    }
+    if (rndChance0To100 < chanceA + chanceB) {
+        FindInterior({ UNK_1 });
+        if (m_IntInfo) {
             return;
         }
-        if (rndChance0To100 < chanceA + chanceB) {
-            FindInterior({ UNK_1 });
-            if (m_intInfo) {
-                return;
-            }
 
-            FindInterior({ UNK_5 });
-            if (m_intInfo) {
-                *outDuration = CGeneral::GetRandomNumberInRange(5'000, 30'000);
-                return;
-            }
+        FindInterior({ UNK_5 });
+        if (m_IntInfo) {
+            *outDuration = CGeneral::GetRandomNumberInRange(5'000, 30'000);
+            return;
         }
-        if (!m_intInfo) {
-            FindInterior({ UNK_1, UNK_2 });
-        }
+    }
+    if (!m_IntInfo) {
+        FindInterior({ UNK_1, UNK_2 });
+    }
 }
 
 // 0x6762B0
 CTask* CTaskInteriorBeInHouse::CreateFirstSubTask(CPed* ped) {
     int32 duration{};
     GetInfoForPedToUse(ped, &duration);
-    return new CTaskInteriorUseInfo{ m_intInfo, m_int, duration, true };
+    return new CTaskInteriorUseInfo{ m_IntInfo, m_Int, duration, true };
 }

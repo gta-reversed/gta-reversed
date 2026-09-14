@@ -3,7 +3,7 @@
 #include "EventEditableResponse.h"
 
 #include "PedType.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CEventEditableResponse::InjectHooks() {
     RH_ScopedVirtualClass(CEventEditableResponse, 0x85AB80, 17);
@@ -94,7 +94,7 @@ void CEventEditableResponse::InformRespectedFriends(CPed* ped) {
             }
 
             CPlayerPedData* playerData = FindPlayerPed(0)->GetPlayerData();
-            if (playerData->m_pWanted && playerData->m_pWanted->m_nWantedLevel) {
+            if (playerData->m_pWanted && playerData->m_pWanted->GetWantedLevel() != eWantedLevel::WANTED_CLEAN) {
                 continue;
             }
         } else {

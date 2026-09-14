@@ -5,7 +5,7 @@
 #include "TaskSimpleGiveCPR.h"
 #include "TaskSimpleNone.h"
 #include "TaskSimpleAchieveHeading.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskComplexTreatAccident::InjectHooks()
 {

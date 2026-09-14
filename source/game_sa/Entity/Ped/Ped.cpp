@@ -413,7 +413,7 @@ void CPed::SetMoveAnim() {
                 return ANIM_ID_WALK;
             };
 
-            if (const auto assoc = RpAnimBlendClumpGetAssociation(m_pRwClump, GetAnimId())) {
+            if (const auto assoc = RpAnimBlendClumpGetAssociation(GetRpClump(), GetAnimId())) {
                 DoUpdateMoveAnim(assoc);
             }
 
@@ -427,7 +427,7 @@ void CPed::SetMoveAnim() {
         case PEDMOVE_WALK:
         case PEDMOVE_RUN:
         case PEDMOVE_SPRINT: {
-            for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump, ANIMATION_IS_PARTIAL); assoc; assoc = RpAnimBlendGetNextAssociation(assoc, ANIMATION_IS_PARTIAL)) {
+            for (auto assoc = RpAnimBlendClumpGetFirstAssociation(GetRpClump(), ANIMATION_IS_PARTIAL); assoc; assoc = RpAnimBlendGetNextAssociation(assoc, ANIMATION_IS_PARTIAL)) {
                 if ((assoc->m_Flags & ANIMATION_IS_FINISH_AUTO_REMOVE) == 0 && (assoc->m_Flags & ANIMATION_DONT_ADD_TO_PARTIAL_BLEND) == 0) {
                     assoc->m_BlendDelta = -2.f;
                     assoc->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
@@ -443,7 +443,7 @@ void CPed::SetMoveAnim() {
 
         // Do BlendAnimation and call `DoUpdateMoveAnim` afterwards
         const auto DoBlendAnim = [&, this](AssocGroupId grp, AnimationId animId, float blendDelta) {
-            if (const auto assoc = CAnimManager::BlendAnimation(m_pRwClump, grp, animId, blendDelta)) {
+            if (const auto assoc = CAnimManager::BlendAnimation(GetRpClump(), grp, animId, blendDelta)) {
                 DoUpdateMoveAnim(assoc);
             }
         };
@@ -536,7 +536,7 @@ bool CPed::PedIsReadyForConversation(bool checkLocalPlayerWantedLevel) {
         return false;
     }
 
-    if (checkLocalPlayerWantedLevel && FindPlayerPed()->GetWanted()->m_nWantedLevel) {
+    if (checkLocalPlayerWantedLevel && FindPlayerPed()->GetWanted()->GetWantedLevel() != eWantedLevel::WANTED_CLEAN) {
         return false;
     }
 
@@ -619,11 +619,11 @@ void CPed::CreateDeadPedPickupCoors(CVector& pickupPos) {
 * @notsa
 */
 RpHAnimHierarchy& CPed::GetAnimHierarchy() const {
-    return *GetAnimHierarchyFromSkinClump(m_pRwClump);
+    return *GetAnimHierarchyFromSkinClump(GetRpClump());
 }
 
 CAnimBlendClumpData& CPed::GetAnimBlendData() const {
-    return *RpAnimBlendClumpGetData(m_pRwClump);
+    return *RpAnimBlendClumpGetData(GetRpClump());
 }
 
 /*!
@@ -720,7 +720,7 @@ void CPed::SetMoveAnimSpeed(CAnimBlendAssociation* association) {
 * @addr 0x5DED10
 */
 void CPed::StopNonPartialAnims() {
-    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+    RpAnimBlendClumpForEachAssociation(GetRpClump(), [](CAnimBlendAssociation* a) {
         if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
             a->SetFlag(ANIMATION_IS_PLAYING, false);
         }
@@ -731,7 +731,7 @@ void CPed::StopNonPartialAnims() {
 * @addr 0x5DED50
 */
 void CPed::RestartNonPartialAnims() {
-    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+    RpAnimBlendClumpForEachAssociation(GetRpClump(), [](CAnimBlendAssociation* a) {
         if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
             a->SetFlag(ANIMATION_IS_PLAYING, true);
         }
@@ -2009,7 +2009,7 @@ void CPed::ClearLookFlag() {
         m_pedIK.bTorsoUsed = false;
     }
 
-    m_nLookTime = CTimer::GetTimeInMS() + (IsPlayer() ? 4000 : 2000);
+    m_nLookTime = CTimer::GetTimeInMS() + (IsPlayer() ? 2000 : 4000);
 
     // .. } while ((PEDSTATE_LOOK_HEADING || PEDSTATE_LOOK_ENTITY) && bIsLooking), but `bIsLooking` will never be true at this point.
 }
@@ -2098,7 +2098,7 @@ void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones)
 * @param [in,out] inOutPos The position to be transformed in-place.
 * @param          updateSkinBones If `UpdateRpHAnim` should be called
 */
-void CPed::GetTransformedBonePosition(RwV3d& inOutPos, eBoneTag bone, bool updateSkinBones) { // todo: fix this too!!!
+void CPed::GetTransformedBonePosition(RwV3d& inOutPos, eBoneTagU32 bone, bool updateSkinBones) { // todo: fix this too!!!
     // Pretty much the same as GetBonePosition..
     if (updateSkinBones) {
         if (!bCalledPreRender) {
@@ -2218,7 +2218,7 @@ void CPed::DoFootLanded(bool leftFoot, uint8 arg1) {
 void CPed::PlayFootSteps() {
     return plugin::CallMethod<0x5E57F0>(this);
     // Below code is kinda working.. kinda. I'm too lazy to fix it, good luck future me!
-    /* auto& anim = *RpAnimBlendClumpGetFirstAssociation(m_pRwClump);
+    /* auto& anim = *RpAnimBlendClumpGetFirstAssociation(GetRpClump());
 
     const auto IsWalkRunSprintAnim = [&] {
         switch (anim.m_nAnimId) {
@@ -2921,14 +2921,14 @@ void CPed::PreRenderAfterTest()
     }
 
     if (GetModelId() == MODEL_PLAYER) {
-        ShoulderBoneRotation(m_pRwClump);
+        ShoulderBoneRotation(GetRpClump());
         m_bDontUpdateHierarchy = true;
     }
     float windMod{};
     const auto rainAffectsPlayer = IsPlayer() && CWindModifiers::FindWindModifier(GetPosition(), &windMod, &windMod) && !CCullZones::PlayerNoRain();
     const auto drivingOpenTopVeh = IsStateDriving() && IsInVehicle() && (m_pVehicle->IsBike() || m_pVehicle->IsAutomobile() && m_pVehicle->IsOpenTopCar());
 
-    const auto GetHierMatrix = [h = GetAnimHierarchyFromSkinClump(m_pRwClump)](AnimationId id) {
+    const auto GetHierMatrix = [h = GetAnimHierarchyFromSkinClump(GetRpClump())](AnimationId id) {
         return &RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, id)];
     };
 
@@ -3014,25 +3014,19 @@ void CPed::PreRenderAfterTest()
     ) {
         if (DistanceBetweenPoints(TheCamera.GetPosition(), GetPosition()) < 25.0f) {
             auto* const pedModelInfo = GetModelInfo()->AsPedModelInfoPtr();
-            pedModelInfo->AnimatePedColModelSkinnedWorld(m_pRwClump);
+            pedModelInfo->AnimatePedColModelSkinnedWorld(GetRpClump());
 
             if (const auto& s = FindPlayerSpeed(); std::abs(s.x) <= 0.05f
                 && std::abs(s.y) <= 0.05f
                 && !IsStateDying()
                 && !notsa::contains({ PEDSTATE_FALL, PEDSTATE_ATTACK, PEDSTATE_FIGHT }, m_nPedState)
                 && IsPedHeadAbovePos(0.3f)
-                && !RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_IDLE_TIRED)
+                && !RpAnimBlendClumpGetAssociation(GetRpClump(), ANIM_ID_IDLE_TIRED)
             ) {
                 const auto* colData = pedModelInfo->GetColModel()->GetData();
                 for (const auto& sphere : colData->GetSpheres()) {
                     if (notsa::contains(std::initializer_list<uint8>{ 5, 6, 9 }, sphere.m_Surface.m_nPiece)) {
-                        FxPrtMult_c p{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f };
-                        CVector     pos = sphere.m_vecCenter;
-                        pos.x += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
-                        pos.y += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
-                        pos.z += CGeneral::GetRandomNumberInRange(-0.08f, 0.02f);
-                        CVector vel = s * 50.0f;
-                        g_fx.m_Splash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+                        g_fx.m_Splash->AddParticle(sphere.m_vecCenter + CVector::Random({ -0.08f, -0.08f, -0.08f }, { 0.08f, 0.08f, 0.02f }), s * 50.0f, 0.0f, FxPrtMult_c{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f });
                     }
                 }
             }
@@ -3046,8 +3040,7 @@ void CPed::PreRenderAfterTest()
         pos.y += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
         pos.z += CGeneral::GetRandomNumberInRange(-0.8f, 0.2f);
         p.m_Color.alpha *= (float)GetPlayerData()->m_nWetness / 100.0f;
-        CVector vel{};
-        g_fx.m_WaterSplash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+        g_fx.m_WaterSplash->AddParticle(pos, {}, 0.0f, p);
     }
 
     if (const auto* veh = GetVehicleIfInOne()) {
@@ -3215,7 +3208,7 @@ void CPed::DettachPedFromEntity(){
         break;
 
     default: {
-        CAnimManager::BlendAnimation(m_pRwClump, m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
+        CAnimManager::BlendAnimation(GetRpClump(), m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
         bIsStanding = true;
 
         // Restore old weapon if any
@@ -3531,7 +3524,7 @@ void CPed::RemoveWeaponAnims(int32 likeUnused, float blendDelta) {
 
     bool bFoundNotPartialAnim{};
     for (auto i = 0; i < 34; i++) { // TODO: Magic number `34`
-        if (const auto assoc = RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_FIRE)) {
+        if (const auto assoc = RpAnimBlendClumpGetAssociation(GetRpClump(), ANIM_ID_FIRE)) {
             assoc->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
             if ((assoc->m_Flags & ANIMATION_IS_PARTIAL)) {
                 assoc->m_BlendDelta = blendDelta;
@@ -3542,7 +3535,7 @@ void CPed::RemoveWeaponAnims(int32 likeUnused, float blendDelta) {
     }
 
     if (bFoundNotPartialAnim) {
-        CAnimManager::BlendAnimation(m_pRwClump, m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
+        CAnimManager::BlendAnimation(GetRpClump(), m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
     }
 }
 
@@ -3634,17 +3627,6 @@ bool CPed::IsFollowerOfGroup(const CPedGroup& group) const {
 }
 
 /*!
-* @notsa
-* @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
-*/
-RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
-    if (const auto h = GetAnimHierarchyFromClump(m_pRwClump)) {
-        return RpHAnimHierarchyGetNodeMatrix(h, bone);
-    }
-    return nullptr;
-}
-
-/*!
 * @addr 0x5E4880
 * @brief Set model index (Also re-inits animblend, MoneyCount, and default decision-marker)
 */
@@ -3655,8 +3637,8 @@ void CPed::SetModelIndex(uint32 modelIndex) {
 
     CEntity::SetModelIndex(modelIndex);
 
-    RpAnimBlendClumpInit(m_pRwClump);
-    RpAnimBlendClumpFillFrameArray(m_pRwClump, m_apBones.data());
+    RpAnimBlendClumpInit(GetRpClump());
+    RpAnimBlendClumpFillFrameArray(GetRpClump(), m_apBones.data());
 
     auto* mi = GetModelInfo()->AsPedModelInfoPtr();
 
@@ -3678,18 +3660,18 @@ void CPed::SetModelIndex(uint32 modelIndex) {
     m_nMoneyCount = GetRandomMoneyCount();
 
     m_nAnimGroup = mi->m_nAnimType;
-    CAnimManager::AddAnimation(m_pRwClump, m_nAnimGroup, ANIM_ID_IDLE);
+    CAnimManager::AddAnimation(GetRpClump(), m_nAnimGroup, ANIM_ID_IDLE);
 
     if (!CanUseTorsoWhenLooking()) {
         m_pedIK.bTorsoUsed = true;
     }
 
     // Deal with animation stuff once again
-    RpAnimBlendClumpGetData(m_pRwClump)->m_PedPosition = (CVector*)&m_vecAnimMovingShiftLocal;
+    RpAnimBlendClumpGetData(GetRpClump())->m_PedPosition = (CVector*)&m_vecAnimMovingShiftLocal;
 
     // Create hit col model
     if (!mi->m_pHitColModel) {
-        mi->CreateHitColModelSkinned(m_pRwClump);
+        mi->CreateHitColModelSkinned(GetRpClump());
     }
 
     // And finally update our rph anim
@@ -3877,7 +3859,7 @@ void CPed::RenderBigHead() const {
         return;
     }
 
-    auto hier = GetAnimHierarchyFromSkinClump(m_pRwClump);
+    auto hier = GetAnimHierarchyFromSkinClump(GetRpClump());
     auto* matrices = RpHAnimHierarchyGetMatrixArray(hier);
 
     const float scale = 3.0f;

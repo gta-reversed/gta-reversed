@@ -88,7 +88,7 @@ std::pair<AssocGroupId, AnimationId> CTaskSimpleCarSlowDragPedOut::ComputeAnimID
 // 0x64C010
 void CTaskSimpleCarSlowDragPedOut::StartAnim(const CPed* ped) {
     const auto [groupId, animId] = ComputeAnimID();
-    m_AnimAssoc = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 1000.f);
+    m_AnimAssoc = CAnimManager::BlendAnimation(ped->GetRpClump(), groupId, animId, 1000.f);
     m_AnimAssoc->SetFinishCallback(FinishAnimCarSlowDragPedOutCB, this);
 }
 

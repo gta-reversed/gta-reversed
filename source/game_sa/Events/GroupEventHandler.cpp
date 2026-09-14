@@ -2,7 +2,7 @@
 
 #include "GroupEventHandler.h"
 #include "EventHandler.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 #include "Tasks/TaskTypes/TaskComplexStareAtPed.h"
 #include "Tasks/TaskTypes/TaskSimpleNone.h"

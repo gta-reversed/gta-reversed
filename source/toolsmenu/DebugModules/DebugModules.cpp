@@ -184,7 +184,7 @@ void DebugModules::DoDeserializeModules() {
         }
         try {
             inf >> states;
-        } catch (const json::exception& e) {
+        } catch ([[maybe_unused]] const json::exception& e) {
             const fs::path bakFileName{std::format("DebugModules-{}.json.bak", time(nullptr))};
             fs::copy("DebugModules.json", bakFileName);
             NOTSA_LOG_ERR("Error while loading `DebugModules.json`: {}", e.what());
@@ -211,7 +211,7 @@ void DebugModules::DoDeserializeModules() {
         // Now deserialize... We handle exceptions too, because otherwise we get a weird crash in a dll we don't have pdb's for????
         try {
             m->Deserialize(*s);
-        } catch (const json::exception& e) {
+        } catch ([[maybe_unused]] const json::exception& e) {
             NOTSA_LOG_ERR("JSON exception occurred while deserializing module `{}`: {}", id, e.what());
         }
     }

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "List_c.h"
-#include "IKChain_c.h"
+#include "IKChain.h"
+
 #include "Enums/eIKChainSlot.h"
 #include "Enums/eIKArm.h"
 
@@ -10,15 +11,14 @@ class CEntity;
 
 class IKChainManager_c {
 public:
-    static void InjectHooks();
-
     IKChainManager_c() = default;  // 0x617FC0
     ~IKChainManager_c() = default; // 0x8568E0
 
     bool Init();
     void Exit();
     void Reset();
-    void Update(float a1);
+
+    void Update(float deltaTime);
 
     /*!
     * @addr 0x618750
@@ -27,22 +27,20 @@ public:
     */
     IKChain_c* AddIKChain(
         const char*  name,
-        eIKChainSlot slot,
+        eIKChainSlot ikSlot,
         CPed*        ped,
         eBoneTag32   effectorBone,
-        RwV3d        effectorOffset,
+        CVector      effectorOffset,
         eBoneTag32   pivotBone,
         CEntity*     entity,
         eBoneTag32   offsetBone,
-        RwV3d        offset,
+        CVector      offset,
         float        speed,
         int32        priority = 3
     );
     void RemoveIKChain(IKChain_c* chain);
 
-    bool CanAccept(CPed* ped, float) const;
-    CEntity* GetLookAtEntity(CPed* ped);
-    CVector GetLookAtOffset(CPed* ped);
+    bool CanAccept(CPed* ped, float range) const;
     bool CanAcceptLookAt(CPed* ped);
 
     /*!
@@ -61,17 +59,17 @@ public:
      * @param bForceLooking 
     */
     void LookAt(
-            const char* purpose,
-            CPed*       ped,
-            CEntity*    lookAtEntity,
-            int32       time,
-            eBoneTag    offsetBone = BONE_HEAD,
-            CVector*    offset = nullptr,
-            bool        useTorso = true,
-            float       fSpeed = 0.25f,
-            int32       blendTime = 500,
-            int32       priority = 3,
-            bool        bForceLooking = false
+        const char* purpose,
+        CPed*       ped,
+        CEntity*    lookAtEntity,
+        int32       time,
+        eBoneTag32  offsetBone    = BONE_HEAD,
+        CVector*    offset        = nullptr,
+        bool        useTorso      = true,
+        float       fSpeed        = 0.25f,
+        int32       blendTime     = 500,
+        int32       priority      = 3,
+        bool        bForceLooking = false
     );
 
     /*!
@@ -80,19 +78,14 @@ public:
      * @param ped The ped
     */
     bool IsLooking(CPed* ped) const;
-
+    CEntity* GetLookAtEntity(CPed* ped);
+    void GetLookAtOffset(CPed* ped, CVector& offset);
 
     /*!
     * @addr 0x618280
     * @brief Abort lookat of a ped
     */
     void AbortLookAt(CPed* ped, uint32 blendOutTime = 250u);
-
-    /*!
-    * @notsa
-    * @brief Abort lookat of a ped if doing lookat
-    */
-    void AbortLookAtIfLooking(CPed* ped, uint32 blendOutTime = 250u);
 
     /*!
      * @addr 0x618B60
@@ -107,7 +100,7 @@ public:
      * @param blendTime When requested how fast the IK should stop (be blended out)
      * @param cullDist  If target/positionn is further than this the IK won't be played
     */
-    void PointArm(const char* purpose, eIKArm pedArmId, CPed* ped, CEntity* lookAtEntity, eBoneTag offsetBoneTag, CVector* offset, float speed, int32 blendTime, float cullDist) const;
+    void PointArm(const char* purpose, eIKArm pedArmId, CPed* ped, CEntity* lookAtEntity, eBoneTag32 offsetBoneTag, CVector* offset, float speed, int32 blendTime, float cullDist) const;
 
     /*!
      * @addr 0x6182B0
@@ -122,18 +115,29 @@ public:
     static void __stdcall AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
 
     /*!
-    * @notsa
-    * @brief Abort arm pointing if it's pointed
-    */
-    static void AbortPointArmIfPointing(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
-
-    /*!
      * @addr 0x618330
      * @brief Check if the IK task at the given slot is facing the target
     */
     bool IsFacingTarget(CPed* ped, eIKChainSlot slot) const;
 
+private: // notsa section
+    friend void InjectHooksMain();
+    static void InjectHooks();
+
 public:
+    /*!
+    * @notsa
+    * @brief Abort lookat of a ped if doing lookat
+    */
+    void AbortLookAtIfLooking(CPed* ped, uint32 blendOutTime = 250u);
+
+    /*!
+    * @notsa
+    * @brief Abort arm pointing if it's pointed
+    */
+    static void AbortPointArmIfPointing(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
+
+private:
     std::array<IKChain_c, 32> m_IKChains{};
     TList_c<IKChain_c> m_ActiveList{};
     TList_c<IKChain_c> m_FreeList{};

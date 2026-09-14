@@ -1,6 +1,6 @@
 #include "StdInc.h"
 #include "TaskSimpleClearLookAt.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleClearLookAt::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleClearLookAt, 0x86E404, 9);

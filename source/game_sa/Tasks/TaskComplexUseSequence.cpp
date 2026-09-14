@@ -21,8 +21,9 @@ CTaskComplexUseSequence::CTaskComplexUseSequence(int32 sequenceIndex) :
     CTaskSequences::ms_taskSequence[m_nSequenceIndex].m_RefCnt++;
 }
 
+// Used by `Clone` @ 0x637100
 CTaskComplexUseSequence::CTaskComplexUseSequence(const CTaskComplexUseSequence& o) :
-    CTaskComplexUseSequence{o.m_nCurrentTaskIndex}
+    CTaskComplexUseSequence{ o.m_nSequenceIndex }
 {
     m_nCurrentTaskIndex = o.m_nCurrentTaskIndex;
     m_nEndTaskIndex     = o.m_nEndTaskIndex;
@@ -46,6 +47,10 @@ CTaskComplexUseSequence* CTaskComplexUseSequence::Constructor(int32 sequenceInde
 }
 
 bool CTaskComplexUseSequence::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
+    if (!m_pSubTask) {
+        return true;
+    }
+
     bool bMakeAbortable = m_pSubTask->MakeAbortable(ped, priority, event);
     if (bMakeAbortable && event && event->GetEventType() == EVENT_DAMAGE) {
         auto* eventDamage = (CEventDamage*)event;

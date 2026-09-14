@@ -85,7 +85,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(PrintRadioStationList, 0x5746F0);
 
     RH_ScopedInstall(UserInput, 0x57FD70);
-    RH_ScopedInstall(AdditionalOptionInput, 0x5773D0, { .reversed = false });
+    RH_ScopedInstall(AdditionalOptionInput, 0x5773D0);
     RH_ScopedInstall(CheckRedefineControlInput, 0x57E4D0);
     RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50);
 

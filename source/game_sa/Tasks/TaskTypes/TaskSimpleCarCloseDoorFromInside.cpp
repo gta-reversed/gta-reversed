@@ -85,7 +85,7 @@ auto CTaskSimpleCarCloseDoorFromInside::ComputeAnimID_Helper() -> std::tuple<Ass
 // 0x64AFB0
 void CTaskSimpleCarCloseDoorFromInside::StartAnim(CPed const* ped) {
     const auto [grpId, animId] = ComputeAnimID_Helper();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 1000.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 1000.f);
     m_anim->SetFinishCallback(FinishAnimCarCloseDoorFromInsideCB, this);
 }
 

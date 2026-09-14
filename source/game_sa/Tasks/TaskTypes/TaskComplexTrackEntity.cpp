@@ -1,6 +1,6 @@
 #include "StdInc.h"
 #include "TaskComplexTrackEntity.h"
-#include "TaskSimpleGotoPointFine.h"
+#include "TaskSimpleGoToPointFine.h"
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexFollowNodeRoute.h"
 

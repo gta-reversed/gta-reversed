@@ -18,11 +18,11 @@
 #include "FireManager.h"
 #include "Fx.h"
 #include "BreakManager_c.h"
-#include "BoneNodeManager_c.h"
 #include "Shadows.h"
 // todo: #include "ShadowManager.h"
 #include "PedType.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/BoneNodeManager.h"
+#include "Ragdoll/IKChainManager.h"
 #include "CreepingFire.h"
 #include "Skidmarks.h"
 #include "CarCtrl.h"
@@ -180,6 +180,14 @@ void CGame::TidyUpMemory(bool a1, bool clearD3Dmem) {
     if (FindPlayerPed(PED_TYPE_PLAYER1) && clearD3Dmem) {
         DrasticTidyUpMemory(a1);
     }
+}
+
+// notsa
+eAreaCodes CGame::GetPlayerOrCurrentAreaCode() {
+    auto* const player = FindPlayerPed();
+    return player
+        ? player->GetAreaCode()
+        : GetCurrentAreaCode();
 }
 
 // 0x53C810
@@ -556,13 +564,7 @@ void CGame::Initialise(const char* datFile) {
 // 0x5BFA90
 bool CGame::InitialiseCoreDataAfterRW() {
     CTempColModels::Initialise();
-    gHandlingDataMgr.LoadHandlingData();
-    gHandlingDataMgr.field_0 = 0.1f;
-    gHandlingDataMgr.fWheelFriction = 0.9f;
-    gHandlingDataMgr.field_8 = 1.0f;
-    gHandlingDataMgr.field_C = 0.8f;
-    gHandlingDataMgr.field_10 = 0.98f;
-
+    gHandlingDataMgr.Initialise();
     g_surfaceInfos.Init();
     CPedStats::Initialise();
     CTimeCycle::Initialise(false);

@@ -3,7 +3,7 @@
 #include "TaskComplexSmartFleeEntity.h"
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexSmartFleePoint.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "InterestingEvents.h"
 #include "EventSeenPanickedPed.h"
 

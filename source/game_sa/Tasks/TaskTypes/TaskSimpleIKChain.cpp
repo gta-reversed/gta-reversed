@@ -1,6 +1,6 @@
 #include "StdInc.h"
 #include "TaskSimpleIKChain.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleIKChain::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleIKChain, 0x86DB48, 10);

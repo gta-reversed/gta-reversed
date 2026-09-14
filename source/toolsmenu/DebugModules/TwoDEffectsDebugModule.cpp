@@ -67,7 +67,7 @@ void TwoDEffectsDebugModule::RenderWindow() {
     if (!m_IsOpen) {
         return;
     }
-    if (ig::BeginChild("Settings", { 0.f, 100.f }, ImGuiChildFlags_Border)) {
+    if (ig::BeginChild("Settings", { 0.f, 100.f }, ImGuiChildFlags_Borders)) {
         ig::Checkbox("Bounding Boxes for all", &m_AllBBsEnabled);
         ig::DragFloat("Range", &m_Range, 1.f, 10.f, 500.f, "%.2f");
         ig::DragInt("Max Entities", &m_MaxEntities, 1.f, 10, SHRT_MAX); // SHRT_MAX because value is casted to int16 later
@@ -76,14 +76,14 @@ void TwoDEffectsDebugModule::RenderWindow() {
 
     UpdateEntitiesAndEffectsInRange();
 
-    if (ig::BeginChild("NearbyEffectsTable", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+    if (ig::BeginChild("NearbyEffectsTable", {300.f, 0.f}, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX)) {
         RenderNearbyEffectsTable();
     }
     ig::EndChild();
 
     ig::SameLine();
 
-    if (ig::BeginChild("EntityDetails", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+    if (ig::BeginChild("EntityDetails", {300.f, 0.f}, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX)) {
         if (m_SelectedFx) {
             RenderSelectedEffectDetails();
         }
@@ -187,7 +187,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
     rng::sort(m_FxInRange, [&](const InRange2DFx& a, const InRange2DFx& b) {
         for (auto i = 0; i < specs->SpecsCount; i++) {
             const auto spec = &specs->Specs[i];
-            std::partial_ordering o;
+            auto o = std::partial_ordering::equivalent;
             switch (spec->ColumnIndex) {
             case 0: o = a.TblIdx <=> b.TblIdx;             break; // #
             case 1:                                        break; // Color (not sortable)
@@ -195,7 +195,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
             case 3: o = a.DistToPlayer <=> b.DistToPlayer; break; // Distance
             case 4: o = a.Entity <=> b.Entity;             break; // Entity
             }
-            if (o != 0) {
+            if (o != std::partial_ordering::equivalent) {
                 return spec->SortDirection == ImGuiSortDirection_Ascending
                     ? o < 0
                     : o > 0;

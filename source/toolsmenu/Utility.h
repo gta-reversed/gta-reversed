@@ -113,7 +113,7 @@ inline void DoNestedMenuIL(std::initializer_list<const char*> menuPath, T OnAllV
 */
 inline auto TreeNodeWithTriStateCheckBox(const char* label, ImGui::ImTristate cbTriState, bool cbDisabled, ImGuiTreeNodeFlags treeNodeFlags = 0) {
     // TODO/NOTE: The Tree's label is a workaround for when the label is shorter than the visual checkbox (otherwise the checkbox can't be clic
-    const auto open = ImGui::TreeNodeEx("##         ", treeNodeFlags | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_SpanFullWidth);
+    const auto open = ImGui::TreeNodeEx("##         ", treeNodeFlags | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_SpanFullWidth);
         
     ImGui::SameLine();
 

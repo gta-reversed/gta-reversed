@@ -40,7 +40,7 @@ void CTaskSimpleShakeFist::FinishAnimShakeFistCB(CAnimBlendAssociation*, void* d
 
 // 0x692DF0
 void CTaskSimpleShakeFist::StartAnim(CPed* ped) {
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FUCKU, 4.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_FUCKU, 4.f);
     m_anim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE);
     m_anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
     m_anim->SetDeleteCallback(FinishAnimShakeFistCB, this);

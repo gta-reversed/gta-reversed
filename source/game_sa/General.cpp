@@ -11,6 +11,11 @@
 static std::random_device randomDevice;
 static std::mt19937 randomEngine(randomDevice());
 
+// 0x407180 - 2-arg wrapper to allow hooking the original function while the template has an extra `inclusive` arg
+static int32 GetRandomNumberInRange_int32(int32 min, int32 max) {
+    return CGeneral::GetRandomNumberInRange(min, max);
+}
+
 void CGeneral::InjectHooks() {
     RH_ScopedNamespace(CGeneral);
     RH_ScopedCategoryGlobal();
@@ -22,7 +27,7 @@ void CGeneral::InjectHooks() {
     RH_ScopedInstall(GetNodeHeadingFromVector, 0x53CDC0);
     RH_ScopedInstall(SolveQuadratic, 0x53CE30);
     RH_ScopedInstall(GetAngleBetweenPoints, 0x53CEA0);
-    RH_ScopedOverloadedInstall(GetRandomNumberInRange<int32>, "", 0x407180, int32(*)(int32, int32));
+    RH_ScopedGlobalInstall(GetRandomNumberInRange_int32, 0x407180);
     RH_ScopedOverloadedInstall(GetRandomNumberInRange<float>, "", 0x41BD90, float (*)(float, float), { .enabled = false, .locked = true }); // There's a bug in the code at 0x6DF26D which causes the assert to be triggered, so I'm unhooking this for now
 }
 

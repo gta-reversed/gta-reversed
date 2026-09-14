@@ -1,7 +1,8 @@
 #pragma once
 
+#include <WaterCannon.h>
+
 class CVector;
-class CWaterCannon;
 
 class CWaterCannons {
 public:

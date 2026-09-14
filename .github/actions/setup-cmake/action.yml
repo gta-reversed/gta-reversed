@@ -17,6 +17,10 @@ inputs:
         description: "The preset to use for the setup. [Values: NoUnity, Unity]"
         required: true
         default: "NoUnity"
+    dump_hooks_only:
+        description: "Standalone executable to dump the hooks only. [Values: true, false]"
+        required: false
+        default: "false"
 
 runs:
     using: "composite"
@@ -36,4 +40,4 @@ runs:
           shell: cmd
           run: |
               conan profile detect
-              python setup.py --buildconf ${{ matrix.conf }} ${{ matrix.preset == 'NoUnity' && '--no-unity-build' || '' }}
+              python setup.py --buildconf ${{ inputs.conf }} ${{ inputs.preset == 'NoUnity' && '--no-unity-build' || '' }} ${{ inputs.dump_hooks_only == 'true' && '--dump-hooks-only --standalone' || '' }}

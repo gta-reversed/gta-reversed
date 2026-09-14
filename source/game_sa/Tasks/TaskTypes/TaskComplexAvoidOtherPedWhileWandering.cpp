@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include <IKChainManager_c.h>
+#include <Ragdoll/IKChainManager.h>
 #include <PedGeometryAnalyser.h>
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexGangFollower.h"

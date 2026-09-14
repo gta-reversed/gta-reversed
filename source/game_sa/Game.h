@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RenderWare.h"
+#include <Enums/eAreaCodes.h>
 
 class CColModel;
 class CEntity;
@@ -17,7 +18,7 @@ public:
     static inline auto& aDatFile = StaticRef<char[32]>(0xB728EC);
     static inline auto& currLevel = StaticRef<int32>(0xB7290C);
     static inline auto& bMissionPackGame = StaticRef<uint8>(0xB72910);
-    static inline auto& currArea = StaticRef<int32>(0xB72914);
+    static inline auto& currArea = StaticRef<eAreaCodesS32>(0xB72914);
     static inline auto& m_pWorkingMatrix1 = StaticRef<RwMatrix*>(0xB72920);
     static inline auto& m_pWorkingMatrix2 = StaticRef<RwMatrix*>(0xB72924);
 
@@ -49,6 +50,8 @@ public:
     static void DrasticTidyUpMemory(bool a1);
     static void FinalShutdown();
     static void TidyUpMemory(bool a1, bool clearD3Dmem);
+    static eAreaCodes GetCurrentAreaCode() { return currArea; }
+    static eAreaCodes GetPlayerOrCurrentAreaCode();
 };
 
 static inline auto& gameTxdSlot = StaticRef<int32>(0xB728E8);

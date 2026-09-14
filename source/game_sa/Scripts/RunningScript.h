@@ -128,6 +128,10 @@ struct StringRef {
         return { Data, Length };
     }
 
+    constexpr bool IsNullTerminated() const {
+        return Data[Length] == '\0';
+    }
+
 public:
     char* Data{};   //!< Pointer to the string (This points to a memory location inside the script, so be careful)
     uint8 Length{}; //!< Length of the string (not including the null terminator)

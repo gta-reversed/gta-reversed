@@ -106,7 +106,7 @@ void CSimpleVariablesSaveStructure::Extract(uint32& versionId) const {
     gbLARiots_NoPoliceCars = m_bLARiots_NoPoliceCar;
     gbCineyCamMessageDisplayed = m_bCineyCamMessageDisplayed;
 
-    CGame::currArea = m_nCurrArea;
+    CGame::currArea = static_cast<eAreaCodes>(m_nCurrArea);
     CGame::currLevel = m_nCurrLevel;
     CGame::bMissionPackGame = m_bMissionPackGame;
 

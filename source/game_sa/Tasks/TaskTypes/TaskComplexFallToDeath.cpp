@@ -32,7 +32,7 @@ CTaskComplexFallToDeath::CTaskComplexFallToDeath(int32 direction, const CVector&
 void CTaskComplexFallToDeath::UpdateAnims(CPed* ped) {
     for (auto& animId : { m_nAnimId, m_nAnimId1 }) {
         if (animId != ANIM_ID_UNDEFINED) {
-            if (auto assoc = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, animId)) {
+            if (auto assoc = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), animId)) {
                 assoc->m_BlendDelta = -1000.0f;
             }
         }
@@ -105,7 +105,7 @@ CTask* CTaskComplexFallToDeath::CreateFirstSubTask(CPed* ped) {
     }();
 
     if (m_nAnimId >= ANIM_ID_WALK && m_nAnimId < ANIM_ID_ROADCROSS) {
-        CAnimManager::BlendAnimation(ped->m_pRwClump, nullptr, m_nAnimId, 1000.0f);
+        CAnimManager::BlendAnimation(ped->GetRpClump(), nullptr, m_nAnimId, 1000.0f);
     }
 
     return new CTaskSimpleInAir(false, true, false);
@@ -134,12 +134,12 @@ CTask* CTaskComplexFallToDeath::CreateNextSubTask(CPed* ped) {
 
         if (!b0x4) {
             if (m_nAnimId != ANIM_ID_UNDEFINED) {
-                if (auto assoc = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, m_nAnimId)) {
+                if (auto assoc = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), m_nAnimId)) {
                     assoc->m_BlendDelta = -1000.0f;
                 }
             }
             m_nAnimId1 = ANIM_ID_KO_SKID_FRONT;
-            CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_KO_SKID_FRONT, 8.0f);
+            CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_KO_SKID_FRONT, 8.0f);
         }
 
         ped->GetIntelligence()->ClearTasks(false, true);

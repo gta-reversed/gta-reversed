@@ -550,9 +550,9 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
     case CLIMB_GRAB:
         if (m_Anim) {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-            m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_IDLE, 4.0f);
+            m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_IDLE, 4.0f);
         } else {
-            m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP, 8.0f);
+            m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP, 8.0f);
         }
         m_HeightForPos    = CLIMB_GRAB;
         m_HasToChangePosition  = false;
@@ -562,11 +562,11 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
         if (m_HeightForPos == CLIMB_NOT_READY) {
             m_HeightForAnim = CLIMB_STANDUP;
             m_HeightForPos  = CLIMB_STANDUP;
-            m_Anim          = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_STAND, 4.0f);
+            m_Anim          = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_STAND, 4.0f);
             m_Anim->m_Flags &= ~ANIMATION_IS_PLAYING;
         } else {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-            m_Anim         = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_PULL, 1000.0f);
+            m_Anim         = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_PULL, 1000.0f);
             m_HeightForPos = CLIMB_PULLUP;
         }
         m_HasToChangePosition  = false;
@@ -576,13 +576,13 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
         if (m_Anim) {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
         }
-        m_Anim            = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_STAND, 1000.0f);
+        m_Anim            = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_STAND, 1000.0f);
         m_HasToChangePosition  = true;
         m_HasToChangeAnimation = false;
         break;
     case CLIMB_FINISHED:
     case CLIMB_FINISHED_V:
-        CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
+        CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0f);
         ped->SetMoveState(PEDMOVE_STILL);
         ped->SetMoveAnim();
         if (ped->GetPlayerData()) {
@@ -592,7 +592,7 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
         }
         m_Anim = CAnimManager::BlendAnimation(
-            ped->m_pRwClump, ANIM_GROUP_DEFAULT, m_HeightForAnim == CLIMB_FINISHED_V ? ANIM_ID_CLIMB_JUMP2FALL : ANIM_ID_CLIMB_STAND_FINISH, 1000.0F
+            ped->GetRpClump(), ANIM_GROUP_DEFAULT, m_HeightForAnim == CLIMB_FINISHED_V ? ANIM_ID_CLIMB_JUMP2FALL : ANIM_ID_CLIMB_STAND_FINISH, 1000.0F
         );
         m_HasToChangePosition  = true;
         m_HasToChangeAnimation = false;
@@ -601,7 +601,7 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
         if (m_Anim) {
             m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
         }
-        m_Anim            = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP_B, m_Anim && m_Anim->m_AnimId == ANIM_ID_CLIMB_STAND ? 16.0f : 1000.0f);
+        m_Anim            = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP_B, m_Anim && m_Anim->m_AnimId == ANIM_ID_CLIMB_STAND ? 16.0f : 1000.0f);
         m_HasToChangePosition  = true;
         m_HasToChangeAnimation = false;
         break;

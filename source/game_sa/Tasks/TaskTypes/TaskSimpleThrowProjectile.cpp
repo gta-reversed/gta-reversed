@@ -80,7 +80,7 @@ void CTaskSimpleThrowProjectile::FinishAnimThrowProjectileCB(CAnimBlendAssociati
 // 0x6259E0
 void CTaskSimpleThrowProjectile::StartAnim(CPed* ped) {
     const auto StartAnim = [&, this](AnimationId animId, float blendDelta) {
-        VERIFY(m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->GetActiveWeapon().GetWeaponInfo().m_eAnimGroup, animId, blendDelta));
+        VERIFY(m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->GetActiveWeapon().GetWeaponInfo().m_eAnimGroup, animId, blendDelta));
         m_Anim->SetFinishCallback(FinishAnimThrowProjectileCB, this);
     };
 

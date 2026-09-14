@@ -921,7 +921,7 @@ bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size
         entity->SetCurrentScanCode() ;
 
         if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete
-            && entity->m_pRwObject
+            && entity->GetRwObject()
             && GetInfo(entity->m_nModelIndex).InList()
             && FindPlayerPed()->m_pContactEntity != entity
         ) {
@@ -958,7 +958,7 @@ bool CStreaming::DeleteRwObjectsNotInFrustumInSectorList(PtrListType& list, size
         entity->SetCurrentScanCode() ;
 
         if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete
-            && entity->m_pRwObject
+            && entity->GetRwObject()
             && (!entity->IsVisible() || entity->m_bOffscreen)
             && GetInfo(entity->m_nModelIndex).InList()
         ) {
@@ -1447,7 +1447,8 @@ void CStreaming::RequestModel(int32 modelId, int32 streamingFlags) {
         ++ms_numModelsRequested;
         if (streamingFlags & STREAMING_PRIORITY_REQUEST)
             ++ms_numPriorityRequests;
-
+        
+        info.ClearAllFlags();
         info.SetFlags(streamingFlags);
         info.m_LoadState = LOADSTATE_REQUESTED;
         break;
@@ -2527,7 +2528,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, float posX, floa
         if (!IsPointInCircle2D(entityPos, { posX, posY }, std::min(drawDistanceRadius, radius)))
             continue;
 
-        if (modelInfo->m_pRwObject && !entity->m_pRwObject)
+        if (modelInfo->GetRwObject() && !entity->GetRwObject())
             entity->CreateRwObject();
 
         RequestModel(entity->m_nModelIndex, streamingflags);
@@ -2561,7 +2562,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, int32 streamingF
         if (timeInfo && !CClock::GetIsTimeInRange(timeInfo->GetTimeOn(), timeInfo->GetTimeOff()))
             continue;
 
-        if (modelInfo->m_pRwObject && !entity->m_pRwObject)
+        if (modelInfo->GetRwObject() && !entity->GetRwObject())
             entity->CreateRwObject();
 
         RequestModel(entity->m_nModelIndex, streamingFlags);
@@ -2700,25 +2701,34 @@ bool CStreaming::AddToLoadedVehiclesList(int32 modelId) {
 
 // 0x407D50
 int32 CStreaming::GetDefaultCabDriverModel() {
-    static auto& randomIndex = StaticRef<int32>(0x965524); // 0
-    static constexpr int32 ms_aDefaultCabDriverModel[7] = { // 0x8A5AF4 CStreaming::ms_aDefaultCabDriverModel
+    // Available models for each level, 2 models each
+    constexpr static auto s_DefaultCabDriverModels = std::to_array({ // 0x8A5AF4
+        // Los Santos        
         MODEL_BMOCD,
         MODEL_WMYCD1,
+
+        // San Fierro
         MODEL_SBMOCD,
         MODEL_SWMOCD,
-        MODEL_VBMOCD,
-        MODEL_VWMYCD,
-        MODEL_INVALID
-    };
 
-    const int32& modelId = ms_aDefaultCabDriverModel[randomIndex];
-    if (GetInfo(modelId).m_LoadState == eStreamingLoadState::LOADSTATE_NOT_LOADED) {
-        if (CTheZones::m_CurrLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE) {
-            randomIndex = CGeneral::GetRandomNumberInRange(0, 2 * CTheZones::m_CurrLevel);
-        }
-        return ms_aDefaultCabDriverModel[randomIndex];
+        // Las Venturas
+        MODEL_VBMOCD,
+        MODEL_VWMYCD
+    });
+
+    // Last index into the above array used to choose model for cab driver
+    static auto& s_LastRandomIndex = StaticRef<int32>(0x965524); // Default: 0
+
+    // If previously choosen model is still loaded, then use that
+    if (const auto model = s_DefaultCabDriverModels[s_LastRandomIndex]; GetInfo(model).m_LoadState != eStreamingLoadState::LOADSTATE_NOT_LOADED) {
+        return model;
     }
-    return modelId;
+
+    //  Otherwise choose new model to use
+    if (CTheZones::m_CurrLevel != eLevelName::LEVEL_NAME_COUNTRY_SIDE) {
+        s_LastRandomIndex = 2 * (CTheZones::m_CurrLevel - 1) + CGeneral::GetRandomNumberInRange(0, 2);
+    }
+    return s_DefaultCabDriverModels[s_LastRandomIndex];
 }
 
 // 0x407C50
@@ -2832,7 +2842,7 @@ void CStreaming::Init2() {
     for (int32 i = 0; i < TOTAL_DFF_MODEL_IDS; i++) {
         const int32 modelId = DFFToModelId(i);
         CONST auto mi = CModelInfo::GetModelInfo(modelId);
-        if (mi && mi->m_pRwObject) {
+        if (mi && mi->GetRwObject()) {
             CStreamingInfo& streamingInfo = GetInfo(modelId);
             streamingInfo.ClearAllFlags();
             streamingInfo.SetFlags(STREAMING_GAME_REQUIRED);
@@ -2920,7 +2930,7 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
 template<typename PtrListType>
 void CStreaming::InstanceLoadedModelsInSectorList(PtrListType& list) {
     for (auto* const entity : list) {
-        if (entity->IsInCurrentArea() && !entity->m_pRwObject) {
+        if (entity->IsInCurrentArea() && !entity->GetRwObject()) {
             entity->CreateRwObject();
         }
     }
@@ -3100,7 +3110,7 @@ void CStreaming::StreamCopModels(eLevelName level) {
 
     // Maybe load a cop bike..
     auto* wanted = FindPlayerWanted();
-    if (wanted && wanted->m_nWantedLevel < 3
+    if (wanted && wanted->GetWantedLevel() < eWantedLevel::WANTED_LEVEL_3
         && level != eLevelName::LEVEL_NAME_COUNTRY_SIDE
         && !m_bDisableCopBikes
     ) {
@@ -3382,7 +3392,7 @@ void CStreaming::StreamVehiclesAndPeds() {
         SetModelIsDeletable(MODEL_POLMAV);
     } else {
         RequestModel(MODEL_POLMAV, STREAMING_GAME_REQUIRED);
-        if (wanted->NumOfHelisRequired() > 1 && CWanted::bUseNewsHeliInAdditionToPolice)
+        if (wanted->NumOfHelisRequired() > 1 && CWanted::UseNewsHeliInAdditionToPolice)
             RequestModel(MODEL_VCNMAV, STREAMING_GAME_REQUIRED);
         else
             SetModelIsDeletable(MODEL_VCNMAV);

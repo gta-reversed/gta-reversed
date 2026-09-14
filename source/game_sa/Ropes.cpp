@@ -112,7 +112,7 @@ bool CRopes::IsCarriedByRope(CPhysical* entity) {
         return false;
 
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE && rope.m_pAttachedEntity == entity)
+        if (rope.m_nType != eRopeType::NONE && rope.m_pRopeAttachObject == entity)
             return true;
     }
     return false;

@@ -42,8 +42,8 @@ void FxEmitter_c::Reset() {
 }
 
 // 0x4A3EA0
-void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
-    return plugin::CallMethod<0x4A3EA0, FxEmitter_c*, CVector*, CVector*, float, FxPrtMult_c*, float, float, bool>(this, pos, vel, timeSince, fxMults, rotZ, brightness,
+void FxEmitter_c::AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) {
+    return plugin::CallMethod<0x4A3EA0, FxEmitter_c*, const CVector*, const CVector*, float, const FxPrtMult_c*, float, float, bool>(this, &pos, &vel, timeSince, &fxMults, rotZ, brightness,
                                                                                                                    createLocal);
 
     // todo:
@@ -55,7 +55,7 @@ void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrt
     auto mat  = g_fxMan.FxRwMatrixCreate();
 
     RwMatrixSetIdentity(mat);
-    RwV3dAssign(RwMatrixGetPos(mat), pos);
+    RwV3dAssign(RwMatrixGetPos(mat), &pos);
 
     RwMatrixUpdate(mat);
     if (m_System->m_ParentMatrix) {
@@ -70,7 +70,7 @@ void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrt
     RwMatrixMultiply(mat1, mat2, mat0);
     g_fxMan.FxRwMatrixDestroy(mat2);
 
-    if (auto* particle = CreateParticle(&emission, mat1, vel, timeSince, fxMults, brightness, createLocal)) {
+    if (auto* particle = CreateParticle(emission, *mat1, &vel, timeSince, fxMults, brightness, createLocal)) {
         if (rotZ >= 0.0f) {
             particle->m_RotZ = (uint8)(rotZ / 2.0f); // todo: int8/uint8 conversion
         }
@@ -82,8 +82,8 @@ void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrt
 }
 
 // 0x4A4050
-void FxEmitter_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
-    return plugin::CallMethod<0x4A4050, FxEmitter_c*, RwMatrix*, CVector*, float, FxPrtMult_c*, float, float, bool>(this, mat, vel, timeSince, fxMults, rotZ, brightness,
+void FxEmitter_c::AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) {
+    return plugin::CallMethod<0x4A4050, FxEmitter_c*, const RwMatrix*, const CVector*, float, const FxPrtMult_c*, float, float, bool>(this, &mat, &vel, timeSince, &fxMults, rotZ, brightness,
                                                                                                                     createLocal);
 
     // todo:
@@ -93,7 +93,7 @@ void FxEmitter_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPr
     auto mat1 = g_fxMan.FxRwMatrixCreate();
     auto mat0 = g_fxMan.FxRwMatrixCreate();
     RwMatrixSetIdentity(mat0);
-    mat0 = mat;
+    *mat0 = mat;
 
     RwMatrixUpdate(mat0);
     if (m_System->m_ParentMatrix) {
@@ -107,7 +107,7 @@ void FxEmitter_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPr
     RwMatrixMultiply(mat2, mat3, mat1);
     g_fxMan.FxRwMatrixDestroy(mat3);
 
-    if (auto* particle = CreateParticle(&emission, mat2, vel, timeSince, fxMults, brightness, createLocal)) {
+    if (auto* particle = CreateParticle(emission, *mat2, &vel, timeSince, fxMults, brightness, createLocal)) {
         if (rotZ >= 0.0f)
             particle->m_RotZ = (uint8)(rotZ * 2.0f); // todo:: see above
     }
@@ -163,7 +163,7 @@ void FxEmitter_c::CreateParticles(float currentTime, float deltaTime) {
         for (auto step = 0u; counter < (uint32)m_fEmissionIntensity; step = counter) {
             FxPrtMult_c prtMult;
             auto timeSince = (float)step / m_fEmissionIntensity * deltaTime;
-            CreateParticle(&emission, mat, nullptr, timeSince, &prtMult, 1.2f, m_System->m_createLocal);
+            CreateParticle(emission, *mat, nullptr, timeSince, prtMult, 1.2f, m_System->m_createLocal);
             counter++;
         }
         m_fEmissionIntensity -= m_fEmissionIntensity; // OG shit
@@ -174,8 +174,8 @@ void FxEmitter_c::CreateParticles(float currentTime, float deltaTime) {
 }
 
 // 0x4A2580
-FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatrix* wldMat, CVector* velOverride, float timeSince, FxPrtMult_c* fxMults, float brightness, bool createLocal) {
-    //return plugin::CallMethodAndReturn<FxEmitterPrt_c*, 0x4A2580, FxEmitter_c*, EmissionInfo_t*, RwMatrix*, CVector*, float, FxPrtMult_c*, float, bool>(this, emissionInfo, wldMat, velOverride, timeSince, fxMults, brightness, createLocal);
+FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, RwMatrix& wldMat, const CVector* velOverride, float timeSince, const FxPrtMult_c& fxMults, float brightness, bool createLocal) {
+    //return plugin::CallMethodAndReturn<FxEmitterPrt_c*, 0x4A2580, FxEmitter_c*, EmissionInfo_t*, RwMatrix*, CVector*, float, FxPrtMult_c*, float, bool>(this, &emissionInfo, &wldMat, velOverride, timeSince, &fxMults, brightness, createLocal);
 
     // todo:
     auto* particle = [&]() -> FxEmitterPrt_c* {
@@ -191,13 +191,13 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
     }();
 
     particle->m_fCurrentLife = 0.0f;
-    particle->m_fTotalLife = (((float)(CGeneral::GetRandomNumber() % 10'000) / 5'000.0f - 1.0f) * emissionInfo->m_fLifeBias + emissionInfo->m_fLife) * fxMults->m_fLife;
+    particle->m_fTotalLife = (((float)(CGeneral::GetRandomNumber() % 10'000) / 5'000.0f - 1.0f) * emissionInfo.m_fLifeBias + emissionInfo.m_fLife) * fxMults.m_fLife;
     particle->m_System = m_System;
 
-    particle->m_MultColor = CRGBA{fxMults->m_Color};
+    particle->m_MultColor = CRGBA{fxMults.m_Color};
 
-    particle->m_MultSize = fxMults->m_fSize;
-    particle->m_MultRot = fxMults->m_Rot;
+    particle->m_MultSize = fxMults.m_fSize;
+    particle->m_MultRot = fxMults.m_Rot;
 
     particle->m_bLocalToSystem = createLocal;
 
@@ -207,18 +207,18 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
     particle->m_Brightness = brightness;
 
     particle->m_RotZ = -1;
-    particle->m_CurrentRotation = CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo->m_fRotationMaxAngle - emissionInfo->m_fRotationMinAngle) + emissionInfo->m_fRotationMinAngle;
+    particle->m_CurrentRotation = CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo.m_fRotationMaxAngle - emissionInfo.m_fRotationMinAngle) + emissionInfo.m_fRotationMinAngle;
 
     if (createLocal) {
-        m_PrimBP->GetRWMatrix(*wldMat);
+        m_PrimBP->GetRWMatrix(wldMat);
     }
 
     CVector vec;
-    if (approxEqual(emissionInfo->m_fRadius, 0.0f, 0.001f)) {
+    if (approxEqual(emissionInfo.m_fRadius, 0.0f, 0.001f)) {
         vec = CVector{
-            CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo->m_SizeMax.x - emissionInfo->m_SizeMin.x) + emissionInfo->m_SizeMin.x,
-            CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo->m_SizeMax.y - emissionInfo->m_SizeMin.y) + emissionInfo->m_SizeMin.y,
-            CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo->m_SizeMax.z - emissionInfo->m_SizeMin.z) + emissionInfo->m_SizeMin.z,
+            CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo.m_SizeMax.x - emissionInfo.m_SizeMin.x) + emissionInfo.m_SizeMin.x,
+            CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo.m_SizeMax.y - emissionInfo.m_SizeMin.y) + emissionInfo.m_SizeMin.y,
+            CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (emissionInfo.m_SizeMax.z - emissionInfo.m_SizeMin.z) + emissionInfo.m_SizeMin.z,
         };
     } else {
         vec = CVector{
@@ -229,23 +229,23 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
 
         float radius;
         auto invDist = 1.0f / vec.Magnitude();
-        if (emissionInfo->m_fRadius < 0.0f) { // todo: check comp.
-            radius = invDist * emissionInfo->m_fRadius;
+        if (emissionInfo.m_fRadius < 0.0f) { // todo: check comp.
+            radius = invDist * emissionInfo.m_fRadius;
         } else {
-            radius = (invDist * CGeneral::GetRandomNumberInRange(0.0f, 1.0f)) * emissionInfo->m_fRadius;
+            radius = (invDist * CGeneral::GetRandomNumberInRange(0.0f, 1.0f)) * emissionInfo.m_fRadius;
         }
         vec *= radius;
     }
-    vec += emissionInfo->m_Pos;
+    vec += emissionInfo.m_Pos;
 
-    particle->m_Pos = vec.z * wldMat->at + vec.y * wldMat->up + vec.x * wldMat->right + wldMat->pos;
+    particle->m_Pos = vec.z * wldMat.at + vec.y * wldMat.up + vec.x * wldMat.right + wldMat.pos;
 
     if (velOverride) {
         particle->m_Velocity = *velOverride;
     } else {
         auto randomAngle = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
-        auto minAngle = DegreesToRadians(emissionInfo->m_fAngleMin);
-        auto maxAngle = DegreesToRadians(emissionInfo->m_fAngleMax);
+        auto minAngle = DegreesToRadians(emissionInfo.m_fAngleMin);
+        auto maxAngle = DegreesToRadians(emissionInfo.m_fAngleMax);
 
         auto randomAngleBetweenMinMax = lerp(minAngle, maxAngle, CGeneral::GetRandomNumberInRange(0.0f, 1.0f));
 
@@ -257,16 +257,16 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
 
         CVector vectorsIn;
         CVector vectorsOut;
-        if (emissionInfo->m_Direction.x <= 10.0f) {
-            vectorsIn = emissionInfo->m_Direction;
+        if (emissionInfo.m_Direction.x <= 10.0f) {
+            vectorsIn = emissionInfo.m_Direction;
             vectorsIn.Normalise();
         } else {
             vectorsIn = particle->m_Pos;
         }
-        RwV3dTransformVectors(&vectorsOut, &vectorsIn, 1, wldMat);
+        RwV3dTransformVectors(&vectorsOut, &vectorsIn, 1, &wldMat);
         CVector v38;
-        RotateVecIntoVec(&v38, &randomizedAngleVec, &vectorsOut);
-        particle->m_Velocity = v38 * ((CGeneral::GetRandomNumberInRange(0.0f, 2.0f) - 1.0f) * emissionInfo->m_fSpeedBias + emissionInfo->m_Speed);
+        RotateVecIntoVec(v38, randomizedAngleVec, vectorsOut);
+        particle->m_Velocity = v38 * ((CGeneral::GetRandomNumberInRange(0.0f, 2.0f) - 1.0f) * emissionInfo.m_fSpeedBias + emissionInfo.m_Speed);
     }
 
     particle->m_Velocity += m_System->m_VelAdd;

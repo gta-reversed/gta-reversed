@@ -12,7 +12,7 @@ void CHandObject::InjectHooks()
 
 CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObject()
 {
-    auto* animHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+    auto* animHierarchy = GetAnimHierarchyFromSkinClump(ped->GetRpClump());
     m_pPed = ped;
     ped->UpdateRpHAnim();
 
@@ -22,7 +22,7 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
         m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, eBoneTag::BONE_R_FORE_ARM);
 
     CEntity::SetModelIndex(handModelIndex);
-    RpAnimBlendClumpInit(m_pRwClump);
+    RpAnimBlendClumpInit(GetRpClump());
 
     auto* pedModelInfo = CModelInfo::GetModelInfo(ped->m_nModelIndex);
     auto* txd = CTxdStore::ms_pTxdPool->GetAt(pedModelInfo->m_nTxdIndex);
@@ -45,7 +45,7 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
 // 0x59EC40
 void CHandObject::ProcessControl()
 {
-    auto* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
+    auto* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->GetRpClump());
     auto* matArr = RpHAnimHierarchyGetMatrixArray(animHierarchy);
     const auto boneMat = CMatrix(&matArr[m_nBoneIndex], false);
     *static_cast<CMatrix*>(m_matrix) = boneMat;
@@ -57,7 +57,7 @@ void CHandObject::ProcessControl()
 // 0x59ECD0
 void CHandObject::PreRender()
 {
-    auto* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
+    auto* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->GetRpClump());
     m_pPed->UpdateRpHAnim();
     m_pPed->m_bDontUpdateHierarchy = true;
 
@@ -96,7 +96,7 @@ void CHandObject::PreRender()
 // 0x59EE80
 void CHandObject::Render()
 {
-    auto* firstAtomic = GetFirstAtomic(m_pRwClump);
+    auto* firstAtomic = GetFirstAtomic(GetRpClump());
     RpMaterialSetTexture(RpGeometryGetMaterial(RpAtomicGetGeometry(firstAtomic), 0), m_pTexture);
     CObject::Render();
 }

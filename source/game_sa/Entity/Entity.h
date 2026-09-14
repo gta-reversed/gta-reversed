@@ -6,6 +6,9 @@
 */
 #pragma once
 
+#include <rwplcore.h> // RwObject, etc...
+#include <rpworld.h>  // RpAtomic, RpClump, etc...
+
 #include "Placeable.h"
 #include "Reference.h"
 #include "Rect.h"
@@ -35,6 +38,8 @@ class CDummy;
 class CPhysical;
 class CBaseModelInfo;
 
+struct RwObject;
+
 class NOTSA_EXPORT_VTABLE CEntity : public CPlaceable {
 public:
     struct CEntityInfo {
@@ -42,11 +47,10 @@ public:
         eEntityStatus m_nStatus : 5; // Mask: & 0xF8 = 248 (Remember: In the original code unless this was left shifted the value it's compared to has to be left shifted by 3!)
     };
 
-    union {
-        struct RwObject* m_pRwObject;
-        struct RpClump*  m_pRwClump;
-        struct RpAtomic* m_pRwAtomic;
-    };
+private:
+    RwObject* m_pRwObject; // Use `GetRwObject`/`GetRpClump`/`GetRpAtomic` to access
+
+public:
 
     union {
         struct {
@@ -109,7 +113,7 @@ protected:
 
     uint16     m_ScanCode;
     uint8      m_IplIndex;
-    eAreaCodes m_AreaCode;
+    eAreaCodesS8 m_AreaCode;
 
     union {
         int32    m_nLodIndex; // -1 - without LOD model
@@ -187,7 +191,6 @@ public:
     virtual void SetModelIndexNoCreate(uint32 index);
     uint32 GetModelIndex() const { return m_nModelIndex; }
     auto GetModelId() const { return (eModelID)m_nModelIndex; } // NOTSA
-    RwObject* GetRwObject() const { return m_pRwObject; }
     virtual void CreateRwObject();
     void AttachToRwObject(RwObject* object, bool updateMatrix);
     void DetachFromRwObject();
@@ -294,6 +297,18 @@ public:
     RwMatrix* GetModellingMatrix();
 
     // NOTSA section
+
+    /*!
+    * @notsa
+    * @param nodeID Node ID of the bone. For peds, see eBoneTag
+    * @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
+    */
+    RwMatrix* GetBoneMatrix(RwUInt32 nodeID) const;
+
+    RwObject* GetRwObject() const noexcept { return m_pRwObject; }
+    RpClump*  GetRpClump()  const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpCLUMP); return reinterpret_cast<RpClump*>(m_pRwObject); }
+    RpAtomic* GetRpAtomic() const noexcept { assert(!m_pRwObject || RwObjectGetType(m_pRwObject) == rpATOMIC); return reinterpret_cast<RpAtomic*>(m_pRwObject); }
+    RpAtomic* GetRpAtomicOrFirstAtomicOfClump() const noexcept;
 
     // Always returns a non-null value. In case there's no LOD object `this` is returned
     CEntity* FindLastLOD() noexcept;

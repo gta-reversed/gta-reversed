@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "TaskComplexProstituteSolicit.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskComplexLeaveCar.h"
 #include "TaskComplexEnterCarAsPassenger.h"
 #include "TaskSimpleStandStill.h"

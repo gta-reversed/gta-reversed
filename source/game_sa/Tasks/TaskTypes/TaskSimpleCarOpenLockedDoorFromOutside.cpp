@@ -59,7 +59,7 @@ void CTaskSimpleCarOpenLockedDoorFromOutside::StartAnim(CPed* ped) {
             return ANIM_ID_CAR_DOORLOCKED_RHS;
         }
     }();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_veh->GetAnimGroup().GetGroup(animationId), animationId, 4.f);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_veh->GetAnimGroup().GetGroup(animationId), animationId, 4.f);
     m_anim->SetFinishCallback(FinishAnimCarOpenLockedDoorFromOutsideCB, this);
 }
 

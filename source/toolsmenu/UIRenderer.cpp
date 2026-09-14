@@ -233,7 +233,7 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        FindPlayerPed()->SetWantedLevel(4);
+        FindPlayerPed()->SetWantedLevel(eWantedLevel::WANTED_LEVEL_4);
         CCheat::VehicleCheat(MODEL_SANCHEZ);
         CCheat::MoneyArmourHealthCheat();
         CCheat::HealthCheat();

@@ -1,9 +1,13 @@
 #include "StdInc.h"
-#include "BoneNodeManager_c.h"
+
+#include "BoneNodeManager.h"
 
 void BoneNodeManager_c::InjectHooks() {
     RH_ScopedClass(BoneNodeManager_c);
     RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(Constructor, 0x617330);
+    RH_ScopedInstall(Destructor, 0x617390);
 
     RH_ScopedInstall(Init, 0x6173F0);
     RH_ScopedInstall(Exit, 0x617420);
@@ -38,11 +42,22 @@ BoneNode_c* BoneNodeManager_c::GetBoneNode() {
 }
 
 // 0x617470
-void BoneNodeManager_c::ReturnBoneNode(BoneNode_c* bone) {
-    m_Bones.AddItem(bone);
+void BoneNodeManager_c::ReturnBoneNode(BoneNode_c* boneNode) {
+    m_Bones.AddItem(boneNode);
 }
 
 // 0x617480
 uint32 BoneNodeManager_c::GetNumBoneNodesLeft() const {
     return m_Bones.GetNumItems();
+}
+
+// notsa
+const BoneInfo_t* BoneNodeManager_c::GetBoneInfoFromTag(eBoneTag32 tag) {
+    for (auto& i : ms_boneInfos) {
+        if (i.BoneTag == tag) {
+            return &i;
+        }
+    }
+    NOTSA_UNREACHABLE("BoneNodeManager_c::GetBoneInfoFromTag: BoneInfo not found for tag {}", static_cast<int32>(tag));
+    return nullptr;
 }

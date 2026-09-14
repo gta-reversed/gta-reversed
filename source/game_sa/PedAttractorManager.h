@@ -3,7 +3,7 @@
 #include <Base.h>
 #include "SArray.h"
 #include <PedSeatAttractor.h>
-#include <PedATMAttractor.h>
+#include <PedAtmAttractor.h>
 #include <PedStopAttractor.h>
 #include <PedPizzaAttractor.h>
 #include <PedShelterAttractor.h>

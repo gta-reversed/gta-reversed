@@ -8,7 +8,7 @@
 #include "Interior/Interior_c.h"
 #include "Interior/InteriorGroup_c.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskInteriorBeInShop::InjectHooks() {
     RH_ScopedVirtualClass(CTaskInteriorBeInShop, 0x870244, 15);

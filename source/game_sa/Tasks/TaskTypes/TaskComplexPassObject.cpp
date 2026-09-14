@@ -3,7 +3,7 @@
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskComplexPassObject::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexPassObject, 0x86fb18, 11);

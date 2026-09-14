@@ -6,13 +6,14 @@
 */
 #pragma once
 
-#include "eWeaponType.h"
 #include <array>
 
-class CEntity;
-class CPickup;
+#include "eWeaponType.h"
+#include <tPickupMessage.h>
+#include <Pickup.h>
 
-struct tPickupMessage;
+class CEntity;
+
 struct tPickupReference;
 
 constexpr uint32 MAX_COLLECTED_PICKUPS = 20;

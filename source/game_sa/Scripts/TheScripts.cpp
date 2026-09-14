@@ -19,10 +19,12 @@
 static inline auto& ScriptsArray = StaticRef<std::array<CRunningScript, MAX_NUM_SCRIPTS>>(0xA8B430);
 
 void CTheScripts::InjectHooks() {
+#ifndef NOTSA_STANDALONE
     // Has to have these, because there seems to be something going on with the variable init order
     // For now I just changed it to use static addresses, not sure whats going on..
     assert((void*)0xA49960 == (void*)&MainSCMBlock[0]);
     assert((void*)(0xA7A6A0) == (void*)&MissionBlock[0]);
+#endif
 
     RH_ScopedClass(CTheScripts);
     RH_ScopedCategory("Scripts");
@@ -1081,7 +1083,7 @@ bool CTheScripts::IsPedStopped(CPed* ped) {
         return false;
     }
     if (ped->IsPlayer()) {
-        if (RpAnimBlendClumpGetAssociation(ped->m_pRwClump, { ANIM_ID_RUN_STOP, ANIM_ID_RUN_STOPR, ANIM_ID_JUMP_LAUNCH, ANIM_ID_JUMP_GLIDE })) {
+        if (RpAnimBlendClumpGetAssociation(ped->GetRpClump(), { ANIM_ID_RUN_STOP, ANIM_ID_RUN_STOPR, ANIM_ID_JUMP_LAUNCH, ANIM_ID_JUMP_GLIDE })) {
             return false;
         }
     }

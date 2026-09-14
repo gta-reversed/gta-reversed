@@ -194,7 +194,7 @@ void CTaskSimpleDuck::ControlDuckMove(CVector2D moveDir) {
 void CTaskSimpleDuck::SetMoveAnim(CPed* ped) {
     const auto SetMoveAnimTo = [this, ped](AnimationId to) {
         m_MoveAnim = CAnimManager::BlendAnimation(
-            ped->m_pRwClump,
+            ped->GetRpClump(),
             ANIM_GROUP_DEFAULT,
             to,
             8.f
@@ -286,7 +286,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
             if (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                 m_DuckAnim->m_BlendDelta = -1000.f;
             } else {
-                CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
+                CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
             }
             m_DuckAnim->SetDefaultFinishCallback();
             m_DuckAnim = nullptr;
@@ -331,7 +331,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
             if (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                 m_DuckAnim->m_BlendDelta = blendDelta;
             }
-            CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
+            CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
             ped->m_nSwimmingMoveState = eMoveState::PEDMOVE_STILL;
         }
 
@@ -428,19 +428,19 @@ bool CTaskSimpleDuck::ProcessPed(CPed* ped) {
             }
         } else {
             m_DuckAnim = CAnimManager::BlendAnimation(
-                ped->m_pRwClump,
+                ped->GetRpClump(),
                 ANIM_GROUP_DEFAULT,
                 m_DuckControlType == DUCK_STANDALONE ? ANIM_ID_DUCK_COWER : ANIM_ID_WEAPON_CROUCH,
                 4.f
             );
             m_DuckAnim->SetFinishCallback(DeleteDuckAnimCB, this);
 
-            if (const auto weaponCruchAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_WEAPON_CROUCH)) { // 0x69454F
+            if (const auto weaponCruchAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_WEAPON_CROUCH)) { // 0x69454F
                 if (weaponCruchAnim->m_BlendAmount > 0 && weaponCruchAnim->m_BlendDelta >= 0.f) {
                     if (weaponCruchAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                         weaponCruchAnim->m_BlendDelta = -4.f;
                     } else {
-                        CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_IDLE, 4.f);
+                        CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_IDLE, 4.f);
                     }
                 }
             }

@@ -54,10 +54,10 @@ public:
     void Clear3rdPersonMouseTarget();
     // GetWanted()->m_nWantedLevel = 0;
     void Busted();
-    uint32 GetWantedLevel() const;
-    void SetWantedLevel(int32 level);
-    void SetWantedLevelNoDrop(int32 level);
-    void CheatWantedLevel(int32 level);
+    eWantedLevel GetWantedLevel() const;
+    void SetWantedLevel(eWantedLevel level);
+    void SetWantedLevelNoDrop(eWantedLevel level);
+    void CheatWantedLevel(eWantedLevel level);
     bool CanIKReachThisTarget(CVector posn, CWeapon* weapon, bool arg2);
     CPlayerInfo* GetPlayerInfoForThisPlayerPed();
     void DoStuffToGoOnFire();

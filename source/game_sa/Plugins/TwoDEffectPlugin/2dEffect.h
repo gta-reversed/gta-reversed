@@ -127,7 +127,7 @@ struct tEffectEnEx {
     RwV2d m_vecRadius;
     RwV3d m_vecExitPosn;
     float m_fExitAngle;
-    int16 m_nInteriorId;
+    eAreaCodesS16 m_nInteriorId;
     uint8 m_nFlags1;
     uint8 m_nSkyColor;
     char  m_szInteriorName[8];

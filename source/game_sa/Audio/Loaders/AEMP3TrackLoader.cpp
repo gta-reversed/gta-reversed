@@ -61,7 +61,7 @@ bool CAEMP3TrackLoader::Initialise() {
 // 0x4E0970
 bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
     // NOTSA: Originally Win32 file API was used.
-    auto* fp = fopen("AUDIO\\CONFIG\\STRMPAKS.DAT", "r");
+    auto* fp = fopen("AUDIO\\CONFIG\\STRMPAKS.DAT", "rb");
     if (!fp) {
         // Win32 API creates a file if it doesn't exists, and reads 0 bytes.
         fp = fopen("AUDIO\\CONFIG\\STRMPAKS.DAT", "w");
@@ -92,7 +92,7 @@ bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
 // 0x4E09F0
 bool CAEMP3TrackLoader::LoadTrackLookupTable(void) {
     // NOTSA: Originally Win32 file API was used.
-    auto* fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "r");
+    auto* fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "rb");
     if (!fp) {
         // Win32 API creates a file if it doesn't exists, and reads 0 bytes.
         fp = fopen("AUDIO\\CONFIG\\TRAKLKUP.DAT", "w");
