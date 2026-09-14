@@ -355,11 +355,10 @@ void CSprite::RenderOneXLUSprite_Rotate_Aspect(CVector pos, CVector2D size, uint
         intensity = static_cast<int16>((intensity * factor) >> 8);
     }
 
-    const auto coeffs = CalcSpriteQuadCoeffs(rotation);
-    std::array<float, 4> xs, ys;
-    for (auto&& [i, cx] : rngv::enumerate(coeffs.xs)) {
-        xs[i] = cx * size.x + pos.x;
-        ys[i] = coeffs.ys[i] * size.y + pos.y;
+    auto [xs, ys] = CalcSpriteQuadCoeffs(rotation);
+    for (auto&& [cx, cy] : rngv::zip(xs, ys)) {
+        cx = cx * size.x + pos.x;
+        cy = cy * size.y + pos.y;
     }
     if (IsSpriteOffScreen(xs, ys)) {
         return;
@@ -442,11 +441,10 @@ void CSprite::RenderBufferedOneXLUSprite(CVector pos, CVector2D size, uint8 r, u
 void CSprite::RenderBufferedOneXLUSprite_Rotate_Aspect(float x, float y, float z, float w, float h, uint8 r, uint8 g, uint8 b, int16 intensity, float recipNearZ, float angle, uint8 alpha) {
     m_bFlushSpriteBufferSwitchZTest = false;
 
-    const auto coeffs = CalcSpriteQuadCoeffs(angle);
-    std::array<float, 4> xs, ys;
-    for (auto&& [i, cx] : rngv::enumerate(coeffs.xs)) {
-        xs[i] = cx * w + x;
-        ys[i] = coeffs.ys[i] * h + y;
+    auto [xs, ys] = CalcSpriteQuadCoeffs(angle);
+    for (auto&& [cx, cy] : rngv::zip(xs, ys)) {
+        cx = cx * w + x;
+        cy = cy * h + y;
     }
     if (IsSpriteOffScreen(xs, ys)) {
         return;
@@ -474,13 +472,13 @@ void CSprite::RenderBufferedOneXLUSprite_Rotate_Dimension(CVector pos, CVector2D
     const float hCos = size.y * fCos;
     const float wSin = fSin * size.x;
 
-    const std::array xs{
+    const std::array<float, 4> xs{
         (pos.x - wCos) - hSin,
         (pos.x - wCos) + hSin,
         hSin + wCos + pos.x,
         (pos.x + wCos) - hSin,
     };
-    const std::array ys{
+    const std::array<float, 4> ys{
         (pos.y - hCos) + wSin,
         hCos + wSin + pos.y,
         (hCos + pos.y) - wSin,
