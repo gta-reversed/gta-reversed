@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any
 
 GITHUB_SHA = os.environ.get("GITHUB_SHA", "unknown")
-GITHUB_REPO_URL = os.environ.get("GITHUB_REPOSITORY_URL")
+GITHUB_REPO_URL = os.environ.get("GITHUB_REPO_URL")
 
 ap = argparse.ArgumentParser(description="Generate a Markdown file with reversed classes stats from hooks.csv")
 ap.add_argument("--input", default=None, help="Path to the hooks.csv file (if not provided, a file dialog will be shown to select the input file)")

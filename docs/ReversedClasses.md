@@ -1,13 +1,13 @@
 # Reversed Classes progress
 This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.
 
-Last update was at Jul 29, 2026 at 10:31:56 UTC triggered by [46e56238963d177eef7fe7c29529771eaf4699c4](None/commit/46e56238963d177eef7fe7c29529771eaf4699c4) 
+Last update was at Sep 08, 2026 at 11:43:31 UTC triggered by [4c5619750e9b9afc2308c114845269e1989637ac](https://github.com/gta-reversed/gta-reversed/commit/4c5619750e9b9afc2308c114845269e1989637ac) 
 
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
-## Stats (8002 functions, 700 classes)
+## Stats (8014 functions, 701 classes)
 
-#### Completely reversed classes (580/700) [83%]
+#### Completely reversed classes (583/701) [83%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -96,6 +96,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CMotionBlurStreaks (4)<br />
 - CMirrors (8)<br />
 - CMessages (28)<br />
+- CMenuManager (61)<br />
 - CLocalisation (18)<br />
 - CLoadingScreen (20)<br />
 - CLoadedCarGroup (8)<br />
@@ -148,6 +149,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CControllerConfigManager (58)<br />
 - CCompressedMatrixNotAligned (2)<br />
 - CColourSet (2)<br />
+- CCollision (59)<br />
 - CClock (9)<br />
 - CCheckpoints (8)<br />
 - CCheckpoint (1)<br />
@@ -285,6 +287,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CAEUserRadioTrackManager (15)<br />
 - CAESoundManager (14)<br />
 - CAECutsceneTrackManager (8)<br />
+- CAEAudioHardware (54)<br />
 - CAEAudioChannel (12)<br />
 - CAudioZones (5)<br />
 - CAudioEngine (82)<br />
@@ -593,7 +596,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (117/700) [17%]
+#### Partially reversed classes (115/701) [16%]
 
 <details>
 <summary>See list of classes</summary>- C_PcSave (4/5) [80%]<br />
@@ -606,6 +609,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CRopes (9/11) [82%]<br />
 - CRope (5/7) [71%]<br />
 - CRoadBlocks (7/8) [88%]<br />
+- CProjectileInfo (1/12) [8%]<br />
 - CPostEffects (35/38) [92%]<br />
 - CPopulation (64/66) [97%]<br />
 - CPopCycle (14/15) [93%]<br />
@@ -619,7 +623,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CPedDamageResponseCalculator (2/7) [29%]<br />
 - CPathFind (54/56) [96%]<br />
 - CMenuSystem (20/21) [95%]<br />
-- CMenuManager (60/61) [98%]<br />
 - CInterestingEvents (2/7) [29%]<br />
 - CGenericGameStorage (5/19) [26%]<br />
 - CGangWars (32/35) [91%]<br />
@@ -628,7 +631,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CEntryExit (10/11) [91%]<br />
 - CEntityScanner (3/4) [75%]<br />
 - CCustomBuildingRenderer (3/7) [43%]<br />
-- CCollision (58/59) [98%]<br />
 - CClouds (20/21) [95%]<br />
 - CClothesBuilder (15/23) [65%]<br />
 - CClothes (10/11) [91%]<br />
@@ -644,7 +646,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CPlane (14/23) [61%]<br />
 - CMonsterTruck (5/11) [45%]<br />
 - CBmx (7/10) [70%]<br />
-- CBike (21/40) [52%]<br />
+- CBike (22/40) [55%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxManager_c (24/25) [96%]<br />
@@ -660,7 +662,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CAEAmbienceTrackManager (6/7) [86%]<br />
 - CAEStreamingChannel (21/24) [88%]<br />
 - CAEStaticChannel (7/8) [88%]<br />
-- CAEAudioHardware (53/54) [98%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
 - CTaskSimpleRunNamedAnim (4/7) [57%]<br />
@@ -716,7 +717,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Not-at-all reversed classes (3/700) [0%]
+#### Not-at-all reversed classes (3/701) [0%]
 
 <details>
 <summary>See list of classes</summary>- CTaskComplexGangFollower (7)<br />

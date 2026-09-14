@@ -78,3 +78,15 @@ enum eWeaponType : uint32 {
     WEAPON_FLARE
 };
 constexpr const auto NUM_WEAPONS{ (size_t)WEAPON_LAST_WEAPON };
+
+inline bool IsWeaponTypeProjectile(eWeaponType weaponType) {
+    switch (weaponType) {
+    case WEAPON_GRENADE:
+    case WEAPON_TEARGAS:
+    case WEAPON_MOLOTOV:
+    case WEAPON_ROCKET:
+    case WEAPON_ROCKET_HS:
+        return true;
+    }
+    return false;
+}

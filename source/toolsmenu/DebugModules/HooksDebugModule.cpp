@@ -425,7 +425,7 @@ void HooksDebugModule::RenderCategory(RH::HookCategory& cat) {
     //! returns tuple<bool open, bool cbStateChanged, bool cbState>
     const auto TreeNodeWithCheckbox = [](auto label, ImTristate triState, bool disabled) {
         // TODO/NOTE: The Tree's label is a workaround for when the label is shorter than the visual checkbox (otherwise the checkbox can't be clicked)
-        const auto open = TreeNodeEx("##         ", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_SpanFullWidth);
+        const auto open = TreeNodeEx("##         ", ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_SpanFullWidth);
         
         SameLine();
 

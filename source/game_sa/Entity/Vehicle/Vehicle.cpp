@@ -3293,16 +3293,16 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector&
 }
 
 // 0x6D7BC0
-eCarWheel CVehicle::FindTyreNearestPoint(CVector2D point) {
+auto CVehicle::FindTyreNearestPoint(CVector2D point) -> eNearestCarWheel {
     const auto relativePt = point - GetPosition2D();
-    const bool isRight = relativePt.Dot(GetForward()) <= 0.f; // TODO: This doesn't make a lot of sense, why is Y used for left/right?
-    if (IsBike()) {
-        return isRight ? CAR_WHEEL_FRONT_RIGHT : CAR_WHEEL_FRONT_LEFT;
+    const bool isFront = relativePt.Dot(GetForward()) > 0.f;
+    if (IsBike()) { // only distinguishes front vs rear
+        return isFront ? eNearestCarWheel::FRONT_LEFT : eNearestCarWheel::REAR_LEFT;
     }
-    const bool isFront = relativePt.Dot(GetRight()) <= 0.f; // TODO: Same here, why is X used for front/rear?
-    return isRight
-        ? isFront ? CAR_WHEEL_FRONT_RIGHT : CAR_WHEEL_REAR_RIGHT
-        : isFront ? CAR_WHEEL_REAR_LEFT : CAR_WHEEL_FRONT_LEFT;
+    const bool isRight = relativePt.Dot(GetRight()) > 0.f;
+    return isFront
+        ? isRight ? eNearestCarWheel::FRONT_RIGHT : eNearestCarWheel::FRONT_LEFT
+        : isRight ? eNearestCarWheel::REAR_RIGHT : eNearestCarWheel::REAR_LEFT;
 }
 
 // 0x6D7C90

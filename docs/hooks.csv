@@ -1149,6 +1149,18 @@ CRadar,StreamRadarSections-xy,0x00584C50,1,0,S
 CRadar,TransformRadarPointToRealWorldSpace,0x005835A0,1,0,S
 CRadar,TransformRadarPointToScreenSpace,0x00583480,1,0,S
 CRadar,TransformRealWorldPointToRadarSpace,0x00583530,1,0,S
+CProjectileInfo,AddProjectile,0x00737C80,0,1,S
+CProjectileInfo,GetProjectileInfo,0x00737BF0,0,1,S
+CProjectileInfo,Initialise,0x00737B40,0,1,S
+CProjectileInfo,IsProjectileInRange,0x00739860,1,0,S
+CProjectileInfo,RemoveAllProjectiles,0x007399B0,0,1,S
+CProjectileInfo,RemoveDetonatorProjectiles,0x00738860,0,1,S
+CProjectileInfo,RemoveFXSystem,0x00737B80,0,1,S
+CProjectileInfo,RemoveIfThisIsAProjectile,0x00739A40,0,1,S
+CProjectileInfo,RemoveNotAdd,0x00737C00,0,1,S
+CProjectileInfo,RemoveProjectile,0x007388F0,0,1,S
+CProjectileInfo,Shutdown,0x00737BC0,0,1,S
+CProjectileInfo,Update,0x00738B20,0,1,S
 CPostEffects,CCTV,0x00702F40,1,0,S
 CPostEffects,Close,0x007010C0,1,0,S
 CPostEffects,ColourFilter,0x00703650,1,0,S
@@ -1816,7 +1828,7 @@ CMenuSystem,SetActiveMenuItem,0x005820C0,1,0,S
 CMenuSystem,SetColumnOrientation,0x00582080,1,0,S
 CMenuSystem,SetColumnWidth,0x00582050,1,0,S
 CMenuSystem,SwitchOffMenu,0x00580750,1,0,S
-CMenuManager,AdditionalOptionInput,0x005773D0,0,1,S
+CMenuManager,AdditionalOptionInput,0x005773D0,1,0,S
 CMenuManager,CentreMousePointer,0x0057C520,1,0,S
 CMenuManager,CheckCodesForControls,0x0057DB20,1,0,S
 CMenuManager,CheckForMenuClosing,0x00576B70,1,1,S
@@ -2650,7 +2662,7 @@ CCollision,IsStoredPolyStillValidVerticalLine,0x00414D70,1,1,S
 CCollision,IsThisVehicleSittingOnMe,0x004152C0,1,1,S
 CCollision,PointInPoly,0x00415730,1,1,S
 CCollision,PointInTriangle,0x00412700,1,1,S
-CCollision,ProcessColModels,0x004185C0,0,1,S
+CCollision,ProcessColModels,0x004185C0,1,1,S
 CCollision,ProcessDiscCollision,0x00413960,1,1,S
 CCollision,ProcessLineBox,0x00413100,1,1,S
 CCollision,ProcessLineOfSight,0x00417950,1,1,S
@@ -3897,7 +3909,7 @@ CBike,BlowUpCar,0x00000000,0,1,V
 CBike,BurstTyre,0x00000000,0,1,V
 CBike,CalculateLeanMatrix,0x006B7150,1,0,S
 CBike,Constructor,0x006BF430,1,0,S
-CBike,DamageKnockOffRider,0x006B5A10,0,1,S
+CBike,DamageKnockOffRider,0x006B5A10,1,0,S
 CBike,DebugCode,0x006B67A0,1,0,S
 CBike,Destructor,0x006B57A0,1,0,S
 CBike,DoBurstAndSoftGroundRatios,0x00000000,0,1,V
@@ -4708,7 +4720,7 @@ CAEAudioHardware,PauseAllSounds,0x004D95F0,1,0,S
 CAEAudioHardware,PlayTrack,0x004D8F10,1,0,S
 CAEAudioHardware,Query3DSoundEffects,0x004D8490,1,0,S
 CAEAudioHardware,RequestVirtualChannelSoundInfo,0x004D8E60,1,0,S
-CAEAudioHardware,RescaleChannelVolumes,0x004D8990,0,1,S
+CAEAudioHardware,RescaleChannelVolumes,0x004D8990,1,0,S
 CAEAudioHardware,ResumeAllSounds,0x004D9630,1,0,S
 CAEAudioHardware,Service,0x004D9870,1,0,S
 CAEAudioHardware,SetBassSetting,0x004D94A0,1,0,S
