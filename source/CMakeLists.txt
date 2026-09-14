@@ -269,7 +269,7 @@ endif()
 if (${RE_PROJECT}_WITH_SANITIZERS)
     message(STATUS "Configuring sanitizers")
    #add_sanitizers(${RE_PROJECT_LIB_NAME}) # TODO
-   message(FATAL_ERROR "Not implemented")
+    message(FATAL_ERROR "${RE_PROJECT}_WITH_SANITIZERS is not implemented yet; keep it OFF for now (add_sanitizers() is currently missing).")
 endif()
 
 #--------------------------------------------------------------------
