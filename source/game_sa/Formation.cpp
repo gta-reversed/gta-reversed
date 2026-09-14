@@ -3,12 +3,23 @@
 
 // 0x699F50
 void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed) {
-    return plugin::Call<0x699F50, CPed*, CPed**>(ped, pOutTargetPed);
+    for (int32 i = 0; i < (int32)m_Peds.m_count; i++) {
+        if (m_Peds.m_peds[i] == ped && m_aPedLinkToDestinations[i] >= 0) {
+            *pOutTargetPed = m_DestinationPeds.m_peds[m_aPedLinkToDestinations[i]];
+            return;
+        }
+    }
 }
 
 // 0x699FA0
 bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* out) {
-    return plugin::CallAndReturn<bool, 0x699FA0>(ped, out);
+    for (int32 i = 0; i < 24; i++) {
+        if (m_Peds.m_peds[i] == ped && m_aPedLinkToDestinations[i] >= 0) {
+            *out = m_Destinations.m_Points[m_aPedLinkToDestinations[i]];
+            return true;
+        }
+    }
+    return false;
 }
 
 // 0x699FF0
@@ -66,45 +77,292 @@ void CFormation::FindCoverPointsBehindBox(
 
 // 0x69A620
 void CFormation::GenerateGatherDestinations(CPedList& pedList, CPed* ped) {
-    plugin::Call<0x69A620, CPedList&, CPed*>(pedList, ped);
+    m_Destinations.m_Count = 0;
+    rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+
+    const auto count = (int32)pedList.m_count;
+    float radius;
+    switch (count) {
+    case 1:  radius = 1.25f;  break;
+    case 2:  radius = 1.5f;   break;
+    case 3:  radius = 1.75f;  break;
+    case 4:  radius = 2.125f; break;
+    default: radius = 2.5f;   break;
+    }
+
+    const auto& pos = ped->GetPosition();
+    for (int32 i = 0; i < count; i++) {
+        const float angle = count < 2
+            ? ped->m_fCurrentRotation + 1.5707964f
+            : 3.1415927f / (float)count + (float)i / (float)count * 6.2831855f - ped->m_fCurrentRotation;
+        if (m_Destinations.m_Count < 24) {
+            m_Destinations.m_Points[m_Destinations.m_Count++] = {
+                std::sin(angle) * radius + pos.x,
+                std::cos(angle) * radius + pos.y,
+                pos.z,
+            };
+        }
+    }
 }
 
 // 0x69A770
 void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicle* veh) {
-    plugin::Call<0x69A770, CPedList&, CVehicle*>(pedList, veh);
+    const auto* mi = CModelInfo::GetModelInfo(veh->m_nModelIndex)->AsVehicleModelInfoPtr();
+    const float sideOffset = mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].x + 1.5f;
+    const float length     = mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].y
+                           - mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN].y; // Negative for regular cars
+
+    CVector side = veh->m_matrix->m_right;
+    side.Normalise();
+    CVector fwd = veh->m_matrix->m_forward;
+    fwd.Normalise();
+    side *= sideOffset;
+
+    m_Destinations.m_Count = 0;
+    rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+
+    const auto count       = (int32)pedList.m_count;
+    const int32 backCount  = count / 2;
+    const int32 frontCount = count - backCount;
+
+    const auto& center = veh->GetPosition();
+    for (int32 i = 0; i < backCount; i++) {
+        CVector pt = center - side;
+        if (backCount != 0) {
+            pt += fwd * length * (0.5f - (float)i / (float)backCount);
+        }
+        if (m_Destinations.m_Count < 24) {
+            m_Destinations.m_Points[m_Destinations.m_Count++] = pt;
+        }
+    }
+    for (int32 i = 0; i < frontCount; i++) {
+        CVector pt = center + side;
+        if (frontCount != 0) {
+            pt += fwd * length * (0.5f - (float)i / (float)frontCount);
+        }
+        if (m_Destinations.m_Count < 24) {
+            m_Destinations.m_Points[m_Destinations.m_Count++] = pt;
+        }
+    }
+}
+
+// 0x69B1B0
+static int32 FindNearestUnclaimedDestination(CVector pt, float& totalCost) {
+    int32 best     = -1;
+    float bestDist = 10000000.0f;
+    for (int32 i = 0; i < (int32)CFormation::m_Destinations.m_Count; i++) {
+        if (CFormation::m_Destinations.m_PointHasBeenClaimed[i]) {
+            continue;
+        }
+        const float dist = (CFormation::m_Destinations.m_Points[i] - pt).Magnitude();
+        if (dist < bestDist) {
+            best     = i;
+            bestDist = dist;
+        }
+    }
+    totalCost = bestDist + totalCost;
+    return best;
 }
 
 // 0x69B240
 void CFormation::DistributeDestinations(CPedList& pedList) {
-    plugin::Call<0x69B240>(&pedList);
+    m_Peds = pedList;
+    if (m_Peds.m_count == 0) {
+        return;
+    }
+    const auto count = (int32)m_Peds.m_count;
+
+    CVector destCentre{};
+    for (int32 i = 0; i < (int32)m_Destinations.m_Count; i++) {
+        destCentre += m_Destinations.m_Points[i];
+    }
+    destCentre = destCentre * (1.0f / (float)m_Destinations.m_Count);
+
+    CVector pedCentre{};
+    std::array<CVector, 24> pts{};
+    int32 numPts = 0;
+    for (int32 i = 0; i < count; i++) {
+        const auto& pp = m_Peds.m_peds[i]->GetPosition();
+        if (numPts < 24) {
+            pts[numPts++] = pp;
+        }
+        pedCentre += pp;
+    }
+    pedCentre = pedCentre * (1.0f / (float)count);
+
+    float destCentreDeviation = 0.0f;
+    for (int32 i = 0; i < (int32)m_Destinations.m_Count; i++) {
+        destCentreDeviation += (m_Destinations.m_Points[i] - destCentre).Magnitude();
+    }
+    destCentreDeviation /= (float)m_Destinations.m_Count;
+
+    float pedCentreDeviation = 0.0f;
+    for (int32 i = 0; i < count; i++) {
+        pedCentreDeviation += (pts[i] - pedCentre).Magnitude();
+    }
+    pedCentreDeviation /= (float)count;
+
+    destCentreDeviation = std::max(destCentreDeviation, 1.0f);
+    pedCentreDeviation  = std::max(pedCentreDeviation, 1.0f);
+
+    const float scale = destCentreDeviation / pedCentreDeviation;
+    for (int32 i = 0; i < count; i++) {
+        pts[i] = (pts[i] - pedCentre) * scale + destCentre;
+    }
+
+    float bestCost = 999999.9f;
+    for (int32 trial = 0; trial < count; trial++) {
+        rng::fill_n(m_aFinalPedLinkToDestinations.begin(), 7, -1);
+        rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+        float cost = 0.0f;
+        for (int32 i = 0; i < count; i++) {
+            const int32 dest = FindNearestUnclaimedDestination(pts[i], cost);
+            m_aFinalPedLinkToDestinations[i] = dest;
+            m_Destinations.m_PointHasBeenClaimed[dest] = true;
+        }
+        if (cost < bestCost) {
+            std::copy_n(m_aFinalPedLinkToDestinations.begin(), count, m_aPedLinkToDestinations.begin());
+            bestCost = cost;
+        }
+    }
 }
 
 // 0x69B5B0
 void CFormation::DistributeDestinations_CoverPoints(const CPedList& pedlist, CVector pos) {
-    return plugin::Call<0x69B5B0, const CPedList&, CVector>(pedlist, pos);
+    m_Peds = pedlist;
+    if (m_Peds.m_count == 0) {
+        return;
+    }
+    rng::fill(m_aPedLinkToDestinations, -1);
+    for (int32 destIdx = 0; destIdx < (int32)m_Destinations.m_Count; destIdx++) {
+        int32 bestPedIdx = -1;
+        float bestScore  = 0.4f;
+        const auto& pt   = m_Destinations.m_Points[destIdx];
+        const float destToPos = DistanceBetweenPoints2D({ pt.x, pt.y }, { pos.x, pos.y });
+        for (int32 pedIdx = 0; pedIdx < (int32)m_Peds.m_count; pedIdx++) {
+            if (m_aPedLinkToDestinations[pedIdx] >= 0) {
+                continue;
+            }
+            const auto& pp = m_Peds.m_peds[pedIdx]->GetPosition();
+            const float pedToPos = DistanceBetweenPoints2D({ pp.x, pp.y }, { pos.x, pos.y });
+            if (destToPos <= pedToPos + 1.0f) {
+                const float score = 1.0f - ((DistanceBetweenPoints2D({ pp.x, pp.y }, { pt.x, pt.y }) + destToPos) - pedToPos) / pedToPos;
+                if (bestScore < score) {
+                    bestPedIdx = pedIdx;
+                    bestScore  = score;
+                }
+            }
+        }
+        if (bestPedIdx >= 0) {
+            m_aPedLinkToDestinations[bestPedIdx] = destIdx;
+        }
+    }
 }
 
 // 0x69B700
 void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
-    plugin::Call<0x69B700>(&pedList);
+    m_Peds = pedList;
+    if (m_Peds.m_count == 0) {
+        return;
+    }
+    rng::fill(m_aPedLinkToDestinations, -1);
+
+    const auto count = (int32)pedList.m_count;
+    std::array<int32, 30> remainingForTarget;
+    const int32 maxPerTarget = std::max(2, (int32)std::lround((double)count / (double)(int32)m_DestinationPeds.m_count));
+    for (int32 enemyIdx = 0; enemyIdx < (int32)m_DestinationPeds.m_count; enemyIdx++) {
+        remainingForTarget[enemyIdx] = maxPerTarget;
+    }
+
+    for (int32 assigned = 0; assigned < count; assigned++) {
+        int32 bestEnemyIdx = 0;
+        int32 bestPedIdx   = 0;
+        float bestDist     = 999999.9f;
+        for (int32 pedIdx = 0; pedIdx < count; pedIdx++) {
+            if (m_aPedLinkToDestinations[pedIdx] >= 0) {
+                continue;
+            }
+            for (int32 enemyIdx = 0; enemyIdx < (int32)m_DestinationPeds.m_count; enemyIdx++) {
+                if (remainingForTarget[enemyIdx] <= 0) {
+                    continue;
+                }
+                const auto& ep = m_DestinationPeds.m_peds[enemyIdx]->GetPosition();
+                const auto& pp = m_Peds.m_peds[pedIdx]->GetPosition();
+                const float dist = DistanceBetweenPoints2D({ pp.x, pp.y }, { ep.x, ep.y });
+                if (dist < bestDist) {
+                    bestEnemyIdx = enemyIdx;
+                    bestPedIdx   = pedIdx;
+                    bestDist     = dist;
+                }
+            }
+        }
+        m_aPedLinkToDestinations[bestPedIdx] = bestEnemyIdx;
+        remainingForTarget[bestEnemyIdx]--;
+    }
 }
 
 // 0x69B860
 void CFormation::FindCoverPoints(CVector pos, float radius) {
-    plugin::Call<0x69B860, CVector, float>(pos, radius);
+    m_Destinations.m_Count = 0;
+    rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+
+    const auto* vehPool = GetVehiclePool();
+    for (auto i = vehPool->GetSize(); i --> 0;) {
+        auto* veh = vehPool->GetAt(i);
+        if (!veh || veh->m_pFire) {
+            continue;
+        }
+        if (veh->GetMoveSpeed().Magnitude() >= 0.005f) {
+            continue;
+        }
+        const auto* mi  = CModelInfo::GetModelInfo(veh->m_nModelIndex)->AsVehicleModelInfoPtr();
+        const auto* vsm = mi->m_pVehicleStruct;
+        if (vsm->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].z >= 1.5f) {
+            continue;
+        }
+        CPointList points;
+        FindCoverPointsBehindBox(
+            &points,
+            pos,
+            veh->m_matrix,
+            vsm->m_avDummyPos[DUMMY_LIGHT_FRONT_SECONDARY],
+            vsm->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN],
+            vsm->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN],
+            radius
+        );
+        for (uint32 j = 0; j < points.m_Count; j++) {
+            m_Destinations.AddPoint(points.m_Points[j]);
+        }
+    }
+
+    const auto* objPool = GetObjectPool();
+    for (auto i = objPool->GetSize(); i --> 0;) {
+        auto* obj = objPool->GetAt(i);
+        if (!obj || obj->m_matrix->m_up.z <= 0.95f) {
+            continue;
+        }
+        if (!obj->CanBeUsedToTakeCoverBehind()) {
+            continue;
+        }
+        const auto& objPos = obj->GetPosition();
+        const CVector dir  = objPos - pos;
+        if (DistanceBetweenPoints2D({ objPos.x, objPos.y }, { pos.x, pos.y }) < radius) {
+            m_Destinations.AddPoint(objPos + dir.Normalized());
+        }
+    }
 }
 
 void CFormation::InjectHooks() {
     RH_ScopedClass(CFormation);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedGlobalInstall(ReturnTargetPedForPed, 0x699F50, { .reversed = false });
-    RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0, { .reversed = false });
+    RH_ScopedGlobalInstall(ReturnTargetPedForPed, 0x699F50);
+    RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0);
     RH_ScopedGlobalInstall(FindCoverPointsBehindBox, 0x699FF0);
-    RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620, { .reversed = false });
-    RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700, { .reversed = false });
-    RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .reversed = false });
+    RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620);
+    RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770);
+    RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240);
+    RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0);
+    RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700);
+    RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860);
 }
