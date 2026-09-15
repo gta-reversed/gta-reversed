@@ -39,17 +39,19 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
         if (light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
             continue;
         }
-        const CVector delta = light.m_vecPosn - *point;
-        const float   rad   = light.m_fRadius;
-        if (-rad >= delta.x || delta.x >= rad || -rad >= delta.y || delta.y >= rad || -rad >= delta.z || delta.z >= rad) {
+        const CVector delta  = light.m_vecPosn - *point;
+        const float   radius = light.m_fRadius;
+        if (delta.x <= -radius || delta.x >= radius
+            || delta.y <= -radius || delta.y >= radius
+            || delta.z <= -radius || delta.z >= radius) {
             continue;
         }
         const float dist = delta.Magnitude();
-        if (dist >= rad) {
+        if (dist >= radius) {
             continue;
         }
 
-        const float ratio = dist / rad;
+        const float ratio = dist / radius;
         if (light.m_nType == PLTYPE_ANTILIGHT) {
             antilightMult *= ratio;
             continue;
@@ -83,21 +85,23 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
 // 0x6FFE70
 float CPointLights::GetLightMultiplier(const CVector* point) {
     float antilightMult = 1.0f;
-    float lightSum      = 0.0f;
+    float lightSum     = 0.0f;
     for (const auto& light : GetActiveLights()) {
         if (light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
             continue;
         }
-        const CVector delta = light.m_vecPosn - *point;
-        const float   rad   = light.m_fRadius;
-        if (-rad >= delta.x || delta.x >= rad || -rad >= delta.y || delta.y >= rad || -rad >= delta.z || delta.z >= rad) {
+        const CVector delta  = light.m_vecPosn - *point;
+        const float   radius = light.m_fRadius;
+        if (delta.x <= -radius || delta.x >= radius
+            || delta.y <= -radius || delta.y >= radius
+            || delta.z <= -radius || delta.z >= radius) {
             continue;
         }
         const float dist = delta.Magnitude();
-        if (dist >= rad) {
+        if (dist >= radius) {
             continue;
         }
-        const float ratio = dist / rad;
+        const float ratio = dist / radius;
         if (light.m_nType == PLTYPE_ANTILIGHT) {
             antilightMult *= ratio;
         } else {
@@ -117,7 +121,7 @@ void CPointLights::RemoveLightsAffectingObject() {
 // 0x6FFFF0
 bool CPointLights::ProcessVerticalLineUsingCache(CVector point, float* outZ) {
     for (auto&& [i, cached] : rngv::enumerate(aCachedMapReads)) {
-        if (cached.x == point.x && cached.y == point.y && cached.z == point.z) {
+        if (cached == point) {
             *outZ = aCachedMapReadResults[i];
             return true;
         }
@@ -131,7 +135,7 @@ bool CPointLights::ProcessVerticalLineUsingCache(CVector point, float* outZ) {
 
     aCachedMapReadResults[NextCachedValue] = colPoint.m_vecPoint.z;
     aCachedMapReads[NextCachedValue]       = point;
-    NextCachedValue                        = (NextCachedValue + 1) % MAX_POINT_LIGHTS;
+    NextCachedValue                       = (NextCachedValue + 1) % MAX_POINT_LIGHTS;
 
     *outZ = colPoint.m_vecPoint.z;
     return true;
@@ -141,7 +145,7 @@ bool CPointLights::ProcessVerticalLineUsingCache(CVector point, float* outZ) {
 void CPointLights::AddLight(uint8 lightType, CVector point, CVector direction, float radius, float red, float green, float blue, uint8 fogType, bool generateExtraShadows, CEntity* entityAffected) {
     const CVector delta   = point - TheCamera.GetPosition();
     const float   maxDist = radius + 15.0f;
-    if (delta.x >= maxDist || -maxDist >= delta.x || delta.y >= maxDist || -maxDist >= delta.y) {
+    if (delta.x >= maxDist || delta.x <= -maxDist || delta.y >= maxDist || delta.y <= -maxDist) {
         return;
     }
     if (NumLights >= MAX_POINT_LIGHTS) {
@@ -241,8 +245,11 @@ void CPointLights::RenderFogEffect() {
             const auto [minX, maxX] = std::minmax(pos.x, end.x);
             const auto [minY, maxY] = std::minmax(pos.y, end.y);
 
-            const int32 startX = (int32)(minX - FOG_RADIUS) / 4 * 4, endX = (int32)(maxX + FOG_RADIUS) + 4;
-            const int32 startY = (int32)(minY - FOG_RADIUS) / 4 * 4, endY = (int32)(maxY + FOG_RADIUS) + 4;
+            // Truncate before snapping to the grid, including at negative coordinates.
+            const int32 startX = static_cast<int32>(minX - FOG_RADIUS) / 4 * 4;
+            const int32 startY = static_cast<int32>(minY - FOG_RADIUS) / 4 * 4;
+            const int32 endX   = static_cast<int32>(maxX + FOG_RADIUS) + 4;
+            const int32 endY   = static_cast<int32>(maxY + FOG_RADIUS) + 4;
             for (int32 x = startX; x <= endX; x += 4) {
                 for (int32 y = startY; y <= endY; y += 4) {
                     const auto pattern = ((x >> 2) ^ (y >> 2)) & 0xF;
@@ -277,7 +284,8 @@ void CPointLights::RenderFogEffect() {
                     const float intensity = along / std::sqrt(distSq) * fogAmount * 50.0f
                                           * (1.0f - sq(along / FOG_LENGTH))
                                           * (1.0f - sq(std::sqrt(perpSq) / FOG_RADIUS));
-                    RenderFogSprite(light, puffPos, intensity, FogSizes[pattern >> 1], 1.0f,
+                    const auto puffIndex = pattern >> 1;
+                    RenderFogSprite(light, puffPos, intensity, FogSizes[puffIndex], 1.0f,
                         (float)(CTimer::GetTimeInMS() & 0x1FFF) * (6.28f / 8192.0f));
                 }
             }
@@ -288,8 +296,11 @@ void CPointLights::RenderFogEffect() {
                 continue;
             }
 
-            const int32 startX = (int32)(pos.x - fogSize) / 2 * 2, endX = (int32)(pos.x + fogSize) + 2;
-            const int32 startY = (int32)(pos.y - fogSize) / 2 * 2, endY = (int32)(pos.y + fogSize) + 2;
+            // Truncate before snapping to the grid, including at negative coordinates.
+            const int32 startX = static_cast<int32>(pos.x - fogSize) / 2 * 2;
+            const int32 startY = static_cast<int32>(pos.y - fogSize) / 2 * 2;
+            const int32 endX   = static_cast<int32>(pos.x + fogSize) + 2;
+            const int32 endY   = static_cast<int32>(pos.y + fogSize) + 2;
             for (int32 x = startX; x <= endX; x += 2) {
                 for (int32 y = startY; y <= endY; y += 2) {
                     const auto pattern = ((x / 2) ^ (y / 2)) & 0xF;
@@ -310,8 +321,9 @@ void CPointLights::RenderFogEffect() {
                     const float camFade = camDist < 7.5f ? 1.0f : 1.0f - (camDist - 7.5f) / 7.5f;
 
                     const float intensity = (1.0f - sq(dist / fogSize)) * camFade * fogAmount * 37.0f;
-                    RenderFogSprite(light, { puffPos2D.x, puffPos2D.y, groundZ + 1.6f }, intensity, FogSizes[pattern >> 1], 0.7f,
-                        (float)((CTimer::GetTimeInMS() + (pattern >> 1) * 0x8FC) & 0x7FFF) * (6.28f / 32768.0f));
+                    const auto puffIndex = pattern >> 1;
+                    RenderFogSprite(light, { puffPos2D.x, puffPos2D.y, groundZ + 1.6f }, intensity, FogSizes[puffIndex], 0.7f,
+                        (float)((CTimer::GetTimeInMS() + puffIndex * 0x8FC) & 0x7FFF) * (6.28f / 32768.0f));
                 }
             }
         }
