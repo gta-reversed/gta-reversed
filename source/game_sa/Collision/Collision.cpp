@@ -843,7 +843,7 @@ NOTSA_FORCEINLINE bool ProcessLineSphere_Internal(
     CVector* ip,
     float*   depth
 ) {
-    if (!CCollision::s_DebugSettings.ShapeShapeCollision.IsEnabled(Shape::SSPHERE, Shape::SLINE)) {
+    if (!CCollision::s_DebugSettings.ShapeCollisions.IsEnabled(Shape::SSPHERE, Shape::SLINE)) {
         return false;
     }
 
@@ -1271,7 +1271,7 @@ bool NOTSA_FORCEINLINE ProcessLineTriangle_Internal(
     CVector* outIP,
     CVector* outPlNorm
 ) {
-    if (!CCollision::s_DebugSettings.ShapeShapeCollision.IsEnabled(Shape::SLINE, Shape::STRI)) {
+    if (!CCollision::s_DebugSettings.ShapeCollisions.IsEnabled(Shape::SLINE, Shape::STRI)) {
         return false;
     }
 
@@ -1552,7 +1552,7 @@ bool CCollision::TestSphereTriangle(
 ) {
     ZoneScoped;
 
-    if (!CCollision::s_DebugSettings.ShapeShapeCollision.IsEnabled(Shape::SSPHERE, Shape::STRI)) {
+    if (!CCollision::s_DebugSettings.ShapeCollisions.IsEnabled(Shape::SSPHERE, Shape::STRI)) {
         return false;
     }
 
@@ -1607,7 +1607,7 @@ bool CCollision::ProcessSphereTriangle(
 ) {
     ZoneScoped;
 
-    if (!CCollision::s_DebugSettings.ShapeShapeCollision.IsEnabled(Shape::SSPHERE, Shape::STRI)) {
+    if (!CCollision::s_DebugSettings.ShapeCollisions.IsEnabled(Shape::SSPHERE, Shape::STRI)) {
         return false;
     }
 
@@ -1941,7 +1941,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     // because each accepted collision also writes `m_fDepth = -1.f` into the *next* slot
     // (`sphereCPs[nNumSphereCPs + 1].m_fDepth`) as a "not-yet-written" sentinel - one trailing
     // index has to stay in-bounds for that.
-    constexpr auto maxSphereCPs = sphereCPs.size() - 1;
+    const auto maxSphereCPs = sphereCPs.size() - 1;
 
     // Transform matrix from A's space to B's
     const auto transformAtoB = Invert(transformB) * transformA;
