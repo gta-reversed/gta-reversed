@@ -11,7 +11,7 @@ def main() -> None:
     args, conan_args = ap.parse_known_args()
 
     profile = args.profile
-    if '/' not in profile:
+    if '/' not in profile and '\\' not in profile:
         profile = f'./conan/profiles/{profile}'
 
     subprocess.run(["conan", "install", ".", "--build=missing", "--profile", profile, *conan_args], check=True)
