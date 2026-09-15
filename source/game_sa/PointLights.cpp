@@ -7,6 +7,10 @@
 #include "StdInc.h"
 
 #include "PointLights.h"
+#include "Clouds.h"
+
+// 0x8D5068 - Sprite scale per fog puff pattern index
+static constexpr float FogSizes[8] = { 1.3f, 2.0f, 1.7f, 2.0f, 1.4f, 2.1f, 1.5f, 2.3f };
 
 void CPointLights::InjectHooks() {
     RH_ScopedClass(CPointLights);
@@ -18,7 +22,7 @@ void CPointLights::InjectHooks() {
     RH_ScopedInstall(RemoveLightsAffectingObject, 0x6FFFE0);
     RH_ScopedInstall(ProcessVerticalLineUsingCache, 0x6FFFF0);
     RH_ScopedInstall(AddLight, 0x7000E0);
-    RH_ScopedInstall(RenderFogEffect, 0x7002D0, { .reversed = false });
+    RH_ScopedInstall(RenderFogEffect, 0x7002D0);
 }
 
 // 0x6FFB40
@@ -175,5 +179,143 @@ void CPointLights::AddLight(uint8 lightType, CVector point, CVector direction, f
 void CPointLights::RenderFogEffect() {
     ZoneScoped;
 
-    plugin::Call<0x7002D0>();
+    if (CCutsceneMgr::ms_running) {
+        return;
+    }
+
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE, RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDONE));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDONE));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCloudTex)));
+    CSprite::InitSpriteBuffer();
+
+    const auto RenderFogSprite = [](const CPointLight& light, const CVector& pos, float intensity, float sizeMult, float aspect, float angle) {
+        RwV3d screen;
+        float w, h;
+        if (!CSprite::CalcScreenCoors(pos, &screen, &w, &h, true, true)) {
+            return;
+        }
+        CSprite::RenderBufferedOneXLUSprite_Rotate_Aspect(
+            screen.x, screen.y, screen.z,
+            w * sizeMult, h * sizeMult * aspect,
+            (uint8)(intensity * light.m_fColorRed),
+            (uint8)(intensity * light.m_fColorGreen),
+            (uint8)(intensity * light.m_fColorBlue),
+            (int16)intensity,
+            1.0f / screen.z,
+            angle,
+            255
+        );
+    };
+
+    for (const auto& light : GetActiveLights()) {
+        float fogAmount, fogSize;
+        switch (light.m_nFogType) {
+        case rwFOGTYPELINEAR:
+            fogAmount = CWeather::Foggyness;
+            fogSize   = 9.0f;
+            break;
+        case rwFOGTYPEEXPONENTIAL:
+            fogAmount = 0.4f;
+            fogSize   = 3.0f;
+            break;
+        default:
+            continue;
+        }
+        if (fogAmount == 0.0f) {
+            continue;
+        }
+
+        const auto& pos = light.m_vecPosn;
+        const auto& dir = light.m_vecDirection;
+
+        if (light.m_nType == PLTYPE_DIRECTIONAL) {
+            // Fog cone along the light direction (12 units long, 5 units wide), sampled on a 4x4 grid
+            constexpr float FOG_LENGTH = 12.0f;
+            constexpr float FOG_RADIUS = 5.0f;
+
+            const CVector2D end = CVector2D{ pos } + CVector2D{ dir } * FOG_LENGTH;
+            const auto [minX, maxX] = std::minmax(pos.x, end.x);
+            const auto [minY, maxY] = std::minmax(pos.y, end.y);
+
+            const int32 startX = (int32)(minX - FOG_RADIUS) / 4 * 4, endX = (int32)(maxX + FOG_RADIUS) + 4;
+            const int32 startY = (int32)(minY - FOG_RADIUS) / 4 * 4, endY = (int32)(maxY + FOG_RADIUS) + 4;
+            for (int32 x = startX; x <= endX; x += 4) {
+                for (int32 y = startY; y <= endY; y += 4) {
+                    const auto pattern = ((x >> 2) ^ (y >> 2)) & 0xF;
+                    if (!(pattern & 1)) {
+                        continue;
+                    }
+
+                    const CVector2D delta2D = CVector2D{ (float)x, (float)y } - CVector2D{ pos };
+                    const float     along2D = DotProduct2D(delta2D, dir);
+                    if (along2D <= 0.0f || along2D >= FOG_LENGTH || delta2D.SquaredMagnitude() - sq(along2D) >= sq(FOG_RADIUS)) {
+                        continue;
+                    }
+
+                    CColPoint colPoint;
+                    CEntity*  entity;
+                    if (!CWorld::ProcessVerticalLine({ (float)x, (float)y, pos.z + 10.0f }, pos.z - 10.0f, colPoint, entity, true, false, false, false, true, false, nullptr)) {
+                        continue;
+                    }
+
+                    const CVector puffPos{ (float)x, (float)y, colPoint.m_vecPoint.z + 1.3f };
+                    const CVector delta = puffPos - pos;
+                    const float   along = DotProduct(delta, dir);
+                    if (along <= 0.0f || along >= FOG_LENGTH) {
+                        continue;
+                    }
+                    const float distSq = delta.SquaredMagnitude();
+                    const float perpSq = distSq - sq(along);
+                    if (perpSq >= sq(FOG_RADIUS)) {
+                        continue;
+                    }
+
+                    const float intensity = along / std::sqrt(distSq) * fogAmount * 50.0f
+                                          * (1.0f - sq(along / FOG_LENGTH))
+                                          * (1.0f - sq(std::sqrt(perpSq) / FOG_RADIUS));
+                    RenderFogSprite(light, puffPos, intensity, FogSizes[pattern >> 1], 1.0f,
+                        (float)(CTimer::GetTimeInMS() & 0x1FFF) * (6.28f / 8192.0f));
+                }
+            }
+        } else if (light.m_nType == PLTYPE_POINTLIGHT || light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
+            // Fog disc around the light, sampled on a 2x2 grid
+            float groundZ;
+            if (!ProcessVerticalLineUsingCache(pos, &groundZ)) {
+                continue;
+            }
+
+            const int32 startX = (int32)(pos.x - fogSize) / 2 * 2, endX = (int32)(pos.x + fogSize) + 2;
+            const int32 startY = (int32)(pos.y - fogSize) / 2 * 2, endY = (int32)(pos.y + fogSize) + 2;
+            for (int32 x = startX; x <= endX; x += 2) {
+                for (int32 y = startY; y <= endY; y += 2) {
+                    const auto pattern = ((x / 2) ^ (y / 2)) & 0xF;
+                    if (!(pattern & 1)) {
+                        continue;
+                    }
+
+                    const CVector2D puffPos2D{ (float)x, (float)y };
+                    const float     dist = (puffPos2D - CVector2D{ pos }).Magnitude();
+                    if (dist >= fogSize) {
+                        continue;
+                    }
+
+                    const float camDist = (puffPos2D - CVector2D{ TheCamera.GetPosition() }).Magnitude();
+                    if (camDist >= 15.0f) {
+                        continue;
+                    }
+                    const float camFade = camDist < 7.5f ? 1.0f : 1.0f - (camDist - 7.5f) / 7.5f;
+
+                    const float intensity = (1.0f - sq(dist / fogSize)) * camFade * fogAmount * 37.0f;
+                    RenderFogSprite(light, { puffPos2D.x, puffPos2D.y, groundZ + 1.6f }, intensity, FogSizes[pattern >> 1], 0.7f,
+                        (float)((CTimer::GetTimeInMS() + (pattern >> 1) * 0x8FC) & 0x7FFF) * (6.28f / 32768.0f));
+                }
+            }
+        }
+    }
+
+    CSprite::FlushSpriteBuffer();
 }
