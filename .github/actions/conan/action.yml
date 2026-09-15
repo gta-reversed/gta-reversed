@@ -1,6 +1,11 @@
 name: Setup project via Conan
 description: A workflow to setup (and optionally build) the project using Conan and CMake
 
+#
+# NOTE:
+# In composite actions `type` and `options` aren't supported (yet?), 
+# but they're useful for documentation purposes, so might as well keep them...
+#
 inputs:
   host_profile:
     description: "Conan (host) profile to use. [Values: See `conan/profiles` folder]"
