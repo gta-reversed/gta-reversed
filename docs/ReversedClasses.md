@@ -1,13 +1,13 @@
 # Reversed Classes progress
 This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.
 
-Last update was at Sep 08, 2026 at 11:43:31 UTC triggered by [4c5619750e9b9afc2308c114845269e1989637ac](https://github.com/gta-reversed/gta-reversed/commit/4c5619750e9b9afc2308c114845269e1989637ac) 
+Last update was at Sep 15, 2026 at 13:41:10 UTC triggered by [c33a61c69e07122e901ab560c85263c3444a8c46](https://github.com/gta-reversed/gta-reversed/commit/c33a61c69e07122e901ab560c85263c3444a8c46) 
 
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
 ## Stats (8014 functions, 701 classes)
 
-#### Completely reversed classes (583/701) [83%]
+#### Completely reversed classes (584/701) [83%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -51,6 +51,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CStencilShadowObject (3)<br />
 - CStats (32)<br />
 - CSprite2d (33)<br />
+- CSprite (15)<br />
 - CSpecialPlateHandler (4)<br />
 - CSpecialFX (7)<br />
 - CSkidmarks (7)<br />
@@ -596,7 +597,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (115/701) [16%]
+#### Partially reversed classes (114/701) [16%]
 
 <details>
 <summary>See list of classes</summary>- C_PcSave (4/5) [80%]<br />
@@ -605,7 +606,6 @@ The percentages and the number of classes shown here may not be completely accur
 - CWeapon (35/41) [85%]<br />
 - CWaterLevel (25/30) [83%]<br />
 - CStencilShadows (9/13) [69%]<br />
-- CSprite (9/15) [60%]<br />
 - CRopes (9/11) [82%]<br />
 - CRope (5/7) [71%]<br />
 - CRoadBlocks (7/8) [88%]<br />
