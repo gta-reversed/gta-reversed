@@ -2,6 +2,8 @@
 
 #include "ProjectileInfo.h"
 
+#include "Explosion.h"
+
 #include "Entity/Object/Projectile.h"
 #include "Radar.h"
 #include "World.h"
@@ -16,7 +18,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x737B40, { .reversed = false });
     RH_ScopedInstall(Shutdown, 0x737BC0, { .reversed = false });
     RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .reversed = false });
-    RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .reversed = false });
+    RH_ScopedInstall(RemoveNotAdd, 0x737C00);
     RH_ScopedInstall(AddProjectile, 0x737C80, { .reversed = false });
     RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .reversed = false });
     RH_ScopedInstall(RemoveProjectile, 0x7388F0, { .reversed = false });
@@ -43,8 +45,25 @@ CProjectileInfo* CProjectileInfo::GetProjectileInfo(int32 infoId) {
 }
 
 // 0x737C00
+// Explodes a projectile that was never fired (e.g.: ped holding it died/weapon switched)
 void CProjectileInfo::RemoveNotAdd(CEntity* creator, eWeaponType weaponType, CVector pos) {
-    plugin::Call<0x737C00, CEntity*, eWeaponType, CVector>(creator, weaponType, pos);
+    eExplosionType explosionType;
+    switch (weaponType) {
+    case WEAPON_GRENADE:
+    case WEAPON_REMOTE_SATCHEL_CHARGE:
+        explosionType = EXPLOSION_GRENADE;
+        break;
+    case WEAPON_MOLOTOV:
+        explosionType = EXPLOSION_MOLOTOV;
+        break;
+    case WEAPON_ROCKET:
+    case WEAPON_ROCKET_HS:
+        explosionType = EXPLOSION_ROCKET;
+        break;
+    default:
+        return;
+    }
+    CExplosion::AddExplosion(nullptr, creator, explosionType, pos, 0u, 1u, -1.f, 0u);
 }
 
 // 0x737C80
