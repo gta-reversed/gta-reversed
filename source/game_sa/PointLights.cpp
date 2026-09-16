@@ -41,9 +41,7 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
         }
         const CVector delta  = light.m_vecPosn - *point;
         const float   radius = light.m_fRadius;
-        if (delta.x <= -radius || delta.x >= radius
-            || delta.y <= -radius || delta.y >= radius
-            || delta.z <= -radius || delta.z >= radius) {
+        if (!CRect{ CVector2D{ *point }, radius }.IsPointInside(light.m_vecPosn) || std::abs(delta.z) >= radius) {
             continue;
         }
         const float dist = delta.Magnitude();
@@ -92,9 +90,7 @@ float CPointLights::GetLightMultiplier(const CVector* point) {
         }
         const CVector delta  = light.m_vecPosn - *point;
         const float   radius = light.m_fRadius;
-        if (delta.x <= -radius || delta.x >= radius
-            || delta.y <= -radius || delta.y >= radius
-            || delta.z <= -radius || delta.z >= radius) {
+        if (!CRect{ CVector2D{ *point }, radius }.IsPointInside(light.m_vecPosn) || std::abs(delta.z) >= radius) {
             continue;
         }
         const float dist = delta.Magnitude();
@@ -105,9 +101,9 @@ float CPointLights::GetLightMultiplier(const CVector* point) {
         if (light.m_nType == PLTYPE_ANTILIGHT) {
             antilightMult *= ratio;
         } else {
-            lightSum += (1.0f - ratio) * light.m_fColorRed   * (1.0f / 3.0f)
-                      + (1.0f - ratio) * light.m_fColorGreen * (1.0f / 3.0f)
-                      + (1.0f - ratio) * light.m_fColorBlue  * (1.0f / 3.0f);
+            lightSum += (1.0f - ratio)
+                      * (light.m_fColorRed + light.m_fColorGreen + light.m_fColorBlue)
+                      / 3.0f;
         }
     }
     return antilightMult + lightSum;
@@ -143,40 +139,34 @@ bool CPointLights::ProcessVerticalLineUsingCache(CVector point, float* outZ) {
 
 // 0x7000E0
 void CPointLights::AddLight(uint8 lightType, CVector point, CVector direction, float radius, float red, float green, float blue, uint8 fogType, bool generateExtraShadows, CEntity* entityAffected) {
-    const CVector delta   = point - TheCamera.GetPosition();
     const float   maxDist = radius + 15.0f;
-    if (delta.x >= maxDist || delta.x <= -maxDist || delta.y >= maxDist || delta.y <= -maxDist) {
+    const CVector camPos  = TheCamera.GetPosition();
+    if (!CRect{ CVector2D{ point }, maxDist }.IsPointInside(CVector2D{ camPos })) {
         return;
     }
     if (NumLights >= MAX_POINT_LIGHTS) {
         return;
     }
-    const float dist = delta.Magnitude();
+    const float dist = (point - camPos).Magnitude();
     if (dist >= maxDist) {
         return;
     }
 
-    auto& light      = aLights[NumLights++];
-    light.m_nType    = static_cast<ePointLightType>(lightType);
-    light.m_nFogType = fogType;
+    // Fade color out starting at 75% of the max distance
+    const float fade = dist < maxDist * 0.75f ? 1.0f : 1.0f - (dist / maxDist - 0.75f) * 4.0f;
 
-    light.m_vecPosn      = point;
-    light.m_vecDirection = direction;
-    light.m_fRadius      = radius;
-
-    light.m_bGenerateShadows = generateExtraShadows;
-    light.m_pEntityToLight   = entityAffected;
-
-    if (dist < maxDist * 0.75f) {
-        light.m_fColorRed   = red;
-        light.m_fColorGreen = green;
-        light.m_fColorBlue  = blue;
-    } else { // Fade color out starting at 75% of the max distance
-        const float fade    = 1.0f - (dist / maxDist - 0.75f) * 4.0f;
-        light.m_fColorRed   = red * fade;
-        light.m_fColorGreen = green * fade;
-        light.m_fColorBlue  = blue * fade;
-    }
+    new (&aLights[NumLights++]) CPointLight{
+        .m_vecPosn          = point,
+        .m_vecDirection     = direction,
+        .m_fRadius          = radius,
+        .m_fColorRed        = red * fade,
+        .m_fColorGreen      = green * fade,
+        .m_fColorBlue       = blue * fade,
+        .m_pEntityToLight   = entityAffected,
+        .m_nType            = static_cast<ePointLightType>(lightType),
+        .m_nFogType         = fogType,
+        .m_bGenerateShadows = generateExtraShadows,
+    };
 }
 
 // 0x7002D0
@@ -253,7 +243,7 @@ void CPointLights::RenderFogEffect() {
             for (int32 x = startX; x <= endX; x += 4) {
                 for (int32 y = startY; y <= endY; y += 4) {
                     const auto pattern = ((x >> 2) ^ (y >> 2)) & 0xF;
-                    if (!(pattern & 1)) {
+                    if (pattern % 2 == 0) {
                         continue;
                     }
 
@@ -286,7 +276,7 @@ void CPointLights::RenderFogEffect() {
                                           * (1.0f - sq(std::sqrt(perpSq) / FOG_RADIUS));
                     const auto puffIndex = pattern >> 1;
                     RenderFogSprite(light, puffPos, intensity, FogSizes[puffIndex], 1.0f,
-                        (float)(CTimer::GetTimeInMS() & 0x1FFF) * (6.28f / 8192.0f));
+                        6.28f * (float)(CTimer::GetTimeInMS() % 8192) / 8192.0f); // angle (0, 2pi)
                 }
             }
         } else if (light.m_nType == PLTYPE_POINTLIGHT || light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
@@ -303,14 +293,18 @@ void CPointLights::RenderFogEffect() {
             const int32 endY   = static_cast<int32>(pos.y + fogSize) + 2;
             for (int32 x = startX; x <= endX; x += 2) {
                 for (int32 y = startY; y <= endY; y += 2) {
-                    const auto pattern = ((x / 2) ^ (y / 2)) & 0xF;
-                    if (!(pattern & 1)) {
+                    // Cheap spatial hashing to get somewhat a random number for fog generation
+                    // Imagine evaluating only a single round of some hashing algorithm (e.g. FNV)
+                    const auto hash = ((x / 2) ^ (y / 2)) & 0xF;
+                    if (!(hash & 1)) {
+                        // is_odd(x/2) != is_odd(y/2)
+                        // Filtering this case creates a checkerboard pattern, halving the no of render operations
                         continue;
                     }
 
                     const CVector2D puffPos2D{ (float)x, (float)y };
-                    const float     dist = (puffPos2D - CVector2D{ pos }).Magnitude();
-                    if (dist >= fogSize) {
+                    const float     distSq = (puffPos2D - CVector2D{ pos }).SquaredMagnitude();
+                    if (distSq >= sq(fogSize)) {
                         continue;
                     }
 
@@ -320,10 +314,18 @@ void CPointLights::RenderFogEffect() {
                     }
                     const float camFade = camDist < 7.5f ? 1.0f : 1.0f - (camDist - 7.5f) / 7.5f;
 
-                    const float intensity = (1.0f - sq(dist / fogSize)) * camFade * fogAmount * 37.0f;
-                    const auto puffIndex = pattern >> 1;
-                    RenderFogSprite(light, { puffPos2D.x, puffPos2D.y, groundZ + 1.6f }, intensity, FogSizes[puffIndex], 0.7f,
-                        (float)((CTimer::GetTimeInMS() + puffIndex * 0x8FC) & 0x7FFF) * (6.28f / 32768.0f));
+                    const float intensity = (1.0f - distSq / sq(fogSize)) * camFade * fogAmount * 37.0f;
+                    const auto puffIndex = hash >> 1;
+
+                    constexpr auto PhaseOffsetMs = 2300; // Intentionally non-power of two to appear asymmetric
+                    RenderFogSprite(
+                        light,
+                        { puffPos2D.x, puffPos2D.y, groundZ + 1.6f },
+                        intensity,
+                        FogSizes[puffIndex],
+                        0.7f,
+                        6.28f * (float)((CTimer::GetTimeInMS() + puffIndex * PhaseOffsetMs) % 32768) / 32768.0f // angle (0,2pi)
+                    );
                 }
             }
         }
