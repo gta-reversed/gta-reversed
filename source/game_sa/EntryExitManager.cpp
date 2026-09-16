@@ -330,11 +330,16 @@ void CEntryExitManager::LinkEntryExit(CEntryExit* enex) {
 
 // 0x43EFD0
 int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags, uint16 disabledFlags) {
-    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
+    // Original iterates the pool backwards, so on duplicate names the highest index wins
+    for (auto i = (int32)mp_poolEntryExits->GetSize() - 1; i >= 0; i--) {
+        const auto enex = mp_poolEntryExits->GetAt(i);
+        if (!enex) {
+            continue;
+        }
         // Remember: cast to `uint8` == mask by 0xFF
-        if ((uint8)(enex.m_nFlags & enabledFlags) == (uint8)enabledFlags
-            && (uint8)(enex.m_nFlags & disabledFlags) == 0) {
-            if (!_strnicmp(enex.m_szName, name, std::size(enex.m_szName))) {
+        if ((uint8)(enex->m_nFlags & enabledFlags) == (uint8)enabledFlags
+            && (uint8)(enex->m_nFlags & disabledFlags) == 0) {
+            if (!_strnicmp(enex->m_szName, name, std::size(enex->m_szName))) {
                 return i;
             }
         }
