@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#ifdef NOTSA_STANDALONE
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
 #include "ReversibleHook/NullHook.h"
 #else
 #include "ReversibleHook/VirtualHook.h"
@@ -50,7 +50,7 @@ void RHManager::InstallVirtual(
     void*              fnAddressGTA,
     HookInstallOptions opt
 ) {
-#ifdef NOTSA_STANDALONE
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
     AddHookToCategory(category, opt, std::make_shared<ReversibleHook::NullHook>(
         std::move(fnName),
         fnAddressOur,

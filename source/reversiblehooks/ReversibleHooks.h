@@ -33,11 +33,19 @@
     RH_InstallProlouge(name) \
     using RHCurrentNS = cls;
 
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
+#define RH_ScopedVirtualClass(cls, addrGTAVtbl, nVirtFns_) \
+    RH_InstallProlouge(#cls) \
+    const  ReversibleHooks::Utility::VMTInfo pGTAVTbl{}; \
+    const  ReversibleHooks::Utility::VMTInfo pOurVTbl{}; \
+    using RHCurrentNS = cls;
+#else
 #define RH_ScopedVirtualClass(cls, addrGTAVtbl, nVirtFns_) \
     RH_InstallProlouge(#cls) \
     const auto pGTAVTbl = ReversibleHooks::Utility::VMTInfo{ (void**)addrGTAVtbl, nVirtFns_ }; \
     const auto pOurVTbl = ReversibleHooks::Utility::VMTInfo::FindByClassName(#cls, nVirtFns_); \
     using RHCurrentNS = cls;
+#endif
 
 // Use when `name` is a namespace
 #define RH_ScopedNamespace(name) \
