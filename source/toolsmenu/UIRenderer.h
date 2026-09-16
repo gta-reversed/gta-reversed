@@ -30,19 +30,19 @@ private:
     //! Render 3D stuff in the world (If rendered elsewhere it won't be visible)
     void Render3D();
 
-    //! Render 2D stuff (Called after a new (ImGui) frame has been began)
+    //! Post render updates (Before DirectX scene (`RwCameraBeginUpdate` & `RwCameraEndUpdate`))
+    void PreRender();
+
+    //! Render UI to ImGui frame (Will be rendered later in `Render2D`)
+    void RenderImGui();
+
+    //! Render 2D stuff (Also used to render the UI itself)
     void Render2D();
 
-    //! Called before a new (ImGui) frame is started (and after the previous one has ended)
-    void PreRenderUpdate();
+    //! Post render updates (After DirectX `Present` (`RwCameraShowRaster`))
+    void PostRender();
 
-    //! Called after the frame has ended
-    void PostRenderUpdate();
-
-    //! The actual draw loop
-    void DrawLoop();
-
-    //! Random code you want to run (Called from `PreRenderUpdate`)
+    //! Random code you want to run (Called from `PreRender`)
     void DebugCode();
 
 private:

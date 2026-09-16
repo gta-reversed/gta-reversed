@@ -33,7 +33,7 @@ void CLoadingScreen::InjectHooks() {
     RH_ScopedInstall(DoPCTitleFadeOut, 0x590990);
     RH_ScopedInstall(DoPCScreenChange, 0x590AC0);
     RH_ScopedInstall(NewChunkLoaded, 0x590D00);
-    RH_ScopedInstall(IsActive, 0x744DB5);
+    RH_ScopedInstall(IsActive, 0x744DB0);
 
     RH_ScopedGlobalInstall(LoadingScreen, 0x53DED0);
 }
