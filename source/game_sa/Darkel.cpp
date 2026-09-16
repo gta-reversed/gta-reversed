@@ -151,6 +151,10 @@ bool CDarkel::ThisVehicleShouldBeKilledForFrenzy(const CVehicle& vehicle) {
 
 // 0x43D3B0
 void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsNeeded, int32 modelToKill, const GxtChar* startMessage, int32 modelToKill2, int32 modelToKill3, int32 modelToKill4, bool standardSoundAndMessages, bool needHeadShot) {
+    assert(Status != eDarkelStatus::FRENZY_ON_GOING
+        && Status != eDarkelStatus::FRENZY_ON_GOING_2P
+        && "Already kill frenzy going on"); // R* from IV
+
     CGameLogic::ClearSkip(false);
     const eWeaponType weapon = (WeaponType != WEAPON_UZI_DRIVEBY) ? weaponType : WEAPON_MICRO_UZI;
 
@@ -224,6 +228,8 @@ void CDarkel::ResetModelsKilledByPlayer(int32 playerId) {
 
 // 0x43D6C0
 int16 CDarkel::QueryModelsKilledByPlayer(eModelID modelId, int32 playerId) {
+    assert(modelId < 800); // R* from IV
+    assert(playerId >= 0 && playerId < 1); // R* from IV
     return RegisteredKills[modelId][playerId];
 }
 
@@ -281,6 +287,8 @@ bool CDarkel::CheckDamagedWeaponType(eWeaponType damageWeaponId, eWeaponType exp
     if (damageWeaponId == -1) {
         return false;
     }
+
+    assert(CWeaponInfo::GetWeaponInfo(damageWeaponId) != nullptr);// R* from IV
 
     if (expectedDamageWeaponId == WEAPON_ANYMELEE) {
         switch (damageWeaponId) {
@@ -505,6 +513,7 @@ void CDarkel::RegisterKillByPlayer(const CPed& killedPed, eWeaponType damageWeap
         }
     }
 
+    assert(killedPed.GetModelIndex() < 800); // R* from IV
     RegisteredKills[killedPed.GetModelIndex()][playerId]++;
     CStats::IncrementStat(STAT_PEOPLE_YOUVE_WASTED);
     CStats::PedsKilledOfThisType[killedPed.bChrisCriminal ? PED_TYPE_CRIMINAL : killedPed.m_nPedType]++;
@@ -529,6 +538,7 @@ void CDarkel::RegisterCarBlownUpByPlayer(CVehicle& vehicle, int32 playerId) {
         KillsNeeded--;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE);
     }
+    assert(vehicle.GetModelIndex() < 800); // R* from IV
     RegisteredKills[vehicle.GetModelIndex()][playerId]++;
 
     switch (vehicle.GetVehicleAppearance()) {
