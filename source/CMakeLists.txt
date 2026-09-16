@@ -138,7 +138,7 @@ FetchContent_MakeAvailable(imfilebrowser)
 
 macro(add_dependency)
     foreach (target ${ARGV})
-        find_package(${target} REQUIRED)
+        find_package(${target} CONFIG REQUIRED)
 
         # Disable warnings of dependencies
         add_compile_options(${target} PRIVATE
@@ -155,7 +155,7 @@ add_dependency(
     Vorbis
     imgui
     libjpeg-turbo
-    boost
+    Boost
 )
 if (${RE_PROJECT}_USE_SDL3)
     add_dependency(SDL3)
@@ -174,7 +174,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dxguid
     strmiids
     d3d9
-    boost::boost
+    #Boost::boost # We're using header-only boost, so we don't need to link against it
 )
 if (${RE_PROJECT}_USE_SDL3)
     target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
