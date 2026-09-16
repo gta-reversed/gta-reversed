@@ -7,6 +7,8 @@ public:
     static constexpr auto DESTRUCTOR_VMT_INDEX = 0;
 
 public:
+    VMTInfo() = default;
+
     VMTInfo(void** table, size_t size) :
         m_Table(table),
         m_Size(size)
@@ -65,8 +67,8 @@ public:
     auto GetSize() const noexcept { return m_Size; }
 
 private:
-    void** m_Table;
-    size_t m_Size;
+    void** m_Table{};
+    size_t m_Size{};
 };
 };
 };
