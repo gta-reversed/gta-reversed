@@ -54,7 +54,7 @@ bool RListBuilder::UpdateCategory(RListCategory& cat, const Options& opts) const
     const auto prevAnyUnhookedItems    = std::exchange(cat.AnyUnhookedItems, false);
     cat.AnyUnhookedOwnItems = false; // This is OR'd with the above, so both will change if either does
     const auto prevAnyUnlockedItems    = std::exchange(cat.AnyUnlockedItems, false);
-    cat.AnyUnhookedOwnItems = false; // This is OR'd with the above, so both will change if either does
+    cat.AnyUnlockedOwnItems = false; // This is OR'd with the above, so both will change if either does
     const auto prevCommonStateAllItems = std::exchange(cat.CommonStateAllItems, std::nullopt);
     const auto prevCommonStateOwnItems = std::exchange(cat.CommonStateOwnItems, std::nullopt);
     const auto prevCommonStateSubItems = std::exchange(cat.CommonStateSubItems, std::nullopt);

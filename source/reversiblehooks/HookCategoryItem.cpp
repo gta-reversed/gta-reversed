@@ -25,7 +25,7 @@ bool HookCategoryItem::SetState(HookState state, bool ignoreLock) {
     return true;
 }
 void to_json(json& j, const HookCategoryItem& item) {
-    to_json(j, *item.GetHook());
+    item.GetHook()->Serialize(j);
     if (const auto category = item.m_Category.lock()) {
         j["Category"] = category->Name();
     } else {
