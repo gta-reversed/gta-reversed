@@ -33,7 +33,7 @@ public:
     CTaskComplexPartner(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, bool makePedAlwaysFacePartner, int8 updateDirectionCount, CVector point);
     ~CTaskComplexPartner() override;
 
-    eTaskType GetTaskType() const override { return Type; }
+    eTaskType    GetTaskType() const override { return Type; }
     CTask*       CreateNextSubTask(CPed* ped) override;
     CTask*       CreateFirstSubTask(CPed* ped) override;
     CTask*       ControlSubTask(CPed* ped) override;

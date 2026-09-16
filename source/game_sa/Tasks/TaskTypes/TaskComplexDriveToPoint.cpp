@@ -115,3 +115,19 @@ bool CTaskComplexDriveToPoint::IsTargetBlocked(CPed* ped, CEntity** entities, in
 void CTaskComplexDriveToPoint::GoToPoint(const CVector& point) {
     m_Point = point;
 }
+
+void CTaskComplexDriveToPoint::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexDriveToPoint, 0x86e9dc, 14);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x63CE00);
+    RH_ScopedInstall(Destructor, 0x63CE70);
+
+    RH_ScopedInstall(IsTargetBlocked, 0x6452C0, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x63DDE0);
+    RH_ScopedVMTInstall(GetTaskType, 0x63CE60);
+    RH_ScopedVMTInstall(SetUpCar, 0x63CF00);
+    RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x63CE80);
+    RH_ScopedVMTInstall(Drive, 0x645420, { .reversed = false });
+}

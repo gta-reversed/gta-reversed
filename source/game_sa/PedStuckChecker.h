@@ -18,6 +18,9 @@ public:
     ePedStuckState m_state;
 
 public:
+    static void InjectHooks();
+
+public:
     CPedStuckChecker() { // inlined 0x607292
         m_radius = 0;
         m_state = PED_STUCK_STATE_NONE;

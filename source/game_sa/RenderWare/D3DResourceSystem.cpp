@@ -7,6 +7,24 @@
 
 #include "StdInc.h"
 
+void D3DResourceSystem::InjectHooks() {
+    RH_ScopedClass(D3DResourceSystem);
+    RH_ScopedCategory("RenderWare");
+
+    RH_ScopedInstall(CancelBuffering, 0x730900, { .reversed = false });
+    RH_ScopedInstall(GetTotalIndexDataSize, 0x7307F0, { .reversed = false });
+    RH_ScopedInstall(GetTotalPixelsSize, 0x730660, { .reversed = false });
+    RH_ScopedInstall(Init, 0x730830, { .reversed = false });
+    RH_ScopedInstall(SetUseD3DResourceBuffering, 0x730AC0, { .reversed = false });
+    RH_ScopedInstall(Shutdown, 0x730A00, { .reversed = false });
+    RH_ScopedInstall(TidyUpD3DIndexBuffers, 0x730740, { .reversed = false });
+    RH_ScopedInstall(TidyUpD3DTextures, 0x7305E0, { .reversed = false });
+    RH_ScopedInstall(CreateIndexBuffer, 0x7306A0, { .reversed = false });
+    RH_ScopedInstall(CreateTexture, 0x730510, { .reversed = false });
+    RH_ScopedInstall(DestroyIndexBuffer, 0x730D30, { .reversed = false });
+    RH_ScopedInstall(DestroyTexture, 0x730B70, { .reversed = false });
+}
+
 // 0x730900
 void D3DResourceSystem::CancelBuffering() {
     plugin::Call<0x730900>();

@@ -34,3 +34,16 @@ CTaskSimpleCarSetPedInAsPassenger::~CTaskSimpleCarSetPedInAsPassenger() {
 bool CTaskSimpleCarSetPedInAsPassenger::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x64B5D0, CTask*, CPed*>(this, ped);
 }
+
+void CTaskSimpleCarSetPedInAsPassenger::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskSimpleCarSetPedInAsPassenger, 0x86ee04, 9);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x646FE0);
+    RH_ScopedInstall(Destructor, 0x647080);
+
+    RH_ScopedVMTInstall(Clone, 0x649D90);
+    RH_ScopedVMTInstall(GetTaskType, 0x647060);
+    RH_ScopedVMTInstall(MakeAbortable, 0x647070);
+    RH_ScopedVMTInstall(ProcessPed, 0x64B5D0, { .reversed = false });
+}
