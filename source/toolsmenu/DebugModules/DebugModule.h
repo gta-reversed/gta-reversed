@@ -33,7 +33,7 @@ public:
     //! Restore state from serialization
     virtual void Deserialize(const json&) { /*nothing*/ };
 
-    //! Called after immediately after the module has been deserialized
+    //! Called immediately after the module has been deserialized
     virtual void OnDeserialized() { /*nothing*/ }
 
     //! Get the ID of this module (Used for serialization)

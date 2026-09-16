@@ -39,7 +39,7 @@ public:
         s_Instance = new T{};
     }
 
-    //! Detroy current instance
+    //! Destroy current instance
     static void DestroyInstance() {
         delete std::exchange(s_Instance, nullptr);
     }
