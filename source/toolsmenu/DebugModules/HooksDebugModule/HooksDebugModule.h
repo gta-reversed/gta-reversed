@@ -120,7 +120,7 @@ private:
     struct {
         RListBuilder          Builder;
         RListBuilder::Options BuilderOpts{};
-        RListCategory*        RootCategory; //!< Data is owned by the `Builder`
+        RListCategory*        RootCategory{}; //!< Data is owned by the `Builder`
     } m_RenderList{};
 
     HooksExport m_HooksExport{};
