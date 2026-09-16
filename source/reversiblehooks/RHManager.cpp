@@ -34,7 +34,7 @@ void RHManager::WriteHooksToFile(const std::filesystem::path& file) {
                 Self(*subcat);
             }
         }(*GetRootCategory());
-        of << arr;
+        of << std::setw(4) << arr;
         NOTSA_LOG_INFO("Hooks written to `{}`", path.string());
     } else {
         NOTSA_LOG_ERR("Failed to open file `{}` for writing hooks!", path.string());
