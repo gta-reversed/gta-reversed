@@ -545,7 +545,7 @@ INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, I
         notsa::debug::UnloadSymbols();
     } };
 
-#ifdef NOTSA_DUMP_HOOKS_ONLY
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
     ReversibleHooks::RHManager::CreateInstance();
     notsa::ScopeGuard cleanupRH{ [] {
         ReversibleHooks::RHManager::DestroyInstance();
@@ -560,7 +560,7 @@ INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, I
     notsa::ui::UIRenderer::CreateInstance();
     // code..
     notsa::ui::UIRenderer::CreateInstance();
-    NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_DUMP_HOOKS_ONLY` option");
+    NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_STANDALONE_DUMP_HOOKS_ONLY` option");
     return 1;
 #endif
 }

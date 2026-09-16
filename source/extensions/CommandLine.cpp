@@ -156,7 +156,7 @@ void DumpHooks() {
     if (const auto& path = CommandLine::s_DumpHooksPath; !path.empty()) {
         ReversibleHooks::RHManager::GetInstance().WriteHooksToFile(path);
     } else {
-#if defined(NOTSA_STANDALONE) && defined(NOTSA_DUMP_HOOKS_ONLY)
+#if defined(NOTSA_STANDALONE) && defined(NOTSA_STANDALONE_DUMP_HOOKS_ONLY)
         NOTSA_LOG_ERR("No path provided for dumping hooks, use `--dump-hooks-to` CLI argument");
         exit(1);
 #endif
