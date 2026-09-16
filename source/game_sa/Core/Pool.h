@@ -8,6 +8,7 @@
 
 #include <Base.h>
 #include <cstdint>
+#include <reversiblebugfixes/Bugs.hpp>
 
 #define INVALID_POOL_SLOT (-1)
 
@@ -110,8 +111,7 @@ public:
     * @brief Shut down pool, deallocate
     */
     void Flush() {
-        // notsa: Call destructors for all valid objects
-        //DestroyObjects();
+        MaybeDestroyObjects();
 
         // Fill in memory so dangling pointers are more obvious
         DoFill(NOMANSLAND_FILL);
@@ -130,8 +130,7 @@ public:
 
     // Clears pool
     void Clear() {
-        // notsa: Call destructors for all valid objects
-        DestroyObjects();
+        MaybeDestroyObjects();
 
         for (auto i = 0; i < m_Capacity; i++) {
             m_SlotState[i].IsEmpty = true;
@@ -398,8 +397,8 @@ protected:
         return -1;
     }
 
-    void DestroyObjects() {
-        if constexpr (notsa::IsFixBugs()) {
+    void MaybeDestroyObjects() {
+        if (notsa::reversiblebugfixes::CPool_DestroyOnDestruct) {
             for (auto& v : GetAllValid()) {
                 std::destroy_at(&v);
             }
