@@ -275,6 +275,7 @@ void CPointLights::RenderFogEffect() {
                                           * (1.0f - sq(along / FOG_LENGTH))
                                           * (1.0f - sq(std::sqrt(perpSq) / FOG_RADIUS));
                     const auto puffIndex = pattern >> 1;
+                    // 6.28, and not TWO_PI because the binary uses exactly 6.28
                     RenderFogSprite(light, puffPos, intensity, FogSizes[puffIndex], 1.0f,
                         6.28f * (float)(CTimer::GetTimeInMS() % 8192) / 8192.0f); // angle (0, 2pi)
                 }
@@ -318,6 +319,7 @@ void CPointLights::RenderFogEffect() {
                     const auto puffIndex = hash >> 1;
 
                     constexpr auto PhaseOffsetMs = 2300; // Intentionally non-power of two to appear asymmetric
+                    // 6.28, and not TWO_PI because the binary uses exactly 6.28
                     RenderFogSprite(
                         light,
                         { puffPos2D.x, puffPos2D.y, groundZ + 1.6f },
