@@ -13,7 +13,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     // Install("CProjectileInfo", "", , &CProjectileInfo::);
-    RH_ScopedInstall(Initialise, 0x737B40, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x737B40);
     RH_ScopedInstall(Shutdown, 0x737BC0, { .reversed = false });
     RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .reversed = false });
     RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .reversed = false });
@@ -29,7 +29,17 @@ void CProjectileInfo::InjectHooks() {
 
 // 0x737B40
 void CProjectileInfo::Initialise() {
-    plugin::Call<0x737B40>();
+    for (auto& projectile : ms_apProjectile) {
+        projectile = nullptr;
+    }
+
+    for (auto& info : ms_aProjectileInfo) {
+        info.m_nWeaponType  = WEAPON_GRENADE;
+        info.m_pCreator     = nullptr;
+        info.m_nDestroyTime = 0;
+        info.m_bActive      = false;
+        info.m_pFxSystem    = nullptr;
+    }
 }
 
 // 0x737BC0

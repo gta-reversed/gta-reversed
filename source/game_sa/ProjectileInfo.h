@@ -26,7 +26,8 @@ public:
     FxSystem_c* m_pFxSystem;
 
 public:
-    static inline auto& ms_apProjectile = StaticRef<std::array<CProjectile*, MAX_PROJECTILES>>(0xC89110);
+    static inline auto& ms_apProjectile     = StaticRef<std::array<CProjectile*, MAX_PROJECTILES>>(0xC89110);
+    static inline auto& ms_aProjectileInfo  = StaticRef<std::array<CProjectileInfo, MAX_PROJECTILES>>(0xC891A8);
 
     static void Initialise();
     static void Shutdown();
