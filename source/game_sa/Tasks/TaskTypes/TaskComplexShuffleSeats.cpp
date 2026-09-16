@@ -42,6 +42,7 @@ CTaskComplexShuffleSeats::~CTaskComplexShuffleSeats() {
 CTask* CTaskComplexShuffleSeats::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER:
+        m_Veh->RemovePassenger(ped);
         return new CTaskSimpleCarSetPedInAsDriver{m_Veh, m_TaskUtilityLineUpPedWithCar};
     case TASK_SIMPLE_CAR_SHUFFLE:
         return new CTaskSimpleCarShuffle{ m_Veh, m_OriginDoor, m_TaskUtilityLineUpPedWithCar };
