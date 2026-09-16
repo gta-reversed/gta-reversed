@@ -111,7 +111,10 @@ public:
     * @brief Shut down pool, deallocate
     */
     void Flush() {
-        MaybeDestroyObjects();
+        // Perhaps properly destruct all objects in the pool
+        if (notsa::reversiblebugfixes::CPool_DestroyOnDestruct) {
+            Clear();
+        }
 
         // Fill in memory so dangling pointers are more obvious
         DoFill(NOMANSLAND_FILL);
@@ -130,13 +133,16 @@ public:
 
     // Clears pool
     void Clear() {
-        MaybeDestroyObjects();
-
-        for (auto i = 0; i < m_Capacity; i++) {
-            m_SlotState[i].IsEmpty = true;
+        if (notsa::reversiblebugfixes::CPool_DestroyOnDestruct) {
+            for (auto& v : GetAllValid()) {
+                delete &v;
+            }
+        } else { // Otherwise just mark as free, don't destruct
+            for (auto i = 0; i < m_Capacity; i++) {
+                m_SlotState[i].IsEmpty = true;
+            }
+            DoFill(DEADLAND_FILL);
         }
-
-        DoFill(DEADLAND_FILL);
     }
 
     auto GetSize() {
