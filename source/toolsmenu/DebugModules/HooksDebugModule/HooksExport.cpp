@@ -113,26 +113,24 @@ size_t HooksExport::ExportToFile(const fs::path& path) {
     json::array_t arr;
 
     [&](this auto&& Self, const RListCategory& cat) -> void {
-        if (m_OnlyFiltered && !IsMatchingScoreOrNone(cat.MaxFilterScoreOwnItems)) {
-            return;
-        }
-        for (const auto& item : cat.Items) {
-            if (m_OnlyFiltered && !IsMatchingScoreOrNone(item.FilterScore)) {
-                continue;
+        if (!m_OnlyFiltered || IsMatchingScoreOrNone(cat.MaxFilterScoreOwnItems)) {            
+            for (const auto& item : cat.Items) {
+                if (m_OnlyFiltered && !IsMatchingScoreOrNone(item.FilterScore)) {
+                    continue;
+                }
+                if (!m_SelectedStates[+item.Ptr->GetState()]) {
+                    continue;
+                }
+                if (!m_SelectedTypes[+item.Ptr->GetType()]) {
+                    continue;
+                }
+                to_json(arr.emplace_back(), *item.Ptr);
             }
-            if (!m_SelectedStates[+item.Ptr->GetState()]) {
-                continue;
-            }
-            if (!m_SelectedTypes[+item.Ptr->GetType()]) {
-                continue;
-            }
-            to_json(arr.emplace_back(), *item.Ptr);
         }
-        if (m_OwnItemsOnly) {
-            return;
-        }
-        for (auto& sc : cat.Categories) {
-            Self(sc); // Recurse into subcategories
+        if (!m_OwnItemsOnly) {
+            for (auto& sc : cat.Categories) {
+                Self(sc); // Recurse into subcategories
+            }
         }
     }(*m_ToExport);
 
