@@ -33,8 +33,11 @@ HooksDebugModule::HooksDebugModule() :
 {}
 
 HooksDebugModule::~HooksDebugModule() {
-    m_FilterProcessor.Exiting = true;
-    m_FilterProcessor.CV.notify_one();
+    {
+        std::unique_lock lock{ m_FilterProcessor.Mtx };
+        m_FilterProcessor.Exiting = true;
+        m_FilterProcessor.CV.notify_one();
+    }
     m_FilterProcessor.Thread.join();
 }
 
