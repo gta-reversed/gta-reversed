@@ -600,7 +600,6 @@ int32 CPhysical::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
 // 0x542560
 void CPhysical::RemoveAndAdd() {
 // TODO: Refactor `CEntryInfoNode` to be templated, otherwise this function will be a mess
-#if 0
     if (m_bIsBIGBuilding) {
         CEntity::Remove();
         CEntity::Add();
@@ -615,29 +614,36 @@ void CPhysical::RemoveAndAdd() {
     int32 endSectorY = CWorld::GetSectorY(boundRect.top);
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
+            CRepeatSector* const rs = &CWorld::GetRepeatSector(sectorX, sectorY);
             const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
-                if (entryInfoNode) {
-                    auto* doubleLink = reinterpret_cast<typename PtrListType::NodeType*>(entryInfoNode->m_doubleLink);
+                // The sector lists are typed per-class (CVehicle*/CPed*/CObject*), while the
+                // nodes stored in `CEntryInfoNode` are typed as `CPhysical*` - the layouts are
+                // identical, so reinterpret the node pointers (the original code did the same).
+                using ListNodeType  = typename PtrListType::NodeType;
+                using ListItemType  = typename PtrListType::ItemType;
+                using EntryNodeType = CPtrNodeDoubleLink<CPhysical*>;
 
-                    entryInfoNode->m_doubleLinkList->UnlinkNode(doubleLink);
+                if (entryInfoNode) {
+                    auto* doubleLink = reinterpret_cast<ListNodeType*>(entryInfoNode->m_doubleLink);
+
+                    entryInfoNode->m_doubleLinkList->UnlinkNode(reinterpret_cast<EntryNodeType*>(doubleLink));
                     list.AddNode(doubleLink);
-   
+
                     entryInfoNode->m_repeatSector = rs;
-                    entryInfoNode->m_doubleLinkList = &list;
+                    entryInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
                     entryInfoNode = entryInfoNode->m_next;
                 } else {
-                    auto newEntityInfoNode = new CEntryInfoNode();
+                    auto* newEntityInfoNode = new CEntryInfoNode{};
                     if (newEntityInfoNode) {
-                        newEntityInfoNode->m_doubleLink = list.AddItem(this);
+                        newEntityInfoNode->m_doubleLink = reinterpret_cast<EntryNodeType*>(list.AddItem(reinterpret_cast<std::remove_pointer_t<ListItemType>*>(this)));
                         newEntityInfoNode->m_repeatSector = rs;
-                        newEntityInfoNode->m_doubleLinkList = &list;
+                        newEntityInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
                     }
                     newEntityInfoNode->AddToList(m_pCollisionList.m_node);
                     m_pCollisionList.m_node = newEntityInfoNode;
                 }
             };
-            switch (m_nType) {
+            switch (GetType()) {
             case ENTITY_TYPE_VEHICLE: ProcessSectorList(rs->Vehicles); break;
             case ENTITY_TYPE_PED:     ProcessSectorList(rs->Peds);     break;
             case ENTITY_TYPE_OBJECT:  ProcessSectorList(rs->Objects);  break;
@@ -653,7 +659,6 @@ void CPhysical::RemoveAndAdd() {
 
         entryInfoNode = nextEntryInfoNode;
     }
-#endif
 }
 
 // 0x542800
