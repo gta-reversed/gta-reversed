@@ -29,7 +29,7 @@ public:
     static inline auto& bCamCollideWithBuildings = StaticRef<bool>(0x8A5B16);        // = true
     static inline auto& relVelCamCollisionVehiclesSqr = StaticRef<float>(0x8A5B18); // = 0.01f
 
-    static inline struct DebugSettings {
+    struct DebugSettings {
         struct ShapeShapeCollision {
             enum Shape { // I don't like casting, sorry
                 SBOX,
@@ -56,11 +56,12 @@ public:
             };
 
             bool IsEnabled(Shape a, Shape b) { return States[a][b] == ENABLED; }
-        } ShapeShapeCollision{};
+        } ShapeCollisions{};
 
         // OG code considered lines that begin and end within the sphere as not intersecting it
         bool AllowLineOriginInsideSphere{false};
-    } s_DebugSettings{};
+    };
+    static DebugSettings s_DebugSettings;
 
 public:
     static void InjectHooks();
@@ -220,6 +221,8 @@ public:
     static CVector GetCoordsClampedIntoTriangle(CVector a, CVector b, CVector c, CVector p);
     static float   ClosestPtSegmentSegment(CVector p1, CVector d1, float a, CVector p2, CVector d2, float e, float& s, float& t, CVector& c1, CVector& c2);
 };
+
+inline CCollision::DebugSettings CCollision::s_DebugSettings{};
 
 void CalculateColPointInsideBox(const CBox& box, const CVector& point, CColPoint& colPoint);
 bool ProcessDiscCollision(CColPoint& colPoint1, const CMatrix& mat, const CColDisk& disk, CColPoint& colPoint2, bool& arg4, float& arg5, CColPoint& colPoint3);

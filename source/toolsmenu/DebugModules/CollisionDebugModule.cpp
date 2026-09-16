@@ -42,7 +42,7 @@ void CollisionDebugModule::Render3D() {
 }
 
 void RenderShapeShapeCollisionStuff() {
-    auto& states = CCollision::s_DebugSettings.ShapeShapeCollision.States;
+    auto& states = CCollision::s_DebugSettings.ShapeCollisions.States;
     using Shape  = CCollision::DebugSettings::ShapeShapeCollision::Shape;
     using State  = CCollision::DebugSettings::ShapeShapeCollision::State;
 
