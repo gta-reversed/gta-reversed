@@ -165,7 +165,7 @@ void CRunningScript::Init() {
     m_UsesMissionCleanup              = false;
     m_IsExternal                      = false;
     m_IsTextBlockOverride             = false;
-    m_ExternalType                    = -1;
+    m_ScriptBrainType                 = -1;
     m_AndOrState                      = 0;
     m_NotFlag                         = false;
     m_DoneDeathArrest                 = false;
@@ -244,14 +244,19 @@ void CRunningScript::GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opc
     CPedGroup* pedGroup = CPedGroups::GetPedsGroup(ped);
 
     CPed* otherPed = nullptr;
-    if (m_ExternalType == 5 || m_ExternalType == 2 || !m_ExternalType || m_ExternalType == 3) {
+    switch (m_ScriptBrainType) {
+    case CScriptsForBrains::PED_STREAMED:
+    case CScriptsForBrains::OBJECT_STREAMED:
+    case CScriptsForBrains::PED_GENERATOR_STREAMED:
+    case CScriptsForBrains::CODE_ATTRACTOR_PED:
         auto* localVariable = reinterpret_cast<int32*>(GetPointerToLocalVariable(0));
-        otherPed = GetPedPool()->GetAtRef(*localVariable);
+        otherPed            = GetPedPool()->GetAtRef(*localVariable);
+        break;
     }
 
     if (ped->bHasAScriptBrain && otherPed != ped) {
         delete task;
-    } else if (otherPed && m_ExternalType == 5) {
+    } else if (otherPed && m_ScriptBrainType == CScriptsForBrains::CODE_ATTRACTOR_PED) {
         if (CScriptedBrainTaskStore::SetTask(ped, task)) {
             const int32 slot = CPedScriptedTaskRecord::GetVacantSlot();
             CPedScriptedTaskRecord::ms_scriptedTasks[slot].SetAsAttractorScriptTask(ped, opcode, task);
