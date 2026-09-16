@@ -1,6 +1,8 @@
 #include "StdInc.h"
 #include "Formation.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 // 0x699F50
 void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** outTargetPed) {
     for (int32 i = 0; i < (int32)m_Peds.m_count; i++) {
@@ -13,11 +15,19 @@ void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** outTargetPed) {
 
 // 0x699FA0
 bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* outDestination) {
-    // BUG: Iterates 24 times (the size of CPointList) instead of up to `m_Peds.m_count`, same as in original code.
-    //      `m_aFinalPedLinkToDestinations` only has 8 entries, so reads past index 7 are out of bounds if a stale ped pointer matches.
-    for (int32 i = 0; i < 24; i++) {
-        if (m_Peds.m_peds[i] == ped && m_aFinalPedLinkToDestinations[i] >= 0) {
-            *outDestination = m_Destinations.m_Points[m_aFinalPedLinkToDestinations[i]];
+    // BUG: The original iterates 24 times (the size of `CPointList`) instead of `m_Peds.m_count` (Compare with `ReturnTargetPedForPed`, which uses the correct bound).
+    //      `m_aFinalPedLinkToDestinations` only has 8 entries (Verified from the Android ELF symbol sizes), so it reads past it, into `m_aPedLinkToDestinations`, then unrelated globals.
+    //      In practice the OOB read is unreachable: the link array is only read when `m_Peds.m_peds[i] == ped`, but the list builders null all unused slots and a group has at most 8 peds, so no valid ped is ever at `i >= 8`.
+    const size_t numToCheck = notsa::bugfixes::GenericOOB
+        ? std::min<size_t>(m_Peds.m_count, m_aFinalPedLinkToDestinations.size())
+        : 24;
+    for (size_t i = 0; i < numToCheck; i++) {
+        if (m_Peds.m_peds[i] != ped) {
+            continue;
+        }
+        const auto destIdx = m_aFinalPedLinkToDestinations.data()[i]; // Not using `operator[]`, as it'd assert with the bugfix disabled
+        if (destIdx >= 0) {
+            *outDestination = m_Destinations.m_Points[destIdx];
             return true;
         }
     }
@@ -107,51 +117,48 @@ void CFormation::GenerateGatherDestinations(CPedList& pedList, CPed* ped) {
 
 // 0x69A770
 void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicle* vehicle) {
-    const auto* modelInfo = CModelInfo::GetModelInfo(vehicle->m_nModelIndex)->AsVehicleModelInfoPtr();
-    const auto* vehicleStruct = modelInfo->m_pVehicleStruct;
-    const float sideOffset = vehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].x + 1.5f;
-    const float length     = vehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].y
-                           - vehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN].y; // Negative for regular cars
-
-    CVector side = vehicle->m_matrix->GetRight();
-    side.Normalise();
-    CVector forward = vehicle->m_matrix->GetForward();
-    forward.Normalise();
-    side *= sideOffset;
+    const auto& boundingBox = vehicle->GetModelInfo()->GetColModel()->GetBoundingBox();
 
     m_Destinations.m_Count = 0;
     rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
 
-    const auto count       = (int32)pedList.m_count;
-    const int32 backCount  = count / 2;
-    const int32 frontCount = count - backCount;
-
-    const auto AddDestinations = [&](int32 numPeds, CVector pt) {
-        for (int32 i = 0; i < numPeds; i++) {
-            m_Destinations.AddPoint(pt + forward * length * (0.5f - (float)i / (float)numPeds));
+    const auto AddDestinations = [
+        &,
+        forward = vehicle->GetForward().Normalized(),
+        length  = boundingBox.GetLength(),
+        center  = vehicle->GetPosition()
+    ](uint32 numPeds, const CVector& sideOffset) {
+        for (uint32 i = 0; i < numPeds; i++) {
+            m_Destinations.AddPoint(center + sideOffset + forward * length * (0.5f - (float)i / (float)numPeds));
         }
     };
-    const auto& center = vehicle->GetPosition();
-    AddDestinations(backCount, center - side);
-    AddDestinations(frontCount, center + side);
+
+    // Offset to either side of the car
+    const CVector sideOffset = vehicle->GetRight().Normalized() * (boundingBox.m_vecMax.x + 1.5f);
+
+    // Put half of the peds on the left side...
+    const auto leftCount = pedList.m_count / 2;
+    AddDestinations(leftCount, -sideOffset);
+
+    // ...and the rest on the right side
+    AddDestinations(pedList.m_count - leftCount, sideOffset);
 }
 
 // 0x69B1B0
-static int32 FindNearestUnclaimedDestination(CVector pt, float& totalCost) {
-    int32 best     = -1;
-    float bestDist = 10000000.0f;
-    for (int32 i = 0; i < (int32)CFormation::m_Destinations.m_Count; i++) {
+static int32 FindNearestUnclaimedDestination(const CVector& pt, float& totalCost) {
+    int32 bestIdx    = -1;
+    float bestDistSq = FLT_MAX;
+    for (auto&& [i, destPt] : rngv::enumerate(CFormation::m_Destinations.GetPoints())) {
         if (CFormation::m_Destinations.m_PointHasBeenClaimed[i]) {
             continue;
         }
-        const float dist = (CFormation::m_Destinations.m_Points[i] - pt).Magnitude();
-        if (dist < bestDist) {
-            best     = i;
-            bestDist = dist;
+        if (const auto distSq = CVector::DistSqr(destPt, pt); distSq < bestDistSq) {
+            bestIdx    = (int32)i;
+            bestDistSq = distSq;
         }
     }
-    totalCost += bestDist;
-    return best;
+    totalCost += std::sqrt(bestDistSq);
+    return bestIdx;
 }
 
 // 0x69B240
@@ -160,58 +167,44 @@ void CFormation::DistributeDestinations(CPedList& pedList) {
     if (m_Peds.m_count == 0) {
         return;
     }
-    const auto count = (int32)m_Peds.m_count;
+    assert(m_Peds.m_count <= m_aPedLinkToDestinations.size());
 
-    CVector destCentre{};
-    for (int32 i = 0; i < (int32)m_Destinations.m_Count; i++) {
-        destCentre += m_Destinations.m_Points[i];
+    CPointList pedPoints;
+    for (const auto ped : m_Peds.m_peds | rngv::take(m_Peds.m_count)) {
+        pedPoints.AddPoint(ped->GetPosition());
     }
-    destCentre = destCentre * (1.0f / (float)m_Destinations.m_Count);
 
-    CVector pedCentre{};
-    std::array<CVector, 24> pts{};
-    int32 numPts = 0;
-    for (int32 i = 0; i < count; i++) {
-        const auto& pp = m_Peds.m_peds[i]->GetPosition();
-        if (numPts < 24) {
-            pts[numPts++] = pp;
+    const auto GetAverageDistanceTo = [](const CPointList& points, const CVector& centre) {
+        float total = 0.0f;
+        for (const auto& pt : points.GetPoints()) {
+            total += CVector::Dist(pt, centre);
         }
-        pedCentre += pp;
-    }
-    pedCentre = pedCentre * (1.0f / (float)count);
+        return total / (float)points.m_Count;
+    };
 
-    float destCentreDeviation = 0.0f;
-    for (int32 i = 0; i < (int32)m_Destinations.m_Count; i++) {
-        destCentreDeviation += (m_Destinations.m_Points[i] - destCentre).Magnitude();
-    }
-    destCentreDeviation /= (float)m_Destinations.m_Count;
-
-    float pedCentreDeviation = 0.0f;
-    for (int32 i = 0; i < count; i++) {
-        pedCentreDeviation += (pts[i] - pedCentre).Magnitude();
-    }
-    pedCentreDeviation /= (float)count;
-
-    destCentreDeviation = std::max(destCentreDeviation, 1.0f);
-    pedCentreDeviation  = std::max(pedCentreDeviation, 1.0f);
-
-    const float scale = destCentreDeviation / pedCentreDeviation;
-    for (int32 i = 0; i < count; i++) {
-        pts[i] = (pts[i] - pedCentre) * scale + destCentre;
+    // Map the peds' positions onto the destinations, keeping their relative placement (scaled to match the spread of the destinations)
+    const auto destCentre = m_Destinations.GetCentroid();
+    const auto pedCentre  = pedPoints.GetCentroid();
+    const auto scale      = std::max(GetAverageDistanceTo(m_Destinations, destCentre), 1.0f)
+                          / std::max(GetAverageDistanceTo(pedPoints, pedCentre), 1.0f);
+    for (auto& pt : pedPoints.GetPoints()) {
+        pt = (pt - pedCentre) * scale + destCentre;
     }
 
-    float bestCost = 999999.9f;
-    for (int32 trial = 0; trial < count; trial++) {
-        rng::fill_n(m_aPedLinkToDestinations.begin(), 7, -1);
+    float bestCost = FLT_MAX;
+    for (uint32 trial = 0; trial < m_Peds.m_count; trial++) {
+        // PC only clears 7 entries here (Android clears all 8), but every entry that's used is overwritten below anyway
+        rng::fill_n(m_aPedLinkToDestinations.begin(), TOTAL_PED_GROUP_FOLLOWERS, -1);
         rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
+
         float cost = 0.0f;
-        for (int32 i = 0; i < count; i++) {
-            const int32 dest = FindNearestUnclaimedDestination(pts[i], cost);
-            m_aPedLinkToDestinations[i] = dest;
-            m_Destinations.m_PointHasBeenClaimed[dest] = true;
+        for (auto&& [i, pt] : rngv::enumerate(pedPoints.GetPoints())) {
+            const auto destIdx = FindNearestUnclaimedDestination(pt, cost);
+            m_aPedLinkToDestinations[i] = destIdx;
+            m_Destinations.m_PointHasBeenClaimed[destIdx] = true;
         }
         if (cost < bestCost) {
-            std::copy_n(m_aPedLinkToDestinations.begin(), count, m_aFinalPedLinkToDestinations.begin());
+            rng::copy_n(m_aPedLinkToDestinations.begin(), m_Peds.m_count, m_aFinalPedLinkToDestinations.begin());
             bestCost = cost;
         }
     }
@@ -223,28 +216,31 @@ void CFormation::DistributeDestinations_CoverPoints(const CPedList& pedList, CVe
     if (m_Peds.m_count == 0) {
         return;
     }
+    assert(m_Peds.m_count <= m_aFinalPedLinkToDestinations.size());
+
     rng::fill(m_aFinalPedLinkToDestinations, -1);
-    for (int32 destIdx = 0; destIdx < (int32)m_Destinations.m_Count; destIdx++) {
+    for (auto&& [destIdx, destPt] : rngv::enumerate(m_Destinations.GetPoints())) {
         int32 bestPedIdx = -1;
         float bestScore  = 0.4f;
-        const auto& pt   = m_Destinations.m_Points[destIdx];
-        const float destToPos = DistanceBetweenPoints2D({ pt.x, pt.y }, { pos.x, pos.y });
-        for (int32 pedIdx = 0; pedIdx < (int32)m_Peds.m_count; pedIdx++) {
+
+        const auto destToTarget = CVector2D::Dist(destPt, pos);
+        for (auto&& [pedIdx, ped] : rngv::enumerate(m_Peds.m_peds | rngv::take(m_Peds.m_count))) {
             if (m_aFinalPedLinkToDestinations[pedIdx] >= 0) {
                 continue;
             }
-            const auto& pp = m_Peds.m_peds[pedIdx]->GetPosition();
-            const float pedToPos = DistanceBetweenPoints2D({ pp.x, pp.y }, { pos.x, pos.y });
-            if (destToPos <= pedToPos + 1.0f) {
-                const float score = 1.0f - ((DistanceBetweenPoints2D({ pp.x, pp.y }, { pt.x, pt.y }) + destToPos) - pedToPos) / pedToPos;
-                if (bestScore < score) {
-                    bestPedIdx = pedIdx;
-                    bestScore  = score;
-                }
+            const auto pedToTarget = CVector2D::Dist(ped->GetPosition(), pos);
+            if (destToTarget > pedToTarget + 1.0f) { // Destination is further away from the target than the ped
+                continue;
+            }
+            // How much of a detour going to the destination is, compared to going straight to the target
+            const auto score = 1.0f - (CVector2D::Dist(ped->GetPosition(), destPt) + destToTarget - pedToTarget) / pedToTarget;
+            if (score > bestScore) {
+                bestPedIdx = (int32)pedIdx;
+                bestScore  = score;
             }
         }
         if (bestPedIdx >= 0) {
-            m_aFinalPedLinkToDestinations[bestPedIdx] = destIdx;
+            m_aFinalPedLinkToDestinations[bestPedIdx] = (int32)destIdx;
         }
     }
 }
@@ -255,39 +251,39 @@ void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
     if (m_Peds.m_count == 0) {
         return;
     }
+    const auto numPeds    = m_Peds.m_count;
+    const auto numTargets = m_DestinationPeds.m_count;
+
+    std::array<int32, std::tuple_size_v<decltype(CPedList::m_peds)>> remainingForTarget;
+    assert(numPeds <= m_aFinalPedLinkToDestinations.size());
+    assert(numTargets <= remainingForTarget.size());
+
     rng::fill(m_aFinalPedLinkToDestinations, -1);
 
-    const auto count = (int32)pedList.m_count;
-    std::array<int32, 30> remainingForTarget;
-    const int32 maxPerTarget = std::max(2, (int32)std::ceil((double)count / (double)(int32)m_DestinationPeds.m_count));
-    for (int32 enemyIdx = 0; enemyIdx < (int32)m_DestinationPeds.m_count; enemyIdx++) {
-        remainingForTarget[enemyIdx] = maxPerTarget;
-    }
+    // Each target can be attacked by at most this many peds
+    const auto maxPerTarget = std::max(2, (int32)std::ceil((double)(int32)numPeds / (double)(int32)numTargets));
+    rng::fill(remainingForTarget | rngv::take(numTargets), maxPerTarget);
 
-    int32 bestEnemyIdx = 0; // Not reset per iteration, same as the original
-    int32 bestPedIdx   = 0;
-    for (int32 assigned = 0; assigned < count; assigned++) {
-        float bestDist = 999999.9f;
-        for (int32 pedIdx = 0; pedIdx < count; pedIdx++) {
+    size_t bestTargetIdx = 0, bestPedIdx = 0; // Not reset per iteration, same as the original
+    for (uint32 assigned = 0; assigned < numPeds; assigned++) {
+        float bestDistSq = FLT_MAX;
+        for (auto&& [pedIdx, ped] : rngv::enumerate(m_Peds.m_peds | rngv::take(numPeds))) {
             if (m_aFinalPedLinkToDestinations[pedIdx] >= 0) {
                 continue;
             }
-            for (int32 enemyIdx = 0; enemyIdx < (int32)m_DestinationPeds.m_count; enemyIdx++) {
-                if (remainingForTarget[enemyIdx] <= 0) {
+            for (auto&& [targetIdx, target] : rngv::enumerate(m_DestinationPeds.m_peds | rngv::take(numTargets))) {
+                if (remainingForTarget[targetIdx] <= 0) {
                     continue;
                 }
-                const auto& ep = m_DestinationPeds.m_peds[enemyIdx]->GetPosition();
-                const auto& pp = m_Peds.m_peds[pedIdx]->GetPosition();
-                const float dist = DistanceBetweenPoints2D({ pp.x, pp.y }, { ep.x, ep.y });
-                if (dist < bestDist) {
-                    bestEnemyIdx = enemyIdx;
-                    bestPedIdx   = pedIdx;
-                    bestDist     = dist;
+                if (const auto distSq = CVector2D::DistSqr(ped->GetPosition(), target->GetPosition()); distSq < bestDistSq) {
+                    bestTargetIdx = (size_t)targetIdx;
+                    bestPedIdx    = (size_t)pedIdx;
+                    bestDistSq    = distSq;
                 }
             }
         }
-        m_aFinalPedLinkToDestinations[bestPedIdx] = bestEnemyIdx;
-        remainingForTarget[bestEnemyIdx]--;
+        m_aFinalPedLinkToDestinations[bestPedIdx] = (int32)bestTargetIdx;
+        remainingForTarget[bestTargetIdx]--;
     }
 }
 
@@ -296,48 +292,37 @@ void CFormation::FindCoverPoints(CVector pos, float radius) {
     m_Destinations.m_Count = 0;
     rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
 
-    auto* vehPool = GetVehiclePool();
-    for (auto i = vehPool->GetSize(); i --> 0;) {
-        auto* veh = vehPool->GetAt(i);
-        if (!veh || !veh->IsAutomobile()) {
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (!vehicle.IsAutomobile() || vehicle.GetMoveSpeed().Magnitude() >= 0.005f) {
             continue;
         }
-        if (veh->GetMoveSpeed().Magnitude() >= 0.005f) {
-            continue;
-        }
-        const auto* mi  = CModelInfo::GetModelInfo(veh->m_nModelIndex)->AsVehicleModelInfoPtr();
-        const auto* vsm = mi->m_pVehicleStruct;
-        if (vsm->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].z >= 1.5f) {
+        const auto* colModel = vehicle.GetModelInfo()->GetColModel();
+        const auto& bb       = colModel->m_boundBox;
+        if (bb.m_vecMax.z >= 1.5f) { // Too tall to take cover behind
             continue;
         }
         CPointList points;
         FindCoverPointsBehindBox(
             &points,
             pos,
-            veh->m_matrix,
-            vsm->m_avDummyPos[DUMMY_LIGHT_FRONT_SECONDARY],
-            vsm->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN],
-            vsm->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN],
+            vehicle.m_matrix,
+            colModel->m_boundSphere.m_vecCenter,
+            bb.m_vecMin,
+            bb.m_vecMax,
             radius
         );
-        for (uint32 j = 0; j < points.m_Count; j++) {
-            m_Destinations.AddPoint(points.m_Points[j]);
+        for (const auto& pt : points.GetPoints()) {
+            m_Destinations.AddPoint(pt);
         }
     }
 
-    auto* objPool = GetObjectPool();
-    for (auto i = objPool->GetSize(); i --> 0;) {
-        auto* obj = objPool->GetAt(i);
-        if (!obj || obj->m_matrix->GetUp().z <= 0.95f) {
+    for (auto& object : GetObjectPool()->GetAllValid()) {
+        if (object.m_matrix->GetUp().z <= 0.95f || !object.CanBeUsedToTakeCoverBehind()) {
             continue;
         }
-        if (!obj->CanBeUsedToTakeCoverBehind()) {
-            continue;
-        }
-        const auto& objPos = obj->GetPosition();
-        const CVector dir  = objPos - pos;
-        if (DistanceBetweenPoints2D({ objPos.x, objPos.y }, { pos.x, pos.y }) < radius) {
-            m_Destinations.AddPoint(objPos + dir.Normalized());
+        const auto& objPos = object.GetPosition();
+        if (CVector2D::Dist(objPos, pos) < radius) {
+            m_Destinations.AddPoint(objPos + (objPos - pos).Normalized());
         }
     }
 }

@@ -7,20 +7,18 @@
 #pragma once
 
 #include <Vector.h>
-
-class CPedList;
-class CPointList;
-class CEntity;
-class CPed;
-class CMatrix;
+#include "PedList.h"
+#include "PointList.h"
 
 class CFormation {
 public:
-    static inline auto& m_aPedLinkToDestinations      = StaticRef<std::array<int32, TOTAL_PED_GROUP_MEMBERS>>(0xC1A2E0);
-    static inline auto& m_aFinalPedLinkToDestinations = StaticRef<std::array<int32, TOTAL_PED_GROUP_MEMBERS>>(0xC1A2C0);
-    static inline auto& m_Destinations                = StaticRef<CPointList>(0xC1A318);
-    static inline auto& m_DestinationPeds             = StaticRef<CPedList>(0xC1A458);
-    static inline auto& m_Peds                        = StaticRef<CPedList>(0xC1A4D8);
+    // Both arrays hold one entry per group member (Android: 8 entries each, `m_aPedLinkToDestinations` placed first).
+    // On PC they're laid out the other way around, and the memory after `m_aPedLinkToDestinations` (0xC1A300) holds unrelated globals.
+    static inline std::array<int32, TOTAL_PED_GROUP_MEMBERS> m_aPedLinkToDestinations{};      // 0xC1A2E0 - Links of the distribution currently being tried by `DistributeDestinations`
+    static inline std::array<int32, TOTAL_PED_GROUP_MEMBERS> m_aFinalPedLinkToDestinations{}; // 0xC1A2C0 - Chosen links, indices into `m_Destinations` or `m_DestinationPeds` (`-1` if none)
+    static inline CPointList                                 m_Destinations{};                // 0xC1A318
+    static inline CPedList                                   m_DestinationPeds{};             // 0xC1A458
+    static inline CPedList                                   m_Peds{};                        // 0xC1A4D8
 
     static void InjectHooks();
 
