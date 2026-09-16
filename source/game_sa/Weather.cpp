@@ -55,7 +55,7 @@ void CWeather::Init() {
     InTunnelness = 0.0f;
     LightningStartX = 0;
     LightningStartY = 0;
-    StreamAfterRainTimer = false;
+    StreamAfterRainTimer = 0;
 }
 
 // 0x72A9A0
