@@ -627,6 +627,7 @@ void InjectHooksMain() {
     CGroupEventHandler::InjectHooks();
     CVehicleRecording::InjectHooks();
     CBrightLights::InjectHooks();
+    CPointLights::InjectHooks();
     CShinyTexts::InjectHooks();
     CPedTaskPair::InjectHooks();
     CDirectory::InjectHooks();
