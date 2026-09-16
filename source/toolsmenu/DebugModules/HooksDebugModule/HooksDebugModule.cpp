@@ -49,7 +49,6 @@ void HooksDebugModule::FilteringThread() {
             continue; // Nothing to filter
         }
         /* Hold lock until we finish */
-        NOTSA_LOG_DEBUG("Running filter");
         const auto now = FilterClock::now();
         RListFilterer{ std::move(m_FilterProcessor.HookFilter) }.Process(*m_RenderList.RootCategory);
         RListSorter{}.Process(*m_RenderList.RootCategory);
@@ -183,7 +182,7 @@ bool HooksDebugModule::StateChanger(
     SameLine();
     BeginGroup();
     {
-        Selectable("##selectable", false, ImGuiSelectableFlags_AllowItemOverlap);
+        Selectable("##selectable", false, ImGuiSelectableFlags_AllowOverlap);
 
         if (BeginPopupContextItem("state_context")) {
             if (MenuItem("Set to Our")) {

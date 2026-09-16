@@ -174,7 +174,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dxguid
     strmiids
     d3d9
-    #Boost::boost # We're using header-only boost, so we don't need to link against it
+    Boost::headers
 )
 if (${RE_PROJECT}_USE_SDL3)
     target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
