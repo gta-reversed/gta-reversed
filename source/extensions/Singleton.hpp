@@ -28,7 +28,7 @@ public:
     }
 
     //! Destroy current instance and create new
-    static void RecrateInstance() {
+    static void RecreateInstance() {
         DestroyInstance();
         CreateInstance();
     }

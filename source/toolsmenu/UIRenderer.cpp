@@ -122,7 +122,7 @@ void UIRenderer::DrawLoop() {
     ZoneScoped;
 
     if (m_ReInitRequested) {
-        RecrateInstance(); // This will destruct the current object so we gotta stop here.
+        RecreateInstance(); // This will destruct the current object so we gotta stop here.
         return;
     }
 
