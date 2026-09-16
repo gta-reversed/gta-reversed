@@ -9,9 +9,6 @@
 #include "PointLights.h"
 #include "Clouds.h"
 
-// 0x8D5068 - Sprite scale per fog puff pattern index
-static constexpr float FogSizes[8] = { 1.3f, 2.0f, 1.7f, 2.0f, 1.4f, 2.1f, 1.5f, 2.3f };
-
 void CPointLights::InjectHooks() {
     RH_ScopedClass(CPointLights);
     RH_ScopedCategoryGlobal();
@@ -172,6 +169,9 @@ void CPointLights::AddLight(uint8 lightType, CVector point, CVector direction, f
 // 0x7002D0
 void CPointLights::RenderFogEffect() {
     ZoneScoped;
+
+    // 0x8D5068 - Sprite scale per fog puff pattern index
+    static constexpr float FogSizes[8] = { 1.3f, 2.0f, 1.7f, 2.0f, 1.4f, 2.1f, 1.5f, 2.3f };
 
     if (CCutsceneMgr::ms_running) {
         return;
