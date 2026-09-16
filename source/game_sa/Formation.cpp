@@ -113,9 +113,9 @@ void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicl
     const float length     = vehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].y
                            - vehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN].y; // Negative for regular cars
 
-    CVector side = vehicle->m_matrix->m_right;
+    CVector side = vehicle->m_matrix->GetRight();
     side.Normalise();
-    CVector forward = vehicle->m_matrix->m_forward;
+    CVector forward = vehicle->m_matrix->GetForward();
     forward.Normalise();
     side *= sideOffset;
 
@@ -296,7 +296,7 @@ void CFormation::FindCoverPoints(CVector pos, float radius) {
     m_Destinations.m_Count = 0;
     rng::fill(m_Destinations.m_PointHasBeenClaimed, false);
 
-    const auto* vehPool = GetVehiclePool();
+    auto* vehPool = GetVehiclePool();
     for (auto i = vehPool->GetSize(); i --> 0;) {
         auto* veh = vehPool->GetAt(i);
         if (!veh || !veh->IsAutomobile()) {
@@ -325,10 +325,10 @@ void CFormation::FindCoverPoints(CVector pos, float radius) {
         }
     }
 
-    const auto* objPool = GetObjectPool();
+    auto* objPool = GetObjectPool();
     for (auto i = objPool->GetSize(); i --> 0;) {
         auto* obj = objPool->GetAt(i);
-        if (!obj || obj->m_matrix->m_up.z <= 0.95f) {
+        if (!obj || obj->m_matrix->GetUp().z <= 0.95f) {
             continue;
         }
         if (!obj->CanBeUsedToTakeCoverBehind()) {
