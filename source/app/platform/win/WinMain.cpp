@@ -4,8 +4,10 @@
 
 #include "StdInc.h"
 
+#ifdef NOTSA_USE_SDL3
 #include <SDL3/SDL.h>
 #include "SDLWrapper.hpp"
+#endif
 
 #include "LoadingScreen.h"
 #include "ControllerConfigManager.h"
