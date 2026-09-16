@@ -39,6 +39,7 @@ private:
     std::string                    m_PopupMessage{};
     const RListCategory*           m_ToExport{};
 
+    bool                           m_PrettyPrint{true};//!< Whether to pretty-print the JSON output (Or just write it all on one line)
     bool                           m_OnlyFiltered{};   //!< Export only items that match the current filter (Or all, if no filter)
     std::bitset<+HookState::Count> m_SelectedStates{}; //!< States to export
     std::bitset<+HookType::Count>  m_SelectedTypes{};  //!< Types to export

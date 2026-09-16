@@ -49,6 +49,7 @@ void HooksExport::Render() {
         MultiSelectEnumListbox<HookState>("Hook States", m_SelectedStates);
         IG::Checkbox("Export only items matching current filter", &m_OnlyFiltered);
         IG::Checkbox("Export only own items (not sub-category items)", &m_OwnItemsOnly);
+        IG::Checkbox("Pretty-print JSON output", &m_PrettyPrint);
         if (IG::Button("Select file & export", { -1.f, 0.f })) {
             m_FileBrowser.SetTypeFilters({ ".json" });
             m_FileBrowser.Open();
@@ -112,11 +113,11 @@ size_t HooksExport::ExportToFile(const fs::path& path) {
     json::array_t arr;
 
     [&](this auto&& Self, const RListCategory& cat) -> void {
-        if (!IsMatchingScoreOrNone(cat.MaxFilterScoreOwnItems)) {
+        if (m_OnlyFiltered && !IsMatchingScoreOrNone(cat.MaxFilterScoreOwnItems)) {
             return;
         }
         for (const auto& item : cat.Items) {
-            if (!IsMatchingScoreOrNone(item.FilterScore)) {
+            if (m_OnlyFiltered && !IsMatchingScoreOrNone(item.FilterScore)) {
                 continue;
             }
             if (!m_SelectedStates[+item.Ptr->GetState()]) {
@@ -135,6 +136,9 @@ size_t HooksExport::ExportToFile(const fs::path& path) {
         }
     }(*m_ToExport);
 
+    if (m_PrettyPrint) {
+        ofs << std::setw(4);
+    }
     ofs << arr;
 
     return arr.size();
