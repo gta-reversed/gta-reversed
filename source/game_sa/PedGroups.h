@@ -40,7 +40,7 @@ public:
     static void Process();
 
     static bool AreInSameGroup(const CPed* ped1, const CPed* ped2);
-    static bool IsInPlayersGroup(CPed* ped);
+    static bool IsInPlayersGroup(const CPed* ped);
 
     // inlined
     static CPedGroup& GetGroup(int32 groupId);

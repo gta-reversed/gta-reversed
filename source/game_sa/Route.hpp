@@ -46,6 +46,18 @@ public:
     //! Resize to the given size
     void ResizeTo(uint32 s) { assert(s <= m_Entries.size()); m_NumEntries = s; }
 
+    //! Pop first entry and return it
+    auto PopFront() -> T {
+        assert(m_NumEntries > 0);
+        T ret = std::move(m_Entries[0]);
+        rng::move(GetAll() | rng::views::drop(1), m_Entries.begin());
+        m_NumEntries--;
+        return ret;
+    }
+
+    //! Pop end
+    auto PopBack() -> T { assert(m_NumEntries > 0); return m_Entries[--m_NumEntries]; }
+
     T& operator[](size_t idx)       { return GetAll()[idx]; }
     T  operator[](size_t idx) const { return GetAll()[idx]; }
 
