@@ -2,20 +2,22 @@
 #include "Formation.h"
 
 // 0x699F50
-void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed) {
+void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** outTargetPed) {
     for (int32 i = 0; i < (int32)m_Peds.m_count; i++) {
         if (m_Peds.m_peds[i] == ped && m_aFinalPedLinkToDestinations[i] >= 0) {
-            *pOutTargetPed = m_DestinationPeds.m_peds[m_aFinalPedLinkToDestinations[i]];
+            *outTargetPed = m_DestinationPeds.m_peds[m_aFinalPedLinkToDestinations[i]];
             return;
         }
     }
 }
 
 // 0x699FA0
-bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* out) {
+bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* outDestination) {
+    // BUG: Iterates 24 times (the size of CPointList) instead of up to `m_Peds.m_count`, same as in original code.
+    //      `m_aFinalPedLinkToDestinations` only has 8 entries, so reads past index 7 are out of bounds if a stale ped pointer matches.
     for (int32 i = 0; i < 24; i++) {
         if (m_Peds.m_peds[i] == ped && m_aFinalPedLinkToDestinations[i] >= 0) {
-            *out = m_Destinations.m_Points[m_aFinalPedLinkToDestinations[i]];
+            *outDestination = m_Destinations.m_Points[m_aFinalPedLinkToDestinations[i]];
             return true;
         }
     }
@@ -93,29 +95,28 @@ void CFormation::GenerateGatherDestinations(CPedList& pedList, CPed* ped) {
     const auto& pos = ped->GetPosition();
     for (int32 i = 0; i < count; i++) {
         const float angle = count < 2
-            ? ped->m_fCurrentRotation + 1.5707964f
-            : 3.1415927f / (float)count + (float)i / (float)count * 6.2831855f - ped->m_fCurrentRotation;
-        if (m_Destinations.m_Count < 24) {
-            m_Destinations.m_Points[m_Destinations.m_Count++] = {
-                std::sin(angle) * radius + pos.x,
-                std::cos(angle) * radius + pos.y,
-                pos.z,
-            };
-        }
+            ? ped->m_fCurrentRotation + HALF_PI
+            : PI / (float)count + (float)i / (float)count * TWO_PI - ped->m_fCurrentRotation;
+        m_Destinations.AddPoint({
+            std::sin(angle) * radius + pos.x,
+            std::cos(angle) * radius + pos.y,
+            pos.z,
+        });
     }
 }
 
 // 0x69A770
-void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicle* veh) {
-    const auto* mi = CModelInfo::GetModelInfo(veh->m_nModelIndex)->AsVehicleModelInfoPtr();
-    const float sideOffset = mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].x + 1.5f;
-    const float length     = mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].y
-                           - mi->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN].y; // Negative for regular cars
+void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicle* vehicle) {
+    const auto* modelInfo = CModelInfo::GetModelInfo(vehicle->m_nModelIndex)->AsVehicleModelInfoPtr();
+    const auto* vehicleStruct = modelInfo->m_pVehicleStruct;
+    const float sideOffset = vehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].x + 1.5f;
+    const float length     = vehicleStruct->m_avDummyPos[DUMMY_LIGHT_REAR_MAIN].y
+                           - vehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN].y; // Negative for regular cars
 
-    CVector side = veh->m_matrix->m_right;
+    CVector side = vehicle->m_matrix->m_right;
     side.Normalise();
-    CVector fwd = veh->m_matrix->m_forward;
-    fwd.Normalise();
+    CVector forward = vehicle->m_matrix->m_forward;
+    forward.Normalise();
     side *= sideOffset;
 
     m_Destinations.m_Count = 0;
@@ -125,25 +126,14 @@ void CFormation::GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicl
     const int32 backCount  = count / 2;
     const int32 frontCount = count - backCount;
 
-    const auto& center = veh->GetPosition();
-    for (int32 i = 0; i < backCount; i++) {
-        CVector pt = center - side;
-        if (backCount != 0) {
-            pt += fwd * length * (0.5f - (float)i / (float)backCount);
+    const auto AddDestinations = [&](int32 numPeds, CVector pt) {
+        for (int32 i = 0; i < numPeds; i++) {
+            m_Destinations.AddPoint(pt + forward * length * (0.5f - (float)i / (float)numPeds));
         }
-        if (m_Destinations.m_Count < 24) {
-            m_Destinations.m_Points[m_Destinations.m_Count++] = pt;
-        }
-    }
-    for (int32 i = 0; i < frontCount; i++) {
-        CVector pt = center + side;
-        if (frontCount != 0) {
-            pt += fwd * length * (0.5f - (float)i / (float)frontCount);
-        }
-        if (m_Destinations.m_Count < 24) {
-            m_Destinations.m_Points[m_Destinations.m_Count++] = pt;
-        }
-    }
+    };
+    const auto& center = vehicle->GetPosition();
+    AddDestinations(backCount, center - side);
+    AddDestinations(frontCount, center + side);
 }
 
 // 0x69B1B0
@@ -160,7 +150,7 @@ static int32 FindNearestUnclaimedDestination(CVector pt, float& totalCost) {
             bestDist = dist;
         }
     }
-    totalCost = bestDist + totalCost;
+    totalCost += bestDist;
     return best;
 }
 
@@ -228,8 +218,8 @@ void CFormation::DistributeDestinations(CPedList& pedList) {
 }
 
 // 0x69B5B0
-void CFormation::DistributeDestinations_CoverPoints(const CPedList& pedlist, CVector pos) {
-    m_Peds = pedlist;
+void CFormation::DistributeDestinations_CoverPoints(const CPedList& pedList, CVector pos) {
+    m_Peds = pedList;
     if (m_Peds.m_count == 0) {
         return;
     }
