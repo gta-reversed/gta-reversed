@@ -19,7 +19,6 @@ public:
     eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
-    // ControlSubTask was overwritten too, but it does the same as in `CTaskComplexEvasiveDiveAndGetUp`
 
 private: // Wrappers for hooks
     // 0x492E20

@@ -74,13 +74,13 @@ void CVehicle::InjectHooks() {
     RH_ScopedVMTInstall(CanPedJumpOutCar, 0x6D2030);
     RH_ScopedVMTInstall(GetTowHitchPos, 0x6DFB70);
     RH_ScopedVMTInstall(GetTowBarPos, 0x6DFBE0);
-    RH_ScopedVMTInstall(Save, 0x5D4760, {.enabled = false });
-    RH_ScopedVMTInstall(Load, 0x5D2900, {.enabled = false });
+    RH_ScopedVMTInstall(Save, 0x5D4760, {.State = HS::RedirectToGTA });
+    RH_ScopedVMTInstall(Load, 0x5D2900, {.State = HS::RedirectToGTA });
 
     // It can't be properly unhooked, original function assumes that CVehicle::GetVehicleAppearance doesn't spoil ECX register, and calls
     // it without making sure that the pointer in it still points to current instance. While it worked for original function, we can't
     // force the compiler to keep ECX unchanged through function execution
-    RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6DF4A0, { .enabled = true, .locked = true });
+    RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6DF4A0, { .Locked = true });
 
     RH_ScopedOverloadedInstall(IsPassenger, "Ped", 0x6D1BD0, bool(CVehicle::*)(CPed*) const);
     RH_ScopedOverloadedInstall(IsPassenger, "ModelID", 0x6D1C00, bool(CVehicle::*)(int32) const);
@@ -222,13 +222,13 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(GetRopeHeightForHeli, 0x6D3D10);
     RH_ScopedInstall(SetRopeHeightForHeli, 0x6D3D30);
 
-    RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*), { .reversed = false });
+    RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*), { .Reversed = false });
     RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Frame", 0x6D26D0, RwFrame*(*)(RwFrame*, void*));
     // RH_ScopedGlobalInstall(SetCompAlphaCB, 0x6D2950);
     RH_ScopedGlobalInstall(IsVehiclePointerValid, 0x6E38F0);
     // RH_ScopedGlobalInstall(RemoveUpgradeCB, 0x6D3300);
     // RH_ScopedGlobalInstall(FindUpgradeCB, 0x6D3370);
-    RH_ScopedGlobalOverloadedInstall(RemoveObjectsCB, "Object", 0x6D33B0, RwObject*(*)(RwObject*, void*), { .reversed = false });
+    RH_ScopedGlobalOverloadedInstall(RemoveObjectsCB, "Object", 0x6D33B0, RwObject*(*)(RwObject*, void*), { .Reversed = false });
     RH_ScopedGlobalOverloadedInstall(RemoveObjectsCB, "Frame", 0x6D3420, RwFrame*(*)(RwFrame*, void*));
     RH_ScopedGlobalInstall(CopyObjectsCB, 0x6D3450);
     // RH_ScopedGlobalInstall(FindReplacementUpgradeCB, 0x6D3490);

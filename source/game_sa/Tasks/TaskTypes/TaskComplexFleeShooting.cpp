@@ -13,7 +13,7 @@ void CTaskComplexFleeShooting::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x65CFB0);
     RH_ScopedVMTInstall(GetTaskType, 0x65C990);
     RH_ScopedVMTInstall(MakeAbortable, 0x65CA00);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x65CA60);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65CA60, { .Overrides = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x65CA70);
     RH_ScopedVMTInstall(ControlSubTask, 0x65CA90);
 }

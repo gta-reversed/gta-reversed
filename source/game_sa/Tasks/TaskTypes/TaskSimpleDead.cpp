@@ -5,7 +5,7 @@
 void CTaskSimpleDead::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleDead, 0x86DEA4, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
-    RH_ScopedInstall(ProcessPed, 0x630600, { .reversed = false });
+    RH_ScopedInstall(ProcessPed, 0x630600, { .Reversed = false });
 }
 
 // NOTSA: *deathTime* originally int32

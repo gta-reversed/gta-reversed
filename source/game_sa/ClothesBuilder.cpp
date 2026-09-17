@@ -21,19 +21,19 @@ void CClothesBuilder::InjectHooks() {
     RH_ScopedInstall(LoadCdDirectory, 0x5A4190);
     RH_ScopedInstall(RequestGeometry, 0x5A41C0);
     RH_ScopedInstall(RequestTexture, 0x5A4220);
-    //RH_ScopedInstall(nullptr, 0x5A42B0, { .reversed = false }); 
-    //RH_ScopedInstall(nullptr, 0x5A4380, { .reversed = false }); AtomicInstanceCB
-    //RH_ScopedInstall(nullptr, 0x5A43A0, { .reversed = false });
-    //RH_ScopedInstall(nullptr, 0x5A44A0, { .reversed = false }); DestroyTextureCB
-    RH_ScopedInstall(PreprocessClothesDesc, 0x5A44C0, { .reversed = false });
-    RH_ScopedInstall(ReleaseGeometry, 0x5A47B0, { .reversed = false });
+    //RH_ScopedInstall(nullptr, 0x5A42B0, { .Reversed = false }); 
+    //RH_ScopedInstall(nullptr, 0x5A4380, { .Reversed = false }); AtomicInstanceCB
+    //RH_ScopedInstall(nullptr, 0x5A43A0, { .Reversed = false });
+    //RH_ScopedInstall(nullptr, 0x5A44A0, { .Reversed = false }); DestroyTextureCB
+    RH_ScopedInstall(PreprocessClothesDesc, 0x5A44C0, { .Reversed = false });
+    RH_ScopedInstall(ReleaseGeometry, 0x5A47B0, { .Reversed = false });
     RH_ScopedGlobalInstall(GetAtomicWithName, 0x5A4810);
     RH_ScopedInstall(AddWeightToBoneVertex, 0x5A4840);
     RH_ScopedInstall(StoreBoneArray, 0x5A48B0);
-    RH_ScopedOverloadedInstall(BlendGeometry, "3", 0x5A4940, RpGeometry * (*)(RpClump*, const char*, const char*, const char*, float, float, float), { .reversed = false });
-    RH_ScopedOverloadedInstall(BlendGeometry, "2", 0x5A4F10, RpGeometry* (*)(RpClump*, const char*, const char*, float, float), {.reversed = false});
-    RH_ScopedInstall(CopyGeometry, 0x5A5340, { .reversed = false });
-    RH_ScopedInstall(ConstructGeometryArray, 0x5A55A0, { .reversed = false }); // Makes the game crash - Probably a register is changed or smth
+    RH_ScopedOverloadedInstall(BlendGeometry, "3", 0x5A4940, RpGeometry * (*)(RpClump*, const char*, const char*, const char*, float, float, float), { .Reversed = false });
+    RH_ScopedOverloadedInstall(BlendGeometry, "2", 0x5A4F10, RpGeometry* (*)(RpClump*, const char*, const char*, float, float), {.Reversed = false});
+    RH_ScopedInstall(CopyGeometry, 0x5A5340, { .Reversed = false });
+    RH_ScopedInstall(ConstructGeometryArray, 0x5A55A0, { .Reversed = false }); // Makes the game crash - Probably a register is changed or smth
     RH_ScopedInstall(DestroySkinArrays, 0x5A56C0);
     RH_ScopedInstall(BuildBoneIndexConversionTable, 0x5A56E0);
     RH_ScopedInstall(CopyTexture, 0x5A5730);
@@ -42,8 +42,8 @@ void CClothesBuilder::InjectHooks() {
     RH_ScopedOverloadedInstall(BlendTextures, "Dst-Src1-Src2", 0x5A59C0, void (*)(RwTexture*, RwTexture*, RwTexture*, float, float, float, int32));
     RH_ScopedOverloadedInstall(BlendTextures, "Dst-Src1-Src2-Tat", 0x5A5BC0, void (*)(RwTexture*, RwTexture*, RwTexture*, float, float, float, int32, RwTexture*));
     RH_ScopedGlobalInstall(GetTextureFromTxdAndLoadNextTxd, 0x5A5F70);
-    RH_ScopedInstall(ConstructTextures, 0x5A6040, { .reversed = false });
-    RH_ScopedInstall(ConstructGeometryAndSkinArrays, 0x5A6530, { .reversed = false });
+    RH_ScopedInstall(ConstructTextures, 0x5A6040, { .Reversed = false });
+    RH_ScopedInstall(ConstructGeometryAndSkinArrays, 0x5A6530, { .Reversed = false });
     RH_ScopedInstall(CreateSkinnedClump, 0x5A69D0);
 }
 

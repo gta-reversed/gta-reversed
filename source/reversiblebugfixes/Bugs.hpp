@@ -91,4 +91,9 @@ inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_
                    "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CPool_DestructOnClear{
+    .Name        = "Destroy objects before marking their memory as free",
+    .Description = "Destruct all objects in the pool before deallocating their memory (So that pool objects can clean up after themselves)",
+    .Credit      = "Pirulax"
 };
+}; // namespace notsa::bugfixes

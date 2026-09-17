@@ -68,13 +68,13 @@ void CPathFind::InjectHooks() {
     RH_ScopedInstall(SwitchPedRoadsOffInArea, 0x452F00);
     RH_ScopedInstall(SwitchRoadsOffInArea, 0x452C80);
     RH_ScopedInstall(SwitchRoadsOffInAreaForOneRegion, 0x452820);
-    RH_ScopedInstall(ComputeRoute, 0x452760, { .reversed = false });
+    RH_ScopedInstall(ComputeRoute, 0x452760, { .Reversed = false });
     //RH_ScopedInstall(CompleteNewInterior, 0x452270);
     RH_ScopedInstall(SwitchOffNodeAndNeighbours, 0x452160);
     //RH_ScopedInstall(Find2NodesForCarCreation, 0x452090);
     //RH_ScopedInstall(TestCoorsCloseness, 0x452000);
     //RH_ScopedInstall(FindNextNodeWandering, 0x451B70);
-    RH_ScopedInstall(DoPathSearch, 0x4515D0, {.reversed = false}); // Sometimes breaks `CTaskComplexFollowNodeRoute::ComputePathNodes` - To repro just walk around in groove st. 
+    RH_ScopedInstall(DoPathSearch, 0x4515D0, {.Reversed = false}); // Sometimes breaks `CTaskComplexFollowNodeRoute::ComputePathNodes` - To repro just walk around in groove st. 
     //RH_ScopedInstall(FindParkingNodeInArea, 0x4513F0);
     RH_ScopedInstall(FindLinkBetweenNodes, 0x451350);
     RH_ScopedInstall(ReturnInteriorNodeIndex, 0x451300);

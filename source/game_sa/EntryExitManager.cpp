@@ -21,7 +21,7 @@ void CEntryExitManager::InjectHooks() {
     RH_ScopedInstall(FindNearestDoor, 0x43F630);
     RH_ScopedInstall(FindNearestEntryExit, 0x43F4B0);
     RH_ScopedInstall(EnableBurglaryHouses, 0x43F180);
-    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43F150, {.locked = true});
+    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43F150, {.Locked = true});
     RH_ScopedInstall(PostEntryExitsCreation, 0x43F0A0);
     RH_ScopedInstall(LinkEntryExit, 0x43F050);
     RH_ScopedInstall(GetEntryExitIndex, 0x43EFD0);

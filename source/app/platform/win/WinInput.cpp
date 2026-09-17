@@ -418,7 +418,7 @@ void InjectHooks() {
     RH_ScopedNamespaceName("Input");
 
     RH_ScopedGlobalInstall(Initialise, 0x7487CF); 
-    RH_ScopedGlobalInstall(diMouseInit, 0x7469A0, {.locked = true}); // Can't be hooked because it fails with ACCESS DENIED and crashes
+    RH_ScopedGlobalInstall(diMouseInit, 0x7469A0, {.Locked = true}); // Can't be hooked because it fails with ACCESS DENIED and crashes
     RH_ScopedGlobalInstall(EnumDevicesCallback, 0x747020);
     RH_ScopedGlobalInstall(diPadInit, 0x7485C0);
     RH_ScopedGlobalInstall(diPadSetRanges, 0x746D80);

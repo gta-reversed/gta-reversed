@@ -1927,18 +1927,19 @@ void RpAnimBlendPlugin::InjectHooks() {
     RH_ScopedGlobalOverloadedInstall(RpAnimBlendGetNextAssociation, "Any", 0x4D6AB0, CAnimBlendAssociation * (*)(CAnimBlendAssociation * association));
     RH_ScopedGlobalOverloadedInstall(RpAnimBlendGetNextAssociation, "Flags", 0x4D6AD0, CAnimBlendAssociation * (*)(CAnimBlendAssociation * association, uint32 flags));
 
-    RH_ScopedGlobalInstall(RpAnimBlendClumpUpdateAnimations, 0x4D34F0, {.reversed = false}); // TODO: Hook this again... Unhooked for testing.
+    RH_ScopedGlobalInstall(RpAnimBlendClumpUpdateAnimations, 0x4D34F0, {.Reversed = false}); // TODO: Hook this again... Unhooked for testing.
 #ifdef USE_COPY_PASTE_FRAME_UPDATE
+    const auto state = (DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS) ? HS::RedirectToGTA : HS::RedirectToOurs;
     // Most of these functions aren't hookable (without effort) they take args in <eax> and whatnot, they aren't regular `__cdecl` calls
     //RH_ScopedGlobalInstall(FrameUpdateCallBackWithVelocityExtractionCompressedSkinned, 0x4D1DB0);
-    RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedSkinned, 0x4D2E40, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedSkinned, 0x4D2E40, { .State = state });
     //RH_ScopedGlobalInstall(FrameUpdateCallBackWithVelocityExtractionCompressedNonSkinned, 0x4D27F0);
-    RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedNonSkinned, 0x4D32D0, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedNonSkinned, 0x4D32D0, { .State = state });
     //RH_ScopedGlobalInstall(FrameUpdateCallBackSkinnedWith3dVelocityExtraction, 0x4D1A50);
     //RH_ScopedGlobalInstall(FrameUpdateCallBackSkinnedWithVelocityExtraction, 0x4D1680);
-    RH_ScopedGlobalInstall(FrameUpdateCallBackSkinned, 0x4D2B90, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    RH_ScopedGlobalInstall(FrameUpdateCallBackSkinned, 0x4D2B90, { .State = state });
     //RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinnedWith3dVelocityExtraction, 0x4D2450);
     //RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinnedWithVelocityExtraction, 0x4D2100);
-    RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinned, 0x4D30A0, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinned, 0x4D30A0, { .State = state });
 #endif
 }

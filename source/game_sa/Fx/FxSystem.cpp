@@ -22,8 +22,8 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(PlayAndKill, 0x4AA3D0);
     RH_ScopedInstall(Kill, 0x4AA3F0);
     RH_ScopedInstall(AttachToBone, 0x4AA400);
-    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
-    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(const RwMatrix&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.Reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(const RwMatrix&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.Reversed = false});
     RH_ScopedInstall(EnablePrim, 0x4AA610);
     RH_ScopedInstall(SetMatrix, 0x4AA630);
     RH_ScopedInstall(SetOffsetPos, 0x4AA660);
@@ -32,7 +32,7 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(GetCompositeMatrix, 0x4AA8C0);
     RH_ScopedInstall(GetPlayStatus, 0x4AA900);
     RH_ScopedInstall(ForAllParticles, 0x4AA930);
-    RH_ScopedInstall(UpdateBoundingBoxCB, 0x4AA9A0, {.reversed=false});
+    RH_ScopedInstall(UpdateBoundingBoxCB, 0x4AA9A0, {.Reversed = false});
     RH_ScopedInstall(GetBoundingSphereWld, 0x4AAAD0);
     RH_ScopedInstall(GetBoundingSphereLcl, 0x4AAB50);
     RH_ScopedInstall(SetBoundingSphere, 0x4AAB80);
@@ -46,7 +46,7 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(SetMustCreatePrts, 0x4AAC70);
     RH_ScopedInstall(DoFxAudio, 0x4AAC90);
     RH_ScopedInstall(IsVisible, 0x4AAF30);
-    RH_ScopedInstall(Update, 0x4AAF70, {.reversed=false});
+    RH_ScopedInstall(Update, 0x4AAF70, {.Reversed = false});
 }
 FxSystem_c* FxSystem_c::Constructor() { this->FxSystem_c::FxSystem_c(); return this; }
 FxSystem_c* FxSystem_c::Destructor() { this->FxSystem_c::~FxSystem_c(); return this; }

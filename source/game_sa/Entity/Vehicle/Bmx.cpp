@@ -9,9 +9,9 @@ void CBmx::InjectHooks() {
     RH_ScopedVMTInstall(BurstTyre, 0x6BF9C0);
     RH_ScopedVMTInstall(FindWheelWidth, 0x6C0550);
     RH_ScopedVMTInstall(ProcessControl, 0x6BFA30);
-    RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BFB50, {.reversed = false});
-    RH_ScopedVMTInstall(PreRender, 0x6C0810, {.reversed = false});
-    RH_ScopedVMTInstall(ProcessAI, 0x6C1470, {.reversed = false});
+    RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BFB50, {.Reversed = false});
+    RH_ScopedVMTInstall(PreRender, 0x6C0810, {.Reversed = false});
+    RH_ScopedVMTInstall(ProcessAI, 0x6C1470, {.Reversed = false});
     RH_ScopedInstall(ProcessBunnyHop, 0x6C0590);
     RH_ScopedInstall(LaunchBunnyHopCB, 0x6C0390);
 }
