@@ -35,7 +35,7 @@ public:
 
     void OnDeserialized() override final;
 
-    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(HooksDebugModule, m_IsOpen, m_Filter);
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(HooksDebugModule, m_IsOpen, m_Filter, m_RenderList.BuilderOpts);
 
 private:
     template<std::predicate<HookState> SetStateFn>
@@ -79,8 +79,6 @@ private:
     };
     RenderCategoryResult RenderCategory(RListCategory& cat);
 
-    void RenderExportHooks();
-
 private:
     bool m_IsOpen{};
 
@@ -90,6 +88,7 @@ private:
         std::thread             Thread;
         std::mutex              Mtx{};
         std::condition_variable CV{};
+        bool                    NeedsToRun{};
         bool                    Exiting{};
         HookFilter              HookFilter{};
         bool                    NeedToAckFinished{};

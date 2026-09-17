@@ -28,9 +28,11 @@ constexpr ImVec2 STATE_BUTTON_SIZE{ 80.f, 0.f };
 constexpr auto   FILTER_INPUT_DEBOUNCE_TIME = std::chrono::milliseconds{ 250 };
 
 namespace RHDebugModule {
-HooksDebugModule::HooksDebugModule() :
-    m_FilterProcessor{ .Thread{ [this] { FilteringThread(); } } }
-{}
+HooksDebugModule::HooksDebugModule() {
+    m_FilterProcessor.Thread = std::thread{ [this] { // Must initialize here after everything has been initialized
+        FilteringThread();
+    } };
+}
 
 HooksDebugModule::~HooksDebugModule() {
     {
@@ -44,7 +46,9 @@ HooksDebugModule::~HooksDebugModule() {
 void HooksDebugModule::FilteringThread() {
     while (!m_FilterProcessor.Exiting) {
         std::unique_lock lock{ m_FilterProcessor.Mtx };
-        m_FilterProcessor.CV.wait(lock);
+        m_FilterProcessor.CV.wait(lock, [&]{
+            return m_FilterProcessor.NeedsToRun || m_FilterProcessor.Exiting;
+        });
         if (m_FilterProcessor.Exiting) {
             break;
         }
@@ -57,6 +61,7 @@ void HooksDebugModule::FilteringThread() {
         RListSorter{}.Process(*m_RenderList.RootCategory);
         m_FilterProcessor.FinishedAt        = FilterClock::now();
         m_FilterProcessor.NeedToAckFinished = true;
+        m_FilterProcessor.NeedsToRun        = false;
     }
 }
 
@@ -71,6 +76,7 @@ bool HooksDebugModule::RunFilter() {
         }
         m_FilterProcessor.HookFilter = { m_Filter.Input, m_Filter.CaseSensitive, m_Filter.Cutoffs };
         m_FilterProcessor.StartedAt  = FilterClock::now();
+        m_FilterProcessor.NeedsToRun = true;
     }
     m_FilterProcessor.CV.notify_one();
     return true;
@@ -482,8 +488,6 @@ auto HooksDebugModule::RenderCategory(RListCategory& cat) -> RenderCategoryResul
             m_HooksExport.Open(cat, false);
         }
     )) {
-        const auto hasSubCategoriesToShow = !cat.Categories.IsEmpty() && (IsMatchingScoreOrNone(cat.MaxFilterScoreSubCats) || IsMatchingScoreOrNone(cat.MaxFilterScoreSubItems));
-
         // Draw items (hooks) (if any)
         bool itemsStateChanged = false;
         if (hasOwnItemsToShow) {
@@ -598,9 +602,11 @@ void HooksDebugModule::RenderWindow() {
         const auto isFilteringInProgress = !lock.owns_lock();
         const notsa::ui::ScopedDisable sdg{ isFilteringInProgress };
 
-        if (m_FilterProcessor.NeedToAckFinished) {
-            if (m_RenderList.BuilderOpts.DisplayTitleWithFilterScores) {
-                m_RenderList.Builder.UpdateList(*m_RenderList.RootCategory, m_RenderList.BuilderOpts); // Need to update because filter scores have changed
+        if (!isFilteringInProgress) {
+            if (m_FilterProcessor.NeedToAckFinished) {
+                if (m_RenderList.BuilderOpts.DisplayTitleWithFilterScores) {
+                    m_RenderList.Builder.UpdateList(*m_RenderList.RootCategory, m_RenderList.BuilderOpts); // Need to update because filter scores have changed
+                }
             }
         }
 
@@ -626,8 +632,10 @@ void HooksDebugModule::RenderMenuEntry() {
 }
 
 void HooksDebugModule::OnDeserialized() {
-    if (m_RenderList.BuilderOpts != RListBuilder::Options{}) {
-        m_RenderList.Builder.UpdateList(*m_RenderList.RootCategory, m_RenderList.BuilderOpts);
+    if (m_RenderList.RootCategory) {
+        if (m_RenderList.BuilderOpts != RListBuilder::Options{}) {
+            m_RenderList.Builder.UpdateList(*m_RenderList.RootCategory, m_RenderList.BuilderOpts);
+        }
     }
     m_Filter.Changed = true;
 }

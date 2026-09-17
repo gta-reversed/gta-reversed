@@ -112,7 +112,7 @@ public:
     */
     void Flush() {
         // Perhaps properly destruct all objects in the pool
-        if (notsa::reversiblebugfixes::CPool_DestroyOnDestruct) {
+        if (notsa::bugfixes::CPool_DestructOnClear) {
             Clear();
         }
 
@@ -133,7 +133,7 @@ public:
 
     // Clears pool
     void Clear() {
-        if (notsa::reversiblebugfixes::CPool_DestroyOnDestruct) {
+        if (notsa::bugfixes::CPool_DestructOnClear) {
             for (auto& v : GetAllValid()) {
                 delete &v;
             }
@@ -401,14 +401,6 @@ protected:
 
         // No free slots
         return -1;
-    }
-
-    void MaybeDestroyObjects() {
-        if (notsa::reversiblebugfixes::CPool_DestroyOnDestruct) {
-            for (auto& v : GetAllValid()) {
-                std::destroy_at(&v);
-            }
-        }
     }
 
 private:

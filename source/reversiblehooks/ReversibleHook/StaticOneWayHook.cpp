@@ -39,7 +39,7 @@ void StaticOneWayHook::ApplyNewState(bool state, bool oldState) {
 }
 
 void StaticOneWayHook::Check() {
-    if (!m_IsHooked) {
+    if (!m_State) {
         return; // Not hooked, nothing to check
     }
     // Edit & Continue in MSVC works by pointing the address of a function to a `jmp` instruction that jumps to the new function code.
@@ -61,8 +61,8 @@ size_t StaticOneWayHook::GenerateHookCodeWithPreservation(size_t localBufferOffs
         return Utility::GenerateHookCode(
             static_cast<std::byte*>(buf),
             bufSize,
-            m_CalculatedJumpTo,
             m_From,
+            m_CalculatedJumpTo,
             m_NumStackArgumentsToPreserve,
             m_PreserveRegisters
         );
@@ -189,7 +189,8 @@ bool StaticOneWayHook::RecalculateAddressJumpTo() {
             ));
         }
     }
-    return std::exchange(m_CalculatedJumpTo, jumpTo ? jumpTo : m_To) != m_CalculatedJumpTo;
+    const auto to = jumpTo ? jumpTo : m_To;
+    return std::exchange(m_CalculatedJumpTo, to) != to;
 }
 }; // namespace ReversibleHook
 }; // namespace ReversibleHooks

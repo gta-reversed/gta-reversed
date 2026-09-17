@@ -77,7 +77,6 @@ protected:
     size_t              m_PreservationCodeDataBufSize{}; //!< Size of the generated hook code's buffer
     size_t              m_NumStackArgumentsToPreserve{}; //!< If present, the hook code will preserve this many stack arguments (by re-pushing them) before jumping to `m_AddressUsedTo`
     bool                m_PreserveRegisters{};           //!< If true, the hook code will preserve registers (using pushad/popad) before jumping to `m_AddressUsedTo`
-    bool                m_IsHooked{};                    //!< Hook is installed
 };
 }; // namespace ReversibleHook
 }; // namespace ReversibleHooks
