@@ -6684,7 +6684,7 @@ CPlayerPed,FindPedToAttack,0x0060C5F0,1,0,S
 CPlayerPed,FindTargetPriority,0x00609DE0,1,0,S
 CPlayerPed,ForceGroupToAlwaysFollow,0x0060C7C0,1,0,S
 CPlayerPed,ForceGroupToNeverFollow,0x0060C800,1,0,S
-CPlayerPed,GetButtonSprintResults,0x0060A820,0,1,S
+CPlayerPed,GetButtonSprintResults,0x0060A820,1,1,S
 CPlayerPed,GetPadFromPlayer,0x00609560,1,0,S
 CPlayerPed,GetPlayerInfoForThisPlayerPed,0x00609FF0,1,0,S
 CPlayerPed,GetWantedLevel,0x0041BE60,1,0,S

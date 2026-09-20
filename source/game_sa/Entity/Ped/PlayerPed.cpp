@@ -58,7 +58,7 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(MakePlayerGroupDisappear, 0x60A440);
     RH_ScopedInstall(MakePlayerGroupReappear, 0x60A4B0);
     RH_ScopedInstall(HandleSprintEnergy, 0x60A550);
-    RH_ScopedInstall(GetButtonSprintResults, 0x60A820, { .reversed = false });
+    RH_ScopedInstall(GetButtonSprintResults, 0x60A820);
     RH_ScopedInstall(HandlePlayerBreath, 0x60A8D0);
     RH_ScopedOverloadedInstall(MakeChangesForNewWeapon, "", 0x60B460, void(CPlayerPed::*)(eWeaponType));
     RH_ScopedGlobalInstall(LOSBlockedBetweenPeds, 0x60B550);
@@ -678,22 +678,23 @@ float CPlayerPed::ControlButtonSprint(eSprintType sprintType) {
     return plugin::CallMethodAndReturn<float, 0x60A610, CPlayerPed *, eSprintType>(this, sprintType);
 }
 
-// Reverse CPlayerPed::SetRealMoveAnim before hooking this func
 // 0x60A820
 float CPlayerPed::GetButtonSprintResults(eSprintType sprintType) {
-    return plugin::CallMethodAndReturn<float, 0x60A820, CPlayerPed *, eSprintType>(this, sprintType);
+    // The original function doesn't touch `edx`; it points to an anim blend assoc.
+    // Callers at 0x60B430 rely on it, so preserve it (same pattern as Radar.cpp).
+    _asm { push edx };
 
-    // Forces the compiler to preserve the value of `edx`.
-    // Otherwise it's value is lost when called from 0x60B44C.
-    // which causes a crash (as it is used to store a pointer to an anim blend assoc)
-    __asm { and edx, edx };
-
-    if (GetPlayerData()->m_fMoveSpeed <= PLAYER_SPRINT_THRESHOLD) {
-        return GetPlayerData()->m_fMoveSpeed <= 0.0f ? 0.0f : 1.0f;
+    float result;
+    auto* playerData = GetPlayerData();
+    if (playerData->m_fMoveSpeed <= PLAYER_SPRINT_THRESHOLD) {
+        const auto progress = std::max(0.0f, playerData->m_fMoveSpeed / PLAYER_SPRINT_THRESHOLD - 1.0f);
+        result = PLAYER_SPRINT_SET[sprintType].field_1C * progress + 1.0f;
     } else {
-        const float progress = std::max(0.0f, GetPlayerData()->m_fMoveSpeed / PLAYER_SPRINT_THRESHOLD - 1.0f);
-        return PLAYER_SPRINT_SET[sprintType].field_1C * progress + 1.0f;
+        result = playerData->m_fMoveSpeed > 0.0f ? 0.0f : 1.0f;
     }
+
+    _asm { pop edx };
+    return result;
 }
 
 // 0x60A8A0
