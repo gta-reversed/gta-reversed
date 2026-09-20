@@ -1889,7 +1889,10 @@ float CVehicle::HeightAboveCeiling(float height, eFlightModel flightModel) {
 
 // 0x6D2690
 RwObject* SetVehicleAtomicVisibilityCB(RwObject* object, void* data) {
-    return ((RwObject * (__cdecl*)(RwObject*, void*))0x6D2690)(object, data);
+    if (const auto atomicId = CVisibilityPlugins::GetAtomicId(reinterpret_cast<RpAtomic*>(object)); (atomicId & 3) != 0) {
+        rwObjectSetFlags(object, ((uint32)atomicId & 3) != *(uint32*)data ? 4 : 0);
+    }
+    return object;
 }
 
 // 0x6D26D0

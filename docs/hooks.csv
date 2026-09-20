@@ -3746,7 +3746,7 @@ CVehicle,SetRopeHeightForHeli,0x006D3D30,1,0,S
 CVehicle,SetTransmissionRotation,0x006DBBB0,1,0,S
 CVehicle,SetUpDriver,0x006D1A50,1,0,S
 CVehicle,SetVehicleAtomicVisibilityCB-Frame,0x006D26D0,1,0,S
-CVehicle,SetVehicleAtomicVisibilityCB-Object,0x006D2690,0,1,S
+CVehicle,SetVehicleAtomicVisibilityCB-Object,0x006D2690,1,1,S
 CVehicle,SetVehicleCreatedBy,0x006D5D70,1,0,S
 CVehicle,SetVehicleUpgradeFlags,0x006D30E0,1,0,S
 CVehicle,SetWindowOpenFlag,0x006D3080,1,0,S
