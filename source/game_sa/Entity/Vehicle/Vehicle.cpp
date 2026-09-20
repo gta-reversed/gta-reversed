@@ -222,7 +222,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(GetRopeHeightForHeli, 0x6D3D10);
     RH_ScopedInstall(SetRopeHeightForHeli, 0x6D3D30);
 
-    RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*), { .reversed = false });
+    RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*));
     RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Frame", 0x6D26D0, RwFrame*(*)(RwFrame*, void*));
     // RH_ScopedGlobalInstall(SetCompAlphaCB, 0x6D2950);
     RH_ScopedGlobalInstall(IsVehiclePointerValid, 0x6E38F0);
@@ -1889,7 +1889,13 @@ float CVehicle::HeightAboveCeiling(float height, eFlightModel flightModel) {
 
 // 0x6D2690
 RwObject* SetVehicleAtomicVisibilityCB(RwObject* object, void* data) {
-    return ((RwObject * (__cdecl*)(RwObject*, void*))0x6D2690)(object, data);
+    assert(RwObjectGetType(object) == rpATOMIC);
+    const auto atomic      = reinterpret_cast<RpAtomic*>(object);
+    const auto toSet = std::bit_cast<eAtomicComponentFlag>(data);
+    if (const auto current = CVisibilityPlugins::GetUserValue(atomic) & ATOMIC_MASK; current != ATOMIC_NONE) {
+        RpAtomicSetFlags(atomic, current != toSet ? 0 : rpATOMICRENDER);
+    }
+    return object;
 }
 
 // 0x6D26D0
@@ -1901,6 +1907,7 @@ RwFrame* SetVehicleAtomicVisibilityCB(RwFrame* frame, void* data) {
 
 // 0x6D2700
 void CVehicle::SetComponentVisibility(RwFrame* component, uint32 visibilityState) { // see eAtomicComponentFlag
+    assert(visibilityState == ATOMIC_NONE || visibilityState == ATOMIC_OK|| visibilityState == ATOMIC_DAMAGED);
     if (component) {
         if (visibilityState == eAtomicComponentFlag::ATOMIC_DAMAGED) {
             vehicleFlags.bIsDamaged = true;
