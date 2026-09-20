@@ -24,7 +24,7 @@ void CClothes::InjectHooks() {
     RH_ScopedInstall(RebuildPlayerIfNeeded, 0x5A8390);
     RH_ScopedInstall(RebuildPlayer, 0x5A82C0);
     RH_ScopedInstall(RebuildCutscenePlayer, 0x5A8270);
-    RH_ScopedInstall(GetTextureDependency, 0x5A7EA0, { .reversed = false }); // Crashes when enabled - function looks simple and should be correct
+    RH_ScopedInstall(GetTextureDependency, 0x5A7EA0); // fixed: correct table mapping (no more OOB m_anModelKeys[10])
     RH_ScopedInstall(GetDependentTexture, 0x5A7F30);
     RH_ScopedInstall(GetPlayerMotionGroupToLoad, 0x5A7FB0);
     RH_ScopedInstall(GetDefaultPlayerMotionGroup, 0x5A81B0);
@@ -219,19 +219,40 @@ void CClothes::RebuildCutscenePlayer(CPlayerPed* player, int32 modelId) {
 }
 
 // 0x5A7EA0
+// Which clothes model must be loaded for a given texture.
+// Mapping derived from the exe (Compact 1.0 US): byte table at 0x5A7F18 selects
+// an entry of the jump table at 0x5A7EF0 (returns 0,1,9,3,4,5,6,7,8,9).
+// The original mapping is kept as-is, even where it seems unintuitive (e.g.
+// LEGS texture -> SPECIAL model, arms/shoulders/chest -> SHOES model).
+// NOTE: the previous switch-based version returned CLOTHES_MODEL_UNAVAILABLE
+// for parts 4..17, which made RebuildPlayer use `m_anModelKeys[10]` out of
+// bounds and crash — that's why the hook was previously disabled.
 eClothesModelPart CClothes::GetTextureDependency(eClothesTexturePart texturePart) {
-    switch (texturePart) {
-    case CLOTHES_TEXTURE_TORSO:    return CLOTHES_MODEL_TORSO;
-    case CLOTHES_TEXTURE_HEAD:     return CLOTHES_MODEL_HEAD;
-    case CLOTHES_TEXTURE_LEGS:     return CLOTHES_MODEL_LEGS;
-    case CLOTHES_TEXTURE_SHOES:    return CLOTHES_MODEL_SHOES;
-    case CLOTHES_TEXTURE_NECKLACE: return CLOTHES_MODEL_NECKLACE;
-    case CLOTHES_TEXTURE_BRACELET: return CLOTHES_MODEL_BRACELET;
-    case CLOTHES_TEXTURE_GLASSES:  return CLOTHES_MODEL_GLASSES;
-    case CLOTHES_TEXTURE_HATS:     return CLOTHES_MODEL_HATS;
-    case CLOTHES_TEXTURE_SPECIAL:  return CLOTHES_MODEL_SPECIAL;
-    default:                       return CLOTHES_MODEL_UNAVAILABLE;
-    }
+    static constexpr std::array modelByTexture{
+        CLOTHES_MODEL_TORSO,    // CLOTHES_TEXTURE_TORSO           = 0
+        CLOTHES_MODEL_HEAD,     // CLOTHES_TEXTURE_HEAD            = 1
+        CLOTHES_MODEL_SPECIAL,  // CLOTHES_TEXTURE_LEGS            = 2
+        CLOTHES_MODEL_LEGS,     // CLOTHES_TEXTURE_SHOES           = 3
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_LOWER_LEFT_ARM  = 4
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_UPPER_LEFT_ARM  = 5
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_UPPER_RIGHT_ARM = 6
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_LOWER_RIGHT_ARM = 7
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_BACK_TOP        = 8
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_LEFT_CHEST      = 9
+        CLOTHES_MODEL_SHOES,    // CLOTHES_TEXTURE_RIGHT_CHEST     = 10
+        CLOTHES_MODEL_NECKLACE, // CLOTHES_TEXTURE_STOMACH/LOWER_BACK = 11
+        CLOTHES_MODEL_BRACELET, // CLOTHES_TEXTURE_UPPER_BACK      = 12
+        CLOTHES_MODEL_GLASSES,  // CLOTHES_TEXTURE_NECKLACE        = 13
+        CLOTHES_MODEL_HATS,     // CLOTHES_TEXTURE_BRACELET        = 14
+        CLOTHES_MODEL_SPECIAL,  // CLOTHES_TEXTURE_GLASSES         = 15
+        CLOTHES_MODEL_HATS,     // CLOTHES_TEXTURE_HATS            = 16
+        CLOTHES_MODEL_SPECIAL,  // CLOTHES_TEXTURE_SPECIAL         = 17
+    };
+
+    if (texturePart >= (int32)std::size(modelByTexture))
+        return CLOTHES_MODEL_UNAVAILABLE;
+
+    return modelByTexture[texturePart];
 }
 
 // 0x5A7F30

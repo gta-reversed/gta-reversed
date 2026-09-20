@@ -2743,7 +2743,7 @@ CClothes,ConstructPedModel,0x005A81E0,1,0,S
 CClothes,GetDefaultPlayerMotionGroup,0x005A81B0,1,0,S
 CClothes,GetDependentTexture,0x005A7F30,1,0,S
 CClothes,GetPlayerMotionGroupToLoad,0x005A7FB0,1,0,S
-CClothes,GetTextureDependency,0x005A7EA0,0,1,S
+CClothes,GetTextureDependency,0x005A7EA0,1,1,S
 CClothes,Init,0x005A80D0,1,0,S
 CClothes,LoadClothesFile,0x005A7B30,1,0,S
 CClothes,RebuildCutscenePlayer,0x005A8270,1,0,S
