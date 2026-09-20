@@ -7,7 +7,6 @@
 #include "PostEffects.h"
 
 #include "winincl.h"
-#include <SDL3/SDL.h>
 #include <bindings/imgui_impl_dx9.h>
 
 #define MINZBUFFERVALUE 0.0f
