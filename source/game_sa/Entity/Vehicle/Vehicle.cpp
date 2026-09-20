@@ -1907,7 +1907,7 @@ RwFrame* SetVehicleAtomicVisibilityCB(RwFrame* frame, void* data) {
 
 // 0x6D2700
 void CVehicle::SetComponentVisibility(RwFrame* component, uint32 visibilityState) { // see eAtomicComponentFlag
-    assert(visibilityState == ATOMIC_NONE || visibilityState == ATOMIC_OK|| visibilityState == ATOMIC_DAMAGED);
+    assert(visibilityState == ATOMIC_NONE || visibilityState == ATOMIC_OK || visibilityState == ATOMIC_DAMAGED);
     if (component) {
         if (visibilityState == eAtomicComponentFlag::ATOMIC_DAMAGED) {
             vehicleFlags.bIsDamaged = true;
