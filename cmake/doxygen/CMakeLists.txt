@@ -1,6 +1,19 @@
+cmake_minimum_required(VERSION 3.2.0 FATAL_ERROR)
+
+#
+# Mock CMake project for generating Doxygen documentation
+#
+
+project(docs LANGUAGES NONE) # 'NONE' skips C++ compiler checks entirely
+
+# Adjust paths because we are inside a subdirectory
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+set(BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
 # check if Doxygen is installed
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
+    # Set Doxygen configuration options
     set(DOXYGEN_OUTPUT_DIRECTORY doxygen)
     set(DOXYGEN_COLLABORATION_GRAPH YES)
     set(DOXYGEN_EXTRACT_ALL YES)
@@ -31,7 +44,7 @@ if (DOXYGEN_FOUND)
         "size=\\par Structure size: "
     )
 
-    doxygen_add_docs(doxygen
+    doxygen_add_docs(docs
         ${CMAKE_CURRENT_SOURCE_DIR}/source
         ${PROJECT_SOURCE_DIR}/docs
         ${PROJECT_SOURCE_DIR}/README.md
