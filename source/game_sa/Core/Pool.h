@@ -135,14 +135,13 @@ public:
     void Clear() {
         if (notsa::bugfixes::CPool_DestructOnClear) {
             for (auto& v : GetAllValid()) {
-                delete &v;
+                std::destroy_at(&v);
             }
-        } else { // Otherwise just mark as free, don't destruct
-            for (auto i = 0; i < m_Capacity; i++) {
-                m_SlotState[i].IsEmpty = true;
-            }
-            DoFill(DEADLAND_FILL);
         }
+        for (auto i = 0; i < m_Capacity; i++) {
+            m_SlotState[i].IsEmpty = true;
+        }
+        DoFill(DEADLAND_FILL);
     }
 
     auto GetSize() {
