@@ -74,7 +74,7 @@ CTask* CTaskGangHasslePed::ControlSubTask(CPed* ped) {
             m_nTime = CTimer::GetTimeInMS();
             m_bRefreshTime = false;
         }
-        if (m_nSomeRandomShit + m_nTime <= CTimer::GetTimeInMS()) {
+        if ((uint32)(m_nSomeRandomShit + m_nTime) <= CTimer::GetTimeInMS()) {
             if (dword10 == 2) {
                 if (m_pSubTask->GetTaskType() != TASK_COMPLEX_KILL_PED_ON_FOOT) {
                     return new CTaskComplexKillPedOnFoot{ m_Ped, -1, 0, 0, 0, 1 };

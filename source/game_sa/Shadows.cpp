@@ -1459,7 +1459,7 @@ void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowTy
                 SHADOW_DEFAULT, texture, shdwPos,
                 sizeY * fwdX, sizeY * fwdY,
                 -(sizeX * side.x), -(sizeX * side.y),
-                strength, strength, strength, strength,
+                static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength),
                 4.5f, 1.0f, 0.0f, false, 0.05f
             );
         } else {
@@ -1468,7 +1468,7 @@ void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowTy
                 SHADOW_DEFAULT, texture, shdwPos,
                 sizeY * fwdX, sizeY * fwdY,
                 sizeX * side.x, sizeX * side.y,
-                strength, strength, strength, strength,
+                static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength),
                 4.5f, 1.0f, 0.0f, false, 0.05f
             );
         }
@@ -1479,7 +1479,7 @@ void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowTy
             SHADOW_DEFAULT, texture, shdwPos,
             sizeY * fwdX, sizeY * fwdY,
             -(sizeX * side.x), -(sizeX * side.y),
-            strength, strength, strength, strength,
+            static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength),
             zDistance, drawOnBuildings, 1.0f, nullptr, drawOnBuildings
         );
     } else {
@@ -1487,7 +1487,7 @@ void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowTy
             SHADOW_DEFAULT, texture, shdwPos,
             sizeY * fwdX, sizeY * fwdY,
             sizeX * side.x, sizeX * side.y,
-            strength, strength, strength, strength,
+            static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength), static_cast<uint8>(strength),
             zDistance, drawOnBuildings, 1.0f, nullptr, drawOnBuildings
         );
     }

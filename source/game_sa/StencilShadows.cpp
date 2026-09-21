@@ -339,7 +339,7 @@ void CStencilShadows::RenderForVehicle(CStencilShadowObject* object) {
     object->m_SizeOfShadowFacesData = 0;
 
     const auto numShadowVerts = colData->m_nNumShadowVertices;
-    for (auto i = 0; i < numShadowVerts; i++) {
+    for (auto i = 0u; i < numShadowVerts; i++) {
         colData->GetShadTrianglePoint(s_ShadowTrianglePoints[i], i);
     }
     TransformPoints(
@@ -385,7 +385,7 @@ void CStencilShadows::RenderForVehicle(CStencilShadowObject* object) {
             CallAddShadowSilhouetteEdge(tri.vC, tri.vB, silhouetteEdges, &numSilhouetteEdges);
 
             // Already at capacity? (m_NumShadowFaces is the max triangle count)
-            if (object->m_NumShadowFaces <= object->m_SizeOfShadowFacesData + 3) {
+            if (static_cast<uint32>(object->m_NumShadowFaces) <= object->m_SizeOfShadowFacesData + 3) {
                 break;
             }
 
@@ -403,7 +403,7 @@ void CStencilShadows::RenderForVehicle(CStencilShadowObject* object) {
             const CVector extr1 = w1 + s_SunPosNrm * fShadowLength;
             const CVector extr2 = w2 + s_SunPosNrm * fShadowLength;
 
-            if (object->m_NumShadowFaces <= object->m_SizeOfShadowFacesData + 3) {
+            if (static_cast<uint32>(object->m_NumShadowFaces) <= object->m_SizeOfShadowFacesData + 3) {
                 break;
             }
 
@@ -425,7 +425,7 @@ void CStencilShadows::RenderForVehicle(CStencilShadowObject* object) {
         const CVector& w0 = s_TransformedShadowTrianglePoints[silhouetteEdges[i * 2 + 0]];
         const CVector& w1 = s_TransformedShadowTrianglePoints[silhouetteEdges[i * 2 + 1]];
 
-        if (object->m_NumShadowFaces <= object->m_SizeOfShadowFacesData + 6) {
+        if (static_cast<uint32>(object->m_NumShadowFaces) <= object->m_SizeOfShadowFacesData + 6) {
             break;
         }
 
@@ -480,7 +480,7 @@ void CStencilShadows::RenderForObject(CStencilShadowObject* object) {
     object->m_SizeOfShadowFacesData = 0;
 
     const auto numShadowVerts = colData->m_nNumShadowVertices;
-    for (auto i = 0; i < numShadowVerts; i++) {
+    for (auto i = 0u; i < numShadowVerts; i++) {
         colData->GetShadTrianglePoint(s_ShadowTrianglePoints[i], i);
     }
     TransformPoints(
@@ -520,7 +520,7 @@ void CStencilShadows::RenderForObject(CStencilShadowObject* object) {
             CallAddShadowSilhouetteEdge(tri.vA, tri.vC, silhouetteEdges, &numSilhouetteEdges);
             CallAddShadowSilhouetteEdge(tri.vC, tri.vB, silhouetteEdges, &numSilhouetteEdges);
 
-            if (object->m_NumShadowFaces <= object->m_SizeOfShadowFacesData + 3) {
+            if (static_cast<uint32>(object->m_NumShadowFaces) <= object->m_SizeOfShadowFacesData + 3) {
                 break;
             }
 
@@ -536,7 +536,7 @@ void CStencilShadows::RenderForObject(CStencilShadowObject* object) {
             const CVector extr1 = w1 + s_SunPosNrm * fShadowLength;
             const CVector extr2 = w2 + s_SunPosNrm * fShadowLength;
 
-            if (object->m_NumShadowFaces <= object->m_SizeOfShadowFacesData + 3) {
+            if (static_cast<uint32>(object->m_NumShadowFaces) <= object->m_SizeOfShadowFacesData + 3) {
                 break;
             }
 
@@ -557,7 +557,7 @@ void CStencilShadows::RenderForObject(CStencilShadowObject* object) {
         const CVector& w0 = s_TransformedShadowTrianglePoints[silhouetteEdges[i * 2 + 0]];
         const CVector& w1 = s_TransformedShadowTrianglePoints[silhouetteEdges[i * 2 + 1]];
 
-        if (object->m_NumShadowFaces <= object->m_SizeOfShadowFacesData + 6) {
+        if (static_cast<uint32>(object->m_NumShadowFaces) <= object->m_SizeOfShadowFacesData + 6) {
             break;
         }
 

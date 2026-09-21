@@ -308,7 +308,7 @@ bool CPools::Save() {
 bool CPools::SaveObjectPool() {
     int32 count = 0;
     const auto pool = GetObjectPool();
-    for (auto i = 0; i < pool->GetSize(); i++) {
+    for (auto i = 0u; i < pool->GetSize(); i++) {
         if (pool->IsFreeSlotAtIndex(i)) {
             continue;
         }
@@ -319,7 +319,7 @@ bool CPools::SaveObjectPool() {
         count++;
     }
     CGenericGameStorage::SaveDataToWorkBuffer(count);
-    for (auto i = 0; i < pool->GetSize(); i++) {
+    for (auto i = 0u; i < pool->GetSize(); i++) {
         if (pool->IsFreeSlotAtIndex(i)) {
             continue;
         }
@@ -340,7 +340,7 @@ bool CPools::SaveObjectPool() {
 bool CPools::SavePedPool() {
     int32 count = 0;
     const auto pool = GetPedPool();
-    for (auto i = 0; i < pool->GetSize(); i++) {
+    for (auto i = 0u; i < pool->GetSize(); i++) {
         if (pool->IsFreeSlotAtIndex(i)) {
             continue;
         }
@@ -351,7 +351,7 @@ bool CPools::SavePedPool() {
         count++;
     }
     CGenericGameStorage::SaveDataToWorkBuffer(count);
-    for (auto i = 0; i < pool->GetSize(); i++) {
+    for (auto i = 0u; i < pool->GetSize(); i++) {
         if (pool->IsFreeSlotAtIndex(i)) {
             continue;
         }
@@ -375,7 +375,7 @@ bool CPools::SavePedPool() {
 bool CPools::SaveVehiclePool() {
     int32 count = 0;
     const auto pool = GetVehiclePool();
-    for (auto i = 0; i < pool->GetSize(); i++) {
+    for (auto i = 0u; i < pool->GetSize(); i++) {
         if (pool->IsFreeSlotAtIndex(i)) {
             continue;
         }
@@ -392,7 +392,7 @@ bool CPools::SaveVehiclePool() {
         count++;
     }
     CGenericGameStorage::SaveDataToWorkBuffer(count);
-    for (auto i = 0; i < pool->GetSize(); i++) {
+    for (auto i = 0u; i < pool->GetSize(); i++) {
         if (pool->IsFreeSlotAtIndex(i)) {
             continue;
         }

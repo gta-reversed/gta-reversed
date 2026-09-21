@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include "TaskGangHassleVehicle.h"
 #include "TaskComplexTrackEntity.h"
 #include "TaskComplexSmartFleeEntity.h"
 #include "TaskComplexLeaveCar.h"
