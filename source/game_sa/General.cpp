@@ -28,7 +28,7 @@ void CGeneral::InjectHooks() {
     RH_ScopedInstall(SolveQuadratic, 0x53CE30);
     RH_ScopedInstall(GetAngleBetweenPoints, 0x53CEA0);
     RH_ScopedGlobalInstall(GetRandomNumberInRange_int32, 0x407180);
-    RH_ScopedOverloadedInstall(GetRandomNumberInRange<float>, "", 0x41BD90, float (*)(float, float), { .enabled = false, .locked = true }); // There's a bug in the code at 0x6DF26D which causes the assert to be triggered, so I'm unhooking this for now
+    RH_ScopedOverloadedInstall(GetRandomNumberInRange<float>, "", 0x41BD90, float (*)(float, float), { .State = HS::RedirectToGTA, .Locked = true }); // There's a bug in the code at 0x6DF26D which causes the assert to be triggered, so I'm unhooking this for now
 }
 
 // 0x53CB00

@@ -9,16 +9,16 @@ void CTaskComplexHitPedWithCar::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6539A0);
     RH_ScopedInstall(Destructor, 0x653A30);
 
-    RH_ScopedGlobalInstall(ComputeEvasiveStepMoveDir, 0x653B40, { .reversed = false });
+    RH_ScopedGlobalInstall(ComputeEvasiveStepMoveDir, 0x653B40, { .Reversed = false });
 
-    RH_ScopedInstall(HitHurtsPed, 0x653AE0, { .reversed = false });
-    RH_ScopedInstall(CreateSubTask, 0x6560E0, { .reversed = false });
+    RH_ScopedInstall(HitHurtsPed, 0x653AE0, { .Reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x6560E0, { .Reversed = false });
 
-    RH_ScopedVMTInstall(Clone, 0x6559B0, { .reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x653A20, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x656300, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x653A90, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x6559B0, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x653A20, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x656300, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x653A90, { .Reversed = false });
 
 }
 

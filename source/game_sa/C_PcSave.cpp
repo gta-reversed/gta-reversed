@@ -15,7 +15,7 @@ void C_PcSave::InjectHooks() {
 
     // See note in CGenericGameStorage::InjectHooks as to why GenerateGameFilename is unhooked by default
     RH_ScopedInstall(SetSaveDirectory, 0x619040);
-    RH_ScopedInstall(GenerateGameFilename, 0x6190A0, { .reversed = false }); // bad
+    RH_ScopedInstall(GenerateGameFilename, 0x6190A0, { .Reversed = false }); // bad
     RH_ScopedInstall(PopulateSlotInfo, 0x619140);
     RH_ScopedInstall(SaveSlot, 0x619060);
     RH_ScopedInstall(DeleteSlot, 0x6190D0);

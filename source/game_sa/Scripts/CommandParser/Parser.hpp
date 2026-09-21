@@ -6,7 +6,7 @@
 #include "RunningScript.h"
 
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
-#include <reversiblehooks/ReversibleHook/ScriptCommand.h>
+#include <reversiblehooks/ReversibleHook/ScriptCommandHook.h>
 #endif
 
 class CRunningScript;

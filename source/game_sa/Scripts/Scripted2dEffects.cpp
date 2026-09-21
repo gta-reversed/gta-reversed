@@ -6,7 +6,7 @@ void CScripted2dEffects::InjectHooks() {
     RH_ScopedClass(CScripted2dEffects);
     RH_ScopedCategory("Scripts");
 
-    RH_ScopedInstall(Init, 0x6FA6F0, { .reversed = false });
+    RH_ScopedInstall(Init, 0x6FA6F0, { .Reversed = false });
     RH_ScopedInstall(GetEffectPairs, 0x6FA840);
     RH_ScopedInstall(GetIndex, 0x6F9F60);
     RH_ScopedInstall(AddScripted2DEffect, 0x6FA7C0);

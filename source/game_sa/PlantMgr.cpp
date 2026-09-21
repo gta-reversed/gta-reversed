@@ -98,15 +98,15 @@ void CPlantMgr::InjectHooks() {
     //RH_ScopedGlobalInstall(LoadModels, 0x5DD220); // uses `__usercall`, can't hook
 
     // Do not uncomment!
-    // RH_ScopedInstall(_CalcDistanceSqrToEntity, 0x5DBE40, {.reversed = false}); <-- bad call conv.
+    // RH_ScopedInstall(_CalcDistanceSqrToEntity, 0x5DBE40, {.Reversed = false}); <-- bad call conv.
 
     // debug shit, all of them just return true.
     // addresses (probably not in order): 0x5DB550 - 0x5DB580
 
-    // RH_ScopedInstall(DbgCountCachedEntities, 0x0, {.reversed = false});
-    // RH_ScopedInstall(DbgCountLocTrisAndPlants, 0x0, {.reversed = false});
-    // RH_ScopedInstall(DbgRenderCachedEntities, 0x0, {.reversed = false});
-    // RH_ScopedInstall(DbgRenderLocTris, 0x0, {.reversed = false});
+    // RH_ScopedInstall(DbgCountCachedEntities, 0x0, {.Reversed = false});
+    // RH_ScopedInstall(DbgCountLocTrisAndPlants, 0x0, {.Reversed = false});
+    // RH_ScopedInstall(DbgRenderCachedEntities, 0x0, {.Reversed = false});
+    // RH_ScopedInstall(DbgRenderLocTris, 0x0, {.Reversed = false});
 }
 
 // 0x5DD910

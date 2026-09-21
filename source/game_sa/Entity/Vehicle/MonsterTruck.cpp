@@ -10,15 +10,15 @@ void CMonsterTruck::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x6C8D60);
 
-    RH_ScopedInstall(ExtendSuspension, 0x6C7D80, { .reversed = false });
+    RH_ScopedInstall(ExtendSuspension, 0x6C7D80, { .Reversed = false });
 
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6C8AE0);
-    RH_ScopedVMTInstall(ProcessSuspension, 0x6C83A0, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6C8330, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControl, 0x6C8250, { .reversed = false });
-    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6C7FB0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessSuspension, 0x6C83A0, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6C8330, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessControl, 0x6C8250, { .Reversed = false });
+    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6C7FB0, { .Reversed = false });
     RH_ScopedVMTInstall(PreRender, 0x6C7DE0);
-    RH_ScopedVMTInstall(ResetSuspension, 0x6C7D40, { .reversed = false });
+    RH_ScopedVMTInstall(ResetSuspension, 0x6C7D40, { .Reversed = false });
     RH_ScopedVMTInstall(BurstTyre, 0x6C7D30);
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C7D20);
 }

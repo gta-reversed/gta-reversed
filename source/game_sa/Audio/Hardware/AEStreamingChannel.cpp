@@ -499,10 +499,10 @@ void CAEStreamingChannel::InjectHooks() {
     RH_ScopedVirtualClass(CAEStreamingChannel, 0x85F3F0, 9);
     RH_ScopedCategory("Audio/Hardware");
 
-    RH_ScopedInstall(Constructor, 0x4F1800, { .reversed = false }); // makes game not load radio
+    RH_ScopedInstall(Constructor, 0x4F1800, { .Reversed = false }); // makes game not load radio
     RH_ScopedInstall(Destructor, 0x4F2200);
     RH_ScopedInstall(SynchPlayback, 0x4F1870);
-    RH_ScopedInstall(PrepareStream, 0x4F23D0, { .reversed = false });
+    RH_ScopedInstall(PrepareStream, 0x4F23D0, { .Reversed = false });
     RH_ScopedInstall(Initialise, 0x4F22F0);
     RH_ScopedInstall(Pause, 0x4F2170);
     RH_ScopedInstall(SetReady, 0x4F1FF0);
@@ -516,7 +516,7 @@ void CAEStreamingChannel::InjectHooks() {
     RH_ScopedInstall(GetActiveTrackID, 0x4F1A40);
     RH_ScopedInstall(UpdatePlayTime, 0x4F18A0);
     RH_ScopedInstall(RemoveFX, 0x4F1C20);
-    RH_ScopedVMTInstall(Service, 0x4F2550, { .reversed = false });
+    RH_ScopedVMTInstall(Service, 0x4F2550, { .Reversed = false });
     RH_ScopedVMTInstall(IsSoundPlaying, 0x4F2040);
     RH_ScopedVMTInstall(GetPlayTime, 0x4F19E0);
     RH_ScopedVMTInstall(GetLength, 0x4F1880);

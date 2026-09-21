@@ -11,8 +11,8 @@ void CTaskComplexDestroyCarArmed::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x621F50);
     RH_ScopedInstall(Destructor, 0x622010);
 
-    RH_ScopedInstall(CalculateSearchPositionAndRanges, 0x628C80, { .enabled = false, .locked = true });
-    RH_ScopedInstall(CreateSubTask, 0x628DA0, { .enabled = false, .locked = true });
+    RH_ScopedInstall(CalculateSearchPositionAndRanges, 0x628C80, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedInstall(CreateSubTask, 0x628DA0, { .State = HS::RedirectToGTA, .Locked = true });
 
     RH_ScopedVMTInstall(Clone, 0x623600);
     RH_ScopedVMTInstall(GetTaskType, 0x622000);

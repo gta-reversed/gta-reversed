@@ -72,6 +72,17 @@ struct ScopedID {
     ~ScopedID() { ImGui::PopID(); }
 };
 
+template<typename T>
+    requires std::convertible_to<T, std::string_view>
+struct ScopedID<T> {
+    ScopedID(const std::string_view& id) : InitialStackSz{ GetStackSize() } { ImGui::PushID(id.data(), id.data() + id.size()); }
+    ~ScopedID() { ImGui::PopID(); IM_ASSERT(InitialStackSz == GetStackSize()); }
+
+private:
+    auto GetStackSize() const { return ImGui::GetCurrentContext()->CurrentWindow->IDStack.size(); }
+    int32 InitialStackSz{};
+};
+
 struct ScopedDisable {
     ScopedDisable(bool disable) { ImGui::BeginDisabled(disable); }
     ~ScopedDisable()            { ImGui::EndDisabled(); }
@@ -101,6 +112,18 @@ inline void DoNestedMenu(R&& menuPath, T OnAllVisibleFn) {
 template<typename T>
 inline void DoNestedMenuIL(std::initializer_list<const char*> menuPath, T OnAllVisibleFn) {
     DoNestedMenu(menuPath, OnAllVisibleFn);
+}
+
+inline void WindowCenteredTextUnformatted(const char* text) {
+    ImVec2 textSize  = ImGui::CalcTextSize(text);
+    ImVec2 availSize = ImGui::GetContentRegionAvail();
+
+    // Calculate centering offsets
+    float posX = std::max(0.f, (availSize.x - textSize.x) * 0.5f);
+    float posY = std::max(0.f, (availSize.y - textSize.y) * 0.5f);
+
+    ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + posX, ImGui::GetCursorPosY() + posY));
+    ImGui::TextUnformatted(text);
 }
 
 /*!

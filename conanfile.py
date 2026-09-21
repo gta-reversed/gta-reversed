@@ -48,6 +48,7 @@ class saRecipe(ConanFile):
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
         self.requires("tracy/cci.20220130")
         self.requires("imgui/1.92.9b-docking")
+        self.requires("boost/1.91.0", options={"header_only": True})
         
         # Required for vanilla build
         self.requires("ogg/1.3.5")
@@ -64,7 +65,7 @@ class saRecipe(ConanFile):
         tc = CMakeToolchain(self) 
         tc.user_presets_path = 'ConanPresets.json'
         tc.cache_variables["GTASA_STANDALONE_DUMP_HOOKS_ONLY"] = self.options.standalone == 'dump_hooks_only'
-        tc.cache_variables["GTASA_STANDALONE"] = bool(self.options.standalone)
+        tc.cache_variables["GTASA_STANDALONE"] = str(self.options.standalone) != 'False' # This can be either `False` or `dump_hooks_only`, but `... is not False` doesn't work
         tc.cache_variables["GTASA_WITH_SCRIPT_COMMAND_HOOKS"] = self.options.with_script_command_hooks
         tc.cache_variables["GTASA_USE_SDL3"] = self.options.use_sdl3
         tc.cache_variables["GTASA_UNITY_BUILD"] = self.options.unity_build

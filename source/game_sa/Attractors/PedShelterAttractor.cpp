@@ -29,8 +29,8 @@ void CPedShelterAttractor::InjectHooks() {
     RH_ScopedVirtualClass(CPedShelterAttractor, 0x86C5B4, 6);
     RH_ScopedCategory("Attractors");
 
-    RH_ScopedInstall(GetDisplacement, 0x5EF420, { .reversed = false });
+    RH_ScopedInstall(GetDisplacement, 0x5EF420, { .Reversed = false });
     RH_ScopedVMTInstall(ComputeAttractPos, 0x5EFC40);
     RH_ScopedVMTInstall(ComputeAttractHeading, 0x5E9690);
-    RH_ScopedVMTInstall(BroadcastDeparture, 0x5EF570, { .reversed = false });
+    RH_ScopedVMTInstall(BroadcastDeparture, 0x5EF570, { .Reversed = false });
 }

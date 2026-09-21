@@ -44,6 +44,10 @@ public:
     using iterator       = BaseIterator<T>;
     using const_iterator = BaseIterator<const T>;
 
+    using value_type     = T;
+    using pointer        = T*;
+    using reference      = T&;
+
 public:
     //static void Test() {
     //    struct Item : ListItem_c<Item> {
@@ -62,8 +66,24 @@ public:
     //    assert(items[0].m_pNext == nullptr);
     //}
 
+    TList_c() = default;
+    TList_c(const TList_c&) = delete;
+    TList_c(TList_c&& other) {
+        *this = std::move(other);
+    }
+
+    TList_c& operator=(const TList_c&) = delete;
+    TList_c& operator=(TList_c&& other) {
+        if (this != &other) {
+            m_head = std::exchange(other.m_head, nullptr);
+            m_tail = std::exchange(other.m_tail, nullptr);
+            m_cnt  = std::exchange(other.m_cnt, 0);
+        }
+        return *this;
+    }
+
     //! Add item to the beginning (head) of the list
-    void AddItem(T* item) {
+    void AddItem(T* item) { // TODO: This really should take `T&`
         assert(item);
         assert(item != m_tail); // Double insertion
         assert(item != m_head); // Double insertion
@@ -83,8 +103,13 @@ public:
         ++m_cnt;
     }
 
+    //! For `std` compatibility
+    void push_back(T& item) {
+        AppendItem(&item);
+    }
+
     //! @brief Add item to the end (tail) of the list
-    void AppendItem(T* item) {
+    T* AppendItem(T* item) {
         assert(item);
         assert(item != m_tail); // Double insertion
         assert(item != m_head); // Double insertion
@@ -102,31 +127,26 @@ public:
         }
 
         ++m_cnt;
+    
+        return item;
     }
 
     //! @brief Insert `item` after `after`
-    void InsertAfterItem(T* item, T* after) {
-        ++m_cnt; // BUG: We increment count even though the item wasn't added to table, and there's no certainity that it will
-        if (!m_head) {
-            return;
-        }
+    auto InsertAfterItem(T* item, iterator after) {
+        assert(m_tail && m_head && m_cnt > 0 && "`after` can't be part of an empty list");
 
-        // NOTE: ???? Just use `after->m_pPrev`, no?
-        auto curItem = GetHead();
-        while (curItem && curItem != after)
-            curItem = GetNext(curItem);
+        m_cnt++;
 
-        if (!curItem)
-            return;
+        item->m_pPrev = after.m_ptr;
 
-        item->m_pPrev = curItem;
-        item->m_pNext = curItem->m_pNext;
-        auto* pOldNext = curItem->m_pNext;
-        curItem->m_pNext = item;
-        if (pOldNext)
-            pOldNext->m_pPrev = item;
-        else
+        auto* const next = item->m_pNext = after.m_ptr->m_pNext;
+        if (next) {
+            next->m_pPrev = item;
+        } else {
             m_tail = item;
+        }
+        
+        return item;
     }
 
     void InsertBeforeItem(T* addedItem, T* pExistingItem) {
@@ -152,7 +172,7 @@ public:
             m_head = addedItem;
     }
     
-    void RemoveItem(T* item) {
+    T* RemoveItem(T* item) {
         assert(item);
         assert(item->m_pPrev != m_tail);
         assert(item->m_pNext != m_head);
@@ -171,6 +191,8 @@ public:
         }
 
         m_cnt--;
+
+        return item;
     }
 
     void RemoveAll() {
@@ -250,12 +272,105 @@ public:
         }
     }
 
+    /*!
+     * @brief Filter items in-place
+     */
+    template<std::predicate<T&> Pred>
+    void Filter(Pred&& pred) {
+        auto* item = GetHead();
+        while (item) {
+            auto* next = GetNext(item);
+            if (!std::invoke(pred, *item)) {
+                RemoveItem(item);
+            }
+            item = next;
+        }
+    }
+
+    /*!
+     * @brief Sort list using predicate
+     */
+    void Sort(std::predicate<T&, T&> auto&& pred) {
+        if (m_cnt < 2) {
+            return;
+        }
+
+        const auto Merge = [&](T* left, T* right) -> T* {
+            T* head = nullptr;
+            T* tail = nullptr;
+
+            const auto Append = [&head, &tail](T* item) {
+                item->m_pPrev = tail;
+                item->m_pNext = nullptr;
+                if (tail) {
+                    tail->m_pNext = item;
+                } else {
+                    head = item;
+                }
+                tail = item;
+            };
+
+            while (left && right) {
+                if (std::invoke(pred, *right, *left)) {
+                    auto* const item = right;
+                    right = right->m_pNext;
+                    Append(item);
+                } else {
+                    auto* const item = left;
+                    left = left->m_pNext;
+                    Append(item);
+                }
+            }
+
+            for (auto* remaining = left ? left : right; remaining;) {
+                auto* const item = remaining;
+                remaining = remaining->m_pNext;
+                Append(item);
+            }
+
+            return head;
+        };
+
+        const auto MergeSort = [&] (this auto&& MergeSort, T* head) -> T* {
+            if (!head || !head->m_pNext) {
+                return head;
+            }
+
+            // Split a list in two, returning the head of the latter half.
+            const auto Split = [] (T* head) -> T* {
+                auto* slow = head;
+                auto* fast = head->m_pNext;
+
+                while (fast && fast->m_pNext) {
+                    slow = slow->m_pNext;
+                    fast = fast->m_pNext->m_pNext;
+                }
+
+                auto* const second = slow->m_pNext;
+                slow->m_pNext = nullptr;
+                second->m_pPrev = nullptr;
+                return second;
+            };
+
+            return Merge(MergeSort(head), MergeSort(Split(head)));
+        };
+
+        // Sort list
+        m_head = MergeSort(m_head);
+
+        // Find new tail
+        for (m_tail = m_head; m_tail->m_pNext;) {
+            m_tail = m_tail->m_pNext;
+        }
+    }
+
     T*   GetNext(T* item) const { assert(item); return item->m_pNext; }
     T*   GetPrev(T* item) const { assert(item); return item->m_pPrev; }
     T*   GetHead()        const { return m_head; }
     T*   GetTail()        const { return m_tail; }
 
     auto GetNumItems()    const { return m_cnt; }
+    auto GetSize()        const { return m_cnt; }
 
     auto cbegin()         const { return const_iterator{ GetHead() }; }
     auto begin()          const { return cbegin(); }
@@ -273,4 +388,4 @@ private:
     T*     m_tail{};
     size_t m_cnt{};
 };
-using List_c = TList_c<void>;
+using List_c = TList_c<int>; // using int so the compiler doesn't complain about void&

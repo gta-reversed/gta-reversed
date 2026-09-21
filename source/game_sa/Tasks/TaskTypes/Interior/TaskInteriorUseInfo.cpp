@@ -14,8 +14,8 @@ void CTaskInteriorUseInfo::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x675AB0);
     RH_ScopedVMTInstall(GetTaskType, 0x675A80);
     RH_ScopedVMTInstall(MakeAbortable, 0x675B30);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x676880, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x675B60, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x676880, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x675B60, { .Reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x675C00);
 }
 

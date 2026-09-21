@@ -32,12 +32,12 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(Init, 0x4212E0);
     RH_ScopedInstall(ReInit, 0x4213B0);
     RH_ScopedInstall(InitSequence, 0x421740);
-    RH_ScopedInstall(ChooseGangCarModel, 0x421A40, { .jmpCodeSize = 7 });
-    RH_ScopedInstall(ChoosePoliceCarModel, 0x421980, { .jmpCodeSize = 7 });
+    RH_ScopedInstall(ChooseGangCarModel, 0x421A40);
+    RH_ScopedInstall(ChoosePoliceCarModel, 0x421980);
     RH_ScopedInstall(CreateCarForScript, 0x431F80);
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
     RH_ScopedInstall(ChooseCarModelToLoad, 0x421900);
-    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .reversed = false });
+    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .Reversed = false });
     RH_ScopedInstall(IsAnyoneParking, 0x42C250);
     RH_ScopedInstall(IsThisVehicleInteresting, 0x423EA0);
     RH_ScopedInstall(JoinCarWithRoadAccordingToMission, 0x432CB0);

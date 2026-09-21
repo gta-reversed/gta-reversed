@@ -18,7 +18,7 @@ void CTaskComplexWalkAlongsidePed::InjectHooks() {
     RH_ScopedInstall(CreateSubTask, 0x685000);
     RH_ScopedVMTInstall(Clone, 0x6838E0);
     RH_ScopedVMTInstall(GetTaskType, 0x6832B0);
-    RH_ScopedVMTInstall(MakeAbortable, 0x683320);
+    RH_ScopedVMTInstall(MakeAbortable, 0x683320, { .Overrides = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x685680);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x685630);
     RH_ScopedVMTInstall(ControlSubTask, 0x685170);
