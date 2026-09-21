@@ -103,6 +103,31 @@ inline void DoNestedMenuIL(std::initializer_list<const char*> menuPath, T OnAllV
     DoNestedMenu(menuPath, OnAllVisibleFn);
 }
 
+template<rng::random_access_range R, class OrderFn>
+void RangeSortImGui(ImGuiTableSortSpecs& tss, R&& r, OrderFn GetOrdering) {
+    rng::stable_sort(r, [&](auto&& a, auto&& b) {
+        for (auto i = tss.SpecsCount; i-- > 0;) {
+            const auto& css = tss.Specs[i];
+            const auto o = std::invoke(GetOrdering, css, a, b);
+            if (std::is_eq(o)) {
+                continue;
+            }
+            return std::is_gt(o)
+                ? css.SortDirection == ImGuiSortDirection_Ascending
+                : css.SortDirection == ImGuiSortDirection_Descending;
+        }
+
+        // 2 values are equal by all specs
+        return false;
+    });
+    tss.SpecsDirty = false;
+}
+
+template<rng::random_access_range R>
+void RangeSortImGui(ImGuiTableSortSpecs& tss, R&& r) {
+    RangeSortImGui(tss, r, rng::range_value_t<R>::ImGuiTableOrdering);
+}
+
 /*!
 * A tree-node with a tri-state checkbox on the left.
 * Make sure to always call `TreePop();` after it!

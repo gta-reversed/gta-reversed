@@ -94,6 +94,10 @@ public:
     [[nodiscard]] inline CVector2D GetCenter() const { return { (right + left) * 0.5F, (bottom + top) * 0.5F }; }
     void StretchToPoint(float x, float y);
 
+    //! Distance from closest point on the rect to a point (`pt`)
+    //! If pt is inside 0 is returned
+    float DistSqToPt(CVector2D pt);
+
     CVector2D GetTopLeft() const { return { left, top }; }
     CVector2D GetBottomRight() const { return { right, bottom }; }
 

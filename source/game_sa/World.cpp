@@ -2415,11 +2415,11 @@ void CWorld::FindObjectsKindaColliding(const CVector& point, float radius, bool 
 }
 
 // 0x568DD0
-void CWorld::FindObjectsIntersectingCube(const CVector& cornerA, const CVector& cornerB, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies) {
-    const int32 startSectorX = GetSectorX(cornerA.x);
-    const int32 startSectorY = GetSectorY(cornerA.y);
-    const int32 endSectorX = GetSectorX(cornerB.x);
-    const int32 endSectorY = GetSectorY(cornerB.y);
+void CWorld::FindObjectsIntersectingCube(const CVector& cornerMin, const CVector& cornerMax, int16* outCount, int16 maxCount, CEntity** outEntities, bool buildings, bool vehicles, bool peds, bool objects, bool dummies) {
+    const int32 startSectorX = GetSectorX(cornerMin.x);
+    const int32 startSectorY = GetSectorY(cornerMin.y);
+    const int32 endSectorX = GetSectorX(cornerMax.x);
+    const int32 endSectorY = GetSectorY(cornerMax.y);
 
     AdvanceCurrentScanCode();
 
@@ -2427,7 +2427,7 @@ void CWorld::FindObjectsIntersectingCube(const CVector& cornerA, const CVector& 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list) {
-                FindObjectsIntersectingCubeSectorList(list, cornerA, cornerB, outCount, maxCount, outEntities);
+                FindObjectsIntersectingCubeSectorList(list, cornerMin, cornerMax, outCount, maxCount, outEntities);
             };
 
             auto& sector = GetSector(sectorX, sectorY);
