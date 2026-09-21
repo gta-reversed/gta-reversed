@@ -60,7 +60,19 @@ void CTaskInteriorSitOnChair::FinishAnimCB(CAnimBlendAssociation* anim, void* da
 
 // 0x675D60
 bool CTaskInteriorSitOnChair::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
-    return plugin::CallMethodAndReturn<bool, 0x675D60, CTaskInteriorSitOnChair*, CPed*, eAbortPriority, const CEvent*>(this, ped, priority, event);
+    if (priority == ABORT_PRIORITY_IMMEDIATE) {
+        if (g_ikChainMan.IsLooking(ped)) {
+            g_ikChainMan.AbortLookAt(ped, 250);
+        }
+        if (m_Anim) {
+            m_Anim->SetBlendDelta(-1000.f);
+            m_Anim->SetDefaultDeleteCallback();
+            m_Anim = nullptr;
+        }
+        return true;
+    }
+    m_bTaskAborting = true;
+    return false;
 }
 
 // 0x676D30
