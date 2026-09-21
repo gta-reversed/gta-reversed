@@ -166,7 +166,7 @@ CTask* CTaskComplexGoToPointAiming::ControlSubTask(CPed* ped) {
             break;
         }
     } else {
-        return CTaskComplex::ControlSubTask(ped);
+        return m_pSubTask; // CTaskComplex::ControlSubTask is pure virtual; base path returns subtask
     }
     return m_pSubTask;
 }

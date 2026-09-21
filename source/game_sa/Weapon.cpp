@@ -1917,8 +1917,7 @@ DoLOSAndEffects: {
             case WEAPON_AK47: case WEAPON_M4: case WEAPON_COUNTRYRIFLE:
                 muzzleSize = 0.2f; lightSize = 0.25f; break;
             case WEAPON_SNIPERRIFLE: case WEAPON_RLAUNCHER: case WEAPON_MINIGUN: {
-                extern int32 FastRand50();
-                if (FastRand50() >= 50) {
+                if (CGeneral::GetRandomNumber() % 100 >= 50) {
                     muzzleSize = 0.65f; lightSize = 0.25f;
                 } else {
                     static uint8& altSkip = *reinterpret_cast<uint8*>(0xC8A80C);

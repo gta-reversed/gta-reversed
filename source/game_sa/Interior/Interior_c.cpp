@@ -1073,9 +1073,14 @@ void Interior_c::FurnishShop(int32 a2) {
         SetTilesStatus(m_box->m_width - 1, m_box->m_depth - 1, 1, 1, 2, 0);
 
         Shop_PlaceFixedUnits();
-        Shop_FurnishEdges();
+        plugin::CallMethod<0x59A1B0, Interior_c*>(this); // Shop_FurnishEdges: not yet reversed
         Shop_FurnishAisles();
     }
+}
+
+// 0x59A1B0
+void Interior_c::Shop_FurnishEdges() {
+    plugin::CallMethod<0x59A1B0, Interior_c*>(this);
 }
 
 // 0x59A130 - empty in the original binary (RET only)
