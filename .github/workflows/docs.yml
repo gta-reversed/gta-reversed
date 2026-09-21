@@ -1,8 +1,6 @@
 name: Deploy Doxygen to GitHub Pages
 
 on:
-  pull_request:
-    branches: ["master"]
   push:
     branches: ["master"]
   workflow_dispatch:
@@ -18,6 +16,7 @@ concurrency:
 
 jobs:
   build:
+    # TODO: use -latest when it's *actually* the latest
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
