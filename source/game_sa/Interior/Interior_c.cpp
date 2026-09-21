@@ -204,8 +204,8 @@ CObject* Interior_c::PlaceObject(uint8 isStealable, Furniture_c* furniture, floa
 }
 
 // 0x5913B0
-FurnitureEntity_c* Interior_c::GetFurnitureEntity(CEntity* entity) {
-    return plugin::CallMethodAndReturn<FurnitureEntity_c*, 0x5913B0, Interior_c*, CEntity*>(this, entity);
+FurnitureEntity_c* Interior_c::GetFurnitureEntity(const CEntity& entity) {
+    return plugin::CallMethodAndReturn<FurnitureEntity_c*, 0x5913B0>(this, &entity);
 }
 
 // 0x5913E0

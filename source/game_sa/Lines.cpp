@@ -5,8 +5,8 @@
 // 0x6FF460
 void CLines::RenderLineNoClipping(float startX, float startY, float startZ, float endX, float endY, float endZ, uint32 startColor, uint32 endColor) {
     RxObjSpace3DVertex vertices[] = {
-        { .objVertex = { startX, startY, startZ }, .color = startColor >> 8 | startColor << 24 },
-        { .objVertex = { endX,   endY,   endZ   }, .color =   endColor >> 8 | endColor   << 24 }
+        { .objVertex = { startX, startY, startZ }, .color = startColor >> 8 | startColor << 24 }, // Convert color to ARGB
+        { .objVertex = { endX,   endY,   endZ   }, .color =   endColor >> 8 | endColor   << 24 }, // Convert color to ARGB
     };
 
     LittleTest();

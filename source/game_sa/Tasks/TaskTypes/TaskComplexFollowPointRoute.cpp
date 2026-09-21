@@ -319,7 +319,7 @@ bool CTaskComplexFollowPointRoute::MakeAbortable(CPed* ped, eAbortPriority prior
                 const auto gotoPointTask = static_cast<CTaskSimpleGoToPoint*>(m_pSubTask);
                 if (vehicle->m_vecMoveSpeed.SquaredMagnitude() < sq(0.125f)) {
                     if (CPedGeometryAnalyser::IsEntityBlockingTarget(
-                        vehicle,
+                        *vehicle,
                         gotoPointTask->m_vecTargetPoint,
                         gotoPointTask->m_fRadius
                     )) {
