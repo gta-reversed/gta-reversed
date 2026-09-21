@@ -220,9 +220,16 @@ template<size_t MaxNumToCopy>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
     assert(dst.Cap >= src.Cap);
     assert(dst.Cap >= MaxNumToCopy);
-    assert(src.IsNullTerminated());
+    // No usar IsNullTerminated(): los literales STATIC_PASCAL_STRING del script
+    // NO llevan null (ver ReadArg.hpp) — la invariante real es Length <= Cap.
+    assert(src.Length <= src.Cap);
 
-    strncpy(dst.Data, src.Data, MaxNumToCopy);
+    // Copia acotada y SIEMPRE null-terminada: el src puede ser un pascal string
+    // (Length == Cap sin '\0'), lo que antes dejaba variables sin terminación y
+    // rompía lecturas posteriores (strlen fuera de capacidad).
+    const auto toCopy = std::min<uint8>(MaxNumToCopy, src.Length);
+    std::memcpy(dst.Data, src.Data, toCopy);
+    dst.Data[toCopy] = '\0';
 }
 };
 
