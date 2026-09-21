@@ -16,7 +16,7 @@ void CPopCycle::InjectHooks() {
     RH_ScopedGlobalInstall(Initialise, 0x5BC090);
     RH_ScopedGlobalInstall(PickGangToCreateMembersOf, 0x60F8D0);
     RH_ScopedGlobalInstall(FindNewPedType, 0x60FBD0);
-    RH_ScopedGlobalInstall(PickPedMIToStreamInForCurrentZone, 0x60FFD0, { .reversed = false });
+    RH_ScopedGlobalInstall(PickPedMIToStreamInForCurrentZone, 0x60FFD0);
     RH_ScopedGlobalInstall(IsPedAppropriateForCurrentZone, 0x610150);
     RH_ScopedGlobalInstall(IsPedInGroup, 0x610210);
     RH_ScopedGlobalInstall(PickARandomGroupOfOtherPeds, 0x610420);
@@ -36,7 +36,9 @@ void CPopCycle::Initialise() {
     const auto file = CFileMgr::OpenFile("POPCYCLE.DAT", "r");
     CFileMgr::SetDir("");
 
-    const notsa::ScopeGuard autoCloser{ [&] { CFileMgr::CloseFile(file); } };
+    const notsa::ScopeGuard autoCloser{ [&] {
+        CFileMgr::CloseFile(file);
+    } };
 
     auto nline{ 1u };
     for (auto zone = 0u; zone < +eZonePopulationType::COUNT; zone++) {
@@ -59,7 +61,7 @@ void CPopCycle::Initialise() {
                 // and read each number one-by-one.
                 // But until then we're stuck with this hardcoded version.
 
-                auto& percs = m_nPercTypeGroup[daytime][wktime][zone];
+                auto&      percs = m_nPercTypeGroup[daytime][wktime][zone];
                 const auto nread = sscanf_s(
                     l,
                     "%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
@@ -72,9 +74,24 @@ void CPopCycle::Initialise() {
                     &m_nPercCops[daytime][wktime][zone],
                     &m_nPercOther[daytime][wktime][zone],
 
-                    &percs[0], &percs[1], &percs[2], &percs[3], &percs[4], &percs[5],
-                    &percs[6], &percs[7], &percs[8], &percs[9], &percs[10], &percs[11],
-                    &percs[12], &percs[13], &percs[14], &percs[15], &percs[16], &percs[17]
+                    &percs[0],
+                    &percs[1],
+                    &percs[2],
+                    &percs[3],
+                    &percs[4],
+                    &percs[5],
+                    &percs[6],
+                    &percs[7],
+                    &percs[8],
+                    &percs[9],
+                    &percs[10],
+                    &percs[11],
+                    &percs[12],
+                    &percs[13],
+                    &percs[14],
+                    &percs[15],
+                    &percs[16],
+                    &percs[17]
                 );
 
                 if (nread != 6 + 18) {
@@ -82,7 +99,7 @@ void CPopCycle::Initialise() {
                 }
 
                 // In the vanilla game the %'s in this array add up to 100% (The original code rescales the values in order to make sure this is the case...but fails sometimes, see below)
-                // But we take another route and don't normalize to 100%. This way there's no rounding error involved and everything works perfectly. 
+                // But we take another route and don't normalize to 100%. This way there's no rounding error involved and everything works perfectly.
 #ifndef FIX_BUGS
                 // The percs should always be >= 100 in total (otherwise `PickARandomGroupOfOtherPeds` will fail)
                 if (const auto percsSum = notsa::accumulate(percs, (size_t)0); percsSum < 100) {
@@ -94,7 +111,6 @@ void CPopCycle::Initialise() {
                     // assert(notsa::accumulate(percs, (size_t)0) >= 100u); // In vanilla game this always triggers because of rounding errors... Not much to do.
                 }
 #endif
-
             }
         }
     }
@@ -112,13 +128,13 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
 
     if (CPopulation::bInPoliceStation && CGeneral::RandomBool(70.f)) {
         outPedType = PED_TYPE_COP;
-        outPedMI = CPopulation::ChoosePolicePedOccupation();
+        outPedMI   = CPopulation::ChoosePolicePedOccupation();
         return true;
     }
 
     auto dealersChance = m_NumDealers_Peds - (float)CPopulation::ms_nNumDealers;
 
-    auto gangChance = m_NumGangs_Peds - (float)CPopulation::CalculateTotalNumGangPeds();
+    auto gangChance    = m_NumGangs_Peds - (float)CPopulation::CalculateTotalNumGangPeds();
     if (CPopulation::m_bOnlyCreateRandomGangMembers) {
         gangChance = 50.f;
     }
@@ -180,7 +196,7 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
             gangChance = 0.f;
             continue;
         } else if (highestChance == copChance) { // 0x60FF62
-            outPedMI = CPopulation::ChoosePolicePedOccupation();
+            outPedMI   = CPopulation::ChoosePolicePedOccupation();
             outPedType = PED_TYPE_COP;
             return true;
         } else if (highestChance == civPedsChance) { // 0x60FF8F
@@ -276,8 +292,8 @@ bool CPopCycle::PedIsAcceptableInCurrentZone(int32 modelIndex) {
 
 // 0x610420
 ePopcycleGroup CPopCycle::PickARandomGroupOfOtherPeds() {
-    const auto& percs = m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->PopType];
-    auto rndPerc = CGeneral::GetRandomNumberInRange(
+    const auto& percs   = m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->PopType];
+    auto        rndPerc = CGeneral::GetRandomNumberInRange(
         0,
 #ifdef FIX_BUGS // See `Initialise` for an explanation
         (int32)notsa::accumulate(percs, (size_t)0)
@@ -297,10 +313,10 @@ ePopcycleGroup CPopCycle::PickARandomGroupOfOtherPeds() {
 // 0x60FFD0
 eModelID CPopCycle::PickPedMIToStreamInForCurrentZone() {
     for (auto tr = 0; tr < 10; tr++) { // 10 tries
-        const auto grpId        = PickARandomGroupOfOtherPeds();
-        const auto pedGrpId     = CPopulation::GetPedGroupId(grpId, CPopulation::CurrentWorldZone);
-        const auto npeds        = CPopulation::GetNumPedsInGroup(pedGrpId);
-        auto& nextPedToLoadSlot = CStreaming::ms_NextPedToLoadFromGroup[grpId];
+        const auto grpId             = PickARandomGroupOfOtherPeds();
+        const auto pedGrpId          = CPopulation::GetPedGroupId(grpId, CPopulation::CurrentWorldZone);
+        const auto npeds             = CPopulation::GetNumPedsInGroup(pedGrpId);
+        auto&      nextPedToLoadSlot = CStreaming::ms_NextPedToLoadFromGroup[grpId];
         for (auto p = 0; p < npeds; p++) {
             nextPedToLoadSlot  = (nextPedToLoadSlot + 1) % npeds;
             const auto modelId = (eModelID)CPopulation::GetPedGroupModelId(pedGrpId, nextPedToLoadSlot);
@@ -328,7 +344,7 @@ void CPopCycle::Update() {
         case 0: // Not sure (Maybe Sunday)
         case 7: // Sunday
             return 1;
-        case 1:  // Monday
+        case 1: // Monday
             return CClock::GetGameClockHours() >= 20 ? 0 : 1;
         case 2:
         case 3:
@@ -344,7 +360,7 @@ void CPopCycle::Update() {
     m_nCurrentTimeIndex = CClock::GetGameClockHours() / 2;
 
     if (const auto& pos = FindPlayerCentreOfWorld(); pos.z < 950.f || !m_pCurrZoneInfo) {
-        m_pCurrZoneInfo = CTheZones::GetZoneInfo(pos, &m_pCurrZone);
+        m_pCurrZoneInfo    = CTheZones::GetZoneInfo(pos, &m_pCurrZone);
         m_nCurrentZoneType = m_pCurrZoneInfo->PopType;
     }
 
@@ -365,7 +381,7 @@ void CPopCycle::UpdateDealerStrengths() {
         return;
     }
 
-    if (CTimer::m_snTimeInMilliseconds / 60000 != CTimer::m_snPreviousTimeInMilliseconds / 60000) {
+    if (CTimer::m_snTimeInMilliseconds / 60'000 != CTimer::m_snPreviousTimeInMilliseconds / 60'000) {
         return;
     }
 
@@ -374,7 +390,9 @@ void CPopCycle::UpdateDealerStrengths() {
     }
 
     for (auto& zone : CTheZones::ZoneInfoArray) {
-        const auto Chk = [&](eGangID gangId) { return zone.GangStrength[gangId] > 10u; };
+        const auto Chk = [&](eGangID gangId) {
+            return zone.GangStrength[gangId] > 10u;
+        };
         if (!Chk(GANG_BALLAS) && !Chk(GANG_GROVE) && !Chk(GANG_VAGOS)) {
             continue;
         }
@@ -396,10 +414,10 @@ void CPopCycle::UpdateDealerStrengths() {
 void CPopCycle::UpdatePercentages() {
     m_fPercDealers = std::max(0.1f, (float)m_pCurrZoneInfo->DealerStrength / 100.f);
 
-    m_fPercGangs = std::min(0.5f, (float)m_pCurrZoneInfo->GetSumOfGangDensity() / 100.f);
-    m_fPercCops = m_fPercGangs >= 0.15f
-        ? std::max(0.03f, 0.3f - m_fPercGangs)
-        : std::max(0.02f, m_fPercGangs);
+    m_fPercGangs   = std::min(0.5f, (float)m_pCurrZoneInfo->GetSumOfGangDensity() / 100.f);
+    m_fPercCops    = m_fPercGangs >= 0.15f
+           ? std::max(0.03f, 0.3f - m_fPercGangs)
+           : std::max(0.02f, m_fPercGangs);
 
     // 0x610881
     m_fPercCops = [] {
@@ -421,10 +439,10 @@ void CPopCycle::UpdatePercentages() {
     if (const auto sum = m_fPercDealers + m_fPercGangs + m_fPercCops; sum <= 1.f) {
         m_fPercOther = 1.f - sum;
     } else { // Otherwise normalize all values by the sum (This will make their new sum be `1.f`)
-        m_fPercOther    = 0.f;
+        m_fPercOther = 0.f;
         m_fPercDealers /= sum;
-        m_fPercGangs   /= sum;
-        m_fPercCops    /= sum;
+        m_fPercGangs /= sum;
+        m_fPercCops /= sum;
     }
 
     // 0x610A7D
@@ -433,30 +451,26 @@ void CPopCycle::UpdatePercentages() {
         : std::min(1.f, gfLaRiotsLightMult + 0.01f); // Increase
 
     // 0x610A41 + 0x610A57
-    const auto maxNumPeds = (float)(
-        CGameLogic::LaRiotsActiveHere()
-            ? std::min<uint8>(20u, GetMaxPedsCurrently())
-            : GetMaxPedsCurrently()
-    );
+    const auto maxNumPeds = (float)(CGameLogic::LaRiotsActiveHere()
+                                        ? std::min<uint8>(20u, GetMaxPedsCurrently())
+                                        : GetMaxPedsCurrently());
 
     // From all the data above, calculate the actual ped/car numbers for this zone
-    const auto Process = [
-        maxNumPeds,
-        maxNumCars = GetMaxCarsCurrently()
-    ](PercDataArray& maxPercLUT, float percPeds, float percCars, float& nOutPeds, float& nOutCars) {
+    const auto Process = [maxNumPeds,
+                          maxNumCars = GetMaxCarsCurrently()](PercDataArray& maxPercLUT, float percPeds, float percCars, float& nOutPeds, float& nOutCars) {
         const auto maxPercOfType = (float)maxPercLUT[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_nCurrentZoneType] / 100.f;
 
-        nOutPeds = maxNumPeds * (maxPercOfType * percPeds);
-        nOutCars = maxNumCars * (maxPercOfType * percCars);
+        nOutPeds                 = maxNumPeds * (maxPercOfType * percPeds);
+        nOutCars                 = maxNumCars * (maxPercOfType * percCars);
 
         if (CGameLogic::LaRiotsActiveHere()) {
             nOutCars *= 0.75f;
         }
     };
-    Process(m_nPercDealers, m_fPercDealers,                                    m_fPercDealers, m_NumDealers_Peds, m_NumDealers_Cars);
-    Process(m_nPercGang,    m_fPercGangs,                                      m_fPercGangs,   m_NumGangs_Peds,   m_NumGangs_Cars  );
-    Process(m_nPercCops,    m_fPercCops,                                       m_fPercCops,    m_NumCops_Peds,    m_NumCops_Cars   );
-    Process(m_nPercOther,   m_fPercOther * GetCurrentPercOther_Peds() / 100.f, m_fPercOther,   m_NumOther_Peds,   m_NumOther_Cars  );
+    Process(m_nPercDealers, m_fPercDealers, m_fPercDealers, m_NumDealers_Peds, m_NumDealers_Cars);
+    Process(m_nPercGang, m_fPercGangs, m_fPercGangs, m_NumGangs_Peds, m_NumGangs_Cars);
+    Process(m_nPercCops, m_fPercCops, m_fPercCops, m_NumCops_Peds, m_NumCops_Cars);
+    Process(m_nPercOther, m_fPercOther * GetCurrentPercOther_Peds() / 100.f, m_fPercOther, m_NumOther_Peds, m_NumOther_Cars);
 }
 
 // 0x60F8D0
@@ -466,7 +480,7 @@ ePedType CPopCycle::PickGangToCreateMembersOf() {
     }
 
     const auto dominatingGangId = rng::max(
-        rng::iota_view{0u, (size_t)TOTAL_GANGS},
+        rng::iota_view{ 0u, (size_t)TOTAL_GANGS },
         rng::less{},
         [sumGangDensity = (float)m_pCurrZoneInfo->GetSumOfGangDensity()](auto gangId) {
             return (float)m_pCurrZoneInfo->GangStrength[gangId] / sumGangDensity - (float)CPopulation::ms_nNumGang[gangId] / m_NumGangs_Peds;

@@ -22,8 +22,8 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(PlayAndKill, 0x4AA3D0);
     RH_ScopedInstall(Kill, 0x4AA3F0);
     RH_ScopedInstall(AttachToBone, 0x4AA400);
-    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
-    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(const RwMatrix&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool), {.reversed = false});
+    RH_ScopedOverloadedInstall(AddParticle, "v3d", 0x4AA440, void(FxSystem_c::*)(const CVector&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool));
+    RH_ScopedOverloadedInstall(AddParticle, "mat", 0x4AA540, void(FxSystem_c::*)(const RwMatrix&,const CVector&,float,const FxPrtMult_c&,float,float,float,bool));
     RH_ScopedInstall(EnablePrim, 0x4AA610);
     RH_ScopedInstall(SetMatrix, 0x4AA630);
     RH_ScopedInstall(SetOffsetPos, 0x4AA660);
@@ -32,7 +32,7 @@ void FxSystem_c::InjectHooks() {
     RH_ScopedInstall(GetCompositeMatrix, 0x4AA8C0);
     RH_ScopedInstall(GetPlayStatus, 0x4AA900);
     RH_ScopedInstall(ForAllParticles, 0x4AA930);
-    RH_ScopedInstall(UpdateBoundingBoxCB, 0x4AA9A0, {.reversed=false});
+    RH_ScopedInstall(UpdateBoundingBoxCB, 0x4AA9A0);
     RH_ScopedInstall(GetBoundingSphereWld, 0x4AAAD0);
     RH_ScopedInstall(GetBoundingSphereLcl, 0x4AAB50);
     RH_ScopedInstall(SetBoundingSphere, 0x4AAB80);
@@ -170,14 +170,14 @@ void FxSystem_c::AttachToBone(CEntity* entity, eBoneTag boneId) {
 }
 
 auto CanAddParticle() {
-    switch (g_fx.GetFxQuality()) {
-    case FX_QUALITY_LOW:
-        return CGeneral::RandomBool(50.0f);
-    case FX_QUALITY_MEDIUM:
-        return CGeneral::RandomBool(75.0f);
-    default:
-        return true;
+    const auto randVal = (int32)CGeneral::GetRandomNumberInRange(0.f, 100.f);
+    if (g_fx.GetFxQuality() == FX_QUALITY_LOW && randVal < 50) {
+        return false;
     }
+    if (g_fx.GetFxQuality() == FX_QUALITY_MEDIUM && randVal < 25) {
+        return false;
+    }
+    return true;
 }
 
 // 0x4AA440
@@ -304,7 +304,17 @@ uint32 FxSystem_c::ForAllParticles(void(*callback)(Particle_c*, int32, FxBox_c**
 
 // 0x4AA9A0
 void FxSystem_c::UpdateBoundingBoxCB(Particle_c* particle, int32 a2, FxBox_c** data) {
-    ((void(__cdecl *)(Particle_c*, int32, FxBox_c**))0x4AA9A0)(particle, a2, data);
+    if (a2 != 0) {
+        return;
+    }
+    FxBox_c* const box = *data;
+    const CVector& pos = particle->m_Pos;
+    box->minX = std::min(box->minX, pos.x);
+    box->maxX = std::max(box->maxX, pos.x);
+    box->minY = std::min(box->minY, pos.y);
+    box->maxY = std::max(box->maxY, pos.y);
+    box->minZ = std::min(box->minZ, pos.z);
+    box->maxZ = std::max(box->maxZ, pos.z);
 }
 
 // 0x4AAA40

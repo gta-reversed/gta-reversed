@@ -45,12 +45,10 @@ void CBaseModelInfo::InjectHooks() {
 
     RH_ScopedInstall(IsBreakableStatuePart, 0x59F090);
     RH_ScopedInstall(IsTagModel, 0x49CC20);
-    // Hooking SwaysInWind function causes side effects
-    RH_ScopedInstall(SwaysInWind, 0x4212C0, { .reversed = false });
+    RH_ScopedInstall(SwaysInWind, 0x4212C0);
 
     RH_ScopedInstall(SetBaseModelInfoFlags, 0x5B3AD0);
 }
-
 
 CBaseModelInfo::CBaseModelInfo() {
     m_nRefCount = 0;
@@ -84,12 +82,12 @@ void CBaseModelInfo::Init() {
     ClearTexDictionary();
     Init2dEffects();
     m_nObjectInfoIndex = -1;
-    m_fDrawDistance = 2000.0F;
-    m_pRwObject = nullptr;
+    m_fDrawDistance    = 2000.0F;
+    m_pRwObject        = nullptr;
 
-    m_nFlags = 0;
-    bIsBackfaceCulled = true;
-    bIsLod = true;
+    m_nFlags           = 0;
+    bIsBackfaceCulled  = true;
+    bIsLod             = true;
 }
 
 // 0x4C4D50
@@ -97,14 +95,15 @@ void CBaseModelInfo::Shutdown() {
     DeleteRwObject();
     DeleteCollisionModel();
 
-    bIsLod = true;
+    bIsLod             = true;
     m_nObjectInfoIndex = -1;
     ClearTexDictionary();
     Init2dEffects();
 }
 
 // 0x4C4AC0
-void CBaseModelInfo::SetAnimFile(const char* filename) {}
+void CBaseModelInfo::SetAnimFile(const char* filename) {
+}
 
 // 0x4C4AD0
 void CBaseModelInfo::ConvertAnimFileIndex() {
@@ -114,7 +113,9 @@ void CBaseModelInfo::ConvertAnimFileIndex() {
 // 0x4C4AE0
 int32 CBaseModelInfo::GetAnimFileIndex() {
     return -1;
-}void CBaseModelInfo::SetTexDictionary(const char* txdName) {
+}
+
+void CBaseModelInfo::SetTexDictionary(const char* txdName) {
     m_nTxdIndex = CTxdStore::FindOrAddTxdSlot(txdName);
 }
 
@@ -147,34 +148,37 @@ void CBaseModelInfo::SetColModel(CColModel* colModel, bool bIsLodModel) {
         return;
     }
 
-    bIsLod = true;
+    bIsLod        = true;
     auto timeInfo = GetTimeInfo();
-    if (!timeInfo)
+    if (!timeInfo) {
         return;
+    }
 
-    if (timeInfo->GetOtherTimeModel() == -1)
+    if (timeInfo->GetOtherTimeModel() == -1) {
         return;
+    }
 
-    auto lodInfo = CModelInfo::GetModelInfo(timeInfo->GetOtherTimeModel());
+    auto lodInfo         = CModelInfo::GetModelInfo(timeInfo->GetOtherTimeModel());
     lodInfo->m_pColModel = colModel;
-    lodInfo->bIsLod = false;
+    lodInfo->bIsLod      = false;
 }
 
 void CBaseModelInfo::Init2dEffects() {
     m_n2dEffectIndex = -1;
-    m_n2dfxCount = 0;
+    m_n2dfxCount     = 0;
 }
 
 void CBaseModelInfo::DeleteCollisionModel() {
-    if (m_pColModel && bIsLod)
+    if (m_pColModel && bIsLod) {
         delete m_pColModel;
+    }
 
     m_pColModel = nullptr;
 }
 
 C2dEffect* CBaseModelInfo::Get2dEffect(int32 index) const {
-    auto uiStoredEffectsCount = m_n2dfxCount;
-    RpGeometry* geometry = nullptr;
+    auto        uiStoredEffectsCount = m_n2dfxCount;
+    RpGeometry* geometry             = nullptr;
     if (GetRwObject()) {
         if (GetRwModelType() == rpATOMIC) {
             geometry = RpAtomicGetGeometry(GetRpAtomic());
@@ -185,29 +189,31 @@ C2dEffect* CBaseModelInfo::Get2dEffect(int32 index) const {
             }
         }
 
-        if (geometry)
+        if (geometry) {
             uiStoredEffectsCount -= RpGeometryGet2dFxCount(geometry);
+        }
     }
 
-    if (index < uiStoredEffectsCount)
+    if (index < uiStoredEffectsCount) {
         return &CModelInfo::Get2dEffectStore()->GetItemAtIndex(index + m_n2dEffectIndex);
-    else
+    } else {
         return RpGeometryGet2dFxAtIndex(geometry, index - uiStoredEffectsCount);
+    }
 }
 
 // 0x4C4D20
 void CBaseModelInfo::Add2dEffect(C2dEffect* effect) {
-    if (m_n2dEffectIndex >= 0)
+    if (m_n2dEffectIndex >= 0) {
         ++m_n2dfxCount;
-    else {
+    } else {
         m_n2dEffectIndex = (effect - &CModelInfo::Get2dEffectStore()->m_aObjects[0]);
-        m_n2dfxCount = 1;
+        m_n2dfxCount     = 1;
     }
 }
 
 // 0x5B3AD0
 void SetBaseModelInfoFlags(CBaseModelInfo* modelInfo, uint32 flags) {
-    auto flagsStruct = sItemDefinitionFlags(flags);
+    auto flagsStruct              = sItemDefinitionFlags(flags);
     modelInfo->bDrawLast          = flagsStruct.bDrawLast;
     modelInfo->bAdditiveRender    = flagsStruct.bAdditive;
     modelInfo->bDontWriteZBuffer  = flagsStruct.bNoZBufferWrite;

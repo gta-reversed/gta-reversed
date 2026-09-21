@@ -222,13 +222,13 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(GetRopeHeightForHeli, 0x6D3D10);
     RH_ScopedInstall(SetRopeHeightForHeli, 0x6D3D30);
 
-    RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*), { .reversed = false });
+    RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Object", 0x6D2690, RwObject*(*)(RwObject*, void*));
     RH_ScopedGlobalOverloadedInstall(SetVehicleAtomicVisibilityCB, "Frame", 0x6D26D0, RwFrame*(*)(RwFrame*, void*));
     // RH_ScopedGlobalInstall(SetCompAlphaCB, 0x6D2950);
     RH_ScopedGlobalInstall(IsVehiclePointerValid, 0x6E38F0);
     // RH_ScopedGlobalInstall(RemoveUpgradeCB, 0x6D3300);
     // RH_ScopedGlobalInstall(FindUpgradeCB, 0x6D3370);
-    RH_ScopedGlobalOverloadedInstall(RemoveObjectsCB, "Object", 0x6D33B0, RwObject*(*)(RwObject*, void*), { .reversed = false });
+    RH_ScopedGlobalOverloadedInstall(RemoveObjectsCB, "Object", 0x6D33B0, RwObject*(*)(RwObject*, void*));
     RH_ScopedGlobalOverloadedInstall(RemoveObjectsCB, "Frame", 0x6D3420, RwFrame*(*)(RwFrame*, void*));
     RH_ScopedGlobalInstall(CopyObjectsCB, 0x6D3450);
     // RH_ScopedGlobalInstall(FindReplacementUpgradeCB, 0x6D3490);
@@ -1889,7 +1889,14 @@ float CVehicle::HeightAboveCeiling(float height, eFlightModel flightModel) {
 
 // 0x6D2690
 RwObject* SetVehicleAtomicVisibilityCB(RwObject* object, void* data) {
-    return ((RwObject * (__cdecl*)(RwObject*, void*))0x6D2690)(object, data);
+    const auto atomicId = CVisibilityPlugins::GetAtomicId(reinterpret_cast<RpAtomic*>(object));
+    if (!(atomicId & eAtomicComponentFlag::ATOMIC_MASK)) {
+        return object;
+    }
+    const auto state = static_cast<int32>(reinterpret_cast<intptr_t>(data)) & eAtomicComponentFlag::ATOMIC_MASK;
+    const bool matches = (atomicId & eAtomicComponentFlag::ATOMIC_MASK) == state;
+    RpAtomicSetFlags(reinterpret_cast<RpAtomic*>(object), matches ? rpATOMICRENDER : 0);
+    return object;
 }
 
 // 0x6D26D0
@@ -2274,9 +2281,26 @@ RpAtomic* FindUpgradeCB(RpAtomic* atomic, void* data) {
     return ((RpAtomic * (__cdecl*)(RpAtomic*, void*))0x6D3370)(atomic, data);
 }
 
-// 0x6D33B0
 RwObject* RemoveObjectsCB(RwObject* object, void* data) {
-    return ((RwObject * (__cdecl*)(RwObject*, void*))0x6D33B0)(object, data);
+    if (RwObjectGetType(object) != rpATOMIC) {
+        return object;
+    }
+    const auto atomic = reinterpret_cast<RpAtomic*>(object);
+    const auto atomicId = CVisibilityPlugins::GetAtomicId(atomic);
+    *static_cast<uint32*>(data) = atomicId;
+    if (!(atomicId & eAtomicComponentFlag::ATOMIC_UPGRADE)) {
+        auto* const mi = CVisibilityPlugins::GetModelInfo(atomic);
+        auto* const frame = RpAtomicGetFrame(atomic);
+        RpClumpRemoveAtomic(atomic->clump, atomic);
+        RpAtomicDestroy(atomic);
+        if (!CVisibilityPlugins::GetFrameHierarchyId(frame)) {
+            RwFrameDestroy(frame);
+        }
+        if (mi) {
+            mi->RemoveRef();
+        }
+    }
+    return object;
 }
 
 // 0x6D3420

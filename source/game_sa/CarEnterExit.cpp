@@ -31,12 +31,12 @@ void CCarEnterExit::InjectHooks() {
     RH_ScopedInstall(IsClearToDriveAway, 0x6509B0);
     RH_ScopedInstall(IsPathToDoorBlockedByVehicleCollisionModel, 0x651210);
     RH_ScopedInstall(IsPedHealthy, 0x64EEE0);
-    RH_ScopedInstall(IsPlayerToQuitCarEnter, 0x64F240, { .reversed = false });
+    RH_ScopedInstall(IsPlayerToQuitCarEnter, 0x64F240);
     RH_ScopedInstall(IsRoomForPedToLeaveCar, 0x6504C0, { .reversed = false });
     RH_ScopedInstall(IsVehicleHealthy, 0x64EEC0);
     RH_ScopedInstall(IsVehicleStealable, 0x6510D0);
     RH_ScopedInstall(MakeUndraggedDriverPedLeaveCar, 0x64F600);
-    RH_ScopedInstall(MakeUndraggedPassengerPedsLeaveCar, 0x64F540, { .reversed = false });
+    RH_ScopedInstall(MakeUndraggedPassengerPedsLeaveCar, 0x64F540);
     RH_ScopedInstall(QuitEnteringCar, 0x650130);
     RH_ScopedInstall(RemoveCarSitAnim, 0x64F680);
     RH_ScopedInstall(RemoveGetInAnims, 0x64F6E0);
@@ -506,7 +506,84 @@ bool CCarEnterExit::IsPedHealthy(CPed* ped) {
 
 // 0x64F240
 bool CCarEnterExit::IsPlayerToQuitCarEnter(const CPed* ped, const CVehicle* vehicle, int32 startTime, CTask* task) {
-    return plugin::CallAndReturn<bool, 0x64F240, const CPed*, const CVehicle*, int32, CTask*>(ped, vehicle, startTime, task);
+    CPad* pad = const_cast<CPed*>(ped)->AsPlayer()->GetPadFromPlayer();
+    float heading = ped->m_fCurrentRotation; // +0x558
+    bool checkMeleeAttack = false;
+    if (task) {
+        bool computeHeading = false;
+        switch (task->GetTaskType()) {
+        case TASK_COMPLEX_LEAVE_CAR:
+        case TASK_SIMPLE_CAR_OPEN_DOOR_FROM_OUTSIDE:
+        case TASK_SIMPLE_CAR_OPEN_LOCKED_DOOR_FROM_OUTSIDE:
+        case TASK_SIMPLE_BIKE_PICK_UP:
+        case TASK_SIMPLE_CAR_QUICK_DRAG_PED_OUT:
+        case TASK_SIMPLE_CAR_SLOW_DRAG_PED_OUT:
+            checkMeleeAttack = true;
+            computeHeading = true;
+            break;
+        case TASK_SIMPLE_STAND_STILL:
+        case TASK_COMPLEX_FALL_AND_GET_UP:
+        case TASK_SIMPLE_CAR_ALIGN:
+        case TASK_SIMPLE_CAR_CLOSE_DOOR_FROM_INSIDE:
+        case TASK_SIMPLE_CAR_GET_IN:
+        case TASK_SIMPLE_CAR_SHUFFLE:
+        case TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER:
+        case TASK_SIMPLE_CAR_SET_PED_OUT:
+        case TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR:
+            computeHeading = true;
+            break;
+        default:
+            break;
+        }
+        if (computeHeading) {
+            const CVector vehPos = vehicle->GetPosition();
+            const CVector pedPos = ped->GetPosition();
+            const float dot = DotProduct(pedPos - vehPos, vehicle->GetRight());
+            float baseHeading;
+            if (vehicle->m_matrix) {
+                const CVector& fwd = vehicle->m_matrix->GetForward();
+                baseHeading = std::atan2(-fwd.x, fwd.y);
+            } else {
+                baseHeading = vehicle->m_placement.m_fHeading;
+            }
+            heading = baseHeading + (dot > 0.0f /*0x858B50*/ ? HALF_PI /*0x858FE4*/ : -HALF_PI);
+            if (vehicle->m_matrix->GetUp().z < 0.0f) {
+                heading += PI; // 0x858CB8
+                if (heading > PI)
+                    heading -= TWO_PI; // 0x858CBC
+            }
+            if (heading > PI)
+                heading -= TWO_PI;
+            else if (heading < -PI) // 0x858CC0
+                heading += TWO_PI;
+        }
+    }
+    if (vehicle->m_pFire)
+        return true;
+    if (pad->DisablePlayerControls)
+        return false;
+    if (checkMeleeAttack) {
+        if (pad->MeleeAttackJustDown(false))
+            return true;
+    } else {
+        const int32 elapsed = (int32)(CTimer::GetTimeInMS() - startTime);
+        float fElapsed = (float)elapsed;
+        if (elapsed < 0)
+            fElapsed += 4294967296.0f; // 0x858C54 (2^32, timer wrap)
+        if (fElapsed <= 500.0f) // 0x8D2ED8
+            return false;
+    }
+    const float walkUpDown = (float)pad->GetPedWalkUpDown();
+    const float walkLeftRight = (float)pad->GetPedWalkLeftRight();
+    float stickAngle = CGeneral::GetRadianAngleBetweenPoints(0.0f, 0.0f, -walkLeftRight, walkUpDown) - TheCamera.m_fOrientation; // 0xB6F178
+    if (stickAngle > heading + PI)
+        stickAngle -= TWO_PI;
+    else if (stickAngle < heading - PI)
+        stickAngle += TWO_PI;
+    const float stickMag = std::sqrt(walkLeftRight * walkLeftRight + walkUpDown * walkUpDown) * (1.0f / 128.0f); // 0x858B88
+    if (stickMag > 0.75f /*0x858F34*/ && std::fabs(stickAngle - heading) > PI / 4.0f /*0x859AB0*/)
+        return true;
+    return false;
 }
 
 // 0x6504C0

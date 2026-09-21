@@ -69,7 +69,68 @@ CTaskAllocator* CTaskAllocatorKillThreatsBasic::ProcessGroup(CPedGroupIntelligen
 
 // 0x69C850
 void CTaskAllocatorKillThreatsBasic::ComputeClosestPeds(CPedGroup& group1, CPedGroup& group2, CPed** peds) {
-    plugin::Call<0x69C850, CPedGroup&, CPedGroup&, CPed**>(group1, group2, peds);
+    rng::fill(std::span{ peds, (size_t)TOTAL_PED_GROUP_MEMBERS }, nullptr);
+
+    // Compute the distance matrix between the alive non-player members of the two groups
+    float distSq[TOTAL_PED_GROUP_MEMBERS][TOTAL_PED_GROUP_MEMBERS];
+    rng::fill(distSq[0], distSq[0] + TOTAL_PED_GROUP_MEMBERS * TOTAL_PED_GROUP_MEMBERS, FLT_MAX);
+    for (int32 i = 0; i < TOTAL_PED_GROUP_MEMBERS; i++) {
+        const auto mem1 = group1.GetMembership().GetMember(i);
+        if (!mem1 || !mem1->IsAlive() || mem1->IsPlayer()) {
+            continue;
+        }
+        for (int32 j = 0; j < TOTAL_PED_GROUP_MEMBERS; j++) {
+            const auto mem2 = group2.GetMembership().GetMember(j);
+            if (!mem2 || !mem2->IsAlive()) {
+                continue;
+            }
+            distSq[i][j] = (mem1->GetPosition() - mem2->GetPosition()).SquaredMagnitude();
+        }
+    }
+
+    // Greedily match closest pairs (each member matched at most once)
+    for (int32 n = 0; n < TOTAL_PED_GROUP_MEMBERS; n++) {
+        int32 closestI = -1, closestJ = -1;
+        float closestDistSq = FLT_MAX;
+        for (int32 i = 0; i < TOTAL_PED_GROUP_MEMBERS; i++) {
+            for (int32 j = 0; j < TOTAL_PED_GROUP_MEMBERS; j++) {
+                if (distSq[i][j] < closestDistSq) {
+                    closestDistSq = distSq[i][j];
+                    closestI = i;
+                    closestJ = j;
+                }
+            }
+        }
+        if (closestI < 0 || closestJ < 0) {
+            break; // No more pairs to match
+        }
+        // Invalidate the matched row and column
+        rng::fill(distSq[closestI], distSq[closestI] + TOTAL_PED_GROUP_MEMBERS, FLT_MAX);
+        for (auto& row : distSq) {
+            row[closestJ] = FLT_MAX;
+        }
+        peds[closestI] = group2.GetMembership().GetMember(closestJ);
+    }
+
+    // Any unmatched member gets assigned a fallback target: the leader if alive, otherwise any alive member of group2
+    auto* fallback = group2.GetMembership().GetLeader();
+    if (!fallback || !fallback->IsAlive()) {
+        fallback = nullptr;
+        for (int32 i = 0; i < TOTAL_PED_GROUP_MEMBERS - 1; i++) {
+            if (const auto mem = group2.GetMembership().GetMember(i); mem && mem->IsAlive()) {
+                fallback = mem;
+                break;
+            }
+        }
+        if (!fallback) {
+            return;
+        }
+    }
+    for (int32 i = 0; i < TOTAL_PED_GROUP_MEMBERS; i++) {
+        if (group1.GetMembership().GetMember(i) && !peds[i]) {
+            peds[i] = fallback;
+        }
+    }
 }
 
 void CTaskAllocatorKillThreatsBasic::InjectHooks() {
@@ -79,7 +140,7 @@ void CTaskAllocatorKillThreatsBasic::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x69C710);
     RH_ScopedInstall(Destructor, 0x69C780);
 
-    RH_ScopedGlobalInstall(ComputeClosestPeds, 0x69C850, { .reversed = false });
+    RH_ScopedGlobalInstall(ComputeClosestPeds, 0x69C850);
     RH_ScopedVMTInstall(GetType, 0x69C770);
     RH_ScopedVMTInstall(AllocateTasks, 0x69D170);
     RH_ScopedVMTInstall(ProcessGroup, 0x69C7E0);

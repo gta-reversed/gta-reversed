@@ -12,11 +12,11 @@ void CTaskComplexGoToPointAndStandStillAndAchieveHeading::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x668CD0);
     RH_ScopedInstall(Destructor, 0x668D40);
 
-    RH_ScopedInstall(Clone, 0x66CFD0, { .reversed = false });
+    RH_ScopedInstall(Clone, 0x66CFD0);
     RH_ScopedInstall(GetTaskType, 0x668D30);
-    RH_ScopedInstall(CreateNextSubTask, 0x66DFD0, { .reversed = false });
-    RH_ScopedInstall(CreateFirstSubTask, 0x66E030, { .reversed = false });
-    RH_ScopedInstall(ControlSubTask, 0x668E80, { .reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x66DFD0);
+    RH_ScopedInstall(CreateFirstSubTask, 0x66E030);
+    RH_ScopedInstall(ControlSubTask, 0x668E80);
 }
 
 // 0x668CD0
@@ -62,10 +62,17 @@ CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateSubTask(eTaskT
 
 // 0x66E030
 CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x66E030, CTaskComplexGoToPointAndStandStillAndAchieveHeading*, CPed*>(this, ped);
+    m_nFlags &= ~1;
+    return CreateSubTask(TASK_SIMPLE_GO_TO_POINT);
 }
 
 // 0x668E80
 CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x668E80, CTaskComplexGoToPointAndStandStillAndAchieveHeading*, CPed*>(this, ped);
+    if (m_nFlags & 1) {
+        return m_pSubTask->MakeAbortable(ped) ? CreateFirstSubTask(ped) : m_pSubTask;
+    }
+    if (m_pSubTask->GetTaskType() == TASK_SIMPLE_GO_TO_POINT) {
+        notsa::cast<CTaskSimpleGoToPoint>(m_pSubTask)->UpdatePoint(m_TargetPos, m_Radius);
+    }
+    return m_pSubTask;
 }

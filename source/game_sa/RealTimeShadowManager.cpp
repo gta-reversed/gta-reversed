@@ -10,7 +10,7 @@ void CRealTimeShadowManager::InjectHooks() {
     RH_ScopedCategory("Shadows");
 
     RH_ScopedInstall(Init, 0x7067C0);
-    RH_ScopedInstall(ReInit, 0x706870, {.reversed = false});
+    RH_ScopedInstall(ReInit, 0x706870);
     RH_ScopedInstall(ReturnRealTimeShadow, 0x705B30);
     RH_ScopedInstall(GetRealTimeShadow, 0x706970, { .reversed = false });
     RH_ScopedInstall(Update, 0x706AB0);
@@ -67,7 +67,22 @@ void CRealTimeShadowManager::ReturnRealTimeShadow(CRealTimeShadow* shdw) {
 
 // 0x706870
 void CRealTimeShadowManager::ReInit() {
-    plugin::CallMethod<0x706870, CRealTimeShadowManager*>(this);
+    const auto ReCreateRaster = [](CShadowCamera& camera) {
+        auto* const raster = RwCameraGetRaster(camera.m_pRwCamera);
+        const auto  width  = RwRasterGetWidth(raster);
+        RwCameraSetRaster(camera.m_pRwCamera, nullptr);
+        RwRasterDestroy(raster);
+        const auto newRaster = RwRasterCreate(width, width, 0, rwRASTERTYPECAMERATEXTURE);
+        RwCameraSetRaster(camera.m_pRwCamera, newRaster);
+        RwTextureSetRaster(camera.m_pRwRenderTexture, newRaster);
+    };
+    for (auto* shadow : m_apShadows) {
+        ReCreateRaster(shadow->m_camera);
+        ReCreateRaster(shadow->m_blurCamera);
+    }
+    ReCreateRaster(m_BlurCamera);
+    ReCreateRaster(m_GradientCamera);
+    m_GradientCamera.MakeGradientRaster();
 }
 
 // 0x706AB0
@@ -120,24 +135,54 @@ void CRealTimeShadowManager::Update() {
     }
 }
 
+// 0x706970
 CRealTimeShadow& CRealTimeShadowManager::GetRealTimeShadow(CPhysical* physical) {
-    return plugin::CallMethodAndReturn<CRealTimeShadow&, 0x706970, CRealTimeShadowManager*, CPhysical*>(this, physical);
-    /*
-    * Unfinished
-    if (m_bInitialised) {
-        return;
+    // Decompiled from binary via rig (entity+0x36 type check, +0x598 driver check, player +0x46D
+    // flag / +0x58C vehicle / speed at +0x44..+0x4C vs 0.3, slot scan over m_apShadows).
+    // Member mapping: m_apShadows starts at +0x4 (16 slots), CPhysical::m_pShadowData at +0x134,
+    // CRealTimeShadow::m_bKeepAlive at +0x4, m_nIntensity at +0x5.
+    // 0x706520 (shadow setup for the entity) has no named hook/signature in the repo, so it is
+    // invoked via plugin::Call to preserve exact behavior.
+    bool allowShadow = true;
+    bool useFirstSlot = false;
+    // Binary: if ((entityType & 7) != ENTITY_TYPE_PED || !m_pDriver) useFirstSlot = (m_pDriver == null).
+    // NOTE: for peds +0x598 overlaps ped data (not a real driver pointer); the binary reads it anyway.
+    const bool isPed = physical->GetIsTypePed();
+    CVehicle* const asVeh = physical->AsVehicle();
+    if (isPed || !asVeh->m_pDriver) {
+        useFirstSlot = asVeh->m_pDriver == nullptr;
     }
-
-    bool isFirstPlayer{};
-
-    if (!physical->GetIsTypePed() || physical->AsPed()->IsPlayer()) {
-        if (FindPlayerPed()->IsInVehicle()) { // Maybe wrong?
-            if (FindPlayerPed()->m_pVehicle->GetMoveSpeed().SquaredMagnitude() < sq(0.3f)) {
-                return;
-            }
+    if (!useFirstSlot) {
+        const auto& player = CWorld::Players[CWorld::PlayerInFocus];
+        auto* const playerPed = player.m_pPed;
+        auto* const playerVeh = playerPed ? playerPed->m_pVehicle : nullptr;
+        // Binary reads playerPed+0x46D bit0 and playerPed+0x58C (vehicle), then speed at +0x44..+0x4C.
+        const bool flagSet = playerPed && ((*(reinterpret_cast<const uint8*>(playerPed) + 0x46D)) & 1) != 0;
+        if (flagSet && playerVeh && playerVeh->GetMoveSpeed().SquaredMagnitude() > sq(0.3f)) {
+            allowShadow = false;
         }
     }
-    */
+    CRealTimeShadow* shadow = nullptr;
+    if (m_bInitialised && allowShadow) {
+        if (useFirstSlot) {
+            shadow = m_apShadows[0];
+        } else {
+            // Last free slot (owner == null) wins, matching the binary's 3x5 scan over slots 1..15
+            // (slot 0 is only used by the useFirstSlot path above).
+            for (size_t i = 1; i < std::size(m_apShadows); ++i) {
+                if (!m_apShadows[i]->m_pOwner) {
+                    shadow = m_apShadows[i];
+                }
+            }
+        }
+        if (shadow) {
+            plugin::CallMethod<0x706520, CRealTimeShadow*, CPhysical*>(shadow, physical);
+            physical->m_pShadowData = shadow;
+            shadow->m_bKeepAlive = true;
+            shadow->m_nIntensity = 0;
+        }
+    }
+    return *shadow;
 }
 
 // 0x706BA0

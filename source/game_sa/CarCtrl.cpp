@@ -37,7 +37,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(CreateCarForScript, 0x431F80);
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
     RH_ScopedInstall(ChooseCarModelToLoad, 0x421900);
-    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .reversed = false });
+    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440);
     RH_ScopedInstall(IsAnyoneParking, 0x42C250);
     RH_ScopedInstall(IsThisVehicleInteresting, 0x423EA0);
     RH_ScopedInstall(JoinCarWithRoadAccordingToMission, 0x432CB0);
@@ -422,32 +422,28 @@ void CCarCtrl::GetAIPlaneToDoDogFightAgainstPlayer(CAutomobile* automobile) {
 
 // 0x421440
 CVehicle* CCarCtrl::GetNewVehicleDependingOnCarModel(int32 modelId, uint8 createdBy) {
-    return plugin::CallAndReturn<CVehicle*, 0x421440, int32, uint8>(modelId, createdBy);
-    /*
     switch (CModelInfo::GetModelInfo(modelId)->AsVehicleModelInfoPtr()->m_nVehicleType) {
     case VEHICLE_TYPE_MTRUCK:
-        return new CMonsterTruck(modelId, createdBy);
+        return new CMonsterTruck(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_QUAD:
-        return new CQuadBike(modelId, createdBy);
+        return new CQuadBike(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_HELI:
-        return new CHeli(modelId, createdBy);
+        return new CHeli(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_PLANE:
-        return new CPlane(modelId, createdBy);
+        return new CPlane(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_BOAT:
-        return new CBoat(modelId, createdBy);
+        return new CBoat(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_TRAIN:
-        return new CTrain(modelId, createdBy);
+        return new CTrain(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_BIKE:
-        return new CBike(modelId, createdBy);
+        return new CBike(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_BMX:
-        return new CBmx(modelId, createdBy);
+        return new CBmx(modelId, (eVehicleCreatedBy)createdBy);
     case VEHICLE_TYPE_TRAILER:
-        return new CTrailer(modelId, createdBy);
-    case VEHICLE_TYPE_AUTOMOBILE:
-        return new CAutomobile(modelId, createdBy, 1);
+        return new CTrailer(modelId, (eVehicleCreatedBy)createdBy);
+    default: // Includes `VEHICLE_TYPE_AUTOMOBILE`, as well as any invalid type
+        return new CAutomobile(modelId, (eVehicleCreatedBy)createdBy, 1);
     }
-    return nullptr;
-    */
 }
 
 // 0x42C250

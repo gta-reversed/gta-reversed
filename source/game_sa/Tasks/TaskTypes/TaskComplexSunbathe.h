@@ -53,11 +53,19 @@ public:
     CTask*    ControlSubTask(CPed* ped) override;
 
 private:
+    // 0x638290
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
+    // 0x632140
+    static bool CanSunbathe();
+    // 0x632190
+    static bool ShouldLoadSunbatheAnims();
+
     // 0x631F80
     CTaskComplexSunbathe* Constructor(CObject* towel, bool startStanding) {
         this->CTaskComplexSunbathe::CTaskComplexSunbathe(towel, startStanding);
         return this;
     }
+
 
     // 0x632050
     CTaskComplexSunbathe* Destructor() {

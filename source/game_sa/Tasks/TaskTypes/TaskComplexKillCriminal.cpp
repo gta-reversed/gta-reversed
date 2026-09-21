@@ -336,36 +336,60 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
 
 // 0x68DC60
 CTask* CTaskComplexKillCriminal::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x68DC60, CTaskComplexKillCriminal*, CPed*>(this, ped); // Good luck!
+    // Guards from disasm: criminal must exist and not be the player; ambient crime on; owner cop on foot chasing a non-player ped target.
+    if (!m_Criminal || m_Criminal->IsPlayer()) {
+        return nullptr;
+    }
+    if (const auto wanted = FindPlayerWanted(); wanted->GetWantedLevel() != eWantedLevel::WANTED_CLEAN) {
+        return nullptr;
+    }
+    if (!g_LoadMonitor.IsAmbientCrimeEnabled()) {
+        return nullptr;
+    }
+    if (ped->m_nPedType != PED_TYPE_COP) {
+        return nullptr;
+    }
+    const auto cop = ped->AsCop();
+    if (cop->m_isTheDriver && ped->bInVehicle) {
+        return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
+    }
+    if (!m_Criminal->CanBeCriminal()) {
+        return nullptr;
+    }
+    m_Cop = cop;
+    cop->AddCriminalToKill(m_Criminal);
+    ped->SetCurrentWeapon(WEAPON_PISTOL);
+    if (ped->bInVehicle) {
+        return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
+    }
+    return CreateSubTask(TASK_COMPLEX_KILL_PED_ON_FOOT, ped, true);
 }
 
 // 0x68E950
 CTask* CTaskComplexKillCriminal::ControlSubTask(CPed* ped) {
-    /*
-    if (m_criminal && !m_criminal->CanBeCriminal()) {
+    // Early-outs from disasm: dead/invalid criminal, wanted level active and cop can join pursuit, ambient crime off.
+    if (NoPedOrNoHp(m_Criminal) || !m_Criminal->CanBeCriminal()) {
         return nullptr;
     }
-
-    if (const auto wanted = FindPlayerWanted(); wanted->m_nWantedLevel) {
-        if (wanted->CanCopJoinPursuit(static_cast<CCopPed*>(ped)) && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+    if (const auto wanted = FindPlayerWanted(); wanted->GetWantedLevel() != eWantedLevel::WANTED_CLEAN) {
+        if (wanted->CanCopJoinPursuit(ped->AsCop()) && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
             return nullptr;
         }
     }
-
-    if (!g_LoadMonitor.m_bEnableAmbientCrime) {
+    if (!g_LoadMonitor.IsAmbientCrimeEnabled()) {
         return nullptr;
     }
-
+    // Cop partner bookkeeping from disasm tail: driver flag + partner null-out when partner is dead/missing and we're mounted.
     auto taskToCreate = TASK_NONE;
-
-    const auto cpartner = m_cop->m_pCopPartner;
-    if (!m_cop->m_isTheDriver && IsPedNullOrLowHP(cpartner)) {
-        m_cop->m_isTheDriver = true;
-        m_cop->SetPartner(nullptr);
-        if (m_cop->IsInVehicle()) {
+    if (m_Cop && !m_Cop->m_isTheDriver && NoPedOrNoHp(m_Cop->m_pCopPartner)) {
+        m_Cop->m_isTheDriver = true;
+        m_Cop->SetPartner(nullptr);
+        if (m_Cop->IsInVehicle()) {
             taskToCreate = TASK_COMPLEX_LEAVE_CAR;
         }
     }
-    */
-    return plugin::CallMethodAndReturn<CTask*, 0x68E950, CTaskComplexKillCriminal*, CPed*>(this, ped); // Good luck!
+    if (taskToCreate != TASK_NONE && taskToCreate != m_pSubTask->GetTaskType()) {
+        return CreateSubTask(taskToCreate, ped);
+    }
+    return m_pSubTask;
 }

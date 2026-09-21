@@ -8,6 +8,14 @@
 
 #include "WeaponEffects.h"
 
+// Statics of this file (addresses are from the original executable)
+static inline auto& s_afCrossHairScale  = StaticRef<std::array<float, MAX_NUM_WEAPON_CROSSHAIRS>>(0xC8A8A0);      // Per crosshair animated size offset
+static inline auto& s_abPulseOutwards   = StaticRef<std::array<bool, MAX_NUM_WEAPON_CROSSHAIRS>>(0x8D6144);       // { true, true } - Whether the target's radius grows or shrinks
+static inline auto& s_fFlightOffsetX    = StaticRef<float>(0xC8A89C);                                            // Flight (lock-on) crosshair offset from it's position
+static inline auto& s_fFlightOffsetY    = StaticRef<float>(0xC8A898);
+static inline auto& s_nTargetChangeTime = StaticRef<int32>(0xC8A890);                                            // Time (in ms) the lock-on target was last changed
+static inline auto& s_pLastTarget       = StaticRef<CEntity*>(0xC8A894);                                         // The last lock-on target
+
 void CWeaponEffects::InjectHooks() {
     RH_ScopedClass(CWeaponEffects);
     RH_ScopedCategoryGlobal();
@@ -101,7 +109,5 @@ void CWeaponEffects::ClearCrossHairsImmediately() {
 
 // 0x742CF0
 void CWeaponEffects::Render() {
-    ZoneScoped;
-
     plugin::Call<0x742CF0>();
 }

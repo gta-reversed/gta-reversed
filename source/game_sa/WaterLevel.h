@@ -81,6 +81,13 @@ class CWaterLevel {
     static inline auto& m_bWaterFog = StaticRef<bool>(0x8D37D4);
     static inline auto& m_bWaterFogScript = StaticRef<bool>(0x8D37D5);
     static inline auto& m_WaterFogDensity = StaticRef<int32>(0x8D37E0);
+    static inline auto& m_WaterFogColourRed = StaticRef<uint8>(0x8D37E8);
+    static inline auto& m_WaterFogColourGreen = StaticRef<uint8>(0x8D37E9);
+    static inline auto& m_WaterFogColourBlue = StaticRef<uint8>(0x8D37EA);
+    static inline auto& m_WaterFogColourAlpha = StaticRef<uint8>(0x8D37EB);
+    static inline auto& m_WaterFogInsideCol = StaticRef<uint32>(0x8D37EC); // COLORREF 0x00BBGGRR
+    static inline auto& m_WaterFogHourOfDayStart = StaticRef<uint8>(0x8D37EF);
+    static inline auto& m_WaterFogHourOfDayEnd = StaticRef<uint8>(0x8D37EE);
 
     static inline auto& faWaveMultipliersX = StaticRef<std::array<float, 8>>(0x8D38C8);
     static inline auto& faWaveMultipliersY = StaticRef<std::array<float, 8>>(0x8D38E8);
@@ -266,6 +273,8 @@ public:
     static void RenderWakeSegment(const CVector2D& a1, const CVector2D& a2, const CVector2D& a3, const CVector2D& a4, const float& widthA, const float& widthB, const float& alphaA, const float& alphaB, const float& wakeZ);
     static void FindNearestWaterAndItsFlow();
     static bool GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * fUnkn1 = nullptr, float * fUnkn2 = nullptr);
+    static bool TestQuadToGetWaterLevel(const CWaterQuad* quad, float x, float y, float z, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves);
+    static bool TestTriangleToGetWaterLevel(const CWaterTriangle* tri, float x, float y, float z, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves);
     static void RenderWaterFog();
     static void CalculateWavesOnlyForCoordinate(int32 x, int32 y, float bigWavesAmplitude, float smallWavesAmplitude, float& outWave, float& colorMult, float& glare, CVector& vecNormal);
     static void MarkQuadsAndPolysToBeRendered(int32 blockX, int32 blockY, bool isInInterior);

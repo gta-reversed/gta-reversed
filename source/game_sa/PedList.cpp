@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "PedList.h"
+#include "TaskComplexKillPedOnFoot.h"
 
 void CPedList::InjectHooks() {
     RH_ScopedClass(CPedList);
@@ -8,10 +9,10 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
-    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340, { .reversed = false });
-    RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0, { .reversed = false });
-    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .reversed = false });
-    RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
+    RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0);
+    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450);
+    RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420);
 }
 
 // 0x699DB0
@@ -39,7 +40,6 @@ void CPedList::ExtractPedsWithGuns(CPedList& from) {
     from.FillUpHoles();
 }
 
-
 // After nulling out a field in the
 // array there might be a hole, so it has to be filled
 void CPedList::FillUpHoles() {
@@ -48,22 +48,52 @@ void CPedList::FillUpHoles() {
 
 // 0x69A340
 void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership) {
-    plugin::CallMethod<0x69A340>(this, pedGroupMembership);
+    m_count = 0;
+    for (int32 i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
+        if (CPed* const member = pedGroupMembership->GetMember(i)) {
+            if (!member->GetIntelligence()->IsInACarOrEnteringOne()) {
+                if (m_count < std::size(m_peds)) {
+                    AddMember(member);
+                }
+            }
+        }
+    }
+    ClearUnused();
 }
 
 // 0x69A3B0
 void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
-    plugin::CallMethod<0x69A3B0>(this, pedType);
+    m_count = 0;
+    for (int32 i = GetPedPool()->GetSize(); i; i--) {
+        CPed* const ped = GetPedPool()->GetAt(i - 1);
+        if (ped && ped->m_nPedType == static_cast<ePedType>(pedType) && m_count < std::size(m_peds)) {
+            AddMember(ped);
+        }
+    }
+    ClearUnused();
 }
 
 // 0x69A450
 void CPedList::RemovePedsAttackingPedType(int32 pedType) {
-    plugin::CallMethod<0x69A450>(this, pedType);
+    const auto count = (int32)m_count; // The count is saved beforehand, as it's decremented below
+    for (int32 i = 0; i < count; i++) {
+        const auto task = notsa::cast_if_present<CTaskComplexKillPedOnFoot>(Get(i)->GetIntelligence()->FindTaskByType(TASK_COMPLEX_KILL_PED_ON_FOOT));
+        if (!task || !task->m_target || task->m_target->m_nPedType != static_cast<ePedType>(pedType)) {
+            RemoveMemberNoFill(i);
+        }
+    }
+    FillUpHoles();
 }
 
 // 0x69A420
 void CPedList::RemovePedsThatDontListenToPlayer() {
-    plugin::CallMethod<0x69A420>(this);
+    const auto count = (int32)m_count; // The count is saved beforehand, as it's decremented below
+    for (int32 i = 0; i < count; i++) {
+        if (Get(i)->bDoesntListenToPlayerGroupCommands) {
+            RemoveMemberNoFill(i);
+        }
+    }
+    FillUpHoles();
 }
 
 //

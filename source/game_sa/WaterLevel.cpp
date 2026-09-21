@@ -43,12 +43,11 @@ void CWaterLevel::InjectHooks() {
     RH_ScopedOverloadedInstall(GetWaterLevel, "", 0x6EB690, bool(*)(float, float, float, float&, uint8, CVector*));
     RH_ScopedGlobalInstall(SetUpWaterFog, 0x6EA9F0);
     RH_ScopedGlobalInstall(FindNearestWaterAndItsFlow, 0x6E9D70, { .reversed = false });
-    RH_ScopedGlobalInstall(GetWaterLevelNoWaves, 0x6E8580, { .reversed = false });
+    RH_ScopedGlobalInstall(GetWaterLevelNoWaves, 0x6E8580);
     RH_ScopedGlobalInstall(RenderWaterFog, 0x6E7760, { .reversed = false });
     RH_ScopedGlobalInstall(CalculateWavesOnlyForCoordinate, 0x6E6EF0);
     RH_ScopedGlobalInstall(RenderWater, 0x6EF650, { .reversed = false });
-    RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0, { .reversed = false });
-    RH_ScopedGlobalInstall(SetCameraRange, 0x6E9C80);
+    RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0);
 }
 
 // NOTSA
@@ -192,7 +191,54 @@ void CWaterLevel::Shutdown() {
 // 0x6E81E0
 void CWaterLevel::AddWaveToResult(float x, float y, float* pfWaterLevel, float fUnkn1, float fUnkn2, CVector* pVecNormal)
 {
-    plugin::Call<0x6E81E0, float, float, float*, float, float, CVector*>(x, y, pfWaterLevel, fUnkn1, fUnkn2, pVecNormal);
+    // OG uses floor() from CRT (0x8219F0) then (int) cast (0x821B40); the idiom below matches it (incl. negative coords).
+    const float fx    = x * 0.5f;
+    const float fy    = y * 0.5f;
+    const float fracX = fx - std::floor(fx);
+    const float fracY = fy - std::floor(fy);
+    const int32 ix = (int32)std::floor(x);
+    const int32 iy = (int32)std::floor(y);
+
+    const bool bBelowDiag = fracX + fracY < 1.0f;
+
+    float h00{}, h10{}, h01{};
+    if (!pVecNormal) {
+        if (bBelowDiag) {
+            CalculateWavesOnlyForCoordinate2(ix,      iy,      &h00, fUnkn1, fUnkn2);
+            CalculateWavesOnlyForCoordinate2(ix + 2,  iy,      &h10, fUnkn1, fUnkn2);
+            CalculateWavesOnlyForCoordinate2(ix,      iy + 2,  &h01, fUnkn1, fUnkn2);
+            // OG order: ((h01-h00)*fy + (h10-h00)*fx) + *pf + h00
+            *pfWaterLevel = (h01 - h00) * fracY + (h10 - h00) * fracX + *pfWaterLevel + h00;
+        } else {
+            CalculateWavesOnlyForCoordinate2(ix + 2,  iy + 2,  &h00, fUnkn1, fUnkn2);
+            CalculateWavesOnlyForCoordinate2(ix,      iy + 2,  &h10, fUnkn1, fUnkn2);
+            CalculateWavesOnlyForCoordinate2(ix + 2,  iy,      &h01, fUnkn1, fUnkn2);
+            // OG order: ((1-fy)*(h01-h00) + (1-fx)*(h10-h00)) + *pf + h00
+            *pfWaterLevel = (1.0f - fracY) * (h01 - h00) + (1.0f - fracX) * (h10 - h00) + *pfWaterLevel + h00;
+        }
+        return;
+    }
+
+    if (bBelowDiag) {
+        CalculateWavesOnlyForCoordinate2(ix,      iy,      &h00, fUnkn1, fUnkn2);
+        CalculateWavesOnlyForCoordinate2(ix + 2,  iy,      &h10, fUnkn1, fUnkn2);
+        CalculateWavesOnlyForCoordinate2(ix,      iy + 2,  &h01, fUnkn1, fUnkn2);
+        const float dhY = h01 - h00;
+        const float dhX = h10 - h00;
+        *pfWaterLevel = dhY * fracY + dhX * fracX + *pfWaterLevel + h00;
+        const CVector grad{ dhX, 0.0f, 0.0f }, up{ 0.0f, 2.0f, 2.0f };
+        *pVecNormal = CrossProduct(grad, up);
+    } else {
+        CalculateWavesOnlyForCoordinate2(ix + 2,  iy + 2,  &h00, fUnkn1, fUnkn2);
+        CalculateWavesOnlyForCoordinate2(ix,      iy + 2,  &h10, fUnkn1, fUnkn2);
+        CalculateWavesOnlyForCoordinate2(ix + 2,  iy,      &h01, fUnkn1, fUnkn2);
+        const float dhY = h01 - h00;
+        const float dhX = h10 - h00;
+        *pfWaterLevel = (1.0f - fracY) * dhY + (1.0f - fracX) * dhX + *pfWaterLevel + h00;
+        const CVector grad{ 0.0f, -2.0f, dhX }, up{ -2.0f, 0.0f, dhY };
+        *pVecNormal = CrossProduct(grad, up);
+    }
+    pVecNormal->Normalise();
 }
 
 // 0x6EE240
@@ -636,16 +682,186 @@ void CWaterLevel::SetUpWaterFog(int32 minX, int32 minY, int32 maxX, int32 maxY) 
     ms_WaterFog.maxY[idx] = maxY;
     ms_WaterFog.z[idx]    = fogZ;
 }
-
 // 0x6E9D70
 void CWaterLevel::FindNearestWaterAndItsFlow() {
-    plugin::Call<0x6E9D70>();
+    // OG reads the query point from EAX (+0x30 matrix pos if non-null, else 0xB6F02C); all callers pass null/garbage
+    // EAX here (crack-relocated body), i.e. the player-centre path, so use the camera position (== player centre here).
+    const CVector& pos = TheCamera.GetPosition();
+    if (pos.x < -3000.0f || pos.x >= 3000.0f || pos.y < -3000.0f || pos.y >= 3000.0f) {
+        TheCamera.m_fDistanceToWater       = 0.0f;
+        TheCamera.m_fHeightOfNearestWater  = 0.0f;
+        m_CurrentDesiredFlow = {};
+        return;
+    }
+
+    float bestDist  = 1.0e7f; // 0x4B189680
+    float bestDist2 = 1.0e7f;
+    float bestLevel = 0.0f; // OG copies the raw dword (== float assign)
+    for (uint32 qi = 0; qi < NumWaterQuads; qi++) {
+        const CWaterQuad& quad = WaterQuads[qi];
+        const CWaterVertex& v0 = m_aVertices[quad.verts[0]];
+        const CWaterVertex& v1 = m_aVertices[quad.verts[1]];
+        const CWaterVertex& v2 = m_aVertices[quad.verts[2]];
+        const CWaterVertex& v3 = m_aVertices[quad.verts[3]];
+
+        // Distance from the point to the quad's AABB (0 when inside on that axis; OG substitutes 0.0/uses the far edge delta)
+        const float dx = pos.x <= (float)v0.x ? (float)v0.x - pos.x
+                       : (float)v1.x < pos.x  ? pos.x - (float)v1.x
+                       : 0.0f;
+        const float dy = pos.y <= (float)v0.y ? (float)v0.y - pos.y
+                       : (float)v2.y < pos.y  ? pos.y - (float)v2.y
+                       : 0.0f;
+        const float dist = std::sqrt(dx * dx + dy * dy);
+        if (dist < bestDist) {
+            // Track the water level of the nearest quad that has any wave/flow data (OG tests all 8 floats for != 0.0 one at a time)
+            const CRenPar* const rps[4]{ &v0.rp, &v1.rp, &v2.rp, &v3.rp };
+            for (auto* rp : rps) {
+                if (rp->bigWaves != 0.0f || rp->smallWaves != 0.0f) {
+                    bestLevel = v0.rp.z;
+                    bestDist  = dist;
+                    goto flow;
+                }
+            }
+        }
+flow:
+        if (dist < bestDist2) {
+            bestDist2 = dist;
+            // Flow of the nearest vertex (squared distances; nearest wins ties in v0..v3 order per OG's `<=` chain)
+            const float d0 = (pos.x - (float)v0.x) * (pos.x - (float)v0.x) + (pos.y - (float)v0.y) * (pos.y - (float)v0.y);
+            const float d1 = (pos.x - (float)v1.x) * (pos.x - (float)v1.x) + (pos.y - (float)v1.y) * (pos.y - (float)v1.y);
+            const float d2 = (pos.x - (float)v2.x) * (pos.x - (float)v2.x) + (pos.y - (float)v2.y) * (pos.y - (float)v2.y);
+            const float d3 = (pos.x - (float)v3.x) * (pos.x - (float)v3.x) + (pos.y - (float)v3.y) * (pos.y - (float)v3.y);
+            const CRenPar* rp = &v0.rp;
+            if (d1 <= d0 || d2 <= d0 || d3 <= d0) {
+                rp = d2 <= d1 || d3 <= d1 ? (d3 <= d2 ? &v3.rp : &v2.rp) : &v1.rp;
+            }
+            m_CurrentDesiredFlow = { (float)rp->flowX * (1.0f / 64.0f), (float)rp->flowY * (1.0f / 64.0f) };
+        }
+    }
+    TheCamera.m_fDistanceToWater      = bestDist2;
+    TheCamera.m_fHeightOfNearestWater = bestLevel;
 }
 
 // 0x6E8580
-bool CWaterLevel::GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * pOutBigWaves, float * pOutSmallWaves) {
-    return plugin::CallAndReturn<bool, 0x6E8580, CVector, float *, float *, float *>(pos, pOutWaterLevel, pOutBigWaves, pOutSmallWaves);
+bool CWaterLevel::GetWaterLevelNoWaves(CVector pos, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves) {
+    const int32 blockX = (int32)std::floor(pos.x * 0.002f + 6.0f); // OG: `(x * 0.002 + 6)` via floor()+cast (0x8219F0/0x821B40)
+    const int32 blockY = (int32)std::floor(pos.y * 0.002f + 6.0f);
+    if (blockX < 0 || blockX >= NUM_WATER_BLOCKS_ROWCOL || blockY < 0 || blockY >= NUM_WATER_BLOCKS_ROWCOL) {
+        // Outside the water-block grid: still a valid query, reports "no water here"
+        *pOutWaterLevel = 0.0f;
+        if (pOutBigWaves) {
+            *pOutBigWaves = 1.0f;
+        }
+        if (pOutSmallWaves) {
+            *pOutSmallWaves = 0.0f;
+        }
+        return true;
+    }
+    const PolyInfo info = m_BlockPolyInfo[blockX][blockY];
+    switch (info.Type()) {
+    case PolyInfo::PType::SINGLE_QUAD:
+        return TestQuadToGetWaterLevel(&WaterQuads[info.Id()], pos.x, pos.y, pos.z, pOutWaterLevel, pOutBigWaves, pOutSmallWaves);
+    case PolyInfo::PType::SINGLE_TRI:
+        return TestTriangleToGetWaterLevel(&WaterTriangles[info.Id()], pos.x, pos.y, pos.z, pOutWaterLevel, pOutBigWaves, pOutSmallWaves);
+    case PolyInfo::PType::COMBO: {
+        for (const PolyInfo* combo = &m_PolyCombos[info.Id()]; combo->Type() != PolyInfo::PType::NONE; combo++) {
+            const bool bHit = combo->Type() == PolyInfo::PType::SINGLE_QUAD
+                ? TestQuadToGetWaterLevel(&WaterQuads[combo->Id()], pos.x, pos.y, pos.z, pOutWaterLevel, pOutBigWaves, pOutSmallWaves)
+                : TestTriangleToGetWaterLevel(&WaterTriangles[combo->Id()], pos.x, pos.y, pos.z, pOutWaterLevel, pOutBigWaves, pOutSmallWaves);
+            if (bHit) {
+                return true;
+            }
+        }
+        return false;
+    }
+    default:
+        return false;
+    }
 }
+
+// 0x6E5BB0
+bool CWaterLevel::TestQuadToGetWaterLevel(const CWaterQuad* quad, float x, float y, float z, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves) {
+    const CWaterVertex v0 = m_aVertices[quad->verts[0]];
+    const CWaterVertex v1 = m_aVertices[quad->verts[1]];
+    if (x < (float)v0.x || x > (float)v1.x) {
+        return false;
+    }
+    const CWaterVertex v2 = m_aVertices[quad->verts[2]];
+    if (y < (float)v0.y || y > (float)v2.y) {
+        return false;
+    }
+    const float tu = (x - (float)v0.x) / (float)(v1.x - v0.x);
+    const float tv = (y - (float)v0.y) / (float)(v2.y - v0.y);
+    float level, bigWaves, smallWaves;
+    if (tu + tv < 1.0f) {
+        const CWaterVertex v3 = m_aVertices[quad->verts[3]];
+        level       = (v1.rp.z - v3.rp.z) * tv + (v2.rp.z - v3.rp.z) * tu + v3.rp.z;
+        bigWaves    = (v1.rp.bigWaves - v3.rp.bigWaves) * tv + (v2.rp.bigWaves - v3.rp.bigWaves) * tu + v3.rp.bigWaves;
+        smallWaves  = (v1.rp.smallWaves - v3.rp.smallWaves) * tv + (v2.rp.smallWaves - v3.rp.smallWaves) * tu + v3.rp.smallWaves;
+    } else {
+        level       = (v1.rp.z - v0.rp.z) * tu + (v2.rp.z - v0.rp.z) * tv + v0.rp.z;
+        bigWaves    = (v1.rp.bigWaves - v0.rp.bigWaves) * tu + (v2.rp.bigWaves - v0.rp.bigWaves) * tv + v0.rp.bigWaves;
+        smallWaves  = (v1.rp.smallWaves - v0.rp.smallWaves) * tu + (v2.rp.smallWaves - v0.rp.smallWaves) * tv + v0.rp.smallWaves;
+    }
+    // Depth-limited quads reject points outside [level - 6, level + 20]
+    if (level - 6.0f <= z || quad->bLimitedDepth) {
+        if (level + 20.0f >= z) {
+            *pOutWaterLevel = level;
+            if (pOutBigWaves) {
+                *pOutBigWaves   = bigWaves;
+                *pOutSmallWaves = smallWaves;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+// 0x6E5E90
+bool CWaterLevel::TestTriangleToGetWaterLevel(const CWaterTriangle* tri, float x, float y, float z, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves) {
+    const CWaterVertex v0 = m_aVertices[tri->verts[0]];
+    const CWaterVertex v1 = m_aVertices[tri->verts[1]];
+    if (x < (float)v0.x || x > (float)v1.x) {
+        return false;
+    }
+    const CWaterVertex v2 = m_aVertices[tri->verts[2]];
+    const int32 yMin = std::min(v0.y, v2.y);
+    const int32 yMax = std::max(v0.y, v2.y);
+    if (y < (float)yMin || y >= (float)yMax) {
+        return false;
+    }
+    const float tu = (x - (float)v0.x) / (float)(v1.x - v0.x);
+    const float tv = (y - (float)v0.y) / (float)(v2.y - v0.y);
+    float level, bigWaves, smallWaves;
+    if (v0.x == v2.x) {
+        if (tu + tv >= 1.0f) {
+            return false;
+        }
+        level       = (v1.rp.z - v0.rp.z) * tu + (v2.rp.z - v0.rp.z) * tv + v0.rp.z;
+        bigWaves    = (v1.rp.bigWaves - v0.rp.bigWaves) * tu + (v2.rp.bigWaves - v0.rp.bigWaves) * tv + v0.rp.bigWaves;
+        smallWaves  = (v1.rp.smallWaves - v0.rp.smallWaves) * tu + (v2.rp.smallWaves - v0.rp.smallWaves) * tv + v0.rp.smallWaves;
+    } else {
+        if (tu < tv) {
+            return false;
+        }
+        const float tu2 = 1.0f - tu;
+        level       = (v0.rp.z - v1.rp.z) * tu2 + (v2.rp.z - v1.rp.z) * tv + v1.rp.z;
+        bigWaves    = (v0.rp.bigWaves - v1.rp.bigWaves) * tu2 + (v2.rp.bigWaves - v1.rp.bigWaves) * tv + v1.rp.bigWaves;
+        smallWaves  = (v0.rp.smallWaves - v1.rp.smallWaves) * tu2 + (v2.rp.smallWaves - v1.rp.smallWaves) * tv + v1.rp.smallWaves;
+    }
+    if (level - 6.0f <= z || tri->bLimitedDepth) {
+        if (level + 20.0f >= z) {
+            *pOutWaterLevel = level;
+            if (pOutBigWaves) {
+                *pOutBigWaves   = bigWaves;
+                *pOutSmallWaves = smallWaves;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 
 bool CWaterLevel::GetWaterDepth(const CVector& vecPos, float* pOutWaterDepth, float* pOutWaterLevel, float* pOutGroundLevel)
 {

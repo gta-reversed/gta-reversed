@@ -26,7 +26,7 @@ void FxManager_c::InjectHooks() {
     RH_ScopedInstall(Init, 0x4A98E0);
     RH_ScopedInstall(Exit, 0x4A9A10);
     RH_ScopedInstall(DestroyFxSystem, 0x4A9810);
-    RH_ScopedInstall(DestroyAllFxSystems, 0x4A98B0, {.reversed = false}); // <-- broken for some reason?
+    RH_ScopedInstall(DestroyAllFxSystems, 0x4A98B0);
     RH_ScopedInstall(Update, 0x4A9A80);
     RH_ScopedInstall(LoadFxProject, 0x5C2420);
     RH_ScopedInstall(UnloadFxProject, 0x4A9AE0);
@@ -101,7 +101,7 @@ void FxManager_c::DestroyFxSystem(FxSystem_c* system) {
         auto& particles = prim->m_Particles;
         for (Particle_c* it = particles.GetHead(); it;) {
             auto* const prt = it;
-            it = particles.GetNext(it); // Iterator will be invalidated, so get next here immediately
+            it              = particles.GetNext(it); // Iterator will be invalidated, so get next here immediately
 
             if (prt->m_System == system) {
                 prim->m_Particles.RemoveItem(prt);
@@ -117,8 +117,11 @@ void FxManager_c::DestroyFxSystem(FxSystem_c* system) {
 
 // 0x4A98B0
 void FxManager_c::DestroyAllFxSystems() {
-    for (FxSystem_c* it = m_FxSystems.GetHead(); it; it = m_FxSystems.GetNext(it)) {
+    FxSystem_c* it = m_FxSystems.GetHead();
+    while (it) {
+        FxSystem_c* const next = m_FxSystems.GetNext(it); //! Must be gotten here, as `it` is freed by `DestroyFxSystem` below
         DestroyFxSystem(it);
+        it = next;
     }
 }
 
@@ -140,8 +143,9 @@ bool FxManager_c::LoadFxProject(const char* path) {
     CTxdStore::SetCurrentTxd(m_nFxTxdIndex);
 
     auto* file = CFileMgr::OpenFile(path, "r");
-    if (!file)
+    if (!file) {
         return false;
+    }
 
     char line[256], buffer[128];
 
@@ -151,8 +155,9 @@ bool FxManager_c::LoadFxProject(const char* path) {
         ReadField<void>(file);
         ReadLine(file, line, sizeof(line));
         RET_IGNORED(sscanf(line, "%s", buffer));
-        if (strncmp(buffer, "FX_SYSTEM_DATA:", 16u))
+        if (strncmp(buffer, "FX_SYSTEM_DATA:", 16u)) {
             break;
+        }
 
         LoadFxSystemBP(path, file);
     }
@@ -183,7 +188,7 @@ void FxManager_c::LoadFxSystemBP(Const char* filename, FILESTREAM file) {
     // return ((FxSystemBP_c * (__thiscall*)(FxManager_c*, char*, FILESTREAM))0x5C1F50)(this, filename, file);
 
     int32 version;
-    char line[256];
+    char  line[256];
     ReadLine(file, line, sizeof(line));
     (void)sscanf(line, "%d", &version);
 
@@ -211,18 +216,18 @@ FxSystemBP_c* FxManager_c::FindFxSystemBP(const char* name) {
 void FxManager_c::CalcFrustumInfo(RwCamera* camera) {
     const auto* matrix     = RwFrameGetMatrix(RwCameraGetFrame(camera));
     const auto* viewWindow = RwCameraGetViewWindow(camera);
-    const auto farClip     = RwCameraGetFarClipPlane(camera);
+    const auto  farClip    = RwCameraGetFarClipPlane(camera);
 
-    const auto dist  = RwV2dLength(viewWindow);
-    const auto angle = RadiansToDegrees(std::atan2(dist, 1.0f));
-    const auto radius = std::sqrt(sq(dist) + 1.0f) * farClip / std::sin(DegreesToRadians(180.0f - 2.0f * angle)) * std::sin(DegreesToRadians(angle));
+    const auto dist        = RwV2dLength(viewWindow);
+    const auto angle       = RadiansToDegrees(std::atan2(dist, 1.0f));
+    const auto radius      = std::sqrt(sq(dist) + 1.0f) * farClip / std::sin(DegreesToRadians(180.0f - 2.0f * angle)) * std::sin(DegreesToRadians(angle));
 
-    m_Frustum.m_Sphere = {CVector{matrix->pos} + CVector{matrix->at} * radius, radius};
+    m_Frustum.m_Sphere     = { CVector{ matrix->pos } + CVector{ matrix->at } * radius, radius };
 
-    m_Frustum.m_Planes[0] = camera->frustumPlanes[2].plane;
-    m_Frustum.m_Planes[1] = camera->frustumPlanes[3].plane;
-    m_Frustum.m_Planes[2] = camera->frustumPlanes[4].plane;
-    m_Frustum.m_Planes[3] = camera->frustumPlanes[5].plane;
+    m_Frustum.m_Planes[0]  = camera->frustumPlanes[2].plane;
+    m_Frustum.m_Planes[1]  = camera->frustumPlanes[3].plane;
+    m_Frustum.m_Planes[2]  = camera->frustumPlanes[4].plane;
+    m_Frustum.m_Planes[3]  = camera->frustumPlanes[5].plane;
 }
 
 // 0x4A9A80
@@ -247,7 +252,7 @@ void FxManager_c::Update(RwCamera* camera, float timeDelta) {
 void FxManager_c::Render(RwCamera* camera, bool bHeatHaze) {
     // ((void(__thiscall*)(FxManager_c*, RwCamera*, uint8))0x4A92A0)(this, camera, bHeatHaze);
 
-    auto balance = 1.0f - CCustomBuildingDNPipeline::m_fDNBalanceParam;
+    auto balance       = 1.0f - CCustomBuildingDNPipeline::m_fDNBalanceParam;
     m_bHeatHazeEnabled = false;
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(FALSE));
@@ -279,7 +284,7 @@ void FxManager_c::FreeUpParticle() {
     do {
         do {
             auto numItems = m_FxSystems.GetNumItems();
-            system = m_FxSystems.GetItemOffset(true, CGeneral::GetRandomNumber() % numItems);
+            system        = m_FxSystems.GetItemOffset(true, CGeneral::GetRandomNumber() % numItems);
         } while (system->m_MustCreateParticles);
     } while (!system->m_SystemBP->FreePrtFromSystem(system));
 }
@@ -332,17 +337,20 @@ FxSystem_c* FxManager_c::CreateFxSystem(FxSystemBP_c* systemBP, const CVector& p
 
 // 0x4A9500
 bool FxManager_c::ShouldCreate(FxSystemBP_c* system, const RwMatrix& transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks) {
-    if (ignoreBoundingChecks)
+    if (ignoreBoundingChecks) {
         return true;
+    }
 
-    if (!system->m_BoundingSphere)
+    if (!system->m_BoundingSphere) {
         return true;
+    }
 
     auto* curr = FxRwMatrixCreate();
-    if (objectMatrix)
+    if (objectMatrix) {
         RwMatrixMultiply(curr, &transform, objectMatrix);
-    else
+    } else {
         *curr = transform;
+    }
 
     FxSphere_c pointsOut;
     RwV3dTransformPoints(&pointsOut.m_vecCenter, reinterpret_cast<const RwV3d*>(system->m_BoundingSphere), 1, curr);

@@ -128,62 +128,52 @@ void CAEPoliceScannerAudioEntity::FinishedPlayingScannerDialogue() {
 
 // 0x4E6F60
 void CAEPoliceScannerAudioEntity::PlayLoadedDialogue() {
-    return plugin::CallMethod<0x4E6F60, CAEPoliceScannerAudioEntity*>(this);
-
-    int16 i;
-    for (i = 0; i < NUM_POLICE_SCANNER_SLOTS; ++i) {
+    int16 i = 0;
+    for (; i < NUM_POLICE_SCANNER_SLOTS; i++) {
         if (s_SlotState[i] == FIVE) {
             break;
         }
     }
-
     if (i == NUM_POLICE_SCANNER_SLOTS) {
         i = 0;
-        goto LABEL_7;
+    } else if (i >= NUM_POLICE_SCANNER_SLOTS) {
+        goto NoMoreSlotsToPlay;
     }
-
-    if (i >= NUM_POLICE_SCANNER_SLOTS) {
-    LABEL_9:
-        auto volumeChange = s_fVolumeOffset /* + flt_B61D54 */;
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SCANNER_CLICK, volumeChange);
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SCANNER_NOISE_STOP);
-        if (s_nSectionPlaying) {
-            FinishedPlayingScannerDialogue();
-        } else {
-            auto v2 = (int16*)s_ScannerSlotSecond;
-            s_pCurrentSlots = s_ScannerSlotSecond;
-            s_nSectionPlaying = 1;
-            auto v3 = s_SlotState;
-            auto v4 = 5;
-            do {
-                *v3 = *v2 < 0 || v2[1] < 0;
-                v2 += 2;
-                ++v3;
-                --v4;
-            } while (v4);
-            s_nPlaybackStartTime = 0;
-            // s_nAbortPlaybackTime = *(_DWORD*)&gSpeechContextLookup[366][0] + CTimer::GetTimeInMS();
-            s_nScannerPlaybackState = TWO;
+    for (; i < NUM_POLICE_SCANNER_SLOTS; i++) {
+        if (s_SlotState[i] != THREE) {
+            continue;
         }
-    } else {
-    LABEL_7:
-        while (s_SlotState[i] != 3) {
-            if (++i >= 5)
-                goto LABEL_9;
+        if (i >= NUM_POLICE_SCANNER_SLOTS) {
+            break;
         }
-
-        auto volume = GetDefaultVolume(AE_CRIME_COMMITTED) + s_fVolumeOffset;
+        const auto volume = GetDefaultVolume(AE_CRIME_COMMITTED) + s_fVolumeOffset;
         CAESound sound;
-        sound.Initialise((eSoundBankSlot)(SND_BANK_SLOT_SCANNER_FIRST + i), s_pCurrentSlots[i].SoundID, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-        sound.m_ClientVariable = (float)i;
+        sound.Initialise((eSoundBankSlot)(SND_BANK_SLOT_SCANNER_FIRST + i), s_pCurrentSlots[i].SoundID, this, { 0.0f, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+        sound.m_ClientVariable = static_cast<float>(i);
         sound.m_Flags = SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_IS_DUCKABLE;
         sound.m_Event = AE_CRIME_COMMITTED;
-
         s_pSound = AESoundManager.RequestNewSound(&sound);
         if (s_pSound) {
-            s_SlotState[i] = 5;
+            s_SlotState[i] = FIVE;
             s_nScannerPlaybackState = SEVEN;
         }
+        return;
+    }
+NoMoreSlotsToPlay:
+    const auto volumeChange = s_fVolumeOffset; // + flt_B61D54;
+    AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SCANNER_CLICK, volumeChange);
+    AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SCANNER_NOISE_STOP);
+    if (s_nSectionPlaying) {
+        FinishedPlayingScannerDialogue();
+    } else {
+        s_pCurrentSlots = s_ScannerSlotSecond;
+        s_nSectionPlaying = 1;
+        for (auto slotIndex = 0; slotIndex < NUM_POLICE_SCANNER_SLOTS; slotIndex++) {
+            s_SlotState[slotIndex] = s_ScannerSlotSecond[slotIndex].Bank < 0 || s_ScannerSlotSecond[slotIndex].SoundID < 0;
+        }
+        s_nPlaybackStartTime = 0;
+        s_nAbortPlaybackTime = CTimer::GetTimeInMS() + 5000; // gSpeechContextLookup[366][0]
+        s_nScannerPlaybackState = TWO;
     }
 }
 
@@ -322,17 +312,17 @@ void CAEPoliceScannerAudioEntity::InjectHooks() {
     RH_ScopedInstall(Reset, 0x4E6E90);
     RH_ScopedInstall(AddAudioEvent, 0x4E71E0, { .reversed = false });
     RH_ScopedInstall(PrepSlots, 0x4E6BC0);
-    RH_ScopedInstall(LoadSlots, 0x4E6CD0, { .reversed = false });
+    RH_ScopedInstall(LoadSlots, 0x4E6CD0);
     RH_ScopedInstall(EnableScanner, 0x4E6DB0);
     RH_ScopedInstall(DisableScanner, 0x4E71B0);
     RH_ScopedInstall(StopScanner, 0x4E6DC0);
     RH_ScopedInstall(FinishedPlayingScannerDialogue, 0x4E6C30);
-    RH_ScopedInstall(PlayLoadedDialogue, 0x4E6F60, { .reversed = false });
+    RH_ScopedInstall(PlayLoadedDialogue, 0x4E6F60);
     RH_ScopedInstall(PopulateScannerDialogueLists, 0x4E6B60);
     RH_ScopedInstall(CanWePlayNewScannerDialogue, 0x4E6C00);
     RH_ScopedInstall(PlayPoliceScannerDialogue, 0x4E6ED0);
     RH_ScopedVMTInstall(UpdateParameters, 0x4E7590);
-    RH_ScopedInstall(Service, 0x4E7630, { .reversed = false });
+    RH_ScopedInstall(Service, 0x4E7630);
 }
 
 CAEPoliceScannerAudioEntity* CAEPoliceScannerAudioEntity::Constructor() {

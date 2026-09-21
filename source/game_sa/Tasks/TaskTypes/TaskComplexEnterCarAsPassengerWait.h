@@ -17,7 +17,7 @@ public:
     CTaskComplexEnterCarAsPassengerWait(const CTaskComplexEnterCarAsPassengerWait&);
     ~CTaskComplexEnterCarAsPassengerWait();
 
-    CTaskComplexEnterCarAsPassengerTimed* CreateSubTask(int32 taskType, CPed* ped);
+    CTask* CreateSubTask(int32 taskType, CPed* ped);
 
     CTask*    Clone() const override { return new CTaskComplexEnterCarAsPassengerWait{ *this }; }
     eTaskType GetTaskType() const override { return Type; }

@@ -9,7 +9,7 @@ void CCarFXRenderer::InjectHooks() {
 
     RH_ScopedInstall(RegisterPlugins, 0x5D5B00);
     RH_ScopedInstall(Initialise, 0x5D5AC0);
-    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .reversed = false });
+    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0);
     RH_ScopedInstall(Shutdown, 0x5D5AD0);
     RH_ScopedInstall(PreRenderUpdate, 0x5D5B10);
     RH_ScopedInstall(IsCCPCPipelineAttached, 0x5D5B80);
@@ -31,7 +31,38 @@ bool CCarFXRenderer::Initialise() {
 
 // 0x5D5BC0
 void CCarFXRenderer::InitialiseDirtTexture() {
-    plugin::Call<0x5D5BC0>();
+    CTxdStore::PushCurrentTxd();
+    CTxdStore::SetCurrentTxd(CTxdStore::FindTxdSlot("vehicle"));
+
+    auto* const tex = RwTextureRead("vehiclegrunge256", nullptr);
+    RwTextureSetFilterMode(tex, rwFILTERLINEAR);
+
+    const auto raster = RwTextureGetRaster(tex);
+    const auto width  = RwRasterGetWidth(raster);
+    const auto height = RwRasterGetHeight(raster);
+
+    auto brightness = 0xFF0;
+    for (auto i = 0; i < NUM_DIRT_TEXTURES; i++) {
+        auto* const copy = CClothesBuilder::CopyTexture(tex);
+        ms_aDirtTextures[i] = copy;
+        RwTextureSetName(copy, "vehiclegrunge256");
+
+        const auto add = static_cast<uint8>(brightness / 16);
+        auto* const pixels = RwRasterLock(RwTextureGetRaster(copy), 0, rwRASTERLOCKREADWRITE);
+        for (auto y = 0; y < height; y++) {
+            auto* const row = &pixels[y * width * 4];
+            for (auto x = 0; x < width; x++) {
+                for (auto c = 0; c < 3; c++) {
+                    row[x * 4 + c] = static_cast<uint8>(row[x * 4 + c] * i / 16 + add);
+                }
+            }
+        }
+        RwRasterUnlock(RwTextureGetRaster(copy));
+
+        brightness -= 0xFF;
+    }
+
+    CTxdStore::PopCurrentTxd();
 }
 
 // 0x5D5AD0

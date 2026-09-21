@@ -26,7 +26,7 @@ void CMenuSystem::InjectHooks() {
     RH_ScopedInstall(CreateNewMenu, 0x582300);
     RH_ScopedInstall(ActivateItems, 0x581990);
     RH_ScopedInstall(ActivateOneItem, 0x581B30);
-    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0, { .reversed = false });
+    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0);
     RH_ScopedInstall(InsertMenu, 0x581E00);
     RH_ScopedInstall(SwitchOffMenu, 0x580750);
 }
@@ -34,8 +34,9 @@ void CMenuSystem::InjectHooks() {
 // 0x5822D0
 void CMenuSystem::Initialise() {
     for (auto i = 0; i < MENU_COUNT; ++i) {
-        if (MenuInUse[i])
+        if (MenuInUse[i]) {
             SwitchOffMenu(i);
+        }
     }
     CurrentMenuInUse = 0;
 }
@@ -123,8 +124,9 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
 
     if (!MenuInUse[CurrentMenuInUse]) {
         do {
-            if (CurrentMenuInUse <= 0)
+            if (CurrentMenuInUse <= 0) {
                 break;
+            }
             --CurrentMenuInUse;
         } while (!MenuInUse[CurrentMenuInUse]);
     }
@@ -135,8 +137,9 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
 
     if (!MenuInUse[CurrentMenuInUse]) {
         do {
-            if (CurrentMenuInUse >= 2)
+            if (CurrentMenuInUse >= 2) {
                 break;
+            }
             ++CurrentMenuInUse;
         } while (!MenuInUse[CurrentMenuInUse]);
     }
@@ -148,18 +151,22 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     }
 
     if (pad->IsCrossPressed() || CTimer::GetIsPaused() && pad->IsEnterJustPressed()) {
-        if (!CTimer::GetIsPaused())
+        if (!CTimer::GetIsPaused()) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+        }
 
-        if (menu->m_abRowSelectable[menu->m_nSelectedRow])
+        if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
             menu->m_nAcceptedRow = menu->m_nSelectedRow;
+        }
     }
 
-    if (menu->m_nAcceptedRow != menu->m_nSelectedRow)
+    if (menu->m_nAcceptedRow != menu->m_nSelectedRow) {
         menu->m_nAcceptedRow = MENU_UNDEFINED;
+    }
 
-    if (menu->m_nNumRows <= 1)
+    if (menu->m_nNumRows <= 1) {
         return;
+    }
 
     if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed() || CTimer::GetIsPaused() && CPad::IsUpPressed()) {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
@@ -174,12 +181,14 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
         ++menu->m_nSelectedRow;
         while (true) {
             if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
-                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0])
+                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) {
                     break;
+                }
             }
 
-            if (menu->m_nSelectedRow >= menu->m_nNumRows)
+            if (menu->m_nSelectedRow >= menu->m_nNumRows) {
                 break;
+            }
 
             menu->m_nSelectedRow += 1;
         }
@@ -196,12 +205,14 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
         menu->m_nSelectedRow = 0;
         while (true) {
             if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
-                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0])
+                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) {
                     break;
+                }
             }
 
-            if (menu->m_nSelectedRow >= menu->m_nNumRows)
+            if (menu->m_nSelectedRow >= menu->m_nNumRows) {
                 break;
+            }
 
             menu->m_nSelectedRow += 1;
         }
@@ -212,34 +223,40 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
 // 0x580BD0
 void CMenuSystem::InputGridMenu(MenuId id) {
     auto menu = MenuNumber[id];
-    auto pad = CPad::GetPad();
+    auto pad  = CPad::GetPad();
 
     if (pad->IsCrossPressed() || CTimer::GetIsPaused() && pad->IsEnterJustPressed()) {
-        if (menu->m_abRowSelectable[menu->m_nSelectedRow])
+        if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
             menu->m_nAcceptedRow = menu->m_nSelectedRow;
+        }
     }
 
-    if (menu->m_nAcceptedRow != menu->m_nSelectedRow)
+    if (menu->m_nAcceptedRow != menu->m_nSelectedRow) {
         menu->m_nAcceptedRow = UNDEFINED;
+    }
 
     if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed()) {
-        if (menu->m_nSelectedRow >= menu->m_nNumColumns)
+        if (menu->m_nSelectedRow >= menu->m_nNumColumns) {
             menu->m_nSelectedRow -= menu->m_nNumColumns;
+        }
     }
 
     if (CPad::GetAnaloguePadDown() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadDownPressed()) {
-        if (menu->m_nSelectedRow < menu->m_nNumRows - menu->m_nNumColumns)
+        if (menu->m_nSelectedRow < menu->m_nNumRows - menu->m_nNumColumns) {
             menu->m_nSelectedRow += menu->m_nNumColumns;
+        }
     }
 
     if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadLeftPressed()) {
-        if (menu->m_nSelectedRow > 0)
+        if (menu->m_nSelectedRow > 0) {
             menu->m_nSelectedRow -= 1;
+        }
     }
 
     if (CPad::GetAnaloguePadRight() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadRightPressed()) {
-        if (menu->m_nSelectedRow < menu->m_nNumRows - 1)
+        if (menu->m_nSelectedRow < menu->m_nNumRows - 1) {
             menu->m_nSelectedRow += 1;
+        }
     }
 }
 
@@ -255,8 +272,8 @@ void CMenuSystem::Display(MenuId id, uint8 unk) {
 
 // 0x580E00
 void CMenuSystem::DisplayStandardMenu(MenuId id, bool bBrightFont) {
-    auto menu = MenuNumber[id];
-    auto fBaseY = SCREEN_STRETCH_Y(20.0f);
+    auto  menu          = MenuNumber[id];
+    auto  fBaseY        = SCREEN_STRETCH_Y(20.0f);
     uint8 windowOpacity = bBrightFont ? 0 : 120;
 
     if (menu->m_bColumnBackground) {
@@ -265,7 +282,7 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bBrightFont) {
             menuWidth += menu->m_afColumnWidth[i];
             if (menu->m_aacColumnHeaders[i][0]) {
                 menuHeight = 70;
-                fBaseY = SCREEN_STRETCH_Y(40.f);
+                fBaseY     = SCREEN_STRETCH_Y(40.f);
             }
         }
         menuWidth += SCREEN_STRETCH_X(20);
@@ -345,8 +362,9 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bBrightFont) {
     // draw rows
     for (auto row = 0; row < menu->m_nNumRows; row++) {
         for (auto column = 0; column < menu->m_nNumColumns; column++) {
-            if (!menu->m_aaacRowTitles[column][row][0])
+            if (!menu->m_aaacRowTitles[column][row][0]) {
                 continue;
+            }
 
             CFont::SetColor(GetColor(row)); // NOTSA | optimized
             auto* rowTitle            = menu->m_aaacRowTitles[column][row];
@@ -393,15 +411,15 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bBrightFont) {
 
 // 0x5816E0
 void CMenuSystem::DisplayGridMenu(MenuId id, bool bFade) {
-    auto menu = MenuNumber[id];
+    auto menu        = MenuNumber[id];
 
     auto columnWidth = menu->m_afColumnWidth[0];
     if (menu->m_bColumnBackground) {
         CRect rect;
         rect.left   = menu->m_vPosn.x;
-        rect.bottom    = menu->m_vPosn.y;
+        rect.bottom = menu->m_vPosn.y;
         rect.right  = (float)menu->m_nNumColumns * columnWidth + menu->m_vPosn.x;
-        rect.top = (float)menu->m_nNumColumns * columnWidth + menu->m_vPosn.y;
+        rect.top    = (float)menu->m_nNumColumns * columnWidth + menu->m_vPosn.y;
         FrontEndMenuManager.DrawWindow(rect, nullptr, bFade ? 0 : 120, { 0, 0, 0, 190 }, false, true);
     }
 
@@ -412,20 +430,20 @@ void CMenuSystem::DisplayGridMenu(MenuId id, bool bFade) {
             if (index == menu->m_nSelectedRow) {
                 CRect rect;
                 rect.left   = (float)r * columnWidth + menu->m_vPosn.x;
-                rect.bottom    = (float)c * columnWidth + menu->m_vPosn.y;
+                rect.bottom = (float)c * columnWidth + menu->m_vPosn.y;
                 rect.right  = ((float)r + 1.0f) * columnWidth + menu->m_vPosn.x;
-                rect.top = ((float)c + 1.0f) * columnWidth + menu->m_vPosn.y;
+                rect.top    = ((float)c + 1.0f) * columnWidth + menu->m_vPosn.y;
                 CSprite2d::DrawRect(rect, { 225, 225, 225, 255 });
             }
 
             // color
             auto  colorIndex = GetCarColourFromGrid(id, index);
-            auto& color = CVehicleModelInfo::ms_vehicleColourTable[colorIndex];
+            auto& color      = CVehicleModelInfo::ms_vehicleColourTable[colorIndex];
             CRect rect;
             rect.left   = (float)r * columnWidth + menu->m_vPosn.x + SCREEN_STRETCH_X(3.0f);
-            rect.bottom    = (float)c * columnWidth + menu->m_vPosn.y + SCREEN_STRETCH_Y(3.0f);
+            rect.bottom = (float)c * columnWidth + menu->m_vPosn.y + SCREEN_STRETCH_Y(3.0f);
             rect.right  = (float)r * columnWidth + menu->m_vPosn.x + columnWidth - SCREEN_STRETCH_X(3.0f);
-            rect.top = (float)c * columnWidth + menu->m_vPosn.y + columnWidth - SCREEN_STRETCH_Y(3.0f);
+            rect.top    = (float)c * columnWidth + menu->m_vPosn.y + columnWidth - SCREEN_STRETCH_Y(3.0f);
             CSprite2d::DrawRect(rect, { color.r, color.g, color.b, 255 });
             index++;
         }
@@ -437,8 +455,9 @@ void CMenuSystem::Process(int8 id) {
     if (id != (int8)MENU_UNDEFINED) {
         if (MenuInUse[id]) {
             Display(id, 1);
-            if (MenuNumber[id]->m_abColumnInteractive[INTERACTIVE_DEFAULT])
+            if (MenuNumber[id]->m_abColumnInteractive[INTERACTIVE_DEFAULT]) {
                 Input(id);
+            }
         }
         return;
     }
@@ -463,14 +482,14 @@ void CMenuSystem::Process(int8 id) {
 // 0x581C10
 void CMenuSystem::HighlightOneItem(MenuId id, uint8 item, bool bought) {
     MenuNumber[id]->m_abRowAlreadyBought[item] = bought;
-    MenuNumber[id]->m_abRowSelectable[item] = true;
+    MenuNumber[id]->m_abRowSelectable[item]    = true;
 }
 
 // 0x581CE0, unused
 void CMenuSystem::InsertOneMenuItem(MenuId id, uint8 column, uint8 row, const char* text) {
     auto* menu = MenuNumber[id];
     SetRowTitle(id, column, row, text);
-    menu->m_aanNumberInRowTitle[column][row] = -1;
+    menu->m_aanNumberInRowTitle[column][row]     = -1;
     menu->m_aadw2ndNumberInRowTitle[column][row] = -1;
 
     CalcNonEmptyRows(id);
@@ -480,7 +499,7 @@ void CMenuSystem::InsertOneMenuItem(MenuId id, uint8 column, uint8 row, const ch
 void CMenuSystem::InsertOneMenuItemWithNumber(MenuId id, uint8 column, uint8 row, const char* text, int32 num1, int32 num2) {
     auto* menu = MenuNumber[id];
     SetRowTitle(id, column, row, text);
-    menu->m_aanNumberInRowTitle[column][row] = num1;
+    menu->m_aanNumberInRowTitle[column][row]     = num1;
     menu->m_aadw2ndNumberInRowTitle[column][row] = num2;
 
     CalcNonEmptyRows(id);
@@ -493,19 +512,19 @@ MenuId CMenuSystem::CreateNewMenu(eMenuType type, const char* title, float x, fl
     MenuId menuId = GetNumMenusInUse();
     assert(!MenuInUse[menuId]);
     MenuNumber[menuId] = new Menu();
-    MenuInUse[menuId] = true;
-    Menu* menu = MenuNumber[menuId];
-    menu->m_nType = type;
+    MenuInUse[menuId]  = true;
+    Menu* menu         = MenuNumber[menuId];
+    menu->m_nType      = type;
 
     switch (type) {
     case MENU_TYPE_DEFAULT:
-        menu->m_nNumRows = 0;
-        menu->m_nNumColumns = std::min(columns, (uint8)MENU_COL_COUNT);
-        menu->m_nSelectedRow = 0;
+        menu->m_nNumRows                                 = 0;
+        menu->m_nNumColumns                              = std::min(columns, (uint8)MENU_COL_COUNT);
+        menu->m_nSelectedRow                             = 0;
         menu->m_abColumnInteractive[INTERACTIVE_DEFAULT] = interactive;
-        menu->m_abColumnInteractive[INTERACTIVE_DPAD] = true; // DPAD
-        menu->m_vPosn = { x, y };
-        menu->m_bColumnBackground = background != 0;
+        menu->m_abColumnInteractive[INTERACTIVE_DPAD]    = true; // DPAD
+        menu->m_vPosn                                    = { x, y };
+        menu->m_bColumnBackground                        = background != 0;
         if (title) {
             strcpy_s(menu->m_szTitle, title);
         } else {
@@ -514,26 +533,26 @@ MenuId CMenuSystem::CreateNewMenu(eMenuType type, const char* title, float x, fl
         menu->m_nAcceptedRow = MENU_UNDEFINED;
         ActivateItems(menuId, true, true, true, true, true, true, true, true, true, true, true, true);
         for (auto i = 0; i < MENU_COL_COUNT; ++i) {
-            menu->m_afColumnWidth[i] = width;
-            menu->m_anColumnAlignment[i] = alignment;
+            menu->m_afColumnWidth[i]           = width;
+            menu->m_anColumnAlignment[i]       = alignment;
             menu->m_anColumnHeaderAlignment[i] = eFontAlignment::ALIGN_UNDEFINED;
-            menu->m_aacColumnHeaders[i][0] = '\0';
+            menu->m_aacColumnHeaders[i][0]     = '\0';
             for (auto j = 0; j < MENU_ROW_COUNT; ++j) {
                 menu->m_aaacRowTitles[i][j][0] = '\0';
-                menu->m_abRowAlreadyBought[j] = 0;
+                menu->m_abRowAlreadyBought[j]  = 0;
             }
         }
         break;
     case MENU_TYPE_GRID:
-        menu->m_afColumnWidth[0] = width;
-        menu->m_bColumnBackground = background != 0;
+        menu->m_afColumnWidth[0]                         = width;
+        menu->m_bColumnBackground                        = background != 0;
         menu->m_abColumnInteractive[INTERACTIVE_DEFAULT] = interactive;
-        menu->m_abColumnInteractive[INTERACTIVE_DPAD] = true;
-        menu->m_nNumColumns = std::min(columns, (uint8)8);
-        menu->m_vPosn = { x, y };
-        menu->m_nAcceptedRow = MENU_UNDEFINED;
-        menu->m_nSelectedRow = 0;
-        menu->m_nNumRows = menu->m_nNumColumns * menu->m_nNumColumns;
+        menu->m_abColumnInteractive[INTERACTIVE_DPAD]    = true;
+        menu->m_nNumColumns                              = std::min(columns, (uint8)8);
+        menu->m_vPosn                                    = { x, y };
+        menu->m_nAcceptedRow                             = MENU_UNDEFINED;
+        menu->m_nSelectedRow                             = 0;
+        menu->m_nNumRows                                 = menu->m_nNumColumns * menu->m_nNumColumns;
         FillGridWithCarColours(menuId);
         break;
     }
@@ -544,7 +563,7 @@ MenuId CMenuSystem::CreateNewMenu(eMenuType type, const char* title, float x, fl
 
 // 0x581990
 void CMenuSystem::ActivateItems(MenuId id, bool b0, bool b1, bool b2, bool b3, bool b4, bool b5, bool b6, bool b7, bool b8, bool b9, bool b10, bool b11) {
-    auto* menu = MenuNumber[id];
+    auto* menu        = MenuNumber[id];
 
     const bool rows[] = { b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11 };
     for (auto rowId = 0u; rowId < std::size(rows); rowId++) {
@@ -554,11 +573,13 @@ void CMenuSystem::ActivateItems(MenuId id, bool b0, bool b1, bool b2, bool b3, b
     for (auto i = 0; i < MENU_COUNT; ++i) {
         while (true) {
             if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
-                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0])
+                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) {
                     break;
+                }
             }
-            if (menu->m_nSelectedRow >= menu->m_nNumRows)
+            if (menu->m_nSelectedRow >= menu->m_nNumRows) {
                 break;
+            }
             ++menu->m_nSelectedRow;
         }
         if (menu->m_nSelectedRow >= menu->m_nNumRows) {
@@ -571,16 +592,18 @@ void CMenuSystem::ActivateItems(MenuId id, bool b0, bool b1, bool b2, bool b3, b
 void CMenuSystem::ActivateOneItem(MenuId id, uint8 row, bool enable) {
     // plugin::Call<0x581B30, MenuId, uint8, uint8>(id, row, enable);
 
-    auto* menu = MenuNumber[id];
+    auto* menu                   = MenuNumber[id];
 
     menu->m_abRowSelectable[row] = enable;
     while (true) {
         if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
-            if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0])
+            if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) {
                 break;
+            }
         }
-        if (menu->m_nSelectedRow >= menu->m_nNumRows)
+        if (menu->m_nSelectedRow >= menu->m_nNumRows) {
             break;
+        }
         menu->m_nSelectedRow += 1;
     }
 
@@ -588,22 +611,60 @@ void CMenuSystem::ActivateOneItem(MenuId id, uint8 row, bool enable) {
         menu->m_nSelectedRow = 0;
         while (true) {
             if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
-                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0])
+                if (menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) {
                     break;
+                }
             }
-            if (menu->m_nSelectedRow >= menu->m_nNumRows)
+            if (menu->m_nSelectedRow >= menu->m_nNumRows) {
                 break;
+            }
             menu->m_nSelectedRow += 1;
         }
     }
 
-    if (menu->m_nSelectedRow >= menu->m_nNumRows)
+    if (menu->m_nSelectedRow >= menu->m_nNumRows) {
         menu->m_nSelectedRow = 0;
+    }
 }
 
 // 0x5820E0
 void CMenuSystem::FillGridWithCarColours(MenuId id) {
-    plugin::Call<0x5820E0, MenuId>(id);
+    CRGBA usedColours[MENU_CAR_COLOR_COUNT];
+    for (auto& colour : usedColours) {
+        colour = CRGBA(0, 0, 0, 255);
+    }
+
+    uint8 numUsedColours    = 0; // Number of colours put into the grid so far
+    uint8 colourId          = 0; // Index of the current colour in the vehicle colour table
+    uint8 numColoursToCheck = 1; // Number of grid colours the current colour is checked against
+    do {
+        const auto& tableColour = CVehicleModelInfo::ms_vehicleColourTable[colourId];
+        const CRGBA colour(tableColour.r, tableColour.g, tableColour.b, 255);
+
+        // Check if a colour similar to this one is already in the grid
+        bool alreadyInGrid = false;
+        for (auto i = 0u; i < numColoursToCheck; i++) {
+            if (numColoursToCheck > 1
+                && usedColours[i].r - 15 < colour.r
+                && usedColours[i].g - 15 < colour.g
+                && usedColours[i].b - 15 < colour.b
+                && colour.r < usedColours[i].r + 15
+                && colour.g < usedColours[i].g + 15
+                && colour.b < usedColours[i].b + 15) {
+                alreadyInGrid = true;
+            }
+        }
+
+        if (!alreadyInGrid || (uint8)(colourId + 1) >= 0x80) {
+            usedColours[numUsedColours]                       = colour;
+            MenuNumber[id]->m_anUsedCarColors[numUsedColours] = colourId;
+            numUsedColours++;
+            numColoursToCheck++;
+            colourId = 0;
+        } else {
+            colourId++;
+        }
+    } while (numColoursToCheck < 0x41);
 }
 
 // Insert menu column
@@ -621,21 +682,23 @@ void CMenuSystem::InsertMenu(MenuId id, uint8 column, const char* colHeader, con
 
     for (auto i = 0; i < MENU_COL_COUNT; ++i) {
         for (auto j = 0; j < MENU_ROW_COUNT; ++j) {
-            menu->m_aanNumberInRowTitle[i][j] = -1;
+            menu->m_aanNumberInRowTitle[i][j]     = -1;
             menu->m_aadw2ndNumberInRowTitle[i][j] = -1;
         }
     }
 
-    if (column)
+    if (column) {
         return;
+    }
 
     CalcNonEmptyRows(id);
 }
 
 // 0x580750
 void CMenuSystem::SwitchOffMenu(MenuId id) {
-    if (!MenuInUse[id])
+    if (!MenuInUse[id]) {
         return;
+    }
 
     delete MenuNumber[id];
     MenuInUse[id] = false;
@@ -652,7 +715,7 @@ void CMenuSystem::SwitchOffMenu(MenuId id) {
 
 // NOTSA
 void CMenuSystem::CalcNonEmptyRows(MenuId id) {
-    auto* menu = MenuNumber[id];
+    auto* menu       = MenuNumber[id];
     menu->m_nNumRows = 0;
     for (auto& row : menu->m_aaacRowTitles[0]) { // they used reverse loop from MENU_ROW_COUNT to 0
         if (row[0]) {

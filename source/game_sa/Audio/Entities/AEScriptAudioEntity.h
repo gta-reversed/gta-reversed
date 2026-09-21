@@ -62,7 +62,7 @@ public:
     void SetMissionAudioPosition(uint8 sampleId, CVector& posn);
     CVector* GetMissionAudioPosition(uint8);
 
-    void PlayMissionBankSound(uint8 sampleId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7 = 0, float volume = 0.0f, float maxDistance = 2.0f, float speed = 1.0f);
+    void PlayMissionBankSound(eAudioEvents eventId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7 = 0, float volume = 0.0f, float maxDistance = 2.0f, float speed = 1.0f);
     void PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, CVector& posn, CPhysical* physical, float vol, float speed = 1.0f, int16 playPosn = 0, float maxDistance = 1.0f);
     void PlayLoadedMissionAudio(uint8);
     void PreloadMissionAudio(uint8 slotId, int32 sampleId);

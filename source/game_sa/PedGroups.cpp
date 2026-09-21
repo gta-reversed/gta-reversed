@@ -8,6 +8,7 @@ void CPedGroups::InjectHooks() {
 
     RH_ScopedInstall(Process, 0x5FC800);
     RH_ScopedInstall(RemoveGroup, 0x5FB870);
+    RH_ScopedInstall(GetPedsGroup, 0x5F7E80);
 }
 
 #ifdef ANDROID
@@ -63,7 +64,15 @@ bool CPedGroups::IsGroupLeader(CPed* ped) {
 
 // 0x5F7E80
 CPedGroup* CPedGroups::GetPedsGroup(const CPed* ped) {
-    return plugin::CallAndReturn<CPedGroup*, 0x5F7E80>(ped);
+    for (auto i = 0; i < 8; i++) {
+        if (!ms_activeGroups[i] || !ped) {
+            continue;
+        }
+        if (ms_groups[i].GetMembership().IsMember(ped)) {
+            return &ms_groups[i];
+        }
+    }
+    return nullptr;
 }
 
 // 0x5F7EE0

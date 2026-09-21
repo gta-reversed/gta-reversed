@@ -7,7 +7,7 @@ void CTaskComplexDragPedFromCar__InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedVMTInstall(ControlSubTask, 0x640530);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00);
 }
 
 // 0x640430
@@ -36,8 +36,34 @@ CTask* CTaskComplexDragPedFromCar::ControlSubTask(CPed* ped) {
 }
 
 // 0x643D00
-
-// 0x0
 CTask* CTaskComplexDragPedFromCar::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x643D00, CTaskComplexDragPedFromCar*, CPed*>(this, ped);
+    if (   m_Ped
+        && m_Ped->m_pVehicle
+        && !m_Ped->bInVehicle // Ped was dragged out already (Likely by another task?)
+        && (m_Ped->m_pVehicle->IsDriver(m_Ped) || m_Ped->m_pVehicle->IsPassenger(m_Ped))
+    ) {
+        if (m_Car) {
+            m_Car->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_Car));
+        }
+        m_Car = m_Ped->m_pVehicle;
+        m_Car->RegisterReference(reinterpret_cast<CEntity**>(&m_Car));
+
+        m_bAsDriver = m_Car->m_pDriver == m_Ped;
+        m_bQuitAfterDraggingPedOut = true;
+
+        if (m_DraggedPed) {
+            const auto draggedPedVeh = m_DraggedPed->m_pVehicle;
+            if (!draggedPedVeh->vehicleFlags.bIsBus
+                && draggedPedVeh->m_nVehicleType != VEHICLE_TYPE_AUTOMOBILE
+                && draggedPedVeh->m_nVehicleSubType != VEHICLE_TYPE_AUTOMOBILE
+            ) {
+                m_TargetSeat = CCarEnterExit::ComputeTargetDoorToExit(draggedPedVeh, m_Ped);
+                m_DraggedPedDownTime = CTimer::GetTimeInMS();
+                return CTaskComplexEnterCar::CreateFirstSubTask(ped);
+            }
+            m_TargetSeat = 0;
+        }
+        return CTaskComplexEnterCar::CreateFirstSubTask(ped);
+    }
+    return CTaskComplexEnterCar::CreateSubTask(TASK_FINISHED, ped);
 }

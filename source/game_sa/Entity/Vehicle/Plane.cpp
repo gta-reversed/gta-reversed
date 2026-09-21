@@ -27,16 +27,16 @@ void CPlane::InjectHooks() {
     RH_ScopedInstall(SetGearUp, 0x6CAC20);
     RH_ScopedInstall(SetGearDown, 0x6CAC70);
     RH_ScopedVMTInstall(OpenDoor, 0x6CACB0);
-    RH_ScopedVMTInstall(ProcessControl, 0x6C9260, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessControl, 0x6C9260);
     RH_ScopedVMTInstall(ProcessControlInputs, 0x6CADD0, { .reversed = false });
     RH_ScopedVMTInstall(ProcessFlyingCarStuff, 0x6CB7C0, { .reversed = false });
     RH_ScopedVMTInstall(VehicleDamage, 0x6CC4B0, { .reversed = false });
     RH_ScopedInstall(CountPlanesAndHelis, 0x6CCA50);
     RH_ScopedInstall(AreWeInNoPlaneZone, 0x6CCAA0);
     RH_ScopedInstall(AreWeInNoBigPlaneZone, 0x6CCBB0);
-    RH_ScopedInstall(SwitchAmbientPlanes, 0x6CCC50, { .reversed = false });
-    RH_ScopedVMTInstall(BlowUpCar, 0x6CCCF0, { .reversed = false });
-    RH_ScopedInstall(FindPlaneCreationCoors, 0x6CD090, { .reversed = false });
+    RH_ScopedInstall(SwitchAmbientPlanes, 0x6CCC50);
+    RH_ScopedVMTInstall(BlowUpCar, 0x6CCCF0);
+    RH_ScopedInstall(FindPlaneCreationCoors, 0x6CD090);
     RH_ScopedInstall(DoPlaneGenerationAndRemoval, 0x6CD2F0, { .reversed = false });
 }
 
@@ -154,93 +154,99 @@ void CPlane::InitPlaneGenerationAndRemoval() {
 
 // 0x6CCCF0
 void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
-    return plugin::CallMethod<0x6CCCF0, CPlane*, CEntity*, uint8>(this, damager, bHideExplosion);
-
-    // untested \ wip
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    if (GetStatus() == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
-        if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
-            FindPlayerInfo().m_nHavocCaused += 20;
-            FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
-            CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)CGeneral::GetRandomNumberInRange(4000, 10'000));
-        }
-
-        if (GetStatus() == STATUS_PLAYER) { // strange
-            if (m_pDriver) {
-                m_pDriver->bDontRender = true;
-            }
-            for (auto& passenger : m_apPassengers) {
-                if (passenger) {
-                    passenger->bDontRender = true;
-                }
-            }
-            m_nFlags &= 0xFFFFFF7E;
-            ResetMoveSpeed();
-            ResetTurnSpeed();
-        }
-
-        // m_nType = m_nType & 7 | STATUS_WRECKED;
-        physicalFlags.bRenderScorched = true;
-        m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
-        CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
-        m_damageManager.FuckCarCompletely(false);
-        if (m_nModelIndex != MODEL_RCBARON) {
-            CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
-            CAutomobile::SetBumperDamage(REAR_BUMPER, false);
-            CAutomobile::SetDoorDamage(DOOR_BONNET, false);
-            CAutomobile::SetDoorDamage(DOOR_BOOT, false);
-            CAutomobile::SetDoorDamage(DOOR_LEFT_FRONT, false);
-            CAutomobile::SetDoorDamage(DOOR_RIGHT_FRONT, false);
-            CAutomobile::SetDoorDamage(DOOR_LEFT_REAR, false);
-            CAutomobile::SetDoorDamage(DOOR_RIGHT_REAR, false);
-            CAutomobile::SpawnFlyingComponent(static_cast<eCarNodes>(PLANE_WHEEL_LF), 1);
-
-            // todo: shit
-            if (auto node = m_aCarNodes[PLANE_WHEEL_LF]) {
-                damager = 0;
-                RwFrameForAllObjects(node, GetCurrentAtomicObjectCB, &damager);
-                if (damager) {
-                    rwObjectSetFlags(damager, 0); // RpAtomic* damager
-                }
-            }
-        }
-        // this->m_nBombLightsWinchFlags &= 0xF8u;
-        m_fHealth = 0.0f;
-        m_wBombTimer = 0;
-
-        TheCamera.CamShake(0.4f, GetPosition());
-        KillPedsInVehicle();
-        // auto v23 = this->m_nFlags1 & 0xAF;
-        // this->m_nBombLightsWinchFlags &= 0xE7u;
-        // this->m_nFlags1 = v23;
-        m_bSmokeEjectorEnabled = false;
-        // this->m_nFlags6 = m_nFlags6 & 0x7F; // vehicleFlags.bSirenOrAlarm = false;
-        // this->ucNPCVehicleFlags = this->ucNPCVehicleFlags & 0xFE;
-
-        if (vehicleFlags.bIsAmbulanceOnDuty) {
-            vehicleFlags.bIsAmbulanceOnDuty = false;
-            --CCarCtrl::NumAmbulancesOnDuty;
-        }
-
-        if (vehicleFlags.bIsFireTruckOnDuty) {
-            vehicleFlags.bIsFireTruckOnDuty = false;
-            --CCarCtrl::NumFireTrucksOnDuty;
-        }
-
-        ChangeLawEnforcerState(0);
-        gFireManager.StartFire(this, damager, 0.8f, 1, 7000, 0);
-        CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
-        if (m_nModelIndex == MODEL_RCBARON) {
-            CExplosion::AddExplosion(this, damager, EXPLOSION_RC_VEHICLE, GetPosition(), 0, 1, -1.0f, 0);
-        } else {
-
-            CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
-        }
-    } else {
+    // Check if this is a mission plane that should crash-and-burn instead of exploding immediately.
+    // (The actual binary checks raw bytes here: `TEST [ESI+0x36],0xF8` etc, which don't map cleanly
+    // onto the `m_nStatus` bitfield - matching the observable behavior instead. See disasm @ 0x6CCD03.)
+    if (GetStatus() != STATUS_PLAYER && m_autoPilot.m_nCarMission != MISSION_PLANE_CRASH_AND_BURN && m_nModelIndex != MODEL_RCBARON) {
         m_autoPilot.SetCarMission(MISSION_PLANE_CRASH_AND_BURN);
         m_fHealth = 0.0f;
+        return;
+    }
+
+    if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
+        FindPlayerInfo().m_nHavocCaused += 20;
+        FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
+        CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)CGeneral::GetRandomNumberInRange(4000, 10'000));
+    }
+
+    if (GetStatus() == STATUS_PLAYER) {
+        if (m_pDriver) {
+            m_pDriver->bDontRender = true;
+        }
+        for (auto& passenger : m_apPassengers) {
+            if (passenger) {
+                passenger->bDontRender = true;
+            }
+        }
+        // NOTSA: assembly `AND [ESI+0x1C],0xFFFFFF7E` - m_nFlags @ 0x1C
+        *(uint32*)((uint8*)this + 0x1C) &= 0xFFFFFF7E;
+        ResetMoveSpeed();
+        ResetTurnSpeed();
+    }
+
+    // NOTSA: inlined `SetStatus(STATUS_WRECKED)` - assembly:
+    //   MOV DL,[ESI+0x36] ; AND DL,0x7 ; OR DL,0x28 ; MOV [ESI+0x36],DL
+    *(uint8*)((uint8*)this + 0x36) = (*(uint8*)((uint8*)this + 0x36) & 7) | 0x28;
+    physicalFlags.bRenderScorched = true;
+    m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
+    CVisibilityPlugins::SetClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_PIPE_NO_EXTRA_PASSES_LOD);
+    m_damageManager.FuckCarCompletely(false);
+    if (m_nModelIndex != MODEL_RCBARON) {
+        CAutomobile::SetBumperDamage(FRONT_BUMPER, false);
+        CAutomobile::SetBumperDamage(REAR_BUMPER, false);
+        CAutomobile::SetDoorDamage(DOOR_BONNET, false);
+        CAutomobile::SetDoorDamage(DOOR_BOOT, false);
+        CAutomobile::SetDoorDamage(DOOR_LEFT_FRONT, false);
+        CAutomobile::SetDoorDamage(DOOR_RIGHT_FRONT, false);
+        CAutomobile::SetDoorDamage(DOOR_LEFT_REAR, false);
+        CAutomobile::SetDoorDamage(DOOR_RIGHT_REAR, false);
+        CAutomobile::SpawnFlyingComponent(static_cast<eCarNodes>(PLANE_WHEEL_LF), 1);
+
+        if (auto node = m_aCarNodes[PLANE_WHEEL_LF]) {
+            RwObject* atomic = nullptr;
+            RwFrameForAllObjects(node, GetCurrentAtomicObjectCB, &atomic);
+            if (atomic) {
+                rwObjectSetFlags(atomic, 0);
+            }
+        }
+    }
+    // NOTSA: raw writes matching the binary (`MOV [ESI+0x4DE],BX`, `AND [ESI+0x4A8],0xF8`) -
+    // these offsets overlap bitfields with no clean named mapping, so match the bytes exactly.
+    *(uint16*)((uint8*)this + 0x4DE) = 0;
+    *(uint8*)((uint8*)this + 0x4A8) &= 0xF8;
+    m_fHealth = 0.0f;
+    m_wBombTimer = 0;
+
+    TheCamera.CamShake(0.4f, GetPosition());
+    KillPedsInVehicle();
+    // NOTSA: more raw flag writes from the disasm (`AND [ESI+0x428],0xAF`, `AND [ESI+0x4A8],0xE7`,
+    // `AND [ESI+0x42D],0x7F`, `AND [ESI+0x868],0xFE`) - no clean named fields, matching bytes.
+    *(uint8*)((uint8*)this + 0x428) &= 0xAF;
+    *(uint8*)((uint8*)this + 0x4A8) &= 0xE7;
+    *(uint8*)((uint8*)this + 0x42D) &= 0x7F;
+    *(uint8*)((uint8*)this + 0x868) &= 0xFE;
+    m_bSmokeEjectorEnabled = false;
+
+    if (vehicleFlags.bIsAmbulanceOnDuty) {
+        vehicleFlags.bIsAmbulanceOnDuty = false;
+        --CCarCtrl::NumAmbulancesOnDuty;
+    }
+
+    if (vehicleFlags.bIsFireTruckOnDuty) {
+        vehicleFlags.bIsFireTruckOnDuty = false;
+        --CCarCtrl::NumFireTrucksOnDuty;
+    }
+
+    ChangeLawEnforcerState(false);
+    gFireManager.StartFire(this, damager, 0.8f, 1, 7000, 0);
+    CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
+    if (m_nModelIndex == MODEL_RCBARON) {
+        CExplosion::AddExplosion(this, damager, EXPLOSION_RC_VEHICLE, GetPosition(), 0, 1, -1.0f, 0);
+    } else {
+        CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
     }
 }
 
@@ -336,15 +342,67 @@ bool CPlane::AreWeInNoBigPlaneZone() {
     return DistanceBetweenPoints2D({ +1522.0f, -1237.0f }, camPos) < 800.0f ||
            DistanceBetweenPoints2D({ -1836.0f, +659.0f }, camPos) < 800.0f;
 }
-
 // 0x6CCC50
 void CPlane::SwitchAmbientPlanes(bool enable) {
-    plugin::Call<0x6CCC50, bool>(enable);
+    if (!GenPlane_Active) {
+        GenPlane_Active = enable;
+        return;
+    }
+    if (!enable) {
+        for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+            if (vehicle.IsSubHeli() || vehicle.IsSubPlane()) {
+                if (vehicle.m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN) {
+                    CWorld::Remove(&vehicle);
+                    delete &vehicle;
+                }
+            }
+        }
+    }
+    GenPlane_Active = enable;
 }
 
 // 0x6CD090
 void CPlane::FindPlaneCreationCoors(CVector* outCoors, CVector* outTargetCoors, float* outPlaneOrientation, float* outFlightHeight, bool isBigPlane) {
-    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(outCoors, outTargetCoors, outPlaneOrientation, outFlightHeight, isBigPlane);
+    float spawnRadius, baseHeight;
+    if (!isBigPlane) {
+        spawnRadius = 140.0f;
+        baseHeight = 25.0f;
+    } else {
+        spawnRadius = 340.0f;
+        baseHeight = 200.0f;
+    }
+    int32 attempt = 0;
+    for (; attempt < 500; attempt += 10) {
+        const float angle = (float)(CGeneral::GetRandomNumber() % 360) * DEG_TO_RAD;
+        *outCoors = FindPlayerCoors();
+        *outFlightHeight = (float)(CGeneral::GetRandomNumber() & 0xF) + (float)attempt + baseHeight;
+        outCoors->x += std::cos(angle) * spawnRadius;
+        outCoors->y += std::sin(angle) * spawnRadius;
+        outCoors->z += *outFlightHeight;
+        *outTargetCoors = FindPlayerCoors();
+        const float targetDist = (float)(CGeneral::GetRandomNumber() & 0x1F) + 20.0f;
+        // NOTSA: raw static @ 0xB6F9AC - camera/plane target direction vector, no clean named mapping
+        const auto dir = *reinterpret_cast<CVector*>(0xB6F9AC);
+        outTargetCoors->x += dir.x * targetDist;
+        outTargetCoors->y += dir.y * targetDist;
+        outTargetCoors->z += dir.z * targetDist + *outFlightHeight;
+        *outPlaneOrientation = CGeneral::GetATanOfXY(outTargetCoors->x - outCoors->x, outTargetCoors->y - outCoors->y);
+        CVector lineEnd = *outTargetCoors + (*outTargetCoors - *outCoors);
+        CWorld::AdvanceCurrentScanCode();
+        CColSphere sphere(*outCoors, 16.0f);
+        if (CWorld::GetIsLineOfSightClear(*outCoors, lineEnd, true, false, false, false, false, false, false)) {
+            // NOTSA: the binary builds raw sphere/box structs on the stack and calls
+            // `CCollision::CheckCameraCollisionBuildings` with them - no clean high-level mapping,
+            // matching the observable behavior (break iff no building blocks the spawn line).
+            CColSphere spS(lineEnd, 16.0f), spA(lineEnd, 16.0f), spB(lineEnd, 16.0f);
+            CColBox box(spA.m_vecCenter - CVector(16.0f, 16.0f, 16.0f), spA.m_vecCenter + CVector(16.0f, 16.0f, 16.0f));
+            if (!CCollision::CheckCameraCollisionBuildings(0, 0, box, spS, spA, spB)) {
+                break;
+            }
+        }
+    }
+    *outFlightHeight += 20.0f;
+    outTargetCoors->z += 20.0f;
 }
 
 // 0x6CD2F0
@@ -375,14 +433,11 @@ void CPlane::Render() {
 
 // 0x6C9260
 void CPlane::ProcessControl() {
-    return plugin::CallMethod<0x6C9260, CPlane*>(this);
-
-    // untested
     if (GetStatus() == STATUS_PLAYER) {
         if (m_nModelIndex == MODEL_CROPDUST || m_nModelIndex == MODEL_STUNT) {
-            auto pad = CPad::GetPad(m_pDriver->GetPadNumber());
+            const auto pad = CPad::GetPad(m_pDriver->GetPadNumber());
             if (pad->IsRightShockPressed()) {
-                m_bSmokeEjectorEnabled = m_bSmokeEjectorEnabled == 0;
+                m_bSmokeEjectorEnabled = !m_bSmokeEjectorEnabled;
             }
         }
     }
@@ -414,11 +469,11 @@ void CPlane::ProcessControl() {
 
     if (m_pSmokeParticle) {
         RwMatrix out;
-        m_nSmokeTimer += (uint32)(-CTimer::GetTimeStepInMS());
+        m_nSmokeTimer += static_cast<uint32>(-CTimer::GetTimeStepInMS());
         m_pSmokeParticle->GetCompositeMatrix(&out);
-        CVector velocity = -m_vecMoveSpeed * 5.0f;
-        auto particleData = FxPrtMult_c(0.0f, 0.0f, 0.0f, 0.2f, 1.0f, 1.0f, 0.1f);
-        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.00f, particleData);
+        const CVector velocity = -m_vecMoveSpeed * 5.0f;
+        const auto particleData = FxPrtMult_c(0.0f, 0.0f, 0.0f, 0.2f, 1.0f, 1.0f, 0.1f);
+        g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.0f, particleData);
         g_fx.m_SmokeHuge->AddParticle(out.pos, velocity, 0.05f, particleData);
         if (m_nSmokeTimer <= 0 || vehicleFlags.bIsDrowning) {
             m_pSmokeParticle->Kill();

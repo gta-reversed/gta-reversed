@@ -28,23 +28,27 @@ public:
             return;
         }
         const auto SetPedDefaultTask = [&](CPed* p, int32 i, CTask* task) {
-            auto* const tp = &pedGroup->GetIntelligence().GetDefaultPedTaskPairs()[i];
-            if (tp->Ped && (!ped || tp->Ped == ped)) {
-                VERIFY(std::exchange(tp->Task, task) == nullptr);
+            auto& tp = pedGroup->GetIntelligence().GetDefaultPedTaskPairs()[i];
+            if (tp.Ped && (!p || tp.Ped == p)) {
+                assert(!tp.Task);
+                tp.Task = task;
             } else {
                 delete task;
             }
         };
-        SetPedDefaultTask(leader, CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{
+        SetPedDefaultTask(ped, CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{ // 0x5F703E
             new CTaskComplexEnterCarAsDriver{veh}, // 0x5F703E
             new CTaskSimpleCarDrive{veh} // 0x5F7074
         });
-        size_t seat{};
-        for (auto&& [i, mem] : rngv::enumerate(pedGroup->GetMembership().GetFollowers())) {
-            if (seat >= veh->m_nMaxPassengers) {
-                break;
+        int32 seat{};
+        for (auto&& [i, tp] : rngv::enumerate(pedGroup->GetIntelligence().GetDefaultPedTaskPairs())) {
+            if (i == CPedGroupMembership::LEADER_MEM_ID) {
+                continue; // Skip the leader's slot
             }
-            SetPedDefaultTask(leader, CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{
+            if (!tp.Ped || seat >= veh->m_nMaxPassengers) {
+                continue;
+            }
+            SetPedDefaultTask(ped, i, new CTaskComplexSequence{ // 0x5F714B
                 new CTaskComplexEnterCarAsPassenger{veh, CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(veh, seat++)}, // 0x5F714B
                 new CTaskSimpleCarDrive{veh} // 0x5F7184
             });
@@ -56,7 +60,7 @@ public:
         RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocatorSitInLeaderCar, 0x86C784, 2);
         RH_ScopedCategory("Tasks/Allocators/PedGroup");
 
-        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6FC0, { .reversed = false });
+        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6FC0);
         RH_ScopedVMTInstall(GetType, 0x5F6560);
     }
 };

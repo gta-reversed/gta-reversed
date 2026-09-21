@@ -66,7 +66,7 @@ void CPopulation::InjectHooks() {
     RH_ScopedGlobalInstall(AddToPopulation, 0x614720, { .reversed = false });
     RH_ScopedGlobalInstall(GeneratePedsAtAttractors, 0x615970);
     RH_ScopedGlobalInstall(GeneratePedsAtStartOfGame, 0x615C90);
-    RH_ScopedGlobalInstall(ManageObject, 0x615DC0, { .reversed = false });
+    RH_ScopedGlobalInstall(ManageObject, 0x615DC0);
     RH_ScopedGlobalInstall(ManageDummy, 0x616000);
     RH_ScopedGlobalInstall(ManageAllPopulation, 0x6160A0);
     RH_ScopedGlobalInstall(ManagePopulation, 0x616190);
@@ -1711,7 +1711,60 @@ void CPopulation::GeneratePedsAtStartOfGame() {
 
 // 0x615DC0
 void CPopulation::ManageObject(CObject* object, const CVector& posn) {
-    ((void(__cdecl*)(CObject*, const CVector&))0x615DC0)(object, posn);
+    if (!object->CanBeDeleted()) {
+        return;
+    }
+    const auto distToPlayer = (object->GetPosition() - posn).Magnitude();
+    if (object->m_nObjectType != OBJECT_TEMPORARY) {
+        const auto* const attached = object->m_pAttachedTo;
+        const auto distToAttached = !attached ? 100000.0f : (attached->GetPosition() - posn).Magnitude();
+        const auto model = object->GetModelId();
+        const auto cullDist = model == ModelIndices::MI_SAMSITE || model == ModelIndices::MI_SAMSITE2 ? 750.0f : 80.0f;
+        if (distToPlayer <= cullDist || distToAttached <= FindDummyDistForModel(model)) {
+            return;
+        }
+        ConvertToDummyObject(object);
+        return;
+    }
+    const auto model = object->GetModelId();
+    if (model == ModelIndices::MI_ROADWORKBARRIER1 || model == ModelIndices::MI_ROADBLOCKFUCKEDCAR1 || model == ModelIndices::MI_ROADBLOCKFUCKEDCAR2 || model == ModelIndices::MI_BEACHBALL) {
+        if (distToPlayer < 120.0f || object->GetIsOnScreen()) {
+            return;
+        }
+        CWorld::Remove(object);
+        delete object;
+        return;
+    }
+    if (model >= ModelIndices::MI_BEACHTOWEL01 && model <= ModelIndices::MI_BEACHTOWEL04) {
+        if (distToPlayer <= 64.5f) {
+            if (distToPlayer <= 35.0f || object->GetIsOnScreen()) {
+                return;
+            }
+        }
+        CWorld::Remove(object);
+        delete object;
+        return;
+    }
+    if (distToPlayer > 54.5f || distToPlayer > 25.0f && !object->GetIsOnScreen() || object->m_nRemovalTime < CTimer::GetTimeInMS()) {
+        CWorld::Remove(object);
+        delete object;
+        return;
+    }
+    const auto* const controlList = object->m_pControlCodeList;
+    if (!controlList) {
+        return;
+    }
+    if (*reinterpret_cast<const char*>(controlList) != '\x02') {
+        return;
+    }
+    if (!(object->m_nObjectFlags & 0x400000)) {
+        return;
+    }
+    if (CVisibilityPlugins::GetClumpAlpha(object->GetRpClump()) != 0 && object->IsVisible()) {
+        return;
+    }
+    CWorld::Remove(object);
+    delete object;
 }
 
 // 0x616000

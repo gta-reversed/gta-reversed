@@ -21,7 +21,7 @@ void CIdleCam::InjectHooks() {
     RH_ScopedInstall(IsTargetValid, 0x517770);
     RH_ScopedInstall(ProcessTargetSelection, 0x517870);
     RH_ScopedInstall(ProcessSlerp, 0x5179E0);
-    RH_ScopedInstall(ProcessFOVZoom, 0x517BF0, { .reversed = false });
+    RH_ScopedInstall(ProcessFOVZoom, 0x517BF0);
     RH_ScopedInstall(Run, 0x51D3E0);
     RH_ScopedInstall(Process, 0x522C80);
     RH_ScopedInstall(IdleCamGeneralProcess, 0x50E690);
@@ -126,7 +126,101 @@ void CIdleCam::GetLookAtPositionOnTarget(const CEntity* target, CVector& outPos)
 
 // 0x517BF0
 void CIdleCam::ProcessFOVZoom(float time) {
-    NOTSA_UNREACHABLE();
+    const float now = (float)CTimer::GetTimeInMS();
+    float desiredFOV = m_ZoomNearest;
+    bool doZoomIn = false;
+    CEntity* target = nullptr;
+    if (m_Target) {
+        CVector lookAt{};
+        GetLookAtPositionOnTarget(m_Target, lookAt);
+        const CVector toTarget = lookAt - m_Cam->m_vecSource;
+        const float dist = toTarget.Magnitude();
+        target = m_Target;
+        // Original checks `(type & 7) == ENTITY_TYPE_PED` and `m_nPedType` (+0x598) == 22 (PROSTITUTE) or 5 (CIVFEMALE)
+        if (target->GetIsTypePed() && (target->AsPed()->m_nPedType == PED_TYPE_PROSTITUTE || target->AsPed()->m_nPedType == PED_TYPE_CIVFEMALE)) {
+            doZoomIn = true;
+            desiredFOV *= 0.5f;
+            if (dist < 8.f) {
+                m_nForceAZoomOut = true;
+            }
+        }
+        if (dist > m_DistStartFOVZoom) {
+            doZoomIn = true;
+        }
+    }
+    const auto oldIgnore = CWorld::pIgnoreEntity;
+    if (time >= 1.f) {
+        const auto prevState = m_ZoomState;
+        if (doZoomIn) {
+            if (now - m_TimeLastZoomIn > m_TimeBeforeNewZoomIn) {
+                bool blocked = true;
+                if (target) {
+                    CVector lookAt{};
+                    GetLookAtPositionOnTarget(target, lookAt);
+                    CWorld::pIgnoreEntity = target;
+                    blocked = !CWorld::GetIsLineOfSightClear(m_Cam->m_vecSource, lookAt, true, false, false, true, false, false, true);
+                }
+                CWorld::pIgnoreEntity = oldIgnore;
+                if (m_TargetLOSCounter > 10 && m_ZoomState == eIdleCamZoomState::UNK_2) {
+                    m_ZoomState = (eIdleCamZoomState)1;
+                }
+                if (m_ZoomState == eIdleCamZoomState::UNK_3 && !m_nForceAZoomOut && blocked) {
+                    m_ZoomState = (eIdleCamZoomState)0;
+                    doZoomIn = prevState == (eIdleCamZoomState)0;
+                    desiredFOV = m_ZoomNearest;
+                    goto SetZoom;
+                }
+            }
+        } else if (m_ZoomState == eIdleCamZoomState::UNK_2) {
+            desiredFOV = m_ZoomFarthest;
+            m_ZoomState = (eIdleCamZoomState)1;
+            doZoomIn = false;
+SetZoom:
+            m_ZoomTo = desiredFOV;
+            if (!doZoomIn) {
+                m_TimeZoomStarted = now;
+                m_ZoomFrom = m_CurFOV;
+            }
+        }
+    }
+    if (m_ZoomState == eIdleCamZoomState::UNK_2) {
+        m_TimeLastZoomIn = now;
+    }
+    if (m_nForceAZoomOut && m_ZoomState == eIdleCamZoomState::UNK_2) {
+        m_TimeZoomStarted = now;
+        m_ZoomFrom = m_CurFOV;
+        m_ZoomState = (eIdleCamZoomState)1;
+        m_ZoomTo = m_ZoomFarthest;
+    }
+    m_nForceAZoomOut = false;
+    switch (m_ZoomState) {
+    case (eIdleCamZoomState)0: {
+        if (std::fabs(m_CurFOV - desiredFOV) >= 1.f) {
+            goto Interpolate;
+        }
+        m_ZoomState = eIdleCamZoomState::UNK_2;
+        m_bHasZoomedIn = true;
+        goto SetFarthest;
+    }
+    case (eIdleCamZoomState)1: {
+        if (std::fabs(m_CurFOV - m_ZoomFarthest) >= 1.f) {
+Interpolate:
+            m_CurFOV = (m_ZoomTo - m_ZoomFrom) * (std::sin(DegreesToRadians(270.f - (now - m_TimeZoomStarted) / m_DurationFOVZoom * 180.f)) + 1.f) * 0.5f + m_ZoomFrom;
+            break;
+        }
+        m_ZoomState = eIdleCamZoomState::UNK_3;
+        m_CurFOV = m_ZoomFarthest;
+        break;
+    }
+    case eIdleCamZoomState::UNK_2:
+        m_CurFOV = desiredFOV;
+        break;
+    case eIdleCamZoomState::UNK_3:
+SetFarthest:
+        m_CurFOV = m_ZoomFarthest;
+        break;
+    }
+    m_Cam->m_fFOV = m_CurFOV;
 }
 
 // 0x517770

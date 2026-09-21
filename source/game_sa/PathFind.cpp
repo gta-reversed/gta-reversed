@@ -68,7 +68,7 @@ void CPathFind::InjectHooks() {
     RH_ScopedInstall(SwitchPedRoadsOffInArea, 0x452F00);
     RH_ScopedInstall(SwitchRoadsOffInArea, 0x452C80);
     RH_ScopedInstall(SwitchRoadsOffInAreaForOneRegion, 0x452820);
-    RH_ScopedInstall(ComputeRoute, 0x452760, { .reversed = false });
+    RH_ScopedInstall(ComputeRoute, 0x452760);
     //RH_ScopedInstall(CompleteNewInterior, 0x452270);
     RH_ScopedInstall(SwitchOffNodeAndNeighbours, 0x452160);
     //RH_ScopedInstall(Find2NodesForCarCreation, 0x452090);
@@ -489,7 +489,32 @@ void CPathFind::DoPathSearch(
 
 // 0x452760
 void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route) {
-    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &startAddress, route);
+    CNodeAddress outNodes[8]{};
+    int16 outCount = 0;
+    static auto& forbiddenAddr = StaticRef<CNodeAddress>(0x8A5F44); // Invalid node (area 0xFFFF) = no forbidden node
+    DoPathSearch(
+        static_cast<ePathType>(nodeType),
+        vecStart,
+        startAddress,
+        vecEnd,
+        outNodes,
+        outCount,
+        8,
+        nullptr,
+        999999.875f,
+        nullptr,
+        999999.875f,
+        false,
+        forbiddenAddr,
+        false,
+        false
+    );
+    route->Clear();
+    for (int32 i = 0; i < outCount; i++) {
+        if (route->GetSize() < 8) {
+            route->Add(outNodes[i]);
+        }
+    }
 }
 
 // 0x44D960

@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include <Pools/Pools.h>
+#include "ObjectSaveStructure.h"
 #include "CarCtrl.h"
 
 #include <Pools/IplDefPool.h>
@@ -60,9 +61,9 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880);
-    RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .reversed = false });
-    RH_ScopedInstall(SavePedPool, 0x5D4B40, { .reversed = false });
-    RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .reversed = false });
+    RH_ScopedInstall(SaveObjectPool, 0x5D4940);
+    RH_ScopedInstall(SavePedPool, 0x5D4B40);
+    RH_ScopedInstall(SaveVehiclePool, 0x5D4800);
 }
 
 // 0x550F10
@@ -305,18 +306,113 @@ bool CPools::Save() {
 
 // 0x5D4940
 bool CPools::SaveObjectPool() {
-    return plugin::CallAndReturn<bool, 0x5D4940>();
+    int32 count = 0;
+    const auto pool = GetObjectPool();
+    for (auto i = 0; i < pool->GetSize(); i++) {
+        if (pool->IsFreeSlotAtIndex(i)) {
+            continue;
+        }
+        const auto* obj = pool->GetAt(i);
+        if (!obj || obj->m_nObjectType != OBJECT_MISSION) {
+            continue;
+        }
+        count++;
+    }
+    CGenericGameStorage::SaveDataToWorkBuffer(count);
+    for (auto i = 0; i < pool->GetSize(); i++) {
+        if (pool->IsFreeSlotAtIndex(i)) {
+            continue;
+        }
+        const auto* obj = pool->GetAt(i);
+        if (!obj || obj->m_nObjectType != OBJECT_MISSION) {
+            continue;
+        }
+        CGenericGameStorage::SaveDataToWorkBuffer(GetObjectRef(const_cast<CObject*>(obj)));
+        CGenericGameStorage::SaveDataToWorkBuffer(obj->m_nModelIndex);
+        CObjectSaveStructure saveStruct{};
+        saveStruct.Construct(const_cast<CObject*>(obj));
+        CGenericGameStorage::SaveDataToWorkBuffer(&saveStruct, sizeof(saveStruct));
+    }
+    return true;
 }
 
 // 0x5D4B40
 bool CPools::SavePedPool() {
-    return plugin::CallAndReturn<bool, 0x5D4B40>();
+    int32 count = 0;
+    const auto pool = GetPedPool();
+    for (auto i = 0; i < pool->GetSize(); i++) {
+        if (pool->IsFreeSlotAtIndex(i)) {
+            continue;
+        }
+        const auto* ped = pool->GetAt(i);
+        if (!ped || ped->physicalFlags.bSubmergedInWater || ped->m_pVehicle) {
+            continue;
+        }
+        count++;
+    }
+    CGenericGameStorage::SaveDataToWorkBuffer(count);
+    for (auto i = 0; i < pool->GetSize(); i++) {
+        if (pool->IsFreeSlotAtIndex(i)) {
+            continue;
+        }
+        auto* ped = pool->GetAt(i);
+        if (!ped || ped->physicalFlags.bSubmergedInWater || ped->m_pVehicle) {
+            continue;
+        }
+        const auto ref = GetPedRef(ped);
+        const auto modelId = ped->m_nModelIndex;
+        const auto pedType = (int32)ped->m_nPedType;
+        CGenericGameStorage::SaveDataToWorkBuffer(ref);
+        CGenericGameStorage::SaveDataToWorkBuffer(modelId);
+        CGenericGameStorage::SaveDataToWorkBuffer(pedType);
+        ped->Save();
+    }
+    return true;
 }
 
 // 0x5D4800
 // Used in CPools::Save (Android 1.0)
 bool CPools::SaveVehiclePool() {
-    return plugin::CallAndReturn<bool, 0x5D4800>();
+    int32 count = 0;
+    const auto pool = GetVehiclePool();
+    for (auto i = 0; i < pool->GetSize(); i++) {
+        if (pool->IsFreeSlotAtIndex(i)) {
+            continue;
+        }
+        const auto* veh = pool->GetAt(i);
+        if (!veh || veh->GetStatus() != STATUS_ABANDONED) {
+            continue;
+        }
+        if (veh->m_pDriver || rng::any_of(veh->m_apPassengers, [](auto* p) { return p != nullptr; })) {
+            continue;
+        }
+        if (veh->m_pFire) {
+            continue;
+        }
+        count++;
+    }
+    CGenericGameStorage::SaveDataToWorkBuffer(count);
+    for (auto i = 0; i < pool->GetSize(); i++) {
+        if (pool->IsFreeSlotAtIndex(i)) {
+            continue;
+        }
+        auto* veh = pool->GetAt(i);
+        if (!veh || veh->GetStatus() != STATUS_ABANDONED) {
+            continue;
+        }
+        if (veh->m_pDriver || rng::any_of(veh->m_apPassengers, [](auto* p) { return p != nullptr; })) {
+            continue;
+        }
+        if (veh->m_pFire) {
+            continue;
+        }
+        const auto ref = GetVehicleRef(veh);
+        const auto modelId = veh->m_nModelIndex;
+        CGenericGameStorage::SaveDataToWorkBuffer(ref);
+        CGenericGameStorage::SaveDataToWorkBuffer(modelId);
+        veh->Save();
+    }
+    return true;
 }
 
 // 0x404550

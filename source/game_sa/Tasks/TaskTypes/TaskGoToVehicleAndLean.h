@@ -8,8 +8,9 @@ public:
     CVehicle* m_Vehicle;
     int32     m_LeanAnimDurationInMs;
     bool      m_LeanOnVehicle;
-    bool      field_15; // CalcTargetPos
+    bool      m_bCalcTargetPosSide; // field_15: which side of the vehicle to lean on
     uint8     field_16[2];
+    CVector   m_TargetPos; // 0x18
 
 public:
     static constexpr auto Type = TASK_COMPLEX_GOTO_VEHICLE_AND_LEAN;
@@ -18,14 +19,14 @@ public:
     ~CTaskGoToVehicleAndLean() override;
 
     eTaskType GetTaskType() const override { return Type; } // 0x660ED0
-    CTask* Clone() const override { return new CTaskGoToVehicleAndLean(m_Vehicle, m_LeanAnimDurationInMs); } // 0x6621B0
+    CTask* Clone() const override;
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
     void DoTidyUp(CPed* ped);
-    // CalcTargetPos(CPed* ped) 0x664770
+    CVector CalcTargetPos(CPed* ped); // 0x664770
 
 private:
     friend void InjectHooksMain();
@@ -33,4 +34,4 @@ private:
     CTaskGoToVehicleAndLean* Constructor(CVehicle* vehicle, int32 leanAnimDurationInMs) { this->CTaskGoToVehicleAndLean::CTaskGoToVehicleAndLean(vehicle, leanAnimDurationInMs); return this; }
     CTaskGoToVehicleAndLean* Destructor() { this->CTaskGoToVehicleAndLean::~CTaskGoToVehicleAndLean(); return this; }
 };
-VALIDATE_SIZE(CTaskGoToVehicleAndLean, 0x18);
+VALIDATE_SIZE(CTaskGoToVehicleAndLean, 0x24);

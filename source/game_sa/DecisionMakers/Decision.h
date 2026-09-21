@@ -34,7 +34,7 @@ public:
 public:
     notsa::mdarray<eTaskType, MAX_NUM_CHOICES>    m_Tasks;
     notsa::mdarray<uint8, MAX_NUM_CHOICES, 4>     m_Probs; // 4 different relationships : see eDecisionRelationship
-    notsa::mdarray<bool, 2, MAX_NUM_CHOICES>      m_Bools; // 2 different types : see eDecisionTypes
+    notsa::mdarray<bool, MAX_NUM_CHOICES, 2>      m_Bools; // 2 different types : see eDecisionTypes
 
 public:
     static void InjectHooks();
@@ -50,6 +50,9 @@ public:
         notsa::mdarray<int32, MAX_NUM_CHOICES, 2>& bools,
         notsa::mdarray<float, MAX_NUM_CHOICES, 6>& facialProbs
     );
+    void Add(int32 task, float* probs, int32* bools);
+    bool HasResponse();
+    void MakeDecision(int32 eventType, bool bIsPedInVehicle, int32 taskToAvoid1, int32 taskToAvoid2, int32 taskToAvoid3, int32 taskToSeek, int16& outTask, int16& outFacialTask);
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);

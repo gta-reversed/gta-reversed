@@ -15,7 +15,6 @@ std::array<float, 16> CWeather::saTreeWindOffsets = { 1.0f, 0.5f, 0.2f, 0.7f, 0.
 /// 0x8CCF70
 std::array<float, 32> CWeather::saBannerWindOffsets = { 0.0f, 0.3f, 0.6f, 0.85f, 0.99f, 0.97f, 0.65f, 0.15f, -0.1f, 0.0f, 0.35f, 0.57f, 0.55f, 0.35f, 0.45f, 0.67f, 0.73f, 0.45f, 0.25f, 0.35f, 0.35f, 0.11f, 0.13f, 0.21f, 0.28f, 0.28f, 0.22f, 0.1f, 0.0f, -0.1f, -0.17f, -0.12f };
 
-
 void CWeather::InjectHooks() {
     RH_ScopedClass(CWeather);
     RH_ScopedCategoryGlobal();
@@ -26,7 +25,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(FindWeatherTypesList, 0x72A520);
     RH_ScopedInstall(ForceWeather, 0x72A4E0);
     RH_ScopedInstall(ForceWeatherNow, 0x72A4F0);
-    RH_ScopedInstall(ForecastWeather, 0x72A590, { .reversed = false });
+    RH_ScopedInstall(ForecastWeather, 0x72A590);
     RH_ScopedInstall(ReleaseWeather, 0x72A510);
     RH_ScopedInstall(RenderRainStreaks, 0x72AF70);
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
@@ -40,27 +39,44 @@ void CWeather::InjectHooks() {
 void CWeather::Init() {
     ZoneScoped;
 
-    NewWeatherType = WEATHER_EXTRASUNNY_LA;
-    OldWeatherType = WEATHER_EXTRASUNNY_LA;
-    WeatherRegion  = WEATHER_REGION_DEFAULT;
+    NewWeatherType              = WEATHER_EXTRASUNNY_LA;
+    OldWeatherType              = WEATHER_EXTRASUNNY_LA;
+    WeatherRegion               = WEATHER_REGION_DEFAULT;
 
-    InterpolationValue = 0.0f;
-    WeatherTypeInList = 0;
-    ForcedWeatherType = WEATHER_UNDEFINED;
-    WhenToPlayLightningSound = 0;
-    bScriptsForceRain = false;
-    Rain = 0.0f;
-    Sandstorm = 0.0f;
+    InterpolationValue          = 0.0f;
+    WeatherTypeInList           = 0;
+    ForcedWeatherType           = WEATHER_UNDEFINED;
+    WhenToPlayLightningSound    = 0;
+    bScriptsForceRain           = false;
+    Rain                        = 0.0f;
+    Sandstorm                   = 0.0f;
     CurrentRainParticleStrength = 0;
-    InTunnelness = 0.0f;
-    LightningStartX = 0;
-    LightningStartY = 0;
-    StreamAfterRainTimer = 0;
+    InTunnelness                = 0.0f;
+    LightningStartX             = 0;
+    LightningStartY             = 0;
+    StreamAfterRainTimer        = 0;
 }
 
 // 0x72A9A0
 void CWeather::AddRain() {
-    plugin::Call<0x72A9A0>();
+    if (CCullZones::CamNoRain()) {
+        return;
+    }
+    if (CCullZones::PlayerNoRain()) {
+        return;
+    }
+    if (UnderWaterness > 0.0f) {
+        return;
+    }
+    if (CGame::currArea != AREA_CODE_NORMAL_WORLD) {
+        return;
+    }
+    const auto player = FindPlayerPed();
+    if (player && player->m_bIsVisible) { // NB: Inverted w.r.t. the name - set only when the ped is *inside* an interior
+        return;
+    }
+    // This still needs reversing
+    NOTSA_UNREACHABLE();
 }
 
 // 0x72A820
@@ -95,13 +111,20 @@ void CWeather::ForceWeather(eWeatherType weatherType) {
 // 0x72A4F0
 void CWeather::ForceWeatherNow(eWeatherType weatherType) {
     ForcedWeatherType = weatherType;
-    OldWeatherType = weatherType;
-    NewWeatherType = weatherType;
+    OldWeatherType    = weatherType;
+    NewWeatherType    = weatherType;
 }
 
 // 0x72A590
 bool CWeather::ForecastWeather(eWeatherType weatherType, int32 numSteps) {
-    return plugin::CallAndReturn<bool, 0x72A590, int32, int32>(weatherType, numSteps);
+    for (int32 i = 0; i <= numSteps; i++) {
+        const auto weatherTypes = FindWeatherTypesList();
+        const auto weatherIdx   = ((int32)WeatherTypeInList + i) % 64; // Wraps around
+        if (weatherTypes[weatherIdx] == weatherType) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // 0x72A510
@@ -111,8 +134,9 @@ void CWeather::ReleaseWeather() {
 
 // 0x72AF70
 void CWeather::RenderRainStreaks() {
-    if (CTimer::GetIsCodePaused())
+    if (CTimer::GetIsCodePaused()) {
         return;
+    }
 
     {
         const auto strength = (uint32)((64.0f - (float)CTimeCycle::m_FogReduction) * (Rain * 110.0f) / 64.0f);
@@ -127,32 +151,37 @@ void CWeather::RenderRainStreaks() {
         }
     }
 
-    if (!CurrentRainParticleStrength)
+    if (!CurrentRainParticleStrength) {
         return;
+    }
 
-    if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain())
+    if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain()) {
         return;
+    }
 
-    if (UnderWaterness > 0.0f)
+    if (UnderWaterness > 0.0f) {
         return;
+    }
 
-    if (CGame::currArea)
+    if (CGame::currArea) {
         return;
+    }
 
     const CVector camPos = TheCamera.GetPosition();
-    if (camPos.z > 900.0f)
+    if (camPos.z > 900.0f) {
         return;
+    }
 
-    uiTempBufferIndicesStored = 0;
+    uiTempBufferIndicesStored  = 0;
     uiTempBufferVerticesStored = 0;
 
     // (Pirulax) TODO... (refactor)
     constexpr auto RAIN_STREAK_COUNT{ 32u };
 
     // These are arrays of size `RAIN_STREAK_COUNT`
-    static auto& streakPosX = StaticRef<int32*>(0xC81420);
-    static auto& streakPosY = StaticRef<int32*>(0xC8141C);
-    static auto& streakPosZ = StaticRef<int32*>(0xC81418);
+    static auto& streakPosX     = StaticRef<int32*>(0xC81420);
+    static auto& streakPosY     = StaticRef<int32*>(0xC8141C);
+    static auto& streakPosZ     = StaticRef<int32*>(0xC81418);
     static auto& streakStrength = StaticRef<uint8*>(0xC81414);
 
     if (!streakPosX) {
@@ -163,9 +192,9 @@ void CWeather::RenderRainStreaks() {
         streakStrength = new uint8[RAIN_STREAK_COUNT];
 
         for (unsigned i = 0; i < RAIN_STREAK_COUNT; i++) {
-            streakPosX[i] = 0;
-            streakPosY[i] = 0;
-            streakPosZ[i] = 0;
+            streakPosX[i]     = 0;
+            streakPosY[i]     = 0;
+            streakPosZ[i]     = 0;
             streakStrength[i] = (uint8)((float)CurrentRainParticleStrength * 0.6f);
         }
     }
@@ -177,12 +206,12 @@ void CWeather::RenderRainStreaks() {
     const auto UpdateStreak = [&](unsigned i) {
         const CVector posn = GetStreakPosition(i);
         if (!streakStrength[i] || posn.z <= 0.0f || (camPos - posn).Magnitude() > 8.0f) {
-            const CVector newPosn = CVector::Random(0.0f, 5.0f) + TheCamera.GetForward() * 6.0f + camPos - CVector{2.5f, 2.5f, 2.5f};
-            streakPosX[i] = (int32)(newPosn.x);
-            streakPosY[i] = (int32)(newPosn.y);
-            streakPosZ[i] = (int32)(newPosn.z);
+            const CVector newPosn = CVector::Random(0.0f, 5.0f) + TheCamera.GetForward() * 6.0f + camPos - CVector{ 2.5f, 2.5f, 2.5f };
+            streakPosX[i]         = (int32)(newPosn.x);
+            streakPosY[i]         = (int32)(newPosn.y);
+            streakPosZ[i]         = (int32)(newPosn.z);
 
-            streakStrength[i] = (uint8)((float)CurrentRainParticleStrength * 0.6f);
+            streakStrength[i]     = (uint8)((float)CurrentRainParticleStrength * 0.6f);
         }
     };
 
@@ -201,7 +230,7 @@ void CWeather::RenderRainStreaks() {
         };
 
         const float posMul = (s % 2) ? Wind * 0.1f : Wind * Rain * 0.1f;
-        offsets[1] = offsets[0] - WindDir * posMul + CVector{ 0.0f, 0.0f, CGeneral::GetRandomNumberInRange(0.1f, 0.5f) };
+        offsets[1]         = offsets[0] - WindDir * posMul + CVector{ 0.0f, 0.0f, CGeneral::GetRandomNumberInRange(0.1f, 0.5f) };
 
         const uint8 alphas[]{ streakStrength[s], static_cast<uint8>(streakStrength[s] / 2u) };
         for (auto v = 0u; v < std::size(alphas); v++) {
@@ -251,10 +280,10 @@ void CWeather::SetWeatherToAppropriateTypeNow() {
     CVector playerCoors = FindPlayerCoors();
     UpdateWeatherRegion(&playerCoors);
 
-    auto weatherType = FindWeatherTypesList()[0];
+    auto weatherType  = FindWeatherTypesList()[0];
     ForcedWeatherType = WEATHER_UNDEFINED;
-    OldWeatherType = weatherType;
-    NewWeatherType = weatherType;
+    OldWeatherType    = weatherType;
+    NewWeatherType    = weatherType;
 }
 
 // 0x72B850
@@ -268,19 +297,19 @@ void CWeather::Update() {
 void CWeather::UpdateInTunnelness() {
     ZoneScoped;
 
-    static const CVector s_TunnelPoint1{ 85.0f, -1020.0f, 0.0f }; // 0xC81430
+    static const CVector s_TunnelPoint1{ 85.0f, -1020.0f, 0.0f };   // 0xC81430
     static const CVector s_TunnelPoint2{ 1683.0f, -1956.0f, 0.0f }; // 0xC81424
 
     float target = 0.0f;
     if (CCullZones::CurrentFlags_Camera & 0x2000) { // TODO: Unnamed tunnel-related eZoneAttributes flag (bit 0x2000)
         const CVector from{ CVector2D{ TheCamera.GetPosition() } };
-        const CVector to = from + CVector{ CVector2D{ TheCamera.GetForwardVector() }.Normalized() } * 100.0f;
-        const auto dist = std::min({
+        const CVector to   = from + CVector{ CVector2D{ TheCamera.GetForwardVector() }.Normalized() } * 100.0f;
+        const auto    dist = std::min({
             CCollision::DistToLine(from, to, s_TunnelPoint1),
             CCollision::DistToLine(from, to, s_TunnelPoint2),
             100.0f,
         });
-        target = std::min(1.0f, dist / 100.0f);
+        target             = std::min(1.0f, dist / 100.0f);
     }
 
     InTunnelness = notsa::step_to(InTunnelness, target, CTimer::GetTimeStep() * 0.01f);

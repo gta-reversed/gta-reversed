@@ -2,6 +2,7 @@
 
 #include "TaskComplexFollowPointRoute.h"
 #include "TaskComplexWalkRoundCar.h"
+#include "CarEnterExit.h"
 
 void CTaskComplexWalkRoundCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWalkRoundCar, 0x86f308, 11);
@@ -21,7 +22,7 @@ void CTaskComplexWalkRoundCar::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x654280);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x656B70);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x658200, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x654370, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x654370);
 }
 
 // 0x6541B0
@@ -108,5 +109,38 @@ CTask* CTaskComplexWalkRoundCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x654370
 CTask* CTaskComplexWalkRoundCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x654370, CTaskComplexWalkRoundCar*, CPed*>(this, ped);
+    if (m_bFirstSubTaskNeedsToBeCreated) {
+        m_bFirstSubTaskNeedsToBeCreated = false;
+        return CreateFirstSubTask(ped);
+    }
+    int32 waitTime = 200;
+    bool  quitEntering = false;
+    if (ped->IsPlayer() && m_Veh && m_EnterCarStartTime != -1
+        && CCarEnterExit::IsPlayerToQuitCarEnter(ped, m_Veh, m_EnterCarStartTime, m_pSubTask)
+        && m_pSubTask->GetTaskType() == TASK_COMPLEX_FOLLOW_POINT_ROUTE) {
+        quitEntering = true;
+        waitTime = 1302; // 0x516
+    } else if (m_pSubTask->GetTaskType() == TASK_COMPLEX_FOLLOW_POINT_ROUTE && m_Timer.IsOutOfTime()) {
+        waitTime = 1302; // 0x516 (quitEntering stays false here)
+    }
+    if (m_Veh) {
+        const CVector& vehPos = m_Veh->GetPosition();
+        if ((m_VehPos - vehPos).SquaredMagnitude() <= 0.0625f
+            && DotProduct(m_Veh->GetMatrix().GetForward(), m_VehMatFwd) >= 0.9f
+            && DotProduct(m_Veh->GetMatrix().GetRight(), m_VehMatRight) >= 0.9f
+            && waitTime == 200) {
+            return m_pSubTask;
+        }
+    }
+    if (!m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+        return m_pSubTask;
+    }
+    if (quitEntering) {
+        if (CTask* primary = ped->GetTaskManager().m_aPrimaryTasks[TASK_PRIMARY_PRIMARY]) {
+            if (primary->GetTaskType() == TASK_COMPLEX_ENTER_CAR_AS_DRIVER) {
+                primary->MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr);
+            }
+        }
+    }
+    return nullptr;
 }

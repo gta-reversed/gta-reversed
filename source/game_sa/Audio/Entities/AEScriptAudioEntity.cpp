@@ -42,22 +42,54 @@ void CAEScriptAudioEntity::AddAudioEvent(int32) {
 
 // 0x4EC100
 CVector* CAEScriptAudioEntity::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical) {
-    return plugin::CallMethodAndReturn<CVector*, 0x4EC100, CAEScriptAudioEntity*, uint8, CPhysical*>(this, sampleId, physical);
+    auto& link = wavLinks[sampleId];
+    link.m_pEntity   = physical;
+    link.m_vPosition = CVector{-1000.0f, -1000.0f, -1000.0f};
+    return &link.m_vPosition;
 }
 
 // 0x4EC040
 void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
-    plugin::CallMethod<0x4EC040, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    if (sampleId < MISSION_AUDIO_COUNT) {
+        AESoundManager.CancelSoundsInBankSlot((eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + sampleId), true);
+
+        auto& link = wavLinks[sampleId];
+        link.m_pEntity   = nullptr;
+        link.m_Sound     = nullptr;
+        link.m_vPosition = CVector{-1000.0f, -1000.0f, -1000.0f};
+    }
 }
 
 // 0x4EBFE0
 bool CAEScriptAudioEntity::IsMissionAudioSampleFinished(uint8 sampleId) {
-    return plugin::CallMethodAndReturn<bool, 0x4EBFE0, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    if (sampleId > 3) {
+        return true;
+    }
+    if (sampleId > 1) {
+        return !AESoundManager.AreSoundsPlayingInBankSlot((eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + sampleId));
+    }
+    return wavLinks[sampleId].m_Sound == nullptr;
 }
 
 // 0x4EBF60
 int8 CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
-    return plugin::CallMethodAndReturn<int8, 0x4EBF60, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    if (sampleId < MISSION_AUDIO_COUNT) {
+        const auto& link = wavLinks[sampleId];
+        if (link.m_nBankId >= 0) {
+            if (link.m_nBankSlotId >= 0) {
+                return AEAudioHardware.GetSoundLoadingStatus(
+                    (eSoundBank)link.m_nBankId,
+                    (eSoundID)link.m_nBankSlotId,
+                    (eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + sampleId)
+                );
+            }
+            return AEAudioHardware.GetSoundBankLoadingStatus(
+                (eSoundBank)link.m_nBankId,
+                (eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + sampleId)
+            );
+        }
+    }
+    return 1;
 }
 
 // 0x4EC020
@@ -67,17 +99,72 @@ int32 CAEScriptAudioEntity::GetMissionAudioEvent(uint8 sampleId) {
 
 // 0x4EC0C0
 void CAEScriptAudioEntity::SetMissionAudioPosition(uint8 sampleId, CVector& posn) {
-    plugin::CallMethod<0x4EC0C0, CAEScriptAudioEntity*, uint8, CVector&>(this, sampleId, posn);
+    auto& link = wavLinks[sampleId];
+    link.m_vPosition = posn;
+    link.m_pEntity   = nullptr;
 }
 
 // 0x4EC4D0
 CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
-    return plugin::CallMethodAndReturn<CVector*, 0x4EC4D0, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    auto& link = wavLinks[sampleId];
+    if (link.m_pEntity) {
+        return &link.m_pEntity->GetPosition();
+    }
+    if (link.m_vPosition != CVector{-1000.0f, -1000.0f, -1000.0f} && !link.m_vPosition.IsZero()) {
+        return &link.m_vPosition;
+    }
+    return nullptr;
 }
 
 // 0x4EC6D0
-void CAEScriptAudioEntity::PlayMissionBankSound(uint8 sampleId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
-    plugin::CallMethod<0x4EC6D0, CAEScriptAudioEntity*, uint8, CVector&, CPhysical*, int16, uint8, uint8, float, float, float>(this, sampleId, posn, physical, sfxId, linkId, a7, volume, maxDistance, speed);
+void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
+    if (linkId < 2 || linkId >= MISSION_AUDIO_COUNT) {
+        return;
+    }
+    if (a7 && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
+        return;
+    }
+
+    const auto  bankSlot = (eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + linkId);
+    const auto& link     = wavLinks[linkId];
+    if (!AEAudioHardware.IsSoundBankLoaded((eSoundBank)link.m_nBankId, bankSlot)) {
+        return;
+    }
+
+    bool bFrontend = false;
+    const auto pos = [&]() -> CVector {
+        if (physical) {
+            return physical->GetPosition();
+        }
+        if (posn == CVector{-1000.0f, -1000.0f, -1000.0f} || posn.IsZero()) {
+            bFrontend = true;
+            return CVector{0.0f, 1.0f, 0.0f};
+        }
+        if (posn == CVector{-1.0f, 0.0f, 0.0f} || posn == CVector{1.0f, 0.0f, 0.0f}) {
+            bFrontend = true;
+        }
+        return posn;
+    }();
+
+    auto& sound = m_tempSound;
+    sound.Initialise(
+        bankSlot,
+        (eSoundID)link.m_nBankSlotId,
+        this,
+        pos,
+        GetDefaultVolume(eventId) + volume,
+        maxDistance,
+        speed
+    );
+    sound.m_Flags = (uint16)(SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES);
+    sound.SetFlags(SOUND_FRONT_END, bFrontend);
+    if (physical) {
+        sound.SetFlags(SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, true);
+        sound.RegisterWithPhysicalEntity(physical);
+    }
+    sound.m_Event = eventId;
+
+    AESoundManager.RequestNewSound(&sound);
 }
 
 // event eAudioEvents
@@ -120,12 +207,86 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
 
 // 0x4EC270
 void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
-    plugin::CallMethod<0x4EC270, CAEScriptAudioEntity*, uint8>(this, sampleId);
+    if (sampleId > 3) {
+        return;
+    }
+
+    auto& link = wavLinks[sampleId];
+    if (link.m_nBankId < 0 || link.m_nBankSlotId < 0) {
+        return;
+    }
+    if (GetMissionAudioLoadingStatus(sampleId) != 1) {
+        return;
+    }
+
+    bool  bDuck = false;
+    float volume;
+    if (link.m_nAudioEvent == AE_SCRIPT_SLOT_USE_CUSTOM) {
+        volume = -100.0f;
+    } else {
+        volume = GetDefaultVolume((eAudioEvents)link.m_nAudioEvent);
+        if (sampleId < 2) {
+            bDuck = true;
+            if (volume == -128.0f) {
+                volume = 6.0f;
+            }
+        }
+    }
+
+    bool bFrontend = false;
+    const auto pos = [&]() -> CVector {
+        if (const auto physical = link.m_pEntity) {
+            return physical->GetPosition();
+        }
+        if (link.m_vPosition == CVector{-1000.0f, -1000.0f, -1000.0f} || link.m_vPosition.IsZero()) {
+            bFrontend = true;
+            return CVector{0.0f, 1.0f, 0.0f};
+        }
+        return link.m_vPosition;
+    }();
+
+    CAESound sound;
+    sound.Initialise(
+        (eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + sampleId),
+        (eSoundID)link.m_nBankSlotId,
+        this,
+        pos,
+        volume,
+        2.0f
+    );
+    sound.m_Flags = (uint16)(SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_PLAY_PHYSICALLY);
+    sound.SetFlags(SOUND_FRONT_END, bFrontend);
+    sound.SetFlags(SOUND_IS_DUCKABLE, bDuck);
+    sound.SetFlags(SOUND_IS_COMPRESSABLE, bDuck);
+    sound.SetFlags(SOUND_SMOOTH_DUCKING, bDuck);
+
+    link.m_Sound = AESoundManager.RequestNewSound(&sound);
 }
 
 // 0x4EC190
 void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, int32 sampleId) {
-    plugin::CallMethod<0x4EC190, CAEScriptAudioEntity*>(this, slotId, sampleId);
+    if (slotId < MISSION_AUDIO_COUNT && IsMissionAudioSampleFinished(slotId)) {
+        auto& link = wavLinks[slotId];
+
+        // `GetBankAndSoundFromScriptSlotAudioEvent` wants a `eSoundBankS32`, while the link stores the ids as plain ints
+        eSoundBankS32 bankId{(eSoundBank)link.m_nBankId};
+        int32         soundId = link.m_nBankSlotId;
+        if (CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent((eAudioEvents)sampleId, bankId, soundId, slotId)) {
+            link.m_nBankId     = bankId.get_underlying();
+            link.m_nBankSlotId = soundId;
+
+            const auto bankSlot = (eSoundBankSlot)(SND_BANK_SLOT_MISSION1 + slotId);
+            if (soundId < 0) {
+                AEAudioHardware.LoadSoundBank((eSoundBank)link.m_nBankId, bankSlot);
+            } else {
+                AEAudioHardware.LoadSound((eSoundBank)link.m_nBankId, (eSoundID)soundId, bankSlot);
+            }
+
+            link.m_nAudioEvent = sampleId;
+            link.m_pEntity     = nullptr;
+            link.m_vPosition   = CVector{-1000.0f, -1000.0f, -1000.0f};
+        }
+    }
 }
 
 // 0x4ECCF0
@@ -767,8 +928,101 @@ void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, CVector
 }
 
 // 0x4EC970
-void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
-    plugin::CallMethod<0x4EC970, CAEScriptAudioEntity*, CAESound*, int16>(this, sound, playTime);
+void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
+    CVector posn{-1000.0f, -1000.0f, -1000.0f};
+    if (!sound) {
+        return;
+    }
+
+    for (auto i = 0; i < MISSION_AUDIO_COUNT; i++) {
+        auto& link = wavLinks[i];
+        if (sound == link.m_Sound) {
+            if (curPlayPos == -1) {
+                link.m_Sound = nullptr;
+                return;
+            }
+            if (link.m_pEntity) {
+                sound->SetPosition(link.m_pEntity->GetPosition());
+            }
+        } else {
+            const auto now = CTimer::GetTimeInMS();
+            switch ((eAudioEvents)sound->m_Event) {
+            case AE_CRANE_WINCH_MOVE:
+                if (now > m_nLastTimeHornPlayed + 300) {
+                    sound->StopSoundAndForget();
+                    m_nLastTimeHornPlayed = 0;
+                    PlayResidentSoundEvent(
+                        SND_BANK_SLOT_PLAYER_ENGINE_P,
+                        SND_BANK_GENRL_CRANE_P,
+                        2,
+                        AE_SCRIPT_CRANE_MOVE_STOP,
+                        sound->m_CurrPos,
+                        sound->m_PhysicalEntity->AsPhysical(),
+                        -12.0f,
+                        1.0f,
+                        0,
+                        2.5f
+                    );
+                } else {
+                    sound->m_Volume = m_Volume;
+                    sound->m_Speed  = m_Speed;
+                }
+                break;
+            case AE_SCRIPT_DUAL_THRUST:
+            case AE_SCRIPT_BEE_BUZZ:
+            case AE_SCRIPT_TEMPEST_SHIELD_GLOW:
+                if (now > m_nLastTimeHornPlayed + 300) {
+                    sound->StopSoundAndForget();
+                    m_nLastTimeHornPlayed = 0;
+                }
+                break;
+            case AE_SCRIPT_ROULETTE_SPIN:
+                if (now > m_nLastTimeHornPlayed + 4500) {
+                    if (sound->m_Volume > -40.0f) {
+                        sound->m_Volume -= 0.1f;
+                    } else {
+                        sound->StopSoundAndForget();
+                        m_nLastTimeHornPlayed = 0;
+                    }
+
+                    if (sound->m_Speed > 0.0f) {
+                        sound->m_Speed = std::max(sound->m_Speed - 0.001f, 0.0f);
+                    }
+                }
+
+                if (now > m_nLastTimeHornPlayed + 4800 && field_7C == 0) {
+                    PlayMissionBankSound(AE_SCRIPT_ROULETTE_BALL_BOUNCING, posn, nullptr, (int16)CAEAudioUtility::GetRandomNumberInRange(1, 3), 3);
+                    field_7C = 1;
+                }
+                break;
+            case AE_SCRIPT_GYM_BIKE_START:
+            case AE_SCRIPT_GYM_RUNNING_MACHINE_START: {
+                auto target = GetDefaultVolume((eAudioEvents)sound->m_Event);
+                if (field_8C == 1.0f) {
+                    if (sound->m_Volume < target) {
+                        sound->m_Volume = std::min(sound->m_Volume + 0.1f, target);
+                    }
+                } else if (field_8C == 2.0f) {
+                    target -= 18.0f;
+                    if (sound->m_Volume <= target) {
+                        sound->StopSoundAndForget();
+                    } else {
+                        sound->m_Volume = std::max(sound->m_Volume - 0.1f, target);
+                    }
+                }
+                break;
+            }
+            case AE_SCRIPT_SWEETS_HORN:
+                if (now > m_nLastTimeHornPlayed + 500) {
+                    sound->StopSoundAndForget();
+                    m_nLastTimeHornPlayed = 0;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
 }
 
 // 0x4EC900
@@ -790,21 +1044,21 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5B9B60);
     RH_ScopedInstall(Service, 0x4EC900);
     RH_ScopedInstall(Reset, 0x4EC150);
-    RH_ScopedInstall(GetMissionAudioLoadingStatus, 0x4EBF60, { .reversed = false });
-    RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0, { .reversed = false });
+    RH_ScopedInstall(GetMissionAudioLoadingStatus, 0x4EBF60);
+    RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0);
     RH_ScopedInstall(GetMissionAudioEvent, 0x4EC020);
-    RH_ScopedInstall(ClearMissionAudio, 0x4EC040, { .reversed = false });
-    RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0, { .reversed = false });
-    RH_ScopedInstall(AttachMissionAudioToPhysical, 0x4EC100, { .reversed = false });
-    RH_ScopedInstall(PreloadMissionAudio, 0x4EC190, { .reversed = false });
-    RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270, { .reversed = false });
-    RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0, { .reversed = false });
+    RH_ScopedInstall(ClearMissionAudio, 0x4EC040);
+    RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0);
+    RH_ScopedInstall(AttachMissionAudioToPhysical, 0x4EC100);
+    RH_ScopedInstall(PreloadMissionAudio, 0x4EC190);
+    RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270);
+    RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0);
     RH_ScopedInstall(PlayResidentSoundEvent, 0x4EC550);
-    RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0, { .reversed = false });
+    RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0);
     RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .reversed = false });
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "1", 0x4EE960, void (CAEScriptAudioEntity::*)(eAudioEvents, CPhysical*, float, float));
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, CVector&));
-    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970);
 }
 
 CAEScriptAudioEntity* CAEScriptAudioEntity::Constructor() {

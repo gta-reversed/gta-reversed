@@ -25,15 +25,15 @@ void CClothesBuilder::InjectHooks() {
     //RH_ScopedInstall(nullptr, 0x5A4380, { .reversed = false }); AtomicInstanceCB
     //RH_ScopedInstall(nullptr, 0x5A43A0, { .reversed = false });
     //RH_ScopedInstall(nullptr, 0x5A44A0, { .reversed = false }); DestroyTextureCB
-    RH_ScopedInstall(PreprocessClothesDesc, 0x5A44C0, { .reversed = false });
-    RH_ScopedInstall(ReleaseGeometry, 0x5A47B0, { .reversed = false });
+    RH_ScopedInstall(PreprocessClothesDesc, 0x5A44C0);
+    RH_ScopedInstall(ReleaseGeometry, 0x5A47B0);
     RH_ScopedGlobalInstall(GetAtomicWithName, 0x5A4810);
     RH_ScopedInstall(AddWeightToBoneVertex, 0x5A4840);
     RH_ScopedInstall(StoreBoneArray, 0x5A48B0);
-    RH_ScopedOverloadedInstall(BlendGeometry, "3", 0x5A4940, RpGeometry * (*)(RpClump*, const char*, const char*, const char*, float, float, float), { .reversed = false });
-    RH_ScopedOverloadedInstall(BlendGeometry, "2", 0x5A4F10, RpGeometry* (*)(RpClump*, const char*, const char*, float, float), {.reversed = false});
-    RH_ScopedInstall(CopyGeometry, 0x5A5340, { .reversed = false });
-    RH_ScopedInstall(ConstructGeometryArray, 0x5A55A0, { .reversed = false }); // Makes the game crash - Probably a register is changed or smth
+    RH_ScopedOverloadedInstall(BlendGeometry, "3", 0x5A4940, RpGeometry * (*)(RpClump*, const char*, const char*, const char*, float, float, float));
+    RH_ScopedOverloadedInstall(BlendGeometry, "2", 0x5A4F10, RpGeometry* (*)(RpClump*, const char*, const char*, float, float));
+    RH_ScopedInstall(CopyGeometry, 0x5A5340);
+    RH_ScopedInstall(ConstructGeometryArray, 0x5A55A0);
     RH_ScopedInstall(DestroySkinArrays, 0x5A56C0);
     RH_ScopedInstall(BuildBoneIndexConversionTable, 0x5A56E0);
     RH_ScopedInstall(CopyTexture, 0x5A5730);
@@ -42,8 +42,8 @@ void CClothesBuilder::InjectHooks() {
     RH_ScopedOverloadedInstall(BlendTextures, "Dst-Src1-Src2", 0x5A59C0, void (*)(RwTexture*, RwTexture*, RwTexture*, float, float, float, int32));
     RH_ScopedOverloadedInstall(BlendTextures, "Dst-Src1-Src2-Tat", 0x5A5BC0, void (*)(RwTexture*, RwTexture*, RwTexture*, float, float, float, int32, RwTexture*));
     RH_ScopedGlobalInstall(GetTextureFromTxdAndLoadNextTxd, 0x5A5F70);
-    RH_ScopedInstall(ConstructTextures, 0x5A6040, { .reversed = false });
-    RH_ScopedInstall(ConstructGeometryAndSkinArrays, 0x5A6530, { .reversed = false });
+    RH_ScopedInstall(ConstructTextures, 0x5A6040);
+    RH_ScopedInstall(ConstructGeometryAndSkinArrays, 0x5A6530);
     RH_ScopedInstall(CreateSkinnedClump, 0x5A69D0);
 }
 
@@ -83,15 +83,137 @@ int32 CClothesBuilder::RequestTexture(uint32 txdNameKey) {
 }
 
 // 0x5A44C0
-void CClothesBuilder::PreprocessClothesDesc(CPedClothesDesc& desc, bool a2) {
-    plugin::Call<0x5A44C0, CPedClothesDesc&, bool>(desc, a2);
+void CClothesBuilder::PreprocessClothesDesc(CPedClothesDesc& desc, bool checkCutscenePlayer) {
+    uint32 ignoredModels[8]{};
+    std::fill(std::begin(ignoredModels), std::end(ignoredModels), 0xFFFFFFFF);
+
+    bool isExclusive[8]{};
+    uint32 ruleIdx = 0;
+    while (ruleIdx < CClothes::ms_numRuleTags) {
+        const auto rule = (eClothRule)CClothes::ms_clothesRules[ruleIdx];
+        uint32 findModel = -1, findTex = -1, setModel = -1, setTex = -1;
+        switch (rule) {
+        case eClothRule::TAG_CUTS: // body part replaced when wearing a given model
+            findModel = CClothes::ms_clothesRules[ruleIdx + 1];
+            setModel  = CClothes::ms_clothesRules[ruleIdx + 2];
+            ruleIdx += 3;
+            break;
+        case eClothRule::TAG_SETC: // model + dependent texture copied onto another part
+            findModel = CClothes::ms_clothesRules[ruleIdx + 1];
+            findTex   = CClothes::ms_clothesRules[ruleIdx + 2];
+            setModel  = CClothes::ms_clothesRules[ruleIdx + 3];
+            setTex    = CClothes::ms_clothesRules[ruleIdx + 4];
+            ruleIdx += 5;
+            break;
+        case eClothRule::TAG_TEX:
+            findModel = CClothes::ms_clothesRules[ruleIdx + 1];
+            setTex    = CClothes::ms_clothesRules[ruleIdx + 2];
+            ruleIdx += 3;
+            break;
+        case eClothRule::TAG_HIDE:
+            findModel = CClothes::ms_clothesRules[ruleIdx + 1];
+            findTex   = CClothes::ms_clothesRules[ruleIdx + 2];
+            ruleIdx += 3;
+            break;
+        case eClothRule::TAG_END_IGNORE:
+            for (auto i = 0; i < 8; i++) {
+                if (ignoredModels[i] == CClothes::ms_clothesRules[ruleIdx + 1]) {
+                    ignoredModels[i] = -1;
+                    isExclusive[i] = true;
+                    break;
+                }
+            }
+            ruleIdx += 2;
+            break;
+        case eClothRule::TAG_IGNORE:
+            for (auto i = 0; i < 8; i++) {
+                if (ignoredModels[i] == 0xFFFFFFFF) {
+                    ignoredModels[i] = CClothes::ms_clothesRules[ruleIdx + 1];
+                    isExclusive[i] = true;
+                    break;
+                }
+            }
+            ruleIdx += 2;
+            break;
+        case eClothRule::TAG_END_EXCLUSIVE:
+            for (auto i = 0; i < 8; i++) {
+                if (ignoredModels[i] == CClothes::ms_clothesRules[ruleIdx + 1]) {
+                    ignoredModels[i] = -1;
+                    isExclusive[i] = false;
+                    break;
+                }
+            }
+            ruleIdx += 2;
+            break;
+        case eClothRule::TAG_EXCLUSIVE:
+            for (auto i = 0; i < 8; i++) {
+                if (ignoredModels[i] == 0xFFFFFFFF) {
+                    ignoredModels[i] = CClothes::ms_clothesRules[ruleIdx + 1];
+                    isExclusive[i] = false;
+                    break;
+                }
+            }
+            ruleIdx += 2;
+            break;
+        }
+
+        // Check each of the 10 body parts against the ignore/exclusive lists
+        for (auto modelPart = 0; modelPart < CLOTHES_MODEL_TOTAL; modelPart++) {
+            const int32 texPart = findTex != 0xFFFFFFFF ? findTex : modelPart;
+            bool skip = false;
+            for (auto i = 0; i < 8; i++) {
+                if (ignoredModels[i] != 0xFFFFFFFF && (desc.m_anModelKeys[texPart] == ignoredModels[i]) == isExclusive[i]) {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) {
+                continue;
+            }
+            switch (rule) {
+            case eClothRule::TAG_CUTS:
+                if (checkCutscenePlayer && desc.m_anModelKeys[modelPart] == findModel) {
+                    desc.SetModel((uint32)setModel, (eClothesModelPart)modelPart);
+                }
+                break;
+            case eClothRule::TAG_SETC:
+                if (desc.m_anModelKeys[modelPart] == findModel) {
+                    if (findTex == CLOTHES_MODEL_TORSO) {
+                        findTex = (uint32)CClothes::GetDependentTexture((eClothesModelPart)findTex);
+                    }
+                    if (setTex == 0) {
+                        const auto depTex = CClothes::GetDependentTexture((eClothesModelPart)findTex);
+                        setTex = desc.m_anTextureKeys[depTex];
+                    }
+                    if (setModel == 0) {
+                        setModel = desc.m_anModelKeys[findTex];
+                    }
+                    desc.SetTextureAndModel(setTex, setModel, CClothes::GetDependentTexture((eClothesModelPart)findTex));
+                }
+                break;
+            case eClothRule::TAG_TEX:
+                if (desc.m_anModelKeys[modelPart] == findModel) {
+                    desc.SetTextureAndModel(setTex, findModel, CClothes::GetDependentTexture((eClothesModelPart)modelPart));
+                }
+                break;
+            case eClothRule::TAG_HIDE:
+                if (desc.m_anModelKeys[modelPart] == findModel) {
+                    desc.SetModel((uint32)0, (eClothesModelPart)findTex);
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
 }
 
 // unused
 // 0x5A47B0
 void CClothesBuilder::ReleaseGeometry(int32 numToRelease) {
-    for (auto i = numToRelease; i; CStreaming::SetModelIsDeletable(MODEL_CLOTHES01_ID384 + i))
-        --i;
+    for (; numToRelease; numToRelease--) {
+        CStreaming::SetModelIsDeletable(MODEL_CLOTHES01_ID384 + numToRelease);
+    }
 }
 
 // 0x5A4810
@@ -144,146 +266,200 @@ void CClothesBuilder::StoreBoneArray(RpClump* clump, int32 idx) {
     }
 }
 
-/*
-* @notsa
-* 
-* Based on 0x5A4940
-* Blend any number of geometries together
-* The result is stored in the 0th frame's geometry.
-*
-* @arg clump  The clump to which the frames belong to
-* @arg frames A list of frames whose geometry should be blended together
-*/
+// Helper shared by both BlendGeometry overloads.
+// Blends vertex positions, normals, UVs and skin weights of the given frames' geometries
+// into the first frame's geometry. Returns the first geometry.
 template<size_t N>
-RpGeometry* BlendGeometry(RpClump* clump, std::pair<const char*, float> (&&frameNamesRatios)[N]) {
-#ifdef NOTSA_DEBUG
-    {
-        float a{};
-        for (auto&& v : frameNamesRatios) {
-            a += v.second;
-        }
-        assert(a >= 0.f && a <= 1.f);
-    }
-#endif
-
-    // Process data needed for blending
+static RpGeometry* BlendGeometries(RpClump* clump, const char* (&&frameNames)[N], const float (&&ratios)[N]) {
     struct GeoBlendData {
-        RpAtomic*        a;
         RpGeometry*      g;
         const RwUInt8*   boneIdxs;
         RwMatrixWeights* boneWeights;
         RwTexCoords*     uvs;
-        CVector*         verts;
-        CVector*         nrmls;
-        float            r; // Blend ratio
+        RwV3d*           verts;
+        RwV3d*           normals;
+        float            r;
     } fds[N];
-    auto& out = fds[0];
-    for (auto&& [i, v] : rngv::enumerate(frameNamesRatios)) {
-        const auto a  = GetAtomicWithName(clump, v.first);
-        const auto g  = RpAtomicGetGeometry(a);
-        const auto s  = RpSkinGeometryGetSkin(g);
-        const auto mt = RpGeometryGetMorphTarget(g, 0);
+
+    for (auto i = 0u; i < N; i++) {
+        const auto atomic = GetAtomicWithName(clump, frameNames[i]);
+        const auto g      = RpAtomicGetGeometry(atomic);
+        const auto skin   = RpSkinGeometryGetSkin(g);
+        const auto mt     = RpGeometryGetMorphTarget(g, 0);
         fds[i] = {
-            a,
             g,
-            (const RwUInt8*)RpSkinGetVertexBoneIndices(s), // NOTE: Not sure why it's casted to UInt8, but that really is how the data is stored / TODO: Okay, so actually it seems like something is fucked
-            RpSkinGetVertexBoneWeights(s),
+            (const RwUInt8*)RpSkinGetVertexBoneIndices(skin),
+            RpSkinGetVertexBoneWeights(skin),
             RpGeometryGetVertexTexCoords(g, 1),
-            (CVector*)RpMorphTargetGetVertices(mt),
-            (CVector*)RpMorphTargetGetVertexNormals(mt),
-            v.second
+            RpMorphTargetGetVertices(mt),
+            RpMorphTargetGetVertexNormals(mt),
+            ratios[i],
         };
     }
+    auto& out = fds[0];
 
     RpGeometryLock(out.g, rpGEOMETRYLOCKALL);
 
-    for (auto i = 0; i < RpGeometryGetNumVertices(out.g); i++) {
-        const auto Blend = [&](auto&& Get) {
-            return multiply_weighted(fds | rng::views::transform([&](auto&& fd) { return WeightedValue{ std::invoke(Get, &fd)[i], fd.r }; }));
-        };
-        out.verts[i] = Blend(&GeoBlendData::verts);
-        out.nrmls[i] = Blend(&GeoBlendData::nrmls);
-        out.uvs[i]   = Blend(&GeoBlendData::uvs);
+    const auto numVerts = RpGeometryGetNumVertices(out.g);
+    for (auto i = 0; i < numVerts; i++) {
+        // Blend vertex positions
+        out.verts[i].x = out.verts[i].x * out.r;
+        out.verts[i].y = out.verts[i].y * out.r;
+        out.verts[i].z = out.verts[i].z * out.r;
+        for (auto f = 1u; f < N; f++) {
+            out.verts[i].x += fds[f].verts[i].x * fds[f].r;
+            out.verts[i].y += fds[f].verts[i].y * fds[f].r;
+            out.verts[i].z += fds[f].verts[i].z * fds[f].r;
+        }
 
-        // Helper function to get the weight at a given weight index
-        const auto RwMatrixWeightsGetWeight = [](RwMatrixWeights& mw, int32 wi) -> float& {
-            switch (wi) {
-            case 0:  return mw.w0;
-            case 1:  return mw.w1;
-            case 2:  return mw.w2;
-            case 3:  return mw.w3;
-            default: NOTSA_UNREACHABLE();
-            }
-        };
+        // Blend vertex normals
+        out.normals[i].x = out.normals[i].x * out.r;
+        out.normals[i].y = out.normals[i].y * out.r;
+        out.normals[i].z = out.normals[i].z * out.r;
+        for (auto f = 1u; f < N; f++) {
+            out.normals[i].x += fds[f].normals[i].x * fds[f].r;
+            out.normals[i].y += fds[f].normals[i].y * fds[f].r;
+            out.normals[i].z += fds[f].normals[i].z * fds[f].r;
+        }
+        RwV3dNormalize(&out.normals[i], &out.normals[i]);
 
-        // Calculate bone weights
+        // Blend UVs
+        out.uvs[i].u = out.uvs[i].u * out.r;
+        out.uvs[i].v = out.uvs[i].v * out.r;
+        for (auto f = 1u; f < N; f++) {
+            out.uvs[i].u += fds[f].uvs[i].u * fds[f].r;
+            out.uvs[i].v += fds[f].uvs[i].v * fds[f].r;
+        }
+
+        // Blend bone weights
         float weights[8]{};
         uint8 boneVertexIdxs[8]{};
         for (auto& fd : fds) {
             for (auto wi = 0; wi < 4; wi++) {
-                const auto vtxIdx = i + wi;
+                const auto vtxIdx = i * 4 + wi;
                 CClothesBuilder::AddWeightToBoneVertex(
                     weights,
                     boneVertexIdxs,
-                    RwMatrixWeightsGetWeight(fd.boneWeights[vtxIdx], wi),
+                    (&fd.boneWeights[i].w0)[wi] * fd.r,
                     fd.boneIdxs[vtxIdx]
                 );
             }
         }
         for (auto b = 0; b < 4; b++) {
-            const_cast<RwUInt8*>(out.boneIdxs)[i + b] = boneVertexIdxs[b];
+            const_cast<RwUInt8*>(out.boneIdxs)[i * 4 + b] = boneVertexIdxs[b];
         }
-        const auto t = weights[4] != 0.f
-            ? 1.f / std::accumulate(weights, weights + 4, 0.f)
-            : 1.f;
-        for (auto wi = 0; wi < 4; wi++) {
-            RwMatrixWeightsGetWeight(out.boneWeights[i + wi], wi) = weights[wi] * t;
+        if (weights[4] != 0.f) {
+            const auto t = 1.f / (weights[0] + weights[1] + weights[2] + weights[3]);
+            out.boneWeights[i].w0 = weights[0] * t;
+            out.boneWeights[i].w1 = weights[1] * t;
+            out.boneWeights[i].w2 = weights[2] * t;
+            out.boneWeights[i].w3 = weights[3] * t;
+        } else {
+            out.boneWeights[i].w0 = weights[0];
+            out.boneWeights[i].w1 = weights[1];
+            out.boneWeights[i].w2 = weights[2];
+            out.boneWeights[i].w3 = weights[3];
         }
     }
 
     RpGeometryUnlock(out.g);
-    out.g->refCount++; // TODO: Function missing
+    out.g->refCount++;
 
     return out.g;
 }
 
 // 0x5A4940
 RpGeometry* CClothesBuilder::BlendGeometry(RpClump* clump, const char* frameName0, const char* frameName1, const char* frameName2, float r0, float r1, float r2) {
-    return ::BlendGeometry(clump, { {frameName0, r0}, {frameName1, r1}, {frameName2, r2} });
+    const char* names[] = { frameName0, frameName1, frameName2 };
+    const float ratios[] = { r0, r1, r2 };
+    return BlendGeometries<3>(clump, { names[0], names[1], names[2] }, { ratios[0], ratios[1], ratios[2] });
 }
 
 // 0x5A4F10
 RpGeometry* CClothesBuilder::BlendGeometry(RpClump* clump, const char* frameName0, const char* frameName1, float r0, float r1) {
-    return ::BlendGeometry(clump, { {frameName0, r0}, {frameName1, r1} });
+    const char* names[] = { frameName0, frameName1 };
+    const float ratios[] = { r0, r1 };
+    return BlendGeometries<2>(clump, { names[0], names[1] }, { ratios[0], ratios[1] });
 }
 
 // 0x5A5340
-RpGeometry* CClothesBuilder::CopyGeometry(RpClump* clump, const char* a2, const char* a3) {
-    return plugin::CallAndReturn<RpGeometry*, 0x5A5340, RpClump*, const char*, const char*>(clump, a2, a3);
+RpGeometry* CClothesBuilder::CopyGeometry(RpClump* clump, const char* frameName0, const char* frameName1) {
+    const auto atomic0 = GetAtomicWithName(clump, frameName0);
+    const auto atomic1 = GetAtomicWithName(clump, frameName1);
+
+    RpGeometry* geos[2];
+    const RwUInt8* boneIdxs[2];
+    RwMatrixWeights* boneWeights[2];
+    RwTexCoords* uvs[2];
+    RwV3d* verts[2];
+    RwV3d* normals[2];
+    for (auto i = 0; i < 2; i++) {
+        const auto g    = RpAtomicGetGeometry(i == 0 ? atomic0 : atomic1);
+        const auto skin = RpSkinGeometryGetSkin(g);
+        const auto mt   = RpGeometryGetMorphTarget(g, 0);
+        geos[i]        = g;
+        boneIdxs[i]    = (const RwUInt8*)RpSkinGetVertexBoneIndices(skin);
+        boneWeights[i] = RpSkinGetVertexBoneWeights(skin);
+        normals[i]     = RpMorphTargetGetVertexNormals(mt);
+        verts[i]       = RpMorphTargetGetVertices(mt);
+        uvs[i]         = RpGeometryGetVertexTexCoords(g, 1);
+    }
+    RpGeometryLock(geos[0], rpGEOMETRYLOCKALL);
+
+    const auto numVerts = RpGeometryGetNumVertices(geos[0]);
+    for (auto i = 0; i < numVerts; i++) {
+        verts[0][i]   = verts[1][i];
+        normals[0][i] = normals[1][i];
+        uvs[0][i]     = uvs[1][i];
+        for (auto b = 0; b < 4; b++) {
+            const_cast<RwUInt8*>(boneIdxs[0])[i * 4 + b] = boneIdxs[1][i * 4 + b];
+        }
+        boneWeights[0][i] = boneWeights[1][i];
+    }
+
+    RpGeometryUnlock(geos[0]);
+
+    // Re-gather pointers (geometry may have moved) and normalize normals
+    for (auto i = 0; i < 2; i++) {
+        const auto g    = RpAtomicGetGeometry(i == 0 ? atomic0 : atomic1);
+        const auto skin = RpSkinGeometryGetSkin(g);
+        const auto mt   = RpGeometryGetMorphTarget(g, 0);
+        geos[i]        = g;
+        boneIdxs[i]    = (const RwUInt8*)RpSkinGetVertexBoneIndices(skin);
+        boneWeights[i] = RpSkinGetVertexBoneWeights(skin);
+        normals[i]     = RpMorphTargetGetVertexNormals(mt);
+        verts[i]       = RpMorphTargetGetVertices(mt);
+        uvs[i]         = RpGeometryGetVertexTexCoords(g, 1);
+    }
+    for (auto i = 0; i < numVerts; i++) {
+        RwV3dNormalize(&normals[0][i], &normals[0][i]);
+    }
+    geos[0]->refCount++;
+
+    return geos[0];
 }
 
 // 0x5A55A0
 void CClothesBuilder::ConstructGeometryArray(RpGeometry** out, uint32* modelNameKeys, float normal, float fatness, float strength) {
-    for (auto i = 0; i < 10; i++) {
-        if (modelNameKeys[i] == 0) {
+    for (auto i = 0; i < 10; i++, out++, modelNameKeys++) {
+        if (!*modelNameKeys) {
             *out = nullptr;
             continue;
         }
-        const auto modelIdx = (eModelID)((int)MODEL_CLOTHES01_ID384 + i);
-        const auto mi       = CModelInfo::GetModelInfo(modelIdx);
-
-        CModelInfo::GetModelInfo(modelIdx)->bHasComplexHierarchy = true;
-        RequestGeometry(modelIdx, modelNameKeys[i]);
+        const auto modelId = MODEL_CLOTHES01_ID384 + i;
+        CModelInfo::GetModelInfo(modelId)->bHasComplexHierarchy = true;
+        RequestGeometry(modelId, *modelNameKeys);
         CStreaming::LoadAllRequestedModels(true);
 
-        if (i + 1 < 10 && modelNameKeys[i + 1]) { // Request next model to be loaded in advance
-            RequestGeometry((eModelID)((int)MODEL_CLOTHES01_ID384 + i + 1), modelNameKeys[i + 1]);
+        if (i + 1 < 10 && modelNameKeys[1]) { // Request next model to be loaded in advance
+            RequestGeometry(modelId + 1, modelNameKeys[1]);
             CStreaming::LoadRequestedModels();
         }
 
+        const auto mi = CModelInfo::GetModelInfo(modelId);
         *out = BlendGeometry(mi->GetRpClump(), "normal", "fat", "ripped", normal, fatness, strength);
         StoreBoneArray(mi->GetRpClump(), i);
-        CStreaming::RemoveModel(modelIdx);
+        CStreaming::RemoveModel(modelId);
     }
 }
 
@@ -488,13 +664,196 @@ RwTexture* GetTextureFromTxdAndLoadNextTxd(RwTexture* dstTex, int32 txdId_withTe
 }
 
 // 0x5A6040
-void CClothesBuilder::ConstructTextures(RwTexDictionary* dict, uint32* hashes, float factorA, float factorB, float factorC) {
-    plugin::Call<0x5A6040, RwTexDictionary*, uint32*, float, float, float>(dict, hashes, factorA, factorB, factorC);
+void CClothesBuilder::ConstructTextures(RwTexDictionary* dict, uint32* hashes, float rNormal, float rFat, float rMuscle) {
+    // Blend the tattoo layers together, chaining through their TXDs
+    RwTexture* tattoos = nullptr;
+    int32 txdId = RequestTexture(hashes[CLOTHES_TEXTURE_LOWER_LEFT_ARM]);
+    CStreaming::LoadRequestedModels();
+    for (auto i = (int32)CLOTHES_TEXTURE_LOWER_LEFT_ARM; i <= (int32)CLOTHES_TEXTURE_UPPER_BACK; i++) {
+        int32 nextTxdId;
+        if (i < (int32)CLOTHES_TEXTURE_UPPER_BACK) {
+            tattoos = GetTextureFromTxdAndLoadNextTxd(tattoos, txdId, hashes[i + 1], &nextTxdId);
+        } else {
+            tattoos = GetTextureFromTxdAndLoadNextTxd(tattoos, txdId, CKeyGen::GetUppercaseKey("player_torso"), &nextTxdId);
+        }
+        txdId = nextTxdId;
+    }
+
+    if (rFat < 0.0f) {
+        rNormal += rFat;
+        rFat = 0.0f;
+    }
+    CStreaming::LoadAllRequestedModels(true);
+    // Torso
+    const int32 torsoTxdReq = RequestTexture(hashes[CLOTHES_TEXTURE_TORSO]);
+    CStreaming::LoadRequestedModels();
+    const auto torsoTxdDict = CTxdStore::GetTxd(txdId);
+    RwTexture* torso       = RwTexDictionaryFindNamedTexture(torsoTxdDict, "torso");
+    RwTexture* torsoFat    = RwTexDictionaryFindNamedTexture(torsoTxdDict, "torso_fat");
+    RwTexture* torsoRipped = RwTexDictionaryFindNamedTexture(torsoTxdDict, "torso_ripped");
+    RwTexture* torsoBlended = CopyTexture(torso);
+    if (!tattoos) {
+        BlendTextures(torsoBlended, torsoFat, torsoRipped, rNormal, rFat, rMuscle, 108);
+    } else {
+        BlendTextures(torsoBlended, torsoFat, torsoRipped, rNormal, rFat, rMuscle, 108, tattoos);
+        RwTextureDestroy(tattoos);
+    }
+    CStreaming::RemoveModel(TXDToModelId(txdId));
+    int32 legsTxdId;
+    GetTextureFromTxdAndLoadNextTxd(torsoBlended, torsoTxdReq, CKeyGen::GetUppercaseKey("player_legs"), &legsTxdId);
+    RwTextureSetName(torsoBlended, "torso");
+    RwTexDictionaryAddTexture(dict, torsoBlended);
+
+    // Legs
+    CStreaming::LoadAllRequestedModels(true);
+    const int32 legsTxdReq = RequestTexture(hashes[CLOTHES_TEXTURE_LEGS]);
+    CStreaming::LoadRequestedModels();
+    const auto legsTxdDict = CTxdStore::GetTxd(legsTxdId);
+    RwTexture* legs       = RwTexDictionaryFindNamedTexture(legsTxdDict, "legs");
+    RwTexture* legsFat    = RwTexDictionaryFindNamedTexture(legsTxdDict, "legs_fat");
+    RwTexture* legsRipped = RwTexDictionaryFindNamedTexture(legsTxdDict, "legs_ripped");
+    RwTexture* legsBlended = CopyTexture(legs);
+    BlendTextures(legsBlended, legsFat, legsRipped, rNormal, rFat, rMuscle, 108);
+    CStreaming::RemoveModel(TXDToModelId(legsTxdId));
+    int32 faceTxd;
+    const uint32 faceHash = hashes[CLOTHES_TEXTURE_HEAD] ? hashes[CLOTHES_TEXTURE_HEAD] : CKeyGen::GetUppercaseKey("player_face");
+    GetTextureFromTxdAndLoadNextTxd(legsBlended, legsTxdReq, faceHash, &faceTxd);
+    RwTextureSetName(legsBlended, "legs");
+    RwTexDictionaryAddTexture(dict, legsBlended);
+
+    // Head
+    CStreaming::LoadAllRequestedModels(true);
+    int32 feetTxdReq;
+    if (!hashes[CLOTHES_TEXTURE_SHOES]) {
+        feetTxdReq = RequestTexture(CKeyGen::GetUppercaseKey("player_feet"));
+    } else {
+        feetTxdReq = RequestTexture(hashes[CLOTHES_TEXTURE_SHOES]);
+    }
+    CStreaming::LoadRequestedModels();
+    const auto faceTxdDict = CTxdStore::GetTxd(faceTxd);
+    RwTexture* face    = RwTexDictionaryFindNamedTexture(faceTxdDict, "face");
+    RwTexture* faceFat = RwTexDictionaryFindNamedTexture(faceTxdDict, "face_fat");
+    RwTexture* headBlended;
+    if (!face) {
+        headBlended = CopyTexture(GetFirstTexture(faceTxdDict));
+    } else {
+        headBlended = CopyTexture(face);
+        if (faceFat) {
+            const auto total = rNormal + rFat + rMuscle;
+            BlendTextures(headBlended, faceFat, (rNormal + rMuscle) / total, rFat / total, 108);
+        }
+    }
+    CStreaming::RemoveModel(TXDToModelId(faceTxd));
+    RwTextureSetName(headBlended, "head");
+    RwTexDictionaryAddTexture(dict, headBlended);
+
+    // Feet + accessories, each chained to the next TXD
+    int32 nextTxdA, nextTxdB;
+    RwTexture* feet = GetTextureFromTxdAndLoadNextTxd(nullptr, feetTxdReq, hashes[CLOTHES_TEXTURE_NECKLACE], &nextTxdA);
+    RwTextureSetName(feet, "feet");
+    RwTexDictionaryAddTexture(dict, feet);
+
+    if (RwTexture* necklace = GetTextureFromTxdAndLoadNextTxd(nullptr, nextTxdA, hashes[CLOTHES_TEXTURE_BRACELET], &nextTxdB)) {
+        RwTextureSetName(necklace, "necklace");
+        RwTexDictionaryAddTexture(dict, necklace);
+    }
+    if (RwTexture* watch = GetTextureFromTxdAndLoadNextTxd(nullptr, nextTxdB, hashes[CLOTHES_TEXTURE_GLASSES], &nextTxdA)) {
+        RwTextureSetName(watch, "watch");
+        RwTexDictionaryAddTexture(dict, watch);
+    }
+    if (RwTexture* glasses = GetTextureFromTxdAndLoadNextTxd(nullptr, nextTxdA, hashes[CLOTHES_TEXTURE_HATS], &nextTxdB)) {
+        RwTextureSetName(glasses, "glasses");
+        RwTexDictionaryAddTexture(dict, glasses);
+    }
+    if (RwTexture* hat = GetTextureFromTxdAndLoadNextTxd(nullptr, nextTxdB, hashes[CLOTHES_TEXTURE_SPECIAL], &nextTxdA)) {
+        RwTextureSetName(hat, "hat");
+        RwTexDictionaryAddTexture(dict, hat);
+    }
+    if (nextTxdA != -1) {
+        CStreaming::LoadAllRequestedModels(true);
+        RwTexture* extra = CopyTexture(GetFirstTexture(CTxdStore::GetTxd(nextTxdA)));
+        CStreaming::RemoveModel(TXDToModelId(nextTxdA));
+        if (extra) {
+            RwTextureSetName(extra, "extra1");
+            RwTexDictionaryAddTexture(dict, extra);
+        }
+    }
 }
 
 // 0x5A6530
-void CClothesBuilder::ConstructGeometryAndSkinArrays(RpHAnimHierarchy* pBoneHier, RpGeometry** ppGeometry, RwMatrixWeights** ppWeights, uint32** ppIndices, uint32 numModels, RpGeometry** pGeometrys, RpMaterial** pMaterial) {
-    plugin::Call<0x5A6530>(pBoneHier, ppGeometry, ppWeights, ppIndices, numModels, pGeometrys, pMaterial);
+void CClothesBuilder::ConstructGeometryAndSkinArrays(RpHAnimHierarchy* animHierarchy, RpGeometry** outGeometry, RwMatrixWeights** outWeights, RwUInt32** outBoneIndices, uint32 numModels, RpGeometry** geometries, RpMaterial** materials) {
+    int32 numVerts = 0, numTris = 0;
+    for (auto i = 0u; i < numModels; i++) {
+        if (geometries[i]) {
+            numVerts += RpGeometryGetNumVertices(geometries[i]);
+            numTris  += RpGeometryGetNumTriangles(geometries[i]);
+        }
+    }
+
+    const auto out = RpGeometryCreate(numVerts, numTris, rpGEOMETRYTRISTRIP | rpGEOMETRYTEXTURED | rpGEOMETRYNORMALS | rpGEOMETRYLIGHT);
+    *outGeometry = out;
+    const auto outMT = RpGeometryGetMorphTarget(out, 0);
+    RwV3d* outVerts         = RpMorphTargetGetVertices(outMT);
+    RwV3d* outNormals       = RpMorphTargetGetVertexNormals(outMT);
+    RwTexCoords* outUVs     = RpGeometryGetVertexTexCoords(out, 1);
+    RpTriangle* outTris     = RpGeometryGetTriangles(out);
+
+    int32 vertBase = 0, triBase = 0;
+    for (auto i = 0u; i < numModels; i++) {
+        const auto src = geometries[i];
+        if (!src) {
+            continue;
+        }
+        const auto numSrcVerts = RpGeometryGetNumVertices(src);
+        const auto numSrcTris  = RpGeometryGetNumTriangles(src);
+        const auto srcMT = RpGeometryGetMorphTarget(src, 0);
+        const RwV3d* srcVerts         = RpMorphTargetGetVertices(srcMT);
+        const RwV3d* srcNormals       = RpMorphTargetGetVertexNormals(srcMT);
+        const RwTexCoords* srcUVs     = RpGeometryGetVertexTexCoords(src, 1);
+        const RpTriangle* srcTris     = RpGeometryGetTriangles(src);
+        for (auto v = 0; v < numSrcVerts; v++) {
+            outVerts[vertBase + v]   = srcVerts[v];
+            outNormals[vertBase + v] = srcNormals[v];
+            outUVs[vertBase + v]     = srcUVs[v];
+        }
+        for (auto t = 0; t < numSrcTris; t++) {
+            RpTriangle* dstTri = &outTris[triBase + t];
+            RpGeometryTriangleSetVertexIndices(out, dstTri,
+                srcTris[t].vertIndex[0] + vertBase, srcTris[t].vertIndex[1] + vertBase, srcTris[t].vertIndex[2] + vertBase);
+            RpGeometryTriangleSetMaterial(out, dstTri, materials[i]);
+        }
+        vertBase += numSrcVerts;
+        triBase  += numSrcTris;
+    }
+
+    RpMorphTargetCalcBoundingSphere(outMT, &outMT->boundingSphere);
+    RpGeometryUnlock(out);
+
+    auto* weights  = new RwMatrixWeights[numVerts];
+    auto* boneIdxs = new RwUInt32[numVerts];
+    *outWeights     = weights;
+    *outBoneIndices = boneIdxs;
+
+    uint8 convTable[64];
+    for (auto i = 0u; i < numModels; i++) {
+        const auto src = geometries[i];
+        if (!src) {
+            continue;
+        }
+        const auto numSrcVerts = RpGeometryGetNumVertices(src);
+        const auto skin = RpSkinGeometryGetSkin(src);
+        const RwUInt8* srcBoneIdxs = (const RwUInt8*)RpSkinGetVertexBoneIndices(skin);
+        const RwMatrixWeights* srcWeights = RpSkinGetVertexBoneWeights(skin);
+        BuildBoneIndexConversionTable(convTable, animHierarchy, i);
+        for (auto v = 0; v < numSrcVerts; v++) {
+            for (auto b = 0; b < 4; b++) {
+                ((RwUInt8*)boneIdxs)[v * 4 + b] = convTable[srcBoneIdxs[v * 4 + b]];
+            }
+            weights[v] = srcWeights[v];
+        }
+        weights  += numSrcVerts;
+        boneIdxs += numSrcVerts;
+    }
 }
 
 // 0x5A69D0

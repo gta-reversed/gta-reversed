@@ -6,6 +6,7 @@
 */
 #include "StdInc.h"
 
+#include "PostEffects.h"
 #include "Pickups.h"
 #include "Garages.h"
 #include "tPickupMessage.h"
@@ -22,7 +23,7 @@ void CPickups::InjectHooks() {
     RH_ScopedInstall(Init, 0x454A70);
     RH_ScopedInstall(ReInit, 0x456E60);
     RH_ScopedInstall(AddToCollectedPickupsArray, 0x455240);
-    RH_ScopedOverloadedInstall(CreatePickupCoorsCloseToCoors, "", 0x458A80, void(*)(float, float, float, float&, float&, float&), {.reversed = false});
+    RH_ScopedOverloadedInstall(CreatePickupCoorsCloseToCoors, "", 0x458A80, void(*)(float, float, float, float&, float&, float&));
     RH_ScopedInstall(CreateSomeMoney, 0x458970);
     RH_ScopedInstall(DetonateMinesHitByGunShot, 0x4590C0);
     RH_ScopedInstall(DoCollectableEffects, 0x455E20);
@@ -97,7 +98,44 @@ void CPickups::AddToCollectedPickupsArray(int32 pickupIndex) {
  * @param [out] outX, outY, outZ Created pickup's position
  */
 void CPickups::CreatePickupCoorsCloseToCoors(float inX, float inY, float inZ, float& outX, float& outY, float& outZ) {
-    plugin::Call<0x458A80, float, float, float, float&, float&, float&>(inX, inY, inZ, outX, outY, outZ);
+    // Binary verb (S_0x458A80.txt): up to 32 random candidates on a 1.5-unit ring around
+    // the input; each is lifted to ground + 0.5. Past 16 failures any clear-LOS candidate
+    // wins, otherwise (matches TestSphereAgainstWorld(_, 1.2, nullptr, false, false, true,
+    // false, false, false) == nullptr + no other pickup within 1.3 + 2.0 clear of the
+    // player) the candidate must also win. Fallback: input x/y, input z + 0.4.
+    for (auto tries = 0; tries < 32; tries++) {
+        const auto angle = static_cast<float>(CGeneral::GetRandomNumber() & 0xFF) * (2.0f * 3.14159265f / 256.0f);
+        const CVector candidate{ inX + 1.5f * std::sinf(angle), inY + 1.5f * std::cosf(angle), inZ };
+        bool foundGround{};
+        const CVector ground{
+            candidate.x,
+            candidate.y,
+            CWorld::FindGroundZFor3DCoord(candidate, &foundGround, nullptr) + 0.5f,
+        };
+        if (!foundGround)
+            continue;
+        const auto relaxed = tries > 0x10;
+        // Binary: dist(candidate.xz -> player.xz) must EXCEED 2.0; when it does and we are
+        // past 16 failures any clear-LOS candidate wins, otherwise the candidate must also
+        // have no other pickup within 1.3 and a clear 1.2 test-sphere.
+        if ((candidate - FindPlayerCoors()).Magnitude2D() <= 2.0f) {
+            if (!relaxed)
+                continue;
+        } else if (!relaxed && TestForPickupsInBubble(ground, 1.3f)) {
+            continue;
+        }
+        if (!CWorld::GetIsLineOfSightClear({ inX, inY, inZ + 0.3f }, ground - CVector{ 0.0f, 0.0f, 0.4f }, true, relaxed, false, relaxed, false, false, false))
+            continue;
+        if (!relaxed && CWorld::TestSphereAgainstWorld(ground, 1.2f, nullptr, false, false, true, false, false, false))
+            continue;
+        outX = candidate.x;
+        outY = candidate.y;
+        outZ = ground.z;
+        return;
+    }
+    outX = inX;
+    outY = inY;
+    outZ = inZ + 0.4f;
 }
 
 /*!
@@ -245,8 +283,91 @@ void CPickups::DoMoneyEffects(CEntity* entity) {
 }
 
 // 0x455720
+// Binary verb (S_0x455720.txt): camera pickups hide while the active cam is in
+// follow-ped mode (0x2E) and otherwise flicker a corona at night/vision-FX; other
+// pickups take PickUpShouldBeInvisible into bIsVisible; priced/property pickups queue
+// a tPickupMessage when on screen and within 14 units; the object matrix is then
 void CPickups::DoPickUpEffects(CEntity* entity) {
-    plugin::Call<0x455720, CEntity*>(entity);
+    auto* obj = entity->AsObject();
+    auto* pickup = FindPickUpForThisObject(obj);
+    const auto model = static_cast<int32>(entity->m_nModelIndex);
+    if (model == MI_PICKUP_CAMERA) {
+        if (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode == 0x2E) {
+            obj->objectFlags.b0x20000000 = false;
+        } else {
+            obj->objectFlags.b0x20000000 = true;
+            if (CClock::GetGameClockHours() < 5 || CPostEffects::IsVisionFXActive()) {
+                // NOTSA: binary derives flicker/alpha from two FUN_00821b40 calls and the
+                // corona size from three unidentified floats; approximated, see flag note.
+                const auto flicker = 100 - CGeneral::GetRandomNumber() % 100;
+                const auto alpha = static_cast<uint8>(CGeneral::GetRandomNumber());
+                CCoronas::RegisterCorona(
+                    reinterpret_cast<uint32>(entity), nullptr,
+                    static_cast<uint8>(flicker), alpha, alpha, 255,
+                    entity->GetPosition(), 1.7f + static_cast<float>(flicker) * 0.02f, 100.0f,
+                    CORONATYPE_SHINYSTAR, FLARETYPE_NONE, eCoronaReflType::CORREFL_NONE,
+                    eCoronaLOSCheck::LOSCHECK_OFF, eCoronaTrail::TRAIL_OFF,
+                    0.5f, false, 1.5f, 0, 15.0f, false, false
+                );
+            }
+        }
+    } else if (pickup->PickUpShouldBeInvisible()) {
+        obj->m_nObjectFlags |= 0x2000000;
+    } else {
+        obj->m_nObjectFlags &= ~0x2000000u;
+    }
+    if (obj->m_nObjectFlags & 0x2000000)
+        return;
+    auto animId = static_cast<int32>(WeaponForModel(model));
+    if (model == MI_PICKUP_ADRENALINE || model == MI_PICKUP_HEALTH || model == MI_PICKUP_BONUS
+        || model == MI_PICKUP_PROPERTY_FORSALE || model == MI_PICKUP_CLOTHES) {
+        animId = 47;
+    } else if (model == MI_PICKUP_BODYARMOUR) {
+        animId = 48;
+    } else if (model == MI_PICKUP_REVENUE) {
+        animId = 53;
+    } else if (model != MI_PICKUP_BRIBE && model != MI_PICKUP_INFO && model != MI_PICKUP_KILLFRENZY
+        && model != MI_PICKUP_PROPERTY && model != MI_PICKUP_SAVEGAME) {
+        animId = static_cast<int32>(WeaponForModel(model));
+    }
+    // entity+0x140/0x13D/0x13E are CObject::m_nObjectFlags/m_nBonusValue/m_wCostValue
+    if (obj->m_nObjectFlags & 0xC || obj->m_nBonusValue || obj->m_wCostValue) {
+        const auto& camPos = TheCamera.GetPosition();
+        if ((camPos - entity->GetPosition()).Magnitude() < 14.0f && NumMessages <= 0xF) {
+            RwV3d screen{};
+            float w{}, h{};
+            CVector raised = entity->GetPosition() + CVector{ 0.0f, 0.0f, 0.7f };
+            if (CSprite::CalcScreenCoors(RwV3d{ raised.x, raised.y, raised.z }, &screen, &w, &h, true, true)) {
+                auto& msg = aMessages[NumMessages++];
+                msg.pos = CVector{ screen.x, screen.y, screen.z };
+                msg.width = w;
+                msg.height = h;
+                msg.color = CRGBA{ static_cast<uint8>(AmmoForWeapon_OnStreet[animId]), 0, 0, 255 };
+                msg.flags = (obj->m_nObjectFlags & 8 ? 1 : 0) | (model == MI_PICKUP_PROPERTY_FORSALE ? 2 : 0);
+                msg.field_19 = obj->m_nBonusValue;
+                msg.price = static_cast<uint32>(obj->m_wCostValue) * 5u;
+                if (model == MI_PICKUP_PROPERTY || model == MI_PICKUP_PROPERTY_FORSALE)
+                    msg.text = const_cast<GxtChar*>(TheText.Get(CPickup::FindStringForTextIndex(static_cast<ePickupPropertyText>((pickup->m_nFlags.nPropertyTextIndex & 0x70) >> 4))));
+                else
+                    msg.text = nullptr;
+            }
+        }
+    }
+    const auto* colModel = CModelInfo::GetModelInfo(model)->GetColModel();
+    const auto extent = std::max({
+        colModel->m_boundBox.m_vecMax.x - colModel->m_boundBox.m_vecMin.x,
+        colModel->m_boundBox.m_vecMax.y - colModel->m_boundBox.m_vecMin.y,
+        colModel->m_boundBox.m_vecMax.z - colModel->m_boundBox.m_vecMin.z,
+    });
+    auto scale = std::max(1.2f / extent, 1.0f);
+    scale = (scale - 1.0f) * 0.6f + 1.0f;
+    if (model == 0x16A)
+        scale = 1.2f;
+    const auto angle = static_cast<float>(CTimer::GetTimeInMS() & 0x7FF) * 0.0030566407f;
+    auto& mtx = entity->GetMatrix();
+    mtx.GetRight() = CVector{ std::cos(angle) * scale, std::sin(angle) * scale, 0.0f };
+    mtx.GetForward() = CVector{ -std::sin(angle) * scale, std::cos(angle) * scale, 0.0f };
+    mtx.GetUp() = CVector{ 0.0f, 0.0f, scale };
 }
 
 // 0x4551C0

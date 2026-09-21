@@ -2,10 +2,11 @@
 
 #include "FxEmitterBP.h"
 #include "FxEmitter.h"
-#include "FxPrimBP.h"
 #include "FxEmitterPrt.h"
+#include "FxPrimBP.h"
 #include "FxInfo.h"
 #include "FxInfoManager.h"
+#include "MovementInfo.h"
 
 #include "Particle.h"
 #include "FxTools.h"
@@ -15,14 +16,13 @@ void FxEmitterBP_c::InjectHooks() {
     RH_ScopedCategory("Fx");
 
     RH_ScopedInstall(Constructor, 0x4A18D0);
-    RH_ScopedInstall(RenderHeatHaze, 0x4A1940, {.reversed = false});
-    RH_ScopedInstall(UpdateParticle, 0x4A21D0, {.reversed = false});
-    RH_ScopedVMTInstall(CreateInstance, 0x4A2B40, {.reversed = false}); // bad
-    RH_ScopedVMTInstall(Update, 0x4A2BC0, {.reversed = false});
-    RH_ScopedVMTInstall(Load, 0x5C25F0, {.reversed = false});
+    RH_ScopedInstall(UpdateParticle, 0x4A21D0);
+    RH_ScopedVMTInstall(CreateInstance, 0x4A2B40);
+    RH_ScopedVMTInstall(Update, 0x4A2BC0);
+    RH_ScopedVMTInstall(Load, 0x5C25F0);
     RH_ScopedVMTInstall(LoadTextures, 0x5C0A30, {.reversed = true});
     RH_ScopedVMTInstall(Render, 0x4A2C40, {.reversed = false});
-    RH_ScopedVMTInstall(FreePrtFromPrim, 0x4A2510, {.reversed = false});
+    RH_ScopedVMTInstall(FreePrtFromPrim, 0x4A2510);
 }
 
 // 0x4A18D0
@@ -36,8 +36,62 @@ void FxEmitterBP_c::RenderHeatHaze(RwCamera* camera, uint32 txdHashKey, float br
 }
 
 // 0x4A21D0
-bool FxEmitterBP_c::UpdateParticle(float deltaTime, FxEmitterPrt_c* emitter) {
-    return plugin::CallMethodAndReturn<bool, 0x4A21D0, FxEmitterBP_c*, float, FxEmitterPrt_c*>(this, deltaTime, emitter);
+bool FxEmitterBP_c::UpdateParticle(float deltaTime, FxEmitterPrt_c* prt) {
+    auto& system = *prt->m_System;
+    auto& systemBP = *system.m_SystemBP;
+
+    const auto correctedDeltaTime = (float)system.m_nTimeMult / 1000.0f * deltaTime;
+    prt->m_fCurrentLife += correctedDeltaTime;
+    if (prt->m_fTotalLife <= prt->m_fCurrentLife) {
+        return true;
+    }
+
+    prt->m_Pos += prt->m_Velocity * correctedDeltaTime;
+    MovementInfo_t movement{};
+    movement.m_Pos = prt->m_Pos;
+    movement.m_Vel = prt->m_Velocity;
+    m_FxInfoManager.ProcessMovementInfo(
+        system.m_fCurrentTime,
+        prt->m_fCurrentLife / prt->m_fTotalLife,
+        correctedDeltaTime,
+        systemBP.m_fLength,
+        false,
+        &movement
+    );
+    prt->m_Pos = movement.m_Pos;
+    prt->m_Velocity = movement.m_Vel;
+
+    if (movement.m_bHasFloatInfo || movement.m_bHasUnderwaterInfo) {
+        float waterLevel = 0.0f;
+        const auto hasWaterLevel = CWaterLevel::GetWaterLevel(prt->m_Pos.x, prt->m_Pos.y, prt->m_Pos.z, waterLevel, true, nullptr);
+        if (movement.m_bHasFloatInfo && hasWaterLevel && prt->m_Pos.z < waterLevel) {
+            prt->m_Pos.z = waterLevel;
+        }
+        if (movement.m_bHasUnderwaterInfo) {
+            if (!hasWaterLevel || waterLevel < prt->m_Pos.z) {
+                return true;
+            }
+        }
+    }
+
+    if ((movement.m_Rot[0] <= 0.0f && movement.m_Rot[1] <= 0.0f) || (movement.m_Rot[2] <= 0.0f && movement.m_Rot[3] <= 0.0f)) {
+        if (movement.m_Rot[0] > 0.0f || movement.m_Rot[1] > 0.0f) {
+            prt->m_CurrentRotation += ((movement.m_Rot[1] - movement.m_Rot[0]) * (float)prt->m_RandR / 255.0f + movement.m_Rot[0]) * (float)prt->m_MultRot * correctedDeltaTime / 255.0f;
+            return false;
+        }
+        if (movement.m_Rot[2] <= 0.0f && movement.m_Rot[3] <= 0.0f) {
+            return false;
+        }
+        const auto rotSpeed = (movement.m_Rot[3] - movement.m_Rot[2]) * (float)prt->m_RandR / 255.0f + movement.m_Rot[2];
+        prt->m_CurrentRotation -= rotSpeed * (float)prt->m_MultRot * correctedDeltaTime / 255.0f;
+    } else {
+        if (prt->m_RandR < 0x80) {
+            prt->m_CurrentRotation += ((movement.m_Rot[1] - movement.m_Rot[0]) * (float)prt->m_RandR * (1.0f / 128.0f) + movement.m_Rot[0]) * (float)prt->m_MultRot * correctedDeltaTime / 255.0f;
+            return false;
+        }
+        prt->m_CurrentRotation -= ((movement.m_Rot[3] - movement.m_Rot[2]) * ((float)prt->m_RandR - 128.0f) * (1.0f / 128.0f) + movement.m_Rot[2]) * (float)prt->m_MultRot * correctedDeltaTime / 255.0f;
+    }
+    return false;
 }
 
 // 0x4A2B40
@@ -51,16 +105,16 @@ FxPrim_c* FxEmitterBP_c::CreateInstance() {
 
 
 void FxEmitterBP_c::Update(float deltaTime) {
-    for (auto it = m_Particles.GetHead(); it; it = m_Particles.GetNext(it)) {
-        if (it->m_System->m_nKillStatus == eFxSystemKillStatus::FX_3) {
-            it->m_System->m_nKillStatus = eFxSystemKillStatus::FX_KILLED;
+    for (auto* particle = m_Particles.GetHead(); particle;) {
+        if (particle->m_System->m_nKillStatus == eFxSystemKillStatus::FX_3) {
+            particle->m_System->m_nKillStatus = eFxSystemKillStatus::FX_KILLED;
         }
-
-        // wrong casts or smth
-        if (it->m_System->m_nPlayStatus != eFxSystemPlayStatus::T2 && UpdateParticle(deltaTime, reinterpret_cast<FxEmitterPrt_c*>(it))) {
-            m_Particles.RemoveItem(it);
-            g_fxMan.ReturnParticle(reinterpret_cast<FxEmitterPrt_c*>(it));
+        auto* next = m_Particles.GetNext(particle); // NB: cache it, the particle may be removed below
+        if (particle->m_System->m_nPlayStatus != eFxSystemPlayStatus::T2 && UpdateParticle(deltaTime, reinterpret_cast<FxEmitterPrt_c*>(particle))) {
+            m_Particles.RemoveItem(particle);
+            g_fxMan.ReturnParticle(reinterpret_cast<FxEmitterPrt_c*>(particle));
         }
+        particle = next;
     }
 }
 
@@ -70,8 +124,8 @@ void FxEmitterBP_c::Update(float deltaTime) {
 bool FxEmitterBP_c::Load(FILESTREAM file, int32 version, FxName32_t* textureNames) {
     FxPrimBP_c::Load(file, version, textureNames);
 
-    m_nLodStart = uint16(ReadField<float>(file, "LODSTART:") * 64.0f);
-    m_nLodEnd   = uint16(ReadField<float>(file, "LODEND:") * 64.0f);
+    m_FxInfoManager.m_nLodStart = uint16(ReadField<float>(file, "LODSTART:") * 64.0f);
+    m_FxInfoManager.m_nLodEnd   = uint16(ReadField<float>(file, "LODEND:") * 64.0f);
 
     return true;
 }
@@ -176,10 +230,15 @@ void FxEmitterBP_c::Render(RwCamera* camera, uint32 txdHashKey, float brightness
 }
 
 // 0x4A2510
-
-// 0x0
 bool FxEmitterBP_c::FreePrtFromPrim(FxSystem_c* system) {
-    return plugin::CallMethodAndReturn<bool, 0x4A2510, FxEmitterBP_c*, FxSystem_c*>(this, system);
+    for (auto* particle = m_Particles.GetHead(); particle; particle = m_Particles.GetNext(particle)) {
+        if (particle->m_System == system) {
+            m_Particles.RemoveItem(particle);
+            g_fxMan.ReturnParticle(reinterpret_cast<FxEmitterPrt_c*>(particle));
+            return true;
+        }
+    }
+    return false;
 }
 
 // todo: eFxInfo

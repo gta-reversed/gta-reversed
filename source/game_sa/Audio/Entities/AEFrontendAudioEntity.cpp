@@ -757,17 +757,12 @@ bool CAEFrontendAudioEntity::IsLoadingTuneActive() {
 
 // 0x4DEDA0
 void CAEFrontendAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    return plugin::CallMethod<0x4DEDA0, CAEFrontendAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
-
-    // untested
-    if (!sound)
+    if (!sound) {
         return;
+    }
 
-    const float curPos = (float)curPlayPos / 350.f + (float)curPlayPos / 350.f;
-    const float rear = curPos - 1.0f;
-    const float front = 1.0f - curPos;
-
-    const auto BulletSound = [=](const float x, const float y) {
+    // Pans bullet-pass sounds left/right and sweeps them front<->rear as `curPlayPos` runs 0..350
+    const auto BulletSound = [&](float x, float y) {
         if (curPlayPos >= 0 && curPlayPos <= 350) {
             sound->SetPosition({ x, y, 0.0f });
         }
@@ -780,16 +775,16 @@ void CAEFrontendAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos)
         }
         break;
     case AE_FRONTEND_BULLET_PASS_LEFT_REAR:
-        BulletSound(-0.1f, rear);
+        BulletSound(-0.1f, 2.0f * (float)curPlayPos / 350.0f - 1.0f);
         break;
     case AE_FRONTEND_BULLET_PASS_LEFT_FRONT:
-        BulletSound(-0.1f, front);
+        BulletSound(-0.1f, 1.0f - 2.0f * (float)curPlayPos / 350.0f);
         break;
     case AE_FRONTEND_BULLET_PASS_RIGHT_REAR:
-        BulletSound(+0.1f, rear);
+        BulletSound(+0.1f, 2.0f * (float)curPlayPos / 350.0f - 1.0f);
         break;
     case AE_FRONTEND_BULLET_PASS_RIGHT_FRONT:
-        BulletSound(+0.1f, front);
+        BulletSound(+0.1f, 1.0f - 2.0f * (float)curPlayPos / 350.0f);
         break;
     case AE_FRONTEND_TIMER_COUNT:
         if (curPlayPos > 0 && CTimer::GetTimeInMS() > m_nLatestTimerCount + 100) {
@@ -815,5 +810,5 @@ void CAEFrontendAudioEntity::InjectHooks() {
     RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .reversed = false });
     RH_ScopedInstall(IsRadioTuneSoundActive, 0x4DD480);
     RH_ScopedInstall(IsLoadingTuneActive, 0x4DD470);
-    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0);
 }

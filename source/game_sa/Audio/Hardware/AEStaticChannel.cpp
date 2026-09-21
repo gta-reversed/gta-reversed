@@ -16,7 +16,7 @@ void CAEStaticChannel::InjectHooks() {
     RH_ScopedVMTInstall(SynchPlayback, 0x4F1040);
     RH_ScopedVMTInstall(Stop, 0x4F0FB0);
 
-    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = false});
+    RH_ScopedInstall(SetAudioBuffer, 0x4F0C40);
 }
 
 CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
@@ -149,6 +149,110 @@ void CAEStaticChannel::Stop() {
     }
 }
 
-bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency) {
-    return false;
+// 0x4F0C40
+bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size, int16 field88, int16 field8C, int16 loopOffset, uint16 frequency) {
+    if (size == 0 || frequency == 0) {
+        return false;
+    }
+
+    if (m_pDirectSoundBuffer) {
+        --g_numSoundChannelsUsed;
+    }
+    if (m_pDirectSoundBuffer) {
+        std::exchange(m_pDirectSoundBuffer, nullptr)->Release();
+    }
+    if (m_pDirectSound3DBuffer) {
+        std::exchange(m_pDirectSound3DBuffer, nullptr)->Release();
+    }
+
+    // Original also mirrors the total buffer size into a spare word at +0x24 (inside `CAEAudioChannel::_pad10`);
+    // nothing else reads it, but keep the write for faithfulness.
+    auto& sizeMirror = *reinterpret_cast<uint32*>(reinterpret_cast<uint8*>(this) + 0x24);
+
+    m_pBuffer                = buffer;
+    m_pDirectSound3DBuffer   = nullptr;
+    field_8C                 = 0;
+    m_nCurrentBufferOffset   = 0;
+    m_bUnkn2                 = false;
+    m_bNeedData              = false;
+    m_bUnkn4                 = false;
+    field_6C                 = 0;
+    m_nLengthInBytes         = size;
+    field_88                 = field88;
+    field_8B                 = 0;
+    field_8C                 = field8C;
+    m_bPaused                = false;
+    if (loopOffset != -1) {
+        m_bLooped              = true;
+        m_nCurrentBufferOffset = (loopOffset << 4) >> 3;
+        field_68               = size;
+    }
+    uint32 bufferBytes{};
+    if (!m_bLooped || m_nCurrentBufferOffset == 0) {
+        bufferBytes = size;
+        sizeMirror  = size;
+    } else {
+        const auto loopedPart = field_68 - m_nCurrentBufferOffset;
+        m_nNumLockBytes = loopedPart;
+        const uint32 total = field_68 < 24'000 ? 24'000 : field_68;
+        const auto   loops = total / loopedPart + 1;
+        field_6C    = loops;
+        bufferBytes = loops * loopedPart;
+        sizeMirror  = bufferBytes;
+    }
+
+    // Original builds 0x80B4/0x80B8 via arithmetic; the bits are GLOBALFOCUS | CTRLVOLUME | CTRLFREQUENCY | CTRL3D | LOC{HARDWARE,SOFTWARE}.
+    static_assert((DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRL3D | DSBCAPS_LOCHARDWARE) == 0x80B4);
+    static_assert((DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRL3D | DSBCAPS_LOCSOFTWARE) == 0x80B8);
+    DSBUFFERDESC bufferDesc{};
+    bufferDesc.dwSize          = sizeof(DSBUFFERDESC);
+    bufferDesc.dwFlags         = DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRL3D |
+                                 (m_IsHardwareMixAvailable ? DSBCAPS_LOCHARDWARE : DSBCAPS_LOCSOFTWARE);
+    bufferDesc.dwBufferBytes   = bufferBytes;
+    bufferDesc.dwReserved      = 0;
+    bufferDesc.lpwfxFormat     = &m_WaveFormat;
+    bufferDesc.guid3DAlgorithm = GUID_NULL;
+    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
+    m_WaveFormat.nChannels       = 1;
+    m_WaveFormat.nSamplesPerSec  = frequency;
+    m_WaveFormat.nAvgBytesPerSec = frequency * 2u;
+    m_WaveFormat.nBlockAlign     = 2;
+    m_WaveFormat.wBitsPerSample  = 16;
+    m_WaveFormat.cbSize          = 0;
+    m_nFrequency                 = frequency;
+    m_nOriginalFrequency         = frequency;
+    if (FAILED(m_pDirectSound->CreateSoundBuffer(&bufferDesc, &m_pDirectSoundBuffer, nullptr))) {
+        return false;
+    }
+    ++g_numSoundChannelsUsed;
+
+    void* audioPtr1{};
+    DWORD audioBytes1{};
+    void* audioPtr2{};
+    DWORD audioBytes2{};
+    if (FAILED(m_pDirectSoundBuffer->Lock(0, m_nLengthInBytes, &audioPtr1, &audioBytes1, &audioPtr2, &audioBytes2, 0))) {
+        std::exchange(m_pDirectSoundBuffer, nullptr)->Release();
+        return false;
+    }
+    if (m_nCurrentBufferOffset == 0) {
+        memcpy(audioPtr1, m_pBuffer, size);
+        if (audioBytes1 < m_nLengthInBytes) {
+            memset((uint8*)audioPtr1 + audioBytes1, 0, m_nLengthInBytes - audioBytes1);
+        }
+        m_bNeedData = false;
+    } else {
+        memcpy((uint8*)audioPtr1 + sizeMirror - m_nCurrentBufferOffset, m_pBuffer, m_nCurrentBufferOffset);
+        m_nNumLoops    = (uint16)(m_nCurrentBufferOffset / m_nNumLockBytes + 1);
+        m_dwLockOffset = sizeMirror - (uint32)m_nNumLoops * m_nNumLockBytes;
+        for (uint32 i = 0; i < (uint32)field_6C - m_nNumLoops; i++) {
+            memcpy((uint8*)audioPtr1 + i * m_nNumLockBytes, (uint8*)m_pBuffer + m_nCurrentBufferOffset, m_nNumLockBytes);
+        }
+        m_nSyncTime = CAEAudioChannel::ConvertFromBytesToMS(m_nCurrentBufferOffset);
+        m_bNeedData = true;
+    }
+    VERIFY(SUCCEEDED(m_pDirectSoundBuffer->Unlock(audioPtr1, audioBytes1, audioPtr2, audioBytes2)));
+    VERIFY(SUCCEEDED(m_pDirectSoundBuffer->QueryInterface(IID_IDirectSound3DBuffer, (void**)&m_pDirectSound3DBuffer)));
+    m_Volume = -100.0f;
+    VERIFY(SUCCEEDED(m_pDirectSoundBuffer->SetVolume(-10'000)));
+    return true;
 }

@@ -38,9 +38,7 @@ public:
     float                 m_fEQScaleFactor{1.0f};
 
 public:
-    CAEStreamingChannel(IDirectSound* directSound, uint16 channelId)
-        : CAEAudioChannel(directSound, channelId, 48000, 16)
-    {} // 0x4F1800
+    CAEStreamingChannel(IDirectSound* directSound, uint16 channelId); // 0x4F1800
     ~CAEStreamingChannel() override;
 
     void   Service() override;

@@ -86,6 +86,19 @@ void CRope::CreateHookObjectForRope() {
 }
 
 // 0x5561B0
+// NOTSA: kept as plugin call - flag stays {.reversed = false}.
+// Full 154-line decompile available (tmp_M5_rope5561.c); structure is a rope
+// constraint solver: distance check against (31 - m_nSegments) * segLen, then
+// either a rigid-party placement loop or 6 relaxation iterations over the
+// segment/speed arrays with CVector::Normalise (0x59C910) calls.
+// Blockers: (1) the solver reads its segment-length operand from +0x30C, which the
+// header names m_fTotalLength (header's m_fSegmentLength is +0x31C) - RegisterRope's
+// binary writes totals (10/20/50/68) to +0x308 and per-segment values
+// (0.322/0.645/1.613/2.194) to +0x30C while +0x31C keeps 0.5/0.9, so the header
+// field map is shifted one slot vs the binary; fixing it re-maps Rope.h and every
+// user (Ropes.cpp, Object.cpp, Vehicle.cpp) - out of scope for this Rope.cpp-only
+// ticket; (2) the a5 slot carries float 0.1 (0x3DCCCCCD at the 0x557530 call site)
+// but the hook decl types it int32 - signature change is also out of scope here.
 int8 CRope::UpdateWeightInRope(float a2, float a3, float a4, int32 a5, float* a6) {
     return plugin::CallMethodAndReturn<int8, 0x5561B0, CRope*, float, float, float, int32, float*>(this, a2, a3, a4, a5, a6);
 }
@@ -193,6 +206,13 @@ void CRope::PickUpObject(CEntity* obj) {
 }
 
 // 0x557530
+// NOTSA: 765-line decompile available (tmp_M5_rope5575.c); multi-phase physics
+// update (camera cull at 200.0, holder motion, Verlet segment integration with
+// wind jitter, crane raise/lower via CPad, attached-object coupling through
+// CVector::Normalise (0x59C910)/TransformPoint (0x59C890)/ForceUpVector (0x59B7E0),
+// ped/vehicle/object pickup scans) with ~15 unidentified float constants
+// (0x858624 etc. read live from the exe during this ticket) and direct
+// entity/matrix field offsets. Skipped honestly - flag stays {.reversed = false}.
 void CRope::Update() {
     plugin::CallMethod<0x557530, CRope*>(this);
 }

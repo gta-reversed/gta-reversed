@@ -34,7 +34,6 @@ std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercas
     return ss.str();
 }
 
-
 void LOG_HEX_SPAN(uint8* start, size_t size) {
     auto span = std::span(start, size);
     auto str  = make_hex_string(span.begin(), span.end(), true, true);
@@ -44,43 +43,37 @@ void LOG_HEX_SPAN(uint8* start, size_t size) {
     #define LOG_SAVE(msg) NOTSA_LOG_DEBUG(msg)
 
 #else
-void LOG_HEX_SPAN(uint8* start, size_t size) {}
+void LOG_HEX_SPAN(uint8* start, size_t size) {
+}
+
     #define LOG_SAVE(msg)
 #endif
 
-
-
-
-constexpr uint32 SIZE_OF_ONE_GAME_IN_BYTES = 202748;
+constexpr uint32 SIZE_OF_ONE_GAME_IN_BYTES = 202'748;
 
 void CGenericGameStorage::InjectHooks() {
     RH_ScopedClass(CGenericGameStorage);
     RH_ScopedCategoryGlobal();
 
-    // Can't really test these yet. All mods I have interfere with it (WindowedMode and IMFast)
-    // Also, these functions originally had the file pointer passed to them @ `ebp`
-    // which is non-standard, so.. yeah, not really possible to reverse this garbage
-    // until we reverse everything.
-
     RH_ScopedInstall(ReportError, 0x5D08C0);
-    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50, { .reversed = false });
-    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90, { .reversed = false });
-    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .reversed = false });
-    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .reversed = false });
+    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50);
+    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90);
+    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70);
+    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00);
     RH_ScopedInstall(GenericLoad, 0x5D17B0);
     RH_ScopedInstall(GenericSave, 0x5D13E0, {.enabled = true });
-    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .reversed = false });
+    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380);
     RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
     RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
-    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .reversed = false });
-    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .reversed = false });
-    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50, { .reversed = false });
-    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90, { .reversed = false });
-    RH_ScopedInstall(CloseFile, 0x5D0E30, { .reversed = false });
-    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .reversed = false });
-    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .reversed = false });
-    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .reversed = false });
-    RH_ScopedInstall(RestoreForStartLoad, 0x619000, { .reversed = false });
+    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0);
+    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80);
+    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50);
+    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90);
+    RH_ScopedInstall(CloseFile, 0x5D0E30);
+    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0);
+    RH_ScopedInstall(OpenFileForReading, 0x5D0D20);
+    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170);
+    RH_ScopedInstall(RestoreForStartLoad, 0x619000);
 }
 
 // 0x5D08C0
@@ -230,8 +223,8 @@ static std::string SaveVersionName(uint32 version) {
 bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
     out_bVariablesLoaded = false;
 
-    ms_bFailed  = false;
-    ms_CheckSum = 0;
+    ms_bFailed           = false;
+    ms_CheckSum          = 0;
     CCheat::ResetCheats();
     if (!OpenFileForReading(nullptr, 0)) {
         return false;
@@ -571,7 +564,7 @@ bool CGenericGameStorage::GenericSave() {
     if (!SaveWorkBuffer(true)) {
         CloseFile();
         return false;
-	}
+    }
 
     strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
     if (CloseFile()) {
@@ -709,19 +702,22 @@ bool CGenericGameStorage::LoadWorkBuffer() {
 
 // 0x5D0F80
 bool CGenericGameStorage::SaveWorkBuffer(bool bIncludeChecksum) {
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
-    if (ms_WorkBufferPos == 0)
+    if (ms_WorkBufferPos == 0) {
         return true;
+    }
 
     for (auto i = 0; i < ms_WorkBufferPos; ++i) {
         ms_CheckSum += ms_WorkBuffer[i];
     }
 
     if (bIncludeChecksum) {
-        if (ms_WorkBufferPos > BUFFER_SIZE - sizeof(uint32))
+        if (ms_WorkBufferPos > BUFFER_SIZE - sizeof(uint32)) {
             SaveWorkBuffer(false);
+        }
         memcpy(&ms_WorkBuffer[ms_WorkBufferPos], &ms_CheckSum, sizeof(uint32));
         ms_WorkBufferPos += sizeof(uint32);
     }
@@ -735,8 +731,9 @@ bool CGenericGameStorage::SaveWorkBuffer(bool bIncludeChecksum) {
     }
 
     s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_WRITE;
-    if (!CloseFile())
+    if (!CloseFile()) {
         s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_CLOSE;
+    }
 
     strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
 
@@ -763,8 +760,9 @@ void CGenericGameStorage::MakeValidSaveName(int32 slot) {
     strcat_s(path, ".b");
 
     for (auto it = path; *it && *it != '\n'; it++) {
-        if (*it == '?')
+        if (*it == '?') {
             *it = ' ';
+        }
     }
 
     strcpy_s(ms_SaveFileName, path);
@@ -785,8 +783,9 @@ bool CGenericGameStorage::OpenFileForWriting() {
     if (ms_FileHandle) {
         ms_FilePos       = 0;
         ms_WorkBufferPos = 0;
-        if (!ms_WorkBuffer)
+        if (!ms_WorkBuffer) {
             ms_WorkBuffer = new uint8[BUFFER_SIZE + 1];
+        }
         return true;
     } else {
         s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_OPEN;
@@ -811,8 +810,9 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
         ms_WorkBufferSize = BUFFER_SIZE;
         ms_WorkBufferPos  = BUFFER_SIZE;
 
-        if (!ms_WorkBuffer)
+        if (!ms_WorkBuffer) {
             ms_WorkBuffer = new uint8[BUFFER_SIZE + 1];
+        }
 
         return true;
     }

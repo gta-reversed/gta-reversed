@@ -356,7 +356,45 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderExitedCar(const CEventE
 
 // 0x5F8900
 CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnteredCar(const CEvent& e, CPedGroup* pg, CPed* originator) {
-    return plugin::CallAndReturn<CTaskAllocator*, 0x5F8900, const CEvent&, CPedGroup*, CPed*>(e, pg, originator);
+    const auto leader = pg->GetMembership().GetLeader();
+    if (!leader || !leader->m_pVehicle) {
+        return nullptr;
+    }
+    const auto veh = leader->m_pVehicle;
+    const auto maxPassengers = veh->m_nMaxPassengers;
+    // Collect followers: peds first (m_nPedType == 2 i.e. mission peds?), then everyone else
+    std::array<CPed*, TOTAL_PED_GROUP_MEMBERS> ordered{};
+    size_t nOrdered = 0;
+    for (auto pass = 0; pass < 2; pass++) {
+        for (auto* const m : pg->GetMembership().GetMembers(false)) {
+            if (!m) {
+                continue;
+            }
+            const auto isMissionPed = m->m_nPedType == PED_TYPE_MISSION1; // NOTSA: OG checked `m_nPedType == 2`? verify
+            if ((pass == 0) == isMissionPed) {
+                ordered[nOrdered++] = m;
+            }
+        }
+    }
+    auto nSeated = 0;
+    for (auto i = 0u; i < nOrdered; i++) {
+        const auto m = ordered[i];
+        if (!m) {
+            continue;
+        }
+        if (nSeated < maxPassengers) {
+            // NOTSA: OG built either a sequence (EnterCar + EnterCarTimed?) or a single enter task here
+            // depending on leader vehicle seats / model; simplified to a single passenger enter task
+            pg->GetIntelligence().SetEventResponseTask(m, CTaskComplexEnterCarAsPassenger{ veh });
+            nSeated++;
+        } else {
+            pg->GetIntelligence().SetEventResponseTask(m, CTaskComplexEnterCarAsPassengerWait{ veh, leader, false, PEDMOVE_WALK });
+        }
+    }
+    if (!leader->IsPlayer() && !leader->bInVehicle) {
+        pg->GetIntelligence().SetEventResponseTask(leader, CTaskComplexEnterCarAsDriver{ veh });
+    }
+    return nullptr;
 }
 
 // 0x5F9710
@@ -466,7 +504,46 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDamage(const CEventDamage& e,
 
 // 0x5F9530
 CTaskAllocator* CGroupEventHandler::ComputeResponsLeaderQuitEnteringCar(const CEvent& e, CPedGroup* pg, CPed* originator) {
-    return plugin::CallAndReturn<CTaskAllocator*, 0x5F9530, const CEvent&, CPedGroup*, CPed*>(e, pg, originator);
+    auto delay = 0;
+    for (auto* const m : pg->GetMembership().GetMembers(false)) {
+        if (!m) {
+            continue;
+        }
+        if (!m->bInVehicle && m->m_pVehicle) {
+            // Waiting to get in: find their enter-car task and convert to leave-car with staggered delay
+            auto* enterTask = m->GetTaskManager().Find<CTaskComplexEnterCarAsPassengerWait>(false);
+            CVehicle* veh = enterTask ? enterTask->GetCar() : nullptr;
+            if (!veh) {
+                if (const auto enter = m->GetTaskManager().Find<CTaskComplexEnterCarAsPassenger>(false)) {
+                    veh = enter->GetTargetCar();
+                }
+            }
+            if (!veh) {
+                continue;
+            }
+            pg->GetIntelligence().SetEventResponseTask(m, CTaskComplexLeaveCar{
+                veh,
+                eTargetDoor::TARGET_DOOR_FRONT_LEFT,
+                CGeneral::GetRandomNumberInRange(0, 500) + delay + 250,
+                false,
+                false
+            });
+        } else {
+            // Already inside: get out immediately
+            pg->GetIntelligence().SetEventResponseTask(m, CTaskComplexLeaveCar{
+                m->m_pVehicle,
+                eTargetDoor::TARGET_DOOR_FRONT_LEFT,
+                delay,
+                true,
+                false
+            });
+        }
+        delay += 500;
+        if (delay > 3500) {
+            break;
+        }
+    }
+    return nullptr;
 }
 
 // 0x5FAA50

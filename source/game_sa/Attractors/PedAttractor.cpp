@@ -34,7 +34,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
     RH_ScopedInstall(BroadcastDeparture, 0x5EF160);
     RH_ScopedInstall(BroadcastArrival, 0x5EEF80);
-    RH_ScopedInstall(AbortPedTasks, 0x5EAF60, { .reversed = false });
+    RH_ScopedInstall(AbortPedTasks, 0x5EAF60);
 }
 
 // 0x5EAFD0

@@ -19,7 +19,7 @@ void CTaskComplexDestroyCar::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x621C80);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x62D9E0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x62DA90);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6288C0, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6288C0);
 }
 
 // 0x621C00
@@ -94,5 +94,44 @@ CTask* CTaskComplexDestroyCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 
 // 0x6288C0
 CTask* CTaskComplexDestroyCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6288C0, CTaskComplexDestroyCar*, CPed*>(this, ped);
+    // Dead vehicle => nothing to do
+    if (!m_VehicleToDestroy || m_VehicleToDestroy->m_fHealth <= 0.f) {
+        return nullptr;
+    }
+
+    // Not sure what this is for, but whatever, just keep it
+    if (m_arg0) {
+        return CreateNextSubTask(ped);
+    }
+
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_DESTROY_CAR_MELEE: {
+        if (ped->GetActiveWeapon().IsTypeMelee()) {
+            return m_pSubTask;
+        }
+        return CreateSubTask(TASK_COMPLEX_DESTROY_CAR_ARMED, ped);
+    }
+    case TASK_COMPLEX_DESTROY_CAR_ARMED: {
+        // If our current weapon has no ammo, switch to the first weapon with ammo
+        if (ped->GetActiveWeapon().m_AmmoInClip == 0 && !ped->IsPlayer()) {
+            for (int32 slot = 0; slot < NUM_WEAPON_SLOTS; slot++) { // 0x62893E
+                if (ped->GetWeaponInSlot(slot).m_AmmoInClip > 0) {
+                    ped->SetCurrentWeapon(slot);
+                    return m_pSubTask;
+                }
+            }
+            // No weapon has any ammo, so go unarmed and switch to melee
+            // (SetCurrentWeapon(0) is a no-op in `CPed::SetCurrentWeapon`, so unroll it here)
+            ped->RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_Type)->m_nModelId1);
+            ped->m_nActiveWeaponSlot = 0;
+            return CreateSubTask(TASK_COMPLEX_DESTROY_CAR_MELEE, ped);
+        }
+        if (ped->GetActiveWeapon().IsTypeMelee()) {
+            return m_pSubTask;
+        }
+        return CreateSubTask(TASK_COMPLEX_DESTROY_CAR_ARMED, ped);
+    }
+    default:
+        return m_pSubTask;
+    }
 }
