@@ -91,4 +91,9 @@ inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_
                    "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CTaskSimpleClimb_ProcessPed_SettleSpeedFrameRate{
+    .Name        = "Climb settle speed at high frame rates",
+    .Description = "Bound the climb's settle step the way the coarse step above it is bounded, so a few centimetres of offset do not become a killing fall speed above 60 FPS",
+    .Credit      = "mrxenginner"
+};
 };
