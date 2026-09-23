@@ -9,6 +9,7 @@
 #include "TaskSimpleClimb.h"
 #include "TaskSimpleClimb_models.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
 
 auto& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
 auto& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
