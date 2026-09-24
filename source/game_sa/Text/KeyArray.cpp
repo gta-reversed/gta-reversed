@@ -43,8 +43,12 @@ void CKeyArray::Update(char* offset) {
 const GxtChar* CKeyArray::Search(const char* key, bool& found) {
     const auto entry = BinarySearch(CKeyGen::GetUppercaseKey(key), m_data, 0, m_size - 1);
     found = entry != nullptr;
+    if (entry) {
+        return entry->string;
+    }
 
-    return entry ? entry->string : nullptr;
+    // NOTSA_LOG_WARN("{} missing", key); // R* log from III, spam
+    return nullptr;
 }
 
 // 0x69F570
