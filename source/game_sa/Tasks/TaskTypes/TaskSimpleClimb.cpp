@@ -9,6 +9,7 @@
 #include "TaskSimpleClimb.h"
 #include "TaskSimpleClimb_models.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
 
 auto& ms_ClimbColModel    = StaticRef<CColModel>(0xC19518);
 auto& ms_StandUpColModel  = StaticRef<CColModel>(0xC19548);
@@ -142,6 +143,28 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
         } else {
             ped->bIsStanding    = false;
             ped->m_vecMoveSpeed = delta / CTimer::GetTimeStep();
+
+            /*! NOTSA BUGFIX: CTaskSimpleClimb::ProcessPed() - Settle speed at high frame rates
+             * The bound the coarse step above already applies, applied here too.
+             *
+             * `delta` is under 0.317 in this branch - that is the test that got us into it - and it
+             * is a position correction rather than a speed, so dividing it by the step gives at most
+             * 0.19 while the step is the original one, and this never bites. Drawn faster the same
+             * handful of centimetres becomes a speed, and the landing check in
+             * `CPed::ProcessEntityCollision` reads a speed, not a distance: past -0.375 the player
+             * no longer counts as standing, and past -0.6 the damage is a flat 500 against a
+             * hundred points of health, which armour does not cover. That is the death on a wall
+             * above sixty frames a second.
+             *
+             * Bounded before the carrier's own speed is added, exactly as the step above does, so a
+             * climb onto a moving train or boat still takes that speed whole.
+             */
+            if (notsa::bugfixes::CTaskSimpleClimb_ProcessPed_SettleSpeedFrameRate) {
+                if (const auto speed = ped->m_vecMoveSpeed.Magnitude(); speed > 0.2f) {
+                    ped->m_vecMoveSpeed *= 0.2f / speed;
+                }
+            }
+
             ped->m_vecMoveSpeed += vecClimbEntSpeed;
 
             if (!(m_Anim->m_Flags & ANIMATION_IS_PLAYING) && m_HeightForAnim == CLIMB_STANDUP) {
