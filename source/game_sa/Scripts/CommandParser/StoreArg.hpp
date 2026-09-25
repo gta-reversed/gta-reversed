@@ -48,7 +48,12 @@ inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to f
     memcpy((void*)&dst, (void*)&arg, sizeof(arg)); // Now copy the value to it (Which might be less than 4 bytes)
 }
 
-// Vector overloads
+inline void StoreArg(CRunningScript* S, const CQuaternion& q) {
+    StoreArg(S, q.x);
+    StoreArg(S, q.y);
+    StoreArg(S, q.z);
+    StoreArg(S, q.w);
+}
 
 inline void StoreArg(CRunningScript* S, const CVector& v3) {
     for (auto&& c : v3.GetComponents()) {
