@@ -66,7 +66,7 @@ private:
 public:
     static void LoadSplashes(bool useSplashId, eLoadingLogo id);
 
-    [[nodiscard]] static bool IsActive() { return m_bActive; } // 0x744DB5
+    [[nodiscard]] static bool IsActive() { return m_bActive; } // 0x744DB0
     [[nodiscard]] static bool IsPaused() { return m_bPaused; }
 
     static void Init(bool isLegalScreen, bool isReloadDisabled);
