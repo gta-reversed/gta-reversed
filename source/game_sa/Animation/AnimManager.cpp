@@ -38,7 +38,7 @@ void CAnimManager::InjectHooks() {
     RH_ScopedInstall(RegisterAnimBlock, 0x4D3E50);
     RH_ScopedInstall(RemoveLastAnimFile, 0x4D3ED0);
     RH_ScopedInstall(RemoveAnimBlock, 0x4D3F40);
-    RH_ScopedInstall(AddAnimBlockRef, 0x4D3FB0);
+    RH_ScopedOverloadedInstall(AddAnimBlockRef, "BlockIndex", 0x4D3FB0, void(*)(int32));
     RH_ScopedInstall(RemoveAnimBlockRefWithoutDelete, 0x4D3FF0);
     RH_ScopedInstall(GetNumRefsToAnimBlock, 0x4D4010);
     RH_ScopedInstall(UncompressAnimation, 0x4D41C0);
@@ -551,21 +551,27 @@ bool CAnimManager::IsAnimInBlock(const CAnimBlendHierarchy* h, const CAnimBlock*
 }
 
 //! @notsa
-//! @brief Function for the very common pattern found in many tasks. See xrefs to `CTaskComplexGangLeader::ShouldLoadGangAnims()`
-//! Usual usage would be: `StreamAnimBlock(m_animBlockName, CTaskComplexGangLeader::ShouldLoadGangAnims(), m_areAnimsReferenced)`
-void CAnimManager::StreamAnimBlock(const char* blck, bool shouldBeLoaded, bool& isLoaded) {
-    if (shouldBeLoaded && !isLoaded) {
-        RemoveAnimBlockRef(GetAnimationBlockIndex(blck));
-        isLoaded = false;
-    } else if (!shouldBeLoaded && isLoaded) {
-        const auto blkIdx = GetAnimationBlockIndex(blck);
-        if (GetAnimBlocks()[blkIdx].IsLoaded) {
-            AddAnimBlockRef(blkIdx);
+void CAnimManager::StreamAnimBlock(CAnimBlock* blck, bool shouldBeLoaded, bool& isLoaded) {
+    if (shouldBeLoaded == isLoaded) {
+        return;
+    }
+
+    if (shouldBeLoaded) {
+        if (blck->IsLoaded) {
+            blck->RefCnt++;
             isLoaded = true;
         } else {
-            CStreaming::RequestModel(IFPToModelId(blkIdx), STREAMING_KEEP_IN_MEMORY);
+            CStreaming::RequestModel(IFPToModelId(GetAnimationBlockIndex(blck)), STREAMING_KEEP_IN_MEMORY);
         }
+    } else {
+        RemoveAnimBlockRef(GetAnimationBlockIndex(blck));
+        isLoaded = false;
     }
+}
+
+// @notsa
+void CAnimManager::StreamAnimBlock(const char* blck, bool shouldBeLoaded, bool& isLoaded) {
+    StreamAnimBlock(GetAnimationBlock(blck), shouldBeLoaded, isLoaded);
 }
 
 // 0x4D5620
