@@ -37,3 +37,16 @@ CTask* CTaskSimpleCarSetPedInAsDriver::Clone() const {
 bool CTaskSimpleCarSetPedInAsDriver::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x64B950, CTask*, CPed*>(this, ped);
 }
+
+void CTaskSimpleCarSetPedInAsDriver::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskSimpleCarSetPedInAsDriver, 0x86ee28, 9);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x6470E0);
+    RH_ScopedInstall(Destructor, 0x647170);
+
+    RH_ScopedVMTInstall(Clone, 0x649E00);
+    RH_ScopedVMTInstall(GetTaskType, 0x647150);
+    RH_ScopedVMTInstall(MakeAbortable, 0x647160);
+    RH_ScopedVMTInstall(ProcessPed, 0x64B950, { .reversed = false });
+}

@@ -4,10 +4,19 @@
 // #include "PointRoute.h"
 
 void CTaskComplexFollowPedFootsteps::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskComplexFollowPedFootsteps, 0x870CC0, 12);
+    RH_ScopedVirtualClass(CTaskComplexFollowPedFootsteps, 0x870cc0, 12);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x694E20);
+    RH_ScopedInstall(Destructor, 0x695DC0);
+
+    RH_ScopedVMTInstall(Clone, 0x695890);
+    RH_ScopedVMTInstall(GetTaskType, 0x694EC0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x694ED0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x694EE0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x695000, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x695090, { .reversed = false });
+    RH_ScopedVMTInstall(CreateSubTask, 0x695E40, { .reversed = false });
 }
 
 // 0x694E20

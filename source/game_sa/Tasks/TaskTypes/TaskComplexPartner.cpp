@@ -5,7 +5,19 @@
 void CTaskComplexPartner::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexPartner, 0x870664, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
+
     RH_ScopedInstall(Constructor, 0x681E70);
+    RH_ScopedInstall(Destructor, 0x683A40);
+
+    RH_ScopedInstall(CalcTargetPositions, 0x681FE0, { .reversed = false });
+    RH_ScopedInstall(GetPartnerState, 0x6822B0, { .reversed = false });
+
+    RH_ScopedVMTInstall(GetTaskType, 0x681F10);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x683AD0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x681F20, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6840D0, { .reversed = false });
+    RH_ScopedVMTInstall(StreamRequiredAnims, 0x682310, { .reversed = false });
+    RH_ScopedVMTInstall(RemoveStreamedAnims, 0x682370, { .reversed = false });
 }
 
 // 0x681E70

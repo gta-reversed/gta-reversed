@@ -37,3 +37,16 @@ void CTaskComplexCarDriveWander::SetUpCar() {
 CTask* CTaskComplexCarDriveWander::CreateSubTaskCannotGetInCar(CPed* ped) {
     return CTaskComplexCarDrive::CreateSubTask(TASK_COMPLEX_WANDER, ped);
 }
+
+void CTaskComplexCarDriveWander::InjectHooks() {
+    RH_ScopedClass(CTaskComplexCarDriveWander);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x63CB10);
+    RH_ScopedInstall(Destructor, 0x63CB50);
+
+    RH_ScopedVMTInstall(Clone, 0x63DD00);
+    RH_ScopedVMTInstall(GetTaskType, 0x63CB40);
+    RH_ScopedVMTInstall(SetUpCar, 0x63CB60, { .reversed = false });
+    RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x643240, { .reversed = false });
+}

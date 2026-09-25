@@ -3,9 +3,16 @@
 #include "TaskComplexPartnerChat.h"
 
 void CTaskComplexPartnerChat::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskComplexPartnerChat, 0x8707C4, 14);
+    RH_ScopedVirtualClass(CTaskComplexPartnerChat, 0x8707c4, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
+
     RH_ScopedInstall(Constructor, 0x684290);
+    RH_ScopedInstall(Destructor, 0x684320);
+
+    RH_ScopedVMTInstall(Clone, 0x684E30);
+    RH_ScopedVMTInstall(GetTaskType, 0x681E10);
+    RH_ScopedVMTInstall(MakeAbortable, 0x682C60, { .reversed = false });
+    RH_ScopedVMTInstall(GetPartnerSequence, 0x684380, { .reversed = false });
 }
 
 // 0x684290
