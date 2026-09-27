@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Automobile.h"
+#include <array>
 
 enum eMonsterTruckNodes {
     MONSTER_NODE_NONE      = 0,
@@ -38,10 +39,11 @@ enum eMonsterTruckNodes {
 
 class NOTSA_EXPORT_VTABLE CMonsterTruck : public CAutomobile {
 public:
-    std::array<float, 4>   field_988{}; // unused
+    std::array<float, 4> m_aBigTyreCompression{}; // бывшее field_988
     float m_fSuspensionRadius;
 
-    static inline auto& DUMPER_COL_ANGLEMULT = StaticRef<float>(0x8D33A8); // 0.0002f
+    // StaticRef<float>(0x8D33A8)
+    static constexpr float DUMPER_COL_ANGLEMULT = 0.0002f;
 
     static constexpr auto Type = VEHICLE_TYPE_MTRUCK;
 
@@ -66,9 +68,9 @@ private:
 
     CMonsterTruck* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CMonsterTruck::CMonsterTruck(modelIndex, createdBy); return this; };
     CMonsterTruck* Destructor() { this->CMonsterTruck::~CMonsterTruck(); return this; };
-
 };
 
 VALIDATE_SIZE(CMonsterTruck, 0x99C);
 
-extern float& fWheelExtensionRate; // 0.1
+// extern float& fWheelExtensionRate; // 0.1
+inline constexpr float fWheelExtensionRate = 0.1f;
