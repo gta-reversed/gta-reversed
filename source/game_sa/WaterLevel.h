@@ -5,6 +5,7 @@
 #include "RGBA.h"
 #include "Vector.h"
 #include "Vector2D.h"
+#include "Enums/eSurfaceType.h"
 
 #include <extensions/utility.hpp>
 
@@ -12,6 +13,14 @@ struct CRenPar {
     float z{};                        // Z pos of this thing. x, y can be found in the containing vertex, see `CWaterVertex`.
     float bigWaves{}, smallWaves{};   // Height of waves
     int8  flowX{}, flowY{};           // Fixed-point float. Divide by 64
+};
+
+/*!
+ * @brief Information about the collision shape the ground was found on (See `GetGroundLevel`)
+ */
+struct ColData {
+    eSurfaceType m_nSurfaceType; //!< Surface type the ground is made of
+    uint8        m_nPieceType;   //!< Piece type of the collision shape
 };
 
 // 0x6E5280
@@ -98,7 +107,7 @@ class CWaterLevel {
     static inline auto& NumWaterTriangles = StaticRef<uint32>(0xC22884);
     static inline auto& NumWaterQuads = StaticRef<uint32>(0xC22888);
     static inline auto& NumWaterVertices = StaticRef<uint32>(0xC2288C);
-    static inline auto& NumWaterZonePolys = StaticRef<uint32>(0xC215F0);
+    static inline auto& m_ElementsOnQuadsAndTrianglesList = StaticRef<uint32>(0xC215F0);
 
     static inline auto& m_aVertices = StaticRef<std::array<CWaterVertex, 1021>>(0xC22910);
 
@@ -129,6 +138,11 @@ class CWaterLevel {
     static inline auto& gWaterFogIndex = StaticRef<uint32>(0xC228E4);
     static inline auto& m_fWaterFogHeight = StaticRef<float>(0x8D37E4);
     static inline auto& gbPlayerIsInsideWaterFog = StaticRef<bool>(0xC228E8);
+    static inline auto& m_WaterFogCol = StaticRef<CRGBA>(0x8D37E8);
+    static inline auto& m_WaterFogInsideCol = StaticRef<CRGBA>(0x8D37EC);
+    static inline auto& m_fWaterFogInsideFadeSpeed = StaticRef<float>(0x8D37F0);
+    static inline auto& m_fWaterFogInsideFade = StaticRef<float>(0xC228EC); // 0..1
+    static inline auto& m_fWaterFogTimer = StaticRef<float>(0xC228F0);
 
 
     // In reality the alpha component isn't used and instead `WaterLayerAlpha` is used
@@ -136,6 +150,29 @@ class CWaterLevel {
     static inline auto& WaterColor = StaticRef<CRGBA>(0xC2116C);
 
     static inline auto& WaterLayerAlpha = StaticRef<std::array<uint32, 2>>(0x8D3808);
+
+    //! NOTSA (Originally unnamed) - Water texture scroll accumulators (Kept in range 0..1)
+    static inline auto& m_fWaterScrollSecondU = StaticRef<float>(0x8D3824);
+    static inline auto& m_fWaterScrollSecondV = StaticRef<float>(0x8D3828);
+    static inline auto& m_fWaterScrollFirstU  = StaticRef<float>(0x8D382C);
+    static inline auto& m_fWaterScrollFirstV  = StaticRef<float>(0x8D3830);
+    //! NOTSA (Originally unnamed) - Amplitude of the high detail texture shift
+    static inline auto& m_fHighDetailTextureShiftAmp = StaticRef<float>(0x8D3834); // 0.1f
+    //! NOTSA (Originally unnamed) - Jitter scale of the water texture shift
+    static inline auto& m_fWaterTextureShiftJitter = StaticRef<float>(0x8D3928); // 0.01f
+    //! NOTSA (Originally unnamed) - Scale converting the water flow speed to a texture shift
+    static inline auto& m_fWaterFlowShiftScale = StaticRef<float>(0x8D392C); // 0.04f
+    //! NOTSA (Originally unnamed) - Texture address mode used while rendering water (1 => rwTEXTUREADDRESSWRAP)
+    static inline auto& m_WaterTextureAddressMode = StaticRef<uint32>(0x8D3930);
+    //! NOTSA (Originally unnamed) - Distance from the camera's block at which the sea bed is no longer rendered in detail
+    static inline auto& m_fSeaBedDetailedDist = StaticRef<float>(0x8D3934); // 600.0f
+
+    //! NOTSA (Originally unnamed) - Only used by the high detail water renderers
+    static inline auto& m_fHighDetailTextureShiftV = StaticRef<float>(0xC21170);
+    static inline auto& m_fHighDetailTextureShiftU = StaticRef<float>(0xC21174);
+
+    //! NOTSA (Originally unnamed) - If set, the water color is randomized (Debug)
+    static inline auto& m_bRandomizeWaterColor = StaticRef<bool>(0xC228DC);
 
     static inline auto& m_CurrentFlow = StaticRef<CVector2D>(0xC22890);
     static inline auto& m_CurrentDesiredFlow = StaticRef<CVector2D>(0xC22898);
@@ -163,6 +200,9 @@ class CWaterLevel {
         };
 
     public:
+        PolyInfo() = default;
+        PolyInfo(PType type, uint16 id) : m_id{ id }, m_type{ (uint16)type } {}
+
         auto Id()   const { return m_id; }
         auto Type() const { return (PType)(m_type); }
 
@@ -206,7 +246,19 @@ public:
     static void InjectHooks();
 
     static void Shutdown();
-    static void AddWaveToResult(float x, float y, float* pfWaterLevel, float fUnkn1, float fUnkn2, CVector* pVecNormal);
+
+    /*!
+    * @addr 0x6E81E0
+    * @brief Calculate the height of the water (And it's normal) at the given position and add it to `pfWaterLevel`
+    *
+    * @param x               World space X coordinate
+    * @param y               World space Y coordinate
+    * @param pfWaterLevel    In/Out - The water level (As returned by `GetWaterLevelNoWaves`) - The wave height gets added to it
+    * @param fBigWavesAmpl   Amplitude of the big waves
+    * @param fSmallWavesAmpl Amplitude of the small waves
+    * @param pVecNormal      If not null, the (approximate) normal of the water surface at this position is written here
+    */
+    static void AddWaveToResult(float x, float y, float* pfWaterLevel, float fBigWavesAmpl, float fSmallWavesAmpl, CVector* pVecNormal);
     static void RenderWaterTriangle(int32 a1, int32 a2, CRenPar a3, int32 a4, int32 a5, CRenPar a6, int32 a7, int32 a8, CRenPar a9);
 
     // NOTSA
@@ -257,7 +309,32 @@ public:
     static void SplitWaterRectangleAlongYLine(int32 splitAtY, int32 minX, int32 maxX, int32 Y1, int32 Y2, CRenPar P1, CRenPar P2, CRenPar P3, CRenPar P4);
 
     static void PreRenderWater();
+
+    /*!
+    * @addr 0x6EA960
+    * @brief Get the depth of the water at the given position
+    *
+    * @param vecPos             The position to check
+    * @param pOutWaterDepth     If not null, the depth of the water (Water level - Ground level) is written here
+    * @param pOutWaterLevel     If not null, the water level is written here
+    * @param pOutGroundLevel    If not null, the ground level is written here
+    *
+    * @return Whether there's any water at the given position (If false, none of the out variables are written)
+    */
     static bool GetWaterDepth(const CVector& vecPos, float* pOutWaterDepth, float* pOutWaterLevel, float* pOutGroundLevel);
+
+    /*!
+    * @addr 0x6EA8A0
+    * @brief Get the Z coordinate of the ground (And information about the collision shape it was found on) at the given position
+    *
+    * @param vecPos        The position to check
+    * @param pOutGroundZ   The Z coordinate of the ground is written here
+    * @param pOutColData   If not null, information about the collision shape the ground was found on is written here
+    * @param fMaxDist      How far to look for the ground
+    *
+    * @return Whether any ground was found
+    */
+    static bool GetGroundLevel(const CVector& vecPos, float* pOutGroundZ, ColData* pOutColData, float fMaxDist);
     static bool GetWaterLevel(float x, float y, float z, float& pOutWaterLevel, uint8 bTouchingWater, CVector* pVecNormals);
     static bool LoadDataFile();
     static void LoadTextures();
@@ -265,32 +342,63 @@ public:
     static void SetUpWaterFog(int32 a1, int32 a2, int32 a3, int32 a4);
     static void RenderWakeSegment(const CVector2D& a1, const CVector2D& a2, const CVector2D& a3, const CVector2D& a4, const float& widthA, const float& widthB, const float& alphaA, const float& alphaB, const float& wakeZ);
     static void FindNearestWaterAndItsFlow();
-    static bool GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * fUnkn1 = nullptr, float * fUnkn2 = nullptr);
+    static bool TestQuadToGetWaterLevel(CWaterQuad* quad, float x, float y, float z, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves);
+    static bool TestTriangleToGetWaterLevel(CWaterTriangle* tri, float x, float y, float z, float* pOutWaterLevel, float* pOutBigWaves, float* pOutSmallWaves);
+    static bool GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * pOutBigWaves = nullptr, float * pOutSmallWaves = nullptr);
     static void RenderWaterFog();
     static void CalculateWavesOnlyForCoordinate(int32 x, int32 y, float bigWavesAmplitude, float smallWavesAmplitude, float& outWave, float& colorMult, float& glare, CVector& vecNormal);
     static void MarkQuadsAndPolysToBeRendered(int32 blockX, int32 blockY, bool isInInterior);
     static void BlockHit(int32 X, int32 Y);
 
+    /*!
+    * @addr 0x6E7210
+    * @brief Calculate the height of the waves only (Without the water level and normal) at the given coordinate
+    *
+    * @param x              The X coordinate (gets made absolute)
+    * @param y              The Y coordinate (gets made absolute)
+    * @param bigWavesAmpl   Amplitude of the big waves
+    * @param smallWavesAmpl Amplitude of the small waves
+    * @param pResultHeight  The height of the waves is added to the value pointed to by this
+    */
     static void CalculateWavesOnlyForCoordinate2(
         int32 x, int32 y,
-        float* pResultHeight, // in/out variable => in is the "water level" from `GetWaterLevelNoWaves`/out is the Z coordinate of the wave
         float bigWavesAmpl,
-        float smallWavesAmpl
+        float smallWavesAmpl,
+        float* pResultHeight // in/out variable => in is the "water level" from `GetWaterLevelNoWaves`/out is the Z coordinate of the wave
     );
 
-    static float CalculateWavesOnlyForCoordinate2_Direct( // TODO: Once the OG function is reversed, we should use this instead of it (once we've verified that the reversed version works as expected)
+    static float CalculateWavesOnlyForCoordinate2_Direct(
         int32 x, int32 y,
         float waterLevel, // "water level" from `GetWaterLevelNoWaves`
         float bigWavesAmpl,
         float smallWavesAmpl
     ) {
-        CalculateWavesOnlyForCoordinate2(x, y, &waterLevel, bigWavesAmpl, smallWavesAmpl);
+        CalculateWavesOnlyForCoordinate2(x, y, bigWavesAmpl, smallWavesAmpl, &waterLevel);
         return waterLevel; // Result of the above function is stored in this variable.
     }
 
     static void ScanThroughBlocks();
     static void SplitWaterTriangleAlongYLine(int32 a0, int32 a1, int32 a2, CRenPar a3, int32 a4, int32 a5, CRenPar a6, int32 a7, int32 a8, CRenPar a9);
     static void RenderHighDetailWaterTriangle(int32 X1, int32 Y1, CRenPar P1, int32 X2, int32 Y2, CRenPar P2, int32 X3, int32 Y3, CRenPar P3);
+
+    /*!
+    * @addr 0x6E6870
+    * @brief Render the sea bed (At Z = -70) for a part of a block.
+    *
+    * @param blockX, blockY The block to render the sea bed for
+    * @param x1, x2, y1, y2 The part of the block to render (In 0..1 range), a fraction of `WATER_BLOCK_SIZE`
+    */
+    static void RenderSeaBedSegment(int32 blockX, int32 blockY, float x1, float x2, float y1, float y2);
+
+    /*!
+    * @addr 0x6E6A10
+    * @brief Same as `RenderSeaBedSegment`, but the block is subdivided into smaller quads (At most 4x4)
+    */
+    static void RenderDetailedSeaBedSegment(int32 blockX, int32 blockY, float x1, float x2, float y1, float y2);
+
+    //! NOTSA - Draw and clear the temporary (Im3D) vertex/index buffers
+    static void RenderAndEmptyRenderBuffer();
+
     static void RenderWater();
     static void SyncWater();
 
@@ -302,6 +410,7 @@ public:
     static void AddWaterLevelQuad(int32 X1, int32 Y1, CRenPar P1, int32 X2, int32 Y2, CRenPar P2, int32 X3, int32 Y3, CRenPar P3, int32 X4, int32 Y4, CRenPar P4, uint32 Flags);
     static void AddWaterLevelTriangle(int32 X1, int32 Y1, CRenPar P1, int32 X2, int32 Y2, CRenPar P2, int32 X3, int32 Y3, CRenPar P3, uint32 Flags);
 
+    static void AddToQuadsAndTrianglesList(int32 blockX, int32 blockY, int32 polyId, uint32 type);
     static void FillQuadsAndTrianglesList();
 
     static void SetCameraRange();
@@ -309,15 +418,10 @@ public:
     static void UpdateFlow();
 
     /* Missing (In no particular order):
-    static void AddWaveToResult(float x, float y, float z, float* pLevel, uint8 bTouchingWater, CVector* normalVec);
     AddWaveToResult(int32, int32, float*, float, float)
-    BlockHit(int32, int32)
-    CalculateWavesForCoordinate(int32, int32, float, float, float*, float*, float*, CVector*)
     ChangeWaterConfiguration(int32)
     CreateBeachToy(const CVector&, eBeachToy)
-    FindNearestWaterAndItsFlow()
     FixVertexOnToLine(CWaterVertex*, CWaterVertex*, CWaterVertex*, float*)
-    GetGroundLevel(const CVector&, float*, ColData*, float)
     GetGroundLevel_WS(const CVector&, float*, ColData*, float)
     RenderAndEmptyRenderBuffer()
     AddToQuadsAndTrianglesList(int32, int32, int32, uint32)
