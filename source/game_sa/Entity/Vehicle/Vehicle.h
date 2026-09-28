@@ -71,6 +71,11 @@ enum eVehicleLightsFlags : uint32 {
     VEHICLE_LIGHTS_DISABLE_REAR = 32
 };
 
+enum class eVehicleLightId : uint32 {
+    MAIN      = 0,
+    SECONDARY = 1
+};
+
 enum eVehicleCreatedBy : uint8 {
     RANDOM_VEHICLE = 1,
     MISSION_VEHICLE = 2,
@@ -646,12 +651,12 @@ public:
     void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
     void ProcessSirenAndHorn(bool arg0);
 
-    bool DoHeadLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm);
-    void DoHeadLightBeam(int32 lightId, CMatrix& vehicleMatrix, bool bRight);
+    bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm);
+    void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight);
     void DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool bRight);
     void DoHeadLightReflectionTwin(CMatrix& vehicleMatrix);
     void DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool bIncludeLeft, bool bIncludeRight);
-    bool DoTailLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm, eVehicleLightsFlags flags_unused, bool bLightsOn);
+    bool DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm, eVehicleLightsFlags flags_unused, bool bLightsOn);
     void DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags);
 
     void FillVehicleWithPeds(bool bSetClothesToAfro);

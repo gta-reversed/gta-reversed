@@ -4293,42 +4293,53 @@ void CVehicle::ProcessSirenAndHorn(bool arg0) {
 
 // 0x6E0A50
 // lightId here refers to an ordinal of entry of one kind dummy subgroup e.g. headlights here
-bool CVehicle::DoHeadLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm) {
-    auto eDummyOffset = static_cast<eVehicleDummy>(DUMMY_LIGHT_FRONT_MAIN + 2 * lightId);
-    CVector vecDummyPosObjSpace = GetDummyPositionObjSpace(eDummyOffset);
+bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm) {
+    const auto frontDummy = [&] {
+        switch (lightId) {
+        case eVehicleLightId::MAIN:
+            return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
+        case eVehicleLightId::SECONDARY:
+            return eVehicleDummy::DUMMY_LIGHT_FRONT_SECONDARY;
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    }();
 
-    if (lightId == 1 && vecDummyPosObjSpace.IsZero()) {
+    const CVector dummyPosObjSpace = GetDummyPositionObjSpace(frontDummy);
+
+    if (lightId == eVehicleLightId::MAIN && dummyPosObjSpace.IsZero()) {
         return false;
     }
 
-    CVector vecFwd = GetForwardVector();
-    CVector vecTweakedDummy = 0.05f * vecFwd + vecDummyPosObjSpace;
+    const CVector fwd = GetForwardVector();
+    CVector tweakedDummy = 0.05f * fwd + dummyPosObjSpace;
 
     if (!bRight) {
-        vecTweakedDummy.x -= 2.0f*vecDummyPosObjSpace.x;
+        tweakedDummy.x -= 2.0f*dummyPosObjSpace.x;
     }
 
-    CVector vecDummyPosWorldSpace = vehicleMatrix * vecTweakedDummy;
-    CVector vecLook = TheCamera.GetPosition() - vecDummyPosWorldSpace;
-    float fRadius = vecLook.NormaliseAndMag();
-    float fVisibility = DotProduct(vecLook, GetForward());
+    const CVector dummyPosWorldSpace = vehicleMatrix * tweakedDummy;
+
+    CVector camLook = TheCamera.GetPosition() - dummyPosWorldSpace;
+    const float radius = camLook.NormaliseAndMag();
+    const float visibility = DotProduct(camLook, GetForward());
 
     if (bDisabledOrAlarm) {
         return false;
     }
 
-    if (fVisibility > 0.0f
+    if (visibility > 0.0f
         && (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle()))
     {
+        const float normAngle = std::sqrt(visibility);
         uint8 lightColorR{}, lightColorG{}, lightColorB{};
-        float fNormalAngle = std::sqrt(fVisibility);
-        float fFieldAngle = 0.9f;
+        float fieldAngle = 0.9f;
 
         if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-            fFieldAngle = 0.85f;
+            fieldAngle = 0.85f;
         }
 
-        if (fNormalAngle > fFieldAngle && fRadius < 40.0f) {
+        if (normAngle > fieldAngle && radius < 40.0f) {
             if (m_pHandlingData->m_bHalogenLights) {
                 lightColorR = 150u;
                 lightColorG = 150u;
@@ -4339,27 +4350,27 @@ bool CVehicle::DoHeadLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRi
                 lightColorB = 140u;
             }
 
-            float fCoronaSize = 0.075f;
+            float coronaSize = 0.075f;
             if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-                fCoronaSize = 0.3f;
+                coronaSize = 0.3f;
             }
 
             CCoronas::RegisterCorona(
-                reinterpret_cast<uintptr>(&m_placement) + 2 * lightId + bRight,
+                reinterpret_cast<uintptr>(&m_placement) + 2 * static_cast<uint32>(lightId) + bRight,
                 this,
                 lightColorR,
                 lightColorG,
                 lightColorB,
                 255u,
-                vecTweakedDummy,
-                fCoronaSize,
+                tweakedDummy,
+                coronaSize,
                 150.0f*TheCamera.m_fLODDistMultiplier,
                 eCoronaType::CORONATYPE_HEADLIGHTLINE,
                 eCoronaFlareType::FLARETYPE_NONE,
                 eCoronaReflType::CORREFL_NONE,
                 eCoronaLOSCheck::LOSCHECK_OFF,
                 eCoronaTrail::TRAIL_OFF,
-                fNormalAngle,
+                normAngle,
                 false,
                 0.3f,
                 false,
@@ -4368,42 +4379,42 @@ bool CVehicle::DoHeadLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRi
                 false);
         }
 
-        constexpr float fSizeRotMult = 0.4f; // 0x8D3684
-        float fIntensity = fNormalAngle * 0.5f + 0.3f;
-        float fSize = (1.0f - fRadius * (1.0f/150.0f)) * fNormalAngle * fSizeRotMult;
+        auto sizeFrontRotMult = StaticRef<float>(0x8D3684); // 0.4f
+        float intensity = normAngle * 0.5f + 0.3f;
+        float size = (1.0f - radius * (1.0f/150.0f)) * normAngle * sizeFrontRotMult;
 
         if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-            fIntensity *= 2.0f;
-            fSize *= 4.0f;
-            if (fIntensity > 1.0f) {
-                fIntensity = 1.0f;
+            intensity *= 2.0f;
+            size *= 4.0f;
+            if (intensity > 1.0f) {
+                intensity = 1.0f;
             }
         }
 
         if (m_pHandlingData->m_bHalogenLights) {
-            lightColorR = static_cast<uint8>(190.0f * fIntensity);
-            lightColorG = static_cast<uint8>(fIntensity * 255.0f);
+            lightColorR = static_cast<uint8>(190.0f * intensity);
+            lightColorG = static_cast<uint8>(intensity * 255.0f);
         } else {
-            lightColorR = static_cast<uint8>(210.0f * fIntensity);
-            lightColorG = static_cast<uint8>(fIntensity * 195.0f);
+            lightColorR = static_cast<uint8>(210.0f * intensity);
+            lightColorG = static_cast<uint8>(intensity * 195.0f);
         }
 
         CCoronas::RegisterCorona(
-            reinterpret_cast<uintptr>(this) + 2 * lightId + bRight,
+            reinterpret_cast<uintptr>(this) + 2 * static_cast<uint32>(lightId) + bRight,
             this,
             lightColorR,
             lightColorR,
             lightColorG,
             128u,
-            vecTweakedDummy,
-            fSize,
+            tweakedDummy,
+            size,
             150.0f*TheCamera.m_fLODDistMultiplier,
             eCoronaType::CORONATYPE_HEADLIGHT,
             eCoronaFlareType::FLARETYPE_NONE,
             eCoronaReflType::CORREFL_SIMPLE,
             eCoronaLOSCheck::LOSCHECK_OFF,
             eCoronaTrail::TRAIL_OFF,
-            fNormalAngle,
+            normAngle,
             false,
             0.5f,
             false,
@@ -4416,10 +4427,20 @@ bool CVehicle::DoHeadLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRi
 }
 
 // 0x6E0E20
-void CVehicle::DoHeadLightBeam(int32 lightId, CMatrix& vehicleMatrix, bool bRight) {
-    const auto* mi = GetVehicleModelInfo();
-    CVector pointModelSpace = mi->GetModelDummyPosition(static_cast<eVehicleDummy>(2 * lightId));
-    if (lightId == 1 && pointModelSpace.IsZero())
+void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight) {
+    const auto frontDummy = [&]{
+        switch (lightId) {
+        case eVehicleLightId::MAIN:
+            return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
+        case eVehicleLightId::SECONDARY:
+            return eVehicleDummy::DUMMY_LIGHT_FRONT_SECONDARY;
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    }();
+
+    CVector pointModelSpace = GetDummyPositionObjSpace(frontDummy);
+    if (lightId == eVehicleLightId::MAIN && pointModelSpace.IsZero())
         return;
 
     CVector point = vehicleMatrix.GetPosition() + vehicleMatrix.TransformVector(pointModelSpace);
@@ -4534,17 +4555,17 @@ void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
 }
 
 // 0x6E1720
-void CVehicle::DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool bIncludeLeft, bool bIncludeRight) {
+void CVehicle::DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight) {
     if (flags & VEHICLE_LIGHTS_TWIN) {
-        if (bIncludeLeft && bIncludeRight) {
+        if (includeLeft && includeRight) {
             DoHeadLightReflectionTwin(vehicleMatrix);
-        } else if (bIncludeLeft || bIncludeRight) {
-            DoHeadLightReflectionSingle(vehicleMatrix, bIncludeRight);
+        } else if (includeLeft || includeRight) {
+            DoHeadLightReflectionSingle(vehicleMatrix, includeRight);
         }
     } else {
         if (m_nModelIndex == MODEL_COMBINE) {
             DoHeadLightReflectionTwin(vehicleMatrix);
-        } else if (bIncludeRight) {
+        } else if (includeRight) {
             DoHeadLightReflectionSingle(vehicleMatrix, true);
         }
     }
@@ -4552,75 +4573,85 @@ void CVehicle::DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags
 
 // 0x6E1780
 // lightId here refers to an ordinal of entry of one kind dummy subgroup e.g. taillights here
-bool CVehicle::DoTailLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm, eVehicleLightsFlags flags_unused, bool bLightsOn) {
+bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, eVehicleLightsFlags flags_unused, bool staticEmission) {
     if (IsAutomobile()
         && (GetModelIndex() == MODEL_STALLION || GetModelIndex() == MODEL_SABRE)
         && AsAutomobile()->m_damageManager.GetPanelStatus(ePanels::REAR_BUMPER)) {
         return false;
     }
 
-    auto eDummyOffset = static_cast<eVehicleDummy>(DUMMY_LIGHT_REAR_MAIN + 2 * lightId);
-    CVector vecDummyPosObjSpace = GetDummyPositionObjSpace(eDummyOffset);
+    const auto rearDummy = [&]{
+        switch (lightId) {
+        case eVehicleLightId::MAIN:
+            return eVehicleDummy::DUMMY_LIGHT_REAR_MAIN;
+        case eVehicleLightId::SECONDARY:
+            return eVehicleDummy::DUMMY_LIGHT_REAR_SECONDARY;
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    }();
 
-    if (lightId == 1 && vecDummyPosObjSpace.IsZero()) {
+    CVector dummyPosObjSpace = GetDummyPositionObjSpace(rearDummy);
+
+    if (lightId == eVehicleLightId::MAIN && dummyPosObjSpace.IsZero()) {
         return false;
     }
 
-    if (!bRight)
-        vecDummyPosObjSpace.x = -vecDummyPosObjSpace.x;
+    if (!isRight)
+        dummyPosObjSpace.x = -dummyPosObjSpace.x;
 
-    CVector vecLightPos = vehicleMatrix * vecDummyPosObjSpace;
-    CVector vecCamLook = TheCamera.GetPosition() - vecLightPos;
-    float fRadius = vecCamLook.NormaliseAndMag();
-    float fVisibility = DotProduct(vecCamLook, -vehicleMatrix.GetForward());
+    const CVector lightPosWorldSpace = vehicleMatrix * dummyPosObjSpace;
+    CVector camLook = TheCamera.GetPosition() - lightPosWorldSpace;
+    const float radius = camLook.NormaliseAndMag();
+    const float visibility = DotProduct(camLook, -vehicleMatrix.GetForward());
 
-    if (bDisabledOrAlarm
-        || fVisibility <= 0.0f
+    if (disabledOrAlarm
+        || visibility <= 0.0f
         || (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode == eCamMode::MODE_1STPERSON && this == FindPlayerVehicle()))
     {
         return false;
     }
 
-    constexpr float fRearSizeRotMult = 0.2f; // 0x8D3688
-    float fIntensity = fVisibility * 0.5f + 0.2f;
-    float fSize = (1.0f - fRadius * (1.0f/150.0f)) * fVisibility * fRearSizeRotMult;
+    auto rearSizeRotMult = StaticRef<float>(0x8D3688); // 0.2f;
+    float intensity = visibility * 0.5f + 0.2f;
+    float coronaSize = (1.0f - radius * (1.0f/150.0f)) * visibility * rearSizeRotMult;
 
     if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-        fIntensity *= 3.0f;
-        fSize *= 4.0f;
-        if (fIntensity > 1.0f) {
-            fIntensity = 1.0f;
+        intensity *= 3.0f;
+        coronaSize *= 4.0f;
+        if (intensity > 1.0f) {
+            intensity = 1.0f;
         }
     }
 
+    const float normAngle = std::sqrt(visibility);
     uint8 redIntensity = 0u;
-    float fNormalAngle = std::sqrt(fVisibility);
-    bool bBraking = false;
+    bool isBraking = false;
 
     if (m_pDriver && m_BrakePedal > 0.0f && !vehicleFlags.bIsHandbrakeOn) {
-        redIntensity = static_cast<uint8>(fIntensity * 128.0f);
-        bBraking = true;
-    } else if (bLightsOn) {
-        redIntensity = static_cast<uint8>(fIntensity * 96.0f);
-        bBraking = true;
+        redIntensity = static_cast<uint8>(intensity * 128.0f);
+        isBraking = true;
+    } else if (staticEmission) {
+        redIntensity = static_cast<uint8>(intensity * 96.0f);
+        isBraking = true;
     }
 
     CCoronas::RegisterCorona(
-        reinterpret_cast<uintptr>(&m_placement.m_vPosn.y) + 2 * lightId + bRight,
+        reinterpret_cast<uintptr>(&m_placement.m_vPosn.y) + 2 * static_cast<uint32>(lightId) + isRight,
         this,
         redIntensity,
         0u,
         0u,
         128u,
-        vecDummyPosObjSpace,
-        fSize,
+        dummyPosObjSpace,
+        coronaSize,
         150.f*TheCamera.m_fLODDistMultiplier,
         eCoronaType::CORONATYPE_HEADLIGHT,
         eCoronaFlareType::FLARETYPE_NONE,
         eCoronaReflType::CORREFL_SIMPLE,
         eCoronaLOSCheck::LOSCHECK_OFF,
         eCoronaTrail::TRAIL_OFF,
-        fNormalAngle,
+        normAngle,
         false,
         0.5f,
         false,
@@ -4628,7 +4659,7 @@ bool CVehicle::DoTailLightEffect(int32 lightId, CMatrix& vehicleMatrix, bool bRi
         false,
         false);
 
-    return bBraking;
+    return isBraking;
 }
 
 // 0x6E1A60
@@ -4638,10 +4669,10 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     if (CVehicle::ms_forceVehicleLightsOff)
 		return;
 
-    bool bLightsStatus = CVehicle::GetVehicleLightsStatus();
-    if (bLightsStatus != vehicleFlags.bLightsOn && GetStatus() != STATUS_WRECKED) {
+    const bool lightsStatus = CVehicle::GetVehicleLightsStatus();
+    if (lightsStatus != vehicleFlags.bLightsOn && GetStatus() != STATUS_WRECKED) {
 		if (GetStatus() != STATUS_ABANDONED || IsSubTrain()) {
-            vehicleFlags.bLightsOn = bLightsStatus;
+            vehicleFlags.bLightsOn = lightsStatus;
 		} else if (vehicleFlags.bLightsOn) {
             CVector vecCamPos = TheCamera.GetPosition();
             CVector vecThisPos = GetPosition();
@@ -4651,90 +4682,92 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
 		}
 	}
 
-	bool bForcedOn = false;
-	bool bForcedOff = false;
+	bool forceOn = false;
+	bool forceOff = false;
 
     if (m_nOverrideLights) {
         if (m_nOverrideLights == eVehicleOverrideLightsState::FORCE_CAR_LIGHTS_OFF) {
             vehicleFlags.bLightsOn = false;
         } else if (m_nOverrideLights == eVehicleOverrideLightsState::FORCE_CAR_LIGHTS_ON) {
-            bForcedOn = true;
+            forceOn = true;
         }
     }
     if (!CanUpdateHornCounter()) {
         // alarm
         if (CTimer::GetTimeInMS() & 0x100) {
-            bForcedOn = true;
+            forceOn = true;
         } else {
-            bForcedOff = true;
+            forceOff = true;
         }
 	}
 
     if (GetModelIndex() == MODEL_ZR350 && GetStatus() != STATUS_WRECKED) {
         // calculate zr350's pop-up lights rotation
         if (vehicleFlags.bEngineOn) {
-            constexpr auto fPopUpTarget = 0.69813174f; // aka (2.f / 9.f) * PI rad = 40 deg
-            float fAngle = 0.0f;
-            if (vehicleFlags.bLightsOn || bForcedOn || !CanUpdateHornCounter()) {
-                fAngle = CTimer::GetTimeStep() * 0.01f + automobile->m_fPropRotate;
-                if (fAngle > fPopUpTarget) {
-                    fAngle = fPopUpTarget;
+            constexpr auto popUpTarget = 0.69813174f; // aka (2.f / 9.f) * PI rad = 40 deg
+            float propAngle = 0.0f;
+            if (vehicleFlags.bLightsOn || forceOn || !CanUpdateHornCounter()) {
+                propAngle = CTimer::GetTimeStep() * 0.01f + automobile->m_fPropRotate;
+                if (propAngle > popUpTarget) {
+                    propAngle = popUpTarget;
                 }
-                automobile->m_fPropRotate = fAngle;
-                if (fAngle < fPopUpTarget) {
+                automobile->m_fPropRotate = propAngle;
+                if (propAngle < popUpTarget) {
                     return;
                 }
             } else if (automobile->m_fPropRotate > 0.0f) {
-                fAngle = automobile->m_fPropRotate - CTimer::GetTimeStep() * 0.01f;
-                automobile->m_fPropRotate = std::max(fAngle, 0.0f);
+                propAngle = automobile->m_fPropRotate - CTimer::GetTimeStep() * 0.01f;
+                automobile->m_fPropRotate = std::max(propAngle, 0.0f);
             }
         }
     }
 
-    bool bLightOkFR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT);
-    bool bLightOkFL = (flags & VEHICLE_LIGHTS_TWIN) &&
+    // TODO: optimize
+    bool lightOkFR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT);
+    bool lightOkFL = (flags & VEHICLE_LIGHTS_TWIN) &&
         ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_LEFT));
-    bool bLightOkRR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT);
-    bool bLightOkRL = (flags & VEHICLE_LIGHTS_TWIN) &&
+    bool lightOkRR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT); // FIX: game uses LIGHT_REAR_LEFT here
+    bool lightOkRL = (flags & VEHICLE_LIGHTS_TWIN) &&
         ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_LEFT));
 
     if (flags & VEHICLE_LIGHTS_DISABLE_FRONT) {
-        bLightOkFL = false;
-        bLightOkFR = false;
+        lightOkFL = false;
+        lightOkFR = false;
     }
     if (flags & VEHICLE_LIGHTS_DISABLE_REAR) {
-        bLightOkRL = false;
-        bLightOkRR = false;
+        lightOkRL = false;
+        lightOkRR = false;
     }
 
     if (!vehicleFlags.bEngineOn) {
         return;
     }
 
-    if (!vehicleFlags.bLightsOn && !bForcedOn && !bForcedOff) {
+    if (!vehicleFlags.bLightsOn && !forceOn && !forceOff) {
         // lights are off - process only dynamic part of taillight effect
-        m_renderLights.m_bRightRear = CVehicle::DoTailLightEffect(0, vehicleMatrix, true, !bLightOkRR, flags, false);
+        m_renderLights.m_bRightRear = CVehicle::DoTailLightEffect(eVehicleLightId::MAIN, vehicleMatrix, true, !lightOkRR, flags, false);
         if (m_renderLights.m_bRightRear) {
-            CVehicle::DoTailLightEffect(1, vehicleMatrix, true, !bLightOkRR, flags, false);
+            CVehicle::DoTailLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, true, !lightOkRR, flags, false);
         }
         if (flags & VEHICLE_LIGHTS_TWIN) {
-            m_renderLights.m_bLeftRear = CVehicle::DoTailLightEffect(0, vehicleMatrix, false, !bLightOkRL, flags, false);
+            m_renderLights.m_bLeftRear = CVehicle::DoTailLightEffect(eVehicleLightId::MAIN, vehicleMatrix, false, !lightOkRL, flags, false);
             if (m_renderLights.m_bLeftRear) {
-                CVehicle::DoTailLightEffect(1, vehicleMatrix, false, !bLightOkRL, flags, false);
+                CVehicle::DoTailLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, false, !lightOkRL, flags, false);
             }
         }
         return;
     }
 
     // lights are on - process front main and secondary lights if there are any
-    bool bAlarmOrDisabledFR = bForcedOff || !bLightOkFR;
-    bool bAlarmOrDisabledFL = bForcedOff || !bLightOkFL;
-    m_renderLights.m_bRightFront = CVehicle::DoHeadLightEffect(0, vehicleMatrix, true, bAlarmOrDisabledFR);
-    m_renderLights.m_bLeftFront = CVehicle::DoHeadLightEffect(0, vehicleMatrix, false, bAlarmOrDisabledFL);
+    // BUG (or not): game does not perform VEHICLE_LIGHTS_TWIN for front left light
+    const bool alarmOrDisabledFR = forceOff || !lightOkFR;
+    const bool alarmOrDisabledFL = forceOff || !lightOkFL;
+    m_renderLights.m_bRightFront = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, true, alarmOrDisabledFR);
+    m_renderLights.m_bLeftFront = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, false, alarmOrDisabledFL);
     // game does not use func above for rendering secondary coronas which led to this cp shit
-    // FIX: use DoHeadLightEffect() here that's all, og code leaved below for reference
+    // FIX: use DoHeadLightEffect() here effectively the same, og inlined code leaved below for reference
     if (m_renderLights.m_bRightFront) {
-        CVehicle::DoHeadLightEffect(1, vehicleMatrix, true, bAlarmOrDisabledFR);
+        CVehicle::DoHeadLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, true, alarmOrDisabledFR);
         /* 0x6E1F44
         CVector vecFRDummyPos = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_SECONDARY);
         if (vecFRDummyPos != 0.0f) {
@@ -4834,7 +4867,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         }*/
     }
     if (m_renderLights.m_bLeftFront) {
-        CVehicle::DoHeadLightEffect(1, vehicleMatrix, false, bAlarmOrDisabledFL);
+        CVehicle::DoHeadLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, false, alarmOrDisabledFL);
         /* 0x6E22D5
         CVector vecFRDummyPos = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_SECONDARY);
         if (vecFRDummyPos != 0.0f) {
@@ -4936,32 +4969,32 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     }
 
     // process static part of taillight effect
-    bool bAlarmOrDisabledRR = bForcedOff || !bLightOkRR;
-    m_renderLights.m_bRightRear = CVehicle::DoTailLightEffect(0, vehicleMatrix, true, bAlarmOrDisabledRR, flags, true);
+    const bool alarmOrDisabledRR = forceOff || !lightOkRR;
+    m_renderLights.m_bRightRear = CVehicle::DoTailLightEffect(eVehicleLightId::MAIN, vehicleMatrix, true, alarmOrDisabledRR, flags, true);
     if (m_renderLights.m_bRightRear) {
-        CVehicle::DoTailLightEffect(1, vehicleMatrix, true, bAlarmOrDisabledRR, flags, true);
+        CVehicle::DoTailLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, true, alarmOrDisabledRR, flags, true);
     }
     if (flags & VEHICLE_LIGHTS_TWIN) {
-        bool bAlarmOrDisabledRL = bForcedOff || !bLightOkRL;
-        m_renderLights.m_bLeftRear = CVehicle::DoTailLightEffect(0, vehicleMatrix, false, bAlarmOrDisabledRL, flags, true);
+        const bool alarmOrDisabledRL = forceOff || !lightOkRL;
+        m_renderLights.m_bLeftRear = CVehicle::DoTailLightEffect(eVehicleLightId::MAIN, vehicleMatrix, false, alarmOrDisabledRL, flags, true);
         if (m_renderLights.m_bLeftRear) {
-            CVehicle::DoTailLightEffect(1, vehicleMatrix, false, bAlarmOrDisabledRL, flags, true);
+            CVehicle::DoTailLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, false, alarmOrDisabledRL, flags, true);
         }
     }
 
-    if (bForcedOff) {
+    if (forceOff) {
         return;
     }
 
     if (!IsSubTrain()) {
-        CVehicle::DoHeadLightReflection(vehicleMatrix, flags, bLightOkFL, bLightOkFR);
+        CVehicle::DoHeadLightReflection(vehicleMatrix, flags, lightOkFL, lightOkFR);
     }
 
     // add directionals
-    if (bLightOkFR || bLightOkFL) {
-        CVector pos = vehicleMatrix.GetPosition();
-        CVector fwd = vehicleMatrix.GetForward();
-        uint8 bUseSimpleFog = m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u;
+    if (lightOkFR || lightOkFL) {
+        const CVector pos = vehicleMatrix.GetPosition();
+        const CVector fwd = vehicleMatrix.GetForward();
+        const uint8 useSimpleFog = m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u;
         
         CPointLights::AddLight(
             ePointLightType::PLTYPE_DIRECTIONAL,
@@ -4971,24 +5004,24 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
             1.0f,
             1.0f,
             1.0f,
-            bUseSimpleFog);
+            useSimpleFog);
     }
 
-    CVector vecVehPos = GetPosition();
-    CVector vecNegFwdLight = -4.0f * GetForward();
-    CVector vecPos = vecVehPos + vecNegFwdLight;
+    const CVector vehPos = GetPosition();
+    const CVector negFwdLight = -4.0f * GetForward();
+    const CVector rearDir = vehPos + negFwdLight;
 
-    if ((bLightOkRR || bLightOkRL)
+    if ((lightOkRR || lightOkRL)
       && m_BrakePedal > 0.0f
       && !vehicleFlags.bIsHandbrakeOn
       && m_pDriver)
     {
         CPointLights::AddLight(
             ePointLightType::PLTYPE_DIRECTIONAL,
-            vecPos,
+            rearDir,
             -vehicleMatrix.GetForward(),
             10.0f,
-            0.1f, // 0x8D368C
+            0.1f, // 0x8D368C, StaticRefs
             0.02f, // 0x8D3690
             0.02f, // 0x8D3694
             0u,
