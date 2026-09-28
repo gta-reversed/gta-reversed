@@ -651,12 +651,12 @@ public:
     void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
     void ProcessSirenAndHorn(bool arg0);
 
-    bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm);
-    void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight);
-    void DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool bRight);
+    bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool bDisabledOrAlarm);
+    void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight);
+    void DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight);
     void DoHeadLightReflectionTwin(CMatrix& vehicleMatrix);
-    void DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool bIncludeLeft, bool bIncludeRight);
-    bool DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight, bool bDisabledOrAlarm, eVehicleLightsFlags flags_unused, bool bLightsOn);
+    void DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight);
+    bool DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, eVehicleLightsFlags flags_unused, bool staticEmission);
     void DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags);
 
     void FillVehicleWithPeds(bool bSetClothesToAfro);
