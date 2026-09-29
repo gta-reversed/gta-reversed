@@ -4530,7 +4530,7 @@ bool CVehicle::DoLightEffectImpl(bool isFront, eVehicleLightId lightId, CMatrix&
         }
 
         const auto trainMult = isFront ? 2.0f : 3.0f;
-        return std::pair{ std::max(trainMult * intensity, 1.0f), 4.0f * size };
+        return std::pair{ std::min(trainMult * intensity, 1.0f), 4.0f * size };
     }();
 
     if (disabledOrAlarm) {
