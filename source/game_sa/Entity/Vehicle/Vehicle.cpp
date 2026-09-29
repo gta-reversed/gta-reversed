@@ -4294,131 +4294,7 @@ void CVehicle::ProcessSirenAndHorn(bool arg0) {
 // 0x6E0A50
 // lightId here refers to an ordinal of entry of one kind dummy subgroup e.g. headlights here
 bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm) {
-    constexpr auto SIZE_FRONT_ROT_MULT = 0.4f; // 0x8D3684
-
-    const auto frontDummy = [&]{
-        switch (lightId) {
-        case eVehicleLightId::MAIN:
-            return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
-        case eVehicleLightId::SECONDARY:
-            return eVehicleDummy::DUMMY_LIGHT_FRONT_SECONDARY;
-        default:
-            NOTSA_UNREACHABLE();
-        }
-    }();
-
-    const CVector dummyPosObjSpace = GetDummyPositionObjSpace(frontDummy);
-
-    if (lightId == eVehicleLightId::SECONDARY && dummyPosObjSpace.IsZero()) {
-        return false;
-    }
-
-    const CVector fwd          = GetForwardVector();
-    CVector       tweakedDummy = 0.05f * fwd + dummyPosObjSpace;
-
-    if (!isRight) {
-        tweakedDummy.x -= 2.0f * dummyPosObjSpace.x;
-    }
-
-    const CVector dummyPosWorldSpace = vehicleMatrix * tweakedDummy;
-
-    CVector     dirToCam             = TheCamera.GetPosition() - dummyPosWorldSpace;
-    const float distToCam            = dirToCam.NormaliseAndMag();
-    const float angle                = DotProduct(dirToCam, GetForward());
-
-    if (disabledOrAlarm) {
-        return false;
-    }
-
-    if (angle > 0.0f
-        && (TheCamera.GetActiveCamera().m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle())) {
-        const float normAngle = std::sqrt(angle);
-        uint8       lightColorR{}, lightColorG{}, lightColorB{};
-        const auto  fieldAngle = IsSubTrain() && GetModelIndex() != MODEL_TRAM ? 0.85f : 0.9f;
-
-        if (normAngle > fieldAngle && distToCam < 40.0f) {
-            const auto coronaSize = IsSubTrain() && GetModelIndex() != MODEL_TRAM ? 0.3f : 0.075f;
-
-            if (m_pHandlingData->m_bHalogenLights) {
-                lightColorR = 150u;
-                lightColorG = 150u;
-                lightColorB = 195u;
-            } else {
-                lightColorR = 160u;
-                lightColorG = 160u;
-                lightColorB = 140u;
-            }
-
-            CCoronas::RegisterCorona(
-                reinterpret_cast<uintptr>(&m_placement) + 2 * static_cast<uint32>(lightId) + isRight,
-                this,
-                lightColorR,
-                lightColorG,
-                lightColorB,
-                255u,
-                tweakedDummy,
-                coronaSize,
-                150.0f * TheCamera.m_fLODDistMultiplier,
-                eCoronaType::CORONATYPE_HEADLIGHTLINE,
-                eCoronaFlareType::FLARETYPE_NONE,
-                eCoronaReflType::CORREFL_NONE,
-                eCoronaLOSCheck::LOSCHECK_OFF,
-                eCoronaTrail::TRAIL_OFF,
-                normAngle,
-                false,
-                0.3f,
-                false,
-                15.0f,
-                false,
-                false
-            );
-        }
-
-        float intensity  = normAngle * 0.5f + 0.3f;
-        float coronaSize = (1.0f - distToCam * (1.0f / 150.0f)) * normAngle * SIZE_FRONT_ROT_MULT;
-
-        if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-            intensity *= 2.0f;
-            coronaSize *= 4.0f;
-            if (intensity > 1.0f) {
-                intensity = 1.0f;
-            }
-        }
-
-        if (m_pHandlingData->m_bHalogenLights) {
-            lightColorR = static_cast<uint8>(190.0f * intensity);
-            lightColorG = static_cast<uint8>(intensity * 255.0f);
-        } else {
-            lightColorR = static_cast<uint8>(210.0f * intensity);
-            lightColorG = static_cast<uint8>(intensity * 195.0f);
-        }
-
-        CCoronas::RegisterCorona(
-            reinterpret_cast<uintptr>(this) + 2 * static_cast<uint32>(lightId) + isRight,
-            this,
-            lightColorR,
-            lightColorR,
-            lightColorG,
-            128u,
-            tweakedDummy,
-            coronaSize,
-            150.0f * TheCamera.m_fLODDistMultiplier,
-            eCoronaType::CORONATYPE_HEADLIGHT,
-            eCoronaFlareType::FLARETYPE_NONE,
-            eCoronaReflType::CORREFL_SIMPLE,
-            eCoronaLOSCheck::LOSCHECK_OFF,
-            eCoronaTrail::TRAIL_OFF,
-            normAngle,
-            false,
-            0.5f,
-            false,
-            15.0f,
-            false,
-            false
-        );
-    }
-
-    return true;
+    return DoLightEffectImpl(true, lightId, vehicleMatrix, isRight, disabledOrAlarm, false);
 }
 
 // 0x6E0E20
@@ -4570,94 +4446,146 @@ void CVehicle::DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags
 // 0x6E1780
 // lightId here refers to an ordinal of entry of one kind dummy subgroup e.g. taillights here
 bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, eVehicleLightsFlags flags_unused, bool staticEmission) {
-    constexpr auto REAR_SIZE_ROT_MULT = 0.2f; // 0x8D3688
+    return DoLightEffectImpl(false, lightId, vehicleMatrix, isRight, disabledOrAlarm, staticEmission);
+}
 
-    if (IsAutomobile()
-        && (GetModelIndex() == MODEL_STALLION || GetModelIndex() == MODEL_SABRE)
-        && AsAutomobile()->m_damageManager.GetPanelStatus(ePanels::REAR_BUMPER)) {
-        return false;
+// NOTSA
+// headlight/taillight
+bool CVehicle::DoLightEffectImpl(bool isFront, eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, bool staticEmission) {
+    constexpr auto FRONT_SIZE_ROT_MULT = 0.4f; // 0x8D3684
+    constexpr auto REAR_SIZE_ROT_MULT  = 0.2f; // 0x8D3688
+
+    if (!isFront) {
+        if (IsAutomobile()
+            && (GetModelIndex() == MODEL_STALLION || GetModelIndex() == MODEL_SABRE)
+            && AsAutomobile()->m_damageManager.GetPanelStatus(ePanels::REAR_BUMPER)) {
+            // they have light textures mapped on a bumper
+            return false;
+        }
     }
 
-    const auto rearDummy = [&]{
-        switch (lightId) {
-        case eVehicleLightId::MAIN:
-            return eVehicleDummy::DUMMY_LIGHT_REAR_MAIN;
-        case eVehicleLightId::SECONDARY:
-            return eVehicleDummy::DUMMY_LIGHT_REAR_SECONDARY;
-        default:
-            NOTSA_UNREACHABLE();
+    const auto lightDummy = [&] {
+        if (isFront) {
+            switch (lightId) {
+            case eVehicleLightId::MAIN:
+                return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
+            case eVehicleLightId::SECONDARY:
+                return eVehicleDummy::DUMMY_LIGHT_FRONT_SECONDARY;
+            default:
+                NOTSA_UNREACHABLE();
+            }
+        } else {
+            switch (lightId) {
+            case eVehicleLightId::MAIN:
+                return eVehicleDummy::DUMMY_LIGHT_REAR_MAIN;
+            case eVehicleLightId::SECONDARY:
+                return eVehicleDummy::DUMMY_LIGHT_REAR_SECONDARY;
+            default:
+                NOTSA_UNREACHABLE();
+            }
         }
     }();
 
-    CVector dummyPosObjSpace = GetDummyPositionObjSpace(rearDummy);
+    CVector dummyPosObjSpace = GetDummyPositionObjSpace(lightDummy);
 
     if (lightId == eVehicleLightId::SECONDARY && dummyPosObjSpace.IsZero()) {
         return false;
     }
 
-    if (!isRight) {
-        dummyPosObjSpace.x = -dummyPosObjSpace.x;
+    CVector tweakedDummy = dummyPosObjSpace;
+    if (isFront) {
+        const CVector fwd = GetForwardVector();
+        tweakedDummy      = 0.05f * fwd + dummyPosObjSpace;
     }
 
-    const CVector lightPosWorldSpace = vehicleMatrix * dummyPosObjSpace;
-    CVector       dirToCam           = TheCamera.GetPosition() - lightPosWorldSpace;
-    const float   distToCam          = dirToCam.NormaliseAndMag();
-    const float   angle              = DotProduct(dirToCam, -vehicleMatrix.GetForward());
+    if (!isRight) {
+        tweakedDummy.x -= 2.0f * dummyPosObjSpace.x;
+    }
 
-    if (disabledOrAlarm
-        || angle <= 0.0f
-        || (TheCamera.GetActiveCamera().m_nMode == eCamMode::MODE_1STPERSON && this == FindPlayerVehicle())) {
+    const CVector dummyPosWorldSpace = vehicleMatrix * tweakedDummy;
+
+    CVector     dirToCam             = TheCamera.GetPosition() - dummyPosWorldSpace;
+    const float distToCam            = dirToCam.NormaliseAndMag();
+
+    const CVector forward            = isFront ? vehicleMatrix.GetForward() : -vehicleMatrix.GetForward();
+
+    const float angle                = DotProduct(dirToCam, forward);
+    const float normAngle            = std::sqrt(angle);
+
+    const bool isFullsizeTrain       = IsSubTrain() && GetModelIndex() != MODEL_TRAM;
+    const auto RegisterCorona        = [&](uintptr id, uint8 r, uint8 g, uint8 b, uint8 intensity, CVector& pos, float size, eCoronaType type, eCoronaReflType reflType, float camDistLimit) {
+        CCoronas::RegisterCorona(id, this, r, g, b, intensity, pos, size, 150.0f * TheCamera.m_fLODDistMultiplier, type, eCoronaFlareType::FLARETYPE_NONE, reflType, eCoronaLOSCheck::LOSCHECK_OFF, eCoronaTrail::TRAIL_OFF, normAngle, false, camDistLimit, false, 15.0f, false, false);
+    };
+
+    const float baseCorIntensity       = isFront ? 0.3f : 0.2f;
+    const float baseCorRotMult         = isFront ? FRONT_SIZE_ROT_MULT : REAR_SIZE_ROT_MULT;
+    const auto [intensity, coronaSize] = [&]() {
+        const auto ang  = isFront ? normAngle : angle;
+
+        const auto intensity = ang * 0.5f + baseCorIntensity;
+        const auto size      = (1.0f - distToCam * (1.0f / 150.0f)) * ang * baseCorRotMult;
+
+        if (!isFullsizeTrain) {
+            return std::pair{ intensity, size };
+        }
+
+        const auto trainMult = isFront ? 2.0f : 3.0f;
+        return std::pair{ std::max(trainMult * intensity, 1.0f), 4.0f * size };
+    }();
+
+    if (disabledOrAlarm) {
         return false;
     }
 
-    float intensity  = angle * 0.5f + 0.2f;
-    float coronaSize = (1.0f - distToCam * (1.0f / 150.0f)) * angle * REAR_SIZE_ROT_MULT;
+    bool isBraking = false;
 
-    if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-        intensity *= 3.0f;
-        coronaSize *= 4.0f;
-        if (intensity > 1.0f) {
-            intensity = 1.0f;
+    if (angle > 0.0f
+        && (TheCamera.GetActiveCamera().m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle())) {
+
+        if (isFront) {
+            const auto fieldAngle = isFullsizeTrain ? 0.85f : 0.9f;
+
+            uint8 lightColorR     = 160u;
+            uint8 lightColorG     = 160u;
+            uint8 lightColorB     = 140u;
+
+            if (normAngle > fieldAngle && distToCam < 40.0f) {
+                const auto coronaSize = isFullsizeTrain ? 0.3f : 0.075f;
+
+                if (m_pHandlingData->m_bHalogenLights) {
+                    lightColorR = 150u;
+                    lightColorG = 150u;
+                    lightColorB = 195u;
+                }
+
+                RegisterCorona(reinterpret_cast<uintptr>(&m_placement) + 2 * static_cast<uint32>(lightId) + isRight, lightColorR, lightColorG, lightColorB, 255u, tweakedDummy, coronaSize, eCoronaType::CORONATYPE_HEADLIGHTLINE, eCoronaReflType::CORREFL_NONE, 0.3f);
+            }
+
+            if (m_pHandlingData->m_bHalogenLights) {
+                lightColorR = static_cast<uint8>(190.0f * intensity);
+                lightColorG = static_cast<uint8>(intensity * 255.0f);
+            } else {
+                lightColorR = static_cast<uint8>(210.0f * intensity);
+                lightColorG = static_cast<uint8>(intensity * 195.0f);
+            }
+
+            RegisterCorona(reinterpret_cast<uintptr>(this) + 2 * static_cast<uint32>(lightId) + isRight, lightColorR, lightColorR, lightColorG, 128u, tweakedDummy, coronaSize, eCoronaType::CORONATYPE_HEADLIGHT, eCoronaReflType::CORREFL_SIMPLE, 0.5f);
+        } else {
+            uint8 redIntensity = 0u;
+
+            if (m_pDriver && m_BrakePedal > 0.0f && !vehicleFlags.bIsHandbrakeOn) {
+                redIntensity = static_cast<uint8>(128.0f * intensity);
+                isBraking    = true;
+            } else if (staticEmission) {
+                redIntensity = static_cast<uint8>(96.0f * intensity);
+                isBraking    = true;
+            }
+
+            RegisterCorona(reinterpret_cast<uintptr>(&m_placement.m_vPosn.y) + 2 * static_cast<uint32>(lightId) + isRight, redIntensity, 0, 0, 128u, tweakedDummy, coronaSize, eCoronaType::CORONATYPE_HEADLIGHT, eCoronaReflType::CORREFL_SIMPLE, 0.5f);
         }
     }
 
-    const float normAngle    = std::sqrt(angle);
-    uint8       redIntensity = 0u;
-    bool        isBraking    = false;
-
-    if (m_pDriver && m_BrakePedal > 0.0f && !vehicleFlags.bIsHandbrakeOn) {
-        redIntensity = static_cast<uint8>(intensity * 128.0f);
-        isBraking    = true;
-    } else if (staticEmission) {
-        redIntensity = static_cast<uint8>(intensity * 96.0f);
-        isBraking    = true;
-    }
-
-    CCoronas::RegisterCorona(
-        reinterpret_cast<uintptr>(&m_placement.m_vPosn.y) + 2 * static_cast<uint32>(lightId) + isRight,
-        this,
-        redIntensity,
-        0u,
-        0u,
-        128u,
-        dummyPosObjSpace,
-        coronaSize,
-        150.f * TheCamera.m_fLODDistMultiplier,
-        eCoronaType::CORONATYPE_HEADLIGHT,
-        eCoronaFlareType::FLARETYPE_NONE,
-        eCoronaReflType::CORREFL_SIMPLE,
-        eCoronaLOSCheck::LOSCHECK_OFF,
-        eCoronaTrail::TRAIL_OFF,
-        normAngle,
-        false,
-        0.5f,
-        false,
-        15.0f,
-        false,
-        false
-    );
-
-    return isBraking;
+    return isFront || isBraking;
 }
 
 // 0x6E1A60
