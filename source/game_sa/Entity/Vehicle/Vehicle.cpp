@@ -4296,7 +4296,7 @@ void CVehicle::ProcessSirenAndHorn(bool arg0) {
 bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm) {
     constexpr auto SIZE_FRONT_ROT_MULT = 0.4f; // 0x8D3684
 
-    const auto frontDummy = [&] {
+    const auto frontDummy = [&]{
         switch (lightId) {
         case eVehicleLightId::MAIN:
             return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
@@ -4374,8 +4374,8 @@ bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
             );
         }
 
-        float intensity          = normAngle * 0.5f + 0.3f;
-        float coronaSize         = (1.0f - distToCam * (1.0f / 150.0f)) * normAngle * SIZE_FRONT_ROT_MULT;
+        float intensity  = normAngle * 0.5f + 0.3f;
+        float coronaSize = (1.0f - distToCam * (1.0f / 150.0f)) * normAngle * SIZE_FRONT_ROT_MULT;
 
         if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
             intensity *= 2.0f;
@@ -4578,7 +4578,7 @@ bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
         return false;
     }
 
-    const auto rearDummy = [&] {
+    const auto rearDummy = [&]{
         switch (lightId) {
         case eVehicleLightId::MAIN:
             return eVehicleDummy::DUMMY_LIGHT_REAR_MAIN;
@@ -4610,8 +4610,8 @@ bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
         return false;
     }
 
-    float intensity         = angle * 0.5f + 0.2f;
-    float coronaSize        = (1.0f - distToCam * (1.0f / 150.0f)) * angle * REAR_SIZE_ROT_MULT;
+    float intensity  = angle * 0.5f + 0.2f;
+    float coronaSize = (1.0f - distToCam * (1.0f / 150.0f)) * angle * REAR_SIZE_ROT_MULT;
 
     if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
         intensity *= 3.0f;
@@ -4716,14 +4716,13 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         }
     }
 
-    // TODO: optimize
-    bool lightOkFR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) && !(flags & VEHICLE_LIGHTS_DISABLE_FRONT)
-        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT);
-    bool lightOkFL = (flags & VEHICLE_LIGHTS_TWIN) && !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+    bool lightOkFR = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT));
+    bool lightOkFL = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_LEFT));
-    bool lightOkRR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) && !(flags & VEHICLE_LIGHTS_DISABLE_REAR)
-        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT); // FIX: game uses LIGHT_REAR_LEFT here
-    bool lightOkRL = (flags & VEHICLE_LIGHTS_TWIN) && !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+    bool lightOkRR = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT)); // FIX: game uses LIGHT_REAR_LEFT here
+    bool lightOkRL = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_LEFT));
 
     if (!vehicleFlags.bEngineOn) {
@@ -4748,9 +4747,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     // lights are on - process front main and secondary lights if there are any
     // BUG (or not): game does not perform VEHICLE_LIGHTS_TWIN for front left light
     const bool alarmOrDisabledFR = forceOff || !lightOkFR;
-    const bool alarmOrDisabledFL = forceOff || !lightOkFL;
     m_renderLights.m_bRightFront = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, true, alarmOrDisabledFR);
-    m_renderLights.m_bLeftFront  = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, false, alarmOrDisabledFL);
     // game does not use func above for rendering secondary coronas which led to this cp shit
     // FIX: use DoHeadLightEffect() here effectively the same, og inlined code leaved below for reference
     if (m_renderLights.m_bRightFront) {
@@ -4853,106 +4850,110 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
             }
         }*/
     }
-    if (m_renderLights.m_bLeftFront) {
-        CVehicle::DoHeadLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, false, alarmOrDisabledFL);
-        /* 0x6E22D5
-        CVector vecFRDummyPos = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_SECONDARY);
-        if (vecFRDummyPos != 0.0f) {
-            CVector vecFwd = GetForwardVector();
-            CVector point = 0.05f * vecFwd + vecFRDummyPos;
-            point.x -= 2.0f*vecFRDummyPos.x;
-            CVector vecFLLight = vehicleMatrix * point;
-            CVector vecLook = TheCamera.GetPosition() - vecFLLight;
-            float fRadius = vecLook.NormaliseAndMag();
-            float fVisibility = DotProduct(vecLook, GetForward());
-            if (!bAlarmOrDisabledFL
-                && fVisibility > 0.0f
-                && (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle()))
-            {
-                uint8 lightColorR{}, lightColorG{}, lightColorB{};
-                float fNormalAngle = std::sqrt(fVisibility);
-                float fFieldAngle = 0.9f;
-                if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-                    fFieldAngle = 0.85f;
-                }
-                if (fNormalAngle > fFieldAngle && fRadius < 40.0f) {
-                    if (m_pHandlingData->m_bHalogenLights) {
-                        lightColorR = 150u;
-                        lightColorG = 150u;
-                        lightColorB = 195u;
-                    } else {
-                        lightColorR = 160u;
-                        lightColorG = 160u;
-                        lightColorB = 140u;
-                    }
-                    float fCoronaSize = 0.075f;
+    if (flags & VEHICLE_LIGHTS_TWIN) {
+        const bool alarmOrDisabledFL = forceOff || !lightOkFL;
+        m_renderLights.m_bLeftFront  = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, false, alarmOrDisabledFL);
+        if (m_renderLights.m_bLeftFront) {
+            CVehicle::DoHeadLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, false, alarmOrDisabledFL);
+            /* 0x6E22D5
+            CVector vecFRDummyPos = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_SECONDARY);
+            if (vecFRDummyPos != 0.0f) {
+                CVector vecFwd = GetForwardVector();
+                CVector point = 0.05f * vecFwd + vecFRDummyPos;
+                point.x -= 2.0f*vecFRDummyPos.x;
+                CVector vecFLLight = vehicleMatrix * point;
+                CVector vecLook = TheCamera.GetPosition() - vecFLLight;
+                float fRadius = vecLook.NormaliseAndMag();
+                float fVisibility = DotProduct(vecLook, GetForward());
+                if (!bAlarmOrDisabledFL
+                    && fVisibility > 0.0f
+                    && (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle()))
+                {
+                    uint8 lightColorR{}, lightColorG{}, lightColorB{};
+                    float fNormalAngle = std::sqrt(fVisibility);
+                    float fFieldAngle = 0.9f;
                     if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-                        fCoronaSize = 0.3f;
+                        fFieldAngle = 0.85f;
+                    }
+                    if (fNormalAngle > fFieldAngle && fRadius < 40.0f) {
+                        if (m_pHandlingData->m_bHalogenLights) {
+                            lightColorR = 150u;
+                            lightColorG = 150u;
+                            lightColorB = 195u;
+                        } else {
+                            lightColorR = 160u;
+                            lightColorG = 160u;
+                            lightColorB = 140u;
+                        }
+                        float fCoronaSize = 0.075f;
+                        if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
+                            fCoronaSize = 0.3f;
+                        }
+                        CCoronas::RegisterCorona(
+                            (uintptr)&m_placement.m_vPosn.x + 2u,
+                            this, // this
+                            lightColorR,
+                            lightColorG,
+                            lightColorB,
+                            255u,
+                            point,
+                            fCoronaSize,
+                            150.0f*TheCamera.m_fLODDistMultiplier,
+                            eCoronaType::CORONATYPE_HEADLIGHTLINE,
+                            eCoronaFlareType::FLARETYPE_NONE,
+                            eCoronaReflType::CORREFL_NONE,
+                            eCoronaLOSCheck::LOSCHECK_OFF,
+                            eCoronaTrail::TRAIL_OFF,
+                            fNormalAngle,
+                            false,
+                            0.3f,
+                            false,
+                            15.0f,
+                            false,
+                            false);
+                    }
+                    float fIntensity = fNormalAngle * 0.5f + 0.3f;
+                    constexpr float fSizeRotMult = 0.4f; // 0x8D3684
+                    float fSize = (1.0f - fRadius * (1.0f/150.0f)) * fNormalAngle * fSizeRotMult;
+                    if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
+                        fIntensity += fIntensity;
+                        if (fIntensity > 1.0f) {
+                            fIntensity = 1.0f;
+                        }
+                        fSize *= 4.0f;
+                    }
+                    if (m_pHandlingData->m_bHalogenLights) {
+                        lightColorR = static_cast<uint8>(190.0f * fIntensity);
+                        lightColorG = static_cast<uint8>(fIntensity * 255.0f);
+                    } else {
+                        lightColorR = static_cast<uint8>(210.0f * fIntensity);
+                        lightColorG = static_cast<uint8>(fIntensity * 195.0f);
                     }
                     CCoronas::RegisterCorona(
-                        (uintptr)&m_placement.m_vPosn.x + 2u,
+                        (uintptr)this + 2u,
                         this, // this
                         lightColorR,
+                        lightColorR,
                         lightColorG,
-                        lightColorB,
-                        255u,
+                        128u,
                         point,
-                        fCoronaSize,
+                        fSize,
                         150.0f*TheCamera.m_fLODDistMultiplier,
-                        eCoronaType::CORONATYPE_HEADLIGHTLINE,
+                        eCoronaType::CORONATYPE_HEADLIGHT,
                         eCoronaFlareType::FLARETYPE_NONE,
-                        eCoronaReflType::CORREFL_NONE,
+                        eCoronaReflType::CORREFL_SIMPLE,
                         eCoronaLOSCheck::LOSCHECK_OFF,
                         eCoronaTrail::TRAIL_OFF,
                         fNormalAngle,
                         false,
-                        0.3f,
+                        0.5f,
                         false,
                         15.0f,
                         false,
                         false);
                 }
-                float fIntensity = fNormalAngle * 0.5f + 0.3f;
-                constexpr float fSizeRotMult = 0.4f; // 0x8D3684
-                float fSize = (1.0f - fRadius * (1.0f/150.0f)) * fNormalAngle * fSizeRotMult;
-                if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
-                    fIntensity += fIntensity;
-                    if (fIntensity > 1.0f) {
-                        fIntensity = 1.0f;
-                    }
-                    fSize *= 4.0f;
-                }
-                if (m_pHandlingData->m_bHalogenLights) {
-                    lightColorR = static_cast<uint8>(190.0f * fIntensity);
-                    lightColorG = static_cast<uint8>(fIntensity * 255.0f);
-                } else {
-                    lightColorR = static_cast<uint8>(210.0f * fIntensity);
-                    lightColorG = static_cast<uint8>(fIntensity * 195.0f);
-                }
-                CCoronas::RegisterCorona(
-                    (uintptr)this + 2u,
-                    this, // this
-                    lightColorR,
-                    lightColorR,
-                    lightColorG,
-                    128u,
-                    point,
-                    fSize,
-                    150.0f*TheCamera.m_fLODDistMultiplier,
-                    eCoronaType::CORONATYPE_HEADLIGHT,
-                    eCoronaFlareType::FLARETYPE_NONE,
-                    eCoronaReflType::CORREFL_SIMPLE,
-                    eCoronaLOSCheck::LOSCHECK_OFF,
-                    eCoronaTrail::TRAIL_OFF,
-                    fNormalAngle,
-                    false,
-                    0.5f,
-                    false,
-                    15.0f,
-                    false,
-                    false);
-            }
-        }*/
+            }*/
+        }
     }
 
     // process static part of taillight effect
