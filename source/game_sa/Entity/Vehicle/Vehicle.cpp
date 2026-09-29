@@ -4316,43 +4316,25 @@ bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
     const CVector fwd          = GetForwardVector();
     CVector       tweakedDummy = 0.05f * fwd + dummyPosObjSpace;
 
-<<<<<<< HEAD
     if (!isRight) {
-=======
-    if (!bRight) {
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
         tweakedDummy.x -= 2.0f * dummyPosObjSpace.x;
     }
 
     const CVector dummyPosWorldSpace = vehicleMatrix * tweakedDummy;
 
-<<<<<<< HEAD
     CVector     dirToCam             = TheCamera.GetPosition() - dummyPosWorldSpace;
     const float distToCam            = dirToCam.NormaliseAndMag();
     const float angle                = DotProduct(dirToCam, GetForward());
-=======
-    CVector     camLook              = TheCamera.GetPosition() - dummyPosWorldSpace;
-    const float radius               = camLook.NormaliseAndMag();
-    const float visibility           = DotProduct(camLook, GetForward());
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
 
     if (disabledOrAlarm) {
         return false;
     }
 
-<<<<<<< HEAD
     if (angle > 0.0f
         && (TheCamera.GetActiveCamera().m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle())) {
         const float normAngle = std::sqrt(angle);
         uint8       lightColorR{}, lightColorG{}, lightColorB{};
         const auto  fieldAngle = IsSubTrain() && GetModelIndex() != MODEL_TRAM ? 0.85f : 0.9f;
-=======
-    if (visibility > 0.0f
-        && (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode != eCamMode::MODE_1STPERSON || this != FindPlayerVehicle())) {
-        const float normAngle = std::sqrt(visibility);
-        uint8       lightColorR{}, lightColorG{}, lightColorB{};
-        float       fieldAngle = 0.9f;
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
 
         if (normAngle > fieldAngle && distToCam < 40.0f) {
             const auto coronaSize = IsSubTrain() && GetModelIndex() != MODEL_TRAM ? 0.3f : 0.075f;
@@ -4392,14 +4374,8 @@ bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
             );
         }
 
-<<<<<<< HEAD
         float intensity          = normAngle * 0.5f + 0.3f;
         float coronaSize         = (1.0f - distToCam * (1.0f / 150.0f)) * normAngle * SIZE_FRONT_ROT_MULT;
-=======
-        auto  s_sizeFrontRotMult = StaticRef<float>(0x8D3684); // 0.4f
-        float intensity          = normAngle * 0.5f + 0.3f;
-        float size               = (1.0f - radius * (1.0f / 150.0f)) * normAngle * s_sizeFrontRotMult;
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
 
         if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
             intensity *= 2.0f;
@@ -4425,11 +4401,7 @@ bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
             lightColorG,
             128u,
             tweakedDummy,
-<<<<<<< HEAD
             coronaSize,
-=======
-            size,
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
             150.0f * TheCamera.m_fLODDistMultiplier,
             eCoronaType::CORONATYPE_HEADLIGHT,
             eCoronaFlareType::FLARETYPE_NONE,
@@ -4628,7 +4600,6 @@ bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
     }
 
     const CVector lightPosWorldSpace = vehicleMatrix * dummyPosObjSpace;
-<<<<<<< HEAD
     CVector       dirToCam           = TheCamera.GetPosition() - lightPosWorldSpace;
     const float   distToCam          = dirToCam.NormaliseAndMag();
     const float   angle              = DotProduct(dirToCam, -vehicleMatrix.GetForward());
@@ -4641,21 +4612,6 @@ bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
 
     float intensity         = angle * 0.5f + 0.2f;
     float coronaSize        = (1.0f - distToCam * (1.0f / 150.0f)) * angle * REAR_SIZE_ROT_MULT;
-=======
-    CVector       camLook            = TheCamera.GetPosition() - lightPosWorldSpace;
-    const float   radius             = camLook.NormaliseAndMag();
-    const float   visibility         = DotProduct(camLook, -vehicleMatrix.GetForward());
-
-    if (disabledOrAlarm
-        || visibility <= 0.0f
-        || (TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode == eCamMode::MODE_1STPERSON && this == FindPlayerVehicle())) {
-        return false;
-    }
-
-    auto  s_rearSizeRotMult = StaticRef<float>(0x8D3688); // 0.2f;
-    float intensity         = visibility * 0.5f + 0.2f;
-    float coronaSize        = (1.0f - radius * (1.0f / 150.0f)) * visibility * s_rearSizeRotMult;
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
 
     if (IsSubTrain() && GetModelIndex() != MODEL_TRAM) {
         intensity *= 3.0f;
@@ -4665,11 +4621,7 @@ bool CVehicle::DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
         }
     }
 
-<<<<<<< HEAD
     const float normAngle    = std::sqrt(angle);
-=======
-    const float normAngle    = std::sqrt(visibility);
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
     uint8       redIntensity = 0u;
     bool        isBraking    = false;
 
@@ -4753,29 +4705,18 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         // calculate zr350's pop-up lights rotation
         if (vehicleFlags.bEngineOn) {
             constexpr auto popUpTarget = 0.69813174f; // aka (2.f / 9.f) * PI rad = 40 deg
-<<<<<<< HEAD
-=======
-            float          propAngle   = 0.0f;
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
             if (vehicleFlags.bLightsOn || forceOn || !CanUpdateHornCounter()) {
                 automobile->m_fPropRotate = notsa::step_up_to(automobile->m_fPropRotate, popUpTarget, CTimer::GetTimeStep() * 0.01f);
                 if (automobile->m_fPropRotate < popUpTarget) {
                     return;
                 }
-<<<<<<< HEAD
             } else {
                 automobile->m_fPropRotate = notsa::step_down_to(automobile->m_fPropRotate, 0.0f, CTimer::GetTimeStep() * 0.01f);
-=======
-            } else if (automobile->m_fPropRotate > 0.0f) {
-                propAngle                 = automobile->m_fPropRotate - CTimer::GetTimeStep() * 0.01f;
-                automobile->m_fPropRotate = std::max(propAngle, 0.0f);
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
             }
         }
     }
 
     // TODO: optimize
-<<<<<<< HEAD
     bool lightOkFR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) && !(flags & VEHICLE_LIGHTS_DISABLE_FRONT)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT);
     bool lightOkFL = (flags & VEHICLE_LIGHTS_TWIN) && !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
@@ -4784,21 +4725,6 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT); // FIX: game uses LIGHT_REAR_LEFT here
     bool lightOkRL = (flags & VEHICLE_LIGHTS_TWIN) && !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_LEFT));
-=======
-    bool lightOkFR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT);
-    bool lightOkFL = (flags & VEHICLE_LIGHTS_TWIN) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_LEFT));
-    bool lightOkRR = (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT); // FIX: game uses LIGHT_REAR_LEFT here
-    bool lightOkRL = (flags & VEHICLE_LIGHTS_TWIN) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_LEFT));
-
-    if (flags & VEHICLE_LIGHTS_DISABLE_FRONT) {
-        lightOkFL = false;
-        lightOkFR = false;
-    }
-    if (flags & VEHICLE_LIGHTS_DISABLE_REAR) {
-        lightOkRL = false;
-        lightOkRR = false;
-    }
->>>>>>> 7f10d20c1e758e97ef4b2fc06ece326b4060a4e1
 
     if (!vehicleFlags.bEngineOn) {
         return;
