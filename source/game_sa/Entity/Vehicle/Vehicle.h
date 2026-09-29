@@ -76,6 +76,13 @@ enum class eVehicleLightId : uint32 {
     SECONDARY = 1
 };
 
+enum eVehicleRenderLightFlags : uint8 {
+    VEHICLE_LIGHT_RF = 1,
+    VEHICLE_LIGHT_LF = 2,
+    VEHICLE_LIGHT_RR = 4,
+    VEHICLE_LIGHT_LR = 8
+};
+
 enum eVehicleCreatedBy : uint8 {
     RANDOM_VEHICLE = 1,
     MISSION_VEHICLE = 2,

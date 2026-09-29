@@ -9,6 +9,7 @@
 #include <optional>
 #include <functional>
 #include <extensions/utility.hpp>
+#include <reversiblebugfixes/Bugs.hpp>
 
 #include "Vehicle.h"
 #include "Garages.h"
@@ -4291,6 +4292,15 @@ void CVehicle::ProcessSirenAndHorn(bool arg0) {
     ((void(__thiscall*)(CVehicle*, bool))0x6E0950)(this, arg0);
 }
 
+// NOTSA
+auto GetDummyFromLightId(eVehicleLightId lightId, bool isFront) -> eVehicleDummy {
+    switch (lightId) {
+    case eVehicleLightId::MAIN:      return isFront ? DUMMY_LIGHT_FRONT_MAIN : DUMMY_LIGHT_REAR_MAIN;
+    case eVehicleLightId::SECONDARY: return isFront ? DUMMY_LIGHT_FRONT_SECONDARY : DUMMY_LIGHT_REAR_SECONDARY;
+    default:                         NOTSA_UNREACHABLE_CASE(lightId);
+    }
+}
+
 // 0x6E0A50
 // lightId here refers to an ordinal of entry of one kind dummy subgroup e.g. headlights here
 bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm) {
@@ -4299,18 +4309,7 @@ bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
 
 // 0x6E0E20
 void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight) {
-    const auto frontDummy = [&] {
-        switch (lightId) {
-        case eVehicleLightId::MAIN:
-            return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
-        case eVehicleLightId::SECONDARY:
-            return eVehicleDummy::DUMMY_LIGHT_FRONT_SECONDARY;
-        default:
-            NOTSA_UNREACHABLE();
-        }
-    }();
-
-    CVector pointModelSpace = GetDummyPositionObjSpace(frontDummy);
+    CVector pointModelSpace = GetDummyPositionObjSpace(GetDummyFromLightId(lightId, true));
 
     if (lightId == eVehicleLightId::SECONDARY && pointModelSpace.IsZero()) {
         return;
@@ -4468,29 +4467,7 @@ bool CVehicle::DoLightEffectImpl(bool isFront, eVehicleLightId lightId, CMatrix&
         }
     }
 
-    const auto lightDummy = [&] {
-        if (isFront) {
-            switch (lightId) {
-            case eVehicleLightId::MAIN:
-                return eVehicleDummy::DUMMY_LIGHT_FRONT_MAIN;
-            case eVehicleLightId::SECONDARY:
-                return eVehicleDummy::DUMMY_LIGHT_FRONT_SECONDARY;
-            default:
-                NOTSA_UNREACHABLE();
-            }
-        } else {
-            switch (lightId) {
-            case eVehicleLightId::MAIN:
-                return eVehicleDummy::DUMMY_LIGHT_REAR_MAIN;
-            case eVehicleLightId::SECONDARY:
-                return eVehicleDummy::DUMMY_LIGHT_REAR_SECONDARY;
-            default:
-                NOTSA_UNREACHABLE();
-            }
-        }
-    }();
-
-    CVector dummyPosObjSpace = GetDummyPositionObjSpace(lightDummy);
+    CVector dummyPosObjSpace = GetDummyPositionObjSpace(GetDummyFromLightId(lightId, isFront));
 
     if (lightId == eVehicleLightId::SECONDARY && dummyPosObjSpace.IsZero()) {
         return false;
@@ -4645,25 +4622,29 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         }
     }
 
-    const bool lightOkFR = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
-        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT));
-    const bool lightOkFL = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
-        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_LEFT));
-    const bool lightOkRR = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
-        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT)); // FIX: game uses LIGHT_REAR_LEFT here
-    const bool lightOkRL = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
-        || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_LEFT));
+    const auto IsLightOk = [&](eVehicleLightsFlags disabledFlag, eLights light) {
+        return !(flags & disabledFlag) 
+            && (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && automobile->m_damageManager.GetLightStatus(light) == VEHICLE_LIGHT_OK;
+    };
 
-    const auto RenderLights = [&](bool isRear, bool disabledOrAlarmR, bool disabledOrAlarmL, bool staticEmission) {
-        bool  active = CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
-        uint8 toPos  = 2 * isRear;
-        m_nRenderLightsFlags ^= (m_nRenderLightsFlags ^ (active << toPos)) & (1 << toPos);
+    const bool lightOkFR = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_RIGHT);
+    const bool lightOkFL = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_LEFT);
+    const bool lightOkRR = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, notsa::bugfixes::CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR ? LIGHT_REAR_RIGHT : LIGHT_REAR_LEFT);
+    const bool lightOkRL = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, LIGHT_REAR_LEFT);
+
+    const auto RenderLights = [&](uint8 renderflags, bool disabledOrAlarmR, bool disabledOrAlarmL, bool staticEmission) {
+        const auto SetLights = [&](uint8 mask, bool on) {
+            m_nRenderLightsFlags ^= static_cast<uint8>((m_nRenderLightsFlags ^ (on ? mask : 0)) & mask);
+        };
+        bool isRear = renderflags & (VEHICLE_LIGHT_RR|VEHICLE_LIGHT_LR);
+        bool active = CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
+        SetLights(renderflags & (VEHICLE_LIGHT_RF|VEHICLE_LIGHT_RR), active);
         if (active) {
             CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::SECONDARY, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
         }
         if (flags & VEHICLE_LIGHTS_TWIN) {
             active = CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::MAIN, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
-            m_nRenderLightsFlags ^= (m_nRenderLightsFlags ^ (active << (1 + toPos))) & (1 << (1 + toPos));
+            SetLights(renderflags & (VEHICLE_LIGHT_LF|VEHICLE_LIGHT_LR), active);
             if (active) {
                 CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::SECONDARY, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
             }
@@ -4674,18 +4655,18 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         return; // can return earlier; moved from 0x6E2739/0x6E271C
     } else if (!vehicleFlags.bLightsOn && !forceOn) {
         // lights are off - process only dynamic part of taillight effect
-        RenderLights(true, !lightOkRR, !lightOkRL, false);
+        RenderLights(VEHICLE_LIGHT_RR | VEHICLE_LIGHT_LR, !lightOkRR, !lightOkRL, false);
         return;
     }
 
     // lights are on - process front lights
     const bool alarmOrDisabledFR = forceOff || !lightOkFR;
     const bool alarmOrDisabledFL = forceOff || !lightOkFL;
-    RenderLights(false, alarmOrDisabledFR, alarmOrDisabledFL, false);
+    RenderLights(VEHICLE_LIGHT_RF | VEHICLE_LIGHT_LF, alarmOrDisabledFR, alarmOrDisabledFL, false);
     // process static part of taillight effect
     const bool alarmOrDisabledRR = forceOff || !lightOkRR;
     const bool alarmOrDisabledRL = forceOff || !lightOkRL;
-    RenderLights(true, alarmOrDisabledRR, alarmOrDisabledRL, true);
+    RenderLights(VEHICLE_LIGHT_RR | VEHICLE_LIGHT_LR, alarmOrDisabledRR, alarmOrDisabledRL, true);
 
     if (!IsSubTrain()) {
         // draw light shadows
@@ -4694,25 +4675,17 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
 
     // add directionals
     if (lightOkFR || lightOkFL) {
-        const CVector pos          = vehicleMatrix.GetPosition();
-        const CVector fwd          = vehicleMatrix.GetForward();
-        const uint8   useSimpleFog = m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u;
-
         CPointLights::AddLight(
             ePointLightType::PLTYPE_DIRECTIONAL,
-            pos,
-            fwd,
+            vehicleMatrix.GetPosition(),
+            vehicleMatrix.GetForward(),
             20.0f,
             1.0f,
             1.0f,
             1.0f,
-            useSimpleFog
+            m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u
         );
     }
-
-    const CVector vehPos      = GetPosition();
-    const CVector negFwdLight = -4.0f * GetForward();
-    const CVector rearDir     = vehPos + negFwdLight;
 
     if ((lightOkRR || lightOkRL)
         && m_BrakePedal > 0.0f
@@ -4720,7 +4693,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         && m_pDriver) {
         CPointLights::AddLight(
             ePointLightType::PLTYPE_DIRECTIONAL,
-            rearDir,
+            GetPosition() + -4.0f * GetForward(),
             -vehicleMatrix.GetForward(),
             10.0f,
             0.1f,  // 0x8D368C, StaticRefs
