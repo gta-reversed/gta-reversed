@@ -4670,12 +4670,12 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         }
     };
 
-    if (!vehicleFlags.bLightsOn && !forceOn && !forceOff) {
+    if (forceOff) {
+        return; // can return earlier; moved from 0x6E2739/0x6E271C
+    } else if (!vehicleFlags.bLightsOn && !forceOn) {
         // lights are off - process only dynamic part of taillight effect
         RenderLights(true, !lightOkRR, !lightOkRL, false);
         return;
-    } else if (forceOff) {
-        return; // can return earlier; moved from 0x6E2739/0x6E271C
     }
 
     // lights are on - process front lights
