@@ -4716,13 +4716,13 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         }
     }
 
-    bool lightOkFR = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+    const bool lightOkFR = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_RIGHT));
-    bool lightOkFL = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+    const bool lightOkFL = !(flags & VEHICLE_LIGHTS_DISABLE_FRONT) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_FRONT_LEFT));
-    bool lightOkRR = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+    const bool lightOkRR = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_RIGHT)); // FIX: game uses LIGHT_REAR_LEFT here
-    bool lightOkRL = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+    const bool lightOkRL = !(flags & VEHICLE_LIGHTS_DISABLE_REAR) && ((flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
         || IsAutomobile() && !automobile->m_damageManager.GetLightStatus(LIGHT_REAR_LEFT));
 
     if (!vehicleFlags.bEngineOn) {
@@ -4745,11 +4745,10 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     }
 
     // lights are on - process front main and secondary lights if there are any
-    // BUG (or not): game does not perform VEHICLE_LIGHTS_TWIN for front left light
     const bool alarmOrDisabledFR = forceOff || !lightOkFR;
     m_renderLights.m_bRightFront = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, true, alarmOrDisabledFR);
     // game does not use func above for rendering secondary coronas which led to this cp shit
-    // FIX: use DoHeadLightEffect() here effectively the same, og inlined code leaved below for reference
+    // FIX: use DoHeadLightEffect() here effectively the same, og inlined code leaved for reference
     if (m_renderLights.m_bRightFront) {
         CVehicle::DoHeadLightEffect(eVehicleLightId::SECONDARY, vehicleMatrix, true, alarmOrDisabledFR);
         /* 0x6E1F44
@@ -4850,6 +4849,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
             }
         }*/
     }
+    // FIX: use VEHICLE_LIGHTS_TWIN check here instead of lightOkFL
     if (flags & VEHICLE_LIGHTS_TWIN) {
         const bool alarmOrDisabledFL = forceOff || !lightOkFL;
         m_renderLights.m_bLeftFront  = CVehicle::DoHeadLightEffect(eVehicleLightId::MAIN, vehicleMatrix, false, alarmOrDisabledFL);
@@ -4975,6 +4975,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     }
 
     if (!IsSubTrain()) {
+        // draw light shadows
         CVehicle::DoHeadLightReflection(vehicleMatrix, flags, lightOkFL, lightOkFR);
     }
 
