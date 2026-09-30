@@ -1,7 +1,7 @@
 # Reversed Classes progress
 This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.
 
-Last update was at Sep 16, 2026 at 15:56:11 UTC triggered by [12672a45a8734360bcb3fbdab5eb2a2c3fe0ae1a](https://github.com/gta-reversed/gta-reversed/commit/12672a45a8734360bcb3fbdab5eb2a2c3fe0ae1a) 
+Last update was at Sep 21, 2026 at 19:13:40 UTC triggered by [4f8d7dad398798d88bf945061d79f60ce899c758](https://github.com/gta-reversed/gta-reversed/commit/4f8d7dad398798d88bf945061d79f60ce899c758) 
 
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
@@ -640,7 +640,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CGroupEventHandler (30/32) [94%]<br />
 - CEventHandler (69/72) [96%]<br />
 - CBaseModelInfo (33/34) [97%]<br />
-- CVehicle (140/142) [99%]<br />
+- CVehicle (141/142) [99%]<br />
 - CTrain (20/40) [50%]<br />
 - CQuadBike (11/12) [92%]<br />
 - CPlane (14/23) [61%]<br />
