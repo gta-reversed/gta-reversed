@@ -4308,7 +4308,7 @@ bool CVehicle::DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix
 }
 
 // 0x6E0E20
-void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool bRight) {
+void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight) {
     CVector pointModelSpace = GetDummyPositionObjSpace(GetDummyFromLightId(lightId, true));
 
     if (lightId == eVehicleLightId::SECONDARY && pointModelSpace.IsZero()) {
@@ -4316,7 +4316,7 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
     }
 
     CVector point = vehicleMatrix.GetPosition() + vehicleMatrix.TransformVector(pointModelSpace);
-    if (!bRight) {
+    if (!isRight) {
         point -= 2 * pointModelSpace.x * vehicleMatrix.GetRight();
     }
     const CVector pointToCamDir = Normalized(TheCamera.GetPosition() - point);
