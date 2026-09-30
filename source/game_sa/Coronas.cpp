@@ -49,7 +49,7 @@ constexpr CFlareDefinition HeadLightsFlareDef[27]{
     { -1.00f, 11.f, { 55,  55,  55  }, 200, 4 },
     { -1.20f, 3.5f, { 35,  35,  35  }, 200, 4 },
     { -1.35f, 9.0f, { 50,  50,  50  }, 200, 4 },
-    { -1.70f, 54.f, { 35,  35,  35  }, 200, 4 },
+    { -1.70f, 54.3f, { 35,  35,  35  }, 200, 4 },
     { -2.00f, 5.0f, { 50,  50,  50  }, 200, 4 },
     { -2.50f, 4.5f, { 35,  35,  35  }, 200, 4 },
     { -3.00f, 14.f, { 50,  50,  50  }, 200, 4 },
@@ -78,10 +78,10 @@ constexpr CFlareDefinition SunFlareDef[27]{
     { -0.90f, 8.32f, { 21,  12,  18  }, 200, 4 },
     { -1.00f, 17.6f, { 42,  13,  18  }, 200, 4 },
     { -1.20f, 5.60f, { 21,  12,  12  }, 200, 4 },
-    { -1.35f, 14.4f, { 42,  42,  24  }, 200, 4 },
-    { -1.70f, 86.8f, { 21,  15,  15  }, 200, 4 },
+    { -1.35f, 9.0f * 1.6f, { 42,  42,  24  }, 200, 4 },
+    { -1.70f, 86.88f, { 21,  15,  15  }, 200, 4 },
     { -2.00f, 8.00f, { 48,  30,  30  }, 200, 4 },
-    { -2.50f, 7.20f, { 21,  15,  12  }, 200, 4 },
+    { -2.50f, 4.5f * 1.6f, { 21,  15,  12  }, 200, 4 },
     { -3.00f, 22.4f, { 42,  30,  24  }, 200, 4 },
     { -6.00f, 38.4f, { 42,  42,  30  }, 200, 4 },
     { -9.00f, 22.4f, { 42,  30,  36  }, 200, 4 },
@@ -348,8 +348,8 @@ void CCoronas::Render() {
                             255
                         );
                     };
-                    RenderFlareSprite({ LerpColorC(c.m_Color.r, it->ColorMult.x * CWeather::HeadLightsSpectrum), 0, 0, 255 }, +0.05f); // 0x6FB561
-                    RenderFlareSprite({ 0, 0, LerpColorC(c.m_Color.b, it->ColorMult.z * CWeather::HeadLightsSpectrum), 255 }, -0.05f); // 0x6FB5EA
+                    RenderFlareSprite({ LerpColorC(c.m_Color.r, it->ColorMult.x * 256.f * CWeather::HeadLightsSpectrum), 0, 0, 255 }, +0.05f); // 0x6FB561
+                    RenderFlareSprite({ 0, 0, LerpColorC(c.m_Color.b, it->ColorMult.z * 256.f * CWeather::HeadLightsSpectrum), 255 }, -0.05f); // 0x6FB5EA
                 }
             }
         }
