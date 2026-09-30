@@ -107,7 +107,7 @@ void CWeather::AddRain() {
 
     // 0x72AB0F
     const auto numSplashSpots     = (int32)(Rain * 5.0f);
-    const auto maxRadius          = std::max(Rain * 10.0f, 40.0f) * 0.5f;
+    const auto maxRadius          = std::max(Rain * 10.0f, 40.0f) * 0.5f; // Always 20 for normal rain values, `std::min` looks intended
     const auto numSplashesPerSpot = 15 - (int32)(Rain * -2.0f);
     for (auto i = 0; i < numSplashSpots; i++) {
         const FxPrtMult_c splashMults(1.0f, 1.0f, 1.0f, 0.25f, 0.02f, 0.0f, 0.03f);
