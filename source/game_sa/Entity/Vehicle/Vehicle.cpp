@@ -4371,12 +4371,12 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
 
 // 0x6E1440
 void CVehicle::DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight) {
-    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, !isRight, isRight);
+    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, false, isRight);
 }
 
 // 0x6E1600
 void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
-    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, true, true);
+    DoHeadLightReflectionImpl(vehicleMatrix, eVehicleLightsFlags::VEHICLE_LIGHTS_TWIN, true, true);
 }
 
 // NOTSA
