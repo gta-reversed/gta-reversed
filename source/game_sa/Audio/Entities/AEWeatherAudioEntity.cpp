@@ -46,6 +46,8 @@ void CAEWeatherAudioEntity::StaticReset() {
 
 // 0x506800
 void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
+    constexpr float THUNDER_FREQUENCIES[] = { 1.15f, 1.f, 0.85f }; // 0x8CC300
+
     if (event != AE_THUNDER || !CGame::CanSeeOutSideFromCurrArea() || CCullZones::PlayerNoRain() || CCullZones::CamNoRain()) {
         return;
     }
@@ -54,10 +56,8 @@ void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
         return;
     }
 
-    constexpr float THUNDER_FREQUENCIES[] = { 1.15f, 1.f, 0.85f }; // 0x8CC300
-
     const auto volume = CAEAudioUtility::AudioLog10(CWeather::LightningDuration * 0.0375f + 0.25f) * 20.f + GetDefaultVolume(AE_THUNDER);
-    m_nThunderFrequencyVariationCounter = (m_nThunderFrequencyVariationCounter + 1) % 3;
+    m_nThunderFrequencyVariationCounter = (uint8)((m_nThunderFrequencyVariationCounter + 1) % std::size(THUNDER_FREQUENCIES));
     const auto freq = THUNDER_FREQUENCIES[m_nThunderFrequencyVariationCounter];
 
     const auto PlayThunderSound = [&](eSoundID sfx, float posX, float soundVolume, float speed, uint32 flags, eWeatherEvent soundEvent) {
