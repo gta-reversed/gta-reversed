@@ -7,6 +7,7 @@
 #include "StdInc.h"
 
 #include <numbers>
+#include <reversiblebugfixes/Bugs.hpp>
 
 #include "eWeatherType.h"
 #include "PostEffects.h"
@@ -308,7 +309,7 @@ void CWeather::Update() {
             OldWeatherType = NewWeatherType;
             if (ForcedWeatherType >= 0) {
                 NewWeatherType = ForcedWeatherType;
-            } else if (TheCamera.GetPosition().z < 950.0f) {
+            } else if (TheCamera.GetPosition().z < 950.0f) { // Above z 950 the list is not advanced, so the weather stops changing
                 WeatherTypeInList = (WeatherTypeInList + 1) % 64;
                 NewWeatherType = FindWeatherTypesList()[WeatherTypeInList];
             }
@@ -447,7 +448,7 @@ void CWeather::Update() {
 
         // 0x72C1C8
         const auto isOutside = !CGame::currArea
-            && FindPlayerPed()->GetAreaCode() == AREA_CODE_NORMAL_WORLD
+            && ((notsa::bugfixes::GenericCrashing && !FindPlayerPed()) || FindPlayerPed()->GetAreaCode() == AREA_CODE_NORMAL_WORLD)
             && !CCullZones::CamNoRain()
             && !CCullZones::PlayerNoRain();
         if (!isOutside) {
@@ -553,7 +554,9 @@ void CWeather::Update() {
     AddRain();
 
     // 0x72C7C5
-    const auto* const task = FindPlayerPed()->GetTaskManager().GetSimplestActiveTask();
+    const auto* const task = notsa::bugfixes::GenericCrashing && !FindPlayerPed()
+        ? nullptr
+        : FindPlayerPed()->GetTaskManager().GetSimplestActiveTask();
     const auto isClimbing = task && task->GetTaskType() == TASK_SIMPLE_CLIMB;
     if ((IsSunny(NewWeatherType) || IsExtraSunny(NewWeatherType)) && !CGame::currArea && !CCutsceneMgr::IsRunning() && CTimer::GetFrameCounter() % 8 == 0 && isClimbing) {
         FindPlayerPed(); // Body is empty in the original apart from this call
