@@ -21,7 +21,7 @@ void CWeather::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x72A480);
-    RH_ScopedInstall(AddRain, 0x72A9A0, { .reversed = false });
+    RH_ScopedInstall(AddRain, 0x72A9A0);
     RH_ScopedInstall(AddSandStormParticles, 0x72A820);
     RH_ScopedInstall(FindWeatherTypesList, 0x72A520);
     RH_ScopedInstall(ForceWeather, 0x72A4E0);
@@ -60,7 +60,114 @@ void CWeather::Init() {
 
 // 0x72A9A0
 void CWeather::AddRain() {
-    plugin::Call<0x72A9A0>();
+    static auto& rainedRecently = StaticRef<int32>(0xC81328);
+    static auto& rainHazeAlpha  = StaticRef<float>(0xC81410);
+    constexpr float RAIN_HAZE_ALPHA_MULT = 1.0f; // 0x8D5FF0
+
+    if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain())
+        return;
+
+    if (UnderWaterness > 0.0f)
+        return;
+
+    if (CGame::currArea)
+        return;
+
+    if (FindPlayerPed() && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
+        return;
+
+    if (TheCamera.GetPosition().z > 900.0f)
+        return;
+
+    if (TheCamera.GetLookingLRBFirstPerson()) {
+        if (const auto vehicle = FindPlayerVehicle(); vehicle && vehicle->CarHasRoof())
+            return;
+    }
+
+    // 0x72AA5B
+    if (Rain > 0.0f) {
+        rainedRecently = 1;
+        StreamAfterRainTimer = 800;
+    } else if (rainedRecently) {
+        if (StreamAfterRainTimer > 0) {
+            StreamAfterRainTimer--;
+        } else {
+            rainedRecently = 0;
+            StreamAfterRainTimer = 800;
+        }
+    }
+
+    // 0x72AAA8
+    if (Wind > 1.01f && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && UnderWaterness <= 0.0f) {
+        AddSandStormParticles();
+    }
+
+    if (Rain <= 0.1f && rainHazeAlpha == 0.0f)
+        return;
+
+    // 0x72AB0F
+    const auto numSplashSpots     = (int32)(Rain * 5.0f);
+    const auto maxRadius          = std::max(Rain * 10.0f, 40.0f) * 0.5f;
+    const auto numSplashesPerSpot = 15 - (int32)(Rain * -2.0f);
+    for (auto i = 0; i < numSplashSpots; i++) {
+        const FxPrtMult_c splashMults(1.0f, 1.0f, 1.0f, 0.25f, 0.02f, 0.0f, 0.03f);
+        const CVector     splashVelocity{};
+        const auto        radius = CGeneral::GetRandomNumberInRange(0.0f, maxRadius);
+
+        float angle;
+        if (const auto rnd = CGeneral::GetRandomNumber(); rnd & 1) {
+            angle = (float)(CGeneral::GetRandomNumber() & 0xFF) * 0.02453125f;
+        } else {
+            angle = (float)((int32)(rnd & 0xFF) - 128) * 0.00625f + TheCamera.m_fOrientation;
+        }
+
+        // 0x72AC11
+        CVector spot{
+            std::sin(angle) * radius + TheCamera.GetPosition().x,
+            std::cos(angle) * radius + TheCamera.GetPosition().y,
+            0.0f
+        };
+        CColPoint colPoint{};
+        CEntity*  colEntity{};
+        if (!CWorld::ProcessVerticalLine({ spot.x, spot.y, 40.0f }, -40.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr))
+            continue;
+
+        spot.z = colPoint.m_vecPoint.z + 0.1f;
+
+        // 0x72ACC0
+        for (auto s = 0; s < numSplashesPerSpot; s++) {
+            CVector position = spot;
+            position.x += CGeneral::GetRandomNumberInRange(0.0f, 30.0f) - 15.0f;
+            position.y += CGeneral::GetRandomNumberInRange(0.0f, 30.0f) - 15.0f;
+            CGeneral::GetRandomNumber();
+
+            g_fx.m_Splash->AddParticle(position, splashVelocity, 0.0f, splashMults);
+        }
+    }
+
+    // 0x72AD6E
+    float alpha = rainHazeAlpha;
+    if (alpha < Rain * 0.2f) {
+        alpha += 0.0025f;
+    }
+    if (alpha > Rain * 0.2f) {
+        alpha -= 0.0025f;
+    }
+    if (alpha < 0.0f) {
+        alpha = 0.0f;
+    }
+    rainHazeAlpha = std::min(alpha * RAIN_HAZE_ALPHA_MULT, 1.0f);
+
+    // 0x72ADEA
+    CVector position = TheCamera.GetPosition();
+    position.x += TheCamera.m_mCameraMatrix.GetForward().x * 10.0f;
+    position.y += TheCamera.m_mCameraMatrix.GetForward().y * 10.0f;
+
+    position.x += CGeneral::GetRandomNumberInRange(0.0f, 40.0f) - 20.0f;
+    position.y += CGeneral::GetRandomNumberInRange(0.0f, 40.0f) - 20.0f;
+    position.z += CGeneral::GetRandomNumberInRange(0.0f, 7.0f) - 2.0f;
+
+    g_fx.m_Sand2->AddParticle(position, WindDir * 15.0f, 0.0f, FxPrtMult_c(0.9f, 0.9f, 1.0f, rainHazeAlpha, 1.0f, 0.0f, 0.2f));
 }
 
 // 0x72A820
