@@ -4632,24 +4632,23 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     const bool lightOkRR = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, notsa::bugfixes::CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR ? LIGHT_REAR_RIGHT : LIGHT_REAR_LEFT);
     const bool lightOkRL = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, LIGHT_REAR_LEFT);
 
+#define ToggleRenderLightsFlags(mask, on) m_nRenderLightsFlags ^= (m_nRenderLightsFlags ^ (on ? mask : 0)) & mask;
     const auto RenderLights = [&](uint8 renderflags, bool disabledOrAlarmR, bool disabledOrAlarmL, bool staticEmission) {
-        const auto SetLights = [&](uint8 mask, bool on) {
-            m_nRenderLightsFlags ^= (m_nRenderLightsFlags ^ (on ? mask : 0)) & mask;
-        };
-        bool isFront = renderflags & VEHICLE_LIGHTS_FRONT;
+        const bool isFront = renderflags & VEHICLE_LIGHTS_FRONT;
         bool active = CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
-        SetLights(renderflags & VEHICLE_LIGHTS_RIGHT, active);
+        ToggleRenderLightsFlags(renderflags & VEHICLE_LIGHTS_RIGHT, active);
         if (active) {
             CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::SECONDARY, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
         }
         if (flags & VEHICLE_LIGHTS_TWIN) {
             active = CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::MAIN, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
-            SetLights(renderflags & VEHICLE_LIGHTS_LEFT, active);
+            ToggleRenderLightsFlags(renderflags & VEHICLE_LIGHTS_LEFT, active);
             if (active) {
                 CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::SECONDARY, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
             }
         }
     };
+#undef ToggleRenderLightsFlags
 
     if (forceOff) {
         return; // can return earlier; moved from 0x6E2739/0x6E271C
