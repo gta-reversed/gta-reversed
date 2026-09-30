@@ -4623,85 +4623,93 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     }
 
     const auto IsLightOk = [&](eVehicleLightsFlags disabledFlag, eLights light) {
-        return !(flags & disabledFlag) 
-            && (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && asAuto->m_damageManager.GetLightStatus(light) == VEHICLE_LIGHT_OK;
+        return !(flags & disabledFlag)
+            && (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE)
+            || IsAutomobile() && asAuto->m_damageManager.GetLightStatus(light) == VEHICLE_LIGHT_OK;
     };
 
-    const bool lightOkFR = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_RIGHT);
-    const bool lightOkFL = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_LEFT);
-    const bool lightOkRR = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, notsa::bugfixes::CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR ? LIGHT_REAR_RIGHT : LIGHT_REAR_LEFT);
-    const bool lightOkRL = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, LIGHT_REAR_LEFT);
+    const bool lightOkFR    = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_RIGHT);
+    const bool lightOkFL    = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_LEFT);
+    const bool lightOkRR    = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, notsa::bugfixes::CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR ? LIGHT_REAR_RIGHT : LIGHT_REAR_LEFT);
+    const bool lightOkRL    = IsLightOk(VEHICLE_LIGHTS_DISABLE_REAR, LIGHT_REAR_LEFT);
 
-#define ToggleRenderLightsFlags(mask, on) m_nRenderLightsFlags ^= (m_nRenderLightsFlags ^ (on ? mask : 0)) & mask;
-    const auto RenderLights = [&](uint8 renderflags, bool disabledOrAlarmR, bool disabledOrAlarmL, bool staticEmission) {
-        const bool isFront = renderflags & VEHICLE_LIGHTS_FRONT;
-        bool active = CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
-        ToggleRenderLightsFlags(renderflags & VEHICLE_LIGHTS_RIGHT, active);
+    const auto RenderLights = [&](bool isFrontLight, bool disabledOrAlarmR, bool disabledOrAlarmL, bool staticEmission) {
+        bool active = CVehicle::DoLightEffectImpl(isFrontLight, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
+        if (isFrontLight) {
+            m_renderLights.m_bRightFront = active;
+        } else {
+            m_renderLights.m_bRightRear = active;
+        }
         if (active) {
-            CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::SECONDARY, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
+            CVehicle::DoLightEffectImpl(isFrontLight, eVehicleLightId::SECONDARY, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
         }
         if (flags & VEHICLE_LIGHTS_TWIN) {
-            active = CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::MAIN, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
-            ToggleRenderLightsFlags(renderflags & VEHICLE_LIGHTS_LEFT, active);
+            active = CVehicle::DoLightEffectImpl(isFrontLight, eVehicleLightId::MAIN, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
+            if (isFrontLight) {
+                m_renderLights.m_bLeftFront = active;
+            } else {
+                m_renderLights.m_bLeftRear = active;
+            }
             if (active) {
-                CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::SECONDARY, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
+                CVehicle::DoLightEffectImpl(isFrontLight, eVehicleLightId::SECONDARY, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
             }
         }
     };
-#undef ToggleRenderLightsFlags
 
+    // can return earlier; moved from 0x6E2739/0x6E271C
     if (forceOff) {
-        return; // can return earlier; moved from 0x6E2739/0x6E271C
-    } else if (!vehicleFlags.bLightsOn && !forceOn) {
-        // lights are off - process only dynamic part of taillight effect
-        RenderLights(VEHICLE_LIGHTS_REAR, !lightOkRR, !lightOkRL, false);
         return;
     }
 
-    // lights are on - process front lights
-    const bool alarmOrDisabledFR = forceOff || !lightOkFR;
-    const bool alarmOrDisabledFL = forceOff || !lightOkFL;
-    RenderLights(VEHICLE_LIGHTS_FRONT, alarmOrDisabledFR, alarmOrDisabledFL, false);
-    // process static part of taillight effect
-    const bool alarmOrDisabledRR = forceOff || !lightOkRR;
-    const bool alarmOrDisabledRL = forceOff || !lightOkRL;
-    RenderLights(VEHICLE_LIGHTS_REAR, alarmOrDisabledRR, alarmOrDisabledRL, true);
+    if (!vehicleFlags.bLightsOn && !forceOn) {
+        // lights are off - process only dynamic part of taillight effect
+        RenderLights(false, !lightOkRR, !lightOkRL, false);
+    } else {
+        // lights are on - process front lights
+        const bool alarmOrDisabledFR = forceOff || !lightOkFR;
+        const bool alarmOrDisabledFL = forceOff || !lightOkFL;
+        RenderLights(true, alarmOrDisabledFR, alarmOrDisabledFL, false);
+        // process static part of taillight effect
+        const bool alarmOrDisabledRR = forceOff || !lightOkRR;
+        const bool alarmOrDisabledRL = forceOff || !lightOkRL;
+        RenderLights(false, alarmOrDisabledRR, alarmOrDisabledRL, true);
 
-    if (!IsSubTrain()) {
-        // draw light shadows
-        CVehicle::DoHeadLightReflection(vehicleMatrix, flags, lightOkFL, lightOkFR);
-    }
+        if (!IsSubTrain()) {
+            // draw light shadows
+            CVehicle::DoHeadLightReflection(vehicleMatrix, flags, lightOkFL, lightOkFR);
+        }
 
-    // add directionals
-    if (lightOkFR || lightOkFL) {
-        CPointLights::AddLight(
-            ePointLightType::PLTYPE_DIRECTIONAL,
-            vehicleMatrix.GetPosition(),
-            vehicleMatrix.GetForward(),
-            20.0f,
-            1.0f,
-            1.0f,
-            1.0f,
-            m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u
-        );
-    }
+        // add directionals
+        if (lightOkFR || lightOkFL) {
+            CPointLights::AddLight(
+                ePointLightType::PLTYPE_DIRECTIONAL,
+                vehicleMatrix.GetPosition(),
+                vehicleMatrix.GetForward(),
+                20.0f,
+                1.0f,
+                1.0f,
+                1.0f,
+                m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u
+            );
+        }
 
-    if ((lightOkRR || lightOkRL)
-        && m_BrakePedal > 0.0f
-        && !vehicleFlags.bIsHandbrakeOn
-        && m_pDriver) {
-        CPointLights::AddLight(
-            ePointLightType::PLTYPE_DIRECTIONAL,
-            GetPosition() + -4.0f * GetForward(),
-            -vehicleMatrix.GetForward(),
-            10.0f,
-            0.1f,  // 0x8D368C, StaticRefs
-            0.02f, // 0x8D3690
-            0.02f, // 0x8D3694
-            0u,
-            false,
-            this
-        );
+        if ((lightOkRR || lightOkRL)
+            && m_BrakePedal > 0.0f
+            && !vehicleFlags.bIsHandbrakeOn
+            && m_pDriver) {
+            CPointLights::AddLight(
+                ePointLightType::PLTYPE_DIRECTIONAL,
+                GetPosition() + -4.0f * GetForward(),
+                -vehicleMatrix.GetForward(),
+                10.0f,
+                0.1f,  // 0x8D368C, StaticRefs
+                0.02f, // 0x8D3690
+                0.02f, // 0x8D3694
+                0u,
+                false,
+                this
+            );
+        }
     }
 }
 
