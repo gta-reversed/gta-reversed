@@ -233,8 +233,8 @@ void CCoronas::Render() {
 
         const auto rz = 1.f / onScrPos.z;
 
-        //< 0x6FB0A7 - Start fading out at half the far clip distance
-        const auto intensity = (int16)((float)c.m_FadedIntensity * c.CalculateIntensity(onScrPos.z, c.m_fFarClip));
+        //< 0x6FB0A7 - Start fading out at half the far clip distance - [0 - 255]
+        const auto intensity = (int16)((float)(c.m_FadedIntensity) * c.CalculateIntensity(onScrPos.z, c.m_fFarClip));
 
         //< 0x6FB0D9 - Enable/disable Z test if necessary
         if (c.m_bCheckObstacles == zTestEnable) {
@@ -288,7 +288,7 @@ void CCoronas::Render() {
             RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_SHINYSTAR])));
 
             //< 0x6FB35B
-            const auto colorVariationMult = CGeneral::GetRandomNumberInRange(0.7f, 1.f) * (float)c.m_FadedIntensity;
+            const auto colorVariationMult = CGeneral::GetRandomNumberInRange(0.7f, 1.f) * ((float)(c.m_FadedIntensity) / 255.f);
 
             //< 0x6FB2FC [Moved here]
             auto it = [&] {

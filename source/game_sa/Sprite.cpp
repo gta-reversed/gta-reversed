@@ -355,10 +355,10 @@ void CSprite::RenderOneXLUSprite_Rotate_Aspect(CVector pos, CVector2D size, uint
     // Fade both the colour and intensity between z = 1.3 and z = 2.3.
     if (pos.z < 2.3f) {
         const auto factor = static_cast<int32>(255.0f * (pos.z - 1.3f));
-        r = static_cast<uint8>((r * factor) >> 8);
-        g = static_cast<uint8>((g * factor) >> 8);
-        b = static_cast<uint8>((b * factor) >> 8);
-        intensity = static_cast<int16>((intensity * factor) >> 8);
+        r = static_cast<uint8>((r * factor) / 256);
+        g = static_cast<uint8>((g * factor) / 256);
+        b = static_cast<uint8>((b * factor) / 256);
+        intensity = static_cast<int16>((intensity * factor) / 256);
     }
 
     auto [xs, ys] = CalcSpriteQuadCoeffs(rotation);
