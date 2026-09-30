@@ -4370,9 +4370,9 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
 }
 
 // 0x6E1440
-void CVehicle::DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool bRight) {
+void CVehicle::DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight) {
     auto vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
-    if (!bRight) {
+    if (!isRight) {
         vehOffset.x *= -1.f;
     }
     const auto lightFwd2D = CVector2D(vehicleMatrix.GetForward()).Normalized();
