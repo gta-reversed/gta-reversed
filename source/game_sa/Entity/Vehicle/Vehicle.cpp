@@ -4566,7 +4566,7 @@ bool CVehicle::DoLightEffectImpl(bool isFront, eVehicleLightId lightId, CMatrix&
 
 // 0x6E1A60
 void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags) {
-    auto* automobile = AsAutomobile();
+    auto* asAuto = AsAutomobile();
 
     if (CVehicle::ms_forceVehicleLightsOff) {
         return;
@@ -4613,18 +4613,18 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         // calculate zr350's pop-up lights rotation
         constexpr auto popUpTarget = 0.69813174f; // aka (2.f / 9.f) * PI rad = 40 deg
         if (vehicleFlags.bLightsOn || forceOn || !CanUpdateHornCounter()) {
-            automobile->m_fPropRotate = notsa::step_up_to(automobile->m_fPropRotate, popUpTarget, CTimer::GetTimeStep() * 0.01f);
-            if (automobile->m_fPropRotate < popUpTarget) {
+            asAuto->m_fPropRotate = notsa::step_up_to(asAuto->m_fPropRotate, popUpTarget, CTimer::GetTimeStep() * 0.01f);
+            if (asAuto->m_fPropRotate < popUpTarget) {
                 return;
             }
         } else {
-            automobile->m_fPropRotate = notsa::step_down_to(automobile->m_fPropRotate, 0.0f, CTimer::GetTimeStep() * 0.01f);
+            asAuto->m_fPropRotate = notsa::step_down_to(asAuto->m_fPropRotate, 0.0f, CTimer::GetTimeStep() * 0.01f);
         }
     }
 
     const auto IsLightOk = [&](eVehicleLightsFlags disabledFlag, eLights light) {
         return !(flags & disabledFlag) 
-            && (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && automobile->m_damageManager.GetLightStatus(light) == VEHICLE_LIGHT_OK;
+            && (flags & VEHICLE_LIGHTS_IGNORE_DAMAGE) || IsAutomobile() && asAuto->m_damageManager.GetLightStatus(light) == VEHICLE_LIGHT_OK;
     };
 
     const bool lightOkFR = IsLightOk(VEHICLE_LIGHTS_DISABLE_FRONT, LIGHT_FRONT_RIGHT);
@@ -4634,19 +4634,19 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
 
     const auto RenderLights = [&](uint8 renderflags, bool disabledOrAlarmR, bool disabledOrAlarmL, bool staticEmission) {
         const auto SetLights = [&](uint8 mask, bool on) {
-            m_nRenderLightsFlags ^= static_cast<uint8>((m_nRenderLightsFlags ^ (on ? mask : 0)) & mask);
+            m_nRenderLightsFlags ^= (m_nRenderLightsFlags ^ (on ? mask : 0)) & mask;
         };
-        bool isRear = renderflags & (VEHICLE_LIGHT_RR|VEHICLE_LIGHT_LR);
-        bool active = CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
-        SetLights(renderflags & (VEHICLE_LIGHT_RF|VEHICLE_LIGHT_RR), active);
+        bool isFront = renderflags & VEHICLE_LIGHTS_FRONT;
+        bool active = CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::MAIN, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
+        SetLights(renderflags & VEHICLE_LIGHTS_RIGHT, active);
         if (active) {
-            CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::SECONDARY, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
+            CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::SECONDARY, vehicleMatrix, true, disabledOrAlarmR, staticEmission);
         }
         if (flags & VEHICLE_LIGHTS_TWIN) {
-            active = CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::MAIN, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
-            SetLights(renderflags & (VEHICLE_LIGHT_LF|VEHICLE_LIGHT_LR), active);
+            active = CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::MAIN, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
+            SetLights(renderflags & VEHICLE_LIGHTS_LEFT, active);
             if (active) {
-                CVehicle::DoLightEffectImpl(!isRear, eVehicleLightId::SECONDARY, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
+                CVehicle::DoLightEffectImpl(isFront, eVehicleLightId::SECONDARY, vehicleMatrix, false, disabledOrAlarmL, staticEmission);
             }
         }
     };
@@ -4655,18 +4655,18 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         return; // can return earlier; moved from 0x6E2739/0x6E271C
     } else if (!vehicleFlags.bLightsOn && !forceOn) {
         // lights are off - process only dynamic part of taillight effect
-        RenderLights(VEHICLE_LIGHT_RR | VEHICLE_LIGHT_LR, !lightOkRR, !lightOkRL, false);
+        RenderLights(VEHICLE_LIGHTS_REAR, !lightOkRR, !lightOkRL, false);
         return;
     }
 
     // lights are on - process front lights
     const bool alarmOrDisabledFR = forceOff || !lightOkFR;
     const bool alarmOrDisabledFL = forceOff || !lightOkFL;
-    RenderLights(VEHICLE_LIGHT_RF | VEHICLE_LIGHT_LF, alarmOrDisabledFR, alarmOrDisabledFL, false);
+    RenderLights(VEHICLE_LIGHTS_FRONT, alarmOrDisabledFR, alarmOrDisabledFL, false);
     // process static part of taillight effect
     const bool alarmOrDisabledRR = forceOff || !lightOkRR;
     const bool alarmOrDisabledRL = forceOff || !lightOkRL;
-    RenderLights(VEHICLE_LIGHT_RR | VEHICLE_LIGHT_LR, alarmOrDisabledRR, alarmOrDisabledRL, true);
+    RenderLights(VEHICLE_LIGHTS_REAR, alarmOrDisabledRR, alarmOrDisabledRL, true);
 
     if (!IsSubTrain()) {
         // draw light shadows
