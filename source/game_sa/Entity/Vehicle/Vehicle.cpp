@@ -4659,7 +4659,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
 
         if (!IsSubTrain()) {
             // draw light shadows
-            CVehicle::DoHeadLightReflection(vehicleMatrix, flags, lightOkFL, lightOkFR);
+            CVehicle::DoHeadLightReflectionImpl(vehicleMatrix, flags, lightOkFL, lightOkFR);
         }
 
         // add directionals
