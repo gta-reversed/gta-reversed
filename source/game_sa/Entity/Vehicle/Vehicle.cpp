@@ -4385,39 +4385,37 @@ void CVehicle::DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsF
     const bool doTwin   = twin ? (includeLeft && includeRight) : ModelIndices::IsCombineHarvester(GetModelIndex());
     const bool doSingle = !doTwin && (twin ? (includeLeft || includeRight) : includeRight);
 
-    if (!doTwin && !doSingle) {
-        return;
+    if (doTwin || doSingle) {
+        auto vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
+        if (doSingle && !includeRight) {
+            vehOffset.x *= -1.f;
+        }
+
+        const auto  lightFwd2D     = CVector2D(vehicleMatrix.GetForward()).Normalized();
+        const float lightSize      = (doSingle && (IsBike() || GetModelId() == MODEL_QUAD))
+            ? 1.25f
+            : (doTwin ? vehOffset.x : std::fabs(vehOffset.x)) * 4.0f;
+
+        const float offsetDistance = lightSize * 2.0f + 1.0f + vehOffset.y;
+        const auto  shdwFront      = lightFwd2D * (lightSize * 2.0f);
+        const auto  shdwSide       = (lightFwd2D * lightSize).GetPerpRight();
+        auto        lightPos2D     = lightFwd2D * offsetDistance;
+        if (doSingle) {
+            const auto lightRight2D = CVector2D(vehicleMatrix.GetRight()).Normalized();
+            lightPos2D += lightRight2D * vehOffset.x;
+        }
+
+        CShadows::StoreCarLightShadow(
+            this,
+            reinterpret_cast<int32>(&m_matrix) + 2,
+            doTwin ? gpShadowHeadLightsTex : gpShadowHeadLightsTex2,
+            GetPosition() + CVector(lightPos2D, 2.0f),
+            shdwFront.x, shdwFront.y,
+            shdwSide.x, shdwSide.y,
+            45, 45, 45,
+            7.0f
+        );
     }
-
-    auto vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
-    if (doSingle && !includeRight) {
-        vehOffset.x *= -1.f;
-    }
-
-    const auto  lightFwd2D     = CVector2D(vehicleMatrix.GetForward()).Normalized();
-    const float lightSize      = (doSingle && (IsBike() || GetModelId() == MODEL_QUAD))
-        ? 1.25f
-        : (doTwin ? vehOffset.x : std::fabs(vehOffset.x)) * 4.0f;
-
-    const float offsetDistance = lightSize * 2.0f + 1.0f + vehOffset.y;
-    const auto  shdwFront      = lightFwd2D * (lightSize * 2.0f);
-    const auto  shdwSide       = (lightFwd2D * lightSize).GetPerpRight();
-    auto        lightPos2D     = lightFwd2D * offsetDistance;
-    if (doSingle) {
-        const auto lightRight2D = CVector2D(vehicleMatrix.GetRight()).Normalized();
-        lightPos2D += lightRight2D * vehOffset.x;
-    }
-
-    CShadows::StoreCarLightShadow(
-        this,
-        reinterpret_cast<int32>(&m_matrix) + 2,
-        doTwin ? gpShadowHeadLightsTex : gpShadowHeadLightsTex2,
-        GetPosition() + CVector(lightPos2D, 2.0f),
-        shdwFront.x, shdwFront.y,
-        shdwSide.x, shdwSide.y,
-        45, 45, 45,
-        7.0f
-    );
 }
 
 // 0x6E1720
