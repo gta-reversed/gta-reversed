@@ -4333,7 +4333,7 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,    RWRSTATE(rwALPHATESTFUNCTIONGREATER));
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(FALSE));
 
-    const float   angleMult   = ModelIndices::IsForklift((int32)m_nModelIndex) ? 0.5f : 0.15f;
+    const float   angleMult   = ModelIndices::IsForklift(GetModelIndex()) ? 0.5f : 0.15f;
     const CVector lightNormal = Normalized(vehicleMatrix.GetForward() - vehicleMatrix.GetUp() * angleMult);
     const CVector lightRight  = Normalized(CrossProduct(lightNormal, pointToCamDir));
     const CVector lightPos    = point - vehicleMatrix.GetForward() * 0.1f;
@@ -4381,9 +4381,9 @@ void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
 
 // NOTSA
 void CVehicle::DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight) {
-    const bool twin      = flags & VEHICLE_LIGHTS_TWIN;
-    const bool doTwin    = twin ? (includeLeft && includeRight) : GetModelIndex() == MODEL_COMBINE;
-    const bool doSingle  = !doTwin && (twin ? (includeLeft || includeRight) : includeRight);
+    const bool twin     = flags & VEHICLE_LIGHTS_TWIN;
+    const bool doTwin   = twin ? (includeLeft && includeRight) : ModelIndices::IsCombineHarvester(GetModelIndex());
+    const bool doSingle = !doTwin && (twin ? (includeLeft || includeRight) : includeRight);
 
     if (!doTwin && !doSingle) {
         return;
@@ -4394,15 +4394,15 @@ void CVehicle::DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsF
         vehOffset.x *= -1.f;
     }
 
-    const auto lightFwd2D   = CVector2D(vehicleMatrix.GetForward()).Normalized();
-    const float lightSize = (doSingle && (IsBike() || GetModelId() == MODEL_QUAD))
+    const auto  lightFwd2D     = CVector2D(vehicleMatrix.GetForward()).Normalized();
+    const float lightSize      = (doSingle && (IsBike() || GetModelId() == MODEL_QUAD))
         ? 1.25f
         : (doTwin ? vehOffset.x : std::fabs(vehOffset.x)) * 4.0f;
 
     const float offsetDistance = lightSize * 2.0f + 1.0f + vehOffset.y;
-    const auto shdwFront = lightFwd2D * (lightSize * 2.0f);
-    const auto shdwSide  = (lightFwd2D * lightSize).GetPerpRight();
-    auto lightPos2D = lightFwd2D * offsetDistance;
+    const auto  shdwFront      = lightFwd2D * (lightSize * 2.0f);
+    const auto  shdwSide       = (lightFwd2D * lightSize).GetPerpRight();
+    auto        lightPos2D     = lightFwd2D * offsetDistance;
     if (doSingle) {
         const auto lightRight2D = CVector2D(vehicleMatrix.GetRight()).Normalized();
         lightPos2D += lightRight2D * vehOffset.x;
