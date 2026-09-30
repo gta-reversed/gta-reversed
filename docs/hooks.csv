@@ -4157,7 +4157,7 @@ CCarFXRenderer,RegisterPlugins,0x005D5B00,1,0,S
 CCarFXRenderer,SetCustomFXAtomicRenderPipelinesVMICB,0x005D5B60,1,0,S
 CCarFXRenderer,SetFxEnvMapLightMult,0x005D5BA0,1,0,S
 CCarFXRenderer,Shutdown,0x005D5AD0,1,0,S
-CAEWeatherAudioEntity,AddAudioEvent,0x00506800,0,1,S
+CAEWeatherAudioEntity,AddAudioEvent,0x00506800,1,0,S
 CAEWeatherAudioEntity,Service,0x005052F0,1,0,S
 CAEWeatherAudioEntity,StaticInitialise,0x005B9A70,1,0,S
 CAEWeatherAudioEntity,StaticReset,0x005052B0,1,0,S
