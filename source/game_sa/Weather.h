@@ -60,6 +60,10 @@ public:
     static inline auto& OldWeatherType = StaticRef<eWeatherType>(0xC81320);
     static inline auto& m_WeatherAudioEntity = StaticRef<CAEWeatherAudioEntity>(0xC81360);
     static inline auto& StreamAfterRainTimer = StaticRef<int32>(0x8D5EAC);
+    static inline auto& HeatHazeFXFade = StaticRef<float>(0xC81448);
+    static inline auto& HeatHazeFXLastMinute = StaticRef<int32>(0x8D6078);
+    static inline auto& WaterFogFXFade = StaticRef<float>(0xC81444);
+    static inline auto& WaterFogFXFadingOut = StaticRef<bool>(0xC81440);
 
     // in entity.cpp:
 
