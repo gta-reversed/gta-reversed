@@ -288,7 +288,7 @@ void CCoronas::Render() {
             RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_SHINYSTAR])));
 
             //< 0x6FB35B
-            const auto colorVariationMult = CGeneral::GetRandomNumberInRange(0.7f, 1.f) * ((float)(c.m_FadedIntensity) / 255.f);
+            const auto colorVariationMult = CGeneral::GetRandomNumberInRange(0.7f, 1.f) * ((float)(c.m_FadedIntensity) / 256.f); // NOTE: Should use 255 here, as it can never be 256
 
             //< 0x6FB2FC [Moved here]
             auto it = [&] {
