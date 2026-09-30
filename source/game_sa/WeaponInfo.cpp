@@ -447,5 +447,10 @@ uint32 CWeaponInfo::GetWeaponReloadTime() const {
         return 1000u;
 
     const auto& ao = ms_WeaponAimOffsets[m_nAimOffsetIndex];
-    return std::max(400u, (uint32)std::max({ ao.RLoadA, ao.RLoadB, ao.CrouchRLoadA, ao.CrouchRLoadB }) + 100);
+    for (const auto rload : { ao.RLoadA, ao.CrouchRLoadA, ao.RLoadB, ao.CrouchRLoadB }) {
+        if (const auto time = (uint32)(uint16)rload + 100u; time > 400u) {
+            return time;
+        }
+    }
+    return 400u;
 }
