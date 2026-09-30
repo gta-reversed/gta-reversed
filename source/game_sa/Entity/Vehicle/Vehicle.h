@@ -655,6 +655,7 @@ public:
     void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight);
     void DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight);
     void DoHeadLightReflectionTwin(CMatrix& vehicleMatrix);
+    void DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight); // NOTSA
     void DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight);
     bool DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, eVehicleLightsFlags flags_unused, bool staticEmission);
     bool DoLightEffectImpl(bool isFront, eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, bool staticEmission); // NOTSA

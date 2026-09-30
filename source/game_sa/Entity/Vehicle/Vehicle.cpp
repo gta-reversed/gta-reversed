@@ -4371,53 +4371,48 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
 
 // 0x6E1440
 void CVehicle::DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight) {
-    auto vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
-    if (!isRight) {
-        vehOffset.x *= -1.f;
-    }
-    const auto lightFwd2D = CVector2D(vehicleMatrix.GetForward()).Normalized();
-    const auto lightRight2D = CVector2D(vehicleMatrix.GetRight()).Normalized();
-    const auto lightSize = (IsBike() || GetModelId() == MODEL_QUAD)
-        ? 1.25f
-        : std::fabs(vehOffset.x) * 4.0f;
-
-    const float offsetDistance = lightSize * 2.0f + 1.0f + vehOffset.y;
-
-    const auto shdwFront = lightFwd2D * (lightSize * 2.0f);
-    const auto shdwSide  = (lightFwd2D * lightSize).GetPerpRight();
-
-    CShadows::StoreCarLightShadow(
-        this,
-        reinterpret_cast<int32>(&m_matrix) + 2,
-        gpShadowHeadLightsTex2,
-        GetPosition() + CVector(
-            lightRight2D.x * vehOffset.x + lightFwd2D.x * offsetDistance,
-            lightRight2D.y * vehOffset.x + lightFwd2D.y * offsetDistance,
-            2.0f
-        ),
-        shdwFront.x, shdwFront.y,
-        shdwSide.x, shdwSide.y,
-        45, 45, 45,
-        7.0f
-    );
+    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, !isRight, isRight);
 }
 
 // 0x6E1600
 void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
-    const auto& vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
-    const auto lightFwd2D = CVector2D(vehicleMatrix.GetForward()).Normalized();
-    const auto lightSize  = vehOffset.x * 4.0f;
+    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, true, true);
+}
 
-    const auto offsetDistance = lightSize * 2.0f + 1.0f + vehOffset.y;
+// NOTSA
+void CVehicle::DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight) {
+    const bool twin      = flags & VEHICLE_LIGHTS_TWIN;
+    const bool doTwin    = twin ? (includeLeft && includeRight) : GetModelIndex() == MODEL_COMBINE;
+    const bool doSingle  = !doTwin && (twin ? (includeLeft || includeRight) : includeRight);
 
+    if (!doTwin && !doSingle) {
+        return;
+    }
+
+    auto vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
+    if (doSingle && !includeRight) {
+        vehOffset.x *= -1.f;
+    }
+
+    const auto lightFwd2D   = CVector2D(vehicleMatrix.GetForward()).Normalized();
+    const float lightSize = (doSingle && (IsBike() || GetModelId() == MODEL_QUAD))
+        ? 1.25f
+        : (doTwin ? vehOffset.x : std::fabs(vehOffset.x)) * 4.0f;
+
+    const float offsetDistance = lightSize * 2.0f + 1.0f + vehOffset.y;
     const auto shdwFront = lightFwd2D * (lightSize * 2.0f);
     const auto shdwSide  = (lightFwd2D * lightSize).GetPerpRight();
+    auto lightPos2D = lightFwd2D * offsetDistance;
+    if (doSingle) {
+        const auto lightRight2D = CVector2D(vehicleMatrix.GetRight()).Normalized();
+        lightPos2D += lightRight2D * vehOffset.x;
+    }
 
     CShadows::StoreCarLightShadow(
         this,
         reinterpret_cast<int32>(&m_matrix) + 2,
-        gpShadowHeadLightsTex,
-        GetPosition() + CVector(lightFwd2D * offsetDistance, 2.0f),
+        doTwin ? gpShadowHeadLightsTex : gpShadowHeadLightsTex2,
+        GetPosition() + CVector(lightPos2D, 2.0f),
         shdwFront.x, shdwFront.y,
         shdwSide.x, shdwSide.y,
         45, 45, 45,
@@ -4427,19 +4422,7 @@ void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
 
 // 0x6E1720
 void CVehicle::DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight) {
-    if (flags & VEHICLE_LIGHTS_TWIN) {
-        if (includeLeft && includeRight) {
-            DoHeadLightReflectionTwin(vehicleMatrix);
-        } else if (includeLeft || includeRight) {
-            DoHeadLightReflectionSingle(vehicleMatrix, includeRight);
-        }
-    } else {
-        if (m_nModelIndex == MODEL_COMBINE) {
-            DoHeadLightReflectionTwin(vehicleMatrix);
-        } else if (includeRight) {
-            DoHeadLightReflectionSingle(vehicleMatrix, true);
-        }
-    }
+    DoHeadLightReflectionImpl(vehicleMatrix, flags, includeLeft, includeRight);
 }
 
 // 0x6E1780
