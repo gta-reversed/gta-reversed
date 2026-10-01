@@ -146,17 +146,11 @@ void CWeather::AddRain() {
     }
 
     // 0x72AD6E
-    float alpha = rainHazeAlpha;
-    if (alpha < Rain * 0.2f) {
-        alpha += 0.0025f;
-    }
-    if (alpha > Rain * 0.2f) {
-        alpha -= 0.0025f;
-    }
-    if (alpha < 0.0f) {
-        alpha = 0.0f;
-    }
-    rainHazeAlpha = std::min(alpha * RAIN_HAZE_ALPHA_MULT, 1.0f);
+    rainHazeAlpha = std::clamp(
+        notsa::step_to(rainHazeAlpha, Rain * 0.2f, 0.2f, notsa::bugs::GenericFrameRate) * RAIN_HAZE_ALPHA_MULT, 
+        0.f, 
+        1.0f
+    );
 
     // 0x72ADEA
     g_fx.m_Sand2->AddParticle(
