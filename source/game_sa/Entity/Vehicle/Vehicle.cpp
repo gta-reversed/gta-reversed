@@ -4381,8 +4381,7 @@ void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
 
 // NOTSA
 void CVehicle::DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight) {
-    const bool twin     = flags & VEHICLE_LIGHTS_TWIN;
-    const bool doTwin   = twin ? (includeLeft && includeRight) : ModelIndices::IsCombineHarvester(GetModelIndex());
+    const bool doTwin   = (flags & VEHICLE_LIGHTS_TWIN) ? (includeLeft && includeRight) : ModelIndices::IsCombineHarvester(GetModelIndex());
     const bool doSingle = !doTwin && (includeLeft || includeRight);
 
     if (doTwin || doSingle) {
@@ -4667,9 +4666,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
                 vehicleMatrix.GetPosition(),
                 vehicleMatrix.GetForward(),
                 20.0f,
-                1.0f,
-                1.0f,
-                1.0f,
+                1.0f, 1.0f, 1.0f,
                 m_vecMoveSpeed.SquaredMagnitude2D() < 0.2025f ? 0u : 1u
             );
         }
