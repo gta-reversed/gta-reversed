@@ -65,35 +65,44 @@ void CWeather::AddRain() {
     static auto& s_RainedRecently = StaticRef<int32>(0xC81328);
     static auto& s_RainHazeAlpha  = StaticRef<float>(0xC81410);
 
-    if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain())
+    if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain()) {
         return;
+    }
 
-    if (UnderWaterness > 0.0f)
+    if (UnderWaterness > 0.0f) {
         return;
+    }
 
-    if (CGame::currArea)
+    if (CGame::currArea) {
         return;
+    }
 
-    if (FindPlayerPed() && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD)
+    if (FindPlayerPed() && FindPlayerPed()->GetAreaCode() != AREA_CODE_NORMAL_WORLD) {
         return;
+    }
 
-    if (TheCamera.GetPosition().z > 900.0f)
+    if (TheCamera.GetPosition().z > 900.0f) {
         return;
+    }
 
     if (TheCamera.GetLookingLRBFirstPerson()) {
-        if (const auto vehicle = FindPlayerVehicle(); vehicle && vehicle->CarHasRoof())
+        if (const auto vehicle = FindPlayerVehicle(); vehicle && vehicle->CarHasRoof()) {
             return;
+        }
     }
 
     // 0x72AA5B
+    // TODO: FPS dependent logic. This runs once per frame: `StreamAfterRainTimer` counts
+    //       frames (800 frames), the splash and haze particles are emitted every frame,
+    //       and the haze alpha moves 0.0025 per frame.
     if (Rain > 0.0f) {
-        rainedRecently = 1;
+        s_RainedRecently     = 1;
         StreamAfterRainTimer = 800;
-    } else if (rainedRecently) {
+    } else if (s_RainedRecently) {
         if (StreamAfterRainTimer > 0) {
             StreamAfterRainTimer--;
         } else {
-            rainedRecently = 0;
+            s_RainedRecently     = 0;
             StreamAfterRainTimer = 800;
         }
     }
@@ -103,8 +112,9 @@ void CWeather::AddRain() {
         AddSandStormParticles();
     }
 
-    if (Rain <= 0.1f && rainHazeAlpha == 0.0f)
+    if (Rain <= 0.1f && s_RainHazeAlpha == 0.0f) {
         return;
+    }
 
     // 0x72AB0F
     const auto numSplashSpots     = (int32)(Rain * 5.0f);
@@ -115,28 +125,26 @@ void CWeather::AddRain() {
         const CVector     splashVelocity{};
         const auto        radius = CGeneral::GetRandomNumberInRange(0.0f, maxRadius);
 
-        const auto rnd = CGeneral::GetRandomNumber();
-        const auto angle= (rnd & 1)
-            ? (float)((CGeneral::GetRandomNumber() % 255)) / 255.f * TWO_PI              // [0, TWO_PI] rad
-            : invLerp((float)(rnd & 0xFF), -128, 128) * 0.8f + TheCamera.m_fOrientation; // <Camera Rotation> - [-0.8, 0.8] rad (0.8 rad ~ 45.5 deg)
+        const auto rnd  = CGeneral::GetRandomNumber();
+        const auto rads = (rnd & 1)
+            ? (float)(CGeneral::GetRandomNumber() & 0xFF) / 256.f * TWO_PI                  // [0, TWO_PI) rad
+            : (float)((int32)(rnd & 0xFF) - 128) / 128.f * 0.8f + TheCamera.m_fOrientation; // <Camera Rotation> + [-0.8, 0.8) rad (0.8 rad ~ 45.8 deg)
 
         // 0x72AC11
-        CVector spot{
-            std::sin(angle) * radius + TheCamera.GetPosition().x,
-            std::cos(angle) * radius + TheCamera.GetPosition().y,
-            0.0f
+        const CVector2D spot{
+            std::sin(rads) * radius + TheCamera.GetPosition().x,
+            std::cos(rads) * radius + TheCamera.GetPosition().y
         };
         CColPoint colPoint{};
         CEntity*  colEntity{};
-        if (!CWorld::ProcessVerticalLine({ spot, 40.0f }, -40.0f, colPoint, colEntity, true, false, false, false, true))
+        if (!CWorld::ProcessVerticalLine(CVector{ spot, 40.0f }, -40.0f, colPoint, colEntity, true, false, false, false, true)) {
             continue;
-
-        spot.z = colPoint.m_vecPoint.z + 0.1f;
+        }
 
         // 0x72ACC0
         for (auto s = 0; s < numSplashesPerSpot; s++) {
             g_fx.m_Splash->AddParticle(
-                spot + CVector::Random({ -15.f, -15.f, 0.f }, { 15.f, 15.f, 0.f }),
+                CVector{ spot, colPoint.m_vecPoint.z + 0.1f } + CVector::Random({ -15.f, -15.f, 0.f }, { 15.f, 15.f, 0.f }),
                 splashVelocity,
                 0.0f,
                 splashMults
@@ -145,20 +153,20 @@ void CWeather::AddRain() {
     }
 
     // 0x72AD6E
-    rainHazeAlpha = std::clamp(
-        notsa::step_to(rainHazeAlpha, Rain * 0.2f, 0.2f, notsa::bugs::GenericFrameRate) * RAIN_HAZE_ALPHA_MULT, 
-        0.f, 
-        1.0f
+    s_RainHazeAlpha = std::clamp(
+        notsa::step_to(s_RainHazeAlpha, Rain * 0.2f, 0.0025f) * RAIN_HAZE_ALPHA_MULT,
+        0.f,
+        1.f
     );
 
     // 0x72ADEA
     g_fx.m_Sand2->AddParticle(
         TheCamera.GetPosition()
-            + CVector{TheCamera.m_mCameraMatrix.GetForward() * 10.0f}
-            + CVector::Random({-20.f, -20.f, -2.f}, {20.f, 20.f, 5.f}),
-        WindDir * 15.0f, 
-        0.0f, 
-        FxPrtMult_c(0.9f, 0.9f, 1.0f, rainHazeAlpha, 1.0f, 0.0f, 0.2f)
+            + CVector{ CVector2D{ TheCamera.m_mCameraMatrix.GetForward() } * 10.0f }
+            + CVector::Random({ -20.f, -20.f, -2.f }, { 20.f, 20.f, 5.f }),
+        WindDir * 15.0f,
+        0.0f,
+        FxPrtMult_c(0.9f, 0.9f, 1.0f, s_RainHazeAlpha, 1.0f, 0.0f, 0.2f)
     );
 }
 
