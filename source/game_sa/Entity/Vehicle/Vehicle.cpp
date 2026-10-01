@@ -4371,7 +4371,7 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
 
 // 0x6E1440
 void CVehicle::DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight) {
-    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, false, isRight);
+    DoHeadLightReflectionImpl(vehicleMatrix, (eVehicleLightsFlags)0, !isRight, isRight);
 }
 
 // 0x6E1600
@@ -4383,11 +4383,11 @@ void CVehicle::DoHeadLightReflectionTwin(CMatrix& vehicleMatrix) {
 void CVehicle::DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight) {
     const bool twin     = flags & VEHICLE_LIGHTS_TWIN;
     const bool doTwin   = twin ? (includeLeft && includeRight) : ModelIndices::IsCombineHarvester(GetModelIndex());
-    const bool doSingle = !doTwin && (twin ? (includeLeft || includeRight) : includeRight);
+    const bool doSingle = !doTwin && (includeLeft || includeRight);
 
     if (doTwin || doSingle) {
         auto vehOffset = GetDummyPositionObjSpace(DUMMY_LIGHT_FRONT_MAIN);
-        if (doSingle && !includeRight) {
+        if (doSingle && includeLeft) {
             vehOffset.x *= -1.f;
         }
 
