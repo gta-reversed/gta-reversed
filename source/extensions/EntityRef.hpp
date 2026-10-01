@@ -25,6 +25,9 @@ struct EntityRef {
         return *this = o.m_Ptr;
     }
 
+    EntityRef(EntityRef<T>&&) = delete;
+    EntityRef<T>& operator=(EntityRef<T>&&) = delete;
+
     ~EntityRef() {
         if (m_Ptr) {
             m_Ptr->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_Ptr));
