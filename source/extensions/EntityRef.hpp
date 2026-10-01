@@ -16,22 +16,22 @@ struct EntityRef {
         }
     }
 
-    EntityRef(const EntityRef<T>& o) noexcept : // We only define a copy constructor, as this class isn't moveable
+    EntityRef(const EntityRef<T>& o) noexcept :
         EntityRef{ o.m_Ptr }
     {
     }
 
-    EntityRef<T>& operator=(const EntityRef<T>& o) noexcept {
-        return *this = o.m_Ptr;
-    }
-
-    EntityRef(EntityRef<T>&&) = delete;
-    EntityRef<T>& operator=(EntityRef<T>&&) = delete;
+    EntityRef(EntityRef<T>&&) = delete; // Can't really move this as the address registered is tied to the instance
 
     ~EntityRef() {
         if (m_Ptr) {
             m_Ptr->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_Ptr));
         }
+    }
+
+    EntityRef<T>& operator=(const EntityRef<T>& o) noexcept {
+        *this = o.m_Ptr;
+        return *this;
     }
 
     // Assignments should be done without a (possibly) temporary `EntityRef` instance
@@ -45,6 +45,8 @@ struct EntityRef {
         }
         return *this;
     }
+
+    EntityRef<T>& operator=(EntityRef<T>&&) = delete; // Can't really move this as the address registered is tied to the instance
 
     decltype(auto) Get(this auto&& self) noexcept { return self.m_Ptr; }
 
