@@ -217,7 +217,7 @@ public: // Script hooking functions //
     #ifdef NOTSA_STANDALONE
         AddHookToCategory(path, std::move(opt), std::make_shared<ReversibleHook::NullHook>(
             "Destructor",
-            vmtInfoOur.GetFunctionAt(Utility::VMTInfo::DESTRUCTOR_VMT_INDEX),
+            nullptr, // We don't have a VMT to get the actual scalar destructor address, and making a wrapper isn't any more meaningful in this case
             (void*)(addressGTA)
         ));
     #else

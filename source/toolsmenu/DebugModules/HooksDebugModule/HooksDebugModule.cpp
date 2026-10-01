@@ -44,7 +44,7 @@ HooksDebugModule::~HooksDebugModule() {
 }
 
 void HooksDebugModule::FilteringThread() {
-    while (!m_FilterProcessor.Exiting) {
+    while (true) {
         std::unique_lock lock{ m_FilterProcessor.Mtx };
         m_FilterProcessor.CV.wait(lock, [&]{
             return m_FilterProcessor.NeedsToRun || m_FilterProcessor.Exiting;

@@ -23,6 +23,6 @@ inline std::optional<const char*> EnumToString(ReversibleHooks::ReversibleHook::
     case State::Unhooked:       return "Unhooked";
     case State::RedirectToGTA:  return "RedirectToGTA";
     case State::RedirectToOurs: return "RedirectToOurs";
-    default:                    return nullptr;
+    default:                    return std::nullopt;
     }
 }
