@@ -60,9 +60,10 @@ void CWeather::Init() {
 
 // 0x72A9A0
 void CWeather::AddRain() {
-    static auto& rainedRecently = StaticRef<int32>(0xC81328);
-    static auto& rainHazeAlpha  = StaticRef<float>(0xC81410);
     constexpr float RAIN_HAZE_ALPHA_MULT = 1.0f; // 0x8D5FF0
+
+    static auto& s_RainedRecently = StaticRef<int32>(0xC81328);
+    static auto& s_RainHazeAlpha  = StaticRef<float>(0xC81410);
 
     if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain())
         return;
