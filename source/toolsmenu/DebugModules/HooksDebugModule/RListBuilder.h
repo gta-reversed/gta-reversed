@@ -26,7 +26,7 @@ public:
     /*!
      * @brief Construct render list starting at the given `cat` (Should be the `RootCategory`)
      * @note Should be ran on the main thread!
-     * @return Pointer to the first cateogry, owned by this class
+     * @return Pointer to the first category, owned by this class
      */
     RListCategory* ConstructList(std::shared_ptr<ReversibleHooks::HookCategory> cat, const Options& opts) noexcept;
 
