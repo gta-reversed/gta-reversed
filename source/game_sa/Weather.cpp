@@ -136,12 +136,12 @@ void CWeather::AddRain() {
 
         // 0x72ACC0
         for (auto s = 0; s < numSplashesPerSpot; s++) {
-            CVector position = spot;
-            position.x += CGeneral::GetRandomNumberInRange(0.0f, 30.0f) - 15.0f;
-            position.y += CGeneral::GetRandomNumberInRange(0.0f, 30.0f) - 15.0f;
-            CGeneral::GetRandomNumber();
-
-            g_fx.m_Splash->AddParticle(position, splashVelocity, 0.0f, splashMults);
+            g_fx.m_Splash->AddParticle(
+                spot + CVector::Random({ -15.f, -15.f, 0.f }, { 15.f, 15.f, 0.f }),
+                splashVelocity,
+                0.0f,
+                splashMults
+            );
         }
     }
 
