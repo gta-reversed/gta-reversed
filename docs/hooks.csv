@@ -3659,10 +3659,13 @@ CVehicle,DoBladeCollision,0x006E2E50,1,0,S
 CVehicle,DoBoatSplashes,0x006DD130,1,0,S
 CVehicle,DoFixedMachineGuns,0x0073F400,1,0,S
 CVehicle,DoHeadLightBeam,0x006E0E20,1,0,S
+CVehicle,DoHeadLightEffect,0x006E0A50,1,0,S
 CVehicle,DoHeadLightReflection,0x006E1720,1,0,S
 CVehicle,DoHeadLightReflectionSingle,0x006E1440,1,0,S
 CVehicle,DoHeadLightReflectionTwin,0x006E1600,1,0,S
 CVehicle,DoPlaneGunFireFX,0x006D4AD0,1,0,S
+CVehicle,DoTailLightEffect,0x006E1780,1,0,S
+CVehicle,DoVehicleLights,0x006E1A60,1,0,S
 CVehicle,ExtinguishCarFire,0x006D2460,1,0,S
 CVehicle,FillVehicleWithPeds,0x006E2900,1,0,S
 CVehicle,FindTyreNearestPoint,0x006D7BC0,1,0,S
