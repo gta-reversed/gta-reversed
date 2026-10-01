@@ -21,6 +21,10 @@ struct EntityRef {
     {
     }
 
+    EntityRef<T>& operator=(const EntityRef<T>& o) noexcept {
+        return *this = o.m_Ptr;
+    }
+
     ~EntityRef() {
         if (m_Ptr) {
             m_Ptr->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_Ptr));
