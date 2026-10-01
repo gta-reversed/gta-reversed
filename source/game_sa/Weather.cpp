@@ -159,15 +159,14 @@ void CWeather::AddRain() {
     rainHazeAlpha = std::min(alpha * RAIN_HAZE_ALPHA_MULT, 1.0f);
 
     // 0x72ADEA
-    CVector position = TheCamera.GetPosition();
-    position.x += TheCamera.m_mCameraMatrix.GetForward().x * 10.0f;
-    position.y += TheCamera.m_mCameraMatrix.GetForward().y * 10.0f;
-
-    position.x += CGeneral::GetRandomNumberInRange(0.0f, 40.0f) - 20.0f;
-    position.y += CGeneral::GetRandomNumberInRange(0.0f, 40.0f) - 20.0f;
-    position.z += CGeneral::GetRandomNumberInRange(0.0f, 7.0f) - 2.0f;
-
-    g_fx.m_Sand2->AddParticle(position, WindDir * 15.0f, 0.0f, FxPrtMult_c(0.9f, 0.9f, 1.0f, rainHazeAlpha, 1.0f, 0.0f, 0.2f));
+    g_fx.m_Sand2->AddParticle(
+        TheCamera.GetPosition()
+            + CVector{TheCamera.m_mCameraMatrix.GetForward() * 10.0f}
+            + CVector::Random({-20.f, -20.f, -2.f}, {20.f, 20.f, 5.f}),
+        WindDir * 15.0f, 
+        0.0f, 
+        FxPrtMult_c(0.9f, 0.9f, 1.0f, rainHazeAlpha, 1.0f, 0.0f, 0.2f)
+    );
 }
 
 // 0x72A820
