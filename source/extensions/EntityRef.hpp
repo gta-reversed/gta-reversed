@@ -8,6 +8,7 @@ namespace notsa {
 //! Wrapper for entity references, avoids manual usage of `CleanupOldRef` and `RegisterRef`
 template<typename T = CEntity>
 struct EntityRef {
+    // TODO/NOTE: Maybe make this explicit?
     EntityRef(T* ptr = nullptr) noexcept :
         m_Ptr{ ptr }
     {
@@ -16,12 +17,14 @@ struct EntityRef {
         }
     }
 
+    // Need to define this, as compiler generated one would just copy the pointer
     EntityRef(const EntityRef<T>& o) noexcept :
         EntityRef{ o.m_Ptr }
     {
     }
 
-    EntityRef(EntityRef<T>&&) = delete; // Can't really move this as the address registered is tied to the instance
+    // Can't really move this as the address registered is tied to `this`
+    EntityRef(EntityRef<T>&&) = delete;
 
     ~EntityRef() {
         if (m_Ptr) {
@@ -29,6 +32,7 @@ struct EntityRef {
         }
     }
 
+    // Must have this defined, because compiler-generated op would just copy the pointers
     EntityRef<T>& operator=(const EntityRef<T>& o) noexcept {
         *this = o.m_Ptr;
         return *this;
@@ -46,7 +50,8 @@ struct EntityRef {
         return *this;
     }
 
-    EntityRef<T>& operator=(EntityRef<T>&&) = delete; // Can't really move this as the address registered is tied to the instance
+    // Can't really move this as the address registered is tied to `this`
+    EntityRef<T>& operator=(EntityRef<T>&&) = delete;
 
     decltype(auto) Get(this auto&& self) noexcept { return self.m_Ptr; }
 
