@@ -7,10 +7,11 @@
 #include "AEAudioUtility.h"
 
 enum class eWeatherEvent {
-    THUNDER    = 1,
-    CITY_NOISE = 3,
-    UNK_4      = 4,
-    UNK_5      = 5,
+    THUNDER        = 1,
+    THUNDER_DIRECT = 2,
+    CITY_NOISE     = 3,
+    UNK_4          = 4,
+    UNK_5          = 5,
 };
 
 
@@ -43,9 +44,37 @@ void CAEWeatherAudioEntity::StaticReset() {
     }
 }
 
-// 0x506800, see discord gists channel
+// 0x506800
 void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
-    plugin::CallMethod<0x506800, CAEWeatherAudioEntity*, eAudioEvents>(this, event);
+    constexpr float THUNDER_FREQUENCIES[] = { 1.15f, 1.f, 0.85f }; // 0x8CC300
+
+    if (event != AE_THUNDER || !CGame::CanSeeOutSideFromCurrArea() || CCullZones::PlayerNoRain() || CCullZones::CamNoRain()) {
+        return;
+    }
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)) {
+        return;
+    }
+
+    const auto volume = CAEAudioUtility::AudioLog10(CWeather::LightningDuration * 0.0375f + 0.25f) * 20.f + GetDefaultVolume(AE_THUNDER);
+    m_nThunderFrequencyVariationCounter = (uint8)((m_nThunderFrequencyVariationCounter + 1) % std::size(THUNDER_FREQUENCIES));
+    const auto freq = THUNDER_FREQUENCIES[m_nThunderFrequencyVariationCounter];
+
+    const auto PlayThunderSound = [&](eSoundID sfx, float posX, float soundVolume, float speed, uint32 flags, eWeatherEvent soundEvent) {
+        AESoundManager.PlaySound({
+            .BankSlotID  = SND_BANK_SLOT_EXPLOSIONS,
+            .SoundID     = sfx,
+            .AudioEntity = this,
+            .Pos         = CVector{ posX, 0.423f, 0.f },
+            .Volume      = soundVolume,
+            .Speed       = speed,
+            .Flags       = flags,
+            .EventID     = +soundEvent,
+        });
+    };
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_NEAR_L, -0.906f, -100.f, freq * 0.35636002f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES, eWeatherEvent::THUNDER);
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_NEAR_L, 0.906f, -100.f, freq * 0.4f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES, eWeatherEvent::THUNDER);
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_DISTANT_L, -0.906f, std::min(volume, 0.f), freq * 0.35636002f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_ROLLED_OFF, eWeatherEvent::THUNDER_DIRECT);
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_DISTANT_L, 0.906f, std::min(volume, 0.f), freq * 0.4f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_ROLLED_OFF, eWeatherEvent::THUNDER_DIRECT);
 }
 
 // 0x505A00
@@ -184,7 +213,7 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         if (CAEAudioUtility::ResolveProbability(0.07f)) { // 0x506642
             sbWindOffset = !sbWindOffset;
         }
-        sbWindOffset = sbWindOffset // 0x50667E
+        sfWindOffset = sbWindOffset // 0x50667E
             ? 21.f * windRatio
             : 0.f;
         sfWindFreq = sbWindOffset // 0x50668E
@@ -202,6 +231,8 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         }
         break;
     }
+    case eWeatherEvent::THUNDER_DIRECT:
+        break;
     default:
         NOTSA_UNREACHABLE();
     }
@@ -304,7 +335,7 @@ void CAEWeatherAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(StaticInitialise, 0x5B9A70);
     RH_ScopedInstall(StaticReset, 0x5052B0);
-    RH_ScopedInstall(AddAudioEvent, 0x506800, { .reversed = false });
+    RH_ScopedInstall(AddAudioEvent, 0x506800);
     RH_ScopedVMTInstall(UpdateParameters, 0x505A00);
     RH_ScopedInstall(Service, 0x5052F0);
 }
