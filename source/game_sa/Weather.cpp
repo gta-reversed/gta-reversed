@@ -114,12 +114,10 @@ void CWeather::AddRain() {
         const CVector     splashVelocity{};
         const auto        radius = CGeneral::GetRandomNumberInRange(0.0f, maxRadius);
 
-        float angle;
-        if (const auto rnd = CGeneral::GetRandomNumber(); rnd & 1) {
-            angle = (float)(CGeneral::GetRandomNumber() & 0xFF) * 0.02453125f;
-        } else {
-            angle = (float)((int32)(rnd & 0xFF) - 128) * 0.00625f + TheCamera.m_fOrientation;
-        }
+        const auto rnd = CGeneral::GetRandomNumber();
+        const auto angle= (rnd & 1)
+            ? (float)((CGeneral::GetRandomNumber() % 255)) / 255.f * TWO_PI              // [0, TWO_PI] rad
+            : invLerp((float)(rnd & 0xFF), -128, 128) * 0.8f + TheCamera.m_fOrientation; // <Camera Rotation> - [-0.8, 0.8] rad (0.8 rad ~ 45.5 deg)
 
         // 0x72AC11
         CVector spot{
