@@ -129,7 +129,7 @@ void CWeather::AddRain() {
         };
         CColPoint colPoint{};
         CEntity*  colEntity{};
-        if (!CWorld::ProcessVerticalLine({ spot.x, spot.y, 40.0f }, -40.0f, colPoint, colEntity, true, false, false, false, true, false, nullptr))
+        if (!CWorld::ProcessVerticalLine({ spot, 40.0f }, -40.0f, colPoint, colEntity, true, false, false, false, true))
             continue;
 
         spot.z = colPoint.m_vecPoint.z + 0.1f;
