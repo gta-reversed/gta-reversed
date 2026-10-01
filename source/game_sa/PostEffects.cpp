@@ -1024,7 +1024,7 @@ void CPostEffects::Render() {
         }
         s_CurrentStrength = std::max(s_CurrentStrength, 0);
 
-        if (!CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && CWeather::IsUnderWater() && CGame::CanSeeOutSideFromCurrArea() && TheCamera.GetPosition().z <= 900.0f) {
+        if (!CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && !CWeather::IsUnderWater() && CGame::CanSeeOutSideFromCurrArea() && TheCamera.GetPosition().z <= 900.0f) {
             Grain(s_CurrentStrength / 4, true);
         }
     }

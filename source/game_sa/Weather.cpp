@@ -69,11 +69,11 @@ void CWeather::AddRain() {
         return;
     }
 
-    if (UnderWaterness > 0.0f) {
+    if (IsUnderWater()) {
         return;
     }
 
-    if (CGame::currArea) {
+    if (!CGame::CanSeeOutSideFromCurrArea()) {
         return;
     }
 
@@ -108,7 +108,7 @@ void CWeather::AddRain() {
     }
 
     // 0x72AAA8
-    if (Wind > 1.01f && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && UnderWaterness <= 0.0f) {
+    if (Wind > 1.01f && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && !IsUnderWater()) {
         AddSandStormParticles();
     }
 
@@ -127,14 +127,11 @@ void CWeather::AddRain() {
 
         const auto rnd  = CGeneral::GetRandomNumber();
         const auto rads = (rnd & 1)
-            ? (float)(CGeneral::GetRandomNumber() & 0xFF) / 256.f * TWO_PI                  // [0, TWO_PI) rad
-            : (float)((int32)(rnd & 0xFF) - 128) / 128.f * 0.8f + TheCamera.m_fOrientation; // <Camera Rotation> + [-0.8, 0.8) rad (0.8 rad ~ 45.8 deg)
+            ? (float)(CGeneral::GetRandomNumber() & 0xFF) / 256.f * TWO_PI               // [0, TWO_PI) rad
+            : lerp(-0.8f, 0.8f, (float)(rnd & 0xFF) / 256.f) + TheCamera.m_fOrientation; // <Camera Rotation> + [-0.8, 0.8) rad (0.8 rad ~ 45.8 deg)
 
         // 0x72AC11
-        const CVector2D spot{
-            std::sin(rads) * radius + TheCamera.GetPosition().x,
-            std::cos(rads) * radius + TheCamera.GetPosition().y
-        };
+        const CVector2D spot = CVector2D{ TheCamera.GetPosition() } + CVector2D{ std::sin(rads), std::cos(rads) } * radius;
         CColPoint colPoint{};
         CEntity*  colEntity{};
         if (!CWorld::ProcessVerticalLine(CVector{ spot, 40.0f }, -40.0f, colPoint, colEntity, true, false, false, false, true)) {
