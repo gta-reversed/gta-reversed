@@ -101,4 +101,9 @@ inline const ReversibleBugFix CTaskSimpleClimb_ProcessPed_SettleSpeedFrameRate{
     .Description = "Bound the climb's settle step the way the coarse step above it is bounded, so a few centimetres of offset do not become a killing fall speed above 60 FPS",
     .Credit      = "mrxenginner"
 };
-}; // namespace notsa::bugfixes
+inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR{
+    .Name        = "CDamageManager::GetLightStatus - Incorrect status check for LIGHT_REAR_RIGHT",
+    .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
+    .Credit      = "aeaeo"
+};
+};
