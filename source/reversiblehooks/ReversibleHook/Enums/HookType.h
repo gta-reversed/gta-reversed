@@ -25,7 +25,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(HookType, {
     { HookType::VirtualDestructor, "VIRTUAL_DESTRUCTOR" },
     { HookType::ScriptCommand,     "SCRIPT_COMMAND"     },
     { HookType::VMTRedirect,       "VMT_REDIRECT"       },
-    { HookType::Null,               "NULL"              }, 
+    { HookType::Null,              "NULL"               }, 
 });
 }; // namespace ReversibleHook
 }; // namespace ReversibleHooks
