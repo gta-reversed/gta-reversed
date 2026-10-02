@@ -44,10 +44,8 @@ void CRealTimeShadowManager::Exit() { // AKA `Shutdown`
     }
 
     for (auto& shdw : m_apShadows) {
-        if (const auto owner = shdw->m_pOwner) {
-            delete shdw; // `shdw->m_pOwner` nulled out by this
-            delete owner; // Why?
-        }
+        delete shdw;
+        shdw = nullptr;
     }
 
     // Nice hack
