@@ -15,6 +15,8 @@ public:
     eTaskType GetTaskType() const override { return Type; }
     void SetUpCar() override;
     CTask* CreateSubTaskCannotGetInCar(CPed* ped) override;
-};
 
+public:
+    static void InjectHooks();
+};
 VALIDATE_SIZE(CTaskComplexCarDrive, 0x24);

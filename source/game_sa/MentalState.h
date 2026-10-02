@@ -18,6 +18,9 @@ public:
     uint8      m_oldVehicleHealth;
 
 public:
+    static void InjectHooks();
+
+public:
     CMentalState() = default;
     ~CMentalState() = default;
 

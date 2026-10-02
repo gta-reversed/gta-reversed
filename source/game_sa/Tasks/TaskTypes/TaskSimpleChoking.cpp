@@ -58,7 +58,9 @@ void CTaskSimpleChoking::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6202C0);
     RH_ScopedInstall(Destructor, 0x620370);
 
-    RH_ScopedInstall(UpdateChoke, 0x620660);
+    RH_ScopedGlobalInstall(DeleteAnimChokeCB, 0x620480, { .reversed = false });
+
+    RH_ScopedInstall(UpdateChoke, 0x620660, { .reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x623220);
     RH_ScopedVMTInstall(GetTaskType, 0x620360);

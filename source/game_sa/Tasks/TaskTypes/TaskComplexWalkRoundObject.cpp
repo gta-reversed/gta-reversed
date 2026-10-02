@@ -4,10 +4,19 @@
 // #include "PointRoute.h"
 
 void CTaskComplexWalkRoundObject::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskComplexWalkRoundObject, 0x86F364, 11);
+    RH_ScopedVirtualClass(CTaskComplexWalkRoundObject, 0x86f364, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x655020);
+    RH_ScopedInstall(Destructor, 0x6550D0);
+
+    RH_ScopedInstall(CreateRouteTask, 0x655140, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x655C10);
+    RH_ScopedVMTInstall(GetTaskType, 0x6550C0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x657220, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x657380, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6575F0, { .reversed = false });
 }
 
 // 0x655020

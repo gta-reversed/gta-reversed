@@ -21,5 +21,8 @@ public:
     CTask* ControlSubTask(CPed* ped) override { return m_pSubTask; } // 0x653550
 
     CTask* CreateSubTask(eTaskType taskType);
+
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskComplexEvasiveStep, 0x1C);

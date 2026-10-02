@@ -64,6 +64,9 @@ public:
     CTask* Clone() const override;
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
+
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskSimpleGangDriveBy, 0x44);
 

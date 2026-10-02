@@ -40,3 +40,18 @@ void CTaskComplexWanderCriminal::ScanForStuff(CPed* ped) {
 void CTaskComplexWanderCriminal::LookForCarsToSteal(CPed* ped) {
     plugin::CallMethod<0x66B4F0, CTaskComplexWanderCriminal*, CPed*>(this, ped);
 }
+
+
+void CTaskComplexWanderCriminal::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexWanderCriminal, 0x85a23c, 15);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x48E610);
+    RH_ScopedInstall(Destructor, 0x48E720);
+
+    RH_ScopedInstall(LookForCarsToSteal, 0x66B4F0, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x48E650);
+    RH_ScopedVMTInstall(GetWanderType, 0x48E6F0);
+    RH_ScopedVMTInstall(ScanForStuff, 0x670350, { .reversed = false });
+}

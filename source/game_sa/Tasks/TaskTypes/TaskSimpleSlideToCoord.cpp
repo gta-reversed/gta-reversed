@@ -3,16 +3,6 @@
 #include "TaskSimpleSlideToCoord.h"
 #include "TaskSimpleStandStill.h"
 
-void CTaskSimpleSlideToCoord::InjectHooks() {
-    // + RH_ScopedVirtualClass(CTaskSimpleSlideToCoord, 0x86FFEC, 9); // todo (Pirulax): Make it working
-    // + RH_ScopedCategory("Tasks/TaskTypes");
-
-    // + RH_ScopedOverloadedInstall(Constructor, "NoAnim", 0x66C3E0, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)(CVector const&, float, float));
-    // + RH_ScopedOverloadedInstall(Constructor, "Anim", 0x66C450, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)(CVector const&, float, float, char const*, char const*, int32, float, bool, int32));
-    // + RH_ScopedVmtInstall(MakeAbortable, 0x66C4D0);
-    // RH_ScopedVmtInstall(ProcessPed, 0x66C4E0);
-}
-
 // 0x66C3E0
 CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, float aimingRotation, float speed) :
     CTaskSimpleRunNamedAnim(),
@@ -46,7 +36,7 @@ CTask* CTaskSimpleSlideToCoord::Clone() const {
 
 // 0x66C4D0
 bool CTaskSimpleSlideToCoord::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
-    return m_bRunningAnim ? CTaskSimpleAnim::MakeAbortable(ped, priority, event) : true;
+    return !m_bRunningAnim || CTaskSimpleAnim::MakeAbortable(ped, priority, event);
 }
 
 // 0x66C4E0
@@ -100,4 +90,19 @@ bool CTaskSimpleSlideToCoord::ProcessPed(CPed* ped) {
     }
 
     return false;
+}
+
+void CTaskSimpleSlideToCoord::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskSimpleSlideToCoord, 0x86ffec, 9);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedOverloadedInstall(Constructor, "1", 0x66C3E0, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)( const CVector &, float, float));
+    RH_ScopedOverloadedInstall(Constructor, "2", 0x66C450, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)( const CVector &, float, float, const char*, const char*, int32, float, bool, int32));
+
+    RH_ScopedInstall(Destructor, 0x66C4C0);
+
+    RH_ScopedVMTInstall(Clone, 0x66D300);
+    RH_ScopedVMTInstall(GetTaskType, 0x66C440);
+    RH_ScopedVMTInstall(MakeAbortable, 0x66C4D0);
+    RH_ScopedVMTInstall(ProcessPed, 0x66C4E0, { .reversed = false });
 }

@@ -16,5 +16,8 @@ public:
     CTask* Clone() const override { return new CTaskSimpleTogglePedThreatScanner(m_bScanAllowedScriptPed, m_bScanAllowedInVehicle, m_bScanAllowedScriptedTask); } // 0x492D50
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return false; }
     bool ProcessPed(CPed* ped) override;
+
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskSimpleTogglePedThreatScanner, 0xC);
