@@ -1,13 +1,13 @@
 # Reversed Classes progress
 This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.
 
-Last update was at Sep 21, 2026 at 19:13:40 UTC triggered by [4f8d7dad398798d88bf945061d79f60ce899c758](https://github.com/gta-reversed/gta-reversed/commit/4f8d7dad398798d88bf945061d79f60ce899c758) 
+Last update was at Oct 02, 2026 at 11:28:23 UTC triggered by [fdccce27e7890bd6ad6fb059e1ad5d4f083fbd46](https://github.com/gta-reversed/gta-reversed/commit/fdccce27e7890bd6ad6fb059e1ad5d4f083fbd46) 
 
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
-## Stats (8014 functions, 701 classes)
+## Stats (8017 functions, 701 classes)
 
-#### Completely reversed classes (584/701) [83%]
+#### Completely reversed classes (585/701) [83%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -264,6 +264,7 @@ The percentages and the number of classes shown here may not be completely accur
 - FxMemoryPool_c (5)<br />
 - FxInfoManager_c (4)<br />
 - FxEmitterPrt_c (1)<br />
+- CAEWeatherAudioEntity (5)<br />
 - CAEWeaponAudioEntity (20)<br />
 - CAEWaterCannonAudioEntity (7)<br />
 - CAETwinLoopSoundEntity (7)<br />
@@ -597,11 +598,11 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (114/701) [16%]
+#### Partially reversed classes (113/701) [16%]
 
 <details>
 <summary>See list of classes</summary>- C_PcSave (4/5) [80%]<br />
-- CWeather (10/13) [77%]<br />
+- CWeather (11/13) [85%]<br />
 - CWeaponEffects (8/9) [89%]<br />
 - CWeapon (35/41) [85%]<br />
 - CWaterLevel (25/30) [83%]<br />
@@ -640,7 +641,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CGroupEventHandler (30/32) [94%]<br />
 - CEventHandler (69/72) [96%]<br />
 - CBaseModelInfo (33/34) [97%]<br />
-- CVehicle (141/142) [99%]<br />
+- CVehicle (144/145) [99%]<br />
 - CTrain (20/40) [50%]<br />
 - CQuadBike (11/12) [92%]<br />
 - CPlane (14/23) [61%]<br />
@@ -652,7 +653,6 @@ The percentages and the number of classes shown here may not be completely accur
 - FxManager_c (24/25) [96%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
 - CCarFXRenderer (9/10) [90%]<br />
-- CAEWeatherAudioEntity (4/5) [80%]<br />
 - CAEVehicleAudioEntity (102/106) [96%]<br />
 - CAEScriptAudioEntity (8/19) [42%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
