@@ -8,13 +8,15 @@
 
 #include "Base.h"
 
+constexpr int32 MAX_NUM_PEDS_IN_LIST = 30;
+
 class CPedGroupMembership;
 class CPed;
 
 class CPedList {
 public:
     uint32                m_count{};
-    std::array<CPed*, 30> m_peds{};
+    std::array<CPed*, MAX_NUM_PEDS_IN_LIST> m_peds{};
 
 public:
     static void InjectHooks();
