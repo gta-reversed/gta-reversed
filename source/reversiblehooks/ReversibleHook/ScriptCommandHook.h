@@ -4,7 +4,11 @@
 #include "eScriptCommands.h"
 #include "RunningScript.h"
 
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
+#include "NullHook.h"
+#else
 #include "TwoWayHook.h"
+#endif
 
 namespace ReversibleHooks {
 namespace ReversibleHook {
@@ -33,9 +37,13 @@ struct ScriptCommandHook final : public TwoWayHook {
 
 protected:
     void ApplyNewState(TwoWayHookState state, TwoWayHookState oldState) override {
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
+        // nothing to apply
+#else
         CRunningScript::CustomCommandHandlerOf(m_Command) = state == TwoWayHookState::RedirectToOurs
             ? m_OriginalHandler 
             : nullptr;
+#endif
     }
 
 public:

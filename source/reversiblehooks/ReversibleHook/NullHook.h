@@ -7,7 +7,7 @@ namespace ReversibleHook {
 /*!
  * @brief A hook that does nothing, it's used for documentation purposes (Dumping hooks in standalone mode)
  */
-class NullHook final : public TwoWayHook {
+class NullHook : public TwoWayHook {
 public:
     NullHook(std::string name, void* addressOur, void* addressGTA) : 
         TwoWayHook(std::move(name)), 
@@ -16,12 +16,12 @@ public:
     {}
     ~NullHook() override = default;
 
-    HookType Type()              const noexcept override { return HookType::Null; }
-    void     Serialize(json& j)  const override          { to_json(j, *this); }
-    void     Check()             override                { /* nothing to check */ }
-    void*    GetHookAddressOur() const noexcept override { return m_AddressOur; }
-    void*    GetHookAddressGTA() const noexcept override { return m_AddressGTA; }
-    void     ApplyNewState(TwoWayHookState state, TwoWayHookState oldState) override { /* nothing to apply */ }
+    HookType Type()              const noexcept override       { return HookType::Null; }
+    void     Serialize(json& j)  const override final          { to_json(j, *this); }
+    void     Check()             override final                { /* nothing to check */ }
+    void*    GetHookAddressOur() const noexcept override final { return m_AddressOur; }
+    void*    GetHookAddressGTA() const noexcept override final { return m_AddressGTA; }
+    void     ApplyNewState(TwoWayHookState state, TwoWayHookState oldState) override final { /* nothing to apply */ }
 
 public:
     friend void to_json(json& j, const NullHook& hook) {
