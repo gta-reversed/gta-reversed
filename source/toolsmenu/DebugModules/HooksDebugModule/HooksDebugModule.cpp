@@ -379,9 +379,8 @@ bool HooksDebugModule::RenderCategoryItems(RListCategory& cat) {
     return changed;
 }
 
-
 auto HooksDebugModule::RenderCategory(RListCategory& cat) -> RenderCategoryResult {
-    if (!cat.Items.IsEmpty() && !cat.Categories.IsEmpty()) {
+    if (cat.Items.IsEmpty() && cat.Categories.IsEmpty()) {
         return RenderCategoryResult::SKIPPED_NOTHING_TO_SHOW;
     }
 
