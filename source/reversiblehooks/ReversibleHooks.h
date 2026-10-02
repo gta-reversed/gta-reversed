@@ -96,8 +96,13 @@
     RH_ScopedNamedVMTInstall(fn, #fn, fnGTAAddr __VA_OPT__(,) __VA_ARGS__)
 
 //! Install a script hook
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #define RH_ScopedInstallScriptCommand(cmd) \
     rh->InstallScriptCommand(RHCurrentCat.name + "/" + RHCurrentScopeName.name, cmd)
+#else
+#define RH_ScopedInstallScriptCommand(cmd) \
+    ((void)(cmd))
+#endif
 
 // Install constructor (possibly overloaded)
 #define RH_ScopedConstructorInstall(_addressGTA, suffix, opts, ...) \
