@@ -260,6 +260,10 @@ void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
 
     rng::fill(m_aFinalPedLinkToDestinations, -1);
 
+    if (numPeds > m_aFinalPedLinkToDestinations.size() || numTargets == 0 || numTargets > remainingForTarget.size()) {
+        return;
+    }
+
     // Each target can be attacked by at most this many peds
     const auto maxPerTarget = std::max(2, (int32)std::ceil((double)(int32)numPeds / (double)(int32)numTargets));
     rng::fill(remainingForTarget | rngv::take(numTargets), maxPerTarget);
@@ -281,6 +285,9 @@ void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
                     bestDistSq    = distSq;
                 }
             }
+        }
+        if (bestPedIdx >= m_aFinalPedLinkToDestinations.size() || bestTargetIdx >= remainingForTarget.size()) {
+            return;
         }
         m_aFinalPedLinkToDestinations[bestPedIdx] = (int32)bestTargetIdx;
         remainingForTarget[bestTargetIdx]--;
