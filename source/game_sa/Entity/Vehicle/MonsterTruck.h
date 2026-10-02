@@ -38,7 +38,7 @@ enum eMonsterTruckNodes {
 
 class NOTSA_EXPORT_VTABLE CMonsterTruck : public CAutomobile {
 public:
-    std::array<float, 4>   field_988{}; // unused
+    std::array<float, 4> m_aBigTyreCompression{};
     float m_fSuspensionRadius;
 
     static inline auto& DUMPER_COL_ANGLEMULT = StaticRef<float>(0x8D33A8); // 0.0002f

@@ -10,22 +10,22 @@ void CMonsterTruck::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x6C8D60);
 
-    RH_ScopedInstall(ExtendSuspension, 0x6C7D80, { .reversed = false });
+    RH_ScopedInstall(ExtendSuspension, 0x6C7D80);
 
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6C8AE0);
-    RH_ScopedVMTInstall(ProcessSuspension, 0x6C83A0, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6C8330, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControl, 0x6C8250, { .reversed = false });
-    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6C7FB0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessSuspension, 0x6C83A0);
+    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6C8330);
+    RH_ScopedVMTInstall(ProcessControl, 0x6C8250);
+    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6C7FB0);
     RH_ScopedVMTInstall(PreRender, 0x6C7DE0);
-    RH_ScopedVMTInstall(ResetSuspension, 0x6C7D40, { .reversed = false });
+    RH_ScopedVMTInstall(ResetSuspension, 0x6C7D40);
     RH_ScopedVMTInstall(BurstTyre, 0x6C7D30);
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C7D20);
 }
 
 // 0x6C8D60
 CMonsterTruck::CMonsterTruck(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelIndex, createdBy, false) {
-    std::ranges::fill(field_988, 1.0f);
+    std::ranges::fill(m_aBigTyreCompression, 1.0f);
     CMonsterTruck::SetupSuspensionLines();
     autoFlags.bIsMonsterTruck = true;
     m_nVehicleSubType = VEHICLE_TYPE_MTRUCK;
@@ -118,22 +118,194 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
 
 // 0x6C83A0
 void CMonsterTruck::ProcessSuspension() {
-    plugin::CallMethod<0x6C83A0, CMonsterTruck*>(this);
+    CVector point[4]{};
+    CVector direction[4]{};
+    CVector speed[4]{};
+
+    float aWheelSpringForces[4]{};
+    float biasFront = m_pHandlingData->m_fSuspensionBiasBetweenFrontAndRear;
+    float biasRear = 1.0f - biasFront;
+
+    for (int i = 0; i < MAX_CARWHEELS; i++) {
+        direction[i] = -GetUp();
+        point[i] = CVector(0.0f, 0.0f, 0.0f);
+
+        float ratio = m_fWheelsSuspensionCompression[i];
+
+        if (ratio < 1.0f) {
+            point[i] = m_wheelColPoint[i].m_vecPoint - GetPosition();
+        
+            float bias = (i % 2 == 0) ? biasFront : biasRear;
+            ApplySpringCollisionAlt(m_pHandlingData->m_fSuspensionForceLevel, direction[i], point[i],
+                ratio, bias, m_wheelColPoint[i].m_vecNormal, aWheelSpringForces[i]);
+        }
+
+        speed[i] = GetSpeed(point[i]);
+
+        auto targetEntity = (CAutomobile*)m_apWheelCollisionEntity[i];
+        if (targetEntity) {
+            CVector entitySpeed = targetEntity->GetSpeed(point[i]);
+            speed[i] -= entitySpeed;
+        }
+
+        if (ratio < 1.0f) {
+            if (m_wheelColPoint[i].m_vecNormal.z > 0.35f) {
+                direction[i] = -m_wheelColPoint[i].m_vecNormal;
+            }
+
+            ApplySpringDampening(m_pHandlingData->m_fSuspensionDampingLevel, aWheelSpringForces[i], direction[i], point[i], speed[i]);
+
+            if (targetEntity) {
+                if (targetEntity->GetType() == 2) {
+                    if (ratio < 0.5f) {
+                        float dmgIntensity = (0.05f - (ratio * 0.05f)) * m_fMass;
+                        targetEntity->VehicleDamage(dmgIntensity, (eVehicleCollisionComponent)m_wheelColPoint[i].m_nPieceTypeB,
+                            this, &m_wheelColPoint[i].m_vecPoint, &m_wheelColPoint[i].m_vecNormal, WEAPON_RAMMEDBYCAR);
+
+                        if (m_wheelColPoint[i].m_vecNormal.z > 0.5f) {
+                            float mult = (1.0f - ratio) * -0.05f * m_fMass;
+
+                            CVector targetSpeed(
+                                m_wheelColPoint[i].m_vecNormal.x * 0.25f * mult,
+                                m_wheelColPoint[i].m_vecNormal.y * 0.25f * mult,
+                                m_wheelColPoint[i].m_vecNormal.z * mult
+                            );
+
+                            CVector targetPos = targetEntity->GetPosition();
+                            CVector targetPoint = m_wheelColPoint[i].m_vecPoint - targetPos;
+
+                            targetEntity->ApplyForce(targetSpeed, targetPoint, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        m_apWheelCollisionEntity[i] = nullptr;
+    }
 }
 
 // 0x6C8330
 void CMonsterTruck::ProcessControlCollisionCheck(bool applySpeed) {
-    plugin::CallMethod<0x6C8330, CMonsterTruck*, bool>(this, applySpeed);
+    float stepOffset = CTimer::ms_fTimeStep * (fWheelExtensionRate * m_fSuspensionRadius);
+
+    for (int i = 0; i < MAX_CARWHEELS; i++) {
+        float targetOffset = m_wheelPosition[i] - stepOffset;
+        m_wheelPosition[i] = std::clamp(targetOffset, m_aSuspensionLineLength[i], m_aSuspensionSpringLength[i]);
+        m_wheelPosition[i] = 1.0f;
+    }
+
+    CAutomobile::ProcessControlCollisionCheck(applySpeed);
+
+    for (auto i = 0; i < MAX_CARWHEELS; i++) {
+        float ratio = 1.0f;
+
+        if (m_wheelPosition[i] < 1.0f) {
+            float suspLen = m_aSuspensionSpringLength[i];
+            float diff = suspLen - m_wheelPosition[i];
+            float lineDiff = suspLen - m_aSuspensionLineLength[i];
+
+            ratio = diff / lineDiff;
+        }
+
+        m_fWheelsSuspensionCompression[i] = ratio;
+    }
 }
 
 // 0x6C8250
 void CMonsterTruck::ProcessControl() {
-    plugin::CallMethod<0x6C8250, CMonsterTruck*>(this);
+    for (auto i = 0; i < MAX_CARWHEELS; ++i) {
+        if (m_fWheelsSuspensionCompression[i] < 1.0f) {
+            float suspLen = m_aSuspensionSpringLength[i];
+            float diff = suspLen - m_wheelPosition[i];
+            float lineDiff = suspLen - m_aSuspensionLineLength[i];
+
+            float ratio = diff / lineDiff;
+            m_fWheelsSuspensionCompression[i] = (ratio < 0.0f) ? 0.0f : ratio;
+        } else {
+            m_fWheelsSuspensionCompression[i] = 1.0f;
+        }
+    }
+
+    CAutomobile::ProcessControl();
+
+    if (!GetWasPostponed() &&
+        (m_vecMoveSpeed.x != 0.0f || m_vecMoveSpeed.y != 0.0f || m_vecMoveSpeed.z != 0.0f ||
+         m_vecTurnSpeed.x != 0.0f || m_vecTurnSpeed.y != 0.0f || m_vecTurnSpeed.z != 0.0f)) {
+        float stepOffset = CTimer::ms_fTimeStep * (fWheelExtensionRate * m_fSuspensionRadius);
+
+        for (auto i = 0; i < MAX_CARWHEELS; ++i) {
+            float targetOffset = m_wheelPosition[i] - stepOffset;
+            m_wheelPosition[i] = std::clamp(targetOffset, m_aSuspensionLineLength[i], m_aSuspensionSpringLength[i]);
+            m_fWheelsSuspensionCompression[i] = 1.0f;
+        }
+    }
 }
 
 // 0x6C7FB0
 void CMonsterTruck::SetupSuspensionLines() {
-    plugin::CallMethod<0x6C7FB0, CMonsterTruck*>(this);
+    const auto mi = GetVehicleModelInfo();
+    const auto tcm = mi->GetColModel();
+    const auto tcd = tcm->GetData();
+
+    m_fSuspensionRadius = mi->m_fWheelSizeFront * 0.5f;
+
+    if (!tcd->m_pDisks || tcd->bUsesDisks == 0) {
+        if (tcd->m_pDisks && tcd->bUsesDisks == 0) {
+            CMemoryMgr::Free(tcd->m_pDisks);
+        }
+        tcd->bUsesDisks = 1;
+        tcd->m_nNumLines = MAX_CARWHEELS;
+        tcd->m_pDisks = (CColDisk*)CMemoryMgr::Malloc(4 * sizeof(CColDisk));
+    }
+
+    auto pDisks = tcd->m_pDisks;
+
+    for (auto i = 0; i < MAX_CARWHEELS; i++) {
+        CVector pos{};
+        mi->GetWheelPosn(i, pos, false);
+
+        CVector thickness{};
+        thickness.x = (i >= 2) ? 1.0f : -1.0f;
+
+        pDisks[i].Set(m_fSuspensionRadius, pos, thickness, m_fSuspensionRadius * 0.6f, SURFACE_WHEELBASE, 13);
+
+        if (i >= 1 && i <= 3) {
+            uint8_t pieceTypes[3] = { 15, 14, 16 };
+            pDisks[i].m_Surface.m_nPiece = pieceTypes[i - 1];
+        }
+
+        m_aSuspensionSpringLength[i] = pos.z + m_pHandlingData->m_fSuspensionUpperLimit;
+        m_aSuspensionLineLength[i] = pos.z + m_pHandlingData->m_fSuspensionLowerLimit;
+    }
+
+    float length = m_aSuspensionSpringLength[0] - m_aSuspensionLineLength[0];
+    float mult = (1.0f / (m_pHandlingData->m_fSuspensionForceLevel * -4.0f)) + 1.0f;
+    float compression = length * mult;
+
+    float fHeightAboveRoad = m_fSuspensionRadius - (m_aSuspensionSpringLength[0] - compression);
+    m_fFrontHeightAboveRoad = fHeightAboveRoad;
+    m_fRearHeightAboveRoad = fHeightAboveRoad;
+
+    float fWheelRadius = mi->m_fWheelSizeFront * 0.5f;
+    for (auto i = 0; i < MAX_CARWHEELS; i++) {
+        m_fWheelsSuspensionCompression[i] = 1.0f;
+        m_wheelPosition[i] = -(fHeightAboveRoad - fWheelRadius);
+    }
+
+    float fRoadRadius = fHeightAboveRoad - m_fSuspensionRadius;
+    if (fRoadRadius < tcm->GetBoundingBox().m_vecMin.z) {
+        tcm->GetBoundingBox().m_vecMin.z = fRoadRadius;
+    }
+
+    CVector vecBoxExt = (tcm->GetBoundingBox().m_vecMin.Magnitude() > tcm->GetBoundingBox().m_vecMax.Magnitude())
+        ? tcm->GetBoundingBox().m_vecMin
+        : tcm->GetBoundingBox().m_vecMax;
+
+    float fRadius = vecBoxExt.Magnitude();
+    if (tcm->GetBoundingSphere().m_fRadius < fRadius) {
+        tcm->GetBoundingSphere().m_fRadius = fRadius;
+    }
 }
 
 // 0x6C7DE0
@@ -161,14 +333,20 @@ void CMonsterTruck::PreRender() {
 
 // 0x6C7D80
 void CMonsterTruck::ExtendSuspension() {
-    plugin::CallMethod<0x6C7D80, CMonsterTruck*>(this);
+    float stepOffset = (fWheelExtensionRate * m_fSuspensionRadius) * CTimer::ms_fTimeStep;
+
+    for (auto i = 0; i < MAX_CARWHEELS; ++i) {
+        float targetOffset = m_wheelPosition[i] - stepOffset;
+        m_wheelPosition[i] = std::clamp(targetOffset, m_aSuspensionLineLength[i], m_aSuspensionSpringLength[i]);
+        m_fWheelsSuspensionCompression[i] = 1.0f;
+    }
 }
 
 // 0x6C7D40
 void CMonsterTruck::ResetSuspension() {
-    return plugin::CallMethod<0x6C7D40, CMonsterTruck*>(this);
     CAutomobile::ResetSuspension();
-    std::ranges::fill(m_wheelPosition, 1.0f);
+    std::ranges::copy(m_aSuspensionLineLength, m_wheelPosition.begin());
+    std::ranges::fill(m_aBigTyreCompression, 1.0f);
 }
 
 // 0x6C7D30
