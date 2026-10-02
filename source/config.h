@@ -4,6 +4,7 @@
 //#define BAREBONES
 
 #define BUILD_PC
+//#define BUILD_ANDROID
 #define USE_BUILD_INFORMATION
 
 #undef TRACY_ENABLE // TODO
