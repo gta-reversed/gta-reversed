@@ -18,10 +18,13 @@ public:
     //! Called once every frame (pre-render)
     virtual void Update() { /*nothing*/ }
 
+    //! Render 2D stuff here (2D lines, etc, *not* ImGui)
+    virtual void Render2D() { /* nothing */ }
+
     //! Render 3D stuff here (lines, etc...). If rendered elsewhere they (probably) won't be visible.
     virtual void Render3D() { /*nothing*/ };
 
-    //! Module's window should be rendered here
+    //! Module's ImGui window should be rendered here (Anything other than ImGui will probably not work/crash)
     virtual void RenderWindow() { /*nothing*/ }
 
     //! Module's entry in the main menu should be rendered here
