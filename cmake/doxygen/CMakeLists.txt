@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.2.0 FATAL_ERROR)
 # Mock CMake project for generating Doxygen documentation
 #
 
-project(docs LANGUAGES NONE) # 'NONE' skips C++ compiler checks entirely
+project(docs LANGUAGES C CXX)
 
 # Adjust paths because we are inside a subdirectory
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../..")
