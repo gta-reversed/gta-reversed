@@ -11,7 +11,7 @@ class NOTSA_EXPORT_VTABLE CTaskComplexUseScriptedBrain : public CTaskComplex {
 
 public:
     bool   m_aborting = {};
-    char   m_name[8] = {};
+    char   m_Name[8] = {};
     CTask* m_currTask = {};
 
 public:

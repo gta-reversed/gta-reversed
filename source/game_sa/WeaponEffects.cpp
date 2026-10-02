@@ -20,7 +20,7 @@ void CWeaponEffects::InjectHooks() {
     RH_ScopedInstall(ClearCrossHairs, 0x742C80);
     RH_ScopedInstall(ClearCrossHairImmediately, 0x742CA0);
     RH_ScopedInstall(ClearCrossHairsImmediately, 0x742CC0);
-    RH_ScopedInstall(Render, 0x742CF0, { .reversed = false });
+    RH_ScopedInstall(Render, 0x742CF0, { .Reversed = false });
 }
 
 // 0x742AB0

@@ -60,9 +60,9 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880);
-    RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .reversed = false });
-    RH_ScopedInstall(SavePedPool, 0x5D4B40, { .reversed = false });
-    RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .reversed = false });
+    RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .Reversed = false });
+    RH_ScopedInstall(SavePedPool, 0x5D4B40, { .Reversed = false });
+    RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .Reversed = false });
 }
 
 // 0x550F10

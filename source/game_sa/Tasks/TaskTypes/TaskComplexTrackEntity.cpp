@@ -11,16 +11,16 @@ void CTaskComplexTrackEntity::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x65F3B0);
     RH_ScopedInstall(Destructor, 0x65F460);
 
-    RH_ScopedInstall(SetOffsetPos, 0x65F760, {.enabled = false, .locked = true});
-    RH_ScopedInstall(CalcTargetPos, 0x65F780, {.enabled = false, .locked = true});
-    RH_ScopedInstall(CalcMoveRatio, 0x65F930, {.enabled = false, .locked = true});
+    RH_ScopedInstall(SetOffsetPos, 0x65F760, {.State = HS::RedirectToGTA, .Locked = true});
+    RH_ScopedInstall(CalcTargetPos, 0x65F780, {.State = HS::RedirectToGTA, .Locked = true});
+    RH_ScopedInstall(CalcMoveRatio, 0x65F930, {.State = HS::RedirectToGTA, .Locked = true});
 
     RH_ScopedVMTInstall(Clone, 0x65F4E0);
     RH_ScopedVMTInstall(GetTaskType, 0x65F450);
     RH_ScopedVMTInstall(MakeAbortable, 0x65F4C0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x65F590);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x65F700);
-    RH_ScopedVMTInstall(ControlSubTask, 0x663640, { .locked = true }); // Locked because it fucks up the stack and crashes 
+    RH_ScopedVMTInstall(ControlSubTask, 0x663640, { .Locked = true }); // Locked because it fucks up the stack and crashes 
 }
 
 // 0x65F3B0
