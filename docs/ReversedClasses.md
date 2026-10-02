@@ -1,13 +1,13 @@
 # Reversed Classes progress
 This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed classes in the project.
 
-Last update was at Oct 02, 2026 at 11:28:23 UTC triggered by [fdccce27e7890bd6ad6fb059e1ad5d4f083fbd46](https://github.com/gta-reversed/gta-reversed/commit/fdccce27e7890bd6ad6fb059e1ad5d4f083fbd46) 
+Last update was at Oct 02, 2026 at 17:02:04 UTC triggered by [6e46566c56403f4a41ed819d2043cc583109258c](https://github.com/gta-reversed/gta-reversed/commit/6e46566c56403f4a41ed819d2043cc583109258c) 
 
 ## Disclaimer
 The percentages and the number of classes shown here may not be completely accurate, because not all classes and functions are documented yet.
-## Stats (8017 functions, 701 classes)
+## Stats (8024 functions, 702 classes)
 
-#### Completely reversed classes (585/701) [83%]
+#### Completely reversed classes (586/702) [83%]
 
 <details>
 <summary>See list of classes</summary>- cTransmission (4)<br />
@@ -68,6 +68,7 @@ The percentages and the number of classes shown here may not be completely accur
 - CRegisteredCorona (1)<br />
 - CReferences (4)<br />
 - CRadar (63)<br />
+- CPointLights (7)<br />
 - CPlayerPedData (5)<br />
 - CPlaneTrails (4)<br />
 - CPlaneTrail (3)<br />
@@ -598,7 +599,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Partially reversed classes (113/701) [16%]
+#### Partially reversed classes (113/702) [16%]
 
 <details>
 <summary>See list of classes</summary>- C_PcSave (4/5) [80%]<br />
@@ -717,7 +718,7 @@ The percentages and the number of classes shown here may not be completely accur
 
 </details>
 
-#### Not-at-all reversed classes (3/701) [0%]
+#### Not-at-all reversed classes (3/702) [0%]
 
 <details>
 <summary>See list of classes</summary>- CTaskComplexGangFollower (7)<br />
