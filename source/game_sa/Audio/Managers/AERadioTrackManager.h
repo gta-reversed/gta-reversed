@@ -249,7 +249,7 @@ protected:
     int32 ChooseIdentIndex(eRadioID id);
     int32 ChooseAdvertIndex(eRadioID id);
     int32 ChooseDJBanterIndex(eRadioID id);
-    int32 ChooseDJBanterIndexFromList(eRadioID id, int32** list);
+    int32 ChooseDJBanterIndexFromList(eRadioID id, int32 (*list)[2]);
     int8  ChooseMusicTrackIndex(eRadioID id);
     static int8  ChooseTalkRadioShow();
 
