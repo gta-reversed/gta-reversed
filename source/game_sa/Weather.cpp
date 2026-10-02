@@ -86,8 +86,10 @@ void CWeather::AddRain() {
     }
 
     if (TheCamera.GetLookingLRBFirstPerson()) {
-        if (const auto vehicle = FindPlayerVehicle(); vehicle && vehicle->CarHasRoof()) {
-            return;
+       if (const auto vehicle = FindPlayerVehicle()) {
+              if (vehicle->CarHasRoof()) {
+                    return;
+               }
         }
     }
 
