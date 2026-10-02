@@ -127,8 +127,8 @@ void CWeather::AddRain() {
 
         const auto rnd  = CGeneral::GetRandomNumber();
         const auto rads = (rnd & 1)
-            ? (float)(CGeneral::GetRandomNumber() & 0xFF) / 256.f * TWO_PI               // [0, TWO_PI) rad
-            : lerp(-0.8f, 0.8f, (float)(rnd & 0xFF) / 256.f) + TheCamera.m_fOrientation; // <Camera Rotation> + [-0.8, 0.8) rad (0.8 rad ~ 45.8 deg)
+            ? (float)(CGeneral::GetRandomNumber() % 256) / 256.f * TWO_PI               // [0, TWO_PI) rad
+            : lerp(-0.8f, 0.8f, (float)(rnd % 256) / 256.f) + TheCamera.m_fOrientation; // <Camera Rotation> + [-0.8, 0.8) rad (0.8 rad ~ 45.8 deg)
 
         // 0x72AC11
         const CVector2D spot = CVector2D{ TheCamera.GetPosition() } + CVector2D{ std::sin(rads), std::cos(rads) } * radius;
