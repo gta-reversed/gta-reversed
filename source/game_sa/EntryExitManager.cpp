@@ -430,8 +430,6 @@ bool CEntryExitManager::Load() {
             } else {
                 enex->m_pLink = nullptr;
             }
-        } else {
-            NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
         }
 
         CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
@@ -454,7 +452,7 @@ bool CEntryExitManager::Save() {
         if (enex.m_pLink) {
             // Make sure the link reference is valid
             auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
-            if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
+            if (mp_poolEntryExits->IsIndexInBounds(linkIndex) && !mp_poolEntryExits->IsFreeSlotAtIndex(linkIndex)) {
                 data = linkIndex;
             }
         }
