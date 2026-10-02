@@ -98,13 +98,13 @@ void CFormation::InjectHooks() {
     RH_ScopedClass(CFormation);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedGlobalInstall(ReturnTargetPedForPed, 0x699F50, { .reversed = false });
-    RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0, { .reversed = false });
+    RH_ScopedGlobalInstall(ReturnTargetPedForPed, 0x699F50, { .Reversed = false });
+    RH_ScopedGlobalInstall(ReturnDestinationForPed, 0x699FA0, { .Reversed = false });
     RH_ScopedGlobalInstall(FindCoverPointsBehindBox, 0x699FF0);
-    RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620, { .reversed = false });
-    RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0, { .reversed = false });
-    RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700, { .reversed = false });
-    RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .reversed = false });
+    RH_ScopedGlobalInstall(GenerateGatherDestinations, 0x69A620, { .Reversed = false });
+    RH_ScopedGlobalInstall(GenerateGatherDestinations_AroundCar, 0x69A770, { .Reversed = false });
+    RH_ScopedGlobalInstall(DistributeDestinations, 0x69B240, { .Reversed = false });
+    RH_ScopedGlobalInstall(DistributeDestinations_CoverPoints, 0x69B5B0, { .Reversed = false });
+    RH_ScopedGlobalInstall(DistributeDestinations_PedsToAttack, 0x69B700, { .Reversed = false });
+    RH_ScopedGlobalInstall(FindCoverPoints, 0x69B860, { .Reversed = false });
 }

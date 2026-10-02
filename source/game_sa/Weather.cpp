@@ -34,7 +34,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
     RH_ScopedInstall(Update, 0x72B850);
     RH_ScopedInstall(UpdateInTunnelness, 0x72B630);
-    //RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, true, { .reversed = false }); // bad
+    //RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, true, { .Reversed = false }); // bad
     RH_ScopedInstall(IsRainy, 0x4ABF50);
 }
 
