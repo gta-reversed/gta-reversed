@@ -222,6 +222,8 @@ public:
     static inline float DistSqr(CVector2D a, CVector2D b) {
         return (a - b).SquaredMagnitude();
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVector2D, x, y);
 };
 
 /// Negate all components of the vector

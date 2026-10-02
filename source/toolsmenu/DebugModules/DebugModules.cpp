@@ -39,6 +39,7 @@
 #include "CoverPointsDebugModule.hpp"
 #include "LoadMonitorDebugModule.hpp"
 #include "DoorDebugModule.hpp"
+#include "CFontDebugModule.h"
 #include "Audio/SoundManagerDebugModule.hpp"
 #include "Audio/AudioDebugModule.hpp"
 
@@ -126,6 +127,7 @@ void DebugModules::CreateModules() {
     Add<notsa::debugmodules::SoundManagerDebugModule>();
     Add<notsa::debugmodules::LoadMonitorDebugModule>();
     Add<notsa::debugmodules::DoorDebugModule>();
+    Add<FontDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<notsa::debugmodules::TwoDEffectsDebugModule>(); // Visualization + Extra
