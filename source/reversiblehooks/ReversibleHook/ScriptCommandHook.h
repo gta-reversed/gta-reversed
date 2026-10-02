@@ -3,6 +3,7 @@
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include "eScriptCommands.h"
 #include "RunningScript.h"
+#include <reversiblehooks/HooksUtility.hpp>
 
 #ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
 #include "NullHook.h"
@@ -33,7 +34,7 @@ struct ScriptCommandHook final : public TwoWayHook {
     void     Serialize(json& j) const override { to_json(j, *this); }
 
     void* GetHookAddressGTA() const noexcept override { return nullptr; }
-    void* GetHookAddressOur() const noexcept override { return m_OriginalHandler; }
+    void* GetHookAddressOur() const noexcept override { return Utility::FunctionToVoidPtr(m_OriginalHandler); }
 
 protected:
     void ApplyNewState(TwoWayHookState state, TwoWayHookState oldState) override {
