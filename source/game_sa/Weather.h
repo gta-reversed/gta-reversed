@@ -27,7 +27,7 @@ public:
     static inline auto& LightningStartY = StaticRef<uint32>(0xC812B4); // only initialized (0), not used
     static inline auto& LightningStartX = StaticRef<uint32>(0xC812B8); // only initialized (0), not used
     static inline auto& LightningFlashLastChange = StaticRef<int32>(0xC812BC);
-    static inline auto& WhenToPlayLightningSound = StaticRef<int32>(0xC812C0);
+    static inline auto& WhenToPlayLightningSound = StaticRef<uint32>(0xC812C0);
     static inline auto& LightningDuration = StaticRef<uint32>(0xC812C4); // Duration as number of frames
     static inline auto& LightningStart = StaticRef<uint32>(0xC812C8); // frame number
     static inline auto& LightningFlash = StaticRef<bool>(0xC812CC);

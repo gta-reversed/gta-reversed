@@ -6,7 +6,6 @@
 */
 #include "StdInc.h"
 
-#include <numbers>
 #include <reversiblebugfixes/Bugs.hpp>
 
 #include "eWeatherType.h"
@@ -269,15 +268,15 @@ void CWeather::SetWeatherToAppropriateTypeNow() {
 void CWeather::Update() {
     ZoneScoped;
 
-    static constexpr std::array<float, NUM_WEATHERS> WindForWeatherType = { // 0x8D5E50
+    static constexpr std::array<float, NUM_WEATHERS> WIND_FOR_WEATHER_TYPE = { // 0x8D5E50
         0.0f, 0.25f, 0.0f, 0.2f, 0.7f, 0.25f, 0.0f, 0.7f, 1.0f, 0.0f, 0.2f, 0.0f, 0.4f, 0.0f, 0.3f, 0.7f, 1.0f, 0.0f, 0.3f, 1.5f, 0.0f, 0.0f, 0.0f
     };
 
-    static constexpr std::array<float, 16> WindDirScales = { // 0x8D5FF8
+    static constexpr std::array<float, 16> WIND_DIR_SCALES = { // 0x8D5FF8
         1.0f, 0.5f, 1.0f, 0.2f, 0.4f, 1.0f, 1.0f, 1.0f, 1.0f, 0.8f, 0.0f, 1.0f, 1.0f, 0.7f, 1.0f, 1.0f
     };
 
-    static constexpr std::array<float, 16> WindDirOffsets = { // 0x8D6038
+    static constexpr std::array<float, 16> WIND_DIR_OFFSETS = { // 0x8D6038
         0.5f, -0.3f, 0.8f, 0.0f, -0.4f, -0.8f, 0.3f, -0.1f, -0.9f, -0.5f, 0.7f, 0.7f, 0.3f, 0.7f, 0.0f, -0.5f
     };
 
@@ -332,16 +331,16 @@ void CWeather::Update() {
     // TODO: FPS dependent logic
     // The burst length is counted in frames via `CTimer::GetFrameCounter()`,
     // and the start/stop chances are rolled once per frame
-    if (IsRainy(NewWeatherType) && IsRainy(OldWeatherType) && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && UnderWaterness <= 0.0f && !CGame::currArea) {
+    if (IsRainy(NewWeatherType) && IsRainy(OldWeatherType) && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && UnderWaterness <= 0.0f && CGame::CanSeeOutSideFromCurrArea()) {
         if (LightningBurst) {
-            if ((CGeneral::GetRandomNumber() & 0xFF) < 24) {
+            if (CGeneral::RandomBool(9.4f)) { // 24 / 256 * 100 ~ 9.4
                 LightningBurst = false;
                 LightningDuration = std::min(CTimer::GetFrameCounter() - LightningStart, 20u);
-                WhenToPlayLightningSound = (int32)((20 - LightningDuration) * 150 + CTimer::GetTimeInMS());
+                WhenToPlayLightningSound = (20 - LightningDuration) * 150 + CTimer::GetTimeInMS();
                 LightningFlash = false;
             } else if (CTimer::GetTimeInMS() - LightningFlashLastChange > 50) {
                 const auto wasFlashing = LightningFlash;
-                LightningFlash = CGeneral::GetRandomNumber() & 1;
+                LightningFlash = CGeneral::DoCoinFlip();
                 if (LightningFlash != wasFlashing) {
                     LightningFlashLastChange = CTimer::GetTimeInMS();
                 }
@@ -360,7 +359,7 @@ void CWeather::Update() {
     }
 
     // 0x72BB25
-    if (WhenToPlayLightningSound && CTimer::GetTimeInMS() > (uint32)WhenToPlayLightningSound) {
+    if (WhenToPlayLightningSound && CTimer::GetTimeInMS() > WhenToPlayLightningSound) {
         m_WeatherAudioEntity.AddAudioEvent(AE_THUNDER);
         CPad::GetPad(0)->StartShake((int16)(40 * LightningDuration + 100), (uint8)((LightningDuration + 40) * 2), 0);
         WhenToPlayLightningSound = 0;
@@ -403,11 +402,9 @@ void CWeather::Update() {
     ExtraSunnyness = BlendOf(IsExtraSunny);
 
     // 0x72BECB
-    if (IsCloudy(OldWeatherType) && IsSunny(NewWeatherType) && InterpolationValue < 0.5f && CClock::GetGameClockHours() > 6 && CClock::GetGameClockHours() < 21) {
-        Rainbow = 1.0f - std::abs(InterpolationValue - 0.25f) * 4.0f;
-    } else {
-        Rainbow = 0.0f;
-    }
+    Rainbow = IsCloudy(OldWeatherType) && IsSunny(NewWeatherType) && InterpolationValue < 0.5f && CClock::GetGameClockHours() > 6 && CClock::GetGameClockHours() < 21
+        ? 1.0f - std::abs(InterpolationValue - 0.25f) * 4.0f
+        : 0.0f;
 
     // 0x72BF63
     SunGlare = BlendOf([&](eWeatherType wt) {
@@ -438,11 +435,13 @@ void CWeather::Update() {
         const auto fadeOut = hours >= CPostEffects::m_HeatHazeFXHourOfDayEnd;
 
         // 0x72C1C8
-        const auto isOutside = !CGame::currArea
+        const auto isOutside = CGame::CanSeeOutSideFromCurrArea()
             && ((notsa::bugfixes::GenericCrashing && !FindPlayerPed()) || FindPlayerPed()->GetAreaCode() == AREA_CODE_NORMAL_WORLD)
             && !CCullZones::CamNoRain()
             && !CCullZones::PlayerNoRain();
-        const auto fadeSpeed = isOutside ? CPostEffects::m_fHeatHazeFXFadeSpeed : CPostEffects::m_fHeatHazeFXInsideBuildingFadeSpeed;
+        const auto fadeSpeed = isOutside
+            ? CPostEffects::m_fHeatHazeFXFadeSpeed
+            : CPostEffects::m_fHeatHazeFXInsideBuildingFadeSpeed;
 
         // 0x72C20E
         if (isOutside && fadeIn) {
@@ -485,7 +484,7 @@ void CWeather::Update() {
     WaterFogFXControl = std::clamp(WaterFogFXFade * 1.4f, 0.0f, 1.0f);
 
     // 0x72C398
-    Wind = lerp(WindForWeatherType[OldWeatherType], WindForWeatherType[NewWeatherType], InterpolationValue);
+    Wind = lerp(WIND_FOR_WEATHER_TYPE[OldWeatherType], WIND_FOR_WEATHER_TYPE[NewWeatherType], InterpolationValue);
     WindClipped = std::min(Wind, 1.0f);
 
     // 0x72C3F3
@@ -495,18 +494,18 @@ void CWeather::Update() {
     const auto timeMs = CTimer::GetTimeInMS();
 
     const auto LerpWindDirOffset = [](size_t idx, float t) {
-        return lerp(WindDirOffsets[idx % std::size(WindDirOffsets)], WindDirOffsets[(idx + 1) % std::size(WindDirOffsets)], t);
+        return lerp(WIND_DIR_OFFSETS[idx % std::size(WIND_DIR_OFFSETS)], WIND_DIR_OFFSETS[(idx + 1) % std::size(WIND_DIR_OFFSETS)], t);
     };
 
-    const auto slowIdx = (timeMs >> 10) % std::size(WindDirOffsets);
-    const auto slowT   = 0.5f - std::cos((float)(timeMs % 1024) / 1024.0f * std::numbers::pi_v<float>) * 0.5f;
+    const auto slowIdx = (timeMs >> 10) % std::size(WIND_DIR_OFFSETS);
+    const auto slowT   = 0.5f - std::cos((float)(timeMs % 1024) / 1024.0f * PI) * 0.5f;
     auto windX = LerpWindDirOffset(slowIdx, slowT) * WindClipped * 0.4f + WindDir.x;
     auto windY = LerpWindDirOffset(slowIdx + 3, slowT) * WindClipped * 0.4f + WindDir.y;
     WindDir.z  = LerpWindDirOffset(slowIdx + 6, slowT) * WindClipped * 0.2f;
 
     // 0x72C4F5
     if (const auto gust = (WindClipped - 0.5f) * 0.4f; gust > 0.0f) {
-        const auto fastIdx = (timeMs >> 8) % std::size(WindDirOffsets);
+        const auto fastIdx = (timeMs >> 8) % std::size(WIND_DIR_OFFSETS);
         const auto fastT   = (float)(timeMs % 256) / 256.0f;
         windX     += LerpWindDirOffset(fastIdx, fastT) * gust;
         windY     += LerpWindDirOffset(fastIdx + 3, fastT) * gust;
@@ -514,9 +513,9 @@ void CWeather::Update() {
     }
 
     // 0x72C5B6
-    const auto scaleIdx = (timeMs >> 11) % std::size(WindDirScales);
-    const auto scaleT   = 0.5f - std::cos((float)(timeMs % 2048) / 2048.0f * std::numbers::pi_v<float>) * 0.5f;
-    const auto scale    = lerp(WindDirScales[scaleIdx], WindDirScales[(scaleIdx + 1) % std::size(WindDirScales)], scaleT);
+    const auto scaleIdx = (timeMs >> 11) % std::size(WIND_DIR_SCALES);
+    const auto scaleT   = 0.5f - std::cos((float)(timeMs % 2048) / 2048.0f * PI) * 0.5f;
+    const auto scale    = lerp(WIND_DIR_SCALES[scaleIdx], WIND_DIR_SCALES[(scaleIdx + 1) % std::size(WIND_DIR_SCALES)], scaleT);
     WindDir.x  = scale * windX;
     WindDir.y  = scale * windY;
     WindDir.z *= scale;
