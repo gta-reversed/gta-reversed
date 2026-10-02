@@ -272,7 +272,7 @@ void CFormation::DistributeDestinations_PedsToAttack(const CPedList& pedList) {
     for (uint32 assigned = 0; assigned < numPeds; assigned++) {
         float bestDistSq = FLT_MAX;
         for (auto&& [pedIdx, ped] : rngv::enumerate(m_Peds.m_peds | rngv::take(numPeds))) {
-            if (pedIdx >= m_aFinalPedLinkToDestinations.size()) {
+            if ((size_t)pedIdx >= m_aFinalPedLinkToDestinations.size()) {
                 return;
             }
             if (m_aFinalPedLinkToDestinations[pedIdx] >= 0) {
