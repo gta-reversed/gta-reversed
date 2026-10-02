@@ -790,21 +790,21 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5B9B60);
     RH_ScopedInstall(Service, 0x4EC900);
     RH_ScopedInstall(Reset, 0x4EC150);
-    RH_ScopedInstall(GetMissionAudioLoadingStatus, 0x4EBF60, { .reversed = false });
-    RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0, { .reversed = false });
+    RH_ScopedInstall(GetMissionAudioLoadingStatus, 0x4EBF60, { .Reversed = false });
+    RH_ScopedInstall(IsMissionAudioSampleFinished, 0x4EBFE0, { .Reversed = false });
     RH_ScopedInstall(GetMissionAudioEvent, 0x4EC020);
-    RH_ScopedInstall(ClearMissionAudio, 0x4EC040, { .reversed = false });
-    RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0, { .reversed = false });
-    RH_ScopedInstall(AttachMissionAudioToPhysical, 0x4EC100, { .reversed = false });
-    RH_ScopedInstall(PreloadMissionAudio, 0x4EC190, { .reversed = false });
-    RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270, { .reversed = false });
-    RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0, { .reversed = false });
+    RH_ScopedInstall(ClearMissionAudio, 0x4EC040, { .Reversed = false });
+    RH_ScopedInstall(SetMissionAudioPosition, 0x4EC0C0, { .Reversed = false });
+    RH_ScopedInstall(AttachMissionAudioToPhysical, 0x4EC100, { .Reversed = false });
+    RH_ScopedInstall(PreloadMissionAudio, 0x4EC190, { .Reversed = false });
+    RH_ScopedInstall(PlayLoadedMissionAudio, 0x4EC270, { .Reversed = false });
+    RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0, { .Reversed = false });
     RH_ScopedInstall(PlayResidentSoundEvent, 0x4EC550);
-    RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0, { .reversed = false });
-    RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .reversed = false });
+    RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0, { .Reversed = false });
+    RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .Reversed = false });
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "1", 0x4EE960, void (CAEScriptAudioEntity::*)(eAudioEvents, CPhysical*, float, float));
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, CVector&));
-    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .Reversed = false });
 }
 
 CAEScriptAudioEntity* CAEScriptAudioEntity::Constructor() {

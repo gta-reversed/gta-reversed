@@ -3383,82 +3383,83 @@ void CCollision::InjectHooks() {
     ////
 
     // Hooks disabled due to bad performance in debug mode
-    const bool bEnableHooks = false;
+    const auto state = HS::RedirectToGTA;
+    const auto locked = state == HS::RedirectToGTA;
     
-    RH_ScopedInstall(Test2DLineAgainst2DLine, 0x4138D0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(Test2DLineAgainst2DLine, 0x4138D0, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(ProcessDiscCollision, 0x413960, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessDiscCollision, 0x413960, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestLineBox_DW, 0x412C70, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(TestLineBox, 0x413070, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessLineBox, 0x413100, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(TestVerticalLineBox, 0x413080, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestLineBox_DW, 0x412C70, { .State = state, .Locked = locked });
+    RH_ScopedInstall(TestLineBox, 0x413070, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessLineBox, 0x413100, { .State = state, .Locked = locked });
+    RH_ScopedInstall(TestVerticalLineBox, 0x413080, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestLineTriangle, 0x413AC0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessLineTriangle, 0x4140F0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessVerticalLineTriangle, 0x4147E0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestLineTriangle, 0x413AC0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessLineTriangle, 0x4140F0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessVerticalLineTriangle, 0x4147E0, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestLineSphere, 0x417470, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessLineSphere, 0x412AA0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestLineSphere, 0x417470, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessLineSphere, 0x412AA0, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestSphereBox, 0x4120C0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessSphereBox, 0x412130, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestSphereBox, 0x4120C0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessSphereBox, 0x412130, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestSphereSphere, 0x411E70, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessSphereSphere, 0x416450, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestSphereSphere, 0x411E70, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessSphereSphere, 0x416450, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestSphereTriangle, 0x4165B0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessSphereTriangle, 0x416BA0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestSphereTriangle, 0x4165B0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessSphereTriangle, 0x416BA0, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(ProcessColModels, 0x4185C0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessColModels, 0x4185C0, { .State = state, .Locked = locked });
 
-    RH_ScopedInstall(TestLineOfSight, 0x417730, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessLineOfSight, 0x417950, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ProcessVerticalLine, 0x417BF0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestLineOfSight, 0x417730, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessLineOfSight, 0x417950, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ProcessVerticalLine, 0x417BF0, { .State = state, .Locked = locked });
 
     ////
     // Rest
     ////
 
-    RH_ScopedInstall(Init, 0x416260, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(Shutdown, 0x4162E0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(Update, 0x411E20, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(SortOutCollisionAfterLoad, 0x411E30, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedGlobalInstall(CalculateColPointInsideBox, 0x411EC0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(PointInTriangle, 0x412700, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(DistToLineSqr, 0x412850, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(DistToMathematicalLine, 0x412970, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(DistToMathematicalLine2D, 0x412A30, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(DistAlongLine2D, 0x412A80, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(IsStoredPolyStillValidVerticalLine, 0x414D70, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(GetBoundingBoxFromTwoSpheres, 0x415230, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(IsThisVehicleSittingOnMe, 0x4152C0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(CheckCameraCollisionPeds, 0x415320, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(CheckPeds, 0x4154A0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedGlobalInstall(ResetMadeInvisibleObjects, 0x415540, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(SphereCastVsBBox, 0x415590, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(RayPolyPOP, 0x415620, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(GetPrincipleAxis, 0x4156D0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(PointInPoly, 0x415730, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(Closest3, 0x415950, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedGlobalInstall(ClosestSquaredDistanceBetweenFiniteLines, 0x415A40, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(SphereCastVersusVsPoly, 0x415CF0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(DistToLine, 0x417610, { .enabled = bEnableHooks, .locked = !bEnableHooks }); 
-    RH_ScopedInstall(SphereCastVsSphere, 0x417F20, { .locked = true }); // Can only be unhooked if `TestSphereSphere` is unhooked too, { .enabled = bEnableHooks, .locked = !bEnableHooks }
-    RH_ScopedInstall(ClosestPointOnLine, 0x417FD0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ClosestPointsOnPoly, 0x418100, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(ClosestPointOnPoly, 0x418150, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(SphereCastVsCaches, 0x4181B0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(SphereCastVsEntity, 0x419F00, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(SphereVsEntity, 0x41A5A0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(CheckCameraCollisionBuildings, 0x41A820, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(CheckCameraCollisionVehicles, 0x41A990, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(CheckCameraCollisionObjects, 0x41AB20, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(BuildCacheOfCameraCollision, 0x41AC40, { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedInstall(CameraConeCastVsWorldCollision, 0x41B000, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(Init, 0x416260, { .State = state, .Locked = locked });
+    RH_ScopedInstall(Shutdown, 0x4162E0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(Update, 0x411E20, { .State = state, .Locked = locked });
+    RH_ScopedInstall(SortOutCollisionAfterLoad, 0x411E30, { .State = state, .Locked = locked });
+    RH_ScopedGlobalInstall(CalculateColPointInsideBox, 0x411EC0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(PointInTriangle, 0x412700, { .State = state, .Locked = locked });
+    RH_ScopedInstall(DistToLineSqr, 0x412850, { .State = state, .Locked = locked });
+    RH_ScopedInstall(DistToMathematicalLine, 0x412970, { .State = state, .Locked = locked });
+    RH_ScopedInstall(DistToMathematicalLine2D, 0x412A30, { .State = state, .Locked = locked });
+    RH_ScopedInstall(DistAlongLine2D, 0x412A80, { .State = state, .Locked = locked });
+    RH_ScopedInstall(IsStoredPolyStillValidVerticalLine, 0x414D70, { .State = state, .Locked = locked });
+    RH_ScopedInstall(GetBoundingBoxFromTwoSpheres, 0x415230, { .State = state, .Locked = locked });
+    RH_ScopedInstall(IsThisVehicleSittingOnMe, 0x4152C0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(CheckCameraCollisionPeds, 0x415320, { .State = state, .Locked = locked });
+    RH_ScopedInstall(CheckPeds, 0x4154A0, { .State = state, .Locked = locked });
+    RH_ScopedGlobalInstall(ResetMadeInvisibleObjects, 0x415540, { .State = state, .Locked = locked });
+    RH_ScopedInstall(SphereCastVsBBox, 0x415590, { .State = state, .Locked = locked });
+    RH_ScopedInstall(RayPolyPOP, 0x415620, { .State = state, .Locked = locked });
+    RH_ScopedInstall(GetPrincipleAxis, 0x4156D0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(PointInPoly, 0x415730, { .State = state, .Locked = locked });
+    RH_ScopedInstall(Closest3, 0x415950, { .State = state, .Locked = locked });
+    RH_ScopedGlobalInstall(ClosestSquaredDistanceBetweenFiniteLines, 0x415A40, { .State = state, .Locked = locked });
+    RH_ScopedInstall(SphereCastVersusVsPoly, 0x415CF0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(DistToLine, 0x417610, { .State = state, .Locked = locked }); 
+    RH_ScopedInstall(SphereCastVsSphere, 0x417F20, { .Locked = true }); // Can only be unhooked if `TestSphereSphere` is unhooked, eg { .State = state, .Locked = locked }
+    RH_ScopedInstall(ClosestPointOnLine, 0x417FD0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ClosestPointsOnPoly, 0x418100, { .State = state, .Locked = locked });
+    RH_ScopedInstall(ClosestPointOnPoly, 0x418150, { .State = state, .Locked = locked });
+    RH_ScopedInstall(SphereCastVsCaches, 0x4181B0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(SphereCastVsEntity, 0x419F00, { .State = state, .Locked = locked });
+    RH_ScopedInstall(SphereVsEntity, 0x41A5A0, { .State = state, .Locked = locked });
+    RH_ScopedInstall(CheckCameraCollisionBuildings, 0x41A820, { .State = state, .Locked = locked });
+    RH_ScopedInstall(CheckCameraCollisionVehicles, 0x41A990, { .State = state, .Locked = locked });
+    RH_ScopedInstall(CheckCameraCollisionObjects, 0x41AB20, { .State = state, .Locked = locked });
+    RH_ScopedInstall(BuildCacheOfCameraCollision, 0x41AC40, { .State = state, .Locked = locked });
+    RH_ScopedInstall(CameraConeCastVsWorldCollision, 0x41B000, { .State = state, .Locked = locked });
 
-    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "colData", 0x416330, void (*)(CCollisionData*), { .enabled = bEnableHooks, .locked = !bEnableHooks });
-    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "colData", 0x416400, void (*)(CCollisionData*), { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "colData", 0x416330, void (*)(CCollisionData*), { .State = state, .Locked = locked });
+    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "colData", 0x416400, void (*)(CCollisionData*), { .State = state, .Locked = locked });
 }
 
 void CCollision::Tests(int32 i) {

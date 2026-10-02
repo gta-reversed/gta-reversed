@@ -39,6 +39,6 @@ public:
         RH_ScopedClass(CPedGroupDefaultTaskAllocators);
         RH_ScopedCategory("Tasks/Allocators/PedGroup");
 
-        //RH_ScopedInstall(Get, 0x5F7200, { .enabled = false, .locked = true }); // Spoils <ecx>, can't hook
+        //RH_ScopedInstall(Get, 0x5F7200, { .State = HS::RedirectToGTA, .Locked = true }); // Spoils <ecx>, can't hook
     }
 };

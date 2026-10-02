@@ -20,7 +20,7 @@ void ImGuiDebugModule::RenderWindow() {
         const notsa::ui::ScopedWindow wnd{ "Confirm UI Renderer Restart", {200.f, 150.f}, m_RequestedRestart, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize };
         if (m_RequestedRestart) {
             if (Button("Confirm")) {
-                ::notsa::ui::UIRenderer::GetSingleton().RequestReInit();
+                ::notsa::ui::UIRenderer::GetInstance().RequestReInit();
             }
             SameLine();
             if (Button("Decline")) {

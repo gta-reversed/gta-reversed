@@ -79,7 +79,7 @@ void CTaskAllocatorKillThreatsBasic::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x69C710);
     RH_ScopedInstall(Destructor, 0x69C780);
 
-    RH_ScopedGlobalInstall(ComputeClosestPeds, 0x69C850, { .reversed = false });
+    RH_ScopedGlobalInstall(ComputeClosestPeds, 0x69C850, { .Reversed = false });
     RH_ScopedVMTInstall(GetType, 0x69C770);
     RH_ScopedVMTInstall(AllocateTasks, 0x69D170);
     RH_ScopedVMTInstall(ProcessGroup, 0x69C7E0);
