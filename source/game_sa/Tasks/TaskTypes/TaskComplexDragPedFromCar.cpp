@@ -7,7 +7,7 @@ void CTaskComplexDragPedFromCar__InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedVMTInstall(ControlSubTask, 0x640530);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00, { .Reversed = false });
 }
 
 // 0x640430

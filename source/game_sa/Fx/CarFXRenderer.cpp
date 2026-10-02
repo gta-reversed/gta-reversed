@@ -9,7 +9,7 @@ void CCarFXRenderer::InjectHooks() {
 
     RH_ScopedInstall(RegisterPlugins, 0x5D5B00);
     RH_ScopedInstall(Initialise, 0x5D5AC0);
-    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .reversed = false });
+    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .Reversed = false });
     RH_ScopedInstall(Shutdown, 0x5D5AD0);
     RH_ScopedInstall(PreRenderUpdate, 0x5D5B10);
     RH_ScopedInstall(IsCCPCPipelineAttached, 0x5D5B80);
