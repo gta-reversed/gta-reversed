@@ -1,3 +1,7 @@
+# NOTE/TODO: 
+# Keeping this at 3.x.x because 
+# that's what ubuntu-latest image has
+# once the image has updated we need to bump this to 4.2.0
 cmake_minimum_required(VERSION 3.2.0 FATAL_ERROR)
 
 #
@@ -43,11 +47,13 @@ if (DOXYGEN_FOUND)
         "addr=\\par Memory address: "
         "size=\\par Structure size: "
     )
-
+    
+    # A bit hacky, but it's ok - If the generated path isn't correct there will be no (meaningful) output
+    SET(REPO_ROOT "${CMAKE_SOURCE_DIR}/../../")
     doxygen_add_docs(docs
-        ${CMAKE_CURRENT_SOURCE_DIR}/source
-        ${PROJECT_SOURCE_DIR}/docs
-        ${PROJECT_SOURCE_DIR}/README.md
+        ${REPO_ROOT}/source
+        ${REPO_ROOT}/docs
+        ${REPO_ROOT}/README.md
     )
 else (DOXYGEN_FOUND)
     message("Doxygen need to be installed to generate the doxygen documentation")
