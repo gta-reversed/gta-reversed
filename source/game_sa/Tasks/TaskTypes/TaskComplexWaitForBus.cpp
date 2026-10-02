@@ -11,11 +11,11 @@ void CTaskComplexWaitForBus::InjectHooks() {
 
     RH_ScopedInstall(Destructor, 0x632930);
 
-    RH_ScopedVMTInstall(Clone, 0x636A60, {.reversed = false});
-    RH_ScopedVMTInstall(GetTaskType, 0x632920, {.reversed = false});
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x632940, {.reversed = false});
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x638940, {.reversed = false});
-    RH_ScopedVMTInstall(ControlSubTask, 0x632A40, {.reversed = false});
+    RH_ScopedVMTInstall(Clone, 0x636A60, {.Reversed = false});
+    RH_ScopedVMTInstall(GetTaskType, 0x632920, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x632940, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x638940, {.Reversed = false});
+    RH_ScopedVMTInstall(ControlSubTask, 0x632A40, {.Reversed = false});
 }
 
 CTaskComplexWaitForBus::CTaskComplexWaitForBus(const CTaskComplexWaitForBus& o) :

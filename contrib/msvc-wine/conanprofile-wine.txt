@@ -1,11 +1,4 @@
-[settings]
-arch=x86
-build_type=Debug
-compiler=msvc
-compiler.cppstd=23
-compiler.runtime=static
-compiler.version=194
-os=Windows
+include(../../conan/profiles/windows-msvc.txt)
 
 [options]
 # Disable libusb in SDL3 — it uses MSBuild (.vcxproj) which we don't have
@@ -15,3 +8,6 @@ sdl/*:libusb=False
 tools.cmake.cmaketoolchain:generator=Ninja
 tools.cmake.cmaketoolchain:user_toolchain=["/opt/msvc/toolchain-msvc-wine.cmake"]
 tools.build:compiler_executables={"c": "/opt/msvc/bin/x86/cl", "cpp": "/opt/msvc/bin/x86/cl"}
+tools.cmake.cmaketoolchain:extra_variables={
+    "GTASA_NO_EDIT_AND_CONTINUE": "ON"
+}

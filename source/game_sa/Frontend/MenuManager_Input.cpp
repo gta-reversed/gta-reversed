@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-#include <SDL3/SDL.h>
-
 #include "MenuManager.h"
 #include "MenuManager_Internal.h"
 #include "MenuSystem.h"

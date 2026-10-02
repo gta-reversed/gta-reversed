@@ -5,33 +5,33 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedClass(InteriorGroup_c);
     RH_ScopedCategory("Interior");
 
-    //RH_ScopedInstall(Constructor, 0x597FE0, { .reversed = false });
-    //RH_ScopedInstall(Destructor, 0x597FF0, { .reversed = false });
+    //RH_ScopedInstall(Constructor, 0x597FE0, { .Reversed = false });
+    //RH_ScopedInstall(Destructor, 0x597FF0, { .Reversed = false });
 
-    RH_ScopedInstall(Init, 0x5947E0, { .reversed = false });
-    RH_ScopedInstall(Update, 0x5968E0, { .reversed = false });
-    RH_ScopedInstall(SetupPeds, 0x596890, { .reversed = false });
-    RH_ScopedInstall(UpdatePeds, 0x596830, { .reversed = false });
-    RH_ScopedInstall(SetupHousePeds, 0x5965E0, { .reversed = false });
-    RH_ScopedInstall(SetupPaths, 0x595590, { .reversed = false });
-    RH_ScopedInstall(ArePathsLoaded, 0x595380, { .reversed = false });
-    RH_ScopedInstall(Setup, 0x595320, { .reversed = false });
-    RH_ScopedInstall(Exit, 0x595290, { .reversed = false });
-    RH_ScopedInstall(ContainsInteriorType, 0x595250, { .reversed = false });
-    RH_ScopedInstall(CalcIsVisible, 0x595200, { .reversed = false });
+    RH_ScopedInstall(Init, 0x5947E0, { .Reversed = false });
+    RH_ScopedInstall(Update, 0x5968E0, { .Reversed = false });
+    RH_ScopedInstall(SetupPeds, 0x596890, { .Reversed = false });
+    RH_ScopedInstall(UpdatePeds, 0x596830, { .Reversed = false });
+    RH_ScopedInstall(SetupHousePeds, 0x5965E0, { .Reversed = false });
+    RH_ScopedInstall(SetupPaths, 0x595590, { .Reversed = false });
+    RH_ScopedInstall(ArePathsLoaded, 0x595380, { .Reversed = false });
+    RH_ScopedInstall(Setup, 0x595320, { .Reversed = false });
+    RH_ScopedInstall(Exit, 0x595290, { .Reversed = false });
+    RH_ScopedInstall(ContainsInteriorType, 0x595250, { .Reversed = false });
+    RH_ScopedInstall(CalcIsVisible, 0x595200, { .Reversed = false });
     RH_ScopedInstall(DereferenceAnims, 0x595160);
     RH_ScopedInstall(ReferenceAnims, 0x5950D0);
-    RH_ScopedInstall(UpdateOfficePeds, 0x594E90, { .reversed = false });
-    RH_ScopedInstall(RemovePed, 0x594E30, { .reversed = false });
-    RH_ScopedInstall(SetupShopPeds, 0x594C10, { .reversed = false });
-    RH_ScopedInstall(SetupOfficePeds, 0x594BF0, { .reversed = false });
-    RH_ScopedInstall(GetEntity, 0x594BD0, { .reversed = false });
-    RH_ScopedInstall(GetPed, 0x594B90, { .reversed = false });
-    RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50, { .reversed = false });
-    RH_ScopedInstall(FindInteriorInfo, 0x594970, { .reversed = false });
-    RH_ScopedInstall(GetNumInteriorInfos, 0x594920, { .reversed = false });
-    RH_ScopedInstall(GetRandomInterior, 0x5948C0, { .reversed = false });
-    RH_ScopedInstall(AddInterior, 0x594840, { .reversed = false });
+    RH_ScopedInstall(UpdateOfficePeds, 0x594E90, { .Reversed = false });
+    RH_ScopedInstall(RemovePed, 0x594E30, { .Reversed = false });
+    RH_ScopedInstall(SetupShopPeds, 0x594C10, { .Reversed = false });
+    RH_ScopedInstall(SetupOfficePeds, 0x594BF0, { .Reversed = false });
+    RH_ScopedInstall(GetEntity, 0x594BD0, { .Reversed = false });
+    RH_ScopedInstall(GetPed, 0x594B90, { .Reversed = false });
+    RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50, { .Reversed = false });
+    RH_ScopedInstall(FindInteriorInfo, 0x594970, { .Reversed = false });
+    RH_ScopedInstall(GetNumInteriorInfos, 0x594920, { .Reversed = false });
+    RH_ScopedInstall(GetRandomInterior, 0x5948C0, { .Reversed = false });
+    RH_ScopedInstall(AddInterior, 0x594840, { .Reversed = false });
 }
 
 // 0x5947E0

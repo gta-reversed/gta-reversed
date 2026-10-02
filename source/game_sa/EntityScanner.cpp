@@ -10,7 +10,7 @@ void CEntityScanner::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x603480);
 
     RH_ScopedInstall(Clear, 0x5FF9D0);
-    RH_ScopedInstall(ScanForEntitiesInRange, 0x5FFA20, { .reversed = false });
+    RH_ScopedInstall(ScanForEntitiesInRange, 0x5FFA20, { .Reversed = false });
 }
 
 // 0x5FF990

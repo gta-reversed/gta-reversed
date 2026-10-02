@@ -40,8 +40,5 @@ Check if the `cl` wrapper works: `/opt/msvc/bin/x86/cl 2>&1 | head -3`. You shou
 ### 7. Copy `toolchain-msvc-wine.cmake` into the `/opt/msvc` directory:
 `cp toolchain-msvc-wine.cmake /opt/msvc`
 
-### 8. Copy the profile into the project root directory:
-`cp conanprofile-wine.txt ../..`
-
-### 9. Profit
-You should be able to run `python setup.py` to setup and build with the `--build` parameter.
+### 8. Profit
+You should be able to run `python setup.py --profile contrib/msvc-wine/conanprofile-wine.txt` to setup and build with the `--build` parameter.

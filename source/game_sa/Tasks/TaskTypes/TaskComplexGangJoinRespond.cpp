@@ -10,11 +10,11 @@ void CTaskComplexGangJoinRespond::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6616F0);
     RH_ScopedInstall(Destructor, 0x661720);
 
-    RH_ScopedVMTInstall(Clone, 0x662290, { .reversed = false });
-    RH_ScopedVMTInstall(MakeAbortable, 0x661790, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6617A0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6618D0, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x661950, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x662290, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x661790, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6617A0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6618D0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x661950, { .Reversed = false });
 }
 
 // 0x6616F0

@@ -16,7 +16,7 @@ void CConversations::InjectHooks() {
     RH_ScopedInstall(AwkwardSay, 0x43A810);
     RH_ScopedInstall(EnableConversation, 0x43A7F0);
     RH_ScopedInstall(StartSettingUpConversation, 0x43A840);
-    RH_ScopedInstall(DoneSettingUpConversation, 0x43ADB0, {.reversed = false});
+    RH_ScopedInstall(DoneSettingUpConversation, 0x43ADB0, {.Reversed = false});
 }
 
 // 0x43A7B0
