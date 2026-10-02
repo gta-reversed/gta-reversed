@@ -407,8 +407,12 @@ void CWeather::Update() {
     const auto IsFoggySF = [](eWeatherType wt) {
         return wt == WEATHER_FOGGY_SF;
     };
-    const auto BlendOf = [](auto&& Pred) { // 1 while both the old and the new weather satisfy `Pred`, fading with `InterpolationValue` otherwise
-        return lerp(Pred(OldWeatherType) ? 1.0f : 0.0f, Pred(NewWeatherType) ? 1.0f : 0.0f, InterpolationValue);
+    const auto LerpOldToNew = [](auto&& Pred) {
+        const auto from = Pred(OldWeatherType) ? 1.0f : 0.0f;
+        const auto to   = Pred(NewWeatherType) ? 1.0f : 0.0f;
+        return from == to
+            ? to
+            : lerp(from, to, InterpolationValue);
     };
 
     if (CTimer::GetFrameCounter() % 16 == 0) {
@@ -437,7 +441,7 @@ void CWeather::Update() {
     // TODO: FPS dependent logic
     // The burst length is counted in frames via `CTimer::GetFrameCounter()`,
     // and the start/stop chances are rolled once per frame
-    if (IsRainy(NewWeatherType) && IsRainy(OldWeatherType) && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && UnderWaterness <= 0.0f && CGame::CanSeeOutSideFromCurrArea()) {
+    if (IsRainy(NewWeatherType) && IsRainy(OldWeatherType) && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && !IsUnderWater() && CGame::CanSeeOutSideFromCurrArea()) {
         if (LightningBurst) {
             if (CGeneral::RandomBool(9.4f)) { // 24 / 256 * 100 ~ 9.4
                 LightningBurst = false;
@@ -482,30 +486,30 @@ void CWeather::Update() {
 
     Rain = notsa::step_to(
         Rain,
-        intensity * BlendOf(IsRainy),
+        intensity * LerpOldToNew(IsRainy),
         step
     );
 
     // 0x72BC98
     Sandstorm = notsa::step_to(
         Sandstorm,
-        intensity * BlendOf(IsSandstorm),
+        intensity * LerpOldToNew(IsSandstorm),
         step
     );
 
     // 0x72BD11
-    CloudCoverage = BlendOf([&](eWeatherType wt) {
+    CloudCoverage = LerpOldToNew([&](eWeatherType wt) {
         return !IsSunny(wt) && !IsExtraSunny(wt);
     });
 
     // 0x72BDD1
-    Foggyness = BlendOf(IsFoggy);
+    Foggyness = LerpOldToNew(IsFoggy);
 
     // 0x72BE19
-    Foggyness_SF = BlendOf(IsFoggySF);
+    Foggyness_SF = LerpOldToNew(IsFoggySF);
 
     // 0x72BE55
-    ExtraSunnyness = BlendOf(IsExtraSunny);
+    ExtraSunnyness = LerpOldToNew(IsExtraSunny);
 
     // 0x72BECB
     Rainbow = IsCloudy(OldWeatherType) && IsSunny(NewWeatherType) && InterpolationValue < 0.5f && CClock::GetGameClockHours() > 6 && CClock::GetGameClockHours() < 21
@@ -513,7 +517,7 @@ void CWeather::Update() {
         : 0.0f;
 
     // 0x72BF63
-    SunGlare = BlendOf([&](eWeatherType wt) {
+    SunGlare = LerpOldToNew([&](eWeatherType wt) {
         return IsExtraSunny(wt) || IsSunny(wt);
     });
 
@@ -527,7 +531,7 @@ void CWeather::Update() {
     }
 
     // 0x72C0FB
-    HeatHaze = BlendOf(IsHeatHazy);
+    HeatHaze = LerpOldToNew(IsHeatHazy);
 
     // 0x72C157
     if (HeatHaze > 0.0f) {
@@ -603,7 +607,7 @@ void CWeather::Update() {
         return lerp(WIND_DIR_OFFSETS[idx % std::size(WIND_DIR_OFFSETS)], WIND_DIR_OFFSETS[(idx + 1) % std::size(WIND_DIR_OFFSETS)], t);
     };
 
-    const auto slowIdx = (timeMs >> 10) % std::size(WIND_DIR_OFFSETS);
+    const auto slowIdx = (timeMs / 1024) % std::size(WIND_DIR_OFFSETS);
     const auto slowT   = 0.5f - std::cos((float)(timeMs % 1024) / 1024.0f * PI) * 0.5f;
     auto windX = LerpWindDirOffset(slowIdx, slowT) * WindClipped * 0.4f + WindDir.x;
     auto windY = LerpWindDirOffset(slowIdx + 3, slowT) * WindClipped * 0.4f + WindDir.y;
@@ -611,7 +615,7 @@ void CWeather::Update() {
 
     // 0x72C4F5
     if (const auto gust = (WindClipped - 0.5f) * 0.4f; gust > 0.0f) {
-        const auto fastIdx = (timeMs >> 8) % std::size(WIND_DIR_OFFSETS);
+        const auto fastIdx = (timeMs / 256) % std::size(WIND_DIR_OFFSETS);
         const auto fastT   = (float)(timeMs % 256) / 256.0f;
         windX     += LerpWindDirOffset(fastIdx, fastT) * gust;
         windY     += LerpWindDirOffset(fastIdx + 3, fastT) * gust;
@@ -619,7 +623,7 @@ void CWeather::Update() {
     }
 
     // 0x72C5B6
-    const auto scaleIdx = (timeMs >> 11) % std::size(WIND_DIR_SCALES);
+    const auto scaleIdx = (timeMs / 2048) % std::size(WIND_DIR_SCALES);
     const auto scaleT   = 0.5f - std::cos((float)(timeMs % 2048) / 2048.0f * PI) * 0.5f;
     const auto scale    = lerp(WIND_DIR_SCALES[scaleIdx], WIND_DIR_SCALES[(scaleIdx + 1) % std::size(WIND_DIR_SCALES)], scaleT);
     WindDir.x  = scale * windX;
