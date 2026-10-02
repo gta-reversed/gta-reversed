@@ -10,7 +10,7 @@ void C3dMarkers::InjectHooks() {
     RH_ScopedClass(C3dMarkers);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Init, 0x724E40);
+    RH_ScopedInstall(Init, 0x724E40, { .Locked = true });
     RH_ScopedInstall(Update, 0x7227B0);
     RH_ScopedInstall(Shutdown, 0x722710);
     RH_ScopedInstall(Render, 0x725040);
@@ -34,27 +34,7 @@ void C3dMarkers::InjectHooks() {
 
 //> 0x724E40
 void C3dMarkers::Init() {
-    // Don't assign `m_Mat`, its attached matrix may be stale after a restart
-    for (auto& marker : m_aMarkerArray) {
-        marker.m_Atomic        = nullptr;
-        marker.m_Type          = MARKER3D_NA;
-        marker.m_IsInUse       = false;
-        marker.m_IsActive      = false;
-        marker.m_ID            = 0;
-        marker.m_Color         = CRGBA{ 255, 255, 255, 255 };
-        marker.m_PulsePeriod   = 1'024;
-        marker.m_RotateRate    = 5;
-        marker.m_StartTime     = 0;
-        marker.m_PulseFraction = 0.25f;
-        marker.m_StdSize       = 1.0f;
-        marker.m_Size          = 1.0f;
-        marker.m_Brightness    = 1.0f;
-        marker.m_DistToCam2D   = 0.0f;
-        marker.m_Normal        = CVector{ 0.0f, 0.0f, 1.0f };
-        marker.m_LastMapReadX  = 30'000;
-        marker.m_RoofHeight    = 65535.0f;
-        marker.m_LastPosition  = CVector{ 0.0f, 0.0f, 0.0f };
-    }
+    rng::fill(m_aMarkerArray, C3dMarker{});
 
     NumActiveMarkers = 0;
     m_angleDiamondDeg = 0.0f;
