@@ -56,7 +56,6 @@ void HooksDebugModule::FilteringThread() {
             continue; // Nothing to filter
         }
         /* Hold lock until we finish */
-        const auto now = FilterClock::now();
         RListFilterer{ std::move(m_FilterProcessor.HookFilter) }.Process(*m_RenderList.RootCategory);
         RListSorter{}.Process(*m_RenderList.RootCategory);
         m_FilterProcessor.FinishedAt        = FilterClock::now();
