@@ -14,6 +14,12 @@ public:
     //! Request restart of render (done on before frame)
     void RequestReInit() { m_ReInitRequested = true; }
 
+    //! TODO: Move this out of here. Make an event manager or something
+    template<typename T>
+    void HandleEvent(const T& event) {
+        m_DebugModules.HandleEvent(event);
+    }
+
     //! Same as ImGui::GetIO(), but won't crash the code if called before ctx is created
     auto GetImIO() const { return m_ImIO; }
 
