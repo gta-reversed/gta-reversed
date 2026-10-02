@@ -10,7 +10,7 @@
 
 #include "eWeatherType.h"
 #include "PostEffects.h"
-#include "game_sa/Data/Weather.def"
+#include "game_sa/Data/Weather.def.h"
 
 // 0x8CCF30
 std::array<float, 16> CWeather::saTreeWindOffsets = { 1.0f, 0.5f, 0.2f, 0.7f, 0.4f, 1.0f, 0.5f, 0.3f, 0.2f, 0.1f, 0.7f, 0.6f, 0.3f, 1.0f, 0.5f, 0.2f };
