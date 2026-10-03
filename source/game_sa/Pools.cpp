@@ -309,7 +309,7 @@ bool CPools::SaveObjectPool() {
         return object.m_nObjectType == OBJECT_MISSION;
     };
 
-    CGenericGameStorage::SaveDataToWorkBuffer<int32>(rng::count_if(GetObjectPool()->GetAllValid(), ShouldSave));
+    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetObjectPool()->GetAllValid(), ShouldSave));
     for (auto& object : GetObjectPool()->GetAllValid()) {
         if (!ShouldSave(object)) {
             continue;
@@ -327,7 +327,7 @@ bool CPools::SavePedPool() {
         return !ped.bInVehicle && ped.m_nPedType == PED_TYPE_PLAYER1;
     };
 
-    CGenericGameStorage::SaveDataToWorkBuffer<int32>(rng::count_if(GetPedPool()->GetAllValid(), ShouldSave));
+    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetPedPool()->GetAllValid(), ShouldSave));
     for (auto& ped : GetPedPool()->GetAllValid()) {
         if (!ShouldSave(ped)) {
             continue;
@@ -349,7 +349,7 @@ bool CPools::SaveVehiclePool() {
             && !vehicle.HasDriver();
     };
 
-    CGenericGameStorage::SaveDataToWorkBuffer<int32>(rng::count_if(GetVehiclePool()->GetAllValid(), ShouldSave));
+    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetVehiclePool()->GetAllValid(), ShouldSave));
     for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
         if (!ShouldSave(vehicle)) {
             continue;
