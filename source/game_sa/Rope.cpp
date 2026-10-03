@@ -9,11 +9,11 @@ void CRope::InjectHooks() {
 
     RH_ScopedInstall(ReleasePickedUpObject, 0x556030);
     RH_ScopedInstall(CreateHookObjectForRope, 0x556070);
-    RH_ScopedInstall(UpdateWeightInRope, 0x5561B0, { .reversed = false });
+    RH_ScopedInstall(UpdateWeightInRope, 0x5561B0, { .Reversed = false });
     RH_ScopedInstall(Remove, 0x556780);
     RH_ScopedInstall(Render, 0x556800);
     RH_ScopedInstall(PickUpObject, 0x5569C0);
-    RH_ScopedInstall(Update, 0x557530, { .reversed = false });
+    RH_ScopedInstall(Update, 0x557530, { .Reversed = false });
 }
 
 // inlined see 0x557959

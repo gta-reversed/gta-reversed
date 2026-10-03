@@ -3,6 +3,7 @@
 #include <charconv>
 #include <initializer_list>
 #include <Vector.h>
+#include <optional>
 #include <unordered_map>
 #include "Base.h"
 #include <game_sa/Timer.h>
@@ -120,10 +121,12 @@ T coalesce(T a, T b) {
 * @param end   The end of the the number in the string (points to inside `sv`)
 */
 template<std::integral T>
-T ston(std::string_view str, int radix = 10, const char** end = nullptr) {
+std::optional<T> try_ston(std::string_view str, int radix = 10, const char** end = nullptr) {
     T out;
     const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), out, radix);
-    assert(ec == std::errc{});
+    if (ec != std::errc{}) {
+        return std::nullopt;
+    }
     if (end) {
         *end = ptr;
     }
@@ -138,10 +141,12 @@ T ston(std::string_view str, int radix = 10, const char** end = nullptr) {
 */
 template<typename T>
     requires std::is_floating_point_v<T>
-T ston(std::string_view str, std::chars_format fmt = std::chars_format::general, const char** end = nullptr) {
+std::optional<T> try_ston(std::string_view str, std::chars_format fmt = std::chars_format::general, const char** end = nullptr) {
     T out;
     const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), out, fmt);
-    assert(ec != std::errc{});
+    if (ec != std::errc{}) {
+        return std::nullopt;
+    }
     if (end) {
         *end = ptr;
     }
@@ -384,11 +389,13 @@ template<typename T>
 inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_type_v<T, bool, char, wchar_t, char8_t, char16_t, char32_t>;
 
 //! Null terminated `std::format_to`. Use inplace of sprintf.
-//! NOTE: Not a complete replacement for std::format_to,
-//! e.g. it doesn't use output iterators. i don't care.
+//! Returns end of formatted string
+//! Truncates string to at most N - 1 characters
 template<size_t N, class... Args>
-void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
-    *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
+char* format_to_sz(char(&buf)[N], std::format_string<Args...> fmt, Args&&... args) {
+    const auto [out, n] = std::format_to_n(buf, N - 1, fmt, std::forward<Args>(args)...);
+    *out = 0;
+    return out;
 }
 
 //! Reads a pointer as specified type.
@@ -464,5 +471,26 @@ concept is_specialization_of = requires ( std::remove_cvref_t<T> t )
   // Check an immediately invoked lambda can compile 
   []<typename... Args> ( Template<Args...>& ) {} ( t ); 
 };
+
+/*!
+ * @brief Round number up to the nearest multiple of `multiple`
+ */
+template<std::integral T>
+T round_up_to_multiple(T value, T multiple) {
+    assert(multiple > 0);
+    return ((value + multiple - 1) / multiple) * multiple;
+}
+
+template<typename F, typename R, typename... Args>
+concept invocable_returning = std::invocable<F, Args...> && std::same_as<std::invoke_result_t<F, Args...>, R>;
+
+inline std::string_view trim_string(std::string_view str, std::string_view space = " \t\n\r") {
+    const auto first = str.find_first_not_of(space);
+    if (first == std::string_view::npos) {
+        return {};
+    }
+    const auto last = str.find_last_not_of(space);
+    return str.substr(first, last - first + 1);
+}
 
 }; // namespace notsa

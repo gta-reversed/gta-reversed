@@ -12,7 +12,7 @@ void CTaskComplexDiveFromAttachedEntityAndGetUp::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x492EE0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6577F0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x657820);
-    RH_ScopedVMTInstall(ControlSubTask, 0x655710);
+    RH_ScopedVMTInstall(ControlSubTask, 0x655710, { .Overrides = false });
 }
 
 // 0x492E20

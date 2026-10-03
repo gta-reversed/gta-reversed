@@ -8,7 +8,7 @@ void CAEPedAudioEntity::InjectHooks() {
     RH_ScopedClass(CAEPedAudioEntity);
     RH_ScopedCategory("Audio/Entities");
 
-    //RH_ScopedInstall(Constructor, 0x5DE8D0, { .reversed = false });
+    //RH_ScopedInstall(Constructor, 0x5DE8D0, { .Reversed = false });
 
     RH_ScopedInstall(Initialise, 0x4E0E80);
     RH_ScopedInstall(StaticInitialise, 0x5B98A0);
@@ -23,13 +23,13 @@ void CAEPedAudioEntity::InjectHooks() {
     RH_ScopedInstall(HandleFootstepEvent, 0x4E13A0);
     RH_ScopedInstall(HandleSkateEvent, 0x4E17E0);
     RH_ScopedInstall(HandleLandingEvent, 0x4E18E0);
-    RH_ScopedInstall(HandlePedSwing, 0x4E1A40, { .reversed = false });
-    RH_ScopedInstall(HandlePedHit, 0x4E1CC0, { .reversed = false });
-    RH_ScopedInstall(HandlePedJacked, 0x4E2350, { .reversed = false });
+    RH_ScopedInstall(HandlePedSwing, 0x4E1A40, { .Reversed = false });
+    RH_ScopedInstall(HandlePedHit, 0x4E1CC0, { .Reversed = false });
+    RH_ScopedInstall(HandlePedJacked, 0x4E2350, { .Reversed = false });
     RH_ScopedInstall(HandleSwimSplash, 0x4E26A0);
     RH_ScopedInstall(HandleSwimWake, 0x4E2790);
     RH_ScopedInstall(PlayShirtFlap, 0x4E2A90);
-    RH_ScopedInstall(Service, 0x4E2EE0, { .reversed = false });
+    RH_ScopedInstall(Service, 0x4E2EE0, { .Reversed = false });
 }
 
 // 0x5DE8D0

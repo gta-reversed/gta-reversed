@@ -216,17 +216,17 @@ void CAEDataStream::InjectHooks() {
     // NOTSA: This class used Win32 file functions to deal with files, we converted
     // them to C-compatible ones. So all of them have to be locked.
 
-    RH_ScopedInstall(Constructor, 0x4dc620, {.locked = true});
-    RH_ScopedInstall(Destructor, 0x4dc490, {.locked = true});
-    RH_ScopedInstall(Initialise, 0x4dc2b0, {.locked = true});
-    RH_ScopedInstall(FillBuffer, 0x4dc1c0, {.locked = true});
-    RH_ScopedInstall(GetCurrentPosition, 0x4dc230, {.locked = true});
-    RH_ScopedOverloadedInstall(Seek, "OG", 0x4dc250, uint32(CAEDataStream::*)(long offset, int32 whence), {.locked = true});
+    RH_ScopedInstall(Constructor, 0x4dc620, {.Locked = true});
+    RH_ScopedInstall(Destructor, 0x4dc490, {.Locked = true});
+    RH_ScopedInstall(Initialise, 0x4dc2b0, {.Locked = true});
+    RH_ScopedInstall(FillBuffer, 0x4dc1c0, {.Locked = true});
+    RH_ScopedInstall(GetCurrentPosition, 0x4dc230, {.Locked = true});
+    RH_ScopedOverloadedInstall(Seek, "OG", 0x4dc250, uint32(CAEDataStream::*)(long offset, int32 whence), {.Locked = true});
 
     // IStream implementation. These depend on functions above so most of them don't have to be locked.
     RH_ScopedInstall(Read, 0x4dc320);
     RH_ScopedOverloadedInstall(Seek, "istream", 0x4dc340, HRESULT(__stdcall CAEDataStream::*)(LARGE_INTEGER, DWORD, ULARGE_INTEGER*));
-    RH_ScopedInstall(Stat, 0x4dc3a0, {.locked = false}); // Uses CFileMgr::GetTotalSize
+    RH_ScopedInstall(Stat, 0x4dc3a0, {.Locked = false}); // Uses CFileMgr::GetTotalSize
     RH_ScopedInstall(QueryInterface, 0x4dc410);
     RH_ScopedInstall(AddRef, 0x4dc460);
     RH_ScopedInstall(Write, 0x4dc4d0);
