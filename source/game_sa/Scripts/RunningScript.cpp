@@ -311,7 +311,7 @@ void CRunningScript::LocateCharObjectCommand(int32 commandId) {
     plugin::CallMethod<0x487720, CRunningScript*, int32>(this, commandId);
 }
 
-// 0x488EC0
+// 0x488EC0 - Not used in our code
 void CRunningScript::CarInAreaCheckCommand(int32 commandId) {
     plugin::CallMethod<0x488EC0, CRunningScript*, int32>(this, commandId);
 }
