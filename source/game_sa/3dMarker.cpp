@@ -3,6 +3,8 @@
 #include "3dMarker.h"
 #include "3dMarkers.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 void C3dMarker::InjectHooks() {
     RH_ScopedClass(C3dMarker);
     RH_ScopedCategoryGlobal();
@@ -77,7 +79,9 @@ void C3dMarker::DeleteMarkerObject() {
     // Destroy RW object
     const auto frame = RpAtomicGetFrame(m_Atomic);
     RpAtomicDestroy(m_Atomic);
-    m_Mat.Detach(); // FIX(#1514): Otherwise `C3dMarkers::Init` writes into the destroyed frame's matrix
+    if (notsa::bugfixes::GenericCrashing) {
+        m_Mat.Detach(); // FIX(#1514): Otherwise `C3dMarkers::Init` writes into the destroyed frame's matrix
+    }
     RwFrameDestroy(frame);
     m_Atomic = nullptr;
 }
