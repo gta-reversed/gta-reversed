@@ -61,7 +61,7 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880);
     RH_ScopedInstall(SaveObjectPool, 0x5D4940);
-    RH_ScopedInstall(SavePedPool, 0x5D4B40, { .Reversed = false });
+    RH_ScopedInstall(SavePedPool, 0x5D4B40);
     RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .Reversed = false });
 }
 
@@ -323,7 +323,21 @@ bool CPools::SaveObjectPool() {
 
 // 0x5D4B40
 bool CPools::SavePedPool() {
-    return plugin::CallAndReturn<bool, 0x5D4B40>();
+    const auto ShouldSave = [](const CPed& ped) {
+        return !ped.bInVehicle && ped.m_nPedType == PED_TYPE_PLAYER1;
+    };
+
+    CGenericGameStorage::SaveDataToWorkBuffer<int32>(rng::count_if(GetPedPool()->GetAllValid(), ShouldSave));
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (!ShouldSave(ped)) {
+            continue;
+        }
+        CGenericGameStorage::SaveDataToWorkBuffer(GetPedRef(&ped));
+        CGenericGameStorage::SaveDataToWorkBuffer<int32>(ped.GetModelId());
+        CGenericGameStorage::SaveDataToWorkBuffer(ped.m_nPedType);
+        ped.Save();
+    }
+    return true;
 }
 
 // 0x5D4800
