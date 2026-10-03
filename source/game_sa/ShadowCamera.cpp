@@ -11,13 +11,13 @@ void CShadowCamera::Destroy() {
     }
 
     if (auto frame = RwCameraGetFrame(m_pRwCamera)) {
-        rwObjectHasFrameSetFrame(frame, nullptr);
+        rwObjectHasFrameSetFrame(m_pRwCamera, nullptr);
         RwFrameDestroy(frame);
     }
 
     if (auto frameBuffer = GetRwRenderRaster()) {
-        RwRasterDestroy(frameBuffer);
         RwCameraSetRaster(m_pRwCamera, nullptr);
+        RwRasterDestroy(frameBuffer);
     }
 
     if (m_pRwRenderTexture) {

@@ -48,6 +48,8 @@ RwTexture* CRealTimeShadow::GetShadowRwTexture() {
 
 // 0x705990
 void CRealTimeShadow::Destroy() {
+    m_camera.Destroy();
+    m_blurCamera.Destroy();
     m_pOwner = nullptr;
     m_nRwObjectType = (uint32)-1;
     if (m_pLight) {
