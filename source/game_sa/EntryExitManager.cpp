@@ -430,6 +430,9 @@ bool CEntryExitManager::Load() {
             } else {
                 enex->m_pLink = nullptr;
             }
+        } else {
+            // 2dfx entry-exits are re-created by streaming after the load, the original skips their records too
+            NOTSA_LOG_WARN("CEntryExitManager::Load: No entry-exit in slot {}, skipping its record", enexIdx);
         }
 
         CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
