@@ -5,7 +5,13 @@
 #include "TaskSimpleGangDriveBy.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleDuck.h"
+#include "TaskSimpleSwim.h"
+#include "PedModelInfo.h"
+#include "Scene.h"
+#include "Collision.h"
+#include "WaterLevel.h"
 #include "Hud.h"
+#include "HandShaker.h"
 
 auto& TheCamera = StaticRef<CCamera>(0xB6F028);
 auto& gbModelViewer = StaticRef<bool>(0xBA6728);
@@ -19,6 +25,7 @@ auto& gCurCamColVars = StaticRef<uint8>(0x8CCB80);
 auto& gCurDistForCam = StaticRef<float>(0x8CCB84);
 auto& gpCamColVars = StaticRef<float*>(0xB6FE88);
 auto& gCamColVars = StaticRef<float[28][6]>(0x8CC8E0);
+static auto& gLastRadiusUsedInCollisionPreventionOfCamera = StaticRef<float>(0xB6EC6C);
 
 CCam& CCamera::GetActiveCamera() {
     return TheCamera.m_aCams[TheCamera.m_nActiveCam];
@@ -77,7 +84,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(GetLookingLRBFirstPerson, 0x50AE60);
     RH_ScopedInstall(GetLookDirection, 0x50AE90);
     RH_ScopedInstall(GetLookingForwardFirstPerson, 0x50AED0);
-    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0, { .Reversed = false });
+    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0);
     RH_ScopedInstall(CalculateMirroredMatrix, 0x50B380);
     RH_ScopedInstall(DealWithMirrorBeforeConstructRenderList, 0x50B510);
     RH_ScopedInstall(ProcessFade, 0x50B5D0);
@@ -98,7 +105,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910);
     RH_ScopedInstall(TakeControlWithSpline, 0x50CAE0);
     RH_ScopedInstall(SetCamCollisionVarDataSet, 0x50CB60);
-    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .Reversed = false });
+    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90);
     RH_ScopedInstall(SetColVarsPed, 0x50CC50);
     RH_ScopedInstall(SetColVarsVehicle, 0x50CCA0);
     RH_ScopedInstall(StartTransitionWhenNotFinishedInter, 0x515BC0);
@@ -110,36 +117,37 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(IsExtraEntityToIgnore, 0x50CE80);
     RH_ScopedInstall(ConsiderPedAsDucking, 0x50CEB0);
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
-    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .Reversed = false });
-    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090, { .Reversed = false });
-    RH_ScopedInstall(VectorMoveLinear, 0x50D160, { .Reversed = false });
-    RH_ScopedInstall(VectorTrackLinear, 0x50D1D0, { .Reversed = false });
+    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0);
+    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090);
+    RH_ScopedInstall(VectorMoveLinear, 0x50D160);
+    RH_ScopedInstall(VectorTrackLinear, 0x50D1D0);
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
     RH_ScopedInstall(InitialiseScriptableComponents, 0x50D2D0);
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
     RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
-    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .Reversed = false });
-    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .Reversed = false });
-    RH_ScopedInstall(ImproveNearClip, 0x516B20, { .Reversed = false });
+    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60);
+    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0);
+    RH_ScopedOverloadedInstall(IsSphereVisible, "Matrix", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*));
+    RH_ScopedInstall(ImproveNearClip, 0x516B20);
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
     RH_ScopedInstall(ConeCastCollisionResolve, 0x51A5D0);
     RH_ScopedInstall(TryToStartNewCamMode, 0x51E560, { .Reversed = false });
-    RH_ScopedInstall(CameraColDetAndReact, 0x520190, { .Reversed = false });
+    RH_ScopedInstall(CameraColDetAndReact, 0x520190);
     RH_ScopedInstall(CamControl, 0x527FA0, { .Reversed = false });
     RH_ScopedInstall(Process, 0x52B730, { .Reversed = false });
     RH_ScopedInstall(DeleteCutSceneCamDataMemory, 0x5B24A0);
-    RH_ScopedInstall(LoadPathSplines, 0x5B24D0, { .Reversed = false });
+    RH_ScopedInstall(LoadPathSplines, 0x5B24D0);
     RH_ScopedInstall(Init, 0x5BC520);
 
-    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "0", 0x50D350, void(CCamera::*)(float), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "1", 0x516440, void(CCamera::*)(), {.Reversed = false});
-    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "0", 0x50D430, void(CCamera::*)(float), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "1", 0x5164A0, void(CCamera::*)(), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "0", 0x50D350, void(CCamera::*)(float));
+    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "1", 0x516440, void(CCamera::*)());
+    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "0", 0x50D430, void(CCamera::*)(float));
+    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "1", 0x5164A0, void(CCamera::*)());
+    RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float));
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)());
-    //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "Intensity", 0x516560, void(CCamera::*)(float));
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
 }
@@ -507,7 +515,69 @@ float CCamera::GetRoughDistanceToGround() {
 
 // 0x50AFA0
 void CCamera::CopyCameraMatrixToRWCam(bool bUpdateMatrix) {
-    return plugin::CallMethod<0x50AFA0, CCamera*, bool>(this, bUpdateMatrix);
+    static auto& gPrevCamRight = StaticRef<CVector>(0xB6FF90);
+    static auto& gPrevCamUp    = StaticRef<CVector>(0xB6FF9C);
+    static auto& gPrevCamAt    = StaticRef<CVector>(0xB6FFA8);
+    static auto& gPrevCamPos   = StaticRef<CVector>(0xB6FFB4);
+    static auto& gPrevCamInit  = StaticRef<uint32>(0xB6FFC0);
+
+    RwFrame*  frame  = RwCameraGetFrame(m_pRwCamera);
+    RwMatrix* matrix = RwFrameGetMatrix(frame);
+
+    if (!bUpdateMatrix) {
+        m_mCameraMatrixOld.UpdateMatrix(matrix);
+    }
+
+    matrix->pos    = m_mCameraMatrix.GetPosition();
+    matrix->at     = m_mCameraMatrix.GetForward();
+    matrix->up     = m_mCameraMatrix.GetUp();
+    matrix->right  = m_mCameraMatrix.GetRight();
+
+    if (!(gPrevCamInit & 1)) {
+        gPrevCamInit |= 1;
+        gPrevCamPos = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+    if (!(gPrevCamInit & 2)) {
+        gPrevCamInit |= 2;
+        gPrevCamAt = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+    if (!(gPrevCamInit & 4)) {
+        gPrevCamInit |= 4;
+        gPrevCamUp = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+    if (!(gPrevCamInit & 8)) {
+        gPrevCamInit |= 8;
+        gPrevCamRight = CVector(-99999.0f, -99999.0f, -99999.0f);
+    }
+
+    static auto& positionSnapDistance = StaticRef<float>(0x8CCC7C);
+    static auto& orientationSnapDistance = StaticRef<float>(0x8CCC78);
+    if ((gPrevCamPos - matrix->pos).SquaredMagnitude() < positionSnapDistance * positionSnapDistance) {
+        matrix->pos = gPrevCamPos;
+    }
+    if ((gPrevCamAt - matrix->at).SquaredMagnitude() < orientationSnapDistance * orientationSnapDistance) {
+        matrix->at = gPrevCamAt;
+    }
+    if ((gPrevCamUp - matrix->up).SquaredMagnitude() < orientationSnapDistance * orientationSnapDistance) {
+        matrix->up = gPrevCamUp;
+    }
+    if ((gPrevCamRight - matrix->right).SquaredMagnitude() < orientationSnapDistance * orientationSnapDistance) {
+        matrix->right = gPrevCamRight;
+    }
+
+    gPrevCamPos   = matrix->pos;
+    gPrevCamAt    = matrix->at;
+    gPrevCamUp    = matrix->up;
+    gPrevCamRight = matrix->right;
+
+    RwMatrixUpdate(matrix);
+    RwFrameUpdateObjects(frame);
+    RwFrameOrthoNormalize(frame);
+
+    if (m_bResetOldMatrix && !bUpdateMatrix) {
+        m_mCameraMatrixOld.UpdateMatrix(matrix);
+        m_bResetOldMatrix = false;
+    }
 }
 
 // 0x50B380
@@ -1096,7 +1166,30 @@ void CCamera::TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType sw
 
 // 0x50C910
 void CCamera::TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float tilt, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
-    plugin::CallMethod<0x50C910, CCamera*, CEntity*, CEntity*, CVector*, CVector*, float, eSwitchType, int32>(this, target, attached, attachedCamOffset, attachedCamLookAt, tilt, switchType, whoIsInControlOfTheCamera);
+    if (whoIsInControlOfTheCamera == 2 && m_nWhoIsInControlOfTheCamera == 1) {
+        return;
+    }
+    m_nWhoIsInControlOfTheCamera = whoIsInControlOfTheCamera;
+    if (!attached) {
+        attached = FindPlayerVehicle();
+        if (!attached) {
+            attached = FindPlayerPed();
+        }
+    }
+    if (target) {
+        CEntity::ChangeEntityReference(m_pTargetEntity, target);
+        m_bLookingAtVector = false;
+    } else {
+        m_bLookingAtVector = true;
+        m_vecAttachedCamLookAt = *attachedCamLookAt != *attachedCamOffset ? *attachedCamLookAt : CVector{};
+    }
+    m_vecAttachedCamOffset = *attachedCamOffset == CVector{} ? CVector{0.0f, 0.0f, 2.0f} : *attachedCamOffset;
+    m_fAttachedCamAngle = tilt;
+    CEntity::ChangeEntityReference(m_pAttachedEntity, attached);
+    m_nModeToGoTo = MODE_ATTACHCAM;
+    m_nTypeOfSwitch = switchType;
+    m_bLookingAtPlayer = false;
+    m_bStartInterScript = true;
 }
 
 // 0x50CAE0
@@ -1122,7 +1215,17 @@ void CCamera::UpdateSoundDistances() {
 // unused
 // 0x50CB90
 void CCamera::SetNearClipBasedOnPedCollision(float arg2) {
-    plugin::CallMethod<0x50CB90, CCamera*, float>(this, arg2);
+    static auto& gSqrDistanceToNearestPed = StaticRef<float>(0xB6EC68);
+
+    static auto& distanceScale = StaticRef<float>(0x8CCC84);
+    static auto& maxClip = StaticRef<float>(0x8CCC80);
+
+    const float minClip = gpCamColVars[4];
+    float nearClip = std::sqrt(arg2) / gSqrDistanceToNearestPed * distanceScale * (maxClip - minClip) + minClip;
+    if (nearClip < minClip) {
+        nearClip = minClip;
+    }
+    RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
 }
 
 // TODO: eAimingType
@@ -1223,7 +1326,24 @@ bool CCamera::IsExtraEntityToIgnore(CEntity* entity) {
 
 // 0x420C40
 bool CCamera::IsSphereVisible(const CVector& origin, float radius, RwMatrix* transformMatrix) {
-    return plugin::CallMethodAndReturn<bool, 0x420C40, CCamera*, const CVector&, float, RwMatrix*>(this, origin, radius, transformMatrix);
+    CVector point = origin;
+    RwV3dTransformPoints(&point, &point, 1, transformMatrix);
+    if (point.y + radius < CDraw::ms_fNearClipZ || point.y - radius > CDraw::ms_fFarClipZ) {
+        return false;
+    }
+    for (size_t i = 0; i < 2; i++) {
+        const auto& normal = m_avecFrustumNormals[i];
+        if (point.x * normal.x + point.y * normal.y > radius) {
+            return false;
+        }
+    }
+    for (size_t i = 2; i < 4; i++) {
+        const auto& normal = m_avecFrustumNormals[i];
+        if (point.z * normal.z + point.y * normal.y > radius) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // 0x420D40 - NOTE: Function has no hook
@@ -1265,23 +1385,59 @@ void CCamera::ResetDuckingSystem(CPed* ped) {
 // arg5 always used as false
 // 0x50CFA0
 void CCamera::HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool arg5) {
-    plugin::CallMethod<0x50CFA0, CCamera*, CPed*, CVector*, CVector*, bool>(this, ped, source, targPosn, arg5);
+    static auto& stationaryHeight = StaticRef<float>(0x8CCB94);
+    static auto& movingHeight = StaticRef<float>(0x8CCB98);
+
+    float targetFactor = 0.0f;
+    if (ConsiderPedAsDucking(ped)) {
+        targetFactor = ped->m_vecMoveSpeed.SquaredMagnitude() <= sq(0.001f)
+            ? stationaryHeight - 1.0f
+            : movingHeight - 0.5f;
+    }
+    if (!arg5) {
+        m_fDuckCamMotionFactor += CTimer::GetTimeStep() * 0.1f * (targetFactor - m_fDuckCamMotionFactor);
+    }
+    if (source) {
+        source->z += m_fDuckCamMotionFactor;
+    }
+    if (targPosn) {
+        targPosn->z += m_fDuckCamMotionFactor;
+    }
 }
 
 // arg5 always used as false
 // 0x50D090
 void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, CVector* targPosn, bool arg5) {
-    plugin::CallMethod<0x50D090, CCamera*, CPed*, CVector*, CVector*, bool>(this, ped, source, targPosn, arg5);
+    const float targetFactor = ConsiderPedAsDucking(ped) ? -0.35f : 0.0f;
+    if (!arg5) {
+        m_fDuckAimCamMotionFactor += CTimer::GetTimeStep() * 0.13f * (targetFactor - m_fDuckAimCamMotionFactor);
+    }
+    if (source) {
+        source->z += m_fDuckAimCamMotionFactor;
+    }
+    if (targPosn) {
+        targPosn->z += m_fDuckAimCamMotionFactor;
+    }
 }
 
 // 0x50D160
 void CCamera::VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase) {
-    plugin::CallMethod<0x50D160, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bMoveLinearWithEase);
+    const float time = (float)CTimer::GetTimeInMS();
+    m_fMoveLinearStartTime = time;
+    m_fMoveLinearEndTime   = time + duration;
+    m_vecMoveLinearPosnStart = *from;
+    m_vecMoveLinearPosnEnd   = *to;
+    m_bMoveLinearWithEase    = bMoveLinearWithEase;
 }
 
 // 0x50D1D0
 void CCamera::VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase) {
-    plugin::CallMethod<0x50D1D0, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bEase);
+    const float time = (float)CTimer::GetTimeInMS();
+    m_fTrackLinearStartTime = time;
+    m_fTrackLinearEndTime   = time + duration;
+    m_vecTrackLinearEndPoint   = *from;
+    m_vecTrackLinearStartPoint = *to;
+    m_bTrackLinearWithEase     = bEase;
 }
 
 // 0x516400
@@ -1428,12 +1584,21 @@ void CCamera::ProcessWideScreenOn() {
 
 // 0x516440
 void CCamera::ProcessVectorTrackLinear() {
-    plugin::CallMethod<0x516440, CCamera*>(this);
+    const float now = (float)CTimer::GetTimeInMS();
+    if (now <= m_fTrackLinearEndTime) {
+        ProcessVectorTrackLinear(invLerp(m_fTrackLinearStartTime, m_fTrackLinearEndTime, now));
+    } else if (m_bCameraPersistTrack) {
+        m_bVecTrackLinearProcessed = true;
+    }
 }
 
 // 0x50D350
 void CCamera::ProcessVectorTrackLinear(float ratio) {
-    plugin::CallMethod<0x50D350, CCamera*, float>(this, ratio);
+    m_bVecTrackLinearProcessed = true;
+    const float t = m_bTrackLinearWithEase
+        ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
+        : ratio;
+    m_vecTrackLinear = (m_vecTrackLinearStartPoint - m_vecTrackLinearEndPoint) * t + m_vecTrackLinearEndPoint;
 }
 
 //
@@ -1453,7 +1618,11 @@ void CCamera::ProcessObbeCinemaCameraHeli() {
 
 // 0x50D430
 void CCamera::ProcessVectorMoveLinear(float ratio) {
-    plugin::CallMethod<0x50D430, CCamera*, float>(this, ratio);
+    m_bVecMoveLinearProcessed = true;
+    const float t = m_bMoveLinearWithEase
+        ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
+        : ratio;
+    m_vecMoveLinear = (m_vecMoveLinearPosnEnd - m_vecMoveLinearPosnStart) * t + m_vecMoveLinearPosnStart;
 }
 
 // 0x516500
@@ -1467,12 +1636,21 @@ void CCamera::ProcessFOVLerp() {
 
 // 0x50D510
 void CCamera::ProcessFOVLerp(float ratio) {
-    plugin::CallMethod<0x50D510, CCamera*, float>(this, ratio);
+    m_bFOVLerpProcessed = true;
+    const float t = m_nZoomMode != 0
+        ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
+        : ratio;
+    m_fFOVNew = (m_fZoomOutFactor - m_fZoomInFactor) * t + m_fZoomInFactor;
 }
 
 // 0x5164A0
 void CCamera::ProcessVectorMoveLinear() {
-    plugin::CallMethod<0x5164A0, CCamera*>(this);
+    const float now = (float)CTimer::GetTimeInMS();
+    if (now <= m_fMoveLinearEndTime) {
+        ProcessVectorMoveLinear(invLerp(m_fMoveLinearStartTime, m_fMoveLinearEndTime, now));
+    } else if (m_bCameraPersistPosition) {
+        m_bVecMoveLinearProcessed = true;
+    }
 }
 
 // unused
@@ -1483,8 +1661,44 @@ void CCamera::ProcessShake() {
 
 // shakeIntensity not used
 // 0x516560
-CVector* CCamera::ProcessShake(float intensity) {
-    return plugin::CallMethodAndReturn<CVector*, 0x516560, CCamera*, float>(this, intensity);
+void CCamera::ProcessShake(float intensity) {
+    static auto& initialized = StaticRef<bool>(0xB70048);
+    auto& cam = m_aCams[m_nActiveCam];
+    if (!initialized) {
+        for (size_t i = 1; i < gHandShaker.size(); i++) {
+            auto& shaker = gHandShaker[i];
+            shaker.m_lim = {0.02f, 0.02f, i == 2 ? 0.04f : 0.01f};
+            shaker.m_motion = {0.0002f, 0.0002f, 0.0001f};
+            shaker.m_slow = {1.3f, 1.3f, 1.4f};
+            shaker.m_scaleReactionMin = 0.3f;
+            shaker.m_scaleReactionMax = 1.0f;
+        }
+        gHandShaker[1].m_twitchFreq = 15;
+        gHandShaker[1].m_twitchVel = 0.001f;
+        gHandShaker[2].m_twitchFreq = 20;
+        gHandShaker[2].m_twitchVel = 0.001f;
+        gHandShaker[3].m_twitchFreq = 10;
+        gHandShaker[3].m_twitchVel = 0.0005f;
+        gHandShaker[4].m_twitchFreq = 20;
+        gHandShaker[4].m_twitchVel = 0.002f;
+        gHandShaker[5].m_twitchFreq = 2;
+        gHandShaker[5].m_twitchVel = 0.003f;
+        initialized = true;
+    }
+
+    auto& shaker = gHandShaker[m_nShakeType];
+    shaker.Process(m_fShakeIntensity);
+    const float roll = shaker.m_ang.z * m_fShakeIntensity;
+    cam.m_vecFront = shaker.m_resultMat.InverseTransformVector(cam.m_vecFront);
+    cam.m_vecFront.Normalise();
+    cam.m_vecUp = {std::sin(roll), 0.0f, std::cos(roll)};
+    auto right = CrossProduct(cam.m_vecFront, cam.m_vecUp).Normalized();
+    cam.m_vecUp = CrossProduct(right, cam.m_vecFront);
+    if (cam.m_vecFront.x == 0.0f && cam.m_vecFront.y == 0.0f) {
+        cam.m_vecFront.x = cam.m_vecFront.y = 0.0001f;
+    }
+    right = CrossProduct(cam.m_vecFront, cam.m_vecUp).Normalized();
+    cam.m_vecUp = CrossProduct(right, cam.m_vecFront);
 }
 
 // inlined - 0x52B845
@@ -1609,17 +1823,143 @@ float CCamera::CalculateGroundHeight(eGroundHeightType type) {
 
 // 0x514D60
 void CCamera::CalculateFrustumPlanes(bool bForMirror) {
-    plugin::CallMethod<0x514D60, CCamera*, bool>(this, bForMirror);
+    // The executable uses this approximate half-degree conversion constant.
+    const float angle = CDraw::ms_fFOV * 0.00872638915f;
+    const float cosine = std::cos(angle);
+    const float sine = std::sin(angle);
+    const float aspect = (float)RsGlobal.maximumHeight / (float)RsGlobal.maximumWidth;
+    m_avecFrustumNormals[0] = {cosine, -sine, 0.0f};
+    m_avecFrustumNormals[1] = {-cosine, -sine, 0.0f};
+    m_avecFrustumNormals[2] = {0.0f, -(aspect * sine), -(aspect * cosine)};
+    m_avecFrustumNormals[3] = {0.0f, -(aspect * sine), aspect * cosine};
+
+    auto& normals = bForMirror ? m_avecFrustumWorldNormals_Mirror : m_avecFrustumWorldNormals;
+    auto& offsets = bForMirror ? m_fFrustumPlaneOffsets_Mirror : m_fFrustumPlaneOffsets;
+    TransformVectors(normals.data(), (int32)normals.size(), m_mCameraMatrix, m_avecFrustumNormals.data());
+    const auto& position = GetPosition();
+    for (size_t i = 0; i < normals.size(); i++) {
+        const auto& normal = normals[i];
+        offsets[i] = normal.y * position.y + normal.z * position.z + normal.x * position.x;
+    }
 }
 
 // 0x5150E0
 void CCamera::CalculateDerivedValues(bool bForMirror, bool bOriented) {
-    return plugin::CallMethod<0x5150E0, CCamera*, bool, bool>(this, bForMirror, bOriented);
+    m_mMatInverse = Invert(m_mCameraMatrix);
+    CalculateFrustumPlanes(bForMirror);
+
+    auto& forward = m_mCameraMatrix.GetForward();
+    if (forward.x == 0.0f && forward.y == 0.0f) {
+        forward.x = 0.0001f;
+    } else if (bOriented) {
+        m_fOrientation = std::atan2(forward.x, forward.y);
+    }
+
+    m_fCamFrontXNorm = forward.x;
+    m_fCamFrontYNorm = forward.y;
+    const float length = std::sqrt(sq(forward.x) + sq(forward.y));
+    if (length == 0.0f) {
+        m_fCamFrontXNorm = 1.0f;
+    } else {
+        const float inverseLength = 1.0f / length;
+        m_fCamFrontXNorm *= inverseLength;
+        m_fCamFrontYNorm *= inverseLength;
+    }
 }
 
 // 0x516B20
 void CCamera::ImproveNearClip(CVehicle* vehicle, CPed* ped, CVector* source, CVector* targPosn) {
-    return plugin::CallMethod<0x516B20, CCamera*, CVehicle*, CPed*, CVector*, CVector*>(this, vehicle, ped, source, targPosn);
+    static auto& longDistance = StaticRef<float>(0x8CCD08);
+    static auto& longDistanceScale = StaticRef<float>(0x8CCD04);
+    static auto& aircraftCollisionThreshold = StaticRef<float>(0x8CCD00);
+    static auto& groundDistanceThreshold = StaticRef<float>(0x8CCCFC);
+    static auto& aircraftCollisionScale = StaticRef<float>(0x8CCCF8);
+    static auto& aircraftDistanceScale = StaticRef<float>(0x8CCCF4);
+    static auto& heliNearClip = StaticRef<float>(0x8CCCF0);
+    static auto& waterDistanceThreshold = StaticRef<float>(0x8CCCEC);
+    static auto& waterNearClip = StaticRef<float>(0x8CCCE8);
+    static auto& underwaterNearClip = StaticRef<float>(0x8CCCE4);
+    static auto& flyingPedCollisionScale = StaticRef<float>(0x8CCCE0);
+    static auto& flyingPedDistanceScale = StaticRef<float>(0x8CCCDC);
+    static auto& specialPieceRadiusScale = StaticRef<float>(0x8CCCD8);
+    static auto& minPedNearClip = StaticRef<float>(0x8CCCD4);
+    static auto& maxPedNearClip = StaticRef<float>(0x8CCCD0);
+
+    const float distSrcToTarg = (*source - *targPosn).Magnitude();
+    if (distSrcToTarg > longDistance) {
+        if (const float nearClip = longDistanceScale * gCurDistForCam; RwCameraGetNearClipPlane(Scene.m_pRwCamera) < nearClip) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
+        }
+    }
+
+    if (vehicle) {
+        if (vehicle->IsSubHeli() || vehicle->IsSubPlane()) {
+            if (gCurDistForCam <= aircraftCollisionThreshold) {
+                if (vehicle->IsSubHeli()) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, heliNearClip);
+                }
+            } else if (GetRoughDistanceToGround() > groundDistanceThreshold) {
+                if (const float nearClip = std::min(distSrcToTarg * aircraftDistanceScale, aircraftCollisionScale * gCurDistForCam);
+                    RwCameraGetNearClipPlane(Scene.m_pRwCamera) < nearClip
+                ) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
+                }
+            }
+        }
+    } else if (ped) {
+        if (ped->bIsStanding) {
+            const float collisionLimit = std::sin(DegreesToRadians(90.0f - TheCamera.GetActiveCam().m_fFOV * 0.5f))
+                * gLastRadiusUsedInCollisionPreventionOfCamera;
+            auto* const modelInfo = ped->GetModelInfo()->AsPedModelInfoPtr();
+            auto* const colModel  = modelInfo->AnimatePedColModelSkinnedWorld(ped->GetRpClump());
+            const auto& cam       = TheCamera.m_aCams[m_nActiveCam];
+            const auto& front     = cam.m_vecFront;
+            const float planeDist = front.Dot(cam.m_vecSource);
+
+            float minDist = 999999.0f;
+            for (const auto& sphere : std::span{ colModel->GetData()->m_pSpheres, CPedModelInfo::NUM_PED_COL_NODE_INFOS }) {
+                float dist = sphere.m_vecCenter.Dot(front) - planeDist - sphere.m_fRadius;
+                if (sphere.m_Surface.m_nPiece == 9) {
+                    dist -= specialPieceRadiusScale * sphere.m_fRadius;
+                }
+                if (dist < minDist) {
+                    minDist = dist;
+                }
+            }
+            if (minDist > collisionLimit) {
+                minDist = collisionLimit;
+            } else if (minDist < minPedNearClip) {
+                minDist = minPedNearClip;
+            }
+            if (minDist > maxPedNearClip) {
+                minDist = maxPedNearClip;
+            }
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, (float)(int32)(minDist * 100.0f) * 0.01f);
+        } else {
+            const bool usingParachute = ped->GetIntelligence()->GetUsingParachute();
+            if (const auto* swimTask = ped->GetIntelligence()->GetTaskSwim()) {
+                const auto swimState = swimTask->m_nSwimState;
+                float waterLevel = 0.0f;
+                const bool hasWaterLevel = CWaterLevel::GetWaterLevel(source->x, source->y, source->z, waterLevel, false, nullptr);
+                if (hasWaterLevel && std::fabs(waterLevel - source->z) < waterDistanceThreshold) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, waterNearClip);
+                } else if (swimState == SWIM_UNDERWATER_SPRINTING && TheCamera.m_nPedZoom == 1) {
+                    RwCameraSetNearClipPlane(Scene.m_pRwCamera, underwaterNearClip);
+                }
+            } else if (usingParachute || ped->GetIntelligence()->GetTaskJetPack()) {
+                if (GetRoughDistanceToGround() > groundDistanceThreshold) {
+                    if (const float nearClip = std::min(distSrcToTarg * flyingPedDistanceScale, flyingPedCollisionScale * gCurDistForCam);
+                        nearClip > RwCameraGetNearClipPlane(Scene.m_pRwCamera)
+                    ) {
+                        RwCameraSetNearClipPlane(Scene.m_pRwCamera, nearClip);
+                    }
+                }
+            }
+        }
+    }
+
+    float nearest = 999999.0f;
+    CCollision::CheckPeds(*source, m_aCams[m_nActiveCam].m_vecFront, nearest);
 }
 
 static auto& preMirrorMat = StaticRef<CMatrix>(0xB6FE40);
@@ -1661,8 +2001,106 @@ bool CCamera::TryToStartNewCamMode(int32 camSequence) {
 }
 
 // 0x520190
-void CCamera::CameraColDetAndReact(CVector* source, CVector* target) {
-    plugin::CallMethod<0x520190, CCamera*, CVector*, CVector*>(this, source, target);
+bool CCamera::CameraColDetAndReact(CVector* source, CVector* target) {
+    static auto& radiusScale = StaticRef<float>(0x8CCB90);
+    static auto& minRadius = StaticRef<float>(0x8CCE18);
+    static auto& pedMinDistance = StaticRef<float>(0x8CCE10);
+    static auto& aimMinDistance = StaticRef<float>(0x8CCE14);
+    static auto& bikeMinDistance = StaticRef<float>(0x8CCE0C);
+    static auto& sourceMotionThreshold = StaticRef<float>(0x8CCE08);
+    static auto& maxDistanceStep = StaticRef<float>(0x8CCE04);
+    static auto& bikeCollisionThreshold = StaticRef<float>(0x8CCE00);
+    static auto& bikeNearClip = StaticRef<float>(0x8CCDFC);
+
+    static auto& gCamColLastSrcPos   = StaticRef<CVector>(0xB700DC);
+    static auto& gCamColStateFlags   = StaticRef<uint32>(0xB700E8);
+    static auto& gCamColMinExtent    = StaticRef<float>(0xB700EC);
+    static auto& gCamColCachedModel  = StaticRef<int32>(0xB700F0);
+
+    const CVector delta = *source - *target;
+    const float   dist  = delta.Magnitude();
+    float         radius     = dist * gpCamColVars[0] * radiusScale;
+
+    const auto    ignoreEntity   = CWorld::pIgnoreEntity;
+    const auto*   ignoreVehicle  = (ignoreEntity && ignoreEntity->GetIsTypeVehicle())
+        ? ignoreEntity->AsVehicle()
+        : nullptr;
+    const bool    isIgnoredBike  = gCurCamColVars >= 10 && ignoreVehicle && ignoreVehicle->IsBike();
+
+    if (ignoreEntity && gCurCamColVars >= 10) {
+        float fVar;
+        if (ignoreVehicle && ignoreVehicle->IsSubAutomobile()) {
+            if (gCamColCachedModel != ignoreEntity->GetModelIndex()) {
+                gCamColMinExtent = 100.0f;
+                if (const auto* colData = ignoreEntity->GetColModel()->GetData()) {
+                    for (int32 i = 0; i < colData->m_nNumSpheres; i++) {
+                        const auto& sphere = colData->m_pSpheres[i];
+                        gCamColMinExtent   = std::min(gCamColMinExtent, sphere.m_vecCenter.z - sphere.m_fRadius);
+                    }
+                }
+                gCamColCachedModel = ignoreEntity->GetModelIndex();
+            }
+            if (!ignoreEntity->m_matrix) {
+                ignoreEntity->AllocateMatrix();
+                ignoreEntity->m_placement.UpdateMatrix(ignoreEntity->m_matrix);
+            }
+            const auto& entityMat = ignoreEntity->GetMatrix();
+            fVar = (*target - entityMat.GetPosition()).Dot(entityMat.GetUp()) - gCamColMinExtent;
+            if (fVar < 0.2f) {
+                fVar = 0.2f;
+            }
+        } else {
+            const auto& boundingBox = ignoreEntity->GetColModel()->m_boundBox;
+            fVar = std::min({ (boundingBox.m_vecMax.x - boundingBox.m_vecMin.x) * 0.5f,
+                              (boundingBox.m_vecMax.y - boundingBox.m_vecMin.y) * 0.5f,
+                              (boundingBox.m_vecMax.z - boundingBox.m_vecMin.z) * 0.5f });
+        }
+        radius = (fVar > gpCamColVars[1]) ? std::min(radius, gpCamColVars[1])
+                                          : std::min(radius, fVar);
+    }
+    radius = std::max(std::min(radius, gpCamColVars[1]), minRadius);
+
+    float minDist = gpCamColVars[2];
+    if (gCurCamColVars < 10) {
+        minDist = (gCurCamColVars < 4 ? pedMinDistance : aimMinDistance) / dist;
+    }
+    if (isIgnoredBike) {
+        minDist = bikeMinDistance;
+    }
+    CVector solvePos{};
+
+    gLastRadiusUsedInCollisionPreventionOfCamera = radius;
+
+    float outDist = 1.0f;
+    const bool collided = ConeCastCollisionResolve(*source, *target, solvePos, radius, minDist, outDist);
+    if (collided) {
+        if (outDist <= gpCamColVars[3]) {
+            RwCameraSetNearClipPlane(Scene.m_pRwCamera, gpCamColVars[4]);
+        }
+    }
+
+    if (outDist >= gCurDistForCam) {
+        if (!(gCamColStateFlags & 1)) {
+            gCamColStateFlags |= 1;
+            gCamColLastSrcPos = CVector{};
+        }
+        if ((*source - gCamColLastSrcPos).SquaredMagnitude() > sourceMotionThreshold * sourceMotionThreshold) {
+            gCurDistForCam += std::min(CTimer::GetTimeStep() * gpCamColVars[5] * (outDist - gCurDistForCam), maxDistanceStep);
+        }
+        gCamColLastSrcPos = *source;
+    } else {
+        gCurDistForCam = outDist;
+    }
+    if (gCurDistForCam > 1.0f) {
+        gCurDistForCam = 1.0f;
+    }
+
+    *source = *target + delta * gCurDistForCam;
+
+    if (isIgnoredBike && gCurDistForCam < bikeCollisionThreshold) {
+        RwCameraSetNearClipPlane(Scene.m_pRwCamera, bikeNearClip);
+    }
+    return collided;
 }
 
 // 0x527FA0
@@ -1680,7 +2118,35 @@ void CCamera::DeleteCutSceneCamDataMemory() {
 
 // 0x5B24D0
 void CCamera::LoadPathSplines(FILE* file) {
-    plugin::CallMethod<0x5B24D0, CCamera*>(this);
+    DeleteCutSceneCamDataMemory();
+    int32 pathIndex = -1;
+    int32 linesRemaining = 0;
+    bool expectCount = true;
+    float* output = nullptr;
+    for (auto* line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
+        if (*line == '#' || *line == '\0') {
+            continue;
+        }
+        if (linesRemaining != 0) {
+            --linesRemaining;
+            for (auto* token = std::strtok(line, ", \t"); token; token = std::strtok(nullptr, ", \t")) {
+                *output++ = (float)std::atof(token);
+            }
+        } else if (expectCount) {
+            if (++pathIndex >= (int32)m_aPathArray.size()) {
+                return;
+            }
+            sscanf(line, "%d", &linesRemaining);
+            const auto floatsPerLine = pathIndex < 2 ? 4 : 10;
+            auto*& data = m_aPathArray[pathIndex].m_pArrPathData;
+            data = static_cast<float*>(::operator new((linesRemaining * floatsPerLine + 1) * sizeof(float)));
+            data[0] = (float)linesRemaining;
+            output = data + 1;
+            expectCount = false;
+        } else if (*line == ';') {
+            expectCount = true;
+        }
+    }
 }
 
 // 0x50AB50
