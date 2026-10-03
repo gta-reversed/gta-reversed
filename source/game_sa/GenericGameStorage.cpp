@@ -58,25 +58,24 @@ void CGenericGameStorage::InjectHooks() {
     RH_ScopedClass(CGenericGameStorage);
     RH_ScopedCategoryGlobal();
 
-    // `OpenFileForReading`/`OpenFileForWriting` allocate the work buffer and `CloseFile`, `SaveWorkBuffer`, `GenericLoad` and `GenericSave` free it, so toggle them together
     RH_ScopedInstall(ReportError, 0x5D08C0);
     RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50);
     RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90);
     RH_ScopedInstall(InitRadioStationPositionList, 0x618E70);
     RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00);
-    RH_ScopedInstall(GenericLoad, 0x5D17B0);
-    RH_ScopedInstall(GenericSave, 0x5D13E0);
+    RH_ScopedInstall(GenericLoad, 0x5D17B0, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(GenericSave, 0x5D13E0, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
     RH_ScopedInstall(CheckSlotDataValid, 0x5D1380);
     RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
     RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
     RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0);
-    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80);
+    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
     RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50);
     RH_ScopedInstall(MakeValidSaveName, 0x5D0E90);
-    RH_ScopedInstall(CloseFile, 0x5D0E30);
-    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0);
-    RH_ScopedInstall(OpenFileForReading, 0x5D0D20);
-    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170);
+    RH_ScopedInstall(CloseFile, 0x5D0E30, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
     RH_ScopedInstall(RestoreForStartLoad, 0x619000);
 }
 
