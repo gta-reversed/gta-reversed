@@ -60,7 +60,7 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880);
-    RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .Reversed = false });
+    RH_ScopedInstall(SaveObjectPool, 0x5D4940);
     RH_ScopedInstall(SavePedPool, 0x5D4B40, { .Reversed = false });
     RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .Reversed = false });
 }
@@ -305,7 +305,20 @@ bool CPools::Save() {
 
 // 0x5D4940
 bool CPools::SaveObjectPool() {
-    return plugin::CallAndReturn<bool, 0x5D4940>();
+    const auto ShouldSave = [](const CObject& object) {
+        return object.m_nObjectType == OBJECT_MISSION;
+    };
+
+    CGenericGameStorage::SaveDataToWorkBuffer<int32>(rng::count_if(GetObjectPool()->GetAllValid(), ShouldSave));
+    for (auto& object : GetObjectPool()->GetAllValid()) {
+        if (!ShouldSave(object)) {
+            continue;
+        }
+        CGenericGameStorage::SaveDataToWorkBuffer(GetObjectRef(&object));
+        CGenericGameStorage::SaveDataToWorkBuffer<int32>(object.GetModelId());
+        object.Save();
+    }
+    return true;
 }
 
 // 0x5D4B40
