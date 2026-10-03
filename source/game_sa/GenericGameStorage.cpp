@@ -688,13 +688,12 @@ bool CGenericGameStorage::LoadWorkBuffer() {
     assert(ms_FileHandle);
     assert(ms_WorkBuffer);
 
-    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle)) {
-        if (CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize) == toReadSize) {
-            ms_FilePos += toReadSize;
-            ms_WorkBufferSize = toReadSize;
-            ms_WorkBufferPos  = 0;
-            return true;
-        }
+    const auto readSize = CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize);
+    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle) && readSize == toReadSize) {
+        ms_FilePos += toReadSize;
+        ms_WorkBufferSize = toReadSize;
+        ms_WorkBufferPos  = 0;
+        return true;
     }
 
     s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_READ;
