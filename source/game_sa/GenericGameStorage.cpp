@@ -797,6 +797,11 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     if (fileName) {
+        // NOTSA: The original overflows `ms_LoadFileName` here and then fails to open the file
+        if (std::strlen(fileName) >= std::size(ms_LoadFileName)) {
+            s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_OPEN;
+            return false;
+        }
         strcpy_s(ms_LoadFileName, fileName);
         s_PcSaveHelper.GenerateGameFilename(slot, ms_LoadFileNameWithPath);
     }
