@@ -5,54 +5,40 @@ on:
     branches: ["master"]
   workflow_dispatch:
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 permissions:
   contents: read
   pages: write
   id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
+        uses: actions/checkout@v7
 
       - name: Install Doxygen
         run: |
-          DOXYGEN_VERSION="1.16.1"
-          DOXYGEN_SHASUM="a56f885d37e3aae08a99f638d17bbb381224c03a878d9e2dda4f9fa4baf1d8bd"
-          # Doxygen uses underscores for release tags
-          DOXYGEN_TAG="Release_${DOXYGEN_VERSION//./_}"
-          echo "Downloading Doxygen $DOXYGEN_VERSION..."
-          wget -q https://github.com/doxygen/doxygen/releases/download/${DOXYGEN_TAG}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
-          echo "Extracting..."
-          tar -xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
-          echo "Verifying checksum..."
-          echo "$DOXYGEN_SHASUM doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz" | sha256sum --check --status
-          echo "Installing..."
-          sudo cp doxygen-${DOXYGEN_VERSION}/bin/doxygen /usr/local/bin/
-          # Verify installation
-          doxygen -v
+          sudo apt-get update
+          sudo apt-get install -y doxygen
 
       - name: Configure CMake
-        run: cmake -B build -DCMAKE_PROJECT_INCLUDE="${{ github.workspace }}/contrib/cmake-mock-for-doxygen.cmake"
+        run: cmake -S cmake/doxygen -B cmake/doxygen/build
 
       - name: Build Doxygen documentation
-        run: cmake --build build --target doxygen
+        run: cmake --build cmake/doxygen/build --target docs
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
-          path: './build/doxygen/html'
+          path: 'cmake/doxygen/build/doxygen/html'
 
   deploy:
     environment:
