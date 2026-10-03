@@ -95,8 +95,12 @@ def main() -> None:
             partially.append(cat)
     num_total_categories = len(partially) + len(completely) + len(not_at_all)
 
+    total_num_fn = sum(k.num_fn for k in category_info.values())
+    total_num_re = sum(k.num_reversed for k in category_info.values())
+    overall_progress = total_num_re / total_num_fn
+
     with open(args.output, "w", encoding="utf8", newline="\n") as outf:
-        outf.write("# Reimplementation progress\n")
+        outf.write(f"# Reimplementation progress: {overall_progress:.0%}\n")
         outf.write(
             "This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.\n\n"
         )
@@ -118,9 +122,9 @@ def main() -> None:
             "are documented yet.\n"
             "\n"
         )
-
+        
         outf.write(
-            f"## Stats ({sum(k.num_fn for k in category_info.values())} functions, {len(category_info)} categories)\n"
+            f"## Stats ({total_num_re} out of {total_num_fn} functions done in {len(category_info)} categories)\n"
         )
 
         def write_header(title: str, klasses: list[HookCategory]):
