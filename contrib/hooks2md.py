@@ -10,7 +10,9 @@ from typing import TypedDict
 GITHUB_SHA = os.environ.get("GITHUB_SHA")
 GITHUB_SHA_SHORT = GITHUB_SHA[:8] if GITHUB_SHA else None
 GITHUB_REPO_URL = os.environ.get("GITHUB_REPO_URL")
-GITHUB_COMMIT_URL = f'{GITHUB_REPO_URL}/commit/{GITHUB_SHA}' if GITHUB_SHA and GITHUB_REPO_URL else None
+GITHUB_COMMIT_URL = (
+    f"{GITHUB_REPO_URL}/commit/{GITHUB_SHA}" if GITHUB_SHA and GITHUB_REPO_URL else None
+)
 
 ap = argparse.ArgumentParser(
     description="Generate a Markdown file with reversed categories stats from hooks.csv"
@@ -98,16 +100,20 @@ def main() -> None:
     with open(args.output, "w", encoding="utf8", newline="\n") as outf:
         outf.write("# Reimplementation progress\n")
         outf.write(
-            "This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.\n\n"
+            "This file is updated automatically every time the `hooks.json` file is updated "
+            "(which happens every time there are changes to hooks made by a commit), "
+            "and shows the current progress of reversed categories in the project.\n\n"
         )
         outf.write(
             f"Last update was at {datetime.datetime.now(datetime.timezone.utc).strftime('%b %d, %Y at %H:%M:%S')} UTC\n"
         )
         if GITHUB_SHA:
             if GITHUB_COMMIT_URL:
-                outf.write(f'(Triggered by commit [{GITHUB_SHA_SHORT}]({GITHUB_REPO_URL}/commit/{GITHUB_SHA}))\n')
+                outf.write(
+                    f"(Triggered by commit [{GITHUB_SHA_SHORT}]({GITHUB_REPO_URL}/commit/{GITHUB_SHA}))\n"
+                )
             else:
-                outf.write(f'(Triggered by commit {GITHUB_SHA_SHORT})\n')
+                outf.write(f"(Triggered by commit {GITHUB_SHA_SHORT})\n")
 
         outf.write("\n")
 
