@@ -10,7 +10,7 @@ struct CustomEnvMapPipeMaterialData;
 */
 #define rwID_EXTRAVERCOLOURPLUGIN MAKECHUNKID(rwVENDORID_DEVELOPER, 0xF9)
 
-constexpr auto CUSTOM_BUILDING_DN_PIPELINE_ID = 0x0;
+constexpr auto CUSTOM_BUILDING_DN_PIPELINE_ID = 0x53F20098;
 
 //! Extra Vertex Colour plugin data [Inside RpGeometry]
 struct ExtraVertColour { // AKA `gtaVertexColorPlugin`
