@@ -10,7 +10,7 @@ void C3dMarkers::InjectHooks() {
     RH_ScopedClass(C3dMarkers);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Init, 0x724E40, { .Locked = true }); // FIX(#1514): Relies on the fix in `C3dMarker::DeleteMarkerObject`
+    RH_ScopedInstall(Init, 0x724E40);
     RH_ScopedInstall(Update, 0x7227B0);
     RH_ScopedInstall(Shutdown, 0x722710, { .Locked = true }); // FIX(#1514): Vanilla one inlines `C3dMarker::DeleteMarkerObject`
     RH_ScopedInstall(Render, 0x725040, { .Locked = true }); // FIX(#1514): Vanilla one inlines `C3dMarker::DeleteMarkerObject`
