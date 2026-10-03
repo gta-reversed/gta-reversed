@@ -10,7 +10,7 @@ class CSimpleVariablesSaveStructure {
 public:
     uint32       m_nVersionId;
     GxtChar      m_szSaveName[100];
-    bool         m_bMissionPackGame;
+    uint8        m_bMissionPackGame;
     int32        m_nCurrLevel;
     CVector      m_vecCamPosn;
     uint32       m_nMsPerMinute;
