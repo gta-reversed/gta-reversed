@@ -226,6 +226,7 @@ void CFire::Extinguish() {
     m_IsActive = false;
     m_IsBeingExtinguished = false;
     m_IsFirstGeneration = true;
+    m_IsCreatedByScript = false;
 
     DestroyFx();
 
