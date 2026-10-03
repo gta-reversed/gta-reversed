@@ -15,6 +15,7 @@
 #include "Garages.h"
 
 #include "extensions/Configs/Miscellaneous.hpp"
+#include <reversiblebugfixes/Bugs.hpp>
 
 //#define ENABLE_SAVE_DATA_LOG
 #ifdef ENABLE_SAVE_DATA_LOG
@@ -792,12 +793,12 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     if (fileName) {
-        // NOTSA: The original overflows `ms_LoadFileName` here and then fails to open the file
-        if (std::strlen(fileName) >= std::size(ms_LoadFileName)) {
+        // FIX(#1518): The original overflows `ms_LoadFileName` here and then fails to open the file
+        if (notsa::bugfixes::GenericOOB && std::strlen(fileName) >= std::size(ms_LoadFileName)) {
             s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_OPEN;
             return false;
         }
-        strcpy_s(ms_LoadFileName, fileName);
+        std::strcpy(ms_LoadFileName, fileName);
         s_PcSaveHelper.GenerateGameFilename(slot, ms_LoadFileNameWithPath);
     }
 
