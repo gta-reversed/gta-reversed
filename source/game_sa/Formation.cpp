@@ -25,7 +25,7 @@ bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* outDestination) {
         if (m_Peds.m_peds[i] != ped) {
             continue;
         }
-        const auto destIdx = m_aFinalPedLinkToDestinations.data()[i]; // Not using `operator[]`, as it'd assert with the bugfix disabled
+        const auto destIdx = m_aFinalPedLinkToDestinations[i];
         if (destIdx >= 0) {
             *outDestination = m_Destinations.m_Points[destIdx];
             return true;
