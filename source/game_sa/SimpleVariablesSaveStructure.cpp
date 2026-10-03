@@ -25,7 +25,7 @@ void CSimpleVariablesSaveStructure::Construct() {
     }
 
     GxtChar dots[8];
-    AsciiToGxtChar("...'", dots); // dot dot dot apostrophe
+    AsciiToGxtChar("...", dots);
     TextCopy(m_szSaveName, gxtSaveName);
     uint32 strLen = GxtCharStrlen(m_szSaveName);
     if (strLen > SAVEGAME_MAX_NAME_LEN) {
