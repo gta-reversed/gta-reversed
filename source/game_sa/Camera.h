@@ -452,7 +452,7 @@ public:
     void AddShake(float duration, float a2, float a3, float a4, float a5);
     void AddShakeSimple(float duration, int32 type, float intensity);
     void CamShake(float strength, CVector from);
-    void CameraColDetAndReact(CVector* source, CVector* target);
+    bool CameraColDetAndReact(CVector* source, CVector* target);
     void CameraGenericModeSpecialCases(CPed* targetPed);
     void CameraPedAimModeSpecialCases(CPed* ped);
     void CameraPedModeSpecialCases();
