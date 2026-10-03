@@ -11,9 +11,9 @@
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
-static inline auto& gDWCineyCamSceneEndTime = StaticRef<uint32>(0x8CCBA4);
+static auto& s_DWCineyCamSceneEndTime = StaticRef<uint32>(0x8CCBA4);
 
-static inline auto& gbExitCam = StaticRef<std::array<bool, MODE_SYPHON_CRIM_IN_FRONT + 1>>(0xB6EC5C);
+static auto& s_ExitCam = StaticRef<std::array<bool, MODE_SYPHON_CRIM_IN_FRONT + 1>>(0xB6EC5C);
 
 static inline auto& DWCineyCamLastPos = StaticRef<CVector>(0xB6FE8C);
 static inline auto& DWCineyCamLastUp = StaticRef<CVector>(0xB6FE98);
@@ -22,8 +22,6 @@ static inline auto& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
 
 static inline auto& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
 static inline auto& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
-
-static bool IsLampPost(eModelID modelId);
 
 // 0x509AE0
 static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
@@ -277,17 +275,16 @@ void CCam::GetCoreDataForDWCineyCamMode(
 }
 
 // 0x5161A0
-bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, CVector& outPos) {
-    static auto& bestDistance = StaticRef<float>(0x8CC8D8);
+bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& targetPos, CVector& outPos) {
+    static auto& s_BestDistance = StaticRef<float>(0x8CC8D8);
 
-    int16    count{};
-    CEntity* entities[16];
-    CWorld::FindObjectsInRange(vecTarget, 30.0f, true, &count, 0xF, entities, false, false, false, true, true);
+    int16                   count{};
+    std::array<CEntity*, 16> entities;
+    CWorld::FindObjectsInRange(targetPos, 30.0f, true, &count, 0xF, entities.data(), false, false, false, true, true);
 
     CEntity* winner{};
-    float    closestDistDiff = 10000.0f;
-    for (int32 i = 0; i < count; i++) {
-        CEntity* entity = entities[i];
+    auto     closestDistDiff = 10000.0f;
+    for (auto* const entity : entities | rngv::take(count)) {
         if (!entity->m_bIsStatic && !entity->m_bIsStaticWaitingForCollision) {
             continue;
         }
@@ -302,21 +299,21 @@ bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vec
             continue;
         }
 
-        const auto dist = DistanceBetweenPoints2D(entity->GetPosition(), vecTarget);
-        if (dist <= 5.0f || std::abs(bestDistance - dist) >= closestDistDiff) {
+        const auto dist = CVector2D::Dist(entity->GetPosition(), targetPos);
+        if (dist <= 5.0f || std::abs(s_BestDistance - dist) >= closestDistDiff) {
             continue;
         }
 
-        const CVector topPos = entity->GetMatrix().TransformPoint(entity->GetColModel()->m_boundBox.m_vecMax);
-        CVector      dir     = topPos - vecTarget;
+        const auto topPos = entity->GetMatrix().TransformPoint(entity->GetColModel()->GetBoundingBox().m_vecMax);
+        auto       dir    = topPos - targetPos;
         dir.Normalise();
-        if (!CWorld::GetIsLineOfSightClear(topPos, dir + vecTarget, true, false, false, false, false, true, true)) {
+        if (!CWorld::GetIsLineOfSightClear(topPos, dir + targetPos, true, false, false, false, false, true, true)) {
             continue;
         }
 
         winner          = entity;
         outPos          = topPos;
-        closestDistDiff = std::abs(bestDistance - dist);
+        closestDistDiff = std::abs(s_BestDistance - dist);
     }
     return winner != nullptr;
 }
@@ -362,16 +359,16 @@ void CCam::Get_TwoPlayer_AimVector(CVector& out) {
 
 // 0x517400
 bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck) {
-    if (gbExitCam[camId]) {
+    if (s_ExitCam[camId]) {
         return true;
     }
 
-    static auto& aMinDists = StaticRef<std::array<float, 9>>(0x8CCBCC);
-    static auto& aMaxDists = StaticRef<std::array<float, 9>>(0x8CCBF0);
+    static auto& s_MinDistances = StaticRef<std::array<float, 9>>(0x8CCBCC);
+    static auto& s_MaxDistances = StaticRef<std::array<float, 9>>(0x8CCBF0);
 
     const auto dist         = (dst - src).Magnitude();
-    const bool isWithinBand = dist >= aMinDists[camId - MODE_FOLLOW_PED_WITH_BIND]
-                           && dist <= aMaxDists[camId - MODE_FOLLOW_PED_WITH_BIND];
+    const auto isWithinBand = dist >= s_MinDistances[camId - MODE_FOLLOW_PED_WITH_BIND]
+                           && dist <= s_MaxDistances[camId - MODE_FOLLOW_PED_WITH_BIND];
 
     bool isLosClear = true;
     if (lineOfSightCheck) {
@@ -383,7 +380,7 @@ bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const
     }
 
     if (camId >= MODE_FOLLOW_PED_WITH_BIND && camId <= MODE_SYPHON_CRIM_IN_FRONT) {
-        if (!isWithinBand || !isLosClear || CTimer::GetTimeInMS() > gDWCineyCamSceneEndTime) {
+        if (!isWithinBand || !isLosClear || CTimer::GetTimeInMS() > s_DWCineyCamSceneEndTime) {
             return true;
         }
     }
@@ -392,64 +389,64 @@ bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const
 
 // 0x509DF0
 void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, const CVector& up, const float& alpha, const float& beta, const float& fov) {
-    static auto& prevSource = StaticRef<CVector>(0xB6FF80);
-    static auto& prevTarget = StaticRef<CVector>(0xB6FF74);
-    static auto& prevUp = StaticRef<CVector>(0xB6FF68);
-    static auto& prevBeta = StaticRef<float>(0xB6FF64);
-    static auto& prevAlpha = StaticRef<float>(0xB6FF60);
-    static auto& prevFov = StaticRef<float>(0xB6FF5C);
-    static auto& staticsInitialized = StaticRef<uint32>(0xB6FF8C);
+    static auto& s_PreviousSource    = StaticRef<CVector>(0xB6FF80);
+    static auto& s_PreviousTarget    = StaticRef<CVector>(0xB6FF74);
+    static auto& s_PreviousUp        = StaticRef<CVector>(0xB6FF68);
+    static auto& s_PreviousBeta      = StaticRef<float>(0xB6FF64);
+    static auto& s_PreviousAlpha     = StaticRef<float>(0xB6FF60);
+    static auto& s_PreviousFov       = StaticRef<float>(0xB6FF5C);
+    static auto& s_StaticsInitialized = StaticRef<uint32>(0xB6FF8C);
 
-    if ((staticsInitialized & 1) == 0) {
-        prevSource = source;
-        staticsInitialized |= 1;
+    if ((s_StaticsInitialized & 1) == 0) {
+        s_PreviousSource = source;
+        s_StaticsInitialized |= 1;
     }
-    if ((staticsInitialized & 2) == 0) {
-        prevTarget = target;
-        staticsInitialized |= 2;
+    if ((s_StaticsInitialized & 2) == 0) {
+        s_PreviousTarget = target;
+        s_StaticsInitialized |= 2;
     }
-    if ((staticsInitialized & 4) == 0) {
-        prevUp = up;
-        staticsInitialized |= 4;
+    if ((s_StaticsInitialized & 4) == 0) {
+        s_PreviousUp = up;
+        s_StaticsInitialized |= 4;
     }
 
-    float prevBetaVal = prevBeta;
-    if ((staticsInitialized & 8) == 0) {
-        staticsInitialized |= 8;
-        prevBetaVal = beta;
+    auto previousBeta = s_PreviousBeta;
+    if ((s_StaticsInitialized & 8) == 0) {
+        s_StaticsInitialized |= 8;
+        previousBeta = beta;
     }
-    if ((staticsInitialized & 0x10) == 0) {
-        prevAlpha = alpha;
-        staticsInitialized |= 0x10;
+    if ((s_StaticsInitialized & 0x10) == 0) {
+        s_PreviousAlpha = alpha;
+        s_StaticsInitialized |= 0x10;
     }
-    float prevFovVal = prevFov;
-    if ((staticsInitialized & 0x20) == 0) {
-        staticsInitialized |= 0x20;
-        prevFovVal = fov;
+    auto previousFov = s_PreviousFov;
+    if ((s_StaticsInitialized & 0x20) == 0) {
+        s_StaticsInitialized |= 0x20;
+        previousFov = fov;
     }
 
     if (TheCamera.m_bJust_Switched) {
-        prevSource = source;
-        prevTarget = target;
-        prevUp     = up;
+        s_PreviousSource = source;
+        s_PreviousTarget = target;
+        s_PreviousUp     = up;
     }
 
-    m_vecSourceSpeedOverOneFrame = source - prevSource;
-    m_vecTargetSpeedOverOneFrame = target - prevTarget;
-    m_vecUpOverOneFrame          = up - prevUp;
+    m_vecSourceSpeedOverOneFrame = source - s_PreviousSource;
+    m_vecTargetSpeedOverOneFrame = target - s_PreviousTarget;
+    m_vecUpOverOneFrame          = up - s_PreviousUp;
 
-    m_fFovSpeedOverOneFrame = fov - prevFovVal;
-    m_fBetaSpeedOverOneFrame = beta - prevBetaVal;
+    m_fFovSpeedOverOneFrame  = fov - previousFov;
+    m_fBetaSpeedOverOneFrame = beta - previousBeta;
     WrapAngle(m_fBetaSpeedOverOneFrame);
-    m_fAlphaSpeedOverOneFrame = alpha - prevAlpha;
+    m_fAlphaSpeedOverOneFrame = alpha - s_PreviousAlpha;
     WrapAngle(m_fAlphaSpeedOverOneFrame);
 
-    prevSource = source;
-    prevTarget = target;
-    prevUp     = up;
-    prevBeta   = beta;
-    prevAlpha  = alpha;
-    prevFov    = fov;
+    s_PreviousSource = source;
+    s_PreviousTarget = target;
+    s_PreviousUp     = up;
+    s_PreviousBeta   = beta;
+    s_PreviousAlpha  = alpha;
+    s_PreviousFov    = fov;
 }
 
 // 0x520690
@@ -464,34 +461,34 @@ void CCam::LookRight(bool bLookRight) {
 
 // 0x50A4F0
 bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
-    auto* ent = m_pCamTargetEntity;
-    if (ent->GetType() != ENTITY_TYPE_VEHICLE) {
+    auto* const entity = m_pCamTargetEntity;
+    if (!entity->GetIsTypeVehicle()) {
         return false;
     }
-    auto* veh = static_cast<CVehicle*>(ent);
+    auto* const vehicle = entity->AsVehicle();
 
-    const auto& speed = veh->GetMoveSpeed();
-    const bool movingForward = DotProduct(veh->GetMatrix().GetForward(), speed) > 0.1f;
+    const auto& speed         = vehicle->GetMoveSpeed();
+    const auto  movingForward = DotProduct(vehicle->GetMatrix().GetForward(), speed) > 0.1f;
     if (speed.SquaredMagnitude2D() > 0.0036f) {
         orientation = std::atan2(-speed.x, speed.y) - DegreesToRadians(90.0f);
     }
 
-    const float dist = DistanceBetweenPoints2D(m_vecSource, target);
-    float delta = orientation - m_fHorizontalAngle;
+    const auto dist  = CVector2D::Dist(m_vecSource, target);
+    auto       delta = orientation - m_fHorizontalAngle;
     while (delta > DegreesToRadians(180.0f)) {
         delta -= DegreesToRadians(360.0f);
     }
     while (delta < -DegreesToRadians(180.0f)) {
         delta += DegreesToRadians(360.0f);
     }
-    if (std::fabs(delta) > 0.34906578f
+    if (std::abs(delta) > 0.34906578f
         && movingForward
         && !TheCamera.m_bTransitionState) {
         m_bFixingBeta = true;
     }
 
     const auto pad = CPad::GetPad(0);
-    if (!pad->GetLookBehindForCar() && !pad->GetLookBehindForPed() && !pad->GetLookLeft() && !pad->GetLookRight() && m_nDirectionWasLooking != 3) {
+    if (!pad->GetLookBehindForCar() && !pad->GetLookBehindForPed() && !pad->GetLookLeft() && !pad->GetLookRight() && m_nDirectionWasLooking != 3) { // TODO: enum for the look direction
         TheCamera.m_bCamDirectlyBehind = true;
     }
 
@@ -524,12 +521,12 @@ bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
         while (delta < -DegreesToRadians(180.0f)) {
             delta += DegreesToRadians(360.0f);
         }
-        if (std::fabs(delta) < DegreesToRadians(2.0f)) {
+        if (std::abs(delta) < DegreesToRadians(2.0f)) {
             m_bFixingBeta = false;
         }
     }
-    TheCamera.m_bCamDirectlyBehind = false;
-    TheCamera.m_bCamDirectlyInFront  = false;
+    TheCamera.m_bCamDirectlyBehind  = false;
+    TheCamera.m_bCamDirectlyInFront = false;
     return true;
 }
 

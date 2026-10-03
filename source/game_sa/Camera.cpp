@@ -1276,9 +1276,9 @@ void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, 
 
 // 0x50D160
 void CCamera::VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase) {
-    const float time = (float)CTimer::GetTimeInMS();
-    m_fMoveLinearStartTime = time;
-    m_fMoveLinearEndTime   = time + duration;
+    const auto time = (float)CTimer::GetTimeInMS();
+    m_fMoveLinearStartTime   = time;
+    m_fMoveLinearEndTime     = time + duration;
     m_vecMoveLinearPosnStart = *from;
     m_vecMoveLinearPosnEnd   = *to;
     m_bMoveLinearWithEase    = bMoveLinearWithEase;
@@ -1286,9 +1286,9 @@ void CCamera::VectorMoveLinear(CVector* to, CVector* from, float duration, bool 
 
 // 0x50D1D0
 void CCamera::VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase) {
-    const float time = (float)CTimer::GetTimeInMS();
-    m_fTrackLinearStartTime = time;
-    m_fTrackLinearEndTime   = time + duration;
+    const auto time = (float)CTimer::GetTimeInMS();
+    m_fTrackLinearStartTime    = time;
+    m_fTrackLinearEndTime      = time + duration;
     m_vecTrackLinearEndPoint   = *from;
     m_vecTrackLinearStartPoint = *to;
     m_bTrackLinearWithEase     = bEase;
@@ -1438,7 +1438,7 @@ void CCamera::ProcessWideScreenOn() {
 
 // 0x516440
 void CCamera::ProcessVectorTrackLinear() {
-    const float now = (float)CTimer::GetTimeInMS();
+    const auto now = (float)CTimer::GetTimeInMS();
     if (now <= m_fTrackLinearEndTime) {
         ProcessVectorTrackLinear(invLerp(m_fTrackLinearStartTime, m_fTrackLinearEndTime, now));
     } else if (m_bCameraPersistTrack) {
@@ -1449,10 +1449,10 @@ void CCamera::ProcessVectorTrackLinear() {
 // 0x50D350
 void CCamera::ProcessVectorTrackLinear(float ratio) {
     m_bVecTrackLinearProcessed = true;
-    const float t = m_bTrackLinearWithEase
+    const auto progress = m_bTrackLinearWithEase
         ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
         : ratio;
-    m_vecTrackLinear = (m_vecTrackLinearStartPoint - m_vecTrackLinearEndPoint) * t + m_vecTrackLinearEndPoint;
+    m_vecTrackLinear = (m_vecTrackLinearStartPoint - m_vecTrackLinearEndPoint) * progress + m_vecTrackLinearEndPoint;
 }
 
 //
@@ -1473,10 +1473,10 @@ void CCamera::ProcessObbeCinemaCameraHeli() {
 // 0x50D430
 void CCamera::ProcessVectorMoveLinear(float ratio) {
     m_bVecMoveLinearProcessed = true;
-    const float t = m_bMoveLinearWithEase
+    const auto progress = m_bMoveLinearWithEase
         ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
         : ratio;
-    m_vecMoveLinear = (m_vecMoveLinearPosnEnd - m_vecMoveLinearPosnStart) * t + m_vecMoveLinearPosnStart;
+    m_vecMoveLinear = (m_vecMoveLinearPosnEnd - m_vecMoveLinearPosnStart) * progress + m_vecMoveLinearPosnStart;
 }
 
 // 0x516500
@@ -1491,15 +1491,15 @@ void CCamera::ProcessFOVLerp() {
 // 0x50D510
 void CCamera::ProcessFOVLerp(float ratio) {
     m_bFOVLerpProcessed = true;
-    const float t = m_nZoomMode != 0
+    const auto progress = m_nZoomMode != 0
         ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
         : ratio;
-    m_fFOVNew = (m_fZoomOutFactor - m_fZoomInFactor) * t + m_fZoomInFactor;
+    m_fFOVNew = (m_fZoomOutFactor - m_fZoomInFactor) * progress + m_fZoomInFactor;
 }
 
 // 0x5164A0
 void CCamera::ProcessVectorMoveLinear() {
-    const float now = (float)CTimer::GetTimeInMS();
+    const auto now = (float)CTimer::GetTimeInMS();
     if (now <= m_fMoveLinearEndTime) {
         ProcessVectorMoveLinear(invLerp(m_fMoveLinearStartTime, m_fMoveLinearEndTime, now));
     } else if (m_bCameraPersistPosition) {
