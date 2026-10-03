@@ -55,7 +55,7 @@ public:
     bool         m_bGermanGame;
     bool         m_bNastyGame;
     char         _padEF[45];
-    bool         m_bCineyCamMessageDisplayed;
+    int8         m_bCineyCamMessageDisplayed;
     SYSTEMTIME   m_systemTime;
     int32        m_nTargetBlipIndex;
     bool         m_bHasDisplayedPlayerQuitEnterCarHelpText;
