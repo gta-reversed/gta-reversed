@@ -128,9 +128,10 @@ def main() -> None:
         )
 
         def write_header(title: str, klasses: list[HookCategory]):
+            progress = len(klasses) / num_total_categories
             outf.write("\n")
             outf.write(
-                f"#### {title} ({len(klasses)}/{num_total_categories}) [{len(klasses) / num_total_categories:.0%}]\n"
+                f"#### {title} ({len(klasses)}/{num_total_categories}) [{progress:.{1 if progress < 0.01 and progress > 0 else 0}%}]\n"
             )
             outf.write("\n")
 
