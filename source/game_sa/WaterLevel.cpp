@@ -176,6 +176,8 @@ void CWaterLevel::WaterLevelInitialise() {
     FillQuadsAndTrianglesList();
 
     LoadTextures();
+
+    NOTSA_LOG_DEBUG("Done Initing waterlevels"); // R* log from III + VC
 }
 
 // 0x6E59E0
