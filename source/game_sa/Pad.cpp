@@ -37,8 +37,9 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ClearMouseHistory, 0x541BD0);
     RH_ScopedInstall(Clear, 0x541A70);
     RH_ScopedInstall(Update, 0x541C40);
-    RH_ScopedInstall(UpdateMouse, 0x53F3C0, {.locked = true}); // Locked because of SDL3 & ImGui
-    RH_ScopedInstall(ProcessPad, 0x746A10, {.locked = true}); // -||-
+    RH_ScopedInstall(UpdateMouse, 0x53F3C0, { .Locked = true }); // Locked for SDL3, and our UI/ImGui renderer
+    RH_ScopedInstall(ProcessPad, 0x746A10, { .Locked = true }); // -||-
+    RH_ScopedInstall(UpdatePads, 0x541DD0, { .Locked = true }); // -||-
     RH_ScopedInstall(ProcessPCSpecificStuff, 0x53FB40);
     RH_ScopedInstall(ReconcileTwoControllersInput, 0x53F530);
     RH_ScopedInstall(SetTouched, 0x53F200);
@@ -215,7 +216,7 @@ void CPad::Update(int32 pad) {
 void CPad::UpdatePads() {
     ZoneScoped;
 
-    const auto& isDebugUIActive = notsa::ui::UIRenderer::GetSingleton().IsActive();
+    const auto& isDebugUIActive = notsa::ui::UIRenderer::GetInstance().IsActive();
 
     if (!isDebugUIActive) {
         GetPad(0)->UpdateMouse();
@@ -321,7 +322,7 @@ void CPad::UpdateMouse() {
 
 // 0x746A10
 void CPad::ProcessPad(ePadID padID) {
-    #ifndef NOTSA_USE_SDL3
+#ifndef NOTSA_USE_SDL3
     constexpr int deviceAxisMin = -2000;
     constexpr int deviceAxisMax = 2000;
     constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin)  / 2.0f);

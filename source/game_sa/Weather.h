@@ -27,8 +27,8 @@ public:
     static inline auto& LightningStartY = StaticRef<uint32>(0xC812B4); // only initialized (0), not used
     static inline auto& LightningStartX = StaticRef<uint32>(0xC812B8); // only initialized (0), not used
     static inline auto& LightningFlashLastChange = StaticRef<int32>(0xC812BC);
-    static inline auto& WhenToPlayLightningSound = StaticRef<int32>(0xC812C0);
-    static inline auto& LightningDuration = StaticRef<uint32>(0xC812C4);
+    static inline auto& WhenToPlayLightningSound = StaticRef<uint32>(0xC812C0);
+    static inline auto& LightningDuration = StaticRef<uint32>(0xC812C4); // Duration as number of frames
     static inline auto& LightningStart = StaticRef<uint32>(0xC812C8); // frame number
     static inline auto& LightningFlash = StaticRef<bool>(0xC812CC);
     static inline auto& LightningBurst = StaticRef<bool>(0xC812CD);
@@ -60,6 +60,10 @@ public:
     static inline auto& OldWeatherType = StaticRef<eWeatherType>(0xC81320);
     static inline auto& m_WeatherAudioEntity = StaticRef<CAEWeatherAudioEntity>(0xC81360);
     static inline auto& StreamAfterRainTimer = StaticRef<int32>(0x8D5EAC);
+    static inline auto& HeatHazeFXFade = StaticRef<float>(0xC81448);
+    static inline auto& HeatHazeFXLastMinute = StaticRef<int32>(0x8D6078);
+    static inline auto& WaterFogFXFade = StaticRef<float>(0xC81444);
+    static inline auto& WaterFogFXFadingOut = StaticRef<bool>(0xC81440);
 
     // in entity.cpp:
 
