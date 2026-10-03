@@ -81,8 +81,8 @@ jobs:
           echo "::endgroup::"
 
           # Pick only relevant fields we need for hooks2md (To avoid diffs)
-          jq '[.[] | {Category, Name, IsReversed}]' docs/hooks.json > docs/hooks.tmp.json
-          mv docs/hooks.tmp.json docs/hooks.json
+          jq '[.[] | {Category, Name, IsReversed}]' docs/hooks.json > docs/hooks.filtered.json
+          mv docs/hooks.filtered.json docs/hooks.json
 
       - name: Check if hooks.json has changed
         id: check-hooks
