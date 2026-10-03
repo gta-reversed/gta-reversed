@@ -8,7 +8,7 @@ void C3dMarker::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(AddMarker, 0x722230);
-    RH_ScopedInstall(DeleteMarkerObject, 0x722390, { .Locked = true });
+    RH_ScopedInstall(DeleteMarkerObject, 0x722390, { .Locked = true }); // The original leaves the matrix attached to the destroyed frame (#1514)
     RH_ScopedInstall(IsZCoordinateUpToDate, 0x7226A0);
     RH_ScopedInstall(Render, 0x7223D0);
     RH_ScopedInstall(SetZCoordinateIfNotUpToDate, 0x724E10);

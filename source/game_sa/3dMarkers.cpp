@@ -10,10 +10,10 @@ void C3dMarkers::InjectHooks() {
     RH_ScopedClass(C3dMarkers);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Init, 0x724E40, { .Locked = true });
+    RH_ScopedInstall(Init, 0x724E40, { .Locked = true }); // Relies on the #1514 fix in `C3dMarker::DeleteMarkerObject`
     RH_ScopedInstall(Update, 0x7227B0);
-    RH_ScopedInstall(Shutdown, 0x722710);
-    RH_ScopedInstall(Render, 0x725040);
+    RH_ScopedInstall(Shutdown, 0x722710, { .Locked = true }); // The original destroys the marker frames inline, without the #1514 fix
+    RH_ScopedInstall(Render, 0x725040, { .Locked = true }); // The original destroys the marker frames inline, without the #1514 fix
     RH_ScopedInstall(DirectionArrowFindFirstFreeSlot, 0x721120);
     RH_ScopedInstall(DirectionArrowSet, 0x721140);
     RH_ScopedInstall(DirectionArrowsDraw, 0x7211F0);
