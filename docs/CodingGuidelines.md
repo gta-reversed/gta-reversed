@@ -7,7 +7,7 @@
 * No hungarian notation [It's useless]:
 ```cpp
 class Foo {
-    int32 m_iPlayerHealth; // Bad
+    int32 m_iPlayerHealth; // Bad, bazdmeg!
     int32 m_PlayerHealth; // Good
 }
 ```
@@ -40,13 +40,19 @@ public:
     static inline int ms_StaticGlobalCounter = 0; // Static member variable
 }
 ```
-* Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it):
+* Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it and made `constexpr`):
 ```cpp
 class Foo {
 public:
-    static inline auto& ms_StaticGlobalCounter = StaticRef<int>(0xDEADBEEF); // Static member variable
+    static inline auto& ms_StaticGlobalCounter = StaticRef<int32>(0xDEADBEEF); // Static member variable
 }
 ``` 
+* If a static variable only referenced in one function, define it in the body.
+```cpp
+void foo() {
+    static inline auto& s_FooStatic = StaticRef<int32>(0xDEADBEEF);
+}
+```
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.
@@ -74,14 +80,14 @@ for (auto&& [i, e] : rngv::enumerate(array));
 // Bad
 for (auto i = 0u; i < m_numThings; i++);
 
-// Good
+// Good -- feasible for contiguous buffers.
 for (auto& thing : std::span{ m_things, m_numThings });
-// Also good
+// Good -- applicable for every kind of range (linked lists, maps, etc.)
 for (auto& thing : m_things | rng::views::take(m_numThings));
 
 // ^ If these funcs are called more than once, make a helper function in the header. Like below:
 auto GetActiveThings() {
-    return std::span{ m_things, m_numThings }
+    return m_things | rng::views::take(m_numThings);
 }
 ```
 * Use `f` in float literals [As omitting it would make them a `double`] (e.g. `1.0f`)
@@ -98,7 +104,7 @@ class Foo {
 }
 ```
 
-#### Types
+### Types
 * Use `auto` in function bodies if the variables' type is guessable.
 * Guess for enum values [Or at least leave a `TODO` comment]
 * Take care of const correctness [Especially of class methods] (e.g. `const char*` over `char*` or `const CVector&` over `CVector&`)
@@ -106,20 +112,61 @@ class Foo {
 * Use fixed width integer types (e.g. `uint8`, `int32` over `unsigned char`, `int` etc).
 * Do not use Win32 integer types. [Except for Win32 exclusive code] (e.g. `DWORD` -> `uint32`)
 * For array sizes, etc... prefer using `unsigned` (u) types over `signed` ones (eg.: `uint32` over `int32`). If possible use `size_t`.
-* Whenever possible use `std::array` over `C-Style` array [as the former has bounds checking in debug mode, and can help us discover bugs]
+* Whenever possible use `std::array` over C style arrays [as the former has bounds checking in debug mode, and can help us discover bugs]
 
-#### Fixing bugs
+### Fixing bugs
 Whenever you find a bug, we encourage you to fix it [and/or at least] leave a comment explaining what the bug is.
 If you do a bugfix you're required to use `notsa::bugfixes` - this helps documenting and testing these fixes.
 See `reversiblebugfixes/Bugs.hpp` for more info.
 
-#### Using `assert`
+### Using `assert`
 We encourage the usage of `assert` - if you think something may be out-of-bounds, or otherwise bug-prone, make sure to add an `assert`, it can help debugging the code a lot!
-Do **not** add early returns for possible error conditions, use `assert` instead!
-If the original game did early outs for possible unexpected error conditions then please also prefer using `assert` instead of just quietly erroring. Do not use it if the game can handle/recover from that error condition, an error or a warning log is enough.
+
+Do **not** add early returns for possible error conditions, use `assert` instead! If the original game did early outs for possible unexpected error conditions then please also prefer using `assert` instead of just quietly erroring. Do not use it if the game can handle/recover from that error condition, an error or a warning log is enough.
+
+### Script command reversing reference
+
+Script commands are implemented as plain C++ functions. When the game tries to run an implemented command, our command parser populates the arguments of the implemented function as they're intended in `Scripts/CommandParser/ReadArg.hpp`. For the return types, `StoreArg.hpp` does the job. Although their implementation can be read as documentation itself, I decided to make a kind of' cheat sheet' for easy access.
+
+#### ReadArg Types
+* Getting parameters by value copies them, use ptr/ref types if you want to modify.
+* Using a pointer allows null values, references assert the game in this case.
+* Do not access complex types (such as `CPed`) by value, it is either will fail the compilation or be very inefficient anyway.
+
+| Type                | Nullable?          | Behavior                                                                                                  |
+|---------------------|--------------------|-----------------------------------------------------------------------------------------------------------|
+| `CRunningScript`    | No                 | Returns the current running script.                                                                       |
+| Any arithmetic type | No                 | Reads vars, arrays, and statics; cast safely when read by value. Use &/* to reference.                    |
+| Any enum type       | No                 | Same behavior as any arithmetic type, then cast to the enum type.                                         |
+| `script::Model`*    | No                 | When the script arg is ≥ 0, returns the value, `UsedObjectArray[-value]` otherwise.                       |
+| `script::Hash`      | No                 | Use specifically for model IDs, where they may not fit into ordinary signed integer types.                |
+| `CPlayerPed`        | No                 | `FindPlayerPed(<arg>)`                                                                                    |
+| `CPlayerInfo`       | No                 | `FindPlayerInfo(<arg>)`                                                                                   |
+| Any pooled type     | Yes (empty handle) | `Pool->GetAtRef(<i32 handle>)`                                                                            |
+| Script things       | Yes (invalid)      | Checks if the handle is invalid, inactive, or reused after deletion, if not: `Script*Array[<i32 handle>]` |
+| `scm::StringRef`    | No                 | Reads vars, arrays, and statics; returns an **mutable** string reference regardless of the string type.   |
+| `std::string_view`  | No                 | Reads vars, arrays, and statics; returns an **immutable** string reference regardless of the string type. |
+| `const char*`       | No                 | Same behavior as `std::string_view`, but with null-termination guarantee.                                 |
+| `CVector`           | No                 | Reads three floats.                                                                                       |
+| `CVector2D`         | No                 | Reads two floats.                                                                                         |
+| `CRect`             | No                 | Reads two `CVector2D` as (minX, minY), (maxX, maxY) or (top, left, bottom, right)                         |
+
+\*: Use `script::Model` only when there is an access to `UsedObjectArray` in vanilla code, use `eModelID` otherwise.
+
+#### StoreArg Types
+
+| Type                | Behavior                                                                                                 |
+|---------------------|----------------------------------------------------------------------------------------------------------|
+| `bool`              | It isn't stored but updates the compare flag.                                                            |
+| Any arithmetic type | Zeroes the target (var or array) then copies the value with `memcpy`. (which might be less than 4 bytes) |
+| Any enum type       | Same behavior as any arithmetic type, cast to the underlying integer type.                               |
+| Any pooled type     | Stores the handle of the pooled type, `-1` if `nullptr` is provided.                                     |
+| `CVector`           | Stores three floats.                                                                                     |
+| `CVector2D`         | Stores two floats.                                                                                       |
+| `MultiRet<T...>`    | Stores the values separately in the order as they're defined.                                            |
 
 ### Handling translated (GXT) text
-* GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
+* GXT code page is a partial superset of ASCII, it's surjective (onto) except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
 * GXT encoded characters are 1-byte long and strings are null-terminated. They can be used in `char` typed C copy/compare functions.
 * Do not assume anything other than above for GXT strings.
 * Use `AsciiToGxtChar` and `GxtCharToUTF8` for safely converting. UTF-8 strings should be safe to print and manipulate in general.
