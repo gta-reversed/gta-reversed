@@ -44,8 +44,7 @@ void CRealTimeShadowManager::Exit() { // AKA `Shutdown`
     }
 
     for (auto& shdw : m_apShadows) {
-        delete shdw;
-        shdw = nullptr;
+        delete std::exchange(shdw, nullptr);
     }
 
     // Nice hack
