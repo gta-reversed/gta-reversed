@@ -48,6 +48,11 @@ inline void _rpMaterialSetDefaultSurfaceProperties(RwSurfaceProperties *surfProp
 #define RWRSTATE(a) (reinterpret_cast<void *>(a))
 #define PSGLOBAL(var) (((psGlobalType *)(RsGlobal.ps))->var)
 
+/*!
+* @brief Generic PipeID construction.
+*/
+#define rpPDS_MAKEPIPEID(vendorID, pipeID) ((((vendorID) & 0xFFFF) << 16) | ((pipeID) & 0xFFFF))
+
 struct RwResEntrySA : RwResEntry {
     RxD3D9ResEntryHeader header;
     RxD3D9InstanceData meshData;
