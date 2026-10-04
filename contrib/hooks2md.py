@@ -115,13 +115,14 @@ def main() -> None:
 
         outf.write("\n")
 
-        outf.write("## (*) Disclaimer\n")
+        outf.write("## (*) Disclaimers\n")
         outf.write(
-            "The percentages and the number of categories shown here may not be "
+            "**The progress** is based on the number of functions we have documented and reimplemented, "
+            "so it might not completely reflect the actual progress, it's meant to be a rough estimate.\n"
+            "\n"
+            "**The percentages and the number of categories** shown here may not be "
             "completely accurate, because not all categories and functions "
             "are documented yet.\n"
-            "The progress is based on the number of functions we have documented and reimplemented, "
-            "so it might not completely reflect the actual progress, it's meant to be a rough estimate.\n"
             "\n"
         )
         
