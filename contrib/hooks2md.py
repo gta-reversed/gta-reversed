@@ -161,6 +161,5 @@ def main() -> None:
             for cat in not_at_all:
                 outf.write(f"- {cat.name} ({cat.num_fn})<br />\n")
 
-
 if __name__ == "__main__":
     main()
