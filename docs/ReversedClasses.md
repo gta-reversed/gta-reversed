@@ -1,20 +1,23 @@
-# Reimplementation progress
+# Reimplementation progress (*): 93%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 04, 2026 at 12:35:45 UTC
-(Triggered by commit [84eecdd9](https://github.com/gta-reversed/gta-reversed/commit/84eecdd93220ce7662efab14edfc99e32a26a6c4))
+Last update was at Oct 04, 2026 at 22:47:37 UTC
+(Triggered by commit [43f55d06](https://github.com/gta-reversed/gta-reversed/commit/43f55d06b5eddd931bb9cfee1a5a9827a0c4d1ea))
 
-## Disclaimer
-The percentages and the number of categories shown here may not be completely accurate, because not all categories and functions are documented yet.
+## (*) Disclaimers
+**The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
-## Stats (8025 functions, 702 categories)
+**The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-#### Completely reversed categories (586/702) [83%]
+## Stats (7449 out of 8025 functions done in 702 categories)
+
+#### Completely reversed categories (587/702) [84%]
 
 <details>
 <summary>See list of categories</summary>
 - CDoor (6)<br />
 - CControllerConfigManager (58)<br />
+- CFormation (9)<br />
 - CHandShaker (3)<br />
 - CCutsceneMgr (35)<br />
 - CFileMgr (17)<br />
@@ -602,11 +605,10 @@ The percentages and the number of categories shown here may not be completely ac
 
 </details>
 
-#### Partially reversed categories (113/702) [16%]
+#### Partially reversed categories (112/702) [16%]
 
 <details>
 <summary>See list of categories</summary>
-- CFormation (1/9) [11%]<br />
 - CPedGroupPlacer (1/4) [25%]<br />
 - CPedGroup (10/12) [83%]<br />
 - CPopCycle (14/15) [93%]<br />
@@ -722,7 +724,7 @@ The percentages and the number of categories shown here may not be completely ac
 
 </details>
 
-#### Not-at-all reversed categories (3/702) [0%]
+#### Not-at-all reversed categories (3/702) [0.4%]
 
 <details>
 <summary>See list of categories</summary>

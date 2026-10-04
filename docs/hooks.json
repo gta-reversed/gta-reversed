@@ -322,12 +322,12 @@
   {
     "Category": "CFormation",
     "Name": "ReturnTargetPedForPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
     "Name": "ReturnDestinationForPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
@@ -337,32 +337,32 @@
   {
     "Category": "CFormation",
     "Name": "GenerateGatherDestinations",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
     "Name": "GenerateGatherDestinations_AroundCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
     "Name": "DistributeDestinations",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
     "Name": "DistributeDestinations_CoverPoints",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
     "Name": "DistributeDestinations_PedsToAttack",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFormation",
     "Name": "FindCoverPoints",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CHandShaker",
