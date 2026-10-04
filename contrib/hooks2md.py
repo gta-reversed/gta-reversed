@@ -100,7 +100,7 @@ def main() -> None:
     overall_progress = total_num_re / total_num_fn
 
     with open(args.output, "w", encoding="utf8", newline="\n") as outf:
-        outf.write(f"# Reimplementation progress: {overall_progress:.0%}\n")
+        outf.write(f"# Reimplementation progress (*): {overall_progress:.0%}\n")
         outf.write(
             "This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.\n\n"
         )
@@ -115,11 +115,13 @@ def main() -> None:
 
         outf.write("\n")
 
-        outf.write("## Disclaimer\n")
+        outf.write("## (*) Disclaimer\n")
         outf.write(
             "The percentages and the number of categories shown here may not be "
             "completely accurate, because not all categories and functions "
             "are documented yet.\n"
+            "The progress is based on the number of functions we have documented and reimplemented, "
+            "so it might not completely reflect the actual progress, it's meant to be a rough estimate.\n"
             "\n"
         )
         
