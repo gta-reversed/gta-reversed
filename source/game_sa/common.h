@@ -93,6 +93,7 @@ constexpr float FRAC_PI_3       = 1.04719f;          // π / 3
 constexpr float FRAC_PI_4       = 0.785398f;         // π / 4
 constexpr float FRAC_PI_6       = 0.523598f;         // π / 6
 constexpr float FRAC_PI_8       = 0.392699f;         // π / 8
+constexpr float FRAC_PI_9       = 0.349066f;         // π / 9
 constexpr float FRAC_TAU_2      = 3.14159f;          // τ / 2 = π
 constexpr float FRAC_TAU_3      = 2.09439f;          // τ / 3
 constexpr float FRAC_TAU_4      = 1.57079f;          // τ / 4
