@@ -31,7 +31,11 @@
 
 #include <extensions/Casting.hpp>
 
-#include <Tracy.hpp>
+#define FrameMark
+#define ZoneScoped
+#define ZoneScopedN(a)
+#define ZoneText(a, b)
+//#include <Tracy.hpp>
 
 // DirectX
 #ifdef _WIN32

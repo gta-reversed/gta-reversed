@@ -151,7 +151,6 @@ add_dependency(
     nlohmann_json
     Ogg
     spdlog
-    Tracy
     Vorbis
     imgui
     libjpeg-turbo
@@ -165,7 +164,6 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     nlohmann_json::nlohmann_json
     Ogg::ogg
     spdlog::spdlog
-    Tracy::TracyClient
     vorbis::vorbis
     imgui::imgui
     libjpeg-turbo::libjpeg-turbo

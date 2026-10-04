@@ -3393,45 +3393,45 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         return;
     }
 
-    const auto padOfPlayerDriver = (GetStatus() == STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) ? m_pDriver->AsPlayer()->GetPadFromPlayer() : nullptr;
-    const auto windDragForce     = IsMissionVehicle() ? CVector{} : -CWeather::WindDir * m_pFlyingHandlingData->m_fWindMult;
-    const auto velocityWithDrag  = m_vecMoveSpeed + windDragForce; // Plus because `windDragForce` is opposing to our velocity already
-    const auto centerOfMass      = GetMatrix().TransformVector(m_vecCentreOfMass);
+    const auto driverPad      = (GetStatus() == STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) ? m_pDriver->AsPlayer()->GetPadFromPlayer() : nullptr;
+    const auto windVelocity   = IsMissionVehicle() ? CVector{} : -CWeather::WindDir * m_pFlyingHandlingData->m_fWindMult;
+    const auto velocityAirRel = m_vecMoveSpeed + windVelocity; // relative to the wind, where windMult is our drag
+    const auto comWorld       = GetMatrix().TransformVector(m_vecCentreOfMass); // world center of mass
 
     switch (flightModel) {
     case FLIGHT_MODEL_CRAPPY: {
-        const float speedMag = velocityWithDrag.Magnitude();
-        const float fwdSpeed = DotProduct(velocityWithDrag, GetForward());
-        const float constAccel = sq(fwdSpeed) * velocityWithDrag.SquaredMagnitude();
+        const float airSpeed = velocityAirRel.Magnitude();
+        const float fwdSpeed = DotProduct(velocityAirRel, GetForward());
+        const float someScale = sq(fwdSpeed) * velocityAirRel.SquaredMagnitude();
 
-        const float latSpeed = -1.0f * DotProduct(m_vecMoveSpeed, GetRight());
-        const float latFraction = latSpeed / speedMag;
+        const float sideSpeed = -1.0f * DotProduct(velocityAirRel, GetRight());
+        const float sideFraction = sideSpeed / airSpeed;
 
-        float turnMoment = (m_fSteerAngle * 0.001f + latFraction * 0.003f) * CTimer::GetTimeStep() * constAccel * m_fTurnMass;
-        CPhysical::ApplyTurnForce(turnMoment * GetRight(), -4.0f * GetForward());
+        const float yawMoment = (m_fSteerAngle * 0.001f + sideFraction * 0.003f) * someScale * m_fTurnMass * CTimer::GetTimeStep();
+        CPhysical::ApplyTurnForce(yawMoment * GetRight(), -4.0f * GetForward());
 
-        float longMoment = CTimer::GetTimeStep() * m_fMass * constAccel * latFraction * 0.2f;
-        CPhysical::ApplyMoveForce(longMoment * GetRight());
-        CPhysical::ApplyTurnForce(longMoment * GetRight(), 2.0f * GetUp());
+        const float sideForce = CTimer::GetTimeStep() * m_fMass * someScale * sideFraction * 0.2f;
+        CPhysical::ApplyMoveForce(sideForce * GetRight());
+        CPhysical::ApplyTurnForce(sideForce * GetRight(), 2.0f * GetUp());
 
-        const float longSpeed = -1.0f * DotProduct(velocityWithDrag, GetUp());
-        const float longFraction = longSpeed / speedMag;
+        const float upSpeed = -1.0f * DotProduct(velocityAirRel, GetUp());
+        const float upFraction = upSpeed / airSpeed;
 
-        const float steerUpDown = padOfPlayerDriver ? -1.0f * (float)padOfPlayerDriver->GetSteeringUpDown() / 128.f : 0.0f;
-        turnMoment = (steerUpDown * 0.001f + longFraction * 0.002f) * CTimer::GetTimeStep() * constAccel * m_fTurnMass;
-        CPhysical::ApplyTurnForce(turnMoment * GetUp(), -4.0f * GetForward());
+        const float steerUpDown = driverPad ? -1.0f * (float)driverPad->GetSteeringUpDown() / 128.f : 0.0f;
+        const float pitchMoment = (steerUpDown * 0.001f + upFraction * 0.002f) * someScale * m_fTurnMass * CTimer::GetTimeStep();
+        CPhysical::ApplyTurnForce(pitchMoment * GetUp(), -4.0f * GetForward());
 
-        longMoment = (longFraction * 3.5f + 0.5f) * m_fMass * CTimer::GetTimeStep() * constAccel * 0.05f;
+        float liftForce = (upFraction * 3.5f + 0.5f) * m_fMass * CTimer::GetTimeStep() * someScale * 0.05f;
 
         const float instGravityForce = m_fMass * 0.008f * CTimer::GetTimeStep();
-        if ((GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) && instGravityForce < longMoment) {
+        if ((GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) && instGravityForce < liftForce) {
             if (CVehicle::HeightAboveCeiling(GetPosition().z, flightModel) > 0.0f) {
-                longMoment = instGravityForce * 0.9f;
+                liftForce = instGravityForce * 0.9f;
             }
         }
 
-        CPhysical::ApplyMoveForce(longMoment * GetUp());
-        CPhysical::ApplyTurnForce(longMoment * GetUp(), centerOfMass + 2.0f * GetUp());
+        CPhysical::ApplyMoveForce(liftForce * GetUp());
+        CPhysical::ApplyTurnForce(liftForce * GetUp(), comWorld + 2.0f * GetUp());
         m_vecTurnSpeed.y *= std::pow(0.9f, CTimer::GetTimeStep());
         break;
     }
@@ -3441,20 +3441,27 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
     case FLIGHT_MODEL_BOAT: {
         if (leftRightSkid == -9999.9902f) { // What a weird fucking value lol
             leftRightSkid = 0.0f;
-            if (padOfPlayerDriver) {
-                leftRightSkid = (float)padOfPlayerDriver->GetSteeringLeftRight() / 128.f;
+            if (driverPad) {
+                leftRightSkid = (float)driverPad->GetSteeringLeftRight() / 128.f;
             }
         }
         if (steeringUpDown == -9999.9902f) {
             steeringUpDown = 0.0f;
-            if (padOfPlayerDriver) {
-                steeringUpDown = (float)padOfPlayerDriver->GetSteeringUpDown() / 128.f;
-                const auto gunUpDown = (float)padOfPlayerDriver->GetCarGunUpDown();
+            if (driverPad) {
+                steeringUpDown = (float)driverPad->GetSteeringUpDown() / 128.f;
+                const auto gunUpDown = (float)driverPad->GetCarGunUpDown();
                 if (std::abs(gunUpDown) > 1.f) {
                     steeringUpDown = -gunUpDown / 128.f;
                 }
             }
         }
+        if (accelerationBreakStatus == -9999.9902f) {
+            accelerationBreakStatus = 0.0f;
+            if (driverPad) {
+                accelerationBreakStatus = float(driverPad->GetAccelerate() - driverPad->GetBrake()) / 255.f;
+            }
+        }
+
         const float steerAngle = std::atan2(steeringUpDown, leftRightSkid);
         float steerMult  = 1.0f;
 
@@ -3473,17 +3480,11 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         leftRightSkid *= steerMult;
         steeringUpDown *= -steerMult;
 
-        const CVector tailPos = GetForward() * GetColModel()->m_boundBox.m_vecMin.y;
-        const float fwdSpeed = DotProduct(velocityWithDrag, GetForward());
+        const CVector tailOffset = GetForward() * GetColModel()->m_boundBox.m_vecMin.y;
+        const float fwdSpeed = DotProduct(velocityAirRel, GetForward());
 
         if (flightModel == FLIGHT_MODEL_RCPLANE) {
             CPhysical::ApplyMoveForce(CVector(0.0f, 0.0f, 0.004f) * m_fMass * CTimer::GetTimeStep());
-        }
-        if (accelerationBreakStatus == -9999.9902f) {
-            accelerationBreakStatus = 0.0f;
-            if (padOfPlayerDriver) {
-                accelerationBreakStatus = float(padOfPlayerDriver->GetAccelerate() - padOfPlayerDriver->GetBrake()) / 255.f;
-            }
         }
 
         const bool groundedOrSkimming =
@@ -3494,7 +3495,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
         float thrust = 0.0f;
         if (groundedOrSkimming) {
-            // reversing/braking on the ground or water: no fall-off applied
+            // reversing/braking on the ground or water: no fallOff applied
             if (accelerationBreakStatus != 0.0f && DotProduct(GetForward(), m_vecMoveSpeed) < 0.02f) {
                 thrust = std::min(accelerationBreakStatus - fwdSpeed * 7.76f, 0.0f) * m_pFlyingHandlingData->m_fThrust;
             }
@@ -3518,87 +3519,86 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             thrust *= 0.1f;
         }
 
-        CVector fwdForce = GetForward();
-        if (IsSubPlane() && GetModelIndex() == MODEL_HYDRA) {
-            // hydra has some static traction component
-            const float nozzleThrustMult = ((float)AsAutomobile()->m_wMiscComponentAngle * HALF_PI) / (float)AsPlane()->HARRIER_NOZZLE_ROTATE_LIMIT;
-            fwdForce = GetUp() * std::sin(nozzleThrustMult) + GetForward() * std::cos(nozzleThrustMult);
+        CVector thrustDir = GetForward();
+        if (IsAutomobile() && GetModelIndex() == MODEL_HYDRA) { // + automobile check check
+            // modify fwdDir to be adjusted by the nozzle thrust
+            const float nozzleAngle = ((float)AsAutomobile()->m_wMiscComponentAngle * HALF_PI) / (float)CPlane::HARRIER_NOZZLE_ROTATE_LIMIT;
+            thrustDir = GetUp() * std::sin(nozzleAngle) + GetForward() * std::cos(nozzleAngle);
         }
 
-        CPhysical::ApplyMoveForce(fwdForce * 0.008f * thrust * m_fMass * CTimer::GetTimeStep());
+        CPhysical::ApplyMoveForce(thrustDir * thrust * m_fMass * 0.008f * CTimer::GetTimeStep());
 
         // side forces
-        const float sideSpeed = -1.0f * DotProduct(velocityWithDrag, GetRight());
-        const float sideSlipAccel = sideSpeed * std::abs(sideSpeed) * m_pFlyingHandlingData->m_fSideSlip;
-        CPhysical::ApplyMoveForce(GetRight() * sideSlipAccel * m_fMass * CTimer::GetTimeStep());
+        const float sideSpeed = -1.0f * DotProduct(velocityAirRel, GetRight());
+        const float sideSlipForce = sideSpeed * std::abs(sideSpeed) * m_pFlyingHandlingData->m_fSideSlip * m_fMass * CTimer::GetTimeStep();
+        CPhysical::ApplyMoveForce(GetRight() * sideSlipForce);
 
-        const float yawSpeed = -1.0f * DotProduct(CPhysical::GetSpeed(tailPos), GetRight());
+        const float tailSideSpeed = -1.0f * DotProduct(CPhysical::GetSpeed(tailOffset), GetRight());
         const float fwdSpeedAdj = ModelIndices::IsVortex(GetModelIndex())
             ? ((fwdSpeed > 0.0f) ? std::max(fwdSpeed, thrust) : std::min(fwdSpeed, thrust))
             : fwdSpeed;
-        const float yawAccel = yawSpeed * std::abs(yawSpeed) * m_pFlyingHandlingData->m_fYawStab;
-        const float yawStability = (yawAccel + fwdSpeedAdj * m_pFlyingHandlingData->m_fYaw * leftRightSkid) * CTimer::GetTimeStep() * m_fTurnMass;
-        CPhysical::ApplyTurnForce(GetRight() * yawStability, tailPos + centerOfMass);
+        const float yawAccel = tailSideSpeed * std::abs(tailSideSpeed) * m_pFlyingHandlingData->m_fYawStab;
+        const float yawTorque = (yawAccel + fwdSpeedAdj * m_pFlyingHandlingData->m_fYaw * leftRightSkid) * m_fTurnMass * CTimer::GetTimeStep();
+        CPhysical::ApplyTurnForce(GetRight() * yawTorque, tailOffset + comWorld);
 
         // straight from disassembly, quite logical but needs to be checked, 0x6D9377
-        const float steerInput = m_pFlyingHandlingData->m_fRoll * fwdSpeed * (steeringLeftRight == -9999.9902f ? leftRightSkid : steeringLeftRight)
+        const float rollTorque = m_pFlyingHandlingData->m_fRoll * fwdSpeed * (steeringLeftRight == -9999.9902f ? leftRightSkid : steeringLeftRight)
             * m_fTurnMass * CTimer::GetTimeStep();
-        CPhysical::ApplyTurnForce(GetRight() * steerInput, GetUp() + centerOfMass);
+        CPhysical::ApplyTurnForce(GetRight() * rollTorque, GetUp() + comWorld);
 
         CVector crossRight = CrossProduct(GetForward(), CVector(0.0f, 0.0f, 1.0f)); // 0x6D944C
         crossRight = (GetUp().z <= 0.0f) ? -1.0f * crossRight : crossRight;
-        const float dirStab = (GetRight().z > 0.0f) ? -1.0f : 1.0f;
-        float stabSpeed = (1.0f - std::abs(GetForward().z)) * (1.0f - DotProduct(crossRight, GetRight())) * dirStab;
-        stabSpeed *= m_pFlyingHandlingData->m_fRollStab * CTimer::GetTimeStep() * m_fTurnMass * 0.5f;
-        CPhysical::ApplyTurnForce(GetRight() * stabSpeed, GetUp() + centerOfMass); // 0x6D956D
+        const float rollSide = (GetRight().z > 0.0f) ? -1.0f : 1.0f;
+        float rollSideTorque = (1.0f - std::abs(GetForward().z)) * (1.0f - DotProduct(crossRight, GetRight())) * rollSide;
+        rollSideTorque *= m_pFlyingHandlingData->m_fRollStab * m_fTurnMass * CTimer::GetTimeStep() * 0.5f;
+        CPhysical::ApplyTurnForce(GetRight() * rollSideTorque, GetUp() + comWorld); // 0x6D956D
 
-        const float pitchSpeed = -1.0f * DotProduct(CPhysical::GetSpeed(tailPos), GetUp());
-        const float pitchAccel = (pitchSpeed * std::abs(pitchSpeed) * m_pFlyingHandlingData->m_fPitchStab + fwdSpeed * m_pFlyingHandlingData->m_fPitch * steeringUpDown)
-            * CTimer::GetTimeStep() * m_fTurnMass;
-        CPhysical::ApplyTurnForce(GetUp() * pitchAccel, tailPos + centerOfMass); // 0x6D966A
+        const float tailUpSpeed = -1.0f * DotProduct(CPhysical::GetSpeed(tailOffset), GetUp());
+        const float pitchTorque = (tailUpSpeed * std::abs(tailUpSpeed) * m_pFlyingHandlingData->m_fPitchStab + fwdSpeed * m_pFlyingHandlingData->m_fPitch * steeringUpDown)
+             * m_fTurnMass * CTimer::GetTimeStep();
+        CPhysical::ApplyTurnForce(GetUp() * pitchTorque, tailOffset + comWorld); // 0x6D966A
+        // z component velocity ratio
+        const float upVelRatio = DotProduct(velocityAirRel, GetUp()) / std::max(0.01f, velocityAirRel.Magnitude());
+        const float attackAngle = -1.0f * std::asin(std::clamp(upVelRatio, -1.0f, 1.0f));
 
-        const float liftSpeed = DotProduct(velocityWithDrag, GetUp()) / std::max(0.01f, velocityWithDrag.Magnitude());
-        const float noseAngle = -1.0f * std::asin(std::clamp(liftSpeed, -1.0f, 1.0f));
-
-        if (IsSubPlane() && noseAngle > FRAC_PI_9) { // 20 deg
+        if (IsSubPlane() && attackAngle > FRAC_PI_9) { // 20 deg
             AsPlane()->field_9A0 += CTimer::GetTimeStepInMS(); // 0x6D9707
         }
 
-        float fFormLiftAdj = m_pFlyingHandlingData->m_fFormLift;
+        float formLift = m_pFlyingHandlingData->m_fFormLift;
         if (flightModel == FLIGHT_MODEL_RCPLANE) {
             constexpr auto RCBaronFormLiftGravityAffected = RCBARON_FORM_LIFT_LIMIT * 0.008f;
-            if (sq(fwdSpeed) * fFormLiftAdj > RCBaronFormLiftGravityAffected) {
-                fFormLiftAdj = RCBaronFormLiftGravityAffected / sq(fwdSpeed);
+            if (sq(fwdSpeed) * formLift > RCBaronFormLiftGravityAffected) {
+                formLift = RCBaronFormLiftGravityAffected / sq(fwdSpeed);
             }
         } else if (IsSubPlane() && AsPlane()->m_fLandingGearStatus < 1.0f) {
             // less lift when landing gear is down
-            fFormLiftAdj *= m_pFlyingHandlingData->m_fGearDownL;
+            formLift *= m_pFlyingHandlingData->m_fGearDownL;
         }
         const float instGravityForce = m_fMass * 0.008f * CTimer::GetTimeStep();
-        float liftAccel = (noseAngle * m_pFlyingHandlingData->m_fAttackLift + fFormLiftAdj) * m_fMass * CTimer::GetTimeStep() * sq(fwdSpeed);
-        if (liftAccel > instGravityForce) {
+        float liftImpulse = (attackAngle * m_pFlyingHandlingData->m_fAttackLift + formLift) * m_fMass * CTimer::GetTimeStep() * sq(fwdSpeed);
+        if (liftImpulse > instGravityForce) {
             const float heightAboveCeiling = CVehicle::HeightAboveCeiling(GetPosition().z, flightModel);
             if (heightAboveCeiling > 0.0f) {
-                //const float aboveLimitAccelMult = std::max(0.0f, 1.0f - heightAboveCeiling * 0.02f);
                 // prevent plane going off the height limits
-                liftAccel = std::max(0.0f, 1.0f - heightAboveCeiling * 0.02f) * instGravityForce;
+                liftImpulse = std::max(0.0f, 1.0f - heightAboveCeiling * 0.02f) * instGravityForce;
             }
         }
-        CPhysical::ApplyMoveForce(GetUp() * liftAccel); // 0x6D9864
+        CPhysical::ApplyMoveForce(GetUp() * liftImpulse); // 0x6D9864
         break;
     }
     case FLIGHT_MODEL_RCHELI:
     case FLIGHT_MODEL_HELI:
     case FLIGHT_MODEL_AUTOGYRO: {
-        float moveRes = std::pow(m_pFlyingHandlingData->m_fMoveRes, CTimer::GetTimeStep());
-        m_vecMoveSpeed *= moveRes;
-        auto liftThrust = CVector{};
+        float moveDamping = std::pow(m_pFlyingHandlingData->m_fMoveRes, CTimer::GetTimeStep());
+        m_vecMoveSpeed *= moveDamping;
+        auto rotorThrust = CVector{}; // thrust of our carrying (main) rotor, see below
         if (accelerationBreakStatus == -9999.9902f) {
             accelerationBreakStatus = 0.0f;
-            if (padOfPlayerDriver) {
-                accelerationBreakStatus = float(padOfPlayerDriver->GetAccelerate() - padOfPlayerDriver->GetBrake()) / 255.f;
+            if (driverPad) {
+                accelerationBreakStatus = float(driverPad->GetAccelerate() - driverPad->GetBrake()) / 255.f;
                 if (flightModel != FLIGHT_MODEL_AUTOGYRO) {
-                    const auto carGunUpDown = (float)padOfPlayerDriver->GetCarGunUpDown();
+                    const auto carGunUpDown = (float)driverPad->GetCarGunUpDown();
                     if (std::abs((carGunUpDown)) > 1.0f) {
                         accelerationBreakStatus = carGunUpDown / 128.f;
                     }
@@ -3606,105 +3606,104 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             }
         }
         if (flightModel == FLIGHT_MODEL_AUTOGYRO) {
-            // has some resemblance, not finished though
-            float fwdSpeed = DotProduct(velocityWithDrag, GetForward());
-            float fwdThrust = 0.0f;
-            float falloffThrust = (accelerationBreakStatus - fwdSpeed * m_pFlyingHandlingData->m_fThrustFallOff);
-            if (fwdSpeed > 0.0f || accelerationBreakStatus > 0.0f) {
-                fwdThrust = falloffThrust * m_pFlyingHandlingData->m_fThrust;
-            } else {
-                fwdThrust = std::min(0.0f, falloffThrust * 8.0f) * m_pFlyingHandlingData->m_fThrust;
-            }
-            CPhysical::ApplyMoveForce(GetForward() * fwdThrust * m_fMass * 0.008f * CTimer::GetTimeStep()); // BUG: no 0.008f here, that's why it gains max speed instantly
+            /* model is obviously unfinished, while pushing's rotor thrust gives us some resemblance, gyros cannot hover
+               also they can have positive pitch with noticeable lift thrust but here you can't really lift by pitching up */
+            const float fwdSpeed = DotProduct(velocityAirRel, GetForward());
+            const float fallOffThrust = fwdSpeed * m_pFlyingHandlingData->m_fThrustFallOff;
+            const float pusherThrust = (fwdSpeed > 0.0f || accelerationBreakStatus > 0.0f)
+                ? (accelerationBreakStatus - fallOffThrust) * m_pFlyingHandlingData->m_fThrust
+                : std::min(0.0f, accelerationBreakStatus - fallOffThrust * 8.0f) * m_pFlyingHandlingData->m_fThrust;
+
+            CPhysical::ApplyMoveForce(GetForward() * pusherThrust * m_fMass * 0.008f * CTimer::GetTimeStep()); // BUG: no 0.008f here in og, that's why it gains max speed instantly
 
             CVector rotorThrustDir = (GetUp() - AUTOGYRO_ROTORTILT_ANGLE * GetForward()).Normalized();
-            float rotorPusher = DotProduct(velocityWithDrag, rotorThrustDir);  // combined up and fwd
-            float mainRotorSpeed = 0.22f; // instant rotor start
+            float rotorPusher = DotProduct(velocityAirRel, rotorThrustDir);  // combined up and fwd
+            float rotorSpeed = 0.22f; // instant rotor start
             if (IsAutomobile()) {
                 float& heliRotorSpeed = AsAutomobile()->m_fHeliRotorSpeed;
                 rotorPusher = std::clamp(rotorPusher, -AUTOGYRO_ROTORSPIN_MULTLIMIT, 0.0f);
-                heliRotorSpeed -= rotorPusher * CTimer::GetTimeStep() * AUTOGYRO_ROTORSPIN_MULT;
+                heliRotorSpeed -= rotorPusher * AUTOGYRO_ROTORSPIN_MULT * CTimer::GetTimeStep();
                 heliRotorSpeed *= std::pow(AUTOGYRO_ROTORSPIN_DAMP, CTimer::GetTimeStep());
                 heliRotorSpeed = std::clamp(heliRotorSpeed, 0.08f, 0.4f);
-                mainRotorSpeed = heliRotorSpeed;
+                rotorSpeed = heliRotorSpeed;
             }
-            liftThrust = rotorThrustDir * 0.008f * (mainRotorSpeed * AUTOGYRO_ROTORLIFT_MULT - rotorPusher * AUTOGYRO_ROTORLIFT_FALLOFF) * m_fMass * CTimer::GetTimeStep();
+            rotorThrust = rotorThrustDir * (rotorSpeed * AUTOGYRO_ROTORLIFT_MULT - rotorPusher * AUTOGYRO_ROTORLIFT_FALLOFF) * m_fMass * 0.008f * CTimer::GetTimeStep();
         } else {
-            CVector upDir = GetUp();
+            CVector thrustDir = GetUp();
             if (!vehicleFlags.bHeliMinimumTilt) {
-                if (GetModelIndex() == MODEL_HYDRA) {
-                    // hydra has some static traction component
-                    const float nozzleThrustMult = ((float)AsAutomobile()->m_wMiscComponentAngle * HALF_PI) / (float)AsPlane()->HARRIER_NOZZLE_ROTATE_LIMIT;
-                    upDir = GetUp() * std::sin(nozzleThrustMult) + GetForward() * std::cos(nozzleThrustMult);
+                if (IsAutomobile() && GetModelIndex() == MODEL_HYDRA) { // + automobile check
+                    // modify upDir to be adjusted by the nozzle thrust
+                    const float nozzleAngle = ((float)AsAutomobile()->m_wMiscComponentAngle * HALF_PI) / (float)CPlane::HARRIER_NOZZLE_ROTATE_LIMIT;
+                    thrustDir = GetUp() * std::sin(nozzleAngle) + GetForward() * std::cos(nozzleAngle);
                 }
             } else {
-                upDir.x = std::sin(std::asin(upDir.x) * 4.0f);
-                upDir.y = std::sin(std::asin(upDir.y) * 4.0f);
-                upDir.z = std::cos(std::acos(upDir.z) * 4.0f);
+                thrustDir.x = std::sin(std::asin(thrustDir.x) * 4.0f);
+                thrustDir.y = std::sin(std::asin(thrustDir.y) * 4.0f);
+                thrustDir.z = std::cos(std::acos(thrustDir.z) * 4.0f);
             }
-            float upSpeed = DotProduct(velocityWithDrag, upDir);
-            if (upSpeed > 0.0f) {
-                upSpeed *= 2.0f;
+            float thrustAxisSpd = DotProduct(velocityAirRel, thrustDir);
+            if (thrustAxisSpd > 0.0f) {
+                thrustAxisSpd *= 2.0f;
             }
             // dynamic hover compensative force for maintaining altitude
-            CPhysical::ApplyMoveForce(CVector(0.0f, 0.0f, 1.0f) * (0.5f - m_vecMoveSpeed.z) * 0.008f * m_fMass * CTimer::GetTimeStep());
+            CPhysical::ApplyMoveForce(CVector(0.0f, 0.0f, 1.0f) * (0.5f - m_vecMoveSpeed.z) * m_fMass * 0.008f * CTimer::GetTimeStep());
 
-            float thrustMag = (accelerationBreakStatus * m_pFlyingHandlingData->m_fThrust + 0.45f) - upSpeed * m_pFlyingHandlingData->m_fThrustFallOff;
+            float rotorThrustAccel = (accelerationBreakStatus * m_pFlyingHandlingData->m_fThrust + 0.45f) - thrustAxisSpd * m_pFlyingHandlingData->m_fThrustFallOff;
             const float heightAboveCeiling = CVehicle::HeightAboveCeiling(GetPosition().z, flightModel);
             if (heightAboveCeiling > 0.0f) {
                 // prevent heli going off the height limits
-                thrustMag = thrustMag / (heightAboveCeiling + 10.0f) * 10.0f;
+                rotorThrustAccel = rotorThrustAccel / (heightAboveCeiling + 10.0f) * 10.0f;
             }
-            liftThrust = upDir * 0.008f * thrustMag * m_fMass * CTimer::GetTimeStep();
+            rotorThrust = thrustDir * rotorThrustAccel * m_fMass * 0.008f * CTimer::GetTimeStep();
         }
-        CPhysical::ApplyMoveForce(liftThrust); // 0x6D9EF4
+        CPhysical::ApplyMoveForce(rotorThrust); // 0x6D9EF4
 
-        float pitchAccel{};
+        float pitchLevelMult{};
         if (GetUp().z <= 0.0f) {
             // tilted from more than 90 deg from right, recover
-            const float invRollSign = (GetRight().z < 0.0f) ? m_pFlyingHandlingData->m_fFormLift : -1.0f * m_pFlyingHandlingData->m_fFormLift;
-            CPhysical::ApplyTurnForce(GetUp() * invRollSign * m_pFlyingHandlingData->m_fAttackLift * m_fTurnMass * CTimer::GetTimeStep(), GetRight() + centerOfMass);
+            const float rollRecStrength = (GetRight().z < 0.0f) ? m_pFlyingHandlingData->m_fFormLift : -1.0f * m_pFlyingHandlingData->m_fFormLift;
+            CPhysical::ApplyTurnForce(GetUp() * rollRecStrength * m_pFlyingHandlingData->m_fAttackLift * m_fTurnMass * CTimer::GetTimeStep(), GetRight() + comWorld);
 
-            const float invPitchSign = (GetForward().z < 0.0f) ? m_pFlyingHandlingData->m_fFormLift : -1.0f * m_pFlyingHandlingData->m_fFormLift;
-            pitchAccel = invPitchSign * m_pFlyingHandlingData->m_fAttackLift;
+            const float pitchRecStrength = (GetForward().z < 0.0f) ? m_pFlyingHandlingData->m_fFormLift : -1.0f * m_pFlyingHandlingData->m_fFormLift;
+            pitchLevelMult = pitchRecStrength * m_pFlyingHandlingData->m_fAttackLift;
         } else {
             const auto windTiltedUp = (CVector(0.0f, 0.0f, 1.0f) + m_pFlyingHandlingData->m_fWindMult * CWeather::WindDir).Normalized();
 
             const float dotRight = DotProduct(windTiltedUp, GetRight());
             const float rollTilt = std::clamp(dotRight, -m_pFlyingHandlingData->m_fFormLift, m_pFlyingHandlingData->m_fFormLift);
-            CPhysical::ApplyTurnForce(GetUp() * -1.0f * rollTilt * m_pFlyingHandlingData->m_fAttackLift * m_fTurnMass * CTimer::GetTimeStep(), GetRight() + centerOfMass); // 0x6DA068
+            CPhysical::ApplyTurnForce(GetUp() * -1.0f * rollTilt * m_pFlyingHandlingData->m_fAttackLift * m_fTurnMass * CTimer::GetTimeStep(), GetRight() + comWorld); // 0x6DA068
 
             const float dotFwd = DotProduct(windTiltedUp, GetForward());
             const float pitchTilt = std::clamp(dotFwd, -m_pFlyingHandlingData->m_fFormLift, m_pFlyingHandlingData->m_fFormLift);
-            pitchAccel = -1.0f * pitchTilt * m_pFlyingHandlingData->m_fAttackLift;
+            pitchLevelMult = -1.0f * pitchTilt * m_pFlyingHandlingData->m_fAttackLift;
         }
-        CPhysical::ApplyTurnForce(GetUp() * pitchAccel * m_fTurnMass * CTimer::GetTimeStep(), GetForward() + centerOfMass);
+        CPhysical::ApplyTurnForce(GetUp() * pitchLevelMult * m_fTurnMass * CTimer::GetTimeStep(), GetForward() + comWorld);
 
         if (steeringUpDown == -9999.9902f) {
             steeringUpDown = 0.0f;
-            if (padOfPlayerDriver) {
-                steeringUpDown = (float)padOfPlayerDriver->GetSteeringUpDown() / 128.f;
+            if (driverPad) {
+                steeringUpDown = (float)driverPad->GetSteeringUpDown() / 128.f;
             }
         }
         if (steeringLeftRight == -9999.9902f) {
             steeringLeftRight = 0.0f;
-            if (padOfPlayerDriver) {
-                steeringLeftRight = AsHeli()->bHeliControlsCheat
-                    ? (float)padOfPlayerDriver->GetLookLeft()
-                    : -1.0f * (float)padOfPlayerDriver->GetSteeringLeftRight() / 128.f;
+            if (driverPad) {
+                steeringLeftRight = CHeli::bHeliControlsCheat
+                    ? (float)driverPad->GetLookLeft()
+                    : -1.0f * (float)driverPad->GetSteeringLeftRight() / 128.f;
             }
         }
         if (leftRightSkid == -9999.9902f) {
             leftRightSkid = 0.0f;
-            if (padOfPlayerDriver) {
-                if (AsHeli()->bHeliControlsCheat) {
-                    if (padOfPlayerDriver->GetLookRight()) {
+            if (driverPad) {
+                if (CHeli::bHeliControlsCheat) {
+                    if (driverPad->GetLookRight()) {
                         steeringLeftRight = -1.0f;
                     }
-                    leftRightSkid = (float)padOfPlayerDriver->GetSteeringLeftRight() / 128.f;
+                    leftRightSkid = (float)driverPad->GetSteeringLeftRight() / 128.f;
                 } else {
-                    leftRightSkid = padOfPlayerDriver->GetLookLeft() ? -1.0f : (float)padOfPlayerDriver->GetLookRight();
-                    const float carGunLeftRight = (float)padOfPlayerDriver->GetCarGunLeftRight();
+                    leftRightSkid = driverPad->GetLookLeft() ? -1.0f : (float)driverPad->GetLookRight();
+                    const float carGunLeftRight = (float)driverPad->GetCarGunLeftRight();
                     if (std::abs(carGunLeftRight) > 1.0f) {
                         leftRightSkid = carGunLeftRight / 128.f;
                     }
@@ -3712,81 +3711,75 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             }
         }
         if (vehicleFlags.bHeliMinimumTilt) {
-            const float angleLimit = std::sin(0.25f * std::asin(m_pFlyingHandlingData->m_fPitch / m_pFlyingHandlingData->m_fAttackLift))
+            const float tiltScaled = std::sin(0.25f * std::asin(m_pFlyingHandlingData->m_fPitch / m_pFlyingHandlingData->m_fAttackLift))
                 / m_pFlyingHandlingData->m_fPitch * m_pFlyingHandlingData->m_fAttackLift;
-            steeringUpDown *= angleLimit;
-            steeringLeftRight *= angleLimit;
+            steeringUpDown *= tiltScaled;
+            steeringLeftRight *= tiltScaled;
         }
 
-        CPhysical::ApplyTurnForce(GetUp() * steeringUpDown * m_pFlyingHandlingData->m_fPitch * m_fTurnMass * CTimer::GetTimeStep(), GetForward() + centerOfMass); // 0x6DA58F
-        CPhysical::ApplyTurnForce(GetUp() * steeringLeftRight * m_pFlyingHandlingData->m_fRoll * m_fTurnMass * CTimer::GetTimeStep(), GetRight() + centerOfMass);
+        const float pitchTorque = steeringUpDown * m_pFlyingHandlingData->m_fPitch * m_fTurnMass * CTimer::GetTimeStep();
+        const float rollTorque  = steeringLeftRight * m_pFlyingHandlingData->m_fRoll * m_fTurnMass * CTimer::GetTimeStep();
+        CPhysical::ApplyTurnForce(GetUp() * pitchTorque, GetForward() + comWorld); // 0x6DA58F
+        CPhysical::ApplyTurnForce(GetUp() * rollTorque, GetRight() + comWorld);
 
-        float sideSpeed = -1.0f * DotProduct(velocityWithDrag, GetRight());
-        CPhysical::ApplyMoveForce(GetRight() * sideSpeed * std::abs(sideSpeed) * m_pFlyingHandlingData->m_fSideSlip * m_fMass * CTimer::GetTimeStep());
+        const float sideSpeed = -1.0f * DotProduct(velocityAirRel, GetRight());
+        const float sideForce = sideSpeed * std::abs(sideSpeed) * m_pFlyingHandlingData->m_fSideSlip * m_fMass * CTimer::GetTimeStep();
+        CPhysical::ApplyMoveForce(GetRight() * sideForce);
 
-        float sideAccel = (sideSpeed * std::abs(sideSpeed) * m_pFlyingHandlingData->m_fYawStab + leftRightSkid * m_pFlyingHandlingData->m_fYaw) * m_fTurnMass * CTimer::GetTimeStep();
-        CPhysical::ApplyTurnForce(GetRight() * sideAccel, -1.0f * GetForward() + centerOfMass);
-        CPhysical::ApplyTurnForce(GetForward() * leftRightSkid * m_pFlyingHandlingData->m_fYaw * m_fTurnMass * CTimer::GetTimeStep(), GetRight() + centerOfMass);
+        const float yawStabTorque = (sideSpeed * std::abs(sideSpeed) * m_pFlyingHandlingData->m_fYawStab + leftRightSkid * m_pFlyingHandlingData->m_fYaw) * m_fTurnMass * CTimer::GetTimeStep();
+        const float yawInputTorque = leftRightSkid * m_pFlyingHandlingData->m_fYaw * m_fTurnMass * CTimer::GetTimeStep();
+        CPhysical::ApplyTurnForce(GetRight() * yawStabTorque, -1.0f * GetForward() + comWorld);
+        CPhysical::ApplyTurnForce(GetForward() * yawInputTorque, GetRight() + comWorld);
         break;
     }
     }
 
     // resistance
     const CVector turnResistance = Pow(m_pFlyingHandlingData->m_vecTurnRes, CTimer::GetTimeStep());
-    CVector vecTurnSpeed = GetMatrix().InverseTransformVector(m_vecTurnSpeed);
-    float resMult = 1.0f;
+    CVector localTurnSpeed = GetMatrix().InverseTransformVector(m_vecTurnSpeed);
+    float dampExp = 1.0f; // aka damping exponent cause it's used in power below
     switch (flightModel) {
     case FLIGHT_MODEL_PLANE:
     case FLIGHT_MODEL_PLANE_UNK:
     case FLIGHT_MODEL_BOAT:
-        resMult = m_vecMoveSpeed.Magnitude() * 2.0f;
+        dampExp = m_vecMoveSpeed.Magnitude() * 2.0f;
         break;
     case FLIGHT_MODEL_RCPLANE:
-        resMult = m_vecMoveSpeed.Magnitude() * 6.0f;
+        dampExp = m_vecMoveSpeed.Magnitude() * 6.0f;
         break;
     case FLIGHT_MODEL_HELI:
     case FLIGHT_MODEL_AUTOGYRO:
-        resMult = m_vecMoveSpeed.Magnitude() + 1.0f;
+        dampExp = m_vecMoveSpeed.Magnitude() + 1.0f;
         break;
     default:
         break;
     }
 
-    auto speedRes = CVector{};
-    if (m_pFlyingHandlingData->m_vecSpeedRes.x <= 0.0f) {
-        vecTurnSpeed.x *= std::pow(turnResistance.x, resMult);
-    } else {
-        speedRes.x = std::pow(turnResistance.x / (sq(vecTurnSpeed.x) * m_pFlyingHandlingData->m_vecSpeedRes.x + 1.0f), CTimer::GetTimeStep()) * vecTurnSpeed.x - vecTurnSpeed.x;
+    auto dampDelta = CVector{};
+    for (int i = 0; i < 3; ++i) {
+        if (m_pFlyingHandlingData->m_vecSpeedRes[i] <= 0.0f) {
+            localTurnSpeed[i] *= std::pow(turnResistance[i], dampExp);
+        } else {
+            dampDelta[i] = std::pow(turnResistance[i] / (sq(localTurnSpeed[i]) * m_pFlyingHandlingData->m_vecSpeedRes[i] + 1.0f), CTimer::GetTimeStep()) * localTurnSpeed[i] - localTurnSpeed[i];
+        }
     }
-    if (m_pFlyingHandlingData->m_vecSpeedRes.y <= 0.0f) {
-        vecTurnSpeed.y *= std::pow(turnResistance.y, resMult);
-    } else {
-        speedRes.y = std::pow(turnResistance.y / (sq(vecTurnSpeed.y) * m_pFlyingHandlingData->m_vecSpeedRes.y + 1.0f), CTimer::GetTimeStep()) * vecTurnSpeed.y - vecTurnSpeed.y;
-    }
-    if (m_pFlyingHandlingData->m_vecSpeedRes.z <= 0.0f) {
-        vecTurnSpeed.z *= std::pow(turnResistance.z, resMult);
-    } else {
-        speedRes.z = std::pow(turnResistance.z / (sq(vecTurnSpeed.z) * m_pFlyingHandlingData->m_vecSpeedRes.z + 1.0f), CTimer::GetTimeStep()) * vecTurnSpeed.z - vecTurnSpeed.z;
-    }
-    m_vecTurnSpeed = GetMatrix().TransformVector(vecTurnSpeed);
+    m_vecTurnSpeed = GetMatrix().TransformVector(localTurnSpeed);
+    dampDelta *= dampExp;
 
-    speedRes *= resMult;
+    const auto applyResTorque = [&](const float& amount, const CVector& axis, const CVector& pointOffset) {
+        if (amount != 0.0f) {
+            CPhysical::ApplyTurnForce(-amount * m_fTurnMass * axis, pointOffset + comWorld);
+        }
+    };
+    applyResTorque(dampDelta.x, GetForward(), GetUp());
+    applyResTorque(dampDelta.y, GetUp(), GetRight());
+    applyResTorque(dampDelta.z, GetRight(), GetForward());
 
-    if (speedRes.x != 0.0f) {
-        CPhysical::ApplyTurnForce(-1.0f * GetForward() * speedRes.x * m_fTurnMass, GetUp() + centerOfMass);
+    if (const float moveSpeedSq = m_vecMoveSpeed.SquaredMagnitude(); moveSpeedSq > sq(1.5f)) {
+        m_vecMoveSpeed *= 1.5f / std::sqrt(moveSpeedSq);
     }
-    if (speedRes.y != 0.0f) {
-        CPhysical::ApplyTurnForce(-1.0f * GetUp() * speedRes.y * m_fTurnMass, GetRight() + centerOfMass);
-    }
-    if (speedRes.z != 0.0f) {
-        CPhysical::ApplyTurnForce(-1.0f * GetRight() * speedRes.z * m_fTurnMass, GetForward() + centerOfMass);
-    }
-
-    if (const float moveSpeed = m_vecMoveSpeed.SquaredMagnitude(); moveSpeed > sq(1.5f)) {
-        m_vecMoveSpeed *= 1.5f / std::sqrt(moveSpeed);
-    }
-    if (const float turnSpeed = m_vecTurnSpeed.SquaredMagnitude(); turnSpeed > sq(0.2f)) {
-        m_vecTurnSpeed *= 0.2f / std::sqrt(turnSpeed);
+    if (const float turnSpeedSq = m_vecTurnSpeed.SquaredMagnitude(); turnSpeedSq > sq(0.2f)) {
+        m_vecTurnSpeed *= 0.2f / std::sqrt(turnSpeedSq);
     }
 }
 
