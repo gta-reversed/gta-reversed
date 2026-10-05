@@ -3571,7 +3571,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             if (sq(fwdSpeed) * formLift > RCBaronFormLiftGravityAffected) {
                 formLift = RCBaronFormLiftGravityAffected / sq(fwdSpeed);
             }
-        } else if (IsSubPlane() && AsPlane()->m_fLandingGearStatus < 1.0f) {
+        } else if (IsSubPlane() && AsPlane()->m_fLandingGearAngle < 1.0f) {
             // less lift when landing gear is down
             formLift *= m_pFlyingHandlingData->m_fGearDownL;
         }

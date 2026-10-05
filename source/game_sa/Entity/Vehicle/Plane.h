@@ -56,7 +56,7 @@ public:
     uint32       m_nStartedFlyingTime;
     float        m_fPropSpeed;
     float        field_9C8;
-    float        m_fLandingGearStatus;
+    float        m_fLandingGearAngle;   // 1.0f - fully up
     int32        m_planeDamageWave;
     FxSystem_c** m_pGunParticles;
     uint8        m_nFiringMultiplier;
