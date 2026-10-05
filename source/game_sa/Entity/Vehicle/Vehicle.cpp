@@ -1864,7 +1864,8 @@ bool CVehicle::CarHasRoof() {
 // 0x6D2600
 float CVehicle::HeightAboveCeiling(float height, eFlightModel flightModel) {
     switch (flightModel) {
-    case eFlightModel::FLIGHT_MODEL_RCPLANE: {
+    case eFlightModel::FLIGHT_MODEL_RCPLANE:
+    case eFlightModel::FLIGHT_MODEL_RCHELI: {
         if (height >= 500.f) {
             if (height < 950.f) {
                 return height - 500.f;

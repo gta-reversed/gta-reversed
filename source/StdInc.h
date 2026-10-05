@@ -31,6 +31,10 @@
 
 #include <extensions/Casting.hpp>
 
+#ifdef TRACY_ENABLE
+#undef TRACY_ENABLE
+#endif
+
 #include <Tracy.hpp>
 
 // DirectX
