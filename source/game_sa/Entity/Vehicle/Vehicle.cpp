@@ -3562,7 +3562,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         const float attackAngle = -1.0f * std::asin(std::clamp(upVelRatio, -1.0f, 1.0f));
 
         if (IsSubPlane() && attackAngle > FRAC_PI_9) { // 20 deg
-            AsPlane()->field_9A0 += CTimer::GetTimeStepInMS(); // 0x6D9707
+            AsPlane()->m_nStallCounter += (uint32)CTimer::GetTimeStepInMS(); // 0x6D9707
         }
 
         float formLift = m_pFlyingHandlingData->m_fFormLift;

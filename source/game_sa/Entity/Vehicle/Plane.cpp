@@ -52,7 +52,7 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     m_fPropSpeed                   = 0.0f;
     field_9C8                      = 0.0f;
     m_fLandingGearStatus           = 0.0f;
-    field_9A0                      = 0;
+    m_nStallCounter                = 0;
     m_planeCreationHeading         = 0.0f;
     m_planeHeading                 = 0.0f;
     m_planeHeadingPrev             = 0.0f;
@@ -399,9 +399,9 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(field_9A0);
-    if (field_9A0) {
-        field_9A0 = 0;
+    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(m_nStallCounter);
+    if (m_nStallCounter) {
+        m_nStallCounter = 0;
     }
 
     CVehicle::ProcessWeapons();
