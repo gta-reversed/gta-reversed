@@ -3396,7 +3396,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
     const auto driverPad      = (GetStatus() == STATUS_PLAYER && m_pDriver && m_pDriver->IsPlayer()) ? m_pDriver->AsPlayer()->GetPadFromPlayer() : nullptr;
     const auto windVelocity   = IsMissionVehicle() ? CVector{} : -CWeather::WindDir * m_pFlyingHandlingData->m_fWindMult;
-    const auto velocityAirRel = m_vecMoveSpeed + windVelocity; // relative to the wind, where windMult is our drag
+    const auto velocityAirRel = m_vecMoveSpeed + windVelocity; // relative to the wind, where windMult is our drag coeff
     const auto comWorld       = GetMatrix().TransformVector(m_vecCentreOfMass); // world center of mass
 
     switch (flightModel) {
@@ -3438,7 +3438,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
     }
     case FLIGHT_MODEL_RCPLANE:
     case FLIGHT_MODEL_PLANE:
-    case FLIGHT_MODEL_PLANE_UNK:
+    case FLIGHT_MODEL_UNK4:
     case FLIGHT_MODEL_BOAT: {
         if (leftRightSkid == -9999.9902f) { // What a weird fucking value lol
             leftRightSkid = 0.0f;
@@ -3507,21 +3507,21 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
             if (fwdSpeed > 0.0f && m_pFlyingHandlingData->m_fThrustFallOff < 1.0f) {
                 const float fo = m_pFlyingHandlingData->m_fThrustFallOff;
-                const float falloff = (fo < 0.0f) // this comp needs to be checked, 0x6D8F64
+                const float falloff = (fo < 0.0f) // fpu 0x6D8F64
                     ? sq(fwdSpeed + fo) * 3.0f
                     : sq(fwdSpeed - fo) * 0.65f;
                 thrust *= std::max(1.0f - falloff, 0.0f);
             }
         }
 
-        if (flightModel == FLIGHT_MODEL_PLANE_UNK) {
+        if (flightModel == FLIGHT_MODEL_UNK4) {
             thrust *= 0.3f;
         } else if (flightModel == FLIGHT_MODEL_BOAT) {
             thrust *= 0.1f;
         }
 
         CVector thrustDir = GetForward();
-        if (IsAutomobile() && GetModelIndex() == MODEL_HYDRA) { // + automobile check check
+        if (IsAutomobile() && GetModelIndex() == MODEL_HYDRA) { // + automobile check
             // modify fwdDir to be adjusted by the nozzle thrust
             const float nozzleAngle = ((float)AsAutomobile()->m_wMiscComponentAngle * HALF_PI) / (float)CPlane::HARRIER_NOZZLE_ROTATE_LIMIT;
             thrustDir = GetUp() * std::sin(nozzleAngle) + GetForward() * std::cos(nozzleAngle);
@@ -3542,15 +3542,15 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         const float yawTorque = (yawAccel + fwdSpeedAdj * m_pFlyingHandlingData->m_fYaw * leftRightSkid) * m_fTurnMass * CTimer::GetTimeStep();
         CPhysical::ApplyTurnForce(GetRight() * yawTorque, tailOffset + comWorld);
 
-        // straight from disassembly, quite logical but needs to be checked, 0x6D9377
+        // fpu 0x6D9377
         const float rollTorque = m_pFlyingHandlingData->m_fRoll * fwdSpeed * (steeringLeftRight == -9999.9902f ? leftRightSkid : steeringLeftRight)
             * m_fTurnMass * CTimer::GetTimeStep();
         CPhysical::ApplyTurnForce(GetRight() * rollTorque, GetUp() + comWorld);
 
-        CVector crossRight = CrossProduct(GetForward(), CVector(0.0f, 0.0f, 1.0f)); // 0x6D944C
-        crossRight = (GetUp().z <= 0.0f) ? -1.0f * crossRight : crossRight;
+        CVector horizontality = CrossProduct(GetForward(), CVector(0.0f, 0.0f, 1.0f)); // 0x6D944C
+        horizontality = (GetUp().z <= 0.0f) ? -1.0f * horizontality : horizontality;
         const float rollSide = (GetRight().z > 0.0f) ? -1.0f : 1.0f;
-        float rollSideTorque = (1.0f - std::abs(GetForward().z)) * (1.0f - DotProduct(crossRight, GetRight())) * rollSide;
+        float rollSideTorque = (1.0f - std::abs(GetForward().z)) * (1.0f - DotProduct(horizontality, GetRight())) * rollSide;
         rollSideTorque *= m_pFlyingHandlingData->m_fRollStab * m_fTurnMass * CTimer::GetTimeStep() * 0.5f;
         CPhysical::ApplyTurnForce(GetRight() * rollSideTorque, GetUp() + comWorld); // 0x6D956D
 
@@ -3563,7 +3563,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         const float attackAngle = -1.0f * std::asin(std::clamp(upVelRatio, -1.0f, 1.0f));
 
         if (IsSubPlane() && attackAngle > FRAC_PI_9) { // 20 deg
-            AsPlane()->m_nStallCounter += (uint32)CTimer::GetTimeStepInMS(); // 0x6D9707
+            AsPlane()->m_StallCounter += (uint32)CTimer::GetTimeStepInMS(); // 0x6D9707
         }
 
         float formLift = m_pFlyingHandlingData->m_fFormLift;
@@ -3572,7 +3572,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             if (sq(fwdSpeed) * formLift > RCBaronFormLiftGravityAffected) {
                 formLift = RCBaronFormLiftGravityAffected / sq(fwdSpeed);
             }
-        } else if (IsSubPlane() && AsPlane()->m_fLandingGearAngle < 1.0f) {
+        } else if (IsSubPlane() && AsPlane()->m_LandingGearAngle < 1.0f) {
             // less lift when landing gear is down
             formLift *= m_pFlyingHandlingData->m_fGearDownL;
         }
@@ -3619,16 +3619,16 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
             CVector rotorThrustDir = (GetUp() - AUTOGYRO_ROTORTILT_ANGLE * GetForward()).Normalized();
             float rotorPusher = DotProduct(velocityAirRel, rotorThrustDir);  // combined up and fwd
-            float rotorSpeed = 0.22f; // instant rotor start
+            float mainRotorSpeed = 0.22f; // instant rotor start
             if (IsAutomobile()) {
                 float& heliRotorSpeed = AsAutomobile()->m_fHeliRotorSpeed;
                 rotorPusher = std::clamp(rotorPusher, -AUTOGYRO_ROTORSPIN_MULTLIMIT, 0.0f);
                 heliRotorSpeed -= rotorPusher * AUTOGYRO_ROTORSPIN_MULT * CTimer::GetTimeStep();
                 heliRotorSpeed *= std::pow(AUTOGYRO_ROTORSPIN_DAMP, CTimer::GetTimeStep());
                 heliRotorSpeed = std::clamp(heliRotorSpeed, 0.08f, 0.4f);
-                rotorSpeed = heliRotorSpeed;
+                mainRotorSpeed = heliRotorSpeed;
             }
-            rotorThrust = rotorThrustDir * (rotorSpeed * AUTOGYRO_ROTORLIFT_MULT - rotorPusher * AUTOGYRO_ROTORLIFT_FALLOFF) * m_fMass * 0.008f * CTimer::GetTimeStep();
+            rotorThrust = rotorThrustDir * (mainRotorSpeed * AUTOGYRO_ROTORLIFT_MULT - rotorPusher * AUTOGYRO_ROTORLIFT_FALLOFF) * m_fMass * 0.008f * CTimer::GetTimeStep();
         } else {
             CVector thrustDir = GetUp();
             if (!vehicleFlags.bHeliMinimumTilt) {
@@ -3741,7 +3741,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
     float dampExp = 1.0f; // aka damping exponent cause it's used in power below
     switch (flightModel) {
     case FLIGHT_MODEL_PLANE:
-    case FLIGHT_MODEL_PLANE_UNK:
+    case FLIGHT_MODEL_UNK4:
     case FLIGHT_MODEL_BOAT:
         dampExp = m_vecMoveSpeed.Magnitude() * 2.0f;
         break;

@@ -45,7 +45,7 @@ public:
     float        m_fAccelerationBreakStatus;
     float        m_fAccelerationBreakStatusPrev;
     float        m_fSteeringFactor;
-    uint32       m_nStallCounter; // If attack angle is more than 20°, engine goes will start to stall
+    uint32       m_StallCounter; // If attack angle is more than 20°, engine goes stall with sound effects
     float        m_planeCreationHeading; // The heading when plane is created or placed on road properly
     float        m_maxAltitude;
     float        m_altitude;
@@ -56,7 +56,7 @@ public:
     uint32       m_nStartedFlyingTime;
     float        m_fPropSpeed;
     float        field_9C8;
-    float        m_fLandingGearAngle;   // 1.0f - fully up
+    float        m_LandingGearAngle;   // 1.0f - fully up
     int32        m_planeDamageWave;
     FxSystem_c** m_pGunParticles;
     uint8        m_nFiringMultiplier;

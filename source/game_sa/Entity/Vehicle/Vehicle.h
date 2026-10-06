@@ -138,7 +138,7 @@ enum eFlightModel : int32 {
     FLIGHT_MODEL_RCPLANE = 1,
     FLIGHT_MODEL_RCHELI = 2,
     FLIGHT_MODEL_PLANE = 3, // also used for cars
-    FLIGHT_MODEL_PLANE_UNK = 4,
+    FLIGHT_MODEL_UNK4 = 4,
     FLIGHT_MODEL_BOAT = 5,
     FLIGHT_MODEL_HELI = 6, // also used for hydra
     FLIGHT_MODEL_UNK7 = 7,
