@@ -278,7 +278,7 @@ void CCam::GetCoreDataForDWCineyCamMode(
 bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& targetPos, CVector& outPos) {
     static auto& s_BestDistance = StaticRef<float>(0x8CC8D8);
 
-    int16                   count{};
+    int16                    count{};
     std::array<CEntity*, 16> entities;
     CWorld::FindObjectsInRange(targetPos, 30.0f, true, &count, 0xF, entities.data(), false, false, false, true, true);
 
@@ -389,41 +389,12 @@ bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const
 
 // 0x509DF0
 void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, const CVector& up, const float& alpha, const float& beta, const float& fov) {
-    static auto& s_PreviousSource    = StaticRef<CVector>(0xB6FF80);
-    static auto& s_PreviousTarget    = StaticRef<CVector>(0xB6FF74);
-    static auto& s_PreviousUp        = StaticRef<CVector>(0xB6FF68);
-    static auto& s_PreviousBeta      = StaticRef<float>(0xB6FF64);
-    static auto& s_PreviousAlpha     = StaticRef<float>(0xB6FF60);
-    static auto& s_PreviousFov       = StaticRef<float>(0xB6FF5C);
-    static auto& s_StaticsInitialized = StaticRef<uint32>(0xB6FF8C);
-
-    if ((s_StaticsInitialized & 1) == 0) {
-        s_PreviousSource = source;
-        s_StaticsInitialized |= 1;
-    }
-    if ((s_StaticsInitialized & 2) == 0) {
-        s_PreviousTarget = target;
-        s_StaticsInitialized |= 2;
-    }
-    if ((s_StaticsInitialized & 4) == 0) {
-        s_PreviousUp = up;
-        s_StaticsInitialized |= 4;
-    }
-
-    auto previousBeta = s_PreviousBeta;
-    if ((s_StaticsInitialized & 8) == 0) {
-        s_StaticsInitialized |= 8;
-        previousBeta = beta;
-    }
-    if ((s_StaticsInitialized & 0x10) == 0) {
-        s_PreviousAlpha = alpha;
-        s_StaticsInitialized |= 0x10;
-    }
-    auto previousFov = s_PreviousFov;
-    if ((s_StaticsInitialized & 0x20) == 0) {
-        s_StaticsInitialized |= 0x20;
-        previousFov = fov;
-    }
+    static auto& s_PreviousSource = StaticRef<CVector>(0xB6FF80); // = source;
+    static auto& s_PreviousTarget = StaticRef<CVector>(0xB6FF74); // = target;
+    static auto& s_PreviousUp     = StaticRef<CVector>(0xB6FF68); // = up;
+    static auto& s_PreviousBeta   = StaticRef<float>(0xB6FF64);   // = beta;
+    static auto& s_PreviousAlpha  = StaticRef<float>(0xB6FF60);   // = alpha;
+    static auto& s_PreviousFov    = StaticRef<float>(0xB6FF5C);   // = fov;
 
     if (TheCamera.m_bJust_Switched) {
         s_PreviousSource = source;
@@ -435,8 +406,8 @@ void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, con
     m_vecTargetSpeedOverOneFrame = target - s_PreviousTarget;
     m_vecUpOverOneFrame          = up - s_PreviousUp;
 
-    m_fFovSpeedOverOneFrame  = fov - previousFov;
-    m_fBetaSpeedOverOneFrame = beta - previousBeta;
+    m_fFovSpeedOverOneFrame  = fov - s_PreviousFov;
+    m_fBetaSpeedOverOneFrame = beta - s_PreviousBeta;
     WrapAngle(m_fBetaSpeedOverOneFrame);
     m_fAlphaSpeedOverOneFrame = alpha - s_PreviousAlpha;
     WrapAngle(m_fAlphaSpeedOverOneFrame);
@@ -481,14 +452,14 @@ bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
     while (delta < -DegreesToRadians(180.0f)) {
         delta += DegreesToRadians(360.0f);
     }
-    if (std::abs(delta) > 0.34906578f
+    if (std::abs(delta) > DegreesToRadians(20.0f)
         && movingForward
         && !TheCamera.m_bTransitionState) {
         m_bFixingBeta = true;
     }
 
     const auto pad = CPad::GetPad(0);
-    if (!pad->GetLookBehindForCar() && !pad->GetLookBehindForPed() && !pad->GetLookLeft() && !pad->GetLookRight() && m_nDirectionWasLooking != 3) { // TODO: enum for the look direction
+    if (!pad->GetLookBehindForCar() && !pad->GetLookBehindForPed() && !pad->GetLookLeft() && !pad->GetLookRight() && m_nDirectionWasLooking != LOOKING_DIRECTION_FORWARD) {
         TheCamera.m_bCamDirectlyBehind = true;
     }
 
@@ -496,10 +467,10 @@ bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
         return false;
     }
 
-    bool wasRequested = false;
-    if ((TheCamera.m_bCamDirectlyBehind || TheCamera.m_bCamDirectlyInFront || TheCamera.m_bUseTransitionBeta) && &TheCamera.GetActiveCam() == this) {
-        wasRequested = true;
-    }
+    const bool wasRequested = (TheCamera.m_bCamDirectlyBehind
+                            || TheCamera.m_bCamDirectlyInFront
+                            || TheCamera.m_bUseTransitionBeta)
+                           && &TheCamera.GetActiveCam() == this;
     if (m_bFixingBeta || wasRequested) {
         WellBufferMe(orientation, m_fHorizontalAngle, m_fBetaSpeed, 0.1f, 0.003f, true);
         if (TheCamera.m_bCamDirectlyBehind && &TheCamera.GetActiveCam() == this) {
