@@ -288,11 +288,7 @@ bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& tar
         if (!entity->m_bIsStatic && !entity->m_bIsStaticWaitingForCollision) {
             continue;
         }
-        if (!entity->m_matrix) {
-            entity->AllocateMatrix();
-            entity->m_placement.UpdateMatrix(entity->m_matrix);
-        }
-        if (entity->GetUp().z <= 0.9f) {
+        if (entity->GetMatrix().GetUp().z <= 0.9f) {
             continue;
         }
         if (!IsLampPost((eModelID)entity->GetModelIndex())) {
@@ -305,8 +301,7 @@ bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& tar
         }
 
         const auto topPos = entity->GetMatrix().TransformPoint(entity->GetColModel()->GetBoundingBox().m_vecMax);
-        auto       dir    = topPos - targetPos;
-        dir.Normalise();
+        const auto dir    = (topPos - targetPos).Normalized();
         if (!CWorld::GetIsLineOfSightClear(topPos, dir + targetPos, true, false, false, false, false, true, true)) {
             continue;
         }
@@ -363,8 +358,13 @@ bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const
         return true;
     }
 
-    static auto& s_MinDistances = StaticRef<std::array<float, 9>>(0x8CCBCC);
-    static auto& s_MaxDistances = StaticRef<std::array<float, 9>>(0x8CCBF0);
+    if (camId < MODE_FOLLOW_PED_WITH_BIND || camId > MODE_SYPHON_CRIM_IN_FRONT) {
+        return false;
+    }
+
+    // One for each mode from `MODE_FOLLOW_PED_WITH_BIND` to `MODE_SYPHON_CRIM_IN_FRONT`
+    static constexpr std::array<float, 9> s_MinDistances{ 3.0f, 3.0f, 1.0f, 3.0f, 5.0f, 3.0f, 3.0f, 3.0f, 3.0f };                 // 0x8CCBCC
+    static constexpr std::array<float, 9> s_MaxDistances{ 185.0f, 100.0f, 100.0f, 100.0f, 30.0f, 30.0f, 100.0f, 100.0f, 100.0f }; // 0x8CCBF0
 
     const auto dist         = (dst - src).Magnitude();
     const auto isWithinBand = dist >= s_MinDistances[camId - MODE_FOLLOW_PED_WITH_BIND]
@@ -379,12 +379,7 @@ bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const
         CWorld::pIgnoreEntity = nullptr;
     }
 
-    if (camId >= MODE_FOLLOW_PED_WITH_BIND && camId <= MODE_SYPHON_CRIM_IN_FRONT) {
-        if (!isWithinBand || !isLosClear || CTimer::GetTimeInMS() > s_DWCineyCamSceneEndTime) {
-            return true;
-        }
-    }
-    return false;
+    return !isWithinBand || !isLosClear || CTimer::GetTimeInMS() > s_DWCineyCamSceneEndTime;
 }
 
 // 0x509DF0
@@ -446,12 +441,7 @@ bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
 
     const auto dist  = CVector2D::Dist(m_vecSource, target);
     auto       delta = orientation - m_fHorizontalAngle;
-    while (delta > DegreesToRadians(180.0f)) {
-        delta -= DegreesToRadians(360.0f);
-    }
-    while (delta < -DegreesToRadians(180.0f)) {
-        delta += DegreesToRadians(360.0f);
-    }
+    WrapAngle(delta);
     if (std::abs(delta) > DegreesToRadians(20.0f)
         && movingForward
         && !TheCamera.m_bTransitionState) {
@@ -486,12 +476,7 @@ bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
         m_vecSource.y = target.y + std::sin(m_fHorizontalAngle) * dist;
 
         delta = orientation - m_fHorizontalAngle;
-        while (delta > DegreesToRadians(180.0f)) {
-            delta -= DegreesToRadians(360.0f);
-        }
-        while (delta < -DegreesToRadians(180.0f)) {
-            delta += DegreesToRadians(360.0f);
-        }
+        WrapAngle(delta);
         if (std::abs(delta) < DegreesToRadians(2.0f)) {
             m_bFixingBeta = false;
         }
