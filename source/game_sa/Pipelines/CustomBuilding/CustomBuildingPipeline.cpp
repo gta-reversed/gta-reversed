@@ -5,7 +5,7 @@
 #include <CustomCarEnvMapPipeline.h>
 #include <PipelinesCommon.hpp>
 
-constexpr auto PLUGIN_ID = 0x53F2009C;
+constexpr auto PLUGIN_ID = rpPDS_MAKEPIPEID(rwVENDORID_DEVELOPER, 0x9C);
 
 void CCustomBuildingPipeline::InjectHooks() {
     RH_ScopedClass(CCustomBuildingPipeline);

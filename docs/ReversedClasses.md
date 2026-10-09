@@ -1,20 +1,23 @@
-# Reimplementation progress
+# Reimplementation progress (*): 93%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 04, 2026 at 12:35:45 UTC
-(Triggered by commit [84eecdd9](https://github.com/gta-reversed/gta-reversed/commit/84eecdd93220ce7662efab14edfc99e32a26a6c4))
+Last update was at Oct 08, 2026 at 23:13:42 UTC
+(Triggered by commit [f90cdff4](https://github.com/gta-reversed/gta-reversed/commit/f90cdff4fac7f896099b39dc58a18ba8b65372fa))
 
-## Disclaimer
-The percentages and the number of categories shown here may not be completely accurate, because not all categories and functions are documented yet.
+## (*) Disclaimers
+**The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
-## Stats (8025 functions, 702 categories)
+**The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-#### Completely reversed categories (586/702) [83%]
+## Stats (7462 out of 8026 functions done in 702 categories)
+
+#### Completely reversed categories (587/702) [84%]
 
 <details>
 <summary>See list of categories</summary>
 - CDoor (6)<br />
 - CControllerConfigManager (58)<br />
+- CFormation (9)<br />
 - CHandShaker (3)<br />
 - CCutsceneMgr (35)<br />
 - CFileMgr (17)<br />
@@ -602,11 +605,10 @@ The percentages and the number of categories shown here may not be completely ac
 
 </details>
 
-#### Partially reversed categories (113/702) [16%]
+#### Partially reversed categories (112/702) [16%]
 
 <details>
 <summary>See list of categories</summary>
-- CFormation (1/9) [11%]<br />
 - CPedGroupPlacer (1/4) [25%]<br />
 - CPedGroup (10/12) [83%]<br />
 - CPopCycle (14/15) [93%]<br />
@@ -628,7 +630,7 @@ The percentages and the number of categories shown here may not be completely ac
 - CPostEffects (35/38) [92%]<br />
 - CStencilShadows (9/13) [69%]<br />
 - CFont (32/36) [89%]<br />
-- CCamera (91/110) [83%]<br />
+- CCamera (98/110) [89%]<br />
 - CGangWars (32/35) [91%]<br />
 - CRoadBlocks (7/8) [88%]<br />
 - CClouds (20/21) [95%]<br />
@@ -644,7 +646,7 @@ The percentages and the number of categories shown here may not be completely ac
 - CPools (16/19) [84%]<br />
 - CRealTimeShadowManager (5/7) [71%]<br />
 - CShadows (21/31) [68%]<br />
-- CCam (14/44) [32%]<br />
+- CCam (20/45) [44%]<br />
 - CCarFXRenderer (9/10) [90%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
@@ -722,7 +724,7 @@ The percentages and the number of categories shown here may not be completely ac
 
 </details>
 
-#### Not-at-all reversed categories (3/702) [0%]
+#### Not-at-all reversed categories (3/702) [0.4%]
 
 <details>
 <summary>See list of categories</summary>
