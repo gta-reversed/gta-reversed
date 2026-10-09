@@ -10522,12 +10522,12 @@
   {
     "Category": "CCamera",
     "Name": "VectorMoveLinear",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
     "Name": "VectorTrackLinear",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
@@ -10621,32 +10621,32 @@
   },
   {
     "Category": "CCamera",
-    "Name": "ProcessVectorTrackLinear-0",
-    "IsReversed": false
+    "Name": "ProcessVectorTrackLinear-with-ratio",
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
-    "Name": "ProcessVectorTrackLinear-1",
-    "IsReversed": false
+    "Name": "ProcessVectorTrackLinear-wo-ratio",
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
-    "Name": "ProcessVectorMoveLinear-0",
-    "IsReversed": false
+    "Name": "ProcessVectorMoveLinear-with-ratio",
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
-    "Name": "ProcessVectorMoveLinear-1",
-    "IsReversed": false
+    "Name": "ProcessVectorMoveLinear-wo-ratio",
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
-    "Name": "ProcessFOVLerp-0",
-    "IsReversed": false
+    "Name": "ProcessFOVLerp-with-ratio",
+    "IsReversed": true
   },
   {
     "Category": "CCamera",
-    "Name": "ProcessFOVLerp-1",
+    "Name": "ProcessFOVLerp-wo-ratio",
     "IsReversed": true
   },
   {
@@ -16347,7 +16347,7 @@
   {
     "Category": "CCam",
     "Name": "GetLookFromLampPostPos",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCam",
@@ -16362,12 +16362,12 @@
   {
     "Category": "CCam",
     "Name": "IsTimeToExitThisDWCineyCamMode",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCam",
     "Name": "KeepTrackOfTheSpeed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCam",
@@ -16382,12 +16382,12 @@
   {
     "Category": "CCam",
     "Name": "RotCamIfInFrontCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCam",
     "Name": "Using3rdPersonMouseCam",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCam",
@@ -16532,6 +16532,11 @@
   {
     "Category": "CCam",
     "Name": "WellBufferMe",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "WrapAngle",
     "IsReversed": true
   },
   {

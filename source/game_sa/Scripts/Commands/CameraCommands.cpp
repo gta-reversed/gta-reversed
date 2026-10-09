@@ -195,7 +195,7 @@ void SetFirstPersonInCarCameraMode(bool enabled) {
 
 // CAMERA_SET_VECTOR_TRACK (2336)
 void CameraSetVectorTrack(CVector from, CVector to, int32 duration, bool ease) {
-    TheCamera.VectorTrackLinear(&to, &from, (float)(duration), ease);
+    TheCamera.VectorTrackLinear(to, from, (float)(duration), ease);
 }
 
 // CAMERA_SET_LERP_FOV (2338)
@@ -235,7 +235,7 @@ bool CameraIsVectorTrackRunning() {
 
 // CAMERA_SET_VECTOR_MOVE (2358)
 void CameraSetVectorMove(CVector from, CVector to, float time, bool ease) {
-    TheCamera.VectorMoveLinear(&to, &from, time, ease);
+    TheCamera.VectorMoveLinear(to, from, time, ease);
 }
 
 // SET_CINEMA_CAMERA (2365)

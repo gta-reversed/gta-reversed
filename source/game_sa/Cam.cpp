@@ -11,8 +11,9 @@
 
 auto& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 auto& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
+static auto& s_DWCineyCamSceneEndTime = StaticRef<uint32>(0x8CCBA4);
 
-static inline auto& gbExitCam = StaticRef<std::array<bool, 9>>(0xB6EC5C);
+static auto& s_ExitCam = StaticRef<std::array<bool, MODE_SYPHON_CRIM_IN_FRONT + 1>>(0xB6EC5C);
 
 static inline auto& DWCineyCamLastPos = StaticRef<CVector>(0xB6FE8C);
 static inline auto& DWCineyCamLastUp = StaticRef<CVector>(0xB6FE98);
@@ -51,6 +52,16 @@ static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, 
     valueToChange += std::min(CTimer::GetTimeStep(), 10.0f) * speedSoFar;
 }
 
+// 0x509BE0
+static void WrapAngle(float& angle) {
+    while (angle >= DegreesToRadians(180.0f)) {
+        angle -= DegreesToRadians(360.0f);
+    }
+    while (angle < DegreesToRadians(-180.0f)) {
+        angle += DegreesToRadians(360.0f);
+    }
+}
+
 void CCam::InjectHooks() {
     RH_ScopedClass(CCam);
     RH_ScopedCategory("Camera");
@@ -61,15 +72,15 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(DoCamBump, 0x50CB30);
     RH_ScopedInstall(Finalise_DW_CineyCams, 0x50DD70);
     RH_ScopedInstall(GetCoreDataForDWCineyCamMode, 0x517130);
-    RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0, { .Reversed = false });
+    RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0);
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
     RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
-    RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400, { .Reversed = false });
-    RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0, { .Reversed = false });
+    RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400);
+    RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0);
     RH_ScopedInstall(LookBehind, 0x520690, { .Reversed = false });
     RH_ScopedInstall(LookRight, 0x520E40, { .Reversed = false });
-    RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0, { .Reversed = false });
-    RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850, { .Reversed = false });
+    RH_ScopedInstall(RotCamIfInFrontCar, 0x50A4F0);
+    RH_ScopedInstall(Using3rdPersonMouseCam, 0x50A850);
     RH_ScopedInstall(Process, 0x526FC0, { .Reversed = false });
     RH_ScopedInstall(ProcessArrestCamOne, 0x518500, { .Reversed = false });
     RH_ScopedInstall(ProcessPedsDeadBaby, 0x519250, { .Reversed = false });
@@ -100,6 +111,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_WheelCam, 0x512110, { .Reversed = false });
 
     RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
+    RH_ScopedGlobalInstall(WrapAngle, 0x509BE0);
 }
 
 // 0x517730
@@ -263,8 +275,42 @@ void CCam::GetCoreDataForDWCineyCamMode(
 }
 
 // 0x5161A0
-void CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, const CVector& vecSource) {
-    NOTSA_UNREACHABLE();
+bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& targetPos, CVector& outPos) {
+    static auto& s_BestDistance = StaticRef<float>(0x8CC8D8);
+
+    int16                    count{};
+    std::array<CEntity*, 16> entities;
+    CWorld::FindObjectsInRange(targetPos, 30.0f, true, &count, 0xF, entities.data(), false, false, false, true, true);
+
+    CEntity* winner{};
+    auto     closestDistDiff = 10000.0f;
+    for (auto* const entity : entities | rngv::take(count)) {
+        if (!entity->m_bIsStatic && !entity->m_bIsStaticWaitingForCollision) {
+            continue;
+        }
+        if (entity->GetMatrix().GetUp().z <= 0.9f) {
+            continue;
+        }
+        if (!IsLampPost((eModelID)entity->GetModelIndex())) {
+            continue;
+        }
+
+        const auto dist = CVector2D::Dist(entity->GetPosition(), targetPos);
+        if (dist <= 5.0f || std::abs(s_BestDistance - dist) >= closestDistDiff) {
+            continue;
+        }
+
+        const auto topPos = entity->GetMatrix().TransformPoint(entity->GetColModel()->GetBoundingBox().m_vecMax);
+        const auto dir    = (topPos - targetPos).Normalized();
+        if (!CWorld::GetIsLineOfSightClear(topPos, dir + targetPos, true, false, false, false, false, true, true)) {
+            continue;
+        }
+
+        winner          = entity;
+        outPos          = topPos;
+        closestDistDiff = std::abs(s_BestDistance - dist);
+    }
+    return winner != nullptr;
 }
 
 // 0x509CE0
@@ -308,13 +354,65 @@ void CCam::Get_TwoPlayer_AimVector(CVector& out) {
 
 // 0x517400
 bool CCam::IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck) {
-    NOTSA_UNREACHABLE();
-    return false;
+    if (s_ExitCam[camId]) {
+        return true;
+    }
+
+    if (camId < MODE_FOLLOW_PED_WITH_BIND || camId > MODE_SYPHON_CRIM_IN_FRONT) {
+        return false;
+    }
+
+    // One for each mode from `MODE_FOLLOW_PED_WITH_BIND` to `MODE_SYPHON_CRIM_IN_FRONT`
+    static constexpr std::array<float, 9> s_MinDistances{ 3.0f, 3.0f, 1.0f, 3.0f, 5.0f, 3.0f, 3.0f, 3.0f, 3.0f };                 // 0x8CCBCC
+    static constexpr std::array<float, 9> s_MaxDistances{ 185.0f, 100.0f, 100.0f, 100.0f, 30.0f, 30.0f, 100.0f, 100.0f, 100.0f }; // 0x8CCBF0
+
+    const auto dist         = (dst - src).Magnitude();
+    const auto isWithinBand = dist >= s_MinDistances[camId - MODE_FOLLOW_PED_WITH_BIND]
+                           && dist <= s_MaxDistances[camId - MODE_FOLLOW_PED_WITH_BIND];
+
+    bool isLosClear = true;
+    if (lineOfSightCheck) {
+        CWorld::pIgnoreEntity = m_pCamTargetEntity;
+        CColPoint colPoint{};
+        CEntity*  hitEntity{};
+        isLosClear = !CWorld::ProcessLineOfSight(dst, src, colPoint, hitEntity, true, true, false, false, false, false, false, false);
+        CWorld::pIgnoreEntity = nullptr;
+    }
+
+    return !isWithinBand || !isLosClear || CTimer::GetTimeInMS() > s_DWCineyCamSceneEndTime;
 }
 
 // 0x509DF0
-void CCam::KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&) {
-    NOTSA_UNREACHABLE();
+void CCam::KeepTrackOfTheSpeed(const CVector& source, const CVector& target, const CVector& up, const float& alpha, const float& beta, const float& fov) {
+    static auto& s_PreviousSource = StaticRef<CVector>(0xB6FF80); // = source;
+    static auto& s_PreviousTarget = StaticRef<CVector>(0xB6FF74); // = target;
+    static auto& s_PreviousUp     = StaticRef<CVector>(0xB6FF68); // = up;
+    static auto& s_PreviousBeta   = StaticRef<float>(0xB6FF64);   // = beta;
+    static auto& s_PreviousAlpha  = StaticRef<float>(0xB6FF60);   // = alpha;
+    static auto& s_PreviousFov    = StaticRef<float>(0xB6FF5C);   // = fov;
+
+    if (TheCamera.m_bJust_Switched) {
+        s_PreviousSource = source;
+        s_PreviousTarget = target;
+        s_PreviousUp     = up;
+    }
+
+    m_vecSourceSpeedOverOneFrame = source - s_PreviousSource;
+    m_vecTargetSpeedOverOneFrame = target - s_PreviousTarget;
+    m_vecUpOverOneFrame          = up - s_PreviousUp;
+
+    m_fFovSpeedOverOneFrame  = fov - s_PreviousFov;
+    m_fBetaSpeedOverOneFrame = beta - s_PreviousBeta;
+    WrapAngle(m_fBetaSpeedOverOneFrame);
+    m_fAlphaSpeedOverOneFrame = alpha - s_PreviousAlpha;
+    WrapAngle(m_fAlphaSpeedOverOneFrame);
+
+    s_PreviousSource = source;
+    s_PreviousTarget = target;
+    s_PreviousUp     = up;
+    s_PreviousBeta   = beta;
+    s_PreviousAlpha  = alpha;
+    s_PreviousFov    = fov;
 }
 
 // 0x520690
@@ -328,8 +426,64 @@ void CCam::LookRight(bool bLookRight) {
 }
 
 // 0x50A4F0
-void CCam::RotCamIfInFrontCar(const CVector&, float) {
-    NOTSA_UNREACHABLE();
+bool CCam::RotCamIfInFrontCar(const CVector& target, float orientation) {
+    auto* const entity = m_pCamTargetEntity;
+    if (!entity->GetIsTypeVehicle()) {
+        return false;
+    }
+    auto* const vehicle = entity->AsVehicle();
+
+    const auto& speed         = vehicle->GetMoveSpeed();
+    const auto  movingForward = DotProduct(vehicle->GetMatrix().GetForward(), speed) > 0.1f;
+    if (speed.SquaredMagnitude2D() > 0.0036f) {
+        orientation = std::atan2(-speed.x, speed.y) - DegreesToRadians(90.0f);
+    }
+
+    const auto dist  = CVector2D::Dist(m_vecSource, target);
+    auto       delta = orientation - m_fHorizontalAngle;
+    WrapAngle(delta);
+    if (std::abs(delta) > DegreesToRadians(20.0f)
+        && movingForward
+        && !TheCamera.m_bTransitionState) {
+        m_bFixingBeta = true;
+    }
+
+    const auto pad = CPad::GetPad(0);
+    if (!pad->GetLookBehindForCar() && !pad->GetLookBehindForPed() && !pad->GetLookLeft() && !pad->GetLookRight() && m_nDirectionWasLooking != LOOKING_DIRECTION_FORWARD) {
+        TheCamera.m_bCamDirectlyBehind = true;
+    }
+
+    if (!m_bFixingBeta && !TheCamera.m_bUseTransitionBeta && !TheCamera.m_bCamDirectlyBehind && !TheCamera.m_bCamDirectlyInFront) {
+        return false;
+    }
+
+    const bool wasRequested = (TheCamera.m_bCamDirectlyBehind
+                            || TheCamera.m_bCamDirectlyInFront
+                            || TheCamera.m_bUseTransitionBeta)
+                           && &TheCamera.GetActiveCam() == this;
+    if (m_bFixingBeta || wasRequested) {
+        WellBufferMe(orientation, m_fHorizontalAngle, m_fBetaSpeed, 0.1f, 0.003f, true);
+        if (TheCamera.m_bCamDirectlyBehind && &TheCamera.GetActiveCam() == this) {
+            m_fHorizontalAngle = orientation;
+        }
+        if (TheCamera.m_bCamDirectlyInFront && &TheCamera.GetActiveCam() == this) {
+            m_fHorizontalAngle = orientation + DegreesToRadians(180.0f);
+        }
+        if (TheCamera.m_bUseTransitionBeta && &TheCamera.GetActiveCam() == this) {
+            m_fHorizontalAngle = m_fTransitionBeta;
+        }
+        m_vecSource.x = target.x + std::cos(m_fHorizontalAngle) * dist;
+        m_vecSource.y = target.y + std::sin(m_fHorizontalAngle) * dist;
+
+        delta = orientation - m_fHorizontalAngle;
+        WrapAngle(delta);
+        if (std::abs(delta) < DegreesToRadians(2.0f)) {
+            m_bFixingBeta = false;
+        }
+    }
+    TheCamera.m_bCamDirectlyBehind  = false;
+    TheCamera.m_bCamDirectlyInFront = false;
+    return true;
 }
 
 // 0x50A850

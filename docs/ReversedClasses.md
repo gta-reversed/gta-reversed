@@ -1,15 +1,15 @@
 # Reimplementation progress (*): 93%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 04, 2026 at 22:47:37 UTC
-(Triggered by commit [43f55d06](https://github.com/gta-reversed/gta-reversed/commit/43f55d06b5eddd931bb9cfee1a5a9827a0c4d1ea))
+Last update was at Oct 08, 2026 at 23:13:42 UTC
+(Triggered by commit [f90cdff4](https://github.com/gta-reversed/gta-reversed/commit/f90cdff4fac7f896099b39dc58a18ba8b65372fa))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7449 out of 8025 functions done in 702 categories)
+## Stats (7462 out of 8026 functions done in 702 categories)
 
 #### Completely reversed categories (587/702) [84%]
 
@@ -630,7 +630,7 @@ Last update was at Oct 04, 2026 at 22:47:37 UTC
 - CPostEffects (35/38) [92%]<br />
 - CStencilShadows (9/13) [69%]<br />
 - CFont (32/36) [89%]<br />
-- CCamera (91/110) [83%]<br />
+- CCamera (98/110) [89%]<br />
 - CGangWars (32/35) [91%]<br />
 - CRoadBlocks (7/8) [88%]<br />
 - CClouds (20/21) [95%]<br />
@@ -646,7 +646,7 @@ Last update was at Oct 04, 2026 at 22:47:37 UTC
 - CPools (16/19) [84%]<br />
 - CRealTimeShadowManager (5/7) [71%]<br />
 - CShadows (21/31) [68%]<br />
-- CCam (14/44) [32%]<br />
+- CCam (20/45) [44%]<br />
 - CCarFXRenderer (9/10) [90%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
