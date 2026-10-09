@@ -3388,7 +3388,8 @@ bool CVehicle::IsSphereTouchingVehicle(CVector posn, float radius) {
 
 // 0x6D85F0
 void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, float steeringUpDown, float steeringLeftRight, float accelerationBreakStatus) {
-    constexpr auto RCBARON_FORM_LIFT_LIMIT = 0.5f; // 0x8D3670
+    constexpr auto MARKER_FOR_AUTOMOBILE_CONTROLS = -9999.9902f;
+    constexpr auto RCBARON_FORM_LIFT_LIMIT        = 0.5f; // 0x8D3670
 
     if (!m_pFlyingHandlingData || CTimer::GetTimeStep() <= 0.f) {
         return;
@@ -3440,13 +3441,13 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
     case FLIGHT_MODEL_PLANE:
     case FLIGHT_MODEL_UNK4:
     case FLIGHT_MODEL_BOAT: {
-        if (leftRightSkid == -9999.9902f) { // What a weird fucking value lol
+        if (leftRightSkid == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             leftRightSkid = 0.0f;
             if (driverPad) {
                 leftRightSkid = (float)driverPad->GetSteeringLeftRight() / 128.f;
             }
         }
-        if (steeringUpDown == -9999.9902f) {
+        if (steeringUpDown == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             steeringUpDown = 0.0f;
             if (driverPad) {
                 steeringUpDown = (float)driverPad->GetSteeringUpDown() / 128.f;
@@ -3456,7 +3457,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
                 }
             }
         }
-        if (accelerationBreakStatus == -9999.9902f) {
+        if (accelerationBreakStatus == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             accelerationBreakStatus = 0.0f;
             if (driverPad) {
                 accelerationBreakStatus = float(driverPad->GetAccelerate() - driverPad->GetBrake()) / 255.f;
@@ -3543,7 +3544,8 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         CPhysical::ApplyTurnForce(GetRight() * yawTorque, tailOffset + comWorld);
 
         // fpu 0x6D9377
-        const float rollTorque = m_pFlyingHandlingData->m_fRoll * fwdSpeed * (steeringLeftRight == -9999.9902f ? leftRightSkid : steeringLeftRight)
+        const float rollTorque = m_pFlyingHandlingData->m_fRoll * fwdSpeed
+            * (steeringLeftRight == MARKER_FOR_AUTOMOBILE_CONTROLS ? leftRightSkid : steeringLeftRight)
             * m_fTurnMass * CTimer::GetTimeStep();
         CPhysical::ApplyTurnForce(GetRight() * rollTorque, GetUp() + comWorld);
 
@@ -3594,7 +3596,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         float moveDamping = std::pow(m_pFlyingHandlingData->m_fMoveRes, CTimer::GetTimeStep());
         m_vecMoveSpeed *= moveDamping;
         auto rotorThrust = CVector{}; // thrust of our carrying (main) rotor, see below
-        if (accelerationBreakStatus == -9999.9902f) {
+        if (accelerationBreakStatus == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             accelerationBreakStatus = 0.0f;
             if (driverPad) {
                 accelerationBreakStatus = float(driverPad->GetAccelerate() - driverPad->GetBrake()) / 255.f;
@@ -3680,13 +3682,13 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         }
         CPhysical::ApplyTurnForce(GetUp() * pitchLevelMult * m_fTurnMass * CTimer::GetTimeStep(), GetForward() + comWorld);
 
-        if (steeringUpDown == -9999.9902f) {
+        if (steeringUpDown == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             steeringUpDown = 0.0f;
             if (driverPad) {
                 steeringUpDown = (float)driverPad->GetSteeringUpDown() / 128.f;
             }
         }
-        if (steeringLeftRight == -9999.9902f) {
+        if (steeringLeftRight == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             steeringLeftRight = 0.0f;
             if (driverPad) {
                 steeringLeftRight = CHeli::bHeliControlsCheat
@@ -3694,7 +3696,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
                     : -1.0f * (float)driverPad->GetSteeringLeftRight() / 128.f;
             }
         }
-        if (leftRightSkid == -9999.9902f) {
+        if (leftRightSkid == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             leftRightSkid = 0.0f;
             if (driverPad) {
                 if (CHeli::bHeliControlsCheat) {
