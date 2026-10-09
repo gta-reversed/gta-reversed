@@ -51,8 +51,8 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     m_fAccelerationBreakStatusPrev = 1.0f;
     m_fPropSpeed                   = 0.0f;
     field_9C8                      = 0.0f;
-    m_LandingGearAngle           = 0.0f;
-    m_StallCounter                = 0;
+    m_LandingGearAngle             = 0.0f;
+    m_StallCounter                 = 0;
     m_planeCreationHeading         = 0.0f;
     m_planeHeading                 = 0.0f;
     m_planeHeadingPrev             = 0.0f;
