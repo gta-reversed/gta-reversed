@@ -249,7 +249,19 @@ void CAESound::CalculateVolume() {
 void CAESound::UpdateParameters(int16 curPlayPos) {
     if (IsLifespanTiedToPhysicalEntity()) {
         if (m_PhysicalEntity) {
-            SetPosition(m_PhysicalEntity->GetPosition());
+            // `m_PhysicalEntity` can be dangling in rare cases: when the sound is
+            // still alive while its entity has already been deleted from its pool.
+            // Instead of crashing the whole game with an AV (see below), gracefully
+            // stop this sound.
+            // Reproduction (found with full-page-heap + minidumps): AV at
+            // `m_PhysicalEntity->GetPosition()` with the stack
+            // CAESoundManager::Service <- CAudioEngine::Service <- Idle.
+            __try {
+                SetPosition(m_PhysicalEntity->GetPosition());
+            } __except (EXCEPTION_EXECUTE_HANDLER) {
+                // Release the stale reference and gracefully stop the sound
+                StopSound();
+            }
         } else {
             m_HasRequestedStopped = true;
         }
