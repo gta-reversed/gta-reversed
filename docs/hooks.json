@@ -38776,6 +38776,11 @@
   },
   {
     "Category": "CVehicle",
+    "Name": "FlyingControl",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
     "Name": "BladeColSectorList<CPtrListSingleLink<CEntity*>>",
     "IsReversed": true
   },
