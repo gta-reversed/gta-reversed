@@ -259,8 +259,8 @@ void CAESound::UpdateParameters(int16 curPlayPos) {
             __try {
                 SetPosition(m_PhysicalEntity->GetPosition());
             } __except (EXCEPTION_EXECUTE_HANDLER) {
-                m_PhysicalEntity = nullptr;   // Release the stale reference
-                m_HasRequestedStopped = true; // Gracefully stop this sound
+                // Release the stale reference and gracefully stop the sound
+                StopSound();
             }
         } else {
             m_HasRequestedStopped = true;
