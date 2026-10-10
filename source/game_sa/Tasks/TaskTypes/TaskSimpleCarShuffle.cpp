@@ -54,10 +54,13 @@ void CTaskSimpleCarShuffle::FinishAnimCarShuffleCB(CAnimBlendAssociation* anim, 
 // 0x64B3E0
 void CTaskSimpleCarShuffle::StartAnim(const CPed* target) {
     assert(!m_Anim);
+    const auto animId = (m_TargetDoor == TARGET_DOOR_DRIVER || m_TargetDoor == TARGET_DOOR_FRONT_RIGHT)
+        ? ANIM_ID_CAR_SHUFFLE_RHS_0
+        : ANIM_ID_CAR_SHUFFLE_RHS_1;
     m_Anim = CAnimManager::BlendAnimation(
         target->GetRpClump(),
-        m_Car->GetAnimGroup().GetGroup(ANIM_ID_CAR_SHUFFLE_RHS_1),
-        ANIM_ID_CAR_SHUFFLE_RHS_1,
+        m_Car->GetAnimGroup().GetGroup(animId),
+        animId,
         1000.f
     );
     m_Anim->SetFinishCallback(FinishAnimCarShuffleCB, this);
