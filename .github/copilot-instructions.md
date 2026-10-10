@@ -13,3 +13,6 @@ Required checks for each new reversed class:
 ## Coding Guidelines and Formatting Review
 For all pull requests ensure the coding guidelines in `docs/CodingGuidelines.md` are followed and that 
 the code is properly formatted according to clang-format and the project's style conventions as outlined in `docs/CodingGuidelines.md`.
+
+## Script command reversing reference
+For pull requests that add or modify script commands, always review `docs/ScriptArgParser.md` and enforce its guidelines.
