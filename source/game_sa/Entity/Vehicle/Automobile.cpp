@@ -1468,7 +1468,7 @@ void CAutomobile::ProcessFlyingCarStuff()
             && m_vecMoveSpeed.Magnitude() > 0.0f
             && CTimer::GetTimeStep() > 0.0f
         ) {
-            FlyingControl(FLIGHT_MODEL_PLANE, -9999.9902F, -9999.9902F, -9999.9902F, -9999.9902F);
+            FlyingControl(FLIGHTMODEL_PLANE, -9999.9902F, -9999.9902F, -9999.9902F, -9999.9902F);
         }
     }
 }
