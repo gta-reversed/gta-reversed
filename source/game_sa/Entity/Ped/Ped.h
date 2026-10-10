@@ -22,7 +22,6 @@
 #include "AnimBlendAssociation.h"
 #include "Fire.h"
 #include <Enums/eBoneTag.h>
-
 #include <Audio/Enums/PedSpeechContexts.h>
 #include "AnimationEnums.h"
 #include "eWeaponType.h"
@@ -32,6 +31,10 @@
 #include "ePedType.h"
 #include "eMoveState.h"
 
+class CObject;
+class CVehicle;
+class CPedStat;
+class CPedStats;
 class CPedGroup;
 class CCivilianPed;
 class CEmergencyPed;
@@ -93,11 +96,6 @@ enum eFightingStyle : int8 {
     STYLE_GRAB_KICK = 15,
     STYLE_ELBOWS = 16,
 };
-
-class CObject;
-class CVehicle;
-class CPedStat;
-class CPedStats;
 
 // Values of `CPed::CantBeKnockedOffBike` (how hard it is to knock this ped off a bike)
 enum eCantBeKnockedOffBike : uint8 {
@@ -396,6 +394,7 @@ public:
     void CreateDeadPedWeaponPickups();
     static void Initialise();
     void SetPedStats(ePedStats statsType);
+    const auto& GetPedStats() const noexcept { return *m_pStats; }
     void Update();
     void SetMoveState(eMoveState moveState);
     void SetMoveAnimSpeed(CAnimBlendAssociation* association);
