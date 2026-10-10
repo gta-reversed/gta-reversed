@@ -134,15 +134,15 @@ typedef int32 eOrdnanceType;
 typedef int32 eBikeWheelSpecial;
 
 enum eFlightModel : int32 {
-    FLIGHT_MODEL_CRAPPY = 0,
-    FLIGHT_MODEL_RCPLANE = 1,
-    FLIGHT_MODEL_RCHELI = 2,
-    FLIGHT_MODEL_PLANE = 3, // also used for cars
-    FLIGHT_MODEL_UNK4 = 4,
-    FLIGHT_MODEL_BOAT = 5,
-    FLIGHT_MODEL_HELI = 6, // also used for hydra
-    FLIGHT_MODEL_UNK7 = 7,
-    FLIGHT_MODEL_AUTOGYRO = 8
+    FLIGHTMODEL_DODO_CLIPPED = 0, // dodo with clipped wings
+    FLIGHTMODEL_RCPLANE = 1, // aka RCBaron
+    FLIGHTMODEL_RCHELI = 2, // aka RCRaider/RCGoblin
+    FLIGHTMODEL_PLANE = 3, // also used for cars
+    FLIGHTMODEL_PLANE_LOWPOWER = 4,
+    FLIGHTMODEL_PLANE_GLIDER = 5,
+    FLIGHTMODEL_HELI = 6, // also used for hydra
+    FLIGHTMODEL_HELI2 = 7,
+    FLIGHTMODEL_AUTOGYRO = 8
 };
 
 enum tWheelState : int32 {

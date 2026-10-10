@@ -1864,8 +1864,8 @@ bool CVehicle::CarHasRoof() {
 // 0x6D2600
 float CVehicle::HeightAboveCeiling(float height, eFlightModel flightModel) {
     switch (flightModel) {
-    case eFlightModel::FLIGHT_MODEL_RCPLANE:
-    case eFlightModel::FLIGHT_MODEL_RCHELI: {
+    case eFlightModel::FLIGHTMODEL_RCPLANE:
+    case eFlightModel::FLIGHTMODEL_RCHELI: {
         if (height >= 500.f) {
             if (height < 950.f) {
                 return height - 500.f;
@@ -3401,7 +3401,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
     const auto comWorld       = GetMatrix().TransformVector(m_vecCentreOfMass); // world center of mass
 
     switch (flightModel) {
-    case FLIGHT_MODEL_CRAPPY: {
+    case FLIGHTMODEL_DODO_CLIPPED: {
         const float airSpeed = velocityAirRel.Magnitude();
         const float fwdSpeed = DotProduct(velocityAirRel, GetForward());
         const float someScale = sq(fwdSpeed) * velocityAirRel.SquaredMagnitude();
@@ -3437,10 +3437,10 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         m_vecTurnSpeed.y *= std::pow(0.9f, CTimer::GetTimeStep());
         break;
     }
-    case FLIGHT_MODEL_RCPLANE:
-    case FLIGHT_MODEL_PLANE:
-    case FLIGHT_MODEL_UNK4:
-    case FLIGHT_MODEL_BOAT: {
+    case FLIGHTMODEL_RCPLANE:
+    case FLIGHTMODEL_PLANE:
+    case FLIGHTMODEL_PLANE_LOWPOWER:
+    case FLIGHTMODEL_PLANE_GLIDER: {
         if (leftRightSkid == MARKER_FOR_AUTOMOBILE_CONTROLS) {
             leftRightSkid = 0.0f;
             if (driverPad) {
@@ -3485,7 +3485,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         const CVector tailOffset = GetForward() * GetColModel()->m_boundBox.m_vecMin.y;
         const float fwdSpeed = DotProduct(velocityAirRel, GetForward());
 
-        if (flightModel == FLIGHT_MODEL_RCPLANE) {
+        if (flightModel == FLIGHTMODEL_RCPLANE) {
             CPhysical::ApplyMoveForce(CVector(0.0f, 0.0f, 0.004f) * m_fMass * CTimer::GetTimeStep());
         }
 
@@ -3515,9 +3515,9 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             }
         }
 
-        if (flightModel == FLIGHT_MODEL_UNK4) {
+        if (flightModel == FLIGHTMODEL_PLANE_LOWPOWER) {
             thrust *= 0.3f;
-        } else if (flightModel == FLIGHT_MODEL_BOAT) {
+        } else if (flightModel == FLIGHTMODEL_PLANE_GLIDER) {
             thrust *= 0.1f;
         }
 
@@ -3569,7 +3569,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         }
 
         float formLift = m_pFlyingHandlingData->m_fFormLift;
-        if (flightModel == FLIGHT_MODEL_RCPLANE) {
+        if (flightModel == FLIGHTMODEL_RCPLANE) {
             constexpr auto RCBaronFormLiftGravityAffected = RCBARON_FORM_LIFT_LIMIT * 0.008f;
             if (sq(fwdSpeed) * formLift > RCBaronFormLiftGravityAffected) {
                 formLift = RCBaronFormLiftGravityAffected / sq(fwdSpeed);
@@ -3590,9 +3590,9 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         CPhysical::ApplyMoveForce(GetUp() * liftImpulse); // 0x6D9864
         break;
     }
-    case FLIGHT_MODEL_RCHELI:
-    case FLIGHT_MODEL_HELI:
-    case FLIGHT_MODEL_AUTOGYRO: {
+    case FLIGHTMODEL_RCHELI:
+    case FLIGHTMODEL_HELI:
+    case FLIGHTMODEL_AUTOGYRO: {
         float moveDamping = std::pow(m_pFlyingHandlingData->m_fMoveRes, CTimer::GetTimeStep());
         m_vecMoveSpeed *= moveDamping;
         auto rotorThrust = CVector{}; // thrust of our carrying (main) rotor, see below
@@ -3600,7 +3600,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
             accelerationBreakStatus = 0.0f;
             if (driverPad) {
                 accelerationBreakStatus = float(driverPad->GetAccelerate() - driverPad->GetBrake()) / 255.f;
-                if (flightModel != FLIGHT_MODEL_AUTOGYRO) {
+                if (flightModel != FLIGHTMODEL_AUTOGYRO) {
                     const auto carGunUpDown = (float)driverPad->GetCarGunUpDown();
                     if (std::abs((carGunUpDown)) > 1.0f) {
                         accelerationBreakStatus = carGunUpDown / 128.f;
@@ -3608,7 +3608,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
                 }
             }
         }
-        if (flightModel == FLIGHT_MODEL_AUTOGYRO) {
+        if (flightModel == FLIGHTMODEL_AUTOGYRO) {
             /* model is obviously unfinished, while pushing's rotor thrust gives us some resemblance, gyros cannot hover
                also they can have positive pitch with noticeable lift thrust but here you can't really lift by pitching up */
             const float fwdSpeed = DotProduct(velocityAirRel, GetForward());
@@ -3742,16 +3742,16 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
     CVector localTurnSpeed = GetMatrix().InverseTransformVector(m_vecTurnSpeed);
     float dampExp = 1.0f; // aka damping exponent cause it's used in power below
     switch (flightModel) {
-    case FLIGHT_MODEL_PLANE:
-    case FLIGHT_MODEL_UNK4:
-    case FLIGHT_MODEL_BOAT:
+    case FLIGHTMODEL_PLANE:
+    case FLIGHTMODEL_PLANE_LOWPOWER:
+    case FLIGHTMODEL_PLANE_GLIDER:
         dampExp = m_vecMoveSpeed.Magnitude() * 2.0f;
         break;
-    case FLIGHT_MODEL_RCPLANE:
+    case FLIGHTMODEL_RCPLANE:
         dampExp = m_vecMoveSpeed.Magnitude() * 6.0f;
         break;
-    case FLIGHT_MODEL_HELI:
-    case FLIGHT_MODEL_AUTOGYRO:
+    case FLIGHTMODEL_HELI:
+    case FLIGHTMODEL_AUTOGYRO:
         dampExp = m_vecMoveSpeed.Magnitude() + 1.0f;
         break;
     default:
