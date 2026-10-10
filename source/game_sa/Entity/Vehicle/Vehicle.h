@@ -646,12 +646,12 @@ public:
     bool GetSpecialColModel();
     void RemoveVehicleUpgrade(int32 upgradeModelIndex);
     void AddUpgrade(int32 modelIndex, int32 upgradeIndex);
-    void UpdateTrailerLink(bool arg0, bool arg1);
-    void UpdateTractorLink(bool arg0, bool arg1);
+    void UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
+    void UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
     CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* entity);
     void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType ordnanceType, bool arg2);
     void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
-    void ProcessSirenAndHorn(bool arg0);
+    void ProcessSirenAndHorn(bool updateHornCounter);
 
     bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm);
     void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight);

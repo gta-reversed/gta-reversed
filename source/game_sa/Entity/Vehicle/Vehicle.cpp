@@ -180,7 +180,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(SetupRender, 0x6D64F0);
     // RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0);
     RH_ScopedInstall(FindTyreNearestPoint, 0x6D7BC0);
-    // RH_ScopedInstall(InflictDamage, 0x6D7C90);
+    RH_ScopedInstall(InflictDamage, 0x6D7C90);
     RH_ScopedInstall(KillPedsGettingInVehicle, 0x6D82F0);
     RH_ScopedInstall(UsesSiren, 0x6D8470);
     RH_ScopedInstall(IsSphereTouchingVehicle, 0x6D84D0);
@@ -196,12 +196,12 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(GetSpecialColModel, 0x6DF3D0);
     // RH_ScopedInstall(RemoveVehicleUpgrade, 0x6DF930);
     // RH_ScopedInstall(AddUpgrade, 0x6DFA20);
-    // RH_ScopedInstall(UpdateTrailerLink, 0x6DFC50);
-    // RH_ScopedInstall(UpdateTractorLink, 0x6E0050);
+    RH_ScopedInstall(UpdateTrailerLink, 0x6DFC50);
+    RH_ScopedInstall(UpdateTractorLink, 0x6E0050);
     // RH_ScopedInstall(ScanAndMarkTargetForHeatSeekingMissile, 0x6E0400);
     // RH_ScopedInstall(FireHeatSeakingMissile, 0x6E05C0);
     // RH_ScopedInstall(PossiblyDropFreeFallBombForPlayer, 0x6E07E0);
-    // RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
+    RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
     RH_ScopedInstall(DoHeadLightEffect, 0x6E0A50);
     RH_ScopedInstall(DoHeadLightReflectionSingle, 0x6E1440);
     RH_ScopedInstall(DoHeadLightReflectionTwin, 0x6E1600);
@@ -3316,7 +3316,131 @@ auto CVehicle::FindTyreNearestPoint(CVector2D point) -> eNearestCarWheel {
 
 // 0x6D7C90
 void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensity, CVector coords) {
-    ((void(__thiscall*)(CVehicle*, CEntity*, eWeaponType, float, CVector))0x6D7C90)(this, damager, weapon, intensity, coords);
+    bool damageable = false;
+    if (!CanVehicleBeDamaged(damager, weapon, damageable)) {
+        return;
+    }
+
+    if (GetStatus() == STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.f) {
+        intensity *= 0.5f;
+    }
+
+    if (intensity > 10.f && (damager == FindPlayerPed() || damager == FindPlayerVehicle()) && GetStatus() != STATUS_WRECKED) {
+        FindPlayerInfo().m_nHavocCaused += 2;
+        FindPlayerInfo().m_fCurrentChaseValue += 1.0f;
+        CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, CGeneral::GetRandomNumberInRange<float>(5, 25));
+    }
+    // Player check from 0x6D7DE7 moved here, this code is for NPC anyway
+    if (damager && damager->GetIsTypePed() && !damager->AsPed()->IsPlayer() && (IsAutomobile() || IsBike())) {
+        int npcHitChance = 0;
+        switch (weapon) {
+        case WEAPON_PISTOL:
+        case WEAPON_PISTOL_SILENCED:
+        case WEAPON_SHOTGUN:
+        case WEAPON_MICRO_UZI:
+        case WEAPON_MP5:
+        case WEAPON_TEC9:
+        case WEAPON_UZI_DRIVEBY:
+            npcHitChance = 5;
+            break;
+        case WEAPON_DESERT_EAGLE:
+            npcHitChance = 64;  // only for masters!
+            break;
+        case WEAPON_AK47:
+        case WEAPON_M4:
+            npcHitChance = 10;
+            break;
+        default:
+            break;
+        }
+        if (damager->AsPed()->m_pVehicle && damager->AsPed()->m_pVehicle->IsSubBike()) {
+            npcHitChance = std::min(1, npcHitChance);   // hard to hit when moving on bike
+        } else if (GetModelIndex() == MODEL_COPBIKE && m_pDriver && m_pDriver->IsCop()) {
+            npcHitChance = 0; // looks like cop on a bike is protected from npc hits
+        }
+        // changed != 0 to > 0, there is no point of it being negative
+        if (npcHitChance > 0 && !vehicleFlags.bTyresDontBurst && (CGeneral::GetRandomNumber() & 0x7F) < npcHitChance) {
+            if (IsBike() || GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE) {
+                BurstTyre(CarWheelToCarPiece((eCarWheel)FindTyreNearestPoint(coords)), !IsBike());
+            }
+        }
+    }
+
+    if (damageable && vehicleFlags.bPetrolTankIsWeakPoint) {
+        // only player allowed to do a fatal hit
+        if (damager && damager->GetIsTypePed() && damager->AsPed()->IsPlayer()) {
+            const CVector& pointObj = GetVehicleModelInfo()->GetModelDummyPosition(DUMMY_GAS_CAP);
+            if (!pointObj.IsZero()) {
+                const CVector pointWorld = GetMatrix() * pointObj;
+                if ((coords - pointWorld).Magnitude() < 0.25f) {
+                    intensity = std::min(m_fHealth, 1100.0f);
+                }
+            }
+        }
+    }
+
+    if ((IsSubHeli() || IsSubPlane())
+        && !vehicleFlags.bIsRCVehicle
+        && weapon != WEAPON_EXPLOSION
+        && weapon != WEAPON_GRENADE
+        && weapon != WEAPON_ROCKET
+        && weapon != WEAPON_ROCKET_HS) {
+        intensity *= 0.4f;
+    }
+
+    if (m_fHealth > 0.0f) {
+        m_nLastWeaponDamageType = weapon;
+        if (damager) {
+            m_pLastDamageEntity = damager;
+            damager->RegisterReference(&m_pLastDamageEntity);
+        }
+        if (m_fHealth <= intensity) {
+            m_fHealth = 0.0f;
+            if (damager == FindPlayerPed()) {
+                if (IsSubHeli() && !vehicleFlags.bIsRCVehicle) {
+                    CCrime::ReportCrime(eCrimeType::CRIME_DESTROY_HELI, this, damager->AsPed());
+                } else if (IsSubPlane() && !vehicleFlags.bIsRCVehicle) {
+                    CCrime::ReportCrime(eCrimeType::CRIME_DESTROY_PLANE, this, damager->AsPed());
+                } else {
+                    CCrime::ReportCrime(eCrimeType::CRIME_DESTROY_VEHICLE, this, damager->AsPed());
+                }
+            }
+            if (weapon == WEAPON_EXPLOSION) {
+                m_wBombTimer = CGeneral::GetRandomNumber() & 0x7FF + 1000;
+                m_pWhoDetonatedMe = damager->AsPed();
+                if (damager) {
+                    damager->RegisterReference(reinterpret_cast<CEntity**>(&m_pWhoDetonatedMe));
+                }
+            } else {
+                BlowUpCar(damager, false);
+            }
+        } else {
+            const float healthBefore = m_fHealth;
+            m_fHealth -= intensity;
+            if ((GetStatus() == STATUS_PLAYER || GetStatus() > STATUS_PLAYER_PLAYBACK_FROM_BUFFER && GetStatus() <= STATUS_PHYSICS)
+                && damager && damager->GetIsTypePed())
+            {
+                if (m_pDriver) {
+                    m_pDriver->GetEventGroup().Add(CEventVehicleDamageWeapon{ this, damager, weapon });
+                }
+                for (int32 i = 0; i < m_nMaxPassengers; ++i) {
+                    if (m_apPassengers[i])
+                        m_apPassengers[i]->GetEventGroup().Add(CEventVehicleDamageWeapon{ this, damager, weapon });
+                }
+            }
+            if (IsAutomobile() && healthBefore >= 250.0f && m_fHealth < 250.0f) {
+                AsAutomobile()->m_damageManager.SetEngineStatus(225u);
+                AsAutomobile()->m_pExplosionVictim = damager->AsPed();
+                if (damager) {
+                    damager->RegisterReference(reinterpret_cast<CEntity**>(&AsAutomobile()->m_pExplosionVictim));
+                }
+            }
+        }
+    }
+
+    if (vehicleFlags.bIsLawEnforcer && damager == FindPlayerPed()) {
+        FindPlayerPed()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
+    }
 }
 
 // 0x6D82F0
@@ -4618,13 +4742,89 @@ void CVehicle::AddUpgrade(int32 modelIndex, int32 upgradeIndex) {
 }
 
 // 0x6DFC50
-void CVehicle::UpdateTrailerLink(bool arg0, bool arg1) {
-    ((void(__thiscall*)(CVehicle*, bool, bool))0x6DFC50)(this, arg0, arg1);
+void CVehicle::UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed) {
+    CVector thisTowHitchPos = {};
+    CVector otherTowBarPos  = {};
+    if (m_pTowingVehicle &&
+        (GetStatus() == STATUS_IS_TOWED || GetStatus() == STATUS_IS_SIMPLE_TOWED) &&
+        GetTowHitchPos(thisTowHitchPos, true, m_pTowingVehicle) &&
+        m_pTowingVehicle->GetTowBarPos(otherTowBarPos, true, this))
+    {
+        const CVector couplingDistance = otherTowBarPos - thisTowHitchPos;
+        const float   couplingDistMag  = couplingDistance.Magnitude();
+        const float   stepThreshold    = (CTimer::GetTimeStep() <= 0.7f ? 0.7f : CTimer::GetTimeStep());
+        if (1.0f * stepThreshold >= couplingDistMag
+            && DotProduct(m_pTowingVehicle->GetForward(), GetForward()) >= -0.3f
+            && DotProduct(m_pTowingVehicle->GetUp(), GetUp()) >= 0.0f) {
+            if (GetModelIndex() != MODEL_TOWTRUCK && GetModelIndex() != MODEL_TRACTOR ||
+                (m_pTowingVehicle->IsAutomobile() && m_pTowingVehicle->AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u))
+            {
+                thisTowHitchPos -= GetPosition();
+                otherTowBarPos -= m_pTowingVehicle->GetPosition();
+
+                const CVector thisTowSpeed  = GetSpeed(thisTowHitchPos);
+                const CVector otherTowSpeed = m_pTowingVehicle->GetSpeed(otherTowBarPos);
+                CVector       speedDiff     = otherTowSpeed - thisTowSpeed;
+                if (!applyFullVelocityAtHookUp && applyDistToSpeed) {
+                    speedDiff = 0.3f * std::max(1.0f, CTimer::GetTimeStep()) * couplingDistance;
+                }
+                if (IsSubTrailer() && AsTrailer()->m_fTrailerTowedRatio == -1000.0f) {
+                    speedDiff -= DotProduct(speedDiff, GetUp()) * GetUp();
+                }
+                const CVector thisComWorld        = GetMatrix().TransformVector(m_vecCentreOfMass);
+                const CVector speedDiffNormalized = speedDiff.Normalized();
+
+                const CVector thisComDir          = thisTowHitchPos - thisComWorld;
+                const CVector thisTurnDir         = CrossProduct(thisComDir, speedDiffNormalized); // alignment dir
+                const float   forceMult           = 1.0f / (thisTurnDir.SquaredMagnitude() / m_fTurnMass + 1.0f / m_fMass);
+
+                CPhysical::ApplyForce(forceMult * speedDiff, thisTowHitchPos, true);
+            }
+        }
+    } else {
+        BreakTowLink();
+    }
 }
 
 // 0x6E0050
-void CVehicle::UpdateTractorLink(bool arg0, bool arg1) {
-    ((void(__thiscall*)(CVehicle*, bool, bool))0x6E0050)(this, arg0, arg1);
+void CVehicle::UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed) {
+    CVector otherTowHitchPos = {};
+    CVector thisTowBarPos    = {};
+    if (m_pVehicleBeingTowed &&
+        m_pVehicleBeingTowed->GetTowHitchPos(otherTowHitchPos, true, this) &&
+        GetTowBarPos(thisTowBarPos, true, m_pVehicleBeingTowed))
+    {
+        const CVector couplingDistance = otherTowHitchPos - thisTowBarPos;
+        if (GetModelIndex() != MODEL_TOWTRUCK && GetModelIndex() != MODEL_TRACTOR ||
+            (IsAutomobile() && AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u))
+        {
+            otherTowHitchPos -= m_pVehicleBeingTowed->GetPosition();
+            thisTowBarPos -= GetPosition();
+
+            const CVector otherTowSpeed = m_pVehicleBeingTowed->GetSpeed(otherTowHitchPos);
+            const CVector thisTowSpeed  = GetSpeed(thisTowBarPos);
+            CVector       speedDiff     = otherTowSpeed - thisTowSpeed;
+            if (!applyFullVelocityAtHookUp) {
+                if (applyDistToSpeed) {
+                    speedDiff = 0.1f * std::max(1.0f, CTimer::GetTimeStep()) * couplingDistance;
+                } else {
+                    speedDiff *= (1.0f - m_fMass / (m_pVehicleBeingTowed->m_fMass + m_fMass)) * 0.5f;
+                }
+            }
+            if (m_pVehicleBeingTowed->IsSubTrailer() && m_pVehicleBeingTowed->AsTrailer()->m_fTrailerTowedRatio == -1000.0f) {
+                speedDiff -= DotProduct(speedDiff, m_pVehicleBeingTowed->GetUp()) * m_pVehicleBeingTowed->GetUp();
+            }
+            const CVector thisComWorld        = GetMatrix().TransformVector(m_vecCentreOfMass);
+            const CVector speedDiffNormalized = speedDiff.Normalized();
+
+            const CVector thisComDir          = thisTowBarPos - thisComWorld;
+            const CVector thisTurnDir         = CrossProduct(thisComDir, speedDiffNormalized); // alignment dir
+            const float   forceMult           = 1.0f / (thisTurnDir.SquaredMagnitude() / m_fTurnMass + 1.0f / m_fMass);
+
+            CPhysical::ApplyForce(forceMult * speedDiff, thisTowBarPos, true);
+            m_nFakePhysics = 0u;
+        }
+    }
 }
 
 // 0x6E0400
@@ -4643,8 +4843,27 @@ void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) 
 }
 
 // 0x6E0950
-void CVehicle::ProcessSirenAndHorn(bool arg0) {
-    ((void(__thiscall*)(CVehicle*, bool))0x6E0950)(this, arg0);
+void CVehicle::ProcessSirenAndHorn(bool updateHornCounter) {
+    auto pad0 = CPad::GetPad();
+    if (UsesSiren()) {
+        if (pad0->bHornHistory[pad0->iCurrHornHistory]) {
+            if (pad0->bHornHistory[(pad0->iCurrHornHistory + 4) % 5] &&
+                pad0->bHornHistory[(pad0->iCurrHornHistory + 3) % 5]) {
+                m_HornCounter = 1u;
+            } else {
+                m_HornCounter = 0u;
+            }
+        } else if (pad0->bHornHistory[(pad0->iCurrHornHistory + 4) % 5] &&
+                   !pad0->bHornHistory[(pad0->iCurrHornHistory + 1) % 5])
+        {
+            m_HornCounter = 0u;
+            vehicleFlags.bSirenOrAlarm = ~vehicleFlags.bSirenOrAlarm;
+        } else {
+            m_HornCounter = 0u;
+        }
+    } else if (updateHornCounter && CanUpdateHornCounter()) {
+        m_HornCounter = pad0->GetHorn();
+    }
 }
 
 // NOTSA
