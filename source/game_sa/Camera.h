@@ -434,10 +434,10 @@ public:
     bool Using1stPersonWeaponMode() const;
 
     bool VectorMoveRunning() const;
-    void VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase);
+    void VectorMoveLinear(CVector& to, CVector& from, float duration, bool bMoveLinearWithEase);
 
     bool VectorTrackRunning() const;
-    void VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase);
+    void VectorTrackLinear(CVector& to, CVector& from, float duration, bool bEase);
 
     void AllowShootingWith2PlayersInCar(bool bAllow);
     void ApplyVehicleCameraTweaks(CVehicle* vehicle);
