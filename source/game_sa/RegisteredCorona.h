@@ -63,7 +63,7 @@ public:
 
     float            m_fFadeSpeed{};           // The speed the corona fades in and out
     CRGBA            m_Color{};                // NOTSA: original used 4 uint8 (r, g, b, intensity)
-    uint8            m_FadedIntensity{};       // Intensity that lags behind the given intenisty and fades out if the LOS is blocked
+    uint8            m_FadedIntensity{};       // Intensity that lags behind the given intenisty and fades out if the LOS is blocked [0 - 255] - NOTE: This is basically a fixed point float, but game takes it as an unscaled int in other functions, so have to keep it as-is
     uint8            m_bRegisteredThisFrame{}; // Has this corona been registered by game code this frame
     eCoronaFlareType m_nFlareType{};
     eCoronaReflType  m_bUsesReflection{};
