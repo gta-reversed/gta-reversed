@@ -15,6 +15,7 @@
 #include "Garages.h"
 
 #include "extensions/Configs/Miscellaneous.hpp"
+#include <reversiblebugfixes/Bugs.hpp>
 
 //#define ENABLE_SAVE_DATA_LOG
 #ifdef ENABLE_SAVE_DATA_LOG
@@ -57,30 +58,26 @@ void CGenericGameStorage::InjectHooks() {
     RH_ScopedClass(CGenericGameStorage);
     RH_ScopedCategoryGlobal();
 
-    // Can't really test these yet. All mods I have interfere with it (WindowedMode and IMFast)
-    // Also, these functions originally had the file pointer passed to them @ `ebp`
-    // which is non-standard, so.. yeah, not really possible to reverse this garbage
-    // until we reverse everything.
-
+    // `OpenFileForReading`/`OpenFileForWriting` allocate the work buffer and `CloseFile`, `SaveWorkBuffer`, `CheckDataNotCorrupt`, `GenericLoad` and `GenericSave` free it, so they are locked together
     RH_ScopedInstall(ReportError, 0x5D08C0);
-    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50, { .Reversed = false });
-    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90, { .Reversed = false });
-    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .Reversed = false });
-    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .Reversed = false });
-    RH_ScopedInstall(GenericLoad, 0x5D17B0);
-    RH_ScopedInstall(GenericSave, 0x5D13E0);
-    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .Reversed = false });
+    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50);
+    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90);
+    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70);
+    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00);
+    RH_ScopedInstall(GenericLoad, 0x5D17B0, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(GenericSave, 0x5D13E0, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380);
     RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
     RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
-    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .Reversed = false });
-    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .Reversed = false });
-    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50, { .Reversed = false });
-    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90, { .Reversed = false });
-    RH_ScopedInstall(CloseFile, 0x5D0E30, { .Reversed = false });
-    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .Reversed = false });
-    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .Reversed = false });
-    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .Reversed = false });
-    RH_ScopedInstall(RestoreForStartLoad, 0x619000, { .Reversed = false });
+    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0);
+    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50);
+    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90);
+    RH_ScopedInstall(CloseFile, 0x5D0E30, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .Locked = true }); // Vanilla one uses the game's allocator for the shared work buffer
+    RH_ScopedInstall(RestoreForStartLoad, 0x619000);
 }
 
 // 0x5D08C0
@@ -688,13 +685,12 @@ bool CGenericGameStorage::LoadWorkBuffer() {
     assert(ms_FileHandle);
     assert(ms_WorkBuffer);
 
-    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle)) {
-        if (CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize) == toReadSize) {
-            ms_FilePos += toReadSize;
-            ms_WorkBufferSize = toReadSize;
-            ms_WorkBufferPos  = 0;
-            return true;
-        }
+    const auto readSize = CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize);
+    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle) && readSize == toReadSize) {
+        ms_FilePos += toReadSize;
+        ms_WorkBufferSize = toReadSize;
+        ms_WorkBufferPos  = 0;
+        return true;
     }
 
     s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_READ;
@@ -753,10 +749,8 @@ uint32 CGenericGameStorage::GetCurrentVersionNumber() {
 
 // 0x5D0E90
 void CGenericGameStorage::MakeValidSaveName(int32 slot) {
-    assert(slot < MAX_SAVEGAME_SLOTS);
-
     char path[MAX_PATH]{};
-    s_PcSaveHelper.GenerateGameFilename(slot, path);
+    sprintf_s(path, "%s%i", C_PcSave::DefaultPCSaveFileName, slot + 1);
 
     path[257] = 0; // Make sure there's space for the file extension
 
@@ -799,7 +793,12 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     if (fileName) {
-        strcpy_s(ms_LoadFileName, fileName);
+        // FIX(#1518): The original overflows `ms_LoadFileName` here and then fails to open the file
+        if (notsa::bugfixes::GenericOOB && std::strlen(fileName) >= std::size(ms_LoadFileName)) {
+            s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_OPEN;
+            return false;
+        }
+        std::strcpy(ms_LoadFileName, fileName);
         s_PcSaveHelper.GenerateGameFilename(slot, ms_LoadFileNameWithPath);
     }
 
