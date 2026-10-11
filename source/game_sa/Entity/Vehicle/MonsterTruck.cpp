@@ -296,7 +296,7 @@ void CMonsterTruck::SetupSuspensionLines() {
 
     for (size_t i = 0; i < m_wheelPosition.size(); ++i) {
         m_fWheelsSuspensionCompression[i] = 1.0f;
-        m_wheelPosition[i] = mi->m_fWheelSizeFront * 0.5f - m_fFrontHeightAboveRoad;
+        m_wheelPosition[i] = mi->m_fWheelSizeFront * 0.5f - heightAboveRoad;
     }
 
     const auto wheelBottomZ = m_fFrontHeightAboveRoad - m_fSuspensionRadius;
