@@ -2843,7 +2843,7 @@ void CPed::PreRenderAfterTest()
     bCalledPreRender = true;
     UpdateRpHAnim();
 
-    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && GetPlayerData()) {
+    if (!CTimer::IsSkipProcessThisFrame() && m_pWeaponObject && GetPlayerData()) {
         if (GetActiveWeapon().GetType() == eWeaponType::WEAPON_MINIGUN) {
             if (const auto f = CClumpModelInfo::GetFrameFromName(m_pWeaponObject, "minigun2")) {
                 RwMatrixRotate(

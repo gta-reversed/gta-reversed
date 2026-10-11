@@ -128,6 +128,7 @@ public:
 
     static bool HasTimePointPassed(uint32 timeMs) { return GetTimeInMS() >= timeMs; }
     static bool IsTimeInRange(uint32 fromMs, uint32 toMs) { return HasTimePointPassed(fromMs) && !HasTimePointPassed(toMs); }
+    static bool IsSkipProcessThisFrame() { return bSkipProcessThisFrame; }
 };
 
 uint64 GetMillisecondTime();

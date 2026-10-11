@@ -242,7 +242,7 @@ void CWorld::ProcessForAnimViewer() {
 void CWorld::ProcessPedsAfterPreRender() {
     ZoneScoped;
 
-    if (CTimer::bSkipProcessThisFrame) {
+    if (CTimer::IsSkipProcessThisFrame()) {
         return;
     }
 
