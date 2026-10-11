@@ -727,7 +727,7 @@ void CWaterLevel::AddToQuadsAndTrianglesList(int32 blockX, int32 blockY, int32 p
 
 // 0x6E9D70
 void CWaterLevel::FindNearestWaterAndItsFlow() {
-    const auto camPos = TheCamera.GetPosition();
+    const CVector& camPos = TheCamera.GetPosition();
 
     float nearestQuadDist   = 1e7f; // `local_8`
     float nearestWaterDist  = 1e7f; // `local_c`
