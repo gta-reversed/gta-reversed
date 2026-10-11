@@ -131,7 +131,15 @@ enum eRotationAxis : int32 {
 };
 
 typedef int32 eOrdnanceType;
-typedef int32 eBikeWheelSpecial;
+
+enum eBikeWheelSpecial : int32 {
+    BIKE_WHEEL_F_STD       = 0,
+    BIKE_WHEEL_R_STD       = 1,
+    BIKE_WHEEL_F_SLIP      = 2,
+    BIKE_WHEEL_R_SLIP      = 3,
+    BIKE_WHEEL_R_HBRAKE    = 4,
+    BIKE_WHEEL_R_SLIPBRAKE = 5,
+};
 
 enum eFlightModel : int32 {
     FLIGHTMODEL_DODO_CLIPPED = 0, // dodo with clipped wings
@@ -646,6 +654,7 @@ public:
     bool GetSpecialColModel();
     void RemoveVehicleUpgrade(int32 upgradeModelIndex);
     void AddUpgrade(int32 modelIndex, int32 upgradeIndex);
+    void UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHookUp, bool applyDistToSpeed); // NOTSA
     void UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
     void UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
     CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* entity);

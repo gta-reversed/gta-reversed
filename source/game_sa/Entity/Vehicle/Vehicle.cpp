@@ -178,7 +178,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(CanPedLeanOut, 0x6D5CF0);
     RH_ScopedInstall(SetVehicleCreatedBy, 0x6D5D70);
     RH_ScopedInstall(SetupRender, 0x6D64F0);
-    // RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0);
+    RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0);
     RH_ScopedInstall(FindTyreNearestPoint, 0x6D7BC0);
     RH_ScopedInstall(InflictDamage, 0x6D7C90);
     RH_ScopedInstall(KillPedsGettingInVehicle, 0x6D82F0);
@@ -3294,11 +3294,119 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
 }
 
 // 0x6D73B0
-void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-                                float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus) {
-    plugin::CallMethod<0x6D73B0, CVehicle*, CVector&, CVector&, CVector&, CVector&, int32, float, float, float, float, char, float*, tWheelState*, eBikeWheelSpecial, uint16>(
-        this, wheelFwd, wheelRight, wheelContactSpeed, wheelContactPoint, wheelsOnGround, thrust, brake, destabTraction, adhesion, wheelId, wheelSpeed, wheelState, special,
-        wheelStatus);
+void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
+                                CVector& wheelContactSpeed, CVector& wheelContactPoint,
+                                int32 wheelsOnGround,
+                                float thrust, float brake, float adhesion, float destabTraction,
+                                int8 wheelId, float* wheelSpeed,
+                                tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus
+) {
+    static auto& bBraking         = StaticRef<bool>(0xC1CDB2);
+    static auto& bDriving         = StaticRef<bool>(0xC1CDB1);
+    static auto& bReversing       = StaticRef<bool>(0xC1CDB0);
+    static auto& bAlreadySkidding = StaticRef<bool>(0xC1CDAF); // not reset
+
+    float right = 0.0f, fwd = 0.0f;
+    float contactSpeedFwd = DotProduct(wheelFwd, wheelContactSpeed);
+
+    bBraking              = brake != 0.0f;
+    bDriving              = !bBraking && thrust != 0.0f;
+    bReversing            = !bBraking && thrust < 0.0f;
+
+    if (*wheelState) {
+        bAlreadySkidding = true;
+    }
+
+    *wheelState = WHEEL_STATE_NORMAL;
+
+    adhesion *= CTimer::GetTimeStep();
+    if (bAlreadySkidding) {
+        adhesion *= m_pHandlingData->m_fTractionLoss;
+    }
+
+    if (special != BIKE_WHEEL_F_SLIP && special != BIKE_WHEEL_R_SLIP) {
+        float contactSpeedRight = DotProduct(wheelRight, wheelContactSpeed);
+        if (contactSpeedRight != 0.0f) {
+            right = -(contactSpeedRight / wheelsOnGround);
+            if (wheelStatus == WHEEL_STATUS_BURST) {
+                right += std::min(contactSpeedFwd, fBurstBikeSpeedMax) * CGeneral::GetRandomNumberInRange(-fBurstBikeTyreMod, fBurstBikeTyreMod);
+            }
+        }
+    }
+
+    if (bDriving) {
+        fwd   = thrust;
+        right = std::clamp(right, -adhesion, adhesion);
+    } else if (contactSpeedFwd != 0.0f) {
+        fwd = -(contactSpeedFwd / wheelsOnGround);
+        if (!bBraking && std::abs(m_GasPedal) < 0.01f) { // fpu 0x6D7630
+            if (IsSubBMX()) {
+                if (fwd > -0.05f && fwd < 0.05f) {
+                    brake = 0.5f * gHandlingDataMgr.fWheelFriction / (m_pHandlingData->m_fMass + 200.0f);
+                }
+            } else if (IsBike()) {
+                brake = 0.6f * gHandlingDataMgr.fWheelFriction / (m_pHandlingData->m_fMass + 200.0f);
+            } else {
+                brake = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
+                if (m_pHandlingData->m_fMass < 500.0f || GetModelIndex() == MODEL_RCBANDIT) { // fpu 0x6D76D8
+                    brake *= 0.2f;
+                }
+            }
+        }
+        if (brake > adhesion) {
+            if (std::abs(contactSpeedFwd) > 0.005f) {
+                *wheelState = WHEEL_STATE_FIXED;
+            }
+        } else {
+            fwd = std::clamp(fwd, -brake, brake);
+        }
+    }
+    float speedSq    = sq(right) + sq(fwd);
+    float adhesionSq = sq(adhesion);
+    if (speedSq <= adhesionSq) {
+        if (destabTraction < 1.0f) {
+            if (!bAlreadySkidding) {
+                destabTraction *= m_pHandlingData->m_fTractionLoss;
+            }
+            if (adhesionSq * sq(destabTraction) < speedSq) {
+                right *= (adhesion * destabTraction / std::sqrt(speedSq));
+            }
+        }
+    } else {
+        if (*wheelState != WHEEL_STATE_FIXED) {
+            if (bDriving && contactSpeedFwd < 0.1f) {
+                *wheelState = WHEEL_STATE_SPINNING;
+            } else {
+                *wheelState = WHEEL_STATE_SKIDDING;
+            }
+        }
+        float tractionLoss = (bAlreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(speedSq) * adhesion;
+        fwd *= tractionLoss;
+        right *= tractionLoss;
+        if (destabTraction < 1.0f) {
+            right *= destabTraction;
+        }
+    }
+    if (fwd != 0.0f || right != 0.0f) {
+        CVector moveVec = right * wheelRight + fwd * wheelFwd;
+        float   speed     = moveVec.Magnitude();
+        moveVec.Normalise(); // now leave only dir component
+
+        float   impulse     = m_fMass * speed;
+        CVector turnImpulse = moveVec * CPhysical::GetMass(wheelContactPoint, moveVec) * speed;
+
+        CPhysical::ApplyMoveForce(impulse * moveVec);
+
+        CVector turnImpulseRight = DotProduct(turnImpulse, GetRight()) * GetRight();
+        CVector contactRight     = DotProduct(wheelContactPoint, GetRight()) * GetRight();
+        CVector contactFwd       = DotProduct(wheelContactPoint, GetForward()) * GetForward();
+
+        if (wheelId != CAR_WHEEL_REAR_LEFT || !bBraking && !bReversing) {
+            CPhysical::ApplyTurnForce((turnImpulse - turnImpulseRight) * fTweakBikeWheelTurnForce, wheelContactPoint - contactRight);
+        }
+
+        CPhysical::ApplyTurnForce(turnImpulseRight, contactFwd);
+    }
 }
 
 // 0x6D7BC0
@@ -3326,42 +3434,38 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
     }
 
     if (intensity > 10.f && (damager == FindPlayerPed() || damager == FindPlayerVehicle()) && GetStatus() != STATUS_WRECKED) {
-        FindPlayerInfo().m_nHavocCaused += 2;
+        FindPlayerInfo().m_nHavocCaused += 2u;
         FindPlayerInfo().m_fCurrentChaseValue += 1.0f;
         CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, CGeneral::GetRandomNumberInRange<float>(5, 25));
     }
     // Player check from 0x6D7DE7 moved here, this code is for NPC anyway
     if (damager && damager->GetIsTypePed() && !damager->AsPed()->IsPlayer() && (IsAutomobile() || IsBike())) {
-        int npcHitChance = 0;
-        switch (weapon) {
-        case WEAPON_PISTOL:
-        case WEAPON_PISTOL_SILENCED:
-        case WEAPON_SHOTGUN:
-        case WEAPON_MICRO_UZI:
-        case WEAPON_MP5:
-        case WEAPON_TEC9:
-        case WEAPON_UZI_DRIVEBY:
-            npcHitChance = 5;
-            break;
-        case WEAPON_DESERT_EAGLE:
-            npcHitChance = 64;  // only for masters!
-            break;
-        case WEAPON_AK47:
-        case WEAPON_M4:
-            npcHitChance = 10;
-            break;
-        default:
-            break;
-        }
-        if (damager->AsPed()->m_pVehicle && damager->AsPed()->m_pVehicle->IsSubBike()) {
-            npcHitChance = std::min(1, npcHitChance);   // hard to hit when moving on bike
-        } else if (GetModelIndex() == MODEL_COPBIKE && m_pDriver && m_pDriver->IsCop()) {
-            npcHitChance = 0; // looks like cop on a bike is protected from npc hits
-        }
-        // changed != 0 to > 0, there is no point of it being negative
-        if (npcHitChance > 0 && !vehicleFlags.bTyresDontBurst && (CGeneral::GetRandomNumber() & 0x7F) < npcHitChance) {
+        const auto isPedOnBike         = damager->AsPed()->m_pVehicle && damager->AsPed()->m_pVehicle->IsSubBike();
+        const auto BurstTyreWithChance = [&](int32 baseChance) {
+            const auto chance = isPedOnBike
+                ? std::min(1, baseChance) // hard to hit on bike
+                : baseChance;
+            // changed != 0 to > 0, there is no point of it being negative
+            if (chance > 0 && !vehicleFlags.bTyresDontBurst && (CGeneral::GetRandomNumber() & 0x7F) < chance) {
+                if (IsBike() || GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE) {
+                    BurstTyre(CarWheelToCarPiece((eCarWheel)FindTyreNearestPoint(coords)), !IsBike());
+                }
+            }
+        };
+        if (isPedOnBike || !(GetModelIndex() == MODEL_COPBIKE && m_pDriver && m_pDriver->IsCop())) {
             if (IsBike() || GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE) {
-                BurstTyre(CarWheelToCarPiece((eCarWheel)FindTyreNearestPoint(coords)), !IsBike());
+                switch (weapon) {
+                case WEAPON_PISTOL:
+                case WEAPON_PISTOL_SILENCED:
+                case WEAPON_SHOTGUN:
+                case WEAPON_MICRO_UZI:
+                case WEAPON_MP5:
+                case WEAPON_TEC9:
+                case WEAPON_UZI_DRIVEBY:     BurstTyreWithChance(5); break;
+                case WEAPON_DESERT_EAGLE:    BurstTyreWithChance(64); break; // only for masters!
+                case WEAPON_AK47:
+                case WEAPON_M4:              BurstTyreWithChance(10); break;
+                }
             }
         }
     }
@@ -3369,24 +3473,32 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
     if (damageable && vehicleFlags.bPetrolTankIsWeakPoint) {
         // only player allowed to do a fatal hit
         if (damager && damager->GetIsTypePed() && damager->AsPed()->IsPlayer()) {
-            const CVector& pointObj = GetVehicleModelInfo()->GetModelDummyPosition(DUMMY_GAS_CAP);
-            if (!pointObj.IsZero()) {
-                const CVector pointWorld = GetMatrix() * pointObj;
-                if ((coords - pointWorld).Magnitude() < 0.25f) {
+            const CVector& gasCapPos = GetVehicleModelInfo()->GetModelDummyPosition(DUMMY_GAS_CAP);
+            if (!gasCapPos.IsZero()) {
+                if ((coords - GetMatrix() * gasCapPos).Magnitude() < 0.25f) {
                     intensity = std::min(m_fHealth, 1100.0f);
                 }
             }
         }
     }
 
-    if ((IsSubHeli() || IsSubPlane())
-        && !vehicleFlags.bIsRCVehicle
-        && weapon != WEAPON_EXPLOSION
-        && weapon != WEAPON_GRENADE
-        && weapon != WEAPON_ROCKET
-        && weapon != WEAPON_ROCKET_HS) {
-        intensity *= 0.4f;
+    if (IsSubHeli() || IsSubPlane() && !vehicleFlags.bIsRCVehicle) {
+        switch (weapon) {
+        case WEAPON_EXPLOSION:
+        case WEAPON_GRENADE:
+        case WEAPON_ROCKET:
+        case WEAPON_ROCKET_HS:
+            break;
+        default:
+            intensity *= 0.4f;
+        }
     }
+
+    const auto AddVehicleDamageWeaponEventResponse = [&](CPed*& pedToResponse) {
+        if (pedToResponse) {
+            pedToResponse->GetEventGroup().Add(CEventVehicleDamageWeapon{ this, damager, weapon });
+        }
+    };
 
     if (m_fHealth > 0.0f) {
         m_nLastWeaponDamageType = weapon;
@@ -3420,12 +3532,9 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
             if ((GetStatus() == STATUS_PLAYER || GetStatus() > STATUS_PLAYER_PLAYBACK_FROM_BUFFER && GetStatus() <= STATUS_PHYSICS)
                 && damager && damager->GetIsTypePed())
             {
-                if (m_pDriver) {
-                    m_pDriver->GetEventGroup().Add(CEventVehicleDamageWeapon{ this, damager, weapon });
-                }
+                AddVehicleDamageWeaponEventResponse(m_pDriver);
                 for (int32 i = 0; i < m_nMaxPassengers; ++i) {
-                    if (m_apPassengers[i])
-                        m_apPassengers[i]->GetEventGroup().Add(CEventVehicleDamageWeapon{ this, damager, weapon });
+                    AddVehicleDamageWeaponEventResponse(m_apPassengers[i]);
                 }
             }
             if (IsAutomobile() && healthBefore >= 250.0f && m_fHealth < 250.0f) {
@@ -4741,90 +4850,69 @@ void CVehicle::AddUpgrade(int32 modelIndex, int32 upgradeIndex) {
     ((void(__thiscall*)(CVehicle*, int32, int32))0x6DFA20)(this, modelIndex, upgradeIndex);
 }
 
-// 0x6DFC50
-void CVehicle::UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed) {
-    CVector thisTowHitchPos = {};
-    CVector otherTowBarPos  = {};
-    if (m_pTowingVehicle &&
-        (GetStatus() == STATUS_IS_TOWED || GetStatus() == STATUS_IS_SIMPLE_TOWED) &&
-        GetTowHitchPos(thisTowHitchPos, true, m_pTowingVehicle) &&
-        m_pTowingVehicle->GetTowBarPos(otherTowBarPos, true, this))
+// NOTSA
+void CVehicle::UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHookUp, bool applyDistToSpeed) {
+    const auto towingVeh     = isTowing ? this : m_pTowingVehicle;
+    const auto beingTowedVeh = isTowing ? m_pVehicleBeingTowed : this;
+    CVector    towedHitchPos = {}, towingBarPos = {};
+    if (towingVeh && beingTowedVeh
+        && (isTowing || GetStatus() == STATUS_IS_TOWED || GetStatus() == STATUS_IS_SIMPLE_TOWED)
+        && beingTowedVeh->GetTowHitchPos(towedHitchPos, true, towingVeh)
+        && towingVeh->GetTowBarPos(towingBarPos, true, beingTowedVeh))
     {
-        const CVector couplingDistance = otherTowBarPos - thisTowHitchPos;
-        const float   couplingDistMag  = couplingDistance.Magnitude();
-        const float   stepThreshold    = (CTimer::GetTimeStep() <= 0.7f ? 0.7f : CTimer::GetTimeStep());
-        if (1.0f * stepThreshold >= couplingDistMag
-            && DotProduct(m_pTowingVehicle->GetForward(), GetForward()) >= -0.3f
-            && DotProduct(m_pTowingVehicle->GetUp(), GetUp()) >= 0.0f) {
-            if (GetModelIndex() != MODEL_TOWTRUCK && GetModelIndex() != MODEL_TRACTOR ||
-                (m_pTowingVehicle->IsAutomobile() && m_pTowingVehicle->AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u))
-            {
-                thisTowHitchPos -= GetPosition();
-                otherTowBarPos -= m_pTowingVehicle->GetPosition();
+        CVector       linkDir = towingBarPos - towedHitchPos; // rel to towing
+        if (isTowing) linkDir = -linkDir; // or to towed
 
-                const CVector thisTowSpeed  = GetSpeed(thisTowHitchPos);
-                const CVector otherTowSpeed = m_pTowingVehicle->GetSpeed(otherTowBarPos);
-                CVector       speedDiff     = otherTowSpeed - thisTowSpeed;
-                if (!applyFullVelocityAtHookUp && applyDistToSpeed) {
-                    speedDiff = 0.3f * std::max(1.0f, CTimer::GetTimeStep()) * couplingDistance;
+        if (isTowing
+            || (1.0f * (CTimer::GetTimeStep() <= 0.7f ? 0.7f : CTimer::GetTimeStep()) >= linkDir.Magnitude()
+                && DotProduct(towingVeh->GetForward(), GetForward()) >= -0.3f
+                && DotProduct(towingVeh->GetUp(), GetUp()) >= 0.0f))
+        {
+            if (towingVeh->GetModelIndex() != MODEL_TOWTRUCK && towingVeh->GetModelIndex() != MODEL_TRACTOR
+                || (towingVeh->IsAutomobile() && towingVeh->AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u)) {
+                const CVector towedHitchPosWorld = towedHitchPos - beingTowedVeh->GetPosition();
+                const CVector towingBarPosWorld  = towingBarPos - towingVeh->GetPosition();
+                const CVector towedHitchPosSpeed = beingTowedVeh->GetSpeed(towedHitchPosWorld);
+                const CVector towingBarPosSpeed  = towingVeh->GetSpeed(towingBarPosWorld);
+                CVector       speedDiffVec       = towingBarPosSpeed - towedHitchPosSpeed; // rel to towing
+                if (isTowing) speedDiffVec       = -speedDiffVec; // or to towed
+
+                if (!applyFullVelocityAtHookUp) {
+                    if (applyDistToSpeed) {
+                        speedDiffVec = (isTowing ? 0.1f : 0.3f) * std::max(1.0f, CTimer::GetTimeStep()) * linkDir;
+                    } else if (isTowing) {
+                        speedDiffVec *= (1.0f - m_fMass / (beingTowedVeh->m_fMass + m_fMass)) * 0.5f;
+                    }
                 }
-                if (IsSubTrailer() && AsTrailer()->m_fTrailerTowedRatio == -1000.0f) {
-                    speedDiff -= DotProduct(speedDiff, GetUp()) * GetUp();
+                if (beingTowedVeh->IsSubTrailer() && beingTowedVeh->AsTrailer()->m_fTrailerTowedRatio == ::BAGGAGE_TRAILER_TOWED_RATIO) {
+                    speedDiffVec -= DotProduct(speedDiffVec, beingTowedVeh->GetUp()) * beingTowedVeh->GetUp();
                 }
-                const CVector thisComWorld        = GetMatrix().TransformVector(m_vecCentreOfMass);
-                const CVector speedDiffNormalized = speedDiff.Normalized();
+                const CVector& thisLinkPosWorld   = (isTowing ? towingBarPosWorld : towedHitchPosWorld);
+                const CVector  thisComDir         = thisLinkPosWorld - GetMatrix().TransformVector(m_vecCentreOfMass);
+                const CVector  turnForce          = CPhysical::GetMass(thisComDir, speedDiffVec.Normalized()) * speedDiffVec;
 
-                const CVector thisComDir          = thisTowHitchPos - thisComWorld;
-                const CVector thisTurnDir         = CrossProduct(thisComDir, speedDiffNormalized); // alignment dir
-                const float   forceMult           = 1.0f / (thisTurnDir.SquaredMagnitude() / m_fTurnMass + 1.0f / m_fMass);
+                CPhysical::ApplyForce(turnForce, thisLinkPosWorld, true);
 
-                CPhysical::ApplyForce(forceMult * speedDiff, thisTowHitchPos, true);
+                if (isTowing) {
+                    m_nFakePhysics = 0u; // don't any static frames for towing
+                }
             }
+        } else if (!isTowing) {
+            BreakTowLink();
         }
-    } else {
+    } else if (!isTowing) {
         BreakTowLink();
     }
 }
 
+// 0x6DFC50
+void CVehicle::UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed) {
+    UpdateVehicleLinkImpl(false, applyFullVelocityAtHookUp, applyDistToSpeed);
+}
+
 // 0x6E0050
 void CVehicle::UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed) {
-    CVector otherTowHitchPos = {};
-    CVector thisTowBarPos    = {};
-    if (m_pVehicleBeingTowed &&
-        m_pVehicleBeingTowed->GetTowHitchPos(otherTowHitchPos, true, this) &&
-        GetTowBarPos(thisTowBarPos, true, m_pVehicleBeingTowed))
-    {
-        const CVector couplingDistance = otherTowHitchPos - thisTowBarPos;
-        if (GetModelIndex() != MODEL_TOWTRUCK && GetModelIndex() != MODEL_TRACTOR ||
-            (IsAutomobile() && AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u))
-        {
-            otherTowHitchPos -= m_pVehicleBeingTowed->GetPosition();
-            thisTowBarPos -= GetPosition();
-
-            const CVector otherTowSpeed = m_pVehicleBeingTowed->GetSpeed(otherTowHitchPos);
-            const CVector thisTowSpeed  = GetSpeed(thisTowBarPos);
-            CVector       speedDiff     = otherTowSpeed - thisTowSpeed;
-            if (!applyFullVelocityAtHookUp) {
-                if (applyDistToSpeed) {
-                    speedDiff = 0.1f * std::max(1.0f, CTimer::GetTimeStep()) * couplingDistance;
-                } else {
-                    speedDiff *= (1.0f - m_fMass / (m_pVehicleBeingTowed->m_fMass + m_fMass)) * 0.5f;
-                }
-            }
-            if (m_pVehicleBeingTowed->IsSubTrailer() && m_pVehicleBeingTowed->AsTrailer()->m_fTrailerTowedRatio == -1000.0f) {
-                speedDiff -= DotProduct(speedDiff, m_pVehicleBeingTowed->GetUp()) * m_pVehicleBeingTowed->GetUp();
-            }
-            const CVector thisComWorld        = GetMatrix().TransformVector(m_vecCentreOfMass);
-            const CVector speedDiffNormalized = speedDiff.Normalized();
-
-            const CVector thisComDir          = thisTowBarPos - thisComWorld;
-            const CVector thisTurnDir         = CrossProduct(thisComDir, speedDiffNormalized); // alignment dir
-            const float   forceMult           = 1.0f / (thisTurnDir.SquaredMagnitude() / m_fTurnMass + 1.0f / m_fMass);
-
-            CPhysical::ApplyForce(forceMult * speedDiff, thisTowBarPos, true);
-            m_nFakePhysics = 0u;
-        }
-    }
+    UpdateVehicleLinkImpl(true, applyFullVelocityAtHookUp, applyDistToSpeed);
 }
 
 // 0x6E0400
@@ -4844,17 +4932,17 @@ void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) 
 
 // 0x6E0950
 void CVehicle::ProcessSirenAndHorn(bool updateHornCounter) {
-    auto pad0 = CPad::GetPad();
+    const auto* pad = CPad::GetPad();
     if (UsesSiren()) {
-        if (pad0->bHornHistory[pad0->iCurrHornHistory]) {
-            if (pad0->bHornHistory[(pad0->iCurrHornHistory + 4) % 5] &&
-                pad0->bHornHistory[(pad0->iCurrHornHistory + 3) % 5]) {
+        if (pad->bHornHistory[pad->iCurrHornHistory]) {
+            if (pad->bHornHistory[(pad->iCurrHornHistory + 4) % 5] &&
+                pad->bHornHistory[(pad->iCurrHornHistory + 3) % 5]) {
                 m_HornCounter = 1u;
             } else {
                 m_HornCounter = 0u;
             }
-        } else if (pad0->bHornHistory[(pad0->iCurrHornHistory + 4) % 5] &&
-                   !pad0->bHornHistory[(pad0->iCurrHornHistory + 1) % 5])
+        } else if (pad->bHornHistory[(pad->iCurrHornHistory + 4) % 5] &&
+                   !pad->bHornHistory[(pad->iCurrHornHistory + 1) % 5])
         {
             m_HornCounter = 0u;
             vehicleFlags.bSirenOrAlarm = ~vehicleFlags.bSirenOrAlarm;
@@ -4862,7 +4950,7 @@ void CVehicle::ProcessSirenAndHorn(bool updateHornCounter) {
             m_HornCounter = 0u;
         }
     } else if (updateHornCounter && CanUpdateHornCounter()) {
-        m_HornCounter = pad0->GetHorn();
+        m_HornCounter = pad->GetHorn();
     }
 }
 
