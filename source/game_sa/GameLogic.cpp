@@ -838,7 +838,7 @@ void CGameLogic::UpdateSkip() {
 
             TheCamera.SetFadeColour(0, 0, 0);
             TheCamera.Fade(2.5f, eFadeFlag::FADE_IN);
-            SkipTimer = CTimer::m_snTimeInMilliseconds + 3000;
+            SkipTimer = CTimer::GetTimeInMS() + 3000;
             CMessages::AddBigMessage(TheText.Get("SKIP"), 4500, STYLE_BOTTOM_RIGHT);
         }
         break;

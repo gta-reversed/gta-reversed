@@ -139,7 +139,7 @@ bool CTaskSimpleJetPack::ProcessPed(CPed* ped) {
             m_ThrustStrafe = std::clamp(m_ThrustStrafe + CGeneral::DoCoinFlip() ? -1.f : 1.f, -3.f, 3.f);
 
             ped->m_fAimingRotation +=
-                std::sin((float)CTimer::m_snTimeInMilliseconds * 0.0015707964f) * CTimer::GetTimeStep() * JETPACK_TURN_RATE * CGeneral::GetRandomNumberInRange(0.f, 1.f); // TODO: Magic number
+                std::sin((float)CTimer::GetTimeInMS() * 0.0015707964f) * CTimer::GetTimeStep() * JETPACK_TURN_RATE * CGeneral::GetRandomNumberInRange(0.f, 1.f); // TODO: Magic number
 
             if (ped->GetPlayerData()) {
                 ped->GetPlayerData()->m_fMoveBlendRatio = 0.f;

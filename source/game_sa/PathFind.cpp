@@ -773,7 +773,7 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
     ZoneScoped;
 
     // The time thingy I think is some kind of `% 512`, not sure yet, will have to figure it out.
-    if (!s_bLoadPathsNeeded && !bForceStreaming && (CTimer::m_snTimeInMilliseconds ^ CTimer::m_snPreviousTimeInMilliseconds) < 512) {
+    if (!s_bLoadPathsNeeded && !bForceStreaming && (CTimer::GetTimeInMS() ^ CTimer::GetPreviousTimeInMS()) < 512) {
         return;
     }
 

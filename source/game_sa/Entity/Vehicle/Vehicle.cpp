@@ -2062,7 +2062,7 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
         if (m_fDirtLevel <= 1.0f) {
             return;
         }
-        m_fDirtLevel = m_fDirtLevel - CTimer::ms_fTimeStep * 0.01f;
+        m_fDirtLevel = m_fDirtLevel - CTimer::GetTimeStep() * 0.01f;
         return;
     }
 
@@ -4572,7 +4572,7 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
         return;
     }
 
-    if (m_autoPilot.m_nCarMission == MISSION_CRUISE && (CTimer::m_FrameCounter & 2) != 0) {
+    if (m_autoPilot.m_nCarMission == MISSION_CRUISE && (CTimer::GetFrameCounter() & 2) != 0) {
         return;
     }
 

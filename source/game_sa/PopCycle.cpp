@@ -365,7 +365,7 @@ void CPopCycle::UpdateDealerStrengths() {
         return;
     }
 
-    if (CTimer::m_snTimeInMilliseconds / 60000 != CTimer::m_snPreviousTimeInMilliseconds / 60000) {
+    if (CTimer::GetTimeInMS() / 60000 != CTimer::GetPreviousTimeInMS() / 60000) {
         return;
     }
 

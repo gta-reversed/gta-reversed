@@ -82,7 +82,7 @@ void CIdleCam::Reset(bool resetControls) {
 // 0x50A200
 void CIdleCam::ProcessIdleCamTicker() {
     if (m_LastTimePadTouched == CPad::GetPad(0)->LastTimeTouched) {
-        m_IdleTickerFrames += static_cast<uint32>(CTimer::ms_fTimeStep * 20.0f);
+        m_IdleTickerFrames += static_cast<uint32>(CTimer::GetTimeStep() * 20.0f);
     } else {
         m_LastTimePadTouched = CPad::GetPad(0)->LastTimeTouched;
         m_IdleTickerFrames   = 0;

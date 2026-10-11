@@ -575,7 +575,7 @@ void CWaterLevel::PreRenderWater() {
 
 // NOTSA: From PreRenderWater()
 void CWaterLevel::UpdateFlow() {
-    if (CTimer::m_FrameCounter % 32 == 29) {
+    if (CTimer::GetFrameCounter() % 32 == 29) {
         CWaterLevel::FindNearestWaterAndItsFlow();
     }
 

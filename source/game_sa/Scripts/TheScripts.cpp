@@ -1103,7 +1103,7 @@ bool CTheScripts::IsPlayerOnAMission() {
 
 // 0x4861F0
 bool CTheScripts::IsVehicleStopped(CVehicle* veh) {
-    return std::max(CTimer::GetTimeStep(), CTimer::ms_fOldTimeStep) / 100.0f >= veh->m_fMovingSpeed;
+    return std::max(CTimer::GetTimeStep(), CTimer::GetOldTimeStep()) / 100.0f >= veh->m_fMovingSpeed;
 }
 
 // 0x5D4FD0

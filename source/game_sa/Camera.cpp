@@ -1548,12 +1548,12 @@ void CCamera::DrawBordersForWideScreen() {
 
 // 0x4748A0
 bool CCamera::VectorMoveRunning() const {
-    return CTimer::m_snTimeInMilliseconds <= m_fMoveLinearEndTime;
+    return CTimer::GetTimeInMS() <= m_fMoveLinearEndTime;
 }
 
 // 0x474891
 bool CCamera::VectorTrackRunning() const {
-    return CTimer::m_snTimeInMilliseconds <= m_fTrackLinearEndTime;
+    return CTimer::GetTimeInMS() <= m_fTrackLinearEndTime;
 }
 
 // 0x514950
