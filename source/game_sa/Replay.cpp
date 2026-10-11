@@ -762,7 +762,7 @@ void CReplay::RestoreStuffFromMem() {
     CTimer::SetTimeInMS(Time1);
     CTimer::SetTimeInMSNonClipped(Time2);
     CTimer::SetPreviousTimeInMS(Time3);
-    CTimer::m_snPreviousTimeInMilliseconds = Time3;
+    CTimer::GetPreviousTimeInMS() = Time3;
     CTimer::m_snPPreviousTimeInMilliseconds = Time4;
     CTimer::m_snPPPreviousTimeInMilliseconds = Time5;
     CTimer::m_snPPPPreviousTimeInMilliseconds = Time6;
