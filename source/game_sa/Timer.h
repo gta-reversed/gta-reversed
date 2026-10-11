@@ -20,6 +20,7 @@ public:
     typedef uint64(__cdecl* TimerFunction_t)();
     static inline auto& ms_fnTimerFunction = StaticRef<TimerFunction_t>(0xB7CB28); // Izzotop: Added in commit 50ce121c. That should be just timerDef.
 
+private:
     // class variables
     static inline auto& m_sbEnableTimeDebug = StaticRef<bool>(0xB7CB40);
     static inline auto& bSkipProcessThisFrame = StaticRef<bool>(0xB7CB89);
