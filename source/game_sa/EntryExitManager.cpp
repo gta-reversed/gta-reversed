@@ -431,7 +431,8 @@ bool CEntryExitManager::Load() {
                 enex->m_pLink = nullptr;
             }
         } else {
-            NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
+            // 2dfx entry-exits are re-created by streaming after the load, the original skips their records too
+            NOTSA_LOG_WARN("No entry-exit in slot {}, skipping its record", enexIdx);
         }
 
         CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
@@ -454,7 +455,7 @@ bool CEntryExitManager::Save() {
         if (enex.m_pLink) {
             // Make sure the link reference is valid
             auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
-            if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
+            if (mp_poolEntryExits->IsIndexInBounds(linkIndex) && !mp_poolEntryExits->IsFreeSlotAtIndex(linkIndex)) {
                 data = linkIndex;
             }
         }

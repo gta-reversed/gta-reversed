@@ -912,10 +912,10 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     case AE_WEAPON_SOUND_CAT_CHAINSAW_ACTIVE: { // 0x504D9B
         switch (m_ChainsawState) {
         case eChainsawState::CUTTING: { // 0x504DA5
-            if (m_LastChainsawEventTimeMs + 400 >= CTimer::m_snTimeInMilliseconds) {
+            if (m_LastChainsawEventTimeMs + 400 >= CTimer::GetTimeInMS()) {
                 sound->m_Speed = std::max(0.85f, sound->m_Speed - 0.15f); // TODO: Use TimeStep
             } else {
-                m_LastChainsawEventTimeMs = CTimer::m_snTimeInMilliseconds;
+                m_LastChainsawEventTimeMs = CTimer::GetTimeInMS();
                 m_ChainsawState           = eChainsawState::ACTIVE;
             }
             break;

@@ -782,7 +782,7 @@ void CGame::Process() {
 
         g_LoadMonitor.EndFrame();
 
-        if (!CTimer::bSkipProcessThisFrame) {
+        if (!CTimer::IsSkipProcessThisFrame()) {
             CPickups::Update();
             CCarCtrl::PruneVehiclesOfInterest();
             CGarages::Update();

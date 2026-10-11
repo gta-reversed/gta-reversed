@@ -290,7 +290,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
         if (bUseCarAI[i])
             continue;
 
-        const auto delta = static_cast<float>(CTimer::GetTimeInMS() - CTimer::m_snPPPPreviousTimeInMilliseconds);
+        const auto delta = static_cast<float>(CTimer::GetTimeInMS() - CTimer::GetPPPPreviousTimeInMs());
         const auto step = delta * PlaybackSpeed[i] / 4.0f;
         if (step > 500.0f) {
             NOTSA_LOG_DEBUG("That's a really big step (={:2f})\n", step);

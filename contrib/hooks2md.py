@@ -10,7 +10,9 @@ from typing import TypedDict
 GITHUB_SHA = os.environ.get("GITHUB_SHA")
 GITHUB_SHA_SHORT = GITHUB_SHA[:8] if GITHUB_SHA else None
 GITHUB_REPO_URL = os.environ.get("GITHUB_REPO_URL")
-GITHUB_COMMIT_URL = f'{GITHUB_REPO_URL}/commit/{GITHUB_SHA}' if GITHUB_SHA and GITHUB_REPO_URL else None
+GITHUB_COMMIT_URL = (
+    f"{GITHUB_REPO_URL}/commit/{GITHUB_SHA}" if GITHUB_SHA and GITHUB_REPO_URL else None
+)
 
 ap = argparse.ArgumentParser(
     description="Generate a Markdown file with reversed categories stats from hooks.csv"
@@ -95,38 +97,50 @@ def main() -> None:
             partially.append(cat)
     num_total_categories = len(partially) + len(completely) + len(not_at_all)
 
+    total_num_fn = sum(k.num_fn for k in category_info.values())
+    total_num_re = sum(k.num_reversed for k in category_info.values())
+    overall_progress = total_num_re / total_num_fn
+
     with open(args.output, "w", encoding="utf8", newline="\n") as outf:
-        outf.write("# Reimplementation progress\n")
+        outf.write(f"# Reimplementation progress (*): {overall_progress:.0%}\n")
         outf.write(
-            "This file is updated automatically every time the hooks.csv file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.\n\n"
+            "This file is updated automatically every time the `hooks.json` file is updated "
+            "(which happens every time there are changes to hooks made by a commit), "
+            "and shows the current progress of reversed categories in the project.\n\n"
         )
         outf.write(
             f"Last update was at {datetime.datetime.now(datetime.timezone.utc).strftime('%b %d, %Y at %H:%M:%S')} UTC\n"
         )
         if GITHUB_SHA:
             if GITHUB_COMMIT_URL:
-                outf.write(f'(Triggered by commit [{GITHUB_SHA_SHORT}]({GITHUB_REPO_URL}/commit/{GITHUB_SHA}))\n')
+                outf.write(
+                    f"(Triggered by commit [{GITHUB_SHA_SHORT}]({GITHUB_REPO_URL}/commit/{GITHUB_SHA}))\n"
+                )
             else:
-                outf.write(f'(Triggered by commit {GITHUB_SHA_SHORT})\n')
+                outf.write(f"(Triggered by commit {GITHUB_SHA_SHORT})\n")
 
         outf.write("\n")
 
-        outf.write("## Disclaimer\n")
+        outf.write("## (*) Disclaimers\n")
         outf.write(
-            "The percentages and the number of categories shown here may not be "
+            "**The progress** is based on the number of functions we have documented and reimplemented, "
+            "so it might not completely reflect the actual progress, it's meant to be a rough estimate.\n"
+            "\n"
+            "**The percentages and the number of categories** shown here may not be "
             "completely accurate, because not all categories and functions "
             "are documented yet.\n"
             "\n"
         )
-
+        
         outf.write(
-            f"## Stats ({sum(k.num_fn for k in category_info.values())} functions, {len(category_info)} categories)\n"
+            f"## Stats ({total_num_re} out of {total_num_fn} functions done in {len(category_info)} categories)\n"
         )
 
         def write_header(title: str, klasses: list[HookCategory]):
+            progress = len(klasses) / num_total_categories
             outf.write("\n")
             outf.write(
-                f"#### {title} ({len(klasses)}/{num_total_categories}) [{len(klasses) / num_total_categories:.0%}]\n"
+                f"#### {title} ({len(klasses)}/{num_total_categories}) [{progress:.{1 if progress < 0.01 and progress > 0 else 0}%}]\n"
             )
             outf.write("\n")
 
@@ -153,7 +167,6 @@ def main() -> None:
         with class_list_spoiler():
             for cat in not_at_all:
                 outf.write(f"- {cat.name} ({cat.num_fn})<br />\n")
-
 
 if __name__ == "__main__":
     main()

@@ -734,7 +734,7 @@ void CGangWars::Update() {
     if (CCutsceneMgr::IsCutsceneProcessing())
         return;
 
-    if (CTimer::m_FrameCounter == 56u)
+    if (CTimer::GetFrameCounter() == 56u)
         UpdateTerritoryUnderControlPercentage();
 
     if (!CGangWars::bGangWarsActive || CGameLogic::IsCoopGameGoingOn())

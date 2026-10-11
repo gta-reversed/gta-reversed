@@ -51,8 +51,8 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     m_fAccelerationBreakStatusPrev = 1.0f;
     m_fPropSpeed                   = 0.0f;
     field_9C8                      = 0.0f;
-    m_fLandingGearStatus           = 0.0f;
-    field_9A0                      = 0;
+    m_LandingGearAngle             = 0.0f;
+    m_StallCounter                 = 0;
     m_planeCreationHeading         = 0.0f;
     m_planeHeading                 = 0.0f;
     m_planeHeadingPrev             = 0.0f;
@@ -290,7 +290,7 @@ void CPlane::IsAlreadyFlying() {
 
 // 0x6CAC20
 void CPlane::SetGearUp() {
-    m_fLandingGearStatus = 1.0f;
+    m_LandingGearAngle = 1.0f;
     m_fAirResistance = m_pHandlingData->m_fDragMult / 1000.0f / 2.0f * m_pFlyingHandlingData->m_fGearUpR;
     m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT,  WHEEL_STATUS_MISSING);
     m_damageManager.SetWheelStatus(CAR_WHEEL_REAR_LEFT,   WHEEL_STATUS_MISSING);
@@ -300,7 +300,7 @@ void CPlane::SetGearUp() {
 
 // 0x6CAC70
 void CPlane::SetGearDown() {
-    m_fLandingGearStatus = 0.0f;
+    m_LandingGearAngle = 0.0f;
     m_fAirResistance = m_pHandlingData->m_fDragMult / 1000.0f / 2.0f;
     m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT,  WHEEL_STATUS_OK);
     m_damageManager.SetWheelStatus(CAR_WHEEL_REAR_LEFT,   WHEEL_STATUS_OK);
@@ -399,9 +399,9 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(field_9A0);
-    if (field_9A0) {
-        field_9A0 = 0;
+    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(m_StallCounter);
+    if (m_StallCounter) {
+        m_StallCounter = 0;
     }
 
     CVehicle::ProcessWeapons();

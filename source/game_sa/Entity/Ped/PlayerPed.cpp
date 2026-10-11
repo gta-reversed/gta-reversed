@@ -1167,7 +1167,7 @@ void CPlayerPed::ProcessControl() {
                 }
             }
             SetLookFlag(lookDir, true, false);
-            SetLookTimer(static_cast<uint32>((CTimer::GetTimeStep() * 0.02f * 1000.0f) * 5.0f));
+            SetLookTimer(static_cast<uint32>(CTimer::GetTimeStepInMS() * 5.0f));
         } else {
             ClearLookFlag();
         }

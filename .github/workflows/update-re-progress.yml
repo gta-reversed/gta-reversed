@@ -80,6 +80,10 @@ jobs:
           cat logs/log.log
           echo "::endgroup::"
 
+          # Pick only relevant fields we need for hooks2md (To avoid diffs)
+          jq '[.[] | {Category, Name, IsReversed}]' docs/hooks.json > docs/hooks.filtered.json
+          mv docs/hooks.filtered.json docs/hooks.json
+
       - name: Check if hooks.json has changed
         id: check-hooks
         shell: bash
