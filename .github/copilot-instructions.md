@@ -1,5 +1,8 @@
 # Copilot review & code instructions
 
+## Docs
+Read all docs under the `docs/` directory and apply them accordingly.
+
 ## Hook Registration Review
 For pull requests that add or modify reversed classes under `source/game_sa/**`, always review `docs/HookRegistration.md` and enforce its checklist.
 Make no mistakes!
