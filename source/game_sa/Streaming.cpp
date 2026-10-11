@@ -3727,12 +3727,13 @@ void CStreaming::Update() {
     LoadRequestedModels();
 
     if (CVehicle* remoteVehicle = FindPlayerInfo(0).m_pRemoteVehicle) {
-        CColStore::AddCollisionNeededAtPosn(playerPos);
-        CIplStore::AddIplsNeededAtPosn(playerPos);
-
         const auto& removeVehiclePos = remoteVehicle->GetPosition();
+
+        CColStore::AddCollisionNeededAtPosn(playerPos);
         CColStore::LoadCollision(removeVehiclePos, false);
         CColStore::EnsureCollisionIsInMemory(removeVehiclePos);
+
+        CIplStore::AddIplsNeededAtPosn(playerPos);
         CIplStore::LoadIpls(removeVehiclePos, false);
         CIplStore::EnsureIplsAreInMemory(removeVehiclePos);
     }

@@ -170,7 +170,7 @@ public:
     static inline auto& m_HeatHazeFXHourOfDayStart = StaticRef<int32>(0x8D50D4); // 10
     static inline auto& m_HeatHazeFXHourOfDayEnd = StaticRef<int32>(0x8D50D8); // 19
     static inline auto& m_fHeatHazeFXFadeSpeed = StaticRef<float>(0x8D50DC); // 0.05f
-    static inline auto& m_fHeatHazeFXInsideBuildingFadeSpeed = StaticRef<float>(0x8D50DC); // 0.5f
+    static inline auto& m_fHeatHazeFXInsideBuildingFadeSpeed = StaticRef<float>(0x8D50E0); // 0.5f
 
     static inline auto& m_waterEnable = StaticRef<bool>(0xC402D3);
     static inline auto& m_waterStrength = StaticRef<float>(0x8D512C); // 64

@@ -2,12 +2,11 @@
 
 #include "app_debug.h"
 #include <windows.h>
-#include <TlHelp32.h>
-#include <Psapi.h>
 #include <DbgHelp.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <extensions/debug.hpp>
 
 #define FINAL 0
 
@@ -138,9 +137,6 @@ LONG WINAPI WindowsExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo) {
     {
         HANDLE hProcess = GetCurrentProcess();
         HANDLE hThread = GetCurrentThread();
-    
-        // Initialize symbol handler
-        SymInitialize(hProcess, NULL, TRUE);
 
         STACKFRAME stackFrame = {};
         stackFrame.AddrPC.Mode = AddrModeFlat;
@@ -155,36 +151,8 @@ LONG WINAPI WindowsExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo) {
             IMAGE_FILE_MACHINE_I386, hProcess, hThread, &stackFrame, &context, NULL,
             SymFunctionTableAccess, SymGetModuleBase, NULL))
         {
-            DWORD pcOffset = stackFrame.AddrPC.Offset;
-            DWORD moduleBase = SymGetModuleBase(hProcess, pcOffset);
-            if (moduleBase == NULL) {
-                break;
-            }
-
-            DWORD displacement = 0;
-            IMAGEHLP_LINE lineInfo = { sizeof(IMAGEHLP_LINE) };
-            BOOL hasLineInfo = SymGetLineFromAddr(hProcess, pcOffset, &displacement, &lineInfo);
-
-            IMAGEHLP_MODULE moduleInfo{ sizeof(IMAGEHLP_MODULE) };
-            BOOL hasModuleInfo = SymGetModuleInfo(hProcess, moduleBase, &moduleInfo);
-        
-            char symbolBuffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME] = { 0 };
-            PSYMBOL_INFO sym = (PSYMBOL_INFO)symbolBuffer;
-            sym->SizeOfStruct = sizeof(SYMBOL_INFO);
-            sym->MaxNameLen = MAX_SYM_NAME;
-            BOOL hasSym = SymFromAddr(hProcess, pcOffset, NULL, sym);
-
-            SPDLOG_INFO(
-                "\t{:#010x}: {}!{}:{}",
-                pcOffset,
-                hasModuleInfo ? moduleInfo.ModuleName : "<unknown>",
-                hasSym ? sym->Name : "<unknown>",
-                hasLineInfo ? lineInfo.LineNumber : 0
-            );
+            NOTSA_LOG_INFO("\t{}", notsa::debug::GetFunctionInfoAtAddress(stackFrame.AddrPC.Offset));
         }
-
-        // Cleanup symbol handler
-        SymCleanup(hProcess);
     }
 
     Section("END OF UNHANDLED EXCEPTION");
@@ -215,12 +183,12 @@ notsa::Logging::Logging() {
 
     spdlog::set_default_logger(Create("default"));
     spdlog::flush_every(100ms);
-    
-    AddVectoredExceptionHandler(1, WindowsExceptionHandler);
+
+    SetUnhandledExceptionFilter(WindowsExceptionHandler);
 }
 
 notsa::Logging::~Logging() {
-    //spdlog::shutdown(); // some kind of deadlock occurs and it never shuts down
+    spdlog::shutdown();
 }
 
 auto notsa::Logging::Create(std::string name, std::optional<spdlog::level::level_enum> level) -> notsa::log_ptr {

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 4.2.0 FATAL_ERROR)
 
+include(FetchContent)
+
 #--------------------------------------------------------------------
 # Game features
 #--------------------------------------------------------------------
@@ -125,9 +127,18 @@ target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 #--------------------------------------------------------------------
 # Add dependencies
 #--------------------------------------------------------------------
+
+# Adding this here as it has no Conan-center package, and it's header-only
+FetchContent_Declare(
+    imfilebrowser
+    GIT_REPOSITORY https://github.com/AirGuanZ/imgui-filebrowser
+    GIT_TAG        47a1884
+)
+FetchContent_MakeAvailable(imfilebrowser)
+
 macro(add_dependency)
     foreach (target ${ARGV})
-        find_package(${target} REQUIRED)
+        find_package(${target} CONFIG REQUIRED)
 
         # Disable warnings of dependencies
         add_compile_options(${target} PRIVATE
@@ -144,6 +155,7 @@ add_dependency(
     Vorbis
     imgui
     libjpeg-turbo
+    Boost
 )
 if (${RE_PROJECT}_USE_SDL3)
     add_dependency(SDL3)
@@ -162,6 +174,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dxguid
     strmiids
     d3d9
+    Boost::headers
 )
 if (${RE_PROJECT}_USE_SDL3)
     target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
@@ -227,6 +240,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     oswrapper
 
     libs/imgui
+    ${imfilebrowser_SOURCE_DIR}
 )
 
 target_sources(${RE_PROJECT_LIB_NAME} PRIVATE

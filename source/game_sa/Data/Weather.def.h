@@ -1,8 +1,10 @@
 #pragma once
 #include "eWeatherType.h"
 
+constexpr auto WEATHER_TYPES_LIST_SIZE = 64u;
+
 // 0x8D5EB0
-eWeatherType WeatherTypesListDefault[] = {
+eWeatherType WeatherTypesListDefault[WEATHER_TYPES_LIST_SIZE] = {
     WEATHER_EXTRASUNNY_COUNTRYSIDE,  //  0
     WEATHER_EXTRASUNNY_COUNTRYSIDE,  //  1
     WEATHER_EXTRASUNNY_COUNTRYSIDE,  //  2
@@ -70,7 +72,7 @@ eWeatherType WeatherTypesListDefault[] = {
 };
 
 // 0x8D5EF0
-eWeatherType WeatherTypesListLA[] = {
+eWeatherType WeatherTypesListLA[WEATHER_TYPES_LIST_SIZE] = {
     WEATHER_EXTRASUNNY_SMOG_LA,      //  0
     WEATHER_EXTRASUNNY_SMOG_LA,      //  1
     WEATHER_EXTRASUNNY_LA,           //  2
@@ -138,7 +140,7 @@ eWeatherType WeatherTypesListLA[] = {
 };
 
 // 0x8D5F30
-eWeatherType WeatherTypesListSF[] = {
+eWeatherType WeatherTypesListSF[WEATHER_TYPES_LIST_SIZE] = {
     WEATHER_SUNNY_SF,                //  0
     WEATHER_SUNNY_SF,                //  1
     WEATHER_SUNNY_SF,                //  2
@@ -206,7 +208,7 @@ eWeatherType WeatherTypesListSF[] = {
 };
 
 // 0x8D5F70
-eWeatherType WeatherTypesListVegas[] = {
+eWeatherType WeatherTypesListVegas[WEATHER_TYPES_LIST_SIZE] = {
     WEATHER_EXTRASUNNY_VEGAS,        //  0
     WEATHER_EXTRASUNNY_VEGAS,        //  1
     WEATHER_EXTRASUNNY_VEGAS,        //  2
@@ -274,7 +276,7 @@ eWeatherType WeatherTypesListVegas[] = {
 };
 
 // 0x8D5FB0
-eWeatherType WeatherTypesListDesert[] = {
+eWeatherType WeatherTypesListDesert[WEATHER_TYPES_LIST_SIZE] = {
     WEATHER_EXTRASUNNY_DESERT,       //  0
     WEATHER_EXTRASUNNY_DESERT,       //  1
     WEATHER_EXTRASUNNY_DESERT,       //  2

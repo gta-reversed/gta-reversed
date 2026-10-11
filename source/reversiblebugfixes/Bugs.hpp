@@ -91,9 +91,19 @@ inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_
                    "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CPool_DestructOnClear{
+    .Name        = "Destroy objects before marking their memory as free",
+    .Description = "Destruct all objects in the pool before deallocating their memory (So that pool objects can clean up after themselves)",
+    .Credit      = "Pirulax"
+};
 inline const ReversibleBugFix CTaskSimpleClimb_ProcessPed_SettleSpeedFrameRate{
     .Name        = "Climb settle speed at high frame rates",
     .Description = "Bound the climb's settle step the way the coarse step above it is bounded, so a few centimetres of offset do not become a killing fall speed above 60 FPS",
     .Credit      = "mrxenginner"
+};
+inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR{
+    .Name        = "CDamageManager::GetLightStatus - Incorrect status check for LIGHT_REAR_RIGHT",
+    .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
+    .Credit      = "aeaeo"
 };
 };

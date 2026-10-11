@@ -282,11 +282,11 @@ void CWeaponInfo::LoadWeaponData() {
                 .DuckX = duckX,
                 .DuckZ = duckZ,
 
-                .RLoadA = (int16)RLoadA,
-                .RLoadB = (int16)RLoadB,
+                .RLoadA = (uint16)RLoadA,
+                .RLoadB = (uint16)RLoadB,
 
-                .CrouchRLoadA = (int16)crouchRLoadA,
-                .CrouchRLoadB = (int16)crouchRLoadB
+                .CrouchRLoadA = (uint16)crouchRLoadA,
+                .CrouchRLoadB = (uint16)crouchRLoadB
             };
 
             break;
@@ -447,5 +447,10 @@ uint32 CWeaponInfo::GetWeaponReloadTime() const {
         return 1000u;
 
     const auto& ao = ms_WeaponAimOffsets[m_nAimOffsetIndex];
-    return std::max(400u, (uint32)std::max({ ao.RLoadA, ao.RLoadB, ao.CrouchRLoadA, ao.CrouchRLoadB }) + 100);
+    for (const auto rload : { ao.RLoadA, ao.CrouchRLoadA, ao.RLoadB, ao.CrouchRLoadB }) {
+        if (const auto time = rload + 100u; time > 400u) {
+            return time;
+        }
+    }
+    return 400u;
 }

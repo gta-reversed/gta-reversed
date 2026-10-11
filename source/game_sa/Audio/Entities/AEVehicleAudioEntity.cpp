@@ -4837,25 +4837,25 @@ void CAEVehicleAudioEntity::InjectHooks() {
     // Jet
     RH_ScopedInstall(ProcessPlayerJet, 0x501650);
     RH_ScopedInstall(ProcessDummyJet, 0x501960);
-    RH_ScopedInstall(ProcessGenericJet, 0x4FF900, { .reversed = false });
+    RH_ScopedInstall(ProcessGenericJet, 0x4FF900, { .Reversed = false });
 
     // Bicycle
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710);
     RH_ScopedInstall(GetBaseVolumeForBicycleTyre, 0x4F60B0);
-    RH_ScopedInstall(ProcessDummyBicycle, 0x4FFDC0, { .reversed = false });
-    RH_ScopedInstall(ProcessPlayerBicycle, 0x500040, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyBicycle, 0x4FFDC0, { .Reversed = false });
+    RH_ScopedInstall(ProcessPlayerBicycle, 0x500040, { .Reversed = false });
 
     RH_ScopedInstall(ProcessPlayerCombine, 0x500CE0);
     RH_ScopedInstall(ProcessDummyRCCar, 0x500DC0);
-    RH_ScopedInstall(ProcessDummyHovercraft, 0x500F50, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyHovercraft, 0x500F50, { .Reversed = false });
     RH_ScopedInstall(ProcessDummyGolfCart, 0x501270);
     RH_ScopedInstall(ProcessDummyVehicleEngine, 0x501480);
     RH_ScopedInstall(ProcessSpecialVehicle, 0x501AB0);
 
     // Keep these hooked at all times:
-    RH_ScopedInstall(ProcessPlayerVehicleEngine, 0x4FBB10, { .locked = true }); // Un-hooking this causes random crashes...
-    RH_ScopedInstall(ProcessVehicle, 0x501E10, { .locked = true }); // -||-
-    RH_ScopedInstall(Service, 0x502280, { .locked = true }); // -||-
+    RH_ScopedInstall(ProcessPlayerVehicleEngine, 0x4FBB10, { .Locked = true }); // Un-hooking this causes random crashes...
+    RH_ScopedInstall(ProcessVehicle, 0x501E10, { .Locked = true }); // -||-
+    RH_ScopedInstall(Service, 0x502280, { .Locked = true }); // -||-
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float));
     RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CPhysical*));

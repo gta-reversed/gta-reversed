@@ -97,7 +97,7 @@ bool CTaskSimpleCarFallOut::SetPedPosition(CPed* ped) {
 
 void CTaskSimpleCarFallOut::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleCarFallOut, 0x86efd0, 9);
-    RH_ScopedCategory(); // TODO: Change this to the appropriate category!
+    RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x648D60);
     RH_ScopedInstall(Destructor, 0x648DE0);

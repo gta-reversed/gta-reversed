@@ -34,7 +34,7 @@ void CTaskSimpleJetPack::InjectHooks() {
     RH_ScopedInstall(RenderJetPack, 0x67F6A0);
 
     RH_ScopedInstall(ProcessAnims, 0x67B5C0);
-    RH_ScopedInstall(DropJetPack, 0x67B660, { .reversed = false }); // Can't hook it, because `CPickups::GenerateNewOne` doesn't work properly
+    RH_ScopedInstall(DropJetPack, 0x67B660, { .Reversed = false }); // Can't hook it, because `CPickups::GenerateNewOne` doesn't work properly
     RH_ScopedInstall(ApplyRollAndPitch, 0x67B720);
     RH_ScopedInstall(DoJetPackEffect, 0x67B7F0);
     RH_ScopedInstall(StopJetPackEffect, 0x67BA10);

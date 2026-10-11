@@ -37,10 +37,10 @@ class CWeaponInfo {
         float AimZ;
         float DuckX;
         float DuckZ;
-        int16 RLoadA;
-        int16 RLoadB;
-        int16 CrouchRLoadA;
-        int16 CrouchRLoadB;
+        uint16 RLoadA;
+        uint16 RLoadB;
+        uint16 CrouchRLoadA;
+        uint16 CrouchRLoadB;
     };
     static inline auto& ms_WeaponAimOffsets = StaticRef<std::array<tAnimAimOffsets, (+ANIM_GROUP_SPRAYCAN + 1) - (+ANIM_GROUP_PYTHON)>>(0xC8A8A8);
 

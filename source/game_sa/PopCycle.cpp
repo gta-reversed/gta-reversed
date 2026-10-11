@@ -16,7 +16,7 @@ void CPopCycle::InjectHooks() {
     RH_ScopedGlobalInstall(Initialise, 0x5BC090);
     RH_ScopedGlobalInstall(PickGangToCreateMembersOf, 0x60F8D0);
     RH_ScopedGlobalInstall(FindNewPedType, 0x60FBD0);
-    RH_ScopedGlobalInstall(PickPedMIToStreamInForCurrentZone, 0x60FFD0, { .reversed = false });
+    RH_ScopedGlobalInstall(PickPedMIToStreamInForCurrentZone, 0x60FFD0, { .Reversed = false });
     RH_ScopedGlobalInstall(IsPedAppropriateForCurrentZone, 0x610150);
     RH_ScopedGlobalInstall(IsPedInGroup, 0x610210);
     RH_ScopedGlobalInstall(PickARandomGroupOfOtherPeds, 0x610420);

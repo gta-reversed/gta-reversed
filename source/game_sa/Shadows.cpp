@@ -17,8 +17,8 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(Init, 0x706CD0);
     RH_ScopedInstall(Shutdown, 0x706ED0);
     RH_ScopedInstall(TidyUpShadows, 0x707770);
-    RH_ScopedInstall(AddPermanentShadow, 0x706F60, { .reversed = false });
-    RH_ScopedInstall(UpdatePermanentShadows, 0x70C950, { .reversed = false });
+    RH_ScopedInstall(AddPermanentShadow, 0x706F60, { .Reversed = false });
+    RH_ScopedInstall(UpdatePermanentShadows, 0x70C950, { .Reversed = false });
     RH_ScopedOverloadedInstall(StoreShadowToBeRendered, "Texture", 0x707390, void(*)(uint8, RwTexture*, const CVector&, float, float, float, float, int16, uint8, uint8, uint8, float, bool, float, CRealTimeShadow*, bool));
     RH_ScopedOverloadedInstall(StoreShadowToBeRendered, "Type", 0x707930, void(*)(uint8, const CVector&, float, float, float, float, int16, uint8, uint8, uint8));
     RH_ScopedInstall(SetRenderModeForShadowType, 0x707460);
@@ -32,19 +32,19 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(UpdateStaticShadows, 0x707F40);
     RH_ScopedInstall(RenderExtraPlayerShadows, 0x707FA0);
     RH_ScopedInstall(RenderStaticShadows, 0x708300);
-    RH_ScopedInstall(CastShadowEntityXY, 0x7086B0, { .reversed = false });
-    RH_ScopedInstall(CastShadowEntityXYZ, 0x70A040, { .reversed = false });
+    RH_ScopedInstall(CastShadowEntityXY, 0x7086B0, { .Reversed = false });
+    RH_ScopedInstall(CastShadowEntityXYZ, 0x70A040, { .Reversed = false });
     RH_ScopedInstall(CastPlayerShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A470);
-    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A630, { .reversed = false });
-    RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A7E0, { .reversed = false });
+    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A630, { .Reversed = false });
+    RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A7E0, { .Reversed = false });
     RH_ScopedInstall(RenderStoredShadows, 0x70A960);
-    RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730, { .reversed = false });
-    RH_ScopedInstall(StoreStaticShadow, 0x70BA00, { .reversed = false });
-    RH_ScopedInstall(StoreShadowForVehicle, 0x70BDA0, { .reversed = false });
+    RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730, { .Reversed = false });
+    RH_ScopedInstall(StoreStaticShadow, 0x70BA00, { .Reversed = false });
+    RH_ScopedInstall(StoreShadowForVehicle, 0x70BDA0, { .Reversed = false });
     RH_ScopedInstall(StoreCarLightShadow, 0x70C500);
     RH_ScopedInstall(StoreShadowForPole, 0x70C750);
     RH_ScopedInstall(RenderIndicatorShadow, 0x70CCB0);
-    RH_ScopedGlobalInstall(ShadowRenderTriangleCB, 0x709CF0, { .reversed = false });
+    RH_ScopedGlobalInstall(ShadowRenderTriangleCB, 0x709CF0, { .Reversed = false });
 }
 
 void CStaticShadow::InjectHooks() {
