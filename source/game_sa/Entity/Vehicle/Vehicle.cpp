@@ -4339,7 +4339,7 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
         return;
     }
 
-    if (m_autoPilot.m_nCarMission == MISSION_CRUISE && (CTimer::m_FrameCounter & 2) != 0) {
+    if (m_autoPilot.m_nCarMission == MISSION_CRUISE && (CTimer::GetFrameCounter() & 2) != 0) {
         return;
     }
 

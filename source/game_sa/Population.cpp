@@ -1752,7 +1752,7 @@ void CPopulation::ManagePopulation() {
     ZoneScoped;
     constexpr auto framePopulation = 32;
     const auto& centre = FindPlayerCentreOfWorld();
-    const uint32 batch = CTimer::m_FrameCounter % framePopulation;
+    const uint32 batch = CTimer::GetFrameCounter() % framePopulation;
     
     {
         ZoneScopedN("Manage Objects");

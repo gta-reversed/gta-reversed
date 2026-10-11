@@ -65,7 +65,7 @@ void CAudioZones::Update(bool forceUpdate, CVector posn) {
     static CVector LastUpdateCoors{};
 
     // TODO: FPS-independent counter
-    if (!forceUpdate && (CTimer::m_FrameCounter % 16) != 6 && DistanceBetweenPoints(posn, LastUpdateCoors) < 20.0f)
+    if (!forceUpdate && (CTimer::GetFrameCounter() % 16) != 6 && DistanceBetweenPoints(posn, LastUpdateCoors) < 20.0f)
         return;
 
     LastUpdateCoors = posn;

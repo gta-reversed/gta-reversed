@@ -2178,7 +2178,7 @@ void CWorld::Process() {
 
     GetEventGlobalGroup()->Flush(false);
 
-    if ((CTimer::m_FrameCounter % 64) == 0) {
+    if ((CTimer::GetFrameCounter() % 64) == 0) {
         CReferences::PruneAllReferencesInWorld();
     }
 
