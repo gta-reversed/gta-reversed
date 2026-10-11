@@ -2062,7 +2062,7 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
         if (m_fDirtLevel <= 1.0f) {
             return;
         }
-        m_fDirtLevel = m_fDirtLevel - CTimer::ms_fTimeStep * 0.01f;
+        m_fDirtLevel = m_fDirtLevel - CTimer::GetTimeStep() * 0.01f;
         return;
     }
 
