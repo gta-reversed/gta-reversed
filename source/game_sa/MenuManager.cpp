@@ -329,7 +329,7 @@ void CMenuManager::InitialiseChangedLanguageSettings(bool reinitControls) {
 
     char mission[8] = {0};
     TheText.GetNameOfLoadedMissionText(mission);
-    TheText.Load(CGame::bMissionPackGame != 0);
+    TheText.Load(CGame::MissionPackGameId != 0);
     if (mission[0]) {
         TheText.LoadMissionText(mission);
     }
@@ -465,12 +465,12 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
     if (m_bMainMenuSwitch) {
         switch (m_nCurrentScreen) {
         case SCREEN_NEW_GAME_ASK:
-            CGame::bMissionPackGame = 0;
+            CGame::MissionPackGameId = 0;
             DoSettingsBeforeStartingAGame();
             m_bDontDrawFrontEnd = true;
             break;
         case SCREEN_MISSION_PACK_LOADING_ASK:
-            CGame::bMissionPackGame = m_nMissionPackGameId;
+            CGame::MissionPackGameId = m_nMissionPackGameId;
             DoSettingsBeforeStartingAGame();
             m_bDontDrawFrontEnd = true;
             break;
@@ -1107,7 +1107,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
 void CMenuManager::SimulateGameLoad(bool newGame, uint32 slot) {
     m_bDontDrawFrontEnd     = newGame;
     m_SelectedSlot          = slot;
-    CGame::bMissionPackGame = false;
+    CGame::MissionPackGameId = 0;
     if (newGame) {
         DoSettingsBeforeStartingAGame();
     } else {

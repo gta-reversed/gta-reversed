@@ -17,7 +17,7 @@ public:
     //! Current number of area
     static inline auto& aDatFile = StaticRef<char[32]>(0xB728EC);
     static inline auto& currLevel = StaticRef<int32>(0xB7290C);
-    static inline auto& bMissionPackGame = StaticRef<uint8>(0xB72910);
+    static inline auto& MissionPackGameId = StaticRef<uint8>(0xB72910);
     static inline auto& currArea = StaticRef<eAreaCodesS32>(0xB72914);
     static inline auto& m_pWorkingMatrix1 = StaticRef<RwMatrix*>(0xB72920);
     static inline auto& m_pWorkingMatrix2 = StaticRef<RwMatrix*>(0xB72924);

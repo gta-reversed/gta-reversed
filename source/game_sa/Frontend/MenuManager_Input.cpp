@@ -1153,9 +1153,9 @@ void CMenuManager::CheckForMenuClosing() {
 bool CMenuManager::CheckMissionPackValidMenu() {
     CFileMgr::SetDirMyDocuments();
 
-    sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+    sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::MissionPackGameId);
     auto scr = CFileMgr::OpenFile(gString, "rb");
-    sprintf_s(gString, "MPACK//MPACK%d//TEXT.GXT", CGame::bMissionPackGame);
+    sprintf_s(gString, "MPACK//MPACK%d//TEXT.GXT", CGame::MissionPackGameId);
     auto gxt = CFileMgr::OpenFile(gString, "rb");
 
     CFileMgr::SetDir("");
@@ -1187,7 +1187,7 @@ bool CMenuManager::CheckMissionPackValidMenu() {
             }
         }
         CTimer::EndUserPause();
-        CGame::bMissionPackGame = false;
+        CGame::MissionPackGameId = 0;
         DoSettingsBeforeStartingAGame();
         m_bActivateMenuNextFrame = false;
 

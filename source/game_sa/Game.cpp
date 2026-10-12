@@ -696,7 +696,7 @@ void CGame::InitialiseWhenRestarting() {
             FrontEndMenuManager.m_bLoadingData = false;
             ReInitGameObjectVariables();
             currLevel = 0;
-            bMissionPackGame = 0;
+            MissionPackGameId = 0;
             CCollision::SortOutCollisionAfterLoad();
         }
     }
