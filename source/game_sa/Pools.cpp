@@ -305,13 +305,9 @@ bool CPools::Save() {
 
 // 0x5D4940
 bool CPools::SaveObjectPool() {
-    const auto ShouldSave = [](const CObject& object) {
-        return object.m_nObjectType == OBJECT_MISSION;
-    };
-
-    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetObjectPool()->GetAllValid(), ShouldSave));
+    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetObjectPool()->GetAllValid(), [](const CObject& object) { return object.m_nObjectType == OBJECT_MISSION; }));
     for (auto& object : GetObjectPool()->GetAllValid()) {
-        if (!ShouldSave(object)) {
+        if (object.m_nObjectType != OBJECT_MISSION) {
             continue;
         }
         CGenericGameStorage::SaveDataToWorkBuffer(GetObjectRef(&object));
@@ -323,13 +319,9 @@ bool CPools::SaveObjectPool() {
 
 // 0x5D4B40
 bool CPools::SavePedPool() {
-    const auto ShouldSave = [](const CPed& ped) {
-        return !ped.bInVehicle && ped.m_nPedType == PED_TYPE_PLAYER1;
-    };
-
-    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetPedPool()->GetAllValid(), ShouldSave));
+    CGenericGameStorage::SaveDataToWorkBuffer((int32)rng::count_if(GetPedPool()->GetAllValid(), [](const CPed& ped) { return !ped.bInVehicle && ped.m_nPedType == PED_TYPE_PLAYER1; }));
     for (auto& ped : GetPedPool()->GetAllValid()) {
-        if (!ShouldSave(ped)) {
+        if (ped.bInVehicle || ped.m_nPedType != PED_TYPE_PLAYER1) {
             continue;
         }
         CGenericGameStorage::SaveDataToWorkBuffer(GetPedRef(&ped));
