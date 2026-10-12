@@ -749,7 +749,11 @@ uint32 CGenericGameStorage::GetCurrentVersionNumber() {
 
 // 0x5D0E90
 void CGenericGameStorage::MakeValidSaveName(int32 slot) {
+    assert(slot < MAX_SAVEGAME_SLOTS);
+
     char path[MAX_PATH]{};
+    // Originally GenerateGameFilename
+    // Check C_PcSave::InjectHooks for the explanation.
     sprintf_s(path, "%s%i", C_PcSave::DefaultPCSaveFileName, slot + 1);
 
     path[257] = 0; // Make sure there's space for the file extension
