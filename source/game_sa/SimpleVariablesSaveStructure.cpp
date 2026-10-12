@@ -24,12 +24,10 @@ void CSimpleVariablesSaveStructure::Construct() {
         gxtSaveName = TheText.Get("ITBEG");
     }
 
-    GxtChar dots[8];
-    AsciiToGxtChar("...", dots);
     TextCopy(m_szSaveName, gxtSaveName);
     uint32 strLen = GxtCharStrlen(m_szSaveName);
     if (strLen > SAVEGAME_MAX_NAME_LEN) {
-        TextCopy(&m_szSaveName[SAVEGAME_MAX_NAME_LEN - 3 - 1], dots);
+        TextCopy(&m_szSaveName[SAVEGAME_MAX_NAME_LEN - 3 - 1], "..."_gxt);
     }
     m_szSaveName[SAVEGAME_MAX_NAME_LEN + 1] = '\0';
 
