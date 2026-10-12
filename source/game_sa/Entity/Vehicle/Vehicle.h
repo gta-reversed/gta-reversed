@@ -130,7 +130,11 @@ enum eRotationAxis : int32 {
     AXIS_Z = 2
 };
 
-typedef int32 eOrdnanceType;
+enum eOrdnanceType : int32 {
+    ORDNANCE_TYPE_NONE      = 0,
+    ORDNANCE_TYPE_PRIMARY   = 1,
+    ORDNANCE_TYPE_SECONDARY = 2,
+};
 
 enum eBikeWheelSpecial : int32 {
     BIKE_WHEEL_F_STD       = 0,
@@ -657,9 +661,9 @@ public:
     void UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHookUp, bool applyDistToSpeed); // NOTSA
     void UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
     void UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
-    CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* entity);
-    void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType ordnanceType, bool arg2);
-    void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
+    CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExistingTarget);
+    void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType ordnanceType, bool useRateLimit);
+    void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool useRateLimit);
     void ProcessSirenAndHorn(bool updateHornCounter);
 
     bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm);

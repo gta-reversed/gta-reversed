@@ -198,9 +198,9 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(AddUpgrade, 0x6DFA20);
     RH_ScopedInstall(UpdateTrailerLink, 0x6DFC50);
     RH_ScopedInstall(UpdateTractorLink, 0x6E0050);
-    // RH_ScopedInstall(ScanAndMarkTargetForHeatSeekingMissile, 0x6E0400);
-    // RH_ScopedInstall(FireHeatSeakingMissile, 0x6E05C0);
-    // RH_ScopedInstall(PossiblyDropFreeFallBombForPlayer, 0x6E07E0);
+    RH_ScopedInstall(ScanAndMarkTargetForHeatSeekingMissile, 0x6E0400);
+    RH_ScopedInstall(FireHeatSeakingMissile, 0x6E05C0);
+    RH_ScopedInstall(PossiblyDropFreeFallBombForPlayer, 0x6E07E0);
     RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
     RH_ScopedInstall(DoHeadLightEffect, 0x6E0A50);
     RH_ScopedInstall(DoHeadLightReflectionSingle, 0x6E1440);
@@ -4997,18 +4997,100 @@ void CVehicle::UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistT
 }
 
 // 0x6E0400
-CEntity* CVehicle::ScanAndMarkTargetForHeatSeekingMissile(CEntity* entity) {
-    return ((CEntity * (__thiscall*)(CVehicle*, CEntity*))0x6E0400)(this, entity);
+CEntity* CVehicle::ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExistingTarget) {
+    /* BUG: LOS timestamps are not properly stashed, for some reason they use == 0 and > 1 checks respectively
+            for last time check and then set, so GetIsLineOfSightClear is called every frame */
+    const auto target = CWeapon::PickTargetForHeatSeekingMissile(GetPosition(), GetForward(), 1.2f, this, true, preferredExistingTarget);
+    const auto lastCheckTime = IsSubPlane() ? AsPlane()->m_LastHSMissileLOSTime : 0u; // ... == 0
+    bool isLOSClear = true;
+    if (target && CTimer::GetTimeInMS() - lastCheckTime > 1000u) {
+        const bool usesCollision = m_bUsesCollision;
+        const bool targetCollision = target->m_bUsesCollision;
+        m_bUsesCollision = false;
+        target->m_bUsesCollision = false;
+
+        isLOSClear = CWorld::GetIsLineOfSightClear(GetPosition(), target->GetPosition(), true, true, false, true, false, true);
+
+        m_bUsesCollision         = usesCollision;
+        target->m_bUsesCollision = targetCollision;
+
+        if (IsSubPlane()) {
+            AsPlane()->m_LastHSMissileLOSTime = CTimer::GetTimeInMS(); // ... > 1
+            AsPlane()->m_LastHSMissileLOS     = isLOSClear;
+        }
+    } else if (IsSubPlane()) {
+        isLOSClear = AsPlane()->m_LastHSMissileLOS;
+    }
+
+    if (!isLOSClear) {
+        CWeaponEffects::ClearCrossHairImmediately(0);
+        return nullptr;
+    }
+
+    if (!target || GetStatus() != STATUS_PLAYER) {
+        CWeaponEffects::ClearCrossHairImmediately(0);
+        return target;
+    }
+
+    CWeaponEffects::MarkTarget(0, target->GetPosition(), 255u, 255u, 255u, 100u, 1.3f, true);
+    return target;
 }
 
 // 0x6E05C0
-void CVehicle::FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType type, bool arg2) {
-    ((void(__thiscall*)(CVehicle*, CEntity*, eOrdnanceType, bool))0x6E05C0)(this, targetEntity, type, arg2);
+void CVehicle::FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType type, bool useRateLimit) {
+    uint32& selOrdnanceTimer = (type == ORDNANCE_TYPE_PRIMARY) ? m_nProjectileWeaponFiringTime : m_nAdditionalProjectileWeaponFiringTime;
+    if (!useRateLimit || CTimer::GetTimeInMS() > selOrdnanceTimer + CVehicle::GetPlaneOrdnanceRateOfFire(type)) {
+        CVector ordnancePos = CVehicle::GetPlaneOrdnancePosition(type);
+        if (m_nOrdnanceCycleIndex) {
+            ordnancePos.x = -ordnancePos.x;
+        }
+        m_nOrdnanceCycleIndex = m_nOrdnanceCycleIndex == 0;
+
+        float dotFwd          = DotProduct(m_vecMoveSpeed, GetForward());
+        if (dotFwd < 0.0f) {
+            dotFwd = 0.0f;
+        }
+
+        CProjectileInfo::AddProjectile(
+            this,
+            eWeaponType::WEAPON_ROCKET_HS,
+            ordnancePos + GetPosition() + dotFwd * GetForward() * CTimer::GetTimeStep(),
+            0.0f,
+            &GetForward(),
+            targetEntity
+        );
+
+        if (m_pDriver && m_pDriver->IsPlayer()) {
+            CPad::GetPad(m_pDriver->GetPadNumber())->StartShake(240, 160u, 0u);
+        }
+        selOrdnanceTimer = CTimer::GetTimeInMS(); 
+    }
 }
 
 // 0x6E07E0
-void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) {
-    ((void(__thiscall*)(CVehicle*, eOrdnanceType, bool))0x6E07E0)(this, type, arg1);
+void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool useRateLimit) {
+    uint32& selOrdnanceTimer = (type == ORDNANCE_TYPE_PRIMARY) ? m_nProjectileWeaponFiringTime : m_nAdditionalProjectileWeaponFiringTime;
+    if (!useRateLimit || CTimer::GetTimeInMS() > selOrdnanceTimer + CVehicle::GetPlaneOrdnanceRateOfFire(type)) {
+        CVector ordnancePos = CVehicle::GetPlaneOrdnancePosition(type);
+        if (m_nOrdnanceCycleIndex) {
+            ordnancePos.x = -ordnancePos.x;
+        }
+        m_nOrdnanceCycleIndex = m_nOrdnanceCycleIndex == 0;
+
+        CProjectileInfo::AddProjectile(
+            this,
+            eWeaponType::WEAPON_FREEFALL_BOMB,
+            ordnancePos + GetPosition(),
+            0.0f,
+            &GetForward(),
+            nullptr
+        );
+
+        if (m_pDriver && m_pDriver->IsPlayer()) {
+            CPad::GetPad(m_pDriver->GetPadNumber())->StartShake(240, 160u, 0u);
+        }
+        selOrdnanceTimer = CTimer::GetTimeInMS(); 
+    }
 }
 
 // 0x6E0950
