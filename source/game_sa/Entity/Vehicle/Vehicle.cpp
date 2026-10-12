@@ -663,8 +663,6 @@ void CVehicle::PreRender() {
 
     const auto fCoeff = CPhysical::GetLightingFromCol(false) * 0.4F;
     GetVehicleModelInfo()->SetEnvMapCoeff(fCoeff);
-
-    DoSunGlare();
 }
 
 // 0x6D0E60
