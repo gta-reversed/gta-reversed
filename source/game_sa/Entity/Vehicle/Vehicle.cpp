@@ -189,7 +189,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(SetComponentRotation, 0x6DBA30);
     RH_ScopedInstall(SetTransmissionRotation, 0x6DBBB0);
     RH_ScopedInstall(DoBoatSplashes, 0x6DD130);
-    // RH_ScopedInstall(DoSunGlare, 0x6DD6F0);
+    RH_ScopedInstall(DoSunGlare, 0x6DD6F0);
     RH_ScopedInstall(AddWaterSplashParticles, 0x6DDF60);
     RH_ScopedInstall(AddExhaustParticles, 0x6DE240);
     // RH_ScopedInstall(AddSingleWheelParticles, 0x6DE880);
@@ -663,6 +663,8 @@ void CVehicle::PreRender() {
 
     const auto fCoeff = CPhysical::GetLightingFromCol(false) * 0.4F;
     GetVehicleModelInfo()->SetEnvMapCoeff(fCoeff);
+
+    DoSunGlare();
 }
 
 // 0x6D0E60
@@ -4649,14 +4651,95 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
 
 // 0x6DD6F0
 void CVehicle::DoSunGlare() {
-    return ((void(__thiscall*)(CVehicle*))0x6DD6F0)(this);
-
-    /*
-    * Below code should be good so far, I'm lazy to finish it, srry.
-    if (physicalFlags.bDestroyed || GetUp().z < 0.f || GetVehicleAppearance() != eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE || CWeather::SunGlare <= 0.f) {
+    if (physicalFlags.bRenderScorched
+        || GetUp().z < 0.0f
+        || GetVehicleAppearance() != eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE
+        || CWeather::SunGlare <= 0.0f) {
         return;
     }
-    */
+
+    // direction to camera, length 2
+    CVector toCam  = TheCamera.GetPosition() - GetPosition();
+    float   dist  = toCam.Magnitude();
+    CVector toCam2 = toCam * (2.0f / dist);
+
+    // sun direction plus camera direction, projected into the car's local XY plane
+    CVector sunCam = toCam2 + CTimeCycle::GetVectorToSun();
+    CVector glareDir = { DotProduct(sunCam, GetRight()), DotProduct(sunCam, GetForward()), 0.0f };
+    glareDir.Normalise();
+
+    // fade, camera must be nearly aligned with the car's forward axis (2D)
+    CVector2D fwd2D = { GetForward().x, GetForward().y };
+    fwd2D.Normalise();
+    CVector2D cam2D = { toCam2.x, toCam2.y };
+    cam2D.Normalise();
+    float alignment = std::abs(DotProduct2D(fwd2D, cam2D));
+
+    float intensity = 0.0f;
+    if (alignment > 0.995f)      intensity = 1.0f;
+    else if (alignment > 0.99f)  intensity = (alignment - 0.99f) * 200.0f;
+    else                         return;
+
+    // fade out when the camera is close
+    if (dist <= 30.0f) {
+        if (dist <= 13.0f) return;
+        intensity *= (dist - 13.0f) / 17.0f;
+    }
+    intensity *= 0.8f * (1.f/3.f) * CWeather::SunGlare;
+
+    uint8 r = static_cast<uint8>((CTimeCycle::GetSunCoreRed() + 510) * intensity);
+    uint8 g = static_cast<uint8>((CTimeCycle::GetSunCoreGreen() + 510) * intensity);
+    uint8 b = static_cast<uint8>((CTimeCycle::GetSunCoreBlue() + 510) * intensity);
+
+    // walk collision triangles in pairs, looking for quads
+    const auto cd = GetColModel()->m_pColData;
+    CCollision::CalculateTrianglePlanes(cd);
+
+    for (uint16 i = 0; i <= cd->m_nNumTriangles - 2; i += 2) {
+        const CColTriangle& t0 = cd->m_pTriangles[i],
+                            t1 = cd->m_pTriangles[i + 1];
+
+        CVector v[4] = { cd->m_pVertices[t0.vA], cd->m_pVertices[t0.vB], cd->m_pVertices[t0.vC], {}};
+        if (v[0].z <= 0.0f) continue; // only checks vertex 0
+
+        // count vertices in t1 that are not in t0 (the 4th vertex of the quad)
+        int extra = 0;
+        for (uint16 idx : { t1.vA, t1.vB, t1.vC }) {
+            if (idx != t0.vA && idx != t0.vB && idx != t0.vC) {
+                v[3] = cd->m_pVertices[idx];
+                extra++;
+            }
+        }
+        if (extra != 1) continue; // not a quad
+
+        CVector center = (v[0] + v[1] + v[2] + v[3]) * 0.25f; // quad center
+        // approximate half-size of the quad
+        float halfSize = std::min(std::abs(center.x - v[0].x), std::abs(center.y - v[0].y)) * 1.4f;
+        if (halfSize <= 0.6f) continue;
+
+        // corona position moved toward the glare direction
+        CVector corPos = GetMatrix() * (center + glareDir * halfSize) + toCam2; // nudge 2 units toward the camera
+        CCoronas::RegisterCorona(
+            reinterpret_cast<uintptr>(this) + i + 27, // id per quad, also offsetof(CVehicle, m_pRwObject) + 3 = 27
+            nullptr,
+            r, g, b,
+            255,
+            corPos,
+            CWeather::SunGlare * 0.9f,
+            90.0f,
+            eCoronaType::CORONATYPE_SHINYSTAR,
+            eCoronaFlareType::FLARETYPE_NONE,
+            eCoronaReflType::CORREFL_NONE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
+            0.0f,
+            false,
+            1.5f,
+            false,
+            15.0f,
+            false,
+            false);
+    }
 }
 
 // 0x6DDF60
