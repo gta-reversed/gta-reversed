@@ -53,7 +53,19 @@ void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGrou
 
 // 0x69A3B0
 void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
-    plugin::CallMethod<0x69A3B0>(this, pedType);
+    m_count = 0;
+
+    // NOTE: The original code iterates the pool backwards (last slot first),
+    // which affects which peds make it into the list if there are more than 30.
+    auto* const pool = GetPedPool();
+    for (auto i = (size_t)pool->GetSize(); i-- > 0;) {
+        CPed* const ped = pool->GetAt(i); // Returns `nullptr` for free slots
+        if (ped && ped->m_nPedType == (ePedType)pedType && m_count < m_peds.size()) {
+            AddMember(ped);
+        }
+    }
+
+    ClearUnused();
 }
 
 // 0x69A450
@@ -63,7 +75,13 @@ void CPedList::RemovePedsAttackingPedType(int32 pedType) {
 
 // 0x69A420
 void CPedList::RemovePedsThatDontListenToPlayer() {
-    plugin::CallMethod<0x69A420>(this);
+    // NOTE: `m_count` is modified inside the loop, so remember the original value
+    for (auto i = 0u, n = m_count; i < n; i++) {
+        if (m_peds[i]->bDoesntListenToPlayerGroupCommands) {
+            RemoveMemberNoFill(i);
+        }
+    }
+    FillUpHoles();
 }
 
 //
