@@ -1,0 +1,38 @@
+name: Hook registration check
+
+# Static checks of the reversible-hook registration rules (docs/HookRegistration.md) on the files a PR changes:
+# InjectHooks() called from InjectHooksMain, no plugin::Call to its own address while installed as reversed,
+# no duplicate addresses, VMT installs need RH_ScopedVirtualClass, private InjectHooks needs the friend, ...
+# Pure Python, no build and no game executable needed (the vtable check is skipped without gta_sa.exe).
+
+on:
+  pull_request:
+    paths:
+      - 'source/**'
+      - '.claude/skills/review-reversal/scripts/check_hooks.py'
+      - '.claude/skills/validate-against-binary/scripts/asm_validate.py'
+      - '.github/workflows/hook-registration.yml'
+
+# Read-only: the job only checks out the code and reads it.
+permissions:
+  contents: read
+
+jobs:
+  check-hooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check hook registration of changed files
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF" --depth=1
+          python .claude/skills/review-reversal/scripts/check_hooks.py --base "origin/$BASE_REF"

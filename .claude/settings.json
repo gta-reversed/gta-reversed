@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python .claude/skills/review-reversal/scripts/check_hooks.py:*)",
+      "Bash(python .claude/skills/review-reversal/scripts/add_missing_hooks.py)",
+      "Bash(python .claude/skills/validate-against-binary/scripts/asm_validate.py:*)",
+      "Bash(python .claude/skills/validate-against-binary/scripts/validate_all.py:*)",
+      "Bash(python .claude/skills/find-reversing-targets/scripts/idb_coverage.py:*)",
+      "Bash(python .claude/skills/find-reversing-targets/scripts/class_dossier.py:*)",
+      "Bash(python .claude/skills/find-reversing-targets/scripts/list_unreversed.py:*)",
+      "Bash(python .claude/skills/find-reversing-targets/scripts/struct_check.py:*)",
+      "Bash(python .claude/skills/find-reversing-targets/scripts/repo_to_idb.py)",
+      "Bash(python .claude/skills/reverse-script-command/scripts/script_cmd.py:*)",
+      "Bash(cmake --build build:*)",
+      "PowerShell(cmake --build build:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/post_edit_check_hooks.py\"",
+            "timeout": 120,
+            "statusMessage": "Checking hook registration"
+          }
+        ]
+      }
+    ]
+  }
+}

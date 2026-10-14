@@ -69,3 +69,7 @@ compile_commands.json
 
 ## TODO: These files can be put into a better place?
 /source/libs/imgui/*
+# Local path of gta_sa.exe used by .claude/skills/validate-against-binary (machine specific)
+.claude/gtasa_exe_path.txt
+# Local caches generated from the IDA database (machine specific, large)
+.claude/cache/

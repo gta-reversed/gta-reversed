@@ -8,6 +8,7 @@
 
 #include <Base.h>
 #include <string>
+#include <numbers>
 #include <initializer_list>
 #include <RenderWare.h>
 #include <GxtChar.h>
@@ -79,41 +80,43 @@ extern RwRGBAReal& AmbientLightColourForFrame;
 
 #define RpGeometryGetMesh(_geometry, _index) (&((RpMesh*)(((char*)(_geometry)->mesh) + sizeof(RpMeshHeader) + ((_geometry)->mesh->firstMeshOffset)))[_index])
 
-constexpr float E               = 2.71828f;          // e
-constexpr float E_CONST         = 0.577f;            // Euler-Mascheroni constant
-constexpr float FRAC_1_TAU      = 0.159154f;         // 1 / τ
-constexpr float FRAC_1_PI       = 0.318309f;         // 1 / π
-constexpr float FRAC_2_TAU      = 0.318309f;         // 2 / τ
-constexpr float FRAC_2_PI       = 0.636619f;         // 2 / π
-constexpr float FRAC_2_SQRT_PI  = 1.12837f;          // 2 / √π
-constexpr float FRAC_4_TAU      = 0.636619f;         // 4 / τ
-constexpr float FRAC_1_SQRT_2   = 0.707106f;         // 1 / √2
-constexpr float FRAC_PI_2       = 1.57079f;          // π / 2
-constexpr float FRAC_PI_3       = 1.04719f;          // π / 3
-constexpr float FRAC_PI_4       = 0.785398f;         // π / 4
-constexpr float FRAC_PI_6       = 0.523598f;         // π / 6
-constexpr float FRAC_PI_8       = 0.392699f;         // π / 8
-constexpr float FRAC_PI_9       = 0.349066f;         // π / 9
-constexpr float FRAC_TAU_2      = 3.14159f;          // τ / 2 = π
-constexpr float FRAC_TAU_3      = 2.09439f;          // τ / 3
-constexpr float FRAC_TAU_4      = 1.57079f;          // τ / 4
-constexpr float FRAC_TAU_6      = 1.04719f;          // τ / 6
-constexpr float FRAC_TAU_8      = 0.785398f;         // τ / 8
-constexpr float FRAC_TAU_12     = 0.523598f;         // τ / 12
-constexpr float LN_2            = 0.693147f;         // ln(2)
-constexpr float LN_10           = 2.30258f;          // ln(10)
-constexpr float LOG2_E          = 1.44269f;          // log2(e)
-constexpr float LOG10_E         = 0.434294f;         // log10(e)
-constexpr float LOG10_2         = 0.301029f;         // log10(2)
-constexpr float LOG2_10         = 3.32192f;          // log2(10)
-constexpr float PI              = 3.14159f;          // π
-constexpr float HALF_PI         = PI / 2.0f;         // π / 2
-constexpr float PI_6            = PI / 6.0f;         // π / 6
-constexpr float SQRT_2          = 1.41421f;          // √2
-constexpr float SQRT_3          = 1.73205f;          // √3
-constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
-constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
-constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
+// Values are the exact floats (what the game's binary loads); the comments keep them searchable.
+// π / 9 and log10(2) are computed in double and then rounded, because doing it in float is 1 ULP off.
+constexpr float E               = std::numbers::e_v<float>;                       // e            = 2.7182817
+constexpr float E_CONST         = std::numbers::egamma_v<float>;                  // Euler-Mascheroni constant = 0.5772157
+constexpr float FRAC_1_TAU      = std::numbers::inv_pi_v<float> / 2.0f;           // 1 / τ        = 0.15915494
+constexpr float FRAC_1_PI       = std::numbers::inv_pi_v<float>;                  // 1 / π        = 0.31830987
+constexpr float FRAC_2_TAU      = std::numbers::inv_pi_v<float>;                  // 2 / τ        = 0.31830987
+constexpr float FRAC_2_PI       = std::numbers::inv_pi_v<float> * 2.0f;           // 2 / π        = 0.63661975
+constexpr float FRAC_2_SQRT_PI  = std::numbers::inv_sqrtpi_v<float> * 2.0f;       // 2 / √π       = 1.1283792
+constexpr float FRAC_4_TAU      = std::numbers::inv_pi_v<float> * 2.0f;           // 4 / τ        = 0.63661975
+constexpr float FRAC_1_SQRT_2   = std::numbers::sqrt2_v<float> / 2.0f;            // 1 / √2       = 0.70710677
+constexpr float FRAC_PI_2       = std::numbers::pi_v<float> / 2.0f;               // π / 2        = 1.5707964
+constexpr float FRAC_PI_3       = std::numbers::pi_v<float> / 3.0f;               // π / 3        = 1.0471976
+constexpr float FRAC_PI_4       = std::numbers::pi_v<float> / 4.0f;               // π / 4        = 0.7853982
+constexpr float FRAC_PI_6       = std::numbers::pi_v<float> / 6.0f;               // π / 6        = 0.5235988
+constexpr float FRAC_PI_8       = std::numbers::pi_v<float> / 8.0f;               // π / 8        = 0.3926991
+constexpr float FRAC_PI_9       = (float)(std::numbers::pi / 9.0);                // π / 9        = 0.34906584
+constexpr float FRAC_TAU_2      = std::numbers::pi_v<float>;                      // τ / 2 = π    = 3.1415927
+constexpr float FRAC_TAU_3      = std::numbers::pi_v<float> * 2.0f / 3.0f;        // τ / 3        = 2.0943952
+constexpr float FRAC_TAU_4      = std::numbers::pi_v<float> / 2.0f;               // τ / 4        = 1.5707964
+constexpr float FRAC_TAU_6      = std::numbers::pi_v<float> / 3.0f;               // τ / 6        = 1.0471976
+constexpr float FRAC_TAU_8      = std::numbers::pi_v<float> / 4.0f;               // τ / 8        = 0.7853982
+constexpr float FRAC_TAU_12     = std::numbers::pi_v<float> / 6.0f;               // τ / 12       = 0.5235988
+constexpr float LN_2            = std::numbers::ln2_v<float>;                     // ln(2)        = 0.6931472
+constexpr float LN_10           = std::numbers::ln10_v<float>;                    // ln(10)       = 2.3025851
+constexpr float LOG2_E          = std::numbers::log2e_v<float>;                   // log2(e)      = 1.442695
+constexpr float LOG10_E         = std::numbers::log10e_v<float>;                  // log10(e)     = 0.4342945
+constexpr float LOG10_2         = (float)(std::numbers::ln2 / std::numbers::ln10); // log10(2)    = 0.30103
+constexpr float LOG2_10         = std::numbers::ln10_v<float> / std::numbers::ln2_v<float>; // log2(10) = 3.321928
+constexpr float PI              = std::numbers::pi_v<float>;                      // π            = 3.1415927
+constexpr float HALF_PI         = PI / 2.0f;                                      // π / 2        = 1.5707964
+constexpr float PI_6            = PI / 6.0f;                                      // π / 6        = 0.5235988
+constexpr float SQRT_2          = std::numbers::sqrt2_v<float>;                   // √2           = 1.4142135
+constexpr float SQRT_3          = std::numbers::sqrt3_v<float>;                   // √3           = 1.7320508
+constexpr float TWO_PI          = std::numbers::pi_v<float> * 2.0f;               // τ (TAU)      = 6.2831855
+constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;                                // τ / 256      = 0.024543693 (Here because the compiler shits itself when this it put into FixedFloat's template)
+constexpr float DEG_TO_RAD      = std::numbers::pi_v<float> / 180.0f;             // π / 180      = 0.017453292
 
 
 constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)

@@ -716,7 +716,7 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
     CalculateWave(3000, 0.0f,        1.f / 20.0f, 0.5f * smallWavesAmplitude);
 
     vecNormal.Normalise();
-    const auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * E_CONST;
+    const auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * 0.577f; // AKA 1/sqrt3 OR E_CONST OR neither (see above)
 
     colorMult = std::max(glareLevel, 0.0f) * 0.65f + 0.27f;
     glare = std::clamp(8.0f * glareLevel - 5.0f, 0.0f, 0.99f) * CWeather::SunGlare;

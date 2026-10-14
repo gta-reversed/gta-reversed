@@ -1,18 +1,19 @@
 # General rules
 * Do not change code already written unless it's related to your contribution or absolutely needed.
-* Please check and try to eliminate warnings from your code.
+* Please check and try to eliminate warnings from your code. (Warnings are errors in the build.)
+* Reversed functions must behave like the original. The rules for that (fidelity, hooks, globals, validation) are in
+  [ReversingRules.md](ReversingRules.md); hook macros are in [HookRegistration.md](HookRegistration.md).
 
 # Code style
-* 4 space indentation, LF line endings
+* 4 space indentation, LF line endings (`.editorconfig`). Format with the repo's `.clang-format`.
 * No hungarian notation [It's useless]:
 ```cpp
 class Foo {
     int32 m_iPlayerHealth; // Bad, bazdmeg!
     int32 m_PlayerHealth; // Good
-}
+};
 ```
-* Variables are named in `camelCase` and types in `PascalCase`.
-* Class/struct members and functions are named in `CamelCase`
+* Variables are named in `camelCase`; types, class/struct members and functions in `PascalCase`.
 * In classes (**not** structs), use `m_` prefix to member variables:
 ```cpp
 class Foo {
@@ -21,7 +22,7 @@ public:
 
 private:
     int m_FooCount; // Non-static member variable
-}
+};
 ```
 * For shared variables outside a class, use `g_` prefix, and define them in the header:
 ```cpp
@@ -38,31 +39,34 @@ static int s_StaticGlobalCounter = 0;
 class Foo {
 public:
     static inline int ms_StaticGlobalCounter = 0; // Static member variable
-}
+};
 ```
-* Static and global variables should reference back to the original game address using `StaticRef` (In cases the original data is const, eg. its some configuration the value can be copied directly instead of referencing it and made `constexpr`):
+* Static and global variables of the original game must reference the original address using `StaticRef` (if the
+  original data is const, eg. some configuration, the value can be copied instead and made `constexpr`). Never guess
+  addresses.
 ```cpp
 class Foo {
 public:
     static inline auto& ms_StaticGlobalCounter = StaticRef<int32>(0xDEADBEEF); // Static member variable
-}
-``` 
-* If a static variable only referenced in one function, define it in the body.
+};
+```
+* If a static variable is only referenced in one function, define it in the body. If the original guards it with an
+  init flag, use `ScopedStaticRef` (see `CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire`).
 ```cpp
 void foo() {
-    static inline auto& s_FooStatic = StaticRef<int32>(0xDEADBEEF);
+    static auto& s_FooStatic = StaticRef<int32>(0xDEADBEEF);
 }
 ```
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.
-* If a helper doesn't fit into any of the existing files, see the `extensions` folder
+* If a helper doesn't fit into any of the existing files, see the `source/extensions` folder (overview: [Architecture.md](Architecture.md) §8)
 * Prefer `get`-ters/`set`-ters over raw member access
 * Use range-based for loops as much as possible:
 ```cpp
 for (auto& element : array) { // Good
     // ...
-} 
+}
 
 for (int i = 0; i < std::size(array); i++) { // Bad
     // ...
@@ -75,7 +79,7 @@ for (int i = 0; i < std::size(array); i++) { // Bad
 ```cpp
 for (auto&& [i, e] : rngv::enumerate(array));
 ```
-* If there's a dynamic `count` variable associated with a fixed size array, use `std::span` or `rng::views::take`. E.g.:
+* If there's a dynamic `count` variable associated with a fixed size array, use `std::span` or `rngv::take`. E.g.:
 ```cpp
 // Bad
 for (auto i = 0u; i < m_numThings; i++);
@@ -83,25 +87,25 @@ for (auto i = 0u; i < m_numThings; i++);
 // Good -- feasible for contiguous buffers.
 for (auto& thing : std::span{ m_things, m_numThings });
 // Good -- applicable for every kind of range (linked lists, maps, etc.)
-for (auto& thing : m_things | rng::views::take(m_numThings));
+for (auto& thing : m_things | rngv::take(m_numThings));
 
 // ^ If these funcs are called more than once, make a helper function in the header. Like below:
 auto GetActiveThings() {
-    return m_things | rng::views::take(m_numThings);
+    return m_things | rngv::take(m_numThings);
 }
 ```
 * Use `f` in float literals [As omitting it would make them a `double`] (e.g. `1.0f`)
 * Use `std` library for generic functions like `min`, `max`, `lerp`, etc...
-* `CVector` is interchangible with 3 floats [As is `CVector2D` with 2 floats] for function args
+* `CVector` is interchangeable with 3 floats [As is `CVector2D` with 2 floats] for function args
 * Use lambdas for repetitive procedures in functions
 * Use `constexpr` variables instead of macros
 * Use `static inline` instead of `extern` and `static` in headers:
 ```cpp
 class Foo {
-    static uint32& m_FooCount; // Bad
+    static uint32& ms_FooCount; // Bad
 
-    static inline auto& m_FooCount = StaticRef<uint32, 0xDEADBEEF>(); // Good
-}
+    static inline auto& ms_FooCount = StaticRef<uint32>(0xDEADBEEF); // Good
+};
 ```
 
 * Prefer `.Cross` over `CrossProduct`
@@ -118,10 +122,9 @@ return GetPosition() + GetDirection();
 ```
 * If possible avoid multiline ifs (eg.: prefer nesting over multiline ifs)
 * `GetPosition()` is inlined in many places, check for it.
-* Prefer `MangitudeSquared()` wherever possible, if it differs from original code, mark it as such (eg.: `// NOTE: Using MagSq here`)
-* Apply correct formatting
+* Prefer `SquaredMagnitude()` wherever possible. If it differs from the original code, mark it as such (eg.: `// NOTE: Using MagSq here`)
 * Prefer using `override` in derived classes over `virtual` when overriding base class `virtual` functions
-* If a distance is Sq, it's var name should reflect it (eg.: prefer `distSq` over `dist`)
+* If a distance is Sq, its var name should reflect it (eg.: prefer `distSq` over `dist`)
 * Prefer making new variables instead of modifying function args
 * Prefer using ternaries instead of defining a variable, and then immediately changing it inside an `if`, eg.:
 ```cpp
@@ -139,7 +142,7 @@ const auto value = condition
 * In long code put memory addresses as comments for easier cross-referencing
 * Prefer using utility methods over accessing other classes' members directly
 * Vectors and scalars are generally assumed to be 3D, if not, make sure to annotate it in the variable name as such:
-```
+```cpp
 // Bad
 const auto dist = GetDistance2D();
 
@@ -158,9 +161,9 @@ const auto dist2D = GetDistance2D();
 
 ### Usage of `auto`
 * Use `auto` in function bodies if the variables' type is guessable.
-* Always use `*` for `auto` (eg.: `auto*` instead of plain `auto`)
+* For pointers always write the `*` (eg.: `auto*` instead of plain `auto`)
 * Prefer using `const auto* const` for pointers, `const auto&` for refs
-* if making a copy with `auto` type out the type instead (to avoid msvc crying):
+* If making a copy with `auto`, type out the type instead (to avoid msvc crying):
 ```cpp
 // Bad
 const auto position = GetPosition();
@@ -182,7 +185,7 @@ const auto dir = GetDistance3D(); // we assume that directions/distances are 3D
 # Fixing bugs
 Whenever you find a bug, we encourage you to fix it [and/or at least] leave a comment explaining what the bug is.
 If you do a bugfix you're required to use `notsa::bugfixes` - this helps documenting and testing these fixes.
-See `reversiblebugfixes/Bugs.hpp` for more info.
+See `source/reversiblebugfixes/Bugs.hpp` and [Architecture.md](Architecture.md) §7.
 
 # Using `assert`
 We encourage the usage of `assert` - if you think something may be out-of-bounds, or otherwise bug-prone, make sure to add an `assert`, it can help debugging the code a lot!
@@ -193,7 +196,7 @@ Do **not** add early returns for possible error conditions, use `assert` instead
 * GXT code page is a partial superset of ASCII, it's surjective (onto) except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
 * GXT encoded characters are 1-byte long and strings are null-terminated. They can be used in `char` typed C copy/compare functions.
 * Do not assume anything other than above for GXT strings.
-* Use `AsciiToGxtChar` and `GxtCharToUTF8` for safely converting. UTF-8 strings should be safe to print and manipulate in general.
+* Use `AsciiToGxtChar` and `GxtCharToUTF8` (`source/game_sa/GxtChar.h`) for safely converting. UTF-8 strings should be safe to print and manipulate in general.
 * Use `AsciiFromGxtChar` (or `""_gxt` for literals) and `GxtCharFromAscii` for implicitly converting. You **must** be sure that all characters are ASCII.
 
 # Contributing

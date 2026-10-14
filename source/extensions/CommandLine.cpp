@@ -5,6 +5,7 @@
 #include <span>
 #include <Utility.h>
 #include <app_debug.h>
+#include <difftests/DiffTest.hpp>
 
 namespace CommandLine {
 bool                          s_UnhookAll{ false };
@@ -16,6 +17,12 @@ fs::path s_DumpHooksPath{};
 
 /* Wait for debugger before continuing */
 bool s_WaitForDebugger{ false };
+
+/* Differential tests (see `source/difftests/DiffTest.hpp`) */
+bool             s_RunDiffTests{ false };
+std::string_view s_DiffTestsFilter{};
+fs::path         s_DiffTestsReportPath{ "difftests.log" };
+bool             s_DiffTestsExit{ false };
 
 /* exe path */
 fs::path s_ExePath{};
@@ -58,6 +65,15 @@ void ProcessArgument(std::string_view arg) {
             }
         }
 #endif
+    } else if (arg == "--run-difftests" || arg.starts_with("--run-difftests=")) {
+        s_RunDiffTests = true;
+        if (const auto eqPos = arg.find('='); eqPos != std::string_view::npos) {
+            s_DiffTestsFilter = arg.substr(eqPos + 1);
+        }
+    } else if (arg.starts_with("--difftests-out=")) {
+        s_DiffTestsReportPath = arg.substr(arg.find('=') + 1);
+    } else if (arg == "--difftests-exit") {
+        s_DiffTestsExit = true;
     } else if (arg.starts_with("--dump-hooks-to=")) {
         if (const auto eqPos = arg.find('='); eqPos != std::string_view::npos) {
             s_DumpHooksPath = arg.substr(eqPos + 1);
@@ -163,8 +179,31 @@ void DumpHooks() {
     }
 }
 
+void RunDiffTests() {
+#ifndef NOTSA_STANDALONE
+    if (!s_RunDiffTests) {
+        return;
+    }
+    // Runs right after the hooks are injected - that is inside `DllMain` (loader lock held), before the game initialised
+    // anything (not even its CRT) - so only self-contained tests make sense here; `NOTSA_DIFFTEST_INGAME` ones are skipped.
+    if (s_DiffTestsExit) {
+        // Unattended run: a failed assert must not open a modal dialog (nobody would press a button) - print and abort instead
+        _set_error_mode(_OUT_TO_STDERR);
+        _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+        _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+    }
+    const auto numFailed = notsa::difftest::RunAll(s_DiffTestsFilter, false, s_DiffTestsReportPath);
+    NOTSA_LOG_INFO("[DiffTest] Report written to {}", fs::absolute(s_DiffTestsReportPath).string());
+    if (s_DiffTestsExit) {
+        // `exit()`/`ExitProcess()` inside `DllMain` may deadlock (they run DLL_PROCESS_DETACH under the loader lock)
+        TerminateProcess(GetCurrentProcess(), numFailed ? 1u : 0u);
+    }
+#endif
+}
+
 void PostHooksInjected() {
     ApplyHookSettings();
     DumpHooks();
+    RunDiffTests();
 }
 }; // namespace CommandLine

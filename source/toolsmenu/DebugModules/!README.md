@@ -1,111 +1,75 @@
-# How to add a new debug module
-- 1. Create a file in this directory (.hpp and .cpp), the name being the name of your module (Ex.: `YourModuleNameDebugModule.cpp`, gotta have the `DebugModule` suffix for now)
-- 2. Write code for the module (See templates below)
-- 3. Go to "DebugModules::CreateModules" and add your module to there
-- 4. Profit
+# DebugModules/ — the F7 debug menu modules
 
-# How to structure code
+Guide: [../../../docs/Architecture.md](../../../docs/Architecture.md) §6 "Debug UI". Modules are NOTSA tools (ImGui),
+not reversed game code.
 
-Header file (.hpp):
+## Layout
+- `DebugModule.h` — `DebugModule` base class. Virtuals: `RenderMenuEntry()` (pure), `RenderWindow()`, `Render3D()`,
+  `Update()` (once per frame, pre-render), `OnImGuiInitialised(ctx)`, plus serialization (`Serialize`, `Deserialize`,
+  `OnDeserialized`, `GetID`). `DebugModuleSingleWindow` is a helper base for a module with one window.
+- `DebugModules.h/.cpp` — `DebugModules`: owns the modules, `CreateModules()` adds them (grouped by menu: Tools,
+  Settings, Visualization, Stats, Extra), drives update/render and saves their state.
+- `../Utility.h` — `notsa::ui` helpers: `ScopedWindow`, `ScopedChild`, `ScopedID`, `ScopedDisable`, `DoNestedMenuIL`.
+- One `XxxDebugModule.h/.hpp` + `.cpp` pair per module; bigger ones have a subfolder (`Audio/`, `Script/`,
+  `HooksDebugModule/`).
+
+## Conventions
+1. Create `YourNameDebugModule.hpp` and `.cpp` here (the CMake glob picks them up; re-run the configure step).
+2. Derive from `DebugModule` in `namespace notsa::debugmodules`, as in the template below.
+3. Add `Add<notsa::debugmodules::YourNameDebugModule>();` in `DebugModules::CreateModules()` under the right menu,
+   and include its header at the top of `DebugModules.cpp`.
+
 ```cpp
+// YourNameDebugModule.hpp
 #pragma once
-
 #include "DebugModule.h"
 
-namespace notsa { 
+namespace notsa {
 namespace debugmodules {
-class Rendering /*No "DebugModule" suffix needed */ final : public DebugModule {
+class YourNameDebugModule final : public DebugModule {
 public:
     void RenderWindow() override;
-    void RenderMenuEntry() override; 
-    void Render3D() override;
-    // There's also `void Update()`, but you'll rarely need that one
+    void RenderMenuEntry() override;
+    void Render3D() override; // Only if you draw in the world (lines, etc.)
 
-private:
-    bool m_IsOpen{};        // Main window's state
-    bool m_ShowClosest{};
-};
-}; // namespace debugmodules
-}; // namespace notsa
-```
-
-Source file (.cpp):
-```cpp
-#include <StdInc.h>
-#include "Rendering.hpp"
-
-namespace notsa { 
-namespace debugmodules {
-
-// If you want to render a window (or more), this is the place to do it!
-void Rendering::RenderWindow() {
-    const ::notsa::ui::ScopedWindow window{ "Rendering", {}, m_IsOpen };
-    if (!m_IsOpen) {
-        return;
-    }
-    // Your window's content here
-}
-
-// Render the menu entry of this module here. This function is called witihn `BeginMainMenu`, so you don't need to call it yourself
-void Rendering::RenderMenuEntry() {
-    notsa::ui::DoNestedMenuIL({ "Visualization", "Rendering" }, [&] { // Visualization -> Rendering 
-        ImGui::Checkbox("Show Closest", &m_ShowClosest);   // Show a checkbox if the "Rendering" sub-menu is open
-    });
-
-    notsa::ui::DoNestedMenuIL({ "Extra" }, [&] { // Extra menu
-        ImGui::MenuItem("Rendering", nullptr, &m_IsOpen); // Toggles the window
-    });
-}
-
-void Rendering::Render3D() {
-    // Render your 3D stuff here (if any)
-}
-}; // namespace debugmodules
-}; // namespace notsa
-```
-
-## Template (To copy for new modules)
-
-Header file (`YourModuleNameDebugModule.hpp`):
-```cpp
-#pragma once
-
-#include "DebugModule.h"
-
-namespace notsa { 
-namespace debugmodules {
-class YourModuleName final : public DebugModule {
-public:
-    void RenderWindow() override;
-    void RenderMenuEntry() override; 
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(YourNameDebugModule, m_IsOpen); // Optional: persists the listed members
 
 private:
     bool m_IsOpen{};
 };
 }; // namespace debugmodules
 }; // namespace notsa
-```
 
-Source file (`YourModuleNameDebugModule.cpp`):
-```cpp
+// YourNameDebugModule.cpp
 #include <StdInc.h>
-#include "YourModuleName.hpp"
+#include "YourNameDebugModule.hpp"
 
-namespace notsa { 
+namespace notsa {
 namespace debugmodules {
-void YourModuleName::RenderWindow() {
-    const ::notsa::ui::ScopedWindow window{ "YourModuleName", {}, m_IsOpen };
+void YourNameDebugModule::RenderWindow() {
+    const ::notsa::ui::ScopedWindow window{ "Your name", {}, m_IsOpen };
     if (!m_IsOpen) {
         return;
     }
-    // Your window's content here
+    // Window content
 }
 
-void YourModuleName::RenderMenuEntry() {
-    notsa::ui::DoNestedMenuIL({ "YourModuleCategory" }, [&] {
-        ImGui::MenuItem("YourModuleName", nullptr, &m_IsOpen);
+void YourNameDebugModule::RenderMenuEntry() { // Called inside the main menu bar; don't begin it yourself
+    notsa::ui::DoNestedMenuIL({ "Extra" }, [&] {
+        ImGui::MenuItem("Your name", nullptr, &m_IsOpen);
     });
+}
+
+void YourNameDebugModule::Render3D() {
 }
 }; // namespace debugmodules
 }; // namespace notsa
 ```
+
+## Pitfalls
+- Draw world-space things only in `Render3D()`; elsewhere they (probably) won't be visible.
+- Serialized state goes to `DebugModules.json` in the working directory (`<game>/scripts/` under the ASI loader) every
+  5 s. Modules without `GetID()` (no serialization macro) are not saved. A corrupt file is backed up and ignored.
+- Keep members listed in `NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION` JSON-serializable (nlohmann).
+- Modules run every frame: don't call game functions with side effects from `Update()` / `Render*()` unless the tool
+  is meant to change the game.

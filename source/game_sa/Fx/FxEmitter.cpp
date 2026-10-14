@@ -243,7 +243,7 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, 
     if (velOverride) {
         particle->m_Velocity = *velOverride;
     } else {
-        auto randomAngle = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
+        auto randomAngle = CGeneral::GetRandomNumberInRange(0.0f, 6.28318f); // NOTE: The original uses this rounded 2π, not `TWO_PI`
         auto minAngle = DegreesToRadians(emissionInfo.m_fAngleMin);
         auto maxAngle = DegreesToRadians(emissionInfo.m_fAngleMax);
 

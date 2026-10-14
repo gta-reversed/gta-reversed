@@ -19,6 +19,7 @@
 #include "CDarkelDebugModule.h"
 #include "HooksDebugModule/HooksDebugModule.h"
 #include "CTeleportDebugModule.h"
+#include "DiffTestsDebugModule.hpp"
 #include "ParticleDebugModule.h"
 #include "PostEffectsDebugModule.h"
 #include "PoolsDebugModule.h"
@@ -92,6 +93,7 @@ void DebugModules::CreateModules() {
     Add<SpawnerDebugModule>();
     Add<MissionDebugModule>();
     Add<CheatDebugModule>();
+    Add<notsa::debugmodules::DiffTestsDebugModule>();
 
     // "Settings" menu
     Add<HooksDebugModule>();
