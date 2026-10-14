@@ -5016,20 +5016,16 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
         case CAR_WEAPON_LOCK_ON_ROCKET: {
             if (m_nOrdnanceCycleIndex++ & 1)
                 ordnancePos.x = -ordnancePos.x;
-            CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa, using full transform not just pos it better
+
+            CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa - using full transform not just pos it better
             if (missle == CAR_WEAPON_LOCK_ON_ROCKET) {
                 projPos += std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
             }
-
             CProjectileInfo::AddProjectile(this, missle == CAR_WEAPON_LOCK_ON_ROCKET ? WEAPON_ROCKET_HS : WEAPON_FREEFALL_BOMB, projPos, 0.0f, &GetForward(), targetEntity);
             break;
         }
-        case CAR_WEAPON_DOUBLE_ROCKET: {
-            if (!notsa::contains({ MODEL_HUNTER, MODEL_HYDRA, MODEL_TORNADO }, GetModelId()))
-                return;
-
+        case CAR_WEAPON_DOUBLE_ROCKET: { // notsa - removed hardcoded model checks here since this type of missle is already hardcoded to them...
             const CVector frameOffset = std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
-
             CWeapon weapon{ WEAPON_RLAUNCHER, 5'000u };
             for (int i : { 0, 1 }) {
                 CVector origin = m_matrix->TransformPoint(ordnancePos) + frameOffset;
@@ -5586,7 +5582,7 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
     case MODEL_RUSTLER:
         if (pad->GetCarGunFired() == 2) {
             isFiring = true;
-        } else if (pad->CarGunJustDown() == 1) {
+        } else if (m_nModelIndex != MODEL_RUSTLER && pad->CarGunJustDown() == 1) { // for freefall bombs remove rustler check
             ordnanceType = ORDNANCE_TYPE_PRIMARY;
         } else {
             isFiring     = false;
@@ -5611,13 +5607,6 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
         ordnanceType = ORDNANCE_TYPE_NONE;
         targetEntity = nullptr;
         break;
-    /*case MODEL_RUSTLER:
-        if (pad->GetCarGunFired() == 2) {
-            isFiring = true;
-        }
-        ordnanceType = ORDNANCE_TYPE_NONE;
-        targetEntity = nullptr;
-        break;*/
     case MODEL_HYDRA:
         ordnanceType = ORDNANCE_TYPE_NONE;
         if (pad->CarGunJustDown() == 1 && CTimer::GetTimeInMS() > m_nGunFiringTime + 2000u) {
