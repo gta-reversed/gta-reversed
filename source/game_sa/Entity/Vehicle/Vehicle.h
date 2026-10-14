@@ -619,10 +619,10 @@ public:
     CVector GetPlaneGunsPosition(int32 gunId);
     uint32 GetPlaneOrdnanceRateOfFire(eOrdnanceType type);
     CVector GetPlaneOrdnancePosition(eOrdnanceType type);
-    void SelectPlaneWeapon(bool bChange, eOrdnanceType type);
+    void SelectPlaneWeapon(bool isFiring, eOrdnanceType type);
     void DoPlaneGunFireFX(CWeapon* weapon, CVector& particlePos, CVector& gunshellPos, int32 particleIndex);
     void FirePlaneGuns();
-    void FireUnguidedMissile(eOrdnanceType type, bool bCheckTime);
+    void FireUnguidedMissile(eOrdnanceType type, bool useRateLimit);
     bool CanBeDriven() const;
     void ReactToVehicleDamage(CPed* ped);
     bool GetVehicleLightsStatus();
@@ -680,7 +680,7 @@ public:
     bool DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, float radius, float damageMult);
     void AddVehicleUpgrade(int32 modelId);
     void SetupUpgradesAfterLoad();
-    void GetPlaneWeaponFiringStatus(bool& status, eOrdnanceType& ordnanceType);
+    CEntity* GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ordnanceType);
     void ProcessWeapons();
     void DoFixedMachineGuns();
     void FireFixedMachineGuns();
