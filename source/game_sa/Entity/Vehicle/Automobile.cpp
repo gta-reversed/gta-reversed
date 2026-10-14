@@ -20,6 +20,8 @@
 #include "VehicleRecording.h"
 #include "EventDanger.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 #include <Tasks/TaskTypes/TaskSimpleGangDriveBy.h>
 
 #include <FireManager.h>
@@ -3743,8 +3745,21 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
                     colAngleMult *= -1;
             }
 
-            m_wMiscComponentAngle += static_cast<uint16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep());
-            m_wMiscComponentAngle = std::clamp<uint16>(m_wMiscComponentAngle, 0, DEFAULT_COLLISION_EXTENDLIMIT);
+            const float angleStep = ((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep();
+            if (notsa::bugfixes::CAutomobile_UpdateMovingCollision_MiscComponentAngleUnderflow) {
+                // The original keeps this delta signed (0x6A16C0) and truncates it to int before clamping.
+                // Wrapping to uint16 first can snap the component to its upper limit.
+                const int32 nextAngle = static_cast<int32>(m_wMiscComponentAngle)
+                    + static_cast<int32>(angleStep);
+                m_wMiscComponentAngle = static_cast<uint16>(std::clamp(
+                    nextAngle,
+                    0,
+                    static_cast<int32>(DEFAULT_COLLISION_EXTENDLIMIT)
+                ));
+            } else {
+                m_wMiscComponentAngle += static_cast<uint16>(angleStep);
+                m_wMiscComponentAngle = std::clamp<uint16>(m_wMiscComponentAngle, 0, DEFAULT_COLLISION_EXTENDLIMIT);
+            }
         }
 
         CMatrix rotMatrix;
