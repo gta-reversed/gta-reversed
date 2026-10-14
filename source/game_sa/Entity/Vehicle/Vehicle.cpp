@@ -2974,29 +2974,7 @@ void CVehicle::FirePlaneGuns() {
 
 // 0x6D5110
 void CVehicle::FireUnguidedMissile(eOrdnanceType type, bool useRateLimit) {
-    auto& selOrdnanceTimer = type == ORDNANCE_TYPE_PRIMARY ? m_nProjectileWeaponFiringTime : m_nAdditionalProjectileWeaponFiringTime;
-    if (!useRateLimit || CTimer::GetTimeInMS() > selOrdnanceTimer + GetPlaneOrdnanceRateOfFire(type)) {
-        if (notsa::contains({ MODEL_HUNTER, MODEL_HYDRA, MODEL_TORNADO }, GetModelId())) {
-            CWeapon weapon{ WEAPON_RLAUNCHER, 5'000 };
-            // This places a point somewhere in front of us, depending on our velocity so missle does not spawn behind
-            const auto FireFrom = [&](CVector& localPos) {
-                const CVector frameOffset = GetForward() * std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * CTimer::GetTimeStep();
-                const CVector origin      = m_matrix->TransformPoint(localPos) + frameOffset;
-                weapon.FireProjectile(this, origin);
-            };
-
-            CVector ordnancePos = GetPlaneOrdnancePosition(type);
-            FireFrom(ordnancePos); // right
-            ordnancePos.x = -ordnancePos.x;
-            FireFrom(ordnancePos); // left
-
-            if (m_pDriver && m_pDriver->IsPlayer()) {
-                CPad::GetPad(m_pDriver->GetPadNumber())->StartShake(240, 160u, 0);
-            }
-
-            selOrdnanceTimer = CTimer::GetTimeInMS();
-        }
-    }
+    FireMissleTypeImpl(nullptr, CAR_WEAPON_DOUBLE_ROCKET, type, useRateLimit);
 }
 
 // 0x6D5400
@@ -5028,56 +5006,57 @@ CEntity* CVehicle::ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExis
     return target;
 }
 
-// 0x6E05C0
-void CVehicle::FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType type, bool useRateLimit) {
+// NOTSA
+void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrdnanceType type, bool useRateLimit) {
     auto& selOrdnanceTimer = (type == ORDNANCE_TYPE_PRIMARY) ? m_nProjectileWeaponFiringTime : m_nAdditionalProjectileWeaponFiringTime;
     if (!useRateLimit || CTimer::GetTimeInMS() > selOrdnanceTimer + CVehicle::GetPlaneOrdnanceRateOfFire(type)) {
         CVector ordnancePos = CVehicle::GetPlaneOrdnancePosition(type);
-        if (m_nOrdnanceCycleIndex) {
-            ordnancePos.x = -ordnancePos.x;
-        }
-        m_nOrdnanceCycleIndex = m_nOrdnanceCycleIndex == 0;
+        switch (missle) {
+        case CAR_WEAPON_FREEFALL_BOMB:
+        case CAR_WEAPON_LOCK_ON_ROCKET: {
+            if (m_nOrdnanceCycleIndex++ & 1)
+                ordnancePos.x = -ordnancePos.x;
+            CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa, using full transform not just pos it better
+            if (missle == CAR_WEAPON_LOCK_ON_ROCKET) {
+                projPos += std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
+            }
 
-        CProjectileInfo::AddProjectile(
-            this,
-            eWeaponType::WEAPON_ROCKET_HS,
-            ordnancePos + GetPosition() + std::max(0.0f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep(),
-            0.0f,
-            &GetForward(),
-            targetEntity
-        );
+            CProjectileInfo::AddProjectile(this, missle == CAR_WEAPON_LOCK_ON_ROCKET ? WEAPON_ROCKET_HS : WEAPON_FREEFALL_BOMB, projPos, 0.0f, &GetForward(), targetEntity);
+            break;
+        }
+        case CAR_WEAPON_DOUBLE_ROCKET: {
+            if (!notsa::contains({ MODEL_HUNTER, MODEL_HYDRA, MODEL_TORNADO }, GetModelId()))
+                return;
+
+            const CVector frameOffset = std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
+
+            CWeapon weapon{ WEAPON_RLAUNCHER, 5'000u };
+            for (int i : { 0, 1 }) {
+                CVector origin = m_matrix->TransformPoint(ordnancePos) + frameOffset;
+                weapon.FireProjectile(this, origin);
+                ordnancePos.x = -ordnancePos.x;
+            }
+            break;
+        }
+        default:
+            return;
+        }
 
         if (m_pDriver && m_pDriver->IsPlayer()) {
             CPad::GetPad(m_pDriver->GetPadNumber())->StartShake(240, 160u, 0u);
         }
-        selOrdnanceTimer = CTimer::GetTimeInMS(); 
+        selOrdnanceTimer = CTimer::GetTimeInMS();
     }
+}
+
+// 0x6E05C0
+void CVehicle::FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType type, bool useRateLimit) {
+    FireMissleTypeImpl(targetEntity, CAR_WEAPON_LOCK_ON_ROCKET, type, useRateLimit);
 }
 
 // 0x6E07E0
 void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool useRateLimit) {
-    auto& selOrdnanceTimer = (type == ORDNANCE_TYPE_PRIMARY) ? m_nProjectileWeaponFiringTime : m_nAdditionalProjectileWeaponFiringTime;
-    if (!useRateLimit || CTimer::GetTimeInMS() > selOrdnanceTimer + CVehicle::GetPlaneOrdnanceRateOfFire(type)) {
-        CVector ordnancePos = CVehicle::GetPlaneOrdnancePosition(type);
-        if (m_nOrdnanceCycleIndex) {
-            ordnancePos.x = -ordnancePos.x;
-        }
-        m_nOrdnanceCycleIndex = m_nOrdnanceCycleIndex == 0;
-
-        CProjectileInfo::AddProjectile(
-            this,
-            eWeaponType::WEAPON_FREEFALL_BOMB,
-            ordnancePos + GetPosition(),
-            0.0f,
-            &GetForward(),
-            nullptr
-        );
-
-        if (m_pDriver && m_pDriver->IsPlayer()) {
-            CPad::GetPad(m_pDriver->GetPadNumber())->StartShake(240, 160u, 0u);
-        }
-        selOrdnanceTimer = CTimer::GetTimeInMS(); 
-    }
+    FireMissleTypeImpl(nullptr, CAR_WEAPON_FREEFALL_BOMB, type, useRateLimit);
 }
 
 // 0x6E0950
@@ -5604,10 +5583,11 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
     switch (m_nModelIndex) {
     case MODEL_HUNTER:
     case MODEL_TORNADO:
+    case MODEL_RUSTLER:
         if (pad->GetCarGunFired() == 2) {
             isFiring = true;
         } else if (pad->CarGunJustDown() == 1) {
-            ordnanceType       = ORDNANCE_TYPE_PRIMARY;
+            ordnanceType = ORDNANCE_TYPE_PRIMARY;
         } else {
             isFiring     = false;
             ordnanceType = ORDNANCE_TYPE_NONE;
@@ -5629,15 +5609,15 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
             isFiring = true;
         }
         ordnanceType = ORDNANCE_TYPE_NONE;
-        targetEntity       = nullptr;
+        targetEntity = nullptr;
         break;
-    case MODEL_RUSTLER:
+    /*case MODEL_RUSTLER:
         if (pad->GetCarGunFired() == 2) {
             isFiring = true;
         }
         ordnanceType = ORDNANCE_TYPE_NONE;
-        targetEntity       = nullptr;
-        break;
+        targetEntity = nullptr;
+        break;*/
     case MODEL_HYDRA:
         ordnanceType = ORDNANCE_TYPE_NONE;
         if (pad->CarGunJustDown() == 1 && CTimer::GetTimeInMS() > m_nGunFiringTime + 2000u) {
@@ -5657,15 +5637,14 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 && IsSubPlane() && AsPlane()->m_FireMissilePressedTime
                 && (targetEntity = CVehicle::ScanAndMarkTargetForHeatSeekingMissile(AsPlane()->m_LastMissileTarget))
                 && targetEntity == AsPlane()->m_LastMissileTarget
-                && CTimer::GetTimeInMS() - AsPlane()->m_FireMissilePressedTime > 1500u)
-            {
+                && CTimer::GetTimeInMS() - AsPlane()->m_FireMissilePressedTime > 1500u) {
                 ordnanceType = ORDNANCE_TYPE_SECONDARY;
                 gCrossHair[0].m_color.Set(255, 0, 0);
                 gCrossHair[0].m_fRotation             = 1.0f;
                 gCrossHair[0].m_nTimeWhenToDeactivate = 0;
             } else {
                 ordnanceType = ORDNANCE_TYPE_PRIMARY;
-                targetEntity       = nullptr;
+                targetEntity = nullptr;
             }
         } else if (pad->GetEnterTargeting()) {
             AsPlane()->m_FireMissilePressedTime = CTimer::GetTimeInMS();
@@ -5688,17 +5667,17 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 gCrossHair[0].m_fRotation = 1.0f;
             }
             AsPlane()->m_LastMissileTarget = markedTarget;
-            targetEntity                         = nullptr;
+            targetEntity                   = nullptr;
         } else {
             AsPlane()->m_FireMissilePressedTime = 0u;
             AsPlane()->m_LastMissileTarget      = nullptr;
-            targetEntity                              = nullptr;
+            targetEntity                        = nullptr;
         }
         break;
     default:
         isFiring     = false;
         ordnanceType = ORDNANCE_TYPE_NONE;
-        targetEntity       = nullptr;
+        targetEntity = nullptr;
         break;
     }
     return targetEntity;
@@ -5768,7 +5747,7 @@ void CVehicle::ProcessWeapons() {
         if (IsSubHeli() || IsSubPlane()) {
             auto gunParticlesFx = IsSubHeli() ? AsHeli()->m_ppGunflashFx : AsPlane()->m_pGunParticles;
             if (gunParticlesFx) {
-                for (int32 i = 0, numGuns = CVehicle::GetPlaneNumGuns(); i < numGuns; ++i) {
+                for (int32 i = CVehicle::GetPlaneNumGuns() - 1; i >= 0; --i) { // reversed order
                     if (gunParticlesFx[i]) {
                         gunParticlesFx[i]->SetMatrix(GetModellingMatrix()); // inlined
                     }

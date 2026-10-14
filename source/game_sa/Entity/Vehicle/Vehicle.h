@@ -662,8 +662,9 @@ public:
     void UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
     void UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
     CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExistingTarget);
-    void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType ordnanceType, bool useRateLimit);
-    void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool useRateLimit);
+    void FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrdnanceType type, bool useRateLimit); // NOTSA
+    void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType type, bool useRateLimit);
+    void PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool useRateLimit);
     void ProcessSirenAndHorn(bool updateHornCounter);
 
     bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm);
