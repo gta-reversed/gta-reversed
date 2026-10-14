@@ -1712,11 +1712,11 @@ void CEventHandler::ComputePedThreatResponse(CEventAcquaintancePedHate* e, CTask
             return new CTaskComplexCarDriveMissionFleeScene{m_Ped->m_pVehicle};
         }
         case TASK_SIMPLE_GUN_CTRL: // 0x4C2123
-            return new CTaskSimpleGunControl{ 
+            return new CTaskSimpleGunControl{
                 e->m_AcquaintancePed,
                 {},
                 {},
-                eGunCommand::NONE,
+                eGunControlMode::AIM,
                 1,
                 10'000
             };

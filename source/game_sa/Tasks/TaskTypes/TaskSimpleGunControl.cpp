@@ -22,7 +22,7 @@ void CTaskSimpleGunControl::InjectHooks() {
 // they just 0 inited it otherwise, thus we can just default init the args
 // instead of passing nullptr, and it's going to be the same effect.
 // so, tldr, instead of `nullptr` for the CVector&'s pass in `{}`
-CTaskSimpleGunControl::CTaskSimpleGunControl(CEntity* targetEntity, CVector const& targetPos, CVector const& moveTarget, eGunCommand firingTask, int16 burstAmmoCnt, int32 leisureDurMs) :
+CTaskSimpleGunControl::CTaskSimpleGunControl(CEntity* targetEntity, CVector const& targetPos, CVector const& moveTarget, eGunControlMode firingTask, int16 burstAmmoCnt, int32 leisureDurMs) :
     m_targetPos{targetPos},
     m_moveTarget{moveTarget},
     m_targetEntity{targetEntity},
@@ -90,8 +90,8 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     }
 
     switch (m_firingTask) {
-    case eGunCommand::END_LEISURE:
-    case eGunCommand::END_NOW:
+    case eGunControlMode::END_LEISURE:
+    case eGunControlMode::END_NOW:
         break;
 
     default: {
@@ -165,18 +165,18 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
         }
 
         switch (m_firingTask) {
-        case NONE:
+        case eGunControlMode::AIM:
             return { AIM, false };
-        case AIM: {
+        case eGunControlMode::FIRE: {
             if (!m_nextAtkTimeMs) {
                 return { FIREBURST, false };
             }
             return { AIM, true };
         }
-        case FIRE:
+        case eGunControlMode::FIRE_WITH_LEISURE:
             return { m_nextAtkTimeMs ? AIM : FIREBURST, false }; // Inverted ternary
 
-        case FIREBURST: {
+        case eGunControlMode::FIREBURST: {
             if (CTimer::GetTimeInMS() < m_nextAtkTimeMs) {
                 if (m_nextAtkTimeMs == (uint32)-1) { // 0x625600
                     if (useGunTask && (eGunCommand)useGunTask->m_LastCmd != FIREBURST) {
@@ -202,16 +202,16 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
 
             return { FIREBURST, false };
         }
-        case RELOAD: {
+        case eGunControlMode::RELOAD: {
             if (!useGunTask || (eGunCommand)useGunTask->m_LastCmd != RELOAD) {
                 return { FIREBURST, false };
             }
-            m_firingTask = END_LEISURE;
+            m_firingTask = eGunControlMode::END_LEISURE;
             return { END_LEISURE, false };
         }
-        case PISTOLWHIP:
+        case eGunControlMode::PISTOLWHIP:
             return { FIREBURST, false };
-        case END_LEISURE:
+        case eGunControlMode::END_LEISURE:
             return { END_LEISURE, true };
         default:
             NOTSA_UNREACHABLE();
@@ -225,7 +225,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
     if (dontCheckLeisureDur || !m_leisureDurMs) { // 0x625681
         using enum eGunCommand;
 
-            if (useGunTask && (m_firingTask != END_LEISURE || !useGunTask->m_IsFinished)) {
+            if (useGunTask && (m_firingTask != eGunControlMode::END_LEISURE || !useGunTask->m_IsFinished)) {
                 if (useGunTask->m_HasFiredGun) {
                     switch ((eGunCommand)useGunTask->m_LastCmd) {
                     case FIRE:
@@ -246,7 +246,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
         }
 
         if (!m_leisureDurMs && useGunTask) {
-            m_firingTask = END_LEISURE;
+            m_firingTask = eGunControlMode::END_LEISURE;
             useGunTask->ControlGun(ped, m_targetEntity, END_LEISURE);
         }
     }

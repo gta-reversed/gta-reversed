@@ -56,7 +56,7 @@ CTask* CTaskComplexExtinguishFires::CreateNextSubTask(CPed* ped) {
         }
 
         if (ped->GetActiveWeapon().m_Type == WEAPON_EXTINGUISHER) { // Inverted
-            return new CTaskSimpleGunControl{ nullptr, nearestFireNow->GetPosition(), {}, eGunCommand::PISTOLWHIP, 1, -1 };
+            return new CTaskSimpleGunControl{ nullptr, nearestFireNow->GetPosition(), {}, eGunControlMode::PISTOLWHIP, 1, -1 };
         } else {
             return new CTaskSimpleStandStill{ 2000 };
         }

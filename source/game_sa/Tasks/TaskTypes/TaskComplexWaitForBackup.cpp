@@ -46,7 +46,7 @@ CTaskComplexWaitForBackup::~CTaskComplexWaitForBackup() {
 CTask* CTaskComplexWaitForBackup::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_SIMPLE_GUN_CTRL:
-        return new CTaskSimpleGunControl{ m_aggressor, {}, {}, eGunCommand::AIM, 100, 2000 };
+        return new CTaskSimpleGunControl{ m_aggressor, {}, {}, eGunControlMode::FIRE, 100, 2'000 };
     case TASK_SIMPLE_ACHIEVE_HEADING: {
         ped->m_fAimingRotation = (m_aggressor->GetPosition() - ped->GetPosition()).Heading();
         return new CTaskSimpleAchieveHeading{ ped->m_fAimingRotation, 0.5f, 0.2f };
