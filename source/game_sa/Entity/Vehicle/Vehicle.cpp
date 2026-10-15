@@ -5574,8 +5574,11 @@ void CVehicle::SetupUpgradesAfterLoad() {
 
 // 0x6E3440
 CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ordnanceType) {
-    const auto pad = CPad::GetPad(CWorld::FindPlayerSlotWithVehiclePointer(this));
-    CEntity*   targetEntity{};
+    const auto pad          = CPad::GetPad(CWorld::FindPlayerSlotWithVehiclePointer(this));
+    CEntity*   targetEntity = nullptr;
+    isFiring                = false;
+    ordnanceType            = ORDNANCE_TYPE_NONE;
+
     switch (m_nModelIndex) {
     case MODEL_HUNTER:
     case MODEL_TORNADO:
@@ -5584,31 +5587,21 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
             isFiring = true;
         } else if (m_nModelIndex != MODEL_RUSTLER && pad->CarGunJustDown() == 1) { // for freefall bombs remove rustler check
             ordnanceType = ORDNANCE_TYPE_PRIMARY;
-        } else {
-            isFiring     = false;
-            ordnanceType = ORDNANCE_TYPE_NONE;
         }
-        targetEntity = nullptr;
         break;
     case MODEL_SEASPAR:
     case MODEL_RCBARON:
     case MODEL_MAVERICK:
     case MODEL_POLMAV:
     case MODEL_CARGOBOB:
-        if (pad->GetCarGunFired() == 2) {
-            isFiring = true;
-        }
-        if (GetModelIndex() == MODEL_RCBARON
+        if ((pad->GetCarGunFired() == 2) || (GetModelIndex() == MODEL_RCBARON
             && CVehicle::bDisableRemoteDetonation
             && CCamera::m_bUseMouse3rdPerson
-            && pad->GetCarGunFired() == 1) {
+            && pad->GetCarGunFired() == 1)) {
             isFiring = true;
         }
-        ordnanceType = ORDNANCE_TYPE_NONE;
-        targetEntity = nullptr;
         break;
     case MODEL_HYDRA:
-        ordnanceType = ORDNANCE_TYPE_NONE;
         if (pad->CarGunJustDown() == 1 && CTimer::GetTimeInMS() > m_nGunFiringTime + 2000u) {
             CProjectileInfo::AddProjectile(
                 this,
@@ -5618,12 +5611,14 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 &GetForward(),
                 nullptr
             );
-
             m_nGunFiringTime = CTimer::GetTimeInMS();
         }
+
+        if (!IsSubPlane()) return nullptr;
+
         if (pad->CarGunJustDown() == 2) {
             if (CWeaponEffects::IsLockedOn(0)
-                && IsSubPlane() && AsPlane()->m_FireMissilePressedTime
+                && AsPlane()->m_FireMissilePressedTime
                 && (targetEntity = CVehicle::ScanAndMarkTargetForHeatSeekingMissile(AsPlane()->m_LastMissileTarget))
                 && targetEntity == AsPlane()->m_LastMissileTarget
                 && CTimer::GetTimeInMS() - AsPlane()->m_FireMissilePressedTime > 1500u) {
@@ -5633,12 +5628,10 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 gCrossHair[0].m_nTimeWhenToDeactivate = 0;
             } else {
                 ordnanceType = ORDNANCE_TYPE_PRIMARY;
-                targetEntity = nullptr;
             }
         } else if (pad->GetEnterTargeting()) {
             AsPlane()->m_FireMissilePressedTime = CTimer::GetTimeInMS();
             AsPlane()->m_LastMissileTarget      = nullptr;
-            targetEntity                        = nullptr;
         } else if (pad->GetTarget()) {
             if (!AsPlane()->m_FireMissilePressedTime) {
                 AsPlane()->m_FireMissilePressedTime = CTimer::GetTimeInMS();
@@ -5656,17 +5649,12 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 gCrossHair[0].m_fRotation = 1.0f;
             }
             AsPlane()->m_LastMissileTarget = markedTarget;
-            targetEntity                   = nullptr;
         } else {
             AsPlane()->m_FireMissilePressedTime = 0u;
             AsPlane()->m_LastMissileTarget      = nullptr;
-            targetEntity                        = nullptr;
         }
         break;
     default:
-        isFiring     = false;
-        ordnanceType = ORDNANCE_TYPE_NONE;
-        targetEntity = nullptr;
         break;
     }
     return targetEntity;
