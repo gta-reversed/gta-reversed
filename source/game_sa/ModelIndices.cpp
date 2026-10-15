@@ -521,7 +521,7 @@ void MatchAllModelStrings() {
     };
 
     for (auto& model : models)
-        CModelInfo::GetModelInfoUInt16(model.name, &model.index.m_Value);
+        CModelInfo::GetModelInfoUInt16(model.name, &model.index.get_underlying_ref());
 }
 
 // 0x5B6160
