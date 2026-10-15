@@ -94,7 +94,7 @@ constexpr float PI             = std::numbers::pi_v<float>;                // π
 constexpr float HALF_PI        = PI / 2.0f;                                // π / 2
 constexpr float PI_6           = PI / 6.0f;                                // π / 6
 constexpr float TWO_PI         = 2.0f * PI;                                // τ (TAU) = 2π
-constexpr float FRAC_1_TAU     = 1.0f / (2.0f * PI);                       // 1 / τ
+constexpr float FRAC_1_TAU     = 1.0f / TWO_PI;                            // 1 / τ
 constexpr float FRAC_1_PI      = std::numbers::inv_pi_v<float>;            // 1 / π
 constexpr float FRAC_2_TAU     = FRAC_1_PI;                                // 2 / τ
 constexpr float FRAC_2_PI      = 2.0f * FRAC_1_PI;                         // 2 / π
