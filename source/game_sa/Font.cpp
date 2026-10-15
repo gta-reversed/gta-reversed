@@ -11,6 +11,13 @@
 #include "TheScripts.h"
 #include "eLanguage.h"
 
+// TODO: move
+template<size_t Alignment, typename T>
+    requires(std::is_pointer_v<T> && std::has_single_bit(Alignment))
+constexpr uintptr_t AlignUp(T ptr) {
+    return reinterpret_cast<uintptr_t>(ptr) + Alignment & (Alignment - 1);
+}
+
 class RenderFontBuffer {
 public:
     // Render font buffer is laid in memory like this:
@@ -23,16 +30,18 @@ public:
         if (*static_cast<const GxtChar*>(p) != '\0') {
             NOTSA_UNREACHABLE("expected null terminator to calculate the next fontchar");
         }
-        const auto next = ((uintptr)p + 4) & ~3; // align to 4 bytes
-        return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[next - (uintptr)m_UnderlyingBuffer.data()]);
+        return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[AlignUp<4>(p) - (uintptr)m_UnderlyingBuffer.data()]);
     }
+
 private:
     std::array<std::byte, 512> m_UnderlyingBuffer{}; // Not an array of CFontChars, refer to RenderFontBuffer
 };
-auto& s_RenderFontBuffer = StaticRef<RenderFontBuffer>(0xC716B0);
-auto& s_RenderEndPtr = StaticRef<void*>(0xC716A8); // Points to the end of queued font renders at s_RenderFontBuffer
 
-auto& gFontData = StaticRef<std::array<tFontData, 2>>(0xC718B0);
+auto& s_RenderFontBuffer = StaticRef<RenderFontBuffer>(0xC716B0);
+// Points to the end of queued font renders at s_RenderFontBuffer, uintptr_t because void* comparisons are yucky.
+auto& s_RenderEndPtr     = StaticRef<uintptr_t>(0xC716A8);
+
+auto& gFontData          = StaticRef<std::array<tFontData, 2>>(0xC718B0);
 
 // 0x7187C0
 void CFont::LoadFontValues() {
@@ -50,7 +59,7 @@ void CFont::LoadFontValues() {
             continue;
         }
 
-        const auto attr = std::string_view{attrib};
+        const auto attr = std::string_view{ attrib };
         if (attr == "[TOTAL_FONTS]") {
             auto nextLine = CFileLoader::LoadLine(file);
 
@@ -162,8 +171,8 @@ void CFont::PrintChar(float x, float y, char character) {
         zeroed = true;
     }
 
-    const auto u1     = (letter % 16) / 16.0f;
-    const auto vBase  = (letter / 16);
+    const auto u1    = (letter % 16) / 16.0f;
+    const auto vBase = (letter / 16);
 
     if (RenderState.m_wFontTexture >= +eFontTextureName::FONT_UNK_2) {
         NOTSA_LOG_ERR("weird texture {}, for print char {}", RenderState.m_wFontTexture, character);
@@ -373,7 +382,6 @@ const GxtChar* CFont::ParseToken(const GxtChar* text, CRGBA& color, bool isBlip,
     return next + (*next ? 1 : 2);
 }
 
-
 // Text scaling depends on current language
 // 0x7193A0
 void CFont::SetScaleForCurrentLanguage(float w, float h) {
@@ -410,7 +418,7 @@ void CFont::SetFontStyle(eFontStyle style) {
         break;
     case eFontStyle::FONT_SUBTITLES:
     case eFontStyle::FONT_PRICEDOWN:
-        m_Details.FontTextureName = eFontTextureName::FONT1;
+        m_Details.FontTextureName  = eFontTextureName::FONT1;
         m_Details.FontTextureStyle = (style == eFontStyle::FONT_PRICEDOWN) ? eFontTextureStyle::PRICEDOWN : eFontTextureStyle::SUBTITLES_AND_GOTHIC;
         break;
     default:
@@ -439,14 +447,14 @@ void CFont::InitPerFrame() {
     m_bNewLine                 = false;
     PS2Symbol                  = EXSYMBOL_NONE;
     RenderState.m_wFontTexture = +eFontTextureName::FONT2; // TODO
-    s_RenderEndPtr             = s_RenderFontBuffer.GetTop();
+    s_RenderEndPtr             = reinterpret_cast<uintptr_t>(s_RenderFontBuffer.GetTop());
     CSprite::InitSpriteBuffer();
 }
 
 // Draw text we have in buffer
 // 0x719840
 void CFont::RenderFontBuffer() {
-    if (s_RenderFontBuffer.GetTop() == s_RenderEndPtr) {
+    if (reinterpret_cast<uintptr_t>(s_RenderFontBuffer.GetTop()) == s_RenderEndPtr) {
         // nothing to render
         return;
     }
@@ -456,23 +464,23 @@ void CFont::RenderFontBuffer() {
 
     RenderState.Set(s_RenderFontBuffer.GetTop());
 
-    CRGBA col = RenderState.m_color;
-    float x   = RenderState.m_vPosn.x;
-    float y   = RenderState.m_vPosn.y;
+    CRGBA col           = RenderState.m_color;
+    float x             = RenderState.m_vPosn.x;
+    float y             = RenderState.m_vPosn.y;
 
     const auto* textPtr = s_RenderFontBuffer.GetTop()->GetText();
-    while (textPtr < s_RenderEndPtr) {
+    while (reinterpret_cast<uintptr_t>(textPtr) < s_RenderEndPtr) {
         if (*textPtr == '\0') {
             CFontChar* nextState = s_RenderFontBuffer.FindNext(textPtr);
 
-            if (nextState >= s_RenderEndPtr) {
+            if (reinterpret_cast<uintptr_t>(nextState) >= s_RenderEndPtr) {
                 break;
             }
 
             RenderState.Set(nextState);
-            y   = RenderState.m_vPosn.y;
-            x   = RenderState.m_vPosn.x;
-            col = RenderState.m_color;
+            y       = RenderState.m_vPosn.y;
+            x       = RenderState.m_vPosn.x;
+            col     = RenderState.m_color;
 
             textPtr = nextState->GetText();
             continue;
@@ -489,7 +497,7 @@ void CFont::RenderFontBuffer() {
 
         // ASCII offset usually starts at space (32)
         uint8 letter = *textPtr - 32;
-        auto charID = letter;
+        auto  charID = letter;
         if (RenderState.m_nFontStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
             charID = FindSubFontCharacter(letter, RenderState.m_nFontStyle);
             letter = charID;
@@ -539,7 +547,7 @@ void CFont::RenderFontBuffer() {
     CSprite2d::RenderVertexBuffer();
 
     // reset for the next frame
-    s_RenderEndPtr = s_RenderFontBuffer.GetTop();
+    s_RenderEndPtr = reinterpret_cast<uintptr_t>(s_RenderFontBuffer.GetTop());
 }
 
 // 0x71A0E0
@@ -609,7 +617,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
     const GxtChar* lineStart{};         // points to the first char to be printed at the new line
     int16          spaceCount{};        // for font justifing
 
-    GxtChar        savedTagBuffer[256]{};
+    GxtChar    savedTagBuffer[256]{};
     const auto ResetForNextLine = [&]() {
         width             = (m_Details.Centre || m_Details.RightJustify) ? 0.0f : x;
         processedWidth    = 0.0f;
@@ -630,7 +638,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
             text = ParseToken(text, outColor, true, &tag);
         }
 
-        const auto wrapLimit = m_Details.Centre ? m_Details.CentreX : (m_Details.RightJustify ? x - m_Details.RightJustifyWrap : m_Details.WrapEnd);
+        const auto wrapLimit  = m_Details.Centre ? m_Details.CentreX : (m_Details.RightJustify ? x - m_Details.RightJustifyWrap : m_Details.WrapEnd);
 
         const auto totalWidth = stringWidth + width;
         if ((totalWidth <= wrapLimit || isFirstWordInLine) && !m_bNewLine) {
@@ -755,7 +763,7 @@ void CFont::PrintString(float x, float y, const GxtChar* text) {
 
 // 0x719B40
 void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap) {
-   auto savedColor = m_Details.Color;
+    auto savedColor = m_Details.Color;
 
     if (RenderState.m_wFontTexture != +m_Details.FontTextureName) {
         // flush if texture's changed
@@ -766,8 +774,8 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     // Handle outline
     if (!m_Details.DropAmount) {
         if (m_Details.EdgeAmount) {
-            m_Details.Color                 = m_Details.DropColor;
-            m_Details.Shadow           = true;
+            m_Details.Color         = m_Details.DropColor;
+            m_Details.Shadow        = true;
             const auto savedOutline = std::exchange(m_Details.EdgeAmount, 0);
             const auto offsetX = SCREEN_STRETCH_X(savedOutline), offsetY = SCREEN_STRETCH_Y(savedOutline);
 
@@ -785,16 +793,16 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
             PrintString(x, y + offsetY, start, end, wrap);
             PrintString(x, y - offsetY, start, end, wrap);
 
-            m_Details.Color.r          = savedColor.r;
-            m_Details.Color.g          = savedColor.g;
-            m_Details.Color.b          = savedColor.b;
+            m_Details.Color.r    = savedColor.r;
+            m_Details.Color.g    = savedColor.g;
+            m_Details.Color.b    = savedColor.b;
             m_Details.EdgeAmount = savedOutline;
-            m_Details.Shadow      = false;
+            m_Details.Shadow     = false;
         }
     } else {
         // Handle shadow
-        m_Details.Color                = m_Details.DropColor;
-        m_Details.Shadow          = true;
+        m_Details.Color        = m_Details.DropColor;
+        m_Details.Shadow       = true;
         const auto savedShadow = std::exchange(m_Details.DropAmount, 0);
         const auto offsetX = SCREEN_STRETCH_X(savedShadow), offsetY = SCREEN_STRETCH_Y(savedShadow);
 
@@ -805,14 +813,15 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
 
         PrintString(x + offsetX, y + offsetY, start, end, wrap);
 
-        m_Details.Color.r     = savedColor.r;
-        m_Details.Color.g     = savedColor.g;
-        m_Details.Color.b     = savedColor.b;
+        m_Details.Color.r    = savedColor.r;
+        m_Details.Color.g    = savedColor.g;
+        m_Details.Color.b    = savedColor.b;
         m_Details.DropAmount = savedShadow;
-        m_Details.Shadow = false;
+        m_Details.Shadow     = false;
     }
 
-    if (s_RenderEndPtr >= (uint8*)&s_RenderFontBuffer + 460 - (end - start)) {
+    static constexpr auto RENDER_BUFFER_LAST_POSSIBLE_ENTRY_OFFSET = sizeof(s_RenderFontBuffer) - sizeof(CFontChar) - 4;
+    if (s_RenderEndPtr >= reinterpret_cast<uintptr_t>(&s_RenderFontBuffer) + RENDER_BUFFER_LAST_POSSIBLE_ENTRY_OFFSET - (end - start)) {
         // if it's not gonna fit we gotta flush
         RenderFontBuffer();
     }
@@ -859,8 +868,8 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     *renderEnd = '\0';
 
     // align to 4 bytes
-    auto* alignPtr = renderEnd + 1;
-    while (((uintptr)alignPtr & 3) != 0) {
+    auto alignPtr = reinterpret_cast<uintptr_t>(renderEnd + 1);
+    while (alignPtr & 3) {
         alignPtr++;
     }
     s_RenderEndPtr = alignPtr;
@@ -976,10 +985,10 @@ float GetLetterIdPropValue(uint8 letterId) {
 
 // 0x719670, original name unknown
 float GetScriptLetterSize(uint8 letterId) {
-    letterId = (letterId != '?') ? letterId : 0;
-    const auto i = CTheScripts::NumberOfIntroTextLinesThisFrame;
+    letterId               = (letterId != '?') ? letterId : 0;
+    const auto i           = CTheScripts::NumberOfIntroTextLinesThisFrame;
 
-    const auto style = CTheScripts::IntroTextLines[i].FontStyle;
+    const auto style       = CTheScripts::IntroTextLines[i].FontStyle;
     const auto subFontChar = [letterId, style] {
         switch (style) {
         case FONT_MENU:
@@ -1047,5 +1056,5 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
     RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0, {.Reversed = false}); // hangs up the game for some reason
     RH_ScopedGlobalInstall(GetScriptLetterSize, 0x719670);
-    RH_ScopedGlobalOverloadedInstall(GetLetterIdPropValue, "", 0x718770, float(*)(uint8));
+    RH_ScopedGlobalOverloadedInstall(GetLetterIdPropValue, "", 0x718770, float (*)(uint8));
 }
