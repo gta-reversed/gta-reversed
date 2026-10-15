@@ -2,7 +2,7 @@
 \#*
 .#*
 *~
-.*.swp
+.*swp
 /CMakeLists.txt.user
 /cmake-build-debug
 
