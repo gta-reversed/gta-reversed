@@ -1,5 +1,4 @@
-include(../../conan/profiles/windows-msvc.txt)
-
+include(windows-msvc.txt)
 [options]
 # Disable libusb in SDL3 — it uses MSBuild (.vcxproj) which we don't have
 sdl/*:libusb=False
@@ -8,6 +7,6 @@ sdl/*:libusb=False
 tools.cmake.cmaketoolchain:generator=Ninja
 tools.cmake.cmaketoolchain:user_toolchain=["/opt/msvc/toolchain-msvc-wine.cmake"]
 tools.build:compiler_executables={"c": "/opt/msvc/bin/x86/cl", "cpp": "/opt/msvc/bin/x86/cl"}
-tools.cmake.cmaketoolchain:extra_variables={
-    "GTASA_NO_EDIT_AND_CONTINUE": "ON"
-}
+
+# TODO: msvc-wine tweaking when non-unity building
+tools.cmake.cmaketoolchain:extra_variables={"GTASA_NO_EDIT_AND_CONTINUE": "ON", "GTASA_UNITY_BUILD": "ON"}

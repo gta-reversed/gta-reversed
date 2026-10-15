@@ -10437,7 +10437,7 @@
   {
     "Category": "CCamera",
     "Name": "TakeControlAttachToEntity",
-    "IsReversed": true
+    "IsReversed": false
   },
   {
     "Category": "CCamera",

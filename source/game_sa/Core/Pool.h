@@ -138,7 +138,7 @@ public:
                 std::destroy_at(&v);
             }
         }
-        for (auto i = 0; i < m_Capacity; i++) {
+        for (auto i = 0u; i < m_Capacity; i++) {
             m_SlotState[i].IsEmpty = true;
         }
         DoFill(DEADLAND_FILL);
@@ -381,8 +381,8 @@ protected:
     }
 
     int32 FindFreeSlot() const {
-        const auto last = m_LastFreeSlot != -1 ? m_LastFreeSlot : 0;
-        const auto cap  = m_Capacity;
+        const size_t last = m_LastFreeSlot != -1 ? m_LastFreeSlot : 0;
+        const size_t cap  = m_Capacity;
 
         // Try [last, cap)
         for (auto i = last; i < cap; i++) {
@@ -392,7 +392,7 @@ protected:
         }
 
         // Try [0, last)
-        for (auto i = 0; i < last; i++) {
+        for (auto i = 0u; i < last; i++) {
             if (m_SlotState[i].IsEmpty) {
                 return i;
             }
