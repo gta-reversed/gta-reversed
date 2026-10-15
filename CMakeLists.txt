@@ -1,22 +1,23 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+cmake_minimum_required(VERSION 4.2.0 FATAL_ERROR)
 
 if (MSVC AND NOT CMAKE_GENERATOR MATCHES "Ninja")
     set(CMAKE_GENERATOR_PLATFORM Win32)
 endif()
+
+
+project(GTASA C CXX)
+set(RE_PROJECT GTASA)
+set(RE_PROJECT_LIB_NAME gta_reversed)
+set(RE_PROJECT_APP_NAME gta_reversed_app)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (MSVC_TOOLSET_VERSION)
     message("-- MSVC_TOOLSET_VERSION: ${MSVC_TOOLSET_VERSION}")
 endif()
-
-project(GTASA C CXX)
-set(RE_PROJECT GTASA)
-set(RE_PROJECT_LIB_NAME gta_reversed)
-set(RE_PROJECT_APP_NAME gta_reversed_app)
 
 option(${RE_PROJECT}_NO_EDIT_AND_CONTINUE "Disable Edit&Continue" OFF)
 
@@ -35,7 +36,6 @@ if (MSVC)
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-include(Documentation)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)

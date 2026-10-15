@@ -2,7 +2,7 @@
 
 #include "TaskComplexBeInCouple.h"
 #include "TaskComplexWanderStandard.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 // TODO: Inject Hooks
 

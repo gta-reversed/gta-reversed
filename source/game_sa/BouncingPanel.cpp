@@ -59,16 +59,16 @@ void CBouncingPanel::ProcessPanel(CVehicle* vehicle, RwFrame* frame, CVector mov
             ? fReturnMultiplier
             : m_nAxis == 2 ? BOUNCE_HANGING_RETURN_MULT : BOUNCE_SPRING_RETURN_MULT;
 
-        m_vecPos -= rtnMult * m_vecRotation * CTimer::ms_fTimeStep;
+        m_vecPos -= rtnMult * m_vecRotation * CTimer::GetTimeStep();
     }
     {
         const float dampMult = areMultsSet
             ? fDampMultiplier
             : m_nAxis == 2 ? BOUNCE_HANGING_DAMP_MULT : BOUNCE_SPRING_DAMP_MULT;
 
-        m_vecPos *= pow(dampMult, CTimer::ms_fTimeStep);
+        m_vecPos *= pow(dampMult, CTimer::GetTimeStep());
     }
-    m_vecRotation += m_vecPos * CTimer::ms_fTimeStep;
+    m_vecRotation += m_vecPos * CTimer::GetTimeStep();
 
     switch (m_nAxis) {
     case 0: {

@@ -90,12 +90,9 @@ void CPlaceable::SetHeading(float heading) {
 }
 
 float CPlaceable::GetHeading() const {
-    if (!m_matrix) {
-        return m_placement.m_fHeading;
-    }
-
-    const auto& fwd = m_matrix->GetForward();
-    return std::atan2(-fwd.x, fwd.y);
+    return m_matrix
+        ? m_matrix->GetForward().Heading()
+        : m_placement.m_fHeading;
 }
 
 // 0x420B30

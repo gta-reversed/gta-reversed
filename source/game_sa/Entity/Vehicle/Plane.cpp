@@ -19,7 +19,7 @@ void CPlane::InjectHooks() {
     RH_ScopedInstall(InitPlaneGenerationAndRemoval, 0x6CAD90);
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C9140);
     RH_ScopedVMTInstall(BurstTyre, 0x6C9150);
-    RH_ScopedVMTInstall(PreRender, 0x6C94A0, { .reversed = false });
+    RH_ScopedVMTInstall(PreRender, 0x6C94A0, { .Reversed = false });
     RH_ScopedVMTInstall(Render, 0x6CAB70);
     RH_ScopedInstall(IsAlreadyFlying, 0x6CAB90);
     RH_ScopedVMTInstall(Fix, 0x6CABB0);
@@ -27,17 +27,17 @@ void CPlane::InjectHooks() {
     RH_ScopedInstall(SetGearUp, 0x6CAC20);
     RH_ScopedInstall(SetGearDown, 0x6CAC70);
     RH_ScopedVMTInstall(OpenDoor, 0x6CACB0);
-    RH_ScopedVMTInstall(ProcessControl, 0x6C9260, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControlInputs, 0x6CADD0, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessFlyingCarStuff, 0x6CB7C0, { .reversed = false });
-    RH_ScopedVMTInstall(VehicleDamage, 0x6CC4B0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessControl, 0x6C9260, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessControlInputs, 0x6CADD0, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessFlyingCarStuff, 0x6CB7C0, { .Reversed = false });
+    RH_ScopedVMTInstall(VehicleDamage, 0x6CC4B0, { .Reversed = false });
     RH_ScopedInstall(CountPlanesAndHelis, 0x6CCA50);
     RH_ScopedInstall(AreWeInNoPlaneZone, 0x6CCAA0);
     RH_ScopedInstall(AreWeInNoBigPlaneZone, 0x6CCBB0);
-    RH_ScopedInstall(SwitchAmbientPlanes, 0x6CCC50, { .reversed = false });
-    RH_ScopedVMTInstall(BlowUpCar, 0x6CCCF0, { .reversed = false });
-    RH_ScopedInstall(FindPlaneCreationCoors, 0x6CD090, { .reversed = false });
-    RH_ScopedInstall(DoPlaneGenerationAndRemoval, 0x6CD2F0, { .reversed = false });
+    RH_ScopedInstall(SwitchAmbientPlanes, 0x6CCC50, { .Reversed = false });
+    RH_ScopedVMTInstall(BlowUpCar, 0x6CCCF0, { .Reversed = false });
+    RH_ScopedInstall(FindPlaneCreationCoors, 0x6CD090, { .Reversed = false });
+    RH_ScopedInstall(DoPlaneGenerationAndRemoval, 0x6CD2F0, { .Reversed = false });
 }
 
 // 0x6C8E20
@@ -51,8 +51,8 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     m_fAccelerationBreakStatusPrev = 1.0f;
     m_fPropSpeed                   = 0.0f;
     field_9C8                      = 0.0f;
-    m_fLandingGearStatus           = 0.0f;
-    field_9A0                      = 0;
+    m_LandingGearAngle             = 0.0f;
+    m_StallCounter                 = 0;
     m_planeCreationHeading         = 0.0f;
     m_planeHeading                 = 0.0f;
     m_planeHeadingPrev             = 0.0f;
@@ -290,7 +290,7 @@ void CPlane::IsAlreadyFlying() {
 
 // 0x6CAC20
 void CPlane::SetGearUp() {
-    m_fLandingGearStatus = 1.0f;
+    m_LandingGearAngle = 1.0f;
     m_fAirResistance = m_pHandlingData->m_fDragMult / 1000.0f / 2.0f * m_pFlyingHandlingData->m_fGearUpR;
     m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT,  WHEEL_STATUS_MISSING);
     m_damageManager.SetWheelStatus(CAR_WHEEL_REAR_LEFT,   WHEEL_STATUS_MISSING);
@@ -300,7 +300,7 @@ void CPlane::SetGearUp() {
 
 // 0x6CAC70
 void CPlane::SetGearDown() {
-    m_fLandingGearStatus = 0.0f;
+    m_LandingGearAngle = 0.0f;
     m_fAirResistance = m_pHandlingData->m_fDragMult / 1000.0f / 2.0f;
     m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT,  WHEEL_STATUS_OK);
     m_damageManager.SetWheelStatus(CAR_WHEEL_REAR_LEFT,   WHEEL_STATUS_OK);
@@ -399,9 +399,9 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(field_9A0);
-    if (field_9A0) {
-        field_9A0 = 0;
+    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(m_StallCounter);
+    if (m_StallCounter) {
+        m_StallCounter = 0;
     }
 
     CVehicle::ProcessWeapons();

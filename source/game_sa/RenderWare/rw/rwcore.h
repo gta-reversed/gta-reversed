@@ -3632,12 +3632,12 @@ RwD3D9SetStreamSource(RwUInt32 streamNumber,
 
 #ifdef _D3D9_H_
 
-static inline auto& _RwD3DDevice                     = *(LPDIRECT3DDEVICE9*)(0xC97C28);
-static inline auto& _rwD3D9LastFVFUsed               = *(RwUInt32*)(0x8E2440);
-static inline auto& _rwD3D9LastVertexDeclarationUsed = *(void**)(0x8E2444);
-static inline auto& _rwD3D9LastVertexShaderUsed      = *(void**)(0x8E2448);
-static inline auto& _rwD3D9LastPixelShaderUsed       = *(void**)(0x8E244C);
-static inline auto& _rwD3D9LastIndexBufferUsed       = *(void**)(0x8E2450);
+static inline auto& _RwD3DDevice                     = StaticRef<LPDIRECT3DDEVICE9>(0xC97C28);
+static inline auto& _rwD3D9LastFVFUsed               = StaticRef<RwUInt32>(0x8E2440);
+static inline auto& _rwD3D9LastVertexDeclarationUsed = StaticRef<void*>(0x8E2444);
+static inline auto& _rwD3D9LastVertexShaderUsed      = StaticRef<void*>(0x8E2448);
+static inline auto& _rwD3D9LastPixelShaderUsed       = StaticRef<void*>(0x8E244C);
+static inline auto& _rwD3D9LastIndexBufferUsed       = StaticRef<void*>(0x8E2450);
 
 //extern LPDIRECT3DDEVICE9    _RwD3DDevice;
 //

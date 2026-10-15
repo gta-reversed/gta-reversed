@@ -1,5 +1,7 @@
 #include <StdInc.h>
 
+#include <string.h>
+
 #include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 #include <functional>
@@ -214,10 +216,14 @@ bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
     return a == b;
 }
 
-template<size_t N>
+template<size_t MaxNumToCopy>
 void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
     assert(dst.Cap >= src.Cap);
-    strncpy(dst.Data, src.Data, N);
+    assert(dst.Cap >= MaxNumToCopy);
+    assert(dst.Cap > src.Length && "Destination buffer must be bigger than source length to accomodate null terminator");
+
+    memset(dst.Data, 0, dst.Cap); // Original code always padded the destination buffer with 0s
+    strncpy(dst.Data, src.Data, std::min<size_t>(MaxNumToCopy, src.Length)); // Copy as much as we can, the rest remains padded with 0s
 }
 };
 

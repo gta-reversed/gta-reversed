@@ -27,7 +27,6 @@
 #include "Base.h"
 #include "config.h"
 
-#include "HookSystem.h"
 #include "reversiblehooks/ReversibleHooks.h"
 
 #include <extensions/Casting.hpp>

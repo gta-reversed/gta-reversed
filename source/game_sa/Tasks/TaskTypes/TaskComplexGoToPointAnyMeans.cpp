@@ -9,10 +9,10 @@ void CTaskComplexGoToPointAnyMeans::InjectHooks() {
     RH_ScopedOverloadedInstall(Constructor, "1", 0x66B720, CTaskComplexGoToPointAnyMeans*(CTaskComplexGoToPointAnyMeans::*)(int32, CVector const&, float, int32));
     RH_ScopedOverloadedInstall(Constructor, "2", 0x66B790, CTaskComplexGoToPointAnyMeans*(CTaskComplexGoToPointAnyMeans::*)(int32, CVector const&, CVehicle*, float, int32));
     RH_ScopedInstall(Destructor, 0x66B830);
-    RH_ScopedInstall(CreateSubTask, 0x6705D0, { .reversed = false });
-    RH_ScopedInstall(CreateNextSubTask, 0x6728A0, { .reversed = false });
-    RH_ScopedInstall(CreateFirstSubTask, 0x6729C0, { .reversed = false });
-    RH_ScopedInstall(ControlSubTask, 0x672A50, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x6705D0, { .Reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x6728A0, { .Reversed = false });
+    RH_ScopedInstall(CreateFirstSubTask, 0x6729C0, { .Reversed = false });
+    RH_ScopedInstall(ControlSubTask, 0x672A50, { .Reversed = false });
 }
 
 // 0x66B720

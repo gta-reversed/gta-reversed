@@ -1041,11 +1041,11 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(ProcessStringToDisplay, 0x71A600);
     RH_ScopedInstall(GetTextRect, 0x71A620);
     RH_ScopedOverloadedInstall(PrintString, "null-terminated", 0x71A700, void(*)(float, float, const GxtChar*));
-    RH_ScopedOverloadedInstall(PrintString, "ranged", 0x719B40, void(*)(float, float, const GxtChar*, const GxtChar*, float), {.reversed = true});
+    RH_ScopedOverloadedInstall(PrintString, "ranged", 0x719B40, void(*)(float, float, const GxtChar*, const GxtChar*, float));
     RH_ScopedInstall(PrintStringFromBottom, 0x71A820);
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
-    RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0, {.reversed = false}); // hangs up the game for some reason
+    RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0, {.Reversed = false}); // hangs up the game for some reason
     RH_ScopedGlobalInstall(GetScriptLetterSize, 0x719670);
     RH_ScopedGlobalOverloadedInstall(GetLetterIdPropValue, "", 0x718770, float(*)(uint8));
 }

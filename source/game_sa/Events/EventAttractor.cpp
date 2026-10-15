@@ -2,7 +2,7 @@
 
 #include "EventAttractor.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CEventAttractor::InjectHooks()
 {

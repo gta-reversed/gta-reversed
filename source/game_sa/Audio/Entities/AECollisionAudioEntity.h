@@ -76,7 +76,7 @@ public:
     void Service();
 
     // notsa
-    bool CanAddNewSound() const { return m_NumActiveCollisionSounds <= m_CollisionSoundList.size(); }
+    bool CanAddNewSound() const { return std::cmp_less_equal(m_NumActiveCollisionSounds, m_CollisionSoundList.size()); }
 
 protected:
     eSoundID ChooseCollisionSoundID(eSurfaceType surface);

@@ -3,12 +3,14 @@
 #include "3dMarker.h"
 #include "3dMarkers.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 void C3dMarker::InjectHooks() {
     RH_ScopedClass(C3dMarker);
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(AddMarker, 0x722230);
-    RH_ScopedInstall(DeleteMarkerObject, 0x722390);
+    RH_ScopedInstall(DeleteMarkerObject, 0x722390, { .Locked = true }); // The original leaves the matrix attached to the destroyed frame (#1514)
     RH_ScopedInstall(IsZCoordinateUpToDate, 0x7226A0);
     RH_ScopedInstall(Render, 0x7223D0);
     RH_ScopedInstall(SetZCoordinateIfNotUpToDate, 0x724E10);
@@ -77,6 +79,9 @@ void C3dMarker::DeleteMarkerObject() {
     // Destroy RW object
     const auto frame = RpAtomicGetFrame(m_Atomic);
     RpAtomicDestroy(m_Atomic);
+    if (notsa::bugfixes::GenericCrashing) {
+        m_Mat.Detach(); // FIX(#1514): Otherwise `C3dMarkers::Init` writes into the destroyed frame's matrix
+    }
     RwFrameDestroy(frame);
     m_Atomic = nullptr;
 }

@@ -369,6 +369,7 @@ RwBool CVisibilityPlugins::FrustumSphereCB(RpClump* clump) {
 
 // The function name is misleading, it returns the flags
 // 0x732370
+// Returns flags, see `eAtomicComponentFlag`
 int32 CVisibilityPlugins::GetAtomicId(RpAtomic* atomic) {
     return ATOMICPLG_FLAGS(atomic);
 }
@@ -478,7 +479,7 @@ int32 CVisibilityPlugins::GetModelInfoIndex(RpAtomic* atomic) {
 }
 
 // 0x7323A0
-uint16 CVisibilityPlugins::GetUserValue(RpAtomic* atomic) {
+uint16 CVisibilityPlugins::GetUserValue(const RpAtomic* atomic) {
     return ATOMICPLG_FLAGS(atomic);
 }
 

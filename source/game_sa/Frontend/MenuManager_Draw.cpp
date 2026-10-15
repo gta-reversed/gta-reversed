@@ -277,7 +277,7 @@ void CMenuManager::DrawBackground() {
         const auto right = DEFAULT_SCREEN_WIDTH / 2 + 50;
         const auto height = DEFAULT_SCREEN_WIDTH / 2 - DEFAULT_SCREEN_HEIGHT / 6;
 
-        if ((CTimer::m_FrameCounter & 4) != 0) {
+        if ((CTimer::GetFrameCounter() & 4) != 0) {
             progressPos -= progressDir;
             progressDir = (progressPos >= right) ? 1 : (progressPos <= left) ? -1 : progressDir;
         }

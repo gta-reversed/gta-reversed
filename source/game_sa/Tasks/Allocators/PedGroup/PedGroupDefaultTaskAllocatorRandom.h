@@ -18,7 +18,7 @@ public:
         RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocatorRandom, 0x86C77C, 2);
         RH_ScopedCategory("Tasks/Allocators/PedGroup");
 
-        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6E90, { .reversed = false });
+        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6E90, { .Reversed = false });
         RH_ScopedVMTInstall(GetType, 0x5F6530);
     }
 };

@@ -1,5 +1,5 @@
 #include "StdInc.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskSimpleRunAnim.h"
 #include "TaskComplexStareAtPed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
