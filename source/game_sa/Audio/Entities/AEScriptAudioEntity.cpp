@@ -223,13 +223,8 @@ void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
                 | (duck ? SOUND_IS_DUCKABLE | SOUND_IS_COMPRESSABLE | SOUND_SMOOTH_DUCKING : 0u) });
     };
 
-    if (wav.m_pEntity) {
-        Play(wav.m_pEntity->GetPosition(), false);
-    } else if (wav.m_vPosition == AUDIOPOS_SENTINEL || wav.m_vPosition.IsZero()) {
-        Play({ 0.0f, 1.0f, 0.0f }, true);
-    } else {
-        Play(wav.m_vPosition, false);
-    }
+    const auto* pos = GetMissionAudioPosition(sampleId);
+    Play(pos ? *pos : CVector{0.0f, 1.0f, 0.0f}, !pos);
 }
 
 // 0x4EC190

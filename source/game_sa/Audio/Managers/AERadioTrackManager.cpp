@@ -529,16 +529,7 @@ void CAERadioTrackManager::StartTrackPlayback() {
     AEAudioHardware.SetChannelFlags(
         m_HwClientHandle,
         0,
-        tAudioChannelFlags{
-            .bIsSecondary   = true,
-            .bUnduckable    = true,
-            .bClampVolToNeg = true,
-            .unk0x8         = false,
-            .bIsMusic       = true,
-            .bIsNotStream   = true,
-            .bFadeNearEnd   = false,
-            .bSlowFadeout   = false,
-        }
+        eAudioChannelFlags(FLAG_SECONDARY_GROUP | FLAG_UNDUCKABLE | FLAG_CLAMP_VOL_TO_NEG | FLAG_IS_MUSIC | FLAG_IS_NOT_STREAM)
     );
     AEAudioHardware.StartTrackPlayback();
     UpdateRadioVolumes();

@@ -3767,105 +3767,88 @@ void CAEVehicleAudioEntity::ProcessGenericJet(bool engineOn, tVehicleParams& par
         return;
     }
 
-    float volFrontBase{}, volMaxThrust{}, volRearBase{}, distantJetVolume{};
-    switch (params.Vehicle->m_nModelIndex) {
-    case MODEL_SHAMAL:
-        volMaxThrust     = 0.0f; // TODO: 0xB6B9F4, i read zero all the time so left there. not sure though
-        volRearBase      = 8.0f;
-        distantJetVolume = VOLUME_SILENCE;
-        volFrontBase     = 8.0f;
-        break;
-    case MODEL_HYDRA:
-        volMaxThrust     = 0.0f; // TODO: 0xB6B9F8, i read zero all the time so left there. not sure though
-        volRearBase      = 8.0f;
-        distantJetVolume = VOLUME_SILENCE;
-        volFrontBase     = 8.0f;
-        break;
-    case MODEL_AT400:
-        volMaxThrust     = 6.0f;
-        volRearBase      = 20.0f;
-        distantJetVolume = -8.0f;
-        volFrontBase     = 20.0f;
-        break;
-    case MODEL_ANDROM:
-        volMaxThrust     = 0.0f; // TODO: 0xB6B9FC, i read zero all the time so left there. not sure though
-        volRearBase      = 8.0f;
-        distantJetVolume = -12.0f;
-        volFrontBase     = 8.0f;
-        break;
-    default:
-        CancelAllVehicleEngineSounds();
-        return;
-    }
-
     if (!engineOn) {
         CancelAllVehicleEngineSounds();
         return;
     }
 
-    const auto camToEntityDir       = (m_Entity->GetPosition() - TheCamera.GetPosition()).Normalized();
-    const auto camToEntityDirFwdDot = camToEntityDir.Dot(params.Vehicle->GetForward());
+    const auto ProcessSoundWithParams = [&](
+        float volMaxThrust,
+        float volRearBase,
+        float distantJetVolume,
+        float volFrontBase
+    ) {
+        const auto camToEntityDir       = (m_Entity->GetPosition() - TheCamera.GetPosition()).Normalized();
+        const auto camToEntityDirFwdDot = camToEntityDir.Dot(params.Vehicle->GetForward());
 
-    // + 0.1 when accelerating, - 0.5 when breaking
-    float throttlePitchMod = accelRatio > 0.0f ? 0.1f : 0.0f;
-    if (brakeRatio > 0.0f)
-        throttlePitchMod -= 0.05f;
+        // + 0.1 when accelerating, - 0.5 when breaking
+        float throttlePitchMod = accelRatio > 0.0f ? 0.1f : 0.0f;
+        if (brakeRatio > 0.0f)
+            throttlePitchMod -= 0.05f;
 
-    // Pans between front and rear according to the where camera looks at.
-    const auto camPan = (camToEntityDirFwdDot + 1.0f) * 0.5f;
+        // Pans between front and rear according to the where camera looks at.
+        const auto camPan = (camToEntityDirFwdDot + 1.0f) * 0.5f;
 
-    const auto volumeFront = CAEAudioUtility::AudioLog10((1.0f - 0.67f * camPan) * engineSpeed) * 20.0f + volFrontBase;
-    const auto volumeRear  = CAEAudioUtility::AudioLog10((camPan * 0.5f + 0.5f) * engineSpeed) * 20.0f + volRearBase;
+        const auto volumeFront = CAEAudioUtility::AudioLog10((1.0f - 0.67f * camPan) * engineSpeed) * 20.0f + volFrontBase;
+        const auto volumeRear  = CAEAudioUtility::AudioLog10((camPan * 0.5f + 0.5f) * engineSpeed) * 20.0f + volRearBase;
 
-    m_CurrentDummyEngineVolume = accelRatio <= 0.0f ? m_CurrentDummyEngineVolume - 1 : volMaxThrust;
+        m_CurrentDummyEngineVolume = accelRatio <= 0.0f ? m_CurrentDummyEngineVolume - 1 : volMaxThrust;
 
-    const auto vehRightZ = params.Vehicle->GetRight().z;
-    const auto vehFwdZ   = params.Vehicle->GetForward().z;
+        const auto vehRightZ = params.Vehicle->GetRight().z;
+        const auto vehFwdZ   = params.Vehicle->GetForward().z;
 
-    const auto thrustVolume = CAEAudioUtility::AudioLog10(engineSpeed) * 20.0f + m_CurrentDummyEngineVolume;
-    const auto targetFreq = (std::abs(vehRightZ) * 0.1f - vehFwdZ * 0.15f + throttlePitchMod + 1.0f) * stalledFrequency;
+        const auto thrustVolume = CAEAudioUtility::AudioLog10(engineSpeed) * 20.0f + m_CurrentDummyEngineVolume;
+        const auto targetFreq = (std::abs(vehRightZ) * 0.1f - vehFwdZ * 0.15f + throttlePitchMod + 1.0f) * stalledFrequency;
 
-    if (m_CurrentRotorFrequency < 0.0f) {
-        m_CurrentRotorFrequency = targetFreq;
+        if (m_CurrentRotorFrequency < 0.0f) {
+            m_CurrentRotorFrequency = targetFreq;
+        }
+
+        constexpr float FreqStep = 1.0f / 187.5f;
+        if (targetFreq > m_CurrentRotorFrequency + FreqStep) {
+            m_CurrentRotorFrequency += FreqStep;
+        } else if (targetFreq < m_CurrentRotorFrequency - FreqStep) {
+            m_CurrentRotorFrequency -= FreqStep;
+        } else {
+            m_CurrentRotorFrequency = targetFreq;
+        }
+
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_FRONT,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_HARRIER_FRONT,
+            volumeFront,
+            m_CurrentRotorFrequency
+        );
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_REAR,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_HARRIER_REAR,
+            volumeRear,
+            m_CurrentRotorFrequency
+        );
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_THRUST,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_THRUST,
+            thrustVolume + stalledVolume,
+            1.0f
+        );
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_JET_DISTANT,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_JET_DIST,
+            distantJetVolume,
+            1.0f
+        );
+    };
+    switch (params.Vehicle->m_nModelIndex) {
+        case MODEL_SHAMAL: ProcessSoundWithParams(0.0f, 8.0f, VOLUME_SILENCE, 8.0f); break; // TODO: 0xB6B9F4, i read zero all the time so left there. not sure though
+        case MODEL_HYDRA:  ProcessSoundWithParams(0.0f, 8.0f, VOLUME_SILENCE, 8.0f); break; // TODO: 0xB6B9F8, i read zero all the time so left there. not sure though
+        case MODEL_AT400:  ProcessSoundWithParams(6.0f, 20.0f, -8.0f, 20.0);         break;
+        case MODEL_ANDROM: ProcessSoundWithParams(0.0f, 8.0f, -12.0f, 8.0f);         break; // TODO: 0xB6B9FC, i read zero all the time so left there. not sure though
+        default:           CancelAllVehicleEngineSounds();                           break;
     }
-
-    constexpr float FreqStep = 1.0f / 187.5f;
-    if (targetFreq > m_CurrentRotorFrequency + FreqStep) {
-        m_CurrentRotorFrequency += FreqStep;
-    } else if (targetFreq < m_CurrentRotorFrequency - FreqStep) {
-        m_CurrentRotorFrequency -= FreqStep;
-    } else {
-        m_CurrentRotorFrequency = targetFreq;
-    }
-
-    PlayAircraftSound(
-        AE_SOUND_AIRCRAFT_FRONT,
-        SND_BANK_SLOT_VEHICLE_GEN,
-        SND_GENRL_VEHICLE_GEN_HARRIER_FRONT,
-        volumeFront,
-        m_CurrentRotorFrequency
-    );
-    PlayAircraftSound(
-        AE_SOUND_AIRCRAFT_REAR,
-        SND_BANK_SLOT_VEHICLE_GEN,
-        SND_GENRL_VEHICLE_GEN_HARRIER_REAR,
-        volumeRear,
-        m_CurrentRotorFrequency
-    );
-    PlayAircraftSound(
-        AE_SOUND_AIRCRAFT_THRUST,
-        SND_BANK_SLOT_VEHICLE_GEN,
-        SND_GENRL_VEHICLE_GEN_THRUST,
-        thrustVolume + stalledVolume,
-        1.0f
-    );
-    PlayAircraftSound(
-        AE_SOUND_AIRCRAFT_JET_DISTANT,
-        SND_BANK_SLOT_VEHICLE_GEN,
-        SND_GENRL_VEHICLE_GEN_JET_DIST,
-        distantJetVolume,
-        1.0f
-    );
 }
 
 // 0x501960

@@ -133,16 +133,9 @@ bool CAEAudioHardware::Initialise() {
     }
 
     m_pStreamingChannel->SetVolume(VOLUME_SILENCE);
-    m_awChannelFlags[0] = {
-        .bIsSecondary   = true,
-        .bUnduckable    = true,
-        .bClampVolToNeg = true,
-        .unk0x8         = false,
-        .bIsMusic       = true,
-        .bIsNotStream   = true,
-        .bFadeNearEnd   = false,
-        .bSlowFadeout   = false,
-    };
+    m_awChannelFlags[0] = static_cast<eAudioChannelFlags>(
+        FLAG_SECONDARY_GROUP | FLAG_UNDUCKABLE | FLAG_CLAMP_VOL_TO_NEG | FLAG_IS_MUSIC | FLAG_IS_NOT_STREAM
+    );
 
     if (FrontEndMenuManager.m_bTracksAutoScan) {
         AEUserRadioTrackManager.ScanUserTracks();
@@ -727,7 +720,7 @@ void CAEAudioHardware::DisableBassEq() {
 }
 
 // 0x4D9500
-void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, tAudioChannelFlags flags) {
+void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, eAudioChannelFlags flags) {
     if (channel >= 0 && channelId < m_anNumChannelsInSlot[channel])
         m_awChannelFlags[channel + channelId] = flags;
 }

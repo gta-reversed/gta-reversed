@@ -137,16 +137,7 @@ void CAECutsceneTrackManager::StartTrackPlayback() const {
     AEAudioHardware.SetChannelFlags(
         m_nAudioChannel,
         0,
-        tAudioChannelFlags{
-            .bIsSecondary   = true,
-            .bUnduckable    = true,
-            .bClampVolToNeg = true,
-            .unk0x8         = false,
-            .bIsMusic       = false,
-            .bIsNotStream   = true,
-            .bFadeNearEnd   = false,
-            .bSlowFadeout   = false,
-        }
+        eAudioChannelFlags(FLAG_SECONDARY_GROUP | FLAG_UNDUCKABLE | FLAG_CLAMP_VOL_TO_NEG | FLAG_IS_NOT_STREAM)
     );
     AEAudioHardware.SetChannelVolume(m_nAudioChannel, 0, -3.0f, 0);
     AEAudioHardware.StartTrackPlayback();

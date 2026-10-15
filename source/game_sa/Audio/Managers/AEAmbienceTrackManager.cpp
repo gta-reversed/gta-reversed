@@ -433,16 +433,7 @@ void CAEAmbienceTrackManager::StartTrackPlayback() const {
     AEAudioHardware.SetChannelFlags(
         m_HwClientHandle,
         0,
-        tAudioChannelFlags{
-            .bIsSecondary   = true,
-            .bUnduckable    = false,
-            .bClampVolToNeg = false,
-            .unk0x8         = false,
-            .bIsMusic       = false,
-            .bIsNotStream   = true,
-            .bFadeNearEnd   = false,
-            .bSlowFadeout   = false,
-        }
+        eAudioChannelFlags(FLAG_SECONDARY_GROUP | FLAG_IS_NOT_STREAM)
     );
     AEAudioHardware.StartTrackPlayback();
 }

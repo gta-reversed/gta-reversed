@@ -66,7 +66,7 @@ public:
     bool                    m_PrevMaxGlobalSlowFadeout{};
     bool                    m_IsHardwareMixAvailable{};
     uint8                   m_nReverbEnvironment{ (uint8)-1};
-    tAudioChannelFlags      m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
+    eAudioChannelFlags      m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
     uint16                  field_86{};
     int32                   m_nReverbDepth{ -10000 };
     uint16                  m_nNumAvailableChannels{};
@@ -169,7 +169,7 @@ public:
     void EnableBassEq();
     void DisableBassEq();
 
-    void SetChannelFlags(int16 channel, uint16 channelId, tAudioChannelFlags flags);
+    void SetChannelFlags(int16 channel, uint16 channelId, eAudioChannelFlags flags);
 
     void SetMusicMasterScalingFactor(float factor);
     float GetMusicMasterScalingFactor() const;
