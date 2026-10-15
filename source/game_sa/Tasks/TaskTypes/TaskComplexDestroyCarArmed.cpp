@@ -72,7 +72,7 @@ CTask* CTaskComplexDestroyCarArmed::CreateSubTask(eTaskType taskType, CPed* ped)
         if (winfo.flags.bThrow) {
             return new CTaskSimpleThrowControl{ m_VehToDestroy, false };
         }
-        return new CTaskSimpleGunControl{ m_VehToDestroy, 0, 0, 3, 5, 5000 };
+        return new CTaskSimpleGunControl{ m_VehToDestroy, 0, 0, eGunControlMode::FIREBURST, 5, 5000 };
     }
     case TASK_COMPLEX_SEEK_ENTITY: {
         return new CTaskComplexSeekEntity<CEntitySeekPosCalculatorStandard>{

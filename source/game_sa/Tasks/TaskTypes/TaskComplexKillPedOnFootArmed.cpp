@@ -359,9 +359,9 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             || !LineOfSightClearForAttack(ped)
         ) {
             const auto gctrl = notsa::cast<CTaskSimpleGunControl>(m_pSubTask);
-            if (gctrl->m_firingTask != eGunCommand::END_LEISURE) {
+            if (gctrl->m_firingTask != eGunControlMode::END_LEISURE) {
                 gctrl->m_nextAtkTimeMs = 0;
-                gctrl->m_firingTask    = eGunCommand::END_LEISURE;
+                gctrl->m_firingTask    = eGunControlMode::END_LEISURE;
             }
         }
 

@@ -23,30 +23,43 @@ enum class eGunCommand : int8 {
     END_NOW     = 7, //! End task immidiately
 };
 
+//! Values accepted by CTaskSimpleGunControl's firing-task parameter.
+//! These are modes for this task, not commands sent to CTaskSimpleUseGun.
+enum class eGunControlMode : int8 {
+    AIM               = 0,
+    FIRE              = 1,
+    FIRE_WITH_LEISURE = 2,
+    FIREBURST         = 3,
+    RELOAD            = 4,
+    PISTOLWHIP        = 5,
+    END_LEISURE       = 6,
+    END_NOW           = 7,
+};
+
 class NOTSA_EXPORT_VTABLE CTaskSimpleGunControl : public CTaskSimple {
 public:
     static inline auto& DEFAULT_GUN_ATTACK_PERIOD = StaticRef<uint32>(9252472);
 
 public:
-    bool        m_isFinished{};
-    CEntity*    m_targetEntity{};
-    CVector     m_targetPos{};
-    CVector     m_moveTarget{};
-    int32       m_leisureDurMs{};
-    int16       m_burstAmmoCnt{};
-    eGunCommand m_firingTask{};
-    float       m_attackIntervalMult{};
-    uint32      m_nextAtkTimeMs{};
-    bool        m_isFirstTime{};
-    bool        m_isLOSBlocked{true};
-    bool        m_aimImmidiately{};
+    bool            m_isFinished{};
+    CEntity*        m_targetEntity{};
+    CVector         m_targetPos{};
+    CVector         m_moveTarget{};
+    int32           m_leisureDurMs{};
+    int16           m_burstAmmoCnt{};
+    eGunControlMode m_firingTask{};
+    float           m_attackIntervalMult{};
+    uint32          m_nextAtkTimeMs{};
+    bool            m_isFirstTime{};
+    bool            m_isLOSBlocked{ true };
+    bool            m_aimImmidiately{};
 
 public:
     static void InjectHooks();
 
     static constexpr auto Type = eTaskType::TASK_SIMPLE_GUN_CTRL;
 
-    CTaskSimpleGunControl(CEntity* targetEntity, CVector const& targetPos, CVector const& moveTarget, eGunCommand firingTask, int16 burstAmmoCnt, int32 leisureDurMs);
+    CTaskSimpleGunControl(CEntity* targetEntity, CVector const& targetPos, CVector const& moveTarget, eGunControlMode firingTask, int16 burstAmmoCnt, int32 leisureDurMs);
     CTaskSimpleGunControl(const CTaskSimpleGunControl&);
     ~CTaskSimpleGunControl();
 
@@ -63,7 +76,7 @@ private:
 
 private: // Wrappers for hooks
     // 0x61F3F0
-    CTaskSimpleGunControl* Constructor(CEntity* targetEntity, CVector const* target, CVector const* moveTarget, eGunCommand firingTask, int16 burstLength, int32 durationMs) {
+    CTaskSimpleGunControl* Constructor(CEntity* targetEntity, CVector const* target, CVector const* moveTarget, eGunControlMode firingTask, int16 burstLength, int32 durationMs) {
         this->CTaskSimpleGunControl::CTaskSimpleGunControl(targetEntity, target ? *target : CVector{}, moveTarget ? *moveTarget : CVector{}, firingTask, burstLength, durationMs);
         return this;
     }
