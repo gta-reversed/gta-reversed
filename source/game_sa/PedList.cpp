@@ -57,11 +57,11 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
 
     // NOTE: The original code iterates the pool backwards (last slot first),
     // which affects which peds make it into the list if there are more than 30.
-    auto* const pool = GetPedPool();
-    for (auto i = (size_t)pool->GetSize(); i-- > 0;) {
-        CPed* const ped = pool->GetAt(i); // Returns `nullptr` for free slots
-        if (ped && ped->m_nPedType == (ePedType)pedType && m_count < m_peds.size()) {
-            AddMember(ped);
+    for (auto i = GetPedPool()->GetSize(); i-- > 0;) {
+        if (auto* const ped = GetPedPool()->GetAt(i)) {
+            if (ped->m_nPedType == (ePedType)pedType && m_count < m_peds.size()) {
+                AddMember(ped);
+            }
         }
     }
 
