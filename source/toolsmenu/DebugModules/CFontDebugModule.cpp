@@ -2,6 +2,7 @@
 
 #include "CFontDebugModule.h"
 #include "imgui.h"
+#include <extensions/random.hpp>
 
 using namespace ImGui;
 
@@ -21,7 +22,7 @@ void FontDebugModule::RenderWindow() {
     InputText("Text to print", (char*)m_Text, std::size(m_Text));
     SameLine();
     if (Button("I'm feeling lucky")) {
-        strcpy((char*)m_Text, (char*)TheText.m_MainKeyArray.m_data[CGeneral::GetRandomNumberInRange(0u, TheText.m_MainKeyArray.m_size)].string);
+        strcpy((char*)m_Text, (char*)notsa::random_value(TheText.GetKeys()).string);
     }
     InputFloat2("Position", (float*)&m_DrawPos, "%.2f");
     Separator();
