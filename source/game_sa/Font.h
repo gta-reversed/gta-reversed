@@ -83,40 +83,40 @@ VALIDATE_SIZE(CFontChar, 0x30);
 
 struct tFontData {
     std::array<uint8, 208> m_propValues;
-    uint8 m_spaceValue;
-    uint8 m_unpropValue;
+    uint8                  m_spaceValue;
+    uint8                  m_unpropValue;
 };
 
 // initialize values from CFont::Initialise
 struct CFontDetails {
-    CRGBA Color{255, 255, 255, 0};
-    CVector2D Scale{1.0f, 1.0f};
-    float Slope{0.0f};
-    CVector2D SlopeRef{SCREEN_WIDTH, 0.0f};
-    bool Justify{false};
-    bool Centre{false};
-    bool RightJustify{false};
-    bool Background{false};
-    bool BackgroundOutline{false};
-    bool Proportional{true};
-    bool Shadow{/*?*/};
-    float AlphaFade{255.0f};
-    CRGBA BackgroundColor{128, 128, 128, 128};
-    float WrapEnd{SCREEN_WIDTH};
-    float CentreX{SCREEN_WIDTH};
-    float RightJustifyWrap{0.0f};
-    eFontTextureName FontTextureName{eFontTextureName::FONT2}; // The 'style' -- refer to the enum type
+    CRGBA            Color{ 255, 255, 255, 0 };
+    CVector2D        Scale{ 1.0f, 1.0f };
+    float            Slope{ 0.0f };
+    CVector2D        SlopeRef{ SCREEN_WIDTH, 0.0f };
+    bool             Justify{ false };
+    bool             Centre{ false };
+    bool             RightJustify{ false };
+    bool             Background{ false };
+    bool             BackgroundOutline{ false };
+    bool             Proportional{ true };
+    bool             Shadow{ /*?*/ };
+    float            AlphaFade{ 255.0f };
+    CRGBA            BackgroundColor{ 128, 128, 128, 128 };
+    float            WrapEnd{ SCREEN_WIDTH };
+    float            CentreX{ SCREEN_WIDTH };
+    float            RightJustifyWrap{ 0.0f };
+    eFontTextureName FontTextureName{ eFontTextureName::FONT2 }; // The 'style' -- refer to the enum type
 
     // This looks like it's about the "index" of the font in the texture image. (there are two for each font1/2)
     // Both subtitles and gothic (both are the first font in the images) have 0,
     // Logically pricedown and menu would have 1 but pricedown is 1 and menu is 2.
     // I guess they wanted to differentiate fonts to check in `FindSubFontCharacter`. Not the brightest choice.
-    eFontTextureStyle FontTextureStyle{eFontTextureStyle::SUBTITLES_AND_GOTHIC}; // The 'extra font'
+    eFontTextureStyle FontTextureStyle{ eFontTextureStyle::SUBTITLES_AND_GOTHIC }; // The 'extra font'
 
-    uint8 DropAmount{0};
-    CRGBA DropColor{/*uninit*/};
-    uint8 EdgeAmount{0};
-    uint8 EdgeSpace{/*uninit*/};
+    uint8 DropAmount{ 0 };
+    CRGBA DropColor{ /*uninit*/ };
+    uint8 EdgeAmount{ 0 };
+    uint8 EdgeSpace{ /*uninit*/ };
 };
 VALIDATE_SIZE(CFontDetails, 0x40);
 VALIDATE_OFFSET(CFontDetails, Color, 0x0);
@@ -147,13 +147,12 @@ public:
     static void Initialise();
     static void LoadFontValues();
     static void Shutdown();
-    static void PrintChar(float x, float y, char character);
-    // Get next ' ' character in a string
-    static char* GetNextSpace(char* string);
+    static void PrintChar(float x, float y, uint8 character);
+    static const GxtChar* GetNextSpace(const GxtChar* string); // Get next ' ' character in a string
     static const GxtChar* ParseToken(const GxtChar* text, CRGBA& color, bool isBlip, GxtChar* tag);
-    static void InitPerFrame();
-    static float GetHeight(bool a1 = false);
-    static float GetStringWidth(const GxtChar* string, bool full, bool scriptText);
+    static void           InitPerFrame();
+    static float          GetHeight(bool a1 = false);
+    static float          GetStringWidth(const GxtChar* string, bool full, bool scriptText);
 
     // STYLING
     static void SetScaleForCurrentLanguage(float w, float h);
@@ -172,10 +171,10 @@ public:
     static void SetBackgroundColor(CRGBA color) { m_Details.BackgroundColor = color; } /** Sets background color (0x7195E0) */
     static void SetJustify(bool on) { m_Details.Justify = on; } /** 0x719600 */
 
-   // Set shadow size (0x719570)
+    // Set shadow size (0x719570)
     static void SetDropShadowPosition(uint8 value) {
         m_Details.EdgeAmount = m_Details.EdgeSpace = 0;
-        m_Details.DropAmount = value;
+        m_Details.DropAmount                       = value;
     }
 
     // Set outline size (0x719590)
@@ -208,34 +207,31 @@ public:
         return ProcessCurrentString(true, x, y, text);
     }
 
-    static void RenderFontBuffer();
-    static void DrawFonts();
+    static void  RenderFontBuffer();
+    static void  DrawFonts();
     static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
-    static void GetTextRect(CRect& rect, float x, float y, const GxtChar* text);
-    static void PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap);
-    static void PrintString(float x, float y, const GxtChar* text);
-    static void PrintStringFromBottom(float x, float y, const GxtChar* text);
+    static void  GetTextRect(CRect& rect, float x, float y, const GxtChar* text);
+    static void  PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap);
+    static void  PrintString(float x, float y, const GxtChar* text);
+    static void  PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);
+    static uint8 RemapCharacterWithoutGraphic(uint8 letter);
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-private:
     friend float GetLetterIdPropValue(uint8);
 
-    static constexpr size_t MAX_FONT_SPRITES = 2;
+    static constexpr size_t MAX_FONT_SPRITES        = 2;
     static constexpr size_t MAX_FONT_BUTTON_SPRITES = 15;
 
-    static inline auto& RenderState = StaticRef<CFontChar>(0xC71AA0);
-    // font textures array
-    static inline auto& Sprite = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0);
-    // button textures array
-    static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8);
-    static inline auto& PS2Symbol = StaticRef<eExtraFontSymbol>(0xC71A54);
-    static inline auto& m_bNewLine = StaticRef<bool>(0xC71A55);
-
-    static inline auto& m_Details = StaticRef<CFontDetails>(0xC71A60);
+    static inline auto& RenderState  = StaticRef<CFontChar>(0xC71AA0);
+    static inline auto& Sprite       = StaticRef<CSprite2d[MAX_FONT_SPRITES]>(0xC71AD0); // font textures array
+    static inline auto& ButtonSprite = StaticRef<CSprite2d[MAX_FONT_BUTTON_SPRITES]>(0xC71AD8); // button textures array
+    static inline auto& PS2Symbol    = StaticRef<eExtraFontSymbol>(0xC71A54);
+    static inline auto& m_bNewLine   = StaticRef<bool>(0xC71A55);
+    static inline auto& m_Details    = StaticRef<CFontDetails>(0xC71A60);
 };
 
 static void ReadFontsDat();

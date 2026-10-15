@@ -138,7 +138,7 @@ void CFont::Shutdown() {
 
 // this adds a single character into rendering buffer
 // 0x718A10
-void CFont::PrintChar(float x, float y, char character) {
+void CFont::PrintChar(float x, float y, uint8 character) {
     // out of screen
     if (x < 0.0f || x > SCREEN_WIDTH || y < 0.0f || y > SCREEN_HEIGHT) {
         return;
@@ -247,6 +247,17 @@ void CFont::PrintChar(float x, float y, char character) {
             CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
         }
     }
+}
+
+// inlined
+// 0x718ED0
+const GxtChar* CFont::GetNextSpace(const GxtChar* string) {
+    for (GxtChar ch = *string; ch != ' '; ch = *++string) {
+        if (ch == '\0' || ch == '~') {
+            break;
+        }
+    }
+    return string;
 }
 
 // Tags processing
@@ -502,11 +513,7 @@ void CFont::RenderFontBuffer() {
             charID = FindSubFontCharacter(letter, RenderState.m_nFontStyle);
             letter = charID;
         } else {
-            if (letter == 145) {
-                letter = 64;
-            } else if (letter > 155) {
-                letter = 0;
-            }
+            letter = RemapCharacterWithoutGraphic(letter);
         }
 
         if (RenderState.Slope != 0.0f) {
@@ -643,13 +650,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
         const auto totalWidth = stringWidth + width;
         if ((totalWidth <= wrapLimit || isFirstWordInLine) && !m_bNewLine) {
             width = totalWidth;
-
-            for (GxtChar ch = *text; ch != ' '; ch = *++text) {
-                if (ch == '\0' || ch == '~') {
-                    break;
-                }
-            }
-
+            text = GetNextSpace(text);
             if (*text) {
                 if (!isFirstWordInLine) {
                     spaceCount++;
@@ -903,10 +904,8 @@ float CFont::GetCharacterSize(uint8 letterId) {
 
     if (m_Details.FontTextureStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
         propValueIdx = FindSubFontCharacter(letterId, m_Details.FontTextureStyle);
-    } else if (propValueIdx == 145) {
-        propValueIdx = '@';
-    } else if (propValueIdx > 155) {
-        propValueIdx = 0;
+    } else {
+        propValueIdx = RemapCharacterWithoutGraphic(propValueIdx);
     }
 
     if (m_Details.Proportional) {
@@ -921,6 +920,17 @@ float CFont::GetHeight(bool a1) {
     assert(a1 == false && "NOT IMPLEMENTED");
     const float y = a1 ? 0.0f : m_Details.Scale.y;
     return y * 32.0f / 2.0f + y + y;
+}
+
+// inlined
+// 0x719650
+uint8 CFont::RemapCharacterWithoutGraphic(uint8 letter) {
+    if (letter == 145) {
+        return 64;
+    } else if (letter > 155) {
+        return 0;
+    }
+    return letter;
 }
 
 // 0x7192C0
@@ -1000,14 +1010,7 @@ float GetScriptLetterSize(uint8 letterId) {
         default:
             break;
         }
-
-        if (letterId == 145) {
-            return (uint8)'@';
-        } else if (letterId > 155) {
-            return (uint8)0;
-        } else {
-            return letterId;
-        }
+        return CFont::RemapCharacterWithoutGraphic(letterId);
     }();
 
     const auto fontWidth = GetLetterIdPropValue(subFontChar, CTheScripts::IntroTextLines[i].IsProportional, style);
@@ -1043,6 +1046,7 @@ void CFont::InjectHooks() {
 
     RH_ScopedInstall(InitPerFrame, 0x719800);
     RH_ScopedInstall(PrintChar, 0x718A10);
+    RH_ScopedInstall(GetNextSpace, 0x718ED0);
     RH_ScopedInstall(ParseToken, 0x718F00);
     RH_ScopedInstall(RenderFontBuffer, 0x719840);
     RH_ScopedInstall(GetStringWidth, 0x71A0E0);
@@ -1056,7 +1060,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(PrintStringFromBottom, 0x71A820);
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
-    RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0, {.Reversed = false}); // hangs up the game for some reason
+    RH_ScopedGlobalInstall(FindSubFontCharacter, 0x7192C0);
     RH_ScopedGlobalInstall(GetScriptLetterSize, 0x719670);
     RH_ScopedGlobalOverloadedInstall(GetLetterIdPropValue, "", 0x718770, float (*)(uint8));
 }
