@@ -42,7 +42,7 @@ CTaskComplexScreamInCarThenLeave::~CTaskComplexScreamInCarThenLeave() {
 // 0x642510
 CTask* CTaskComplexScreamInCarThenLeave::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
-    case TASK_COMPLEX_LEAVE_CAR_AND_FLEE:
+    case TASK_COMPLEX_LEAVE_CAR_AND_FLEE: {
         return new CTaskComplexLeaveCarAndFlee{
             m_veh,
             m_veh->GetPosition(),
@@ -50,14 +50,16 @@ CTask* CTaskComplexScreamInCarThenLeave::CreateSubTask(eTaskType taskType, CPed*
             0,
             !CTheScripts::IsPlayerOnAMission() && !CGeneral::DoCoinFlip()
         };
+    }
     case TASK_SIMPLE_CAR_DRIVE: {
-        m_timer.Start(5000);
+        m_timer.Start(5'000);
         return new CTaskSimpleCarDrive{ m_veh };
+    }
     case TASK_FINISHED: {
         ped->GetTaskManager().SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
         return nullptr;
     }
-    default:
+    default: {
         NOTSA_UNREACHABLE();
     }
     }

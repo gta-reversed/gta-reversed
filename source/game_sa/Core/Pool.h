@@ -8,6 +8,7 @@
 
 #include <Base.h>
 #include <cstdint>
+#include <reversiblebugfixes/Bugs.hpp>
 
 #define INVALID_POOL_SLOT (-1)
 
@@ -59,7 +60,7 @@ public:
     /*!
     * @brief Initializes pool, owning memory
     ****/
-    CPool(size_t capacity, const char* name) :
+    CPool(size_t capacity, const char* name = "Unspecified") :
         m_Storage{ new StorageType[capacity] },
         m_SlotState{ new SlotState[capacity] },
         m_Capacity{ capacity },
@@ -110,11 +111,20 @@ public:
     * @brief Shut down pool, deallocate
     */
     void Flush() {
+        // Perhaps properly destruct all objects in the pool
+        if (notsa::bugfixes::CPool_DestructOnClear) {
+            Clear();
+        }
+
+        // Fill in memory so dangling pointers are more obvious
         DoFill(NOMANSLAND_FILL);
+
+        // Only now free memory
         if (m_OwnsAllocations) {
             delete[] std::exchange(m_Storage, nullptr);
             delete[] std::exchange(m_SlotState, nullptr);
         }
+
         m_Capacity         = 0;
         m_LastFreeSlot     = -1;
         m_OwnsAllocations  = false;
@@ -123,7 +133,12 @@ public:
 
     // Clears pool
     void Clear() {
-        for (auto i = 0; i < m_Capacity; i++) {
+        if (notsa::bugfixes::CPool_DestructOnClear) {
+            for (auto& v : GetAllValid()) {
+                std::destroy_at(&v);
+            }
+        }
+        for (auto i = 0u; i < m_Capacity; i++) {
             m_SlotState[i].IsEmpty = true;
         }
         DoFill(DEADLAND_FILL);
@@ -366,8 +381,8 @@ protected:
     }
 
     int32 FindFreeSlot() const {
-        const auto last = m_LastFreeSlot != -1 ? m_LastFreeSlot : 0;
-        const auto cap  = m_Capacity;
+        const size_t last = m_LastFreeSlot != -1 ? m_LastFreeSlot : 0;
+        const size_t cap  = m_Capacity;
 
         // Try [last, cap)
         for (auto i = last; i < cap; i++) {
@@ -377,7 +392,7 @@ protected:
         }
 
         // Try [0, last)
-        for (auto i = 0; i < last; i++) {
+        for (auto i = 0u; i < last; i++) {
             if (m_SlotState[i].IsEmpty) {
                 return i;
             }

@@ -3,7 +3,7 @@
 #include "TaskSimpleGoToPoint.h"
 
 #include "TaskSimpleStandStill.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleDuck.h"
 

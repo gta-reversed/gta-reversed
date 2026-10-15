@@ -988,10 +988,10 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0);
     RH_ScopedInstall(PlayResidentSoundEvent, 0x4EC550);
     RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0);
-    RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .reversed = false });
+    RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .Reversed = false });
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "1", 0x4EE960, void (CAEScriptAudioEntity::*)(eAudioEvents, CPhysical*, float, float));
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, const CVector&));
-    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .Reversed = false });
 }
 
 CAEScriptAudioEntity* CAEScriptAudioEntity::Constructor() {

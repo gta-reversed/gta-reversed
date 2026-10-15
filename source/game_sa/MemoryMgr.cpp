@@ -438,6 +438,7 @@ void operator delete(void* memory) {
 
 #endif
 
+#ifndef NOTSA_STANDALONE
 void* operator new(size_t size) {
     return plugin::CallAndReturn<void*, 0x82119A, size_t>(size);
 }
@@ -453,3 +454,4 @@ void operator delete(void* p) {
 void operator delete[](void* p) {
     plugin::Call<0x8213AE, void*>(p);
 }
+#endif

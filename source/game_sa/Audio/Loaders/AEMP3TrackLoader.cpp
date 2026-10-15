@@ -60,10 +60,11 @@ bool CAEMP3TrackLoader::Initialise() {
 // 0x4E0970
 bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
     notsa::File strmpaks("AUDIO\\CONFIG\\STRMPAKS.DAT", "rb");
-
     if (!strmpaks) {
+        // create the file
+        notsa::File tmp("AUDIO\\CONFIG\\STRMPAKS.DAT", "w");
         // NOTSA: Originally (StreamPack*)CMemoryMgr::Malloc(0), return value is implementation-dependent.
-        NOTSA_LOG_ERR("Couldn't open strmpaks.dat");
+        // NOTSA_LOG_ERR("Couldn't open strmpaks.dat"); // perhaps not an error?
         m_paStreamPacks = nullptr;
         m_nStreamPackCount = 0;
         return false;
@@ -80,10 +81,11 @@ bool CAEMP3TrackLoader::LoadStreamPackTable(void) {
 
 // 0x4E09F0
 bool CAEMP3TrackLoader::LoadTrackLookupTable(void) {
-    // NOTSA: Originally Win32 file API was used.
     notsa::File traklkup("AUDIO\\CONFIG\\TRAKLKUP.DAT", "rb");
     if (!traklkup) {
         NOTSA_LOG_ERR("Couldn't open traklkup.dat");
+        m_paTrackLookups = nullptr;
+        m_nTrackCount = 0;
         return false;
     }
 

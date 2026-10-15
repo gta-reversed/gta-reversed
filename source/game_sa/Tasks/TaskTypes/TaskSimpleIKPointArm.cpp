@@ -1,7 +1,7 @@
 #include "StdInc.h"
 #include "TaskSimpleIKPointArm.h"
-#include "IKChain_c.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChain.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleIKPointArm::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleIKPointArm, 0x86E3A4, 10);

@@ -18,11 +18,11 @@
 #include "FireManager.h"
 #include "Fx.h"
 #include "BreakManager_c.h"
-#include "BoneNodeManager_c.h"
 #include "Shadows.h"
 // todo: #include "ShadowManager.h"
 #include "PedType.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/BoneNodeManager.h"
+#include "Ragdoll/IKChainManager.h"
 #include "CreepingFire.h"
 #include "Skidmarks.h"
 #include "CarCtrl.h"
@@ -74,7 +74,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.State = HS::RedirectToGTA});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -564,13 +564,7 @@ void CGame::Initialise(const char* datFile) {
 // 0x5BFA90
 bool CGame::InitialiseCoreDataAfterRW() {
     CTempColModels::Initialise();
-    gHandlingDataMgr.LoadHandlingData();
-    gHandlingDataMgr.field_0 = 0.1f;
-    gHandlingDataMgr.fWheelFriction = 0.9f;
-    gHandlingDataMgr.field_8 = 1.0f;
-    gHandlingDataMgr.field_C = 0.8f;
-    gHandlingDataMgr.field_10 = 0.98f;
-
+    gHandlingDataMgr.Initialise();
     g_surfaceInfos.Init();
     CPedStats::Initialise();
     CTimeCycle::Initialise(false);
@@ -788,7 +782,7 @@ void CGame::Process() {
 
         g_LoadMonitor.EndFrame();
 
-        if (!CTimer::bSkipProcessThisFrame) {
+        if (!CTimer::IsSkipProcessThisFrame()) {
             CPickups::Update();
             CCarCtrl::PruneVehiclesOfInterest();
             CGarages::Update();

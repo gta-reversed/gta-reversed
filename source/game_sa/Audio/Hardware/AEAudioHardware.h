@@ -47,31 +47,23 @@ class CAEMP3BankLoader;
 class CAEAudioChannel;
 class tBeatInfo;
 
-// NOTSA name
-union tAudioChannelFlags {
-    uint16 value{};
-    struct {
-        // byte 1
-        bool bIsSecondary : 1;   //< 0x01 -- Channel's volume is rescaled via a seperate group. For ambient, radio and cutscene tracks
-        bool bUnduckable : 1;    //< 0x02 -- Sounds can not be "ducked", e.g. ambient sounds get silent while a dialogue plays
-        bool bClampVolToNeg : 1; //< 0x04 -- Clamps the volume (-inf, 0]
-        bool unk0x8 : 1;         //< 0x08
-        bool bIsMusic : 1;       //< 0x10 -- not sure
-        bool bIsNotStream : 1;   //< 0x20 -- not sure
-        bool bFadeNearEnd : 1;   //< 0x40 -- Fade audio based on how close to finishing, used for one-shot audio e.g. explosions etc?
-        bool bSlowFadeout : 1;   //< 0x80
-        // byte 2
-        /* ... unk ... */
-    };
+// Bit flags stored in `CAEAudioHardware::m_awChannelFlags` (semantic names per gta-reversed#1225)
+enum eAudioChannelFlags : int16 {
+    FLAG_SECONDARY_GROUP  = 0x01, // rescale via a separate group (ambient, radio, cutscene)
+    FLAG_UNDUCKABLE       = 0x02, // can't be ducked (e.g. ambience keeps playing during dialogue)
+    FLAG_CLAMP_VOL_TO_NEG = 0x04, // clamps the volume to (-inf, 0]
+    FLAG_IS_MUSIC         = 0x10,
+    FLAG_IS_NOT_STREAM    = 0x20,
+    FLAG_FADE_NEAR_END    = 0x40, // fade out based on how close to finishing
+    FLAG_SLOW_FADEOUT     = 0x80,
 };
-VALIDATE_SIZE(tAudioChannelFlags, 0x2);
 
 class CAEAudioHardware {
 public:
     bool                    m_bInitialised{};
     bool                    m_bDisableEffectsLoading{};
-    bool                    m_IsMaxSecondarySlowFadeout{};
-    bool                    m_IsMaxGlobalSlowFadeout{};
+    bool                    m_PrevMaxSecondarySlowFadeout{};
+    bool                    m_PrevMaxGlobalSlowFadeout{};
     bool                    m_IsHardwareMixAvailable{};
     uint8                   m_nReverbEnvironment{ (uint8)-1};
     tAudioChannelFlags      m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
@@ -81,7 +73,7 @@ public:
     uint16                  m_nNumChannels{};
     uint16                  m_anNumChannelsInSlot[MAX_NUM_AUDIO_CHANNELS]{};
     float                   m_afChannelVolumes[MAX_NUM_AUDIO_CHANNELS]{}; // -1000.f
-    float                   m_afChannelVolumeLinear[MAX_NUM_AUDIO_CHANNELS]{};
+    float                   m_ChannelGains[MAX_NUM_AUDIO_CHANNELS]{}; // linear volume gain (10 ^ (dB / 20))
     float                   m_afChannelsFrqScalingFactor[MAX_NUM_AUDIO_CHANNELS]{};
 
     float                   m_fMusicMasterScalingFactor{ 1.f };

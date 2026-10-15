@@ -8,7 +8,7 @@
 
 #include "PedIntelligence.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "PedType.h"
 #include "TaskComplexBeInGroup.h"
 #include "TaskSimpleCarDriveTimed.h"

@@ -122,7 +122,7 @@ void CRestart::FindClosestHospitalRestartPoint(CVector point, CVector& outPos, f
             }
         }
 
-        if (closestIdx >= 0u) {
+        if (closestIdx >= 0) {
             outPos = HospitalRestartPoints[closestIdx];
             outAngle = HospitalRestartHeadings[closestIdx];
         }

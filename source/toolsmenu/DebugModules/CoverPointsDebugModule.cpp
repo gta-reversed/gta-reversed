@@ -19,20 +19,20 @@ void CoverPointsDebugModule::RenderWindow() {
     if (!m_IsOpen) {
         return;
     }
-    if (ig::BeginChild("Settings", { 0.f, 50.f }, ImGuiChildFlags_Border)) {
+    if (ig::BeginChild("Settings", { 0.f, 50.f }, ImGuiChildFlags_Borders)) {
         ig::Checkbox("Bounding boxes for all", &m_AllBBsEnabled);
         ig::DragFloat("Range", &m_Range, 1.f, 10.f, 500.f, "%.2f");
     }
     ig::EndChild();
 
-    if (ig::BeginChild("NearbyCoverPointsTable", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+    if (ig::BeginChild("NearbyCoverPointsTable", {300.f, 0.f}, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX)) {
         RenderCoverPointsTable();
     }
     ig::EndChild();
 
     ig::SameLine();
 
-    if (ig::BeginChild("EntityDetails", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+    if (ig::BeginChild("EntityDetails", {300.f, 0.f}, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX)) {
         if (m_SelectedCpt) {
             RenderSelectedCoverPointDetails();
         }

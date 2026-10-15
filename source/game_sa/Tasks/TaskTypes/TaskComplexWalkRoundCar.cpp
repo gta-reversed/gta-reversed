@@ -12,16 +12,16 @@ void CTaskComplexWalkRoundCar::InjectHooks() {
 
     RH_ScopedInstall(SetNewVehicle, 0x654290);
     RH_ScopedInstall(CreateRouteTask, 0x6542E0);
-    RH_ScopedInstall(ComputeRouteRoundSmallCar, 0x6544F0, { .reversed = false });
+    RH_ScopedInstall(ComputeRouteRoundSmallCar, 0x6544F0, { .Reversed = false });
     RH_ScopedInstall(GoingForDoor, 0x654720);
-    RH_ScopedInstall(ComputeRouteRoundBigCar, 0x656BB0, { .reversed = false });
+    RH_ScopedInstall(ComputeRouteRoundBigCar, 0x656BB0, { .Reversed = false });
     RH_ScopedInstall(ComputeRoute, 0x657B80);
 
     RH_ScopedVMTInstall(Clone, 0x655B00);
     RH_ScopedVMTInstall(GetTaskType, 0x654280);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x656B70);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x658200, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x654370, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x658200, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x654370, { .Reversed = false });
 }
 
 // 0x6541B0

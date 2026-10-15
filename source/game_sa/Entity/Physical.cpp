@@ -20,7 +20,7 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(Constructor, 0x542260);
     RH_ScopedInstall(Destructor, 0x542450);
 
-    RH_ScopedInstall(RemoveAndAdd, 0x542560, {.enabled=false, .locked=true});
+    RH_ScopedInstall(RemoveAndAdd, 0x542560, { .Reversed = false });
     RH_ScopedInstall(ApplyTurnForce, 0x542A50);
     RH_ScopedInstall(ApplyForce, 0x542B50);
     RH_ScopedInstall(GetSpeed, 0x542CE0);
@@ -30,7 +30,7 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(SetDamagedPieceRecord, 0x5428C0);
     RH_ScopedInstall(RemoveFromMovingList, 0x542860);
     RH_ScopedInstall(AddToMovingList, 0x542800);
-    RH_ScopedVMTInstall(Add, 0x544A30, {.enabled=false, .locked=true});
+    RH_ScopedVMTInstall(Add, 0x544A30, { .Reversed = false });
     RH_ScopedVMTInstall(Remove, 0x5424C0);
     RH_ScopedVMTInstall(GetBoundRect, 0x5449B0);
     RH_ScopedVMTInstall(ProcessControl, 0x5485E0);
@@ -225,7 +225,7 @@ void CPhysical::ProcessControl()
 
     if (GetStatus() != STATUS_SIMPLE)
     {
-        physicalFlags.b31 = false;
+        physicalFlags.bDoorHitEndStop = false;
         physicalFlags.bOnSolidSurface = false;
         m_nNumEntitiesCollided = 0;
         m_nPieceType = 0;
@@ -355,12 +355,12 @@ void CPhysical::ProcessCollision() {
             m_matrix->Reorthogonalise();
             physicalFlags.bProcessingShift = false;
             physicalFlags.bSkipLineCol = false;
-            physicalFlags.b17 = true;
+            physicalFlags.bForceHitReturnFalse = true;
             bool bOldUsesCollision = GetUsesCollision();
             SetUsesCollision(false);
             if (!CheckCollision())
             {
-                physicalFlags.b17 = false;
+                physicalFlags.bForceHitReturnFalse = false;
                 SetUsesCollision(bOldUsesCollision);
                 if (GetIsTypeVehicle())
                     vehicle->vehicleFlags.bVehicleColProcessed = true;
@@ -374,7 +374,7 @@ void CPhysical::ProcessCollision() {
                 return;
             }
             SetUsesCollision(bOldUsesCollision);
-            physicalFlags.b17 = false;
+            physicalFlags.bForceHitReturnFalse = false;
             *static_cast<CMatrix*>(m_matrix) = oldEntityMatrix;
             m_vecMoveSpeed = vecOldMoveSpeed;
             if (GetIsTypeVehicle() && vehicle->vehicleFlags.bIsLawEnforcer)
@@ -556,7 +556,7 @@ void CPhysical::ProcessShift() {
 // 0x54DEC0
 bool CPhysical::TestCollision(bool bApplySpeed) {
     CMatrix entityMatrix(*m_matrix);
-    physicalFlags.b17 = true;
+    physicalFlags.bForceHitReturnFalse = true;
     physicalFlags.bSkipLineCol = true;
     bool bOldUsesCollision = GetUsesCollision();
     SetUsesCollision(false);
@@ -573,7 +573,7 @@ bool CPhysical::TestCollision(bool bApplySpeed) {
 
     bool bCheckCollision = CheckCollision();
     SetUsesCollision(bOldUsesCollision);
-    physicalFlags.b17 = false;
+    physicalFlags.bForceHitReturnFalse = false;
     physicalFlags.bSkipLineCol = false;
     *(CMatrix*)m_matrix = entityMatrix;
     if (bTestForBlockedPositions)
@@ -600,7 +600,6 @@ int32 CPhysical::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
 // 0x542560
 void CPhysical::RemoveAndAdd() {
 // TODO: Refactor `CEntryInfoNode` to be templated, otherwise this function will be a mess
-#if 0
     if (m_bIsBIGBuilding) {
         CEntity::Remove();
         CEntity::Add();
@@ -615,29 +614,36 @@ void CPhysical::RemoveAndAdd() {
     int32 endSectorY = CWorld::GetSectorY(boundRect.top);
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
+            CRepeatSector* const rs = &CWorld::GetRepeatSector(sectorX, sectorY);
             const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
-                if (entryInfoNode) {
-                    auto* doubleLink = reinterpret_cast<typename PtrListType::NodeType*>(entryInfoNode->m_doubleLink);
+                // The sector lists are typed per-class (CVehicle*/CPed*/CObject*), while the
+                // nodes stored in `CEntryInfoNode` are typed as `CPhysical*` - the layouts are
+                // identical, so reinterpret the node pointers (the original code did the same).
+                using ListNodeType  = typename PtrListType::NodeType;
+                using ListItemType  = typename PtrListType::ItemType;
+                using EntryNodeType = CPtrNodeDoubleLink<CPhysical*>;
 
-                    entryInfoNode->m_doubleLinkList->UnlinkNode(doubleLink);
+                if (entryInfoNode) {
+                    auto* doubleLink = reinterpret_cast<ListNodeType*>(entryInfoNode->m_doubleLink);
+
+                    entryInfoNode->m_doubleLinkList->UnlinkNode(reinterpret_cast<EntryNodeType*>(doubleLink));
                     list.AddNode(doubleLink);
-   
+
                     entryInfoNode->m_repeatSector = rs;
-                    entryInfoNode->m_doubleLinkList = &list;
+                    entryInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
                     entryInfoNode = entryInfoNode->m_next;
                 } else {
-                    auto newEntityInfoNode = new CEntryInfoNode();
+                    auto* newEntityInfoNode = new CEntryInfoNode{};
                     if (newEntityInfoNode) {
-                        newEntityInfoNode->m_doubleLink = list.AddItem(this);
+                        newEntityInfoNode->m_doubleLink = reinterpret_cast<EntryNodeType*>(list.AddItem(reinterpret_cast<std::remove_pointer_t<ListItemType>*>(this)));
                         newEntityInfoNode->m_repeatSector = rs;
-                        newEntityInfoNode->m_doubleLinkList = &list;
+                        newEntityInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
                     }
                     newEntityInfoNode->AddToList(m_pCollisionList.m_node);
                     m_pCollisionList.m_node = newEntityInfoNode;
                 }
             };
-            switch (m_nType) {
+            switch (GetType()) {
             case ENTITY_TYPE_VEHICLE: ProcessSectorList(rs->Vehicles); break;
             case ENTITY_TYPE_PED:     ProcessSectorList(rs->Peds);     break;
             case ENTITY_TYPE_OBJECT:  ProcessSectorList(rs->Objects);  break;
@@ -653,7 +659,6 @@ void CPhysical::RemoveAndAdd() {
 
         entryInfoNode = nextEntryInfoNode;
     }
-#endif
 }
 
 // 0x542800
@@ -2490,7 +2495,7 @@ void CPhysical::ApplySpeed()
         ApplyTurnSpeed();
         m_vecTurnSpeed.z = -0.2f * m_vecTurnSpeed.z;
         CTimer::UpdateTimeStep(fOldTimeStep - fNewTimeStep);
-        physicalFlags.b31 = true;
+        physicalFlags.bDoorHitEndStop = true;
     }
     ApplyMoveSpeed();
     ApplyTurnSpeed();
@@ -2551,7 +2556,7 @@ void CPhysical::ApplyFriction()
 
     auto* vehicle = AsVehicle();
     if (GetIsTypeVehicle() && vehicle->IsBike()
-        && !physicalFlags.b32 && GetStatus() == STATUS_ABANDONED
+        && !physicalFlags.bCarriedByRope && GetStatus() == STATUS_ABANDONED
         && fabs(GetUp().z) < 0.707f
         && 0.05f * 0.05f > m_vecMoveSpeed.SquaredMagnitude() && 0.01f * 0.01f > m_vecTurnSpeed.SquaredMagnitude())
     {
@@ -4018,7 +4023,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                 if (!bCollisionDisabled) // if collision is enabled then
                 {
                     int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                    if (physicalFlags.b17 && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
+                    if (physicalFlags.bForceHitReturnFalse && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
                         return true;
                     }
                     if (!totalColPointsToProcess && m_pEntityIgnoredCollision == entity && this == FindPlayerPed()) {
@@ -4707,7 +4712,7 @@ bool CPhysical::CheckCollision()
     if (GetIsTypePed())
     {
         CPed* ped = AsPed();
-        if (!m_pAttachedTo && !physicalFlags.b17 && !physicalFlags.bProcessingShift && !physicalFlags.bSkipLineCol) {
+        if (!m_pAttachedTo && !physicalFlags.bForceHitReturnFalse && !physicalFlags.bProcessingShift && !physicalFlags.bSkipLineCol) {
             ped->m_standingOnEntity = nullptr;
             if (ped->bIsStanding) {
                 ped->bIsStanding = false;

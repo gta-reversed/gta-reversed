@@ -121,7 +121,7 @@ void CAtomicModelInfo::SetAtomic(RpAtomic* atomic)
         CCarFXRenderer::SetCustomFXAtomicRenderPipelinesVMICB(GetRpAtomic(), nullptr);
 
     if (!bTagDisabled && IsTagModel())
-        CTagManager::SetupAtomic(GetRpAtomic());
+        CTagManager::SetupAtomic(*GetRpAtomic());
 
     SetHasBeenPreRendered(true);
 }

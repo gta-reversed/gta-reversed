@@ -2740,7 +2740,7 @@ auto FreezeCharPositionAndDontLoadCollision(CRunningScript& S, CPed& ped, bool f
  * @param {bool} state
  */
 auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
-    ped.physicalFlags.b15 = !loadCol;
+    ped.physicalFlags.bDontLoadCollision = !loadCol;
     if (loadCol) {
         DoSetPedIsWaitingForCollision(S, ped);
     } else if (ped.m_bIsStaticWaitingForCollision) {

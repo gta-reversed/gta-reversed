@@ -77,7 +77,33 @@ inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
 inline const ReversibleBugFix CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits{
     .Name        = "CCustomCarPlateMgr::GeneratePlateText - Expand plate character range",
     .Description = "The original game generates plate letters in the range A-W (23 chars) and digits in 0-8 (9 chars). "
-                   "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
+    "This fix expands those ranges to A-Z (26 chars) and 0-9 (10 chars) for more variety.",
     .Credit      = "j0y"
+};
+inline const ReversibleBugFix CTaskComplexLeaveCarAndFlee_MissingNullCheckForVehicleOnFlee{
+    .Name        = "CTaskComplexLeaveCarAndFlee - Missing null check for vehicle on flee",
+    .Description = "Fix missing null check for vehicle in CTaskComplexLeaveCarAndFlee",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CAECollisionAudioEntity_PlayLoopingCollisionSound_InvalidSurfaceType{
+    .Name        = "CAECollisionAudioEntity::PlayLoopingCollisionSound - Invalid surface type causing OOB",
+    .Description = "The surface type passed in could've been an `AE_SURFACE_TYPE_*` which when passed to `g_surfaceInfos` causes an OOB. "
+                   "The fix ensures the surface type is valid before accessing `g_surfaceInfos`.",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CPool_DestructOnClear{
+    .Name        = "Destroy objects before marking their memory as free",
+    .Description = "Destruct all objects in the pool before deallocating their memory (So that pool objects can clean up after themselves)",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CTaskSimpleClimb_ProcessPed_SettleSpeedFrameRate{
+    .Name        = "Climb settle speed at high frame rates",
+    .Description = "Bound the climb's settle step the way the coarse step above it is bounded, so a few centimetres of offset do not become a killing fall speed above 60 FPS",
+    .Credit      = "mrxenginner"
+};
+inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheckForLightRR{
+    .Name        = "CDamageManager::GetLightStatus - Incorrect status check for LIGHT_REAR_RIGHT",
+    .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
+    .Credit      = "aeaeo"
 };
 };

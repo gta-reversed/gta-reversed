@@ -16,7 +16,7 @@ void CAEAmbienceTrackManager::InjectHooks() {
     RH_ScopedInstall(IsAmbienceRadioActive, 0x4D6D40);
     RH_ScopedInstall(PlaySpecialMissionAmbienceTrack, 0x4D6D50);
     RH_ScopedInstall(StopSpecialMissionAmbienceTrack, 0x4D6D60);
-    RH_ScopedInstall(UpdateAmbienceTrackAndVolume, 0x4D6E60, { .reversed = false }); // bad
+    RH_ScopedInstall(UpdateAmbienceTrackAndVolume, 0x4D6E60, { .Reversed = false }); // bad
     RH_ScopedInstall(Service, 0x4D76C0);
 }
 

@@ -2,7 +2,7 @@
 
 #include "TaskSimplePlayHandSignalAnim.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimplePlayHandSignalAnim::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimplePlayHandSignalAnim, 0x86D5B8, 9);

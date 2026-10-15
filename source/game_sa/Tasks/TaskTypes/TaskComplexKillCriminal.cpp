@@ -27,8 +27,8 @@ void CTaskComplexKillCriminal::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x68BF20);
     RH_ScopedVMTInstall(MakeAbortable, 0x68DAD0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x68E4F0);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x68DC60, {.reversed = false});
-    RH_ScopedVMTInstall(ControlSubTask, 0x68E950, {.reversed = false});
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x68DC60, {.Reversed = false});
+    RH_ScopedVMTInstall(ControlSubTask, 0x68E950, {.Reversed = false});
 }
 
 bool NoPedOrNoHp(CPed* ped) {
@@ -324,7 +324,7 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
     }
     case TASK_COMPLEX_LEAVE_CAR: // 0x68E77F
         return CreateSubTask(
-            m_HasFinished || !ped->bInVehicle || m_CantGetInCar || (!NoPedOrNoHp(m_Criminal) && !m_Criminal->IsInVehicle() && m_Criminal->IsEntityInRange(ped, 25.f))
+            !ped->bInVehicle || m_CantGetInCar || (!m_HasFinished && !NoPedOrNoHp(m_Criminal) && !m_Criminal->IsInVehicle() && m_Criminal->IsEntityInRange(ped, 25.f))
                 ? TASK_COMPLEX_KILL_PED_ON_FOOT     // Criminal can be killed on foot
                 : TASK_COMPLEX_ENTER_CAR_AS_DRIVER, // We have to chase the criminal with a vehicle
             ped

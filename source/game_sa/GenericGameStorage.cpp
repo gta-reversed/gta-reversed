@@ -63,24 +63,24 @@ void CGenericGameStorage::InjectHooks() {
     // until we reverse everything.
 
     RH_ScopedInstall(ReportError, 0x5D08C0);
-    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50, { .reversed = false });
-    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90, { .reversed = false });
-    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .reversed = false });
-    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .reversed = false });
+    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50, { .Reversed = false });
+    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90, { .Reversed = false });
+    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .Reversed = false });
+    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .Reversed = false });
     RH_ScopedInstall(GenericLoad, 0x5D17B0);
-    RH_ScopedInstall(GenericSave, 0x5D13E0, {.enabled = true });
-    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .reversed = false });
+    RH_ScopedInstall(GenericSave, 0x5D13E0);
+    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .Reversed = false });
     RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
     RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
-    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .reversed = false });
-    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .reversed = false });
-    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50, { .reversed = false });
-    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90, { .reversed = false });
-    RH_ScopedInstall(CloseFile, 0x5D0E30, { .reversed = false });
-    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .reversed = false });
-    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .reversed = false });
-    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .reversed = false });
-    RH_ScopedInstall(RestoreForStartLoad, 0x619000, { .reversed = false });
+    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .Reversed = false });
+    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .Reversed = false });
+    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50, { .Reversed = false });
+    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90, { .Reversed = false });
+    RH_ScopedInstall(CloseFile, 0x5D0E30, { .Reversed = false });
+    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .Reversed = false });
+    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .Reversed = false });
+    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .Reversed = false });
+    RH_ScopedInstall(RestoreForStartLoad, 0x619000, { .Reversed = false });
 }
 
 // 0x5D08C0

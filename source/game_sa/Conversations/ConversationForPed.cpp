@@ -4,7 +4,7 @@
 void CConversationForPed::InjectHooks() {
     RH_ScopedClass(CConversationForPed);
     RH_ScopedCategory("Conversations");
-    RH_ScopedInstall(Update, 0x43C190, {.reversed = false});
+    RH_ScopedInstall(Update, 0x43C190, {.Reversed = false});
     RH_ScopedInstall(IsPlayerInPositionForConversation, 0x43AC40);
 }
 

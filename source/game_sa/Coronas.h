@@ -11,11 +11,11 @@
 constexpr auto MAX_NUM_CORONAS = 64;
 
 struct CFlareDefinition {
-    float                       Position;
-    float                       Size;
-    FixedVector<int16, 65535.f> ColorMult;
-    FixedFloat<int16, 256.f>    IntensityMult;
-    int16                       Sprite; // Only used for array-end checking
+    float                     Position;
+    float                     Size;
+    FixedVector<int16, 256.f> ColorMult;
+    FixedFloat<int16, 256.f>  IntensityMult;
+    int16                     Sprite; // Only used for array-end checking
 };
 
 class CCoronas {

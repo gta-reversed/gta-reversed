@@ -9,7 +9,21 @@ Checks: >
   -cppcoreguidelines-pro-type-vararg,
   -cppcoreguidelines-owning-memory,
   -cppcoreguidelines-avoid-magic-numbers,
-  -modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
+  -readability-math-missing-parentheses,
+  -readability-uppercase-literal-suffix,
+  -bugprone-easily-swappable-parameters,
+  -readability-identifier-length,
+  -modernize-use-designated-initializers,
+  -readability-redundant-access-specifiers,
+  -readability-implicit-bool-conversion,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -misc-use-anonymous-namespace,
 
 WarningsAsErrors: '*'
 
@@ -17,12 +31,22 @@ HeaderFilterRegex: 'source/.*'
 
 FormatStyle: file
 
-AnalyzeTemporaryDtors: false
-
 CheckOptions:
-  - key:             modernize-use-nullptr.NullMacros
-    value:           'NULL'
-  - key:             readability-identifier-naming.VariableCase
-    value:           lower_case
-  - key:             readability-identifier-naming.ClassCase
-    value:           CamelCase
+  - key:   modernize-use-nullptr.NullMacros
+    value:   'NULL'
+  - key:   readability-identifier-naming.VariableCase
+    value:   camelBack
+  - key:   readability-identifier-naming.MacroDefinitionCase
+    value:   UPPER_CASE
+  - key:   readability-identifier-naming.ClassCase
+    value:   CamelCase
+  - key:   readability-identifier-naming.TemplateParameterCase
+    value:   CamelCase
+  - key:   readability-identifier-naming.ConstexprVariableCase
+    value:   UPPER_CASE
+  - key:   readability-identifier-naming.GlobalVariablePrefix
+    value:   g_
+  - key:   readability-identifier-naming.StaticVariablePrefix
+    value:   s_
+  - key:   readability-identifier-naming.MemberPrefix # TODO: static member prefix: ms_
+    value:   m_

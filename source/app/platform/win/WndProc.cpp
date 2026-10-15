@@ -290,6 +290,6 @@ void InjectHooksWndProcStuff() {
     RH_ScopedCategory("Win");
     RH_ScopedNamespaceName("Win");
 
-    RH_ScopedGlobalInstall(__MainWndProc, 0x747EB0, {.locked = true}); // Locked because of ImGui
+    RH_ScopedGlobalInstall(__MainWndProc, 0x747EB0, {.Locked = true}); // Locked because of ImGui
 }
 #endif

@@ -9,9 +9,9 @@ void CTaskUtilityLineUpPedWithCar::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x64FBB0);
     RH_ScopedInstall(Destructor, 0x64FC00);
 
-    RH_ScopedInstall(GetLocalPositionToOpenCarDoor, 0x64FC10, { .reversed = false });
-    RH_ScopedInstall(GetPositionToOpenCarDoor, 0x650A80, { .reversed = false });
-    RH_ScopedInstall(ProcessPed, 0x6513A0, { .reversed = false });
+    RH_ScopedInstall(GetLocalPositionToOpenCarDoor, 0x64FC10, { .Reversed = false });
+    RH_ScopedInstall(GetPositionToOpenCarDoor, 0x650A80, { .Reversed = false });
+    RH_ScopedInstall(ProcessPed, 0x6513A0, { .Reversed = false });
 }
 
 // 0x64FBB0

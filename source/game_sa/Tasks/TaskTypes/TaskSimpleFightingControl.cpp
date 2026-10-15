@@ -22,7 +22,7 @@ void CTaskSimpleFightingControl::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x622EB0);
     RH_ScopedVMTInstall(GetTaskType, 0x61DC90);
     RH_ScopedVMTInstall(MakeAbortable, 0x61DD00);
-    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0, { .Reversed = false });
 }
 
 // 0x61DC10

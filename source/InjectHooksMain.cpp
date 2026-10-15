@@ -1,5 +1,7 @@
 #include "StdInc.h"
 
+#include <extensions/CommandLine.h>
+
 // Audio
 // -- General
 #include "AEAudioEnvironment.h"
@@ -137,10 +139,10 @@
 #include "InteriorManager_c.h"
 #include "Checkpoint.h"
 #include "Checkpoints.h"
-#include "IKChain_c.h"
-#include "IKChainManager_c.h"
-#include "BoneNode_c.h"
-#include "BoneNodeManager_c.h"
+#include "Ragdoll/IKChain.h"
+#include "Ragdoll/IKChainManager.h"
+#include "Ragdoll/BoneNode.h"
+#include "Ragdoll/BoneNodeManager.h"
 #include "TheScripts.h"
 #include "RunningScript.h"
 #include "Scripted2dEffects.h"
@@ -292,6 +294,7 @@
 #include "TaskSimpleGiveCPR.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 #include "TaskComplexDriveFireTruck.h"
+#include "Interior/TaskInteriorLieInBed.h"
 #include "TaskSimpleSwim.h"
 #include "TaskComplexWalkRoundObject.h"
 #include "TaskSimplePause.h"
@@ -511,6 +514,7 @@
 #include "EventAreaCodes.h"
 #include "EventLeaderEntryExit.h"
 #include "Formation.h"
+#include "ProjectileInfo.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 
@@ -522,21 +526,27 @@
 #include <RealTimeShadowManager.h>
 
 #include "extensions/utility.hpp"
-#include "extensions/CommandLine.h"
 #include <RenderBuffer.hpp>
 
-#include "reversiblehooks/RootHookCategory.h"
-
+#ifndef NOTSA_STANDALONE
 #include "WindowedMode.hpp"
+#endif
 
 void InjectHooksMain() {
-    HookInstall(0x53E230, &Render2dStuff);   // [ImGui] This one shouldn't be reversible, it contains imgui debug menu logic, and makes game unplayable without
-    HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
-    HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
+    const auto now = std::chrono::high_resolution_clock::now();
 
-#ifdef NOTSA_WINDOWED_MODE
-    notsa::InjectWindowedModeHooks();
-#endif
+    /**
+    * We have `NOTSA_STANDALONE` macro to be able to dump all hooks without actually writing to memory,
+    * it is used by the CI to automatically update the docs.
+    * So don't do anything game related here if that macro is set.
+    **/
+
+    #ifndef NOTSA_STANDALONE
+        #ifdef NOTSA_WINDOWED_MODE
+            notsa::InjectWindowedModeHooks();
+        #endif
+    #endif
+
     CDoor::InjectHooks();
     CControllerConfigManager::InjectHooks();
     CFormation::InjectHooks();
@@ -614,6 +624,7 @@ void InjectHooksMain() {
     CGroupEventHandler::InjectHooks();
     CVehicleRecording::InjectHooks();
     CBrightLights::InjectHooks();
+    CPointLights::InjectHooks();
     CShinyTexts::InjectHooks();
     CPedTaskPair::InjectHooks();
     CDirectory::InjectHooks();
@@ -823,6 +834,7 @@ void InjectHooksMain() {
     CCustomBuildingDNPipeline::InjectHooks();
     CCustomCarEnvMapPipeline::InjectHooks();
     CConversations::InjectHooks();
+    CProjectileInfo::InjectHooks();
 
     const auto Pools = [] {
         CPools::InjectHooks();
@@ -944,7 +956,7 @@ void InjectHooksMain() {
             CTaskInteriorBeInOffice::InjectHooks();
             CTaskInteriorBeInShop::InjectHooks();
             CTaskInteriorGoToInfo::InjectHooks();
-        // CTaskInteriorLieInBed::InjectHooks();
+            CTaskInteriorLieInBed::InjectHooks();
             CTaskInteriorShopKeeper::InjectHooks();
             CTaskInteriorSitAtDesk::InjectHooks();
         // CTaskInteriorSitInChair::InjectHooks();
@@ -1445,13 +1457,12 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
+
+    NOTSA_LOG_INFO("InjectedHooksMain(): Finished in {} ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count());
+
+    CommandLine::PostHooksInjected();
+
 #if _DEBUG
     CCurves::TestCurves();
 #endif
-}
-
-void InjectHooksMain(HMODULE hThisDLL) {
-    ReversibleHooks::OnInjectionBegin(hThisDLL);
-    InjectHooksMain();
-    ReversibleHooks::OnInjectionEnd();
 }

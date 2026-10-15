@@ -2,7 +2,7 @@
 
 #include "GroupEventHandler.h"
 #include "EventHandler.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 #include "Tasks/TaskTypes/TaskComplexStareAtPed.h"
 #include "Tasks/TaskTypes/TaskSimpleNone.h"
@@ -64,8 +64,8 @@ void CGroupEventHandler::InjectHooks() {
     RH_ScopedInstall(ComputeResponsePedFriend, 0x5FB2D0);
     RH_ScopedInstall(ComputeResponseNewGangMember, 0x5F9840);
     RH_ScopedInstall(ComputeResponseLeaderExitedCar, 0x5F90A0);
-    RH_ScopedInstall(ComputeResponsLeaderQuitEnteringCar, 0x5F9530, { .reversed = false });
-    RH_ScopedInstall(ComputeResponseLeaderEnteredCar, 0x5F8900, { .reversed = false });
+    RH_ScopedInstall(ComputeResponsLeaderQuitEnteringCar, 0x5F9530, { .Reversed = false });
+    RH_ScopedInstall(ComputeResponseLeaderEnteredCar, 0x5F8900, { .Reversed = false });
     RH_ScopedInstall(ComputeResponseLeaderEnterExit, 0x5F9710);
     RH_ScopedInstall(ComputeResponseGunAimedAt, 0x5FBD10);
     RH_ScopedInstall(ComputeResponseGather, 0x5F99F0);

@@ -8,7 +8,7 @@
 #include "TaskComplexJump.h"
 #include "TaskComplexUseGoggles.h"
 #include "TaskSimpleStealthKill.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleFight.h"
 #include "TaskSimpleDuck.h"
@@ -30,7 +30,7 @@ void CTaskSimplePlayerOnFoot::InjectHooks() {
 
     RH_ScopedInstall(ProcessPlayerWeapon, 0x6859A0);
     RH_ScopedInstall(PlayIdleAnimations, 0x6872C0);
-    RH_ScopedInstall(PlayerControlFighter, 0x687530, {.reversed = false});
+    RH_ScopedInstall(PlayerControlFighter, 0x687530, {.Reversed = false});
     RH_ScopedInstall(PlayerControlZelda, 0x6883D0);
 
     RH_ScopedVMTInstall(Clone, 0x68AFF0);

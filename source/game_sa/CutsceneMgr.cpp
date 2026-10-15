@@ -380,17 +380,17 @@ void CCutsceneMgr::LoadCutsceneData_loading() {
         const auto objMat = [&]() -> RwMatrix* {
             const auto objIdx = csfx.m_nObjectId;
 
-            // If not a cutscene object we don't have an object matrix - i'm not quite sure how this works, but okay.
-            if (objIdx < 0 || objIdx >= ms_numCutsceneObjs + 1) { // TODO: Bug? Pretty sure the +1 is erroneous...
+            // The effect's object id is 1-based (0 means "no object"), see 0x5B11C0
+            if (objIdx <= 0 || objIdx >= ms_numCutsceneObjs + 1) {
                 return nullptr;
             }
 
             // If it's a skinned object, we use bone indencies
-            const auto csobj = ms_pCutsceneObjects[objIdx];
+            const auto csobj = ms_pCutsceneObjects[objIdx - 1];
             if (const auto atomic = GetFirstAtomic(csobj->GetRpClump()); atomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) {
-                const auto nodeIdx = notsa::ston<uint32>({ csfx.m_szObjectPart }); // Obj Part is just an node index in this case
+                const auto nodeIdx = notsa::try_ston<uint32>({ csfx.m_szObjectPart }); // Obj Part is just an node index in this case
                 const auto hier = GetAnimHierarchyFromSkinClump(csobj->GetRpClump());
-                return &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, nodeIdx)];
+                return &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, *nodeIdx)];
             }
 
             // If not skinned, it's the name of a frame
@@ -1111,7 +1111,7 @@ void CCutsceneMgr::InjectHooks() {
     RH_ScopedClass(CCutsceneMgr);
     RH_ScopedCategoryGlobal();
 
-    //RH_ScopedGlobalInstall(FindCutsceneAudioTrackId, 0x8D0AA8, {.locked = true}); // Calling the original function from our code crashes, and vice versa
+    //RH_ScopedGlobalInstall(FindCutsceneAudioTrackId, 0x8D0AA8, {.Locked = true}); // Calling the original function from our code crashes, and vice versa
     RH_ScopedGlobalInstall(SetCutsceneAnim, 0x5B0390);
     RH_ScopedGlobalInstall(SetCutsceneAnimToLoop, 0x5B0420);
     RH_ScopedGlobalInstall(SetHeadAnim, 0x5B0440);

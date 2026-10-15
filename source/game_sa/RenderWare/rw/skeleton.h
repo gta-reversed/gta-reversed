@@ -121,7 +121,7 @@ struct RsInputDevice {
 };
 
 #ifdef NOTSA_USE_SDL3
-typedef struct SDL_Window;
+struct SDL_Window;
 #endif
 
 /**

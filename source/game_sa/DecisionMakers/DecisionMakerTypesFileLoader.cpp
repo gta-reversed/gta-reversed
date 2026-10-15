@@ -9,7 +9,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
     RH_ScopedInstall(ReStart, 0x607D00);
     RH_ScopedInstall(GetPedDMName, 0x600860);
     RH_ScopedInstall(GetGrpDMName, 0x600880);
-    RH_ScopedInstall(UnloadDecisionMaker, 0x607A70, { .enabled = false, .locked = true }); // Causes esp check failure
+    RH_ScopedInstall(UnloadDecisionMaker, 0x607A70, { .State = HS::RedirectToGTA, .Locked = true }); // Causes esp check failure
     RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400);
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "enum", 0x607D30, int32(*)(const char*, eDecisionTypes, bool));
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "ptr", 0x6076B0, bool (*)(const char*, CDecisionMaker*));

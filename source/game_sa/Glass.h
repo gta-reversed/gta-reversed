@@ -1,12 +1,13 @@
 #pragma once
 
+#include <rwcore.h>
+#include <FallingGlassPane.h>
 #include "Vector2D.h"
 #include "Vector.h"
 
 class CVehicle;
 class CEntity;
 class CObject;
-class CFallingGlassPane;
 
 enum class ePaneType : uint32 {
     DEFAULT = 0,

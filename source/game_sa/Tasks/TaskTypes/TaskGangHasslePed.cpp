@@ -10,9 +10,9 @@ void CTaskGangHasslePed::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x65FED0);
     RH_ScopedInstall(Destructor, 0x65FF60);
 
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6642C0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x664380, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x65FFE0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6642C0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x664380, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x65FFE0, { .Reversed = false });
 }
 
 // 0x65FED0

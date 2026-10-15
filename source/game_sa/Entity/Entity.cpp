@@ -31,7 +31,7 @@ void CEntity::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x535E90);
 
     //RH_ScopedOverloadedInstall(Add, "void", 0x533020, void(CEntity::*)());
-    RH_ScopedOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
+    RH_ScopedVMTOverloadedInstall(Add, "rect", 0x5347D0, void(CEntity::*)(const CRect&));
     RH_ScopedVMTInstall(Remove, 0x534AE0);
     RH_ScopedVMTInstall(SetIsStatic, 0x403E20);
     RH_ScopedVMTInstall(SetModelIndex, 0x532AE0);
@@ -255,7 +255,7 @@ void CEntity::SetModelIndexNoCreate(uint32 index) {
 
     auto ami = mi->AsAtomicModelInfoPtr();
     if (ami && !ami->bTagDisabled && ami->IsTagModel()) {
-        CTagManager::AddTag(this);
+        CTagManager::AddTag(*this);
     }
 }
 
@@ -291,8 +291,8 @@ void CEntity::CreateRwObject() {
     // Handle different RenderWare object types
     switch (RwObjectGetType(GetRwObject())) {
     case rpATOMIC:
-        if (CTagManager::IsTag(this)) {
-            CTagManager::ResetAlpha(this);
+        if (CTagManager::IsTag(*this)) {
+            CTagManager::ResetAlpha(*this);
         }
         CCustomBuildingDNPipeline::PreRenderUpdate(GetRpAtomic(), true);
         break;
@@ -640,8 +640,8 @@ void CEntity::Render() {
         return;
     }
 
-    if (RwObjectGetType(GetRwObject()) == rpATOMIC && CTagManager::IsTag(this)) {
-        CTagManager::RenderTagForPC(GetRpAtomic());
+    if (RwObjectGetType(GetRwObject()) == rpATOMIC && CTagManager::IsTag(*this)) {
+        CTagManager::RenderTagForPC(*GetRpAtomic());
         return;
     }
 

@@ -14,6 +14,12 @@ public:
     void AddPoint(CVector pt) noexcept;
     void MergeListsRemovingDoubles(CPointList* main, CPointList* toBeMerged) noexcept;
 
+    //! NOTSA - Get the points added so far
+    auto GetPoints(this auto&& self) noexcept { return std::span{ self.m_Points.data(), self.m_Count }; }
+
+    //! NOTSA - Get the average of all points added so far
+    CVector GetCentroid() const noexcept;
+
 public:
     uint32                  m_Count{};
     std::array<CVector, 24> m_Points{};
