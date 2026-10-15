@@ -15,7 +15,7 @@
 template<size_t Alignment, typename T>
     requires(std::is_pointer_v<T> && std::has_single_bit(Alignment))
 constexpr uintptr_t AlignUp(T ptr) {
-    return reinterpret_cast<uintptr_t>(ptr) + Alignment & (Alignment - 1);
+    return (reinterpret_cast<uintptr_t>(ptr) + (Alignment - 1)) & ~(Alignment - 1);
 }
 
 class RenderFontBuffer {
@@ -26,11 +26,11 @@ public:
     //                                                   |~ Terminator
     CFontChar* GetTop() { return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[0]); }
 
-    CFontChar* FindNext(const void* p) {
-        if (*static_cast<const GxtChar*>(p) != '\0') {
+    CFontChar* FindNext(const GxtChar* p) {
+        if (*p != '\0') {
             NOTSA_UNREACHABLE("expected null terminator to calculate the next fontchar");
         }
-        return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[AlignUp<4>(p) - (uintptr)m_UnderlyingBuffer.data()]);
+        return reinterpret_cast<CFontChar*>(&m_UnderlyingBuffer[AlignUp<4>(p + 1) - (uintptr)m_UnderlyingBuffer.data()]);
     }
 
 private:
@@ -841,12 +841,13 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     next->m_nOutline       = m_Details.EdgeSpace;
     next->m_vPosn.Set(x, y);
 
-    auto& renderEnd = reinterpret_cast<uint8*&>(s_RenderEndPtr);
-    renderEnd += sizeof(CFontChar);
+    s_RenderEndPtr += sizeof(CFontChar);
+    auto& renderEndChar = reinterpret_cast<GxtChar*&>(s_RenderEndPtr);
 
     while (start < end) {
         if (*start == '~') {
             // saved color can change here
+            // TODO/BUG?: RenderState.m_bContainImages may contain stale data, makes this non-deterministic.
             auto* tokenEnd = ParseToken(start, savedColor, RenderState.m_bContainImages, nullptr);
 
             if (!m_Details.Shadow && PS2Symbol == EXSYMBOL_NONE) {
@@ -857,22 +858,17 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
             PS2Symbol = EXSYMBOL_NONE;
 
             while (start != tokenEnd) {
-                *renderEnd++ = *start++;
+                *renderEndChar++ = *start++;
             }
         } else {
-            *renderEnd++ = *start++;
+            *renderEndChar++ = *start++;
         }
     }
 
     // null terminate the end
-    *renderEnd = '\0';
+    *renderEndChar++ = '\0';
 
-    // align to 4 bytes
-    auto alignPtr = reinterpret_cast<uintptr_t>(renderEnd + 1);
-    while (alignPtr & 3) {
-        alignPtr++;
-    }
-    s_RenderEndPtr = alignPtr;
+    s_RenderEndPtr = AlignUp<4>(renderEndChar);
 
     if (!m_Details.Shadow) {
         m_Details.Color = savedColor;
