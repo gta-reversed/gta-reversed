@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "BulletTraces.h"
+#include "AEAudioUtility.h"
 
 void CBulletTraces::InjectHooks()
 {
@@ -82,7 +83,7 @@ void PlayFrontEndSoundForTrace(CVector fromWorldSpace, CVector toWorldSpace) {
 
     const auto ReportBulletAudio = [&](auto event) {
         const float volDistFactor = 1.0f - camToLineDist * 0.5f;
-        const float volumeChange  = volDistFactor == 0.0f ? -100.0f : std::log10(volDistFactor);
+        const float volumeChange  = volDistFactor == 0.0f ? VOLUME_SILENCE : std::log10(volDistFactor);
         AudioEngine.ReportFrontendAudioEvent(event, volumeChange, 1.0f);
     };
 

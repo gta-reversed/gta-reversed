@@ -6,15 +6,15 @@
 */
 #pragma once
 
-enum {
-    TYPE_INDENT      = 0,
-    TYPE_ADVERT      = 1,
-    TYPE_DJ_BANTER   = 2,
-    TYPE_INTRO       = 3,
-    TYPE_TRACK       = 4,
-    TYPE_OUTRO       = 5,
-    TYPE_NONE        = 6,
-    TYPE_USER_TRACK  = 7,
+enum class eTrackType : int8 {
+    INDENT      = 0,
+    ADVERT      = 1,
+    DJ_BANTER   = 2,
+    INTRO       = 3,
+    TRACK       = 4,
+    OUTRO       = 5,
+    NONE        = 6,
+    USER_TRACK  = 7,
 };
 
 struct tRadioSettings {
@@ -24,7 +24,7 @@ struct tRadioSettings {
         StationID(currentStation)
     {
         rng::fill(TrackQueue, -1);
-        rng::fill(TrackTypes, TYPE_NONE);
+        rng::fill(TrackTypes, eTrackType::NONE);
         rng::fill(TrackIndices, -1);
     }
 
@@ -42,25 +42,25 @@ struct tRadioSettings {
             arr.back() = invalidValue;
         };
         Rotate(TrackQueue,   -1);
-        Rotate(TrackTypes,   TYPE_NONE);
+        Rotate(TrackTypes,   eTrackType::NONE);
         Rotate(TrackIndices, -1);
     }
 
-    std::array<int32, NUM_TRACKS> TrackQueue{ -1 };
-    int32                         CurrTrackID{ -1 };
-    int32                         PrevTrackID{ -1 };
-    int32                         PlayTime{ 0 };
-    int32                         TrackLengthMs{ 0 };
-    int8                          TrackFlags{ 2 };        // TODO: enum
-    eRadioID                      StationID{ RADIO_OFF }; // NOTSA init value.
-    eBassSetting                  BassSetting{ eBassSetting::NORMAL };
-    float                         BassGain{}; // unk. init
-    std::array<int8, NUM_TRACKS>  TrackTypes{ TYPE_NONE };
-    int8                          CurrTrackType{ TYPE_NONE };
-    int8                          PrevTrackType{ TYPE_NONE };
-    std::array<int8, NUM_TRACKS>  TrackIndices{ -1 };
-    int8                          CurrTrackIdx{ -1 }; //!< Index into `TrackIndices`
-    int8                          PrevTrackIdx{ -1 }; //!< Index into `TrackIndices`
+    std::array<int32, NUM_TRACKS>      TrackQueue{ -1 };
+    int32                              CurrTrackID{ -1 };
+    int32                              PrevTrackID{ -1 };
+    int32                              PlayTime{ 0 };
+    int32                              TrackLengthMs{ 0 };
+    int8                               TrackFlags{ 2 };        // TODO: enum
+    eRadioID                           StationID{ RADIO_OFF }; // NOTSA init value.
+    eBassSetting                       BassSetting{ eBassSetting::NORMAL };
+    float                              BassGain{}; // unk. init
+    std::array<eTrackType, NUM_TRACKS> TrackTypes{ eTrackType::NONE };
+    eTrackType                         CurrTrackType{ eTrackType::NONE };
+    eTrackType                         PrevTrackType{ eTrackType::NONE };
+    std::array<int8, NUM_TRACKS>       TrackIndices{ -1 };
+    int8                               CurrTrackIdx{ -1 }; //!< Index into `TrackIndices`
+    int8                               PrevTrackIdx{ -1 }; //!< Index into `TrackIndices`
 };
 VALIDATE_SIZE(tRadioSettings, 0x3C);
 
@@ -70,14 +70,14 @@ struct tRadioState {
     int32 m_iTimeInMs{-1};
     int32 m_iTrackPlayTime{-1};
     std::array<int32, 3> m_aTrackQueue{-1};
-    std::array<int8, 3>  m_aTrackTypes{TYPE_NONE};
+    std::array<eTrackType, 3>  m_aTrackTypes{eTrackType::NONE};
     int8 m_nGameClockDays{-1};
     int8 m_nGameClockHours{-1};
 
     void Reset(bool paused = false) {
         rng::fill(m_aElapsed, 0);
         rng::fill(m_aTrackQueue, -1);
-        rng::fill(m_aTrackTypes, TYPE_NONE);
+        rng::fill(m_aTrackTypes, eTrackType::NONE);
 
         m_iTimeInMs = -1;
         if (!paused)
@@ -139,7 +139,7 @@ public:
     uint32          m_nTimeToDisplayRadioName{0};
     uint32          m_nSavedTimeMs{0};
     uint32          m_nRetuneStartedTime;
-    uint32          field_60{0};
+    uint32          m_PlayBeginTime{0};
     int32           m_HwClientHandle;
     eRadioTrackMode m_nMode{eRadioTrackMode::RADIO_STOPPED};
     int32           m_nStationsListed{0};
@@ -147,13 +147,13 @@ public:
     int32           m_nSavedRadioStationId{-1};         // TODO: convert to eRadioID after finished reversing
     int32           m_iRadioStationMenuRequest{ -1 };   // <-
     int32           m_iRadioStationScriptRequest{ -1 }; // <-
-    float           m_f80{0.0f}; // 80 and 84 volume related fields. See ::UpdateRadioVolumes
-    float           m_f84{0.0f};
+    float           m_RadioDuckedVolume{}; // Reduces radio volume if mission audio is nearby
+    float           m_RadioDuckFadeRate{}; // Rate of recovery of ducked radio volume
     tRadioSettings  m_RequestedSettings{}; // settings1
     tRadioSettings  m_ActiveSettings{}; // settings2
     std::array<tRadioState, RADIO_COUNT> m_aRadioState{};
     uint32          field_368{0};
-    uint8           m_nUserTrackPlayMode{};
+    eRadioMode      m_nUserTrackPlayMode{};
 
 public:
     static constexpr auto DJBANTER_INDEX_HISTORY_COUNT = 15;
@@ -224,7 +224,7 @@ public:
 
     void  DisplayRadioStationName();
     const GxtChar* GetRadioStationName(eRadioID id);
-    void  GetRadioStationNameKey(eRadioID id, char* outStr);
+    void GetRadioStationNameKey(eRadioID id, char(&outStr)[8]);
     static bool IsVehicleRadioActive();
 
     void StartTrackPlayback();
@@ -259,7 +259,7 @@ protected:
     void CheckForStationRetuneDuringPause();
     void CheckForPause();
 
-    bool QueueUpTracksForStation(eRadioID id, int8* iTrackCount, int8 radioState, tRadioSettings& settings);
+    bool QueueUpTracksForStation(eRadioID id, int8* iTrackCount, eTrackType trackType, tRadioSettings& settings);
     bool TrackRadioStation(eRadioID id, bool skipTrack);
 };
 VALIDATE_SIZE(CAERadioTrackManager, 0x370);
