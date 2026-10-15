@@ -106,4 +106,9 @@ inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheck
     .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CAutomobile_UpdateMovingCollision_MiscComponentAngleUnderflow{
+    .Name        = "CAutomobile::UpdateMovingCollision misc-component angle underflow",
+    .Description = "Keep the signed angle delta until after clamping, preventing downward input from wrapping the uint16 angle to its upper limit",
+    .Credit      = "Contributors"
+};
 };
