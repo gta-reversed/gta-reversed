@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-import subprocess
+import subprocess, sys
 
 ap = ArgumentParser(description="Wrapper setup script for the project. All arguments not listed here will be passed to Conan, for more details see Conan's documentation.")
 #ap.add_argument('-o', '--options', dest='options', default=[], nargs='+', help='Options passed to Conan (See `conanfile` for available options)')
@@ -11,6 +11,8 @@ def main() -> None:
     args, conan_args = ap.parse_known_args()
 
     profile = args.profile
+    if sys.platform == "linux":
+        profile = "wine.txt"
     if '/' not in profile and '\\' not in profile:
         profile = f'./conan/profiles/{profile}'
 

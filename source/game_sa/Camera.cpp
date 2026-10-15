@@ -95,7 +95,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(UpdateTargetEntity, 0x50C360);
     RH_ScopedInstall(TakeControl, 0x50C7C0);
     RH_ScopedInstall(TakeControlNoEntity, 0x50C8B0);
-    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910);
+    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910, { .Reversed = false });
     RH_ScopedInstall(TakeControlWithSpline, 0x50CAE0);
     RH_ScopedInstall(SetCamCollisionVarDataSet, 0x50CB60);
     RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .Reversed = false });
