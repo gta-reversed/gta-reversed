@@ -75,8 +75,8 @@ void CPedList::RemovePedsAttackingPedType(int32 pedType) {
 
 // 0x69A420
 void CPedList::RemovePedsThatDontListenToPlayer() {
-    // NOTE: `m_count` is modified inside the loop, so remember the original value
-    for (auto i = 0u, n = m_count; i < n; i++) {
+    // NOTE: Going backwards, so `m_count` being modified inside the loop doesn't matter
+    for (auto i = (int32)m_count; i-- > 0;) {
         if (m_peds[i]->bDoesntListenToPlayerGroupCommands) {
             RemoveMemberNoFill(i);
         }
