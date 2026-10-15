@@ -17,7 +17,7 @@ class CVector : public RwV3d {
 public:
     constexpr CVector() = default;
     constexpr CVector(float X, float Y, float Z) : RwV3d{ X, Y, Z } {}
-    constexpr CVector(RwV3d rwVec) { x = rwVec.x; y = rwVec.y; z = rwVec.z; }
+    constexpr CVector(RwV3d rwVec) : RwV3d(rwVec) {}
     constexpr explicit CVector(float value) { x = y = z = value; }
     explicit CVector(const CVector2D& v2, float z = 0.f);
 
@@ -28,10 +28,10 @@ public:
     static CVector Random(CVector min, CVector max);
 
     // Returns length of vector
-    float Magnitude() const;
+    [[nodiscard]] float Magnitude() const;
 
     // Returns length of 2d vector
-    float Magnitude2D() const;
+    [[nodiscard]] float Magnitude2D() const;
 
     // Normalises a vector in-place
     void Normalise();
@@ -50,10 +50,10 @@ public:
     }
 
     /// Perform a dot product with this and `o`, returning the result
-    auto Dot(const CVector& o) const -> float;
+    [[nodiscard]] float Dot(const CVector& o) const;
 
     /// Perform a 2D dot product with this and `o`, returning the result
-    auto Dot2D(const CVector& o) const -> float;
+    [[nodiscard]] float Dot2D(const CVector& o) const;
 
     /*!
     * @notsa
@@ -64,7 +64,7 @@ public:
     * 
     * @return The cross product of `*this` and `o`
     */
-    auto Cross(const CVector& other) const -> CVector;
+    [[nodiscard]] CVector Cross(const CVector& other) const;
 
     /*!
     * @addr 0x70F890
@@ -101,7 +101,7 @@ public:
     void FromMultiply(const CMatrix& matrix, const CVector& vector);
     void FromMultiply3x3(const CMatrix& matrix, const CVector& vector);
 
-    inline void Set(float X, float Y, float Z) {
+    void Set(float X, float Y, float Z) {
         x = X;
         y = Y;
         z = Z;
@@ -111,54 +111,54 @@ public:
         Set(0.f, 0.f, 0.f);
     }
 
-    inline RwV3d ToRwV3d() {
+    RwV3d ToRwV3d() {
         return { x, y, z };
     }
 
-    inline void FromRwV3d(RwV3d& vec) {
+    void FromRwV3d(RwV3d& vec) {
         x = vec.x;
         y = vec.y;
         z = vec.z;
     }
 
-    [[nodiscard]] inline float ComponentwiseSum() const {
+    [[nodiscard]] float ComponentwiseSum() const {
         return x + y + z;
     }
 
-    [[nodiscard]] inline float SquaredMagnitude() const {
+    [[nodiscard]] float SquaredMagnitude() const {
         return x * x + y * y + z * z;
     }
 
-    inline float SquaredMagnitude2D() const {
+    [[nodiscard]] float SquaredMagnitude2D() const {
         return x * x + y * y;
     }
 
-    [[nodiscard]] inline bool IsZero() const {
+    [[nodiscard]] bool IsZero() const {
         return x == 0.0F && y == 0.0F && z == 0.0F;
     }
 
-    float operator[](size_t i) const {
+    [[nodiscard]] float operator[](size_t i) const {
         return (&x)[i];
     }
 
-    float& operator[](size_t i) {
+    [[nodiscard]] float& operator[](size_t i) {
         return (&x)[i];
     }
 
     //! Get a copy of `*this` vector projected onto `projectOnTo` (which is assumed to be unit length)
     //! The result will have a magnitude of `sqrt(abs(this->Dot(projectOnTo)))`
-    CVector ProjectOnToNormal(const CVector& projectOnTo, float offset = 0.f) const {
+    [[nodiscard]] CVector ProjectOnToNormal(const CVector& projectOnTo, float offset = 0.f) const {
         return projectOnTo * (Dot(projectOnTo) + offset);
     }
 
     //! Calculate the center of all provided vectors. Same operation as averaging.
     template<rng::input_range R = std::initializer_list<CVector>>
         requires rng::sized_range<R>
-    static CVector Centroid(R&& rng) {
-        return rng::fold_left(rng, CVector{}, std::plus{}) / std::size(rng);
+    [[nodiscard]] static CVector Centroid(R&& rng) {
+        return rng::fold_left(rng, CVector{}, std::plus{}) / static_cast<float>(std::size(rng));
     }
 
-    auto GetComponents() const {
+    [[nodiscard]] auto GetComponents() const {
         return std::span{ reinterpret_cast<const float*>(this), 3 };
     }
 
@@ -188,7 +188,7 @@ public:
     }
 
 #ifdef _DEBUG
-    bool HasNanOrInf() const {
+    [[nodiscard]] bool HasNanOrInf() const {
         for (auto i = 0; i < 3; i++) {
             const auto v = (*this)[i];
             if (std::isnan(v) || std::isinf(v)) {
@@ -205,7 +205,7 @@ public:
     * @param b Point B
     * @return 3D Distance between 2 points
     */
-    static inline float Dist(CVector a, CVector b) {
+    static float Dist(CVector a, CVector b) {
         return (a - b).Magnitude();
     }
 
@@ -215,7 +215,7 @@ public:
     * @param b Point B
     * @return 3D Squared distance between 2 points
     */
-    static inline float DistSqr(CVector a, CVector b) {
+    static float DistSqr(CVector a, CVector b) {
         return (a - b).SquaredMagnitude();
     }
 
@@ -223,44 +223,44 @@ public:
 };
 VALIDATE_SIZE(CVector, 0xC);
 
-constexpr inline CVector operator-(const CVector& vecOne, const CVector& vecTwo) {
+constexpr CVector operator-(const CVector& vecOne, const CVector& vecTwo) {
     return { vecOne.x - vecTwo.x, vecOne.y - vecTwo.y, vecOne.z - vecTwo.z };
 }
 
-constexpr inline CVector operator+(const CVector& vecOne, const CVector& vecTwo) {
+constexpr CVector operator+(const CVector& vecOne, const CVector& vecTwo) {
     return { vecOne.x + vecTwo.x, vecOne.y + vecTwo.y, vecOne.z + vecTwo.z };
 }
 
-constexpr inline CVector operator*(const CVector& vecOne, const CVector& vecTwo) {
+constexpr CVector operator*(const CVector& vecOne, const CVector& vecTwo) {
     return { vecOne.x * vecTwo.x, vecOne.y * vecTwo.y, vecOne.z * vecTwo.z };
 }
 
-constexpr inline bool operator!=(const CVector& vecOne, const CVector& vecTwo) {
+constexpr bool operator!=(const CVector& vecOne, const CVector& vecTwo) {
     return vecOne.x != vecTwo.x || vecOne.y != vecTwo.y || vecOne.z != vecTwo.z;
 }
 
-constexpr inline bool operator!=(const CVector& vec, float notEqualTo) {
+constexpr bool operator!=(const CVector& vec, float notEqualTo) {
     return vec.x != notEqualTo || vec.y != notEqualTo || vec.z != notEqualTo;
 }
 
-constexpr inline bool operator==(const CVector& vec, float equalTo) {
+constexpr bool operator==(const CVector& vec, float equalTo) {
     return vec.x == equalTo && vec.y == equalTo && vec.z == equalTo;
 }
 
-constexpr inline bool operator==(const CVector& vecLeft, const CVector& vecRight) {
+constexpr bool operator==(const CVector& vecLeft, const CVector& vecRight) {
     return vecLeft.x == vecRight.x && vecLeft.y == vecRight.y && vecLeft.z == vecRight.z;
 }
 
 
-constexpr inline CVector operator/(const CVector& vec, float dividend) {
+constexpr CVector operator/(const CVector& vec, float dividend) {
     return { vec.x / dividend, vec.y / dividend, vec.z / dividend };
 }
 
-constexpr inline CVector operator*(float multiplier, const CVector& vec) {
+constexpr CVector operator*(float multiplier, const CVector& vec) {
     return { vec.x * multiplier, vec.y * multiplier, vec.z * multiplier };
 }
 
-constexpr inline CVector operator-(const CVector& vec) {
+constexpr CVector operator-(const CVector& vec) {
     return { -vec.x, -vec.y, -vec.z };
 }
 
@@ -278,10 +278,11 @@ inline CVector Lerp(const CVector& vecOne, const CVector& vecTwo, float fProgres
 
 //! Component-wise clamp of values
 inline CVector Clamp(CVector val, CVector min, CVector max) {
-    for (auto i = 0; i < 3; i++) {
-        val[i] = std::clamp(val[i], min[i], max[i]);
-    }
-    return val;
+    return {
+        std::clamp(val.x, min.x, max.x),
+        std::clamp(val.y, min.y, max.y),
+        std::clamp(val.z, min.z, max.z)
+    };
 }
 
 inline CVector Pow(const CVector& vec, float fPow) {
