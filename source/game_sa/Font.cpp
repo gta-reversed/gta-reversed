@@ -821,6 +821,12 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     }
 
     static constexpr auto RENDER_BUFFER_LAST_POSSIBLE_ENTRY_OFFSET = sizeof(s_RenderFontBuffer) - sizeof(CFontChar) - 4;
+
+    // FIX_BUGS: if a veeeeery long string provided (sized end-start) the flush check below will underflow, bail out before reaching to it.
+    if (std::cmp_greater(end - start, RENDER_BUFFER_LAST_POSSIBLE_ENTRY_OFFSET - 1)) {
+        NOTSA_UNREACHABLE("very long string provided! (sized: {})", static_cast<size_t>(end - start));
+    }
+
     if (s_RenderEndPtr >= reinterpret_cast<uintptr_t>(&s_RenderFontBuffer) + RENDER_BUFFER_LAST_POSSIBLE_ENTRY_OFFSET - (end - start)) {
         // if it's not gonna fit we gotta flush
         RenderFontBuffer();

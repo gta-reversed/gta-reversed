@@ -22,5 +22,5 @@ private:
     bool           m_Proportional{ true }, m_Justify{}, m_BackgroundEnabled{}, m_BackgroundInclWrap{}, m_Draw{}, m_IgnoreSettings{};
     int            m_DropShadowPos{}, m_Edge{};
     eFontAlignment m_Alignment{};
-    GxtChar        m_Text[256];
+    GxtChar        m_Text[256]{};
 };
