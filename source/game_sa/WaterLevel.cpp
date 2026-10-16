@@ -49,6 +49,11 @@ void CWaterLevel::InjectHooks() {
     RH_ScopedGlobalInstall(RenderWater, 0x6EF650, { .Reversed = false });
     RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0, { .Reversed = false });
     RH_ScopedGlobalInstall(SetCameraRange, 0x6E9C80);
+    RH_ScopedInstall(RenderHighDetailWaterRectangle, 0x6EB810, { .Reversed = false });
+    RH_ScopedInstall(GetWaterDepth, 0x6EA960, { .Reversed = false });
+    RH_ScopedInstall(CalculateWavesOnlyForCoordinate2, 0x6E7210, { .Reversed = false });
+    RH_ScopedOverloadedInstall(RenderHighDetailWaterTriangle, "", 0x6EDDC0, void(*)(int32, int32, CRenPar, int32, int32, CRenPar, int32, int32, CRenPar), { .Reversed = false });
+    RH_ScopedInstall(FillQuadsAndTrianglesList, 0x6E7B30, { .Reversed = false });
 }
 
 // NOTSA

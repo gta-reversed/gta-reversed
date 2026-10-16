@@ -215,8 +215,8 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(GetPlaneWeaponFiringStatus, 0x6E3440);
     RH_ScopedInstall(ProcessWeapons, 0x6E3950);
     RH_ScopedInstall(DoFixedMachineGuns, 0x73F400);
-    // RH_ScopedInstall(FireFixedMachineGuns, 0x73DF00);
-    // RH_ScopedInstall(DoDriveByShootings, 0x741FD0);
+    RH_ScopedInstall(FireFixedMachineGuns, 0x73DF00, { .Reversed = false });
+    RH_ScopedInstall(DoDriveByShootings, 0x741FD0, { .Reversed = false });
     RH_ScopedInstall(ReleasePickedUpEntityWithWinch, 0x6D3CB0);
     RH_ScopedInstall(PickUpEntityWithWinch, 0x6D3CD0);
     RH_ScopedInstall(QueryPickedUpEntityWithWinch, 0x6D3CF0);

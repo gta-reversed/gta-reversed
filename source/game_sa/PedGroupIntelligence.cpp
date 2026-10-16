@@ -37,6 +37,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
     RH_ScopedInstall(Process, 0x5FC4A0);
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
+    RH_ScopedInstall(ComputeScriptCommandTasks, 0x5F7800, { .Reversed = false });
 }
 
 // 0x5F7250

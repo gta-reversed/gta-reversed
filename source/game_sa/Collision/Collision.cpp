@@ -3460,6 +3460,8 @@ void CCollision::InjectHooks() {
 
     RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "colData", 0x416330, void (*)(CCollisionData*), { .State = state, .Locked = locked });
     RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "colData", 0x416400, void (*)(CCollisionData*), { .State = state, .Locked = locked });
+    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "CColModelPtr", 0x418580, void(*)(CColModel*), { .Reversed = false });
+    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "CColModelPtr", 0x4185A0, void(*)(CColModel*), { .Reversed = false });
 }
 
 void CCollision::Tests(int32 i) {

@@ -56,6 +56,7 @@ void SurfaceInfos_c::InjectHooks()
     RH_ScopedInstall(IsAudioLongGrass, 0x55EB10);
     RH_ScopedInstall(IsAudioTile, 0x55EB30);
     RH_ScopedInstall(GetAdhesiveLimit, 0x55EB50);
+    RH_ScopedInstall(LoadAdhesiveLimits, 0x55D0E0, { .Reversed = false });
 }
 
 // 0x55D220
