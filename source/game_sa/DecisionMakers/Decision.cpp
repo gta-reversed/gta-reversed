@@ -21,7 +21,13 @@ CDecision::CDecision() {
 
 // 0x600530
 void CDecision::SetDefault() {
-    plugin::CallMethod<0x600530, CDecision*>(this);
+    m_Tasks.fill(TASK_INVALID);
+    for (auto& probs : m_Probs) {
+        probs.fill(0);
+    }
+    for (auto& bools : m_Bools) {
+        bools.fill(false);
+    }
 }
 
 // 0x6006B0
