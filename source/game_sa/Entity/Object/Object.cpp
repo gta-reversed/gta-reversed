@@ -605,7 +605,7 @@ bool CObject::Load() {
 
 // 0x5D2830 - Serializes object to save storage buffer
 bool CObject::Save() {
-    CObjectSaveStructure data;
+    CObjectSaveStructure data{};
     data.Construct(this);
     CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CObjectSaveStructure));
     CGenericGameStorage::SaveDataToWorkBuffer(data);

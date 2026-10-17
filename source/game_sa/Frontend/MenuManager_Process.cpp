@@ -100,7 +100,7 @@ void CMenuManager::ProcessFileActions() {
                 }
 
                 m_bDontDrawFrontEnd = true;
-                CGame::bMissionPackGame = false;
+                CGame::MissionPackGameId = 0;
                 m_bLoadingData = true;
             } else {
                 // Load Game
@@ -135,10 +135,10 @@ void CMenuManager::ProcessFileActions() {
 
     case SCREEN_SAVE_DONE_1:
         if (m_CurrentlySaving) {
-            if (CGame::bMissionPackGame) {
+            if (CGame::MissionPackGameId) {
                 // Check mission pack file availability
                 CFileMgr::SetDirMyDocuments();
-                sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+                sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::MissionPackGameId);
                 auto file = CFileMgr::OpenFile(gString, "rb");
                 CFileMgr::SetDir(""); // FIX_BUGS
 
@@ -214,7 +214,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         return;
     }
     case MENU_ACTION_MPACKGAME:
-        CGame::bMissionPackGame = m_nMissionPackGameId;
+        CGame::MissionPackGameId = m_nMissionPackGameId;
         DoSettingsBeforeStartingAGame();
         return;
     case MENU_ACTION_SAVE_SLOT: {
@@ -231,7 +231,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         return;
     }
     case MENU_ACTION_STANDARD_GAME:
-        CGame::bMissionPackGame = 0;
+        CGame::MissionPackGameId = 0;
         DoSettingsBeforeStartingAGame();
         m_bDontDrawFrontEnd = true;
         return;
@@ -630,7 +630,7 @@ void CMenuManager::ProcessMissionPackNewGame() {
         SwitchToNewScreen(SCREEN_NEW_GAME_ASK);
 
         auto screen = &aScreens[m_nCurrentScreen];
-        if (CGame::bMissionPackGame) {
+        if (CGame::MissionPackGameId) {
             // Are you sure you want to start a new standard game?
             // All current game progress in this Mission Pack will be lost. Proceed?
             strncpy_s(screen->m_aItems[0].m_szName, "FESZ_MR", 8u);
