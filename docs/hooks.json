@@ -2102,7 +2102,7 @@
   {
     "Category": "CPedList",
     "Name": "BuildListOfPedsOfPedType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedList",
@@ -2112,7 +2112,7 @@
   {
     "Category": "CPedList",
     "Name": "RemovePedsThatDontListenToPlayer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CBouncingPanel",
@@ -2750,6 +2750,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CFileLoader",
+    "Name": "Load2dEffect",
+    "IsReversed": false
+  },
+  {
     "Category": "CWorld",
     "Name": "Initialise",
     "IsReversed": true
@@ -2982,6 +2987,11 @@
   {
     "Category": "CWorld",
     "Name": "FindObjectsInRangeSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": true
+  },
+  {
+    "Category": "CWorld",
+    "Name": "FindPlayerSlotWithRemoteVehiclePointer",
     "IsReversed": true
   },
   {
@@ -5580,6 +5590,11 @@
     "IsReversed": true
   },
   {
+    "Category": "SurfaceInfos_c",
+    "Name": "LoadAdhesiveLimits",
+    "IsReversed": false
+  },
+  {
     "Category": "CRenderer",
     "Name": "RenderFadingInEntities",
     "IsReversed": true
@@ -6585,6 +6600,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CPedGroupIntelligence",
+    "Name": "ComputeScriptCommandTasks",
+    "IsReversed": false
+  },
+  {
     "Category": "CCollision",
     "Name": "Test2DLineAgainst2DLine",
     "IsReversed": true
@@ -6878,6 +6898,16 @@
     "Category": "CCollision",
     "Name": "RemoveTrianglePlanes-colData",
     "IsReversed": true
+  },
+  {
+    "Category": "CCollision",
+    "Name": "CalculateTrianglePlanes-CColModelPtr",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCollision",
+    "Name": "RemoveTrianglePlanes-CColModelPtr",
+    "IsReversed": false
   },
   {
     "Category": "CTrafficLights",
@@ -7478,6 +7508,31 @@
     "Category": "CWaterLevel",
     "Name": "SetCameraRange",
     "IsReversed": true
+  },
+  {
+    "Category": "CWaterLevel",
+    "Name": "RenderHighDetailWaterRectangle",
+    "IsReversed": false
+  },
+  {
+    "Category": "CWaterLevel",
+    "Name": "GetWaterDepth",
+    "IsReversed": false
+  },
+  {
+    "Category": "CWaterLevel",
+    "Name": "CalculateWavesOnlyForCoordinate2",
+    "IsReversed": false
+  },
+  {
+    "Category": "CWaterLevel",
+    "Name": "RenderHighDetailWaterTriangle-",
+    "IsReversed": false
+  },
+  {
+    "Category": "CWaterLevel",
+    "Name": "FillQuadsAndTrianglesList",
+    "IsReversed": false
   },
   {
     "Category": "cBuoyancy",
@@ -8105,6 +8160,101 @@
     "IsReversed": true
   },
   {
+    "Category": "CStats",
+    "Name": "PopulateFavoriteRadioStationList",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "FindMostFavoriteRadioStation",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "FindLeastFavoriteRadioStation",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "BuildStatLine",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "CheckForStatsMessage",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "LoadStatUpdateConditions",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "GetFatAndMuscleModifier",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "FindCriminalRatingString",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "ConstructStatLine",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateRespectStat",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateSexAppealStat",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateFatAndMuscleStats",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsWhenCycling",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsWhenSwimming",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsWhenDriving",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsWhenFlying",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsWhenWeaponHit",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsOnRespawn",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStats",
+    "Name": "UpdateStatsAddToHealth",
+    "IsReversed": false
+  },
+  {
     "Category": "CCarCtrl",
     "Name": "Init",
     "IsReversed": true
@@ -8213,6 +8363,446 @@
     "Category": "CCarCtrl",
     "Name": "GenerateRandomCars",
     "IsReversed": true
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "ChooseModel",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "ClearInterestingVehicleList",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "ClitargetOrientationToLink",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "CreateConvoy",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "CreatePoliceChase",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "DealWithBend_Racing",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "DragCarToPoint",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindAngleToWeaveThroughTraffic",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindIntersection2Lines",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindLinksToGoWithTheseNodes",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindMaximumSpeedForThisCarInTraffic",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindNodesThisCarIsNearestTo",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindPathDirection",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindPercDependingOnDistToLink",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindSequenceElement",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindSpeedMultiplier",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindSpeedMultiplierWithSpeedFromNodes",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FindGhostRoadHeight",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FireHeliRocketsAtTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FlyAIHeliInCertainDirection",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FlyAIHeliToTarget_FixedOrientation",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "FlyAIPlaneInCertainDirection",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GenerateCarCreationCoors2",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GenerateEmergencyServicesCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GenerateOneEmergencyServicesCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GenerateOneRandomCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GetAIHeliToAttackPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GetAIHeliToFlyInDirection",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GetAIPlaneToAttackPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GetAIPlaneToDoDogFight",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "GetAIPlaneToDoDogFightAgainstPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "IsThisAnAppropriateNode",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "JoinCarWithRoadSystem",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "JoinCarWithRoadSystemGotoCoors",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "PickNextNodeAccordingStrategy",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "PickNextNodeRandomly",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "PickNextNodeToChaseCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "PickNextNodeToFollowPath",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "PossiblyRemoveVehicle",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "ReconsiderRoute",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "RegisterVehicleOfInterest",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "ScanForPedDanger",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SetCoordsOfScriptCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SetUpDriverAndPassengersForVehicle",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SlowCarDownForCarsSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SlowCarDownForObjectsSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SlowCarDownForOtherCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SlowCarDownForPedsSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIBoatWithPhysicsAttackingPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIBoatWithPhysicsCirclingPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIBoatWithPhysicsHeadingForTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarBlockingPlayerForwardAndBack",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarParkParallel",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarParkPerpendicular",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarTowardsPointInEscort",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysics",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysicsFollowPath",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysicsFollowPath_Racing",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysicsFollowPreRecordedPath",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysicsHeadingForTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysicsTryingToBlockTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysicsTryingToBlockTarget_Stop",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAICarWithPhysics_OnlyMission",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliAsPoliceHeli",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliFlyingAwayFromPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliToCrashAndBurn",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliToFollowEntity",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliToKeepEntityInView",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliToLand",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIHeliTowardsTargetCoors",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIPlaneToCrashAndBurn",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIPlaneToFollowEntity",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SteerAIPlaneTowardsTargetCoors",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "StopCarIfNodesAreInvalid",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SwitchBetweenPhysicsAndGhost",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "SwitchVehicleToRealPhysics",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "TestCollisionBetween2MovingRects",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "TestCollisionBetween2MovingRects_OnlyFrontBumper",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "TestWhetherToFirePlaneGuns",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "ThisVehicleShouldTryNotToTurn",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "TriggerDogFightMoves",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "UpdateCarCount",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "UpdateCarOnRails",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "WeaveForObject",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "WeaveForOtherCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "WeaveThroughCarsSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "WeaveThroughObjectsSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCarCtrl",
+    "Name": "WeaveThroughPedsSectorList<CPtrListDoubleLink<CPhysical*>>",
+    "IsReversed": false
   },
   {
     "Category": "CTheZones",
@@ -9331,8 +9921,58 @@
   },
   {
     "Category": "CGarage",
+    "Name": "TidyUpGarageClose",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "TidyUpGarage",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
     "Name": "StoreAndRemoveCarsForThisHideOut",
     "IsReversed": true
+  },
+  {
+    "Category": "CGarage",
+    "Name": "EntityHasASphereWayOutsideGarage",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "RemoveCarsBlockingDoorNotInside",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsEntityTouching3D",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsEntityEntirelyOutside",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsStaticPlayerCarEntirelyInside",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsEntityEntirelyInside3D",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsPointInsideGarage-CVector",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "PlayerArrestedOrDied",
+    "IsReversed": false
   },
   {
     "Category": "CGarage",
@@ -9343,6 +9983,26 @@
     "Category": "CGarage",
     "Name": "CloseThisGarage",
     "IsReversed": true
+  },
+  {
+    "Category": "CGarage",
+    "Name": "InitDoorsAtStart",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsPointInsideGarage-CVector-float",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "Update",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarage",
+    "Name": "IsGarageEmpty",
+    "IsReversed": false
   },
   {
     "Category": "CGarages",
@@ -9358,6 +10018,11 @@
     "Category": "CGarages",
     "Name": "Shutdown",
     "IsReversed": true
+  },
+  {
+    "Category": "CGarages",
+    "Name": "AddOne",
+    "IsReversed": false
   },
   {
     "Category": "CGarages",
@@ -9378,6 +10043,16 @@
     "Category": "CGarages",
     "Name": "IsModelIndexADoor",
     "IsReversed": true
+  },
+  {
+    "Category": "CGarages",
+    "Name": "FindSafeHouseIndexForGarageType",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarages",
+    "Name": "FindGarageForObject",
+    "IsReversed": false
   },
   {
     "Category": "CGarages",
@@ -9421,6 +10096,11 @@
   },
   {
     "Category": "CGarages",
+    "Name": "StoreCarInNearestImpoundingGarage",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarages",
     "Name": "TriggerMessage",
     "IsReversed": true
   },
@@ -9441,6 +10121,11 @@
   },
   {
     "Category": "CGarages",
+    "Name": "CountCarsInHideoutGarage",
+    "IsReversed": false
+  },
+  {
+    "Category": "CGarages",
     "Name": "Load",
     "IsReversed": true
   },
@@ -9448,6 +10133,11 @@
     "Category": "CGarages",
     "Name": "Save",
     "IsReversed": true
+  },
+  {
+    "Category": "CGarages",
+    "Name": "StopCarFromBlowingUp",
+    "IsReversed": false
   },
   {
     "Category": "CPostEffects",
@@ -10437,7 +11127,7 @@
   {
     "Category": "CCamera",
     "Name": "TakeControlAttachToEntity",
-    "IsReversed": true
+    "IsReversed": false
   },
   {
     "Category": "CCamera",
@@ -10651,8 +11341,28 @@
   },
   {
     "Category": "CCamera",
+    "Name": "ProcessShake-float",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCamera",
     "Name": "CamShakeNoPos",
     "IsReversed": true
+  },
+  {
+    "Category": "CCamera",
+    "Name": "UpdateSoundDistances",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCamera",
+    "Name": "IsSphereVisible-",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCamera",
+    "Name": "ProcessShake-void",
+    "IsReversed": false
   },
   {
     "Category": "CMessages",
@@ -11725,6 +12435,51 @@
     "IsReversed": true
   },
   {
+    "Category": "CPedGroups",
+    "Name": "AddGroup",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "RemoveAllFollowersFromGroup",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "Init",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "CleanUpForShutDown",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "IsGroupLeader",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "GetPedsGroup",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "GetGroupId",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "IsInPlayersGroup",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedGroups",
+    "Name": "AreInSameGroup",
+    "IsReversed": false
+  },
+  {
     "Category": "CClock",
     "Name": "Initialise",
     "IsReversed": true
@@ -12003,6 +12758,11 @@
     "Category": "CCustomCarPlateMgr",
     "Name": "RenderLicenseplateTextToRaster",
     "IsReversed": true
+  },
+  {
+    "Category": "CCustomCarPlateMgr",
+    "Name": "LoadPlatecharsetDat",
+    "IsReversed": false
   },
   {
     "Category": "CDraw",
@@ -13366,6 +14126,11 @@
   },
   {
     "Category": "CPathFind",
+    "Name": "FindNodeOrientationForCarPlacement",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPathFind",
     "Name": "FindNodeClosestToCoorsFavourDirection",
     "IsReversed": true
   },
@@ -13411,7 +14176,17 @@
   },
   {
     "Category": "CPathFind",
+    "Name": "FindNextNodeWandering",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPathFind",
     "Name": "DoPathSearch",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPathFind",
+    "Name": "FindParkingNodeInArea",
     "IsReversed": false
   },
   {
@@ -13423,6 +14198,11 @@
     "Category": "CPathFind",
     "Name": "ReturnInteriorNodeIndex",
     "IsReversed": true
+  },
+  {
+    "Category": "CPathFind",
+    "Name": "FindNthNodeClosestToCoors",
+    "IsReversed": false
   },
   {
     "Category": "CPathFind",
@@ -13530,6 +14310,16 @@
     "IsReversed": true
   },
   {
+    "Category": "CPathFind",
+    "Name": "GeneratePedCreationCoors_Interior",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPathFind",
+    "Name": "FindNodeClosestToCoors",
+    "IsReversed": false
+  },
+  {
     "Category": "CPathNode",
     "Name": "GetPosition",
     "IsReversed": true
@@ -13588,6 +14378,11 @@
     "Category": "CPedStats",
     "Name": "GetPedStatType",
     "IsReversed": true
+  },
+  {
+    "Category": "CPedStats",
+    "Name": "FindIndexWithPedStat",
+    "IsReversed": false
   },
   {
     "Category": "CCarGenerator",
@@ -14716,6 +15511,11 @@
   },
   {
     "Category": "CRadar",
+    "Name": "ClipRadarPoly",
+    "IsReversed": false
+  },
+  {
+    "Category": "CRadar",
     "Name": "DrawAreaOnRadar",
     "IsReversed": true
   },
@@ -14748,6 +15548,11 @@
     "Category": "CRadar",
     "Name": "DrawRadarGangOverlay",
     "IsReversed": true
+  },
+  {
+    "Category": "CRadar",
+    "Name": "DrawEntityBlip",
+    "IsReversed": false
   },
   {
     "Category": "CRadar",
@@ -15622,6 +16427,131 @@
   {
     "Category": "VideoMode",
     "Name": "IsVideoModeExclusive",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCoverPoint",
+    "Name": "CanAccommodateAnotherPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCoverPoint",
+    "Name": "ReleaseCoverPointForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCoverPoint",
+    "Name": "ReserveCoverPointForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCredits",
+    "Name": "Render",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCredits",
+    "Name": "PrintCreditText",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCredits",
+    "Name": "PrintCreditSpace",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCredits",
+    "Name": "RenderCredits",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCredits",
+    "Name": "Start",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCredits",
+    "Name": "Stop",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "GetLookAtPositionOnTarget",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "Reset",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "ProcessIdleCamTicker",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "SetTarget",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "FinaliseIdleCamera",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "SetTargetPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "IsTargetValid",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "ProcessTargetSelection",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "ProcessSlerp",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "ProcessFOVZoom",
+    "IsReversed": false
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "Run",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "Process",
+    "IsReversed": true
+  },
+  {
+    "Category": "CIdleCam",
+    "Name": "IdleCamGeneralProcess",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicleSaveStructure",
+    "Name": "Construct",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicleSaveStructure",
+    "Name": "Extract",
     "IsReversed": true
   },
   {
@@ -17001,6 +17931,11 @@
   },
   {
     "Category": "FxInfoManager_c",
+    "Name": "Load",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxInfoManager_c",
     "Name": "ProcessEmissionInfo",
     "IsReversed": true
   },
@@ -17187,6 +18122,11 @@
   {
     "Category": "FxEmitterBP_c",
     "Name": "FreePrtFromPrim",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitter_c",
+    "Name": "CreateParticles",
     "IsReversed": false
   },
   {
@@ -18247,6 +19187,96 @@
   {
     "Category": "CPlayerPed",
     "Name": "SetMoveAnim",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "ProcessAnimGroups",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "ControlButtonSprint",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "SetRealMoveAnim",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "Compute3rdPersonMouseTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "DrawTriangleForMouseRecruitPed",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "KeepAreaAroundPlayerClear",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "MakeThisPedJoinOurGroup",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "PlayerWantsToAttack",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "SetInitialState",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "EvaluateNeighbouringTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "ProcessGroupBehaviour",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "ProcessWeaponSwitch",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "FindWeaponLockOnTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerPed",
+    "Name": "FindNextWeaponLockOnTarget",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerSkin",
+    "Name": "Initialise",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerSkin",
+    "Name": "Shutdown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerSkin",
+    "Name": "RenderFrontendSkinEdit",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerSkin",
+    "Name": "GetSkinTexture",
     "IsReversed": true
   },
   {
@@ -24047,12 +25077,12 @@
   {
     "Category": "CTaskComplexGoToPointShooting",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointShooting",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
@@ -29680,6 +30710,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "CreateRouteTask",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskSimplePause",
     "Name": "Constructor",
     "IsReversed": true
@@ -29703,6 +30738,11 @@
     "Category": "CTaskComplexKillPedOnFoot",
     "Name": "Constructor",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "CreateSubTask",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleThrowProjectile",
@@ -30725,6 +31765,31 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleFight",
+    "Name": "ControlFight",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleFight",
+    "Name": "IsComboSet",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleFight",
+    "Name": "IsHitComboSet",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleFight",
+    "Name": "GetComboAnimGroupID",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleFight",
+    "Name": "LoadMeleeData",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskComplexUseWaterCannon",
     "Name": "Constructor",
     "IsReversed": true
@@ -30966,6 +32031,11 @@
   },
   {
     "Category": "CScriptsForBrains",
+    "Name": "StartNewStreamedScriptBrain",
+    "IsReversed": false
+  },
+  {
+    "Category": "CScriptsForBrains",
     "Name": "StartAttractorScriptBrainWithThisName",
     "IsReversed": true
   },
@@ -30978,6 +32048,56 @@
     "Category": "CScriptsForBrains",
     "Name": "IsObjectWithinBrainActivationRange",
     "IsReversed": false
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "CheckIfNewEntityNeedsScript",
+    "IsReversed": false
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded",
+    "IsReversed": false
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "RequestAttractorScriptBrainWithThisName",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexChat",
+    "Name": "ControlSubTask",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSequence",
@@ -31132,6 +32252,51 @@
   {
     "Category": "CTaskManager",
     "Name": "ManageTasks",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseSequence",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseSequence",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseSequence",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseSequence",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseSequence",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseSequence",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSequences",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSequences",
+    "Name": "CleanUpForShutdown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskTimer",
+    "Name": "IsOutOfTime",
     "IsReversed": true
   },
   {
@@ -31520,6 +32685,46 @@
     "IsReversed": true
   },
   {
+    "Category": "CDecisionMakerTypes",
+    "Name": "AddDecisionMaker",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "GetInstance",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "MakeDecision-ped-ptr",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "RemoveDecisionMaker",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "MakeDecision-pedgroup-ptr",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "AddEventResponse",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "FlushDecisionMakerEventResponse",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecisionMakerTypes",
+    "Name": "LoadEventIndices",
+    "IsReversed": false
+  },
+  {
     "Category": "CDecisionMakerTypesFileLoader",
     "Name": "ReStart",
     "IsReversed": true
@@ -31552,6 +32757,21 @@
   {
     "Category": "CDecisionMakerTypesFileLoader",
     "Name": "LoadDecisionMaker-ptr",
+    "IsReversed": true
+  },
+  {
+    "Category": "CDecision",
+    "Name": "SetDefault",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecision",
+    "Name": "Set",
+    "IsReversed": false
+  },
+  {
+    "Category": "CDecision",
+    "Name": "From",
     "IsReversed": true
   },
   {
@@ -31703,6 +32923,16 @@
     "Category": "CCustomBuildingDNPipeline",
     "Name": "SetFxEnvTexture",
     "IsReversed": true
+  },
+  {
+    "Category": "CCustomBuildingDNPipeline",
+    "Name": "CustomPipeMaterialSetup",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCustomBuildingDNPipeline",
+    "Name": "CustomPipeRenderCB",
+    "IsReversed": false
   },
   {
     "Category": "CCustomCarEnvMapPipeline",
@@ -31943,6 +33173,31 @@
     "Category": "CConversations",
     "Name": "DoneSettingUpConversation",
     "IsReversed": false
+  },
+  {
+    "Category": "CConversationForPed",
+    "Name": "Update",
+    "IsReversed": false
+  },
+  {
+    "Category": "CConversationForPed",
+    "Name": "IsPlayerInPositionForConversation",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedToPlayerConversations",
+    "Name": "Clear",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedToPlayerConversations",
+    "Name": "Update",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPedToPlayerConversations",
+    "Name": "EndConversation",
+    "IsReversed": true
   },
   {
     "Category": "CIplDefPool",
@@ -35720,6 +36975,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CAEAudioHardware",
+    "Name": "PlaySound",
+    "IsReversed": false
+  },
+  {
     "Category": "CAEStaticChannel",
     "Name": "Service",
     "IsReversed": true
@@ -38756,6 +40016,11 @@
   },
   {
     "Category": "CVehicle",
+    "Name": "ProcessBikeWheel",
+    "IsReversed": false
+  },
+  {
+    "Category": "CVehicle",
     "Name": "FindTyreNearestPoint",
     "IsReversed": true
   },
@@ -38863,6 +40128,16 @@
     "Category": "CVehicle",
     "Name": "DoFixedMachineGuns",
     "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "FireFixedMachineGuns",
+    "IsReversed": false
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "DoDriveByShootings",
+    "IsReversed": false
   },
   {
     "Category": "CVehicle",
@@ -39977,7 +41252,7 @@
   {
     "Category": "CTheScripts",
     "Name": "ScriptDebugCircle2D",
-    "IsReversed": true
+    "IsReversed": false
   },
   {
     "Category": "CTheScripts",
@@ -40132,6 +41407,41 @@
   {
     "Category": "CScriptResourceManager",
     "Name": "HasResourceBeenRequested",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "InitScratchPad",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "Malloc-",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "Free",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "Realloc-",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "Calloc-",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "FreeAlign",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMemoryMgr",
+    "Name": "MallocAlign-",
     "IsReversed": false
   }
 ]

@@ -74,6 +74,20 @@ void CPlayerPed::InjectHooks() {
 
     RH_ScopedVMTInstall(ProcessControl, 0x60EA90);
     RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
+    RH_ScopedInstall(ProcessAnimGroups, 0x6098F0, { .Reversed = false });
+    RH_ScopedInstall(ControlButtonSprint, 0x60A610, { .Reversed = false });
+    RH_ScopedInstall(SetRealMoveAnim, 0x60A9C0, { .Reversed = false });
+    RH_ScopedInstall(Compute3rdPersonMouseTarget, 0x60B650, { .Reversed = false });
+    RH_ScopedInstall(DrawTriangleForMouseRecruitPed, 0x60BA80, { .Reversed = false });
+    RH_ScopedInstall(KeepAreaAroundPlayerClear, 0x60C1E0, { .Reversed = false });
+    RH_ScopedInstall(MakeThisPedJoinOurGroup, 0x60C840, { .Reversed = false });
+    RH_ScopedInstall(PlayerWantsToAttack, 0x60CC50, { .Reversed = false });
+    RH_ScopedInstall(SetInitialState, 0x60CD20, { .Reversed = false });
+    RH_ScopedInstall(EvaluateNeighbouringTarget, 0x60D1C0, { .Reversed = false });
+    RH_ScopedInstall(ProcessGroupBehaviour, 0x60D350, { .Reversed = false });
+    RH_ScopedInstall(ProcessWeaponSwitch, 0x60D850, { .Reversed = false });
+    RH_ScopedInstall(FindWeaponLockOnTarget, 0x60DC50, { .Reversed = false });
+    RH_ScopedInstall(FindNextWeaponLockOnTarget, 0x60E530, { .Reversed = false });
 }
 
 // TODO: To class and create 2 function

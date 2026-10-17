@@ -90,7 +90,7 @@ void CTheScripts::InjectHooks() {
     // RH_ScopedInstall(DrawDebugCube, 0x0);
     // RH_ScopedInstall(DrawDebugAngledCube, 0x0)
     RH_ScopedInstall(DrawScriptSpritesAndRectangles, 0x464980);
-    RH_ScopedInstall(ScriptDebugCircle2D, 0x485C20);
+    RH_ScopedInstall(ScriptDebugCircle2D, 0x485C20, { .Reversed = false });
     RH_ScopedInstall(DrawScriptSpheres, 0x4810E0);
     RH_ScopedOverloadedInstall(HighlightImportantArea, "", 0x485E00, void(*)(uint32,float,float,float,float,float));
     RH_ScopedInstall(HighlightImportantAngledArea, 0x485EF0);

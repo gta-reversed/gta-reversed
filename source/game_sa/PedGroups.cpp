@@ -8,6 +8,15 @@ void CPedGroups::InjectHooks() {
 
     RH_ScopedInstall(Process, 0x5FC800);
     RH_ScopedInstall(RemoveGroup, 0x5FB870);
+    RH_ScopedInstall(AddGroup, 0x5FB800, { .Reversed = false });
+    RH_ScopedInstall(RemoveAllFollowersFromGroup, 0x5FB8A0, { .Reversed = false });
+    RH_ScopedInstall(Init, 0x5FB8C0, { .Reversed = false });
+    RH_ScopedInstall(CleanUpForShutDown, 0x5FB930, { .Reversed = false });
+    RH_ScopedInstall(IsGroupLeader, 0x5F7E40, { .Reversed = false });
+    RH_ScopedInstall(GetPedsGroup, 0x5F7E80, { .Reversed = false });
+    RH_ScopedInstall(GetGroupId, 0x5F7EE0, { .Reversed = false });
+    RH_ScopedInstall(IsInPlayersGroup, 0x5F7F10, { .Reversed = false });
+    RH_ScopedInstall(AreInSameGroup, 0x5F7F40, { .Reversed = false });
 }
 
 #ifdef ANDROID

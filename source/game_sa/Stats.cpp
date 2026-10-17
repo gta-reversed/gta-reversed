@@ -51,6 +51,25 @@ void CStats::InjectHooks() {
 
     RH_ScopedInstall(Load, 0x5D3BF0);
     RH_ScopedInstall(Save, 0x5D3B40);
+    RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0, { .Reversed = false });
+    RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0, { .Reversed = false });
+    RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010, { .Reversed = false });
+    RH_ScopedInstall(BuildStatLine, 0x559230, { .Reversed = false });
+    RH_ScopedInstall(CheckForStatsMessage, 0x559760, { .Reversed = false });
+    RH_ScopedInstall(LoadStatUpdateConditions, 0x559860, { .Reversed = false });
+    RH_ScopedInstall(GetFatAndMuscleModifier, 0x559AF0, { .Reversed = false });
+    RH_ScopedInstall(FindCriminalRatingString, 0x55A210, { .Reversed = false });
+    RH_ScopedInstall(ConstructStatLine, 0x55A780, { .Reversed = false });
+    RH_ScopedInstall(UpdateRespectStat, 0x55BC50, { .Reversed = false });
+    RH_ScopedInstall(UpdateSexAppealStat, 0x55BF20, { .Reversed = false });
+    RH_ScopedInstall(UpdateFatAndMuscleStats, 0x55C470, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenCycling, 0x55C780, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030, { .Reversed = false });
 }
 
 // 0x55C0C0

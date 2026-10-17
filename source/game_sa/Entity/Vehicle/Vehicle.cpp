@@ -178,7 +178,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(CanPedLeanOut, 0x6D5CF0);
     RH_ScopedInstall(SetVehicleCreatedBy, 0x6D5D70);
     RH_ScopedInstall(SetupRender, 0x6D64F0);
-    // RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0);
+    RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0, { .Reversed = false });
     RH_ScopedInstall(FindTyreNearestPoint, 0x6D7BC0);
     // RH_ScopedInstall(InflictDamage, 0x6D7C90);
     RH_ScopedInstall(KillPedsGettingInVehicle, 0x6D82F0);
@@ -215,8 +215,8 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(GetPlaneWeaponFiringStatus, 0x6E3440);
     // RH_ScopedInstall(ProcessWeapons, 0x6E3950);
     RH_ScopedInstall(DoFixedMachineGuns, 0x73F400);
-    // RH_ScopedInstall(FireFixedMachineGuns, 0x73DF00);
-    // RH_ScopedInstall(DoDriveByShootings, 0x741FD0);
+    RH_ScopedInstall(FireFixedMachineGuns, 0x73DF00, { .Reversed = false });
+    RH_ScopedInstall(DoDriveByShootings, 0x741FD0, { .Reversed = false });
     RH_ScopedInstall(ReleasePickedUpEntityWithWinch, 0x6D3CB0);
     RH_ScopedInstall(PickUpEntityWithWinch, 0x6D3CD0);
     RH_ScopedInstall(QueryPickedUpEntityWithWinch, 0x6D3CF0);

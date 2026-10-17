@@ -8,8 +8,8 @@ void CTaskComplexGoToPointShooting::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x668C70);
 
-    RH_ScopedVMTInstall(Clone, 0x66CE10, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x668CC0, { .Reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x66CE10);
+    RH_ScopedVMTInstall(GetTaskType, 0x668CC0);
 }
 
 // 0x668C70
@@ -34,7 +34,7 @@ CTaskComplexGoToPointShooting::CTaskComplexGoToPointShooting(
 }
 
 CTaskComplexGoToPointShooting::CTaskComplexGoToPointShooting(const CTaskComplexGoToPointShooting& o) :
-    CTaskComplexGoToPointAiming{*this}
+    CTaskComplexGoToPointAiming{o}
 {
 }
 

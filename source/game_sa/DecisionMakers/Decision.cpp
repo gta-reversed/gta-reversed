@@ -7,7 +7,7 @@ void CDecision::InjectHooks() {
     RH_ScopedCategory("DecisionMakers");
 
     RH_ScopedInstall(SetDefault, 0x600530, { .Reversed = false });
-    RH_ScopedInstall(Set, 0x600570);
+    RH_ScopedInstall(Set, 0x600570, { .Reversed = false });
     //RH_ScopedInstall(Add, 0x600600, { .Reversed = false });
     RH_ScopedInstall(From, 0x6006B0);
     //RH_ScopedInstall(HasResponse, 0x600710, { .Reversed = false });

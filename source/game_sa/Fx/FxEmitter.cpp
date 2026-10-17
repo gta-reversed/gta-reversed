@@ -16,7 +16,7 @@ void FxEmitter_c::InjectHooks() {
     // RH_ScopedInstall(Reset_Reversed, 0x4A2570);
     // RH_ScopedOverloadedInstall(AddParticle_Reversed, "matrix", 0x4A3EA0, void(FxEmitter_c::*)(RwMatrix*, CVector*, float, FxPrtMult_c*, float, float, bool));
     // RH_ScopedOverloadedInstall(AddParticle_Reversed, "", 0x4A4050, void(FxEmitter_c::*)(CVector*, CVector*, float, FxPrtMult_c*, float, float, bool));
-    // RH_ScopedInstall(CreateParticles, 0x4A41E0);
+    RH_ScopedInstall(CreateParticles, 0x4A41E0, { .Reversed = false });
     // RH_ScopedInstall(CreateParticle, 0x4A2580);
 }
 

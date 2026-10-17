@@ -12,7 +12,7 @@ void CTaskInteriorLieInBed::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x675E20);
     RH_ScopedInstall(Destructor, 0x675E90);
 
-    RH_ScopedVMTInstall(FinishAnimCB, 0x675FC0);
+    RH_ScopedInstall(FinishAnimCB, 0x675FC0);
 
     RH_ScopedVMTInstall(Clone, 0x675EF0);
     RH_ScopedVMTInstall(GetTaskType, 0x675E80);
