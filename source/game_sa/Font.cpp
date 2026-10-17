@@ -926,6 +926,7 @@ float CFont::GetHeight(bool a1) {
 // 0x719650
 uint8 CFont::RemapCharacterWithoutGraphic(uint8 letter) {
     if (letter == 145) {
+        // 1 at bottom -> ` at top ???? (TODO: i guess this func is only called when top fonts are used idk)
         return 64;
     } else if (letter > 155) {
         return 0;
@@ -936,45 +937,56 @@ uint8 CFont::RemapCharacterWithoutGraphic(uint8 letter) {
 // 0x7192C0
 uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
     if (style == eFontTextureStyle::PRICEDOWN) {
+        // NOTE: font1 is loaded for pricedown, TOP: subtitles, BOTTOM: pricedown
         switch (letterId) {
-        case 1:  return 208;
-        case 4:  return 93;
-        case 7:  return 206;
+        case 1:  return 208; // ! ->
+        case 4:  return 93; // $ at top -> $ at bottom -- yet it's in the subtitles section?
+        case 7:  return 206; // ' at top -> ' at bottom (empty in font2)
         case 8:
-        case 9:  return letterId + 86;
-        case 14: return 207;
-        case 26: return 154;
+        case 9:  return letterId + 86; // (, ) at top -> (, ) at bottom -- in the subtitles section
+        case 14: return 207; // . at top -> . at bottom (empty in font2)
+        case 26: return 154; // : at top -> : at bottom (empty in font2)
         }
     }
 
     if (letterId == 6) {
+        // & -> & in font1
         return 10;
     }
     if (letterId >= 16 && letterId <= 25) {
+        // 0..9 at top -> 0..9 at bottom
         return letterId + 128;
     }
     if (letterId == 31) {
+        // ? -> ? in font1
         return 91;
     }
     if (letterId >= 33 && letterId <= 58) {
+        // A..Z at top -> A..Z at bottom (bottom fonts only have one case unlike top fonts have both)
         return letterId + 122;
     }
     if (letterId == 62) {
+        // ¡ at bottom -> ¡ top (only top fonts have it)
         return 32;
     }
     if (letterId >= 65 && letterId <= 90) {
+        // a..z at top -> A..Z at bottom
         return letterId + 90;
     }
     if (letterId >= 96 && letterId <= 118) {
+        // À Á Â Ä Æ Ç È É Ê Ë Ì Í Î Ï Ò Ó Ô Ö Ù Ú Û Ü ß at top -> at bottom
         return letterId + 85;
     }
     if (letterId >= 119 && letterId <= 140) {
+        // à á â ä æ ç è é ê ë ì í î ï ò ó ô ö ù ú û ü at top -> at bottom (no eszett)
         return letterId + 62;
     }
     if (letterId >= 141 && letterId <= 142) {
+        // Ñ ñ -> ñ (bottom fonts only have one case unlike top fonts have both)
         return 204;
     }
     if (letterId == 143) {
+        // ¿ -> ¿
         return 205;
     }
 

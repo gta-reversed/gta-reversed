@@ -14,8 +14,6 @@
 
 class CSprite2d;
 
-// TODO: put these font "specifiers" into a different header
-
 class CFont {
 public:
     static void           Initialise();
