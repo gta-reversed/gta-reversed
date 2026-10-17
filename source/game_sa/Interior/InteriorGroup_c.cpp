@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "InteriorGroup_c.h"
+#include "Interior_c.h"
 
 void InteriorGroup_c::InjectHooks() {
     RH_ScopedClass(InteriorGroup_c);
@@ -25,13 +26,13 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(RemovePed, 0x594E30, { .Reversed = false });
     RH_ScopedInstall(SetupShopPeds, 0x594C10, { .Reversed = false });
     RH_ScopedInstall(SetupOfficePeds, 0x594BF0, { .Reversed = false });
-    RH_ScopedInstall(GetEntity, 0x594BD0, { .Reversed = false });
-    RH_ScopedInstall(GetPed, 0x594B90, { .Reversed = false });
+    RH_ScopedInstall(GetEntity, 0x594BD0);
+    RH_ScopedInstall(GetPed, 0x594B90);
     RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50, { .Reversed = false });
     RH_ScopedInstall(FindInteriorInfo, 0x594970, { .Reversed = false });
-    RH_ScopedInstall(GetNumInteriorInfos, 0x594920, { .Reversed = false });
+    RH_ScopedInstall(GetNumInteriorInfos, 0x594920);
     RH_ScopedInstall(GetRandomInterior, 0x5948C0, { .Reversed = false });
-    RH_ScopedInstall(AddInterior, 0x594840, { .Reversed = false });
+    RH_ScopedInstall(AddInterior, 0x594840);
 }
 
 // 0x5947E0
@@ -46,7 +47,15 @@ void InteriorGroup_c::Update() {
 
 // 0x594840
 int32 InteriorGroup_c::AddInterior(Interior_c* interior) {
-    return plugin::CallMethodAndReturn<int32, 0x594840, InteriorGroup_c*, Interior_c*>(this, interior);
+    for (size_t i = 0; i < std::size(m_interiors); ++i) {
+        if (m_interiors[i]) {
+            continue;
+        }
+        m_interiors[i] = interior;
+        m_numInteriors++;
+        return static_cast<int32>(i);
+    }
+    return static_cast<int32>(std::size(m_interiors));
 }
 
 // 0x596890
@@ -139,12 +148,12 @@ void InteriorGroup_c::SetupOfficePeds() {
 
 // 0x594BD0
 CEntity* InteriorGroup_c::GetEntity() {
-    return plugin::CallMethodAndReturn<CEntity*, 0x594BD0, InteriorGroup_c*>(this);
+    return m_pEntity;
 }
 
 // 0x594B90
 CPed* InteriorGroup_c::GetPed(int32 idx) {
-    return plugin::CallMethodAndReturn<CPed*, 0x594B90, InteriorGroup_c*, int32>(this, idx);
+    return m_peds[idx];
 }
 
 // 0x594A50
@@ -160,7 +169,7 @@ bool InteriorGroup_c::FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_
 
 // 0x594920
 int32 InteriorGroup_c::GetNumInteriorInfos(int32 a2) {
-    return plugin::CallMethodAndReturn<int32, 0x594920, InteriorGroup_c*, int32>(this, a2);
+    return m_numInteriorInfos;
 }
 
 // 0x5948C0
