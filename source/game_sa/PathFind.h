@@ -88,8 +88,8 @@ public:
     CNodeAddress               m_attachedTo;                 ///< Identifies the target node a navi node is attached to.
     FixedVector2D<int8, 100.f> m_dir;                        ///< This is a normalized vector pointing towards the [above mentioned] target node, thus defining the general direction of the path segment.
     FixedFloat<int8, 16.f>     m_nPathNodeWidth;             ///< Usually a copy of the linked node's path width (byte)
-    uint8                      m_numOppositeDirLanes : 3;    ///< Number of (left) lanes that are opposite to this lane's direction, eg.: `other->dir.Dot(this->dir)` is `< 0`
-    uint8                      m_numSameDirLanes : 3;        ///< Number of (right) lanes that are the going the same direction as this node's direction, eg.: `other->dir.Dot(this->dir)` is `> 0`
+    uint8                      m_numSameDirLanes : 3;        ///< Number of lanes going the same way as `m_dir`, that is towards `m_attachedTo` (see `CCarCtrl::PickNextNodeRandomly`, 0x42DE80)
+    uint8                      m_numOppositeDirLanes : 3;    ///< Number of lanes going against `m_dir`, that is away from `m_attachedTo`
     uint8                      m_bTrafficLightDirection : 1; ///< `1` if the navi node has the same direction as the traffic light and `0` if the navi node points somewhere else
     uint8                      : 1;                          ///< Unused
     uint16                     m_nTrafficLightState : 2;     ///< `eTrafficLightsDirection`
@@ -99,15 +99,16 @@ public:
         return (float)m_nPathNodeWidth;
     }
 
+    // 0x44DB00
     float OneWayLaneOffset() const {
-        if (m_numOppositeDirLanes) {
-            return 0.5f - (float)m_numSameDirLanes / 2.f;
-        }        
-        if (m_numSameDirLanes) {
-            // 0.011574074 = 1 / 16.f / 5.4f
-            return 0.5f - GetNodePathWidth() / 5.4f / 2.f;
+        if (!m_numSameDirLanes) {
+            return 0.5f - (float)m_numOppositeDirLanes / 2.f;
         }
-        return 0.5f - (float)m_numOppositeDirLanes / 2.f;
+        if (!m_numOppositeDirLanes) {
+            return 0.5f - (float)m_numSameDirLanes / 2.f;
+        }
+        // Two-way road. 0.011574074 = 1 / 16.f / 5.4f
+        return 0.5f + GetNodePathWidth() / 5.4f;
     }
 
     /// Get uncompressed world position
@@ -140,8 +141,7 @@ public:
     uint32 unk1 : 1; // not used in paths data files
     uint32 m_bDontWander : 1;
     uint32 unk2 : 1; // not used in paths data files
-    uint32 m_bNotHighway : 1;
-    uint32 m_bHighway : 1;
+    uint32 m_nSpeedLimit : 2; // 0 - slow (x0.65), 1 - normal (x1.0), 2 - fast (x2.3), see `CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes`
     uint32 unk3 : 1; // not used in paths data files
     uint32 unk4 : 1; // not used in paths data files
 
