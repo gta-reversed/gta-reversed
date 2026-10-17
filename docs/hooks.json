@@ -25077,12 +25077,12 @@
   {
     "Category": "CTaskComplexGoToPointShooting",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointShooting",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",

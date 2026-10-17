@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 16, 2026 at 19:19:39 UTC
-(Triggered by commit [13c4e4af](https://github.com/gta-reversed/gta-reversed/commit/13c4e4affca5ad2095a888cc77489febe7b3885c))
+Last update was at Oct 17, 2026 at 20:52:32 UTC
+(Triggered by commit [78baff41](https://github.com/gta-reversed/gta-reversed/commit/78baff4154d12d5ac4360e97539a28c29344a2ae))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7511 out of 8289 functions done in 718 categories)
+## Stats (7513 out of 8289 functions done in 718 categories)
 
-#### Completely reversed categories (578/718) [81%]
+#### Completely reversed categories (579/718) [81%]
 
 <details>
 <summary>See list of categories</summary>
@@ -324,6 +324,7 @@ Last update was at Oct 16, 2026 at 19:19:39 UTC
 - CTaskComplexGetOnBoatSeat (8)<br />
 - CTaskComplexGoToBoatSteeringWheel (6)<br />
 - CTaskComplexGoToCarDoorAndStandStill (11)<br />
+- CTaskComplexGoToPointShooting (3)<br />
 - CTaskComplexHitByGunResponse (8)<br />
 - CTaskComplexHitResponse (7)<br />
 - CTaskComplexInWater (7)<br />
@@ -596,7 +597,7 @@ Last update was at Oct 16, 2026 at 19:19:39 UTC
 
 </details>
 
-#### Partially reversed categories (132/718) [18%]
+#### Partially reversed categories (131/718) [18%]
 
 <details>
 <summary>See list of categories</summary>
@@ -680,7 +681,6 @@ Last update was at Oct 16, 2026 at 19:19:39 UTC
 - CTaskComplexGoToPointAiming (5/8) [62%]<br />
 - CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7) [43%]<br />
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
-- CTaskComplexGoToPointShooting (1/3) [33%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
