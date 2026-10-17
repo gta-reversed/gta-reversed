@@ -34,8 +34,8 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(ReadAndInterpretTrackFile, 0x6F55D0, { .Reversed = false });
     RH_ScopedInstall(Shutdown, 0x6F58D0);
     RH_ScopedInstall(UpdateTrains, 0x6F5900);
-    RH_ScopedInstall(FindCoorsFromPositionOnTrack, 0x6F59E0, { .Reversed = false });
-    RH_ScopedInstall(FindMaximumSpeedToStopAtStations, 0x6F5BA0, { .Reversed = false });
+    RH_ScopedInstall(FindCoorsFromPositionOnTrack, 0x6F59E0);
+    RH_ScopedInstall(FindMaximumSpeedToStopAtStations, 0x6F5BA0);
     RH_ScopedInstall(FindNumCarriagesPulled, 0x6F5CD0);
     RH_ScopedInstall(OpenTrainDoor, 0x6F5D80);
     RH_ScopedInstall(AddPassenger, 0x6F5D90);
@@ -45,21 +45,21 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(ReleaseOneMissionTrain, 0x6F5DF0);
     RH_ScopedInstall(SetTrainSpeed, 0x6F5E20);
     RH_ScopedInstall(SetTrainCruiseSpeed, 0x6F5E50);
-    RH_ScopedInstall(FindCaboose, 0x6F5E70, { .Reversed = false });
-    RH_ScopedInstall(FindEngine, 0x6F5E90, { .Reversed = false });
-    RH_ScopedInstall(FindCarriage, 0x6F5EB0, { .Reversed = false });
+    RH_ScopedInstall(FindCaboose, 0x6F5E70);
+    RH_ScopedInstall(FindEngine, 0x6F5E90);
+    RH_ScopedInstall(FindCarriage, 0x6F5EB0);
     RH_ScopedInstall(FindSideStationIsOn, 0x6F5EF0);
-    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .Reversed = false });
+    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00);
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
     RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .Reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
-    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0, { .Reversed = false });
+    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0);
     RH_ScopedInstall(ReleaseMissionTrains, 0x6F6B60);
-    RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0, { .Reversed = false });
+    RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0);
     RH_ScopedInstall(FindPositionOnTrackFromCoors, 0x6F6CC0, { .Reversed = false });
-    RH_ScopedInstall(FindNearestTrain, 0x6F7090, { .Reversed = false });
+    RH_ScopedInstall(FindNearestTrain, 0x6F7090);
     RH_ScopedInstall(SetNewTrainPosition, 0x6F7140);
-    RH_ScopedInstall(IsNextStationAllowed, 0x6F7260, { .Reversed = false });
+    RH_ScopedInstall(IsNextStationAllowed, 0x6F7260);
     RH_ScopedInstall(SkipToNextAllowedStation, 0x6F72F0, { .Reversed = false });
     RH_ScopedInstall(CreateMissionTrain, 0x6F7550, { .Reversed = false });
     RH_ScopedInstall(DoTrainGenerationAndRemoval, 0x6F7900, { .Reversed = false });
@@ -200,12 +200,64 @@ void PlayAnnouncement(uint8 arg0, uint8 arg1) {
 
 // 0x6F59E0
 void CTrain::FindCoorsFromPositionOnTrack(float railDistance, int32 trackId, CVector* outCoors) {
-    ((void(__cdecl*)(float, int32, CVector*))0x6F59E0)(railDistance, trackId, outCoors);
+    const auto numNodes = NumTrackNodes[trackId];
+    if (numNodes <= 0) {
+        return;
+    }
+
+    const auto* nodes = pTrackNodes[trackId];
+    for (auto node = 0; node < numNodes; ++node) {
+        const auto nextNode = (node + 1) % numNodes;
+        const auto distanceAfterCurrent = railDistance - nodes[node].GetDistanceFromStart();
+        const auto distanceBeforeNext = nodes[nextNode].GetDistanceFromStart() - railDistance;
+        if (distanceAfterCurrent < 0.0f || distanceBeforeNext < 0.0f) {
+            continue;
+        }
+
+        const auto invSegmentLength = 1.0f / (distanceAfterCurrent + distanceBeforeNext);
+        *outCoors = (nodes[node].GetPosn() * distanceBeforeNext + nodes[nextNode].GetPosn() * distanceAfterCurrent) * invSegmentLength;
+        return;
+    }
 }
 
 // 0x6F5BA0
 bool CTrain::FindMaximumSpeedToStopAtStations(float* speed) {
-    return ((bool(__thiscall*)(CTrain*, float*))0x6F5BA0)(this, speed);
+    *speed = 50.0f;
+
+    if (m_nPassengersGenerationState != TRAIN_PASSENGERS_QUERY_NUM_PASSENGERS_TO_LEAVE) {
+        return false;
+    }
+
+    const auto totalTrackLength = arrTotalTrackLength[0];
+    auto closestDistance = 10'000.0f;
+
+    for (const auto stationDistance : StationDist) {
+        auto distanceToStation = stationDistance - m_fCurrentRailDistance;
+        distanceToStation += trainFlags.bClockwiseDirection ? 40.0f : -40.0f;
+
+        while (distanceToStation > totalTrackLength * 0.5f) {
+            distanceToStation -= totalTrackLength;
+        }
+        while (distanceToStation < totalTrackLength * -0.5f) {
+            distanceToStation += totalTrackLength;
+        }
+
+        if (trainFlags.bClockwiseDirection) {
+            if (distanceToStation > 0.0f) {
+                closestDistance = std::min(closestDistance, distanceToStation);
+            }
+        } else if (distanceToStation < 0.0f) {
+            closestDistance = std::min(closestDistance, -distanceToStation);
+        }
+    }
+
+    if (closestDistance >= 500.0f) {
+        *speed = 100'000.0f;
+    } else {
+        *speed = (1.0f - (500.0f - closestDistance) * 0.002f) * 50.0f;
+    }
+
+    return closestDistance < 5.0f;
 }
 
 // 0x6F5CD0
@@ -275,17 +327,35 @@ void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
 
 // 0x6F5E70
 CTrain* CTrain::FindCaboose(CTrain* train) {
-    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E70)(train);
+    while (train->m_pNextCarriage) {
+        train = train->m_pNextCarriage;
+    }
+    return train;
 }
 
 // 0x6F5E90
 CTrain* CTrain::FindEngine(CTrain* train) {
-    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E90)(train);
+    while (train->m_pPrevCarriage) {
+        train = train->m_pPrevCarriage;
+    }
+    return train;
 }
 
 // 0x6F5EB0
 CTrain* CTrain::FindCarriage(CTrain* train, uint8 carriage) {
-    return ((CTrain * (__cdecl*)(CTrain*, uint8))0x6F5EB0)(train, carriage);
+    auto currentCarriage = 0u;
+    if (carriage != 0) {
+        while (true) {
+            train = train->m_pNextCarriage;
+            if (!train) {
+                break;
+            }
+            if (carriage <= ++currentCarriage) {
+                return train;
+            }
+        }
+    }
+    return train;
 }
 
 // 0x6F5EF0
@@ -295,7 +365,33 @@ bool CTrain::FindSideStationIsOn() const {
 
 // 0x6F5F00
 void CTrain::FindNextStationPositionInDirection(bool clockwiseDirection, float distance, float* distanceToStation, int32* numStations) {
-    ((void(__cdecl*)(bool, float, float*, int32*))0x6F5F00)(clockwiseDirection, distance, distanceToStation, numStations);
+    auto station = 0;
+    while (station < (int32)StationDist.size() && distance >= StationDist[station]) {
+        station++;
+    }
+    if (station >= (int32)StationDist.size()) {
+        station = 0;
+    }
+
+    if (!clockwiseDirection) {
+        station--;
+        if (station < 0) {
+            station += (int32)StationDist.size();
+        }
+    }
+
+    if (std::fabs(distance - StationDist[station]) < 100.0f) {
+        station += clockwiseDirection ? 1 : -1;
+        if (station < 0) {
+            station += (int32)StationDist.size();
+        }
+        if (station >= (int32)StationDist.size()) {
+            station = 0;
+        }
+    }
+
+    *numStations = station;
+    *distanceToStation = StationDist[station];
 }
 
 // 0x6F6320
@@ -353,7 +449,34 @@ void CTrain::RemoveMissionTrains() {
 
 // 0x6F6AA0
 void CTrain::RemoveAllTrains() {
-    ((void(__cdecl*)())0x6F6AA0)();
+    auto chainContainsPlayerVehicle = [](CTrain* train) {
+        const auto* playerVehicle = FindPlayerVehicle();
+        for (auto* carriage = train; carriage; carriage = carriage->m_pNextCarriage) {
+            if (carriage == playerVehicle) {
+                return true;
+            }
+        }
+        for (auto* carriage = train; carriage; carriage = carriage->m_pPrevCarriage) {
+            if (carriage == playerVehicle) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto* vehiclePool = GetVehiclePool();
+    for (auto i = vehiclePool->GetSize(); i > 0; --i) {
+        auto* vehicle = vehiclePool->GetAt(i - 1);
+        if (!vehicle || !vehicle->IsSubTrain()) {
+            continue;
+        }
+
+        auto* train = vehicle->AsTrain();
+        if (!chainContainsPlayerVehicle(train)) {
+            CWorld::Remove(train);
+            delete train;
+        }
+    }
 }
 
 // 0x6F6B60
@@ -367,7 +490,21 @@ void CTrain::ReleaseMissionTrains() {
 
 // 0x6F6BD0
 int32 CTrain::FindClosestTrackNode(CVector posn, int32* outTrackId) {
-    return ((int32(__cdecl*)(CVector, int32*))0x6F6BD0)(posn, outTrackId);
+    auto closestNode = 0;
+    auto closestDistance = 99'999.9f;
+
+    for (auto trackId = 0; trackId < (int32)NumTrackNodes.size(); trackId++) {
+        for (auto node = 0; node < NumTrackNodes[trackId]; node++) {
+            const auto distance = DistanceBetweenPoints(posn, pTrackNodes[trackId][node].GetPosn());
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestNode = node;
+                *outTrackId = trackId;
+            }
+        }
+    }
+
+    return closestNode;
 }
 
 // 0x6F6CC0
@@ -377,7 +514,25 @@ void CTrain::FindPositionOnTrackFromCoors() {
 
 // 0x6F7090
 CTrain* CTrain::FindNearestTrain(CVector posn, bool mustBeMainTrain) {
-    return ((CTrain * (__cdecl*)(CVector, bool))0x6F7090)(posn, mustBeMainTrain);
+    auto* closestTrain = static_cast<CTrain*>(nullptr);
+    auto closestDistance = 10'000'000.0f;
+
+    auto* vehiclePool = GetVehiclePool();
+    for (auto i = vehiclePool->GetSize(); i > 0; --i) {
+        auto* vehicle = vehiclePool->GetAt(i - 1);
+        if (!vehicle || !vehicle->IsSubTrain()) {
+            continue;
+        }
+
+        auto* train = vehicle->AsTrain();
+        const auto distance = (train->GetPosition() - posn).Magnitude2D();
+        if (distance < closestDistance && (!mustBeMainTrain || train->trainFlags.bIsFrontCarriage)) {
+            closestTrain = train;
+            closestDistance = distance;
+        }
+    }
+
+    return closestTrain;
 }
 
 // 0x6F7140
@@ -388,7 +543,19 @@ void CTrain::SetNewTrainPosition(CTrain* train, CVector posn) {
 
 // 0x6F7260
 bool CTrain::IsNextStationAllowed(CTrain* train) {
-    return ((bool(__cdecl*)(CTrain*))0x6F7260)(train);
+    auto* lastCarriage = CTrain::FindCaboose(train);
+
+    float stationDistance;
+    int32 station;
+    CTrain::FindNextStationPositionInDirection(
+        lastCarriage->trainFlags.bClockwiseDirection,
+        lastCarriage->m_fCurrentRailDistance,
+        &stationDistance,
+        &station
+    );
+
+    const auto stationLevel = CTheZones::GetLevelFromPosition(CTrain::aStationCoors[station]);
+    return CStats::GetStatValue(STAT_CITY_UNLOCKED) + 1.0f >= static_cast<float>(stationLevel);
 }
 
 // 0x6F72F0
