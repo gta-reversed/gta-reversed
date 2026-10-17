@@ -8,9 +8,9 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
-    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340, { .Reversed = false });
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
     RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0);
-    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .Reversed = false });
+    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450);
     RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420);
 }
 
@@ -47,8 +47,16 @@ void CPedList::FillUpHoles() {
 }
 
 // 0x69A340
-void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership) {
-    plugin::CallMethod<0x69A340>(this, pedGroupMembership);
+void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* group) {
+    m_count = 0;
+
+    for (auto* const member : group->GetMembers(false)) {
+        if (!member->GetIntelligence()->IsInACarOrEnteringOne()) {
+            AddMember(member);
+        }
+    }
+
+    ClearUnused();
 }
 
 // 0x69A3B0
@@ -70,7 +78,26 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
 
 // 0x69A450
 void CPedList::RemovePedsAttackingPedType(int32 pedType) {
-    plugin::CallMethod<0x69A450>(this, pedType);
+    const auto count = m_count;
+
+    for (uint32 i = 0; i < count; ++i) {
+        CPed* ped = m_peds[i];
+
+        assert(ped != nullptr);
+
+        const auto* killTask = ped->GetTaskManager().Find<CTaskComplexKillPedOnFoot>(false);
+        const CPed* target = nullptr;
+
+        if (killTask != nullptr) {
+            target = killTask->m_target;
+        }
+
+        if (killTask == nullptr || target == nullptr || target->m_nPedType != pedType) {
+            RemoveMemberNoFill(i);
+        }
+    }
+
+    FillUpHoles();
 }
 
 // 0x69A420
@@ -94,7 +121,7 @@ void CPedList::ClearUnused() {
 }
 
 void CPedList::AddMember(CPed* ped) {
-    m_peds[m_count++] = ped;
+    if (m_count < MAX_NUM_PEDS_IN_LIST) { m_peds[m_count++] = ped; }
 }
 
 // Must call FillUpHoles afterwards!
