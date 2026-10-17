@@ -79,7 +79,12 @@ bool CTxdStore::StartLoadTxd(int32 index, RwStream* stream) {
 
     RwTexDictionary* texdic = RwTexDictionaryGtaStreamRead1(stream);
     txd->m_pRwDictionary = texdic;
-    return texdic != nullptr;
+    if (texdic) {
+        return true;
+    } else {
+        NOTSA_LOG_ERR("Failed to load TXD"); // R* log from III
+        return false;
+    }
 }
 
 // 0x731E40
@@ -101,9 +106,13 @@ bool CTxdStore::LoadTxd(int32 index, RwStream* stream) {
     if (!txd || !RwStreamFindChunk(stream, rwID_TEXDICTIONARY, nullptr, nullptr))
         return false;
     txd->m_pRwDictionary = RwTexDictionaryGtaStreamRead(stream);
-    if (txd->m_pRwDictionary)
+    if (txd->m_pRwDictionary) {
         SetupTxdParent(index);
-    return txd->m_pRwDictionary != nullptr;
+        return true;
+    } else {
+        NOTSA_LOG_ERR("Failed to load TXD"); // R* log from III
+        return false;
+    }
 }
 
 // load txd from file
