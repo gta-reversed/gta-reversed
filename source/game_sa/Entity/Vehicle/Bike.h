@@ -66,7 +66,7 @@ public:
     std::array<float, NUM_SUSP_LINES> m_fSuspensionLength;
     std::array<float, NUM_SUSP_LINES> m_fLineLength;
     float m_fHeightAboveRoad;
-    float m_fExtraTractionMult;
+    float m_fExtraTractionMult; /* aka m_fCarTraction */
     float m_fSwingArmLength;
     float m_fForkYOffset;
     float m_fForkZOffset;
@@ -82,7 +82,7 @@ public:
     std::array<CPhysical*, 4>     m_aGroundPhysicalPtrs;
     std::array<CVector, 4>        m_aGroundOffsets;
     CEntity* m_Damager; // Entity That Set Us On Fire
-    uint8 m_nNoOfContactWheels;
+    uint8 m_nNoOfContactWheels; // Seems like the max value is 4??? (See `COMMAND_IS_VEHICLE_ON_ALL_WHEELS`)
     uint8 m_NumDriveWheelsOnGround;
     uint8 m_NumDriveWheelsOnGroundLastFrame;
     float m_GasPedalAudioRevs;

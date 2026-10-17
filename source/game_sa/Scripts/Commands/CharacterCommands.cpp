@@ -2134,23 +2134,7 @@ auto WarpCharIntoCarAsPassenger(CPed& ped, CVehicle& veh, int32 psgrSeatIdx) {
     CTaskSimpleCarSetPedInAsPassenger{ &veh, (eTargetDoor)(psgrSeatIdx), true }.ProcessPed(&ped); // Warp ped into car
 }
 
-/*
- * @opcode 0432
- * @command GET_CHAR_IN_CAR_PASSENGER_SEAT
- * @class Car
- * @method GetCharInPassengerSeat
- * 
- * @brief Returns the handle of a character sitting in the specified car seat
- * 
- * @param {Car} self
- * @param {SeatId} seat
- * 
- * @returns {Char} handle
- */
-auto GetCharInCarPassengerSeat(CVehicle& veh, uint32 psgrSeatIdx) -> CPed& {
-    return *veh.m_apPassengers[psgrSeatIdx];
-}
-
+// helper
 bool HasPedSittingInCarTask(CPed& ped) {
     return ped.GetTaskManager().IsSimplestActiveTaskOfType({ TASK_SIMPLE_CAR_DRIVE, TASK_SIMPLE_GANG_DRIVEBY });
 }
@@ -4166,7 +4150,6 @@ void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_MONEY, SetCharMoney);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_AMMO_IN_CHAR_WEAPON, GetAmmoInCharWeapon);
     REGISTER_COMMAND_HANDLER(COMMAND_WARP_CHAR_INTO_CAR_AS_PASSENGER, WarpCharIntoCarAsPassenger);
-    REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_IN_CAR_PASSENGER_SEAT, GetCharInCarPassengerSeat);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_IS_CHRIS_CRIMINAL, SetCharIsChrisCriminal);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_SUFFERS_CRITICAL_HITS, SetCharSuffersCriticalHits);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_SITTING_IN_CAR, IsCharSittingInCar);

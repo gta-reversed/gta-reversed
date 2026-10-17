@@ -288,7 +288,7 @@ public:
     void DoHeliDustEffect(float arg0, float arg1);
     void SetBumperDamage(ePanels panel, bool withoutVisualEffect);
     void SetPanelDamage(ePanels panel, bool createWindowGlass);
-    void SetDoorDamage(eDoors door, bool withoutVisualEffect);
+    void SetDoorDamage(eDoors door, bool withoutVisualEffect = false);
     bool RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList);
     bool RcbanditCheckHitWheels();
     void FireTruckControl(CFire* fire);
