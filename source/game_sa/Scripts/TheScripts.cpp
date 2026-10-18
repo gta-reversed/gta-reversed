@@ -744,7 +744,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
 
             if (auto& driver = vehicle->m_pDriver) {
                 CPopulation::RemovePed(driver);
-                CEntity::SafeCleanUpRef(driver);
+                CEntity::ClearReference(driver);
             }
 
             // Need to use raw pointer here instead of a reference - the m_aPassengers array is modifed in RemovePassenger() and we would crash in RemovePed afterwards

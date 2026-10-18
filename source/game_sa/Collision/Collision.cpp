@@ -2660,12 +2660,12 @@ bool CCollision::CheckCameraCollisionPeds(
 
 // 0x415540
 void ResetMadeInvisibleObjects() {
-    for (auto ent : gpMadeInvisibleEntities | rng::views::take(gNumEntitiesSetInvisible)) {
+    for (auto& ent : gpMadeInvisibleEntities | rng::views::take(gNumEntitiesSetInvisible)) {
         if (!ent) { // Must check, as the reference system might've cleared it
             continue;
         }
         ent->SetIsVisible(true);
-        CEntity::CleanUpOldReference(ent);
+        CEntity::ClearReference(ent);
     }
     gNumEntitiesSetInvisible = 0;
 }
