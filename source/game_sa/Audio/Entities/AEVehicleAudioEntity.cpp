@@ -422,7 +422,7 @@ void CAEVehicleAudioEntity::GetAccelAndBrake(tVehicleParams& vp) const noexcept 
 
 
 // 0x4F5C10
-tVehicleAudioSettings CAEVehicleAudioEntity::GetVehicleAudioSettings(int16 vehId) {
+tVehicleAudioSettings __stdcall CAEVehicleAudioEntity::GetVehicleAudioSettings(int16 vehId) {
     return ::GetVehicleAudioSettings((eModelID)(+MODEL_VEHICLE_FIRST + vehId));
 }
 

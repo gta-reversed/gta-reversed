@@ -304,7 +304,7 @@ public:
      * @brief Not used
      * @return If the context is "uber" (very) important
      */
-    static bool IsGlobalContextUberImportant(int16 gCtx);
+    static bool __stdcall IsGlobalContextUberImportant(int16 gCtx);
 
     /*!
      * @addr 0x4E44F0
@@ -360,8 +360,8 @@ public:
      */
     static ePedSpeechVoiceS16 GetVoice(const char* name, eAudioPedTypeS16 type);
 
-    static float                             GetSpeechContextVolumeOffset(eGlobalSpeechContextS16 gctx);
-    static eSpecificSpeechContext            GetSpecificSpeechContext(eGlobalSpeechContext gCtx, eAudioPedType pedAudioType);
+    static float __stdcall                   GetSpeechContextVolumeOffset(eGlobalSpeechContextS16 gctx);
+    static eSpecificSpeechContext __stdcall  GetSpecificSpeechContext(eGlobalSpeechContext gCtx, eAudioPedType pedAudioType);
     static const tGlobalSpeechContextInfo*   GetGlobalSpeechContextInfo(eGlobalSpeechContext gCtx);
     static const tSpecificSpeechContextInfo* GetSpecificSpeechContextInfo(eSpecificSpeechContext sCtx, eGlobalSpeechContext gCtx, eAudioPedType pt, ePedSpeechVoiceS16 voice);
     static eSoundBank                        GetVoiceSoundBank(eGlobalSpeechContext gCtx, eAudioPedType pt, ePedSpeechVoiceS16 voice);
