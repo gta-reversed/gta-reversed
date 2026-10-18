@@ -23,9 +23,10 @@ void CTaskComplexStareAtPed::InjectHooks() {
 // 0x660270
 CTaskComplexStareAtPed::CTaskComplexStareAtPed(CPedGroup* pedGroip, CPed* pedToStareAt, int32 timeout) :
     m_pPedGroup{pedGroip},
-    m_pPed{IsEntityPointerValid(pedToStareAt) ? pedToStareAt : nullptr},
+    m_pPed{pedToStareAt},
     m_timeout{timeout}
 {
+    assert(!pedToStareAt || IsEntityPointerValid(pedToStareAt)); // May be null if this is a clone of a task whose ped was deleted (`ControlSubTask` handles that)
     CEntity::SafeRegisterRef(m_pPed);
 }
 
