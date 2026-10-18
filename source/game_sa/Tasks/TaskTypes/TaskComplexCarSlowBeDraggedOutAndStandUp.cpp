@@ -32,26 +32,29 @@ CTaskComplexCarSlowBeDraggedOutAndStandUp::CTaskComplexCarSlowBeDraggedOutAndSta
 // 0x648690
 CTaskComplexCarSlowBeDraggedOutAndStandUp::~CTaskComplexCarSlowBeDraggedOutAndStandUp() = default;
 
+// NOTSA - Peds can't be dragged out of these vehicles (with the given anim group), so they just get out (See `CTaskSimpleCarSlowDragPedOut::ProcessPed`)
+static CTask* CreateLeaveCarSubTask(AssocGroupId animGroupId, CVehicle* vehicle, eTargetDoor door) {
+    switch (animGroupId) {
+    case ANIM_GROUP_COACHCARANIMS:
+        return new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
+    case ANIM_GROUP_TANKCARANIMS:
+        return new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_DRIVER, 0, false, true };
+    case ANIM_GROUP_BUSCARANIMS: {
+        if (door == TARGET_DOOR_FRONT_RIGHT) {
+            return new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
+        }
+        return nullptr;
+    }
+    default:
+        NOTSA_UNREACHABLE_CASE(animGroupId);
+    }
+}
+
 // 0x648710
 CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
-    case TASK_COMPLEX_LEAVE_CAR: {
-        // Peds can't be dragged out of these vehicles, so they just get out (See `CTaskSimpleCarSlowDragPedOut::ProcessPed`)
-        switch (const auto animGroupId = m_Vehicle->GetAnimGroupId()) {
-        case ANIM_GROUP_COACHCARANIMS:
-            return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
-        case ANIM_GROUP_TANKCARANIMS:
-            return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_DRIVER, 0, false, true };
-        case ANIM_GROUP_BUSCARANIMS: {
-            if (m_Door == TARGET_DOOR_FRONT_RIGHT) {
-                return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
-            }
-            return nullptr;
-        }
-        default:
-            NOTSA_UNREACHABLE_CASE(animGroupId);
-        }
-    }
+    case TASK_COMPLEX_LEAVE_CAR:
+        return CreateLeaveCarSubTask(m_Vehicle->GetAnimGroupId(), ped->m_pVehicle, m_Door);
     case TASK_SIMPLE_CAR_SET_PED_OUT:
         return new CTaskSimpleCarSetPedOut{ ped->m_pVehicle, m_Door, true };
     case TASK_COMPLEX_GET_UP_AND_STAND_STILL:
