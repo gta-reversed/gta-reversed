@@ -22,12 +22,8 @@ CDecision::CDecision() {
 // 0x600530
 void CDecision::SetDefault() {
     m_Tasks.fill(TASK_INVALID);
-    for (auto& probs : m_Probs) {
-        probs.fill(0);
-    }
-    for (auto& bools : m_Bools) {
-        bools.fill(false);
-    }
+    m_Probs.fill({});
+    m_Bools.fill({});
 }
 
 // 0x6006B0
