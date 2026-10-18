@@ -100,12 +100,7 @@ CPed* CTaskSimpleCarSlowDragPedOut::GetJackedPed() const {
     if (m_TargetDoor == TARGET_DOOR_DRIVER) {
         return m_Vehicle->m_pDriver;
     }
-    // If the door has no passenger seat (eg.: jacking a bike from the right side) the index is -1,
-    // and the original reads `m_apPassengers[-1]` - which is `m_pDriver`, the member right before it
-    const auto passengerIdx = CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Vehicle, (int32)m_TargetDoor);
-    return passengerIdx == -1
-        ? m_Vehicle->m_pDriver
-        : m_Vehicle->m_apPassengers[passengerIdx];
+    return CCarEnterExit::GetPassengerAtCarDoor(m_Vehicle, (int32)m_TargetDoor);
 }
 
 // 0x64BFB0
