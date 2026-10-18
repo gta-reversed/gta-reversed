@@ -10,8 +10,8 @@ void CTaskComplexCarSlowBeDraggedOutAndStandUp::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexCarSlowBeDraggedOutAndStandUp, 0x86EF80, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x648620);
-    RH_ScopedInstall(Destructor, 0x648690);
+    RH_ScopedConstructorInstall(0x648620, "", {}, CVehicle*, int32);
+    RH_ScopedVMTDestructorInstall(0x648690);
 
     RH_ScopedInstall(CreateSubTask, 0x648710);
 
@@ -25,23 +25,19 @@ void CTaskComplexCarSlowBeDraggedOutAndStandUp::InjectHooks() {
 
 // 0x648620
 CTaskComplexCarSlowBeDraggedOutAndStandUp::CTaskComplexCarSlowBeDraggedOutAndStandUp(CVehicle* vehicle, int32 door) :
-    CTaskComplex() {
-    m_Vehicle = vehicle;
-    m_Door    = static_cast<eTargetDoor>(door);
-    CEntity::SafeRegisterRef(m_Vehicle);
+    m_Vehicle{ vehicle },
+    m_Door{ static_cast<eTargetDoor>(door) } {
 }
 
 // 0x648690
-CTaskComplexCarSlowBeDraggedOutAndStandUp::~CTaskComplexCarSlowBeDraggedOutAndStandUp() {
-    CEntity::SafeCleanUpRef(m_Vehicle);
-}
+CTaskComplexCarSlowBeDraggedOutAndStandUp::~CTaskComplexCarSlowBeDraggedOutAndStandUp() = default;
 
 // 0x648710
 CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_COMPLEX_LEAVE_CAR: {
         // Peds can't be dragged out of these vehicles, so they just get out (See `CTaskSimpleCarSlowDragPedOut::ProcessPed`)
-        switch (m_Vehicle->GetAnimGroupId()) {
+        switch (const auto animGroupId = m_Vehicle->GetAnimGroupId()) {
         case ANIM_GROUP_COACHCARANIMS:
             return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
         case ANIM_GROUP_TANKCARANIMS:
@@ -50,10 +46,11 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateSubTask(eTaskType taskTy
             if (m_Door == TARGET_DOOR_FRONT_RIGHT) {
                 return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
             }
-            break;
+            return nullptr;
         }
+        default:
+            NOTSA_UNREACHABLE_CASE(animGroupId);
         }
-        return nullptr;
     }
     case TASK_SIMPLE_CAR_SET_PED_OUT:
         return new CTaskSimpleCarSetPedOut{ ped->m_pVehicle, m_Door, true };
@@ -64,7 +61,7 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateSubTask(eTaskType taskTy
     case TASK_FINISHED:
         return nullptr;
     default:
-        NOTSA_UNREACHABLE();
+        NOTSA_UNREACHABLE_CASE(taskType);
     }
 }
 
@@ -76,48 +73,27 @@ bool CTaskComplexCarSlowBeDraggedOutAndStandUp::MakeAbortable(CPed* ped, eAbortP
 
 // 0x6488F0
 CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateNextSubTask(CPed* ped) {
-    switch (m_pSubTask->GetTaskType()) {
+    switch (const auto taskType = m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_CAR_SLOW_BE_DRAGGED_OUT: {
         if (!ped->IsAlive() || ped->m_fHealth <= 0.0f) {
-            CEventDeath event{ false };
-            ped->GetEventGroup().Add(&event, false);
+            ped->GetEventGroup().Add(CEventDeath{ false });
             return nullptr;
         }
         return new CTaskComplexGetUpAndStandStill{};
     }
     case TASK_COMPLEX_GET_UP_AND_STAND_STILL: // The original calls `ped->IsPlayer()` here, but doesn't use the result
-    default:
         return nullptr;
+    case TASK_COMPLEX_LEAVE_CAR:
+    case TASK_SIMPLE_CAR_SET_PED_OUT:
+        return nullptr;
+    default:
+        NOTSA_UNREACHABLE_CASE(taskType);
     }
 }
 
-// 0x648A10
-CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateFirstSubTask(CPed* ped) {
-    if (ped == FindPlayerPed(0)) {
-        if (ped->m_pVehicle) {
-            ped->m_pVehicle->m_vehicleAudio.PlayerAboutToExitVehicleAsDriver();
-        }
-    } else if (ped->m_pVehicle->IsDriver(ped)) {
-        ped->SetRadioStation();
-    }
-
-    // Peds can't be dragged out of these vehicles, so they just get out (See `CreateSubTask`)
-    if (ped->m_pVehicle) {
-        switch (ped->m_pVehicle->GetAnimGroupId()) {
-        case ANIM_GROUP_COACHCARANIMS:
-        case ANIM_GROUP_TANKCARANIMS:
-            return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
-        case ANIM_GROUP_BUSCARANIMS: {
-            if (m_Door == TARGET_DOOR_FRONT_RIGHT) {
-                return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
-            }
-            break;
-        }
-        }
-    }
-
-    // Play the sound of being jacked
-    switch (ped->m_pVehicle->GetAnimGroupId()) {
+// NOTSA - The sound of a ped being jacked out of a vehicle (with the given anim group) through `door`
+static std::optional<eAudioEvents> GetJackedAudioEvent(AssocGroupId animGroupId, eTargetDoor door) {
+    switch (animGroupId) {
     case ANIM_GROUP_STDCARAMIMS:
     case ANIM_GROUP_VANCARANIMS:
     case ANIM_GROUP_RUSTPLANEANIMS:
@@ -126,25 +102,45 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateFirstSubTask(CPed* ped) 
     case ANIM_GROUP_STDTALLCARAMIMS:
     case ANIM_GROUP_HOVERCARANIMS:
     case ANIM_GROUP_STDCARUPRIGHT: {
-        if (m_Door == TARGET_DOOR_DRIVER) {
-            ped->GetAE().AddAudioEvent(AE_PED_JACKED_CAR_PUNCH);
-        } else if (m_Door == TARGET_DOOR_FRONT_RIGHT) {
-            ped->GetAE().AddAudioEvent(AE_PED_JACKED_CAR_HEAD_BANG);
+        switch (door) {
+        case TARGET_DOOR_DRIVER:      return AE_PED_JACKED_CAR_PUNCH;
+        case TARGET_DOOR_FRONT_RIGHT: return AE_PED_JACKED_CAR_HEAD_BANG;
+        default:                      return std::nullopt;
+        }
+    }
+    case ANIM_GROUP_LOWCARAMIMS:   return AE_PED_JACKED_CAR_KICK;
+    case ANIM_GROUP_DOZERCARANIMS: return AE_PED_JACKED_DOZER;
+    default:                       return std::nullopt;
+    }
+}
+
+// 0x648A10
+CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateFirstSubTask(CPed* ped) {
+    auto* const vehicle = ped->m_pVehicle;
+    assert(vehicle); // The original dereferences it unconditionally too
+
+    if (ped == FindPlayerPed(0)) {
+        vehicle->m_vehicleAudio.PlayerAboutToExitVehicleAsDriver();
+    } else if (vehicle->IsDriver(ped)) {
+        ped->SetRadioStation();
+    }
+
+    // Peds can't be dragged out of these vehicles, so they just get out (See `CreateSubTask`)
+    switch (vehicle->GetAnimGroupId()) {
+    case ANIM_GROUP_COACHCARANIMS:
+    case ANIM_GROUP_TANKCARANIMS:
+        return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
+    case ANIM_GROUP_BUSCARANIMS: {
+        if (m_Door == TARGET_DOOR_FRONT_RIGHT) {
+            return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
         }
         break;
     }
-    case ANIM_GROUP_LOWCARAMIMS:
-        ped->GetAE().AddAudioEvent(AE_PED_JACKED_CAR_KICK);
-        break;
-    case ANIM_GROUP_DOZERCARANIMS:
-        ped->GetAE().AddAudioEvent(AE_PED_JACKED_DOZER);
-        break;
+    }
+
+    if (const auto event = GetJackedAudioEvent(vehicle->GetAnimGroupId(), m_Door)) {
+        ped->GetAE().AddAudioEvent(*event);
     }
 
     return CreateSubTask(TASK_COMPLEX_CAR_SLOW_BE_DRAGGED_OUT, ped);
-}
-
-// 0x648B80
-CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::ControlSubTask(CPed* ped) {
-    return m_pSubTask;
 }

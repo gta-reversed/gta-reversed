@@ -2,14 +2,15 @@
 
 #include "TaskComplex.h"
 #include <Enums/eTargetDoor.h>
+#include <extensions/EntityRef.hpp>
 
 class CVehicle;
 class CEvent;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexCarSlowBeDraggedOutAndStandUp : public CTaskComplex {
 public:
-    CVehicle*   m_Vehicle;
-    eTargetDoor m_Door;
+    notsa::EntityRef<CVehicle> m_Vehicle;
+    eTargetDoor                m_Door;
 
 public:
     static constexpr auto Type = TASK_COMPLEX_CAR_SLOW_BE_DRAGGED_OUT_AND_STAND_UP;
@@ -22,13 +23,11 @@ public:
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
-    CTask* ControlSubTask(CPed* ped) override;
+    CTask* ControlSubTask(CPed* ped) override { return m_pSubTask; } // 0x648B80
 
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
-    CTaskComplexCarSlowBeDraggedOutAndStandUp* Constructor(CVehicle* veh, int32 door) { this->CTaskComplexCarSlowBeDraggedOutAndStandUp::CTaskComplexCarSlowBeDraggedOutAndStandUp(veh, door); return this; }
-    CTaskComplexCarSlowBeDraggedOutAndStandUp* Destructor() { this->CTaskComplexCarSlowBeDraggedOutAndStandUp::~CTaskComplexCarSlowBeDraggedOutAndStandUp(); return this; }
 };
