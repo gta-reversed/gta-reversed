@@ -55,7 +55,12 @@ struct tFontData {
     std::array<uint8, 208> m_propValues;
     uint8 m_spaceValue;
     uint8 m_unpropValue;
+
+    // The index can be past `m_propValues` (e.g. `CFont::FindSubFontCharacter` returns 208 for '!' with `FONT_PRICEDOWN`),
+    // the original then reads whatever follows (`m_spaceValue`, `m_unpropValue`, the next font's data)
+    uint8 GetPropValue(uint8 idx) const { return reinterpret_cast<const uint8*>(this)[idx]; }
 };
+VALIDATE_SIZE(tFontData, 0xD2);
 
 enum eExtraFontSymbol : uint8 {
     EXSYMBOL_NONE       = 0, // invalid

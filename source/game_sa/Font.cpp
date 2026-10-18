@@ -744,7 +744,7 @@ float CFont::GetCharacterSize(uint8 letterId) {
         propValueIdx = 0;
 
     if (m_bFontPropOn) {
-        return ((float)gFontData[m_FontTextureId].m_propValues[propValueIdx] + (float)m_nFontOutlineSize) * m_Scale.x;
+        return ((float)gFontData[m_FontTextureId].GetPropValue(propValueIdx) + (float)m_nFontOutlineSize) * m_Scale.x;
     } else {
         return ((float)gFontData[m_FontTextureId].m_unpropValue + (float)m_nFontOutlineSize) * m_Scale.x;
     }
@@ -798,7 +798,7 @@ float GetLetterIdPropValue(uint8 letterId) {
         id = 0;
 
     if (CFont::RenderState.m_bPropOn)
-        return gFontData[CFont::RenderState.m_wFontTexture].m_propValues[id];
+        return gFontData[CFont::RenderState.m_wFontTexture].GetPropValue(id);
     else
         return gFontData[CFont::RenderState.m_wFontTexture].m_unpropValue;
 }
