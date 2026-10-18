@@ -25,7 +25,6 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim() :
     // Rest done in header
 }
 
-// todo: check m_vecOffsetAtEnd initialization
 // 0x61A990
 CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     const char* animName,
@@ -40,6 +39,7 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
 ) :
     CTaskSimpleAnim(bHoldLastFrame),
     m_Time{ endTime },
+    m_vecOffsetAtEnd{ 0.0f, 0.0f, 0.0f },
     m_animFlags{ animFlags }
 {
     m_bDontInterrupt = bDontInterrupt;
