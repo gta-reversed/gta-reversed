@@ -137,22 +137,25 @@ constexpr struct { int32 type; const char* name; } FXINFOMANAGER_C_LOAD_MAPPING[
 
 // 0x5C0B70
 void FxInfoManager_c::Load(FILESTREAM file, int32 version) {
+    // Only the non-emission infos have the `TIMEMODEPRT:` field (and only in newer file versions)
+    constexpr int32 FIRST_VERSION_WITH_TIME_MODE_PRT = 1;
+
     ReadField<void>(file);
     m_nNumInfos = ReadField<int32>(file, "NUM_INFOS:");
- 
+
     m_MovementOffset = -1;
     m_RenderOffset   = -1;
- 
+
     m_pInfos = g_fxMan.Allocate<FxInfo_c*>(m_nNumInfos);
     assert(m_pInfos);
- 
+
     char line[256], field[128];
     for (auto i = 0; i < m_nNumInfos; i++) {
         auto& info = m_pInfos[i];
- 
+
         ReadLine(file, line, sizeof(line));
         VERIFY(sscanf(line, "%s", field) == 1);
- 
+
         const auto GetType = [=]() -> int32 {
             for (auto& [type, name] : FXINFOMANAGER_C_LOAD_MAPPING) {
                 if (strcmp(field, name) == 0) {
@@ -162,37 +165,36 @@ void FxInfoManager_c::Load(FILESTREAM file, int32 version) {
             NOTSA_UNREACHABLE("Unknown FX Info: %s", field); // NOTSA
         };
         const auto infoType = GetType();
- 
-        // Only the non-emission infos have this field
+
         bool bTimeModePrt = true;
-        if ((infoType & 0xF000) > 0x1000 && version >= 0.7f) {
+        if ((infoType & FX_INFO_CATEGORY_MASK) > FX_INFO_CATEGORY_EMISSION && version >= FIRST_VERSION_WITH_TIME_MODE_PRT) {
             bTimeModePrt = ReadField<bool>(file, "TIMEMODEPRT:");
         }
- 
+
         info = AddFxInfo(infoType);
         assert(info); // printf("Failed to load info: %s\n", field)
         info->Load(file, version);
         ReadField<void>(file);
- 
+
         info->m_bTimeModeParticle = bTimeModePrt;
- 
+
         //> 0x5C0F66 - Find the index of the first movement and the first render info
-        const auto type = (uint16)info->m_nType;
-        if ((type & 0x1000) == 0) {
-            if ((type & 0x2000) != 0) {
+        const auto category = (uint16)info->m_nType;
+        if ((category & FX_INFO_CATEGORY_EMISSION) == 0) {
+            if ((category & FX_INFO_CATEGORY_MOVEMENT) != 0) {
                 if (m_MovementOffset == -1) {
                     m_MovementOffset = (int8)i;
                 }
-            } else if ((type & 0xC000) != 0 && m_RenderOffset == -1) {
+            } else if ((category & FX_INFO_CATEGORY_RENDER) != 0 && m_RenderOffset == -1) {
                 m_RenderOffset = (int8)i;
             }
         }
     }
- 
+
     if (m_RenderOffset == -1) {
         m_RenderOffset = (int8)m_nNumInfos;
     }
- 
+
     if (m_MovementOffset == -1) {
         m_MovementOffset = m_RenderOffset;
     }
