@@ -46,6 +46,7 @@ bool CScriptResourceManager::RemoveFromResourceManager(int32 modelId, eScriptRes
             continue;
         }
         if (res.m_pThread == script) {
+            assert(!ours && "There can be only 1 match for a resource");
             ours = &res;
         } else {
             numOthers++;
