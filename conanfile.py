@@ -36,6 +36,10 @@ class saRecipe(ConanFile):
         "use_sdl3": True,
         "standalone": False,
         "unity_build": False,
+
+        # Otherwise Tracy keeps all profiling data in memory until a profiler connects,
+        # which (without one connected) exhausts the 32-bit address space in about a minute
+        "tracy/*:on_demand": True,
     }
     
     def requirements(self):
