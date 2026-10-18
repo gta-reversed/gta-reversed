@@ -23,7 +23,7 @@ void CTaskComplexStareAtPed::InjectHooks() {
 // 0x660270
 CTaskComplexStareAtPed::CTaskComplexStareAtPed(CPedGroup* pedGroip, CPed* pedToStareAt, int32 timeout) :
     m_pPedGroup{pedGroip},
-    m_pPed{pedToStareAt},
+    m_pPed{IsEntityPointerValid(pedToStareAt) ? pedToStareAt : nullptr},
     m_timeout{timeout}
 {
     CEntity::SafeRegisterRef(m_pPed);
@@ -65,6 +65,7 @@ CTask* CTaskComplexStareAtPed::CreateFirstSubTask(CPed* ped) {
 
 // 0x6605C0
 CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
+    const auto timedOut = m_timer.IsOutOfTime();
 
     // Below code copied from `CTaskComplexGangLeader::ControlSubTask`
     // Make sure anmims are loaded (if they can/need to be)
@@ -80,6 +81,11 @@ CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
         } else {
             CStreaming::RequestModel(IFPToModelId(blk), STREAMING_KEEP_IN_MEMORY);
         }
+    }
+
+    if (!m_pPed || timedOut) { // The ped we stare at may have been deleted (The reference clears it)
+        AbortIK(ped);
+        return nullptr;
     }
 
     CTaskComplexGangLeader::DoGangAbuseSpeech(ped, m_pPed);
