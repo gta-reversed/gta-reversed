@@ -30,7 +30,7 @@ class saRecipe(ConanFile):
         # Standalone build mode
         "standalone": [False, 'dump_hooks_only'], # There's no `True` yet, as we can't build a fully standalone version yet
 
-        # Enable the Tracy profiler (Otherwise all Tracy macros compile to nothing)
+        # Enable the Tracy profiler
         "use_tracy": [True, False],
     }
 
@@ -41,8 +41,8 @@ class saRecipe(ConanFile):
         "unity_build": False,
         "use_tracy": False,
 
-        # Otherwise Tracy keeps all profiling data in memory until a profiler connects,
-        # which (without one connected) exhausts the 32-bit address space in about a minute
+        # If enabled Tracy keeps all profiling data in memory until a profiler connects.
+        # Note: If no client connects, then the we run out of memory in about a minute.
         "tracy/*:on_demand": True,
     }
     
