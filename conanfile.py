@@ -84,7 +84,7 @@ class saRecipe(ConanFile):
                 os.path.join(self.dependencies["imgui"].package_folder, "res", "bindings"),
                 os.path.join(imgui_libs_folder, "bindings")
             )
-        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options['use_sdl3'] else "*imgui_impl_win32*")
+        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options.use_sdl3 else "*imgui_impl_win32*")
         copy_imgui_bindings("*imgui_impl_dx9*")
         copy(
             self,
