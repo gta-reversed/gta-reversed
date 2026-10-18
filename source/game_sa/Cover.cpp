@@ -33,6 +33,15 @@ void CCover::Init() {
     rng::fill(m_Points, CCoverPoint{});
 }
 
+// NOTSA
+void CCover::Shutdown() {
+    // `CWorld::ShutDown` has deleted all buildings, but permanent ones don't register references (See `CEntity::RegisterReference`), so these are dangling
+    for (auto* node = m_ListOfProcessedBuildings.GetNode(); node; node = node->Next) {
+        node->Item = nullptr;
+    }
+    m_ListOfProcessedBuildings.Flush();
+}
+
 // 0x698DB0
 void CCover::RemoveCoverPointIfEntityLost(CCoverPoint& cpt) {
     if (cpt.GetType() > CCoverPoint::eType::NONE && cpt.GetType() < CCoverPoint::eType::NUM) {

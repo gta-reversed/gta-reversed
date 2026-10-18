@@ -251,12 +251,7 @@ bool CGame::Shutdown() {
     CSkidmarks::Shutdown();
     CWeaponEffects::Shutdown();
     CTimeCycle::Shutdown();
-    // NOTSA: `CWorld::ShutDown` (above) deleted all buildings, but permanent ones don't register references (See `CEntity::RegisterReference`),
-    //        so their items in this list are dangling. `Flush` asserts on that (when it validates the nodes), so clear them first.
-    for (auto* node = CCover::m_ListOfProcessedBuildings.GetNode(); node; node = node->Next) {
-        node->Item = nullptr;
-    }
-    CCover::m_ListOfProcessedBuildings.Flush();
+    CCover::Shutdown(); // NOTSA: Originally just `CCover::m_ListOfProcessedBuildings.Flush()`
     CPedGroups::CleanUpForShutDown();
     CTaskSequences::CleanUpForShutdown();
     CInformGroupEventQueue::Flush();
