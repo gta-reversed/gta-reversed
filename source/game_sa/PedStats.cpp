@@ -14,7 +14,7 @@ void CPedStats::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x608850);
     RH_ScopedInstall(LoadPedStats, 0x5BB890);
     RH_ScopedInstall(GetPedStatType, 0x6088D0);
-    RH_ScopedInstall(FindIndexWithPedStat, 0x608940, { .Reversed = false });
+    RH_ScopedInstall(FindIndexWithPedStat, 0x608940);
 }
 
 // 0x5BF9D0
@@ -126,6 +126,16 @@ CPedStat* CPedStats::GetPedStatByArrayIndex(uint32 statIndex) {
 
 // unused
 // 0x608940
-void CPedStats::FindIndexWithPedStat(void* a1) {
-    plugin::Call<0x608940>();
+uint16 CPedStats::FindIndexWithPedStat(CPedStat* pedStat) {
+    uint16 index = 0;
+    auto* currentStat = ms_apPedStats;
+
+    while (pedStat != currentStat) {
+        if (++index >= PED_STATS_COUNT) {
+            return 0;
+        }
+        ++currentStat;
+    }
+    
+    return index;
 }
