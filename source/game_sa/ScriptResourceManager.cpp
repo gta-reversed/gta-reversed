@@ -24,7 +24,7 @@ void CScriptResourceManager::AddToResourceManager(int32 modelId, eScriptResource
     tScriptResource* freeSlot{};
     for (auto& res : m_aScriptResources) {
         if (res.m_nModelId == modelId && res.m_nType == type && res.m_pThread == script) {
-            return;
+            return; // Don't allow duplicates
         }
         if (res.m_nType == RESOURCE_TYPE_DEFAULT) {
             freeSlot = &res; // NOTE: Ends up being the *last* free slot
