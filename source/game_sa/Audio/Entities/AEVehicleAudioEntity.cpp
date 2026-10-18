@@ -291,12 +291,12 @@ tVehicleAudioSettings* CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSetting
 }
 
 // 0x4F4EE0
-void CAEVehicleAudioEntity::EnableHelicoptors() {
+void CAEVehicleAudioEntity::DisableHelicoptors() {
     s_HelicoptorsDisabled = true;
 }
 
 // 0x4F4EF0
-void CAEVehicleAudioEntity::DisableHelicoptors() {
+void CAEVehicleAudioEntity::EnableHelicoptors() {
     s_HelicoptorsDisabled = false;
 }
 
