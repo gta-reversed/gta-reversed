@@ -4873,7 +4873,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
     };
 
     const auto CreateFx = [&, this](size_t typ) {
-        auto pos = GetDummyPosition(DUMMY_ENGINE);
+        auto pos = GetDummyPositionObjSpace(DUMMY_ENGINE); // The fx is attached to the matrix below
         if (const auto mat = GetModellingMatrix()) {
             m_pFireParticle = g_fxMan.CreateFxSystem(
                 typ == 1
