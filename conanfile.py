@@ -29,6 +29,9 @@ class saRecipe(ConanFile):
 
         # Standalone build mode
         "standalone": [False, 'dump_hooks_only'], # There's no `True` yet, as we can't build a fully standalone version yet
+
+        # Enable the Tracy profiler (Otherwise all Tracy macros compile to nothing)
+        "use_tracy": [True, False],
     }
 
     default_options = {
@@ -36,6 +39,7 @@ class saRecipe(ConanFile):
         "use_sdl3": True,
         "standalone": False,
         "unity_build": False,
+        "use_tracy": False,
 
         # Otherwise Tracy keeps all profiling data in memory until a profiler connects,
         # which (without one connected) exhausts the 32-bit address space in about a minute
@@ -50,7 +54,7 @@ class saRecipe(ConanFile):
         # Required for our custom stuff
         self.requires("nlohmann_json/3.12.0")
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
-        self.requires("tracy/cci.20220130")
+        self.requires("tracy/0.13.1", options={"enable": bool(self.options.use_tracy)}) # Without `enable` all Tracy macros compile to nothing
         self.requires("imgui/1.92.9b-docking")
         self.requires("boost/1.91.0", options={"header_only": True})
         
