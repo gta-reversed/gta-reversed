@@ -21,8 +21,36 @@ CTaskSimpleChoking::CTaskSimpleChoking(const CTaskSimpleChoking& o) :
 }
 
 // 0x6203F0
-bool CTaskSimpleChoking::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
-    return plugin::CallMethodAndReturn<bool, 0x6203F0, CTaskSimpleChoking*, CPed*, eAbortPriority, CEvent const*>(this, ped, priority, event);
+bool CTaskSimpleChoking::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
+    constexpr float BLEND_OUT_DELTA = -4.f;
+
+    // Only events with at least this priority can abort us (if we're being aborted by an event)
+    constexpr int32 MIN_ABORT_EVENT_PRIORITY = 57;
+
+    switch (priority) {
+    case ABORT_PRIORITY_URGENT:
+    case ABORT_PRIORITY_IMMEDIATE: {
+        if (event && event->GetEventPriority() < MIN_ABORT_EVENT_PRIORITY) {
+            return false;
+        }
+        if (m_pAnim) {
+            m_pAnim->m_BlendDelta = BLEND_OUT_DELTA;
+            m_pAnim->SetDefaultFinishCallback();
+            m_pAnim = nullptr;
+        }
+        m_bIsFinished = true;
+        return true;
+    }
+    default: { // Leisure
+        if (m_pAnim) {
+            m_pAnim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+            m_pAnim->m_BlendDelta = BLEND_OUT_DELTA;
+            m_pAnim->SetDefaultFinishCallback();
+            m_pAnim = nullptr;
+        }
+        return true;
+    }
+    }
 }
 
 // 0x620490
@@ -62,6 +90,6 @@ void CTaskSimpleChoking::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x623220);
     RH_ScopedVMTInstall(GetTaskType, 0x620360);
-    RH_ScopedVMTInstall(MakeAbortable, 0x6203F0, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x6203F0);
     RH_ScopedVMTInstall(ProcessPed, 0x620490, { .Reversed = false });
 }
