@@ -28,6 +28,10 @@ public:
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
 private:
+    CTask*                      CreateLeaveCarSubTask(CPed* ped) const;
+    std::optional<eAudioEvents> GetJackedAudioEvent(AssocGroupId animGroupId) const;
+
+private:
     friend void InjectHooksMain();
     static void InjectHooks();
 };

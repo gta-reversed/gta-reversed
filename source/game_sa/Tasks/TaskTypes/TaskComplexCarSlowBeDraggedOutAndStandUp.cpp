@@ -32,16 +32,17 @@ CTaskComplexCarSlowBeDraggedOutAndStandUp::CTaskComplexCarSlowBeDraggedOutAndSta
 // 0x648690
 CTaskComplexCarSlowBeDraggedOutAndStandUp::~CTaskComplexCarSlowBeDraggedOutAndStandUp() = default;
 
-// NOTSA - Peds can't be dragged out of these vehicles (with the given anim group), so they just get out (See `CTaskSimpleCarSlowDragPedOut::ProcessPed`)
-static CTask* CreateLeaveCarSubTask(AssocGroupId animGroupId, CVehicle* vehicle, eTargetDoor door) {
-    switch (animGroupId) {
+// Code from `CreateSubTask` (0x648710), moved into a function
+// Peds can't be dragged out of these vehicles, so they just get out (See `CTaskSimpleCarSlowDragPedOut::ProcessPed`)
+CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateLeaveCarSubTask(CPed* ped) const {
+    switch (const auto animGroupId = m_Vehicle->GetAnimGroupId()) {
     case ANIM_GROUP_COACHCARANIMS:
-        return new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
+        return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
     case ANIM_GROUP_TANKCARANIMS:
-        return new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_DRIVER, 0, false, true };
+        return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_DRIVER, 0, false, true };
     case ANIM_GROUP_BUSCARANIMS: {
-        if (door == TARGET_DOOR_FRONT_RIGHT) {
-            return new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
+        if (m_Door == TARGET_DOOR_FRONT_RIGHT) {
+            return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_RIGHT, 0, false, true };
         }
         return nullptr;
     }
@@ -54,7 +55,7 @@ static CTask* CreateLeaveCarSubTask(AssocGroupId animGroupId, CVehicle* vehicle,
 CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_COMPLEX_LEAVE_CAR:
-        return CreateLeaveCarSubTask(m_Vehicle->GetAnimGroupId(), ped->m_pVehicle, m_Door);
+        return CreateLeaveCarSubTask(ped);
     case TASK_SIMPLE_CAR_SET_PED_OUT:
         return new CTaskSimpleCarSetPedOut{ ped->m_pVehicle, m_Door, true };
     case TASK_COMPLEX_GET_UP_AND_STAND_STILL:
@@ -85,7 +86,6 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateNextSubTask(CPed* ped) {
         return new CTaskComplexGetUpAndStandStill{};
     }
     case TASK_COMPLEX_GET_UP_AND_STAND_STILL: // The original calls `ped->IsPlayer()` here, but doesn't use the result
-        return nullptr;
     case TASK_COMPLEX_LEAVE_CAR:
     case TASK_SIMPLE_CAR_SET_PED_OUT:
         return nullptr;
@@ -94,8 +94,9 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateNextSubTask(CPed* ped) {
     }
 }
 
-// NOTSA - The sound of a ped being jacked out of a vehicle (with the given anim group) through `door`
-static std::optional<eAudioEvents> GetJackedAudioEvent(AssocGroupId animGroupId, eTargetDoor door) {
+// Code from `CreateFirstSubTask` (0x648A10), moved into a function
+// The sound of the ped being jacked out of a vehicle with the given anim group
+std::optional<eAudioEvents> CTaskComplexCarSlowBeDraggedOutAndStandUp::GetJackedAudioEvent(AssocGroupId animGroupId) const {
     switch (animGroupId) {
     case ANIM_GROUP_STDCARAMIMS:
     case ANIM_GROUP_VANCARANIMS:
@@ -105,7 +106,7 @@ static std::optional<eAudioEvents> GetJackedAudioEvent(AssocGroupId animGroupId,
     case ANIM_GROUP_STDTALLCARAMIMS:
     case ANIM_GROUP_HOVERCARANIMS:
     case ANIM_GROUP_STDCARUPRIGHT: {
-        switch (door) {
+        switch (m_Door) {
         case TARGET_DOOR_DRIVER:      return AE_PED_JACKED_CAR_PUNCH;
         case TARGET_DOOR_FRONT_RIGHT: return AE_PED_JACKED_CAR_HEAD_BANG;
         default:                      return std::nullopt;
@@ -141,7 +142,7 @@ CTask* CTaskComplexCarSlowBeDraggedOutAndStandUp::CreateFirstSubTask(CPed* ped) 
     }
     }
 
-    if (const auto event = GetJackedAudioEvent(vehicle->GetAnimGroupId(), m_Door)) {
+    if (const auto event = GetJackedAudioEvent(vehicle->GetAnimGroupId())) {
         ped->GetAE().AddAudioEvent(*event);
     }
 
