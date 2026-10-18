@@ -215,6 +215,7 @@ int32 CCopPed::AddCriminalToKill(CPed* criminal) {
 
 // 0x5DE040
 void CCopPed::RemoveCriminalToKill(int32 unk, int32 nCriminalLocalIdx) {
+    assert(m_apCriminalsToKill[nCriminalLocalIdx]);
     CEntity::ClearReference(m_apCriminalsToKill[nCriminalLocalIdx]);
 }
 
