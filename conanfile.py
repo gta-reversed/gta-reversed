@@ -46,7 +46,7 @@ class saRecipe(ConanFile):
         # Required for our custom stuff
         self.requires("nlohmann_json/3.12.0")
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
-        self.requires("tracy/cci.20220130")
+        self.requires("tracy/0.13.1")
         self.requires("imgui/1.92.9b-docking")
         self.requires("boost/1.91.0", options={"header_only": True})
         
