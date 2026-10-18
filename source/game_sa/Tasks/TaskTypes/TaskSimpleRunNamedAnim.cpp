@@ -39,7 +39,6 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
 ) :
     CTaskSimpleAnim(bHoldLastFrame),
     m_Time{ endTime },
-    m_vecOffsetAtEnd{ 0.0f, 0.0f, 0.0f },
     m_animFlags{ animFlags }
 {
     m_bDontInterrupt = bDontInterrupt;
