@@ -91,13 +91,16 @@ void CPedGroups::Process() {
 
     const auto SetGroupsDecisionMakerType = [](eDecisionMakerType dm) {
         for (auto&& [_, g] : GetActiveGroupsWithIDs()) {
-            g.GetIntelligence().SetGroupDecisionMakerType(dm);
+            if (!g.m_bIsMissionGroup) { // Mission groups keep the decision maker the script gave them
+                g.GetIntelligence().SetGroupDecisionMakerType(dm);
+            }
         }
     };
     if (CTheScripts::IsPlayerOnAMission() && !ms_bIsPlayerOnAMission) { // 0x5FC897 - Player started a mission
         ms_iNoOfPlayerKills = 0;
         SetGroupsDecisionMakerType(eDecisionMakerType::GROUP_RANDOM_PASSIVE);
     } else if (!CTheScripts::IsPlayerOnAMission() && ms_bIsPlayerOnAMission) { // 0x5FC8B2 - Player ended a mission (inverted)
+        ms_iNoOfPlayerKills = 0;
         SetGroupsDecisionMakerType(eDecisionMakerType::UNKNOWN);
     } else if (CTheScripts::IsPlayerOnAMission() && CPedGroups::ms_iNoOfPlayerKills == 8) { // 0x5FC8BF (inverted)
         SetGroupsDecisionMakerType(eDecisionMakerType::UNKNOWN);
@@ -105,7 +108,8 @@ void CPedGroups::Process() {
         SetGroupsDecisionMakerType(eDecisionMakerType::GROUP_RANDOM_PASSIVE);
     }
 
-    if (!std::exchange(ms_bIsPlayerOnAMission, CTheScripts::IsPlayerOnAMission())) { // 0x5FC98D
+    ms_bIsPlayerOnAMission = CTheScripts::IsPlayerOnAMission(); // 0x5FC98D
+    if (!ms_bIsPlayerOnAMission) {
         ms_iNoOfPlayerKills = 0;
     }
 }
