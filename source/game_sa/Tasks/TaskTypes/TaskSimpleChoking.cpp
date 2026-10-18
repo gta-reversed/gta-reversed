@@ -43,7 +43,7 @@ bool CTaskSimpleChoking::MakeAbortable(CPed* ped, eAbortPriority priority, const
     }
 
     if (auto* const anim = std::exchange(m_pAnim, nullptr)) {
-        anim->SetBlendDelta(BLEND_OUT_DELTA);
+        anim->SetBlendDelta(-4.f);
         anim->SetDefaultFinishCallback();
     }
 
