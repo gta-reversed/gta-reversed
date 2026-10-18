@@ -128,5 +128,5 @@ CPedStat* CPedStats::GetPedStatByArrayIndex(uint32 statIndex) {
 // 0x608940
 ptrdiff_t CPedStats::FindIndexWithPedStat(const CPedStat* pedStat) {
      // NOTE: original returned 0 on not-found; we return -1 to signal not-found explicitly.
-     return notsa::indexof(std::span(ms_apPedStats, PED_STATS_COUNT), pedStat, static_cast<ptrdiff_t>(-1));
+     return notsa::indexof(std::span(ms_apPedStats, PED_STATS_COUNT), pedStat, -1);
  }
