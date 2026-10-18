@@ -84,7 +84,7 @@ CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
         }
     }
 
-    if (!m_pPed || isOutOfTime) { // The ped we stare at may have been deleted (The reference clears it)
+    if (!m_pPed || isOutOfTime) {
         AbortIK(ped);
         return nullptr;
     }
