@@ -126,16 +126,7 @@ CPedStat* CPedStats::GetPedStatByArrayIndex(uint32 statIndex) {
 
 // unused
 // 0x608940
-uint16 CPedStats::FindIndexWithPedStat(CPedStat* pedStat) {
-    uint16 index = 0;
-    auto* currentStat = ms_apPedStats;
-
-    while (pedStat != currentStat) {
-        if (++index >= PED_STATS_COUNT) {
-            return 0;
-        }
-        ++currentStat;
-    }
-    
-    return index;
-}
+ptrdiff_t CPedStats::FindIndexWithPedStat(const CPedStat* pedStat) {
+     // NOTE: original returned 0 on not-found; we return -1 to signal not-found explicitly.
+     return notsa::indexof(std::span(ms_apPedStats, PED_STATS_COUNT), pedStat, static_cast<ptrdiff_t>(-1));
+ }
