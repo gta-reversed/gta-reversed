@@ -31,7 +31,7 @@
 
 #include <extensions/Casting.hpp>
 
-#include <tracy/Tracy.hpp>
+#include <Tracy.hpp>
 
 // DirectX
 #ifdef _WIN32
