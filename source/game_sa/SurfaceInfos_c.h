@@ -73,6 +73,18 @@ public:
     bool IsAudioGravelConcreteOrTile(SurfaceId id) {
         return IsAudioGravel(id) || IsAudioConcrete(id) || IsAudioTile(id);
     }
+
+private:
+    // NOTSA: The original doesn't check `id`, and some callers pass garbage (e.g. `CAutomobile::DoHeliDustEffect`)
+    const SurfaceInfo_c& GetSurfaceInfo(SurfaceId id) const {
+        if (id >= m_surfaces.size()) {
+            static constexpr SurfaceInfo_c s_UnknownSurface{}; // No flags set
+            return notsa::bugfixes::GenericOOB
+                ? s_UnknownSurface
+                : m_surfaces.data()[id]; // What the original reads
+        }
+        return m_surfaces[id];
+    }
 };
 VALIDATE_SIZE(SurfaceInfos_c, 0x8F4);
 

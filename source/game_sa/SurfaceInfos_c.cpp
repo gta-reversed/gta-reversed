@@ -401,271 +401,271 @@ void SurfaceInfos_c::Init()
 // 0x55E5C0
 eAdhesionGroup SurfaceInfos_c::GetAdhesionGroup(SurfaceId id)
 {
-    return static_cast<eAdhesionGroup>(m_surfaces[id].ucAdhesionGroup);
+    return static_cast<eAdhesionGroup>(GetSurfaceInfo(id).ucAdhesionGroup);
 }
 
 // 0x55E5E0
 float SurfaceInfos_c::GetTyreGrip(SurfaceId id)
 {
-    return static_cast<float>(m_surfaces[id].tyreGrip) * 0.1F;
+    return static_cast<float>(GetSurfaceInfo(id).tyreGrip) * 0.1F;
 }
 
 // 0x55E600
 float SurfaceInfos_c::GetWetMultiplier(SurfaceId id)
 {
-    return static_cast<float>(m_surfaces[id].wetGrip) * 0.01F * CWeather::WetRoads + 1.0F;
+    return static_cast<float>(GetSurfaceInfo(id).wetGrip) * 0.01F * CWeather::WetRoads + 1.0F;
 }
 
 // 0x55E630
 uint32 SurfaceInfos_c::GetSkidmarkType(SurfaceId id)
 {
-    return m_surfaces[id].ucSkidmarkType;
+    return GetSurfaceInfo(id).ucSkidmarkType;
 }
 
 // 0x55E650
 eFrictionEffect SurfaceInfos_c::GetFrictionEffect(SurfaceId id)
 {
-    return static_cast<eFrictionEffect>(m_surfaces[id].ucFrictionEffect);
+    return static_cast<eFrictionEffect>(GetSurfaceInfo(id).ucFrictionEffect);
 }
 
 // 0x55E670
 uint32 SurfaceInfos_c::GetBulletFx(SurfaceId id)
 {
-    return m_surfaces[id].ucBulletFX;
+    return GetSurfaceInfo(id).ucBulletFX;
 }
 
 // 0x55E690
 bool SurfaceInfos_c::IsSoftLanding(SurfaceId id)
 {
-    return m_surfaces[id].bIsSoftLand;
+    return GetSurfaceInfo(id).bIsSoftLand;
 }
 
 // 0x55E6B0
 bool SurfaceInfos_c::IsSeeThrough(SurfaceId id)
 {
-    return m_surfaces[id].bIsSeeThrough;
+    return GetSurfaceInfo(id).bIsSeeThrough;
 }
 
 // 0x55E6D0
 bool SurfaceInfos_c::IsShootThrough(SurfaceId id)
 {
-    return m_surfaces[id].bIsShootThrough;
+    return GetSurfaceInfo(id).bIsShootThrough;
 }
 
 // 0x55E6F0
 bool SurfaceInfos_c::IsSand(SurfaceId id)
 {
-    return m_surfaces[id].bIsSand;
+    return GetSurfaceInfo(id).bIsSand;
 }
 
 // 0x55E710
 bool SurfaceInfos_c::IsWater(SurfaceId id)
 {
-    return m_surfaces[id].bIsWater;
+    return GetSurfaceInfo(id).bIsWater;
 }
 
 // 0x55E730
 bool SurfaceInfos_c::IsShallowWater(SurfaceId id)
 {
-    return m_surfaces[id].bIsShallowWater;
+    return GetSurfaceInfo(id).bIsShallowWater;
 }
 
 // 0x55E750
 bool SurfaceInfos_c::IsBeach(SurfaceId id)
 {
-    return m_surfaces[id].bIsBeach;
+    return GetSurfaceInfo(id).bIsBeach;
 }
 
 // 0x55E770
 bool SurfaceInfos_c::IsSteepSlope(SurfaceId id)
 {
-    return m_surfaces[id].bIsSteepSlope;
+    return GetSurfaceInfo(id).bIsSteepSlope;
 }
 
 // 0x55E790
 bool SurfaceInfos_c::IsGlass(SurfaceId id)
 {
-    return m_surfaces[id].bIsGlass;
+    return GetSurfaceInfo(id).bIsGlass;
 }
 
 // 0x55E7B0
 bool SurfaceInfos_c::IsStairs(SurfaceId id)
 {
-    return m_surfaces[id].bIsStairs;
+    return GetSurfaceInfo(id).bIsStairs;
 }
 
 // 0x55E7D0
 bool SurfaceInfos_c::IsSkateable(SurfaceId id)
 {
-    return m_surfaces[id].bIsSkateable;
+    return GetSurfaceInfo(id).bIsSkateable;
 }
 
 // 0x55E7F0
 bool SurfaceInfos_c::IsPavement(SurfaceId id)
 {
-    return m_surfaces[id].bIsPavement;
+    return GetSurfaceInfo(id).bIsPavement;
 }
 
 // 0x55E810
 uint32 SurfaceInfos_c::GetRoughness(SurfaceId id)
 {
-    return m_surfaces[id].ucRoughness;
+    return GetSurfaceInfo(id).ucRoughness;
 }
 
 // 0x55E830
 uint32 SurfaceInfos_c::GetFlammability(SurfaceId id)
 {
-    return m_surfaces[id].ucFlammability;
+    return GetSurfaceInfo(id).ucFlammability;
 }
 
 // 0x55E850
 bool SurfaceInfos_c::CreatesSparks(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesSparks;
+    return GetSurfaceInfo(id).bCreatesSparks;
 }
 
 // 0x55E870
 bool SurfaceInfos_c::CantSprintOn(SurfaceId id)
 {
-    return m_surfaces[id].bCantSprintOn;
+    return GetSurfaceInfo(id).bCantSprintOn;
 }
 
 // 0x55E890
 bool SurfaceInfos_c::LeavesFootsteps(SurfaceId id)
 {
-    return m_surfaces[id].bLeavesFootsteps;
+    return GetSurfaceInfo(id).bLeavesFootsteps;
 }
 
 // 0x55E8B0
 bool SurfaceInfos_c::ProducesFootDust(SurfaceId id)
 {
-    return m_surfaces[id].bProducesFootDust;
+    return GetSurfaceInfo(id).bProducesFootDust;
 }
 
 // 0x55E8D0
 bool SurfaceInfos_c::MakesCarDirty(SurfaceId id)
 {
-    return m_surfaces[id].bMakesCarDirty;
+    return GetSurfaceInfo(id).bMakesCarDirty;
 }
 
 // 0x55E8F0
 bool SurfaceInfos_c::MakesCarClean(SurfaceId id)
 {
-    return m_surfaces[id].bMakesCarClean;
+    return GetSurfaceInfo(id).bMakesCarClean;
 }
 
 // 0x55E910
 bool SurfaceInfos_c::CreatesWheelGrass(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesWheelGrass;
+    return GetSurfaceInfo(id).bCreatesWheelGrass;
 }
 
 // 0x55E930
 bool SurfaceInfos_c::CreatesWheelGravel(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesWheelGravel;
+    return GetSurfaceInfo(id).bCreatesWheelGravel;
 }
 
 // 0x55E950
 bool SurfaceInfos_c::CreatesWheelMud(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesWheelMud;
+    return GetSurfaceInfo(id).bCreatesWheelMud;
 }
 
 // 0x55E970
 bool SurfaceInfos_c::CreatesWheelDust(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesWheelDust;
+    return GetSurfaceInfo(id).bCreatesWheelDust;
 }
 
 // 0x55E990
 bool SurfaceInfos_c::CreatesWheelSand(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesWheelSand;
+    return GetSurfaceInfo(id).bCreatesWheelSand;
 }
 
 // 0x55E9B0
 bool SurfaceInfos_c::CreatesWheelSpray(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesWheelSpray;
+    return GetSurfaceInfo(id).bCreatesWheelSpray;
 }
 
 // 0x55E9D0
 bool SurfaceInfos_c::CreatesPlants(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesPlants;
+    return GetSurfaceInfo(id).bCreatesPlants;
 }
 
 // 0x55E9F0
 bool SurfaceInfos_c::CreatesObjects(SurfaceId id)
 {
-    return m_surfaces[id].bCreatesObjects;
+    return GetSurfaceInfo(id).bCreatesObjects;
 }
 
 // 0x55EA10
 bool SurfaceInfos_c::CanClimb(SurfaceId id)
 {
-    return m_surfaces[id].bCanClimb;
+    return GetSurfaceInfo(id).bCanClimb;
 }
 
 // 0x55EA30
 bool SurfaceInfos_c::IsAudioConcrete(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioConcrete;
+    return GetSurfaceInfo(id).bIsAudioConcrete;
 }
 
 // 0x55EA50
 bool SurfaceInfos_c::IsAudioGrass(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioGrass;
+    return GetSurfaceInfo(id).bIsAudioGrass;
 }
 
 // 0x55EA70
 bool SurfaceInfos_c::IsAudioSand(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioSand;
+    return GetSurfaceInfo(id).bIsAudioSand;
 }
 
 // 0x55EA90
 bool SurfaceInfos_c::IsAudioGravel(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioGravel;
+    return GetSurfaceInfo(id).bIsAudioGravel;
 }
 
 // 0x55EAB0
 bool SurfaceInfos_c::IsAudioWood(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioWood;
+    return GetSurfaceInfo(id).bIsAudioWood;
 }
 
 // 0x55EAD0
 bool SurfaceInfos_c::IsAudioWater(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioWater;
+    return GetSurfaceInfo(id).bIsAudioWater;
 }
 
 // 0x55EAF0
 bool SurfaceInfos_c::IsAudioMetal(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioMetal;
+    return GetSurfaceInfo(id).bIsAudioMetal;
 }
 
 // 0x55EB10
 bool SurfaceInfos_c::IsAudioLongGrass(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioLongGrass;
+    return GetSurfaceInfo(id).bIsAudioLongGrass;
 }
 
 // 0x55EB30
 bool SurfaceInfos_c::IsAudioTile(SurfaceId id)
 {
-    return m_surfaces[id].bIsAudioTile;
+    return GetSurfaceInfo(id).bIsAudioTile;
 }
 
 // 0x55EB50
 float SurfaceInfos_c::GetAdhesiveLimit(CColPoint* colPoint)
 {
-    auto& surfaceA = m_surfaces[colPoint->m_nSurfaceTypeA];
-    auto& surfaceB = m_surfaces[colPoint->m_nSurfaceTypeB];
+    auto& surfaceA = GetSurfaceInfo(colPoint->m_nSurfaceTypeA);
+    auto& surfaceB = GetSurfaceInfo(colPoint->m_nSurfaceTypeB);
     return m_adhesiveLimits[surfaceB.ucAdhesionGroup][surfaceA.ucAdhesionGroup];
 }
