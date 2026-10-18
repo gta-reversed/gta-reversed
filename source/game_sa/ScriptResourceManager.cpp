@@ -55,7 +55,7 @@ bool CScriptResourceManager::RemoveFromResourceManager(int32 modelId, eScriptRes
     if (ours) {
         *ours = tScriptResource{}; // Resets to `-1`, `RESOURCE_TYPE_DEFAULT`, `nullptr`
     }
-    return numMatchesInOtherScripts == 0; // Return if this type+model was requested by any other script (Same logic as `HasResourceBeenRequested`)
+    return numMatchesInOtherScripts == 0; // Returns whenever this type+model was requested by any other script (Same logic as `HasResourceBeenRequested`)
 }
 
 // 0x470620
