@@ -389,6 +389,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     case MENU_ACTION_LANG_GERMAN:
     case MENU_ACTION_LANG_ITALIAN:
     case MENU_ACTION_LANG_SPANISH:
+    case MENU_ACTION_LANG_CHINESE:
 #ifdef USE_LANG_RUSSIAN
     case MENU_ACTION_LANG_RUSSIAN:
 #endif
@@ -396,7 +397,23 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     case MENU_ACTION_LANG_JAPANESE:
 #endif
     {
-        auto newLang = static_cast<eLanguage>(item->m_nActionType - MENU_ACTION_LANG_ENGLISH);
+        // NotSA: explicit mapping (action values are not contiguous once CHINESE is added)
+        eLanguage newLang = eLanguage::AMERICAN;
+        switch (item->m_nActionType) {
+        case MENU_ACTION_LANG_ENGLISH: newLang = eLanguage::AMERICAN; break;
+        case MENU_ACTION_LANG_FRENCH:  newLang = eLanguage::FRENCH;   break;
+        case MENU_ACTION_LANG_GERMAN:  newLang = eLanguage::GERMAN;   break;
+        case MENU_ACTION_LANG_ITALIAN: newLang = eLanguage::ITALIAN;  break;
+        case MENU_ACTION_LANG_SPANISH: newLang = eLanguage::SPANISH;  break;
+        case MENU_ACTION_LANG_CHINESE: newLang = eLanguage::CHINESE;  break;
+#ifdef USE_LANG_RUSSIAN
+        case MENU_ACTION_LANG_RUSSIAN: newLang = eLanguage::RUSSIAN;  break;
+#endif
+#ifdef USE_LANG_JAPANESE
+        case MENU_ACTION_LANG_JAPANESE: newLang = eLanguage::JAPANESE; break;
+#endif
+        default: break;
+        }
         if (m_nPrefsLanguage != newLang) {
             m_nPrefsLanguage = newLang;
             m_bLanguageChanged = true;

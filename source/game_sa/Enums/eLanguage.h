@@ -9,4 +9,5 @@ enum class eLanguage : uint8 {
     SPANISH  = 4,
     RUSSIAN  = 5, // mobile
     JAPANESE = 6, // mobile
+    CHINESE  = 7, // NotSA: Simplified Chinese (wm_sachs)
 };

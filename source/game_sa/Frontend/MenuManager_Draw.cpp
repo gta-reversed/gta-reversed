@@ -572,7 +572,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
                 break;
             }
-            displayText = TheText.Get(item.m_szName);
+            // NotSA: the language screen's Chinese entry has no GXT key, show a literal label
+            if (item.m_nActionType == eMenuAction::MENU_ACTION_LANG_CHINESE) {
+                static const GxtChar chsLabel[] = { 0xE4, 0xB8, 0xAD, 0xE6, 0x96, 0x87, 0x00 }; // "中文" (UTF-8)
+                displayText = chsLabel;
+            } else {
+                displayText = TheText.Get(item.m_szName);
+            }
             break;
         }
         }

@@ -125,6 +125,8 @@ const char* GetGxtName() {
         return "ITALIAN.GXT";
     case eLanguage::SPANISH:
         return "SPANISH.GXT";
+    case eLanguage::CHINESE:
+        return "CHINESE.GXT";
 #ifdef MORE_LANGUAGES
     case eLanguage::RUSSIAN:
         return "RUSSIAN.GXT";

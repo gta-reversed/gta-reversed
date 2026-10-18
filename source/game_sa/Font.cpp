@@ -7,6 +7,7 @@
 #include "StdInc.h"
 
 #include "Font.h"
+#include "WmBridge.h"
 
 #include "eLanguage.h"
 
@@ -54,6 +55,8 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(GetTextRect, 0x71A620);
     RH_ScopedInstall(PrintString, 0x71A700);
     RH_ScopedInstall(PrintStringFromBottom, 0x71A820);
+
+    wmbridge::InstallHooks();   // wm_sachs text pipeline: patch 0x71A220 / 0x719840 at startup
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
     // Install("", "GetScriptLetterSize", 0x719670, &GetScriptLetterSize);
@@ -592,7 +595,7 @@ void CFont::InitPerFrame() {
 // Draw text we have in buffer
 // 0x719840
 void CFont::RenderFontBuffer() {
-    plugin::Call<0x719840>();
+    wmbridge::RenderFontBuffer();
 }
 
 // 0x71A0E0
@@ -658,7 +661,7 @@ void CFont::DrawFonts() {
 
 // 0x71A220
 int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* text) {
-    return plugin::CallAndReturn<int16, 0x71A220, bool, float, float, const GxtChar*>(print, x, y, text);
+    return wmbridge::ProcessCurrentString(print, x, y, (const char*)text);
 }
 
 // 0x71A5E0

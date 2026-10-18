@@ -128,6 +128,7 @@ enum eMenuAction : int8 { // There's many actions @0x57702E and @0x57CD88
     MENU_ACTION_LANG_GERMAN,               // 39
     MENU_ACTION_LANG_ITALIAN,              // 40
     MENU_ACTION_LANG_SPANISH,              // 41
+    MENU_ACTION_LANG_CHINESE,              // NotSA: Simplified Chinese
 # ifdef USE_LANG_RUSSIAN
     MENU_ACTION_LANG_RUSSIAN,              // 42
 # endif
@@ -594,9 +595,10 @@ inline tMenuScreen aScreens[SCREEN_COUNT] = {
     {
         "FEH_LAN",
         SCREEN_OPTIONS,
-        3,
+        4,
         {
             { MENU_ACTION_LANG_ENGLISH, "FEL_ENG", TI_ENTER, SCREEN_LANGUAGE, 320, 132, MENU_ALIGN_CENTER },
+            { MENU_ACTION_LANG_CHINESE, "FEL_CHS", TI_ENTER, SCREEN_LANGUAGE, 0, 0, MENU_ALIGN_CENTER },
             { MENU_ACTION_LANG_SPANISH, "FEL_SPA", TI_ENTER, SCREEN_LANGUAGE, 0, 0, MENU_ALIGN_CENTER },
             { MENU_ACTION_BACK, "FEDS_TB", TI_ENTER, SCREEN_DISPLAY_SETTINGS, 490, 380, MENU_ALIGN_LEFT },
         },
