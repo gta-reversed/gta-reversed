@@ -22,35 +22,32 @@ CTaskSimpleChoking::CTaskSimpleChoking(const CTaskSimpleChoking& o) :
 
 // 0x6203F0
 bool CTaskSimpleChoking::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    constexpr float BLEND_OUT_DELTA = -4.f;
-
-    // Only events with at least this priority can abort us (if we're being aborted by an event)
-    constexpr int32 MIN_ABORT_EVENT_PRIORITY = 57;
-
     switch (priority) {
     case ABORT_PRIORITY_URGENT:
     case ABORT_PRIORITY_IMMEDIATE: {
-        if (event && event->GetEventPriority() < MIN_ABORT_EVENT_PRIORITY) {
+        if (event && event->GetEventPriority() < 57) {
             return false;
         }
-        if (m_pAnim) {
-            m_pAnim->m_BlendDelta = BLEND_OUT_DELTA;
-            m_pAnim->SetDefaultFinishCallback();
-            m_pAnim = nullptr;
-        }
         m_bIsFinished = true;
-        return true;
+        break;
     }
-    default: { // Leisure
+    case ABORT_PRIORITY_LEISURE: {
         if (m_pAnim) {
             m_pAnim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
-            m_pAnim->m_BlendDelta = BLEND_OUT_DELTA;
-            m_pAnim->SetDefaultFinishCallback();
-            m_pAnim = nullptr;
         }
-        return true;
+        break;
+    }
+    default: {
+        NOTSA_UNREACHABLE_CASE(priority);
     }
     }
+
+    if (auto* const anim = std::exchange(m_pAnim, nullptr)) {
+        anim->SetBlendDelta(BLEND_OUT_DELTA);
+        anim->SetDefaultFinishCallback();
+    }
+
+    return true;
 }
 
 // 0x620490
