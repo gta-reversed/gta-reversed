@@ -16,7 +16,7 @@ void CTaskComplexGoToPointAndStandStillAndAchieveHeading::InjectHooks() {
     RH_ScopedInstall(GetTaskType, 0x668D30);
     RH_ScopedInstall(CreateNextSubTask, 0x66DFD0);
     RH_ScopedInstall(CreateSubTask, 0x668D50);
-    RH_ScopedInstall(CreateFirstSubTask, 0x66E030, { .Reversed = false });
+    RH_ScopedInstall(CreateFirstSubTask, 0x66E030);
     RH_ScopedInstall(ControlSubTask, 0x668E80, { .Reversed = false });
 }
 
@@ -63,7 +63,8 @@ CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateSubTask(eTaskT
 
 // 0x66E030
 CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x66E030, CTaskComplexGoToPointAndStandStillAndAchieveHeading*, CPed*>(this, ped);
+    m_nFlags &= ~1u;
+    return CreateSubTask(TASK_SIMPLE_GO_TO_POINT);
 }
 
 // 0x668E80
