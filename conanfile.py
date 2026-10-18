@@ -54,7 +54,7 @@ class saRecipe(ConanFile):
         # Required for our custom stuff
         self.requires("nlohmann_json/3.12.0")
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
-        self.requires("tracy/cci.20220130", options={"enable": bool(self.options.use_tracy)}) # Without `enable` all Tracy macros compile to nothing
+        self.requires("tracy/0.13.1", options={"enable": bool(self.options.use_tracy)}) # Without `enable` all Tracy macros compile to nothing
         self.requires("imgui/1.92.9b-docking")
         self.requires("boost/1.91.0", options={"header_only": True})
         
@@ -92,7 +92,7 @@ class saRecipe(ConanFile):
                 os.path.join(self.dependencies["imgui"].package_folder, "res", "bindings"),
                 os.path.join(imgui_libs_folder, "bindings")
             )
-        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options['use_sdl3'] else "*imgui_impl_win32*")
+        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options.use_sdl3 else "*imgui_impl_win32*")
         copy_imgui_bindings("*imgui_impl_dx9*")
         copy(
             self,

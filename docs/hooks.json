@@ -23617,12 +23617,12 @@
   {
     "Category": "CTaskComplexUseClosestFreeScriptedAttractorSprint",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexUseClosestFreeScriptedAttractorSprint",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexUseClosestFreeScriptedAttractor",
@@ -23907,7 +23907,7 @@
   {
     "Category": "CTaskLeanOnVehicle",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskLeanOnVehicle",
@@ -24972,7 +24972,7 @@
   {
     "Category": "CTaskComplexGoToPointAiming",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAiming",
@@ -41397,17 +41397,17 @@
   {
     "Category": "CScriptResourceManager",
     "Name": "AddToResourceManager",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CScriptResourceManager",
     "Name": "RemoveFromResourceManager",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CScriptResourceManager",
     "Name": "HasResourceBeenRequested",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CMemoryMgr",
