@@ -56,9 +56,10 @@ CTask* CTaskComplexDragPedFromCar::CreateFirstSubTask(CPed* ped) {
     m_bQuitAfterDraggingPedOut = true;
 
     // NOTE: A door is stored into the seat field here (same as the original)
+    // TODO: verify this for other vehicle types / subtypes.
     if (!m_Car->m_pHandlingData->m_bTandemSeats
-        && m_Car->m_nVehicleType    != VEHICLE_TYPE_BIKE
-        && m_Car->m_nVehicleSubType != VEHICLE_TYPE_QUAD
+        && !m_Car->isBike()
+        && !m_Car->isSubQuad())
     ) {
         m_TargetSeat = CCarEnterExit::ComputeTargetDoorToExit(m_Car, m_Ped);
     } else {
