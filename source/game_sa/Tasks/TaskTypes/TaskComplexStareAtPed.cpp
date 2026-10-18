@@ -66,7 +66,7 @@ CTask* CTaskComplexStareAtPed::CreateFirstSubTask(CPed* ped) {
 
 // 0x6605C0
 CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
-    const auto timedOut = m_timer.IsOutOfTime();
+    const auto isOutOfTime = m_timer.IsOutOfTime(); /* Has side-effects, must call is separately */
 
     // Below code copied from `CTaskComplexGangLeader::ControlSubTask`
     // Make sure anmims are loaded (if they can/need to be)
@@ -84,7 +84,7 @@ CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
         }
     }
 
-    if (!m_pPed || timedOut) { // The ped we stare at may have been deleted (The reference clears it)
+    if (!m_pPed || isOutOfTime) { // The ped we stare at may have been deleted (The reference clears it)
         AbortIK(ped);
         return nullptr;
     }
