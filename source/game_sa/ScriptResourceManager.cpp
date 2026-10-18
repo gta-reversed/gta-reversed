@@ -40,7 +40,7 @@ void CScriptResourceManager::AddToResourceManager(int32 modelId, eScriptResource
 // 0x470510
 bool CScriptResourceManager::RemoveFromResourceManager(int32 modelId, eScriptResourceType type, CRunningScript* script) {
     tScriptResource* ours{}; // NOTE: The original keeps the last match
-    auto numOthers = 0u;
+    auto numMatchesInOtherScripts = 0u;
     for (auto& res : m_aScriptResources) {
         if (res.m_nModelId != modelId || res.m_nType != type) {
             continue;
@@ -49,13 +49,13 @@ bool CScriptResourceManager::RemoveFromResourceManager(int32 modelId, eScriptRes
             assert(!ours && "There can be only 1 match for a resource");
             ours = &res;
         } else {
-            numOthers++;
+            numMatchesInOtherScripts++;
         }
     }
     if (ours) {
         *ours = tScriptResource{}; // Resets to `-1`, `RESOURCE_TYPE_DEFAULT`, `nullptr`
     }
-    return numOthers == 0;
+    return numMatchesInOtherScripts == 0; // Return if this type+model was requested by any other script (Same logic as `HasResourceBeenRequested`)
 }
 
 // 0x470620
