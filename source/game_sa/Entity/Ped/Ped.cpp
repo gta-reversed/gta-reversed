@@ -1643,6 +1643,9 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
         }
     }
 
+    auto origin{GetPosition()};
+    origin.z += 1.f; // Adjust for head pos?
+
     auto target{entity->GetPosition()};
     if (entity->GetIsTypePed()) {
         target.z += 1.f; // Adjust for head pos?
@@ -1651,7 +1654,7 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
     // Seems like they explicitly use this one instead of `IsLineOfSightClear` because of the `shootThru` check.
     CColPoint cp{};
     CEntity* hitEntity{};
-    return !CWorld::ProcessLineOfSight(GetPosition(), target, cp, hitEntity, true, false, false, isSpotted, false, false, false, isSpotted);
+    return !CWorld::ProcessLineOfSight(origin, target, cp, hitEntity, true, false, false, isSpotted, false, false, false, isSpotted);
 }
 
 /*!
