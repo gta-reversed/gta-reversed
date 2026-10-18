@@ -4955,16 +4955,21 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                 }
                 CreateFx(partFxToUse);
                 SetFxVelocity();
+            } else {
+                BlowUpCar(m_pExplosionVictim, false);
+                SetFxVelocity(); // `partFxToUse` is always 0 for planes and helis here
             }
+            return;
         } else {
             m_fBurnTimer += floorTsMS;
             if (m_fBurnTimer > 5000.f) {
                 BlowUpCar(m_pExplosionVictim, false);
             }
-            if (partFxToUse == 0) {
-                SetFxVelocity();
-                return;
+            if (partFxToUse != 0) {
+                CreateFx(partFxToUse);
             }
+            SetFxVelocity();
+            return;
         }
     }
 
