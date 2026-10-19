@@ -241,9 +241,9 @@ public:
 
 protected:
     void AddMusicTrackIndexToHistory(eRadioID id, int8 trackIndex);
-    void AddIdentIndexToHistory(eRadioID id, int8 trackIndex);
-    void AddAdvertIndexToHistory(eRadioID id, int8 trackIndex);
-    void AddDJBanterIndexToHistory(eRadioID id, int8 trackIndex);
+    void AddIdentIndexToHistory(eRadioID id, int32 trackIndex);
+    void AddAdvertIndexToHistory(eRadioID id, int32 trackIndex);
+    void AddDJBanterIndexToHistory(eRadioID id, int32 trackIndex);
 
     void  ChooseTracksForStation(eRadioID id);
     int32 ChooseIdentIndex(eRadioID id);

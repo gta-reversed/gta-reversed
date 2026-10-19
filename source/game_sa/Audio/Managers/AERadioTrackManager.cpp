@@ -909,13 +909,13 @@ void CAERadioTrackManager::AddMusicTrackIndexToHistory(eRadioID id, int8 trackIn
 }
 
 // 0x4E9720
-void CAERadioTrackManager::AddIdentIndexToHistory(eRadioID id, int8 trackIndex) {
+void CAERadioTrackManager::AddIdentIndexToHistory(eRadioID id, int32 trackIndex) {
     if (m_nIdentIndexHistory[id].indices[0] != trackIndex)
         m_nIdentIndexHistory[id].PutAtFirst(trackIndex);
 }
 
 // 0x4E9760
-void CAERadioTrackManager::AddAdvertIndexToHistory(eRadioID id, int8 trackIndex) {
+void CAERadioTrackManager::AddAdvertIndexToHistory(eRadioID id, int32 trackIndex) {
     if (m_nAdvertIndexHistory[id].indices[0] != trackIndex) {
         m_nAdvertIndexHistory[id].PutAtFirst(trackIndex);
         m_nTracksInARow[id] = 0;
@@ -923,7 +923,7 @@ void CAERadioTrackManager::AddAdvertIndexToHistory(eRadioID id, int8 trackIndex)
 }
 
 // 0x4E97B0
-void CAERadioTrackManager::AddDJBanterIndexToHistory(eRadioID id, int8 trackIndex) {
+void CAERadioTrackManager::AddDJBanterIndexToHistory(eRadioID id, int32 trackIndex) {
     if (m_nDJBanterIndexHistory[id].indices[0] != trackIndex) {
         m_nDJBanterIndexHistory[id].PutAtFirst(trackIndex);
         m_nTracksInARow[id] = 0;

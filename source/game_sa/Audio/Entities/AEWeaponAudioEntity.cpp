@@ -421,7 +421,7 @@ void CAEWeaponAudioEntity::PlayGunSounds(
     float frontEndVolume = -100.f;
     if (!notsa::contains({ AE_WEAPON_FIRE_PLANE, AE_WEAPON_FIRE_MINIGUN_PLANE }, audioEvent)) {
         const auto dist = CAEAudioEnvironment::GetPositionRelativeToCamera(entity).Magnitude() / (baseRollOffFactor * 1.25f);
-        if (dist < (5.f / baseRollOffFactor)) { // Inverted
+        if (dist <= (5.f / baseRollOffFactor)) { // Inverted
             baseVolume    -= 3.f;
             frontEndVolume = baseVolume + CAEAudioEnvironment::GetDistanceAttenuation(dist);
         } else if (dist < (12.f / baseRollOffFactor)) {
