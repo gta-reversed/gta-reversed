@@ -866,7 +866,7 @@ void CAutomobile::ProcessControl()
         }
 
         if (GetStatus() != STATUS_PLAYER) {
-            if (CanUpdateHornCounter())
+            if (!IsAlarmActivated())
                 ReduceHornCounter();
         }
         else if (handlingFlags.bHydraulicInst || CCheat::IsActive(CHEAT_PERFECT_HANDLING) || extraHandlingTaxiBoost)
@@ -1276,7 +1276,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_fSteerAngle = 0.0f;
         m_GasPedal = 0.0f;
 
-        if (CanUpdateHornCounter())
+        if (!IsAlarmActivated())
             m_HornCounter = 0;
 
         if (!vehicleFlags.bIsBeingCarJacked)
@@ -1291,7 +1291,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         vehicleFlags.bIsHandbrakeOn = true;
         m_fSteerAngle = 0.0f;
         m_GasPedal = 0.0f;
-        if (!CanUpdateHornCounter())
+        if (IsAlarmActivated())
             return false;
         m_HornCounter = 0;
         return false;
@@ -1329,7 +1329,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
 
         m_fSteerAngle = 0.0f;
         m_GasPedal = 0.0f;
-        if (!CanUpdateHornCounter())
+        if (IsAlarmActivated())
             return false;
         m_HornCounter = 0;
         return false;
@@ -2768,7 +2768,7 @@ void CAutomobile::DoBurstAndSoftGroundRatios()
 // 0x6A3770
 void CAutomobile::PlayCarHorn()
 {
-    if (m_nAlarmState && m_nAlarmState != ALARM_STATE_ARMED && GetStatus() != STATUS_WRECKED || m_HornCounter) {
+    if (IsAlarmActivated() || m_HornCounter) {
         return;
     }
 
@@ -5589,9 +5589,7 @@ void CAutomobile::ScanForCrimes() {
     const auto plyrveh = FindPlayerVehicle();
     if (   plyrveh
         && plyrveh->IsAutomobile()
-        && plyrveh->GetStatus() != STATUS_WRECKED
-        && plyrveh->m_nAlarmState
-        && plyrveh->m_nAlarmState != CVehicle::ALARM_STATE_ARMED
+        && plyrveh->IsAlarmActivated()
         && DistanceBetweenPointsSquared(GetPosition(), plyrveh->GetPosition()) < sq(20.f)
     ) {
         FindPlayerPed()->SetWantedLevelNoDrop(eWantedLevel::WANTED_LEVEL_1);
