@@ -302,15 +302,7 @@ bool CAERadioTrackManager::IsVehicleRadioActive() {
 // 0x4E8410
 void CAERadioTrackManager::CheckForMissionStatsChanges() {
     if (m_nSpecialDJBanterPending != 3) {
-        int32 days = CClock::GetGameClockDays() - m_nStatsLastHitGameClockDays;
-        if (days < 0) {
-            auto month = CClock::GetGameClockMonth() - 1;
-            if (month < 0) {
-                month += 12;
-            }
-            days += CClock::daysInMonth[month];
-        }
-        if (CClock::GetGameClockHours() + 24 * days - m_nStatsLastHitGameClockHours >= m_nStatsLastHitTimeOutHours) {
+        if (CClock::GetGameClockHours() + 24 * CClock::GetNumberOfDaysPassed(m_nStatsLastHitGameClockDays) - m_nStatsLastHitGameClockHours >= m_nStatsLastHitTimeOutHours) {
             m_nSpecialDJBanterPending = 3;
         }
     }
