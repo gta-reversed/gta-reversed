@@ -24,6 +24,7 @@
 #include "FxSystem.h"
 #include "Fire.h"
 #include "VisibilityPlugins.h"
+#include "Skidmarks.h"
 
 #include <Enums/eControllerType.h>
 
@@ -654,7 +655,7 @@ public:
     void DoSunGlare();
     void AddWaterSplashParticles();
     void AddExhaustParticles();
-    bool AddSingleWheelParticles(tWheelState wheelState, uint32 arg1, float arg2, float arg3, CColPoint* arg4, CVector* arg5, float arg6, int32 arg7, uint32 surfaceType, bool* bloodState, uint32 arg10);
+    bool AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector, int32 wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags);
     bool GetSpecialColModel();
     void RemoveVehicleUpgrade(int32 upgradeModelIndex);
     void AddUpgrade(int32 modelIndex, int32 upgradeIndex);

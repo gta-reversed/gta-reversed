@@ -192,7 +192,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(DoSunGlare, 0x6DD6F0);
     RH_ScopedInstall(AddWaterSplashParticles, 0x6DDF60);
     RH_ScopedInstall(AddExhaustParticles, 0x6DE240);
-    // RH_ScopedInstall(AddSingleWheelParticles, 0x6DE880);
+    RH_ScopedInstall(AddSingleWheelParticles, 0x6DE880);
     RH_ScopedInstall(GetSpecialColModel, 0x6DF3D0);
     // RH_ScopedInstall(RemoveVehicleUpgrade, 0x6DF930);
     // RH_ScopedInstall(AddUpgrade, 0x6DFA20);
@@ -4858,8 +4858,163 @@ void CVehicle::AddExhaustParticles() {
 
 // always return false?
 // 0x6DE880
-bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 arg1, float arg2, float arg3, CColPoint* arg4, CVector* arg5, float arg6, int32 arg7, uint32 surfaceType, bool* bloodState, uint32 arg10) {
-    return ((bool(__thiscall*)(CVehicle*, tWheelState, uint32, float, float, CColPoint*, CVector*, float, int32, uint32, bool*, uint32))0x6DE880)(this, wheelState, arg1, arg2, arg3, arg4, arg5, arg6, arg7, surfaceType, bloodState, arg10);
+bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector, int32 wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags) {
+    if (m_bOffscreen) {
+        return false;
+    }
+
+    const float distSq = (TheCamera.GetPosition() - GetPosition()).SquaredMagnitude();
+    if ((distSq > sq(25.0f) && !vehicleFlags.bAlwaysSkidMarks) || suspRatio >= 1.0f) { // suspRatio check from 0x6DE962 moved here
+        return false;
+    }
+
+    bool emitParticles = true;
+    if (distSq <= sq(20.0f)) {
+        if (!(distSq <= sq(8.0f) && FindPlayerVehicle())) {
+            emitParticles = ((CTimer::GetFrameCounter() + GetModelIndex()) & 1) == 0;
+        }
+    } else {
+        emitParticles = ((CTimer::GetFrameCounter() + GetModelIndex()) & 3) == 0;
+    }
+
+    bool inWater = false;
+    if (g_surfaceInfos.IsWater(colPoint.m_nSurfaceTypeB)) {
+        inWater = true;
+    } else if (physicalFlags.bTouchingWater) {
+        if (float waterLevel{}; CWaterLevel::GetWaterLevel(pos.x, pos.y, pos.z, waterLevel, true, nullptr) && waterLevel >= pos.z) {
+            inWater = true;
+        }
+    }
+
+    // sparks (metal-on-ground friction effect)
+    if (wheelStatus == WHEEL_STATUS_BURST
+        && (speed > 0.1f || wheelState == WHEEL_STATE_SPINNING)
+        && g_surfaceInfos.GetFrictionEffect(colPoint.m_nSurfaceTypeB) == FRICTION_EFFECT_SPARKS) {
+        CVector sparkDir = m_vecMoveSpeed * -50.0f;
+        sparkDir.z += 2.5f;
+        float sparkCount = speed * 32.0f;
+
+        if (wheelState == WHEEL_STATE_SPINNING && speed < 0.2f) {
+            sparkDir = GetForward() * m_GasPedal * -12.0f;
+            sparkDir.z += 2.5f;
+            sparkCount = 10.0f;
+        }
+
+        const float mag = sparkDir.NormaliseAndMag();
+        g_fx.AddSparks(pos, sparkDir, mag, (int32)sparkCount, m_vecMoveSpeed, SPARK_PARTICLE_SPARK, 0.1f, 0.3f);
+
+        AudioEngine.ReportCollision(this, FindPlayerPed(0), colPoint.m_nSurfaceTypeA, colPoint.m_nSurfaceTypeB, pos, nullptr, 1.0f, 1.0f, false, true);
+    }
+
+    MakeDirty(colPoint);
+
+    // skidmark position adjusted sideways for quads
+    const auto ApplyQuadOffset = [&](CVector& p) {
+        if (GetModelIndex() != MODEL_QUAD) { // notsa: suggest to use IsSubQuad() instead
+            return;
+        }
+        CVector off = GetRight() * 0.15f;
+        if (wheelIndex < 2) {
+            p += off;
+        } else {
+            p -= off;
+        }
+    };
+    const auto RegisterSkidmark = [&]() {
+        CVector posCopy = pos; // exactly copy, obviously that's not necessary at this point of execution
+        ApplyQuadOffset(posCopy);
+        if (inWater) {
+            return;
+        }
+        const float width = FindWheelWidth(wheelIndex & 1);
+        CSkidmarks::RegisterOne((uintptr)this + wheelIndex, posCopy, GetForward().x, GetForward().y, skidmarkType, &bloodState, width);
+    };
+
+    const bool slow = speed < 1.0f;
+    switch (wheelState) {
+    case WHEEL_STATE_SPINNING: {
+        if (AddWheelDirtAndWater(colPoint, slow, true, inWater) && emitParticles) {
+            FxPrtMult_c prt(0.9f, 0.9f, 1.0f, 0.5f, 1.0f, 1.0f, 0.5f);
+
+            if (m_vecMoveSpeed.Magnitude() > 0.15f) {
+                prt.m_Color.alpha = 0.3f;
+                prt.m_fSize       = 0.5f;
+            }
+
+            if (IsSubBike() || IsSubQuad()) {
+                prt.m_fSize *= 0.5f;
+            } else if (IsSubBMX()) {
+                prt.m_fSize *= 0.2f;
+                prt.m_fLife *= 0.3f;
+            }
+
+            const float   gas = std::abs(m_GasPedal);
+            const CVector vel = { CGeneral::GetRandomNumberInRange(0.0f, gas * m_vecMoveSpeed.x * -30.0f),
+                                  CGeneral::GetRandomNumberInRange(0.0f, gas * m_vecMoveSpeed.y * -30.0f),
+                                  (float)(CGeneral::GetRandomNumber() % 10'000) * 0.0001f * 0.8f };
+            const float   c   = CGeneral::GetRandomNumberInRange(0.5f, 1.0f);
+            prt.m_Color.blue  = c;
+            prt.m_Color.green = c * 0.9f;
+            prt.m_Color.red   = prt.m_Color.green;
+
+            g_fx.m_SmokeII3expand->AddParticle(pos, vel, 0.0f, prt, -1.0f, m_fContactSurfaceBrightness, 0.6f, false);
+        }
+        break;
+    }
+    case WHEEL_STATE_SKIDDING:
+        if (flags & 4) {
+            return false;
+        }
+        [[fallthrough]];
+    case WHEEL_STATE_FIXED: {
+        if (speed > 0.03f && AddWheelDirtAndWater(colPoint, slow, false, inWater) && emitParticles) {
+            FxPrtMult_c   prt(0.9f, 0.9f, 1.0f, 0.5f, 0.7f, 1.0f, 0.3f);
+            const CVector vel(0.0f, 0.0f, 0.5f);
+            float         mult = 2.0f;
+
+            if (IsSubBike() || IsSubQuad()) {
+                prt.m_fSize *= 0.5f;
+                mult = 3.0f;
+            } else if (IsSubBMX()) {
+                prt.m_fSize *= 0.2f;
+                prt.m_fLife *= 0.3f;
+                mult = 3.0f;
+            }
+
+            const CVector step  = m_vecMoveSpeed * CTimer::GetTimeStep();
+            const int32   count = std::max(1, (int32)(step.Magnitude() * mult));
+            for (int32 i = 0; i < count; ++i) {
+                const float c        = CGeneral::GetRandomNumberInRange(0.5f, 1.0f);
+                prt.m_Color.blue     = c;
+                prt.m_Color.green    = c * 0.9f;
+                prt.m_Color.red      = prt.m_Color.green;
+
+                const float   t      = 1.0f - (float)i / (float)count;
+                const CVector posAdj = pos - step * t;
+
+                g_fx.m_SmokeII3expand->AddParticle(posAdj, vel, 0.3f, prt, -1.0f, m_fContactSurfaceBrightness, 0.6f, false);
+            }
+        }
+        break;
+    }
+    default: { // WHEEL_STATE_NORMAL (rolling)
+        if (speed > 0.03f) {
+            AddWheelDirtAndWater(colPoint, slow, false, inWater);
+        }
+        // Only leave marks if: (flagged vehicle, odd wheel, moving horizontally) or blood on tyres, or caller forced it (flags & 2)
+        const bool flaggedMover = vehicleFlags.bAlwaysSkidMarks && (wheelIndex & 1) && std::sqrt(sq(m_vecMoveSpeed.x) + sq(m_vecMoveSpeed.y)) > 0.04f;
+        if (!flaggedMover && !bloodState && !(flags & 2)) {
+            return false;
+        }
+        break;
+    }
+    }
+
+    if (wheelStatus == WHEEL_STATUS_BURST) {
+        return false;
+    }
+    RegisterSkidmark();
+    return false;
 }
 
 // 0x6DF3D0
@@ -5014,9 +5169,9 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
         switch (missle) {
         case CAR_WEAPON_FREEFALL_BOMB:
         case CAR_WEAPON_LOCK_ON_ROCKET: {
-            if (m_nOrdnanceCycleIndex++ & 1)
+            if (m_nOrdnanceCycleIndex++ & 1) {
                 ordnancePos.x = -ordnancePos.x;
-
+            }
             CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa - using full transform not just pos it better
             if (missle == CAR_WEAPON_LOCK_ON_ROCKET) {
                 projPos += std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
@@ -5026,7 +5181,7 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
         }
         case CAR_WEAPON_DOUBLE_ROCKET: { // notsa - removed hardcoded model checks here since this type of missle is already hardcoded to them...
             const CVector frameOffset = std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
-            CWeapon weapon{ WEAPON_RLAUNCHER, 5'000u };
+            CWeapon       weapon{ WEAPON_RLAUNCHER, 5'000u };
             for (int i : { 0, 1 }) {
                 CVector origin = m_matrix->TransformPoint(ordnancePos) + frameOffset;
                 weapon.FireProjectile(this, origin);
@@ -5582,26 +5737,30 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
     switch (m_nModelIndex) {
     case MODEL_HUNTER:
     case MODEL_TORNADO:
-    case MODEL_RUSTLER:
+    case MODEL_RUSTLER: {
         if (pad->GetCarGunFired() == 2) {
             isFiring = true;
         } else if (m_nModelIndex != MODEL_RUSTLER && pad->CarGunJustDown() == 1) { // for freefall bombs remove rustler check
             ordnanceType = ORDNANCE_TYPE_PRIMARY;
         }
         break;
+    }
     case MODEL_SEASPAR:
     case MODEL_RCBARON:
     case MODEL_MAVERICK:
     case MODEL_POLMAV:
-    case MODEL_CARGOBOB:
-        if ((pad->GetCarGunFired() == 2) || (GetModelIndex() == MODEL_RCBARON
-            && CVehicle::bDisableRemoteDetonation
-            && CCamera::m_bUseMouse3rdPerson
-            && pad->GetCarGunFired() == 1)) {
+    case MODEL_CARGOBOB: {
+        if ((pad->GetCarGunFired() == 2)
+            || (GetModelIndex() == MODEL_RCBARON
+                && CVehicle::bDisableRemoteDetonation
+                && CCamera::m_bUseMouse3rdPerson
+                && pad->GetCarGunFired() == 1)) {
             isFiring = true;
         }
         break;
-    case MODEL_HYDRA:
+    }
+    case MODEL_HYDRA: {
+        auto plane = AsPlane();
         if (pad->CarGunJustDown() == 1 && CTimer::GetTimeInMS() > m_nGunFiringTime + 2000u) {
             CProjectileInfo::AddProjectile(
                 this,
@@ -5618,10 +5777,10 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
 
         if (pad->CarGunJustDown() == 2) {
             if (CWeaponEffects::IsLockedOn(0)
-                && AsPlane()->m_FireMissilePressedTime
-                && (targetEntity = CVehicle::ScanAndMarkTargetForHeatSeekingMissile(AsPlane()->m_LastMissileTarget))
-                && targetEntity == AsPlane()->m_LastMissileTarget
-                && CTimer::GetTimeInMS() - AsPlane()->m_FireMissilePressedTime > 1500u) {
+                && plane->m_FireMissilePressedTime
+                && (targetEntity = CVehicle::ScanAndMarkTargetForHeatSeekingMissile(plane->m_LastMissileTarget))
+                && targetEntity == plane->m_LastMissileTarget
+                && CTimer::GetTimeInMS() - plane->m_FireMissilePressedTime > 1500u) {
                 ordnanceType = ORDNANCE_TYPE_SECONDARY;
                 gCrossHair[0].m_color.Set(255, 0, 0);
                 gCrossHair[0].m_fRotation             = 1.0f;
@@ -5630,30 +5789,31 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 ordnanceType = ORDNANCE_TYPE_PRIMARY;
             }
         } else if (pad->GetEnterTargeting()) {
-            AsPlane()->m_FireMissilePressedTime = CTimer::GetTimeInMS();
-            AsPlane()->m_LastMissileTarget      = nullptr;
+            plane->m_FireMissilePressedTime = CTimer::GetTimeInMS();
+            plane->m_LastMissileTarget      = nullptr;
         } else if (pad->GetTarget()) {
-            if (!AsPlane()->m_FireMissilePressedTime) {
-                AsPlane()->m_FireMissilePressedTime = CTimer::GetTimeInMS();
+            if (!plane->m_FireMissilePressedTime) {
+                plane->m_FireMissilePressedTime = CTimer::GetTimeInMS();
             }
-            CEntity* markedTarget = CVehicle::ScanAndMarkTargetForHeatSeekingMissile(AsPlane()->m_LastMissileTarget);
-            if (!markedTarget || markedTarget != AsPlane()->m_LastMissileTarget) {
-                AsPlane()->m_FireMissilePressedTime = CTimer::GetTimeInMS();
+            CEntity* markedTarget = CVehicle::ScanAndMarkTargetForHeatSeekingMissile(plane->m_LastMissileTarget);
+            if (!markedTarget || markedTarget != plane->m_LastMissileTarget) {
+                plane->m_FireMissilePressedTime = CTimer::GetTimeInMS();
             }
             gCrossHair[0].m_nTimeWhenToDeactivate = 0;
-            if (CTimer::GetTimeInMS() - AsPlane()->m_FireMissilePressedTime <= 1500u) {
+            if (CTimer::GetTimeInMS() - plane->m_FireMissilePressedTime <= 1500u) {
                 gCrossHair[0].m_color.Set(255, 255, 255);
                 gCrossHair[0].m_fRotation = 0.0f;
             } else {
                 gCrossHair[0].m_color.Set(255, 0, 0);
                 gCrossHair[0].m_fRotation = 1.0f;
             }
-            AsPlane()->m_LastMissileTarget = markedTarget;
+            plane->m_LastMissileTarget = markedTarget;
         } else {
-            AsPlane()->m_FireMissilePressedTime = 0u;
-            AsPlane()->m_LastMissileTarget      = nullptr;
+            plane->m_FireMissilePressedTime = 0u;
+            plane->m_LastMissileTarget      = nullptr;
         }
         break;
+    }
     default:
         break;
     }
