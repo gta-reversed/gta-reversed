@@ -265,7 +265,7 @@ void CTheZones::CreateZone(
 
     const auto StrCpyUpper = [](auto& dst, auto& src) {
         rng::fill(dst, 0);
-        strcpy_s(dst, src);
+        strncpy(dst, src, std::size(dst) - 1); // Not `strcpy_s`, in debug builds it fills the rest with `0xFE`, but some original code compares all 8 bytes
         for (auto& ch : dst) {
             if (ch == 0) {
                 break;
