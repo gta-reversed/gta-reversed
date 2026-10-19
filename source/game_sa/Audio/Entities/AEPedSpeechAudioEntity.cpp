@@ -1264,6 +1264,8 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
         if (gCtx < CTX_GLOBAL_POLICE_BOAT || gCtx > CTX_GLOBAL_POLICE_OVERBOARD) { // 0x4E6176
             return -1;
         }
+        m_PedAudioType = PED_TYPE_GFD; // 0x4E618A
+        m_VoiceID      = VOICE_GFD_POL_ANN;
     } else { // 0x4E6638
         const auto IsContextImportant = [](eGlobalSpeechContext c) {
             return IsGlobalContextPain(c) || IsGlobalContextImportantForInterupting(c);
@@ -1396,11 +1398,7 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
         }
     } else { // Update sound
         speech->Status = CAEPedSpeechSlot::eStatus::PLAYING;
-        if constexpr (IsPedless) {
-            if (!m_IsFrontend || sound->m_Event == AE_SPEECH_PED) {
-                sound->SetPosition(m_Entity->GetPosition());
-            }
-        } else {
+        if constexpr (!IsPedless) { // Pedless: See `CAEPedlessSpeechAudioEntity::UpdateParameters`
             if (ped->bIsTalking && ped->m_nBodypartToRemove == PED_NODE_HEAD) {
                 sound->StopSound();
             } else if (!m_IsFrontend) {
