@@ -124,8 +124,9 @@ void CColModel::AllocateData(int32 size) {
     DEV_LOG_COL("AllocateData[Size]: {} [ColSlot: {}; Size: {}]", LOG_PTR(this), m_nColSlot, size);
 
     m_bIsSingleColDataAlloc = true;
-    m_pColData = static_cast<CCollisionData*>(CMemoryMgr::Malloc(size));
-    assert(m_pColData);
+    auto* const p = CMemoryMgr::Malloc(size);
+    assert(p);
+    m_pColData = new (p) CCollisionData; // R* used a cast here, leaving the shadow fields uninitialized
 }
 
 void CColModel::RemoveCollisionVolumes() {
