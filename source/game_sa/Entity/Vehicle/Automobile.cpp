@@ -4873,13 +4873,12 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
     };
 
     const auto CreateFx = [&, this](size_t typ) {
-        auto pos = GetDummyPositionObjSpace(DUMMY_ENGINE); // The fx is attached to the matrix below
         if (const auto mat = GetModellingMatrix()) {
             m_pFireParticle = g_fxMan.CreateFxSystem(
                 typ == 1
                     ? "fire_car"
                     : "fire_large",
-                pos,
+                GetDummyPositionObjSpace(DUMMY_ENGINE),
                 mat
             );
         }
@@ -4957,7 +4956,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                 SetFxVelocity();
             } else {
                 BlowUpCar(m_pExplosionVictim, false);
-                SetFxVelocity(); // `partFxToUse` is always 0 for planes and helis here
+                SetFxVelocity();
             }
             return;
         } else {
