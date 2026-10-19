@@ -89,12 +89,12 @@ public:
     void ReportFrontendAudioEvent(eAudioEvents eventId, float volumeChange = 0.0f, float speed = 1.0f);
 
     void InitialiseRadioStationID(eRadioID id);
-    void StartRadio(tVehicleAudioSettings* settings);
-    void StartRadio(eRadioID id, int8 bassValue);
+    void StartRadio(const tVehicleAudioSettings& settings);
+    void StartRadio(eRadioID id, eBassSetting bassSetting);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
     void SetRadioAutoRetuneOnOff(bool);
     void SetBassEnhanceOnOff(bool enable);
-    void SetRadioBassSetting(int8);
+    void SetRadioBassSetting(eBassSetting bassSetting);
     bool HasRadioRetuneJustStarted();
     const GxtChar* GetRadioStationName(eRadioID id);
     void GetRadioStationNameKey(eRadioID id, char* outStr);
@@ -118,17 +118,17 @@ public:
     void PreloadBeatTrack(int16 trackId);
     void StopAmbienceTrack(bool a1);
     static bool DoesAmbienceTrackOverrideRadio();
-    void PreloadMissionAudio(uint8 slotId, int32 sampleId);
-    int8 GetMissionAudioLoadingStatus(uint8 sampleId);
+    void        PreloadMissionAudio(uint8 slotId, int32 scriptSlotAudioEvent);
+    int8        GetMissionAudioLoadingStatus(uint8 slotId);
     void PlayLoadedMissionAudio(uint8 slotId);
-    int32 GetMissionAudioEvent(uint8 sampleId);
-    CVector* GetMissionAudioPosition(uint8 sampleId);
-    void ClearMissionAudio(uint8 sampleId);
-    void SetMissionAudioPosition(uint8 sampleId, CVector& posn);
+    int32       GetMissionAudioEvent(uint8 slotId);
+    CVector*    GetMissionAudioPosition(uint8 slotId);
+    void        ClearMissionAudio(uint8 slotId);
+    void        SetMissionAudioPosition(uint8 slotId, CVector& posn);
 
-    CVector* AttachMissionAudioToPed(uint8 sampleId, CPed* ped);
-    CVector* AttachMissionAudioToObject(uint8 sampleId, CObject* object);
-    CVector* AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical);
+    CVector* AttachMissionAudioToPed(uint8 slotId, CPed* ped);
+    CVector* AttachMissionAudioToObject(uint8 slotId, CObject* object);
+    CVector* AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical);
 
     void SayPedless(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
 

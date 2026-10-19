@@ -1,8 +1,8 @@
 #include "StdInc.h"
 #include "jpeglib.h"
 
-static std::array<uint8, 204'800> g_ScreenshotFileBuf    = StaticRef<std::array<uint8, 204'800>>(0xBD0B78);
-static CRGBA*&                    g_JpegDecodingToRaster = StaticRef<CRGBA*>(0xBD0160);
+static auto& g_ScreenshotFileBuf    = StaticRef<std::array<uint8, 204'800>>(0xBD0B78);
+static auto& g_JpegDecodingToRaster = StaticRef<CRGBA*>(0xBD0160);
 
 // NOTSA. For debugging purposes, without using this callback,
 // game terminates without notice in case of any libjpeg failure.
@@ -47,7 +47,7 @@ void JPegCompressScreen(RwCamera* camera, jpeg_destination_mgr& dst) {
     cinfo.input_components = 4;
     jpeg_start_compress(&cinfo, true);
 
-    for (auto i = 0; i < cinfo.image_height; i++) {
+    for (auto i = 0u; i < cinfo.image_height; i++) {
         const auto* line = &RwImageGetPixels(image)[sizeof(RwRGBA) * i * cinfo.image_width];
         if (jpeg_write_scanlines(&cinfo, const_cast<uint8**>(&line), 1) != 1) {
             break;
@@ -96,9 +96,9 @@ void JPegCompressScreenToFile(RwCamera* camera, const char* path) {
 
 // 0x5D0740 -- unused
 void JPegCompressScreenToBuffer(RwCamera* cam, uint8** buffer, size_t& bufferSizeInOut) {
-    static uint8**& Buffer         = StaticRef<uint8**>(0xC02B78);
-    static size_t&  BufferSize     = StaticRef<size_t>(0xC02B7C);
-    static size_t&  TotalProcessed = StaticRef<size_t>(0xC02B80);
+    static auto& Buffer         = StaticRef<uint8**>(0xC02B78);
+    static auto& BufferSize     = StaticRef<size_t>(0xC02B7C);
+    static auto& TotalProcessed = StaticRef<size_t>(0xC02B80);
 
     Buffer         = buffer;
     BufferSize     = bufferSizeInOut;
@@ -130,7 +130,7 @@ void JPegCompressScreenToBuffer(RwCamera* cam, uint8** buffer, size_t& bufferSiz
 
     // 0x5D02D0
     dst.term_destination = [](j_compress_ptr c) {
-        if (c->dest->next_output_byte + TotalProcessed - g_ScreenshotFileBuf.data() < BufferSize) {
+        if (static_cast<size_t>(c->dest->next_output_byte + TotalProcessed - g_ScreenshotFileBuf.data()) < BufferSize) {
             std::memcpy(
                 *Buffer + TotalProcessed,
                 g_ScreenshotFileBuf.data(),
@@ -145,7 +145,7 @@ void JPegCompressScreenToBuffer(RwCamera* cam, uint8** buffer, size_t& bufferSiz
 
 // 0x5D05F0 -- PS2 leftover
 void JPegDecompressToRaster(RwRaster* raster, jpeg_source_mgr& src) {
-    static uint8*& g_JpegScan = StaticRef<uint8*>(0xBD0170);
+    static auto& g_JpegScan = StaticRef<uint8*>(0xBD0170);
 
     jpeg_error_mgr         jerr{};
     jpeg_decompress_struct cinfo{
@@ -186,7 +186,7 @@ void JPegDecompressToRaster(RwRaster* raster, jpeg_source_mgr& src) {
 
 // 0x5D0320 -- PS2 leftover
 void JPegDecompressToVramFromBuffer(RwRaster* raster, bool enable) {
-    static size_t& g_ScreenshotFilePointer = StaticRef<size_t>(0xBD0B70);
+    static auto& g_ScreenshotFilePointer = StaticRef<size_t>(0xBD0B70);
 
     if (!enable) {
         return;

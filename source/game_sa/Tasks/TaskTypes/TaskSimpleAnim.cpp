@@ -65,7 +65,7 @@ bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CE
                 if (m_pAnim->m_Flags & ANIMATION_IS_PARTIAL)
                     m_pAnim->m_BlendDelta = fBlend;
                 else
-                    CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -fBlend);
+                    CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, -fBlend);
             }
         }
     }
@@ -85,6 +85,11 @@ bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CE
 // data is CTaskSimpleAnim
 // 0x61A8A0
 void CTaskSimpleAnim::FinishRunAnimCB(CAnimBlendAssociation* blendAssoc, void* data) {
+    //auto* const self = notsa::cast<CTaskSimpleAnim>(static_cast<CTask*>(data));
+    //
+    //self->m_bIsFinished = true;
+    //self->m_pAnim = nullptr;
+
     static_cast<CTaskSimpleAnim*>(data)->m_bIsFinished = true;
     static_cast<CTaskSimpleAnim*>(data)->m_pAnim = nullptr;
 }

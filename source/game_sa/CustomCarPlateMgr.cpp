@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
 #include "CustomCarPlateMgr.h"
 
 void CCustomCarPlateMgr::InjectHooks() {
@@ -16,11 +17,12 @@ void CCustomCarPlateMgr::InjectHooks() {
     RH_ScopedInstall(MaterialUpgradeSetCarplateTextureCB, 0x6FDF50);
     RH_ScopedInstall(AtomicUpgradeSetCarplateTextureCB, 0x6FDFC0);
     RH_ScopedInstall(SetupMaterialPlateTexture, 0x6FE020);
-    // RH_ScopedInstall(GetCharacterPositionInCharSet, 0x6FD7C0, { .enabled = false }); // Incompatible with original function (As it uses __usercall and passes the first arg in `al`)
+    // RH_ScopedInstall(GetCharacterPositionInCharSet, 0x6FD7C0, { .State = HS::RedirectToGTA }); // Incompatible with original function (As it uses __usercall and passes the first arg in `al`)
     RH_ScopedInstall(MaterialSetCarplateTextureCB, 0x6FE060);
     RH_ScopedInstall(AtomicSetCarplateTextureCB, 0x6FE0D0);
     RH_ScopedInstall(SetupClump, 0x6FE0F0);
     RH_ScopedInstall(RenderLicenseplateTextToRaster, 0x6FDD70);
+    RH_ScopedInstall(LoadPlatecharsetDat, 0x6FDC00, { .Reversed = false });
 }
 
 // 0x6FD500
@@ -97,7 +99,7 @@ int8 CCustomCarPlateMgr::LoadPlatecharsetDat(const char* filename, uint8* data) 
 }
 
 auto ResolvePlateType(uint8 plateType) {
-    return plateType == (uint8)-1 ? CCustomCarPlateMgr::GetMapRegionPlateDesign() : plateType;
+    return plateType == CARPLATE_DEFAULT ? CCustomCarPlateMgr::GetMapRegionPlateDesign() : plateType;
 }
 
 // 0x6FDE50
@@ -302,7 +304,7 @@ RwTexture* CCustomCarPlateMgr::CreatePlateTexture(const char* text, uint8 plateT
 
 // 0x6FDF50
 RpMaterial* CCustomCarPlateMgr::MaterialUpgradeSetCarplateTextureCB(RpMaterial* material, void* geometry) {
-    //printf("[Debug - Trace]: MaterialUpgradeSetCarplateTextureCB");
+    //NOTSA_LOG_DEBUG("[Debug - Trace]: MaterialUpgradeSetCarplateTextureCB");
 
     assert(material);
     assert(geometry);
@@ -321,7 +323,7 @@ RpMaterial* CCustomCarPlateMgr::MaterialUpgradeSetCarplateTextureCB(RpMaterial* 
 
 // 0x6FDFC0
 RpAtomic* CCustomCarPlateMgr::AtomicUpgradeSetCarplateTextureCB(RpAtomic* atomic, _IGNORED_ void* data) {
-    DEV_LOG("[Debug - Trace]: AtomicUpgradeSetCarplateTextureCB");
+    NOTSA_LOG_DEBUG("[Debug - Trace]: AtomicUpgradeSetCarplateTextureCB");
     assert(atomic);
 
     RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), MaterialUpgradeSetCarplateTextureCB, RpAtomicGetGeometry(atomic));
@@ -336,7 +338,7 @@ int8 CCustomCarPlateMgr::SetupClumpAfterVehicleUpgrade(RpClump* clump, RpMateria
     if (!plateMaterial)
         return false;
 
-    DEV_LOG("[Debug - Trace]: SetupClumpAfterVehicleUpgrade");
+    NOTSA_LOG_DEBUG("[Debug - Trace]: SetupClumpAfterVehicleUpgrade");
 
     CurrentLicensePlateType = plateType;
     CurrentLicensePlateMaterial = plateMaterial;
@@ -399,11 +401,13 @@ bool CCustomCarPlateMgr::GeneratePlateText(char* out, uint32 length) {
         return false;
 
     constexpr auto RandomAlphanumeric = [] {
-        return (char)CGeneral::GetRandomNumberInRange('A', 'Z');
+        return notsa::bugfixes::CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits
+            ? CGeneral::GetRandomNumberInRange('A', 'Z', true)
+            : CGeneral::GetRandomNumberInRange('A', 'X');
     };
 
     constexpr auto RandomNumeric = [] {
-        return (char)CGeneral::GetRandomNumberInRange('0', '9');
+        return CGeneral::GetRandomNumberInRange('0', '9', notsa::bugfixes::CCustomCarPlateMgr_GeneratePlateText_MissingLettersAndDigits);
     };
 
     uint32 charIdx{};

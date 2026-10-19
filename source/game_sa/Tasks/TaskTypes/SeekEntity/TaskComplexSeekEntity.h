@@ -246,7 +246,7 @@ public:
     CTask* ControlSubTask(CPed* ped) override {
         // Boat in contact with both peds (that is, in case m_entityToSeek is a ped)
         const auto commonBoat = [this, ped]() -> CBoat* {
-            if (!m_entityToSeek || !m_entityToSeek->IsPed()) {
+            if (!m_entityToSeek || !m_entityToSeek->GetIsTypePed()) {
                 return nullptr;
             }
 
@@ -261,7 +261,7 @@ public:
             }
 
             for (const auto entity : { toSeekPed->m_standingOnEntity, toSeekPed->m_pContactEntity }) {
-                if (entity && entity->IsVehicle()) {
+                if (entity && entity->GetIsTypeVehicle()) {
                     if (ped->m_standingOnEntity == entity || ped->m_pContactEntity == entity) {
                         if (entity->AsVehicle()->IsBoat()) {
                             return entity->AsBoat();
@@ -286,7 +286,7 @@ public:
             || m_pSubTask->MakeAbortable(ped)
         ) {
             notsa::ScopeGuard makePedTalkOnReturn{ [this, ped] {
-                if (m_entityToSeek && m_entityToSeek->IsPed()) {
+                if (m_entityToSeek && m_entityToSeek->GetIsTypePed()) {
                     if (m_entityToSeek->AsPed()->IsPlayer()) { // Entity to seek is a player
                         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsFollower(ped)) { // And ped is part of the player's group
                             if (ped->IsJoggingOrFaster()) {

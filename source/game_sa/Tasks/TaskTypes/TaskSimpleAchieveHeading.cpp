@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "TaskSimpleAchieveHeading.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleAchieveHeading::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleAchieveHeading, 0x86fd74, 9);

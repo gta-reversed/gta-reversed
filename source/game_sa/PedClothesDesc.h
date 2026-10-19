@@ -8,6 +8,7 @@
 
 #include "eClothesModelPart.h"
 #include "eClothesTexturePart.h"
+#include "eClothesRules.h"
 
 class CPedClothesDesc {
 public:

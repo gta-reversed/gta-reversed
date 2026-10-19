@@ -45,7 +45,7 @@ public:
     float        m_fAccelerationBreakStatus;
     float        m_fAccelerationBreakStatusPrev;
     float        m_fSteeringFactor;
-    float        field_9A0;
+    uint32       m_StallCounter; // If attack angle is more than 20°, engine goes stall with sound effects
     float        m_planeCreationHeading; // The heading when plane is created or placed on road properly
     float        m_maxAltitude;
     float        m_altitude;
@@ -56,7 +56,7 @@ public:
     uint32       m_nStartedFlyingTime;
     float        m_fPropSpeed;
     float        field_9C8;
-    float        m_fLandingGearStatus;
+    float        m_LandingGearAngle;   // 1.0f - fully up
     int32        m_planeDamageWave;
     FxSystem_c** m_pGunParticles;
     uint8        m_nFiringMultiplier;
@@ -71,18 +71,18 @@ public:
     static constexpr auto Type = VEHICLE_TYPE_PLANE;
 
 public:
-    static int32& GenPlane_ModelIndex;
-    static uint32& GenPlane_Status;
-    static uint32& GenPlane_LastTimeGenerated;
+    static inline auto& GenPlane_ModelIndex = StaticRef<int32>(0xC1CAD8);
+    static inline auto& GenPlane_Status = StaticRef<uint32>(0xC1CADC);
+    static inline auto& GenPlane_LastTimeGenerated = StaticRef<uint32>(0xC1CAE0);
 
-    static bool& GenPlane_Active;
-    static float& ANDROM_COL_ANGLE_MULT;
-    static uint16& HARRIER_NOZZLE_ROTATE_LIMIT;
-    static uint16& HARRIER_NOZZLE_SWITCH_LIMIT;
-    static float& PLANE_MIN_PROP_SPEED;
-    static float& PLANE_STD_PROP_SPEED;
-    static float& PLANE_MAX_PROP_SPEED;
-    static float& PLANE_ROC_PROP_SPEED;
+    static inline auto& GenPlane_Active = StaticRef<bool>(0x8D33BC);
+    static inline auto& ANDROM_COL_ANGLE_MULT = StaticRef<float>(0x8D33C0);
+    static inline auto& HARRIER_NOZZLE_ROTATE_LIMIT = StaticRef<uint16>(0x8D33C4);
+    static inline auto& HARRIER_NOZZLE_SWITCH_LIMIT = StaticRef<uint16>(0x8D33C8);
+    static inline auto& PLANE_MIN_PROP_SPEED = StaticRef<float>(0x8D33CC);
+    static inline auto& PLANE_STD_PROP_SPEED = StaticRef<float>(0x8D33D0);
+    static inline auto& PLANE_MAX_PROP_SPEED = StaticRef<float>(0x8D33D4);
+    static inline auto& PLANE_ROC_PROP_SPEED = StaticRef<float>(0x8D33D8);
 
 public:
     CPlane(int32 modelIndex, eVehicleCreatedBy createdBy);
@@ -111,7 +111,7 @@ public:
     static bool AreWeInNoPlaneZone();
     static bool AreWeInNoBigPlaneZone();
     static void SwitchAmbientPlanes(bool enable);
-    static void FindPlaneCreationCoors(CVector* center, CVector* playerCoords, float* outHeading, float* outHeight, bool arg4);
+    static void FindPlaneCreationCoors(CVector* outCoors, CVector* outTargetCoors, float* outPlaneOrientation, float* outFlightHeight, bool isBigPlane);
     static void DoPlaneGenerationAndRemoval();
 
 private:

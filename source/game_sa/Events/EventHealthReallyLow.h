@@ -15,6 +15,6 @@ public:
     int32 GetEventPriority() const override { return 69; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override { return ped->IsAlive(); };
-    CEventEditableResponse* CloneEditable() override { return new CEventHealthReallyLow(); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventHealthReallyLow(); }
 };
 VALIDATE_SIZE(CEventHealthReallyLow, 0x14);

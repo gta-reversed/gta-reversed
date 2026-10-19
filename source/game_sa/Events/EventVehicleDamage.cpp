@@ -52,7 +52,7 @@ bool CEventVehicleDamage::AffectsPed(CPed* ped)
 bool CEventVehicleDamage::IsCriminalEvent()
 {
     if (m_attacker) {
-        switch (m_attacker->m_nType) {
+        switch (m_attacker->GetType()) {
         case ENTITY_TYPE_PED:
             return m_attacker->AsPed()->IsPlayer();
         case ENTITY_TYPE_VEHICLE:
@@ -68,14 +68,14 @@ void CEventVehicleDamage::ReportCriminalEvent(CPed* ped)
     if (IsCriminalEvent() && m_attacker) {
         bool bPoliceDontReallyCare = CPedType::PoliceDontCareAboutCrimesAgainstPedType(ped->m_nPedType);
         if (ped->m_nPedType == PED_TYPE_COP) 
-            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_VEHICLE_DAMAGE, m_attacker->GetPosition(), ped, bPoliceDontReallyCare);
+            FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_VEHICLE_DAMAGE, m_attacker->GetPosition(), (uint32)ped, bPoliceDontReallyCare);
     }
 }
 
 // 0x4B1A70
 CEntity* CEventVehicleDamage::GetSourceEntity() const
 {
-    if (m_attacker && m_attacker->IsVehicle()) {
+    if (m_attacker && m_attacker->GetIsTypeVehicle()) {
         CVehicle* vehicle = m_attacker->AsVehicle();
         if (vehicle->m_pDriver)
             return vehicle->m_pDriver;

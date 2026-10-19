@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-#include <Tracy.hpp>
-
 #include "app_game.h"
 #include "LoadingScreen.h"
 #include "PlantMgr.h"
@@ -41,11 +39,11 @@ void AppGameInjectHooks() {
     RH_ScopedGlobalInstall(RenderEffects, 0x53E170);
     RH_ScopedGlobalInstall(RenderScene, 0x53DF40);
     RH_ScopedGlobalInstall(RenderMenus, 0x53E530);
-    RH_ScopedGlobalInstall(Render2dStuff, 0x53E230, { .locked = true }); // Must be hooked at all times otherwise game locks!
+    RH_ScopedGlobalInstall(Render2dStuff, 0x53E230, { .Locked = true }); // Must be hooked at all times otherwise game locks!
     RH_ScopedGlobalInstall(RenderDebugShit, 0x53E160);
 
-    RH_ScopedGlobalInstall(Idle, 0x53E920, { .locked = true }); // Must be hooked at all times otherwise game locks!
-    RH_ScopedGlobalInstall(FrontendIdle, 0x53E770, { .locked = true }); // Must be hooked at all times otherwise imgui stops working!
+    RH_ScopedGlobalInstall(Idle, 0x53E920, { .Locked = true }); // Must be hooked at all times otherwise game locks!
+    RH_ScopedGlobalInstall(FrontendIdle, 0x53E770, { .Locked = true }); // Must be hooked at all times otherwise imgui stops working!
 }
 
 // 0x5BF3B0
@@ -58,7 +56,7 @@ void GameInit() {
 void InitialiseGame() {
     ZoneScoped;
 
-    static int16& version_number = *(int16*)(0xB72C68);
+    static auto& version_number = StaticRef<int16>(0xB72C68);
     version_number = 78;
 
     CGame::Initialise(GAME_LEVEL_FILE);
@@ -71,7 +69,7 @@ void InitialiseGame() {
 // unused
 // 0x53DF10
 void TheGame() {
-    printf("Into TheGame!!!\n");
+    NOTSA_LOG_DEBUG("Into TheGame!!!\n");
     CTimer::Initialise();
     CGame::Initialise(GAME_LEVEL_FILE);
     CLoadingScreen::SetLoadingBarMsg("Starting Game", nullptr);
@@ -122,7 +120,7 @@ void RenderEffects() {
     CRenderer::RenderFirstPersonVehicle();
     CPostEffects::Render();
 
-    notsa::ui::UIRenderer::GetSingleton().Render3D();
+    notsa::ui::UIRenderer::GetInstance().Render3D();
 }
 
 // 0x53DF40
@@ -313,7 +311,6 @@ void Idle(void* param) {
         return;
     }
 
-    auto& cc = CTimeCycle::m_CurrentColours;
     if (FrontEndMenuManager.m_bMenuActive || TheCamera.GetScreenFadeStatus() == eNameState::NAME_FADE_IN) {
         CDraw::CalculateAspectRatio();
         CameraSize(Scene.m_pRwCamera, nullptr, SCREEN_VIEW_WINDOW, SCREEN_ASPECT_RATIO);
@@ -325,9 +322,13 @@ void Idle(void* param) {
     }
 
     if (!FrontEndMenuManager.m_bMenuActive && TheCamera.GetScreenFadeStatus() != eNameState::NAME_FADE_IN) {
-        if (!notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive) { // If imgui nav is active don't center the cursor
+
+        // SDL already constraints the mouse pointer using relative mode
+#ifndef NOTSA_USE_SDL3
+        if (!notsa::ui::UIRenderer::GetInstance().IsActive()) {
             FrontEndMenuManager.CentreMousePointer();
         }
+#endif
 
         CRenderer::ConstructRenderList();
         CRenderer::PreRender();
@@ -337,23 +338,27 @@ void Idle(void* param) {
 
         bool started;
         if (CWeather::LightningFlash) {
-            cc.m_nSkyBottomRed = 255;
-            cc.m_nSkyBottomGreen = 255;
-            cc.m_nSkyBottomBlue = 255;
+            CTimeCycle::SetFogRed(255);
+            CTimeCycle::SetFogGreen(255);
+            CTimeCycle::SetFogBlue(255);
             started = DoRWStuffStartOfFrame_Horizon(255, 255, 255, 255, 255, 255, 255);
         } else {
-            started = DoRWStuffStartOfFrame_Horizon(cc.m_nSkyTopRed, cc.m_nSkyTopGreen, cc.m_nSkyTopBlue, cc.m_nSkyBottomRed, cc.m_nSkyBottomGreen, cc.m_nSkyBottomBlue, 255);
+            started = DoRWStuffStartOfFrame_Horizon(
+                CTimeCycle::GetSkyTopRed(), CTimeCycle::GetSkyTopGreen(), CTimeCycle::GetSkyTopBlue(),
+                CTimeCycle::GetSkyBottomRed(), CTimeCycle::GetSkyBottomGreen(), CTimeCycle::GetSkyBottomBlue(),
+                255
+            );
         }
         if (!started)
             return;
 
         DefinedState();
-        RwCameraSetFarClipPlane(Scene.m_pRwCamera, cc.m_fFarClip);
-        Scene.m_pRwCamera->fogPlane = cc.m_fFogStart;
+        RwCameraSetFarClipPlane(Scene.m_pRwCamera, CTimeCycle::GetFarClip());
+        Scene.m_pRwCamera->fogPlane = CTimeCycle::GetFogStart();
         CMirrors::RenderMirrorBuffer();
         RenderScene();
         CVisibilityPlugins::RenderWeaponPedsForPC();
-        CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+        CVisibilityPlugins::ResetWeaponPedsForPC();
         RenderEffects();
         if (TheCamera.m_nBlurType == eMotionBlurType::NONE || TheCamera.m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
             if (TheCamera.m_fScreenReductionPercentage > 0.0f) {
@@ -375,7 +380,7 @@ void Idle(void* param) {
     FlushObrsPrintfs();
 
     // NOTSA: ImGui menu draw loop
-    notsa::ui::UIRenderer::GetSingleton().DrawLoop();
+    notsa::ui::UIRenderer::GetInstance().DrawLoop();
 
     RwCameraEndUpdate(Scene.m_pRwCamera);
     RsCameraShowRaster(Scene.m_pRwCamera);
@@ -432,7 +437,7 @@ void FrontendIdle() {
         FlushObrsPrintfs();
 
         // NOTSA: ImGui menu draw loop
-        notsa::ui::UIRenderer::GetSingleton().DrawLoop();
+        notsa::ui::UIRenderer::GetInstance().DrawLoop();
 
         RwCameraEndUpdate(Scene.m_pRwCamera);
         RsCameraShowRaster(Scene.m_pRwCamera);

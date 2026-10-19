@@ -275,11 +275,11 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float step, bool onScreen)
 /*!
  * @addr 0x4D60E0
  * @brief R* hacking
- * @detail In III and VC R* wrote their own interpolated animation data into a dummy
- * @detail RtAnimAnimation and practically didn't use the RtAnimInterpolator.
- * @detail In SA they went a step further and now write into the interpolation frames of
- * @detail the RtAnimInterpolator instead, almost completely avoid RtAnimAnimation.
- * @detail Credit: https://gtaforums.com/topic/669045-silentpatch/page/154/#comment-1068971599
+ * @details In III and VC R* wrote their own interpolated animation data into a dummy
+ * @details RtAnimAnimation and practically didn't use the RtAnimInterpolator.
+ * @details In SA they went a step further and now write into the interpolation frames of
+ * @details the RtAnimInterpolator instead, almost completely avoid RtAnimAnimation.
+ * @details Credit: https://gtaforums.com/topic/669045-silentpatch/page/154/#comment-1068971599
  * @param hierarchy The animation hierarchy
  * @return The animation
 */

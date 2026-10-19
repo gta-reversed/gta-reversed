@@ -12,8 +12,3 @@ CEventPedToChase::CEventPedToChase(CPed* ped) {
 CEventPedToChase::~CEventPedToChase() {
     CEntity::SafeCleanUpRef(m_ped);
 }
-
-// 0x4B7360
-CEvent* CEventPedToChase::Clone() {
-    return new CEventPedToChase(m_ped);
-}

@@ -42,7 +42,7 @@ CTaskSimpleRunTimedAnim::CTaskSimpleRunTimedAnim(AssocGroupId groupId, Animation
 
 // 0x61AC50
 void CTaskSimpleRunTimedAnim::StartAnim(CPed* ped) {
-    m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_animGrpId, m_animId, m_blendDelta);
+    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_animGrpId, m_animId, m_blendDelta);
     m_pAnim->SetDeleteCallback(CTaskSimpleAnim::FinishRunAnimCB, this);
 }
 
@@ -56,7 +56,7 @@ bool CTaskSimpleRunTimedAnim::ProcessPed(CPed* ped) {
         MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr);
     }
 
-    if (!m_pAnim && !RpAnimBlendClumpGetAssociation(ped->m_pRwClump, (uint32)m_animId)) {
+    if (!m_pAnim && !RpAnimBlendClumpGetAssociation(ped->GetRpClump(), (uint32)m_animId)) {
         m_timer.Start((int32)m_durationMs);
         StartAnim(ped);
     }

@@ -12,8 +12,3 @@ CEventPedToFlee::CEventPedToFlee(CPed* ped) {
 CEventPedToFlee::~CEventPedToFlee() {
     CEntity::SafeCleanUpRef(m_ped);
 }
-
-// 0x4B73D0
-CEvent* CEventPedToFlee::Clone() {
-    return new CEventPedToFlee(m_ped);
-}

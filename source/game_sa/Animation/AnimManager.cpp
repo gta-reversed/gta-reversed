@@ -184,12 +184,12 @@ const char* CAnimManager::GetAnimBlockName(AssocGroupId groupId) {
 
 // NOTSA
 AssocGroupId CAnimManager::GetAnimationGroupIdByName(notsa::ci_string_view name) {
-    for (const auto& [i, gd] : notsa::enumerate(GetAssocGroupDefs())) {
+    for (const auto& [i, gd] : rngv::enumerate(GetAssocGroupDefs())) {
         if (gd.GroupName == name) {
-            return (AssocGroupId)i;
+            return (AssocGroupId)(i);
         }
     }
-    return AssocGroupId::ANIM_GROUP_DEFAULT;
+    NOTSA_UNREACHABLE("Couldn't find group with name {}", name);
 }
 
 // 0x4D3A40
@@ -296,7 +296,7 @@ void CAnimManager::AddAnimToAssocDefinition(AnimAssocDefinition* def, const char
 
 // 0x4D3CC0
 void CAnimManager::CreateAnimAssocGroups() {
-    for (auto&& [i, group] : notsa::enumerate(GetAssocGroups())) {
+    for (auto&& [i, group] : rngv::enumerate(GetAssocGroups())) {
         const auto def   = &ms_aAnimAssocDefinitions[i];
         const auto block = GetAnimationBlock(def->BlockName);
         if (block == nullptr || !block->IsLoaded || group.m_Anims) {

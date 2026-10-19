@@ -17,14 +17,14 @@ public:
 
     bool IsPointWithinOcclusionArea(CVector2D pt, float radius = 0.f) const;
     bool IsPointBehindOccluder(CVector pt, float radius = 0.f) const;
-    auto GetLines() const { return std::span{ m_Lines, m_LinesUsed }; }
+    auto GetLines() const { return std::span{ m_Lines.data(), m_LinesUsed }; }
     float GetDistToCam() const { return (float)(m_DistToCam); }
 public:
-    CActiveOccluderLine m_Lines[6];
-    uint16              m_DistToCam;
-    uint8               m_LinesUsed;
-    uint8               m_NumFaces;
-    CVector             m_FaceNormals[3];
-    float               m_FaceOffsets[3];
+    std::array<CActiveOccluderLine, 6> m_Lines;
+    uint16                             m_DistToCam;
+    uint8                              m_LinesUsed;
+    uint8                              m_NumFaces;
+    std::array<CVector, 3>             m_FaceNormals;
+    std::array<float, 3>               m_FaceOffsets;
 };
 VALIDATE_SIZE(CActiveOccluder, 0xAC);

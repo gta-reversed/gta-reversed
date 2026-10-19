@@ -21,7 +21,7 @@ public:
     CEntity* GetSourceEntity() const override { return m_entity; }
     float GetLocalSoundLevel() override { return m_fLocalSoundLevel; }
     bool CanBeInterruptedBySameEvent() override { return true; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
 private:
     friend void InjectHooksMain();

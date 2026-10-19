@@ -3,17 +3,6 @@
 #include "TrafficLights.h"
 #include "Shadows.h"
 
-uint8(&CTrafficLights::aTrafficLightColoursR)[3] = *(uint8(*)[3])0x8A6214;
-uint8(&CTrafficLights::aTrafficLightColoursG)[3] = *(uint8(*)[3])0x8A6218;
-uint8(&CTrafficLights::aTrafficLightColoursB)[3] = *(uint8(*)[3])0xA9AD94;
-float& CTrafficLights::fLightMult = *(float*)0x8A621C;
-
-CVector& CTrafficLights::vecTrafficLights5_1 = *(CVector*)0xA9ADD4;
-CVector& CTrafficLights::vecTrafficLights5_2 = *(CVector*)0xA9ADC8;
-CVector& CTrafficLights::vecTrafficLights_1 = *(CVector*)0xA9ADBC;
-CVector& CTrafficLights::vecTrafficLights_2 = *(CVector*)0xA9ADB0;
-uint32& CTrafficLights::uiPedLightFlags = *(uint32*)0xA9ADE0;
-
 void CTrafficLights::InjectHooks()
 {
     RH_ScopedClass(CTrafficLights);
@@ -93,7 +82,7 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
     auto& prevNodeInfo = vehicle->m_autoPilot.m_nPreviousPathNodeInfo;
     if (prevNodeInfo.IsValid() && ThePaths.m_pPathNodes[prevNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(prevNodeInfo);
-        if (vehicle->m_nStatus == eEntityStatus::STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
+        if (vehicle->GetStatus() == STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
             if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_endingRouteNode) &&
                 ( naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_endingRouteNode)
             ) {
@@ -218,9 +207,9 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
             50.0F,
             eCoronaType::CORONATYPE_SHINYSTAR,
             eCoronaFlareType::FLARETYPE_NONE,
-            true,
-            false,
-            0,
+            eCoronaReflType::CORREFL_SIMPLE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
             0.0F,
             false,
             1.5F,

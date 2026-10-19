@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RenderWare.h"
+#include <Animation/AnimBlendHierarchy.h>
 #include <extensions/WEnum.hpp>
 
 class CAnimBlendSequence;

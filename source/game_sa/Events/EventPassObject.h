@@ -16,7 +16,7 @@ public:
     eEventType GetEventType() const override { return EVENT_PASS_OBJECT; }
     int32 GetEventPriority() const override { return 11; }
     int32 GetLifeTime() override { return 0; }
-    CEventPassObject* Clone() override { return new CEventPassObject(m_giver, m_dontPassObject); }
+    CEventPassObject* Clone() const noexcept override { return new CEventPassObject(m_giver, m_dontPassObject); }
     bool AffectsPed(CPed* ped) override { return true; }
     bool IsValid(CPed* ped) override;
 

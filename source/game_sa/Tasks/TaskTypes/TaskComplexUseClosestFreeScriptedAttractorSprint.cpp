@@ -8,8 +8,8 @@ void CTaskComplexUseClosestFreeScriptedAttractorSprint::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x4B8850);
     RH_ScopedInstall(Destructor, 0x4B8900);
 
-    RH_ScopedVMTInstall(Clone, 0x4B8870, { .reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x4B88D0, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x4B8870);
+    RH_ScopedVMTInstall(GetTaskType, 0x4B88D0);
 }
 
 // 0x4B8850

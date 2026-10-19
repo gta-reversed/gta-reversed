@@ -32,7 +32,7 @@ public:
     eEventType GetEventType() const override { return EVENT_VEHICLE_COLLISION; }
     int32 GetEventPriority() const override { return 58; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override { return new CEventVehicleCollision(m_pieceType, m_fDamageIntensity, m_vehicle, m_impactNormal, m_impactPos, m_moveState, VEHICLE_EVADE_NONE); } // 0x4B6BC0
     bool AffectsPed(CPed* ped) override;
     bool TakesPriorityOver(const CEvent& refEvent) override { return true; }
 

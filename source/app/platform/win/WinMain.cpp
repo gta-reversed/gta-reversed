@@ -4,27 +4,77 @@
 
 #include "StdInc.h"
 
+#ifdef NOTSA_USE_SDL3
+#include <SDL3/SDL.h>
+#include "SDLWrapper.hpp"
+#endif
+
 #include "LoadingScreen.h"
 #include "ControllerConfigManager.h"
 #include "Gamma.h"
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "Input.h"
-#include "Platform.h"
-#include "WndProc.h"
+#include "WinPlatform.h"
 
 #include "extensions/Configs/FastLoader.hpp"
+
+#ifndef NOTSA_USE_SDL3
+#include "WinInput.h"
+#include "WndProc.h"
+#endif
+
+#ifdef NOTSA_STANDALONE
+#include <InjectHooksMain.h>
+#include <extensions/CommandLine.h>
+#include <extensions/debug.hpp>
+#endif
+
+#include <toolsmenu/UIRenderer.h>
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
 
 // 0x747300
 char* getDvdGamePath() {
-    return plugin::CallAndReturn<char*, 0x747300>();
+    SetErrorMode(SEM_FAILCRITICALERRORS);
+
+    size_t bufferSize = GetLogicalDriveStringsA(0, nullptr);
+    const auto drivesBuffer = new char[bufferSize];
+
+    GetLogicalDriveStringsA(bufferSize, drivesBuffer);
+    assert(bufferSize > 0);
+
+    char drivePath[8] = {};
+    char volumeName[MAX_PATH + 1] = {};
+
+    for (const auto* drive = drivesBuffer; *drive; drive += strlen(drive) + 1) {
+        strcpy_s(drivePath, sizeof(drivePath), drive);
+
+        if (GetDriveTypeA(drivePath) != DRIVE_CDROM) {
+            continue;
+        }
+
+        if (!GetVolumeInformationA(drivePath, volumeName, sizeof(volumeName), nullptr, nullptr, nullptr, nullptr, 0)) {
+            continue;
+        }
+
+        if (strcmp(volumeName, "GTA_SAN_ANDREAS") == 0) {
+            const auto result = new char[strlen(drivePath) + 1];
+            strcpy_s(result, strlen(drivePath) + 1, drivePath);
+            delete[] drivesBuffer;
+            return result;
+        }
+    }
+
+    delete[] drivesBuffer;
+    return nullptr;
 }
 
 // 0x746870
 void MessageLoop() {
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::ProcessEvents();
+#else
     MSG msg;
     while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE | PM_NOYIELD)) {
         if (msg.message == WM_QUIT) {
@@ -34,10 +84,12 @@ void MessageLoop() {
             DispatchMessageA(&msg);
         }
     }
+#endif
 }
 
+#ifndef NOTSA_USE_SDL3
 // 0x7486A0
-bool InitApplication(HINSTANCE hInstance) {
+bool Win32_InitApplication(HINSTANCE hInstance) {
     WNDCLASS windowClass      = { 0 };
     windowClass.style         = CS_BYTEALIGNWINDOW;
     windowClass.lpfnWndProc   = __MainWndProc;
@@ -49,7 +101,7 @@ bool InitApplication(HINSTANCE hInstance) {
 }
 
 // 0x745560
-HWND InitInstance(HINSTANCE hInstance) {
+auto Win32_InitInstance(HINSTANCE hInstance) {
     RECT rect = { 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
@@ -68,6 +120,7 @@ HWND InitInstance(HINSTANCE hInstance) {
         nullptr
     );
 }
+#endif
 
 // 0x7468E0
 bool IsAlreadyRunning() {
@@ -88,20 +141,25 @@ bool IsForegroundApp() {
 }
 
 // Code from winmain, 0x748DCF
-bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
+bool ProcessGameLogic(INT nCmdShow) {
+    ZoneScoped;
     if (RsGlobal.quit || FrontEndMenuManager.m_bStartGameLoading) {
         return false;
     }
 
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::ProcessEvents();
+#else
     // Process Window messages
-    if (PeekMessage(&Msg, NULL, NULL, NULL, PM_REMOVE | PM_NOYIELD)) {
-        if (Msg.message == WM_QUIT) {
+    if (MSG msg; PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE | PM_NOYIELD)) {
+        if (msg.message == WM_QUIT) {
             return false;
         }
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
         return true;
     }
+#endif
 
     // Game is in background
     if (!NO_FOREGROUND_PAUSE && !ForegroundApp) {
@@ -111,29 +169,31 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         Sleep(100);
         return true;
     }
-    
-    FrameMark;
 
     // TODO: Move this out from here (It's not platform specific at all)
     switch (gGameState) {
     case GAME_STATE_INITIAL: {
-        const auto ProcessSplash = [](bool isNVidia) {
-            CLoadingScreen::LoadSplashes(true, isNVidia);
+        ZoneScopedN("INITIAL");
+
+        const auto ProcessSplash = [](eLoadingLogo id) {
+            CLoadingScreen::LoadSplashes(true, id);
             CLoadingScreen::Init(true, true);
-            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
             CLoadingScreen::Shutdown();
         };
         if (!g_FastLoaderConfig.NoEAX) {
-            ProcessSplash(false);
+            ProcessSplash(eLoadingLogo::EAX);
         }
         if (!g_FastLoaderConfig.NoNVidia) {
-            ProcessSplash(true);
+            ProcessSplash(eLoadingLogo::NVIDIA);
         }
         ChangeGameStateTo(GAME_STATE_LOGO);
         break;
     }
     case GAME_STATE_LOGO: {
+        ZoneScopedN("LOGO");
+
         if (!g_FastLoaderConfig.NoLogo) {
             if (!Windowed) {
                 VideoPlayer::Play(nCmdShow, "movies\\Logo.mpg");
@@ -144,6 +204,8 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
     }
     case GAME_STATE_PLAYING_LOGO:
     case GAME_STATE_PLAYING_INTRO: { // 0x748B17
+        ZoneScopedN("PLAYING_LOGO & PLAYING_INTRO");
+
         CPad::UpdatePads();
         auto* pad = CPad::GetPad();
         if (   Windowed
@@ -166,6 +228,8 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         break;
     }
     case GAME_STATE_TITLE: {
+        ZoneScopedN("TITLE");
+
         if (!g_FastLoaderConfig.NoTitleOrIntro) {
             VideoPlayer::Shutdown();
             VideoPlayer::Play(nCmdShow, FrontEndMenuManager.GetMovieFileName());
@@ -174,10 +238,12 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         break;
     }
     case GAME_STATE_FRONTEND_LOADING: {
+        ZoneScopedN("FRONTEND_LOADING");
+
         VideoPlayer::Shutdown();
         CLoadingScreen::Init(true, false);
         if (!g_FastLoaderConfig.NoCopyright) {
-            CLoadingScreen::DoPCTitleFadeOut();
+            CLoadingScreen::DoPCTitleFadeIn();
         }
         if (!CGame::InitialiseEssentialsAfterRW()) {
             RsGlobal.quit = true;
@@ -185,9 +251,16 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         CGame::InitialiseCoreDataAfterRW();
         ChangeGameStateTo(GAME_STATE_FRONTEND_LOADED);
         anisotropySupportedByGFX = (((const D3DCAPS9*)RwD3D9GetCaps())->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+
+#ifdef NOTSA_WINDOWED_MODE
+        RwCameraClear(Scene.m_pRwCamera, &gColourTop, rwCAMERACLEARZ);
+#endif
+
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {
+        ZoneScopedN("FRONTEND_LOADED");
+
         FrontEndMenuManager.m_bActivateMenuNextFrame = true;
         FrontEndMenuManager.m_bMainMenuSwitch = true;
         if (IsVMNotSelected) {
@@ -198,11 +271,13 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         if (g_FastLoaderConfig.NoCopyright) {
             CLoadingScreen::SkipCopyrightSplash();
         } else {
-            CLoadingScreen::DoPCTitleFadeIn();
+            CLoadingScreen::DoPCTitleFadeOut();
         }
         break;
     }
     case GAME_STATE_FRONTEND_IDLE: { // 0x748CB2
+        ZoneScopedN("FRONTEND_IDLE");
+
         WINDOWPLACEMENT wndpl{ .length = sizeof(WINDOWPLACEMENT) };
         VERIFY(GetWindowPlacement(PSGLOBAL(window), &wndpl));
         if (g_FastLoaderConfig.ShouldLoadSaveGame()) {
@@ -224,6 +299,8 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         NOTSA_SWCFALLTHRU; // Fall down and start loading
     }
     case GAME_STATE_LOADING_STARTED: {
+        ZoneScopedN("LOADING_STARTED");
+
         if (!g_FastLoaderConfig.NoLoadingTune) {
             AudioEngine.StartLoadingTune();
         }
@@ -233,11 +310,15 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         FrontEndMenuManager.m_bMainMenuSwitch = false;
 
         AudioEngine.InitialisePostLoading();
+
         break;
     }
-    case GAME_STATE_IDLE: {
-        if (!RwInitialized)
+    case GAME_STATE_IDLE: { // 0x748AA1
+        ZoneScopedN("IDLE");
+
+        if (!RwInitialized) {
             break;
+        }
 
         auto v9_1 = 1000.0f / (float)RsGlobal.frameLimit;
         auto v9_2 = (float)CTimer::GetCurrentTimeInCycles() / (float)CTimer::GetCyclesPerMillisecond();
@@ -256,7 +337,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
 }
 
 // Code from winmain, 0x7489FB
-void MainLoop(INT nCmdShow, MSG& Msg) {
+void MainLoop(INT nCmdShow) {
     bool isNewGameFirstTime = true;
     while (true) {
         RwInitialized = true;
@@ -268,7 +349,9 @@ void MainLoop(INT nCmdShow, MSG& Msg) {
         gamma.Init();
 
         // Game logic main loop
-        while (ProcessGameLogic(nCmdShow, Msg));
+        while (ProcessGameLogic(nCmdShow)) {
+            FrameMark;
+        }
 
         // 0x748DDA
         RwInitialized = false;
@@ -313,14 +396,20 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
         return false;
     }
 
-    auto initializeEvent = RsEventHandler(rsINITIALIZE, nullptr);
-    if (rsEVENTERROR == initializeEvent) {
+    if (rsEVENTERROR == RsEventHandler(rsINITIALIZE, nullptr)) {
         return false;
     }
 
-    if (!InitApplication(instance)) {
+#ifdef NOTSA_USE_SDL3
+    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC)) {
+        NOTSA_UNREACHABLE("Failed to initialize SDL: {}", SDL_GetError());
+        return -1;
+    }
+#else
+    if (!Win32_InitApplication(instance)) {
         return false;
     }
+#endif
 
     char** argv = __argv;
     int    argc = __argc;
@@ -335,16 +424,28 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     __argv  = nullptr;
     __wargv = nullptr;
 
-    PSGLOBAL(window) = InitInstance(instance);
+#ifdef NOTSA_USE_SDL3
+    SDL_Window* sdlWnd = SDL_CreateWindow(
+        APP_CLASS,
+        APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT,
+        SDL_WINDOW_RESIZABLE  //| SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS// | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS
+    );
+    PSGLOBAL(sdlWindow) = sdlWnd;
+    PSGLOBAL(window) = (HWND)(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWnd), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL)); // NOTE/TODO: Hacky, but required due to RW
+#else
+    PSGLOBAL(window) = Win32_InitInstance(instance);
+#endif
+
     if (!PSGLOBAL(window)) {
         return false;
     }
-    PSGLOBAL(instance) = instance;
+    PSGLOBAL(instance) = instance; // Not used anywhere, just set here
 
     // 0x7487CF
+#ifndef NOTSA_USE_SDL3
     VERIFY(WinInput::Initialise());
-
-    ControlsManager.InitDefaultControlConfigMouse(WinInput::GetMouseState(), !FrontEndMenuManager.m_nController);
+#endif
+    ControlsManager.ReinitControls();
 
     // 0x748847
     if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {
@@ -358,10 +459,12 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
         RsEventHandler(rsCOMMANDLINE, argv[i]);
     }
 
+#ifndef NOTSA_USE_SDL3
     if (MultipleSubSystems || PSGLOBAL(fullScreen)) {
         SetWindowLongPtr(PSGLOBAL(window), GWL_STYLE, (LONG_PTR)WS_POPUP);
         SetWindowPos(PSGLOBAL(window), nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
+#endif
 
     RwRect rect{ 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     RsEventHandler(rsCAMERASIZE, &rect);
@@ -374,8 +477,15 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     STICKYKEYS pvParam1 = { .cbSize = sizeof(STICKYKEYS), .dwFlags = SKF_TWOKEYSOFF };
     SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam1, 2u);
 
-    ShowWindow(PSGLOBAL(window), nCmdShow);
     UpdateWindow(PSGLOBAL(window));
+
+#ifdef NOTSA_USE_SDL3
+    SDL_SetWindowFocusable(sdlWnd, true);
+    SDL_SetWindowPosition(sdlWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_RaiseWindow(sdlWnd);
+#else
+    ShowWindow(PSGLOBAL(window), nCmdShow);
+#endif
 
     // 0x748995
     CFileMgr::SetDirMyDocuments();
@@ -389,9 +499,12 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
     SetErrorMode(SEM_FAILCRITICALERRORS);
 
+    notsa::ui::UIRenderer::CreateInstance();
+
     // 0x7489FB
-    MSG Msg;
-    MainLoop(nCmdShow, Msg);
+    MainLoop(nCmdShow);
+
+    notsa::ui::UIRenderer::DestroyInstance();
 
     // if game is loaded, shut it down
     if (gGameState == GAME_STATE_IDLE) {
@@ -414,8 +527,44 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     // nullsub_0x72F3C0()
     SetErrorMode(0);
 
-    return Msg.wParam;
+    return 0; // Msg.wParam
 }
+
+#ifdef NOTSA_STANDALONE
+INT WINAPI WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdLine, INT nCmdShow) {
+    CommandLine::Load(__argc, __argv);
+    if (CommandLine::s_WaitForDebugger) {
+        notsa::debug::WaitForDebugger();
+    }
+
+    notsa::debug::DisplayConsole();
+    notsa::debug::LoadSymbols();
+    notsa::Logging::CreateInstance();
+    notsa::ScopeGuard cleanupLogging{ [] {
+        notsa::Logging::DestroyInstance();
+        notsa::debug::UnloadSymbols();
+    } };
+
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
+    ReversibleHooks::RHManager::CreateInstance();
+    notsa::ScopeGuard cleanupRH{ [] {
+        ReversibleHooks::RHManager::DestroyInstance();
+    }};
+
+    NOTSA_LOG_INFO("Dumping hooks only, no memory writing will be performed");
+
+    InjectHooksMain(); // This will also end up calling the CLI to dump the hooks
+
+    return 0;
+#else
+    notsa::ui::UIRenderer::CreateInstance();
+    // code..
+    notsa::ui::UIRenderer::CreateInstance();
+    NOTSA_LOG_ERR("This executable is meant to be used for dumping hooks only, see `NOTSA_STANDALONE_DUMP_HOOKS_ONLY` option");
+    return 1;
+#endif
+}
+#endif
 
 void InjectWinMainStuff() {
     RH_ScopedCategory("Win");
@@ -425,6 +574,11 @@ void InjectWinMainStuff() {
     RH_ScopedGlobalInstall(IsAlreadyRunning, 0x7468E0);
 
     // Unhooking these 2 after the game has started will do nothing
-    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.locked = true});
-    RH_ScopedGlobalInstall(InitInstance, 0x745560, {.locked = true});
+    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.Locked = true});
+    RH_ScopedGlobalInstall(MessageLoop, 0x746870, {.Locked = true});
+
+#ifndef NOTSA_USE_SDL3
+    RH_ScopedGlobalInstall(Win32_InitApplication, 0x7486A0);
+    RH_ScopedGlobalInstall(Win32_InitInstance, 0x745560, {.Locked = true});
+#endif
 }

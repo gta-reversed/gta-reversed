@@ -13,17 +13,17 @@
 
 class CTheZones {
 public:
-    static inline auto&       ZonesVisited = StaticRef<notsa::mdarray<bool, 10, 10>, 0xBA3730>(); // Explored territories. Count: 100
+    static inline auto&       ZonesVisited = StaticRef<notsa::mdarray<bool, 10, 10>>(0xBA3730); // Explored territories. Count: 100
 
-    static eLevelName& m_CurrLevel;
-    static int32&      ZonesRevealed;                // Number of explored territories
-    static int16&      TotalNumberOfNavigationZones; // Info zones
-    static CZone       (&NavigationZoneArray)[380];
-    static int16&      TotalNumberOfMapZones;        // Map zones
-    static CZone       (&MapZoneArray)[39];
-    static int16&      TotalNumberOfZoneInfos;
+    static inline auto& m_CurrLevel = StaticRef<eLevelName>(0xBA6718);
+    static inline auto& ZonesRevealed = StaticRef<int32>(0xBA372C); // Number of explored territories
+    static inline auto& TotalNumberOfNavigationZones = StaticRef<int16>(0xBA3794); // Info zones
+    static inline auto& NavigationZoneArray = StaticRef<std::array<CZone, 380>>(0xBA3798);
+    static inline auto& TotalNumberOfMapZones = StaticRef<int16>(0xBA1900); // Map zones
+    static inline auto& MapZoneArray = StaticRef<std::array<CZone, 39>>(0xBA1908);
+    static inline auto& TotalNumberOfZoneInfos = StaticRef<int16>(0xBA1DE8);
     
-    static inline std::array<CZoneInfo, 380>& ZoneInfoArray = *(std::array<CZoneInfo, 380>*)0xBA1DF0;
+    static inline auto& ZoneInfoArray = StaticRef<std::array<CZoneInfo, 380>>(0xBA1DF0);
 
 public:
     static void InjectHooks();
@@ -66,27 +66,22 @@ public:
     // NOTSA
     static const GxtChar* GetZoneName(const CVector& point);
 
+
+
+    [[deprecated]] static auto GetNaviZones() { return NavigationZoneArray | rngv::take(TotalNumberOfNavigationZones); }
+
+    static auto GetNavigationZones() { return NavigationZoneArray | rngv::take(TotalNumberOfNavigationZones); }
+
+    static auto GetMapZones() { return MapZoneArray | rngv::take(TotalNumberOfMapZones); }
+
+    static auto GetZoneInfos() { return ZoneInfoArray | rngv::take(TotalNumberOfZoneInfos); }
+
     static CZoneInfo* GetZoneInfo(const CZone* zone) {
         auto idx = zone->m_ZoneInfoIndex;
 
         if (!idx)
             return nullptr;
 
-        return &ZoneInfoArray[idx];
-    }
-
-    [[deprecated]]
-    static auto GetNaviZones() { return std::span{ NavigationZoneArray, (size_t)(TotalNumberOfNavigationZones) }; }
-    
-    static auto GetNavigationZones() {
-        return std::span{NavigationZoneArray, (size_t)TotalNumberOfNavigationZones};
-    }
-
-    static auto GetMapZones() {
-        return std::span{MapZoneArray, (size_t)TotalNumberOfMapZones};
-    }
-
-    static auto GetZoneInfos() {
-        return ZoneInfoArray | rng::views::take((size_t)TotalNumberOfZoneInfos);
+        return &GetZoneInfos()[idx];
     }
 };

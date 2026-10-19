@@ -15,7 +15,7 @@
 #include "FxPrimBP.h"
 #include "Particle.h"
 
-FxManager_c& g_fxMan = *(FxManager_c*)0xA9AE80;
+auto& g_fxMan = StaticRef<FxManager_c>(0xA9AE80);
 
 void FxManager_c::InjectHooks() {
     RH_ScopedClass(FxManager_c);
@@ -26,7 +26,7 @@ void FxManager_c::InjectHooks() {
     RH_ScopedInstall(Init, 0x4A98E0);
     RH_ScopedInstall(Exit, 0x4A9A10);
     RH_ScopedInstall(DestroyFxSystem, 0x4A9810);
-    RH_ScopedInstall(DestroyAllFxSystems, 0x4A98B0, {.reversed = false}); // <-- broken for some reason?
+    RH_ScopedInstall(DestroyAllFxSystems, 0x4A98B0, {.Reversed = false}); // <-- broken for some reason?
     RH_ScopedInstall(Update, 0x4A9A80);
     RH_ScopedInstall(LoadFxProject, 0x5C2420);
     RH_ScopedInstall(UnloadFxProject, 0x4A9AE0);
@@ -348,7 +348,7 @@ bool FxManager_c::ShouldCreate(FxSystemBP_c* system, const RwMatrix& transform, 
     RwV3dTransformPoints(&pointsOut.m_vecCenter, reinterpret_cast<const RwV3d*>(system->m_BoundingSphere), 1, curr);
     pointsOut.m_fRadius = system->m_BoundingSphere->m_fRadius;
     FxRwMatrixDestroy(curr);
-    return GetFrustumInfo()->IsCollision(&pointsOut) != 0;
+    return GetFrustumInfo()->IsCollision(pointsOut) != 0;
 }
 
 // 0x4A95C0

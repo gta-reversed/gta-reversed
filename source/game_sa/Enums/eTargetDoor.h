@@ -1,6 +1,6 @@
 #pragma once
 
-enum eTargetDoor {
+enum eTargetDoor : uint32 {
     TARGET_DOOR_FRONT_LEFT  = 0,
     TARGET_DOOR_FRONT_RIGHT = 8,
     TARGET_DOOR_REAR_RIGHT  = 9,

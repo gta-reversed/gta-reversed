@@ -7,25 +7,18 @@
 #include "TaskSimpleDuck.h"
 #include "Hud.h"
 
-float& CCamera::m_f3rdPersonCHairMultY = *reinterpret_cast<float*>(0xB6EC10); ///< Where the player will be on the screen in relative coords when quick aiming
-float& CCamera::m_f3rdPersonCHairMultX = *reinterpret_cast<float*>(0xB6EC14);
-float& CCamera::m_fMouseAccelVertical = *reinterpret_cast<float*>(0xB6EC18);
-float& CCamera::m_fMouseAccelHorzntl = *reinterpret_cast<float*>(0xB6EC1C);
-bool& CCamera::m_bUseMouse3rdPerson = *reinterpret_cast<bool*>(0xB6EC2E);
-bool& CCamera::bDidWeProcessAnyCinemaCam = *reinterpret_cast<bool*>(0xB6EC2D);
-
-CCamera& TheCamera = *reinterpret_cast<CCamera*>(0xB6F028);
-bool& gbModelViewer = *reinterpret_cast<bool*>(0xBA6728);
-int8& gbCineyCamMessageDisplayed = *(int8*)0x8CC381; // 2
-int32& gCameraDirection = *(int32*)0x8CC384;         // 3
-eCamMode& gCameraMode = *(eCamMode*)0x8CC388;        // -1
-uint32& gLastTime2PlayerCameraWasOK = *(uint32*)0xB6EC24;    // 0
-uint32& gLastTime2PlayerCameraCollided = *(uint32*)0xB6EC28; // 0
-bool& gPlayerPedVisible = *(bool*)0x8CC380; // true
-uint8& gCurCamColVars = *(uint8*)0x8CCB80;
-float& gCurDistForCam = *(float*)0x8CCB84;
-float*& gpCamColVars = *(float**)0xB6FE88;
-float (&gCamColVars)[28][6] = *(float (*)[28][6])0x8CC8E0;
+auto& TheCamera = StaticRef<CCamera>(0xB6F028);
+auto& gbModelViewer = StaticRef<bool>(0xBA6728);
+auto& gbCineyCamMessageDisplayed = StaticRef<int8>(0x8CC381); // 2
+auto& gCameraDirection = StaticRef<int32>(0x8CC384);         // 3
+auto& gCameraMode = StaticRef<eCamMode>(0x8CC388);        // -1
+auto& gLastTime2PlayerCameraWasOK = StaticRef<uint32>(0xB6EC24);    // 0
+auto& gLastTime2PlayerCameraCollided = StaticRef<uint32>(0xB6EC28); // 0
+auto& gPlayerPedVisible = StaticRef<bool>(0x8CC380); // true
+auto& gCurCamColVars = StaticRef<uint8>(0x8CCB80);
+auto& gCurDistForCam = StaticRef<float>(0x8CCB84);
+auto& gpCamColVars = StaticRef<float*>(0xB6FE88);
+auto& gCamColVars = StaticRef<float[28][6]>(0x8CC8E0);
 
 CCam& CCamera::GetActiveCamera() {
     return TheCamera.m_aCams[TheCamera.m_nActiveCam];
@@ -84,7 +77,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(GetLookingLRBFirstPerson, 0x50AE60);
     RH_ScopedInstall(GetLookDirection, 0x50AE90);
     RH_ScopedInstall(GetLookingForwardFirstPerson, 0x50AED0);
-    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0, { .reversed = false });
+    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0, { .Reversed = false });
     RH_ScopedInstall(CalculateMirroredMatrix, 0x50B380);
     RH_ScopedInstall(DealWithMirrorBeforeConstructRenderList, 0x50B510);
     RH_ScopedInstall(ProcessFade, 0x50B5D0);
@@ -102,10 +95,10 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(UpdateTargetEntity, 0x50C360);
     RH_ScopedInstall(TakeControl, 0x50C7C0);
     RH_ScopedInstall(TakeControlNoEntity, 0x50C8B0);
-    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910);
+    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910, { .Reversed = false });
     RH_ScopedInstall(TakeControlWithSpline, 0x50CAE0);
     RH_ScopedInstall(SetCamCollisionVarDataSet, 0x50CB60);
-    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .reversed = false });
+    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .Reversed = false });
     RH_ScopedInstall(SetColVarsPed, 0x50CC50);
     RH_ScopedInstall(SetColVarsVehicle, 0x50CCA0);
     RH_ScopedInstall(StartTransitionWhenNotFinishedInter, 0x515BC0);
@@ -117,38 +110,41 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(IsExtraEntityToIgnore, 0x50CE80);
     RH_ScopedInstall(ConsiderPedAsDucking, 0x50CEB0);
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
-    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .reversed = false });
-    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090, { .reversed = false });
-    RH_ScopedInstall(VectorMoveLinear, 0x50D160, { .reversed = false });
-    RH_ScopedInstall(VectorTrackLinear, 0x50D1D0, { .reversed = false });
+    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .Reversed = false });
+    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090, { .Reversed = false });
+    RH_ScopedInstall(VectorMoveLinear, 0x50D160);
+    RH_ScopedInstall(VectorTrackLinear, 0x50D1D0);
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
     RH_ScopedInstall(InitialiseScriptableComponents, 0x50D2D0);
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
     RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
-    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
-    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .reversed = false });
-    RH_ScopedInstall(ImproveNearClip, 0x516B20, { .reversed = false });
+    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .Reversed = false });
+    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .Reversed = false });
+    RH_ScopedInstall(ImproveNearClip, 0x516B20, { .Reversed = false });
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
     RH_ScopedInstall(ConeCastCollisionResolve, 0x51A5D0);
-    RH_ScopedInstall(TryToStartNewCamMode, 0x51E560, { .reversed = false });
-    RH_ScopedInstall(CameraColDetAndReact, 0x520190, { .reversed = false });
-    RH_ScopedInstall(CamControl, 0x527FA0, { .reversed = false });
-    RH_ScopedInstall(Process, 0x52B730, { .reversed = false });
+    RH_ScopedInstall(TryToStartNewCamMode, 0x51E560, { .Reversed = false });
+    RH_ScopedInstall(CameraColDetAndReact, 0x520190, { .Reversed = false });
+    RH_ScopedInstall(CamControl, 0x527FA0, { .Reversed = false });
+    RH_ScopedInstall(Process, 0x52B730, { .Reversed = false });
     RH_ScopedInstall(DeleteCutSceneCamDataMemory, 0x5B24A0);
-    RH_ScopedInstall(LoadPathSplines, 0x5B24D0, { .reversed = false });
-    RH_ScopedInstall(Init, 0x5BC520, { .reversed = false });
+    RH_ScopedInstall(LoadPathSplines, 0x5B24D0, { .Reversed = false });
+    RH_ScopedInstall(Init, 0x5BC520);
 
-    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "0", 0x50D350, void(CCamera::*)(float), { .reversed = false });
-    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "1", 0x516440, void(CCamera::*)(), {.reversed = false});
-    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "0", 0x50D430, void(CCamera::*)(float), { .reversed = false });
-    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "1", 0x5164A0, void(CCamera::*)(), { .reversed = false });
-    RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float), { .reversed = false });
-    RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)(), { .reversed = false });
-    //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .reversed = false });
+    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "with-ratio", 0x50D350, void(CCamera::*)(float));
+    RH_ScopedOverloadedInstall(ProcessVectorTrackLinear, "wo-ratio", 0x516440, void(CCamera::*)());
+    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "with-ratio", 0x50D430, void(CCamera::*)(float));
+    RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "wo-ratio", 0x5164A0, void(CCamera::*)());
+    RH_ScopedOverloadedInstall(ProcessFOVLerp, "with-ratio", 0x50D510, void(CCamera::*)(float));
+    RH_ScopedOverloadedInstall(ProcessFOVLerp, "wo-ratio", 0x516500, void(CCamera::*)());
+    RH_ScopedOverloadedInstall(ProcessShake, "float", 0x516560, CVector*(CCamera::*)(float), { .Reversed = false });
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
+    RH_ScopedInstall(UpdateSoundDistances, 0x515BD0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsSphereVisible, "", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "void", 0x51A6F0, void(CCamera::*)(), { .Reversed = false });
 }
 
 CCamera* CCamera::Constructor() { this->CCamera::CCamera(); return this; }
@@ -221,7 +217,7 @@ void CCamera::Init() {
 
     if (!FrontEndMenuManager.m_bStartGameLoading) {
         CDraw::FadeValue = 0;
-        m_fMouseAccelVertical = 0.0015f;
+        m_fMouseAccelVertical = notsa::IsFixBugs() ? m_fMouseAccelHorzntl * 0.6f : 0.0015f;
     }
     
     SetMotionBlur(255, 255, 255, 0, eMotionBlurType::NONE);
@@ -296,13 +292,13 @@ void CCamera::InitialiseCameraForDebugMode() {
 
 // 0x50A480
 void CCamera::ApplyVehicleCameraTweaks(CVehicle* vehicle) {
-    if (vehicle->m_nModelIndex == m_nCurrentTweakModelIndex) {
+    if (vehicle->GetModelIndex() == m_nCurrentTweakModelIndex) {
         return;
     }
 
     InitCameraVehicleTweaks();
     for (auto& camTweak : m_aCamTweak) {
-        if (camTweak.ModelID == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
+        if (camTweak.ModelID == vehicle->GetModelIndex()) {
             m_fCurrentTweakDistance = camTweak.Dist;
             m_fCurrentTweakAltitude = camTweak.Alt;
             m_fCurrentTweakAngle    = camTweak.Angle;
@@ -397,7 +393,7 @@ float CCamera::Find3rdPersonQuickAimPitch() const {
     // https://mathworld.wolfram.com/images/eps-svg/SOHCAHTOA_500.svg
     const auto adjacent = (0.5f - m_f3rdPersonCHairMultY) * 2.f;
     const auto opposite = std::tan(DegreesToRadians(cam.m_fFOV / 2.0f)) * adjacent;
-    const auto relAngle = cam.m_fVerticalAngle - std::atan(opposite / CDraw::ms_fAspectRatio);
+    const auto relAngle = cam.m_fVerticalAngle + std::atan(opposite / CDraw::ms_fAspectRatio);
     return -relAngle; // Flip it
 }
 
@@ -802,7 +798,7 @@ void CCamera::SetNearClipScript(float nearClip) {
 }
 
 // 0x50BFB0
-void CCamera::SetNewPlayerWeaponMode(eCamMode mode, int16 maxZoom, int16 minZoom) {
+void CCamera::SetNewPlayerWeaponMode(eCamMode mode, int16 minZoom, int16 maxZoom) {
     m_PlayerWeaponMode.m_nMode     = mode;
     m_PlayerWeaponMode.m_nMinZoom  = minZoom;
     m_PlayerWeaponMode.m_nMaxZoom  = maxZoom;
@@ -885,7 +881,7 @@ void CCamera::SetZoomValueFollowPedScript(int16 zoomMode) {
 void CCamera::SetZoomValueCamStringScript(int16 zoomMode) {
     auto entity = m_aCams[0].m_pCamTargetEntity;
 
-    if (entity->m_nStatus == STATUS_SIMPLE) {
+    if (entity->GetStatus() == STATUS_SIMPLE) {
         int32 arrPos{};
         VERIFY(GetArrPosForVehicleType(static_cast<eVehicleType>(entity->AsVehicle()->GetVehicleAppearance()), arrPos));
         m_fCarZoomValueScript = [zoomMode]{
@@ -940,7 +936,7 @@ void CCamera::StoreValuesDuringInterPol(CVector* sourceDuringInter, CVector* tar
 
 // 0x50C360
 void CCamera::UpdateTargetEntity() {
-    m_bPlayerWasOnBike = m_pTargetEntity && m_pTargetEntity->IsVehicle() && m_pTargetEntity->AsVehicle()->m_vecMoveSpeed.SquaredMagnitude() > 0.3f;
+    m_bPlayerWasOnBike = m_pTargetEntity && m_pTargetEntity->GetIsTypeVehicle() && m_pTargetEntity->AsVehicle()->m_vecMoveSpeed.SquaredMagnitude() > 0.3f;
 
     const auto player = FindPlayerPed();
     assert(player);
@@ -1040,7 +1036,7 @@ void CCamera::UpdateTargetEntity() {
         CEntity::ChangeEntityReference(m_pTargetEntity, player);
     }
 
-    if (m_pTargetEntity->IsVehicle()) {
+    if (m_pTargetEntity->GetIsTypeVehicle()) {
         if (m_nCarZoom == 0) {
             if (player->m_nPedState == PEDSTATE_ARRESTED) {
                 CEntity::ChangeEntityReference(m_pTargetEntity, player);
@@ -1063,7 +1059,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
             return {
                 [&, this] {
                     if (modeToGoTo == MODE_NONE) {
-                        switch (target->m_nType) {
+                        switch (target->GetType()) {
                         case ENTITY_TYPE_PED:
                             return MODE_FOLLOWPED;
                         case ENTITY_TYPE_VEHICLE:
@@ -1282,13 +1278,23 @@ void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, 
 }
 
 // 0x50D160
-void CCamera::VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase) {
-    plugin::CallMethod<0x50D160, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bMoveLinearWithEase);
+void CCamera::VectorMoveLinear(CVector& to, CVector& from, float duration, bool bMoveLinearWithEase) {
+    const auto time = (float)CTimer::GetTimeInMS();
+    m_fMoveLinearStartTime   = time;
+    m_fMoveLinearEndTime     = time + duration;
+    m_vecMoveLinearPosnStart = from;
+    m_vecMoveLinearPosnEnd   = to;
+    m_bMoveLinearWithEase    = bMoveLinearWithEase;
 }
 
 // 0x50D1D0
-void CCamera::VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase) {
-    plugin::CallMethod<0x50D1D0, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bEase);
+void CCamera::VectorTrackLinear(CVector& to, CVector& from, float duration, bool bEase) {
+    const auto time = (float)CTimer::GetTimeInMS();
+    m_fTrackLinearStartTime    = time;
+    m_fTrackLinearEndTime      = time + duration;
+    m_vecTrackLinearEndPoint   = from;
+    m_vecTrackLinearStartPoint = to;
+    m_bTrackLinearWithEase     = bEase;
 }
 
 // 0x516400
@@ -1435,12 +1441,21 @@ void CCamera::ProcessWideScreenOn() {
 
 // 0x516440
 void CCamera::ProcessVectorTrackLinear() {
-    plugin::CallMethod<0x516440, CCamera*>(this);
+    const auto now = (float)CTimer::GetTimeInMS();
+    if (now <= m_fTrackLinearEndTime) {
+        ProcessVectorTrackLinear(invLerp(m_fTrackLinearStartTime, m_fTrackLinearEndTime, now));
+    } else if (m_bCameraPersistTrack) {
+        m_bVecTrackLinearProcessed = true;
+    }
 }
 
 // 0x50D350
 void CCamera::ProcessVectorTrackLinear(float ratio) {
-    plugin::CallMethod<0x50D350, CCamera*, float>(this, ratio);
+    m_bVecTrackLinearProcessed = true;
+    const auto progress = m_bTrackLinearWithEase
+        ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
+        : ratio;
+    m_vecTrackLinear = (m_vecTrackLinearStartPoint - m_vecTrackLinearEndPoint) * progress + m_vecTrackLinearEndPoint;
 }
 
 //
@@ -1460,22 +1475,39 @@ void CCamera::ProcessObbeCinemaCameraHeli() {
 
 // 0x50D430
 void CCamera::ProcessVectorMoveLinear(float ratio) {
-    plugin::CallMethod<0x50D430, CCamera*, float>(this, ratio);
+    m_bVecMoveLinearProcessed = true;
+    const auto progress = m_bMoveLinearWithEase
+        ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
+        : ratio;
+    m_vecMoveLinear = (m_vecMoveLinearPosnEnd - m_vecMoveLinearPosnStart) * progress + m_vecMoveLinearPosnStart;
 }
 
 // 0x516500
 void CCamera::ProcessFOVLerp() {
-    plugin::CallMethod<0x516500, CCamera*>(this);
+    if (const auto now = static_cast<float>(CTimer::GetTimeInMS()); now <= m_fEndZoomTime) { /* Check if still processing */
+        ProcessFOVLerp(invLerp(m_fStartZoomTime, m_fEndZoomTime, now));
+    } else if (m_bBlockZoom) { /* Finished */
+        m_bFOVLerpProcessed = true;
+    }
 }
 
 // 0x50D510
 void CCamera::ProcessFOVLerp(float ratio) {
-    plugin::CallMethod<0x50D510, CCamera*, float>(this, ratio);
+    m_bFOVLerpProcessed = true;
+    const auto progress = m_nZoomMode != 0
+        ? (std::sin(DegreesToRadians(270.0f - ratio * 180.0f)) + 1.0f) * 0.5f
+        : ratio;
+    m_fFOVNew = (m_fZoomOutFactor - m_fZoomInFactor) * progress + m_fZoomInFactor;
 }
 
 // 0x5164A0
 void CCamera::ProcessVectorMoveLinear() {
-    plugin::CallMethod<0x5164A0, CCamera*>(this);
+    const auto now = (float)CTimer::GetTimeInMS();
+    if (now <= m_fMoveLinearEndTime) {
+        ProcessVectorMoveLinear(invLerp(m_fMoveLinearStartTime, m_fMoveLinearEndTime, now));
+    } else if (m_bCameraPersistPosition) {
+        m_bVecMoveLinearProcessed = true;
+    }
 }
 
 // unused
@@ -1519,12 +1551,12 @@ void CCamera::DrawBordersForWideScreen() {
 
 // 0x4748A0
 bool CCamera::VectorMoveRunning() const {
-    return CTimer::m_snTimeInMilliseconds <= m_fMoveLinearEndTime;
+    return CTimer::GetTimeInMS() <= m_fMoveLinearEndTime;
 }
 
 // 0x474891
 bool CCamera::VectorTrackRunning() const {
-    return CTimer::m_snTimeInMilliseconds <= m_fTrackLinearEndTime;
+    return CTimer::GetTimeInMS() <= m_fTrackLinearEndTime;
 }
 
 // 0x514950
@@ -1571,10 +1603,10 @@ void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVect
 
 // 0x514B80
 float CCamera::CalculateGroundHeight(eGroundHeightType type) {
-    static auto& lastCalcCamPos    = StaticRef<CVector, 0xB70034>();
-    static auto& exactGroundHeight = StaticRef<float, 0xB70030>();
-    static auto& bbTopZ            = StaticRef<float, 0xB7002C>();
-    static auto& bbBottomZ         = StaticRef<float, 0xB70028>();
+    static auto& lastCalcCamPos    = StaticRef<CVector>(0xB70034);
+    static auto& exactGroundHeight = StaticRef<float>(0xB70030);
+    static auto& bbTopZ            = StaticRef<float>(0xB7002C);
+    static auto& bbBottomZ         = StaticRef<float>(0xB70028);
 
     const auto& camPos = GetPosition();
 
@@ -1625,7 +1657,7 @@ void CCamera::ImproveNearClip(CVehicle* vehicle, CPed* ped, CVector* source, CVe
     return plugin::CallMethod<0x516B20, CCamera*, CVehicle*, CPed*, CVector*, CVector*>(this, vehicle, ped, source, targPosn);
 }
 
-static CMatrix& preMirrorMat = *(CMatrix*)0xB6FE40;
+static auto& preMirrorMat = StaticRef<CMatrix>(0xB6FE40);
 
 // 0x51A560
 void CCamera::SetCameraUpForMirror() {
@@ -1783,7 +1815,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
     m_fFractionInterToStopCatchUp = 0.75f;
 
     // Handle player rotation for weapon modes
-    if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains({ MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT }, activeCamMode)) {
+    if (m_pTargetEntity && m_pTargetEntity->GetIsTypePed() && notsa::contains({ MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT }, activeCamMode)) {
         const float angle                            = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
         m_pTargetEntity->AsPed()->m_fCurrentRotation = angle;
         m_pTargetEntity->AsPed()->m_fAimingRotation  = angle;
@@ -2012,6 +2044,6 @@ auto CCamera::GetFrustumPoints() -> std::array<CVector, 5> {
     // Transform them to world space
     RwV3dTransformPoints(pts, pts, 5, GetRwMatrix());
 
-    // That's it!
+    // top left, top right, bottom right, bottom left, center
     return std::to_array(pts);
 }

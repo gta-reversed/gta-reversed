@@ -2,10 +2,6 @@
 
 #include "CustomRoadsignMgr.h"
 
-RwTexture*& CCustomRoadsignMgr::pCharsetTex = *(RwTexture**)0xC3EF84;
-RwUInt8*& CCustomRoadsignMgr::pCharsetLockedRaster = *(RwUInt8**)0xC3EF88;
-RwUInt8*& CCustomRoadsignMgr::pCharsetLockedPallete = *(RwUInt8**)0xC3EF8C;
-
 void CCustomRoadsignMgr::InjectHooks()
 {
     RH_ScopedClass(CCustomRoadsignMgr);

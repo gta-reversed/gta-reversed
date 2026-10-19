@@ -20,8 +20,8 @@ void CVehicleSaveStructure::Construct(CVehicle* v) {
     m_nAlarmState = v->m_nAlarmState;
     m_nMaxPassengers = v->m_nMaxPassengers;
     m_fSteerAngle = v->m_fSteerAngle;
-    m_fGasPedal = v->m_fGasPedal;
-    m_fBrakePedal = v->m_fBreakPedal;
+    m_fGasPedal = v->m_GasPedal;
+    m_fBrakePedal = v->m_BrakePedal;
     m_nVehicleUpperFlags = v->m_nVehicleUpperFlags;
     m_nVehicleLowerFlags = v->m_nVehicleLowerFlags;
 }
@@ -36,8 +36,8 @@ void CVehicleSaveStructure::Extract(CVehicle* v) {
     v->m_nAlarmState = m_nAlarmState;
     v->m_nMaxPassengers = m_nMaxPassengers;
     v->m_fSteerAngle = m_fSteerAngle;
-    v->m_fGasPedal = m_fGasPedal;
-    v->m_fBreakPedal = m_fBrakePedal;
+    v->m_GasPedal = m_fGasPedal;
+    v->m_BrakePedal = m_fBrakePedal;
     v->m_nVehicleUpperFlags = m_nVehicleUpperFlags;
     v->m_nVehicleLowerFlags = m_nVehicleLowerFlags;
 }

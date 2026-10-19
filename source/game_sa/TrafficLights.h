@@ -17,16 +17,16 @@ enum eTrafficLightsDirection {
 
 class CTrafficLights {
 private:
-    static uint8 (&aTrafficLightColoursR)[3];
-    static uint8 (&aTrafficLightColoursG)[3];
-    static uint8 (&aTrafficLightColoursB)[3];
-    static float& fLightMult;
+    static inline auto& aTrafficLightColoursR = StaticRef<std::array<uint8, 3>>(0x8A6214);
+    static inline auto& aTrafficLightColoursG = StaticRef<std::array<uint8, 3>>(0x8A6218);
+    static inline auto& aTrafficLightColoursB = StaticRef<std::array<uint8, 3>>(0xA9AD94);
+    static inline auto& fLightMult = StaticRef<float>(0x8A621C);
 
-    static CVector& vecTrafficLights5_1;
-    static CVector& vecTrafficLights5_2;
-    static CVector& vecTrafficLights_1;
-    static CVector& vecTrafficLights_2;
-    static uint32& uiPedLightFlags;
+    static inline auto& vecTrafficLights5_1 = StaticRef<CVector>(0xA9ADD4);
+    static inline auto& vecTrafficLights5_2 = StaticRef<CVector>(0xA9ADC8);
+    static inline auto& vecTrafficLights_1 = StaticRef<CVector>(0xA9ADBC);
+    static inline auto& vecTrafficLights_2 = StaticRef<CVector>(0xA9ADB0);
+    static inline auto& uiPedLightFlags = StaticRef<uint32>(0xA9ADE0);
 
 public:
     static void InjectHooks();

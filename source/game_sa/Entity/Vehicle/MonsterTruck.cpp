@@ -2,8 +2,7 @@
 
 #include "MonsterTruck.h"
 
-float& CMonsterTruck::DUMPER_COL_ANGLEMULT = *(float*)0x8D33A8;
-float& fWheelExtensionRate = *(float*)0x8D33AC;
+auto& fWheelExtensionRate = StaticRef<float>(0x8D33AC);
 
 void CMonsterTruck::InjectHooks() {
     RH_ScopedVirtualClass(CMonsterTruck, 0x8717d8, 71);
@@ -11,15 +10,15 @@ void CMonsterTruck::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x6C8D60);
 
-    RH_ScopedInstall(ExtendSuspension, 0x6C7D80, { .reversed = false });
+    RH_ScopedInstall(ExtendSuspension, 0x6C7D80, { .Reversed = false });
 
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6C8AE0);
-    RH_ScopedVMTInstall(ProcessSuspension, 0x6C83A0, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6C8330, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessControl, 0x6C8250, { .reversed = false });
-    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6C7FB0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessSuspension, 0x6C83A0, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6C8330, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessControl, 0x6C8250, { .Reversed = false });
+    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6C7FB0, { .Reversed = false });
     RH_ScopedVMTInstall(PreRender, 0x6C7DE0);
-    RH_ScopedVMTInstall(ResetSuspension, 0x6C7D40, { .reversed = false });
+    RH_ScopedVMTInstall(ResetSuspension, 0x6C7D40, { .Reversed = false });
     RH_ScopedVMTInstall(BurstTyre, 0x6C7D30);
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C7D20);
 }
@@ -34,13 +33,13 @@ CMonsterTruck::CMonsterTruck(int32 modelIndex, eVehicleCreatedBy createdBy) : CA
 
 // 0x6C8AE0
 int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
-    if (m_nStatus != STATUS_SIMPLE) {
+    if (GetStatus() != STATUS_SIMPLE) {
         vehicleFlags.bVehicleColProcessed = true; // OK
     }
 
     const auto tcm = GetColModel();
 
-    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->IsPed()) {
+    if (physicalFlags.bSkipLineCol || physicalFlags.bProcessingShift || entity->GetIsTypePed()) {
         tcm->GetData()->m_nNumLines = 0; // hmm..... (Later reset back to 4)
     }
 
@@ -64,7 +63,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
                 continue;
             }
 
-            if (!(m_bUsesCollision || !numColPts)) { // TODO: Why is this in the loop body?
+            if (!(GetUsesCollision() || !numColPts)) { // TODO: Why is this in the loop body?
                 continue;
             }
 
@@ -83,7 +82,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
                 CEntity::ChangeEntityReference(m_apWheelCollisionEntity[i], entity->AsPhysical());
 
                 m_vWheelCollisionPos[i] = thisWheelColPtNow.m_vecPoint - entity->GetPosition();
-                if (entity->IsVehicle()) {
+                if (entity->GetIsTypeVehicle()) {
                     m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
                 }
                 break;
@@ -102,14 +101,14 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
 
     if (numColPts > 0 || numProcessedLines > 0) {
         AddCollisionRecord(entity);
-        if (!entity->IsBuilding()) {
+        if (!entity->GetIsTypeBuilding()) {
             entity->AsPhysical()->AddCollisionRecord(this);
         }
         if (numColPts > 0) {
-            if (   entity->IsBuilding()
-                || (entity->IsObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
+            if (   entity->GetIsTypeBuilding()
+                || (entity->GetIsTypeObject() && entity->AsPhysical()->physicalFlags.bDisableCollisionForce)
             ) {
-                m_bHasHitWall = true;
+                SetHasHitWall(true);
             }
         }
     }

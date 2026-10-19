@@ -42,13 +42,18 @@ void CWaterLevel::InjectHooks() {
 
     RH_ScopedOverloadedInstall(GetWaterLevel, "", 0x6EB690, bool(*)(float, float, float, float&, uint8, CVector*));
     RH_ScopedGlobalInstall(SetUpWaterFog, 0x6EA9F0);
-    RH_ScopedGlobalInstall(FindNearestWaterAndItsFlow, 0x6E9D70, { .reversed = false });
-    RH_ScopedGlobalInstall(GetWaterLevelNoWaves, 0x6E8580, { .reversed = false });
-    RH_ScopedGlobalInstall(RenderWaterFog, 0x6E7760, { .reversed = false });
+    RH_ScopedGlobalInstall(FindNearestWaterAndItsFlow, 0x6E9D70, { .Reversed = false });
+    RH_ScopedGlobalInstall(GetWaterLevelNoWaves, 0x6E8580, { .Reversed = false });
+    RH_ScopedGlobalInstall(RenderWaterFog, 0x6E7760, { .Reversed = false });
     RH_ScopedGlobalInstall(CalculateWavesOnlyForCoordinate, 0x6E6EF0);
-    RH_ScopedGlobalInstall(RenderWater, 0x6EF650, { .reversed = false });
-    RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0, { .reversed = false });
+    RH_ScopedGlobalInstall(RenderWater, 0x6EF650, { .Reversed = false });
+    RH_ScopedGlobalInstall(AddWaveToResult, 0x6E81E0, { .Reversed = false });
     RH_ScopedGlobalInstall(SetCameraRange, 0x6E9C80);
+    RH_ScopedInstall(RenderHighDetailWaterRectangle, 0x6EB810, { .Reversed = false });
+    RH_ScopedInstall(GetWaterDepth, 0x6EA960, { .Reversed = false });
+    RH_ScopedInstall(CalculateWavesOnlyForCoordinate2, 0x6E7210, { .Reversed = false });
+    RH_ScopedOverloadedInstall(RenderHighDetailWaterTriangle, "", 0x6EDDC0, void(*)(int32, int32, CRenPar, int32, int32, CRenPar, int32, int32, CRenPar), { .Reversed = false });
+    RH_ScopedInstall(FillQuadsAndTrianglesList, 0x6E7B30, { .Reversed = false });
 }
 
 // NOTSA
@@ -108,7 +113,7 @@ bool CWaterLevel::LoadDataFile() {
 
         // Check if we have enough vertices
         if (nvertices < 3) {
-            DEV_LOG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
+            NOTSA_LOG_DEBUG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
             continue;
             //return false; // Just stop here, this parser is way too primitive to be able to recover from errors
         }
@@ -143,7 +148,7 @@ bool CWaterLevel::LoadDataFile() {
         }
         #undef ArgUnpack
     }
-    DEV_LOG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
+    NOTSA_LOG_DEBUG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
     return true;
 }
 
@@ -575,7 +580,7 @@ void CWaterLevel::PreRenderWater() {
 
 // NOTSA: From PreRenderWater()
 void CWaterLevel::UpdateFlow() {
-    if (CTimer::m_FrameCounter % 32 == 29) {
+    if (CTimer::GetFrameCounter() % 32 == 29) {
         CWaterLevel::FindNearestWaterAndItsFlow();
     }
 
@@ -830,7 +835,7 @@ uint32 CWaterLevel::AddWaterLevelVertex(int32 X, int32 Y, CRenPar P) {
     }
 
     // Try finding a vertex with the same coords, and use that
-    for (auto&& [id, vtx] : notsa::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
+    for (auto&& [id, vtx] : rngv::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
         if (vtx.x == X && vtx.y == Y && vtx.rp.z == P.z) {
             return id;
         }
@@ -868,8 +873,8 @@ auto DoVtxSortAndGetRange(SortableVtx (&verts)[N]) {
 
     // Return a range of vertex indices that can be passed to the constructor of `CWaterPolygon`
     return verts | rng::views::transform([](auto& vtx) {
-               return vtx.idx;
-           });
+        return vtx.idx;
+    });
 }
 
 // 0x6E7EF0

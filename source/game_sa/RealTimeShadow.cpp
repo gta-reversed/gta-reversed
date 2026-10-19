@@ -48,6 +48,8 @@ RwTexture* CRealTimeShadow::GetShadowRwTexture() {
 
 // 0x705990
 void CRealTimeShadow::Destroy() {
+    m_camera.Destroy();
+    m_blurCamera.Destroy();
     m_pOwner = nullptr;
     m_nRwObjectType = (uint32)-1;
     if (m_pLight) {
@@ -103,7 +105,7 @@ RwTexture* CRealTimeShadow::Update() {
             &m_baseSphere.m_vecCenter,
             &m_boundingSphere.m_vecCenter,
             1,
-            RwFrameGetMatrix(RpClumpGetFrame(m_pOwner->m_pRwClump))
+            RwFrameGetMatrix(RpClumpGetFrame(m_pOwner->GetRpClump()))
         );
         break;
     }
@@ -115,10 +117,10 @@ RwTexture* CRealTimeShadow::Update() {
     // Render object onto the camera's raster
     switch (m_nRwObjectType) {
     case rpATOMIC:
-        m_camera.Update(m_pOwner->m_pRwAtomic);
+        m_camera.Update(m_pOwner->GetRpAtomic());
         break;
     case rpCLUMP:
-        m_camera.Update(m_pOwner->m_pRwClump);
+        m_camera.Update(m_pOwner->GetRpClump());
         break;
     }
 

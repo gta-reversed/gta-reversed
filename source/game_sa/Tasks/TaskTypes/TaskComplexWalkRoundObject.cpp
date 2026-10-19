@@ -8,6 +8,7 @@ void CTaskComplexWalkRoundObject::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x655020);
+    RH_ScopedInstall(CreateRouteTask, 0x655140, { .Reversed = false });
 }
 
 // 0x655020

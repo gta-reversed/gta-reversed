@@ -11,26 +11,13 @@
 #include "LoadingScreen.h"
 #include "CarFXRenderer.h"
 
-CVehicleModelInfo::CLinkedUpgradeList& CVehicleModelInfo::ms_linkedUpgrades = *(CVehicleModelInfo::CLinkedUpgradeList*)0xB4E6D8;
-RwTexture* &CVehicleModelInfo::ms_pRemapTexture = *(RwTexture**)0xB4E47C;
-RwTexture* &CVehicleModelInfo::ms_pLightsTexture = *(RwTexture**)0xB4E68C;
-RwTexture* &CVehicleModelInfo::ms_pLightsOnTexture = *(RwTexture**)0xB4E690;
-uint8 (&CVehicleModelInfo::ms_currentCol)[NUM_CURRENT_COLORS] = *(uint8(*)[NUM_CURRENT_COLORS])0xB4E3F0;
-CRGBA (&CVehicleModelInfo::ms_vehicleColourTable)[NUM_VEHICLE_COLORS] = *(CRGBA(*)[NUM_VEHICLE_COLORS])0xB4E480;
-int16(&CVehicleModelInfo::ms_numWheelUpgrades)[NUM_WHEELS] = *(int16(*)[NUM_WHEELS])0xB4E470;
-int32 (&CVehicleModelInfo::ms_wheelFrameIDs)[NUM_WHEELS] = *(int32(*)[NUM_WHEELS])0x8A7770;
-int16(&CVehicleModelInfo::ms_upgradeWheels)[NUM_WHEEL_UPGRADES][NUM_WHEELS] = *(int16(*)[NUM_WHEEL_UPGRADES][NUM_WHEELS])0xB4E3F8;
-uint8(&CVehicleModelInfo::ms_lightsOn)[NUM_LIGHTS] = *(uint8(*)[NUM_LIGHTS])0xB4E3E8;
-RwObjectNameIdAssocation* (&CVehicleModelInfo::ms_vehicleDescs)[NUM_VEHICLE_MODEL_DESCS] = *(RwObjectNameIdAssocation*(*)[NUM_VEHICLE_MODEL_DESCS])0x8A7740;
-
-RwTextureCallBackFind & CVehicleModelInfo::SavedTextureFindCallback = *(RwTextureCallBackFind*)0xB4E6A0;
-RwTexDictionary* &vehicleTxd = *(RwTexDictionary**)0xB4E688;
-RwFrame* &carFrame = *(RwFrame**)0xB4E6B8;
-RwSurfaceProperties& gLightSurfProps = *(RwSurfaceProperties*)0x8A645C;
-tRestoreEntry(&gRestoreEntries)[NUM_RESTORE_ENTRIES] = *(tRestoreEntry(*)[NUM_RESTORE_ENTRIES])0xB4DBE8;
-RwTexture*& gpWhiteTexture = *(RwTexture**)0xB4E3EC;
-float& fEnvMapDefaultCoeff = *(float*)0x8A7780;
-float& fRearDoubleWheelOffsetFactor = *(float*)0x8A7784;
+auto& vehicleTxd = StaticRef<RwTexDictionary*>(0xB4E688);
+auto& carFrame = StaticRef<RwFrame*>(0xB4E6B8);
+auto& gLightSurfProps = StaticRef<RwSurfaceProperties>(0x8A645C);
+auto& gRestoreEntries = StaticRef<tRestoreEntry[NUM_RESTORE_ENTRIES]>(0xB4DBE8);
+auto& gpWhiteTexture = StaticRef<RwTexture*>(0xB4E3EC);
+auto& fEnvMapDefaultCoeff = StaticRef<float>(0x8A7780);
+auto& fRearDoubleWheelOffsetFactor = StaticRef<float>(0x8A7784);
 
 void CVehicleModelInfo::InjectHooks()
 {
@@ -123,7 +110,6 @@ void CVehicleModelInfo::InjectHooks()
     RH_ScopedGlobalInstall(GetListOfComponentsNotUsedByRules, 0x4C7E50);
     RH_ScopedGlobalInstall(RemoveWindowAlphaCB, 0x4C83B0);
     RH_ScopedGlobalInstall(GetOkAndDamagedAtomicCB, 0x4C7BD0);
-    RH_ScopedGlobalInstall(atomicDefaultRenderCB, 0x7323C0);
 }
 
 CVehicleModelInfo::CVehicleModelInfo() : CClumpModelInfo()
@@ -132,7 +118,7 @@ CVehicleModelInfo::CVehicleModelInfo() : CClumpModelInfo()
     m_nNumColorVariations = 0;
     m_nFlags = 0;
     m_nAnimBlockIndex = -1;
-    memset(m_anUpgrades, 0xFF, sizeof(m_anUpgrades));
+    std::ranges::fill(m_anUpgrades, -1);
     std::ranges::fill(m_anRemapTxds, -1);
 }
 
@@ -260,20 +246,20 @@ void CVehicleModelInfo::SetAtomicRenderCallbacks()
 {
     switch (m_nVehicleType) {
     case VEHICLE_TYPE_TRAIN:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_Train, nullptr);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_Train, nullptr);
         break;
     case VEHICLE_TYPE_PLANE:
     case VEHICLE_TYPE_FPLANE:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_Plane, nullptr);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_Plane, nullptr);
         break;
     case VEHICLE_TYPE_BOAT:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_Boat, m_pRwClump);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_Boat, GetRpClump());
         break;
     case VEHICLE_TYPE_HELI:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB_RealHeli, m_pRwClump);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB_RealHeli, GetRpClump());
         break;
     default:
-        RpClumpForAllAtomics(m_pRwClump, SetAtomicRendererCB, m_pRwClump);
+        RpClumpForAllAtomics(GetRpClump(), SetAtomicRendererCB, GetRpClump());
         break;
     }
 }
@@ -285,38 +271,38 @@ void CVehicleModelInfo::SetVehicleComponentFlags(RwFrame* component, uint32 flag
 
     auto handling = &gHandlingDataMgr.m_aVehicleHandling[m_nHandlingId];
     if (flagsUnion.bCull)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_CULL);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_FLAT);
 
     if (flagsUnion.bRenderAlways)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_RENDER_ALWAYS);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DONT_CULL);
 
     if (flagsUnion.bDisableReflections)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_DISABLE_REFLECTIONS);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_UNIQUE_MATERIALS);
 
     if (flagsUnion.bIsFront)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_IS_FRONT);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_FRONT);
     else if (flagsUnion.bIsRear && (handling->m_bIsVan || !(flagsUnion.bIsLeft || flagsUnion.bIsRight)))
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_IS_REAR);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_REAR);
     else if (flagsUnion.bIsLeft)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_IS_LEFT);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_LEFT);
     else if (flagsUnion.bIsRight)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_IS_RIGHT);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_RIGHT);
 
     if (flagsUnion.bSwinging && (handling->m_bIsHatchback || flagsUnion.bIsFrontDoor || flagsUnion.bIsRearDoor))
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_VEHCOMP_15);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_TOP);
 
     if (flagsUnion.bIsRearDoor)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_IS_REAR_DOOR);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_REAR_DOOR);
     else if (flagsUnion.bIsFrontDoor)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_IS_FRONT_DOOR);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_FRONT_DOOR);
 
     if (flagsUnion.bHasAlpha)
-        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_HAS_ALPHA);
+        RwFrameForAllObjects(component, SetAtomicFlagCB, (void*)eAtomicComponentFlag::ATOMIC_ALPHA);
 }
 
 void CVehicleModelInfo::GetWheelPosn(int32 wheel, CVector& outVec, bool local) const
 {
-    auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, ms_wheelFrameIDs[wheel]);
+    auto frame = CClumpModelInfo::GetFrameFromId(GetRpClump(), ms_wheelFrameIDs[wheel]);
 
     if (m_nVehicleType != VEHICLE_TYPE_PLANE || local)
         outVec = *RwMatrixGetPos(RwFrameGetMatrix(frame));
@@ -336,7 +322,7 @@ void CVehicleModelInfo::GetWheelPosn(int32 wheel, CVector& outVec, bool local) c
 
 bool CVehicleModelInfo::GetOriginalCompPosition(CVector& outVec, int32 component)
 {
-    auto frame = CClumpModelInfo::GetFrameFromId(m_pRwClump, component);
+    auto frame = CClumpModelInfo::GetFrameFromId(GetRpClump(), component);
     if (!frame)
         return false;
 
@@ -473,7 +459,7 @@ void CVehicleModelInfo::AddRemap(int32 txd)
 
 void CVehicleModelInfo::SetRenderPipelines()
 {
-    CCarFXRenderer::CustomCarPipeClumpSetup(m_pRwClump);
+    CCarFXRenderer::CustomCarPipeClumpSetup(GetRpClump());
     if (carFrame)
         return;
 
@@ -511,7 +497,7 @@ void CVehicleModelInfo::ReduceMaterialsInVehicle()
     matList.materials = new RpMaterial*[matList.space];
 
     // CTimer::GetCurrentTimeInCycles(); // unused code used for performance diagnostics i guess
-    RpClumpForAllAtomics(m_pRwClump, StoreAtomicUsedMaterialsCB, &matList);
+    RpClumpForAllAtomics(GetRpClump(), StoreAtomicUsedMaterialsCB, &matList);
     for (int32 i = 0; i < m_pVehicleStruct->m_nNumExtras; ++i)
         StoreAtomicUsedMaterialsCB(m_pVehicleStruct->m_apExtras[i], &matList);
 
@@ -519,36 +505,38 @@ void CVehicleModelInfo::ReduceMaterialsInVehicle()
     // CTimer::GetCyclesPerMillisecond();
     _rpMaterialListDeinitialize(&matList);
     CMemoryMgr::ReleaseScratchPad();
-    CVisibilityPlugins::ClearClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_DISABLE_REFLECTIONS);
+    CVisibilityPlugins::ClearClumpForAllAtomicsFlag(GetRpClump(), eAtomicComponentFlag::ATOMIC_UNIQUE_MATERIALS);
 }
 
 void CVehicleModelInfo::SetCarCustomPlate()
 {
     m_pPlateMaterial = nullptr;
     SetCustomCarPlateText(nullptr);
+    
+    m_nPlateType = CARPLATE_DEFAULT;
+    char plateBuffer[8 + 1] = "DEFAULT";
 
-    char plateBuffer[8];
-    CCustomCarPlateMgr::GeneratePlateText(plateBuffer, 8);
-    auto material = CCustomCarPlateMgr::SetupClump(m_pRwClump, plateBuffer, m_nPlateType);
-    if (material)
+    CCustomCarPlateMgr::GeneratePlateText(plateBuffer, sizeof(plateBuffer) - 1);
+    if (auto* material = CCustomCarPlateMgr::SetupClump(GetRpClump(), plateBuffer, m_nPlateType)) {
         m_pPlateMaterial = material;
+    }
 }
 
 void CVehicleModelInfo::DisableEnvMap()
 {
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    RpClumpForAllAtomics(m_pRwClump, SetEnvironmentMapAtomicCB, (void*)0xFFFF);
+    RpClumpForAllAtomics(GetRpClump(), SetEnvironmentMapAtomicCB, (void*)0xFFFF);
 }
 
 void CVehicleModelInfo::SetEnvMapCoeff(float coeff)
 {
     auto iUsedCoeff = static_cast<int32>(floor(coeff * 1000.0F));
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    RpClumpForAllAtomics(m_pRwClump, SetEnvMapCoeffAtomicCB, (void*)iUsedCoeff);
+    RpClumpForAllAtomics(GetRpClump(), SetEnvMapCoeffAtomicCB, (void*)iUsedCoeff);
 }
 
 int32 CVehicleModelInfo::GetNumDoors()
@@ -568,7 +556,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
 
         if (flags.bIsDummy || flags.bIsExtra || flags.bIsUpgrade) {
             auto searchStruct = tCompSearchStructByName(nameIdAssoc->m_pName, nullptr);
-            RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromNameWithoutIdCB, &searchStruct);
+            RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), CClumpModelInfo::FindFrameFromNameWithoutIdCB, &searchStruct);
             if (searchStruct.m_pFrame) {
                 if (flags.bIsDummy) {
                     auto& vecDummyPos = GetModelDummyPosition(static_cast<eVehicleDummy>(nameIdAssoc->m_dwHierarchyId));
@@ -592,7 +580,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
                 }
                 else {
                     auto atomic = reinterpret_cast<RpAtomic*>(GetFirstObject(searchStruct.m_pFrame));
-                    RpClumpRemoveAtomic(m_pRwClump, atomic);
+                    RpClumpRemoveAtomic(GetRpClump(), atomic);
                     RwFrameRemoveChild(searchStruct.m_pFrame);
                     SetVehicleComponentFlags(searchStruct.m_pFrame, nameIdAssoc->m_dwFlags);
                     m_pVehicleStruct->m_apExtras[m_pVehicleStruct->m_nNumExtras] = atomic;
@@ -603,7 +591,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
 
         if (flags.bIsMainWheel || flags.bIsTrainFrontBogie) {
             auto searchStruct = tCompSearchStructById(nameIdAssoc->m_dwHierarchyId, nullptr);
-            RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
+            RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
             if (searchStruct.m_pFrame) {
                 auto frame = searchStruct.m_pFrame;
                 auto bNoChild = false;
@@ -637,7 +625,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
         }
 
         auto searchStruct = tCompSearchStructById(nameIdAssoc->m_dwHierarchyId, nullptr);
-        RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
+        RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), CClumpModelInfo::FindFrameFromIdCB, &searchStruct);
         if (!searchStruct.m_pFrame) {
             nameIdAssoc++;
             continue;
@@ -665,12 +653,12 @@ void CVehicleModelInfo::PreprocessHierarchy()
                 if (flags.bIsMainWheel) {
                     RwFrameForAllChildren(frame, CollapseFramesCB, frame);
                     RwFrameUpdateObjects(frame);
-                    CVisibilityPlugins::SetAtomicRenderCallback(mainWheelAtomic, atomicDefaultRenderCB); // in android idb it's CVisibilityPlugins::RenderWheelAtomicCB
+                    CVisibilityPlugins::SetAtomicRenderCallback(mainWheelAtomic, CVisibilityPlugins::RenderWheelAtomicCB);
                 }
                 else {
                     auto pClone = RpAtomicClone(mainWheelAtomic);
                     RpAtomicSetFrame(pClone, frame);
-                    RpClumpAddAtomic(m_pRwClump, pClone);
+                    RpClumpAddAtomic(GetRpClump(), pClone);
                     if (nameIdAssoc->m_dwHierarchyId != CAR_WHEEL_RF
                         && nameIdAssoc->m_dwHierarchyId != CAR_WHEEL_LF
                         && handling.m_bDoubleRwheels) {
@@ -686,8 +674,8 @@ void CVehicleModelInfo::PreprocessHierarchy()
                         *RwMatrixGetAt(matrix)    = { 0.0F, 0.0F, 1.0F };
                         *RwMatrixGetPos(matrix)   = { fOffset, 0.0F, 0.0F };
                         matrix->flags |= (rwMATRIXINTERNALIDENTITY | rwMATRIXTYPEORTHONORMAL);
-                        RpClumpAddAtomic(m_pRwClump, clone2);
-                        CVisibilityPlugins::SetAtomicRenderCallback(clone2, atomicDefaultRenderCB); // in android idb it's CVisibilityPlugins::RenderWheelAtomicCB
+                        RpClumpAddAtomic(GetRpClump(), clone2);
+                        CVisibilityPlugins::SetAtomicRenderCallback(clone2, CVisibilityPlugins::RenderWheelAtomicCB);
                     }
                 }
             }
@@ -695,8 +683,8 @@ void CVehicleModelInfo::PreprocessHierarchy()
         else if (flags.bIsTrainRearBogie && pTrainBogieAtomic) {
             auto pClone = RpAtomicClone(pTrainBogieAtomic);
             RpAtomicSetFrame(pClone, frame);
-            RpClumpAddAtomic(m_pRwClump, pClone);
-            CVisibilityPlugins::SetAtomicRenderCallback(pClone, atomicDefaultRenderCB);
+            RpClumpAddAtomic(GetRpClump(), pClone);
+            CVisibilityPlugins::SetAtomicRenderCallback(pClone, CVisibilityPlugins::RenderWheelAtomicCB);
         }
 
         nameIdAssoc++;
@@ -843,7 +831,7 @@ RpAtomic* CVehicleModelInfo::SetEditableMaterialsCB(RpAtomic* atomic, void* data
     if (rwObjectTestFlags(atomic, RpAtomicFlag::rpATOMICRENDER) == 0)
         return atomic;
 
-    if (CVisibilityPlugins::GetAtomicId(atomic) & eAtomicComponentFlag::ATOMIC_IS_DOOR_WINDOW_OPENED)
+    if (CVisibilityPlugins::GetAtomicId(atomic) & eAtomicComponentFlag::ATOMIC_DONT_RENDER_ALPHA)
         RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), RemoveWindowAlphaCB, data);
 
     RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), SetEditableMaterialsCB, data);
@@ -920,12 +908,12 @@ RpAtomic* CVehicleModelInfo::HideDamagedAtomicCB(RpAtomic* atomic, void* data)
     auto nodeName = GetFrameNodeName(frame);
     if (strstr(nodeName, "_dam")) {
         RpAtomicSetFlags(atomic, 0);
-        CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_IS_DAM_STATE);
+        CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_DAMAGED);
         return atomic;
     }
 
     if (strstr(nodeName, "_ok"))
-        CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_IS_OK_STATE);
+        CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_OK);
 
     return atomic;
 }
@@ -1073,13 +1061,13 @@ RpAtomic* CVehicleModelInfo::SetAtomicRendererCB_Train(RpAtomic* atomic, void* d
 
 RwObject* CVehicleModelInfo::SetAtomicFlagCB(RwObject* object, void* data)
 {
-    CVisibilityPlugins::SetAtomicFlag(reinterpret_cast<RpAtomic*>(object), (uint16)(std::bit_cast<uintptr_t>(data)));
+    CVisibilityPlugins::SetAtomicFlag((RpAtomic*)object, (uint16)(uintptr)data);
     return object;
 }
 
 RwObject* CVehicleModelInfo::ClearAtomicFlagCB(RwObject* object, void* data)
 {
-    CVisibilityPlugins::ClearAtomicFlag(reinterpret_cast<RpAtomic*>(object), (uint16)(std::bit_cast<uintptr_t>(data)));
+    CVisibilityPlugins::ClearAtomicFlag((RpAtomic*)object, (uint16)(uintptr)data);
     return object;
 }
 
@@ -1211,7 +1199,7 @@ RpAtomic* CVehicleModelInfo::StoreAtomicUsedMaterialsCB(RpAtomic* atomic, void* 
     auto matList = reinterpret_cast<RpMaterialList*>(data);
     auto geometry = RpAtomicGetGeometry(atomic);
     auto pMeshHeader = geometry->mesh;
-    if (CVisibilityPlugins::GetAtomicId(atomic) & eAtomicComponentFlag::ATOMIC_DISABLE_REFLECTIONS)
+    if (CVisibilityPlugins::GetAtomicId(atomic) & eAtomicComponentFlag::ATOMIC_UNIQUE_MATERIALS)
         return atomic;
 
     for (int32 i = 0; i < pMeshHeader->numMeshes; ++i) {
@@ -1468,23 +1456,21 @@ void CVehicleModelInfo::LoadVehicleUpgrades()
             int32 iModelId = -1;
             auto mi = CModelInfo::GetModelInfo(pToken, &iModelId)->AsVehicleModelInfoPtr();
             auto nextToken = strtok_s(nullptr, " \t,", &pLastToken);
-            auto upgrade = mi->m_anUpgrades;
+            size_t upgradeIdx = 0;
             while (nextToken) {
                 auto ami = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo(nextToken, &iModelId));
                 ami->SetupVehicleUpgradeFlags(nextToken);
-                *upgrade = iModelId;
-                ++upgrade;
+                mi->m_anUpgrades[upgradeIdx++] = iModelId;
                 nextToken = strtok_s(nullptr, " \t,", &pLastToken);
             }
 
             auto hydraulicsAMI = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo("hydralics", &iModelId));
             hydraulicsAMI->SetupVehicleUpgradeFlags("hydralics");
-            *upgrade = iModelId;
-            upgrade++;
+            mi->m_anUpgrades[upgradeIdx++] = iModelId;
 
             auto stereoAMI = static_cast<CAtomicModelInfo*>(CModelInfo::GetModelInfo("stereo", &iModelId));
             stereoAMI->SetupVehicleUpgradeFlags("stereo");
-            *upgrade = iModelId;
+            mi->m_anUpgrades[upgradeIdx] = iModelId;
             break;
         }
 
@@ -1563,7 +1549,7 @@ CVehicleModelInfo::CVehicleStructure::CVehicleStructure() : m_aUpgrades()
     for (auto& upgrade : m_aUpgrades)
         upgrade.m_nParentComponentId = -1;
 
-    memset(m_apExtras, 0, sizeof(m_apExtras));
+    m_apExtras.fill(nullptr);
     m_nNumExtras = 0;
     m_nMaskComponentsDamagable = 0;
 }
@@ -1653,17 +1639,14 @@ int32 GetListOfComponentsNotUsedByRules(uint32 compRules, int32 numExtras, int32
     }
 
     if (comps.nExtraBRule && IsValidCompRule(comps.nExtraBRule)) {
-        if (comps.nExtraBRule == eComponentsRules::FULL_RANDOM)
-            return 0;
-
         if (comps.nExtraB_comp1 != 0xF)
-            iCompsList[comps.nExtraA_comp1] = 0xF;
+            iCompsList[comps.nExtraB_comp1] = 0xF;
 
         if (comps.nExtraB_comp2 != 0xF)
-            iCompsList[comps.nExtraA_comp2] = 0xF;
+            iCompsList[comps.nExtraB_comp2] = 0xF;
 
         if (comps.nExtraB_comp3 != 0xF)
-            iCompsList[comps.nExtraA_comp3] = 0xF;
+            iCompsList[comps.nExtraB_comp3] = 0xF;
     }
 
     auto iNumComps = 0;
@@ -1702,19 +1685,12 @@ RpMaterial* RemoveWindowAlphaCB(RpMaterial* material, void* data)
 RwObject* GetOkAndDamagedAtomicCB(RwObject* object, void* data)
 {
     auto out = reinterpret_cast<RwObject**>(data);
-    if ((CVisibilityPlugins::GetAtomicId(reinterpret_cast<RpAtomic*>(object)) & ATOMIC_IS_OK_STATE) != 0) {
+    if ((CVisibilityPlugins::GetAtomicId(reinterpret_cast<RpAtomic*>(object)) & ATOMIC_OK) != 0) {
         out[0] = object;
     }
-    else if ((CVisibilityPlugins::GetAtomicId(reinterpret_cast<RpAtomic*>(object)) & ATOMIC_IS_DAM_STATE) != 0) {
+    else if ((CVisibilityPlugins::GetAtomicId(reinterpret_cast<RpAtomic*>(object)) & ATOMIC_DAMAGED) != 0) {
         out[1] = object;
     }
 
     return object;
-}
-
-// 0x7323C0
-RpAtomic* atomicDefaultRenderCB(RpAtomic* atomic)
-{
-    AtomicDefaultRenderCallBack(atomic);
-    return atomic;
 }

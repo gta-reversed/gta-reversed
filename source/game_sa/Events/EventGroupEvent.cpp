@@ -15,11 +15,6 @@ CEventGroupEvent::~CEventGroupEvent() {
     delete m_event;
 }
 
-// 0x4B6EE0
-CEvent* CEventGroupEvent::Clone() {
-    return new CEventGroupEvent(m_ped, m_event->Clone());
-}
-
 // NOTSA, inlined
 bool CEventGroupEvent::IsPriorityEvent() const {
     switch (m_event->GetEventType()) {
@@ -37,9 +32,6 @@ bool CEventGroupEvent::IsPriorityEvent() const {
 
 // 0x4AE100
 bool CEventGroupEvent::BaseEventTakesPriorityOverBaseEvent(const CEventGroupEvent& other) {
-    if (IsPriorityEvent())
-        return true;
-    if (other.IsPriorityEvent())
-        return false;
-    return m_event->TakesPriorityOver(*other.m_event);
+    return IsPriorityEvent()
+        || !other.IsPriorityEvent() && GetEvent().TakesPriorityOver(other.GetEvent());
 }

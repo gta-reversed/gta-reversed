@@ -1,10 +1,10 @@
 #include "StdInc.h"
 #include "TaskComplexKillPedOnFootStealth.h"
-#include "./TaskComplexInvestigateDisturbance.h"
-#include "./TaskComplexSequence.h"
-#include "./TaskSimpleStandStill.h"
-#include "./TaskSimpleRunAnim.h"
-#include "./TaskSimpleScratchHead.h"
+#include "TaskComplexInvestigateDisturbance.h"
+#include "TaskComplexSequence.h"
+#include "TaskSimpleStandStill.h"
+#include "TaskSimpleRunAnim.h"
+#include "TaskSimpleScratchHead.h"
 
 void CTaskComplexKillPedOnFootStealth::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexKillPedOnFootStealth, 0x86d8c0, 11);

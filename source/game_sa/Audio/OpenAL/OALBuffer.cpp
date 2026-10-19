@@ -1,7 +1,6 @@
 #include "StdInc.h"
 #include "OALBuffer.h"
 
-#ifdef USE_OPENAL
 OALBuffer::OALBuffer(void* data, uint32 size, uint32 frequency, uint32 channels)
     : OALBase()
 {
@@ -43,4 +42,3 @@ OALBuffer::~OALBuffer() {
         alDeleteBuffers(1, &m_preloopBufferId);
     }
 }
-#endif

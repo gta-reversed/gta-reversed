@@ -5,6 +5,8 @@
 
 #include "TristateCheckbox.h"
 
+struct ImGuiTextFilter;
+
 // Always returns `true` if either strings are empty (This matches the behaviour of `haystack.find(needle) != npos`)
 static bool StringContainsString(std::string_view haystack, std::string_view needle, bool caseSensitive = true) {
     if (caseSensitive) {
@@ -32,8 +34,6 @@ static auto SplitStringView(std::string_view str, std::string_view delim) {
 #endif
         });
 }
-
-
 
 namespace notsa {
 namespace ui {
@@ -72,6 +72,17 @@ struct ScopedID {
     ~ScopedID() { ImGui::PopID(); }
 };
 
+template<typename T>
+    requires std::convertible_to<T, std::string_view>
+struct ScopedID<T> {
+    ScopedID(const std::string_view& id) : InitialStackSz{ GetStackSize() } { ImGui::PushID(id.data(), id.data() + id.size()); }
+    ~ScopedID() { ImGui::PopID(); IM_ASSERT(InitialStackSz == GetStackSize()); }
+
+private:
+    auto GetStackSize() const { return ImGui::GetCurrentContext()->CurrentWindow->IDStack.size(); }
+    int32 InitialStackSz{};
+};
+
 struct ScopedDisable {
     ScopedDisable(bool disable) { ImGui::BeginDisabled(disable); }
     ~ScopedDisable()            { ImGui::EndDisabled(); }
@@ -103,6 +114,18 @@ inline void DoNestedMenuIL(std::initializer_list<const char*> menuPath, T OnAllV
     DoNestedMenu(menuPath, OnAllVisibleFn);
 }
 
+inline void WindowCenteredTextUnformatted(const char* text) {
+    ImVec2 textSize  = ImGui::CalcTextSize(text);
+    ImVec2 availSize = ImGui::GetContentRegionAvail();
+
+    // Calculate centering offsets
+    float posX = std::max(0.f, (availSize.x - textSize.x) * 0.5f);
+    float posY = std::max(0.f, (availSize.y - textSize.y) * 0.5f);
+
+    ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + posX, ImGui::GetCursorPosY() + posY));
+    ImGui::TextUnformatted(text);
+}
+
 /*!
 * A tree-node with a tri-state checkbox on the left.
 * Make sure to always call `TreePop();` after it!
@@ -113,7 +136,7 @@ inline void DoNestedMenuIL(std::initializer_list<const char*> menuPath, T OnAllV
 */
 inline auto TreeNodeWithTriStateCheckBox(const char* label, ImGui::ImTristate cbTriState, bool cbDisabled, ImGuiTreeNodeFlags treeNodeFlags = 0) {
     // TODO/NOTE: The Tree's label is a workaround for when the label is shorter than the visual checkbox (otherwise the checkbox can't be clic
-    const auto open = ImGui::TreeNodeEx("##         ", treeNodeFlags | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_SpanFullWidth);
+    const auto open = ImGui::TreeNodeEx("##         ", treeNodeFlags | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_SpanFullWidth);
         
     ImGui::SameLine();
 
@@ -128,4 +151,18 @@ inline auto TreeNodeWithTriStateCheckBox(const char* label, ImGui::ImTristate cb
 };
 }; // namespace ui
 }; // namespace notsa
+
+/*!
+* @brief ImGuiTextFilter serialization
+*/
+inline void to_json(json& j, const ImGuiTextFilter& filter) {
+    j = json{
+        { "InputBuf", filter.InputBuf }
+    };
+}
+inline void from_json(const json& j, ImGuiTextFilter& filter) {
+    const auto buf = j.at("InputBuf").get<std::string_view>();
+    strncpy(filter.InputBuf, buf.data(), std::min(sizeof(filter.InputBuf) - 1, buf.size()));
+    filter.Build();
+}
 

@@ -12,7 +12,7 @@ public:
     eEventType GetEventType() const override { return EVENT_ON_FIRE; }
     int32 GetEventPriority() const override { return 66; }
     int32 GetLifeTime() override { return 0; }
-    CEventOnFire* Clone() override { return new CEventOnFire(); }
+    CEventOnFire* Clone() const noexcept override { return new CEventOnFire(); }
     bool AffectsPed(CPed* ped) override;
     float GetLocalSoundLevel() override { return 60.0f; }
 

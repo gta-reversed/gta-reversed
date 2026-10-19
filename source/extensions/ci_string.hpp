@@ -25,7 +25,7 @@ struct ci_char_traits : public std::char_traits<char> {
 #ifdef WIN32
         return _strnicmp(s1, s2, n);
 #else /* *nix */
-        return strncasecmp(s1, s2, n)
+        return strncasecmp(s1, s2, n);
 #endif
     }
 }; 

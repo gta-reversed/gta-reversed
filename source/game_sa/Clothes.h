@@ -15,9 +15,9 @@ class CPlayerPed;
 
 class CClothes {
 public:
-    static int32& ms_clothesImageId;
-    static uint32& ms_numRuleTags;
-    static uint32 (&ms_clothesRules)[600];
+    static inline auto& ms_clothesImageId = StaticRef<int32>(0xBC12F8);
+    static inline auto& ms_numRuleTags = StaticRef<uint32>(0xBC12FC);
+    static inline auto& ms_clothesRules = StaticRef<std::array<uint32, 600>>(0xBC1300);
 
 public:
     static void InjectHooks();

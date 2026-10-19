@@ -1,10 +1,10 @@
 #include "StdInc.h"
 
 #include "TaskComplexKillPedOnFootArmed.h"
-#include "./TaskSimpleGoToPoint.h"
-#include "./TaskSimpleDuck.h"
-#include "./TaskSimpleGunControl.h"
-#include "./TaskSimpleUseGun.h"
+#include "TaskSimpleGoToPoint.h"
+#include "TaskSimpleDuck.h"
+#include "TaskSimpleGunControl.h"
+#include "TaskSimpleUseGun.h"
 #include <extensions/utility.hpp>
 
 void CTaskComplexKillPedOnFootArmed::InjectHooks() {
@@ -16,12 +16,12 @@ void CTaskComplexKillPedOnFootArmed::InjectHooks() {
 
     RH_ScopedInstall(LineOfSightClearForAttack, 0x621500);
     RH_ScopedInstall(IsPedInLeaderFiringLine, 0x621300);
-    RH_ScopedInstall(CreateSubTask, 0x626FC0, {.reversed = false});
+    RH_ScopedInstall(CreateSubTask, 0x626FC0, {.Reversed = false});
 
     RH_ScopedVMTInstall(Clone, 0x6234C0);
     RH_ScopedVMTInstall(GetTaskType, 0x621240);
     RH_ScopedVMTInstall(MakeAbortable, 0x6212B0);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x62C190, {.reversed = false});
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x62C190, {.Reversed = false});
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x62BF00);
     RH_ScopedVMTInstall(ControlSubTask, 0x62CCE0);
 }
@@ -89,14 +89,14 @@ bool CTaskComplexKillPedOnFootArmed::LineOfSightClearForAttack(CPed* ped) { // p
     // Temporarily disable the target ped vehicle's collision (To ignore it)
     // Perhaps, `CWorld::pIgnoreEntity` could be used?
     const auto targetVeh = m_target->GetVehicleIfInOne();
-    const notsa::ScopeGuard restore{[targetVeh, had = targetVeh && targetVeh->m_bUsesCollision] {
+    const notsa::ScopeGuard restore{[targetVeh, had = targetVeh && targetVeh->GetUsesCollision()] {
         if (targetVeh) {
-            targetVeh->m_bUsesCollision = had;
+            targetVeh->SetUsesCollision(had);
         }
     }};
 
     if (targetVeh) {
-        targetVeh->m_bUsesCollision = false;
+        targetVeh->SetUsesCollision(false);
     }
 
     const auto GetPedHeadPos = [](CPed* headOf) {

@@ -25,7 +25,7 @@ CEventVehicleDamageCollision* CEventVehicleDamageCollision::Constructor(CVehicle
 }
 
 // 0x6A0670
-CEventEditableResponse* CEventVehicleDamageCollision::CloneEditable()
+CEventEditableResponse* CEventVehicleDamageCollision::CloneEditable() const noexcept
 {
     return new CEventVehicleDamageCollision(m_vehicle, m_attacker, m_weaponType);
 }

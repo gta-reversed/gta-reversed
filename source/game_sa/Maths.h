@@ -7,6 +7,7 @@ public:
     static void InitMathsTables();
 
     // Originally named `SinTabel` with argument named `Arg` which sucks, so replaced with custom name.
+    // NOTE: For SinTable[x + 64] use GetCosFast
     static float GetSinFast(float rad);
 
     // Originally named `CosTabel` with argument named `Arg`, same story as above

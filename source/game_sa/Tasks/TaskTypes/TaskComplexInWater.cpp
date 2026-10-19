@@ -59,7 +59,7 @@ CTask* CTaskComplexInWater::CreateFirstSubTask(CPed* ped) {
 
     if (const auto pedsGrp = ped->GetGroup()) {
         if (const auto leader = pedsGrp->GetMembership().GetLeader()) {
-            assert(!!leader->m_pPlayerData == leader->IsPlayer()); // Make sure this way is the same as the old
+            assert(!!leader->GetPlayerData() == leader->IsPlayer()); // Make sure this way is the same as the old
             if (leader->IsPlayer()) {
                 return new CTaskSimpleSwim{ nullptr, leader };
             }

@@ -3,15 +3,13 @@
 #include "CarFXRenderer.h"
 #include "CustomCarEnvMapPipeline.h"
 
-RwTexture* (&CCarFXRenderer::ms_aDirtTextures)[NUM_DIRT_TEXTURES] = *(RwTexture * (*)[NUM_DIRT_TEXTURES])0xC02BD0;
-
 void CCarFXRenderer::InjectHooks() {
     RH_ScopedClass(CCarFXRenderer);
     RH_ScopedCategory("Fx");
 
     RH_ScopedInstall(RegisterPlugins, 0x5D5B00);
     RH_ScopedInstall(Initialise, 0x5D5AC0);
-    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .reversed = false });
+    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .Reversed = false });
     RH_ScopedInstall(Shutdown, 0x5D5AD0);
     RH_ScopedInstall(PreRenderUpdate, 0x5D5B10);
     RH_ScopedInstall(IsCCPCPipelineAttached, 0x5D5B80);

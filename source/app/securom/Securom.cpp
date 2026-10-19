@@ -3,8 +3,8 @@
 #include "Securom.h"
 #include "GxtChar.h"
 
-static int32 (&trapDisplay)[32]    = *(int32(*)[32])0xC8CDE8;
-static int32 (&triggerDisplay)[32] = *(int32(*)[32])0xC8CE68;
+static auto& trapDisplay = StaticRef<std::array<int32, 32>>(0xC8CDE8);
+static auto& triggerDisplay = StaticRef<std::array<int32, 32>>(0xC8CE68);
 
 namespace Securom {
     void InjectHooks() {

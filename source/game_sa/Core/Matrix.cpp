@@ -11,8 +11,8 @@
 
 uint8* CMatrix::EulerIndices1 = (uint8*)0x866D9C;
 uint8* CMatrix::EulerIndices2 = (uint8*)0x866D94;
-int32& numMatrices = *(int32*)0xB74238;
-CMatrix& gDummyMatrix = *(CMatrix*)0xB74240;
+auto& numMatrices = StaticRef<int32>(0xB74238);
+auto& gDummyMatrix = StaticRef<CMatrix>(0xB74240);
 
 
 void CMatrix::InjectHooks()
@@ -347,6 +347,8 @@ void CMatrix::ForceUpVector(CVector vecUp) {
 
 void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFlags)
 {
+    const auto EPSILON = std::scalbn(1.0f, -19);
+    
     float fArr[3][3];
 
     fArr[0][0] = m_right.x;
@@ -391,10 +393,10 @@ void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFla
         auto r13 = fArr[iInd1][iInd3];
         auto r12 = fArr[iInd1][iInd2];
         auto cy = sqrt(r12 * r12 + r13 * r13);
-        if (cy > 0.0000019073486) { // Some epsilon?
+        if (cy > EPSILON) {
             *pX = atan2(r12, r13);
             *pY = atan2(cy, fArr[iInd1][iInd1]);
-            *pZ = atan2(fArr[iInd2][iInd3], -fArr[iInd3][iInd1]);
+            *pZ = atan2(fArr[iInd2][iInd1], -fArr[iInd3][iInd1]);
         }
         else {
             *pX = atan2(-fArr[iInd2][iInd3], fArr[iInd2][iInd2]);
@@ -406,7 +408,7 @@ void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFla
         auto r21 = fArr[iInd2][iInd1];
         auto r11 = fArr[iInd1][iInd1];
         auto cy = sqrt(r11 * r11 + r21 * r21);
-        if (cy > 0.0000019073486) { // Some epsilon?
+        if (cy > EPSILON) {
             *pX = atan2(fArr[iInd3][iInd2], fArr[iInd3][iInd3]);
             *pY = atan2(-fArr[iInd3][iInd1], cy);
             *pZ = atan2(r21, r11);
@@ -506,7 +508,6 @@ void CMatrix::ConvertFromEulerAngles(float x, float y, float z, uint32 uiFlags)
 }
 
 void CMatrix::operator=(const CMatrix& other) {
-    m_pAttachMatrix = other.m_pAttachMatrix;
     CopyOnlyMatrix(other);
     UpdateRW();
 }
@@ -522,6 +523,15 @@ void CMatrix::operator+=(const CMatrix& rvalue)
 void CMatrix::operator*=(const CMatrix& rvalue)
 {
     *this = (*this * rvalue);
+}
+
+CMatrix CMatrix::GetIdentity() {
+    CMatrix m;
+    m.m_right   = CVector{ 1.f, 0.f, 0.f };
+    m.m_forward = CVector{ 0.f, 1.f, 0.f };
+    m.m_up      = CVector{ 0.f, 0.f, 1.f };
+    m.m_pos     = CVector{ 0.f, 0.f, 0.f };
+    return m;
 }
 
 CMatrix operator*(const CMatrix& a, const CMatrix& b)

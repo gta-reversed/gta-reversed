@@ -9,7 +9,7 @@ void CTaskComplexSequence::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x632BD0);
 
     RH_ScopedVMTInstall(Clone, 0x5F6710);
-    RH_ScopedVMTInstall(MakeAbortable, 0x632C00);
+    RH_ScopedVMTInstall(MakeAbortable, 0x632C00, { .Overrides = false });
     RH_ScopedVMTOverloadedInstall(CreateNextSubTask, "V", 0x638A40, CTask*(CTaskComplexSequence::*)(CPed*));
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x638A60);
     RH_ScopedVMTInstall(ControlSubTask, 0x632D00);
@@ -29,7 +29,7 @@ CTaskComplexSequence::CTaskComplexSequence(const CTaskComplexSequence& o) :
     m_RepeatMode{o.m_RepeatMode},
     m_CurrTaskIdx{o.m_CurrTaskIdx}
 {
-    rng::transform(o.m_Tasks, m_Tasks, [](CTask* t){
+    rng::transform(o.m_Tasks, m_Tasks.begin(), [] (CTask* t) {
         return t ? t->Clone() : nullptr;
     });
 }
@@ -84,7 +84,7 @@ void CTaskComplexSequence::AddTask(CTask* task) {
     }
 
     delete task;
-    DEV_LOG("Failed to add task to sequence");
+    NOTSA_LOG_DEBUG("Failed to add task to sequence");
 }
 
 // 0x632D50
@@ -92,7 +92,7 @@ void CTaskComplexSequence::AddTask(int32 sequenceIdx, CTask* task) {
     assert(task);
     if (sequenceIdx >= (int32)std::size(m_Tasks)) {
         delete task;
-        DEV_LOG("Failed to add task to sequence");
+        NOTSA_LOG_DEBUG("Failed to add task to sequence");
     } else {
         delete m_Tasks[sequenceIdx];
         m_Tasks[sequenceIdx] = task;

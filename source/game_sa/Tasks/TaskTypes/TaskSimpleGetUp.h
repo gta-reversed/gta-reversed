@@ -29,7 +29,7 @@ private:
 
     static void FinishGetUpAnimCB(CAnimBlendAssociation* blendAssoc, void* data); //data is CTaskSimpleGetUp
 
-    static inline auto& m_aColPoints = *(std::array<CColPoint, 32>*)0xC18F98;
+    static inline auto& m_aColPoints = StaticRef<std::array<CColPoint, 32>>(0xC18F98);
 };
 
 VALIDATE_SIZE(CTaskSimpleGetUp, 0x10);

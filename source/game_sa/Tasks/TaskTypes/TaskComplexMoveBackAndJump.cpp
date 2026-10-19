@@ -23,7 +23,7 @@ void CTaskComplexMoveBackAndJump::InjectHooks() {
 CTask* CTaskComplexMoveBackAndJump::CreateSubTask(eTaskType taskType) {
     switch (taskType) {
     case TASK_COMPLEX_JUMP:
-        return new CTaskComplexJump{ COMPLEX_JUMP_TYPE_JUMP };
+        return new CTaskComplexJump{};
     case TASK_SIMPLE_HIT_WALL:
         return new CTaskSimpleHitWall{};
     case TASK_FINISHED:

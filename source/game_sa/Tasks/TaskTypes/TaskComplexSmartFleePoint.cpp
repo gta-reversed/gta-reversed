@@ -8,17 +8,17 @@ void CTaskComplexSmartFleePoint::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x65BD20);
     RH_ScopedInstall(Destructor, 0x65BDB0);
 
-    RH_ScopedInstall(SetDefaultTaskWanderDir, 0x65BE00, {.reversed = false});
-    RH_ScopedInstall(ComputeFleeDir, 0x65BE40, {.reversed = false});
-    RH_ScopedInstall(CreateSubTask, 0x65BE80, {.reversed = false});
-    RH_ScopedInstall(SetFleePosition, 0x65C3C0, {.reversed = false});
+    RH_ScopedInstall(SetDefaultTaskWanderDir, 0x65BE00, {.Reversed = false});
+    RH_ScopedInstall(ComputeFleeDir, 0x65BE40, {.Reversed = false});
+    RH_ScopedInstall(CreateSubTask, 0x65BE80, {.Reversed = false});
+    RH_ScopedInstall(SetFleePosition, 0x65C3C0, {.Reversed = false});
 
-    RH_ScopedVMTInstall(Clone, 0x65CED0, {.reversed = false});
-    RH_ScopedVMTInstall(GetTaskType, 0x65BDA0, {.reversed = false});
-    RH_ScopedVMTInstall(MakeAbortable, 0x65BDC0, {.reversed = false});
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x65C0C0, {.reversed = false});
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65C140, {.reversed = false});
-    RH_ScopedVMTInstall(ControlSubTask, 0x65C1E0, {.reversed = false});
+    RH_ScopedVMTInstall(Clone, 0x65CED0, {.Reversed = false});
+    RH_ScopedVMTInstall(GetTaskType, 0x65BDA0, {.Reversed = false});
+    RH_ScopedVMTInstall(MakeAbortable, 0x65BDC0, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65C0C0, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65C140, {.Reversed = false});
+    RH_ScopedVMTInstall(ControlSubTask, 0x65C1E0, {.Reversed = false});
 }
 
 // 0x65BD20

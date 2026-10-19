@@ -3,8 +3,10 @@
 #include <charconv>
 #include <initializer_list>
 #include <Vector.h>
+#include <optional>
 #include <unordered_map>
 #include "Base.h"
+#include <game_sa/Timer.h>
 
 namespace notsa {
 //template<typename TChar, size_t N>
@@ -17,6 +19,7 @@ namespace notsa {
 //private:
 //    TChar m_chars[N]{};
 //};
+
 namespace rng = std::ranges;
 
 namespace detail {
@@ -84,12 +87,25 @@ constexpr inline auto find_value(auto&& mapping, auto&& needle) {
     NOTSA_UNREACHABLE("Needle not in the mapping!");
 }
 
+/*!
+* @brief Find the index of the first occurrence of a value in a range, returning a default index if not found.
+*/
 template<rng::input_range R>
 ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = -1) {
     const auto it = rng::find(r, v);
     return it != rng::end(r)
         ? rng::distance(rng::begin(r), it)
         : defaultIdx;
+}
+
+/*!
+* @brief Get index of item by iterator
+*/
+template<typename T, size_t N>
+size_t array_indexof(const std::array<T, N>& array, const T* item) {
+    const auto idx = rng::distance(array.data(), item);
+    assert(idx >= 0 && static_cast<size_t>(idx) < array.size());
+    return static_cast<size_t>(idx);
 }
 
 //! [mostly] Works like C#'s `??` (null coalescing operator) or GCC's `?:`
@@ -105,10 +121,12 @@ T coalesce(T a, T b) {
 * @param end   The end of the the number in the string (points to inside `sv`)
 */
 template<std::integral T>
-T ston(std::string_view str, int radix = 10, const char** end = nullptr) {
+std::optional<T> try_ston(std::string_view str, int radix = 10, const char** end = nullptr) {
     T out;
     const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), out, radix);
-    assert(ec == std::errc{});
+    if (ec != std::errc{}) {
+        return std::nullopt;
+    }
     if (end) {
         *end = ptr;
     }
@@ -123,30 +141,16 @@ T ston(std::string_view str, int radix = 10, const char** end = nullptr) {
 */
 template<typename T>
     requires std::is_floating_point_v<T>
-T ston(std::string_view str, std::chars_format fmt = std::chars_format::general, const char** end = nullptr) {
+std::optional<T> try_ston(std::string_view str, std::chars_format fmt = std::chars_format::general, const char** end = nullptr) {
     T out;
     const auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), out, fmt);
-    assert(ec != std::errc{});
+    if (ec != std::errc{}) {
+        return std::nullopt;
+    }
     if (end) {
         *end = ptr;
     }
     return out;
-}
-
-/*
-* Parse a string into a 3D vector. The format is `X Y Z` (There might be multiple spaces, they're ignored)
-* [On failure asserts in debug]
-*/
-CVector stov3d(std::string_view str, std::chars_format fmt = std::chars_format::general) {
-    CVector v3d;
-    for (auto i = 0; i < 3; i++) {
-        const char* end;
-        v3d[i] = ston<float>(str, fmt, &end);
-        if (i < 2) {
-            str = str.substr(end - str.data() + 1);
-        }
-    }
-    return v3d;
 }
 
 /*
@@ -181,6 +185,31 @@ constexpr auto IsFixBugs() {
 #else
     return false;
 #endif
+}
+
+template<rng::input_range R, typename T_Ptr = rng::range_value_t<R>>
+    requires std::is_pointer_v<T_Ptr> 
+auto SpatialQuery(R&& r, CVector distToPos, T_Ptr ignored, T_Ptr closest = nullptr) {
+    const auto GetDistSq = [distToPos](T_Ptr e) {
+        return (e->GetPosition() - distToPos).SquaredMagnitude();
+    };
+
+    float closestDistSq = closest
+        ? GetDistSq(closest)
+        : std::numeric_limits<float>::max();
+    for (T_Ptr e : r) {
+        if (ignored && e == ignored) {
+            continue;
+        }
+        const auto distSq = GetDistSq(e);
+        if (closestDistSq > distSq) {
+            closestDistSq = distSq;
+            closest       = e;
+        }
+    }
+
+    struct Ret{ T_Ptr entity; float distSq; };
+    return Ret{ closest, closestDistSq };
 }
 
 /// Predicate to check if `value` is null
@@ -360,11 +389,13 @@ template<typename T>
 inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_type_v<T, bool, char, wchar_t, char8_t, char16_t, char32_t>;
 
 //! Null terminated `std::format_to`. Use inplace of sprintf.
-//! NOTE: Not a complete replacement for std::format_to,
-//! e.g. it doesn't use output iterators. i don't care.
+//! Returns end of formatted string
+//! Truncates string to at most N - 1 characters
 template<size_t N, class... Args>
-void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
-    *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
+char* format_to_sz(char(&buf)[N], std::format_string<Args...> fmt, Args&&... args) {
+    const auto [out, n] = std::format_to_n(buf, N - 1, fmt, std::forward<Args>(args)...);
+    *out = 0;
+    return out;
 }
 
 //! Reads a pointer as specified type.
@@ -391,4 +422,75 @@ F wrap(F x, F min, F max) {
     }
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
+
+template<std::floating_point F>
+F step_up_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::min<F>(to, x + (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+template<std::floating_point F>
+F step_down_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::max<F>(to, x - (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+/*!
+* @brief Step `x` towards `to` in steps
+* @brief This function is useful for interpolating changing values
+* @arg stepUp The step size when `x` is less than `to`
+* @arg stepDown The step size when `x` is greater than `to`
+* @arg useTimeStep Whether to use timestep for calculating the correct step size (Avoids FPS related issues somewhat)
+*********/
+template<std::floating_point F>
+F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
+    assert(stepDown > 0.f);
+    assert(stepUp > 0.f);
+
+    if (x == to) {
+        return to;
+    }
+    return x < to
+        ? step_up_to<F>(x, to, stepUp, useTimeStep)
+        : step_down_to<F>(x, to, stepUp, useTimeStep);
+}
+
+// Step `x` towards `to` in steps
+template<std::floating_point F>
+F step_to(F x, F to, F step, bool useTimeStep = false) {
+    return step_to<F>(x, to, step, step, useTimeStep);
+}
+
+//! Range of a specific type
+//! See: https://stackoverflow.com/a/64228354/15363969
+template <typename R, typename T>
+concept range_of = rng::range<R> && std::same_as<rng::range_value_t<R>, T>;
+
+// https://www.reddit.com/r/cpp/comments/1hw6a29/comment/m61d6wv
+template <class T, template <typename...> class Template> 
+concept is_specialization_of = requires ( std::remove_cvref_t<T> t ) 
+{ 
+  // Check an immediately invoked lambda can compile 
+  []<typename... Args> ( Template<Args...>& ) {} ( t ); 
 };
+
+/*!
+ * @brief Round number up to the nearest multiple of `multiple`
+ */
+template<std::integral T>
+T round_up_to_multiple(T value, T multiple) {
+    assert(multiple > 0);
+    return ((value + multiple - 1) / multiple) * multiple;
+}
+
+template<typename F, typename R, typename... Args>
+concept invocable_returning = std::invocable<F, Args...> && std::same_as<std::invoke_result_t<F, Args...>, R>;
+
+inline std::string_view trim_string(std::string_view str, std::string_view space = " \t\n\r") {
+    const auto first = str.find_first_not_of(space);
+    if (first == std::string_view::npos) {
+        return {};
+    }
+    const auto last = str.find_last_not_of(space);
+    return str.substr(first, last - first + 1);
+}
+
+}; // namespace notsa

@@ -46,7 +46,7 @@ class CPedScriptedTaskRecord {
 public:
     static void InjectHooks();
 
-    static CPedScriptedTaskRecordData(&ms_scriptedTasks)[TOTAL_SCRIPTED_TASKS];
+    static inline auto& ms_scriptedTasks = StaticRef<CPedScriptedTaskRecordData[TOTAL_SCRIPTED_TASKS]>(0xC0B1E8);
 
     static CPedScriptedTaskRecordData* GetRecordAssociatedWithEvent(CEvent* event);
     static eScriptedTaskStatus GetStatus(CPed* ped);

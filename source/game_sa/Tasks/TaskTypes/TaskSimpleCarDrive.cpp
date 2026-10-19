@@ -1,7 +1,7 @@
 #include "StdInc.h"
 #include "TaskSimpleCarDrive.h"
 #include "TaskUtilityLineUpPedWithCar.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleCarDrive::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleCarDrive, 0x86E904, 9);
@@ -12,15 +12,15 @@ void CTaskSimpleCarDrive::InjectHooks() {
 
     RH_ScopedInstall(TriggerIK, 0x63C500);
     RH_ScopedInstall(UpdateBopping, 0x63C900);
-    RH_ScopedInstall(StartBopping, 0x642760, { .reversed = false });
-    RH_ScopedInstall(ProcessHeadBopping, 0x6428C0, { .reversed = false });
-    RH_ScopedInstall(ProcessArmBopping, 0x642AE0, { .reversed = false });
+    RH_ScopedInstall(StartBopping, 0x642760, { .Reversed = false });
+    RH_ScopedInstall(ProcessHeadBopping, 0x6428C0, { .Reversed = false });
+    RH_ScopedInstall(ProcessArmBopping, 0x642AE0, { .Reversed = false });
     RH_ScopedInstall(ProcessBopping, 0x642E70);
     RH_ScopedVMTInstall(Clone, 0x63DC20);
     RH_ScopedVMTInstall(GetTaskType, 0x63C450);
-    RH_ScopedVMTInstall(MakeAbortable, 0x63C670, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessPed, 0x644470, { .reversed = false });
-    RH_ScopedVMTInstall(SetPedPosition, 0x63C770, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x63C670, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x644470, { .Reversed = false });
+    RH_ScopedVMTInstall(SetPedPosition, 0x63C770, { .Reversed = false });
 }
 
 // 0x63C340
@@ -92,7 +92,7 @@ void CTaskSimpleCarDrive::TriggerIK(CPed* ped) const {
     case MISSION_RAMCAR_FARAWAY:
     case MISSION_RAMCAR_CLOSE: {
         if (const auto vehTargetCar = m_pVehicle->m_autoPilot.m_TargetEntity) {
-            if (vehTargetCar->IsVehicle()) {
+            if (vehTargetCar->GetIsTypeVehicle()) {
                 if (const auto driver = vehTargetCar->m_pDriver) { // Make ped look at target car or it's driver (if any)
                     g_ikChainMan.LookAt("DriveCar", ped, driver, 3000, BONE_HEAD, nullptr, false, 0.25f, 500, 3, false);
                 } else {

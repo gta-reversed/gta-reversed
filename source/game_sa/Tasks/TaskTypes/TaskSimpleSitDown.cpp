@@ -48,7 +48,7 @@ void CTaskSimpleSitDown::StartAnim(CPed* ped) {
     assert(!m_anim);
 
     const auto SetAnim = [this, ped](auto grpId, auto animId) {
-        m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, grpId, animId, 4.f);
+        m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), grpId, animId, 4.f);
     };
     if (m_sitOnStep) {
         SetAnim(ANIM_GROUP_ATTRACTORS, ANIM_ID_STEPSIT_IN);

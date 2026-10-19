@@ -1,89 +1,189 @@
+cmake_minimum_required(VERSION 4.2.0 FATAL_ERROR)
+
+include(FetchContent)
+
+#--------------------------------------------------------------------
+# Game features
+#--------------------------------------------------------------------
+option(${RE_PROJECT}_WITH_OPENAL "Use OpenAL" OFF)
+option(${RE_PROJECT}_USE_SDL3 "Use SDL3" OFF)
+option(${RE_PROJECT}_STANDALONE "Build standalone executable" OFF)
+option(${RE_PROJECT}_STANDALONE_DUMP_HOOKS_ONLY "Dump hooks only" OFF)
+
+if (${RE_PROJECT}_USE_SDL3)
+    add_compile_definitions(NOTSA_USE_SDL3)
+endif()
+if (${RE_PROJECT}_STANDALONE)
+    add_compile_definitions(NOTSA_STANDALONE)
+endif()
+if (${RE_PROJECT}_STANDALONE_DUMP_HOOKS_ONLY)
+    if (NOT ${RE_PROJECT}_STANDALONE)
+        message(FATAL_ERROR "${RE_PROJECT}_STANDALONE_DUMP_HOOKS_ONLY requires ${RE_PROJECT}_STANDALONE=ON")
+    endif()
+    add_compile_definitions(NOTSA_STANDALONE_DUMP_HOOKS_ONLY)
+endif()
+
+#--------------------------------------------------------------------
+# Build options
+#--------------------------------------------------------------------
 option(${RE_PROJECT}_UNITY_BUILD "Use Unity/Jumbo build" OFF)
 option(${RE_PROJECT}_WITH_SANITIZERS "Use Sanitizers (better crash log)" OFF)
 option(${RE_PROJECT}_WITH_LTO "Use Link Time Optimization" OFF)
+option(${RE_PROJECT}_WITH_CLEO_COMMANDS "Enable CLEO script commands" OFF)
+option(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS "Create script command hooks in the UI (Command hooks are installed regardless)" OFF)
 
+if(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS)
+    add_compile_definitions(NOTSA_WITH_SCRIPT_COMMAND_HOOKS)
+endif()
+
+if (NOT WIN32 AND NOT ${RE_PROJECT}_WITH_OPENAL)
+    set(${RE_PROJECT}_WITH_OPENAL ON)
+endif()
+
+#--------------------------------------------------------------------
+# Gather source files, and create the target
+#--------------------------------------------------------------------
+
+#
+# Regular source files
+# Module scanning is disabled for these, so we can unity build
+# If any of them contain module imports the compiler should error out
+#
 file(
-    GLOB_RECURSE SOURCE_FILES_LIST
+    GLOB_RECURSE SOURCE_FILES_WITHOUT_MODULES_LIST
     LIST_DIRECTORIES false
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h*"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c*"
 )
-list(APPEND SOURCE_FILES_LIST StdInc.cpp)
+list(APPEND SOURCE_FILES_WITHOUT_MODULES_LIST StdInc.cpp)
+if (${RE_PROJECT}_WITH_OPENAL)
+    # TODO: Remove dsound specific sources
+else()
+    file(
+        GLOB_RECURSE OPENAL_FILES
+        LIST_DIRECTORIES false
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game_sa/Audio/OpenAL/*.c*"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game_sa/Audio/OpenAL/*.h*"
+    )
+    list(REMOVE_ITEM SOURCE_FILES_WITHOUT_MODULES_LIST ${OPENAL_FILES})
+endif()
 
-add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
+#
+# Source files that should be scanned for modules
+#
+set(SOURCE_FILES_WITH_MODULES_LIST) # Empty for now, we dont use modules yet
 
-target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
-    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495>"
-    "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;>"
+#
+# Module source files
+#
+file(
+    GLOB_RECURSE CXX_MODULE_FILES_LIST
+    LIST_DIRECTORIES false
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.ixx"
 )
 
-function(supress_deps_warnings targets)
-    foreach (target ${targets})
-        add_compile_options(${target} PRIVATE
-            "$<$<CXX_COMPILER_ID:MSVC>:-w>"
-            "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wno-everything>"
-        )
-    endforeach()
-endfunction()
-supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json)
+if (${RE_PROJECT}_STANDALONE)
+    add_executable(${RE_PROJECT_LIB_NAME} WIN32)
+else()
+    add_library(${RE_PROJECT_LIB_NAME} MODULE)
+endif()
+if (CXX_MODULE_FILES_LIST)
+    target_sources(${RE_PROJECT_LIB_NAME} PRIVATE FILE_SET cxx_modules TYPE CXX_MODULES FILES ${CXX_MODULE_FILES_LIST})
+endif()
+if (SOURCE_FILES_WITH_MODULES_LIST)
+    set_source_files_properties(${SOURCE_FILES_WITH_MODULES_LIST} PROPERTIES CXX_SCAN_FOR_MODULES ON)
+    target_sources(${RE_PROJECT_LIB_NAME} PRIVATE FILE_SET cxx_modules FILES ${SOURCE_FILES_WITH_MODULES_LIST})
+endif()
+if (SOURCE_FILES_WITHOUT_MODULES_LIST)
+    set_source_files_properties(${SOURCE_FILES_WITHOUT_MODULES_LIST} PROPERTIES CXX_SCAN_FOR_MODULES OFF)
+    target_sources(${RE_PROJECT_LIB_NAME} PRIVATE ${SOURCE_FILES_WITHOUT_MODULES_LIST})
+endif()
+target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE
+    "$<$<CXX_COMPILER_ID:MSVC>:/INCREMENTAL>"
+)
+target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
+    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/W3;/wd4200;/wd4251;/wd4275;/wd4996;/wd26495;/wd26812;/wd28159>"
+    "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;-Wno-switch>"
+)
 
+if (${RE_PROJECT}_STANDALONE) 
+    set(TARGET_SUFFIX ".exe")
+else()
+    set(TARGET_SUFFIX ".asi")
+endif()
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
-    SUFFIX ".asi"
+    SUFFIX "${TARGET_SUFFIX}"
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     COMPILE_WARNING_AS_ERROR ON
 )
-if (${RE_PROJECT}_UNITY_BUILD)
-    set_target_properties(${RE_PROJECT_LIB_NAME}
-        PROPERTIES
-        UNITY_BUILD TRUE
-        UNITY_BUILD_MODE BATCH
-        UNITY_BUILD_BATCH_SIZE 16
-    )
-endif()
-
-if (${RE_PROJECT}_WITH_LTO)
-    message(STATUS "Configuring Link Time Optimization")
-    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-if (${RE_PROJECT}_WITH_SANITIZERS)
-    message(STATUS "Configuring sanitizers")
-    # add_sanitizers(${RE_PROJECT_LIB_NAME})
-endif()
-
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 
+#--------------------------------------------------------------------
+# Add dependencies
+#--------------------------------------------------------------------
+
+# Adding this here as it has no Conan-center package, and it's header-only
+FetchContent_Declare(
+    imfilebrowser
+    GIT_REPOSITORY https://github.com/AirGuanZ/imgui-filebrowser
+    GIT_TAG        47a1884
+)
+FetchContent_MakeAvailable(imfilebrowser)
+
+macro(add_dependency)
+    foreach (target ${ARGV})
+        find_package(${target} CONFIG REQUIRED)
+
+        # Disable warnings of dependencies
+        add_compile_options(${target} PRIVATE
+            "$<$<CXX_COMPILER_ID:MSVC>:-w>"
+            "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wno-everything>"
+        )
+    endforeach()
+endmacro()
+add_dependency(
+    nlohmann_json
+    Ogg
+    spdlog
+    Tracy
+    Vorbis
+    imgui
+    libjpeg-turbo
+    Boost
+)
+if (${RE_PROJECT}_USE_SDL3)
+    add_dependency(SDL3)
+endif()
+
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+    nlohmann_json::nlohmann_json
     Ogg::ogg
-    vorbis::vorbis
-    imgui::imgui
     spdlog::spdlog
     Tracy::TracyClient
+    vorbis::vorbis
+    imgui::imgui
+    libjpeg-turbo::libjpeg-turbo
     ddraw
     Winmm
     dxguid
     strmiids
-    dsound
     d3d9
-    nlohmann_json::nlohmann_json
-    libjpeg-turbo::libjpeg-turbo
+    Boost::headers
 )
-
-if(WIN32) 
-    if(MSVC) # MSVC knows how to find dbghelp on it's own
-        target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
-            dbghelp
-        )
-    else()
-        message(FATAL_ERROR "Need to link dbghelp lib for win32")
-    endif()
+if (${RE_PROJECT}_USE_SDL3)
+    target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+        SDL3::SDL3
+    )
 endif()
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
+    .
     /
     toolsmenu/
     game_sa/
@@ -100,6 +200,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     game_sa/Audio/Utility
 
     game_sa/Collision/
+    game_sa/Conversations/
     game_sa/Core/
     game_sa/Entity/
     game_sa/Entity/Dummy/
@@ -128,6 +229,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     game_sa/Tasks/TaskTypes/SeekEntity/
 
     app/
+    app/imgui
     app/platform/
     app/platform/android/
     app/platform/win/
@@ -136,6 +238,9 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     app/securom/
 
     oswrapper
+
+    libs/imgui
+    ${imfilebrowser_SOURCE_DIR}
 )
 
 target_sources(${RE_PROJECT_LIB_NAME} PRIVATE
@@ -144,14 +249,74 @@ target_sources(${RE_PROJECT_LIB_NAME} PRIVATE
 
 target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
-    NOMINMAX
     USE_GTASA_ALLOCATOR
     EXTRA_DEBUG_FEATURES
     FIX_BUGS
+    NOTSA_WINDOWED_MODE # NOTE: This is a workaround for the game to run in windowed mode, and it must be enabled, otherwise shit's gonna crash
     SA_SKINNED_PEDS
+
+    USE_D3D9 # TODO
 )
 target_compile_features(${RE_PROJECT_LIB_NAME} PRIVATE cxx_std_23)
 target_precompile_headers(${RE_PROJECT_LIB_NAME} PRIVATE StdInc.cpp)
+
+#--------------------------------------------------------------------
+# Configure build options
+#--------------------------------------------------------------------
+if (${RE_PROJECT}_UNITY_BUILD)
+    message(STATUS "Configuring Unity/Jumbo build")
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE NOTSA_UNITY_BUILD)
+    set_target_properties(${RE_PROJECT_LIB_NAME}
+        PROPERTIES
+        UNITY_BUILD TRUE
+        UNITY_BUILD_MODE BATCH
+        UNITY_BUILD_BATCH_SIZE 16
+    )
+endif()
+
+if (${RE_PROJECT}_WITH_LTO)
+    message(STATUS "Configuring Link Time Optimization")
+    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+if (${RE_PROJECT}_WITH_SANITIZERS)
+    message(STATUS "Configuring sanitizers")
+   #add_sanitizers(${RE_PROJECT_LIB_NAME}) # TODO
+    message(FATAL_ERROR "${RE_PROJECT}_WITH_SANITIZERS is not implemented yet; keep it OFF for now (add_sanitizers() is currently missing).")
+endif()
+
+#--------------------------------------------------------------------
+# Configure the Audio API
+#--------------------------------------------------------------------
+if (${RE_PROJECT}_WITH_OPENAL)
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_OPENAL)
+
+    target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
+        game_sa/Audio/OpenAL
+    )
+else()
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_DSOUND)
+
+    target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE dsound)
+endif()
+
+
+#--------------------------------------------------------------------
+# Configure misc. dependencies for Windows
+#--------------------------------------------------------------------
+if(WIN32)
+    if(MSVC)
+        # MSVC knows how to find dbghelp on it's own
+        target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+            dbghelp
+        )
+
+        target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE DIRECTINPUT_VERSION=0x0800)
+    else()
+        message(FATAL_ERROR "Need to link dbghelp lib for win32")
+    endif()
+endif()
+
 
 #--------------------------------------------------------------------
 # Install

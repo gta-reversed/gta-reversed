@@ -1,7 +1,6 @@
 #include "StdInc.h"
 #include "OALBase.h"
 
-#ifdef USE_OPENAL
 OALBase::OALBase() {
     m_refCount = 1;
     ++livingCount;
@@ -49,4 +48,3 @@ bool OALCheckErrors(std::string_view file, int32 line) {
     NOTSA_LOG_ERR("OpenAL error at '{}' line {}: {}", file, line, message);
     return false;
 }
-#endif

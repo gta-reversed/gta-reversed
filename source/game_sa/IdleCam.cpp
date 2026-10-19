@@ -4,8 +4,8 @@
 #include "InterestingEvents.h"
 #include "HandShaker.h"
 
-CIdleCam& gIdleCam = *(CIdleCam*)0xB6FDA0;
-uint32& gbCineyCamProcessedOnFrame = *(uint32*)0xB6EC40;
+auto& gIdleCam = StaticRef<CIdleCam>(0xB6FDA0);
+auto& gbCineyCamProcessedOnFrame = StaticRef<uint32>(0xB6EC40);
 
 void CIdleCam::InjectHooks() {
     RH_ScopedClass(CIdleCam);
@@ -21,7 +21,7 @@ void CIdleCam::InjectHooks() {
     RH_ScopedInstall(IsTargetValid, 0x517770);
     RH_ScopedInstall(ProcessTargetSelection, 0x517870);
     RH_ScopedInstall(ProcessSlerp, 0x5179E0);
-    RH_ScopedInstall(ProcessFOVZoom, 0x517BF0, { .reversed = false });
+    RH_ScopedInstall(ProcessFOVZoom, 0x517BF0, { .Reversed = false });
     RH_ScopedInstall(Run, 0x51D3E0);
     RH_ScopedInstall(Process, 0x522C80);
     RH_ScopedInstall(IdleCamGeneralProcess, 0x50E690);
@@ -82,7 +82,7 @@ void CIdleCam::Reset(bool resetControls) {
 // 0x50A200
 void CIdleCam::ProcessIdleCamTicker() {
     if (m_LastTimePadTouched == CPad::GetPad(0)->LastTimeTouched) {
-        m_IdleTickerFrames += static_cast<uint32>(CTimer::ms_fTimeStep * 20.0f);
+        m_IdleTickerFrames += static_cast<uint32>(CTimer::GetTimeStep() * 20.0f);
     } else {
         m_LastTimePadTouched = CPad::GetPad(0)->LastTimeTouched;
         m_IdleTickerFrames   = 0;
@@ -111,7 +111,7 @@ void CIdleCam::IdleCamGeneralProcess() {
 // 0x50EAE0
 void CIdleCam::GetLookAtPositionOnTarget(const CEntity* target, CVector& outPos) {
     outPos = target->GetPosition();
-    if (target->IsPed()) {
+    if (target->GetIsTypePed()) {
         switch (target->AsPed()->m_nPedType) {
         case PED_TYPE_CIVFEMALE:
         case PED_TYPE_PROSTITUTE:

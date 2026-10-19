@@ -12,7 +12,7 @@ void CTaskComplexDiveFromAttachedEntityAndGetUp::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x492EE0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6577F0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x657820);
-    RH_ScopedVMTInstall(ControlSubTask, 0x655710);
+    RH_ScopedVMTInstall(ControlSubTask, 0x655710, { .Overrides = false });
 }
 
 // 0x492E20
@@ -45,7 +45,7 @@ CTask* CTaskComplexDiveFromAttachedEntityAndGetUp::CreateFirstSubTask(CPed* ped)
     if (const auto attachedTo = ped->m_pAttachedTo) {
         const auto hitSide = (eDirection)CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *attachedTo);
         m_DiveDir = CPedGeometryAnalyser::ComputeEntityDir(*attachedTo, hitSide);
-        if (attachedTo->IsVehicle()
+        if (attachedTo->GetIsTypeVehicle()
          && notsa::contains({ eDirection::BACKWARD, eDirection::FORWARD }, hitSide)
          && m_DiveDir.Dot(attachedTo->GetMoveSpeed()) > 0.f // Same direction
         ) {

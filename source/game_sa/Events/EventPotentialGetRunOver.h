@@ -18,6 +18,6 @@ public:
     bool AffectsPed(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_Vehicle ? m_Vehicle->m_pDriver : nullptr; }
     float GetLocalSoundLevel() override { return 100.0f; }
-    CEventEditableResponse* CloneEditable() override { return new CEventPotentialGetRunOver(m_Vehicle); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventPotentialGetRunOver(m_Vehicle); }
 };
 VALIDATE_SIZE(CEventPotentialGetRunOver, 0x18);

@@ -60,7 +60,7 @@ bool CEventSoundQuiet::AffectsPed(CPed* ped)
 }
 
 // 0x5E0670
-CEventEditableResponse* CEventSoundQuiet::CloneEditable()
+CEventEditableResponse* CEventSoundQuiet::CloneEditable() const noexcept
 {
     return new CEventSoundQuiet(m_entity, m_fLocalSoundLevel, m_startTimeInMs, m_position);
 }

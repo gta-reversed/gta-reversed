@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include <common.h> // lerp
+
 struct RwRGBA;
 
 class CRGBA {
@@ -188,6 +190,15 @@ public:
     constexpr CRGBA& operator*=(float m) {
         *this = *this * m;
         return *this;
+    }
+
+    constexpr CRGBA operator-(uint8 m) const {
+        return {
+            (uint8)(r - m),
+            (uint8)(g - m),
+            (uint8)(b - m),
+            (uint8)(a - m)
+        };
     }
 
     constexpr operator RwRGBAReal() { return { (RwReal)r / 255.f, (RwReal)g / 255.f, (RwReal)b / 255.f, (RwReal)a / 255.f }; }

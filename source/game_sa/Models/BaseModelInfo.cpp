@@ -46,7 +46,7 @@ void CBaseModelInfo::InjectHooks() {
     RH_ScopedInstall(IsBreakableStatuePart, 0x59F090);
     RH_ScopedInstall(IsTagModel, 0x49CC20);
     // Hooking SwaysInWind function causes side effects
-    RH_ScopedInstall(SwaysInWind, 0x4212C0, { .reversed = false });
+    RH_ScopedInstall(SwaysInWind, 0x4212C0, { .Reversed = false });
 
     RH_ScopedInstall(SetBaseModelInfoFlags, 0x5B3AD0);
 }
@@ -175,11 +175,11 @@ void CBaseModelInfo::DeleteCollisionModel() {
 C2dEffect* CBaseModelInfo::Get2dEffect(int32 index) const {
     auto uiStoredEffectsCount = m_n2dfxCount;
     RpGeometry* geometry = nullptr;
-    if (m_pRwObject) {
+    if (GetRwObject()) {
         if (GetRwModelType() == rpATOMIC) {
-            geometry = RpAtomicGetGeometry(m_pRwAtomic);
+            geometry = RpAtomicGetGeometry(GetRpAtomic());
         } else if (GetRwModelType() == rpCLUMP) {
-            auto atomic = Get2DEffectAtomic(m_pRwClump);
+            auto atomic = Get2DEffectAtomic(GetRpClump());
             if (atomic) {
                 geometry = RpAtomicGetGeometry(atomic);
             }

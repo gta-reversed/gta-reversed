@@ -22,10 +22,10 @@ void CTaskComplexArrestPed::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x68B990);
     RH_ScopedInstall(Destructor, 0x68BA00);
     RH_ScopedVMTInstall(MakeAbortable, 0x68BA60);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x690220, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x690220, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6907A0);
-    RH_ScopedVMTInstall(ControlSubTask, 0x68D350, { .reversed = false });
-    RH_ScopedInstall(CreateSubTask, 0x68CF80, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x68D350, { .Reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x68CF80, { .Reversed = false });
 }
 
 // 0x68B990
@@ -111,7 +111,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
     const notsa::ScopeGuard Have_A_Nice_Day_Sir{
         [this, ped] {
             if (m_PedToArrest && m_PedToArrest->IsPlayer()) {
-                if (FindPlayerWanted()->m_nCopsInPursuit == 1) {
+                if (FindPlayerWanted()->m_NumCopsInPursuit == 1) {
                     ped->Say(CTX_GLOBAL_SOLO);
                 }
             }
@@ -194,7 +194,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
         }
 
         if (!ped->GetActiveWeapon().IsTypeMelee()) {
-            if (!FindPlayerWanted()->IsClosestCop(ped, 2)) {
+            if (!FindPlayerWanted()->IsClosestCop(ped->AsCop(), 2)) {
                 return DoDestroyCarTask();
             }
         }
@@ -272,7 +272,7 @@ CTask* CTaskComplexArrestPed::CreateSubTask(eTaskType taskType, CPed* ped) {
         if (m_PedToArrest->m_pVehicle) {
             if (m_PedToArrest->m_pVehicle->IsDriver(m_PedToArrest)) {
                 m_PedToArrest->m_pVehicle->vehicleFlags.bIsHandbrakeOn = true;
-                m_PedToArrest->m_pVehicle->m_nStatus = STATUS_FORCED_STOP;
+                m_PedToArrest->m_pVehicle->SetStatus(STATUS_FORCED_STOP);
             }
         }
         return new CTaskSimpleArrestPed(m_PedToArrest);

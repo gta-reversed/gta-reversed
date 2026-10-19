@@ -11,12 +11,6 @@
 #include "Buoyancy.h"
 #include "CarCtrl.h"
 
-uint32& CTrain::GenTrain_Track = *(uint32*)0xC37FFC;
-uint32& CTrain::GenTrain_TrainConfig = *(uint32*)0xC38000;
-uint8& CTrain::GenTrain_Direction = *(uint8*)0xC38004;
-uint32& CTrain::GenTrain_GenerationNode = *(uint32*)0xC38008;
-uint32& CTrain::GenTrain_Status = *(uint32*)0xC3800C;
-bool& CTrain::bDisableRandomTrains = *(bool*)0xC38010;
 CVector CTrain::aStationCoors[6] = { // 0x8D48F8
     CVector{ 1741.0f, -1954.0f, 15.0f },
     CVector{ 1297.0f, -1898.0f, 3.0f  },
@@ -26,22 +20,22 @@ CVector CTrain::aStationCoors[6] = { // 0x8D48F8
     CVector{ 2865.0f,  1281.0f, 12.0  }
 };
 
-CTrainNode* (&pTrackNodes)[4] = *(CTrainNode*(*)[4])0xC38024;
-int32 (&NumTrackNodes)[4] = *(int32(*)[4])0xC38014;
-float (&arrTotalTrackLength)[4] = *(float (*)[4])0xC37FEC;
-float (&StationDist)[6] = *(float (*)[6])0xC38034;
+auto& pTrackNodes = StaticRef<CTrainNode*[4]>(0xC38024);
+auto& NumTrackNodes = StaticRef<std::array<int32, 4>>(0xC38014);
+auto& arrTotalTrackLength = StaticRef<std::array<float, 4>>(0xC37FEC);
+auto& StationDist = StaticRef<std::array<float, 6>>(0xC38034);
 
 void CTrain::InjectHooks() {
     RH_ScopedVirtualClass(CTrain, 0x872370, 66);
     RH_ScopedCategory("Vehicle");
 
-    RH_ScopedInstall(Constructor, 0x6F6030, { .reversed = false });
-    RH_ScopedInstall(InitTrains, 0x6F7440, { .reversed = false });
-    RH_ScopedInstall(ReadAndInterpretTrackFile, 0x6F55D0, { .reversed = false });
+    RH_ScopedInstall(Constructor, 0x6F6030, { .Reversed = false });
+    RH_ScopedInstall(InitTrains, 0x6F7440, { .Reversed = false });
+    RH_ScopedInstall(ReadAndInterpretTrackFile, 0x6F55D0, { .Reversed = false });
     RH_ScopedInstall(Shutdown, 0x6F58D0);
     RH_ScopedInstall(UpdateTrains, 0x6F5900);
-    RH_ScopedInstall(FindCoorsFromPositionOnTrack, 0x6F59E0, { .reversed = false });
-    RH_ScopedInstall(FindMaximumSpeedToStopAtStations, 0x6F5BA0, { .reversed = false });
+    RH_ScopedInstall(FindCoorsFromPositionOnTrack, 0x6F59E0, { .Reversed = false });
+    RH_ScopedInstall(FindMaximumSpeedToStopAtStations, 0x6F5BA0, { .Reversed = false });
     RH_ScopedInstall(FindNumCarriagesPulled, 0x6F5CD0);
     RH_ScopedInstall(OpenTrainDoor, 0x6F5D80);
     RH_ScopedInstall(AddPassenger, 0x6F5D90);
@@ -51,31 +45,32 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(ReleaseOneMissionTrain, 0x6F5DF0);
     RH_ScopedInstall(SetTrainSpeed, 0x6F5E20);
     RH_ScopedInstall(SetTrainCruiseSpeed, 0x6F5E50);
-    RH_ScopedInstall(FindCaboose, 0x6F5E70, { .reversed = false });
-    RH_ScopedInstall(FindEngine, 0x6F5E90, { .reversed = false });
-    RH_ScopedInstall(FindCarriage, 0x6F5EB0, { .reversed = false });
+    RH_ScopedInstall(FindCaboose, 0x6F5E70, { .Reversed = false });
+    RH_ScopedInstall(FindEngine, 0x6F5E90, { .Reversed = false });
+    RH_ScopedInstall(FindCarriage, 0x6F5EB0, { .Reversed = false });
     RH_ScopedInstall(FindSideStationIsOn, 0x6F5EF0);
-    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .reversed = false });
+    RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .Reversed = false });
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
-    RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .reversed = false });
+    RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .Reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
-    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0, { .reversed = false });
+    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0, { .Reversed = false });
     RH_ScopedInstall(ReleaseMissionTrains, 0x6F6B60);
-    RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0, { .reversed = false });
-    RH_ScopedInstall(FindPositionOnTrackFromCoors, 0x6F6CC0, { .reversed = false });
-    RH_ScopedInstall(FindNearestTrain, 0x6F7090, { .reversed = false });
+    RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0, { .Reversed = false });
+    RH_ScopedInstall(FindPositionOnTrackFromCoors, 0x6F6CC0, { .Reversed = false });
+    RH_ScopedInstall(FindNearestTrain, 0x6F7090, { .Reversed = false });
     RH_ScopedInstall(SetNewTrainPosition, 0x6F7140);
-    RH_ScopedInstall(IsNextStationAllowed, 0x6F7260, { .reversed = false });
-    RH_ScopedInstall(SkipToNextAllowedStation, 0x6F72F0, { .reversed = false });
-    RH_ScopedInstall(CreateMissionTrain, 0x6F7550, { .reversed = false });
-    RH_ScopedInstall(DoTrainGenerationAndRemoval, 0x6F7900, { .reversed = false });
-    RH_ScopedInstall(AddNearbyPedAsRandomPassenger, 0x6F8170, { .reversed = false });
+    RH_ScopedInstall(IsNextStationAllowed, 0x6F7260, { .Reversed = false });
+    RH_ScopedInstall(SkipToNextAllowedStation, 0x6F72F0, { .Reversed = false });
+    RH_ScopedInstall(CreateMissionTrain, 0x6F7550, { .Reversed = false });
+    RH_ScopedInstall(DoTrainGenerationAndRemoval, 0x6F7900, { .Reversed = false });
+    RH_ScopedInstall(AddNearbyPedAsRandomPassenger, 0x6F8170, { .Reversed = false });
+    RH_ScopedVMTInstall(SetModelIndex, 0x6F5530);
     RH_ScopedVMTInstall(ProcessControl, 0x6F86A0);
 
     RH_ScopedGlobalInstall(ProcessTrainAnnouncements, 0x6F5910);
     RH_ScopedGlobalInstall(PlayAnnouncement, 0x6F5920);
     RH_ScopedGlobalInstall(MarkSurroundingEntitiesForCollisionWithTrain, 0x6F6640);
-    RH_ScopedGlobalInstall(TrainHitStuff, 0x6F5CF0, { .reversed = false });
+    RH_ScopedGlobalInstall(TrainHitStuff<CPtrListSingleLink<CPhysical*>>, 0x6F5CF0, { .Reversed = false });
 }
 
 // 0x6F6030
@@ -94,21 +89,13 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     SetupModelNodes();
 
     std::memset(&m_aDoors, 0, sizeof(m_aDoors));
-    m_aDoors[2].m_nDirn = 20;
-    m_aDoors[2].m_nAxis = 2;
     if (m_nModelIndex == MODEL_STREAKC) {
-        m_aDoors[2].m_fOpenAngle = 1.25f;
-        m_aDoors[2].m_fClosedAngle = 0.25f;
-        m_aDoors[3].m_fOpenAngle = 1.25f;
-        m_aDoors[3].m_fClosedAngle = 0.25f;
+        m_aDoors[DOOR_LEFT_FRONT].Init(1.25f, 0.25f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
+        m_aDoors[DOOR_RIGHT_FRONT].Init(1.25f, 0.25f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
     } else {
-        m_aDoors[2].m_fOpenAngle = TWO_PI / -5.0f;
-        m_aDoors[2].m_fClosedAngle = 0.0f;
-        m_aDoors[3].m_fOpenAngle = TWO_PI / +5.0f;
-        m_aDoors[3].m_fClosedAngle = 0.0f;
+        m_aDoors[DOOR_LEFT_FRONT].Init(TWO_PI / -5.0f, 0.0f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
+        m_aDoors[DOOR_RIGHT_FRONT].Init(TWO_PI / +5.0f, 0.0f, DOOR_AXIS_NEG_Y, DOOR_AXIS_Z, DOOR_EXTRA_BASED);
     }
-    m_aDoors[3].m_nAxis = 2;
-    m_aDoors[3].m_nDirn = 20;
 
     { // todo:
     trainFlags.bClockwiseDirection = true;
@@ -123,7 +110,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_pTemporaryPassenger = nullptr;
     m_nMaxPassengers = 5;
     physicalFlags.bDisableSimpleCollision = true;
-    m_bUsesCollision = true;
+    SetUsesCollision(true);
     m_nTimeWhenCreated = CTimer::GetTimeInMS();
     field_5C8 = 0;
     m_nTrackId = 0;
@@ -142,15 +129,21 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_bTunnelTransition = true;
     m_pPrevCarriage = nullptr;
     m_pNextCarriage = nullptr;
-    m_nStatus = STATUS_TRAIN_MOVING;
+    SetStatus(STATUS_TRAIN_MOVING);
     m_autoPilot.m_speed = 0.0f;
     m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
 }
 
+// 0x6F5530
+void CTrain::SetModelIndex(uint32 index) {
+    CVehicle::SetModelIndex(index);
+    SetupModelNodes();
+}
+
 void CTrain::SetupModelNodes() {
     std::ranges::fill(m_aTrainNodes, nullptr);
-    CClumpModelInfo::FillFrameArray(m_pRwClump, m_aTrainNodes);
+    CClumpModelInfo::FillFrameArray(GetRpClump(), m_aTrainNodes.data());
 }
 
 // 0x6F7440
@@ -170,7 +163,7 @@ void CTrain::InitTrains() {
     };
     for (auto i = 0u; i < std::size(pTrackNodes); ++i) {
         if (!pTrackNodes[i]) {
-            CTrain::ReadAndInterpretTrackFile(filenames[i], pTrackNodes, NumTrackNodes, arrTotalTrackLength, i);
+            CTrain::ReadAndInterpretTrackFile(filenames[i], pTrackNodes, NumTrackNodes.data(), arrTotalTrackLength.data(), i);
         }
     }
 
@@ -327,23 +320,24 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
     int32 endSectorX   = std::min(CWorld::GetSectorX(pos.x + radius), MAX_SECTORS_X - 1);
     int32 endSectorY   = std::min(CWorld::GetSectorY(pos.y + radius), MAX_SECTORS_Y - 1);
 
-    CWorld::IncrementCurrentScanCode();
+    CWorld::AdvanceCurrentScanCode();
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            TrainHitStuff(repeatSector->GetList(REPEATSECTOR_VEHICLES), entity);
+            auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
+            TrainHitStuff(repeatSector.Vehicles, entity);
             if (!bOnlyVehicles) {
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_PEDS), entity);
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_OBJECTS), entity);
+                TrainHitStuff(repeatSector.Peds, entity);
+                TrainHitStuff(repeatSector.Objects, entity);
             }
         }
     }
 }
 
 // 0x6F5CF0
-void TrainHitStuff(CPtrList& ptrList, CEntity* entity) {
-    ((void(__cdecl*)(CPtrList&, CEntity*))0x6F5CF0)(ptrList, entity);
+template<typename PtrListType>
+void TrainHitStuff(PtrListType& ptrList, CEntity* entity) {
+    ((void(__cdecl*)(PtrListType&, CEntity*))0x6F5CF0)(ptrList, entity);
 }
 
 // 0x6F6850
@@ -353,18 +347,13 @@ void CTrain::RemoveRandomPassenger() {
 
 // 0x6F6A20
 void CTrain::RemoveMissionTrains() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (!vehicle) {
-            continue;
-        }
-
-        if (vehicle->IsTrain() &&
-            vehicle != FindPlayerVehicle() &&
-            vehicle->AsTrain()->trainFlags.bMissionTrain
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.IsTrain() &&
+            &vehicle != FindPlayerVehicle() &&
+            vehicle.AsTrain()->trainFlags.bMissionTrain
         ) {
-            CWorld::Remove(vehicle);
-            delete vehicle;
+            CWorld::Remove(&vehicle);
+            delete &vehicle;
         }
     }
 }
@@ -376,14 +365,9 @@ void CTrain::RemoveAllTrains() {
 
 // 0x6F6B60
 void CTrain::ReleaseMissionTrains() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (!vehicle) {
-            continue;
-        }
-
-        if (vehicle->IsTrain() && vehicle != FindPlayerVehicle()) {
-            vehicle->AsTrain()->trainFlags.bMissionTrain = false;
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.IsTrain() && &vehicle != FindPlayerVehicle()) {
+            vehicle.AsTrain()->trainFlags.bMissionTrain = false;
         }
     }
 }
@@ -506,7 +490,7 @@ void CTrain::ProcessControl() {
                 m_fTrainSpeed = -m_fTrainSpeed;
             }
 
-            if (m_nStatus) {
+            if (GetStatus()) {
                 bool bIsStreakModel = trainFlags.bIsStreakModel;
                 auto fStopAtStationSpeed = static_cast<float>(m_autoPilot.m_nCruiseSpeed);
 
@@ -638,7 +622,7 @@ void CTrain::ProcessControl() {
 
             m_fCurrentRailDistance += CTimer::GetTimeStep() * m_fTrainSpeed;
 
-            if (m_nStatus == STATUS_PLAYER) {
+            if (GetStatus() == STATUS_PLAYER) {
 
                 float fTheTrainSpeed = m_fTrainSpeed;
                 if (fTheTrainSpeed < 0.0f) {
@@ -855,13 +839,13 @@ void CTrain::ProcessControl() {
             m_vecTurnSpeed.z = std::clamp(m_vecTurnSpeed.z, -0.1f, 0.1f);
         }
 
-        UpdateRW();
+        UpdateRwMatrix();
         UpdateRwFrame();
         RemoveAndAdd();
 
-        m_bIsStuck = false;
-        m_bWasPostponed = false;
-        m_bIsInSafePosition = true;
+        SetIsStuck(false);
+        SetWasPostponed(false);
+        SetIsInSafePosition(true);
 
         m_fMovingSpeed = DistanceBetweenPoints(GetPosition(), vecOldTrainPosition);
 
@@ -878,12 +862,12 @@ void CTrain::ProcessControl() {
         }
         return;
     } else {
-        if (!m_bIsStuck) {
+        if (!GetIsStuck()) {
             float fMaxForce = 0.003f;
             float fMaxTorque = 0.0009f;
             float fMaxMovingSpeed = 0.005f;
 
-            if (m_nStatus != STATUS_PLAYER) {
+            if (GetStatus() != STATUS_PLAYER) {
                 fMaxForce = 0.006f;
                 fMaxTorque = 0.0015f;
                 fMaxMovingSpeed = 0.015f;
@@ -898,7 +882,7 @@ void CTrain::ProcessControl() {
             if (m_vecForce.SquaredMagnitude() > fMaxForceTimeStep ||
                 m_vecTorque.SquaredMagnitude() > fMaxTorqueTimeStep ||
                 m_fMovingSpeed >= fMaxMovingSpeed ||
-                m_fDamageIntensity > 0.0f && m_pDamageEntity != nullptr && m_pDamageEntity->IsPed()
+                m_fDamageIntensity > 0.0f && m_pDamageEntity != nullptr && m_pDamageEntity->GetIsTypePed()
             ) {
                 m_nFakePhysics = 0;
             } else {

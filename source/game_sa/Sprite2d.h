@@ -17,11 +17,11 @@ class CSprite2d {
 public:
     RwTexture* m_pTexture;
 
-    static inline int32& nextBufferIndex = *(int32*)0xC80458;
-    static inline int32& nextBufferVertex = *(int32*)0xC8045C;
-    static inline float& NearScreenZ = *(float*)0xC80460;
-    static inline float& RecipNearClip = *(float*)0xC80464;
-    static inline RwIm2DVertex (&maVertices)[8] = *(RwIm2DVertex(*)[8])0xC80468;
+    static inline auto& nextBufferIndex = StaticRef<int32>(0xC80458);
+    static inline auto& nextBufferVertex = StaticRef<int32>(0xC8045C);
+    static inline auto& NearScreenZ = StaticRef<float>(0xC80460);
+    static inline auto& RecipNearClip = StaticRef<float>(0xC80464);
+    static inline auto& maVertices = StaticRef<std::array<RwIm2DVertex, 8>>(0xC80468);
 
 public:
     static void InjectHooks();
@@ -71,7 +71,7 @@ public:
     static void Draw2DPolygon(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, const CRGBA& color);
     static void DrawBarChart(float x, float y, uint16 width, uint8 height, float progress, int8 progressAdd, uint8 drawPercentage, uint8 drawBlackBorder, CRGBA color, CRGBA addColor);
 
-    static auto* GetVertices()      { return maVertices; }
+    static auto* GetVertices()      { return maVertices.data(); }
     static auto& GetNearScreenZ()   { return NearScreenZ; }
     static auto& GetRecipNearClip() { return RecipNearClip; }
 };

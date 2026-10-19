@@ -15,7 +15,7 @@ public:
     bool AffectsPed(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_PedThatEntered; }
     float GetLocalSoundLevel() override { return 60.0f; }
-    CEventEditableResponse* CloneEditable() override { return new CEventPedEnteredMyVehicle(m_PedThatEntered, m_Vehicle, m_TargetDoor); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventPedEnteredMyVehicle(m_PedThatEntered, m_Vehicle, m_TargetDoor); }
 
 public:
     CPed*       m_PedThatEntered;

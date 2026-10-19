@@ -30,8 +30,10 @@ public:
     static uint32    ConvertFromBytesToMS(uint32 lengthInBytes, uint32 sampleRate, uint16 numChannels);
     static uint32    ConvertFromMSToBytes(uint32 a, uint32 frequency, uint16 frequencyMult);
 
-    static bool      GetBankAndSoundFromScriptSlotAudioEvent(const eAudioEvents& ae, eSoundBankS32& outBankID, int32& outSoundID, int32 slot);
-    static float     GetPiecewiseLinear(float x, int16 dataCount, float (*data)[2]);
+    static bool      GetBankAndSoundFromScriptSlotAudioEvent(const eAudioEvents& scriptID, eSoundBankS32& outBankID, int32& outSoundID, int32 slot);
+    static float     GetPiecewiseLinear(float x, int16 dataCount, const float (*data)[2]);
+    template<int16 DataCnt>
+    static float     GetPiecewiseLinearT(float x, const float (&points)[DataCnt][2]) { return GetPiecewiseLinear(x, DataCnt, points); }
     static uint64    GetCurrentTimeInMS();
 
     // NOTSA
@@ -40,7 +42,7 @@ public:
     }
 
 private:
-    static float (&m_sfLogLookup)[50][2];
+    static inline auto& m_sfLogLookup = StaticRef<float[50][2]>(0xb61100);
 
 private:
     friend void InjectHooksMain();

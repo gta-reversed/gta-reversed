@@ -31,12 +31,6 @@ CEventVehicleDied* CEventVehicleDied::Constructor(CVehicle* vehicle)
     return this;
 }
 
-// 0x4B76D0
-CEvent* CEventVehicleDied::Clone()
-{
-    return new CEventVehicleDied(m_vehicle);
-}
-
 // 0x4B0E00
 bool CEventVehicleDied::AffectsPed(CPed* ped)
 {

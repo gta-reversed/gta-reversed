@@ -21,7 +21,7 @@ public:
     int32 field_7A0;
 
     // did we display "JCK_HLP" message
-    static bool& bHasDisplayedPlayerQuitEnterCarHelpText;
+    static inline auto& bHasDisplayedPlayerQuitEnterCarHelpText = StaticRef<bool>(0xC0BC15);
 
     // Android
     static bool bDebugPlayerInvincible;
@@ -54,10 +54,10 @@ public:
     void Clear3rdPersonMouseTarget();
     // GetWanted()->m_nWantedLevel = 0;
     void Busted();
-    uint32 GetWantedLevel() const;
-    void SetWantedLevel(int32 level);
-    void SetWantedLevelNoDrop(int32 level);
-    void CheatWantedLevel(int32 level);
+    eWantedLevel GetWantedLevel() const;
+    void SetWantedLevel(eWantedLevel level);
+    void SetWantedLevelNoDrop(eWantedLevel level);
+    void CheatWantedLevel(eWantedLevel level);
     bool CanIKReachThisTarget(CVector posn, CWeapon* weapon, bool arg2);
     CPlayerInfo* GetPlayerInfoForThisPlayerPed();
     void DoStuffToGoOnFire();
@@ -99,11 +99,11 @@ public:
     // Thanks to Silent
     // 0x41BE60
     inline CWanted* GetWanted() {
-        return m_pPlayerData ? m_pPlayerData->m_pWanted : nullptr;
+        return GetPlayerData() ? GetPlayerData()->m_pWanted : nullptr;
     }
 
     inline const CWanted* GetWanted() const {
-        return m_pPlayerData ? m_pPlayerData->m_pWanted : nullptr;
+        return GetPlayerData() ? GetPlayerData()->m_pWanted : nullptr;
     }
 
     static void RemovePlayerPed(int32 playerId);
@@ -113,12 +113,12 @@ public:
     static void SetupPlayerPed(int playerId);
 
     // NOTSA
-    CPedGroup& GetPlayerGroup() const noexcept { return CPedGroups::GetGroup(m_pPlayerData->m_nPlayerGroup); }
+    CPedGroup& GetPlayerGroup() const noexcept { return CPedGroups::GetGroup(GetPlayerData()->m_nPlayerGroup); }
 };
 
 VALIDATE_SIZE(CPlayerPed, 0x7A4);
 
-extern bool (&abTempNeverLeavesGroup)[7];
-extern int32& gPlayIdlesAnimBlockIndex;
+static inline auto& abTempNeverLeavesGroup = StaticRef<std::array<bool, 7>>(0xC0BC08);
+static inline auto& gPlayIdlesAnimBlockIndex = StaticRef<int32>(0xC0BC10);
 
 bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2);

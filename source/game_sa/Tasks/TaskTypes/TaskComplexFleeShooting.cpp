@@ -13,7 +13,7 @@ void CTaskComplexFleeShooting::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x65CFB0);
     RH_ScopedVMTInstall(GetTaskType, 0x65C990);
     RH_ScopedVMTInstall(MakeAbortable, 0x65CA00);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x65CA60);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65CA60, { .Overrides = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x65CA70);
     RH_ScopedVMTInstall(ControlSubTask, 0x65CA90);
 }
@@ -37,7 +37,7 @@ CTaskComplexFleeShooting::CTaskComplexFleeShooting(
 }
 
 CTaskComplexFleeShooting::CTaskComplexFleeShooting(const CTaskComplexFleeShooting& o) :
-    CTaskComplexFleeShooting{ o.fleeFrom, o.m_pedScream, o.m_safeDistance, o.m_time, o.m_shootTime, o.m_shootRecoverTime, o.m_posCheckPeriod, o.m_posChangeTolerance }
+    CTaskComplexFleeShooting{ o.m_fleeFrom, o.m_pedScream, o.m_safeDistance, o.m_time, o.m_shootTime, o.m_shootRecoverTime, o.m_posCheckPeriod, o.m_posChangeTolerance }
 {
 }
 
@@ -68,10 +68,10 @@ CTask* CTaskComplexFleeShooting::ControlSubTask(CPed* ped) {
                 if (useGun->GetLastGunCommand() == eGunCommand::FIREBURST) {
                     m_gunTimer.Start(m_shootRecoverTime);
 
-                    useGun->ControlGun(ped, fleeFrom, eGunCommand::END_LEISURE);
+                    useGun->ControlGun(ped, m_fleeFrom, eGunCommand::END_LEISURE);
                 }
             } else {
-                useGun->ControlGun(ped, fleeFrom, eGunCommand::FIREBURST);
+                useGun->ControlGun(ped, m_fleeFrom, eGunCommand::FIREBURST);
             }
         }
     } else {
@@ -81,7 +81,7 @@ CTask* CTaskComplexFleeShooting::ControlSubTask(CPed* ped) {
                 m_gunTimer.Start(m_shootTime);
 
                 ped->GetTaskManager().SetTaskSecondary(
-                    new CTaskSimpleUseGun{ fleeFrom, {}, eGunCommand::FIREBURST, 3 },
+                    new CTaskSimpleUseGun{ m_fleeFrom, {}, eGunCommand::FIREBURST, 3 },
                     TASK_SECONDARY_ATTACK
                 );
             }

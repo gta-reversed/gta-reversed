@@ -19,7 +19,7 @@ public:
     bool AffectsPed(CPed* ped) override;
     bool AffectsPedGroup(CPedGroup* pedGroup) override;
     CEntity* GetSourceEntity() const override;
-    CEventDanger* CloneEditable() override { return new CEventDanger(m_dangerFrom, m_dangerRadius); }
+    CEventDanger* CloneEditable() const noexcept override { return new CEventDanger(m_dangerFrom, m_dangerRadius); }
 
 private:
     friend void InjectHooksMain();

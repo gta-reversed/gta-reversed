@@ -11,7 +11,7 @@ class NOTSA_EXPORT_VTABLE CTaskComplexSequence : public CTaskComplex {
     };
 public:
     int32       m_CurrTaskIdx{};  //!< Current running task [Indexing `m_Tasks`]
-    CTask*      m_Tasks[8]{};     //!< The sequenced tasks
+    std::array<CTask*, 8> m_Tasks{};     //!< The sequenced tasks
     eRepeatMode m_RepeatMode{eRepeatMode::DONT_REPEAT};
     int32       m_RepeatedCnt{};  //!< This simply tells us how many times the sequence has been repeated. If `m_RepeatMode` is `FOREVER`, it can be greater than 1.
     bool        m_bFlushTasks{};  

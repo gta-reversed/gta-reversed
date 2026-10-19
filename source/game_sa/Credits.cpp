@@ -2,9 +2,6 @@
 
 #include "Credits.h"
 
-uint32& CCredits::CreditsStartTime = *(uint32*)0xC6E978;
-bool& CCredits::bCreditsGoing = *(bool*)0xC6E97C;
-
 void CCredits::InjectHooks() {
     RH_ScopedClass(CCredits);
     RH_ScopedCategoryGlobal();

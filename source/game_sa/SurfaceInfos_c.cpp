@@ -56,6 +56,7 @@ void SurfaceInfos_c::InjectHooks()
     RH_ScopedInstall(IsAudioLongGrass, 0x55EB10);
     RH_ScopedInstall(IsAudioTile, 0x55EB30);
     RH_ScopedInstall(GetAdhesiveLimit, 0x55EB50);
+    RH_ScopedInstall(LoadAdhesiveLimits, 0x55D0E0, { .Reversed = false });
 }
 
 // 0x55D220
@@ -258,7 +259,7 @@ void SurfaceInfos_c::LoadAdhesiveLimits()
     auto* file = CFileMgr::OpenFile("data\\surface.dat", "rb");
 #if FIX_BUGS
     if (!file) {
-        DEV_LOG("[SurfaceInfos_c] Failed to open surface.dat");
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surface.dat");
         CFileMgr::CloseFile(file);
         return;
     }
@@ -283,7 +284,7 @@ void SurfaceInfos_c::LoadSurfaceInfos()
     auto* file = CFileMgr::OpenFile("data\\surfinfo.dat", "r");
 #if FIX_BUGS
     if (!file) {
-        DEV_LOG("[SurfaceInfos_c] Failed to open surfinfo.dat");
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfinfo.dat");
         CFileMgr::CloseFile(file);
         return;
     }
@@ -360,7 +361,7 @@ void SurfaceInfos_c::LoadSurfaceAudioInfos()
     auto* file = CFileMgr::OpenFile("data\\surfaud.dat", "r");
 #if FIX_BUGS
     if (!file) {
-        DEV_LOG("[SurfaceInfos_c] Failed to open surfaud.dat");
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfaud.dat");
         CFileMgr::CloseFile(file);
         return;
     }

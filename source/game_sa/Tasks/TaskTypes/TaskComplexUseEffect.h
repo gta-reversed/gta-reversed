@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 #include "Enums/eMoveState.h"
 
-class C2dEffectPedAttractor;
+struct C2dEffectPedAttractor;
 class CEntity;
 class CPedAttractor;
 class CEvent;

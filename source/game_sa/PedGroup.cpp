@@ -49,15 +49,15 @@ void CPedGroup::Flush() {
 bool CPedGroup::IsAnyoneUsingCar(const CVehicle* vehicle) {
     assert(vehicle);
 
-    for (auto& mem : m_groupMembership.GetMembers()) {
-        if (mem.GetVehicleIfInOne() == vehicle) {
+    for (auto* const mem : m_groupMembership.GetMembers()) {
+        if (mem->GetVehicleIfInOne() == vehicle) {
             return true;
         }
         // I did a slight change here.
         // Game originally checked both EnterAsDriver and EnterAsPassenger tasks
         // but that makes no sense, as the ped can't have both tasks at the same time (I hope)
         // So the function below returns the target vehicle of the first task found
-        if (mem.GetIntelligence()->GetEnteringVehicle() == vehicle) {
+        if (mem->GetIntelligence()->GetEnteringVehicle() == vehicle) {
             return true;
         }
     }
@@ -98,33 +98,33 @@ void CPedGroup::Teleport(const CVector& pos) {
         leader->Teleport(pos, false);
     }
 
-    if (const auto oe = m_groupIntelligence.GetOldEvent(); !oe || oe->GetEventType() == EVENT_LEADER_ENTRY_EXIT) {
+    if (const auto oe = m_groupIntelligence.GetCurrentEvent(); !oe || oe->GetEventType() == EVENT_LEADER_ENTRY_EXIT) {
         return;
     }
 
     // Set *followers* out of the vehicle
     if (leader && !leader->bInVehicle) {
-        for (auto& f : GetMembership().GetFollowers()) {
-            if (!f.IsAlive() || !f.bInVehicle || f.IsCreatedByMission()) {
+        for (auto* const f : GetMembership().GetFollowers()) {
+            if (!f->IsAlive() || !f->bInVehicle || f->IsCreatedByMission()) {
                 continue;
             }
             CTaskSimpleCarSetPedOut{
-                f.m_pVehicle,
-                (eTargetDoor)CCarEnterExit::ComputeTargetDoorToExit(f.m_pVehicle, &f),
+                f->m_pVehicle,
+                (eTargetDoor)CCarEnterExit::ComputeTargetDoorToExit(f->m_pVehicle, f),
                 false
-            }.ProcessPed(&f);
+            }.ProcessPed(f);
         }
     }
 
     // Teleport *followers*
-    const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.offsets;
-    for (auto&& [offsetIdx, f] : notsa::enumerate(GetMembership().GetFollowers())) {
-        if (!f.IsAlive()) {
+    const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets;
+    for (auto&& [offsetIdx, f] : rngv::enumerate(GetMembership().GetFollowers())) {
+        if (!f->IsAlive()) {
             continue;
         }
-        f.Teleport(pos + CVector{ offsets[offsetIdx] }, false);
-        f.PositionAnyPedOutOfCollision();
-        f.GetTaskManager().AbortFirstPrimaryTaskIn({ TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }, &f);
+        f->Teleport(pos + CVector{ offsets[offsetIdx] }, false);
+        f->PositionAnyPedOutOfCollision();
+        f->GetTaskManager().AbortFirstPrimaryTaskIn({ TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }, f);
     }
 }
 
@@ -144,11 +144,11 @@ void CPedGroup::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x5FC190);
 
     RH_ScopedInstall(Teleport, 0x5F7AD0);
-    RH_ScopedInstall(PlayerGaveCommand_Gather, 0x5FAB60, {.reversed = false});
+    RH_ScopedInstall(PlayerGaveCommand_Gather, 0x5FAB60, {.Reversed = false});
     RH_ScopedInstall(PlayerGaveCommand_Attack, 0x5F7CC0);
     RH_ScopedInstall(IsAnyoneUsingCar, 0x5F7DB0);
     RH_ScopedInstall(GetClosestGroupPed, 0x5FACD0);
-    RH_ScopedInstall(FindDistanceToFurthestMember, 0x5FB010, {.reversed = false});
+    RH_ScopedInstall(FindDistanceToFurthestMember, 0x5FB010, {.Reversed = false});
     RH_ScopedInstall(FindDistanceToNearestMember, 0x5FB0A0);
     RH_ScopedInstall(Flush, 0x5FB790);
     RH_ScopedInstall(Process, 0x5FC7E0);

@@ -90,3 +90,18 @@ void CBox::StretchToPoint(const CVector& pt) {
         m_vecMax[i] = std::max(m_vecMax[i], pt[i]);
     }
 }
+
+CVector CBox::GetShortestVectorDistToPt(const CVector& pt) const {
+    const auto CalculateAxis = [&](int32 i) {
+        return std::max({
+            m_vecMin[i] - pt[i],
+            pt[i] - m_vecMax[i],
+            0.0f
+        });
+    };
+    return {
+        CalculateAxis(0),
+        CalculateAxis(1),
+        CalculateAxis(2)
+    };
+}

@@ -60,7 +60,7 @@ CTask* CTaskComplexStealCar::CreateSubTask(eTaskType taskType, CPed* ped) {
         return new CTaskSimpleSetPedAsAutoDriver{ m_veh };
     case TASK_FINISHED: {
         if (!ped->bInVehicle) {
-            ped->m_bUsesCollision = true;
+            ped->SetUsesCollision(true);
         }
         return nullptr;
     }

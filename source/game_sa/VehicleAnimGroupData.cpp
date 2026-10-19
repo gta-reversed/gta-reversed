@@ -2,8 +2,6 @@
 
 #include "VehicleAnimGroupData.h"
 
-CVehicleAnimGroup(&CVehicleAnimGroupData::m_vehicleAnimGroups)[NUM_VEH_ANIM_GROUPS] = *(CVehicleAnimGroup(*)[NUM_VEH_ANIM_GROUPS])0xC1CDC0;
-
 void CVehicleAnimGroup::InjectHooks() {
     RH_ScopedClass(CVehicleAnimGroup);
     RH_ScopedCategoryGlobal();
@@ -260,7 +258,7 @@ int32 CVehicleAnimGroup::InitFromData(const char* line) {
 
     // Actually build the flags value from it
     int32 animFlags{};
-    for (auto [i, flag] : notsa::enumerate(flags)) {
+    for (auto [i, flag] : rngv::enumerate(flags)) {
         animFlags |= (int32)flag << (int32)i;
     }
 
@@ -306,7 +304,7 @@ AssocGroupId CVehicleAnimGroupData::GetGroupForAnim(AssocGroupId groupId, Animat
 
 // 0x645600
 CVector CVehicleAnimGroupData::GetAnimDoorOffset(AssocGroupId groupId, eVehAnimDoorOffset doorId) {
-    return CVehicleAnimGroupData::GetVehicleAnimGroup(groupId).GetDoorOffset(doorId);
+    return CVehicleAnimGroupData::GetVehicleAnimGroup(groupId).ComputeAnimDoorOffsets(doorId);
 }
 
 float CVehicleAnimGroupData::ComputeCriticalBlendTime(AssocGroupId groupId, AnimationId animId) {

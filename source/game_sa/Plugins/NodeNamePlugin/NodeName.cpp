@@ -4,7 +4,7 @@
 
 #define NAME_LENGTH 23
 
-RwInt32& gNodeNamePluginOffset = *(RwInt32*)0xC87C5C;
+auto& gNodeNamePluginOffset = StaticRef<RwInt32>(0xC87C5C);
 
 /**
  * NodeName plugin structure

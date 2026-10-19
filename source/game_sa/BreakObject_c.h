@@ -10,9 +10,9 @@ struct BreakInfo_t;
 constexpr auto NUM_BREAK_GROUP_RENDER_INFO = 3;
 
 struct BreakGroupRenderInfo_t {
-    CVector     positions[NUM_BREAK_GROUP_RENDER_INFO];
-    RwTexCoords texCoords[NUM_BREAK_GROUP_RENDER_INFO];
-    CRGBA       colors[NUM_BREAK_GROUP_RENDER_INFO];
+    std::array<CVector, NUM_BREAK_GROUP_RENDER_INFO>     positions;
+    std::array<RwTexCoords, NUM_BREAK_GROUP_RENDER_INFO> texCoords;
+    std::array<CRGBA, NUM_BREAK_GROUP_RENDER_INFO>       colors;
 };
 
 enum class BreakGroupType : uint8 {

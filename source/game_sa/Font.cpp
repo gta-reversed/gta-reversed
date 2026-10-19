@@ -10,39 +10,10 @@
 
 #include "eLanguage.h"
 
-CFontChar (&FontRenderStateBuf)[9] = *(CFontChar(*)[9])0xC716B0;
-CFontChar* pEmptyChar = (CFontChar*)0xC716A8;
+auto& FontRenderStateBuf = StaticRef<std::array<CFontChar, 9>>(0xC716B0);
+auto& pEmptyChar = StaticRef<CFontChar*>(0xC716A8);
 
-CFontChar& CFont::RenderState = *(CFontChar*)0xC71AA0;
-CSprite2d (&CFont::Sprite)[MAX_FONT_SPRITES] = *(CSprite2d(*)[2])0xC71AD0;
-CSprite2d (&CFont::ButtonSprite)[MAX_FONT_BUTTON_SPRITES] = *(CSprite2d(*)[15])0xC71AD8;
-eExtraFontSymbol& CFont::PS2Symbol = *(eExtraFontSymbol*)0xC71A54;
-bool& CFont::m_bNewLine = *(bool*)0xC71A55;
-CRGBA& CFont::m_Color = *(CRGBA*)0xC71A60;
-CVector2D& CFont::m_Scale = *(CVector2D*)0xC71A64;
-float& CFont::m_fSlant = *(float*)0xC71A6C;
-CVector2D& CFont::m_fSlantRefPoint = *(CVector2D*)0xC71A70;
-bool& CFont::m_bFontJustify = *(bool*)0xC71A78;
-bool& CFont::m_bFontCentreAlign = *(bool*)0xC71A79;
-bool& CFont::m_bFontRightAlign = *(bool*)0xC71A7A;
-bool& CFont::m_bFontBackground = *(bool*)0xC71A7B;
-bool& CFont::m_bEnlargeBackgroundBox = *(bool*)0xC71A7C;
-bool& CFont::m_bFontPropOn = *(bool*)0xC71A7D;
-bool& CFont::m_bFontIsBlip = *(bool*)0xC71A7E;
-float& CFont::m_fFontAlpha = *(float*)0xC71A80;
-CRGBA& CFont::m_FontBackgroundColor = *(CRGBA*)0xC71A84;
-float& CFont::m_fWrapx = *(float*)0xC71A88;
-float& CFont::m_fFontCentreSize = *(float*)0xC71A8C;
-float& CFont::m_fRightJustifyWrap = *(float*)0xC71A90;
-uint8& CFont::m_FontTextureId = *(uint8*)0xC71A94;
-uint8& CFont::m_FontStyle = *(uint8*)0xC71A95;
-uint8& CFont::m_nFontShadow = *(uint8*)0xC71A96;
-CRGBA& CFont::m_FontDropColor = *(CRGBA*)0xC71A97;
-uint8& CFont::m_nFontOutlineSize = *(uint8*)0xC71A9B;
-uint8& CFont::m_nFontOutline = *(uint8*)0xC71A9C;
-uint8& CFont::m_nFontOutlineOrShadow = *(uint8*)0xC71A9C;
-
-tFontData (&gFontData)[2] = *(tFontData(*)[2])0xC718B0;
+auto& gFontData = StaticRef<std::array<tFontData, 2>>(0xC718B0);
 
 void CFont::InjectHooks() {
     RH_ScopedClass(CFont);
@@ -50,7 +21,7 @@ void CFont::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x5BA690);
     RH_ScopedInstall(Shutdown, 0x7189B0);
-    RH_ScopedInstall(PrintChar, 0x718A10, { .reversed = false });
+    RH_ScopedInstall(PrintChar, 0x718A10, { .Reversed = false });
     RH_ScopedInstall(ParseToken, 0x718F00);
 
     // styling functions
@@ -74,10 +45,10 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(SetOrientation, 0x719610);
 
     RH_ScopedInstall(InitPerFrame, 0x719800);
-    RH_ScopedInstall(RenderFontBuffer, 0x719840, { .reversed = false });
+    RH_ScopedInstall(RenderFontBuffer, 0x719840, { .Reversed = false });
     RH_ScopedInstall(GetStringWidth, 0x71A0E0);
     RH_ScopedInstall(DrawFonts, 0x71A210);
-    RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = false });
+    RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .Reversed = false });
     RH_ScopedInstall(GetNumberLines, 0x71A5E0);
     RH_ScopedInstall(ProcessStringToDisplay, 0x71A600);
     RH_ScopedInstall(GetTextRect, 0x71A620);
@@ -86,7 +57,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(GetCharacterSize, 0x719750);
     RH_ScopedInstall(LoadFontValues, 0x7187C0);
     // Install("", "GetScriptLetterSize", 0x719670, &GetScriptLetterSize);
-    RH_ScopedInstall(FindSubFontCharacter, 0x7192C0, { .reversed = false });
+    RH_ScopedInstall(FindSubFontCharacter, 0x7192C0, { .Reversed = false });
     RH_ScopedGlobalInstall(GetLetterIdPropValue, 0x718770);
 }
 
