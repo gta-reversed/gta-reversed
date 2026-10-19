@@ -4858,19 +4858,19 @@ void CVehicle::AddExhaustParticles() {
 
 // always return false?
 // 0x6DE880
-bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector, int32 wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags) {
+bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector, eCarWheel wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags) {
     if (m_bOffscreen) {
         return false;
     }
 
-    const float distSq = (TheCamera.GetPosition() - GetPosition()).SquaredMagnitude();
-    if ((distSq > sq(25.0f) && !vehicleFlags.bAlwaysSkidMarks) || suspRatio >= 1.0f) { // suspRatio check from 0x6DE962 moved here
+    const float distToCamSq = (TheCamera.GetPosition() - GetPosition()).SquaredMagnitude();
+    if ((distToCamSq > sq(25.0f) && !vehicleFlags.bAlwaysSkidMarks) || suspRatio >= 1.0f) { // suspRatio check from 0x6DE962 moved here
         return false;
     }
 
     bool emitParticles = true;
-    if (distSq <= sq(20.0f)) {
-        if (!(distSq <= sq(8.0f) && FindPlayerVehicle())) {
+    if (distToCamSq <= sq(20.0f)) {
+        if (!(distToCamSq <= sq(8.0f) && FindPlayerVehicle())) {
             emitParticles = ((CTimer::GetFrameCounter() + GetModelIndex()) & 1) == 0;
         }
     } else {
@@ -4900,35 +4900,23 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
             sparkCount = 10.0f;
         }
 
-        const float mag = sparkDir.NormaliseAndMag();
-        g_fx.AddSparks(pos, sparkDir, mag, (int32)sparkCount, m_vecMoveSpeed, SPARK_PARTICLE_SPARK, 0.1f, 0.3f);
+        const float force = sparkDir.NormaliseAndMag();
+        g_fx.AddSparks(pos, sparkDir, force, static_cast<int32>(sparkCount), m_vecMoveSpeed, SPARK_PARTICLE_SPARK, 0.1f, 0.3f);
 
         AudioEngine.ReportCollision(this, FindPlayerPed(0), colPoint.m_nSurfaceTypeA, colPoint.m_nSurfaceTypeB, pos, nullptr, 1.0f, 1.0f, false, true);
     }
 
-    MakeDirty(colPoint);
+    CVehicle::MakeDirty(colPoint);
 
-    // skidmark position adjusted sideways for quads
-    const auto ApplyQuadOffset = [&](CVector& p) {
-        if (GetModelIndex() != MODEL_QUAD) { // notsa: suggest to use IsSubQuad() instead
-            return;
-        }
-        CVector off = GetRight() * 0.15f;
-        if (wheelIndex < 2) {
-            p += off;
-        } else {
-            p -= off;
-        }
-    };
-    const auto RegisterSkidmark = [&]() {
-        CVector posCopy = pos; // exactly copy, obviously that's not necessary at this point of execution
-        ApplyQuadOffset(posCopy);
-        if (inWater) {
-            return;
-        }
-        const float width = FindWheelWidth(wheelIndex & 1);
-        CSkidmarks::RegisterOne((uintptr)this + wheelIndex, posCopy, GetForward().x, GetForward().y, skidmarkType, &bloodState, width);
-    };
+    bool isRearWheel = false;
+    switch (wheelIndex) {
+    case CAR_WHEEL_FRONT_LEFT:
+    case CAR_WHEEL_FRONT_RIGHT: break;
+    case CAR_WHEEL_REAR_LEFT:
+    case CAR_WHEEL_REAR_RIGHT: isRearWheel = true; break;
+    default:
+        NOTSA_UNREACHABLE_CASE(wheelIndex);
+    }
 
     const bool slow = speed < 1.0f;
     switch (wheelState) {
@@ -5001,19 +4989,36 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
         if (speed > 0.03f) {
             AddWheelDirtAndWater(colPoint, slow, false, inWater);
         }
-        // Only leave marks if: (flagged vehicle, odd wheel, moving horizontally) or blood on tyres, or caller forced it (flags & 2)
-        const bool flaggedMover = vehicleFlags.bAlwaysSkidMarks && (wheelIndex & 1) && std::sqrt(sq(m_vecMoveSpeed.x) + sq(m_vecMoveSpeed.y)) > 0.04f;
-        if (!flaggedMover && !bloodState && !(flags & 2)) {
+        // marks are leaved in case of bAlwaysSkidMarks/odd wheel/moving horz/bloodState or forced it (flags & 2)
+        if (!(vehicleFlags.bAlwaysSkidMarks && isRearWheel && std::sqrt(sq(m_vecMoveSpeed.x) + sq(m_vecMoveSpeed.y)) > 0.04f)
+            && !bloodState
+            && !(flags & 2)) {
             return false;
         }
         break;
     }
     }
 
-    if (wheelStatus == WHEEL_STATUS_BURST) {
+    if (wheelStatus == WHEEL_STATUS_BURST || inWater) { // inWater moved here
         return false;
     }
-    RegisterSkidmark();
+
+    CVector posCopy = pos;
+    if (GetModelIndex() == MODEL_QUAD) { // notsa: suggest to use IsSubQuad() instead
+        // skidmark position adjusted sideways for quads
+        CVector quadOff = GetRight() * 0.15f;
+        switch (wheelIndex) {
+        case CAR_WHEEL_FRONT_LEFT:
+        case CAR_WHEEL_REAR_LEFT: posCopy += quadOff; break;
+        case CAR_WHEEL_FRONT_RIGHT:
+        case CAR_WHEEL_REAR_RIGHT: posCopy -= quadOff; break;
+        default:
+            NOTSA_UNREACHABLE_CASE(wheelIndex);
+        }
+    }
+
+    const float width = FindWheelWidth(isRearWheel);
+    CSkidmarks::RegisterOne((uintptr)this + wheelIndex, posCopy, GetForward().x, GetForward().y, skidmarkType, &bloodState, width);
     return false;
 }
 
