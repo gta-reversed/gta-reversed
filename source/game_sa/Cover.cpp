@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "Cover.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 void CCover::InjectHooks() {
     RH_ScopedClass(CCover);
@@ -36,8 +37,10 @@ void CCover::Init() {
 // NOTSA
 void CCover::Shutdown() {
     // `CWorld::ShutDown` has deleted all buildings, but permanent ones don't register references (See `CEntity::RegisterReference`), so these are dangling
-    for (auto* node = m_ListOfProcessedBuildings.GetNode(); node; node = node->Next) {
-        node->Item = nullptr;
+    if (notsa::bugfixes::CCover_ProcessedBuildings_UseAfterFree) {
+        for (auto* node = m_ListOfProcessedBuildings.GetNode(); node; node = node->Next) {
+            node->Item = nullptr;
+        }
     }
     m_ListOfProcessedBuildings.Flush();
 }
@@ -133,12 +136,12 @@ void CCover::Update() {
             next            = it->Next;
             auto* const obj = it->Item;
 
-            if (!notsa::IsFixBugs() || obj) { // If fixbugs the reference may've got cleared
+            if (!notsa::bugfixes::CCover_ProcessedBuildings_UseAfterFree || obj) { // If fixbugs the reference may've got cleared
                 if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
                     continue;
                 }
                 RemoveCoverPointsForThisEntity(obj);
-                if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
+                if (notsa::bugfixes::CCover_ProcessedBuildings_UseAfterFree) {
                     CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->Item));
                 }
             }
@@ -161,7 +164,7 @@ void CCover::Update() {
                     }
                     FindCoverPointsForThisBuilding(obj);
                     auto* const link = m_ListOfProcessedBuildings.AddItem(obj);
-                    if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
+                    if (notsa::bugfixes::CCover_ProcessedBuildings_UseAfterFree) {
                         CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->Item));
                     }
                 }

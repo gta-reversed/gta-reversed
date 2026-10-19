@@ -59,6 +59,11 @@ inline const ReversibleBugFix CCarCtrl_RemoveDistantCars_UseAfterFree{
     .Description = "Fix user-after-free of vehicles (possibly) deleted by PossiblyRemoveVehicle",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CCover_ProcessedBuildings_UseAfterFree{
+    .Name        = "CCover processed buildings Use-After-Free",
+    .Description = "Register references to the buildings in `CCover::m_ListOfProcessedBuildings`, and don't leave dangling (permanent) buildings in it on shutdown",
+    .Credit      = "Contributors"
+};
 inline const ReversibleBugFix CAEVehicleAudioEntity_PlayBicycleSound_VolumeFix{
     .Name        = "CAEVehicleAudioEntity::PlayBicycleSound Volume fix",
     .Description = "Original code didn't account for event base volume",
