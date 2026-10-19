@@ -9,7 +9,7 @@ void CCarFXRenderer::InjectHooks() {
 
     RH_ScopedInstall(RegisterPlugins, 0x5D5B00);
     RH_ScopedInstall(Initialise, 0x5D5AC0);
-    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .Reversed = false });
+    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0);
     RH_ScopedInstall(Shutdown, 0x5D5AD0);
     RH_ScopedInstall(PreRenderUpdate, 0x5D5B10);
     RH_ScopedInstall(IsCCPCPipelineAttached, 0x5D5B80);
@@ -31,7 +31,30 @@ bool CCarFXRenderer::Initialise() {
 
 // 0x5D5BC0
 void CCarFXRenderer::InitialiseDirtTexture() {
-    plugin::Call<0x5D5BC0>();
+    CTxdStore::ScopedTXDSlot txd{ "vehicle" };
+
+    const auto grunge = RwTextureRead("vehiclegrunge256", nullptr);
+    RwTextureSetFilterMode(grunge, rwFILTERLINEAR);
+    const auto numPixels = RwRasterGetWidth(RwTextureGetRaster(grunge)) * RwRasterGetHeight(RwTextureGetRaster(grunge));
+
+    // Each copy fades the grunge in from white: The first one is clean, the last one is (almost) the original texture
+    for (auto i = 0; i < NUM_DIRT_TEXTURES; i++) {
+        auto& texture = ms_aDirtTextures[i];
+        texture = CClothesBuilder::CopyTexture(grunge);
+        RwTextureSetName(texture, "vehiclegrunge256");
+
+        const auto raster = RwTextureGetRaster(texture);
+        auto* pixel = RwRasterLock(raster, 0, rwRASTERLOCKREADWRITE);
+        for (auto p = 0; p < numPixels; p++, pixel += 4) { // NOTE: Original walks rows with a pitch of `width * 4` (instead of the raster's stride), same as this
+            // NOTE: Original computes `channel * i / 16 + (4080 - 255 * i) / 16` with integer math, so the components may be off by 1
+            for (auto c = 0; c < 3; c++) { // RGB, alpha stays the same
+                pixel[c] = lerp<RwUInt8>(255, pixel[c], (float)i / (float)NUM_DIRT_TEXTURES);
+            }
+        }
+        RwRasterUnlock(raster);
+    }
+
+    // NOTE: Original returns `true`, but the only caller (`CVehicleModelInfo::SetupCommonData`) ignores it
 }
 
 // 0x5D5AD0
