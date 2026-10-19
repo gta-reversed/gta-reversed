@@ -29,7 +29,6 @@ CTaskSimpleCarJumpOut::CTaskSimpleCarJumpOut(CVehicle* veh, uint32 door, CTaskUt
     m_lineUpTask{lineUpTask},
     m_initialVehSpeed{ veh ? veh->GetMoveSpeed().Magnitude() : 0.f }
 {
-    CEntity::SafeCleanUpRef(m_veh);
 }
 
 CTaskSimpleCarJumpOut::CTaskSimpleCarJumpOut(const CTaskSimpleCarJumpOut& o) :
@@ -39,8 +38,6 @@ CTaskSimpleCarJumpOut::CTaskSimpleCarJumpOut(const CTaskSimpleCarJumpOut& o) :
 
 // 0x647490
 CTaskSimpleCarJumpOut::~CTaskSimpleCarJumpOut() {
-    CEntity::SafeCleanUpRef(m_veh);
-
     if (m_anim) {
         m_anim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
     }

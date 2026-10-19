@@ -85,6 +85,7 @@ void CFileLoader::InjectHooks() {
     RH_ScopedInstall(LoadObjectTypes, 0x5B8400);
 
     RH_ScopedGlobalInstall(LinkLods, 0x5B51E0); 
+    RH_ScopedInstall(Load2dEffect, 0x5B7670, { .Reversed = false });
 }
 
 // copy textures from dictionary to baseDictionary

@@ -149,7 +149,7 @@ void CRadar::InjectHooks() {
 
     RH_ScopedInstall(SetupAirstripBlips, 0x587D20); // TEST
     RH_ScopedInstall(DrawBlips, 0x588050);
-    // RH_ScopedInstall(ClipRadarPoly, 0x585040);
+    RH_ScopedInstall(ClipRadarPoly, 0x585040, { .Reversed = false });
     RH_ScopedInstall(DrawAreaOnRadar, 0x5853D0);
     RH_ScopedOverloadedInstall(StreamRadarSections, "xy", 0x584C50, void (*)(int32, int32));
     RH_ScopedInstall(AddBlipToLegendList, 0x5859F0);
@@ -157,7 +157,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(DrawRadarSection, 0x586110);
     RH_ScopedInstall(DrawRadarSectionMap, 0x586520);
     RH_ScopedInstall(DrawRadarGangOverlay, 0x586650);
-    // RH_ScopedInstall(DrawEntityBlip, 0x587000);
+    RH_ScopedInstall(DrawEntityBlip, 0x587000, { .Reversed = false });
     RH_ScopedGlobalInstall(LineRadarBoxCollision, 0x584E00);
 
     // unused

@@ -49,7 +49,7 @@ void FxInfoManager_c::InjectHooks() {
     RH_ScopedCategory("Fx");
 
     RH_ScopedInstall(AddFxInfo, 0x4A7B00);
-    // RH_ScopedInstall(Load, 0x5C0B70);
+    RH_ScopedInstall(Load, 0x5C0B70, { .Reversed = false });
     RH_ScopedInstall(ProcessEmissionInfo, 0x4A4960);
     RH_ScopedInstall(ProcessMovementInfo, 0x4A4A10);
     RH_ScopedInstall(ProcessRenderInfo, 0x4A4A80);

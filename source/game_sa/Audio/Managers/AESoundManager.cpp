@@ -339,13 +339,13 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
         pSound->UnregisterWithPhysicalEntity();
         s->NewVPSLEntry();
         AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_SoundID, s->m_BankSlot);
-    }
 
 #ifdef NOTSA_DEBUG
-    notsa::ui::UIRenderer::GetInstance().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
-        .StackTrace = std::stacktrace::current()
-    });
+        notsa::ui::UIRenderer::GetInstance().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
+            .StackTrace = std::stacktrace::current()
+        });
 #endif
+    }
 
     return s;
 }

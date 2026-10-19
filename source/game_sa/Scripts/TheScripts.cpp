@@ -90,7 +90,7 @@ void CTheScripts::InjectHooks() {
     // RH_ScopedInstall(DrawDebugCube, 0x0);
     // RH_ScopedInstall(DrawDebugAngledCube, 0x0)
     RH_ScopedInstall(DrawScriptSpritesAndRectangles, 0x464980);
-    RH_ScopedInstall(ScriptDebugCircle2D, 0x485C20);
+    RH_ScopedInstall(ScriptDebugCircle2D, 0x485C20, { .Reversed = false });
     RH_ScopedInstall(DrawScriptSpheres, 0x4810E0);
     RH_ScopedOverloadedInstall(HighlightImportantArea, "", 0x485E00, void(*)(uint32,float,float,float,float,float));
     RH_ScopedInstall(HighlightImportantAngledArea, 0x485EF0);
@@ -744,7 +744,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
 
             if (auto& driver = vehicle->m_pDriver) {
                 CPopulation::RemovePed(driver);
-                CEntity::SafeCleanUpRef(driver);
+                CEntity::ClearReference(driver);
             }
 
             // Need to use raw pointer here instead of a reference - the m_aPassengers array is modifed in RemovePassenger() and we would crash in RemovePed afterwards

@@ -11,13 +11,13 @@ void CGarages::InjectHooks() {
     RH_ScopedInstall(Init, 0x447120);
     RH_ScopedInstall(Init_AfterRestart, 0x448B60);
     RH_ScopedInstall(Shutdown, 0x4471B0);
-    // RH_ScopedInstall(AddOne, 0x4471E0);
+    RH_ScopedInstall(AddOne, 0x4471E0, { .Reversed = false });
     RH_ScopedInstall(CloseHideOutGaragesBeforeSave, 0x44A170);
     RH_ScopedInstall(PlayerArrestedOrDied, 0x449E60);
     RH_ScopedInstall(AllRespraysCloseOrOpen, 0x448B30);
     RH_ScopedInstall(IsModelIndexADoor, 0x448AF0);
-    // RH_ScopedInstall(FindSafeHouseIndexForGarageType, 0x4489F0);
-    // RH_ScopedInstall(FindGarageForObject, 0x44A240);
+    RH_ScopedInstall(FindSafeHouseIndexForGarageType, 0x4489F0, { .Reversed = false });
+    RH_ScopedInstall(FindGarageForObject, 0x44A240, { .Reversed = false });
     RH_ScopedInstall(IsPointWithinHideOutGarage, 0x448900);
     RH_ScopedInstall(IsGarageOpen, 0x447D00);
     RH_ScopedInstall(IsGarageClosed, 0x447D30);
@@ -26,14 +26,15 @@ void CGarages::InjectHooks() {
     RH_ScopedInstall(ActivateGarage, 0x447CD0);
     RH_ScopedInstall(DeActivateGarage, 0x447CB0);
     RH_ScopedInstall(SetTargetCarForMissionGarage, 0x447C40);
-    // RH_ScopedInstall(StoreCarInNearestImpoundingGarage, 0x44A3C0);
+    RH_ScopedInstall(StoreCarInNearestImpoundingGarage, 0x44A3C0, { .Reversed = false });
     RH_ScopedInstall(TriggerMessage, 0x447B80);
     RH_ScopedInstall(PrintMessages, 0x447790);
     RH_ScopedInstall(ChangeGarageType, 0x4476D0);
     RH_ScopedInstall(GetGarageNumberByName, 0x447680);
-    // RH_ScopedInstall(CountCarsInHideoutGarage, 0x44A210);
+    RH_ScopedInstall(CountCarsInHideoutGarage, 0x44A210, { .Reversed = false });
     RH_ScopedInstall(Load, 0x5D3270);
     RH_ScopedInstall(Save, 0x5D3160);
+    RH_ScopedInstall(StopCarFromBlowingUp, 0x448890, { .Reversed = false });
 }
 
 // 0x447120

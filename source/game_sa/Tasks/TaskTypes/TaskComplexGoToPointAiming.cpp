@@ -1,6 +1,8 @@
 #include "StdInc.h"
 
 #include "TaskComplexGoToPointAiming.h"
+#include "TaskComplexGoToPointAndStandStill.h"
+#include "TaskSimpleGunControl.h"
 
 void CTaskComplexGoToPointAiming::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoToPointAiming, 0x86fe00, 11);
@@ -8,7 +10,7 @@ void CTaskComplexGoToPointAiming::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x668790);
     RH_ScopedInstall(Destructor, 0x668870);
-    RH_ScopedInstall(CreateSubTask, 0x6688D0, { .Reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x6688D0);
 
     RH_ScopedVMTInstall(Clone, 0x66CD80);
     RH_ScopedVMTInstall(GetTaskType, 0x668860);
@@ -55,7 +57,30 @@ CTaskComplexGoToPointAiming::~CTaskComplexGoToPointAiming() {
 
 // 0x6688D0
 CTask* CTaskComplexGoToPointAiming::CreateSubTask(eTaskType taskType) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6688D0, CTaskComplexGoToPointAiming*, int32>(this, taskType);
+    switch (taskType) {
+    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
+        return new CTaskComplexGoToPointAndStandStill{
+            m_moveState,
+            m_movePos,
+            m_moveTargetRadius,
+            m_slowDownDistance,
+            false,
+            false
+        };
+    case TASK_SIMPLE_GUN_CTRL:
+        return new CTaskSimpleGunControl{
+            m_aimAtEntity,
+            m_aimPos,
+            CVector{}, // The original passes `nullptr` here
+            GetTaskType() == TASK_COMPLEX_GO_TO_POINT_SHOOTING
+                ? eGunCommand::FIREBURST
+                : eGunCommand::NONE,
+            1,
+            600'000
+        };
+    default:
+        return nullptr;
+    }
 }
 
 // 0x66DD70

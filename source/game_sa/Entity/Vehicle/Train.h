@@ -91,6 +91,7 @@ public:
 public:
     CTrain(int32 modelIndex, eVehicleCreatedBy createdBy);
 
+    void SetModelIndex(uint32 index) override;
     void ProcessControl() override;
     void SetupModelNodes();
 
