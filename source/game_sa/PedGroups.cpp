@@ -108,8 +108,7 @@ void CPedGroups::Process() {
         SetGroupsDecisionMakerType(eDecisionMakerType::GROUP_RANDOM_PASSIVE);
     }
 
-    ms_bIsPlayerOnAMission = CTheScripts::IsPlayerOnAMission(); // 0x5FC98D
-    if (!ms_bIsPlayerOnAMission) {
+    if (!std::exchange(ms_bIsPlayerOnAMission, CTheScripts::IsPlayerOnAMission())) { // 0x5FC98D
         ms_iNoOfPlayerKills = 0;
     }
 }
