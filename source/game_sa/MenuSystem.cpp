@@ -26,7 +26,7 @@ void CMenuSystem::InjectHooks() {
     RH_ScopedInstall(CreateNewMenu, 0x582300);
     RH_ScopedInstall(ActivateItems, 0x581990);
     RH_ScopedInstall(ActivateOneItem, 0x581B30);
-    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0, { .Reversed = false });
+    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0);
     RH_ScopedInstall(InsertMenu, 0x581E00);
     RH_ScopedInstall(SwitchOffMenu, 0x580750);
 }
@@ -603,7 +603,35 @@ void CMenuSystem::ActivateOneItem(MenuId id, uint8 row, bool enable) {
 
 // 0x5820E0
 void CMenuSystem::FillGridWithCarColours(MenuId id) {
-    plugin::Call<0x5820E0, MenuId>(id);
+    constexpr auto SIMILAR_COLOUR_RANGE = 15;
+
+    const auto IsSimilar = [](const CRGBA& a, const CRGBA& b) {
+        return b.r - SIMILAR_COLOUR_RANGE < a.r && b.g - SIMILAR_COLOUR_RANGE < a.g && b.b - SIMILAR_COLOUR_RANGE < a.b
+            && a.r < b.r + SIMILAR_COLOUR_RANGE && a.g < b.g + SIMILAR_COLOUR_RANGE && a.b < b.b + SIMILAR_COLOUR_RANGE;
+    };
+
+    std::array<CRGBA, MENU_CAR_COLOR_COUNT> usedColours;
+    rng::fill(usedColours, CRGBA{ 0, 0, 0, 255 });
+
+    uint8 colourIdx = 0;
+    for (uint8 numUsed = 0; numUsed < MENU_CAR_COLOR_COUNT;) {
+        const auto colour = CVehicleModelInfo::ms_vehicleColourTable[colourIdx].WithAlpha(255);
+
+        // BUG: Also compares against `usedColours[numUsed]`, which is still black
+        const auto isSimilar = numUsed > 0 && rng::any_of(usedColours | rngv::take(numUsed + 1), [&](const CRGBA& used) {
+            return IsSimilar(colour, used);
+        });
+        if (isSimilar && colourIdx + 1 < CVehicleModelInfo::NUM_VEHICLE_COLORS) {
+            colourIdx++;
+            continue;
+        }
+
+        // If every colour is too similar to the used ones, the last one is used anyway
+        usedColours[numUsed]                       = colour;
+        MenuNumber[id]->m_anUsedCarColors[numUsed] = colourIdx;
+        numUsed++;
+        colourIdx = 0;
+    }
 }
 
 // Insert menu column
