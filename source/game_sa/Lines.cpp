@@ -32,7 +32,7 @@ void CLines::RenderLineWithClipping(float startX, float startY, float startZ, fl
     const CRGBA   startRGBA{ startColor }, endRGBA{ endColor };
 
     // The line is split into 1 to 7 segments, depending on its length
-    const auto numSegments = (int16)std::min(DistanceBetweenPoints(start, end) * 0.4f + 1.0f, 7.0f);
+    const auto numSegments = (int16)std::min(DistanceBetweenPoints(start, end) / 2.5f + 1.0f, 7.0f);
 
     const auto SetVertex = [&](RwIm3DVertex* vertex, float t) {
         const auto pos   = start + (end - start) * t;
