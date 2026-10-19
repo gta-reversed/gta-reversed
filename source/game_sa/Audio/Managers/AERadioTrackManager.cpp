@@ -165,7 +165,7 @@ int32* CAERadioTrackManager::GetRadioStationListenTimes() {
 
 // 0x4E83F0
 eRadioID CAERadioTrackManager::GetCurrentRadioStationID() const {
-    return m_RequestedSettings.StationID == RADIO_INVALID ? RADIO_OFF : m_RequestedSettings.StationID;
+    return m_ActiveSettings.StationID == RADIO_INVALID ? RADIO_OFF : m_ActiveSettings.StationID;
 }
 
 // 0x4E82E0
@@ -550,16 +550,17 @@ void CAERadioTrackManager::StartRadio(const tVehicleAudioSettings& settings) {
            return false;
 
        const auto savedHours = m_nSavedGameClockHours;
-       auto savedDays = m_nSavedGameClockDays;
+       const auto savedDays = m_nSavedGameClockDays;
        if (savedHours < 0 || savedDays < 0)
            return false;
 
-       if (savedDays > CClock::GetGameClockDays()) {
+       auto daysPassed = CClock::GetGameClockDays() - savedDays;
+       if (daysPassed < 0) {
            const auto month = CClock::GetGameClockMonth();
-           savedDays += CClock::daysInMonth[month == 0 ? 11 : month - 1]; // prev month
+           daysPassed += CClock::daysInMonth[month == 0 ? 11 : month - 1]; // prev month
        }
 
-       if (CClock::GetGameClockHours() + 24 * savedDays - savedHours > 5)
+       if (CClock::GetGameClockHours() + 24 * daysPassed - savedHours > 5)
            return false;
 
        return true;
