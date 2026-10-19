@@ -4950,6 +4950,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CGame",
+    "Name": "D3DDeviceRestoreCallback",
+    "IsReversed": true
+  },
+  {
     "Category": "CControllerState",
     "Name": "Clear",
     "IsReversed": true
@@ -17992,7 +17997,7 @@
   {
     "Category": "FxManager_c",
     "Name": "DestroyAllFxSystems",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "FxManager_c",

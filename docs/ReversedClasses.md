@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 19, 2026 at 05:44:57 UTC
-(Triggered by commit [2f62d4b7](https://github.com/gta-reversed/gta-reversed/commit/2f62d4b72d0c79591e197e48f8caca832aeebc5f))
+Last update was at Oct 19, 2026 at 22:01:03 UTC
+(Triggered by commit [6d7cd905](https://github.com/gta-reversed/gta-reversed/commit/6d7cd9053e82e2949d862eebb12d7b9820eb3af5))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7532 out of 8295 functions done in 719 categories)
+## Stats (7534 out of 8296 functions done in 719 categories)
 
-#### Completely reversed categories (583/719) [81%]
+#### Completely reversed categories (584/719) [81%]
 
 <details>
 <summary>See list of categories</summary>
@@ -68,7 +68,7 @@ Last update was at Oct 19, 2026 at 05:44:57 UTC
 - CDirectory (10)<br />
 - CBulletTraces (5)<br />
 - CDebug (1)<br />
-- CGame (22)<br />
+- CGame (23)<br />
 - CControllerState (2)<br />
 - CKeyboardState (1)<br />
 - CMouseControllerState (3)<br />
@@ -189,6 +189,7 @@ Last update was at Oct 19, 2026 at 05:44:57 UTC
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
+- FxManager_c (25)<br />
 - FxEmitterPrt_c (1)<br />
 - Fx_c (8)<br />
 - CPedAttractorPedPlacer (1)<br />
@@ -601,7 +602,7 @@ Last update was at Oct 19, 2026 at 05:44:57 UTC
 
 </details>
 
-#### Partially reversed categories (128/719) [18%]
+#### Partially reversed categories (127/719) [18%]
 
 <details>
 <summary>See list of categories</summary>
@@ -659,7 +660,6 @@ Last update was at Oct 19, 2026 at 05:44:57 UTC
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxInfoManager_c (4/5) [80%]<br />
-- FxManager_c (24/25) [96%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
 - CPed (137/145) [94%]<br />
 - CPlayerPed (50/65) [77%]<br />
