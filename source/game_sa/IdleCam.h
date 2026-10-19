@@ -5,8 +5,10 @@
 class CEntity;
 
 enum class eIdleCamZoomState {
-    UNK_2 = 2,
-    UNK_3 = 3,
+    ZOOMING_IN  = 0,
+    ZOOMING_OUT = 1,
+    ZOOMED_IN   = 2,
+    ZOOMED_OUT  = 3,
 };
 
 class CIdleCam {
@@ -21,7 +23,7 @@ public:
     bool  IsItTimeForIdleCam();
     void  IdleCamGeneralProcess();
     void  GetLookAtPositionOnTarget(const CEntity* target, CVector& outPos);
-    void  ProcessFOVZoom(float time);
+    void  ProcessFOVZoom(float slerpTime);
     bool  IsTargetValid(CEntity* target);
     void  SetTarget(CEntity* target);
     void  SetTargetPlayer();
