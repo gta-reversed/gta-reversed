@@ -16,23 +16,23 @@ class CSprite2d;
 
 class CFont {
 public:
-    static void           Initialise();
-    static void           LoadFontValues();
-    static void           Shutdown();
-    static void           PrintChar(float x, float y, uint8 character);
-    static const GxtChar* GetNextSpace(const GxtChar* string); // Get next ' ' character in a string
-    static const GxtChar* ParseToken(const GxtChar* text, CRGBA& color, bool isBlip, GxtChar* tag);
-    static void           InitPerFrame();
-    static float          GetHeight(bool a1 = false);
-    static float          GetStringWidth(const GxtChar* string, bool full, bool scriptText);
+    static void Initialise();
+    static void Shutdown();
+    static void InitPerFrame();
+    static void DrawFonts();
+    static void RenderFontBuffer();
 
+    static float GetStringWidth(const GxtChar* string, bool full, bool scriptText);
+    static void  GetTextRect(CRect& rect, float x, float y, const GxtChar* text);
+    static void  PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap);
+    static void  PrintString(float x, float y, const GxtChar* text);
+    static void  PrintStringFromBottom(float x, float y, const GxtChar* text);
 
     // STYLING
     static void SetScaleForCurrentLanguage(float w, float h);
     static void SetColor(CRGBA color);
     static void SetFontStyle(eFontStyle style);
     static void SetDropColor(CRGBA color);
-
     static void SetScale(float w, float h) { m_Details.Scale.Set(w, h); } /** 0x719380 */
     static void SetSlantRefPoint(float x, float y) { m_Details.SlopeRef.Set(x, y); } /** Set text rotation point (0x719400) */
     static void SetSlant(float value) { m_Details.Slope = value; } /** Set text rotation angle (0x719420) */
@@ -68,8 +68,6 @@ public:
         m_Details.RightJustify = alignment == eFontAlignment::ALIGN_RIGHT;
     }
 
-    // RENDERING
-
     // 0x71A5E0
     static int16 GetNumberLines(float x, float y, const GxtChar* text) {
         return ProcessCurrentString(false, x, y, text);
@@ -80,34 +78,31 @@ public:
         return ProcessCurrentString(true, x, y, text);
     }
 
-    static void  RenderFontBuffer();
-    static void  DrawFonts();
-    static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
-    static void  GetTextRect(CRect& rect, float x, float y, const GxtChar* text);
-    static void  PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap);
-    static void  PrintString(float x, float y, const GxtChar* text);
-    static void  PrintStringFromBottom(float x, float y, const GxtChar* text);
-    static float GetCharacterSize(uint8 ch);
-    static uint8 RemapCharacterWithoutGraphic(uint8 letter);
+private:
+    static void           LoadFontValues();
+    static void           PrintChar(float x, float y, uint8 character);
+    static const GxtChar* GetNextSpace(const GxtChar* string); // Get next ' ' character in a string
+    static const GxtChar* ParseToken(const GxtChar* text, CRGBA& color, bool isBlip, GxtChar* tag);
+    static float          GetHeight(bool a1 = false);
+    static int16          ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
+    static float          GetCharacterSize(uint8 ch);
+    static uint8          RemapCharacterWithoutGraphic(uint8 letter);
+    static void           ReadFontsDat();
+    static float          GetScriptLetterSize(uint8 letterId);
+    static float          GetLetterIdPropValue(uint8 letterId);
+    static uint8          FindSubFontCharacter(uint8 letterId, eFontTextureStyle fontStyle);
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    friend float GetLetterIdPropValue(uint8);
-
     static constexpr size_t MAX_FONT_SPRITES        = 2;
     static constexpr size_t MAX_FONT_BUTTON_SPRITES = 15;
 
-    static inline auto& RenderState  = StaticRef<CFontChar>(0xC71AA0);
-    static inline auto& Sprite       = StaticRef<std::array<CSprite2d, MAX_FONT_SPRITES>>(0xC71AD0); // font textures array
-    static inline auto& ButtonSprite = StaticRef<std::array<CSprite2d, MAX_FONT_BUTTON_SPRITES>>(0xC71AD8); // button textures array
-    static inline auto& PS2Symbol    = StaticRef<eExtraFontSymbol>(0xC71A54);
-    static inline auto& m_bNewLine   = StaticRef<bool>(0xC71A55);
-    static inline auto& m_Details    = StaticRef<CFontDetails>(0xC71A60);
+    static inline auto& RenderState                 = StaticRef<CFontChar>(0xC71AA0);
+    static inline auto& Sprite                      = StaticRef<std::array<CSprite2d, MAX_FONT_SPRITES>>(0xC71AD0);        // font textures array
+    static inline auto& ButtonSprite                = StaticRef<std::array<CSprite2d, MAX_FONT_BUTTON_SPRITES>>(0xC71AD8); // button textures array
+    static inline auto& PS2Symbol                   = StaticRef<eExtraFontSymbol>(0xC71A54);
+    static inline auto& m_NewLine                   = StaticRef<bool>(0xC71A55);
+    static inline auto& m_Details                   = StaticRef<CFontDetails>(0xC71A60);
 };
-
-static void ReadFontsDat();
-static float GetScriptLetterSize(uint8 letterId);
-static float GetLetterIdPropValue(uint8 letterId);
-static uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle fontStyle);

@@ -61,22 +61,22 @@ void CFont::LoadFontValues() {
 
         const auto attr = std::string_view{ attrib };
         if (attr == "[TOTAL_FONTS]") {
-            auto nextLine = CFileLoader::LoadLine(file);
+            const auto nextLine = CFileLoader::LoadLine(file);
 
             VERIFY(sscanf_s(nextLine, "%d", &totalFonts) == 1);
         } else if (attr == "[FONT_ID]") {
-            auto nextLine = CFileLoader::LoadLine(file);
+            const auto nextLine = CFileLoader::LoadLine(file);
 
             VERIFY(sscanf_s(nextLine, "%d", &fontId) == 1);
         } else if (attr == "[REPLACEMENT_SPACE_CHAR]") {
-            auto  nextLine = CFileLoader::LoadLine(file);
+            const auto nextLine = CFileLoader::LoadLine(file);
             uint8 spaceValue;
 
             VERIFY(sscanf_s(nextLine, "%hhu", &spaceValue) == 1);
-            gFontData[fontId].m_spaceValue = spaceValue;
+            gFontData[fontId].SpaceValue = spaceValue;
         } else if (attr == "[PROP]") {
             for (int32 i = 0; i < 26; i++) {
-                auto  nextLine = CFileLoader::LoadLine(file);
+                const auto nextLine = CFileLoader::LoadLine(file);
                 int32 propValues[8]{};
 
                 VERIFY(sscanf_s(nextLine, "%d  %d  %d  %d  %d  %d  %d  %d",
@@ -85,15 +85,15 @@ void CFont::LoadFontValues() {
                 ) == 8);
 
                 for (auto j = 0u; j < std::size(propValues); j++) {
-                    gFontData[fontId].m_propValues[i * 8 + j] = propValues[j];
+                    gFontData[fontId].PropValues[i * 8 + j] = propValues[j];
                 }
             }
         } else if (attr == "[UNPROP]") {
-            auto   nextLine = CFileLoader::LoadLine(file);
+            const auto nextLine = CFileLoader::LoadLine(file);
             uint32 unpropValue;
 
             VERIFY(sscanf_s(nextLine, "%d", &unpropValue) == 1);
-            gFontData[fontId].m_unpropValue = unpropValue;
+            gFontData[fontId].UnpropValue = unpropValue;
         }
     }
 
@@ -148,12 +148,12 @@ void CFont::PrintChar(float x, float y, uint8 character) {
         // extra symbol to be drawn (e.g. PS2 buttons)
         const CRect rt{
             x,
-            2.0f * RenderState.m_fHeight + y,
-            17.0f * RenderState.m_fHeight + x,
-            19.0f * RenderState.m_fHeight + y
+            2.0f * RenderState.Height + y,
+            17.0f * RenderState.Height + x,
+            19.0f * RenderState.Height + y
         };
 
-        ButtonSprite[PS2Symbol].Draw(rt, { 255, 255, 255, RenderState.m_color.a });
+        ButtonSprite[PS2Symbol].Draw(rt, { 255, 255, 255, RenderState.Color.a });
         return;
     }
 
@@ -166,7 +166,7 @@ void CFont::PrintChar(float x, float y, uint8 character) {
         character = 0;
     }
 
-    if (RenderState.m_nFontStyle == eFontTextureStyle::PRICEDOWN && letter == 0xD0) {
+    if (RenderState.FontStyle == eFontTextureStyle::PRICEDOWN && letter == 0xD0) {
         letter = 0;
         zeroed = true;
     }
@@ -174,8 +174,8 @@ void CFont::PrintChar(float x, float y, uint8 character) {
     const auto u1    = (letter % 16) / 16.0f;
     const auto vBase = (letter / 16);
 
-    if (RenderState.m_wFontTexture >= +eFontTextureName::FONT_UNK_2) {
-        NOTSA_LOG_ERR("weird texture {}, for print char {}", RenderState.m_wFontTexture, character);
+    if (RenderState.FontTexture >= +eFontTextureName::FONT_UNK_2) {
+        NOTSA_LOG_ERR("weird texture {}, for print char {}", RenderState.FontTexture, character);
         float v18 = vBase / 16.0f;
 
         if (!zeroed) {
@@ -183,8 +183,8 @@ void CFont::PrintChar(float x, float y, uint8 character) {
             const CRect rt{
                 x,
                 y,
-                32.0f * propValue * RenderState.m_fWidth + x,
-                16.0f * RenderState.m_fHeight + y
+                32.0f * propValue * RenderState.Width + x,
+                16.0f * RenderState.Height + y
             };
             const auto u2 = (propValue / 16.0f) + u1;
             const auto v2 = v18;
@@ -192,7 +192,7 @@ void CFont::PrintChar(float x, float y, uint8 character) {
             const auto v3 = v18 + 0.0625f;
             const auto u4 = u2 - 0.0001f;
             const auto v4 = v3 - 0.0001f;
-            CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v18, u2, v2, u3, v3, u4, v4);
+            CSprite2d::AddToBuffer(rt, RenderState.Color, u1, v18, u2, v2, u3, v3, u4, v4);
         }
         return;
     }
@@ -204,10 +204,10 @@ void CFont::PrintChar(float x, float y, uint8 character) {
 
         if (RenderState.Slope == 0.0f) {
             rt.bottom = y;
-            rt.right  = 32.0f * RenderState.m_fWidth + x;
+            rt.right  = 32.0f * RenderState.Width + x;
 
             if (letter < 0xC0) {
-                rt.top        = 20.0f * RenderState.m_fHeight + y;
+                rt.top        = 20.0f * RenderState.Height + y;
 
                 const auto v1 = v19 + 0.0021f;
                 const auto u2 = u1 + 0.0615f; // u1 + 0.0625 - 0.001
@@ -216,9 +216,9 @@ void CFont::PrintChar(float x, float y, uint8 character) {
                 const auto v3 = v19 + 0.076025f; // v19 + 0.078125 - 0.0021
                 const auto u4 = u2;
                 const auto v4 = v3;
-                CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
+                CSprite2d::AddToBuffer(rt, RenderState.Color, u1, v1, u2, v2, u3, v3, u4, v4);
             } else {
-                rt.top        = 16.0f * RenderState.m_fHeight + y;
+                rt.top        = 16.0f * RenderState.Height + y;
 
                 const auto v7 = v19 + 0.078125f;
                 const auto v1 = v19 + 0.0021f;
@@ -228,12 +228,12 @@ void CFont::PrintChar(float x, float y, uint8 character) {
                 const auto v3 = v7 - 0.016f;
                 const auto u4 = u2;
                 const auto v4 = v7 - 0.015f;
-                CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
+                CSprite2d::AddToBuffer(rt, RenderState.Color, u1, v1, u2, v2, u3, v3, u4, v4);
             }
         } else { // Slant != 0.0f
             rt.bottom = y + 0.015f;
-            rt.right  = 32.0f * RenderState.m_fWidth + x;
-            rt.top    = 20.0f * RenderState.m_fHeight + y + 0.015f;
+            rt.right  = 32.0f * RenderState.Width + x;
+            rt.top    = 20.0f * RenderState.Height + y + 0.015f;
 
             float v8  = v19 + 0.078125f;
 
@@ -244,7 +244,7 @@ void CFont::PrintChar(float x, float y, uint8 character) {
             float v3  = v8 - 0.009f;
             float u4  = u2;
             float v4  = v8 + 0.0079f; // v8 - 0.0021 + 0.01
-            CSprite2d::AddToBuffer(rt, RenderState.m_color, u1, v1, u2, v2, u3, v3, u4, v4);
+            CSprite2d::AddToBuffer(rt, RenderState.Color, u1, v1, u2, v2, u3, v3, u4, v4);
         }
     }
 }
@@ -331,7 +331,7 @@ const GxtChar* CFont::ParseToken(const GxtChar* text, CRGBA& color, bool isBlip,
         break;
     case 'N':
     case 'n':
-        m_bNewLine = true;
+        m_NewLine = true;
         break;
     case 'O':
     case 'o':
@@ -455,9 +455,9 @@ void CFont::InitPerFrame() {
     m_Details.EdgeAmount       = 0;
     m_Details.EdgeSpace        = 0;
     m_Details.DropAmount       = 0;
-    m_bNewLine                 = false;
+    m_NewLine                  = false;
     PS2Symbol                  = EXSYMBOL_NONE;
-    RenderState.m_wFontTexture = +eFontTextureName::FONT2; // TODO
+    RenderState.FontTexture = +eFontTextureName::FONT2; // TODO
     s_RenderEndPtr             = reinterpret_cast<uintptr_t>(s_RenderFontBuffer.GetTop());
     CSprite::InitSpriteBuffer();
 }
@@ -470,14 +470,14 @@ void CFont::RenderFontBuffer() {
         return;
     }
 
-    Sprite[+RenderState.m_wFontTexture].SetRenderState();
+    Sprite[+RenderState.FontTexture].SetRenderState();
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
 
     RenderState.Set(s_RenderFontBuffer.GetTop());
 
-    CRGBA col           = RenderState.m_color;
-    float x             = RenderState.m_vPosn.x;
-    float y             = RenderState.m_vPosn.y;
+    CRGBA col           = RenderState.Color;
+    float x             = RenderState.Pos.x;
+    float y             = RenderState.Pos.y;
 
     const auto* textPtr = s_RenderFontBuffer.GetTop()->GetText();
     while (reinterpret_cast<uintptr_t>(textPtr) < s_RenderEndPtr) {
@@ -489,9 +489,9 @@ void CFont::RenderFontBuffer() {
             }
 
             RenderState.Set(nextState);
-            y       = RenderState.m_vPosn.y;
-            x       = RenderState.m_vPosn.x;
-            col     = RenderState.m_color;
+            y       = RenderState.Pos.y;
+            x       = RenderState.Pos.x;
+            col     = RenderState.Color;
 
             textPtr = nextState->GetText();
             continue;
@@ -500,17 +500,17 @@ void CFont::RenderFontBuffer() {
         PS2Symbol = EXSYMBOL_NONE;
 
         while (*textPtr == '~' && PS2Symbol == EXSYMBOL_NONE) {
-            textPtr = ParseToken(textPtr, col, RenderState.m_bContainImages, nullptr);
-            if (!RenderState.m_bContainImages) {
-                RenderState.m_color = col;
+            textPtr = ParseToken(textPtr, col, RenderState.ContainImages, nullptr);
+            if (!RenderState.ContainImages) {
+                RenderState.Color = col;
             }
         }
 
         // ASCII offset usually starts at space (32)
         uint8 letter = *textPtr - 32;
         auto  charID = letter;
-        if (RenderState.m_nFontStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
-            charID = FindSubFontCharacter(letter, RenderState.m_nFontStyle);
+        if (RenderState.FontStyle != eFontTextureStyle::SUBTITLES_AND_GOTHIC) {
+            charID = FindSubFontCharacter(letter, RenderState.FontStyle);
             letter = charID;
         } else {
             letter = RemapCharacterWithoutGraphic(letter);
@@ -520,33 +520,33 @@ void CFont::RenderFontBuffer() {
             y = (RenderState.SlopeRef.x - x) * RenderState.Slope + RenderState.SlopeRef.y;
         }
 
-        if (PS2Symbol == EXSYMBOL_NONE || !RenderState.m_bContainImages) {
+        if (PS2Symbol == EXSYMBOL_NONE || !RenderState.ContainImages) {
             PrintChar(x, y, letter);
             charID = letter;
         }
 
         if (PS2Symbol != EXSYMBOL_NONE) {
-            x += (RenderState.m_fHeight * 17.0f) + RenderState.m_nOutline;
+            x += (RenderState.Height * 17.0f) + RenderState.Outline;
         } else {
             const auto charWidth = GetLetterIdPropValue(charID);
-            x += (charWidth + RenderState.m_nOutline) * RenderState.m_fWidth;
+            x += (charWidth + RenderState.Outline) * RenderState.Width;
         }
 
         // apply wrap spacing if invalid
         if (!charID) {
-            x += RenderState.m_fWrap;
+            x += RenderState.Wrap;
         }
 
         if (*textPtr) {
             if (PS2Symbol != EXSYMBOL_NONE) {
                 PS2Symbol = EXSYMBOL_NONE;
-                Sprite[+RenderState.m_wFontTexture].SetRenderState();
+                Sprite[+RenderState.FontTexture].SetRenderState();
             } else {
                 textPtr++;
             }
         } else if (PS2Symbol != EXSYMBOL_NONE) {
             PS2Symbol = EXSYMBOL_NONE;
-            Sprite[+RenderState.m_wFontTexture].SetRenderState();
+            Sprite[+RenderState.FontTexture].SetRenderState();
         }
     }
 
@@ -648,7 +648,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
         const auto wrapLimit  = m_Details.Centre ? m_Details.CentreX : (m_Details.RightJustify ? x - m_Details.RightJustifyWrap : m_Details.WrapEnd);
 
         const auto totalWidth = stringWidth + width;
-        if ((totalWidth <= wrapLimit || isFirstWordInLine) && !m_bNewLine) {
+        if ((totalWidth <= wrapLimit || isFirstWordInLine) && !m_NewLine) {
             width = totalWidth;
             text = GetNextSpace(text);
             if (*text) {
@@ -677,7 +677,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
             text -= 3;
         }
 
-        const GxtChar* printEnd = m_bNewLine ? text - 3 : text;
+        const GxtChar* printEnd = m_NewLine ? text - 3 : text;
 
         float drawX{ x }, wrap{};
         if (m_Details.Justify && !m_Details.Centre) {
@@ -699,7 +699,6 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
 
         if (tag) {
             // read the saved tag from previous line to not forget its formatting
-
             savedTagBuffer[0] = '~';
             savedTagBuffer[1] = tag;
             savedTagBuffer[2] = '~';
@@ -707,7 +706,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
             text = savedTagBuffer;
         }
 
-        m_bNewLine = false;
+        m_NewLine = false;
         y += m_Details.Scale.y * 18.0f;
         ResetForNextLine();
     }
@@ -743,7 +742,7 @@ void CFont::PrintString(float x, float y, const GxtChar* text) {
 
     if (m_Details.Background) {
         CRect rt{};
-        RenderState.m_color = m_Details.Color;
+        RenderState.Color = m_Details.Color;
         GetTextRect(rt, x, y, text);
 
         if (m_Details.BackgroundOutline) {
@@ -766,10 +765,10 @@ void CFont::PrintString(float x, float y, const GxtChar* text) {
 void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float wrap) {
     auto savedColor = m_Details.Color;
 
-    if (RenderState.m_wFontTexture != +m_Details.FontTextureName) {
+    if (RenderState.FontTexture != +m_Details.FontTextureName) {
         // flush if texture's changed
         RenderFontBuffer();
-        RenderState.m_wFontTexture = +m_Details.FontTextureName;
+        RenderState.FontTexture = +m_Details.FontTextureName;
     }
 
     // Handle outline
@@ -834,19 +833,19 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     }
 
     // Set up the next character to be rendered
-    auto* next             = reinterpret_cast<CFontChar*>(s_RenderEndPtr);
-    next->m_fWidth         = m_Details.Scale.x;
-    next->m_fHeight        = m_Details.Scale.y;
-    next->m_color          = m_Details.Color;
-    next->m_fWrap          = wrap;
-    next->Slope            = m_Details.Slope;
-    next->SlopeRef         = m_Details.SlopeRef;
-    next->m_nFontStyle     = m_Details.FontTextureStyle;
-    next->m_bPropOn        = m_Details.Proportional;
-    next->m_wFontTexture   = +m_Details.FontTextureName; // TODO
-    next->m_bContainImages = m_Details.Shadow;
-    next->m_nOutline       = m_Details.EdgeSpace;
-    next->m_vPosn.Set(x, y);
+    auto* next          = reinterpret_cast<CFontChar*>(s_RenderEndPtr);
+    next->Width         = m_Details.Scale.x;
+    next->Height        = m_Details.Scale.y;
+    next->Color         = m_Details.Color;
+    next->Wrap          = wrap;
+    next->Slope         = m_Details.Slope;
+    next->SlopeRef      = m_Details.SlopeRef;
+    next->FontStyle     = m_Details.FontTextureStyle;
+    next->PropOn        = m_Details.Proportional;
+    next->FontTexture   = +m_Details.FontTextureName; // TODO
+    next->ContainImages = m_Details.Shadow;
+    next->Outline       = m_Details.EdgeSpace;
+    next->Pos.Set(x, y);
 
     s_RenderEndPtr += sizeof(CFontChar);
     auto& renderEndChar = reinterpret_cast<GxtChar*&>(s_RenderEndPtr);
@@ -854,8 +853,8 @@ void CFont::PrintString(float x, float y, const GxtChar* start, const GxtChar* e
     while (start < end) {
         if (*start == '~') {
             // saved color can change here
-            // TODO/BUG?: RenderState.m_bContainImages may contain stale data, makes this non-deterministic.
-            auto* tokenEnd = ParseToken(start, savedColor, RenderState.m_bContainImages, nullptr);
+            // TODO/BUG?: RenderState.ContainImages may contain stale data, makes this non-deterministic.
+            auto* tokenEnd = ParseToken(start, savedColor, RenderState.ContainImages, nullptr);
 
             if (!m_Details.Shadow && PS2Symbol == EXSYMBOL_NONE) {
                 m_Details.Color.r = savedColor.r;
@@ -909,9 +908,9 @@ float CFont::GetCharacterSize(uint8 letterId) {
     }
 
     if (m_Details.Proportional) {
-        return ((float)gFontData[+m_Details.FontTextureName].m_propValues[propValueIdx] + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
+        return ((float)gFontData[+m_Details.FontTextureName].PropValues[propValueIdx] + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
     } else {
-        return ((float)gFontData[+m_Details.FontTextureName].m_unpropValue + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
+        return ((float)gFontData[+m_Details.FontTextureName].UnpropValue + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
     }
 }
 
@@ -935,7 +934,7 @@ uint8 CFont::RemapCharacterWithoutGraphic(uint8 letter) {
 }
 
 // 0x7192C0
-uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
+uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
     if (style == eFontTextureStyle::PRICEDOWN) {
         // NOTE: font1 is loaded for pricedown, TOP: subtitles, BOTTOM: pricedown
         switch (letterId) {
@@ -996,19 +995,19 @@ uint8 FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
 // NOTSA
 static float GetLetterIdPropValue(uint8 letterId, bool propCond, uint16 style) {
     if (propCond) {
-        return gFontData[style].m_propValues[letterId];
+        return gFontData[style].PropValues[letterId];
     } else {
-        return gFontData[style].m_unpropValue;
+        return gFontData[style].UnpropValue;
     }
 }
 
 // 0x718770
-float GetLetterIdPropValue(uint8 letterId) {
-    return GetLetterIdPropValue((letterId != '?') ? letterId : 0, CFont::RenderState.m_bPropOn, CFont::RenderState.m_wFontTexture);
+float CFont::GetLetterIdPropValue(uint8 letterId) {
+    return ::GetLetterIdPropValue((letterId != '?') ? letterId : 0, CFont::RenderState.PropOn, CFont::RenderState.FontTexture);
 }
 
 // 0x719670, original name unknown
-float GetScriptLetterSize(uint8 letterId) {
+float CFont::GetScriptLetterSize(uint8 letterId) {
     letterId               = (letterId != '?') ? letterId : 0;
     const auto i           = CTheScripts::NumberOfIntroTextLinesThisFrame;
 
@@ -1025,7 +1024,7 @@ float GetScriptLetterSize(uint8 letterId) {
         return CFont::RemapCharacterWithoutGraphic(letterId);
     }();
 
-    const auto fontWidth = GetLetterIdPropValue(subFontChar, CTheScripts::IntroTextLines[i].IsProportional, style);
+    const auto fontWidth = ::GetLetterIdPropValue(subFontChar, CTheScripts::IntroTextLines[i].IsProportional, style);
     return CTheScripts::IntroTextLines[i].Scale.x * (fontWidth + CTheScripts::IntroTextLines[i].TextEdge);
 }
 

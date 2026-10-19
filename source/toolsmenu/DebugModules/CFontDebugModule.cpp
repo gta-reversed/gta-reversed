@@ -22,7 +22,7 @@ void FontDebugModule::RenderWindow() {
     InputText("Text to print", (char*)m_Text, std::size(m_Text));
     SameLine();
     if (Button("I'm feeling lucky")) {
-        strcpy((char*)m_Text, (char*)notsa::random_value(TheText.GetKeys()).string);
+        CMessages::StringCopy(m_Text, notsa::random_value(TheText.GetKeys()).string, std::size(m_Text));
     }
     InputFloat2("Position", (float*)&m_DrawPos, "%.2f");
     Separator();

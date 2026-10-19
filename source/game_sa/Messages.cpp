@@ -1,5 +1,5 @@
-#include "GxtChar.h"
 #include "StdInc.h"
+#include "GxtChar.h"
 
 #include "Messages.h"
 #include "Hud.h"

@@ -43,20 +43,20 @@ enum class eFontTextureName : uint8 {
 NOTSA_WENUM_DEFS_FOR(eFontTextureName);
 
 struct CFontChar {
-    uint8             m_cLetter;
-    uint8             m_dLetter;
-    CVector2D         m_vPosn;
-    float             m_fWidth;
-    float             m_fHeight;
-    CRGBA             m_color;
-    float             m_fWrap;
+    uint8             CLetter;
+    uint8             DLetter;
+    CVector2D         Pos;
+    float             Width;
+    float             Height;
+    CRGBA             Color;
+    float             Wrap;
     float             Slope;
     CVector2D         SlopeRef;
-    bool              m_bContainImages;
-    eFontTextureStyle m_nFontStyle;
-    bool              m_bPropOn;
-    uint16            m_wFontTexture;
-    uint8             m_nOutline;
+    bool              ContainImages;
+    eFontTextureStyle FontStyle;
+    bool              PropOn;
+    uint16            FontTexture;
+    uint8             Outline;
 
 public:
     // NOTSA
@@ -67,9 +67,9 @@ public:
 VALIDATE_SIZE(CFontChar, 0x30);
 
 struct tFontData {
-    std::array<uint8, 208> m_propValues;
-    uint8                  m_spaceValue;
-    uint8                  m_unpropValue;
+    std::array<uint8, 208> PropValues;
+    uint8                  SpaceValue;
+    uint8                  UnpropValue;
 };
 
 // initialize values from CFont::Initialise
