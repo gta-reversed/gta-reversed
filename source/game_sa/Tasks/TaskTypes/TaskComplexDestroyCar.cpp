@@ -19,7 +19,7 @@ void CTaskComplexDestroyCar::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x621C80);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x62D9E0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x62DA90);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6288C0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6288C0);
 }
 
 // 0x621C00
@@ -94,5 +94,46 @@ CTask* CTaskComplexDestroyCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 
 // 0x6288C0
 CTask* CTaskComplexDestroyCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6288C0, CTaskComplexDestroyCar*, CPed*>(this, ped);
+    // Vehicle is gone or already destroyed
+    if (!m_VehicleToDestroy || m_VehicleToDestroy->m_fHealth <= 0.f) {
+        return nullptr;
+    }
+
+    if (m_arg0) {
+        return CreateFirstSubTask(ped);
+    }
+
+    const auto SwitchSubTaskTo = [&](eTaskType taskType) -> CTask* {
+        if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT)) {
+            return CreateSubTask(taskType, ped);
+        }
+        return m_pSubTask;
+    };
+
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_DESTROY_CAR_MELEE: { // 0x628910
+        // Switched to a non-melee weapon => use the armed task
+        if (!ped->GetActiveWeapon().IsTypeMelee()) {
+            return SwitchSubTaskTo(TASK_COMPLEX_DESTROY_CAR_ARMED);
+        }
+        break;
+    }
+    case TASK_COMPLEX_DESTROY_CAR_ARMED: { // 0x628930
+        // Out of ammo => find a weapon that has some, or fall back to melee
+        if (!ped->GetActiveWeapon().GetAmmoInClip() && !ped->IsPlayer()) {
+            const auto weaponWithAmmo = rng::find_if(ped->m_aWeapons, [](const CWeapon& w) {
+                return w.GetAmmoInClip() > 0;
+            });
+            if (weaponWithAmmo != ped->m_aWeapons.end()) {
+                ped->SetCurrentWeapon((int32)std::distance(ped->m_aWeapons.begin(), weaponWithAmmo));
+            } else {
+                ped->SetCurrentWeapon(0); // Fists
+                return SwitchSubTaskTo(TASK_COMPLEX_DESTROY_CAR_MELEE);
+            }
+        }
+        break;
+    }
+    }
+
+    return m_pSubTask;
 }
