@@ -30,7 +30,7 @@ bool CCarFXRenderer::Initialise() {
 }
 
 // 0x5D5BC0
-void CCarFXRenderer::InitialiseDirtTexture() {
+bool CCarFXRenderer::InitialiseDirtTexture() {
     CTxdStore::ScopedTXDSlot txd{ "vehicle" };
 
     const auto grunge = RwTextureRead("vehiclegrunge256", nullptr);
@@ -46,15 +46,14 @@ void CCarFXRenderer::InitialiseDirtTexture() {
         const auto raster = RwTextureGetRaster(texture);
         auto* pixel = RwRasterLock(raster, 0, rwRASTERLOCKREADWRITE);
         for (auto p = 0; p < numPixels; p++, pixel += 4) { // NOTE: Original walks rows with a pitch of `width * 4` (instead of the raster's stride), same as this
-            // NOTE: Original computes `channel * i / 16 + (4080 - 255 * i) / 16` with integer math, so the components may be off by 1
             for (auto c = 0; c < 3; c++) { // RGB, alpha stays the same
-                pixel[c] = lerp<RwUInt8>(255, pixel[c], (float)i / (float)NUM_DIRT_TEXTURES);
+                pixel[c] = (RwUInt8)(pixel[c] * i / 16 + (255 * 16 - 255 * i) / 16);
             }
         }
         RwRasterUnlock(raster);
     }
 
-    // NOTE: Original returns `true`, but the only caller (`CVehicleModelInfo::SetupCommonData`) ignores it
+    return true;
 }
 
 // 0x5D5AD0
