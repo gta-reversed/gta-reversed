@@ -214,7 +214,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             return;
         }
 
-        if (CVector::DistSqr(FindPlayerCoors(), m_Physical->GetPosition()) > sq(24.f)) { // 0x4DF7D7
+        if (CVector::DistSqr(FindPlayerCoors(), m_Physical->GetPosition()) > sq(24.f)) { // 0x4DF7D7 (Inverted)
             m_Physical->SetType(ENTITY_TYPE_NOTINPOOLS);
             AudioEngine.ReportWeaponEvent(AE_WEAPON_FIRE, s_WeaponType, m_Physical);
 
