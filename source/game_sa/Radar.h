@@ -284,7 +284,7 @@ public:
     static void DrawMap();
 
     static void DrawCoordBlip(int32 blipIndex, bool isSprite);
-    static void DrawEntityBlip(int32 blipIndex, uint8 arg1);
+    static void DrawEntityBlip(int32 blipIndex, uint8 isSprite);
     static void ClearActualBlip(int32 blipIndex);
     static void ClearActualBlip(tRadarTrace& trace);
     static void ClearBlipForEntity(eBlipType blipType, int32 entityHandle);

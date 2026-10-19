@@ -106,4 +106,10 @@ inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheck
     .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CRadar_ClipRadarPoly_NoEntrySide{
+    .Name        = "CRadar::ClipRadarPoly - Corner read before the table",
+    .Description = "When a point of a radar area lies exactly on the radar's edge, no entry side is found and the original reads the corner before "
+                   "its table (stack garbage, a point at about the radar's centre), giving the area a spike to the middle. The fix inserts no corners instead.",
+    .Credit      = "mrxenginner"
+};
 };
