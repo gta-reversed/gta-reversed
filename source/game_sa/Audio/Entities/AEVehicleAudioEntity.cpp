@@ -64,6 +64,12 @@ CAEVehicleAudioEntity::~CAEVehicleAudioEntity() {
     if (m_IsInitialized) {
         Terminate();
     }
+    // Some sounds use this entity as their audio entity, but their lifespan is tied to another entity, and `Terminate` doesn't stop them.
+    // E.g.: `AE_BONNET_FLUBBER_FLUBBER` is tied to the flying component (bonnet), so if the component outlives
+    // the vehicle, the sound keeps calling `UpdateParameters` on this (by then deleted) audio entity.
+    if (notsa::bugfixes::GenericUB) {
+        AESoundManager.CancelSoundsOwnedByAudioEntity(this, true);
+    }
 }
 
 // 0x4F7670

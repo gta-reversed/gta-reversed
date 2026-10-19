@@ -4880,13 +4880,12 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
     };
 
     const auto CreateFx = [&, this](size_t typ) {
-        auto pos = GetDummyPosition(DUMMY_ENGINE);
         if (const auto mat = GetModellingMatrix()) {
             m_pFireParticle = g_fxMan.CreateFxSystem(
                 typ == 1
                     ? "fire_car"
                     : "fire_large",
-                pos,
+                GetDummyPositionObjSpace(DUMMY_ENGINE),
                 mat
             );
         }
@@ -4962,16 +4961,21 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                 }
                 CreateFx(partFxToUse);
                 SetFxVelocity();
+            } else {
+                BlowUpCar(m_pExplosionVictim, false);
+                SetFxVelocity();
             }
+            return;
         } else {
             m_fBurnTimer += floorTsMS;
             if (m_fBurnTimer > 5000.f) {
                 BlowUpCar(m_pExplosionVictim, false);
             }
-            if (partFxToUse == 0) {
-                SetFxVelocity();
-                return;
+            if (partFxToUse != 0) {
+                CreateFx(partFxToUse);
             }
+            SetFxVelocity();
+            return;
         }
     }
 
