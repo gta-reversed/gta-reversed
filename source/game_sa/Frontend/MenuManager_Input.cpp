@@ -890,10 +890,12 @@ void CMenuManager::CheckSliderMovement(int32 LeftRight) {
     }
 
     switch (item.m_nActionType) {
-    case MENU_ACTION_BRIGHTNESS:
-        m_PrefsBrightness = std::clamp<int32>(LeftRight * int32(363.0f / 15.0f) + m_PrefsBrightness, 0, 384);
+    case MENU_ACTION_BRIGHTNESS: {
+        constexpr auto step = 24.19f;
+        m_PrefsBrightness   = std::clamp<int32>((int32)(LeftRight * step + m_PrefsBrightness), 0, 384);
         SetBrightness((float)m_PrefsBrightness, false);
         break;
+    }
     case MENU_ACTION_RADIO_VOL: {
         m_nRadioVolume = std::clamp<int8>(4 * LeftRight + m_nRadioVolume, 0, 64);
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
@@ -905,7 +907,7 @@ void CMenuManager::CheckSliderMovement(int32 LeftRight) {
         break;
     }
     case MENU_ACTION_DRAW_DIST: {
-        constexpr auto step        = 7.0f / 128.0f;
+        constexpr auto step        = 0.054687496f;
         float          newDist     = LeftRight <= 0 ? m_fDrawDistance - step : m_fDrawDistance + step;
         m_fDrawDistance            = std::clamp<float>(newDist, 0.925f, 1.8f);
         CRenderer::ms_lodDistScale = m_fDrawDistance;
