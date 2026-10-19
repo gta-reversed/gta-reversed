@@ -141,7 +141,7 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
                 false,
                 false
             );
-            const auto UpdateSound = [&](float speed, float volume) { // 0x505F28
+            const auto UpdateSound = [&](float speed, float volume) { // 0x505F56
                 if (sound->GetVolume() < volume + GetDefaultVolume(AE_CITY_NOISE)) {
                     sound->SetVolume(std::min(volume + sound->GetVolume() + 0.3f, GetDefaultVolume(AE_CITY_NOISE) + volume));
                     cityNoiseVolumeBoostResidue = volume;
