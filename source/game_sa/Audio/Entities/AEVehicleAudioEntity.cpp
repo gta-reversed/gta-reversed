@@ -64,6 +64,9 @@ CAEVehicleAudioEntity::~CAEVehicleAudioEntity() {
     if (m_IsInitialized) {
         Terminate();
     }
+    if (notsa::bugfixes::GenericUB) { // Sounds `Terminate` doesn't stop, e.g. `AE_BONNET_FLUBBER_FLUBBER`
+        AESoundManager.CancelSoundsOwnedByAudioEntity(this, true);
+    }
 }
 
 // 0x4F7670
