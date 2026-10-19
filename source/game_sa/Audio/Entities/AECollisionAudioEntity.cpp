@@ -652,7 +652,7 @@ void CAECollisionAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos
             sound->SetSpeed(speed);
         }
     };
-    switch (sound->m_Event) {
+    switch (sound->m_Event) { // TODO: Events 1-3 aren't `eAudioEvents`, but custom ones used by `ReportWaterSplash`, name them
     case 1:                        return;
     case 2:                        return SetSpeedOnceStarted(1.26f);
     case 3:                        return SetSpeedOnceStarted(0.94f);
