@@ -606,8 +606,9 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
     constexpr auto SIMILAR_COLOUR_RANGE = 15;
 
     const auto IsSimilar = [](const CRGBA& a, const CRGBA& b) {
-        return b.r - SIMILAR_COLOUR_RANGE < a.r && b.g - SIMILAR_COLOUR_RANGE < a.g && b.b - SIMILAR_COLOUR_RANGE < a.b
-            && a.r < b.r + SIMILAR_COLOUR_RANGE && a.g < b.g + SIMILAR_COLOUR_RANGE && a.b < b.b + SIMILAR_COLOUR_RANGE;
+        return rng::all_of(rngv::iota(0u, 3u), [&](uint32 i) { // R, G, B
+            return b[i] - SIMILAR_COLOUR_RANGE < a[i] && a[i] < b[i] + SIMILAR_COLOUR_RANGE;
+        });
     };
 
     std::array<CRGBA, MENU_CAR_COLOR_COUNT> usedColours;
@@ -617,8 +618,8 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
     for (uint8 numUsed = 0; numUsed < MENU_CAR_COLOR_COUNT;) {
         const auto colour = CVehicleModelInfo::ms_vehicleColourTable[colourIdx].WithAlpha(255);
 
-        // BUG: Also compares against `usedColours[numUsed]`, which is still black
-        const auto isSimilar = numUsed > 0 && rng::any_of(usedColours | rngv::take(numUsed + 1), [&](const CRGBA& used) {
+        const auto numToCheck = notsa::bugfixes::CMenuSystem_FillGridWithCarColours_ComparesWithEmptySlot ? numUsed : numUsed + 1;
+        const auto isSimilar  = numUsed > 0 && rng::any_of(usedColours | rngv::take(numToCheck), [&](const CRGBA& used) {
             return IsSimilar(colour, used);
         });
         if (isSimilar && colourIdx + 1 < CVehicleModelInfo::NUM_VEHICLE_COLORS) {
