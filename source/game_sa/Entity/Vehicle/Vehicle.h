@@ -196,6 +196,7 @@ public:
 
 public:
     static constexpr auto NUM_VEHICLE_UPGRADES = 15u;
+    static constexpr uint16 ALARM_STATE_ARMED = 0xFFFF; //!< `m_nAlarmState`: Has an alarm that isn't going off (set as `-1`)
 
 public:
     enum class eComedyControlState : uint8 {
@@ -730,7 +731,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
 
-    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_info.m_nStatus == STATUS_WRECKED; }
+    bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == ALARM_STATE_ARMED || m_info.m_nStatus == STATUS_WRECKED; }
 
     CPlane* AsPlane() { return reinterpret_cast<CPlane*>(this); }
     CHeli*  AsHeli()  { return reinterpret_cast<CHeli*>(this); }

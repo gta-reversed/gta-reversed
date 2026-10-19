@@ -1725,7 +1725,7 @@ void CVehicle::ProcessCarAlarm() {
 
     const auto ts = (uint16)CTimer::GetTimeStepInMS();
     if (m_nAlarmState >= ts) {
-        m_nAlarmState = ts;
+        m_nAlarmState -= ts;
     } else {
         m_nAlarmState = 0;
         m_HornCounter = 0;
