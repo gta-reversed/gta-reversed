@@ -891,8 +891,7 @@ void CMenuManager::CheckSliderMovement(int32 LeftRight) {
 
     switch (item.m_nActionType) {
     case MENU_ACTION_BRIGHTNESS: {
-        constexpr auto step = 24.19f;
-        m_PrefsBrightness   = std::clamp<int32>((int32)(LeftRight * step + m_PrefsBrightness), 0, 384);
+        m_PrefsBrightness   = std::clamp<int32>((int32)(LeftRight * (363.0f / 15.0f) + m_PrefsBrightness), 0, 384);
         SetBrightness((float)m_PrefsBrightness, false);
         break;
     }
@@ -907,7 +906,7 @@ void CMenuManager::CheckSliderMovement(int32 LeftRight) {
         break;
     }
     case MENU_ACTION_DRAW_DIST: {
-        constexpr auto step        = 0.054687496f;
+        constexpr auto step        = 7.0f / 128.0f;
         float          newDist     = LeftRight <= 0 ? m_fDrawDistance - step : m_fDrawDistance + step;
         m_fDrawDistance            = std::clamp<float>(newDist, 0.925f, 1.8f);
         CRenderer::ms_lodDistScale = m_fDrawDistance;
