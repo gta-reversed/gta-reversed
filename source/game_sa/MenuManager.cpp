@@ -649,10 +649,9 @@ void CMenuManager::LoadSettings() {
         return;
     }
 
-    const auto previousLang = m_nPrefsLanguage;
     bInvertMouseY = true;
 
-    const auto SetToDefaultSettings = [&]() {
+    const auto SetToDefaultSettings = [&, previousLang = m_nPrefsLanguage]() {
         SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
@@ -682,6 +681,7 @@ void CMenuManager::LoadSettings() {
     uint32 version = 0u;
     struct { uint8 m_unk; uint8 m_separator; uint8 m_underscore; uint8 _align; } constants;
     FxQuality_e fxQuality = FX_QUALITY_HIGH;
+    auto previousLang = m_nPrefsLanguage;
 
     ReadFromFile(version);
     if (version < SETTINGS_FILE_VERSION || !ControlsManager.LoadSettings(file)) {
