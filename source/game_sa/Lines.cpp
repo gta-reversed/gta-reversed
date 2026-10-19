@@ -34,20 +34,11 @@ void CLines::RenderLineWithClipping(float startX, float startY, float startZ, fl
     // The line is split into 1 to 7 segments, depending on its length
     const auto numSegments = (int16)std::min(DistanceBetweenPoints(start, end) * 0.4f + 1.0f, 7.0f);
 
-    // Written as `from + (to - from) * t` instead of using `lerp()` to match the original rounding
-    const auto LerpColorComponent = [](uint8 from, uint8 to, float t) {
-        return (uint8)((float)from + (float)(to - from) * t);
-    };
     const auto SetVertex = [&](RwIm3DVertex* vertex, float t) {
-        const auto pos = start + (end - start) * t;
+        const auto pos   = start + (end - start) * t;
+        const auto color = lerp(startRGBA, endRGBA, t); // NOTE: Original computes `from + (to - from) * t`, so the components may be off by 1
         RwIm3DVertexSetPos(vertex, pos.x, pos.y, pos.z);
-        RwIm3DVertexSetRGBA(
-            vertex,
-            LerpColorComponent(startRGBA.r, endRGBA.r, t),
-            LerpColorComponent(startRGBA.g, endRGBA.g, t),
-            LerpColorComponent(startRGBA.b, endRGBA.b, t),
-            LerpColorComponent(startRGBA.a, endRGBA.a, t)
-        );
+        RwIm3DVertexSetRGBA(vertex, color.r, color.g, color.b, color.a);
     };
 
     auto* vertex = TempBufferVertices.m_3d;
