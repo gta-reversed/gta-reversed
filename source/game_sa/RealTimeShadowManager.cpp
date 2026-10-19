@@ -177,6 +177,6 @@ void CRealTimeShadowManager::DoShadowThisFrame(CPhysical* physical) {
     if (const auto shdw = physical->m_pShadowData) {
         shdw->m_bKeepAlive = true;
     } else {
-        (void)GetRealTimeShadow(physical); // ???
+        (void)GetRealTimeShadow(physical);
     }
 }
