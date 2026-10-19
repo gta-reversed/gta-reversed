@@ -381,7 +381,7 @@ protected:
 
     // 0x4E3520 / 0x4E4D10
     template<bool IsPedless>
-    void I_UpdateParameters(CAESound* sound, int16 playTime);
+    void I_UpdateParameters(CAESound* sound, int16 playTime, CEntity* attachedTo = nullptr);
 
     // 0x4E5CD0 / 0x4E6380
     template<bool IsPedless>

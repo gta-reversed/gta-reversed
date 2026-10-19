@@ -50,10 +50,7 @@ int16 CAEPedlessSpeechAudioEntity::AddSayEvent(eAudioEvents audioEvent, eGlobalS
 
 // 0x4E4D10
 void CAEPedlessSpeechAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
-    I_UpdateParameters<true>(sound, playTime);
-    if (playTime != -1 && !m_IsFrontend && sound->m_Event == AE_SPEECH_PED && m_AttachedTo) { // 0x4E4DA4
-        sound->SetPosition(m_AttachedTo->GetPosition());
-    }
+    return I_UpdateParameters<true>(sound, playTime, m_AttachedTo);
 }
 
 // 0x4E6300

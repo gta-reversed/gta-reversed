@@ -1360,7 +1360,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent<true>(CVector pos, eAudioEvents aud
 
 // 0x4E3520 / 0x4E4D10
 template<bool IsPedless>
-void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime) {
+void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime, CEntity* attachedTo) {
     auto* const ped = IsPedless ? nullptr : m_Entity->AsPed();
     auto* const speech = GetCurrentSpeech();
     if (playTime == -1) { // Sound has finished?
@@ -1398,7 +1398,11 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
         }
     } else { // Update sound
         speech->Status = CAEPedSpeechSlot::eStatus::PLAYING;
-        if constexpr (!IsPedless) { // Pedless: See `CAEPedlessSpeechAudioEntity::UpdateParameters`
+        if constexpr (IsPedless) {
+            if (!m_IsFrontend && sound->m_Event == AE_SPEECH_PED && attachedTo) { // 0x4E4DA4
+                sound->SetPosition(attachedTo->GetPosition());
+            }
+        } else {
             if (ped->bIsTalking && ped->m_nBodypartToRemove == PED_NODE_HEAD) {
                 sound->StopSound();
             } else if (!m_IsFrontend) {
@@ -1409,7 +1413,7 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
 }
 
 template
-void CAEPedSpeechAudioEntity::I_UpdateParameters<true>(CAESound* sound, int16 playTime);
+void CAEPedSpeechAudioEntity::I_UpdateParameters<true>(CAESound* sound, int16 playTime, CEntity* attachedTo);
 
 // 0x4E5CD0 / 0x4E6380
 template<bool IsPedless>
