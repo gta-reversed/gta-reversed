@@ -4918,10 +4918,10 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
         NOTSA_UNREACHABLE_CASE(wheelIndex);
     }
 
-    const bool slow = speed < 1.0f;
+    const bool slowEnoughForFx = speed < 1.0f;
     switch (wheelState) {
     case WHEEL_STATE_SPINNING: {
-        if (AddWheelDirtAndWater(colPoint, slow, true, inWater) && emitParticles) {
+        if (AddWheelDirtAndWater(colPoint, slowEnoughForFx, true, inWater) && emitParticles) {
             FxPrtMult_c prt(0.9f, 0.9f, 1.0f, 0.5f, 1.0f, 1.0f, 0.5f);
 
             if (m_vecMoveSpeed.Magnitude() > 0.15f) {
@@ -4955,7 +4955,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
         }
         [[fallthrough]];
     case WHEEL_STATE_FIXED: {
-        if (speed > 0.03f && AddWheelDirtAndWater(colPoint, slow, false, inWater) && emitParticles) {
+        if (speed > 0.03f && AddWheelDirtAndWater(colPoint, slowEnoughForFx, false, inWater) && emitParticles) {
             FxPrtMult_c   prt(0.9f, 0.9f, 1.0f, 0.5f, 0.7f, 1.0f, 0.3f);
             const CVector vel(0.0f, 0.0f, 0.5f);
             float         mult = 2.0f;
@@ -4987,7 +4987,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
     }
     default: { // WHEEL_STATE_NORMAL (rolling)
         if (speed > 0.03f) {
-            AddWheelDirtAndWater(colPoint, slow, false, inWater);
+            AddWheelDirtAndWater(colPoint, slowEnoughForFx, false, inWater);
         }
         // marks are leaved in case of bAlwaysSkidMarks/odd wheel/moving horz/bloodState or forced it (flags & 2)
         if (!(vehicleFlags.bAlwaysSkidMarks && isRearWheel && std::sqrt(sq(m_vecMoveSpeed.x) + sq(m_vecMoveSpeed.y)) > 0.04f)
@@ -5017,8 +5017,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
         }
     }
 
-    const float width = FindWheelWidth(isRearWheel);
-    CSkidmarks::RegisterOne((uintptr)this + wheelIndex, posCopy, GetForward().x, GetForward().y, skidmarkType, &bloodState, width);
+    CSkidmarks::RegisterOne((uintptr)this + wheelIndex, posCopy, GetForward().x, GetForward().y, skidmarkType, &bloodState, FindWheelWidth(isRearWheel));
     return false;
 }
 
