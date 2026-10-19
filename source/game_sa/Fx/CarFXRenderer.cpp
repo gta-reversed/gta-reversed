@@ -45,7 +45,7 @@ bool CCarFXRenderer::InitialiseDirtTexture() {
 
         const auto raster = RwTextureGetRaster(texture);
         auto* pixel = RwRasterLock(raster, 0, rwRASTERLOCKREADWRITE);
-        for (auto p = 0; p < numPixels; p++, pixel += 4) { // NOTE: Original walks rows with a pitch of `width * 4` (instead of the raster's stride), same as this
+        for (auto p = 0; p < numPixels; p++, pixel += 4) { // NOTE: Assumes a pitch of `width * 4` (ignores the raster's stride), like the original
             for (auto c = 0; c < 3; c++) { // RGB, alpha stays the same
                 pixel[c] = (RwUInt8)(pixel[c] * i / 16 + (255 * 16 - 255 * i) / 16);
             }
