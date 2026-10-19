@@ -6,12 +6,12 @@ void CDecision::InjectHooks() {
     RH_ScopedClass(CDecision);
     RH_ScopedCategory("DecisionMakers");
 
-    RH_ScopedInstall(SetDefault, 0x600530, { .reversed = false });
-    RH_ScopedInstall(Set, 0x600570);
-    //RH_ScopedInstall(Add, 0x600600, { .reversed = false });
+    RH_ScopedInstall(SetDefault, 0x600530);
+    RH_ScopedInstall(Set, 0x600570, { .Reversed = false });
+    //RH_ScopedInstall(Add, 0x600600, { .Reversed = false });
     RH_ScopedInstall(From, 0x6006B0);
-    //RH_ScopedInstall(HasResponse, 0x600710, { .reversed = false });
-    //RH_ScopedInstall(MakeDecision, 0x6040D0, { .reversed = false });
+    //RH_ScopedInstall(HasResponse, 0x600710, { .Reversed = false });
+    //RH_ScopedInstall(MakeDecision, 0x6040D0, { .Reversed = false });
 }
 
 // 0x6040C0
@@ -21,7 +21,9 @@ CDecision::CDecision() {
 
 // 0x600530
 void CDecision::SetDefault() {
-    plugin::CallMethod<0x600530, CDecision*>(this);
+    m_Tasks.fill(TASK_INVALID);
+    m_Probs.fill({});
+    m_Bools.fill({});
 }
 
 // 0x6006B0

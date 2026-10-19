@@ -13,18 +13,18 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     // Install("CProjectileInfo", "", , &CProjectileInfo::);
-    RH_ScopedInstall(Initialise, 0x737B40, { .reversed = false });
-    RH_ScopedInstall(Shutdown, 0x737BC0, { .reversed = false });
-    RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .reversed = false });
-    RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .reversed = false });
-    RH_ScopedInstall(AddProjectile, 0x737C80, { .reversed = false });
-    RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .reversed = false });
-    RH_ScopedInstall(RemoveProjectile, 0x7388F0, { .reversed = false });
-    RH_ScopedInstall(Update, 0x738B20, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x737B40, { .Reversed = false });
+    RH_ScopedInstall(Shutdown, 0x737BC0, { .Reversed = false });
+    RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .Reversed = false });
+    RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .Reversed = false });
+    RH_ScopedInstall(AddProjectile, 0x737C80, { .Reversed = false });
+    RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .Reversed = false });
+    RH_ScopedInstall(RemoveProjectile, 0x7388F0, { .Reversed = false });
+    RH_ScopedInstall(Update, 0x738B20, { .Reversed = false });
     RH_ScopedInstall(IsProjectileInRange, 0x739860);
-    RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .reversed = false });
-    RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40, { .reversed = false });
-    RH_ScopedInstall(RemoveFXSystem, 0x737B80, { .reversed = false });
+    RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .Reversed = false });
+    RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40, { .Reversed = false });
+    RH_ScopedInstall(RemoveFXSystem, 0x737B80, { .Reversed = false });
 }
 
 // 0x737B40

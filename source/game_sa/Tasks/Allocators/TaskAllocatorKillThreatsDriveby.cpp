@@ -76,5 +76,5 @@ void CTaskAllocatorKillThreatsDriveby::InjectHooks() {
 
     RH_ScopedVMTInstall(GetType, 0x69CB50);
     RH_ScopedVMTInstall(AllocateTasks, 0x69CC30);
-    RH_ScopedVMTInstall(ProcessGroup, 0x69CBC0);
+    RH_ScopedVMTInstall(ProcessGroup, 0x69CBC0, { .Overrides = false });
 }

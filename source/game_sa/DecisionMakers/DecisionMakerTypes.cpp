@@ -5,6 +5,14 @@
 void CDecisionMakerTypes::InjectHooks() {
     RH_ScopedClass(CDecisionMakerTypes);
     RH_ScopedCategory("DecisionMakers");
+    RH_ScopedInstall(AddDecisionMaker, 0x607050, { .Reversed = false });
+    RH_ScopedInstall(GetInstance, 0x4684F0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "ped-ptr", 0x606E70, void(CDecisionMakerTypes::*)(CPed*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType, bool, int16&, int16&), { .Reversed = false });
+    RH_ScopedInstall(RemoveDecisionMaker, 0x6043A0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(MakeDecision, "pedgroup-ptr", 0x606F80, eTaskType(CDecisionMakerTypes::*)(CPedGroup*, eEventType, int32, bool, eTaskType, eTaskType, eTaskType, eTaskType), { .Reversed = false });
+    RH_ScopedInstall(AddEventResponse, 0x6044C0, { .Reversed = false });
+    RH_ScopedInstall(FlushDecisionMakerEventResponse, 0x604490, { .Reversed = false });
+    RH_ScopedInstall(LoadEventIndices, 0x600840, { .Reversed = false });
 }
 
 // 0x607050
@@ -24,7 +32,7 @@ void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 ev
 
 // 0x6043A0
 void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionTypes dm) {
-    return plugin::Call<0x6043A0>(dm);
+    return plugin::CallMethod<0x6043A0>(this, dm);
 }
 
 // 0x606F80

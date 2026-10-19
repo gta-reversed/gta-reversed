@@ -175,7 +175,7 @@ void CCarAI::BackToCruisingIfNoWantedLevel(CVehicle* vehicle) {
 
 // 0x41C050
 void CCarAI::CarHasReasonToStop(CVehicle* vehicle) {
-    vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::m_snTimeInMilliseconds;
+    vehicle->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
 }
 
 // 0x41CD00

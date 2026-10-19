@@ -5,6 +5,7 @@
 void CTaskComplexLeaveCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexLeaveCar, 0x86E828, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
+    RH_ScopedInstall(CreateSubTask, 0x641530, { .Reversed = false });
 }
 
 // 0x62F1A0

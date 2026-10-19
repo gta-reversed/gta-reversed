@@ -30,7 +30,7 @@ void CTaskSimpleUseGun::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x622F20);
     RH_ScopedVMTInstall(GetTaskType, 0x61DF20);
     RH_ScopedVMTInstall(MakeAbortable, 0x624E30);
-    RH_ScopedVMTInstall(ProcessPed, 0x62A380, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x62A380, { .Reversed = false });
     RH_ScopedVMTInstall(SetPedPosition, 0x624ED0);
 }
 

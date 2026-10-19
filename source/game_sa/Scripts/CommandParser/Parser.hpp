@@ -6,7 +6,7 @@
 #include "RunningScript.h"
 
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
-#include <reversiblehooks/ReversibleHook/ScriptCommand.h>
+#include <reversiblehooks/ReversibleHook/ScriptCommandHook.h>
 #endif
 
 class CRunningScript;
@@ -112,23 +112,17 @@ void NOPCommandHandler(Args... args) {
 };
 };
 
-//! Register a custom command handler
-#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
-//! Use this before calling any of the 
+//! Call this (once) before using REGISTER_COMMAND_HANDLER
 #define REGISTER_COMMAND_HANDLER_BEGIN(_namespace) \
     RH_ScopedCategory("Scripts/Commands") \
     RH_ScopedNamespaceName(_namespace)
+
+//! Call this to register a custom command handler
 #define REGISTER_COMMAND_HANDLER(cmd, fn) \
     do { \
         ::notsa::script::detail::AddCommandHandler<cmd, ::notsa::detail::AddressOfFunction(fn)>(); \
         RH_ScopedInstallScriptCommand(cmd); \
     } while (0)
-#else
-#define REGISTER_COMMAND_HANDLER_BEGIN(_namespace) \
-    ((void)(_namespace))
-#define REGISTER_COMMAND_HANDLER(cmd, fn) \
-    ::notsa::script::detail::AddCommandHandler<cmd, ::notsa::detail::AddressOfFunction(fn)>()
-#endif
 
 //! Register a command handler for an unimplemented command (That is, a command that wasn't implemented in the game either)
 #define REGISTER_COMMAND_UNIMPLEMENTED(cmd) \

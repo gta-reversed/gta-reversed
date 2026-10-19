@@ -77,7 +77,8 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(FindObjectsKindaColliding, 0x568B80);
     RH_ScopedInstall(FindObjectsOfTypeInRangeSectorList<CPtrListDoubleLink<CPhysical*>>, 0x5635C0);
     RH_ScopedInstall(FindObjectsInRangeSectorList<CPtrListDoubleLink<CPhysical*>>, 0x563500);
-    RH_ScopedInstall(FindPlayerSlotWithVehiclePointer, 0x563FD0);
+    RH_ScopedInstall(FindPlayerSlotWithRemoteVehiclePointer, 0x563FD0);
+    RH_ScopedInstall(FindPlayerSlotWithVehiclePointer, 0x564000);
     RH_ScopedInstall(FindNearestObjectOfTypeSectorList<CPtrListDoubleLink<CPhysical*>>, 0x565450);
     RH_ScopedInstall(FindMissionEntitiesIntersectingCubeSectorList<CPtrListDoubleLink<CPhysical*>>, 0x565300);
     RH_ScopedInstall(FindObjectsIntersectingAngledCollisionBoxSectorList<CPtrListDoubleLink<CPhysical*>>, 0x565200);
@@ -242,7 +243,7 @@ void CWorld::ProcessForAnimViewer() {
 void CWorld::ProcessPedsAfterPreRender() {
     ZoneScoped;
 
-    if (CTimer::bSkipProcessThisFrame) {
+    if (CTimer::IsSkipProcessThisFrame()) {
         return;
     }
 
@@ -2178,7 +2179,7 @@ void CWorld::Process() {
 
     GetEventGlobalGroup()->Flush(false);
 
-    if ((CTimer::m_FrameCounter % 64) == 0) {
+    if ((CTimer::GetFrameCounter() % 64) == 0) {
         CReferences::PruneAllReferencesInWorld();
     }
 

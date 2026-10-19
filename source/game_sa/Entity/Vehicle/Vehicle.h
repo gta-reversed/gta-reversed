@@ -71,6 +71,11 @@ enum eVehicleLightsFlags : uint32 {
     VEHICLE_LIGHTS_DISABLE_REAR = 32
 };
 
+enum class eVehicleLightId : uint32 {
+    MAIN      = 0,
+    SECONDARY = 1
+};
+
 enum eVehicleCreatedBy : uint8 {
     RANDOM_VEHICLE = 1,
     MISSION_VEHICLE = 2,
@@ -129,13 +134,15 @@ typedef int32 eOrdnanceType;
 typedef int32 eBikeWheelSpecial;
 
 enum eFlightModel : int32 {
-    FLIGHT_MODEL_UNK = 0,
-    FLIGHT_MODEL_BARON = 1,
-    FLIGHT_MODEL_RC = 2,
-    FLIGHT_MODEL_PLANE = 3, // also used for cars
-    FLIGHT_MODEL_UNK2 = 4,
-    FLIGHT_MODEL_BOAT = 5,
-    FLIGHT_MODEL_HELI = 6, // also used for hydra
+    FLIGHTMODEL_DODO_CLIPPED = 0, // dodo with clipped wings
+    FLIGHTMODEL_RCPLANE = 1, // aka RCBaron
+    FLIGHTMODEL_RCHELI = 2, // aka RCRaider/RCGoblin
+    FLIGHTMODEL_PLANE = 3, // also used for cars
+    FLIGHTMODEL_PLANE_LOWPOWER = 4,
+    FLIGHTMODEL_PLANE_GLIDER = 5,
+    FLIGHTMODEL_HELI = 6, // also used for hydra
+    FLIGHTMODEL_HELI2 = 7,
+    FLIGHTMODEL_AUTOGYRO = 8
 };
 
 enum tWheelState : int32 {
@@ -646,13 +653,15 @@ public:
     void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
     void ProcessSirenAndHorn(bool arg0);
 
-    bool DoHeadLightEffect(eVehicleDummy dummyId, CMatrix& vehicleMatrix, uint8 lightId, uint8 lightState);
-    void DoHeadLightBeam(eVehicleDummy dummyId, CMatrix& matrix, bool arg2);
-    void DoHeadLightReflectionSingle(CMatrix& matrix, bool isRight);
-    void DoHeadLightReflectionTwin(CMatrix& matrix);
-    void DoHeadLightReflection(CMatrix& matrix, uint32 flags, bool left, bool right);
-    bool DoTailLightEffect(int32 lightId, CMatrix& matrix, uint8 arg2, uint8 arg3, uint32 arg4, uint8 arg5);
-    void DoVehicleLights(CMatrix& matrix, eVehicleLightsFlags flags);
+    bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm);
+    void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight);
+    void DoHeadLightReflectionSingle(CMatrix& vehicleMatrix, bool isRight);
+    void DoHeadLightReflectionTwin(CMatrix& vehicleMatrix);
+    void DoHeadLightReflectionImpl(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight); // NOTSA
+    void DoHeadLightReflection(CMatrix& vehicleMatrix, eVehicleLightsFlags flags, bool includeLeft, bool includeRight);
+    bool DoTailLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, eVehicleLightsFlags flags_unused, bool staticEmission);
+    bool DoLightEffectImpl(bool isFront, eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm, bool staticEmission); // NOTSA
+    void DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags);
 
     void FillVehicleWithPeds(bool bSetClothesToAfro);
     bool DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, float radius, float damageMult);

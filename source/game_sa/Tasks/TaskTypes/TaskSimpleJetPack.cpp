@@ -34,7 +34,7 @@ void CTaskSimpleJetPack::InjectHooks() {
     RH_ScopedInstall(RenderJetPack, 0x67F6A0);
 
     RH_ScopedInstall(ProcessAnims, 0x67B5C0);
-    RH_ScopedInstall(DropJetPack, 0x67B660, { .reversed = false }); // Can't hook it, because `CPickups::GenerateNewOne` doesn't work properly
+    RH_ScopedInstall(DropJetPack, 0x67B660, { .Reversed = false }); // Can't hook it, because `CPickups::GenerateNewOne` doesn't work properly
     RH_ScopedInstall(ApplyRollAndPitch, 0x67B720);
     RH_ScopedInstall(DoJetPackEffect, 0x67B7F0);
     RH_ScopedInstall(StopJetPackEffect, 0x67BA10);
@@ -139,7 +139,7 @@ bool CTaskSimpleJetPack::ProcessPed(CPed* ped) {
             m_ThrustStrafe = std::clamp(m_ThrustStrafe + CGeneral::DoCoinFlip() ? -1.f : 1.f, -3.f, 3.f);
 
             ped->m_fAimingRotation +=
-                std::sin((float)CTimer::m_snTimeInMilliseconds * 0.0015707964f) * CTimer::GetTimeStep() * JETPACK_TURN_RATE * CGeneral::GetRandomNumberInRange(0.f, 1.f); // TODO: Magic number
+                std::sin((float)CTimer::GetTimeInMS() * 0.0015707964f) * CTimer::GetTimeStep() * JETPACK_TURN_RATE * CGeneral::GetRandomNumberInRange(0.f, 1.f); // TODO: Magic number
 
             if (ped->GetPlayerData()) {
                 ped->GetPlayerData()->m_fMoveBlendRatio = 0.f;

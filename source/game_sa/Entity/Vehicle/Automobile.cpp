@@ -124,9 +124,10 @@ void CAutomobile::InjectHooks()
     RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B3E90);
     RH_ScopedVMTInstall(GetHeightAboveRoad, 0x6A62B0);
     RH_ScopedVMTInstall(GetNumContactWheels, 0x6A62A0);
+    RH_ScopedVMTInstall(SetModelIndex, 0x6A6590);
     RH_ScopedVMTInstall(Teleport, 0x6A9CA0);
-    RH_ScopedVMTInstall(Save, 0x5D47E0, {.enabled = false });
-    RH_ScopedVMTInstall(Load, 0x5D2980, {.enabled = false });
+    RH_ScopedVMTInstall(Save, 0x5D47E0, {.State = HS::RedirectToGTA });
+    RH_ScopedVMTInstall(Load, 0x5D2980, {.State = HS::RedirectToGTA });
     RH_ScopedVMTInstall(ProcessControl, 0x6B1880);
     RH_ScopedVMTInstall(AddMovingCollisionSpeed, 0x6A1ED0);
     RH_ScopedVMTInstall(ProcessAI, 0x6B4800);
@@ -1468,7 +1469,7 @@ void CAutomobile::ProcessFlyingCarStuff()
             && m_vecMoveSpeed.Magnitude() > 0.0f
             && CTimer::GetTimeStep() > 0.0f
         ) {
-            FlyingControl(FLIGHT_MODEL_PLANE, -9999.9902F, -9999.9902F, -9999.9902F, -9999.9902F);
+            FlyingControl(FLIGHTMODEL_PLANE, -9999.9902F, -9999.9902F, -9999.9902F, -9999.9902F);
         }
     }
 }
@@ -3430,6 +3431,12 @@ bool CAutomobile::Load() {
     CVehicle::Load();
     CGenericGameStorage::LoadDataFromWorkBuffer(&m_damageManager, sizeof(m_damageManager));
     return true;
+}
+
+// 0x6A6590
+void CAutomobile::SetModelIndex(uint32 index) {
+    CVehicle::SetModelIndex(index);
+    SetupModelNodes();
 }
 
 // 0x6A0770

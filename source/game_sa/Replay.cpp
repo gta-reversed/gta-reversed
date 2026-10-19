@@ -703,9 +703,9 @@ void CReplay::StoreStuffInMem() {
     Time1 = CTimer::GetTimeInMS();
     Time2 = CTimer::GetTimeInMSNonClipped();
     Time3 = CTimer::GetPreviousTimeInMS();
-    Time4 = CTimer::m_snPPreviousTimeInMilliseconds;
-    Time5 = CTimer::m_snPPPreviousTimeInMilliseconds;
-    Time6 = CTimer::m_snPPPPreviousTimeInMilliseconds;
+    Time4 = CTimer::GetPPreviousTimeInMs();
+    Time5 = CTimer::GetPPPreviousTimeInMs();
+    Time6 = CTimer::GetPPPPreviousTimeInMs();
     Time7 = CTimer::GetTimeInMSPauseMode();
     Frame = CTimer::GetFrameCounter();
     TimeScale = CTimer::GetTimeScale();
@@ -761,11 +761,10 @@ void CReplay::RestoreStuffFromMem() {
 
     CTimer::SetTimeInMS(Time1);
     CTimer::SetTimeInMSNonClipped(Time2);
-    CTimer::SetPreviousTimeInMS(Time3);
-    CTimer::m_snPreviousTimeInMilliseconds = Time3;
-    CTimer::m_snPPreviousTimeInMilliseconds = Time4;
-    CTimer::m_snPPPreviousTimeInMilliseconds = Time5;
-    CTimer::m_snPPPPreviousTimeInMilliseconds = Time6;
+    CTimer::SetPreviousTimeInMs(Time3);
+    CTimer::SetPPreviousTimeInMs(Time4);
+    CTimer::SetPPPreviousTimeInMs(Time5);
+    CTimer::SetPPPPreviousTimeInMs(Time6);
     CTimer::SetTimeInMSPauseMode(Time7);
     CTimer::SetTimeStep(TimeStep);
     CTimer::SetTimeStepNonClipped(TimeStepNonClipped);
