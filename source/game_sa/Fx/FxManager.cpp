@@ -117,10 +117,8 @@ void FxManager_c::DestroyFxSystem(FxSystem_c* system) {
 
 // 0x4A98B0
 void FxManager_c::DestroyAllFxSystems() {
-    for (FxSystem_c* it = m_FxSystems.GetHead(); it;) {
-        auto* const system = it;
-        it = m_FxSystems.GetNext(it); // Iterator will be invalidated, so get next here immediately
-        DestroyFxSystem(system);
+    for (auto it = m_FxSystems.GetHead(); it;) {
+        DestroyFxSystem(std::exchange(it, m_FxSystems.GetNext(it))); /* destroy invalidates iterator */
     }
 }
 
