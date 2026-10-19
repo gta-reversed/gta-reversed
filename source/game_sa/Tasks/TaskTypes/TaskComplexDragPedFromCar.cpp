@@ -37,18 +37,18 @@ CTask* CTaskComplexDragPedFromCar::ControlSubTask(CPed* ped) {
 
 // 0x643D00
 CTask* CTaskComplexDragPedFromCar::CreateFirstSubTask(CPed* ped) {
-    if (!m_Ped) {
+    if (!m_Ped || !m_Ped->IsInVehicle()) {
         return CreateSubTask(TASK_NONE, ped);
     }
 
-    auto* const pedVeh = m_Ped->m_pVehicle;
-    if (!pedVeh || !m_Ped->bInVehicle || (!pedVeh->IsPassenger(m_Ped) && !pedVeh->IsDriver(m_Ped))) {
-        return CreateSubTask(TASK_NONE, ped);
+    auto* const dragFrom = m_Ped->m_pVehicle;
+    if (!dragFrom->IsPassenger(m_Ped) && !dragFrom->IsDriver(m_Ped)) {
+        return CreateSubTask(TASK_NONE, ped); // Pirulax: I believe this can happen if the ped is in the process of getting out
     }
 
     // The vehicle we're working with is the one that the dragged ped is in
     CEntity::SafeCleanUpRef(m_Car);
-    m_Car = pedVeh;
+    m_Car = dragFrom;
     CEntity::SafeRegisterRef(m_Car);
 
     m_bAsDriver                = m_Car->m_pDriver == m_Ped;
