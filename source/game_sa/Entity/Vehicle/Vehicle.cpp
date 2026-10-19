@@ -4913,7 +4913,9 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
     case CAR_WHEEL_FRONT_LEFT:
     case CAR_WHEEL_FRONT_RIGHT: break;
     case CAR_WHEEL_REAR_LEFT:
-    case CAR_WHEEL_REAR_RIGHT: isRearWheel = true; break;
+    case CAR_WHEEL_REAR_RIGHT:
+    case 5: // exactly 5 and 6 for rear middle wheels for trucks... see CAutomobile::PreRender()
+    case 6: isRearWheel = true; break; // also bugfix, according to og logic, 6 or right middle is not a rear wheel
     default:
         NOTSA_UNREACHABLE_CASE(wheelIndex);
     }
@@ -5009,9 +5011,11 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
         CVector quadOff = GetRight() * 0.15f;
         switch (wheelIndex) {
         case CAR_WHEEL_FRONT_LEFT:
-        case CAR_WHEEL_REAR_LEFT: posCopy += quadOff; break;
+        case CAR_WHEEL_REAR_LEFT:
+        case 5: posCopy += quadOff; break;
         case CAR_WHEEL_FRONT_RIGHT:
-        case CAR_WHEEL_REAR_RIGHT: posCopy -= quadOff; break;
+        case CAR_WHEEL_REAR_RIGHT:
+        case 6: posCopy -= quadOff; break; // see above for 5 and 6 cases
         default:
             NOTSA_UNREACHABLE_CASE(wheelIndex);
         }
