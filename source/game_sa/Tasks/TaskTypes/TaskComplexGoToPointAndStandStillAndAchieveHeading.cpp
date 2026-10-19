@@ -21,16 +21,16 @@ void CTaskComplexGoToPointAndStandStillAndAchieveHeading::InjectHooks() {
 }
 
 // 0x668CD0
-CTaskComplexGoToPointAndStandStillAndAchieveHeading::CTaskComplexGoToPointAndStandStillAndAchieveHeading(eMoveState moveState, const CVector& targetPos, float angle, float radius, float changeRateMult, float maxHeading)
-    : CTaskComplex()
+CTaskComplexGoToPointAndStandStillAndAchieveHeading::CTaskComplexGoToPointAndStandStillAndAchieveHeading(eMoveState moveState, const CVector& targetPos, float angle, float radius, float changeRateMult, float maxHeading) :
+    CTaskComplex{},
+    m_MoveState{moveState},
+    m_TargetPos{targetPos},
+    m_Radius{radius},
+    m_Angle{angle},
+    m_ChangeRateMult{changeRateMult},
+    m_MaxHeading{maxHeading},
+    m_HasNewTarget{true}
 {
-    m_MoveState = moveState;
-    m_TargetPos = targetPos;
-    m_Radius = radius;
-    m_MaxHeading = maxHeading;
-    m_nFlags = m_nFlags | 1; // todo: flags
-    m_Angle = angle;
-    m_ChangeRateMult = changeRateMult;
 }
 
 // 0x66DFD0
@@ -63,7 +63,7 @@ CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateSubTask(eTaskT
 
 // 0x66E030
 CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateFirstSubTask(CPed* ped) {
-    m_nFlags &= ~1u;
+    m_HasNewTarget = false;
     return CreateSubTask(TASK_SIMPLE_GO_TO_POINT);
 }
 
