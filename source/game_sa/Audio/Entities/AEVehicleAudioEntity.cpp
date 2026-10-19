@@ -3118,14 +3118,14 @@ void CAEVehicleAudioEntity::UpdateRotorFreq(float freq, float stepUp, float step
 }
 
 // notsa
-auto GetAircraftDistantSoundVolume(const CPhysical* v, float volFactor) {
-    const auto dist = CVector::Dist(TheCamera.GetPosition(), v->GetPosition());
-    if (dist < 48.f) {
+auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
+    const auto distSq = CVector::DistSqr(TheCamera.GetPosition(), v->GetPosition());
+    if (distSq <= sq(48.f)) {
         return -100.f;
     }
-    auto vol = CAEAudioUtility::AudioLog10(volFactor) * 20.f;
-    if (dist < 128.f) { // Fade in between 48 and 128 m
-        vol += CAEAudioUtility::AudioLog10(invLerp(48.f, 128.f, dist)) * 20.f;
+    auto vol = CAEAudioUtility::AudioLog10(baseVol) * 20.f;
+    if (distSq < sq(128.f)) {
+        vol += CAEAudioUtility::AudioLog10(invLerp(48.f, 128.f, std::sqrtf(distSq))) * 20.f; // NB: I think this should be substracted (The closer the plane is, the less volume the distant sound should have)
     }
     return vol + 8.f;
 }
