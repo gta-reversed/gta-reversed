@@ -86,7 +86,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(TidyUpMemory, 0x53C500);
 
     RH_ScopedGlobalInstall(CameraDestroy, 0x72FD90);
-    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA0BC);
+    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA060);
     RH_ScopedGlobalInstall(D3DDeviceRestoreCallback, 0x5BA120);
 }
 
@@ -115,7 +115,7 @@ static void CameraDestroy(RwCamera* rwCamera) {
     RwCameraDestroy(rwCamera);
 }
 
-// 0x5BA0BC
+// 0x5BA060
 void ValidateVersion() {
     auto file = CFileMgr::OpenFile("models\\coll\\peds.col", "rb");
     if (!file) {
