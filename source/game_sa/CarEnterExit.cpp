@@ -176,7 +176,7 @@ CPed* CCarEnterExit::GetPassengerAtCarDoor(const CVehicle* vehicle, int32 doorId
         // BUG: The original indexes `m_apPassengers` with the result unchecked. If the door has no passenger seat (e.g. door 8 on a bike,
         //      or seat 0 ("any seat") for `CTaskComplexEnterCarAsPassengerTimed`) that reads `m_apPassengers[-1]`, which is `m_pDriver`,
         //      the member right before it. At least for bikes that's what R* intended anyway (See `ComputeSlowJackedPed`).
-        return notsa::bugfixes::GenericOOB
+        return notsa::bugfixes::CCarEnterExit_GetPassengerAtCarDoor_NoPassengerSeat
             ? vehicle->m_pDriver
             : vehicle->m_apPassengers.data()[psgrIdx];
     }
