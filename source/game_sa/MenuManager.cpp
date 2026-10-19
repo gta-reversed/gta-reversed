@@ -549,7 +549,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_ShowMissionBlips               = true;
         m_ShowOtherBlips                 = true;
         m_ShowGangAreaBlips              = true;
-        m_bShowSubtitles                 = true;
+        m_bShowSubtitles                 = false;
         break;
     case SCREEN_CONTROLLER_SETUP:
         m_ControlMethod                  = eController::MOUSE_PLUS_KEYS;
@@ -649,13 +649,16 @@ void CMenuManager::LoadSettings() {
         return;
     }
 
+    const auto previousLang = m_nPrefsLanguage;
+    bInvertMouseY = true;
+
     const auto SetToDefaultSettings = [&]() {
         SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
-        m_nPrefsVideoMode = 0;
-        m_nPrefsLanguage = eLanguage::AMERICAN;
+        m_nCurrentRwSubsystem = 0;
+        m_nPrefsLanguage = previousLang;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
 
         CFileMgr::CloseFile(file);
@@ -679,7 +682,6 @@ void CMenuManager::LoadSettings() {
     uint32 version = 0u;
     struct { uint8 m_unk; uint8 m_separator; uint8 m_underscore; uint8 _align; } constants;
     FxQuality_e fxQuality = FX_QUALITY_HIGH;
-    auto previousLang = m_nPrefsLanguage;
 
     ReadFromFile(version);
     if (version < SETTINGS_FILE_VERSION || !ControlsManager.LoadSettings(file)) {
