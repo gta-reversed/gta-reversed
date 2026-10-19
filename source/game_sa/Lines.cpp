@@ -2,6 +2,15 @@
 
 #include "Lines.h"
 
+void CLines::InjectHooks() {
+    RH_ScopedClass(CLines);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedOverloadedInstall(RenderLineNoClipping, "", 0x6FF460, void(*)(float, float, float, float, float, float, uint32, uint32));
+    RH_ScopedOverloadedInstall(RenderLineWithClipping, "", 0x6FF4F0, void(*)(float, float, float, float, float, float, uint32, uint32));
+    RH_ScopedOverloadedInstall(ImmediateLine2D, "", 0x6FF790, void(*)(int32, int32, int32, int32, uint8, uint8, uint8, uint8, uint8, uint8, uint8, uint8));
+}
+
 // 0x6FF460
 void CLines::RenderLineNoClipping(float startX, float startY, float startZ, float endX, float endY, float endZ, uint32 startColor, uint32 endColor) {
     RxObjSpace3DVertex vertices[] = {
@@ -18,18 +27,33 @@ void CLines::RenderLineNoClipping(float startX, float startY, float startZ, floa
 
 // 0x6FF4F0
 void CLines::RenderLineWithClipping(float startX, float startY, float startZ, float endX, float endY, float endZ, uint32 startColor, uint32 endColor) {
-    return plugin::Call<0x6FF4F0, float, float, float, float, float, float, uint32, uint32>(startX, startY, startZ, endX, endY, endZ, startColor, endColor);
-
     const CVector start = { startX, startY, startZ };
     const CVector end   = { endX,   endY,   endZ };
+    const CRGBA   startRGBA{ startColor }, endRGBA{ endColor };
 
-    auto iters = DistanceBetweenPoints(start, end) * 0.4f + 1.0f;
-    auto numVerts = (uint32)std::min(iters, 7.0f);
-    if (numVerts > 0) {
-        // todo:
-        for (auto i = 0u; i < numVerts; i++) {
-            // todo:
-        }
+    // The line is split into 1 to 7 segments, depending on its length
+    const auto numSegments = (int16)std::min(DistanceBetweenPoints(start, end) * 0.4f + 1.0f, 7.0f);
+
+    // Written as `from + (to - from) * t` instead of using `lerp()` to match the original rounding
+    const auto LerpColorComponent = [](uint8 from, uint8 to, float t) {
+        return (uint8)((float)from + (float)(to - from) * t);
+    };
+    const auto SetVertex = [&](RwIm3DVertex* vertex, float t) {
+        const auto pos = start + (end - start) * t;
+        RwIm3DVertexSetPos(vertex, pos.x, pos.y, pos.z);
+        RwIm3DVertexSetRGBA(
+            vertex,
+            LerpColorComponent(startRGBA.r, endRGBA.r, t),
+            LerpColorComponent(startRGBA.g, endRGBA.g, t),
+            LerpColorComponent(startRGBA.b, endRGBA.b, t),
+            LerpColorComponent(startRGBA.a, endRGBA.a, t)
+        );
+    };
+
+    auto* vertex = TempBufferVertices.m_3d;
+    for (auto i = 0; i < numSegments; i++) {
+        SetVertex(vertex++, (float)(i) / (float)numSegments);
+        SetVertex(vertex++, (float)(i + 1) / (float)numSegments);
     }
 
     static RwImVertexIndex indices[] = { // 0x8D503C
@@ -37,8 +61,8 @@ void CLines::RenderLineWithClipping(float startX, float startY, float startZ, fl
         12, 13, 14, 15, 16, 17, 18, 19, 20, 0
     };
     LittleTest();
-    if (RwIm3DTransform(TempBufferVertices.m_3d, 2 * numVerts, nullptr, 0)) {
-        RwIm3DRenderIndexedPrimitive(rwPRIMTYPELINELIST, indices, 2 * numVerts);
+    if (RwIm3DTransform(TempBufferVertices.m_3d, 2 * numSegments, nullptr, 0)) {
+        RwIm3DRenderIndexedPrimitive(rwPRIMTYPELINELIST, indices, 2 * numSegments);
         RwIm3DEnd();
     }
 }

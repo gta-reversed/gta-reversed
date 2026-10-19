@@ -837,6 +837,7 @@ void InjectHooksMain() {
     ModelIndices::InjectHooks();
     CWaterCannons::InjectHooks();
     CWaterCannon::InjectHooks();
+    CLines::InjectHooks();
     CSprite::InjectHooks();
     CPlaneTrail::InjectHooks();
     CPlaneTrails::InjectHooks();
