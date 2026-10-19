@@ -299,6 +299,11 @@ void AdjustPresentParams(D3DPRESENT_PARAMETERS* pp) {
     // (In windowed mode RW requests 0x0 here, meaning "use the window size", and the window may not have been resized yet)
     RsGlobal.maximumWidth  = pp->BackBufferWidth;
     RsGlobal.maximumHeight = pp->BackBufferHeight;
+
+    // `CameraSize` sizes the camera raster from the video mode in fullscreen video modes, so it must have the backbuffer's size too (Same as in `Proxy_Reset`)
+    auto& vm       = DisplayModes[RwEngineGetCurrentVideoMode()];
+    vm.mode.Width  = pp->BackBufferWidth;
+    vm.mode.Height = pp->BackBufferHeight;
 }
 
 struct ScopedRestoreWindowInfo {
