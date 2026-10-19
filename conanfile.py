@@ -31,7 +31,9 @@ class saRecipe(ConanFile):
         "standalone": [False, 'dump_hooks_only'], # There's no `True` yet, as we can't build a fully standalone version yet
 
         # Enable the Tracy profiler
-        "use_tracy": [True, False],
+        # Without `on_demand` Tracy keeps all profiling data in memory until a profiler connects,
+        # if no client connects, the game runs out of memory in about a minute.
+        "use_tracy": ['on_demand', True, False],
     }
 
     default_options = {
@@ -40,10 +42,6 @@ class saRecipe(ConanFile):
         "standalone": False,
         "unity_build": False,
         "use_tracy": False,
-
-        # If enabled Tracy keeps all profiling data in memory until a profiler connects.
-        # Note: If no client connects, then the we run out of memory in about a minute.
-        "tracy/*:on_demand": True,
     }
     
     def requirements(self):
@@ -54,10 +52,13 @@ class saRecipe(ConanFile):
         # Required for our custom stuff
         self.requires("nlohmann_json/3.12.0")
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
-        self.requires("tracy/0.13.1", options={"enable": bool(self.options.use_tracy)}) # Without `enable` all Tracy macros compile to nothing
         self.requires("imgui/1.92.9b-docking")
         self.requires("boost/1.91.0", options={"header_only": True})
-        
+        self.requires("tracy/0.13.1", options={
+            "enable": str(self.options.use_tracy) != 'False', 
+            "on_demand": self.options.use_tracy == 'on_demand'
+        })
+
         # Required for vanilla build
         self.requires("ogg/1.3.5")
         self.requires("vorbis/1.3.7")
