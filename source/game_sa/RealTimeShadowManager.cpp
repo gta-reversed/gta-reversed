@@ -10,9 +10,9 @@ void CRealTimeShadowManager::InjectHooks() {
     RH_ScopedCategory("Shadows");
 
     RH_ScopedInstall(Init, 0x7067C0);
-    RH_ScopedInstall(ReInit, 0x706870, {.Reversed = false});
+    RH_ScopedInstall(ReInit, 0x706870);
     RH_ScopedInstall(ReturnRealTimeShadow, 0x705B30);
-    RH_ScopedInstall(GetRealTimeShadow, 0x706970, { .Reversed = false });
+    RH_ScopedInstall(GetRealTimeShadow, 0x706970);
     RH_ScopedInstall(Update, 0x706AB0);
     RH_ScopedInstall(DoShadowThisFrame, 0x706BA0);
     RH_ScopedInstall(Exit, 0x706A60);
@@ -64,7 +64,13 @@ void CRealTimeShadowManager::ReturnRealTimeShadow(CRealTimeShadow* shdw) {
 
 // 0x706870
 void CRealTimeShadowManager::ReInit() {
-    plugin::CallMethod<0x706870, CRealTimeShadowManager*>(this);
+    for (auto* const shdw : m_apShadows) {
+        shdw->m_camera.ReInit();
+        shdw->m_blurCamera.ReInit();
+    }
+    m_BlurCamera.ReInit();
+    m_GradientCamera.ReInit();
+    m_GradientCamera.MakeGradientRaster();
 }
 
 // 0x706AB0
@@ -117,24 +123,38 @@ void CRealTimeShadowManager::Update() {
     }
 }
 
-CRealTimeShadow& CRealTimeShadowManager::GetRealTimeShadow(CPhysical* physical) {
-    return plugin::CallMethodAndReturn<CRealTimeShadow&, 0x706970, CRealTimeShadowManager*, CPhysical*>(this, physical);
-    /*
-    * Unfinished
-    if (m_bInitialised) {
-        return;
+// 0x706970
+CRealTimeShadow* CRealTimeShadowManager::GetRealTimeShadow(CPhysical* physical) {
+    const auto isPlayer1 = physical->GetIsTypePed() && physical->AsPed()->m_nPedType == PED_TYPE_PLAYER1;
+
+    const auto IsPlayerInFastVehicle = [] {
+        const auto plyr = FindPlayerPed();
+        return plyr->IsInVehicle() && plyr->m_pVehicle->GetMoveSpeed().SquaredMagnitude() > sq(0.3f);
+    };
+    if (!m_bInitialised || (!isPlayer1 && IsPlayerInFastVehicle())) {
+        return nullptr;
     }
 
-    bool isFirstPlayer{};
-
-    if (!physical->GetIsTypePed() || physical->AsPed()->IsPlayer()) {
-        if (FindPlayerPed()->IsInVehicle()) { // Maybe wrong?
-            if (FindPlayerPed()->m_pVehicle->GetMoveSpeed().SquaredMagnitude() < sq(0.3f)) {
-                return;
+    CRealTimeShadow* shdw{};
+    if (isPlayer1) {
+        shdw = m_apShadows[0];
+    } else {
+        for (auto* const candidate : m_apShadows | rngv::drop(1)) { // No `break`, so the last free one is used
+            if (!candidate->m_pOwner) {
+                shdw = candidate;
             }
         }
     }
-    */
+    if (!shdw) {
+        return nullptr;
+    }
+
+    shdw->SetupForThisEntity(physical);
+    physical->m_pShadowData = shdw;
+    shdw->m_bKeepAlive      = true;
+    shdw->m_nIntensity      = 0;
+
+    return shdw;
 }
 
 // 0x706BA0

@@ -76,6 +76,11 @@ public:
     RwCamera* Create(int32 rasterSize);
 
     /*!
+    * @brief Recreate the camera's raster (and the texture's) with the same size
+    */
+    void ReInit();
+
+    /*!
     * @addr  0x705BF0
     * @brief Render a clump and all its atomics
     */
