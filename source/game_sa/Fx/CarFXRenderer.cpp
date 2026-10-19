@@ -47,7 +47,7 @@ bool CCarFXRenderer::InitialiseDirtTexture() {
         auto* pixel = RwRasterLock(raster, 0, rwRASTERLOCKREADWRITE);
         for (auto p = 0; p < numPixels; p++, pixel += 4) { // NOTE: Assumes a pitch of `width * 4` (ignores the raster's stride), like the original
             for (auto c = 0; c < 3; c++) { // RGB, alpha stays the same
-                pixel[c] = (RwUInt8)(pixel[c] * i / 16 + (255 * 16 - 255 * i) / 16);
+                pixel[c] = (RwUInt8)(pixel[c] * i / NUM_DIRT_TEXTURES + (255 * NUM_DIRT_TEXTURES - 255 * i) / NUM_DIRT_TEXTURES);
             }
         }
         RwRasterUnlock(raster);
