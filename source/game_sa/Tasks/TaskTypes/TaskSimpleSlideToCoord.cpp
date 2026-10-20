@@ -24,9 +24,9 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     m_bFirstTime{ true },
     m_bRunningAnim{ false }
 {
-    // m_Timer not initialized
+    // m_EndTime not initialized
     if (notsa::bugfixes::CTaskSimpleSlideToCoord_Constructor_UninitializedTimer) {
-        m_Timer = -1;
+        m_EndTime = -1;
     }
 }
 
@@ -38,7 +38,7 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     m_Speed{ speed },
     m_bFirstTime{ true },
     m_bRunningAnim{ false },
-    m_Timer{ -1 }
+    m_EndTime{ -1 }
 {
 }
 
