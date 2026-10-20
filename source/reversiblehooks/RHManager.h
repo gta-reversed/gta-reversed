@@ -89,6 +89,7 @@ public: // Script hooking functions //
         std::optional<size_t> StackArgumentsToPreserve{};
 
         //! If enabled registers will be saved accross the call, but it requires `StackArgumentsToPreserve` to be set as well
+        //! The return value's registers (`eax`, `edx`) and the stack cleanup (`__cdecl` or not) are deduced from the function's type
         bool PreserveRegisters{ false };
 
         //! Where this hook was installed from (used for debugging)
@@ -138,12 +139,16 @@ public: // Script hooking functions //
             ptrAddressGTA
         ));
     #else
+        // Calling convention and return value related info is deduced from the function's type
+        auto preservation = Utility::GetCallingConventionOf<T>();
+        preservation.NumStackArguments = opt.StackArgumentsToPreserve.value_or(0);
+        preservation.PreserveRegisters = opt.PreserveRegisters;
+
         AddHookToCategory(path, std::move(opt), std::make_shared<ReversibleHook::StaticTwoWayHook>(
             std::move(fnName),
             ptrAddressOur,
             ptrAddressGTA,
-            opt.StackArgumentsToPreserve.value_or(0),
-            opt.PreserveRegisters
+            preservation
         ));
     #endif
     }

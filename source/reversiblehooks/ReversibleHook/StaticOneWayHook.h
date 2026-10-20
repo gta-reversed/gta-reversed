@@ -1,6 +1,7 @@
 #pragma once
 
 #include <reversiblehooks/HookConstants.hpp>
+#include <reversiblehooks/HooksUtility.hpp>
 #include "OneWayHook.h"
 
 namespace ReversibleHooks {
@@ -16,15 +17,13 @@ public:
      * @param name Name of the hook (eg.: `Add` for `CEntity::Add`)
      * @param from Address we redirect from, this is where the hook is installed
      * @param to The address the hook jumps to
-     * @param numStackArgumentsToPreserve If present, the hook code will preserve this many stack arguments (by re-pushing them) before jumping to `to`
-     * @param preserveRegisters If true, the hook code will preserve registers (using pushad/popad) before jumping to `to` (`numStackArgumentsToPreserve` must be specified in this case)
+     * @param preservation What the hook code should preserve across the call of `to` (stack arguments, registers) - If nothing, a simple jump is used
      */
     StaticOneWayHook(
-        std::string name,
-        void*       from,
-        void*       to,
-        size_t      numStackArgumentsToPreserve = 0,
-        bool        preserveRegisters           = false
+        std::string                      name,
+        void*                            from,
+        void*                            to,
+        const Utility::HookPreservation& preservation = {}
     );
     ~StaticOneWayHook();
 
@@ -39,10 +38,10 @@ protected:
 
 protected:
     /*!
-     * @brief Generates the hook code with preservation of registers and stack arguments if needed.
-     * @return The size of the generated hook code.
+     * @brief Generates the code preserving the registers and stack arguments into `m_PreservationCodeData`.
+     * @return Address of the generated code.
      */
-    size_t GenerateHookCodeWithPreservation(size_t localBufferOffset, bool noLocalBuffer = false);
+    void* GeneratePreservationCode();
 
     /*!
      * @brief Generates the hook code that will be written to the hook address.
@@ -75,8 +74,7 @@ protected:
     HookData            m_RestoreHookData{};             //!< Data overwritten at the hook address (before we installed the hook)
     Utility::VirtualPtr m_PreservationCodeData{};        //!< Generated hook code if any (If present the code is first redirected here, then to `m_AddressUsedTo`)
     size_t              m_PreservationCodeDataBufSize{}; //!< Size of the generated hook code's buffer
-    size_t              m_NumStackArgumentsToPreserve{}; //!< If present, the hook code will preserve this many stack arguments (by re-pushing them) before jumping to `m_AddressUsedTo`
-    bool                m_PreserveRegisters{};           //!< If true, the hook code will preserve registers (using pushad/popad) before jumping to `m_AddressUsedTo`
+    Utility::HookPreservation m_Preservation{};          //!< What the hook code preserves across the call (If anything, the hook jumps to `m_PreservationCodeData` that calls `m_CalculatedJumpTo`)
 };
 }; // namespace ReversibleHook
 }; // namespace ReversibleHooks
