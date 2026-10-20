@@ -225,15 +225,15 @@ void CPedGeometryAnalyser::ComputeClearTarget(const CPed& ped, const CVector& ta
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CPed& ped, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
     const auto&            pos = ped.GetPosition();
-    ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
-    return ComputeClosestSurfacePoint(pos, corners, outPoint);
+    const auto computed = ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
+    return (!notsa::bugfixes::GenericUB || computed) && ComputeClosestSurfacePoint(pos, corners, outPoint);
 }
 
 // 0x5F36F0
 bool CPedGeometryAnalyser::ComputeClosestSurfacePoint(const CVector& pos, CEntity& entity, CVector& outPoint) {
     std::array<CVector, 4> corners;
-    CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
-    return CPedGeometryAnalyser::ComputeClosestSurfacePoint(pos, corners, outPoint);
+    const auto computed = ComputeEntityBoundingBoxCornersUncached(pos.z, entity, corners);
+    return (!notsa::bugfixes::GenericUB || computed) && ComputeClosestSurfacePoint(pos, corners, outPoint);
 }
 
 // 0x5F2C10
