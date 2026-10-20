@@ -119,7 +119,6 @@ bool CPedGroups::IsInPlayersGroup(CPed* ped) {
 }
 
 CPedGroup& CPedGroups::GetGroup(int32 groupId) {
-    assert(ms_activeGroups[groupId]);
     return ms_groups[groupId];
 }
 
