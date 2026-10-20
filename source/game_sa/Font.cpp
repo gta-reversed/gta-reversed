@@ -41,7 +41,7 @@ auto& s_RenderFontBuffer = StaticRef<RenderFontBuffer>(0xC716B0);
 // Points to the end of queued font renders at s_RenderFontBuffer, uintptr_t because void* comparisons are yucky.
 auto& s_RenderEndPtr     = StaticRef<uintptr_t>(0xC716A8);
 
-auto& gFontData          = StaticRef<std::array<tFontData, 2>>(0xC718B0);
+auto& s_FontData         = StaticRef<std::array<tFontData, 2>>(0xC718B0);
 
 // 0x7187C0
 void CFont::LoadFontValues() {
@@ -73,7 +73,7 @@ void CFont::LoadFontValues() {
             uint8 spaceValue;
 
             VERIFY(sscanf_s(nextLine, "%hhu", &spaceValue) == 1);
-            gFontData[fontId].SpaceValue = spaceValue;
+            s_FontData[fontId].SpaceValue = spaceValue;
         } else if (attr == "[PROP]") {
             for (int32 i = 0; i < 26; i++) {
                 const auto nextLine = CFileLoader::LoadLine(file);
@@ -85,7 +85,7 @@ void CFont::LoadFontValues() {
                 ) == 8);
 
                 for (auto j = 0u; j < std::size(propValues); j++) {
-                    gFontData[fontId].PropValues[i * 8 + j] = propValues[j];
+                    s_FontData[fontId].PropValues[i * 8 + j] = propValues[j];
                 }
             }
         } else if (attr == "[UNPROP]") {
@@ -93,7 +93,7 @@ void CFont::LoadFontValues() {
             uint32 unpropValue;
 
             VERIFY(sscanf_s(nextLine, "%d", &unpropValue) == 1);
-            gFontData[fontId].UnpropValue = unpropValue;
+            s_FontData[fontId].UnpropValue = unpropValue;
         }
     }
 
@@ -908,9 +908,9 @@ float CFont::GetCharacterSize(uint8 letterId) {
     }
 
     if (m_Details.Proportional) {
-        return ((float)gFontData[+m_Details.FontTextureName].PropValues[propValueIdx] + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
+        return ((float)s_FontData[+m_Details.FontTextureName].GetPropValue(propValueIdx) + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
     } else {
-        return ((float)gFontData[+m_Details.FontTextureName].UnpropValue + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
+        return ((float)s_FontData[+m_Details.FontTextureName].UnpropValue + (float)m_Details.EdgeAmount) * m_Details.Scale.x;
     }
 }
 
@@ -938,7 +938,7 @@ uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
     if (style == eFontTextureStyle::PRICEDOWN) {
         // NOTE: font1 is loaded for pricedown, TOP: subtitles, BOTTOM: pricedown
         switch (letterId) {
-        case 1:  return 208; // ! ->
+        case 1:  return 208; // ! -> [SPACE VALUE] (OOBs like a retard, ends up with spaceValue, check out tFontData::GetPropValue)
         case 4:  return 93; // $ at top -> $ at bottom -- yet it's in the subtitles section?
         case 7:  return 206; // ' at top -> ' at bottom (empty in font2)
         case 8:
@@ -995,9 +995,9 @@ uint8 CFont::FindSubFontCharacter(uint8 letterId, eFontTextureStyle style) {
 // NOTSA
 static float GetLetterIdPropValue(uint8 letterId, bool propCond, uint16 style) {
     if (propCond) {
-        return gFontData[style].PropValues[letterId];
+        return s_FontData[style].GetPropValue(letterId);
     } else {
-        return gFontData[style].UnpropValue;
+        return s_FontData[style].UnpropValue;
     }
 }
 

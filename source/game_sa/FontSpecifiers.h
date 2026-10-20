@@ -70,6 +70,21 @@ struct tFontData {
     std::array<uint8, 208> PropValues;
     uint8                  SpaceValue;
     uint8                  UnpropValue;
+
+    // NOTSA/FIX_BUGS
+    // The index can be past `m_propValues` (e.g. `CFont::FindSubFontCharacter` returns 208 for '!' with `FONT_PRICEDOWN`),
+    // the original then reads whatever follows (`m_spaceValue`, `m_unpropValue`, the next font's data)
+    uint8 GetPropValue(uint8 idx) const {
+        switch (idx) {
+        case 208:
+            return SpaceValue;
+        case 209:
+            return UnpropValue;
+        default:
+            break;
+        }
+        return PropValues[idx];
+    }
 };
 
 // initialize values from CFont::Initialise
