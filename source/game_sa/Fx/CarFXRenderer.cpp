@@ -2,6 +2,7 @@
 
 #include "CarFXRenderer.h"
 #include "CustomCarEnvMapPipeline.h"
+#include "ClothesBuilder.h"
 
 void CCarFXRenderer::InjectHooks() {
     RH_ScopedClass(CCarFXRenderer);
@@ -9,7 +10,7 @@ void CCarFXRenderer::InjectHooks() {
 
     RH_ScopedInstall(RegisterPlugins, 0x5D5B00);
     RH_ScopedInstall(Initialise, 0x5D5AC0);
-    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0, { .Reversed = false });
+    RH_ScopedInstall(InitialiseDirtTexture, 0x5D5BC0);
     RH_ScopedInstall(Shutdown, 0x5D5AD0);
     RH_ScopedInstall(PreRenderUpdate, 0x5D5B10);
     RH_ScopedInstall(IsCCPCPipelineAttached, 0x5D5B80);
@@ -31,7 +32,29 @@ bool CCarFXRenderer::Initialise() {
 
 // 0x5D5BC0
 void CCarFXRenderer::InitialiseDirtTexture() {
-    plugin::Call<0x5D5BC0>();
+    CTxdStore::ScopedTXDSlot txd{ "vehicle" };
+
+    auto* const grunge = RwTextureRead("vehiclegrunge256", nullptr);
+    RwTextureSetFilterMode(grunge, rwFILTERLINEAR);
+
+    const auto* const grungeRaster = RwTextureGetRaster(grunge);
+    const auto        numPixels    = (size_t)(RwRasterGetWidth(grungeRaster) * RwRasterGetHeight(grungeRaster));
+
+    // Make copies of it with increasing levels of dirt: The first one is (almost) white, the last one is (almost) the original texture
+    for (auto&& [level, dirtTex] : rngv::enumerate(ms_aDirtTextures)) {
+        dirtTex = CClothesBuilder::CopyTexture(grunge);
+        RwTextureSetName(dirtTex, "vehiclegrunge256");
+
+        auto* const raster    = RwTextureGetRaster(dirtTex);
+        auto* const pixels    = RwRasterLock(raster, 0, rwRASTERLOCKWRITE | rwRASTERLOCKREAD);
+        const auto  whiteness = (int32)(NUM_DIRT_TEXTURES - level) * 255 / NUM_DIRT_TEXTURES;
+        for (auto&& pixel : std::span{ pixels, numPixels * 4 } | rngv::chunk(4)) {
+            for (auto& channel : pixel | rngv::take(3)) { // Leave alpha alone
+                channel = (uint8)(channel * (int32)level / NUM_DIRT_TEXTURES + whiteness);
+            }
+        }
+        RwRasterUnlock(raster);
+    }
 }
 
 // 0x5D5AD0
