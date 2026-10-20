@@ -334,12 +334,14 @@ RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream, RwInt32 binar
 
             t2dEffectPedAttractorStreamData d{};
             RwStreamRead(stream, &d, sizeof(t2dEffectPedAttractorStreamData));
-            pa->m_vecQueueDir    = d.QueueDir;
-            pa->m_vecUseDir      = d.UseDir;
-            pa->m_vecForwardDir  = d.ForwardDir;
-            pa->m_nAttractorType = d.Type;
-
-            // TODO: unk/not_used fields assign to higher portion of m_nAttractorType, check.
+            pa->m_vecQueueDir             = d.QueueDir;
+            pa->m_vecUseDir               = d.UseDir;
+            pa->m_vecForwardDir           = d.ForwardDir;
+            pa->m_nAttractorType          = d.Type;
+            pa->m_nPedExistingProbability = (uint8)d.PedExistingProbability;
+            pa->field_36                  = d.unk1;
+            pa->m_nFlags                  = d.unk2;
+            strncpy(pa->m_szScriptName, d.ExternalScriptName, sizeof(pa->m_szScriptName));
             continue;
         }
         case e2dEffectType::EFFECT_PARTICLE: {

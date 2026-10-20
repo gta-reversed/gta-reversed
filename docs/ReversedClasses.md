@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 19, 2026 at 22:01:03 UTC
-(Triggered by commit [6d7cd905](https://github.com/gta-reversed/gta-reversed/commit/6d7cd9053e82e2949d862eebb12d7b9820eb3af5))
+Last update was at Oct 20, 2026 at 21:53:45 UTC
+(Triggered by commit [520eb825](https://github.com/gta-reversed/gta-reversed/commit/520eb8254ab762c49f255e557345c74274c5cd3b))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7534 out of 8296 functions done in 719 categories)
+## Stats (7539 out of 8296 functions done in 719 categories)
 
-#### Completely reversed categories (584/719) [81%]
+#### Completely reversed categories (587/719) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -23,6 +23,7 @@ Last update was at Oct 19, 2026 at 22:01:03 UTC
 - CFileMgr (17)<br />
 - CLoadedCarGroup (8)<br />
 - RenderBuffer (4)<br />
+- CPedGroup (12)<br />
 - CPedGroupMembership (18)<br />
 - RwHelper (24)<br />
 - CPad (76)<br />
@@ -80,6 +81,7 @@ Last update was at Oct 19, 2026 at 22:01:03 UTC
 - CCompressedMatrixNotAligned (2)<br />
 - CVisibilityPlugins (84)<br />
 - CPedIntelligence (52)<br />
+- CCollision (61)<br />
 - CTrafficLights (12)<br />
 - CMotionBlurStreaks (4)<br />
 - CRegisteredMotionBlurStreak (2)<br />
@@ -140,6 +142,7 @@ Last update was at Oct 19, 2026 at 22:01:03 UTC
 - CGamma (2)<br />
 - CHudColours (5)<br />
 - CTxdStore (26)<br />
+- CEntityScanner (4)<br />
 - CPedType (13)<br />
 - CAcquaintance (5)<br />
 - CWeather (13)<br />
@@ -602,12 +605,11 @@ Last update was at Oct 19, 2026 at 22:01:03 UTC
 
 </details>
 
-#### Partially reversed categories (127/719) [18%]
+#### Partially reversed categories (124/719) [17%]
 
 <details>
 <summary>See list of categories</summary>
 - CPedGroupPlacer (1/4) [25%]<br />
-- CPedGroup (10/12) [83%]<br />
 - CPopCycle (14/15) [93%]<br />
 - CInterestingEvents (2/7) [29%]<br />
 - CMenuSystem (20/21) [95%]<br />
@@ -623,7 +625,6 @@ Last update was at Oct 19, 2026 at 22:01:03 UTC
 - CPopulation (64/66) [97%]<br />
 - SurfaceInfos_c (47/48) [98%]<br />
 - CPedGroupIntelligence (26/27) [96%]<br />
-- CCollision (59/61) [97%]<br />
 - CPedDamageResponseCalculator (2/7) [29%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
@@ -643,7 +644,6 @@ Last update was at Oct 19, 2026 at 22:01:03 UTC
 - CEntryExit (10/11) [91%]<br />
 - CPlayerInfo (25/28) [89%]<br />
 - CCarEnterExit (27/32) [84%]<br />
-- CEntityScanner (3/4) [75%]<br />
 - CPathFind (54/62) [87%]<br />
 - CPedStats (4/5) [80%]<br />
 - CPedGeometryAnalyser (9/38) [24%]<br />

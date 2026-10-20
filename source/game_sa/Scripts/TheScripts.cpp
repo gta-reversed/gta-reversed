@@ -712,11 +712,18 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
         return;
     }
 
+    // 0x486B6C - Skip peds in vehicles: they're deleted with their vehicle below, so their entries would dangle
+    for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
+        if (entity != ourEntity && entity->GetIsTypePed() && entity->AsPed()->bInVehicle) {
+            entity = nullptr;
+        }
+    }
+
     // Disable suspension lines of vehicles.
     const auto cdNumLines = std::exchange(ourColData->m_nNumLines, 0);
 
     for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
-        if (!entity || entity == ourEntity || (entity->GetIsTypePed() && entity->AsPed()->IsInVehicle())) {
+        if (!entity || entity == ourEntity) {
             continue;
         }
 
@@ -758,9 +765,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             CCarCtrl::RemoveFromInterestingVehicleList(vehicle);
             CWorld::Remove(vehicle);
             delete vehicle;
-        }
-
-        if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
+        } else if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
         }
     }

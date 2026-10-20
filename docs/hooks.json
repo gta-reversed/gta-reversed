@@ -737,7 +737,7 @@
   {
     "Category": "CPedGroup",
     "Name": "PlayerGaveCommand_Gather",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -757,7 +757,7 @@
   {
     "Category": "CPedGroup",
     "Name": "FindDistanceToFurthestMember",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -6907,12 +6907,12 @@
   {
     "Category": "CCollision",
     "Name": "CalculateTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCollision",
     "Name": "RemoveTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTrafficLights",
@@ -13857,7 +13857,7 @@
   {
     "Category": "CEntityScanner",
     "Name": "ScanForEntitiesInRange",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedType",

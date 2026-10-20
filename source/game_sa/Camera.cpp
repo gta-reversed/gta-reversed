@@ -1332,7 +1332,7 @@ void CCamera::ProcessFade() {
 
     if (m_nFadeInOutFlag == eFadeFlag::FADE_OUT) {
         m_fFadeDuration == 0.0f
-            ? (m_fFadeAlpha += 0.0f)
+            ? (m_fFadeAlpha = 0.0f)
             : (m_fFadeAlpha -= CTimer::GetTimeStepInSeconds() / m_fFadeDuration * 255.0f);
 
         if (m_fFadeAlpha > 0.0f) {
