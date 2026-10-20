@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 18, 2026 at 23:06:15 UTC
-(Triggered by commit [7b8415ac](https://github.com/gta-reversed/gta-reversed/commit/7b8415ace09e240ef90904c60b92f80d4c2accc2))
+Last update was at Oct 20, 2026 at 21:53:45 UTC
+(Triggered by commit [520eb825](https://github.com/gta-reversed/gta-reversed/commit/520eb8254ab762c49f255e557345c74274c5cd3b))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7522 out of 8289 functions done in 718 categories)
+## Stats (7539 out of 8296 functions done in 719 categories)
 
-#### Completely reversed categories (581/718) [81%]
+#### Completely reversed categories (587/719) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -23,6 +23,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CFileMgr (17)<br />
 - CLoadedCarGroup (8)<br />
 - RenderBuffer (4)<br />
+- CPedGroup (12)<br />
 - CPedGroupMembership (18)<br />
 - RwHelper (24)<br />
 - CPad (76)<br />
@@ -68,7 +69,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CDirectory (10)<br />
 - CBulletTraces (5)<br />
 - CDebug (1)<br />
-- CGame (22)<br />
+- CGame (23)<br />
 - CControllerState (2)<br />
 - CKeyboardState (1)<br />
 - CMouseControllerState (3)<br />
@@ -80,6 +81,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CCompressedMatrixNotAligned (2)<br />
 - CVisibilityPlugins (84)<br />
 - CPedIntelligence (52)<br />
+- CCollision (61)<br />
 - CTrafficLights (12)<br />
 - CMotionBlurStreaks (4)<br />
 - CRegisteredMotionBlurStreak (2)<br />
@@ -140,6 +142,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CGamma (2)<br />
 - CHudColours (5)<br />
 - CTxdStore (26)<br />
+- CEntityScanner (4)<br />
 - CPedType (13)<br />
 - CAcquaintance (5)<br />
 - CWeather (13)<br />
@@ -159,6 +162,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - ModelIndices (2)<br />
 - CWaterCannons (4)<br />
 - CWaterCannon (5)<br />
+- CLines (3)<br />
 - CSprite (15)<br />
 - CPlaneTrail (3)<br />
 - CPlaneTrails (4)<br />
@@ -188,6 +192,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
+- FxManager_c (25)<br />
 - FxEmitterPrt_c (1)<br />
 - Fx_c (8)<br />
 - CPedAttractorPedPlacer (1)<br />
@@ -310,6 +315,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CTaskComplexDestroyCarArmed (10)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
 - CTaskComplexDieInCar (6)<br />
+- CTaskComplexDragPedFromCar (2)<br />
 - CTaskComplexDrivePointRoute (7)<br />
 - CTaskComplexEnterCarAsDriverTimed (9)<br />
 - CTaskComplexEnterCarAsPassengerTimed (9)<br />
@@ -587,7 +593,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CAECutsceneTrackManager (8)<br />
 - CAESoundManager (14)<br />
 - CAEUserRadioTrackManager (15)<br />
-- CAutomobile (99)<br />
+- CAutomobile (100)<br />
 - CBoat (23)<br />
 - CHeli (11)<br />
 - CTrailer (13)<br />
@@ -599,12 +605,11 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 
 </details>
 
-#### Partially reversed categories (129/718) [18%]
+#### Partially reversed categories (124/719) [17%]
 
 <details>
 <summary>See list of categories</summary>
 - CPedGroupPlacer (1/4) [25%]<br />
-- CPedGroup (10/12) [83%]<br />
 - CPopCycle (14/15) [93%]<br />
 - CInterestingEvents (2/7) [29%]<br />
 - CMenuSystem (20/21) [95%]<br />
@@ -620,7 +625,6 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CPopulation (64/66) [97%]<br />
 - SurfaceInfos_c (47/48) [98%]<br />
 - CPedGroupIntelligence (26/27) [96%]<br />
-- CCollision (59/61) [97%]<br />
 - CPedDamageResponseCalculator (2/7) [29%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
@@ -640,7 +644,6 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CEntryExit (10/11) [91%]<br />
 - CPlayerInfo (25/28) [89%]<br />
 - CCarEnterExit (27/32) [84%]<br />
-- CEntityScanner (3/4) [75%]<br />
 - CPathFind (54/62) [87%]<br />
 - CPedStats (4/5) [80%]<br />
 - CPedGeometryAnalyser (9/38) [24%]<br />
@@ -657,7 +660,6 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxInfoManager_c (4/5) [80%]<br />
-- FxManager_c (24/25) [96%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
 - CPed (137/145) [94%]<br />
 - CPlayerPed (50/65) [77%]<br />
@@ -676,11 +678,10 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CTaskLeanOnVehicle (4/5) [80%]<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
 - CTaskComplexDestroyCar (8/9) [89%]<br />
-- CTaskComplexDragPedFromCar (1/2) [50%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGoToPointAiming (6/8) [75%]<br />
-- CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7) [43%]<br />
+- CTaskComplexGoToPointAndStandStillAndAchieveHeading (7/8) [88%]<br />
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
@@ -726,7 +727,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 - CMonsterTruck (5/11) [45%]<br />
 - CPlane (14/23) [61%]<br />
 - CQuadBike (11/12) [92%]<br />
-- CTrain (20/40) [50%]<br />
+- CTrain (21/41) [51%]<br />
 - CVehicle (145/149) [97%]<br />
 - InteriorGroup_c (2/24) [8%]<br />
 - CRunningScript (24/39) [62%]<br />
@@ -735,7 +736,7 @@ Last update was at Oct 18, 2026 at 23:06:15 UTC
 
 </details>
 
-#### Not-at-all reversed categories (8/718) [1%]
+#### Not-at-all reversed categories (8/719) [1%]
 
 <details>
 <summary>See list of categories</summary>

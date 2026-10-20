@@ -737,7 +737,7 @@
   {
     "Category": "CPedGroup",
     "Name": "PlayerGaveCommand_Gather",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -757,7 +757,7 @@
   {
     "Category": "CPedGroup",
     "Name": "FindDistanceToFurthestMember",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -4950,6 +4950,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CGame",
+    "Name": "D3DDeviceRestoreCallback",
+    "IsReversed": true
+  },
+  {
     "Category": "CControllerState",
     "Name": "Clear",
     "IsReversed": true
@@ -6902,12 +6907,12 @@
   {
     "Category": "CCollision",
     "Name": "CalculateTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCollision",
     "Name": "RemoveTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTrafficLights",
@@ -13852,7 +13857,7 @@
   {
     "Category": "CEntityScanner",
     "Name": "ScanForEntitiesInRange",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedType",
@@ -15637,6 +15642,21 @@
   {
     "Category": "CWaterCannon",
     "Name": "Render",
+    "IsReversed": true
+  },
+  {
+    "Category": "CLines",
+    "Name": "RenderLineNoClipping-",
+    "IsReversed": true
+  },
+  {
+    "Category": "CLines",
+    "Name": "RenderLineWithClipping-",
+    "IsReversed": true
+  },
+  {
+    "Category": "CLines",
+    "Name": "ImmediateLine2D-",
     "IsReversed": true
   },
   {
@@ -17977,7 +17997,7 @@
   {
     "Category": "FxManager_c",
     "Name": "DestroyAllFxSystems",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "FxManager_c",
@@ -24197,7 +24217,7 @@
   {
     "Category": "CTaskComplexDragPedFromCar",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDrivePointRoute",
@@ -25012,7 +25032,7 @@
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
@@ -25022,12 +25042,17 @@
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
+    "Name": "CreateSubTask",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
@@ -38431,6 +38456,11 @@
   },
   {
     "Category": "CAutomobile",
+    "Name": "SetModelIndex",
+    "IsReversed": true
+  },
+  {
+    "Category": "CAutomobile",
     "Name": "Teleport",
     "IsReversed": true
   },
@@ -39428,6 +39458,11 @@
     "Category": "CTrain",
     "Name": "AddNearbyPedAsRandomPassenger",
     "IsReversed": false
+  },
+  {
+    "Category": "CTrain",
+    "Name": "SetModelIndex",
+    "IsReversed": true
   },
   {
     "Category": "CTrain",

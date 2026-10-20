@@ -90,8 +90,10 @@ void CPedAttractor::Shutdown() {
 // 0x5EECA0
 void CPedAttractor::SetTaskForPed(CPed* ped, CTask* task) {
     if (const auto pair = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped); pair != m_PedTaskPairs.end()) {
-        if (!pair->UsedTask) { // 0x5EED79
-            ms_tasks.erase(rng::find(ms_tasks, pair->Task)); // 0x5EEDA0, 0x5EEDAD
+        if (!pair->UsedTask && pair->Task) { // 0x5EED79
+            if (const auto it = rng::find(ms_tasks, pair->Task); it != ms_tasks.end()) { // 0x5EEDA0
+                ms_tasks.erase(it); // 0x5EEDAD
+            }
             delete pair->Task; // 0x5EEDD1
         }
         pair->Task     = task;
@@ -99,6 +101,7 @@ void CPedAttractor::SetTaskForPed(CPed* ped, CTask* task) {
     } else {
         m_PedTaskPairs.emplace_back(CPedTaskPair{ .Ped = ped, .Task = task });
     }
+    ms_tasks.emplace_back(task); // 0x5EED5E, 0x5EEDF2
 }
 
 // 0x5EEE30
@@ -110,8 +113,8 @@ bool CPedAttractor::RegisterPed(CPed* ped) {
     if (m_AttractPeds.size() + m_ArrivedPeds.size() >= m_MaxNumPeds) {
         return false;
     }
-    m_ArrivedPeds.emplace_back(ped);
-    const auto idx = (int32)(m_ArrivedPeds.size() - 1);
+    m_AttractPeds.emplace_back(ped); // 0x5EEED1
+    const auto idx = (int32)(m_ArrivedPeds.size());
     SetTaskForPed(ped, new CTaskComplexGoToAttractor{
         this,
         ComputeAttractPos(idx),
@@ -125,8 +128,10 @@ bool CPedAttractor::RegisterPed(CPed* ped) {
 
 // 0x5EC5B0
 bool CPedAttractor::DeRegisterPed(CPed* ped) {
-    m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped));
-    if (const auto it = rng::find(m_ArrivedPeds, ped); it != m_ArrivedPeds.end()) { // inverted (!)
+    if (const auto it = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped); it != m_PedTaskPairs.end()) {
+        m_PedTaskPairs.erase(it);
+    }
+    if (const auto it = rng::find(m_AttractPeds, ped); it != m_AttractPeds.end()) { // 0x5EC610
         m_AttractPeds.erase(it);
         return true;
     }
@@ -151,7 +156,9 @@ CTask* CPedAttractor::GetTaskForPed(CPed* ped) {
         return nullptr;
     }
     if (!it->UsedTask) {
-        ms_tasks.erase(rng::find(ms_tasks, it->Task));
+        if (const auto taskIt = rng::find(ms_tasks, it->Task); taskIt != ms_tasks.end()) {
+            ms_tasks.erase(taskIt);
+        }
     }
     it->UsedTask = true;
     return it->Task;
@@ -228,18 +235,20 @@ void CPedAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
 
 // 0x5EF160
 bool CPedAttractor::BroadcastDeparture(CPed* ped) {
-    const auto it = rng::find(m_AttractPeds, ped);
-    if (it == m_AttractPeds.end()) {
+    const auto it = rng::find(m_ArrivedPeds, ped);
+    if (it == m_ArrivedPeds.end()) {
         return false;
     }
-    const auto idx = rng::distance(m_AttractPeds.begin(), it);
-    for (auto i = idx + 1; i < (int32)(m_AttractPeds.size()); ++i) { // 0x5EF1C6
-        SetTaskForPed(m_AttractPeds[i], new CTaskComplexSequence{
+    const auto idx = rng::distance(m_ArrivedPeds.begin(), it);
+    for (auto i = idx + 1; i < (int32)(m_ArrivedPeds.size()); ++i) { // 0x5EF1C6
+        SetTaskForPed(m_ArrivedPeds[i], new CTaskComplexSequence{
             new CTaskSimpleStandStill{ 2000 * i },
-            new CTaskComplexGoToAttractor{ this, ComputeAttractPos(i), ComputeAttractHeading(i), m_AchieveQueueShuffleTime, i, PEDMOVE_WALK },
+            new CTaskComplexGoToAttractor{ this, ComputeAttractPos(i - 1), ComputeAttractHeading(i - 1), m_AchieveQueueShuffleTime, i - 1, PEDMOVE_WALK },
         });
     }
-    m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped)); // 0x5EF2F6
+    if (const auto pair = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped); pair != m_PedTaskPairs.end()) { // 0x5EF2F6
+        m_PedTaskPairs.erase(pair);
+    }
     m_ArrivedPeds.erase(it); // 0x5EF334
     for (auto* const attractedPed : m_AttractPeds) { // 0x5EF371
         const auto n = (int32)(m_ArrivedPeds.size());
@@ -259,7 +268,9 @@ bool CPedAttractor::BroadcastDeparture(CPed* ped) {
 bool CPedAttractor::BroadcastArrival(CPed* ped) {
     if (!rng::contains(m_ArrivedPeds, ped)) {
         m_ArrivedPeds.emplace_back(ped); // 0x5EEFCB
-        m_AttractPeds.erase(rng::find(m_AttractPeds, ped)); // 0x5EF002
+        if (const auto it = rng::find(m_AttractPeds, ped); it != m_AttractPeds.end()) {
+            m_AttractPeds.erase(it); // 0x5EF002
+        }
         for (auto* const attractedPed : m_AttractPeds) { // 0x5EF098
             const auto idx = (int32)(m_ArrivedPeds.size());
             SetTaskForPed(attractedPed, new CTaskComplexGoToAttractor{ // 0x5EF090
@@ -268,7 +279,7 @@ bool CPedAttractor::BroadcastArrival(CPed* ped) {
                 ComputeAttractHeading(idx),
                 m_AchieveQueueTime,
                 idx,
-                m_MoveState
+                PEDMOVE_WALK
             });
         }
     }

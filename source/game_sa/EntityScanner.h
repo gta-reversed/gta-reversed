@@ -19,7 +19,7 @@ static constexpr size_t MAX_NUM_ENTITIES = 16; // Mobile
 // Since this is originally a virtual class..
 // Maybe it was templated? Like: `template<class Entity_t, size_t MaxCount>` ?
 
-class CEntityScanner {
+class NOTSA_EXPORT_VTABLE CEntityScanner {
 protected:
     CTickCounter m_timer;
 
@@ -44,7 +44,7 @@ public:
     }
 
 protected:
-    virtual void ScanForEntitiesInRange(const eRepeatSectorList sectorList, const CPed& ped);
+    virtual void ScanForEntitiesInRange(eRepeatSectorList sectorList, CPed& ped);
     CEntity* GetClosestEntity() const {
         return m_pClosestEntityInRange;
     }
