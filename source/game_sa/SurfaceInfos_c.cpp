@@ -255,15 +255,27 @@ void SurfaceInfos_c::LoadAdhesiveLimits()
 {
     CFileMgr::SetDir("");
     auto* file = CFileMgr::OpenFile("data\\surface.dat", "rb");
+#if FIX_BUGS
+    if (!file) {
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surface.dat");
+        return;
+    }
+#endif
+
+    const auto SkipToSpace = [](const char*& it) {
+        while (*it != ' ' && *it != '\t' && *it) {
+            it++;
+        }
+    };
+
     auto row = 0;
     for (const char* line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
         if (*line == ';' || !*line)
             continue;
 
-        // Skip the group's name (The original also reads it with `sscanf("%s")`, but doesn't use it)
-        while (*line != ' ' && *line != '\t') {
-            line++;
-        }
+        char name[256];
+        VERIFY(sscanf_s(line, "%s", SCANF_S_STR(name)) == 1);
+        SkipToSpace(line);
 
         // The file only has the lower half of the table (row `n` has `n + 1` values), the upper half is mirrored
         for (auto col = 0; col <= row; col++) {
@@ -273,12 +285,9 @@ void SurfaceInfos_c::LoadAdhesiveLimits()
 
             float limit = 0.f;
             if (*line != '-') {
-                RET_IGNORED(sscanf_s(line, "%f", &limit));
+                VERIFY(sscanf_s(line, "%f", &limit) == 1);
             }
-
-            while (*line != ' ' && *line != '\t' && *line) {
-                line++;
-            }
+            SkipToSpace(line);
 
             m_adhesiveLimits[row][col] = limit;
             m_adhesiveLimits[col][row] = limit;
