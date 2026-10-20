@@ -3750,8 +3750,11 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
                     colAngleMult *= -1;
             }
 
-            m_wMiscComponentAngle += static_cast<uint16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep());
-            m_wMiscComponentAngle = std::clamp<uint16>(m_wMiscComponentAngle, 0, DEFAULT_COLLISION_EXTENDLIMIT);
+            m_wMiscComponentAngle = static_cast<uint16>(std::clamp<int32>( // 0x6A16C0
+                m_wMiscComponentAngle + static_cast<int16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep()),
+                0,
+                DEFAULT_COLLISION_EXTENDLIMIT
+            ));
         }
 
         CMatrix rotMatrix;
