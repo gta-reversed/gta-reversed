@@ -1442,6 +1442,12 @@ void CTheScripts::Process() {
         it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
         it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
+
+        // The original stops at a `next` script that was deactivated while `it` ran (e.g. terminated by name),
+        // because it now sits in the idle list; following its links would run idle scripts from stale IPs.
+        if (next && !next->m_IsActive) {
+            break;
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();
