@@ -23,6 +23,8 @@ VALIDATE_SIZE(CPointRoute, 0x64);
 
 class CPedGeometryAnalyser {
 public:
+    static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0); // 0.35f - Bounding boxes are expanded by this
+
     static void InjectHooks();
     
     static bool CanPedJumpObstacle(const CPed& ped, const CEntity& entity);
@@ -48,19 +50,19 @@ public:
     static void ComputeEntityBoundingBoxPlanesUncached(float zPos, const CVector* corners, CVector(*outPlanes)[4], float* outPlanesDot);
     static void ComputeEntityBoundingBoxPlanesUncachedAll(float zPos, CEntity& entity, CVector (*outPlanes)[4], float* outPlanesDot);
     static void ComputeEntityBoundingBoxSegmentPlanes(float zPos, CEntity& entity, CVector*, float*);
-    static CVector* ComputeEntityBoundingBoxSegmentPlanesUncached(const CVector* corners, CVector& center, CVector* a3, float* a4);
+    static CVector* ComputeEntityBoundingBoxSegmentPlanesUncached(const CVector* corners, CVector& center, CVector* normals, float* dots);
     static CVector* ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, CVector* a3, float* a4);
-    static void ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere&);
+    static void ComputeEntityBoundingSphere(const CPed& ped, CEntity& entity, CColSphere& sphere);
 
-    static int32 ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& posn);
+    static void ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& outDirToAvoidEntity);
 
     static CVector ComputeEntityDir(const CEntity& entity, eDirection dir);
-    static CVector* ComputeEntityDirs(const CEntity& entity, CVector* posn);
+    static CVector* ComputeEntityDirs(const CEntity& entity, CVector* dirs);
     static int32 ComputeEntityHitSide(const CPed& ped, CEntity& entity); // Returns `eDirection`
-    static int32 ComputeEntityHitSide(const CVector& point1, const CVector* point2, const float* x); // Returns `eDirection`
+    static int32 ComputeEntityHitSide(const CVector& point, const CVector* planes, const float* planeDots); // Returns `eDirection`
     static int32 ComputeEntityHitSide(const CVector& point, CEntity& entity); // Returns `eDirection`
     static int32 ComputePedHitSide(const CPed& ped, const CPhysical& physical);
-    static int32 ComputePedHitSide(const CPed& ped, const CVector& posn);
+    static int32 ComputePedHitSide(const CPed& ped, const CVector& dir);
     static int32 ComputePedShotSide(const CPed& ped, const CVector& posn);
 
     static int32 ComputeRouteRoundEntityBoundingBox(const CPed& ped, CEntity& entity, const CVector& posn, CPointRoute& pointRoute, int32 a5);

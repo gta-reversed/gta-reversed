@@ -161,12 +161,24 @@ void CVector::operator /= (float divisor)
     z /= divisor;
 }
 
+// NOTE: The order of the operations is the same as in the original code (unlike `CMatrix::TransformPoint`), as it matters due to rounding
 void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector) {
-    *this = matrix.TransformPoint(vector);
+    const auto &right = matrix.GetRight(), &fwd = matrix.GetForward(), &up = matrix.GetUp(), &pos = matrix.GetPosition();
+    *this = CVector{
+        up.x * vector.z + fwd.x * vector.y + right.x * vector.x + pos.x,
+        up.y * vector.z + right.y * vector.x + fwd.y * vector.y + pos.y,
+        up.z * vector.z + right.z * vector.x + fwd.z * vector.y + pos.z
+    };
 }
 
+// NOTE: The order of the operations is the same as in the original code (unlike `CMatrix::TransformVector`), as it matters due to rounding
 void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector) {
-    *this = matrix.TransformVector(vector);
+    const auto &right = matrix.GetRight(), &fwd = matrix.GetForward(), &up = matrix.GetUp();
+    *this = CVector{
+        up.x * vector.z + fwd.x * vector.y + right.x * vector.x,
+        up.y * vector.z + right.y * vector.x + fwd.y * vector.y,
+        up.z * vector.z + right.z * vector.x + fwd.z * vector.y
+    };
 }
 
 float CVector::Heading(bool limitAngle) const {
