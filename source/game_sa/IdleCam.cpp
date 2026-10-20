@@ -274,8 +274,8 @@ float CIdleCam::ProcessSlerp(float& outX, float& outZ) {
     const auto slerpT = std::min((beginTime - m_TimeLastTargetSelected) / m_SlerpDuration, 1.0f);
     const auto lerpT  = (std::sin(DegreesToRadians(270.0f - 180.0f * slerpT)) + 1.0f) / 2.0f;
 
-    outX = slerpDistAtan + (lookAtDistAtan - slerpDistAtan) * lerpT;
-    outZ = slerpAtan + (lookAtAtan - slerpAtan) * lerpT;
+    outX = lerp(slerpDistAtan, lookAtDistAtan, lerpT);
+    outZ = lerp(slerpAtan, lookAtAtan, lerpT);
     return slerpT;
 }
 
