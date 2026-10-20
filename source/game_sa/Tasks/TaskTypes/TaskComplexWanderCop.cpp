@@ -140,7 +140,7 @@ void CTaskComplexWanderCop::LookForCarAlarms(CPed* ped) {
     if (!vehicle || !vehicle->IsAutomobile())
         return;
 
-    if (!vehicle->IsAlarmActivated())
+    if (!vehicle->IsAlarmActivated() || vehicle->GetStatus() == STATUS_WRECKED)
         return;
 
     float distance = DistanceBetweenPointsSquared(ped->GetPosition(), vehicle->GetPosition());

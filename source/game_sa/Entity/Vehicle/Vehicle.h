@@ -731,7 +731,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
 
-    bool IsAlarmActivated() const { return m_nAlarmState != 0 && m_nAlarmState != ALARM_STATE_ARMED && m_info.m_nStatus != STATUS_WRECKED; }
+    bool IsAlarmActivated() const { return m_nAlarmState != 0 && m_nAlarmState != ALARM_STATE_ARMED; }
 
     CPlane* AsPlane() { return reinterpret_cast<CPlane*>(this); }
     CHeli*  AsHeli()  { return reinterpret_cast<CHeli*>(this); }
