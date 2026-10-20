@@ -131,8 +131,11 @@ void CAEMP3BankLoader::UpdateVirtualChannels(tVirtualChannelSettings* settings, 
             lengths[i]        = -1;
             loopStartTimes[i] = -1;
         } else {
+            const auto end = sfx == slot->NumSounds - 1
+                ? GetBankLookup(slot->Bank).NumBytes                                 // Last sound of the bank
+                : slot->Sounds[(sfx + 1) % std::size(slot->Sounds)].BankOffsetBytes; // Next sound (Or the single sound's size, see `Service`)
             lengths[i] = CAEAudioUtility::ConvertFromBytesToMS(
-                slot->GetSoundSize(sfx),
+                end - slot->Sounds[sfx].BankOffsetBytes,
                 slot->Sounds[sfx].SampleFrequency,
                 1
             );
@@ -270,6 +273,9 @@ void CAEMP3BankLoader::Service() {
                 m_BankSlotSound[req.Slot] = -1; // Whole bank loaded, so use `-1`
 
                 CMemoryMgr::Free(std::exchange(req.StreamBufPtr, nullptr));
+                req.Bank    = SND_BANK_UNK;
+                req.Slot    = SND_BANK_SLOT_NONE;
+                req.SoundID = -1;
                 m_RequestCnt--;
 
                 req.Status = eSoundRequestStatus::INACTIVE;
@@ -330,6 +336,9 @@ void CAEMP3BankLoader::Service() {
             m_BankSlotSound[req.Slot] = req.SoundID;
 
             CMemoryMgr::Free(std::exchange(req.StreamBufPtr, nullptr));
+            req.Bank    = SND_BANK_UNK;
+            req.Slot    = SND_BANK_SLOT_NONE;
+            req.SoundID = -1;
             m_RequestCnt--;
 
             req.Status = eSoundRequestStatus::INACTIVE;

@@ -36,15 +36,6 @@ struct CAEBankSlot {
     AEBankSlotItems Sounds{};      //!< Sounds of this bank (Also see `NumSounds`)
 
     bool IsSingleSound() const { return NumSounds == -1; }
-
-    // Calculate size of the sound at the given index
-    size_t GetSoundSize(eSoundID id) const {
-        assert(IsSingleSound() || id >= 0 && id < (eSoundID)(NumSounds));
-        const auto next = IsSingleSound()
-            ? NumBytes
-            : Sounds[id + 1].BankOffsetBytes;
-        return next - Sounds[id].BankOffsetBytes;
-    }
 };
 VALIDATE_SIZE(CAEBankSlot, 0x12D4);
 
