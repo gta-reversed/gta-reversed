@@ -224,8 +224,7 @@ void CPedAttractor::ComputeAttractPos(int32 pedId, CVector& outPos) {
 // 0x5EA1C0
 void CPedAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
     if (m_Fx) {
-        const auto& dir = bQueue ? m_QueueDir : m_UseDir;
-        heading         = CGeneral::GetRadianAngleBetweenPoints(dir.x, dir.y, 0.0f, 0.0f);
+        heading = CGeneral::GetRadianAngleBetweenPoints(bQueue ? m_QueueDir : m_UseDir, {});
         if (bQueue)
             heading += CPedAttractor::ComputeDeltaHeading();
     }
