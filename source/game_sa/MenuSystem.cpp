@@ -614,24 +614,25 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
     std::array<CRGBA, MENU_CAR_COLOR_COUNT> usedColours;
     rng::fill(usedColours, CRGBA{ 0, 0, 0, 255 });
 
-    uint8 colourIdx = 0;
-    for (uint8 numUsed = 0; numUsed < MENU_CAR_COLOR_COUNT;) {
-        const auto colour = CVehicleModelInfo::ms_vehicleColourTable[colourIdx].WithAlpha(255);
+    const auto GetColour = [](uint8 colourIdx) {
+        return CVehicleModelInfo::ms_vehicleColourTable[colourIdx].WithAlpha(255);
+    };
 
-        const auto numToCheck = notsa::bugfixes::CMenuSystem_FillGridWithCarColours_ComparesWithEmptySlot ? numUsed : numUsed + 1;
-        const auto isSimilar  = numUsed > 0 && rng::any_of(usedColours | rngv::take(numToCheck), [&](const CRGBA& used) {
-            return IsSimilar(colour, used);
-        });
-        if (isSimilar && colourIdx + 1 < CVehicleModelInfo::NUM_VEHICLE_COLORS) {
+    for (uint8 numUsed = 0; numUsed < MENU_CAR_COLOR_COUNT; numUsed++) {
+        const auto numToCheck      = notsa::bugfixes::CMenuSystem_FillGridWithCarColours_ComparesWithEmptySlot ? numUsed : numUsed + 1;
+        const auto IsSimilarToUsed = [&](const CRGBA& colour) {
+            return numUsed > 0 && rng::any_of(usedColours | rngv::take(numToCheck), [&](const CRGBA& used) {
+                return IsSimilar(colour, used);
+            });
+        };
+
+        // Take the first colour that isn't similar to the used ones. If there's none, the last one is used anyway
+        uint8 colourIdx = 0;
+        while (colourIdx + 1 < CVehicleModelInfo::NUM_VEHICLE_COLORS && IsSimilarToUsed(GetColour(colourIdx))) {
             colourIdx++;
-            continue;
         }
-
-        // If every colour is too similar to the used ones, the last one is used anyway
-        usedColours[numUsed]                       = colour;
+        usedColours[numUsed]                       = GetColour(colourIdx);
         MenuNumber[id]->m_anUsedCarColors[numUsed] = colourIdx;
-        numUsed++;
-        colourIdx = 0;
     }
 }
 
