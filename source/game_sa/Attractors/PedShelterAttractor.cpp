@@ -10,7 +10,7 @@ const CVector& CPedShelterAttractor::GetDisplacement(int32 pedId) {
         for (auto i = 0; i < 5; i++) { // One spot per ped, see the constructor
             CVector displacement;
             do {
-                const auto rads   = CGeneral::GetRandomNumberInRange(0.f, TWO_PI); // NOTE: Original uses the exact 2π (6.2831855f), so the spots may be off by up to ~11 µm
+                const auto rads   = CGeneral::GetRandomNumberInRange(0.f, TWO_PI);
                 const auto radius = CGeneral::GetRandomNumberInRange(0.f, 2.f);
                 displacement      = CVector{ std::cos(rads) * radius, std::sin(rads) * radius, 0.f };
             } while (rng::any_of(ms_displacements, [&](const CVector& d) { return DistanceBetweenPointsSquared(d, displacement) < sq(1.f); }));
