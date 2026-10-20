@@ -955,9 +955,10 @@ notsa::script::CommandHandlerFunction& CRunningScript::CustomCommandHandlerOf(eS
     return s_CustomCommandHandlerTable[(size_t)(command)];
 }
 
+// Inlined in `Process` (0x469F00): on mission failure, unwind the call stack to the outermost return address.
+// The original leaves the stack entries untouched (they're part of the saved script state).
 void CRunningScript::ResetIP() {
     assert(m_StackDepth > 0); // Original bug...
-    do {
-        m_IP = std::exchange(m_IPStack[m_StackDepth--], nullptr); // NOTSA: Also clear the stack, we don't need it anymore
-    } while (m_StackDepth);
+    m_IP         = m_IPStack[0];
+    m_StackDepth = 0;
 }
