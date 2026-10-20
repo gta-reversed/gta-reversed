@@ -14,6 +14,7 @@ class CSprite2d;
 
 
 // todo: move
+// Render state of a string in the font buffer (See `CFont::PrintString`)
 struct CFontChar {
     uint8     m_cLetter;
     uint8     m_dLetter;
@@ -21,7 +22,7 @@ struct CFontChar {
     float     m_fWidth;
     float     m_fHeight;
     CRGBA     m_color;
-    float     m_fWrap;
+    float     m_fWrap;          //!< Extra width added for each space (Used for justified text)
     float     m_fSlant;
     CVector2D m_vSlanRefPoint;
     bool      m_bContainImages;
@@ -128,7 +129,7 @@ public:
     static void Shutdown();
     static void PrintChar(float x, float y, char character);
     // Get next ' ' character in a string
-    static char* GetNextSpace(char* string);
+    static const GxtChar* GetNextSpace(const GxtChar* string);
     static char* ParseToken(char* text, CRGBA& color, bool isBlip, char* tag);
     static void SetScale(float w, float h);
     static void SetScaleForCurrentLanguage(float w, float h);
@@ -158,6 +159,7 @@ public:
     static int16 ProcessStringToDisplay(float x, float y, const GxtChar* text);
     static void GetTextRect(CRect* rect, float x, float y, const GxtChar* text);
     static void PrintString(float x, float y, const GxtChar* text);
+    static void PrintString(float x, float y, const GxtChar* start, const GxtChar* end, float spaceWidth);
     static void PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);
     static uint8 FindSubFontCharacter(uint8 letterId, uint8 fontStyle);
