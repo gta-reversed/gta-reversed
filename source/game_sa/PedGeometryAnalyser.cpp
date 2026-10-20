@@ -327,7 +327,7 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
                        bmax = box.m_vecMax;
 
             // Check intersection on Z axis in world-space
-            // Can't do this the other way around, because the
+            // Can't do this the other way around, because the bounding box is in object-space, and the object can be rotated, so we need to transform the Z axis to world-space
             // I've simplified this, because there's no reason to transpose anything other than the Z axis
             {
                 const auto TransformObjecToWorldSpaceZ = [&matrix](float z) -> float {
@@ -347,8 +347,8 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
                 //    continue;
                 //}
 
-                assert(bmax.z >= bmin.z);
-                if (bmax.z < minAllowedZ || bmin.z > maxAllowedZ) {
+                assert(bmaxZ >= bminZ);
+                if (bmaxZ < minAllowedZ || bminZ> maxAllowedZ) {
                     return;
                 }
             }
