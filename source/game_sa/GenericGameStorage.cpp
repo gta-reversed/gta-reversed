@@ -555,17 +555,18 @@ bool CGenericGameStorage::GenericSave() {
         }
     }
     LOG_SAVE("SAVE - END");
-    while (ms_WorkBufferPos + ms_FilePos < SIZE_OF_ONE_GAME_IN_BYTES && (SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos) >= BUFFER_SIZE) {
+    // Pad the file to the minimum save size. The padding is whatever is left in the work buffer, like the original.
+    while (ms_WorkBufferPos + ms_FilePos < SIZE_OF_ONE_GAME_IN_BYTES) {
+        const auto remaining = SIZE_OF_ONE_GAME_IN_BYTES - ms_WorkBufferPos - ms_FilePos;
+        if (ms_WorkBufferPos + remaining < BUFFER_SIZE) {
+            ms_WorkBufferPos += remaining;
+            break;
+        }
         ms_WorkBufferPos = BUFFER_SIZE;
         if (!SaveWorkBuffer(false)) {
             CloseFile();
             return false;
         }
-
-        if (ms_WorkBufferPos + ms_FilePos >= SIZE_OF_ONE_GAME_IN_BYTES) {
-            break;
-        }
-        ms_WorkBufferPos = SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos;
     }
 
     if (!SaveWorkBuffer(true)) {
