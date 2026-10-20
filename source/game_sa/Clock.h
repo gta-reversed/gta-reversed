@@ -41,7 +41,7 @@ public:
     static void RestoreClock();
 
     // inlined and may have not original names
-    static uint8  GetGameClockSeconds()   { return (uint8)ms_nGameClockSeconds; } // 0x55F460 - The original returns only the low byte
+    static uint8  GetGameClockSeconds()   { return (uint8)ms_nGameClockSeconds; } // 0x55F460
     static uint8  GetGameClockMinutes()   { return ms_nGameClockMinutes; } // 0x4410C0
     static uint8  GetGameClockHours()     { return ms_nGameClockHours; }   // 0x43A690
     static uint8  GetGameClockDays()      { return ms_nGameClockDays; }    // 0x4E7EF0
