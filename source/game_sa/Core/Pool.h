@@ -139,7 +139,7 @@ public:
             }
         }
         for (auto i = 0u; i < m_Capacity; i++) {
-            m_SlotState[i].IsEmpty = true;
+            m_SlotState[i] = {}; // Empty, and `Ref` reset to 0 (= 0x80, like the original)
         }
         DoFill(DEADLAND_FILL);
     }
