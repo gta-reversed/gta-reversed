@@ -4,15 +4,15 @@
 
 class CEntity;
 
-enum class eIdleCamZoomState {
-    ZOOMING_IN  = 0,
-    ZOOMING_OUT = 1,
-    ZOOMED_IN   = 2,
-    ZOOMED_OUT  = 3,
-};
-
 class CIdleCam {
 public:
+    enum class ZoomState {
+        ZOOMING_IN  = 0,
+        ZOOMING_OUT = 1,
+        ZOOMED_IN   = 2,
+        ZOOMED_OUT  = 3,
+    };
+
     static void InjectHooks();
 
     CIdleCam();
@@ -60,7 +60,7 @@ public:
     float             m_DistTooFar;
     int32             m_TargetLOSFramestoReject;
     int32             m_TargetLOSCounter;
-    eIdleCamZoomState m_ZoomState;
+    ZoomState         m_ZoomState;
     float             m_ZoomFrom;
     float             m_ZoomTo;
     float             m_TimeZoomStarted;
