@@ -2,6 +2,7 @@
 
 #include "PedStats.h"
 #include "CarEnterExit.h"
+#include <reversiblebugfixes/Bugs.hpp>
 #include "TaskSimpleCarSetPedInAsDriver.h"
 #include "TaskComplexDriveWander.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
@@ -166,6 +167,20 @@ int32 CCarEnterExit::ComputePassengerIndexFromCarDoor(const CVehicle* vehicle, i
     default:
         return -1;
     }
+}
+
+// NOTSA - The passenger in the seat that's entered through the given door
+CPed* CCarEnterExit::GetPassengerAtCarDoor(const CVehicle* vehicle, int32 doorId) {
+    const auto psgrIdx = ComputePassengerIndexFromCarDoor(vehicle, doorId);
+    if (psgrIdx == -1) {
+        // BUG: The original indexes `m_apPassengers` with the result unchecked. If the door has no passenger seat (e.g. door 8 on a bike,
+        //      or seat 0 ("any seat") for `CTaskComplexEnterCarAsPassengerTimed`) that reads `m_apPassengers[-1]`, which is `m_pDriver`,
+        //      the member right before it. At least for bikes that's what R* intended anyway (See `ComputeSlowJackedPed`).
+        return notsa::bugfixes::CCarEnterExit_GetPassengerAtCarDoor_NoPassengerSeat
+            ? vehicle->m_pDriver
+            : vehicle->m_apPassengers.data()[psgrIdx];
+    }
+    return vehicle->m_apPassengers[psgrIdx];
 }
 
 // 0x64F070

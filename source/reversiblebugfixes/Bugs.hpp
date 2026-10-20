@@ -106,4 +106,9 @@ inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheck
     .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CCarEnterExit_GetPassengerAtCarDoor_NoPassengerSeat{
+    .Name        = "CCarEnterExit::GetPassengerAtCarDoor - Door without a passenger seat",
+    .Description = "Return the driver instead of reading `m_apPassengers[-1]` when the door has no passenger seat",
+    .Credit      = "zsrv"
+};
 };

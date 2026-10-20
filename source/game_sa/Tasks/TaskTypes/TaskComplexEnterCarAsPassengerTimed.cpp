@@ -81,7 +81,7 @@ CTask* CTaskComplexEnterCarAsPassengerTimed::ControlSubTask(CPed* ped) {
         if (m_pSubTask->MakeAbortable(ped)) {
             if (!ped->bInVehicle) {
                 if (   m_TargetSeat == 0 && m_TargetCar->m_nNumPassengers < m_TargetCar->m_nMaxPassengers
-                    || !m_TargetCar->GetPassengers()[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_TargetCar, m_TargetSeat)]
+                    || !CCarEnterExit::GetPassengerAtCarDoor(m_TargetCar, m_TargetSeat)
                 ) {
                     return new CTaskSimpleCarSetPedInAsPassenger{m_TargetCar, (eTargetDoor)m_TargetSeat, true};
                 }
