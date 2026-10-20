@@ -307,7 +307,7 @@ bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, C
         }
     }
 
-    CVector           min{ FLT_MAX }, max{ FLT_MIN };
+    CVector           min{ FLT_MAX }, max{ -FLT_MAX };
     const auto&       matrix   = entity.GetMatrix();
     const auto* const entityCM = entity.GetColModel();
     if (!entityCM) {
