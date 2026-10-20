@@ -607,7 +607,7 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
 
     const auto IsSimilar = [](const CRGBA& a, const CRGBA& b) {
         return rng::all_of(rngv::iota(0u, 3u), [&](uint32 i) { // R, G, B
-            return b[i] - SIMILAR_COLOUR_RANGE < a[i] && a[i] < b[i] + SIMILAR_COLOUR_RANGE;
+            return std::abs((int32)a[i] - (int32)b[i]) < SIMILAR_COLOUR_RANGE;
         });
     };
 
