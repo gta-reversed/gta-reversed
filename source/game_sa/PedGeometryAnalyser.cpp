@@ -963,7 +963,7 @@ int32 CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(const CPed& ped, 
                    isRouteClearB           = !routeProcessedB.BlockedByEntity;
 
         const auto PreProcessShortestRoute = [&]() {
-            return routeL.GetLengthSq() < routeR.GetLengthSq() // Calculated at 0x5F562B, 0x5F5673
+            return routeL.GetLength() < routeR.GetLength() // Calculated at 0x5F562B, 0x5F5673
                 ? PreProcess(1, routeL)                        // 0x5F5718
                 : PreProcess(2, routeR);                       // 0x5F57B6
         };

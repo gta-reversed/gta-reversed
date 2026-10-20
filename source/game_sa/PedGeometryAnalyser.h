@@ -33,15 +33,15 @@ public:
     static void operator delete(void* ptr, size_t sz);
 
     /*!
-     * @brief Compute the squared polyline length of this route.
-     * @return Squared length of the route.
+     * @brief Compute the polyline length of this route.
+     * @return Length of the route.
      */
-    auto GetLengthSq() const noexcept {
-        float distSq = 0.f;
+    auto GetLength() const noexcept {
+        float dist = 0.f;
         for (size_t i = 1; i < GetSize(); i++) {
-            distSq += ((*this)[i - 1] - (*this)[i]).SquaredMagnitude();
+            dist += ((*this)[i - 1] - (*this)[i]).Magnitude();
         }
-        return distSq;
+        return dist;
     }
 };
 
