@@ -1437,6 +1437,10 @@ void CTheScripts::Process() {
         it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
         it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
+
+        if (next && !next->m_IsActive) { // `next` was terminated by `it`, so it's in the idle list now
+            break;
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();
