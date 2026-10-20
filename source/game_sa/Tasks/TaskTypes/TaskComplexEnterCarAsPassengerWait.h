@@ -17,7 +17,9 @@ public:
     CTaskComplexEnterCarAsPassengerWait(const CTaskComplexEnterCarAsPassengerWait&);
     ~CTaskComplexEnterCarAsPassengerWait();
 
-    CTaskComplexEnterCarAsPassengerTimed* CreateSubTask(int32 taskType, CPed* ped);
+    static constexpr uint32 MAX_ENTER_CAR_FAILS = 16; //!< Give up after failing to get in this many times
+
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
     CTask*    Clone() const override { return new CTaskComplexEnterCarAsPassengerWait{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
