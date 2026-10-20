@@ -164,6 +164,7 @@
 #include "ScriptResourceManager.h"
 #include "PedAttractorManager.h"
 #include "Attractors/PedAttractorPedPlacer.h"
+#include "Attractors/PedShelterAttractor.h"
 #include "LoadingScreen.h"
 #include "Securom.h"
 #include "GridRef.h"
@@ -593,6 +594,7 @@ void InjectHooksMain() {
     CCarFXRenderer::InjectHooks();
     CPedAttractorManager::InjectHooks();
     CPedAttractorPedPlacer::InjectHooks();
+    CPedShelterAttractor::InjectHooks();
     BoneNode_c::InjectHooks();
     BoneNodeManager_c::InjectHooks();
     IKChainManager_c::InjectHooks();
