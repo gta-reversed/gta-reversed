@@ -106,4 +106,11 @@ inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheck
     .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CVehicleModelInfo_SetClump_DirtMaterialsNeverFound{
+    .Name            = "Vehicle dirt levels",
+    .Description     = "The game never fills `CVehicleModelInfo::m_apDirtMaterials`, so every vehicle is rendered with the maximum dirt "
+                       "regardless of its dirt level. The fix fills it with the materials that use the `vehiclegrunge256` texture (like SilentPatch does)",
+    .Credit          = "SilentPatch Contributors, W4liss0n",
+    .RequiresRestart = true
+};
 };
