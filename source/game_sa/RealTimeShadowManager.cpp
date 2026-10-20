@@ -65,11 +65,11 @@ void CRealTimeShadowManager::ReturnRealTimeShadow(CRealTimeShadow* shdw) {
 // 0x706870
 void CRealTimeShadowManager::ReInit() {
     for (auto* const shdw : m_apShadows) {
-        shdw->m_camera.ReInit();
-        shdw->m_blurCamera.ReInit();
+        shdw->m_camera.ReInitRasters();
+        shdw->m_blurCamera.ReInitRasters();
     }
-    m_BlurCamera.ReInit();
-    m_GradientCamera.ReInit();
+    m_BlurCamera.ReInitRasters();
+    m_GradientCamera.ReInitRasters();
     m_GradientCamera.MakeGradientRaster();
 }
 

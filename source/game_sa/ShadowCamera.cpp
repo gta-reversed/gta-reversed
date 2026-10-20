@@ -197,8 +197,8 @@ RwCamera* CShadowCamera::Create(int32 rasterSizePower) {
     return m_pRwCamera;
 }
 
-// inlined (0x706870)
-void CShadowCamera::ReInit() {
+// Inlined code, see at `0x706870`
+void CShadowCamera::ReInitRasters() {
     const auto raster = RwCameraGetRaster(m_pRwCamera);
     const auto size   = RwRasterGetWidth(raster);
     RwCameraSetRaster(m_pRwCamera, nullptr);

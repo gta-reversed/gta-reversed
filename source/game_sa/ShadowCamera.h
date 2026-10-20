@@ -78,7 +78,7 @@ public:
     /*!
     * @brief Recreate the camera's raster (and the texture's) with the same size
     */
-    void ReInit();
+    void ReInitRasters();
 
     /*!
     * @addr  0x705BF0

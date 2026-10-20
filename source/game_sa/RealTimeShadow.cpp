@@ -112,9 +112,12 @@ bool CRealTimeShadow::SetupForThisEntity(CPhysical* owner) {
         m_boundingSphere  = { sphere->center, sphere->radius };
         break;
     }
-    case rpCLUMP:
-        RpClumpGetBoundingSphere(owner->GetRpClump(), reinterpret_cast<RwSphere*>(&m_boundingSphere), true);
+    case rpCLUMP: {
+        RwSphere sphere;
+        RpClumpGetBoundingSphere(owner->GetRpClump(), &sphere, true);
+        m_boundingSphere = { sphere.center, sphere.radius };
         break;
+    }
     default:
         Destroy();
         return false;
@@ -125,7 +128,7 @@ bool CRealTimeShadow::SetupForThisEntity(CPhysical* owner) {
         &m_baseSphere.m_vecCenter,
         &m_boundingSphere.m_vecCenter,
         1,
-        RwFrameGetMatrix(static_cast<RwFrame*>(rwObjectGetParent(object)))
+        owner->GetRwMatrix()
     );
 
     m_camera.SetFrustum(m_boundingSphere.m_fRadius * 1.1f);

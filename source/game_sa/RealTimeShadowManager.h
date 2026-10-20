@@ -23,6 +23,11 @@ public:
     void ReInit();
     void Update();
 
+    /*!
+    * @addr 0x706970
+    * @brief Set up a shadow for `physical`. Despite the name, this is what creates the shadow (player 1 always gets the first one)
+    * @return The shadow, or `nullptr` if none is free, or if the player is in a fast vehicle and `physical` isn't player 1
+    */
     CRealTimeShadow* GetRealTimeShadow(CPhysical* physical);
     void             DoShadowThisFrame(CPhysical* physical);
     void             ReturnRealTimeShadow(CRealTimeShadow* pShadow);
