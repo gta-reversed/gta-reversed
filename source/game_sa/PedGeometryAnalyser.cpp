@@ -1038,7 +1038,9 @@ bool CPedGeometryAnalyser::ComputeRouteRoundSphere(const CPed& ped, const CColSp
     // since we've modified `outNewTarget` to be on the edge of the sphere,
     // we may not intersect it anymore, but we still need to go around it.
     // So, perhaps here we should do:
-    // `outDetourTarget = outNewTarget`;
+    if (notsa::bugfixes::CPedGeometryAnalyser_ComputeRouteRoundSphere_AmbigousDetourTarget) {
+        outDetourTarget = outNewTarget;
+    }
     return true;
 }
 

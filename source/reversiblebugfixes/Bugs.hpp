@@ -122,4 +122,9 @@ inline const ReversibleBugFix CPedGeometryAnalyser_IsEntityBlockingTarget_Incorr
     .Description = "Fix incorrect radius check in `CPedGeometryAnalyser::IsEntityBlockingTarget`",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CPedGeometryAnalyser_ComputeRouteRoundSphere_AmbigousDetourTarget{
+    .Name        = "CPedGeometryAnalyser::ComputeRouteRoundSphere - Fix ambiguous detour target",
+    .Description = "Fix missing setting of detour target when the ped is on the edge of the sphere in `CPedGeometryAnalyser::ComputeRouteRoundSphere`",
+    .Credit      = "Pirulax"
+};
 };
