@@ -138,7 +138,7 @@ public:
                 std::destroy_at(&v);
             }
         }
-        rng::fill_n(m_SlotState, m_Capacity, {});
+        rng::fill_n(m_SlotState, m_Capacity, SlotState{});
         DoFill(DEADLAND_FILL);
     }
 
