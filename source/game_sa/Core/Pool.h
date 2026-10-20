@@ -138,9 +138,7 @@ public:
                 std::destroy_at(&v);
             }
         }
-        for (auto i = 0u; i < m_Capacity; i++) {
-            m_SlotState[i] = {}; // Empty, and `Ref` reset to 0 (= 0x80, like the original)
-        }
+        rng::fill_n(m_SlotState, m_Capacity, {});
         DoFill(DEADLAND_FILL);
     }
 
