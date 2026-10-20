@@ -80,7 +80,7 @@ CTask* CTaskComplexUseEffect::CreateNextSubTask(CPed* ped) {
 // 0x632460
 CTask* CTaskComplexUseEffect::CreateFirstSubTask(CPed* ped) {
     CEntity::ChangeEntityReference(m_Ped, ped);
-    m_PedAttractor = !m_bAbort && (m_Entity || CScripted2dEffects::GetIndex(m_2dFx) >= 0)
+    m_PedAttractor = !m_bAbort && (m_Entity || CScripted2dEffects::GetIndex(m_2dFx) != -1)
         ? GetPedAttractorManager()->RegisterPedWithAttractor(ped, m_2dFx, m_Entity, m_MoveState)
         : nullptr;
     return m_PedAttractor
