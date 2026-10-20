@@ -1068,7 +1068,7 @@ bool CPedGeometryAnalyser::GetIsLineOfSightClear(const CPed& ped, const CVector&
     for (const auto& [plane, planeDot] : rngv::zip(bbPlaneNormals, bbPlaneDs)) {
         // Calculate the intersection point of a line with a plane
         const auto GetMoveLinePointOnPlane = [&](float dist) -> std::optional<CVector> {
-            if (const auto distOnLine = plane.Dot(moveDir); distOnLine > 0.0001f) {
+            if (const auto distOnLine = plane.Dot(moveDir); distOnLine > 0.0001f) { // Is moving away from the plane?
                 // t = - (n . P0 + d) / (n . dir)
                 // we want to find the point on the line that intersects the plane, so we can use the parametric equation of the line:
                 // P(t) = P0 + dir * t
