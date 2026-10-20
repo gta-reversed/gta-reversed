@@ -323,7 +323,10 @@ bool CTheZones::FindZone(const CVector& point, std::string_view name, eZoneType 
 // Returns pointer to zone by index
 // 0x572C40
 int16 CTheZones::FindZoneByLabel(const char* name, eZoneType type) {
-    assert(type == eZoneType::ZONE_TYPE_INFO); // Originally an `if` returning `-1`, but let's be safe
+    assert(type == eZoneType::ZONE_TYPE_INFO);
+    if (type != eZoneType::ZONE_TYPE_INFO) {
+        return -1;
+    }
 
     for (auto&& [i, v] : rngv::enumerate(GetNavigationZones())) {
         if (name == v.GetInfoLabel()) {
