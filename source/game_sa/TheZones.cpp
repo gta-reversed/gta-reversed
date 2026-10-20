@@ -264,7 +264,8 @@ void CTheZones::CreateZone(
     }();
 
     const auto StrCpyUpper = [](auto& dst, auto& src) {
-        // NOTE: Not `strcpy_s`, in debug builds it fills the rest with `0xFE`, but some original code compares all 8 bytes (See #1622)
+        // NOTE: Some vanilla code compares all 8 bytes, so we need to pad with zeros
+        // (See #1622)
         strncpy(dst, src, std::size(dst) - 1);
         dst[std::size(dst) - 1] = 0;
         for (auto& ch : dst) {
