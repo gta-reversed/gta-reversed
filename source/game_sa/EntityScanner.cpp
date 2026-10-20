@@ -45,19 +45,14 @@ void CEntityScanner::ScanForEntitiesInRange(eRepeatSectorList sectorList, CPed& 
 
     Clear();
 
-    const auto isPlayer = FindPlayerPed() == &ped;
-    const auto intel    = ped.GetIntelligence();
-    const auto range    = std::max(intel->m_fHearingRange, intel->m_fSeeingRange);
-    const auto& pos     = ped.GetPosition();
+    const auto        isPlayer = FindPlayerPed() == &ped;
+    const auto* const intel    = ped.GetIntelligence();
+    const auto        range    = std::max(intel->m_fHearingRange, intel->m_fSeeingRange);
+    const auto&       pos      = ped.GetPosition();
 
     size_t numEntities{};
     std::array<float, MAX_NUM_ENTITIES> distancesSq;
     rng::fill(distancesSq, FLT_MAX);
-
-    const auto startSectorX = std::max(CWorld::GetSectorX(pos.x - range), 0);
-    const auto startSectorY = std::max(CWorld::GetSectorY(pos.y - range), 0);
-    const auto endSectorX   = std::min(CWorld::GetSectorX(pos.x + range), MAX_SECTORS_X - 1);
-    const auto endSectorY   = std::min(CWorld::GetSectorY(pos.y + range), MAX_SECTORS_Y - 1);
 
     CWorld::AdvanceCurrentScanCode();
     ped.SetCurrentScanCode();
@@ -86,10 +81,9 @@ void CEntityScanner::ScanForEntitiesInRange(eRepeatSectorList sectorList, CPed& 
                 }
                 if (distSq < distancesSq[i]) {
                     // Make room for it (If the array is full the furthest one is dropped)
-                    for (auto j = std::min(numEntities, MAX_NUM_ENTITIES - 1); j > i; j--) {
-                        m_apEntities[j] = m_apEntities[j - 1];
-                        distancesSq[j]  = distancesSq[j - 1];
-                    }
+                    const auto last = std::min(numEntities + 1, MAX_NUM_ENTITIES);
+                    rng::shift_right(m_apEntities.begin() + i, m_apEntities.begin() + last, 1);
+                    rng::shift_right(distancesSq.begin() + i, distancesSq.begin() + last, 1);
                     distancesSq[i]  = distSq;
                     m_apEntities[i] = entity;
                     if (numEntities < MAX_NUM_ENTITIES) {
@@ -100,17 +94,19 @@ void CEntityScanner::ScanForEntitiesInRange(eRepeatSectorList sectorList, CPed& 
             }
         }
     };
-    for (auto y = startSectorY; y <= endSectorY; y++) {
-        for (auto x = startSectorX; x <= endSectorX; x++) {
-            auto& sector = CWorld::GetRepeatSector(x, y);
-            switch (sectorList) {
-            case REPEATSECTOR_VEHICLES: ProcessList(sector.Vehicles); break;
-            case REPEATSECTOR_PEDS:     ProcessList(sector.Peds);     break;
-            case REPEATSECTOR_OBJECTS:  ProcessList(sector.Objects);  break;
-            default:                    NOTSA_UNREACHABLE_CASE(sectorList);
-            }
+    CWorld::IterateSectorsOverlappedByRect(CRect{ pos, range }, [&](int32 x, int32 y) {
+        if (x < 0 || y < 0 || x >= MAX_SECTORS_X || y >= MAX_SECTORS_Y) {
+            return true; // The original only scans the sectors inside the map (`GetRepeatSector` would wrap the others onto other tiles)
         }
-    }
+        auto& sector = CWorld::GetRepeatSector(x, y);
+        switch (sectorList) {
+        case REPEATSECTOR_VEHICLES: ProcessList(sector.Vehicles); break;
+        case REPEATSECTOR_PEDS:     ProcessList(sector.Peds);     break;
+        case REPEATSECTOR_OBJECTS:  ProcessList(sector.Objects);  break;
+        default:                    NOTSA_UNREACHABLE_CASE(sectorList);
+        }
+        return true;
+    });
 
     for (auto& entity : m_apEntities | rngv::take(numEntities)) {
         if (entity) {
