@@ -17,7 +17,7 @@ const CVector& CPedShelterAttractor::GetDisplacement(int32 pedId) {
             ms_displacements.emplace_back(displacement);
         }
     }
-    return ms_displacements.begin()[pedId];
+    return ms_displacements[pedId];
 }
 
 // 0x5EFC40
