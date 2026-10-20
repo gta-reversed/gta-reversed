@@ -1097,7 +1097,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     tBeHit->m_nAnimGroup = e->GetAnimGroup();
                     tBeHit->m_bAnimAdded = e->GetAnimAdded();
                 }
-            } else {
+            } else if (e->m_bFallDown) { // 0x4C042B - No anim and no fall down means no physical response (0x4C0488)
                 m_PhysicalResponseTask = new CTaskComplexFallAndGetUp{
                     e->GetAnimId(),
                     e->GetAnimGroup(),
