@@ -1146,7 +1146,7 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             );
 
             m_FadeIn = 0.f;
-            UpdateVehicleEngineSound(
+            StartVehicleEngineSound(
                 AE_SOUND_CAR_REV,
                 GetFrequencyForDummyRev(ratio, m_FadeIn),
                 GetVolumeForDummyRev(ratio, 0.f)
@@ -1164,14 +1164,14 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             m_FadeOut = 0.f;
             UpdateVehicleEngineSound(
                 AE_SOUND_CAR_REV,
-                GetFrequencyForDummyRev(ratio, m_FadeIn),
+                GetFrequencyForDummyRev(ratio, m_FadeOut),
                 GetVolumeForDummyRev(ratio, 0.f)
             );
 
             m_FadeIn = 0.f;
-            UpdateVehicleEngineSound(
+            StartVehicleEngineSound(
                 AE_SOUND_CAR_ID,
-                GetFrequencyForDummyIdle(ratio, m_FadeOut),
+                GetFrequencyForDummyIdle(ratio, m_FadeIn),
                 GetVolumeForDummyIdle(ratio, 0.f)
             );
             break;
@@ -1391,7 +1391,7 @@ void CAEVehicleAudioEntity::CancelVehicleEngineSound(eVehicleEngineSoundType st)
 // notsa
 void CAEVehicleAudioEntity::CancelAllVehicleEngineSounds(std::optional<eVehicleEngineSoundType> except) {
     for (int32 i{}; i < (int32)(std::size(m_EngineSounds)); i++) {
-        if (!except.has_value() || *except == i) {
+        if (!except.has_value() || *except != i) {
             CancelVehicleEngineSound((eVehicleEngineSoundType)(i));
         }
     }
@@ -1443,6 +1443,10 @@ void CAEVehicleAudioEntity::RequestNewPlayerCarEngineSound(eVehicleEngineSoundTy
         break;
     default:
         NOTSA_UNREACHABLE();
+    }
+
+    if (m_EngineSounds[st].Sound && st != AE_SOUND_PLAYER_OFF) { // 0x4F7AFC
+        CancelVehicleEngineSound(st);
     }
 
     const auto DoPlayEngineSoundSound = [&](eSoundBankSlot slot, eSoundID sfx, float rollOffFactor, uint32 flags = 0, int16 playTime = 0) {
@@ -3075,8 +3079,9 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
                 CancelVehicleEngineSound(AE_SOUND_PLAYER_OFF);
                 RequestEngineSound(AE_SOUND_CAR_REV);
                 m_State = eAEState::PLAYER_WHEEL_SPIN;
-
-                break;
+            } else { // 0x4FC471
+                UpdateEngineSound(AE_SOUND_CAR_ID);
+                m_State = eAEState::PLAYER_ID;
             }
         } else if (!IsAccInhibitedForLowSpeed(vp) && vp.ThisAccel > cfg->AC.WheelSpinThreshold) {
             CancelVehicleEngineSound(AE_SOUND_CAR_ID);
@@ -3087,7 +3092,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
                 && vp.ZOverSpeed > cfg->ZMoveSpeedThreshold
             ) {
                 vp.Vehicle->vehicleFlags.bAudioChangingGear = true;
-                RequestEngineSound(AE_SOUND_CAR_REV);
+                RequestEngineSound(AE_SOUND_PLAYER_CRZ);
                 m_State = eAEState::PLAYER_CRZ;
             } else {
                 DoFullAcceleration();

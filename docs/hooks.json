@@ -5597,7 +5597,7 @@
   {
     "Category": "SurfaceInfos_c",
     "Name": "LoadAdhesiveLimits",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CRenderer",
@@ -8412,7 +8412,7 @@
   {
     "Category": "CCarCtrl",
     "Name": "FindIntersection2Lines",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -8437,22 +8437,22 @@
   {
     "Category": "CCarCtrl",
     "Name": "FindPercDependingOnDistToLink",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSequenceElement",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSpeedMultiplier",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSpeedMultiplierWithSpeedFromNodes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -16547,7 +16547,7 @@
   {
     "Category": "CIdleCam",
     "Name": "ProcessFOVZoom",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CIdleCam",
@@ -18190,8 +18190,128 @@
     "IsReversed": true
   },
   {
+    "Category": "CPedAttractor",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "SetTaskForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "RegisterPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "DeRegisterPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "IsRegisteredWithPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "IsAtHeadOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetTaskForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetQueueSlot",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetHeadOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetTailOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "HasEmptySlot",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeDeltaPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeDeltaHeading",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractPos-v",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractHeading-v",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "BroadcastDeparture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "BroadcastArrival",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "AbortPedTasks",
+    "IsReversed": true
+  },
+  {
     "Category": "CPedAttractorPedPlacer",
     "Name": "PlacePedAtEffect",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "GetDisplacement",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "ComputeAttractPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "ComputeAttractHeading",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "BroadcastDeparture",
     "IsReversed": true
   },
   {
@@ -24077,7 +24197,7 @@
   {
     "Category": "CTaskComplexDestroyCar",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDestroyCarArmed",
@@ -30737,7 +30857,7 @@
   {
     "Category": "CTaskComplexWalkRoundObject",
     "Name": "CreateRouteTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimplePause",
@@ -31837,6 +31957,11 @@
   {
     "Category": "CTaskComplexUseWaterCannon",
     "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Constructor-NoAnim",
     "IsReversed": true
   },
   {

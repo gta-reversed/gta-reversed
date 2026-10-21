@@ -264,8 +264,10 @@ void CTheZones::CreateZone(
     }();
 
     const auto StrCpyUpper = [](auto& dst, auto& src) {
-        rng::fill(dst, 0);
-        strcpy_s(dst, src);
+        // NOTE: Some vanilla code compares all 8 bytes, so we need to pad with zeros
+        // (See #1622)
+        strncpy(dst, src, std::size(dst) - 1);
+        dst[std::size(dst) - 1] = 0;
         for (auto& ch : dst) {
             if (ch == 0) {
                 break;
