@@ -5078,6 +5078,12 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
 
     obj->SetIsStatic(false);
 
+    obj->objectFlags.bIsPickup = false;
+    obj->objectFlags.bChangesVehColor = true;
+    obj->m_nCarColor[0] = m_nPrimaryColor;
+    obj->m_nCarColor[1] = m_nSecondaryColor;
+    obj->SetRemapTexture(m_pRemapTexture, m_nPreviousRemapTxd);
+
     CObject::nNoTempObjects++;
     if (CObject::nNoTempObjects <= 20u) {
         if (CObject::nNoTempObjects <= 10u) {

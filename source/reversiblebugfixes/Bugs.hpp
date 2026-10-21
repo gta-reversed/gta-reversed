@@ -112,4 +112,10 @@ inline const ReversibleBugFix CTaskSimpleSlideToCoord_Constructor_UninitializedT
                    "and a ped that can't reach the target position or heading slides forever",
     .Credit      = "W4liss0n"
 };
+inline const ReversibleBugFix CObject_Render_DetachedPartRendering{
+    .Name        = "CObject::Render - Detached car part rendering",
+    .Description = "Detached car parts share their materials with the vehicle model, but nothing applies the vehicle's colours and paintjob to them, "
+                   "so they were rendered with the placeholder colours. Apply them before rendering the part, and render both of its sides",
+    .Credit      = "SilentPatch Contributors"
+};
 };
