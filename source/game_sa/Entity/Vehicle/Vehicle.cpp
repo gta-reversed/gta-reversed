@@ -3219,7 +3219,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             else {
                 brake = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
 
-                if (brake > 500.0f)
+                if (m_pHandlingData->m_fMass < 500.0f)
                     brake *= 0.1f;
                 else if (m_nModelIndex == MODEL_RCBANDIT)
                     brake *= 0.2f;
