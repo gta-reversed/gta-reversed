@@ -3125,7 +3125,8 @@ auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
     }
     auto vol = CAEAudioUtility::AudioLog10(baseVol) * 20.f;
     if (distSq < sq(128.f)) {
-        vol += CAEAudioUtility::AudioLog10(invLerp(48.f, 128.f, std::sqrtf(distSq))) * 20.f; // NB: I think this should be substracted (The closer the plane is, the less volume the distant sound should have)
+        // NOTE: The factor is below 1 here, so its log is negative: the closer the plane is, the quieter its distant sound
+        vol += CAEAudioUtility::AudioLog10(invLerp(48.f, 128.f, std::sqrtf(distSq))) * 20.f;
     }
     return vol + 8.f;
 }
