@@ -6,9 +6,6 @@
     "group:allNonMajor",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
-  "toolSettings": {
-    "nodeMaxMemory": 1548
-  },
   "timezone": "Europe/Budapest",
   "schedule": [
     "* 22 * * *"
