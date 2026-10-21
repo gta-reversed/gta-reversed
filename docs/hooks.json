@@ -31840,6 +31840,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Constructor-NoAnim",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskSimplePickUpEntity",
     "Name": "Constructor-1",
     "IsReversed": true

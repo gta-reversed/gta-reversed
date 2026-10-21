@@ -470,17 +470,25 @@ void CCarCtrl::GenerateRandomCars() {
 
     if (NumRandomCars < 45) {
         if (CountDownToCarsAtStart) {
-            CountDownToCarsAtStart--;
-            for (auto i = 100; i --> 0;) {
-                GenerateOneRandomCar();
+            if (--CountDownToCarsAtStart == 0) {
+                for (auto i = 100; i --> 0;) {
+                    GenerateOneRandomCar();
+                }
+                CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
             }
-            CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
         } else {
             GenerateOneRandomCar();
             GenerateOneRandomCar();
         }
     }
 
+    CTrain::DoTrainGenerationAndRemoval();
+    CPlane::DoPlaneGenerationAndRemoval();
+
+    // 0x434277 - About every 4 seconds
+    if (CTimer::GetTimeInMS() / 4096u != CTimer::GetPreviousTimeInMS() / 4096u) {
+        GenerateEmergencyServicesCar();
+    }
 }
 
 // 0x42F3C0

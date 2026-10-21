@@ -106,6 +106,12 @@ inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheck
     .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CTaskSimpleSlideToCoord_Constructor_UninitializedTimer{
+    .Name        = "CTaskSimpleSlideToCoord - Uninitialized timer",
+    .Description = "The constructor without an anim doesn't initialize the timer, so `ProcessPed` never starts the 2 second timeout, "
+                   "and a ped that can't reach the target position or heading slides forever",
+    .Credit      = "W4liss0n"
+};
 inline const ReversibleBugFix CVehicleModelInfo_SetClump_DirtMaterialsNeverFound{
     .Name            = "Vehicle dirt levels",
     .Description     = "The game never fills `CVehicleModelInfo::m_apDirtMaterials`, so every vehicle is rendered with the maximum dirt "

@@ -2590,13 +2590,12 @@ void CAutomobile::SetupSuspensionLines() {
     // 0x6A681C
     // This was probably inlined? Not sure..
     if (cd.m_pLines[0].m_vecEnd.z < cm.m_boundBox.m_vecMin.z) {
-        // V570 The 'wcd.m_pLines[0].m_vecEnd.z' variable is assigned to itself.
-        // todo: figure out what they want
-        // wcd.m_pLines[0].m_vecEnd.z = wcd.m_pLines[0].m_vecEnd.z; // Adjust bounding box
-
-        // Adjust bounding sphere radius - Originally outside this `if`, but that's pointless - This was most likely inlined.
-        cm.m_boundSphere.m_fRadius = std::max({ cm.m_boundSphere.m_fRadius, cm.m_boundBox.m_vecMin.Magnitude(), cm.m_boundBox.m_vecMax.Magnitude() });
+        cm.m_boundBox.m_vecMin.z = cd.m_pLines[0].m_vecEnd.z; // Adjust bounding box
     }
+
+    // 0x6A6836
+    // Adjust bounding sphere radius - This was most likely inlined.
+    cm.m_boundSphere.m_fRadius = std::max({ cm.m_boundSphere.m_fRadius, cm.m_boundBox.m_vecMin.Magnitude(), cm.m_boundBox.m_vecMax.Magnitude() });
 
     // 0x6A68C1
     // Adjust sphere sizes for rcbandit

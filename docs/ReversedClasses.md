@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 20, 2026 at 21:53:45 UTC
-(Triggered by commit [520eb825](https://github.com/gta-reversed/gta-reversed/commit/520eb8254ab762c49f255e557345c74274c5cd3b))
+Last update was at Oct 20, 2026 at 23:37:04 UTC
+(Triggered by commit [85a86355](https://github.com/gta-reversed/gta-reversed/commit/85a8635594be5d0c935560bbbc0dca2537439bd2))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7539 out of 8296 functions done in 719 categories)
+## Stats (7540 out of 8297 functions done in 720 categories)
 
-#### Completely reversed categories (587/719) [82%]
+#### Completely reversed categories (588/720) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -502,6 +502,7 @@ Last update was at Oct 20, 2026 at 21:53:45 UTC
 - CTaskComplexDie (5)<br />
 - CTaskComplexEnterBoatAsDriver (8)<br />
 - CTaskComplexUseWaterCannon (5)<br />
+- CTaskSimpleSlideToCoord (1)<br />
 - CTaskSimplePickUpEntity (4)<br />
 - CTaskComplexBeInGroup (10)<br />
 - CTaskComplexAvoidOtherPedWhileWandering (15)<br />
@@ -605,7 +606,7 @@ Last update was at Oct 20, 2026 at 21:53:45 UTC
 
 </details>
 
-#### Partially reversed categories (124/719) [17%]
+#### Partially reversed categories (124/720) [17%]
 
 <details>
 <summary>See list of categories</summary>
@@ -736,7 +737,7 @@ Last update was at Oct 20, 2026 at 21:53:45 UTC
 
 </details>
 
-#### Not-at-all reversed categories (8/719) [1%]
+#### Not-at-all reversed categories (8/720) [1%]
 
 <details>
 <summary>See list of categories</summary>
