@@ -161,6 +161,7 @@ CTask* CTaskComplexPolicePursuit::CreateSubTask(eTaskType taskType, CPed* ped) {
 
 // 0x6908E0
 CTask* CTaskComplexPolicePursuit::CreateFirstSubTask(CPed* ped) {
+    m_Pursuer = ped->AsCop();
     if (SetPursuit(ped->AsCop())) {
         return CreateSubTask(TASK_COMPLEX_ARREST_PED, ped);
     }

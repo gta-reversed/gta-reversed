@@ -3749,8 +3749,11 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
                     colAngleMult *= -1;
             }
 
-            m_wMiscComponentAngle += static_cast<uint16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep());
-            m_wMiscComponentAngle = std::clamp<uint16>(m_wMiscComponentAngle, 0, DEFAULT_COLLISION_EXTENDLIMIT);
+            m_wMiscComponentAngle = static_cast<uint16>(std::clamp<int32>( // 0x6A16C0
+                m_wMiscComponentAngle + static_cast<int16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep()),
+                0,
+                DEFAULT_COLLISION_EXTENDLIMIT
+            ));
         }
 
         CMatrix rotMatrix;
@@ -5095,15 +5098,12 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
         obj->m_nRemovalTime = CTimer::GetTimeInMS() + 4'000;
     }
 
+    const auto isBonnetBootOrWindscreen = collisionType == 3 || collisionType == 4 || nodeIndex == eCarNodes::CAR_WINDSCREEN;
+
     const auto GetMoveSpeedZ = [&, this] {
         if (m_vecMoveSpeed.z <= 0.f) {
-            if (m_matrix->GetUp().z < 0.f /*flipped*/) {
-                switch (collisionType) {
-                case 3:
-                case 4:
-                case 18:
-                    return 0.04f - m_vecMoveSpeed.z * 1.5f;
-                }
+            if (m_matrix->GetUp().z > 0.f && isBonnetBootOrWindscreen) {
+                return 0.04f - m_vecMoveSpeed.z * 1.5f;
             }
             return m_vecMoveSpeed.z / 4.f;
         } else {
@@ -5114,16 +5114,11 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
     obj->m_vecTurnSpeed = m_vecTurnSpeed * 2.f;
 
     auto objDir = Normalized(obj->GetPosition() - GetPosition());
-    switch (collisionType) {
-    case 3:
-    case 4:
-    case 18: {
+    if (isBonnetBootOrWindscreen) {
         objDir += m_matrix->GetUp();
         if (m_matrix->GetUp().z > 0.f/*not flipped*/) {
             obj->m_matrix->GetPosition() += m_matrix->GetUp() * m_vecMoveSpeed.Magnitude2D();
         }
-        break;
-    }
     }
 
     obj->ApplyMoveForce(objDir);
