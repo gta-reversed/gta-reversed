@@ -5950,17 +5950,19 @@ void CAutomobile::DoHeliDustEffect(float timeConstMult, float fxMaxZMult) {
 
     CColPoint groundCP{};
     CEntity* hitEntity{}; // Unused
-    if (!CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true) && notsa::bugfixes::GenericUB) {
-        // The original ignores the result and reads the uninitialized `groundCP` (stack garbage).
-        // Put the ground at the end of the line instead: no fx over land without collision, water fx over the open sea.
-        // With the fix off, `groundCP` stays zeroed (surface 0 at z = 0), as the garbage can't be reproduced.
-        groundCP.m_vecPoint.z = -1000.f;
-    }
+    const auto hasHitGround = CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true);
     const bool isGroundSand = g_surfaceInfos.IsSand(groundCP.m_nSurfaceTypeB);
 
     auto waterLevel{-1000.f};
     const bool isThereWaterUnderUs = CWaterLevel::GetWaterLevel(myPos, waterLevel, false);
-    const auto isHitPosUnderWater = isThereWaterUnderUs && waterLevel > groundCP.m_vecPoint.z;
+    const auto isHitPosUnderWater = isThereWaterUnderUs && ((!hasHitGround && notsa::bugfixes::GenericUB) || waterLevel > groundCP.m_vecPoint.z);
+
+    if (notsa::bugfixes::GenericUB) {
+        if (!hasHitGround && !isThereWaterUnderUs) {
+            KillDustFx();
+            return;
+        }
+    }
 
     const auto groundZ = isHitPosUnderWater ? waterLevel : groundCP.m_vecPoint.z;
     const auto distToGroundZ = myPos.z - groundZ;
