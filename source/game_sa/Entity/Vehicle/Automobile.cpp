@@ -2614,9 +2614,9 @@ void CAutomobile::SetupSuspensionLines() {
             const auto sphBottomZ = sph.m_vecCenter.z - sph.m_fRadius;
             if (sphBottomZ < sphBottomMinZ) {
                 if (sph.m_fRadius > 0.4f) {
-                    sph.m_fRadius = std::max(0.4f, sphBottomZ);
-                    sph.m_vecCenter.z = sphBottomZ + sph.m_fRadius;
+                    sph.m_fRadius = std::max(0.4f, sph.m_vecCenter.z - sphBottomMinZ);
                 }
+                sph.m_vecCenter.z = sphBottomMinZ + sph.m_fRadius;
             }
         }
     }
