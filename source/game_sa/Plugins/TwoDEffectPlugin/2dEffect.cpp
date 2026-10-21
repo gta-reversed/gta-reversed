@@ -192,7 +192,7 @@ RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream, RwInt32 binar
     auto* e = static_cast<t2dEffectPluginEntry*>(CMemoryMgr::Malloc(numEffects * sizeof(C2dEffect) + sizeof(t2dEffectPluginEntry::m_nObjCount)));
 
     int32 countedNumFx{numEffects};
-    for (auto i = 0; i < numEffects; i++) {
+    for (auto i = 0; i < countedNumFx; i++) {
         auto& fx = e->m_pObjects[i];
         RwStreamRead(stream, &fx.m_Pos, sizeof(CVector));
 
