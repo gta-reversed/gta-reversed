@@ -216,9 +216,13 @@ void CAESoundManager::Service() {
         // 0x4F04EB - Find where to insert
         for (; chN >= numPrioritisedSounds; chN--) {
             const auto& soundB = m_VirtuallyPlayingSoundList[m_PrioritisedSoundList[chN]];
-            if (sound.m_ListenerVolume < soundB.m_ListenerVolume && sound.GetPlayPhysically() <= soundB.GetPlayPhysically()) {
-                break;
+            if (sound.m_ListenerVolume >= soundB.m_ListenerVolume) {
+                continue;
             }
+            if (sound.GetPlayPhysically() > soundB.GetPlayPhysically()) {
+                continue;
+            }
+            break;
         }
 
         // 0x4F0529 - Insert at given index
