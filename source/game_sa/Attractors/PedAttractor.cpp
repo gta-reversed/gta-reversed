@@ -19,7 +19,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(RegisterPed, 0x5EEE30);
     RH_ScopedInstall(DeRegisterPed, 0x5EC5B0);
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0);
-    RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530);
+    RH_ScopedVMTInstall(IsAtHeadOfQueue, 0x5EB530);
     RH_ScopedInstall(GetTaskForPed, 0x5EC500);
     RH_ScopedInstall(GetQueueSlot, 0x5EB550);
     //RH_ScopedInstall(GetNoOfRegisteredPeds, 0xdeadbeef, { .Reversed = false }); // Address incorrect
@@ -30,11 +30,11 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(ComputeDeltaPos, 0x5E9600);
     RH_ScopedInstall(ComputeDeltaHeading, 0x5E9640);
     RH_ScopedInstall(ComputeAttractTime, 0x5E95E0);
-    RH_ScopedOverloadedInstall(ComputeAttractPos, "v", 0x5EA110, void(CPedAttractor::*)(int32, CVector&));
-    RH_ScopedOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
-    RH_ScopedInstall(BroadcastDeparture, 0x5EF160);
+    RH_ScopedVMTOverloadedInstall(ComputeAttractPos, "v", 0x5EA110, void(CPedAttractor::*)(int32, CVector&));
+    RH_ScopedVMTOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
+    RH_ScopedVMTInstall(BroadcastDeparture, 0x5EF160);
     RH_ScopedInstall(BroadcastArrival, 0x5EEF80);
-    RH_ScopedInstall(AbortPedTasks, 0x5EAF60, { .Reversed = false });
+    RH_ScopedInstall(AbortPedTasks, 0x5EAF60);
 }
 
 // 0x5EAFD0

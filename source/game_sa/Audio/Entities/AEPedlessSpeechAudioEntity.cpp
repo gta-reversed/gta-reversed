@@ -50,7 +50,7 @@ int16 CAEPedlessSpeechAudioEntity::AddSayEvent(eAudioEvents audioEvent, eGlobalS
 
 // 0x4E4D10
 void CAEPedlessSpeechAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
-    return I_UpdateParameters<true>(sound, playTime);
+    return I_UpdateParameters<true>(sound, playTime, m_AttachedTo);
 }
 
 // 0x4E6300

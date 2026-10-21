@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 20, 2026 at 23:37:04 UTC
-(Triggered by commit [85a86355](https://github.com/gta-reversed/gta-reversed/commit/85a8635594be5d0c935560bbbc0dca2537439bd2))
+Last update was at Oct 21, 2026 at 20:46:56 UTC
+(Triggered by commit [3460fe4b](https://github.com/gta-reversed/gta-reversed/commit/3460fe4bd0ee950103f10daf063238ac8031f7f2))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7540 out of 8297 functions done in 720 categories)
+## Stats (7573 out of 8321 functions done in 722 categories)
 
-#### Completely reversed categories (588/720) [82%]
+#### Completely reversed categories (594/722) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -75,6 +75,7 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CMouseControllerState (3)<br />
 - CReferences (4)<br />
 - CShotInfo (5)<br />
+- SurfaceInfos_c (48)<br />
 - CRenderer (33)<br />
 - CObjectData (2)<br />
 - CObjectSaveStructure (2)<br />
@@ -174,6 +175,7 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - VideoMode (4)<br />
 - CCoverPoint (3)<br />
 - CCredits (6)<br />
+- CIdleCam (14)<br />
 - CVehicleSaveStructure (2)<br />
 - CStaticShadow (1)<br />
 - CRealTimeShadow (8)<br />
@@ -195,7 +197,9 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - FxManager_c (25)<br />
 - FxEmitterPrt_c (1)<br />
 - Fx_c (8)<br />
+- CPedAttractor (20)<br />
 - CPedAttractorPedPlacer (1)<br />
+- CPedShelterAttractor (4)<br />
 - CCopPed (7)<br />
 - CPlayerSkin (4)<br />
 - CCivilianPed (3)<br />
@@ -312,6 +316,7 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
+- CTaskComplexDestroyCar (9)<br />
 - CTaskComplexDestroyCarArmed (10)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
 - CTaskComplexDieInCar (6)<br />
@@ -474,6 +479,7 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CTaskSimpleGiveCPR (6)<br />
 - CTaskComplexDriveFireTruck (6)<br />
 - CTaskSimpleSwim (11)<br />
+- CTaskComplexWalkRoundObject (2)<br />
 - CTaskSimplePause (4)<br />
 - CTaskSimpleThrowProjectile (9)<br />
 - CTaskSimpleGoToPoint (6)<br />
@@ -606,7 +612,7 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 
 </details>
 
-#### Partially reversed categories (124/720) [17%]
+#### Partially reversed categories (120/722) [17%]
 
 <details>
 <summary>See list of categories</summary>
@@ -624,13 +630,12 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CClothesBuilder (15/23) [65%]<br />
 - CClothes (10/11) [91%]<br />
 - CPopulation (64/66) [97%]<br />
-- SurfaceInfos_c (47/48) [98%]<br />
 - CPedGroupIntelligence (26/27) [96%]<br />
 - CPedDamageResponseCalculator (2/7) [29%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
 - CStats (32/51) [63%]<br />
-- CCarCtrl (21/110) [19%]<br />
+- CCarCtrl (26/110) [24%]<br />
 - CGarage (4/18) [22%]<br />
 - CGarages (21/27) [78%]<br />
 - CPostEffects (35/38) [92%]<br />
@@ -653,7 +658,6 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CCustomBuildingRenderer (3/7) [43%]<br />
 - CProjectileInfo (1/12) [8%]<br />
 - CPools (16/19) [84%]<br />
-- CIdleCam (13/14) [93%]<br />
 - CRealTimeShadowManager (5/7) [71%]<br />
 - CShadows (21/31) [68%]<br />
 - CCam (20/45) [44%]<br />
@@ -678,7 +682,6 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
-- CTaskComplexDestroyCar (8/9) [89%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGoToPointAiming (6/8) [75%]<br />
@@ -700,7 +703,6 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 - CTaskSimpleJetPack (13/14) [93%]<br />
 - CTaskComplexPlayHandSignalAnim (3/9) [33%]<br />
 - CTaskComplexSunbathe (2/8) [25%]<br />
-- CTaskComplexWalkRoundObject (1/2) [50%]<br />
 - CTaskComplexKillPedOnFoot (1/2) [50%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexKillPedFromBoat (2/7) [29%]<br />
@@ -737,7 +739,7 @@ Last update was at Oct 20, 2026 at 23:37:04 UTC
 
 </details>
 
-#### Not-at-all reversed categories (8/720) [1%]
+#### Not-at-all reversed categories (8/722) [1%]
 
 <details>
 <summary>See list of categories</summary>

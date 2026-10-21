@@ -446,7 +446,7 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
                     0xC8FF00, // @ 0x5D9E9B...
                     0xFF00FF,
                     0xFFFF00,
-                }, CRGBA{mat->color}.ToIntRGB());
+                }, CRGBA{mat->color}.ToIntABGR() & 0xFFFFFF); // 0x5D9E62 - Read as a little-endian dword without the alpha, so the values above are 0xBBGGRR
                 const auto color = isSpecialColor
                     ? CRGBA{0, 0, 0, mat->color.alpha}
                     : CRGBA{mat->color};

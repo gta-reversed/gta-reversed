@@ -665,7 +665,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
 
 // 0x486670
 void CTheScripts::CleanUpThisVehicle(CVehicle* vehicle) {
-    if (!vehicle || vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE)) {
+    if (!vehicle || !vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE)) {
         return;
     }
 
@@ -1442,6 +1442,12 @@ void CTheScripts::Process() {
         it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
         it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
+
+        // NOTE: Like the original (0x46A226): if `it` terminated `next`, `next` is in the idle list now and its `m_pNext` points to
+        //       idle scripts, so we stop here, and the remaining active scripts run in the next frame (See #1636)
+        if (next && !next->m_IsActive) {
+            break;
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();
