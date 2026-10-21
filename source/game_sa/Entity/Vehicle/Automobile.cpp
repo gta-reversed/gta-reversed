@@ -23,6 +23,7 @@
 #include <Tasks/TaskTypes/TaskSimpleGangDriveBy.h>
 
 #include <FireManager.h>
+#include <reversiblebugfixes/Bugs.hpp>
 
 constexpr size_t NUM_AUTOMOBILE_SUSP_LINES  = (size_t)MAX_CARWHEELS;
 constexpr size_t NUM_RHINO_EXTRA_SUSP_LINES = (size_t)MAX_CARWHEELS * 2u; // 8
@@ -102,6 +103,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedInstall(SetDoorDamage, 0x6B1600);
     RH_ScopedInstall(TowTruckControl, 0x6A40F0);
     RH_ScopedInstall(ProcessCarOnFireAndExplode, 0x6A7090);
+    RH_ScopedInstall(DoHeliDustEffect, 0x6B0690);
 
     RH_ScopedVMTInstall(Fix, 0x6A3440);
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6A47F0);
@@ -5948,7 +5950,12 @@ void CAutomobile::DoHeliDustEffect(float timeConstMult, float fxMaxZMult) {
 
     CColPoint groundCP{};
     CEntity* hitEntity{}; // Unused
-    CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true); // TODO: Check if it returned true :D
+    if (!CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true) && notsa::bugfixes::GenericUB) {
+        // The original ignores the result and reads the uninitialized `groundCP` (stack garbage).
+        // Put the ground at the end of the line instead: no fx over land without collision, water fx over the open sea.
+        // With the fix off, `groundCP` stays zeroed (surface 0 at z = 0), as the garbage can't be reproduced.
+        groundCP.m_vecPoint.z = -1000.f;
+    }
     const bool isGroundSand = g_surfaceInfos.IsSand(groundCP.m_nSurfaceTypeB);
 
     auto waterLevel{-1000.f};
