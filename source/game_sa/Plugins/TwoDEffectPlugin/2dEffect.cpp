@@ -274,7 +274,7 @@ RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream, RwInt32 binar
             std::memcpy(enex->m_szInteriorName, d.InteriorName, sizeof(d.InteriorName));
 
             enex->m_nTimeOn  = sectionSize == sizeof(t2dEffectEnExStreamData) ? d.TimeOn : 0;
-            enex->m_nTimeOff = sectionSize == sizeof(t2dEffectEnExStreamData) ? d.TimeOn : 24;
+            enex->m_nTimeOff = sectionSize == sizeof(t2dEffectEnExStreamData) ? d.TimeOff : 24;
             enex->m_nFlags2  = d.Flags2; // TODO: ???
             continue;
         }
