@@ -206,7 +206,7 @@ void CIdleCam::ProcessFOVZoom(float slerpTime) {
     };
 
     switch (m_ZoomState) {
-    case ZoomState::ZOOMING_IN:
+    case ZoomState::ZOOMING_IN: {
         if (approxEqual(m_CurFOV, zoomNearest, 1.0f)) {
             m_ZoomState    = ZoomState::ZOOMED_IN;
             m_bHasZoomedIn = true;
@@ -215,7 +215,8 @@ void CIdleCam::ProcessFOVZoom(float slerpTime) {
             ProcessZoom();
         }
         break;
-    case ZoomState::ZOOMING_OUT:
+    }
+    case ZoomState::ZOOMING_OUT: {
         if (approxEqual(m_CurFOV, m_ZoomFarthest, 1.0f)) {
             m_ZoomState = ZoomState::ZOOMED_OUT;
             m_CurFOV    = m_ZoomFarthest;
@@ -223,12 +224,15 @@ void CIdleCam::ProcessFOVZoom(float slerpTime) {
             ProcessZoom();
         }
         break;
-    case ZoomState::ZOOMED_IN:
+    }
+    case ZoomState::ZOOMED_IN: {
         m_CurFOV = zoomNearest;
         break;
-    case ZoomState::ZOOMED_OUT:
+    }
+    case ZoomState::ZOOMED_OUT: {
         m_CurFOV = m_ZoomFarthest;
         break;
+    }
     }
     m_Cam->m_fFOV = m_CurFOV;
 }
