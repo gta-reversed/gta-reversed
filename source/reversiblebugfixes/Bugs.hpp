@@ -127,10 +127,4 @@ inline const ReversibleBugFix CPedGeometryAnalyser_ComputeRouteRoundSphere_Ambig
     .Description = "Fix missing setting of detour target when the ped is on the edge of the sphere in `CPedGeometryAnalyser::ComputeRouteRoundSphere`",
     .Credit      = "Pirulax"
 };
-inline const ReversibleBugFix CTaskSimpleSlideToCoord_Constructor_UninitializedTimer{
-    .Name        = "CTaskSimpleSlideToCoord - Uninitialized timer",
-    .Description = "The constructor without an anim doesn't initialize the timer, so `ProcessPed` never starts the 2 second timeout, "
-                   "and a ped that can't reach the target position or heading slides forever",
-    .Credit      = "W4liss0n"
-};
 };
