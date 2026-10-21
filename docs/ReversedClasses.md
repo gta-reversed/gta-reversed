@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 21, 2026 at 20:46:56 UTC
-(Triggered by commit [3460fe4b](https://github.com/gta-reversed/gta-reversed/commit/3460fe4bd0ee950103f10daf063238ac8031f7f2))
+Last update was at Oct 21, 2026 at 23:32:38 UTC
+(Triggered by commit [f5c9d80e](https://github.com/gta-reversed/gta-reversed/commit/f5c9d80e2ab063d380eb4a888be9c116b8556bb6))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7573 out of 8321 functions done in 722 categories)
+## Stats (7614 out of 8323 functions done in 722 categories)
 
-#### Completely reversed categories (594/722) [82%]
+#### Completely reversed categories (598/722) [83%]
 
 <details>
 <summary>See list of categories</summary>
@@ -89,6 +89,7 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CCover (16)<br />
 - CVehicleAnimGroup (5)<br />
 - CVehicleAnimGroupData (5)<br />
+- CPedDamageResponseCalculator (6)<br />
 - CPedClothesDesc (7)<br />
 - CTimer (13)<br />
 - CTagManager (19)<br />
@@ -110,6 +111,7 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CActiveOccluder (2)<br />
 - CIniFile (1)<br />
 - CStencilShadowObject (3)<br />
+- CFont (39)<br />
 - CGameLogic (27)<br />
 - CStuckCarCheck (8)<br />
 - CUpsideDownCarCheck (5)<br />
@@ -157,6 +159,7 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CStuntJumpManager (7)<br />
 - CLocalisation (18)<br />
 - CSimpleVariablesSaveStructure (2)<br />
+- CPedGeometryAnalyser (38)<br />
 - CIplStore (34)<br />
 - cHandlingDataMgr (11)<br />
 - CLoadingScreen (20)<br />
@@ -191,6 +194,7 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - RwCore (4)<br />
 - Common (9)<br />
 - CCarAI (25)<br />
+- CCarFXRenderer (10)<br />
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
@@ -612,7 +616,7 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 
 </details>
 
-#### Partially reversed categories (120/722) [17%]
+#### Partially reversed categories (116/722) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -631,7 +635,6 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CClothes (10/11) [91%]<br />
 - CPopulation (64/66) [97%]<br />
 - CPedGroupIntelligence (26/27) [96%]<br />
-- CPedDamageResponseCalculator (2/7) [29%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
 - CStats (32/51) [63%]<br />
@@ -640,7 +643,6 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CGarages (21/27) [78%]<br />
 - CPostEffects (35/38) [92%]<br />
 - CStencilShadows (9/13) [69%]<br />
-- CFont (32/36) [89%]<br />
 - CCamera (97/114) [85%]<br />
 - CGangWars (32/35) [91%]<br />
 - CRoadBlocks (7/8) [88%]<br />
@@ -652,7 +654,6 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CCarEnterExit (27/32) [84%]<br />
 - CPathFind (54/62) [87%]<br />
 - CPedStats (4/5) [80%]<br />
-- CPedGeometryAnalyser (9/38) [24%]<br />
 - CRadar (63/65) [97%]<br />
 - CPickups (35/37) [95%]<br />
 - CCustomBuildingRenderer (3/7) [43%]<br />
@@ -661,7 +662,6 @@ Last update was at Oct 21, 2026 at 20:46:56 UTC
 - CRealTimeShadowManager (5/7) [71%]<br />
 - CShadows (21/31) [68%]<br />
 - CCam (20/45) [44%]<br />
-- CCarFXRenderer (9/10) [90%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxInfoManager_c (4/5) [80%]<br />

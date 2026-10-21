@@ -562,6 +562,22 @@ void CObject::Render() {
         auto* vehModelInfo = CModelInfo::GetModelInfo(iRefModel)->AsVehicleModelInfoPtr();
         CVehicleModelInfo::ms_pRemapTexture = m_pRemapTexture;
         vehModelInfo->SetVehicleColour(m_nCarColor[0], m_nCarColor[1], m_nCarColor[2], m_nCarColor[3]);
+
+        if (notsa::bugfixes::CObject_Render_DetachedPartRendering) {
+            // `SetVehicleColour` only stores the colours, apply them to the materials like `CVehicle::SetupRender` does
+            auto* entry = gRestoreEntries;
+            CVehicleModelInfo::SetEditableMaterialsCB(GetRpAtomic(), &entry);
+            entry->m_pAddress = nullptr;
+
+            RwCullMode cullMode;
+            RwRenderStateGet(rwRENDERSTATECULLMODE, &cullMode);
+            RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
+            CEntity::Render();
+            RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(cullMode));
+
+            CVehicleModelInfo::ResetEditableMaterials(nullptr);
+            return;
+        }
     }
 
     CEntity::Render();

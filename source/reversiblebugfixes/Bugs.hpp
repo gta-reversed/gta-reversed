@@ -127,6 +127,12 @@ inline const ReversibleBugFix CPedGeometryAnalyser_ComputeRouteRoundSphere_Ambig
     .Description = "Fix missing setting of detour target when the ped is on the edge of the sphere in `CPedGeometryAnalyser::ComputeRouteRoundSphere`",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CObject_Render_DetachedPartRendering{
+    .Name        = "CObject::Render - Detached car part rendering",
+    .Description = "Detached car parts share their materials with the vehicle model, but nothing applies the vehicle's colours and paintjob to them, "
+                   "so they were rendered with the placeholder colours. Apply them before rendering the part, and render both of its sides",
+    .Credit      = "SilentPatch Contributors"
+};
 inline const ReversibleBugFix CVehicleModelInfo_SetClump_DirtMaterialsNeverFound{
     .Name            = "Vehicle dirt levels",
     .Description     = "The game never fills `CVehicleModelInfo::m_apDirtMaterials`, so every vehicle is rendered with the maximum dirt "

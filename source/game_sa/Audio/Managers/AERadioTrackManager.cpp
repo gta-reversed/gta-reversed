@@ -165,7 +165,7 @@ int32* CAERadioTrackManager::GetRadioStationListenTimes() {
 
 // 0x4E83F0
 eRadioID CAERadioTrackManager::GetCurrentRadioStationID() const {
-    return m_RequestedSettings.StationID == RADIO_INVALID ? RADIO_OFF : m_RequestedSettings.StationID;
+    return m_ActiveSettings.StationID == RADIO_INVALID ? RADIO_OFF : m_ActiveSettings.StationID;
 }
 
 // 0x4E82E0
@@ -302,15 +302,7 @@ bool CAERadioTrackManager::IsVehicleRadioActive() {
 // 0x4E8410
 void CAERadioTrackManager::CheckForMissionStatsChanges() {
     if (m_nSpecialDJBanterPending != 3) {
-        int32 days = CClock::GetGameClockDays() - m_nStatsLastHitGameClockDays;
-        if (days < 0) {
-            auto month = CClock::GetGameClockMonth() - 1;
-            if (month < 0) {
-                month += 12;
-            }
-            days += CClock::daysInMonth[month];
-        }
-        if (CClock::GetGameClockHours() + 24 * days - m_nStatsLastHitGameClockHours >= m_nStatsLastHitTimeOutHours) {
+        if (CClock::GetGameClockHours() + 24 * CClock::GetNumberOfDaysPassed(m_nStatsLastHitGameClockDays) - m_nStatsLastHitGameClockHours >= m_nStatsLastHitTimeOutHours) {
             m_nSpecialDJBanterPending = 3;
         }
     }
@@ -549,17 +541,10 @@ void CAERadioTrackManager::StartRadio(const tVehicleAudioSettings& settings) {
        if (CTimer::GetTimeInMS() > m_nSavedTimeMs + 60'000)
            return false;
 
-       const auto savedHours = m_nSavedGameClockHours;
-       auto savedDays = m_nSavedGameClockDays;
-       if (savedHours < 0 || savedDays < 0)
+       if (m_nSavedGameClockHours < 0 || m_nSavedGameClockDays < 0)
            return false;
 
-       if (savedDays > CClock::GetGameClockDays()) {
-           const auto month = CClock::GetGameClockMonth();
-           savedDays += CClock::daysInMonth[month == 0 ? 11 : month - 1]; // prev month
-       }
-
-       if (CClock::GetGameClockHours() + 24 * savedDays - savedHours > 5)
+       if (CClock::GetGameClockHours() + 24 * CClock::GetNumberOfDaysPassed(m_nSavedGameClockDays) - m_nSavedGameClockHours > 5)
            return false;
 
        return true;
