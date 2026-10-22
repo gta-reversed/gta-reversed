@@ -2573,6 +2573,10 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
 float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept {
     const auto& cfg = s_Config.PlayerEngine;
 
+    if (st == AE_SOUND_PLAYER_OFF) { // 0x4F5DB1
+        return GetVolForPlayerEngineSound(vp, AE_SOUND_CAR_ID);
+    }
+
     float volume = [&]{
         switch (st) {
         case AE_SOUND_CAR_REV:
@@ -2580,7 +2584,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
         case AE_SOUND_CAR_ID:
             return vp.Vehicle->GetModelIndex() == MODEL_CADDY
                 ? cfg.ID.VolMin - 30.f
-                : lerp(cfg.ID.VolMin, cfg.ID.VolMax, vp.RealRevsRatio);
+                : lerp(cfg.ID.VolMin, cfg.ID.VolMax, vp.SpeedRatio);
         case AE_SOUND_PLAYER_CRZ:
             return m_IsSingleGear
                 ? cfg.SingleGearVolume
@@ -2589,8 +2593,6 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
             return m_IsSingleGear
                 ? cfg.SingleGearVolume
                 : lerp(cfg.AC.VolMin, cfg.AC.VolMax, m_AuGear / (float)(cfg.MaxAuGear)); // NOTE: May be wrong
-        case AE_SOUND_PLAYER_OFF:
-            return GetVolForPlayerEngineSound(vp, AE_SOUND_CAR_ID);
         default:
             return 0.f;
         }
@@ -2623,8 +2625,8 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
     auto* const cfg = &s_Config.PlayerEngine;
 
     float f;
-    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelId() == MODEL_CADDY) { // Moved out here to simplify logic...
-        f = 0.f;
+    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelId() == MODEL_CADDY) { // 0x4F8213 - Moved out here to simplify logic...
+        f = 1.f;
     } else {
         // 0x4F80A6 - Calculate z move speed factor
         auto zf = vp.ZOverSpeed <= 0.f
@@ -2643,7 +2645,7 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
         if (m_AuSettings.VehicleAudioType == AE_BIKE) {
             auto* const bike = vp.Vehicle->AsBike();
 
-            bf = std::sin(bike->GetRideAnimData()->LeanAngle) * cfg->FrqBikeLeanFactor;
+            bf = std::abs(std::sin(bike->GetRideAnimData()->LeanAngle)) * cfg->FrqBikeLeanFactor;
             if (bike->bikeFlags.bPlayerBoost) {
                 bf += cfg->FrqPlayerBikeBoostOffset;
             }
@@ -2687,7 +2689,7 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
         f *= ((gf * zf) + 1.f) * (bf + 1.f);
     }
 
-    if (vp.Vehicle->m_bUnderwater) {
+    if (GetVehicle()->vehicleFlags.bIsDrowning) { // 0x4F82E8
         f *= s_Config.FreqUnderwaterFactor;
     }
 
@@ -2715,7 +2717,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
 
     auto* const gear = &vp.Transmission->m_aGears[vp.RealGear];
     vp.RealRevsRatio = vp.RealGear
-        ? invLerp(gear->ChangeDownVelocity, gear->MaxVelocity, vp.AbsSpeed)
+        ? std::clamp(invLerp(gear->ChangeDownVelocity, gear->MaxVelocity, vp.AbsSpeed), 0.f, 1.f)
         : 0.f;
 
     vp.WheelSpin     = vp.Vehicle->m_fWheelSpinForAudio;
@@ -2771,7 +2773,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
         } else {
             assert(vp.NumGears == vp.Transmission->m_nNumberOfGears);
             assert(vp.NumGears > 0);
-            m_AuGear = std::clamp<uint8>(std::min(vp.RealGear, m_AuGear), 1, vp.NumGears - 1);
+            m_AuGear = (uint8)(std::min<int32>({ std::max<uint8>(vp.RealGear, 1), m_AuGear, vp.NumGears - 1 })); // 0x4FC003
         }
         RequestEngineSound(AE_SOUND_PLAYER_AC);
         m_State = eAEState::PLAYER_AC_FULL;
