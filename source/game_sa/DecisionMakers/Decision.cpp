@@ -39,8 +39,8 @@ void CDecision::Set(
     notsa::mdarray<float, MAX_NUM_CHOICES, 6>& facialProbs
 ) {
     // NOTE: `facialProbs` is unused
-    for (auto&& [i, task] : rngv::enumerate(m_Tasks)) {
-        task = (eTaskType)tasks[i];
+    for (auto i = 0; i < MAX_NUM_CHOICES; i++) {
+        m_Tasks[i] = (eTaskType)tasks[i];
         rng::transform(probs[i], m_Probs[i].begin(), [](float prob) {
             return (uint8)prob;
         });
