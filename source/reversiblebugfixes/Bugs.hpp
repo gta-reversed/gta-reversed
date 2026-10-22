@@ -145,4 +145,10 @@ inline const ReversibleBugFix CVehicleModelInfo_SetClump_DirtMaterialsNeverFound
     .Credit          = "SilentPatch Contributors, W4liss0n",
     .RequiresRestart = true
 };
+inline const ReversibleBugFix CMenuSystem_FillGridWithCarColours_ComparesWithEmptySlot{
+    .Name        = "CMenuSystem::FillGridWithCarColours - Compares with the empty slot",
+    .Description = "Each colour is also compared with the grid slot being filled, which is still black, so colours close to black are skipped "
+                   "(No visible effect with the default `carcols.dat`, where colour 0 is black and always picked first)",
+    .Credit      = "W4liss0n"
+};
 };
