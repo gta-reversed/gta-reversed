@@ -197,6 +197,16 @@ RwCamera* CShadowCamera::Create(int32 rasterSizePower) {
     return m_pRwCamera;
 }
 
+// Inlined code, see at `0x706870`
+void CShadowCamera::ReInitRasters() {
+    const auto raster = RwCameraGetRaster(m_pRwCamera);
+    const auto size   = RwRasterGetWidth(raster);
+    RwCameraSetRaster(m_pRwCamera, nullptr);
+    RwRasterDestroy(raster);
+    RwCameraSetRaster(m_pRwCamera, RwRasterCreate(size, size, 0, rwRASTERTYPECAMERATEXTURE));
+    RwTextureSetRaster(m_pRwRenderTexture, RwCameraGetRaster(m_pRwCamera));
+}
+
 /*!
 * @addr 0x705620
 * @brief Render the atomic using the default render callback
