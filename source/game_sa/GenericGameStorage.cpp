@@ -57,30 +57,28 @@ void CGenericGameStorage::InjectHooks() {
     RH_ScopedClass(CGenericGameStorage);
     RH_ScopedCategoryGlobal();
 
-    // Can't really test these yet. All mods I have interfere with it (WindowedMode and IMFast)
-    // Also, these functions originally had the file pointer passed to them @ `ebp`
-    // which is non-standard, so.. yeah, not really possible to reverse this garbage
-    // until we reverse everything.
+    // The 1.0 Compact helpers use the standard cdecl ABI. File handles live in
+    // ms_FileHandle; callers' uses of EBP are callee-saved local state.
 
     RH_ScopedInstall(ReportError, 0x5D08C0);
-    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50, { .Reversed = false });
-    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90, { .Reversed = false });
-    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .Reversed = false });
-    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .Reversed = false });
+    RH_ScopedInstall(DoGameSpecificStuffBeforeSave, 0x618F50);
+    RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90);
+    RH_ScopedInstall(InitRadioStationPositionList, 0x618E70);
+    RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00);
     RH_ScopedInstall(GenericLoad, 0x5D17B0);
     RH_ScopedInstall(GenericSave, 0x5D13E0);
-    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .Reversed = false });
+    RH_ScopedInstall(CheckSlotDataValid, 0x5D1380);
     RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
     RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
-    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .Reversed = false });
-    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .Reversed = false });
-    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50, { .Reversed = false });
-    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90, { .Reversed = false });
-    RH_ScopedInstall(CloseFile, 0x5D0E30, { .Reversed = false });
-    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0, { .Reversed = false });
-    RH_ScopedInstall(OpenFileForReading, 0x5D0D20, { .Reversed = false });
-    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170, { .Reversed = false });
-    RH_ScopedInstall(RestoreForStartLoad, 0x619000, { .Reversed = false });
+    RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0);
+    RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80);
+    RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50);
+    RH_ScopedInstall(MakeValidSaveName, 0x5D0E90);
+    RH_ScopedInstall(CloseFile, 0x5D0E30);
+    RH_ScopedInstall(OpenFileForWriting, 0x5D0DD0);
+    RH_ScopedInstall(OpenFileForReading, 0x5D0D20);
+    RH_ScopedInstall(CheckDataNotCorrupt, 0x5D1170);
+    RH_ScopedInstall(RestoreForStartLoad, 0x619000);
 }
 
 // 0x5D08C0
@@ -678,23 +676,21 @@ bool CGenericGameStorage::LoadWorkBuffer() {
         toReadSize = ms_FileSize - ms_FilePos;
         if (ms_FileSize == ms_FilePos) {
             return false;
-        } else {
-            if (toReadSize != ((toReadSize + 3) & 0xFFFFFFFC)) { // Not sure, I think it's a check if the read size is 4 byte aligned?
-                return false;
-            }
         }
+    }
+    if (toReadSize != ((toReadSize + 3) & ~3u)) {
+        return false;
     }
 
     assert(ms_FileHandle);
     assert(ms_WorkBuffer);
 
-    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle)) {
-        if (CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize) == toReadSize) {
-            ms_FilePos += toReadSize;
-            ms_WorkBufferSize = toReadSize;
-            ms_WorkBufferPos  = 0;
-            return true;
-        }
+    const auto bytesRead = CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize);
+    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle) && bytesRead == toReadSize) {
+        ms_FilePos += toReadSize;
+        ms_WorkBufferSize = toReadSize;
+        ms_WorkBufferPos  = 0;
+        return true;
     }
 
     s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_READ;
@@ -709,36 +705,40 @@ bool CGenericGameStorage::LoadWorkBuffer() {
 
 // 0x5D0F80
 bool CGenericGameStorage::SaveWorkBuffer(bool bIncludeChecksum) {
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
-    if (ms_WorkBufferPos == 0)
+    if (ms_WorkBufferPos == 0) {
         return true;
+    }
 
-    for (auto i = 0; i < ms_WorkBufferPos; ++i) {
+    for (auto i = 0u; i < ms_WorkBufferPos; ++i) {
         ms_CheckSum += ms_WorkBuffer[i];
     }
 
     if (bIncludeChecksum) {
-        if (ms_WorkBufferPos > BUFFER_SIZE - sizeof(uint32))
+        if (ms_WorkBufferPos > BUFFER_SIZE - sizeof(uint32)) {
+            // The original deliberately ignores this result and sums the buffer again.
             SaveWorkBuffer(false);
+        }
         memcpy(&ms_WorkBuffer[ms_WorkBufferPos], &ms_CheckSum, sizeof(uint32));
         ms_WorkBufferPos += sizeof(uint32);
     }
 
-    if (CFileMgr::Write(ms_FileHandle, ms_WorkBuffer, ms_WorkBufferPos) == ms_WorkBufferPos) {
-        if (!CFileMgr::GetErrorReadWrite(ms_FileHandle)) {
-            ms_FilePos += ms_WorkBufferPos;
-            ms_WorkBufferPos = 0;
-            return true;
-        }
+    const auto bytesWritten = CFileMgr::Write(ms_FileHandle, ms_WorkBuffer, ms_WorkBufferPos);
+    if (!CFileMgr::GetErrorReadWrite(ms_FileHandle) && bytesWritten == ms_WorkBufferPos) {
+        ms_FilePos += ms_WorkBufferPos;
+        ms_WorkBufferPos = 0;
+        return true;
     }
 
     s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_WRITE;
-    if (!CloseFile())
+    if (!CloseFile()) {
         s_PcSaveHelper.error = C_PcSave::eErrorCode::FAILED_TO_CLOSE;
+    }
 
-    strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
+    std::strncpy(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
 
     ms_bFailed = true;
     return false;
@@ -756,18 +756,20 @@ void CGenericGameStorage::MakeValidSaveName(int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     char path[MAX_PATH]{};
-    s_PcSaveHelper.GenerateGameFilename(slot, path);
+    std::sprintf(path, "%s%i", C_PcSave::DefaultPCSaveFileName, slot + 1);
 
-    path[257] = 0; // Make sure there's space for the file extension
-
-    strcat_s(path, ".b");
-
-    for (auto it = path; *it && *it != '\n'; it++) {
-        if (*it == '?')
-            *it = ' ';
+    if (std::strlen(path) >= std::size(path) - 3) {
+        path[std::size(path) - 3] = '\0'; // Leave space for ".b" and its terminator.
     }
 
-    strcpy_s(ms_SaveFileName, path);
+    std::strcat(path, ".b");
+    std::strcpy(ms_SaveFileName, path);
+
+    for (auto* it = ms_SaveFileName; *it && *it != '\n'; it++) {
+        if (*it == '?') {
+            *it = ' ';
+        }
+    }
 }
 
 // 0x5D0E30
@@ -799,8 +801,8 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
 
     if (fileName) {
-        strcpy_s(ms_LoadFileName, fileName);
-        s_PcSaveHelper.GenerateGameFilename(slot, ms_LoadFileNameWithPath);
+        std::strcpy(ms_LoadFileName, fileName);
+        std::sprintf(ms_LoadFileNameWithPath, "%s%i%s", C_PcSave::DefaultPCSaveFileName, slot + 1, ".b");
     }
 
     ms_FileHandle = CFileMgr::OpenFile(ms_LoadFileName, "rb");
@@ -834,7 +836,7 @@ bool CGenericGameStorage::CheckDataNotCorrupt(int32 slot, const char* fileName) 
     uint32 nCheckSum = 0;
 
     while (LoadWorkBuffer()) {
-        for (auto i = 0; i != ms_WorkBufferSize; ++i) {
+        for (auto i = 0u; i != ms_WorkBufferSize; ++i) {
             nCheckSum += ms_WorkBuffer[i];
         }
     }
@@ -846,7 +848,7 @@ bool CGenericGameStorage::CheckDataNotCorrupt(int32 slot, const char* fileName) 
 
     const auto nFileCheckSum = *(uint32*)(&ms_WorkBuffer[ms_WorkBufferSize - sizeof(uint32)]);
 
-    for (auto i = 0; i < sizeof(uint32); ++i) {
+    for (auto i = 0u; i < sizeof(uint32); ++i) {
         nCheckSum -= ms_WorkBuffer[ms_WorkBufferSize - (i + 1)];
     }
 
@@ -857,6 +859,7 @@ bool CGenericGameStorage::CheckDataNotCorrupt(int32 slot, const char* fileName) 
 
 // 0x619000
 bool CGenericGameStorage::RestoreForStartLoad() {
+    // The PC 1.0 Compact implementation is just XOR AL, AL; RET.
     return false;
 }
 
