@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 91%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 21, 2026 at 23:32:38 UTC
-(Triggered by commit [f5c9d80e](https://github.com/gta-reversed/gta-reversed/commit/f5c9d80e2ab063d380eb4a888be9c116b8556bb6))
+Last update was at Oct 22, 2026 at 00:57:08 UTC
+(Triggered by commit [d0ab9e2b](https://github.com/gta-reversed/gta-reversed/commit/d0ab9e2b9ed15695b97be9c1ae37caa239a8b915))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7614 out of 8323 functions done in 722 categories)
+## Stats (7615 out of 8323 functions done in 722 categories)
 
-#### Completely reversed categories (598/722) [83%]
+#### Completely reversed categories (599/722) [83%]
 
 <details>
 <summary>See list of categories</summary>
@@ -280,6 +280,7 @@ Last update was at Oct 21, 2026 at 23:32:38 UTC
 - CNodeRoute (2)<br />
 - CKeyGen (4)<br />
 - CModelInfo (28)<br />
+- CBaseModelInfo (34)<br />
 - CAtomicModelInfo (9)<br />
 - CLodAtomicModelInfo (3)<br />
 - CLinkedUpgradeList (2)<br />
@@ -616,7 +617,7 @@ Last update was at Oct 21, 2026 at 23:32:38 UTC
 
 </details>
 
-#### Partially reversed categories (116/722) [16%]
+#### Partially reversed categories (115/722) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -671,7 +672,6 @@ Last update was at Oct 21, 2026 at 23:32:38 UTC
 - CPhysical (54/56) [96%]<br />
 - CGroupEventHandler (30/32) [94%]<br />
 - CEventHandler (69/72) [96%]<br />
-- CBaseModelInfo (33/34) [97%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
 - CPedGroupDefaultTaskAllocatorRandom (1/2) [50%]<br />
 - CTaskAllocatorKillThreatsBasic (5/6) [83%]<br />
