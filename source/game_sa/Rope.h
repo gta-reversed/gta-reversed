@@ -32,17 +32,17 @@ public:
     std::array<CVector, NUM_ROPE_SEGMENTS> m_aSpeed;
     uintptr    m_nId;
     float      m_fGroundZ;
-    float      m_fMass;
-    float      m_fTotalLength;
+    float      m_fTotalLength;   //!< 0x308 - Length of the whole rope
+    float      m_fSegmentLength; //!< 0x30C - `m_fTotalLength / (NUM_ROPE_SEGMENTS - 1)`
     CEntity*   m_pRopeHolder;
     CEntity*   m_pAttachedEntity;
     CEntity*   m_pRopeAttachObject;
-    float      m_fSegmentLength;
+    float      m_fMass;          //!< 0x31C - TODO: Guessed name (`0.9` if held by a vehicle, `0.5` otherwise)
     uint32     m_nTime;
     uint8      m_nSegments;
     eRopeType  m_nType;
     uint8      m_nFlags1; // *
-    uint8      m_nFlags2; // ** leftover?
+    uint8      m_nFlags2; // ** 0x1 - Set when (re-)registered, 0x4 - `flags & 1` passed to `CRopes::RegisterRope`
 
 public:
     static void InjectHooks();
