@@ -631,9 +631,9 @@ public:
     void SetVehicleCreatedBy(eVehicleCreatedBy createdBy);
     void SetupRender();
     void ProcessWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-                      float adhesion, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, uint16 wheelStatus);
+                      float adhesion, int8 wheelId, float& wheelSpeed, tWheelState& wheelState, uint16 wheelStatus);
     void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-                          float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
+                          float adhesion, float destabTraction, int8 wheelId, float& wheelSpeed, tWheelState& wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
     enum class eNearestCarWheel {
         FRONT_LEFT  = +CAR_PIECE_WHEEL_LF - +CAR_PIECE_FIRST_WHEEL,
         FRONT_RIGHT = +CAR_PIECE_WHEEL_RF - +CAR_PIECE_FIRST_WHEEL,
@@ -771,6 +771,7 @@ public:
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
+    auto GetPassengers() { return m_apPassengers | rngv::take(m_nMaxPassengers); }
     auto GetPassengers() const { return m_apPassengers | rngv::take(m_nMaxPassengers); }
     auto GetMaxPassengerSeats() { return m_apPassengers | rngv::take(m_nMaxPassengers); } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
