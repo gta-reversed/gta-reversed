@@ -45,7 +45,7 @@ CTaskComplexTrackEntity::CTaskComplexTrackEntity(const CTaskComplexTrackEntity& 
 
 // 0x65F460
 CTaskComplexTrackEntity::~CTaskComplexTrackEntity() {
-    CEntity::CleanUpOldReference(m_toTrack);
+    CEntity::SafeCleanUpRef(m_toTrack);
 }
 
 // 0x65F760

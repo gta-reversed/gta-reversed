@@ -207,7 +207,7 @@ void CAESoundManager::Service() {
         int16 chN = m_NumAllocatedPhysicalChannels - 1;
 
         // 0x4F04CE - Find last slot in use
-        for (; chN > numPrioritisedSounds; chN--) {
+        for (; chN >= numPrioritisedSounds; chN--) {
             if (GetPrioritisedSoundList()[chN] != -1) {
                 break;
             }
@@ -219,7 +219,7 @@ void CAESoundManager::Service() {
             if (sound.m_ListenerVolume >= soundB.m_ListenerVolume) {
                 continue;
             }
-            if (sound.GetPlayPhysically() <= soundB.GetPlayPhysically()) {
+            if (sound.GetPlayPhysically() > soundB.GetPlayPhysically()) {
                 continue;
             }
             break;

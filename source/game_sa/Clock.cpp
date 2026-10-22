@@ -103,6 +103,22 @@ uint16 CClock::GetGameClockMinutesUntil(uint8 hours, uint8 minutes) {
 }
 
 /*
+ * @brief   Number of days passed since the given day of the month (`ms_nGameClockDays` at that time).
+ *          If the current day of the month is lower, the day is assumed to be in the previous month.
+ * @param   monthDay Day of the month
+ * @returns Days passed (0 if it's today)
+ * @notsa
+ * @note    Based on code from 0x4EB5DD (`CAERadioTrackManager::StartRadio`), moved into a function
+ */
+int32 CClock::GetNumberOfDaysPassed(int32 monthDay) {
+    auto days = ms_nGameClockDays - monthDay;
+    if (days < 0) {
+        days += daysInMonth[ms_nGameClockMonth == 0 ? 11 : ms_nGameClockMonth - 1]; // Previous month
+    }
+    return days;
+}
+
+/*
  * @brief   Checks if the current hour is greater than or equal to from and less than *to*.
  * @param   from Hour for *from*
  * @param   to Hour for *to*

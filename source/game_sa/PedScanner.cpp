@@ -2,7 +2,7 @@
 #include "PedScanner.h"
 
 // 0x5FFEF0
-void CPedScanner::ScanForPedsInRange(const CPed& ped) {
+void CPedScanner::ScanForPedsInRange(CPed& ped) {
     if (ped.IsAlive())
         CEntityScanner::ScanForEntitiesInRange(REPEATSECTOR_PEDS, ped);
 }

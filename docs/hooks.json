@@ -737,7 +737,7 @@
   {
     "Category": "CPedGroup",
     "Name": "PlayerGaveCommand_Gather",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -757,7 +757,7 @@
   {
     "Category": "CPedGroup",
     "Name": "FindDistanceToFurthestMember",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -5597,7 +5597,7 @@
   {
     "Category": "SurfaceInfos_c",
     "Name": "LoadAdhesiveLimits",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CRenderer",
@@ -6907,12 +6907,12 @@
   {
     "Category": "CCollision",
     "Name": "CalculateTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCollision",
     "Name": "RemoveTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTrafficLights",
@@ -7142,17 +7142,17 @@
   {
     "Category": "CPedDamageResponseCalculator",
     "Name": "AccountForPedDamageStats",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedDamageResponseCalculator",
     "Name": "AccountForPedArmour",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedDamageResponseCalculator",
     "Name": "ComputeWillForceDeath",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedDamageResponseCalculator",
@@ -7161,13 +7161,8 @@
   },
   {
     "Category": "CPedDamageResponseCalculator",
-    "Name": "IsBleedingWeapon",
-    "IsReversed": false
-  },
-  {
-    "Category": "CPedDamageResponseCalculator",
     "Name": "ComputeDamageResponse",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedClothesDesc",
@@ -8412,7 +8407,7 @@
   {
     "Category": "CCarCtrl",
     "Name": "FindIntersection2Lines",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -8437,22 +8432,22 @@
   {
     "Category": "CCarCtrl",
     "Name": "FindPercDependingOnDistToLink",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSequenceElement",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSpeedMultiplier",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSpeedMultiplierWithSpeedFromNodes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -10431,16 +10426,6 @@
   },
   {
     "Category": "CFont",
-    "Name": "PrintChar",
-    "IsReversed": false
-  },
-  {
-    "Category": "CFont",
-    "Name": "ParseToken",
-    "IsReversed": true
-  },
-  {
-    "Category": "CFont",
     "Name": "SetScale",
     "IsReversed": true
   },
@@ -10536,8 +10521,23 @@
   },
   {
     "Category": "CFont",
+    "Name": "PrintChar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "GetNextSpace",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "ParseToken",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
     "Name": "RenderFontBuffer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFont",
@@ -10552,7 +10552,7 @@
   {
     "Category": "CFont",
     "Name": "ProcessCurrentString",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFont",
@@ -10571,7 +10571,12 @@
   },
   {
     "Category": "CFont",
-    "Name": "PrintString",
+    "Name": "PrintString-null-terminated",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "PrintString-ranged",
     "IsReversed": true
   },
   {
@@ -10592,11 +10597,16 @@
   {
     "Category": "CFont",
     "Name": "FindSubFontCharacter",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFont",
-    "Name": "GetLetterIdPropValue",
+    "Name": "GetScriptLetterSize",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "GetLetterIdPropValue-",
     "IsReversed": true
   },
   {
@@ -13857,7 +13867,7 @@
   {
     "Category": "CEntityScanner",
     "Name": "ScanForEntitiesInRange",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedType",
@@ -14751,13 +14761,13 @@
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "CanPedJumpObstacle-",
-    "IsReversed": false
+    "Name": "CanPedJumpObstacle-LoS",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "CanPedJumpObstacle-contacted",
-    "IsReversed": false
+    "Name": "CanPedJumpObstacle-Contacted",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14767,17 +14777,17 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "CanPedTargetPoint",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeBuildingHitPoints",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeClearTarget",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14786,13 +14796,13 @@
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputeClosestSurfacePoint-posn",
-    "IsReversed": false
+    "Name": "ComputeClosestSurfacePoint-pos",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeClosestSurfacePoint-rect",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14812,12 +14822,12 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingBoxCornersUncached",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingBoxPlanes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14837,7 +14847,7 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingBoxSegmentPlanesUncached",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14847,97 +14857,97 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingSphere",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputeMoveDirToAvoidEntity",
-    "IsReversed": false
+    "Name": "ComputeMoveDirToAvoidEntity-OG",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityDirs",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityHitSide-1",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityHitSide-2",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityHitSide-3",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputePedHitSide-physical",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputePedHitSide-posn",
-    "IsReversed": false
+    "Name": "ComputePedHitSide-pos",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputePedShotSide",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputeRouteRoundEntityBoundingBox-1",
-    "IsReversed": false
+    "Name": "ComputeRouteRoundEntityBoundingBox-Entity",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeRouteRoundEntityBoundingBox-2",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeRouteRoundSphere",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "GetIsLineOfSightClear-ped",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "GetIsLineOfSightClear-v3d",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "GetNearestPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "IsEntityBlockingTarget",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "IsInAir",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "IsWanderPathClear",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "LiesInsideBoundingBox",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CIplStore",
@@ -16547,7 +16557,7 @@
   {
     "Category": "CIdleCam",
     "Name": "ProcessFOVZoom",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CIdleCam",
@@ -17627,7 +17637,7 @@
   {
     "Category": "CCarFXRenderer",
     "Name": "InitialiseDirtTexture",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarFXRenderer",
@@ -18190,8 +18200,128 @@
     "IsReversed": true
   },
   {
+    "Category": "CPedAttractor",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "SetTaskForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "RegisterPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "DeRegisterPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "IsRegisteredWithPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "IsAtHeadOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetTaskForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetQueueSlot",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetHeadOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetTailOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "HasEmptySlot",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeDeltaPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeDeltaHeading",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractPos-v",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractHeading-v",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "BroadcastDeparture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "BroadcastArrival",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "AbortPedTasks",
+    "IsReversed": true
+  },
+  {
     "Category": "CPedAttractorPedPlacer",
     "Name": "PlacePedAtEffect",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "GetDisplacement",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "ComputeAttractPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "ComputeAttractHeading",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "BroadcastDeparture",
     "IsReversed": true
   },
   {
@@ -22287,7 +22417,7 @@
   {
     "Category": "CBaseModelInfo",
     "Name": "SwaysInWind",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CBaseModelInfo",
@@ -24077,7 +24207,7 @@
   {
     "Category": "CTaskComplexDestroyCar",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDestroyCarArmed",
@@ -30737,7 +30867,7 @@
   {
     "Category": "CTaskComplexWalkRoundObject",
     "Name": "CreateRouteTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimplePause",
@@ -31837,6 +31967,11 @@
   {
     "Category": "CTaskComplexUseWaterCannon",
     "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Constructor-NoAnim",
     "IsReversed": true
   },
   {
@@ -38347,6 +38482,11 @@
   {
     "Category": "CAutomobile",
     "Name": "ProcessCarOnFireAndExplode",
+    "IsReversed": true
+  },
+  {
+    "Category": "CAutomobile",
+    "Name": "DoHeliDustEffect",
     "IsReversed": true
   },
   {
