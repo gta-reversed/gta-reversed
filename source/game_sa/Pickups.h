@@ -23,8 +23,16 @@ constexpr uint32 MAX_NUM_PICKUPS = 620;
 // Dump @ 0x8A5F50
 constexpr uint16 AmmoForWeapon_OnStreet[NUM_WEAPONS]{ 0u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 8u, 8u, 8u, 8u, 4u, 4u, 30u, 10u, 10u, 15u, 10u, 10u, 60u, 60u, 80u, 80u, 60u, 20u, 10u, 4u, 3u, 100u, 500u, 5u, 1u, 500u, 500u, 36u, 0u, 0u, 1u };
 
+//! Colour (and scale) of the pickups' text, indexed by weapon type (+ a few extra entries for other pickups)
+struct tPickupColour {
+    uint8 r, g, b;
+    float scale; //!< Unused (Always `1.f`)
+};
+VALIDATE_SIZE(tPickupColour, 0x8);
+
 class CPickups {
 public:
+    static inline auto& aPickupColours = StaticRef<std::array<tPickupColour, 54>>(0x8A5FB0);
     static inline auto& DisplayHelpMessage = StaticRef<uint8>(0x8A5F48);
     static inline auto& PlayerOnWeaponPickup = StaticRef<int32>(0x97D640);
     static inline auto& StaticCamStartTime = StaticRef<int32>(0x978618);
