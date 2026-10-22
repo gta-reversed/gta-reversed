@@ -23,7 +23,7 @@ public:
     uint8       m_groupId;             // 0xD
     uint8       m_groupType;           // 0xE - TODO: eInteriorGroupType
     uint8       m_numInteriors;        // 0xF
-    Interior_c* m_interiors[8];        // 0x10
+    Interior_c* m_interiors[8];        // 0x10 - There may be gaps in the array, use `GetInteriors()` to iterate over valid interiors
     CEntryExit* m_EnEx;                // 0x30
     bool        m_isVisible;           // 0x34
     bool        m_lastIsVisible;       // 0x35
@@ -40,7 +40,7 @@ public:
     InteriorGroup_c() = default;  // 0x597FE0
     ~InteriorGroup_c() = default; // 0x597FF0
 
-    auto GetInteriors() { return m_interiors | rng::views::take(m_numInteriors); }
+    auto GetInteriors() { return m_interiors | rngv::filter([](Interior_c* i) { return i != nullptr; }); } // TODO: Transform to reference instead of ptr
     auto GetPeds() { return m_peds | rng::views::take(m_numPeds); }
 
     void Init(CEntity* entity, int32 id);

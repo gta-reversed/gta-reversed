@@ -21,7 +21,7 @@ void CIdleCam::InjectHooks() {
     RH_ScopedInstall(IsTargetValid, 0x517770);
     RH_ScopedInstall(ProcessTargetSelection, 0x517870);
     RH_ScopedInstall(ProcessSlerp, 0x5179E0);
-    RH_ScopedInstall(ProcessFOVZoom, 0x517BF0, { .Reversed = false });
+    RH_ScopedInstall(ProcessFOVZoom, 0x517BF0);
     RH_ScopedInstall(Run, 0x51D3E0);
     RH_ScopedInstall(Process, 0x522C80);
     RH_ScopedInstall(IdleCamGeneralProcess, 0x50E690);
@@ -67,7 +67,7 @@ void CIdleCam::Reset(bool resetControls) {
     m_TimeTargetEntityWasLastVisible = -1.0f;
     m_TimeLastZoomIn                 = -1.0f;
     m_Target                         = 0;
-    m_ZoomState                      = eIdleCamZoomState::UNK_3;
+    m_ZoomState                      = ZoomState::ZOOMED_OUT;
     m_nForceAZoomOut                 = 0;
     m_CurFOV                         = 70.0f;
     m_TargetLOSCounter               = 0;
@@ -125,8 +125,116 @@ void CIdleCam::GetLookAtPositionOnTarget(const CEntity* target, CVector& outPos)
 }
 
 // 0x517BF0
-void CIdleCam::ProcessFOVZoom(float time) {
-    NOTSA_UNREACHABLE();
+void CIdleCam::ProcessFOVZoom(float slerpTime) {
+    const auto time        = static_cast<float>(CTimer::GetTimeInMS());
+    auto       zoomNearest = m_ZoomNearest;
+
+    auto wantsToZoomIn = false;
+    if (m_Target) {
+        CVector lookAtPos{};
+        GetLookAtPositionOnTarget(m_Target, lookAtPos);
+        const auto distToTarget = DistanceBetweenPoints(m_Cam->m_vecSource, lookAtPos);
+
+        if (m_Target->GetIsTypePed() && notsa::contains({ PED_TYPE_PROSTITUTE, PED_TYPE_CIVFEMALE }, m_Target->AsPed()->m_nPedType)) {
+            wantsToZoomIn = true;
+            zoomNearest  *= 0.5f;
+            if (distToTarget < 8.0f) {
+                m_nForceAZoomOut = true;
+            }
+        }
+
+        if (distToTarget > m_DistStartFOVZoom) {
+            wantsToZoomIn = true;
+        }
+    }
+
+    const auto StartZoom = [&](ZoomState state, float zoomTo) {
+        m_ZoomState       = state;
+        m_ZoomFrom        = m_CurFOV;
+        m_ZoomTo          = zoomTo;
+        m_TimeZoomStarted = time;
+    };
+
+    if (slerpTime >= 1.0f) {
+        if (wantsToZoomIn) {
+            if (time - m_TimeLastZoomIn > m_TimeBeforeNewZoomIn) {
+                auto isTargetVisible = true;
+                if (m_Target) {
+                    const auto oldIgnore  = CWorld::pIgnoreEntity;
+                    CWorld::pIgnoreEntity = m_Target;
+                    notsa::ScopeGuard _([&]{ CWorld::pIgnoreEntity = oldIgnore; });
+
+                    CVector lookAtPos{};
+                    GetLookAtPositionOnTarget(m_Target, lookAtPos);
+                    isTargetVisible = CWorld::GetIsLineOfSightClear(
+                        m_Cam->m_vecSource,
+                        lookAtPos,
+                        true,
+                        false,
+                        false,
+                        true,
+                        false,
+                        false,
+                        true
+                    );
+                }
+
+                if (m_TargetLOSCounter > 10 && m_ZoomState == ZoomState::ZOOMED_IN) {
+                    m_ZoomState = ZoomState::ZOOMING_OUT;
+                }
+
+                if (m_ZoomState == ZoomState::ZOOMED_OUT && !m_bHasZoomedIn && isTargetVisible) {
+                    StartZoom(ZoomState::ZOOMING_IN, zoomNearest);
+                }
+            }
+        } else if (m_ZoomState == ZoomState::ZOOMED_IN) {
+            StartZoom(ZoomState::ZOOMING_OUT, m_ZoomFarthest);
+        }
+    }
+
+    if (m_ZoomState == ZoomState::ZOOMED_IN) {
+        m_TimeLastZoomIn = time;
+    }
+
+    if (m_nForceAZoomOut && m_ZoomState == ZoomState::ZOOMED_IN) {
+        StartZoom(ZoomState::ZOOMING_OUT, m_ZoomFarthest);
+    }
+    m_nForceAZoomOut = false;
+
+    const auto ProcessZoom = [&] {
+        m_CurFOV = lerp(m_ZoomFrom, m_ZoomTo, (std::sin(DegreesToRadians(270.0f - (time - m_TimeZoomStarted) / m_DurationFOVZoom * 180.0f)) + 1.0f) * 0.5f);
+    };
+
+    switch (m_ZoomState) {
+    case ZoomState::ZOOMING_IN: {
+        if (approxEqual(m_CurFOV, zoomNearest, 1.0f)) {
+            m_ZoomState    = ZoomState::ZOOMED_IN;
+            m_bHasZoomedIn = true;
+            m_CurFOV       = zoomNearest;
+        } else {
+            ProcessZoom();
+        }
+        break;
+    }
+    case ZoomState::ZOOMING_OUT: {
+        if (approxEqual(m_CurFOV, m_ZoomFarthest, 1.0f)) {
+            m_ZoomState = ZoomState::ZOOMED_OUT;
+            m_CurFOV    = m_ZoomFarthest;
+        } else {
+            ProcessZoom();
+        }
+        break;
+    }
+    case ZoomState::ZOOMED_IN: {
+        m_CurFOV = zoomNearest;
+        break;
+    }
+    case ZoomState::ZOOMED_OUT: {
+        m_CurFOV = m_ZoomFarthest;
+        break;
+    }
+    }
+    m_Cam->m_fFOV = m_CurFOV;
 }
 
 // 0x517770
@@ -197,7 +305,7 @@ void CIdleCam::SetTargetPlayer() {
 // 0x517870
 void CIdleCam::ProcessTargetSelection() {
     auto timeDelta = static_cast<float>(CTimer::GetTimeInMS()) - m_TimeLastTargetSelected;
-    if (m_ZoomState != eIdleCamZoomState::UNK_3 && m_TargetLOSCounter <= 0) {
+    if (m_ZoomState != ZoomState::ZOOMED_OUT && m_TargetLOSCounter <= 0) {
         timeDelta /= m_IncreaseMinimumTimeFactorForZoomedIn;
     }
 
@@ -209,7 +317,7 @@ void CIdleCam::ProcessTargetSelection() {
             auto* eventEntity = event->entity;
             if (m_Target != eventEntity) {
                 if (IsTargetValid(eventEntity)) {
-                    if (m_ZoomState == eIdleCamZoomState::UNK_3) {
+                    if (m_ZoomState == ZoomState::ZOOMED_OUT) {
                         SetTarget(eventEntity);
                     } else {
                         m_nForceAZoomOut = true;
@@ -219,7 +327,7 @@ void CIdleCam::ProcessTargetSelection() {
                 g_InterestingEvents.InvalidateEvent(event);
             }
         } else if (!m_Target || !IsTargetValid(m_Target) && m_Target != FindPlayerPed()) {
-            if (m_ZoomState == eIdleCamZoomState::UNK_3) {
+            if (m_ZoomState == ZoomState::ZOOMED_OUT) {
                 SetTargetPlayer();
             } else {
                 m_nForceAZoomOut = true;
@@ -233,7 +341,7 @@ void CIdleCam::ProcessTargetSelection() {
 
     if (!IsTargetValid(m_Target) && timeDelta > m_TimeMinimumToLookAtSomething) {
         m_nForceAZoomOut = true;
-        if (m_ZoomState == eIdleCamZoomState::UNK_3 || m_TargetLOSCounter > 0) {
+        if (m_ZoomState == ZoomState::ZOOMED_OUT || m_TargetLOSCounter > 0) {
             SetTargetPlayer();
         }
     }
@@ -274,8 +382,8 @@ float CIdleCam::ProcessSlerp(float& outX, float& outZ) {
     const auto slerpT = std::min((beginTime - m_TimeLastTargetSelected) / m_SlerpDuration, 1.0f);
     const auto lerpT  = (std::sin(DegreesToRadians(270.0f - 180.0f * slerpT)) + 1.0f) / 2.0f;
 
-    outX = lerp(slerpDistAtan, lookAtDistAtan - slerpDistAtan, lerpT);
-    outZ = lerp(slerpAtan, lookAtAtan - slerpAtan, lerpT);
+    outX = lerp(slerpDistAtan, lookAtDistAtan, lerpT);
+    outZ = lerp(slerpAtan, lookAtAtan, lerpT);
     return slerpT;
 }
 

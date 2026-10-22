@@ -33,6 +33,7 @@ public:
     static void Update();
 
     static uint16 GetGameClockMinutesUntil(uint8 hours, uint8 minutes);
+    static int32 GetNumberOfDaysPassed(int32 monthDay);
     static bool GetIsTimeInRange(uint8 from, uint8 to);
     static void NormaliseGameClock();
     static void OffsetClockByADay(uint32 timeDirection);

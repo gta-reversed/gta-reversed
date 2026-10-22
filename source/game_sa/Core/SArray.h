@@ -90,7 +90,7 @@ public:
     template<typename... Args>
     void emplace_back(Args&&... args) {
         if (_Last == _End) {
-            reserve(size() * 150 / 100); // Geometric growth with K=1.5
+            reserve(std::max(size() + 1, size() * 150 / 100)); // Geometric growth with K=1.5
         }
         std::construct_at(_Last++, std::forward<Args>(args)...);
     }
@@ -98,7 +98,7 @@ public:
         assert(first >= _First && first < _Last);
         assert(last >= first && last <= _Last);
         rng::destroy(first, last);
-        rng::move_backward(last, _Last, first); // Move the rest of the elements
+        rng::move(last, _Last, first); // Move the rest of the elements
         _Last -= (last - first);
     }
     void erase(T* iter) {
