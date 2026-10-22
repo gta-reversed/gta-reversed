@@ -171,24 +171,89 @@ inline std::pair<VirtualPtr, size_t> VirtualAllocForCode(size_t minSize, DWORD a
 }
 
 /*!
+ * @brief Describes what the hook code must preserve across the call of the hooked function.
+ * Some of the original code relies on registers not touched by the callee (eg.: `ecx`/`edx`) being preserved
+ * across the call, even though the calling convention doesn't guarantee that.
+ */
+struct HookPreservation {
+    size_t NumStackArguments{}; //!< Number of stack arguments (in dwords) to re-push before calling the function
+    bool   PreserveRegisters{}; //!< Preserve all registers (except the ones used for the return value) using pushad/popad
+    bool   CallerCleansStack{}; //!< The caller pops the arguments (`__cdecl`), otherwise the callee does (`__stdcall`/`__thiscall`)
+    bool   ReturnsInEAX{};      //!< The return value is in `eax` - It must be kept when restoring the registers
+    bool   ReturnsInEDX{};      //!< The return value's high part is in `edx` (64-bit values) - It must be kept when restoring the registers
+
+    //! Whether any code has to be generated for the preservation
+    bool IsNeeded() const noexcept { return NumStackArguments || PreserveRegisters; }
+};
+
+namespace detail {
+template<typename R>
+constexpr void SetReturnRegisters(HookPreservation& p) {
+    if constexpr (!std::is_void_v<R> && !std::is_floating_point_v<R>) { // Floats are returned in `st(0)`, not affected by `popad`
+        p.ReturnsInEAX = true;
+        p.ReturnsInEDX = sizeof(R) > sizeof(uint32);
+    }
+}
+
+template<typename T>
+struct CallingConvention {
+    static constexpr HookPreservation Get() { return {}; }
+};
+
+template<typename R, typename... Args>
+struct CallingConvention<R(__cdecl*)(Args...)> {
+    static constexpr HookPreservation Get() { HookPreservation p{ .CallerCleansStack = true }; SetReturnRegisters<R>(p); return p; }
+};
+
+template<typename R, typename... Args>
+struct CallingConvention<R(__cdecl*)(Args..., ...)> {
+    static constexpr HookPreservation Get() { HookPreservation p{ .CallerCleansStack = true }; SetReturnRegisters<R>(p); return p; }
+};
+
+template<typename R, typename... Args>
+struct CallingConvention<R(__stdcall*)(Args...)> {
+    static constexpr HookPreservation Get() { HookPreservation p{}; SetReturnRegisters<R>(p); return p; }
+};
+
+template<typename R, typename C, typename... Args>
+struct CallingConvention<R(C::*)(Args...)> {
+    static constexpr HookPreservation Get() { HookPreservation p{}; SetReturnRegisters<R>(p); return p; }
+};
+
+template<typename R, typename C, typename... Args>
+struct CallingConvention<R(C::*)(Args...) const> {
+    static constexpr HookPreservation Get() { HookPreservation p{}; SetReturnRegisters<R>(p); return p; }
+};
+}; // namespace detail
+
+/*!
+ * @brief Get the calling convention related preservation info of a function (pointer) type
+ * @tparam T Type of the function pointer
+ */
+template<typename T>
+constexpr HookPreservation GetCallingConventionOf() {
+    return detail::CallingConvention<T>::Get();
+}
+
+/*!
  * @brief Writes assembly code to preserve all registers, call a specified function, and then restore the registers.
  * @param buf The buffer to write the assembly code to. If nullptr, the function will return the required size of the buffer.
  * @param bufSize The size of the buffer. If 0, the function will return the required size of the buffer.
  * @param base The base address where the generated code will be executed (used for calculating relative jumps).
  * @param functionToCall The function to call after preserving the registers.
- * @param numStackArguments Number of stack arguments (If this number is incorrect the stack will be corrupted) - Their value is preserved by re-pushing them before calling `functionToCall`.
- * @param preserveRegisters If true, the function will also preserve all registers using pushad/popad.
+ * @param preservation What to preserve. `NumStackArguments` must be correct, otherwise the stack will be corrupted - Their value is preserved by re-pushing them before calling `functionToCall`.
  * @return The number of bytes written to the buffer, or the required size if bufSize is 0 and buf is nullptr.
  * @throws std::invalid_argument if the buffer is too small to hold the generated code.
  */
 inline size_t GenerateHookCode(
-    std::byte* buf,
-    size_t bufSize,
-    void*  base,
-    void*  functionToCall,
-    size_t numStackArguments,
-    bool   preserveRegisters
+    std::byte*              buf,
+    size_t                  bufSize,
+    void*                   base,
+    void*                   functionToCall,
+    const HookPreservation& preservation = {}
 ) {
+    const auto [numStackArguments, preserveRegisters, callerCleansStack, returnsInEAX, returnsInEDX] = preservation;
+
     assert(buf != nullptr || bufSize == 0 && "`bufSize` must be 0 if `buf` is nullptr");
 
     auto* out = buf;
@@ -203,50 +268,75 @@ inline size_t GenerateHookCode(
     };
 
     // Write: [op] <address:rel32>
-    const auto WriteJumpOp = [&, base, buf](uint8 op, void* address) {
-        const auto ip = buf;
-        Write(op, 1);                                                                  // [op]
-        Write((std::byte*)(address) - ((std::byte*)(base) + (ip - buf)) - (1 + 4), 4); // <address:rel32> (Calculatd relative to `base`)
+    const auto WriteJumpOp = [&, base](uint8 op, void* address) {
+        const auto ip = out - buf; // Offset of this instruction
+        Write(op, 1);                                                               // [op]
+        Write((std::byte*)(address) - ((std::byte*)(base) + ip) - (1 + 4), 4);      // <address:rel32> (Calculated relative to `base`)
     };
 
-    // If no stack arguments and no registers to preserve, 
+    // Write: <op> [esp + <offset>] (`op` is the 2 bytes of the opcode + modrm, the SIB byte is always 0x24 (esp))
+    const auto WriteESPRelativeOp = [&](uint8 op, uint8 modrm, int32 offset) {
+        Write(op, 1);
+        if (offset < 128) {
+            Write((uint8)(0x40 | modrm), 1); // [esp + disp8]
+            Write((uint8)(0x24), 1);
+            Write((uint8)(offset), 1);
+        } else {
+            Write((uint8)(0x80 | modrm), 1); // [esp + disp32]
+            Write((uint8)(0x24), 1);
+            Write(offset, 4);
+        }
+    };
+
+    // If no stack arguments and no registers to preserve,
     // we can just `jmp` directly to the function otherwise we must `call`
     if (!numStackArguments && !preserveRegisters) {
         WriteJumpOp(0xE9, functionToCall); // jmp <address:rel32>
     } else {
+        constexpr int32 PUSHAD_SIZE = 8 * 4; // 8 registers are pushed
+
         // pushad (save all registers)
         if (preserveRegisters) {
-            Write(0x60, 1);
+            Write((uint8)(0x60), 1);
         }
-    
+
         // push [ESP + <offset>] (re-push all arguments)
-        if (numStackArguments) {
-            const auto stackOffset = 4 * (numStackArguments + 8); // +8 due to pushad (8 registers are pushed)
-            for (size_t i = 0; i < numStackArguments; ++i) {
-                if (stackOffset >= 128) {
-                    Write(0xFFB424, 3); // push [ESP + <offset>] (32-bit offset)
-                    Write(stackOffset, 4); // <offset>
-                } else {
-                    Write(0xFF7424, 3); // push [ESP + <offset>] (8-bit offset)
-                    Write(stackOffset, 1); // <offset>
-                }
-            }
+        // The offset doesn't change, as each `push` moves `esp` down by 4 bytes, the next (previous) argument will be at the same offset
+        const auto stackOffset = (int32)(4 * numStackArguments) + (preserveRegisters ? PUSHAD_SIZE : 0);
+        for (size_t i = 0; i < numStackArguments; ++i) {
+            WriteESPRelativeOp(0xFF, 0x34, stackOffset); // push dword ptr [esp + <offset>] (FF /6)
         }
-    
+
         // call <address:rel32>
         WriteJumpOp(0xE8, functionToCall);
 
-        // popad (restore all registers)
-        if (preserveRegisters) {
-            Write(0x61, 1);
+        // add esp, <size> (pop the re-pushed arguments if the function didn't)
+        if (callerCleansStack && numStackArguments) {
+            Write((uint8)(0x81), 1);
+            Write((uint8)(0xC4), 1);
+            Write((int32)(4 * numStackArguments), 4);
         }
-    
-        // ret (and pop arguments, if any)
-        if (numStackArguments > 0) {
-            Write(0xC2, 1); // ret <number of bytes to pop>
-            Write(numStackArguments * 4, 2); // <number of bytes to pop>
+
+        if (preserveRegisters) {
+            // Overwrite the saved registers used for the return value, so `popad` restores them with the return value
+            // The layout pushed by `pushad` is (from lower to higher addresses): edi, esi, ebp, esp, ebx, edx, ecx, eax
+            if (returnsInEAX) {
+                WriteESPRelativeOp(0x89, 0x04, 7 * 4); // mov [esp + <offset of eax>], eax
+            }
+            if (returnsInEDX) {
+                WriteESPRelativeOp(0x89, 0x14, 5 * 4); // mov [esp + <offset of edx>], edx
+            }
+
+            // popad (restore all registers)
+            Write((uint8)(0x61), 1);
+        }
+
+        // ret (and pop arguments, if the callee is responsible for that)
+        if (numStackArguments > 0 && !callerCleansStack) {
+            Write((uint8)(0xC2), 1); // ret <number of bytes to pop>
+            Write((uint16)(numStackArguments * 4), 2); // <number of bytes to pop>
         } else {
-            Write(0xC3, 1); // ret
+            Write((uint8)(0xC3), 1); // ret
         }
     }
 

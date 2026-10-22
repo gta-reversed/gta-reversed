@@ -12,17 +12,15 @@ using notsa::debug::GetFunctionInfoAtAddress;
 namespace ReversibleHooks {
 namespace ReversibleHook {
 StaticOneWayHook::StaticOneWayHook(
-    std::string name,
-    void*       from,
-    void*       to,
-    size_t      numStackArgumentsToPreserve,
-    bool        preserveRegisters
+    std::string                      name,
+    void*                            from,
+    void*                            to,
+    const Utility::HookPreservation& preservation
 ) :
     OneWayHook{ std::move(name) },
     m_From{ from },
     m_To{ to },
-    m_NumStackArgumentsToPreserve{ numStackArgumentsToPreserve },
-    m_PreserveRegisters{ preserveRegisters }
+    m_Preservation{ preservation }
 {
 }
 
@@ -54,81 +52,43 @@ void StaticOneWayHook::Check() {
     }
 }
 
-size_t StaticOneWayHook::GenerateHookCodeWithPreservation(size_t localBufferOffset, bool noLocalBuffer) {
-    assert((m_NumStackArgumentsToPreserve || m_PreserveRegisters) && "GenerateHookCodeWithPreservation called without any preservation requested");
+void* StaticOneWayHook::GeneratePreservationCode() {
+    assert(m_Preservation.IsNeeded() && "GeneratePreservationCode called without any preservation requested");
 
-    const auto GenerateHookCode = [this](void* buf, size_t bufSize) {
-        return Utility::GenerateHookCode(
-            static_cast<std::byte*>(buf),
-            bufSize,
-            m_From,
-            m_CalculatedJumpTo,
-            m_NumStackArgumentsToPreserve,
-            m_PreserveRegisters
-        );
+    // The code is executed from the buffer, so relative addresses must be calculated relative to it
+    const auto Generate = [this](std::byte* buf, size_t bufSize) {
+        return Utility::GenerateHookCode(buf, bufSize, buf, m_CalculatedJumpTo, m_Preservation);
     };
 
-    // Always try writing into local buffer first
-    // We keep the buffer that might've been allocated anyways, just in case.
-    if (!noLocalBuffer) {
-        try {
-            const auto off = notsa::round_up_to_multiple<size_t>(localBufferOffset, alignof(void*)); // Align offset, this isn't necessary on x86 per-se, but should make perf. better
-            if (off < sizeof(m_HookData)) {
-                return GenerateHookCode(m_HookData + off, sizeof(m_HookData) - off);
-            }
-        } catch (std::invalid_argument) {
-            /* Buffer too small, we need to (re)allocate */
-        }
+    const auto requiredSize = Generate(nullptr, 0);
+    if (!m_PreservationCodeData || m_PreservationCodeDataBufSize < requiredSize) {
+        std::tie(m_PreservationCodeData, m_PreservationCodeDataBufSize) = Utility::VirtualAllocForCode(requiredSize);
     }
 
-    // If we already have an allocated buffer, try writing to it directly
-    if (m_PreservationCodeData) {
-        try {
-            Utility::ScopedVirtualProtectModify g{ m_PreservationCodeData.get(), m_PreservationCodeDataBufSize, PAGE_EXECUTE_READWRITE };
-            return GenerateHookCode(m_PreservationCodeData.get(), m_PreservationCodeDataBufSize);
-        } catch (std::invalid_argument) { // Buffer too small, we need to reallocate
-            /* fall down and reallocate */
-        }
-    }
+    Utility::ScopedVirtualProtectModify g{ m_PreservationCodeData.get(), m_PreservationCodeDataBufSize, PAGE_EXECUTE_READWRITE };
+    Generate(m_PreservationCodeData.get(), m_PreservationCodeDataBufSize);
+    FlushInstructionCache(GetCurrentProcess(), m_PreservationCodeData.get(), requiredSize);
 
-    // At this point we must reallocate
-    std::tie(m_PreservationCodeData, m_PreservationCodeDataBufSize) = Utility::VirtualAllocForCode(
-        GenerateHookCode(nullptr, 0) // Calculate required size
-    );
-    return GenerateHookCodeWithPreservation(localBufferOffset, true);
+    return m_PreservationCodeData.get();
 }
 
 size_t StaticOneWayHook::GenerateHookCode() {
     assert(m_CalculatedJumpTo && "Must calculate jump address before generating hook code");
 
-    const auto GenerateJumpCodeToBuffer = [this](void* to) {
-        m_HookSize = Utility::GenerateHookCode(
-            m_HookData,
-            sizeof(m_HookData),
-            m_From,
-            m_CalculatedJumpTo,
-            0,
-            false
-        );
-        return m_HookSize;
-    };
+    // If something has to be preserved the hook jumps to the generated code that does that (and calls `m_CalculatedJumpTo`),
+    // otherwise directly to the target function.
+    // (The preservation code can't be written to the hook address directly, as only `MAX_HOOK_DATA_SIZE` bytes may be overwritten there)
+    const auto jumpTo = m_Preservation.IsNeeded()
+        ? GeneratePreservationCode()
+        : m_CalculatedJumpTo;
 
-    if (m_NumStackArgumentsToPreserve || m_PreserveRegisters) {
-        // Generate preservation code for registers/stack arguments first
-        // if it fits into the local buffer then nothing more to do
-        // as that buffer is directly copied to the hook address
-        const auto size = GenerateHookCodeWithPreservation(m_HookSize);
-        if (size < sizeof(m_HookData)) {
-            return size;
-        }
-
-        // Otherwise we need to jump to that generated code, which then jumps to `m_AddressUsedTo`
-        // This must fit into the local buffer, otherwise we have a problem :D
-        return GenerateJumpCodeToBuffer(m_PreservationCodeData.get());
-    }
-
-    // Generate a simple jump to the target function, no preservation needed
-    return GenerateJumpCodeToBuffer(m_CalculatedJumpTo);
+    m_HookSize = Utility::GenerateHookCode(
+        m_HookData,
+        sizeof(m_HookData),
+        m_From,
+        jumpTo
+    );
+    return m_HookSize;
 }
 
 void StaticOneWayHook::RestoreHook() {

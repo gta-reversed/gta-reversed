@@ -17,15 +17,13 @@ public:
      * @param name Name of the function (eg.: `Add` for `CEntity::Add`)
      * @param fnAddressOur Address of our function (eg.: `&Class::Add`)
      * @param fnAddressGTA Address of GTA's function (eg.: `&Class::Add`)
-     * @param numStackArgumentsToPreserve Number of stack arguments to preserve (if any)
-     * @param preserveRegisters Whether to preserve registers (if true, must specify `numStackArgumentsToPreserve`)
+     * @param preservation What the hook code should preserve across the call (stack arguments, registers)
      */
     StaticTwoWayHook(
-        std::string_view name,
-        void*            fnAddressOur,
-        void*            fnAddressGTA,
-        size_t           numStackArgumentsToPreserve = 0,
-        bool             preserveRegisters           = false
+        std::string_view                 name,
+        void*                            fnAddressOur,
+        void*                            fnAddressGTA,
+        const Utility::HookPreservation& preservation = {}
     );
 
     ~StaticTwoWayHook() override {

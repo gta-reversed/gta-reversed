@@ -8,15 +8,14 @@ using namespace ReversibleHooks;
 namespace ReversibleHooks {
 namespace ReversibleHook {
 StaticTwoWayHook::StaticTwoWayHook(
-    std::string_view name,
-    void*            fnAddressOur,
-    void*            fnAddressGTA,
-    size_t           numStackArgumentsToPreserve,
-    bool             preserveRegisters
+    std::string_view                 name,
+    void*                            fnAddressOur,
+    void*                            fnAddressGTA,
+    const Utility::HookPreservation& preservation
 ) :
     TwoWayHook{ std::string{ name } },
-    m_OneWayFromGTA{ std::format("{}_FromGTA", name), fnAddressGTA, fnAddressOur, numStackArgumentsToPreserve, preserveRegisters },
-    m_OneWayToGTA{ std::format("{}_ToGTA", name), fnAddressOur, fnAddressGTA, numStackArgumentsToPreserve, preserveRegisters }
+    m_OneWayFromGTA{ std::format("{}_FromGTA", name), fnAddressGTA, fnAddressOur, preservation },
+    m_OneWayToGTA{ std::format("{}_ToGTA", name), fnAddressOur, fnAddressGTA, preservation }
 {
 }
 
