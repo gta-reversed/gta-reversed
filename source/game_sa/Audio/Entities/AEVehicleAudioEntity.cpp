@@ -3134,11 +3134,12 @@ auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
     if (distSq <= sq(48.f)) {
         return -100.f;
     }
-    auto vol = baseVol;
-    if (distSq <= 128.f) {
-        vol += invLerp(48.f, 128.f, std::sqrtf(distSq)); // NB: I think this should be substracted (The closer the plane is, the less volume the distant sound should have)
+    auto vol = CAEAudioUtility::AudioLog10(baseVol) * 20.f;
+    if (distSq < sq(128.f)) {
+        // NOTE: The factor is below 1 here, so its log is negative: the closer the plane is, the quieter its distant sound
+        vol += CAEAudioUtility::AudioLog10(invLerp(48.f, 128.f, std::sqrtf(distSq))) * 20.f;
     }
-    return CAEAudioUtility::AudioLog10(vol) * 20.f + 8.f;
+    return vol + 8.f;
 }
 
 // notsa - See 0x4FE5E5
@@ -3397,7 +3398,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerProp(tVehicleParams& vp, bool is
         AE_SOUND_AIRCRAFT_DISTANT,
         SND_BANK_SLOT_VEHICLE_GEN,
         16,
-        GetAircraftDistantSoundVolume(plane, propStalledVol), // <- 0x4FDC90
+        propStalledVol + GetAircraftDistantSoundVolume(plane, propSpeedFactor), // <- 0x4FDC90
         1.f
     );
 }
@@ -3763,7 +3764,7 @@ void CAEVehicleAudioEntity::ProcessDummySeaPlane(tVehicleParams& vp) {
         AE_SOUND_AIRCRAFT_NEAR,
         SND_BANK_SLOT_VEHICLE_GEN,
         17,
-        GetAircraftDistantSoundVolume(plane, 0.f),
+        CAEAudioUtility::AudioLog10(GetDummyRCRotorSpeedFactor(plane->m_EngineSpeed / 0.22f)) * 20.f + 8.f, // 0x4FF82D
         1.f
     );
 }
