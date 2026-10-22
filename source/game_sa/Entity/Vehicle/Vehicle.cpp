@@ -201,7 +201,7 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(ScanAndMarkTargetForHeatSeekingMissile, 0x6E0400);
     // RH_ScopedInstall(FireHeatSeakingMissile, 0x6E05C0);
     // RH_ScopedInstall(PossiblyDropFreeFallBombForPlayer, 0x6E07E0);
-    // RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
+    RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
     RH_ScopedInstall(DoHeadLightEffect, 0x6E0A50);
     RH_ScopedInstall(DoHeadLightReflectionSingle, 0x6E1440);
     RH_ScopedInstall(DoHeadLightReflectionTwin, 0x6E1600);
@@ -1725,7 +1725,7 @@ void CVehicle::ProcessCarAlarm() {
 
     const auto ts = (uint16)CTimer::GetTimeStepInMS();
     if (m_nAlarmState >= ts) {
-        m_nAlarmState = ts;
+        m_nAlarmState -= ts;
     } else {
         m_nAlarmState = 0;
         m_HornCounter = 0;
@@ -4644,7 +4644,26 @@ void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) 
 
 // 0x6E0950
 void CVehicle::ProcessSirenAndHorn(bool arg0) {
-    ((void(__thiscall*)(CVehicle*, bool))0x6E0950)(this, arg0);
+    if (UsesSiren()) {
+        const auto& pad = *CPad::GetPad(0);
+        const auto WasHornPressed = [&](uint8 framesAgo) { return pad.bHornHistory[((uint8)pad.iCurrHornHistory + 5 - framesAgo) % 5] != 0; };
+        if (WasHornPressed(0)) {
+            if (WasHornPressed(1) && WasHornPressed(2)) { // Held: Play the horn
+                m_HornCounter = 1;
+                return;
+            }
+        } else if (WasHornPressed(1) && !WasHornPressed(4)) { // Tapped: Toggle the siren
+            m_HornCounter = 0;
+            vehicleFlags.bSirenOrAlarm = !vehicleFlags.bSirenOrAlarm;
+            return;
+        }
+        m_HornCounter = 0;
+        return;
+    }
+
+    if (arg0 && (!IsAlarmActivated() || GetStatus() == STATUS_WRECKED)) {
+        m_HornCounter = CPad::GetPad(0)->GetHorn();
+    }
 }
 
 // NOTSA
@@ -4931,7 +4950,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
         }
     }
 
-    if (!CanUpdateHornCounter()) {
+    if (IsAlarmActivated() && GetStatus() != STATUS_WRECKED) {
         // alarm
         if (CTimer::GetTimeInMS() & 0x100) {
             forceOn = true;
@@ -4947,7 +4966,7 @@ void CVehicle::DoVehicleLights(CMatrix& vehicleMatrix, eVehicleLightsFlags flags
     if (GetModelIndex() == MODEL_ZR350 && GetStatus() != STATUS_WRECKED) {
         // calculate zr350's pop-up lights rotation
         constexpr auto popUpTarget = 0.69813174f; // aka (2.f / 9.f) * PI rad = 40 deg
-        if (vehicleFlags.bLightsOn || forceOn || !CanUpdateHornCounter()) {
+        if (vehicleFlags.bLightsOn || forceOn || IsAlarmActivated() && GetStatus() != STATUS_WRECKED) {
             asAuto->m_fPropRotate = notsa::step_up_to(asAuto->m_fPropRotate, popUpTarget, CTimer::GetTimeStep() * 0.01f);
             if (asAuto->m_fPropRotate < popUpTarget) {
                 return;

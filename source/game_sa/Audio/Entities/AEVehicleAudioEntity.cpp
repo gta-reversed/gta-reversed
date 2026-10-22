@@ -1037,7 +1037,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSirenAlarmHorn(tVehicleParams& vp) {
     // If no siren, possibly use horn
     bool isHornOn = false;
     if (!isSirenOn) {
-        if (!vp.Vehicle->m_nAlarmState || vp.Vehicle->m_nAlarmState == -1 || vp.Vehicle->GetStatus() == STATUS_WRECKED) {
+        if (!vp.Vehicle->IsAlarmActivated() || vp.Vehicle->GetStatus() == STATUS_WRECKED) {
             GetHornState(&isHornOn, vp);
         } else {
             const auto time = CTimer::GetTimeInMS();
@@ -1965,7 +1965,7 @@ bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
     if (m_IsWreckedVehicle) {
         return false;
     }
-    if (vp.Vehicle->m_nAlarmState && vp.Vehicle->m_nAlarmState != -1 && vp.Vehicle->GetStatus() != STATUS_WRECKED) {
+    if (vp.Vehicle->IsAlarmActivated() && vp.Vehicle->GetStatus() != STATUS_WRECKED) {
         return false;
     }
     if (!vp.Vehicle->m_HornCounter) {
