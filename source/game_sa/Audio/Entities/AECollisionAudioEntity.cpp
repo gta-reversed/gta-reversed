@@ -153,7 +153,8 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntit
                 .Volume            = volume,
                 .RollOffFactor     = 2.f,
                 .Flags             = SOUND_ROLLED_OFF | SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES,
-                .FrequencyVariance = 0.02f
+                .FrequencyVariance = 0.02f,
+                .PlayTime          = (int16)(startAt)
             });
             m_CollisionSoundIDHistory[sB] = soundID;
             if (sound) { // 0x4DB3E7
