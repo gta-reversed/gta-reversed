@@ -760,7 +760,7 @@ void CAutomobile::ProcessControl()
 
         float traction = m_pHandlingData->m_fTractionMultiplier / 250.0f; // (0.004f * mult)
         if (GetStatus() == STATUS_PHYSICS)
-            traction = 250.0f / m_fCarTraction * m_pHandlingData->m_fTractionMultiplier;
+            traction = m_fCarTraction * m_pHandlingData->m_fTractionMultiplier / 250.0f;
         traction *= 0.25f / m_fVelocityFrequency;
         CPlane* vortex = AsPlane();
         if (CCheat::IsActive(CHEAT_PERFECT_HANDLING) || m_nModelIndex == MODEL_VORTEX && vortex->m_fAccelerationBreakStatus == 0.0f)
@@ -5080,6 +5080,12 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
     obj->m_nObjectType = OBJECT_TEMPORARY;
 
     obj->SetIsStatic(false);
+
+    obj->objectFlags.bIsPickup = false;
+    obj->objectFlags.bChangesVehColor = true;
+    obj->m_nCarColor[0] = m_nPrimaryColor;
+    obj->m_nCarColor[1] = m_nSecondaryColor;
+    obj->SetRemapTexture(m_pRemapTexture, m_nPreviousRemapTxd);
 
     CObject::nNoTempObjects++;
     if (CObject::nNoTempObjects <= 20u) {
