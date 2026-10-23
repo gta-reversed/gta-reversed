@@ -8,7 +8,7 @@ void CTaskGangHassleVehicle::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x65FAC0);
     RH_ScopedInstall(Destructor, 0x65FB60);
-    RH_ScopedInstall(GetTargetHeading, 0x65FDD0, { .Reversed = false });
+    RH_ScopedInstall(GetTargetHeading, 0x65FDD0);
     RH_ScopedInstall(CalcTargetOffset, 0x6641A0, { .Reversed = false });
     RH_ScopedInstall(Clone, 0x65FC00, { .Reversed = false });
     RH_ScopedInstall(CreateNextSubTask, 0x65FC80, { .Reversed = false });
@@ -51,7 +51,26 @@ CTaskGangHassleVehicle::~CTaskGangHassleVehicle() {
 
 // 0x65FDD0
 float CTaskGangHassleVehicle::GetTargetHeading(CPed* ped) {
-    return plugin::CallMethodAndReturn<float, 0x65FDD0, CTaskGangHassleVehicle*, CPed*>(this, ped);
+    assert(m_Vehicle);
+    const auto* mat = m_Vehicle->m_matrix;
+    CVector2D dir{ mat->GetRight().x, mat->GetRight().y };
+    switch (m_nHasslePosId) {
+    case 0:
+    case 2:
+        dir = CVector2D{ mat->GetRight().x, mat->GetRight().y };
+        break;
+    case 1:
+    case 3:
+        dir = CVector2D{ -mat->GetRight().x, -mat->GetRight().y };
+        break;
+    case 4:
+        dir = CVector2D{ mat->GetForward().x, mat->GetForward().y };
+        break;
+    case 5:
+        dir = CVector2D{ -mat->GetForward().x, -mat->GetForward().y };
+        break;
+    }
+    return CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(dir.x, dir.y, 0.f, 0.f));
 }
 
 // 0x6641A0
