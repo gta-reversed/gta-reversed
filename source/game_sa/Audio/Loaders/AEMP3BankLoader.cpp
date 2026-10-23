@@ -131,11 +131,8 @@ void CAEMP3BankLoader::UpdateVirtualChannels(tVirtualChannelSettings* settings, 
             lengths[i]        = -1;
             loopStartTimes[i] = -1;
         } else {
-            const auto end = sfx == slot->NumSounds - 1
-                ? GetBankLookup(slot->Bank).NumBytes                                 // Last sound of the bank
-                : slot->Sounds[(sfx + 1) % std::size(slot->Sounds)].BankOffsetBytes; // Next sound (Or the single sound's size, see `Service`)
             lengths[i] = CAEAudioUtility::ConvertFromBytesToMS(
-                end - slot->Sounds[sfx].BankOffsetBytes,
+                slot->GetSoundSize(sfx, GetBankLookup(slot->Bank).NumBytes),
                 slot->Sounds[sfx].SampleFrequency,
                 1
             );
