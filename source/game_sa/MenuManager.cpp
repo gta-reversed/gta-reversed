@@ -245,6 +245,7 @@ void CMenuManager::LoadAllTextures() {
         CStreaming::IHaveUsedStreamingMemory();
     };
 
+    NOTSA_LOG_DEBUG("LOAD frontend"); // R* log from III
     LoadTexture(0x21000, "frontend1",   "MODELS\\FRONTEN1.TXD",   FRONTEND1_START, FRONTEND2_START);
     LoadTexture(0x3000,  "frontend2",   "MODELS\\FRONTEN2.TXD",   FRONTEND2_START, FRONTEND3_START);
     LoadTexture(0x6800,  "frontend3",   "MODELS\\FRONTEN3.TXD",   FRONTEND3_START, FRONTEND4_START);       // NOTSA (for SwapTexturesRound)
@@ -309,6 +310,7 @@ void CMenuManager::UnloadTextures() {
             CTxdStore::RemoveTxd(CTxdStore::FindTxdSlot(slot));
         };
 
+        NOTSA_LOG_TRACE("REMOVE frontend"); // R* log from III
         Unload("frontend1",   m_apRadioSprites);
         Unload("frontend2",   m_apBackgroundTextures);
         Unload("frontend3",   m_apAdditionalBackgroundTextures); // NOTSA
