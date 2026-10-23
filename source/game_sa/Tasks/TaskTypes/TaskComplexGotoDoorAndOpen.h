@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TaskComplex.h"
+#include "TaskTimer.h"
 #include "Vector.h"
 
 class CEntity;
@@ -8,15 +9,21 @@ class CObject;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexGotoDoorAndOpen : public CTaskComplex {
 public:
-    CObject* m_Object;
-    CVector  m_Start;
-    CVector  m_End;
-    uint32   m_nStartTime;
-    uint32   m_nOffsetTime;
-    uint8    byte30;
-    bool     m_bRefreshTime;
-    uint8    _align[2];
-    uint8    m_nFlags;
+    CObject*   m_Object; //!< 0xC  - The door
+    CVector    m_Start;  //!< 0x10 - Position in front of the door
+    CVector    m_End;    //!< 0x1C - Position behind the door
+    CTaskTimer m_Timer;  //!< 0x28
+
+    union {
+        struct {
+            uint8 m_bHasDoorObject : 1;              //!< Was this task created with a door object (Otherwise only with the start/end positions)
+            uint8 m_bGoingThroughDoor : 1;           //!< Walking from `m_Start` to `m_End`
+            uint8 m_bDoorWasCollidable : 1;          //!< The door was collidable, its collision was disabled
+            uint8 m_bPlayerOnInteriorTransition : 1; //!< `CPad::bPlayerOnInteriorTransition` was set by this task
+        };
+
+        uint8 m_nFlags; //!< 0x34
+    };
 
 public:
     static constexpr auto Type = TASK_COMPLEX_GOTO_DOOR_AND_OPEN;
