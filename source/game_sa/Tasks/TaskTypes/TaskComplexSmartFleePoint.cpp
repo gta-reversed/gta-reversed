@@ -9,7 +9,7 @@ void CTaskComplexSmartFleePoint::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x65BDB0);
 
     RH_ScopedInstall(SetDefaultTaskWanderDir, 0x65BE00, {.Reversed = false});
-    RH_ScopedInstall(ComputeFleeDir, 0x65BE40, {.Reversed = false});
+    RH_ScopedInstall(ComputeFleeDir, 0x65BE40);
     RH_ScopedInstall(CreateSubTask, 0x65BE80, {.Reversed = false});
     RH_ScopedInstall(SetFleePosition, 0x65C3C0, {.Reversed = false});
 
@@ -43,7 +43,8 @@ int8 CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
 
 // 0x65BE40
 uint32 CTaskComplexSmartFleePoint::ComputeFleeDir(CPed* ped) {
-    return plugin::CallMethodAndReturn<uint32, 0x65BE40, CTaskComplexSmartFleePoint*, CPed*>(this, ped);
+    const auto& pedPos = ped->GetPosition();
+    return CGeneral::GetNodeHeadingFromVector(pedPos.x - m_fleePoint.x, pedPos.y - m_fleePoint.y);
 }
 
 // 0x65BE80
