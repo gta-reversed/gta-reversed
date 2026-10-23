@@ -45,15 +45,15 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(ReleaseOneMissionTrain, 0x6F5DF0);
     RH_ScopedInstall(SetTrainSpeed, 0x6F5E20);
     RH_ScopedInstall(SetTrainCruiseSpeed, 0x6F5E50);
-    RH_ScopedInstall(FindCaboose, 0x6F5E70, { .Reversed = false });
-    RH_ScopedInstall(FindEngine, 0x6F5E90, { .Reversed = false });
-    RH_ScopedInstall(FindCarriage, 0x6F5EB0, { .Reversed = false });
+    RH_ScopedInstall(FindCaboose, 0x6F5E70);
+    RH_ScopedInstall(FindEngine, 0x6F5E90);
+    RH_ScopedInstall(FindCarriage, 0x6F5EB0);
     RH_ScopedInstall(FindSideStationIsOn, 0x6F5EF0);
     RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .Reversed = false });
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
     RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .Reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
-    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0, { .Reversed = false });
+    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0);
     RH_ScopedInstall(ReleaseMissionTrains, 0x6F6B60);
     RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0, { .Reversed = false });
     RH_ScopedInstall(FindPositionOnTrackFromCoors, 0x6F6CC0, { .Reversed = false });
@@ -282,17 +282,41 @@ void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
 
 // 0x6F5E70
 CTrain* CTrain::FindCaboose(CTrain* train) {
-    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E70)(train);
+    if (!train) {
+        return nullptr;
+    }
+
+    while (train->m_pNextCarriage) {
+        train = train->m_pNextCarriage;
+    }
+    return train;
 }
 
 // 0x6F5E90
 CTrain* CTrain::FindEngine(CTrain* train) {
-    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E90)(train);
+    if (!train) {
+        return nullptr;
+    }
+
+    while (train->m_pPrevCarriage) {
+        train = train->m_pPrevCarriage;
+    }
+    return train;
 }
 
 // 0x6F5EB0
 CTrain* CTrain::FindCarriage(CTrain* train, uint8 carriage) {
-    return ((CTrain * (__cdecl*)(CTrain*, uint8))0x6F5EB0)(train, carriage);
+    if (!train || carriage == 0) {
+        return train;
+    }
+
+    for (uint8 i = 0; i < carriage; ++i) {
+        train = train->m_pNextCarriage;
+        if (!train) {
+            return nullptr;
+        }
+    }
+    return train;
 }
 
 // 0x6F5EF0
@@ -360,7 +384,33 @@ void CTrain::RemoveMissionTrains() {
 
 // 0x6F6AA0
 void CTrain::RemoveAllTrains() {
-    ((void(__cdecl*)())0x6F6AA0)();
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (!vehicle.IsTrain()) {
+            continue;
+        }
+
+        auto* train = vehicle.AsTrain();
+        bool playerInTrain = false;
+        for (auto* t = train; t; t = t->m_pPrevCarriage) {
+            if (t == FindPlayerVehicle()) {
+                playerInTrain = true;
+                break;
+            }
+        }
+        if (!playerInTrain) {
+            for (auto* t = train; t; t = t->m_pNextCarriage) {
+                if (t == FindPlayerVehicle()) {
+                    playerInTrain = true;
+                    break;
+                }
+            }
+        }
+
+        if (!playerInTrain) {
+            CWorld::Remove(train);
+            delete train;
+        }
+    }
 }
 
 // 0x6F6B60
