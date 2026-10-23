@@ -24,6 +24,7 @@
 #include "FxSystem.h"
 #include "Fire.h"
 #include "VisibilityPlugins.h"
+#include "Skidmarks.h"
 
 #include <Enums/eControllerType.h>
 
@@ -130,8 +131,20 @@ enum eRotationAxis : int32 {
     AXIS_Z = 2
 };
 
-typedef int32 eOrdnanceType;
-typedef int32 eBikeWheelSpecial;
+enum eOrdnanceType : int32 {
+    ORDNANCE_TYPE_NONE      = 0,
+    ORDNANCE_TYPE_PRIMARY   = 1,
+    ORDNANCE_TYPE_SECONDARY = 2,
+};
+
+enum eBikeWheelSpecial : int32 {
+    BIKE_WHEEL_F_STD       = 0,
+    BIKE_WHEEL_R_STD       = 1,
+    BIKE_WHEEL_F_SLIP      = 2,
+    BIKE_WHEEL_R_SLIP      = 3,
+    BIKE_WHEEL_R_HBRAKE    = 4,
+    BIKE_WHEEL_R_SLIPBRAKE = 5,
+};
 
 enum eFlightModel : int32 {
     FLIGHTMODEL_DODO_CLIPPED = 0, // dodo with clipped wings
@@ -607,10 +620,10 @@ public:
     CVector GetPlaneGunsPosition(int32 gunId);
     uint32 GetPlaneOrdnanceRateOfFire(eOrdnanceType type);
     CVector GetPlaneOrdnancePosition(eOrdnanceType type);
-    void SelectPlaneWeapon(bool bChange, eOrdnanceType type);
+    void SelectPlaneWeapon(bool isFiring, eOrdnanceType type);
     void DoPlaneGunFireFX(CWeapon* weapon, CVector& particlePos, CVector& gunshellPos, int32 particleIndex);
     void FirePlaneGuns();
-    void FireUnguidedMissile(eOrdnanceType type, bool bCheckTime);
+    void FireUnguidedMissile(eOrdnanceType type, bool useRateLimit);
     bool CanBeDriven() const;
     void ReactToVehicleDamage(CPed* ped);
     bool GetVehicleLightsStatus();
@@ -618,9 +631,9 @@ public:
     void SetVehicleCreatedBy(eVehicleCreatedBy createdBy);
     void SetupRender();
     void ProcessWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-                      float adhesion, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, uint16 wheelStatus);
+                      float adhesion, int8 wheelId, float& wheelSpeed, tWheelState& wheelState, uint16 wheelStatus);
     void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-                          float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
+                          float adhesion, float destabTraction, int8 wheelId, float& wheelSpeed, tWheelState& wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
     enum class eNearestCarWheel {
         FRONT_LEFT  = +CAR_PIECE_WHEEL_LF - +CAR_PIECE_FIRST_WHEEL,
         FRONT_RIGHT = +CAR_PIECE_WHEEL_RF - +CAR_PIECE_FIRST_WHEEL,
@@ -642,16 +655,18 @@ public:
     void DoSunGlare();
     void AddWaterSplashParticles();
     void AddExhaustParticles();
-    bool AddSingleWheelParticles(tWheelState wheelState, uint32 arg1, float arg2, float arg3, CColPoint* arg4, CVector* arg5, float arg6, int32 arg7, uint32 surfaceType, bool* bloodState, uint32 arg10);
+    bool AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector, eCarWheel wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags);
     bool GetSpecialColModel();
     void RemoveVehicleUpgrade(int32 upgradeModelIndex);
     void AddUpgrade(int32 modelIndex, int32 upgradeIndex);
-    void UpdateTrailerLink(bool arg0, bool arg1);
-    void UpdateTractorLink(bool arg0, bool arg1);
-    CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* entity);
-    void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType ordnanceType, bool arg2);
-    void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
-    void ProcessSirenAndHorn(bool arg0);
+    void UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHookUp, bool applyDistToSpeed); // NOTSA
+    void UpdateTrailerLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
+    void UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistToSpeed);
+    CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExistingTarget);
+    void FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrdnanceType type, bool useRateLimit); // NOTSA
+    void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType type, bool useRateLimit);
+    void PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool useRateLimit);
+    void ProcessSirenAndHorn(bool updateHornCounter);
 
     bool DoHeadLightEffect(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight, bool disabledOrAlarm);
     void DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, bool isRight);
@@ -667,7 +682,7 @@ public:
     bool DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, float radius, float damageMult);
     void AddVehicleUpgrade(int32 modelId);
     void SetupUpgradesAfterLoad();
-    void GetPlaneWeaponFiringStatus(bool& status, eOrdnanceType& ordnanceType);
+    CEntity* GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ordnanceType);
     void ProcessWeapons();
     void DoFixedMachineGuns();
     void FireFixedMachineGuns();
@@ -756,6 +771,7 @@ public:
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
+    auto GetPassengers() { return m_apPassengers | rngv::take(m_nMaxPassengers); }
     auto GetPassengers() const { return m_apPassengers | rngv::take(m_nMaxPassengers); }
     auto GetMaxPassengerSeats() { return m_apPassengers | rngv::take(m_nMaxPassengers); } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
