@@ -622,7 +622,7 @@ public:
     static tDummyEngineSlot* GetDummyEngineSlot(eSoundBankSlot bankSlot);
 
     static tVehicleAudioSettings* StaticGetPlayerVehicleAudioSettingsForRadio();
-    static tVehicleAudioSettings GetVehicleAudioSettings(int16 vehId);
+    static tVehicleAudioSettings __stdcall GetVehicleAudioSettings(int16 vehId);
 
     void AddAudioEvent(eAudioEvents event, float p1 = 0.f);
     void AddAudioEvent(eAudioEvents event, CPhysical* physical);
