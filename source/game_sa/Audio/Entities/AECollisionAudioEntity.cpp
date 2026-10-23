@@ -28,6 +28,7 @@ void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedInstall(ReportBulletHit, 0x4DBDF0);
     RH_ScopedInstall(Service, 0x4DA2C0);
     RH_ScopedInstall(ChooseCollisionSoundID, 0x4DAA50);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DA370);
     RH_ScopedOverloadedInstall(ReportWaterSplash, "at-position", 0x4DA190, void(CAECollisionAudioEntity::*)(CVector, float));
     RH_ScopedOverloadedInstall(ReportWaterSplash, "for-physical", 0x4DAE40, void(CAECollisionAudioEntity::*)(CPhysical*, float, bool));
 }
@@ -641,6 +642,29 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
         );
     } else {
         PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);
+    }
+}
+
+// 0x4DA370
+void CAECollisionAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
+    const auto SetSpeedOnceStarted = [&](float speed) { // `m_ClientVariable` is the time to start playing at
+        if (curPlayPos >= 0 && CTimer::GetTimeInMS() >= (uint32)sound->m_ClientVariable) {
+            sound->SetSpeed(speed);
+        }
+    };
+    switch (sound->m_Event) { // TODO: Events 1-3 aren't `eAudioEvents`, but custom ones used by `ReportWaterSplash`, name them
+    case 1:                        return;
+    case 2:                        return SetSpeedOnceStarted(1.26f);
+    case 3:                        return SetSpeedOnceStarted(0.94f);
+    case AE_GLASS_HIT_GROUND_SLOW: return SetSpeedOnceStarted(0.56f);
+    default:
+        if (curPlayPos != -1) { // Not finished yet
+            return;
+        }
+        if (const auto e = rng::find(m_CollisionSoundList, sound, &tCollisionSound::Sound); e != m_CollisionSoundList.end()) {
+            *e = {};
+            --m_NumActiveCollisionSounds;
+        }
     }
 }
 
