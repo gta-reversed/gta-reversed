@@ -9,8 +9,8 @@ CAutoPilot::CAutoPilot() : m_aPathFindNodesInfo() {
 
     m_nCarCtrlFlags = 0;
 
-    field_C = 0;
-    m_nSpeedScaleFactor = 1000;
+    m_timeToLeaveLink = 0;
+    m_timeToGetToNextLink = 1000;
     m_nNextLane = 0;
     m_nCurrentLane = 0;
     m_nCarDrivingStyle = DRIVING_STYLE_STOP_FOR_CARS;
@@ -49,7 +49,13 @@ void CAutoPilot::ModifySpeed(float target) {
 
 // 0x41B950
 void CAutoPilot::RemoveOnePathNode() {
-    plugin::CallMethod<0x41B950, CAutoPilot*>(this);
+    assert(m_nPathFindNodesCount > 0);
+    
+    --m_nPathFindNodesCount;
+    
+    for (int16 count = 0; count < m_nPathFindNodesCount; ++count) {
+        m_aPathFindNodesInfo[count] = m_aPathFindNodesInfo[count + 1]; // ?
+    }
 }
 
 void CAutoPilot::SetCarMission(eCarMission carMission, uint32 timeOffsetMs) {
