@@ -38,11 +38,11 @@ struct CAEBankSlot {
     bool IsSingleSound() const { return NumSounds == -1; }
 
     // Calculate size of the sound at the given index
-    size_t GetSoundSize(eSoundID id) const {
+    size_t GetSoundSize(eSoundID id, uint32 bankNumBytes) const {
         assert(IsSingleSound() || id >= 0 && id < (eSoundID)(NumSounds));
-        const auto next = IsSingleSound()
-            ? NumBytes
-            : Sounds[id + 1].BankOffsetBytes;
+        const auto next = id == NumSounds - 1
+            ? bankNumBytes                                          // Last sound of the bank (`NumBytes` of its lookup)
+            : Sounds[(id + 1) % std::size(Sounds)].BankOffsetBytes; // Next sound (Or a single sound's size, see `CAEMP3BankLoader::Service`)
         return next - Sounds[id].BankOffsetBytes;
     }
 };
