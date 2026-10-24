@@ -15,7 +15,7 @@ void CTaskComplexSmartFleePoint::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x65CED0, {.Reversed = false});
     RH_ScopedVMTInstall(GetTaskType, 0x65BDA0, {.Reversed = false});
-    RH_ScopedVMTInstall(MakeAbortable, 0x65BDC0, {.Reversed = false});
+    RH_ScopedVMTInstall(MakeAbortable, 0x65BDC0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x65C0C0, {.Reversed = false});
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x65C140, {.Reversed = false});
     RH_ScopedVMTInstall(ControlSubTask, 0x65C1E0, {.Reversed = false});
@@ -69,7 +69,13 @@ void CTaskComplexSmartFleePoint::SetFleePosition(CVector const& pos, float safeD
 
 // 0x65BDC0
 bool CTaskComplexSmartFleePoint::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
-    return plugin::CallMethodAndReturn<bool, 0x65BDC0, CTaskComplexSmartFleePoint*, CPed*, eAbortPriority, CEvent const*>(this, ped, priority, event);
+    if (priority == ABORT_PRIORITY_LEISURE) {
+        m_fleeTimeMs          = -1;
+        m_timer.m_nStartTime  = CTimer::GetTimeInMS();
+        m_timer.m_nInterval   = -1;
+        m_timer.m_bStarted    = true;
+    }
+    return m_pSubTask->MakeAbortable(ped, priority, event);
 }
 
 // 0x65C0C0
