@@ -41,7 +41,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(Furnish, 0x591590, { .Reversed = false });
     RH_ScopedInstall(Unfurnish, 0x5915D0, { .Reversed = false });
     RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
-    RH_ScopedInstall(SetTilesStatus, 0x591700, { .Reversed = false });
+    RH_ScopedInstall(SetTilesStatus, 0x591700);
     RH_ScopedInstall(SetCornerTiles, 0x5917C0, { .Reversed = false });
     RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
     RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
@@ -234,8 +234,36 @@ int8 Interior_c::CheckTilesEmpty(int32 a1, int32 a2, int32 a3, int32 a4, uint8 a
 }
 
 // 0x591700
-void Interior_c::SetTilesStatus(int32 a, int32 b, int32 a3, int32 a4, int32 a5, int8 a6) {
-    plugin::CallMethod<0x591700, Interior_c*, int32, int32, int32, int32, int32, int8>(this, a, b, a3, a4, a5, a6);
+void Interior_c::SetTilesStatus(int32 x, int32 y, int32 width, int32 depth, int32 newStatus, int8 mode) {
+    if (x < 0 || y < 0)
+        return;
+    if (x + width > m_box->m_width || y + depth > m_box->m_depth || width <= 0)
+        return;
+
+    int8* tile = reinterpret_cast<int8*>(&field_68) + x * 0x1E + y; // tile grid, stride 0x1E (30)
+
+    for (int32 row = 0; row < width; row++) {
+        if (depth > 0) {
+            for (int32 col = 0; col < depth; col++) {
+                const auto status = tile[col];
+                if (status == 9 && newStatus == 5) {
+                    tile[col] = 10;
+                } else if (mode == 0) {
+                    if (status == 3) {
+                        if (newStatus == 3)
+                            return;
+                        if (newStatus == 4)
+                            tile[col] = 4;
+                    } else if (status == 0) {
+                        tile[col] = static_cast<int8>(newStatus);
+                    }
+                } else if (status != 5 && status != 7 && status != 8) {
+                    tile[col] = static_cast<int8>(newStatus);
+                }
+            }
+        }
+        tile += 0x1E;
+    }
 }
 
 // 0x5917C0
