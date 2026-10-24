@@ -3,6 +3,7 @@
 #include "TaskComplex.h"
 #include "eWeaponType.h"
 #include "eDirection.h"
+#include <extensions/WEnum.hpp>
 
 class CVehicle;
 
@@ -22,7 +23,7 @@ public:
             uint32 m_bFallToDeathOverRailing : 1;
         };
     };
-    eDirection m_nFallToDeathDir;
+    notsa::WEnumS32<eDirection> m_nFallToDeathDir;
 
 public:
     static constexpr auto Type = TASK_COMPLEX_DIE;
