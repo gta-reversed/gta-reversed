@@ -181,11 +181,11 @@ void FxInfoManager_c::Load(FILESTREAM file, int32 version) {
         //> 0x5C0F66 - Find the index of the first movement and the first render info
         const auto category = (uint16)info->m_nType;
         if ((category & FX_INFO_CATEGORY_EMISSION) == 0) {
-            if ((category & FX_INFO_CATEGORY_MOVEMENT) != 0) {
+            if (category & FX_INFO_CATEGORY_MOVEMENT) {
                 if (m_MovementOffset == -1) {
                     m_MovementOffset = (int8)i;
                 }
-            } else if ((category & FX_INFO_CATEGORY_RENDER) != 0 && m_RenderOffset == -1) {
+            } else if ((category & FX_INFO_CATEGORY_RENDER) && m_RenderOffset == -1) {
                 m_RenderOffset = (int8)i;
             }
         }
