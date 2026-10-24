@@ -33,7 +33,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(Shop_FurnishEdges, 0x59A1B0, { .Reversed = false });
     RH_ScopedInstall(GetBoundingBox, 0x593DB0, { .Reversed = false });
     RH_ScopedInstall(Init, 0x593BF0, { .Reversed = false });
-    RH_ScopedInstall(ResetTiles, 0x593910, { .Reversed = false });
+    RH_ScopedInstall(ResetTiles, 0x593910);
     RH_ScopedInstall(PlaceObject, 0x5934E0, { .Reversed = false });
     RH_ScopedInstall(GetFurnitureEntity, 0x5913B0, { .Reversed = false });
     RH_ScopedInstall(IsPtInside, 0x5913E0, { .Reversed = false });
@@ -194,7 +194,97 @@ bool Interior_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* a3) {
 
 // 0x593910
 void Interior_c::ResetTiles() {
-    plugin::CallMethod<0x593910, Interior_c*>(this);
+    memset(field_68, 0, sizeof(field_68)); // 900 bytes
+
+    const auto& box = *m_box;
+
+    // Paint a run of tiles, skipping occupied (non-zero) and door-connector (3) tiles
+    const auto paintRun = [&](char* base, int32 count, int32 stride, int8 status) {
+        for (auto i = 0; i < count; i++, base += stride) {
+            if (*base != 3 && *base == 0) {
+                *base = (char)status;
+            }
+        }
+    };
+
+    // Left wall doors (x = 0), status 8
+    if (box.m_lDoorStart != -1) {
+        const auto y = (int32)box.m_lDoorStart;
+        const auto count = (int32)box.m_lDoorEnd - y;
+        if (count > 0 && y >= 0 && box.m_width != 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[y], count, 1, 8);
+        }
+    }
+
+    // Right wall doors (row = m_width - 1), status 8
+    if (box.m_rDoorStart != -1) {
+        const auto y = (int32)box.m_rDoorStart;
+        const auto count = (int32)box.m_rDoorEnd - y;
+        const auto row = (int32)box.m_width - 1;
+        if (count > 0 && row >= 0 && y >= 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[row * 0x1E + y], count, 1, 8);
+        }
+    }
+
+    // Top wall doors (column = m_depth - 1), status 8
+    if (box.m_tDoorStart != -1) {
+        const auto x = (int32)box.m_tDoorStart;
+        const auto count = (int32)box.m_tDoorEnd - x;
+        const auto col = (int32)box.m_depth - 1;
+        if (count > 0 && col >= 0 && x >= 0 && x + count <= (int32)box.m_width) {
+            paintRun(&field_68[x * 0x1E + col], count, 0x1E, 8);
+        }
+    }
+
+    // Left wall windows, status 9
+    if (box.m_lWindowStart != -1) {
+        const auto y = (int32)box.m_lWindowStart;
+        const auto count = (int32)box.m_lWindowEnd - y;
+        if (count > 0 && y >= 0 && box.m_width != 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[y], count, 1, 9);
+        }
+    }
+
+    // Right wall windows (row = m_width - 1), status 9
+    if (box.m_rWindowStart != -1) {
+        const auto y = (int32)box.m_rWindowStart;
+        const auto count = (int32)box.m_rWindowEnd - y;
+        const auto row = (int32)box.m_width - 1;
+        if (count > 0 && row >= 0 && y >= 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[row * 0x1E + y], count, 1, 9);
+        }
+    }
+
+    // Top wall windows (column = m_depth - 1), status 9
+    if (box.m_tWindowStart != -1) {
+        const auto x = (int32)box.m_tWindowStart;
+        const auto count = (int32)box.m_tWindowEnd - x;
+        const auto col = (int32)box.m_depth - 1;
+        if (count > 0 && col >= 0 && x >= 0 && x + count <= (int32)box.m_width) {
+            paintRun(&field_68[x * 0x1E + col], count, 0x1E, 9);
+        }
+    }
+
+    // No-go zones (3 rectangles), status 11 (0xB)
+    for (auto i = 0; i < 3; i++) {
+        const auto left   = (int32)box.m_noGoLeft[i];
+        const auto bottom = (int32)box.m_noGoBottom[i];
+        if (left != -1 && bottom != -1) {
+            int32 noGoWidth = (int32)box.m_noGoWidth[i];
+            const auto noGoDepth = (int32)box.m_noGoDepth[i];
+            if (left >= 0 && bottom >= 0 && left + noGoWidth <= (int32)box.m_width && bottom + noGoDepth <= (int32)box.m_depth && noGoWidth > 0) {
+                auto p = &field_68[left * 0x1E + bottom];
+                do {
+                    for (auto j = 0; j < noGoDepth; j++) {
+                        if (p[j] != 3 && p[j] == 0) {
+                            p[j] = 0xB;
+                        }
+                    }
+                    p += 0x1E;
+                } while (--noGoWidth != 0);
+            }
+        }
+    }
 }
 
 // 0x5934E0
