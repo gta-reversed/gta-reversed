@@ -8,7 +8,7 @@ void CTaskComplexSmartFleePoint::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x65BD20);
     RH_ScopedInstall(Destructor, 0x65BDB0);
 
-    RH_ScopedInstall(SetDefaultTaskWanderDir, 0x65BE00, {.Reversed = false});
+    RH_ScopedInstall(SetDefaultTaskWanderDir, 0x65BE00);
     RH_ScopedInstall(ComputeFleeDir, 0x65BE40, {.Reversed = false});
     RH_ScopedInstall(CreateSubTask, 0x65BE80, {.Reversed = false});
     RH_ScopedInstall(SetFleePosition, 0x65C3C0, {.Reversed = false});
@@ -37,8 +37,12 @@ CTaskComplexSmartFleePoint::CTaskComplexSmartFleePoint(const CTaskComplexSmartFl
 }
 
 // 0x65BE00
-int8 CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
-    return plugin::CallMethodAndReturn<int8, 0x65BE00, CTaskComplexSmartFleePoint*, CPed*>(this, ped);
+void CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
+    if (const auto task = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT)) {
+        if (task->GetTaskType() == TASK_COMPLEX_WANDER) {
+            plugin::CallMethod<0x669D50>(task, m_pSubTask); // Original: ECX = default wander task, argument = current subtask
+        }
+    }
 }
 
 // 0x65BE40
