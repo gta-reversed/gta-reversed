@@ -7,6 +7,10 @@
 #include "World.h"
 #include "Pools/Pools.h"
 #include "Collision/Box.h"
+#include "Explosion.h"
+#include "Fx/FxSystem.h"
+#include "Audio/AudioEngine.h"
+#include "Entity/Vehicle/Vehicle.h"
 
 void CProjectileInfo::InjectHooks() {
     RH_ScopedClass(CProjectileInfo);
@@ -19,7 +23,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .Reversed = false });
     RH_ScopedInstall(AddProjectile, 0x737C80, { .Reversed = false });
     RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .Reversed = false });
-    RH_ScopedInstall(RemoveProjectile, 0x7388F0, { .Reversed = false });
+    RH_ScopedInstall(RemoveProjectile, 0x7388F0);
     RH_ScopedInstall(Update, 0x738B20, { .Reversed = false });
     RH_ScopedInstall(IsProjectileInRange, 0x739860);
     RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .Reversed = false });
@@ -58,8 +62,57 @@ void CProjectileInfo::RemoveDetonatorProjectiles() {
 }
 
 // 0x7388F0
-void CProjectileInfo::RemoveProjectile(CProjectileInfo* info, CProjectile* object) {
-    plugin::Call<0x7388F0, CProjectileInfo*, CProjectile*>(info, object);
+void CProjectileInfo::RemoveProjectile(CProjectileInfo* info, CProjectile* projectile) {
+    const auto  pos     = projectile->GetPosition();
+    auto        creator = info->m_pCreator;
+    const auto& type    = info->m_nWeaponType;
+
+    eExplosionType explosionType{};
+    bool bExplode = true;
+    bool reportObjectDestruction{};
+    switch (type) {
+    case WEAPON_GRENADE:
+        explosionType = EXPLOSION_GRENADE;
+        break;
+    case WEAPON_MOLOTOV:
+        explosionType = EXPLOSION_MOLOTOV;
+        reportObjectDestruction = true;
+        break;
+    case WEAPON_ROCKET:
+        explosionType = EXPLOSION_ROCKET;
+        if (creator && creator->GetType() == ENTITY_TYPE_VEHICLE) {
+            creator = static_cast<CVehicle*>(creator)->m_pDriver; // The driver takes the blame (+0x460)
+        }
+        break;
+    case WEAPON_ROCKET_HS: {
+        explosionType = creator == FindPlayerPed(-1) ? EXPLOSION_ROCKET : EXPLOSION_WEAK_ROCKET;
+        break;
+    }
+    case WEAPON_FREEFALL_BOMB:
+        explosionType = EXPLOSION_GRENADE;
+        break;
+    default:
+        bExplode = false; // Unknown weapon type: no explosion, but still removed (original: 0x738AB6)
+        break;
+    }
+
+    if (bExplode) {
+        CExplosion::AddExplosion(nullptr, creator, explosionType, pos, 0, true, -1.0f, false); // 0x736A50
+    }
+
+    if (reportObjectDestruction) {
+        AudioEngine.ReportObjectDestruction(projectile);
+    }
+
+    info->m_bActive = false;
+    if (info->m_pFxSystem) {
+        info->m_pFxSystem->Kill();
+        info->m_pFxSystem = nullptr;
+    }
+
+    CRadar::ClearBlipForEntity(BLIP_OBJECT, GetObjectPool()->GetRef(projectile)); // 0x587C60
+    CWorld::Remove(projectile); // 0x563280
+    delete projectile;          // Original: vtable scalar-deleting-dtor(1)
 }
 
 // 0x738B20
