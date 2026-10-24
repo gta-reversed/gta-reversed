@@ -11,7 +11,7 @@ void CTaskComplexSmartFleePoint::InjectHooks() {
     RH_ScopedInstall(SetDefaultTaskWanderDir, 0x65BE00);
     RH_ScopedInstall(ComputeFleeDir, 0x65BE40, {.Reversed = false});
     RH_ScopedInstall(CreateSubTask, 0x65BE80, {.Reversed = false});
-    RH_ScopedInstall(SetFleePosition, 0x65C3C0, {.Reversed = false});
+    RH_ScopedInstall(SetFleePosition, 0x65C3C0);
 
     RH_ScopedVMTInstall(Clone, 0x65CED0, {.Reversed = false});
     RH_ScopedVMTInstall(GetTaskType, 0x65BDA0, {.Reversed = false});
@@ -56,8 +56,15 @@ CTask* CTaskComplexSmartFleePoint::CreateSubTask(eTaskType taskType, CPed* ped) 
 }
 
 // 0x65C3C0
-int8 CTaskComplexSmartFleePoint::SetFleePosition(CVector const& a2, float a3, bool a4) {
-    return plugin::CallMethodAndReturn<int8, 0x65C3C0, CTaskComplexSmartFleePoint*, CVector const&, float, bool>(this, a2, a3, a4);
+void CTaskComplexSmartFleePoint::SetFleePosition(CVector const& pos, float safeDist, bool doScream) {
+    if (m_fleePoint == pos && m_safeDist == safeDist) {
+        m_doScream = doScream;
+        return;
+    }
+    m_fleePoint           = pos;
+    m_safeDist            = safeDist;
+    m_hasFleePointChanged = true;
+    m_doScream            = doScream;
 }
 
 // 0x65BDC0
