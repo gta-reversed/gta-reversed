@@ -213,7 +213,8 @@ public:
     * @return 3D Distance between 2 points
     */
     static float Dist(CVector a, CVector b) {
-        return (a - b).Magnitude();
+        const CVector delta{a.x - b.x, a.y - b.y, a.z - b.z};
+        return delta.Magnitude();
     }
 
     /*!
