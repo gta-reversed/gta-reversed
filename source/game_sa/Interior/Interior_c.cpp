@@ -44,7 +44,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(SetTilesStatus, 0x591700);
     RH_ScopedInstall(SetCornerTiles, 0x5917C0);
     RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
-    RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
+    RH_ScopedInstall(GetNumEmptyTiles, 0x591920);
     RH_ScopedInstall(GetRandomTile, 0x591B20, { .Reversed = false });
     RH_ScopedInstall(Shop_FurnishAisles, 0x59A590, { .Reversed = false });
     RH_ScopedInstall(GetTileCentre, 0x591BD0, { .Reversed = false });
@@ -401,8 +401,32 @@ int32 Interior_c::GetTileStatus(int32 x, int32 y) {
 }
 
 // 0x591920
-int32 Interior_c::GetNumEmptyTiles(int32 a2, int32 a3, int32 a4, int32 a5) {
-    return plugin::CallMethodAndReturn<int32, 0x591920, Interior_c*, int32, int32, int32, int32>(this, a2, a3, a4, a5);
+int32 Interior_c::GetNumEmptyTiles(int32 x, int32 y, int32 direction, int32 numTiles) {
+    int32 numEmpty = 0;
+
+    const int32 step = (direction == 3 || direction == 0) ? -1 : 1;
+
+    if (direction == 3 || direction == 1) {
+        // Walk along X, checking `numTiles` tiles in Y for each row
+        for (;; x += step) {
+            for (auto i = 0, ty = y; i < numTiles; i++, ty++) {
+                if (m_box->m_width <= x || m_box->m_depth <= ty || x < 0 || ty < 0 || field_68[x * 0x1E + ty] != 0) {
+                    return numEmpty;
+                }
+            }
+            numEmpty++;
+        }
+    } else {
+        // Walk along Y, checking `numTiles` tiles in X for each column
+        for (;; y += step) {
+            for (auto i = 0, tx = x; i < numTiles; i++, tx++) {
+                if (m_box->m_width <= tx || m_box->m_depth <= y || tx < 0 || y < 0 || field_68[tx * 0x1E + y] != 0) {
+                    return numEmpty;
+                }
+            }
+            numEmpty++;
+        }
+    }
 }
 
 // 0x591B20
