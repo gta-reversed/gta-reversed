@@ -15,7 +15,7 @@ void CProjectileInfo::InjectHooks() {
     // Install("CProjectileInfo", "", , &CProjectileInfo::);
     RH_ScopedInstall(Initialise, 0x737B40, { .Reversed = false });
     RH_ScopedInstall(Shutdown, 0x737BC0, { .Reversed = false });
-    RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .Reversed = false });
+    RH_ScopedInstall(GetProjectileInfo, 0x737BF0);
     RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .Reversed = false });
     RH_ScopedInstall(AddProjectile, 0x737C80, { .Reversed = false });
     RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .Reversed = false });
@@ -39,7 +39,7 @@ void CProjectileInfo::Shutdown() {
 
 // 0x737BF0
 CProjectileInfo* CProjectileInfo::GetProjectileInfo(int32 infoId) {
-    return plugin::CallAndReturn<CProjectileInfo*, 0x737BF0, int32>(infoId);
+    return &gaProjectileInfo[infoId];
 }
 
 // 0x737C00
