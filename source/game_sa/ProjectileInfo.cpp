@@ -22,7 +22,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .Reversed = false });
     RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .Reversed = false });
     RH_ScopedInstall(AddProjectile, 0x737C80, { .Reversed = false });
-    RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .Reversed = false });
+    RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860);
     RH_ScopedInstall(RemoveProjectile, 0x7388F0);
     RH_ScopedInstall(Update, 0x738B20, { .Reversed = false });
     RH_ScopedInstall(IsProjectileInRange, 0x739860);
@@ -58,7 +58,22 @@ bool CProjectileInfo::AddProjectile(CEntity* creator, eWeaponType projectileType
 
 // 0x738860
 void CProjectileInfo::RemoveDetonatorProjectiles() {
-    plugin::Call<0x738860>();
+    for (auto i = 0u; i < MAX_PROJECTILE_INFOS; i++) {
+        auto&       info       = gaProjectileInfo[i];
+        auto* const projectile = ms_apProjectile[i];
+        if (!info.m_bActive || info.m_nWeaponType != WEAPON_REMOTE_SATCHEL_CHARGE) {
+            continue;
+        }
+
+        CExplosion::AddExplosion(nullptr, info.m_pCreator, EXPLOSION_GRENADE, projectile->GetPosition(), 0, true, -1.0f, false);
+
+        info.m_bActive = false;
+        if (info.m_pFxSystem) {
+            info.m_pFxSystem->Kill();
+            info.m_pFxSystem = nullptr;
+        }
+        projectile->m_bRemoveFromWorld = true; // Original: m_nFlags |= 0x800
+    }
 }
 
 // 0x7388F0
