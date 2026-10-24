@@ -40,7 +40,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(CalcMatrix, 0x5914D0, { .Reversed = false });
     RH_ScopedInstall(Furnish, 0x591590, { .Reversed = false });
     RH_ScopedInstall(Unfurnish, 0x5915D0, { .Reversed = false });
-    RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
+    RH_ScopedInstall(CheckTilesEmpty, 0x591680);
     RH_ScopedInstall(SetTilesStatus, 0x591700);
     RH_ScopedInstall(SetCornerTiles, 0x5917C0);
     RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
@@ -319,8 +319,29 @@ void Interior_c::Unfurnish() {
 }
 
 // 0x591680
-int8 Interior_c::CheckTilesEmpty(int32 a1, int32 a2, int32 a3, int32 a4, uint8 a5) {
-    return plugin::CallMethodAndReturn<int8, 0x591680, Interior_c*, int32, int32, int32, int32, uint8>(this, a1, a2, a3, a4, a5);
+int8 Interior_c::CheckTilesEmpty(int32 x, int32 y, int32 width, int32 depth, uint8 allowTableTiles) {
+    if (x < 0
+        || y < 0
+        || m_box->m_width < x + width
+        || m_box->m_depth < y + depth
+    ) {
+        return false;
+    }
+
+    for (int32 iy = 0; iy < width; iy++) {
+        for (int32 ix = 0; ix < depth; ix++) {
+            const auto tileStatus = field_68[(x + iy) * 0x1E + (y + ix)];
+            if (tileStatus != 0) {
+                if (!allowTableTiles) {
+                    return false;
+                }
+                if (tileStatus != 9) { // tile status 9 (table) still counts as empty when `allowTableTiles`
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 // 0x591700
