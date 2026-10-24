@@ -15,7 +15,7 @@ void CInterestingEvents::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x856880, { .Reversed = false });
     RH_ScopedInstall(Add, 0x602590, { .Reversed = false });
     RH_ScopedInstall(ScanForNearbyEntities, 0x605A30, { .Reversed = false });
-    RH_ScopedInstall(GetInterestingEvent, 0x6028A0, { .Reversed = false });
+    RH_ScopedInstall(GetInterestingEvent, 0x6028A0);
     RH_ScopedInstall(InvalidateEvent, 0x602960);
     RH_ScopedInstall(InvalidateNonVisibleEvents, 0x6029C0);
 }
@@ -252,39 +252,35 @@ void CInterestingEvents::ScanForNearbyEntities() {
 
 // 0x6028A0
 TInterestingEvent* CInterestingEvents::GetInterestingEvent() {
-    return plugin::CallMethodAndReturn<TInterestingEvent*, 0x6028A0, CInterestingEvents*>(this);
+    const auto now = CTimer::GetTimeInMS();
 
-    uint32 start = CTimer::GetTimeInMS(), end = CTimer::GetTimeInMS();
-    if (!m_b4 && m_nInterestingEvent != -1)
-        return nullptr;
-
-    TInterestingEvent* result = &m_Events[m_nInterestingEvent];
-    if (result->entity && CTimer::GetTimeInMS() < result->time + static_cast<uint32>(m_nDelays[result->type])) {
-        return result;
+    // Return the current event, if it is still valid (and we are allowed to stick to it)
+    if (m_b4 && m_nInterestingEvent != -1) {
+        auto& current = m_Events[m_nInterestingEvent];
+        if (current.entity && now < current.time + static_cast<uint32>(m_nDelays[current.type])) {
+            return &current;
+        }
     }
 
-    // update
-    uint8 prevPriority = 0;
-    int8 interesting = -1;
-    for (auto i = 0; i < MAX_INTERESTING_EVENTS; i++, start = end) {
-        TInterestingEvent& event = m_Events[i];
+    // Otherwise scan all events for the highest priority still-active one
+    uint8 bestPriority  = 0;
+    int8  bestIdx       = -1;
+    for (auto i = 0; i < MAX_INTERESTING_EVENTS; i++) {
+        const auto& event = m_Events[i];
         if (!event.entity)
             continue;
 
-        if (static_cast<uint16>(CGeneral::GetRandomNumber()) >= 128) {
-            if (m_nPriorities[event.type] <= prevPriority)
-                continue;
+        if (now >= event.time + static_cast<uint32>(m_nDelays[event.type]))
+            continue;
 
-            if (start >= event.time + static_cast<uint32>(m_nDelays[result->type]))
-                continue;
+        if (bestPriority < m_nPriorities[event.type] || (CGeneral::GetRandomNumber() & 0xFFFF) < 0x80) {
+            bestPriority = m_nPriorities[event.type];
+            bestIdx      = i;
         }
-
-        prevPriority = m_nPriorities[event.type];
-        interesting = i;
     }
-    m_nInterestingEvent = interesting;
 
-    return interesting == -1 ? nullptr : &m_Events[m_nInterestingEvent];
+    m_nInterestingEvent = bestIdx;
+    return bestIdx != -1 ? &m_Events[bestIdx] : nullptr;
 }
 
 // 0x602960
