@@ -17,7 +17,7 @@ void CTaskComplexSmartFleePoint::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x65BDA0, {.Reversed = false});
     RH_ScopedVMTInstall(MakeAbortable, 0x65BDC0, {.Reversed = false});
     RH_ScopedVMTInstall(CreateNextSubTask, 0x65C0C0, {.Reversed = false});
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65C140, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65C140);
     RH_ScopedVMTInstall(ControlSubTask, 0x65C1E0, {.Reversed = false});
 }
 
@@ -68,7 +68,14 @@ CTask* CTaskComplexSmartFleePoint::CreateNextSubTask(CPed* ped) {
 
 // 0x65C140
 CTask* CTaskComplexSmartFleePoint::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x65C140, CTaskComplexSmartFleePoint*, CPed*>(this, ped);
+    m_initalPos = ped->GetPosition();
+
+    if (ped->IsInVehicle()) {
+        return CreateSubTask(TASK_COMPLEX_LEAVE_ANY_CAR, ped);
+    }
+
+    m_fleeDir = (uint8)ComputeFleeDir(ped); // Original only keeps the low byte
+    return CreateSubTask(TASK_COMPLEX_WANDER, ped);
 }
 
 // 0x65C1E0
