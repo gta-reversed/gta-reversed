@@ -150,8 +150,7 @@ void FxInfoManager_c::Load(FILESTREAM file, int32 version) {
     assert(m_pInfos);
 
     char line[256], field[128];
-    for (auto i = 0; i < m_nNumInfos; i++) {
-        auto& info = m_pInfos[i];
+    for (auto&& [i, info] : rngv::enumerate(GetInfos())) {
 
         ReadLine(file, line, sizeof(line));
         VERIFY(sscanf(line, "%s", field) == 1);
