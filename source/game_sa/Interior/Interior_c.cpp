@@ -42,7 +42,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(Unfurnish, 0x5915D0, { .Reversed = false });
     RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
     RH_ScopedInstall(SetTilesStatus, 0x591700);
-    RH_ScopedInstall(SetCornerTiles, 0x5917C0, { .Reversed = false });
+    RH_ScopedInstall(SetCornerTiles, 0x5917C0);
     RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
     RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
     RH_ScopedInstall(GetRandomTile, 0x591B20, { .Reversed = false });
@@ -267,8 +267,21 @@ void Interior_c::SetTilesStatus(int32 x, int32 y, int32 width, int32 depth, int3
 }
 
 // 0x5917C0
-void Interior_c::SetCornerTiles(int32 a4, int32 a3, int32 a5, uint8 a6) {
-    plugin::CallMethod<0x5917C0, Interior_c*, int32, int32, int32, uint8>(this, a4, a3, a5, a6);
+void Interior_c::SetCornerTiles(int32 corner, int32 size, int32 status, uint8 mode) {
+    const auto& box = *m_box;
+    if (corner == 1) { // top-left
+        SetTilesStatus(0, 0, size, 1, status, mode);
+        SetTilesStatus(0, 0, 1, size, status, mode);
+    } else if (corner == 0) { // bottom-left
+        SetTilesStatus(0, box.m_depth - 1, size, 1, status, mode);
+        SetTilesStatus(0, box.m_depth - size, 1, size, status, mode);
+    } else if (corner == 2) { // top-right
+        SetTilesStatus(box.m_width - size, 0, size, 1, status, mode);
+        SetTilesStatus(box.m_width - 1, 0, 1, size, status, mode);
+    } else if (corner == 3) { // bottom-right
+        SetTilesStatus(box.m_width - size, box.m_depth - 1, size, 1, status, mode);
+        SetTilesStatus(box.m_width - 1, box.m_depth - size, 1, size, status, mode);
+    }
 }
 
 // 0x5918E0
