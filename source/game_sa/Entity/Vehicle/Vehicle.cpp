@@ -5910,7 +5910,7 @@ void CVehicle::ProcessWeapons() {
         if (IsSubHeli() || IsSubPlane()) {
             auto gunParticlesFx = IsSubHeli() ? AsHeli()->m_ppGunflashFx : AsPlane()->m_pGunParticles;
             if (gunParticlesFx) {
-                for (int32 i = CVehicle::GetPlaneNumGuns() - 1; i >= 0; --i) { // reversed order
+               for (int32 i = CVehicle::GetPlaneNumGuns(); i-- > 0;) { // reversed order 
                     if (gunParticlesFx[i]) {
                         gunParticlesFx[i]->SetMatrix(GetModellingMatrix()); // inlined
                     }
