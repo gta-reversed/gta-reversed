@@ -12,7 +12,7 @@ void CInterestingEvents::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Constructor, 0x6023A0, { .Reversed = false });
-    RH_ScopedInstall(Destructor, 0x856880, { .Reversed = false });
+    RH_ScopedInstall(Destructor, 0x856880);
     RH_ScopedInstall(Add, 0x602590, { .Reversed = false });
     RH_ScopedInstall(ScanForNearbyEntities, 0x605A30, { .Reversed = false });
     RH_ScopedInstall(GetInterestingEvent, 0x6028A0, { .Reversed = false });
@@ -72,16 +72,15 @@ CInterestingEvents* CInterestingEvents::Constructor() {
     return this;
 }
 
-// 0x856880
 CInterestingEvents::~CInterestingEvents() {
     for (auto& event : m_Events) {
         CEntity::ClearReference(event.entity);
     }
 }
 
-CInterestingEvents* CInterestingEvents::Destructor() {
-    this->CInterestingEvents::~CInterestingEvents();
-    return this;
+// 0x856880
+void CInterestingEvents::Destructor() {
+    g_InterestingEvents.~CInterestingEvents();
 }
 
 // 0x602590

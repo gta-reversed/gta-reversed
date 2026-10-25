@@ -73,7 +73,7 @@ public:
     CInterestingEvents* Constructor();
 
     ~CInterestingEvents();
-    CInterestingEvents* Destructor();
+    static void Destructor();
 
     void Add(CInterestingEvents::EType type, CEntity* entity);
     void ScanForNearbyEntities();
