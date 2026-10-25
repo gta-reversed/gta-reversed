@@ -2,6 +2,21 @@
 
 #include <extensions/CommandLine.h>
 
+#include "CoverPoint.h"
+#include "Credits.h"
+#include "IdleCam.h"
+#include "MemoryMgr.h"
+#include "SearchLight.h"
+#include "VehicleSaveStructure.h"
+#include "Conversations/ConversationForPed.h"
+#include "Conversations/PedToPlayerConversations.h"
+#include "DecisionMakers/Decision.h"
+#include "Tasks/TaskComplexUseSequence.h"
+#include "Tasks/TaskSequences.h"
+#include "Tasks/TaskTimer.h"
+#include "Tasks/TaskTypes/TaskComplexChat.h"
+#include "Entity/Ped/PlayerSkin.h"
+
 // Audio
 // -- General
 #include "AEAudioEnvironment.h"
@@ -149,6 +164,7 @@
 #include "ScriptResourceManager.h"
 #include "PedAttractorManager.h"
 #include "Attractors/PedAttractorPedPlacer.h"
+#include "Attractors/PedShelterAttractor.h"
 #include "LoadingScreen.h"
 #include "Securom.h"
 #include "GridRef.h"
@@ -577,7 +593,9 @@ void InjectHooksMain() {
     CMenuSystem::InjectHooks();
     CCarFXRenderer::InjectHooks();
     CPedAttractorManager::InjectHooks();
+    CPedAttractor::InjectHooks();
     CPedAttractorPedPlacer::InjectHooks();
+    CPedShelterAttractor::InjectHooks();
     BoneNode_c::InjectHooks();
     BoneNodeManager_c::InjectHooks();
     IKChainManager_c::InjectHooks();
@@ -822,6 +840,7 @@ void InjectHooksMain() {
     ModelIndices::InjectHooks();
     CWaterCannons::InjectHooks();
     CWaterCannon::InjectHooks();
+    CLines::InjectHooks();
     CSprite::InjectHooks();
     CPlaneTrail::InjectHooks();
     CPlaneTrails::InjectHooks();
@@ -1457,6 +1476,21 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
+
+    CCoverPoint::InjectHooks();
+    CCredits::InjectHooks();
+    CIdleCam::InjectHooks();
+    CMemoryMgr::InjectHooks();
+    CSearchLight::InjectHooks();
+    CVehicleSaveStructure::InjectHooks();
+    CConversationForPed::InjectHooks();
+    CPedToPlayerConversations::InjectHooks();
+    CDecision::InjectHooks();
+    CTaskComplexUseSequence::InjectHooks();
+    CTaskSequences::InjectHooks();
+    CTaskTimer::InjectHooks();
+    CTaskComplexChat::InjectHooks();
+    CPlayerSkin::InjectHooks();
 
     NOTSA_LOG_INFO("InjectedHooksMain(): Finished in {} ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - now).count());
 

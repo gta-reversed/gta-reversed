@@ -139,9 +139,12 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "wo-ratio", 0x5164A0, void(CCamera::*)());
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "with-ratio", 0x50D510, void(CCamera::*)(float));
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "wo-ratio", 0x516500, void(CCamera::*)());
-    //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "float", 0x516560, CVector*(CCamera::*)(float), { .Reversed = false });
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
+    RH_ScopedInstall(UpdateSoundDistances, 0x515BD0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsSphereVisible, "", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "void", 0x51A6F0, void(CCamera::*)(), { .Reversed = false });
 }
 
 CCamera* CCamera::Constructor() { this->CCamera::CCamera(); return this; }
@@ -1329,7 +1332,7 @@ void CCamera::ProcessFade() {
 
     if (m_nFadeInOutFlag == eFadeFlag::FADE_OUT) {
         m_fFadeDuration == 0.0f
-            ? (m_fFadeAlpha += 0.0f)
+            ? (m_fFadeAlpha = 0.0f)
             : (m_fFadeAlpha -= CTimer::GetTimeStepInSeconds() / m_fFadeDuration * 255.0f);
 
         if (m_fFadeAlpha > 0.0f) {

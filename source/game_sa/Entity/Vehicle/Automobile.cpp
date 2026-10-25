@@ -23,6 +23,7 @@
 #include <Tasks/TaskTypes/TaskSimpleGangDriveBy.h>
 
 #include <FireManager.h>
+#include <reversiblebugfixes/Bugs.hpp>
 
 constexpr size_t NUM_AUTOMOBILE_SUSP_LINES  = (size_t)MAX_CARWHEELS;
 constexpr size_t NUM_RHINO_EXTRA_SUSP_LINES = (size_t)MAX_CARWHEELS * 2u; // 8
@@ -102,6 +103,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedInstall(SetDoorDamage, 0x6B1600);
     RH_ScopedInstall(TowTruckControl, 0x6A40F0);
     RH_ScopedInstall(ProcessCarOnFireAndExplode, 0x6A7090);
+    RH_ScopedInstall(DoHeliDustEffect, 0x6B0690);
 
     RH_ScopedVMTInstall(Fix, 0x6A3440);
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6A47F0);
@@ -124,6 +126,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B3E90);
     RH_ScopedVMTInstall(GetHeightAboveRoad, 0x6A62B0);
     RH_ScopedVMTInstall(GetNumContactWheels, 0x6A62A0);
+    RH_ScopedVMTInstall(SetModelIndex, 0x6A6590);
     RH_ScopedVMTInstall(Teleport, 0x6A9CA0);
     RH_ScopedVMTInstall(Save, 0x5D47E0, {.State = HS::RedirectToGTA });
     RH_ScopedVMTInstall(Load, 0x5D2980, {.State = HS::RedirectToGTA });
@@ -759,7 +762,7 @@ void CAutomobile::ProcessControl()
 
         float traction = m_pHandlingData->m_fTractionMultiplier / 250.0f; // (0.004f * mult)
         if (GetStatus() == STATUS_PHYSICS)
-            traction = 250.0f / m_fCarTraction * m_pHandlingData->m_fTractionMultiplier;
+            traction = m_fCarTraction * m_pHandlingData->m_fTractionMultiplier / 250.0f;
         traction *= 0.25f / m_fVelocityFrequency;
         CPlane* vortex = AsPlane();
         if (CCheat::IsActive(CHEAT_PERFECT_HANDLING) || m_nModelIndex == MODEL_VORTEX && vortex->m_fAccelerationBreakStatus == 0.0f)
@@ -2589,13 +2592,12 @@ void CAutomobile::SetupSuspensionLines() {
     // 0x6A681C
     // This was probably inlined? Not sure..
     if (cd.m_pLines[0].m_vecEnd.z < cm.m_boundBox.m_vecMin.z) {
-        // V570 The 'wcd.m_pLines[0].m_vecEnd.z' variable is assigned to itself.
-        // todo: figure out what they want
-        // wcd.m_pLines[0].m_vecEnd.z = wcd.m_pLines[0].m_vecEnd.z; // Adjust bounding box
-
-        // Adjust bounding sphere radius - Originally outside this `if`, but that's pointless - This was most likely inlined.
-        cm.m_boundSphere.m_fRadius = std::max({ cm.m_boundSphere.m_fRadius, cm.m_boundBox.m_vecMin.Magnitude(), cm.m_boundBox.m_vecMax.Magnitude() });
+        cm.m_boundBox.m_vecMin.z = cd.m_pLines[0].m_vecEnd.z; // Adjust bounding box
     }
+
+    // 0x6A6836
+    // Adjust bounding sphere radius - This was most likely inlined.
+    cm.m_boundSphere.m_fRadius = std::max({ cm.m_boundSphere.m_fRadius, cm.m_boundBox.m_vecMin.Magnitude(), cm.m_boundBox.m_vecMax.Magnitude() });
 
     // 0x6A68C1
     // Adjust sphere sizes for rcbandit
@@ -2614,9 +2616,9 @@ void CAutomobile::SetupSuspensionLines() {
             const auto sphBottomZ = sph.m_vecCenter.z - sph.m_fRadius;
             if (sphBottomZ < sphBottomMinZ) {
                 if (sph.m_fRadius > 0.4f) {
-                    sph.m_fRadius = std::max(0.4f, sphBottomZ);
-                    sph.m_vecCenter.z = sphBottomZ + sph.m_fRadius;
+                    sph.m_fRadius = std::max(0.4f, sph.m_vecCenter.z - sphBottomMinZ);
                 }
+                sph.m_vecCenter.z = sphBottomMinZ + sph.m_fRadius;
             }
         }
     }
@@ -3432,6 +3434,12 @@ bool CAutomobile::Load() {
     return true;
 }
 
+// 0x6A6590
+void CAutomobile::SetModelIndex(uint32 index) {
+    CVehicle::SetModelIndex(index);
+    SetupModelNodes();
+}
+
 // 0x6A0770
 void CAutomobile::SetupModelNodes() {
     std::ranges::fill(m_aCarNodes, nullptr);
@@ -3743,8 +3751,11 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
                     colAngleMult *= -1;
             }
 
-            m_wMiscComponentAngle += static_cast<uint16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep());
-            m_wMiscComponentAngle = std::clamp<uint16>(m_wMiscComponentAngle, 0, DEFAULT_COLLISION_EXTENDLIMIT);
+            m_wMiscComponentAngle = static_cast<uint16>(std::clamp<int32>( // 0x6A16C0
+                m_wMiscComponentAngle + static_cast<int16>(((float)pad->GetCarGunUpDown() / 128.0f) * colAngleMult * CTimer::GetTimeStep()),
+                0,
+                DEFAULT_COLLISION_EXTENDLIMIT
+            ));
         }
 
         CMatrix rotMatrix;
@@ -4873,13 +4884,12 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
     };
 
     const auto CreateFx = [&, this](size_t typ) {
-        auto pos = GetDummyPosition(DUMMY_ENGINE);
         if (const auto mat = GetModellingMatrix()) {
             m_pFireParticle = g_fxMan.CreateFxSystem(
                 typ == 1
                     ? "fire_car"
                     : "fire_large",
-                pos,
+                GetDummyPositionObjSpace(DUMMY_ENGINE),
                 mat
             );
         }
@@ -4955,16 +4965,21 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                 }
                 CreateFx(partFxToUse);
                 SetFxVelocity();
+            } else {
+                BlowUpCar(m_pExplosionVictim, false);
+                SetFxVelocity();
             }
+            return;
         } else {
             m_fBurnTimer += floorTsMS;
             if (m_fBurnTimer > 5000.f) {
                 BlowUpCar(m_pExplosionVictim, false);
             }
-            if (partFxToUse == 0) {
-                SetFxVelocity();
-                return;
+            if (partFxToUse != 0) {
+                CreateFx(partFxToUse);
             }
+            SetFxVelocity();
+            return;
         }
     }
 
@@ -5068,6 +5083,12 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
 
     obj->SetIsStatic(false);
 
+    obj->objectFlags.bIsPickup = false;
+    obj->objectFlags.bChangesVehColor = true;
+    obj->m_nCarColor[0] = m_nPrimaryColor;
+    obj->m_nCarColor[1] = m_nSecondaryColor;
+    obj->SetRemapTexture(m_pRemapTexture, m_nPreviousRemapTxd);
+
     CObject::nNoTempObjects++;
     if (CObject::nNoTempObjects <= 20u) {
         if (CObject::nNoTempObjects <= 10u) {
@@ -5079,15 +5100,12 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
         obj->m_nRemovalTime = CTimer::GetTimeInMS() + 4'000;
     }
 
+    const auto isBonnetBootOrWindscreen = collisionType == 3 || collisionType == 4 || nodeIndex == eCarNodes::CAR_WINDSCREEN;
+
     const auto GetMoveSpeedZ = [&, this] {
         if (m_vecMoveSpeed.z <= 0.f) {
-            if (m_matrix->GetUp().z < 0.f /*flipped*/) {
-                switch (collisionType) {
-                case 3:
-                case 4:
-                case 18:
-                    return 0.04f - m_vecMoveSpeed.z * 1.5f;
-                }
+            if (m_matrix->GetUp().z > 0.f && isBonnetBootOrWindscreen) {
+                return 0.04f - m_vecMoveSpeed.z * 1.5f;
             }
             return m_vecMoveSpeed.z / 4.f;
         } else {
@@ -5098,16 +5116,11 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
     obj->m_vecTurnSpeed = m_vecTurnSpeed * 2.f;
 
     auto objDir = Normalized(obj->GetPosition() - GetPosition());
-    switch (collisionType) {
-    case 3:
-    case 4:
-    case 18: {
+    if (isBonnetBootOrWindscreen) {
         objDir += m_matrix->GetUp();
         if (m_matrix->GetUp().z > 0.f/*not flipped*/) {
             obj->m_matrix->GetPosition() += m_matrix->GetUp() * m_vecMoveSpeed.Magnitude2D();
         }
-        break;
-    }
     }
 
     obj->ApplyMoveForce(objDir);
@@ -5938,12 +5951,19 @@ void CAutomobile::DoHeliDustEffect(float timeConstMult, float fxMaxZMult) {
 
     CColPoint groundCP{};
     CEntity* hitEntity{}; // Unused
-    CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true); // TODO: Check if it returned true :D
+    const auto hasHitGround = CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true);
     const bool isGroundSand = g_surfaceInfos.IsSand(groundCP.m_nSurfaceTypeB);
 
     auto waterLevel{-1000.f};
     const bool isThereWaterUnderUs = CWaterLevel::GetWaterLevel(myPos, waterLevel, false);
-    const auto isHitPosUnderWater = isThereWaterUnderUs && waterLevel > groundCP.m_vecPoint.z;
+    const auto isHitPosUnderWater = isThereWaterUnderUs && ((!hasHitGround && notsa::bugfixes::GenericUB) || waterLevel > groundCP.m_vecPoint.z);
+
+    if (notsa::bugfixes::GenericUB) {
+        if (!hasHitGround && !isThereWaterUnderUs) {
+            KillDustFx();
+            return;
+        }
+    }
 
     const auto groundZ = isHitPosUnderWater ? waterLevel : groundCP.m_vecPoint.z;
     const auto distToGroundZ = myPos.z - groundZ;

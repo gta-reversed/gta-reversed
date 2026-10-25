@@ -54,7 +54,7 @@ float CAEAudioEnvironment::GetDirectionalMikeAttenuation(const CVector& soundDir
     // seems like it should be normalized dot product
     // with for example Camera direction,
     // to work the same way regardless of direction
-    const auto freq = soundDir.Dot({ 0.f, 1.f, 0.f });
+    const auto freq = soundDir.Normalized().Dot({ 0.f, 1.f, 0.f });
 
     if (CUT_OFF_FREQ == -1.0F) {
         return 0.0F;

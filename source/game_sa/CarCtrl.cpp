@@ -51,6 +51,94 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(SlowCarOnRailsDownForTrafficAndLights, 0x434790);
     RH_ScopedInstall(FindMaxSteerAngle, 0x427FE0);
     RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
+    RH_ScopedInstall(ChooseModel, 0x424CE0, { .Reversed = false });
+    RH_ScopedInstall(ClearInterestingVehicleList, 0x423F00, { .Reversed = false });
+    RH_ScopedInstall(ClitargetOrientationToLink, 0x422760, { .Reversed = false });
+    RH_ScopedInstall(CreateConvoy, 0x42C740, { .Reversed = false });
+    RH_ScopedInstall(CreatePoliceChase, 0x42C2B0, { .Reversed = false });
+    RH_ScopedInstall(DealWithBend_Racing, 0x428040, { .Reversed = false });
+    RH_ScopedInstall(DragCarToPoint, 0x42EC90, { .Reversed = false });
+    RH_ScopedInstall(FindAngleToWeaveThroughTraffic, 0x4325C0, { .Reversed = false });
+    RH_ScopedInstall(FindIntersection2Lines, 0x4226F0);
+    RH_ScopedInstall(FindLinksToGoWithTheseNodes, 0x42B470, { .Reversed = false });
+    RH_ScopedInstall(FindMaximumSpeedForThisCarInTraffic, 0x434400, { .Reversed = false });
+    RH_ScopedInstall(FindNodesThisCarIsNearestTo, 0x42BD20, { .Reversed = false });
+    RH_ScopedInstall(FindPathDirection, 0x422090, { .Reversed = false });
+    RH_ScopedInstall(FindPercDependingOnDistToLink, 0x422620);
+    RH_ScopedInstall(FindSequenceElement, 0x421770);
+    RH_ScopedInstall(FindSpeedMultiplier, 0x4224E0);
+    RH_ScopedInstall(FindSpeedMultiplierWithSpeedFromNodes, 0x424130);
+    RH_ScopedInstall(FindGhostRoadHeight, 0x422370, { .Reversed = false });
+    RH_ScopedInstall(FireHeliRocketsAtTarget, 0x42B270, { .Reversed = false });
+    RH_ScopedInstall(FlyAIHeliInCertainDirection, 0x429A70, { .Reversed = false });
+    RH_ScopedInstall(FlyAIHeliToTarget_FixedOrientation, 0x423940, { .Reversed = false });
+    RH_ScopedInstall(FlyAIPlaneInCertainDirection, 0x423000, { .Reversed = false });
+    RH_ScopedInstall(GenerateCarCreationCoors2, 0x424210, { .Reversed = false });
+    RH_ScopedInstall(GenerateEmergencyServicesCar, 0x42F9C0, { .Reversed = false });
+    RH_ScopedInstall(GenerateOneEmergencyServicesCar, 0x42B7D0, { .Reversed = false });
+    RH_ScopedInstall(GenerateOneRandomCar, 0x430050, { .Reversed = false });
+    RH_ScopedInstall(GetAIHeliToAttackPlayer, 0x42F3C0, { .Reversed = false });
+    RH_ScopedInstall(GetAIHeliToFlyInDirection, 0x42A730, { .Reversed = false });
+    RH_ScopedInstall(GetAIPlaneToAttackPlayer, 0x429780, { .Reversed = false });
+    RH_ScopedInstall(GetAIPlaneToDoDogFight, 0x429890, { .Reversed = false });
+    RH_ScopedInstall(GetAIPlaneToDoDogFightAgainstPlayer, 0x42F370, { .Reversed = false });
+    RH_ScopedInstall(IsThisAnAppropriateNode, 0x42DAB0, { .Reversed = false });
+    RH_ScopedInstall(JoinCarWithRoadSystem, 0x42F5A0, { .Reversed = false });
+    RH_ScopedInstall(JoinCarWithRoadSystemGotoCoors, 0x42F870, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeAccordingStrategy, 0x432B10, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeRandomly, 0x42DE80, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeToChaseCar, 0x426EF0, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeToFollowPath, 0x427740, { .Reversed = false });
+    RH_ScopedInstall(PossiblyRemoveVehicle, 0x424F80, { .Reversed = false });
+    RH_ScopedInstall(ReconsiderRoute, 0x42FC40, { .Reversed = false });
+    RH_ScopedInstall(RegisterVehicleOfInterest, 0x423DE0, { .Reversed = false });
+    RH_ScopedInstall(ScanForPedDanger, 0x42CE40, { .Reversed = false });
+    RH_ScopedInstall(SetCoordsOfScriptCar, 0x4342A0, { .Reversed = false });
+    RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForCarsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x432420, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForObjectsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D4F0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForOtherCar, 0x42D0E0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForPedsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x425440, { .Reversed = false });
+    RH_ScopedInstall(SteerAIBoatWithPhysicsAttackingPlayer, 0x428DE0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIBoatWithPhysicsCirclingPlayer, 0x429090, { .Reversed = false });
+    RH_ScopedInstall(SteerAIBoatWithPhysicsHeadingForTarget, 0x428BE0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarBlockingPlayerForwardAndBack, 0x422B20, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarParkParallel, 0x433BA0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarParkPerpendicular, 0x433EA0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarTowardsPointInEscort, 0x4336D0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysics, 0x437C20, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsFollowPath, 0x434900, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsFollowPath_Racing, 0x435830, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsFollowPreRecordedPath, 0x432DD0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsHeadingForTarget, 0x433280, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsTryingToBlockTarget, 0x4335E0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsTryingToBlockTarget_Stop, 0x428990, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysics_OnlyMission, 0x436A90, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliAsPoliceHeli, 0x42AAD0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliFlyingAwayFromPlayer, 0x42ACB0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToCrashAndBurn, 0x4238E0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToFollowEntity, 0x42A750, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToKeepEntityInView, 0x42AEB0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToLand, 0x42AD30, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliTowardsTargetCoors, 0x42A630, { .Reversed = false });
+    RH_ScopedInstall(SteerAIPlaneToCrashAndBurn, 0x423880, { .Reversed = false });
+    RH_ScopedInstall(SteerAIPlaneToFollowEntity, 0x4237F0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIPlaneTowardsTargetCoors, 0x423790, { .Reversed = false });
+    RH_ScopedInstall(StopCarIfNodesAreInvalid, 0x422590, { .Reversed = false });
+    RH_ScopedInstall(SwitchBetweenPhysicsAndGhost, 0x4222A0, { .Reversed = false });
+    RH_ScopedInstall(SwitchVehicleToRealPhysics, 0x423FC0, { .Reversed = false });
+    RH_ScopedInstall(TestCollisionBetween2MovingRects, 0x425B30, { .Reversed = false });
+    RH_ScopedInstall(TestCollisionBetween2MovingRects_OnlyFrontBumper, 0x425F70, { .Reversed = false });
+    RH_ScopedInstall(TestWhetherToFirePlaneGuns, 0x429520, { .Reversed = false });
+    RH_ScopedInstall(ThisVehicleShouldTryNotToTurn, 0x421FE0, { .Reversed = false });
+    RH_ScopedInstall(TriggerDogFightMoves, 0x429300, { .Reversed = false });
+    RH_ScopedInstall(UpdateCarCount, 0x424000, { .Reversed = false });
+    RH_ScopedInstall(UpdateCarOnRails, 0x436540, { .Reversed = false });
+    RH_ScopedInstall(WeaveForObject, 0x426BC0, { .Reversed = false });
+    RH_ScopedInstall(WeaveForOtherCar, 0x426350, { .Reversed = false });
+    RH_ScopedInstall(WeaveThroughCarsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D680, { .Reversed = false });
+    RH_ScopedInstall(WeaveThroughObjectsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D950, { .Reversed = false });
+    RH_ScopedInstall(WeaveThroughPedsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D7E0, { .Reversed = false });
 }
 
 // 0x4212E0
@@ -136,7 +224,7 @@ int32 CCarCtrl::ChooseModel(int32* arg1) {
     return plugin::CallAndReturn<int32, 0x424CE0, int32*>(arg1);
 }
 
-int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
+int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreCopBike) {
     CWanted* playerWanted = FindPlayerWanted();
     if (playerWanted->AreSwatRequired()
         && CStreaming::IsModelLoaded(MODEL_ENFORCER)
@@ -158,7 +246,7 @@ int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
             && CStreaming::IsModelLoaded(MODEL_ARMY))
             return (CGeneral::GetRandomNumber() < 0x3FFF) + MODEL_RHINO;
     }
-    return CStreaming::GetDefaultCopCarModel(ignoreLvpd1Model);
+    return CStreaming::GetDefaultCopCarModel(ignoreCopBike);
 }
 
 // 0x423F00
@@ -277,8 +365,13 @@ float CCarCtrl::FindAngleToWeaveThroughTraffic(CVehicle* vehicle, CPhysical* phy
 }
 
 // 0x4226F0
-void CCarCtrl::FindIntersection2Lines(float arg1, float arg2, float arg3, float arg4, float arg5, float arg6, float arg7, float arg8, float* arg9, float* arg10) {
-    plugin::Call<0x4226F0, float, float, float, float, float, float, float, float, float*, float*>(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+void CCarCtrl::FindIntersection2Lines(CVector2D point1, CVector2D dir1, CVector2D point2, CVector2D dir2, float* outX, float* outY) {
+    const auto det = dir1.Cross(dir2);
+    const auto t   = det != 0.0f
+        ? (point2 - point1).Cross(dir2) / det
+        : 0.0f;
+    *outX = point1.x + dir1.x * t;
+    *outY = point1.y + dir1.y * t;
 }
 
 // 0x42B470
@@ -303,22 +396,35 @@ int8 CCarCtrl::FindPathDirection(CNodeAddress nodeAddress1, CNodeAddress nodeAdd
 
 // 0x422620
 float CCarCtrl::FindPercDependingOnDistToLink(CVehicle* vehicle, CCarPathLinkAddress linkAddress) {
-    return plugin::CallAndReturn<float, 0x422620, CVehicle*, CCarPathLinkAddress>(vehicle, linkAddress);
+    return CGeneral::GetPiecewiseLinear({
+        { 5.0f,  0.5f },
+        { 15.0f, 1.0f },
+    }, CVector2D::Dist(ThePaths.GetCarPathLink(linkAddress).GetNodeCoors(), vehicle->GetPosition2D()));
 }
 
 // 0x421770
-int32 CCarCtrl::FindSequenceElement(int32 arg1) {
-    return plugin::CallAndReturn<int32, 0x421770, int32>(arg1);
+int32 CCarCtrl::FindSequenceElement(int32 element) {
+    return bSequenceOtherWay
+        ? (element + SequenceRandomOffset) % SequenceElements
+        : (SequenceElements - element + SequenceRandomOffset) % SequenceElements;
 }
 
 // 0x4224E0
-float CCarCtrl::FindSpeedMultiplier(float arg1, float arg2, float arg3, float arg4) {
-    return plugin::CallAndReturn<float, 0x4224E0, float, float, float, float>(arg1, arg2, arg3, arg4);
+float CCarCtrl::FindSpeedMultiplier(float angleChange, float minAngle, float maxAngle, float minMultiplier) {
+    return CGeneral::GetPiecewiseLinear({
+        { minAngle, 1.0f },
+        { maxAngle, minMultiplier },
+    }, std::abs(CGeneral::LimitRadianAngle(angleChange)));
 }
 
 // 0x424130
-float CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(int8 arg1) {
-    return plugin::CallAndReturn<float, 0x424130, int8>(arg1);
+float CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(int8 speedFromNodes) {
+    switch (speedFromNodes) {
+    case -1: return 0.5f;
+    case 0:  return 0.65f;
+    case 2:  return 2.3f;
+    default: return 1.0f;
+    }
 }
 
 float CCarCtrl::FindGhostRoadHeight(CVehicle* vehicle) {
@@ -382,17 +488,25 @@ void CCarCtrl::GenerateRandomCars() {
 
     if (NumRandomCars < 45) {
         if (CountDownToCarsAtStart) {
-            CountDownToCarsAtStart--;
-            for (auto i = 100; i --> 0;) {
-                GenerateOneRandomCar();
+            if (--CountDownToCarsAtStart == 0) {
+                for (auto i = 100; i --> 0;) {
+                    GenerateOneRandomCar();
+                }
+                CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
             }
-            CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
         } else {
             GenerateOneRandomCar();
             GenerateOneRandomCar();
         }
     }
 
+    CTrain::DoTrainGenerationAndRemoval();
+    CPlane::DoPlaneGenerationAndRemoval();
+
+    // 0x434277 - About every 4 seconds
+    if (CTimer::GetTimeInMS() / 4096u != CTimer::GetPreviousTimeInMS() / 4096u) {
+        GenerateEmergencyServicesCar();
+    }
 }
 
 // 0x42F3C0

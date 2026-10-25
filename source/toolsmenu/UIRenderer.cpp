@@ -26,6 +26,8 @@
 
 #include <Windows.h>
 #include "DebugModules/DebugModules.h"
+#include <Lines.h>
+#include <PedGeometryAnalyser.h>
 
 namespace notsa {
 namespace ui {
@@ -161,6 +163,7 @@ void UIRenderer::Render3D() {
     ZoneScoped;
 
     m_DebugModules.Render3D();
+
 }
 
 void UIRenderer::DebugCode() {

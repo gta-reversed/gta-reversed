@@ -178,7 +178,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(CanPedLeanOut, 0x6D5CF0);
     RH_ScopedInstall(SetVehicleCreatedBy, 0x6D5D70);
     RH_ScopedInstall(SetupRender, 0x6D64F0);
-    // RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0);
+    RH_ScopedInstall(ProcessBikeWheel, 0x6D73B0, { .Reversed = false });
     RH_ScopedInstall(FindTyreNearestPoint, 0x6D7BC0);
     // RH_ScopedInstall(InflictDamage, 0x6D7C90);
     RH_ScopedInstall(KillPedsGettingInVehicle, 0x6D82F0);
@@ -215,8 +215,8 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(GetPlaneWeaponFiringStatus, 0x6E3440);
     // RH_ScopedInstall(ProcessWeapons, 0x6E3950);
     RH_ScopedInstall(DoFixedMachineGuns, 0x73F400);
-    // RH_ScopedInstall(FireFixedMachineGuns, 0x73DF00);
-    // RH_ScopedInstall(DoDriveByShootings, 0x741FD0);
+    RH_ScopedInstall(FireFixedMachineGuns, 0x73DF00, { .Reversed = false });
+    RH_ScopedInstall(DoDriveByShootings, 0x741FD0, { .Reversed = false });
     RH_ScopedInstall(ReleasePickedUpEntityWithWinch, 0x6D3CB0);
     RH_ScopedInstall(PickUpEntityWithWinch, 0x6D3CD0);
     RH_ScopedInstall(QueryPickedUpEntityWithWinch, 0x6D3CF0);
@@ -2084,7 +2084,7 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
 
 // 0x6D2D50
 bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrops, bool isWheelsSpinning, bool isWheelInWater) {
-    if (!isProduceWheelDrops && !g_surfaceInfos.IsSand(colPoint.m_nPieceTypeB)) {
+    if (!isProduceWheelDrops && !g_surfaceInfos.IsSand(colPoint.m_nSurfaceTypeB)) {
         return false;
     }
 
@@ -2118,7 +2118,7 @@ bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrop
         }
     }
     if (CWeather::WetRoads > 0.4f && !CCullZones::CamNoRain()) {
-        if (g_surfaceInfos.CreatesWheelSpray(colPoint.m_nPieceTypeB)) {
+        if (g_surfaceInfos.CreatesWheelSpray(colPoint.m_nSurfaceTypeB)) {
             g_fx.AddWheelSpray(this, colPoint.m_vecPoint, isWheelsSpinning, false, m_fContactSurfaceBrightness);
             return false;
         }
@@ -3219,7 +3219,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             else {
                 brake = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
 
-                if (brake > 500.0f)
+                if (m_pHandlingData->m_fMass < 500.0f)
                     brake *= 0.1f;
                 else if (m_nModelIndex == MODEL_RCBANDIT)
                     brake *= 0.2f;
