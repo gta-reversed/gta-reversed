@@ -5089,8 +5089,8 @@ void CVehicle::UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHook
 
         if (isTowing
             || (1.0f * (CTimer::GetTimeStep() <= 0.7f ? 0.7f : CTimer::GetTimeStep()) >= linkDir.Magnitude()
-                && DotProduct(towingVeh->GetForward(), GetForward()) >= -0.3f
-                && DotProduct(towingVeh->GetUp(), GetUp()) >= 0.0f))
+                && towingVeh->GetForward().Dot(GetForward()) >= -0.3f
+                && towingVeh->GetUp().Dot(GetUp()) >= 0.0f))
         {
             if (towingVeh->GetModelIndex() != MODEL_TOWTRUCK && towingVeh->GetModelIndex() != MODEL_TRACTOR
                 || (towingVeh->IsAutomobile() && towingVeh->AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u)) {
@@ -5109,7 +5109,7 @@ void CVehicle::UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHook
                     }
                 }
                 if (beingTowedVeh->IsSubTrailer() && beingTowedVeh->AsTrailer()->m_fTrailerTowedRatio == ::BAGGAGE_TRAILER_TOWED_RATIO) {
-                    speedDiffVec -= DotProduct(speedDiffVec, beingTowedVeh->GetUp()) * beingTowedVeh->GetUp();
+                    speedDiffVec -= speedDiffVec.Dot(beingTowedVeh->GetUp()) * beingTowedVeh->GetUp();
                 }
                 const CVector& thisLinkPosWorld   = (isTowing ? towingBarPosWorld : towedHitchPosWorld);
                 const CVector  thisComDir         = thisLinkPosWorld - GetMatrix().TransformVector(m_vecCentreOfMass);
@@ -5192,13 +5192,13 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
             }
             CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa - using full transform not just pos it better
             if (missle == CAR_WEAPON_LOCK_ON_ROCKET) {
-                projPos += std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
+                projPos += std::max(0.f, m_vecMoveSpeed.Dot(GetForward())) * GetForward() * CTimer::GetTimeStep();
             }
             CProjectileInfo::AddProjectile(this, missle == CAR_WEAPON_LOCK_ON_ROCKET ? WEAPON_ROCKET_HS : WEAPON_FREEFALL_BOMB, projPos, 0.0f, &GetForward(), targetEntity);
             break;
         }
         case CAR_WEAPON_DOUBLE_ROCKET: { // notsa - removed hardcoded model checks here since this type of missle is already hardcoded to them...
-            const CVector frameOffset = std::max(0.f, DotProduct(m_vecMoveSpeed, GetForward())) * GetForward() * CTimer::GetTimeStep();
+            const CVector frameOffset = std::max(0.f, m_vecMoveSpeed.Dot(GetForward())) * GetForward() * CTimer::GetTimeStep();
             CWeapon       weapon{ WEAPON_RLAUNCHER, 5'000u };
             for (int i : { 0, 1 }) {
                 CVector origin = m_matrix->TransformPoint(ordnancePos) + frameOffset;
