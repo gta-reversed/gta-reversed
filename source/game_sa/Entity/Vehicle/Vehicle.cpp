@@ -3508,7 +3508,7 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
                 && damager && damager->GetIsTypePed())
             {
                 AddVehicleDamageWeaponEventResponse(m_pDriver);
-                for (auto& passenger : GetPassengers()) {
+                for (auto& passenger : GetMaxPassengerSeats()) {
                     AddVehicleDamageWeaponEventResponse(passenger);
                 }
             }

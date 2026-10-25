@@ -771,7 +771,6 @@ public:
 
     auto HasDriver() const { return m_pDriver != nullptr; }
     auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
-    auto GetPassengers() { return m_apPassengers | rngv::take(m_nMaxPassengers); }
     auto GetPassengers() const { return m_apPassengers | rngv::take(m_nMaxPassengers); }
     auto GetMaxPassengerSeats() { return m_apPassengers | rngv::take(m_nMaxPassengers); } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
