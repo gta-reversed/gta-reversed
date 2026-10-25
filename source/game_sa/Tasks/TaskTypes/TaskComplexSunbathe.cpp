@@ -84,80 +84,85 @@ bool CTaskComplexSunbathe::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
     return true;
 }
 
+// 0x632140
+bool CTaskComplexSunbathe::CanSunbathe() {
+    return plugin::CallAndReturn<bool, 0x632140>();
+}
+
+// 0x632190
+bool CTaskComplexSunbathe::ShouldLoadSunbatheAnims() {
+    return plugin::CallAndReturn<bool, 0x632190>();
+}
+
+// 0x638290
+CTask* CTaskComplexSunbathe::CreateSubTask(eTaskType taskType, CPed* ped) {
+    return plugin::CallMethodAndReturn<CTask*, 0x638290, CTaskComplexSunbathe*, eTaskType, CPed*>(this, taskType, ped);
+}
+
 // 0x6399F0
 CTask* CTaskComplexSunbathe::CreateNextSubTask(CPed* ped) {
     if (ped->m_nPedType == PED_TYPE_PROSTITUTE || ped->m_nPedType == PED_TYPE_CIVFEMALE) {
         g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_2, ped);
     }
 
-    // Wrapper over the not-yet-reversed createSubTask (0x638290, not part of this batch)
-    const auto createSubTask = [this, ped](eTaskType taskType) {
-        return plugin::CallMethodAndReturn<CTask*, 0x638290, CTaskComplexSunbathe*, eTaskType, CPed*>(this, taskType, ped);
-    };
-
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_PAUSE:
         if (m_bBathing) {
             // Bathing: anims still needed and loaded -> stand up, otherwise we're done
-            if (!plugin::CallAndReturn<bool, 0x632190>() || !m_pSunbatheAnimBlock->IsLoaded) { // ShouldLoadSunbatheAnims()
-                return createSubTask(TASK_FINISHED);
+            if (!ShouldLoadSunbatheAnims() || !m_pSunbatheAnimBlock->IsLoaded) {
+                return CreateSubTask(TASK_FINISHED, ped);
             }
-            return createSubTask(TASK_SIMPLE_STOP_SUNBATHING);
+            return CreateSubTask(TASK_SIMPLE_STOP_SUNBATHING, ped);
         } else {
             // Not bathed yet: both anims present -> start sunbathing
             if (!m_pSunbatheAnimBlock->IsLoaded || !m_pBeachAnimBlock->IsLoaded) {
-                return createSubTask(TASK_FINISHED);
+                return CreateSubTask(TASK_FINISHED, ped);
             }
-            return createSubTask(TASK_SIMPLE_START_SUNBATHING);
+            return CreateSubTask(TASK_SIMPLE_START_SUNBATHING, ped);
         }
 
     case TASK_SIMPLE_SUNBATHE:
         if (!m_pSunbatheAnimBlock->IsLoaded) {
-            return createSubTask(TASK_SIMPLE_PAUSE);
+            return CreateSubTask(TASK_SIMPLE_PAUSE, ped);
         }
-        if (!plugin::CallAndReturn<bool, 0x632140>() // CanSunbathe()
+        if (!CanSunbathe()
             || m_BathingTimer.IsOutOfTime()
             || (m_SunbatherType != SUNBATHER_MALE_1 && m_SunbatherType != SUNBATHER_FEMALE_1)) {
-            return createSubTask(TASK_SIMPLE_STOP_SUNBATHING);
+            return CreateSubTask(TASK_SIMPLE_STOP_SUNBATHING, ped);
         }
-        return createSubTask(TASK_SIMPLE_IDLE_SUNBATHING);
+        return CreateSubTask(TASK_SIMPLE_IDLE_SUNBATHING, ped);
 
     case TASK_SIMPLE_START_SUNBATHING:
         if (!m_pBeachAnimBlock->IsLoaded) {
-            return createSubTask(TASK_FINISHED);
+            return CreateSubTask(TASK_FINISHED, ped);
         }
-        m_BathingTimer.m_nStartTime = CTimer::GetTimeInMS();
-        m_BathingTimer.m_nInterval  = 20'000 + static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * 80000.f);
-        m_BathingTimer.m_bStarted   = true;
-        {
-            auto* const task = createSubTask(TASK_SIMPLE_SUNBATHE);
-            m_bBathing       = true; // NOTE: set AFTER createSubTask in the original
-            return task;
-        }
+        RET_IGNORED(m_BathingTimer.Start(20'000 + static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * 80000.f)));
+        m_bBathing = true;
+        return CreateSubTask(TASK_SIMPLE_SUNBATHE, ped);
 
     case TASK_SIMPLE_IDLE_SUNBATHING:
-        return createSubTask(m_pBeachAnimBlock->IsLoaded ? TASK_SIMPLE_SUNBATHE : TASK_FINISHED);
+        return CreateSubTask(m_pBeachAnimBlock->IsLoaded ? TASK_SIMPLE_SUNBATHE : TASK_FINISHED, ped);
 
     case TASK_SIMPLE_STOP_SUNBATHING: {
-        auto* const task = createSubTask(TASK_FINISHED);
+        auto* const task = CreateSubTask(TASK_FINISHED, ped);
         m_bBathing       = false;
         return task;
     }
 
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE();
     }
 }
 
 // 0x639CB0
 CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
-    rand(); // NOTE: called and discarded in the original (CRT rand, 0x821B1E)
+    RET_IGNORED(CGeneral::GetRandomNumber());
 
     // Pick the sunbather type
     if (ped->m_nPedType == PED_TYPE_CIVFEMALE) {
-        m_SunbatherType = static_cast<eSunbatherType>(2 - static_cast<int32>(static_cast<float>(rand() & 0xFFFF) * 0.000030517578125f * -3.0f));
+        m_SunbatherType = static_cast<eSunbatherType>(2 - static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * 0.000030517578125f * -3.0f));
     } else if (CPopulation::IsSunbather(ped->GetModelId())) {
-        m_SunbatherType = rand() < 0x3FFF ? SUNBATHER_MALE_2 : SUNBATHER_MALE_1;
+        m_SunbatherType = CGeneral::GetRandomNumber() < 0x3FFF ? SUNBATHER_MALE_2 : SUNBATHER_MALE_1;
     } else {
         m_SunbatherType = SUNBATHER_MALE_2;
     }
@@ -169,43 +174,25 @@ CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
         CStreaming::RequestModel(IFPToModelId(m_SunbatheAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
     }
 
-    // Wrapper over the not-yet-reversed createSubTask (0x638290, not part of this batch)
-    const auto createSubTask = [this, ped](eTaskType taskType) {
-        return plugin::CallMethodAndReturn<CTask*, 0x638290, CTaskComplexSunbathe*, eTaskType, CPed*>(this, taskType, ped);
-    };
-
     m_bBathing                         = false;
 
-    const bool shouldLoadSunbatheAnims = plugin::CallAndReturn<bool, 0x632190>(); // ShouldLoadSunbatheAnims()
+    const bool shouldLoadSunbatheAnims = ShouldLoadSunbatheAnims();
 
-    if (m_bStartStanding) {
-        if (shouldLoadSunbatheAnims) {
-            if (!m_pTowel && m_pSunbatheAnimBlock->IsLoaded) {
-                return createSubTask(TASK_SIMPLE_START_SUNBATHING);
-            }
-            return createSubTask(TASK_SIMPLE_PAUSE);
-        }
-        // Sunbathe anims not needed - only "beach" matters (0x639D9B)
-        if (!m_pBeachAnimBlock->IsLoaded) {
-            return nullptr;
-        }
-    } else if (!shouldLoadSunbatheAnims) {
-        // (0x639D9B)
-        if (!m_pBeachAnimBlock->IsLoaded) {
-            return nullptr;
-        }
+    if (m_bStartStanding && shouldLoadSunbatheAnims) {
+        return CreateSubTask(!m_pTowel && m_pSunbatheAnimBlock->IsLoaded ? TASK_SIMPLE_START_SUNBATHING : TASK_SIMPLE_PAUSE, ped);
+    }
+    if (!shouldLoadSunbatheAnims && !m_pBeachAnimBlock->IsLoaded) {
+        return nullptr;
     }
 
     // 0x639DA5: "beach" loaded -> bathing with a timer; otherwise (0x639DAF) TASK_NONE/nullptr
     if (m_pBeachAnimBlock->IsLoaded) {
-        m_BathingTimer.m_nStartTime = CTimer::GetTimeInMS();
-        m_BathingTimer.m_nInterval  = 20'000 - static_cast<int32>(static_cast<float>(rand() & 0xFFFF) * 0.000030517578125f * -80000.0f); // [20000..100000)
-        m_BathingTimer.m_bStarted   = true;
+        RET_IGNORED(m_BathingTimer.Start(20'000 - static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * -80000.f)));
         m_bBathing                  = true;
-        return createSubTask(TASK_SIMPLE_SUNBATHE);
+        return CreateSubTask(TASK_SIMPLE_SUNBATHE, ped);
     }
     if (shouldLoadSunbatheAnims) {
-        return createSubTask(TASK_SIMPLE_PAUSE);
+        return CreateSubTask(TASK_SIMPLE_PAUSE, ped);
     }
     return nullptr;
 }
@@ -217,23 +204,10 @@ CTask* CTaskComplexSunbathe::ControlSubTask(CPed* ped) {
     }
 
     if (!m_bBeachAnimsReferenced) {
-        if (m_pBeachAnimBlock->IsLoaded) {
-            CAnimManager::AddAnimBlockRef(m_BeachAnimBlockIndex);
-            m_bBeachAnimsReferenced = true;
-        } else {
-            CStreaming::RequestModel(IFPToModelId(m_BeachAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
-        }
+        CAnimManager::StreamAnimBlock("beach", true, m_bBeachAnimsReferenced);
     }
-
-    if (!m_bSunbatheAnimsReferenced) {
-        if (plugin::CallAndReturn<bool, 0x632190>()) { // ShouldLoadSunbatheAnims() - not reversed (not in batch)
-            if (m_pSunbatheAnimBlock->IsLoaded) {
-                CAnimManager::AddAnimBlockRef(m_SunbatheAnimBlockIndex);
-                m_bSunbatheAnimsReferenced = true;
-            } else {
-                CStreaming::RequestModel(IFPToModelId(m_SunbatheAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
-            }
-        }
+    if (!m_bSunbatheAnimsReferenced && ShouldLoadSunbatheAnims()) {
+        CAnimManager::StreamAnimBlock("sunbathe", true, m_bSunbatheAnimsReferenced);
     }
 
     if (m_bBathing) {
@@ -241,10 +215,10 @@ CTask* CTaskComplexSunbathe::ControlSubTask(CPed* ped) {
         ped->bFallenDown         = true;
     }
 
-    if (!plugin::CallAndReturn<bool, 0x632140>()) { // CanSunbathe() - not reversed (not in batch)
+    if (!CanSunbathe()) {
         m_BathingTimer.Pause();
         if (m_pSubTask->GetTaskType() == TASK_SIMPLE_SUNBATHE) {
-            (void)m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE); // NOTE: return value ignored in the original
+            RET_IGNORED(m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE));
         }
     }
 
