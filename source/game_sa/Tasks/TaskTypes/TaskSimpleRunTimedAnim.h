@@ -15,7 +15,7 @@ public:
     float m_unused1 = {};
     uint32 m_durationMs = {};
     CTaskTimer m_timer = {};
-    uint16 m_taskId = TASK_SIMPLE_TIMED_ANIM;
+    notsa::WEnumU16<eTaskType> m_taskId     = TASK_SIMPLE_TIMED_ANIM;
 
 public:
     static void InjectHooks();
@@ -27,8 +27,9 @@ public:
 
     void StartAnim(CPed* ped);
 
-    CTask*    Clone() const override { return new CTaskSimpleRunTimedAnim{ *this }; }
-    eTaskType GetTaskType() const override { return static_cast<eTaskType>(m_taskId); }
+    CTask* Clone() const override { return new CTaskSimpleRunTimedAnim{ *this }; }
+
+    eTaskType GetTaskType() const override { return m_taskId; }
     bool      ProcessPed(CPed* ped) override;
 private: // Wrappers for hooks
     // 0x61AB70
