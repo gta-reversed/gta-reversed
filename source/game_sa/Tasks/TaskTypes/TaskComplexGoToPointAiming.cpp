@@ -17,7 +17,7 @@ void CTaskComplexGoToPointAiming::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x668860);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x66DD70);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x66DDB0);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6689E0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6689E0);
 }
 
 // 0x668790
@@ -127,5 +127,67 @@ CTask* CTaskComplexGoToPointAiming::CreateFirstSubTask(CPed* ped) {
 
 // 0x6689E0
 CTask* CTaskComplexGoToPointAiming::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6689E0, CTaskComplexGoToPointAiming*, CPed*>(this, ped);
+    const auto wi = CWeaponInfo::GetWeaponInfo(ped->m_aWeapons[ped->m_nActiveWeaponSlot].m_Type, ped->GetWeaponSkill());
+
+    if (!m_newTargetSet) {
+        switch (m_pSubTask->GetTaskType()) {
+        case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 903
+            static_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask)->GoToPoint(m_movePos, 0.5f /* 0x86FC84 */, 2.0f /* 0x86FC88 */, false);
+
+            if (wi->flags.bAimWithArm) {
+                auto* gunTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK);
+                if (!gunTask) {
+                    ped->GetTaskManager().SetTaskSecondary(
+                        new CTaskSimpleUseGun{ m_aimAtEntity, m_aimPos, eGunCommand::AIM, 1, false },
+                        TASK_SECONDARY_ATTACK
+                    );
+                } else if (!ped->GetIntelligence()->GetTaskUseGun()) {
+                    gunTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+                } else {
+                    auto* useGun = static_cast<CTaskSimpleUseGun*>(
+                        ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)
+                    );
+                    if (GetTaskType() == TASK_COMPLEX_GO_TO_POINT_SHOOTING && (rand() & 0x3F) == 0) {
+                        useGun->ControlGun(ped, m_aimAtEntity, eGunCommand::FIRE);
+                    } else {
+                        useGun->ControlGun(ped, m_aimAtEntity, eGunCommand::AIM);
+                    }
+                }
+            }
+            break;
+        }
+        case TASK_SIMPLE_GUN_CTRL: { // 1020
+            if (ped->GetIntelligence()->GetTaskUseGun()) {
+                // Инлайн-блок оригинала: локальное 2D-направление к m_movePos
+                const auto  d       = m_movePos - ped->GetPosition();
+                const auto& mtx     = ped->GetMatrix();
+                const auto project = [&d](const CVector& axis) {
+                    // Original x87 sums z/y first, then x.
+                    return (d.z * axis.z + d.y * axis.y) + d.x * axis.x;
+                };
+                const float localX  = project(mtx.GetRight());
+                const float localY  = -project(mtx.GetForward());
+                const float S       = localX * localX + localY * localY;
+                const float r       = m_moveTargetRadius;
+
+                CVector2D moveDir;
+                if (S <= r * r) { // fcompp S vs r² (0x668AD7) + test ah,0x41: below/equal -> {0,0}
+                    moveDir = CVector2D{};
+                } else {
+                    // Original computes the reciprocal once, then multiplies both components.
+                    const float inverseDist = 1.f / std::sqrt(S);
+                    moveDir.x = localX * inverseDist;
+                    moveDir.y = localY * inverseDist;
+                }
+                static_cast<CTaskSimpleUseGun*>(
+                    ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)
+                )->ControlGunMove(moveDir);
+            }
+            break;
+        }
+        }
+    } else {
+        return CreateFirstSubTask(ped); // vtable+0x24 (0x66DDB0)
+    }
+    return m_pSubTask;
 }
