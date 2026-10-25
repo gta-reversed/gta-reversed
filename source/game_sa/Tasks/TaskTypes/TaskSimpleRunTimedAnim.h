@@ -15,7 +15,7 @@ public:
     float m_unused1 = {};
     uint32 m_durationMs = {};
     CTaskTimer m_timer = {};
-    eTaskType m_taskId = {};
+    uint16 m_taskId = {};
 
 public:
     static void InjectHooks();
@@ -28,7 +28,7 @@ public:
     void StartAnim(CPed* ped);
 
     CTask*    Clone() const override { return new CTaskSimpleRunTimedAnim{ *this }; }
-    eTaskType GetTaskType() const override { return m_taskId; }
+    eTaskType GetTaskType() const override { return static_cast<eTaskType>(m_taskId); }
     bool      ProcessPed(CPed* ped) override;
 private: // Wrappers for hooks
     // 0x61AB70
@@ -49,3 +49,5 @@ private: // Wrappers for hooks
         return this;
     }
 };
+
+VALIDATE_SIZE(CTaskSimpleRunTimedAnim, 0x34);
