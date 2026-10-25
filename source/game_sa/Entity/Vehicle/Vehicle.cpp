@@ -2109,13 +2109,21 @@ bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrop
     if (CreateFxForSurface(&SurfaceInfos_c::CreatesWheelMud, &Fx_c::AddWheelMud)) {
         return false;
     }
-    if (CWeather::WetRoads <= 0.0 || CGeneral::GetRandomNumberInRange(CWeather::WetRoads, 1.01f) <= 0.5f) {
-        if (CreateFxForSurface(&SurfaceInfos_c::CreatesWheelDust, &Fx_c::AddWheelDust)) {
-            return false;
+    // Wet roads randomly skip dust and sand. Either way, their surfaces don't get to the spray check
+    const auto CreateDryFxForSurface = [&](auto CheckSurface, auto AddFx) {
+        if ((g_surfaceInfos.*CheckSurface)(colPoint.m_nSurfaceTypeB)) {
+            if (CWeather::WetRoads <= 0.0f || CGeneral::GetRandomNumberInRange(CWeather::WetRoads, 1.01f) <= 0.5f) {
+                (g_fx.*AddFx)(this, colPoint.m_vecPoint, isWheelsSpinning, m_fContactSurfaceBrightness);
+            }
+            return true;
         }
-        if (CreateFxForSurface(&SurfaceInfos_c::CreatesWheelSand, &Fx_c::AddWheelSand)) {
-            return false;
-        }
+        return false;
+    };
+    if (CreateDryFxForSurface(&SurfaceInfos_c::CreatesWheelDust, &Fx_c::AddWheelDust)) {
+        return false;
+    }
+    if (CreateDryFxForSurface(&SurfaceInfos_c::CreatesWheelSand, &Fx_c::AddWheelSand)) {
+        return false;
     }
     if (CWeather::WetRoads > 0.4f && !CCullZones::CamNoRain()) {
         if (g_surfaceInfos.CreatesWheelSpray(colPoint.m_nSurfaceTypeB)) {
