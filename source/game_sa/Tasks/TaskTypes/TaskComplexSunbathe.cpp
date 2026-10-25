@@ -67,10 +67,13 @@ CTaskComplexSunbathe::~CTaskComplexSunbathe() {
 
 // 0x6320F0
 bool CTaskComplexSunbathe::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
-    // Collision events don't interrupt sunbathing
     if (event) {
-        if (event->GetEventType() == EVENT_PED_COLLISION_WITH_PED || event->GetEventType() == EVENT_PED_COLLISION_WITH_PLAYER) {
+        switch (event->GetEventType()) {
+        case EVENT_PED_COLLISION_WITH_PED:
+        case EVENT_PED_COLLISION_WITH_PLAYER:
             return false;
+        default:
+            break;
         }
     }
     if (!m_pSubTask->MakeAbortable(ped, priority, event)) {
