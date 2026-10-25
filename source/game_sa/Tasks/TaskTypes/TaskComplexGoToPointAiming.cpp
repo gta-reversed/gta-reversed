@@ -3,6 +3,7 @@
 #include "TaskComplexGoToPointAiming.h"
 #include "TaskComplexGoToPointAndStandStill.h"
 #include "TaskSimpleGunControl.h"
+#include "TaskSimpleUseGun.h"
 
 void CTaskComplexGoToPointAiming::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoToPointAiming, 0x86fe00, 11);
@@ -15,7 +16,7 @@ void CTaskComplexGoToPointAiming::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x66CD80);
     RH_ScopedVMTInstall(GetTaskType, 0x668860);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x66DD70);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x66DDB0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x66DDB0);
     RH_ScopedVMTInstall(ControlSubTask, 0x6689E0, { .Reversed = false });
 }
 
@@ -96,7 +97,32 @@ CTask* CTaskComplexGoToPointAiming::CreateNextSubTask(CPed* ped) {
 
 // 0x66DDB0
 CTask* CTaskComplexGoToPointAiming::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x66DDB0, CTaskComplexGoToPointAiming*, CPed*>(this, ped);
+    m_newTargetSet = false; // byte @ 0x34 &= ~1
+
+    const auto& wep     = ped->m_aWeapons[ped->m_nActiveWeaponSlot];
+    const auto  wepInfo = CWeaponInfo::GetWeaponInfo(wep.m_Type, ped->GetWeaponSkill());
+
+    if (wepInfo->flags.bAimWithArm) {
+        // Есть вторичная задача атаки - прерываем её; нет - создаём
+        if (const auto secondary = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
+            secondary->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+        } else {
+            // NOTE: в оригинале стоит проверка GetTaskType() == TASK_COMPLEX_GO_TO_POINT_SHOOTING (0x385),
+            //       что для этого таска (Type == TASK_COMPLEX_GO_TO_POINT_AIMING) фактически всегда false - сохранено как есть.
+            const auto useGun = GetTaskType() == TASK_COMPLEX_GO_TO_POINT_SHOOTING
+                ? new CTaskSimpleUseGun(m_aimAtEntity, m_aimPos, eGunCommand::FIREBURST, 3, false)
+                : new CTaskSimpleUseGun(m_aimAtEntity, m_aimPos, eGunCommand::AIM, 1, false);
+            ped->GetTaskManager().SetTaskSecondary(useGun, TASK_SECONDARY_ATTACK);
+        }
+    } else if (wepInfo->flags.bCanAim
+        && (wepInfo->m_nWeaponFire == WEAPON_FIRE_INSTANT_HIT || wepInfo->m_nWeaponFire == WEAPON_FIRE_AREA_EFFECT)
+    ) {
+        // Декомпил (0x66DDB0.c:25) проверяет *wepInfo == 1 || == 3 — это m_nWeaponFire
+        // (ПЕРВОЕ поле CWeaponInfo, WeaponInfo.h:48), а не тип оружия
+        return CreateSubTask(TASK_SIMPLE_GUN_CTRL);
+    }
+
+    return new CTaskComplexGoToPointAndStandStill(m_moveState, m_movePos, m_moveTargetRadius, m_slowDownDistance, false, false);
 }
 
 // 0x6689E0
