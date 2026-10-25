@@ -120,57 +120,58 @@ CTask* CTaskComplexGoToPointAiming::CreateFirstSubTask(CPed* ped) {
         return CreateSubTask(TASK_SIMPLE_GUN_CTRL);
     }
 
-    return new CTaskComplexGoToPointAndStandStill(m_moveState, m_movePos, m_moveTargetRadius, m_slowDownDistance, false, false);
+    return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL);
 }
 
 // 0x6689E0
 CTask* CTaskComplexGoToPointAiming::ControlSubTask(CPed* ped) {
     const auto* const weaponInfo = CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().GetType(), ped->GetWeaponSkill());
 
-    if (!m_newTargetSet) {
-        switch (m_pSubTask->GetTaskType()) {
-        case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: {
-            static_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask)->GoToPoint(m_movePos, 0.5f, 2.0f, false);
+    if (m_newTargetSet) {
+        return CreateFirstSubTask(ped);
+    }
 
-            if (weaponInfo->flags.bAimWithArm) {
-                auto* const gunTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK);
-                if (!gunTask) {
-                    ped->GetTaskManager().SetTaskSecondary(
-                        new CTaskSimpleUseGun{ m_aimAtEntity, m_aimPos, eGunCommand::AIM, 1, false },
-                        TASK_SECONDARY_ATTACK
-                    );
-                } else if (!ped->GetIntelligence()->GetTaskUseGun()) {
-                    gunTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: {
+        static_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask)->GoToPoint(m_movePos, 0.5f, 2.0f, false);
+
+        if (weaponInfo->flags.bAimWithArm) {
+            auto* const gunTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK);
+            if (!gunTask) {
+                ped->GetTaskManager().SetTaskSecondary(
+                    new CTaskSimpleUseGun{ m_aimAtEntity, m_aimPos, eGunCommand::AIM, 1, false },
+                    TASK_SECONDARY_ATTACK
+                );
+            } else if (!ped->GetIntelligence()->GetTaskUseGun()) {
+                gunTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+            } else {
+                auto* const useGun = static_cast<CTaskSimpleUseGun*>(
+                    ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)
+                );
+                if (GetTaskType() == TASK_COMPLEX_GO_TO_POINT_SHOOTING && (rand() & 0x3F) == 0) {
+                    useGun->ControlGun(ped, m_aimAtEntity, eGunCommand::FIRE);
                 } else {
-                    auto* const useGun = static_cast<CTaskSimpleUseGun*>(
-                        ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)
-                    );
-                    if (GetTaskType() == TASK_COMPLEX_GO_TO_POINT_SHOOTING && (rand() & 0x3F) == 0) {
-                        useGun->ControlGun(ped, m_aimAtEntity, eGunCommand::FIRE);
-                    } else {
-                        useGun->ControlGun(ped, m_aimAtEntity, eGunCommand::AIM);
-                    }
+                    useGun->ControlGun(ped, m_aimAtEntity, eGunCommand::AIM);
                 }
             }
-            break;
         }
-        case TASK_SIMPLE_GUN_CTRL: {
-            if (ped->GetIntelligence()->GetTaskUseGun()) {
-                const CVector   offset = m_movePos - ped->GetPosition();
-                const auto&     matrix = ped->GetMatrix();
-                const CVector2D localDir{ matrix.GetRight().Dot(offset), -matrix.GetForward().Dot(offset) };
-                const CVector2D moveDir = localDir.SquaredMagnitude() <= sq(m_moveTargetRadius)
-                    ? CVector2D{}
-                    : localDir.Normalized();
-                static_cast<CTaskSimpleUseGun*>(
-                    ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)
-                )->ControlGunMove(moveDir);
-            }
-            break;
+        break;
+    }
+    case TASK_SIMPLE_GUN_CTRL: {
+        if (ped->GetIntelligence()->GetTaskUseGun()) {
+            const CVector   offset = m_movePos - ped->GetPosition();
+            const auto&     matrix = ped->GetMatrix();
+            const CVector2D localDir{ matrix.GetRight().Dot(offset), -matrix.GetForward().Dot(offset) };
+            const CVector2D moveDir = localDir.SquaredMagnitude() <= sq(m_moveTargetRadius)
+                ? CVector2D{}
+                : localDir.Normalized();
+            static_cast<CTaskSimpleUseGun*>(
+                ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)
+            )
+                ->ControlGunMove(moveDir);
         }
-        }
-    } else {
-        return CreateFirstSubTask(ped);
+        break;
+    }
     }
     return m_pSubTask;
 }
