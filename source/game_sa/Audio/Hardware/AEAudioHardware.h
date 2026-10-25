@@ -199,6 +199,12 @@ public:
     // notsa
     const CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
     CAEStaticChannel& GetStaticChannel(int16 channel, uint16 channelId) {
+        // TODO: m_aChannels is an array with 1st element being CAEStreamingChannel,
+        // which is aliased to m_pStreamingChannel and rest are CAEStaticChannels.
+        // I believe they've made this array to access all channels in one place.
+        //
+        // In future make an API like `GetChannel(ch, chid)` which will
+        // figure out the channel without having an array.
         assert(channel >= 0 && channelId < m_anNumChannelsInSlot[channel]);
         assert(channel + channelId != 0); // channel #0 is a streaming channel!
         assert(m_aChannels[channel + channelId]);
