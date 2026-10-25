@@ -25142,12 +25142,12 @@
   {
     "Category": "CTaskComplexGoToPointAiming",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAiming",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
@@ -30572,7 +30572,7 @@
   {
     "Category": "CTaskComplexSunbathe",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSunbathe",
@@ -32927,7 +32927,7 @@
   {
     "Category": "CDecision",
     "Name": "Set",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CDecision",
