@@ -24132,12 +24132,12 @@
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
@@ -24147,22 +24147,22 @@
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDestroyCar",
