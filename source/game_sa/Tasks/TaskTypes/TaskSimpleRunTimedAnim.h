@@ -15,7 +15,7 @@ public:
     float m_unused1 = {};
     uint32 m_durationMs = {};
     CTaskTimer m_timer = {};
-    uint16 m_taskId = {};
+    uint16 m_taskId = TASK_SIMPLE_TIMED_ANIM;
 
 public:
     static void InjectHooks();
