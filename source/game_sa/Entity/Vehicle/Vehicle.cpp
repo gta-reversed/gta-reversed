@@ -3147,8 +3147,8 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
 
     float right = 0.0f;
     float fwd = 0.0f;
-    const float contactSpeedFwd = DotProduct(wheelFwd, wheelContactSpeed);
-    const float contactSpeedRight = DotProduct(wheelRight, wheelContactSpeed);
+    const float contactSpeedFwd = wheelFwd.Dot(wheelContactSpeed);
+    const float contactSpeedRight = wheelRight.Dot(wheelContactSpeed);
 
     braking = brake != 0.0f;
     driving = !braking;
@@ -3210,7 +3210,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             if (contactSpeedFwd > 0.15f && (!wheelId || wheelId == CAR_WHEEL_FRONT_RIGHT)) {
                 tractionLimit += tractionLimit;
             }
-            if (driving && tractionLimit * adhesion < std::fabs(fwd))
+            if (driving && tractionLimit * adhesion < std::abs(fwd))
                 wheelState = WHEEL_STATE_SPINNING;
             else
                 wheelState = WHEEL_STATE_SKIDDING;
@@ -3220,7 +3220,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             tractionLoss = 1.0f;
         } else if (wheelState == WHEEL_STATE_SPINNING) {
             if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
-                tractionLoss = tractionLoss * (1.0f - std::fabs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
+                tractionLoss = tractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
         }
         const float l = std::sqrt(speedSq);
