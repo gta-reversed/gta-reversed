@@ -18,7 +18,7 @@ void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x632040, { .Reversed = false });
     RH_ScopedVMTInstall(MakeAbortable, 0x6320F0, { .Reversed = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0);
     RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
 
 }
@@ -137,7 +137,63 @@ CTask* CTaskComplexSunbathe::CreateNextSubTask(CPed* ped) {
 
 // 0x639CB0
 CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x639CB0, CTaskComplexSunbathe*, CPed*>(this, ped);
+    rand(); // NOTE: called and discarded in the original (CRT rand, 0x821B1E)
+
+    // Pick the sunbather type
+    if (ped->m_nPedType == PED_TYPE_CIVFEMALE) {
+        m_SunbatherType = static_cast<eSunbatherType>(2 - static_cast<int32>(static_cast<float>(rand() & 0xFFFF) * 0.000030517578125f * -3.0f));
+    } else if (CPopulation::IsSunbather(ped->GetModelId())) {
+        m_SunbatherType = rand() < 0x3FFF ? SUNBATHER_MALE_2 : SUNBATHER_MALE_1;
+    } else {
+        m_SunbatherType = SUNBATHER_MALE_2;
+    }
+
+    if (!m_pBeachAnimBlock->IsLoaded) {
+        CStreaming::RequestModel(IFPToModelId(m_BeachAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
+    }
+    if (!m_pSunbatheAnimBlock->IsLoaded) {
+        CStreaming::RequestModel(IFPToModelId(m_SunbatheAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
+    }
+
+    // Wrapper over the not-yet-reversed createSubTask (0x638290, not part of this batch)
+    const auto createSubTask = [this, ped](eTaskType taskType) {
+        return plugin::CallMethodAndReturn<CTask*, 0x638290, CTaskComplexSunbathe*, eTaskType, CPed*>(this, taskType, ped);
+    };
+
+    m_bBathing                         = false;
+
+    const bool shouldLoadSunbatheAnims = plugin::CallAndReturn<bool, 0x632190>(); // ShouldLoadSunbatheAnims()
+
+    if (m_bStartStanding) {
+        if (shouldLoadSunbatheAnims) {
+            if (!m_pTowel && m_pSunbatheAnimBlock->IsLoaded) {
+                return createSubTask(TASK_SIMPLE_START_SUNBATHING);
+            }
+            return createSubTask(TASK_SIMPLE_PAUSE);
+        }
+        // Sunbathe anims not needed - only "beach" matters (0x639D9B)
+        if (!m_pBeachAnimBlock->IsLoaded) {
+            return nullptr;
+        }
+    } else if (!shouldLoadSunbatheAnims) {
+        // (0x639D9B)
+        if (!m_pBeachAnimBlock->IsLoaded) {
+            return nullptr;
+        }
+    }
+
+    // 0x639DA5: "beach" loaded -> bathing with a timer; otherwise (0x639DAF) TASK_NONE/nullptr
+    if (m_pBeachAnimBlock->IsLoaded) {
+        m_BathingTimer.m_nStartTime = CTimer::GetTimeInMS();
+        m_BathingTimer.m_nInterval  = 20'000 - static_cast<int32>(static_cast<float>(rand() & 0xFFFF) * 0.000030517578125f * -80000.0f); // [20000..100000)
+        m_BathingTimer.m_bStarted   = true;
+        m_bBathing                  = true;
+        return createSubTask(TASK_SIMPLE_SUNBATHE);
+    }
+    if (shouldLoadSunbatheAnims) {
+        return createSubTask(TASK_SIMPLE_PAUSE);
+    }
+    return nullptr;
 }
 
 // 0x6381A0
