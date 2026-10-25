@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "TaskComplexSunbathe.h"
+#include "InterestingEvents.h"
 
 void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexSunbathe, 0x86e0ac, 11);
@@ -16,7 +17,7 @@ void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x6366A0, { .Reversed = false });
     RH_ScopedVMTInstall(GetTaskType, 0x632040, { .Reversed = false });
     RH_ScopedVMTInstall(MakeAbortable, 0x6320F0, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
 
@@ -71,7 +72,67 @@ bool CTaskComplexSunbathe::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
 
 // 0x6399F0
 CTask* CTaskComplexSunbathe::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6399F0, CTaskComplexSunbathe*, CPed*>(this, ped);
+    if (ped->m_nPedType == PED_TYPE_PROSTITUTE || ped->m_nPedType == PED_TYPE_CIVFEMALE) {
+        g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_2, ped);
+    }
+
+    // Wrapper over the not-yet-reversed createSubTask (0x638290, not part of this batch)
+    const auto createSubTask = [this, ped](eTaskType taskType) {
+        return plugin::CallMethodAndReturn<CTask*, 0x638290, CTaskComplexSunbathe*, eTaskType, CPed*>(this, taskType, ped);
+    };
+
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_SIMPLE_PAUSE:
+        if (m_bBathing) {
+            // Bathing: anims still needed and loaded -> stand up, otherwise we're done
+            if (!plugin::CallAndReturn<bool, 0x632190>() || !m_pSunbatheAnimBlock->IsLoaded) { // ShouldLoadSunbatheAnims()
+                return createSubTask(TASK_FINISHED);
+            }
+            return createSubTask(TASK_SIMPLE_STOP_SUNBATHING);
+        } else {
+            // Not bathed yet: both anims present -> start sunbathing
+            if (!m_pSunbatheAnimBlock->IsLoaded || !m_pBeachAnimBlock->IsLoaded) {
+                return createSubTask(TASK_FINISHED);
+            }
+            return createSubTask(TASK_SIMPLE_START_SUNBATHING);
+        }
+
+    case TASK_SIMPLE_SUNBATHE:
+        if (!m_pSunbatheAnimBlock->IsLoaded) {
+            return createSubTask(TASK_SIMPLE_PAUSE);
+        }
+        if (!plugin::CallAndReturn<bool, 0x632140>() // CanSunbathe()
+            || m_BathingTimer.IsOutOfTime()
+            || (m_SunbatherType != SUNBATHER_MALE_1 && m_SunbatherType != SUNBATHER_FEMALE_1)) {
+            return createSubTask(TASK_SIMPLE_STOP_SUNBATHING);
+        }
+        return createSubTask(TASK_SIMPLE_IDLE_SUNBATHING);
+
+    case TASK_SIMPLE_START_SUNBATHING:
+        if (!m_pBeachAnimBlock->IsLoaded) {
+            return createSubTask(TASK_FINISHED);
+        }
+        m_BathingTimer.m_nStartTime = CTimer::GetTimeInMS();
+        m_BathingTimer.m_nInterval  = 20'000 + static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * 80000.f);
+        m_BathingTimer.m_bStarted   = true;
+        {
+            auto* const task = createSubTask(TASK_SIMPLE_SUNBATHE);
+            m_bBathing       = true; // NOTE: set AFTER createSubTask in the original
+            return task;
+        }
+
+    case TASK_SIMPLE_IDLE_SUNBATHING:
+        return createSubTask(m_pBeachAnimBlock->IsLoaded ? TASK_SIMPLE_SUNBATHE : TASK_FINISHED);
+
+    case TASK_SIMPLE_STOP_SUNBATHING: {
+        auto* const task = createSubTask(TASK_FINISHED);
+        m_bBathing       = false;
+        return task;
+    }
+
+    default:
+        return nullptr;
+    }
 }
 
 // 0x639CB0
