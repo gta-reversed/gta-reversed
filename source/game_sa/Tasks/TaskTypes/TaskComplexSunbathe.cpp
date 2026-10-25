@@ -19,7 +19,7 @@ void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x6320F0, { .Reversed = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0);
 
 }
 
@@ -198,5 +198,41 @@ CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
 
 // 0x6381A0
 CTask* CTaskComplexSunbathe::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6381A0, CTaskComplexSunbathe*, CPed*>(this, ped);
+    if (m_bAborted) {
+        return nullptr;
+    }
+
+    if (!m_bBeachAnimsReferenced) {
+        if (m_pBeachAnimBlock->IsLoaded) {
+            CAnimManager::AddAnimBlockRef(m_BeachAnimBlockIndex);
+            m_bBeachAnimsReferenced = true;
+        } else {
+            CStreaming::RequestModel(IFPToModelId(m_BeachAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
+        }
+    }
+
+    if (!m_bSunbatheAnimsReferenced) {
+        if (plugin::CallAndReturn<bool, 0x632190>()) { // ShouldLoadSunbatheAnims() - not reversed (not in batch)
+            if (m_pSunbatheAnimBlock->IsLoaded) {
+                CAnimManager::AddAnimBlockRef(m_SunbatheAnimBlockIndex);
+                m_bSunbatheAnimsReferenced = true;
+            } else {
+                CStreaming::RequestModel(IFPToModelId(m_SunbatheAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
+            }
+        }
+    }
+
+    if (m_bBathing) {
+        ped->m_pedIK.bSlopePitch = true;
+        ped->bFallenDown         = true;
+    }
+
+    if (!plugin::CallAndReturn<bool, 0x632140>()) { // CanSunbathe() - not reversed (not in batch)
+        m_BathingTimer.Pause();
+        if (m_pSubTask->GetTaskType() == TASK_SIMPLE_SUNBATHE) {
+            (void)m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE); // NOTE: return value ignored in the original
+        }
+    }
+
+    return m_pSubTask;
 }
