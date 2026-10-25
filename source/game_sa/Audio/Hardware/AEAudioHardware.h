@@ -9,6 +9,7 @@
 #include "AEStreamThread.h"
 #include "AudioEngine.h"
 #include "AEMP3BankLoader.h"
+#include "AEStaticChannel.h"
 
 union CAEAudioHardwarePlayFlags {
     uint16 m_nFlags{};
@@ -41,7 +42,6 @@ union CAEAudioHardwarePlayFlags {
 };
 VALIDATE_SIZE(CAEAudioHardwarePlayFlags, 0x2);
 
-class CAEStreamingChannel;
 class CAEMP3TrackLoader;
 class CAEMP3BankLoader;
 class CAEAudioChannel;
@@ -198,10 +198,11 @@ public:
 
     // notsa
     const CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
-    CAEStaticChannel* GetStaticChannel(int16 channel, uint16 channelId) {
+    CAEStaticChannel& GetStaticChannel(int16 channel, uint16 channelId) {
         assert(channel >= 0 && channelId < m_anNumChannelsInSlot[channel]);
         assert(channel + channelId != 0); // channel #0 is a streaming channel!
-        return reinterpret_cast<CAEStaticChannel*>(m_aChannels[channel + channelId]);
+        assert(m_aChannels[channel + channelId]);
+        return dynamic_cast<CAEStaticChannel&>(*m_aChannels[channel + channelId]);
     }
 
 private:

@@ -262,13 +262,13 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID sou
 
     const auto loopOffset = m_pMP3BankLoader->GetLoopOffset(soundIdInSlot, bankSlot);
     if (channel + channelSlot >= MAX_NUM_AUDIO_CHANNELS) {
-        NOTSA_LOG_ERR("channel + channelSlot < 64 (MAX_NUM_AUDIO_CHANNELS) failed: {}", channel + channelSlot);
+        NOTSA_LOG_ERR("channel + channelSlot < {} (MAX_NUM_AUDIO_CHANNELS) failed: {}", MAX_NUM_AUDIO_CHANNELS, channel + channelSlot);
         assert(false);
         return;
     }
 
-    auto* chan = GetStaticChannel(channel, channelSlot);
-    if (!chan->SetAudioBuffer(
+    auto& chan = GetStaticChannel(channel, channelSlot);
+    if (!chan.SetAudioBuffer(
         buffer,
         size,
         soundIdInSlot,
@@ -280,7 +280,7 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID sou
         return;
     }
 
-    const uint32 length = chan->GetLength();
+    const uint32 length = chan.GetLength();
     auto playPos        = std::max<int16>(playPosition, 0);
     if (flags.m_bIsStartPercentage && playPosition > 0) {
         playPos = static_cast<int16>(std::floor((float)playPos / 100.0f * (float)length));
@@ -290,10 +290,10 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID sou
 
     // TODO: Does this get any other value than 1?
     if (m_n3dEffectsQueryResult & 0xFF) {
-        chan->SetNotInRoom(!flags.m_IsPausable);
+        chan.SetNotInRoom(!flags.m_IsPausable);
     }
 
-    chan->Play(playPos, static_cast<int8>(flags.m_nFlags), speed); // TODO: flags for every override
+    chan.Play(playPos, static_cast<int8>(flags.m_nFlags), speed); // TODO: flags for every override
 }
 
 // 0x5B9340

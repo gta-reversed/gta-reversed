@@ -19,7 +19,7 @@ enum eTrackFlags : int8 {
     TRKFLAG_LOOP_TRACK = 1<<0
 };
 
-class NOTSA_EXPORT_VTABLE CAEStreamingChannel : public CAEAudioChannel {
+class NOTSA_EXPORT_VTABLE CAEStreamingChannel final : public CAEAudioChannel {
     static constexpr size_t CHANNEL_BUFFER_SIZE = 0x60000; // 384 KB
 
 public:

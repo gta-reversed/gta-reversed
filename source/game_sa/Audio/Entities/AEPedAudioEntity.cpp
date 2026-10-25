@@ -505,12 +505,9 @@ void CAEPedAudioEntity::HandlePedHit(eAudioEvents event, CPhysical* physical, ui
 
 // 0x4E2350
 void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
-    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) {
-        AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN);
-        return;
-    }
+    AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN);
 
-    const auto Sound = [&](eSoundID sfxId, uint32 var, eSoundBankSlot slot = SND_BANK_SLOT_WEAPON_GEN) {
+    const auto PlaySound = [&](eSoundID sfxId, uint32 var, eSoundBankSlot slot = SND_BANK_SLOT_WEAPON_GEN) {
         AESoundManager.PlaySound({
             .BankSlotID         = slot,
             .SoundID            = sfxId,
@@ -531,8 +528,8 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
     case AE_PED_JACKED_CAR_PUNCH:
         nextPlayTime += 2'133;
 
-        Sound(SND_GENRL_WEAPONS_KNUCKLE, now + 500);
-        Sound(
+        PlaySound(SND_GENRL_WEAPONS_KNUCKLE, now + 500);
+        PlaySound(
             CAEAudioUtility::GetRandomNumberInRange<eSoundID>(
                 SND_GENRL_WEAPONS_BOX_FACE1,
                 SND_GENRL_WEAPONS_BOX_FACE4
@@ -543,8 +540,8 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
     case AE_PED_JACKED_CAR_HEAD_BANG:
         nextPlayTime += 2'633;
 
-        Sound(SND_GENRL_WEAPONS_DILDO, now + 933);
-        Sound(
+        PlaySound(SND_GENRL_WEAPONS_DILDO, now + 933);
+        PlaySound(
             CAEAudioUtility::GetRandomNumberInRange<eSoundID>(
                 SND_GENRL_WEAPONS_BODY_PUNCH1,
                 SND_GENRL_WEAPONS_BODY_PUNCH4
@@ -555,7 +552,7 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
     case AE_PED_JACKED_CAR_KICK:
         nextPlayTime += 2'800;
 
-        Sound(
+        PlaySound(
             CAEAudioUtility::GetRandomNumberInRange<eSoundID>(
                 SND_GENRL_WEAPONS_BOX_FACE1,
                 SND_GENRL_WEAPONS_BOX_FACE4
@@ -566,8 +563,8 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
     case AE_PED_JACKED_BIKE:
         nextPlayTime += 366;
 
-        Sound(SND_GENRL_WEAPONS_KNUCKLE, now + 33);
-        Sound(
+        PlaySound(SND_GENRL_WEAPONS_KNUCKLE, now + 33);
+        PlaySound(
             CAEAudioUtility::GetRandomNumberInRange<eSoundID>(
                 SND_GENRL_WEAPONS_BOX_FACE1,
                 SND_GENRL_WEAPONS_BOX_FACE4
@@ -578,7 +575,7 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
     case AE_PED_JACKED_DOZER:
         nextPlayTime += 833;
 
-        Sound(
+        PlaySound(
             CAEAudioUtility::GetRandomNumberInRange<eSoundID>(
                 SND_GENRL_WEAPONS_BODY_PUNCH1,
                 SND_GENRL_WEAPONS_BODY_PUNCH4
@@ -590,11 +587,8 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
         break;
     }
 
-    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC)) {
-        AEAudioHardware.LoadSoundBank(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
-        return;
-    }
-    Sound(SND_BANK_FEET_GENERIC, nextPlayTime, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
+    AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
+    PlaySound(SND_BANK_FEET_GENERIC, nextPlayTime, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
 }
 
 // 0x4E26A0

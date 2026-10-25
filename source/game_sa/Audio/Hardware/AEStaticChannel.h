@@ -1,7 +1,7 @@
 #pragma once
 #include "AEAudioChannel.h"
 
-class NOTSA_EXPORT_VTABLE CAEStaticChannel : public CAEAudioChannel {
+class NOTSA_EXPORT_VTABLE CAEStaticChannel final : public CAEAudioChannel {
 public:
     bool   m_OverwriteIntroWhenWrapped; //< originally m_bNeedData
     bool   m_bNeedFade;
