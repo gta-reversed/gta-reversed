@@ -308,7 +308,7 @@ bool InteriorManager_c::IsInteriorEffectVisible(C2dEffectInterior* effect, CEnti
     const auto& ebb = entity->GetColModel()->GetBoundingBox();
     const auto& ebbMin = ebb.m_vecMin,
                 ebbMax = ebb.m_vecMax;
-    CBoundingBox bb{ CVector{FLT_MAX}, CVector{FLT_MIN} };
+    CBoundingBox bb{ CVector{FLT_MAX}, CVector{-FLT_MAX} };
     const auto StretchTo = [&bb, m = entity->GetMatrix()](CVector pt) {
         bb.StretchToPoint(m.TransformPoint(pt));
     };

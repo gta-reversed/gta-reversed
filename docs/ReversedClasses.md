@@ -1,15 +1,15 @@
-# Reimplementation progress (*): 91%
+# Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 22, 2026 at 09:42:19 UTC
-(Triggered by commit [a366ad66](https://github.com/gta-reversed/gta-reversed/commit/a366ad665b947e6be7cd0fcbebc2352b0b8b2b91))
+Last update was at Oct 25, 2026 at 12:48:23 UTC
+(Triggered by commit [e158f1ca](https://github.com/gta-reversed/gta-reversed/commit/e158f1ca5a04a500d11e33a21bb66114ea631504))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7616 out of 8324 functions done in 722 categories)
+## Stats (7621 out of 8324 functions done in 722 categories)
 
 #### Completely reversed categories (599/722) [83%]
 
@@ -321,8 +321,8 @@ Last update was at Oct 22, 2026 at 09:42:19 UTC
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 - CTaskComplexDestroyCar (9)<br />
-- CTaskComplexDestroyCarArmed (10)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
 - CTaskComplexDieInCar (6)<br />
 - CTaskComplexDragPedFromCar (2)<br />
@@ -681,7 +681,7 @@ Last update was at Oct 22, 2026 at 09:42:19 UTC
 - CTaskGangHassleVehicle (2/8) [25%]<br />
 - CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
+- CTaskComplexDestroyCarArmed (9/10) [90%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGoToPointAiming (6/8) [75%]<br />
