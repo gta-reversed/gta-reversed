@@ -3134,38 +3134,44 @@ void CVehicle::SetupRender() {
 }
 
 // 0x6D6C00
-void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
-                            CVector& wheelContactSpeed, CVector& wheelContactPoint,
+void CVehicle::ProcessWheel(CVector& wheelFwd,
+                            CVector& wheelRight,
+                            CVector& wheelContactSpeed,
+                            CVector& wheelContactPoint,
                             int32 wheelsOnGround,
-                            float thrust, float brake, float adhesion,
-                            int8 wheelId, float& wheelSpeed,
-                            tWheelState& wheelState, uint16 wheelStatus
-) {
-    auto& braking = StaticRef<bool>(0xC1CDAE);
-    auto& driving = StaticRef<bool>(0xC1CDAD);
-    auto& alreadySkidding = StaticRef<bool>(0xC1CDAC); // not reset
+                            float thrust,
+                            float brake,
+                            float adhesion,
+                            int8 wheelId,
+                            float& wheelSpeed_unused,
+                            tWheelState& outWheelState,
+                            uint16 wheelStatus)
+{
+    auto& s_braking = StaticRef<bool>(0xC1CDAE);
+    auto& s_driving = StaticRef<bool>(0xC1CDAD);
+    auto& s_alreadySkidding = StaticRef<bool>(0xC1CDAC); // not reset
 
     float right = 0.0f;
     float fwd = 0.0f;
     const float contactSpeedFwd = wheelFwd.Dot(wheelContactSpeed);
     const float contactSpeedRight = wheelRight.Dot(wheelContactSpeed);
 
-    braking = brake != 0.0f;
-    driving = !braking;
-    if (driving && thrust == 0.0f)
-        driving = false;
+    s_braking = brake != 0.0f;
+    s_driving = !s_braking;
+    if (s_driving && thrust == 0.0f)
+        s_driving = false;
 
     adhesion *= CTimer::GetTimeStep();
-    if (wheelState != WHEEL_STATE_NORMAL) {
-        alreadySkidding = true;
+    if (outWheelState != WHEEL_STATE_NORMAL) {
+        s_alreadySkidding = true;
         adhesion *= m_pHandlingData->m_fTractionLoss;
-        if (wheelState == WHEEL_STATE_SPINNING) {
+        if (outWheelState == WHEEL_STATE_SPINNING) {
             if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED)
                 adhesion *= (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
         }
     }
 
-    wheelState = WHEEL_STATE_NORMAL;
+    outWheelState = WHEEL_STATE_NORMAL;
 
     if (contactSpeedRight != 0.0f) {
         right = -(contactSpeedRight / wheelsOnGround);
@@ -3174,13 +3180,13 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
         }
     }
 
-    if (driving) {
+    if (s_driving) {
         fwd = thrust;
         right = std::clamp(right, -adhesion, adhesion);
     }
     else if (contactSpeedFwd != 0.0f) {
         fwd = -contactSpeedFwd / wheelsOnGround;
-        if (!braking && std::abs(m_GasPedal) < 0.01f) {
+        if (!s_braking && std::abs(m_GasPedal) < 0.01f) {
             if (IsBike())
                 brake = gHandlingDataMgr.fWheelFriction * 0.6f / (m_pHandlingData->m_fMass + 200.0f);
             else if (IsSubPlane())
@@ -3196,7 +3202,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
         }
         if (brake > adhesion) {
             if (std::abs(contactSpeedFwd) > 0.005f) {
-                wheelState = WHEEL_STATE_FIXED;
+                outWheelState = WHEEL_STATE_FIXED;
             }
         } else {
             fwd = std::clamp(fwd, -brake, brake);
@@ -3205,20 +3211,20 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
 
     const float speedSq = sq(right) + sq(fwd);
     if (speedSq > sq(adhesion)) {
-        if (wheelState != WHEEL_STATE_FIXED) {
+        if (outWheelState != WHEEL_STATE_FIXED) {
             float tractionLimit = WS_TRAC_FRAC_LIMIT;
             if (contactSpeedFwd > 0.15f && (!wheelId || wheelId == CAR_WHEEL_FRONT_RIGHT)) {
                 tractionLimit += tractionLimit;
             }
-            if (driving && tractionLimit * adhesion < std::abs(fwd))
-                wheelState = WHEEL_STATE_SPINNING;
+            if (s_driving && tractionLimit * adhesion < std::abs(fwd))
+                outWheelState = WHEEL_STATE_SPINNING;
             else
-                wheelState = WHEEL_STATE_SKIDDING;
+                outWheelState = WHEEL_STATE_SKIDDING;
         }
         float tractionLoss = m_pHandlingData->m_fTractionLoss;
-        if (alreadySkidding) {
+        if (s_alreadySkidding) {
             tractionLoss = 1.0f;
-        } else if (wheelState == WHEEL_STATE_SPINNING) {
+        } else if (outWheelState == WHEEL_STATE_SPINNING) {
             if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
                 tractionLoss = tractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
@@ -3234,11 +3240,11 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
         CVector turnDirection  = totalSpeed;
 
         if (m_pHandlingData->m_fSuspensionAntiDiveMultiplier > 0.0f) {
-            if (braking) {
+            if (s_braking) {
                 separateTurnForce = true;
                 turnDirection -= (m_pHandlingData->m_fSuspensionAntiDiveMultiplier * wheelFwd * fwd);
             }
-            else if (driving) {
+            else if (s_driving) {
                 separateTurnForce = true;
                 turnDirection -= (0.5f * m_pHandlingData->m_fSuspensionAntiDiveMultiplier * wheelFwd * fwd);
             }
@@ -3263,33 +3269,41 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
 }
 
 // 0x6D73B0
-void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
-                                CVector& wheelContactSpeed, CVector& wheelContactPoint,
+void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
+                                CVector& wheelRight,
+                                CVector& wheelContactSpeed,
+                                CVector& wheelContactPoint,
                                 int32 wheelsOnGround,
-                                float thrust, float brake, float adhesion, float destabTraction,
-                                int8 wheelId, float& wheelSpeed,
-                                tWheelState& wheelState, eBikeWheelSpecial special, uint16 wheelStatus
-) {
-    auto& braking         = StaticRef<bool>(0xC1CDB2);
-    auto& driving         = StaticRef<bool>(0xC1CDB1);
-    auto& reversing       = StaticRef<bool>(0xC1CDB0);
-    auto& alreadySkidding = StaticRef<bool>(0xC1CDAF); // not reset
+                                float thrust,
+                                float brake,
+                                float adhesion,
+                                float destabTraction,
+                                int8 wheelId,
+                                float& wheelSpeed_unused,
+                                tWheelState& outWheelState,
+                                eBikeWheelSpecial special,
+                                uint16 wheelStatus)
+{
+    auto& s_braking         = StaticRef<bool>(0xC1CDB2);
+    auto& s_driving         = StaticRef<bool>(0xC1CDB1);
+    auto& s_reversing       = StaticRef<bool>(0xC1CDB0);
+    auto& s_alreadySkidding = StaticRef<bool>(0xC1CDAF); // not reset
 
-    float right = 0.0f, fwd = 0.0f;
+    float       right = 0.0f, fwd = 0.0f;
     const float contactSpeedFwd = wheelFwd.Dot(wheelContactSpeed);
 
-    braking              = brake != 0.0f;
-    driving              = !braking && thrust != 0.0f;
-    reversing            = !braking && thrust < 0.0f;
+    s_braking                   = brake != 0.0f;
+    s_driving                   = !s_braking && thrust != 0.0f;
+    s_reversing                 = !s_braking && thrust < 0.0f;
 
-    if (wheelState) {
-        alreadySkidding = true;
+    if (outWheelState) {
+        s_alreadySkidding = true;
     }
 
-    wheelState = WHEEL_STATE_NORMAL;
+    outWheelState = WHEEL_STATE_NORMAL;
 
     adhesion *= CTimer::GetTimeStep();
-    if (alreadySkidding) {
+    if (s_alreadySkidding) {
         adhesion *= m_pHandlingData->m_fTractionLoss;
     }
 
@@ -3303,12 +3317,12 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
         }
     }
 
-    if (driving) {
+    if (s_driving) {
         fwd   = thrust;
         right = std::clamp(right, -adhesion, adhesion);
     } else if (contactSpeedFwd != 0.0f) {
         fwd = -(contactSpeedFwd / wheelsOnGround);
-        if (!braking && std::abs(m_GasPedal) < 0.01f) { // fpu 0x6D7630
+        if (!s_braking && std::abs(m_GasPedal) < 0.01f) { // fpu 0x6D7630
             if (IsSubBMX()) {
                 if (fwd > -0.05f && fwd < 0.05f) {
                     brake = 0.5f * gHandlingDataMgr.fWheelFriction / (m_pHandlingData->m_fMass + 200.0f);
@@ -3324,7 +3338,7 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
         }
         if (brake > adhesion) {
             if (std::abs(contactSpeedFwd) > 0.005f) {
-                wheelState = WHEEL_STATE_FIXED;
+                outWheelState = WHEEL_STATE_FIXED;
             }
         } else {
             fwd = std::clamp(fwd, -brake, brake);
@@ -3334,7 +3348,7 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
     const float adhesionSq = sq(adhesion);
     if (speedSq <= adhesionSq) {
         if (destabTraction < 1.0f) {
-            if (!alreadySkidding) {
+            if (!s_alreadySkidding) {
                 destabTraction *= m_pHandlingData->m_fTractionLoss;
             }
             if (adhesionSq * sq(destabTraction) < speedSq) {
@@ -3342,14 +3356,14 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
             }
         }
     } else {
-        if (wheelState != WHEEL_STATE_FIXED) {
-            if (driving && contactSpeedFwd < 0.1f) {
-                wheelState = WHEEL_STATE_SPINNING;
+        if (outWheelState != WHEEL_STATE_FIXED) {
+            if (s_driving && contactSpeedFwd < 0.1f) {
+                outWheelState = WHEEL_STATE_SPINNING;
             } else {
-                wheelState = WHEEL_STATE_SKIDDING;
+                outWheelState = WHEEL_STATE_SKIDDING;
             }
         }
-        const float tractionLoss = (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(speedSq) * adhesion;
+        const float tractionLoss = (s_alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(speedSq) * adhesion;
         fwd *= tractionLoss;
         right *= tractionLoss;
         if (destabTraction < 1.0f) {
@@ -3357,10 +3371,8 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
         }
     }
     if (fwd != 0.0f || right != 0.0f) {
-        CVector     moveVec = right * wheelRight + fwd * wheelFwd;
-        const float speed   = moveVec.Magnitude();
-        moveVec.Normalise(); // now leave only dir component
-
+        CVector       moveVec     = right * wheelRight + fwd * wheelFwd;
+        const float   speed       = moveVec.NormaliseAndMag(); // now get speed and leave only dir component
         const float   impulse     = m_fMass * speed;
         const CVector turnImpulse = moveVec * CPhysical::GetMass(wheelContactPoint, moveVec) * speed;
 
@@ -3370,7 +3382,7 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight,
         const CVector contactRight     = wheelContactPoint.Dot(GetRight()) * GetRight();
         const CVector contactFwd       = wheelContactPoint.Dot(GetForward()) * GetForward();
 
-        if (wheelId != CAR_WHEEL_REAR_LEFT || !braking && !reversing) {
+        if (wheelId != CAR_WHEEL_REAR_LEFT || !s_braking && !s_reversing) {
             CPhysical::ApplyTurnForce((turnImpulse - turnImpulseRight) * fTweakBikeWheelTurnForce, wheelContactPoint - contactRight);
         }
 
@@ -4638,14 +4650,11 @@ void CVehicle::DoSunGlare() {
 
     // sun direction plus camera direction, projected into the car's local XY plane
     const CVector sunCam = toCamNudge + CTimeCycle::GetVectorToSun();
-    CVector glareDir = { sunCam.Dot(GetRight()), sunCam.Dot(GetForward()), 0.0f };
-    glareDir.Normalise();
+    const auto glareDir = CVector{ sunCam.Dot(GetRight()), sunCam.Dot(GetForward()), 0.0f }.Normalized();
 
     // fade, camera must be nearly aligned with the car's forward axis (2D)
-    CVector2D fwd2D = { GetForward().x, GetForward().y };
-    fwd2D.Normalise();
-    CVector2D cam2D = { toCamNudge.x, toCamNudge.y };
-    cam2D.Normalise();
+    const auto fwd2D = CVector2D{ GetForward() }.Normalized();
+    const auto cam2D = CVector2D{ toCamNudge }.Normalized();
 
     const float alignment = std::abs(fwd2D.Dot(cam2D));
     if (alignment <= 0.99f) {
@@ -4664,9 +4673,9 @@ void CVehicle::DoSunGlare() {
     }
     intensity *= 0.8f * (1.f/3.f) * CWeather::SunGlare;
 
-    const auto r = static_cast<uint8>((CTimeCycle::GetSunCoreRed() + 510) * intensity);
-    const auto g = static_cast<uint8>((CTimeCycle::GetSunCoreGreen() + 510) * intensity);
-    const auto b = static_cast<uint8>((CTimeCycle::GetSunCoreBlue() + 510) * intensity);
+    const auto r = static_cast<uint8>((CTimeCycle::GetSunCoreRed() + 2 * 255) * intensity);
+    const auto g = static_cast<uint8>((CTimeCycle::GetSunCoreGreen() + 2 * 255) * intensity);
+    const auto b = static_cast<uint8>((CTimeCycle::GetSunCoreBlue() + 2 * 255) * intensity);
 
     // walk collision triangles in pairs, looking for quads
     const auto cd = GetColModel()->m_pColData;
@@ -4873,51 +4882,46 @@ void CVehicle::AddExhaustParticles() {
 
 // always return false?
 // 0x6DE880
-bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector, eCarWheel wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags) {
+bool CVehicle::AddSingleWheelParticles(tWheelState wheelState,
+                                       uint32 wheelStatus,
+                                       float suspRatio,
+                                       float speed,
+                                       CColPoint& colPoint,
+                                       CVector& pos,
+                                       float outsideVector,
+                                       eCarWheel wheelIndex,
+                                       eSkidmarkType skidmarkType,
+                                       bool& bloodState,
+                                       uint32 flags)
+{
     // TODO: make enum for flags
     if (m_bOffscreen) {
         return false;
     }
 
-    const float distToCamSq = (TheCamera.GetPosition() - GetPosition()).SquaredMagnitude();
+    const float distToCamSq = DistanceBetweenPointsSquared(GetPosition(), TheCamera.GetPosition());
     if ((distToCamSq > sq(25.0f) && !vehicleFlags.bAlwaysSkidMarks) || suspRatio >= 1.0f) { // suspRatio check from 0x6DE962 moved here
         return false;
     }
 
-    bool emitParticles = true;
-    if (distToCamSq <= sq(20.0f)) {
-        if (!(distToCamSq <= sq(8.0f) && FindPlayerVehicle())) {
-            emitParticles = ((CTimer::GetFrameCounter() + GetModelIndex()) & 1) == 0;
-        }
-    } else {
-        emitParticles = ((CTimer::GetFrameCounter() + GetModelIndex()) & 3) == 0;
-    }
-
-    bool inWater = false;
-    if (g_surfaceInfos.IsWater(colPoint.m_nSurfaceTypeB)) {
-        inWater = true;
-    } else if (physicalFlags.bTouchingWater) {
-        if (float waterLevel{}; CWaterLevel::GetWaterLevel(pos.x, pos.y, pos.z, waterLevel, true, nullptr) && waterLevel >= pos.z) {
-            inWater = true;
-        }
-    }
+    const bool emitParticles = distToCamSq > sq(20.0f)
+        ? ((CTimer::GetFrameCounter() + GetModelIndex()) & 3) == 0
+        : (distToCamSq <= sq(8.0f) && FindPlayerVehicle()) || ((CTimer::GetFrameCounter() + GetModelIndex()) & 1) == 0;
+    const bool inWater = g_surfaceInfos.IsWater(colPoint.m_nSurfaceTypeB) || (physicalFlags.bTouchingWater && [pos] {
+                             float waterLevel{};
+                             return CWaterLevel::GetWaterLevel(pos.x, pos.y, pos.z, waterLevel, true, nullptr) && waterLevel >= pos.z;
+                         }());
 
     // metal-on-ground friction effect
     if (wheelStatus == WHEEL_STATUS_BURST
         && (speed > 0.1f || wheelState == WHEEL_STATE_SPINNING)
         && g_surfaceInfos.GetFrictionEffect(colPoint.m_nSurfaceTypeB) == FRICTION_EFFECT_SPARKS) {
-        CVector sparkDir = m_vecMoveSpeed * -50.0f;
+        const bool  lowSpeedSpinning = wheelState == WHEEL_STATE_SPINNING && speed < 0.2f;
+        const float sparkCount       = lowSpeedSpinning ? 10.0f : 32.0f * speed;
+
+        CVector sparkDir             = lowSpeedSpinning ? GetForward() * -12.0f * m_GasPedal : -50.0f * m_vecMoveSpeed;
         sparkDir.z += 2.5f;
-        float sparkCount = speed * 32.0f;
-
-        if (wheelState == WHEEL_STATE_SPINNING && speed < 0.2f) {
-            sparkDir = GetForward() * m_GasPedal * -12.0f;
-            sparkDir.z += 2.5f;
-            sparkCount = 10.0f;
-        }
-
-        const float force = sparkDir.NormaliseAndMag();
-        g_fx.AddSparks(pos, sparkDir, force, static_cast<int32>(sparkCount), m_vecMoveSpeed, SPARK_PARTICLE_SPARK, 0.1f, 0.3f);
+        g_fx.AddSparks(pos, sparkDir, sparkDir.NormaliseAndMag(), static_cast<int32>(sparkCount), m_vecMoveSpeed, SPARK_PARTICLE_SPARK, 0.1f, 0.3f);
 
         AudioEngine.ReportCollision(this, FindPlayerPed(0), colPoint.m_nSurfaceTypeA, colPoint.m_nSurfaceTypeB, pos, nullptr, 1.0f, 1.0f, false, true);
     }
@@ -4974,8 +4978,8 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
                 prt.m_Color.alpha = 0.3f;
                 prt.m_fSize       = 0.5f;
             }
-
             ScaleSmokeForSubType(prt);
+
             const float   gasAbs = std::abs(m_GasPedal);
             const CVector vel    = { CGeneral::GetRandomNumberInRange(0.0f, gasAbs * m_vecMoveSpeed.x * -30.0f),
                                      CGeneral::GetRandomNumberInRange(0.0f, gasAbs * m_vecMoveSpeed.y * -30.0f),
@@ -4993,16 +4997,13 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
     case WHEEL_STATE_FIXED: {
         if (speed > 0.03f && AddWheelDirtAndWater(colPoint, slowEnoughForFx, false, inWater) && emitParticles) {
             FxPrtMult_c   prt(0.9f, 0.9f, 1.0f, 0.5f, 0.7f, 1.0f, 0.3f);
-            const CVector vel(0.0f, 0.0f, 0.5f);
             const float   smokeMult = ScaleSmokeForSubType(prt) ? 3.0f : 2.0f;
-
             const CVector step      = m_vecMoveSpeed * CTimer::GetTimeStep();
             const int32   count     = std::max(1, static_cast<int32>(step.Magnitude() * smokeMult));
             for (int32 i = 0; i < count; ++i) {
-                RandomizeSmokeColor(prt);
-
                 const float t = 1.0f - (float)i / (float)count;
-                g_fx.m_SmokeII3expand->AddParticle(pos - step * t, vel, 0.3f, prt, -1.0f, m_fContactSurfaceBrightness, 0.6f, false);
+                RandomizeSmokeColor(prt);
+                g_fx.m_SmokeII3expand->AddParticle(pos - step * t, CVector(0.0f, 0.0f, 0.5f), 0.3f, prt, -1.0f, m_fContactSurfaceBrightness, 0.6f, false);
             }
         }
         break;
@@ -5020,18 +5021,15 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatu
     }
     }
 
-    if (wheelStatus == WHEEL_STATUS_BURST || inWater) { // inWater moved here
-        return false;
+    if (wheelStatus != WHEEL_STATUS_BURST && !inWater) {
+        CVector skidPos = pos;
+        if (GetModelIndex() == MODEL_QUAD) { // notsa: suggest to use IsSubQuad() instead
+            // shift the skidmark sideways, towards the inside of the wheel
+            const CVector quadOff = GetRight() * 0.15f;
+            skidPos += isRightWheel ? -quadOff : quadOff;
+        }
+        CSkidmarks::RegisterOne((uintptr)this + wheelIndex, skidPos, GetForward().x, GetForward().y, skidmarkType, &bloodState, FindWheelWidth(isRearWheel));
     }
-
-    CVector skidPos = pos;
-    if (GetModelIndex() == MODEL_QUAD) { // notsa: suggest to use IsSubQuad() instead
-        // shift the skidmark sideways, towards the inside of the wheel
-        const CVector quadOff = GetRight() * 0.15f;
-        skidPos += isRightWheel ? -quadOff : quadOff;
-    }
-
-    CSkidmarks::RegisterOne((uintptr)this + wheelIndex, skidPos, GetForward().x, GetForward().y, skidmarkType, &bloodState, FindWheelWidth(isRearWheel));
     return false;
 }
 
@@ -5082,16 +5080,16 @@ void CVehicle::UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHook
     if (towingVeh && beingTowedVeh
         && (isTowing || GetStatus() == STATUS_IS_TOWED || GetStatus() == STATUS_IS_SIMPLE_TOWED)
         && beingTowedVeh->GetTowHitchPos(towedHitchPos, true, towingVeh)
-        && towingVeh->GetTowBarPos(towingBarPos, true, beingTowedVeh))
-    {
-        CVector       linkDir = towingBarPos - towedHitchPos; // rel to towing
-        if (isTowing) linkDir = -linkDir; // or to towed
+        && towingVeh->GetTowBarPos(towingBarPos, true, beingTowedVeh)) {
+        CVector linkDir = towingBarPos - towedHitchPos; // rel to towing
+        if (isTowing) {
+            linkDir = -linkDir; // or to towed
+        }
 
         if (isTowing
             || (1.0f * (CTimer::GetTimeStep() <= 0.7f ? 0.7f : CTimer::GetTimeStep()) >= linkDir.Magnitude()
                 && towingVeh->GetForward().Dot(GetForward()) >= -0.3f
-                && towingVeh->GetUp().Dot(GetUp()) >= 0.0f))
-        {
+                && towingVeh->GetUp().Dot(GetUp()) >= 0.0f)) {
             if (towingVeh->GetModelIndex() != MODEL_TOWTRUCK && towingVeh->GetModelIndex() != MODEL_TRACTOR
                 || (towingVeh->IsAutomobile() && towingVeh->AsAutomobile()->m_wMiscComponentAngle <= ::TOWTRUCK_HOIST_DOWN_LIMIT - 100u)) {
                 const CVector towedHitchPosWorld = towedHitchPos - beingTowedVeh->GetPosition();
@@ -5099,7 +5097,9 @@ void CVehicle::UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHook
                 const CVector towedHitchPosSpeed = beingTowedVeh->GetSpeed(towedHitchPosWorld);
                 const CVector towingBarPosSpeed  = towingVeh->GetSpeed(towingBarPosWorld);
                 CVector       speedDiffVec       = towingBarPosSpeed - towedHitchPosSpeed; // rel to towing
-                if (isTowing) speedDiffVec       = -speedDiffVec; // or to towed
+                if (isTowing) {
+                    speedDiffVec = -speedDiffVec; // or to towed
+                }
 
                 if (!applyFullVelocityAtHookUp) {
                     if (applyDistToSpeed) {
@@ -5111,9 +5111,9 @@ void CVehicle::UpdateVehicleLinkImpl(bool isTowing, bool applyFullVelocityAtHook
                 if (beingTowedVeh->IsSubTrailer() && beingTowedVeh->AsTrailer()->m_fTrailerTowedRatio == ::BAGGAGE_TRAILER_TOWED_RATIO) {
                     speedDiffVec -= speedDiffVec.Dot(beingTowedVeh->GetUp()) * beingTowedVeh->GetUp();
                 }
-                const CVector& thisLinkPosWorld   = (isTowing ? towingBarPosWorld : towedHitchPosWorld);
-                const CVector  thisComDir         = thisLinkPosWorld - GetMatrix().TransformVector(m_vecCentreOfMass);
-                const CVector  turnForce          = CPhysical::GetMass(thisComDir, speedDiffVec.Normalized()) * speedDiffVec;
+                const CVector& thisLinkPosWorld = (isTowing ? towingBarPosWorld : towedHitchPosWorld);
+                const CVector  thisComDir       = thisLinkPosWorld - GetMatrix().TransformVector(m_vecCentreOfMass);
+                const CVector  turnForce        = CPhysical::GetMass(thisComDir, speedDiffVec.Normalized()) * speedDiffVec;
 
                 CPhysical::ApplyForce(turnForce, thisLinkPosWorld, true);
 
