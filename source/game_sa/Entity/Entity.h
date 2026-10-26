@@ -79,7 +79,7 @@ public:
             bool m_bDontStream : 1;                  // tell the streaming not to stream me
             bool m_bUnderwater : 1;                  // this object is underwater change drawing order
             bool m_bHasPreRenderEffects : 1;         // Object has a prerender effects attached to it
-            bool m_bIsTempBuilding : 1;              // whether the building is temporary (i.e. can be created and deleted more than once)
+            bool m_bIsTempBuilding : 1;              // whether the building is temporary (i.e. can be created and deleted more than once) - also used for interior entities (FurnitureEntity_c)
             bool m_bDontUpdateHierarchy : 1;         // Don't update the animation hierarchy this frame
 
             bool m_bHasRoadsignText : 1;             // entity is roadsign and has some 2dEffect text stuff to be rendered

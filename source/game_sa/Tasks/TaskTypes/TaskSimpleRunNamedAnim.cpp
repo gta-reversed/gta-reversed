@@ -25,7 +25,6 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim() :
     // Rest done in header
 }
 
-// todo: check m_vecOffsetAtEnd initialization
 // 0x61A990
 CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     const char* animName,

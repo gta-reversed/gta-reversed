@@ -381,10 +381,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     }
     player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;
-    if (auto vehicle = player->m_pVehicle) {
-        CEntity::CleanUpOldReference(vehicle);
-    }
-    player->m_pVehicle = nullptr;
+    CEntity::ClearReference(player->m_pVehicle);
     player->GetWanted()->Reset();
     player->RestartNonPartialAnims();
     playerInfo->MakePlayerSafe(false, 10'000.0f);

@@ -207,7 +207,7 @@ void CAESoundManager::Service() {
         int16 chN = m_NumAllocatedPhysicalChannels - 1;
 
         // 0x4F04CE - Find last slot in use
-        for (; chN > numPrioritisedSounds; chN--) {
+        for (; chN >= numPrioritisedSounds; chN--) {
             if (GetPrioritisedSoundList()[chN] != -1) {
                 break;
             }
@@ -219,7 +219,7 @@ void CAESoundManager::Service() {
             if (sound.m_ListenerVolume >= soundB.m_ListenerVolume) {
                 continue;
             }
-            if (sound.GetPlayPhysically() <= soundB.GetPlayPhysically()) {
+            if (sound.GetPlayPhysically() > soundB.GetPlayPhysically()) {
                 continue;
             }
             break;
@@ -339,13 +339,13 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
         pSound->UnregisterWithPhysicalEntity();
         s->NewVPSLEntry();
         AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_SoundID, s->m_BankSlot);
-    }
 
 #ifdef NOTSA_DEBUG
-    notsa::ui::UIRenderer::GetInstance().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
-        .StackTrace = std::stacktrace::current()
-    });
+        notsa::ui::UIRenderer::GetInstance().GetDebugModules().GetModule<notsa::debugmodules::SoundManagerDebugModule>()->SetSoundInfo(sidx, {
+            .StackTrace = std::stacktrace::current()
+        });
 #endif
+    }
 
     return s;
 }

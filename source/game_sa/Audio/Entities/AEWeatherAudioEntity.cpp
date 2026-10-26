@@ -144,33 +144,34 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
             const auto UpdateSound = [&](float speed, float volume) { // 0x505F56
                 if (sound->GetVolume() < volume + GetDefaultVolume(AE_CITY_NOISE)) {
                     sound->SetVolume(std::min(volume + sound->GetVolume() + 0.3f, GetDefaultVolume(AE_CITY_NOISE) + volume));
+                    cityNoiseVolumeBoostResidue = volume;
                 } else if (sound->GetVolume() > volume + GetDefaultVolume(AE_CITY_NOISE)) {
                     if (cityNoiseVolumeBoostResidue <= 0.f) {
-                       sound->SetVolume(std::max(volume + sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE) + volume));
-                    } else {
-                        cityNoiseVolumeBoostResidue = std::min(1.3f, cityNoiseVolumeBoostResidue);
-                        sound->SetVolume(std::max(sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE)) - cityNoiseVolumeBoostResidue);
-                        //if (sound->GetVolume() - 0.3f - residue <= GetDefaultVolume(AE_CITY_NOISE) - residue) {
-                        //} else {
-                        //}
+                        sound->SetVolume(std::max(sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE)));
+                    } else { // 0x505FB5
+                        const auto residue = std::min(1.3f, cityNoiseVolumeBoostResidue);
+                        sound->SetVolume(std::max(sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE)) - residue);
+                        cityNoiseVolumeBoostResidue -= residue;
                     }
                 }
                 sound->SetSpeed(speed);
+                lastEntity = hitEntity;
             };
             if (hitEntity && hitEntity != lastEntity && std::abs(camPos.z - pov.z) < 6.f) { // 0x505D50
                 const CVector velocity = player && player->IsInVehicle()
                     ? player->m_pVehicle->GetMoveSpeed()
                     : CVector{};
-                const CVector hitPhysicalPos = hitEntity->GetIsTypePhysical()
-                    ? hitEntity->GetPosition()
+                const CVector hitPhysicalVelocity = hitEntity->GetIsTypePhysical()
+                    ? hitEntity->AsPhysical()->GetMoveSpeed()
                     : CVector{};
                 const auto fwd = TheCamera.GetForwardVector().Normalized();
-                const auto force = (velocity.ProjectOnToNormal(fwd) - hitPhysicalPos.ProjectOnToNormal(fwd)).Magnitude();
+                const auto force = (velocity.ProjectOnToNormal(fwd) - hitPhysicalVelocity.ProjectOnToNormal(fwd)).Magnitude();
                 if (force > 0.35f) { // 0x505E8D
                     const auto speed = (force - 0.35f) / 0.95f;
-                    UpdateSound(speed * 1.75f + 1.75f, CAEAudioUtility::AudioLog10((1.f - (pov + camRight - hitCP.m_vecPoint).Magnitude() / 0.6f) * speed) * 20.f + 30.f);
+                    UpdateSound(speed * 1.75f + 1.75f, CAEAudioUtility::AudioLog10((1.f - (pov + camRight - hitCP.m_vecPoint).Magnitude() / 6.f) * speed) * 20.f + 30.f);
+                } else {
+                    UpdateSound(1.f, 0.f);
                 }
-                lastEntity = hitEntity;
             } else {
                 UpdateSound(1.f, 0.f);
             }
@@ -180,11 +181,11 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         if (sound->m_CurrPos == DEFAULT_POS) {
             static auto& fCityNoiseVolumeBoostResidueRight = StaticRef<float>(0xB6BC70);
             static auto& pLastEntityRight = StaticRef<CEntity*>(0xB6BC74);
-            Process(pov + camRight * 4.f, pov + camRight, fCityNoiseVolumeBoostResidueRight, pLastEntityRight);
+            Process(pov + camRight, pov + camRight * 4.f, fCityNoiseVolumeBoostResidueRight, pLastEntityRight);
         } else {
             static auto& fCityNoiseVolumeBoostResidueLeft = StaticRef<float>(0xB6BC68);
             static auto& pLastEntityLeft = StaticRef<CEntity*>(0xB6BC6C);
-            Process(pov - camRight * 4.f, pov - camRight, fCityNoiseVolumeBoostResidueLeft, pLastEntityLeft);
+            Process(pov - camRight, pov - camRight * 4.f, fCityNoiseVolumeBoostResidueLeft, pLastEntityLeft);
         }
 
         break;

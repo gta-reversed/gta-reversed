@@ -257,7 +257,7 @@ void PedDebugModule::Render3D() {
     }
 
     for (auto* ped : m_LastProcessedPeds) {
-        if (!ped) {
+        if (!ped || !GetPedPool()->IsObjectValid(ped)) { // The ped might've been deleted since `RenderWindow`
             continue;
         }
         auto& taskMgr = ped->GetTaskManager();

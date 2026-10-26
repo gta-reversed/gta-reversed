@@ -11,7 +11,7 @@ void CTaskLeanOnVehicle::InjectHooks() {
 
     RH_ScopedInstall(FinishAnimCB, 0x661160);
 
-    RH_ScopedVMTInstall(MakeAbortable, 0x661110, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x661110);
     RH_ScopedVMTInstall(ProcessPed, 0x6648C0, { .Reversed = false });
 
 }

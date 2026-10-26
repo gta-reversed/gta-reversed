@@ -215,10 +215,8 @@ int32 CCopPed::AddCriminalToKill(CPed* criminal) {
 
 // 0x5DE040
 void CCopPed::RemoveCriminalToKill(int32 unk, int32 nCriminalLocalIdx) {
-    CPed*& criminal = m_apCriminalsToKill[nCriminalLocalIdx];
-    assert(criminal);
-    criminal->RegisterReference(reinterpret_cast<CEntity**>(&criminal));
-    m_apCriminalsToKill[nCriminalLocalIdx] = nullptr;
+    assert(m_apCriminalsToKill[nCriminalLocalIdx]);
+    CEntity::ClearReference(m_apCriminalsToKill[nCriminalLocalIdx]);
 }
 
 // 0x5DE070

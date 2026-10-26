@@ -450,7 +450,7 @@ F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
     }
     return x < to
         ? step_up_to<F>(x, to, stepUp, useTimeStep)
-        : step_down_to<F>(x, to, stepUp, useTimeStep);
+        : step_down_to<F>(x, to, stepDown, useTimeStep);
 }
 
 // Step `x` towards `to` in steps

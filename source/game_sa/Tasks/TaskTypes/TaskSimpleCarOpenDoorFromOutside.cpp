@@ -27,7 +27,7 @@ CTaskSimpleCarOpenDoorFromOutside::CTaskSimpleCarOpenDoorFromOutside(CVehicle* v
     m_disallowPlayerDriverToExitCar{ disallowPlayerDriverToExitCar },
     m_lineUpTask{lineUpTask}
 {
-    CEntity::SafeRegisterRef(veh);
+    CEntity::SafeRegisterRef(m_veh);
 }
 
 // NOTSA

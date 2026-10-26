@@ -308,7 +308,7 @@ bool InteriorManager_c::IsInteriorEffectVisible(C2dEffectInterior* effect, CEnti
     const auto& ebb = entity->GetColModel()->GetBoundingBox();
     const auto& ebbMin = ebb.m_vecMin,
                 ebbMax = ebb.m_vecMax;
-    CBoundingBox bb{ CVector{FLT_MAX}, CVector{FLT_MIN} };
+    CBoundingBox bb{ CVector{FLT_MAX}, CVector{-FLT_MAX} };
     const auto StretchTo = [&bb, m = entity->GetMatrix()](CVector pt) {
         bb.StretchToPoint(m.TransformPoint(pt));
     };
@@ -421,11 +421,11 @@ void InteriorManager_c::SetEntryExitPtr(CEntryExit* enex) {
 }
 
 // 0x598090
-bool InteriorManager_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* pos) {
+bool InteriorManager_c::GetBoundingBox(const CEntity& entity, CVector* pos) {
     for (auto& grp : m_InteriorGroupList) {
         for (const auto i : grp.GetInteriors()) {
-            if (i) {
-                return i->GetBoundingBox(entity, pos);
+            if (auto* const fe = i->GetFurnitureEntity(entity)) {
+                return i->GetBoundingBox(fe, pos);
             }
         }
     }

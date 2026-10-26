@@ -213,7 +213,7 @@ void CPedGroupIntelligence::Process() {
 
     if (!m_PrimaryTaskAllocator && m_CurrentEvent) { // 0x5FC7A7
         if (m_EventResponseTaskAllocator) {
-            m_PrimaryTaskAllocator = m_EventResponseTaskAllocator->ProcessGroup(this);
+            m_EventResponseTaskAllocator->ProcessGroup(this); // NOTE: The original doesn't use the return value (Which may be the allocator itself)
         }
     }
 

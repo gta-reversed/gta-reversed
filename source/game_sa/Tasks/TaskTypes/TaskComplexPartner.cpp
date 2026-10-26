@@ -23,7 +23,7 @@ CTaskComplexPartner::CTaskComplexPartner(const char* commandName, CPed* partner,
     m_firstToTargetFlag        = -1;
     m_requiredAnimsStreamedIn  = false;
     m_animBlockName[0]         = '\0';
-    CEntity::SafeRegisterRef(partner);
+    CEntity::SafeRegisterRef(m_partner);
 }
 
 /*!

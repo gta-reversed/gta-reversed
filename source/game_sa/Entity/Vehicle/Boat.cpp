@@ -816,7 +816,7 @@ inline void CBoat::ProcessBoatNodeRendering(eBoatNodes eNode, float fRotation, R
     }
 
     SetComponentRotation(frame, AXIS_Y, fRotation, true);
-    RpAtomic* atomic;
+    RpAtomic* atomic = nullptr;
     RwFrameForAllObjects(frame, GetCurrentAtomicObjectCB, &atomic);
     if (atomic) {
         CVehicle::SetComponentAtomicAlpha(atomic, ucAlpha);

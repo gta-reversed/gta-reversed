@@ -164,6 +164,7 @@
 #include "ScriptResourceManager.h"
 #include "PedAttractorManager.h"
 #include "Attractors/PedAttractorPedPlacer.h"
+#include "Attractors/PedShelterAttractor.h"
 #include "LoadingScreen.h"
 #include "Securom.h"
 #include "GridRef.h"
@@ -592,7 +593,9 @@ void InjectHooksMain() {
     CMenuSystem::InjectHooks();
     CCarFXRenderer::InjectHooks();
     CPedAttractorManager::InjectHooks();
+    CPedAttractor::InjectHooks();
     CPedAttractorPedPlacer::InjectHooks();
+    CPedShelterAttractor::InjectHooks();
     BoneNode_c::InjectHooks();
     BoneNodeManager_c::InjectHooks();
     IKChainManager_c::InjectHooks();
@@ -837,6 +840,7 @@ void InjectHooksMain() {
     ModelIndices::InjectHooks();
     CWaterCannons::InjectHooks();
     CWaterCannon::InjectHooks();
+    CLines::InjectHooks();
     CSprite::InjectHooks();
     CPlaneTrail::InjectHooks();
     CPlaneTrails::InjectHooks();

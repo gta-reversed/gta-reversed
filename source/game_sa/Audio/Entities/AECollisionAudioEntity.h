@@ -51,7 +51,7 @@ public:
         bool           isForceLooping
     );
 
-    std::pair<float, float> GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfA, eSurfaceType surfB, bool isForceLooping); // notsa
+    std::pair<float, float> GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfA, eSurfaceType surfB, bool isForceLooping, bool isUpdate); // notsa
     void PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn);
     void PlayBulletHitCollisionSound(eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 

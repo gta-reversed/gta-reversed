@@ -1,4 +1,5 @@
 #include "StdInc.h"
+#include "GxtChar.h"
 
 #include "Messages.h"
 #include "Hud.h"
@@ -381,7 +382,7 @@ void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
     if (src && len) {
         const auto copyLen = std::min<size_t>(GetStringLength(src), len - 1u);
 
-        std::memcpy(dest, AsciiFromGxtChar(src), copyLen);
+        std::memcpy(dest, AsciiFromGxtChar(src), copyLen * sizeof(GxtChar));
         dest[copyLen] = '\0';
     } else {
         dest[0] = '\0';
