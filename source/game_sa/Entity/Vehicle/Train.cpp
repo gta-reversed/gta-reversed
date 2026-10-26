@@ -360,32 +360,29 @@ void CTrain::RemoveMissionTrains() {
 
 // 0x6F6AA0
 void CTrain::RemoveAllTrains() {
+    const auto IsPlayerInTrain = [] (CTrain* train) {
+        for (auto* t = train; t; t = t->m_pPrevCarriage) {
+            if (t == FindPlayerVehicle()) {
+                return true;
+            }
+        }
+        for (auto* t = train; t; t = t->m_pNextCarriage) {
+            if (t == FindPlayerVehicle()) {
+                return true;
+            }
+        }
+        return false;
+    };
     for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
         if (!vehicle.IsTrain()) {
             continue;
         }
-
-        auto* train = vehicle.AsTrain();
-        bool playerInTrain = false;
-        for (auto* t = train; t; t = t->m_pPrevCarriage) {
-            if (t == FindPlayerVehicle()) {
-                playerInTrain = true;
-                break;
-            }
+        auto* const train = vehicle.AsTrain();
+        if (IsPlayerInTrain(train)) {
+            continue;
         }
-        if (!playerInTrain) {
-            for (auto* t = train; t; t = t->m_pNextCarriage) {
-                if (t == FindPlayerVehicle()) {
-                    playerInTrain = true;
-                    break;
-                }
-            }
-        }
-
-        if (!playerInTrain) {
-            CWorld::Remove(train);
-            delete train;
-        }
+        CWorld::Remove(train);
+        delete train;
     }
 }
 
