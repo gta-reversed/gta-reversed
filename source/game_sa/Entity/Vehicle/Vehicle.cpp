@@ -3449,7 +3449,7 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
         }
     }
 
-    if (IsSubHeli() || IsSubPlane() && !vehicleFlags.bIsRCVehicle) {
+    if ((IsSubHeli() || IsSubPlane()) && !vehicleFlags.bIsRCVehicle) {
         switch (weapon) {
         case WEAPON_EXPLOSION:
         case WEAPON_GRENADE:
