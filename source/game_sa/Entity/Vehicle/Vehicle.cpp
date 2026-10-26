@@ -3496,7 +3496,7 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
         } else {
             const float healthBefore = m_fHealth;
             m_fHealth -= intensity;
-            if ((GetStatus() == STATUS_PLAYER || GetStatus() > STATUS_PLAYER_PLAYBACK_FROM_BUFFER && GetStatus() <= STATUS_PHYSICS)
+            if ((GetStatus() != STATUS_PLAYER_PLAYBACK_FROM_BUFFER && (GetStatus() >= STATUS_PLAYER || GetStatus() <= STATUS_PHYSICS))
                 && damager && damager->GetIsTypePed())
             {
                 AddVehicleDamageWeaponEventResponse(m_pDriver);
