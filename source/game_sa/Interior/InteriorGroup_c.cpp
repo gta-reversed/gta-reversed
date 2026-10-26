@@ -1,5 +1,7 @@
 #include "StdInc.h"
+#include <bit>
 #include "InteriorGroup_c.h"
+#include "General.h"
 #include "Interior_c.h"
 #include "Plugins/TwoDEffectPlugin/2dEffect.h"
 
@@ -32,7 +34,7 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50, { .Reversed = false });
     RH_ScopedInstall(FindInteriorInfo, 0x594970, { .Reversed = false });
     RH_ScopedInstall(GetNumInteriorInfos, 0x594920, { .Reversed = false });
-    RH_ScopedInstall(GetRandomInterior, 0x5948C0, { .Reversed = false });
+    RH_ScopedInstall(GetRandomInterior, 0x5948C0);
     RH_ScopedInstall(AddInterior, 0x594840, { .Reversed = false });
 }
 
@@ -171,8 +173,17 @@ int32 InteriorGroup_c::GetNumInteriorInfos(int32 a2) {
 }
 
 // 0x5948C0
-int32 InteriorGroup_c::GetRandomInterior() {
-    return plugin::CallMethodAndReturn<int32, 0x5948C0, InteriorGroup_c*>(this);
+Interior_c* InteriorGroup_c::GetRandomInterior() {
+    // The original loads this byte count as signed.
+    const auto count = std::bit_cast<int8>(m_numInteriors);
+    const auto selected = static_cast<int32>(CGeneral::GetRandomNumber()) * count / 32768;
+    auto ordinal = 0;
+    for (auto* interior : m_interiors) {
+        if (interior && ordinal++ == selected) {
+            return interior;
+        }
+    }
+    return nullptr;
 }
 
 //! @notsa
