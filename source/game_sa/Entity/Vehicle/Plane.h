@@ -62,8 +62,13 @@ public:
     uint8        m_nFiringMultiplier;
     uint32       m_FireMissilePressedTime;
     CEntity*     m_LastMissileTarget;
-    uint32       m_LastHSMissileLOSTime : 31;
-    uint32       m_LastHSMissileLOS : 1;
+    union {
+        uint32 m_LastHSMissileStruct;
+        struct {
+            uint32 m_LastHSMissileLOSTime : 31;
+            uint32 m_LastHSMissileLOS : 1;
+        };
+    };
     std::array<FxSystem_c*, 4> m_apJettrusParticles;
     FxSystem_c*  m_pSmokeParticle;
     uint32       m_nSmokeTimer;
