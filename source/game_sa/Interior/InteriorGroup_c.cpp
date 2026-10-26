@@ -33,7 +33,7 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(SetupOfficePeds, 0x594BF0, { .Reversed = false });
     RH_ScopedInstall(GetEntity, 0x594BD0, { .Reversed = false });
     RH_ScopedInstall(GetPed, 0x594B90, { .Reversed = false });
-    RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50, { .Reversed = false });
+    RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50);
     RH_ScopedInstall(FindInteriorInfo, 0x594970);
     RH_ScopedInstall(GetNumInteriorInfos, 0x594920, { .Reversed = false });
     RH_ScopedInstall(GetRandomInterior, 0x5948C0);
@@ -159,9 +159,35 @@ CPed* InteriorGroup_c::GetPed(int32 idx) {
 }
 
 // 0x594A50
-bool InteriorGroup_c::FindClosestInteriorInfo(int32 a, CVector point, float b, InteriorInfo_t** interiorInfo, Interior_c** interior, float* pSome) {
-    return plugin::CallMethodAndReturn<bool, 0x594A50, InteriorGroup_c*, int32, CVector, float, InteriorInfo_t**, Interior_c**, float*>(this, a, point, b, interiorInfo, interior,
-                                                                                                                                      pSome);
+bool InteriorGroup_c::FindClosestInteriorInfo(int32 type, CVector point, float maxDistance, InteriorInfo_t** outInfo, Interior_c** outInterior, float* outDistanceSq) {
+    const auto maxDistanceSq = maxDistance * maxDistance;
+    auto bestDistanceSq = 999999.0f;
+    InteriorInfo_t* bestInfo{};
+    Interior_c* bestInterior{};
+    for (auto* interior : m_interiors) {
+        if (!interior || !interior->IsPtInside(point) || interior->m_interiorInfosCount <= 0) {
+            continue;
+        }
+        assert(static_cast<size_t>(interior->m_interiorInfosCount) <= std::size(interior->m_interiorInfos));
+        for (auto& info : std::span{ interior->m_interiorInfos, static_cast<size_t>(interior->m_interiorInfosCount) }) {
+            if ((type == -1 || info.Type == static_cast<eInteriorInfoType>(type)) && !info.IsInUse) {
+                const auto diff = point - info.Pos;
+                const auto distanceSq = (diff.y * diff.y + diff.z * diff.z) + diff.x * diff.x;
+                if (distanceSq < maxDistanceSq && distanceSq < bestDistanceSq) {
+                    bestInfo = &info;
+                    bestInterior = interior;
+                    bestDistanceSq = distanceSq;
+                }
+            }
+        }
+    }
+    if (!bestInfo) {
+        return false;
+    }
+    *outInfo = bestInfo;
+    *outInterior = bestInterior;
+    *outDistanceSq = bestDistanceSq;
+    return true;
 }
 
 // 0x594970
