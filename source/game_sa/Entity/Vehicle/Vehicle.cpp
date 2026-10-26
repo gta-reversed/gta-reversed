@@ -3155,27 +3155,29 @@ void CVehicle::ProcessWheel(CVector& wheelFwd,
                             tWheelState& outWheelState,
                             uint16 wheelStatus)
 {
-    auto& s_braking = StaticRef<bool>(0xC1CDAE);
-    auto& s_driving = StaticRef<bool>(0xC1CDAD);
-    auto& s_alreadySkidding = StaticRef<bool>(0xC1CDAC); // not reset
+    // FIX_BUGS: remove inappropriate statics and fix alreadySkidding not reset
+    bool braking         = false;
+    bool driving         = false;
+    bool alreadySkidding = notsa::bugfixes::CVehicle_ProcessWheel_and_ProcessBikeWheel_AlreadySkiddingNotReset ? false : true;
 
-    float right = 0.0f;
-    float fwd = 0.0f;
-    const float contactSpeedFwd = wheelFwd.Dot(wheelContactSpeed);
+    float       right = 0.0f, fwd = 0.0f;
+    const float contactSpeedFwd   = wheelFwd.Dot(wheelContactSpeed);
     const float contactSpeedRight = wheelRight.Dot(wheelContactSpeed);
 
-    s_braking = brake != 0.0f;
-    s_driving = !s_braking;
-    if (s_driving && thrust == 0.0f)
-        s_driving = false;
+    braking = brake != 0.0f;
+    driving = !braking;
+    if (driving && thrust == 0.0f) {
+        driving = false;
+    }
 
     adhesion *= CTimer::GetTimeStep();
     if (outWheelState != WHEEL_STATE_NORMAL) {
-        s_alreadySkidding = true;
+        alreadySkidding = true;
         adhesion *= m_pHandlingData->m_fTractionLoss;
         if (outWheelState == WHEEL_STATE_SPINNING) {
-            if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED)
+            if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
                 adhesion *= (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
+            }
         }
     }
 
@@ -3188,24 +3190,24 @@ void CVehicle::ProcessWheel(CVector& wheelFwd,
         }
     }
 
-    if (s_driving) {
-        fwd = thrust;
+    if (driving) {
+        fwd   = thrust;
         right = std::clamp(right, -adhesion, adhesion);
-    }
-    else if (contactSpeedFwd != 0.0f) {
-        fwd = -contactSpeedFwd / wheelsOnGround;
-        if (!s_braking && std::abs(m_GasPedal) < 0.01f) {
-            if (IsBike())
+    } else if (contactSpeedFwd != 0.0f) {
+        fwd = -(contactSpeedFwd / wheelsOnGround);
+        if (!braking && std::abs(m_GasPedal) < 0.01f) {
+            if (IsBike()) {
                 brake = gHandlingDataMgr.fWheelFriction * 0.6f / (m_pHandlingData->m_fMass + 200.0f);
-            else if (IsSubPlane())
+            } else if (IsSubPlane()) {
                 brake = 0.0f;
-            else {
+            } else {
                 brake = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
 
-                if (m_pHandlingData->m_fMass < 500.0f)
+                if (m_pHandlingData->m_fMass < 500.0f) {
                     brake *= 0.1f;
-                else if (m_nModelIndex == MODEL_RCBANDIT)
+                } else if (m_nModelIndex == MODEL_RCBANDIT) {
                     brake *= 0.2f;
+                }
             }
         }
         if (brake > adhesion) {
@@ -3224,55 +3226,36 @@ void CVehicle::ProcessWheel(CVector& wheelFwd,
             if (contactSpeedFwd > 0.15f && (!wheelId || wheelId == CAR_WHEEL_FRONT_RIGHT)) {
                 tractionLimit += tractionLimit;
             }
-            if (s_driving && tractionLimit * adhesion < std::abs(fwd))
-                outWheelState = WHEEL_STATE_SPINNING;
-            else
-                outWheelState = WHEEL_STATE_SKIDDING;
+            outWheelState = (driving && tractionLimit * adhesion < std::abs(fwd)) ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
         }
-        float tractionLoss = m_pHandlingData->m_fTractionLoss;
-        if (s_alreadySkidding) {
-            tractionLoss = 1.0f;
-        } else if (outWheelState == WHEEL_STATE_SPINNING) {
+        float tractionLoss = 1.0f;
+        if (!alreadySkidding && outWheelState == WHEEL_STATE_SPINNING) {
             if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
-                tractionLoss = tractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
+                tractionLoss = m_pHandlingData->m_fTractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
         }
-        const float l = std::sqrt(speedSq);
-        fwd *= adhesion * tractionLoss / l;
-        right *= adhesion * tractionLoss / l;
+        tractionLoss *= adhesion / std::sqrt(speedSq);
+        fwd *= tractionLoss;
+        right *= tractionLoss;
     }
 
     if (fwd != 0.0f || right != 0.0f) {
-        bool separateTurnForce = false;
-        const CVector totalSpeed = fwd * wheelFwd + right * wheelRight;
-        CVector turnDirection  = totalSpeed;
+        CVector moveVec = fwd * wheelFwd + right * wheelRight;
+        CVector turnVec = moveVec;
 
-        if (m_pHandlingData->m_fSuspensionAntiDiveMultiplier > 0.0f) {
-            if (s_braking) {
-                separateTurnForce = true;
-                turnDirection -= (m_pHandlingData->m_fSuspensionAntiDiveMultiplier * wheelFwd * fwd);
-            }
-            else if (s_driving) {
-                separateTurnForce = true;
-                turnDirection -= (0.5f * m_pHandlingData->m_fSuspensionAntiDiveMultiplier * wheelFwd * fwd);
-            }
+        const bool separateTurnForce = m_pHandlingData->m_fSuspensionAntiDiveMultiplier > 0.0f && (braking || driving);
+        if (separateTurnForce) {
+            turnVec -= (braking ? 1.0f : 0.5f) * (m_pHandlingData->m_fSuspensionAntiDiveMultiplier * wheelFwd * fwd);
         }
 
-        CVector direction = totalSpeed;
-        const float speed = totalSpeed.Magnitude();
-        float turnSpeed = speed;
-        if (separateTurnForce)
-            turnSpeed = turnDirection.Magnitude();
-        direction.Normalise();
-        if (separateTurnForce)
-            turnDirection.Normalise();
-        else
-            turnDirection = direction;
+        const float speed     = moveVec.NormaliseAndMag(); // get speed and leave only dir component
+        const float turnSpeed = separateTurnForce ? turnVec.NormaliseAndMag() : speed;
+        if (!separateTurnForce) {
+            turnVec = moveVec; // only dir component
+        }
 
-        const float force = speed * m_fMass;
-        const float turnForce = turnSpeed * CPhysical::GetMass(wheelContactPoint, turnDirection);
-        CPhysical::ApplyMoveForce(force * direction);
-        CPhysical::ApplyTurnForce(turnForce * turnDirection, wheelContactPoint);
+        CPhysical::ApplyMoveForce(moveVec * m_fMass * speed);
+        CPhysical::ApplyTurnForce(turnVec * CPhysical::GetMass(wheelContactPoint, turnVec) * turnSpeed, wheelContactPoint);
     }
 }
 
@@ -3292,28 +3275,26 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
                                 eBikeWheelSpecial special,
                                 uint16 wheelStatus)
 {
-    auto& s_braking         = StaticRef<bool>(0xC1CDB2);
-    auto& s_driving         = StaticRef<bool>(0xC1CDB1);
-    auto& s_reversing       = StaticRef<bool>(0xC1CDB0);
-    auto& s_alreadySkidding = StaticRef<bool>(0xC1CDAF); // not reset
+    // see top of ProcessWheel
+    bool braking         = false;
+    bool driving         = false;
+    bool reversing       = false;
+    bool alreadySkidding = notsa::bugfixes::CVehicle_ProcessWheel_and_ProcessBikeWheel_AlreadySkiddingNotReset ? false : true;
 
     float       right = 0.0f, fwd = 0.0f;
     const float contactSpeedFwd = wheelFwd.Dot(wheelContactSpeed);
 
-    s_braking                   = brake != 0.0f;
-    s_driving                   = !s_braking && thrust != 0.0f;
-    s_reversing                 = !s_braking && thrust < 0.0f;
+    braking   = brake != 0.0f;
+    driving   = !braking && thrust != 0.0f;
+    reversing = !braking && thrust < 0.0f;
 
-    if (outWheelState) {
-        s_alreadySkidding = true;
+    if (outWheelState != WHEEL_STATE_NORMAL) {
+        alreadySkidding = true;
+        adhesion *= m_pHandlingData->m_fTractionLoss; // moved here from 0x6D7492
     }
 
     outWheelState = WHEEL_STATE_NORMAL;
-
     adhesion *= CTimer::GetTimeStep();
-    if (s_alreadySkidding) {
-        adhesion *= m_pHandlingData->m_fTractionLoss;
-    }
 
     if (special != BIKE_WHEEL_F_SLIP && special != BIKE_WHEEL_R_SLIP) {
         const float contactSpeedRight = wheelRight.Dot(wheelContactSpeed);
@@ -3325,12 +3306,12 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
         }
     }
 
-    if (s_driving) {
+    if (driving) {
         fwd   = thrust;
         right = std::clamp(right, -adhesion, adhesion);
     } else if (contactSpeedFwd != 0.0f) {
         fwd = -(contactSpeedFwd / wheelsOnGround);
-        if (!s_braking && std::abs(m_GasPedal) < 0.01f) { // fpu 0x6D7630
+        if (!braking && std::abs(m_GasPedal) < 0.01f) { // fpu 0x6D7630
             if (IsSubBMX()) {
                 if (fwd > -0.05f && fwd < 0.05f) {
                     brake = 0.5f * gHandlingDataMgr.fWheelFriction / (m_pHandlingData->m_fMass + 200.0f);
@@ -3356,7 +3337,7 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
     const float adhesionSq = sq(adhesion);
     if (speedSq <= adhesionSq) {
         if (destabTraction < 1.0f) {
-            if (!s_alreadySkidding) {
+            if (!alreadySkidding) {
                 destabTraction *= m_pHandlingData->m_fTractionLoss;
             }
             if (adhesionSq * sq(destabTraction) < speedSq) {
@@ -3365,13 +3346,9 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
         }
     } else {
         if (outWheelState != WHEEL_STATE_FIXED) {
-            if (s_driving && contactSpeedFwd < 0.1f) {
-                outWheelState = WHEEL_STATE_SPINNING;
-            } else {
-                outWheelState = WHEEL_STATE_SKIDDING;
-            }
+            outWheelState = driving && contactSpeedFwd < 0.1f ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
         }
-        const float tractionLoss = (s_alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(speedSq) * adhesion;
+        const float tractionLoss = adhesion * (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(speedSq);
         fwd *= tractionLoss;
         right *= tractionLoss;
         if (destabTraction < 1.0f) {
@@ -3379,22 +3356,17 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
         }
     }
     if (fwd != 0.0f || right != 0.0f) {
-        CVector       moveVec     = right * wheelRight + fwd * wheelFwd;
-        const float   speed       = moveVec.NormaliseAndMag(); // now get speed and leave only dir component
-        const float   impulse     = m_fMass * speed;
-        const CVector turnImpulse = moveVec * CPhysical::GetMass(wheelContactPoint, moveVec) * speed;
-
-        CPhysical::ApplyMoveForce(impulse * moveVec);
-
+        CVector       moveVec          = right * wheelRight + fwd * wheelFwd;
+        const float   speed            = moveVec.NormaliseAndMag(); // now get speed and leave only dir component
+        const CVector turnImpulse      = moveVec * CPhysical::GetMass(wheelContactPoint, moveVec) * speed;
         const CVector turnImpulseRight = turnImpulse.Dot(GetRight()) * GetRight();
-        const CVector contactRight     = wheelContactPoint.Dot(GetRight()) * GetRight();
-        const CVector contactFwd       = wheelContactPoint.Dot(GetForward()) * GetForward();
 
-        if (wheelId != CAR_WHEEL_REAR_LEFT || !s_braking && !s_reversing) {
-            CPhysical::ApplyTurnForce((turnImpulse - turnImpulseRight) * fTweakBikeWheelTurnForce, wheelContactPoint - contactRight);
+        CPhysical::ApplyMoveForce(moveVec * m_fMass * speed);
+
+        if (wheelId != CAR_WHEEL_REAR_LEFT || !braking && !reversing) {
+            CPhysical::ApplyTurnForce((turnImpulse - turnImpulseRight) * fTweakBikeWheelTurnForce, wheelContactPoint - wheelContactPoint.Dot(GetRight()) * GetRight());
         }
-
-        CPhysical::ApplyTurnForce(turnImpulseRight, contactFwd);
+        CPhysical::ApplyTurnForce(turnImpulseRight, wheelContactPoint.Dot(GetForward()) * GetForward());
     }
 }
 
@@ -4644,10 +4616,8 @@ void CVehicle::DoBoatSplashes(float fWaterDamping) {
 
 // 0x6DD6F0
 void CVehicle::DoSunGlare() {
-    if (physicalFlags.bRenderScorched
-        || GetUp().z < 0.0f
-        || GetVehicleAppearance() != eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE
-        || CWeather::SunGlare <= 0.0f) {
+    if (physicalFlags.bRenderScorched || GetUp().z < 0.0f
+        || GetVehicleAppearance() != eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE || CWeather::SunGlare <= 0.0f) {
         return;
     }
 
@@ -4896,7 +4866,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState,
                                        float speed,
                                        CColPoint& colPoint,
                                        CVector& pos,
-                                       float outsideVector,
+                                       float outsideVector_unused,
                                        eCarWheel wheelIndex,
                                        eSkidmarkType skidmarkType,
                                        bool& bloodState,
@@ -5195,24 +5165,31 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
         switch (missle) {
         case CAR_WEAPON_FREEFALL_BOMB:
         case CAR_WEAPON_LOCK_ON_ROCKET: {
-            if (m_nOrdnanceCycleIndex++ & 1) {
+            if (m_nOrdnanceCycleIndex++ & 1) { // notsa - originally inverse each frame, this method is effectively the same
                 ordnancePos.x = -ordnancePos.x;
             }
             CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa - using full transform not just pos it better
             if (missle == CAR_WEAPON_LOCK_ON_ROCKET) {
                 projPos += std::max(0.f, m_vecMoveSpeed.Dot(GetForward())) * GetForward() * CTimer::GetTimeStep();
             }
-            CProjectileInfo::AddProjectile(this, missle == CAR_WEAPON_LOCK_ON_ROCKET ? WEAPON_ROCKET_HS : WEAPON_FREEFALL_BOMB, projPos, 0.0f, &GetForward(), targetEntity);
+            CProjectileInfo::AddProjectile(
+                this,
+                missle == CAR_WEAPON_LOCK_ON_ROCKET ? WEAPON_ROCKET_HS : WEAPON_FREEFALL_BOMB,
+                projPos,
+                0.0f,
+                &GetForward(),
+                targetEntity
+            );
             break;
         }
         case CAR_WEAPON_DOUBLE_ROCKET: { // notsa - removed hardcoded model checks here since this type of missle is already hardcoded to them...
-            const CVector frameOffset = std::max(0.f, m_vecMoveSpeed.Dot(GetForward())) * GetForward() * CTimer::GetTimeStep();
             CWeapon       weapon{ WEAPON_RLAUNCHER, 5'000u };
-            for (int i : { 0, 1 }) {
-                CVector origin = m_matrix->TransformPoint(ordnancePos) + frameOffset;
-                weapon.FireProjectile(this, origin);
-                ordnancePos.x = -ordnancePos.x;
-            }
+            const CVector frameOffset      = std::max(0.f, m_vecMoveSpeed.Dot(GetForward())) * GetForward() * CTimer::GetTimeStep();
+            const auto    FireSingleRocket = [&](float xside) {
+                weapon.FireProjectile(this, m_matrix->TransformPoint({ xside * ordnancePos.x, ordnancePos.y, ordnancePos.z }) + frameOffset);
+            };
+            FireSingleRocket(1.0f);
+            FireSingleRocket(-1.0f);
             break;
         }
         default:
@@ -5241,14 +5218,14 @@ void CVehicle::ProcessSirenAndHorn(bool updateHornCounter) {
     const auto* pad = CPad::GetPad();
     if (UsesSiren()) {
         if (pad->bHornHistory[pad->iCurrHornHistory]) {
-            if (pad->bHornHistory[(pad->iCurrHornHistory + 4) % 5] &&
-                pad->bHornHistory[(pad->iCurrHornHistory + 3) % 5]) {
+            if (pad->bHornHistory[(pad->iCurrHornHistory + 4) % pad->bHornHistory.size()] &&
+                pad->bHornHistory[(pad->iCurrHornHistory + 3) % pad->bHornHistory.size()]) {
                 m_HornCounter = 1u;
             } else {
                 m_HornCounter = 0u;
             }
-        } else if (pad->bHornHistory[(pad->iCurrHornHistory + 4) % 5] &&
-                   !pad->bHornHistory[(pad->iCurrHornHistory + 1) % 5])
+        } else if (pad->bHornHistory[(pad->iCurrHornHistory + 4) % pad->bHornHistory.size()] &&
+                   !pad->bHornHistory[(pad->iCurrHornHistory + 1) % pad->bHornHistory.size()])
         {
             m_HornCounter = 0u;
             vehicleFlags.bSirenOrAlarm = ~vehicleFlags.bSirenOrAlarm;
@@ -5766,7 +5743,7 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
     case MODEL_RUSTLER: {
         if (pad->GetCarGunFired() == 2) {
             isFiring = true;
-        } else if (m_nModelIndex != MODEL_RUSTLER && pad->CarGunJustDown() == 1) { // for freefall bombs remove rustler check
+        } else if (m_nModelIndex != MODEL_RUSTLER && pad->CarGunJustDown() == 1) { // to enable freefall bombs for rustler - remove its check
             ordnanceType = ORDNANCE_TYPE_PRIMARY;
         }
         break;

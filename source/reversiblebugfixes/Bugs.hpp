@@ -145,4 +145,9 @@ inline const ReversibleBugFix CVehicleModelInfo_SetClump_DirtMaterialsNeverFound
     .Credit          = "SilentPatch Contributors, W4liss0n",
     .RequiresRestart = true
 };
+inline const ReversibleBugFix CVehicle_ProcessWheel_and_ProcessBikeWheel_AlreadySkiddingNotReset{
+    .Name        = "CVehicle::ProcessWheel/ProcessBikeWheel - alreadySkidding reset",
+    .Description = "Originally there are 3 and 4 statics, respectively, describing wheel state which are reset every frame EXCEPT for alreadySkidding. The fix makes alreadySkidding resetable, it has an impact on physics model since traction loss is now calculated as originally intended",
+    .Credit      = "re3/VC Contributors"
+};
 };
