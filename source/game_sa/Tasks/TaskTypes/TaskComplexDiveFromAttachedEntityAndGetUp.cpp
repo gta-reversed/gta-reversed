@@ -49,20 +49,20 @@ CTask* CTaskComplexDiveFromAttachedEntityAndGetUp::CreateFirstSubTask(CPed* ped)
          && notsa::contains({ eDirection::BACKWARD, eDirection::FORWARD }, hitSide)
          && m_DiveDir.Dot(attachedTo->GetMoveSpeed()) > 0.f // Same direction
         ) {
-            CVector bb[4];
-            float   bbPlanesDot[4];
-            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(
+            std::array<CVector, 4> bbPlaneNormals{};
+            std::array<float, 4> bbplaneDs{};
+            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(
                 ped->GetPosition().z,
                 *attachedTo,
-                &bb,
-                bbPlanesDot
+                bbPlaneNormals,
+                bbplaneDs
             );
             const auto GetPlaneDot = [&, pedPos = ped->GetPosition()](int32 i) {
-                return std::abs(bb[i].Dot(pedPos) + bbPlanesDot[i]);
+                return std::abs(bbPlaneNormals[i].Dot(pedPos) + bbplaneDs[i]);
             };
             m_DiveDir = GetPlaneDot(3) <= GetPlaneDot(1)
-                ? bb[3]
-                : bb[1];
+                ? bbPlaneNormals[3]
+                : bbPlaneNormals[1];
         }
         ped->m_fTurretAngleB = 2.f * PI;
     } else {

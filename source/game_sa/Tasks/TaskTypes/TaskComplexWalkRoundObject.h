@@ -29,7 +29,7 @@ public:
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
-    CTask* CreateRouteTask(CPed* ped);
+    CTask* CreateRouteTask(CPed*) const;
 
 private:
     friend void InjectHooksMain();

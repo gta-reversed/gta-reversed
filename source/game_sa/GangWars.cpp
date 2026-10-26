@@ -460,10 +460,10 @@ bool CGangWars::PickZoneToAttack() {
     // choose a territory that is controlled by enemy gangs
     for (auto i = 0; i < CTheZones::TotalNumberOfNavigationZones; i++) {
         auto zone = CTheZones::GetNavigationZone(CCarCtrl::FindSequenceElement(i));
-        auto zoneInfo = CTheZones::GetZoneInfo(zone);
-
-        if (!zoneInfo)
+        if (zone->m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
             continue;
+
+        auto zoneInfo = CTheZones::GetZoneInfo(zone);
 
         if (zoneInfo->GangStrength[GANG_BALLAS] + zoneInfo->GangStrength[GANG_VAGOS] >= 20) {
             enemyGangZone = zone;
@@ -477,10 +477,10 @@ bool CGangWars::PickZoneToAttack() {
     // find a close territory that is controlled by the gsf
     for (auto i = 0; i < CTheZones::TotalNumberOfNavigationZones; i++) {
         auto zone = CTheZones::GetNavigationZone(CCarCtrl::FindSequenceElement(i));
-        auto zoneInfo = CTheZones::GetZoneInfo(zone);
-
-        if (!zoneInfo)
+        if (zone->m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
             continue;
+
+        auto zoneInfo = CTheZones::GetZoneInfo(zone);
 
         if ((float)zone->m_fX1 <= 2500.0f && (float)zone->m_fX2 >= 2500.0f && (float)zone->m_fY1 <= -1666.0f && (float)zone->m_fY2 >= -1666.0f) // todo:
             continue;
@@ -973,9 +973,10 @@ void CGangWars::UpdateTerritoryUnderControlPercentage() {
     auto ballasZones = 0, groveZones = 0, vagosZones = 0;
     if (CTheZones::TotalNumberOfNavigationZones) {
         for (auto& zone : CTheZones::NavigationZoneArray) {
-            auto zoneInfo = CTheZones::GetZoneInfo(&zone);
-            if (!zoneInfo)
+            if (zone.m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
                 continue;
+
+            auto zoneInfo = CTheZones::GetZoneInfo(&zone);
 
             auto ballasDensity = zoneInfo->GangStrength[GANG_BALLAS],
                  groveDensity = zoneInfo->GangStrength[GANG_GROVE],

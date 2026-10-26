@@ -402,7 +402,7 @@ void CGarages::PrintMessages() {
 
 // 0x4476D0
 void CGarages::ChangeGarageType(int16 garageId, eGarageType type, uint32 unused) {
-    auto garage = GetGarage(garageId);
+    auto& garage = GetGarage(garageId);
     garage.m_nType = type;
 
     if (type < BOMBSHOP_TIMED) {

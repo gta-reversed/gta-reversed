@@ -2084,7 +2084,7 @@ void CVehicle::MakeDirty(CColPoint& colPoint) {
 
 // 0x6D2D50
 bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrops, bool isWheelsSpinning, bool isWheelInWater) {
-    if (!isProduceWheelDrops && !g_surfaceInfos.IsSand(colPoint.m_nPieceTypeB)) {
+    if (!isProduceWheelDrops && !g_surfaceInfos.IsSand(colPoint.m_nSurfaceTypeB)) {
         return false;
     }
 
@@ -2109,16 +2109,24 @@ bool CVehicle::AddWheelDirtAndWater(CColPoint& colPoint, bool isProduceWheelDrop
     if (CreateFxForSurface(&SurfaceInfos_c::CreatesWheelMud, &Fx_c::AddWheelMud)) {
         return false;
     }
-    if (CWeather::WetRoads <= 0.0 || CGeneral::GetRandomNumberInRange(CWeather::WetRoads, 1.01f) <= 0.5f) {
-        if (CreateFxForSurface(&SurfaceInfos_c::CreatesWheelDust, &Fx_c::AddWheelDust)) {
-            return false;
+    // Wet roads randomly skip dust and sand. Either way, their surfaces don't get to the spray check
+    const auto CreateDryFxForSurface = [&](auto CheckSurface, auto AddFx) {
+        if ((g_surfaceInfos.*CheckSurface)(colPoint.m_nSurfaceTypeB)) {
+            if (CWeather::WetRoads <= 0.0f || CGeneral::GetRandomNumberInRange(CWeather::WetRoads, 1.01f) <= 0.5f) {
+                (g_fx.*AddFx)(this, colPoint.m_vecPoint, isWheelsSpinning, m_fContactSurfaceBrightness);
+            }
+            return true;
         }
-        if (CreateFxForSurface(&SurfaceInfos_c::CreatesWheelSand, &Fx_c::AddWheelSand)) {
-            return false;
-        }
+        return false;
+    };
+    if (CreateDryFxForSurface(&SurfaceInfos_c::CreatesWheelDust, &Fx_c::AddWheelDust)) {
+        return false;
+    }
+    if (CreateDryFxForSurface(&SurfaceInfos_c::CreatesWheelSand, &Fx_c::AddWheelSand)) {
+        return false;
     }
     if (CWeather::WetRoads > 0.4f && !CCullZones::CamNoRain()) {
-        if (g_surfaceInfos.CreatesWheelSpray(colPoint.m_nPieceTypeB)) {
+        if (g_surfaceInfos.CreatesWheelSpray(colPoint.m_nSurfaceTypeB)) {
             g_fx.AddWheelSpray(this, colPoint.m_vecPoint, isWheelsSpinning, false, m_fContactSurfaceBrightness);
             return false;
         }
@@ -3219,7 +3227,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             else {
                 brake = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
 
-                if (brake > 500.0f)
+                if (m_pHandlingData->m_fMass < 500.0f)
                     brake *= 0.1f;
                 else if (m_nModelIndex == MODEL_RCBANDIT)
                     brake *= 0.2f;
