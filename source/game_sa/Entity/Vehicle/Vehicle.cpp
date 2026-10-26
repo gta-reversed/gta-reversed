@@ -3219,8 +3219,8 @@ void CVehicle::ProcessWheel(CVector& wheelFwd,
         }
     }
 
-    const float speedSq = sq(right) + sq(fwd);
-    if (speedSq > sq(adhesion)) {
+    const float slipSq = sq(right) + sq(fwd);
+    if (slipSq > sq(adhesion)) {
         if (outWheelState != WHEEL_STATE_FIXED) {
             float tractionLimit = WS_TRAC_FRAC_LIMIT;
             if (contactSpeedFwd > 0.15f && (!wheelId || wheelId == CAR_WHEEL_FRONT_RIGHT)) {
@@ -3228,15 +3228,15 @@ void CVehicle::ProcessWheel(CVector& wheelFwd,
             }
             outWheelState = (driving && tractionLimit * adhesion < std::abs(fwd)) ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
         }
-        float tractionLoss = 1.0f;
+        float slip = 1.0f;
         if (!alreadySkidding && outWheelState == WHEEL_STATE_SPINNING) {
             if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
-                tractionLoss = m_pHandlingData->m_fTractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
+                slip = m_pHandlingData->m_fTractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
         }
-        tractionLoss *= adhesion / std::sqrt(speedSq);
-        fwd *= tractionLoss;
-        right *= tractionLoss;
+        slip *= adhesion / std::sqrt(slipSq);
+        fwd *= slip;
+        right *= slip;
     }
 
     if (fwd != 0.0f || right != 0.0f) {
@@ -3290,11 +3290,12 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
 
     if (outWheelState != WHEEL_STATE_NORMAL) {
         alreadySkidding = true;
-        adhesion *= m_pHandlingData->m_fTractionLoss; // moved here from 0x6D7492
     }
-
     outWheelState = WHEEL_STATE_NORMAL;
     adhesion *= CTimer::GetTimeStep();
+    if (alreadySkidding) {
+        adhesion *= m_pHandlingData->m_fTractionLoss;
+    }
 
     if (special != BIKE_WHEEL_F_SLIP && special != BIKE_WHEEL_R_SLIP) {
         const float contactSpeedRight = wheelRight.Dot(wheelContactSpeed);
@@ -3333,24 +3334,24 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
             fwd = std::clamp(fwd, -brake, brake);
         }
     }
-    const float speedSq    = sq(right) + sq(fwd);
-    const float adhesionSq = sq(adhesion);
-    if (speedSq <= adhesionSq) {
+    const float slipSq = sq(right) + sq(fwd);
+    const float adhesionSq = sq(adhesion); // scalar
+    if (slipSq <= adhesionSq) {
         if (destabTraction < 1.0f) {
             if (!alreadySkidding) {
                 destabTraction *= m_pHandlingData->m_fTractionLoss;
             }
-            if (adhesionSq * sq(destabTraction) < speedSq) {
-                right *= (adhesion * destabTraction / std::sqrt(speedSq));
+            if (adhesionSq * sq(destabTraction) < slipSq) {
+                right *= (adhesion * destabTraction / std::sqrt(slipSq));
             }
         }
     } else {
         if (outWheelState != WHEEL_STATE_FIXED) {
             outWheelState = driving && contactSpeedFwd < 0.1f ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
         }
-        const float tractionLoss = adhesion * (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(speedSq);
-        fwd *= tractionLoss;
-        right *= tractionLoss;
+        const float slip = adhesion * (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(slipSq);
+        fwd *= slip;
+        right *= slip;
         if (destabTraction < 1.0f) {
             right *= destabTraction;
         }
