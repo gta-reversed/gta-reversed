@@ -1,4 +1,6 @@
 #include "StdInc.h"
+#include <array>
+#include <span>
 #include <bit>
 #include "InteriorGroup_c.h"
 #include "General.h"
@@ -32,7 +34,7 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(GetEntity, 0x594BD0, { .Reversed = false });
     RH_ScopedInstall(GetPed, 0x594B90, { .Reversed = false });
     RH_ScopedInstall(FindClosestInteriorInfo, 0x594A50, { .Reversed = false });
-    RH_ScopedInstall(FindInteriorInfo, 0x594970, { .Reversed = false });
+    RH_ScopedInstall(FindInteriorInfo, 0x594970);
     RH_ScopedInstall(GetNumInteriorInfos, 0x594920, { .Reversed = false });
     RH_ScopedInstall(GetRandomInterior, 0x5948C0);
     RH_ScopedInstall(AddInterior, 0x594840, { .Reversed = false });
@@ -163,8 +165,33 @@ bool InteriorGroup_c::FindClosestInteriorInfo(int32 a, CVector point, float b, I
 }
 
 // 0x594970
-bool InteriorGroup_c::FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_t** a3, Interior_c** a4) {
-    return plugin::CallMethodAndReturn<bool, 0x594970, InteriorGroup_c*, eInteriorInfoType, InteriorInfo_t**, Interior_c**>(this, infoType, a3, a4);
+bool InteriorGroup_c::FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_t** outInfo, Interior_c** outInterior) {
+    std::array<InteriorInfo_t*, 64> matchingInfos{};
+    std::array<Interior_c*, 64> matchingInteriors{};
+    auto count = 0u;
+    for (auto* interior : m_interiors) {
+        if (!interior || interior->m_interiorInfosCount <= 0) {
+            continue;
+        }
+        assert(static_cast<size_t>(interior->m_interiorInfosCount) <= std::size(interior->m_interiorInfos));
+        for (auto& info : std::span{ interior->m_interiorInfos, static_cast<size_t>(interior->m_interiorInfosCount) }) {
+            if (info.Type == infoType && !info.IsInUse) {
+                assert(count < matchingInfos.size());
+                matchingInfos[count] = &info;
+                matchingInteriors[count] = interior;
+                ++count;
+            }
+        }
+    }
+    if (!count) {
+        *outInfo = nullptr;
+        *outInterior = nullptr;
+        return false;
+    }
+    const auto selected = static_cast<uint32>(CGeneral::GetRandomNumber()) * count / 32768u;
+    *outInfo = matchingInfos[selected];
+    *outInterior = matchingInteriors[selected];
+    return true;
 }
 
 // 0x594920
