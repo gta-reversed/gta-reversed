@@ -210,7 +210,7 @@ FurnitureEntity_c* Interior_c::GetFurnitureEntity(const CEntity& entity) {
 
 // 0x5913E0
 bool Interior_c::IsPtInside(const CVector& pt, CVector bias) {
-    return plugin::CallMethodAndReturn<bool, 0x5913E0, Interior_c*, const CVector&, CVector&>(this, pt, bias);
+    return plugin::CallMethodAndReturn<bool, 0x5913E0, Interior_c*, const CVector&, CVector>(this, pt, bias);
 }
 
 // 0x5914D0
