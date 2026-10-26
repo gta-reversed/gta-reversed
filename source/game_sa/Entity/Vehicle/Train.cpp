@@ -45,9 +45,9 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(ReleaseOneMissionTrain, 0x6F5DF0);
     RH_ScopedInstall(SetTrainSpeed, 0x6F5E20);
     RH_ScopedInstall(SetTrainCruiseSpeed, 0x6F5E50);
-    RH_ScopedInstall(FindCaboose, 0x6F5E70);
-    RH_ScopedInstall(FindEngine, 0x6F5E90);
-    RH_ScopedInstall(FindCarriage, 0x6F5EB0);
+    RH_ScopedInstall(FindCaboose, 0x6F5E70, { .Reversed = false });
+    RH_ScopedInstall(FindEngine, 0x6F5E90, { .Reversed = false });
+    RH_ScopedInstall(FindCarriage, 0x6F5EB0, { .Reversed = false });
     RH_ScopedInstall(FindSideStationIsOn, 0x6F5EF0);
     RH_ScopedInstall(FindNextStationPositionInDirection, 0x6F5F00, { .Reversed = false });
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
@@ -275,41 +275,17 @@ void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
 
 // 0x6F5E70
 CTrain* CTrain::FindCaboose(CTrain* train) {
-    if (!train) {
-        return nullptr;
-    }
-
-    while (train->m_pNextCarriage) {
-        train = train->m_pNextCarriage;
-    }
-    return train;
+    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E70)(train);
 }
 
 // 0x6F5E90
 CTrain* CTrain::FindEngine(CTrain* train) {
-    if (!train) {
-        return nullptr;
-    }
-
-    while (train->m_pPrevCarriage) {
-        train = train->m_pPrevCarriage;
-    }
-    return train;
+    return ((CTrain * (__cdecl*)(CTrain*))0x6F5E90)(train);
 }
 
 // 0x6F5EB0
 CTrain* CTrain::FindCarriage(CTrain* train, uint8 carriage) {
-    if (!train || carriage == 0) {
-        return train;
-    }
-
-    for (uint8 i = 0; i < carriage; ++i) {
-        train = train->m_pNextCarriage;
-        if (!train) {
-            return nullptr;
-        }
-    }
-    return train;
+    return ((CTrain * (__cdecl*)(CTrain*, uint8))0x6F5EB0)(train, carriage);
 }
 
 // 0x6F5EF0
