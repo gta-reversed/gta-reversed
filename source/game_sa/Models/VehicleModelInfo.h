@@ -317,6 +317,8 @@ public:
     void PreprocessHierarchy();
     // setup custom plate
     void SetCarCustomPlate();
+    // fill `m_apDirtMaterials` with the materials using the dirt texture (NOTSA)
+    void FindDirtMaterials();
     // disable environment map effect on model
     void DisableEnvMap();
     // setup environment map intensity for model

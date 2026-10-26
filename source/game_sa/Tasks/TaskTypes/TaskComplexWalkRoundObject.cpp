@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include "TaskComplexFollowPointRoute.h"
 #include "TaskComplexWalkRoundObject.h"
 // #include "PointRoute.h"
 
@@ -8,7 +9,7 @@ void CTaskComplexWalkRoundObject::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x655020);
-    RH_ScopedInstall(CreateRouteTask, 0x655140, { .Reversed = false });
+    RH_ScopedInstall(CreateRouteTask, 0x655140);
 }
 
 // 0x655020
@@ -50,6 +51,10 @@ CTask* CTaskComplexWalkRoundObject::CreateFirstSubTask(CPed* ped) {
     return plugin::CallMethodAndReturn<CTask*, 0x657380, CTaskComplexWalkRoundObject*, CPed*>(this, ped);
 }
 
-CTask* CTaskComplexWalkRoundObject::CreateRouteTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x655140, CTaskComplexWalkRoundObject*, CPed*>(this, ped);
+// 0x655140
+CTask* CTaskComplexWalkRoundObject::CreateRouteTask(CPed*) const {
+    if (m_pointRoute->IsEmpty()) {
+        return nullptr;
+    }
+    return new CTaskComplexFollowPointRoute{ (eMoveState)m_moveState, *m_pointRoute };
 }

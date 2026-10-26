@@ -64,6 +64,7 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(CreateMissionTrain, 0x6F7550, { .Reversed = false });
     RH_ScopedInstall(DoTrainGenerationAndRemoval, 0x6F7900, { .Reversed = false });
     RH_ScopedInstall(AddNearbyPedAsRandomPassenger, 0x6F8170, { .Reversed = false });
+    RH_ScopedVMTInstall(SetModelIndex, 0x6F5530);
     RH_ScopedVMTInstall(ProcessControl, 0x6F86A0);
 
     RH_ScopedGlobalInstall(ProcessTrainAnnouncements, 0x6F5910);
@@ -132,6 +133,12 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_autoPilot.m_speed = 0.0f;
     m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
+}
+
+// 0x6F5530
+void CTrain::SetModelIndex(uint32 index) {
+    CVehicle::SetModelIndex(index);
+    SetupModelNodes();
 }
 
 void CTrain::SetupModelNodes() {

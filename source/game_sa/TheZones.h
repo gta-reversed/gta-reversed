@@ -13,6 +13,10 @@
 
 class CTheZones {
 public:
+    //! Zone info index of SAN_AND, the zone covering the whole map, created first in `Init`.
+    //! Loops over all navigation zones skip it, as it's not a real territory.
+    static constexpr int16 ZONE_INDEX_SAN_AND = 0;
+
     static inline auto&       ZonesVisited = StaticRef<notsa::mdarray<bool, 10, 10>>(0xBA3730); // Explored territories. Count: 100
 
     static inline auto& m_CurrLevel = StaticRef<eLevelName>(0xBA6718);
@@ -77,11 +81,6 @@ public:
     static auto GetZoneInfos() { return ZoneInfoArray | rngv::take(TotalNumberOfZoneInfos); }
 
     static CZoneInfo* GetZoneInfo(const CZone* zone) {
-        auto idx = zone->m_ZoneInfoIndex;
-
-        if (!idx)
-            return nullptr;
-
-        return &GetZoneInfos()[idx];
+        return &ZoneInfoArray[zone->m_ZoneInfoIndex];
     }
 };

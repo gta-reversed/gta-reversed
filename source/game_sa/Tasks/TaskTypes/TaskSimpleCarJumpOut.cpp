@@ -29,7 +29,6 @@ CTaskSimpleCarJumpOut::CTaskSimpleCarJumpOut(CVehicle* veh, uint32 door, CTaskUt
     m_lineUpTask{lineUpTask},
     m_initialVehSpeed{ veh ? veh->GetMoveSpeed().Magnitude() : 0.f }
 {
-    CEntity::SafeCleanUpRef(m_veh);
 }
 
 CTaskSimpleCarJumpOut::CTaskSimpleCarJumpOut(const CTaskSimpleCarJumpOut& o) :
@@ -39,8 +38,6 @@ CTaskSimpleCarJumpOut::CTaskSimpleCarJumpOut(const CTaskSimpleCarJumpOut& o) :
 
 // 0x647490
 CTaskSimpleCarJumpOut::~CTaskSimpleCarJumpOut() {
-    CEntity::SafeCleanUpRef(m_veh);
-
     if (m_anim) {
         m_anim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
     }
@@ -204,10 +201,9 @@ bool CTaskSimpleCarJumpOut::SetPedPosition(CPed* ped) {
         case ANIM_ID_CAR_ROLLOUT_RHS:
         case ANIM_ID_CAR_ROLLOUT_LHS: {
             const auto& pedPos = ped->GetPosition();
-            auto pedPosAdj{ pedPos };
 
             CWorld::pIgnoreEntity = m_veh;
-            CPedPlacement::FindZCoorForPed(pedPosAdj);
+            const CVector pedPosAdj = std::get<CVector>(CPedPlacement::FindZCoorForPed(pedPos));
             CWorld::pIgnoreEntity = nullptr;
 
             if (pedPosAdj.z > pedPos.z) {

@@ -7,7 +7,7 @@ class CVehicle;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexDestroyCar : public CTaskComplex {
 public:
-    bool      m_arg0{};
+    bool      m_NeedsToCreateFirstSubTask{};
     CVehicle* m_VehicleToDestroy{};
     uint32    m_unused{};
     uint32    m_unused2{};

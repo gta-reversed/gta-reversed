@@ -2,12 +2,14 @@
 
 #include "TaskSimpleSlideToCoord.h"
 #include "TaskSimpleStandStill.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 void CTaskSimpleSlideToCoord::InjectHooks() {
+    RH_ScopedClass(CTaskSimpleSlideToCoord);
     // + RH_ScopedVirtualClass(CTaskSimpleSlideToCoord, 0x86FFEC, 9); // todo (Pirulax): Make it working
-    // + RH_ScopedCategory("Tasks/TaskTypes");
+    RH_ScopedCategory("Tasks/TaskTypes");
 
-    // + RH_ScopedOverloadedInstall(Constructor, "NoAnim", 0x66C3E0, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)(CVector const&, float, float));
+    RH_ScopedOverloadedInstall(Constructor, "NoAnim", 0x66C3E0, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)(CVector const&, float, float));
     // + RH_ScopedOverloadedInstall(Constructor, "Anim", 0x66C450, CTaskSimpleSlideToCoord*(CTaskSimpleSlideToCoord::*)(CVector const&, float, float, char const*, char const*, int32, float, bool, int32));
     // + RH_ScopedVmtInstall(MakeAbortable, 0x66C4D0);
     // RH_ScopedVmtInstall(ProcessPed, 0x66C4E0);
@@ -22,7 +24,10 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     m_bFirstTime{ true },
     m_bRunningAnim{ false }
 {
-    // m_Timer not initialized
+    // m_EndTime not initialized
+    if (notsa::bugfixes::CTaskSimpleSlideToCoord_Constructor_UninitializedTimer) {
+        m_EndTime = -1;
+    }
 }
 
 // 0x66C450
@@ -33,7 +38,7 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     m_Speed{ speed },
     m_bFirstTime{ true },
     m_bRunningAnim{ false },
-    m_Timer{ -1 }
+    m_EndTime{ -1 }
 {
 }
 
