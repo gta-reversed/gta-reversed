@@ -5119,10 +5119,12 @@ void CVehicle::UpdateTractorLink(bool applyFullVelocityAtHookUp, bool applyDistT
 
 // 0x6E0400
 CEntity* CVehicle::ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExistingTarget) {
-    // BUG: LOS timestamps are not properly stashed, for some reason they use == 0 and > 1 checks respectively
-    //      for last time check and then set, so GetIsLineOfSightClear is called every frame
     const auto target = CWeapon::PickTargetForHeatSeekingMissile(GetPosition(), GetForward(), 1.2f, this, true, preferredExistingTarget);
-    const auto lastCheckTime = IsSubPlane() ? AsPlane()->m_LastHSMissileLOSTime : 0u; // ... == 0
+    const auto lastCheckTime = IsSubPlane()
+        ? (notsa::bugfixes::CVehicle_ScanAndMarkTargetForHeatSeekingMissile_NotProperlyStashedLOSTimestamps
+            ? AsPlane()->m_LastHSMissileLOSTime
+            : AsPlane()->m_LastHSMissileLOSTime == 0)
+        : 0u;
     bool isLOSClear = true;
     if (target && CTimer::GetTimeInMS() - lastCheckTime > 1000u) {
         const bool usesCollision = m_bUsesCollision;
@@ -5136,7 +5138,9 @@ CEntity* CVehicle::ScanAndMarkTargetForHeatSeekingMissile(CEntity* preferredExis
         target->m_bUsesCollision = targetCollision;
 
         if (IsSubPlane()) {
-            AsPlane()->m_LastHSMissileLOSTime = CTimer::GetTimeInMS(); // ... > 1
+            AsPlane()->m_LastHSMissileLOSTime = notsa::bugfixes::CVehicle_ScanAndMarkTargetForHeatSeekingMissile_NotProperlyStashedLOSTimestamps
+                ? CTimer::GetTimeInMS()
+                : CTimer::GetTimeInMS() > 1;
             AsPlane()->m_LastHSMissileLOS     = isLOSClear;
         }
     } else if (IsSubPlane()) {
