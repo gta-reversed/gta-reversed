@@ -4919,7 +4919,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState,
         isRearWheel = true;
         break;
     case CAR_WHEEL_REAR_RIGHT:
-    case CAR_WHEEL_VIRTUAL_MIDDLE_RIGHT + 1: // FIX: according to og logic, 6 or right middle is not a rear wheel
+    case CAR_WHEEL_VIRTUAL_MIDDLE_RIGHT + 1: // FIXBUGS: according to og logic, 6 or right middle is not a rear wheel
         isRearWheel = isRightWheel = true;
         break;
     default:
@@ -5172,7 +5172,7 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
             if (m_nOrdnanceCycleIndex++ & 1) { // notsa - originally inverse each frame, this method is effectively the same
                 ordnancePos.x = -ordnancePos.x;
             }
-            CVector projPos = m_matrix->TransformPoint(ordnancePos); // notsa - using full transform not just pos it better
+            CVector projPos = m_matrix->TransformPoint(ordnancePos); // FIXBUGS/notsa - using full transform not just pos it better
             if (missle == CAR_WEAPON_LOCK_ON_ROCKET) {
                 projPos += std::max(0.f, m_vecMoveSpeed.Dot(GetForward())) * GetForward() * CTimer::GetTimeStep();
             }
