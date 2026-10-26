@@ -4871,9 +4871,8 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState,
                                        eCarWheel wheelIndex,
                                        eSkidmarkType skidmarkType,
                                        bool& bloodState,
-                                       uint32 flags)
+                                       eWheelParticleFlags flags)
 {
-    // TODO: make enum for flags
     if (m_bOffscreen) {
         return false;
     }
@@ -4969,7 +4968,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState,
         break;
     }
     case WHEEL_STATE_SKIDDING:
-        if (flags & 4) {
+        if (flags & WHEEL_PARTICLE_NOSKIDSMOKE) {
             return false;
         }
         [[fallthrough]];
@@ -4993,7 +4992,7 @@ bool CVehicle::AddSingleWheelParticles(tWheelState wheelState,
         }
         // marks are leaved in case of bAlwaysSkidMarks/odd wheel/moving horz/bloodState or forced it (flags & 2)
         const bool isMovingAlwaysSkidder = vehicleFlags.bAlwaysSkidMarks && isRearWheel && m_vecMoveSpeed.Magnitude2D() > 0.04f;
-        if (!isMovingAlwaysSkidder && !bloodState && !(flags & 2)) {
+        if (!isMovingAlwaysSkidder && !bloodState && !(flags & WHEEL_PARTICLE_EXTRASKIDS)) {
             return false;
         }
         break;

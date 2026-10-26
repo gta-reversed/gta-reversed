@@ -165,6 +165,12 @@ enum tWheelState : int32 {
     WHEEL_STATE_FIXED,    // not rotating
 };
 
+enum eWheelParticleFlags : uint32 {
+    WHEEL_PARTICLE_BLOODY      = 1, // unused
+    WHEEL_PARTICLE_EXTRASKIDS  = 2,
+    WHEEL_PARTICLE_NOSKIDSMOKE = 4,
+};
+
 enum class eVehicleCollisionComponent : uint16
 {
     DEFAULT = 0x0,
@@ -655,7 +661,7 @@ public:
     void DoSunGlare();
     void AddWaterSplashParticles();
     void AddExhaustParticles();
-    bool AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector_unused, eCarWheel wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, uint32 flags);
+    bool AddSingleWheelParticles(tWheelState wheelState, uint32 wheelStatus, float suspRatio, float speed, CColPoint& colPoint, CVector& pos, float outsideVector_unused, eCarWheel wheelIndex, eSkidmarkType skidmarkType, bool& bloodState, eWheelParticleFlags flags);
     bool GetSpecialColModel();
     void RemoveVehicleUpgrade(int32 upgradeModelIndex);
     void AddUpgrade(int32 modelIndex, int32 upgradeIndex);
