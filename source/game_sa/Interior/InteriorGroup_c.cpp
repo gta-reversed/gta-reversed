@@ -1,5 +1,7 @@
 #include "StdInc.h"
 #include "InteriorGroup_c.h"
+#include "Interior_c.h"
+#include "Plugins/TwoDEffectPlugin/2dEffect.h"
 
 void InteriorGroup_c::InjectHooks() {
     RH_ScopedClass(InteriorGroup_c);
@@ -17,7 +19,7 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(ArePathsLoaded, 0x595380, { .Reversed = false });
     RH_ScopedInstall(Setup, 0x595320, { .Reversed = false });
     RH_ScopedInstall(Exit, 0x595290, { .Reversed = false });
-    RH_ScopedInstall(ContainsInteriorType, 0x595250, { .Reversed = false });
+    RH_ScopedInstall(ContainsInteriorType, 0x595250);
     RH_ScopedInstall(CalcIsVisible, 0x595200, { .Reversed = false });
     RH_ScopedInstall(DereferenceAnims, 0x595160);
     RH_ScopedInstall(ReferenceAnims, 0x5950D0);
@@ -85,8 +87,13 @@ int8 InteriorGroup_c::Exit() {
 }
 
 // 0x595250
-int8 InteriorGroup_c::ContainsInteriorType(int32 a2) {
-    return plugin::CallMethodAndReturn<int8, 0x595250, InteriorGroup_c*, int32>(this, a2);
+int8 InteriorGroup_c::ContainsInteriorType(int32 type) {
+    for (const auto* interior : m_interiors) {
+        if (interior && interior->m_box->m_type == type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // 0x595200
