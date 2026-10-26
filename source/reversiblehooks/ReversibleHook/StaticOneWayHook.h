@@ -2,6 +2,7 @@
 
 #include <reversiblehooks/HookConstants.hpp>
 #include <reversiblehooks/HooksUtility.hpp>
+#include <reversiblehooks/HookPreservation.hpp>
 #include "OneWayHook.h"
 
 namespace ReversibleHooks {
@@ -23,7 +24,7 @@ public:
         std::string                      name,
         void*                            from,
         void*                            to,
-        const Utility::HookPreservation& preservation = {}
+        const HookPreservation& preservation = {}
     );
     ~StaticOneWayHook();
 
@@ -74,7 +75,7 @@ protected:
     HookData            m_RestoreHookData{};             //!< Data overwritten at the hook address (before we installed the hook)
     Utility::VirtualPtr m_PreservationCodeData{};        //!< Generated hook code if any (If present the code is first redirected here, then to `m_AddressUsedTo`)
     size_t              m_PreservationCodeDataBufSize{}; //!< Size of the generated hook code's buffer
-    Utility::HookPreservation m_Preservation{};          //!< What the hook code preserves across the call (If anything, the hook jumps to `m_PreservationCodeData` that calls `m_CalculatedJumpTo`)
+    HookPreservation m_Preservation{};          //!< What the hook code preserves across the call (If anything, the hook jumps to `m_PreservationCodeData` that calls `m_CalculatedJumpTo`)
 };
 }; // namespace ReversibleHook
 }; // namespace ReversibleHooks

@@ -11,7 +11,7 @@ StaticTwoWayHook::StaticTwoWayHook(
     std::string_view                 name,
     void*                            fnAddressOur,
     void*                            fnAddressGTA,
-    const Utility::HookPreservation& preservation
+    const HookPreservation& preservation
 ) :
     TwoWayHook{ std::string{ name } },
     m_OneWayFromGTA{ std::format("{}_FromGTA", name), fnAddressGTA, fnAddressOur, preservation },

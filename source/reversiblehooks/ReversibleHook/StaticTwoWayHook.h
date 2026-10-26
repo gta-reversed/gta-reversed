@@ -23,7 +23,7 @@ public:
         std::string_view                 name,
         void*                            fnAddressOur,
         void*                            fnAddressGTA,
-        const Utility::HookPreservation& preservation = {}
+        const HookPreservation& preservation = {}
     );
 
     ~StaticTwoWayHook() override {

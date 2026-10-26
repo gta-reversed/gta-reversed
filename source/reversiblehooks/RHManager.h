@@ -140,7 +140,7 @@ public: // Script hooking functions //
         ));
     #else
         // Calling convention and return value related info is deduced from the function's type
-        auto preservation = Utility::GetCallingConventionOf<T>();
+        auto preservation = GetCallingConventionOf<T>();
         preservation.NumStackArguments = opt.StackArgumentsToPreserve.value_or(0);
         preservation.PreserveRegisters = opt.PreserveRegisters;
 

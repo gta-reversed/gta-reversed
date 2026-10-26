@@ -15,7 +15,7 @@ StaticOneWayHook::StaticOneWayHook(
     std::string                      name,
     void*                            from,
     void*                            to,
-    const Utility::HookPreservation& preservation
+    const HookPreservation& preservation
 ) :
     OneWayHook{ std::move(name) },
     m_From{ from },
