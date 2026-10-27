@@ -37,7 +37,7 @@ void CSimpleVariablesSaveStructure::Construct() {
 
     m_bLARiots = gbLARiots;
     m_bLARiots_NoPoliceCar = gbLARiots_NoPoliceCars;
-    m_bCineyCamMessageDisplayed = gbCineyCamMessageDisplayed;
+    m_nCineyCamMessageDisplayed = gbCineyCamMessageDisplayed;
 
     m_nCurrArea = CGame::currArea;
     m_nCurrLevel = CGame::currLevel;
@@ -104,7 +104,7 @@ void CSimpleVariablesSaveStructure::Extract(uint32& versionId) const {
 
     gbLARiots = m_bLARiots;
     gbLARiots_NoPoliceCars = m_bLARiots_NoPoliceCar;
-    gbCineyCamMessageDisplayed = m_bCineyCamMessageDisplayed;
+    gbCineyCamMessageDisplayed = m_nCineyCamMessageDisplayed;
 
     CGame::currArea = static_cast<eAreaCodes>(m_nCurrArea);
     CGame::currLevel = m_nCurrLevel;
