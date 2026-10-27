@@ -162,7 +162,7 @@ CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
     if (ped->m_nPedType == PED_TYPE_CIVFEMALE) {
         m_SunbatherType = static_cast<eSunbatherType>(2 - static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * 0.000030517578125f * -3.0f));
     } else if (CPopulation::IsSunbather(ped->GetModelId())) {
-        m_SunbatherType = CGeneral::GetRandomNumber() < 0x3FFF ? SUNBATHER_MALE_2 : SUNBATHER_MALE_1;
+        m_SunbatherType = CGeneral::DoCoinFlip() ? SUNBATHER_MALE_1 : SUNBATHER_MALE_2;
     } else {
         m_SunbatherType = SUNBATHER_MALE_2;
     }
