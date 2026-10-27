@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 25, 2026 at 19:28:05 UTC
-(Triggered by commit [13245710](https://github.com/gta-reversed/gta-reversed/commit/132457102bac52d3fb27508ad674129c0e70f965))
+Last update was at Oct 26, 2026 at 19:49:48 UTC
+(Triggered by commit [6d8cf7ff](https://github.com/gta-reversed/gta-reversed/commit/6d8cf7ff217a605d65412b92975eb8ea0ab168ea))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7625 out of 8324 functions done in 722 categories)
+## Stats (7628 out of 8325 functions done in 722 categories)
 
-#### Completely reversed categories (601/722) [83%]
+#### Completely reversed categories (602/722) [83%]
 
 <details>
 <summary>See list of categories</summary>
@@ -198,6 +198,7 @@ Last update was at Oct 25, 2026 at 19:28:05 UTC
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
+- FxInfoManager_c (5)<br />
 - FxManager_c (25)<br />
 - FxEmitterPrt_c (1)<br />
 - Fx_c (8)<br />
@@ -581,7 +582,7 @@ Last update was at Oct 25, 2026 at 19:28:05 UTC
 - CAEStreamThread (14)<br />
 - CAudioEngine (82)<br />
 - CAudioZones (5)<br />
-- CAECollisionAudioEntity (17)<br />
+- CAECollisionAudioEntity (18)<br />
 - CAEDoorAudioEntity (6)<br />
 - CAEExplosionAudioEntity (3)<br />
 - CAEFireAudioEntity (7)<br />
@@ -619,7 +620,7 @@ Last update was at Oct 25, 2026 at 19:28:05 UTC
 
 </details>
 
-#### Partially reversed categories (113/722) [16%]
+#### Partially reversed categories (112/722) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -667,7 +668,6 @@ Last update was at Oct 25, 2026 at 19:28:05 UTC
 - CCam (20/45) [44%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
-- FxInfoManager_c (4/5) [80%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
 - CPed (137/145) [94%]<br />
 - CPlayerPed (50/65) [77%]<br />
@@ -730,7 +730,7 @@ Last update was at Oct 25, 2026 at 19:28:05 UTC
 - CMonsterTruck (5/11) [45%]<br />
 - CPlane (14/23) [61%]<br />
 - CQuadBike (11/12) [92%]<br />
-- CTrain (21/41) [51%]<br />
+- CTrain (22/41) [54%]<br />
 - CVehicle (145/149) [97%]<br />
 - InteriorGroup_c (2/24) [8%]<br />
 - CRunningScript (24/39) [62%]<br />
