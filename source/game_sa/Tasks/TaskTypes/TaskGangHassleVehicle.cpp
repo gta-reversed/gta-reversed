@@ -9,7 +9,7 @@ void CTaskGangHassleVehicle::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x65FAC0);
     RH_ScopedInstall(Destructor, 0x65FB60);
     RH_ScopedInstall(GetTargetHeading, 0x65FDD0, { .Reversed = false });
-    RH_ScopedInstall(CalcTargetOffset, 0x6641A0, { .Reversed = false });
+    RH_ScopedInstall(CalcTargetOffset, 0x6641A0);
     RH_ScopedInstall(Clone, 0x65FC00, { .Reversed = false });
     RH_ScopedInstall(CreateNextSubTask, 0x65FC80, { .Reversed = false });
     RH_ScopedInstall(CreateFirstSubTask, 0x664BA0, { .Reversed = false });
@@ -56,7 +56,32 @@ float CTaskGangHassleVehicle::GetTargetHeading(CPed* ped) {
 
 // 0x6641A0
 void CTaskGangHassleVehicle::CalcTargetOffset() {
-    plugin::CallMethod<0x6641A0, CTaskGangHassleVehicle*>(this);
+    m_vecPosn = CVector{};
+    const auto& bbox = CModelInfo::GetModelInfo(m_Vehicle->m_nModelIndex)->GetColModel()->GetBoundingBox();
+    switch (m_nHasslePosId) {
+    case 0:
+        m_vecPosn.x = bbox.m_vecMin.x - m_fOffsetX;
+        m_vecPosn.y = bbox.m_vecMax.y * 0.5f; // 0x858B8C
+        break;
+    case 1:
+        m_vecPosn.x = bbox.m_vecMax.x + m_fOffsetX;
+        m_vecPosn.y = bbox.m_vecMax.y * 0.5f; // 0x858B8C
+        break;
+    case 2:
+        m_vecPosn.x = bbox.m_vecMin.x - m_fOffsetX;
+        m_vecPosn.y = bbox.m_vecMin.y * 0.5f; // 0x858B8C
+        break;
+    case 3:
+        m_vecPosn.x = bbox.m_vecMax.x + m_fOffsetX;
+        m_vecPosn.y = bbox.m_vecMin.y * 0.5f; // 0x858B8C
+        break;
+    case 4:
+        m_vecPosn.y = bbox.m_vecMin.y - m_fOffsetX;
+        break;
+    case 5:
+        m_vecPosn.y = bbox.m_vecMax.y + m_fOffsetX;
+        break;
+    }
 }
 
 // 0x65FC80
