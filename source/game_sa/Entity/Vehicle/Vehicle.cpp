@@ -3499,9 +3499,7 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
         } else {
             const float healthBefore = m_fHealth;
             m_fHealth -= intensity;
-            if ((GetStatus() != STATUS_PLAYER_PLAYBACK_FROM_BUFFER && (GetStatus() >= STATUS_PLAYER && GetStatus() <= STATUS_PHYSICS))
-                && damager && damager->GetIsTypePed())
-            {
+            if (notsa::contains({ STATUS_PLAYER, STATUS_SIMPLE, STATUS_PHYSICS}, GetStatus()) && damager && damager->GetIsTypePed()) {
                 AddVehicleDamageWeaponEventResponse(m_pDriver);
                 for (auto& passenger : GetMaxPassengerSeats()) {
                     AddVehicleDamageWeaponEventResponse(passenger);
@@ -5171,7 +5169,7 @@ void CVehicle::FireMissleTypeImpl(CEntity* targetEntity, eCarWeapon missle, eOrd
         switch (missle) {
         case CAR_WEAPON_FREEFALL_BOMB:
         case CAR_WEAPON_LOCK_ON_ROCKET: {
-            if (m_nOrdnanceCycleIndex++ & 1) { // notsa - originally inverse each frame, this method is effectively the same
+            if (m_nOrdnanceCycleIndex++ % 2) { // notsa - originally inverse each frame, this method is effectively the same
                 ordnancePos.x = -ordnancePos.x;
             }
             CVector projPos = m_matrix->TransformPoint(ordnancePos); // FIXBUGS/notsa - using full transform not just pos it better

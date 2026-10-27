@@ -111,7 +111,7 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
     m_nFiringMultiplier = 16;
     m_FireMissilePressedTime = 0u;
     m_LastMissileTarget = nullptr;
-    m_LastHSMissileStruct = 0u; // not initialized
+    m_LastHSMissileStruct = 0u; // originally not initialized
     m_apJettrusParticles.fill(nullptr);
 
     m_pSmokeParticle = nullptr;
