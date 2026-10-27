@@ -152,7 +152,7 @@ inline const ReversibleBugFix CVehicle_ProcessWheel_and_ProcessBikeWheel_Already
 };
 inline const ReversibleBugFix CVehicle_ScanAndMarkTargetForHeatSeekingMissile_NotProperlyStashedLOSTimestamps{
     .Name        = "CVehicle::CVehicle_ScanAndMarkTargetForHeatSeekingMissile - LOS timestamps",
-    .Description = "Idea is to stash LOS target visibility var to not call CWorld::GetIsLineOfSightClear every frame, for some reason they use == 0 and > 1 ops respectively for last time LOS check and then flag set, so check performed every frame and not each 1 sec",
+    .Description = "Idea is to stash LOS target visibility var to not call CWorld::GetIsLineOfSightClear every frame, for some reason they use == 0 and > 1 ops respectively for last time LOS check and then flag set, so check performed every frame and not each ~1 sec",
     .Credit      = "aeaeo"
 };
 };

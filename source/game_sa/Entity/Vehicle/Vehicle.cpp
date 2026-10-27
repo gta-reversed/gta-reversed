@@ -3293,6 +3293,8 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
     }
     outWheelState = WHEEL_STATE_NORMAL;
     adhesion *= CTimer::GetTimeStep();
+    // if moved to branch above and skidding bugfix is off, adhesion won't be always multiplied by trloss regardless of wheelstate
+    // in that case og bug is not buggy enough, hence we have a doublefix
     if (alreadySkidding) {
         adhesion *= m_pHandlingData->m_fTractionLoss;
     }
