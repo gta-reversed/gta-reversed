@@ -3816,13 +3816,7 @@ void CAEVehicleAudioEntity::ProcessGenericJet(bool engineOn, tVehicleParams& par
         }
 
         constexpr float FreqStep = 1.0f / 187.5f;
-        if (targetFreq > m_CurrentRotorFrequency + FreqStep) {
-            m_CurrentRotorFrequency += FreqStep;
-        } else if (targetFreq < m_CurrentRotorFrequency - FreqStep) {
-            m_CurrentRotorFrequency -= FreqStep;
-        } else {
-            m_CurrentRotorFrequency = targetFreq;
-        }
+        m_CurrentRotorFrequency = notsa::step_to(m_CurrentRotorFrequency, targetFreq, FreqStep);
 
         PlayAircraftSound(
             AE_SOUND_AIRCRAFT_FRONT,
