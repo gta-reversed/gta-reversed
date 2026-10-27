@@ -36,15 +36,10 @@ void InteriorGroup_c::InjectHooks() {
 
 // 0x5947E0
 void InteriorGroup_c::Init(CEntity* entity, int32 id) {
-    for (auto& interior : m_interiors) {
-        interior = nullptr;
-    }
-    for (auto& ped : m_peds) {
-        ped = nullptr;
-    }
-    for (auto& ped : m_pedsToRemove) {
-        ped = nullptr;
-    }
+    rng::fill(m_interiors, nullptr);
+    rng::fill(m_peds, nullptr);
+    rng::fill(m_pedsToRemove, nullptr);
+    
     m_numInteriors        = 0;
     m_pathSetupComplete   = 0;
     m_updatePeds          = 0;
