@@ -34,10 +34,10 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(CheckForTrackConcatenation, 0x4EA930, { .Reversed = false });
     RH_ScopedInstall(QueueUpTracksForStation, 0x4EA670, { .Reversed = false });
     RH_ScopedInstall(ChooseDJBanterIndex, 0x4EA2D0, { .Reversed = false });
-    RH_ScopedInstall(ChooseDJBanterIndexFromList, 0x4E95E0, { .Reversed = false });
-    RH_ScopedInstall(ChooseAdvertIndex, 0x4E9570, { .Reversed = false });
-    RH_ScopedInstall(ChooseIdentIndex, 0x4E94C0, { .Reversed = false });
-    RH_ScopedInstall(ChooseMusicTrackIndex, 0x4EA270, { .Reversed = false });
+    RH_ScopedInstall(ChooseDJBanterIndexFromList, 0x4E95E0);
+    RH_ScopedInstall(ChooseAdvertIndex, 0x4E9570);
+    RH_ScopedInstall(ChooseIdentIndex, 0x4E94C0);
+    RH_ScopedInstall(ChooseMusicTrackIndex, 0x4EA270);
     RH_ScopedInstall(ChooseTalkRadioShow, 0x4E8E40, { .Reversed = false });
     RH_ScopedInstall(CheckForMissionStatsChanges, 0x4E8410);
     RH_ScopedInstall(StartTrackPlayback, 0x4EA640);
@@ -617,17 +617,90 @@ void CAERadioTrackManager::StopRadio(tVehicleAudioSettings* settings, bool durin
 
 // 0x4E94C0
 int32 CAERadioTrackManager::ChooseIdentIndex(eRadioID id) {
-    return plugin::CallAndReturn<int32, 0x4E94C0, CAERadioTrackManager*, int8>(this, id);
+    static auto& s_IdentRanges = StaticRef<int32[RADIO_COUNT][2]>(0x8C8FB0); // {firstTrack, lastTrack} per station
+
+    const auto i = static_cast<int32>(id);
+    if (s_IdentRanges[i][0] == 0x782) { // station has no idents
+        return -1;
+    }
+
+    while (true) {
+        const int32 candidate = CAEAudioUtility::GetRandomNumberInRange(s_IdentRanges[i][0], s_IdentRanges[i][1]);
+
+        // Radio Los Santos' ident #1100 only plays once the relevant stat has been earned
+        if (id == RADIO_MODERN_HIP_HOP && candidate == 0x44c && CStats::GetStatValue((eStats)0x152) <= 0.0f) {
+            continue;
+        }
+
+        const int32 historyDepth = std::min(s_IdentRanges[i][1] - s_IdentRanges[i][0] - 1, IDENT_INDEX_HISTORY_COUNT);
+        bool        recent       = false;
+        for (int32 j = 0; j < historyDepth; j++) {
+            if (candidate == m_nIdentIndexHistory[i].indices[j]) {
+                recent = true;
+                break;
+            }
+        }
+        if (!recent) {
+            return candidate;
+        }
+    }
 }
 
 // 0x4E9570
 int32 CAERadioTrackManager::ChooseAdvertIndex(eRadioID id) {
-    return plugin::CallAndReturn<int32, 0x4E9570, CAERadioTrackManager*, int8>(this, id);
+    static auto& s_AdvertFirstTrack = StaticRef<int32>(0x8C8B88);
+    static auto& s_AdvertLastTrack  = StaticRef<int32>(0x8C8B8C);
+    static auto& s_StationAdvertExclusions = StaticRef<int32[RADIO_COUNT][23]>(0x8CADD0); // adverts to skip per station
+
+    const auto i = static_cast<int32>(id);
+    while (true) {
+        const int32 candidate = CAEAudioUtility::GetRandomNumberInRange(s_AdvertFirstTrack, s_AdvertLastTrack);
+
+        bool reject = false;
+        for (int32 j = 0; j < 23; j++) {
+            if (candidate == s_StationAdvertExclusions[i][j]) {
+                reject = true;
+                break;
+            }
+        }
+        if (reject) {
+            continue;
+        }
+        for (int32 j = 0; j < ADVERT_INDEX_HISTORY_COUNT; j++) {
+            if (candidate == m_nAdvertIndexHistory[i].indices[j]) {
+                reject = true;
+                break;
+            }
+        }
+        if (!reject) {
+            return candidate;
+        }
+    }
 }
 
 // 0x4EA270
 int8 CAERadioTrackManager::ChooseMusicTrackIndex(eRadioID id) {
-    return plugin::CallAndReturn<int8, 0x4EA270, CAERadioTrackManager*, int8>(this, id);
+    if (id == RADIO_TALK) {
+        return ChooseTalkRadioShow();
+    }
+
+    static auto& s_MusicTrackCounts = StaticRef<int32[RADIO_COUNT]>(0x8C9010); // number of music tracks per station
+    const auto   i = static_cast<int32>(id);
+
+    while (true) {
+        const auto  candidate    = static_cast<int8>(CAEAudioUtility::GetRandomNumberInRange(0, s_MusicTrackCounts[i] - 1));
+        const int32 historyDepth = std::min(s_MusicTrackCounts[i] - 2, MUSIC_TRACK_HISTORY_COUNT);
+        bool        recent       = false;
+        for (int32 j = 0; j < historyDepth; j++) {
+            if (candidate == m_nMusicTrackIndexHistory[i].indices[j]) {
+                recent = true;
+                break;
+            }
+        }
+        if (!recent) {
+            return candidate;
+        }
+    }
 }
 
 // 0x4EA2D0
@@ -637,7 +710,39 @@ int32 CAERadioTrackManager::ChooseDJBanterIndex(eRadioID id) {
 
 // 0x4E95E0
 int32 CAERadioTrackManager::ChooseDJBanterIndexFromList(eRadioID id, int32** list) {
-    return plugin::CallMethodAndReturn<int32, 0x4E95E0, CAERadioTrackManager*, eRadioID, int32**>(this, id, list);
+    // `list` is really a flat {firstTrack, lastTrack} pair per station (stride 2 int32).
+    static auto& s_DefaultDJBanterRanges = StaticRef<int32[RADIO_COUNT][2]>(0x8C8CB0);
+
+    const auto  i      = static_cast<int32>(id);
+    const auto* ranges = reinterpret_cast<const int32*>(list);
+    const int32 first  = ranges[i * 2];
+    if (first == 0x782) { // station has no DJ banter
+        return -1;
+    }
+
+    const int32 spread = ranges[i * 2 + 1] - first; // last - first
+    const int32 count  = spread + 1;
+    if (count < 1) {
+        return -1;
+    }
+
+    const int32 rnd          = CAEAudioUtility::GetRandomNumberInRange(0, spread);
+    const int32 historyDepth = std::min(s_DefaultDJBanterRanges[i][1] - s_DefaultDJBanterRanges[i][0] - 1, DJBANTER_INDEX_HISTORY_COUNT);
+
+    for (int32 offset = 0; offset < count; offset++) {
+        const int32 candidate = (offset + rnd) % count + first;
+        bool        recent    = false;
+        for (int32 j = 0; j < historyDepth; j++) {
+            if (candidate == m_nDJBanterIndexHistory[i].indices[j]) {
+                recent = true;
+                break;
+            }
+        }
+        if (!recent) {
+            return candidate;
+        }
+    }
+    return -1;
 }
 
 // 0x4EB180
