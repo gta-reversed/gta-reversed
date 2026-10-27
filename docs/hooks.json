@@ -17962,7 +17962,7 @@
   {
     "Category": "FxInfoManager_c",
     "Name": "Load",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "FxInfoManager_c",
@@ -35306,6 +35306,11 @@
   },
   {
     "Category": "CAECollisionAudioEntity",
+    "Name": "UpdateParameters",
+    "IsReversed": true
+  },
+  {
+    "Category": "CAECollisionAudioEntity",
     "Name": "ReportWaterSplash-at-position",
     "IsReversed": true
   },
@@ -39547,7 +39552,7 @@
   {
     "Category": "CTrain",
     "Name": "RemoveAllTrains",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTrain",

@@ -53,7 +53,7 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
     RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .Reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
-    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0, { .Reversed = false });
+    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0);
     RH_ScopedInstall(ReleaseMissionTrains, 0x6F6B60);
     RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0, { .Reversed = false });
     RH_ScopedInstall(FindPositionOnTrackFromCoors, 0x6F6CC0, { .Reversed = false });
@@ -360,7 +360,30 @@ void CTrain::RemoveMissionTrains() {
 
 // 0x6F6AA0
 void CTrain::RemoveAllTrains() {
-    ((void(__cdecl*)())0x6F6AA0)();
+    const auto IsPlayerInTrain = [] (CTrain* train) {
+        for (auto* t = train; t; t = t->m_pPrevCarriage) {
+            if (t == FindPlayerVehicle()) {
+                return true;
+            }
+        }
+        for (auto* t = train; t; t = t->m_pNextCarriage) {
+            if (t == FindPlayerVehicle()) {
+                return true;
+            }
+        }
+        return false;
+    };
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (!vehicle.IsTrain()) {
+            continue;
+        }
+        auto* const train = vehicle.AsTrain();
+        if (IsPlayerInTrain(train)) {
+            continue;
+        }
+        CWorld::Remove(train);
+        delete train;
+    }
 }
 
 // 0x6F6B60
