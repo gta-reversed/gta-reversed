@@ -48,7 +48,7 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .Reversed = false });
     RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0, { .Reversed = false });
     RH_ScopedVMTInstall(SetModelIndex, 0x6B8970);
-    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080, { .Reversed = false });
+    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080);
     RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B7070);
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .Reversed = false });
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0, { .Reversed = false });
@@ -651,9 +651,30 @@ void CBike::SetupModelNodes() {
     CClumpModelInfo::FillFrameArray(GetRpClump(), m_aBikeNodes.data());
 }
 
-// 0x6B7080
+// 0x6B7080 - Same as `CAutomobile::PlayCarHorn`
 void CBike::PlayCarHorn() {
-    plugin::CallMethod<0x6B7080, CBike*>(this);
+    if (IsAlarmActivated() && GetStatus() != STATUS_WRECKED || m_HornCounter) {
+        return;
+    }
+
+    if (m_nCarHornTimer) {
+        m_nCarHornTimer -= 1;
+        return;
+    }
+
+    m_nCarHornTimer = CGeneral::GetRandomNumber() % 128 - 106; // TODO: GetRandomNumberInRange
+    if (const auto r = m_nCarHornTimer % 8; r < 4) {
+        if (r >= 2) {
+            if (m_pDriver && m_autoPilot.carCtrlFlags.bHonkAtCar) {
+                m_pDriver->Say(CTX_GLOBAL_BLOCKED);
+            }
+        }
+        m_HornCounter = 45;
+    } else {
+        if (m_pDriver) {
+            m_pDriver->Say(CTX_GLOBAL_BLOCKED);
+        }
+    }
 }
 
 // 0x6B7070
