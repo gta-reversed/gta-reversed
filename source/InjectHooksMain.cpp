@@ -754,6 +754,7 @@ void InjectHooksMain() {
     COccluder::InjectHooks();
     CActiveOccluder::InjectHooks();
     CGarage::InjectHooks();
+    CStoredCar::InjectHooks();
     CGarages::InjectHooks();
     CPostEffects::InjectHooks();
     CIniFile::InjectHooks();

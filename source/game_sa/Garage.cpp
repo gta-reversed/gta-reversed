@@ -271,13 +271,168 @@ void CSaveGarage::CopyGarageOutOfSaveGarage(CGarage& g) const {
     strcpy_s(g.m_anName, m_anName);
 }
 
+void CStoredCar::InjectHooks() {
+    RH_ScopedClass(CStoredCar);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(StoreCar, 0x449760);
+    RH_ScopedInstall(RestoreCar, 0x447E40);
+}
+
 // todo move
 // 0x449760
 void CStoredCar::StoreCar(CVehicle* vehicle) {
-    plugin::CallMethod<0x449760, CStoredCar*, CVehicle*>(this, vehicle);
+    m_wModelIndex = vehicle->m_nModelIndex;
+    m_vPosn       = vehicle->GetPosition();
+
+    const auto& fwd   = vehicle->GetForward();
+    m_nPackedForwardX = (int8)(fwd.x * 100.0f);
+    m_nPackedForwardY = (int8)(fwd.y * 100.0f);
+    m_nPackedForwardZ = (int8)(fwd.z * 100.0f);
+
+    m_nPrimaryColor    = vehicle->m_nPrimaryColor;
+    m_nSecondaryColor  = vehicle->m_nSecondaryColor;
+    m_nTertiaryColor   = vehicle->m_nTertiaryColor;
+    m_nQuaternaryColor = vehicle->m_nQuaternaryColor;
+    m_nRadioStation    = vehicle->m_vehicleAudio.m_AuSettings.RadioStation;
+    m_nHandlingFlags   = vehicle->m_nHandlingFlagsIntValue;
+    m_anCompsToUse[0]  = vehicle->m_anExtras[0];
+    m_anCompsToUse[1]  = vehicle->m_anExtras[1];
+
+    m_nStoredCarFlags = 0;
+    bBulletProof      = vehicle->physicalFlags.bBulletProof;
+    bFireProof        = vehicle->physicalFlags.bFireProof;
+    bExplosionProof   = vehicle->physicalFlags.bExplosionProof;
+    bCollisionProof   = vehicle->physicalFlags.bCollisionProof;
+    bMeleeProof       = vehicle->physicalFlags.bMeleeProof;
+    bUpgradedStereo   = vehicle->vehicleFlags.bUpgradedStereo;
+    bHydraulics       = vehicle->handlingFlags.bHydraulicInst;
+    bNitro            = vehicle->handlingFlags.bNosInst;
+
+    if (vehicle->IsAutomobile() || vehicle->IsBike()) {
+        m_nBombType = vehicle->m_nBombOnBoard;
+    }
+    rng::copy(vehicle->m_anUpgrades, m_awCarMods);
+    m_nPaintJob    = (int8)vehicle->GetRemapIndex();
+    m_nNitroBoosts = vehicle->m_nNitroBoosts;
 }
 
+// Returns null if the model or any of the upgrades isn't loaded yet (they're requested)
 // 0x447E40
 CVehicle* CStoredCar::RestoreCar() {
-    return plugin::CallMethodAndReturn<CVehicle*, 0x447E40, CStoredCar*>(this);
+    CStreaming::RequestModel(m_wModelIndex, STREAMING_KEEP_IN_MEMORY);
+    for (const auto upgrade : m_awCarMods) {
+        if (upgrade != -1) {
+            CStreaming::RequestVehicleUpgrade(upgrade, STREAMING_DEFAULT);
+        }
+    }
+
+    if (!CStreaming::IsModelLoaded(m_wModelIndex)) {
+        return nullptr;
+    }
+    for (const auto upgrade : m_awCarMods) {
+        if (upgrade != -1 && !CStreaming::HasVehicleUpgradeLoaded(upgrade)) {
+            return nullptr;
+        }
+    }
+
+    CVehicleModelInfo::ms_compsToUse[0] = m_anCompsToUse[0];
+    CVehicleModelInfo::ms_compsToUse[1] = m_anCompsToUse[1];
+
+    // NOTE: Trains (and the fake planes/helis) are created as automobiles
+    CVehicle* vehicle{};
+    switch (CModelInfo::GetModelInfo(m_wModelIndex)->AsVehicleModelInfoPtr()->m_nVehicleType) {
+    case VEHICLE_TYPE_MTRUCK:
+        vehicle = new CMonsterTruck(m_wModelIndex, RANDOM_VEHICLE);
+        break;
+    case VEHICLE_TYPE_QUAD:
+        vehicle = new CQuadBike(m_wModelIndex, RANDOM_VEHICLE);
+        break;
+    case VEHICLE_TYPE_HELI:
+        vehicle = new CHeli(m_wModelIndex, RANDOM_VEHICLE);
+        break;
+    case VEHICLE_TYPE_PLANE:
+        vehicle = new CPlane(m_wModelIndex, RANDOM_VEHICLE);
+        break;
+    case VEHICLE_TYPE_BOAT:
+        vehicle = new CBoat(m_wModelIndex, RANDOM_VEHICLE);
+        break;
+    case VEHICLE_TYPE_BIKE: {
+        auto* const bike = new CBike(m_wModelIndex, RANDOM_VEHICLE);
+        bike->bikeFlags.bOnSideStand = true;
+        vehicle = bike;
+        break;
+    }
+    case VEHICLE_TYPE_BMX: {
+        auto* const bmx = new CBmx(m_wModelIndex, RANDOM_VEHICLE);
+        bmx->bikeFlags.bOnSideStand = true;
+        vehicle = bmx;
+        break;
+    }
+    case VEHICLE_TYPE_TRAILER:
+        vehicle = new CTrailer(m_wModelIndex, RANDOM_VEHICLE);
+        break;
+    default:
+        vehicle = new CAutomobile(m_wModelIndex, RANDOM_VEHICLE, true);
+        break;
+    }
+
+    vehicle->SetPosn(m_vPosn);
+
+    auto& mat = vehicle->GetMatrix();
+    const CVector fwd{ (float)m_nPackedForwardX * 0.01f, (float)m_nPackedForwardY * 0.01f, (float)m_nPackedForwardZ * 0.01f };
+    mat.GetForward() = fwd;
+    mat.GetRight()   = CVector{ fwd.y, -fwd.x, 0.0f };
+    mat.GetUp()      = CVector{ 0.0f, 0.0f, 1.0f };
+
+    vehicle->SetStatus(STATUS_ABANDONED);
+    vehicle->m_pDriver = nullptr;
+    vehicle->m_vehicleAudio.m_AuSettings.RadioStation = (eRadioID)m_nRadioStation;
+    vehicle->m_nHandlingFlagsIntValue                 = (eVehicleHandlingFlags)m_nHandlingFlags;
+    vehicle->vehicleFlags.bFreebies             = false;
+    vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
+    vehicle->m_nDoorLock                        = CARLOCK_UNLOCKED;
+    if (vehicle->IsAutomobile()) {
+        vehicle->m_nBombOnBoard = m_nBombType;
+    }
+
+    if (bBulletProof) {
+        vehicle->physicalFlags.bBulletProof = true;
+    }
+    if (bFireProof) {
+        vehicle->physicalFlags.bFireProof = true;
+    }
+    if (bExplosionProof) {
+        vehicle->physicalFlags.bExplosionProof = true;
+    }
+    if (bCollisionProof) {
+        vehicle->physicalFlags.bCollisionProof = true;
+    }
+    if (bMeleeProof) {
+        vehicle->physicalFlags.bMeleeProof = true;
+    }
+    if (bUpgradedStereo) {
+        vehicle->vehicleFlags.bUpgradedStereo                = true;
+        vehicle->m_vehicleAudio.m_AuSettings.BassSetting = eBassSetting::BOOST;
+    }
+    if (bHydraulics) {
+        vehicle->handlingFlags.bHydraulicInst = true;
+    }
+    if (bNitro) {
+        vehicle->handlingFlags.bNosInst = true;
+    }
+
+    rng::copy(m_awCarMods, vehicle->m_anUpgrades.begin());
+    vehicle->SetupUpgradesAfterLoad();
+    vehicle->SetRemap(m_nPaintJob);
+    vehicle->vehicleFlags.bEngineOn = false;
+    vehicle->m_nNitroBoosts         = m_nNitroBoosts;
+
+    vehicle->m_nPrimaryColor                        = m_nPrimaryColor;
+    vehicle->m_nSecondaryColor                      = m_nSecondaryColor;
+    vehicle->m_nTertiaryColor                       = m_nTertiaryColor;
+    vehicle->vehicleFlags.bDontSetColourWhenRemapping = true;
+    vehicle->m_nQuaternaryColor                     = m_nQuaternaryColor;
+
+    return vehicle;
 }
