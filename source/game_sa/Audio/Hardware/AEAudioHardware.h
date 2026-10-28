@@ -9,21 +9,23 @@
 #include "AEStreamThread.h"
 #include "AudioEngine.h"
 #include "AEMP3BankLoader.h"
+#include "AEStaticChannel.h"
 
 union CAEAudioHardwarePlayFlags {
     uint16 m_nFlags{};
     struct {
-        uint16 m_bIsFrontend : 1;
-        uint16 m_bIsUncompressable : 1;
-        uint16 m_bIsUnduckable : 1;
-        uint16 m_bIsStartPercentage : 1;
-        uint16 m_bIsMusicMastered : 1;
-        uint16 : 1;
-        uint16 m_bIsRolledOff : 1;
-        uint16 m_bIsSmoothDucking : 1;
-
-        uint16 m_bIsForcedFront : 1;
-        uint16 m_IsPausable : 1;
+        // byte 1
+        bool m_bIsFrontend : 1;        // 0x1
+        bool m_bIsUncompressable : 1;  // 0x2
+        bool m_bIsUnduckable : 1;      // 0x4
+        bool m_bIsStartPercentage : 1; // 0x8
+        bool m_bIsMusicMastered : 1;   // 0x10
+        bool : 1;                      // 0x20
+        bool m_bIsRolledOff : 1;       // 0x40
+        bool m_bIsSmoothDucking : 1;   // 0x80
+        // byte 2
+        bool m_bIsForcedFront : 1;     // 0x100
+        bool m_IsPausable : 1;         // 0x200
     };
 
     void CopyFromAESound(const CAESound& sound) {
@@ -38,8 +40,8 @@ union CAEAudioHardwarePlayFlags {
         m_IsPausable         = m_bIsFrontend && sound.IsUnpausable();
     }
 };
+VALIDATE_SIZE(CAEAudioHardwarePlayFlags, 0x2);
 
-class CAEStreamingChannel;
 class CAEMP3TrackLoader;
 class CAEMP3BankLoader;
 class CAEAudioChannel;
@@ -64,7 +66,7 @@ public:
     bool                    m_PrevMaxGlobalSlowFadeout{};
     bool                    m_IsHardwareMixAvailable{};
     uint8                   m_nReverbEnvironment{ (uint8)-1};
-    int16                   m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
+    eAudioChannelFlags      m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
     uint16                  field_86{};
     int32                   m_nReverbDepth{ -10000 };
     uint16                  m_nNumAvailableChannels{};
@@ -124,7 +126,7 @@ public:
 
     int16 AllocateChannels(uint16 numChannels);
 
-    void PlaySound(int16 channel, uint16 channelSlot, uint16 soundIdInSlot, uint16 bankSlot, int16 playPosition, int16 flags, float speed);
+    void PlaySound(int16 channel, uint16 channelSlot, eSoundID soundIdInSlot, eSoundBankSlot bankSlot, int16 playPosition, CAEAudioHardwarePlayFlags flags, float speed);
     uint16 GetNumAvailableChannels() const;
     void GetChannelPlayTimes(int16 channel, int16* playTimes);
     void SetChannelVolume(int16 channel, uint16 channelId, float volume, uint8 unused);
@@ -167,7 +169,7 @@ public:
     void EnableBassEq();
     void DisableBassEq();
 
-    void SetChannelFlags(int16 channel, uint16 channelId, int16 flags);
+    void SetChannelFlags(int16 channel, uint16 channelId, eAudioChannelFlags flags);
 
     void SetMusicMasterScalingFactor(float factor);
     float GetMusicMasterScalingFactor() const;
@@ -196,6 +198,18 @@ public:
 
     // notsa
     const CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
+    CAEStaticChannel& GetStaticChannel(int16 channel, uint16 channelId) {
+        // TODO: m_aChannels is an array with 1st element being CAEStreamingChannel,
+        // which is aliased to m_pStreamingChannel and rest are CAEStaticChannels.
+        // I believe they've made this array to access all channels in one place.
+        //
+        // In future make an API like `GetChannel(ch, chid)` which will
+        // figure out the channel without having an array.
+        assert(channel >= 0 && channelId < m_anNumChannelsInSlot[channel]);
+        assert(channel + channelId != 0); // channel #0 is a streaming channel!
+        assert(m_aChannels[channel + channelId]);
+        return dynamic_cast<CAEStaticChannel&>(*m_aChannels[channel + channelId]);
+    }
 
 private:
     auto GetChannels() const { return std::span{m_aChannels, m_nNumChannels}; }

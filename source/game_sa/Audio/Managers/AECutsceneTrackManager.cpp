@@ -134,7 +134,11 @@ void CAECutsceneTrackManager::Service(int32 trackPlayTime) {
 // 0x4DBF10
 void CAECutsceneTrackManager::StartTrackPlayback() const {
     AEAudioHardware.DisableBassEq();
-    AEAudioHardware.SetChannelFlags(m_nAudioChannel, 0, 39);
+    AEAudioHardware.SetChannelFlags(
+        m_nAudioChannel,
+        0,
+        eAudioChannelFlags(FLAG_SECONDARY_GROUP | FLAG_UNDUCKABLE | FLAG_CLAMP_VOL_TO_NEG | FLAG_IS_NOT_STREAM)
+    );
     AEAudioHardware.SetChannelVolume(m_nAudioChannel, 0, -3.0f, 0);
     AEAudioHardware.StartTrackPlayback();
 }

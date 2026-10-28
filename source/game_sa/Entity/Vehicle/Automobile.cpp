@@ -23,6 +23,7 @@
 #include <Tasks/TaskTypes/TaskSimpleGangDriveBy.h>
 
 #include <FireManager.h>
+#include <reversiblebugfixes/Bugs.hpp>
 
 constexpr size_t NUM_AUTOMOBILE_SUSP_LINES  = (size_t)MAX_CARWHEELS;
 constexpr size_t NUM_RHINO_EXTRA_SUSP_LINES = (size_t)MAX_CARWHEELS * 2u; // 8
@@ -102,6 +103,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedInstall(SetDoorDamage, 0x6B1600);
     RH_ScopedInstall(TowTruckControl, 0x6A40F0);
     RH_ScopedInstall(ProcessCarOnFireAndExplode, 0x6A7090);
+    RH_ScopedInstall(DoHeliDustEffect, 0x6B0690);
 
     RH_ScopedVMTInstall(Fix, 0x6A3440);
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6A47F0);
@@ -2614,9 +2616,9 @@ void CAutomobile::SetupSuspensionLines() {
             const auto sphBottomZ = sph.m_vecCenter.z - sph.m_fRadius;
             if (sphBottomZ < sphBottomMinZ) {
                 if (sph.m_fRadius > 0.4f) {
-                    sph.m_fRadius = std::max(0.4f, sphBottomZ);
-                    sph.m_vecCenter.z = sphBottomZ + sph.m_fRadius;
+                    sph.m_fRadius = std::max(0.4f, sph.m_vecCenter.z - sphBottomMinZ);
                 }
+                sph.m_vecCenter.z = sphBottomMinZ + sph.m_fRadius;
             }
         }
     }
@@ -4597,7 +4599,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         // TOOD: Refactor
         float sinSteerAngle = 0.0f;
         float cosSteerAngle = 0.0f;
-        bool canSteer = steerAngle > -100.0f;
+        bool  canSteer      = steerAngle > -100.0f;
         if (canSteer) {
             sinSteerAngle = std::sin(steerAngle);
             cosSteerAngle = std::cos(steerAngle);
@@ -4657,14 +4659,14 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
-                    leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_BURST);
+                    leftWheel, m_fWheelBurnoutSpeed[leftWheel], wheelState, WHEEL_STATUS_BURST);
             }
             else {
                 CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
-                    leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_OK);
+                    leftWheel, m_fWheelBurnoutSpeed[leftWheel], wheelState, WHEEL_STATUS_OK);
             }
             if (driveWheels && m_GasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
                 m_WheelStates[leftWheel] = WHEEL_STATE_NORMAL;
@@ -4707,7 +4709,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
-                    rightWheel, &m_fWheelBurnoutSpeed[rightWheel], &wheelState, WHEEL_STATUS_BURST
+                    rightWheel, m_fWheelBurnoutSpeed[rightWheel], wheelState, WHEEL_STATUS_BURST
                );
             }
             else {
@@ -4715,7 +4717,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
-                    rightWheel, &m_fWheelBurnoutSpeed[rightWheel], &wheelState, WHEEL_STATUS_OK
+                    rightWheel, m_fWheelBurnoutSpeed[rightWheel], wheelState, WHEEL_STATUS_OK
                );
             }
             if (driveWheels && m_GasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
@@ -5949,12 +5951,19 @@ void CAutomobile::DoHeliDustEffect(float timeConstMult, float fxMaxZMult) {
 
     CColPoint groundCP{};
     CEntity* hitEntity{}; // Unused
-    CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true); // TODO: Check if it returned true :D
+    const auto hasHitGround = CWorld::ProcessVerticalLine(myPos, -1000.f, groundCP, hitEntity, true);
     const bool isGroundSand = g_surfaceInfos.IsSand(groundCP.m_nSurfaceTypeB);
 
     auto waterLevel{-1000.f};
     const bool isThereWaterUnderUs = CWaterLevel::GetWaterLevel(myPos, waterLevel, false);
-    const auto isHitPosUnderWater = isThereWaterUnderUs && waterLevel > groundCP.m_vecPoint.z;
+    const auto isHitPosUnderWater = isThereWaterUnderUs && ((!hasHitGround && notsa::bugfixes::GenericUB) || waterLevel > groundCP.m_vecPoint.z);
+
+    if (notsa::bugfixes::GenericUB) {
+        if (!hasHitGround && !isThereWaterUnderUs) {
+            KillDustFx();
+            return;
+        }
+    }
 
     const auto groundZ = isHitPosUnderWater ? waterLevel : groundCP.m_vecPoint.z;
     const auto distToGroundZ = myPos.z - groundZ;

@@ -277,6 +277,10 @@ void TeleportDebugModule::ProcessShortcuts() {
 
     const auto pad = CPad::GetPad(0);
 
+    if (!pad->IsCtrlJustDown()) {
+        return;
+    }
+
     // Key `0` is previous location, so teleport to it (if set)
     if (pad->IsStandardKeyJustDown('0') && m_PrevLocation.IsSelected) {
         DoTeleportTo(m_PrevLocation.Pos, m_PrevLocation.AreaCode);

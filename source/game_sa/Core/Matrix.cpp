@@ -560,7 +560,12 @@ CMatrix operator+(const CMatrix& a, const CMatrix& b)
 
 CMatrix& Invert(CMatrix& in, CMatrix& out)
 {
-    out = in.Inverted();
+    // NOTE: Not `out = ...`: `out` may not be constructed yet, so like the original only set the matrix itself (See #1012)
+    const auto inv = in.Inverted();
+    out.GetRight()    = inv.GetRight();
+    out.GetForward()  = inv.GetForward();
+    out.GetUp()       = inv.GetUp();
+    out.GetPosition() = inv.GetPosition();
     return out;
 }
 

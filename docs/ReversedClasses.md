@@ -1,17 +1,17 @@
-# Reimplementation progress (*): 91%
+# Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 22, 2026 at 00:57:08 UTC
-(Triggered by commit [d0ab9e2b](https://github.com/gta-reversed/gta-reversed/commit/d0ab9e2b9ed15695b97be9c1ae37caa239a8b915))
+Last update was at Oct 28, 2026 at 23:01:15 UTC
+(Triggered by commit [1cfd54ad](https://github.com/gta-reversed/gta-reversed/commit/1cfd54adf50a11ded862da37aa97fcf6b5d9bb2e))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7615 out of 8323 functions done in 722 categories)
+## Stats (7660 out of 8336 functions done in 722 categories)
 
-#### Completely reversed categories (599/722) [83%]
+#### Completely reversed categories (605/722) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -198,6 +198,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
+- FxInfoManager_c (5)<br />
 - FxManager_c (25)<br />
 - FxEmitterPrt_c (1)<br />
 - Fx_c (8)<br />
@@ -321,8 +322,8 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 - CTaskComplexDestroyCar (9)<br />
-- CTaskComplexDestroyCarArmed (10)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
 - CTaskComplexDieInCar (6)<br />
 - CTaskComplexDragPedFromCar (2)<br />
@@ -341,6 +342,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CTaskComplexGetOnBoatSeat (8)<br />
 - CTaskComplexGoToBoatSteeringWheel (6)<br />
 - CTaskComplexGoToCarDoorAndStandStill (11)<br />
+- CTaskComplexGoToPointAiming (8)<br />
 - CTaskComplexGoToPointShooting (3)<br />
 - CTaskComplexHitByGunResponse (8)<br />
 - CTaskComplexHitResponse (7)<br />
@@ -535,6 +537,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - BreakablePlugin (6)<br />
 - RtAnim (1)<br />
 - CDecisionMakerTypesFileLoader (7)<br />
+- CDecision (3)<br />
 - CText (9)<br />
 - CMissionTextOffsets (1)<br />
 - CData (2)<br />
@@ -579,7 +582,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CAEStreamThread (14)<br />
 - CAudioEngine (82)<br />
 - CAudioZones (5)<br />
-- CAECollisionAudioEntity (17)<br />
+- CAECollisionAudioEntity (18)<br />
 - CAEDoorAudioEntity (6)<br />
 - CAEExplosionAudioEntity (3)<br />
 - CAEFireAudioEntity (7)<br />
@@ -591,6 +594,9 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CAEWaterCannonAudioEntity (7)<br />
 - CAEWeatherAudioEntity (5)<br />
 - CAEAudioChannel (12)<br />
+- CAEAudioHardware (55)<br />
+- CAEStaticChannel (8)<br />
+- CAEStreamingChannel (24)<br />
 - CAEBankLoader (6)<br />
 - CAEDataStream (20)<br />
 - CAEStreamTransformer (2)<br />
@@ -605,7 +611,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CAECutsceneTrackManager (8)<br />
 - CAESoundManager (14)<br />
 - CAEUserRadioTrackManager (15)<br />
-- CAutomobile (100)<br />
+- CAutomobile (101)<br />
 - CBoat (23)<br />
 - CHeli (11)<br />
 - CTrailer (13)<br />
@@ -617,7 +623,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 
 </details>
 
-#### Partially reversed categories (115/722) [16%]
+#### Partially reversed categories (109/722) [15%]
 
 <details>
 <summary>See list of categories</summary>
@@ -665,7 +671,6 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CCam (20/45) [44%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
-- FxInfoManager_c (4/5) [80%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
 - CPed (137/145) [94%]<br />
 - CPlayerPed (50/65) [77%]<br />
@@ -681,10 +686,9 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CTaskGangHassleVehicle (2/8) [25%]<br />
 - CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
+- CTaskComplexDestroyCarArmed (9/10) [90%]<br />
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
-- CTaskComplexGoToPointAiming (6/8) [75%]<br />
 - CTaskComplexGoToPointAndStandStillAndAchieveHeading (7/8) [88%]<br />
 - CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
@@ -702,7 +706,7 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
 - CTaskComplexPlayHandSignalAnim (3/9) [33%]<br />
-- CTaskComplexSunbathe (2/8) [25%]<br />
+- CTaskComplexSunbathe (3/8) [38%]<br />
 - CTaskComplexKillPedOnFoot (1/2) [50%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexKillPedFromBoat (2/7) [29%]<br />
@@ -711,27 +715,23 @@ Last update was at Oct 22, 2026 at 00:57:08 UTC
 - CTaskComplexArrestPed (4/7) [57%]<br />
 - CScriptsForBrains (3/10) [30%]<br />
 - RpAnimBlend (42/43) [98%]<br />
-- CDecision (2/3) [67%]<br />
 - CCustomBuildingDNPipeline (14/16) [88%]<br />
 - CConversations (10/11) [91%]<br />
 - CPedToPlayerConversations (2/3) [67%]<br />
 - CAEFrontendAudioEntity (4/6) [67%]<br />
 - CAEPedAudioEntity (16/20) [80%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
-- CAEScriptAudioEntity (8/19) [42%]<br />
-- CAEVehicleAudioEntity (102/106) [96%]<br />
-- CAEAudioHardware (54/55) [98%]<br />
-- CAEStaticChannel (7/8) [88%]<br />
-- CAEStreamingChannel (21/24) [88%]<br />
+- CAEScriptAudioEntity (17/19) [89%]<br />
+- CAEVehicleAudioEntity (103/106) [97%]<br />
 - CAEAmbienceTrackManager (6/7) [86%]<br />
-- CAERadioTrackManager (29/43) [67%]<br />
+- CAERadioTrackManager (34/43) [79%]<br />
 - CBike (22/40) [55%]<br />
 - CBmx (7/10) [70%]<br />
 - CMonsterTruck (5/11) [45%]<br />
 - CPlane (14/23) [61%]<br />
 - CQuadBike (11/12) [92%]<br />
-- CTrain (21/41) [51%]<br />
-- CVehicle (145/149) [97%]<br />
+- CTrain (22/41) [54%]<br />
+- CVehicle (157/160) [98%]<br />
 - InteriorGroup_c (2/24) [8%]<br />
 - CRunningScript (24/39) [62%]<br />
 - CTheScripts (68/69) [99%]<br />

@@ -99,7 +99,7 @@ void InteriorGroup_c::DereferenceAnims() {
     if (!m_animBlockReferenced) {
         return;
     }
-    CAnimManager::AddAnimBlockRef(CAnimManager::GetAnimationBlockIndex(GetAnimBlockName()));
+    CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex(GetAnimBlockName()));
     m_animBlockReferenced = false;
 }
 
