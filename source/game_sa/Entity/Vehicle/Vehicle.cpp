@@ -3351,7 +3351,9 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
         }
     } else {
         if (outWheelState != WHEEL_STATE_FIXED) {
-            outWheelState = driving && contactSpeedFwd < 0.1f ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
+            outWheelState = (driving && contactSpeedFwd < 0.1f)
+                ? WHEEL_STATE_SPINNING
+                : WHEEL_STATE_SKIDDING;
         }
         const float trLoss = adhesion * (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(slipSq);
         fwd *= trLoss;
