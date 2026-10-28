@@ -11,6 +11,7 @@ enum eGarageType : uint8 {
     PAYNSPRAY = 5,
 
     UNKN_CLOSESONTOUCH = 11,
+    CRUSHER = 13, // Leftover from GTA III, still handled in a few places
     OPEN_FOR_TARGET_FREEZE_PLAYER = 14,
     SCRIPT_ONLY_OPEN = 15,
 
@@ -144,7 +145,7 @@ public:
     bool IsStaticPlayerCarEntirelyInside();
     bool IsEntityEntirelyInside3D(CEntity* entity, float radius);
     bool IsPointInsideGarage(CVector point);
-    eGarageDoorState PlayerArrestedOrDied();
+    void PlayerArrestedOrDied();
     void OpenThisGarage();
     void CloseThisGarage();
     void InitDoorsAtStart();
