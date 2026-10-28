@@ -3222,21 +3222,22 @@ void CVehicle::ProcessWheel(CVector& wheelFwd,
     const float slipSq = sq(right) + sq(fwd);
     if (slipSq > sq(adhesion)) {
         if (outWheelState != WHEEL_STATE_FIXED) {
-            float tractionLimit = WS_TRAC_FRAC_LIMIT;
-            if (contactSpeedFwd > 0.15f && (!wheelId || wheelId == CAR_WHEEL_FRONT_RIGHT)) {
-                tractionLimit += tractionLimit;
-            }
-            outWheelState = (driving && tractionLimit * adhesion < std::abs(fwd)) ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
+            const float tractionLimit = (contactSpeedFwd > 0.15f && (!wheelId || wheelId == CAR_WHEEL_FRONT_RIGHT))
+                ? 2.0f * WS_TRAC_FRAC_LIMIT
+                : WS_TRAC_FRAC_LIMIT;
+            outWheelState = (driving && tractionLimit * adhesion < std::abs(fwd))
+                ? WHEEL_STATE_SPINNING
+                : WHEEL_STATE_SKIDDING;
         }
-        float slip = 1.0f;
+        float trLoss = 1.0f;
         if (!alreadySkidding && outWheelState == WHEEL_STATE_SPINNING) {
             if (GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_REMOTE_CONTROLLED) {
-                slip = m_pHandlingData->m_fTractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
+                trLoss = m_pHandlingData->m_fTractionLoss * (1.0f - std::abs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
         }
-        slip *= adhesion / std::sqrt(slipSq);
-        fwd *= slip;
-        right *= slip;
+        trLoss *= adhesion / std::sqrt(slipSq);
+        fwd *= trLoss;
+        right *= trLoss;
     }
 
     if (fwd != 0.0f || right != 0.0f) {
@@ -3336,6 +3337,7 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
             fwd = std::clamp(fwd, -brake, brake);
         }
     }
+
     const float slipSq = sq(right) + sq(fwd);
     const float adhesionSq = sq(adhesion); // scalar
     if (slipSq <= adhesionSq) {
@@ -3351,13 +3353,14 @@ void CVehicle::ProcessBikeWheel(CVector& wheelFwd,
         if (outWheelState != WHEEL_STATE_FIXED) {
             outWheelState = driving && contactSpeedFwd < 0.1f ? WHEEL_STATE_SPINNING : WHEEL_STATE_SKIDDING;
         }
-        const float slip = adhesion * (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(slipSq);
-        fwd *= slip;
-        right *= slip;
+        const float trLoss = adhesion * (alreadySkidding ? 1.0f : m_pHandlingData->m_fTractionLoss) / std::sqrt(slipSq);
+        fwd *= trLoss;
+        right *= trLoss;
         if (destabTraction < 1.0f) {
             right *= destabTraction;
         }
     }
+
     if (fwd != 0.0f || right != 0.0f) {
         CVector       moveVec          = right * wheelRight + fwd * wheelFwd;
         const float   speed            = moveVec.NormaliseAndMag(); // now get speed and leave only dir component
