@@ -19,7 +19,7 @@ void CTaskComplexHitPedWithCar::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x653A20, { .Reversed = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x656300, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x653A90, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x653A90);
 
 }
 
@@ -82,5 +82,5 @@ CTask* CTaskComplexHitPedWithCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x653A90
 CTask* CTaskComplexHitPedWithCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x653A90, CTaskComplexHitPedWithCar*, CPed*>(this, ped);
+    return m_pSubTask;
 }
