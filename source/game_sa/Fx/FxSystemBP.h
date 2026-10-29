@@ -12,6 +12,14 @@ class FxSystem_c;
 class FxPrimBP_c;
 class FxSphere_c;
 
+//! What a system does once its time passes the blueprint's length (`PLAYMODE:` in effects.fxp)
+enum class eFxSystemPlayMode : uint8 {
+    ONCE              = 0, //!< Stops (and is killed if `PlayAndKill` was used). The only mode that is never culled
+    ONCE_HOLD         = 1, //!< Holds its time at the end
+    LOOP              = 2, //!< Wraps around, waiting a random interval between loops if the blueprint has one
+    ONCE_REPLAY_ON_IN = 3, //!< Stops, and plays again once the camera comes back within the cull distance
+};
+
 /* FX System BluePrint */
 
 class FxSystemBP_c : public ListItem_c<FxSystemBP_c> {
@@ -21,7 +29,7 @@ public:
     float        m_fLoopIntervalMin;
     float        m_fLoopLength;
     uint16       m_nCullDist;
-    uint8        m_nPlayMode;
+    eFxSystemPlayMode m_nPlayMode;
     uint8        m_nNumPrims;
     FxPrimBP_c** m_Prims;
     FxSphere_c*  m_BoundingSphere;

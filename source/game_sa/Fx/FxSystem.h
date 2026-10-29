@@ -101,7 +101,7 @@ public:
     eFxSystemPlayStatus GetPlayStatus() const;
 
     uint32 ForAllParticles(void(*callback)(Particle_c *, int32, FxBox_c**), FxBox_c* data);
-    static void UpdateBoundingBoxCB(Particle_c* particle, int32 arg1, FxBox_c** data);
+    static void UpdateBoundingBoxCB(Particle_c* particle, int32 type, FxBox_c** data);
 
     void GetBoundingBox(FxBox_c* out);
     bool GetBoundingSphereWld(FxSphere_c* out) const;
