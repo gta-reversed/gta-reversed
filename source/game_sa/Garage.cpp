@@ -285,12 +285,9 @@ void CStoredCar::StoreCar(CVehicle* vehicle) {
     m_wModelIndex = vehicle->m_nModelIndex;
     m_vPosn       = vehicle->GetPosition();
 
-    const auto& fwd   = vehicle->GetForward();
-    m_nPackedForwardX = (int8)(fwd.x * 100.0f);
-    m_nPackedForwardY = (int8)(fwd.y * 100.0f);
-    m_nPackedForwardZ = (int8)(fwd.z * 100.0f);
+    m_PackedForward = vehicle->GetForward();
 
-    m_nPrimaryColor    = vehicle->m_nPrimaryColor;
+    m_nPrimaryColor   = vehicle->m_nPrimaryColor;
     m_nSecondaryColor  = vehicle->m_nSecondaryColor;
     m_nTertiaryColor   = vehicle->m_nTertiaryColor;
     m_nQuaternaryColor = vehicle->m_nQuaternaryColor;
@@ -317,6 +314,36 @@ void CStoredCar::StoreCar(CVehicle* vehicle) {
     m_nNitroBoosts = vehicle->m_nNitroBoosts;
 }
 
+// NOTE: Unlike `CCarGenerator::CreateVehicle`, trains (and the fake planes/helis) are created as automobiles
+CVehicle* CStoredCar::CreateVehicle(eModelID modelId) {
+    switch (CModelInfo::GetModelInfo(modelId)->AsVehicleModelInfoPtr()->m_nVehicleType) {
+    case VEHICLE_TYPE_MTRUCK:
+        return new CMonsterTruck(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_QUAD:
+        return new CQuadBike(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_HELI:
+        return new CHeli(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_PLANE:
+        return new CPlane(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_BOAT:
+        return new CBoat(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_BIKE: {
+        auto* const bike = new CBike(modelId, RANDOM_VEHICLE);
+        bike->bikeFlags.bOnSideStand = true;
+        return bike;
+    }
+    case VEHICLE_TYPE_BMX: {
+        auto* const bmx = new CBmx(modelId, RANDOM_VEHICLE);
+        bmx->bikeFlags.bOnSideStand = true;
+        return bmx;
+    }
+    case VEHICLE_TYPE_TRAILER:
+        return new CTrailer(modelId, RANDOM_VEHICLE);
+    default:
+        return new CAutomobile(modelId, RANDOM_VEHICLE, true);
+    }
+}
+
 // Returns null if the model or any of the upgrades isn't loaded yet (they're requested)
 // 0x447E40
 CVehicle* CStoredCar::RestoreCar() {
@@ -339,48 +366,11 @@ CVehicle* CStoredCar::RestoreCar() {
     CVehicleModelInfo::ms_compsToUse[0] = m_anCompsToUse[0];
     CVehicleModelInfo::ms_compsToUse[1] = m_anCompsToUse[1];
 
-    // NOTE: Trains (and the fake planes/helis) are created as automobiles
-    CVehicle* vehicle{};
-    switch (CModelInfo::GetModelInfo(m_wModelIndex)->AsVehicleModelInfoPtr()->m_nVehicleType) {
-    case VEHICLE_TYPE_MTRUCK:
-        vehicle = new CMonsterTruck(m_wModelIndex, RANDOM_VEHICLE);
-        break;
-    case VEHICLE_TYPE_QUAD:
-        vehicle = new CQuadBike(m_wModelIndex, RANDOM_VEHICLE);
-        break;
-    case VEHICLE_TYPE_HELI:
-        vehicle = new CHeli(m_wModelIndex, RANDOM_VEHICLE);
-        break;
-    case VEHICLE_TYPE_PLANE:
-        vehicle = new CPlane(m_wModelIndex, RANDOM_VEHICLE);
-        break;
-    case VEHICLE_TYPE_BOAT:
-        vehicle = new CBoat(m_wModelIndex, RANDOM_VEHICLE);
-        break;
-    case VEHICLE_TYPE_BIKE: {
-        auto* const bike = new CBike(m_wModelIndex, RANDOM_VEHICLE);
-        bike->bikeFlags.bOnSideStand = true;
-        vehicle = bike;
-        break;
-    }
-    case VEHICLE_TYPE_BMX: {
-        auto* const bmx = new CBmx(m_wModelIndex, RANDOM_VEHICLE);
-        bmx->bikeFlags.bOnSideStand = true;
-        vehicle = bmx;
-        break;
-    }
-    case VEHICLE_TYPE_TRAILER:
-        vehicle = new CTrailer(m_wModelIndex, RANDOM_VEHICLE);
-        break;
-    default:
-        vehicle = new CAutomobile(m_wModelIndex, RANDOM_VEHICLE, true);
-        break;
-    }
-
+    auto* const vehicle = CreateVehicle((eModelID)m_wModelIndex);
     vehicle->SetPosn(m_vPosn);
 
     auto& mat = vehicle->GetMatrix();
-    const CVector fwd{ (float)m_nPackedForwardX * 0.01f, (float)m_nPackedForwardY * 0.01f, (float)m_nPackedForwardZ * 0.01f };
+    const CVector fwd = m_PackedForward;
     mat.GetForward() = fwd;
     mat.GetRight()   = CVector{ fwd.y, -fwd.x, 0.0f };
     mat.GetUp()      = CVector{ 0.0f, 0.0f, 1.0f };
@@ -396,30 +386,17 @@ CVehicle* CStoredCar::RestoreCar() {
         vehicle->m_nBombOnBoard = m_nBombType;
     }
 
-    if (bBulletProof) {
-        vehicle->physicalFlags.bBulletProof = true;
-    }
-    if (bFireProof) {
-        vehicle->physicalFlags.bFireProof = true;
-    }
-    if (bExplosionProof) {
-        vehicle->physicalFlags.bExplosionProof = true;
-    }
-    if (bCollisionProof) {
-        vehicle->physicalFlags.bCollisionProof = true;
-    }
-    if (bMeleeProof) {
-        vehicle->physicalFlags.bMeleeProof = true;
-    }
+    // NOTE: These are only ever set, never cleared (eg.: The Rhino is bullet and explosion proof by default)
+    vehicle->physicalFlags.bBulletProof    |= bBulletProof;
+    vehicle->physicalFlags.bFireProof      |= bFireProof;
+    vehicle->physicalFlags.bExplosionProof |= bExplosionProof;
+    vehicle->physicalFlags.bCollisionProof |= bCollisionProof;
+    vehicle->physicalFlags.bMeleeProof     |= bMeleeProof;
+    vehicle->handlingFlags.bHydraulicInst  |= bHydraulics;
+    vehicle->handlingFlags.bNosInst        |= bNitro;
     if (bUpgradedStereo) {
-        vehicle->vehicleFlags.bUpgradedStereo                = true;
+        vehicle->vehicleFlags.bUpgradedStereo            = true;
         vehicle->m_vehicleAudio.m_AuSettings.BassSetting = eBassSetting::BOOST;
-    }
-    if (bHydraulics) {
-        vehicle->handlingFlags.bHydraulicInst = true;
-    }
-    if (bNitro) {
-        vehicle->handlingFlags.bNosInst = true;
     }
 
     rng::copy(m_awCarMods, vehicle->m_anUpgrades.begin());

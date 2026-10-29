@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AEDoorAudioEntity.h"
+#include <extensions/FixedVector.hpp>
 
 enum eGarageType : uint8 {
     INVALID = 0,
@@ -88,9 +89,7 @@ struct CStoredCar {
     uint8   m_nBombType;
     int8    m_nPaintJob; //!< Remap index (-1 if none)
     uint8   m_nNitroBoosts;
-    int8    m_nPackedForwardX; //!< Forward vector * 100
-    int8    m_nPackedForwardY;
-    int8    m_nPackedForwardZ;
+    FixedVector<int8, 100.f> m_PackedForward;
     uint8   _pad1;
 
 public:
@@ -103,6 +102,10 @@ public:
     void Init() { m_wModelIndex = 0; }
     void Clear() { m_wModelIndex = 0; }
     bool HasCar() const { return m_wModelIndex != 0; }
+
+private:
+    // NOTSA (Inlined into `RestoreCar`)
+    static CVehicle* CreateVehicle(eModelID modelId);
 };
 VALIDATE_SIZE(CStoredCar, 0x40);
 
