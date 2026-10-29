@@ -6,36 +6,34 @@
 
 class CPointRoute;
 class CPed;
-class CTaskComplexWalkRoundBuildingAttempt;
 class CEntity;
 class CEvent;
 class CTask;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWalkRoundBuildingAttempt : public CTaskComplex {
-
 public:
-    CPointRoute* m_route = new CPointRoute{};
-    CPointRoute* m_crapRoute = new CPointRoute{};
-    CVector      m_targetPos{};                     /// = m_targetEntity->GetMatrix() * m_offset if `m_flag0x4` else value from constructor
-    CVector      m_pos{};                           ///< Some position
-    CVector      m_normal{};                        ///< Some kind of normal (maybe the buildings?)
-    CEntity*     m_targetEntity{};                  ///< If set it's used instead `m_target`
-    CVector      m_offset{};                        ///< If `m_targetEntity` is set this is used as an offset to the entity's position
-    int8         m_moveState{};                     ///< Type is: `eMoveState`
-    bool         m_bIsHeadOnCollision : 1{};        ///< todo...
-    bool         m_routeHasPoints : 1{};            ///< Whenever `m_route` has points
-    bool         m_isWalkingAroundEntity : 1{};     ///< If set `m_targetEntity` should be used as the target, otherise `m_targetPos`
-    bool         m_crapRouteHasPoints : 1{};        /// If `m_crapRoute` has any points added to it
-    bool         m_justAbort : 1{};                 ///< Whenever the task has to be aborted (In case target entity was deleted, or similar)
-    bool         m_isFollowingRouteNow : 1{};       ///< Whenever `CTaskComplexFollowPointRoute` was created
-    int8         m_nAttempts{};                     ///< Increased when `ComputeRoute` is called. After 20 attempts the `m_crapRoute` is copied into `m_route`
+    CPointRoute*       m_route     = new CPointRoute{};
+    CPointRoute*       m_crapRoute = new CPointRoute{};
+    CVector            m_targetPos{};                  /// = m_targetEntity->GetMatrix() * m_offset if `m_flag0x4` else value from constructor
+    CVector            m_pos{};                        ///< Some position
+    CVector            m_normal{};                     ///< Some kind of normal (maybe the buildings?)
+    notsa::EntityRef<> m_targetEntity{};               ///< If set it's used instead `m_target`
+    CVector            m_offset{};                     ///< If `m_targetEntity` is set this is used as an offset to the entity's position
+    int8               m_moveState{};                  ///< Type is: `eMoveState`
+    bool               m_bIsHeadOnCollision : 1 {};    ///< todo...
+    bool               m_routeHasPoints : 1 {};        ///< Whenever `m_route` has points
+    bool               m_isWalkingAroundEntity : 1 {}; ///< If set `m_targetEntity` should be used as the target, otherise `m_targetPos`
+    bool               m_crapRouteHasPoints : 1 {};    /// If `m_crapRoute` has any points added to it
+    bool               m_justAbort : 1 {};             ///< Whenever the task has to be aborted (In case target entity was deleted, or similar)
+    bool               m_isFollowingRouteNow : 1 {};   ///< Whenever `CTaskComplexFollowPointRoute` was created
+    int8               m_nAttempts{};                  ///< Increased when `ComputeRoute` is called. After 20 attempts the `m_crapRoute` is copied into `m_route`
 
 public:
     static void InjectHooks();
 
     static constexpr auto Type = eTaskType::TASK_COMPLEX_WALK_ROUND_BUILDING_ATTEMPT;
 
-    CTaskComplexWalkRoundBuildingAttempt(eMoveState moveState, CVector const& targetPos, CVector const& pos, CVector const& normal, bool bIsHeadOnCollision);
+    CTaskComplexWalkRoundBuildingAttempt(eMoveState moveState, const CVector& targetPos, const CVector& pos, const CVector& normal, bool bIsHeadOnCollision);
     CTaskComplexWalkRoundBuildingAttempt(eMoveState moveState, CEntity* target, CVector const& offset, CVector const& pos, CVector const& normal, bool bIsHeadOnCollision);
     CTaskComplexWalkRoundBuildingAttempt(const CTaskComplexWalkRoundBuildingAttempt&);
     ~CTaskComplexWalkRoundBuildingAttempt();
