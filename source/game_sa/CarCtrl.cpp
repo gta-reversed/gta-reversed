@@ -59,15 +59,15 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(DealWithBend_Racing, 0x428040, { .Reversed = false });
     RH_ScopedInstall(DragCarToPoint, 0x42EC90, { .Reversed = false });
     RH_ScopedInstall(FindAngleToWeaveThroughTraffic, 0x4325C0, { .Reversed = false });
-    RH_ScopedInstall(FindIntersection2Lines, 0x4226F0, { .Reversed = false });
+    RH_ScopedInstall(FindIntersection2Lines, 0x4226F0);
     RH_ScopedInstall(FindLinksToGoWithTheseNodes, 0x42B470, { .Reversed = false });
     RH_ScopedInstall(FindMaximumSpeedForThisCarInTraffic, 0x434400, { .Reversed = false });
     RH_ScopedInstall(FindNodesThisCarIsNearestTo, 0x42BD20, { .Reversed = false });
     RH_ScopedInstall(FindPathDirection, 0x422090, { .Reversed = false });
-    RH_ScopedInstall(FindPercDependingOnDistToLink, 0x422620, { .Reversed = false });
-    RH_ScopedInstall(FindSequenceElement, 0x421770, { .Reversed = false });
-    RH_ScopedInstall(FindSpeedMultiplier, 0x4224E0, { .Reversed = false });
-    RH_ScopedInstall(FindSpeedMultiplierWithSpeedFromNodes, 0x424130, { .Reversed = false });
+    RH_ScopedInstall(FindPercDependingOnDistToLink, 0x422620);
+    RH_ScopedInstall(FindSequenceElement, 0x421770);
+    RH_ScopedInstall(FindSpeedMultiplier, 0x4224E0);
+    RH_ScopedInstall(FindSpeedMultiplierWithSpeedFromNodes, 0x424130);
     RH_ScopedInstall(FindGhostRoadHeight, 0x422370, { .Reversed = false });
     RH_ScopedInstall(FireHeliRocketsAtTarget, 0x42B270, { .Reversed = false });
     RH_ScopedInstall(FlyAIHeliInCertainDirection, 0x429A70, { .Reversed = false });
@@ -224,7 +224,7 @@ int32 CCarCtrl::ChooseModel(int32* arg1) {
     return plugin::CallAndReturn<int32, 0x424CE0, int32*>(arg1);
 }
 
-int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
+int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreCopBike) {
     CWanted* playerWanted = FindPlayerWanted();
     if (playerWanted->AreSwatRequired()
         && CStreaming::IsModelLoaded(MODEL_ENFORCER)
@@ -246,7 +246,7 @@ int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
             && CStreaming::IsModelLoaded(MODEL_ARMY))
             return (CGeneral::GetRandomNumber() < 0x3FFF) + MODEL_RHINO;
     }
-    return CStreaming::GetDefaultCopCarModel(ignoreLvpd1Model);
+    return CStreaming::GetDefaultCopCarModel(ignoreCopBike);
 }
 
 // 0x423F00
@@ -365,8 +365,13 @@ float CCarCtrl::FindAngleToWeaveThroughTraffic(CVehicle* vehicle, CPhysical* phy
 }
 
 // 0x4226F0
-void CCarCtrl::FindIntersection2Lines(float arg1, float arg2, float arg3, float arg4, float arg5, float arg6, float arg7, float arg8, float* arg9, float* arg10) {
-    plugin::Call<0x4226F0, float, float, float, float, float, float, float, float, float*, float*>(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+void CCarCtrl::FindIntersection2Lines(CVector2D point1, CVector2D dir1, CVector2D point2, CVector2D dir2, float* outX, float* outY) {
+    const auto det = dir1.Cross(dir2);
+    const auto t   = det != 0.0f
+        ? (point2 - point1).Cross(dir2) / det
+        : 0.0f;
+    *outX = point1.x + dir1.x * t;
+    *outY = point1.y + dir1.y * t;
 }
 
 // 0x42B470
@@ -391,22 +396,35 @@ int8 CCarCtrl::FindPathDirection(CNodeAddress nodeAddress1, CNodeAddress nodeAdd
 
 // 0x422620
 float CCarCtrl::FindPercDependingOnDistToLink(CVehicle* vehicle, CCarPathLinkAddress linkAddress) {
-    return plugin::CallAndReturn<float, 0x422620, CVehicle*, CCarPathLinkAddress>(vehicle, linkAddress);
+    return CGeneral::GetPiecewiseLinear({
+        { 5.0f,  0.5f },
+        { 15.0f, 1.0f },
+    }, CVector2D::Dist(ThePaths.GetCarPathLink(linkAddress).GetNodeCoors(), vehicle->GetPosition2D()));
 }
 
 // 0x421770
-int32 CCarCtrl::FindSequenceElement(int32 arg1) {
-    return plugin::CallAndReturn<int32, 0x421770, int32>(arg1);
+int32 CCarCtrl::FindSequenceElement(int32 element) {
+    return bSequenceOtherWay
+        ? (element + SequenceRandomOffset) % SequenceElements
+        : (SequenceElements - element + SequenceRandomOffset) % SequenceElements;
 }
 
 // 0x4224E0
-float CCarCtrl::FindSpeedMultiplier(float arg1, float arg2, float arg3, float arg4) {
-    return plugin::CallAndReturn<float, 0x4224E0, float, float, float, float>(arg1, arg2, arg3, arg4);
+float CCarCtrl::FindSpeedMultiplier(float angleChange, float minAngle, float maxAngle, float minMultiplier) {
+    return CGeneral::GetPiecewiseLinear({
+        { minAngle, 1.0f },
+        { maxAngle, minMultiplier },
+    }, std::abs(CGeneral::LimitRadianAngle(angleChange)));
 }
 
 // 0x424130
-float CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(int8 arg1) {
-    return plugin::CallAndReturn<float, 0x424130, int8>(arg1);
+float CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(int8 speedFromNodes) {
+    switch (speedFromNodes) {
+    case -1: return 0.5f;
+    case 0:  return 0.65f;
+    case 2:  return 2.3f;
+    default: return 1.0f;
+    }
 }
 
 float CCarCtrl::FindGhostRoadHeight(CVehicle* vehicle) {
@@ -470,17 +488,25 @@ void CCarCtrl::GenerateRandomCars() {
 
     if (NumRandomCars < 45) {
         if (CountDownToCarsAtStart) {
-            CountDownToCarsAtStart--;
-            for (auto i = 100; i --> 0;) {
-                GenerateOneRandomCar();
+            if (--CountDownToCarsAtStart == 0) {
+                for (auto i = 100; i --> 0;) {
+                    GenerateOneRandomCar();
+                }
+                CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
             }
-            CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
         } else {
             GenerateOneRandomCar();
             GenerateOneRandomCar();
         }
     }
 
+    CTrain::DoTrainGenerationAndRemoval();
+    CPlane::DoPlaneGenerationAndRemoval();
+
+    // 0x434277 - About every 4 seconds
+    if (CTimer::GetTimeInMS() / 4096u != CTimer::GetPreviousTimeInMS() / 4096u) {
+        GenerateEmergencyServicesCar();
+    }
 }
 
 // 0x42F3C0

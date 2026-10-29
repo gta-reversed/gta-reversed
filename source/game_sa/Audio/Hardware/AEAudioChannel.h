@@ -4,6 +4,7 @@
 
 #include "Vector.h"
 
+class CAEStaticChannel;
 
 #pragma pack(push, 1)
 class NOTSA_EXPORT_VTABLE CAEAudioChannel {
@@ -17,23 +18,25 @@ public:
     IDirectSound3DBuffer* m_pDirectSound3DBuffer;
 #endif
 
-    char                  _pad10[24];
+    uint8                 _pad10[20];
+    uint32                m_TotalBufferSize;
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
     uint32                m_dwStopTime; // unused
     float                 m_Volume;
     bool                  m_bPaused;
-    uint8                 field_39; // unused
+    uint8                 __pad;
     uint16                m_nChannelId;
-    uint32                m_nFrequency;
+    uint32                m_nFrequency; //< i.e. samplesPerSec
     uint32                m_nOriginalFrequency;
     bool                  m_bLooped;
     bool                  m_bShouldStop;
     bool                  m_bShouldPlay; // unused
     WAVEFORMATEX          m_WaveFormat;
-    uint16                field_59;
+
+    uint16 __pad59;
 #ifdef USE_DSOUND
-    char                  _pad;
+    uint8 __pad5b;
     union {
         struct {
             bool Bit0x1 : 1;
@@ -51,7 +54,7 @@ public:
     virtual bool   IsSoundPlaying() = 0;
     virtual int16  GetPlayTime() = 0;
     virtual uint16 GetLength() = 0;
-    virtual void   Play(int16, int8, float) = 0;
+    virtual void   Play(int16 pos, int8 flags, float speed) = 0;
     virtual void   SynchPlayback() = 0;
     virtual void   Stop() = 0;
     virtual void   SetFrequencyScalingFactor(float factor);
@@ -73,7 +76,6 @@ public:
     // Those 2 require DirectSound EAX 4.0 extensions or some alternative to be available in project
     bool SetReverbAndDepth(uint32 reverbEnv, uint32 depth);
     void SetNotInRoom(bool onStreet); // 0 - frontend, 1 - world
-
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
@@ -83,7 +85,5 @@ private:
 VALIDATE_SIZE(CAEAudioChannel, 0x60);
 VALIDATE_OFFSET(CAEAudioChannel, m_pDirectSound, 0x4);
 VALIDATE_OFFSET(CAEAudioChannel, m_nChannelId, 0x3A);
-//VALIDATE_OFFSET(CAEAudioChannel, m_nBufferFrequency, 0x4B);
-//VALIDATE_OFFSET(CAEAudioChannel, m_wFrequencyMult, 0x49);
 
 extern uint32& g_numSoundChannelsUsed;

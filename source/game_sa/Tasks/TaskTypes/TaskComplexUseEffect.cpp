@@ -50,14 +50,15 @@ bool CTaskComplexUseEffect::MakeAbortable(CPed* ped, eAbortPriority priority, CE
         return false;
     }
 
+    GetPedAttractorManager()->DeRegisterPed(ped, m_PedAttractor);
     m_Ped          = nullptr;
     m_PedAttractor = nullptr;
 
     if (event && notsa::contains({EVENT_PED_COLLISION_WITH_PED, EVENT_PED_COLLISION_WITH_PLAYER}, event->GetEventType())) {
         if (const auto collisionVictim = static_cast<const CEventPedCollisionWithPed*>(event)->m_victim) {
             if (const auto t = notsa::dyn_cast_if_present<CTaskComplexGoToAttractor>(m_pSubTask)) {
-                if ((ped->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() <= sq(1.5f)) {
-                    if (m_MoveState == PEDMOVE_STILL && (collisionVictim->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() <= sq(1.5f)) {
+                if ((ped->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() < sq(1.5f)) {
+                    if (collisionVictim->m_nMoveState == PEDMOVE_STILL && (collisionVictim->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() < sq(1.5f)) {
                         m_bAbort = true;
                     }
                 }
@@ -79,7 +80,7 @@ CTask* CTaskComplexUseEffect::CreateNextSubTask(CPed* ped) {
 // 0x632460
 CTask* CTaskComplexUseEffect::CreateFirstSubTask(CPed* ped) {
     CEntity::ChangeEntityReference(m_Ped, ped);
-    m_PedAttractor = !m_bAbort && m_Entity && CScripted2dEffects::GetIndex(m_2dFx) != -1
+    m_PedAttractor = !m_bAbort && (m_Entity || CScripted2dEffects::GetIndex(m_2dFx) != -1)
         ? GetPedAttractorManager()->RegisterPedWithAttractor(ped, m_2dFx, m_Entity, m_MoveState)
         : nullptr;
     return m_PedAttractor
@@ -92,7 +93,7 @@ CTask* CTaskComplexUseEffect::ControlSubTask(CPed* ped) {
     if (ped->IsCop()) {
         if (const auto w = FindPlayerWanted(); w->GetWantedLevel() != eWantedLevel::WANTED_CLEAN && w->CanCopJoinPursuit(ped->AsCop())) {
             if (m_pSubTask->MakeAbortable(ped)) {
-                GetPedAttractorManager()->DeRegisterPed(m_Ped, m_PedAttractor);
+                GetPedAttractorManager()->DeRegisterPed(ped, m_PedAttractor);
                 return nullptr;
             }
         }

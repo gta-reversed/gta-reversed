@@ -1634,6 +1634,8 @@ bool CPed::PositionAnyPedOutOfCollision() {
 * @addr 0x5E1660
 */
 bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
+    constexpr CVector PED_POS_OFFSET{ 0.f, 0.f, 1.f }; // NOTE/TODO: Adjust for head height? Could use head bone instead.
+    
     if (!isSpotted) {
         const auto dir2D{ entity->GetPosition2D() - GetPosition2D() };
         if (   DotProduct2D(dir2D, m_matrix->GetForward()) < 0.f // Is behind us
@@ -1643,15 +1645,25 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
         }
     }
 
-    auto target{entity->GetPosition()};
-    if (entity->GetIsTypePed()) {
-        target.z += 1.f; // Adjust for head pos?
-    }
-
     // Seems like they explicitly use this one instead of `IsLineOfSightClear` because of the `shootThru` check.
     CColPoint cp{};
     CEntity* hitEntity{};
-    return !CWorld::ProcessLineOfSight(GetPosition(), target, cp, hitEntity, true, false, false, isSpotted, false, false, false, isSpotted);
+    return !CWorld::ProcessLineOfSight(
+        GetPosition() + PED_POS_OFFSET,
+        entity->GetIsTypePed()
+            ? entity->GetPosition() + PED_POS_OFFSET
+            : entity->GetPosition(),
+        cp,
+        hitEntity,
+        true,
+        false,
+        false,
+        isSpotted,
+        false,
+        false,
+        false,
+        isSpotted
+    );
 }
 
 /*!
@@ -1770,7 +1782,7 @@ void CPed::ProcessBuoyancy()
         if (CWaterLevel::GetWaterLevel(vecSplashPos, fWaterZ, true, nullptr)) {
             vecSplashPos.z = fWaterZ;
             g_fx.TriggerWaterSplash(vecSplashPos);
-            AudioEngine.ReportWaterSplash(this, -100.0F, true);
+            AudioEngine.ReportWaterSplash(this, VOLUME_SILENCE, true);
         }
     }
 

@@ -29,7 +29,7 @@ public:
     //! Find member closest to `ped`
     CPed* GetClosestGroupPed(CPed* ped, float* pOutDistance);
 
-    //! Find distance of the furthest member to `ped`
+    //! Find distance of the furthest follower to the leader
     float FindDistanceToFurthestMember();
 
     //! Is anyone from this group using the given car
@@ -38,7 +38,7 @@ public:
     //! todo
     void PlayerGaveCommand_Attack(CPed* playerPed, CPed* ped);
 
-    //! todo
+    //! Make all followers (that aren't in a vehicle) gather around `ped` [or the vehicle they're in/entering]
     void PlayerGaveCommand_Gather(CPed* ped);
 
     //! Update routine

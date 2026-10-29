@@ -29,6 +29,11 @@ class saRecipe(ConanFile):
 
         # Standalone build mode
         "standalone": [False, 'dump_hooks_only'], # There's no `True` yet, as we can't build a fully standalone version yet
+
+        # Enable the Tracy profiler
+        # Without `on_demand` Tracy keeps all profiling data in memory until a profiler connects,
+        # if no client connects, the game runs out of memory in about a minute.
+        "use_tracy": ['on_demand', True, False],
     }
 
     default_options = {
@@ -36,6 +41,7 @@ class saRecipe(ConanFile):
         "use_sdl3": True,
         "standalone": False,
         "unity_build": False,
+        "use_tracy": False,
     }
     
     def requirements(self):
@@ -46,10 +52,13 @@ class saRecipe(ConanFile):
         # Required for our custom stuff
         self.requires("nlohmann_json/3.12.0")
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
-        self.requires("tracy/cci.20220130")
         self.requires("imgui/1.92.9b-docking")
         self.requires("boost/1.91.0", options={"header_only": True})
-        
+        self.requires("tracy/0.13.1", options={
+            "enable": str(self.options.use_tracy) != 'False', 
+            "on_demand": self.options.use_tracy == 'on_demand'
+        })
+
         # Required for vanilla build
         self.requires("ogg/1.3.5")
         self.requires("vorbis/1.3.7")
@@ -84,7 +93,7 @@ class saRecipe(ConanFile):
                 os.path.join(self.dependencies["imgui"].package_folder, "res", "bindings"),
                 os.path.join(imgui_libs_folder, "bindings")
             )
-        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options['use_sdl3'] else "*imgui_impl_win32*")
+        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options.use_sdl3 else "*imgui_impl_win32*")
         copy_imgui_bindings("*imgui_impl_dx9*")
         copy(
             self,
