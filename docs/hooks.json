@@ -36112,12 +36112,12 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "GetMissionAudioLoadingStatus",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "IsMissionAudioSampleFinished",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -36127,32 +36127,32 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "ClearMissionAudio",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "SetMissionAudioPosition",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "AttachMissionAudioToPhysical",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "PreloadMissionAudio",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "PlayLoadedMissionAudio",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "GetMissionAudioPosition",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -36162,7 +36162,7 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "PlayMissionBankSound",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -36672,7 +36672,7 @@
   {
     "Category": "CAEVehicleAudioEntity",
     "Name": "ProcessGenericJet",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEVehicleAudioEntity",
@@ -37142,7 +37142,7 @@
   {
     "Category": "CAEAudioHardware",
     "Name": "PlaySound",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStaticChannel",
@@ -37182,12 +37182,12 @@
   {
     "Category": "CAEStaticChannel",
     "Name": "SetAudioBuffer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
     "Name": "Constructor",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
@@ -37202,7 +37202,7 @@
   {
     "Category": "CAEStreamingChannel",
     "Name": "PrepareStream",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
@@ -37272,7 +37272,7 @@
   {
     "Category": "CAEStreamingChannel",
     "Name": "Service",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
@@ -37867,7 +37867,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "Service",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37877,7 +37877,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "CheckForStationRetune",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37887,7 +37887,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "IsVehicleRadioActive",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37972,7 +37972,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "ChooseTalkRadioShow",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37987,7 +37987,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "UpdateRadioVolumes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -40197,11 +40197,16 @@
   {
     "Category": "CVehicle",
     "Name": "ProcessBikeWheel",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CVehicle",
     "Name": "FindTyreNearestPoint",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "InflictDamage",
     "IsReversed": true
   },
   {
@@ -40246,6 +40251,11 @@
   },
   {
     "Category": "CVehicle",
+    "Name": "DoSunGlare",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
     "Name": "AddWaterSplashParticles",
     "IsReversed": true
   },
@@ -40256,7 +40266,42 @@
   },
   {
     "Category": "CVehicle",
+    "Name": "AddSingleWheelParticles",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
     "Name": "GetSpecialColModel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "UpdateTrailerLink",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "UpdateTractorLink",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "ScanAndMarkTargetForHeatSeekingMissile",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "FireHeatSeakingMissile",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "PossiblyDropFreeFallBombForPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "ProcessSirenAndHorn",
     "IsReversed": true
   },
   {
@@ -40302,6 +40347,16 @@
   {
     "Category": "CVehicle",
     "Name": "SetupUpgradesAfterLoad",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "GetPlaneWeaponFiringStatus",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "ProcessWeapons",
     "IsReversed": true
   },
   {

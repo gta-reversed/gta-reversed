@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 26, 2026 at 19:49:48 UTC
-(Triggered by commit [6d8cf7ff](https://github.com/gta-reversed/gta-reversed/commit/6d8cf7ff217a605d65412b92975eb8ea0ab168ea))
+Last update was at Oct 28, 2026 at 23:01:15 UTC
+(Triggered by commit [1cfd54ad](https://github.com/gta-reversed/gta-reversed/commit/1cfd54adf50a11ded862da37aa97fcf6b5d9bb2e))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7628 out of 8325 functions done in 722 categories)
+## Stats (7660 out of 8336 functions done in 722 categories)
 
-#### Completely reversed categories (602/722) [83%]
+#### Completely reversed categories (605/722) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -594,6 +594,9 @@ Last update was at Oct 26, 2026 at 19:49:48 UTC
 - CAEWaterCannonAudioEntity (7)<br />
 - CAEWeatherAudioEntity (5)<br />
 - CAEAudioChannel (12)<br />
+- CAEAudioHardware (55)<br />
+- CAEStaticChannel (8)<br />
+- CAEStreamingChannel (24)<br />
 - CAEBankLoader (6)<br />
 - CAEDataStream (20)<br />
 - CAEStreamTransformer (2)<br />
@@ -620,7 +623,7 @@ Last update was at Oct 26, 2026 at 19:49:48 UTC
 
 </details>
 
-#### Partially reversed categories (112/722) [16%]
+#### Partially reversed categories (109/722) [15%]
 
 <details>
 <summary>See list of categories</summary>
@@ -718,20 +721,17 @@ Last update was at Oct 26, 2026 at 19:49:48 UTC
 - CAEFrontendAudioEntity (4/6) [67%]<br />
 - CAEPedAudioEntity (16/20) [80%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
-- CAEScriptAudioEntity (8/19) [42%]<br />
-- CAEVehicleAudioEntity (102/106) [96%]<br />
-- CAEAudioHardware (54/55) [98%]<br />
-- CAEStaticChannel (7/8) [88%]<br />
-- CAEStreamingChannel (21/24) [88%]<br />
+- CAEScriptAudioEntity (17/19) [89%]<br />
+- CAEVehicleAudioEntity (103/106) [97%]<br />
 - CAEAmbienceTrackManager (6/7) [86%]<br />
-- CAERadioTrackManager (29/43) [67%]<br />
+- CAERadioTrackManager (34/43) [79%]<br />
 - CBike (22/40) [55%]<br />
 - CBmx (7/10) [70%]<br />
 - CMonsterTruck (5/11) [45%]<br />
 - CPlane (14/23) [61%]<br />
 - CQuadBike (11/12) [92%]<br />
 - CTrain (22/41) [54%]<br />
-- CVehicle (145/149) [97%]<br />
+- CVehicle (157/160) [98%]<br />
 - InteriorGroup_c (2/24) [8%]<br />
 - CRunningScript (24/39) [62%]<br />
 - CTheScripts (68/69) [99%]<br />

@@ -4599,7 +4599,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         // TOOD: Refactor
         float sinSteerAngle = 0.0f;
         float cosSteerAngle = 0.0f;
-        bool canSteer = steerAngle > -100.0f;
+        bool  canSteer      = steerAngle > -100.0f;
         if (canSteer) {
             sinSteerAngle = std::sin(steerAngle);
             cosSteerAngle = std::cos(steerAngle);
@@ -4659,14 +4659,14 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
-                    leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_BURST);
+                    leftWheel, m_fWheelBurnoutSpeed[leftWheel], wheelState, WHEEL_STATUS_BURST);
             }
             else {
                 CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
-                    leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_OK);
+                    leftWheel, m_fWheelBurnoutSpeed[leftWheel], wheelState, WHEEL_STATUS_OK);
             }
             if (driveWheels && m_GasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
                 m_WheelStates[leftWheel] = WHEEL_STATE_NORMAL;
@@ -4709,7 +4709,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
-                    rightWheel, &m_fWheelBurnoutSpeed[rightWheel], &wheelState, WHEEL_STATUS_BURST
+                    rightWheel, m_fWheelBurnoutSpeed[rightWheel], wheelState, WHEEL_STATUS_BURST
                );
             }
             else {
@@ -4717,7 +4717,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
-                    rightWheel, &m_fWheelBurnoutSpeed[rightWheel], &wheelState, WHEEL_STATUS_OK
+                    rightWheel, m_fWheelBurnoutSpeed[rightWheel], wheelState, WHEEL_STATUS_OK
                );
             }
             if (driveWheels && m_GasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
