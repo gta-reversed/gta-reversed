@@ -16,7 +16,7 @@ void CTaskComplexLeaveCarAndWander::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x63DAD0);
     RH_ScopedVMTInstall(GetTaskType, 0x63BE40);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6422C0, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6422C0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x642340);
     RH_ScopedVMTInstall(ControlSubTask, 0x63BEB0);
 }
@@ -67,17 +67,16 @@ CTask* CTaskComplexLeaveCarAndWander::CreateNextSubTask(CPed* ped) {
     case TASK_COMPLEX_LEAVE_CAR:
         break;
     default:
-        NOTSA_UNREACHABLE();
+        return nullptr;
     }
 
-    // Make sure ped's default task is `ComplexWander`
-    if (const auto defaultPrimary = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT)) {
-        if (!notsa::isa<CTaskComplexWander>(defaultPrimary)) {
-            ped->GetTaskManager().SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
-        }
+    auto& taskManager = ped->GetTaskManager();
+    const auto* defaultPrimary = taskManager.GetTaskPrimary(TASK_PRIMARY_DEFAULT);
+    if (!defaultPrimary || defaultPrimary->GetTaskType() != TASK_COMPLEX_WANDER) {
+        taskManager.SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
     }
 
-    return CreateSubTask(TASK_FINISHED);
+    return nullptr;
 }
 
 // 0x642340
