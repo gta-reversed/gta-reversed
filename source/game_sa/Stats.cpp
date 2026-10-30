@@ -69,7 +69,7 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0);
-    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030);
 }
 
 // 0x55C0C0
@@ -649,7 +649,12 @@ void CStats::UpdateStatsOnRespawn() {
 
 // 0x55D030
 void CStats::UpdateStatsAddToHealth(uint32 addToHealth) {
-    plugin::Call<0x55D030, uint32>(addToHealth);
+    m_AddToHealthCounter += addToHealth;
+    if ((double)m_AddToHealthCounter > StatReactionValue[STAT_TIMELIMIT_ADD_TO_HEALTH]) {
+        IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        m_AddToHealthCounter = 0;
+    }
 }
 
 // 0x55D090
