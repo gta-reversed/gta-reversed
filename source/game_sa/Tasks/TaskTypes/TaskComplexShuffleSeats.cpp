@@ -136,7 +136,7 @@ CTask* CTaskComplexShuffleSeats::CreateNextSubTask(CPed* ped) {
                     return TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER;
                 }
             } else {
-                if (!m_Veh->m_apPassengers[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Veh, m_TargetDoor)]) {
+                if (!CCarEnterExit::GetPassengerAtCarDoor(m_Veh, m_TargetDoor)) {
                     return TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
                 }
             }
