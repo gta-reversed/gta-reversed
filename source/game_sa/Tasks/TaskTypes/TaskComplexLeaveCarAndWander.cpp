@@ -14,11 +14,11 @@ void CTaskComplexLeaveCarAndWander::InjectHooks() {
 
     RH_ScopedInstall(CreateSubTask, 0x63BEC0, {.Reversed = false});
 
-    RH_ScopedVMTInstall(Clone, 0x63DAD0, {.Reversed = false});
-    RH_ScopedVMTInstall(GetTaskType, 0x63BE40, {.Reversed = false});
+    RH_ScopedVMTInstall(Clone, 0x63DAD0);
+    RH_ScopedVMTInstall(GetTaskType, 0x63BE40);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6422C0, {.Reversed = false});
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x642340, {.Reversed = false});
-    RH_ScopedVMTInstall(ControlSubTask, 0x63BEB0, {.Reversed = false});
+    RH_ScopedVMTInstall(ControlSubTask, 0x63BEB0);
 }
 
 // 0x63BDD0
