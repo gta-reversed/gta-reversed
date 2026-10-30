@@ -48,14 +48,16 @@ void CSprite2d::InjectHooks() {
     RH_ScopedInstall(Draw2DPolygon, 0x7285B0);
     RH_ScopedInstall(DrawBarChart, 0x728640);
     RH_ScopedInstall(DrawCircleAtNearClip, 0x727D60);
+    RH_ScopedInstall(SetVerticesForSniper, 0x727FD0);
+    RH_ScopedInstall(OffsetTexCoordForBilinearFiltering, 0x728150);
+    RH_ScopedInstall(AddToBuffer, 0x728200);
 }
 
-CSprite2d::CSprite2d()
-{
+CSprite2d::CSprite2d() {
     m_pTexture = nullptr;
 }
-CSprite2d* CSprite2d::Constructor()
-{
+
+CSprite2d* CSprite2d::Constructor() {
     this->CSprite2d::CSprite2d();
     return this;
 }
@@ -63,16 +65,15 @@ CSprite2d* CSprite2d::Constructor()
 CSprite2d::~CSprite2d() {
     Delete();
 }
-CSprite2d* CSprite2d::Destructor()
-{
+
+CSprite2d* CSprite2d::Destructor() {
     this->CSprite2d::~CSprite2d();
     return this;
 }
 
 // delete this sprite (similar to destructor)
 // 0x727240
-void CSprite2d::Delete()
-{
+void CSprite2d::Delete() {
     if (m_pTexture) {
         RwTextureDestroy(m_pTexture);
         m_pTexture = nullptr;
@@ -81,24 +82,24 @@ void CSprite2d::Delete()
 
 // set texture by name from current txd
 // 0x727270
-void CSprite2d::SetTexture(Const char* name)
-{
+void CSprite2d::SetTexture(const char* name) {
     Delete();
-    if (name)
+
+    if (name) {
         m_pTexture = RwTextureRead(name, nullptr);
+    }
 }
 
 // set texture by name from current txd (+alpha mask name)
 // 0x7272B0
-void CSprite2d::SetTexture(Const char* name, Const char* maskName)
-{
-    if (name && maskName)
+void CSprite2d::SetTexture(const char* name, const char* maskName) {
+    if (name && maskName) {
         m_pTexture = RwTextureRead(name, maskName);
+    }
 }
 
 // 0x7272E0
-void CSprite2d::SetAddressingUV(RwTextureAddressMode modeU, RwTextureAddressMode modeV)
-{
+void CSprite2d::SetAddressingUV(RwTextureAddressMode modeU, RwTextureAddressMode modeV) {
     if (m_pTexture) {
         RwTextureSetAddressingU(m_pTexture, modeU);
         RwTextureSetAddressingV(m_pTexture, modeV);
@@ -106,37 +107,34 @@ void CSprite2d::SetAddressingUV(RwTextureAddressMode modeU, RwTextureAddressMode
 }
 
 // 0x727320
-void CSprite2d::SetAddressing(RwTextureAddressMode modeUV)
-{
-    if (m_pTexture)
+void CSprite2d::SetAddressing(RwTextureAddressMode modeUV) {
+    if (m_pTexture) {
         RwTextureSetAddressing(m_pTexture, modeUV);
+    }
 }
 
 // Sets sprite texture as current for device rendering
 // 0x727B30
-void CSprite2d::SetRenderState()
-{
-    if (m_pTexture)
+void CSprite2d::SetRenderState() {
+    if (m_pTexture) {
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(m_pTexture)));
-    else
+    } else {
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
+    }
 }
 
 // Draw this sprite
-void CSprite2d::Draw(float x, float y, float width, float height, const CRGBA& color)
-{
+void CSprite2d::Draw(float x, float y, float width, float height, const CRGBA& color) {
     CRect posn(x, y, x + width, y + height);
     Draw(posn, color);
 }
 
-void CSprite2d::Draw(const CRect& posn, const CRGBA& color)
-{
+void CSprite2d::Draw(const CRect& posn, const CRGBA& color) {
     Draw(posn, color, color, color, color);
 }
 
 // 0x7283B0
-void CSprite2d::DrawWithBilinearOffset(const CRect& posn, const CRGBA& color)
-{
+void CSprite2d::DrawWithBilinearOffset(const CRect& posn, const CRGBA& color) {
     SetVertices(posn, color, color, color, color);
     RwRaster* raster = RwTextureGetRaster(m_pTexture);
     OffsetTexCoordForBilinearFiltering(static_cast<float>(RwRasterGetWidth(raster)), static_cast<float>(RwRasterGetHeight(raster)));
@@ -144,24 +142,21 @@ void CSprite2d::DrawWithBilinearOffset(const CRect& posn, const CRGBA& color)
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
-void CSprite2d::Draw(const CRect& posn, const CRGBA& color, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4)
-{
+void CSprite2d::Draw(const CRect& posn, const CRGBA& color, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4) {
     SetVertices(posn, color, color, color, color, u1, v1, u2, v2, u3, v3, u4, v4);
     SetRenderState();
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
 }
 
-void CSprite2d::Draw(const CRect& posn, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4)
-{
+void CSprite2d::Draw(const CRect& posn, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4) {
     SetVertices(posn, color1, color2, color3, color4);
     SetRenderState();
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
 }
 
-void CSprite2d::Draw(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, const CRGBA& color)
-{
+void CSprite2d::Draw(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, const CRGBA& color) {
     SetVertices(x1, y1, x2, y2, x3, y3, x4, y4, color, color, color, color);
     SetRenderState();
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
@@ -183,20 +178,18 @@ void CSprite2d::InitPerFrame() {
     NearScreenZ = RWSRCGLOBAL(dOpenDevice).zBufferNear;
 }
 
-bool CSprite2d::IsVertexBufferEmpty()
-{
+bool CSprite2d::IsVertexBufferEmpty() {
     return nextBufferVertex == 0;
 }
 
-bool CSprite2d::IsVertexBufferFull()
-{
+bool CSprite2d::IsVertexBufferFull() {
     return nextBufferVertex > TOTAL_RADIOSITY_VERTEX_BUFFER || nextBufferIndex > TOTAL_TEMP_BUFFER_INDICES;
 }
 
-void CSprite2d::RenderVertexBuffer()
-{
-    if (nextBufferVertex <= 0)
+void CSprite2d::RenderVertexBuffer() {
+    if (nextBufferVertex <= 0) {
         return;
+    }
 
     RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
     RwIm2DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aRadiosityVertexBuffer, nextBufferVertex, aTempBufferIndices, nextBufferIndex);
@@ -362,10 +355,12 @@ void CSprite2d::DrawRectXLU(const CRect& posn, const CRGBA& color1, const CRGBA&
 // draws rectangle, texture could be set with SetRenderState().
 void CSprite2d::DrawAnyRect(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4) {
     SetVertices(x1, y1, x2, y2, x3, y3, x4, y4, color1, color2, color3, color4);
-    if (color1.a == 255 && color2.a == 255 && color3.a == 255 && color4.a == 255)
+    if (color1.a == 255 && color2.a == 255 && color3.a == 255 && color4.a == 255) {
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
-    else
+    } else {
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    }
+
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
 
@@ -399,25 +394,94 @@ void CSprite2d::DrawCircleAtNearClip(const CVector2D& posn, float size, const CR
             RwIm2DVertexSetU(&maVertices[l], (c + 1.f) * 0.5f, RecipNearClip);
             RwIm2DVertexSetV(&maVertices[l], (s + 1.f) * 0.5f, RecipNearClip);
         }
+
         RwIm2DRenderTriangle(maVertices.data(), 3, 2, 1, 0);
     }
 }
 
-// this makes some trick with sprite z position (z = NearScreenZ + 0.000001).
-void CSprite2d::SetVerticesForSniper(const CRect& posn, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4)
-{
-    ((void(__cdecl*)(const CRect&, const CRGBA&, const CRGBA&, const CRGBA&, const CRGBA&))0x727FD0)(posn, color1, color2, color3, color4);
+/*!
+ * @brief The four-corner quad the sniper scope is drawn with.
+ *
+ * The same corners and the same colour order as `SetVertices`, with two differences: the texture
+ * coordinates are exactly 0 and 1 rather than the half-texel-nudged defaults, and every vertex sits
+ * a millionth in front of the near plane instead of on it, so the scope always wins the depth test
+ * against whatever else was put at the near plane that frame.
+ *
+ * @addr 0x727FD0
+ */
+void CSprite2d::SetVerticesForSniper(const CRect& posn, const CRGBA& color1, const CRGBA& color2, const CRGBA& color3, const CRGBA& color4) {
+    const auto z = NearScreenZ + 0.000001f;
+
+    RwIm2DVertexSetScreenX(&maVertices[0], posn.left);
+    RwIm2DVertexSetScreenY(&maVertices[0], posn.bottom);
+    RwIm2DVertexSetScreenZ(&maVertices[0], z);
+    RwIm2DVertexSetRecipCameraZ(&maVertices[0], RecipNearClip);
+    RwIm2DVertexSetU(&maVertices[0], 0.0f, RecipNearClip);
+    RwIm2DVertexSetV(&maVertices[0], 0.0f, RecipNearClip);
+    RwIm2DVertexSetIntRGBA(&maVertices[0], color3.r, color3.g, color3.b, color3.a);
+
+    RwIm2DVertexSetScreenX(&maVertices[1], posn.right);
+    RwIm2DVertexSetScreenY(&maVertices[1], posn.bottom);
+    RwIm2DVertexSetScreenZ(&maVertices[1], z);
+    RwIm2DVertexSetRecipCameraZ(&maVertices[1], RecipNearClip);
+    RwIm2DVertexSetU(&maVertices[1], 1.0f, RecipNearClip);
+    RwIm2DVertexSetV(&maVertices[1], 0.0f, RecipNearClip);
+    RwIm2DVertexSetIntRGBA(&maVertices[1], color4.r, color4.g, color4.b, color4.a);
+
+    RwIm2DVertexSetScreenX(&maVertices[2], posn.right);
+    RwIm2DVertexSetScreenY(&maVertices[2], posn.top);
+    RwIm2DVertexSetScreenZ(&maVertices[2], z);
+    RwIm2DVertexSetRecipCameraZ(&maVertices[2], RecipNearClip);
+    RwIm2DVertexSetU(&maVertices[2], 1.0f, RecipNearClip);
+    RwIm2DVertexSetV(&maVertices[2], 1.0f, RecipNearClip);
+    RwIm2DVertexSetIntRGBA(&maVertices[2], color2.r, color2.g, color2.b, color2.a);
+
+    RwIm2DVertexSetScreenX(&maVertices[3], posn.left);
+    RwIm2DVertexSetScreenY(&maVertices[3], posn.top);
+    RwIm2DVertexSetScreenZ(&maVertices[3], z);
+    RwIm2DVertexSetRecipCameraZ(&maVertices[3], RecipNearClip);
+    RwIm2DVertexSetU(&maVertices[3], 0.0f, RecipNearClip);
+    RwIm2DVertexSetV(&maVertices[3], 1.0f, RecipNearClip);
+    RwIm2DVertexSetIntRGBA(&maVertices[3], color1.r, color1.g, color1.b, color1.a);
 }
 
-void CSprite2d::OffsetTexCoordForBilinearFiltering(float width, float height)
-{
-    ((void(__cdecl*)(float, float))0x728150)(width, height);
+//! Nudges every one of the four vertices' texture coordinates half a texel along, so a
+//! bilinear filter samples the centre of the texel rather than its corner.
+//! @addr 0x728150
+void CSprite2d::OffsetTexCoordForBilinearFiltering(float width, float height) {
+    const auto u = 1.0f / (width + width);
+    const auto v = 1.0f / (height + height);
+
+    for (auto i = 0; i < 4; i++) {
+        RwIm2DVertexSetU(&maVertices[i], RwIm2DVertexGetU(&maVertices[i]) + u, 1.0f);
+        RwIm2DVertexSetV(&maVertices[i], RwIm2DVertexGetV(&maVertices[i]) + v, 1.0f);
+    }
 }
 
 // add vertices to buffer
-void CSprite2d::AddToBuffer(const CRect& posn, const CRGBA& color, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4)
-{
-    ((void(__cdecl*)(const CRect&, const CRGBA&, float, float, float, float, float, float, float, float))0x728200)(posn, color, u1, v1, u2, v2, u3, v3, u4, v4);
+// 0x728200
+void CSprite2d::AddToBuffer(const CRect& posn, const CRGBA& color, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4) {
+    const auto firstVertex = nextBufferVertex;
+    SetVertices(&aRadiosityVertexBuffer[firstVertex], posn, color, color, color, color, u1, v1, u2, v2, u3, v3, u4, v4);
+
+    // The four vertices go out as two triangles, (0, 1, 2) and (3, 0, 2), sharing the 0-2 diagonal.
+    const auto firstIndex = nextBufferIndex;
+    aTempBufferIndices[firstIndex + 0] = static_cast<RxVertexIndex>(firstVertex);
+    aTempBufferIndices[firstIndex + 1] = static_cast<RxVertexIndex>(firstVertex + 1);
+    aTempBufferIndices[firstIndex + 2] = static_cast<RxVertexIndex>(firstVertex + 2);
+    aTempBufferIndices[firstIndex + 3] = static_cast<RxVertexIndex>(firstVertex + 3);
+    aTempBufferIndices[firstIndex + 4] = static_cast<RxVertexIndex>(firstVertex);
+    aTempBufferIndices[firstIndex + 5] = static_cast<RxVertexIndex>(firstVertex + 2);
+
+    nextBufferVertex = firstVertex + 4;
+    nextBufferIndex  = firstIndex + 6;
+
+    // NOTE: this is not `IsVertexBufferFull`, which measures the index count against the whole
+    // array. The bound here sits six short of it, which is exactly the room the next quad's
+    // indices need, so the flush happens one quad earlier than that predicate would ask for.
+    if (nextBufferVertex > TOTAL_RADIOSITY_VERTEX_BUFFER || nextBufferIndex > TOTAL_TEMP_BUFFER_INDICES - 6) {
+        RenderVertexBuffer();
+    }
 }
 
 // non-textured polygon
@@ -428,10 +492,11 @@ void CSprite2d::Draw2DPolygon(float x1, float y1, float x2, float y2, float x3, 
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
     RwRenderStateSet(rwRENDERSTATESHADEMODE,     RWRSTATE(rwSHADEMODENASHADEMODE));
 
-    if (color.a == 255)
+    if (color.a == 255) {
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
-    else
+    } else {
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    }
 
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices.data(), 4);
 }
@@ -502,13 +567,14 @@ void CSprite2d::DrawBarChart(float x, float y, uint16 width, uint8 height, float
         CFont::SetScale(fheight * 0.03f, fheight / 0.04f);
 
         auto textX = (uint16)unclampedCurrX;
+
         if (x + 50.0f <= (float)textX) {
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-        }
-        else {
+        } else {
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
             textX += 5;
         }
+
         CFont::PrintString((float)textX, y + 2.0f, gxtText);
     }
 }
