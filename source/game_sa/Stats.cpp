@@ -68,7 +68,7 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0);
     RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030, { .Reversed = false });
 }
 
@@ -636,7 +636,15 @@ void CStats::UpdateStatsWhenFighting() {
 
 // 0x55CFC0
 void CStats::UpdateStatsOnRespawn() {
-    plugin::Call<0x55CFC0>();
+    if ((double)m_DeathCounter > StatReactionValue[STAT_TIMELIMIT_DEATH_HEALTH]) {
+        if (GetStatValue(STAT_MAX_HEALTH) > 400.0f) {
+            IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
+        }
+        m_DeathCounter = 0;
+    } else {
+        m_DeathCounter++;
+    }
 }
 
 // 0x55D030
