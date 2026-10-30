@@ -9,8 +9,8 @@ void CTaskComplexFollowLeaderInFormation::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6949A0);
     RH_ScopedInstall(Destructor, 0x694A40);
 
-    RH_ScopedVMTInstall(Clone, 0x695740, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x694A30, { .Reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x695740);
+    RH_ScopedVMTInstall(GetTaskType, 0x694A30);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x696820, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6968E0, { .Reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x696940, { .Reversed = false });
