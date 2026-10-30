@@ -51,7 +51,7 @@ void CStats::InjectHooks() {
 
     RH_ScopedInstall(Load, 0x5D3BF0);
     RH_ScopedInstall(Save, 0x5D3B40);
-    RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0, { .Reversed = false });
+    RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0);
     RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0, { .Reversed = false });
     RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010, { .Reversed = false });
     RH_ScopedInstall(BuildStatLine, 0x559230, { .Reversed = false });
@@ -132,7 +132,15 @@ bool CStats::IsStatFloat(eStats stat) {
 
 // 0x558EC0
 bool CStats::PopulateFavoriteRadioStationList() {
-    return plugin::CallAndReturn<bool, 0x558EC0>();
+    const auto* listenTimes = AudioEngine.GetRadioStationListenTimes();
+    auto allZero = true;
+    for (auto&& [i, time] : rngv::enumerate(FavoriteRadioStationList)) {
+        time = listenTimes[i];
+        if (time != 0) {
+            allZero = false;
+        }
+    }
+    return allZero;
 }
 
 // 0x558FA0
