@@ -45,3 +45,4 @@ private: // Wrappers for hooks
         return this;
     }
 };
+VALIDATE_SIZE(CTaskComplexLeaveCarAndWander, 0x1C);
