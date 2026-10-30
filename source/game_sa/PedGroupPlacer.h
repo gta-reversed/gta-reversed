@@ -22,4 +22,9 @@ public:
     bool PlaceFormationGroup(ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType = {});
     bool PlaceGroup         (ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType nGroupPlacerType);
     bool PlaceRandomGroup   (ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType = {});
+
+    // NOTSA helpers
+    //! Checks if a group spawn origin is clear of obstacles and not visible too close to the player.
+    //! Verifies camera frustum visibility against player distance threshold and ensures position clearance for ped placement.
+    static bool CanPlaceGroupAt(const CVector& origin, float radius);
 };
