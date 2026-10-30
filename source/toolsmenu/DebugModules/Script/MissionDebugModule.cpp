@@ -197,11 +197,11 @@ bool MissionDebugModule::StartMission(int32 missionId, bool bDoMissionCleanUp = 
     CTimer::Suspend();
     int32 offsetToMission = CTheScripts::MultiScriptArray[missionId];
     CFileMgr::ChangeDir("\\");
-    if (CGame::bMissionPackGame) {
+    if (CGame::MissionPackGameId) {
         size_t bytesRead = 0;
         while (FrontEndMenuManager.CheckMissionPackValidMenu()) {
             CFileMgr::SetDirMyDocuments();
-            sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+            sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::MissionPackGameId);
             auto* file = CFileMgr::OpenFile(gString, "rb");
             if (file) {
                 CFileMgr::Seek(file, offsetToMission, 0);
@@ -217,7 +217,7 @@ bool MissionDebugModule::StartMission(int32 missionId, bool bDoMissionCleanUp = 
         }
     }
     CFileMgr::SetDir("");
-    if (!CGame::bMissionPackGame) {
+    if (!CGame::MissionPackGameId) {
         auto* file = CFileMgr::OpenFile("data\\script\\main.scm", "rb");
         CFileMgr::Seek(file, offsetToMission, 0);
         CFileMgr::Read(file, &CTheScripts::MissionBlock[0], MISSION_SCRIPT_SIZE);
