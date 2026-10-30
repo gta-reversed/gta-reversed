@@ -1,8 +1,4 @@
-# NOTE/TODO: 
-# Keeping this at 3.x.x because 
-# that's what ubuntu-latest image has
-# once the image has updated we need to bump this to 4.2.0
-cmake_minimum_required(VERSION 3.2.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 4.2.0 FATAL_ERROR)
 
 #
 # Mock CMake project for generating Doxygen documentation
