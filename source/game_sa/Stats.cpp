@@ -67,9 +67,9 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0);
+    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0);
+    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030);
 }
 
 // 0x55C0C0
@@ -626,7 +626,27 @@ void CStats::UpdateStatsWhenOnMotorBike(CBike* bike) {
 
 // 0x55CEB0
 void CStats::UpdateStatsWhenWeaponHit(eWeaponType weaponType) {
-    plugin::Call<0x55CEB0, eWeaponType>(weaponType);
+    const auto stat = CWeaponInfo::GetSkillStatIndex(weaponType);
+    const auto weaponIndex = (uint32)(stat - STAT_PISTOL_SKILL);
+    const auto skill = GetStatValue(stat);
+    if (CGameLogic::IsCoopGameGoingOn() || !(skill < 1000.0f)) {
+        return;
+    }
+
+    IncrementStat(stat, StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex]);
+    if (m_LastWeaponTypeFired != weaponIndex) {
+        m_LastWeaponTypeFired = weaponIndex;
+        m_WeaponCounter = 0;
+    } else if ((double)m_WeaponCounter > StatReactionValue[STAT_TIMELIMIT_PISTOL_SKILL + weaponIndex]) {
+        DisplayScriptStatUpdateMessage(
+            STAT_UPDATE_INCREASE,
+            stat,
+            (float)((double)m_WeaponCounter * StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex])
+        );
+        m_WeaponCounter = 0;
+    } else {
+        m_WeaponCounter++;
+    }
 }
 
 // 0x55CFA0
@@ -636,12 +656,25 @@ void CStats::UpdateStatsWhenFighting() {
 
 // 0x55CFC0
 void CStats::UpdateStatsOnRespawn() {
-    plugin::Call<0x55CFC0>();
+    if ((double)m_DeathCounter > StatReactionValue[STAT_TIMELIMIT_DEATH_HEALTH]) {
+        if (GetStatValue(STAT_MAX_HEALTH) > 400.0f) {
+            IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
+        }
+        m_DeathCounter = 0;
+    } else {
+        m_DeathCounter++;
+    }
 }
 
 // 0x55D030
 void CStats::UpdateStatsAddToHealth(uint32 addToHealth) {
-    plugin::Call<0x55D030, uint32>(addToHealth);
+    m_AddToHealthCounter += addToHealth;
+    if ((double)m_AddToHealthCounter > StatReactionValue[STAT_TIMELIMIT_ADD_TO_HEALTH]) {
+        IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        m_AddToHealthCounter = 0;
+    }
 }
 
 // 0x55D090
