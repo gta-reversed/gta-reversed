@@ -77,7 +77,7 @@ public:
     CVector      field_9C0;
     int32        f9CC; // unused?
     int32        f9D0; // unused?
-    FxSystem_c** m_pParticlesList;
+    int32        f9D4; // unused?
     std::array<float, 3> m_aSearchLightHistoryX;
     std::array<float, 3> m_aSearchLightHistoryY;
     uint32       m_nSearchLightTimer;
