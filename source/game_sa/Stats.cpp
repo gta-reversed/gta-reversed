@@ -67,7 +67,7 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0);
     RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0);
     RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030);
 }
@@ -626,7 +626,27 @@ void CStats::UpdateStatsWhenOnMotorBike(CBike* bike) {
 
 // 0x55CEB0
 void CStats::UpdateStatsWhenWeaponHit(eWeaponType weaponType) {
-    plugin::Call<0x55CEB0, eWeaponType>(weaponType);
+    const auto stat = CWeaponInfo::GetSkillStatIndex(weaponType);
+    const auto weaponIndex = (uint32)(stat - STAT_PISTOL_SKILL);
+    const auto skill = GetStatValue(stat);
+    if (CGameLogic::IsCoopGameGoingOn() || !(skill < 1000.0f)) {
+        return;
+    }
+
+    IncrementStat(stat, StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex]);
+    if (m_LastWeaponTypeFired != weaponIndex) {
+        m_LastWeaponTypeFired = weaponIndex;
+        m_WeaponCounter = 0;
+    } else if ((double)m_WeaponCounter > StatReactionValue[STAT_TIMELIMIT_PISTOL_SKILL + weaponIndex]) {
+        DisplayScriptStatUpdateMessage(
+            STAT_UPDATE_INCREASE,
+            stat,
+            (float)((double)m_WeaponCounter * StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex])
+        );
+        m_WeaponCounter = 0;
+    } else {
+        m_WeaponCounter++;
+    }
 }
 
 // 0x55CFA0
