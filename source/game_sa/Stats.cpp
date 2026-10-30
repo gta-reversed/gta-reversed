@@ -52,7 +52,7 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(Load, 0x5D3BF0);
     RH_ScopedInstall(Save, 0x5D3B40);
     RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0);
-    RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0, { .Reversed = false });
+    RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0);
     RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010, { .Reversed = false });
     RH_ScopedInstall(BuildStatLine, 0x559230, { .Reversed = false });
     RH_ScopedInstall(CheckForStatsMessage, 0x559760, { .Reversed = false });
@@ -145,7 +145,15 @@ bool CStats::PopulateFavoriteRadioStationList() {
 
 // 0x558FA0
 eRadioID CStats::FindMostFavoriteRadioStation() {
-    return plugin::CallAndReturn<eRadioID, 0x558FA0>();
+    auto favorite = RADIO_CLASSIC_HIP_HOP;
+    auto longestTime = 0;
+    for (auto station = (int32)RADIO_CLASSIC_HIP_HOP; station <= RADIO_USER_TRACKS; station++) {
+        if (FavoriteRadioStationList[station] > longestTime) {
+            longestTime = FavoriteRadioStationList[station];
+            favorite = (eRadioID)station;
+        }
+    }
+    return favorite;
 }
 
 // 0x559010
