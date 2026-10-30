@@ -10,7 +10,7 @@ class NOTSA_EXPORT_VTABLE CTaskComplexFollowLeaderInFormation : public CTaskComp
     CPedGroup* m_Group;
     CPed*      m_Leader;
     CVector    m_Pos;
-    uint32     m_Int;
+    eMoveState m_MoveState;
     float      m_Dist; // Max distance between m_pos and some point, not sure. See `ControlSubTask`. Ignored if < 0
 
 public:
@@ -37,7 +37,10 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexFollowLeaderInFormation* Constructor(CPedGroup* pedGroup, CPed* ped, CVector const& posn, float a5) { return this; }
+    CTaskComplexFollowLeaderInFormation* Constructor(CPedGroup* pedGroup, CPed* ped, CVector const& posn, float dist) {
+        this->CTaskComplexFollowLeaderInFormation::CTaskComplexFollowLeaderInFormation(pedGroup, ped, posn, dist);
+        return this;
+    }
     CTaskComplexFollowLeaderInFormation* Destructor() { this->CTaskComplexFollowLeaderInFormation::~CTaskComplexFollowLeaderInFormation(); return this; }
 };
 VALIDATE_SIZE(CTaskComplexFollowLeaderInFormation, 0x28);

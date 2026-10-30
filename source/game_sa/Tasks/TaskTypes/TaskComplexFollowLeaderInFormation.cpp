@@ -6,7 +6,7 @@ void CTaskComplexFollowLeaderInFormation::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexFollowLeaderInFormation, 0x870c3c, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x6949A0, { .Reversed = false });
+    RH_ScopedInstall(Constructor, 0x6949A0);
     RH_ScopedInstall(Destructor, 0x694A40);
 
     RH_ScopedVMTInstall(Clone, 0x695740, { .Reversed = false });
@@ -17,8 +17,14 @@ void CTaskComplexFollowLeaderInFormation::InjectHooks() {
 }
 
 // 0x6949A0
-CTaskComplexFollowLeaderInFormation::CTaskComplexFollowLeaderInFormation(CPedGroup* pedGroup, CPed* ped, const CVector& posn, float a5) : CTaskComplex() {
-    plugin::CallMethod<0x6949A0, CTaskComplexFollowLeaderInFormation*, CPedGroup*, CPed*, const CVector&, float>(this, pedGroup, ped, posn, a5);
+CTaskComplexFollowLeaderInFormation::CTaskComplexFollowLeaderInFormation(CPedGroup* pedGroup, CPed* ped, const CVector& posn, float dist) :
+    m_Group{pedGroup},
+    m_Leader{ped},
+    m_Pos{posn},
+    m_MoveState{PEDMOVE_WALK},
+    m_Dist{dist}
+{
+    CEntity::SafeRegisterRef(m_Leader);
 }
 
 // For 0x695740
