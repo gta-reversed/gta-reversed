@@ -344,7 +344,7 @@ void CDamageManager::ResetDamageStatus() {
 }
 
 // 0x6C2040
-bool CDamageManager::GetComponentGroup(tComponent nComp, tComponentGroup& outCompGroup, uint8& outComponentRelativeIdx) {
+bool __stdcall CDamageManager::GetComponentGroup(tComponent nComp, tComponentGroup& outCompGroup, uint8& outComponentRelativeIdx) {
     outComponentRelativeIdx = (uint8)-2;
     switch (nComp) {
     case tComponent::COMPONENT_WHEEL_LF:

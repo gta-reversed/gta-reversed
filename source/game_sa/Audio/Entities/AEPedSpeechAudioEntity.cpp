@@ -119,7 +119,7 @@ tPedSpeechSlotID CAEPedSpeechAudioEntity::CanWePlayScriptedSpeech() {
 }
 
 // 0x4E4AE0
-float CAEPedSpeechAudioEntity::GetSpeechContextVolumeOffset(eGlobalSpeechContextS16 gctx) {
+float __stdcall CAEPedSpeechAudioEntity::GetSpeechContextVolumeOffset(eGlobalSpeechContextS16 gctx) {
     const auto CalculateStrainVolumeOffset = [](float base) {
         const auto t = std::clamp(CStats::GetStatValue(STAT_FAT) - CStats::GetStatValue(STAT_MUSCLE), -1.f, 1.f);
         return (t + 1.f) * 0.5f * base + base;
@@ -645,7 +645,7 @@ bool __stdcall CAEPedSpeechAudioEntity::IsGlobalContextImportantForInterupting(e
 }
 
 // 0x4E46F0 - unused
-bool CAEPedSpeechAudioEntity::IsGlobalContextUberImportant(int16 gCtx) {
+bool __stdcall CAEPedSpeechAudioEntity::IsGlobalContextUberImportant(int16 gCtx) {
     return false;
 }
 
@@ -1169,7 +1169,7 @@ tPedSpeechSlotID CAEPedSpeechAudioEntity::GetFreeSpeechSlot() {
 }
 
 // 0x4E4470
-eSpecificSpeechContext CAEPedSpeechAudioEntity::GetSpecificSpeechContext(eGlobalSpeechContext gCtx, eAudioPedType pedAudioType) {
+eSpecificSpeechContext __stdcall CAEPedSpeechAudioEntity::GetSpecificSpeechContext(eGlobalSpeechContext gCtx, eAudioPedType pedAudioType) {
     // Omitted useless `if`s
     // NOTE: Original code allowed `PED_TYPE_SPC` as a valid ped type too... but that (technically) caused an out-of-bounds read...
     //       We won't assert on that, because there are bounds check for the array (as we use std::array)

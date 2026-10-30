@@ -764,7 +764,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
 }
 
 // 0x687C20
-void CTaskSimplePlayerOnFoot::PlayerControlZeldaWeapon(CPlayerPed* player) {
+void __stdcall CTaskSimplePlayerOnFoot::PlayerControlZeldaWeapon(CPlayerPed* player) {
     CTaskSimpleUseGun* taskUseGun = player->GetIntelligence()->GetTaskUseGun();
     if (!taskUseGun)
         return;
@@ -836,7 +836,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlZeldaWeapon(CPlayerPed* player) {
 }
 
 // 0x687F30
-void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
+void __stdcall CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
     auto* duckTask = static_cast<CTaskSimpleDuck*>(player->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_DUCK));
     if (!duckTask)
         return;
