@@ -12,12 +12,12 @@ void CTaskComplexLeaveCarAndWander::InjectHooks() {
 
     RH_ScopedInstall(Destructor, 0x63BE50);
 
-    RH_ScopedInstall(CreateSubTask, 0x63BEC0, {.Reversed = false});
+    RH_ScopedInstall(CreateSubTask, 0x63BEC0);
 
     RH_ScopedVMTInstall(Clone, 0x63DAD0);
     RH_ScopedVMTInstall(GetTaskType, 0x63BE40);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6422C0, {.Reversed = false});
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x642340, {.Reversed = false});
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x642340);
     RH_ScopedVMTInstall(ControlSubTask, 0x63BEB0);
 }
 
@@ -55,9 +55,8 @@ CTask* CTaskComplexLeaveCarAndWander::CreateSubTask(eTaskType taskType) {
     case TASK_NONE:
         return new CTaskSimpleNone{};
     case TASK_FINISHED:
-        return nullptr;
     default:
-        NOTSA_UNREACHABLE();
+        return nullptr;
     }
 }
 
