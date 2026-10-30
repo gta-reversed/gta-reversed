@@ -155,4 +155,10 @@ inline const ReversibleBugFix CVehicle_ScanAndMarkTargetForHeatSeekingMissile_No
     .Description = "Idea is to stash LOS target visibility var to not call CWorld::GetIsLineOfSightClear every frame, for some reason they use == 0 and > 1 ops respectively for last time LOS check and then flag set, so check performed every frame and not each ~1 sec",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CMenuSystem_FillGridWithCarColours_ComparesWithEmptySlot{
+    .Name        = "CMenuSystem::FillGridWithCarColours - Compares with the empty slot",
+    .Description = "Each colour is also compared with the grid slot being filled, which is still black, so colours close to black are skipped "
+                   "(No visible effect with the default `carcols.dat`, where colour 0 is black and always picked first)",
+    .Credit      = "W4liss0n"
+};
 };
