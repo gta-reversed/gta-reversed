@@ -37,6 +37,8 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
+
     CTaskComplexFollowLeaderInFormation* Constructor(CPedGroup* pedGroup, CPed* ped, CVector const& posn, float dist) {
         this->CTaskComplexFollowLeaderInFormation::CTaskComplexFollowLeaderInFormation(pedGroup, ped, posn, dist);
         return this;
