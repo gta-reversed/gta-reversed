@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "TaskComplexSunbathe.h"
+#include "InterestingEvents.h"
 #include "Event.h"
 
 void CTaskComplexSunbathe::InjectHooks() {
@@ -17,9 +18,9 @@ void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x6366A0, { .Reversed = false });
     RH_ScopedVMTInstall(GetTaskType, 0x632040, { .Reversed = false });
     RH_ScopedVMTInstall(MakeAbortable, 0x6320F0);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0);
 
 }
 
@@ -83,17 +84,143 @@ bool CTaskComplexSunbathe::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
     return true;
 }
 
+// 0x632140
+bool CTaskComplexSunbathe::CanSunbathe() {
+    return plugin::CallAndReturn<bool, 0x632140>();
+}
+
+// 0x632190
+bool CTaskComplexSunbathe::ShouldLoadSunbatheAnims() {
+    return plugin::CallAndReturn<bool, 0x632190>();
+}
+
+// 0x638290
+CTask* CTaskComplexSunbathe::CreateSubTask(eTaskType taskType, CPed* ped) {
+    return plugin::CallMethodAndReturn<CTask*, 0x638290, CTaskComplexSunbathe*, eTaskType, CPed*>(this, taskType, ped);
+}
+
 // 0x6399F0
 CTask* CTaskComplexSunbathe::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6399F0, CTaskComplexSunbathe*, CPed*>(this, ped);
+    if (ped->m_nPedType == PED_TYPE_PROSTITUTE || ped->m_nPedType == PED_TYPE_CIVFEMALE) {
+        g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_2, ped);
+    }
+
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_SIMPLE_PAUSE:
+        if (m_bBathing) {
+            // Bathing: anims still needed and loaded -> stand up, otherwise we're done
+            if (!ShouldLoadSunbatheAnims() || !m_pSunbatheAnimBlock->IsLoaded) {
+                return CreateSubTask(TASK_FINISHED, ped);
+            }
+            return CreateSubTask(TASK_SIMPLE_STOP_SUNBATHING, ped);
+        } else {
+            // Not bathed yet: both anims present -> start sunbathing
+            if (!m_pSunbatheAnimBlock->IsLoaded || !m_pBeachAnimBlock->IsLoaded) {
+                return CreateSubTask(TASK_FINISHED, ped);
+            }
+            return CreateSubTask(TASK_SIMPLE_START_SUNBATHING, ped);
+        }
+
+    case TASK_SIMPLE_SUNBATHE:
+        if (!m_pSunbatheAnimBlock->IsLoaded) {
+            return CreateSubTask(TASK_SIMPLE_PAUSE, ped);
+        }
+        if (!CanSunbathe()
+            || m_BathingTimer.IsOutOfTime()
+            || (m_SunbatherType != SUNBATHER_MALE_1 && m_SunbatherType != SUNBATHER_FEMALE_1)) {
+            return CreateSubTask(TASK_SIMPLE_STOP_SUNBATHING, ped);
+        }
+        return CreateSubTask(TASK_SIMPLE_IDLE_SUNBATHING, ped);
+
+    case TASK_SIMPLE_START_SUNBATHING:
+        if (!m_pBeachAnimBlock->IsLoaded) {
+            return CreateSubTask(TASK_FINISHED, ped);
+        }
+        RET_IGNORED(m_BathingTimer.Start(20'000 + static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * 80000.f)));
+        m_bBathing = true;
+        return CreateSubTask(TASK_SIMPLE_SUNBATHE, ped);
+
+    case TASK_SIMPLE_IDLE_SUNBATHING:
+        return CreateSubTask(m_pBeachAnimBlock->IsLoaded ? TASK_SIMPLE_SUNBATHE : TASK_FINISHED, ped);
+
+    case TASK_SIMPLE_STOP_SUNBATHING: {
+        auto* const task = CreateSubTask(TASK_FINISHED, ped);
+        m_bBathing       = false;
+        return task;
+    }
+
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }
 
 // 0x639CB0
 CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x639CB0, CTaskComplexSunbathe*, CPed*>(this, ped);
+    RET_IGNORED(CGeneral::GetRandomNumber());
+
+    // Pick the sunbather type
+    if (ped->m_nPedType == PED_TYPE_CIVFEMALE) {
+        m_SunbatherType = static_cast<eSunbatherType>(CGeneral::GetRandomNumberInRange(2, 5));
+    } else if (CPopulation::IsSunbather(ped->GetModelId())) {
+        m_SunbatherType = CGeneral::DoCoinFlip() ? SUNBATHER_MALE_1 : SUNBATHER_MALE_2;
+    } else {
+        m_SunbatherType = SUNBATHER_MALE_2;
+    }
+
+    if (!m_pBeachAnimBlock->IsLoaded) {
+        CStreaming::RequestModel(IFPToModelId(m_BeachAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
+    }
+    if (!m_pSunbatheAnimBlock->IsLoaded) {
+        CStreaming::RequestModel(IFPToModelId(m_SunbatheAnimBlockIndex), STREAMING_KEEP_IN_MEMORY);
+    }
+
+    m_bBathing                         = false;
+
+    const bool shouldLoadSunbatheAnims = ShouldLoadSunbatheAnims();
+
+    if (m_bStartStanding && shouldLoadSunbatheAnims) {
+        return CreateSubTask(!m_pTowel && m_pSunbatheAnimBlock->IsLoaded ? TASK_SIMPLE_START_SUNBATHING : TASK_SIMPLE_PAUSE, ped);
+    }
+    if (!shouldLoadSunbatheAnims && !m_pBeachAnimBlock->IsLoaded) {
+        return nullptr;
+    }
+
+    // 0x639DA5: "beach" loaded -> bathing with a timer; otherwise (0x639DAF) TASK_NONE/nullptr
+    if (m_pBeachAnimBlock->IsLoaded) {
+        RET_IGNORED(m_BathingTimer.Start(20'000 - static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * -80000.f)));
+        m_bBathing                  = true;
+        return CreateSubTask(TASK_SIMPLE_SUNBATHE, ped);
+    }
+    if (shouldLoadSunbatheAnims) {
+        return CreateSubTask(TASK_SIMPLE_PAUSE, ped);
+    }
+    return nullptr;
 }
 
 // 0x6381A0
 CTask* CTaskComplexSunbathe::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6381A0, CTaskComplexSunbathe*, CPed*>(this, ped);
+    if (m_bAborted) {
+        return nullptr;
+    }
+
+    if (!m_bBeachAnimsReferenced) {
+        CAnimManager::StreamAnimBlock("beach", true, m_bBeachAnimsReferenced);
+    }
+    if (!m_bSunbatheAnimsReferenced && ShouldLoadSunbatheAnims()) {
+        CAnimManager::StreamAnimBlock("sunbathe", true, m_bSunbatheAnimsReferenced);
+    }
+
+    if (m_bBathing) {
+        ped->m_pedIK.bSlopePitch = true;
+        ped->bFallenDown         = true;
+    }
+
+    if (!CanSunbathe()) {
+        m_BathingTimer.Pause();
+        if (m_pSubTask->GetTaskType() == TASK_SIMPLE_SUNBATHE) {
+            RET_IGNORED(m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE));
+        }
+    }
+
+    return m_pSubTask;
 }
