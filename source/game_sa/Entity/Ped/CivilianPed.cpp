@@ -6,7 +6,7 @@ void CCivilianPed::InjectHooks() {
     RH_ScopedCategory("Entity/CivilianPed");
 
     RH_ScopedInstall(Constructor, 0x5DDB70);
-    RH_ScopedInstall(Destructor, 0x5DDC30);
+    RH_ScopedInstall(Destructor, 0x5DDBE0);
     RH_ScopedVMTInstall(ProcessControl, 0x5DDBF0);
 }
 
@@ -31,6 +31,7 @@ CCivilianPed* CCivilianPed::Constructor(ePedType pedType, uint32 modelIndex) {
     return this;
 }
 
+// 0x5DDBE0
 CCivilianPed* CCivilianPed::Destructor() {
     this->CCivilianPed::~CCivilianPed();
     return this;

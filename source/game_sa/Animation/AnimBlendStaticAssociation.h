@@ -52,9 +52,9 @@ private:
         return this;
     }
 
-    // 0x4CDF50
+    // 0x4CEC00
     auto Destructor() {
-        this->~CAnimBlendStaticAssociation();
+        this->CAnimBlendStaticAssociation::~CAnimBlendStaticAssociation();
         return this;
     }
 };

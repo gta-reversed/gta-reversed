@@ -6,7 +6,7 @@ void CTaskComplexSeekEntityStandard::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes/SeekEntity");
 
     RH_ScopedInstall(Constructor, 0x46AC10);
-    RH_ScopedInstall(Destructor, 0x46AD50);
+    RH_ScopedInstall(Destructor, 0x46AD70);
 
     RH_ScopedInstall(CreateSubTask, 0x46F1E0);
 
