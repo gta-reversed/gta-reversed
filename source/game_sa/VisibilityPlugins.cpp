@@ -83,7 +83,7 @@ void CVisibilityPlugins::InjectHooks() {
     RH_ScopedInstall(RenderVehicleReallyLowDetailCB_BigVehicle, 0x732820);
     RH_ScopedInstall(RenderWeaponCB, 0x733670);
     RH_ScopedInstall(RenderWeaponPedsForPC, 0x732F30);
-    RH_ScopedInstall(SetClumpForAllAtomicsFlag, 0x732307);
+    RH_ScopedInstall(SetClumpForAllAtomicsFlag, 0x7322F0);
     RH_ScopedInstall(SetAtomicId, 0x732290);
     RH_ScopedInstall(SetModelInfoIndex, 0x732230);
     RH_ScopedInstall(SetAtomicRenderCallback, 0x7328A0);
