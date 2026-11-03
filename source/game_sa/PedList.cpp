@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "PedList.h"
+#include "TaskComplexKillPedOnFoot.h"
 
 void CPedList::InjectHooks() {
     RH_ScopedClass(CPedList);
@@ -8,9 +9,9 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
-    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340, { .Reversed = false });
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340);
     RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0);
-    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .Reversed = false });
+    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450);
     RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420);
 }
 
@@ -48,7 +49,16 @@ void CPedList::FillUpHoles() {
 
 // 0x69A340
 void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership) {
-    plugin::CallMethod<0x69A340>(this, pedGroupMembership);
+    m_count = 0;
+    for (auto* const mem : pedGroupMembership->GetFollowers()) {
+        if (mem->GetIntelligence()->IsInACarOrEnteringOne()) {
+            continue;
+        }
+        if (m_count < m_peds.size()) {
+            AddMember(mem);
+        }
+    }
+    ClearUnused();
 }
 
 // 0x69A3B0
@@ -70,7 +80,18 @@ void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
 
 // 0x69A450
 void CPedList::RemovePedsAttackingPedType(int32 pedType) {
-    plugin::CallMethod<0x69A450>(this, pedType);
+    // NOTE: Despite the name it removes the peds that *aren't* attacking a ped of type `pedType`
+    const auto IsAttackingPedType = [pedType](CPed* ped) {
+        const auto task = notsa::cast_if_present<CTaskComplexKillPedOnFoot>(ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_KILL_PED_ON_FOOT));
+        return task && task->m_target && task->m_target->m_nPedType == (ePedType)pedType;
+    };
+    for (auto& ped : m_peds | rngv::take(m_count)) { // NOTE: `take` copies `m_count`, so modifying it in the loop is fine
+        if (!IsAttackingPedType(ped)) {
+            ped = nullptr;
+            m_count--;
+        }
+    }
+    FillUpHoles();
 }
 
 // 0x69A420
