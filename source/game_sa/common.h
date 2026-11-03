@@ -11,6 +11,7 @@
 #include <initializer_list>
 #include <RenderWare.h>
 #include <GxtChar.h>
+#include <numbers>
 #include "AnimationEnums.h"
 #include "Vector.h"
 #include "Vector2D.h"
@@ -75,48 +76,27 @@ extern RwRGBAReal& AmbientLightColour;
 extern RwRGBAReal& AmbientLightColourForFrame;
 
 // taken from rpplugin.h
-#define rwVENDORID_DEVELOPER 0x0253F2
+constexpr auto rwVENDORID_DEVELOPER = 0x0253F2;
 
 #define RpGeometryGetMesh(_geometry, _index) (&((RpMesh*)(((char*)(_geometry)->mesh) + sizeof(RpMeshHeader) + ((_geometry)->mesh->firstMeshOffset)))[_index])
 
-constexpr float E               = 2.71828f;          // e
-constexpr float E_CONST         = 0.577f;            // Euler-Mascheroni constant
-constexpr float FRAC_1_TAU      = 0.159154f;         // 1 / τ
-constexpr float FRAC_1_PI       = 0.318309f;         // 1 / π
-constexpr float FRAC_2_TAU      = 0.318309f;         // 2 / τ
-constexpr float FRAC_2_PI       = 0.636619f;         // 2 / π
-constexpr float FRAC_2_SQRT_PI  = 1.12837f;          // 2 / √π
-constexpr float FRAC_4_TAU      = 0.636619f;         // 4 / τ
-constexpr float FRAC_1_SQRT_2   = 0.707106f;         // 1 / √2
-constexpr float FRAC_PI_2       = 1.57079f;          // π / 2
-constexpr float FRAC_PI_3       = 1.04719f;          // π / 3
-constexpr float FRAC_PI_4       = 0.785398f;         // π / 4
-constexpr float FRAC_PI_6       = 0.523598f;         // π / 6
-constexpr float FRAC_PI_8       = 0.392699f;         // π / 8
-constexpr float FRAC_PI_9       = 0.349066f;         // π / 9
-constexpr float FRAC_TAU_2      = 3.14159f;          // τ / 2 = π
-constexpr float FRAC_TAU_3      = 2.09439f;          // τ / 3
-constexpr float FRAC_TAU_4      = 1.57079f;          // τ / 4
-constexpr float FRAC_TAU_6      = 1.04719f;          // τ / 6
-constexpr float FRAC_TAU_8      = 0.785398f;         // τ / 8
-constexpr float FRAC_TAU_12     = 0.523598f;         // τ / 12
-constexpr float LN_2            = 0.693147f;         // ln(2)
-constexpr float LN_10           = 2.30258f;          // ln(10)
-constexpr float LOG2_E          = 1.44269f;          // log2(e)
-constexpr float LOG10_E         = 0.434294f;         // log10(e)
-constexpr float LOG10_2         = 0.301029f;         // log10(2)
-constexpr float LOG2_10         = 3.32192f;          // log2(10)
-constexpr float PI              = 3.14159f;          // π
-constexpr float HALF_PI         = PI / 2.0f;         // π / 2
-constexpr float PI_6            = PI / 6.0f;         // π / 6
-constexpr float SQRT_2          = 1.41421f;          // √2
-constexpr float SQRT_3          = 1.73205f;          // √3
-constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
-constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
-constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
+constexpr float LN_2       = std::numbers::ln2_v<float>;       // ln(2) ~= 0.693147
+constexpr float LN_10      = std::numbers::ln10_v<float>;      // ln(10) ~= 2.30258
+constexpr float LOG2_E     = std::numbers::log2e_v<float>;     // log2(e) ~= 1.44269
+constexpr float LOG10_E    = std::numbers::log10e_v<float>;    // log10(e) ~= 0.434294
+constexpr float LOG10_2    = LN_2 * LOG10_E;                   // log10(2) = ln(2) * log10(e) = ln(2) / ln(10) = log10(2) ~= 0.301029
+constexpr float LOG2_10    = LN_10 * LOG2_E;                   // log2(10) = ln(10) * log2(e) = ln(10) / ln(2) = log2(10) ~= 3.32192
+constexpr float SQRT_2     = std::numbers::sqrt2_v<float>;     // √2 ~= 1.41421
+constexpr float SQRT_3     = std::numbers::sqrt3_v<float>;     // √3 ~= 1.73205
+constexpr float E          = std::numbers::e_v<float>;         // e ~= 2.71828f
+constexpr float E_CONST    = std::numbers::egamma_v<float>;    // Euler-Mascheroni constant ~= 0.577
+constexpr float PI         = std::numbers::pi_v<float>;        // π ~= 3.14159
+constexpr float TWO_PI     = 2.0f * std::numbers::pi_v<float>; // 2π = τ (TAU) ~= 6.28318
+constexpr float HALF_PI    = std::numbers::pi_v<float> / 2.0f; // π / 2 ~= 1.5707963267948966
+constexpr float DEG_TO_RAD = PI / 180.0f;                      // π / 180 ~= 0.01745329252
 
-
-constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
+// TODO: use c++26 constexpr math function here later
+constexpr float COS_45 = SQRT_2 / 2.f;
 
 template<typename T>
 NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }

@@ -3673,16 +3673,18 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         const float steerAngle = std::atan2(steeringUpDown, leftRightSkid);
         float steerMult  = 1.0f;
 
-        if (steerAngle > -1.0f * FRAC_PI_4 && steerAngle <= FRAC_PI_4) {
+        constexpr auto ANGLE_LIMIT = DegreesToRadians(45.0f);
+
+        if (steerAngle > -ANGLE_LIMIT && steerAngle <= ANGLE_LIMIT) {
             steerMult /= std::cos(steerAngle);
-        } else if (steerAngle > FRAC_PI_4 && steerAngle <= 3.0f * FRAC_PI_4) {
-            steerMult /= std::cos(steerAngle - FRAC_PI_2);
-        } else if (steerAngle > 3.0f * FRAC_PI_4) {
+        } else if (steerAngle > ANGLE_LIMIT && steerAngle <= 3.0f * ANGLE_LIMIT) {
+            steerMult /= std::cos(steerAngle - HALF_PI);
+        } else if (steerAngle > 3.0f * ANGLE_LIMIT) {
             steerMult /= std::cos(steerAngle - PI);
-        } else if (steerAngle <= -3.0f * FRAC_PI_4) {
+        } else if (steerAngle <= -3.0f * ANGLE_LIMIT) {
             steerMult /= std::cos(steerAngle + PI);
-        } else if (steerAngle > -3.0f * FRAC_PI_4 && steerAngle < -FRAC_PI_4) {
-            steerMult /= std::cos(steerAngle + FRAC_PI_2);
+        } else if (steerAngle > -3.0f * ANGLE_LIMIT && steerAngle < -ANGLE_LIMIT) {
+            steerMult /= std::cos(steerAngle + HALF_PI);
         }
 
         leftRightSkid *= steerMult;
@@ -3770,7 +3772,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
         const float upVelRatio = DotProduct(velocityAirRel, GetUp()) / std::max(0.01f, velocityAirRel.Magnitude());
         const float attackAngle = -1.0f * std::asin(std::clamp(upVelRatio, -1.0f, 1.0f));
 
-        if (IsSubPlane() && attackAngle > FRAC_PI_9) { // 20 deg
+        if (IsSubPlane() && attackAngle > DegreesToRadians(20.0f)) {
             AsPlane()->m_StallCounter += (uint32)CTimer::GetTimeStepInMS(); // 0x6D9707
         }
 
