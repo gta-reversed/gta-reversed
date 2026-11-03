@@ -265,7 +265,7 @@ bool CGame::Shutdown() {
     CSkidmarks::Shutdown();
     CWeaponEffects::Shutdown();
     CTimeCycle::Shutdown();
-    CCover::m_ListOfProcessedBuildings.Flush();
+    CCover::Shutdown(); // NOTSA: Originally just `CCover::m_ListOfProcessedBuildings.Flush()`
     CPedGroups::CleanUpForShutDown();
     CTaskSequences::CleanUpForShutdown();
     CInformGroupEventQueue::Flush();
