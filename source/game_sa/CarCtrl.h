@@ -110,11 +110,11 @@ public:
     static void SetCoordsOfScriptCar(CVehicle* vehicle, float x, float y, float z, uint8 arg5, uint8 arg6);
     static void SetUpDriverAndPassengersForVehicle(CVehicle* vehicle, int32 arg2, int32 arg3, bool arg4, bool arg5, int32 passengersNum);
     template<typename PtrListType>
-    static void SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
+    static void SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float minX, float minY, float maxX, float maxY, float* maxSpeed, float cruiseSpeed);
     static void SlowCarDownForObject(CEntity* entity, CVehicle* vehicle, float* arg3, float arg4);
     template<typename PtrListType>
-    static void SlowCarDownForObjectsSectorList(PtrListType& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
-    static void SlowCarDownForOtherCar(CEntity* car1, CVehicle* car2, float* arg3, float arg4);
+    static void SlowCarDownForObjectsSectorList(PtrListType& ptrList, CVehicle* vehicle, float minX, float minY, float maxX, float maxY, float* maxSpeed, float cruiseSpeed);
+    static void SlowCarDownForOtherCar(CEntity* entity, CVehicle* vehicle, float* maxSpeed, float cruiseSpeed);
     template<typename PtrListType>
     static void SlowCarDownForPedsSectorList(PtrListType& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
     static void SlowCarOnRailsDownForTrafficAndLights(CVehicle* vehicle);
@@ -146,8 +146,8 @@ public:
     static bool StopCarIfNodesAreInvalid(CVehicle* vehicle);
     static void SwitchBetweenPhysicsAndGhost(CVehicle* vehicle);
     static void SwitchVehicleToRealPhysics(CVehicle* vehicle);
-    static float TestCollisionBetween2MovingRects(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
-    static float TestCollisionBetween2MovingRects_OnlyFrontBumper(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
+    static float TestCollisionBetween2MovingRects(CVehicle* vehicle, CVehicle* otherVehicle, CVector2D move, const CVector2D& otherForward, const CVector2D& forward);
+    static float TestCollisionBetween2MovingRects_OnlyFrontBumper(CVehicle* vehicle, CVehicle* otherVehicle, CVector2D move, const CVector2D& otherForward, const CVector2D& forward);
     static void TestWhetherToFirePlaneGuns(CVehicle* vehicle, CEntity* target);
     static bool ThisVehicleShouldTryNotToTurn(CVehicle* vehicle);
     static void TriggerDogFightMoves(CVehicle* vehicle1, CVehicle* vehicle2);

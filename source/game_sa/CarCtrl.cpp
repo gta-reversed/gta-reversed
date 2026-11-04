@@ -95,9 +95,9 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(ScanForPedDanger, 0x42CE40, { .Reversed = false });
     RH_ScopedInstall(SetCoordsOfScriptCar, 0x4342A0, { .Reversed = false });
     RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0, { .Reversed = false });
-    RH_ScopedInstall(SlowCarDownForCarsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x432420, { .Reversed = false });
-    RH_ScopedInstall(SlowCarDownForObjectsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D4F0, { .Reversed = false });
-    RH_ScopedInstall(SlowCarDownForOtherCar, 0x42D0E0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForCarsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x432420);
+    RH_ScopedInstall(SlowCarDownForObjectsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D4F0);
+    RH_ScopedInstall(SlowCarDownForOtherCar, 0x42D0E0);
     RH_ScopedInstall(SlowCarDownForPedsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x425440, { .Reversed = false });
     RH_ScopedInstall(SteerAIBoatWithPhysicsAttackingPlayer, 0x428DE0, { .Reversed = false });
     RH_ScopedInstall(SteerAIBoatWithPhysicsCirclingPlayer, 0x429090, { .Reversed = false });
@@ -127,8 +127,8 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(StopCarIfNodesAreInvalid, 0x422590, { .Reversed = false });
     RH_ScopedInstall(SwitchBetweenPhysicsAndGhost, 0x4222A0, { .Reversed = false });
     RH_ScopedInstall(SwitchVehicleToRealPhysics, 0x423FC0, { .Reversed = false });
-    RH_ScopedInstall(TestCollisionBetween2MovingRects, 0x425B30, { .Reversed = false });
-    RH_ScopedInstall(TestCollisionBetween2MovingRects_OnlyFrontBumper, 0x425F70, { .Reversed = false });
+    RH_ScopedInstall(TestCollisionBetween2MovingRects, 0x425B30);
+    RH_ScopedInstall(TestCollisionBetween2MovingRects_OnlyFrontBumper, 0x425F70);
     RH_ScopedInstall(TestWhetherToFirePlaneGuns, 0x429520, { .Reversed = false });
     RH_ScopedInstall(ThisVehicleShouldTryNotToTurn, 0x421FE0, { .Reversed = false });
     RH_ScopedInstall(TriggerDogFightMoves, 0x429300, { .Reversed = false });
@@ -864,10 +864,34 @@ void CCarCtrl::SetUpDriverAndPassengersForVehicle(CVehicle* vehicle, int32 arg2,
     plugin::Call<0x4217C0, CVehicle*, int32, int32, bool, bool, int32>(vehicle, arg2, arg3, arg4, arg5, passengersNum);
 }
 
+// NOTSA: The checks the `SlowCarDownFor*SectorList` functions make on an entity at `point` before slowing `vehicle` down for it:
+// inside the area, and at about the height of `vehicle` and of the line ahead of it
+static bool IsInAreaAndLevelWithVehicle(const CVehicle* vehicle, const CVector& point, float minX, float minY, float maxX, float maxY, float maxHeightDiff) {
+    if (point.x <= minX || point.x >= maxX || point.y <= minY || point.y >= maxY) {
+        return false;
+    }
+    const auto& pos = vehicle->GetPosition();
+    if (std::abs(point.z - pos.z) >= maxHeightDiff) {
+        return false;
+    }
+    const auto& forward   = vehicle->GetForward();
+    const auto  distAlong = CCollision::DistAlongLine2D(pos.x, pos.y, forward.x, forward.y, point.x, point.y);
+    return std::abs(point.z - (distAlong * forward.z + pos.z)) < 3.0f;
+}
+
 // 0x432420
 template<typename PtrListType>
-void CCarCtrl::SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
-    plugin::Call<0x432420, PtrListType&, CVehicle*, float, float, float, float, float*, float>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
+void CCarCtrl::SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float minX, float minY, float maxX, float maxY, float* maxSpeed, float cruiseSpeed) {
+    for (auto* const entity : ptrList) {
+        if (entity == vehicle || entity->IsScanCodeCurrent() || !entity->GetUsesCollision()) {
+            continue;
+        }
+        entity->SetCurrentScanCode();
+
+        if (IsInAreaAndLevelWithVehicle(vehicle, entity->GetBoundCentre(), minX, minY, maxX, maxY, 10.0f)) {
+            SlowCarDownForOtherCar(entity, vehicle, maxSpeed, cruiseSpeed);
+        }
+    }
 }
 
 // 0x426220
@@ -886,14 +910,76 @@ void CCarCtrl::SlowCarDownForObject(CEntity* entity, CVehicle* vehicle, float* a
 }
 
 // 0x42D4F0
+// Only road works barriers and road block cars
 template<typename PtrListType>
-void CCarCtrl::SlowCarDownForObjectsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
-    plugin::Call<0x42D4F0, PtrListType&, CVehicle*, float, float, float, float, float*, float>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
+void CCarCtrl::SlowCarDownForObjectsSectorList(PtrListType& ptrList, CVehicle* vehicle, float minX, float minY, float maxX, float maxY, float* maxSpeed, float cruiseSpeed) {
+    for (auto* const entity : ptrList) {
+        if (entity->IsScanCodeCurrent()) {
+            continue;
+        }
+        entity->SetCurrentScanCode();
+
+        if (!notsa::contains<eModelID>({ ModelIndices::MI_ROADWORKBARRIER1, ModelIndices::MI_ROADBLOCKFUCKEDCAR1, ModelIndices::MI_ROADBLOCKFUCKEDCAR2 }, entity->GetModelId())) {
+            continue;
+        }
+        if (IsInAreaAndLevelWithVehicle(vehicle, entity->GetBoundCentre(), minX, minY, maxX, maxY, 10.0f)) {
+            SlowCarDownForObject(entity, vehicle, maxSpeed, cruiseSpeed);
+        }
+    }
 }
 
 // 0x42D0E0
-void CCarCtrl::SlowCarDownForOtherCar(CEntity* car1, CVehicle* car2, float* arg3, float arg4) {
-    plugin::Call<0x42D0E0, CEntity*, CVehicle*, float*, float>(car1, car2, arg3, arg4);
+// Lowers `maxSpeed` if `vehicle`, driving at `cruiseSpeed`, is about to run into `entity`, a car ahead of it
+void CCarCtrl::SlowCarDownForOtherCar(CEntity* entity, CVehicle* vehicle, float* maxSpeed, float cruiseSpeed) {
+    auto* const otherVehicle = entity->AsVehicle();
+
+    const auto forward       = CVector2D{ vehicle->GetForward() }.Normalized();
+    if (CVector2D{ entity->GetPosition() - vehicle->GetPosition() }.Dot(forward) < 0.0f) {
+        return; // Behind `vehicle`
+    }
+    const auto otherForward = CVector2D{ entity->GetMatrix().GetForward() }.Normalized();
+
+    // How far the other car moves relative to `vehicle`
+    const auto move    = CVector2D{ otherVehicle->GetMoveSpeed() } * GAME_SPEED_TO_CAR_AI_SPEED - forward * cruiseSpeed;
+
+    auto collisionTime = std::min(
+        TestCollisionBetween2MovingRects_OnlyFrontBumper(otherVehicle, vehicle, move, forward, otherForward),
+        TestCollisionBetween2MovingRects(vehicle, otherVehicle, -move, otherForward, forward)
+    );
+    if (collisionTime < 0.0f) {
+        return;
+    }
+    if (collisionTime < 1.5f) {
+        vehicle->m_autoPilot.carCtrlFlags.bHonkAtCar = true;
+        CEntity::SetEntityReference(vehicle->m_autoPilot.m_ObstructingEntity, entity);
+
+        const auto timePerUnit = 1.0f / cruiseSpeed;
+        if (collisionTime < timePerUnit) {
+            *maxSpeed = 0.0f;
+        } else if (collisionTime < 3.0f * timePerUnit) {
+            *maxSpeed = std::min(*maxSpeed, 1.0f);
+        } else {
+            // NOTE: Overwrites `collisionTime`, so the check below sees the scaled value
+            collisionTime = std::max((collisionTime - 0.2f) * (1.0f / 1.3f), 0.0f);
+            *maxSpeed     = std::min(*maxSpeed, collisionTime * cruiseSpeed);
+        }
+    }
+
+    // Two cars driving head-on into each other: the one at the lower address keeps going at a fifth of its speed and avoids the other
+    if (collisionTime < 0.5f && entity->GetIsTypeVehicle()) {
+        const auto now = CTimer::GetTimeInMS();
+        if (now - vehicle->m_autoPilot.m_nTimeSwitchedToRealPhysics > 15'000 && now - otherVehicle->m_autoPilot.m_nTimeSwitchedToRealPhysics > 15'000) {
+            const auto headOn = CVector2D{ entity->GetMatrix().GetForward() }.Dot(vehicle->GetForward()) < -0.5f;
+            if (otherVehicle != FindPlayerVehicle() && headOn && vehicle < otherVehicle) {
+                *maxSpeed = std::max(*maxSpeed, cruiseSpeed * 0.2f);
+                if (vehicle->GetStatus() == STATUS_SIMPLE) {
+                    SwitchVehicleToRealPhysics(vehicle);
+                }
+                vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVING_STYLE_AVOID_CARS;
+                vehicle->m_autoPilot.m_nTempActionTime  = now + 1'000;
+            }
+        }
+    }
 }
 
 // 0x425440
@@ -1065,13 +1151,91 @@ void CCarCtrl::SwitchVehicleToRealPhysics(CVehicle* vehicle) {
 }
 
 // 0x425B30
-float CCarCtrl::TestCollisionBetween2MovingRects(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2) {
-    return plugin::CallAndReturn<float, 0x425B30, CVehicle*, CVehicle*, float, float, CVector*, CVector*>(vehicle1, vehicle2, arg3, arg4, pos1, pos2);
+// Part of `move` (0 to 1) after which a front corner of `vehicle` is inside the bounding box of `otherVehicle`, 1.0 if none gets there
+float CCarCtrl::TestCollisionBetween2MovingRects(CVehicle* vehicle, CVehicle* otherVehicle, CVector2D move, const CVector2D& otherForward, const CVector2D& forward) {
+    // Part of the move (0 to 1) in which a point at `pos` moving by `posMove` enters and leaves [min, max], both 1.0 if it doesn't get there
+    const auto GetEnterAndLeaveTime = [](float pos, float posMove, float min, float max) -> std::pair<float, float> {
+        if (pos > max) {
+            if (posMove >= 0.0f) {
+                return { 1.0f, 1.0f };
+            }
+            const auto invMove = 1.0f / posMove;
+            const auto enter   = (max - pos) * invMove;
+            if (enter >= 1.0f) {
+                return { 1.0f, 1.0f };
+            }
+            return { enter, std::min(enter - (max - min) * invMove, 1.0f) };
+        }
+        if (pos < min) {
+            if (posMove <= 0.0f) {
+                return { 1.0f, 1.0f };
+            }
+            const auto invMove = 1.0f / posMove;
+            const auto enter   = (min - pos) * invMove;
+            if (enter >= 1.0f) {
+                return { 1.0f, 1.0f };
+            }
+            return { enter, std::min(enter + (max - min) * invMove, 1.0f) };
+        }
+        if (posMove > 0.0f) {
+            return { 0.0f, (max - pos) / posMove };
+        }
+        if (posMove < 0.0f) {
+            return { 0.0f, (min - pos) / posMove };
+        }
+        return { 0.0f, 1.0f };
+    };
+
+    const auto& bb      = vehicle->GetModelInfo()->GetColModel()->GetBoundingBox();
+    const auto& otherBB = otherVehicle->GetModelInfo()->GetColModel()->GetBoundingBox();
+
+    const CVector2D offset = vehicle->GetPosition() - otherVehicle->GetPosition();
+    const auto      front  = forward * bb.m_vecMax.y;
+    const auto      side   = forward.GetPerpRight() * bb.m_vecMax.x;
+
+    auto time = 1.0f;
+    for (const auto& corner : { offset + front + side, offset + front - side }) {
+        // `Cross` gives the position to the right of `otherForward`, `Dot` the position along it
+        const auto [enterSide, leaveSide]       = GetEnterAndLeaveTime(corner.Cross(otherForward), move.Cross(otherForward), -otherBB.m_vecMax.x, otherBB.m_vecMax.x);
+        const auto [enterForward, leaveForward] = GetEnterAndLeaveTime(corner.Dot(otherForward), move.Dot(otherForward), otherBB.m_vecMin.y, otherBB.m_vecMax.y);
+
+        const auto enter = std::max(enterSide, enterForward);
+        if (enter < leaveSide && enter < leaveForward) {
+            time = std::min(time, enter);
+        }
+    }
+    return time;
 }
 
 // 0x425F70
-float CCarCtrl::TestCollisionBetween2MovingRects_OnlyFrontBumper(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2) {
-    return plugin::CallAndReturn<float, 0x425F70, CVehicle*, CVehicle*, float, float, CVector*, CVector*>(vehicle1, vehicle2, arg3, arg4, pos1, pos2);
+// Part of `move` (0 to 1) after which a corner of `vehicle` crosses the front bumper of `otherVehicle`, 1.0 if none does
+float CCarCtrl::TestCollisionBetween2MovingRects_OnlyFrontBumper(CVehicle* vehicle, CVehicle* otherVehicle, CVector2D move, const CVector2D& otherForward, const CVector2D& forward) {
+    const auto& bb      = vehicle->GetModelInfo()->GetColModel()->GetBoundingBox();
+    const auto& otherBB = otherVehicle->GetModelInfo()->GetColModel()->GetBoundingBox();
+
+    const CVector2D otherPos    = otherVehicle->GetPosition();
+    const auto      otherFront  = otherForward * otherBB.m_vecMax.y;
+    const auto      otherSide   = otherForward.GetPerpRight() * otherBB.m_vecMax.x;
+    const auto      bumperRight = otherPos + otherFront + otherSide;
+    const auto      bumperLeft  = otherPos + otherFront - otherSide;
+
+    const CVector2D pos   = vehicle->GetPosition();
+    const auto      front = forward * bb.m_vecMax.y;
+    const auto      back  = forward * bb.m_vecMin.y;
+    const auto      side  = forward.GetPerpRight() * bb.m_vecMax.x;
+
+    auto time = 1.0f;
+    for (const auto& corner : { pos + front + side, pos + front - side, pos + back + side, pos + back - side }) {
+        const auto distBefore = (corner - bumperRight).Dot(otherForward);
+        const auto distAfter  = (corner + move - bumperRight).Dot(otherForward);
+        // Crosses the line of the bumper, between its ends
+        if (distBefore > 0.0f && distAfter < 0.0f) {
+            if ((bumperRight - corner).Cross(move) * (bumperLeft - corner).Cross(move) < 0.0f) {
+                time = std::min(time, distBefore / (distBefore - distAfter));
+            }
+        }
+    }
+    return time;
 }
 
 // 0x429520
