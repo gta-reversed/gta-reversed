@@ -37,6 +37,7 @@
 #include "TwoDEffectsDebugModule.hpp"
 #include "VehicleInfoDebugModule.h"
 #include "CoverPointsDebugModule.hpp"
+#include "InteriorDebugModule.h"
 #include "LoadMonitorDebugModule.hpp"
 #include "DoorDebugModule.hpp"
 #include "CFontDebugModule.h"
@@ -122,6 +123,7 @@ void DebugModules::CreateModules() {
     Add<ParticleDebugModule>();
     Add<TextDebugModule>();
     Add<notsa::debugmodules::CheckpointsDebugModule>();
+    Add<notsa::debugmodules::InteriorDebugModule>();
     Add<ProcObjectDebugModule>();
     Add<VehicleInfoDebugModule>();
     Add<notsa::debugmodules::SoundManagerDebugModule>();
