@@ -28,7 +28,8 @@ void COcclusion::Init() {
 }
 
 // 0x71DCD0
-void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width, float length, float height, float rotX, float rotY, float rotZ, uint32 flags, bool isInterior) {
+// Yes, rotation is z, y, x
+void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width, float length, float height, float rotZ, float rotY, float rotX, uint32 flags, bool isInterior) {
     const auto l = std::floorf(std::fabsf(length));
     const auto w = std::floorf(std::fabsf(width));
     const auto h = std::floorf(std::fabsf(height));
@@ -36,23 +37,22 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
         return;
     }
 
-    auto* const occluder = isInterior
+    auto* const occl = isInterior
         ? &InteriorOccluders[NumInteriorOccludersOnMap++]
         : &Occluders[NumOccludersOnMap++];
-    occluder->m_Center  = CVector{ centerX, centerY, centerZ };
-    occluder->m_Length = l;
-    occluder->m_Width = w;
-    occluder->m_Height = h;
-    occluder->m_Rot  = CVector{
-        DegreesToRadians(CGeneral::LimitAngle(rotX) + 180.f),
-        DegreesToRadians(CGeneral::LimitAngle(rotY) + 180.f),
-        DegreesToRadians(CGeneral::LimitAngle(rotZ) + 180.f)
-    };
+
+    occl->m_Center   = CVector{ centerX, centerY, centerZ };
+    occl->m_Length   = l;
+    occl->m_Width    = w;
+    occl->m_Height   = h;
+    occl->m_RotZ     = DegreesToRadians(CGeneral::LimitAngle(rotZ) + 180.f);
+    occl->m_RotY     = DegreesToRadians(CGeneral::LimitAngle(rotY) + 180.f);
+    occl->m_RotX     = DegreesToRadians(CGeneral::LimitAngle(rotX) + 180.f);
 
     if (!isInterior) {
-        occluder->m_DontStream = flags != 0;
-        occluder->m_NextIndex  = FarAwayList;
-        FarAwayList            = NumOccludersOnMap - 1;
+        occl->m_DontStream = flags != 0;
+        occl->m_NextIndex  = FarAwayList;
+        FarAwayList        = NumOccludersOnMap - 1;
     }
 }
 

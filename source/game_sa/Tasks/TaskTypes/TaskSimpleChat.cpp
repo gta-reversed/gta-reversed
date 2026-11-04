@@ -33,6 +33,4 @@ CTaskSimpleChat::CTaskSimpleChat(const CTaskSimpleChat& o) :
 }
 
 // 0x5F7FD0
-CTaskSimpleChat::~CTaskSimpleChat() {
-    assert(false && "Destructor not reversed"); // TODO: Reverse destructor}
-}
+CTaskSimpleChat::~CTaskSimpleChat() = default; // Just calls the base class's destructor

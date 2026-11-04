@@ -37,10 +37,10 @@ void CShopping::InjectHooks() {
     RH_ScopedInstall(Save, 0x5D3DE0);
 
     // address?
-    // RH_ScopedInstall(AddPriceModifier, 0x0, { .reversed = false });
-    // RH_ScopedInstall(AddPriceModifier, 0x0, { .reversed = false });
-    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .reversed = false });
-    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .reversed = false });
+    // RH_ScopedInstall(AddPriceModifier, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(AddPriceModifier, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(RemovePriceModifier, 0x0, { .Reversed = false });
 
     // unused
     RH_ScopedInstall(SetCurrentProperty, 0x49B1F0);
@@ -119,7 +119,7 @@ void CShopping::Buy(uint32 key, int32 extraInfo) {
             const auto car = veh->AsAutomobile();
 
             // todo: refactor
-            const auto carModId = upgradeModel->nCarmodId;
+            const auto carModId = upgradeModel->CarMod;
             auto parentId = vehModel->m_pVehicleStruct->m_aUpgrades[carModId].m_nParentComponentId;
             if (upgradeModel->bUsesVehDummy) {
                 parentId = carModId;

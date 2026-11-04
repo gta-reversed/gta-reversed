@@ -86,21 +86,21 @@ CTask* CTaskComplexRoadRage::CreateNextSubTask(CPed* ped) {
     if (!m_rageWith) {
         return nullptr;
     }
-    switch (m_pSubTask->GetTaskType()) {
+    switch (const auto tt = m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_TURN_TO_FACE_ENTITY:
         return CreateSubTask(TASK_SIMPLE_SHAKE_FIST, ped);
     case TASK_COMPLEX_DESTROY_CAR:
     case TASK_COMPLEX_KILL_PED_ON_FOOT:
-        return CreateSubTask(TASK_FINISHED, ped);
+        return CreateSubTask(TASK_FINISHED, ped); // End task after destroying car or killing ped, seems like the ped will just stop and admire his work after doing either of those things
     case TASK_SIMPLE_SHAKE_FIST:
         return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);
     case TASK_COMPLEX_LEAVE_CAR:
         return CreateSubTask(
             ped->bInVehicle // Ternary inverted
-                ? TASK_FINISHED
-                : TASK_COMPLEX_TURN_TO_FACE_ENTITY,
+                ? TASK_FINISHED                     // Still in car, seems like we failed to get out, just end task
+                : TASK_COMPLEX_TURN_TO_FACE_ENTITY, // Got out, so go and seek the target ped
             ped
-        ); 
+        );
     case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
         if (ped->m_pVehicle) {
             ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE);
@@ -116,7 +116,7 @@ CTask* CTaskComplexRoadRage::CreateNextSubTask(CPed* ped) {
             ped
         );
     default:
-        NOTSA_UNREACHABLE();
+        NOTSA_UNREACHABLE_CASE(tt);
     }
 }
 
@@ -127,10 +127,10 @@ CTask* CTaskComplexRoadRage::CreateFirstSubTask(CPed* ped) {
     }
 
     // Maybe give ped a weapon
-    if (ped->IsGangster()) { // Inverted
+    if (ped->IsGangster()) { // 0x62E1C6 (Inverted)
         ped->GiveDelayedWeapon(WEAPON_PISTOL, 2000u);
         ped->SetCurrentWeapon(WEAPON_PISTOL);
-    } else if (CGeneral::DoCoinFlip()) {
+    } else if (CGeneral::DoCoinFlip()) { // 0x62E1DA
         const auto wtype = CGeneral::RandomChoice(std::array{ WEAPON_BASEBALLBAT, WEAPON_GOLFCLUB, WEAPON_SHOVEL });
         ped->GiveDelayedWeapon(wtype, 1);
         ped->SetCurrentWeapon(wtype);     

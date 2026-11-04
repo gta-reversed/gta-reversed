@@ -129,7 +129,7 @@ void ProcObjectMan_c::ProcessTriangleRemoved(CPlantLocTri* triangle) {
 
             auto& obj = *(ProcObjectListItem*)head;
             if (obj.m_LocTri == triangle) {
-                if (obj.m_Obj->IsObject()) {
+                if (obj.m_Obj->GetIsTypeObject()) {
                     CObject::nNoTempObjects--;
                 }
 

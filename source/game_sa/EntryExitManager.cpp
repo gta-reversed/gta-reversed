@@ -2,6 +2,11 @@
 
 #include "EntryExitManager.h"
 
+using EntryExitTreeNode = CQuadTreeNode<CEntryExit*>;
+auto& mp_QuadTree       = StaticRef<EntryExitTreeNode*>(0x96A7D0);
+
+auto& mp_poolEntryExits = StaticRef<CEntryExitsPool*>(0x96A7D8);
+
 void CEntryExitManager::InjectHooks() {
     RH_ScopedClass(CEntryExitManager);
     RH_ScopedCategoryGlobal();
@@ -16,7 +21,7 @@ void CEntryExitManager::InjectHooks() {
     RH_ScopedInstall(FindNearestDoor, 0x43F630);
     RH_ScopedInstall(FindNearestEntryExit, 0x43F4B0);
     RH_ScopedInstall(EnableBurglaryHouses, 0x43F180);
-    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43F150, {.locked = true});
+    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43F150, {.Locked = true});
     RH_ScopedInstall(PostEntryExitsCreation, 0x43F0A0);
     RH_ScopedInstall(LinkEntryExit, 0x43F050);
     RH_ScopedInstall(GetEntryExitIndex, 0x43EFD0);
@@ -30,7 +35,7 @@ void CEntryExitManager::InjectHooks() {
 void CEntryExitManager::Init() {
     ZoneScoped;
 
-    mp_QuadTree = new CQuadTreeNode(WORLD_BOUNDS, 4);
+    mp_QuadTree = new EntryExitTreeNode(WORLD_BOUNDS, 4);
 
     ms_exitEnterState = 0;
     ms_bDisabled = false;
@@ -88,17 +93,13 @@ void CEntryExitManager::Update() {
       || CEntryExitManager::ms_bDisabled;
 
     if (!bDontShowMarkers && ms_exitEnterState == 0) { // Moved `bDontShowMarkers` here from inner loop
-        CPtrListSingleLink<void*> matches{};
+        EntryExitTreeNode::ListType matches{};
+        mp_QuadTree->GetAllMatching(
+            CRect{ TheCamera.GetPosition() + TheCamera.m_mCameraMatrix.GetForward() * 30.f, 30.f },
+            matches
+        );
 
-        auto x = TheCamera.m_mCameraMatrix.GetForward().x * 30.0f + TheCamera.GetPosition().x;
-        auto y = TheCamera.m_mCameraMatrix.GetForward().y * 30.0f + TheCamera.GetPosition().y;
-        CRect rect(x - 30.0f, y - 30.0f, x + 30.0f, y + 30.0f);
-        mp_QuadTree->GetAllMatching(rect, matches);
-
-        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
-            next = it->Next;
-
-            auto* enex = static_cast<CEntryExit*>(it->Item);
+        for (auto* const enex : matches) {
             if (enex->bEnableAccess) {
                 if (   enex->m_pLink && enex->m_nArea == CGame::currArea  // Has link and link is in current area
                     || !enex->m_pLink && enex->m_nArea != CGame::currArea // Has no link, and is not in current area
@@ -129,14 +130,12 @@ void CEntryExitManager::Update() {
     } else {
         const auto& playerPos = FindPlayerEntity()->GetPosition();
         const auto pos = CVector2D{ playerPos.x, playerPos.y }; // todo: refactor
-        CPtrListSingleLink<void*> matches{};
+
+        EntryExitTreeNode::ListType matches{};
         mp_QuadTree->GetAllMatching(pos, matches);
 
         bool wasAnyMarkerInArea{};
-        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
-            next = it->Next;
-
-            auto* enex = static_cast<CEntryExit*>(it->Item);
+        for (auto* const enex : matches) {
             if (enex->bEnableAccess && enex->IsInArea(playerPos)) {
                 wasAnyMarkerInArea = true;
                 if (!bDontShowMarkers && enex->TransitionStarted(player)) {
@@ -168,7 +167,7 @@ void CEntryExitManager::AddEntryExitToStack(CEntryExit* enex) {
 }
 
 /*!
-* @address 0x43FA00
+* @addr 0x43FA00
 * @brief Add a new entry exit
 *
 * @param timeOn If flag `BURGLARY_ACCESS` is not set it's going to define the value of enex->timeOn
@@ -183,7 +182,7 @@ int32 CEntryExitManager::AddOne(
     float entranceRangeX, float entranceRangeY, float entranceRangeZ /*unused*/,
     float exitX, float exitY, float exitZ,
     float exitAngle,
-    int32 area,
+    eAreaCodes area,
     CEntryExit::eFlags flags,
     int32 skyColor,
     int32 timeOn, int32 timeOff,
@@ -261,15 +260,12 @@ CObject* CEntryExitManager::FindNearestDoor(CEntryExit const& exit, float radius
 
 // 0x43F4B0
 int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float range, int32 ignoreArea) {
-    CPtrListSingleLink<void*> enexInRange{};
-    mp_QuadTree->GetAllMatching(CRect{ position, range }, enexInRange);
+    EntryExitTreeNode::ListType matches;
+    mp_QuadTree->GetAllMatching(CRect{ position, range }, matches);
 
     float closestDist2D{ 2.f * range };
     CEntryExit* closest{};
-    for (CPtrListSingleLink<void*>::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
-        next = it->Next;
-
-        auto* enex = static_cast<CEntryExit*>(it->Item);
+    for (auto* const enex : matches) {
         if (enex->GetLinkedOrThis()->GetArea() == ignoreArea) {
             continue;
         }
@@ -349,7 +345,7 @@ int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags
 // 0x43ED80
 void CEntryExitManager::ResetAreaCodeForVisibleObjects() {
     while (ms_numVisibleEntities) {
-        ms_visibleEntityList[--ms_numVisibleEntities]->m_nAreaCode = (eAreaCodes)ms_oldAreaCode;
+        ms_visibleEntityList[--ms_numVisibleEntities]->SetAreaCode((eAreaCodes)ms_oldAreaCode);
     }
 }
 
@@ -363,9 +359,9 @@ void CEntryExitManager::SetAreaCodeForVisibleObjects() {
     const auto playerPed{ FindPlayerPed() };
 
     for (auto&& entity : std::span{ objsInFrustum, (size_t)numObjsInFrustum }) {
-        if (entity->m_nAreaCode == CGame::currArea && entity != playerPed) {
+        if (entity->GetAreaCode() == CGame::currArea && entity != playerPed) {
             ms_visibleEntityList[ms_numVisibleEntities++] = entity;
-            entity->m_nAreaCode = AREA_CODE_13;
+            entity->SetAreaCode(AREA_CODE_13);
 
             if (ms_numVisibleEntities >= 32) {
                 break;
@@ -435,7 +431,8 @@ bool CEntryExitManager::Load() {
                 enex->m_pLink = nullptr;
             }
         } else {
-            NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
+            // 2dfx entry-exits are re-created by streaming after the load, the original skips their records too
+            NOTSA_LOG_WARN("No entry-exit in slot {}, skipping its record", enexIdx);
         }
 
         CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
@@ -449,7 +446,7 @@ bool CEntryExitManager::Save() {
     // Save entry exit stack
     CGenericGameStorage::SaveDataToWorkBuffer(ms_entryExitStackPosn);
     for (auto&& enex : std::span{ ms_entryExitStack, ms_entryExitStackPosn}) {
-        CGenericGameStorage::SaveDataToWorkBuffer((uint16)mp_poolEntryExits->GetIndex(enex));
+        CGenericGameStorage::SaveDataToWorkBuffer<uint16>(mp_poolEntryExits->GetIndex(enex));
     }
 
     // Save entry exits
@@ -458,11 +455,11 @@ bool CEntryExitManager::Save() {
         if (enex.m_pLink) {
             // Make sure the link reference is valid
             auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
-            if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
+            if (mp_poolEntryExits->IsIndexInBounds(linkIndex) && !mp_poolEntryExits->IsFreeSlotAtIndex(linkIndex)) {
                 data = linkIndex;
             }
         }
-        CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
+        CGenericGameStorage::SaveDataToWorkBuffer<int16>(i); // Enex idx in pool
         CGenericGameStorage::SaveDataToWorkBuffer(enex.m_nFlags);
         CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
     }
@@ -470,4 +467,12 @@ bool CEntryExitManager::Save() {
     // Mark the end of ENEX table
     CGenericGameStorage::SaveDataToWorkBuffer((int16)-1);
     return true;
+}
+
+CEntryExit* CEntryExitManager::GetInSlot(int32 slot) {
+    return mp_poolEntryExits->GetAt(slot);
+}
+
+CEntryExitsPool* CEntryExitManager::GetPool() {
+    return mp_poolEntryExits;
 }

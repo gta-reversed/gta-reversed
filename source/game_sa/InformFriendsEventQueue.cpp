@@ -6,8 +6,8 @@ void CInformFriendsEventQueue::InjectHooks() {
     RH_ScopedClass(CInformFriendsEventQueue);
     RH_ScopedCategoryGlobal();
 
-    //RH_ScopedInstall(Constructor, 0x0, { .reversed = false }); <-- nop
-    //RH_ScopedInstall(Destructor, 0x0, { .reversed = false }); <-- nop
+    //RH_ScopedInstall(Constructor, 0x0, { .Reversed = false }); <-- nop
+    //RH_ScopedInstall(Destructor, 0x0, { .Reversed = false }); <-- nop
     RH_ScopedInstall(Init, 0x4B2990);
     RH_ScopedInstall(Flush, 0x4AC2A0);
     RH_ScopedInstall(Add, 0x4AC1E0);
@@ -50,7 +50,7 @@ bool CInformFriendsEventQueue::Add(CPed* ped, CEvent* event) {
     freeField->m_Ped   = ped;
     CEntity::SafeRegisterRef(freeField->m_Ped);
     freeField->m_Event = event;
-    freeField->m_Time  = CTimer::GetTimeInMS() - static_cast<uint32>(CGeneral::GetRandomNumberInRange(-500.0f, 0.0f)) + 300;
+    freeField->m_Time  = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(300u, 800u);
     return true;
 }
 

@@ -20,12 +20,12 @@ void CTaskComplexUseScriptedBrain::InjectHooks() {
 
 // 0x6358B0
 CTaskComplexUseScriptedBrain::CTaskComplexUseScriptedBrain(char const* name) {
-    strcpy_s(m_name, name);
+    strcpy_s(m_Name, name);
 }
 
 // NOTSA
 CTaskComplexUseScriptedBrain::CTaskComplexUseScriptedBrain(const CTaskComplexUseScriptedBrain& o) :
-    CTaskComplexUseScriptedBrain{ m_name }
+    CTaskComplexUseScriptedBrain{ m_Name }
 {
 }
 

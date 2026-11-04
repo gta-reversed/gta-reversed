@@ -4,7 +4,7 @@
 
 class NOTSA_EXPORT_VTABLE CPedShelterAttractor final : public CPedAttractor {
 public:
-    // SArray& ms_displacements;
+    static inline auto& ms_displacements = StaticRef<SArray<CVector>>(0xC0986C);
 
 public:
     static constexpr auto Type = PED_ATTRACTOR_SHELTER;
@@ -33,10 +33,10 @@ public:
     // 0x5E9680
     bool IsAtHeadOfQueue(CPed* ped) override { return true; }
 
-    static CVector GetDisplacement(int32 pedId);
+    static const CVector& GetDisplacement(int32 pedId);
     void ComputeAttractPos(int32 pedId, CVector& outPos) override;
     void ComputeAttractHeading(int32 bQueue, float& heading) override;
-    void BroadcastDeparture(CPed* ped) override;
+    bool BroadcastDeparture(CPed* ped) override;
 
 private:
     friend void InjectHooksMain();

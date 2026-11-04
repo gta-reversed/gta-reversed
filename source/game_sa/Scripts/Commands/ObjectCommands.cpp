@@ -27,7 +27,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
     object->SetOrientation(CVector{0.0f});
-    object->UpdateRW();
+    object->UpdateRwMatrix();
     object->UpdateRwFrame();
     if (mi->AsLodAtomicModelInfoPtr()) {
         object->SetupBigBuilding();
@@ -99,7 +99,7 @@ void SetObjectScale(CObject& object, float scale) {
 }
 
 void SetObjectCollision(CObject& object, bool enable) {
-    object.m_bUsesCollision = enable;
+    object.SetUsesCollision(enable);
 }
 
 bool DoesObjectHaveThisModel(CObject& object, script::Model model) {
@@ -154,33 +154,29 @@ void EnableDisabledAttractorOnObject(CObject& object, bool enabled) {
 
 namespace Animation {
 void SetObjectAnimSpeed(CObject& obj, const char* animName, float speed) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(obj.GetRpClump(), animName)) {
         anim->m_Speed = speed;
     }
 }
 
 bool IsObjectPlayingAnim(CObject& obj, const char* animName) {
-    if (!obj.m_pRwClump) {
-        return false;
-    }
-    if (RwObjectGetType(obj.m_pRwClump) != rpCLUMP) {
-        return false;
-    }
-    if (!RpAnimBlendClumpIsInitialized(obj.m_pRwClump)) {
-        return false;
-    }
-    return RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName) != nullptr;
+    auto* const clump = RwObjectGetType(obj.GetRwObject()) == rpCLUMP 
+        ? obj.GetRpClump() 
+        : nullptr;
+    return clump != nullptr
+        && RpAnimBlendClumpIsInitialized(clump)
+        && RpAnimBlendClumpGetAssociation(clump, animName) != nullptr;
 }
 
 auto GetObjectAnimCurrentTime(CObject& obj, const char* animName) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(obj.GetRpClump(), animName)) {
         return anim->m_CurrentTime / anim->m_BlendHier->m_fTotalTime;
     }
     return 0.f;
 }
 
 auto SetObjectAnimCurrentTime(CObject& obj, const char* animName, float progress) {
-    if (const auto anim = RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName)) {
+    if (const auto anim = RpAnimBlendClumpGetAssociation(obj.GetRpClump(), animName)) {
         anim->SetCurrentTime(anim->m_Speed * progress);
     }
 }

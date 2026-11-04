@@ -2,10 +2,7 @@
 
 #include "MenuSystem.h"
 
-uint8& CMenuSystem::num_menus_in_use = *reinterpret_cast<uint8*>(0xBA82E3);
-int8& CMenuSystem::CurrentMenuInUse = *(int8*)0xBA82E2;
-std::array<CMenuSystem::Menu*, 2> (&MenuNumber) = *(std::array<CMenuSystem::Menu*, 2>(*))0xBA82D8;
-std::array<bool, CMenuSystem::MENU_COUNT> (&CMenuSystem::MenuInUse) = *(std::array<bool, CMenuSystem::MENU_COUNT> (*))0xBA82E0;
+auto& MenuNumber = StaticRef<std::array<CMenuSystem::Menu*, 2>>(0xBA82D8);
 
 void CMenuSystem::InjectHooks() {
     RH_ScopedClass(CMenuSystem);
@@ -29,7 +26,7 @@ void CMenuSystem::InjectHooks() {
     RH_ScopedInstall(CreateNewMenu, 0x582300);
     RH_ScopedInstall(ActivateItems, 0x581990);
     RH_ScopedInstall(ActivateOneItem, 0x581B30);
-    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0, { .reversed = false });
+    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0, { .Reversed = false });
     RH_ScopedInstall(InsertMenu, 0x581E00);
     RH_ScopedInstall(SwitchOffMenu, 0x580750);
 }
@@ -97,12 +94,12 @@ void CMenuSystem::GetMenuPosition(MenuId id, float* outX, float* outY) {
 }
 
 // 0x5807C0
-MenuId CMenuSystem::CheckForAccept(MenuId id) {
+int8 CMenuSystem::CheckForAccept(MenuId id) {
     return MenuInUse[id] ? MenuNumber[id]->m_nAcceptedRow : MENU_UNDEFINED;
 }
 
 // 0x5807E0
-MenuId CMenuSystem::CheckForSelected(MenuId id) {
+int8 CMenuSystem::CheckForSelected(MenuId id) {
     return MenuInUse[id] ? MenuNumber[id]->m_nSelectedRow : MENU_UNDEFINED;
 }
 
@@ -147,12 +144,12 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     auto pad = CPad::GetPad();
 
     if (pad->IsTrianglePressed() && !CTimer::GetIsPaused()) {
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK, 0.0f, 1.0f);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
     }
 
-    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsReturnJustPressed()) {
+    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && pad->IsEnterJustPressed()) {
         if (!CTimer::GetIsPaused())
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
 
         if (menu->m_abRowSelectable[menu->m_nSelectedRow])
             menu->m_nAcceptedRow = menu->m_nSelectedRow;
@@ -164,8 +161,8 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     if (menu->m_nNumRows <= 1)
         return;
 
-    if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed() || CTimer::GetIsPaused() && CPad::IsUpPressed()) {
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0f, 1.0f);
+    if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed() || CTimer::GetIsPaused() && CPad::IsUpPressed()) {
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
 
         do {
             menu->m_nSelectedRow -= 1;
@@ -173,7 +170,7 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     }
 
     if (CPad::GetAnaloguePadDown() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadDownPressed() || CTimer::GetIsPaused() && CPad::IsDownPressed()) {
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0f, 1.0f);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
         ++menu->m_nSelectedRow;
         while (true) {
             if (menu->m_abRowSelectable[menu->m_nSelectedRow]) {
@@ -189,10 +186,10 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     }
 
     if (menu->m_nSelectedRow < 0) {
-        auto m_nNumRows = menu->m_nNumRows;
+        menu->m_nSelectedRow = menu->m_nNumRows;
         do {
             menu->m_nSelectedRow -= 1;
-        } while ((!menu->m_abRowSelectable[m_nNumRows] || !menu->m_aaacRowTitles[0][m_nNumRows][0]) && m_nNumRows >= 0);
+        } while ((!menu->m_abRowSelectable[menu->m_nSelectedRow] || !menu->m_aaacRowTitles[0][menu->m_nSelectedRow][0]) && menu->m_nSelectedRow >= 0);
     }
 
     if (menu->m_nSelectedRow >= menu->m_nNumRows) {
@@ -217,7 +214,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
     auto menu = MenuNumber[id];
     auto pad = CPad::GetPad();
 
-    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && CPad::IsReturnJustPressed()) {
+    if (pad->IsCrossPressed() || CTimer::GetIsPaused() && pad->IsEnterJustPressed()) {
         if (menu->m_abRowSelectable[menu->m_nSelectedRow])
             menu->m_nAcceptedRow = menu->m_nSelectedRow;
     }
@@ -225,7 +222,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
     if (menu->m_nAcceptedRow != menu->m_nSelectedRow)
         menu->m_nAcceptedRow = UNDEFINED;
 
-    if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed()) {
+    if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed()) {
         if (menu->m_nSelectedRow >= menu->m_nNumColumns)
             menu->m_nSelectedRow -= menu->m_nNumColumns;
     }
@@ -235,7 +232,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
             menu->m_nSelectedRow += menu->m_nNumColumns;
     }
 
-    if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadLeftPressed()) {
+    if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadLeftPressed()) {
         if (menu->m_nSelectedRow > 0)
             menu->m_nSelectedRow -= 1;
     }
@@ -611,7 +608,7 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
 
 // Insert menu column
 // 0x581E00
-void CMenuSystem::InsertMenu(MenuId id, uint8 column, char* colHeader, char* row0, char* row1, char* row2, char* row3, char* row4, char* row5, char* row6, char* row7, char* row8, char* row9, char* row10, char* row11) {
+void CMenuSystem::InsertMenu(MenuId id, uint8 column, const char* colHeader, const char* row0, const char* row1, const char* row2, const char* row3, const char* row4, const char* row5, const char* row6, const char* row7, const char* row8, const char* row9, const char* row10, const char* row11) {
     assert(column < MENU_COL_COUNT);
     auto* menu = MenuNumber[id];
 

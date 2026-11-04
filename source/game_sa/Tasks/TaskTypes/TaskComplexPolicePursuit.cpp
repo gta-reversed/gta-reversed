@@ -46,11 +46,11 @@ void CTaskComplexPolicePursuit::SetWeapon(CPed* ped) { // `ped` is the pursuer
     const auto wantedLevel = FindPlayerWanted()->GetWantedLevel();
 
     // At level 0 we don't do anything (I don't think this is possible anyways)
-    if (wantedLevel == 0) {
+    if (wantedLevel == eWantedLevel::WANTED_CLEAN) {
         return;
     }
 
-    if (wantedLevel > 1) {
+    if (wantedLevel > eWantedLevel::WANTED_LEVEL_1) {
         if (ped->GetActiveWeapon().GetType() != WEAPON_UNARMED) { // Already has a weapon
             return;
         }
@@ -121,7 +121,7 @@ bool CTaskComplexPolicePursuit::PersistPursuit(CCopPed* pursuer) {
     } else if (!CCullZones::NoPolice() && m_IsPlayerInCullZone) { // 0x68BE16
         m_IsPlayerInCullZone = m_IsRoadBlockCop = false;
         ClearPursuit(pursuer);
-    } else if (wanted->GetWantedLevel() == 0) { // 0x68BE43
+    } else if (wanted->GetWantedLevel() == eWantedLevel::WANTED_CLEAN) { // 0x68BE43
         if (m_IsRoadBlockCop && !m_IsPlayerInCullZone) {
             m_IsPlayerInCullZone = m_IsRoadBlockCop = false;
             ClearPursuit(pursuer);
@@ -161,6 +161,7 @@ CTask* CTaskComplexPolicePursuit::CreateSubTask(eTaskType taskType, CPed* ped) {
 
 // 0x6908E0
 CTask* CTaskComplexPolicePursuit::CreateFirstSubTask(CPed* ped) {
+    m_Pursuer = ped->AsCop();
     if (SetPursuit(ped->AsCop())) {
         return CreateSubTask(TASK_COMPLEX_ARREST_PED, ped);
     }
@@ -211,7 +212,7 @@ eTaskType CTaskComplexPolicePursuit::GetNextSubTaskType(CCopPed* pursuer) { // p
             return TASK_SIMPLE_STAND_STILL;
         }
 
-        if (plyrWanted->GetWantedLevel() == 0) { // 0x6909D7
+        if (plyrWanted->GetWantedLevel() == eWantedLevel::WANTED_CLEAN) { // 0x6909D7
             return TASK_COMPLEX_ENTER_CAR_AS_DRIVER;
         }
 

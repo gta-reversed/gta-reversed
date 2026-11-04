@@ -186,10 +186,10 @@ const char* CAnimManager::GetAnimBlockName(AssocGroupId groupId) {
 AssocGroupId CAnimManager::GetAnimationGroupIdByName(notsa::ci_string_view name) {
     for (const auto& [i, gd] : rngv::enumerate(GetAssocGroupDefs())) {
         if (gd.GroupName == name) {
-            return (AssocGroupId)i;
+            return (AssocGroupId)(i);
         }
     }
-    return AssocGroupId::ANIM_GROUP_DEFAULT;
+    NOTSA_UNREACHABLE("Couldn't find group with name {}", name);
 }
 
 // 0x4D3A40

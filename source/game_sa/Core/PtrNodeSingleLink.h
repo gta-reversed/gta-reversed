@@ -8,7 +8,7 @@
 
 #include <PtrNode.h>
 
-// Doing it like this because including `Pools.h` here is a suicide
+// Can't include <Pool.h> here, because it would cause circular dependency
 namespace details {
 void* CPtrNodeSingleLink__operator_new(size_t sz);
 void  CPtrNodeSingleLink__operator_delete(void* data, size_t sz);
@@ -18,6 +18,7 @@ template<typename TItemType>
 class CPtrNodeSingleLink : public CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>> {
 public:
     using ItemType = TItemType;
+    using RawItemType = std::remove_pointer_t<std::remove_cvref_t<ItemType>>;
 
 public:
     static void* operator new(size_t sz) {
@@ -33,7 +34,7 @@ public:
 
     //void AddToList(CPtrListSingleLink* list) {
     //    m_next       = list->GetNode();
-    //    list->m_node = static_cast<CPtrNode*>(this);
+    //    list->m_Head = static_cast<CPtrNode*>(this);
     //}
 };
 VALIDATE_SIZE(CPtrNodeSingleLink<void*>, 0x8);

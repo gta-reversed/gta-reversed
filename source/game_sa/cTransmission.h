@@ -23,7 +23,7 @@ enum {
 
 class cTransmission {
 public:
-    tTransmissionGear m_aGears[6];
+    std::array<tTransmissionGear, 6> m_aGears;      // 0 = reverse
     uint8             m_nDriveType;     // F/R/4
     uint8             m_nEngineType;    // P/D/E
     uint8             m_nNumberOfGears; // 1 to 6

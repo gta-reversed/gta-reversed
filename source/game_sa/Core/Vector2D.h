@@ -108,6 +108,10 @@ public:
         y /= divisor;
     }
 
+    void Reset() {
+        Set(0.f, 0.f);
+    }
+
     inline void Set(float X, float Y) {
         x = X;
         y = Y;
@@ -181,11 +185,11 @@ public:
     * @notsa
     * @return Make all component's values absolute (positive).
     */
-    static friend CVector2D abs(CVector2D v2) {
+    constexpr friend CVector2D abs(CVector2D v2) {
         return { std::abs(v2.x), std::abs(v2.y) };
     }
 
-    static friend CVector2D pow(CVector2D vec, float power) { // todo/note: maybe use operator^?
+    constexpr friend CVector2D pow(CVector2D vec, float power) { // todo/note: maybe use operator^?
         return { std::pow(vec.x, power), std::pow(vec.y, power) };
     }
 
@@ -218,6 +222,8 @@ public:
     static inline float DistSqr(CVector2D a, CVector2D b) {
         return (a - b).SquaredMagnitude();
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVector2D, x, y);
 };
 
 /// Negate all components of the vector

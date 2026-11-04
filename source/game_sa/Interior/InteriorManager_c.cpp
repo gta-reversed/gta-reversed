@@ -63,7 +63,7 @@ bool InteriorManager_c::Update() {
     const auto plyr = FindPlayerPed();
 
     InteriorEffectInfo_t visibleIntFxBuf[32];
-    const auto numVisibleIntFx = plyr->m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD && m_IsActive && !plyr->GetTaskManager().GetActiveTaskAs<CTaskSimpleCarDrive>()
+    const auto numVisibleIntFx = plyr->GetAreaCode() != eAreaCodes::AREA_CODE_NORMAL_WORLD && m_IsActive && !plyr->GetTaskManager().GetActiveTaskAs<CTaskSimpleCarDrive>()
         ? GetVisibleEffects(visibleIntFxBuf, std::size(visibleIntFxBuf))
         : 0;
     PruneVisibleEffects(visibleIntFxBuf, numVisibleIntFx, 8, 20.f);
@@ -115,10 +115,10 @@ bool InteriorManager_c::Update() {
             }
             const auto& fxPos = ifx.Entity->GetPosition();
 
-            i->m_Props    = ifx.Effects[k];
-            i->m_ID       = (uint32)(fxPos.x * fxPos.y * fxPos.z) + ifx.FxIds[k];
-            i->m_AreaCode = ifx.Entity->m_nAreaCode;
-            i->m_Group    = grp;
+            i->m_box        = ifx.Effects[k];
+            i->m_interiorId = (uint32)(fxPos.x * fxPos.y * fxPos.z) + ifx.FxIds[k];
+            i->m_areaCode   = ifx.Entity->GetAreaCode();
+            i->m_pGroup     = grp;
 
             i->Init(ifx.Effects[k]->m_Pos);
             grp->AddInterior(i);
@@ -245,7 +245,7 @@ size_t InteriorManager_c::GetVisibleEffects(InteriorEffectInfo_t* intFxInfos, ui
 
     size_t numIntFxInfo{};
     for (auto& e : entitiesInRange | rng::views::take(objCount)) {
-        if (!e->m_pRwObject || !e->IsInCurrentAreaOrBarberShopInterior()) {
+        if (!e->GetRwObject() || !e->IsInCurrentArea()) {
             continue;
         }
 
@@ -308,7 +308,7 @@ bool InteriorManager_c::IsInteriorEffectVisible(C2dEffectInterior* effect, CEnti
     const auto& ebb = entity->GetColModel()->GetBoundingBox();
     const auto& ebbMin = ebb.m_vecMin,
                 ebbMax = ebb.m_vecMax;
-    CBoundingBox bb{ CVector{FLT_MAX}, CVector{FLT_MIN} };
+    CBoundingBox bb{ CVector{FLT_MAX}, CVector{-FLT_MAX} };
     const auto StretchTo = [&bb, m = entity->GetMatrix()](CVector pt) {
         bb.StretchToPoint(m.TransformPoint(pt));
     };
@@ -432,11 +432,11 @@ void InteriorManager_c::SetEntryExitPtr(CEntryExit* enex) {
 }
 
 // 0x598090
-bool InteriorManager_c::GetBoundingBox(FurnitureEntity_c* entity, CVector(&corners)[4]) {
+bool InteriorManager_c::GetBoundingBox(const CEntity& entity, CVector* pos) {
     for (auto& grp : m_InteriorGroupList) {
         for (const auto i : grp.GetInteriors()) {
-            if (i) {
-                return i->GetBoundingBox(entity, corners);
+            if (auto* const fe = i->GetFurnitureEntity(entity)) {
+                return i->GetBoundingBox(fe, pos);
             }
         }
     }

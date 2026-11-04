@@ -9,11 +9,11 @@ void CRope::InjectHooks() {
 
     RH_ScopedInstall(ReleasePickedUpObject, 0x556030);
     RH_ScopedInstall(CreateHookObjectForRope, 0x556070);
-    RH_ScopedInstall(UpdateWeightInRope, 0x5561B0, { .reversed = false });
+    RH_ScopedInstall(UpdateWeightInRope, 0x5561B0, { .Reversed = false });
     RH_ScopedInstall(Remove, 0x556780);
     RH_ScopedInstall(Render, 0x556800);
     RH_ScopedInstall(PickUpObject, 0x5569C0);
-    RH_ScopedInstall(Update, 0x557530, { .reversed = false });
+    RH_ScopedInstall(Update, 0x557530, { .Reversed = false });
 }
 
 // inlined see 0x557959
@@ -33,10 +33,10 @@ bool CRope::DoControlsApply() const {
 void CRope::ReleasePickedUpObject() {
     if (m_pRopeAttachObject) {
         m_pRopeAttachObject->AsPhysical()->physicalFlags.bAttachedToEntity = false;
-        m_pRopeAttachObject->AsPhysical()->physicalFlags.b32 = false;
+        m_pRopeAttachObject->AsPhysical()->physicalFlags.bCarriedByRope = false;
         m_pRopeAttachObject = nullptr;
     }
-    m_pAttachedEntity->m_bUsesCollision = true;
+    m_pAttachedEntity->SetUsesCollision(true);
     m_nFlags1 = 60; // 6th, 7th bits set
 }
 
@@ -66,7 +66,7 @@ void CRope::CreateHookObjectForRope() {
             NOTSA_UNREACHABLE(); //assert(0);
         }
     }();
-    if (modelIndex == MODEL_INVALID) {
+    if (modelIndex == ModelIndex{ MODEL_INVALID }) { // Must do it like this because `ModelIndex` is u16, `MODEL_ID` is i32, and u16 -1 casted to int32 is 0xffff...
         return;
     }
 
@@ -175,16 +175,16 @@ void CRope::PickUpObject(CEntity* obj) {
     // MultiplyMatrixWithVector should be used here
     CVector height = { {}, {}, CRopes::FindPickupHeight(obj) };
     m_pAttachedEntity->SetPosn(obj->GetPosition() + obj->GetMatrix().TransformVector(height));
-    m_pAttachedEntity->m_bUsesCollision = false;
+    m_pAttachedEntity->SetUsesCollision(false);
 
     obj->AsPhysical()->physicalFlags.bAttachedToEntity = true;
-    if (obj->IsVehicle()) {
-        if (obj->m_nStatus == eEntityStatus::STATUS_SIMPLE)
+    if (obj->GetIsTypeVehicle()) {
+        if (obj->GetStatus() == STATUS_SIMPLE)
         {
-            obj->m_nStatus = eEntityStatus::STATUS_PHYSICS;
+            obj->SetStatus(STATUS_PHYSICS);
         }
-    } else if (obj->IsObject()) {
-        if (obj->m_bIsStatic || obj->m_bIsStaticWaitingForCollision) {
+    } else if (obj->GetIsTypeObject()) {
+        if (obj->GetIsStatic()) {
             obj->AsObject()->SetIsStatic(false);
             obj->AsObject()->AddToMovingList();
             obj->AsObject()->m_nFakePhysics = 0;

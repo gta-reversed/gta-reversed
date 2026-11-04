@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TaskSimple.h"
+#include <extensions/EntityRef.hpp>
 
 class CAnimBlendAssociation;
 class CTaskUtilityLineUpPedWithCar;
@@ -12,7 +13,7 @@ class NOTSA_EXPORT_VTABLE CTaskSimpleCarJumpOut : public CTaskSimple {
 public:
     bool m_finishedAnim = {};                        // 8
     CAnimBlendAssociation* m_anim = {};              // 0xC
-    CVehicle* m_veh = {};                            // 0x10
+    notsa::EntityRef<CVehicle> m_veh{};              // 0x10
     float m_initialVehSpeed = {};                    // 0x14
     uint32 m_door = {};                               // 0x18
     uint8 m_doorFlagsToClear = {};                   // 0x1C

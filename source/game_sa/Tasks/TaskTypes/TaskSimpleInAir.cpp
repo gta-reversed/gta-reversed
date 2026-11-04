@@ -5,9 +5,6 @@
 #include "TaskComplexInAirAndLand.h"
 #include "TaskSimpleClimb.h"
 
-float CTaskSimpleInAir::ms_fSlowFallThreshold = -0.05F;
-uint32 CTaskSimpleInAir::ms_nMaxSlowFallFrames = 10;
-
 void CTaskSimpleInAir::InjectHooks()
 {
     RH_ScopedVirtualClass(CTaskSimpleInAir, 0x8704D8, 9);
@@ -70,26 +67,26 @@ bool CTaskSimpleInAir::ProcessPed(CPed* ped)
         ped->bIsInTheAir = true;
         if (m_bUsingJumpGlide)
         {
-            m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_JUMP_GLIDE);
+            m_pAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_JUMP_GLIDE);
             if (!m_pAnim)
-                m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_CLIMB_JUMP);
+                m_pAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_CLIMB_JUMP);
             if (!m_pAnim || m_pAnim->m_BlendAmount < 1.0F && m_pAnim->m_BlendDelta <= 0.0F)
-                CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_JUMP_GLIDE, 4.0F);
+                CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_JUMP_GLIDE, 4.0F);
         }
         else if (m_bUsingFallGlide)
         {
             if (ped->m_vecMoveSpeed.z <= 0.0F)
             {
-                m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FALL_GLIDE, 4.0F);
+                m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_FALL_GLIDE, 4.0F);
                 m_pAnim->SetDeleteCallback(CTaskSimpleInAir::DeleteAnimCB, this);
                 m_pAnim->SetBlend(1.0F, 0.5F);
             }
         }
         else
         {
-            m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_CLIMB_JUMP);
+            m_pAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_CLIMB_JUMP);
             if (!m_pAnim || m_pAnim->m_BlendAmount < 1.0F && m_pAnim->m_BlendDelta <= 0.0F)
-                m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FALL_GLIDE, 4.0F);
+                m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_FALL_GLIDE, 4.0F);
         }
 
         if (m_pAnim)
@@ -152,7 +149,7 @@ bool CTaskSimpleInAir::ProcessPed(CPed* ped)
                 if (m_pAnim && m_pAnim->m_AnimId != ANIM_ID_FALL_FALL)
                 {
                     m_pAnim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-                    m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FALL_FALL, 4.0F);
+                    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_FALL_FALL, 4.0F);
                     m_pAnim->SetDeleteCallback(CTaskSimpleInAir::DeleteAnimCB, this);
                 }
             }

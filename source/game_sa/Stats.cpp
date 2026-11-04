@@ -11,34 +11,6 @@
 #include "MenuSystem.h"
 #include "Hud.h"
 
-tStatMessage (&CStats::StatMessage)[128] = *(tStatMessage(*)[128])0xB78200;
-char (&CStats::LastMissionPassedName)[8] = *(char(*)[8])0xB78A00;
-int32 (&CStats::TimesMissionAttempted)[100] = *(int32(*)[100])0xB78CC8;
-int32 (&CStats::FavoriteRadioStationList)[14] = *(int32(*)[14])0xB78E58;
-int32 (&CStats::PedsKilledOfThisType)[32] = *(int32(*)[32])0xB78E90;
-float (&CStats::StatReactionValue)[59] = *(float(*)[59])0xB78F10;
-int32 (&CStats::StatTypesInt)[223] = *(int32(*)[223])0xB79000;
-float (&CStats::StatTypesFloat)[82] = *(float(*)[82])0xB79380;
-uint32& CStats::TotalNumStatMessages = *(uint32*)0xB794D0;
-bool& CStats::bStatUpdateMessageDisplayed = *(bool*)0xB794D4;
-uint32& CStats::m_SprintStaminaCounter = *(uint32*)0xB794D8;
-uint32& CStats::m_CycleStaminaCounter = *(uint32*)0xB794DC;
-uint32& CStats::m_CycleSkillCounter = *(uint32*)0xB794E0;
-uint32& CStats::m_SwimStaminaCounter = *(uint32*)0xB794E4;
-uint32& CStats::m_SwimUnderWaterCounter = *(uint32*)0xB794E8;
-uint32& CStats::m_DrivingCounter = *(uint32*)0xB794EC;
-uint32& CStats::m_FlyingCounter = *(uint32*)0xB794F0;
-uint32& CStats::m_BoatCounter = *(uint32*)0xB794F4;
-uint32& CStats::m_BikeCounter = *(uint32*)0xB794F8;
-uint32& CStats::m_FatCounter = *(uint32*)0xB794FC;
-uint32& CStats::m_RunningCounter = *(uint32*)0xB79500;
-uint32& CStats::m_WeaponCounter = *(uint32*)0xB79504;
-uint32& CStats::m_DeathCounter = *(uint32*)0xB79508;
-uint32& CStats::m_MaxHealthCounter = *(uint32*)0xB7950C;
-uint32& CStats::m_AddToHealthCounter = *(uint32*)0xB79510;
-uint32& CStats::m_LastWeaponTypeFired = *(uint32*)0xB79514;
-bool& CStats::bShowUpdateStats = *(bool*)0x8CDE56;
-
 void CStats::InjectHooks() {
     RH_ScopedClass(CStats);
     RH_ScopedCategoryGlobal();
@@ -47,7 +19,7 @@ void CStats::InjectHooks() {
     RH_ScopedOverloadedInstall(GetStatValue, "-OG", 0x558E40, float(*)(eStats));
     RH_ScopedInstall(SetStatValue, 0x55A070);
     RH_ScopedInstall(IsStatFloat, 0x558E30);
-    RH_ScopedInstall(GetFullFavoriteRadioStationList, 0x558F90);
+    /*RH_ScopedInstall(GetFullFavoriteRadioStationList, 0x558F90); - different return type*/
     RH_ScopedInstall(FindCriminalRatingNumber, 0x559080);
     RH_ScopedInstall(GetPercentageProgress, 0x5591E0);
     RH_ScopedInstall(ConvertToMins, 0x559540);
@@ -79,6 +51,25 @@ void CStats::InjectHooks() {
 
     RH_ScopedInstall(Load, 0x5D3BF0);
     RH_ScopedInstall(Save, 0x5D3B40);
+    RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0, { .Reversed = false });
+    RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0, { .Reversed = false });
+    RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010, { .Reversed = false });
+    RH_ScopedInstall(BuildStatLine, 0x559230, { .Reversed = false });
+    RH_ScopedInstall(CheckForStatsMessage, 0x559760, { .Reversed = false });
+    RH_ScopedInstall(LoadStatUpdateConditions, 0x559860, { .Reversed = false });
+    RH_ScopedInstall(GetFatAndMuscleModifier, 0x559AF0, { .Reversed = false });
+    RH_ScopedInstall(FindCriminalRatingString, 0x55A210, { .Reversed = false });
+    RH_ScopedInstall(ConstructStatLine, 0x55A780, { .Reversed = false });
+    RH_ScopedInstall(UpdateRespectStat, 0x55BC50, { .Reversed = false });
+    RH_ScopedInstall(UpdateSexAppealStat, 0x55BF20, { .Reversed = false });
+    RH_ScopedInstall(UpdateFatAndMuscleStats, 0x55C470, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenCycling, 0x55C780, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030, { .Reversed = false });
 }
 
 // 0x55C0C0
@@ -142,11 +133,6 @@ bool CStats::IsStatFloat(eStats stat) {
 // 0x558EC0
 bool CStats::PopulateFavoriteRadioStationList() {
     return plugin::CallAndReturn<bool, 0x558EC0>();
-}
-
-// 0x558F90
-int32* CStats::GetFullFavoriteRadioStationList() {
-    return FavoriteRadioStationList;
 }
 
 // 0x558FA0
@@ -482,7 +468,7 @@ void CStats::DisplayScriptStatUpdateMessage(eStatUpdateState state, eStats stat,
     case STAT_GANG_STRENGTH: {
         if (auto player = FindPlayerPed())
         {
-            auto maxGroup = std::min<uint8>(FindMaxNumberOfGroupMembers(), player->m_pPlayerData->m_nScriptLimitToGangSize);
+            auto maxGroup = std::min<uint8>(FindMaxNumberOfGroupMembers(), player->GetPlayerData()->m_nScriptLimitToGangSize);
             CHud::SetHelpMessageStatUpdate(state, stat, value, maxGroup);
         }
         break;

@@ -6,6 +6,7 @@ void CTaskComplexKillPedOnFoot::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexKillPedOnFoot, 0x86D894, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x620E30);
+    RH_ScopedInstall(CreateSubTask, 0x625E70, { .Reversed = false });
 }
 
 CTaskComplexKillPedOnFoot::CTaskComplexKillPedOnFoot(

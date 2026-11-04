@@ -12,7 +12,7 @@ private:
     float      m_Angle;
     float      m_ChangeRateMult; // var naming?
     float      m_MaxHeading; // var naming?
-    uint8      m_nFlags;
+    bool       m_HasNewTarget : 1{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL_AND_ACHIEVE_HEADING;

@@ -332,7 +332,7 @@ void CText::LoadMissionPackText() {
 
     bool bKey = false, bText = false;
     while (!bKey && !bText) {
-        if (ReadChunkHeader(&header, file, &offset, false)) {
+        if (!ReadChunkHeader(&header, file, &offset, false)) {
             m_bIsMissionPackLoaded = false;
             CFileMgr::CloseFile(file);
             return;

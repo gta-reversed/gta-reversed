@@ -75,7 +75,6 @@ public:
     auto& GetMissionName() const { return m_szMissionName; }
 
 private:
-    friend class TextDebugModule;
     friend void InjectHooksMain();
     static void InjectHooks();
 
@@ -85,4 +84,4 @@ private:
 };
 VALIDATE_SIZE(CText, 0xA90);
 
-static inline CText& TheText = *(CText*)0xC1B340;
+static inline auto& TheText = StaticRef<CText>(0xC1B340);

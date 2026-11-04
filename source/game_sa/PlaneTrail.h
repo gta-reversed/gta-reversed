@@ -14,13 +14,13 @@ public:
 
     /// Shifting buffers, with 2000ms intervals first element being the most recent
 
-    CVector m_Positions[PLANE_TRAIL_BUF_SIZE];
+    std::array<CVector, PLANE_TRAIL_BUF_SIZE> m_Positions;
 
     /*!
     * Filled with 0 by default. If `0` it means that this point shouldn't be used
     * either because it has expired(30'000 ms) or because it was never inited
     */
-    uint32  m_Timepoints[PLANE_TRAIL_BUF_SIZE];
+    std::array<uint32, PLANE_TRAIL_BUF_SIZE>  m_Timepoints;
 
 public:
     static void InjectHooks();

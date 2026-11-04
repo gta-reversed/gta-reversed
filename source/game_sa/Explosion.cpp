@@ -6,9 +6,6 @@
 #include "InterestingEvents.h"
 #include "Shadows.h"
 
-CAEExplosionAudioEntity& CExplosion::m_ExplosionAudioEntity = *(CAEExplosionAudioEntity*)0xC888D0;
-CExplosion (&CExplosion::aExplosions)[16] = *(CExplosion(*)[16])0xC88950;
-
 void CExplosion::InjectHooks() {
     RH_ScopedClass(CExplosion);
     RH_ScopedCategoryGlobal();
@@ -126,15 +123,15 @@ CExplosion* CExplosion::GetFree() {
 // NOTSA
 void CExplosion::SetCreator(CEntity* newCreator) noexcept {
     CEntity::SafeCleanUpRef(m_pCreator);
-    CEntity::SafeRegisterRef(newCreator);
     m_pCreator = newCreator;
+    CEntity::SafeRegisterRef(m_pCreator);
 }
 
 // NOTSA
 void CExplosion::SetVictim(CEntity* newVictim) noexcept {
     CEntity::SafeCleanUpRef(m_pVictim);
-    CEntity::SafeRegisterRef(newVictim);
     m_pVictim = newVictim;
+    CEntity::SafeRegisterRef(m_pVictim);
 }
 
 bool DoesNeedToVehProcessBombTimer(eExplosionType type) {
@@ -205,7 +202,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
     const auto CreateAndPlayFxWithSound = [&](const char* name, float volume = .0f) {
         FxSystem_c* fx{nullptr};
         if (exp->m_pVictim) {
-            if (exp->m_pVictim->m_pRwObject) {
+            if (exp->m_pVictim->GetRwObject()) {
                 if (RwMatrix* matrix = exp->m_pVictim->GetModellingMatrix()) {
                     CVector expToVictimDir = pos - exp->m_pVictim->GetPosition();
                     fx = g_fxMan.CreateFxSystem(name, expToVictimDir, matrix, false);
@@ -384,7 +381,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
                         gFireManager.StartFire(firePos, 0.8f, 0, exp->m_pCreator, (uint32)(CGeneral::GetRandomNumberInRange(5'600.0f, 12'600.0f) * 0.4f), 3, 1);
                     }
                 }
-                if (creator && creator->IsPed() && creator->AsPed()->IsPlayer()) {
+                if (creator && creator->GetIsTypePed() && creator->AsPed()->IsPlayer()) {
                     CStats::IncrementStat(eStats::STAT_FIRES_STARTED, 1.0f);
                 }
             }
@@ -458,8 +455,8 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_MOLOTOV: {
                 const CVector& pos = exp.m_vecPosition;
                 CWorld::SetPedsOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetWorldOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetCarsOnFire(pos.x, pos.y, pos.z, 0.1f, exp.m_pCreator);
+                CWorld::SetWorldOnFire(pos, 6.0f, exp.m_pCreator);
+                CWorld::SetCarsOnFire(pos, 0.1f, exp.m_pCreator);
 
                 if (exp.m_nActiveCounter < 10 && exp.m_nActiveCounter == 1) {
                     CEntity* hitEntity;

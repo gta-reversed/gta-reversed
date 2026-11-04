@@ -19,7 +19,7 @@ void CEmergencyPed::FiremanAI() {
 // 0x5DE400
 void CEmergencyPed::ProcessControl() {
     CPed::ProcessControl();
-    if (m_bWasPostponed || m_nPedState == PEDSTATE_DEAD)
+    if (GetWasPostponed() || m_nPedState == PEDSTATE_DEAD)
         return;
 
     auto& weapon = GetActiveWeapon();

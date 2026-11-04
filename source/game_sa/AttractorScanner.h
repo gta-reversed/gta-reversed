@@ -8,7 +8,7 @@
 
 #include "TaskTimer.h"
 
-class C2dEffect;
+struct C2dEffect;
 
 class CAttractorScanner {
 public:

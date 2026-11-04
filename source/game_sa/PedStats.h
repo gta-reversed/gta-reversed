@@ -22,7 +22,7 @@ VALIDATE_SIZE(CPedStat, 0x34);
 
 class CPedStats {
 public:
-    static CPedStat*& ms_apPedStats;
+    static inline auto& ms_apPedStats = StaticRef<CPedStat*>(0xC0BBEC);
 
 public:
     static void InjectHooks();

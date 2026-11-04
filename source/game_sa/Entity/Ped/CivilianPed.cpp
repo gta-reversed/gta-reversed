@@ -19,9 +19,9 @@ CCivilianPed::CCivilianPed(ePedType pedType, uint32 modelIndex) : CPed(pedType) 
 
 // 0x5DDBF0
 void CCivilianPed::ProcessControl() {
-    if (m_nCreatedBy != (PED_MISSION | PED_GAME)) {
+    if (GetCreatedBy() != (PED_MISSION | PED_GAME)) {
         CPed::ProcessControl();
-        if (!m_bWasPostponed && m_nPedState != PEDSTATE_DEAD)
+        if (!GetWasPostponed() && m_nPedState != PEDSTATE_DEAD)
             GetActiveWeapon().Update(this);
     }
 }

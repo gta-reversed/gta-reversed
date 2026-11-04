@@ -5,6 +5,8 @@
 
 #include "TaskSimpleFacial.h"
 
+class CPedGroup;
+
 class NOTSA_EXPORT_VTABLE CEventEditableResponse : public CEvent {
 public:
     CEventEditableResponse(eTaskType taskType = TASK_NONE/*notsa*/);

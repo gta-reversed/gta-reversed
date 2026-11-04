@@ -7,9 +7,9 @@
 #pragma once
 
 struct tTransmissionGear {
-    float m_maxVelocity;
-    float m_changeUpVelocity;   // max velocity needed to change the current gear to higher
-    float m_changeDownVelocity; // min velocity needed to change the current gear to lower
+    float MaxVelocity;
+    float ChangeUpVelocity;   // max velocity needed to change the current gear to higher
+    float ChangeDownVelocity; // min velocity needed to change the current gear to lower
 };
 
 VALIDATE_SIZE(tTransmissionGear, 0xC);

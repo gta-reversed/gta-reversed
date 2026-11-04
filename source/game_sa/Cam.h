@@ -116,9 +116,9 @@ public:
     CVector   m_vecSource;
     CVector   m_vecSourceBeforeLookBehind;
     CVector   m_vecUp;
-    CVector   m_avecPreviousVectors[2];
-    CVector   m_avecTargetHistoryPos[4];
-    uint32    m_anTargetHistoryTime[4];
+    std::array<CVector, 2> m_avecPreviousVectors;
+    std::array<CVector, 4> m_avecTargetHistoryPos;
+    std::array<uint32, 4>  m_anTargetHistoryTime;
     uint32    m_nCurrentHistoryPoints;
     CEntity*  m_pCamTargetEntity; // Owner entity. e.g.: player
     float     m_fCameraDistance;
@@ -139,14 +139,14 @@ public:
     void DoCamBump(float horizontal, float vertical);
     void Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float roll, float fov, float nearClip, float shakeDegree);
     void GetCoreDataForDWCineyCamMode(CEntity*& entity, CVehicle*& vehicle, CVector& dest, CVector& src, CVector& targetUp, CVector& targetRight, CVector& targetFwd, CVector& targetVel, float& targetSpeed, CVector& targetAngVel, float& targetAngSpeed, CColSphere& colSphere);
-    void GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, const CVector& vecSource);
+    bool GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& targetPos, CVector& outPos);
     void GetVectorsReadyForRW();
     void Get_TwoPlayer_AimVector(CVector&);
     bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
     void LookRight(bool bLookRight);
-    void RotCamIfInFrontCar(const CVector&, float);
+    bool RotCamIfInFrontCar(const CVector&, float);
     bool Using3rdPersonMouseCam() const;
     bool GetWeaponFirstPersonOn();
     void ClipAlpha();

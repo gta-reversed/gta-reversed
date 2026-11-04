@@ -25,6 +25,6 @@ void FxInfoEmSpeed_c::GetValue(float currentTime, float mult, float totalTime, f
     m_InterpInfo.GetVal(values, currentTime);
 
     auto& emission = *static_cast<EmissionInfo_t*>(info);
-    emission.m_fSpeed     = values[0];
+    emission.m_Speed     = values[0];
     emission.m_fSpeedBias = values[1];
 }

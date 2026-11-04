@@ -3,8 +3,8 @@
 #include "CustomBuildingDNPipeline.h"
 #include "CustomCarEnvMapPipeline.h"
 
-uint32& s_Magic1 = StaticRef<uint32, 0xC02C14>();
-uint32& s_Magic2 = StaticRef<uint32, 0xC02C18>();
+auto& s_Magic1 = StaticRef<uint32>(0xC02C14);
+auto& s_Magic2 = StaticRef<uint32>(0xC02C18);
 
 // 0x5D72E0
 bool CCustomBuildingDNPipeline::ExtraVertColourPluginAttach() {
@@ -197,7 +197,7 @@ void CCustomBuildingDNPipeline::DestroyPipe() {
     }
 }
 
-// sub_5D63E0
+// 0x5D63E0
 RwBool CCustomBuildingDNPipeline::CustomPipeInstanceCB(void* object, RwResEntry* resEntry, RxD3D9AllInOneInstanceCallBack instanceCallback) {
     if (instanceCallback) {
         auto entry = *reinterpret_cast<RwResEntrySA*>(resEntry);
@@ -303,4 +303,6 @@ void CCustomBuildingDNPipeline::InjectHooks() {
     RH_ScopedInstall(CreateCustomObjPipe, 0x5D6750);
     RH_ScopedInstall(CustomPipeAtomicSetup, 0x5D71C0);
     RH_ScopedInstall(SetFxEnvTexture, 0x5D9570);
+    RH_ScopedInstall(CustomPipeMaterialSetup, 0x5D7120, { .Reversed = false });
+    RH_ScopedInstall(CustomPipeRenderCB, 0x5D6480, { .Reversed = false });
 }

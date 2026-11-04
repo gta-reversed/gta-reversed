@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 #include "WaterCannons.h"
 #include "TheCarGenerators.h"
 #include "Radar.h"
@@ -17,11 +18,11 @@
 #include "FireManager.h"
 #include "Fx.h"
 #include "BreakManager_c.h"
-#include "BoneNodeManager_c.h"
 #include "Shadows.h"
 // todo: #include "ShadowManager.h"
 #include "PedType.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/BoneNodeManager.h"
+#include "Ragdoll/IKChainManager.h"
 #include "CreepingFire.h"
 #include "Skidmarks.h"
 #include "CarCtrl.h"
@@ -73,7 +74,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.State = HS::RedirectToGTA});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -85,7 +86,8 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(TidyUpMemory, 0x53C500);
 
     RH_ScopedGlobalInstall(CameraDestroy, 0x72FD90);
-    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA0BC);
+    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA060);
+    RH_ScopedGlobalInstall(D3DDeviceRestoreCallback, 0x5BA120);
 }
 
 // 0x72FD90
@@ -113,7 +115,7 @@ static void CameraDestroy(RwCamera* rwCamera) {
     RwCameraDestroy(rwCamera);
 }
 
-// 0x5BA0BC
+// 0x5BA060
 void ValidateVersion() {
     auto file = CFileMgr::OpenFile("models\\coll\\peds.col", "rb");
     if (!file) {
@@ -137,10 +139,23 @@ void ValidateVersion() {
         NOTSA_UNREACHABLE("Invalid version\npeds.col version text does not start with 'grandtheftauto3'.\nText was '{}'", buf);
     }
 
-    static char(&version_name)[64] = *reinterpret_cast<char(*)[64]>(0xB72C28);
+    static auto& version_name = StaticRef<char[64]>(0xB72C28);
 
     strncpy_s(version_name, &buf[15], 64u);
     CFileMgr::CloseFile(file);
+}
+
+static auto& s_PrevD3DDeviceRestoreCallback = StaticRef<rwD3D9DeviceRestoreCallBack>(0xBD0114);
+
+// 0x5BA120
+void D3DDeviceRestoreCallback() {
+    if (s_PrevD3DDeviceRestoreCallback) {
+        s_PrevD3DDeviceRestoreCallback();
+    }
+    if (g_realTimeShadowMan.m_bInitialised) {
+        g_realTimeShadowMan.m_bNeedsReinit = true;
+    }
+    CMirrors::d3dRestored = true;
 }
 
 // 0x53BB80
@@ -179,6 +194,14 @@ void CGame::TidyUpMemory(bool a1, bool clearD3Dmem) {
     if (FindPlayerPed(PED_TYPE_PLAYER1) && clearD3Dmem) {
         DrasticTidyUpMemory(a1);
     }
+}
+
+// notsa
+eAreaCodes CGame::GetPlayerOrCurrentAreaCode() {
+    auto* const player = FindPlayerPed();
+    return player
+        ? player->GetAreaCode()
+        : GetCurrentAreaCode();
 }
 
 // 0x53C810
@@ -352,7 +375,7 @@ bool CGame::Init1(char const *datFile) {
     CGangWars::InitAtStartOfGame();
     CConversations::Clear();
     CPedToPlayerConversations::Clear();
-    CQuadTreeNode::InitPool();
+    CQuadTreeNode<void*>::InitPool();
 
     if (!CPlantMgr::Initialise() || !CCustomRoadsignMgr::Initialise()) {
         return false;
@@ -555,16 +578,10 @@ void CGame::Initialise(const char* datFile) {
 // 0x5BFA90
 bool CGame::InitialiseCoreDataAfterRW() {
     CTempColModels::Initialise();
-    gHandlingDataMgr.LoadHandlingData();
-    gHandlingDataMgr.field_0 = 0.1f;
-    gHandlingDataMgr.fWheelFriction = 0.9f;
-    gHandlingDataMgr.field_8 = 1.0f;
-    gHandlingDataMgr.field_C = 0.8f;
-    gHandlingDataMgr.field_10 = 0.98f;
-
+    gHandlingDataMgr.Initialise();
     g_surfaceInfos.Init();
     CPedStats::Initialise();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CVehicleRecording::InitAtStartOfGame();
 
@@ -608,9 +625,14 @@ bool CGame::InitialiseRenderWare() {
 
     const auto frame = RwFrameCreate();
     rwObjectHasFrameSetFrame(&camera->object.object, frame);
-    camera->frameBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA);
-    camera->zBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER);
-    if (!camera->object.object.parent) {
+
+    RwCameraSetRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA));
+    assert(RwCameraGetRaster(camera));
+
+    RwCameraSetZRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER));
+    assert(RwCameraGetZRaster(camera));
+
+    if (!RwCameraGetFrame(camera)) {
         CameraDestroy(camera);
         return false;
     }
@@ -642,7 +664,8 @@ bool CGame::InitialiseRenderWare() {
     CGame::m_pWorkingMatrix1 = RwMatrixCreate();
     CGame::m_pWorkingMatrix2 = RwMatrixCreate();
 
-    _rwD3D9DeviceSetRestoreCallback(_rwD3D9DeviceGetRestoreCallback());
+    s_PrevD3DDeviceRestoreCallback = _rwD3D9DeviceGetRestoreCallback();
+    _rwD3D9DeviceSetRestoreCallback(D3DDeviceRestoreCallback);
     return true;
 }
 
@@ -774,7 +797,7 @@ void CGame::Process() {
 
         g_LoadMonitor.EndFrame();
 
-        if (!CTimer::bSkipProcessThisFrame) {
+        if (!CTimer::IsSkipProcessThisFrame()) {
             CPickups::Update();
             CCarCtrl::PruneVehiclesOfInterest();
             CGarages::Update();
@@ -858,7 +881,7 @@ void CGame::ReInitGameObjectVariables() {
     CRadar::Initialise();
     CCarCtrl::ReInit();
     ThePaths.ReInit();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CDraw::SetFOV(120.0f);
     CDraw::ms_fLODDistance = 500.0f;

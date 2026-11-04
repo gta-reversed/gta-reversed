@@ -8,13 +8,19 @@
 
 #include "PtrNodeSingleLink.h"
 #include "PtrList.h"
+#include <Pools/Pools.h>
 
+namespace notsa {
 namespace details {
 template<typename ItemType>
 struct PtrListSingleLinkTraits {
     using NodeType = CPtrNodeSingleLink<ItemType>;
 
     static NodeType* AddNode(NodeType*& head, NodeType* node) {
+        assert(node);
+        assert(!head || IsNodeValid(*head));
+        assert(IsNodeValid(*node));
+
         node->Next = std::exchange(head, node);
         return node;
     }
@@ -22,6 +28,9 @@ struct PtrListSingleLinkTraits {
     static NodeType* UnlinkNode(NodeType*& head, NodeType* node, NodeType* prev) {
         assert(node);
         assert(head && "Can't remove node from empty list");
+        assert(!prev || IsNodeValid(*prev));
+        assert(IsNodeValid(*head));
+        assert(IsNodeValid(*node));
 
         NodeType* next = node->Next;
         if (head == node) { // Node is the head?
@@ -34,14 +43,25 @@ struct PtrListSingleLinkTraits {
         }
         return next;
     }
+
+    static bool IsNodeValid(const NodeType& node) requires std::is_pointer_v<ItemType> {
+        if (!GetPtrNodeSingleLinkPool()->IsObjectValid(reinterpret_cast<const CPtrNodeSingleLink<void*>*>(&node))) {
+            return false;
+        }
+        if (!node.IsItemValid()) {
+            return false;
+        }
+        return true;
+    }
 };
-};
+}; // namespace details
+}; // namespace notsa
 
 /*!
 * @brief A list of single-linked nodes (forward list)
 */
 template<typename ItemType>
-class CPtrListSingleLink : public CPtrList<details::PtrListSingleLinkTraits<ItemType>> {
+class CPtrListSingleLink : public CPtrList<notsa::details::PtrListSingleLinkTraits<ItemType>> {
 public:
-    using CPtrList<details::PtrListSingleLinkTraits<ItemType>>::CPtrList;
+    using CPtrList<notsa::details::PtrListSingleLinkTraits<ItemType>>::CPtrList;
 };

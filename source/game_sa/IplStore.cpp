@@ -10,49 +10,12 @@
 #include "tBinaryIplFile.h"
 #include "TheCarGenerators.h"
 
-int32& ms_currentIPLAreaCode = *(int32*)0x8E3EF8;
+using IplTreeNode  = CQuadTreeNode<IplDef*>;
+auto& ms_pQuadTree = StaticRef<IplTreeNode*>(0x8E3FAC);
 
-// Izzotop: tested, but not reviewed
+auto& ms_pPool = StaticRef<CIplPool*>(0x8E3FB0);
 
-void CIplStore::InjectHooks() {
-    RH_ScopedClass(CIplStore);
-    RH_ScopedCategoryGlobal();
-
-    RH_ScopedInstall(AddIplsNeededAtPosn, 0x4045B0);
-    RH_ScopedInstall(LoadIpl, 0x406080);
-    RH_ScopedInstall(Shutdown, 0x405FA0);
-    RH_ScopedInstall(Initialise, 0x405EC0);
-    RH_ScopedInstall(LoadIplBoundingBox, 0x405C00);
-    RH_ScopedInstall(RemoveIplSlot, 0x405B60);
-    RH_ScopedInstall(AddIplSlot, 0x405AC0);
-    RH_ScopedInstall(RemoveIplWhenFarAway, 0x4058D0);
-    RH_ScopedInstall(RemoveIplAndIgnore, 0x405890);
-    RH_ScopedInstall(RequestIplAndIgnore, 0x405850);
-    RH_ScopedInstall(LoadAllRemainingIpls, 0x405780);
-    RH_ScopedInstall(RemoveAllIpls, 0x405720);
-    RH_ScopedInstall(HaveIplsLoaded, 0x405600);
-    RH_ScopedInstall(RequestIpls, 0x405520);
-    RH_ScopedInstall(Load, 0x5D54A0);
-    RH_ScopedInstall(Save, 0x5D5420);
-    RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
-    RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
-    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });
-    RH_ScopedInstall(EnableDynamicStreaming, 0x404D30);
-    RH_ScopedInstall(IncludeEntity, 0x404C90);
-    RH_ScopedInstall(GetBoundingBox, 0x404C70);
-    RH_ScopedInstall(RemoveIpl, 0x404B20);
-    RH_ScopedInstall(FindIplSlot, 0x404AC0);
-    RH_ScopedInstall(SetIsInterior, 0x404A90);
-    RH_ScopedInstall(GetIplName, 0x404A60);
-    RH_ScopedInstall(GetIplEntityIndexArray, 0x4047B0);
-    RH_ScopedInstall(GetNewIplEntityIndexArray, 0x404780);
-    RH_ScopedInstall(SetIplsRequired, 0x404700);
-    RH_ScopedInstall(ClearIplsNeededAtPosn, 0x4045E0);
-    RH_ScopedInstall(LoadIpls, 0x405170);
-    RH_ScopedGlobalInstall(SetIfInteriorIplIsRequired, 0x4045F0);
-    RH_ScopedGlobalInstall(SetIfIplIsRequired, 0x404660);
-    RH_ScopedGlobalInstall(SetIfIplIsRequiredReducedBB, 0x404690);
-}
+auto& ms_currentIPLAreaCode = StaticRef<int32>(0x8E3EF8);
 
 /*!
  * @addr 0x405EC0
@@ -70,7 +33,7 @@ void CIplStore::Initialise() {
     NumIplEntityIndexArrays = 0;
     ppCurrIplInstance = nullptr;
 
-    ms_pQuadTree = new CQuadTreeNode(WORLD_BOUNDS, 3);
+    ms_pQuadTree = new IplTreeNode(WORLD_BOUNDS, 3);
     assert(ms_pQuadTree);
 }
 
@@ -92,6 +55,52 @@ void CIplStore::Shutdown() {
 
     delete ms_pQuadTree;
     ms_pQuadTree = nullptr;
+}
+
+/*!
+* @addr 0x404660
+* @brief Callback used in `SetIplsRequired`
+*/
+void SetIfIplIsRequired(const CVector2D& posn, IplDef* def) {
+    if (def->isInterior && def->bb.IsPointInside(posn, -140.f)) {
+        def->loadRequested = true;
+    }
+}
+
+/*!
+* @addr 0x404690
+* @brief Callback used in `SetIplsRequired`
+*/
+void SetIfIplIsRequiredReducedBB(const CVector2D& posn, IplDef* def) {
+    if (def->bb.IsPointInside(posn, -160.f)) {
+        if (ms_currentIPLAreaCode != AREA_CODE_NORMAL_WORLD) {
+            if (!def->isInterior) {
+                return;
+            }
+        } else if (def->isInterior) {
+            return;
+        }
+        def->loadRequested = true;
+    }
+}
+
+/*!
+* @addr 0x4045F0
+* @brief Callback used in `SetIplsRequired`
+*/
+void SetIfInteriorIplIsRequired(const CVector2D& posn, IplDef* def) {
+    if (def->isInterior) {
+        if (!ms_currentIPLAreaCode) {
+            return;
+        }
+        if (def->bb.IsPointInside(posn, -140.f)) {
+            def->loadRequested = true;
+        }
+    } else {
+        if (def->bb.IsPointInside(posn)) {
+            def->loadRequested = true;
+        }
+    }
 }
 
 /*!
@@ -128,7 +137,7 @@ void CIplStore::EnableDynamicStreaming(int32 iplSlotIndex, bool enable) {
 eAreaCodes ResolveAreaCode(int32 ec) {
     if (ec == -1) {
         if (const auto player = FindPlayerPed()) {
-            return player->m_nAreaCode;
+            return player->GetAreaCode();
         }
         return (eAreaCodes)CGame::currArea;
     }
@@ -296,7 +305,7 @@ void CIplStore::LoadAllRemainingIpls() {
         if (CColAccel::isCacheLoading()) {
             *def = CColAccel::getIplDef(slot);
             def->loaded = false;
-            ms_pQuadTree->AddItem(&def, def->bb);
+            ms_pQuadTree->AddItem(def, def->bb);
         } else {
             CStreaming::RequestModel(IPLToModelId(slot), STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY);
             CStreaming::LoadAllRequestedModels(true);
@@ -307,7 +316,7 @@ void CIplStore::LoadAllRemainingIpls() {
 
 /*!
  * @addr 0x406080
- * @NOTSA Originally took `uchar*`, but for simplicity's sake we're going to use `char*`. Makes no difference.
+ * @notsa Originally took `uchar*`, but for simplicity's sake we're going to use `char*`. Makes no difference.
  */
 bool CIplStore::LoadIpl(int32 iplSlotIndex, char* data, int32 dataSize) {
     auto& def = *GetInSlot(iplSlotIndex);
@@ -342,15 +351,15 @@ bool CIplStore::LoadIpl(int32 iplSlotIndex, char* data, int32 dataSize) {
     // Anti copy-paste code helper.
     // Finish loading an ObjectInstance
     const auto FinishLoadObjInst = [&](CEntity* obj) {
-        obj->m_nIplIndex = (uint8)iplSlotIndex;
+        obj->SetIplIndex((uint8)iplSlotIndex);
 
         // Assign LOD to `obj` (if set)
-        if (obj->m_nLodIndex == -1) {
-            obj->m_pLod = nullptr;
+        if (obj->GetLodIndex() == -1) {
+            obj->SetLod(nullptr);
         } else {
             assert(pIPLLODEntities);
-            obj->m_pLod = pIPLLODEntities[obj->m_nLodIndex];
-            obj->m_pLod->m_nNumLodChildren++;
+            obj->SetLod(pIPLLODEntities[obj->GetLodIndex()]);
+            obj->GetLod()->AddLodChildren();
         }
 
         obj->Add(); // Add it to the world
@@ -404,7 +413,7 @@ bool CIplStore::LoadIpl(int32 iplSlotIndex, char* data, int32 dataSize) {
  * @addr 0x405C00
  * @brief Nearly 100% same as `LoadIpl`, but it modifies `ppCurrIplInstance`, and calculates bounding box of the IPL. Unsure honestly.
  * @returns Always true
- * @NOTSA Originally took `uchar*`, but for simplicity's sake we're going to use `char*`. Makes no difference.
+ * @notsa Originally took `uchar*`, but for simplicity's sake we're going to use `char*`. Makes no difference.
  */
 bool CIplStore::LoadIplBoundingBox(int32 iplSlotIndex, char* data, int32 dataSize) {
     auto& def = *GetInSlot(iplSlotIndex);
@@ -414,14 +423,14 @@ bool CIplStore::LoadIplBoundingBox(int32 iplSlotIndex, char* data, int32 dataSiz
     // Anti copy-paste code helper.
     // Finish loading an ObjectInstance
     const auto FinishLoadObjInst = [&](CEntity* obj) {
-        obj->m_nIplIndex = (uint8)iplSlotIndex;
+        obj->SetIplIndex((uint8)iplSlotIndex);
 
-        if (obj->m_nLodIndex == -1) {
-            obj->m_pLod = nullptr;
+        if (obj->GetLodIndex() == -1) {
+            obj->SetLod(nullptr);
         } else {
             assert(pIPLLODEntities);
-            obj->m_pLod = pIPLLODEntities[obj->m_nLodIndex];
-            obj->m_pLod->m_nNumLodChildren++;
+            obj->SetLod(pIPLLODEntities[obj->GetLodIndex()]);
+            obj->GetLod()->AddLodChildren();
 
             if (ppCurrIplInstance) {
                 *ppCurrIplInstance = obj;
@@ -496,10 +505,10 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
     }
 
     const auto ProcessEntity = [](CPhysical* e) {
-        if (e->m_pAttachedTo || e->physicalFlags.bDontApplySpeed || e->physicalFlags.b15) {
+        if (e->m_pAttachedTo || e->physicalFlags.bDontApplySpeed || e->physicalFlags.bDontLoadCollision) {
             return;
         }
-        ms_currentIPLAreaCode = e->m_nAreaCode;
+        ms_currentIPLAreaCode = e->GetAreaCode();
         ms_pQuadTree->ForAllMatching(e->GetPosition2D(), SetIfIplIsRequiredReducedBB);
     };
 
@@ -507,8 +516,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
         switch (mce.type) {
         case MISSION_CLEANUP_ENTITY_TYPE_PED: {
             const auto ped = GetPedPool()->GetAtRef(mce.handle);
-            assert(ped);
-            if (ped->IsStateDying()) {
+            if (!ped || ped->IsStateDying()) {
                 continue;
             }
             ProcessEntity(ped);
@@ -516,14 +524,16 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
         }
         case MISSION_CLEANUP_ENTITY_TYPE_VEHICLE: {
             const auto veh = GetVehiclePool()->GetAtRef(mce.handle);
-            assert(veh);
+            if (!veh) {
+                continue;
+            }
             switch (veh->GetStatus()) {
             case STATUS_PHYSICS:
             case STATUS_SIMPLE:
             case STATUS_ABANDONED:
-                continue;
+                ProcessEntity(veh);
+                break;
             }
-            ProcessEntity(veh);
             break;
         }
         }
@@ -582,7 +592,7 @@ void CIplStore::RemoveIpl(int32 iplSlotIndex) {
             if (!entity)
                 continue;
 
-            if (entity->m_nIplIndex == iplSlotIndex) {
+            if (entity->GetIplIndex() == iplSlotIndex) {
                 if constexpr (std::is_same_v<PoolT, CObjectPool>) {
                     if (entity->m_pDummyObject) {
                         CWorld::Add(entity->m_pDummyObject);
@@ -702,23 +712,24 @@ void CIplStore::SetIsInterior(int32 iplSlotIndex, bool isInterior) {
 }
 
 bool IsIPLAnInterior(const char* iplFileName) {
-    return rng::any_of(std::array{
-        "gen_int1",
-        "gen_int2",
-        "gen_int3",
-        "gen_int4",
-        "gen_int5",
-        "gen_intb",
-        "savehous",
-        "stadint",
-        "int_la",
-        "int_sf",
-        "int_veg",
-        "int_cont",
-        "levelmap"
-    }, [iplFileName](auto name) {
-        return _stricmp(iplFileName, name) == 0;
-    });
+    return rng::contains(
+        std::to_array<notsa::ci_string_view>({
+            "gen_int1",
+            "gen_int2",
+            "gen_int3",
+            "gen_int4",
+            "gen_int5",
+            "gen_intb",
+            "savehous",
+            "stadint",
+            "int_la",
+            "int_sf",
+            "int_veg",
+            "int_cont",
+            "levelmap"
+        }),
+        iplFileName
+    );
 }
 
 template<size_t N>
@@ -758,10 +769,10 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
             if (_strnicmp(iplName, def.name, iplNameLen)) {
                 continue;
             }
-            def = CColAccel::getIplDef(slot);
-            def.staticIdx = index;
+            def            = CColAccel::getIplDef(slot);
+            def.staticIdx  = index;
             def.isInterior = isIPLAnInterior;
-            def.loaded = false;
+            def.loaded     = false;
             ms_pQuadTree->AddItem(&def, def.bb);
         }
     } else {
@@ -769,8 +780,8 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
             if (_strnicmp(iplName, def.name, iplNameLen)) {
                 continue;
             }
-            def.staticIdx = index;
-            def.isInterior = isIPLAnInterior;
+            def.staticIdx               = index;
+            def.isInterior              = isIPLAnInterior;
             def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
             CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
         }
@@ -817,54 +828,52 @@ bool CIplStore::Load() {
     return true;
 }
 
-/*!
- * @addr 0x4045F0
- * @brief Callback used in `SetIplsRequired`
- */
-void SetIfInteriorIplIsRequired(const CVector2D& posn, void* data) {
-    auto& def = *static_cast<IplDef*>(data);
-
-    if (def.isInterior) {
-        if (!ms_currentIPLAreaCode) {
-            return;
-        }
-        if (def.bb.IsPointInside(posn, -140.f)) {
-            def.loadRequested = true;
-        }
-    } else {
-        if (def.bb.IsPointInside(posn)) {
-            def.loadRequested = true;
-        }
-    }
+// notsa
+IplDef* CIplStore::GetInSlot(int32 slot) {
+    return ms_pPool->GetAt(slot);
 }
 
-/*!
- * @addr 0x404660
- * @brief Callback used in `SetIplsRequired`
- */
-void SetIfIplIsRequired(const CVector2D& posn, void* data) {
-    auto& def = *static_cast<IplDef*>(data);
-
-    if (def.isInterior && def.bb.IsPointInside(posn, -140.f)) {
-        def.loadRequested = true;
-    }
+// notsa
+CIplPool* CIplStore::GetPool() {
+    return ms_pPool;
 }
 
-/*!
- * @addr 0x404690
- * @brief Callback used in `SetIplsRequired`
- */
-void SetIfIplIsRequiredReducedBB(const CVector2D& posn, void* data) {
-    auto& def = *static_cast<IplDef*>(data);
+void CIplStore::InjectHooks() {
+    RH_ScopedClass(CIplStore);
+    RH_ScopedCategoryGlobal();
 
-    if (def.bb.IsPointInside(posn, -160.f)) {
-        if (ms_currentIPLAreaCode != AREA_CODE_NORMAL_WORLD) {
-            if (!def.isInterior) {
-                return;
-            }
-        } else if (def.isInterior) {
-            return;
-        }
-        def.loadRequested = true;
-    }
+    RH_ScopedInstall(AddIplsNeededAtPosn, 0x4045B0);
+    RH_ScopedInstall(LoadIpl, 0x406080);
+    RH_ScopedInstall(Shutdown, 0x405FA0);
+    RH_ScopedInstall(Initialise, 0x405EC0);
+    RH_ScopedInstall(LoadIplBoundingBox, 0x405C00);
+    RH_ScopedInstall(RemoveIplSlot, 0x405B60);
+    RH_ScopedInstall(AddIplSlot, 0x405AC0);
+    RH_ScopedInstall(RemoveIplWhenFarAway, 0x4058D0);
+    RH_ScopedInstall(RemoveIplAndIgnore, 0x405890);
+    RH_ScopedInstall(RequestIplAndIgnore, 0x405850);
+    RH_ScopedInstall(LoadAllRemainingIpls, 0x405780);
+    RH_ScopedInstall(RemoveAllIpls, 0x405720);
+    RH_ScopedInstall(HaveIplsLoaded, 0x405600);
+    RH_ScopedInstall(RequestIpls, 0x405520);
+    RH_ScopedInstall(Load, 0x5D54A0);
+    RH_ScopedInstall(Save, 0x5D5420);
+    RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
+    RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
+    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0);
+    RH_ScopedInstall(EnableDynamicStreaming, 0x404D30);
+    RH_ScopedInstall(IncludeEntity, 0x404C90);
+    RH_ScopedInstall(GetBoundingBox, 0x404C70);
+    RH_ScopedInstall(RemoveIpl, 0x404B20);
+    RH_ScopedInstall(FindIplSlot, 0x404AC0);
+    RH_ScopedInstall(SetIsInterior, 0x404A90);
+    RH_ScopedInstall(GetIplName, 0x404A60);
+    RH_ScopedInstall(GetIplEntityIndexArray, 0x4047B0);
+    RH_ScopedInstall(GetNewIplEntityIndexArray, 0x404780);
+    RH_ScopedInstall(SetIplsRequired, 0x404700);
+    RH_ScopedInstall(ClearIplsNeededAtPosn, 0x4045E0);
+    RH_ScopedInstall(LoadIpls, 0x405170);
+    RH_ScopedGlobalInstall(SetIfInteriorIplIsRequired, 0x4045F0);
+    RH_ScopedGlobalInstall(SetIfIplIsRequired, 0x404660);
+    RH_ScopedGlobalInstall(SetIfIplIsRequiredReducedBB, 0x404690);
 }

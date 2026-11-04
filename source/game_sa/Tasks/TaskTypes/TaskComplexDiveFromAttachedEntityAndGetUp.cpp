@@ -12,7 +12,7 @@ void CTaskComplexDiveFromAttachedEntityAndGetUp::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x492EE0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6577F0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x657820);
-    RH_ScopedVMTInstall(ControlSubTask, 0x655710);
+    RH_ScopedVMTInstall(ControlSubTask, 0x655710, { .Overrides = false });
 }
 
 // 0x492E20
@@ -45,24 +45,24 @@ CTask* CTaskComplexDiveFromAttachedEntityAndGetUp::CreateFirstSubTask(CPed* ped)
     if (const auto attachedTo = ped->m_pAttachedTo) {
         const auto hitSide = (eDirection)CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *attachedTo);
         m_DiveDir = CPedGeometryAnalyser::ComputeEntityDir(*attachedTo, hitSide);
-        if (attachedTo->IsVehicle()
+        if (attachedTo->GetIsTypeVehicle()
          && notsa::contains({ eDirection::BACKWARD, eDirection::FORWARD }, hitSide)
          && m_DiveDir.Dot(attachedTo->GetMoveSpeed()) > 0.f // Same direction
         ) {
-            CVector bb[4];
-            float   bbPlanesDot[4];
-            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(
+            std::array<CVector, 4> bbPlaneNormals{};
+            std::array<float, 4> bbplaneDs{};
+            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(
                 ped->GetPosition().z,
                 *attachedTo,
-                &bb,
-                bbPlanesDot
+                bbPlaneNormals,
+                bbplaneDs
             );
             const auto GetPlaneDot = [&, pedPos = ped->GetPosition()](int32 i) {
-                return std::abs(bb[i].Dot(pedPos) + bbPlanesDot[i]);
+                return std::abs(bbPlaneNormals[i].Dot(pedPos) + bbplaneDs[i]);
             };
             m_DiveDir = GetPlaneDot(3) <= GetPlaneDot(1)
-                ? bb[3]
-                : bb[1];
+                ? bbPlaneNormals[3]
+                : bbPlaneNormals[1];
         }
         ped->m_fTurretAngleB = 2.f * PI;
     } else {

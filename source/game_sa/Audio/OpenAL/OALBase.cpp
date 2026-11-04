@@ -1,26 +1,28 @@
 #include "StdInc.h"
 #include "OALBase.h"
+#include <mutex>
 
 OALBase::OALBase() {
-    m_refCount = 1;
-    ++livingCount;
+    m_RefCount = 1;
+    ++s_LivingCount;
 }
 
 OALBase::~OALBase() {
-    --livingCount;
+    --s_LivingCount;
 }
 
 void OALBase::Release() {
-    if (--m_refCount)
+    if (--m_RefCount)
         return;
 
-    // OS_MutexObtain(trashMutex);
-    trashCan.push_back(this);
-    // OS_MutexRelease(trashMutex);
-}
+    static std::once_flag s_TrashMutexInitFlag;
+    std::call_once(s_TrashMutexInitFlag, [] {
+        s_TrashMutex = OS_MutexCreate();
+    });
 
-void OALBase::AddRef() {
-    ++m_refCount;
+    OS_MutexObtain(s_TrashMutex);
+    s_TrashCan.push_back(std::unique_ptr<OALBase>(this));
+    OS_MutexRelease(s_TrashMutex);
 }
 
 bool OALCheckErrors(std::string_view file, int32 line) {

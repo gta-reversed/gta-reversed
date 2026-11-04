@@ -56,6 +56,13 @@ void CameraSize(RwCamera* camera, RwRect* rect, RwReal viewWindow, RwReal aspect
         return;
     }
 
+#ifdef NOTSA_WINDOWED_MODE
+    // WindowedMode
+    if (notsa::IsFixBugs()) {
+        RwCameraClear(Scene.m_pRwCamera, &gColourTop, 2);
+    }
+#endif
+
     static RwRect origSize = { 0, 0, 0, 0 };
 
     if (!origSize.w || !origSize.h) {

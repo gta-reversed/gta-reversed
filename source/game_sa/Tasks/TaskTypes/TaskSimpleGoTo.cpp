@@ -2,9 +2,7 @@
 
 #include "TaskSimpleGoTo.h"
 
-#include "IKChainManager_c.h"
-
-float& CTaskSimpleGoTo::ms_fLookAtThresholdDotProduct = *(float*)0xC18D48;
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleGoTo::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleGoTo, 0x86fd1c, 9);

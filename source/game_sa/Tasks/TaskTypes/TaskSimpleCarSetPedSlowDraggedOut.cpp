@@ -65,7 +65,7 @@ bool CTaskSimpleCarSetPedSlowDraggedOut::ProcessPed(CPed* ped) {
 
     // 0x64C38F
     ped->RestartNonPartialAnims();
-    ped->m_bUsesCollision = true;
+    ped->SetUsesCollision(true);
     ped->UpdateStatLeavingVehicle();
     ped->ReplaceWeaponWhenExitingVehicle();
     ped->ResetMoveSpeed();

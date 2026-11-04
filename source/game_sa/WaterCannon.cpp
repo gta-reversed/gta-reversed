@@ -69,7 +69,7 @@ void CWaterCannon::Update_NewInput(const CVector* start, const CVector* end) {
 // 0x7295E0
 void CWaterCannon::PushPeds() {
     // FIX_BUGS: R* originally used 10'000.f here, but thats bug prone (if map size gets increased)
-    CVector min{ FLT_MAX, FLT_MAX, FLT_MAX }, max{ FLT_MIN, FLT_MIN, FLT_MIN };
+    CVector min{ FLT_MAX, FLT_MAX, FLT_MAX }, max{ -FLT_MAX, -FLT_MAX, -FLT_MAX };
     CBoundingBox bbox(min, max);
 
     for (auto i = 0; i < SECTIONS_COUNT; i++) {
@@ -130,12 +130,11 @@ void CWaterCannon::PushPeds() {
 
             FxPrtMult_c prtInfo{ 1.0f, 1.0f, 1.0f, 0.6f, 0.75f, 0.0f, 0.2f };
 
-            CVector particleVelocity = ped.m_vecMoveSpeed * 0.3f;
-            g_fx.m_SmokeII3expand->AddParticle(&pedPosn, &particleVelocity, 0.0f, &prtInfo, -1.0f, 1.2f, 0.6f, false);
+            g_fx.m_SmokeII3expand->AddParticle(pedPosn, ped.m_vecMoveSpeed * 0.3f, 0.0f, prtInfo);
 
             CVector particleVelocity2 = ped.m_vecMoveSpeed * -0.3f;
             particleVelocity2.z += 0.5f;
-            g_fx.m_SmokeII3expand->AddParticle(&pedPosn, &particleVelocity2, 0.0f, &prtInfo, -1.0f, 1.2f, 0.6f, false);
+            g_fx.m_SmokeII3expand->AddParticle(pedPosn, particleVelocity2, 0.0f, prtInfo);
 
             break;
         }
@@ -221,9 +220,8 @@ void CWaterCannon::Render() {
                     for (auto n = 0; n < 2; n++) {
                         const auto unk = (float)n / CTimer::GetTimeStepInMS();
 
-                        g_fx.m_WaterSplash->AddParticle(&colPoint.m_vecPoint, &velocity0, unk, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
-                        CVector velocity1 = velocity0 * 0.6f;
-                        g_fx.m_WaterSplash->AddParticle(&colPoint.m_vecPoint, &velocity1, unk, &prtInfo, -1.0f, 1.2f, 0.6f, 0);
+                        g_fx.m_WaterSplash->AddParticle(colPoint.m_vecPoint, velocity0, unk, prtInfo);
+                        g_fx.m_WaterSplash->AddParticle(colPoint.m_vecPoint, velocity0 * 0.6f, unk, prtInfo);
                     }
 
                     m_Audio.SetSplashInfo(colPoint.m_vecPoint, velocity0.Magnitude());

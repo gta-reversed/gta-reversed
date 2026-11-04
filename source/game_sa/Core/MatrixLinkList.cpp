@@ -2,7 +2,7 @@
 
 #include "MatrixLinkList.h"
 
-CMatrixLinkList& gMatrixList = *(CMatrixLinkList*)0xB74288;
+auto& gMatrixList = StaticRef<CMatrixLinkList>(0xB74288);
 
 void CMatrixLinkList::InjectHooks()
 {

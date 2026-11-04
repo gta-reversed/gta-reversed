@@ -17,8 +17,8 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(Init, 0x706CD0);
     RH_ScopedInstall(Shutdown, 0x706ED0);
     RH_ScopedInstall(TidyUpShadows, 0x707770);
-    RH_ScopedInstall(AddPermanentShadow, 0x706F60, { .reversed = false });
-    RH_ScopedInstall(UpdatePermanentShadows, 0x70C950, { .reversed = false });
+    RH_ScopedInstall(AddPermanentShadow, 0x706F60, { .Reversed = false });
+    RH_ScopedInstall(UpdatePermanentShadows, 0x70C950, { .Reversed = false });
     RH_ScopedOverloadedInstall(StoreShadowToBeRendered, "Texture", 0x707390, void(*)(uint8, RwTexture*, const CVector&, float, float, float, float, int16, uint8, uint8, uint8, float, bool, float, CRealTimeShadow*, bool));
     RH_ScopedOverloadedInstall(StoreShadowToBeRendered, "Type", 0x707930, void(*)(uint8, const CVector&, float, float, float, float, int16, uint8, uint8, uint8));
     RH_ScopedInstall(SetRenderModeForShadowType, 0x707460);
@@ -32,19 +32,19 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(UpdateStaticShadows, 0x707F40);
     RH_ScopedInstall(RenderExtraPlayerShadows, 0x707FA0);
     RH_ScopedInstall(RenderStaticShadows, 0x708300);
-    RH_ScopedInstall(CastShadowEntityXY, 0x7086B0, { .reversed = false });
-    RH_ScopedInstall(CastShadowEntityXYZ, 0x70A040, { .reversed = false });
+    RH_ScopedInstall(CastShadowEntityXY, 0x7086B0, { .Reversed = false });
+    RH_ScopedInstall(CastShadowEntityXYZ, 0x70A040, { .Reversed = false });
     RH_ScopedInstall(CastPlayerShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A470);
-    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A630, { .reversed = false });
-    RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A7E0, { .reversed = false });
+    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A630, { .Reversed = false });
+    RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A7E0, { .Reversed = false });
     RH_ScopedInstall(RenderStoredShadows, 0x70A960);
-    RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730, { .reversed = false });
-    RH_ScopedInstall(StoreStaticShadow, 0x70BA00, { .reversed = false });
-    RH_ScopedInstall(StoreShadowForVehicle, 0x70BDA0, { .reversed = false });
+    RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730, { .Reversed = false });
+    RH_ScopedInstall(StoreStaticShadow, 0x70BA00, { .Reversed = false });
+    RH_ScopedInstall(StoreShadowForVehicle, 0x70BDA0, { .Reversed = false });
     RH_ScopedInstall(StoreCarLightShadow, 0x70C500);
     RH_ScopedInstall(StoreShadowForPole, 0x70C750);
     RH_ScopedInstall(RenderIndicatorShadow, 0x70CCB0);
-    RH_ScopedGlobalInstall(ShadowRenderTriangleCB, 0x709CF0, { .reversed = false });
+    RH_ScopedGlobalInstall(ShadowRenderTriangleCB, 0x709CF0, { .Reversed = false });
 }
 
 void CStaticShadow::InjectHooks() {
@@ -298,19 +298,24 @@ void CShadows::PrintDebugPoly(CVector* a, CVector* b, CVector* c) {
 }
 
 // 0x7076C0
-void CShadows::CalcPedShadowValues(CVector sunPosn, float& displacementX, float& displacementY, float& frontX, float& frontY, float& sideX, float& sideY) {
+void CShadows::CalcPedShadowValues(
+    CVector sunPosn,
+    float& frontX,        float& frontY,
+    float& sideX,         float& sideY,
+    float& displacementX, float& displacementY
+) {
     const auto sunDist = sunPosn.Magnitude2D();
     const auto recip = 1.0f / sunDist;
+
     const auto mult = (sunDist + 1.0f) * recip;
+    frontX = -sunPosn.x * mult / 2.0f;
+    frontY = -sunPosn.y * mult / 2.0f;
 
-    displacementX = -sunPosn.x * mult / 2.0f;
-    displacementY = -sunPosn.y * mult / 2.0f;
+    sideX = -sunPosn.y * recip / 2.0f;
+    sideY = +sunPosn.x * recip / 2.0f;
 
-    frontX = -sunPosn.y * recip / 2.0f;
-    frontY = +sunPosn.x * recip / 2.0f;
-
-    sideX = -sunPosn.x / 2.0f;
-    sideY = -sunPosn.y / 2.0f;
+    displacementX = -sunPosn.x / 2.0f;
+    displacementY = -sunPosn.y / 2.0f;
 }
 
 // 0x707850
@@ -361,7 +366,7 @@ void CShadows::StoreShadowForPedObject(CPed* ped, float displacementX, float dis
     // the `GetBonePosition` below *just works* because it doesn't access any
     // `CPed` specific member variables.
     // But we really should fix this in a sensible way in the future.
-    assert(ped->IsPed() || ped->IsObject());
+    assert(ped->GetIsTypePed() || ped->GetIsTypeObject());
 
     const auto  bonePos           = ped->GetBonePosition(BONE_ROOT);
     const auto& camPos            = TheCamera.GetPosition();
@@ -406,7 +411,7 @@ void CShadows::StoreRealTimeShadow(CPhysical* physical, float displacementX, flo
         return;
     }
     const auto& camPos = TheCamera.GetPosition();
-    const auto  shdwPos = physical->IsPed()
+    const auto  shdwPos = physical->GetIsTypePed()
         ? physical->AsPed()->GetBonePosition(BONE_ROOT)
         : physical->GetPosition();
     const auto shdwToCamDist2DSq = (shdwPos - camPos).SquaredMagnitude2D();
@@ -687,7 +692,7 @@ void CShadows::CastPlayerShadowSectorList(
             continue;
         }
 
-        if (!entity->IsInCurrentAreaOrBarberShopInterior()) {
+        if (!entity->IsInCurrentArea()) {
             continue;
         }
 
@@ -804,7 +809,7 @@ void CShadows::RenderStoredShadows() {
                     }
                 }
 
-                CWorld::IncrementCurrentScanCode();
+                CWorld::AdvanceCurrentScanCode();
 
                 const auto ishdwRect = GetShadowRect(ishdw);
 
@@ -812,11 +817,11 @@ void CShadows::RenderStoredShadows() {
                 CWorld::IterateSectorsOverlappedByRect(
                     ishdwRect,
                     [&] (int32 x, int32 y) -> bool {
-                        const auto sector = GetSector(x, y);
+                        auto& sector = CWorld::GetSector(x, y);
 
                         if (const auto rtshdw = ishdw.m_pRTShadow) {
                             CastRealTimeShadowSectorList(
-                                sector->m_buildings,
+                                sector.Buildings,
                                 ishdwRect.left, ishdwRect.bottom,
                                 ishdwRect.right, ishdwRect.top,
                                 &ishdw.m_vecPosn,
@@ -834,7 +839,7 @@ void CShadows::RenderStoredShadows() {
                             uint8 unused{};
                             if (ishdw.m_bDrawOnBuildings) {
                                 CastShadowSectorList(
-                                    sector->m_buildings,
+                                    sector.Buildings,
                                     ishdwRect.left, ishdwRect.bottom,
                                     ishdwRect.right, ishdwRect.top,
                                     &ishdw.m_vecPosn,
@@ -850,7 +855,7 @@ void CShadows::RenderStoredShadows() {
                                 );
                             } else {
                                 CastPlayerShadowSectorList(
-                                    sector->m_buildings,
+                                    sector.Buildings,
                                     ishdwRect.left, ishdwRect.bottom,
                                     ishdwRect.right, ishdwRect.top,
                                     &ishdw.m_vecPosn,
@@ -1201,13 +1206,13 @@ void CShadows::StoreShadowForPole(CEntity* entity, float offsetX, float offsetY,
         return;
     }
 
-    const auto intensity = 2.f * (mat.GetUp().z - 0.5f) * (float)(CTimeCycle::m_CurrentColours.m_nPoleShadowStrength);
+    const auto intensity = 2.f * (mat.GetUp().z - 0.5f) * CTimeCycle::m_CurrentColours.m_nPoleShadowStrength;
 
     const auto front     = CVector2D{ CTimeCycle::GetVectorToSun() } * (-poleHeight / 2.f);
     const auto right     = CVector2D{ CTimeCycle::GetShadowSide() } * poleWidth;
 
     StoreStaticShadow(
-        reinterpret_cast<uint32>(&entity->m_pLod) + localId + 3,
+        reinterpret_cast<uint32>(entity->GetLod()) + localId + 3,
         SHADOW_DEFAULT,
         gpPostShadowTex,
         mat.GetPosition() + CVector{ front, 0.f } + CVector{

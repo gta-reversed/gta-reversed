@@ -65,7 +65,7 @@ bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CE
                 if (m_pAnim->m_Flags & ANIMATION_IS_PARTIAL)
                     m_pAnim->m_BlendDelta = fBlend;
                 else
-                    CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -fBlend);
+                    CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, -fBlend);
             }
         }
     }

@@ -38,7 +38,7 @@ bool CEventPlayerCommandToGroup::AffectsPedGroup(CPedGroup* pedGroup)
     if (leader && leader->IsPlayer()) {
         for (int32 i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
             CPed* member = pedGroup->GetMembership().GetMember(i);
-            if (member && member->m_nAreaCode != leader->m_nAreaCode) 
+            if (member && member->GetAreaCode() != leader->GetAreaCode()) 
                 return false;
         }
     }

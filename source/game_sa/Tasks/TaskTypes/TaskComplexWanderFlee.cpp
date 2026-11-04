@@ -9,7 +9,7 @@ void CTaskComplexWanderFlee::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x65B370);
 
     RH_ScopedVMTInstall(Clone, 0x65CD70);
-    RH_ScopedVMTInstall(ControlSubTask, 0x65B380);
+    RH_ScopedVMTInstall(ControlSubTask, 0x65B380, { .Overrides = false });
     RH_ScopedVMTInstall(GetWanderType, 0x65B350);
     RH_ScopedVMTInstall(ScanForStuff, 0x65B360);
 }

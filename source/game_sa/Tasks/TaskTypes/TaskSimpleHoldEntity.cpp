@@ -209,10 +209,10 @@ bool CTaskSimpleHoldEntity::ProcessPed(CPed* ped) {
             m_bEntityDropped = true;
         }
         else {
-            entityToHold->m_bUsesCollision = false;
-            if (entityToHold->IsObject()) {
+            entityToHold->SetUsesCollision(false);
+            if (entityToHold->GetIsTypeObject()) {
                 auto* objectToHold = entityToHold->AsObject();
-                if (objectToHold->IsStatic()) {
+                if (objectToHold->GetIsStatic()) {
                     objectToHold->SetIsStatic(false);
                     objectToHold->AddToMovingList();
                 }
@@ -298,11 +298,11 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
 
     if (bUpdateEntityToHoldPosition) {
         if (m_pEntityToHold) {
-            m_pEntityToHold->m_bIsVisible = ped->m_bIsVisible;
+            m_pEntityToHold->SetIsVisible(ped->GetIsVisible());
             if (ped->bCalledPreRender) {
                 if (m_bBoneFlags & HOLD_ENTITY_UPDATE_TRANSLATION_ONLY) {
                     CVector entityToHoldPos = m_vecPosition;
-                    RpHAnimHierarchy* pHAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+                    RpHAnimHierarchy* pHAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->GetRpClump());
                     int32 animIndex = RpHAnimIDGetIndex(pHAnimHierarchy, ped->m_apBones[m_nBoneFrameId]->BoneTag);
                     RwMatrix* pBoneMatrix = &RpHAnimHierarchyGetMatrixArray(pHAnimHierarchy)[animIndex];
                     RwV3dTransformPoints((RwV3d*)&entityToHoldPos, (RwV3d*)&entityToHoldPos, 1, pBoneMatrix);
@@ -311,7 +311,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
                 }
                 else {
                     CVector entityToHoldPos = ped->GetMatrix().TransformVector(m_vecPosition);
-                    RpHAnimHierarchy* pHAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+                    RpHAnimHierarchy* pHAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->GetRpClump());
                     int32 animIndex = RpHAnimIDGetIndex(pHAnimHierarchy, ped->m_apBones[m_nBoneFrameId]->BoneTag);
                     RwMatrix* pBoneMatrix = RpHAnimHierarchyGetMatrixArray(pHAnimHierarchy);
                     entityToHoldPos += *RwMatrixGetPos(&pBoneMatrix[animIndex]);
@@ -327,7 +327,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
                 else
                     m_pEntityToHold->SetPosn(ped->m_placement.m_vPosn);
             }
-            m_pEntityToHold->UpdateRW();
+            m_pEntityToHold->UpdateRwMatrix();
             m_pEntityToHold->UpdateRwFrame();
             return true;
         }
@@ -382,7 +382,7 @@ void CTaskSimpleHoldEntity::FinishAnimHoldEntityCB(CAnimBlendAssociation* animAs
 void CTaskSimpleHoldEntity::StartAnim(CPed* ped) {
     if (m_pAnimBlendHierarchy) {
         m_animFlags |= ANIMATION_DONT_ADD_TO_PARTIAL_BLEND | ANIMATION_IS_BLEND_AUTO_REMOVE | ANIMATION_IS_PARTIAL;
-        m_pAnimBlendAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_pAnimBlendHierarchy, m_animFlags, 4.0f);
+        m_pAnimBlendAssociation = CAnimManager::BlendAnimation(ped->GetRpClump(), m_pAnimBlendHierarchy, m_animFlags, 4.0f);
     } else {
         if (m_nAnimGroupId && !m_pAnimBlock) {
             CAnimBlock* animBlock = CAnimManager::GetAnimationBlock(m_nAnimGroupId);
@@ -397,7 +397,7 @@ void CTaskSimpleHoldEntity::StartAnim(CPed* ped) {
             CAnimManager::AddAnimBlockRef(blockIndex);
             m_pAnimBlock = animBlock;
         }
-        m_pAnimBlendAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_nAnimGroupId, m_nAnimId, 4.0f);
+        m_pAnimBlendAssociation = CAnimManager::BlendAnimation(ped->GetRpClump(), m_nAnimGroupId, m_nAnimId, 4.0f);
         m_pAnimBlendAssociation->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
         if (GetTaskType() == TASK_SIMPLE_HOLD_ENTITY) {
             m_pAnimBlendAssociation->m_Flags |= ANIMATION_DONT_ADD_TO_PARTIAL_BLEND;
@@ -415,8 +415,8 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
     bool bUpdateEntityPosition = true;
     CObject* objectToHold = nullptr;
     if (m_pEntityToHold) {
-        m_pEntityToHold->m_bUsesCollision = true;
-        if (!m_pEntityToHold->IsObject()) {
+        m_pEntityToHold->SetUsesCollision(true);
+        if (!m_pEntityToHold->GetIsTypeObject()) {
             CEntity::ClearReference(m_pEntityToHold);
             return;
         }
@@ -431,8 +431,8 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                     }
                     objectToHold->m_nObjectType = OBJECT_TEMPORARY;
                     objectToHold->m_nRemovalTime = 0;
-                    objectToHold->m_bUsesCollision = false;
-                    objectToHold->m_bIsVisible = false;
+                    objectToHold->SetUsesCollision(false);
+                    objectToHold->SetIsVisible(false);
                     bUpdateEntityPosition = false;
                 }
             }
@@ -443,7 +443,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
                 bUpdateEntityPosition = false;
             }
             else {
-                if (objectToHold->IsStatic()) {
+                if (objectToHold->GetIsStatic()) {
                     objectToHold->SetIsStatic(false);
                     objectToHold->AddToMovingList();
                 }
@@ -458,7 +458,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
         }
 
         CVector objectToHoldPosition(0.0f, 0.0f, 0.0f);
-        if (objectToHold->objectFlags.bIsLiftable && ped->m_pPlayerData && bAddEventSoundQuiet) {
+        if (objectToHold->objectFlags.bIsLiftable && ped->GetPlayerData() && bAddEventSoundQuiet) {
             CEventSoundQuiet eventSoundQuiet(ped, 60.0f, -1, objectToHoldPosition);
             GetEventGlobalGroup()->Add(&eventSoundQuiet, false);
         }
@@ -470,7 +470,7 @@ void CTaskSimpleHoldEntity::DropEntity(CPed* ped, bool bAddEventSoundQuiet) {
             objectToHoldPosition = ped->GetPosition();
             objectToHoldPosition.z = objectToHoldPosition.z - 1.0f - objectToHold->GetColModel()->m_boundBox.m_vecMin.z;
             objectToHold->SetPosn(objectToHoldPosition);
-            objectToHold->UpdateRW();
+            objectToHold->UpdateRwMatrix();
             objectToHold->UpdateRwFrame();
         }
         CEntity::ClearReference(m_pEntityToHold);

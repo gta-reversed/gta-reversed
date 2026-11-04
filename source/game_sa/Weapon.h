@@ -107,7 +107,7 @@ public:
 
     static bool GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType weaponType, int32 damageFactor, ePedPieceTypes pedPiece, uint8 direction);
     static bool CanBeUsedFor2Player(eWeaponType weaponType);
-    static float TargetWeaponRangeMultiplier(CEntity* victim, CEntity* weaponOwner);
+    static float TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner);
 
     /*!
     * @addr 0x73CDC0
@@ -131,6 +131,9 @@ public:
     auto GetState()         const noexcept { return m_State; }
     auto GetAmmoInClip()    const noexcept { return m_AmmoInClip; }
     auto GetTotalAmmo()     const noexcept { return m_TotalAmmo; }
+
+    //! @notsa
+    float GetWeaponRange(CPed* owner, CEntity* target = nullptr) const noexcept;
 
 private:
     friend void InjectHooksMain();

@@ -6,7 +6,7 @@ class NOTSA_EXPORT_VTABLE CDamageAtomicModelInfo : public CAtomicModelInfo {
 public:
     RpAtomic* m_pDamagedAtomic;
 
-    static bool& ms_bCreateDamagedVersion;
+    static inline auto& ms_bCreateDamagedVersion = StaticRef<bool>(0xA9B0B0);
 
 public:
     CDamageAtomicModelInfo() : CAtomicModelInfo() {}

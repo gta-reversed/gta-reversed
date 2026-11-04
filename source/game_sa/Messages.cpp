@@ -1,4 +1,5 @@
 #include "StdInc.h"
+#include "GxtChar.h"
 
 #include "Messages.h"
 #include "Hud.h"
@@ -378,14 +379,13 @@ uint32 CMessages::GetStringLength(const GxtChar* string) {
 // Copies string src to dest
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
-    if (src) {
-        GxtCharStrcpy(dest, src);
-        dest[len - 1] = 0; // Ensure null termination at specified length
+    if (src && len) {
+        const auto copyLen = std::min<size_t>(GetStringLength(src), len - 1u);
+
+        std::memcpy(dest, AsciiFromGxtChar(src), copyLen * sizeof(GxtChar));
+        dest[copyLen] = '\0';
     } else {
-        // Handling of NULL
-        if (len > 0) {
-            dest[0] = 0;
-        }
+        dest[0] = '\0';
     }
 }
 
@@ -493,7 +493,7 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
 
         // If not found, skip `~k`, as that for sure won't be a valid format string the next time. (This way ~k~k would still work)
         if (!pNameEnd) {
-            NOTSA_LOG_DEBUG("Closing tag of ~k~ not found [String: {}]", AsciiFromGxtChar(haystack));
+            NOTSA_LOG_WARN("Closing tag of ~k~ not found [String: {}]", AsciiFromGxtChar(haystack));
             SkipTo(pHS + 2);
             continue;
         }
@@ -503,9 +503,9 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
         const auto actionId   = ControlsManager.GetActionIDByName(actionName);
 
         // If not found we know the location of the next `~`, so skip to there
-        if (actionId == (uint16)-1) {
+        if (actionId == eControllerAction::CA_NONE) {
             SkipTo((const GxtChar*)pNameEnd);
-            NOTSA_LOG_DEBUG("Invalid action name({}) [String: {}]", std::string_view{ pNeedle, pNameEnd }, AsciiFromGxtChar(haystack));
+            NOTSA_LOG_WARN("Invalid action name({}) [String: {}]", std::string_view{ pNeedle, pNameEnd }, AsciiFromGxtChar(haystack));
             continue;
         }
 
@@ -513,14 +513,14 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
         SkipTo((const GxtChar*)pNeedle);
 
         // Get action name....
-        char aname[256];
-        ControlsManager.GetDefinedKeyByGxtName(actionId, aname, (uint16)std::size(aname));
+        GxtChar aname[400]{};
+        ControlsManager.GetGxtStringOfCommandKeys(actionId, aname, 400);
 
         // ...and insert it into the string.
         // This is kinda shit for now, as we  don't know the 
         // size of the output (dst) buffer so we might as
         // well just be writing over the stack :)
-        pDst = std::copy(aname, aname + strlen(aname), pDst);
+        pDst = std::copy(aname, aname + strlen(AsciiFromGxtChar(aname)), pDst);
 
         // We don't use SkipTo here, as we don't want to copy anything
         pHS  = GxtCharFromAscii(pNameEnd) + 1; // Go past the `~` that's after the control name

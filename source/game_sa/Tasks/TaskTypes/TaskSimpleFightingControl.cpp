@@ -22,7 +22,7 @@ void CTaskSimpleFightingControl::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x622EB0);
     RH_ScopedVMTInstall(GetTaskType, 0x61DC90);
     RH_ScopedVMTInstall(MakeAbortable, 0x61DD00);
-    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0, { .Reversed = false });
 }
 
 // 0x61DC10
@@ -89,12 +89,12 @@ int16 CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
         break;
     }
     case ENTITY_TYPE_VEHICLE: {
-        CVector planes[4]{};
-        float planesDot[4]{};
-        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(targetPos.z, *m_target, &planes, planesDot);
+        std::array<CVector, 4> planeNormals{};
+        std::array<float, 4>   planeDs{};
+        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(targetPos.z, *m_target, planeNormals, planeDs);
 
         const auto hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(pedPos, *m_target);
-        if ((DotProduct(planes[hitSide], pedPos) + planesDot[hitSide]) >= 0.7f) {
+        if ((DotProduct(planeNormals[+hitSide], pedPos) + planeDs[+hitSide]) >= 0.7f) {
             return 3;
         }
 

@@ -13,6 +13,9 @@
 
 #include "platform/win/WinPlatform.h"
 
+#include "Enums/eGameState.h"
+#include "Base.h"
+
 void AppInjectHooks() {
     RH_ScopedCategory("App");
     RH_ScopedNamespaceName("App");
@@ -31,6 +34,13 @@ void AppInjectHooks() {
     AppGameInjectHooks();
     AppLightInjectHooks();
 }
+
+void ChangeGameStateTo(eGameState newgs) {
+    if (gGameState != newgs) {
+        //NOTSA_LOG_DEBUG("GS Change: `{}` to `{}`", (eGameState)(gGameState), (eGameState)(newgs)); // doesn't compile???
+        gGameState = newgs;
+    }
+};
 
 // 0x53D690
 bool DoRWStuffStartOfFrame(int16 TopRed, int16 TopGreen, int16 TopBlue, int16 BottomRed, int16 BottomGreen, int16 BottomBlue, int16 Alpha) {

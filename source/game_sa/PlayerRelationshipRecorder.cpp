@@ -81,7 +81,7 @@ void CPlayerRelationshipRecorder::ClearRelationshipWithPlayer(const CPed* ped) {
 
 // 0x61A2E0
 CPlayerRelationshipRecorder& GetPlayerRelationshipRecorder() {
-    static CPlayerRelationshipRecorder*& g_sPlayerRelationshipRecorder = *(CPlayerRelationshipRecorder**)0xC17084;
+    static auto& g_sPlayerRelationshipRecorder = StaticRef<CPlayerRelationshipRecorder*>(0xC17084);
 
     if (!g_sPlayerRelationshipRecorder) {
         g_sPlayerRelationshipRecorder = new CPlayerRelationshipRecorder();

@@ -7,17 +7,159 @@ More information at: https://docs.microsoft.com/en-us/visualstudio/debugger/crea
 -->
 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-  <Type Name="CPool&lt;*, *, *&gt;">
-    <DisplayString>{{Capacity={m_Capacity}}}</DisplayString>
-    <Expand>
-      <Item Name="[Size]">m_Capacity</Item>
-      <Item Name="[Objects]">m_Storage</Item>
-      <Item Name="[FirstFree]" ExcludeView="simple">m_FirstFreeSlot</Item>
-      <Item Name="[OwnsAllocations]" ExcludeView="simple">m_OwnsAllocations</Item>
-      <ArrayItems>
-        <Size>m_Capacity</Size>
-        <ValuePointer>m_Storage</ValuePointer>
-      </ArrayItems>
-    </Expand>
-  </Type>
+    <Type Name="CPool&lt;*, *, *&gt;">
+        <DisplayString>{{Capacity={m_Capacity}}}</DisplayString>
+        <Expand>
+            <Item Name="[Size]">m_Capacity</Item>
+            <Item Name="[Objects]">m_Storage</Item>
+            <Item Name="[FirstFree]" ExcludeView="simple">m_FirstFreeSlot</Item>
+            <Item Name="[OwnsAllocations]" ExcludeView="simple">m_OwnsAllocations</Item>
+            <ArrayItems>
+                <Size>m_Capacity</Size>
+                <ValuePointer>m_Storage</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="t2dEffectPluginEntry">
+        <DisplayString>{m_nObjCount} object(s)</DisplayString>
+        <Expand>
+            <Item Name="[Count]">m_nObjCount</Item>
+            <Item Name="[Objects]">m_pObjects</Item>
+            <ArrayItems>
+                <Size>m_nObjCount</Size>
+                <ValuePointer>m_pObjects</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="FixedFloat&lt;*, *, *&gt;">
+        <DisplayString>{(float)value / $T2, g}</DisplayString>
+        <Expand>
+            <Item Name="[Stored]" ExcludeView="simple">value</Item>
+        </Expand>
+    </Type>
+    <Type Name="FixedVector&lt;*, *&gt;">
+        <DisplayString>({x}, {y}, {z})</DisplayString>
+    </Type>
+    <Type Name="FixedRect&lt;*, *, *&gt;">
+        <DisplayString>(left: {x1}, right: {x2}, top: {y1}, bottom: {y2})</DisplayString>
+    </Type>
+    <Type Name="FixedQuat&lt;*, *&gt;">
+        <DisplayString>{w} + {x}x + {y}y + {z}z</DisplayString>
+    </Type>
+
+    <Type Name="notsa::WEnum&lt;*, *&gt;">
+        <DisplayString>{($T1)m_Value}</DisplayString>
+        <Expand>
+            <Item Name="[Stored]" ExcludeView="simple">m_Value</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="TList_c&lt;*&gt;">
+        <DisplayString>{m_cnt} item(s)</DisplayString>
+        <Expand>
+            <Item Name="[Count]">m_cnt</Item>
+            <LinkedListItems>
+                <Size>m_cnt</Size>
+                <HeadPointer>m_head</HeadPointer>
+                <NextPointer>m_pNext</NextPointer>
+                <ValueNode>this</ValueNode>
+            </LinkedListItems>
+        </Expand>
+    </Type>
+
+    <Type Name="CLinkList&lt;*&gt;">
+        <Expand>
+            <CustomListItems>
+                <Variable Name="node" InitialValue="&amp;freeListHead"/>
+                <Variable Name="count" InitialValue="0"/>
+
+                <Loop>
+                    <Break Condition="node == &amp;freeListTail"/>
+                    <Exec>count++</Exec>
+                    <Exec>node = node->next</Exec>
+                </Loop>
+
+                <Item Name="[Free]">count</Item>
+            </CustomListItems>
+            <CustomListItems>
+                <Variable Name="node" InitialValue="usedListHead.next"/>
+                <Variable Name="count" InitialValue="0"/>
+
+                <Loop>
+                    <Break Condition="node == &amp;usedListTail"/>
+                    <Item Name="[{count}]">node->data</Item>
+                    <Exec>count++</Exec>
+                    <Exec>node = node->next</Exec>
+                </Loop>
+
+                <Item Name="[Used]">count</Item>
+            </CustomListItems>
+        </Expand>
+    </Type>
+
+    <Type Name="CPtrList&lt;*&gt;">
+        <Expand>
+            <LinkedListItems>
+                <HeadPointer>m_Head</HeadPointer>
+                <NextPointer>Next</NextPointer>
+                <ValueNode>this->Item</ValueNode>
+            </LinkedListItems>
+        </Expand>
+    </Type>
+
+    <Type Name="CMatrixLinkList">
+        <DisplayString>{GetNumUsed1()} used, {GetNumFree()} free, {GetNumUsed2()} allocated</DisplayString>
+        <Expand>
+            <CustomListItems>
+                <Variable Name="node" InitialValue="m_head.m_pNext"/>
+                <Variable Name="count" InitialValue="0"/>
+
+                <Loop>
+                    <Break Condition="node == &amp;m_tail"/>
+                    <Item Name="[{count}]">(CMatrix*)this</Item>
+                    <Exec>count++</Exec>
+                    <Exec>node = node->m_pNext</Exec>
+                </Loop>
+
+                <Item Name="[Used]">count</Item>
+            </CustomListItems>
+            <CustomListItems>
+                <Variable Name="node" InitialValue="m_allocatedListHead.m_pNext"/>
+                <Variable Name="count" InitialValue="0"/>
+
+                <Loop>
+                    <Break Condition="node == &amp;m_allocatedListTail"/>
+                    <Item Name="[Allocated {count}]">(CMatrix*)this</Item>
+                    <Exec>count++</Exec>
+                    <Exec>node = node->m_pNext</Exec>
+                </Loop>
+
+                <Item Name="[Allocated]">count</Item>
+            </CustomListItems>
+            <CustomListItems>
+                <Variable Name="node" InitialValue="m_freeListHead.m_pNext"/>
+                <Variable Name="count" InitialValue="0"/>
+
+                <Loop>
+                    <Break Condition="node == &amp;m_freeListTail"/>
+                    <Exec>count++</Exec>
+                    <Exec>node = node->m_pNext</Exec>
+                </Loop>
+
+                <Item Name="[Free]">count</Item>
+            </CustomListItems>
+        </Expand>
+    </Type>
+
+    <Type Name="CEntryInfoList">
+        <Expand>
+            <LinkedListItems>
+                <HeadPointer>m_node</HeadPointer>
+                <NextPointer>m_next</NextPointer>
+                <ValueNode>this</ValueNode>
+            </LinkedListItems>
+        </Expand>
+    </Type>
 </AutoVisualizer>

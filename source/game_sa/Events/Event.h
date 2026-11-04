@@ -1,10 +1,13 @@
 #pragma once
 
 #include "eEventType.h"
+#include <Vector.h>
 #include "Base.h"
 
 class CPed;
 class CEntity;
+class CPedGroup;
+class CEventEditableResponse;
 
 class NOTSA_EXPORT_VTABLE CEvent {
 public:
@@ -28,7 +31,7 @@ public:
     virtual void ReportCriminalEvent(CPed* ped) { }; // empty
     virtual bool HasEditableResponse() const { return false; }
     virtual CEntity* GetSourceEntity() const { return nullptr; }
-    virtual bool TakesPriorityOver(const CEvent& refEvent) { return GetEventPriority() >= refEvent.GetEventPriority(); }
+    virtual bool TakesPriorityOver(const CEvent& other) { return GetEventPriority() >= other.GetEventPriority(); }
     virtual float GetLocalSoundLevel() { return 0.0f; }
     virtual bool DoInformVehicleOccupants(CPed* ped) { return false; }
     virtual bool IsValid(CPed* ped) { return m_bValid || m_nTimeActive <= GetLifeTime(); }
@@ -41,8 +44,14 @@ public:
     void Tick() { m_nTimeActive++; }
 
 public: // Casting.hpp support //
-    template<typename From, typename Self>
-    static constexpr bool classof(const From* f) { return f->GetEventType() == Self::Type; }
+    template<typename From, typename To>
+    static constexpr bool classof(const From* f) {
+        if constexpr (std::is_same_v<To, CEventEditableResponse>) {
+            return f->HasEditableResponse();
+        } else {
+            return f->GetEventType() == To::Type;
+        }
+    }
 
 private:
     friend void InjectHooksMain();

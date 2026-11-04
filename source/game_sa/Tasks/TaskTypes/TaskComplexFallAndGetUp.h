@@ -12,7 +12,7 @@ public:
     static constexpr auto Type = TASK_COMPLEX_FALL_AND_GET_UP;
 
     CTaskComplexFallAndGetUp(AnimationId nFallAnimId, AssocGroupId nFallAnimGroup, int32 nFallDownTime);
-    CTaskComplexFallAndGetUp(int32 nDir, int32 nFallDownTime);
+    CTaskComplexFallAndGetUp(int32 nDir, int32 nFallDownTime); // TODO: eDirection for dir
     ~CTaskComplexFallAndGetUp() override = default;
 
     eTaskType GetTaskType() const override { return Type; }

@@ -1,5 +1,5 @@
 #include "StdInc.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "ModelIndices.h"
 #include "EventPassObject.h"
 #include "EventGroupEvent.h"
@@ -40,18 +40,18 @@ void CTaskComplexGangLeader::InjectHooks() {
     * See PR#449 for more info.
     */
 
-    RH_ScopedInstall(GetRandomGangAmbientAnim, 0x65E730, { .enabled = false, .locked = true });
-    RH_ScopedInstall(ShouldLoadGangAnims, 0x65E7F0, { .enabled = false, .locked = true });
-    RH_ScopedInstall(DoGangAbuseSpeech, 0x65E860, { .enabled = false, .locked = true });
-    RH_ScopedInstall(TryToPassObject, 0x65EA50, { .enabled = false, .locked = true });
+    RH_ScopedInstall(GetRandomGangAmbientAnim, 0x65E730, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedInstall(ShouldLoadGangAnims, 0x65E7F0, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedInstall(DoGangAbuseSpeech, 0x65E860, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedInstall(TryToPassObject, 0x65EA50, { .State = HS::RedirectToGTA, .Locked = true });
 
-    RH_ScopedVMTInstall(Clone, 0x661FA0, { .enabled = false, .locked = true });
-    RH_ScopedVMTInstall(GetTaskType, 0x65DF20, { .enabled = false, .locked = true });
-    RH_ScopedVMTInstall(MakeAbortable, 0x65DFA0, { .enabled = false, .locked = true });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x65DFF0, { .enabled = false, .locked = true });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65E1F0, { .enabled = false, .locked = true });
-    RH_ScopedVMTInstall(ControlSubTask, 0x662370, { .enabled = false, .locked = true });
-    RH_ScopedVMTInstall(ScanForStuff, 0x65E200, { .enabled = false, .locked = true });
+    RH_ScopedVMTInstall(Clone, 0x661FA0, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedVMTInstall(GetTaskType, 0x65DF20, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedVMTInstall(MakeAbortable, 0x65DFA0, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65DFF0, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65E1F0, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedVMTInstall(ControlSubTask, 0x662370, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedVMTInstall(ScanForStuff, 0x65E200, { .State = HS::RedirectToGTA, .Locked = true });
 }
 
 // 0x65DED0
@@ -137,7 +137,7 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
 CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     const auto [closestPed, distSq] = group->GetMembership().GetMemberClosestTo(ped);
     if (closestPed && sq(4.f) >= distSq) {
-        if (!closestPed->IsPed()) {
+        if (!closestPed->GetIsTypePed()) {
             return closestPed;
         }
     }
@@ -149,7 +149,7 @@ CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     float distSq{};
     if (const auto closestPed = group->GetClosestGroupPed(ped, &distSq)) {
         if (distSq < sq(4.f)) {
-            if (!closestPed->IsPed()) {
+            if (!closestPed->GetIsTypePed()) {
                 return closestPed;
             }
         }
@@ -226,8 +226,8 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     }
 
     if (m_exhaleTimer.IsOutOfTime()) { // 0x6624C1
-        if (ped->m_pRwClump) {
-            if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump))) {
+        if (ped->GetRpClump()) {
+            if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->GetRpClump()))) {
                 if (const auto fx = g_fxMan.CreateFxSystem("exhale", CVector{ 0.f, 0.1f, 0.f }, matrix)) {
                     fx->AttachToBone(ped, eBoneTag::BONE_HEAD);
                     fx->PlayAndKill();
@@ -304,7 +304,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         DRNKBR_PRTL_F,
         SMKCIG_PRTL_F,
     };
-    const auto GetAnim = [ped](AnimationId id) { return RpAnimBlendClumpGetAssociation(ped->m_pRwClump, id); };
+    const auto GetAnim = [ped](AnimationId id) { return RpAnimBlendClumpGetAssociation(ped->GetRpClump(), id); };
     const CAnimBlendAssociation* anims[]{
         GetAnim(ANIM_ID_DRNKBR_PRTL),
         GetAnim(ANIM_ID_SMKCIG_PRTL),
@@ -467,7 +467,7 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
                 m_gang->GetMembership().AddFollower(&scannedPed);
             }
 
-            // Find a member close enough to the scanned ped, and make the partners
+            // Find a member close enough to the scanned ped, and make them partners
             if (const auto [closestMem, distSq] = m_gang->GetMembership().GetMemberClosestTo(&scannedPed); // 0x65E61F
                 closestMem && sq(10.f) >= distSq && distSq >= sq(4.f)
             ) {           

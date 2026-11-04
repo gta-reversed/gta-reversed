@@ -38,14 +38,66 @@ tMissionCleanupEntity* CMissionCleanup::FindFree() {
  * @addr 0x4637E0
  */
 void CMissionCleanup::AddEntityToList(int32 handle, MissionCleanUpEntityType type) {
-    ((void(__thiscall*)(CMissionCleanup*, int32, MissionCleanUpEntityType))0x4637E0)(this, handle, type);
+    for (auto& entity : m_Objects) {
+        if (entity.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_EMPTY) {
+            entity.handle = handle;
+            entity.type   = type;
+            ++m_Count;
+            return;
+        }
+    }
 }
 
 /* Remotes entity from list
  * @addr 0x4654B0
  */
 void CMissionCleanup::RemoveEntityFromList(int32 handle, MissionCleanUpEntityType type) {
-    ((void(__thiscall*)(CMissionCleanup*, int32, MissionCleanUpEntityType))0x4654B0)(this, handle, type);
+    for (auto& entity : m_Objects) {
+        if (entity.type != type || entity.handle != handle) {
+            continue;
+        }
+
+        switch (entity.type) {
+        case MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_VEHICLE: {
+            auto* veh = GetVehiclePool()->GetAtRef(entity.handle);
+
+            if (veh && veh->m_bIsStaticWaitingForCollision) {
+                veh->m_bIsStaticWaitingForCollision = false;
+                if (!veh->GetIsStatic()) {
+                    veh->AddToMovingList();
+                }
+            }
+            break;
+        }
+        case MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_PED: {
+            auto* ped = GetPedPool()->GetAtRef(entity.handle);
+
+            if (ped && ped->m_bIsStaticWaitingForCollision) {
+                ped->m_bIsStaticWaitingForCollision = false;
+                if (!ped->GetIsStatic()) {
+                    ped->AddToMovingList();
+                }
+            }
+            break;
+        }
+        case MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_OBJECT: {
+            auto* obj = GetObjectPool()->GetAtRef(entity.handle);
+
+            if (obj && obj->m_bIsStaticWaitingForCollision) {
+                obj->m_bIsStaticWaitingForCollision = false;
+                if (!obj->GetIsStatic()) {
+                    obj->AddToMovingList();
+                }
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        entity = tMissionCleanupEntity();
+        --m_Count;
+    }
 }
 
 /* Checks if collision has loaded for mission objects

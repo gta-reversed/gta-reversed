@@ -1,8 +1,6 @@
 #include "StdInc.h"
 
-int32& CPlayerSkin::m_txdSlot = *(int32*) 0xC3F03C;
-
-RpClump*& gpPlayerClump = *(RpClump**)(0xC3F040);
+auto& gpPlayerClump = StaticRef<RpClump*>(0xC3F040);
 
 void CPlayerSkin::InjectHooks() {
     RH_ScopedClass(CPlayerSkin);

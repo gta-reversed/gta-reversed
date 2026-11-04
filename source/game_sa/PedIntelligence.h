@@ -64,10 +64,10 @@ public:
     CVector                m_vecLastPedPosDuringDamageEntity;
     CEntity*               m_apInterestingEntities[3];
 
-    static float& STEALTH_KILL_RANGE;
-    static float& LIGHT_AI_LEVEL_MAX;
-    static float& flt_8D2384;
-    static float& flt_8D2388;
+    static inline auto& STEALTH_KILL_RANGE = StaticRef<float>(0x8D2398); // 2.5f
+    static inline auto& LIGHT_AI_LEVEL_MAX = StaticRef<float>(0x8D2380); // 0.3f
+    static inline auto& flt_8D2384 = StaticRef<float>(0x8D2384); // 30.0f
+    static inline auto& flt_8D2388 = StaticRef<float>(0x8D2388); // 50.0f
 
 public:
     static void InjectHooks();
@@ -92,6 +92,8 @@ public:
     void AddTaskEventResponseTemp(CTask* task, int32 unUsed);
     void AddTaskEventResponseNonTemp(CTask* task, int32 unUsed);
     void AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed);
+
+    //!< Can be replaced using `CTaskManager::Find<T>(false);`
     CTask* FindTaskByType(eTaskType taskId);
     CTaskSimpleFight* GetTaskFighting();
     CTaskSimpleUseGun* GetTaskUseGun();
@@ -155,14 +157,16 @@ public:
     //! Get the vehicle the ped is entering now (If any)
     CVehicle* GetEnteringVehicle();
 
-    CEventHandler&   GetEventHandler()    { return m_eventHandler; }
-    CEventGroup&     GetEventGroup()      { return m_eventGroup; }
-    CEventScanner&   GetEventScanner()    { return m_eventScanner; }
-    CPedScanner&     GetPedScanner()      { return m_pedScanner; }
-    CVehicleScanner& GetVehicleScanner()  { return m_vehicleScanner; }
-    CEntity**        GetPedEntities()     { return m_pedScanner.m_apEntities.data(); }     // 0x4893E0
-    CEntity*         GetPedEntity(uint32 index) { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
-    CEntity**        GetVehicleEntities() { return m_vehicleScanner.m_apEntities.data(); }
+    CTaskManager&    GetTaskManager()                  { return m_TaskMgr; }
+    CEventHandler&   GetEventHandler()                 { return m_eventHandler; }
+    CEventGroup&     GetEventGroup()                   { return m_eventGroup; }
+    CEventScanner&   GetEventScanner()                 { return m_eventScanner; }
+    CPedScanner&     GetPedScanner()                   { return m_pedScanner; }
+    CVehicleScanner& GetVehicleScanner()               { return m_vehicleScanner; }
+    CEntity**        GetPedEntities()                  { return m_pedScanner.m_apEntities.data(); }     // 0x4893E0
+    CEntity*         GetPedEntity(uint32 index)        { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
+    CEntity**        GetVehicleEntities()              { return m_vehicleScanner.m_apEntities.data(); }
+    auto&            GetStuckChecker(this auto&& self) { return self.m_pedStuckChecker; }
 
 private:
     CPedIntelligence* Constructor(CPed* ped);

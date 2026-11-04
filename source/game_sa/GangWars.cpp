@@ -22,14 +22,14 @@ void CGangWars::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(InitAtStartOfGame, 0x443920);
-    RH_ScopedInstall(AddKillToProvocation, 0x443950, { .reversed = false });                  // ?
+    RH_ScopedInstall(AddKillToProvocation, 0x443950, { .Reversed = false });                  // ?
     RH_ScopedInstall(AttackWaveOvercome, 0x445B30);
     RH_ScopedInstall(CalculateTimeTillNextAttack, 0x443DB0);
     RH_ScopedInstall(CanPlayerStartAGangWarHere, 0x443F80);
     RH_ScopedInstall(CheerVictory, 0x444040);
     RH_ScopedInstall(ClearSpecificZonesToTriggerGangWar, 0x443FF0);
     RH_ScopedInstall(ClearTheStreets, 0x4444B0);
-    RH_ScopedInstall(CreateAttackWave, 0x444810, { .reversed = false });                   //
+    RH_ScopedInstall(CreateAttackWave, 0x444810, { .Reversed = false });                   //
     RH_ScopedInstall(CreateDefendingGroup, 0x4453D0);
     RH_ScopedInstall(DoesPlayerControlThisZone, 0x443AE0);
     RH_ScopedInstall(DoStuffWhenPlayerVictorious, 0x446400);
@@ -52,7 +52,7 @@ void CGangWars::InjectHooks() {
     RH_ScopedInstall(SwitchGangWarsActive, 0x4465F0);
     RH_ScopedInstall(TellGangMembersTo, 0x444530);                     // ?
     RH_ScopedInstall(TellStreamingWhichGangsAreNeeded, 0x443D50);
-    RH_ScopedInstall(Update, 0x446610, { .reversed = false });                             //
+    RH_ScopedInstall(Update, 0x446610, { .Reversed = false });                             //
     RH_ScopedInstall(UpdateTerritoryUnderControlPercentage, 0x443DE0); //
     RH_ScopedInstall(Load, 0x5D3EB0);
     RH_ScopedInstall(Save, 0x5D5530);
@@ -147,9 +147,8 @@ bool CGangWars::CanPlayerStartAGangWarHere(CZoneInfo* zoneInfo) {
     if (NumSpecificZones == 0)
         return true;
 
-    // inline?
-    for (auto& zone : std::span{ CTheZones::NavigationZoneArray, (size_t)NumSpecificZones }) {
-        if (zoneInfo == CTheZones::GetZoneInfo(&zone)) {
+    for (const auto zone : GetSpecificZones()) {
+        if (zoneInfo == CTheZones::GetZoneInfo(CTheZones::GetNavigationZone(zone))) {
             return true;
         }
     }
@@ -461,10 +460,10 @@ bool CGangWars::PickZoneToAttack() {
     // choose a territory that is controlled by enemy gangs
     for (auto i = 0; i < CTheZones::TotalNumberOfNavigationZones; i++) {
         auto zone = CTheZones::GetNavigationZone(CCarCtrl::FindSequenceElement(i));
-        auto zoneInfo = CTheZones::GetZoneInfo(zone);
-
-        if (!zoneInfo)
+        if (zone->m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
             continue;
+
+        auto zoneInfo = CTheZones::GetZoneInfo(zone);
 
         if (zoneInfo->GangStrength[GANG_BALLAS] + zoneInfo->GangStrength[GANG_VAGOS] >= 20) {
             enemyGangZone = zone;
@@ -478,10 +477,10 @@ bool CGangWars::PickZoneToAttack() {
     // find a close territory that is controlled by the gsf
     for (auto i = 0; i < CTheZones::TotalNumberOfNavigationZones; i++) {
         auto zone = CTheZones::GetNavigationZone(CCarCtrl::FindSequenceElement(i));
-        auto zoneInfo = CTheZones::GetZoneInfo(zone);
-
-        if (!zoneInfo)
+        if (zone->m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
             continue;
+
+        auto zoneInfo = CTheZones::GetZoneInfo(zone);
 
         if ((float)zone->m_fX1 <= 2500.0f && (float)zone->m_fX2 >= 2500.0f && (float)zone->m_fY1 <= -1666.0f && (float)zone->m_fY2 >= -1666.0f) // todo:
             continue;
@@ -735,7 +734,7 @@ void CGangWars::Update() {
     if (CCutsceneMgr::IsCutsceneProcessing())
         return;
 
-    if (CTimer::m_FrameCounter == 56u)
+    if (CTimer::GetFrameCounter() == 56u)
         UpdateTerritoryUnderControlPercentage();
 
     if (!CGangWars::bGangWarsActive || CGameLogic::IsCoopGameGoingOn())
@@ -974,9 +973,10 @@ void CGangWars::UpdateTerritoryUnderControlPercentage() {
     auto ballasZones = 0, groveZones = 0, vagosZones = 0;
     if (CTheZones::TotalNumberOfNavigationZones) {
         for (auto& zone : CTheZones::NavigationZoneArray) {
-            auto zoneInfo = CTheZones::GetZoneInfo(&zone);
-            if (!zoneInfo)
+            if (zone.m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
                 continue;
+
+            auto zoneInfo = CTheZones::GetZoneInfo(&zone);
 
             auto ballasDensity = zoneInfo->GangStrength[GANG_BALLAS],
                  groveDensity = zoneInfo->GangStrength[GANG_GROVE],

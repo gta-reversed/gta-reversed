@@ -9,6 +9,6 @@ public:
     CObjectScanner() : CEntityScanner() { } // 0x606010
     ~CObjectScanner() = default;            // 0x606050
 
-    void ScanForObjectsInRange(const CPed& ped);
+    void ScanForObjectsInRange(CPed& ped);
     CObject* GetClosestObjectInRange() const;
 };

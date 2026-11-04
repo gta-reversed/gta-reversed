@@ -10,7 +10,7 @@
 
 class CPlaneTrails {
 public:
-    static inline std::array<CPlaneTrail, 3>& aArray = *(std::array<CPlaneTrail, 3>*)0xC713A8;
+    static inline auto& aArray = StaticRef<std::array<CPlaneTrail, 3>>(0xC713A8);
 
 public:
     static void InjectHooks();

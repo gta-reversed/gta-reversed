@@ -63,6 +63,7 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsPLUS:     return &tks.add;
         case rsMINUS:    return &tks.sub;
         case rsPADDEL:   return &tks.decimal;
+
         case rsPADEND:   return &tks.num1;
         case rsPADDOWN:  return &tks.num2;
         case rsPADPGDN:  return &tks.num3;
@@ -74,6 +75,7 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsPADUP:    return &tks.num8;
         case rsPADPGUP:  return &tks.num9;
         case rsPADINS:   return &tks.num0;
+
         case rsPADENTER: return &tks.enter;
         case rsSCROLL:   return &tks.scroll;
         case rsPAUSE:    return &tks.pause;
@@ -86,8 +88,8 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsSHIFT:    return &tks.shift;
         case rsLCTRL:    return &tks.lctrl;
         case rsRCTRL:    return &tks.rctrl;
-        case rsLALT:     return &tks.lmenu;
-        case rsRALT:     return &tks.rmenu;
+        case rsLALT:     return &tks.lalt;
+        case rsRALT:     return &tks.ralt;
         case rsLWIN:     return &tks.lwin;
         case rsRWIN:     return &tks.rwin;
         case rsAPPS:     return &tks.apps;
@@ -99,43 +101,43 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
     }
 
     // Then if a pad is plugged in, possibly handle that as well
-    if (CPad::padNumber) {
+    if (CPad::padNumber != 0) {
         const auto [pPadBtnState, downValue] = [&]() -> std::pair<int16*, int16> {
             auto& pctks = CPad::GetPad(1)->PCTempKeyState; // Why pad 1?
-            switch (ks->keyScanCode) { // TODO: Enums
-            case 68:   return { &pctks.LeftStickX,      128 };
-            case 65:   return { &pctks.LeftStickX,     -128 };
+            switch (ks->keyScanCode) {
+            case 'D':   return { &pctks.LeftStickX,      128 };
+            case 'A':   return { &pctks.LeftStickX,     -128 };
 
-            case 87:   return { &pctks.LeftStickY,      128 };
-            case 83:   return { &pctks.LeftStickY,     -128 };
+            case 'W':   return { &pctks.LeftStickY,      128 };
+            case 'S':   return { &pctks.LeftStickY,     -128 };
 
-            case 74:   return { &pctks.RightStickX,     128 };
-            case 71:   return { &pctks.RightStickX,    -128 };
+            case 'J':   return { &pctks.RightStickX,     128 };
+            case 'G':   return { &pctks.RightStickX,    -128 };
 
-            case 89:   return { &pctks.RightStickY,     128 };
-            case 72:   return { &pctks.RightStickY,    -128 };
+            case 'Y':   return { &pctks.RightStickY,     128 };
+            case 'H':   return { &pctks.RightStickY,    -128 };
 
-            case 90:   return { &pctks.LeftShoulder1,   255 };
-            case 88:   return { &pctks.LeftShoulder2,   255 };
+            case 'Z':   return { &pctks.LeftShoulder1,   255 };
+            case 'X':   return { &pctks.LeftShoulder2,   255 };
 
-            case 67:   return { &pctks.RightShoulder1,  255 };
-            case 86:   return { &pctks.RightShoulder2,  255 };
+            case 'C':   return { &pctks.RightShoulder1,  255 };
+            case 'V':   return { &pctks.RightShoulder2,  255 };
 
-            case 79:   return { &pctks.DPadUp,          255 };
-            case 76:   return { &pctks.DPadDown,        255 };
-            case 75:   return { &pctks.DPadLeft,        255 };
-            case 59:   return { &pctks.DPadRight,       255 };
+            case 'O':   return { &pctks.DPadUp,          255 };
+            case 'L':   return { &pctks.DPadDown,        255 };
+            case 'K':   return { &pctks.DPadLeft,        255 };
+            case ';':   return { &pctks.DPadRight,       255 };
 
-            case 66:   return { &pctks.Start,           255 };
-            case 78:   return { &pctks.Select,          255 };
+            case 'B':   return { &pctks.Start,           255 };
+            case 'N':   return { &pctks.Select,          255 };
 
-            case 77:   return { &pctks.ButtonSquare,    255 };
-            case 44:   return { &pctks.ButtonTriangle,  255 };
-            case 46:   return { &pctks.ButtonCross,     255 };
-            case 47:   return { &pctks.ButtonCircle,    255 };
+            case 'M':   return { &pctks.ButtonSquare,    255 };
+            case ',':   return { &pctks.ButtonTriangle,  255 };
+            case '.':   return { &pctks.ButtonCross,     255 };
+            case '/':   return { &pctks.ButtonCircle,    255 };
 
-            case 1047: return { &pctks.ShockButtonL,    255 };
-            case 1050: return { &pctks.ShockButtonR,    255 };
+            case rsRSHIFT: return { &pctks.ShockButtonL,    255 };
+            case rsRCTRL:  return { &pctks.ShockButtonR,    255 };
             }
             return { NULL, NULL };
         }();
@@ -170,24 +172,83 @@ RsEventStatus KeyboardHandler(RsEvent event, void* param) {
 }
 
 // 0x7448B0
-RsEventStatus HandlePadButtonDown(RsKeyStatus* param) {
-    ControlsManager.HandleJoyButtonUpDown(CPad::padNumber ? 1 : 0, true);
+RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
+    bool  bPadTwo   = false;
+    int32 padNumber = padButtonStatus->padID;
+
+    CPad* pad = CPad::GetPad(padNumber);
+
+    if (CPad::padNumber != 0) {
+        padNumber = 1;
+    }
+
+    if (padNumber == 1) {
+        bPadTwo = true;
+    }
+
+    ControlsManager.UpdateJoyButtonState(padNumber);
+
+    for (int32 i = 1; i < JOYBUTTON_COUNT; i++) {
+        RsPadButtons btn = RsPadButtons(0);
+        if (ControlsManager.m_ButtonStates[i - 1] == true) {
+            btn = RsPadButtons(i);
+
+            if (FrontEndMenuManager.m_bMenuActive || bPadTwo) {
+                ControlsManager.UpdateJoyInConfigMenus_ButtonDown(btn, padNumber);
+            } else {
+                ControlsManager.UpdateJoy_ButtonDown(btn, eControllerType::JOY_STICK);
+            }
+        }
+    }
     return rsEVENTPROCESSED;
 }
 
 // 0x744930
-RsEventStatus HandlePadButtonUp(RsKeyStatus* param) {
-    ControlsManager.HandleJoyButtonUpDown(CPad::padNumber ? 1 : 0, false);
+RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
+    bool  bPadTwo   = false;
+    int32 padNumber = padButtonStatus->padID;
+
+    CPad* pad = CPad::GetPad(padNumber);
+
+    if (CPad::padNumber != 0) {
+        padNumber = 1;
+    }
+
+    if (padNumber == 1) {
+        bPadTwo = true;
+    }
+
+    bool  bCam = false;
+    int16 mode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
+    if (mode == MODE_FLYBY || mode == MODE_FIXED) {
+        bCam = true;
+    }
+
+    ControlsManager.UpdateJoyButtonState(padNumber);
+
+    // NOTE: Why 2?
+    for (int32 i = 2; i < JOYBUTTON_COUNT; i++) {
+        RsPadButtons btn = RsPadButtons(0);
+        if (ControlsManager.m_ButtonStates[i - 1] == false) {
+            btn = RsPadButtons(i);
+
+            if (FrontEndMenuManager.m_bMenuActive || bPadTwo || bCam) {
+                ControlsManager.UpdateJoyInConfigMenus_ButtonUp(btn, padNumber);
+            } else {
+                ControlsManager.AffectControllerStateOn_ButtonUp((KeyCode)btn, eControllerType::JOY_STICK);
+            }
+        }
+    }
     return rsEVENTPROCESSED;
 }
 
 // 0x7449F0
-RsEventStatus PadHandler(RsEvent event, void* param) {
+static RsEventStatus PadHandler(RsEvent event, void* param) {
     switch (event) {
     case rsPADBUTTONDOWN:
-        return HandlePadButtonDown((RsKeyStatus*)param);
+        return HandlePadButtonDown((RsPadButtonStatus*)param);
     case rsPADBUTTONUP:
-        return HandlePadButtonUp((RsKeyStatus*)param);
+        return HandlePadButtonUp((RsPadButtonStatus*)param);
     default:
         return rsEVENTNOTPROCESSED;
     }

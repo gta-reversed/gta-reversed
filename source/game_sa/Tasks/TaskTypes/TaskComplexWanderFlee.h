@@ -6,7 +6,7 @@
 class CPed;
 class CTaskComplexWanderFlee;
 
-class NOTSA_EXPORT_VTABLE CTaskComplexWanderFlee : public CTaskComplexWander {
+class NOTSA_EXPORT_VTABLE CTaskComplexWanderFlee final : public CTaskComplexWander {
 public:
     static void InjectHooks();
 

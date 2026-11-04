@@ -21,7 +21,7 @@ enum class WinVer {
 
     UNKNOWN
 };
-static auto& s_WinVer = StaticRef<WinVer, 0xC8CF68>();
+static auto& s_WinVer = StaticRef<WinVer>(0xC8CF68);
 
 struct OSStatus {
     WinVer OSVer;
@@ -37,12 +37,15 @@ struct OSStatus {
         SIZE_T Avail;
     } VRAM;
 };
-inline auto& s_OSStatus = StaticRef<OSStatus, 0xC8CF68>();
+inline auto& s_OSStatus = StaticRef<OSStatus>(0xC8CF68);
 
-inline bool& anisotropySupportedByGFX = *(bool*)0xC87FFC;
-inline bool& isForeground = *(bool*)0xC920EC;
-inline bool& Windowed = *(bool*)0xC920CC;
+inline auto& anisotropySupportedByGFX = StaticRef<bool>(0xC87FFC);
+inline auto& isForeground = StaticRef<bool>(0xC920EC);
+inline auto& Windowed = StaticRef<bool>(0xC920CC);
 
 void Win32InjectHooks();
+
+BOOL GTATranslateShiftKey(RsKeyCodes*);
+BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk);
 
 #define IDI_MAIN_ICON                   1042

@@ -1,11 +1,13 @@
 #include <StdInc.h>
 
+#include <string.h>
+
 #include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 #include <functional>
 
 /*
-* Basic language feature commands (Comparasions, assingments, etc...)
+* Basic language feature commands (Comparisons, assignments, etc...)
 */
 
 namespace {
@@ -127,7 +129,7 @@ auto ReturnFalse() {
     return false; 
 }
 
-//! Jump back to calle
+//! Jump back to callee
 auto Return(CRunningScript& S) { 
     S.m_IP = S.m_IPStack[--S.m_StackDepth]; 
 }
@@ -214,12 +216,15 @@ bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
     return a == b;
 }
 
-//template<size_t N>
-//void SetTextLabel(std::string_view a, std::string_view b) {
-//    assert(a.size() >= N);
-//    assert(b.size() >= N);
-//    strncpy(a.data(), b.data(), N);
-//}
+template<size_t MaxNumToCopy>
+void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
+    assert(dst.Cap >= src.Cap);
+    assert(dst.Cap >= MaxNumToCopy);
+    assert(dst.Cap > src.Length && "Destination buffer must be bigger than source length to accomodate null terminator");
+
+    memset(dst.Data, 0, dst.Cap); // Original code always padded the destination buffer with 0s
+    strncpy(dst.Data, src.Data, std::min<size_t>(MaxNumToCopy, src.Length)); // Copy as much as we can, the rest remains padded with 0s
+}
 };
 
 void notsa::script::commands::basic::RegisterHandlers() {
@@ -372,7 +377,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ABS_LVAR_FLOAT, AbsStore<float>);
 
     REGISTER_COMMAND_HANDLER(COMMAND_GOTO, GoTo);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GOTO_IF_FALSE, GoToIfFalse);
+    REGISTER_COMMAND_HANDLER(COMMAND_GOTO_IF_FALSE, GoToIfFalse);
     REGISTER_COMMAND_HANDLER(COMMAND_GOSUB,  GoToSub);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN_TRUE, ReturnTrue);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN_FALSE, ReturnFalse);
@@ -402,12 +407,10 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL16);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL16);
 
-    // TODO: `ReadArg` supports reading `string_view`, but it's `.data()` is const char*, thus we can't write to it
-    //       We need to introduce some intermediary type, like `ScriptStringRef` that stores a non-const `char*`
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel<8>);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel<8>);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel<16>);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel<16>);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_VAR_NOT_EQUAL_TO_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_LVAR_NOT_EQUAL_TO_NUMBER);
@@ -429,6 +432,9 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_WHILENOT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_ENDWHILE);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_REPEAT);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_ENDREPEAT);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_START_SCOPE);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_END_SCOPE);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_INT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_FLOAT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_INT);

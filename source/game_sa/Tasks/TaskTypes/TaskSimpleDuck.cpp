@@ -18,6 +18,7 @@ void CTaskSimpleDuck::InjectHooks() {
     RH_ScopedInstall(SetMoveAnim, 0x6939F0);
     RH_ScopedInstall(ForceStopMove, 0x6924B0);
     RH_ScopedInstall(SetDuckTimer, 0x692530);
+    RH_ScopedInstall(SetControlType, 0x6924F0);
     RH_ScopedVMTInstall(Clone, 0x692CF0);
     RH_ScopedVMTInstall(GetTaskType, 0x692020);
     RH_ScopedVMTInstall(MakeAbortable, 0x692100);
@@ -34,7 +35,7 @@ CTaskSimpleDuck::CTaskSimpleDuck(eDuckControlType duckControlType, uint16 length
     // Rest set in the header!
 }
 
-// Notsa
+// notsa
 CTaskSimpleDuck::CTaskSimpleDuck(const CTaskSimpleDuck& o) :
     CTaskSimpleDuck{o.m_DuckControlType, o.m_LengthOfDuck, o.m_ShotWhizzingCounter}
 {
@@ -165,7 +166,7 @@ void CTaskSimpleDuck::RestartTask(CPed* ped) {
 void CTaskSimpleDuck::ControlDuckMove(CVector2D moveDir) {
     m_bIsInControl = true;
 
-    // If going full fwd/bwd ignore left/right commmands
+    // If going full fwd/bwd ignore left/right commands
     if (std::abs(m_MoveCmd.x) == 1.f) { // Originally checked if either -1 or 1 (this achieves the same thing)
         return;
     }
@@ -193,7 +194,7 @@ void CTaskSimpleDuck::ControlDuckMove(CVector2D moveDir) {
 void CTaskSimpleDuck::SetMoveAnim(CPed* ped) {
     const auto SetMoveAnimTo = [this, ped](AnimationId to) {
         m_MoveAnim = CAnimManager::BlendAnimation(
-            ped->m_pRwClump,
+            ped->GetRpClump(),
             ANIM_GROUP_DEFAULT,
             to,
             8.f
@@ -262,6 +263,20 @@ void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
     }
 }
 
+// 0x6924F0
+bool CTaskSimpleDuck::SetControlType(eDuckControlType controlType) {
+    if (m_bIsFinished || m_bIsAborting) {
+        return false;
+    }
+    if (controlType == DUCK_SCRIPT_CONTROLLED) {
+        m_LengthOfDuck = 0;
+    }
+    m_DuckControlType = controlType;
+    m_StartTime       = CTimer::GetTimeInMS();
+    m_bIsInControl    = true;
+    return true;
+}
+
 // 0x692100
 bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     switch (priority) {
@@ -271,7 +286,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
             if (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                 m_DuckAnim->m_BlendDelta = -1000.f;
             } else {
-                CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
+                CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
             }
             m_DuckAnim->SetDefaultFinishCallback();
             m_DuckAnim = nullptr;
@@ -316,7 +331,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
             if (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                 m_DuckAnim->m_BlendDelta = blendDelta;
             }
-            CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
+            CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
             ped->m_nSwimmingMoveState = eMoveState::PEDMOVE_STILL;
         }
 
@@ -413,19 +428,19 @@ bool CTaskSimpleDuck::ProcessPed(CPed* ped) {
             }
         } else {
             m_DuckAnim = CAnimManager::BlendAnimation(
-                ped->m_pRwClump,
+                ped->GetRpClump(),
                 ANIM_GROUP_DEFAULT,
                 m_DuckControlType == DUCK_STANDALONE ? ANIM_ID_DUCK_COWER : ANIM_ID_WEAPON_CROUCH,
                 4.f
             );
             m_DuckAnim->SetFinishCallback(DeleteDuckAnimCB, this);
 
-            if (const auto weaponCruchAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_WEAPON_CROUCH)) { // 0x69454F
+            if (const auto weaponCruchAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_WEAPON_CROUCH)) { // 0x69454F
                 if (weaponCruchAnim->m_BlendAmount > 0 && weaponCruchAnim->m_BlendDelta >= 0.f) {
                     if (weaponCruchAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                         weaponCruchAnim->m_BlendDelta = -4.f;
                     } else {
-                        CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_IDLE, 4.f);
+                        CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_IDLE, 4.f);
                     }
                 }
             }

@@ -65,8 +65,7 @@ bool CEventPotentialWalkIntoVehicle::AffectsPed(CPed* ped) {
         if (isGoToPointTask || taskEnterCarAsDriver) {
             CVector surfacePoint;
             CPedGeometryAnalyser::ComputeClosestSurfacePoint(*ped, *m_vehicle, surfacePoint);
-            int32 hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(surfacePoint, *m_vehicle);
-            if (hitSide != CPedGeometryAnalyser::ComputeEntityHitSide(targetPos, *m_vehicle))
+            if (CPedGeometryAnalyser::ComputeEntityHitSide(surfacePoint, *m_vehicle) != CPedGeometryAnalyser::ComputeEntityHitSide(targetPos, *m_vehicle))
                 return true;
 
             return false;

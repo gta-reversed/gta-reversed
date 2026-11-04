@@ -26,19 +26,19 @@ VALIDATE_SIZE(tAudioZoneBox, 0x18);
 
 class CAudioZones {
 public:
-    static inline auto& m_aActiveBoxes = *reinterpret_cast<std::array<int32, 10>*>(0xB6DC6C);
-    static inline auto& m_aActiveSpheres = *reinterpret_cast<std::array<int32, 10>*>(0xB6DC94);
+    static inline auto& m_aActiveBoxes = StaticRef<std::array<int32, 10>>(0xB6DC6C);
+    static inline auto& m_aActiveSpheres = StaticRef<std::array<int32, 10>>(0xB6DC94);
 
-    static inline auto& m_NumActiveBoxes = *reinterpret_cast<uint32*>(0xB6DCBC);
-    static inline auto& m_NumActiveSpheres = *reinterpret_cast<uint32*>(0xB6DCC0);
-    static inline auto& m_NumBoxes = *reinterpret_cast<uint32*>(0xB6DCC4);
-    static inline auto& m_NumSpheres = *reinterpret_cast<uint32*>(0xB6DCC8);
+    static inline auto& m_NumActiveBoxes = StaticRef<uint32>(0xB6DCBC);
+    static inline auto& m_NumActiveSpheres = StaticRef<uint32>(0xB6DCC0);
+    static inline auto& m_NumBoxes = StaticRef<uint32>(0xB6DCC4);
+    static inline auto& m_NumSpheres = StaticRef<uint32>(0xB6DCC8);
 
     static constexpr int32 NUM_AUDIO_BOXES = 158;
-    static inline auto& m_aBoxes = *reinterpret_cast<std::array<tAudioZoneBox, NUM_AUDIO_BOXES>*>(0xB6DCD0);
+    static inline auto& m_aBoxes = StaticRef<std::array<tAudioZoneBox, NUM_AUDIO_BOXES>>(0xB6DCD0);
 
     static constexpr int32 NUM_AUDIO_SPHERES = 3;
-    static inline auto& m_aSpheres = *reinterpret_cast<std::array<tAudioZoneSphere, NUM_AUDIO_SPHERES>*>(0xB6EBA8);
+    static inline auto& m_aSpheres = StaticRef<std::array<tAudioZoneSphere, NUM_AUDIO_SPHERES>>(0xB6EBA8);
 
 public:
     static void InjectHooks();

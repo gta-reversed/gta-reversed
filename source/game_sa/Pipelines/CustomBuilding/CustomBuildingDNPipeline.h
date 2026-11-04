@@ -10,7 +10,7 @@ struct CustomEnvMapPipeMaterialData;
 */
 #define rwID_EXTRAVERCOLOURPLUGIN MAKECHUNKID(rwVENDORID_DEVELOPER, 0xF9)
 
-constexpr auto CUSTOM_BUILDING_DN_PIPELINE_ID = 0x0;
+constexpr auto CUSTOM_BUILDING_DN_PIPELINE_ID = rpPDS_MAKEPIPEID(rwVENDORID_DEVELOPER, 0x98);
 
 //! Extra Vertex Colour plugin data [Inside RpGeometry]
 struct ExtraVertColour { // AKA `gtaVertexColorPlugin`
@@ -21,9 +21,9 @@ VALIDATE_SIZE(ExtraVertColour, 12); // 24 on Android
 
 class CCustomBuildingDNPipeline {
 public:
-    static inline float& m_fDNBalanceParam = *(float*)0x8D12C0; // 1.0f
-    static inline uint32& ms_extraVertColourPluginOffset = *(uint32*)0x8D12BC; // -1
-    static inline RxPipeline*& ObjPipeline = *(RxPipeline**)0xC02C1C;
+    static inline auto& m_fDNBalanceParam = StaticRef<float>(0x8D12C0); // 1.0f
+    static inline auto& ms_extraVertColourPluginOffset = StaticRef<uint32>(0x8D12BC); // -1
+    static inline auto& ObjPipeline = StaticRef<RxPipeline*>(0xC02C1C);
     static bool& m_bCameraChange;
     static uint32& m_AtmDNWorkingIndex;
 

@@ -3,7 +3,7 @@
 #include "PPTriPlantBuffer.h"
 #include "GrassRenderer.h"
 
-RwTexture*& RenderGrassTexture = *(RwTexture**)0xC02DC0;
+auto& RenderGrassTexture = StaticRef<RwTexture*>(0xC02DC0);
 
 void CPPTriPlantBuffer::InjectHooks() {
     RH_ScopedClass(CPPTriPlantBuffer);
@@ -33,7 +33,7 @@ void CPPTriPlantBuffer::Flush() {
     // FIX_BUGS: m_pPlantModelsTab[m_PlantModelsSet] can be null. With std::array we check it.
     // While DrawTriPlants does not check for null.
     auto random = CGeneral::GetRandomNumber();
-    CGrassRenderer::DrawTriPlants(m_Buffer, m_CurrentIndex, GetPlantModelsTab(m_PlantModelsSet));
+    CGrassRenderer::DrawTriPlants(m_Buffer.data(), m_CurrentIndex, GetPlantModelsTab(m_PlantModelsSet));
     m_CurrentIndex = 0;
     srand(random);
 }

@@ -71,7 +71,7 @@ void CPickupsDebugModule::DrawTable() {
 
         // Teleport on double click
         if (IsItemHovered() && IsMouseDoubleClicked(0)) {
-            TeleportDebugModule::TeleportTo(pickup.GetPosn(), FindPlayerPed()->m_nAreaCode);
+            TeleportDebugModule::TeleportTo(pickup.GetPosn(), FindPlayerPed()->GetAreaCode());
         }
 
         TableNextColumn();

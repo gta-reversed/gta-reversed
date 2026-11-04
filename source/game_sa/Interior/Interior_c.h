@@ -192,7 +192,8 @@ public:
     CVector GetTileCentre(float offsetX, float offsetY) const;
     bool FindEmptyTiles(int32 w, int32 h, int32* x, int32* y);
 
-    inline float GetRotationOfWall(eWall wallId) {
+    // NOTSA
+    float GetRotationOfWall(eWall wallId) const {
         const auto wall = std::to_underlying(wallId);
 
         // Euclidean modulus 4 with `x & 3`
@@ -200,7 +201,7 @@ public:
     }
 
     // Inlined in code `(wallId - 2) & 3`
-    inline eWall GetOpposingWall(eWall wallId) {
+    eWall GetOpposingWall(eWall wallId) const {
         switch (wallId) {
         case eWall::X_A: return eWall::X_B;
         case eWall::Y_A: return eWall::Y_B;
@@ -209,6 +210,8 @@ public:
         default: NOTSA_UNREACHABLE();
         }
     }
+  
+    auto GetNodeAddress() const { return m_nodeAddress; }
 
 public:
     int32                      m_ID{};                  // 0x8

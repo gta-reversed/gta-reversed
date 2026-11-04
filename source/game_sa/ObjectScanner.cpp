@@ -3,7 +3,7 @@
 #include "ObjectScanner.h"
 
 // 0x5FFF30
-void CObjectScanner::ScanForObjectsInRange(const CPed& ped) {
+void CObjectScanner::ScanForObjectsInRange(CPed& ped) {
     if (ped.m_pVehicle && ped.bInVehicle)
         return;
 

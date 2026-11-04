@@ -12,7 +12,7 @@ VALIDATE_SIZE(CInformFriendsEvent, 0xC);
 
 class CInformFriendsEventQueue {
 public:
-    static inline std::array<CInformFriendsEvent, 8>& ms_informFriendsEvents = StaticRef<std::array<CInformFriendsEvent, 8>>(0xA9AFB8);
+    static inline auto& ms_informFriendsEvents = StaticRef<std::array<CInformFriendsEvent, 8>>(0xA9AFB8);
 
 public:
     static void InjectHooks();

@@ -4,23 +4,6 @@
 
 uint8 CClock::daysInMonth[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 0x8CCF24
 
-bool& CClock::bClockHasBeenStored = *reinterpret_cast<bool*>(0xB70144);
-uint16& CClock::ms_Stored_nGameClockSeconds = *reinterpret_cast<uint16*>(0xB70148);
-uint8& CClock::ms_Stored_nGameClockMinutes = *reinterpret_cast<uint8*>(0xB7014A);
-uint8& CClock::ms_Stored_nGameClockHours = *reinterpret_cast<uint8*>(0xB7014B);
-uint8& CClock::ms_Stored_nGameClockDays = *reinterpret_cast<uint8*>(0xB7014C);
-uint8& CClock::ms_Stored_nGameClockMonths = *reinterpret_cast<uint8*>(0xB7014D);
-
-uint8& CClock::CurrentDay = *reinterpret_cast<uint8*>(0xB7014E);
-uint16& CClock::ms_nGameClockSeconds = *reinterpret_cast<uint16*>(0xB70150);
-uint8& CClock::ms_nGameClockMinutes = *reinterpret_cast<uint8*>(0xB70152);
-uint8& CClock::ms_nGameClockHours = *reinterpret_cast<uint8*>(0xB70153);
-uint8& CClock::ms_nGameClockDays = *reinterpret_cast<uint8*>(0xB70154);
-uint8& CClock::ms_nGameClockMonth = *reinterpret_cast<uint8*>(0xB70155);
-
-uint32& CClock::ms_nLastClockTick = *reinterpret_cast<uint32*>(0xB70158);
-uint32& CClock::ms_nMillisecondsPerGameMinute = *reinterpret_cast<uint32*>(0xB7015C);
-
 void CClock::InjectHooks() {
     RH_ScopedClass(CClock);
     RH_ScopedCategoryGlobal();
@@ -117,6 +100,22 @@ uint16 CClock::GetGameClockMinutesUntil(uint8 hours, uint8 minutes) {
         then += 24 * 60; // Add one day
 
     return then - now;
+}
+
+/*
+ * @brief   Number of days passed since the given day of the month (`ms_nGameClockDays` at that time).
+ *          If the current day of the month is lower, the day is assumed to be in the previous month.
+ * @param   monthDay Day of the month
+ * @returns Days passed (0 if it's today)
+ * @notsa
+ * @note    Based on code from 0x4EB5DD (`CAERadioTrackManager::StartRadio`), moved into a function
+ */
+int32 CClock::GetNumberOfDaysPassed(int32 monthDay) {
+    auto days = ms_nGameClockDays - monthDay;
+    if (days < 0) {
+        days += daysInMonth[ms_nGameClockMonth == 0 ? 11 : ms_nGameClockMonth - 1]; // Previous month
+    }
+    return days;
 }
 
 /*

@@ -35,7 +35,7 @@ bool CTaskSimpleWaitUntilAreaCodesMatch::ProcessPed(CPed* ped) {
     }
 
     if (!CEntryExitManager::ms_exitEnterState) {
-        if (m_pedToWaitFor->m_nAreaCode == ped->m_nAreaCode) {
+        if (m_pedToWaitFor->GetAreaCode() == ped->GetAreaCode()) {
             return true;
         }
     }

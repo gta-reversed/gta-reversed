@@ -29,8 +29,9 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_LEAVE_CAR;
 
-    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime);
-    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime, bool bSensibleLeaveCar, bool bForceGetOut);
+    [[deprecated]]
+    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime); // TODO: Add `bool die` to the ctor below and remove this one
+    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor /*= 0*/, int32 nDelayTime /*= 0*/, bool bSensibleLeaveCar /*= true */, bool bForceGetOut /*= false */);
     CTaskComplexLeaveCar(const CTaskComplexLeaveCar& o); // NOTSA
     ~CTaskComplexLeaveCar() override;
 

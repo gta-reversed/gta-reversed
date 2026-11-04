@@ -58,17 +58,17 @@ VALIDATE_SIZE(PackedModelStartEnd, 0x4);
 
 class CColAccel {
 public:
-    static CColAccelColBound*& m_colBounds;
-    static IplDef*&            m_iplDefs;
-    static int32*&             m_iSectionSize;
-    static int32&              m_iCachingColSize;
-    static eColAccelState&     m_iCacheState;
-    static CColAccelColEntry*& mp_caccColItems;
-    static int32&              m_iNumColItems;
-    static CColAccelIPLEntry*& mp_caccIPLItems;
-    static int32&              m_iNumIPLItems;
-    static int32&              m_iNumSections;
-    static int32&              m_iNumColBounds;
+    static inline auto& m_colBounds = StaticRef<CColAccelColBound*>(0xBC4090);
+    static inline auto& m_iplDefs = StaticRef<IplDef*>(0xBC4094);
+    static inline auto& m_iSectionSize = StaticRef<int32*>(0xBC4098);
+    static inline auto& m_iCachingColSize = StaticRef<int32>(0xBC409C);
+    static inline auto& m_iCacheState = StaticRef<eColAccelState>(0xBC40A0);
+    static inline auto& mp_caccColItems = StaticRef<CColAccelColEntry*>(0xBC40A4);
+    static inline auto& m_iNumColItems = StaticRef<int32>(0xBC40A8);
+    static inline auto& mp_caccIPLItems = StaticRef<CColAccelIPLEntry*>(0xBC40AC);
+    static inline auto& m_iNumIPLItems = StaticRef<int32>(0xBC40B0);
+    static inline auto& m_iNumSections = StaticRef<int32>(0xBC40B4);
+    static inline auto& m_iNumColBounds = StaticRef<int32>(0xBC40B8);
     static const char*         mp_cCacheName;
 
 public:

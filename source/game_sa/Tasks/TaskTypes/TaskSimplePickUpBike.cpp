@@ -60,7 +60,7 @@ void CTaskSimplePickUpBike::StartAnim(CPed const* ped) {
             return rightZ >= 0.f ? ANIM_ID_CAR_ALIGNHI_RHS : ANIM_ID_CAR_ALIGN_RHS;
         }
     }();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_veh->GetAnimGroup().GetGroup(animationId), animationId);
+    m_anim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_veh->GetAnimGroup().GetGroup(animationId), animationId);
     m_anim->SetFinishCallback(FinishAnimPickUpBikeCB, this);
 }
 

@@ -94,7 +94,7 @@ void CReplay::Update() {
     if (CTimer::GetIsCodePaused() || CTimer::GetIsUserPaused())
         return;
 
-    static uint32& s_FrameRecordCounter = *reinterpret_cast<uint32*>(0x97FB40); // STATICREF
+    static auto& s_FrameRecordCounter = StaticRef<uint32>(0x97FB40);
     if (Mode == MODE_PLAYBACK) {
         PlayBackThisFrame();
     } else if (CTimer::GetTimeInMS() - s_FrameRecordCounter > 26) {
@@ -137,7 +137,7 @@ void CReplay::EnableReplays() {
 void CReplay::StorePedAnimation(CPed* ped, CStoredAnimationState& state) {
     float blendValue{};
     CAnimBlendAssociation* second{};
-    const auto main = RpAnimBlendClumpGetMainAssociation(ped->m_pRwClump, &second, &blendValue);
+    const auto main = RpAnimBlendClumpGetMainAssociation(ped->GetRpClump(), &second, &blendValue);
     if (main) {
         state[0] = AnimationState::Make(main->m_AnimId, main->m_CurrentTime, main->m_Speed, static_cast<uint8>(main->m_AnimGroupId));
     } else {
@@ -150,7 +150,7 @@ void CReplay::StorePedAnimation(CPed* ped, CStoredAnimationState& state) {
         state[1] = AnimationState::MakeBlend(ANIM_ID_WALK, 0.0f, 0.0f, 0, 0.0f);
     }
 
-    const auto partial = RpAnimBlendClumpGetMainPartialAssociation(ped->m_pRwClump);
+    const auto partial = RpAnimBlendClumpGetMainPartialAssociation(ped->GetRpClump());
     if (partial && partial->m_AnimId >= ANIM_ID_WALK) {
         state[2] = AnimationState::MakeBlend(partial->m_AnimId, partial->m_CurrentTime, partial->m_Speed, static_cast<uint8>(partial->m_AnimGroupId), partial->m_BlendAmount);
     } else {
@@ -183,7 +183,7 @@ void CReplay::StorePedUpdate(CPed* ped, uint8 index) {
         .flags = {
             .isTalking            = (bool)(ped == FindPlayerPed() && gbFirstPersonRunThisFrame && ped->bIsTalking),
             .stillOnValidPoly     = (bool)ped->bStillOnValidPoly,
-            .usesCollision        = (bool)ped->m_bUsesCollision
+            .usesCollision        = ped->GetUsesCollision()
         }
     });
 }
@@ -200,12 +200,12 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
     if (auto first = state[0]; first.m_nAnimId > 3u) {
         auto animBlock = CAnimManager::GetAssocGroups()[first.m_nGroupId1].m_AnimBlock;
         if (animBlock && animBlock->IsLoaded) {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)first.m_nGroupId1, (AnimationId)first.m_nAnimId, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), (AssocGroupId)first.m_nGroupId1, (AnimationId)first.m_nAnimId, 100.0f);
         } else {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_WALK, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_WALK, 100.0f);
         }
     } else {
-        anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, (AnimationId)first.m_nAnimId, 100.0f);
+        anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, (AnimationId)first.m_nAnimId, 100.0f);
     }
     anim->SetCurrentTime(state[0].m_nTime / ANIM_TIME_COMPRESS_VALUE);
     anim->SetSpeed(state[0].m_nSpeed / ANIM_SPEED_COMPRESS_VALUE);
@@ -215,9 +215,9 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
     anim = nullptr;
     if (auto second = state[1]; second.m_nGroupId1 && second.m_nAnimId && CAnimManager::GetAssocGroups()[second.m_nGroupId2].m_NumAnims > 0) {
         if (second.m_nAnimId > 3u) {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)second.m_nGroupId2, (AnimationId)second.m_nAnimId, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), (AssocGroupId)second.m_nGroupId2, (AnimationId)second.m_nAnimId, 100.0f);
         } else {
-            anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, (AnimationId)second.m_nAnimId, 100.0f);
+            anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ped->m_nAnimGroup, (AnimationId)second.m_nAnimId, 100.0f);
         }
 
         if (anim) {
@@ -228,11 +228,11 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
         }
     }
 
-    RpAnimBlendClumpRemoveAssociations(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
+    RpAnimBlendClumpRemoveAssociations(ped->GetRpClump(), ANIMATION_IS_PARTIAL);
     if (auto third = state[2]; third.m_nGroupId1 && third.m_nAnimId) {
         if (/*third.m_nGroupId1 >= 0 &&*/ third.m_nAnimId != 3u) {
             if (auto animBlock = CAnimManager::GetAssocGroups()[third.m_nGroupId2].m_AnimBlock; animBlock && animBlock->IsLoaded) {
-                anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)third.m_nGroupId2, (AnimationId)third.m_nAnimId, 1000.0f);
+                anim = CAnimManager::BlendAnimation(ped->GetRpClump(), (AssocGroupId)third.m_nGroupId2, (AnimationId)third.m_nAnimId, 1000.0f);
 
                 anim->SetCurrentTime(third.m_nTime / ANIM_TIME_COMPRESS_VALUE);
                 anim->SetSpeed(third.m_nSpeed / ANIM_SPEED_COMPRESS_VALUE);
@@ -508,7 +508,7 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
 
     ped->bIsTalking = packet.flags.isTalking;
     ped->bStillOnValidPoly = packet.flags.stillOnValidPoly;
-    ped->m_bUsesCollision = packet.flags.usesCollision;
+    ped->SetUsesCollision(packet.flags.usesCollision);
     ped->m_fContactSurfaceBrightness = static_cast<float>(packet.contactSurfaceBrightness) / 100.0f;
     RetrievePedAnimation(ped, packet.animState);
 
@@ -521,7 +521,7 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
         }
     }
 
-    ped->m_nAreaCode = static_cast<eAreaCodes>(CGame::currArea);
+    ped->SetAreaCode(static_cast<eAreaCodes>(CGame::currArea));
     CWorld::Remove(ped);
     CWorld::Add(ped);
 }
@@ -570,12 +570,12 @@ void CReplay::ProcessReplayCamera() {
 // 0x45D760
 void CReplay::ProcessLookAroundCam() {
     if (bAllowLookAroundCam) {
-        static float& playerCameraDistance = *(float*)0x97FAD4;
-        static float& playerCameraDirAngle = *(float*)0x97FADC;
-        static float& viewAngle = *(float*)0x97FAD8;
+        static auto& playerCameraDistance = StaticRef<float>(0x97FAD4);
+        static auto& playerCameraDirAngle = StaticRef<float>(0x97FADC);
+        static auto& viewAngle = StaticRef<float>(0x97FAD8);
 
         const auto& pad = CPad::GetPad();
-        auto steer = CVector2D{pad->NewMouseControllerState.X / 200.0f, pad->NewMouseControllerState.Y / 200.0f};
+        auto steer = pad->NewMouseControllerState.m_AmountMoved / 200.0f;
         // steerX2 = steer.x;
         // steerY2 = steer.y;
         // if (v2 | v2)
@@ -597,14 +597,14 @@ void CReplay::ProcessLookAroundCam() {
             FramesActiveLookAroundCam = 60;
         }
 
-        static bool& s_FrameActiveLookAroundCamReset = *(bool*)0x97f66d;
+        static auto& s_FrameActiveLookAroundCamReset = StaticRef<bool>(0x97f66d);
         if (s_FrameActiveLookAroundCamReset) {
             FramesActiveLookAroundCam = 0;
         } else if (FramesActiveLookAroundCam) {
             playerCameraDirAngle += steer.x;
             FramesActiveLookAroundCam--;
 
-            if (pad->NewMouseControllerState.lmb && pad->NewMouseControllerState.rmb) {
+            if (pad->NewMouseControllerState.isMouseLeftButtonPressed && pad->NewMouseControllerState.isMouseRightButtonPressed) {
                 playerCameraDistance = std::clamp(playerCameraDistance + 2.0f * steer.y, 3.0f, 15.0f);
             } else {
                 viewAngle = std::clamp(viewAngle + steer.y, 0.1f, 1.5f); // probably some kind of cheap clamping between [0, pi/2].
@@ -651,7 +651,7 @@ void CReplay::ProcessLookAroundCam() {
     if (FramesActiveLookAroundCam) {
         const auto MakeVisible = [](auto* entity) {
             if (entity) {
-                entity->m_bIsVisible = true;
+                entity->SetIsVisible(true);
             }
         };
 
@@ -703,9 +703,9 @@ void CReplay::StoreStuffInMem() {
     Time1 = CTimer::GetTimeInMS();
     Time2 = CTimer::GetTimeInMSNonClipped();
     Time3 = CTimer::GetPreviousTimeInMS();
-    Time4 = CTimer::m_snPPreviousTimeInMilliseconds;
-    Time5 = CTimer::m_snPPPreviousTimeInMilliseconds;
-    Time6 = CTimer::m_snPPPPreviousTimeInMilliseconds;
+    Time4 = CTimer::GetPPreviousTimeInMs();
+    Time5 = CTimer::GetPPPreviousTimeInMs();
+    Time6 = CTimer::GetPPPPreviousTimeInMs();
     Time7 = CTimer::GetTimeInMSPauseMode();
     Frame = CTimer::GetFrameCounter();
     TimeScale = CTimer::GetTimeScale();
@@ -736,7 +736,7 @@ void CReplay::StoreStuffInMem() {
 void CReplay::RestoreStuffFromMem() {
     for (auto& ped : GetPedPool()->GetAllValid()) {
         if (ped.bUsedForReplay) {
-            if (auto playerData = ped.m_pPlayerData) {
+            if (auto playerData = ped.GetPlayerData()) {
                 playerData->DeAllocateData();
             }
             CWorld::Remove(&ped);
@@ -761,11 +761,10 @@ void CReplay::RestoreStuffFromMem() {
 
     CTimer::SetTimeInMS(Time1);
     CTimer::SetTimeInMSNonClipped(Time2);
-    CTimer::SetPreviousTimeInMS(Time3);
-    CTimer::m_snPreviousTimeInMilliseconds = Time3;
-    CTimer::m_snPPreviousTimeInMilliseconds = Time4;
-    CTimer::m_snPPPreviousTimeInMilliseconds = Time5;
-    CTimer::m_snPPPPreviousTimeInMilliseconds = Time6;
+    CTimer::SetPreviousTimeInMs(Time3);
+    CTimer::SetPPreviousTimeInMs(Time4);
+    CTimer::SetPPPreviousTimeInMs(Time5);
+    CTimer::SetPPPPreviousTimeInMs(Time6);
     CTimer::SetTimeInMSPauseMode(Time7);
     CTimer::SetTimeStep(TimeStep);
     CTimer::SetTimeStepNonClipped(TimeStepNonClipped);
@@ -778,7 +777,7 @@ void CReplay::RestoreStuffFromMem() {
     CWeather::NewWeatherType = NewWeatherType;
     CWeather::InterpolationValue = WeatherInterpolationValue;
 
-    CGame::currArea = static_cast<int8>(CurrArea);
+    CGame::currArea = static_cast<eAreaCodes>(CurrArea);
     CPopulation::ms_nNumCivMale = ms_nNumCivMale_Stored;
     CPopulation::ms_nNumCivFemale = ms_nNumCivFemale_Stored;
     CPopulation::ms_nNumCop = ms_nNumCop_Stored;
@@ -833,7 +832,7 @@ void CReplay::RecordThisFrame() {
     // Calculate the frame size beforehand.
     auto framePacketSize = 116u;
     for (const auto& veh : GetVehiclePool()->GetAllValid()) {
-        if (veh.m_pRwObject) {
+        if (veh.GetRwObject()) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
@@ -860,7 +859,7 @@ void CReplay::RecordThisFrame() {
     }
 
     for (const auto& ped : GetPedPool()->GetAllValid()) {
-        if (ped.m_pRwObject) {
+        if (ped.GetRwObject()) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
                 framePacketSize += FindSizeOfPacket(REPLAY_PACKET_PED_HEADER);
@@ -904,7 +903,7 @@ void CReplay::RecordThisFrame() {
     Record.Write<tReplayTimerBlock>({.timeInMS = CTimer::GetTimeInMS()});
 
     for (auto&& [i, veh] : GetVehiclePool()->GetAllValidWithIndex()) {
-        if (veh.m_pRwObject) {
+        if (veh.GetRwObject()) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
@@ -950,7 +949,7 @@ void CReplay::RecordThisFrame() {
     }
 
     for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
-        if (ped.m_pRwObject) {
+        if (ped.GetRwObject()) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
                 const auto modelId = ped.m_nModelIndex;
@@ -1044,7 +1043,7 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
             return nullptr;
         }
 
-        ped->m_nStatus = STATUS_PLAYER_PLAYBACK_FROM_BUFFER;
+        ped->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         ped->bUsedForReplay = true;
         ped->GetMatrix().SetUnity();
         ped->SetCharCreatedBy(PED_GAME_MISSION);
@@ -1061,14 +1060,14 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
 // 0x45F380
 bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, float interpolation, uint32* outTimer) {
     const auto SetupVehicle = [](const tReplayVehicleBlock& packet, CVehicle* vehicle) {
-        vehicle->m_nStatus = STATUS_PLAYER_PLAYBACK_FROM_BUFFER;
+        vehicle->SetStatus(STATUS_PLAYER_PLAYBACK_FROM_BUFFER);
         vehicle->vehicleFlags.bUsedForReplay = true;
-        vehicle->m_bUsesCollision = false;
+        vehicle->SetUsesCollision(false);
         packet.matrix.DecompressIntoFullMatrix(vehicle->GetMatrix());
         vehicle->m_nPrimaryColor = packet.primaryColor;
         vehicle->m_nSecondaryColor = packet.secondaryColor;
         if (vehicle->IsSubBoat()) {
-            vehicle->AsBoat()->m_nBoatFlags.bAnchored = false;
+            vehicle->AsBoat()->m_nBoatFlags.bLockedToXY = false;
         }
 
         CWorld::Add(vehicle);
@@ -1199,7 +1198,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             TheCamera.m_fCamShakeForce = miscPacket.camShakeForce;
             CSpecialFX::bVideoCam = miscPacket.camConfig.videoCam;
             CSpecialFX::bLiftCam = miscPacket.camConfig.liftCam;
-            CGame::currArea = miscPacket.currArea;
+            CGame::currArea = static_cast<eAreaCodes>(miscPacket.currArea);
             break;
         }
         case REPLAY_PACKET_DELETED_VEH: {
@@ -1238,9 +1237,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                // Originally BMX has an exclusive extractor for itself but it's exactly the
-                // same with bike extractor, so it's fine to use bike one here.
-                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bmxPacket.As<tReplayBmxBlock>()->ExtractBmxUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBmx(), interpolation);
             }
             break;
         }

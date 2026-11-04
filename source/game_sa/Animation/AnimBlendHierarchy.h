@@ -12,9 +12,9 @@
 /*!
  * @brief The animation object.
  * 
- * @detail It contains `CAnimBlendSequence`'s each of which is the animation for one bone (node).
- * @detail The data from here is copied to `CAnimBlendAssociation` when an animation is requested for a clump.
- * @detail It is never destroyed and stays in memory unless `CStreaming` forces the IFP to unload to free up memory.
+ * @details It contains `CAnimBlendSequence`'s each of which is the animation for one bone (node).
+ * @details The data from here is copied to `CAnimBlendAssociation` when an animation is requested for a clump.
+ * @details It is never destroyed and stays in memory unless `CStreaming` forces the IFP to unload to free up memory.
  */
 class CAnimBlendHierarchy {
 public:

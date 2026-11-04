@@ -10,3 +10,11 @@ void CPointList::AddPoint(CVector pt) noexcept {
     }
     m_Points[m_Count++] = pt;
 }
+
+CVector CPointList::GetCentroid() const noexcept {
+    CVector sum{};
+    for (const auto& pt : GetPoints()) {
+        sum += pt;
+    }
+    return sum / (float)m_Count;
+}

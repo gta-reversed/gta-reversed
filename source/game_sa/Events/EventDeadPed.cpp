@@ -2,7 +2,7 @@
 
 #include "EventDeadPed.h"
 
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 // 0x4ADEA0
 CEventDeadPed::CEventDeadPed(CPed* ped, bool bUnknown, uint32 deathTimeInMs) : CEventEditableResponse() {

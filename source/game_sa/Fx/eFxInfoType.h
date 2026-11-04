@@ -51,3 +51,11 @@ enum eFxInfoType : uint16 {
 
     FX_INFO_SMOKE_DATA            = 0x8001, //    SA
 };
+
+//! The category of an `eFxInfoType` is stored in the upper bits of it
+enum eFxInfoCategory : uint16 {
+    FX_INFO_CATEGORY_EMISSION = 0x1000, //< All the `FX_INFO_EM*_DATA`
+    FX_INFO_CATEGORY_MOVEMENT = 0x2000, //< Noise, force, friction, etc
+    FX_INFO_CATEGORY_RENDER   = 0x4000 | 0x8000, //< Colour, size, etc (and `FX_INFO_SMOKE_DATA`)
+    FX_INFO_CATEGORY_MASK     = 0xF000,
+};

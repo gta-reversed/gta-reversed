@@ -57,9 +57,10 @@ public:
     auto begin() const { return _First; }
     auto end() const { return _Last; }
     auto empty() const { return size() == 0; }
-    auto front() const { return *_First; }
-    auto back() const { return *(_Last - 1); }
+    auto front() const { assert(!empty()); return *_First; }
+    auto back() const { assert(!empty()); return *(_Last - 1); }
     void clear() { // in this implementation for the sake of simplicity `clear` actually deallocates all memory and destructs all items
+        rng::destroy(begin(), end());
         delete[] std::exchange(_First, nullptr);
         _Last = nullptr;
         _End  = nullptr;
@@ -89,15 +90,21 @@ public:
     template<typename... Args>
     void emplace_back(Args&&... args) {
         if (_Last == _End) {
-            reserve(size() * 150 / 100); // Geometric growth with K=1.5
+            reserve(std::max(size() + 1, size() * 150 / 100)); // Geometric growth with K=1.5
         }
         std::construct_at(_Last++, std::forward<Args>(args)...);
     }
-    void erase(T* iter) {
-        assert(iter >= _First && iter < _Last);
-        std::destroy_at(iter);
-        rng::shift_left(iter + 1, _Last, 1);
-        _Last--;
+    void erase(T* first, T* last) {
+        assert(first >= _First && first < _Last);
+        assert(last >= first && last <= _Last);
+        rng::destroy(first, last);
+        rng::move(last, _Last, first); // Move the rest of the elements
+        _Last -= (last - first);
     }
+    void erase(T* iter) {
+        erase(iter, iter + 1);
+    }
+
+    auto operator[](size_t idx) const { assert(idx < size()); return _First[idx]; }
 };
 VALIDATE_SIZE(SArray<int32>, 0x10);

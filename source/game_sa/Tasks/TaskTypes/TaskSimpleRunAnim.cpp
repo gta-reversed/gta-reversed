@@ -55,7 +55,7 @@ bool CTaskSimpleRunAnim::ProcessPed(CPed* ped)
     if (m_bIsFinished)
         return true;
 
-    if (!m_pAnim && !RpAnimBlendClumpGetAssociation(ped->m_pRwClump, m_nAnimId))
+    if (!m_pAnim && !RpAnimBlendClumpGetAssociation(ped->GetRpClump(), m_nAnimId))
         StartAnim(ped);
 
     return m_bIsFinished;
@@ -64,7 +64,7 @@ bool CTaskSimpleRunAnim::ProcessPed(CPed* ped)
 // 0x61A950
 void CTaskSimpleRunAnim::StartAnim(CPed* ped)
 {
-    m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_nAnimGroup, m_nAnimId, m_fBlendDelta);
+    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_nAnimGroup, m_nAnimId, m_fBlendDelta);
     m_pAnim->SetFinishCallback(CTaskSimpleAnim::FinishRunAnimCB, this);
 }
 

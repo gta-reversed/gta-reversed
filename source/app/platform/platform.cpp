@@ -37,8 +37,8 @@ void RsInjectHooks() {
     RH_ScopedGlobalInstall(RsRwInitialize, 0x619C90);
 }
 
-static std::array<uint8, 256>& KeysShifted = *(std::array<uint8, 256>*)0x8D2D00;
-static std::array<uint8, 256>& KeysNormal = *(std::array<uint8, 256>*)0x8D2C00;
+static auto& KeysShifted = StaticRef<std::array<uint8, 256>>(0x8D2D00);
+static auto& KeysNormal = StaticRef<std::array<uint8, 256>>(0x8D2C00);
 
 // 0x6193F0
 uint8 RsKeyFromScanCode(uint8 scan, int32 shiftKeyDown) {
@@ -335,10 +335,13 @@ RsEventStatus RsEventHandler(RsEvent event, void* param) {
 
 // Returns true if ratio is 5:3, 16:9 or 16:10.
 bool IsWideScreenRatio(float ratio) {
-    return ratio == 0.6f || ratio == 10.0f / 16.0f || ratio == 9.0f / 16.0f;
+    return approxEqual(ratio, 3.0f / 5.0f, 0.01f)      // 5:3 (height/width)
+        || approxEqual(ratio, 10.0f / 16.0f, 0.01f)    // 16:10
+        || approxEqual(ratio, 9.0f / 16.0f, 0.01f);    // 16:9
 }
 
 // Returns true if ratio is 4:3 or 5:4.
 bool IsFullScreenRatio(float ratio) {
-    return ratio == 3.0f / 4.0f || ratio == 4.0f / 5.0f;
+    return approxEqual(ratio, 3.0f / 4.0f, 0.01f)      // 4:3
+        || approxEqual(ratio, 4.0f / 5.0f, 0.01f);     // 5:4
 }

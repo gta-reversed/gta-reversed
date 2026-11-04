@@ -10,7 +10,7 @@ public:
     CVector m_Center;
     float m_SphereRadius;
     std::array<float, 3> m_Seed;
-    uint16 m_nMaxNumPlants[3];
+    std::array<uint16, 3> m_nMaxNumPlants;
     uint8 m_SurfaceId;
     tColLighting m_nLighting;
 

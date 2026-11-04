@@ -5,7 +5,7 @@ static inline auto& gSpecIntensity = StaticRef<float>(0x8D12D0); // 1.0f
 class CCarFXRenderer {
 public:
     static constexpr int32 NUM_DIRT_TEXTURES = 16;
-    static RwTexture* (&ms_aDirtTextures)[NUM_DIRT_TEXTURES];
+    static inline auto& ms_aDirtTextures = StaticRef<RwTexture*[NUM_DIRT_TEXTURES]>(0xC02BD0);
 
 public:
     static void InjectHooks();
@@ -13,7 +13,7 @@ public:
     static bool RegisterPlugins();
 
     static bool Initialise();
-    static void InitialiseDirtTexture();
+    static bool InitialiseDirtTexture();
     static void Shutdown();
     static void PreRenderUpdate();
 

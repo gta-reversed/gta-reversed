@@ -8,7 +8,7 @@
 /*
  * Breakable plugin static offset
  */
-static inline int32& g_BreakablePlugin = *(int32*)0xBB4238;
+static inline auto& g_BreakablePlugin = StaticRef<int32>(0xBB4238);
 
 enum eBreakablePluginPositionRule : uint32 {
     OBJECT_ORIGIN    = 0,
@@ -16,7 +16,7 @@ enum eBreakablePluginPositionRule : uint32 {
 };
 
 struct BreakInfoTriangle {
-    uint16 vertIndex[3];
+    std::array<uint16, 3> vertIndex;
 };
 
 struct BreakInfoColor {

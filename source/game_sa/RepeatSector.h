@@ -15,13 +15,16 @@ class CObject;
 enum eRepeatSectorList : int32 {
     REPEATSECTOR_VEHICLES = 0,
     REPEATSECTOR_PEDS     = 1,
-    REPEATSECTOR_OBJECTS  = 2
+    REPEATSECTOR_OBJECTS  = 2,
+
+    REPEATSECTOR_COUNT
 };
 
 class CRepeatSector {
-public:
+public: // Original used protected, as well as accessor methods to access them
     CPtrListDoubleLink<CVehicle*> Vehicles;
     CPtrListDoubleLink<CPed*>     Peds;
     CPtrListDoubleLink<CObject*>  Objects;
 };
+
 VALIDATE_SIZE(CRepeatSector, 0xC);

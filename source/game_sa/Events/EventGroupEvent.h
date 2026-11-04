@@ -11,6 +11,8 @@ public:
     CEvent* m_event;
 
 public:
+    static constexpr auto Type = EVENT_GROUP_EVENT;
+
     CEventGroupEvent(CPed* ped, CEvent* event);
     ~CEventGroupEvent() override;
 
