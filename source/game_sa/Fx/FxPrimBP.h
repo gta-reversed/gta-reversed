@@ -52,7 +52,7 @@ public:
     int8                      m_Type;
     uint8                     m_nSrcBlendId;
     uint8                     m_nDstBlendId;
-    bool                      m_bAlphaOn;
+    uint8                     m_bAlphaOn;        // Not `bool`: the original stores the low byte of the int it reads (`ALPHAON: 2` => 2)
     FxBufferedMatrix*         m_pMatrixBuffered; // int16* m_matVals;
     std::array<RwTexture*, 4> m_apTextures;
     int32 m_TxdIndex;
@@ -72,6 +72,11 @@ public:
     virtual bool FreePrtFromPrim(FxSystem_c* system) = 0;
 
     void GetRWMatrix(RwMatrix& outMatrix);
+
+private:
+    // NOTSA: 0x5C2010 is the body of the pure virtual `Load`, only ever called non-virtually (from `FxEmitterBP_c::Load`).
+    // `&FxPrimBP_c::Load` would be a vcall thunk (back into `FxEmitterBP_c::Load` => infinite recursion), so hook this instead.
+    bool Load_Hooked(FILESTREAM file, int32 version, FxName32_t* textureNames) { return FxPrimBP_c::Load(file, version, textureNames); }
 };
 
 VALIDATE_SIZE(FxPrimBP_c, 0x40);
