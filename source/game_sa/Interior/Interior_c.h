@@ -184,7 +184,8 @@ public:
     void SetTilesStatus(int32 x, int32 y, int32 w, int32 d, eTileStatusS32 status, bool force = false);
     void SetTileStatus(int32 x, int32 y, eTileStatus status); // notsa
     void SetCornerTiles(int32 wallId, int32 size, int32 status, bool force);
-    eTileStatusS32 GetTileStatus(int32 x, int32 y) const;
+    int32 GetTileStatus_vanilla(int32 x, int32 y) const; // TODO: replace the return type with `GetTileStatus`
+    eTileStatus GetTileStatus(int32 x, int32 y) const { return static_cast<eTileStatus>(GetTileStatus_vanilla(x, y)); }
     int32 GetNumEmptyTiles(int32 x, int32 y, int32 dir, int32 size);
     int32 GetRandomTile(int32 status, int32* x, int32* y);
     void GetTileCentre_OG(float offsetX, float offsetY, CVector* outPos) const;
@@ -218,7 +219,7 @@ public:
     RwMatrix                   m_Mat{};                 // 0x18
     float                      m_DistSq{};              // 0x58
     TList_c<FurnitureEntity_c> m_FurnitureEntityList{}; // 0x5C
-    Tiles<eTileStatusS8>       m_Tiles{};               // 0x68
+    Tiles<eTileStatus>         m_Tiles{};               // 0x68
     CNodeAddress               m_ExitAddr{};            // 0x3EC
     CNodeAddress               m_DoorAddr{};            // 0x3F0
     CVector                    m_ExitPos{};             // 0x3F4

@@ -54,7 +54,7 @@ void InteriorDebugModule::RenderSelectorTab() {
     {
         notsa::ui::ScopedDisable d{m_UsePlayersInt};
         InputInt("Interior ID", &m_SelectedIntIdx, 1, 1);
-        m_SelectedIntIdx = std::clamp(m_SelectedIntIdx, 0, (int)std::size(g_interiorMan.m_Interiors));
+        m_SelectedIntIdx = std::clamp(m_SelectedIntIdx, 0, (int)std::size(g_interiorMan.m_Interiors) - 1);
     }
 
     SameLine();
@@ -80,7 +80,7 @@ void InteriorDebugModule::RenderPropsTab() {
         }
         if (TreeNode("Props")) {
             if (auto* const p = m_Int->m_Props) {
-                Text("Type:     %s\n",   p->m_IntType);
+                Text("Type:     %s\n",   notsa::find_value_or(s_IntTypeNames, p->m_IntType.get(), "<Unknown>"));
                 Text("Group ID: %d\n",   p->m_groupId);
                 Text("Width:    %d\n",   p->m_width);
                 Text("Height:   %d\n",   p->m_height);
@@ -88,7 +88,7 @@ void InteriorDebugModule::RenderPropsTab() {
                 Text("Door:     %d\n",   p->m_door);
                 Text("Seed:     %d\n",   p->m_seed);
                 Text("Status:   %d\n",   p->m_status);
-                Text("Rot :     %.2f\n", p->m_rot);
+                Text("Rot:      %.2f\n", p->m_rot);
             } else {
                 Text("<Not Available>");
             }

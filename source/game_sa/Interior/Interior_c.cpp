@@ -84,7 +84,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
     RH_ScopedInstall(SetTilesStatus, 0x591700, { .Reversed = false });
     RH_ScopedInstall(SetCornerTiles, 0x5917C0, { .Reversed = false });
-    RH_ScopedInstall(GetTileStatus, 0x5918E0);
+    RH_ScopedInstall(GetTileStatus_vanilla, 0x5918E0);
     RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
     RH_ScopedInstall(FindEmptyTiles, 0x591C50, { .Reversed = false });
     RH_ScopedInstall(GetRandomTile, 0x591B20, { .Reversed = false });
@@ -168,7 +168,7 @@ void Interior_c::UnFurnish() {
 
         f->Entity = nullptr;
         m_FurnitureEntityList.RemoveItem(f);
-        g_furnitureMan.GetFurnitureList().RemoveItem(f);
+        g_furnitureMan.GetFurnitureList().AddItem(f);
     }
 }
 
@@ -364,7 +364,7 @@ void Interior_c::AddPickups() {
             continue;
         }
 
-        const auto pickupPos = GetTileCentre(static_cast<float>(tileY), static_cast<float>(tileX));
+        const auto pickupPos = GetTileCentre(static_cast<float>(tileX), static_cast<float>(tileY));
 
         if (CGeneral::RandomBool(25.0f)) {
             CPickups::GenerateNewOne_WeaponType(
@@ -696,8 +696,8 @@ void Interior_c::Lounge_AddTV(eWall wallId, int32 x, int32 y, int32 depth) {
             -1,
             m_Props->m_status
         ),
-        x2,
-        x2,
+        y1,
+        y2,
         0.5f,
         GetRotationOfWall(wallId) + 45.0f
     );
@@ -866,6 +866,7 @@ CObject* Interior_c::PlaceFurnitureOnWall(
     int32*              d
 ) {
     return plugin::CallMethodAndReturn<CObject*, 0x593120>(
+        this,
         interior,
         subGroup,
         type,
@@ -916,8 +917,8 @@ void Interior_c::SetTilesStatus(int32 x, int32 y, int32 w, int32 d, eTileStatusS
 
 // notsa
 void Interior_c::SetTileStatus(int32 x, int32 y, eTileStatus status) {
-    assert(x > 0 && x < m_Props->m_width);
-    assert(y > 0 && y < m_Props->m_depth);
+    assert(x >= 0 && x < m_Props->m_width);
+    assert(y >= 0 && y < m_Props->m_depth);
     m_Tiles[x][y] = status;
 }
 
@@ -927,18 +928,18 @@ void Interior_c::SetCornerTiles(int32 wallId, int32 size, int32 status, bool for
 }
 
 // 0x5918E0
-Interior_c::eTileStatusS32 Interior_c::GetTileStatus(int32 x, int32 y) const {
+int32 Interior_c::GetTileStatus_vanilla(int32 x, int32 y) const {
     assert(m_Props->m_width < NUM_TILES_PER_AXIS);
     if (x < 0 || x >= m_Props->m_width) {
-        return eTileStatus::STATE_1;
+        return static_cast<int32>(eTileStatus::STATE_1);
     }
 
     assert(m_Props->m_depth < NUM_TILES_PER_AXIS);
     if (y < 0 || y >= m_Props->m_depth) {
-        return eTileStatus::STATE_1;
+        return static_cast<int32>(eTileStatus::STATE_1);
     }
 
-    return m_Tiles[x][y];
+    return static_cast<int32>(m_Tiles[x][y]);
 }
 
 // 0x591920
