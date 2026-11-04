@@ -63,7 +63,7 @@ public:
     int8 IsGroupActive(int32 group) const;
     InteriorGroup_c* GetPedsInteriorGroup(const CPed* ped);
     void SetEntryExitPtr(CEntryExit* exit);
-    bool GetBoundingBox(const CEntity& entity, CVector* pos); // TODO: args: FurnitureEntity_c&, CVector(&)[4]
+    bool GetBoundingBox(const CEntity& entity, std::array<CVector, 4>& corners);
     void ActivatePeds(bool enable);
 
     auto GetInteriorIds() const { return m_InteriorIds | rng::views::take(m_InteriorCount); }

@@ -19,8 +19,7 @@ enum class eInteriorInfoType {
     UNK_9 = 9,
     UNK_10 = 10
 };
-using eInteriorInfoTypeS8 = notsa::WEnumS8<eInteriorInfoType>;
-using eInteriorInfoTypeS32 = notsa::WEnumS32<eInteriorInfoType>;
+NOTSA_WENUM_DEFS_FOR(eInteriorInfoType);
 
 struct InteriorInfo_t {
     eInteriorInfoTypeS8 Type;

@@ -25,8 +25,7 @@ enum class eInteriorGroupId { // Based on `GetGroupId`
     KITCHEN = 4,
     MISC    = 8,
 };
-using eInteriorGroupIdS8 = notsa::WEnumS8<eInteriorGroupId>;
-using eInteriorGroupIdS32 = notsa::WEnumS32<eInteriorGroupId>;
+NOTSA_WENUM_DEFS_FOR(eInteriorGroupId);
 
 enum class eInteriorSubGroupId { // Based on `GetSubGroupId`
     // eInteriorGroupId::SHOP
@@ -92,8 +91,7 @@ enum class eInteriorSubGroupId { // Based on `GetSubGroupId`
     MISC_MAGAZINES = 5,
     MISC_CLOTHES   = 6,
 };
-using eInteriorSubGroupIdS8 = notsa::WEnumS8<eInteriorSubGroupId>;
-using eInteriorSubGroupIdS32 = notsa::WEnumS32<eInteriorSubGroupId>;
+NOTSA_WENUM_DEFS_FOR(eInteriorSubGroupId);
 
 class InteriorGroup_c : public ListItem_c<InteriorGroup_c> {
 public:

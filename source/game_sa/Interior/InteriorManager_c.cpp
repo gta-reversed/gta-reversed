@@ -115,10 +115,10 @@ bool InteriorManager_c::Update() {
             }
             const auto& fxPos = ifx.Entity->GetPosition();
 
-            i->m_box        = ifx.Effects[k];
-            i->m_interiorId = (uint32)(fxPos.x * fxPos.y * fxPos.z) + ifx.FxIds[k];
-            i->m_areaCode   = ifx.Entity->GetAreaCode();
-            i->m_pGroup     = grp;
+            i->m_Props    = ifx.Effects[k];
+            i->m_ID       = (uint32)(fxPos.x * fxPos.y * fxPos.z) + ifx.FxIds[k];
+            i->m_AreaCode = ifx.Entity->GetAreaCode();
+            i->m_Group    = grp;
 
             i->Init(ifx.Effects[k]->m_Pos);
             grp->AddInterior(i);
@@ -432,11 +432,11 @@ void InteriorManager_c::SetEntryExitPtr(CEntryExit* enex) {
 }
 
 // 0x598090
-bool InteriorManager_c::GetBoundingBox(const CEntity& entity, CVector* pos) {
+bool InteriorManager_c::GetBoundingBox(const CEntity& entity, std::array<CVector, 4>& corners) {
     for (auto& grp : m_InteriorGroupList) {
         for (const auto i : grp.GetInteriors()) {
             if (auto* const fe = i->GetFurnitureEntity(entity)) {
-                return i->GetBoundingBox(fe, pos);
+                return i->GetBoundingBox(fe, corners);
             }
         }
     }

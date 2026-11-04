@@ -11,11 +11,11 @@
 #include "ListItem_c.h"
 #include "FurnitureEntity_c.h"
 #include "InteriorGroup_c.h"
+#include "InteriorInfo_t.h"
 
 class CEntity;
 class CObject;
 class Furniture_c;
-class InteriorGroup_c;
 struct tEffectInterior;
 
 struct GoToPt_t {
@@ -42,8 +42,7 @@ enum class eInteriorType {
     //
     NUM = 9,
 };
-using eInteriorTypeS32 = notsa::WEnumS32<eInteriorType>;
-using eInteriorTypeS8 = notsa::WEnumS8<eInteriorType>;
+NOTSA_WENUM_DEFS_FOR(eInteriorType);
 
 class Interior_c : public ListItem_c<Interior_c> {
     enum class eTileStatus : uint8 {
@@ -92,7 +91,7 @@ public:
      * @param corners The 4 corners of the the bounding box (counter-clockwise, from top left): top left, bottom left, bottom right, top right
      * @return 
     */
-    bool GetBoundingBox(FurnitureEntity_c* fe, CVector(&corners)[4]);
+    bool GetBoundingBox(const FurnitureEntity_c* fe, std::array<CVector, 4>& pos);
     void FindBoundingBox(
         int32 x,     int32 y,
         int32& minX, int32& maxX,
@@ -175,7 +174,7 @@ public:
     );
     void PlaceFurnitureInCorner(int32 furnitureGroupId, int32 furnitureSubgroupId, int32 type, float z, int32 heightInfo, int32 wallId, uint32 offset, int32 *retWallId, int32 *x, int32 *y, int32 *w, int32 *d);
     CObject* PlaceObject(uint8 isStealable, Furniture_c* furniture, float offsetX, float offsetY, float offsetZ, float rotationZ);
-    FurnitureEntity_c* GetFurnitureEntity(CEntity*);
+    FurnitureEntity_c* GetFurnitureEntity(const CEntity&);
 
     //
     // Tiles
@@ -210,8 +209,6 @@ public:
         default: NOTSA_UNREACHABLE();
         }
     }
-  
-    auto GetNodeAddress() const { return m_nodeAddress; }
 
 public:
     int32                      m_ID{};                  // 0x8
