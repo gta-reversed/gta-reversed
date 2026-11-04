@@ -629,7 +629,7 @@ void CStats::UpdateStatsWhenWeaponHit(eWeaponType weaponType) {
     const auto stat = CWeaponInfo::GetSkillStatIndex(weaponType);
     const auto weaponIndex = (uint32)(stat - STAT_PISTOL_SKILL);
     const auto skill = GetStatValue(stat);
-    if (CGameLogic::IsCoopGameGoingOn() || !(skill < 1000.0f)) {
+    if (CGameLogic::IsCoopGameGoingOn() || skill >= 1000.0f) {
         return;
     }
 
@@ -637,11 +637,11 @@ void CStats::UpdateStatsWhenWeaponHit(eWeaponType weaponType) {
     if (m_LastWeaponTypeFired != weaponIndex) {
         m_LastWeaponTypeFired = weaponIndex;
         m_WeaponCounter = 0;
-    } else if ((double)m_WeaponCounter > StatReactionValue[STAT_TIMELIMIT_PISTOL_SKILL + weaponIndex]) {
+    } else if ((float)m_WeaponCounter > StatReactionValue[STAT_TIMELIMIT_PISTOL_SKILL + weaponIndex]) {
         DisplayScriptStatUpdateMessage(
             STAT_UPDATE_INCREASE,
             stat,
-            (float)((double)m_WeaponCounter * StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex])
+            (float)m_WeaponCounter * StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex]
         );
         m_WeaponCounter = 0;
     } else {
@@ -656,7 +656,7 @@ void CStats::UpdateStatsWhenFighting() {
 
 // 0x55CFC0
 void CStats::UpdateStatsOnRespawn() {
-    if ((double)m_DeathCounter > StatReactionValue[STAT_TIMELIMIT_DEATH_HEALTH]) {
+    if ((float)m_DeathCounter > StatReactionValue[STAT_TIMELIMIT_DEATH_HEALTH]) {
         if (GetStatValue(STAT_MAX_HEALTH) > 400.0f) {
             IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
             DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
@@ -670,7 +670,7 @@ void CStats::UpdateStatsOnRespawn() {
 // 0x55D030
 void CStats::UpdateStatsAddToHealth(uint32 addToHealth) {
     m_AddToHealthCounter += addToHealth;
-    if ((double)m_AddToHealthCounter > StatReactionValue[STAT_TIMELIMIT_ADD_TO_HEALTH]) {
+    if ((float)m_AddToHealthCounter > StatReactionValue[STAT_TIMELIMIT_ADD_TO_HEALTH]) {
         IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
         DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
         m_AddToHealthCounter = 0;
