@@ -476,4 +476,14 @@ private:
 
 private:
     static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0);
+
+    // Wrapper functions
+
+    // Return type has to be int32, but we want to return `eDirection` in our code.
+    static int32 ComputeEntityHitSide_Hooked(const CPed& ped, CEntity& entity) { return (int32)ComputeEntityHitSide(ped, entity); }
+    static int32 ComputeEntityHitSide_Hooked(const CVector& point1, const std::array<CVector, 4>& segmentPlaneNormals, const std::array<float, 4>& segmentPlaneDots) { return (int32)ComputeEntityHitSide(point1, segmentPlaneNormals, segmentPlaneDots); }
+    static int32 ComputeEntityHitSide_Hooked(const CVector& point, CEntity& entity) { return (int32)ComputeEntityHitSide(point, entity); }
+    static int32 ComputePedHitSide_Hooked(const CPed& ped, const CPhysical& physical) { return (int32)ComputePedHitSide(ped, physical); }
+    static int32 ComputePedHitSide_Hooked(const CPed& ped, const CVector& hitDir) { return (int32)ComputePedHitSide(ped, hitDir); }
+    static int32 ComputePedShotSide_Hooked(const CPed& ped, const CVector& pos) { return (int32)ComputePedShotSide(ped, pos); }
 };
