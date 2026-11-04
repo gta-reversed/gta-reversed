@@ -765,19 +765,18 @@ bool CAEFrontendAudioEntity::IsLoadingTuneActive() {
 
 // 0x4DEDA0
 void CAEFrontendAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    return plugin::CallMethod<0x4DEDA0, CAEFrontendAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
-
-    // untested
-    if (!sound)
+    if (!sound) {
         return;
+    }
 
     const float curPos = (float)curPlayPos / 350.f + (float)curPlayPos / 350.f;
     const float rear = curPos - 1.0f;
     const float front = 1.0f - curPos;
 
-    const auto BulletSound = [=](const float x, const float y) {
+    // The original moves the sound along Z, Y stays 0
+    const auto BulletSound = [=](const float x, const float z) {
         if (curPlayPos >= 0 && curPlayPos <= 350) {
-            sound->SetPosition({ x, y, 0.0f });
+            sound->SetPosition({ x, 0.0f, z });
         }
     };
 
@@ -823,5 +822,5 @@ void CAEFrontendAudioEntity::InjectHooks() {
     RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .Reversed = false });
     RH_ScopedInstall(IsRadioTuneSoundActive, 0x4DD480);
     RH_ScopedInstall(IsLoadingTuneActive, 0x4DD470);
-    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .Reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0);
 }
