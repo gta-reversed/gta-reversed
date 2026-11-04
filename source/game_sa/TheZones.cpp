@@ -89,14 +89,27 @@ void CTheZones::AssignZoneInfoForThisZone(int16 newZoneIndex) {
 
 // 0x572220
 bool CTheZones::ZoneIsEntirelyContainedWithinOtherZone(CZone* a, CZone* b) {
-    return a->m_fX1 >= b->m_fX1
+    const bool entirelyContained =
+        a->m_fX1 >= b->m_fX1
         && a->m_fX2 <= b->m_fX2
-
         && a->m_fY1 >= b->m_fY1
         && a->m_fY2 <= b->m_fY2
-
         && a->m_fZ1 >= b->m_fZ1
         && a->m_fZ2 <= b->m_fZ2;
+
+    // From III + VC:
+    if (!entirelyContained) {
+        const auto CornerOverlaps = [&](float x, float y, float z) {
+            return x >= b->m_fX1 && x <= b->m_fX2
+                && y >= b->m_fY1 && y <= b->m_fY2
+                && z >= b->m_fZ1 && z <= b->m_fZ2;
+        };
+        if (CornerOverlaps(a->m_fX1, a->m_fY1, a->m_fZ1) || CornerOverlaps(a->m_fX2, a->m_fY2, a->m_fZ2)) {
+            NOTSA_LOG_WARN("Overlapping zones {} and {}", a->m_InfoLabel, b->m_InfoLabel);
+        }
+    }
+
+    return entirelyContained;
 }
 
 // Returns true if point lies within zone
@@ -114,6 +127,10 @@ bool CTheZones::PointLiesWithinZone(const CVector* point, CZone* zone) {
 
 // Returns eLevelName from position
 eLevelName CTheZones::GetLevelFromPosition(const CVector& point) {
+    if (!PointLiesWithinZone(&point, &MapZoneArray[0])) {
+        NOTSA_LOG_DEBUG("x = {:3f} y = {:3f} z = {:3f}", point.x, point.y, point.z); // R* log from III + VC
+    }
+
     const auto& mapZones = GetMapZones();
     for (auto& z : mapZones | rng::views::drop(1)) {
         if (z.GetBB().IsPointInside(point)) {
