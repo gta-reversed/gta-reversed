@@ -29,7 +29,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(Shop_PlaceCounter, 0x599EF0, { .Reversed = false });
     RH_ScopedInstall(Shop_PlaceFixedUnits, 0x59A030, { .Reversed = false });
     RH_ScopedInstall(Shop_FurnishCeiling, 0x59A130, { .Reversed = false });
-    RH_ScopedInstall(Shop_AddShelfInfo, 0x59A140, { .Reversed = false });
+    RH_ScopedInstall(Shop_AddShelfInfo, 0x59A140);
     RH_ScopedInstall(Shop_FurnishEdges, 0x59A1B0, { .Reversed = false });
     RH_ScopedInstall(GetBoundingBox, 0x593DB0, { .Reversed = false });
     RH_ScopedInstall(Init, 0x593BF0, { .Reversed = false });
@@ -179,7 +179,13 @@ void Interior_c::Shop_FurnishCeiling() {
 
 // 0x59A140
 void Interior_c::Shop_AddShelfInfo(int32 a2, int32 a3, int32 a5) {
-    plugin::CallMethod<0x59A140, Interior_c*, int32, int32, int32>(this, a2, a3, a5);
+    auto& shelfInfoCounter = StaticRef<int32>(0x8D0948);
+    if (shelfInfoCounter > 1 && static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * 100.f) > 60) {
+        AddInteriorInfo(8, static_cast<float>(a2), static_cast<float>(a3), a5, nullptr);
+        shelfInfoCounter = 1;
+    } else {
+        shelfInfoCounter++;
+    }
 }
 
 // 0x59A1B0
