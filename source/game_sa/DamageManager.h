@@ -196,7 +196,7 @@ public:
     // returns -1 if no node for this panel
     static eCarNodes GetCarNodeIndexFromPanel(ePanels panel);
     static eCarNodes GetCarNodeIndexFromDoor(eDoors door);
-    static bool GetComponentGroup(tComponent nComp, tComponentGroup& outCompGroup, uint8& outComponentRelativeIdx);
+    static bool __stdcall GetComponentGroup(tComponent nComp, tComponentGroup& outCompGroup, uint8& outComponentRelativeIdx);
 
     // NOTSA
     void SetAllWheelsState(eCarWheelStatus state);
