@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "TaskComplexHitPedWithCar.h"
+#include "TaskSimpleHurtPedWithCar.h"
 
 void CTaskComplexHitPedWithCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexHitPedWithCar, 0x86f294, 11);
@@ -16,9 +17,9 @@ void CTaskComplexHitPedWithCar::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x6559B0, { .Reversed = false });
     RH_ScopedVMTInstall(GetTaskType, 0x653A20, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x656300, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x653A90, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x653A90);
 
 }
 
@@ -57,7 +58,21 @@ CTask* CTaskComplexHitPedWithCar::CreateSubTask(eTaskType tt) {
 
 // 0x657AF0
 CTask* CTaskComplexHitPedWithCar::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x657AF0, CTaskComplexHitPedWithCar*, CPed*>(this, ped);
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_EVASIVE_STEP:
+    case TASK_NONE:
+    case TASK_COMPLEX_FALL_AND_GET_UP:
+    case TASK_SIMPLE_HIT_BEHIND: // 0x19E=414 (NOT TASK_SIMPLE_DUCK=415) — verified by disasm
+    case TASK_SIMPLE_KILL_PED_WITH_CAR:
+        return CreateSubTask(TASK_FINISHED); // Returns null — the task is finished
+    case TASK_SIMPLE_HURT_PED_WITH_CAR:
+        if (static_cast<const CTaskSimpleHurtPedWithCar*>(m_pSubTask)->GetWillKillPed()) {
+            return nullptr;
+        }
+        return CreateSubTask(TASK_COMPLEX_FALL_AND_GET_UP);
+    default:
+        return nullptr;
+    }
 }
 
 // 0x656300
@@ -67,5 +82,5 @@ CTask* CTaskComplexHitPedWithCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x653A90
 CTask* CTaskComplexHitPedWithCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x653A90, CTaskComplexHitPedWithCar*, CPed*>(this, ped);
+    return m_pSubTask;
 }

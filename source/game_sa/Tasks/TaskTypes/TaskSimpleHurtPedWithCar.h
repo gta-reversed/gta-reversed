@@ -12,6 +12,9 @@ public:
 
     static void InjectHooks();
 
+    //! @notsa
+    [[nodiscard]] bool GetWillKillPed() const { return m_bWillKillPed; }
+
     CTaskSimpleHurtPedWithCar(CVehicle*, float);
     CTaskSimpleHurtPedWithCar(const CTaskSimpleHurtPedWithCar&);
     ~CTaskSimpleHurtPedWithCar() override = default;
