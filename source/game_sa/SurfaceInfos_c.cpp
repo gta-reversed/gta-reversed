@@ -10,6 +10,7 @@ void SurfaceInfos_c::InjectHooks()
 
     RH_ScopedInstall(GetSurfaceIdFromName, 0x55D220);
     RH_ScopedInstall(Init, 0x55F420);
+    RH_ScopedInstall(LoadSurfaceInfos, 0x55EB90);
 
     RH_ScopedInstall(GetAdhesionGroup, 0x55E5C0);
     RH_ScopedInstall(GetTyreGrip, 0x55E5E0);
@@ -304,7 +305,6 @@ void SurfaceInfos_c::LoadSurfaceInfos()
 #if FIX_BUGS
     if (!file) {
         NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfinfo.dat");
-        CFileMgr::CloseFile(file);
         return;
     }
 #endif
@@ -326,7 +326,7 @@ void SurfaceInfos_c::LoadSurfaceInfos()
         else if (!strcmp(si.AdhesionGroup, "WET"))    surface.ucAdhesionGroup = ADHESION_GROUP_WET;
 
         surface.tyreGrip = uint32(si.TyreGrip * 10.0f);
-        surface.wetGrip  = uint32(si.WetGrip  * 100.0f); // BUG:? Data has negative values, with *original* conversion we loose sign
+        surface.wetGrip  = uint32(si.WetGrip  * 100.0f); // Data has negative values, the truncation to `int8` keeps their sign (same as the original)
 
         if (!strcmp(si.SkidMark, "DEFAULT")) surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::DEFAULT);
         if (!strcmp(si.SkidMark, "SANDY"))   surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::SANDY);
