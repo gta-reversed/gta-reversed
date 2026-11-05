@@ -7,6 +7,7 @@
 #include "World.h"
 #include "Pools/Pools.h"
 #include "Collision/Box.h"
+#include "Fx/FxManager.h"
 
 void CProjectileInfo::InjectHooks() {
     RH_ScopedClass(CProjectileInfo);
@@ -22,7 +23,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(RemoveProjectile, 0x7388F0, { .Reversed = false });
     RH_ScopedInstall(Update, 0x738B20, { .Reversed = false });
     RH_ScopedInstall(IsProjectileInRange, 0x739860);
-    RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .Reversed = false });
+    RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0);
     RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40, { .Reversed = false });
     RH_ScopedInstall(RemoveFXSystem, 0x737B80, { .Reversed = false });
 }
@@ -101,7 +102,24 @@ bool CProjectileInfo::IsProjectileInRange(float x1, float x2, float y1, float y2
 
 // 0x7399B0
 void CProjectileInfo::RemoveAllProjectiles() {
-    plugin::Call<0x7399B0>();
+    for (auto i = 0u; i < MAX_PROJECTILE_INFOS; i++) {
+        auto&       info       = gaProjectileInfo[i];
+        auto* const projectile = ms_apProjectile[i];
+        if (!info.m_bActive) {
+            continue;
+        }
+
+        info.m_bActive = false;
+        if (info.m_pFxSystem) {
+            g_fxMan.DestroyFxSystem(info.m_pFxSystem);
+            info.m_pFxSystem = nullptr;
+        }
+
+        CRadar::ClearBlipForEntity(BLIP_OBJECT, GetObjectPool()->GetRef(projectile));
+        CWorld::Remove(projectile);
+        delete projectile;
+        // The entity destructor clears registered references, including the projectile table entry.
+    }
 }
 
 // 0x739A40
