@@ -82,6 +82,8 @@ void CAutomobile::InjectHooks()
     RH_ScopedInstall(BoostJumpControl, 0x6A3A60);
     RH_ScopedInstall(StopNitroEffect, 0x6A3E60);
     RH_ScopedInstall(NitrousControl, 0x6A3EA0);
+    RH_ScopedInstall(DoNitroEffect, 0x6A3BD0);
+    RH_ScopedInstall(SetRandomDamage, 0x6A2530);
     RH_ScopedInstall(KnockPedOutCar, 0x6A44C0);
     RH_ScopedInstall(PopBootUsingPhysics, 0x6A44D0);
     RH_ScopedInstall(CloseAllDoors, 0x6A4520);
@@ -148,6 +150,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6ACE70);
     RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6A29C0);
     RH_ScopedVMTInstall(ProcessControlInputs, 0x6AD690);
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6A3060);
     RH_ScopedVMTInstall(OpenDoor, 0x6A6AE0);
     RH_ScopedVMTInstall(BlowUpCar, 0x6B3780);
     RH_ScopedVMTInstall(BlowUpCarCutSceneNoExtras, 0x6B3BB0);
@@ -3953,29 +3956,23 @@ void CAutomobile::ShowAllComps() {
 
 // 0x6A2530
 void CAutomobile::SetRandomDamage(bool bRemoveStuff) {
-    //> Bugfix shit
-    const auto FixedRandom = [&](int32 x, int32 y) {
-        // I'm very sure somebody fell into the trap of the shit naming of `GetRandomNumberInRange`
-        // (The int version of it is exclusive, while the float one is inclusive)
-        // Reason being that at `0x6A260B` the possible interval is [0, 1), that is, in integer terms a fat `0` :D
-        // Obviously, they intended it to be `[0, 1]`
-#ifdef FIX_BUGS
-        return (size_t)CGeneral::GetRandomNumberInRange(x, y + 1);
-#else
-        return (size_t)CGeneral::GetRandomNumberInRange(x, y);
-#endif
+    // Same math as the original: `rand() / (RAND_MAX + 1) * max` truncated, so the result is in [0, max)
+    const auto RandomBelow = [](size_t max) {
+        return static_cast<size_t>(static_cast<double>(CGeneral::GetRandomNumber()) * (1.0 / 32768.0) * static_cast<double>(max));
     };
 
     //> Processes a group of components (panels/doors)
     const auto Process = [
         this,
+        RandomBelow,
         IsCompDamageable = [vs = GetVehicleModelInfo()->GetVehicleStruct()](auto nodeIdx) {
             return vs->IsComponentDamageable(nodeIdx);
         }
     ](
-        size_t pickedbs, 
+        size_t pickedbs,
         size_t numToDmg,
         size_t numTotal,
+        size_t numCandidates, // Number of components that can be picked (`numTotal` minus the ones already in `pickedbs`)
         auto   GetNodeIdx,
         auto   IsDamStateOk,
         auto   SetAsDamaged
@@ -4000,7 +3997,7 @@ void CAutomobile::SetRandomDamage(bool bRemoveStuff) {
         };
 
         for (size_t i = 0u; i < numToDmg; i++) {
-            const auto pick = GetNthUnpicked((size_t)CGeneral::GetRandomNumberInRange(0, (int32)(numToDmg - i)));
+            const auto pick = GetNthUnpicked(RandomBelow(numCandidates - i));
             pickedbs |= 1 << pick; // We mark here for simplicity
             if (!IsDamStateOk(pick)) {
                 continue;
@@ -4014,11 +4011,18 @@ void CAutomobile::SetRandomDamage(bool bRemoveStuff) {
         }
     };
 
+    // Both counts are drawn before any component is picked.
+    // NOTE: Without `bRemoveStuff` the door count is always 0 (`rand() / 32768` truncates to 0), so exactly one panel is damaged.
+    const auto numDoorsToDmg  = RandomBelow(bRemoveStuff ? MAX_DOORS : 1);
+    const auto numPanelsToDmg = numDoorsToDmg == 0
+        ? bRemoveStuff ? 1 + RandomBelow(3) : 1 // The 4 here and below comes from MAX_PANELS - 3 (As 3 panels are never damaged, see below)
+        : RandomBelow(bRemoveStuff ? 4 : 1);
+
     //> Doors
-    const auto numDoorsToDmg = FixedRandom(0, bRemoveStuff ? MAX_DOORS : 1);
     Process(
         0,
         numDoorsToDmg,
+        MAX_DOORS,
         MAX_DOORS,
         [](auto i)     { return CDamageManager::GetCarNodeIndexFromDoor((eDoors)i); },
         [this](auto i) { return m_damageManager.GetDoorStatus((eDoors)i) == DAMSTATE_OK; },
@@ -4026,13 +4030,11 @@ void CAutomobile::SetRandomDamage(bool bRemoveStuff) {
     );
 
     //> Panels (With a few exceptions)
-    const auto numPanelsToDmg = numDoorsToDmg == 0
-        ? bRemoveStuff ? FixedRandom(1, 4) : 1 // The 4 here and below comes from MAX_PANELS - 3 (As 3 panels are never damaged, see below)
-        : FixedRandom(0, bRemoveStuff ? 4 : 1);
     Process(
         1 << REAR_LEFT_PANEL | 1 << REAR_RIGHT_PANEL | 1 << WINDSCREEN_PANEL, // These are never damaged
         numPanelsToDmg,
         MAX_PANELS,
+        MAX_PANELS - 3,
         [](auto i)     { return CDamageManager::GetCarNodeIndexFromPanel((ePanels)i); },
         [this](auto i) { return m_damageManager.GetPanelStatus((ePanels)i) == DAMSTATE_OK; },
         [this](auto i) { return m_damageManager.SetPanelStatus((ePanels)i, DAMSTATE_DAMAGED); }
@@ -4282,7 +4284,7 @@ void CAutomobile::DoNitroEffect(float power) {
     if (m_pHandlingData->m_bDoubleExhaust) {
         secondExhaustPosition = exhaustPosition;
         secondExhaustPosition.x *= -1.0f;
-        if (!physicalFlags.bTouchingWater) {
+        if (physicalFlags.bTouchingWater) {
             CVector point = m_matrix->TransformPoint(secondExhaustPosition);
             if (CWaterLevel::GetWaterLevel(point, level, true)) {
                 if (level >= point.z)
