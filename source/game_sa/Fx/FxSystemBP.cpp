@@ -75,7 +75,7 @@ void FxSystemBP_c::Load(Const char* filename, FILESTREAM file, int32 version) {
         m_fLoopLength      = ReadField<float>(file);
     }
 
-    m_nPlayMode = ReadField<uint8_t>(file, "PLAYMODE:");
+    m_nPlayMode = static_cast<eFxSystemPlayMode>(ReadField<uint8_t>(file, "PLAYMODE:"));
     m_nCullDist = uint16(ReadField<float>(file, "CULLDIST:") * 256.0f);
 
     if (version > 103) {
