@@ -140,7 +140,7 @@ CTask* CTaskComplexGoToCarDoorAndStandStill::CreateFirstSubTask(CPed* ped) {
         }
 
         if (m_TargetSeat != 0 && !m_bIsDriver) {
-            if (const auto psgrAtDoor = m_Vehicle->GetPassengers()[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Vehicle, m_TargetSeat)]) {
+            if (const auto psgrAtDoor = CCarEnterExit::GetPassengerAtCarDoor(m_Vehicle, m_TargetSeat)) {
                 if (psgrAtDoor->bThisPedIsATargetPriority) {
                     return TASK_SIMPLE_STAND_STILL;
                 }

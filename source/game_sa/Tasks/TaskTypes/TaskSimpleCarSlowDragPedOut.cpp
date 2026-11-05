@@ -99,9 +99,8 @@ void CTaskSimpleCarSlowDragPedOut::StartAnim(const CPed* ped) {
 CPed* CTaskSimpleCarSlowDragPedOut::GetJackedPed() const {
     if (m_TargetDoor == TARGET_DOOR_DRIVER) {
         return m_Vehicle->m_pDriver;
-    } else {
-        return m_Vehicle->m_apPassengers[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Vehicle, (int32)m_TargetDoor)];
     }
+    return CCarEnterExit::GetPassengerAtCarDoor(m_Vehicle, (int32)m_TargetDoor);
 }
 
 // 0x64BFB0
