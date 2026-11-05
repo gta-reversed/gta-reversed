@@ -55,7 +55,7 @@ public:
 
     static int32 FindSafeHouseIndexForGarageType(eGarageType type);
     static int16 FindGarageForObject(CObject*);
-    static int16 FindGarageIndex(char* name);
+    static int16 FindGarageIndex(const char* name);
     static float FindDoorHeightForMI(uint32 modelIndex);
 
     static bool IsModelIndexADoor(int32 model);
