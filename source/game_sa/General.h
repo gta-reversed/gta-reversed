@@ -7,11 +7,14 @@
 #pragma once
 
 #include <cstdlib> // RAND_MAX
+#ifdef _M_IX86
+#include <float.h>
+#endif
 #include <extensions/utility.hpp>
 
 //! If you see this value USE THE INTEGER VERSION of `GetRandomNumberInRange`
 //! It's very important to do that, because the int version will is exclusive
-//constexpr float RAND_MAX_INT_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX + 1); // 1.0 / 32768.0 == 1.0 / (RAND_MAX + 1) = 0.0000305175781
+constexpr float RAND_MAX_INT_RECIPROCAL = 1.0f / (static_cast<float>(RAND_MAX) + 1.0f); // 1.0 / 32768.0 on the original x86 CRT
 
 //! If you see this value, USE THE FLOAT VERSION of `GetRandomNumberInRange`
 constexpr float RAND_MAX_FLOAT_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX);   // 1.0 / 32767.0 == 1.0 / RAND_MAX       = 0.0000305185094
@@ -117,9 +120,31 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
      */
     template<std::integral T>
     inline T GetRandomNumberInRange(T min, T max, bool inclusive = false) {
+#ifdef BETTER_RNG
         return inclusive
             ? static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max)))
             : static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max) - 1.f));
+#else
+        assert(inclusive ? max >= min : max > min);
+        using Difference = decltype(max - min);
+        using UnsignedDifference = std::make_unsigned_t<Difference>;
+        // Preserve the original x86 integer arithmetic without signed overflow.
+        const auto width = static_cast<Difference>(static_cast<UnsignedDifference>(max) - static_cast<UnsignedDifference>(min));
+        const auto interval = static_cast<double>(width) + (inclusive ? 1.0 : 0.0);
+        auto scaled = static_cast<double>(static_cast<float>(GetRandomNumber()) * RAND_MAX_INT_RECIPROCAL) * interval;
+#ifdef _M_IX86
+        // The original FIMUL obeys the calling thread's x87 precision.
+        unsigned int control{};
+        __control87_2(0, 0, &control, nullptr);
+        if ((control & _MCW_PC) == _PC_24) {
+            scaled = static_cast<float>(scaled);
+        }
+#else
+        scaled = static_cast<float>(scaled);
+#endif
+        const auto offset = static_cast<Difference>(scaled);
+        return static_cast<T>(static_cast<UnsignedDifference>(min) + static_cast<UnsignedDifference>(offset));
+#endif
     }
 
     /**
