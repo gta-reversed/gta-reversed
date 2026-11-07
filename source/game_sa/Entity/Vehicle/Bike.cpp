@@ -749,7 +749,7 @@ void CBike::PreRender() {
     // 0x6BD8EF - Front forks: rotate around the (raked) steering axis
     if (auto* const forks = m_aBikeNodes[BIKE_FORKS_FRONT]) {
         mat.Attach(RwFrameGetMatrix(forks), false);
-        const auto pos = mat.GetPosition();
+        const CVector pos = mat.GetPosition();
 
         // Inlined in the original: attached to an uninitialised stack matrix, without calling `Attach` (which would read it)
         RwMatrix rwSteerMat;
@@ -774,7 +774,7 @@ void CBike::PreRender() {
         // 0x6BDA58
         if (auto* const handlebars = m_aBikeNodes[BIKE_HANDLEBARS]) {
             mat.Attach(RwFrameGetMatrix(handlebars), false);
-            const auto handlebarsPos = mat.GetPosition();
+            const CVector handlebarsPos = mat.GetPosition();
             if (GetStatus() == STATUS_ABANDONED || GetStatus() == STATUS_WRECKED) {
                 mat.SetUnity();
                 mat *= steerMat;
@@ -791,7 +791,7 @@ void CBike::PreRender() {
         const auto angle = -std::asin((m_aWheelSuspensionHeights[1] - m_aWheelOrigHeights[1]) / m_fSwingArmLength); // Original: `asin(...) * -1.0f`
 
         mat.Attach(RwFrameGetMatrix(swingArm), false);
-        const auto pos = mat.GetPosition();
+        const CVector pos = mat.GetPosition();
         mat.SetRotate(angle, 0.0f, 0.0f);
         mat.GetPosition() += pos;
         mat.UpdateRW();
@@ -819,7 +819,7 @@ void CBike::PreRender() {
 
     // 0x6BDCA3 - Rear wheel
     mat.Attach(RwFrameGetMatrix(m_aBikeNodes[BIKE_WHEEL_REAR]), false);
-    const auto rearWheelPos = mat.GetPosition();
+    const CVector rearWheelPos = mat.GetPosition();
     if (m_nWheelStatus[1] == WHEEL_STATUS_BURST) {
         mat.SetRotate(m_aWheelPitchAngles[1], 0.0f, std::sin(m_aWheelPitchAngles[1]) * 0.07f);
     } else {
