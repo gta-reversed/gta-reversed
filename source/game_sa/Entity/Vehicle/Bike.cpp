@@ -8,6 +8,7 @@
 
 #include "Bike.h"
 
+#include "Shadows.h"
 #include "Buoyancy.h"
 
 
@@ -42,7 +43,7 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(ProcessControlInputs, 0x6BE310, { .Reversed = false });
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6BDEA0);
     RH_ScopedVMTInstall(Render, 0x6BDE20);
-    RH_ScopedVMTInstall(PreRender, 0x6BD090, { .Reversed = false });
+    RH_ScopedVMTInstall(PreRender, 0x6BD090);
     RH_ScopedVMTInstall(Teleport, 0x6BCFC0);
     RH_ScopedVMTInstall(ProcessControl, 0x6B9250, { .Reversed = false });
     RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .Reversed = false });
@@ -592,9 +593,254 @@ void CBike::Fix() {
     m_nWheelStatus[1] = 0;
 }
 
+// 0xC1C81C - a file-static float in the original, dynamically initialised at 0x853620 (0.277778f / 50.0f).
+// Same value as `VELOCITY_CONST` in cHandlingDataMgr.cpp: game speed (units/frame) -> km/h divisor.
+static constexpr float VELOCITY_CONST = 0.277778f / 50.0f;
+
 // 0x6BD090
 void CBike::PreRender() {
-    plugin::CallMethod<0x6BD090, CBike*>(this);
+    CVehicle::PreRender();
+
+    auto* const colModel = GetColModel();
+    const auto* const lines = colModel->m_pColData->m_pLines; // Lines 0, 1 are the front wheel's, 2, 3 the rear wheel's
+
+    // 0x6BD0C7 - Smoothed suspension heights (z of the wheel centres in model space)
+    if (vehicleFlags.bVehicleColProcessed) {
+        DoBurstAndSoftGroundRatios();
+
+        for (auto i = 0u; i < 2u; i++) { // Unrolled in the original: 0 - front wheel (lines 0, 1), 1 - rear wheel (lines 2, 3)
+            const auto line = i * 2;
+
+            // Line ratio at full compression, and how far the suspension is extended (0 - fully compressed, 1 - fully extended)
+            const auto compressedRatio = 1.0f - m_fSuspensionLength[line] / m_fLineLength[line];
+            const auto extension = (std::min(m_aWheelRatios[line], m_aWheelRatios[line + 1]) - compressedRatio) / (1.0f - compressedRatio);
+
+            auto height = lines[line].m_vecStart.z;
+            if (extension > 0.0f) {
+                height -= extension * m_fSuspensionLength[line];
+            }
+            // 0x6BD150 / 0x6BD1D0 - NOTE: Frame-rate dependent (75% per frame, no time step). HighFpsFixes patches the 0.75f
+            m_aWheelSuspensionHeights[i] += (height - m_aWheelSuspensionHeights[i]) * 0.75f;
+        }
+    }
+
+    // 0x6BD1E2 - Wheel particles (skidmarks, smoke, etc.)
+    if (GetStatus() == STATUS_PHYSICS || GetStatus() == STATUS_PLAYER || GetStatus() == STATUS_PLAYER_PLAYBACK_FROM_BUFFER || GetStatus() == STATUS_SIMPLE) {
+        const auto rearWheelSkidding = m_WheelStates[1] == WHEEL_STATE_SKIDDING;
+        const auto speed = m_vecMoveSpeed.Magnitude();
+
+        for (auto i = 0u; i < 2u; i++) {
+            // Use the wheel's other line if only that one touches the ground
+            const auto line = i == 0
+                ? (m_aRatioHistory[0] >= 1.0f && m_aRatioHistory[1] < 1.0f ? 1 : 0)
+                : (m_aRatioHistory[3] >= 1.0f && m_aRatioHistory[2] < 1.0f ? 2 : 3);
+
+            uint32 flags = i == 0 && !rearWheelSkidding ? WHEEL_PARTICLE_NOSKIDSMOKE : 0;
+
+            auto& colPoint = m_aWheelColPoints[line];
+            CVector pos = colPoint.m_vecPoint + GetRight() * (std::sin(m_RideAnimData.LeanAngle) * GetColModel()->GetBoundingBox().m_vecMin.z * 0.8f);
+
+            if (m_bWheelBloody[i]) {
+                flags += WHEEL_PARTICLE_BLOODY;
+            }
+            if (m_bMoreSkidMarks[i]) {
+                flags += WHEEL_PARTICLE_EXTRASKIDS;
+            }
+
+            AddSingleWheelParticles(
+                m_WheelStates[i],
+                m_nWheelStatus[i],
+                m_aRatioHistory[line],
+                speed,
+                colPoint,
+                pos,
+                m_RideAnimData.LeanAngle > 0.0f ? -1.0f : 1.0f,
+                static_cast<eCarWheel>(i), // 0 - front, 1 - rear
+                m_aWheelSkidmarkType[i],
+                m_bWheelBloody[i],
+                static_cast<eWheelParticleFlags>(flags)
+            );
+        }
+    }
+
+    // 0x6BD39F
+    m_bLeanMatrixCalculated = false;
+    CalculateLeanMatrix();
+
+    if (vehicleFlags.bEngineOn && !m_pHandlingData->m_bNoExhaust && m_vecMoveSpeed.Dot(GetForward()) / VELOCITY_CONST < 130.0f && !vehicleFlags.bIsDrowning) {
+        AddExhaustParticles();
+    }
+
+    AddDamagedVehicleParticles();
+
+    // 0x6BD40F - Police bike siren lights: red (left) and blue (right) corona alternating every 256 ms, plus a point light fading between the two
+    if (m_nModelIndex == MODEL_COPBIKE && vehicleFlags.bSirenOrAlarm && vehicleFlags.bEngineOn && !physicalFlags.bRenderScorched) {
+        const auto time = CTimer::GetTimeInMS() & 0x1FF;
+        const auto coronaIntensity = static_cast<uint8>(CTimeCycle::m_CurrentColours.m_fSpriteBrightness * 25.5f);
+
+        const auto RegisterSirenCorona = [this](uint32 id, uint8 red, uint8 blue, const CVector& offset) {
+            CCoronas::RegisterCorona(
+                id, this,
+                red, 0, blue, 255,
+                offset,
+                0.4f, 40.0f,
+                CORONATYPE_SHINYSTAR, FLARETYPE_NONE, CORREFL_NONE, LOSCHECK_OFF, TRAIL_OFF,
+                0.0f, false, 1.5f, false, 30.0f, false, true
+            );
+        };
+
+        uint8 lightRed;
+        if (time < 256) {
+            lightRed = static_cast<uint8>(time);
+            RegisterSirenCorona(reinterpret_cast<uint32>(this) + 21, coronaIntensity, 0, { -0.28f, 0.6f, 0.3f });
+        } else {
+            lightRed = static_cast<uint8>(512 - time); // NOTE: Wraps to 0 at time == 256 (one ms glitch), compiled as `neg al`
+            RegisterSirenCorona(reinterpret_cast<uint32>(this) + 22, 0, coronaIntensity, { 0.28f, 0.6f, 0.3f });
+        }
+        const auto lightBlue = static_cast<uint8>(255 - lightRed);
+
+        // 0x6BD53B
+        CPointLights::AddLight(
+            PLTYPE_POINTLIGHT,
+            GetPosition() + GetForward() + GetUp() * 0.5f,
+            CVector{},
+            10.0f,
+            (float)lightRed / 1024.0f,
+            0.0f,
+            (float)lightBlue / 1024.0f,
+            0,
+            true,
+            nullptr
+        );
+    }
+
+    // 0x6BD654
+    DoVehicleLights(m_mLeanMatrix, VEHICLE_LIGHTS_IGNORE_DAMAGE);
+    CShadows::StoreShadowForVehicle(this, VEH_SHD_BIKE);
+
+    CMatrix mat;
+
+    auto* const mi = GetVehicleModelInfo();
+    const auto steerFwd = m_matrix->TransformVector({ -std::sin(m_fSteerAngle), std::cos(m_fSteerAngle), 0.0f }); // 0x59C790 - Multiply3x3
+
+    // 0x6BD6CC - Wheel spin. NOTE: The contact points are in model space, but `GetSpeed` expects a world space offset (not rotated by the matrix)
+    if (m_WheelCounts[0] > 0.0f || m_WheelCounts[1] > 0.0f) {
+        const CVector contactPoint{
+            0.0f,
+            (lines[0].m_vecStart.y + lines[1].m_vecStart.y) * 0.5f,
+            lines[0].m_vecStart.z - std::min(m_aRatioHistory[1], m_aRatioHistory[0]) * m_fSuspensionLength[0] - mi->m_fWheelSizeFront * 0.5f
+        };
+        // NOTE: Always `WHEEL_STATE_NORMAL` for the front wheel (`m_WheelStates[0]` is not used)
+        m_aWheelAngularVelocity[0] = ProcessWheelRotation(WHEEL_STATE_NORMAL, steerFwd, GetSpeed(contactPoint), mi->m_fWheelSizeFront * 0.5f);
+        m_aWheelPitchAngles[0] += m_aWheelAngularVelocity[0] * CTimer::GetTimeStep();
+    }
+
+    // 0x6BD7EC
+    if (m_WheelCounts[2] > 0.0f || m_WheelCounts[3] > 0.0f) {
+        const CVector contactPoint{
+            0.0f,
+            (lines[2].m_vecStart.y + lines[3].m_vecStart.y) * 0.5f,
+            lines[2].m_vecStart.z - std::min(m_aRatioHistory[3], m_aRatioHistory[2]) * m_fSuspensionLength[2] - mi->m_fWheelSizeFront * 0.5f // BUG: Front wheel size (0x6BD868)
+        };
+        m_aWheelAngularVelocity[1] = ProcessWheelRotation(m_WheelStates[1], GetForward(), GetSpeed(contactPoint), mi->m_fWheelSizeRear * 0.5f);
+        m_aWheelPitchAngles[1] += m_aWheelAngularVelocity[1] * CTimer::GetTimeStep();
+    }
+
+    // 0x6BD8EF - Front forks: rotate around the (raked) steering axis
+    if (auto* const forks = m_aBikeNodes[BIKE_FORKS_FRONT]) {
+        mat.Attach(RwFrameGetMatrix(forks), false);
+        const auto pos = mat.GetPosition();
+
+        // Inlined in the original: attached to an uninitialised stack matrix, without calling `Attach` (which would read it)
+        RwMatrix rwSteerMat;
+        CMatrix  steerMat;
+        steerMat.m_pAttachMatrix = &rwSteerMat;
+        steerMat.SetUnity();
+        steerMat.UpdateRW();
+
+        CVector steerAxis{ 0.0f, std::sin(DegreesToRadians(mi->m_fBikeSteerAngle)), -std::cos(DegreesToRadians(mi->m_fBikeSteerAngle)) };
+        steerAxis.Normalise();
+
+        CQuaternion steerQuat;
+        steerQuat.Set(&steerAxis, -m_RideAnimData.BarSteerAngle);
+        steerQuat.Get(steerMat.m_pAttachMatrix);
+        steerMat.Update();
+
+        mat.SetUnity();
+        mat = mat * steerMat;
+        mat.GetPosition() += pos;
+        mat.UpdateRW();
+
+        // 0x6BDA58
+        if (auto* const handlebars = m_aBikeNodes[BIKE_HANDLEBARS]) {
+            mat.Attach(RwFrameGetMatrix(handlebars), false);
+            const auto handlebarsPos = mat.GetPosition();
+            if (GetStatus() == STATUS_ABANDONED || GetStatus() == STATUS_WRECKED) {
+                mat.SetUnity();
+                mat *= steerMat;
+                mat.GetPosition() += handlebarsPos;
+            } else {
+                mat.SetTranslate(handlebarsPos);
+            }
+            mat.UpdateRW();
+        }
+    }
+
+    // 0x6BDB03 - Swing arm
+    if (auto* const swingArm = m_aBikeNodes[BIKE_FORKS_REAR]) {
+        const auto angle = -std::asin((m_aWheelSuspensionHeights[1] - m_aWheelOrigHeights[1]) / m_fSwingArmLength); // Original: `asin(...) * -1.0f`
+
+        mat.Attach(RwFrameGetMatrix(swingArm), false);
+        const auto pos = mat.GetPosition();
+        mat.SetRotate(angle, 0.0f, 0.0f);
+        mat.GetPosition() += pos;
+        mat.UpdateRW();
+    }
+
+    // 0x6BDB99 - Front wheel: moves along the fork (rake), wobbles if burst. NOTE: No null check (also for the mudguard and the rear wheel)
+    mat.Attach(RwFrameGetMatrix(m_aBikeNodes[BIKE_WHEEL_FRONT]), false);
+    const CVector frontWheelPos{
+        mat.GetPosition().x,
+        (lines[0].m_vecStart.y + lines[1].m_vecStart.y) * 0.5f - m_fForkYOffset - (m_aWheelSuspensionHeights[0] - m_aWheelOrigHeights[0]) * m_fSteerAngleTan,
+        m_aWheelSuspensionHeights[0] - m_fForkZOffset
+    };
+    if (m_nWheelStatus[0] == WHEEL_STATUS_BURST) {
+        mat.SetRotate(m_aWheelPitchAngles[0], 0.0f, std::sin(m_aWheelPitchAngles[0]) * 0.05f);
+    } else {
+        mat.SetRotateX(m_aWheelPitchAngles[0]);
+    }
+    mat.GetPosition() += frontWheelPos;
+    mat.UpdateRW();
+
+    // 0x6BDC6E - Mudguard follows the front wheel
+    mat.Attach(RwFrameGetMatrix(m_aBikeNodes[BIKE_MUDGUARD]), false);
+    mat.GetPosition() = frontWheelPos;
+    mat.UpdateRW();
+
+    // 0x6BDCA3 - Rear wheel
+    mat.Attach(RwFrameGetMatrix(m_aBikeNodes[BIKE_WHEEL_REAR]), false);
+    const auto rearWheelPos = mat.GetPosition();
+    if (m_nWheelStatus[1] == WHEEL_STATUS_BURST) {
+        mat.SetRotate(m_aWheelPitchAngles[1], 0.0f, std::sin(m_aWheelPitchAngles[1]) * 0.07f);
+    } else {
+        mat.SetRotateX(m_aWheelPitchAngles[1]);
+    }
+    mat.GetPosition() += rearWheelPos;
+    mat.UpdateRW();
+
+    // 0x6BDD3A - Chassis: lean (same rotation as `CalculateLeanMatrix`), lowered so the wheels stay on the ground
+    if (auto* const chassis = m_aBikeNodes[BIKE_CHASSIS]) {
+        mat.Attach(RwFrameGetMatrix(chassis), false);
+        const CVector pos{
+            mat.GetPosition().x,
+            mat.GetPosition().y,
+            (1.0f - std::cos(m_RideAnimData.LeanAngle)) * colModel->GetBoundingBox().m_vecMin.z * 0.9f
+        };
+        mat.SetRotateX(std::fabs(m_RideAnimData.LeanAngle) * -0.05f);
+        mat.RotateY(m_RideAnimData.LeanAngle);
+        mat.GetPosition() += pos;
+        mat.UpdateRW();
+    }
 }
 
 // 0x6BDE20
