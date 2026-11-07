@@ -677,7 +677,7 @@ bool CCarCtrl::PickNextNodeAccordingStrategy(CVehicle* vehicle) {
 void CCarCtrl::InitSequence(int32 numSequenceElements) {
     SequenceElements = numSequenceElements;
     SequenceRandomOffset = CGeneral::GetRandomNumber() % numSequenceElements;
-    bSequenceOtherWay = (CGeneral::GetRandomNumber() / 4) % 2;
+    bSequenceOtherWay = (CGeneral::GetRandomNumber() >> 4) & 1;
 }
 
 // 0x42DE80
