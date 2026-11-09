@@ -7,6 +7,7 @@
 #include "World.h"
 #include "Pools/Pools.h"
 #include "Collision/Box.h"
+#include "Fx/FxManager.h"
 
 void CProjectileInfo::InjectHooks() {
     RH_ScopedClass(CProjectileInfo);
@@ -14,8 +15,8 @@ void CProjectileInfo::InjectHooks() {
 
     // Install("CProjectileInfo", "", , &CProjectileInfo::);
     RH_ScopedInstall(Initialise, 0x737B40, { .Reversed = false });
-    RH_ScopedInstall(Shutdown, 0x737BC0, { .Reversed = false });
-    RH_ScopedInstall(GetProjectileInfo, 0x737BF0, { .Reversed = false });
+    RH_ScopedInstall(Shutdown, 0x737BC0);
+    RH_ScopedInstall(GetProjectileInfo, 0x737BF0);
     RH_ScopedInstall(RemoveNotAdd, 0x737C00, { .Reversed = false });
     RH_ScopedInstall(AddProjectile, 0x737C80, { .Reversed = false });
     RH_ScopedInstall(RemoveDetonatorProjectiles, 0x738860, { .Reversed = false });
@@ -24,7 +25,7 @@ void CProjectileInfo::InjectHooks() {
     RH_ScopedInstall(IsProjectileInRange, 0x739860);
     RH_ScopedInstall(RemoveAllProjectiles, 0x7399B0, { .Reversed = false });
     RH_ScopedInstall(RemoveIfThisIsAProjectile, 0x739A40, { .Reversed = false });
-    RH_ScopedInstall(RemoveFXSystem, 0x737B80, { .Reversed = false });
+    RH_ScopedInstall(RemoveFXSystem, 0x737B80);
 }
 
 // 0x737B40
@@ -34,12 +35,17 @@ void CProjectileInfo::Initialise() {
 
 // 0x737BC0
 void CProjectileInfo::Shutdown() {
-    plugin::Call<0x737BC0>();
+    for (auto& info : gaProjectileInfo) {
+        if (info.m_pFxSystem) {
+            g_fxMan.DestroyFxSystem(info.m_pFxSystem);
+            info.m_pFxSystem = nullptr;
+        }
+    }
 }
 
 // 0x737BF0
 CProjectileInfo* CProjectileInfo::GetProjectileInfo(int32 infoId) {
-    return plugin::CallAndReturn<CProjectileInfo*, 0x737BF0, int32>(infoId);
+    return &gaProjectileInfo[infoId];
 }
 
 // 0x737C00
@@ -111,5 +117,14 @@ bool CProjectileInfo::RemoveIfThisIsAProjectile(CObject* object) {
 
 // 0x737B80
 void CProjectileInfo::RemoveFXSystem(bool bInstantly) {
-    plugin::CallMethod<0x737B80, CProjectileInfo*, bool>(this, bInstantly);
+    if (!m_pFxSystem) {
+        return;
+    }
+
+    if (bInstantly) {
+        g_fxMan.DestroyFxSystem(m_pFxSystem);
+    } else {
+        m_pFxSystem->Kill();
+    }
+    m_pFxSystem = nullptr;
 }
