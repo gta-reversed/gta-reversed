@@ -68,7 +68,7 @@ public:
     bool FindClosestInteriorInfo(int32 a, CVector point, float b, InteriorInfo_t** interiorInfo, Interior_c** interior, float* pSome);
     bool FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_t** a3, Interior_c** a4);
     int32 GetNumInteriorInfos(int32 a2);
-    int32 GetRandomInterior();
+    Interior_c* GetRandomInterior();
     auto GetId() const { return m_id; }
 
     auto GetInteriors() const { return m_interiors | std::views::take(m_numInteriors); }
