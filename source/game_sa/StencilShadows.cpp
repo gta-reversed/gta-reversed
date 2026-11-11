@@ -58,7 +58,7 @@ void CStencilShadows::Shutdown() {
 
 // 0x710D50
 void CStencilShadows::Render(const CRGBA& color) {
-    plugin::Call<0x710D50>();
+    plugin::Call<0x710D50, const CRGBA&>(color);
 
     /*
     uiTempBufferIndicesStored = 0;
