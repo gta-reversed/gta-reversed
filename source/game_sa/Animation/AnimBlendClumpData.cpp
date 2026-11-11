@@ -25,14 +25,14 @@ CAnimBlendClumpData::CAnimBlendClumpData() {
 CAnimBlendClumpData::~CAnimBlendClumpData() {
     m_AnimList.Remove();
     if (m_FrameDatas) {
-        CMemoryMgr::FreeAlign(&m_FrameDatas);
+        CMemoryMgr::FreeAlign(m_FrameDatas);
     }
 }
 
 // 0x4CF140
 void CAnimBlendClumpData::SetNumberOfBones(uint32 numBones) {
     if (m_FrameDatas) {
-        CMemoryMgr::FreeAlign(&m_FrameDatas);
+        CMemoryMgr::FreeAlign(m_FrameDatas);
     }
     m_NumFrameData = numBones;
     m_FrameDatas = static_cast<AnimBlendFrameData*>(CMemoryMgr::MallocAlign(sizeof(AnimBlendFrameData) * numBones, 64));
