@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup and build project using Conan
         uses: ./.github/actions/conan
@@ -38,7 +38,7 @@ jobs:
           build: true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: gta_reversed-${{ matrix.conf }}-${{ matrix.unity }}
           path: bin/${{ matrix.conf }}
