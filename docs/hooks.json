@@ -5371,6 +5371,11 @@
   },
   {
     "Category": "SurfaceInfos_c",
+    "Name": "LoadSurfaceInfos",
+    "IsReversed": true
+  },
+  {
+    "Category": "SurfaceInfos_c",
     "Name": "GetAdhesionGroup",
     "IsReversed": true
   },

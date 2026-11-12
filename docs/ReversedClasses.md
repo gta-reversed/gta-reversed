@@ -1,15 +1,15 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 04, 2026 at 15:44:57 UTC
-(Triggered by commit [6487f631](https://github.com/gta-reversed/gta-reversed/commit/6487f6312ba3ec1744671d2a1bbd972e693289b3))
+Last update was at Nov 12, 2026 at 01:06:07 UTC
+(Triggered by commit [4a03771a](https://github.com/gta-reversed/gta-reversed/commit/4a03771affb54804eb33a54f8813a840e85dc8a1))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7664 out of 8336 functions done in 722 categories)
+## Stats (7665 out of 8337 functions done in 722 categories)
 
 #### Completely reversed categories (605/722) [84%]
 
@@ -75,7 +75,7 @@ Last update was at Nov 04, 2026 at 15:44:57 UTC
 - CMouseControllerState (3)<br />
 - CReferences (4)<br />
 - CShotInfo (5)<br />
-- SurfaceInfos_c (48)<br />
+- SurfaceInfos_c (49)<br />
 - CRenderer (33)<br />
 - CObjectData (2)<br />
 - CObjectSaveStructure (2)<br />
