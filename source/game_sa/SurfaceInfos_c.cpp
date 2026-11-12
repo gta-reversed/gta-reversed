@@ -326,7 +326,7 @@ void SurfaceInfos_c::LoadSurfaceInfos()
         else if (!strcmp(si.AdhesionGroup, "WET"))    surface.ucAdhesionGroup = ADHESION_GROUP_WET;
 
         surface.tyreGrip = uint32(si.TyreGrip * 10.0f);
-        surface.wetGrip  = uint32(si.WetGrip  * 100.0f); // Data has negative values, the truncation to `int8` keeps their sign (same as the original)
+        surface.wetGrip  = uint32(si.WetGrip  * 100.0f); // BUG:? Data has negative values, with *original* conversion we loose sign
 
         if (!strcmp(si.SkidMark, "DEFAULT")) surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::DEFAULT);
         if (!strcmp(si.SkidMark, "SANDY"))   surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::SANDY);
