@@ -1,15 +1,15 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 28, 2026 at 23:01:15 UTC
-(Triggered by commit [1cfd54ad](https://github.com/gta-reversed/gta-reversed/commit/1cfd54adf50a11ded862da37aa97fcf6b5d9bb2e))
+Last update was at Nov 04, 2026 at 15:44:57 UTC
+(Triggered by commit [6487f631](https://github.com/gta-reversed/gta-reversed/commit/6487f6312ba3ec1744671d2a1bbd972e693289b3))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7660 out of 8336 functions done in 722 categories)
+## Stats (7664 out of 8336 functions done in 722 categories)
 
 #### Completely reversed categories (605/722) [84%]
 
@@ -644,7 +644,7 @@ Last update was at Oct 28, 2026 at 23:01:15 UTC
 - CPedGroupIntelligence (26/27) [96%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
-- CStats (32/51) [63%]<br />
+- CStats (35/51) [69%]<br />
 - CCarCtrl (26/110) [24%]<br />
 - CGarage (4/18) [22%]<br />
 - CGarages (21/27) [78%]<br />
@@ -732,7 +732,7 @@ Last update was at Oct 28, 2026 at 23:01:15 UTC
 - CQuadBike (11/12) [92%]<br />
 - CTrain (22/41) [54%]<br />
 - CVehicle (157/160) [98%]<br />
-- InteriorGroup_c (2/24) [8%]<br />
+- InteriorGroup_c (3/24) [12%]<br />
 - CRunningScript (24/39) [62%]<br />
 - CTheScripts (68/69) [99%]<br />
 - CScripted2dEffects (4/5) [80%]<br />

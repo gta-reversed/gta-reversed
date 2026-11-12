@@ -8,7 +8,7 @@ void InteriorGroup_c::InjectHooks() {
     //RH_ScopedInstall(Constructor, 0x597FE0, { .Reversed = false });
     //RH_ScopedInstall(Destructor, 0x597FF0, { .Reversed = false });
 
-    RH_ScopedInstall(Init, 0x5947E0, { .Reversed = false });
+    RH_ScopedInstall(Init, 0x5947E0);
     RH_ScopedInstall(Update, 0x5968E0, { .Reversed = false });
     RH_ScopedInstall(SetupPeds, 0x596890, { .Reversed = false });
     RH_ScopedInstall(UpdatePeds, 0x596830, { .Reversed = false });
@@ -36,7 +36,18 @@ void InteriorGroup_c::InjectHooks() {
 
 // 0x5947E0
 void InteriorGroup_c::Init(CEntity* entity, int32 id) {
-    plugin::CallMethod<0x5947E0, InteriorGroup_c*, CEntity*, int32>(this, entity, id);
+    rng::fill(m_interiors, nullptr);
+    rng::fill(m_peds, nullptr);
+    rng::fill(m_pedsToRemove, nullptr);
+    
+    m_numInteriors        = 0;
+    m_pathSetupComplete   = 0;
+    m_updatePeds          = 0;
+    m_isVisible           = false;
+    m_lastIsVisible       = false;
+    m_animBlockReferenced = 0;
+    m_pEntity = entity;
+    m_groupId = static_cast<uint8>(id);
 }
 
 // 0x5968E0

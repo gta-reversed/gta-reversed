@@ -8162,17 +8162,17 @@
   {
     "Category": "CStats",
     "Name": "PopulateFavoriteRadioStationList",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindMostFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindLeastFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
@@ -40777,7 +40777,7 @@
   {
     "Category": "InteriorGroup_c",
     "Name": "Init",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "InteriorGroup_c",
