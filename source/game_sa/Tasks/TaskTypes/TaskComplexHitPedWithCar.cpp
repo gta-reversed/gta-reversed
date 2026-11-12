@@ -58,20 +58,22 @@ CTask* CTaskComplexHitPedWithCar::CreateSubTask(eTaskType tt) {
 
 // 0x657AF0
 CTask* CTaskComplexHitPedWithCar::CreateNextSubTask(CPed* ped) {
-    switch (m_pSubTask->GetTaskType()) {
+    switch (const auto stt = m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_EVASIVE_STEP:
     case TASK_NONE:
     case TASK_COMPLEX_FALL_AND_GET_UP:
-    case TASK_SIMPLE_HIT_BEHIND: // 0x19E=414 (NOT TASK_SIMPLE_DUCK=415) — verified by disasm
-    case TASK_SIMPLE_KILL_PED_WITH_CAR:
-        return CreateSubTask(TASK_FINISHED); // Returns null — the task is finished
-    case TASK_SIMPLE_HURT_PED_WITH_CAR:
-        if (static_cast<const CTaskSimpleHurtPedWithCar*>(m_pSubTask)->GetWillKillPed()) {
+    case TASK_SIMPLE_HIT_BEHIND:
+    case TASK_SIMPLE_KILL_PED_WITH_CAR: {   
+        return CreateSubTask(TASK_FINISHED);
+    }
+    case TASK_SIMPLE_HURT_PED_WITH_CAR: {
+        if (notsa::cast<const CTaskSimpleHurtPedWithCar>(m_pSubTask)->GetWillKillPed()) {
             return nullptr;
         }
         return CreateSubTask(TASK_COMPLEX_FALL_AND_GET_UP);
+    }
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE_CASE(stt);
     }
 }
 
