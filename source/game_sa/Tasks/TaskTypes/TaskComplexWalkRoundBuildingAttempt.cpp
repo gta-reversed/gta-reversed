@@ -53,8 +53,6 @@ CTaskComplexWalkRoundBuildingAttempt::CTaskComplexWalkRoundBuildingAttempt(eMove
 {
     m_normal.z = 0.f;
     m_normal.Normalise();
-
-    CEntity::RegisterReference(m_targetEntity);
 }
 
 CTaskComplexWalkRoundBuildingAttempt::CTaskComplexWalkRoundBuildingAttempt(const CTaskComplexWalkRoundBuildingAttempt& o) :
@@ -67,7 +65,6 @@ CTaskComplexWalkRoundBuildingAttempt::~CTaskComplexWalkRoundBuildingAttempt() {
     for (auto route : { m_crapRoute, m_route }) {
         delete route;
     }
-    CEntity::SafeCleanUpRef(m_targetEntity);
 }
 
 // 0x654B80
