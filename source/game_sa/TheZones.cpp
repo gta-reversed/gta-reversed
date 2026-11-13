@@ -36,6 +36,7 @@ void CTheZones::InjectHooks() {
     RH_ScopedGlobalOverloadedInstall(GetZoneInfo, "", 0x572400, CZoneInfo*(*)(const CVector& point, CZone**));
     RH_ScopedGlobalInstall(FindSmallestZoneForPosition, 0x572360);
     RH_ScopedGlobalInstall(GetLevelFromPosition, 0x572300);
+    RH_ScopedGlobalInstall(SetCurrentZoneAsUnlocked, 0x572800);
     RH_ScopedGlobalInstall(ZoneIsEntirelyContainedWithinOtherZone, 0x572220);
 
 }
@@ -54,10 +55,13 @@ void CTheZones::ResetZonesRevealed() {
 // NOTSA
 bool& CTheZones::GetZoneWasVisited(CVector2D pos) {
 #ifdef FIX_BUGS
-    return ZonesVisited[(size_t)((std::clamp(pos.x, -2999.f, 2999.f) + 3000.f) / 600.f)][9LL - (size_t)((std::clamp(pos.y, -2999.f, 2999.f) + 3000.f) / 600.f)];
-#else
-    return ZonesVisited[10 * (size_t)((pos.x + 3000.f) / 600.f) - (size_t)((pos.y + 3000.f) / 600.f) + 9];
+    pos.x = std::clamp(pos.x, -2999.f, 2999.f);
+    pos.y = std::clamp(pos.y, -2999.f, 2999.f);
 #endif
+    // Ten 600 unit cells either way, the second index counts down from the top of the map
+    const auto x = (size_t)((pos.x + 3000.f) / 600.f);
+    const auto y = (size_t)((pos.y + 3000.f) / 600.f);
+    return ZonesVisited.at(x).at(9 - y);
 }
 
 // NOTSA
@@ -241,7 +245,17 @@ void CTheZones::Init() {
 // Unlock the current zone
 // 0x572800
 void CTheZones::SetCurrentZoneAsUnlocked() {
-    ((void(__cdecl*)())0x572800)();
+    const auto pos = FindPlayerCoors();
+    m_CurrLevel = GetLevelFromPosition(pos);
+
+    // Nothing is revealed while the player is off the map, inside an interior, or standing in a
+    // zone the script has taken control of.
+    if (CTheScripts::bPlayerIsOffTheMap || CGame::currArea || GetCurrentZoneLockedOrUnlocked({ pos.x, pos.y })) {
+        return;
+    }
+    
+    GetZoneWasVisited({ pos.x, pos.y }) = true;
+    ZonesRevealed++;
 }
 
 // Creates a zone
