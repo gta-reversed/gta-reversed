@@ -163,7 +163,7 @@ uint32 CAnimBlendAssociation::GetHashKey() const noexcept {
 
 // 0x4CE9F0
 void CAnimBlendAssociation::AllocateAnimBlendNodeArray(int32 count) {
-    m_BlendNodes = (CAnimBlendNodeImpl*)CMemoryMgr::MallocAlign(count * sizeof(CAnimBlendNodeImpl), 64);
+    m_BlendNodes = (CAnimBlendNode*)CMemoryMgr::MallocAlign(count * sizeof(CAnimBlendNode), 64);
     for (auto& node : std::span{ m_BlendNodes, (size_t)count }) {
         node.Init();
     }
@@ -331,6 +331,11 @@ void CAnimBlendAssociation::ReferenceAnimBlock() {
     SetFlag(ANIMATION_REFERENCE_BLOCK, true);
 }
 
-std::span<CAnimBlendNodeImpl> CAnimBlendAssociation::GetNodes() {
+auto CAnimBlendAssociation::GetNodes() {
     return std::span{ m_BlendNodes, m_NumBlendNodes };
+}
+
+// 0x4CEB60
+CAnimBlendNode* CAnimBlendAssociation::GetNode(int32 nodeIndex) {
+    return &GetNodes()[nodeIndex];
 }

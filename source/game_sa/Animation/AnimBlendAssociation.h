@@ -10,7 +10,6 @@
 #include "eAnimBlendCallbackType.h"
 #include "RenderWare.h"
 
-#include <extensions/AnimBlendNodeImpl.hpp>
 #include <extensions/WEnum.hpp>
 
 class CAnimBlendNode;
@@ -129,7 +128,7 @@ public:
     CAnimBlendLink                m_Link;          //!< Link to the next association of the clump
     uint16                        m_NumBlendNodes; //!< Number of bones this anim moves
     notsa::WEnumS16<AssocGroupId> m_AnimGroupId;   //!< Anim's group
-    CAnimBlendNodeImpl*           m_BlendNodes;    //!< Node per-node animations - NOTE: Order of these depends on order of nodes in Clump this was built from
+    CAnimBlendNode*               m_BlendNodes;    //!< Node per- animations - NOTE: Order of these depends on order of nodes in Clump this was built from
     CAnimBlendHierarchy*          m_BlendHier;     //!< The animation hierarchy this association was created from
     float                         m_BlendAmount;   //!< How much this animation is blended
     float                         m_BlendDelta;    //!< How much `BlendAmount` changes over time
@@ -217,12 +216,9 @@ public:
     auto GetSpeed() const      { return m_Speed; }
     void SetSpeed(float speed) { m_Speed = speed; }
 
-    std::span<CAnimBlendNodeImpl> GetNodes();
-    // 0x4CEB60
-    CAnimBlendNode*               GetNode(int32 nodeIndex) {
-        return reinterpret_cast<CAnimBlendNode*>(&GetNodes()[nodeIndex]);
-    }
-    CAnimBlendNode* GetNodesPtr() { return reinterpret_cast<CAnimBlendNode*>(m_BlendNodes); }
+    auto            GetNodes();
+    CAnimBlendNode* GetNode(int32 nodeIndex);
+    CAnimBlendNode* GetNodesPtr() { return m_BlendNodes; }
 
     auto& GetLink() { return m_Link; }
     auto  GetHier() const { return m_BlendHier; }
