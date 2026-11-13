@@ -67,7 +67,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(CheckFrontEndDownInput, 0x5738B0);
     RH_ScopedInstall(CheckFrontEndLeftInput, 0x573920);
     RH_ScopedInstall(CheckFrontEndRightInput, 0x573990);
-    RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui/sdl stops working! [The input at least does]
+    RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .Locked = true });  // Must be hooked at all times otherwise imgui/sdl stops working! [The input at least does]
     RH_ScopedInstall(CheckHover, 0x57C4F0);
     RH_ScopedInstall(CheckMissionPackValidMenu, 0x57D720);
     RH_ScopedInstall(CheckCodesForControls, 0x57DB20);
@@ -85,7 +85,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(PrintRadioStationList, 0x5746F0);
 
     RH_ScopedInstall(UserInput, 0x57FD70);
-    RH_ScopedInstall(AdditionalOptionInput, 0x5773D0, { .reversed = false });
+    RH_ScopedInstall(AdditionalOptionInput, 0x5773D0);
     RH_ScopedInstall(CheckRedefineControlInput, 0x57E4D0);
     RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50);
 
@@ -549,7 +549,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_ShowMissionBlips               = true;
         m_ShowOtherBlips                 = true;
         m_ShowGangAreaBlips              = true;
-        m_bShowSubtitles                 = true;
+        m_bShowSubtitles                 = false;
         break;
     case SCREEN_CONTROLLER_SETUP:
         m_ControlMethod                  = eController::MOUSE_PLUS_KEYS;
@@ -649,13 +649,15 @@ void CMenuManager::LoadSettings() {
         return;
     }
 
-    const auto SetToDefaultSettings = [&]() {
+    bInvertMouseY = true;
+
+    const auto SetToDefaultSettings = [&, previousLang = m_nPrefsLanguage]() {
         SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
-        m_nPrefsVideoMode = 0;
-        m_nPrefsLanguage = eLanguage::AMERICAN;
+        m_nCurrentRwSubsystem = 0;
+        m_nPrefsLanguage = previousLang;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
 
         CFileMgr::CloseFile(file);

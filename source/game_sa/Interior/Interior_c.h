@@ -24,7 +24,7 @@ public:
     tEffectInterior*  m_box;                // 0x14
     RwMatrix          m_matrix;             // 0x18
     int32             field_58;             // 0x58
-    TList_c<void>     m_list;               // 0x5C - TODO: Figure out type
+    TList_c<int>     m_list;                // 0x5C - TODO: Figure out type
     char              field_68[900];        // 0x68
     int16             field_3EC;            // 0x3EC
     int16             field_3EE;            // 0x3EE
@@ -87,7 +87,7 @@ public:
     bool GetBoundingBox(FurnitureEntity_c* entity, CVector* a3);
     void ResetTiles();
     CObject* PlaceObject(uint8 isStealable, Furniture_c* furniture, float offsetX, float offsetY, float offsetZ, float rotationZ);
-    FurnitureEntity_c* GetFurnitureEntity(CEntity*);
+    FurnitureEntity_c* GetFurnitureEntity(const CEntity& entity);
     bool IsPtInside(const CVector& pt, CVector bias = {});
     void CalcMatrix(CVector* translation);
     void Furnish();

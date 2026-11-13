@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-#include <Tracy.hpp>
-
 #include "app_game.h"
 #include "LoadingScreen.h"
 #include "PlantMgr.h"
@@ -41,11 +39,11 @@ void AppGameInjectHooks() {
     RH_ScopedGlobalInstall(RenderEffects, 0x53E170);
     RH_ScopedGlobalInstall(RenderScene, 0x53DF40);
     RH_ScopedGlobalInstall(RenderMenus, 0x53E530);
-    RH_ScopedGlobalInstall(Render2dStuff, 0x53E230, { .locked = true }); // Must be hooked at all times otherwise game locks!
+    RH_ScopedGlobalInstall(Render2dStuff, 0x53E230, { .Locked = true }); // Must be hooked at all times otherwise game locks!
     RH_ScopedGlobalInstall(RenderDebugShit, 0x53E160);
 
-    RH_ScopedGlobalInstall(Idle, 0x53E920, { .locked = true }); // Must be hooked at all times otherwise game locks!
-    RH_ScopedGlobalInstall(FrontendIdle, 0x53E770, { .locked = true }); // Must be hooked at all times otherwise imgui stops working!
+    RH_ScopedGlobalInstall(Idle, 0x53E920, { .Locked = true }); // Must be hooked at all times otherwise game locks!
+    RH_ScopedGlobalInstall(FrontendIdle, 0x53E770, { .Locked = true }); // Must be hooked at all times otherwise imgui stops working!
 }
 
 // 0x5BF3B0
@@ -122,7 +120,7 @@ void RenderEffects() {
     CRenderer::RenderFirstPersonVehicle();
     CPostEffects::Render();
 
-    notsa::ui::UIRenderer::GetSingleton().Render3D();
+    notsa::ui::UIRenderer::GetInstance().Render3D();
 }
 
 // 0x53DF40
@@ -327,7 +325,7 @@ void Idle(void* param) {
 
         // SDL already constraints the mouse pointer using relative mode
 #ifndef NOTSA_USE_SDL3
-        if (!notsa::ui::UIRenderer::GetSingleton().IsActive()) {
+        if (!notsa::ui::UIRenderer::GetInstance().IsActive()) {
             FrontEndMenuManager.CentreMousePointer();
         }
 #endif
@@ -382,7 +380,7 @@ void Idle(void* param) {
     FlushObrsPrintfs();
 
     // NOTSA: ImGui menu draw loop
-    notsa::ui::UIRenderer::GetSingleton().DrawLoop();
+    notsa::ui::UIRenderer::GetInstance().DrawLoop();
 
     RwCameraEndUpdate(Scene.m_pRwCamera);
     RsCameraShowRaster(Scene.m_pRwCamera);
@@ -439,7 +437,7 @@ void FrontendIdle() {
         FlushObrsPrintfs();
 
         // NOTSA: ImGui menu draw loop
-        notsa::ui::UIRenderer::GetSingleton().DrawLoop();
+        notsa::ui::UIRenderer::GetInstance().DrawLoop();
 
         RwCameraEndUpdate(Scene.m_pRwCamera);
         RsCameraShowRaster(Scene.m_pRwCamera);

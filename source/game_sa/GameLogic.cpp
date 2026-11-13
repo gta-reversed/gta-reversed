@@ -381,10 +381,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     }
     player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;
-    if (auto vehicle = player->m_pVehicle) {
-        CEntity::CleanUpOldReference(vehicle);
-    }
-    player->m_pVehicle = nullptr;
+    CEntity::ClearReference(player->m_pVehicle);
     player->GetWanted()->Reset();
     player->RestartNonPartialAnims();
     playerInfo->MakePlayerSafe(false, 10'000.0f);
@@ -838,7 +835,7 @@ void CGameLogic::UpdateSkip() {
 
             TheCamera.SetFadeColour(0, 0, 0);
             TheCamera.Fade(2.5f, eFadeFlag::FADE_IN);
-            SkipTimer = CTimer::m_snTimeInMilliseconds + 3000;
+            SkipTimer = CTimer::GetTimeInMS() + 3000;
             CMessages::AddBigMessage(TheText.Get("SKIP"), 4500, STYLE_BOTTOM_RIGHT);
         }
         break;

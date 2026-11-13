@@ -7,10 +7,11 @@
 #include "AEAudioUtility.h"
 
 enum class eWeatherEvent {
-    THUNDER    = 1,
-    CITY_NOISE = 3,
-    UNK_4      = 4,
-    UNK_5      = 5,
+    THUNDER        = 1,
+    THUNDER_DIRECT = 2,
+    CITY_NOISE     = 3,
+    UNK_4          = 4,
+    UNK_5          = 5,
 };
 
 
@@ -32,7 +33,7 @@ void CAEWeatherAudioEntity::StaticInitialise() {
 
 // 0x5052B0
 void CAEWeatherAudioEntity::StaticReset() {
-    m_sfRainVolume = -100.0f;
+    m_sfRainVolume = VOLUME_SILENCE;
 
     if (m_sRainSoundL.IsActive()) {
         m_sRainSoundL.StopSoundAndForget();
@@ -43,15 +44,41 @@ void CAEWeatherAudioEntity::StaticReset() {
     }
 }
 
-// 0x506800, see discord gists channel
+// 0x506800
 void CAEWeatherAudioEntity::AddAudioEvent(eAudioEvents event) {
-    plugin::CallMethod<0x506800, CAEWeatherAudioEntity*, eAudioEvents>(this, event);
+    constexpr float THUNDER_FREQUENCIES[] = { 1.15f, 1.f, 0.85f }; // 0x8CC300
+
+    if (event != AE_THUNDER || !CGame::CanSeeOutSideFromCurrArea() || CCullZones::PlayerNoRain() || CCullZones::CamNoRain()) {
+        return;
+    }
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)) {
+        return;
+    }
+
+    const auto volume = CAEAudioUtility::AudioLog10(CWeather::LightningDuration * 0.0375f + 0.25f) * 20.f + GetDefaultVolume(AE_THUNDER);
+    m_nThunderFrequencyVariationCounter = (uint8)((m_nThunderFrequencyVariationCounter + 1) % std::size(THUNDER_FREQUENCIES));
+    const auto freq = THUNDER_FREQUENCIES[m_nThunderFrequencyVariationCounter];
+
+    const auto PlayThunderSound = [&](eSoundID sfx, float posX, float soundVolume, float speed, uint32 flags, eWeatherEvent soundEvent) {
+        AESoundManager.PlaySound({
+            .BankSlotID  = SND_BANK_SLOT_EXPLOSIONS,
+            .SoundID     = sfx,
+            .AudioEntity = this,
+            .Pos         = CVector{ posX, 0.423f, 0.f },
+            .Volume      = soundVolume,
+            .Speed       = speed,
+            .Flags       = flags,
+            .EventID     = +soundEvent,
+        });
+    };
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_NEAR_L, -0.906f, -100.f, freq * 0.35636002f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES, eWeatherEvent::THUNDER);
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_NEAR_L, 0.906f, -100.f, freq * 0.4f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES, eWeatherEvent::THUNDER);
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_DISTANT_L, -0.906f, std::min(volume, 0.f), freq * 0.35636002f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_ROLLED_OFF, eWeatherEvent::THUNDER_DIRECT);
+    PlayThunderSound(SND_GENRL_EXPLOSIONS_DISTANT_L, 0.906f, std::min(volume, 0.f), freq * 0.4f, SOUND_FRONT_END | SOUND_IS_CANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_ROLLED_OFF, eWeatherEvent::THUNDER_DIRECT);
 }
 
 // 0x505A00
 void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    //plugin::CallMethod<0x505A00, CAEWeatherAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
-
     if (curPlayPos <= 0) {
         return;
     }
@@ -115,33 +142,34 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
             const auto UpdateSound = [&](float speed, float volume) { // 0x505F56
                 if (sound->GetVolume() < volume + GetDefaultVolume(AE_CITY_NOISE)) {
                     sound->SetVolume(std::min(volume + sound->GetVolume() + 0.3f, GetDefaultVolume(AE_CITY_NOISE) + volume));
+                    cityNoiseVolumeBoostResidue = volume;
                 } else if (sound->GetVolume() > volume + GetDefaultVolume(AE_CITY_NOISE)) {
                     if (cityNoiseVolumeBoostResidue <= 0.f) {
-                       sound->SetVolume(std::max(volume + sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE) + volume));
-                    } else {
-                        cityNoiseVolumeBoostResidue = std::min(1.3f, cityNoiseVolumeBoostResidue);
-                        sound->SetVolume(std::max(sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE)) - cityNoiseVolumeBoostResidue);
-                        //if (sound->GetVolume() - 0.3f - residue <= GetDefaultVolume(AE_CITY_NOISE) - residue) {
-                        //} else {
-                        //}
+                        sound->SetVolume(std::max(sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE)));
+                    } else { // 0x505FB5
+                        const auto residue = std::min(1.3f, cityNoiseVolumeBoostResidue);
+                        sound->SetVolume(std::max(sound->GetVolume() - 0.3f, GetDefaultVolume(AE_CITY_NOISE)) - residue);
+                        cityNoiseVolumeBoostResidue -= residue;
                     }
                 }
                 sound->SetSpeed(speed);
+                lastEntity = hitEntity;
             };
             if (hitEntity && hitEntity != lastEntity && std::abs(camPos.z - pov.z) < 6.f) { // 0x505D50
                 const CVector velocity = player && player->IsInVehicle()
                     ? player->m_pVehicle->GetMoveSpeed()
                     : CVector{};
-                const CVector hitPhysicalPos = hitEntity->GetIsTypePhysical()
-                    ? hitEntity->GetPosition()
+                const CVector hitPhysicalVelocity = hitEntity->GetIsTypePhysical()
+                    ? hitEntity->AsPhysical()->GetMoveSpeed()
                     : CVector{};
                 const auto fwd = TheCamera.GetForwardVector().Normalized();
-                const auto force = (velocity.ProjectOnToNormal(fwd) - hitPhysicalPos.ProjectOnToNormal(fwd)).Magnitude();
+                const auto force = (velocity.ProjectOnToNormal(fwd) - hitPhysicalVelocity.ProjectOnToNormal(fwd)).Magnitude();
                 if (force > 0.35f) { // 0x505E8D
                     const auto speed = (force - 0.35f) / 0.95f;
-                    UpdateSound(speed * 1.75f + 1.75f, CAEAudioUtility::AudioLog10((1.f - (pov + camRight - hitCP.m_vecPoint).Magnitude() / 0.6f) * speed) * 20.f + 30.f);
+                    UpdateSound(speed * 1.75f + 1.75f, CAEAudioUtility::AudioLog10((1.f - (pov + camRight - hitCP.m_vecPoint).Magnitude() / 6.f) * speed) * 20.f + 30.f);
+                } else {
+                    UpdateSound(1.f, 0.f);
                 }
-                lastEntity = hitEntity;
             } else {
                 UpdateSound(1.f, 0.f);
             }
@@ -151,11 +179,11 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         if (sound->m_CurrPos == DEFAULT_POS) {
             static auto& fCityNoiseVolumeBoostResidueRight = StaticRef<float>(0xB6BC70);
             static auto& pLastEntityRight = StaticRef<CEntity*>(0xB6BC74);
-            Process(pov + camRight * 4.f, pov + camRight, fCityNoiseVolumeBoostResidueRight, pLastEntityRight);
+            Process(pov + camRight, pov + camRight * 4.f, fCityNoiseVolumeBoostResidueRight, pLastEntityRight);
         } else {
             static auto& fCityNoiseVolumeBoostResidueLeft = StaticRef<float>(0xB6BC68);
             static auto& pLastEntityLeft = StaticRef<CEntity*>(0xB6BC6C);
-            Process(pov - camRight * 4.f, pov - camRight, fCityNoiseVolumeBoostResidueLeft, pLastEntityLeft);
+            Process(pov - camRight, pov - camRight * 4.f, fCityNoiseVolumeBoostResidueLeft, pLastEntityLeft);
         }
 
         break;
@@ -184,7 +212,7 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         if (CAEAudioUtility::ResolveProbability(0.07f)) { // 0x506642
             sbWindOffset = !sbWindOffset;
         }
-        sbWindOffset = sbWindOffset // 0x50667E
+        sfWindOffset = sbWindOffset // 0x50667E
             ? 21.f * windRatio
             : 0.f;
         sfWindFreq = sbWindOffset // 0x50668E
@@ -202,6 +230,8 @@ void CAEWeatherAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         }
         break;
     }
+    case eWeatherEvent::THUNDER_DIRECT:
+        break;
     default:
         NOTSA_UNREACHABLE();
     }
@@ -291,7 +321,7 @@ void CAEWeatherAudioEntity::Service() {
         }
     };
     if (CWeather::Rain <= 0.f || CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || !CGame::CanSeeOutSideFromCurrArea()) { // 0x5055A3
-        UpdateRainSounds(-100.0f);
+        UpdateRainSounds(VOLUME_SILENCE);
     } else { // 0x5055D5
         m_sfRainVolume = std::max(m_sfRainVolume, -50.f);
         UpdateRainSounds(GetDefaultVolume(AE_RAIN) + CAEAudioUtility::AudioLog10(std::max(CWeather::Rain - 0.2f, 0.f) / 0.8f) * 20.f);
@@ -304,7 +334,7 @@ void CAEWeatherAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(StaticInitialise, 0x5B9A70);
     RH_ScopedInstall(StaticReset, 0x5052B0);
-    RH_ScopedInstall(AddAudioEvent, 0x506800, { .reversed = false });
+    RH_ScopedInstall(AddAudioEvent, 0x506800);
     RH_ScopedVMTInstall(UpdateParameters, 0x505A00);
     RH_ScopedInstall(Service, 0x5052F0);
 }

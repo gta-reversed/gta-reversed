@@ -672,9 +672,9 @@ void CBoat::ProcessControl() {
 
     if (m_nModelIndex == MODEL_SKIMMER
         && (m_EngineSpeed > CPlane::PLANE_MIN_PROP_SPEED || m_vecMoveSpeed.SquaredMagnitude() > CPlane::PLANE_MIN_PROP_SPEED)) {
-        FlyingControl(FLIGHT_MODEL_PLANE, -10000.0f, -10000.0f, -10000.0f, -10000.0f);
+        FlyingControl(FLIGHTMODEL_PLANE, -10000.0f, -10000.0f, -10000.0f, -10000.0f);
     } else if (CCheat::IsActive(CHEAT_BOATS_FLY)) {
-        FlyingControl(FLIGHT_MODEL_BOAT, -10000.0f, -10000.0f, -10000.0f, -10000.0f);
+        FlyingControl(FLIGHTMODEL_PLANE_GLIDER, -10000.0f, -10000.0f, -10000.0f, -10000.0f);
     }
 
     if (m_nBoatFlags.bLockedToXY) {
@@ -816,7 +816,7 @@ inline void CBoat::ProcessBoatNodeRendering(eBoatNodes eNode, float fRotation, R
     }
 
     SetComponentRotation(frame, AXIS_Y, fRotation, true);
-    RpAtomic* atomic;
+    RpAtomic* atomic = nullptr;
     RwFrameForAllObjects(frame, GetCurrentAtomicObjectCB, &atomic);
     if (atomic) {
         CVehicle::SetComponentAtomicAlpha(atomic, ucAlpha);

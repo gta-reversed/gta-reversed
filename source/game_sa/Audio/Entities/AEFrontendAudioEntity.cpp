@@ -10,8 +10,16 @@
 
 // 0x5B9AB0
 void CAEFrontendAudioEntity::Initialise() {
-    m_bAmplifierWakeUp = false;
-    m_pAmplifierWakeUp = nullptr;
+    m_nLastFrameGeneral_or_nFrameCount = 0;
+    m_nLastFrameMissionComplete        = 0;
+    m_nLastFrameBulletPass             = 0;
+    m_BulletPassCount                  = 0;
+    m_BulletPassBank                   = SND_BANK_GENRL_BULLET_PASS_1;
+    m_f7E                              = -1;
+    m_nLastTimeCarRespray              = 0;
+    m_nLatestTimerCount                = 0;
+    m_bAmplifierWakeUp                 = false;
+    m_pAmplifierWakeUp                 = nullptr;
 
     AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU);
     AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME);
@@ -812,8 +820,8 @@ void CAEFrontendAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x5B9AB0);
     RH_ScopedInstall(Reset, 0x4DD440);
-    RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .reversed = false });
+    RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .Reversed = false });
     RH_ScopedInstall(IsRadioTuneSoundActive, 0x4DD480);
     RH_ScopedInstall(IsLoadingTuneActive, 0x4DD470);
-    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .Reversed = false });
 }

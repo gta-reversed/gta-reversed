@@ -22,10 +22,10 @@ void CTaskComplexArrestPed::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x68B990);
     RH_ScopedInstall(Destructor, 0x68BA00);
     RH_ScopedVMTInstall(MakeAbortable, 0x68BA60);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x690220, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x690220, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6907A0);
-    RH_ScopedVMTInstall(ControlSubTask, 0x68D350, { .reversed = false });
-    RH_ScopedInstall(CreateSubTask, 0x68CF80, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x68D350, { .Reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x68CF80, { .Reversed = false });
 }
 
 // 0x68B990

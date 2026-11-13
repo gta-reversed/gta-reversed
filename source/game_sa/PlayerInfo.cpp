@@ -9,12 +9,12 @@ void CPlayerInfo::InjectHooks() {
     RH_ScopedClass(CPlayerInfo);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Constructor, 0x571920, { .enabled = false, .locked = true }); // hooking ctor will produce bugs with weapons, you will never give weapon through cheat or something
+    RH_ScopedInstall(Constructor, 0x571920, { .State = HS::RedirectToGTA, .Locked = true }); // hooking ctor will produce bugs with weapons, you will never give weapon through cheat or something
     RH_ScopedInstall(CancelPlayerEnteringCars, 0x56E860);
-    RH_ScopedInstall(FindObjectToSteal, 0x56DBD0, { .reversed = false });
+    RH_ScopedInstall(FindObjectToSteal, 0x56DBD0, { .Reversed = false });
     RH_ScopedInstall(EvaluateCarPosition, 0x56DAD0);
-    RH_ScopedInstall(Process, 0x56F8D0, { .reversed = false });
-    RH_ScopedInstall(FindClosestCarSectorList, 0x56F4E0, { .reversed = false });
+    RH_ScopedInstall(Process, 0x56F8D0, { .Reversed = false });
+    RH_ScopedInstall(FindClosestCarSectorList, 0x56F4E0, { .Reversed = false });
     RH_ScopedInstall(Clear, 0x56F330);
     RH_ScopedInstall(StreamParachuteWeapon, 0x56EB30);
     RH_ScopedInstall(AddHealth, 0x56EAB0);

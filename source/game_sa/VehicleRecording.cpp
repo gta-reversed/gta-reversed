@@ -290,7 +290,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
         if (bUseCarAI[i])
             continue;
 
-        const auto delta = static_cast<float>(CTimer::GetTimeInMS() - CTimer::m_snPPPPreviousTimeInMilliseconds);
+        const auto delta = static_cast<float>(CTimer::GetTimeInMS() - CTimer::GetPPPPreviousTimeInMs());
         const auto step = delta * PlaybackSpeed[i] / 4.0f;
         if (step > 500.0f) {
             NOTSA_LOG_DEBUG("That's a really big step (={:2f})\n", step);
@@ -415,7 +415,7 @@ void CVehicleRecording::InjectHooks() {
     RH_ScopedInstall(Init, 0x459390);
     RH_ScopedInstall(InitAtStartOfGame, 0x45A1B0);
     RH_ScopedInstall(ShutDown, 0x459400);
-    RH_ScopedInstall(Render, 0x459F70, {.locked = true});
+    RH_ScopedInstall(Render, 0x459F70);
     RH_ScopedInstall(ChangeCarPlaybackToUseAI, 0x45A360);
     RH_ScopedInstall(FindIndexWithFileNameNumber, 0x459FF0);
     RH_ScopedInstall(InterpolateInfoForCar, 0x459B30);

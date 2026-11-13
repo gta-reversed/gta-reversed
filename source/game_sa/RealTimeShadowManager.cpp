@@ -10,9 +10,9 @@ void CRealTimeShadowManager::InjectHooks() {
     RH_ScopedCategory("Shadows");
 
     RH_ScopedInstall(Init, 0x7067C0);
-    RH_ScopedInstall(ReInit, 0x706870, {.reversed = false});
+    RH_ScopedInstall(ReInit, 0x706870, {.Reversed = false});
     RH_ScopedInstall(ReturnRealTimeShadow, 0x705B30);
-    RH_ScopedInstall(GetRealTimeShadow, 0x706970, { .reversed = false });
+    RH_ScopedInstall(GetRealTimeShadow, 0x706970, { .Reversed = false });
     RH_ScopedInstall(Update, 0x706AB0);
     RH_ScopedInstall(DoShadowThisFrame, 0x706BA0);
     RH_ScopedInstall(Exit, 0x706A60);
@@ -44,10 +44,7 @@ void CRealTimeShadowManager::Exit() { // AKA `Shutdown`
     }
 
     for (auto& shdw : m_apShadows) {
-        if (const auto owner = shdw->m_pOwner) {
-            delete shdw; // `shdw->m_pOwner` nulled out by this
-            delete owner; // Why?
-        }
+        delete std::exchange(shdw, nullptr);
     }
 
     // Nice hack

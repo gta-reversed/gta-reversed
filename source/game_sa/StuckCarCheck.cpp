@@ -36,7 +36,7 @@ void CStuckCarCheck::AddCarToCheck(int32 carHandle, float stuckRadius, uint32 ti
         if (car.CarHandle == -1) {
             car.CarHandle            = carHandle;
             car.LastPos              = vehicle->GetPosition();
-            car.LastChecked          = CTimer::m_snTimeInMilliseconds;
+            car.LastChecked          = CTimer::GetTimeInMS();
             car.StuckRadius          = stuckRadius;
             car.CheckTime            = time;
             car.WarpCar              = warpCar;
@@ -116,17 +116,17 @@ void CStuckCarCheck::Process() {
 
         if (!vehicle->m_pDriver) {
             car.LastPos     = vehicle->GetPosition();
-            car.LastChecked = CTimer::m_snTimeInMilliseconds;
+            car.LastChecked = CTimer::GetTimeInMS();
             continue;
         }
 
-        if (CTimer::m_snTimeInMilliseconds > (uint32)car.LastChecked + car.CheckTime) {
+        if (CTimer::GetTimeInMS() > (uint32)car.LastChecked + car.CheckTime) {
             CVector curPos    = vehicle->GetPosition();
             CVector distMoved = curPos - car.LastPos;
 
             car.CarStuck    = distMoved.Magnitude() < car.StuckRadius;
             car.LastPos     = curPos;
-            car.LastChecked = CTimer::m_snTimeInMilliseconds;
+            car.LastChecked = CTimer::GetTimeInMS();
         }
 
         if (!car.WarpCar) {

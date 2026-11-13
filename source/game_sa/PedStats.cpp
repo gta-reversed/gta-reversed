@@ -14,6 +14,7 @@ void CPedStats::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x608850);
     RH_ScopedInstall(LoadPedStats, 0x5BB890);
     RH_ScopedInstall(GetPedStatType, 0x6088D0);
+    RH_ScopedInstall(FindIndexWithPedStat, 0x608940, { .Reversed = false });
 }
 
 // 0x5BF9D0

@@ -23,7 +23,7 @@ void CTaskComplexKillPedOnFootMelee::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x623460);
     RH_ScopedVMTInstall(GetTaskType, 0x621080);
-    RH_ScopedVMTInstall(MakeAbortable, 0x6210F0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6210F0, { .Overrides = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x62BC10);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x62BE30);
     RH_ScopedVMTInstall(ControlSubTask, 0x626D90);

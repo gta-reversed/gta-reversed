@@ -6,7 +6,7 @@ void CPedToPlayerConversations::InjectHooks() {
     RH_ScopedClass(CPedToPlayerConversations);
     RH_ScopedCategory("Conversations");
     RH_ScopedInstall(Clear, 0x43AAE0);
-    RH_ScopedInstall(Update, 0x43B0F0, {.reversed = false});
+    RH_ScopedInstall(Update, 0x43B0F0, {.Reversed = false});
     RH_ScopedInstall(EndConversation, 0x43AB10);
 }
 

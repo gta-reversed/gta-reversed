@@ -17,7 +17,7 @@
 #include "CStreamingDebugModule.h"
 #include "CPickupsDebugModule.h"
 #include "CDarkelDebugModule.h"
-#include "HooksDebugModule.h"
+#include "HooksDebugModule/HooksDebugModule.h"
 #include "CTeleportDebugModule.h"
 #include "ParticleDebugModule.h"
 #include "PostEffectsDebugModule.h"
@@ -39,6 +39,7 @@
 #include "CoverPointsDebugModule.hpp"
 #include "LoadMonitorDebugModule.hpp"
 #include "DoorDebugModule.hpp"
+#include "CFontDebugModule.h"
 #include "Audio/SoundManagerDebugModule.hpp"
 #include "Audio/AudioDebugModule.hpp"
 
@@ -126,6 +127,7 @@ void DebugModules::CreateModules() {
     Add<notsa::debugmodules::SoundManagerDebugModule>();
     Add<notsa::debugmodules::LoadMonitorDebugModule>();
     Add<notsa::debugmodules::DoorDebugModule>();
+    Add<FontDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<notsa::debugmodules::TwoDEffectsDebugModule>(); // Visualization + Extra
@@ -211,6 +213,7 @@ void DebugModules::DoDeserializeModules() {
         // Now deserialize... We handle exceptions too, because otherwise we get a weird crash in a dll we don't have pdb's for????
         try {
             m->Deserialize(*s);
+            m->OnDeserialized();
         } catch ([[maybe_unused]] const json::exception& e) {
             NOTSA_LOG_ERR("JSON exception occurred while deserializing module `{}`: {}", id, e.what());
         }

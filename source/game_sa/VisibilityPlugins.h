@@ -14,6 +14,7 @@ class CClumpModelInfo;
 class CAtomicModelInfo;
 
 // VehicleAtomicType
+// TODO: This should probably be refactored and split into a separate `visibility` and `type` enums
 enum eAtomicComponentFlag {
     ATOMIC_NONE = 0x0,
     ATOMIC_OK = 0x1,
@@ -148,8 +149,17 @@ public:
     static void SetClumpForAllAtomicsFlag(RpClump* clump, int32 id);
     static void ClearAtomicFlag(RpAtomic* atomic, uint16 flag);
     static void ClearClumpForAllAtomicsFlag(RpClump* clump, int32 id);
+
+    /*!
+    * @return Flags, see `eAtomicComponentFlag`
+    */
     static int32 GetAtomicId(RpAtomic* atomic);
+
     static void SetUserValue(RpAtomic* atomic, uint16 value);
+
+    /*!
+     * @return Flags, see `eAtomicComponentFlag`
+     */
     static uint16 GetUserValue(const RpAtomic* atomic);
 
     static void  SetFrameHierarchyId(RwFrame* frame, int32 id);

@@ -357,7 +357,7 @@ void CAEWeaponAudioEntity::PlayGunSounds(
     m_LastGunFireTimeMs = CTimer::GetTimeInMS();
 
     auto baseVolume = GetDefaultVolume(audioEvent) + volumeOffsetdB;
-    auto [baseRollOffFactor, baseSpeed] = [&]() -> std::pair<float, float> {
+    const auto [baseRollOffFactor, baseSpeed] = [&]() -> std::pair<float, float> {
         switch (audioEvent) {
         case AE_WEAPON_FIRE_PLANE: {
             m_LastWeaponPlaneFrequencyIndex = (m_LastWeaponPlaneFrequencyIndex + 1) % 2;
@@ -421,16 +421,15 @@ void CAEWeaponAudioEntity::PlayGunSounds(
     float frontEndVolume = -100.f;
     if (!notsa::contains({ AE_WEAPON_FIRE_PLANE, AE_WEAPON_FIRE_MINIGUN_PLANE }, audioEvent)) {
         const auto dist = CAEAudioEnvironment::GetPositionRelativeToCamera(entity).Magnitude() / (baseRollOffFactor * 1.25f);
-        if (dist < (5.f / baseRollOffFactor)) { // Inverted
+        if (dist <= (5.f / baseRollOffFactor)) { // Inverted
             baseVolume    -= 3.f;
             frontEndVolume = baseVolume + CAEAudioEnvironment::GetDistanceAttenuation(dist);
         } else if (dist < (12.f / baseRollOffFactor)) {
-            const auto t   = ((12.f / baseRollOffFactor) - dist) / (12.f / baseRollOffFactor) - (5.f / baseRollOffFactor);
+            const auto t   = ((12.f / baseRollOffFactor) - dist) / ((12.f / baseRollOffFactor) - (5.f / baseRollOffFactor));
             frontEndVolume = baseVolume + CAEAudioEnvironment::GetDistanceAttenuation(dist) + std::log10f(t * (SQRT_2 / 2.f)) * 20.f;
-            baseVolume    += std::log10f(((1.f - t) * 0.2929f) + (SQRT_2 / 2.f)) * 20.f;
+            baseVolume     += std::log10f(((1.f - t) * 0.2929f) + (SQRT_2 / 2.f)) * 20.f;
         }
     }
-
     const auto PlayMainSound = [
         &,
         mainSoundSpeed = (CAEAudioUtility::GetRandomNumberInRange(-0.02f, 0.02f) + 1.f) * baseSpeed
@@ -515,7 +514,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
     if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS, true)) {
         return;
     }
-    PlayStealthKillSound(SND_BANK_SLOT_COLLISIONS, 471, 0.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_OUT);
+    PlayStealthKillSound(SND_BANK_SLOT_COLLISIONS, 47, 0.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_OUT);
 }
 
 // 0x503910
@@ -912,10 +911,10 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     case AE_WEAPON_SOUND_CAT_CHAINSAW_ACTIVE: { // 0x504D9B
         switch (m_ChainsawState) {
         case eChainsawState::CUTTING: { // 0x504DA5
-            if (m_LastChainsawEventTimeMs + 400 >= CTimer::m_snTimeInMilliseconds) {
+            if (m_LastChainsawEventTimeMs + 400 >= CTimer::GetTimeInMS()) {
                 sound->m_Speed = std::max(0.85f, sound->m_Speed - 0.15f); // TODO: Use TimeStep
             } else {
-                m_LastChainsawEventTimeMs = CTimer::m_snTimeInMilliseconds;
+                m_LastChainsawEventTimeMs = CTimer::GetTimeInMS();
                 m_ChainsawState           = eChainsawState::ACTIVE;
             }
             break;

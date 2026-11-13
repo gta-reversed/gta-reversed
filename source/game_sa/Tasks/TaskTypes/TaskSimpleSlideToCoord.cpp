@@ -2,6 +2,7 @@
 
 #include "TaskSimpleSlideToCoord.h"
 #include "TaskSimpleStandStill.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 // 0x66C3E0
 CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, float aimingRotation, float speed) :
@@ -10,9 +11,11 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     m_fAimingRotation{ aimingRotation },
     m_Speed{ speed },
     m_bFirstTime{ true },
-    m_bRunningAnim{ false }
-{
-    // m_Timer not initialized
+    m_bRunningAnim{ false } {
+    // m_EndTime not initialized
+    if (notsa::bugfixes::CTaskSimpleSlideToCoord_Constructor_UninitializedTimer) {
+        m_EndTime = -1;
+    }
 }
 
 // 0x66C450
@@ -23,8 +26,7 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     m_Speed{ speed },
     m_bFirstTime{ true },
     m_bRunningAnim{ false },
-    m_Timer{ -1 }
-{
+    m_EndTime{ -1 } {
 }
 
 // 0x66D300
@@ -35,7 +37,7 @@ CTask* CTaskSimpleSlideToCoord::Clone() const {
 }
 
 // 0x66C4D0
-bool CTaskSimpleSlideToCoord::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
+bool CTaskSimpleSlideToCoord::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     return !m_bRunningAnim || CTaskSimpleAnim::MakeAbortable(ped, priority, event);
 }
 
@@ -51,7 +53,7 @@ bool CTaskSimpleSlideToCoord::ProcessPed(CPed* ped) {
                 m_Time = CTimer::GetTimeInMS() + 500;
             }
         } else {
-            m_Time = CTimer::GetTimeInMS() + 2000;
+            m_Time = CTimer::GetTimeInMS() + 2'000;
         }
     }
 
@@ -67,12 +69,12 @@ bool CTaskSimpleSlideToCoord::ProcessPed(CPed* ped) {
         ped->m_fAimingRotation = m_fAimingRotation;
     }
 
-    const auto pedToSlidePosDir = (m_SlideToPos - ped->GetPosition()) * m_Speed; // Originally they calculated this twice, but thats a waste of performance, so.. :D
+    const auto pedToSlidePosDir      = (m_SlideToPos - ped->GetPosition()) * m_Speed; // Originally they calculated this twice, but thats a waste of performance, so.. :D
     const auto pedToSlidePosDistSq2D = pedToSlidePosDir.SquaredMagnitude2D();
     if (pedToSlidePosDir.SquaredMagnitude2D() < sq(0.05f)) {
         ped->m_vecAnimMovingShiftLocal = CVector2D{};
     } else {
-        const auto& pedMat = ped->GetMatrix();
+        const auto& pedMat             = ped->GetMatrix();
         ped->m_vecAnimMovingShiftLocal = {
             DotProduct(pedToSlidePosDir, pedMat.GetForward()), // Originally Y was calculated first, but I swapped it!
             DotProduct(pedToSlidePosDir, pedMat.GetRight())
@@ -104,5 +106,5 @@ void CTaskSimpleSlideToCoord::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x66D300);
     RH_ScopedVMTInstall(GetTaskType, 0x66C440);
     RH_ScopedVMTInstall(MakeAbortable, 0x66C4D0);
-    RH_ScopedVMTInstall(ProcessPed, 0x66C4E0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x66C4E0, { .Reversed = false });
 }

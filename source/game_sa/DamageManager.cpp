@@ -210,7 +210,7 @@ bool CDamageManager::ProgressDoorDamage(eDoors door, CAutomobile* pAuto) {
 
 // 0x6C2300
 uint8 CDamageManager::GetAeroplaneCompStatus(uint8 frame) {
-    return m_nPanelsStatus >> (2 * (m_nPanelsStatus - 12)) & 3;
+    return m_nPanelsStatus >> (2 * (frame - 12)) & 3;
 }
 
 // 0x6C22D0
@@ -376,21 +376,17 @@ bool CDamageManager::GetComponentGroup(tComponent nComp, tComponentGroup& outCom
     case tComponent::COMPONENT_WING_LF:
     case tComponent::COMPONENT_WING_RF:
     case tComponent::COMPONENT_WING_LR:
-    case tComponent::COMPONENT_WING_RR: 
-    case tComponent::COMPONENT_WINDSCREEN: {
+    case tComponent::COMPONENT_WING_RR: {
         outCompGroup = tComponentGroup::COMPGROUP_LIGHT;
         outComponentRelativeIdx = (uint8)nComp - (uint8)tComponent::COMPONENT_WING_LF;
         return true;
     }
+    case tComponent::COMPONENT_NA:
+    case tComponent::COMPONENT_WINDSCREEN:
     case tComponent::COMPONENT_BUMP_FRONT:
     case tComponent::COMPONENT_BUMP_REAR: {
         outCompGroup = tComponentGroup::COMPGROUP_PANEL;
         outComponentRelativeIdx = (uint8)nComp - (uint8)tComponent::COMPONENT_WING_LF;
-        return true;
-    }
-    case tComponent::COMPONENT_NA: {
-        outCompGroup = tComponentGroup::COMPGROUP_NA;
-        outComponentRelativeIdx = 0;
         return true;
     }
     }

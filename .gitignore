@@ -2,7 +2,7 @@
 \#*
 .#*
 *~
-.*.swp
+.*swp
 /CMakeLists.txt.user
 /cmake-build-debug
 
@@ -63,6 +63,9 @@ conanprofile-wine.txt
 
 compile_commands.json
 .clangd
+
+# Python virtual environment
+.venv
 
 ## TODO: These files can be put into a better place?
 /source/libs/imgui/*

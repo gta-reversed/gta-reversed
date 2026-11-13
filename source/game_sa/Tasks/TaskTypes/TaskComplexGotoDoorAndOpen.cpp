@@ -9,10 +9,10 @@ void CTaskComplexGotoDoorAndOpen::InjectHooks() {
     RH_ScopedOverloadedInstall(Constructor, "0", 0x66BB20, CTaskComplexGotoDoorAndOpen*(CTaskComplexGotoDoorAndOpen::*)(CObject *));
     RH_ScopedOverloadedInstall(Constructor, "1", 0x66BBA0, CTaskComplexGotoDoorAndOpen*(CTaskComplexGotoDoorAndOpen::*)(CVector const&, CVector const&));
     RH_ScopedInstall(Destructor, 0x66BC00);
-    RH_ScopedInstall(Clone, 0x66BCA0, { .reversed = false });
-    RH_ScopedInstall(CreateNextSubTask, 0x66C0D0, { .reversed = false });
-    RH_ScopedInstall(CreateFirstSubTask, 0x66BD40, { .reversed = false });
-    RH_ScopedInstall(ControlSubTask, 0x66C1F0, { .reversed = false });
+    RH_ScopedInstall(Clone, 0x66BCA0, { .Reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x66C0D0, { .Reversed = false });
+    RH_ScopedInstall(CreateFirstSubTask, 0x66BD40, { .Reversed = false });
+    RH_ScopedInstall(ControlSubTask, 0x66C1F0, { .Reversed = false });
 }
 
 // 0x66BB20

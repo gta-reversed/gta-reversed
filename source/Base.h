@@ -59,6 +59,13 @@ typedef uint32    bool32;
 #define UNREACHABLE_INTRINSIC(...) assert(false)
 #endif
 
+namespace notsa {
+/*!
+* @return Return source code's base path
+*/
+fs::path GetSourceCodeBasePath();
+};
+
 // Use the `NOTSA_UNREACHABLE` macro for unreachable code paths.
 // In debug mode it will do a DebugBreak() and print a message to the console,
 // while in release code it'll be optimized away (by using special compiler directives)
@@ -68,13 +75,11 @@ typedef uint32    bool32;
 #include <winuser.h>
 
 namespace notsa {
-static const fs::path SOURCE_PATH = fs::path(__FILE__).parent_path();
-
 template<typename... Ts>
 [[noreturn]] static void unreachable(std::string_view method, std::string_view file, unsigned line, std::string userDetails = "<None provided>") {
     const auto mbMsg = std::format(
         "File: {}\nIn: {}:{}\n\nDetails:\n{}",
-        fs::relative(file, SOURCE_PATH).string(),
+        fs::relative(file, GetSourceCodeBasePath()).string(),
         method,
         line,
         userDetails
@@ -157,9 +162,9 @@ template<typename... Ts>
 */
 template<typename T>
 T& StaticRef(uintptr addr) {
-#ifdef NOTSA_DUMP_HOOKS_ONLY
+#ifdef NOTSA_STANDALONE_DUMP_HOOKS_ONLY
     // NOTE/BUG:
-    // In NOTSA_DUMP_HOOKS_ONLY, StaticRef() returns a single per-type static buffer for all addresses.
+    // In NOTSA_STANDALONE_DUMP_HOOKS_ONLY, StaticRef() returns a single per-type static buffer for all addresses.
     // That aliases unrelated globals of the same type (e.g., many StaticRef<int32>(...)), so writes intended for one address will overwrite the dummy storage for another.
     // This can corrupt state during hook registration and make dump output unreliable/non-deterministic.
     // It can be easily fixed by putting the address in the template too, but we're not doing that yet because I guess it would impact compile times + it'd be a big diff in terms of code for now

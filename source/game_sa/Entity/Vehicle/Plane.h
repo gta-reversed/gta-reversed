@@ -45,7 +45,7 @@ public:
     float        m_fAccelerationBreakStatus;
     float        m_fAccelerationBreakStatusPrev;
     float        m_fSteeringFactor;
-    float        field_9A0;
+    uint32       m_StallCounter; // If attack angle is more than 20°, engine goes stall with sound effects
     float        m_planeCreationHeading; // The heading when plane is created or placed on road properly
     float        m_maxAltitude;
     float        m_altitude;
@@ -56,13 +56,19 @@ public:
     uint32       m_nStartedFlyingTime;
     float        m_fPropSpeed;
     float        field_9C8;
-    float        m_fLandingGearStatus;
+    float        m_LandingGearAngle;   // 1.0f - fully up
     int32        m_planeDamageWave;
     FxSystem_c** m_pGunParticles;
     uint8        m_nFiringMultiplier;
-    int32        field_9DC;
-    int32        field_9E0;
-    int32        field_9E4;
+    uint32       m_FireMissilePressedTime;
+    CEntity*     m_LastMissileTarget;
+    union {
+        uint32 m_LastHSMissileStruct;
+        struct {
+            uint32 m_LastHSMissileLOSTime : 31;
+            uint32 m_LastHSMissileLOS : 1;
+        };
+    };
     std::array<FxSystem_c*, 4> m_apJettrusParticles;
     FxSystem_c*  m_pSmokeParticle;
     uint32       m_nSmokeTimer;

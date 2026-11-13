@@ -238,13 +238,13 @@ void CEventHandler::InjectHooks() {
     RH_ScopedInstall(HandleEvents, 0x4C3F10);
     RH_ScopedInstall(IsKillTaskAppropriate, 0x4BC3E0);
     RH_ScopedInstall(IsTemporaryEvent, 0x4BC370);
-    // RH_ScopedInstall(RecordActiveEvent, 0x0, { .reversed = false });
-    // RH_ScopedInstall(RecordPassiveEvent, 0x0, { .reversed = false });
+    // RH_ScopedInstall(RecordActiveEvent, 0x0, { .Reversed = false });
+    // RH_ScopedInstall(RecordPassiveEvent, 0x0, { .Reversed = false });
     RH_ScopedInstall(RegisterKill, 0x4B9340);
     RH_ScopedInstall(SetEventResponseTask, 0x4BC600);
     RH_ScopedInstall(ComputeAreaCodesResponse, 0x4BBF50);
     RH_ScopedInstall(ComputeAttractorResponse, 0x4B9BE0);
-    // RH_ScopedInstall(ComputeBuildingCollisionPassiveResponse, 0x0, { .reversed = false });
+    // RH_ScopedInstall(ComputeBuildingCollisionPassiveResponse, 0x0, { .Reversed = false });
     RH_ScopedInstall(ComputeBuildingCollisionResponse, 0x4BF2B0);
     RH_ScopedInstall(ComputeCarUpsideDownResponse, 0x4BBC30);
     RH_ScopedInstall(ComputeChatPartnerResponse, 0x4B98E0);
@@ -262,7 +262,7 @@ void CEventHandler::InjectHooks() {
     RH_ScopedInstall(ComputeHighAngerAtPlayerResponse, 0x4BAC10);
     RH_ScopedInstall(ComputeInWaterResponse, 0x4BAF80);
     RH_ScopedInstall(ComputeInteriorUseInfoResponse, 0x4BAFE0);
-    RH_ScopedInstall(ComputeKnockOffBikeResponse, 0x4B9FF0, { .reversed = false });
+    RH_ScopedInstall(ComputeKnockOffBikeResponse, 0x4B9FF0, { .Reversed = false });
     RH_ScopedInstall(ComputeLowAngerAtPlayerResponse, 0x4BAAD0);
     RH_ScopedInstall(ComputeLowHealthResponse, 0x4BA990);
     RH_ScopedInstall(ComputeObjectCollisionPassiveResponse, 0x4BBB90);
@@ -270,8 +270,8 @@ void CEventHandler::InjectHooks() {
     RH_ScopedInstall(ComputeOnEscalatorResponse, 0x4BC150);
     RH_ScopedInstall(ComputeOnFireResponse, 0x4BAD50);
     RH_ScopedInstall(ComputePassObjectResponse, 0x4BB0C0);
-    RH_ScopedInstall(ComputePedCollisionWithPedResponse, 0x4BDB80, { .reversed = false });
-    RH_ScopedInstall(ComputePedCollisionWithPlayerResponse, 0x4BE7D0, { .reversed = false });
+    RH_ScopedInstall(ComputePedCollisionWithPedResponse, 0x4BDB80, { .Reversed = false });
+    RH_ScopedInstall(ComputePedCollisionWithPlayerResponse, 0x4BE7D0, { .Reversed = false });
     RH_ScopedInstall(ComputePedEnteredVehicleResponse, 0x4C1590);
     RH_ScopedInstall(ComputePedFriendResponse, 0x4B9DD0);
     RH_ScopedInstall(ComputePedSoundQuietResponse, 0x4B9D40);
@@ -298,7 +298,7 @@ void CEventHandler::InjectHooks() {
     RH_ScopedInstall(ComputeVehicleCollisionResponse, 0x4BD6A0);
     RH_ScopedInstall(ComputeVehicleDamageResponse, 0x4C2FC0);
     RH_ScopedInstall(ComputeVehicleDiedResponse, 0x4BA8B0);
-    // RH_ScopedInstall(ComputeVehicleHitAndRunResponse, 0x0, { .reversed = false });
+    // RH_ScopedInstall(ComputeVehicleHitAndRunResponse, 0x0, { .Reversed = false });
     RH_ScopedInstall(ComputeVehicleOnFireResponse, 0x4BB2E0);
     RH_ScopedInstall(ComputeVehiclePotentialCollisionResponse, 0x4C0BD0);
     RH_ScopedInstall(ComputeVehiclePotentialPassiveCollisionResponse, 0x4B96D0);
@@ -1097,7 +1097,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     tBeHit->m_nAnimGroup = e->GetAnimGroup();
                     tBeHit->m_bAnimAdded = e->GetAnimAdded();
                 }
-            } else {
+            } else if (e->m_bFallDown) { // 0x4C042B - No anim and no fall down means no physical response (0x4C0488)
                 m_PhysicalResponseTask = new CTaskComplexFallAndGetUp{
                     e->GetAnimId(),
                     e->GetAnimGroup(),
@@ -2001,13 +2001,13 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                 DoLookAt(plyr, 2'000);
                 return {
                     e->m_movestate == PEDMOVE_SPRINT
-                        ? new CTaskComplexHitResponse{(eDirection)plyrHitSide}
+                        ? new CTaskComplexHitResponse{plyrHitSide}
                         : nullptr,
                     new CTaskSimpleSay{CTX_GLOBAL_BUMP}
                 };
             }
             return { // 0x4B90DF
-                new CTaskComplexFallAndGetUp{plyrHitSide, false},
+                new CTaskComplexFallAndGetUp{(int32)plyrHitSide, false},
                 nullptr
             };
         }
@@ -2677,12 +2677,12 @@ void CEventHandler::ComputeVehiclePotentialCollisionResponse(CEventPotentialGetR
         }
         const CVector pedPos{m_Ped->GetPosition()};
 
-        CVector vehBB[4];
+        std::array<CVector, 4> vehBB{};
         CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(pedPos.z, *e->m_Vehicle, vehBB);
 
-        CVector vehBBPlanes[4];
-        float vehBBPlanesDot[4];
-        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(pedPos.z, *e->m_Vehicle, &vehBBPlanes, vehBBPlanesDot);
+        std::array<CVector, 4> vehBBPlanes{};
+        std::array<float, 4>   vehBBPlanesDot{};
+        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(pedPos.z, *e->m_Vehicle, vehBBPlanes, vehBBPlanesDot);
 
         CVector dirToAvoidVehicle;
         CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(*m_Ped, *e->m_Vehicle, dirToAvoidVehicle);
@@ -2845,7 +2845,7 @@ void CEventHandler::ComputeWaterCannonResponse(CEventHitByWaterCannon* e, CTask*
         if (const auto speed = m_Ped->GetMoveSpeed().Magnitude2D(); speed >= 0.2f) {
             m_Ped->SetMoveSpeedXY(0.2f / speed * CVector2D{m_Ped->GetMoveSpeed()});
         }
-        return new CTaskComplexFallAndGetUp{ CPedGeometryAnalyser::ComputePedHitSide(*m_Ped, e->m_moveSpeed), 0 };
+        return new CTaskComplexFallAndGetUp{ (int32)CPedGeometryAnalyser::ComputePedHitSide(*m_Ped, e->m_moveSpeed), 0 };
     }();
 }
 

@@ -20,6 +20,7 @@ public:
     typedef uint64(__cdecl* TimerFunction_t)();
     static inline auto& ms_fnTimerFunction = StaticRef<TimerFunction_t>(0xB7CB28); // Izzotop: Added in commit 50ce121c. That should be just timerDef.
 
+private:
     // class variables
     static inline auto& m_sbEnableTimeDebug = StaticRef<bool>(0xB7CB40);
     static inline auto& bSkipProcessThisFrame = StaticRef<bool>(0xB7CB89);
@@ -78,11 +79,12 @@ public:
     static void   SetTimeScale(float ts) { ms_fTimeScale = ts; }
     static void   ResetTimeScale() { ms_fTimeScale = 1.0f; }
 
+    static float  GetOldTimeStep() { return ms_fOldTimeStep; }
     static float  GetTimeStep() { return ms_fTimeStep; }
     static void   SetTimeStep(float ts) { ms_fTimeStep = ts; }
     static void   UpdateTimeStep(float ts) { ms_fTimeStep = std::max(ts, 0.00001f); }
     static float  GetTimeStepInSeconds() { return ms_fTimeStep / TIMESTEP_PER_SECOND; }
-    static float  GetTimeStepInMS() { return GetTimeStepInSeconds() * 1000.0f; } // pattern: CTimer::ms_fTimeStep * 0.02f * 1000.0f
+    static float  GetTimeStepInMS() { return GetTimeStepInSeconds() * 1000.0f; } // pattern: CTimer::GetTimeStep() * 0.02f * 1000.0f
 
     static float  GetTimeStepNonClipped() { return ms_fTimeStepNonClipped; }
     static float  GetTimeStepNonClippedInSeconds() { return ms_fTimeStepNonClipped / 50.0f; }
@@ -104,6 +106,19 @@ public:
     static uint32 GetPreviousTimeInMS() { return m_snPreviousTimeInMilliseconds; }
     static void   SetPreviousTimeInMS(uint32 t) { m_snPreviousTimeInMilliseconds = t; }
 
+    static uint32 GetPreviousTimeInMs() { return m_snPreviousTimeInMilliseconds; }
+    static void SetPreviousTimeInMs(uint32 ms) { m_snPreviousTimeInMilliseconds = ms; }
+
+    static uint32 GetPPreviousTimeInMs() { return m_snPPreviousTimeInMilliseconds; }
+    static void SetPPreviousTimeInMs(uint32 ms) { m_snPPreviousTimeInMilliseconds = ms; }
+
+    static uint32 GetPPPreviousTimeInMs() { return m_snPPPreviousTimeInMilliseconds; }
+    static void   SetPPPreviousTimeInMs(uint32 ms) { m_snPPPreviousTimeInMilliseconds = ms; }
+
+    static uint32 GetPPPPreviousTimeInMs() { return m_snPPPPreviousTimeInMilliseconds; }
+    static void SetPPPPreviousTimeInMs(uint32 ms) { m_snPPPPreviousTimeInMilliseconds = ms; }
+
+
     static bool GetIsPaused() { return m_UserPause || m_CodePause; }
     static bool GetIsUserPaused() { return m_UserPause; }
     static bool GetIsCodePaused() { return m_CodePause; }
@@ -113,6 +128,7 @@ public:
 
     static bool HasTimePointPassed(uint32 timeMs) { return GetTimeInMS() >= timeMs; }
     static bool IsTimeInRange(uint32 fromMs, uint32 toMs) { return HasTimePointPassed(fromMs) && !HasTimePointPassed(toMs); }
+    static bool IsSkipProcessThisFrame() { return bSkipProcessThisFrame; }
 };
 
 uint64 GetMillisecondTime();

@@ -16,7 +16,7 @@ void CAEAmbienceTrackManager::InjectHooks() {
     RH_ScopedInstall(IsAmbienceRadioActive, 0x4D6D40);
     RH_ScopedInstall(PlaySpecialMissionAmbienceTrack, 0x4D6D50);
     RH_ScopedInstall(StopSpecialMissionAmbienceTrack, 0x4D6D60);
-    RH_ScopedInstall(UpdateAmbienceTrackAndVolume, 0x4D6E60, { .reversed = false }); // bad
+    RH_ScopedInstall(UpdateAmbienceTrackAndVolume, 0x4D6E60, { .Reversed = false }); // bad
     RH_ScopedInstall(Service, 0x4D76C0);
 }
 
@@ -29,7 +29,7 @@ bool CAEAmbienceTrackManager::Initialise(int32 hwClientHandle) {
         .TrackFlags     = 3
     };
     m_AmbienceStatus      = AmbienceStatus::STOPPED;
-    m_Volume              = -100.0f;
+    m_Volume              = VOLUME_SILENCE;
     m_FreqFactor          = 1.0f;
     return true;
 }
@@ -390,7 +390,7 @@ void CAEAmbienceTrackManager::Service(int32 trackPlayTime) {
             m_PrevAmbiencePlayTimeMs = trackPlayTime;
             m_PrevAmbienceStopTimeMs = CTimer::GetTimeInMS();
         }
-        m_Volume = -100.0f;
+        m_Volume = VOLUME_SILENCE;
         [[fallthrough]];
     case AmbienceStatus::STOPPING_CHANNELS_STOPPED: // Moved here to allow fallthrough
         AEAudioHardware.StopTrack();
@@ -430,7 +430,11 @@ void CAEAmbienceTrackManager::StopAmbienceTrack() {
 void CAEAmbienceTrackManager::StartTrackPlayback() const {
     AEAudioHardware.DisableBassEq();
     AEAudioHardware.SetChannelVolume(m_HwClientHandle, 0, m_Volume, 0);
-    AEAudioHardware.SetChannelFlags(m_HwClientHandle, 0, 33);
+    AEAudioHardware.SetChannelFlags(
+        m_HwClientHandle,
+        0,
+        eAudioChannelFlags(FLAG_SECONDARY_GROUP | FLAG_IS_NOT_STREAM)
+    );
     AEAudioHardware.StartTrackPlayback();
 }
 

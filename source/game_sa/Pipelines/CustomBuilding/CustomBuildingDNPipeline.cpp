@@ -303,4 +303,6 @@ void CCustomBuildingDNPipeline::InjectHooks() {
     RH_ScopedInstall(CreateCustomObjPipe, 0x5D6750);
     RH_ScopedInstall(CustomPipeAtomicSetup, 0x5D71C0);
     RH_ScopedInstall(SetFxEnvTexture, 0x5D9570);
+    RH_ScopedInstall(CustomPipeMaterialSetup, 0x5D7120, { .Reversed = false });
+    RH_ScopedInstall(CustomPipeRenderCB, 0x5D6480, { .Reversed = false });
 }

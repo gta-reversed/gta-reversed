@@ -9,14 +9,14 @@ void CTaskComplexKillPedOnFoot::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x620E30);
     RH_ScopedInstall(Destructor, 0x620EF0);
 
-    RH_ScopedInstall(CreateSubTask, 0x625E70, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x625E70, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x623370);
     RH_ScopedVMTInstall(GetTaskType, 0x620EE0);
-    RH_ScopedVMTInstall(MakeAbortable, 0x625E40, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x62B150, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x62B490, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x626260, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x625E40, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x62B150, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x62B490, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x626260, { .Reversed = false });
 }
 
 CTaskComplexKillPedOnFoot::CTaskComplexKillPedOnFoot(
@@ -26,8 +26,8 @@ CTaskComplexKillPedOnFoot::CTaskComplexKillPedOnFoot(
     int32 delay,
     int32 chance,
     uint8 nCompetence,
-    bool bWaitForPlayerToBeSafe,
-    bool bWaitingForPlayerToBeSafe
+    bool  bWaitForPlayerToBeSafe,
+    bool  bWaitingForPlayerToBeSafe
 ) :
     m_bWaitForPlayerToBeSafe{ bWaitForPlayerToBeSafe },
     m_bWaitingForPlayerToBeSafe{ bWaitingForPlayerToBeSafe },
@@ -37,8 +37,7 @@ CTaskComplexKillPedOnFoot::CTaskComplexKillPedOnFoot(
     m_actionChance{ chance },
     m_nCompetence{ nCompetence },
     m_time{ time },
-    m_startTime{ CTimer::GetTimeInMS() }
-{
+    m_startTime{ CTimer::GetTimeInMS() } {
     CEntity::SafeRegisterRef(m_target);
 }
 

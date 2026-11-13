@@ -20,7 +20,7 @@ public:
     ~CTaskComplexGoToPointShooting() override = default;
 
     eTaskType GetTaskType() const override { return Type; } // 0x668CC0
-    CTask*    Clone() const override { return new CTaskComplexGoToPointAiming{ *this }; } // 0x66CE10
+    CTask*    Clone() const override { return new CTaskComplexGoToPointShooting{ *this }; } // 0x66CE10
 
 private:
     friend void InjectHooksMain();

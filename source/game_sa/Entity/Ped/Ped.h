@@ -386,7 +386,7 @@ public:
     static void operator delete(void* data, int poolRef);
 
     CPed(ePedType pedType);
-    ~CPed();
+    ~CPed() override;
 
     bool PedIsInvolvedInConversation();
     bool PedIsReadyForConversation(bool arg0);

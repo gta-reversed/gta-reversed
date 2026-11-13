@@ -63,18 +63,18 @@ void CPed::InjectHooks() {
     RH_ScopedOverloadedInstall(GiveWeapon, "", 0x5E6080, eWeaponSlot(CPed::*)(eWeaponType, uint32, bool));
     RH_ScopedInstall(TakeOffGoggles, 0x5E6010);
     RH_ScopedInstall(AddWeaponModel, 0x5E5ED0);
-    RH_ScopedInstall(PlayFootSteps, 0x5E57F0, { .reversed = false });
-    RH_ScopedInstall(DoFootLanded, 0x5E5380, { .reversed = false });
+    RH_ScopedInstall(PlayFootSteps, 0x5E57F0, { .Reversed = false });
+    RH_ScopedInstall(DoFootLanded, 0x5E5380, { .Reversed = false });
     RH_ScopedInstall(ClearAll, 0x5E5320);
     RH_ScopedInstall(CalculateNewOrientation, 0x5E52E0);
-    RH_ScopedInstall(CalculateNewVelocity, 0x5E4C50, { .reversed = false });
+    RH_ScopedInstall(CalculateNewVelocity, 0x5E4C50, { .Reversed = false });
     RH_ScopedInstall(SetCharCreatedBy, 0x5E47E0);
     RH_ScopedInstall(SetPedState, 0x5E4500);
     RH_ScopedInstall(GiveObjectToPedToHold, 0x5E4390);
     RH_ScopedInstall(ClearLookFlag, 0x5E1950);
     RH_ScopedInstall(WorkOutHeadingForMovingFirstPerson, 0x5E1A00);
-    RH_ScopedInstall(UpdatePosition, 0x5E1B10, { .reversed = false });
-    RH_ScopedInstall(MakeTyresMuddySectorList<CPtrListSingleLink<CPhysical*>>, 0x6AE0D0, { .reversed = false });
+    RH_ScopedInstall(UpdatePosition, 0x5E1B10, { .Reversed = false });
+    RH_ScopedInstall(MakeTyresMuddySectorList<CPtrListSingleLink<CPhysical*>>, 0x6AE0D0, { .Reversed = false });
     RH_ScopedInstall(IsPedInControl, 0x5E3960);
     RH_ScopedInstall(RemoveWeaponModel, 0x5E3990);
     RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370);
@@ -86,7 +86,7 @@ void CPed::InjectHooks() {
     RH_ScopedOverloadedInstall(GetBonePosition, "Original", 0x5E4280, void(CPed::*)(CVector*, eBoneTag, bool));
     RH_ScopedInstall(PutOnGoggles, 0x5E3AE0);
     RH_ScopedInstall(ReplaceWeaponWhenExitingVehicle, 0x5E6490);
-    RH_ScopedInstall(KillPedWithCar, 0x5F0360, { .reversed = false });
+    RH_ScopedInstall(KillPedWithCar, 0x5F0360, { .Reversed = false });
     RH_ScopedInstall(IsPedHeadAbovePos, 0x5F02C0);
     RH_ScopedInstall(RemoveWeaponAnims, 0x5F0250);
     RH_ScopedInstall(DoesLOSBulletHitPed, 0x5F01A0);
@@ -112,7 +112,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(RemoveWeaponForScriptedCutscene, 0x5E6550);
     RH_ScopedInstall(GiveWeaponAtStartOfFight, 0x5E8AB0);
     RH_ScopedInstall(ProcessBuoyancy, 0x5E1FA0);
-    RH_ScopedInstall(PositionPedOutOfCollision, 0x5E0820, { .reversed = false });
+    RH_ScopedInstall(PositionPedOutOfCollision, 0x5E0820, { .Reversed = false });
     RH_ScopedInstall(GrantAmmo, 0x5DF220);
     RH_ScopedInstall(GetWeaponSlot, 0x5DF200);
     RH_ScopedInstall(PositionAnyPedOutOfCollision, 0x5E13C0);
@@ -168,21 +168,21 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(GetBikeRidingSkill, 0x5DF510);
     RH_ScopedInstall(SetPedPositionInCar, 0x5DF910);
     RH_ScopedInstall(SetRadioStation, 0x5DFD90);
-    RH_ScopedInstall(PositionAttachedPed, 0x5DFDF0, { .reversed = false });
+    RH_ScopedInstall(PositionAttachedPed, 0x5DFDF0, { .Reversed = false });
     RH_ScopedInstall(ResetGunFlashAlpha, 0x5DF4E0);
 
     RH_ScopedVMTInstall(SetModelIndex, 0x5E4880);
     RH_ScopedVMTInstall(DeleteRwObject, 0x5DEBF0);
-    //RH_ScopedVirtualInstall(ProcessControl, 0x5E8CD0, { .reversed = false });
+    //RH_ScopedVirtualInstall(ProcessControl, 0x5E8CD0, { .Reversed = false });
     RH_ScopedVMTInstall(Teleport, 0x5E4110);
-    //RH_ScopedVirtualInstall(SpecialEntityPreCollisionStuff, 0x5E3C30, { .reversed = false });
-    //RH_ScopedVirtualInstall(SpecialEntityCalcCollisionSteps, 0x5E3E90, { .reversed = false });
+    //RH_ScopedVirtualInstall(SpecialEntityPreCollisionStuff, 0x5E3C30, { .Reversed = false });
+    //RH_ScopedVirtualInstall(SpecialEntityCalcCollisionSteps, 0x5E3E90, { .Reversed = false });
     RH_ScopedVMTInstall(PreRender, 0x5E8A20);
     RH_ScopedVMTInstall(Render, 0x5E7680);
     RH_ScopedVMTInstall(SetupLighting, 0x553F00);
     RH_ScopedVMTInstall(RemoveLighting, 0x5533B0);
     RH_ScopedVMTInstall(FlagToDestroyWhenNextProcessed, 0x5E7B70);
-    //RH_ScopedVirtualInstall(ProcessEntityCollision, 0x5E2530, { .reversed = false });
+    //RH_ScopedVirtualInstall(ProcessEntityCollision, 0x5E2530, { .Reversed = false });
     RH_ScopedVMTInstall(SetMoveAnim, 0x5E4A00);
     RH_ScopedVMTInstall(Save, 0x5D5730);
     RH_ScopedVMTInstall(Load, 0x5D4640);
@@ -1634,6 +1634,8 @@ bool CPed::PositionAnyPedOutOfCollision() {
 * @addr 0x5E1660
 */
 bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
+    constexpr CVector PED_POS_OFFSET{ 0.f, 0.f, 1.f }; // NOTE/TODO: Adjust for head height? Could use head bone instead.
+    
     if (!isSpotted) {
         const auto dir2D{ entity->GetPosition2D() - GetPosition2D() };
         if (   DotProduct2D(dir2D, m_matrix->GetForward()) < 0.f // Is behind us
@@ -1643,15 +1645,25 @@ bool CPed::OurPedCanSeeThisEntity(CEntity* entity, bool isSpotted) {
         }
     }
 
-    auto target{entity->GetPosition()};
-    if (entity->GetIsTypePed()) {
-        target.z += 1.f; // Adjust for head pos?
-    }
-
     // Seems like they explicitly use this one instead of `IsLineOfSightClear` because of the `shootThru` check.
     CColPoint cp{};
     CEntity* hitEntity{};
-    return !CWorld::ProcessLineOfSight(GetPosition(), target, cp, hitEntity, true, false, false, isSpotted, false, false, false, isSpotted);
+    return !CWorld::ProcessLineOfSight(
+        GetPosition() + PED_POS_OFFSET,
+        entity->GetIsTypePed()
+            ? entity->GetPosition() + PED_POS_OFFSET
+            : entity->GetPosition(),
+        cp,
+        hitEntity,
+        true,
+        false,
+        false,
+        isSpotted,
+        false,
+        false,
+        false,
+        isSpotted
+    );
 }
 
 /*!
@@ -1770,7 +1782,7 @@ void CPed::ProcessBuoyancy()
         if (CWaterLevel::GetWaterLevel(vecSplashPos, fWaterZ, true, nullptr)) {
             vecSplashPos.z = fWaterZ;
             g_fx.TriggerWaterSplash(vecSplashPos);
-            AudioEngine.ReportWaterSplash(this, -100.0F, true);
+            AudioEngine.ReportWaterSplash(this, VOLUME_SILENCE, true);
         }
     }
 
@@ -2843,7 +2855,7 @@ void CPed::PreRenderAfterTest()
     bCalledPreRender = true;
     UpdateRpHAnim();
 
-    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && GetPlayerData()) {
+    if (!CTimer::IsSkipProcessThisFrame() && m_pWeaponObject && GetPlayerData()) {
         if (GetActiveWeapon().GetType() == eWeaponType::WEAPON_MINIGUN) {
             if (const auto f = CClumpModelInfo::GetFrameFromName(m_pWeaponObject, "minigun2")) {
                 RwMatrixRotate(

@@ -517,7 +517,7 @@ auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
         // Unstore previous (If it still exists)
         if (CTheScripts::StoreVehicleIndex != -1) { // NOTSA: Bugfix
-            if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
+            if (const auto stored = GetVehiclePool()->GetAtRef(CTheScripts::StoreVehicleIndex)) {
                 CCarCtrl::RemoveFromInterestingVehicleList(stored);
                 if (stored->IsMissionVehicle() && CTheScripts::StoreVehicleWasRandom) {
                     stored->SetVehicleCreatedBy(RANDOM_VEHICLE);

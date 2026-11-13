@@ -11,13 +11,13 @@ void CShadowCamera::Destroy() {
     }
 
     if (auto frame = RwCameraGetFrame(m_pRwCamera)) {
-        rwObjectHasFrameSetFrame(frame, nullptr);
+        rwObjectHasFrameSetFrame(m_pRwCamera, nullptr);
         RwFrameDestroy(frame);
     }
 
     if (auto frameBuffer = GetRwRenderRaster()) {
-        RwRasterDestroy(frameBuffer);
         RwCameraSetRaster(m_pRwCamera, nullptr);
+        RwRasterDestroy(frameBuffer);
     }
 
     if (m_pRwRenderTexture) {
@@ -388,7 +388,7 @@ RwRaster* CShadowCamera::RasterResample(RwRaster* sourceRaster) {
     const auto camRaster = GetRwRenderRaster();
 
     if (!RwCameraBeginUpdate(m_pRwCamera)) {
-        return nullptr;
+        return camRaster; // Original code returns the camera's raster even if it couldn't render into it
     }
 
     RwRenderStateSet(rwRENDERSTATESRCBLEND,      RWRSTATE(rwBLENDONE));

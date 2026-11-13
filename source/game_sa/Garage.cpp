@@ -7,22 +7,23 @@ void CGarage::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(BuildRotatedDoorMatrix, 0x4479F0);
-    // RH_ScopedInstall(TidyUpGarageClose, 0x449D10);
-    // RH_ScopedInstall(TidyUpGarage, 0x449C50);
+    RH_ScopedInstall(TidyUpGarageClose, 0x449D10, { .Reversed = false });
+    RH_ScopedInstall(TidyUpGarage, 0x449C50, { .Reversed = false });
     RH_ScopedInstall(StoreAndRemoveCarsForThisHideOut, 0x449900);
-    // RH_ScopedInstall(EntityHasASphereWayOutsideGarage, 0x449050);
-    // RH_ScopedInstall(RemoveCarsBlockingDoorNotInside, 0x449690);
-    // RH_ScopedInstall(IsEntityTouching3D, 0x448EE0);
-    // RH_ScopedInstall(IsEntityEntirelyOutside, 0x448D30);
-    // RH_ScopedInstall(IsStaticPlayerCarEntirelyInside, 0x44A830);
-    // RH_ScopedInstall(IsEntityEntirelyInside3D, 0x448BE0);
-    // RH_ScopedInstall(IsPointInsideGarage, 0x448740);
-    // RH_ScopedInstall(PlayerArrestedOrDied, 0x4486C0);
+    RH_ScopedInstall(EntityHasASphereWayOutsideGarage, 0x449050, { .Reversed = false });
+    RH_ScopedInstall(RemoveCarsBlockingDoorNotInside, 0x449690, { .Reversed = false });
+    RH_ScopedInstall(IsEntityTouching3D, 0x448EE0, { .Reversed = false });
+    RH_ScopedInstall(IsEntityEntirelyOutside, 0x448D30, { .Reversed = false });
+    RH_ScopedInstall(IsStaticPlayerCarEntirelyInside, 0x44A830, { .Reversed = false });
+    RH_ScopedInstall(IsEntityEntirelyInside3D, 0x448BE0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsPointInsideGarage, "CVector", 0x448740, bool(CGarage::*)(CVector), { .Reversed = false });
+    RH_ScopedInstall(PlayerArrestedOrDied, 0x4486C0, { .Reversed = false });
     RH_ScopedInstall(OpenThisGarage, 0x447D50);
     RH_ScopedInstall(CloseThisGarage, 0x447D70);
-    // RH_ScopedInstall(InitDoorsAtStart, 0x447600);
-    // RH_ScopedInstall(IsPointInsideGarage, 0x4487D0);
-    // RH_ScopedInstall(Update, 0x44AA50);
+    RH_ScopedInstall(InitDoorsAtStart, 0x447600, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsPointInsideGarage, "CVector-float", 0x4487D0, bool(CGarage::*)(CVector, float), { .Reversed = false });
+    RH_ScopedInstall(Update, 0x44AA50, { .Reversed = false });
+    RH_ScopedInstall(IsGarageEmpty, 0x44A9C0, { .Reversed = false });
 }
 
 // 0x4479F0

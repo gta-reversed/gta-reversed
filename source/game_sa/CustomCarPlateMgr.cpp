@@ -17,11 +17,12 @@ void CCustomCarPlateMgr::InjectHooks() {
     RH_ScopedInstall(MaterialUpgradeSetCarplateTextureCB, 0x6FDF50);
     RH_ScopedInstall(AtomicUpgradeSetCarplateTextureCB, 0x6FDFC0);
     RH_ScopedInstall(SetupMaterialPlateTexture, 0x6FE020);
-    // RH_ScopedInstall(GetCharacterPositionInCharSet, 0x6FD7C0, { .enabled = false }); // Incompatible with original function (As it uses __usercall and passes the first arg in `al`)
+    // RH_ScopedInstall(GetCharacterPositionInCharSet, 0x6FD7C0, { .State = HS::RedirectToGTA }); // Incompatible with original function (As it uses __usercall and passes the first arg in `al`)
     RH_ScopedInstall(MaterialSetCarplateTextureCB, 0x6FE060);
     RH_ScopedInstall(AtomicSetCarplateTextureCB, 0x6FE0D0);
     RH_ScopedInstall(SetupClump, 0x6FE0F0);
     RH_ScopedInstall(RenderLicenseplateTextToRaster, 0x6FDD70);
+    RH_ScopedInstall(LoadPlatecharsetDat, 0x6FDC00, { .Reversed = false });
 }
 
 // 0x6FD500

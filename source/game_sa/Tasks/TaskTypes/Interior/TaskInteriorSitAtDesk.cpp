@@ -14,7 +14,7 @@ void CTaskInteriorSitAtDesk::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x6760E0);
     RH_ScopedVMTInstall(GetTaskType, 0x676070);
     RH_ScopedVMTInstall(MakeAbortable, 0x676150);
-    RH_ScopedVMTInstall(ProcessPed, 0x677920, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x677920, { .Reversed = false });
 }
 
 // 0x676010

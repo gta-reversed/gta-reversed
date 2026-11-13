@@ -23,7 +23,7 @@ void CColSphere::Set(float radius, const CVector& center, eSurfaceType material,
 }
 
 // 0x40FF20
-bool CColSphere::IntersectRay(const CVector& rayOrigin, const CVector& direction, CVector& intersectPoint1, CVector& intersectPoint2) {
+bool CColSphere::IntersectRay(const CVector& rayOrigin, const CVector& direction, CVector& intersectPoint1, CVector& intersectPoint2) const noexcept {
     CVector distance = rayOrigin - m_vecCenter;
     float b = 2.0f * DotProduct(direction, distance);
     float c = DotProduct(distance, distance) - m_fRadius * m_fRadius;
@@ -37,7 +37,7 @@ bool CColSphere::IntersectRay(const CVector& rayOrigin, const CVector& direction
 }
 
 // 0x4100E0
-bool CColSphere::IntersectEdge(const CVector& startPoint, const CVector& endPoint, CVector& intersectPoint1, CVector& intersectPoint2) {
+bool CColSphere::IntersectEdge(const CVector& startPoint, const CVector& endPoint, CVector& intersectPoint1, CVector& intersectPoint2) const noexcept {
     CVector originCenterDistance = startPoint - m_vecCenter;
     CVector rayDirection = endPoint - startPoint;
     float rayLength = rayDirection.Magnitude();
@@ -72,13 +72,13 @@ bool CColSphere::IntersectEdge(const CVector& startPoint, const CVector& endPoin
 }
 
 // 0x410040
-bool CColSphere::IntersectPoint(const CVector& point) {
+bool CColSphere::IntersectPoint(const CVector& point) const noexcept {
     CVector distance = m_vecCenter - point;
     return m_fRadius * m_fRadius > distance.SquaredMagnitude();
 }
 
 // 0x410090
-bool CColSphere::IntersectSphere(const CColSphere& right) const {
+bool CColSphere::IntersectSphere(const CColSphere& right) const noexcept {
     CVector distance = m_vecCenter - right.m_vecCenter;
     return std::powf(m_fRadius + right.m_fRadius, 2.0f) > distance.SquaredMagnitude();
 }

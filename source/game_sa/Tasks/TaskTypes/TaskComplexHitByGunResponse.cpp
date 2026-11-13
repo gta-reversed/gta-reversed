@@ -43,3 +43,7 @@ CTask* CTaskComplexHitByGunResponse::CreateFirstSubTask(CPed* ped) {
     default:                   NOTSA_UNREACHABLE();
     }
 }
+
+bool CTaskComplexHitByGunResponse::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
+    return (priority == ABORT_PRIORITY_URGENT || priority == ABORT_PRIORITY_IMMEDIATE) && CTaskComplex::MakeAbortable(ped, priority, event);
+}

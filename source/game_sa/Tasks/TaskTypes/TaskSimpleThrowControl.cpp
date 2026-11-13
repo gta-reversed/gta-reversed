@@ -11,7 +11,7 @@ void CTaskSimpleThrowControl::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x6230B0);
     RH_ScopedVMTInstall(GetTaskType, 0x61F940);
     RH_ScopedVMTInstall(MakeAbortable, 0x61F9B0);
-    RH_ScopedVMTInstall(ProcessPed, 0x61F9F0, { .enabled = false, .locked = true });
+    RH_ScopedVMTInstall(ProcessPed, 0x61F9F0, { .State = HS::RedirectToGTA, .Locked = true });
 }
 
 // 0x61F8B0

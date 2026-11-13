@@ -5,15 +5,13 @@
 // NOTSA: *deathTime* originally int32
 // 0x630590
 CTaskSimpleDead::CTaskSimpleDead(uint32 deathTime, bool hasDrowned) :
-    m_nDeathTimeMS{deathTime},
-    m_bHasDrowned{hasDrowned}
-{
+    m_nDeathTimeMS{ deathTime },
+    m_bHasDrowned{ hasDrowned } {
 }
 
 // 0x636100
 CTaskSimpleDead::CTaskSimpleDead(const CTaskSimpleDead& o) :
-    CTaskSimpleDead{o.m_nDeathTimeMS, o.m_bHasDrowned}
-{
+    CTaskSimpleDead{ o.m_nDeathTimeMS, o.m_bHasDrowned } {
 }
 
 // 0x630600
@@ -28,8 +26,8 @@ void CTaskSimpleDead::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x630590);
     RH_ScopedInstall(Destructor, 0x6305F0);
 
-    RH_ScopedVMTInstall(Clone, 0x636100, { .reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x6305D0, { .reversed = false });
-    RH_ScopedVMTInstall(MakeAbortable, 0x6305E0, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessPed, 0x630600, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x636100, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x6305D0, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x6305E0, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x630600, { .Reversed = false });
 }

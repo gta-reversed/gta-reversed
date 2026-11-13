@@ -516,8 +516,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
         switch (mce.type) {
         case MISSION_CLEANUP_ENTITY_TYPE_PED: {
             const auto ped = GetPedPool()->GetAtRef(mce.handle);
-            assert(ped);
-            if (ped->IsStateDying()) {
+            if (!ped || ped->IsStateDying()) {
                 continue;
             }
             ProcessEntity(ped);
@@ -525,14 +524,16 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
         }
         case MISSION_CLEANUP_ENTITY_TYPE_VEHICLE: {
             const auto veh = GetVehiclePool()->GetAtRef(mce.handle);
-            assert(veh);
+            if (!veh) {
+                continue;
+            }
             switch (veh->GetStatus()) {
             case STATUS_PHYSICS:
             case STATUS_SIMPLE:
             case STATUS_ABANDONED:
-                continue;
+                ProcessEntity(veh);
+                break;
             }
-            ProcessEntity(veh);
             break;
         }
         }

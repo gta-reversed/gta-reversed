@@ -74,7 +74,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.State = HS::RedirectToGTA});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -86,7 +86,8 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(TidyUpMemory, 0x53C500);
 
     RH_ScopedGlobalInstall(CameraDestroy, 0x72FD90);
-    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA0BC);
+    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA060);
+    RH_ScopedGlobalInstall(D3DDeviceRestoreCallback, 0x5BA120);
 }
 
 // 0x72FD90
@@ -114,7 +115,7 @@ static void CameraDestroy(RwCamera* rwCamera) {
     RwCameraDestroy(rwCamera);
 }
 
-// 0x5BA0BC
+// 0x5BA060
 void ValidateVersion() {
     auto file = CFileMgr::OpenFile("models\\coll\\peds.col", "rb");
     if (!file) {
@@ -142,6 +143,19 @@ void ValidateVersion() {
 
     strncpy_s(version_name, &buf[15], 64u);
     CFileMgr::CloseFile(file);
+}
+
+static auto& s_PrevD3DDeviceRestoreCallback = StaticRef<rwD3D9DeviceRestoreCallBack>(0xBD0114);
+
+// 0x5BA120
+void D3DDeviceRestoreCallback() {
+    if (s_PrevD3DDeviceRestoreCallback) {
+        s_PrevD3DDeviceRestoreCallback();
+    }
+    if (g_realTimeShadowMan.m_bInitialised) {
+        g_realTimeShadowMan.m_bNeedsReinit = true;
+    }
+    CMirrors::d3dRestored = true;
 }
 
 // 0x53BB80
@@ -650,7 +664,8 @@ bool CGame::InitialiseRenderWare() {
     CGame::m_pWorkingMatrix1 = RwMatrixCreate();
     CGame::m_pWorkingMatrix2 = RwMatrixCreate();
 
-    _rwD3D9DeviceSetRestoreCallback(_rwD3D9DeviceGetRestoreCallback());
+    s_PrevD3DDeviceRestoreCallback = _rwD3D9DeviceGetRestoreCallback();
+    _rwD3D9DeviceSetRestoreCallback(D3DDeviceRestoreCallback);
     return true;
 }
 
@@ -782,7 +797,7 @@ void CGame::Process() {
 
         g_LoadMonitor.EndFrame();
 
-        if (!CTimer::bSkipProcessThisFrame) {
+        if (!CTimer::IsSkipProcessThisFrame()) {
             CPickups::Update();
             CCarCtrl::PruneVehiclesOfInterest();
             CGarages::Update();

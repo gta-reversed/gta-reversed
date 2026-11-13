@@ -3,7 +3,7 @@
 #include "TaskAllocatorKillThreatsBasic.h"
 
 // Originally didn't inherit from `CTaskAllocatorKillThreatsBasic`,
-// but they share a few things, so why not
+// but it has the same layout (`m_Threat`, `m_Timer`), so why not
 class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsDriveby final : public CTaskAllocatorKillThreatsBasic {
 public:
     constexpr static inline auto Type = eTaskAllocatorType::KILL_THREATS_DRIVEBY;
@@ -15,10 +15,6 @@ public:
 
     eTaskAllocatorType GetType() override { return eTaskAllocatorType::KILL_THREATS_DRIVEBY; }; // 0x69CB50
     void               AllocateTasks(CPedGroupIntelligence* intel) override;
-
-public:
-    CPed::Ref  m_Threat{};
-    CTaskTimer m_Timer{};
 
 private: // Wrappers for hooks
     // 0x69CAF0
@@ -33,3 +29,4 @@ private: // Wrappers for hooks
         return this;
     }
 };
+VALIDATE_SIZE(CTaskAllocatorKillThreatsDriveby, 0x14);

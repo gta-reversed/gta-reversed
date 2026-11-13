@@ -277,7 +277,7 @@ void CMenuManager::DrawBackground() {
         const auto right = DEFAULT_SCREEN_WIDTH / 2 + 50;
         const auto height = DEFAULT_SCREEN_WIDTH / 2 - DEFAULT_SCREEN_HEIGHT / 6;
 
-        if ((CTimer::m_FrameCounter & 4) != 0) {
+        if ((CTimer::GetFrameCounter() & 4) != 0) {
             progressPos -= progressDir;
             progressDir = (progressPos >= right) ? 1 : (progressPos <= left) ? -1 : progressDir;
         }
@@ -859,7 +859,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
     CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
 
     CRect textRect;
-    CFont::GetTextRect(&textRect, x, y, TheText.Get(message));
+    CFont::GetTextRect(textRect, x, y, TheText.Get(message));
     textRect.left -= 4.0f;
     textRect.bottom += StretchY(22.0f);
     CSprite2d::DrawRect(textRect, MENU_BG);

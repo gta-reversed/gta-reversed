@@ -123,15 +123,15 @@ CExplosion* CExplosion::GetFree() {
 // NOTSA
 void CExplosion::SetCreator(CEntity* newCreator) noexcept {
     CEntity::SafeCleanUpRef(m_pCreator);
-    CEntity::SafeRegisterRef(newCreator);
     m_pCreator = newCreator;
+    CEntity::SafeRegisterRef(m_pCreator);
 }
 
 // NOTSA
 void CExplosion::SetVictim(CEntity* newVictim) noexcept {
     CEntity::SafeCleanUpRef(m_pVictim);
-    CEntity::SafeRegisterRef(newVictim);
     m_pVictim = newVictim;
+    CEntity::SafeRegisterRef(m_pVictim);
 }
 
 bool DoesNeedToVehProcessBombTimer(eExplosionType type) {

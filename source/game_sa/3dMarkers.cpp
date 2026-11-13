@@ -12,8 +12,8 @@ void C3dMarkers::InjectHooks() {
 
     RH_ScopedInstall(Init, 0x724E40);
     RH_ScopedInstall(Update, 0x7227B0);
-    RH_ScopedInstall(Shutdown, 0x722710);
-    RH_ScopedInstall(Render, 0x725040);
+    RH_ScopedInstall(Shutdown, 0x722710, { .Locked = true }); // FIX(#1514): Vanilla one inlines `C3dMarker::DeleteMarkerObject`
+    RH_ScopedInstall(Render, 0x725040, { .Locked = true }); // FIX(#1514): Vanilla one inlines `C3dMarker::DeleteMarkerObject`
     RH_ScopedInstall(DirectionArrowFindFirstFreeSlot, 0x721120);
     RH_ScopedInstall(DirectionArrowSet, 0x721140);
     RH_ScopedInstall(DirectionArrowsDraw, 0x7211F0);

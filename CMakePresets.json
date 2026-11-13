@@ -1,25 +1,9 @@
 {
     "version": 4,
     "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 23,
+        "major": 4,
+        "minor": 2,
         "patch": 0
     },
-    "include": ["./ConanPresets.json"],
-    "configurePresets": [
-        {
-            "name": "default-unity",
-            "inherits": "conan-default",
-            "cacheVariables": {
-                "GTASA_UNITY_BUILD": "ON"
-            }
-        },
-        {
-            "name": "default",
-            "inherits": "conan-default",
-            "cacheVariables": {
-                "GTASA_UNITY_BUILD": "OFF"
-            }
-        }
-    ]
+    "include": ["./ConanPresets.json"]
 }

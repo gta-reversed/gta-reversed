@@ -10,7 +10,7 @@ public:
         RH_ScopedCategory("Pools");
 
         //RH_ScopedInstall(Constructor, 0x405900);
-        RH_ScopedInstall(New, 0x004059B0);
+        rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "New", 0x004059B0, &RHCurrentNS::New);
     }
 
 public:

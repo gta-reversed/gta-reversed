@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "TaskComplexSunbathe.h"
+#include "Event.h"
 
 void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexSunbathe, 0x86e0ac, 11);
@@ -8,17 +9,17 @@ void CTaskComplexSunbathe::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x631F80);
     RH_ScopedInstall(Destructor, 0x632050);
 
-    //RH_ScopedGlobalInstall(CanSunbathe, 0x632140, { .reversed = false });
-    //RH_ScopedGlobalInstall(ShouldLoadSunbatheAnims, 0x632190, { .reversed = false });
+    //RH_ScopedGlobalInstall(CanSunbathe, 0x632140, { .Reversed = false });
+    //RH_ScopedGlobalInstall(ShouldLoadSunbatheAnims, 0x632190, { .Reversed = false });
 
-    //RH_ScopedInstall(CreateSubTask, 0x638290, { .reversed = false });
+    //RH_ScopedInstall(CreateSubTask, 0x638290, { .Reversed = false });
 
-    RH_ScopedVMTInstall(Clone, 0x6366A0, { .reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x632040, { .reversed = false });
-    RH_ScopedVMTInstall(MakeAbortable, 0x6320F0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x6366A0, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x632040, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x6320F0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
 
 }
 
@@ -66,7 +67,20 @@ CTaskComplexSunbathe::~CTaskComplexSunbathe() {
 
 // 0x6320F0
 bool CTaskComplexSunbathe::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
-    return plugin::CallMethodAndReturn<bool, 0x6320F0, CTaskComplexSunbathe*, CPed*, eAbortPriority, CEvent const*>(this, ped, priority, event);
+    if (event) {
+        switch (event->GetEventType()) {
+        case EVENT_PED_COLLISION_WITH_PED:
+        case EVENT_PED_COLLISION_WITH_PLAYER:
+            return false;
+        default:
+            break;
+        }
+    }
+    if (!m_pSubTask->MakeAbortable(ped, priority, event)) {
+        return false;
+    }
+    m_bAborted = true;
+    return true;
 }
 
 // 0x6399F0
