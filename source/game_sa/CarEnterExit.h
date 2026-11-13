@@ -36,6 +36,7 @@ public:
     static int32 ComputeDoorFlag(const CVehicle* vehicle, int32 doorId, bool bCheckVehicleType);
     static int32 ComputeOppositeDoorFlag(const CVehicle* vehicle, int32 doorId, bool bCheckVehicleType);
     static int32 ComputePassengerIndexFromCarDoor(const CVehicle* vehicle, int32 doorId);
+    static CPed* GetPassengerAtCarDoor(const CVehicle* vehicle, int32 doorId); // NOTSA
     static CPed* ComputeSlowJackedPed(const CVehicle* vehicle, int32 doorId);
     static int32 ComputeTargetDoorToEnterAsPassenger(const CVehicle* vehicle, int32 nPassengerNum);
     static int32 ComputeTargetDoorToExit(const CVehicle* vehicle, const CPed* ped);
