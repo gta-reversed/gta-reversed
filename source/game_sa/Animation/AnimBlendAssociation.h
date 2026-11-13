@@ -128,7 +128,7 @@ public:
     CAnimBlendLink                m_Link;          //!< Link to the next association of the clump
     uint16                        m_NumBlendNodes; //!< Number of bones this anim moves
     notsa::WEnumS16<AssocGroupId> m_AnimGroupId;   //!< Anim's group
-    CAnimBlendNode*               m_BlendNodes;    //!< Node per- animations - NOTE: Order of these depends on order of nodes in Clump this was built from
+    CAnimBlendNode*               m_BlendNodes;    //!< Node per-node animations - NOTE: Order of these depends on order of nodes in Clump this was built from
     CAnimBlendHierarchy*          m_BlendHier;     //!< The animation hierarchy this association was created from
     float                         m_BlendAmount;   //!< How much this animation is blended
     float                         m_BlendDelta;    //!< How much `BlendAmount` changes over time
