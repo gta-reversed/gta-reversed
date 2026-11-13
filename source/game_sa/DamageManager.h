@@ -217,6 +217,12 @@ private:
 
     // Return type has to be uint32, but we want to return `eCarWheelStatus` in our code.
     uint32 GetWheelStatus_Hooked(eCarWheel wheel) { return (uint32)GetWheelStatus(wheel); }
+
+    // Same for these, the original code reads the whole return value.
+    uint32 GetAeroplaneCompStatus_Hooked(uint8 frame) { return (uint32)GetAeroplaneCompStatus(frame); }
+    uint32 GetDoorStatus_Component_Hooked(tComponent door) const { return (uint32)GetDoorStatus_Component(door); }
+    uint32 GetDoorStatus_Hooked(eDoors door) const { return (uint32)GetDoorStatus(door); }
+    uint32 GetPanelStatus_Hooked(ePanels panel) const { return (uint32)GetPanelStatus(panel); }
 };
 
 VALIDATE_SIZE(CDamageManager, 0x18);
