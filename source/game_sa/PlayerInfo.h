@@ -96,7 +96,7 @@ public:
 
     CPlayerInfo& operator=(const CPlayerInfo& rhs);
 
-    static void CancelPlayerEnteringCars(CVehicle* vehicle);
+    void CancelPlayerEnteringCars(CVehicle* vehicle);
     static CEntity* FindObjectToSteal(CPed* ped);
 
     void Process(uint32 playerIndex);
