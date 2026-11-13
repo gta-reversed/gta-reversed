@@ -9,6 +9,7 @@
 #include "Bike.h"
 
 #include "Buoyancy.h"
+#include "VehicleRecording.h"
 
 
 
@@ -23,7 +24,7 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(KnockOffRider, 0x6B5F40);
     RH_ScopedInstall(SetRemoveAnimFlags, 0x6B5F50, { .Reversed = false });
     RH_ScopedInstall(ReduceHornCounter, 0x6B5F90);
-    RH_ScopedVMTInstall(ProcessAI, 0x6BC930, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessAI, 0x6BC930);
     RH_ScopedInstall(ProcessBuoyancy, 0x6B5FB0);
     RH_ScopedInstall(ResetSuspension, 0x6B6740, { .Reversed = false });
     RH_ScopedInstall(GetAllWheelsOffGround, 0x6B6790);
@@ -39,7 +40,7 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(BlowUpCar, 0x6BEA10, { .Reversed = false });
     RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BF400);
     RH_ScopedVMTInstall(BurstTyre, 0x6BEB20, { .Reversed = false });
-    RH_ScopedVMTInstall(ProcessControlInputs, 0x6BE310, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessControlInputs, 0x6BE310);
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6BDEA0);
     RH_ScopedVMTInstall(Render, 0x6BDE20);
     RH_ScopedVMTInstall(PreRender, 0x6BD090, { .Reversed = false });
@@ -370,8 +371,149 @@ inline void CBike::ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver) {
 }
 
 // 0x6BC930
+// NOTE: Every `extraHandlingFlags += 2` below is an add in the original (not an OR). The caller (CBike::ProcessControl)
+//       starts with 0 and ignores the return value. Without flag 2 (and without bGettingPickedUp/bOnSideStand)
+//       ProcessControl uses the no-rider centre of mass (m_fNoPlayerCOMz) and skips the upright-stabilising torque.
+//       TODO: Name it (EXTRA_HANDLING_BIKE_BALANCE?)
 bool CBike::ProcessAI(uint32& extraHandlingFlags) {
-    return plugin::CallMethodAndReturn<bool, 0x6BC930, CBike*, uint32&>(this, extraHandlingFlags);
+    m_autoPilot.carCtrlFlags.bHonkAtCar = false;
+    m_autoPilot.carCtrlFlags.bHonkAtPed = false;
+
+    const auto recordingId = m_autoPilot.m_vehicleRecordingId;
+    if (recordingId >= 0 && !CVehicleRecording::bUseCarAI[recordingId]) {
+        extraHandlingFlags += 2;
+        return false;
+    }
+
+    switch (GetStatus()) {
+    case STATUS_PLAYER: {
+        extraHandlingFlags += 2;
+        bikeFlags.bGettingPickedUp = false;
+
+        if (FindPlayerPed()->m_nPedState != PEDSTATE_EXIT_CAR && FindPlayerPed()->m_nPedState != PEDSTATE_DRAGGED_FROM_CAR) {
+            if (m_pDriver) {
+                if (m_pDriver == CWorld::Players[0].m_pPed) { // 0x6BC9EB (SA-MP NOPs this jne)
+                    ProcessControlInputs(0);
+                } else if (m_pDriver == CWorld::Players[1].m_pPed) {
+                    ProcessControlInputs(1);
+                }
+            }
+
+            const auto& leanFwd = m_RideAnimData.LeanFwd;
+            if (leanFwd < 0.0f) { // Leaning back
+                m_vecCentreOfMass.y = m_BikeHandling->m_fLeanBakCOM * leanFwd + m_pHandlingData->m_vecCentreOfMass.y;
+                if (m_BrakePedal == 0.0f && !vehicleFlags.bIsHandbrakeOn || m_nNoOfContactWheels == 0) {
+                    const auto speed = std::min(m_vecMoveSpeed.Magnitude(), 0.1f);
+                    auto force = m_BikeHandling->m_fLeanBakForce * m_fTurnMass * leanFwd * speed * (std::max(m_GasPedal, speed / 0.1f) + m_GasPedal) * 0.5f;
+                    force *= CStats::GetFatAndMuscleModifier(STAT_MOD_11); // Bike skill
+                    ApplyTurnForce(GetUp() * -(CTimer::GetTimeStep() * force), m_vecCentreOfMass + GetForward());
+                }
+            } else { // Leaning forward
+                m_vecCentreOfMass.y = m_BikeHandling->m_fLeanFwdCOM * leanFwd + m_pHandlingData->m_vecCentreOfMass.y;
+                // NOTE: The brake pedal is never negative, so this only applies the force while airborne
+                if (m_BrakePedal < 0.0f || m_nNoOfContactWheels == 0) {
+                    const auto speed = std::min(m_vecMoveSpeed.Magnitude(), 0.1f);
+                    auto force = m_BikeHandling->m_fLeanFwdForce * m_fTurnMass * leanFwd * speed * (std::max(m_BrakePedal, speed / 0.1f) + m_BrakePedal) * 0.5f;
+                    force *= CStats::GetFatAndMuscleModifier(STAT_MOD_11); // Bike skill
+                    ApplyTurnForce(GetUp() * -(CTimer::GetTimeStep() * force), m_vecCentreOfMass + GetForward());
+                }
+            }
+
+            PruneReferences();
+            if (GetStatus() == STATUS_PLAYER) {
+                DoDriveByShootings();
+            }
+            DoSoftGroundResistance(extraHandlingFlags);
+        }
+
+        if (CPad::GetPad(0)->CarGunJustDown()) {
+            ActivateBomb();
+        }
+        return true;
+    }
+    case STATUS_PLAYER_PLAYBACK_FROM_BUFFER:
+        extraHandlingFlags += 2;
+        return true;
+    case STATUS_SIMPLE: {
+        CCarAI::UpdateCarAI(this);
+        CPhysical::ProcessControl();
+        CCarCtrl::UpdateCarOnRails(this);
+
+        m_nNoOfContactWheels = 2;
+        m_NumDriveWheelsOnGroundLastFrame = m_NumDriveWheelsOnGround;
+        m_NumDriveWheelsOnGround = 2;
+        m_pHandlingData->GetTransmission().CalculateGearForSimpleCar(m_autoPilot.m_speed * 0.02f, m_nCurrentGear);
+
+        const auto* mi = GetVehicleModelInfo();
+        m_aWheelPitchAngles[0] += ProcessWheelRotation(WHEEL_STATE_NORMAL, GetForward(), m_vecMoveSpeed, mi->m_fWheelSizeFront * 0.5f) * CTimer::GetTimeStep();
+        m_aWheelPitchAngles[1] += ProcessWheelRotation(WHEEL_STATE_NORMAL, GetForward(), m_vecMoveSpeed, mi->m_fWheelSizeRear * 0.5f) * CTimer::GetTimeStep();
+
+        PlayHornIfNecessary();
+        ReduceHornCounter();
+        bikeFlags.bWheelieForCamera = false;
+        vehicleFlags.bVehicleColProcessed = false;
+        vehicleFlags.bAudioChangingGear = false;
+        return true;
+    }
+    case STATUS_PHYSICS:
+    case STATUS_GHOST:
+        CCarAI::UpdateCarAI(this);
+        CCarCtrl::SteerAICarWithPhysics(this);
+        PlayHornIfNecessary();
+        extraHandlingFlags += 2;
+        bikeFlags.bWheelieForCamera = false;
+        if (vehicleFlags.bIsBeingCarJacked) {
+            vehicleFlags.bIsHandbrakeOn = true;
+            m_GasPedal = 0.0f;
+            m_BrakePedal = 1.0f;
+        } else {
+            bikeFlags.bGettingPickedUp = false;
+        }
+        return true;
+    case STATUS_ABANDONED:
+        m_BrakePedal = 0.0f;
+        vehicleFlags.bIsHandbrakeOn = m_vecMoveSpeed.SquaredMagnitude() < 0.01f || bikeFlags.bOnSideStand;
+        m_GasPedal = 0.0f;
+        m_HornCounter = 0;
+        if ((m_pDriver || m_apPassengers[0] || vehicleFlags.bIsBeingCarJacked) && !bikeFlags.bOnSideStand) {
+            extraHandlingFlags += 2;
+        }
+        bikeFlags.bWheelieForCamera = false;
+        m_RideAnimData.AnimLeanLeft = 0.0f;
+        m_RideAnimData.AnimLeanFwd = 0.0f;
+        if (vehicleFlags.bIsBeingCarJacked) {
+            vehicleFlags.bIsHandbrakeOn = true;
+            m_GasPedal = 0.0f;
+            m_BrakePedal = 1.0f;
+        }
+        return true;
+    case STATUS_WRECKED:
+        vehicleFlags.bIsHandbrakeOn = true;
+        m_BrakePedal = 0.05f;
+        m_fSteerAngle = 0.0f;
+        m_GasPedal = 0.0f;
+        m_HornCounter = 0;
+        bikeFlags.bWheelieForCamera = false;
+        m_RideAnimData.AnimLeanLeft = 0.0f;
+        m_RideAnimData.AnimLeanFwd = 0.0f;
+        return true;
+    case STATUS_FORCED_STOP:
+        if (m_vecMoveSpeed.SquaredMagnitude() < 0.01f) {
+            vehicleFlags.bIsHandbrakeOn = true;
+            m_BrakePedal = 1.0f;
+        } else {
+            vehicleFlags.bIsHandbrakeOn = false;
+            m_BrakePedal = 0.0f;
+        }
+        m_fSteerAngle = 0.0f;
+        m_GasPedal = 0.0f;
+        m_HornCounter = 0;
+        extraHandlingFlags += 2;
+        bikeFlags.bWheelieForCamera = false;
+        return true;
+    default: // Train, remote controlled, towed
+        return true;
+    }
 }
 
 // 0x6BF400
@@ -394,7 +536,115 @@ bool CBike::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
 
 // 0x6BE310
 void CBike::ProcessControlInputs(uint8 playerNum) {
-    plugin::CallMethod<0x6BE310, CBike*, uint8>(this, playerNum);
+    const auto pad      = CPad::GetPad(playerNum);
+    const auto fwdSpeed = m_vecMoveSpeed.Dot(GetForward());
+    auto&      lean     = m_RideAnimData.LeanFwd; // Lean forward/back input, -1 .. 1
+
+    vehicleFlags.bIsHandbrakeOn = pad->GetExitVehicle() || pad->GetHandBrake() != 0;
+
+    //> 0x6BE46A, 0x6BE5C4 - Steer and lean from the pad (the `* CTimer::GetTimeStep()` are at 0x6BE4A7 and 0x6BE5F8)
+    const auto ProcessPadInput = [&] {
+        m_nLastControlInput = eControllerType::KEYBOARD;
+        m_fRawSteerAngle += (-(float)pad->GetSteeringLeftRight() / 128.f - m_fRawSteerAngle) * CTimer::GetTimeStep() * 0.2f;
+        lean             += (-(float)pad->GetSteeringUpDown() / 128.f - lean) * CTimer::GetTimeStep() * 0.2f;
+    };
+
+    //> 0x6BE4E8 - Steer and lean from the mouse, both slowly return to 0
+    const auto ProcessMouseInput = [&] {
+        m_nLastControlInput = eControllerType::MOUSE;
+        const auto& mouseMove = CPad::NewMouseControllerState.m_AmountMoved;
+        if (!pad->NewState.m_bVehicleMouseLook) {
+            m_fRawSteerAngle -= mouseMove.x * 0.0035f;
+            lean             -= mouseMove.y * 0.0035f;
+        }
+        if (std::abs(m_fRawSteerAngle) < 0.35f || pad->NewState.m_bVehicleMouseLook) {
+            m_fRawSteerAngle *= std::pow(0.98f, CTimer::GetTimeStep());
+        }
+        if (std::abs(lean) < 0.35f || pad->NewState.m_bVehicleMouseLook) {
+            lean *= std::pow(0.98f, CTimer::GetTimeStep());
+        }
+    };
+
+    //> 0x6BE38A
+    if (CCamera::m_bUseMouse3rdPerson && m_bEnableMouseSteering) {
+        const auto& mouseMove = CPad::NewMouseControllerState.m_AmountMoved;
+        if (   mouseMove.x != 0.f
+            || mouseMove.y != 0.f
+            || (std::abs(m_fRawSteerAngle) > 0.f && m_nLastControlInput == eControllerType::MOUSE && !pad->GetSteeringLeftRight() && !pad->GetSteeringUpDown())
+        ) {
+            ProcessMouseInput();
+        } else if (pad->GetSteeringLeftRight() || pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::MOUSE) {
+            ProcessPadInput();
+        } // else: mouse was used last, no input now: keep the values (NOTE: `lean` does not decay here while the steer angle is exactly 0)
+    } else {
+        ProcessPadInput();
+    }
+
+    //> 0x6BE655 - NOTE: original clamps NaN to -1, `std::clamp` keeps NaN
+    m_fRawSteerAngle = std::clamp(m_fRawSteerAngle, -1.f, 1.f);
+    lean             = std::clamp(lean, -1.f, 1.f);
+
+    //> 0x6BE6D3 - Gas/brake pedal
+    const auto gasPedalInput = (float)(pad->GetAccelerate() - pad->GetBrake()) * (1.f / 255.f);
+    if (std::abs(fwdSpeed) < 0.01f) { // Standing still
+        if (pad->GetAccelerate() > 150 && pad->GetBrake() > 150 && !IsSubBMX()) { // Burnout
+            m_GasPedal   = (float)pad->GetAccelerate() * (1.f / 255.f);
+            m_BrakePedal = (float)pad->GetBrake() * (1.f / 255.f);
+            m_nBrakesOn  = 1; // NOTE: Burnout flag (VC: `m_doingBurnout`), `m_nBrakesOn` is probably misnamed
+        } else {
+            m_GasPedal   = gasPedalInput;
+            m_BrakePedal = 0.f;
+        }
+    } else if (fwdSpeed >= 0.f) { // Moving forwards
+        if (gasPedalInput < 0.f) { // Want to go backwards, so brake
+            m_GasPedal   = 0.f;
+            m_BrakePedal = -gasPedalInput;
+        } else {
+            m_GasPedal   = gasPedalInput;
+            m_BrakePedal = 0.f;
+        }
+    } else {                       // Moving backwards
+        if (gasPedalInput < 0.f) { // Still go backwards
+            m_GasPedal   = gasPedalInput;
+            m_BrakePedal = 0.f;
+        } else {                   // Want to go forwards, so brake
+            m_GasPedal   = 0.f;
+            m_BrakePedal = gasPedalInput;
+        }
+    }
+
+    //> 0x6BE872 - Sign preserving square. Original stores it in a static float (0xC1C804) nothing else reads
+    const auto steer = m_fRawSteerAngle < 0.f ? -sq(m_fRawSteerAngle) : sq(m_fRawSteerAngle);
+    if (const auto recId = m_autoPilot.m_vehicleRecordingId; recId < 0 || CVehicleRecording::bUseCarAI[recId]) {
+        m_fSteerAngle = DegreesToRadians(m_pHandlingData->m_fSteeringLock) * steer;
+    }
+
+    //> 0x6BE8CC
+    if (vehicleFlags.bComedyControls) {
+        if (((CTimer::GetTimeInMS() >> 10) & 0xF) < 12) {
+            m_GasPedal = 1.f;
+        }
+        if ((((CTimer::GetTimeInMS() >> 10) + 6) & 0xF) < 12) {
+            m_BrakePedal = 0.f;
+        }
+        vehicleFlags.bIsHandbrakeOn = false;
+        if (CTimer::GetTimeInMS() & 0x800) {
+            m_fSteerAngle += 0.08f;
+        } else {
+            m_fSteerAngle -= 0.03f;
+        }
+    }
+
+    //> 0x6BE93E - Slow the player down (unlike CAutomobile, `bApplyBrakes` is not checked)
+    if (CPad::GetPad(0)->DisablePlayerControls && CGameLogic::SkipState != 2) {
+        vehicleFlags.bIsHandbrakeOn = true;
+        m_BrakePedal = 1.f;
+        m_GasPedal   = 0.f;
+        FindPlayerPed()->KeepAreaAroundPlayerClear();
+        if (const auto speed = m_vecMoveSpeed.Magnitude(); speed > 0.28f) {
+            m_vecMoveSpeed *= 0.28f / speed;
+        }
+    }
 }
 
 // 0x6BDEA0
