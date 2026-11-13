@@ -712,7 +712,7 @@ void CPed::SetMoveAnimSpeed(CAnimBlendAssociation* association) {
     if (IsCreatedByMission()) {
         association->m_Speed = pitchFactor + 1.f;
     } else {
-        association->m_Speed = pitchFactor + 1.2f - (float)m_nRandomSeed * RAND_MAX_FLOAT_RECIPROCAL * 0.4f; // todo: use GetRandom from CGeneral::
+        association->m_Speed = pitchFactor + 1.2f - (float)m_nRandomSeed * RAND_MAX_INCLUSIVE_RECIPROCAL * 0.4f; // todo: use GetRandom from CGeneral::
     }
 }
 
