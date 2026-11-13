@@ -202,13 +202,13 @@ void CAnimBlendAssociation::SetCurrentTime(float currentTime) {
     if (m_BlendHier->m_bKeepCompressed) {
         for (auto i = 0; i < m_NumBlendNodes; i++) {
             if (m_BlendNodes[i].m_Seq) {
-                m_BlendNodes[i].SetupKeyFrameCompressed();
+                GetNode(i)->SetupKeyFrameCompressed();
             }
         }
     } else {
         for (auto i = 0; i < m_NumBlendNodes; i++) {
             if (m_BlendNodes[i].m_Seq) {
-                m_BlendNodes[i].FindKeyFrame(m_CurrentTime);
+                GetNode(i)->FindKeyFrame(m_CurrentTime);
             }
         }
     }
@@ -331,6 +331,11 @@ void CAnimBlendAssociation::ReferenceAnimBlock() {
     SetFlag(ANIMATION_REFERENCE_BLOCK, true);
 }
 
-std::span<CAnimBlendNode> CAnimBlendAssociation::GetNodes() {
+auto CAnimBlendAssociation::GetNodes() {
     return std::span{ m_BlendNodes, m_NumBlendNodes };
+}
+
+// 0x4CEB60
+CAnimBlendNode* CAnimBlendAssociation::GetNode(int32 nodeIndex) {
+    return &GetNodes()[nodeIndex];
 }

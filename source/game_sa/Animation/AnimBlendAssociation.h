@@ -216,9 +216,9 @@ public:
     auto GetSpeed() const      { return m_Speed; }
     void SetSpeed(float speed) { m_Speed = speed; }
 
-    std::span<CAnimBlendNode> GetNodes();
-    CAnimBlendNode*           GetNode(int32 nodeIndex) { return &GetNodes()[nodeIndex]; } // 0x4CEB60
-    CAnimBlendNode*           GetNodesPtr() { return m_BlendNodes; }
+    auto            GetNodes();
+    CAnimBlendNode* GetNode(int32 nodeIndex);
+    CAnimBlendNode* GetNodesPtr() { return m_BlendNodes; }
 
     auto& GetLink() { return m_Link; }
     auto  GetHier() const { return m_BlendHier; }

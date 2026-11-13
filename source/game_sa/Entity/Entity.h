@@ -149,7 +149,7 @@ public:
     [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, orig GetIsPhysical
 
     void SetType(eEntityType type) { m_info.m_nType = type; }
-    [[nodiscard]] auto GetType() const noexcept { return m_info.m_nType; }
+    [[nodiscard]] eEntityType GetType() const noexcept { return m_info.m_nType; }
 
     void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
     [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
