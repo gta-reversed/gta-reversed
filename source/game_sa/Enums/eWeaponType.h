@@ -7,6 +7,8 @@
 #pragma once
 
 enum eWeaponType : uint32 {
+    WEAPON_NONE = (uint32)(-1),
+
     WEAPON_UNARMED = 0,
     WEAPON_BRASSKNUCKLE,
     WEAPON_GOLFCLUB,
