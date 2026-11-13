@@ -7,8 +7,8 @@ void CGangWarsSaveStructure::Construct() {
     bGangWarsActive = CGangWars::bGangWarsActive;
     State = CGangWars::State;
     TimeStarted = CGangWars::TimeStarted;
+    // 0x5D2620: both indices default to -1, and each is searched only if its own pointer is set
     GangWarZoneInfoIndex = -1;
-
     if (CGangWars::pZoneInfoToFightOver) {
         for (auto i = 0; i < CTheZones::TotalNumberOfZoneInfos; i++) {
             if (CGangWars::pZoneInfoToFightOver == &CTheZones::ZoneInfoArray[i]) {
@@ -16,7 +16,10 @@ void CGangWarsSaveStructure::Construct() {
                 break;
             }
         }
+    }
 
+    GangWarNavigationZoneIndex = -1;
+    if (CGangWars::pZoneToFightOver) {
         for (auto i = 0; i < CTheZones::TotalNumberOfNavigationZones; i++) {
             if (CGangWars::pZoneToFightOver == &CTheZones::NavigationZoneArray[i]) {
                 GangWarNavigationZoneIndex = i;
