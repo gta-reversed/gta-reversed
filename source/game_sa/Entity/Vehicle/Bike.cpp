@@ -25,10 +25,10 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(ReduceHornCounter, 0x6B5F90);
     RH_ScopedVMTInstall(ProcessAI, 0x6BC930, { .Reversed = false });
     RH_ScopedInstall(ProcessBuoyancy, 0x6B5FB0);
-    RH_ScopedInstall(ResetSuspension, 0x6B6740, { .Reversed = false });
+    RH_ScopedInstall(ResetSuspension, 0x6B6740);
     RH_ScopedInstall(GetAllWheelsOffGround, 0x6B6790);
     RH_ScopedInstall(DebugCode, 0x6B67A0);
-    RH_ScopedInstall(DoSoftGroundResistance, 0x6B6D40, { .Reversed = false });
+    RH_ScopedInstall(DoSoftGroundResistance, 0x6B6D40);
     RH_ScopedInstall(PlayHornIfNecessary, 0x6B7130);
     RH_ScopedInstall(CalculateLeanMatrix, 0x6B7150);
     RH_ScopedInstall(ProcessRiderAnims, 0x6B7280, { .Reversed = false });
@@ -46,12 +46,12 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(Teleport, 0x6BCFC0);
     RH_ScopedVMTInstall(ProcessControl, 0x6B9250, { .Reversed = false });
     RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .Reversed = false });
-    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0, { .Reversed = false });
+    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0);
     RH_ScopedVMTInstall(SetModelIndex, 0x6B8970);
     RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080, { .Reversed = false });
     RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B7070);
-    RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .Reversed = false });
-    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0, { .Reversed = false });
+    RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950);
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0);
     RH_ScopedVMTInstall(RemoveRefsToVehicle, 0x6B67B0);
     RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6B6620);
     RH_ScopedVMTInstall(GetComponentWorldPosition, 0x6B5990);
@@ -138,7 +138,7 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     if (!mi->m_pColModel->m_pColData->m_pLines) {
         mi->m_pColModel->m_pColData->m_nNumLines = 4;
         mi->m_pColModel->m_pColData->m_pLines = static_cast<CColLine*>(CMemoryMgr::Malloc(4 * sizeof(CColLine)));
-        mi->m_pColModel->m_pColData->m_pLines[1].m_vecStart.x = 99'999.99f; // todo: explain this
+        mi->m_pColModel->m_pColData->m_pLines[1].m_vecStart.z = 99'999.99f; // First bike of this model: SetupSuspensionLines also fixes the col model's ground clearance
     }
     mi->m_pColModel->m_pColData->m_pLines[0].m_vecStart.z = 99'999.99f;
     CBike::SetupSuspensionLines();
@@ -525,7 +525,10 @@ void CBike::ProcessControl() {
 
 // 0x6B6740
 void CBike::ResetSuspension() {
-    ((void(__thiscall*)(CBike*))0x6B6740)(this);
+    rng::fill(m_aWheelPitchAngles, 0.0f);
+    rng::fill(m_WheelStates, WHEEL_STATE_NORMAL);
+    rng::fill(m_aWheelRatios, 1.0f);
+    rng::fill(m_WheelCounts, 0.0f);
 }
 
 // 0x6B6790
@@ -539,8 +542,31 @@ void CBike::DebugCode() {
 }
 
 // 0x6B6D40
-void CBike::DoSoftGroundResistance(uint32& arg0) {
-    ((void(__thiscall*)(CBike*, uint32&))0x6B6D40)(this, arg0);
+void CBike::DoSoftGroundResistance(uint32& extraHandlingFlags) {
+    const auto IsAnyWheelTouching = [this](auto&& Pred) {
+        for (auto&& [ratio, colPoint] : rngv::zip(m_aWheelRatios, m_aWheelColPoints)) {
+            if (ratio < 1.0f && Pred(colPoint)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const auto GetMoveSpeedAlongGround = [this] {
+        return m_vecMoveSpeed - GetUp() * DotProduct(m_vecMoveSpeed, GetUp());
+    };
+
+    if (IsAnyWheelTouching([](const CColPoint& cp) { return g_surfaceInfos.GetAdhesionGroup(cp.m_nSurfaceTypeB) == ADHESION_GROUP_SAND; })) {
+        auto speed = GetMoveSpeedAlongGround();
+        if (m_GasPedal > 0.3f) {
+            if (speed.SquaredMagnitude() < sq(0.3f)) {
+                extraHandlingFlags += 4; // NOTE: Original code adds instead of OR-ing. TODO: Name this flag (bike bogged down in sand?)
+            }
+            speed -= GetForward() * DotProduct(speed, GetForward()); // Only drag sideways while accelerating
+        }
+        ApplyMoveForce(speed * -(CTimer::GetTimeStep() * m_fMass * 0.02f));
+    } else if (IsAnyWheelTouching([](const CColPoint& cp) { return cp.m_nSurfaceTypeB == SURFACE_RAILTRACK; })) {
+        ApplyMoveForce(GetMoveSpeedAlongGround() * -(CTimer::GetTimeStep() * m_fMass * CVehicle::ms_fRailTrackResistance));
+    }
 }
 
 // 0x6B7130
@@ -634,9 +660,114 @@ void CBike::VehicleDamage(float damageIntensity, eVehicleCollisionComponent comp
     plugin::CallMethod<0x6B8EC0, CBike*, float, eVehicleCollisionComponent, CEntity*, CVector*, CVector*, eWeaponType>(this, damageIntensity, component, damager, vecCollisionCoors, vecCollisionDirection, weapon);
 }
 
+// Inlined in the original (also in SetUpWheelColModel): `frame`'s matrix concatenated with its parents' until `root` (exclusive) or the top of the hierarchy.
+static RwMatrix GetFrameMatrixRelativeTo(RwFrame* frame, const RwFrame* root) {
+    RwMatrix mat = *RwFrameGetMatrix(frame);
+    if (auto* parent = RwFrameGetParent(frame)) {
+        do {
+            RwMatrixTransform(&mat, RwFrameGetMatrix(parent), rwCOMBINEPOSTCONCAT);
+            parent = RwFrameGetParent(parent);
+        } while (parent != root && parent);
+    }
+    return mat;
+}
+
 // 0x6B89B0
 void CBike::SetupSuspensionLines() {
-    plugin::CallMethod<0x6B89B0, CBike*>(this);
+    // The constructor (0x6BF742) writes this to `m_pLines[0].m_vecStart.z` every time (= "lines must be recalculated from the frames"),
+    // and to `m_pLines[1].m_vecStart.z` only when it had to allocate the lines (= first bike of this model).
+    constexpr auto LINE_NOT_SET_UP = 99'999.99f; // 0x47C34FFF
+
+    const auto& mi       = *GetVehicleModelInfo();
+    auto&       cm       = *mi.GetColModel();
+    auto&       cd       = *cm.m_pColData;
+    const auto& handling = *m_pHandlingData;
+
+    // 0x6B89CE
+    const bool linesWereJustAllocated = cd.m_pLines[1].m_vecStart.z == LINE_NOT_SET_UP;
+    const bool linesAreSetUp          = cd.m_pLines[0].m_vecStart.z != LINE_NOT_SET_UP;
+
+    // 0x6B8A20
+    for (auto i = 0; i < NUM_SUSP_LINES; i++) {
+        auto& line = cd.m_pLines[i];
+        const auto isFront = i < 2; // Lines 0, 1 are the front wheel's, 2, 3 the rear wheel's
+
+        CVector wheelPos;
+        if (linesAreSetUp) {
+            wheelPos   = line.m_vecStart;
+            wheelPos.z = m_aWheelOrigHeights[isFront ? 0 : 1];
+        } else {
+            // Each wheel has 2 lines: one a quarter wheel size in front of, the other behind the wheel's center
+            const auto wheelSize = isFront ? mi.m_fWheelSizeFront : mi.m_fWheelSizeRear;
+            const auto lineOffsetY = wheelSize * ((i % 2) == 0 ? 0.25f : -0.25f);
+
+            wheelPos = GetFrameMatrixRelativeTo(m_aBikeNodes[isFront ? BIKE_WHEEL_FRONT : BIKE_WHEEL_REAR], RpClumpGetFrame(GetRpClump())).pos;
+            if (i == 0) {
+                m_aWheelOrigHeights[0] = wheelPos.z;
+            } else if (i == 2) {
+                m_aWheelOrigHeights[1] = wheelPos.z;
+
+                // 0x6B8B3E
+                if (auto* const forksRear = m_aBikeNodes[BIKE_FORKS_REAR]) {
+                    const CVector forksRearPos = GetFrameMatrixRelativeTo(forksRear, RpClumpGetFrame(GetRpClump())).pos;
+                    m_fSwingArmLength = CVector2D{ wheelPos.y - forksRearPos.y, wheelPos.z - forksRearPos.z }.Magnitude();
+                } else {
+                    m_fSwingArmLength = 0.0f;
+                }
+            }
+            wheelPos.y += lineOffsetY;
+        }
+
+        // 0x6B8BC8
+        wheelPos.z += handling.m_fSuspensionUpperLimit;
+
+        line.m_vecStart = wheelPos;
+        line.m_vecEnd   = CVector{
+            wheelPos.x,
+            wheelPos.y,
+            handling.m_fSuspensionLowerLimit - handling.m_fSuspensionUpperLimit - (isFront ? mi.m_fWheelSizeFront : mi.m_fWheelSizeRear) * 0.5f + wheelPos.z
+        };
+
+        m_fSuspensionLength[i] = handling.m_fSuspensionUpperLimit - handling.m_fSuspensionLowerLimit;
+        m_fLineLength[i]       = line.m_vecStart.z - line.m_vecEnd.z;
+    }
+
+    // 0x6B8C9E
+    if (!linesAreSetUp) {
+        // NOTE: Unlike above, this walk only stops at the top of the hierarchy (the stop frame is the fork frame itself), so the clump's root frame is included too.
+        const CVector forksFrontPos = GetFrameMatrixRelativeTo(m_aBikeNodes[BIKE_FORKS_FRONT], m_aBikeNodes[BIKE_FORKS_FRONT]).pos;
+        m_fForkYOffset = forksFrontPos.y;
+        m_fForkZOffset = forksFrontPos.z;
+    }
+
+    // 0x6B8CF5
+    m_fHeightAboveRoad = (1.0f - 1.0f / (handling.m_fSuspensionForceLevel * 4.0f)) * m_fSuspensionLength[0] + (mi.m_fWheelSizeFront * 0.5f - cd.m_pLines[0].m_vecStart.z);
+
+    // 0x6B8D40
+    for (auto i = 0u; i < m_aWheelSuspensionHeights.size(); i++) {
+        m_aWheelSuspensionHeights[i] = (i == 0 ? mi.m_fWheelSizeFront : mi.m_fWheelSizeRear) * 0.5f - m_fHeightAboveRoad;
+    }
+
+    // 0x6B8D6A
+    if (cd.m_pLines[0].m_vecEnd.z < cm.m_boundBox.m_vecMin.z) {
+        cm.m_boundBox.m_vecMin.z = cd.m_pLines[0].m_vecEnd.z;
+    }
+
+    // 0x6B8D84
+    cm.m_boundSphere.m_fRadius = std::max(cm.m_boundSphere.m_fRadius, std::max(cm.m_boundBox.m_vecMax.Magnitude(), cm.m_boundBox.m_vecMin.Magnitude()));
+
+    // 0x6B8E04
+    if (handling.m_bForceGroundClearance && linesWereJustAllocated) {
+        const auto sphBottomMinZ = 0.25f - m_fHeightAboveRoad;
+        for (auto& sph : cd.GetSpheres()) {
+            if (sph.m_vecCenter.z - sph.m_fRadius < sphBottomMinZ) {
+                if (sph.m_fRadius > 0.4f) {
+                    sph.m_fRadius = std::max(sph.m_vecCenter.z - sphBottomMinZ, 0.4f);
+                }
+                sph.m_vecCenter.z = sphBottomMinZ + sph.m_fRadius;
+            }
+        }
+    }
 }
 
 // 0x6B8970
@@ -663,12 +794,115 @@ void CBike::SetupDamageAfterLoad() {
 
 // 0x6B6950
 void CBike::DoBurstAndSoftGroundRatios() {
-    plugin::CallMethod<0x6B6950, CBike*>(this);
+    const auto& mi          = *GetVehicleModelInfo();
+    const auto  fwdSpeedAbs = std::fabs(m_vecMoveSpeed.Dot(GetForward()));
+
+    // Lines whose ratio may still be changed by the soft ground (sand) code below
+    std::array<bool, NUM_SUSP_LINES> canSink{ true, true, true, true };
+
+    // 0x6B69B2
+    for (auto wheel = 0u; wheel < m_nWheelStatus.size(); wheel++) {
+        const auto lineA = wheel * 2, lineB = lineA + 1; // Each wheel has 2 suspension lines
+
+        const auto GetRemainingCompression = [&] {
+            return (m_fLineLength[lineA] - m_fSuspensionLength[lineA]) / m_fLineLength[lineA]; // NOTE: `lineA`'s lengths are used for both lines
+        };
+
+        switch ((eCarWheelStatus)m_nWheelStatus[wheel]) {
+        case WHEEL_STATUS_MISSING: { // 0x6B69CC
+            m_aWheelRatios[lineA] = 1.0f;
+            m_aWheelRatios[lineB] = 1.0f;
+            break;
+        }
+        case WHEEL_STATUS_BURST: { // 0x6B69F3
+            // NOTE: Not `GetRandomNumberInRange`: the original scales by 1/32768 (not 1/32767) over the whole range
+            const auto range = (float)((uint16)(fwdSpeedAbs * 40.0f) + 98);
+            if ((int32)((float)CGeneral::GetRandomNumber() * (1.0f / 32768.0f) * range) < 100) {
+                const auto compression = GetRemainingCompression() * 0.2f;
+                m_aWheelRatios[lineA] = std::min(1.0f, compression + m_aWheelRatios[lineA]);
+                m_aWheelRatios[lineB] = std::min(1.0f, compression + m_aWheelRatios[lineB]);
+            }
+            break;
+        }
+        default: { // 0x6B6A9E
+            const auto IsOnRailTrack = [&](size_t line) {
+                return m_aWheelRatios[line] < 1.0f && m_aWheelColPoints[line].m_nSurfaceTypeB == SURFACE_RAILTRACK;
+            };
+            if (!IsOnRailTrack(lineA) && !IsOnRailTrack(lineB)) {
+                continue; // Leaves `canSink` set
+            }
+
+            // Bump the wheel up every time it rolls over a sleeper (one every 1.5 units of tyre travel, less often above 0.3 speed)
+            auto anglePerSleeper = 1.5f / ((wheel == 0 ? mi.m_fWheelSizeFront : mi.m_fWheelSizeRear) * 0.5f);
+            if (fwdSpeedAbs > 0.3f) {
+                anglePerSleeper = fwdSpeedAbs / 0.3f * anglePerSleeper;
+            }
+            const auto sleepersPerAngle = 1.0f / anglePerSleeper;
+
+            const float sleepers      = sleepersPerAngle * m_aWheelPitchAngles[wheel];
+            const float sleepersFract = sleepers - std::floor(sleepers);
+            const float nextSleepers  = (CTimer::GetTimeStep() * m_aWheelAngularVelocity[wheel] + m_aWheelPitchAngles[wheel]) * sleepersPerAngle; // 0x6B6B51
+            const auto  nextSleepersFract = nextSleepers - std::floor(nextSleepers);
+
+            const auto angVel = m_aWheelAngularVelocity[wheel];
+            if ((angVel > 0.0f && nextSleepersFract < sleepersFract) || (angVel < 0.0f && nextSleepersFract > sleepersFract)) {
+                const auto compression = GetRemainingCompression() * 0.3f;
+                m_aWheelRatios[lineA] = std::max(0.2f, m_aWheelRatios[lineA] - compression);
+                m_aWheelRatios[lineB] = std::max(0.2f, m_aWheelRatios[lineB] - compression);
+            }
+            break;
+        }
+        }
+
+        // 0x6B6C25
+        canSink[lineA] = false;
+        canSink[lineB] = false;
+    }
+
+    // 0x6B6C39
+    for (auto i = 0u; i < NUM_SUSP_LINES; i++) {
+        auto& ratio = m_aWheelRatios[i];
+        if (!canSink[i] || !(ratio < 1.0f)) {
+            continue;
+        }
+        if (g_surfaceInfos.GetAdhesionGroup(m_aWheelColPoints[i].m_nSurfaceTypeB) != ADHESION_GROUP_SAND) {
+            continue;
+        }
+        if (ModelIndices::IsRhino(m_nModelIndex)) { // NOTE: Copy-paste from CAutomobile, a bike is never a Rhino
+            continue;
+        }
+
+        const auto offroadFactor = [&] {
+            if (handlingFlags.bOffroadAbility2) {
+                return 0.1f;
+            }
+            if (handlingFlags.bOffroadAbility) {
+                return 0.15f;
+            }
+            return 0.25f;
+        }();
+        const auto adhesionFactor = std::max(1.0f - fwdSpeedAbs / 0.3f * 0.7f - CWeather::WetRoads * 0.7f, 0.4f);
+
+        ratio += (m_fLineLength[i] - m_fSuspensionLength[i]) / m_fLineLength[i] * adhesionFactor * offroadFactor;
+        ratio = std::min(ratio, 1.0f);
+    }
 }
 
 // 0x6B67E0
 bool CBike::SetUpWheelColModel(CColModel* wheelCol) {
-    return plugin::CallMethodAndReturn<bool, 0x6B67E0, CBike*, CColModel*>(this, wheelCol);
+    const auto* const mi  = GetVehicleModelInfo();
+    const auto* const cm  = GetColModel();
+    auto* const       wcd = wheelCol->m_pColData;
+
+    wheelCol->m_boundSphere = cm->m_boundSphere;
+    wheelCol->m_boundBox    = cm->m_boundBox;
+
+    // Wheel positions are relative to the chassis frame
+    wcd->m_pSpheres[0].Set(mi->m_fWheelSizeFront * 0.5f, GetFrameMatrixRelativeTo(m_aBikeNodes[BIKE_WHEEL_FRONT], m_aBikeNodes[BIKE_CHASSIS]).pos, SURFACE_RUBBER, 0xD);
+    wcd->m_pSpheres[1].Set(mi->m_fWheelSizeRear * 0.5f, GetFrameMatrixRelativeTo(m_aBikeNodes[BIKE_WHEEL_REAR], m_aBikeNodes[BIKE_CHASSIS]).pos, SURFACE_RUBBER, 0xF);
+    wcd->m_nNumSpheres = 2;
+
+    return true;
 }
 
 // 0x6B67B0
