@@ -5,8 +5,8 @@ void CMentalState::InjectHooks() {
     RH_ScopedClass(CMentalState);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(IncrementAnger, 0x421050, { .reversed = false });
-    RH_ScopedInstall(Process, 0x6008A0, { .reversed = false });
+    RH_ScopedInstall(IncrementAnger, 0x421050, { .Reversed = false });
+    RH_ScopedInstall(Process, 0x6008A0, { .Reversed = false });
 }
 
 // 0x421050

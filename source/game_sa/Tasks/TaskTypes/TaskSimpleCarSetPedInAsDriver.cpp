@@ -3,20 +3,20 @@
 #include "TaskSimpleCarSetPedInAsDriver.h"
 
 // 0x6470E0
-CTaskSimpleCarSetPedInAsDriver::CTaskSimpleCarSetPedInAsDriver(CVehicle* targetVehicle, CTaskUtilityLineUpPedWithCar* utility) : CTaskSimple() {
-    m_bIsFinished = 0;
-    m_pAnim = 0;
-    m_pTargetVehicle = targetVehicle;
-    m_pUtility = utility;
-    m_bWarpingInToCar = 0;
-    m_nDoorFlagsToClear = 0;
+CTaskSimpleCarSetPedInAsDriver::CTaskSimpleCarSetPedInAsDriver(CVehicle* targetVehicle, CTaskUtilityLineUpPedWithCar* utility) :
+    CTaskSimple() {
+    m_bIsFinished          = 0;
+    m_pAnim                = 0;
+    m_pTargetVehicle       = targetVehicle;
+    m_pUtility             = utility;
+    m_bWarpingInToCar      = 0;
+    m_nDoorFlagsToClear    = 0;
     m_nNumGettingInToClear = 0;
     CEntity::SafeRegisterRef(m_pTargetVehicle);
 }
 
 CTaskSimpleCarSetPedInAsDriver::CTaskSimpleCarSetPedInAsDriver(CVehicle* targetVehicle, bool warpingInToCar, CTaskUtilityLineUpPedWithCar* utility) : // NOTSA
-    CTaskSimpleCarSetPedInAsDriver{ targetVehicle, utility }
-{
+    CTaskSimpleCarSetPedInAsDriver{ targetVehicle, utility } {
     m_bWarpingInToCar = warpingInToCar;
 }
 
@@ -26,9 +26,9 @@ CTaskSimpleCarSetPedInAsDriver::~CTaskSimpleCarSetPedInAsDriver() {
 
 // 0x649E00
 CTask* CTaskSimpleCarSetPedInAsDriver::Clone() const {
-    auto task = new CTaskSimpleCarSetPedInAsDriver(m_pTargetVehicle, m_pUtility);
-    task->m_bWarpingInToCar = m_bWarpingInToCar;
-    task->m_nDoorFlagsToClear = m_nDoorFlagsToClear;
+    auto task                    = new CTaskSimpleCarSetPedInAsDriver(m_pTargetVehicle, m_pUtility);
+    task->m_bWarpingInToCar      = m_bWarpingInToCar;
+    task->m_nDoorFlagsToClear    = m_nDoorFlagsToClear;
     task->m_nNumGettingInToClear = m_nNumGettingInToClear;
     return task;
 }
@@ -48,5 +48,5 @@ void CTaskSimpleCarSetPedInAsDriver::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x649E00);
     RH_ScopedVMTInstall(GetTaskType, 0x647150);
     RH_ScopedVMTInstall(MakeAbortable, 0x647160);
-    RH_ScopedVMTInstall(ProcessPed, 0x64B950, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x64B950, { .Reversed = false });
 }

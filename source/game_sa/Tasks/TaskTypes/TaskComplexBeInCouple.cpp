@@ -16,9 +16,9 @@ void CTaskComplexBeInCouple::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x6839C0);
     RH_ScopedVMTInstall(GetTaskType, 0x683770);
     RH_ScopedVMTInstall(MakeAbortable, 0x6847C0);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x684840, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x684840, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6837E0);
-    RH_ScopedVMTInstall(ControlSubTask, 0x684930, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x684930, { .Reversed = false });
 }
 
 // 0x6836F0
@@ -30,12 +30,11 @@ CTaskComplexBeInCouple::CTaskComplexBeInCouple(
     float giveUpDist
 ) :
     CTaskComplex(),
-    m_partner{ped},
-    m_isLeader{isLeader},
-    m_holdHands{holdHands},
-    m_lookAtEachOther{lookAtEachOther},
-    m_giveUpDist{giveUpDist}
-{
+    m_partner{ ped },
+    m_isLeader{ isLeader },
+    m_holdHands{ holdHands },
+    m_lookAtEachOther{ lookAtEachOther },
+    m_giveUpDist{ giveUpDist } {
     CEntity::SafeRegisterRef(m_partner);
 }
 
@@ -63,9 +62,9 @@ void CTaskComplexBeInCouple::AbortArmIK(CPed* ped) {
 // 0x6847C0
 bool CTaskComplexBeInCouple::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (m_partner && event && event->HasEditableResponse()) {
-        auto editable = static_cast<CEventEditableResponse*>(const_cast<CEvent*>(event)); // Okay let's go!
+        auto editable                = static_cast<CEventEditableResponse*>(const_cast<CEvent*>(event)); // Okay let's go!
 
-        bool bAddToEventGroup = editable->m_bAddToEventGroup;
+        bool bAddToEventGroup        = editable->m_bAddToEventGroup;
         editable->m_bAddToEventGroup = false;
         switch (event->GetEventType()) {
         case EVENT_DAMAGE:

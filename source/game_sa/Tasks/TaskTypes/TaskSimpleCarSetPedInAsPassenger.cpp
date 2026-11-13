@@ -8,8 +8,7 @@ CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(CVehicle* t
     m_nTargetDoor{ nTargetDoor },
     m_pTargetVehicle{ targetVehicle },
     m_pUtility{ utility },
-    m_bWarpingInToCar{warpingInToCar}
-{
+    m_bWarpingInToCar{ warpingInToCar } {
     CEntity::SafeRegisterRef(m_pTargetVehicle);
 }
 
@@ -20,8 +19,7 @@ CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(const CTask
         o.m_nTargetDoor,
         o.m_bWarpingInToCar,
         o.m_pUtility
-    }
-{
+    } {
     m_nNumGettingInToClear = o.m_nNumGettingInToClear;
 }
 
@@ -45,5 +43,5 @@ void CTaskSimpleCarSetPedInAsPassenger::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x649D90);
     RH_ScopedVMTInstall(GetTaskType, 0x647060);
     RH_ScopedVMTInstall(MakeAbortable, 0x647070);
-    RH_ScopedVMTInstall(ProcessPed, 0x64B5D0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x64B5D0, { .Reversed = false });
 }

@@ -10,15 +10,15 @@ void CTaskComplexLeaveCar::InjectHooks() {
     RH_ScopedOverloadedInstall(Constructor, "2", 0x63B8C0, CTaskComplexLeaveCar*(CTaskComplexLeaveCar::*)(CVehicle *, int32, int32, bool, bool));
     RH_ScopedInstall(Destructor, 0x63B970);
 
-    RH_ScopedInstall(ComputeTargetDoor, 0x63BAB0, { .reversed = false });
-    RH_ScopedInstall(CreateSubTask, 0x641530, { .reversed = false });
+    RH_ScopedInstall(ComputeTargetDoor, 0x63BAB0, { .Reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x641530, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x63D9E0);
     RH_ScopedVMTInstall(GetTaskType, 0x63B960);
-    RH_ScopedVMTInstall(MakeAbortable, 0x641100, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x6419F0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x641FC0, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x6421B0, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x641100, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6419F0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x641FC0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6421B0, { .Reversed = false });
 }
 
 void CTaskComplexLeaveCar::InjectHooks() {
@@ -28,12 +28,14 @@ void CTaskComplexLeaveCar::InjectHooks() {
 }
 
 // 0x62F1A0
-CTaskComplexLeaveCar::CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime) : CTaskComplexLeaveCar(targetVehicle, nTargetDoor, nDelayTime, false, true) {
+CTaskComplexLeaveCar::CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime) :
+    CTaskComplexLeaveCar(targetVehicle, nTargetDoor, nDelayTime, false, true) {
     m_bDie = true;
 }
 
 // 0x63B8C0
-CTaskComplexLeaveCar::CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime, bool bSensibleLeaveCar, bool bForceGetOut) : CTaskComplex() {
+CTaskComplexLeaveCar::CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime, bool bSensibleLeaveCar, bool bForceGetOut) :
+    CTaskComplex() {
     m_nTargetDoor                  = nTargetDoor;
     m_nDelayTime                   = nDelayTime;
     m_bSensibleLeaveCar            = bSensibleLeaveCar;
@@ -63,8 +65,7 @@ CTaskComplexLeaveCar::~CTaskComplexLeaveCar() {
 }
 
 CTaskComplexLeaveCar::CTaskComplexLeaveCar(const CTaskComplexLeaveCar& o) :
-    CTaskComplexLeaveCar{ o.m_pTargetVehicle, o.m_nTargetDoor, o.m_nDelayTime, o.m_bSensibleLeaveCar, o.m_bForceGetOut }
-{
+    CTaskComplexLeaveCar{ o.m_pTargetVehicle, o.m_nTargetDoor, o.m_nDelayTime, o.m_bSensibleLeaveCar, o.m_bForceGetOut } {
 }
 
 // 0x641100
@@ -93,8 +94,7 @@ CTask* CTaskComplexLeaveCar::ControlSubTask(CPed* ped) {
         && subTaskType != TASK_SIMPLE_CAR_SET_PED_OUT
         && subTaskType != TASK_SIMPLE_CAR_JUMP_OUT
         && subTaskType != TASK_COMPLEX_GET_UP_AND_STAND_STILL
-        && subTaskType != TASK_SIMPLE_DIE
-    ) {
+        && subTaskType != TASK_SIMPLE_DIE) {
         return CreateSubTask(TASK_SIMPLE_CAR_SET_PED_OUT, ped);
     }
 

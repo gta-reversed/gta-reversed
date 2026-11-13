@@ -6,8 +6,7 @@ CTaskSimpleCarSetPedOut::CTaskSimpleCarSetPedOut(CVehicle* targetVehicle, eTarge
     m_nTargetDoor{ nTargetDoor },
     m_pTargetVehicle{ targetVehicle },
     m_bSwitchOffEngine{ bSwitchOffEngine },
-    m_bWarpingOutOfCar{ warpingOutOfCar }
-{
+    m_bWarpingOutOfCar{ warpingOutOfCar } {
     CEntity::SafeRegisterRef(m_pTargetVehicle);
 }
 
@@ -35,10 +34,10 @@ void CTaskSimpleCarSetPedOut::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6478B0);
     RH_ScopedInstall(Destructor, 0x647950);
 
-    RH_ScopedGlobalInstall(PositionPedOutOfCollision, 0x6479B0, { .reversed = false });
+    RH_ScopedGlobalInstall(PositionPedOutOfCollision, 0x6479B0, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x649F50);
     RH_ScopedVMTInstall(GetTaskType, 0x647930);
     RH_ScopedVMTInstall(MakeAbortable, 0x647940);
-    RH_ScopedVMTInstall(ProcessPed, 0x647D10, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x647D10, { .Reversed = false });
 }

@@ -12,15 +12,16 @@ void CTaskComplexFollowPedFootsteps::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x695890);
     RH_ScopedVMTInstall(GetTaskType, 0x694EC0);
-    RH_ScopedVMTInstall(MakeAbortable, 0x694ED0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x694EE0, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x695000, { .reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x695090, { .reversed = false });
-    RH_ScopedVMTInstall(CreateSubTask, 0x695E40, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x694ED0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x694EE0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x695000, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x695090, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateSubTask, 0x695E40, { .Reversed = false });
 }
 
 // 0x694E20
-CTaskComplexFollowPedFootsteps::CTaskComplexFollowPedFootsteps(CPed* ped) : CTaskComplex() {
+CTaskComplexFollowPedFootsteps::CTaskComplexFollowPedFootsteps(CPed* ped) :
+    CTaskComplex() {
     m_targetPed               = ped;
     m_updateGoToPoint         = false;
     m_subTaskCreateCheckTimer = CTimer::GetTimeInMS();

@@ -6,7 +6,7 @@ void CEventSource::InjectHooks() {
     RH_ScopedClass(CEventSource);
     RH_ScopedCategory("Events");
 
-    RH_ScopedInstall(ComputeEventSourceType, 0x4ABAC0, { .reversed = false });
+    RH_ScopedInstall(ComputeEventSourceType, 0x4ABAC0, { .Reversed = false });
 }
 
 int32 CEventSource::ComputeEventSourceType(const CEvent& event, const CPed& ped) {

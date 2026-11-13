@@ -8,7 +8,9 @@ CTaskSimpleCarDriveTimed* CTaskSimpleCarDriveTimed::Constructor(CVehicle* vehicl
 }
 
 // 0x5FF940
-CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime) : CTaskSimpleCarDrive(vehicle, nullptr, false), m_nTimer() {
+CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime) :
+    CTaskSimpleCarDrive(vehicle, nullptr, false),
+    m_nTimer() {
     m_nTime = nTime;
 }
 
@@ -25,5 +27,5 @@ void CTaskSimpleCarDriveTimed::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x46F570);
     RH_ScopedVMTInstall(GetTaskType, 0x46F600);
-    RH_ScopedVMTInstall(ProcessPed, 0x46F610, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x46F610, { .Reversed = false });
 }

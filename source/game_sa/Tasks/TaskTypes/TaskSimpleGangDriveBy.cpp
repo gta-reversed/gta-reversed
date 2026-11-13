@@ -31,13 +31,14 @@ CTaskSimpleGangDriveBy::CTaskSimpleGangDriveBy(CEntity* target, const CVector* t
     }
 }
 
-CTaskSimpleGangDriveBy::~CTaskSimpleGangDriveBy()
-{
-    if (m_bAnimsReferenced)
+CTaskSimpleGangDriveBy::~CTaskSimpleGangDriveBy() {
+    if (m_bAnimsReferenced) {
         CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex(m_nRequiredAnimGroup));
+    }
 
-    if (m_pAnimAssoc)
+    if (m_pAnimAssoc) {
         m_pAnimAssoc->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
+    }
 
     CEntity::SafeCleanUpRef(m_pTargetEntity);
 }
@@ -46,13 +47,11 @@ CTask* CTaskSimpleGangDriveBy::Clone() const {
     return plugin::CallMethodAndReturn<CTask*, 0x6236D0, const CTask*>(this);
 }
 
-bool CTaskSimpleGangDriveBy::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event)
-{
+bool CTaskSimpleGangDriveBy::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     return plugin::CallMethodAndReturn<bool, 0x62D290, CTask*, CPed*, int32, const CEvent*>(this, ped, priority, event);
 }
 
-bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped)
-{
+bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x62D3B0, CTask*, CPed*>(this, ped);
 }
 
@@ -63,15 +62,15 @@ void CTaskSimpleGangDriveBy::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6217D0);
     RH_ScopedInstall(Destructor, 0x6218C0);
 
-    RH_ScopedInstall(SetupStaticAnimForPlayer, 0x621960, { .reversed = false });
-    RH_ScopedInstall(CheckIfThereNoObstaclesForFiring, 0x621B10, { .reversed = false });
-    RH_ScopedInstall(SetupStaticAnimForNPC, 0x627600, { .reversed = false });
-    RH_ScopedInstall(BlendAnimation, 0x627B20, { .reversed = false });
-    RH_ScopedInstall(FireGun, 0x627CC0, { .reversed = false });
-    RH_ScopedInstall(ProcessAiming, 0x628350, { .reversed = false });
+    RH_ScopedInstall(SetupStaticAnimForPlayer, 0x621960, { .Reversed = false });
+    RH_ScopedInstall(CheckIfThereNoObstaclesForFiring, 0x621B10, { .Reversed = false });
+    RH_ScopedInstall(SetupStaticAnimForNPC, 0x627600, { .Reversed = false });
+    RH_ScopedInstall(BlendAnimation, 0x627B20, { .Reversed = false });
+    RH_ScopedInstall(FireGun, 0x627CC0, { .Reversed = false });
+    RH_ScopedInstall(ProcessAiming, 0x628350, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x6236D0);
     RH_ScopedVMTInstall(GetTaskType, 0x6218B0);
-    RH_ScopedVMTInstall(MakeAbortable, 0x62D290, { .reversed = false });
-    RH_ScopedVMTInstall(ProcessPed, 0x62D3B0, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x62D290, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x62D3B0, { .Reversed = false });
 }

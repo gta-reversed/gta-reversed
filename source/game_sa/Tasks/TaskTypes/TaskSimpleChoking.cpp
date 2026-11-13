@@ -4,20 +4,18 @@
 
 // 0x6202C0
 CTaskSimpleChoking::CTaskSimpleChoking(CPed* attacker, bool bIsTeargas) :
-    m_pAttacker{attacker},
-    m_bIsTeargas{bIsTeargas}
-{
+    m_pAttacker{ attacker },
+    m_bIsTeargas{ bIsTeargas } {
     CEntity::SafeRegisterRef(m_pAttacker);
     m_pAnim          = nullptr;
     m_bIsFinished    = false;
-    m_nTimeRemaining = CGeneral::GetRandomNumberInRange(0u, 1000u);
+    m_nTimeRemaining = CGeneral::GetRandomNumberInRange(0u, 1'000u);
     m_nTimeStarted   = CTimer::GetTimeInMS();
 }
 
 // 0x623220
 CTaskSimpleChoking::CTaskSimpleChoking(const CTaskSimpleChoking& o) :
-    CTaskSimpleChoking{o.m_pAttacker, o.m_bIsTeargas}
-{
+    CTaskSimpleChoking{ o.m_pAttacker, o.m_bIsTeargas } {
 }
 
 // 0x6203F0
@@ -66,9 +64,9 @@ void CTaskSimpleChoking::UpdateChoke(CPed* victim, CPed* attacker, bool bIsTearg
         m_pAnim->SetDefaultFinishCallback();
         m_pAnim = CAnimManager::BlendAnimation(victim->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_GAS_CWR, 4.f);
         m_pAnim->SetFinishCallback([](CAnimBlendAssociation* a, void* data) {
-            const auto self = static_cast<CTaskSimpleChoking*>(data);
+            const auto self     = static_cast<CTaskSimpleChoking*>(data);
             self->m_bIsFinished = true;
-            self->m_pAnim = nullptr;
+            self->m_pAnim       = nullptr;
         });
         m_pAnim->SetSpeed(CGeneral::GetRandomNumberInRange(0.8f, 1.1f));
         m_nTimeStarted = CTimer::GetTimeInMS() - m_nTimeRemaining;
@@ -83,9 +81,9 @@ void CTaskSimpleChoking::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6202C0);
     RH_ScopedInstall(Destructor, 0x620370);
 
-    RH_ScopedGlobalInstall(DeleteAnimChokeCB, 0x620480, { .reversed = false });
+    RH_ScopedGlobalInstall(DeleteAnimChokeCB, 0x620480, { .Reversed = false });
 
-    RH_ScopedInstall(UpdateChoke, 0x620660, { .reversed = false });
+    RH_ScopedInstall(UpdateChoke, 0x620660, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x623220);
     RH_ScopedVMTInstall(GetTaskType, 0x620360);

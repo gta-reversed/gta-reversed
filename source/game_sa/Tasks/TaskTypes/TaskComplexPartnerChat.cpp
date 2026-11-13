@@ -11,17 +11,16 @@ void CTaskComplexPartnerChat::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x684E30);
     RH_ScopedVMTInstall(GetTaskType, 0x681E10);
-    RH_ScopedVMTInstall(MakeAbortable, 0x682C60, { .reversed = false });
-    RH_ScopedVMTInstall(GetPartnerSequence, 0x684380, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x682C60, { .Reversed = false });
+    RH_ScopedVMTInstall(GetPartnerSequence, 0x684380, { .Reversed = false });
 }
 
 // 0x684290
 CTaskComplexPartnerChat::CTaskComplexPartnerChat(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, bool conversationEnabled, bool a8, CVector point) :
-    CTaskComplexPartner(commandName, partner, leadSpeaker, distanceMultiplier, false, updateDirectionCount, point)
-{
-    m_taskId = TASK_COMPLEX_PARTNER_CHAT;
+    CTaskComplexPartner(commandName, partner, leadSpeaker, distanceMultiplier, false, updateDirectionCount, point) {
+    m_taskId                = TASK_COMPLEX_PARTNER_CHAT;
     m_pedConversationLoaded = 0;
-    m_conversationEnabled = conversationEnabled;
+    m_conversationEnabled   = conversationEnabled;
     if (conversationEnabled) {
         m_updateDirectionCount = 4;
     }
@@ -36,8 +35,7 @@ CTaskComplexPartnerChat::~CTaskComplexPartnerChat() {
     }
 }
 
-CTaskComplexPartnerChat* CTaskComplexPartnerChat::Constructor(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, bool conversationEnabled, bool a8, CVector point)
-{
+CTaskComplexPartnerChat* CTaskComplexPartnerChat::Constructor(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, bool conversationEnabled, bool a8, CVector point) {
     this->CTaskComplexPartnerChat::CTaskComplexPartnerChat(commandName, partner, leadSpeaker, distanceMultiplier, updateDirectionCount, conversationEnabled, a8, point);
     return this;
 }
