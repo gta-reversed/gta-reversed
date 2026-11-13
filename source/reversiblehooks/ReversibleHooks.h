@@ -84,6 +84,10 @@
 #define RH_ScopedNamedInstall(fn, fnName, _addressGTA, ...) \
     rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, _addressGTA, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
 
+// Similar to RH_ScopedOverloadedInstall but you can specify the name explicitly.
+#define RH_ScopedNamedOverloadedInstall(fn, fnName, _addressGTA, addrCast, ...) \
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, _addressGTA, static_cast<addrCast>(&RHCurrentNS::fn) __VA_OPT__(,) __VA_ARGS__)
+
 #define RH_ScopedVMTOverloadedInstall(fn, suffix, fnGTAAddr, addrCast, ...) \
     rh->InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pOurVTbl, ReversibleHooks::Utility::FunctionToVoidPtr(static_cast<addrCast>(&RHCurrentNS::fn)), pGTAVTbl, (void*)fnGTAAddr __VA_OPT__(,) __VA_ARGS__)
 
