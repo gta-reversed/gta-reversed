@@ -20,6 +20,8 @@ public:
 
 VALIDATE_SIZE(CPedStat, 0x34);
 
+constexpr uint16 PED_STATS_COUNT = 43;
+
 class CPedStats {
 public:
     static inline auto& ms_apPedStats = StaticRef<CPedStat*>(0xC0BBEC);
@@ -33,5 +35,7 @@ public:
     static ePedStats GetPedStatType(const char* statName);
     static CPedStat* GetPedStatInfo(const char* statName);
     static CPedStat* GetPedStatByArrayIndex(uint32 statIndex);
-    static void FindIndexWithPedStat(void* a1);
+    static int32 FindIndexWithPedStat(const CPedStat* pedStat);
+
+    static auto GetStats() { return std::span{ ms_apPedStats, PED_STATS_COUNT }; } // NOTSA
 };
