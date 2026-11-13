@@ -7,6 +7,7 @@
 class CEntity;
 
 enum class eInteriorInfoType {
+    UNK_0 = 0,
     UNK_1 = 1,
     UNK_2 = 2,
     UNK_3 = 3,
@@ -18,12 +19,13 @@ enum class eInteriorInfoType {
     UNK_9 = 9,
     UNK_10 = 10
 };
+NOTSA_WENUM_DEFS_FOR(eInteriorInfoType);
 
 struct InteriorInfo_t {
-    notsa::WEnumS8<eInteriorInfoType> Type;
-    bool                              IsInUse;
-    CVector                           Pos;
-    CVector                           Dir;
-    CEntity*                          EntityIgnoredCollision;
+    eInteriorInfoTypeS8 Type;
+    bool                IsInUse;
+    CVector             Pos;
+    CVector             Dir;
+    CEntity*            EntityIgnoredCollision;
 };
 VALIDATE_SIZE(InteriorInfo_t, 0x20);
