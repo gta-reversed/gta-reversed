@@ -180,7 +180,7 @@ void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors,
         }
     }
 
-    float speedFactor = (1.0f - time) * totalDist_Time;
+    float speedFactor = totalDist_Time;
     float speedMillisFactor = static_cast<float>(traversalTimeInMS) / 1000.0f;
 
     resultSpeed = Lerp(startDir, endDir, time) * (speedFactor / speedMillisFactor);
