@@ -18,18 +18,16 @@ void CSimpleVariablesSaveStructure::Construct() {
     const GxtChar* gxtSaveName;
     if (CStats::LastMissionPassedName[0]) {
         gxtSaveName = TheText.Get(CStats::LastMissionPassedName);
-    } else if (CGame::bMissionPackGame) {
+    } else if (CGame::MissionPackGameId) {
         gxtSaveName = TheText.Get("MPACKID");
     } else {
         gxtSaveName = TheText.Get("ITBEG");
     }
 
-    GxtChar dots[8];
-    AsciiToGxtChar("...'", dots); // dot dot dot apostrophe
     TextCopy(m_szSaveName, gxtSaveName);
     uint32 strLen = GxtCharStrlen(m_szSaveName);
     if (strLen > SAVEGAME_MAX_NAME_LEN) {
-        TextCopy(&m_szSaveName[SAVEGAME_MAX_NAME_LEN - 3 - 1], dots);
+        TextCopy(&m_szSaveName[SAVEGAME_MAX_NAME_LEN - 3 - 1], "..."_gxt);
     }
     m_szSaveName[SAVEGAME_MAX_NAME_LEN + 1] = '\0';
 
@@ -37,11 +35,11 @@ void CSimpleVariablesSaveStructure::Construct() {
 
     m_bLARiots = gbLARiots;
     m_bLARiots_NoPoliceCar = gbLARiots_NoPoliceCars;
-    m_bCineyCamMessageDisplayed = gbCineyCamMessageDisplayed;
+    m_CineyCamMessageDisplayed = gCineyCamMessageDisplayed;
 
     m_nCurrArea = CGame::currArea;
     m_nCurrLevel = CGame::currLevel;
-    m_bMissionPackGame = CGame::bMissionPackGame;
+    m_MissionPackGameId = CGame::MissionPackGameId;
 
     m_vecCamPosn = TheCamera.m_mCameraMatrix.GetPosition();
     m_nCameraCarZoom = TheCamera.m_nCarZoom;
@@ -104,11 +102,11 @@ void CSimpleVariablesSaveStructure::Extract(uint32& versionId) const {
 
     gbLARiots = m_bLARiots;
     gbLARiots_NoPoliceCars = m_bLARiots_NoPoliceCar;
-    gbCineyCamMessageDisplayed = m_bCineyCamMessageDisplayed;
+    gCineyCamMessageDisplayed = m_CineyCamMessageDisplayed;
 
     CGame::currArea = static_cast<eAreaCodes>(m_nCurrArea);
     CGame::currLevel = m_nCurrLevel;
-    CGame::bMissionPackGame = m_bMissionPackGame;
+    CGame::MissionPackGameId = m_MissionPackGameId;
 
     TheCamera.m_mCameraMatrix.SetTranslate(m_vecCamPosn);
     TheCamera.m_nCarZoom = m_nCameraCarZoom;

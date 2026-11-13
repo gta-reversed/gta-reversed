@@ -130,12 +130,12 @@ void CTheScripts::Init() {
     ScriptResourceManager.Initialise();
     rng::for_each(EntitiesWaitingForScriptBrain, &tScriptBrainWaitEntity::Clear);
 
-    if (CGame::bMissionPackGame) {
+    if (CGame::MissionPackGameId) {
         char scrFile[MAX_PATH]{};
 
         while (FrontEndMenuManager.CheckMissionPackValidMenu()) {
             CFileMgr::SetDirMyDocuments();
-            notsa::format_to_sz(scrFile, "MPACK//MPACK{:d}//SCR.SCM", CGame::bMissionPackGame);
+            notsa::format_to_sz(scrFile, "MPACK//MPACK{:d}//SCR.SCM", CGame::MissionPackGameId);
 
             if (auto f = notsa::File(scrFile, "rb"); f && f.Read(ScriptSpace.data(), MAIN_SCRIPT_SIZE) >= 1) {
                 TheText.Load(false);
@@ -169,7 +169,7 @@ void CTheScripts::Init() {
     LargestNumberOfMissionScriptLocalVariables = 0;
 
     ReadMultiScriptFileOffsetsFromScript();
-    if (!CGame::bMissionPackGame) {
+    if (!CGame::MissionPackGameId) {
         StreamedScripts.ReadStreamedScriptData();
     }
 

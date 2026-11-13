@@ -213,7 +213,7 @@ void CText::Load(bool keepMissionPack) {
     if (keepMissionPack)
         return;
 
-    while (!m_bIsMissionPackLoaded && CGame::bMissionPackGame) {
+    while (!m_bIsMissionPackLoaded && CGame::MissionPackGameId) {
         if (FrontEndMenuManager.CheckMissionPackValidMenu()) {
             CTimer::Suspend();
             LoadMissionPackText();
@@ -225,7 +225,7 @@ void CText::Load(bool keepMissionPack) {
 
 // 0x69FBF0
 void CText::LoadMissionText(const char* mission) {
-    if (CGame::bMissionPackGame != 0)
+    if (CGame::MissionPackGameId != 0)
         return;
 
     CMessages::ClearAllMessagesDisplayedByGame(true);
@@ -315,7 +315,7 @@ void CText::LoadMissionPackText() {
 
     CFileMgr::SetDirMyDocuments();
     char fileName[64];
-    sprintf_s(fileName, "MPACK//MPACK%d//TEXT.GXT", CGame::bMissionPackGame);
+    sprintf_s(fileName, "MPACK//MPACK%d//TEXT.GXT", CGame::MissionPackGameId);
 
     auto file = CFileMgr::OpenFile(fileName, "rb");
     if (!file) {
@@ -376,7 +376,7 @@ const GxtChar* CText::Get(const char* key) {
         }
 
         // check mission keys block if no entry found yet
-        if ((CGame::bMissionPackGame || m_bIsMissionTextOffsetsLoaded) && m_bIsMissionPackLoaded) {
+        if ((CGame::MissionPackGameId || m_bIsMissionTextOffsetsLoaded) && m_bIsMissionPackLoaded) {
             str = m_MissionKeyArray.Search(key, found);
             if (found) {
                 return str;
