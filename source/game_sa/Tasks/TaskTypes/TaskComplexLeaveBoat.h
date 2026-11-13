@@ -34,7 +34,7 @@ private: // Wrappers for hooks
         return this;
     }
 
-    // 0x642250
+    // 0x63BBD0
     CTaskComplexLeaveBoat* Destructor() {
         this->CTaskComplexLeaveBoat::~CTaskComplexLeaveBoat();
         return this;

@@ -8,7 +8,7 @@ void CAnimBlendStaticAssociation::InjectHooks() {
 
     RH_ScopedInstall(Constructor1, 0x4CE940);
     RH_ScopedInstall(Constructor2, 0x4CEF60);
-    RH_ScopedInstall(Destructor, 0x4CDF50);
+    RH_ScopedInstall(Destructor, 0x4CEC00);
 
     RH_ScopedInstall(Init, 0x4CEC20);
     RH_ScopedInstall(AllocateSequenceArray, 0x4CE960);
@@ -20,7 +20,7 @@ CAnimBlendStaticAssociation::CAnimBlendStaticAssociation(RpClump* clump, CAnimBl
     Init(clump, h);
 }
 
-// 0x4CEC00 (We hook with the vtbl with a deleting destructor wrapper, not this fn directly)
+// 0x4CEC00 (0x4CDF50 is the vector deleting destructor, it calls this)
 CAnimBlendStaticAssociation::~CAnimBlendStaticAssociation() {
     FreeSequenceArray();
 }
