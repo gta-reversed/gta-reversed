@@ -13,7 +13,7 @@ void CTaskComplexTrackEntity::InjectHooks() {
 
     RH_ScopedInstall(SetOffsetPos, 0x65F760, {.State = HS::RedirectToGTA, .Locked = true});
     RH_ScopedInstall(CalcTargetPos, 0x65F780, {.State = HS::RedirectToGTA, .Locked = true});
-    RH_ScopedInstall(CalcMoveRatio, 0x65F930, {.State = HS::RedirectToGTA, .Locked = true});
+    RH_ScopedInstall(CalcMoveRatio, 0x65F930);
 
     RH_ScopedVMTInstall(Clone, 0x65F4E0);
     RH_ScopedVMTInstall(GetTaskType, 0x65F450);
@@ -60,7 +60,33 @@ void CTaskComplexTrackEntity::CalcTargetPos(CPed* ped) {
 
 // 0x65F930
 void CTaskComplexTrackEntity::CalcMoveRatio(CPed* ped) {
-    plugin::CallMethod<0x65F930, CTaskComplexTrackEntity*, CPed*>(this, ped);
+    constexpr auto MIN_DIST = 0.2f; // 0x86F9D0
+    constexpr auto MID_DIST = 1.0f; // 0x86F9CC
+    constexpr auto MAX_DIST = 5.0f; // 0x86F9C8
+
+    // Normalized [0, 1] ratio of the distance, first half for [MIN, MID], second half for [MID, MAX]
+    if (m_distToTargetSq < MIN_DIST * MIN_DIST) {
+        float40 = 0.0f;
+    } else if (m_distToTargetSq > MAX_DIST * MAX_DIST) {
+        float40 = 1.0f;
+    } else if (m_distToTargetSq < MID_DIST * MID_DIST) {
+        float40 = (std::sqrt(m_distToTargetSq) - MIN_DIST) * (1.0f / (MID_DIST - MIN_DIST)) * 0.5f;
+    } else {
+        float40 = (std::sqrt(m_distToTargetSq) - MID_DIST) * (1.0f / (MAX_DIST - MID_DIST)) * 0.5f + 0.5f;
+    }
+    float40 = std::sqrt(float40) * 3.0f; // Map to a move ratio of [0, 3] (PEDMOVE_SPRINT)
+
+    // Without `a` (0x1C) the ratio is clamped to 2 (PEDMOVE_RUN)
+    if (!a && float40 > 2.0f) {
+        float40 = 2.0f;
+    }
+
+    // Accelerate gradually, decelerate instantly
+    if (float40 - m_fMoveRatio > 0.2f) { // 0x86F9C4
+        m_fMoveRatio += 0.2f;
+    } else {
+        m_fMoveRatio = float40;
+    }
 }
 
 // 0x65F4C0
