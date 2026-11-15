@@ -2,11 +2,6 @@
 
 #include "TaskSimpleCarDriveTimed.h"
 
-CTaskSimpleCarDriveTimed* CTaskSimpleCarDriveTimed::Constructor(CVehicle* vehicle, int32 nTime) {
-    this->CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(vehicle, nTime);
-    return this;
-}
-
 // 0x5FF940
 CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime) :
     CTaskSimpleCarDrive(vehicle, nullptr, false),
@@ -22,8 +17,8 @@ void CTaskSimpleCarDriveTimed::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleCarDriveTimed, 0x859e50, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x5FF940);
-    RH_ScopedInstall(Destructor, 0x46F690);
+    RH_ScopedConstructorInstall(0x5FF940, "1", {}, CVehicle*, int32);
+    RH_ScopedDestructorInstall(0x46F690);
 
     RH_ScopedVMTInstall(Clone, 0x46F570);
     RH_ScopedVMTInstall(GetTaskType, 0x46F600);

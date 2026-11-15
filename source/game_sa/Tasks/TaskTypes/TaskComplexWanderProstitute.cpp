@@ -4,8 +4,7 @@
 
 // 0x672690
 CTaskComplexWanderProstitute::CTaskComplexWanderProstitute(eMoveState MoveState, uint8 Dir, bool bWanderSensibly) :
-    CTaskComplexWanderStandard(MoveState, Dir, bWanderSensibly),
-    m_nStartTimeInMs{ 0 } {
+    CTaskComplexWanderStandard(MoveState, Dir, bWanderSensibly) {
 }
 
 // 0x672700
@@ -17,7 +16,7 @@ void CTaskComplexWanderProstitute::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWanderProstitute, 0x870148, 15);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x672690);
+    RH_ScopedConstructorInstall(0x672690, "1", {}, eMoveState, uint8, bool);
 
     RH_ScopedVMTInstall(Clone, 0x673C80);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x674920);

@@ -6,8 +6,8 @@ void CTaskComplexPartnerShove::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexPartnerShove, 0x870800, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x6846F0);
-    RH_ScopedInstall(Destructor, 0x684750);
+    RH_ScopedConstructorInstall(0x6846F0, "1", {}, const char *, CPed *, bool, float, int8, CVector);
+    RH_ScopedDestructorInstall(0x684750);
 
     RH_ScopedVMTInstall(Clone, 0x684ED0);
     RH_ScopedVMTInstall(GetTaskType, 0x681E20);

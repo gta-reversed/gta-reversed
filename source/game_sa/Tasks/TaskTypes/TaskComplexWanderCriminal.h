@@ -5,8 +5,8 @@
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWanderCriminal : public CTaskComplexWander {
 public:
-    CTaskTimer m_TaskTimer;
-    uint32     m_nMinNextScanTime;
+    CTaskTimer m_TaskTimer{};
+    uint32     m_nMinNextScanTime{};
 
 public:
     CTaskComplexWanderCriminal(eMoveState MoveState, uint8 Dir, bool bWanderSensibly = true);

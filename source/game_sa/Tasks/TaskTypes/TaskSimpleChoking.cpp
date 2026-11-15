@@ -18,6 +18,11 @@ CTaskSimpleChoking::CTaskSimpleChoking(const CTaskSimpleChoking& o) :
     CTaskSimpleChoking{ o.m_pAttacker, o.m_bIsTeargas } {
 }
 
+// 0x620480
+CTaskSimpleChoking* CTaskSimpleChoking::DeleteAnimChokeCB(CAnimBlendAssociation* anim, void* self) {
+    return plugin::CallAndReturn<CTaskSimpleChoking*, 0x620480, CAnimBlendAssociation*, void*>(anim, self);
+}
+
 // 0x6203F0
 bool CTaskSimpleChoking::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     switch (priority) {
@@ -78,13 +83,11 @@ void CTaskSimpleChoking::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleChoking, 0x86d820, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x6202C0);
-    RH_ScopedInstall(Destructor, 0x620370);
+    RH_ScopedConstructorInstall(0x6202C0, "1", {}, CPed*, uint8);
+    RH_ScopedDestructorInstall(0x620370);
 
     RH_ScopedGlobalInstall(DeleteAnimChokeCB, 0x620480, { .Reversed = false });
-
     RH_ScopedInstall(UpdateChoke, 0x620660, { .Reversed = false });
-
     RH_ScopedVMTInstall(Clone, 0x623220);
     RH_ScopedVMTInstall(GetTaskType, 0x620360);
     RH_ScopedVMTInstall(MakeAbortable, 0x6203F0);

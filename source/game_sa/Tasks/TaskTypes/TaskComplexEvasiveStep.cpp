@@ -5,11 +5,11 @@
 #include "TaskSimpleAchieveHeading.h"
 
 void CTaskComplexEvasiveStep::InjectHooks() {
-    RH_ScopedClass(CTaskComplexEvasiveStep);
+    RH_ScopedVirtualClass(CTaskComplexEvasiveStep, 0x86f218, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x6532D0);
-    RH_ScopedInstall(Destructor, 0x653350);
+    RH_ScopedConstructorInstall(0x6532D0, "1", {}, CEntity*, CVector const&);
+    RH_ScopedDestructorInstall(0x653350);
 
     RH_ScopedInstall(CreateSubTask, 0x6533E0);
 
@@ -24,12 +24,6 @@ void CTaskComplexEvasiveStep::InjectHooks() {
 CTaskComplexEvasiveStep::CTaskComplexEvasiveStep(CEntity* entity, const CVector& pos) : CTaskComplex() {
     m_Pos = pos;
     m_Entity = entity;
-    CEntity::SafeRegisterRef(m_Entity);
-}
-
-// 0x653350
-CTaskComplexEvasiveStep::~CTaskComplexEvasiveStep() {
-    CEntity::SafeCleanUpRef(m_Entity);
 }
 
 // 0x6533E0

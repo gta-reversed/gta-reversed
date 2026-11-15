@@ -12,6 +12,15 @@ CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(CVehicle* t
     CEntity::SafeRegisterRef(m_pTargetVehicle);
 }
 
+CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, CTaskUtilityLineUpPedWithCar* utility) :
+    CTaskSimpleCarSetPedInAsPassenger{
+        targetVehicle,
+        nTargetDoor,
+        false,
+        utility
+    } {
+}
+
 // For 0x649D90
 CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(const CTaskSimpleCarSetPedInAsPassenger& o) :
     CTaskSimpleCarSetPedInAsPassenger{
@@ -20,6 +29,8 @@ CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(const CTask
         o.m_bWarpingInToCar,
         o.m_pUtility
     } {
+    m_bWarpingInToCar      = o.m_bWarpingInToCar;
+    m_nDoorFlagsToClear    = o.m_nDoorFlagsToClear;
     m_nNumGettingInToClear = o.m_nNumGettingInToClear;
 }
 
@@ -37,8 +48,8 @@ void CTaskSimpleCarSetPedInAsPassenger::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleCarSetPedInAsPassenger, 0x86ee04, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x646FE0);
-    RH_ScopedInstall(Destructor, 0x647080);
+    RH_ScopedConstructorInstall(0x646FE0, "1", {}, CVehicle*, eTargetDoor, CTaskUtilityLineUpPedWithCar*);
+    RH_ScopedDestructorInstall(0x647080);
 
     RH_ScopedVMTInstall(Clone, 0x649D90);
     RH_ScopedVMTInstall(GetTaskType, 0x647060);

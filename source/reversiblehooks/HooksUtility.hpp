@@ -58,6 +58,10 @@ template<typename T, typename... ConstructorArgs>
 struct ConstructorWrapper : protected T {
     using T::T;
     T* Construct(ConstructorArgs... args) {
+        /* NOTE:
+         * Any errors here such as "Ambigous call to overloaded function" etc is the
+         * direct result of the args passed to `RH_ScopedConstructorInstall` not matching any constructor
+         * To fix: Double check if there actually is a constructor */
         this->ConstructorWrapper::ConstructorWrapper(std::forward<ConstructorArgs>(args)...);
         return static_cast<T*>(this);
     }

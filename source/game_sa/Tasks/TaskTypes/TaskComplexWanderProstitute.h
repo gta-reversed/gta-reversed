@@ -4,9 +4,6 @@
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWanderProstitute : public CTaskComplexWanderStandard {
 public:
-    uint32 m_nStartTimeInMs;
-
-public:
     CTaskComplexWanderProstitute(eMoveState MoveState, uint8 Dir, bool bWanderSensibly = true);
 
     eWanderType GetWanderType() override { return WANDER_TYPE_PROSTITUTE; } // 0x6726C0
@@ -16,4 +13,7 @@ public:
 
 public:
     static void InjectHooks();
+
+public:
+    uint32 m_nStartTimeInMs{};
 };

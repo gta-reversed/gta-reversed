@@ -5,11 +5,11 @@
 #include "Ragdoll/IKChainManager.h"
 
 void CTaskComplexBeInCouple::InjectHooks() {
-    RH_ScopedClass(CTaskComplexBeInCouple);
+    RH_ScopedVirtualClass(CTaskComplexBeInCouple, 0x870724, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x6836F0);
-    RH_ScopedInstall(Destructor, 0x683780);
+    RH_ScopedConstructorInstall(0x6836F0, "1", {}, CPed *, bool, bool, bool, float);
+    RH_ScopedDestructorInstall(0x683780);
 
     RH_ScopedGlobalInstall(AbortArmIK, 0x6837F0);
 

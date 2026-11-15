@@ -1,19 +1,34 @@
+#pragma once
+
 #include "TaskComplex.h"
 #include "TaskTimer.h"
+#include "Ped.h"
 
-class CPed;
+class CTaskComplexWaitForPed;
+class CEvent;
 
-class NOTSA_EXPORT_VTABLE CTaskComplexWaitForPed : public CTaskComplex
-{
+class NOTSA_EXPORT_VTABLE CTaskComplexWaitForPed : public CTaskComplex {
 public:
-    CPed* m_ped;
-    float m_radius;
-    uint32 m_timeInMs;
-    bool m_bRotateOtherPedsToWaitingPed;
-private:
-    char padding[3];
-    CTaskTimer m_timer;
-    int32 m_framesToWaitForSettingRotation;
-};
+    static constexpr auto Type = TASK_COMPLEX_WAIT_FOR_PED;
 
-VALIDATE_SIZE(CTaskComplexWaitForPed, 0x2C);
+    static void InjectHooks();
+
+    CTaskComplexWaitForPed(CPed* waitForPed, float targetDist, int32 timeout, bool lookAtPed);
+    CTaskComplexWaitForPed(const CTaskComplexWaitForPed&);
+    ~CTaskComplexWaitForPed() override = default;
+
+    CTask*    Clone() const override { return new CTaskComplexWaitForPed{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return true; }
+    CTask*    CreateNextSubTask(CPed* ped) override { return nullptr; }
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override;
+
+public:
+    CPed::Ref  m_WaitForPed{};
+    float      m_TargetDist{};
+    int32      m_Timeout{};
+    bool       m_LookAtPed{};
+    CTaskTimer m_Timer{};
+    int32      m_FrameCounter{};
+};

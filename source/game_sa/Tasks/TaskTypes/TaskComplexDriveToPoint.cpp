@@ -119,11 +119,11 @@ void CTaskComplexDriveToPoint::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexDriveToPoint, 0x86e9dc, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x63CE00);
-    RH_ScopedInstall(Destructor, 0x63CE70);
+    RH_ScopedConstructorInstall(0x63CE00, "1", {}, CVehicle *, CVector const&, float, int32, eModelID, float, eCarDrivingStyle);
+    RH_ScopedDestructorInstall(0x63CE70);
 
-    RH_ScopedInstall(IsTargetBlocked, 0x6452C0, { .Reversed = false });
-
+    RH_ScopedOverloadedInstall(IsTargetBlocked, "Any", 0x6452C0, bool(CTaskComplexDriveToPoint::*)(CPed*) const, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsTargetBlocked, "Array", 0x6432A0, bool(CTaskComplexDriveToPoint::*)(CPed*, CEntity**, int32) const, { .Reversed = false });
     RH_ScopedVMTInstall(Clone, 0x63DDE0);
     RH_ScopedVMTInstall(GetTaskType, 0x63CE60);
     RH_ScopedVMTInstall(SetUpCar, 0x63CF00);

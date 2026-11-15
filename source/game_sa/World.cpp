@@ -594,7 +594,7 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& list, 
         }
 
         CTaskComplexKillPedOnFoot* taskKill = ped->GetTaskManager().Find<CTaskComplexKillPedOnFoot>(true);
-        CPed* objectivePed = taskKill ? taskKill->m_target : nullptr;
+        CPed* objectivePed = taskKill ? taskKill->GetPedToKill() : nullptr;
 
         CTaskComplexDestroyCar* taskDestroy =ped->GetTaskManager().Find<CTaskComplexDestroyCar>(true);
         CVehicle* objectiveVehicle = taskDestroy ? taskDestroy->m_VehicleToDestroy : nullptr;

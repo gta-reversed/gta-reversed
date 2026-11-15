@@ -28,7 +28,8 @@ public:
 public:
     static constexpr auto Type = TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
 
-    CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, bool warpingInToCar /* notsa arg */ = false, CTaskUtilityLineUpPedWithCar* utility = nullptr);
+    CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, bool warpingInToCar /* notsa arg */, CTaskUtilityLineUpPedWithCar* utility = nullptr);
+    CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, CTaskUtilityLineUpPedWithCar* utility = nullptr); /* Original constructor, used for hooks */
     CTaskSimpleCarSetPedInAsPassenger(const CTaskSimpleCarSetPedInAsPassenger&);
     ~CTaskSimpleCarSetPedInAsPassenger() override;
 
@@ -39,18 +40,5 @@ public:
 
 public:
     static void InjectHooks();
-
-private: // Wrappers for hooks
-    // 0x646FE0
-    CTaskSimpleCarSetPedInAsPassenger* Constructor(CVehicle * pTargetVehicle, int32 nTargetDoor, CTaskUtilityLineUpPedWithCar * pUtility) {
-        this->CTaskSimpleCarSetPedInAsPassenger::CTaskSimpleCarSetPedInAsPassenger(pTargetVehicle, nTargetDoor, pUtility);
-        return this;
-    }
-
-    // 0x647080
-    CTaskSimpleCarSetPedInAsPassenger* Destructor() {
-        this->CTaskSimpleCarSetPedInAsPassenger::~CTaskSimpleCarSetPedInAsPassenger();
-        return this;
-    }
 };
 VALIDATE_SIZE(CTaskSimpleCarSetPedInAsPassenger, 0x20);

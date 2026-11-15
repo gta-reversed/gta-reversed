@@ -6,8 +6,8 @@ void CTaskComplexDragPedFromCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexDragPedFromCar, 0x86eb6c, 12);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x640430);
-    RH_ScopedInstall(Destructor, 0x6404D0);
+    RH_ScopedConstructorInstall(0x640430, "1", {}, CPed*, int32);
+    RH_ScopedDestructorInstall(0x6404D0);
 
     RH_ScopedVMTInstall(Clone, 0x643950);
     RH_ScopedVMTInstall(GetTaskType, 0x6404C0);
@@ -20,13 +20,7 @@ void CTaskComplexDragPedFromCar::InjectHooks() {
 CTaskComplexDragPedFromCar::CTaskComplexDragPedFromCar(CPed* ped, int32 draggedPedDownTime) :
     CTaskComplexEnterCar(nullptr, false, false, true, false) {
     m_Ped = ped;
-    CEntity::SafeRegisterRef(m_Ped);
     m_DraggedPedDownTime = draggedPedDownTime;
-}
-
-// 0x6404D0
-CTaskComplexDragPedFromCar::~CTaskComplexDragPedFromCar() {
-    CEntity::SafeCleanUpRef(m_Ped);
 }
 
 // 0x640530

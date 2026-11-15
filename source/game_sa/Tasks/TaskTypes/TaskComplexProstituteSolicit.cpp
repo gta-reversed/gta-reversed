@@ -12,8 +12,8 @@ void CTaskComplexProstituteSolicit::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexProstituteSolicit, 0x86fb88, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x661A60);
-    RH_ScopedInstall(Destructor, 0x661AF0);
+    RH_ScopedConstructorInstall(0x661A60, "1", {}, CPed*);
+    RH_ScopedDestructorInstall(0x661AF0);
 
     RH_ScopedGlobalInstall(IsTaskValid, 0x661BB0);
     RH_ScopedGlobalInstall(GetRidOfPlayerProstitute, 0x661D30);

@@ -13,8 +13,8 @@ void CTaskComplexWanderMedic::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWanderMedic, 0x86f48c, 15);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x658770);
-    RH_ScopedInstall(Destructor, 0x658850);
+    RH_ScopedConstructorInstall(0x658770, "1", {}, eMoveState, uint8, bool);
+    RH_ScopedDestructorInstall(0x658850);
 
     RH_ScopedVMTInstall(Clone, 0x6587A0);
     RH_ScopedVMTInstall(GetWanderType, 0x658810);
