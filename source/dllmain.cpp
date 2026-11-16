@@ -48,7 +48,16 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
         LoadConfigurations();
 
         ReversibleHooks::RHManager::CreateInstance();
-        InjectHooksMain();
+
+        try {
+            InjectHooksMain();
+        } catch (const std::exception& e) {
+            NOTSA_LOG_ERR("InjectHooksMain() failed: {}", e.what());
+            abort();
+        } catch (...) {
+            NOTSA_LOG_ERR("InjectHooksMain() failed with unknown exception");
+            abort();
+        }
 
         break;
     }
