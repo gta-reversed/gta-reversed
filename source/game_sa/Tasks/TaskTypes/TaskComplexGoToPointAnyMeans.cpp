@@ -65,7 +65,7 @@ CTask* CTaskComplexGoToPointAnyMeans::CreateSubTask(int32 taskType, CPed* ped) {
         return new CTaskComplexFollowNodeRoute(m_MoveState, m_Pos, m_fRadius, 3.0f, 2.0f, false, -1, true);
     case TASK_FINISHED:
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE_CASE(taskType);
     }
 }
 
