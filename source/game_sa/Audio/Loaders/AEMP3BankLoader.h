@@ -23,7 +23,7 @@ public:
     float  GetSoundHeadroom(eSoundID soundId, eSoundBankSlot bankSlot);
     bool   IsSoundBankLoaded(eSoundBank bankId, eSoundBankSlot bankSlot);
     bool   GetSoundBankLoadingStatus(eSoundBank bankId, eSoundBankSlot bankSlot);
-    uint8* GetSoundBuffer(eSoundID soundId, eSoundBankSlot bankSlot, uint32& outIndex, uint16& outSampleRate);
+    uint8* GetSoundBuffer(eSoundID soundId, eSoundBankSlot bankSlot, uint32& outSize, uint16& outSampleRate);
     int32  GetLoopOffset(eSoundID soundId, eSoundBankSlot bankSlot);
     bool   IsSoundLoaded(eSoundBank bankId, eSoundID soundId, eSoundBankSlot bankSlot) const;
     bool   GetSoundLoadingStatus(eSoundBank bankId, eSoundID soundId, eSoundBankSlot bankSlot);

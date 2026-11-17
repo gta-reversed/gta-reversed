@@ -1,10 +1,11 @@
 #include "StdInc.h"
 
 #include "TaskComplexHitPedWithCar.h"
+#include "TaskSimpleHurtPedWithCar.h"
 
 void CTaskComplexHitPedWithCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexHitPedWithCar, 0x86f294, 11);
-    RH_ScopedCategory(); // TODO: Change this to the appropriate category!
+    RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x6539A0);
     RH_ScopedInstall(Destructor, 0x653A30);
@@ -14,25 +15,22 @@ void CTaskComplexHitPedWithCar::InjectHooks() {
     RH_ScopedInstall(HitHurtsPed, 0x653AE0, { .Reversed = false });
     RH_ScopedInstall(CreateSubTask, 0x6560E0, { .Reversed = false });
 
-    RH_ScopedVMTInstall(Clone, 0x6559B0, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x653A20, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0, { .Reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x6559B0);
+    RH_ScopedVMTInstall(GetTaskType, 0x653A20);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x657AF0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x656300, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x653A90, { .Reversed = false });
-
+    RH_ScopedVMTInstall(ControlSubTask, 0x653A90);
 }
 
 // 0x6539A0
 CTaskComplexHitPedWithCar::CTaskComplexHitPedWithCar(CVehicle* veh, float impulseMagnitude) :
-    m_Veh{veh},
-    m_ImpulseMag{impulseMagnitude}
-{
+    m_Veh{ veh },
+    m_ImpulseMag{ impulseMagnitude } {
     CEntity::SafeRegisterRef(m_Veh);
 }
 
 CTaskComplexHitPedWithCar::CTaskComplexHitPedWithCar(const CTaskComplexHitPedWithCar& o) :
-    CTaskComplexHitPedWithCar{o.m_Veh, o.m_ImpulseMag}
-{
+    CTaskComplexHitPedWithCar{ o.m_Veh, o.m_ImpulseMag } {
 }
 
 // 0x653A30
@@ -57,7 +55,23 @@ CTask* CTaskComplexHitPedWithCar::CreateSubTask(eTaskType tt) {
 
 // 0x657AF0
 CTask* CTaskComplexHitPedWithCar::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x657AF0, CTaskComplexHitPedWithCar*, CPed*>(this, ped);
+    switch (const auto stt = m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_EVASIVE_STEP:
+    case TASK_NONE:
+    case TASK_COMPLEX_FALL_AND_GET_UP:
+    case TASK_SIMPLE_HIT_BEHIND:
+    case TASK_SIMPLE_KILL_PED_WITH_CAR: {   
+        return CreateSubTask(TASK_FINISHED);
+    }
+    case TASK_SIMPLE_HURT_PED_WITH_CAR: {
+        if (notsa::cast<const CTaskSimpleHurtPedWithCar>(m_pSubTask)->GetWillKillPed()) {
+            return nullptr;
+        }
+        return CreateSubTask(TASK_COMPLEX_FALL_AND_GET_UP);
+    }
+    default:
+        NOTSA_UNREACHABLE_CASE(stt);
+    }
 }
 
 // 0x656300
@@ -67,5 +81,5 @@ CTask* CTaskComplexHitPedWithCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x653A90
 CTask* CTaskComplexHitPedWithCar::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x653A90, CTaskComplexHitPedWithCar*, CPed*>(this, ped);
+    return m_pSubTask;
 }

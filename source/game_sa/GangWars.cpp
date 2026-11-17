@@ -12,7 +12,7 @@
 #include "ModelIndices.h"
 #include "TaskComplexWander.h"
 #include "TaskComplexKillPedOnFoot.h"
-#include "TaskComplexDriveWander.h"
+#include "TaskComplexCarDriveWander.h"
 #include "TaskSimpleCarDrive.h"
 #include "TaskComplexWanderGang.h"
 #include "Hud.h"
@@ -251,7 +251,7 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
         ped->SetCharCreatedBy(PED_MISSION);
         CWorld::Add(ped);
 
-        auto task = new CTaskComplexKillPedOnFoot(FindPlayerPed(), -1, 0, 0, 0, 2);
+        auto task = new CTaskComplexKillPedOnFoot(FindPlayerPed(), -1, 0, 0, 0, 2, false, false);
         CEventScriptCommand event(TASK_PRIMARY_PRIMARY, task, false);
         ped->GetEventGroup().Add(&event);
 
@@ -686,7 +686,7 @@ void CGangWars::TellGangMembersTo(bool isGangWarEnding) {
 
         if (!isGangWarEnding) {
             auto player = FindPlayerPed();
-            auto task = new CTaskComplexKillPedOnFoot(player, -1, 0, 0, 0, 2);
+            auto task = new CTaskComplexKillPedOnFoot(player, -1, 0, 0, 0, 2, false, false);
             CEventScriptCommand esc(TASK_PRIMARY_PRIMARY, task, false);
             ped.GetEventGroup().Add(&esc);
 
