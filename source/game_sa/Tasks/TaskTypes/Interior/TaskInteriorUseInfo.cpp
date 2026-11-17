@@ -3,6 +3,7 @@
 #include "TaskInteriorUseInfo.h"
 #include "Interior/Interior_c.h"
 #include "Interior/InteriorInfo_t.h"
+#include "TaskInteriorGoToInfo.h"
 
 void CTaskInteriorUseInfo::InjectHooks() {
     RH_ScopedVirtualClass(CTaskInteriorUseInfo, 0x8702e8, 11);
@@ -15,7 +16,7 @@ void CTaskInteriorUseInfo::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x675A80);
     RH_ScopedVMTInstall(MakeAbortable, 0x675B30);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x676880, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x675B60, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x675B60);
     RH_ScopedVMTInstall(ControlSubTask, 0x675C00);
 }
 
@@ -54,7 +55,11 @@ CTask* CTaskInteriorUseInfo::CreateNextSubTask(CPed* ped) {
 
 // 0x675B60
 CTask* CTaskInteriorUseInfo::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x675B60, CTaskInteriorUseInfo*, CPed*>(this, ped);
+    if (!m_IntInfo) {
+        return nullptr;
+    }
+    m_IntInfo->IsInUse = true;
+    return new CTaskInteriorGoToInfo{ m_IntInfo, m_Int, m_bDoInstantly };
 }
 
 // 0x675C00
