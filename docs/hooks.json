@@ -4057,7 +4057,7 @@
   {
     "Category": "CClothes",
     "Name": "GetTextureDependency",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CClothes",
@@ -35432,7 +35432,7 @@
   {
     "Category": "CAEFrontendAudioEntity",
     "Name": "UpdateParameters",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEGlobalWeaponAudioEntity",
