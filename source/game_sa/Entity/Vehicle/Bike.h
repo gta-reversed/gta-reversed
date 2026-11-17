@@ -145,7 +145,7 @@ public:
     void ResetSuspension();
     [[nodiscard]] bool GetAllWheelsOffGround() const;
     void DebugCode();
-    void DoSoftGroundResistance(uint32& arg0);
+    void DoSoftGroundResistance(uint32& extraHandlingFlags);
     void PlayHornIfNecessary();
     void CalculateLeanMatrix();
     static void ProcessRiderAnims(CPed* rider, CVehicle* vehicle, CRideAnimData* rideData, tBikeHandlingData* handling, int16 a5);
