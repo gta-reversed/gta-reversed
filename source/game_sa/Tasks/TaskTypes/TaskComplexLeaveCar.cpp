@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "TaskComplexLeaveCar.h"
+#include "TaskSimpleCarWaitToSlowDown.h"
 
 void CTaskComplexLeaveCar::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexLeaveCar, 0x86e828, 11);
@@ -74,22 +75,21 @@ CTask* CTaskComplexLeaveCar::ControlSubTask(CPed* ped) {
         return nullptr;
     }
 
-    const auto subTaskType = m_pSubTask->GetTaskType();
-    if (!ped->bInVehicle) {
-        switch (subTaskType) {
+    if (ped->bInVehicle) {
+        switch (m_pSubTask->GetTaskType()) {
         case TASK_SIMPLE_CAR_SET_PED_OUT:
         case TASK_SIMPLE_CAR_JUMP_OUT:
         case TASK_COMPLEX_GET_UP_AND_STAND_STILL:
-        case TASK_SIMPLE_DIE:
-            return CreateSubTask(TASK_SIMPLE_CAR_SET_PED_OUT, ped);
+        case TASK_SIMPLE_DIE:                     {
+            if (!m_bSensibleLeaveCar && notsa::isa<CTaskSimpleCarWaitToSlowDown>(m_pSubTask)) {
+                m_pSubTask->MakeAbortable(ped);
+            }
+            return m_pSubTask;
+        }
         }
     }
 
-    if (!m_bSensibleLeaveCar && subTaskType == TASK_SIMPLE_CAR_WAIT_TO_SLOW_DOWN) {
-        m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr);
-    }
-
-    return m_pSubTask;
+    return CreateSubTask(TASK_SIMPLE_CAR_SET_PED_OUT, ped);
 }
 
 // 0x641530
