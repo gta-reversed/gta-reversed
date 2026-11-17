@@ -4,11 +4,9 @@
 
 class CPed;
 
-class CTaskSimpleOnEscalator : public CTaskSimpleStandStill {
+class NOTSA_EXPORT_VTABLE CTaskSimpleOnEscalator : public CTaskSimpleStandStill {
 public:
    static constexpr auto Type = TASK_SIMPLE_ON_ESCALATOR;
-
-   static void InjectHooks();
 
    CTaskSimpleOnEscalator();
    CTaskSimpleOnEscalator(const CTaskSimpleOnEscalator&);
@@ -17,4 +15,7 @@ public:
    CTask*    Clone() const override { return new CTaskSimpleOnEscalator{ *this }; }
    eTaskType GetTaskType() const override { return Type; }
    bool      ProcessPed(CPed* ped) override;
+
+public:
+    static void InjectHooks();
 };

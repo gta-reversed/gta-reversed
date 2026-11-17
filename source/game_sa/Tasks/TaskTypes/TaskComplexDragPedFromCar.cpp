@@ -12,7 +12,6 @@ void CTaskComplexDragPedFromCar::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x643950);
     RH_ScopedVMTInstall(GetTaskType, 0x6404C0);
     RH_ScopedVMTInstall(ControlSubTask, 0x640530);
-    RH_ScopedVMTInstall(ControlSubTask, 0x640530);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x643D00);
 }
 

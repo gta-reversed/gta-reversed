@@ -601,7 +601,6 @@ void InjectHooksMain() {
     CPedStuckChecker::InjectHooks();
     CPlayerRelationshipRecorder::InjectHooks();
     CRemote::InjectHooks();
-    CPointLights::InjectHooks();
     CPedSaveStructure::InjectHooks();
     CEventSource::InjectHooks();
     D3DResourceSystem::InjectHooks();
@@ -1023,7 +1022,6 @@ void InjectHooksMain() {
         CTaskComplexUseClosestFreeScriptedAttractor::InjectHooks();
 
         CTaskSimpleChoking::InjectHooks();
-        CTaskComplexEvasiveDiveAndGetUp::InjectHooks();
         CTaskSimpleLeaveGroup::InjectHooks();
         CTaskComplexDiveFromAttachedEntityAndGetUp::InjectHooks();
         CTaskGangHasslePed::InjectHooks();
@@ -1036,7 +1034,6 @@ void InjectHooksMain() {
         CTaskComplexDestroyCarArmed::InjectHooks();
         CTaskComplexDestroyCarMelee::InjectHooks();
         CTaskComplexDieInCar::InjectHooks();
-        CTaskComplexDiveFromAttachedEntityAndGetUp::InjectHooks();
         CTaskComplexDragPedFromCar::InjectHooks();
         CTaskComplexDrivePointRoute::InjectHooks();
         CTaskComplexEvasiveCower::InjectHooks();

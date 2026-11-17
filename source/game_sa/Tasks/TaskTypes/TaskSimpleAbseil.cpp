@@ -9,5 +9,4 @@ void CTaskSimpleAbseil::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x6586D0);
     RH_ScopedVMTInstall(IsInterruptable, 0x658740);
-    RH_ScopedVMTInstall(GetTaskType, 0x6586C0);
 }
