@@ -28,7 +28,7 @@ CTaskComplexKillPedOnFootStealth::CTaskComplexKillPedOnFootStealth(CPed* target)
 
 // NOTSA (For 0x623400)
 CTaskComplexKillPedOnFootStealth::CTaskComplexKillPedOnFootStealth(const CTaskComplexKillPedOnFootStealth& o) :
-    CTaskComplexKillPedOnFootStealth{m_target}
+    CTaskComplexKillPedOnFootStealth{m_PedToKill}
 {
 }
 
@@ -52,17 +52,17 @@ CTask* CTaskComplexKillPedOnFootStealth::CreateFirstSubTask(CPed* ped) {
 
 // 0x62B840
 CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
-    if (!m_target) {
+    if (!m_PedToKill) {
         return CTaskComplexKillPedOnFoot::ControlSubTask(ped);
     }
 
     if ([&, this] {
-        if (CPedGeometryAnalyser::CanPedTargetPed(*ped, *m_target, true)) {
+        if (CPedGeometryAnalyser::CanPedTargetPed(*ped, *m_PedToKill, true)) {
             if (m_targetUnreachableTimeMs == (uint32)-1) { // State is changing (Target is now reachable)
                 return true; // I guess the position check below is done the next frame in this case? No clue why.
             }
-            if ((ped->GetPosition() - m_target->GetPosition()).Normalized().Dot(ped->GetForward()) >= CPedAcquaintanceScanner::ms_fThresholdDotProduct) {
-                if (ped->GetIntelligence()->CanSeeEntityWithLights(m_target, true) > 0.f) {
+            if ((ped->GetPosition() - m_PedToKill->GetPosition()).Normalized().Dot(ped->GetForward()) >= CPedAcquaintanceScanner::ms_fThresholdDotProduct) {
+                if (ped->GetIntelligence()->CanSeeEntityWithLights(m_PedToKill, true) > 0.f) {
                     return true; // All good, we can still reach the ped
                 }
             }
@@ -70,7 +70,7 @@ CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
         return false; // Now can't reach them anymore
     }()) {
         m_targetUnreachableTimeMs = (uint32)-1;
-        m_targetPos               = m_target->GetPosition();
+        m_targetPos               = m_PedToKill->GetPosition();
     } else if (m_targetUnreachableTimeMs == (uint32)-1) {
         m_targetUnreachableTimeMs = CTimer::GetTimeInMS(); // State is changing (Can't target the target anymore)
     }
@@ -103,7 +103,7 @@ CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
     const auto sttype = m_pSubTask->GetTaskType();
     if (m_targetPos.z > -9999.9004f) {
         if (sttype != TASK_COMPLEX_INVESTIGATE_DISTURBANCE && m_pSubTask->MakeAbortable(ped)) {
-            return new CTaskComplexInvestigateDisturbance{ m_targetPos, m_target };
+            return new CTaskComplexInvestigateDisturbance{ m_targetPos, m_PedToKill };
         }
     } else if (sttype == TASK_COMPLEX_SEQUENCE && m_pSubTask->MakeAbortable(ped)) {
         return new CTaskComplexSequence{

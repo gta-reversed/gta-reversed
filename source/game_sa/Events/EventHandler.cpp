@@ -75,7 +75,7 @@
 #include "Tasks/TaskTypes/TaskComplexInvestigateDisturbance.h"
 #include "Tasks/TaskTypes/TaskComplexSeekEntityAiming.h"
 #include "Tasks/TaskTypes/TaskSimpleGangDriveBy.h"
-#include "Tasks/TaskTypes/TaskComplexDriveWander.h"
+#include "Tasks/TaskTypes/TaskComplexCarDriveWander.h"
 #include "Tasks/TaskTypes/TaskComplexFollowLeaderInFormation.h"
 #include "Tasks/TaskTypes/TaskSimpleSay.h"
 #include "Tasks/TaskTypes/TaskComplexHitResponse.h"
@@ -622,7 +622,7 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
             return nullptr;
         }
 
-        if (!tGoToPoint && (!tKillPedOnFoot || !tKillPedOnFoot->m_target)) { // 0x4BF41E
+        if (!tGoToPoint && (!tKillPedOnFoot || !tKillPedOnFoot->m_PedToKill)) { // 0x4BF41E
             if (isHeadOnCollision && !CPedGeometryAnalyser::CanPedJumpObstacle(*m_Ped, *e->m_building, e->m_impactNormal, e->m_impactPos) && e->m_moveState > eMoveState::PEDMOVE_WALK) {
                 return new CTaskSimpleHitHead{};
             }
@@ -647,15 +647,15 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
             }
 
             if (tKillPedOnFoot) { // 0x4BF5C2
-                if (!tKillPedOnFoot->m_target) {
+                if (!tKillPedOnFoot->m_PedToKill) {
                     return nullptr;
                 }
-                if (CPedGeometryAnalyser::CanPedTargetPed(*m_Ped, *tKillPedOnFoot->m_target, true)) {
+                if (CPedGeometryAnalyser::CanPedTargetPed(*m_Ped, *tKillPedOnFoot->m_PedToKill, true)) {
                     return nullptr;
                 }
                 return new CTaskComplexWalkRoundBuildingAttempt{
                     (eMoveState)e->m_moveState,
-                    tKillPedOnFoot->m_target,
+                    tKillPedOnFoot->m_PedToKill,
                     {},
                     e->m_impactPos,
                     e->m_impactNormal,
@@ -750,7 +750,7 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
                 };
             };
             if (tKillPedOnFoot) { // 0x004BF825
-                return DoWalkAroundBuldingTask(tKillPedOnFoot->m_target);
+                return DoWalkAroundBuldingTask(tKillPedOnFoot->m_PedToKill);
             } else if (tSeekEntity) { // 0x4BF8C3
                 return DoWalkAroundBuldingTask(tSeekEntity->GetEntityToSeek());
             }

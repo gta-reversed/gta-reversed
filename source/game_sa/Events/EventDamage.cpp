@@ -90,7 +90,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
         if (m_pSourceEntity) {
             if (m_pSourceEntity->GetIsTypePed() && pedSourceEntity->m_nPedType == PED_TYPE_GANG2 && m_weaponType >= WEAPON_GRENADE) {
                 const auto task = pedSourceEntity->GetTaskManager().Find<CTaskComplexKillPedOnFoot>();
-                if (!task || task->m_target != ped){
+                if (!task || task->m_PedToKill != ped){
                     return false;
                 }
             }
