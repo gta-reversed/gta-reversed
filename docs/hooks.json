@@ -4057,7 +4057,7 @@
   {
     "Category": "CClothes",
     "Name": "GetTextureDependency",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CClothes",
@@ -5367,6 +5367,11 @@
   {
     "Category": "SurfaceInfos_c",
     "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "SurfaceInfos_c",
+    "Name": "LoadSurfaceInfos",
     "IsReversed": true
   },
   {
@@ -8162,17 +8167,17 @@
   {
     "Category": "CStats",
     "Name": "PopulateFavoriteRadioStationList",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindMostFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindLeastFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
@@ -35427,7 +35432,7 @@
   {
     "Category": "CAEFrontendAudioEntity",
     "Name": "UpdateParameters",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEGlobalWeaponAudioEntity",
