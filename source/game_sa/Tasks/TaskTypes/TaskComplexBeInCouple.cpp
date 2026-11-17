@@ -11,7 +11,7 @@ void CTaskComplexBeInCouple::InjectHooks() {
     RH_ScopedConstructorInstall(0x6836F0, "1", {}, CPed *, bool, bool, bool, float);
     RH_ScopedDestructorInstall(0x683780);
 
-    RH_ScopedGlobalInstall(AbortArmIK, 0x6837F0);
+    RH_ScopedInstall(AbortArmIK, 0x6837F0);
 
     RH_ScopedVMTInstall(Clone, 0x6839C0);
     RH_ScopedVMTInstall(GetTaskType, 0x683770);

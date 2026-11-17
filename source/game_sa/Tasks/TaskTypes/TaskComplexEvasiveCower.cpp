@@ -34,6 +34,8 @@ CTask* CTaskComplexEvasiveCower::CreateSubTask(eTaskType taskType) {
         return new CTaskSimpleCower{};
     case TASK_SIMPLE_ACHIEVE_HEADING:
         return new CTaskSimpleAchieveHeading{ m_Pos.Heading(), 0.0f }; // NOTE: Should check if `.Heading()` is same as `CGeneral::GetRadianAngleBetweenPoints` used in the original code
+    case TASK_FINISHED:
+        return nullptr;
     default:
         NOTSA_UNREACHABLE_CASE(taskType);
     }
@@ -46,6 +48,7 @@ void CTaskComplexEvasiveCower::InjectHooks() {
     RH_ScopedConstructorInstall(0x655460, "1", {}, CEntity*, const CVector&);
     RH_ScopedDestructorInstall(0x6554E0);
 
+    RH_ScopedInstall(CreateSubTask, 0x655570);
     RH_ScopedVMTInstall(Clone, 0x655CD0);
     RH_ScopedVMTInstall(GetTaskType, 0x6554D0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6556A0);

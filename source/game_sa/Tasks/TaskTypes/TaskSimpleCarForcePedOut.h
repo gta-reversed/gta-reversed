@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TaskSimple.h"
+#include "Vehicle.h"
 
 class CVehicle;
 class CEvent;

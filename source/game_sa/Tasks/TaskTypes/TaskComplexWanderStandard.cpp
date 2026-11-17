@@ -69,7 +69,7 @@ void CTaskComplexWanderStandard::InjectHooks() {
     RH_ScopedConstructorInstall(0x48E4F0, "1", {}, eMoveState, uint8, bool);
     RH_ScopedDestructorInstall(0x48E600);
 
-    RH_ScopedGlobalInstall(WillChat, 0x66AED0, { .Reversed = false });
+    RH_ScopedInstall(WillChat, 0x66AED0, { .Reversed = false });
     RH_ScopedInstall(SetNextMinScanTime, 0x66AF60, { .Reversed = false });
     RH_ScopedInstall(LookForSexyCars, 0x66AFD0, { .Reversed = false });
     RH_ScopedInstall(LookForChatPartners, 0x66FDA0, { .Reversed = false });
