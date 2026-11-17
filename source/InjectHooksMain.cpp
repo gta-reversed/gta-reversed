@@ -557,8 +557,33 @@
 #include "EventLeaderQuitEnteringCarAsDriver.h"
 #include "EventAreaCodes.h"
 #include "EventLeaderEntryExit.h"
+#include <Events/EventInteriorUseInfo.h>
+#include <Events/EventLowAngerAtPlayer.h>
+#include <Events/EventPedEnteredMyVehicle.h>
+#include <Events/EventPotentialGetRunOver.h>
+#include <Events/EventPotentialWalkIntoBuilding.h>
+#include <Events/EventSexyPed.h>
+#include <Events/EventSignalAtPed.h>
+#include <Events/EventSoundLoud.h>
+#include <Events/EventSource.h>
+#include <Events/EventScanner.h>
+#include <Events/EventSexyVehicle.h>
+#include <Events/EventChatPartner.h>
+#include <Events/EventInWater.h>
+#include <Events/EventCreatePartnerTask.h>
+#include <Events/EventPedToChase.h>
+#include <Events/EventPedToFlee.h>
+#include <Events/EventGunAimedAt.h>
+#include <Events/EventDeath.h>
+#include <Events/EventDeadPed.h>
+#include <Events/EventDraggedOutCar.h>
+#include <Events/EventGotKnockedOverByCar.h>
+#include <Events/EventRevived.h>
 #include "Formation.h"
 #include "ProjectileInfo.h"
+#include <Events/EventSpecial.h>
+#include <Events/EventFireNearby.h>
+#include <Events/EventHealthReallyLow.h>
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 
@@ -1334,7 +1359,7 @@ void InjectHooksMain() {
         CEventLeanOnVehicle::InjectHooks();
         CEventSeenCop::InjectHooks();
         CEventOnFire::InjectHooks();
-        // + CEventRevived::InjectHooks();
+        CEventRevived::InjectHooks();
         CEventHandlerHistory::InjectHooks();
         CEventEditableResponse::InjectHooks();
         CEventDamage::InjectHooks();
@@ -1342,16 +1367,16 @@ void InjectHooksMain() {
         CEventScriptedAttractor::InjectHooks();
         CEventGunShot::InjectHooks();
         CEventGunShotWhizzedBy::InjectHooks();
-        // + CEventGunAimedAt::InjectHooks();
-        // + CEventDeath::InjectHooks();
-        // + CEventDeadPed::InjectHooks();
-        // + CEventDraggedOutCar::InjectHooks();
-        // + CEventGotKnockedOverByCar::InjectHooks();
+        CEventGunAimedAt::InjectHooks();
+        CEventDeath::InjectHooks();
+        CEventDeadPed::InjectHooks();
+        CEventDraggedOutCar::InjectHooks();
+        CEventGotKnockedOverByCar::InjectHooks();
         CEventKnockOffBike::InjectHooks();
         CEventScriptCommand::InjectHooks();
         CEventSoundQuiet::InjectHooks();
-        // + CEventPedToChase::InjectHooks();
-        // + CEventPedToFlee::InjectHooks();
+        CEventPedToChase::InjectHooks();
+        CEventPedToFlee::InjectHooks();
         CEventPotentialWalkIntoVehicle::InjectHooks();
         CEventPotentialWalkIntoObject::InjectHooks();
         CEventPotentialWalkIntoFire::InjectHooks();
@@ -1370,8 +1395,8 @@ void InjectHooksMain() {
         CEventVehicleCollision::InjectHooks();
         CEventVehicleDamageCollision::InjectHooks();
         CEventHitByWaterCannon::InjectHooks();
-        // + CEventInWater::InjectHooks();
-        // + CEventCreatePartnerTask::InjectHooks();
+        CEventInWater::InjectHooks();
+        CEventCreatePartnerTask::InjectHooks();
         CEventInAir::InjectHooks();
         CEventStuckInAir::InjectHooks();
         CEventAcquaintancePed::InjectHooks();
@@ -1380,10 +1405,11 @@ void InjectHooksMain() {
         CEventLeaderQuitEnteringCarAsDriver::InjectHooks();
         CEventAreaCodes::InjectHooks();
         CEventLeaderEntryExit::InjectHooks();
-        // + CEventSpecial::InjectHooks();
-        // + CEventFireNearby::InjectHooks();
-        // + CEventGroupEvent::InjectHooks();
+        CEventSpecial::InjectHooks();
+        CEventFireNearby::InjectHooks();
+        CEventGroupEvent::InjectHooks();
         CEventGroup::InjectHooks();
+        CEventHealthReallyLow::InjectHooks();
         CEventGlobalGroup::InjectHooks();
         CEventPlayerCommandToGroup::InjectHooks();
         CEventPlayerCommandToGroupAttack::InjectHooks();
@@ -1392,22 +1418,22 @@ void InjectHooksMain() {
         CEventNewGangMember::InjectHooks();
         CEventEscalator::InjectHooks();
         CEventDanger::InjectHooks();
-        // + CEventSexyVehicle::InjectHooks();
-        // + CEventChatPartner::InjectHooks();
+        CEventSexyVehicle::InjectHooks();
+        CEventChatPartner::InjectHooks();
         CEventCopCarBeingStolen::InjectHooks();
         CEventHandler::InjectHooks();
         CEventAcquaintancePedHate::InjectHooks();
         CEventAcquaintancePedHateBadlyLit::InjectHooks();
-        // + CEventInteriorUseInfo
-        // + CEventLowAngerAtPlayer
-        // + CEventPedEnteredMyVehicle
-        // + CEventPotentialGetRunOver
-        // + CEventPotentialWalkIntoBuilding::InjectHooks();
-        // + CEventSexyPed
-        // + CEventSignalAtPed
-        // + CEventSoundLoud
-        // - CEventSource::InjectHooks();
-        // - CEventScanner::InjectHooks();
+        CEventInteriorUseInfo::InjectHooks();
+        CEventLowAngerAtPlayer::InjectHooks();
+        CEventPedEnteredMyVehicle::InjectHooks();
+        CEventPotentialGetRunOver::InjectHooks();
+        //CEventPotentialWalkIntoBuilding::InjectHooks(); // Doesn't exist on PC?
+        CEventSexyPed::InjectHooks();
+        //CEventSignalAtPed::InjectHooks(); // Doesn't exist on PC?
+        //CEventSoundLoud::InjectHooks(); // Doesn't exist on PC?
+        CEventSource::InjectHooks();
+        CEventScanner::InjectHooks();
     };
 
     const auto Fx = []() {
