@@ -138,7 +138,7 @@ template<typename... Ts>
 
 // `final` used on when compiling for standalone
 // (Can't use `final` for the whole class otherwise due to how `RH_ScopedConstructorInstall` and `RH_ScopedDestructorInstall` work)
-#ifdef NOTSA_STANDALONE
+#if defined(NOTSA_STANDALONE) && !defined(NOTSA_STANDALONE_DUMP_HOOKS_ONLY)
     #define NOTSA_CLASS_FINAL final
 #else
     #define NOTSA_CLASS_FINAL
