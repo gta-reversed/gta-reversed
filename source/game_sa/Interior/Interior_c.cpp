@@ -180,7 +180,7 @@ void Interior_c::Shop_FurnishCeiling() {
 // 0x59A140
 void Interior_c::Shop_AddShelfInfo(int32 a2, int32 a3, int32 a5) {
     auto& shelfInfoCounter = StaticRef<int32>(0x8D0948);
-    if (shelfInfoCounter > 1 && static_cast<int32>(static_cast<float>(CGeneral::GetRandomNumber()) * (1.f / 32768.f) * 100.f) > 60) {
+    if (shelfInfoCounter > 1 && CGeneral::RandomBool(40)) { // 40% chance of rand(0, 100) > 60
         AddInteriorInfo(8, static_cast<float>(a2), static_cast<float>(a3), a5, nullptr);
         shelfInfoCounter = 1;
     } else {
