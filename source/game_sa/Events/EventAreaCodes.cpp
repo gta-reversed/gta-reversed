@@ -39,7 +39,7 @@ bool CEventAreaCodes::AffectsPed(CPed* ped)
 
     CPed* targetPed = nullptr;
     if (const auto killPedOnFoot = ped->GetTaskManager().Find<CTaskComplexKillPedOnFoot>()) {
-        targetPed = killPedOnFoot->m_target;
+        targetPed = killPedOnFoot->m_PedToKill;
         if (targetPed != m_ped) {
             if (const auto arrestPed = ped->GetTaskManager().Find<CTaskComplexArrestPed>()) {
                 targetPed = arrestPed->m_PedToArrest;

@@ -713,7 +713,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
         return false;
 
     if (const auto tKillPedOnFoot = notsa::dyn_cast_if_present<CTaskComplexKillPedOnFoot>(target->GetTaskManager().GetActiveTask())) {
-        if (tKillPedOnFoot->m_target == m_pPed) {
+        if (tKillPedOnFoot->m_PedToKill == m_pPed) {
             return false;
         }
     }
