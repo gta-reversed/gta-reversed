@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 12, 2026 at 01:06:07 UTC
-(Triggered by commit [4a03771a](https://github.com/gta-reversed/gta-reversed/commit/4a03771affb54804eb33a54f8813a840e85dc8a1))
+Last update was at Nov 17, 2026 at 01:30:37 UTC
+(Triggered by commit [4c841f83](https://github.com/gta-reversed/gta-reversed/commit/4c841f8395b43c53e4c6296c5a0034b90c339afe))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7665 out of 8337 functions done in 722 categories)
+## Stats (7667 out of 8337 functions done in 722 categories)
 
-#### Completely reversed categories (605/722) [84%]
+#### Completely reversed categories (606/722) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -52,6 +52,7 @@ Last update was at Nov 12, 2026 at 01:06:07 UTC
 - CMirrors (8)<br />
 - CFire (5)<br />
 - CExplosion (12)<br />
+- CClothes (11)<br />
 - CBulletInfo (4)<br />
 - CRestart (11)<br />
 - CSetPiece (3)<br />
@@ -623,7 +624,7 @@ Last update was at Nov 12, 2026 at 01:06:07 UTC
 
 </details>
 
-#### Partially reversed categories (109/722) [15%]
+#### Partially reversed categories (108/722) [15%]
 
 <details>
 <summary>See list of categories</summary>
@@ -639,7 +640,6 @@ Last update was at Nov 12, 2026 at 01:06:07 UTC
 - C_PcSave (4/5) [80%]<br />
 - CFileLoader (47/48) [98%]<br />
 - CClothesBuilder (15/23) [65%]<br />
-- CClothes (10/11) [91%]<br />
 - CPopulation (64/66) [97%]<br />
 - CPedGroupIntelligence (26/27) [96%]<br />
 - CWaterLevel (25/35) [71%]<br />
@@ -718,7 +718,7 @@ Last update was at Nov 12, 2026 at 01:06:07 UTC
 - CCustomBuildingDNPipeline (14/16) [88%]<br />
 - CConversations (10/11) [91%]<br />
 - CPedToPlayerConversations (2/3) [67%]<br />
-- CAEFrontendAudioEntity (4/6) [67%]<br />
+- CAEFrontendAudioEntity (5/6) [83%]<br />
 - CAEPedAudioEntity (16/20) [80%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
 - CAEScriptAudioEntity (17/19) [89%]<br />
