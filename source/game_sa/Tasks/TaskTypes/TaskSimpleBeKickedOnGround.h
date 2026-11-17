@@ -16,7 +16,7 @@ public:
     CTaskSimpleBeKickedOnGround(const CTaskSimpleBeKickedOnGround&) : CTaskSimpleBeKickedOnGround{} {}
     ~CTaskSimpleBeKickedOnGround() = default;
 
-    static CTaskSimpleBeKickedOnGround* FinishAnimBeKickedOnGroundCB(CTaskSimpleBeKickedOnGround*, CTaskSimpleBeKickedOnGround*);
+    static CTaskSimpleBeKickedOnGround* FinishAnimBeKickedOnGroundCB(CAnimBlendAssociation* anim, void* data);
 
     void StartAnim(CPed* ped);
 
