@@ -4057,7 +4057,7 @@
   {
     "Category": "CClothes",
     "Name": "GetTextureDependency",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CClothes",
@@ -25212,7 +25212,7 @@
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
@@ -25222,7 +25222,7 @@
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
@@ -30157,7 +30157,7 @@
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "Constructor",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
@@ -30166,23 +30166,28 @@
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
-    "Name": "Clone",
+    "Name": "CreateSubTask",
     "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowLeaderInFormation",
+    "Name": "Clone",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
@@ -35432,7 +35437,7 @@
   {
     "Category": "CAEFrontendAudioEntity",
     "Name": "UpdateParameters",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEGlobalWeaponAudioEntity",
