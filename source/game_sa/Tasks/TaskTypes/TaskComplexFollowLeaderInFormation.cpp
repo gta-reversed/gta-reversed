@@ -70,9 +70,9 @@ CTask* CTaskComplexFollowLeaderInFormation::CreateNextSubTask(CPed* ped) {
 
 // 0x6968E0
 CTask* CTaskComplexFollowLeaderInFormation::CreateFirstSubTask(CPed* ped) {
-    if (ped->bInVehicle && ped->m_pVehicle) {
+    if (ped->IsInVehicle()) {
         return CreateSubTask(
-            m_Leader->bInVehicle && m_Leader->m_pVehicle == ped->m_pVehicle
+            m_Leader->IsInVehicle(ped->m_pVehicle)         
                 ? TASK_SIMPLE_CAR_DRIVE
                 : TASK_COMPLEX_LEAVE_CAR,
             ped
