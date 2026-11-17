@@ -17,8 +17,8 @@ void CTaskSimpleBeKickedOnGround::InjectHooks() {
 }
 
 // 0x61FD10
-CTaskSimpleBeKickedOnGround* CTaskSimpleBeKickedOnGround::FinishAnimBeKickedOnGroundCB(CTaskSimpleBeKickedOnGround* task, CTaskSimpleBeKickedOnGround* data) {
-    return plugin::CallAndReturn<CTaskSimpleBeKickedOnGround*, 0x61FD10, CTaskSimpleBeKickedOnGround*, CTaskSimpleBeKickedOnGround*>(task, data);
+CTaskSimpleBeKickedOnGround* CTaskSimpleBeKickedOnGround::FinishAnimBeKickedOnGroundCB(CAnimBlendAssociation* anim, void* data) {
+    return plugin::CallAndReturn<CTaskSimpleBeKickedOnGround*, 0x61FD10>(anim, data);
 }
 
 // 0x61FD20

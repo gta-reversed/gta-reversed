@@ -31,26 +31,11 @@ public:
     static void operator delete(void* ptr, size_t sz);
 
 public:
-    static void InjectHooks() {
-        RH_ScopedClass(CPatrolRoute);
-        RH_ScopedCategoryGlobal();
+    void Extend(const CVector& position, const PointInfo& info);
+    void Flush();
 
-        RH_ScopedInstall(operator new, 0x41B810);
-        RH_ScopedInstall(operator delete, 0x41B820);
-    }
-
-    void Extend(const CVector& position, const PointInfo& info) {
-        if (m_Count >= MaxPoints) {
-            return;
-        }
-        m_Positions[m_Count] = position;
-        m_Infos[m_Count]     = info;
-        ++m_Count;
-    }
-
-    void Flush() {
-        m_Count = 0;
-    }
+public:
+    static void InjectHooks();
 
 private:
     CVector   m_Positions[MaxPoints]{};

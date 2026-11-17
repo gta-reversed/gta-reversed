@@ -48,9 +48,7 @@ CTaskComplexKillPedOnFoot::CTaskComplexKillPedOnFoot(const CTaskComplexKillPedOn
         o.m_pedFlags,
         o.m_actionDelay,
         o.m_actionChance,
-        o.m_nCompetence,
-        false,
-        o.m_bWaitForPlayerToBeSafe
+        o.m_nCompetence
     } {
     m_bAimImmediate          = o.m_bAimImmediate;
     m_bWaitForPlayerToBeSafe = o.m_bWaitForPlayerToBeSafe;

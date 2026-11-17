@@ -7,9 +7,12 @@
 #pragma once
 
 #include "TaskSimple.h"
+#include <extensions/EntityRef.hpp>
+
 class CAnimBlendAssociation;
 class CEntity;
 class CWeaponInfo;
+class CPlayerPed;
 
 enum class eDrivebyStyle : int8 {
     FIXED_LHS      = 0,

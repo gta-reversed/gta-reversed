@@ -592,6 +592,7 @@ void InjectHooksMain() {
 #endif
 
     CDoor::InjectHooks();
+    CPatrolRoute::InjectHooks();
     CControllerConfigManager::InjectHooks();
     CFormation::InjectHooks();
     CHandShaker::InjectHooks();

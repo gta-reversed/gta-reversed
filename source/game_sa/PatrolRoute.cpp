@@ -21,3 +21,24 @@ void* CPatrolRoute::operator new(size_t sz) {
 void CPatrolRoute::operator delete(void* ptr, size_t sz) {
     GetPatrolRoutePool()->Delete(static_cast<CPatrolRoute*>(ptr));
 }
+
+void CPatrolRoute::Extend(const CVector& position, const PointInfo& info) {
+    if (m_Count >= MaxPoints) {
+        return;
+    }
+    m_Positions[m_Count] = position;
+    m_Infos[m_Count]     = info;
+    ++m_Count;
+}
+
+void CPatrolRoute::Flush() {
+    m_Count = 0;
+}
+
+void CPatrolRoute::InjectHooks() {
+    RH_ScopedClass(CPatrolRoute);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(operator new, 0x41B810);
+    RH_ScopedInstall(operator delete, 0x41B820);
+}

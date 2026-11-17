@@ -3,6 +3,7 @@
 #include "Vector.h"
 #include "TaskComplex.h"
 #include "PatrolRoute.h"
+#include <Enums/eMoveState.h>
 
 class CPed;
 class CEvent;

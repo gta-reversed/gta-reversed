@@ -9,6 +9,7 @@
 #include "TaskComplex.h"
 #include "TaskTimer.h"
 #include "TaskComplex.h"
+#include "Ped.h"
 
 class NOTSA_EXPORT_VTABLE CTaskComplexKillPedOnFoot : public CTaskComplex {
 public:
