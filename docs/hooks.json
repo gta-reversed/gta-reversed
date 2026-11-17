@@ -5371,6 +5371,11 @@
   },
   {
     "Category": "SurfaceInfos_c",
+    "Name": "LoadSurfaceInfos",
+    "IsReversed": true
+  },
+  {
+    "Category": "SurfaceInfos_c",
     "Name": "GetAdhesionGroup",
     "IsReversed": true
   },
@@ -8162,17 +8167,17 @@
   {
     "Category": "CStats",
     "Name": "PopulateFavoriteRadioStationList",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindMostFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindLeastFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",

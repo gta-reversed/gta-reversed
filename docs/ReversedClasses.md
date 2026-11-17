@@ -1,15 +1,15 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 30, 2026 at 01:29:31 UTC
-(Triggered by commit [cb66f23d](https://github.com/gta-reversed/gta-reversed/commit/cb66f23d52caeb0fcc159fb7dbd2839a6240e3a6))
+Last update was at Nov 12, 2026 at 01:06:07 UTC
+(Triggered by commit [4a03771a](https://github.com/gta-reversed/gta-reversed/commit/4a03771affb54804eb33a54f8813a840e85dc8a1))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7661 out of 8336 functions done in 722 categories)
+## Stats (7665 out of 8337 functions done in 722 categories)
 
 #### Completely reversed categories (605/722) [84%]
 
@@ -75,7 +75,7 @@ Last update was at Oct 30, 2026 at 01:29:31 UTC
 - CMouseControllerState (3)<br />
 - CReferences (4)<br />
 - CShotInfo (5)<br />
-- SurfaceInfos_c (48)<br />
+- SurfaceInfos_c (49)<br />
 - CRenderer (33)<br />
 - CObjectData (2)<br />
 - CObjectSaveStructure (2)<br />
@@ -644,7 +644,7 @@ Last update was at Oct 30, 2026 at 01:29:31 UTC
 - CPedGroupIntelligence (26/27) [96%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
-- CStats (32/51) [63%]<br />
+- CStats (35/51) [69%]<br />
 - CCarCtrl (26/110) [24%]<br />
 - CGarage (4/18) [22%]<br />
 - CGarages (21/27) [78%]<br />
