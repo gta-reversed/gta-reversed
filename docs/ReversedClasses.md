@@ -1,15 +1,15 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 17, 2026 at 01:30:37 UTC
-(Triggered by commit [4c841f83](https://github.com/gta-reversed/gta-reversed/commit/4c841f8395b43c53e4c6296c5a0034b90c339afe))
+Last update was at Nov 17, 2026 at 17:17:28 UTC
+(Triggered by commit [a7f16081](https://github.com/gta-reversed/gta-reversed/commit/a7f16081bed088aa24ed5d6fd44bd5def9645b11))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7667 out of 8337 functions done in 722 categories)
+## Stats (7674 out of 8338 functions done in 722 categories)
 
 #### Completely reversed categories (606/722) [84%]
 
@@ -690,7 +690,7 @@ Last update was at Nov 17, 2026 at 01:30:37 UTC
 - CTaskComplexGangJoinRespond (2/7) [29%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGoToPointAndStandStillAndAchieveHeading (7/8) [88%]<br />
-- CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
+- CTaskComplexGoToPointAnyMeans (5/7) [71%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
@@ -702,7 +702,7 @@ Last update was at Nov 17, 2026 at 01:30:37 UTC
 - CTaskSimpleCarDrive (7/13) [54%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
-- CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
+- CTaskComplexFollowLeaderInFormation (6/8) [75%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
 - CTaskComplexPlayHandSignalAnim (3/9) [33%]<br />
