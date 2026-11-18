@@ -69,7 +69,7 @@ void CWaterCannon::Update_NewInput(const CVector* start, const CVector* end) {
 // 0x7295E0
 void CWaterCannon::PushPeds() {
     // FIX_BUGS: R* originally used 10'000.f here, but thats bug prone (if map size gets increased)
-    CVector min{ FLT_MAX, FLT_MAX, FLT_MAX }, max{ FLT_MIN, FLT_MIN, FLT_MIN };
+    CVector min{ FLT_MAX, FLT_MAX, FLT_MAX }, max{ -FLT_MAX, -FLT_MAX, -FLT_MAX };
     CBoundingBox bbox(min, max);
 
     for (auto i = 0; i < SECTIONS_COUNT; i++) {

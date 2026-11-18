@@ -1444,11 +1444,11 @@ CTaskSimpleHoldEntity* CPed::GetHoldingTask() {
 CEntity* CPed::GetEntityThatThisPedIsHolding()
 {
     if (const auto task = GetHoldingTask()) {
-        return task->m_pEntityToHold;
+        return task->GetHeldEntity();
     }
 
     if (const auto task = GetTaskManager().Find<CTaskComplexGoPickUpEntity>()) {
-        return task->m_pEntity;
+        return task->GetEntityToPickUp();
     }
 
     return nullptr;
@@ -1782,7 +1782,7 @@ void CPed::ProcessBuoyancy()
         if (CWaterLevel::GetWaterLevel(vecSplashPos, fWaterZ, true, nullptr)) {
             vecSplashPos.z = fWaterZ;
             g_fx.TriggerWaterSplash(vecSplashPos);
-            AudioEngine.ReportWaterSplash(this, -100.0F, true);
+            AudioEngine.ReportWaterSplash(this, VOLUME_SILENCE, true);
         }
     }
 

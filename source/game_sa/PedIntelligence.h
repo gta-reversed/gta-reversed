@@ -16,7 +16,7 @@
 #include "PedStuckChecker.h"
 #include "VehicleScanner.h"
 #include "PedScanner.h"
-#include "MentalHealth.h"
+#include "MentalState.h"
 #include "PedScanner.h"
 #include "Collision/CollisionEventScanner.h"
 #include "Enums/eMoveState.h"

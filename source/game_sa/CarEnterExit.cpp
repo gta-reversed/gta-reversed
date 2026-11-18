@@ -3,7 +3,7 @@
 #include "PedStats.h"
 #include "CarEnterExit.h"
 #include "TaskSimpleCarSetPedInAsDriver.h"
-#include "TaskComplexDriveWander.h"
+#include "TaskComplexCarDriveWander.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 
 void CCarEnterExit::InjectHooks() {

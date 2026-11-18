@@ -12,7 +12,7 @@ void CTaskComplexDestroyCarArmed::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x622010);
 
     RH_ScopedInstall(CalculateSearchPositionAndRanges, 0x628C80, { .State = HS::RedirectToGTA, .Locked = true });
-    RH_ScopedInstall(CreateSubTask, 0x628DA0, { .State = HS::RedirectToGTA, .Locked = true });
+    RH_ScopedInstall(CreateSubTask, 0x628DA0, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x623600);
     RH_ScopedVMTInstall(GetTaskType, 0x622000);
@@ -59,8 +59,8 @@ void CTaskComplexDestroyCarArmed::CalculateSearchPositionAndRanges(CPed* ped) {
 
 // 0x628DA0
 CTask* CTaskComplexDestroyCarArmed::CreateSubTask(eTaskType taskType, CPed* ped) {
-    NOTSA_UNREACHABLE("Redirected code can't be reached");
-    return nullptr;
+    // This locked original redirect may return; a noreturn placeholder breaks optimized callers.
+    return plugin::CallMethodAndReturn<CTask*, 0x628DA0, CTaskComplexDestroyCarArmed*, eTaskType, CPed*>(this, taskType, ped);
     /* Redirected */
 
     /*

@@ -39,7 +39,7 @@ CTaskSimpleUseGun::CTaskSimpleUseGun(CEntity* targetEntity, CVector vecTarget, e
     m_NextCmd{ firstCmd },
     m_TargetPos{ vecTarget },
     m_TargetEntity{ targetEntity },
-    m_BurstShots{ burstLength },
+    m_BurstLength{ burstLength },
     m_IsAimImmediate{ isAimImmediate } {
 }
 

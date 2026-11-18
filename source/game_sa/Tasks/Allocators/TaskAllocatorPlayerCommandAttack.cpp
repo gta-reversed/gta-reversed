@@ -49,7 +49,7 @@ void CTaskAllocatorPlayerCommandAttack::AllocateTasks(CPedGroupIntelligence* int
         // 0x69C60F
         CPed* target;
         CFormation::ReturnTargetPedForPed(p, &target);
-        tseq.AddTask(new CTaskComplexKillPedOnFoot{ target, -1, 0, 0, 0, 2 });
+        tseq.AddTask(new CTaskComplexKillPedOnFoot{ target, -1, 0, 0, 0, 2, false, false });
 
         // 0x69C67F
         tseq.AddTask(new CTaskSimpleStandStill{ 999'999, true });

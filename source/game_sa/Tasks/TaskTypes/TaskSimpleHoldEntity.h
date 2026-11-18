@@ -69,7 +69,7 @@ public:
     void StartAnim(CPed* ped);
     void DropEntity(CPed* ped, bool bAddEventSoundQuiet);
     void ChoosePutDownHeight(CPed* ped);
-    auto GetHeldEntity() const { return m_pEntityToHold; }
+    CEntity* GetHeldEntity() const { return m_pEntityToHold; }
 
 private:
     friend void InjectHooksMain();
