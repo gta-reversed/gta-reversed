@@ -9,11 +9,11 @@ class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEventEditableResponse : public CEvent {
 public:
-    CEventEditableResponse(eTaskType taskType = TASK_NONE/*notsa*/);
+    CEventEditableResponse(eTaskType taskType = TASK_NONE /*notsa*/);
     ~CEventEditableResponse() override = default; // 0x4AC480
 
-    CEvent* Clone() const noexcept override;
-    bool HasEditableResponse() const override { return true; } // 0x420EF0;
+    CEvent*                         Clone() const noexcept override;
+    bool                            HasEditableResponse() const override { return true; } // 0x420EF0;
     virtual CEventEditableResponse* CloneEditable() const noexcept = 0;
 
     bool WillRespond() const;
@@ -26,16 +26,14 @@ public:
     bool ComputeResponseTaskOfType(CPed* ped, eTaskType taskId);
 
     auto GetFacialExpressionType() const { return (eFacialExpression)m_FacialExpressionType; }
-
-private:
-    friend void InjectHooksMain();
-    static void InjectHooks();
-
-    CEventEditableResponse* Constructor();
+    auto GetTaskId() const { return (eTaskType)m_TaskId; }
 
 public:
-    bool                               m_bAddToEventGroup;
-    notsa::WEnumS16<eTaskType>         m_TaskId;
-    notsa::WEnumS16<eFacialExpression> m_FacialExpressionType;
+    static void InjectHooks();
+
+public:
+    bool                               m_bAddToEventGroup{};
+    notsa::WEnumS16<eTaskType>         m_TaskId{};
+    notsa::WEnumS16<eFacialExpression> m_FacialExpressionType{};
 };
 VALIDATE_SIZE(CEventEditableResponse, 0x14);

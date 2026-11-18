@@ -638,7 +638,7 @@ eDirection CPedGeometryAnalyser::ComputePedHitSide(const CPed& ped, const CVecto
 
     // Side with the most similar direction to the hit velocity is the side that was hit
     const auto normal = -hitDir.Normalized();
-    float      max    = FLT_MIN;
+    float      max    = -FLT_MAX;
     eDirection dir    = eDirection::FORWARD;
     for (size_t i = 0; i < dirs.size(); i++) {
         const auto dot = dirs[i].Dot(normal);

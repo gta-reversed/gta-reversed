@@ -3,11 +3,8 @@
 #include "TaskSimpleEvasiveStep.h"
 
 // 0x653160
-CTaskSimpleEvasiveStep::CTaskSimpleEvasiveStep(CEntity* entity) : CTaskSimple() {
-    m_Entity = entity;
-    m_bFinished = false;
-    m_Assoc = nullptr;
-    CEntity::SafeRegisterRef(m_Entity);
+CTaskSimpleEvasiveStep::CTaskSimpleEvasiveStep(CEntity* entity) :
+    m_Entity{ entity } {
 }
 
 // 0x6531D0
@@ -15,7 +12,18 @@ CTaskSimpleEvasiveStep::~CTaskSimpleEvasiveStep() {
     if (m_Assoc) {
         m_Assoc->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
     }
-    CEntity::SafeCleanUpRef(m_Entity);
+}
+
+// 0x653290
+void CTaskSimpleEvasiveStep::FinishAnimEvasiveStepCB(CAnimBlendAssociation* assoc, void* data) {
+    auto* const self = static_cast<CTaskSimpleEvasiveStep*>(data);
+
+    self->m_Assoc->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
+    if (self->m_Assoc->m_BlendDelta >= 0.0f) {
+        self->m_Assoc->m_BlendDelta = -4.0f;
+    }
+    self->m_bFinished = true;
+    self->m_Assoc     = nullptr;
 }
 
 // 0x653240
@@ -36,11 +44,13 @@ bool CTaskSimpleEvasiveStep::MakeAbortable(CPed* ped, eAbortPriority priority, c
 
 // 0x657A60
 bool CTaskSimpleEvasiveStep::ProcessPed(CPed* ped) {
-    if (m_bFinished)
+    if (m_bFinished) {
         return true;
+    }
 
-    if (!m_Entity)
+    if (!m_Entity) {
         return true;
+    }
 
     if (!m_Assoc) {
         if (m_Entity->GetStatus() == STATUS_SIMPLE) {
@@ -58,13 +68,15 @@ void CTaskSimpleEvasiveStep::StartAnim(CPed* ped) {
     m_Assoc->SetFinishCallback(FinishAnimEvasiveStepCB, this);
 }
 
-// 0x653290
-void CTaskSimpleEvasiveStep::FinishAnimEvasiveStepCB(CAnimBlendAssociation* assoc, void* data) {
-    auto task = static_cast<CTaskSimpleEvasiveStep*>(data);
-    task->m_Assoc->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
-    if (task->m_Assoc->m_BlendDelta >= 0.0f) {
-        task->m_Assoc->m_BlendDelta = -4.0f;
-    }
-    task->m_bFinished = true;
-    task->m_Assoc = nullptr;
+void CTaskSimpleEvasiveStep::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskSimpleEvasiveStep, 0x86f1f4, 9);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x653160, "1", {}, CEntity*);
+    RH_ScopedDestructorInstall(0x6531D0);
+
+    RH_ScopedVMTInstall(Clone, 0x655810);
+    RH_ScopedVMTInstall(GetTaskType, 0x6531C0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x653240);
+    RH_ScopedVMTInstall(ProcessPed, 0x657A60);
 }
