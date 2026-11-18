@@ -210,7 +210,7 @@ bool CDamageManager::ProgressDoorDamage(eDoors door, CAutomobile* pAuto) {
 
 // 0x6C2300
 uint8 CDamageManager::GetAeroplaneCompStatus(uint8 frame) {
-    return m_nPanelsStatus >> (2 * (m_nPanelsStatus - 12)) & 3;
+    return m_nPanelsStatus >> (2 * (frame - 12)) & 3;
 }
 
 // 0x6C22D0

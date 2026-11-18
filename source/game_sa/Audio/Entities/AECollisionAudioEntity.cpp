@@ -28,6 +28,7 @@ void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedInstall(ReportBulletHit, 0x4DBDF0);
     RH_ScopedInstall(Service, 0x4DA2C0);
     RH_ScopedInstall(ChooseCollisionSoundID, 0x4DAA50);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DA370);
     RH_ScopedOverloadedInstall(ReportWaterSplash, "at-position", 0x4DA190, void(CAECollisionAudioEntity::*)(CVector, float));
     RH_ScopedOverloadedInstall(ReportWaterSplash, "for-physical", 0x4DAE40, void(CAECollisionAudioEntity::*)(CPhysical*, float, bool));
 }
@@ -153,7 +154,8 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntit
                 .Volume            = volume,
                 .RollOffFactor     = 2.f,
                 .Flags             = SOUND_ROLLED_OFF | SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES,
-                .FrequencyVariance = 0.02f
+                .FrequencyVariance = 0.02f,
+                .PlayTime          = (int16)(startAt)
             });
             m_CollisionSoundIDHistory[sB] = soundID;
             if (sound) { // 0x4DB3E7
@@ -178,16 +180,19 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntit
 }
 
 // based on `PlayLoopingCollisionSound` and `UpdateLoopingCollisionSound`
-std::pair<float, float> CAECollisionAudioEntity::GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, bool isForceLooping) {
+std::pair<float, float> CAECollisionAudioEntity::GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, bool isForceLooping, bool isUpdate) {
     const auto CalculateVolumeAtSpeed = [&](float speed) {
-        return GetDefaultVolume(AE_GENERAL_COLLISION) + CAEAudioUtility::AudioLog10(std::min(speed / 0.75f, 1.f) * 20.f);
+        return GetDefaultVolume(AE_GENERAL_COLLISION) + CAEAudioUtility::AudioLog10(std::min(speed / 0.75f, 1.f)) * 20.f;
     };
     const auto GetVolumeAndSpeedForPhysical = [&](CVector velocity, CVector turn) -> std::pair<float, float> {
         const auto mag = std::sqrt(std::max(turn.SquaredMagnitude(), velocity.SquaredMagnitude()));
         if (mag == 0.f) {
             return { -100.f, 0.f };
         } else {
-            auto speed = std::min(std::sqrt(mag * ((gCollisionLookup[surfaceA].ParamD * gCollisionLookup[surfaceB].ParamD) / 10000.f)) * 3.f, 0.3f);
+            const auto impact = mag * ((gCollisionLookup[surfaceA].ParamD * gCollisionLookup[surfaceB].ParamD) / 10000.f);
+            auto speed = isUpdate
+                ? std::min(impact * 3.f, 1.f) // 0x4DA6BF - No `sqrt` and a higher cap when updating, unlike when starting the sound
+                : std::min(std::sqrt(impact) * 3.f, 0.3f);
             if (isForceLooping) {
                 speed /= 6.f;
             }
@@ -213,7 +218,7 @@ std::pair<float, float> CAECollisionAudioEntity::GetLoopingCollisionSoundVolumeA
 
 // 0x4DB450
 void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float force, const CVector& pos, bool isForceLooping) {
-    const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
+    const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping, false);
 
     const auto PlaySound = [&](eSoundID soundID) {
         if (auto* const sound = AESoundManager.PlaySound({
@@ -282,9 +287,9 @@ void CAECollisionAudioEntity::UpdateLoopingCollisionSound(
     const CVector& pos,
     bool           isForceLooping
 ) {
-    const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
-    sound->SetSpeed(notsa::step_to(std::max(0.75f, speed), sound->GetSpeed(), 0.1f));
-    sound->SetVolume(notsa::step_to(volume, sound->GetVolume(), 1.0f));
+    const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping, true);
+    sound->SetSpeed(notsa::step_to(sound->GetSpeed(), std::max(0.75f, speed) * 0.8f, 0.1f));
+    sound->SetVolume(notsa::step_to(sound->GetVolume(), volume, 1.0f));
     sound->SetPosition(pos);
 }
 
@@ -641,6 +646,29 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
         );
     } else {
         PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);
+    }
+}
+
+// 0x4DA370
+void CAECollisionAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
+    const auto SetSpeedOnceStarted = [&](float speed) { // `m_ClientVariable` is the time to start playing at
+        if (curPlayPos >= 0 && CTimer::GetTimeInMS() >= (uint32)sound->m_ClientVariable) {
+            sound->SetSpeed(speed);
+        }
+    };
+    switch (sound->m_Event) { // TODO: Events 1-3 aren't `eAudioEvents`, but custom ones used by `ReportWaterSplash`, name them
+    case 1:                        return;
+    case 2:                        return SetSpeedOnceStarted(1.26f);
+    case 3:                        return SetSpeedOnceStarted(0.94f);
+    case AE_GLASS_HIT_GROUND_SLOW: return SetSpeedOnceStarted(0.56f);
+    default:
+        if (curPlayPos != -1) { // Not finished yet
+            return;
+        }
+        if (const auto e = rng::find(m_CollisionSoundList, sound, &tCollisionSound::Sound); e != m_CollisionSoundList.end()) {
+            *e = {};
+            --m_NumActiveCollisionSounds;
+        }
     }
 }
 

@@ -2766,7 +2766,7 @@ auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
 auto TaskKillCharOnFoot(CRunningScript& S, eScriptCommands opcode, CPed& ped, CPed& target) {
     S.GivePedScriptedTask(
         &ped,
-        new CTaskComplexKillPedOnFoot{ &target, -1, 0, 0, 0, true },
+        new CTaskComplexKillPedOnFoot{ &target },
         (int32)(opcode)
     );
 }
@@ -2995,7 +2995,6 @@ auto TaskKillCharOnFootWhileDucking(eScriptCommands command, CRunningScript& S, 
             flags,
             actionDelay,
             actionChance,
-            true
         },
         command
     );

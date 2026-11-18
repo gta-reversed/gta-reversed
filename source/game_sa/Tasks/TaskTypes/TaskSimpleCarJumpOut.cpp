@@ -201,10 +201,9 @@ bool CTaskSimpleCarJumpOut::SetPedPosition(CPed* ped) {
         case ANIM_ID_CAR_ROLLOUT_RHS:
         case ANIM_ID_CAR_ROLLOUT_LHS: {
             const auto& pedPos = ped->GetPosition();
-            auto pedPosAdj{ pedPos };
 
             CWorld::pIgnoreEntity = m_veh;
-            CPedPlacement::FindZCoorForPed(pedPosAdj);
+            const CVector pedPosAdj = std::get<CVector>(CPedPlacement::FindZCoorForPed(pedPos));
             CWorld::pIgnoreEntity = nullptr;
 
             if (pedPosAdj.z > pedPos.z) {
