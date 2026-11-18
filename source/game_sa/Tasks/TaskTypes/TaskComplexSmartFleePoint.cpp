@@ -43,8 +43,7 @@ int8 CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
 
 // 0x65BE40
 uint32 CTaskComplexSmartFleePoint::ComputeFleeDir(CPed* ped) {
-    const auto& pedPos = ped->GetPosition();
-    return CGeneral::GetNodeHeadingFromVector(pedPos.x - m_fleePoint.x, pedPos.y - m_fleePoint.y);
+    return (ped->GetPosition2D() - CVector2D{ m_fleePoint }).NodeHeading();
 }
 
 // 0x65BE80
