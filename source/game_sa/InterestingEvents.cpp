@@ -109,12 +109,9 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
     if (distance.SquaredMagnitude() > m_fRadius * m_fRadius)
         return;
 
-    const CVector vec0 = vec148 * entity->GetPosition();
-    const CVector vec1 = vec148 * camPos;
-    const auto sum = [](const CVector& vector) {
-        return (vector.y + vector.z) + vector.x;
-    };
-    if (m_b2 && sum(vec0) - sum(vec1) < 0.f)
+    CVector vec0 = vec148 * entity->GetPosition();
+    CVector vec1 = vec148 * camPos;
+    if (!m_b2 && vec0.ComponentwiseSum() - vec1.ComponentwiseSum() < 0.f)
         return;
 
     if (!CWorld::GetIsLineOfSightClear(camPos, entity->GetPosition(), true, false, false, false, false, true, false))
@@ -137,7 +134,7 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
         event.entity = entity;
         event.time = time;
         entity->RegisterReference(&event.entity);
-        if (m_b8) // FIX: was inverted (decompile: flags & 8 -> time + delay/2)
+        if (m_b8)
             m_nEndsOfTime[type] = time + (m_nDelays[type] >> 1);
         else
             m_nEndsOfTime[type] = time;
