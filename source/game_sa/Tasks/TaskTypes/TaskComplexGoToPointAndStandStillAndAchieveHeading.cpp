@@ -72,9 +72,8 @@ CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::ControlSubTask(CPed*
     if (m_HasNewTarget) {
         return CreateFirstSubTask(ped);
     }
-
-    if (m_pSubTask->GetTaskType() == TASK_SIMPLE_GO_TO_POINT) {
-        static_cast<CTaskSimpleGoToPoint*>(m_pSubTask)->m_moveState = m_MoveState;
+    if (auto* const tGoToPoint = notsa::dyn_cast<CTaskSimpleGoToPoint>(m_pSubTask)) {
+        tGoToPoint->m_moveState = m_MoveState;
     }
     return m_pSubTask;
 }
