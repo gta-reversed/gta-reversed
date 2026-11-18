@@ -1,4 +1,5 @@
 #include "StdInc.h"
+
 #include <reversiblehooks/ReversibleHooks.h>
 #include <PedGeometryAnalyser.h>
 
@@ -22,7 +23,7 @@ void CTaskComplexWalkRoundObject::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x6550C0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x657220);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x657380);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6575F0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6575F0);
 }
 
 // 0x655020
@@ -40,7 +41,26 @@ CTaskComplexWalkRoundObject::~CTaskComplexWalkRoundObject() {
 
 // 0x6575F0
 CTask* CTaskComplexWalkRoundObject::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6575F0, CTaskComplexWalkRoundObject*, CPed*>(this, ped);
+    if (m_object) {
+        if (!notsa::isa<CTaskComplexFollowPointRoute>(m_pSubTask) || !m_Timer.IsOutOfTime()) {
+            if (ped->GetIntelligence()->m_AnotherStaticCounter <= 30) {
+                if (notsa::isa<CTaskSimpleStandStill>(m_pSubTask)) {
+                    return m_pSubTask;
+                }
+                if (CVector::DistSqr(m_ObjectPos, ped->GetPosition()) <= sq(0.25f)) {
+                    if (m_ObjectForwardsVec.Dot(ped->GetForward()) >= 0.9f) {
+                        if (m_ObjectRightVec.Dot(ped->GetRight()) >= 0.9f) {
+                            return m_pSubTask;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (!m_pSubTask->MakeAbortable(ped)) {
+        return m_pSubTask;
+    }
+    return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
 }
 
 // 0x657220
