@@ -202,13 +202,13 @@ void CAnimBlendAssociation::SetCurrentTime(float currentTime) {
     if (m_BlendHier->m_bKeepCompressed) {
         for (auto i = 0; i < m_NumBlendNodes; i++) {
             if (m_BlendNodes[i].m_Seq) {
-                GetNode(i)->SetupKeyFrameCompressed();
+                m_BlendNodes[i].SetupKeyFrameCompressed();
             }
         }
     } else {
         for (auto i = 0; i < m_NumBlendNodes; i++) {
             if (m_BlendNodes[i].m_Seq) {
-                GetNode(i)->FindKeyFrame(m_CurrentTime);
+                m_BlendNodes[i].FindKeyFrame(m_CurrentTime);
             }
         }
     }
