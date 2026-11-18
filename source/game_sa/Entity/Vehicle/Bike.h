@@ -148,10 +148,10 @@ public:
     void DoSoftGroundResistance(uint32& arg0);
     void PlayHornIfNecessary();
     void CalculateLeanMatrix();
-    static void ProcessRiderAnims(CPed* rider, CVehicle* vehicle, CRideAnimData* rideData, tBikeHandlingData* handling, int16 a5);
+    static void ProcessRiderAnims(CPed* rider, CVehicle* vehicle, CRideAnimData* rideData, tBikeHandlingData* handling, int16 unused);
     void FixHandsToBars(CPed* rider);
     void PlaceOnRoadProperly();
-    void GetCorrectedWorldDoorPosition(CVector& out, CVector arg1, CVector arg2);
+    void GetCorrectedWorldDoorPosition(CVector& out, CVector animDoorOffset, CVector seatPos);
 
 public: // NOTSA
     [[nodiscard]] bool IsAnyWheelMakingContactWithGround()  const { return std::ranges::any_of(m_aWheelRatios, [](const auto& r) { return r != 1.0F; }); };
