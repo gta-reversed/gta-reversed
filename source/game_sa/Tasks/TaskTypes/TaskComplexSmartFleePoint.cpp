@@ -40,7 +40,7 @@ CTaskComplexSmartFleePoint::CTaskComplexSmartFleePoint(const CTaskComplexSmartFl
 void CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
     if (const auto task = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT)) {
         if (task->GetTaskType() == TASK_COMPLEX_WANDER) {
-            plugin::CallMethod<0x669D50>(task, m_pSubTask); // Original: ECX = default wander task, argument = current subtask
+            plugin::CallMethod<0x669D50>(task, m_pSubTask); // TODO: CTaskComplexWander::ContinueFrom
         }
     }
 }
@@ -57,23 +57,20 @@ CTask* CTaskComplexSmartFleePoint::CreateSubTask(eTaskType taskType, CPed* ped) 
 
 // 0x65C3C0
 void CTaskComplexSmartFleePoint::SetFleePosition(CVector const& pos, float safeDist, bool doScream) {
+    m_doScream = doScream;
     if (m_fleePoint == pos && m_safeDist == safeDist) {
-        m_doScream = doScream;
         return;
     }
     m_fleePoint           = pos;
     m_safeDist            = safeDist;
     m_hasFleePointChanged = true;
-    m_doScream            = doScream;
 }
 
 // 0x65BDC0
 bool CTaskComplexSmartFleePoint::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (priority == ABORT_PRIORITY_LEISURE) {
-        m_fleeTimeMs          = -1;
-        m_timer.m_nStartTime  = CTimer::GetTimeInMS();
-        m_timer.m_nInterval   = -1;
-        m_timer.m_bStarted    = true;
+        m_fleeTimeMs = -1;
+        m_timer.SetOutOfTime();
     }
     return m_pSubTask->MakeAbortable(ped, priority, event);
 }
