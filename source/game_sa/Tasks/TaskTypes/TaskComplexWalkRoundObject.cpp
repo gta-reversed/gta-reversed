@@ -18,7 +18,7 @@ void CTaskComplexWalkRoundObject::InjectHooks() {
 
     RH_ScopedInstall(CreateSubTask, 0x655290);
     RH_ScopedInstall(CreateRouteTask, 0x655140);
-    RH_ScopedInstall(ComputeRoute, 0x6551D0, { .Reversed = false });
+    RH_ScopedInstall(ComputeRoute, 0x6551D0);
     RH_ScopedVMTInstall(Clone, 0x655C10);
     RH_ScopedVMTInstall(GetTaskType, 0x6550C0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x657220);
@@ -145,5 +145,28 @@ CTask* CTaskComplexWalkRoundObject::CreateRouteTask(CPed*) const {
 
 // 0x6551D0
 float CTaskComplexWalkRoundObject::ComputeRoute(CPed* ped) const {
-    return plugin::CallMethodAndReturn<float, 0x6551D0>(this, ped);
+    // Calculate route to go around the object
+    {
+        const auto original = std::exchange(CPedGeometryAnalyser::ms_fPedNominalRadius, 0.7f);
+        CPedGeometryAnalyser::ComputeRouteRoundEntityBoundingBox(*ped, *m_object, m_targetPoint, *m_pointRoute, 0);
+        CPedGeometryAnalyser::ms_fPedNominalRadius = original;
+    }
+
+    // Calculate distance to the closest point on the object from the ped's position,
+    // along the plane of the closest side of the object
+    std::array<CVector, 4> normals{};
+    std::array<float, 4> ds{};
+    CPedGeometryAnalyser::ComputeEntityBoundingBoxSegmentPlanes(
+        ped->GetPosition().z,
+        *m_object,
+        normals,
+        ds
+    );
+    const auto GetPointDistanceToPlane = [&](int32 pl, CVector pos) {
+        return normals[pl].Dot(pos) + ds[pl];
+    };
+    return GetPointDistanceToPlane(
+        (int32)(CPedGeometryAnalyser::ComputeEntityHitSide(ped->GetPosition(), normals, ds)),
+        m_targetPoint
+    );
 }
