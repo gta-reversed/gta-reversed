@@ -47,18 +47,12 @@ CVector CTaskComplexHitPedWithCar::ComputeEvasiveStepMoveDir(const CPed* ped, CV
 
 // 0x653AE0
 bool CTaskComplexHitPedWithCar::HitHurtsPed(CPed* ped) {
-    // Min impulse magnitude for the ped to get hurt
-    const auto minImpulseToHurt = ped->IsPlayer()
-        ? 10.0f // 0x86F124
-        : 6.0f; // 0x86F11C
-
-    if (m_ImpulseMag > minImpulseToHurt) {
+    if (m_ImpulseMag > (ped->IsPlayer() ? 10.f : 6.f)) {
         return true;
     }
 
     // Ped was slammed into the ground (downward) hard enough, and the hit was still reasonably strong
-    return ped->m_vecLastCollisionImpactVelocity.z < -0.8f // 0x858C9C
-        && m_ImpulseMag > 3.0f;                            // 0x858B3C
+    return ped->m_vecLastCollisionImpactVelocity.z < -0.8f && m_ImpulseMag > 3.0f;
 }
 
 // 0x6560E0
