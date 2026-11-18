@@ -19,6 +19,7 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped) const;
     CTask* CreateRouteTask(CPed* ped) const;
     float  ComputeRoute(CPed* ped) const;
 

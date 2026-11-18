@@ -1,10 +1,12 @@
 #include "StdInc.h"
+#include <reversiblehooks/ReversibleHooks.h>
+#include <PedGeometryAnalyser.h>
 
 #include "TaskComplexFollowPointRoute.h"
 #include "TaskComplexWalkRoundObject.h"
 #include "TaskComplexGoToPointAndStandStill.h"
 #include "TaskSimpleAchieveHeading.h"
-#include <PedGeometryAnalyser.h>
+#include "TaskSimpleStandStill.h"
 
 void CTaskComplexWalkRoundObject::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWalkRoundObject, 0x86f364, 11);
@@ -13,6 +15,7 @@ void CTaskComplexWalkRoundObject::InjectHooks() {
     RH_ScopedConstructorInstall(0x655020, "1", {}, int32, const CVector&, CEntity*);
     RH_ScopedDestructorInstall(0x6550D0);
 
+    RH_ScopedInstall(CreateSubTask, 0x655290);
     RH_ScopedInstall(CreateRouteTask, 0x655140);
     RH_ScopedInstall(ComputeRoute, 0x6551D0, { .Reversed = false });
     RH_ScopedVMTInstall(Clone, 0x655C10);
@@ -53,17 +56,17 @@ CTask* CTaskComplexWalkRoundObject::CreateNextSubTask(CPed* ped) {
                     if (CVector target; CPedGeometryAnalyser::ComputeClosestSurfacePoint(m_targetPoint, *m_object, target) || notsa::bugfixes::GenericUB) {
                         m_pointRoute->Add(from);
                         m_pointRoute->Add(target);
-                        return CreateRouteTask(ped); // 0x657309
+                        return CreateSubTask(TASK_COMPLEX_FOLLOW_POINT_ROUTE, ped); // 0x657309
                     }
                 }
                 return new CTaskComplexGoToPointAndStandStill{ PEDMOVE_WALK, from, 0.5f };
             }
             return nullptr; /* bugfix */
         }
-        return CreateRouteTask(ped); // 0x657295
+        return CreateSubTask(TASK_COMPLEX_FOLLOW_POINT_ROUTE, ped); // 0x657295
     }
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
-        return CreateRouteTask(ped); // 0x657295
+        return CreateSubTask(TASK_COMPLEX_FOLLOW_POINT_ROUTE, ped); // 0x657295
     default:
         NOTSA_UNREACHABLE_CASE(stt);
     }
@@ -90,12 +93,26 @@ CTask* CTaskComplexWalkRoundObject::CreateFirstSubTask(CPed* ped) {
         m_moveState == PEDMOVE_WALK ? 2.f : m_moveState == PEDMOVE_RUN ? 4.f
                                                                        : 8.f;
     if (startToObjDirLen > maxDistInInterval && routeLen > maxDistInInterval && startToObjDir.Dot(ped->GetForward()) > 0.f) {
-        return CreateRouteTask(ped);
+        return CreateSubTask(TASK_COMPLEX_FOLLOW_POINT_ROUTE, ped);
     }
 
-    return new CTaskSimpleAchieveHeading{ 
+    return new CTaskSimpleAchieveHeading{
         ((*m_pointRoute)[0] - ped->GetPosition2D()).Heading() // Using Heading() instead of `CGeneral::GetRadianAngleBetweenPoints`
     };
+}
+
+// 0x655290
+CTask* CTaskComplexWalkRoundObject::CreateSubTask(eTaskType taskType, CPed* ped) const {
+    switch (taskType) {
+    case TASK_SIMPLE_STAND_STILL:
+        return new CTaskSimpleStandStill{};
+    case TASK_COMPLEX_FOLLOW_POINT_ROUTE:
+        return CreateRouteTask(ped);
+    case TASK_FINISHED:
+        return nullptr;
+    default:
+        NOTSA_UNREACHABLE_CASE(taskType);
+    }
 }
 
 // 0x655140
