@@ -7,6 +7,7 @@
 #include "AEAudioUtility.h"
 #include "AEStaticChannel.h"
 #include "AEUserRadioTrackManager.h"
+#include "AEAudioUtility.h"
 
 auto& AEAudioHardware = StaticRef<CAEAudioHardware>(0xB5F8B8);
 
@@ -69,7 +70,7 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(Terminate, 0x4D97A0);
     RH_ScopedInstall(Service, 0x4D9870);
     RH_ScopedInstall(Initialise, 0x4D9930);
-    RH_ScopedInstall(PlaySound, 0x4D86B0, { .Reversed = false });
+    RH_ScopedInstall(PlaySound, 0x4D86B0);
 }
 
 // 0x4D83E0
@@ -131,8 +132,10 @@ bool CAEAudioHardware::Initialise() {
         m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_IsHardwareMixAvailable, 44'100, 16);
     }
 
-    m_pStreamingChannel->SetVolume(-100.0f);
-    m_awChannelFlags[0] = 55; // todo: flag
+    m_pStreamingChannel->SetVolume(VOLUME_SILENCE);
+    m_awChannelFlags[0] = static_cast<eAudioChannelFlags>(
+        FLAG_SECONDARY_GROUP | FLAG_UNDUCKABLE | FLAG_CLAMP_VOL_TO_NEG | FLAG_IS_MUSIC | FLAG_IS_NOT_STREAM
+    );
 
     if (FrontEndMenuManager.m_bTracksAutoScan) {
         AEUserRadioTrackManager.ScanUserTracks();
@@ -241,8 +244,56 @@ void CAEAudioHardware::Terminate() {
     SAFE_RELEASE(m_pDSDevice);
 }
 
-void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, uint16 soundIdInSlot, uint16 bankSlot, int16 playPosition, int16 flags, float speed) {
-    plugin::CallMethod<0x4D86B0, CAEAudioHardware*, int16, uint16, uint16, uint16, int16, int16, float>(this, channel, channelSlot, soundIdInSlot, bankSlot, playPosition, flags, speed);
+// 0x4D86B0
+void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, eSoundID soundIdInSlot, eSoundBankSlot bankSlot, int16 playPosition, CAEAudioHardwarePlayFlags flags, float speed) {
+    NOTSA_LOG_TRACE("PlaySound {} {} {} {} {} {:016b} {}", channel, channelSlot, soundIdInSlot, bankSlot, playPosition, flags.m_nFlags, speed);
+
+    if (channel < 0 || channelSlot >= m_anNumChannelsInSlot[channel]) {
+        return;
+    }
+
+    uint32 size{};
+    uint16 sampleRate{};
+    const auto buffer = m_pMP3BankLoader->GetSoundBuffer(soundIdInSlot, bankSlot, size, sampleRate);
+    if (!buffer) {
+        NOTSA_LOG_ERR("couldn't get the buffer!");
+        return;
+    }
+
+    const auto loopOffset = m_pMP3BankLoader->GetLoopOffset(soundIdInSlot, bankSlot);
+    if (channel + channelSlot >= MAX_NUM_AUDIO_CHANNELS) {
+        NOTSA_LOG_ERR("channel + channelSlot < {} (MAX_NUM_AUDIO_CHANNELS) failed: {}", MAX_NUM_AUDIO_CHANNELS, channel + channelSlot);
+        assert(false);
+        return;
+    }
+
+    auto& chan = GetStaticChannel(channel, channelSlot);
+    if (!chan.SetAudioBuffer(
+        buffer,
+        size,
+        soundIdInSlot,
+        bankSlot,
+        loopOffset,
+        sampleRate
+    )) {
+        NOTSA_UNREACHABLE("Setting audio buffer failed!");
+        return;
+    }
+
+    const uint32 length = chan.GetLength();
+    auto playPos        = std::max<int16>(playPosition, 0);
+    if (flags.m_bIsStartPercentage && playPosition > 0) {
+        playPos = static_cast<int16>(std::floor((float)playPos / 100.0f * (float)length));
+    }
+    assert(std::in_range<int16>(length));
+    playPos = std::min<int16>(playPos, length);
+
+    // TODO: Does this get any other value than 1?
+    if (m_n3dEffectsQueryResult & 0xFF) {
+        chan.SetNotInRoom(!flags.m_IsPausable);
+    }
+
+    chan.Play(playPos, static_cast<int8>(flags.m_nFlags), speed); // TODO: flags for every override
 }
 
 // 0x5B9340
@@ -669,7 +720,7 @@ void CAEAudioHardware::DisableBassEq() {
 }
 
 // 0x4D9500
-void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, int16 flags) {
+void CAEAudioHardware::SetChannelFlags(int16 channel, uint16 channelId, eAudioChannelFlags flags) {
     if (channel >= 0 && channelId < m_anNumChannelsInSlot[channel])
         m_awChannelFlags[channel + channelId] = flags;
 }

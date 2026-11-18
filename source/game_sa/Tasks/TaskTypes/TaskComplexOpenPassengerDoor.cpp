@@ -1,3 +1,15 @@
 #include "StdInc.h"
 
 #include "TaskComplexOpenPassengerDoor.h"
+
+void CTaskComplexOpenPassengerDoor::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexOpenPassengerDoor, 0x86eb3c, 12);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x6403E0, "1", {}, CVehicle*, int32);
+    RH_ScopedDestructorInstall(0x640420);
+
+    RH_ScopedVMTInstall(Clone, 0x6438E0, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x640410, { .Reversed = false });
+
+}

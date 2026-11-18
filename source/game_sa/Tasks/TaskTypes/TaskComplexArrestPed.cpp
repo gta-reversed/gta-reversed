@@ -278,7 +278,7 @@ CTask* CTaskComplexArrestPed::CreateSubTask(eTaskType taskType, CPed* ped) {
         return new CTaskSimpleArrestPed(m_PedToArrest);
 
     case TASK_COMPLEX_KILL_PED_ON_FOOT:
-        return new CTaskComplexKillPedOnFoot(m_PedToArrest, -1, 0, 0, 0, 1);
+        return new CTaskComplexKillPedOnFoot(m_PedToArrest);
 
     case TASK_COMPLEX_DESTROY_CAR:
         return new CTaskComplexDestroyCar(m_PedToArrest->m_pVehicle, 0, 0, 0);

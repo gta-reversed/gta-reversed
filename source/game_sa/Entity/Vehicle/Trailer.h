@@ -88,3 +88,6 @@ private:
 };
 
 VALIDATE_SIZE(CTrailer, 0x9F4);
+
+// define?
+constexpr float BAGGAGE_TRAILER_TOWED_RATIO = -1000.0f;
