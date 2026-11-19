@@ -26,7 +26,7 @@ void CMenuSystem::InjectHooks() {
     RH_ScopedInstall(CreateNewMenu, 0x582300);
     RH_ScopedInstall(ActivateItems, 0x581990);
     RH_ScopedInstall(ActivateOneItem, 0x581B30);
-    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0, { .Reversed = false });
+    RH_ScopedInstall(FillGridWithCarColours, 0x5820E0);
     RH_ScopedInstall(InsertMenu, 0x581E00);
     RH_ScopedInstall(SwitchOffMenu, 0x580750);
 }
@@ -603,7 +603,37 @@ void CMenuSystem::ActivateOneItem(MenuId id, uint8 row, bool enable) {
 
 // 0x5820E0
 void CMenuSystem::FillGridWithCarColours(MenuId id) {
-    plugin::Call<0x5820E0, MenuId>(id);
+    constexpr auto SIMILAR_COLOUR_RANGE = 15;
+
+    const auto IsSimilar = [](const CRGBA& a, const CRGBA& b) {
+        return rng::all_of(rngv::iota(0u, 3u), [&](uint32 i) { // R, G, B
+            return std::abs((int32)a[i] - (int32)b[i]) < SIMILAR_COLOUR_RANGE;
+        });
+    };
+
+    std::array<CRGBA, MENU_CAR_COLOR_COUNT> usedColours;
+    rng::fill(usedColours, CRGBA{ 0, 0, 0, 255 });
+
+    const auto GetColour = [](uint8 colourIdx) {
+        return CVehicleModelInfo::ms_vehicleColourTable[colourIdx].WithAlpha(255);
+    };
+
+    for (uint8 numUsed = 0; numUsed < MENU_CAR_COLOR_COUNT; numUsed++) {
+        const auto numToCheck      = notsa::bugfixes::CMenuSystem_FillGridWithCarColours_ComparesWithEmptySlot ? numUsed : numUsed + 1;
+        const auto IsSimilarToUsed = [&](const CRGBA& colour) {
+            return numUsed > 0 && rng::any_of(usedColours | rngv::take(numToCheck), [&](const CRGBA& used) {
+                return IsSimilar(colour, used);
+            });
+        };
+
+        // Take the first colour that isn't similar to the used ones. If there's none, the last one is used anyway
+        uint8 colourIdx = 0;
+        while (colourIdx + 1 < CVehicleModelInfo::NUM_VEHICLE_COLORS && IsSimilarToUsed(GetColour(colourIdx))) {
+            colourIdx++;
+        }
+        usedColours[numUsed]                       = GetColour(colourIdx);
+        MenuNumber[id]->m_anUsedCarColors[numUsed] = colourIdx;
+    }
 }
 
 // Insert menu column
