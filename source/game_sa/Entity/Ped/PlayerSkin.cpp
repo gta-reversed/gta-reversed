@@ -59,6 +59,8 @@ RwTexture* CPlayerSkin::GetSkinTexture(const char* name) {
         return skinTexture;
     }
 
+    // leftovers from III
+
     const char* imagePath;
     if (!name[0] || !strcmp(name, "$$\"\"")) {
         imagePath = "models\\generic\\player.bmp";
