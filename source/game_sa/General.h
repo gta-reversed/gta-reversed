@@ -11,10 +11,10 @@
 
 //! If you see this value USE THE INTEGER VERSION of `GetRandomNumberInRange`
 //! It's very important to do that, because the int version will is exclusive
-//constexpr float RAND_MAX_INT_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX + 1); // 1.0 / 32768.0 == 1.0 / (RAND_MAX + 1) = 0.0000305175781
+constexpr float RAND_MAX_EXCLUSIVE_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX + 1); // 1.0 / 32768.0 == 1.0 / (RAND_MAX + 1) = 0.0000305175781
 
 //! If you see this value, USE THE FLOAT VERSION of `GetRandomNumberInRange`
-constexpr float RAND_MAX_FLOAT_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX);   // 1.0 / 32767.0 == 1.0 / RAND_MAX       = 0.0000305185094
+constexpr float RAND_MAX_INCLUSIVE_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX);   // 1.0 / 32767.0 == 1.0 / RAND_MAX       = 0.0000305185094
 
 //#define BETTER_RNG
 
@@ -106,7 +106,7 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
         return std::uniform_real_distribution<float>{min, max}(randomEngine);
 #else
         assert(max >= min); // Check is not empty range (We must use `>=` because the `int` version relies on it)
-        return lerp<T>(min, max, static_cast<float>(GetRandomNumber()) * RAND_MAX_FLOAT_RECIPROCAL);
+        return lerp<T>(min, max, static_cast<float>(GetRandomNumber()) * RAND_MAX_INCLUSIVE_RECIPROCAL);
 #endif
     }
 
@@ -117,9 +117,16 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
      */
     template<std::integral T>
     inline T GetRandomNumberInRange(T min, T max, bool inclusive = false) {
-        return inclusive
-            ? static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max)))
-            : static_cast<T>(GetRandomNumberInRange<float>(static_cast<float>(min), static_cast<float>(max) - 1.f));
+        if (inclusive) {
+            assert(max >= min && "Range can't be empty");
+        } else {
+            assert(max > min && "Range can't be empty");
+        }
+        return static_cast<T>(lerp<T>(
+            min,
+            max,
+            static_cast<float>(GetRandomNumber()) * (inclusive ? RAND_MAX_INCLUSIVE_RECIPROCAL : RAND_MAX_EXCLUSIVE_RECIPROCAL)
+        ));
     }
 
     /**
