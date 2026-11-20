@@ -75,12 +75,12 @@ bool CBmx::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
 
 // 0x6BFA30
 void CBmx::ProcessControl() {
-    const float BMX_SPRINT_LEANSTART = FRAC_PI_2;
-    const float BMX_PEDAL_LEANSTART  = 0.0f;
-    const float BMX_SPRINT_LEANMULT  = 0.3f;
-    const float MTB_SPRINT_LEANMULT  = 0.087f;
-    const float BMX_PEDAL_LEANMULT   = 0.07f;
-    const float MTB_PEDAL_LEANMULT   = 0.02f;
+    constexpr float BMX_SPRINT_LEANSTART = HALF_PI;
+    constexpr float BMX_PEDAL_LEANSTART  = 0.0f;
+    constexpr float BMX_SPRINT_LEANMULT  = 0.3f;
+    constexpr float MTB_SPRINT_LEANMULT  = 0.087f;
+    constexpr float BMX_PEDAL_LEANMULT   = 0.07f;
+    constexpr float MTB_PEDAL_LEANMULT   = 0.02f;
 
     CBike::ProcessControl();
 

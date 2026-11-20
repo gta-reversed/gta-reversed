@@ -961,7 +961,7 @@ void CRadar::DrawRotatingRadarSprite(CSprite2d& sprite, float x, float y, float 
     Limit(x, y);
     CVector2D verts[4];
     for (auto i = 0u; i < std::size(verts); i++) {
-        const auto theta = (float)i * HALF_PI + (angle - FRAC_PI_4);
+        const auto theta = (float)i * HALF_PI + (angle - DegreesToRadians(45.0f));
 
         verts[i].x = std::sin(theta) * (float)width + x;
         verts[i].y = std::cos(theta) * (float)height + y;
@@ -1195,8 +1195,8 @@ void CRadar::DrawRadarMask() {
 
         // Then generate a quarter of the circle
         for (auto j = 0; j < 7; j++) {
-            in.x = corner.x * std::cos(float(j) * (FRAC_PI_2 / 6.0f));
-            in.y = corner.y * std::sin(float(j) * (FRAC_PI_2 / 6.0f));
+            in.x = corner.x * std::cos(float(j) * (HALF_PI / 6.0f));
+            in.y = corner.y * std::sin(float(j) * (HALF_PI / 6.0f));
             out[j + 1] = TransformRadarPointToScreenSpace(in);
         };
 
