@@ -26,7 +26,7 @@ void FurnitureGroup_c::Exit() {
 }
 
 // 0x5910E0
-bool FurnitureGroup_c::AddSubGroup(int32 subGroupId, int32 minWidth, int32 minDepth, int32 maxWidth, int32 maxDepth, uint8 canPlaceInFrontOfWindow, bool isTall, bool canSteal) {
+bool FurnitureGroup_c::AddSubGroup(eInteriorSubGroupIdS32 subGroupId, int32 minWidth, int32 minDepth, int32 maxWidth, int32 maxDepth, uint8 canPlaceInFrontOfWindow, bool isTall, bool canSteal) {
     const auto sg = FurnitureManager_c::NewSubGroup();
     if (!sg) {
         return false;
@@ -43,7 +43,7 @@ bool FurnitureGroup_c::AddSubGroup(int32 subGroupId, int32 minWidth, int32 minDe
 }
 
 // 0x591130
-Furniture_c* FurnitureGroup_c::GetFurniture(int32 subGroupId, int16 furnitureId, uint8 wealth) {
+Furniture_c* FurnitureGroup_c::GetFurniture(eInteriorSubGroupIdS32 subGroupId, int16 furnitureId, uint8 wealth) {
     if (const auto sg = GetSubGroup(subGroupId)) {
         return sg->GetFurniture(furnitureId, wealth);
     }
@@ -51,7 +51,7 @@ Furniture_c* FurnitureGroup_c::GetFurniture(int32 subGroupId, int16 furnitureId,
 }
 
 // 0x591170
-int32 FurnitureGroup_c::GetRandomId(int32 subGroupId, uint8 rating) {
+int32 FurnitureGroup_c::GetRandomId(eInteriorSubGroupIdS32 subGroupId, uint8 rating) {
     if (const auto sg = GetSubGroup(subGroupId)) {
         return sg->GetRandomId(rating);
     }
@@ -59,7 +59,7 @@ int32 FurnitureGroup_c::GetRandomId(int32 subGroupId, uint8 rating) {
 }
 
 // 0x5C0230
-bool FurnitureGroup_c::AddFurniture(int32 subGroupId, uint16 modelId, int16 id, uint8 wealthMin, uint8 wealthMax, uint8 maxAng) {
+bool FurnitureGroup_c::AddFurniture(eInteriorSubGroupIdS32 subGroupId, uint16 modelId, int16 id, uint8 wealthMin, uint8 wealthMax, uint8 maxAng) {
     if (const auto sg = GetSubGroup(subGroupId)) {
         return sg->AddFurniture(modelId, id, wealthMin, wealthMax, maxAng);
     }
@@ -67,7 +67,7 @@ bool FurnitureGroup_c::AddFurniture(int32 subGroupId, uint16 modelId, int16 id, 
 }
 
 // notsa
-FurnitureSubGroup_c* FurnitureGroup_c::GetSubGroup(int32 subGroupId) {
+FurnitureSubGroup_c* FurnitureGroup_c::GetSubGroup(eInteriorSubGroupIdS32 subGroupId) {
     for (auto& sg : m_subGroupsList) {
         if (sg.m_SubGroupId == subGroupId) {
             return &sg;

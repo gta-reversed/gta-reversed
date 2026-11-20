@@ -10,7 +10,7 @@
 #include <extensions/utility.hpp>
 
 //! If you see this value USE THE INTEGER VERSION of `GetRandomNumberInRange`
-//! It's very important to do that, because the int version will is exclusive
+//! It's very important to do that, because the int version is exclusive
 //constexpr float RAND_MAX_INT_RECIPROCAL = 1.0f / static_cast<float>(RAND_MAX + 1); // 1.0 / 32768.0 == 1.0 / (RAND_MAX + 1) = 0.0000305175781
 
 //! If you see this value, USE THE FLOAT VERSION of `GetRandomNumberInRange`
@@ -156,6 +156,12 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
         return (uint8)CGeneral::GetRandomNumberInRange(0, 8);
     }
 
+    /*
+    * @addr unk
+    * @brief Set the random seed
+    */
+    static void SetRandomSeed(uint32 s) { srand(s); } // TODO: REMOVE
+  
     template<typename T = float>
     struct PiecewisePair {
         float x;
