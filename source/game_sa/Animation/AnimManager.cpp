@@ -554,10 +554,12 @@ bool CAnimManager::IsAnimInBlock(const CAnimBlendHierarchy* h, const CAnimBlock*
 //! @brief Function for the very common pattern found in many tasks. See xrefs to `CTaskComplexGangLeader::ShouldLoadGangAnims()`
 //! Usual usage would be: `StreamAnimBlock(m_animBlockName, CTaskComplexGangLeader::ShouldLoadGangAnims(), m_areAnimsReferenced)`
 void CAnimManager::StreamAnimBlock(const char* blck, bool shouldBeLoaded, bool& isLoaded) {
-    if (shouldBeLoaded && !isLoaded) {
-        RemoveAnimBlockRef(GetAnimationBlockIndex(blck));
-        isLoaded = false;
-    } else if (!shouldBeLoaded && isLoaded) {
+    if (isLoaded) {
+        if (!shouldBeLoaded) {
+            RemoveAnimBlockRef(GetAnimationBlockIndex(blck));
+            isLoaded = false;
+        }
+    } else if (shouldBeLoaded) {
         const auto blkIdx = GetAnimationBlockIndex(blck);
         if (GetAnimBlocks()[blkIdx].IsLoaded) {
             AddAnimBlockRef(blkIdx);
