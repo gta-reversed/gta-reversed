@@ -36,8 +36,7 @@ CTaskSimpleRunTimedAnim::CTaskSimpleRunTimedAnim(AssocGroupId groupId, Animation
     m_durationMs{ durationMs },
     m_animId{ animId },
     m_animGrpId{ groupId },
-    m_taskId{ taskType }
-{
+    m_taskId{ taskType } {
 }
 
 // 0x61AC50
