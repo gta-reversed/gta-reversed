@@ -136,13 +136,9 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
 // 0x65EA50
 CPed* CTaskComplexGangLeader::TryToPassObject(CPed* ped, CPedGroup* group) {
     const auto [closestPed, distSq] = group->GetMembership().GetMemberClosestTo(ped);
-    if (closestPed && sq(4.f) >= distSq) {
-        if (!closestPed->GetIsTypePed()) {
-            return closestPed;
-        }
-    }
-
-    return nullptr;
+    return closestPed && distSq <= sq(4.f) && !closestPed->IsPlayer()
+        ? closestPed
+        : nullptr;
     /*
     * Using this code causes a crash for some reason (probably some register gets fucked, idk)
     * Crash always on the same offset: 0xebf328

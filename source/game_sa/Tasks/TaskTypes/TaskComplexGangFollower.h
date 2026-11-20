@@ -7,40 +7,42 @@ class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexGangFollower : public CTaskComplex {
 public:
-    CPedGroup* m_PedGroup;
-    CPed*      m_Leader;
-    CVector    m_PedPosn;
-    CVector    dword20;
-    CVector    dword2C;
-    float      dword38;
-    uint8      byte3C;
-    uint8      m_Flags;
-    int32      dword40;
-    int32      dword44;
-    uint8      byte48;
-    uint8      byte49;
-
-public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_GANG_FOLLOWER;
 
     static constexpr bool ms_bUseClimbing = true; // 0x8D2EDC
 
     CTaskComplexGangFollower(CPedGroup* pedGroup, CPed* ped, uint8 a4, CVector pos, float a6);
+    CTaskComplexGangFollower(const CTaskComplexGangFollower&);
     ~CTaskComplexGangFollower() override;
 
-    eTaskType GetTaskType() const  override{ return Type; }
-    CTask* Clone() const override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
-    CTask* CreateNextSubTask(CPed* ped) override;
-    CTask* CreateFirstSubTask(CPed* ped) override;
-    CTask* ControlSubTask(CPed* ped) override;
+    CTask*    Clone() const override { return new CTaskComplexGangFollower{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    CreateNextSubTask(CPed* ped) override;
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override;
 
-    CVector CalculateOffsetPosition();
+    CVector   CalculateOffsetPosition();
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
     CTaskComplexGangFollower* Constructor(CPedGroup* pedGroup, CPed* ped, uint8 uint8, CVector pos, float a6) { this->CTaskComplexGangFollower::CTaskComplexGangFollower(pedGroup, ped, uint8, pos, a6); return this; }
     CTaskComplexGangFollower* Destructor() { this->CTaskComplexGangFollower::~CTaskComplexGangFollower(); return this; }
+
+public:
+    CPedGroup* m_PedGroup{};
+    CPed*      m_Leader{};
+    CVector    m_LeaderInitialPos{};
+    CVector    m_OffsetPos{};
+    CVector    m_InitialOffsetPos{};
+    float      m_TargetRadius{};
+    uint8      m_GrpMemIdx{};
+    bool       m_AnimsRef : 1{false};
+    bool       m_LeaveGroup : 1{false};
+    bool       m_FollowLeader : 1{true};
+    bool       m_IsInPlayersGroup : 1{m_Leader == FindPlayerPed()};
+    bool       m_IsUsingStandingStillOffsets : 1{true};
+    CTaskTimer m_ExhaleTimer{};
 };
 VALIDATE_SIZE(CTaskComplexGangFollower, 0x4C);
