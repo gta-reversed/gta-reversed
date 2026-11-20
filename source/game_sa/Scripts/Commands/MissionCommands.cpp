@@ -42,12 +42,12 @@ void LoadAndLaunchMissionInternal(int32 missionId) {
         return 0u;
     };
 
-    if (CGame::bMissionPackGame) {
+    if (CGame::MissionPackGameId) {
         CFileMgr::ChangeDir("\\");
         size_t bytesRead = 0;
         while (FrontEndMenuManager.CheckMissionPackValidMenu()) {
             CFileMgr::SetDirMyDocuments();
-            sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
+            sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::MissionPackGameId);
             if (StartScriptFromFile(gString) >= 1) {
                 break;
             }

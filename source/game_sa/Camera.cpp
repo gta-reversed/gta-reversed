@@ -9,7 +9,7 @@
 
 auto& TheCamera = StaticRef<CCamera>(0xB6F028);
 auto& gbModelViewer = StaticRef<bool>(0xBA6728);
-auto& gbCineyCamMessageDisplayed = StaticRef<int8>(0x8CC381); // 2
+auto& gCineyCamMessageDisplayed = StaticRef<int8>(0x8CC381); // 2
 auto& gCameraDirection = StaticRef<int32>(0x8CC384);         // 3
 auto& gCameraMode = StaticRef<eCamMode>(0x8CC388);        // -1
 auto& gLastTime2PlayerCameraWasOK = StaticRef<uint32>(0xB6EC24);    // 0
