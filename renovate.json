@@ -20,6 +20,12 @@
     {
       "matchManagers": ["github-actions"],
       "groupName": "ci dependencies"
+    },
+    // Use only `-docking` branch of imgui (otherwise Renovate tracks the stable master)
+    {
+      "matchManagers": ["conan"],
+      "matchPackageNames": ["imgui"],
+      "allowedVersions": "/-docking$/"
     }
   ]
 }
