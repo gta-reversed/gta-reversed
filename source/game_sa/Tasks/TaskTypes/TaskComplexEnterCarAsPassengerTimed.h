@@ -25,6 +25,8 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
+    void SetMoveState(eMoveState ms) { m_MoveState = ms; }
+
 private: // Wrappers for hooks
     // 0x63B030
     CTaskComplexEnterCarAsPassengerTimed* Constructor(CVehicle* vehicle, uint32 targetSeat, uint32 time, bool bCarryOnAfterFallingOff) {
