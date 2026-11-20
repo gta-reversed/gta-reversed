@@ -967,7 +967,8 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
         }
     }
     if (!(CWeaponInfo::GetWeaponInfo(player->GetActiveWeapon().m_Type, eWeaponSkill::STD)->flags.bHeavy)) {
-        if (!player->m_standingOnEntity || !player->m_standingOnEntity->m_bIsStatic || player->m_standingOnEntity->GetHasContacted()) {
+        const auto standingOn = player->m_standingOnEntity ? player->m_standingOnEntity->AsPhysical() : nullptr; // 0x68859D - No type check in the original
+        if (!standingOn || !standingOn->physicalFlags.bDisableCollisionForce || standingOn->physicalFlags.bCollidable) {
             if (!player->GetIntelligence()->GetTaskHold(false) || !((CTaskSimpleHoldEntity*)player->GetIntelligence()->GetTaskHold(false))->m_pAnimBlendAssociation) {
                 CAnimBlendHierarchy* animHierarchy = nullptr;
                 CAnimBlendAssocGroup* animGroup = &CAnimManager::GetAssocGroups()[player->m_nAnimGroup];
