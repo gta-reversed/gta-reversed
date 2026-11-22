@@ -8,7 +8,7 @@ void CTaskComplexKillPedFromBoat::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x622830);
 
     RH_ScopedVMTInstall(Clone, 0x6238A0, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x622820, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x622820);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x622890, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x622900, { .Reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x622980, { .Reversed = false });

@@ -9,7 +9,7 @@ void CEventEditableResponse::InjectHooks() {
     RH_ScopedVirtualClass(CEventEditableResponse, 0x85AB80, 17);
     RH_ScopedCategory("Events");
 
-    RH_ScopedConstructorInstall(0x4AC450, "0", {}, eTaskType);
+    RH_ScopedConstructorInstall(0x4AC450, "0", {}); // NOTE: The original takes no arguments (sets TASK_NONE) - registering it with `eTaskType` made it pop 4 bytes too many off every caller's stack
 
     RH_ScopedVMTInstall(Clone, 0x420ED0);
     RH_ScopedVMTInstall(HasEditableResponse, 0x420EF0);

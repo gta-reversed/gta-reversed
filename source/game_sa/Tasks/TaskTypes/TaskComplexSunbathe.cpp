@@ -15,7 +15,7 @@ void CTaskComplexSunbathe::InjectHooks() {
     //RH_ScopedInstall(CreateSubTask, 0x638290, { .Reversed = false });
 
     RH_ScopedVMTInstall(Clone, 0x6366A0, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x632040, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x632040);
     RH_ScopedVMTInstall(MakeAbortable, 0x6320F0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });

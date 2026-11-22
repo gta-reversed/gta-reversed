@@ -117,8 +117,7 @@ bool CTaskSimpleGoToPoint::ProcessPed(CPed* ped) {
         bool bAimingRotationSet = false;
         const CVector& pedPos = ped->GetPosition();
         CVector2D vecDistance = m_vecTargetPoint - pedPos;
-        CVector2D vecDirection(vecDistance);
-        vecDirection.Normalise();
+        const auto vecDirection = vecDistance.Normalized();
         CVector2D vecDistanceToTargetFromLastPoint = m_vecTargetPoint - m_vecLastPedPos;
         CVector2D vecDistanceToTargetFromPoint = m_vecTargetPoint - (CTimer::GetTimeStep() * ped->m_vecMoveSpeed + pedPos);
         m_vecLastPedPos = pedPos;
