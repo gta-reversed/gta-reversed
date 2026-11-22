@@ -4,8 +4,6 @@
 
 #include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 
-constexpr uint16 PED_STATS_COUNT = 43;
-
 void CPedStats::InjectHooks() {
     RH_ScopedClass(CPedStats);
     RH_ScopedCategoryGlobal();
@@ -14,7 +12,7 @@ void CPedStats::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x608850);
     RH_ScopedInstall(LoadPedStats, 0x5BB890);
     RH_ScopedInstall(GetPedStatType, 0x6088D0);
-    RH_ScopedInstall(FindIndexWithPedStat, 0x608940, { .Reversed = false });
+    RH_ScopedInstall(FindIndexWithPedStat, 0x608940);
 }
 
 // 0x5BF9D0
@@ -126,6 +124,10 @@ CPedStat* CPedStats::GetPedStatByArrayIndex(uint32 statIndex) {
 
 // unused
 // 0x608940
-void CPedStats::FindIndexWithPedStat(void* a1) {
-    plugin::Call<0x608940>();
+int32 CPedStats::FindIndexWithPedStat(const CPedStat* pedStat) {
+    // NOTE: The original returns `0` (which is a valid index) if `pedStat` isn't found, we return `-1` instead
+    return notsa::indexof(
+        GetStats() | rngv::transform([](const CPedStat& stat) { return &stat; }),
+        pedStat
+    );
 }
