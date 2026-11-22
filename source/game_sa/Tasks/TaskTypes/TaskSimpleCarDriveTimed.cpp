@@ -11,11 +11,7 @@ CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTim
 
 // 0x46F610
 bool CTaskSimpleCarDriveTimed::ProcessPed(CPed* ped) {
-    if (!m_nTimer.IsStarted()) { // NOTE: Not `m_nTimer.Start()`, as that does nothing for negative times (the original always starts it)
-        m_nTimer.m_nStartTime = CTimer::GetTimeInMS();
-        m_nTimer.m_nInterval  = m_nTime;
-        m_nTimer.m_bStarted   = true;
-    }
+    m_nTimer.StartIfNotAlready(m_nTime);
     if (m_nTimer.IsOutOfTime()) {
         return true;
     }
