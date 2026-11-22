@@ -467,8 +467,70 @@
 #include "TaskSimpleDuckToggle.h"
 #include "TaskSimpleDieInCar.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
-#include <TaskSimpleTired.h>
-#include <TaskSimpleBeKickedOnGround.h>
+#include "TaskComplexTrackEntity.h"
+#include "TaskSimpleAffectSecondaryBehaviour.h"
+#include "TaskSimpleCarWaitForDoorNotToBeInUse.h"
+#include "TaskSimpleCarWaitToSlowDown.h"
+#include "TaskSimpleCarAlign.h"
+#include "TaskComplexLeaveBoat.h"
+#include "TaskSimpleCarGetOut.h"
+#include "TaskSimpleCarOpenDoorFromOutside.h"
+#include "TaskSimpleCarJumpOut.h"
+#include "TaskSimpleCarCloseDoorFromInside.h"
+#include "TaskSimpleClearLookAt.h"
+#include "TaskSimpleCarWaitToSlowDown.h"
+#include "TaskComplexFleePoint.h"
+#include "TaskSimpleWaitUntilAreaCodesMatch.h"
+#include "TaskSimplePlayerOnFire.h"
+#include "TaskComplexOnFire.h"
+#include "TaskSimpleBikeJacked.h"
+#include "TaskSimpleRunTimedAnim.h"
+#include "TaskSimpleSay.h"
+#include "TaskComplexEnterCar.h"
+#include "TaskComplexLeaveCarAndDie.h"
+#include "TaskSimpleHandsUp.h"
+#include "TaskComplexEnterCar.h"
+#include "TaskComplexSmartFleePoint.h"
+#include "Interior/TaskInteriorBeInHouse.h"
+#include "Tasks/TaskTypes/TaskComplexKillPedOnFootArmed.h"
+#include "Tasks/TaskTypes/TaskSimpleWaitUntilLeaderAreaCodesMatch.h"
+#include "Tasks/TaskTypes/TaskComplexUseClosestFreeScriptedAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexUseClosestFreeScriptedAttractorRun.h"
+#include "Tasks/TaskTypes/TaskComplexUseClosestFreeScriptedAttractorSprint.h"
+#include "Tasks/TaskTypes/TaskComplexEnterCarAsPassengerWait.h"
+#include "Tasks/TaskTypes/TaskComplexEvasiveCower.h"
+#include "Tasks/TaskTypes/TaskComplexFollowPatrolRoute.h"
+#include "Tasks/TaskTypes/TaskComplexOpenDriverDoor.h"
+#include "Tasks/TaskTypes/TaskComplexOpenPassengerDoor.h"
+#include "Tasks/TaskTypes/TaskComplexScreamInCarThenLeave.h"
+#include "Tasks/TaskTypes/TaskComplexUsePairedAttractor.h"
+#include "Tasks/TaskTypes/TaskSimpleBeKickedOnGround.h"
+#include "Tasks/TaskTypes/TaskSimpleCarForcePedOut.h"
+#include "Tasks/TaskTypes/TaskSimpleDead.h"
+#include "Tasks/TaskTypes/TaskSimpleDoHandSignal.h"
+#include "Tasks/TaskTypes/TaskSimpleEvasiveDive.h"
+#include "Tasks/TaskTypes/TaskSimpleEvasiveStep.h"
+#include "Tasks/TaskTypes/TaskSimpleOnEscalator.h"
+#include "Tasks/TaskTypes/TaskSimpleTired.h"
+#include "Tasks/TaskTypes/TaskSimpleThrowControl.h"
+#include "Tasks/TaskTypes/TaskSimpleAbseil.h"
+#include "Tasks/TaskTypes/TaskComplexUseMobilePhone.h"
+#include "Tasks/TaskTypes/TaskSimpleScratchHead.h"
+#include "Tasks/TaskTypes/TaskSimpleChoking.h"
+#include "Tasks/TaskTypes/TaskSimpleGangDriveBy.h"
+#include "Tasks/TaskTypes/TaskComplexHitPedWithCar.h"
+#include "Tasks/TaskTypes/TaskComplexGoPickUpEntity.h"
+#include "Tasks/TaskTypes/TaskComplexDragPedFromCar.h"
+#include "Tasks/TaskTypes/TaskComplexEvasiveStep.h"
+#include "Tasks/TaskTypes/TaskComplexWaitForPed.h"
+#include "Tasks/TaskTypes/TaskComplexCrossRoadLookAndAchieveHeading.h"
+#include "Tasks/TaskTypes/TaskComplexBeInCouple.h"
+#include "Tasks/TaskTypes/TaskComplexCarDriveWander.h"
+
+// Interior Tasks
+#include "Tasks/TaskTypes/Interior/TaskInteriorSitInChair.h"
+#include "Tasks/TaskTypes/Interior/TaskInteriorUseInfo.h"
+#include "TaskComplexSmartFleePoint.h"
 
 #include "EventSeenPanickedPed.h"
 #include "EventCarUpsideDown.h"
@@ -1128,6 +1190,7 @@ void InjectHooksMain() {
         CTaskSimpleHandsUp::InjectHooks();
         CTaskSimpleHitByGunFromFront::InjectHooks();
         CTaskSimpleHitByGunFromLeft::InjectHooks();
+        CTaskSimpleHitByGunFromRear::InjectHooks();
         CTaskSimpleHitByGunFromRight::InjectHooks();
         CTaskSimpleHitFromBack::InjectHooks();
         CTaskSimpleHitFromBehind::InjectHooks();
@@ -1156,6 +1219,33 @@ void InjectHooksMain() {
         CTaskSimpleUseAtm::InjectHooks();
         CTaskSimpleTurn180::InjectHooks();
         CTaskSimpleWaitForBus::InjectHooks();
+        CTaskSimpleWaitUntilAreaCodesMatch::InjectHooks();
+        CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
+        CTaskSimpleWaitUntilPedIsInCar::InjectHooks();
+        CTaskSimpleWaitUntilPedIsOutCar::InjectHooks();
+        CTaskComplexSequence::InjectHooks();
+        CTaskSimpleCarSlowDragPedOut::InjectHooks();
+        CTaskManager::InjectHooks();
+        CTaskSimpleCreateCarAndGetIn::InjectHooks();
+        CTaskComplexEnterAnyCarAsDriver::InjectHooks();
+        CTaskComplexLeaveAnyCar::InjectHooks();
+        CTaskSimpleAbseil::InjectHooks();
+        CTaskComplexWanderCop::InjectHooks();
+        CTaskComplexUseMobilePhone::InjectHooks();
+        CTaskSimpleStandStill::InjectHooks();
+        CTaskSimpleCarDrive::InjectHooks();
+        CTaskSimpleScratchHead::InjectHooks();
+        CTaskComplexPartnerChat::InjectHooks();
+        CTaskSimpleUseGun::InjectHooks();
+        CTaskSimpleGangDriveBy::InjectHooks();
+        CTaskComplexObserveTrafficLightsAndAchieveHeading::InjectHooks();
+        CTaskSimpleInAir::InjectHooks();
+        CTaskComplexHitPedWithCar::InjectHooks();
+        CTaskSimplePlayerOnFoot::InjectHooks();
+        CTaskComplexFollowPedFootsteps::InjectHooks();
+        CTaskComplexGetUpAndStandStill::InjectHooks();
+        CTaskComplexGoPickUpEntity::InjectHooks();
+        CTaskSimpleDie__InjectHooks();
         CTaskSimpleDuck::InjectHooks();
         CTaskComplexPolicePursuit::InjectHooks();
         CTaskSimpleFacial::InjectHooks();
