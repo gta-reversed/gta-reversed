@@ -16,6 +16,8 @@ public:
     bool       AffectsPed(CPed* ped) override;
     bool       TakesPriorityOver(const CEvent& refEvent) override;
 
+    auto GetAcceleration() const { return m_acceleration; }
+
 public:
     static void InjectHooks();
 
