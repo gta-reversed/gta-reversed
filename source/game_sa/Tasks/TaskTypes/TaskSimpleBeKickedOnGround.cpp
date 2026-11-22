@@ -11,7 +11,7 @@ CTaskSimpleBeKickedOnGround::~CTaskSimpleBeKickedOnGround() {
 
 // 0x61FD10
 void CTaskSimpleBeKickedOnGround::FinishAnimBeKickedOnGroundCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = notsa::cast<CTaskSimpleBeKickedOnGround>(data);
+    const auto self = notsa::cast<CTaskSimpleBeKickedOnGround>(static_cast<CTask*>(data));
     self->m_Anim = nullptr;
     self->m_IsFinished = true;
 }
