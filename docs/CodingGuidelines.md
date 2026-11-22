@@ -1,6 +1,7 @@
 # General rules
 * Do not change code already written unless it's related to your contribution or absolutely needed.
 * Please check and try to eliminate warnings from your code.
+* Do not use functions marked with `[[deprecated]]`
 
 # Code style
 * 4 space indentation, LF line endings
