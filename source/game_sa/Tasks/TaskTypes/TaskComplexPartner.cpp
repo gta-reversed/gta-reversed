@@ -48,8 +48,8 @@ CTaskComplexPartner::~CTaskComplexPartner() {
 
 // 0x681FE0
 void CTaskComplexPartner::CalcTargetPositions(CPed * ped, CVector * point, CVector * targetPoint) {
-    const auto pedPos     = ped->GetPosition();
-    const auto partnerPos = m_partner->GetPosition();
+    const auto& pedPos     = ped->GetPosition();
+    const auto& partnerPos = m_partner->GetPosition();
 
     auto dir              = partnerPos - pedPos;
     auto mid              = pedPos + dir * m_distanceMultiplier;
@@ -160,7 +160,7 @@ CTask * CTaskComplexPartner::CreateNextSubTask(CPed * ped) {
                 // Make sure the ped wanders off the way it's facing after this
                 auto* const defaultTask = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT);
                 if (defaultTask && defaultTask->GetTaskType() == TASK_COMPLEX_WANDER && static_cast<CTaskComplexWander*>(defaultTask)->GetWanderType() == WANDER_TYPE_STANDARD) {
-                    const auto fwd    = ped->GetForward();
+                    const auto& fwd    = ped->GetForward();
                     auto*      wander = new CTaskComplexWanderStandard{ PEDMOVE_WALK, (uint8)CGeneral::GetNodeHeadingFromVector(-fwd.x, -fwd.y), true };
                     wander->SetMinNextScanTime(CTimer::GetTimeInMS() + 100'000);
                     ped->GetTaskManager().SetTask(wander, TASK_PRIMARY_DEFAULT);
