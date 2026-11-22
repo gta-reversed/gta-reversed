@@ -10,7 +10,7 @@ void CTaskComplexPartner::InjectHooks() {
     RH_ScopedDestructorInstall(0x683A40);
 
     RH_ScopedInstall(CalcTargetPositions, 0x681FE0, { .Reversed = false });
-    RH_ScopedInstall(GetPartnerState, 0x6822B0, { .Reversed = false });
+    RH_ScopedInstall(GetPartnerState, 0x6822B0);
     RH_ScopedVMTInstall(GetTaskType, 0x681F10);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x683AD0, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x681F20, { .Reversed = false });
@@ -47,7 +47,10 @@ void CTaskComplexPartner::CalcTargetPositions(CPed * ped, CVector * point, CVect
 
 // 0x6822B0
 int32 CTaskComplexPartner::GetPartnerState() {
-    return plugin::CallMethodAndReturn<int32, 0x6822B0, CTaskComplexPartner*>(this);
+    if (const auto* const tComplexPartnerOfPartner = m_partner->GetTaskManager().Find<CTaskComplexPartner>(true)) {
+        return (int32)tComplexPartnerOfPartner->m_partnerState;
+    }
+    return 0;
 }
 
 // 0x683AD0

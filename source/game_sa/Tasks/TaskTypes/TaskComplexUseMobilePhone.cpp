@@ -18,7 +18,11 @@ void CTaskComplexUseMobilePhone::RemovePhoneModel(CPed* ped) {
 
 // 0x634A40
 int8 CTaskComplexUseMobilePhone::Stop(CPed* ped) {
-    return plugin::CallMethodAndReturn<int8, 0x634A40, CTaskComplexUseMobilePhone*, CPed*>(this, ped);
+    if (m_IsQuitting) {
+        return true;
+    }
+    m_IsQuitting = true;
+    return MakeAbortable(ped);
 }
 
 // 0x634930
@@ -49,7 +53,7 @@ void CTaskComplexUseMobilePhone::InjectHooks() {
     RH_ScopedDestructorInstall(0x6348E0);
 
     RH_ScopedGlobalInstall(RemovePhoneModel, 0x6348F0, { .Reversed = false });
-    RH_ScopedInstall(Stop, 0x634A40, { .Reversed = false });
+    RH_ScopedInstall(Stop, 0x634A40);
     RH_ScopedVMTInstall(Clone, 0x636FD0);
     RH_ScopedVMTInstall(GetTaskType, 0x6348D0);
     RH_ScopedVMTInstall(MakeAbortable, 0x634930, { .Reversed = false });
