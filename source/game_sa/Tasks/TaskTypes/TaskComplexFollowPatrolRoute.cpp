@@ -16,7 +16,7 @@ void CTaskComplexFollowPatrolRoute::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x66BA90, { .Reversed = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x670D80, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x670E20, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x66BB00, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x66BB00);
 }
 
 // 0x674930
@@ -66,5 +66,9 @@ CTask* CTaskComplexFollowPatrolRoute::CreateFirstSubTask(CPed* ped) {
 
 // 0x66BB00
 CTask* CTaskComplexFollowPatrolRoute::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x66BB00, CTaskComplexFollowPatrolRoute*, CPed*>(this, ped);
+    if (m_IsNewRoute || m_IsAborting) { // Start over
+        m_Progress = 0;
+        return CreateFirstSubTask(ped);
+    }
+    return m_pSubTask;
 }
