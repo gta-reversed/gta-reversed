@@ -48,6 +48,7 @@ void CPedIntelligence::InjectHooks()
     RH_ScopedInstall(Destructor, 0x607300);
 
     RH_ScopedInstall(GetPedEntities, 0x4893E0);
+    RH_ScopedInstall(IncrementAngerAtPlayer, 0x421050); // Was hooked as CMentalState::IncrementAnger, but `this` is the CPedIntelligence
     RH_ScopedInstall(SetPedDecisionMakerType, 0x600B50);
     RH_ScopedInstall(SetPedDecisionMakerTypeInGroup, 0x600BB0);
     RH_ScopedInstall(RestorePedDecisionMakerType, 0x600BC0);
